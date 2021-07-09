@@ -176,8 +176,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.UpperLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -186,7 +186,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0)
         self:zoomto(actuals.Width, actuals.LipSeparatorThickness)
-        self:diffuse(color(".4,.4,.4,.7"))
+        self:diffusealpha(0.3)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 
@@ -446,6 +447,7 @@ local function createList()
                     self:xy(actuals.ItemIndexLeftGap, actuals.ItemHeight)
                     self:zoom(itemIndexSize)
                     self:maxwidth(actuals.ItemIndexWidth / itemIndexSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -476,6 +478,7 @@ local function createList()
                     self:xy(actuals.LeftCenteredAlignmentLineLeftGap - actuals.LeftCenteredAlignmentDistance, actuals.ItemHeight)
                     self:zoom(rateTextSize)
                     self:maxwidth(actuals.SSRRateWidth / rateTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -491,6 +494,7 @@ local function createList()
                     self:x(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance)
                     self:zoom(nameTextSize)
                     self:maxwidth(actuals.NameJudgmentWidth / nameTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -515,6 +519,7 @@ local function createList()
                     self:xy(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance, actuals.ItemHeight)
                     self:zoom(judgmentTextSize)
                     self:maxwidth(actuals.NameJudgmentWidth / judgmentTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -540,6 +545,9 @@ local function createList()
                     -- the icons take up the other half probably
                     self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / 6 * 4 / wifePercentTextSize)
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetScore")
+                end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
                         local wifeStr = string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
@@ -556,6 +564,7 @@ local function createList()
                     self:xy(actuals.ItemWidth - actuals.RightInfoRightAlignRightGap, actuals.ItemHeight)
                     self:zoom(dateTextSize)
                     self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / dateTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -569,6 +578,7 @@ local function createList()
                     self:halign(1):valign(0)
                     self:x(actuals.RightInfoLeftAlignLeftGap)
                     self:zoomto(actuals.PlaySize, actuals.PlaySize)
+                    registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -615,6 +625,7 @@ local function createList()
                     self:halign(1):valign(0)
                     self:x(actuals.RightInfoLeftAlignLeftGap + actuals.TrophySize * 1.2)
                     self:zoomto(actuals.TrophySize, actuals.TrophySize)
+                    registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -672,6 +683,7 @@ local function createList()
                     self:zoom(rateTextSize)
                     self:maxwidth(actuals.ScoreRateListWidth / rateTextSize - textzoomFudge)
                     self:settext("")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -787,6 +799,7 @@ local function createList()
                     self:valign(0)
                     self:xy(actuals.ScoreRateListWidth / 2, 0)
                     self:settext("^")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 UpdateListCommand = function(self)
                     if ratepage-1 < 1 or maxratepage == 1 then
@@ -818,6 +831,7 @@ local function createList()
                     self:xy(actuals.ScoreRateListWidth / 2, actuals.ScoreRateListBottomTopGap)
                     self:rotationz(180)
                     self:settext("^")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 UpdateListCommand = function(self)
                     if ratepage+1 > maxratepage or maxratepage == 1 then
@@ -886,6 +900,9 @@ local function createList()
                 self:maxwidth((actuals.DetailLineLeftGap - actuals.SideBufferGap) / gradeTextSize - textzoomFudge)
                 self:settext("")
             end,
+            ColorConfigUpdatedMessageCommand = function(self)
+                self:playcommand("UpdateList")
+            end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local grade = THEME:GetString("Grade", ToEnumShortString(localscore:GetWifeGrade()))
@@ -903,6 +920,9 @@ local function createList()
                 self:maxwidth((actuals.DetailLineLeftGap - actuals.SideBufferGap) / clearTypeTextSize - textzoomFudge)
                 self:settext("")
             end,
+            ColorConfigUpdatedMessageCommand = function(self)
+                self:playcommand("UpdateList")
+            end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local ct = getClearTypeFromScore(localscore, 0)
@@ -917,6 +937,7 @@ local function createList()
                 self:halign(0):valign(0)
                 self:xy(actuals.SideBufferGap, actuals.IconSetUpperGap)
                 self:zoomto(actuals.PlaySize, actuals.IconHeight)
+                registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
@@ -953,6 +974,7 @@ local function createList()
                 self:halign(0):valign(0)
                 self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.IconSetSpacing, actuals.IconSetUpperGap)
                 self:zoomto(actuals.TrophySize, actuals.IconHeight)
+                registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
@@ -990,6 +1012,7 @@ local function createList()
                 self:halign(0):valign(0)
                 self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.TrophySize + actuals.IconSetSpacing * 2, actuals.IconSetUpperGap)
                 self:zoomto(actuals.PlaySize, actuals.IconHeight)
+                registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
@@ -1030,6 +1053,9 @@ local function createList()
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
                 self:settext("11.11 | 11.11% (Wife 0 | Judge 0)")
             end,
+            ColorConfigUpdatedMessageCommand = function(self)
+                self:playcommand("UpdateList")
+            end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local ssrstr = string.format("%5.2f", localscore:GetSkillsetSSR("Overall"))
@@ -1046,6 +1072,8 @@ local function createList()
                     local js = judge ~= 9 and judge or "Justice"
                     local perc = string.format("%5.2f%%", notShit.floor(wife, 2))
                     self:ClearAttributes()
+                    self:diffuse(COLORS:getMainColor("PrimaryText"))
+                    self:diffusealpha(1)
                     self:settextf("%s | %s (%s | Judge %s)", ssrstr, perc, wv, js)
                     self:AddAttribute(0, {Length = #ssrstr, Diffuse = ssrcolr})
                     self:AddAttribute(#string.format("%s | ", ssrstr), {Length = #perc, Diffuse = wifecolr})
@@ -1060,6 +1088,7 @@ local function createList()
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
                 self:settext("")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
@@ -1080,6 +1109,7 @@ local function createList()
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
                 self:settext("")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
@@ -1096,6 +1126,7 @@ local function createList()
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
                 self:settext("")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
@@ -1112,6 +1143,7 @@ local function createList()
                 self:zoom(detailTextSize)
                 self:maxwidth((actuals.Width - actuals.SideBufferGap - actuals.DetailLineLeftGap) / detailTextSize - textzoomFudge)
                 self:settext("")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
@@ -1244,6 +1276,7 @@ local function createList()
             self:x(actuals.Width / 2)
             self:maxwidth(actuals.Width / loadingTextSize - textzoomFudge)
             self:diffusealpha(0)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         UpdateListCommand = function(self)
             self:finishtweening()
@@ -1284,6 +1317,7 @@ local function createList()
             self:xy(actuals.Width - actuals.PageTextRightGap, actuals.PageTextUpperGap)
             self:zoom(pageTextSize)
             self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         UpdateListCommand = function(self)
             -- nil scores = no scores
@@ -1396,6 +1430,7 @@ local function createList()
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                     txt:settext(choiceNames[i][nameIndex])
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
                     if choiceOnlineOnly[i] and isLocal or not DLMAN:IsLoggedIn() then
                         self:diffusealpha(0)
