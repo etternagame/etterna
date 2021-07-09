@@ -229,6 +229,7 @@ local function upperSection()
                     self:halign(0)
                     self:settextf("%s:", entryTextTable[i])
                     self:maxwidth((actuals.Width - actuals.EdgePadding * 2) / textSize - textZoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -262,6 +263,14 @@ local function upperSection()
                     self:halign(0)
                     self:settext("")
                     self:maxwidth((actuals.Width - actuals.EdgePadding * 2 - rowtext:GetZoomedWidth() - textinputbuffer) / textSize - textZoomFudge)
+                    self:diffuse(COLORS:getMainColor("SecondaryText"))
+                    self:diffusealpha(1)
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    local ab4 = self:GetDiffuseAlpha()
+                    self:diffuse(COLORS:getMainColor("SecondaryText"))
+                    self:diffusealpha(ab4)
+                    self:playcommand("UpdateSearchFocus")
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -279,7 +288,7 @@ local function upperSection()
                 end,
                 UpdateSearchFocusMessageCommand = function(self)
                     if focusedField == i then
-                        self:strokecolor(color("0.65,0.65,0.65,0.85"))
+                        self:strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.85))
                         self:diffusealpha(1)
                     else
                         self:strokecolor(color("1,1,1,0"))
@@ -309,6 +318,7 @@ local function upperSection()
                     self:zoomto(10,2)
                     -- disabled for now
                     self:visible(false)
+                    registerActorToColorConfigElement(self, "main", "SeparationDivider")
                 end,
                 UpdateSearchFocusMessageCommand = function(self)
                     if focusedField == i then
@@ -594,6 +604,7 @@ local function lowerSection()
                     self:zoom(textSize)
                     self:maxwidth((actuals.SliderColumnLeftGap - actuals.EdgePadding) / textSize - textZoomFudge)
                     self:settext(theName)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
             },
             Def.ActorFrame {
@@ -607,8 +618,8 @@ local function lowerSection()
                     Texture = THEME:GetPathG("", "sliderBar"),
                     InitCommand = function(self)
                         self:halign(0)
-                        self:diffuse(color("0,0,0"))
                         self:diffusealpha(0.6)
+                        registerActorToColorConfigElement(self, "generalBox", "SliderBackground")
                         -- we want the bg to actually be just barely larger for reasons
                         -- visually it makes everything look a lot better
                         -- because otherwise the dots end up outside the visible bg at the edges
@@ -620,7 +631,6 @@ local function lowerSection()
                     Name = "SliderButtonArea",
                     InitCommand = function(self)
                         self:halign(0)
-                        self:diffuse(color("0,0,0"))
                         self:diffusealpha(0)
                         self:zoomto(width, actuals.SliderThickness)
                     end,
@@ -731,6 +741,7 @@ local function lowerSection()
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
                         self:zoomto(hypotenuse, hypotenuse)
                         self:playcommand("UpdateDots")
+                        registerActorToColorConfigElement(self, "main", "SeparationDivider")
                     end,
                     UpdateDotsCommand = function(self)
                         local lb, ub = theGetter()
@@ -746,6 +757,7 @@ local function lowerSection()
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
                         self:zoomto(hypotenuse, hypotenuse)
                         self:playcommand("UpdateDots")
+                        registerActorToColorConfigElement(self, "main", "SeparationDivider")
                     end,
                     UpdateDotsCommand = function(self)
                         local lb, ub = theGetter()
@@ -771,6 +783,7 @@ local function lowerSection()
                 self:halign(0)
                 self:xy(actuals.RightColumnLeftGap, (actuals.LowerSectionHeight / tblAndOne) * (i-1) + (actuals.LowerSectionHeight / tblAndOne / 2))
                 self:maxwidth((actuals.Width - actuals.EdgePadding - actuals.RightColumnLeftGap) / textSize - textZoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end
         }
     end
@@ -949,8 +962,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.Height)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "PrimaryBackground")
     end
 }
 
@@ -959,8 +972,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.TopLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -972,6 +985,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:zoom(textSize)
         self:maxwidth(actuals.Width / textSize - textZoomFudge)
         self:settext("Search and Filters")
+        registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
 }
 
@@ -981,7 +995,7 @@ t[#t+1] = Def.Quad {
         self:halign(0):valign(0)
         self:xy(actuals.EdgePadding, actuals.UpperSectionHeight)
         self:zoomto(actuals.Width - actuals.EdgePadding * 2, actuals.DividerThickness)
-        self:diffuse(color("1,1,1,1"))
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 

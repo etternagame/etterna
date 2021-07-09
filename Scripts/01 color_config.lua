@@ -13,7 +13,7 @@ local defaultConfig = {
 		SecondaryText = "#ffffff",
 		IconColor = "#ffffff",
 		Visualizer = "#ffffff",
-		SeparationDivider = "#ffffff",
+		SeparationDivider = "#ffffff", -- also some accents like slider markers
 	},
 	leaderboard = {
 		Background = "#111111cc",
@@ -31,6 +31,7 @@ local defaultConfig = {
 		Permamirror = "#1111bb",
 	},
 	generalBox = {
+		SliderBackground = "#000000",
 		RequiredTag = "#8888ff",
 		AssignedTag = "#ff8888",
 		FilteredTag = "#88ff88",
