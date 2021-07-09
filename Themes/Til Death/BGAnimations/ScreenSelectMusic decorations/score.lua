@@ -134,7 +134,11 @@ local ret =
 		end
 	end,
 	OffCommand = function(self)
-		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0) -- visible(false)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		self:sleep(0.04):queuecommand("Invis")
+	end,
+	InvisCommand= function(self)
+		self:visible(false)
 		self:GetChild("LocalScores"):visible(false)
 	end,
 	OnCommand = function(self)

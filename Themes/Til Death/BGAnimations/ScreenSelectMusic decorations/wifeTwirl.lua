@@ -154,6 +154,10 @@ local t =
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 		toggleCalcInfo(false)
+		self:sleep(0.04):queuecommand("Invis")
+	end,
+	InvisCommand= function(self)
+		self:visible(false)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
@@ -273,6 +277,7 @@ local t =
 				setPreviewPartsState(true)
 			end
 
+			self:visible(true)
 			self:queuecommand("On")
 			update = true
 		else
