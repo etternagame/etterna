@@ -3,6 +3,7 @@
 return Def.Quad {
 	Name = "MaxCombo",
 	InitCommand = function(self)
-		self:diffuse(color("0.6,0.6,0.6,0.8"))
+		self:diffusealpha(0.8)
+		registerActorToColorConfigElement(self, "evaluation", "MaxComboText")
 	end
 }

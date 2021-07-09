@@ -313,6 +313,7 @@ local function subTypeStats()
                     self:zoom(subTypeTextZoom)
                     self:maxwidth((actuals.SubTypeNumberCenter - subTypeTextBump - actuals.SubTypeNumberWidth / 2) / subTypeTextZoom - textzoomFudge)
                     self:settext(rdr)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end
             },
             Def.RollingNumbers {
@@ -325,6 +326,7 @@ local function subTypeStats()
                     self:zoom(subTypeTextZoom)
                     self:maxwidth((actuals.SubTypeNumberWidth / 2 - subTypeTextBump) / subTypeTextZoom - textzoomFudge)
                     self:targetnumber(0)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self, params)
                     if params.score == nil then
@@ -343,6 +345,7 @@ local function subTypeStats()
                     self:x(actuals.SubTypeNumberCenter)
                     self:zoom(subTypeTextZoom)
                     self:settext("/")
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end
             },
             Def.RollingNumbers {
@@ -355,6 +358,7 @@ local function subTypeStats()
                     self:zoom(subTypeTextZoom)
                     self:maxwidth((actuals.SubTypeNumberWidth / 2 - subTypeTextBump) / subTypeTextZoom - textzoomFudge)
                     self:targetnumber(0)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self, params)
                     if params.score == nil then
@@ -510,6 +514,7 @@ local function accuracyStats()
                     self:zoom(accStatZoom)
                     self:maxwidth((actuals.JudgmentBarLength - actuals.StatTextRightGap - actuals.SubTypeNumberCenter - subTypeTextBump - actuals.SubTypeTextLeftGap) / 1.25 / accStatZoom - textzoomFudge)
                     self:targetnumber(0)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 UpdateStatsCommand = function(self, params)
                     if statData[i] == -1 then
@@ -681,6 +686,7 @@ local function calculatedStats()
                     self:zoom(statTextZoom)
                     self:maxwidth(actuals.StatTextRightGap / 2 / statTextZoom - textzoomFudge)
                     self:settext(statname)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end
             },
             Def.RollingNumbers {
@@ -695,6 +701,7 @@ local function calculatedStats()
                     -- no fudge
                     self:maxwidth(actuals.StatTextRightGap / 2 / statTextZoom)
                     self:targetnumber(0)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 UpdateStatsCommand = function(self, params)
                     self:targetnumber(statData[i])
@@ -774,6 +781,9 @@ local function wifePercentDisplay()
         UpdateTextCommand = function(self)
             self:settextf(stringformat, notShit.floor(value, decimals), infostr)
         end,
+        ColorConfigUpdatedMessageCommand = function(self)
+            self:playcommand("Set")
+        end,
         SetCommand = function(self, params)
             if params.score ~= nil then
                 local ver = params.score:GetWifeVers()
@@ -823,8 +833,8 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:valign(0):halign(0)
             self:zoomto(actuals.Width, actuals.Height)
-            self:diffuse(color("#111111"))
             self:diffusealpha(0.75)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
         end
     },
     Def.Quad {
@@ -833,7 +843,8 @@ t[#t+1] = Def.ActorFrame {
             self:valign(0):halign(0)
             self:x(actuals.LipLeftGap)
             self:zoomto(actuals.LipLength, actuals.LipHeight)
-            self:diffuse(color("#111111"))
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "main", "SecondaryBackground")
         end
     },
     Def.Quad {
@@ -842,6 +853,7 @@ t[#t+1] = Def.ActorFrame {
             self:valign(0):halign(0)
             self:zoomto(actuals.LeftDividerLength, actuals.DividerThickness)
             self:xy(actuals.LeftDividerLeftGap, actuals.LeftDivider1UpperGap)
+            registerActorToColorConfigElement(self, "main", "SeparationDivider")
         end
     },
     Def.Quad {
@@ -850,6 +862,7 @@ t[#t+1] = Def.ActorFrame {
             self:valign(0):halign(0)
             self:zoomto(actuals.LeftDividerLength, actuals.DividerThickness)
             self:xy(actuals.LeftDividerLeftGap, actuals.LeftDivider2UpperGap)
+            registerActorToColorConfigElement(self, "main", "SeparationDivider")
         end
     },
     Def.Quad {
@@ -858,6 +871,7 @@ t[#t+1] = Def.ActorFrame {
             self:valign(0):halign(0)
             self:zoomto(actuals.RightHorizontalDividerLength, actuals.DividerThickness)
             self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider1UpperGap)
+            registerActorToColorConfigElement(self, "main", "SeparationDivider")
         end
     },
     Def.Quad {
@@ -866,6 +880,7 @@ t[#t+1] = Def.ActorFrame {
             self:valign(0):halign(0)
             self:zoomto(actuals.RightHorizontalDividerLength, actuals.DividerThickness)
             self:xy(actuals.RightHalfLeftGap, actuals.RightHorizontalDivider2UpperGap)
+            registerActorToColorConfigElement(self, "main", "SeparationDivider")
         end
     },
 
@@ -905,6 +920,7 @@ t[#t+1] = Def.ActorFrame {
             -- i don't like that
             self:Load("GraphDisplay")
             self:zoomto(actuals.GraphWidth, actuals.LifeGraphHeight)
+            registerActorToColorConfigElement(self, "evaluation", "LifeGraphTint")
 
             -- hide the max life line and its dots (why does this exist?)
             self:GetChild("Line"):diffusealpha(0)
@@ -923,6 +939,7 @@ t[#t+1] = Def.ActorFrame {
             -- due to reasons, the sizing for this is in metrics [ComboGraph]
             -- we dont override them here because the combo text is broken by the zoom
             -- self:zoomto(actuals.GraphWidth, actuals.ComboGraphHeight)
+            registerActorToColorConfigElement(self, "evaluation", "ComboGraphTint")
         end,
         SetCommand = function(self, params)
             self:Clear()
@@ -941,6 +958,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(modTextZoom)
             self:maxwidth(actuals.BannerWidth / modTextZoom - textzoomFudge)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetCommand = function(self, params)
             local mstr = params.score:GetModifiers()
@@ -986,6 +1004,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.RightHalfLeftGap, actuals.LipHeight / 2)
             self:halign(0)
             self:zoom(titleTextSize)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
             if GAMESTATE:GetCurrentSteps() ~= nil then
                 local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(GAMESTATE:GetCurrentSteps():GetStepsType()))
                 self:settextf("%s Results", st)
@@ -1029,6 +1048,7 @@ t[#t+1] = Def.ActorFrame {
                 -- allow 3/4 the width of the area
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 * 3 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end
         },
         LoadFont("Common Large") .. {
@@ -1039,6 +1059,7 @@ t[#t+1] = Def.ActorFrame {
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayArtist())
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end
         },
         LoadFont("Common Large") .. {
@@ -1049,6 +1070,7 @@ t[#t+1] = Def.ActorFrame {
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetGroupName())
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end
         },
         LoadFont("Common Large") .. {
@@ -1058,6 +1080,7 @@ t[#t+1] = Def.ActorFrame {
                 self:y(-actuals.SongRateLowerGap)
                 self:zoom(songInfoTextSize)
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             SetCommand = function(self, params)
                 if params.score then
@@ -1131,6 +1154,8 @@ t[#t+1] = Def.ActorFrame {
                     local ssrstr = string.format("%5.2f", ssr)
                     self:settextf("%s  ~  %s %s", msdstr, ssrstr, diff)
                     self:ClearAttributes()
+                    self:diffuse(COLORS:getMainColor("PrimaryText"))
+                    self:diffusealpha(1)
                     self:AddAttribute(0, {Length = #msdstr, Zoom = scoreInfoTextSize, Diffuse = colorByMSD(msd)})
                     self:AddAttribute(#msdstr + #"  ~  ", {Length = #ssrstr, Zoom = scoreInfoTextSize, Diffuse = colorByMSD(tonumber(ssrstr))})
                     self:AddAttribute(#msdstr + #"  ~  " + #ssrstr, {Length = -1, Zoom = scoreInfoTextSize, Diffuse = diffcolor})

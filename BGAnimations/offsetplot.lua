@@ -22,8 +22,6 @@ local textPadding = 5
 local textSize = Var("textsize") or 0.65
 local instructionTextSize = 0.55
 
-local bgColor = color("0,0,0,0.8")
-local positionColor = color("0.7,0.2,0.2,0.7")
 local dotAnimationSeconds = 1
 local resizeAnimationSeconds = 0.1
 local unHighlightedAlpha = 0.2
@@ -36,9 +34,6 @@ local dotLineLowerBound = 0.7
 -- length of the dot lines for the mine X
 local mineXSize = 3
 local mineXThickness = 1
-local mineColor = color("1,0,0,1")
-local rollColor = color("1,0,1,1")
-local holdColor = color("1,0,0,1")
 
 -- judgment windows to display on the plot
 local barJudgments = {
@@ -67,6 +62,7 @@ local function moveHighlightIndex(direction)
 end
 
 local function getMineColor(column)
+    local mineColor = COLORS:getColor("offsetPlot", "MineHit")
     -- cant highlight or currently set to highlight this column
     if columnIsHighlighted(column) then
         return mineColor
@@ -84,9 +80,9 @@ end
 local function getHoldColor(column, type)
     local color = color("#FFFFFF")
     if type == "TapNoteSubType_Roll" then
-        color = rollColor
+        color = COLORS:getColor("offsetPlot", "RollDrop")
     elseif type == "TapNoteSubType_Hold" then
-        color = holdColor
+        color = COLORS:getColor("offsetPlot", "HoldDrop")
     end
 
     -- cant highlight or currently set to highlight this column
@@ -283,7 +279,8 @@ t[#t+1] = Def.Quad {
     Name = "BG",
     InitCommand = function(self)
         self:halign(0)
-        self:diffuse(bgColor)
+        self:diffusealpha(1)
+        registerActorToColorConfigElement(self, "offsetPlot", "Background")
         self:playcommand("UpdateSizing")
         self:finishtweening()
     end,
@@ -300,7 +297,8 @@ if extraFeatures then
         Name = "MousePosition",
         InitCommand = function(self)
             self:valign(0)
-            self:diffuse(positionColor)
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "offsetPlot", "HoverLine")
             self:zoomx(lineThickness)
             self:playcommand("UpdateSizing")
             self:finishtweening()
@@ -317,8 +315,8 @@ t[#t+1] = Def.Quad {
     Name = "CenterLine",
     InitCommand = function(self)
         self:halign(0)
-        self:diffuse(colorByJudgment("TapNoteScore_W1"))
         self:diffusealpha(lineAlpha)
+        registerActorToColorConfigElement(self, "judgment", "TapNoteScore_W1")
         self:playcommand("UpdateSizing")
         self:finishtweening()
     end,
@@ -335,8 +333,8 @@ for i, j in ipairs(barJudgments) do
         Name = j.."_Late",
         InitCommand = function(self)
             self:halign(0)
-            self:diffuse(colorByJudgment(j))
             self:diffusealpha(lineAlpha)
+            registerActorToColorConfigElement(self, "judgment", j)
             self:playcommand("UpdateSizing")
             self:finishtweening()
         end,
@@ -352,8 +350,8 @@ for i, j in ipairs(barJudgments) do
         Name = j.."_Early",
         InitCommand = function(self)
             self:halign(0)
-            self:diffuse(colorByJudgment(j))
             self:diffusealpha(lineAlpha)
+            registerActorToColorConfigElement(self, "judgment", j)
             self:playcommand("UpdateSizing")
             self:finishtweening()
         end,
@@ -372,6 +370,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoom(textSize)
+        registerActorToColorConfigElement(self, "offsetPlot", "Text")
         self:playcommand("UpdateSizing")
         self:finishtweening()
     end,
@@ -389,6 +388,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
         self:halign(0):valign(1)
         self:zoom(textSize)
+        registerActorToColorConfigElement(self, "offsetPlot", "Text")
         self:playcommand("UpdateSizing")
         self:finishtweening()
     end,
@@ -407,6 +407,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:valign(1)
         self:zoom(instructionTextSize)
         self:settext("")
+        registerActorToColorConfigElement(self, "offsetPlot", "Text")
         self:playcommand("UpdateSizing")
         self:finishtweening()
     end,
@@ -450,6 +451,11 @@ t[#t+1] = Def.ActorMultiVertex {
     end,
     UpdateSizingCommand = function(self)
 
+    end,
+    ColorConfigUpdatedMessageCommand = function(self)
+        self:finishtweening()
+        self:linear(0.5)
+        self:queuecommand("DrawOffsets")
     end,
     LoadOffsetsCommand = function(self, params)
         -- makes sure all sizes are updated

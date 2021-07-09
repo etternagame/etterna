@@ -25,6 +25,7 @@ local textzoomFudge = 5
 -- (or the associated RollingNumbers classes used in this file)
 local animationSeconds = 0.5
 
+-- make this not invisible to ... you know
 local textEmbossColor = color("0,0,0,0")
 
 local totalTaps = 0
@@ -64,8 +65,8 @@ local function makeJudgment(i)
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(sizing.JudgmentBarLength, sizing.JudgmentBarHeight)
-                self:diffuse(colorByJudgment(jdg))
                 self:diffusealpha(0.5)
+                registerActorToColorConfigElement(self, "judgment", jdg)
             end
         },
         Def.Quad {
@@ -73,8 +74,8 @@ local function makeJudgment(i)
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(0, sizing.JudgmentBarHeight)
-                self:diffuse(colorByJudgment(jdg))
                 self:diffusealpha(0.5)
+                registerActorToColorConfigElement(self, "judgment", jdg)
             end,
             SetCommand = function(self, params)
                 self:finishtweening()
@@ -97,6 +98,7 @@ local function makeJudgment(i)
                 -- allow 3/4 of the judgment area between the number alignment and the name alignment
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 * 3 / judgmentTextZoom)
                 self:settext(getJudgeStrings(ms.JudgeCount[i]))
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end
         },
         Def.RollingNumbers {
@@ -111,6 +113,7 @@ local function makeJudgment(i)
                 -- allow 1/4 of the judgment area between the number alignment and the name alignment
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 / judgmentTextZoom)
                 self:targetnumber(0)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             SetCommand = function(self, params)
                 if params.score == nil then
@@ -131,6 +134,7 @@ local function makeJudgment(i)
                 self:maxwidth((sizing.JudgmentCountRightGap - judgmentCountPercentBump) / judgmentPercentZoom - textzoomFudge)
                 self:strokecolor(textEmbossColor)
                 self:targetnumber(0)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             SetCommand = function(self, params)
                 if params.score == nil then

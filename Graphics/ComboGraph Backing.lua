@@ -3,6 +3,7 @@
 return Def.Quad {
 	Name = "Backing",
 	InitCommand = function(self)
-		self:diffuse(color("#111111EE"))
+		self:diffusealpha(0.9)
+		registerActorToColorConfigElement(self, "evaluation", "ComboGraphBackground")
 	end
 }

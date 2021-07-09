@@ -58,15 +58,25 @@ local defaultConfig = {
 		KeybindButtonEdge = "#ffffff", -- the bg bg, white edges
 		KeybindButtonBackground = "#111111", -- the bg
 	},
+	evaluation = {
+		LifeGraphTint = "#ffffff",
+		LifeGraphBackground = "#555555",
+		ComboGraphTint = "#ffffff",
+		ComboGraphBackground = "#111111",
+		MaxComboText = "#999999",
+		NormalComboText = "#ffffff",
+	},
 	assetSettings = {
 		HoveredItem = "#ffffff",
 		SavedItem = "#999999",	
 	},
 	offsetPlot = {
-		background = "#000000",
-		mineHit = "#ff0000",
-		holdDrop = "#ff0000",
-		rollDrop = "#ff00ff",
+		Background = "#000000",
+		Text = "#ffffff",
+		HoverLine = "#AA2222",
+		MineHit = "#ff0000",
+		HoldDrop = "#ff0000",
+		RollDrop = "#ff00ff",
 	},
 	title = {
 		PrimaryText = "#ffffff",

@@ -3,6 +3,7 @@
 return Def.Quad {
 	Name = "Backing",
 	InitCommand = function(self)
-		self:diffuse(color("0.3,0.3,0.3,1"))
+		self:diffusealpha(1)
+		registerActorToColorConfigElement(self, "evaluation", "LifeGraphBackground")
 	end
 }

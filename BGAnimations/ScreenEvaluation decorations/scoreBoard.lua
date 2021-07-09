@@ -86,7 +86,6 @@ local buttonSizingFudge = 8
 local buttonBGYOffset = -1
 local buttonHoverAlpha = 0.8
 local buttonRegularAlpha = 1
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local itemBGHoverAlpha = 0.2
 local itemBGHoverAnimationSeconds = 0.05
 
@@ -104,6 +103,7 @@ t[#t+1] = Def.Quad {
         self:valign(0):halign(0)
         self:zoomto(actuals.DividerThickness, actuals.VerticalDividerLength)
         self:xy(actuals.VerticalDividerLeftGap, actuals.VerticalDividerUpperGap)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 
@@ -324,6 +324,10 @@ local function scoreList()
             InitCommand = function(self)
                 self:y((i-1) * actuals.ScoreItemSpacing + (i-1) * actuals.ScoreItemHeight)
             end,
+            ColorConfigUpdatedMessageCommand = function(self)
+                -- handles most colorings
+                self:playcommand("SetScore", {scoreIndex = scoreIndex})
+            end,
             SetScoreCommand = function(self, params)
                 scoreIndex = params.scoreIndex
                 -- nil scores table: unranked chart
@@ -349,6 +353,7 @@ local function scoreList()
                     self:halign(0):valign(0)
                     self:zoomto(actuals.ScoreItemWidth, actuals.ScoreItemHeight)
                     self:diffusealpha(0)
+                    registerActorToColorConfigElement(self, "main", "SecondaryBackground")
                 end,
                 MouseDownCommand = function(self)
                     if score ~= nil and score:HasReplayData() then
@@ -454,6 +459,8 @@ local function scoreList()
                         local jgBStr = tostring(score:GetTapNoteScore("TapNoteScore_W5"))
                         local jgMiStr = tostring(score:GetTapNoteScore("TapNoteScore_Miss"))
                         self:ClearAttributes()
+                        self:diffuse(COLORS:getMainColor("SecondaryText"))
+                        self:diffusealpha(1)
                         self:settextf("%s | %s - %s - %s - %s - %s - %s", wifeStr, jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr)
                         -- could have probably used a loop to do this
                         self:AddAttribute(#string.format("%s | ", wifeStr), {Length = #jgMaStr, Zoom = wifeJudgmentsSize, Diffuse = colorByJudgment("TapNoteScore_W1")})
@@ -481,6 +488,8 @@ local function scoreList()
                         local ssr = score:GetSkillsetSSR("Overall")
                         local ssrStr = string.format("%05.2f", ssr)
                         self:ClearAttributes()
+                        self:diffuse(COLORS:getMainColor("SecondaryText"))
+                        self:diffusealpha(1)
                         self:settextf("%s | %s", ssrStr, dstr)
                         self:AddAttribute(0, {Length = #ssrStr, Zoom = dateSSRSize, Diffuse = colorByMSD(ssr)})
                     end
@@ -492,6 +501,7 @@ local function scoreList()
                     self:xy(actuals.ScoreItemWidth - actuals.ScorePlayerRateSpace / 2, actuals.ScoreItemHeight / 4)
                     self:zoom(playerNameSize)
                     self:maxwidth(actuals.ScorePlayerRateSpace / playerNameSize - textZoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -517,6 +527,7 @@ local function scoreList()
                     self:xy(actuals.ScoreItemWidth - actuals.ScorePlayerRateSpace / 2, actuals.ScoreItemHeight / 4 * 3)
                     self:zoom(rateSize)
                     self:maxwidth(actuals.ScorePlayerRateSpace / rateSize - textZoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -583,6 +594,7 @@ local function scoreList()
             self:x(actuals.ScoreItemWidth / 2)
             self:maxwidth(actuals.ScoreItemWidth / loadingTextSize - textZoomFudge)
             self:diffusealpha(0)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         UpdateListCommand = function(self)
             self:finishtweening()
@@ -624,6 +636,7 @@ local function scoreList()
             self:zoom(pageTextSize)
             self:maxwidth(actuals.ScoreItemWidth / pageTextSize - textZoomFudge)
             self:settext("")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         UpdateListCommand = function(self)
              -- nil scores = no scores
@@ -652,6 +665,9 @@ t[#t+1] = Def.ActorFrame {
         allScores = not DLMAN:GetTopScoresOnlyFilter()
         self:playcommand("UpdateToggleStatus")
     end,
+    ColorConfigUpdatedMessageCommand = function(self)
+        self:playcommand("UpdateToggleStatus")
+    end,
 
     UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "LocalButton",
@@ -662,6 +678,7 @@ t[#t+1] = Def.ActorFrame {
             txt:zoom(topButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
             txt:settext("Local")
+            registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
@@ -672,7 +689,7 @@ t[#t+1] = Def.ActorFrame {
             if not isLocal then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
-                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+                self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
             end
         end,
         ClickCommand = function(self, params)
@@ -698,6 +715,7 @@ t[#t+1] = Def.ActorFrame {
             txt:zoom(topButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
             txt:settext("Online")
+            registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
@@ -719,7 +737,7 @@ t[#t+1] = Def.ActorFrame {
             if isLocal then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
-                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+                self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
             end
         end,
         ClickCommand = function(self, params)
@@ -748,6 +766,7 @@ t[#t+1] = Def.ActorFrame {
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("All Scores")
+            registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
@@ -768,7 +787,7 @@ t[#t+1] = Def.ActorFrame {
             if not allScores then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
-                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+                self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
             end
         end,
         ClickCommand = function(self, params)
@@ -795,6 +814,7 @@ t[#t+1] = Def.ActorFrame {
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("Top Scores")
+            registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
@@ -815,7 +835,7 @@ t[#t+1] = Def.ActorFrame {
             if allScores then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
-                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+                self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
             end
         end,
         ClickCommand = function(self, params)
@@ -842,6 +862,7 @@ t[#t+1] = Def.ActorFrame {
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("Current Rate")
+            registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
@@ -852,7 +873,7 @@ t[#t+1] = Def.ActorFrame {
             if (allRates and isLocal) or (not DLMAN:GetCurrentRateFilter() and not isLocal) then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
-                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+                self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
             end
         end,
         ClickCommand = function(self, params)
@@ -877,6 +898,7 @@ t[#t+1] = Def.ActorFrame {
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
             txt:settext("All Rates")
+            registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
@@ -887,7 +909,7 @@ t[#t+1] = Def.ActorFrame {
             if (not allRates and isLocal) or (DLMAN:GetCurrentRateFilter() and not isLocal) then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
-                self:GetChild("Text"):strokecolor(buttonActiveStrokeColor)
+                self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
             end
         end,
         ClickCommand = function(self, params)

@@ -5,7 +5,8 @@ return LoadFont("Common normal") .. {
 	Name = "Numbers",
 	InitCommand = function(self)
 		self:zoom(0.55)
-		self:diffuse(color("#FFFFFF"))
 		self:strokecolor(color("#00000077"))
+		self:diffusealpha(1)
+		registerActorToColorConfigElement(self, "main", "PrimaryText")
 	end
 }
