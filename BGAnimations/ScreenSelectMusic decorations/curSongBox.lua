@@ -125,8 +125,8 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(actuals.Width, actuals.Height)
-            self:diffuse(color("#111111"))
             self:diffusealpha(0.83)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
         end
     },
     --[[
@@ -226,6 +226,7 @@ t[#t+1] = Def.ActorFrame {
             self:maxwidth((actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
             self:maxheight(actuals.ApproximateTextVerticalHeight / textsize)
             self:settext("Song Title - Song Author")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetCommand = function(self, params)
             if params.song then
@@ -249,6 +250,7 @@ t[#t+1] = Def.ActorFrame {
             self:maxwidth((actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
             self:maxheight(actuals.ApproximateTextVerticalHeight / textsize)
             self:settext("Song SubTitle (1995)")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetCommand = function(self, params)
             if params.song then
@@ -271,6 +273,7 @@ t[#t+1] = Def.ActorFrame {
             txt:halign(0):valign(1)
             txt:zoom(textsize)
             txt:maxwidth((actuals.Width - actuals.RateTextLeftGap) / textsize - textzoomFudge)
+            registerActorToColorConfigElement(txt, "main", "PrimaryText")
             bg:halign(0):valign(1)
             bg:zoomy(actuals.LowerLipHeight)
             bg:y(actuals.TextLowerGap1)
@@ -320,6 +323,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(textsize)
             self:maxwidth((actuals.LengthNumberLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
             self:settext("LENGTH")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end
     },
     LoadFont("Common Normal") .. {
@@ -351,6 +355,7 @@ t[#t+1] = Def.ActorFrame {
             self:zoom(textsize)
             self:maxwidth((actuals.BPMNumberLeftGap - actuals.BPMTextLeftGap) / textsize - textzoomFudge)
             self:settext("BPM")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end
     },
     Def.BPMDisplay {
@@ -365,6 +370,7 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self, params)
             -- it appears that SetFromSteps is broken...
             -- note to self.
+            -- wow i forgot about this. time to forget about it again -11 months later
             if params.steps then
                 self:visible(true)
                 self:SetFromSong(params.song)

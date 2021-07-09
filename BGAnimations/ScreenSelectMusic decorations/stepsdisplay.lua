@@ -169,6 +169,9 @@ local function stepsRows(i)
 			self:x(-actuals.DiffItemWidth * (numshown - i) - actuals.DiffFrameSpacing * (numshown - i))
 			self:visible(false)
 		end,
+		ColorConfigUpdatedMessageCommand = function(self)
+			self:playcommand("UpdateStepsRows")
+		end,
 		UpdateStepsRowsCommand = function(self)
 			-- to get them to align right
 			index = pushIndexByBound(i)
@@ -209,7 +212,7 @@ local function stepsRows(i)
 			end,
 			SetStepsRowsCommand = function(self)
 				self:visible(true)
-				self:diffuse(color("#111111"))
+				self:diffuse(COLORS:getMainColor("SecondaryBackground"))
 				self:diffusealpha(0.2)
 			end
 		},
@@ -219,6 +222,7 @@ local function stepsRows(i)
 				self:xy(-actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4)
 				self:zoom(textSize)
 				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
+				registerActorToColorConfigElement(self, "main", "SecondaryText")
 			end,
 			SetStepsRowsCommand = function(self)
 				local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(steps:GetStepsType()))
@@ -231,6 +235,7 @@ local function stepsRows(i)
 				self:xy(-actuals.DiffItemWidth / 2, actuals.DiffItemHeight / 4 * 3)
 				self:maxwidth(actuals.DiffItemWidth / textSize - textzoomFudge)
 				self:zoom(textSize)
+				registerActorToColorConfigElement(self, "main", "SecondaryText")
 			end,
 			SetStepsRowsCommand = function(self)
 				local meter = steps:GetMeter()
