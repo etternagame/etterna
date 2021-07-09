@@ -100,7 +100,6 @@ local dividerUpwardBump = 1
 
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
 
 local itemListAnimationSeconds = 0.05
@@ -209,6 +208,7 @@ local function playlistList()
                     self:x(indX)
                     self:zoom(itemLine1TextSize)
                     self:maxwidth(indW / itemLine1TextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then return end
@@ -222,6 +222,7 @@ local function playlistList()
                     self:x(nameX)
                     self:zoom(itemLine1TextSize)
                     self:maxwidth(nameW / itemLine1TextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then return end
@@ -251,6 +252,7 @@ local function playlistList()
                     self:halign(1):valign(0)
                     self:x(playX)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
+                    registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then
@@ -289,6 +291,7 @@ local function playlistList()
                     self:halign(1):valign(0)
                     self:x(deleteX)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
+                    registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 UpdateTextCommand = function(self)
                     -- dont allow deleting the Favorites playlist
@@ -338,6 +341,7 @@ local function playlistList()
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(itemLine2TextSize)
                     self:maxwidth((itemWidth - nameX) / 2 / itemLine2TextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then return end
@@ -352,6 +356,7 @@ local function playlistList()
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(itemLine2TextSize)
                     self:maxwidth((itemWidth - nameX) / 2 / itemLine2TextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then return end
@@ -414,6 +419,7 @@ local function playlistList()
                         self:x(indX)
                         self:zoom(itemIndexSize)
                         self:maxwidth((indW) / itemIndexSize - textzoomFudge)
+                        registerActorToColorConfigElement(self, "main", "PrimaryText")
                     end,
                     SetChartCommand = function(self)
                         if chart ~= nil then
@@ -437,6 +443,7 @@ local function playlistList()
     
                         txt:zoom(nameTextSize)
                         txt:maxwidth(nameW / nameTextSize - textzoomFudge)
+                        registerActorToColorConfigElement(txt, "main", "PrimaryText")
                         bg:zoomy(actuals.ItemAllottedSpace / detailItemCount)
                     end,
                     SetChartCommand = function(self)
@@ -496,6 +503,7 @@ local function playlistList()
 
                         txt:zoom(rateTextSize)
                         txt:maxwidth(rateW / rateTextSize - textzoomFudge)
+                        registerActorToColorConfigElement(txt, "main", "PrimaryText")
                         bg:zoomy(actuals.ItemAllottedSpace / detailItemCount)
                     end,
                     SetChartCommand = function(self)
@@ -564,6 +572,9 @@ local function playlistList()
                         self:zoom(diffTextSize)
                         self:maxwidth(diffW / diffTextSize - textzoomFudge)
                     end,
+                    ColorConfigUpdatedMessageCommand = function(self)
+                        self:playcommand("SetChart")
+                    end,
                     SetChartCommand = function(self)
                         if chart ~= nil then
                             local diff = nil
@@ -584,6 +595,7 @@ local function playlistList()
                         self:halign(0):valign(0)
                         self:x(deleteX)
                         self:zoomto(actuals.IconWidth, actuals.IconHeight)
+                        registerActorToColorConfigElement(self, "main", "IconColor")
                     end,
                     SetChartCommand = function(self)
                         -- dont allow deleting from the Favorites playlist
@@ -666,6 +678,7 @@ local function playlistList()
                     self:zoom(detailPageTextSize)
                     -- oddly precise max width but this should fit with the original size
                     self:maxwidth(actuals.Width / 3 / detailPageTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 UpdateItemListCommand = function(self)
                     local lb = clamp((detailPage-1) * (detailItemCount) + 1, 0, #chartlist)
@@ -681,6 +694,7 @@ local function playlistList()
                     self:zoom(detailPageTextSize)
                     -- oddly precise max width but this should fit with the original size
                     self:maxwidth(actuals.Width / 3 * 2 / detailPageTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 UpdateItemListCommand = function(self)
                     if playlist ~= nil then
@@ -815,7 +829,11 @@ local function playlistList()
                     self:x((actuals.Width / #choiceDefinitions) * (i-1) + (actuals.Width / #choiceDefinitions / 2))
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceDefinitions / choiceTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(actuals.Width / #choiceDefinitions, actuals.UpperLipHeight)
+                    self:playcommand("UpdateText")
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
                     self:playcommand("UpdateText")
                 end,
                 UpdateTextCommand = function(self)
@@ -836,7 +854,7 @@ local function playlistList()
                     end
 
                     if activeChoices[i] then
-                        txt:strokecolor(buttonActiveStrokeColor)
+                        txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.75))
                     else
                         txt:strokecolor(color("0,0,0,0"))
                     end
@@ -969,6 +987,7 @@ local function playlistList()
                 self:zoom(pageTextSize)
                 -- oddly precise max width but this should fit with the original size
                 self:maxwidth(actuals.Width * 0.14 / pageTextSize - textzoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateItemListCommand = function(self)
                 local lb = clamp((page-1) * (itemCount) + 1, 0, #playlistTable)
@@ -996,8 +1015,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.UpperLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -1006,7 +1025,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0)
         self:zoomto(actuals.Width, actuals.LipSeparatorThickness)
-        self:diffuse(color(".4,.4,.4,.7"))
+        self:diffusealpha(0.3)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 
