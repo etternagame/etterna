@@ -43,7 +43,6 @@ SCUFF.generaltabcount = #choiceNames
 
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
 
 -- controls the focus of the frame
@@ -69,12 +68,16 @@ local function createChoices()
                 txt:zoom(choiceTextSize)
                 txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
                 txt:settext(choiceNames[i])
+                registerActorToColorConfigElement(txt, "main", "PrimaryText")
                 bg:zoomto(actuals.Width / #choiceNames, actuals.LowerLipHeight)
+            end,
+            ColorConfigUpdatedMessageCommand = function(self)
+                self:playcommand("UpdateSelectedIndex")
             end,
             UpdateSelectedIndexCommand = function(self)
                 local txt = self:GetChild("Text")
                 if selectedIndex == i then
-                    txt:strokecolor(buttonActiveStrokeColor)
+                    txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.7))
                 else
                     txt:strokecolor(color("0,0,0,0"))
                 end
@@ -159,8 +162,8 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(actuals.Width, actuals.Height)
-            self:diffuse(color("#111111"))
             self:diffusealpha(0.6)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
         end
     },
     Def.Quad {
@@ -169,8 +172,8 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0):valign(1)
             self:y(actuals.Height)
             self:zoomto(actuals.Width, actuals.LowerLipHeight)
-            self:diffuse(color("#111111"))
             self:diffusealpha(0.6)
+            registerActorToColorConfigElement(self, "main", "SecondaryBackground")
             self:draworder(3)
         end
     },

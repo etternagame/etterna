@@ -159,17 +159,13 @@ local function updateGraphMultiVertex(parent, self, steps)
 end
 
 local textzoomFudge = 5
-local bgColor = color("#FFFFFF")
-local npsColor = color("#666699")
-local progressColor = color("#00FF0055")
-local seekColor = color("#666699")
 local resizeAnimationSeconds = 0.1
 
 t[#t+1] = UIElements.QuadButton(1, 1) .. {
     Name = "BG",
     InitCommand = function(self)
         self:halign(0):valign(0)
-        self:diffuse(bgColor)
+        registerActorToColorConfigElement(self, "chartPreview", "GraphBackground")
     end,
     UpdateSizingCommand = function(self)
         self:finishtweening()
@@ -199,7 +195,8 @@ t[#t+1] = Def.Quad {
     Name = "Progress",
     InitCommand = function(self)
         self:halign(0):valign(0)
-        self:diffuse(progressColor)
+        self:diffusealpha(0.5)
+        registerActorToColorConfigElement(self, "chartPreview", "GraphProgress")
     end,
     UpdateSizingCommand = function(self)
         self:finishtweening()
@@ -217,7 +214,13 @@ t[#t+1] = Def.ActorMultiVertex {
         self:smooth(resizeAnimationSeconds)
         self:y(sizing.Height)
     end,
+    ColorConfigUpdatedMessageCommand = function(self)
+        lowDensityColor = COLORS:getColor("chartPreview", "GraphLowestDensityBar")
+        highDensityColor = COLORS:getColor("chartPreview", "GraphHighestDensityBar")
+        updateGraphMultiVertex(self:GetParent(), self, self.s)
+    end,
     LoadDensityGraphCommand = function(self, params)
+        self.s = params.steps
         updateGraphMultiVertex(self:GetParent(), self, params.steps)
     end,
 }
@@ -226,7 +229,7 @@ t[#t+1] = Def.Quad {
     Name = "NPSLine",
     InitCommand = function(self)
         self:halign(0)
-        self:diffuse(npsColor)
+        registerActorToColorConfigElement(self, "chartPreview", "GraphNPSLine")
     end,
     UpdateSizingCommand = function(self)
         self:finishtweening()
@@ -243,7 +246,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
     Name = "NPSText",
     InitCommand = function(self)
         self:halign(0):valign(1)
-        self:diffuse(npsColor)
+        registerActorToColorConfigElement(self, "chartPreview", "GraphNPSText")
     end,
     UpdateSizingCommand = function(self)
         self:finishtweening()
@@ -260,8 +263,8 @@ t[#t+1] = Def.Quad {
     Name = "SeekBar",
     InitCommand = function(self)
         self:valign(0)
-        self:diffuse(seekColor)
         self:diffusealpha(0)
+        registerActorToColorConfigElement(self, "chartPreview", "GraphSeekBar")
     end,
     UpdateSizingCommand = function(self)
         self:finishtweening()

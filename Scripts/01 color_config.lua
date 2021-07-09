@@ -43,6 +43,7 @@ local defaultConfig = {
 		GraphNPSLine = "#666699",
 		GraphNPSText = "#666699",
 		GraphSeekBar = "#666699",
+		GraphProgress = "#00ff00"
 		GraphLowestDensityBar = "#ffffff",
 		GraphHighestDensityBar = "#000000",
 	},

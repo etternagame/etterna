@@ -169,6 +169,7 @@ local function createStatLines()
                     -- dont fudge this to avoid compressing static text
                     self:maxwidth(((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / 1.9) / mainTextSize)
                     self:settextf("%s:", statNames[i])
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end
             },
             Def.RollingNumbers {
@@ -180,6 +181,7 @@ local function createStatLines()
                     self:zoom(mainTextSize)
                     self:maxwidth(((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / 2) / mainTextSize - textzoomFudge)
                     self:Load("RollingNumbersNoLead")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 SetCommand = function(self, params)
                     if params.steps then
@@ -214,6 +216,7 @@ local function createTopSkillsetLines()
                     self:zoom(mainTextSize)
                     self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftTextColumn1LabelsMargin - actuals.LeftTextColumn2Margin) / mainTextSize - textzoomFudge)
                     self:settext("Jumpstream")
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self, params)
                     if params.steps then
@@ -250,6 +253,7 @@ local function createMSDLines()
                     -- dont fudge this to avoid compressing static text
                     self:maxwidth(((actuals.RightTextLabelsMargin - actuals.RightTextNumbersMargin) / 1.7) / mainTextSize)
                     self:settextf("%s:", msdNames[i])
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end
             },
             Def.RollingNumbers {
@@ -325,6 +329,7 @@ local function createTagDisplays()
                 self:halign(0):valign(0)
                 self:zoom(mainTextSize)
                 self:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftTextColumn1LabelsMargin - actuals.LeftTextColumn2Margin) / mainTextSize - textzoomFudge)
+                registerActorToColorConfigElement(self, "main", "SecondaryText")
             end,
             SetCommand = function(self, params)
                 if params.steps then
@@ -374,6 +379,7 @@ t[#t+1] = Def.Quad {
         self:xy(actuals.HorizontalDividerLeftGap, actuals.HorizontalDividerUpperGap)
         self:zoomto(actuals.HorizontalDividerLength, actuals.DividerThickness)
         self:halign(0):valign(0)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 
@@ -383,6 +389,7 @@ t[#t+1] = Def.Quad {
         self:xy(actuals.VerticalDividerLeftGap, actuals.VerticalDividerUpperGap)
         self:zoomto(actuals.DividerThickness, actuals.VerticalDividerHeight)
         self:halign(0):valign(0)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end,
     ToggleChartPreviewCommand = function(self)
         self:visible(not SCUFF.preview.active)
@@ -425,6 +432,9 @@ t[#t+1] = Def.ActorFrame {
             self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / largerTextSize - textzoomFudge)
             self:settext("99.99%")
         end,
+        ColorConfigUpdatedMessageCommand = function(self)
+            self:playcommand("Set")
+        end,
         SetCommand = function(self, params)
             if displayScore then
                 self:settextf("%05.2f%%", notShit.floor(displayScore:GetWifeScore() * 10000) / 100)
@@ -442,6 +452,7 @@ t[#t+1] = Def.ActorFrame {
             self:y(self:GetZoomedHeight() * largerTextSize)
             self:zoom(displayScoreInfoTextSize)
             self:maxwidth((actuals.LeftTextColumn1NumbersMargin - actuals.LeftTextColumn1LabelsMargin) / displayScoreInfoTextSize - textzoomFudge)
+            registerActorToColorConfigElement(self, "main", "SecondaryText")
         end,
         BeginCommand = function(self)
             --self:x(-self:GetParent():GetX() +(actuals.LeftTextColumn1LabelsMargin + actuals.LeftTextColumn1NumbersMargin) / 2)

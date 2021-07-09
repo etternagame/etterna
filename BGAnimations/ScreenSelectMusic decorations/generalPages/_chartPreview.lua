@@ -123,7 +123,7 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
         self:halign(0):valign(0)
         self:xy(rightHalfXBegin, actuals.DensityGraphHeight)
         self:zoomto(actuals.Width - rightHalfXBegin, actuals.NoteFieldHeight + actuals.LowerLipHeight)
-        self:diffuse(color("#000000"))
+        registerActorToColorConfigElement(self, "chartPreview", "Background")
     end,
     MouseDownCommand = function(self, params)
         local top = SCREENMAN:GetTopScreen()
