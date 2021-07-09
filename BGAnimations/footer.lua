@@ -37,8 +37,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(1)
         self:zoomto(actuals.Width, actuals.Height)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.75)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -49,6 +49,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:xy(actuals.Width - actuals.TextHorizontalPadding, -actuals.Height / 2)
         self:zoom(textSize)
         self:maxwidth(actuals.Width * (1 - allowedPercentageForQuote) / textSize - textZoomFudge)
+        registerActorToColorConfigElement(self, "main", "PrimaryText")
         self:playcommand("UpdateTime")
     end,
     UpdateTimeCommand = function(self)
@@ -70,6 +71,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:zoom(textSize)
         self:maxwidth(actuals.Width * allowedPercentageForQuote / textSize - textZoomFudge)
         self:settext(getRandomQuote(3)) -- 3 is the quote thing, only quotes for now
+        registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
 }
 
