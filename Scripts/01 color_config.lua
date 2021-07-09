@@ -36,6 +36,8 @@ local defaultConfig = {
 		AssignedTag = "#ff8888",
 		FilteredTag = "#88ff88",
 		GoalBackground = "#ffffff",
+		GoalAchieved = "#9654fd",
+		GoalDefault = "#111111",
 	},
 	chartPreview = {
 		Background = "#ffffff",
@@ -43,7 +45,7 @@ local defaultConfig = {
 		GraphNPSLine = "#666699",
 		GraphNPSText = "#666699",
 		GraphSeekBar = "#666699",
-		GraphProgress = "#00ff00"
+		GraphProgress = "#00ff00",
 		GraphLowestDensityBar = "#ffffff",
 		GraphHighestDensityBar = "#000000",
 	},

@@ -87,16 +87,15 @@ local dividerUpwardBump = 1
 
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
-local buttonActiveStrokeColor = color("0.85,0.85,0.85,0.8")
 local textzoomFudge = 5
 
 local goalListAnimationSeconds = 0.05
 
 local function byAchieved(scoregoal)
 	if not scoregoal or scoregoal:IsAchieved() then
-		return getMainColor("positive")
+		return COLORS:getColor("generalBox", "GoalAchieved")
 	end
-	return color("#aaaaaa")
+	return COLORS:getColor("generalBox", "GoalDefault")
 end
 
 --=====
@@ -536,6 +535,7 @@ local function goalList()
                     self:zoomto(itemWidth, itemHeight * 0.95)
                     self:y(-itemHeight/8)
                     self:diffusealpha(0.1)
+                    registerActorToColorConfigElement(self, "generalBox", "GoalBackground")
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -550,6 +550,7 @@ local function goalList()
                     txt:zoom(goalLine1TextSize)
                     txt:maxwidth(prioW / goalLine1TextSize - textzoomFudge)
                     txt:settext(" ")
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(prioW, txt:GetZoomedHeight())
                     bg:y(txt:GetZoomedHeight() / 2)
                 end,
@@ -590,6 +591,9 @@ local function goalList()
                     self:zoom(goalLine1TextSize)
                     self:maxwidth(diffW / goalLine1TextSize - textzoomFudge)
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("UpdateText")
+                end,
                 UpdateTextCommand = function(self)
                     if goal == nil then return end
 
@@ -608,6 +612,7 @@ local function goalList()
                     self:x(div1X)
                     self:y(-dividerUpwardBump)
                     self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
+                    registerActorToColorConfigElement(self, "main", "SeparationDivider")
                 end
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -621,6 +626,7 @@ local function goalList()
                     txt:zoom(goalLine1TextSize)
                     txt:maxwidth(rateW / goalLine1TextSize - textzoomFudge)
                     txt:settext(" ")
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(rateW, txt:GetZoomedHeight())
                     bg:y(txt:GetZoomedHeight() / 2)
                 end,
@@ -661,6 +667,7 @@ local function goalList()
                     self:x(div2X)
                     self:y(-dividerUpwardBump)
                     self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
+                    registerActorToColorConfigElement(self, "main", "SeparationDivider")
                 end
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -676,6 +683,9 @@ local function goalList()
                     txt:settext(" ")
                     bg:zoomto(percentW, txt:GetZoomedHeight())
                     bg:y(txt:GetZoomedHeight() / 2)
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("UpdateText")
                 end,
                 UpdateTextCommand = function(self)
                     if goal == nil then return end
@@ -747,6 +757,7 @@ local function goalList()
                     self:x(div3X)
                     self:y(-dividerUpwardBump)
                     self:zoomto(actuals.ItemDividerThickness, actuals.ItemDividerLength)
+                    registerActorToColorConfigElement(self, "main", "SeparationDivider")
                 end
             },
             LoadFont("Common Normal") .. {
@@ -757,6 +768,9 @@ local function goalList()
                     self:zoom(goalLine1TextSize)
                     -- the trashcan intrudes in this area so dont let them overlap
                     self:maxwidth(msdW / goalLine1TextSize - textzoomFudge)
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("UpdateText")
                 end,
                 UpdateTextCommand = function(self)
                     if goal == nil then return end
@@ -777,6 +791,7 @@ local function goalList()
                     self:halign(0):valign(0)
                     self:x(msdX + msdW/2)
                     self:zoomto(actuals.IconWidth, actuals.IconHeight)
+                    registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 UpdateTextCommand = function(self)
                     if goal == nil then
@@ -827,6 +842,7 @@ local function goalList()
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(goalLine2TextSize)
                     self:maxwidth((div2X - prioX - prioW/2) / goalLine2TextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
@@ -868,6 +884,7 @@ local function goalList()
                     self:y(actuals.ItemLowerLineUpperGap)
                     self:zoom(goalLine2TextSize)
                     self:maxwidth(percentW / goalLine2TextSize - textzoomFudge)
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
                 UpdateTextCommand = function(self)
                     if goal == nil then return end
@@ -1057,6 +1074,7 @@ local function goalList()
                     self:x((actuals.Width / #choiceDefinitions) * (i-1) + (actuals.Width / #choiceDefinitions / 2))
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.Width / #choiceDefinitions / choiceTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(actuals.Width / #choiceDefinitions, actuals.UpperLipHeight)
                     self:playcommand("UpdateText")
                 end,
@@ -1078,7 +1096,7 @@ local function goalList()
                     end
 
                     if activeChoices[i] then
-                        txt:strokecolor(buttonActiveStrokeColor)
+                        txt:strokecolor(Brightness(COLORS:getMainColor("PrimaryText"), 0.75))
                     else
                         txt:strokecolor(color("0,0,0,0"))
                     end
@@ -1174,6 +1192,7 @@ local function goalList()
                 self:zoom(pageTextSize)
                 -- oddly precise max width but this should fit with the original size
                 self:maxwidth(actuals.Width * 0.14 / pageTextSize - textzoomFudge)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             UpdateGoalListCommand = function(self)
                 local lb = clamp((page-1) * (goalItemCount) + 1, 0, #goalTable)
@@ -1195,8 +1214,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0):valign(0)
         self:zoomto(actuals.Width, actuals.UpperLipHeight)
-        self:diffuse(color("#111111"))
         self:diffusealpha(0.6)
+        registerActorToColorConfigElement(self, "main", "SecondaryBackground")
     end
 }
 
@@ -1205,7 +1224,8 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         self:halign(0)
         self:zoomto(actuals.Width, actuals.LipSeparatorThickness)
-        self:diffuse(color(".4,.4,.4,.7"))
+        self:diffusealpha(0.3)
+        registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end
 }
 
