@@ -406,7 +406,7 @@ local function makeGoalDisplay(i)
 			{
 				--song name
 				InitCommand = function(self)
-					self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(32, 62)) / tzoom):halign(0):valign(1)
+					self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(32, 62)) / tzoom):halign(0):valign(1):draworder(1)
 				end,
 				DisplayCommand = function(self)
 					if goalsong then

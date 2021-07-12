@@ -574,7 +574,9 @@ local function makeText(index)
 				end
 			end,
 			HighlightCommand = function(self)
-				highlightIfOver(self)
+				if index ~= rateIndex then
+					highlightIfOver(self)
+				end
 			end,
 			MouseLeftClickMessageCommand = function(self)
 				if nestedTab == 1 and isOver(self) then

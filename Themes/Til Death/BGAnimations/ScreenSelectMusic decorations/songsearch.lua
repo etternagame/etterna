@@ -102,7 +102,7 @@ local t =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 90):zoom(0.7):halign(0.5):maxwidth(470)
+				self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 93):zoom(0.7):halign(0.5):maxwidth(470)
 			end,
 			SetCommand = function(self)
 				if active then
