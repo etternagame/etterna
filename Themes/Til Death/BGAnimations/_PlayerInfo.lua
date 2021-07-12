@@ -17,6 +17,8 @@ local playerRating = 0
 local uploadbarwidth = 100
 local uploadbarheight = 10
 local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+--remove the Saturation function here if you want the old look back
+local nonButtonColor = Saturation(getMainColor("positive"),0.35)
 
 local setnewdisplayname = function(answer)
 	if answer ~= "" then
@@ -82,7 +84,7 @@ local function UpdateTime(self)
 
 	local sessiontime = GAMESTATE:GetSessionTime()
 	self:GetChild("SessionTime"):settextf("%s: %s", translated_info["SessionTime"], SecondsToHHMMSS(sessiontime))
-	self:diffuse(getMainColor("positive"))
+	self:diffuse(nonButtonColor)
 end
 
 -- handle logging in
@@ -284,7 +286,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 14.5):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 14.5):halign(0.5):zoom(0.45):diffuse(nonButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -344,7 +346,7 @@ t[#t + 1] =
 		},
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, AvatarY + 20):halign(0.5):zoomto(100, 30):diffusealpha(0)
+			self:xy(SCREEN_CENTER_X, AvatarY + 25):halign(0.5):zoomto(100, 15):diffusealpha(0)
 		end,
 		LoginFailedMessageCommand = function(self)
 			ms.ok(translated_info["LoginFailed"])
@@ -381,7 +383,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 21):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 21):halign(0):zoom(0.35):diffuse(nonButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -393,7 +395,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 31.5):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 31.5):halign(0):zoom(0.35):diffuse(nonButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -406,7 +408,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 42):halign(0):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 42):halign(0):zoom(0.35):diffuse(nonButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -418,7 +420,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X - capWideScale(125,175), AvatarY + 41):halign(0.5):zoom(0.4):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X - capWideScale(125,175), AvatarY + 41):halign(0.5):zoom(0.4):diffuse(nonButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -476,7 +478,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 3, AvatarY + 30):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_WIDTH - 3, AvatarY + 30):halign(1):zoom(0.35):diffuse(nonButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -521,7 +523,7 @@ t[#t + 1] =
 		{
 	    InitCommand = function(self)
 			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 27):halign(0):valign(0)
-			self:diffuse(getMainColor("positive")):diffusealpha(0):zoom(0.35)
+			self:diffuse(nonButtonColor):diffusealpha(0):zoom(0.35)
         	self:settext("Uploading Scores...")
 		end,
 		UploadProgressMessageCommand = function(self, params)
