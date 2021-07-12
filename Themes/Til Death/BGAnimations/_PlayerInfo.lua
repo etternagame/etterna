@@ -67,8 +67,23 @@ local translated_info = {
 	Playtime = THEME:GetString("GeneralInfo", "ProfilePlaytime"),
 	Judge = THEME:GetString("GeneralInfo", "ProfileJudge"),
 	RefreshSongs = THEME:GetString("GeneralInfo", "DifferentialReloadTrigger"),
-	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded")
+	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded"),
+	SessionTime = THEME:GetString("GeneralInfo", "SessionTime")
 }
+
+local function UpdateTime(self)
+	local year = Year()
+	local month = MonthOfYear() + 1
+	local day = DayOfMonth()
+	local hour = Hour()
+	local minute = Minute()
+	local second = Second()
+	self:GetChild("CurrentTime"):settextf("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minute, second)
+
+	local sessiontime = GAMESTATE:GetSessionTime()
+	self:GetChild("SessionTime"):settextf("%s: %s", translated_info["SessionTime"], SecondsToHHMMSS(sessiontime))
+	self:diffuse(getMainColor("positive"))
+end
 
 -- handle logging in
 local function loginStep1(self)
@@ -518,17 +533,34 @@ t[#t + 1] =
 		}
 	}
 
-local function Update(self)
-	t.InitCommand = function(self)
-		self:SetUpdateFunction(Update)
-	end
+t[#t + 1] =
+	Def.ActorFrame {
+	InitCommand = function(self)
+		self:SetUpdateFunction(UpdateTime)
+	end,
+	LoadFont("Common Normal") ..  {
+		Name = "CurrentTime",
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH - 3, SCREEN_BOTTOM - 3.5):halign(1):valign(1):zoom(0.45)
+		end
+	},
+
+	LoadFont("Common Normal") ..  {
+		Name = "SessionTime",
+		InitCommand = function(self)
+			self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 5):halign(0.5):valign(1):zoom(0.45)
+		end
+	}
+}
+
+local function UpdateAvatar(self)
 	if getAvatarUpdateStatus() then
 		self:GetChild("Avatar" .. PLAYER_1):GetChild("Image"):queuecommand("ModifyAvatar")
 		setAvatarUpdateStatus(PLAYER_1, false)
 	end
 end
 t.InitCommand = function(self)
-	self:SetUpdateFunction(Update)
+	self:SetUpdateFunction(UpdateAvatar)
 end
 
 return t

@@ -92,7 +92,6 @@ t[#t + 1] =
 	}
 
 t[#t + 1] = LoadActor("../_cursor")
-t[#t + 1] = LoadActor("currenttime")
 t[#t + 1] = LoadActor("../_halppls")
 
 GAMESTATE:UpdateDiscordMenu(
