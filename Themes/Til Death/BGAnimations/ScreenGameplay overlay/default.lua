@@ -29,7 +29,6 @@ if snm ~= nil and snm == "ScreenGameplaySyncMachine" then
 		local maxstatus = 3 -- when status hits this fade the notefield to 0
 		local judgeThreshold = Enum.Reverse(TapNoteScore)[ComboContinue()]
 		local notdoingit = true
-		local heeby = nil
 		t[#t+1] = Def.ActorFrame {
 			Name = "spooker",
 			JudgmentMessageCommand = function(self, params)
@@ -50,44 +49,32 @@ if snm ~= nil and snm == "ScreenGameplaySyncMachine" then
 				end
 			end,
 			DoneLoadingNextSongMessageCommand = function(self)
+				if not SCREENMAN:GetTopScreen() then return end
 				self:playcommand("nowaitdont")
 			end,
 			nowaitdontCommand = function(self)
+				if not SCREENMAN:GetTopScreen() then return end
 				notdoingit = true
-				if heeby then
+				local nf = SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")
+				if nf then
 					self:stoptweening()
-					heeby:diffusealpha(1)
+					nf:diffusealpha(1)
 					-- this is the only other line that matters
 					GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Song"):Stealth(0)
 				end
 			end,
 			doitCommand = function(self)
+				if not SCREENMAN:GetTopScreen() then return end
 				notdoingit = false
-				if heeby then
+				local nf = SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")
+				if nf then
 					self:finishtweening()
-					heeby:smooth(1)
-					heeby:diffusealpha(0)
+					nf:smooth(1)
+					nf:diffusealpha(0)
 					-- this is the only line that matters
 					GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Song"):Stealth(1)
 				end
 			end,
-
-			Def.ActorProxy {
-				Name = "spookest",
-				BeginCommand = function(self)
-					local nf = SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")
-					heeby = self
-					if nf then
-						local b4 = nf:GetX()
-						local b42 = nf:GetY()
-						nf:x(SCREEN_WIDTH * 100)
-						local yes = 1
-						-- the explanation of this line is left as an exercise to the reader
-						self:x(-SCREEN_WIDTH * 100 + b4 + SCREEN_CENTER_X):visible(yes):y(0):addy(SCREEN_CENTER_Y + b42 - 0)
-						self:SetTarget(nf)
-					end
-				end,
-			},
 
 			LoadFont("Common Large") .. {
 				Name = "Instruction",
