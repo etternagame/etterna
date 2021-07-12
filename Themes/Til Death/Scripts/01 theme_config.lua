@@ -13,6 +13,7 @@ local defaultConfig = {
 		ProgressBar = 1, -- 0 = bottom, 1 = top
 		ShowVisualizer = true,
 		InstantSearch = true, -- true = search per press, false = search on enter button
+		FadeNoteFieldInSyncMachine = true,
 	},
 	NPSDisplay = {
 		DynamicWindow = false,
