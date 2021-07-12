@@ -17,14 +17,6 @@ enum MusicWheelUsesSections
 	NUM_MusicWheelUsesSections,
 	MusicWheelUsesSections_Invalid
 };
-/** @brief The options for allowing the W1 timing. */
-enum AllowW1
-{
-	ALLOW_W1_NEVER,		 /**< The W1 timing is not used. */
-	ALLOW_W1_EVERYWHERE, /**< The W1 timing is used for all modes. */
-	NUM_AllowW1,
-	AllowW1_Invalid
-};
 enum Maybe
 {
 	Maybe_ASK,
@@ -173,8 +165,6 @@ class PrefsManager
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
 	Preference<int> m_iMusicWheelSwitchSpeed;
 	Preference<bool> m_bSortBySSRNorm;
-	Preference<AllowW1>
-	  m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 

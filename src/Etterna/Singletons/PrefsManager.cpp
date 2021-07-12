@@ -22,14 +22,6 @@ XToString(MusicWheelUsesSections);
 StringToX(MusicWheelUsesSections);
 LuaXType(MusicWheelUsesSections);
 
-static const char* AllowW1Names[] = {
-	"Never",
-	"Everywhere",
-};
-XToString(AllowW1);
-StringToX(AllowW1);
-LuaXType(AllowW1);
-
 static const char* MaybeNames[] = {
 	"Ask",
 	"No",
@@ -133,7 +125,6 @@ PrefsManager::PrefsManager()
   , m_sAdditionalSongFolders("AdditionalSongFolders", "")
   , m_sAdditionalFolders("AdditionalFolders", "")
 
-  , m_AllowW1("AllowW1", ALLOW_W1_EVERYWHERE)
   , m_bAllowedLag("AllowedLag", 0.001f)
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
   , m_bAllowMultitexture("AllowMultitexture", true)
