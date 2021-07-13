@@ -113,10 +113,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
 	{
-#ifndef RELWITHDEBINFO
 #if NDEBUG
 		load_calc_params_from_disk();
-#endif
 #endif
 		
 		// setup our data pointers
