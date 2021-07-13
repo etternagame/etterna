@@ -112,11 +112,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
-	{
-#if NDEBUG
-		load_calc_params_from_disk();
-#endif
-		
+	{		
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
@@ -505,8 +501,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		int iError;
 
 		// Hold calc params program-global persistent info
-		static RageFileBasic* pFile;
-		static XNode params;
+		thread_local RageFileBasic* pFile;
+		thread_local XNode params;
 		// Only ever try to load params once per thread unless forcing
 		thread_local bool paramsLoaded = false;
 
@@ -515,11 +511,10 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (paramsLoaded && !bForce)
 			return;
 
-		// Load if missing or allow a force reload
+		// Load if missing
 		if (pFile == nullptr || bForce) {
 			delete pFile;
 			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
-			paramsLoaded = true;
 			// Failed to load
 			if (pFile == nullptr)
 				return;
@@ -539,6 +534,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (vers.empty() || stoi(vers) != GetCalcVersion()) {
 			return;
 		}
+		paramsLoaded = true;
 
 		load_params_for_mod(&params, _s._params, _s.name);
 		load_params_for_mod(&params, _js._params, _js.name);

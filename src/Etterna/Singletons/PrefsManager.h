@@ -231,6 +231,7 @@ class PrefsManager
 	Preference<bool> m_bShowLoadingWindow;
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
+	Preference<bool> m_bAlwaysLoadCalcParams;
 
 	// levels 0, 1, and 2 where higher numbers
 	// means more logging
