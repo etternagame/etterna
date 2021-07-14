@@ -6,14 +6,32 @@ local hold_alt = THEME:GetString("ScreenSyncOverlay", "hold_alt")
 local sh_r = THEME:GetMetric("Common", "ScreenHeight")/480
 local showadj = true
 
+local helptexts = {
+	revert_sync_changes .. ":",
+	"    F4",
+	change_song_offset .. ":",
+	"    F11/F12",
+	change_machine_offset .. ":",
+	"    Shift + F11/F12",
+	hold_alt
+}
+
 return Def.ActorFrame {
 	Def.Quad {
 		Name = "quad",
 		InitCommand = function(self)
-			self:diffuse(0,0,0,0):horizalign(right):vertalign(top):xy(_screen.w, 0)
+			self:visible(false):diffuse(0,0,0,0):horizalign(right)
 		end,
 		ShowCommand = function(self)
-			self:stoptweening():linear(.3):diffusealpha(.5):sleep(6):linear(.3):diffusealpha(0)
+			if GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() == true then
+				self:vertalign(bottom):xy(_screen.w, _screen.h)
+			else
+				self:vertalign(top):xy(_screen.w, 0)
+			end
+			local help_text = self:GetParent():GetChild("help_text")
+			self:zoomtowidth(help_text:GetZoomedWidth() + 20):zoomtoheight(help_text:GetZoomedHeight() + 20)
+			self:visible(true)
+			self:stoptweening():decelerate(.3):diffusealpha(.5):sleep(6):linear(.3):diffusealpha(0)
 		end,
 		HideCommand = function(self)
 			self:finishtweening()
@@ -23,24 +41,17 @@ return Def.ActorFrame {
 		Name = "help_text",
 		Font = "Common Normal",
 		InitCommand = function(self)
-			local text = {
-				revert_sync_changes .. ":",
-				"    F4",
-				change_song_offset .. ":",
-				"    F11/F12",
-				change_machine_offset .. ":",
-				"    Shift + F11/F12",
-				hold_alt
-			}
-			self:diffuse {1, 1, 1, 0}:horizalign(left):vertalign(top):shadowlength(2):settext(table.concat(text, "\n"))
-				:zoom(math.min(1,0.7*sh_r)):xy(_screen.w - self:GetZoomedWidth() - 10, 10)
-
-			local quad = self:GetParent():GetChild("quad")
-			quad:zoomtowidth(self:GetZoomedWidth() + 20):zoomtoheight(self:GetZoomedHeight() + 20)
+			self:diffuse(1,1,1,0):horizalign(left):shadowlength(2):settext(table.concat(helptexts, "\n"))
+			self:zoom(math.min(1,0.7*sh_r)):visible(false)
 		end,
 		ShowCommand = function(self)
+			if GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() == true then
+				self:vertalign(bottom):xy(_screen.w - self:GetZoomedWidth() - 10, _screen.h - 10)
+			else
+				self:vertalign(top):xy(_screen.w - self:GetZoomedWidth() - 10, 10)
+			end
 			self:visible(true)
-			self:stoptweening():linear(.3):diffusealpha(1):sleep(6):linear(.3):diffusealpha(0)
+			self:stoptweening():decelerate(.3):diffusealpha(1):sleep(6):linear(.3):diffusealpha(0)
 		end,
 		HideCommand = function(self)
 			self:finishtweening()
