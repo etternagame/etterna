@@ -159,7 +159,7 @@ end
 local t =
 	Def.ActorFrame {
 	InitCommand = function(self)
-		self:zoom(0.85)
+		self:zoom(0.9)
 	end,
 	BeginCommand = function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
@@ -176,16 +176,26 @@ local t =
 		end
 		self:queuecommand("Set")
 	end,
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		self:sleep(0.04):queuecommand("Invis")
+	end,
+	InvisCommand= function(self)
+		self:visible(false)
+	end,
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+	end,
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == (NSMAN:IsETTP() and 0 or 1) then
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
+			self:queuecommand("On")
 			active = true
 			whee:Move(0)
 			MESSAGEMAN:Broadcast("RefreshSearchResults")
 		else
-			self:visible(false)
 			self:queuecommand("Off")
 			active = false
 		end
