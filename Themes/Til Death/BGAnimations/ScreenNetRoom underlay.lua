@@ -1,5 +1,12 @@
 local t = Def.ActorFrame {}
 
+--bg
+t[#t + 1] = LoadActor(THEME:GetPathG("", "_OptionsScreen")) ..  {
+	OnCommand = function(self)
+		self:FullScreen():zoom(1):diffusealpha(1)
+	end
+}
+
 --black dim behind songwheel text
 t[#t + 1] = Def.Quad {
 	InitCommand = function(self)

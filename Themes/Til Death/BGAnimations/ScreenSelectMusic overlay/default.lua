@@ -37,7 +37,13 @@ t[#t + 1] =
 		if params.Name == "AvatarShow" and getTabIndex() == 0 and not SCREENMAN:get_input_redirected(PLAYER_1) then
 			SCREENMAN:SetNewScreen("ScreenAssetSettings")
 		end
-	end
+	end,
+	OnCommand = function(self)
+		inScreenSelectMusic = true
+	end,
+	EndCommand = function(self)
+		inScreenSelectMusic = nil
+	end,
 }
 
 t[#t + 1] = LoadActor("../_frame")
