@@ -4123,7 +4123,20 @@ local function rightFrame()
                 Name = "Volume",
                 Type = "SingleChoice",
                 Explanation = "All sound volume.",
-                Directions = preferenceIncrementDecrementDirections("SoundVolume", 0, 1, 0.01),
+                Directions = {
+                    Left = function()
+                        local x = PREFSMAN:GetPreference("SoundVolume")
+                        x = notShit.round(x - 0.01, 3)
+                        if x < 0 then x = 1 end
+                        SOUND:SetVolume(notShit.round(x, 3))
+                    end,
+                    Right = function()
+                        local x = PREFSMAN:GetPreference("SoundVolume")
+                        x = notShit.round(x + 0.01, 3)
+                        if x > 1 then x = 0 end
+                        SOUND:SetVolume(notShit.round(x, 3))
+                    end,
+                },
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("SoundVolume") * 100, 0) .. "%"
                 end,
