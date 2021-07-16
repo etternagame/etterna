@@ -1267,7 +1267,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 
 		CheckBackgroundRequests(true);
 		m_MusicWheel.Lock();
-		if (OPTIONS_MENU_AVAILABLE) {
+		if (OPTIONS_MENU_AVAILABLE && mode != GameplayMode_Replay) {
 			// show "hold START for options"
 			this->PlayCommand("ShowPressStartForOptions");
 
