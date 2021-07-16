@@ -484,6 +484,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
 			const auto per_thread_calc = std::make_unique<Calc>();
+			per_thread_calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
 
 			auto* pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
@@ -699,6 +700,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
 			const auto per_thread_calc = std::make_unique<Calc>();
+			per_thread_calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
 
 			auto scoreIndex = 0;
 			for (auto it = workload.first; it != workload.second; ++it) {

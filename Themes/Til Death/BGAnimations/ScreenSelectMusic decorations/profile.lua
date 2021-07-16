@@ -1044,6 +1044,7 @@ local profilebuttons =
 				if ButtonActive(self) and rankingSkillset == 1 and not recentactive  then
 					ms.ok("Recalculating Scores... this might be slow and may or may not crash")
 					profile:ForceRecalcScores()
+					STATSMAN:UpdatePlayerRating()	
 				end
 			end,
 		},

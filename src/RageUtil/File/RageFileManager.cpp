@@ -1295,6 +1295,12 @@ class LunaRageFileManager : public Luna<RageFileManager>
 		LuaHelpers::CreateTableFromArray(vDirs, L);
 		return 1;
 	}
+	static int FlushDirCache(T* p, lua_State* L)
+	{
+		auto dir = SArg(1);
+		p->FlushDirCache(dir);
+		return 0;
+	}
 
 	LunaRageFileManager()
 	{
@@ -1302,6 +1308,7 @@ class LunaRageFileManager : public Luna<RageFileManager>
 		ADD_METHOD(GetFileSizeBytes);
 		ADD_METHOD(GetHashForFile);
 		ADD_METHOD(GetDirListing);
+		ADD_METHOD(FlushDirCache);
 	}
 };
 

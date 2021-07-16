@@ -937,9 +937,6 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		CLAMP(fVol, 0.0f, 1.0f);
 		pRet->Set(fVol);
 		SOUNDMAN->SetMixVolume();
-		p->DimMusic(
-		  FArg(1),
-		  0.01f); // lazy hack to update volume without changing songs - mina
 		return 0;
 	}
 	static int PlayOnce(T* p, lua_State* L)

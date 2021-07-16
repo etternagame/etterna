@@ -463,7 +463,7 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(
 	  *this);
 	// if debug, force params to load
-	if (debugmode)
+	if (debugmode || loadparams)
 		ulbu_that_which_consumes_all.load_calc_params_from_disk(true);
 	ulbu_that_which_consumes_all();
 
@@ -724,6 +724,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 		// Roll
 		// RanMan,
 		FlamJam,
+	  	HSDensity,
 	  },
 
 	  // stam, nothing, don't handle here
@@ -957,7 +958,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 444;
+int mina_calc_version = 445;
 auto
 GetCalcVersion() -> int
 {

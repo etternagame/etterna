@@ -127,12 +127,27 @@ end
 
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
+local function dump(o)
+	if type(o) == "table" then
+		local s = "{ "
+		for k, v in pairs(o) do
+			if type(k) ~= "number" then
+				k = '"' .. k .. '"'
+			end
+			s = s .. "[" .. k .. "] = " .. dump(v) .. ","
+		end
+		return s .. "} "
+	else
+		return tostring(o)
+	end
+end
+
 -- **Functions**
 function ms.ok(m)
 	if not m then
 		SCREENMAN:SystemMessage("nahbro")
 	else
-		SCREENMAN:SystemMessage(m)
+		SCREENMAN:SystemMessage(dump(m))
 	end
 end
 

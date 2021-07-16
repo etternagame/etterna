@@ -433,8 +433,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// reset announcer timer
 	m_timerIdleComment.GetDeltaTime();
 
-	// debugging?
-	// I just like being able to see untransliterated titles occasionally.
+	// toggle transliteration
 	if (input.DeviceI.device == DEVICE_KEYBOARD &&
 		input.DeviceI.button == KEY_F9) {
 		if (input.type != IET_FIRST_PRESS)
@@ -443,6 +442,14 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		MESSAGEMAN->Broadcast("DisplayLanguageChanged");
 		m_MusicWheel.RebuildWheelItems();
 		return true;
+	}
+
+	// dont allow touching anything on the transition into view eval/replays
+	// the only time this would not be null is if replay is being started
+	// it is nulled at the start of this screen
+	// if input breaks, this is why (it shouldnt break)
+	if (PlayerAI::pScoreData != nullptr) {
+		return false;
 	}
 
 	if (!IsTransitioning() && m_SelectionState != SelectionState_Finalized) {

@@ -195,6 +195,7 @@ PrefsManager::PrefsManager()
   , m_bShowLogOutput("ShowLogOutput", TRUE_IF_DEBUG)
   , m_bLogSkips("LogSkips", false)
   , m_show_theme_errors("ShowThemeErrors", false)
+  , m_bAlwaysLoadCalcParams("AlwaysLoadCalcParams", false)
 
 {
 	Init();

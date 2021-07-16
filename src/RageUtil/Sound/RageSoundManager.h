@@ -29,7 +29,6 @@ class RageSoundManager
 
 	void Init();
 
-	float GetMixVolume() const { return m_fMixVolume; }
 	void SetMixVolume();
 	float GetVolumeOfNonCriticalSounds() const
 	{
@@ -57,7 +56,6 @@ class RageSoundManager
 	RageSoundDriver* m_pDriver;
 
 	/* Prefs: */
-	float m_fMixVolume{ 1.0f };
 	float m_fVolumeOfNonCriticalSounds{ 1.0f };
 	// Swallow up warnings. If they must be used, define them.
 	RageSoundManager& operator=(const RageSoundManager& rhs);

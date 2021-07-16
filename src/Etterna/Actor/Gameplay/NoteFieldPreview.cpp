@@ -195,8 +195,10 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps, bool bTransform)
 	// If the style must change to adapt to this new NoteData, do so
 	const auto* style = attemptToEnsureStyle(m_pPlayerState);
 	if (pSteps == GAMESTATE->m_pCurSteps && style != nullptr &&
-		nd->GetNumTracks() != style->m_iColsPerPlayer)
+		nd->GetNumTracks() != style->m_iColsPerPlayer) {
 		GAMESTATE->SetCompatibleStylesForPlayers();
+		style = GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	}
 
 	// This says it transforms the NoteData but really all it does:
 	// Map NoteData to the Style it is for (usually for beat or something?)

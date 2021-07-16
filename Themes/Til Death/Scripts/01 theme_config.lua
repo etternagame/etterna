@@ -16,6 +16,7 @@ local defaultConfig = {
 		IgnoreTabInput = 1, -- 1 = dont ignore, 2 = ignore only in search, 3 = always
 		JudgmentTween = false,
 		CenteredCombo = false,
+		FadeNoteFieldInSyncMachine = true,
 	},
 	NPSDisplay = {
 		DynamicWindow = false,

@@ -92,6 +92,7 @@ SongManager::SongManager()
 
 	// calc for debug/session scores
 	calc = std::make_unique<Calc>();
+	calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
 }
 
 SongManager::~SongManager()
