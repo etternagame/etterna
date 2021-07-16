@@ -173,6 +173,7 @@ class PrefsManager
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
 	Preference<int> m_iMusicWheelSwitchSpeed;
 	Preference<bool> m_bSortBySSRNorm;
+	Preference<bool> m_bPackProgressInWheel;
 	Preference<AllowW1>
 	  m_AllowW1; // this should almost always be on, given use cases. -aj
 	Preference<bool> m_bEventMode;
