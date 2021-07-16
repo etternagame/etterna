@@ -4162,6 +4162,7 @@ local function rightFrame()
                         ChosenFunction = function()
                             -- go to machine sync screen
                             SCUFF.screenAfterSyncMachine = SCREENMAN:GetTopScreen():GetName()
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
                             SCREENMAN:SetNewScreen("ScreenGameplaySyncMachine")
                         end,
                     },
@@ -4198,6 +4199,9 @@ local function rightFrame()
                         Name = "Test Input",
                         ChosenFunction = function()
                             -- go to test input screen
+                            SCUFF.screenAfterSyncMachine = SCREENMAN:GetTopScreen():GetName()
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                            SCREENMAN:SetNewScreen("ScreenTestInput")
                         end,
                     }
                 }

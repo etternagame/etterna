@@ -2,6 +2,8 @@ Branch.AfterSelectStyle = function()
     return "ScreenSelectMusic"
 end
 Branch.ExitingSyncMachine = function()
+    -- HACK: ALSO USING THIS FOR ScreenTestInput DONT PANIC
+
     -- when exiting ScreenGameplaySyncMachine we need to go back where we came from
     -- ideally, entry is only from 2 points, ScreenSelectMusic or ScreenInputOptions[Sub]
     -- so if it is provided, use the ScreenSelectMusic exit direction instead
