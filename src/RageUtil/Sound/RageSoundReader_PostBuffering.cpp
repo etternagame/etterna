@@ -1,5 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundReader_PostBuffering.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "RageSoundUtil.h"
 
 /*
@@ -8,11 +9,25 @@
  * changed with low latency.
  */
 
+RageMutex g_Mutex("PostBuffering");
+static float g_fMasterVolume = 1.0f;
+
 RageSoundReader_PostBuffering::RageSoundReader_PostBuffering(
   RageSoundReader* pSource)
   : RageSoundReader_Filter(pSource)
 {
 	m_fVolume = 1.0f;
+}
+
+void
+RageSoundReader_PostBuffering::SetMasterVolume(float fVolume) {
+	LockMut(g_Mutex);
+	g_fMasterVolume = fVolume;
+}
+
+float
+RageSoundReader_PostBuffering::GetMasterVolume() {
+	return g_fMasterVolume;
 }
 
 int
@@ -22,9 +37,13 @@ RageSoundReader_PostBuffering::Read(float* pBuf, int iFrames)
 	if (iFrames < 0)
 		return iFrames;
 
-	if (m_fVolume != 1.0f)
-		RageSoundUtil::Attenuate(
-		  pBuf, iFrames * this->GetNumChannels(), m_fVolume);
+	g_Mutex.Lock();
+	float fVolume = m_fVolume * g_fMasterVolume * g_fMasterVolume;
+	CLAMP(fVolume, 0, 1);
+	g_Mutex.Unlock();
+
+	if(fVolume != 1.0F)
+		RageSoundUtil::Attenuate(pBuf, iFrames * this->GetNumChannels(), fVolume);
 
 	return iFrames;
 }
