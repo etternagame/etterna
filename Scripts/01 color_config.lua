@@ -324,6 +324,7 @@ function getColorConfigPresets()
 	for p, _ in pairs(COLORS.presets) do
 		o[#o+1] = p
 	end
+	table.sort(o, function(a,b) return a:lower()<b:lower() end)
 	return o
 end
 
