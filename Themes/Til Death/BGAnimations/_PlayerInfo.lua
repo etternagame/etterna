@@ -35,6 +35,7 @@ local function highlight(self)
 	self:GetChild("refreshbutton"):queuecommand("Highlight")
 	self:GetChild("Name"):queuecommand("Highlight")
 	self:GetChild("Version"):queuecommand("Highlight")
+	self:GetChild("LoggedInAs"):queuecommand("Highlight")
 end
 
 local function highlight2(self)
@@ -42,6 +43,7 @@ local function highlight2(self)
 	self:GetChild("Name"):queuecommand("Highlight")
 	self:GetChild("loginlogout"):queuecommand("Highlight")
 	self:GetChild("Version"):queuecommand("Highlight")
+	self:GetChild("LoggedInAs"):queuecommand("Highlight")
 end
 
 local function highlightIfOver(self)
@@ -288,8 +290,9 @@ t[#t + 1] =
 		},
 	LoadFont("Common Normal") ..
 		{
+			Name = "LoggedInAs",
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 14.5):halign(0.5):zoom(0.45):diffuse(nonButtonColor)
+				self:xy(SCREEN_CENTER_X, AvatarY + 8):halign(0.5):zoom(0.45):diffuse(ButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -317,7 +320,7 @@ t[#t + 1] =
 				end
 				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
 					self:settextf(
-						"%s %s (%5.2f: #%i) \n",
+						"%s %s (%5.2f: #%i)",
 						translated_info["LoggedInAs"],
 						DLMAN:GetUsername(),
 						DLMAN:GetSkillsetRating("Overall"),
@@ -338,6 +341,12 @@ t[#t + 1] =
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
 					)
 					self:GetParent():SetUpdateFunction(highlight)
+				end
+			end,
+			MouseLeftClickMessageCommand=function(self)
+				local userpage = "urlnoexit,https://etternaonline.com/user/" .. DLMAN:GetUsername()
+				if isOver(self) then
+					GAMESTATE:ApplyGameCommand(userpage)
 				end
 			end,
 			OnlineUpdateMessageCommand = function(self)
