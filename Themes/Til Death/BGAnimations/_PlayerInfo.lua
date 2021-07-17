@@ -17,8 +17,11 @@ local playerRating = 0
 local uploadbarwidth = 100
 local uploadbarheight = 10
 local redir = SCREENMAN:get_input_redirected(PLAYER_1)
---remove the Saturation function here if you want the old look back
+
+local ButtonColor = getMainColor("positive")
 local nonButtonColor = Saturation(getMainColor("positive"),0.35)
+--------UNCOMMENT THIS NEXT LINE IF YOU WANT THE OLD LOOK--------
+--nonButtonColor = getMainColor("positive")
 
 local setnewdisplayname = function(answer)
 	if answer ~= "" then
@@ -220,7 +223,7 @@ t[#t + 1] =
 		{
 			Name = "Name",
 			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(350,410)):halign(0):zoom(0.55):diffuse(getMainColor("positive"))
+				self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(350,410)):halign(0):zoom(0.55):diffuse(ButtonColor)
 			end,
 			SetCommand = function(self)
 				self:settextf("%s: %5.2f", profileName, playerRating)
@@ -249,7 +252,7 @@ t[#t + 1] =
 		{
 			Name = "loginlogout",
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(ButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -436,7 +439,7 @@ t[#t + 1] =
 		{
 			Name = "Version",
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 3, AvatarY + 8):halign(1):zoom(0.42):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_WIDTH - 3, AvatarY + 8):halign(1):zoom(0.42):diffuse(ButtonColor)
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")
@@ -457,7 +460,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") .. {
 		Name = "refreshbutton",
 			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 3, AvatarY + 19):halign(1):zoom(0.35):diffuse(getMainColor("positive"))
+				self:xy(SCREEN_WIDTH - 3, AvatarY + 19):halign(1):zoom(0.35):diffuse(ButtonColor)
 
 			end,
 			BeginCommand = function(self)
