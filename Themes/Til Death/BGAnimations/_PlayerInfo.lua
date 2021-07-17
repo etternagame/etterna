@@ -19,7 +19,7 @@ local uploadbarheight = 10
 local redir = SCREENMAN:get_input_redirected(PLAYER_1)
 
 local ButtonColor = getMainColor("positive")
-local nonButtonColor = Saturation(getMainColor("positive"),0.35)
+local nonButtonColor = ColorMultiplier(getMainColor("positive"), 1.25)
 --------UNCOMMENT THIS NEXT LINE IF YOU WANT THE OLD LOOK--------
 --nonButtonColor = getMainColor("positive")
 

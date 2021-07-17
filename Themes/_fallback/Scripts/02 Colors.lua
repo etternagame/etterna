@@ -424,3 +424,14 @@ function Alpha(color, percent)
 	c.Alpha = percent
 	return HSVToColor(c)
 end
+
+function ColorMultiplier(color, multi)
+	-- error checking
+	if multi < 0 then
+		multi = 0.0
+	end
+	color[1] = color[1] * multi
+	color[2] = color[2] * multi
+	color[3] = color[3] * multi
+	return color
+end
