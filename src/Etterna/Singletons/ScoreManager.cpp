@@ -956,7 +956,7 @@ ScoreManager::SortRecentScoresForGame(const string& profileID)
 auto
 ScoreManager::GetRecentScore(const int rank) -> HighScore*
 {
-	if (rank >= 0 && rank < TopSSRs.size()) {
+	if (rank >= 0 && rank < static_cast<int>(TopSSRs.size())) {
 		return TopSSRs[rank];
 	}
 
@@ -966,7 +966,7 @@ ScoreManager::GetRecentScore(const int rank) -> HighScore*
 auto
 ScoreManager::GetRecentScoreForGame(const int rank) -> HighScore*
 {
-	if (rank >= 0 && rank < TopSSRsForGame.size()) {
+	if (rank >= 0 && rank < static_cast<int>(TopSSRsForGame.size())) {
 		return TopSSRsForGame[rank];
 	}
 

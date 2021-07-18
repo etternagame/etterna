@@ -765,7 +765,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	std::array<float, NUM_Skillset> tp_mods = {};
 
 	// ok this loop is pretty wack i know, for each interval
-	for (auto i = 0; i < calc.numitv; ++i) {
+	for (size_t i = 0; i < static_cast<size_t>(calc.numitv); ++i) {
 		tp_mods.fill(1.F);
 
 		/* total pattern mods for each skillset, we want this to be

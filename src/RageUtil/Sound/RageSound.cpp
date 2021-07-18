@@ -366,7 +366,7 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 	std::string error;
 	soundPlayCallback->PushSelf(L);
 	lua_newtable(L);
-	for (auto i = 0; i < fftBuffer.size(); ++i) {
+	for (size_t i = 0; i < fftBuffer.size(); ++i) {
 		auto r = fftBuffer[i].real;
 		auto im = fftBuffer[i].imag;
 		lua_pushnumber(L,

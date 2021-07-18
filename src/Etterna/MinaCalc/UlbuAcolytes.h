@@ -134,7 +134,7 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 	calc.numitv = time_to_itv_idx(ni.back().rowTime / rate) + 1;
 
 	// are there more intervals than our emplaced max
-	if (calc.numitv >= calc.itv_size.size()) {
+	if (calc.numitv >= static_cast<int>(calc.itv_size.size())) {
 		// hard cap for memory considerations
 		if (calc.numitv >= max_intervals)
 			return true;

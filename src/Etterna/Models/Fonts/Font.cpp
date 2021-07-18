@@ -551,12 +551,20 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 
 				wchar_t c;
 				if (sCodepoint.substr(0, 2) == "U+" &&
-					IsHexVal(sCodepoint.substr(2)))
-					sscanf(sCodepoint.substr(2).c_str(), "%x", &c);
-				else if (sCodepoint.size() > 0 &&
+					IsHexVal(sCodepoint.substr(2))) {
+					int c2;
+					if (!sscanf(sCodepoint.substr(2).c_str(), "%x", &c2))
+						Locator::getLogger()->warn(
+						  "Font definition '{}' has an invalid value '{}'.",
+						  ini.GetPath().c_str(),
+						  sName.c_str());
+					else
+						c = c2;
+				}
+				else if (!sCodepoint.empty() &&
 						 utf8_get_char_len(sCodepoint[0]) ==
 						   static_cast<int>(sCodepoint.size())) {
-					c = utf8_get_char(sCodepoint.c_str());
+					c = utf8_get_char(sCodepoint);
 					if (c == static_cast<wchar_t>(-1))
 						Locator::getLogger()->warn("Font definition '{}' has an invalid value '{}'.",
 						  ini.GetPath().c_str(),
@@ -607,9 +615,17 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				int count = -1;
 				int first = 0;
 				if (!asMatches[2].empty()) {
-					sscanf(asMatches[2].c_str(), "%x", &first);
+					if (!sscanf(asMatches[2].c_str(), "%x", &first))
+						Locator::getLogger()->warn(
+						  "Font definition {} parse error: {}",
+						  ini.GetPath().c_str(),
+						  sName.c_str());
 					int last;
-					sscanf(asMatches[3].c_str(), "%x", &last);
+					if (!sscanf(asMatches[3].c_str(), "%x", &last))
+						Locator::getLogger()->warn(
+						  "Font definition {} parse error: {}",
+						  ini.GetPath().c_str(),
+						  sName.c_str());
 					if (last < first) {
 						LuaHelpers::ReportScriptErrorFmt(
 						  "Font definition \"%s\" has an invalid range \"%s\": "

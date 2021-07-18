@@ -1070,7 +1070,7 @@ class LunaSteps : public Luna<Steps>
 			lua_createtable(L, 0, SONGMAN->calc->jack_diff.at(hand).size());
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
 			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
-			for (auto i = 0; i < static_cast<int>(vals.size()); i++) {
+			for (size_t i = 0; i < vals.size(); i++) {
 				auto v1 = vals[i].first;
 				auto v2 = vals[i].second;
 				auto v3 = 0.F;

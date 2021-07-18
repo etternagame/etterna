@@ -664,6 +664,7 @@ HighScore::LoadInputData() -> bool
 		  e.what());
 		return false;
 	}
+	return true;
 }
 
 // should just get rid of impl -mina
