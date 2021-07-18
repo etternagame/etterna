@@ -858,10 +858,11 @@ OptionRow::Reload()
 			AfterImportOptions(PLAYER_1);
 			// fall through
 		}
-
 		case RELOAD_CHANGED_ENABLED:
 			UpdateEnabledDisabled();
 			PositionUnderlines(PLAYER_1);
+			break;
+		default:
 			break;
 	}
 

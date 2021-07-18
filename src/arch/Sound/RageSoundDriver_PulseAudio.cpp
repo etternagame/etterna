@@ -258,6 +258,9 @@ RageSoundDriver_PulseAudio::CtxStateCb(pa_context* c)
 			m_Sem.Post();
 			return;
 			break;
+		case PA_CONTEXT_UNCONNECTED:
+		default:
+			break;
 	}
 }
 

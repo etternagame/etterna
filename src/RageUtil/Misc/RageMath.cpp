@@ -815,7 +815,7 @@ struct sine_initter
 
 static sine_initter sinner;
 
-float
+const float
 RageFastSin(float angle)
 {
 	if (angle == 0) {
@@ -841,7 +841,7 @@ RageFastSin(float angle)
 	return result;
 }
 
-float
+const float
 RageFastCos(float x)
 {
 	return RageFastSin(x + 0.5f * PI);

@@ -1234,8 +1234,9 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 			// I believe this is for those who like pump pro. -aj
 			MESSAGEMAN->Broadcast("SongChosen");
 			break;
-		case SelectionState_SelectingSteps: {
-		} break;
+		case SelectionState_SelectingSteps:
+		default:
+			break;
 	}
 	if (m_SelectionState == SelectionState_SelectingSteps) {
 		if (m_OptionsList.IsOpened())

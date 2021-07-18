@@ -1281,6 +1281,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
+				case ettps_end:
+				default:
+					break;
 			}
 		} catch (std::exception e) {
 			Locator::getLogger()->trace("Error while parsing ettp json message: {}", e.what());
