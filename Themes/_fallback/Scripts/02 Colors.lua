@@ -234,7 +234,11 @@ function ColorToHex(c)
 	local bX = hex(scale(b, 0, 1, 0, 255))
 	local aX = hex(scale(a, 0, 1, 0, 255))
 
-	return rX .. gX .. bX .. aX
+	if aX == "FF" then
+		return rX .. gX .. bX
+	else
+		return rX .. gX .. bX .. aX
+	end
 end
 
 -- HSV utilities (adapted from http://www.cs.rit.edu/~ncs/color/t_convert.html)
