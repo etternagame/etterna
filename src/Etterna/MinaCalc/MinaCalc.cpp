@@ -195,7 +195,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		/* finished all modifications to skillset values, set overall using
 		 * sigmoidal aggregation, but only let it buff files, don't set anything
 		 * below the highest skillset th */
-		auto agg = AggregateRatings(mcbloop);
+		auto agg = aggregate_skill(mcbloop, 0.25, 1.11, 0.0, 10.24);
 		auto highest = max_val(mcbloop);
 		mcbloop[Skill_Overall] = agg > highest ? agg : highest;
 

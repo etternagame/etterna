@@ -17,6 +17,7 @@
 #include <algorithm>
 
 #include "GameManager.h"
+#include "Etterna/MinaCalc/MinaCalcHelpers.h"
 
 using std::lock_guard;
 using std::mutex;
@@ -774,27 +775,6 @@ ScoreManager::UnInvalidateAllScores(const string& profileID)
 	}
 }
 
-inline auto
-AggregateSkillsets(const vector<float>& skillsets,
-				   float rating,
-				   float res,
-				   int iter) -> float
-{
-	double sum;
-	do {
-		rating += res;
-		sum = 0.0;
-		for (const auto& ss : skillsets) {
-			sum += std::max(0.0, 2.F / erfc(0.1 * (ss - rating)) - 2);
-		}
-	} while (pow(2, rating * 0.1) < sum);
-	if (iter == 11) {
-		return rating;
-	}
-
-	return AggregateSkillsets(skillsets, rating - res, res / 2.F, iter + 1);
-}
-
 void
 ScoreManager::CalcPlayerRating(float& prating,
 							   float* pskillsets,
@@ -810,50 +790,20 @@ ScoreManager::CalcPlayerRating(float& prating,
 			continue;
 		}
 
-		SortTopSSRPtrs(ss, profileID);
-		pskillsets[ss] = AggregateSSRs(ss, 0.F, 10.24F, 1) * 1.05F;
+		std::vector<float> ssrs = SortTopSSRPtrs(ss, profileID, true);
+		pskillsets[ss] = aggregate_skill(ssrs, 0.1, 1.05, 0.0, 10.24);
 		CLAMP(pskillsets[ss], 0.F, 100.F);
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = AggregateSkillsets(skillz, 0.F, 10.24F, 1) * 1.125F;
+	prating = aggregate_skill(skillz, 0.1, 1.125, 0.0, 10.24);
 	pskillsets[Skill_Overall] = prating;
 }
 
-// perhaps we will need a generalized version again someday, but not today
-// currently set to only allow dance single scores
-auto
-ScoreManager::AggregateSSRs(Skillset ss,
-							float rating,
-							float res,
-							int iter) const -> float
+std::vector<float>
+ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID, bool getSSRs)
 {
-	double sum;
-	do {
-		rating += res;
-		sum = 0.0;
-		for (const auto& ts : TopSSRs) {
-			if (ts->GetSSRCalcVersion() == GetCalcVersion() &&
-				ts->GetEtternaValid() &&
-				static_cast<int>(ts->GetChordCohesion()) == 0 &&
-				ts->GetTopScore() != 0 &&
-				SONGMAN->GetStepsByChartkey(ts->GetChartKey())->m_StepsType ==
-				  StepsType_dance_single) {
-				sum += std::max(
-				  0.0, 2.F / erfc(0.1 * (ts->GetSkillsetSSR(ss) - rating)) - 2);
-			}
-		}
-	} while (pow(2, rating * 0.1) < sum);
-	if (iter == 11) {
-		return rating;
-	}
-
-	return AggregateSSRs(ss, rating - res, res / 2.F, iter + 1);
-}
-
-void
-ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
-{
+	std::vector<float> o;
 	TopSSRs.clear();
 	for (auto& i : pscores[profileID]) {
 		if (!SONGMAN->IsChartLoaded(i.first)) {
@@ -861,6 +811,21 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 		}
 		for (const auto& hs : i.second.GetAllPBPtrs()) {
 			TopSSRs.emplace_back(hs);
+			
+			if (getSSRs) {
+				if (hs->GetSSRCalcVersion() != GetCalcVersion())
+					continue;
+				if (!hs->GetEtternaValid())
+					continue;
+				if (static_cast<int>(hs->GetChordCohesion()) == 1)
+					continue;
+				if (hs->GetTopScore() == 0)
+					continue;
+				if (SONGMAN->GetStepsByChartkey(hs->GetChartKey())
+					  ->m_StepsType != StepsType_dance_single)
+					continue;
+				o.emplace_back(hs->GetSkillsetSSR(ss));
+			}
 		}
 	}
 
@@ -869,6 +834,9 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 	};
 
 	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
+	if (getSSRs)
+		sort(o.begin(), o.end());
+	return o;
 }
 
 void

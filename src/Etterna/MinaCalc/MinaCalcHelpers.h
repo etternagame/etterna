@@ -37,22 +37,36 @@ downscale_low_accuracy_scores(const float f, const float sg) -> float
 						max_rating);
 }
 
-// kinda copied and pasted but also kinda use case specific
 inline auto
-AggregateRatings(const std::vector<float>& skillsets,
-				 float rating = 0.F,
-				 const float res = 10.24F,
-				 const int iter = 1.F) -> float
+aggregate_skill(const std::vector<float>& v,
+				double delta_multiplier,
+				float result_multiplier,
+				float rating = 0.0F,
+				float resolution = 10.24F) -> float
 {
-	double sum;
-	do {
-		rating += res;
-		sum = 0.0;
-		for (const auto& ss : skillsets) {
-			sum += std::max(0.0, 2.f / erfc(0.25 * (ss - rating)) - 2);
-		}
-	} while (pow(2, rating * 0.1) < sum);
-	if (iter == 11)
-		return rating * 1.11F;
-	return AggregateRatings(skillsets, rating - res, res / 2.f, iter + 1);
+	// this algorithm is roughly a binary search
+	// 11 iterations is enough to satisfy
+	for (int i = 0; i < 11; i++) {
+		double sum;
+
+		// at least 1 repeat iteration of:
+		// accumulate a sum of the input values
+		//  after applying a function to the values initially
+		// when threshold is reached, this iteration of the search concludes
+		do {
+			rating += resolution;
+			sum = 0.0;
+			for (const auto& vv : v) {
+				sum += std::max(
+				  0.0, 2.F / erfc(delta_multiplier * (vv - rating)) - 2);
+			}
+		} while (pow(2, rating * 0.1) < sum);
+
+		// binary searching: move backwards and proceed forward half as quickly
+		rating -= resolution;
+		resolution /= 2.F;
+	}
+	rating += resolution * 2.F;
+
+	return rating * result_multiplier;
 }
