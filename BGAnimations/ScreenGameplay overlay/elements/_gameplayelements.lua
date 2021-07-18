@@ -1,19 +1,5 @@
 -- gameplay elements
 
-
-
-
-
-
-
-local function spaceNotefieldCols(inc)
-	if inc == nil then inc = 0 end
-	local hCols = math.floor(#noteColumns/2)
-	for i, col in ipairs(noteColumns) do
-	    col:addx((i-hCols-1) * inc)
-	end
-end
-
 local t = Def.ActorFrame {
     Name = "GameplayElementsController",
 
@@ -37,14 +23,22 @@ local t = Def.ActorFrame {
         -- notefield column movement
         local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
         if nf then
+			local noteColumns = nf:get_column_actors()
             nf:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
             nf:addx(MovableValues.NotefieldX)
-            local noteColumns = nf:get_column_actors()
+
+			-- notefield column sizing
             for i, actor in ipairs(noteColumns) do
                 actor:zoomtowidth(MovableValues.NotefieldWidth)
                 actor:zoomtoheight(MovableValues.NotefieldHeight)
             end
-            spaceNotefieldCols(MovableValues.NotefieldSpacing)
+			-- notefield column movement
+			local inc = MovableValues.NotefieldSpacing
+			if inc == nil then inc = 0 end
+			local hCols = math.floor(#noteColumns/2)
+			for i, col in ipairs(noteColumns) do
+				col:addx((i-hCols-1) * inc)
+			end
         end
     end,
     DoneLoadingNextSongMessageCommand = function(self)
@@ -61,29 +55,39 @@ local t = Def.ActorFrame {
 	end,
 	JudgmentMessageCommand = function(self, msg)
         -- for each judgment, every tap and hold judge
-		tDiff = msg.WifeDifferential
-		wifey = notShit.floor(msg.WifePercent * 100) / 100
-		jdgct = msg.Val
+		local targetDiff = msg.WifeDifferential
+		local wifePercent = notShit.floor(msg.WifePercent * 100) / 100
+		local judgeCount = msg.Val
+		local dvCur = nil
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
-		else
-			dvCur = nil
 		end
+		local pbTarget = nil
 		if msg.WifePBGoal ~= nil and targetTrackerMode ~= 0 then
-			pbtarget = msg.WifePBGoal
-			tDiff = msg.WifePBDifferential
+			pbTarget = msg.WifePBGoal
+			targetDiff = msg.WifePBDifferential
 		end
-		jdgCur = msg.Judgment
-		self:playcommand("SpottedOffset")
+		local jdgCur = msg.Judgment
+
+		self:playcommand("SpottedOffset", {
+			targetDiff = targetDiff, -- wifepoints difference from target goal
+			pbTarget = pbTarget, -- goal target equivalent to current rate pb
+			wifePercent = wifePercent, -- visual wifepercent converted from internal wifepercent value
+			judgeCount = judgeCount, -- current count of the given judgment that sent the JudgmentMessage
+			judgeOffset = dvCur, -- offset assigned to judged tap; nil if is a hold judgment
+			judgeCurrent = jdgCur, -- the judgment that triggered this JudgmentMessage
+		})
 	end,
 	PracticeModeResetMessageCommand = function(self)
         -- reset stats for practice mode reverts mostly
-		tDiff = 0
-		wifey = 0
-		jdgct = 0
-		dvCur = nil
-		jdgCur = nil
-		self:playcommand("SpottedOffset")
+		self:playcommand("SpottedOffset", {
+			targetDiff = 0,
+			pbTarget = 0,
+			wifePercent = 0,
+			judgeCount = 0,
+			judgeOffset = nil,
+			judgeCurrent = nil,
+		})
 	end
 }
 
