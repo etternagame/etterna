@@ -53,6 +53,7 @@ add_subdirectory(mad-0.15.1b)
 add_subdirectory(fmt)
 add_subdirectory(boost/nowide)
 add_subdirectory(filesystem)
+add_subdirectory(glfw)
 
 ## Vorbis depends on ogg
 add_subdirectory(newogg)
