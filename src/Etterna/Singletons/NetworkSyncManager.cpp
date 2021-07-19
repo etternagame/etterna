@@ -113,30 +113,36 @@ correct_non_utf_8(string* str)
 				to.append(1, c);
 			}
 			continue;
-		} else if (c < 127) { // normal ASCII
+		}
+		if (c < 127) { // normal ASCII
 			to.append(1, c);
 			continue;
-		} else if (c < 160) { // control char (nothing should be defined here
+		}
+		if (c < 160) { // control char (nothing should be defined here
 							  // either ASCI, ISO_8859-1 or UTF8, so skipping)
 			if (c2 == 128) {  // fix microsoft mess, add euro
-				to.append(1, 226);
-				to.append(1, 130);
-				to.append(1, 172);
+				to.append(1, static_cast<unsigned char>(226));
+				to.append(1, static_cast<unsigned char>(130));
+				to.append(1, static_cast<unsigned char>(172));
 			}
 			if (c2 == 133) { // fix IBM mess, add NEL = \n\r
 				to.append(1, 10);
 				to.append(1, 13);
 			}
 			continue;
-		} else if (c < 192) { // invalid for UTF8, converting ASCII
+		}
+		if (c < 192) { // invalid for UTF8, converting ASCII
 			to.append(1, static_cast<unsigned char>(194));
 			to.append(1, c);
 			continue;
-		} else if (c < 194) { // invalid for UTF8, converting ASCII
+		}
+		if (c < 194) { // invalid for UTF8, converting ASCII
 			to.append(1, static_cast<unsigned char>(195));
 			to.append(1, c - 64);
 			continue;
-		} else if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
+		}
+		
+		if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
 			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
 				if (c == 194 && c2 < 160) { // control char, skipping
@@ -1275,6 +1281,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
+				case ettps_end:
+				default:
+					break;
 			}
 		} catch (std::exception e) {
 			Locator::getLogger()->trace("Error while parsing ettp json message: {}", e.what());

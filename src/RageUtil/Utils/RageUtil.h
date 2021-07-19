@@ -85,7 +85,7 @@ wife2(float maxms, float ts) -> float
 	float avedeviation = 95.F * ts;
 	float y = 1 - static_cast<float>(
 					pow(2, -1 * maxms * maxms / (avedeviation * avedeviation)));
-	y = pow(y, 2);
+	y = static_cast<float>(pow(y, 2));
 	return (2 - -8) * (1 - y) + -8;
 }
 

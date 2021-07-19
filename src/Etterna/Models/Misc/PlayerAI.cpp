@@ -161,7 +161,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		} else // Anything else (and we got this far without crashing) means
 			   // it's not a Full Replay
 		{
-			trr.track = NULL;
+			trr.track = 0;
 			trr.type = TapNoteType_Empty;
 		}
 

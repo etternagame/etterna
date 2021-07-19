@@ -370,11 +370,6 @@ OptionsList::SwitchMenu(int iDir)
 	TweenOnCurrentRow(iDir > 0);
 }
 
-void
-OptionsList::MoveItem(const std::string& sRowName, int iMove)
-{
-}
-
 bool
 OptionsList::Input(const InputEventPlus& input)
 {
@@ -479,10 +474,11 @@ OptionsList::Input(const InputEventPlus& input)
 		}
 
 		return true;
-	} else if (input.MenuI == GAME_BUTTON_SELECT) {
+	}
+	if (input.MenuI == GAME_BUTTON_SELECT) {
 		if (input.type != IET_FIRST_PRESS)
 			return false;
-		//		if( input.type == IET_RELEASE )
+		//if( input.type == IET_RELEASE )
 		{
 			Close();
 			return true;

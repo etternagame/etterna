@@ -165,6 +165,7 @@ class PrefsManager
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
 	Preference<int> m_iMusicWheelSwitchSpeed;
 	Preference<bool> m_bSortBySSRNorm;
+	Preference<bool> m_bPackProgressInWheel;
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 

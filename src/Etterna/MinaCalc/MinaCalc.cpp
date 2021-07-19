@@ -195,7 +195,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		/* finished all modifications to skillset values, set overall using
 		 * sigmoidal aggregation, but only let it buff files, don't set anything
 		 * below the highest skillset th */
-		auto agg = AggregateRatings(mcbloop);
+		auto agg = aggregate_skill(mcbloop, 0.25, 1.11, 0.0, 10.24);
 		auto highest = max_val(mcbloop);
 		mcbloop[Skill_Overall] = agg > highest ? agg : highest;
 
@@ -765,7 +765,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 	std::array<float, NUM_Skillset> tp_mods = {};
 
 	// ok this loop is pretty wack i know, for each interval
-	for (auto i = 0; i < calc.numitv; ++i) {
+	for (size_t i = 0; i < static_cast<size_t>(calc.numitv); ++i) {
 		tp_mods.fill(1.F);
 
 		/* total pattern mods for each skillset, we want this to be

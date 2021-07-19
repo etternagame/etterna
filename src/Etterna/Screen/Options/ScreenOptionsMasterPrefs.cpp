@@ -851,6 +851,7 @@ InitializeConfOptions()
 	// W1 is Fantastic Timing
 	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("PackProgressInWheel", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",

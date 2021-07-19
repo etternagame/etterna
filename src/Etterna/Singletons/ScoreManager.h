@@ -171,9 +171,11 @@ class ScoreManager
 	const float minpercent = PREFSMAN->m_fMinPercentToSaveScores;
 
 	// Player Rating and SSR functions
-	void SortTopSSRPtrs(Skillset ss,
-						const std::string& profileID =
-						  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	std::vector<float> SortTopSSRPtrs(
+	  Skillset ss,
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID,
+	  bool getSSRs = false);
 	void SortTopSSRPtrsForGame(
 	  Skillset ss,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
@@ -183,10 +185,6 @@ class ScoreManager
 	void CalcPlayerRating(float& prating,
 						  float* pskillsets,
 						  const std::string& profileID);
-	[[nodiscard]] auto AggregateSSRs(Skillset ss,
-									 float rating,
-									 float res,
-									 int iter) const -> float;
 
 	auto GetTopSSRValue(unsigned int rank, int ss) -> float;
 

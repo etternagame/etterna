@@ -204,8 +204,8 @@ StepsDisplayList::UpdatePositions()
 void
 StepsDisplayList::PositionItems()
 {
-	for (auto i = 0; i < m_Lines.size(); ++i) {
-		const bool bUnused = i >= static_cast<int>(m_Rows.size());
+	for (size_t i = 0; i < m_Lines.size(); ++i) {
+		const bool bUnused = i >= m_Rows.size();
 		m_Lines[i].m_Meter.SetVisible(!bUnused);
 	}
 
@@ -226,9 +226,9 @@ StepsDisplayList::PositionItems()
 		m_Lines[m].m_Meter.SetY(row.m_fY);
 	}
 
-	for (auto m = 0; m < m_Lines.size(); ++m) {
+	for (size_t m = 0; m < m_Lines.size(); ++m) {
 		bool bHidden = true;
-		if (m_bShown && m < static_cast<int>(m_Rows.size()))
+		if (m_bShown && m < m_Rows.size())
 			bHidden = m_Rows[m].m_bHidden;
 
 		const float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;

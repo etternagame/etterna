@@ -121,9 +121,9 @@ void
 RageMatrixTranspose(struct RageMatrix* pOut, const struct RageMatrix* pIn);
 
 auto
-RageFastSin(float x) -> float CONST_FUNCTION;
+RageFastSin(float x) -> const float;
 auto
-RageFastCos(float x) -> float CONST_FUNCTION;
+RageFastCos(float x) -> const float;
 
 class RageQuadratic
 {
