@@ -847,25 +847,29 @@ local enabledC = "#099948"
 local disabledC = "#ff6666"
 local force = false
 local ready = false
-function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
+function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, enabledF)
 	local button
 	button =
 		Widg.Button {
 		text = textDisabled,
-		width = 50,
-		height = 25,
+		width = 50 + extrawidth,
+		height = 24,
 		border = false,
 		bgColor = color(disabledC),
+		border = {
+			color = "#333333",
+			width = 1.5,
+		},
 		highlight = {color = getMainColor("highlight")},
-		x = 10 - 100 + capWideScale(get43size(384), 384) + x,
-		y = 61 + capWideScale(get43size(120), 120),
+		x = 10 - 115 + capWideScale(get43size(384), 384) + x,
+		y = 66 + capWideScale(get43size(120), 120),
 		font = {
 			scale = 0.3,
 			name = "Common Large",
 			color = color("#FFFFFF"),
 			padding = {
 				x = 10,
-				y = 10
+				y = 0
 			}
 		},
 		onInit = function(self)
@@ -889,7 +893,7 @@ function toggleButton(textEnabled, textDisabled, msg, x, enabledF)
 	}
 	return button
 end
-local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", 0)
+local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", -35, 30)
 local readyButton
 do
 	-- do-end block to minimize the scope of 'f'
@@ -908,7 +912,7 @@ do
 			error "Could not find ourselves in the userlist"
 		end
 	end
-	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, areWeReadiedUp)
+	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, 0, areWeReadiedUp)
 	readyButton.UsersUpdateMessageCommand = function(self)
 		readyButton.turnedOn = areWeReadiedUp()
 		readyButton.updateToggleButton()
