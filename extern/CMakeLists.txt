@@ -46,7 +46,6 @@ add_subdirectory(stb)
 ## Remaining Libraries
 add_subdirectory(luajit)
 add_subdirectory(muFFT)
-add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
