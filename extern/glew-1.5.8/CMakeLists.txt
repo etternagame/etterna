@@ -1,2 +1,2 @@
-add_library(glfw STATIC src/glew.c)
-target_include_directories(glfw PUBLIC include)
+add_library(glew STATIC src/glew.c)
+target_include_directories(glew PUBLIC include)
