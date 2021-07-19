@@ -439,3 +439,12 @@ function ColorMultiplier(color, multi)
 	color[3] = color[3] * multi
 	return color
 end
+
+
+function SameColor(c1,c2)
+	if c1[1] == c2[1] and c1[2] == c2[2] and c1[3] == c2[3] then
+		return true
+	end
+	return false
+end
+
