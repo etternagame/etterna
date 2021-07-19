@@ -1,4 +1,9 @@
-local t = Def.ActorFrame {}
+local t = Def.ActorFrame {
+	InitCommand=function(self)
+		setenv("NewOptions","Main")
+		setenv("DifferentOptionsScreen",false)
+	end,
+}
 
 local NSPreviewSize = 0.5
 local NSPreviewX = 35

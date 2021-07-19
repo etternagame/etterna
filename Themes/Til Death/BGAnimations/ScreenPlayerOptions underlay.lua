@@ -1,4 +1,9 @@
-t = Def.ActorFrame {}
+t = Def.ActorFrame {
+	InitCommand=function(self)
+		setenv("DifferentOptionsScreen",false)
+		setenv("NewOptions","Main")
+	end
+}
 
 t[#t + 1] =
 	LoadActor(THEME:GetPathG("", "_OptionsScreen")) ..

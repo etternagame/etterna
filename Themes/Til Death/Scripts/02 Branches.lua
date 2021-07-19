@@ -129,7 +129,7 @@ Branch = {
 			if not IsSMOnlineLoggedIn(PLAYER_1) then
 				return "ScreenNetSelectProfile"
 			else
-				return "ScreenNetSelectProfile" --return "ScreenNetRoom" 	-- cant do this, we need to select a local profile even 	
+				return "ScreenNetSelectProfile" --return "ScreenNetRoom" 	-- cant do this, we need to select a local profile even
 			end																-- if logged into smo -mina
 		else
 			return "ScreenNetworkOptions"
@@ -155,10 +155,10 @@ Branch = {
 		end
 	end,
 	PlayerOptions = function()
-		if SCREENMAN:GetTopScreen():GetGoToOptions() then
+		if SCREENMAN:GetTopScreen():GetGoToOptions() or GAMESTATE:Env()["DifferentOptionsScreen"] then
 			return "ScreenPlayerOptions"
 		else
-			return "ScreenStageInformation"
+			return ToGameplay()
 		end
 	end,
 	SongOptions = function()

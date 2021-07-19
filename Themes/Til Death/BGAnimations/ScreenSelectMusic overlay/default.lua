@@ -28,6 +28,7 @@ local t =
 		self:SetUpdateFunctionInterval(0.025)
 		local s = SCREENMAN:GetTopScreen()
 		s:AddInputCallback(input)
+		setenv("NewOptions","Main")
 	end
 }
 
