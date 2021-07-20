@@ -70,8 +70,8 @@ namespace Core::Platform::Window {
             }
         });
 
-        // Set as render context
-        glfwMakeContextCurrent(this->windowHandle);
+        glfwMakeContextCurrent(this->windowHandle); // Set as render context
+		glfwSwapInterval(0); // Don't wait for vsync
     }
 
     void GLFWWindowBackend::update() const {
