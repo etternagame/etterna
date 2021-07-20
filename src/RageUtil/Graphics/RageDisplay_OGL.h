@@ -7,6 +7,7 @@
 #include "RageDisplay.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "Core/Platform/Window/IWindowBackend.hpp"
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
  * to have an error from a previous call, then the assert below will fail.
@@ -151,6 +152,7 @@ class RageDisplay_Legacy : public RageDisplay
 	void SendCurrentMatrices();
 
   private:
+    std::unique_ptr<Core::Platform::Window::IWindowBackend> window;
 	RageTextureRenderTarget* offscreenRenderTarget = nullptr;
 };
 
