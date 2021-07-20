@@ -234,7 +234,7 @@ FixLittleEndian()
 static void
 TurnOffHardwareVBO()
 {
-	if (GLEW_ARB_vertex_buffer_object) {
+	if (GLAD_GL_ARB_vertex_buffer_object) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
@@ -275,8 +275,7 @@ CompileShader(GLenum ShaderType,
 {
 	/* XXX: This would not be necessary if it wasn't for the special case for
 	 * Cel. */
-	if (ShaderType == GL_FRAGMENT_SHADER_ARB &&
-		!glewIsSupported("GL_VERSION_2_0")) {
+	if (ShaderType == GL_FRAGMENT_SHADER_ARB && GLAD_GL_VERSION_2_0) {
 		Locator::getLogger()->warn("Fragment shaders not supported by driver. Some effects will "
 				  "not be available.");
 		return 0;
@@ -342,11 +341,7 @@ LoadShader(GLenum ShaderType, std::string sFile, std::vector<std::string> asDefi
 	 * If this causes any trouble I will have to up the requirement for both
 	 * of them to at least GL 2.0. Regardless we need basic GLSL support.
 	 * -Colby */
-	if (!glewIsSupported("GL_ARB_shading_language_100 GL_ARB_shader_objects") ||
-		(ShaderType == GL_FRAGMENT_SHADER_ARB &&
-		 !glewIsSupported("GL_VERSION_2_0")) ||
-		(ShaderType == GL_VERTEX_SHADER_ARB &&
-		 !glewIsSupported("GL_ARB_vertex_shader"))) {
+	if ((ShaderType == GL_FRAGMENT_SHADER_ARB) || (ShaderType == GL_VERTEX_SHADER_ARB)) {
 		Locator::getLogger()->warn("{} shaders not supported by driver. Some effects will not "
 				  "be available.",
 				  (ShaderType == GL_FRAGMENT_SHADER_ARB) ? "Fragment"
@@ -491,13 +486,13 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	{
-		Locator::getLogger()->info("OGL Vendor: {}", glGetString(GL_VENDOR));
-		Locator::getLogger()->info("OGL Renderer: {}", glGetString(GL_RENDERER));
-		Locator::getLogger()->info("OGL Version: {}", glGetString(GL_VERSION));
-		Locator::getLogger()->info("OGL Max texture size: {}", GetMaxTextureSize());
-		Locator::getLogger()->info("OGL Texture units: {}", g_iMaxTextureUnits);
-		Locator::getLogger()->info("GLU Version: {}", gluGetString(GLU_VERSION));
+	if (PREFSMAN->m_verbose_log > 1) {
+		Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
+		Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
+		Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
+		Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
+		Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
+		Locator::getLogger()->trace("GL Version: {}.{}", GLVersion.major, GLVersion.minor);
 
 		/* Pretty-print the extension string: */
 		Locator::getLogger()->info("OGL Extensions:");
@@ -592,7 +587,7 @@ CheckPalettedTextures()
 {
 	std::string sError;
 	do {
-		if (!GLEW_EXT_paletted_texture) {
+		if (!GLAD_GL_EXT_paletted_texture) {
 			sError = "GL_EXT_paletted_texture missing";
 			break;
 		}
@@ -724,17 +719,17 @@ CheckReversePackedPixels()
 void
 SetupExtensions()
 {
-	const auto fGLVersion = StringToFloat((const char*)glGetString(GL_VERSION));
+    gladLoadGL();
+    const auto fGLVersion = StringToFloat((const char*)glGetString(GL_VERSION));
 	g_glVersion = lround(fGLVersion * 10);
 
-	const auto fGLUVersion =
-	  StringToFloat((const char*)gluGetString(GLU_VERSION));
-	g_gluVersion = lround(fGLUVersion * 10);
+//	const auto fGLUVersion = 3.0; StringToFloat((const char*)gluGetString(GLU_VERSION));
+	g_gluVersion = 30;// lround(fGLUVersion * 10);
 
-	glewInit();
+//	glewInit();
 
 	g_iMaxTextureUnits = 1;
-	if (GLEW_ARB_multitexture)
+	if (GLAD_GL_ARB_multitexture)
 		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB,
 					  static_cast<GLint*>(&g_iMaxTextureUnits));
 
@@ -1059,7 +1054,7 @@ SetupVertices(const RageSpriteVertex v[], int iNumVerts)
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(2, GL_FLOAT, 0, Texture);
 
-	if (GLEW_ARB_multitexture) {
+	if (GLAD_GL_ARB_multitexture) {
 		glClientActiveTextureARB(GL_TEXTURE1_ARB);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, 0, Texture);
@@ -1531,7 +1526,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 RageCompiledGeometry*
 RageDisplay_Legacy::CreateCompiledGeometry()
 {
-	if (GLEW_ARB_vertex_buffer_object)
+	if (GLAD_GL_ARB_vertex_buffer_object)
 		return new RageCompiledGeometryHWOGL;
 	else
 		return new RageCompiledGeometrySWOGL;
@@ -1724,7 +1719,7 @@ static bool
 SetTextureUnit(TextureUnit tu)
 {
 	// If multitexture isn't supported, ignore all textures except for 0.
-	if (!GLEW_ARB_multitexture && tu != TextureUnit_1)
+	if (!GLAD_GL_ARB_multitexture && tu != TextureUnit_1)
 		return false;
 
 	if (static_cast<int>(tu) > g_iMaxTextureUnits)
@@ -1741,14 +1736,14 @@ RageDisplay_Legacy::ClearAllTextures()
 
 	// HACK:  Reset the active texture to 0.
 	// TODO:  Change all texture functions to take a stage number.
-	if (GLEW_ARB_multitexture)
+	if (GLAD_GL_ARB_multitexture)
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 }
 
 int
 RageDisplay_Legacy::GetNumTextureUnits()
 {
-	if (GLEW_ARB_multitexture)
+	if (GLAD_GL_ARB_multitexture)
 		return 1;
 
 	return g_iMaxTextureUnits;
@@ -1783,8 +1778,8 @@ RageDisplay_Legacy::SetTextureMode(TextureUnit tu, TextureMode tm)
 			break;
 		case TextureMode_Glow:
 			// the below function is glowmode,brighten:
-			if (!GLEW_ARB_texture_env_combine &&
-				!GLEW_EXT_texture_env_combine) {
+			if (!GLAD_GL_ARB_texture_env_combine &&
+				!GLAD_GL_EXT_texture_env_combine) {
 				/* This is changing blend state, instead of texture state, which
 				 * isn't great, but it's better than doing nothing. */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -1846,8 +1841,8 @@ RageDisplay_Legacy::SetTextureFiltering(TextureUnit tu, bool b)
 void
 RageDisplay_Legacy::SetEffectMode(EffectMode effect)
 {
-	if (!GLEW_ARB_fragment_program || !GLEW_ARB_shading_language_100 ||
-		!GLEW_ARB_shader_objects)
+	if (!GLAD_GL_ARB_fragment_program || !GLAD_GL_ARB_shading_language_100 ||
+		!GLAD_GL_ARB_shader_objects)
 		return;
 
 	GLhandleARB hShader = 0;
@@ -2006,7 +2001,7 @@ RageDisplay_Legacy::SetBlendMode(BlendMode mode)
 			DEFAULT_FAIL(mode);
 	}
 
-	if (GLEW_EXT_blend_equation_separate)
+	if (GLAD_GL_EXT_blend_equation_separate)
 		glBlendFuncSeparateEXT(iSourceRGB, iDestRGB, iSourceAlpha, iDestAlpha);
 	else
 		glBlendFunc(iSourceRGB, iDestRGB);
@@ -2360,7 +2355,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 	glBindTexture(GL_TEXTURE_2D, iTexHandle);
 
 	if ((*g_pWind->GetActualVideoModeParams()).bAnisotropicFiltering &&
-		GLEW_EXT_texture_filter_anisotropic) {
+	    GLAD_GL_EXT_texture_filter_anisotropic) {
 		GLfloat fLargestSupportedAnisotropy;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
 					&fLargestSupportedAnisotropy);
@@ -2541,7 +2536,7 @@ struct RageTextureLock_OGL
 RageTextureLock*
 RageDisplay_Legacy::CreateTextureLock()
 {
-	if (!GLEW_ARB_pixel_buffer_object)
+	if (!GLAD_GL_ARB_pixel_buffer_object)
 		return nullptr;
 
 	return new RageTextureLock_OGL;
@@ -2656,7 +2651,7 @@ RenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 	glBindTexture(GL_TEXTURE_2D, m_iTexHandle);
 	GLenum internalformat;
 	const GLenum type = param.bWithAlpha ? GL_RGBA : GL_RGB;
-	if (param.bFloat && GLEW_ARB_texture_float)
+	if (param.bFloat && GLAD_GL_ARB_texture_float)
 		internalformat = param.bWithAlpha ? GL_RGBA16F_ARB : GL_RGB16F_ARB;
 	else
 		internalformat = param.bWithAlpha ? GL_RGBA8 : GL_RGB8;
@@ -2754,7 +2749,7 @@ RenderTarget_FramebufferObject::FinishRenderingTo()
 bool
 RageDisplay_Legacy::SupportsRenderToTexture() const
 {
-	return GLEW_EXT_framebuffer_object || g_pWind->SupportsRenderToTexture();
+	return GLAD_GL_EXT_framebuffer_object || g_pWind->SupportsRenderToTexture();
 }
 
 bool
@@ -2781,7 +2776,7 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 									   int& iTextureHeightOut)
 {
 	RenderTarget* pTarget;
-	if (GLEW_EXT_framebuffer_object)
+	if (GLAD_GL_EXT_framebuffer_object)
 		pTarget = new RenderTarget_FramebufferObject;
 	else
 		pTarget = g_pWind->CreateRenderTarget();
@@ -2961,7 +2956,7 @@ RageDisplay_Legacy::SupportsSurfaceFormat(RagePixelFormat pixfmt)
 {
 	switch (g_GLPixFmtInfo[pixfmt].type) {
 		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-			return GLEW_EXT_bgra && g_bReversePackedPixelsWorks;
+			return GLAD_GL_EXT_bgra && g_bReversePackedPixelsWorks;
 		default:
 			return true;
 	}
@@ -2982,7 +2977,7 @@ RageDisplay_Legacy::SupportsTextureFormat(RagePixelFormat pixfmt,
 			return glColorTableEXT && glGetColorTableParameterivEXT;
 		case GL_BGR:
 		case GL_BGRA:
-			return !!GLEW_EXT_bgra;
+			return !!GLAD_GL_EXT_bgra;
 		default:
 			return true;
 	}
@@ -3018,7 +3013,7 @@ GLint iCelTexture1, iCelTexture2 = 0;
 void
 RageDisplay_Legacy::SetCelShaded(int stage)
 {
-	if (!GLEW_ARB_fragment_program && !GL_ARB_shading_language_100)
+	if (!GLAD_GL_ARB_fragment_program && !GL_ARB_shading_language_100)
 		return; // not supported
 
 	switch (stage) {
