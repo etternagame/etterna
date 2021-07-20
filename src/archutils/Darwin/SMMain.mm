@@ -233,6 +233,7 @@ static void SetupMenus( void )
 
 #undef main
 
+#if 0
 int main( int argc, char **argv )
 {
     RageThreadRegister guiThread( "GUI thread" );
@@ -258,6 +259,7 @@ int main( int argc, char **argv )
     [sm release];
     return 0;
 }
+#endif
 
 /*
  * (c) 2005-2009 Steve Checkoway
