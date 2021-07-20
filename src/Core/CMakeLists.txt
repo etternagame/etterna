@@ -6,7 +6,9 @@ target_sources(Etterna PUBLIC ${PROJECT_BINARY_DIR}/generated/AppInfo.cpp)
 list(APPEND CORE_HPP
         Crash/CrashpadHandler.hpp
         Misc/PlogLogger.hpp
-        Services/Locator.hpp)
+        Services/Locator.hpp
+	 	Utility/ActionDelegate.hpp
+	 )
 list(APPEND CORE_CPP
         Services/Locator.cpp
         Misc/PlogLogger.cpp)
