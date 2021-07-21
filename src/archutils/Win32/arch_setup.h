@@ -5,7 +5,6 @@
 #define HAVE_FFMPEG
 #endif
 
-#define SUPPORT_OPENGL
 #if defined(_MSC_VER)
 #define SUPPORT_D3D
 #endif

@@ -1,8 +1,5 @@
-﻿#include "Etterna/Globals/global.h"
-#include "Etterna/Globals/StepMania.h"
+﻿#include "Etterna/Globals/StepMania.h"
 
-int
-main(int argc, char* argv[])
-{
-	return sm_main(argc, argv);
+int main(int argc, char* argv[]) {
+	return StepMania::sm_main(argc, argv);
 }
