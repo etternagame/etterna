@@ -126,6 +126,33 @@ namespace Core::Platform::Window {
 
     DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode){
         switch (keycode) {
+            case GLFW_KEY_A:                return KEY_Ca;
+            case GLFW_KEY_B:                return KEY_Cb;
+            case GLFW_KEY_C:                return KEY_Cc;
+            case GLFW_KEY_D:                return KEY_Cd;
+            case GLFW_KEY_E:                return KEY_Ce;
+            case GLFW_KEY_F:                return KEY_Cf;
+            case GLFW_KEY_G:                return KEY_Cg;
+            case GLFW_KEY_H:                return KEY_Ch;
+            case GLFW_KEY_I:                return KEY_Ci;
+            case GLFW_KEY_J:                return KEY_Cj;
+            case GLFW_KEY_K:                return KEY_Ck;
+            case GLFW_KEY_L:                return KEY_Cl;
+            case GLFW_KEY_M:                return KEY_Cm;
+            case GLFW_KEY_N:                return KEY_Cn;
+            case GLFW_KEY_O:                return KEY_Co;
+            case GLFW_KEY_P:                return KEY_Cp;
+            case GLFW_KEY_Q:                return KEY_Cq;
+            case GLFW_KEY_R:                return KEY_Cr;
+            case GLFW_KEY_S:                return KEY_Cs;
+            case GLFW_KEY_T:                return KEY_Ct;
+            case GLFW_KEY_U:                return KEY_Cu;
+            case GLFW_KEY_V:                return KEY_Cv;
+            case GLFW_KEY_W:                return KEY_Cw;
+            case GLFW_KEY_X:                return KEY_Cx;
+            case GLFW_KEY_Y:                return KEY_Cy;
+            case GLFW_KEY_Z:                return KEY_Cz;
+
             case GLFW_KEY_BACKSPACE:        return KEY_BACK;
             case GLFW_KEY_TAB:              return KEY_TAB;
             case GLFW_KEY_PAUSE:            return KEY_PAUSE;
@@ -192,7 +219,7 @@ namespace Core::Platform::Window {
             case GLFW_MOUSE_BUTTON_LEFT:    return MOUSE_LEFT;
             case GLFW_MOUSE_BUTTON_MIDDLE:  return MOUSE_MIDDLE;
             case GLFW_MOUSE_BUTTON_RIGHT:   return MOUSE_RIGHT;
-            default:                        return DeviceButton_Invalid;
+            default:                        return DeviceButton(keycode);
         }
     }
 
