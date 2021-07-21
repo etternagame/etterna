@@ -16,8 +16,6 @@
 #define DEFAULT_SOUND_DRIVER_LIST "AudioUnit,Null"
 
 #elif defined(__unix__)
-#include "LowLevelWindow/LowLevelWindow_X11.h"
-
 #if defined(HAVE_GTK)
 #include "LoadingWindow/LoadingWindow_Gtk.h"
 #endif
