@@ -45,12 +45,6 @@ class RageDisplay_Legacy : public RageDisplay
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
 
-	bool SupportsThreadedRendering() override;
-	void BeginConcurrentRenderingMainThread() override;
-	void EndConcurrentRenderingMainThread() override;
-	void BeginConcurrentRendering() override;
-	void EndConcurrentRendering() override;
-
 	bool BeginFrame() override;
 	void EndFrame() override;
 	const ActualVideoModeParams* GetActualVideoModeParams() const override;

@@ -285,15 +285,7 @@ class RageDisplay
 
 	virtual auto SupportsTextureFormat(RagePixelFormat pixfmt,
 									   bool realtime = false) -> bool = 0;
-	virtual auto SupportsThreadedRendering() -> bool { return false; }
 	virtual auto SupportsPerVertexMatrixScale() -> bool = 0;
-
-	// If threaded rendering is supported, these will be called from the
-	// rendering thread before and after rendering.
-	virtual void BeginConcurrentRenderingMainThread() {}
-	virtual void EndConcurrentRenderingMainThread() {}
-	virtual void BeginConcurrentRendering();
-	virtual void EndConcurrentRendering() {}
 
 	/* return 0 if failed or internal texture resource handle
 	 * (unsigned in OpenGL, texture pointer in D3D) */

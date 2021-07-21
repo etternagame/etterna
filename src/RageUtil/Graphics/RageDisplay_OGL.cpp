@@ -12,6 +12,7 @@
 #include "RageTextureManager.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "Etterna/Globals/GameLoop.h"
 #include "Core/Platform/Window/GLFWWindowBackend.hpp"
 using namespace Core::Platform::Window;
 
@@ -46,12 +47,6 @@ static bool g_bColorIndexTableWorks = true;
 /* Range and granularity of points and lines: */
 static float g_line_range[2];
 static float g_point_range[2];
-
-/* OpenGL version * 10: */
-static int g_glVersion;
-
-/* GLU version * 10: */
-static int g_gluVersion;
 
 static int g_iMaxTextureUnits = 0;
 
@@ -472,11 +467,10 @@ std::string
 RageDisplay_Legacy::Init(const VideoModeParams& p,
 						 bool bAllowUnacceleratedRenderer)
 {
-//	g_pWind = LowLevelWindow::Create();
-    window = std::make_unique<GLFWWindowBackend>("Etterna", Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
-//    window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
-//    window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
-//    window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
+    window = std::make_unique<GLFWWindowBackend>(p.sWindowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
+    window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
+    window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
+    window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
     window->create();
 
     auto bIgnore = false;
@@ -485,73 +479,15 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 		return sError;
 
 	// Log driver details
-//	g_pWind->LogDebugInformation();
-	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
-		Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
-		Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
-		Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
-		Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
-		Locator::getLogger()->trace("GL Version: {}.{}", GLVersion.major, GLVersion.minor);
+    Locator::getLogger()->info("OpenGL Vendor: {}", glGetString(GL_VENDOR));
+    Locator::getLogger()->info("OpenGL Renderer: {}", glGetString(GL_RENDERER));
+    Locator::getLogger()->info("OpenGL Version: {}", glGetString(GL_VERSION));
+    Locator::getLogger()->info("OpenGL Max texture size: {}", GetMaxTextureSize());
+    Locator::getLogger()->info("OpenGL Texture units: {}", g_iMaxTextureUnits);
+    Locator::getLogger()->info("OpenGL Version: {}.{}", GLVersion.major, GLVersion.minor);
 
-		/* Pretty-print the extension string: */
-		Locator::getLogger()->info("OGL Extensions:");
-		{
-			const auto szExtensionString =
-			  (const char*)glGetString(GL_EXTENSIONS);
-			std::vector<std::string> asExtensions;
-			split(szExtensionString, " ", asExtensions);
-			sort(asExtensions.begin(), asExtensions.end());
-			size_t iNextToPrint = 0;
-			while (iNextToPrint < asExtensions.size()) {
-				auto iLastToPrint = iNextToPrint;
-				std::string sType;
-				for (auto i = iNextToPrint; i < asExtensions.size(); ++i) {
-					std::vector<std::string> asBits;
-					split(asExtensions[i], "_", asBits);
-					std::string sThisType;
-					if (asBits.size() > 2)
-						sThisType = join(
-						  std::string("_"), asBits.begin(), asBits.begin() + 2);
-					if (i > iNextToPrint && sThisType != sType)
-						break;
-					sType = sThisType;
-					iLastToPrint = i;
-				}
-
-				if (iNextToPrint == iLastToPrint) {
-					Locator::getLogger()->info("  {}", asExtensions[iNextToPrint].c_str());
-					++iNextToPrint;
-					continue;
-				}
-
-				auto sList = ssprintf("  %s: ", sType.c_str());
-				while (iNextToPrint <= iLastToPrint) {
-					std::vector<std::string> asBits;
-					split(asExtensions[iNextToPrint], "_", asBits);
-					const auto sShortExt =
-					  join(std::string("_"), asBits.begin() + 2, asBits.end());
-					sList += sShortExt;
-					if (iNextToPrint < iLastToPrint)
-						sList += ", ";
-					if (iNextToPrint == iLastToPrint ||
-						sList.size() + asExtensions[iNextToPrint + 1].size() >
-						  120) {
-						Locator::getLogger()->info(sList.c_str());
-						sList = "    ";
-					}
-					++iNextToPrint;
-				}
-			}
-		}
-	}
-
-//	if (g_pWind->IsSoftwareRenderer(sError)) {
-//		if (!bAllowUnacceleratedRenderer)
-//			return sError + "  " + OBTAIN_AN_UPDATED_VIDEO_DRIVER.GetValue() +
-//				   "\n\n";
-//		Locator::getLogger()->warn("Low-performance OpenGL renderer: {}", sError.c_str());
-//	}
+    const auto szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
+    Locator::getLogger()->info("OpenGL Extensions: {}", szExtensionString);
 
 #ifdef _WIN32
 	/* GLDirect is a Direct3D wrapper for OpenGL.  It's rather buggy; and if in
@@ -572,7 +508,6 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 RageDisplay_Legacy::~RageDisplay_Legacy()
 {
-//	delete g_pWind;
     auto *win = window.release();
     delete win;
 }
@@ -581,7 +516,6 @@ void
 RageDisplay_Legacy::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
-//	g_pWind->GetDisplaySpecs(out);
 }
 
 static void
@@ -722,11 +656,6 @@ void
 SetupExtensions()
 {
     gladLoadGL();
-    const auto fGLVersion = StringToFloat((const char*)glGetString(GL_VERSION));
-	g_glVersion = 40; //lround(fGLVersion * 10);
-
-//	const auto fGLUVersion = 3.0; StringToFloat((const char*)gluGetString(GLU_VERSION));
-	g_gluVersion = 30;// lround(fGLUVersion * 10);
 
 	g_iMaxTextureUnits = 1;
 	if (GLAD_GL_ARB_multitexture)
@@ -809,7 +738,6 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	// p.windowed, p.width, p.height, p.bpp, p.rate, p.vsync );
 
 	std::string err;
-//	err = g_pWind->TryVideoMode(p, bNewDeviceOut);
 	if (!err.empty())
 		return err; // failed to set video mode
 
@@ -2184,38 +2112,6 @@ RageDisplay_Legacy::GetPixelFormatDesc(RagePixelFormat pf) const
 	return &PIXEL_FORMAT_DESC[pf];
 }
 
-bool
-RageDisplay_Legacy::SupportsThreadedRendering()
-{
-    return true;
-//	return g_pWind->SupportsThreadedRendering();
-}
-
-void
-RageDisplay_Legacy::BeginConcurrentRenderingMainThread()
-{
-//	g_pWind->BeginConcurrentRenderingMainThread();
-}
-
-void
-RageDisplay_Legacy::EndConcurrentRenderingMainThread()
-{
-//	g_pWind->EndConcurrentRenderingMainThread();
-}
-
-void
-RageDisplay_Legacy::BeginConcurrentRendering()
-{
-//	g_pWind->BeginConcurrentRendering();
-	RageDisplay::BeginConcurrentRendering();
-}
-
-void
-RageDisplay_Legacy::EndConcurrentRendering()
-{
-//	g_pWind->EndConcurrentRendering();
-}
-
 void
 RageDisplay_Legacy::DeleteTexture(intptr_t iTexture)
 {
@@ -2338,7 +2234,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 	// HACK:  OpenGL 1.2 types aren't available in GLU 1.3.  Don't call GLU for
 	// mip mapping if we're using an OGL 1.2 type and don't have >= GLU 1.3.
 	// http://pyopengl.sourceforge.net/documentation/manual/gluBuild2DMipmaps.3G.html
-	if (bGenerateMipMaps && g_gluVersion < 13) {
+	if (bGenerateMipMaps) {
 		switch (pixfmt) {
 			// OpenGL 1.1 types
 			case RagePixelFormat_RGBA8:
@@ -2348,10 +2244,8 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 				break;
 			// OpenGL 1.2 types
 			default:
-				Locator::getLogger()->debug("Can't generate mipmaps for type {} because GLU "
-						   "version {:.1f} is too old.",
-						   GLToString(glImageType).c_str(),
-						   g_gluVersion / 10.f);
+				Locator::getLogger()->trace("Can't generate mipmaps for type {} because GLU version is too old.",
+						   GLToString(glImageType).c_str());
 				bGenerateMipMaps = false;
 				break;
 		}
