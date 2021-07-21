@@ -1,6 +1,7 @@
 #ifndef CORE_PLATFORM_WINDOW_GLFWWINDOWBACKEND_HPP
 #define CORE_PLATFORM_WINDOW_GLFWWINDOWBACKEND_HPP
 
+#include <RageUtil/Misc/RageInputDevice.h>
 #include "Core/Platform/Window/IWindowBackend.hpp"
 
 class GLFWwindow;
@@ -21,6 +22,7 @@ public:
 
 private:
     GLFWwindow *windowHandle{nullptr}; /** @brief A reference to the window backend*/
+    static DeviceButton convertKeyToLegacy(int keycode);
 };
 
 }
