@@ -122,8 +122,8 @@ else()
 endif()
 source_group("Arch Specific\\\\Loading Window" FILES ${SMDATA_ARCH_LOADING_SRC} ${SMDATA_ARCH_LOADING_HPP})
 
-list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler.cpp" "InputHandler/InputHandler_MonkeyKeyboard.cpp")
-list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler.h" "InputHandler/InputHandler_MonkeyKeyboard.h")
+list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler.cpp")
+list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler.h")
 
 if(WIN32)
   list(APPEND SMDATA_ARCH_INPUT_SRC
@@ -143,8 +143,6 @@ if(WIN32)
     list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_SextetStream.h")
   endif()
 elseif(APPLE)
-  list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_MacOSX_HID.cpp")
-  list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_MacOSX_HID.h")
 else() # Unix/Linux
   if (LINUX)
     list(APPEND SMDATA_ARCH_INPUT_SRC
@@ -161,9 +159,6 @@ else() # Unix/Linux
       "InputHandler/InputHandler_SextetStream.h")
 
   endif()
-    list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_X11.cpp")
-    list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_X11.h")
-  
 endif()
 source_group("Arch Specific\\\\Input Handler" FILES ${SMDATA_ARCH_INPUT_SRC} ${SMDATA_ARCH_INPUT_HPP})
 
