@@ -15,8 +15,6 @@
 #include "Core/Platform/Window/GLFWWindowBackend.hpp"
 using namespace Core::Platform::Window;
 
-#include "arch/LowLevelWindow/LowLevelWindow.h"
-
 #include <algorithm>
 #include <chrono>
 #include <memory>
@@ -64,8 +62,6 @@ static GLhandleARB g_bTextureMatrixShader = 0;
 
 static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = nullptr;
-
-static LowLevelWindow* g_pWind;
 
 static bool g_bInvertY = false;
 
