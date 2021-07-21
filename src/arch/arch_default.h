@@ -11,7 +11,6 @@
 
 #elif defined(__APPLE__)
 #include "LoadingWindow/LoadingWindow_MacOSX.h"
-#include "LowLevelWindow/LowLevelWindow_MacOSX.h"
 #define DEFAULT_INPUT_DRIVER_LIST "HID"
 #define DEFAULT_MOVIE_DRIVER_LIST "FFMpeg,Null"
 #define DEFAULT_SOUND_DRIVER_LIST "AudioUnit,Null"
