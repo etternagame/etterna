@@ -796,8 +796,8 @@ RageDisplay_Legacy::BeginFrame()
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
 
-	const auto fWidth = window->getDimensions().width; //(*g_pWind->GetActualVideoModeParams()).windowWidth;
-	const auto fHeight = window->getDimensions().height; //(*g_pWind->GetActualVideoModeParams()).windowHeight;
+	const auto fWidth = window->getFrameBufferSize().width; //(*g_pWind->GetActualVideoModeParams()).windowWidth;
+	const auto fHeight = window->getFrameBufferSize().height; //(*g_pWind->GetActualVideoModeParams()).windowHeight;
 	glViewport(0, 0, fWidth, fHeight);
 	glClearColor(0, 0, 0, 0);
 	SetZWrite(true);
@@ -858,8 +858,8 @@ RageDisplay_Legacy::EndFrame()
 RageSurface*
 RageDisplay_Legacy::CreateScreenshot()
 {
-	const auto width = window->getDimensions().width; //(*g_pWind->GetActualVideoModeParams()).width;
-	const auto height = window->getDimensions().height; //(*g_pWind->GetActualVideoModeParams()).height;
+	const auto width = window->getFrameBufferSize().width; //(*g_pWind->GetActualVideoModeParams()).width;
+	const auto height = window->getFrameBufferSize().height; //(*g_pWind->GetActualVideoModeParams()).height;
 
 	RageSurface* image = nullptr;
 	if (offscreenRenderTarget) {
@@ -890,8 +890,8 @@ RageDisplay_Legacy::CreateScreenshot()
 
 		glReadPixels(0,
 					 0,
-                     window->getDimensions().width,
-                     window->getDimensions().height,
+                     window->getFrameBufferSize().width,
+                     window->getFrameBufferSize().height,
 //					 (*g_pWind->GetActualVideoModeParams()).width,
 //					 (*g_pWind->GetActualVideoModeParams()).height,
 					 GL_RGBA,
@@ -1606,8 +1606,8 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 		const auto fH = -2 / pMat->m[1][1];
 //		const auto fWidthVal = static_cast<float>((*g_pWind->GetActualVideoModeParams()).width) / fW;
 //		const auto fHeightVal = static_cast<float>((*g_pWind->GetActualVideoModeParams()).height) / fH;
-        const auto fWidthVal = static_cast<float>(window->getDimensions().width) / fW;
-        const auto fHeightVal = static_cast<float>(window->getDimensions().height) / fH;
+        const auto fWidthVal = static_cast<float>(window->getFrameBufferSize().width) / fW;
+        const auto fHeightVal = static_cast<float>(window->getFrameBufferSize().height) / fH;
 		fLineWidth *= (fWidthVal + fHeightVal) / 2;
 	}
 
@@ -2723,8 +2723,8 @@ RageDisplay_Legacy::SetRenderTarget(intptr_t iTexture, bool bPreserveTexture)
 		/* Reset the viewport. */
 //		const auto fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
 //		const auto fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
-        const auto fWidth = window->getDimensions().width;
-        const auto fHeight = window->getDimensions().height;
+        const auto fWidth = window->getFrameBufferSize().width;
+        const auto fHeight = window->getFrameBufferSize().height;
 		glViewport(0, 0, fWidth, fHeight);
 
 		if (g_pCurrentRenderTarget != nullptr)

@@ -19,6 +19,7 @@ public:
     void swapBuffers() const override;
     void *getNativeWindow() const override;
     void setTitle(const std::string &title) override;
+    Dimensions getFrameBufferSize() const override;
 
 private:
     GLFWwindow *windowHandle{nullptr}; /** @brief A reference to the window backend*/

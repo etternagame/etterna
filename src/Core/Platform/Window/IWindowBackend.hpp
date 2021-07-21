@@ -23,6 +23,7 @@ namespace Core::Platform::Window {
         virtual void swapBuffers() const = 0;
         virtual void *getNativeWindow() const = 0;
         virtual void setTitle(const std::string& title) = 0;
+        virtual Dimensions getFrameBufferSize() const = 0;
 
         const std::string& getTitle() const;
         Dimensions getDimensions() const;
