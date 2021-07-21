@@ -118,6 +118,12 @@ namespace Core::Platform::Window {
         glfwSetWindowTitle(this->windowHandle, title.data());
     }
 
+    Dimensions GLFWWindowBackend::getFrameBufferSize() const {
+        int width, height;
+        glfwGetFramebufferSize(this->windowHandle, &width, &height);
+        return {static_cast<unsigned int>(width), static_cast<unsigned int>(height)};
+    }
+
     DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode){
         switch (keycode) {
             case GLFW_KEY_BACKSPACE:        return KEY_BACK;
