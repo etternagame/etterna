@@ -11,6 +11,7 @@ namespace Core::Platform::Window {
 class GLFWWindowBackend : public IWindowBackend {
 public:
     GLFWWindowBackend(std::string_view title, const Dimensions &size);
+    ~GLFWWindowBackend() override;
 
     // Overridden Functions
     void create() override;
@@ -20,6 +21,8 @@ public:
     void *getNativeWindow() const override;
     void setTitle(const std::string &title) override;
     Dimensions getFrameBufferSize() const override;
+
+    static void setWindowHint(int hint, int value);
 
 private:
     GLFWwindow *windowHandle{nullptr}; /** @brief A reference to the window backend*/
