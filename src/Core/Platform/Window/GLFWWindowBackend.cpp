@@ -84,7 +84,7 @@ namespace Core::Platform::Window {
         glfwSetKeyCallback(this->windowHandle, [](GLFWwindow* window, int key, int scancode, int action, int mods){
             auto time = std::chrono::steady_clock::now();
             if(action == GLFW_REPEAT) return; // We do our own repeat
-            auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(key);
+            auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(key, mods);
             DeviceInput di(DEVICE_KEYBOARD, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
             INPUTFILTER->ButtonPressed(di);
         });
@@ -93,7 +93,7 @@ namespace Core::Platform::Window {
         glfwSetMouseButtonCallback(this->windowHandle, [](GLFWwindow* window, int button, int action, int mods){
             auto time = std::chrono::steady_clock::now();
             if(action == GLFW_REPEAT) return; // We do our own repeat
-            auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(button);
+            auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(button, 0);
             DeviceInput di(DEVICE_MOUSE, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
             INPUTFILTER->ButtonPressed(di);
         });
@@ -133,35 +133,19 @@ namespace Core::Platform::Window {
         return {static_cast<unsigned int>(width), static_cast<unsigned int>(height)};
     }
 
-    DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode){
-        switch (keycode) {
-            case GLFW_KEY_A:                return KEY_Ca;
-            case GLFW_KEY_B:                return KEY_Cb;
-            case GLFW_KEY_C:                return KEY_Cc;
-            case GLFW_KEY_D:                return KEY_Cd;
-            case GLFW_KEY_E:                return KEY_Ce;
-            case GLFW_KEY_F:                return KEY_Cf;
-            case GLFW_KEY_G:                return KEY_Cg;
-            case GLFW_KEY_H:                return KEY_Ch;
-            case GLFW_KEY_I:                return KEY_Ci;
-            case GLFW_KEY_J:                return KEY_Cj;
-            case GLFW_KEY_K:                return KEY_Ck;
-            case GLFW_KEY_L:                return KEY_Cl;
-            case GLFW_KEY_M:                return KEY_Cm;
-            case GLFW_KEY_N:                return KEY_Cn;
-            case GLFW_KEY_O:                return KEY_Co;
-            case GLFW_KEY_P:                return KEY_Cp;
-            case GLFW_KEY_Q:                return KEY_Cq;
-            case GLFW_KEY_R:                return KEY_Cr;
-            case GLFW_KEY_S:                return KEY_Cs;
-            case GLFW_KEY_T:                return KEY_Ct;
-            case GLFW_KEY_U:                return KEY_Cu;
-            case GLFW_KEY_V:                return KEY_Cv;
-            case GLFW_KEY_W:                return KEY_Cw;
-            case GLFW_KEY_X:                return KEY_Cx;
-            case GLFW_KEY_Y:                return KEY_Cy;
-            case GLFW_KEY_Z:                return KEY_Cz;
+    DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode, int mods){
+        // GLFW keycodes are all uppercase ascii. If we're in that ascii, determine if uppercase
+        // or lowercase, and convert if necessary.
+        if(65 <= keycode && keycode <= 90) {
+            char asChar = static_cast<char>(keycode);
+            if (mods & GLFW_MOD_SHIFT)
+                return DeviceButton(asChar);
+            else
+                return DeviceButton(tolower(asChar));
+        }
 
+        // Check other keys if not ascii.
+        switch (keycode) {
             case GLFW_KEY_BACKSPACE:        return KEY_BACK;
             case GLFW_KEY_TAB:              return KEY_TAB;
             case GLFW_KEY_PAUSE:            return KEY_PAUSE;
@@ -183,6 +167,7 @@ namespace Core::Platform::Window {
             case GLFW_KEY_KP_ADD:           return KEY_KP_PLUS;
             case GLFW_KEY_KP_EQUAL:         return KEY_KP_EQUAL;
             case GLFW_KEY_KP_ENTER:         return KEY_KP_ENTER;
+            case GLFW_KEY_KP_DECIMAL:       return KEY_KP_PERIOD;
             case GLFW_KEY_UP:               return KEY_UP;
             case GLFW_KEY_DOWN:             return KEY_DOWN;
             case GLFW_KEY_RIGHT:            return KEY_RIGHT;
