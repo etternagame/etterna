@@ -83,6 +83,7 @@ namespace Core::Platform::Window {
         // Window key callback
         glfwSetKeyCallback(this->windowHandle, [](GLFWwindow* window, int key, int scancode, int action, int mods){
             auto time = std::chrono::steady_clock::now();
+            if(action == GLFW_REPEAT) return; // We do our own repeat
             auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(key);
             DeviceInput di(DEVICE_KEYBOARD, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
             INPUTFILTER->ButtonPressed(di);
@@ -91,6 +92,7 @@ namespace Core::Platform::Window {
         // Window mouse callback
         glfwSetMouseButtonCallback(this->windowHandle, [](GLFWwindow* window, int button, int action, int mods){
             auto time = std::chrono::steady_clock::now();
+            if(action == GLFW_REPEAT) return; // We do our own repeat
             auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(button);
             DeviceInput di(DEVICE_MOUSE, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
             INPUTFILTER->ButtonPressed(di);
