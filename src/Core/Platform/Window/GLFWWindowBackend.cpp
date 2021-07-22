@@ -13,6 +13,10 @@ namespace Core::Platform::Window {
         glfwInit();
     }
 
+    GLFWWindowBackend::~GLFWWindowBackend(){
+        glfwDestroyWindow(this->windowHandle);
+    }
+
     /**
      * Create the window and initialized all callbacks.
      * TODO: Callback for minimize, restore, maximize
@@ -32,6 +36,9 @@ namespace Core::Platform::Window {
         // Create Window
         this->windowHandle = glfwCreateWindow(static_cast<int>(size.width),static_cast<int>(size.height),
                                               title.data(), nullptr, nullptr);
+
+        // Reset window hints after window creating in-case other hints have been made.
+        glfwDefaultWindowHints();
 
         // Tell the GLFWwindow to store a pointer to this GLFWWindowBackend object
         glfwSetWindowUserPointer(this->windowHandle, this);
@@ -223,4 +230,12 @@ namespace Core::Platform::Window {
         }
     }
 
+    /**
+     * Set a glfw window hint. Only needed for loading window.
+     * @param hint GLFW hint to replace
+     * @param value GLFW value to set
+     */
+    void GLFWWindowBackend::setWindowHint(int hint, int value){
+        glfwWindowHint(hint, value);
+    }
 }
