@@ -195,7 +195,9 @@ Branch = {
 		local Failed = STATSMAN:GetCurStageStats():Failed()
 		local song = GAMESTATE:GetCurrentSong()
 
-		if GAMESTATE:IsEventMode() or stagesLeft >= 1 then
+		if not SCREENMAN:GetTopScreen():GetStageStats():GetLivePlay() then
+			return "ScreenSelectMusic"
+		elseif GAMESTATE:IsEventMode() or stagesLeft >= 1 then
 			return "ScreenProfileSave"
 		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"
