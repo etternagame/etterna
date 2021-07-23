@@ -730,6 +730,11 @@ l[#l + 1] =
 				self:xy((frameWidth - offsetX - frameX) / 2.1, frameHeight - headeroffY - 17 - offsetY):diffuse(0,0,0,0)
 				self:zoomtowidth(145):zoomtoheight(21)
 			end,
+			BeginCommand = function(self)
+				if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+					self:visible(false)
+				end
+			end,
 			DisplayCommand = function(self)
 				if hasReplayData then
 					self:diffusealpha(0.3)
