@@ -458,7 +458,7 @@ end
 -- generates the clear stats bar for each group
 local function scoreStatsFrame()
 
-    -- list of grades to consider (midgrades will be converted appropriately)
+    -- list of grades to consider (midgrades will be converted appropriately based on the table below)
     local gradesToUse = {
         "Grade_Tier01", -- AAAAA
         "Grade_Tier04", -- AAAA
