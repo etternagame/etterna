@@ -1,25 +1,35 @@
-local t = Def.ActorFrame {
+-- the wifepercent display. it displays the wifepercent
+
+return Def.ActorFrame {
 	Name = "DisplayPercent",
 	InitCommand = function(self)
-		self:zoom(MovableValues.DisplayPercentZoom):x(MovableValues.DisplayPercentX):y(MovableValues.DisplayPercentY)
+        self:xy(MovableValues.DisplayPercentX, MovableValues.DisplayPercentY)
+		self:zoom(MovableValues.DisplayPercentZoom)
 	end,
+
 	Def.Quad {
+        Name = "PercentBacking",
 		InitCommand = function(self)
-			self:zoomto(60, 13):diffuse(color("0,0,0,0.4")):halign(1):valign(0)
+            self:halign(1):valign(0)
+			self:zoomto(60, 13)
+            self:diffuse(color("0,0,0,0.4"))
 		end
 	},
 	LoadFont("Common Large") .. {
         Name = "DisplayPercent",
         InitCommand = function(self)
-            self:zoom(0.3):halign(1):valign(0)
+            self:halign(1):valign(0)
+            self:zoom(0.3)
         end,
-        OnCommand = function(self)
+        BeginCommand = function(self)
             self:settextf("%05.2f%%", 0)
         end,
-        SpottedOffsetCommand = function(self)
-            self:settextf("%05.2f%%", wifey)
+        SpottedOffsetCommand = function(self, params)
+            if params.wifePercent ~= nil then
+                self:settextf("%05.2f%%", wifey)
+            else
+                self:settextf("%05.2f%%", 0)
+            end
         end
     },
 }
-
-return t
