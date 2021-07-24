@@ -5,22 +5,27 @@ local targetTrackerMode = playerConfig:get_data().TargetTrackerMode
 local t = Def.ActorFrame {
 	Name = "TargetTracker",
 	InitCommand = function(self)
-		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY):zoom(MovableValues.TargetTrackerZoom)
+		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY)
+        self:zoom(MovableValues.TargetTrackerZoom)
 	end,
 }
+
+local aheadColor = COLORS:getGameplayColor("targetGoalAhead")
+local behindColor = COLORS:getGameplayColor("targetGoalBehind")
 
 if targetTrackerMode == 0 then
 	t[#t+1] = LoadFont("Common Normal") .. {
         Name = "PercentDifferential",
         InitCommand = function(self)
             self:halign(0):valign(1)
-            self:settextf("")
+            self:settext("")
         end,
-        SpottedOffsetCommand = function(self)
+        SpottedOffsetCommand = function(self, params)
+            local tDiff = params.targetDiff
             if tDiff >= 0 then
-                diffuse(self, positive)
+                self:diffuse(aheadColor)
             else
-                diffuse(self, negative)
+                self:diffuse(behindColor)
             end
             self:settextf("%5.2f (%5.2f%%)", tDiff, target)
         end
@@ -30,21 +35,23 @@ else
         Name = "PBDifferential",
         InitCommand = function(self)
             self:halign(0):valign(1)
-            self:settextf("")
+            self:settext("")
         end,
-        SpottedOffsetCommand = function(self, msg)
-            if pbtarget then
+        SpottedOffsetCommand = function(self, params)
+            local tDiff = params.targetDiff
+            if params and params.pbTarget then
                 if tDiff >= 0 then
-                    self:diffuse(color("#00ff00"))
+                    self:diffuse(aheadColor)
                 else
-                    self:diffuse(negative)
+                    self:diffuse(behindColor)
                 end
-                self:settextf("%5.2f (%5.2f%%)", tDiff, pbtarget * 100)
+                self:settextf("%5.2f (%5.2f%%)", tDiff, params.pbTarget * 100)
             else
+                -- if set to pb goal but there is no pb, default to the set target value
                 if tDiff >= 0 then
-                    self:diffuse(positive)
+                    self:diffuse(aheadColor)
                 else
-                    self:diffuse(negative)
+                    self:diffuse(behindColor)
                 end
                 self:settextf("%5.2f (%5.2f%%)", tDiff, target)
             end

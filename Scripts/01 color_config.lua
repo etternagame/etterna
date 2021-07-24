@@ -70,7 +70,7 @@ local defaultConfig = {
 	offsetPlot = {
 		Background = "#000000",
 		Text = "#ffffff",
-		HoverLine = "#AA2222",
+		HoverLine = "#aa2222",
 		MineHit = "#ff0000",
 		HoldDrop = "#ff0000",
 		RollDrop = "#ff00ff",
@@ -84,12 +84,14 @@ local defaultConfig = {
 	},
 	gameplay = {
 		errorBarCenter = ETTERNA_PURPLE,
-		errorBarEWMABar = "#4CBB17",
+		errorBarEWMABar = "#4cbb17",
 		fullProgressBar = ETTERNA_PURPLE,
 		fullProgressBarBG = "#666666",
 		miniProgressBar = ETTERNA_PURPLE,
 		miniProgressBarBG = "#666666",
 		miniProgressBarEnd = "#555555",
+		targetGoalAhead = "#9654fd",
+		targetGoalBehind = "#ff9999",
 	},
 	combo = {
 		MarvFullCombo = "#00aeef",
