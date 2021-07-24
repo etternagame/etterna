@@ -19,6 +19,8 @@ local function initbpm(self)
 end
 -------
 
+local bpmTextSize = 0.4
+
 return Def.ActorFrame {
 	Name = "BPMText",
 	InitCommand = function(self)
@@ -39,7 +41,7 @@ return Def.ActorFrame {
 	LoadFont("Common Normal") .. {
         Name = "BPM",
         InitCommand = function(self)
-            self:halign(0.5):zoom(0.40)
+            self:halign(0.5):zoom(bpmTextSize)
         end,
     },
 }
