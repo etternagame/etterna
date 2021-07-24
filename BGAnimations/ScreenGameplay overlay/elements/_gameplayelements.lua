@@ -91,7 +91,7 @@ local t = Def.ActorFrame {
 	end
 }
 
-if true then
+if playerConfig:get_data().BPMDisplay then
     t[#t+1] = LoadActor("bpmdisplay")
 end
 
@@ -123,7 +123,7 @@ if playerConfig:get_data().DisplayMean then
 	t[#t+1] = LoadActor("meandisplay")
 end
 
-if true then
+if playerConfig:get_data().MeasureCounter then
     t[#t+1] = LoadActor("measurecounter")
 end
 
@@ -131,7 +131,7 @@ if playerConfig:get_data().MiniProgressBar then
     t[#t+1] = LoadActor("miniprogressbar")
 end
 
-if true then
+if playerConfig:get_data().NPSDisplay then
     t[#t+1] = LoadActor("npsdisplay")
 end
 
@@ -139,7 +139,7 @@ if playerConfig:get_data().PlayerInfo then
 	t[#t+1] = LoadActor("playerinfo")
 end
 
-if true then
+if playerConfig:get_data().RateDisplay then
     t[#t+1] = LoadActor("ratedisplay")
 end
 
