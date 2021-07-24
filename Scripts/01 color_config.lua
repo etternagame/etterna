@@ -1,4 +1,5 @@
 local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
+local ETTERNA_PURPLE = "#614080" -- originally "Main Highlight" color
 local defaultConfig = {
 	main = {
 		PrimaryBackground = "#111111",
@@ -10,7 +11,7 @@ local defaultConfig = {
 		SeparationDivider = "#ffffff", -- also some accents like slider markers and text cursors
 	},
 	leaderboard = {
-		Background = "#111111cc",
+		Background = "#111111",
 		Border = "#000111",
 		Text = "#9654fd",
 	},
@@ -80,6 +81,10 @@ local defaultConfig = {
 		ProfileBackground = "#000000",
 		Separator = "#ffffff",
 		UnderlayBackground = "#333333",
+	},
+	gameplay = {
+		errorBarCenter = ETTERNA_PURPLE,
+		errorBarEWMABar = "#4CBB17",
 	},
 	combo = {
 		MarvFullCombo = "#00aeef",
@@ -430,6 +435,11 @@ function COLORS.getTitleColor(self, element)
 	return self:getColor("title", element)
 end
 function getTitleColor(element) return COLORS:getTitleColor(element) end
+
+function COLORS.getGameplayColor(self, element)
+	return self:getColor("gameplay", element)
+end
+function getGameplayColor(element) return COLORS:getGameplayColor(element) end
 
 function COLORS.getWheelColor(self, element)
 	return self:getColor("musicWheel", element)
