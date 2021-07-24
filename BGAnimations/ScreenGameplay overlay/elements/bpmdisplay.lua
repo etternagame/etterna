@@ -1,41 +1,39 @@
-local a = GAMESTATE:GetPlayerState():GetSongPosition()
-local r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
-local GetBPS = SongPosition.GetCurBPS
+-- the bpm display. it displays the bpm
 
--- less copypasta
-local function UpdateBPM(self)
-	local bpm = GetBPS(a) * r
-	self:GetChild("BPM"):settext(notShit.round(bpm, 2))
+-- reset the update function and stuff
+-- optimization: dont update for files with 1 bpm because the bpm doesnt change
+local function initbpm(self)
+	local r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
+	local a = GAMESTATE:GetPlayerState():GetSongPosition()
+	local GetBPS = SongPosition.GetCurBPS
+	if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then
+		self:SetUpdateFunction(function(self)
+			local bpm = GetBPS(a) * r
+			self:GetChild("BPM"):settext(notShit.round(bpm, 2))
+		end)
+		self:SetUpdateRate(0.5)
+	else
+		self:SetUpdateFunction(nil)
+		self:GetChild("BPM"):settextf("%5.2f", GetBPS(a) * r)
+	end
 end
+-------
 
-t[#t + 1] =
-	Def.ActorFrame {
+return Def.ActorFrame {
 	Name = "BPMText",
 	InitCommand = function(self)
-		self:x(MovableValues.BPMTextX):y(MovableValues.BPMTextY):zoom(MovableValues.BPMTextZoom)
-		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then
-            -- dont bother updating for single bpm files
-			self:SetUpdateFunction(UpdateBPM)
-			self:SetUpdateRate(0.5)
-		else
-			self:GetChild("BPM"):settextf("%5.2f", GetBPS(a) * r)
-		end
-	end,
-	DoneLoadingNextSongMessageCommand = function(self)
-		self:queuecommand("Init")
+		self:xy(MovableValues.BPMTextX, MovableValues.BPMTextY)
+		self:zoom(MovableValues.BPMTextZoom)
+		initbpm(self)
 	end,
 	CurrentRateChangedMessageCommand = function(self)
-		r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
-		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then
-            -- dont bother updating for single bpm files
-			self:SetUpdateFunction(UpdateBPM)
-			self:SetUpdateRate(0.5)
-		else
-			self:GetChild("BPM"):settextf("%5.2f", GetBPS(a) * r)
-		end
+		initbpm(self)
 	end,
 	PracticeModeReloadMessageCommand = function(self)
 		self:playcommand("CurrentRateChanged")
+	end,
+	DoneLoadingNextSongMessageCommand = function(self)
+		self:queuecommand("Init")
 	end,
 
 	LoadFont("Common Normal") .. {
