@@ -1,27 +1,56 @@
-local t = Def.ActorFrame {
+-- the mean display. it displays the mean
+
+-- i dunno less copy paste whatever bro
+local formatstr = "%5.2fms"
+local meanTextSize = 0.3
+
+local curMeanSum = 0
+local curMeanCount = 0
+
+return Def.ActorFrame {
     Name = "DisplayMean",
     InitCommand = function(self)
-        self:zoom(MovableValues.DisplayMeanZoom):x(MovableValues.DisplayMeanX):y(MovableValues.DisplayMeanY)
+        self:xy(MovableValues.DisplayMeanX, MovableValues.DisplayMeanY)
+        self:zoom(MovableValues.DisplayMeanZoom)
     end,
+    JudgmentMessageCommand = function(self, params)
+        -- should work fine only for judged taps, not misses or holds
+        if not params.HoldNoteScore and params.Offset ~= nil then
+            curMeanSum = curMeanSum + params.Offset
+            curMeanCount = curMeanCount + 1
+            self:playcommand("UpdateMeanText")
+        end
+    end,
+    PracticeModeResetMessageCommand = function(self)
+        curMeanCount = 0
+        curMeanSum = 0
+        self:playcommand("UpdateMeanText")
+    end,
+    UpdateMeanTextCommand = function(self)
+        local bg = self:GetChild("MeanBacking")
+        local perc = self:GetChild("DisplayMean")
+
+        if perc then
+            perc:settextf(formatstr, curMeanSum / curMeanCount)
+        end
+        if bg and perc then
+            bg:zoomto(perc:GetZoomedWidth() + 4, perc:GetZoomedHeight() + 4)
+        end
+    end,
+
     Def.Quad {
+        Name = "MeanBacking",
         InitCommand = function(self)
-            self:zoomto(60, 13):diffuse(color("0,0,0,0.4")):halign(1):valign(0)
+            self:halign(1):valign(0)
+            self:diffuse(color("0,0,0,0.4"))
         end
     },
-    -- Displays your current mean
-    LoadFont("Common Large") ..
-        {
-            Name = "DisplayMeanText",
-            InitCommand = function(self)
-                self:zoom(0.3):halign(1):valign(0)
-            end,
-            OnCommand = function(self)
-                self:settextf("%5.2fms", 0)
-            end,
-            SpottedOffsetCommand = function(self)
-                self:settextf("%5.2fms", curMeanSum / curMeanCount)
-            end
-        },
+    LoadFont("Common Large") .. {
+        Name = "DisplayMean",
+        InitCommand = function(self)
+            self:halign(1):valign(0)
+            self:zoom(meanTextSize)
+            -- maybe we want to set the text color here
+        end,
+    }
 }
-
-return t
