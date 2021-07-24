@@ -1,33 +1,44 @@
+-- mini progress bar. song progress but small
+
 local width = 34
 local height = 4
 local alpha = 0.3
 
-local t = Def.ActorFrame {
+return Def.ActorFrame {
 	Name = "MiniProgressBar",
 	InitCommand = function(self)
 		self:xy(MovableValues.MiniProgressBarX, MovableValues.MiniProgressBarY)
 	end,
+	
 	Def.Quad {
+		Name = "BG",
 		InitCommand = function(self)
-			self:zoomto(width, height):diffuse(color("#666666")):diffusealpha(alpha)
-		end
+			self:zoomto(width, height)
+			self:diffuse(COLORS:getGameplayColor("miniProgressBarBG"))
+			self:diffusealpha(alpha)
+		end,
 	},
 	Def.Quad {
+		Name = "SongEnd",
 		InitCommand = function(self)
-			self:x(1 + width / 2):zoomto(1, height):diffuse(color("#555555"))
-		end
+			self:x(1 + width / 2)
+			self:zoomto(1, height)
+			self:diffuse(COLORS:getGameplayColor("miniProgressBarEnd"))
+			self:diffusealpha(1)
+		end,
 	},
 	Def.SongMeterDisplay {
+		Name = "Progress",
 		InitCommand = function(self)
 			self:SetUpdateRate(0.5)
 		end,
 		StreamWidth = width,
 		Stream = Def.Quad {
 			InitCommand = function(self)
-				self:zoomy(height):diffuse(getMainColor("highlight"))
+				self:zoomy(height)
+				self:diffuse(COLORS:getGameplayColor("miniProgressBar"))
+				self:diffusealpha(1)
 			end
 		}
-	},
+	}
 }
-
-return t

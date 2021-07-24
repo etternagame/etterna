@@ -87,6 +87,9 @@ local defaultConfig = {
 		errorBarEWMABar = "#4CBB17",
 		fullProgressBar = ETTERNA_PURPLE,
 		fullProgressBarBG = "#666666",
+		miniProgressBar = ETTERNA_PURPLE,
+		miniProgressBarBG = "#666666",
+		miniProgressBarEnd = "#555555",
 	},
 	combo = {
 		MarvFullCombo = "#00aeef",
