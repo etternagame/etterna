@@ -85,6 +85,8 @@ local defaultConfig = {
 	gameplay = {
 		errorBarCenter = ETTERNA_PURPLE,
 		errorBarEWMABar = "#4CBB17",
+		fullProgressBar = ETTERNA_PURPLE,
+		fullProgressBarBG = "#666666",
 	},
 	combo = {
 		MarvFullCombo = "#00aeef",
