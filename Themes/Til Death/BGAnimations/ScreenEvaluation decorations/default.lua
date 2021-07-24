@@ -133,13 +133,25 @@ local judges = {
 local dvt
 local totalTaps
 
+local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
+
+-- a helper to get the radar value for a score and fall back to playerstagestats if that fails
+-- it tends to fail a lot...
+local function gatherRadarValue(radar, score)
+    local n = score:GetRadarValues():GetValue(radar)
+    if n == -1 then
+        return pss:GetRadarActual():GetValue(radar)
+    end
+    return n
+end
+
 local getRescoreElements = function(score)
 	local o = {}
 	o["dvt"] = dvt
-	o["totalHolds"] = score:GetRadarPossible():GetValue("RadarCategory_Holds") + score:GetRadarPossible():GetValue("RadarCategory_Rolls")
-	o["holdsHit"] = score:GetRadarValues():GetValue("RadarCategory_Holds") + score:GetRadarValues():GetValue("RadarCategory_Rolls")
+    o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
+	o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
 	o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
-	o["minesHit"] = score:GetRadarPossible():GetValue("RadarCategory_Mines") - score:GetRadarValues():GetValue("RadarCategory_Mines")
+    o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
 	o["totalTaps"] = totalTaps
 	return o
 end
