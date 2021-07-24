@@ -1,3 +1,17 @@
+-- the judge counter. counts judges
+
+-- judgments to display and the order for them
+local jdgT = {
+	"TapNoteScore_W1",
+	"TapNoteScore_W2",
+	"TapNoteScore_W3",
+	"TapNoteScore_W4",
+	"TapNoteScore_W5",
+	"TapNoteScore_Miss",
+	"HoldNoteScore_Held",
+	"HoldNoteScore_LetGo",
+}
+
 local spacing = 10 -- Spacing between the judgetypes
 local frameWidth = 60 -- Width of the Frame
 local frameHeight = ((#jdgT + 1) * spacing) -- Height of the Frame
@@ -5,56 +19,67 @@ local judgeFontSize = 0.40 -- Font sizes for different text elements
 local countFontSize = 0.35
 local gradeFontSize = 0.45
 
+-- the text actors for each judge count
+local judgeCounts = {}
+
 local t = Def.ActorFrame {
 	Name = "JudgeCounter",
 	InitCommand = function(self)
 		self:xy(MovableValues.JudgeCounterX, MovableValues.JudgeCounterY)
 	end,
-	OnCommand = function(self)
-		for i = 1, #jdgT do
-			jdgCounts[jdgT[i]] = self:GetChild(jdgT[i])
+	BeginCommand = function(self)
+		for _, j in ipairs(jdgT) do
+			judgeCounts[j] = self:GetChild(j .. "count")
 		end
 	end,
-	SpottedOffsetCommand = function(self)
-		if jdgCur and jdgCounts[jdgCur] ~= nil then
-			jdgCounter[jdgCur]:settext(jdgct)
+	SpottedOffsetCommand = function(self, params)
+		if params == nil then return end
+		local cur = params.judgeCurrent
+		if cur and judgeCounts[cur] ~= nil then
+			judgeCounts[cur]:settext(params.judgeCount)
 		end
 	end,
+
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
-			self:zoomto(frameWidth, frameHeight):diffuse(color("0,0,0,0.4"))
-		end
+			self:zoomto(frameWidth, frameHeight)
+			self:diffuse(color("0,0,0,0.4"))
+		end,
 	},
 }
 
 local function makeJudgeText(judge, index)
 	return LoadFont("Common normal") .. {
+		Name = judge .. "text",
         InitCommand = function(self)
-            self:xy(-frameWidth / 2 + 5, -frameHeight / 2 + (index * spacing)):zoom(judgeFontSize):halign(0)
+            self:xy(-frameWidth / 2 + 5, -frameHeight / 2 + (index * spacing))
+			self:halign(0)
+			self:zoom(judgeFontSize)
+			self:settext(getShortJudgeStrings(judge))
+            self:diffuse(COLORS:colorByJudgment(judge))
         end,
-        OnCommand = function(self)
-            settext(self, getShortJudgeStrings(judge))
-            diffuse(self, jcT[judge])
-        end
     }
 end
 
 local function makeJudgeCount(judge, index)
 	return LoadFont("Common Normal") .. {
-        Name = judge,
+        Name = judge .. "count",
         InitCommand = function(self)
-            self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing)):zoom(countFontSize):halign(1):settext(0)
+			self:halign(1)
+            self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing))
+			self:zoom(countFontSize)
+			self:settext(0)
         end,
-        PracticeModeResetMessageCommand= function(self)
+        PracticeModeResetMessageCommand = function(self)
             self:settext(0)
-        end
+        end,
     }
 end
 
-for i = 1, #jdgT do
-	t[#t+1] = makeJudgeText(jdgT[i], i)
-	t[#t+1] = makeJudgeCount(jdgT[i], i)
+for i, j in ipairs(jdgT) do
+	t[#t+1] = makeJudgeText(j, i)
+	t[#t+1] = makeJudgeCount(j, i)
 end
 
 return t
