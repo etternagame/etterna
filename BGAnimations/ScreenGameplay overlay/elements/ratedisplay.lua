@@ -1,11 +1,18 @@
+-- music rate. its the rate of the music
+
+local rateTextSize = 0.35
+
 return Def.ActorFrame {
 	Name = "MusicRate",
 	InitCommand = function(self)
-		self:xy(MovableValues.MusicRateX, MovableValues.MusicRateY):zoom(MovableValues.MusicRateZoom)
+		self:xy(MovableValues.MusicRateX, MovableValues.MusicRateY)
+		self:zoom(MovableValues.MusicRateZoom)
 	end,
+
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
-			self:zoom(0.35):settext(getCurRateDisplayString())
+			self:zoom(rateTextSize)
+			self:settext(getCurRateDisplayString())
 		end,
 		SetRateCommand = function(self)
 			self:settext(getCurRateDisplayString())
