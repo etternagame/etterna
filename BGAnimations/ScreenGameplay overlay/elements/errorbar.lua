@@ -7,9 +7,12 @@ local barDuration = 0.75
 
 if barcount > 50 then barDuration = barcount / 50 end -- just procedurally set the duration if we pass 50 bars
 
+-- regular bars
 local currentbar = 1 -- so we know which error bar we need to update
 local ingots = {} -- references to the error bars
-local ewmaAlpha = 0.07
+
+-- ewma vars
+local alpha = 0.07 -- this is not opacity. this is a math number thing
 local avg
 local lastAvg
 
@@ -69,7 +72,7 @@ local t = Def.ActorFrame {
 	end,
 	SpottedOffsetCommand = function(self, params)
 		if errorbarType == "Regular" then
-			if dvCur ~= nil then
+			if params and params.judgeOffset ~= nil then
 				currentbar = ((currentbar) % barcount) + 1
 				ingots[currentbar]:playcommand("UpdateErrorBar", params) -- Update the next bar in the queue
 			end
@@ -127,8 +130,8 @@ if errorbarType == "EWMA" then
 			self:diffusealpha(1)
 		end,
 		SpottedOffsetCommand = function(self, params)
-			if enabledErrorBar == 2 and dvCur ~= nil then
-				avg = alpha * dvCur + (1 - alpha) * lastAvg
+			if params and params.judgeOffset ~= nil then
+				avg = alpha * params.judgeOffset + (1 - alpha) * lastAvg
 				lastAvg = avg
 				self:x(MovableValues.ErrorBarX + avg * wscale)
 			end
@@ -136,7 +139,7 @@ if errorbarType == "EWMA" then
 	}
 end
 
-if enabledErrorBar == 1 then
+if errorbarType == "Regular" then
 	for i = 1, barcount do
 		t[#t+1] = smeltErrorBar(i)
 	end
