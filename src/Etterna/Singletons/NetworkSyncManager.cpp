@@ -968,6 +968,19 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						hs.SetOffsetVector(v_offsets);
 						hs.SetNoteRowVector(v_noterows);
 						hs.SetTrackVector(v_tracks);
+
+						// add some backwards compatibility with pre 0.71
+						// multi users
+						if (replay.HasMember("notetypes") &&
+							replay["notetypes"].IsArray())
+						{
+							auto& notetypes = replay["notetypes"];
+							std::vector<TapNoteType> v_types;
+							for (auto& type : notetypes.GetArray())
+								if (type.IsInt()) 
+									v_types.push_back(static_cast<TapNoteType>(type.GetInt()));
+							hs.SetTapNoteTypeVector(v_types);
+						}
 					}
 					result.nameStr = payload["name"].GetString();
 					result.hs = hs;
@@ -1630,6 +1643,7 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	const auto& offsets = pss.GetOffsetVector();
 	const auto& noterows = pss.GetNoteRowVector();
 	const auto& tracks = pss.GetTrackVector();
+	const auto& types = pss.GetTapNoteTypeVector();
 	if (offsets.size() > 0) {
 		writer.Key("replay");
 		writer.StartObject();
@@ -1647,6 +1661,11 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 		writer.StartArray();
 		for (size_t i = 0; i < tracks.size(); i++)
 			writer.Int(tracks[i]);
+		writer.EndArray();
+		writer.Key("notetypes");
+		writer.StartArray();
+		for (size_t i = 0; i < types.size(); i++)
+			writer.Int(types[i]);
 		writer.EndArray();
 		writer.EndObject();
 	}
