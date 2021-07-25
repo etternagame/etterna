@@ -3,6 +3,10 @@ local moveDownP1 = false
 
 local cover
 
+if MovableValues == nil or MovableValues.NotefieldWidth == nil then
+	return Def.Actor {}
+end
+
 local laneColor = COLORS:getGameplayColor("laneCover")
 local bpmColor = COLORS:getGameplayColor("laneCoverBPM")
 local heightColor = COLORS:getGameplayColor("laneCoverHeight")

@@ -4,8 +4,8 @@ local PlayerFrameX = 0
 local PlayerFrameY = SCREEN_HEIGHT - 50
 
 local translated_info = {
-	Judge = THEME:GetString("ScreenGameplay", "ScoringJudge"),
-	Scoring = THEME:GetString("ScreenGameplay", "ScoringType")
+	Judge = "Judge",
+	Scoring = "Scoring",
 }
 
 local modstringTextSize = 0.4
@@ -36,7 +36,7 @@ return Def.ActorFrame {
         SetCommand = function(self)
             self:settext(getDifficulty(GAMESTATE:GetCurrentSteps():GetDifficulty()))
             self:diffuse(
-                getDifficultyColor(
+                colorByDifficulty(
                     GetCustomDifficulty(
                         GAMESTATE:GetCurrentSteps():GetStepsType(),
                         GAMESTATE:GetCurrentSteps():GetDifficulty()

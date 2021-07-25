@@ -31,7 +31,11 @@ return Def.ActorFrame {
         local perc = self:GetChild("DisplayMean")
 
         if perc then
-            perc:settextf(formatstr, curMeanSum / curMeanCount)
+            if curMeanCount == 0 then
+                perc:settextf(formatstr, 0)
+            else
+                perc:settextf(formatstr, curMeanSum / curMeanCount)
+            end
         end
         if bg and perc then
             bg:zoomto(perc:GetZoomedWidth() + 4, perc:GetZoomedHeight() + 4)

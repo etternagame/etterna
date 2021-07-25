@@ -5,8 +5,8 @@ local enabledNPSGraph = playerConfig:get_data().NPSGraph
 
 local countNotesSeparately = GAMESTATE:CountNotesSeparately()
 -- Generally, a smaller window will adapt faster, but a larger window will have a more stable value.
-local maxWindow = themeConfig:get_data().NPSDisplay.MaxWindow / 2 -- this will be the maximum size of the "window" in seconds.
-local minWindow = themeConfig:get_data().NPSDisplay.MinWindow / 2 -- this will be the minimum size of the "window" in seconds. Unused for now.
+local maxWindow = 1 -- this will be the maximum size of the "window" in seconds.
+local minWindow = 1 -- this will be the minimum size of the "window" in seconds. Unused for now.
 
 --Graph related stuff
 local initialPeak = 10 -- Initial height of the NPS graph.
@@ -34,8 +34,8 @@ local noteSum = 0
 local peakNPS = 0
 
 local translated_info = {
-	Peak = THEME:GetString("ScreenGameplay", "NPSGraphPeakNPS"),
-	NPS = THEME:GetString("ScreenGameplay", "NPSGraphNPS")
+	Peak = "Peak",
+	NPS = "NPS",
 }
 
 ---------------

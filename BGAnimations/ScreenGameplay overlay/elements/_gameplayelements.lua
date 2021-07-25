@@ -1,5 +1,7 @@
 -- gameplay elements
 
+setMovableKeymode(getCurrentKeyMode())
+
 local t = Def.ActorFrame {
     Name = "GameplayElementsController",
 

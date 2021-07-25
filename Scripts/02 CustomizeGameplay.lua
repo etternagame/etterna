@@ -29,6 +29,9 @@ local function loadValuesTable()
 	MovableValues.DisplayPercentX = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayPercentX
 	MovableValues.DisplayPercentY = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayPercentY
 	MovableValues.DisplayPercentZoom = playerConfig:get_data().GameplaySizes[keymode].DisplayPercentZoom
+	MovableValues.DisplayMeanX = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayMeanX
+	MovableValues.DisplayMeanY = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayMeanY
+	MovableValues.DisplayMeanZoom = playerConfig:get_data().GameplaySizes[keymode].DisplayMeanZoom
 	MovableValues.NotefieldX = playerConfig:get_data().GameplayXYCoordinates[keymode].NotefieldX
 	MovableValues.NotefieldY = playerConfig:get_data().GameplayXYCoordinates[keymode].NotefieldY
 	MovableValues.NotefieldWidth = playerConfig:get_data().GameplaySizes[keymode].NotefieldWidth

@@ -84,7 +84,7 @@ return Def.ActorFrame {
         BeginCommand = function(self)
             local ttime = GetPlayableTime()
             self:settext(SecondsToMMSS(ttime))
-            self:diffuse(byMusicLength(ttime))
+            self:diffuse(colorByMusicLength(ttime))
         end,
         DoneLoadingNextSongMessageCommand = function(self)
             self:playcommand("Begin")

@@ -27,6 +27,11 @@ local earlylateTextSize = 0.35
 -- EWMA loads 1 bar and places it according to the EWMA of the previous n taps
 local errorbarType = playerConfig:get_data().ErrorBar == 1 and "Regular" or "EWMA"
 
+local translated_info = {
+	ErrorLate = "Late",
+	ErrorEarly = "Early",
+}
+
 -- procedurally generated error bars
 local function smeltErrorBar(index)
 	return Def.Quad {
@@ -96,7 +101,7 @@ local t = Def.ActorFrame {
 	LoadFont("Common Normal") .. {
         Name = "DestroyMe",
         InitCommand = function(self)
-            self:xy(MovableValues.ErrorBarX + errorBarFrameWidth / 4, MovableValues.ErrorBarY)
+            self:xy(MovableValues.ErrorBarX + MovableValues.ErrorBarWidth / 4, MovableValues.ErrorBarY)
 			self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
@@ -107,7 +112,7 @@ local t = Def.ActorFrame {
 	LoadFont("Common Normal") .. {
         Name = "DestroyMe2",
         InitCommand = function(self)
-            self:xy(MovableValues.ErrorBarX - errorBarFrameWidth / 4, MovableValues.ErrorBarY)
+            self:xy(MovableValues.ErrorBarX - MovableValues.ErrorBarWidth / 4, MovableValues.ErrorBarY)
 			self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
