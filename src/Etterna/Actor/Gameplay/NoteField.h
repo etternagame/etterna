@@ -143,7 +143,8 @@ class NoteField : public ActorFrame
 	NoteDisplayCols* m_pDisplays;
 
 	// decorations, mostly used in MODE_EDIT
-	AutoActor m_sprBoard;
+	AutoActor m_sprBoard; // "underlay"
+	AutoActor m_sprCover; // "overlay"
 	float m_fBoardOffsetPixels;
 	float m_fCurrentBeatLastUpdate;		// -1 on first update
 	float m_fYPosCurrentBeatLastUpdate; // -1 on first update
