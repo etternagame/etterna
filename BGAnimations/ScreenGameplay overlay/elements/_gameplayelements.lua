@@ -111,9 +111,7 @@ if playerConfig:get_data().JudgeCounter then
     t[#t+1] = LoadActor("judgecounter")
 end
 
-if playerConfig:get_data().LaneCover then
-	t[#t+1] = LoadActor("lanecover")
-end
+-- lane cover is in Graphics/NoteField cover.lua
 
 if true then
 	t[#t+1] = LoadActor("leaderboard")

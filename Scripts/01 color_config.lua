@@ -92,6 +92,9 @@ local defaultConfig = {
 		miniProgressBarEnd = "#555555",
 		targetGoalAhead = "#9654fd",
 		targetGoalBehind = "#ff9999",
+		laneCover = "#333333",
+		laneCoverBPM = "#4cbb17",
+		laneCoverHeight = "#ffffff",
 	},
 	combo = {
 		MarvFullCombo = "#00aeef",
@@ -99,11 +102,6 @@ local defaultConfig = {
 		FullCombo = "#a4ff00",
 		RegularCombo = "#ffffff",
 		ComboLabel = "#00aeef",
-	},
-	laneCover = {
-		Cover = "#333333",
-		BPMText = "#4CBB17",
-		HeightText = "#FFFFFF",
 	},
 	clearType = {
 		MFC = "#66ccff",
@@ -426,10 +424,6 @@ function COLORS.getLeaderboardColor(self, element)
 	return self:getColor("leaderboard", element)
 end
 
-function COLORS.getLaneCoverColor(self, element)
-	return self:getColor("laneCover", element)
-end
-
 function COLORS.getComboColor(self, element)
 	return self:getColor("combo", element)
 end
@@ -535,7 +529,6 @@ function COLORS.colorByFileSize(self, x) return colorByFileSize(x) end
 function COLORS.colorByNPS(self, x) return colorByNPS(x) end
 function getMainColor(ele) return COLORS:getMainColor(ele) end
 function getLeaderboardColor(ele) return COLORS:getLeaderboardColor(ele) end
-function getLaneCoverColor(ele) return COLORS:getLaneCoverColor(ele) end
 function getComboColor(ele) return COLORS:getComboColor(ele) end
 function colorByClearType(x) return COLORS:colorByClearType(x) end
 function colorByJudgment(x) return COLORS:colorByJudgment(x) end
