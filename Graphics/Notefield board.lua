@@ -104,7 +104,7 @@ local function laneHighlight()
 					if enum < judgeThreshold and enum > 3 and i == firstTrack then
 						self:stoptweening()
 						self:visible(true)
-						self:diffuse(byJudgment(params.TapNoteScore))
+						self:diffuse(colorByJudgment(params.TapNoteScore))
 						self:diffusealpha(alpha)
 						self:tween(0.25, "TweenType_Bezier",{0,0,0.5,0,1,1,1,1})
 						self:diffusealpha(0)
