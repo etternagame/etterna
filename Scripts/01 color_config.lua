@@ -95,6 +95,7 @@ local defaultConfig = {
 		laneCover = "#333333",
 		laneCoverBPM = "#4cbb17",
 		laneCoverHeight = "#ffffff",
+		npsGraph = "#ffffff",
 	},
 	combo = {
 		MarvFullCombo = "#00aeef",
