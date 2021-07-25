@@ -58,7 +58,7 @@ return Def.ActorFrame {
         SetCommand = function(self)
             local meter = GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)
             self:settextf("%05.2f", meter)
-            self:diffuse(COLORS:colorByDifficulty(meter))
+            self:diffuse(COLORS:colorByMSD(meter))
         end,
         DoneLoadingNextSongMessageCommand = function(self)
             self:queuecommand("Set")

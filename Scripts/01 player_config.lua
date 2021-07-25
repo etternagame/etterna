@@ -87,7 +87,7 @@ local defaultConfig = {
 
 	JudgmentText = true,
 	ComboText = true,
-	CBHighlight = false,
+	CBHighlight = true,
 
 	ScreenFilter = 1,
 	JudgeType = 1,
