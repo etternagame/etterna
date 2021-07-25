@@ -1,7 +1,7 @@
 -- A moving average NPS calculator
 
-local enabledNPSDisplay = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSDisplay
-local enabledNPSGraph = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).NPSGraph
+local enabledNPSDisplay = playerConfig:get_data().NPSDisplay
+local enabledNPSGraph = playerConfig:get_data().NPSGraph
 
 local countNotesSeparately = GAMESTATE:CountNotesSeparately()
 -- Generally, a smaller window will adapt faster, but a larger window will have a more stable value.
