@@ -18,7 +18,7 @@ local lastAvg
 
 -- to relate an offset to position within the bar
 -- max offset is 180ms
-local wscale = barWidth / 180
+local wscale = MovableValues.ErrorBarWidth / 180
 
 local earlylateTextSize = 0.35
 
