@@ -1,22 +1,22 @@
 local defaultGameplayCoordinates = {
 	JudgeX = 0,
-	JudgeY = 40,
+	JudgeY = 0,
 	ComboX = 30,
 	ComboY = -20,
 	ErrorBarX = SCREEN_CENTER_X,
 	ErrorBarY = SCREEN_CENTER_Y + 53,
 	TargetTrackerX = SCREEN_CENTER_X + 26,
-	TargetTrackerY = SCREEN_CENTER_Y + 30,
+	TargetTrackerY = SCREEN_CENTER_Y + 25,
 	MiniProgressBarX = SCREEN_CENTER_X + 44,
 	MiniProgressBarY = SCREEN_CENTER_Y + 34,
 	FullProgressBarX = SCREEN_CENTER_X,
 	FullProgressBarY = 20,
-	JudgeCounterX = SCREEN_CENTER_X -200,
+	JudgeCounterX = SCREEN_CENTER_X / 2,
 	JudgeCounterY = SCREEN_CENTER_Y,
-	DisplayPercentX = SCREEN_CENTER_X - 170,
+	DisplayPercentX = SCREEN_CENTER_X / 2 + 60/2, -- above the judge counter, middle of it
 	DisplayPercentY = SCREEN_CENTER_Y - 60,
-	DisplayMeanX = SCREEN_CENTER_X - 170,
-	DisplayMeanY = SCREEN_CENTER_Y + 60,
+	DisplayMeanX = SCREEN_CENTER_X / 2 + 60/2, -- below the judge counter, middle of it
+	DisplayMeanY = SCREEN_CENTER_Y + 50,
 	NPSDisplayX = 5,
 	NPSDisplayY = SCREEN_BOTTOM - 170,
 	NPSGraphX = 0,
@@ -49,7 +49,7 @@ local defaultGameplaySizes = {
 	FullProgressBarHeight = 1.0,
 	DisplayPercentZoom = 1,
 	DisplayMeanZoom = 1,
-	NPSDisplayZoom = 0.4,
+	NPSDisplayZoom = 0.5,
 	NPSGraphWidth = 1.0,
 	NPSGraphHeight = 1.0,
 	NotefieldWidth = 1.0,
@@ -88,6 +88,9 @@ local defaultConfig = {
 	JudgmentText = true,
 	ComboText = true,
 	CBHighlight = true,
+
+	CurrentHeight = SCREEN_HEIGHT,
+	CurrentWidth = SCREEN_WIDTH,
 
 	ScreenFilter = 1,
 	JudgeType = 1,
@@ -139,6 +142,8 @@ function getDefaultGameplayCoordinate(obj)
 end
 
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
+local convertXPosRatio = 1
+local convertYPosRatio = 1
 local tmp2 = playerConfig.load
 playerConfig.load = function(self, slot)
 	local tmp = force_table_elements_to_match_type
@@ -146,6 +151,15 @@ playerConfig.load = function(self, slot)
 	end
 	local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
 	x = x:load(slot)
+
+	-- aspect ratio is not the same. we must account for this
+	if x.CurrentHeight and x.CurrentWidth and (x.CurrentHeight ~= defaultConfig.CurrentHeight or x.CurrentWidth ~= defaultConfig.CurrentWidth) then
+		convertXPosRatio = x.CurrentWidth / defaultConfig.CurrentWidth
+		convertYPosRatio = x.CurrentHeight / defaultConfig.CurrentHeight
+	end
+
+	--------
+	-- converts single 4k setup to the multi keymode setup (compatibility with very old customize gameplay versions)
 	local coords = x.GameplayXYCoordinates
 	local sizes = x.GameplaySizes
 	if sizes and not sizes["4K"] then
@@ -159,7 +173,6 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplaySizes["10K"] = sizes
 		defaultConfig.GameplaySizes["12K"] = sizes
 		defaultConfig.GameplaySizes["16K"] = sizes
-
 	end
 	if coords and not coords["4K"] then
 		defaultConfig.GameplayXYCoordinates["3K"] = coords
@@ -173,7 +186,26 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplayXYCoordinates["12K"] = coords
 		defaultConfig.GameplayXYCoordinates["16K"] = coords
 	end
+	--
+	--------
 	force_table_elements_to_match_type = tmp
 	return tmp2(self, slot)
 end
 playerConfig:load()
+
+-- converting coordinates if aspect ratio changes across loads
+local coords = playerConfig:get_data().GameplayXYCoordinates
+if coords and coords["4K"] then
+	-- converting all categories individually
+	for cat, t in pairs(playerConfig:get_data().GameplayXYCoordinates) do
+		for e, v in pairs(t) do
+			if e:sub(-1) == "Y" then
+				-- convert y pos
+				t[e] = v / convertYPosRatio
+			elseif e:sub(-1) == "X" then
+				-- convert x pos
+				t[e] = v / convertXPosRatio
+			end
+		end
+	end
+end
