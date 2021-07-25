@@ -5,68 +5,68 @@ local usingReverse
 MovableValues = {}
 
 local function loadValuesTable()
-	allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
+	allowedCustomization = playerConfig:get_data().CustomizeGameplay
 	usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-	MovableValues.JudgeX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeX
-	MovableValues.JudgeY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeY
-	MovableValues.JudgeZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].JudgeZoom
-	MovableValues.ComboX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboX
-	MovableValues.ComboY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ComboY
-	MovableValues.ComboZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ComboZoom
-	MovableValues.ErrorBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarX
-	MovableValues.ErrorBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ErrorBarY
-	MovableValues.ErrorBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarWidth
-	MovableValues.ErrorBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ErrorBarHeight
-	MovableValues.TargetTrackerX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerX
-	MovableValues.TargetTrackerY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].TargetTrackerY
-	MovableValues.TargetTrackerZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].TargetTrackerZoom
-	MovableValues.FullProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarX
-	MovableValues.FullProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].FullProgressBarY
-	MovableValues.FullProgressBarWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarWidth
-	MovableValues.FullProgressBarHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].FullProgressBarHeight
-	MovableValues.MiniProgressBarX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarX
-	MovableValues.MiniProgressBarY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MiniProgressBarY
-	MovableValues.DisplayPercentX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentX
-	MovableValues.DisplayPercentY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentY
-	MovableValues.DisplayPercentZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayPercentZoom
-	MovableValues.NotefieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
-	MovableValues.NotefieldY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY
-	MovableValues.NotefieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth
-	MovableValues.NotefieldHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldHeight
-	MovableValues.NotefieldSpacing = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldSpacing
-	MovableValues.JudgeCounterX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterX
-	MovableValues.JudgeCounterY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].JudgeCounterY
-	MovableValues.ReplayButtonsX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ReplayButtonsX
-	MovableValues.ReplayButtonsY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].ReplayButtonsY
-	MovableValues.ReplayButtonsSpacing = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ReplayButtonsSpacing
-	MovableValues.ReplayButtonsZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].ReplayButtonsZoom
-	MovableValues.NPSGraphX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphX
-	MovableValues.NPSGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSGraphY
-	MovableValues.NPSGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphWidth
-	MovableValues.NPSGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSGraphHeight
-	MovableValues.NPSDisplayX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayX
-	MovableValues.NPSDisplayY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NPSDisplayY
-	MovableValues.NPSDisplayZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NPSDisplayZoom
-	MovableValues.LeaderboardX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LeaderboardX
-	MovableValues.LeaderboardY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LeaderboardY
-	MovableValues.LeaderboardSpacing = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardSpacing
-	MovableValues.LeaderboardWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardWidth
-	MovableValues.LeaderboardHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LeaderboardHeight
-	MovableValues.LifeP1X = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LifeP1X
-	MovableValues.LifeP1Y = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LifeP1Y
-	MovableValues.LifeP1Rotation = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].LifeP1Rotation
-	MovableValues.LifeP1Width = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LifeP1Width
-	MovableValues.LifeP1Height = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].LifeP1Height
-	MovableValues.PracticeCDGraphX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].PracticeCDGraphX
-	MovableValues.PracticeCDGraphY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].PracticeCDGraphY
-	MovableValues.PracticeCDGraphHeight = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].PracticeCDGraphHeight
-	MovableValues.PracticeCDGraphWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].PracticeCDGraphWidth
-	MovableValues.BPMTextX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].BPMTextX
-	MovableValues.BPMTextY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].BPMTextY
-	MovableValues.BPMTextZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].BPMTextZoom
-	MovableValues.MusicRateX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MusicRateX
-	MovableValues.MusicRateY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].MusicRateY
-	MovableValues.MusicRateZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].MusicRateZoom
+	MovableValues.JudgeX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeX
+	MovableValues.JudgeY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeY
+	MovableValues.JudgeZoom = playerConfig:get_data().GameplaySizes[keymode].JudgeZoom
+	MovableValues.ComboX = playerConfig:get_data().GameplayXYCoordinates[keymode].ComboX
+	MovableValues.ComboY = playerConfig:get_data().GameplayXYCoordinates[keymode].ComboY
+	MovableValues.ComboZoom = playerConfig:get_data().GameplaySizes[keymode].ComboZoom
+	MovableValues.ErrorBarX = playerConfig:get_data().GameplayXYCoordinates[keymode].ErrorBarX
+	MovableValues.ErrorBarY = playerConfig:get_data().GameplayXYCoordinates[keymode].ErrorBarY
+	MovableValues.ErrorBarWidth = playerConfig:get_data().GameplaySizes[keymode].ErrorBarWidth
+	MovableValues.ErrorBarHeight = playerConfig:get_data().GameplaySizes[keymode].ErrorBarHeight
+	MovableValues.TargetTrackerX = playerConfig:get_data().GameplayXYCoordinates[keymode].TargetTrackerX
+	MovableValues.TargetTrackerY = playerConfig:get_data().GameplayXYCoordinates[keymode].TargetTrackerY
+	MovableValues.TargetTrackerZoom = playerConfig:get_data().GameplaySizes[keymode].TargetTrackerZoom
+	MovableValues.FullProgressBarX = playerConfig:get_data().GameplayXYCoordinates[keymode].FullProgressBarX
+	MovableValues.FullProgressBarY = playerConfig:get_data().GameplayXYCoordinates[keymode].FullProgressBarY
+	MovableValues.FullProgressBarWidth = playerConfig:get_data().GameplaySizes[keymode].FullProgressBarWidth
+	MovableValues.FullProgressBarHeight = playerConfig:get_data().GameplaySizes[keymode].FullProgressBarHeight
+	MovableValues.MiniProgressBarX = playerConfig:get_data().GameplayXYCoordinates[keymode].MiniProgressBarX
+	MovableValues.MiniProgressBarY = playerConfig:get_data().GameplayXYCoordinates[keymode].MiniProgressBarY
+	MovableValues.DisplayPercentX = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayPercentX
+	MovableValues.DisplayPercentY = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayPercentY
+	MovableValues.DisplayPercentZoom = playerConfig:get_data().GameplaySizes[keymode].DisplayPercentZoom
+	MovableValues.NotefieldX = playerConfig:get_data().GameplayXYCoordinates[keymode].NotefieldX
+	MovableValues.NotefieldY = playerConfig:get_data().GameplayXYCoordinates[keymode].NotefieldY
+	MovableValues.NotefieldWidth = playerConfig:get_data().GameplaySizes[keymode].NotefieldWidth
+	MovableValues.NotefieldHeight = playerConfig:get_data().GameplaySizes[keymode].NotefieldHeight
+	MovableValues.NotefieldSpacing = playerConfig:get_data().GameplaySizes[keymode].NotefieldSpacing
+	MovableValues.JudgeCounterX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterX
+	MovableValues.JudgeCounterY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterY
+	MovableValues.ReplayButtonsX = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsX
+	MovableValues.ReplayButtonsY = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsY
+	MovableValues.ReplayButtonsSpacing = playerConfig:get_data().GameplaySizes[keymode].ReplayButtonsSpacing
+	MovableValues.ReplayButtonsZoom = playerConfig:get_data().GameplaySizes[keymode].ReplayButtonsZoom
+	MovableValues.NPSGraphX = playerConfig:get_data().GameplayXYCoordinates[keymode].NPSGraphX
+	MovableValues.NPSGraphY = playerConfig:get_data().GameplayXYCoordinates[keymode].NPSGraphY
+	MovableValues.NPSGraphWidth = playerConfig:get_data().GameplaySizes[keymode].NPSGraphWidth
+	MovableValues.NPSGraphHeight = playerConfig:get_data().GameplaySizes[keymode].NPSGraphHeight
+	MovableValues.NPSDisplayX = playerConfig:get_data().GameplayXYCoordinates[keymode].NPSDisplayX
+	MovableValues.NPSDisplayY = playerConfig:get_data().GameplayXYCoordinates[keymode].NPSDisplayY
+	MovableValues.NPSDisplayZoom = playerConfig:get_data().GameplaySizes[keymode].NPSDisplayZoom
+	MovableValues.LeaderboardX = playerConfig:get_data().GameplayXYCoordinates[keymode].LeaderboardX
+	MovableValues.LeaderboardY = playerConfig:get_data().GameplayXYCoordinates[keymode].LeaderboardY
+	MovableValues.LeaderboardSpacing = playerConfig:get_data().GameplaySizes[keymode].LeaderboardSpacing
+	MovableValues.LeaderboardWidth = playerConfig:get_data().GameplaySizes[keymode].LeaderboardWidth
+	MovableValues.LeaderboardHeight = playerConfig:get_data().GameplaySizes[keymode].LeaderboardHeight
+	MovableValues.LifeP1X = playerConfig:get_data().GameplayXYCoordinates[keymode].LifeP1X
+	MovableValues.LifeP1Y = playerConfig:get_data().GameplayXYCoordinates[keymode].LifeP1Y
+	MovableValues.LifeP1Rotation = playerConfig:get_data().GameplayXYCoordinates[keymode].LifeP1Rotation
+	MovableValues.LifeP1Width = playerConfig:get_data().GameplaySizes[keymode].LifeP1Width
+	MovableValues.LifeP1Height = playerConfig:get_data().GameplaySizes[keymode].LifeP1Height
+	MovableValues.PracticeCDGraphX = playerConfig:get_data().GameplayXYCoordinates[keymode].PracticeCDGraphX
+	MovableValues.PracticeCDGraphY = playerConfig:get_data().GameplayXYCoordinates[keymode].PracticeCDGraphY
+	MovableValues.PracticeCDGraphHeight = playerConfig:get_data().GameplaySizes[keymode].PracticeCDGraphHeight
+	MovableValues.PracticeCDGraphWidth = playerConfig:get_data().GameplaySizes[keymode].PracticeCDGraphWidth
+	MovableValues.BPMTextX = playerConfig:get_data().GameplayXYCoordinates[keymode].BPMTextX
+	MovableValues.BPMTextY = playerConfig:get_data().GameplayXYCoordinates[keymode].BPMTextY
+	MovableValues.BPMTextZoom = playerConfig:get_data().GameplaySizes[keymode].BPMTextZoom
+	MovableValues.MusicRateX = playerConfig:get_data().GameplayXYCoordinates[keymode].MusicRateX
+	MovableValues.MusicRateY = playerConfig:get_data().GameplayXYCoordinates[keymode].MusicRateY
+	MovableValues.MusicRateZoom = playerConfig:get_data().GameplaySizes[keymode].MusicRateZoom
 end
 
 function unsetMovableKeymode()
@@ -960,12 +960,12 @@ function MovableInput(event)
 			if not event.hellothisismouse then
 				updatetext(Movable.current)	-- updates text when keyboard movements are made (mouse already updated)
 			end
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1))[current.elementTree][keymode][prop] = newVal
-			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:get_data()[current.elementTree][keymode][prop] = newVal
+			playerConfig:set_dirty()
 			-- commented this to save I/O time and reduce lag
 			-- just make sure to call this somewhere else to make sure stuff saves.
 			-- (like when the screen changes....)
-			--playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			--playerConfig:save()
 		end
 	end
 	return false

@@ -28,7 +28,7 @@ function OptionRowScreenFilter()
 		},
 		LoadSelections = function(self, list, pn)
 			local pName = ToEnumShortString(pn)
-			local filterValue = playerConfig:get_data(pn_to_profile_slot(pn)).ScreenFilter
+			local filterValue = playerConfig:get_data().ScreenFilter
 			local value = scale(filterValue, 0, 1, 1, #list)
 			list[value] = true
 		end,
@@ -44,9 +44,9 @@ function OptionRowScreenFilter()
 					end
 				end
 			end
-			playerConfig:get_data(pn_to_profile_slot(pn)).ScreenFilter = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().ScreenFilter = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 end
@@ -64,7 +64,7 @@ function ReceptorSize()
 		ExportOnChange = true,
 		Choices = RSChoices,
 		LoadSelections = function(self, list, pn)
-			local prefs = playerConfig:get_data(pn_to_profile_slot(pn)).ReceptorSize
+			local prefs = playerConfig:get_data().ReceptorSize
 			list[prefs] = true
 		end,
 		SaveSelections = function(self, list, pn)
@@ -73,13 +73,13 @@ function ReceptorSize()
 				if not found then
 					if list[i] == true then
 						local value = i
-						playerConfig:get_data(pn_to_profile_slot(pn)).ReceptorSize = value
+						playerConfig:get_data().ReceptorSize = value
 						found = true
 					end
 				end
 			end
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -99,7 +99,7 @@ function ErrorBarCount()
 		ExportOnChange = true,
 		Choices = ErrorBarCountChoices,
 		LoadSelections = function(self, list, pn)
-			local prefs = playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBarCount
+			local prefs = playerConfig:get_data().ErrorBarCount
 			list[prefs] = true
 		end,
 		SaveSelections = function(self, list, pn)
@@ -108,13 +108,13 @@ function ErrorBarCount()
 				if not found then
 					if list[i] == true then
 						local value = i
-						playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBarCount = value
+						playerConfig:get_data().ErrorBarCount = value
 						found = true
 					end
 				end
 			end
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -130,7 +130,7 @@ function JudgmentText()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Hide"), THEME:GetString("OptionNames", "Show")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).JudgmentText
+			local pref = playerConfig:get_data().JudgmentText
 			if pref then
 				list[2] = true
 			else
@@ -140,9 +140,9 @@ function JudgmentText()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).JudgmentText = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().JudgmentText = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -158,7 +158,7 @@ function ComboText()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Hide"), THEME:GetString("OptionNames", "Show")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).ComboText
+			local pref = playerConfig:get_data().ComboText
 			if pref then
 				list[2] = true
 			else
@@ -168,9 +168,9 @@ function ComboText()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).ComboText = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().ComboText = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -186,7 +186,7 @@ function DisplayPercent()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).DisplayPercent
+			local pref = playerConfig:get_data().DisplayPercent
 			if pref then
 				list[2] = true
 			else
@@ -196,9 +196,9 @@ function DisplayPercent()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).DisplayPercent = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().DisplayPercent = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -214,7 +214,7 @@ function TargetTracker()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).TargetTracker
+			local pref = playerConfig:get_data().TargetTracker
 			if pref then
 				list[2] = true
 			else
@@ -224,9 +224,9 @@ function TargetTracker()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).TargetTracker = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().TargetTracker = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -261,7 +261,7 @@ function TargetGoal()
 		ExportOnChange = true,
 		Choices = tChoices,
 		LoadSelections = function(self, list, pn)
-			local prefsval = playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal
+			local prefsval = playerConfig:get_data().TargetGoal
 			local index = IndexOf(tChoices, prefsval .. "%")
 			list[index] = true
 		end,
@@ -271,14 +271,14 @@ function TargetGoal()
 				if not found then
 					if list[i] == true then
 						local value = i
-						playerConfig:get_data(pn_to_profile_slot(pn)).TargetGoal =
+						playerConfig:get_data().TargetGoal =
 							tonumber(string.sub(tChoices[value], 1, #tChoices[value] - 1))
 						found = true
 					end
 				end
 			end
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -294,7 +294,7 @@ function TargetTrackerMode()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "SetPercent"), THEME:GetString("OptionNames", "PersonalBest")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).TargetTrackerMode
+			local pref = playerConfig:get_data().TargetTrackerMode
 			list[pref + 1] = true
 		end,
 		SaveSelections = function(self, list, pn)
@@ -304,9 +304,9 @@ function TargetTrackerMode()
 			else
 				value = 0
 			end
-			playerConfig:get_data(pn_to_profile_slot(pn)).TargetTrackerMode = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().TargetTrackerMode = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -322,7 +322,7 @@ function JudgeCounter()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).JudgeCounter
+			local pref = playerConfig:get_data().JudgeCounter
 			if pref then
 				list[2] = true
 			else
@@ -332,9 +332,9 @@ function JudgeCounter()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).JudgeCounter = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().JudgeCounter = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -350,7 +350,7 @@ function PlayerInfo()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).PlayerInfo
+			local pref = playerConfig:get_data().PlayerInfo
 			if pref then
 				list[2] = true
 			else
@@ -360,9 +360,9 @@ function PlayerInfo()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).PlayerInfo = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().PlayerInfo = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -378,7 +378,7 @@ function CBHighlight()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CBHighlight
+			local pref = playerConfig:get_data().CBHighlight
 			if pref then
 				list[2] = true
 			else
@@ -386,9 +386,9 @@ function CBHighlight()
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			playerConfig:get_data(pn_to_profile_slot(pn)).CBHighlight = list[2]
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().CBHighlight = list[2]
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -404,7 +404,7 @@ function CustomizeGameplay()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay
+			local pref = playerConfig:get_data().CustomizeGameplay
 			if pref then
 				list[2] = true
 			else
@@ -412,9 +412,9 @@ function CustomizeGameplay()
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			playerConfig:get_data(pn_to_profile_slot(pn)).CustomizeGameplay = list[2]
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().CustomizeGameplay = list[2]
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -430,7 +430,7 @@ function CustomEvalWindows()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).CustomEvaluationWindowTimings
+			local pref = playerConfig:get_data().CustomEvaluationWindowTimings
 			if pref then
 				list[2] = true
 			else
@@ -440,9 +440,9 @@ function CustomEvalWindows()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).CustomEvaluationWindowTimings = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().CustomEvaluationWindowTimings = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -458,7 +458,7 @@ function ErrorBar()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On"), THEME:GetString("OptionNames", "EWMA")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBar
+			local pref = playerConfig:get_data().ErrorBar
 			list[pref + 1] = true
 		end,
 		SaveSelections = function(self, list, pn)
@@ -470,9 +470,9 @@ function ErrorBar()
 			else
 				value = 2
 			end
-			playerConfig:get_data(pn_to_profile_slot(pn)).ErrorBar = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().ErrorBar = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -488,7 +488,7 @@ function LeaderBoard()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).leaderboardEnabled
+			local pref = playerConfig:get_data().leaderboardEnabled
 			if pref then
 				list[2] = true
 			else
@@ -498,9 +498,9 @@ function LeaderBoard()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).leaderboardEnabled = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().leaderboardEnabled = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -516,7 +516,7 @@ function FullProgressBar()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).FullProgressBar
+			local pref = playerConfig:get_data().FullProgressBar
 			if pref then
 				list[2] = true
 			else
@@ -526,9 +526,9 @@ function FullProgressBar()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).FullProgressBar = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().FullProgressBar = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -544,7 +544,7 @@ function MiniProgressBar()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).MiniProgressBar
+			local pref = playerConfig:get_data().MiniProgressBar
 			if pref then
 				list[2] = true
 			else
@@ -554,9 +554,9 @@ function MiniProgressBar()
 		SaveSelections = function(self, list, pn)
 			local value
 			value = list[2]
-			playerConfig:get_data(pn_to_profile_slot(pn)).MiniProgressBar = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().MiniProgressBar = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -576,7 +576,7 @@ function LaneCover()
 			THEME:GetString("OptionNames", "Hidden")
 		},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).LaneCover
+			local pref = playerConfig:get_data().LaneCover
 			list[pref + 1] = true
 		end,
 		SaveSelections = function(self, list, pn)
@@ -588,9 +588,9 @@ function LaneCover()
 			else
 				value = 2
 			end
-			playerConfig:get_data(pn_to_profile_slot(pn)).LaneCover = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().LaneCover = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -606,8 +606,8 @@ function NPSDisplay()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "NPSDisplay"), THEME:GetString("OptionNames", "NPSGraph")},
 		LoadSelections = function(self, list, pn)
-			local npsDisplay = playerConfig:get_data(pn_to_profile_slot(pn)).NPSDisplay
-			local npsGraph = playerConfig:get_data(pn_to_profile_slot(pn)).NPSGraph
+			local npsDisplay = playerConfig:get_data().NPSDisplay
+			local npsGraph = playerConfig:get_data().NPSGraph
 			if npsDisplay then
 				list[1] = true
 			end
@@ -616,10 +616,10 @@ function NPSDisplay()
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			playerConfig:get_data(pn_to_profile_slot(pn)).NPSDisplay = list[1]
-			playerConfig:get_data(pn_to_profile_slot(pn)).NPSGraph = list[2]
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().NPSDisplay = list[1]
+			playerConfig:get_data().NPSGraph = list[2]
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -639,7 +639,7 @@ function BackgroundType()
 			THEME:GetString("OptionNames", "RandomBG")
 		},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).BackgroundType
+			local pref = playerConfig:get_data().BackgroundType
 			list[pref] = true
 		end,
 		SaveSelections = function(self, list, pn)
@@ -651,9 +651,9 @@ function BackgroundType()
 			else
 				value = 3
 			end
-			playerConfig:get_data(pn_to_profile_slot(pn)).BackgroundType = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().BackgroundType = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
@@ -1051,25 +1051,25 @@ function ProgressBar()
 		ExportOnChange = true,
 		Choices = {THEME:GetString("OptionNames", "Bottom"), THEME:GetString("OptionNames", "Top")},
 		LoadSelections = function(self, list, pn)
-			local pref = playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].ProgressBarPos
+			local pref = playerConfig:get_data().GameplayXYCoordinates[keymode].ProgressBarPos
 			if pref then
 				list[pref + 1] = true
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			local value = playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].ProgressBarPos
+			local value = playerConfig:get_data().GameplayXYCoordinates[keymode].ProgressBarPos
 			if list[1] == true then
 				if value ~= 0 then
 					value = 0
-					playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].FullProgressBarY = SCREEN_BOTTOM - 30
+					playerConfig:get_data().GameplayXYCoordinates[keymode].FullProgressBarY = SCREEN_BOTTOM - 30
 				end
 			elseif value ~= 1 then
 				value = 1
-				playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].FullProgressBarY = 20
+				playerConfig:get_data().GameplayXYCoordinates[keymode].FullProgressBarY = 20
 			end
-			playerConfig:get_data(pn_to_profile_slot(pn)).GameplayXYCoordinates[keymode].ProgressBarPos = value
-			playerConfig:set_dirty(pn_to_profile_slot(pn))
-			playerConfig:save(pn_to_profile_slot(pn))
+			playerConfig:get_data().GameplayXYCoordinates[keymode].ProgressBarPos = value
+			playerConfig:set_dirty()
+			playerConfig:save()
 		end
 	}
 	setmetatable(t, t)
