@@ -39,6 +39,7 @@ local t = Def.ActorFrame {
 			end
 		end
 	end,
+	
 	LoadFont("Common Normal") .. {
 		OnCommand = function(self)
 			self:visible(false)
