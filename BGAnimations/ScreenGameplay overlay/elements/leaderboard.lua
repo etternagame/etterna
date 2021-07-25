@@ -1,6 +1,6 @@
 local leaderboardEnabled = 
     (NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
-	(playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn())
+	(playerConfig:get_data().leaderboardEnabled and DLMAN:IsLoggedIn())
 local entryActors = {}
 local t = Widg.Container {
 	x = MovableValues.LeaderboardX,
@@ -12,7 +12,8 @@ if not leaderboardEnabled then
 	return t
 end
 local CRITERIA = "GetWifeScore"
-local NUM_ENTRIES = 5
+local NUM_ENTRIES = 32
+local VISIBLE_ENTRIES = 5
 local ENTRY_HEIGHT = IsUsingWideScreen() and 35 or 20
 local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
 local jdgs = {
@@ -22,7 +23,7 @@ local jdgs = {
 	"TapNoteScore_W3",
 	"TapNoteScore_W4",
 	"TapNoteScore_W5",
-	"TapNoteScore_Miss"
+	"TapNoteScore_Miss",
 }
 
 local function arbitraryLeaderboardSpacing(value)
@@ -58,7 +59,7 @@ local onlineScores = {}
 local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation" or false
 if isMulti then
 	multiScores = NSMAN:GetMPLeaderboard()
-	for i = 1, 5 do
+	for i = 1, NUM_ENTRIES do
 		onlineScores[i] = scoreUsingMultiScore(i)
 	end
 else
@@ -129,7 +130,7 @@ local function scoreEntry(i)
 			entryActor = self
 			entryActors[i]["container"] = self
 			self.update = function(self, hs)
-				self:visible(not (not hs))
+				self:visible(not (not hs) and i <= VISIBLE_ENTRIES)
 			end
 			self:update(scoreboard[i])
 		end
