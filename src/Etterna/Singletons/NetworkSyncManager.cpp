@@ -853,6 +853,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 										score["mods"].IsString()
 									  ? score["mods"].GetString()
 									  : "");
+					if (score.HasMember("wifever") && score["wifever"].IsInt())
+						hs.SetWifeVersion(score["wifever"].GetInt());
+
 					FOREACH_ENUM(Skillset, ss)
 					{
 						auto str = SkillsetToString(ss);
@@ -1601,6 +1604,8 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	writer.Int(hs->GetTapNoteScore(TNS_W1));
 	writer.Key("score");
 	writer.Double(hs->GetSSRNormPercent());
+	writer.Key("wifever");
+	writer.Int(hs->GetWifeVersion());
 	FOREACH_ENUM(Skillset, ss)
 	{
 		writer.Key(SkillsetToString(ss).c_str());
