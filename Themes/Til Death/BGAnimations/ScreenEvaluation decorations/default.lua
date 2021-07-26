@@ -25,7 +25,7 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, capWideScale(124, 150)):zoom(0.25):maxwidth(capWideScale(250 / 0.4, 180 / 0.4))
+			self:xy(SCREEN_CENTER_X, capWideScale(124, 150)):zoom(0.25):maxwidth(capWideScale(250 / 0.25, 180 / 0.25))
 		end,
 		BeginCommand = function(self)
 			self:queuecommand("Set")
@@ -39,7 +39,7 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, capWideScale(139, 165)):zoom(0.25):maxwidth(180 / 0.4)
+			self:xy(SCREEN_CENTER_X, capWideScale(139, 165)):zoom(0.25):maxwidth(180 / 0.25)
 		end,
 		BeginCommand = function(self)
 			self:queuecommand("Set")
@@ -55,10 +55,10 @@ t[#t + 1] =
 
 -- Rate String
 t[#t + 1] =
-	LoadFont("Common normal") ..
+	LoadFont("Common Large") ..
 	{
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, capWideScale(155, 170)):zoom(0.5):halign(0.5)
+			self:xy(SCREEN_CENTER_X, capWideScale(154, 180)):zoom(0.25):halign(0.5)
 		end,
 		BeginCommand = function(self)
 			local rate = SCREENMAN:GetTopScreen():GetReplayRate()
