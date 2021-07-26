@@ -62,6 +62,11 @@ NoteField::NoteField()
 	m_sprBoard->PlayCommand("On");
 	this->AddChild(m_sprBoard);
 
+	m_sprCover.Load(THEME->GetPathG("NoteField", "cover"));
+	m_sprCover->SetName("Cover");
+	m_sprCover->PlayCommand("On");
+	this->AddChild(m_sprCover);
+
 	m_fBoardOffsetPixels = 0;
 	m_fCurrentBeatLastUpdate = -1;
 	m_fYPosCurrentBeatLastUpdate = -1;
@@ -818,6 +823,8 @@ NoteField::DrawPrimitives()
 
 	cur->m_GhostArrowRow.Draw();
 	cur->m_ReceptorArrowRow.DrawOverlay();
+
+	m_sprCover->Draw();
 }
 
 void
