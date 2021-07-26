@@ -855,6 +855,15 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 									  : "");
 					if (score.HasMember("wifever") && score["wifever"].IsInt())
 						hs.SetWifeVersion(score["wifever"].GetInt());
+					RadarValues rv;
+					FOREACH_ENUM(RadarCategory, rc)
+					{
+						auto rcs = RadarCategoryToString(rc).c_str();
+						if (score.HasMember(rcs) && score[rcs].IsInt()) {
+							rv[rc] = score[rcs].GetInt();
+						}
+					}
+					hs.SetRadarValues(rv);
 
 					FOREACH_ENUM(Skillset, ss)
 					{
@@ -1606,6 +1615,12 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	writer.Double(hs->GetSSRNormPercent());
 	writer.Key("wifever");
 	writer.Int(hs->GetWifeVersion());
+	auto& r = hs->GetRadarValues();
+	FOREACH_ENUM(RadarCategory, rc)
+	{
+		writer.Key(RadarCategoryToString(rc).c_str());
+		writer.Int(r[rc]);
+	}
 	FOREACH_ENUM(Skillset, ss)
 	{
 		writer.Key(SkillsetToString(ss).c_str());
