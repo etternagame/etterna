@@ -166,11 +166,9 @@ function PONextScreen()
 		SaveSelections = function(self,list)
 			local entnames = {"Main","Theme","Effect"}
 			for i,v in ipairs(self.Values) do
-				if list[i] and i ~= 1 then
-					setenv("DifferentOptionsScreen",true)
-					if i > 1 then
-						setenv("NewOptions", entnames[i-1] )
-					end
+				if list[i] and i > 1 then
+					SCREENMAN:GetTopScreen():SetNextScreenName( "ScreenPlayerOptions" )
+					setenv("NewOptions", entnames[i-1] )
 				end
 			end
 		end,

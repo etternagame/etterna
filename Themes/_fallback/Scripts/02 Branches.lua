@@ -141,11 +141,11 @@ Branch = {
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return SelectFirstOptionsScreen()
 		else
-			return "ScreenStageInformation"
+			return ToGameplay()
 		end
 	end,
 	PlayerOptions = function()
-		if SCREENMAN:GetTopScreen():GetGoToOptions() or GAMESTATE:Env()["DifferentOptionsScreen"] then
+		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenPlayerOptions"
 		else
 			return ToGameplay()
@@ -155,7 +155,7 @@ Branch = {
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenSongOptions"
 		else
-			return "ScreenStageInformation"
+			return ToGameplay()
 		end
 	end,
 	AfterGameplay = function()
