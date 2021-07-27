@@ -59,10 +59,21 @@ t[#t + 1] =
 	{
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, capWideScale(154, 180)):zoom(0.25):halign(0.5)
+			self:queuecommand("Set")
 		end,
-		BeginCommand = function(self)
-			local rate = SCREENMAN:GetTopScreen():GetReplayRate()
-			if not rate then rate = getCurRateValue() end
+		ScoreChangedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			local top = SCREENMAN:GetTopScreen()
+			local rate
+			if top:GetName() == "ScreenNetEvaluation" then
+				rate = score:GetMusicRate()
+			else
+				rate = top:GetReplayRate()
+				if not rate then rate = getCurRateValue() end
+			end
+			rate = notShit.round(rate,3)
 			local ratestr = getRateString(rate)
 			if ratestr == "1x" then
 				self:settext("")
@@ -299,9 +310,19 @@ function scoreBoard(pn, position)
 			BeginCommand = function(self)
 				self:queuecommand("Set")
 			end,
+			ScoreChangedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
 			SetCommand = function(self)
-				local rate = SCREENMAN:GetTopScreen():GetReplayRate()
-				if not rate then rate = getCurRateValue() end
+				local top = SCREENMAN:GetTopScreen()
+				local rate
+				if top:GetName() == "ScreenNetEvaluation" then
+					rate = score:GetMusicRate()
+				else
+					rate = top:GetReplayRate()
+					if not rate then rate = getCurRateValue() end
+				end
+				rate = notShit.round(rate,3)
 				local meter = GAMESTATE:GetCurrentSteps():GetMSD(rate, 1)
 				self:settextf("%5.2f", meter)
 				self:diffuse(byMSD(meter))
@@ -380,10 +401,12 @@ function scoreBoard(pn, position)
 					local wv = score:GetWifeVers()
 					local ws = "Wife" .. wv .. " J"
 					local js = judge ~= 9 and judge or "ustice"
+					local rescoretable = getRescoreElements(score)
+					local rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 					self:diffuse(getGradeColor(score:GetWifeGrade()))
 					self:settextf(
 						"%05.2f%% (%s)",
-						notShit.floor(score:GetWifeScore() * 100, 2), ws .. js
+						notShit.floor(rescorepercent, 2), ws .. js
 					)
 				end,
 				ScoreChangedMessageCommand = function(self)
@@ -433,10 +456,12 @@ function scoreBoard(pn, position)
 					local wv = score:GetWifeVers()
 					local ws = "Wife" .. wv .. " J"
 					local js = judge ~= 9 and judge or "ustice"
+					local rescoretable = getRescoreElements(score)
+					local rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 					self:diffuse(getGradeColor(score:GetWifeGrade()))
 					self:settextf(
 						"%05.5f%% (%s)",
-						notShit.floor(score:GetWifeScore() * 100, 5), ws .. js
+						notShit.floor(rescorepercent, 5), ws .. js
 					)
 				end,
 				ScoreChangedMessageCommand = function(self)
