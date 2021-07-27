@@ -324,7 +324,11 @@ function scoreBoard(pn, position)
 				end
 				rate = notShit.round(rate,3)
 				local meter = GAMESTATE:GetCurrentSteps():GetMSD(rate, 1)
-				self:settextf("%5.2f", meter)
+				if meter < 10 then
+					self:settextf("%4.2f", meter)
+				else
+					self:settextf("%5.2f", meter)
+				end
 				self:diffuse(byMSD(meter))
 			end
 		}
@@ -375,9 +379,9 @@ function scoreBoard(pn, position)
 		end,
 		Def.Quad {
 			InitCommand = function(self)
-				self:xy(frameX + 5, frameY + 9):zoomto(capWideScale(320,360)/2.2,20):halign(0):valign(0)
-					self:diffusealpha(0)
-				end,
+				self:xy(frameX + 3, frameY + 9):zoomto(capWideScale(320,490)/2.2,20):halign(0):valign(0)
+				self:diffusealpha(0)
+			end,
 				PercentMouseoverCommand = function(self)
 					if isOver(self) and self:IsVisible() then
 						self:GetParent():GetChild("NormalText"):visible(false)
@@ -392,7 +396,7 @@ function scoreBoard(pn, position)
 			{
 				Name = "NormalText",
 				InitCommand = function(self)
-					self:xy(frameX + 5, frameY + 9):zoom(0.45):halign(0):valign(0):maxwidth(capWideScale(320, 460))
+					self:xy(frameX + 3, frameY + 9):zoom(0.45):halign(0):valign(0):maxwidth(capWideScale(320, 500))
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("Set")
@@ -447,7 +451,7 @@ function scoreBoard(pn, position)
 			{
 				Name = "LongerText",
 				InitCommand = function(self)
-					self:xy(frameX + 5, frameY + 9):zoom(0.45):halign(0):valign(0):maxwidth(capWideScale(320, 460))
+					self:xy(frameX + 3, frameY + 9):zoom(0.45):halign(0):valign(0):maxwidth(capWideScale(320, 500))
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("Set")
@@ -751,7 +755,7 @@ function scoreBoard(pn, position)
 	t[#t + 1] =
 		Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX - 5, frameY + 227.5):zoomto(frameWidth / 2 - 10, 55):halign(0):valign(0)
+			self:xy(frameX - 5, frameY + 226):zoomto(frameWidth / 2 - 10, 56.5):halign(0):valign(0)
 			self:diffuse(getMainColor("tabs"))
 		end
 	}
@@ -872,7 +876,7 @@ function scoreBoard(pn, position)
 		Def.Quad {
 		InitCommand = function(self)
 			self:diffuse(getMainColor("tabs"))
-			self:xy(frameWidth + 25, frameY + 227.5):zoomto(frameWidth / 2 + 10, 55):halign(1):valign(0)
+			self:xy(frameWidth + 25, frameY + 226):zoomto(frameWidth / 2 + 10, 56.5):halign(1):valign(0)
 		end
 	}
 	local smallest, largest = wifeRange(devianceTable)
