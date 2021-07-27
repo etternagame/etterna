@@ -1,6 +1,6 @@
 name: ⚙️ Build Issue
 description: Having a problem building Etterna? Let us know here!
-labels: ["Type: Enhancement"]
+labels: ["Type: Maintenance"]
 title: "[Build Issue]: "
 assignees:
   - jameskr97
