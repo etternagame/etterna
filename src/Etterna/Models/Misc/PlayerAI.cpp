@@ -447,19 +447,19 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 					auto isDropped = IsHoldDroppedInRowRangeForTrack(
 					  row, row + pTN->iDuration, track);
 					if (isDropped != -1) {
-						tempHNS[HNS_LetGo]++;
+						if (m_unjudgedholds[isDropped].size() > 0) {
+							tempHNS[HNS_LetGo]++;
 
-						// erase the hold from the mapping of unjudged holds
-						for (size_t i = 0;
-							 i < m_unjudgedholds[isDropped].size();
-							 i++) {
-							if (m_unjudgedholds[isDropped][i].track == track) {
-								m_unjudgedholds[isDropped].erase(
-								  m_unjudgedholds[isDropped].begin() + i);
-							}
+							// erase the hold from the mapping of unjudged holds
+							m_unjudgedholds[isDropped].erase(std::remove_if(
+							  m_unjudgedholds[isDropped].begin(),
+							  m_unjudgedholds[isDropped].end(),
+							  [track](const HoldReplayResult& hrrr) {
+								  return hrrr.track == track;
+							  }));
+							if (m_unjudgedholds[isDropped].empty())
+								m_unjudgedholds.erase(isDropped);
 						}
-						if (m_unjudgedholds[isDropped].empty())
-							m_unjudgedholds.erase(isDropped);
 					} else {
 						tempHNS[HNS_Held]++;
 					}
@@ -470,7 +470,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				// and the hold was short enough to bug out
 				// and the reported row of the dropped hold is weirdly placed
 				auto firstUnjudgedHold = m_unjudgedholds.begin();
-				if (firstUnjudgedHold != m_unjudgedholds.end()) {
+				if (firstUnjudgedHold != m_unjudgedholds.end() &&
+					row > firstUnjudgedHold->first) {
 					auto hrrs = firstUnjudgedHold->second;
 					for (size_t i = 0; i < hrrs.size(); i++) {
 						if (hrrs[i].track == track) {
