@@ -2,6 +2,12 @@ local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local c
 local enabledCombo = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ComboText
 local CenterCombo = CenteredComboEnabled()
+local CTEnabled = ComboTweensEnabled()
+
+local Pulse = THEME:GetMetric("Combo", "PulseCommand")
+local NumberMinZoom = THEME:GetMetric("Combo", "NumberMinZoom")
+local NumberMaxZoom = THEME:GetMetric("Combo", "NumberMaxZoom")
+local NumberMaxZoomAt = THEME:GetMetric("Combo", "NumberMaxZoomAt")
 
 local function arbitraryComboX(value)
 	c.Label:x(value)
@@ -118,6 +124,13 @@ local t =
 			c.Number:stopeffect()
 			c.Label:diffuse(Color("Red"))
 			c.Label:diffusebottomedge(color("0.5,0,0,1"))
+		end
+
+		--Animations
+		param.Zoom = scale(iCombo, 0, NumberMaxZoomAt, NumberMinZoom, NumberMaxZoom)
+		param.Zoom = clamp(param.Zoom, NumberMinZoom, NumberMaxZoom)
+		if CTEnabled then
+			Pulse(c.Number, param)
 		end
 	end,
 	MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),

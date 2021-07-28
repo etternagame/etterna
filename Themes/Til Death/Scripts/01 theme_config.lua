@@ -15,6 +15,7 @@ local defaultConfig = {
 		InstantSearch = true, -- true = search per press, false = search on enter button
 		IgnoreTabInput = 1, -- 1 = dont ignore, 2 = ignore only in search, 3 = always
 		JudgmentTween = false,
+		ComboTween = false,
 		CenteredCombo = false,
 		FadeNoteFieldInSyncMachine = true,
 	},
@@ -40,6 +41,9 @@ themeConfig:load()
 
 function JudgementTweensEnabled()
 	return themeConfig:get_data().global.JudgmentTween
+end
+function ComboTweensEnabled()
+	return themeConfig:get_data().global.ComboTween
 end
 function CenteredComboEnabled()
 	return themeConfig:get_data().global.CenteredCombo
