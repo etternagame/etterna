@@ -220,6 +220,10 @@ OsuLoader::LoadChartData(Song* song,
 	}
 
 	switch (stoi(parsedData["Difficulty"]["CircleSize"])) {
+		case (3): {
+			chart->m_StepsType = StepsType_dance_threepanel;
+			break;
+		}
 		case (4): {
 			chart->m_StepsType = StepsType_dance_single;
 			break;
@@ -240,10 +244,18 @@ OsuLoader::LoadChartData(Song* song,
 			chart->m_StepsType = StepsType_dance_double;
 			break;
 		}
+		case (9): {
+			chart->m_StepsType = StepsType_popn_nine;
+			break;
+		}
+		case (10): {
+			chart->m_StepsType = StepsType_pump_double;
+			break;
+		}
 		default:
 			chart->m_StepsType = StepsType_Invalid;
 			return false;
-	} // needs more stepstypes?
+	}
 
 	chart->SetMeter(song->GetAllSteps().size());
 
