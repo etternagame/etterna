@@ -149,18 +149,49 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (replayNoteRowVector[i] < firstRow)
 			continue;
 
+		bool dontMakeNewTRR = false;
+
+		// ReplayData recording allows for multiple taps in 1 row
+		// This should only occur for mines that were hit by tapping them
+		// Check specifically for this happening
+		if (pScoreData->GetReplayType() == 2) {
+			// if scoring issues continue to happen, finish this
+			// right now, only checking for mines
+			if (replayTapNoteTypeVector[i] == TapNoteType_Mine) {
+				if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
+					// search for other mines in this column
+					// if a relevant one exists, set it to this offset
+					// skip iteration if a match is found
+					for (auto& t : m_ReplayTapMap[replayNoteRowVector[i]]) {
+						if (t.track == replayTrackVector[i] &&
+							t.type == replayTapNoteTypeVector[i]) {
+							if (fabsf(replayOffsetVector[i]) >
+								fabsf(t.offset)) {
+								t.offset = replayOffsetVector[i];
+								t.offsetAdjustedRow = replayNoteRowVector[i];
+							}
+							dontMakeNewTRR = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (dontMakeNewTRR)
+			continue;
+
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
-		trr.offsetAdjustedRow = static_cast<int>(replayOffsetVector[i]);
-		if (pScoreData->GetReplayType() ==
-			2) // 2 means that this is a Full Replay
-		{
+		trr.offsetAdjustedRow = replayNoteRowVector[i];
+		if (pScoreData->GetReplayType() == 2) {
+			// 2 means that this is a Full Replay
 			trr.track = replayTrackVector[i];
 			trr.type = replayTapNoteTypeVector[i];
-		} else // Anything else (and we got this far without crashing) means
-			   // it's not a Full Replay
-		{
+		} else {
+			// Anything else (and we got this far without crashing) means
+			// it's not a Full Replay
 			trr.track = 0;
 			trr.type = TapNoteType_Empty;
 		}
@@ -169,7 +200,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
 			m_ReplayTapMap[replayNoteRowVector[i]].push_back(trr);
 		} else {
-			const vector<TapReplayResult> trrVector = { trr };
+			vector<TapReplayResult> trrVector = { trr };
 			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
 			validNoterows.insert(replayNoteRowVector[i]);
 		}
@@ -186,7 +217,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (m_ReplayHoldMap.count(i.row) != 0) {
 			m_ReplayHoldMap[i.row].push_back(i);
 		} else {
-			const vector<HoldReplayResult> hrrVector = { i };
+			vector<HoldReplayResult> hrrVector = { i };
 			m_ReplayHoldMap[i.row] = hrrVector;
 			validNoterows.insert(i.row);
 		}
@@ -237,7 +268,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayExactTapMap.count(tapRow) != 0) {
 				m_ReplayExactTapMap[tapRow].push_back(trr);
 			} else {
-				const vector<TapReplayResult> trrVector = { trr };
+				vector<TapReplayResult> trrVector = { trr };
 				m_ReplayExactTapMap[tapRow] = trrVector;
 			}
 
@@ -245,7 +276,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
 				m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
 			} else {
-				const vector<TapReplayResult> trrVector = { trr };
+				vector<TapReplayResult> trrVector = { trr };
 				m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
 			}
 		}
@@ -260,7 +291,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayHoldMapByElapsedTime.count(dropTime) != 0) {
 				m_ReplayHoldMapByElapsedTime[dropTime].push_back(hrr);
 			} else {
-				const vector<HoldReplayResult> hrrVector = { hrr };
+				vector<HoldReplayResult> hrrVector = { hrr };
 				m_ReplayHoldMapByElapsedTime[dropTime] = hrrVector;
 			}
 		}
@@ -297,7 +328,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 					if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
 						m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
 					} else {
-						const vector<TapReplayResult> trrVector = { trr };
+						vector<TapReplayResult> trrVector = { trr };
 						m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
 					}
 				}
@@ -617,31 +648,42 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 void
 PlayerAI::RemoveTapFromVectors(int row, int col)
 {
-	// if the row is in the replay data
+	// the ExactTapMap is indexed by its offset adjusted rows
+	// take the offset adjusted row value from the TapMap
+	auto exactTapRowToErase = 0;
+
+	// if the row is in the replay data:
 	if (m_ReplayTapMap.count(row) != 0) {
 		for (auto i = 0; i < (int)m_ReplayTapMap[row].size(); i++) {
 			// if the column is in the row data
 			auto& trr = m_ReplayTapMap[row][i];
 			if (trr.track == col) {
-				// delete
-				m_ReplayTapMap[row].erase(m_ReplayTapMap[row].begin() + i);
-				if (m_ReplayTapMap[row].empty())
-					m_ReplayTapMap.erase(row);
+				exactTapRowToErase = trr.offsetAdjustedRow;
+				break;
 			}
 		}
+		auto& v = m_ReplayTapMap[row];
+		v.erase(std::remove_if(
+				  v.begin(),
+				  v.end(),
+				  [col](const TapReplayResult& trr) { return trr.track == col; }),
+		  v.end());
+		if (v.empty()) {
+			m_ReplayTapMap.erase(row);
+		}
 	}
-	// if the row is in the replay data
-	if (m_ReplayExactTapMap.count(row) != 0) {
-		for (auto i = 0; i < (int)m_ReplayExactTapMap[row].size(); i++) {
-			// if the column is in the row data
-			auto& trr = m_ReplayExactTapMap[row][i];
-			if (trr.track == col) {
-				// delete
-				m_ReplayExactTapMap[row].erase(
-				  m_ReplayExactTapMap[row].begin() + i);
-				if (m_ReplayExactTapMap[row].empty())
-					m_ReplayExactTapMap.erase(row);
-			}
+
+	// if the row is in the replay data:
+	if (m_ReplayExactTapMap.count(exactTapRowToErase) != 0) {
+		auto& v = m_ReplayExactTapMap[exactTapRowToErase];
+		v.erase(std::remove_if(v.begin(),
+							   v.end(),
+							   [col](const TapReplayResult& trr) {
+								   return trr.track == col;
+							   }),
+				v.end());
+		if (v.empty()) {
+			m_ReplayExactTapMap.erase(exactTapRowToErase);
 		}
 	}
 }
@@ -908,7 +950,7 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 			for (auto i = 0; i < (int)m_ReplayExactTapMap[noteRow].size();
 				 i++) // go over all elements in the row
 			{
-				const auto trr = m_ReplayExactTapMap[noteRow][i];
+				const auto& trr = m_ReplayExactTapMap[noteRow][i];
 				if (trr.track == col) // if the column expected is the
 									  // actual note, use it
 				{
@@ -918,16 +960,17 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 						if (trr.type != TapNoteType_Lift)
 							continue;
 					}
-					m_ReplayExactTapMap[noteRow].erase(
-					  m_ReplayExactTapMap[noteRow].begin() + i);
-					if (m_ReplayExactTapMap[noteRow].empty())
-						m_ReplayExactTapMap.erase(noteRow);
 					return -trr.offset;
 				}
 			}
 		}
 	}
 
+	Locator::getLogger()->warn(
+	  "Replay Data playback error - could not find offset ROW {} COL {} TYPE {}",
+	  noteRow,
+	  col,
+	  pTN->type);
 	return -1.f; // data missing or invalid, give them a miss
 }
 
