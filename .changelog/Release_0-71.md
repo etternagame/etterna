@@ -222,7 +222,7 @@
 - SSC Scrolls broke Chart Preview - [1c01aa3](../../../commit/1c01aa3ce2c876ea28059de2cdfca51c33c3482b)
 - SSC Scrolls broke when reloading in Practice mode - [6bf2c26](../../../commit/6bf2c26912cbed47d214abc703637f546bb98a17)
 - SSC Timingdata never saved properly in cache - [00f66dd](../../../commit/00f66dd137d726d1e38e42f38510d8c61d6fe011)
-- Sync changes using the F11/F12 keys did not update the actual timing data until a save, causing confusion situations - [28bf8b8](../../../commit/28bf8b86f85fd6efd8a68bf72c7bbaeb788b20b2)
+- Sync changes using the F11/F12 keys did not update the actual timing data until a save, causing confusing situations - [28bf8b8](../../../commit/28bf8b86f85fd6efd8a68bf72c7bbaeb788b20b2)
 - Til Death evaluation scoring could be wildly wrong due to RadarValue sourcing - [750638d](../../../commit/750638d338c30d54cfca4a74d7abb7e7481b14f7)
 - Toasty triggered at note 251 instead of note 250 - [51f2241](../../../commit/51f22419eeebaea3b0da640148b45edf966e0d57)
 - Top25 endpoint return function broke when 404ing - [eb058ff](../../../commit/eb058ff3d696da85ab9f75abe031a3b9b55b4564)
