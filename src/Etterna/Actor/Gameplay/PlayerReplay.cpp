@@ -676,7 +676,6 @@ PlayerReplay::Step(int col,
 			if (fNoteOffset == -2.f) // we hit a mine
 			{
 				score = TNS_HitMine;
-				PlayerAI::RemoveTapFromVectors(rowToJudge, col);
 			} else if (pTN->type == TapNoteType_Mine) // we are looking
 													  // at a mine but
 													  // missed it
@@ -689,6 +688,8 @@ PlayerReplay::Step(int col,
 															   fNoteOffset);
 			}
 		}
+
+		PlayerAI::RemoveTapFromVectors(rowToJudge, col);
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
