@@ -56,7 +56,7 @@ PlayerOptions::Init()
 	m_LifeType = LifeType_Bar;
 	m_DrainType = DrainType_Normal;
 	m_BatteryLives = 4;
-	m_MinTNSToHideNotes = PREFSMAN->m_MinTNSToHideNotes;
+	m_MinTNSToHideNotes = PREFSMAN->m_MinTNSToHideNotes.Get();
 	m_bSetScrollSpeed = false;
 	m_fMaxScrollBPM = 0;
 	m_SpeedfMaxScrollBPM = 1.0f;
