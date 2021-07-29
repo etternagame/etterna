@@ -61,3 +61,14 @@ Branch.LeavePackDownloader = function()
 	end
 	return "ScreenSelectMusic"
 end
+
+Branch.LeaveAssets = function()
+	if IsSMOnlineLoggedIn(PLAYER_1) then
+		if NSMAN:GetCurrentRoomName() then
+			return "ScreenNetSelectMusic"
+		else
+			return "ScreenNetRoom"
+		end
+	end
+	return "ScreenSelectMusic"
+end
