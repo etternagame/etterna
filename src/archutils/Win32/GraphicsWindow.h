@@ -22,6 +22,7 @@ namespace GraphicsWindow {
 
 	void Update();
 	auto GetHwnd() -> HWND;
+	void SetHwnd(HWND hwnd);
 } // namespace GraphicsWindow;
 
 #endif

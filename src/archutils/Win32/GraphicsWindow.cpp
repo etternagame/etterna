@@ -498,6 +498,10 @@ GraphicsWindow::GetHwnd()
 	return g_hWndMain;
 }
 
+void GraphicsWindow::SetHwnd(HWND hwnd){
+	g_hWndMain = hwnd;
+}
+
 void
 GraphicsWindow::GetDisplaySpecs(DisplaySpecs& out)
 {
