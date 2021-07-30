@@ -236,47 +236,6 @@ AdjustVideoModeParams(VideoModeParams& p)
 	}
 }
 
-/* Set the display mode to the given size, bit depth and refresh.
- * The refresh setting may be ignored. */
-std::string
-GraphicsWindow::SetScreenMode(const VideoModeParams& p)
-{
-	if (p.windowed) {
-		// We're going windowed. If we were previously fullscreen, reset.
-		ChangeDisplaySettings(nullptr, 0);
-
-		return std::string();
-	}
-
-	DEVMODE DevMode;
-	ZERO(DevMode);
-	DevMode.dmSize = sizeof(DEVMODE);
-	DevMode.dmPelsWidth = p.width;
-	DevMode.dmPelsHeight = p.height;
-	DevMode.dmBitsPerPel = p.bpp;
-	DevMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL;
-
-	if (p.rate != REFRESH_DEFAULT) {
-		DevMode.dmDisplayFrequency = p.rate;
-		DevMode.dmFields |= DM_DISPLAYFREQUENCY;
-	}
-	ChangeDisplaySettings(nullptr, 0);
-
-	int ret = ChangeDisplaySettings(&DevMode, CDS_FULLSCREEN);
-	if (ret != DISP_CHANGE_SUCCESSFUL &&
-		(DevMode.dmFields & DM_DISPLAYFREQUENCY)) {
-		DevMode.dmFields &= ~DM_DISPLAYFREQUENCY;
-		ret = ChangeDisplaySettings(&DevMode, CDS_FULLSCREEN);
-	}
-
-	// XXX: append error
-	if (ret != DISP_CHANGE_SUCCESSFUL)
-		return "Couldn't set screen mode";
-
-	g_FullScreenDevMode = DevMode;
-	return std::string();
-}
-
 static int
 GetWindowStyle(bool bWindowed, bool bBorderless)
 {
@@ -503,13 +462,6 @@ GraphicsWindow::Shutdown()
 
 	AppInstance inst;
 	UnregisterClass(g_sClassName.c_str(), inst);
-}
-
-HDC
-GraphicsWindow::GetHDC()
-{
-	ASSERT(g_HDC != NULL);
-	return g_HDC;
 }
 
 ActualVideoModeParams*
