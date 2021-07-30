@@ -356,7 +356,9 @@ Player::Init(const std::string& sType,
 	if ((m_pLifeMeter != nullptr) && (m_pPlayerStageStats != nullptr)) {
 		const auto fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
+		  fLife,
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 		// m_pPlayerStageStats->SetWifeRecordAt( 1.f,
 		// STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
@@ -1608,7 +1610,9 @@ Player::ChangeLifeRecord() const
 	if (fLife != -1) {
 		if (m_pPlayerStageStats != nullptr) {
 			m_pPlayerStageStats->SetLifeRecordAt(
-			  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
+			  fLife,
+			  GAMESTATE->m_Position.m_fMusicSeconds /
+				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 		}
 	}
 }
@@ -1620,7 +1624,9 @@ Player::ChangeWifeRecord() const
 	// That's not right.
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  curwifescore / maxwifescore, GAMESTATE->m_Position.m_fMusicSeconds);
+		  curwifescore / maxwifescore,
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	}
 }
 
