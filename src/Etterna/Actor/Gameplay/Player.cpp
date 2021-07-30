@@ -2895,7 +2895,9 @@ Player::HandleTapRowScore(unsigned row)
 	 * fStepsSeconds instead. */
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 	}
 
 	ChangeLife(scoreOfLastTap);
@@ -2954,7 +2956,9 @@ Player::HandleHoldCheckpoint(int iRow,
 		SetCombo(m_pPlayerStageStats->m_iCurCombo,
 				 m_pPlayerStageStats->m_iCurMissCombo);
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 	}
 
 	ChangeLife(iNumHoldsMissedThisRow == 0 ? TNS_CheckpointHit

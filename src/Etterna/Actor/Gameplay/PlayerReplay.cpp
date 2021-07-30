@@ -391,7 +391,9 @@ PlayerReplay::HandleTapRowScore(unsigned row)
 	 * we can't use GAMESTATE->m_fMusicSeconds. Use fStepsSeconds instead. */
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 
 	ChangeLife(scoreOfLastTap);
 }
