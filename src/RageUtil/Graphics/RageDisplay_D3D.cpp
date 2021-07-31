@@ -13,7 +13,16 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
+// Includes for GLFW Window backend, but D3D context
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+#include "Core/Platform/Window/GLFWWindowBackend.hpp"
+#include "Etterna/Globals/GameLoop.h"
+using namespace Core::Platform::Window;
+
 #include <algorithm>
+#include <memory>
 #include <map>
 #include <list>
 #include <chrono>
@@ -33,6 +42,7 @@ auto GetErrorString(HRESULT /*hr*/) -> std::string
 }
 
 // Globals
+std::unique_ptr<GLFWWindowBackend> window;
 HMODULE g_D3D9_Module = nullptr;
 LPDIRECT3D9 g_pd3d = nullptr;
 LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
@@ -200,7 +210,13 @@ auto
 RageDisplay_D3D::Init(const VideoModeParams& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
-	GraphicsWindow::Initialize(true);
+	window = std::make_unique<GLFWWindowBackend>(p.sWindowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
+	window->setWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
+    window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
+    window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
+    window->create();
+	GraphicsWindow::SetHwnd(glfwGetWin32Window((GLFWwindow*)window->getNativeWindow()));
 
 	Locator::getLogger()->trace("RageDisplay_D3D::RageDisplay_D3D()");
 	Locator::getLogger()->trace("Current renderer: Direct3D");
@@ -261,7 +277,9 @@ RageDisplay_D3D::~RageDisplay_D3D()
 {
 	Locator::getLogger()->trace("RageDisplay_D3D::~RageDisplay()");
 
-	GraphicsWindow::Shutdown();
+//	GraphicsWindow::Shutdown();
+	auto *ptr = window.release();
+	delete ptr;
 
 	if (g_pd3dDevice != nullptr) {
 		g_pd3dDevice->Release();
@@ -338,7 +356,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 	}
 
 	if (!bWindowed && iBPP != 16 && iBPP != 32) {
-		GraphicsWindow::Shutdown();
+//		GraphicsWindow::Shutdown();
 		RageException::Throw("Invalid BPP '%i' specified", iBPP);
 	}
 
@@ -593,7 +611,7 @@ RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
 	 * then setting up a fullscreen window (when we're not coming from windowed)
 	 * causes all other windows on the system to be resized to the new
 	 * resolution. */
-	GraphicsWindow::CreateGraphicsWindow(p);
+//	GraphicsWindow::CreateGraphicsWindow(p);
 
 	SetPresentParametersFromVideoModeParams(p, &g_d3dpp);
 
@@ -625,7 +643,7 @@ RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
 	/* Call this again after changing the display mode. If we're going to a
 	 * window from fullscreen, the first call can't set a larger window than the
 	 * old fullscreen resolution or set the window position. */
-	GraphicsWindow::CreateGraphicsWindow(p);
+//	GraphicsWindow::CreateGraphicsWindow(p);
 
 	ResolutionChanged();
 
@@ -663,7 +681,9 @@ RageDisplay_D3D::GetMaxTextureSize() const -> int
 auto
 RageDisplay_D3D::BeginFrame() -> bool
 {
-	GraphicsWindow::Update();
+//	GraphicsWindow::Update();
+	window->update();
+	window->swapBuffers();
 
 	switch (g_pd3dDevice->TestCooperativeLevel()) {
 		case D3DERR_DEVICELOST:
@@ -815,7 +835,12 @@ auto
 RageDisplay_D3D::GetActualVideoModeParams() const
   -> const ActualVideoModeParams*
 {
-	return static_cast<ActualVideoModeParams*>(GraphicsWindow::GetParams());
+	    return new ActualVideoModeParams{
+            VideoModeParams(true, "display_id",
+                            1280, 720, 32, 60, true,
+                            false, true, true, true,
+                            false, "title", "", false,
+                            1280 / 720)};
 }
 
 void
