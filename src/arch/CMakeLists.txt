@@ -118,18 +118,8 @@ list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler.cpp")
 list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler.h")
 
 if(WIN32)
-  list(APPEND SMDATA_ARCH_INPUT_SRC
-    "InputHandler/InputHandler_DirectInput.cpp"
-    "InputHandler/InputHandler_DirectInputHelper.cpp"
-    "InputHandler/InputHandler_Win32_MIDI.cpp"
-    "InputHandler/InputHandler_Win32_Para.cpp"
-    "InputHandler/InputHandler_Win32_Pump.cpp")
-  list(APPEND SMDATA_ARCH_INPUT_HPP
-    "InputHandler/InputHandler_DirectInput.h"
-    "InputHandler/InputHandler_DirectInputHelper.h"
-    "InputHandler/InputHandler_Win32_MIDI.h"
-    "InputHandler/InputHandler_Win32_Para.h"
-    "InputHandler/InputHandler_Win32_Pump.h")
+  list(APPEND SMDATA_ARCH_INPUT_SRC)
+  list(APPEND SMDATA_ARCH_INPUT_HPP)
   if (NOT MSVC)
     list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_SextetStream.cpp")
     list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_SextetStream.h")

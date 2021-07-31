@@ -6,7 +6,6 @@
 #include "Etterna/Globals/GameLoop.h"
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
-#include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/WindowIcon.h"
@@ -183,7 +182,6 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_DEVICECHANGE: {
 			switch (wParam) {
 				case DBT_DEVICEARRIVAL: {
-					DInput_ForceJoystickPollingInNextDevicesChangedCall();
 					if (INPUTMAN->DevicesChanged()) {
 						INPUTFILTER->Reset();
 						INPUTMAN->LoadDrivers();
