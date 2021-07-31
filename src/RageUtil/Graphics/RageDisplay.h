@@ -5,10 +5,12 @@
 
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
+#include "Core/Platform/Window/GLFWWindowBackend.hpp"
 
 #include <chrono>
 #include <set>
 #include <utility>
+#include <memory>
 
 class DisplaySpec;
 using DisplaySpecs = std::set<DisplaySpec>;
@@ -574,6 +576,12 @@ class RageDisplay
 
 	void FrameLimitBeforeVsync();
 	void FrameLimitAfterVsync(int iFPS);
+
+	/**
+	 * GLFW is used, even if OpenGL is not used. If the GLFW_CLIENT_API window
+	 * hint is set to GLFW_NO_API, then only an empty will be created.
+	 */
+	std::unique_ptr<Core::Platform::Window::GLFWWindowBackend> window;
 };
 
 extern RageDisplay*
