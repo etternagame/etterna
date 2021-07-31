@@ -13,11 +13,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/GraphicsWindow.h"
 
-// Includes for GLFW Window backend, but D3D context
-#include <GLFW/glfw3.h>
-#include "Core/Platform/Window/GLFWWindowBackend.hpp"
 #include "Etterna/Globals/GameLoop.h"
-using namespace Core::Platform::Window;
 
 #include <algorithm>
 #include <memory>
@@ -26,6 +22,7 @@ using namespace Core::Platform::Window;
 #include <chrono>
 #include <D3dx9tex.h>
 #include <d3d9.h>
+#include <GLFW/glfw3.h>
 
 // Static libraries
 // load Windows D3D9 dynamically
@@ -40,7 +37,6 @@ auto GetErrorString(HRESULT /*hr*/) -> std::string
 }
 
 // Globals
-std::unique_ptr<GLFWWindowBackend> window;
 HMODULE g_D3D9_Module = nullptr;
 LPDIRECT3D9 g_pd3d = nullptr;
 LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
@@ -208,6 +204,7 @@ auto
 RageDisplay_D3D::Init(const VideoModeParams& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
+    using namespace Core::Platform::Window;
 	window = std::make_unique<GLFWWindowBackend>(p.sWindowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
 	window->setWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });

@@ -146,7 +146,6 @@ class RageDisplay_Legacy : public RageDisplay
 	void SendCurrentMatrices();
 
   private:
-    std::unique_ptr<Core::Platform::Window::IWindowBackend> window;
 	RageTextureRenderTarget* offscreenRenderTarget = nullptr;
 };
 
