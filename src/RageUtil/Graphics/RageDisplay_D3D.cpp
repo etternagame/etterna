@@ -14,9 +14,7 @@
 #include "archutils/Win32/GraphicsWindow.h"
 
 // Includes for GLFW Window backend, but D3D context
-#define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
 #include "Core/Platform/Window/GLFWWindowBackend.hpp"
 #include "Etterna/Globals/GameLoop.h"
 using namespace Core::Platform::Window;
@@ -216,7 +214,6 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
     window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
     window->create();
-	GraphicsWindow::SetHwnd(glfwGetWin32Window((GLFWwindow*)window->getNativeWindow()));
 
 	Locator::getLogger()->info("RageDisplay_D3D::RageDisplay_D3D()");
 	Locator::getLogger()->info("Current renderer: Direct3D");
