@@ -4,6 +4,7 @@
 #include "Core/Misc/AppInfo.hpp"
 #include "archutils/Win32/GraphicsWindow.h"
 #include "Etterna/Globals/global.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 #include <windows.h>
 #include <glad/glad.h>
