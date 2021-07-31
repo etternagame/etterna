@@ -1,9 +1,19 @@
 #include "GLFWWindowBackend.hpp"
 
 #include "Etterna/Singletons/InputFilter.h"
+#include "Core/Services/Locator.hpp"
 
 #include <chrono>
 #include <glad/glad.h>
+
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+#include <archutils/Win32/GraphicsWindow.h>
+
+#endif
+
 #include <GLFW/glfw3.h>
 
 namespace Core::Platform::Window {
@@ -42,6 +52,10 @@ namespace Core::Platform::Window {
 
         // Tell the GLFWwindow to store a pointer to this GLFWWindowBackend object
         glfwSetWindowUserPointer(this->windowHandle, this);
+
+#ifdef _WIN32
+		GraphicsWindow::SetHwnd(glfwGetWin32Window(this->windowHandle));
+#endif
 
         // Initialize Callbacks
         // Functions are checked to be not null first. If the function is null, it was never set to an
