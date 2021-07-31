@@ -114,36 +114,6 @@ else()
 endif()
 source_group("Arch Specific\\\\Loading Window" FILES ${SMDATA_ARCH_LOADING_SRC} ${SMDATA_ARCH_LOADING_HPP})
 
-list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler.cpp")
-list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler.h")
-
-if(WIN32)
-  list(APPEND SMDATA_ARCH_INPUT_SRC)
-  list(APPEND SMDATA_ARCH_INPUT_HPP)
-  if (NOT MSVC)
-    list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_SextetStream.cpp")
-    list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_SextetStream.h")
-  endif()
-elseif(APPLE)
-else() # Unix/Linux
-  if (LINUX)
-    list(APPEND SMDATA_ARCH_INPUT_SRC
-      "InputHandler/LinuxInputManager.cpp"
-      "InputHandler/InputHandler_Linux_Joystick.cpp"
-      "InputHandler/InputHandler_Linux_Event.cpp"
-      "InputHandler/InputHandler_Linux_PIUIO.cpp"
-      "InputHandler/InputHandler_SextetStream.cpp")
-    list(APPEND SMDATA_ARCH_INPUT_SRC
-      "InputHandler/LinuxInputManager.h"
-      "InputHandler/InputHandler_Linux_Joystick.h"
-      "InputHandler/InputHandler_Linux_Event.h"
-      "InputHandler/InputHandler_Linux_PIUIO.h"
-      "InputHandler/InputHandler_SextetStream.h")
-
-  endif()
-endif()
-source_group("Arch Specific\\\\Input Handler" FILES ${SMDATA_ARCH_INPUT_SRC} ${SMDATA_ARCH_INPUT_HPP})
-
 list(APPEND SMDATA_ARCH_DIALOG_SRC "Dialog/Dialog.cpp" "Dialog/DialogDriver.cpp")
 list(APPEND SMDATA_ARCH_DIALOG_HPP "Dialog/Dialog.h" "Dialog/DialogDriver.h")
 if(WIN32)

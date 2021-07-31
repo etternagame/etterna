@@ -5,7 +5,6 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageInput.h"
 #include "Core/Services/Locator.hpp"
-#include "arch/InputHandler/InputHandler.h"
 
 #include <map>
 
@@ -58,6 +57,7 @@ static LocalizedString NO_INPUT_DEVICES_LOADED("RageInput",
 void
 RageInput::LoadDrivers()
 {
+	return;
 	for (auto& m_InputHandler : m_InputHandlers)
 		delete m_InputHandler.m_pDevice;
 	m_InputHandlers.clear();
@@ -66,7 +66,7 @@ RageInput::LoadDrivers()
 	// Init optional devices.
 	std::vector<InputHandler*> apDevices;
 
-	InputHandler::Create(g_sInputDrivers, apDevices);
+//	InputHandler::Create(g_sInputDrivers, apDevices);
 	for (auto& apDevice : apDevices)
 		AddHandler(apDevice);
 
@@ -79,46 +79,47 @@ void
 RageInput::Update()
 {
 	// Update optional devices.
-	for (auto& m_InputHandler : m_InputHandlers)
-		m_InputHandler.m_pDevice->Update();
+//	for (auto& m_InputHandler : m_InputHandlers)
+//		m_InputHandler.m_pDevice->Update();
 }
 
 bool
 RageInput::DevicesChanged()
 {
 	// Update optional devices.
-	for (auto& m_InputHandler : m_InputHandlers) {
-		if (m_InputHandler.m_pDevice->DevicesChanged())
-			return true;
-	}
+//	for (auto& m_InputHandler : m_InputHandlers) {
+//		if (m_InputHandler.m_pDevice->DevicesChanged())
+//			return true;
+//	}
 	return false;
 }
 
 void
 RageInput::GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut) const
 {
-	for (auto& m_InputHandler : m_InputHandlers)
-		m_InputHandler.m_pDevice->GetDevicesAndDescriptions(vDevicesOut);
+//	for (auto& m_InputHandler : m_InputHandlers)
+//		m_InputHandler.m_pDevice->GetDevicesAndDescriptions(vDevicesOut);
 }
 
 void
 RageInput::WindowReset()
 {
-	for (auto& m_InputHandler : m_InputHandlers)
-		m_InputHandler.m_pDevice->WindowReset();
+//	for (auto& m_InputHandler : m_InputHandlers)
+//		m_InputHandler.m_pDevice->WindowReset();
 }
 
 void
 RageInput::AddHandler(InputHandler* pHandler)
 {
+	return;
 	ASSERT(pHandler != nullptr);
 
 	LoadedInputHandler hand;
 	hand.m_pDevice = pHandler;
 	m_InputHandlers.push_back(hand);
 
-	std::vector<InputDeviceInfo> aDeviceInfo;
-	hand.m_pDevice->GetDevicesAndDescriptions(aDeviceInfo);
+	vector<InputDeviceInfo> aDeviceInfo;
+//	hand.m_pDevice->GetDevicesAndDescriptions(aDeviceInfo);
 	for (auto& idi : aDeviceInfo)
 		g_mapDeviceToHandler[idi.id] = pHandler;
 }
@@ -137,21 +138,22 @@ RageInput::GetHandlerForDevice(const InputDevice id)
 std::string
 RageInput::GetDeviceSpecificInputString(const DeviceInput& di)
 {
-	InputHandler* pDriver = GetHandlerForDevice(di.device);
-	if (pDriver != nullptr)
-		return pDriver->GetDeviceSpecificInputString(di);
-	else
-		return di.ToString();
+	return "";
+//	InputHandler* pDriver = GetHandlerForDevice(di.device);
+//	if (pDriver != nullptr)
+//		return pDriver->GetDeviceSpecificInputString(di);
+//	else
+//		return di.ToString();
 }
 
 std::string
 RageInput::GetLocalizedInputString(const DeviceInput& di)
 {
-	InputHandler* pDriver = GetHandlerForDevice(di.device);
-	if (pDriver != nullptr)
-		return pDriver->GetLocalizedInputString(di);
-	else
-		return Capitalize(DeviceButtonToString(di.button));
+//	InputHandler* pDriver = GetHandlerForDevice(di.device);
+//	if (pDriver != nullptr)
+//		return pDriver->GetLocalizedInputString(di);
+//	else
+//		return Capitalize(DeviceButtonToString(di.button));
 }
 
 wchar_t
@@ -159,7 +161,8 @@ RageInput::DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers)
 {
 	InputHandler* pDriver = GetHandlerForDevice(di.device);
 	if (pDriver != nullptr){
-        return pDriver->DeviceButtonToChar(di.button, bUseCurrentKeyModifiers);
+
+//        return pDriver->DeviceButtonToChar(di.button, bUseCurrentKeyModifiers);
 
     } else {
 	    auto button = di.button;
@@ -188,8 +191,8 @@ InputDeviceState
 RageInput::GetInputDeviceState(InputDevice id)
 {
 	InputHandler* pDriver = GetHandlerForDevice(id);
-	if (pDriver != nullptr)
-		return pDriver->GetInputDeviceState(id);
+//	if (pDriver != nullptr)
+//		return pDriver->GetInputDeviceState(id);
 
 	return InputDeviceState_NoInputHandler;
 }
