@@ -11,6 +11,7 @@
 #include <set>
 #include <utility>
 #include <memory>
+#include <vector>
 
 class DisplaySpec;
 using DisplaySpecs = std::set<DisplaySpec>;
