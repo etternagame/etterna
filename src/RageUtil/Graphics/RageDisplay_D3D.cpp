@@ -271,7 +271,6 @@ RageDisplay_D3D::~RageDisplay_D3D()
 {
 	Locator::getLogger()->trace("RageDisplay_D3D::~RageDisplay()");
 
-//	GraphicsWindow::Shutdown();
 	auto *ptr = window.release();
 	delete ptr;
 
@@ -350,7 +349,6 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 	}
 
 	if (!bWindowed && iBPP != 16 && iBPP != 32) {
-//		GraphicsWindow::Shutdown();
 		RageException::Throw("Invalid BPP '%i' specified", iBPP);
 	}
 
@@ -675,7 +673,6 @@ RageDisplay_D3D::GetMaxTextureSize() const -> int
 auto
 RageDisplay_D3D::BeginFrame() -> bool
 {
-//	GraphicsWindow::Update();
 	window->update();
 	window->swapBuffers();
 
