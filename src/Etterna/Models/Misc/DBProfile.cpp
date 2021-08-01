@@ -570,8 +570,7 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile)
 	insertGData.bind(4, profile->m_LastDifficulty);
 	insertGData.bind(
 	  5,
-	  ((profile->m_LastStepsType != StepsType_Invalid &&
-		profile->m_LastStepsType < NUM_StepsType)
+	  ((profile->m_LastStepsType < NUM_StepsType)
 		 ? GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName
 		 : ""));
 	insertGData.bind(6, profile->m_lastSong.ToString());
@@ -1110,7 +1109,7 @@ int
 DBProfile::FindOrCreateScoreKey(SQLite::Database* db, const string& key)
 {
 	const auto exists = GetScoreKeyID(db, key);
-	if (exists)
+	if (exists != 0)
 		return exists;
 	db->exec("INSERT INTO scorekeys VALUES (NULL, \"" + key + "\")");
 	return static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
