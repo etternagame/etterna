@@ -15,6 +15,7 @@
 #include "PlayerStageStats.h"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <utility>
@@ -515,7 +516,7 @@ HighScoreImpl::WriteInputData() -> bool
 		}
 
 		char buf[128];
-		int num_read = 0;
+		unsigned int num_read = 0;
 		unsigned long total_read = 0;
 		while ((num_read = fread(buf, 1, sizeof(buf), infile)) > 0) {
 			total_read += num_read;
@@ -625,7 +626,8 @@ HighScore::LoadInputData() -> bool
 			return false;
 		}
 
-		std::string line, buffer;
+		std::string line;
+		std::string buffer;
 		std::vector<std::string> tokens;
 		while (getline(inputStream, line)) {
 			InputDataEvent ev;
@@ -694,8 +696,8 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 	std::string line;
 	std::string buffer;
 	std::vector<string> tokens;
-	int noteRow;
-	float offset;
+	int noteRow = 0;
+	float offset = 0.f;
 
 	// check file
 	if (!fileStream) {
@@ -774,11 +776,11 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
-	int noteRow;
-	float offset;
-	int track;
-	TapNoteType tnt;
-	int tmp;
+	int noteRow = 0;
+	float offset = 0.f;
+	int track = 0;
+	TapNoteType tnt = TapNoteType_Invalid;
+	int tmp = 0;
 
 	// check file
 	if (!fileStream) {
@@ -1425,9 +1427,9 @@ HighScore::GenerateValidationKeys() -> std::string
 		key.append(std::to_string(GetHoldNoteScore(hns)));
 	}
 
-	norms = lround(GetSSRNormPercent() * 1000000.F);
-	musics = lround(GetMusicRate() * 100.F);
-	judges = lround(GetJudgeScale() * 100.F);
+	norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
+	musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
+	judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));
 
 	key.append(GetScoreKey());
 	key.append(GetChartKey());
@@ -1442,7 +1444,7 @@ HighScore::GenerateValidationKeys() -> std::string
 
 	std::string hash_string = CryptManager::GetSHA256ForString(key);
 	std::string hash_hex_str =
-	  BinaryToHex(hash_string.data(), hash_string.size());
+	  BinaryToHex(hash_string.data(), static_cast<int>(hash_string.size()));
 
 	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
 
@@ -1560,10 +1562,9 @@ HighScore::RescoreToWife2Judge(int x) -> float
 		}
 	}
 
-	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -6.F;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.F;
+	p += static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
+		  m_Impl->iHoldNoteScores[HNS_Missed] * -6);
+	p += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -8);
 
 	// this is a bad assumption but im leaving it here
 	auto pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
@@ -1573,12 +1574,12 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	denominators however full replays store mine hits as offsets, meaning
 	we have to screen them out when calculating the max points*/
 	if (m_Impl->ReplayType == 2) {
-		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.F;
+		pmax += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -2);
 
 		// we screened out extra offsets due to mines in the replay from the
 		// denominator but we've still increased the numerator with 0.00f
 		// offsets (2pts)
-		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.F;
+		p += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -2);
 	}
 
 	return p / pmax;
@@ -1617,11 +1618,11 @@ HighScore::RescoreToWife3(float pmax) -> bool
 		}
 	}
 
-	const auto holdpoints = (m_Impl->iHoldNoteScores[HNS_LetGo] +
+	const auto holdpoints = static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
 							 m_Impl->iHoldNoteScores[HNS_Missed]) *
 							wife3_hold_drop_weight;
 	const auto minepoints =
-	  m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
+	  static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine]) * wife3_mine_hit_weight;
 
 	p4 += holdpoints + minepoints;
 	pj += holdpoints + minepoints;
@@ -1650,7 +1651,7 @@ HighScore::RescoreToDPJudge(int x) -> float
 	auto m2 = 0;
 	for (auto& f : m_Impl->vOffsetVector) {
 		m2 += 2;
-		const auto x = abs(f * 1000.F);
+		const auto x = std::abs(f * 1000.F);
 		if (x <= ts * 22.5F) {
 			++marv;
 		} else if (x <= ts * 45.F) {
@@ -1688,10 +1689,10 @@ HighScore::RescoreToDPJudge(int x) -> float
 		 -6;
 
 	auto m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-	m += (m_Impl->radarValues[RadarCategory_Holds] +
+	m += static_cast<float>(m_Impl->radarValues[RadarCategory_Holds] +
 		  m_Impl->radarValues[RadarCategory_Rolls]) *
 		 6;
-	return p / m;
+	return static_cast<float>(p) / m;
 }
 
 auto
@@ -1741,7 +1742,7 @@ HighScore::NormalizeJudgments() -> bool
 			auto& type = m_Impl->vTapNoteTypeVector[i];
 			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
 				type == TapNoteType_Lift) {
-				const auto x = abs(m_Impl->vOffsetVector[i] * 1000.F);
+				const auto x = std::abs(m_Impl->vOffsetVector[i] * 1000.F);
 				if (x <= 22.5F) {
 					m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
 				} else if (x <= 45.F) {
@@ -1763,7 +1764,7 @@ HighScore::NormalizeJudgments() -> bool
 	else {
 		// or just blindly convert, nobody cares too much about old replays...
 		for (auto& n : m_Impl->vOffsetVector) {
-			const auto x = abs(n * 1000.F);
+			const auto x = std::abs(n * 1000.F);
 			if (x <= 22.5F) {
 				m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
 			} else if (x <= 45.F) {
@@ -1833,15 +1834,15 @@ HighScore::ConvertDpToWife() -> float
 	const auto ts = 1.F;
 	auto estpoints = 0.F;
 	auto maxpoints = 0.F;
-	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife3(.01125F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife3(.03375F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife3(.0675F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife3(.1125F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife3(.1575F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife3_miss_weight;
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W1]) * wife3(.01125F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W2]) * wife3(.03375F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W3]) * wife3(.0675F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W4]) * wife3(.1125F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W5]) * wife3(.1575F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_Miss]) * wife3_miss_weight;
 
 	FOREACH_ENUM(TapNoteScore, tns)
-	maxpoints += 2 * m_Impl->iTapNoteScores[tns];
+	maxpoints += static_cast<float>(2 * m_Impl->iTapNoteScores[tns]);
 
 	return estpoints / maxpoints;
 }
