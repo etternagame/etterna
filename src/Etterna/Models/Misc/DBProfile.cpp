@@ -29,7 +29,7 @@ DBProfile::LoadDBFromDir(const std::string& dir, Profile* profile)
 ProfileLoadResult
 DBProfile::LoadDBFromDir(const std::string& dir)
 {
-	SQLite::Database* db;
+	SQLite::Database* db = nullptr;
 	try {
 		// Open a database file
 		db = new SQLite::Database(FILEMAN->ResolvePath(dir) + PROFILE_DB,
@@ -162,7 +162,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 	  "ORDER BY playlists.name, chartkeys.chartkey, chartplaylists.rate");
 	auto& pls = loadingProfile->allplaylists;
 
-	Playlist* tmp;
+	Playlist* tmp = nullptr;
 
 	// Read one row
 	if (query.executeStep()) {
@@ -230,7 +230,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 	  "ORDER BY runs.scorekey, courseruns.id, playlists.name");
 
 	string lastPlayListName;
-	int lastCourseRunID;
+	int lastCourseRunID = 0;
 	vector<string> tmpCourseRun;
 
 	// Read one row
@@ -464,7 +464,7 @@ DBProfile::SaveDBToDir(const string& dir,
 			filename = FILEMAN->ResolvePath(dir) + PROFILE_DB;
 			break;
 	}
-	SQLite::Database* db;
+	SQLite::Database* db = nullptr;
 	try {
 		// Open a database file
 		db = new SQLite::Database(filename,
@@ -875,7 +875,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 		for (auto& ratePair : chartPair.second.ScoresByRate) {
 			// first is rate int and second is ScoresAtRate
 			auto rate = ratePair.first;
-			int scoresAtRateID;
+			int scoresAtRateID = 0;
 			if (mode != WriteOnlyWebExport) {
 				SQLite::Statement insertScoresAtRate(
 				  *db, "INSERT INTO scoresatrates VALUES (NULL, ?, ?, ?, ?)");
@@ -897,8 +897,8 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 					if (i.second.GetWifeScore() > SCOREMAN->minpercent) {
 						const auto hs = &(i.second);
 						// Add scores
-						SQLite::Statement* insertScore;
-						int scorekeyID;
+						SQLite::Statement* insertScore = nullptr;
+						int scorekeyID = 0;
 						if (mode != WriteOnlyWebExport) {
 							insertScore = new SQLite::Statement(
 							  *db,
@@ -1120,7 +1120,7 @@ DBProfile::WriteReplayData(const HighScore* hs)
 	  PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
 	const auto filename = profiledir + PROFILE_DB;
 
-	SQLite::Database* db;
+	SQLite::Database* db = nullptr;
 	try {
 		// Open a database file
 		db = new SQLite::Database(filename,
