@@ -187,7 +187,7 @@ TimingData::CopyRange(int start_row,
 			const auto& segs = GetTimingSegments(seg_type);
 			for (auto* seg : segs) {
 				if (seg->GetRow() >= start_row && seg->GetRow() <= end_row) {
-					auto copy = seg->Copy();
+					auto* copy = seg->Copy();
 					copy->SetRow(seg->GetRow() + row_offset);
 					dest.AddSegment(copy);
 					// TimingSegment::Copy creates a new segment with new, and
@@ -381,7 +381,7 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 	// Change all other BPM segments in this range.
 	auto& bpms = m_avpTimingSegments[SEGMENT_BPM];
 	for (unsigned i = 0; i < bpms.size(); i++) {
-		auto bs = ToBPM(bpms[i]);
+		auto* bs = ToBPM(bpms[i]);
 		const auto iStartIndexThisSegment = bs->GetRow();
 		const auto bIsLastBPMSegment = i == bpms.size() - 1;
 		const auto iStartIndexNextSegment =
@@ -395,7 +395,7 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 		 * split it into two. */
 		if (iStartIndexThisSegment < iStartIndex &&
 			iStartIndexNextSegment > iStartIndex) {
-			auto b = new BPMSegment(iStartIndexNextSegment, bs->GetBPS());
+			auto* b = new BPMSegment(iStartIndexNextSegment, bs->GetBPS());
 			bpms.insert(bpms.begin() + i + 1, b);
 
 			/* Don't apply the BPM change to the first half of the segment we
@@ -406,7 +406,7 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 		// If this BPM segment crosses the end of the range, split it into two.
 		if (iStartIndexThisSegment < iEndIndex &&
 			iStartIndexNextSegment > iEndIndex) {
-			auto b = new BPMSegment(iEndIndex, bs->GetBPS());
+			auto* b = new BPMSegment(iEndIndex, bs->GetBPS());
 			bpms.insert(bpms.begin() + i + 1, b);
 		} else if (iStartIndexNextSegment > iEndIndex)
 			continue;
@@ -416,18 +416,18 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 }
 
 bool
-TimingData::IsWarpAtRow(int iNoteRow) const
+TimingData::IsWarpAtRow(int iRow) const
 {
 	const auto& warps = GetTimingSegments(SEGMENT_WARP);
 	if (warps.empty())
 		return false;
 
-	const auto i = GetSegmentIndexAtRow(SEGMENT_WARP, iNoteRow);
+	const auto i = GetSegmentIndexAtRow(SEGMENT_WARP, iRow);
 	if (i == -1) {
 		return false;
 	}
 	const WarpSegment* s = ToWarp(warps[i]);
-	const auto beatRow = NoteRowToBeat(iNoteRow);
+	const auto beatRow = NoteRowToBeat(iRow);
 	if (s->GetBeat() <= beatRow && beatRow < (s->GetBeat() + s->GetLength())) {
 		// Allow stops inside warps to allow things like stop, warp, stop, warp,
 		// stop, and so on.
@@ -435,31 +435,25 @@ TimingData::IsWarpAtRow(int iNoteRow) const
 			GetTimingSegments(SEGMENT_DELAY).empty()) {
 			return true;
 		}
-		if (GetStopAtRow(iNoteRow) != 0.0f || GetDelayAtRow(iNoteRow) != 0.0f) {
-			return false;
-		}
-		return true;
+		return !(GetStopAtRow(iRow) != 0.f || GetDelayAtRow(iRow) != 0.f);
 	}
 	return false;
 }
 
 bool
-TimingData::IsFakeAtRow(int iNoteRow) const
+TimingData::IsFakeAtRow(int iRow) const
 {
 	const auto& fakes = GetTimingSegments(SEGMENT_FAKE);
 	if (fakes.empty())
 		return false;
 
-	const auto i = GetSegmentIndexAtRow(SEGMENT_FAKE, iNoteRow);
+	const auto i = GetSegmentIndexAtRow(SEGMENT_FAKE, iRow);
 	if (i == -1) {
 		return false;
 	}
 	const FakeSegment* s = ToFake(fakes[i]);
-	const auto beatRow = NoteRowToBeat(iNoteRow);
-	if (s->GetBeat() <= beatRow && beatRow < (s->GetBeat() + s->GetLength())) {
-		return true;
-	}
-	return false;
+	const auto beatRow = NoteRowToBeat(iRow);
+	return s->GetBeat() <= beatRow && beatRow < (s->GetBeat() + s->GetLength());
 }
 
 /* DummySegments: since our model relies on being able to get a segment at will,
@@ -556,7 +550,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 
 	const auto index = GetSegmentIndexAtRow(tst, seg->GetRow());
 	ASSERT(index != INVALID_INDEX);
-	auto cur = vSegs[index];
+	auto* cur = vSegs[index];
 
 	const auto bIsNotable = seg->IsNotable();
 	const auto bOnSameRow = seg->GetRow() == cur->GetRow();
@@ -578,7 +572,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 			break;
 		}
 		case SegmentEffectType_Indefinite: {
-			auto prev = cur;
+			auto* prev = cur;
 
 			// get the segment before last; if we're on the same
 			// row, get the segment in effect before 'cur'
@@ -594,7 +588,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 			// redundant, erase the next segment because that effectively moves
 			// it back to the prev segment. -Kyz
 			if (static_cast<size_t>(index) < vSegs.size() - 1) {
-				auto next = vSegs[index + 1];
+				auto* next = vSegs[index + 1];
 				if ((*seg) == (*next)) {
 					// The segment after this new one is redundant.
 					if ((*seg) == (*prev)) {
@@ -645,7 +639,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 
 	// Copy() the segment (which allocates a new segment), assign it
 	// to the position of the old one, then delete the old pointer.
-	auto cpy = seg->Copy();
+	auto* cpy = seg->Copy();
 
 	if (bOnSameRow) {
 		// delete the existing pointer and replace it
@@ -741,7 +735,7 @@ TimingData::GetBeatInternal(GetBeatStarts& start,
 							GetBeatArgs& args,
 							unsigned int max_segment) const
 {
-	auto segs = m_avpTimingSegments;
+	const auto *segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -852,7 +846,7 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 								   float beat,
 								   unsigned int max_segment) const
 {
-	auto segs = m_avpTimingSegments;
+	const auto *segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -907,7 +901,7 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 				return start.last_time;
 			case FOUND_WARP: {
 				start.is_warping = true;
-				auto ws = ToWarp(warps[start.warp]);
+				auto* ws = ToWarp(warps[start.warp]);
 				const auto warp_sum = ws->GetLength() + ws->GetBeat();
 				if (warp_sum > start.warp_destination) {
 					start.warp_destination = warp_sum;
@@ -962,31 +956,31 @@ TimingData::GetDisplayedBeat(float fBeat) const
 
 void
 TimingData::ScaleRegion(float fScale,
-						int iStartIndex,
-						int iEndIndex,
+						int iStartRow,
+						int iEndRow,
 						bool bAdjustBPM)
 {
 	ASSERT(fScale > 0);
-	ASSERT(iStartIndex >= 0);
-	ASSERT(iStartIndex < iEndIndex);
+	ASSERT(iStartRow >= 0);
+	ASSERT(iStartRow < iEndRow);
 
-	const auto length = iEndIndex - iStartIndex;
-	const int newLength = lround(fScale * length);
+	const auto length = iEndRow - iStartRow;
+	const int newLength = static_cast<int>(std::lround(fScale * static_cast<float>(length)));
 
 	FOREACH_TimingSegmentType(tst) for (auto& j : m_avpTimingSegments[tst])
-	  j->Scale(iStartIndex, length, newLength);
+	  j->Scale(iStartRow, length, newLength);
 
 	// adjust BPM changes to preserve timing
 	if (bAdjustBPM) {
-		const auto iNewEndIndex = iStartIndex + newLength;
+		const auto iNewEndIndex = iStartRow + newLength;
 		const auto fEndBPMBeforeScaling = GetBPMAtRow(iNewEndIndex);
 		auto& bpms = m_avpTimingSegments[SEGMENT_BPM];
 
 		// adjust BPM changes "between" iStartIndex and iNewEndIndex
 		for (auto& i : bpms) {
-			auto bpm = ToBPM(i);
+			auto* bpm = ToBPM(i);
 			const auto iSegStart = bpm->GetRow();
-			if (iSegStart <= iStartIndex)
+			if (iSegStart <= iStartRow)
 				continue;
 			if (iSegStart >= iNewEndIndex)
 				continue;
@@ -994,7 +988,7 @@ TimingData::ScaleRegion(float fScale,
 		}
 
 		// set BPM at iStartIndex and iNewEndIndex.
-		SetBPMAtRow(iStartIndex, GetBPMAtRow(iStartIndex) * fScale);
+		SetBPMAtRow(iStartRow, GetBPMAtRow(iStartRow) * fScale);
 		SetBPMAtRow(iNewEndIndex, fEndBPMBeforeScaling);
 	}
 }
@@ -1030,7 +1024,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 	{
 		// Don't delete the indefinite segments that are still in effect
 		// at the end row; rather, shift them so they start there.
-		auto tsEnd = GetSegmentAtRow(iStartRow + iRowsToDelete, tst);
+		auto* tsEnd = GetSegmentAtRow(iStartRow + iRowsToDelete, tst);
 		if (tsEnd != nullptr &&
 			tsEnd->GetEffectType() == SegmentEffectType_Indefinite &&
 			iStartRow <= tsEnd->GetRow() &&
@@ -1045,7 +1039,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 		// Now delete and shift up
 		auto& segs = m_avpTimingSegments[tst];
 		for (unsigned j = 0; j < segs.size(); j++) {
-			auto seg = segs[j];
+			auto* seg = segs[j];
 			// Before deleted region:
 			if (seg->GetRow() < iStartRow)
 				continue;
@@ -1063,7 +1057,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 }
 
 float
-TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
+TimingData::GetDisplayedSpeedPercent(float fBeat, float fMusicSeconds) const
 {
 	/* HACK: Somehow we get called into this function when there is no
 	 * TimingData to work with. This seems to happen the most upon
@@ -1084,7 +1078,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 		return 1.0f;
 	}
 
-	const auto index = GetSegmentIndexAtBeat(SEGMENT_SPEED, fSongBeat);
+	const auto index = GetSegmentIndexAtBeat(SEGMENT_SPEED, fBeat);
 
 	if (index < 0) {
 #ifdef DEBUG
@@ -1107,7 +1101,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 				   GetDelayAtBeat(fStartBeat + seg->GetDelay());
 	}
 
-	auto first = ToSpeed(speeds[0]);
+	auto* first = ToSpeed(speeds[0]);
 
 	if ((index == 0 && first->GetDelay() > 0.0) && fCurTime < fStartTime) {
 		return 1.0f;
@@ -1137,7 +1131,7 @@ TimingData::TidyUpData(bool allowEmpty)
 		return;
 
 	// If there are no BPM segments, provide a default.
-	auto segs = m_avpTimingSegments;
+	auto* segs = m_avpTimingSegments;
 	if (segs[SEGMENT_BPM].empty()) {
         Locator::getLogger()->info("Song file {} has no BPM segments, default provided.", m_sFile);
 		AddSegment(BPMSegment(0, 60));
@@ -1205,7 +1199,7 @@ TimingData::NoteRowToMeasureAndBeat(int iNoteRow,
 	iMeasureIndexOut = 0;
 	const auto& tSigs = GetTimingSegments(SEGMENT_TIME_SIG);
 	for (unsigned i = 0; i < tSigs.size(); i++) {
-		auto curSig = ToTimeSignature(tSigs[i]);
+		auto* curSig = ToTimeSignature(tSigs[i]);
 		const auto iSegmentEndRow =
 		  (i + 1 == tSigs.size()) ? INT_MAX : curSig->GetRow();
 
