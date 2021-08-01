@@ -251,7 +251,7 @@ MessageManager::Broadcast(MessageID m) const
 
 bool
 MessageManager::IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-									  const std::string& sMessage) const
+									  const std::string& sMessage)
 {
 	auto& subs = g_MessageToSubscribers[sMessage];
 	return subs.find(pSubscriber) != subs.end();
