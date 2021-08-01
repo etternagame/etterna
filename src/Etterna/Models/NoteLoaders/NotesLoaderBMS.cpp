@@ -853,9 +853,7 @@ BMSChartReader::Read()
 {
 	ReadHeaders();
 	CalculateStepsType();
-	if (!ReadNoteData())
-		return false;
-	return true;
+	return ReadNoteData();
 }
 
 void
@@ -1730,10 +1728,7 @@ BMSLoader::LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out)
 	BMSSong song(pSong);
 
 	BMSChartReader reader(&chart, &out, &song);
-	if (!reader.Read())
-		return false;
-
-	return true;
+	return reader.Read();
 }
 
 bool
