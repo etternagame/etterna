@@ -1675,7 +1675,7 @@ BMSSongLoader::AddToSong()
 
 		// Preview file only if it's different from one specified on #MUSIC so
 		// that previewStart is valid. -az
-		if (main.info.previewFile.length() &&
+		if ((main.info.previewFile.length() != 0u) &&
 			main.info.previewFile != main.info.musicFile) {
 			out->m_PreviewFile = main.info.previewFile;
 			out->m_fMusicSampleLengthSeconds =
