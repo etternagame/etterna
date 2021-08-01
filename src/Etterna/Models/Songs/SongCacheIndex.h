@@ -19,7 +19,7 @@ class SongCacheIndex
 	bool OpenDB();
 	void ResetDB();
 	void DeleteDB();
-	void CreateDBTables();
+	void CreateDBTables() const;
 	bool DBEmpty{ true };
 	SQLite::Transaction* curTransaction{ nullptr };
 
@@ -29,26 +29,26 @@ class SongCacheIndex
 	~SongCacheIndex();
 	inline std::pair<std::string, int> SongFromStatement(
 	  Song* song,
-	  SQLite::Statement& query);
+	  SQLite::Statement& query) const;
 	void LoadHyperCache(LoadingWindow* ld,
 						std::map<std::string, Song*>& hyperCache);
 	void LoadCache(
 	  LoadingWindow* ld,
 	  std::vector<std::pair<std::pair<std::string, unsigned int>, Song*>*>&
-		cache);
-	void DeleteSongFromDBByCondition(std::string& condition);
-	void DeleteSongFromDB(Song* songPtr);
-	void DeleteSongFromDBByDir(std::string dir);
-	void DeleteSongFromDBByDirHash(unsigned int hash);
+		cache) const;
+	void DeleteSongFromDBByCondition(std::string& condition) const;
+	void DeleteSongFromDB(Song* songPtr) const;
+	void DeleteSongFromDBByDir(std::string dir) const;
+	void DeleteSongFromDBByDirHash(unsigned int hash) const;
 	static std::string GetCacheFilePath(const std::string& sGroup,
 										const std::string& sPath);
 	unsigned GetCacheHash(const std::string& path) const;
 	bool delay_save_cache;
 
-	int64_t InsertStepsTimingData(const TimingData& timing);
-	int64_t InsertSteps(Steps* pSteps, int64_t songID);
+	int64_t InsertStepsTimingData(const TimingData& timing) const;
+	int64_t InsertSteps(Steps* pSteps, int64_t songID) const;
 	bool LoadSongFromCache(Song* song, std::string dir);
-	bool CacheSong(Song& song, const std::string& dir);
+	bool CacheSong(Song& song, const std::string& dir) const;
 	void StartTransaction();
 	void FinishTransaction();
 };

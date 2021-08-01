@@ -93,7 +93,7 @@ SongCacheIndex::SongCacheIndex()
 }
 
 int64_t
-SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
+SongCacheIndex::InsertStepsTimingData(const TimingData& timing) const
 {
 	SQLite::Statement insertTimingData(*db,
 									   "INSERT INTO timingdatas VALUES (NULL, "
@@ -278,7 +278,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 }
 
 int64_t
-SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
+SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 {
 	SQLite::Statement insertSteps(*db,
 								  "INSERT INTO steps VALUES (NULL, "
@@ -359,7 +359,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 }
 /*	Save a song to the cache db*/
 bool
-SongCacheIndex::CacheSong(Song& song, const std::string& dir)
+SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 {
 	DeleteSongFromDBByDir(dir);
 	try {
@@ -611,7 +611,7 @@ SongCacheIndex::ResetDB()
 	CreateDBTables();
 }
 void
-SongCacheIndex::CreateDBTables()
+SongCacheIndex::CreateDBTables() const
 {
 	try {
 		db->exec("CREATE TABLE IF NOT EXISTS dbinfo (ID INTEGER PRIMARY KEY, "
@@ -796,7 +796,7 @@ join(R1<R2<T, A2...>, A1...> const& outer)
 void
 SongCacheIndex::LoadCache(
   LoadingWindow* ld,
-  vector<pair<pair<std::string, unsigned int>, Song*>*>& cache)
+  vector<pair<pair<std::string, unsigned int>, Song*>*>& cache) const
 {
 	auto count = 0;
 	try {
@@ -882,10 +882,9 @@ SongCacheIndex::LoadCache(
 	for (auto& thread : threadpool)
 		thread.join();
 	cache = join(cacheParts);
-	return;
 }
 void
-SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
+SongCacheIndex::DeleteSongFromDBByCondition(string& condition) const
 {
 	try {
 		db->exec(
@@ -904,20 +903,20 @@ SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
 	}
 }
 void
-SongCacheIndex::DeleteSongFromDB(Song* songPtr)
+SongCacheIndex::DeleteSongFromDB(Song* songPtr) const
 {
 	auto cond = "dir = \"" + songPtr->GetSongDir() + "\" AND hash = \"" +
 				to_string(GetHashForDirectory(songPtr->GetSongDir())) + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void
-SongCacheIndex::DeleteSongFromDBByDir(string dir)
+SongCacheIndex::DeleteSongFromDBByDir(string dir) const
 {
 	auto cond = "dir=\"" + dir + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void
-SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
+SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash) const
 {
 	auto cond = "hash=\"" + to_string(hash) + "\"";
 	DeleteSongFromDBByCondition(cond);
@@ -974,7 +973,7 @@ SongCacheIndex::FinishTransaction()
 }
 
 inline pair<std::string, int>
-SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
+SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 {
 	// SSC::StepsTagInfo reused_steps_info(&*song, &out, dir, true);
 	SSCLoader loader;
