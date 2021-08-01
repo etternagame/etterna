@@ -225,8 +225,7 @@ MessageManager::Broadcast(Message& msg) const
 
 	LockMut(g_Mutex);
 
-	std::map<std::string, SubscribersSet>::const_iterator iter =
-	  g_MessageToSubscribers.find(msg.GetName());
+	auto iter = g_MessageToSubscribers.find(msg.GetName());
 	if (iter == g_MessageToSubscribers.end())
 		return;
 
