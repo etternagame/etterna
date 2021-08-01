@@ -602,7 +602,6 @@ SongCacheIndex::DeleteDB()
 			curTransaction = nullptr;
 		}
 	}
-	return;
 }
 void
 SongCacheIndex::ResetDB()
@@ -769,7 +768,6 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 		ResetDB();
 		return;
 	}
-	return;
 }
 
 template<template<class, class...> class R1,
@@ -955,7 +953,6 @@ SongCacheIndex::StartTransaction()
 	} catch (exception& e) {
 		Locator::getLogger()->warn("Failed to start transaction due to exception: {}", e.what());
 	}
-	return;
 }
 void
 SongCacheIndex::FinishTransaction()
@@ -970,7 +967,6 @@ SongCacheIndex::FinishTransaction()
 	}
 	delete curTransaction;
 	curTransaction = nullptr;
-	return;
 }
 
 inline pair<std::string, int>
