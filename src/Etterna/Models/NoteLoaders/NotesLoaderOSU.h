@@ -1,6 +1,10 @@
 #ifndef NOTES_LOADER_OSU_H
 #define NOTES_LOADER_OSU_H
 
+#include <map>
+#include <string>
+#include <vector>
+
 class Song;
 class Steps;
 
@@ -36,8 +40,8 @@ ParseFileString(const std::string& fileContents);
 
 void
 SeparateTagsAndContents(std::string fileContents,
-						vector<std::string>& tagsOut,
-						vector<vector<std::string>>& contentsOut);
+						std::vector<std::string>& tagsOut,
+						std::vector<std::vector<std::string>>& contentsOut);
 
 void
 SetMetadata(std::map<std::string, std::map<std::string, std::string>>,
@@ -47,7 +51,7 @@ SetTimingData(std::map<std::string, std::map<std::string, std::string>>,
 			  Song& out);
 
 void
-GetApplicableFiles(const std::string& sPath, vector<std::string>& out);
+GetApplicableFiles(const std::string& sPath, std::vector<std::string>& out);
 
 bool
 LoadFromDir(const std::string& sPath, Song& out);
