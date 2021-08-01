@@ -108,7 +108,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	insertTimingData.bind(timingDataIndex++, timing.m_fBeat0OffsetInSeconds);
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_BPM);
-		string bpms = "";
+		string bpms;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const BPMSegment* segment = ToBPM(seg);
@@ -122,7 +122,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_STOP);
-		string stops = "";
+		string stops;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const StopSegment* segment = ToStop(seg);
@@ -137,7 +137,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_DELAY);
-		string delays = "";
+		string delays;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const DelaySegment* segment = ToDelay(seg);
@@ -152,7 +152,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_WARP);
-		string warps = "";
+		string warps;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const WarpSegment* segment = ToWarp(seg);
@@ -167,7 +167,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_TIME_SIG);
-		string timesigs = "";
+		string timesigs;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TimeSignatureSegment* segment = ToTimeSignature(seg);
@@ -184,7 +184,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_TICKCOUNT);
-		string ticks = "";
+		string ticks;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TickcountSegment* segment = ToTickcount(seg);
@@ -199,7 +199,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_COMBO);
-		string combos = "";
+		string combos;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const ComboSegment* segment = ToCombo(seg);
@@ -221,7 +221,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_SPEED);
-		string speeds = "";
+		string speeds;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const SpeedSegment* segment = ToSpeed(seg);
@@ -238,7 +238,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_SCROLL);
-		string scrolls = "";
+		string scrolls;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const ScrollSegment* segment = ToScroll(seg);
@@ -254,7 +254,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_LABEL);
-		string labels = "";
+		string labels;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const LabelSegment* segment = ToLabel(seg);
@@ -496,7 +496,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		}; */
 		FOREACH_BackgroundLayer(b)
 		{
-			string bgchanges = "";
+			string bgchanges;
 			if (song.GetBackgroundChanges(b).empty()) {
 				insertSong.bind(index++);
 				continue; // skip
@@ -527,7 +527,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		}
 
 		if (!song.m_vsKeysoundFile.empty()) {
-			string keysounds = "";
+			string keysounds;
 			for (unsigned i = 0; i < song.m_vsKeysoundFile.size(); i++) {
 				keysounds.append(song.m_vsKeysoundFile[i]);
 				if (i != song.m_vsKeysoundFile.size() - 1) {
