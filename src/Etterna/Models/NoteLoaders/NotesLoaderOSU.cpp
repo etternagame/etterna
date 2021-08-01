@@ -7,6 +7,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <cmath>
 #include <string>
 #include <map>
 #include <algorithm>
@@ -18,12 +19,12 @@ vector<string>
 split(string str, const string& token)
 {
 	vector<string> result;
-	while (str.size()) {
-		int index = str.find(token);
+	while (!str.empty()) {
+		auto index = str.find(token);
 		if (index != string::npos) {
 			result.push_back(str.substr(0, index));
 			str = str.substr(index + token.size());
-			if (str.size() == 0)
+			if (str.empty())
 				result.push_back(str);
 		} else {
 			result.push_back(str);
@@ -66,12 +67,12 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 	bool isComment = false;
 	bool isTag = false;
 	bool isContent = false;
-	string tag = "";
-	string content = "";
+	string tag;
+	string content;
 
 	int tagIndex = 0;
 
-	for (int i = 0; i < (int)fileContents.length(); ++i) {
+	for (int i = 0; i < static_cast<int>(fileContents.length()); ++i) {
 		char currentByte = fileContents[i];
 
 		if (isComment || currentByte == '\r') // ignore carriage return
@@ -96,7 +97,7 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 			}
 		} else if (isContent) {
 			if ((currentByte == '[' && lastByte == '\n') ||
-				i == (int)fileContents.length() - 1) {
+				i == static_cast<int>(fileContents.length()) - 1) {
 				if (!content.empty()) // we don't want empty values on our
 									  // content vectors
 					contentsOut.back().emplace_back(content);
@@ -162,14 +163,14 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 	int offset = 0;
 	int lastoffset = -9999;
 	for (auto x : tp) {
-		float bpm;
+		float bpm = 0.f;
 		offset = std::max(0, x.first);
 		if (x.second > 0) {
 			bpm = 60000 / x.second;
 			lastpositivebpm = bpm;
 		} else // inherited timing points; these might be able to be ignored
 		{
-			bpm = lastpositivebpm * abs(x.second / 100);
+			bpm = lastpositivebpm * std::abs(x.second / 100);
 		}
 		if (offset == lastoffset) {
 			bpms[bpms.size() - 1] = std::pair<int, float>(
@@ -257,10 +258,10 @@ OsuLoader::LoadChartData(Song* song,
 			return false;
 	}
 
-	chart->SetMeter(song->GetAllSteps().size());
+	chart->SetMeter(static_cast<int>(song->GetAllSteps().size()));
 
-	chart->SetDifficulty((Difficulty)(
-	  std::min(song->GetAllSteps().size(), (size_t)Difficulty_Edit)));
+	chart->SetDifficulty(static_cast<Difficulty>(
+	  std::min(song->GetAllSteps().size(), static_cast<size_t>(Difficulty_Edit))));
 
 	chart->TidyUpData();
 
@@ -282,8 +283,8 @@ OsuLoader::MsToNoteRow(int ms, Song* song)
 	float tempOffset = song->m_SongTiming.m_fBeat0OffsetInSeconds;
 	song->m_SongTiming.m_fBeat0OffsetInSeconds = 0;
 
-	int row = (int)round(abs(
-	  song->m_SongTiming.GetBeatFromElapsedTimeNoOffset(ms / 1000.0f) * 48));
+	int row = static_cast<int>(std::round(std::abs(
+	  song->m_SongTiming.GetBeatFromElapsedTimeNoOffset(static_cast<float>(ms) / 1000.f) * 48)));
 
 	song->m_SongTiming.m_fBeat0OffsetInSeconds = tempOffset;
 
@@ -307,11 +308,11 @@ OsuLoader::LoadNoteDataFromParsedData(
 	for (auto& it : parsedData["HitObjects"]) {
 		auto line = it.first;
 		auto values = split(line, ",");
-		int type = stoi(values[3]);
+		unsigned int type = stoi(values[3]);
 		if (type == 128)
 			holds.emplace_back(
 			  OsuHold(stoi(values[2]), stoi(values[5]), stoi(values[0])));
-		else if ((type & 1) == 1)
+		else if ((type & 1u) == 1)
 			taps.emplace_back(OsuNote(stoi(values[2]), stoi(values[0])));
 	}
 
@@ -375,8 +376,8 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 	fileRStr.reserve(f.GetFileSize());
 	f.Read(fileRStr, -1);
 
-	string fileStr = fileRStr.c_str();
-	auto parsedData = ParseFileString(fileStr.c_str());
+	string fileStr = fileRStr;
+	auto parsedData = ParseFileString(fileStr);
 	LoadNoteDataFromParsedData(&out, parsedData);
 
 	return !out.IsNoteDataEmpty();
@@ -411,7 +412,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 			SetMetadata(parsedData, out);
 			SetTimingData(parsedData, out);
 		}
-		auto chart = out.CreateSteps();
+		auto* chart = out.CreateSteps();
 		chart->SetFilename(p);
 		if (!LoadChartData(&out, chart, parsedData)) {
 			SAFE_DELETE(chart);
