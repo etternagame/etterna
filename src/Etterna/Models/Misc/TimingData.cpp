@@ -8,6 +8,7 @@
 
 #include <cfloat>
 #include <algorithm>
+#include <cmath>
 
 #include "AdjustSync.h"
 
@@ -133,8 +134,8 @@ FindEntryInLookup(const TimingData::beat_start_lookup_t& lookup, float entry)
 	if (lookup.empty()) {
 		return lookup.end();
 	}
-	size_t lower = 0;
-	auto upper = lookup.size() - 1;
+	long lower = 0;
+	long upper = static_cast<long>(lookup.size() - 1);
 	if (lookup[lower].first > entry) {
 		return lookup.end();
 	}
@@ -342,8 +343,10 @@ TimingData::GetSegmentIndexAtRow(TimingSegmentType tst, int iRow) const
 	if (vSegs.empty())
 		return INVALID_INDEX;
 
-	const int min = 0, max = vSegs.size() - 1;
-	auto l = min, r = max;
+	const int min = 0;
+	const int max = static_cast<int>(vSegs.size() - 1);
+	auto l = min;
+	auto r = max;
 	while (l <= r) {
 		const auto m = (l + r) / 2;
 		if ((m == min || vSegs[m]->GetRow() <= iRow) &&
@@ -944,7 +947,7 @@ float
 TimingData::GetDisplayedBeat(float fBeat) const
 {
 	float fOutBeat = 0;
-	unsigned i;
+	unsigned i = 0;
 	const auto& scrolls = m_avpTimingSegments[SEGMENT_SCROLL];
 	for (i = 0; i < scrolls.size() - 1; i++) {
 		if (scrolls[i + 1]->GetBeat() > fBeat)
@@ -1094,7 +1097,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 	const auto fStartBeat = seg->GetBeat();
 	const auto fStartTime =
 	  WhereUAtBro(fStartBeat) - GetDelayAtBeat(fStartBeat);
-	float fEndTime;
+	float fEndTime = 0.f;
 	const auto fCurTime = fMusicSeconds;
 
 	if (seg->GetUnit() == SpeedSegment::UNIT_SECONDS) {
@@ -1259,9 +1262,9 @@ void
 TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L)
 {
 	const auto segs = td->GetTimingSegments(tst);
-	lua_createtable(L, segs.size(), 0);
+	lua_createtable(L, static_cast<int>(segs.size()), 0);
 	if (tst == SEGMENT_LABEL) {
-		for (size_t i = 0; i < segs.size(); ++i) {
+		for (int i = 0; i < segs.size(); ++i) {
 			lua_createtable(L, 2, 0);
 			lua_pushnumber(L, segs[i]->GetBeat());
 			lua_rawseti(L, -2, 1);
@@ -1270,12 +1273,12 @@ TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L)
 			lua_rawseti(L, -2, i + 1);
 		}
 	} else {
-		for (size_t i = 0; i < segs.size(); ++i) {
+		for (int i = 0; i < segs.size(); ++i) {
 			auto values = segs[i]->GetValues();
-			lua_createtable(L, values.size() + 1, 0);
+			lua_createtable(L, static_cast<int>(values.size()) + 1, 0);
 			lua_pushnumber(L, segs[i]->GetBeat());
 			lua_rawseti(L, -2, 1);
-			for (size_t v = 0; v < values.size(); ++v) {
+			for (int v = 0; v < values.size(); ++v) {
 				lua_pushnumber(L, values[v]);
 				lua_rawseti(L, -2, v + 2);
 			}
@@ -1421,7 +1424,7 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 			if (bps <= 0)
 				Locator::getLogger()->warn("Found {} bps in file {} - Very likely to crash.", bps, m_sFile);
 			while (idx < nerv.size() && nerv[idx] <= event_row) {
-				const auto perc = (nerv[idx] - lastbpmrow) /
+				const auto perc = static_cast<float>(nerv[idx] - lastbpmrow) /
 								  static_cast<float>(event_row - lastbpmrow);
 				ElapsedTimesAtNonEmptyRows.emplace_back(
 				  last_time + time_to_next_event * perc -
@@ -1438,7 +1441,7 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 		// fill out any timestamps that lie beyond the last bpm change
 		time_to_next_event = NoteRowToBeat(nerv.back() - lastbpmrow) / bps;
 		while (idx < nerv.size()) {
-			const auto perc = (nerv[idx] - lastbpmrow) /
+			const auto perc = static_cast<float>(nerv[idx] - lastbpmrow) /
 							  static_cast<float>(nerv.back() - lastbpmrow);
 			ElapsedTimesAtNonEmptyRows.emplace_back(
 			  last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds);
@@ -1470,43 +1473,43 @@ class LunaTimingData : public Luna<TimingData>
   public:
 	static int HasStops(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasStops());
+		lua_pushboolean(L, static_cast<int>(p->HasStops()));
 		return 1;
 	}
 
 	static int HasDelays(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasDelays());
+		lua_pushboolean(L, static_cast<int>(p->HasDelays()));
 		return 1;
 	}
 
 	static int HasBPMChanges(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasBpmChanges());
+		lua_pushboolean(L, static_cast<int>(p->HasBpmChanges()));
 		return 1;
 	}
 
 	static int HasWarps(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasWarps());
+		lua_pushboolean(L, static_cast<int>(p->HasWarps()));
 		return 1;
 	}
 
 	static int HasFakes(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasFakes());
+		lua_pushboolean(L, static_cast<int>(p->HasFakes()));
 		return 1;
 	}
 
 	static int HasSpeedChanges(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasSpeedChanges());
+		lua_pushboolean(L, static_cast<int>(p->HasSpeedChanges()));
 		return 1;
 	}
 
 	static int HasScrollChanges(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasScrollChanges());
+		lua_pushboolean(L, static_cast<int>(p->HasScrollChanges()));
 		return 1;
 	}
 
@@ -1550,7 +1553,8 @@ class LunaTimingData : public Luna<TimingData>
 	static int GetActualBPM(T* p, lua_State* L)
 	{
 		// certainly there's a better way to do it than this? -aj
-		float fMinBPM, fMaxBPM;
+		float fMinBPM = 0.f;
+		float fMaxBPM = 0.f;
 		p->GetActualBPM(fMinBPM, fMaxBPM);
 		vector<float> fBPMs;
 		fBPMs.push_back(fMinBPM);
@@ -1561,7 +1565,7 @@ class LunaTimingData : public Luna<TimingData>
 
 	static int HasNegativeBPMs(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasWarps());
+		lua_pushboolean(L, static_cast<int>(p->HasWarps()));
 		return 1;
 	}
 
