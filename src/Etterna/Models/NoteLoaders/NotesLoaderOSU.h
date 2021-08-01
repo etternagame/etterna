@@ -72,6 +72,7 @@ LoadChartData(
 
 int
 MsToNoteRow(int ms, Song* song);
-}
+
+} // namespace OsuLoader
 
 #endif
