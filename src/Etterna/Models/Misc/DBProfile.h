@@ -5,6 +5,8 @@
 #include "HighScore.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 
+class Profile;
+
 enum DBProfileMode
 {
 	WriteOnlyWebExport,
