@@ -186,9 +186,9 @@ struct BMSMeasure
 	float size;
 };
 
-typedef std::map<std::string, std::string> BMSHeaders;
-typedef std::map<int, BMSMeasure> BMSMeasures;
-typedef std::vector<BMSObject> BMSObjects;
+using BMSHeaders = std::map<std::string, std::string>;
+using BMSMeasures = std::map<int, BMSMeasure>;
+using BMSObjects = std::vector<BMSObject>;
 
 class BMSChart
 {
