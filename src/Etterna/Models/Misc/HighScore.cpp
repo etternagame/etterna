@@ -305,13 +305,13 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 			uploaded.emplace_back(server.c_str());
 		}
 	}
-	
+
 	// Attempt to recover SurviveSeconds or otherwise try to
 	// load a correct number here
 	auto psSuccess = pNode->GetChildValue("PlayedSeconds", played_seconds);
 	if (!psSuccess || played_seconds <= 1.F) {
 		played_seconds = 0.F;
-		
+
 		// Attempt to use the chart length for PlayedSeconds
 		// Only if the grade is a fail
 		auto* steps = SONGMAN->GetStepsByChartkey(ChartKey);
@@ -321,7 +321,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 			auto r = 1.F;
 			if (fMusicRate > 0.F)
 				r = fMusicRate;
-			
+
 			sLength = steps->GetLengthSeconds(r);
 		}
 		float survSeconds = 0.F;
@@ -342,7 +342,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		// (setting it to 0 grants potential to fix it later)
 	}
 
-	
+
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
 	if (pNode->GetChildValue("Modifiers", s)) {
 		sModifiers = s;
@@ -542,7 +542,7 @@ HighScoreImpl::WriteInputData() -> bool
 		fileStream.close();
 		return false;
 	}
-	
+
 
 	// for writing binary output for "compression"
 	// write vector size, then dump vector data
@@ -585,7 +585,7 @@ HighScore::LoadInputData() -> bool
 		return false;
 	}
 	*/
-	
+
 	// read vector size, then read vector data
 	/*
 	try {
@@ -645,12 +645,12 @@ HighScore::LoadInputData() -> bool
 			ev.is_press = std::stoi(tokens[1]);
 			ev.songPositionSeconds = std::stof(tokens[2]);
 			m_Impl->InputData.push_back(ev);
-			
+
 			tokens.clear();
 		}
 
 		Locator::getLogger()->trace("Loaded input data at {}", path.c_str());
-		
+
 		if (FILEMAN->Remove(path))
 			Locator::getLogger()->trace("Deleted uncompressed input data");
 		else
@@ -1716,7 +1716,7 @@ HighScore::NormalizeJudgments() -> bool
 	}
 	// otherwise ....
 
-	
+
 	// exit early if no replay data to convert
 	// this will work if replay doesn't physically exist
 	// that case occurs if coming via FillInHighScore with PSS data
@@ -1790,7 +1790,7 @@ HighScore::NormalizeJudgments() -> bool
 		Locator::getLogger()->warn(
 		  "While converting score key {} a Miss mismatch was found.", GetScoreKey());
 	}
-	
+
 	return true;
 }
 
@@ -2096,7 +2096,7 @@ class LunaHighScore : public Luna<HighScore>
 		}
 		return 1;
 	}
-	
+
 	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
 		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
