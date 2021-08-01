@@ -816,6 +816,8 @@ TimingData::GetBeatInternal(GetBeatStarts& start,
 				INC_INDEX(start.warp);
 				break;
 			}
+			default:
+				break;
 		}
 		start.last_row = event_row;
 	}
@@ -909,6 +911,8 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 				INC_INDEX(start.warp);
 				break;
 			}
+			default:
+				break;
 		}
 		start.last_row = event_row;
 	}
