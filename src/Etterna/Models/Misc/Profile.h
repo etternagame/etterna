@@ -252,7 +252,7 @@ class Profile
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
 	bool asc = false;
 
-	auto HasGoal(const std::string& ck) -> bool
+	auto HasGoal(const std::string& ck) const -> bool
 	{
 		return goalmap.count(ck) == 1;
 	}
@@ -271,7 +271,7 @@ class Profile
 	// Screenshot Data
 	std::vector<Screenshot> m_vScreenshots;
 	void AddScreenshot(const Screenshot& screenshot);
-	auto GetNextScreenshotIndex() -> int { return m_vScreenshots.size(); }
+	int GetNextScreenshotIndex() const { return static_cast<int>(m_vScreenshots.size()); }
 
 	// Init'ing
 	void InitAll()
