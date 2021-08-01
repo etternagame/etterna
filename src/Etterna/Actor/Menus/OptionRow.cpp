@@ -407,7 +407,6 @@ OptionRow::AfterImportOptions(PlayerNumber pn)
 		PlayerNumber pnCopyFrom = GAMESTATE->GetMasterPlayerNumber();
 		if (GAMESTATE->GetMasterPlayerNumber() == PLAYER_INVALID)
 			pnCopyFrom = PLAYER_1;
-		m_vbSelected = m_vbSelected; // haha this doesnt do anything -poco
 	}
 
 	switch (m_pHand->m_Def.m_selectType) {
