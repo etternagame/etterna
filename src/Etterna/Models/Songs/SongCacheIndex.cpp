@@ -271,7 +271,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	try {
 		insertTimingData.exec();
-	} catch (exception e) {
+	} catch (exception& e) {
 		Locator::getLogger()->warn("Failed to execute statement to insert TimingData from Cache: {}", e.what());
 	}
 	return sqlite3_last_insert_rowid(db->getHandle());
@@ -352,7 +352,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
 	try {
 		insertSteps.exec();
-	} catch (exception e) {
+	} catch (exception& e) {
 		Locator::getLogger()->warn("Failed to execute statement to insert Steps from Cache: {}", e.what());
 	}
 	return sqlite3_last_insert_rowid(db->getHandle());
@@ -722,7 +722,7 @@ SongCacheIndex::~SongCacheIndex()
 	if (curTransaction != nullptr) {
 		try {
 			curTransaction->commit();
-		} catch (exception e) {
+		} catch (exception& e) {
 			// DB transaction commit failed, we're destructing so we dont care.
 			// There really shouldnt be a transaction left anyways
 		}
@@ -807,7 +807,7 @@ SongCacheIndex::LoadCache(
 			ld->SetProgress(0);
 			ld->SetTotalWork(count);
 		}
-	} catch (exception e) {
+	} catch (exception& e) {
 		Locator::getLogger()->warn("Failed to count all from songs table in Cache DB: {}", e.what());
 	}
 	cache.reserve(count);
@@ -898,7 +898,7 @@ SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
 		   condition + ")")
 			.c_str());
 		db->exec(("DELETE FROM songs WHERE " + condition).c_str());
-	} catch (exception e) {
+	} catch (exception& e) {
 		Locator::getLogger()->warn("Failed to execute Song Deletion from DB with condition "
 				  "'{}'\nException: {}", condition.c_str(), e.what());
 	}
@@ -952,7 +952,7 @@ SongCacheIndex::StartTransaction()
 		return;
 	try {
 		curTransaction = new SQLite::Transaction(*db);
-	} catch (exception e) {
+	} catch (exception& e) {
 		Locator::getLogger()->warn("Failed to start transaction due to exception: {}", e.what());
 	}
 	return;
@@ -964,7 +964,7 @@ SongCacheIndex::FinishTransaction()
 		return;
 	try {
 		curTransaction->commit();
-	} catch (exception e) {
+	} catch (exception& e) {
 		// DB transaction commit failed, we're destructing so we dont care.
 		// There really shouldnt be a transaction left anyways
 	}
@@ -1329,7 +1329,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		  static_cast<const char*>(query.getColumn(index++));
 		song->m_sPreviewVidPath =
 		  static_cast<const char*>(query.getColumn(index++));
-	} catch (exception e) {
+	} catch (exception& e) {
 		Locator::getLogger()->warn("Exception occurred while loading file from cache: {}", e.what());
 	}
 
