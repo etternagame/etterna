@@ -644,7 +644,7 @@ HighScore::LoadInputData() -> bool
 			}
 
 			ev.column = std::stoi(tokens[0]);
-			ev.is_press = std::stoi(tokens[1]);
+			ev.is_press = (std::stoi(tokens[1]) != 0);
 			ev.songPositionSeconds = std::stof(tokens[2]);
 			m_Impl->InputData.push_back(ev);
 
