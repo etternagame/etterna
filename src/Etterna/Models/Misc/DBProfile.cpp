@@ -1090,9 +1090,9 @@ DBProfile::FindOrCreateChart(SQLite::Database* db,
 		insertChart.bind(3, diff);
 		insertChart.exec();
 		return static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
-	} else {
-		return query.getColumn(0);
 	}
+
+	return query.getColumn(0);
 }
 
 int
