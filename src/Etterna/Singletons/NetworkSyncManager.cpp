@@ -1160,7 +1160,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							std::string SMOnlineSelectScreen = THEME->GetMetric(
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
-						} catch (std::exception e) {
+						} catch (std::exception& e) {
 							Locator::getLogger()->trace("Error while parsing ettp json enter "
 									   "room response: {}",
 									   e.what());
@@ -1310,7 +1310,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				default:
 					break;
 			}
-		} catch (std::exception e) {
+		} catch (std::exception& e) {
 			Locator::getLogger()->trace("Error while parsing ettp json message: {}", e.what());
 		}
 	}
