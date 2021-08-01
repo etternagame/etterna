@@ -570,7 +570,7 @@ HighScoreImpl::WriteInputData() -> bool
 auto
 HighScore::LoadInputData() -> bool
 {
-	if (m_Impl->InputData.size() > 0)
+	if (!m_Impl->InputData.empty())
 		return true;
 
 	auto path = INPUT_DATA_DIR + m_Impl->ScoreKey;
@@ -1723,7 +1723,7 @@ HighScore::NormalizeJudgments() -> bool
 	// replaydata loading "fails" if size isnt more than 4
 	// we don't really want that to happen
 	// this is because replays dont save for the same reason
-	if (!LoadReplayData() && m_Impl->vOffsetVector.size() == 0) {
+	if (!LoadReplayData() && m_Impl->vOffsetVector.empty()) {
 		return false;
 	}
 
