@@ -15,6 +15,6 @@ bool
 LoadFromDir(const std::string& sDir, Song& out);
 bool
 LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out);
-}
+} // namespace BMSLoader
 
 #endif
