@@ -82,11 +82,11 @@ SearchForDifficulty(std::string sTag, Steps* pOut)
 	sTag = make_lower(sTag);
 
 	// Only match "Light" in parentheses.
-	if (sTag.find("(light") != sTag.npos) {
+	if (sTag.find("(light") != std::string::npos) {
 		pOut->SetDifficulty(Difficulty_Easy);
-	} else if (sTag.find("another") != sTag.npos) {
+	} else if (sTag.find("another") != std::string::npos) {
 		pOut->SetDifficulty(Difficulty_Hard);
-	} else if (sTag.find("(solo)") != sTag.npos) {
+	} else if (sTag.find("(solo)") != std::string::npos) {
 		pOut->SetDescription("Solo");
 		pOut->SetDifficulty(Difficulty_Edit);
 	}
@@ -430,7 +430,7 @@ struct bmsCommandTree
 		std::string name = make_lower(statement.substr(0, space));
 		std::string value;
 
-		if (space != statement.npos)
+		if (space != std::string::npos)
 			value = statement.substr(space + 1);
 
 		if (name == "#if") {
@@ -1594,7 +1594,7 @@ BMSSongLoader::AddToSong()
 
 				// XXX: This matches (double), but I haven't seen it used.
 				// Again, MORE EXAMPLES NEEDED
-				if (tag.find('l') != tag.npos) {
+				if (tag.find('l') != std::string::npos) {
 					unsigned pos = tag.find('l');
 					if (pos > 2 && tag.substr(pos - 2, 4) == "solo") {
 						// (solo) -- an edit, apparently (Thanks Glenn!)
@@ -1606,14 +1606,14 @@ BMSSongLoader::AddToSong()
 					}
 				}
 				// [x] [Expert]
-				else if (tag.find('x') != tag.npos)
+				else if (tag.find('x') != std::string::npos)
 					steps->SetDifficulty(Difficulty_Challenge);
 				// [A] <A> (A) [ANOTHER] <ANOTHER> (ANOTHER) (ANOTHER7) Another
 				// (DP ANOTHER) (Another) -ANOTHER- [A7] [A14] etc etc etc
-				else if (tag.find('a') != tag.npos)
+				else if (tag.find('a') != std::string::npos)
 					steps->SetDifficulty(Difficulty_Hard);
 				// XXX: Can also match (double), but should match [B] or [B7]
-				else if (tag.find('b') != tag.npos)
+				else if (tag.find('b') != std::string::npos)
 					steps->SetDifficulty(Difficulty_Beginner);
 				// Other tags I've seen here include (5KEYS) (10KEYS) (7keys)
 				// (14keys) (dp) [MIX] [14] (14 Keys Mix)
