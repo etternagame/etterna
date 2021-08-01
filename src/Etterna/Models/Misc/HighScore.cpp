@@ -928,17 +928,14 @@ HighScore::IsEmpty() const -> bool
 auto
 HighScore::IsEmptyNormalized() const -> bool
 {
-	if (m_Impl->iTapNoteScoresNormalized[TNS_W1] != 0 ||
+	return !(m_Impl->iTapNoteScoresNormalized[TNS_W1] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W2] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W3] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W4] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W5] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_Miss] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_HitMine] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] != 0) {
-		return false;
-	}
-	return true;
+		m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] != 0);
 }
 
 auto
