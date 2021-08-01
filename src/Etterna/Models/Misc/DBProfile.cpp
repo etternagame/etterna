@@ -262,7 +262,6 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 	}
 	pls[lastPlayListName].courseruns.emplace_back(tmpCourseRun);
 	tmpCourseRun.clear();
-	return;
 }
 
 void
