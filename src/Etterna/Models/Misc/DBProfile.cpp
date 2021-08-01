@@ -462,6 +462,8 @@ DBProfile::SaveDBToDir(const string& dir,
 		case LocalWithoutReplayData:
 			filename = FILEMAN->ResolvePath(dir) + PROFILE_DB;
 			break;
+		default:
+			break;
 	}
 	SQLite::Database* db = nullptr;
 	try {
@@ -637,6 +639,8 @@ DBProfile::MoveBackupToDir(const string& sFromDir,
 		case LocalWithReplayData:
 		case LocalWithoutReplayData:
 			filename = PROFILE_DB;
+			break;
+		default:
 			break;
 	}
 
