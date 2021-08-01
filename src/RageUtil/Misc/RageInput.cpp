@@ -138,7 +138,7 @@ RageInput::GetHandlerForDevice(const InputDevice id)
 std::string
 RageInput::GetDeviceSpecificInputString(const DeviceInput& di)
 {
-	return "";
+	return "GetDeviceSpecificInputStringRetVal";
 //	InputHandler* pDriver = GetHandlerForDevice(di.device);
 //	if (pDriver != nullptr)
 //		return pDriver->GetDeviceSpecificInputString(di);
@@ -154,6 +154,7 @@ RageInput::GetLocalizedInputString(const DeviceInput& di)
 //		return pDriver->GetLocalizedInputString(di);
 //	else
 //		return Capitalize(DeviceButtonToString(di.button));
+    return "GetLocalizedInputStringRetVal";
 }
 
 wchar_t
