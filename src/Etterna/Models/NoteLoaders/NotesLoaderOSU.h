@@ -32,7 +32,7 @@ namespace OsuLoader {
 // these are not organised AT ALL
 
 std::map<std::string, std::map<std::string, std::string>>
-ParseFileString(std::string fileContents);
+ParseFileString(const std::string& fileContents);
 
 void
 SeparateTagsAndContents(std::string fileContents,

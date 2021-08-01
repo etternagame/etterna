@@ -15,7 +15,7 @@ using std::map;
 using std::string;
 
 vector<string>
-split(string str, string token)
+split(string str, const string& token)
 {
 	vector<string> result;
 	while (str.size()) {
@@ -34,7 +34,7 @@ split(string str, string token)
 }
 
 map<string, map<string, string>>
-OsuLoader::ParseFileString(string fileContents)
+OsuLoader::ParseFileString(const string& fileContents)
 {
 	vector<string> sections;
 	vector<vector<string>> contents;
