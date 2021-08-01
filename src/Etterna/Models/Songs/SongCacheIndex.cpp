@@ -588,8 +588,7 @@ Must be open already	*/
 void
 SongCacheIndex::DeleteDB()
 {
-	if (db != nullptr)
-		delete db;
+	delete db;
 	FILEMAN->Remove(CACHE_DB);
 	try {
 		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
