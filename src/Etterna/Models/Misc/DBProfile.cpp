@@ -113,7 +113,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 
 	SQLite::Statement userTableQuery(*db, "SELECT * FROM usertable");
 
-	auto L = LUA->Get();
+	auto* L = LUA->Get();
 
 	lua_newtable(L);
 
@@ -595,7 +595,7 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 	db->exec("CREATE TABLE defaultmodifiers (id INTEGER PRIMARY KEY, "
 			 "name TEXT, value TEXT)");
 
-	for (auto& it : profile->m_sDefaultModifiers) {
+	for (const auto& it : profile->m_sDefaultModifiers) {
 		db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it.first +
 				 "\", \"" + it.second + "\")");
 	}
@@ -676,12 +676,12 @@ DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
 	  "(chartkeyid) REFERENCES chartkeys(id))");
 
 	if (!profile->goalmap.empty()) {
-		for (auto& i : profile->goalmap) {
+		for (const auto& i : profile->goalmap) {
 			const auto& cg = i.second;
 			if (cg.goals.empty())
 				continue;
 			const auto chID = FindOrCreateChartKey(db, cg.goals[0].chartkey);
-			for (auto& sg : cg.goals) {
+			for (const auto& sg : cg.goals) {
 				SQLite::Statement insertScoreGoal(*db,
 												  "INSERT INTO scoregoals "
 												  "VALUES (NULL, ?, ?, ?, ?, "
@@ -732,9 +732,9 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 			 "CONSTRAINT fk_courserunid FOREIGN KEY (courserunid) REFERENCES "
 			 "courseruns(id))");
 
-	auto& pls = profile->allplaylists;
+	const auto& pls = profile->allplaylists;
 	if (!pls.empty()) {
-		for (auto& pl : pls) {
+		for (const auto& pl : pls) {
 			if (!pl.first.empty() && pl.first != "Favorites") {
 				SQLite::Statement insertPlaylist(
 				  *db, "INSERT INTO playlists VALUES (NULL, ?)");
@@ -744,7 +744,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 				// (pl->second).name + "\")");
 				auto plID =
 				  static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
-				for (auto& ch : pl.second.chartlist) {
+				for (const auto& ch : pl.second.chartlist) {
 					auto chartID = FindOrCreateChart(
 					  db, ch.key, ch.lastpack, ch.lastsong, ch.lastdiff);
 					SQLite::Statement insertChartPlaylist(
@@ -762,7 +762,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 					insertCourseRun.exec();
 					auto courseRunID = static_cast<int>(
 					  sqlite3_last_insert_rowid(db->getHandle()));
-					for (auto& sk : run) {
+					for (const auto& sk : run) {
 						SQLite::Statement insertRun(
 						  *db, "INSERT INTO runs VALUES (NULL, ?, ?)");
 						insertRun.bind(1, sk);
@@ -895,7 +895,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 					  ratePair.second.PBptr->GetScoreKey()) {
 					// prune out sufficiently low scores
 					if (i.second.GetWifeScore() > SCOREMAN->minpercent) {
-						const auto hs = &(i.second);
+						auto* const hs = &(i.second);
 						// Add scores
 						SQLite::Statement* insertScore = nullptr;
 						int scorekeyID = 0;
@@ -981,8 +981,8 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 							try {
 								// Save Replay Data
 								if (hs->LoadReplayData()) {
-									auto& offsets = hs->GetOffsetVector();
-									auto& rows = hs->GetNoteRowVector();
+									const auto& offsets = hs->GetOffsetVector();
+									const auto& rows = hs->GetNoteRowVector();
 									unsigned int idx =
 									  !rows.empty() ? rows.size() - 1 : 0U;
 									// loop for writing both vectors side by
@@ -1126,14 +1126,14 @@ DBProfile::WriteReplayData(const HighScore* hs)
 		db = new SQLite::Database(filename,
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 	} catch (std::exception) {
-		return ProfileLoadResult_FailedNoProfile;
+		return ProfileLoadResult_FailedNoProfile != 0u;
 	}
 	try {
 		// Use the db
 		// Begin transaction
 		SQLite::Transaction transaction(*db);
-		auto& rows = hs->GetNoteRowVector();
-		auto& offsets = hs->GetOffsetVector();
+		const auto& rows = hs->GetNoteRowVector();
+		const auto& offsets = hs->GetOffsetVector();
 		const unsigned int idx = !rows.empty() ? rows.size() - 1 : 0U;
 		// loop for writing both vectors side by side
 		const auto scoreKeyID = FindOrCreateScoreKey(db, hs->GetScoreKey());
