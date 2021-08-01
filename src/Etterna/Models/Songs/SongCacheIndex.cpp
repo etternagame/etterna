@@ -882,7 +882,7 @@ SongCacheIndex::LoadCache(
 	cache = join(cacheParts);
 }
 void
-SongCacheIndex::DeleteSongFromDBByCondition(string& condition) const
+SongCacheIndex::DeleteSongFromDBByCondition(const string& condition) const
 {
 	try {
 		db->exec(
@@ -908,7 +908,7 @@ SongCacheIndex::DeleteSongFromDB(Song* songPtr) const
 	DeleteSongFromDBByCondition(cond);
 }
 void
-SongCacheIndex::DeleteSongFromDBByDir(string dir) const
+SongCacheIndex::DeleteSongFromDBByDir(const string& dir) const
 {
 	auto cond = "dir=\"" + dir + "\"";
 	DeleteSongFromDBByCondition(cond);
@@ -1344,7 +1344,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 /*	Load a song from Cache DB
 	Returns true if it was loaded**/
 bool
-SongCacheIndex::LoadSongFromCache(Song* song, std::string dir)
+SongCacheIndex::LoadSongFromCache(Song* song, const std::string& dir)
 {
 	try {
 		SQLite::Statement query(
