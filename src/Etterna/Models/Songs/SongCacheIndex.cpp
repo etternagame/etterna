@@ -104,7 +104,7 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing) const
 	   (NULL, " "OFFSET=?, BPMS=?, STOPS=?, " "DELAYS=?, WARPS=?,
 	   TIMESIGNATURESEGMENT=?, TICKCOUNTS=?, " "COMBOS=?, SPEEDS=?, SCROLLS=?,
 	   FAKES=?, LABELS=?)");*/
-	unsigned int timingDataIndex = 1;
+	int timingDataIndex = 1;
 	insertTimingData.bind(timingDataIndex++, timing.m_fBeat0OffsetInSeconds);
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_BPM);
@@ -348,7 +348,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 	auto serializednd = nd.SerializeNoteData2(td);
 	insertSteps.bind(stepsIndex++,
 					 serializednd.data(),
-					 serializednd.size() * sizeof(NoteInfo));
+					 static_cast<int>(serializednd.size() * sizeof(NoteInfo)));
 	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
 	try {
 		insertSteps.exec();
@@ -380,7 +380,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 									 "?, ?, ?, ?, "
 									 "?, ?, ?, ?, "
 									 "?, ?)");
-		unsigned int index = 1;
+		int index = 1;
 		insertSong.bind(index++, STEPFILE_VERSION_NUMBER);
 		insertSong.bind(index++, song.m_sMainTitle);
 		insertSong.bind(index++, song.m_sSubTitle);
@@ -541,8 +541,8 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 		insertSong.bind(index++, song.GetFirstSecond());
 		insertSong.bind(index++, song.GetLastSecond());
 		insertSong.bind(index++, song.m_sSongFileName.c_str());
-		insertSong.bind(index++, song.m_bHasMusic);
-		insertSong.bind(index++, song.m_bHasBanner);
+		insertSong.bind(index++, static_cast<int>(song.m_bHasMusic));
+		insertSong.bind(index++, static_cast<int>(song.m_bHasBanner));
 		insertSong.bind(index++, song.m_fMusicLengthSeconds);
 		insertSong.bind(index++, GetHashForDirectory(song.GetSongDir()));
 		insertSong.bind(index++, song.GetSongDir());
@@ -812,7 +812,7 @@ SongCacheIndex::LoadCache(
 	}
 	cache.reserve(count);
 	auto fivePercent = std::max(count / 100 * 5, 1);
-	const int threads = std::thread::hardware_concurrency();
+	const unsigned int threads = std::thread::hardware_concurrency();
 	const auto limit = count / threads;
 	ThreadData data;
 	std::atomic<bool> abort(false);
@@ -821,7 +821,8 @@ SongCacheIndex::LoadCache(
 		int limit,
 		int offset,
 		vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart) {
-		  auto counter = 0, lastUpdate = 0;
+		  auto counter = 0;
+		  auto lastUpdate = 0;
 		  try {
 			  SQLite::Statement query(*SONGINDEX->db,
 									  "SELECT * FROM songs LIMIT " +
@@ -978,7 +979,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 	// SSC::StepsTagInfo reused_steps_info(&*song, &out, dir, true);
 	SSCLoader loader;
 	string dir;
-	int dirhash;
+	int dirhash = 0;
 
 	try {
 		int songid = query.getColumn(0);
@@ -1179,7 +1180,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 			split(radarValues, ",", values, true);
 			RadarValues rv;
 			rv.Zero();
-			for (size_t i = 0; i < NUM_RadarCategory; ++i)
+			for (int i = 0; i < NUM_RadarCategory; ++i)
 				rv[i] = StringToInt(values[i]);
 			pNewNotes->SetCachedRadarValues(rv);
 			pNewNotes->SetCredit(
@@ -1286,9 +1287,9 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 				pNewNotes->SetMaxBPM(BPMmax);
 			}
 			pNewNotes->SetFirstSecond(
-			  static_cast<double>(qSteps.getColumn(stepsIndex++)));
+			  static_cast<float>(qSteps.getColumn(stepsIndex++).getDouble()));
 			pNewNotes->SetLastSecond(
-			  static_cast<double>(qSteps.getColumn(stepsIndex++)));
+			  static_cast<float>(qSteps.getColumn(stepsIndex++).getDouble()));
 			// pNewNotes->SetSMNoteData("");
 			pNewNotes->TidyUpData();
 			pNewNotes->SetFilename(
