@@ -50,7 +50,8 @@ OsuLoader::ParseFileString(const string& fileContents)
 			for (auto& content : contents[i]) {
 				auto& str = content;
 				int pos = str.find_first_of(':');
-				string value = str.substr(pos + 1), tag = str.substr(0, pos);
+				string value = str.substr(pos + 1);
+				string tag = str.substr(0, pos);
 				parsedData[sections[i]][tag] = value;
 			}
 		}
