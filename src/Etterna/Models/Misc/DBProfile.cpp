@@ -143,7 +143,7 @@ DBProfile::LoadFavourites(SQLite::Database* db)
 		loadingProfile->FavoritedCharts.emplace(key);
 	}
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
+	SongManager::MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
 }
 
 void
