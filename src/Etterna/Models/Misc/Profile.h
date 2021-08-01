@@ -73,12 +73,12 @@ class ScoreGoal
 	bool achieved = false;
 	DateTime timeassigned;
 	DateTime timeachieved;
-	std::string comment = "";
-	std::string chartkey = "";
+	std::string comment;
+	std::string chartkey;
 
 	// which specific score was this goal achieved by, reminder to consider
 	// what happens when individual score deletion is possibly added -mina
-	std::string scorekey = "";
+	std::string scorekey;
 
 	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
@@ -126,13 +126,7 @@ class Profile
 	// added to SwapExceptPriority won't be swapped correctly when the user
 	// changes the list priority of a profile. -Kyz
 	Profile()
-	  :
-
-	  m_sDisplayName("")
-	  , m_sLastUsedHighScoreName("")
-	  , m_sGuid(MakeGuid())
-	  , m_sLastPlayedMachineGuid("")
-	  , profiledir("")
+	  : m_sGuid(MakeGuid())
 	{
 		m_lastSong.Unset();
 		m_fPlayerRating = 0.F;
