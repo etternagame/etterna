@@ -1679,7 +1679,7 @@ BMSSongLoader::AddToSong()
 			main.info.previewFile != main.info.musicFile) {
 			out->m_PreviewFile = main.info.previewFile;
 			out->m_fMusicSampleLengthSeconds =
-			  0.00f; // to ensure whole preview file is heard
+			  0.f; // to ensure whole preview file is heard
 		}
 
 		out->m_fMusicSampleStartSeconds = main.info.previewStart;
