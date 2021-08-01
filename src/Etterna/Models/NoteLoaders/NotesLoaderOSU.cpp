@@ -183,7 +183,7 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 		}
 		lastoffset = offset;
 	}
-	if (bpms.size() > 0) {
+	if (!bpms.empty()) {
 		out.m_SongTiming.AddSegment(
 		  BPMSegment(0, bpms[0].second)); // set bpm at beat 0 (osu files don't
 										  // make this required)
@@ -325,9 +325,9 @@ OsuLoader::LoadNoteDataFromParsedData(
 	});
 
 	int firstTap = 0;
-	if (taps.size() > 0 && holds.size() > 0) {
+	if (!taps.empty() && !holds.empty()) {
 		firstTap = std::min(taps[0].ms, holds[0].msStart);
-	} else if (taps.size() > 0) {
+	} else if (!taps.empty()) {
 		firstTap = taps[0].ms;
 	} else {
 		firstTap = holds[0].msStart;
@@ -405,8 +405,8 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 		}
 		std::string fileContents;
 		f.Read(fileContents, -1);
-		parsedData = ParseFileString(fileContents.c_str());
-		if (parsedData.size() == 0) {
+		parsedData = ParseFileString(fileContents);
+		if (parsedData.empty()) {
 			continue;
 		}
 		if (out.m_SongTiming.empty()) {
