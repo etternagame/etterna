@@ -938,8 +938,8 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 						insertScore->bind(5, hs->GetWifeScore());
 						insertScore->bind(6, hs->GetSSRNormPercent());
 						insertScore->bind(7, hs->GetJudgeScale());
-						insertScore->bind(8, hs->GetChordCohesion());
-						insertScore->bind(9, hs->GetEtternaValid());
+						insertScore->bind(8, static_cast<int>(hs->GetChordCohesion()));
+						insertScore->bind(9, static_cast<int>(hs->GetEtternaValid()));
 						insertScore->bind(10, hs->GetPlayedSeconds());
 						insertScore->bind(11, hs->GetMaxCombo());
 						insertScore->bind(12, hs->GetModifiers());
