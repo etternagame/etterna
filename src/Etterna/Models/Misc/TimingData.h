@@ -760,7 +760,7 @@ class TimingData
 		auto& stops = m_avpTimingSegments[SEGMENT_STOP];
 
 		for (auto& i : bpms) {
-			auto bpm = ToBPM(i);
+			auto* bpm = ToBPM(i);
 			if (0 > bpm->GetBPM()) {
 				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
@@ -769,7 +769,7 @@ class TimingData
 		}
 
 		for (auto& stop : stops) {
-			auto s = ToStop(stop);
+			auto* s = ToStop(stop);
 			if (0 > s->GetPause()) {
 				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
