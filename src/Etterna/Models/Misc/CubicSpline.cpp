@@ -234,9 +234,9 @@ loop_space_difference(float a, float b, float spatial_extent)
 	}
 	const auto plus_diff = a - (b + spatial_extent);
 	const auto minus_diff = a - (b - spatial_extent);
-	const auto abs_norm_diff = abs(norm_diff);
-	const auto abs_plus_diff = abs(plus_diff);
-	const auto abs_minus_diff = abs(minus_diff);
+	const auto abs_norm_diff = std::abs(norm_diff);
+	const auto abs_plus_diff = std::abs(plus_diff);
+	const auto abs_minus_diff = std::abs(minus_diff);
 	if (abs_norm_diff < abs_plus_diff) {
 		if (abs_norm_diff < abs_minus_diff) {
 			return norm_diff;
