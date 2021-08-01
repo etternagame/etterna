@@ -20,14 +20,14 @@ const string PROFILE_DB = "profile.db";
 const string WRITE_ONLY_PROFILE_DB = "webprofile.db";
 
 ProfileLoadResult
-DBProfile::LoadDBFromDir(std::string dir, Profile* profile)
+DBProfile::LoadDBFromDir(const std::string& dir, Profile* profile)
 {
 	loadingProfile = profile;
 	return LoadDBFromDir(dir);
 }
 
 ProfileLoadResult
-DBProfile::LoadDBFromDir(std::string dir)
+DBProfile::LoadDBFromDir(const std::string& dir)
 {
 	SQLite::Database* db;
 	try {
@@ -450,7 +450,7 @@ DBProfile::LoadScoreGoals(SQLite::Database* db)
 }
 
 ProfileLoadResult
-DBProfile::SaveDBToDir(string dir,
+DBProfile::SaveDBToDir(const string& dir,
 					   const Profile* profile,
 					   DBProfileMode mode) const
 {
@@ -1013,7 +1013,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 	}
 }
 int
-DBProfile::GetChartKeyID(SQLite::Database* db, string key)
+DBProfile::GetChartKeyID(SQLite::Database* db, const string& key)
 {
 	SQLite::Statement query(*db, "SELECT * FROM chartkeys WHERE chartkey=?");
 	query.bind(1, key);
@@ -1033,17 +1033,17 @@ DBProfile::GetChartKeyByID(SQLite::Database* db, int id)
 }
 
 int
-DBProfile::FindOrCreateChartKey(SQLite::Database* db, string key)
+DBProfile::FindOrCreateChartKey(SQLite::Database* db, const string& key)
 {
 	const auto exists = GetChartKeyID(db, key);
-	if (exists)
+	if (exists != 0)
 		return exists;
 	db->exec("INSERT INTO chartkeys VALUES (NULL, \"" + key + "\")");
 	return static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
 }
 
 int
-DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
+DBProfile::FindOrCreateSong(SQLite::Database* db, const string& pack, const string& song)
 {
 	SQLite::Statement query(
 	  *db, "SELECT songs.id FROM songs WHERE song=? AND pack =?");
@@ -1063,9 +1063,9 @@ DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
 
 int
 DBProfile::FindOrCreateChart(SQLite::Database* db,
-							 string chartkey,
-							 string pack,
-							 string song,
+							 const string& chartkey,
+							 const string& pack,
+							 const string& song,
 							 Difficulty diff)
 {
 	const auto chartKeyID = FindOrCreateChartKey(db, chartkey);
@@ -1094,7 +1094,7 @@ DBProfile::FindOrCreateChart(SQLite::Database* db,
 }
 
 int
-DBProfile::GetScoreKeyID(SQLite::Database* db, string key)
+DBProfile::GetScoreKeyID(SQLite::Database* db, const string& key)
 {
 	SQLite::Statement query(*db, "SELECT * FROM scorekeys WHERE scorekey=?");
 	query.bind(1, key);
@@ -1104,7 +1104,7 @@ DBProfile::GetScoreKeyID(SQLite::Database* db, string key)
 }
 
 int
-DBProfile::FindOrCreateScoreKey(SQLite::Database* db, string key)
+DBProfile::FindOrCreateScoreKey(SQLite::Database* db, const string& key)
 {
 	const auto exists = GetScoreKeyID(db, key);
 	if (exists)
