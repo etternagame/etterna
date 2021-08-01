@@ -16,7 +16,7 @@ struct lua_State;
 /* convenience functions to handle static casting */
 template<class T>
 auto
-ToDerived(const TimingSegment* t, TimingSegmentType tst) -> T
+ToDerived(const TimingSegment* t, TimingSegmentType /*tst*/) -> T
 {
 	return static_cast<T>(t);
 }
