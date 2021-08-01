@@ -525,7 +525,7 @@ DBProfile::SaveDBToDir(const string& dir,
 }
 
 void
-DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile) const
+DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS favourites");
@@ -543,7 +543,7 @@ DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile) const
 }
 
 void
-DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
+DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS generaldata");
@@ -649,7 +649,7 @@ DBProfile::MoveBackupToDir(const string& sFromDir,
 }
 
 void
-DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
+DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS permamirrors");
@@ -667,7 +667,7 @@ DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
 }
 
 void
-DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
+DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS scoregoals");
@@ -710,7 +710,7 @@ DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
 }
 
 void
-DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
+DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile)
 {
 	db->exec("DROP TABLE IF EXISTS playlists");
 	db->exec("CREATE TABLE playlists (id INTEGER PRIMARY KEY, name TEXT)");
@@ -781,7 +781,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 void
 DBProfile::SavePlayerScores(SQLite::Database* db,
 							const Profile* profile,
-							DBProfileMode mode) const
+							DBProfileMode mode)
 {
 	if (mode != WriteOnlyWebExport) {
 		// Separate scorekeys table so we can not drop it when saving, and

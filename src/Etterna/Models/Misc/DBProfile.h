@@ -52,19 +52,19 @@ class DBProfile
 
 	void LoadFavourites(SQLite::Database* db);
 	void LoadPlayLists(SQLite::Database* db);
-	void LoadPlayerScores(SQLite::Database* db);
+	static void LoadPlayerScores(SQLite::Database* db);
 	auto LoadGeneralData(SQLite::Database* db) -> bool;
 	void LoadPermaMirrors(SQLite::Database* db);
 	void LoadScoreGoals(SQLite::Database* db);
 
-	void SaveFavourites(SQLite::Database* db, const Profile* profile) const;
-	void SavePlayLists(SQLite::Database* db, const Profile* profile) const;
-	void SavePlayerScores(SQLite::Database* db,
+	static void SaveFavourites(SQLite::Database* db, const Profile* profile);
+	static void SavePlayLists(SQLite::Database* db, const Profile* profile);
+	static void SavePlayerScores(SQLite::Database* db,
 						  const Profile* profile,
-						  DBProfileMode mode) const;
-	void SaveGeneralData(SQLite::Database* db, const Profile* profile) const;
-	void SavePermaMirrors(SQLite::Database* db, const Profile* profile) const;
-	void SaveScoreGoals(SQLite::Database* db, const Profile* profile) const;
+						  DBProfileMode mode);
+	static void SaveGeneralData(SQLite::Database* db, const Profile* profile);
+	static void SavePermaMirrors(SQLite::Database* db, const Profile* profile);
+	static void SaveScoreGoals(SQLite::Database* db, const Profile* profile);
 };
 
 #endif
