@@ -110,7 +110,7 @@ PrefsManager::PrefsManager()
 						  ValidateDisplayAspectRatio)
   , m_iDisplayColorDepth("DisplayColorDepth", 32)
   , m_sLastSeenVideoDriver("LastSeenVideoDriver", "")
-  , m_sVideoRenderers("VideoRenderers", "")
+  , m_sVideoRenderers("VideoRenderers", "d3d,opengl")
 
   , m_bInterlaced("Interlaced", false)
   , m_bPAL("PAL", false)
