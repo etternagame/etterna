@@ -21,6 +21,10 @@ namespace Core::Platform::Window {
     GLFWWindowBackend::GLFWWindowBackend(std::string_view title, const Dimensions &size)
     : IWindowBackend(title, size) {
         glfwInit();
+
+        glfwSetErrorCallback([](int error, const char* desc){
+           Locator::getLogger()->error("GLFW Error {}: {}", error, desc);
+        });
     }
 
     GLFWWindowBackend::~GLFWWindowBackend(){
