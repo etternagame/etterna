@@ -5,6 +5,8 @@
 #include "HighScore.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 
+class Profile;
+
 enum DBProfileMode
 {
 	WriteOnlyWebExport,
@@ -17,14 +19,14 @@ enum DBProfileMode
 class DBProfile
 {
   public:
-	enum ProfileLoadResult LoadDBFromDir(std::string dir);
-	ProfileLoadResult LoadDBFromDir(std::string dir, Profile* profile);
+	enum ProfileLoadResult LoadDBFromDir(const std::string& dir);
+	ProfileLoadResult LoadDBFromDir(const std::string& dir, Profile* profile);
 
-	ProfileLoadResult SaveDBToDir(std::string sDir,
+	ProfileLoadResult SaveDBToDir(const std::string& sDir,
 								  const Profile* profile,
 								  DBProfileMode mode) const;
 
-	void MoveBackupToDir(const std::string& sFromDir,
+	static void MoveBackupToDir(const std::string& sFromDir,
 						 const std::string& sToDir,
 						 DBProfileMode mode);
 
@@ -34,37 +36,37 @@ class DBProfile
 
   private:
 	Profile* loadingProfile{ nullptr };
-	static auto GetChartKeyID(SQLite::Database* db, std::string key) -> int;
+	static auto GetChartKeyID(SQLite::Database* db, const std::string& key) -> int;
 	static auto GetChartKeyByID(SQLite::Database* db, int id) -> std::string;
-	static auto FindOrCreateChartKey(SQLite::Database* db, std::string key)
+	static auto FindOrCreateChartKey(SQLite::Database* db, const std::string& key)
 	  -> int;
 	static auto FindOrCreateSong(SQLite::Database* db,
-								 std::string pack,
-								 std::string song) -> int;
+								 const std::string& pack,
+								 const std::string& song) -> int;
 	static auto FindOrCreateChart(SQLite::Database* db,
-								  std::string chartkey,
-								  std::string pack,
-								  std::string song,
+								  const std::string& chartkey,
+								  const std::string& pack,
+								  const std::string& song,
 								  Difficulty diff) -> int;
-	static auto GetScoreKeyID(SQLite::Database* db, std::string key) -> int;
-	static auto FindOrCreateScoreKey(SQLite::Database* db, std::string key)
+	static auto GetScoreKeyID(SQLite::Database* db, const std::string& key) -> int;
+	static auto FindOrCreateScoreKey(SQLite::Database* db, const std::string& key)
 	  -> int;
 
 	void LoadFavourites(SQLite::Database* db);
 	void LoadPlayLists(SQLite::Database* db);
-	void LoadPlayerScores(SQLite::Database* db);
+	static void LoadPlayerScores(SQLite::Database* db);
 	auto LoadGeneralData(SQLite::Database* db) -> bool;
 	void LoadPermaMirrors(SQLite::Database* db);
 	void LoadScoreGoals(SQLite::Database* db);
 
-	void SaveFavourites(SQLite::Database* db, const Profile* profile) const;
-	void SavePlayLists(SQLite::Database* db, const Profile* profile) const;
-	void SavePlayerScores(SQLite::Database* db,
+	static void SaveFavourites(SQLite::Database* db, const Profile* profile);
+	static void SavePlayLists(SQLite::Database* db, const Profile* profile);
+	static void SavePlayerScores(SQLite::Database* db,
 						  const Profile* profile,
-						  DBProfileMode mode) const;
-	void SaveGeneralData(SQLite::Database* db, const Profile* profile) const;
-	void SavePermaMirrors(SQLite::Database* db, const Profile* profile) const;
-	void SaveScoreGoals(SQLite::Database* db, const Profile* profile) const;
+						  DBProfileMode mode);
+	static void SaveGeneralData(SQLite::Database* db, const Profile* profile);
+	static void SavePermaMirrors(SQLite::Database* db, const Profile* profile);
+	static void SaveScoreGoals(SQLite::Database* db, const Profile* profile);
 };
 
 #endif

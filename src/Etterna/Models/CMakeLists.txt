@@ -157,7 +157,6 @@ list(APPEND REST_HPP
 	"Misc/DisplaySpec.h"
 	"Misc/Difficulty.h"
 	"Misc/EnumHelper.h"
-	"Misc/EnumHelper.h"
 	"Misc/Foreach.h"
 	"Misc/Game.h"
 	"Misc/GameCommand.h"

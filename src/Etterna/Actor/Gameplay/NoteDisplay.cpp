@@ -1121,7 +1121,7 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 
 		// (step 2 of vector handling)
 		RageVector3 render_left;
-		if (abs(render_forward.z) > 0.9f) // 0.9 arbitrariliy picked.
+		if (std::abs(render_forward.z) > 0.9f) // 0.9 arbitrariliy picked.
 		{
 			RageVec3Cross(&render_left, &pos_y_vec, &render_forward);
 		} else {

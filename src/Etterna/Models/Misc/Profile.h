@@ -73,12 +73,12 @@ class ScoreGoal
 	bool achieved = false;
 	DateTime timeassigned;
 	DateTime timeachieved;
-	std::string comment = "";
-	std::string chartkey = "";
+	std::string comment;
+	std::string chartkey;
 
 	// which specific score was this goal achieved by, reminder to consider
 	// what happens when individual score deletion is possibly added -mina
-	std::string scorekey = "";
+	std::string scorekey;
 
 	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
@@ -126,13 +126,7 @@ class Profile
 	// added to SwapExceptPriority won't be swapped correctly when the user
 	// changes the list priority of a profile. -Kyz
 	Profile()
-	  :
-
-	  m_sDisplayName("")
-	  , m_sLastUsedHighScoreName("")
-	  , m_sGuid(MakeGuid())
-	  , m_sLastPlayedMachineGuid("")
-	  , profiledir("")
+	  : m_sGuid(MakeGuid())
 	{
 		m_lastSong.Unset();
 		m_fPlayerRating = 0.F;
@@ -258,7 +252,7 @@ class Profile
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
 	bool asc = false;
 
-	auto HasGoal(const std::string& ck) -> bool
+	auto HasGoal(const std::string& ck) const -> bool
 	{
 		return goalmap.count(ck) == 1;
 	}
@@ -277,7 +271,7 @@ class Profile
 	// Screenshot Data
 	std::vector<Screenshot> m_vScreenshots;
 	void AddScreenshot(const Screenshot& screenshot);
-	auto GetNextScreenshotIndex() -> int { return m_vScreenshots.size(); }
+	int GetNextScreenshotIndex() const { return static_cast<int>(m_vScreenshots.size()); }
 
 	// Init'ing
 	void InitAll()

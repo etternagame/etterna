@@ -120,7 +120,6 @@ MusicWheel::BeginScreen()
 	{
 		const auto& from = getWheelItemsData(SORT_MODE_MENU);
 		for (auto* i : from) {
-			assert(&*i->m_pAction != nullptr);
 			if (i->m_pAction->DescribesCurrentModeForAllPlayers()) {
 				m_sLastModeMenuItem = i->m_pAction->m_sName;
 				break;
