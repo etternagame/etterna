@@ -416,9 +416,10 @@ t[#t + 1] =
 			self:xy(frameX + 120, frameY - 60):halign(0):zoom(0.6, maxwidth, 125)
 		end,
 		MintyFreshCommand = function(self)
-			if song then
+			if song and GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() == 4 then
 				local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 1)
 				local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
+
 				self:settext(out)
 			else
 				self:settext("")
@@ -437,7 +438,7 @@ t[#t + 1] =
 			self:xy(frameX + 120, frameY - 30):halign(0):zoom(0.6, maxwidth, 125)
 		end,
 		MintyFreshCommand = function(self)
-			if song then
+			if song and GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() == 4 then
 				local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 2)
 				local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
 				self:settext(out)
@@ -458,7 +459,7 @@ t[#t + 1] =
 			self:xy(frameX + 120, frameY):halign(0):zoom(0.6, maxwidth, 125)
 		end,
 		MintyFreshCommand = function(self)
-			if song then
+			if song and GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() == 4 then
 				local ss = steps:GetRelevantSkillsetsByMSDRank(getCurRateValue(), 3)
 				local out = ss == "" and "" or ms.SkillSetsTranslatedByName[ss]
 				self:settext(out)
