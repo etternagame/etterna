@@ -6,6 +6,7 @@
 #include <CoreServices/CoreServices.h>
 #include <AudioToolbox/AudioServices.h>
 #include <CoreAudio/CoreAudio.h>
+#include <AudioUnit/AudioComponent.h>
 
 REGISTER_SOUND_DRIVER_CLASS2(AudioUnit, AU);
 
@@ -142,7 +143,7 @@ SetSampleRate(AudioUnit au, Float64 desiredRate)
 std::string
 RageSoundDriver_AU::Init()
 {
-	ComponentDescription desc;
+	AudioComponentDescription desc;
 
 	desc.componentType = kAudioUnitType_Output;
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
@@ -150,12 +151,12 @@ RageSoundDriver_AU::Init()
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 
-	Component comp = FindNextComponent(NULL, &desc);
+	AudioComponent comp = AudioComponentFindNext(NULL, &desc);
 
 	if (comp == NULL)
 		return "Failed to find the default output unit.";
 
-	OSStatus error = OpenAComponent(comp, &m_OutputUnit);
+    OSStatus error = AudioComponentInstanceNew(comp, &m_OutputUnit);
 
 	if (error != noErr || m_OutputUnit == NULL)
 		return ERROR("Could not open the default output unit", error);
