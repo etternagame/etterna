@@ -6,6 +6,8 @@
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "Core/Platform/Window/GLFWWindowBackend.hpp"
+#include "Core/Platform/Window/VideoMode.hpp"
+using namespace Core::Platform::Window;
 
 #include <chrono>
 #include <set>
@@ -141,29 +143,48 @@ class RageDisplay
 	RageDisplay();
 	virtual ~RageDisplay();
 
-	virtual auto Init(const VideoModeParams& p,
-					  bool bAllowUnacceleratedRenderer) -> std::string = 0;
+	// Display Initialization Related
+	/** @brief Attempt to create the window */
+	virtual auto Init(const VideoMode& p, bool bAllowUnacceleratedRenderer) -> std::string = 0;
 
-	[[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
+    /**
+     * Publicly accessible function to attempt changing the video mode.
+     *
+     * Don't override this.  Override TryVideoMode() instead.
+     * This will set the video mode to be as close as possible to params.
+     * Return true if device was re-created and we need to reload textures.
+     *
+     * @return Error string, empty if successful
+     */
+    auto SetVideoMode(VideoMode p, bool& bNeedReloadTextures) -> std::string;
+
+    /**
+     * Backend-specific function overridden to attempt a videomode change
+     *
+     * return std::string() if mode change was successful, an error message
+     * otherwise. bNewDeviceOut is set true if a new device was created and
+     * extures need to be reloaded.
+     *
+     * @param p
+     * @param bNewDeviceOut
+     * @return Error string, empty if successful.
+     */
+    virtual auto TryVideoMode(const VideoMode& p, bool& bNewDeviceOut) -> std::string = 0;
+
+    // Display State/Info related
+    [[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
+    auto IsD3D() -> bool;
+    VideoMode getVideoMode() { return videoMode; }
+
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
 	void SetPresentTime(std::chrono::nanoseconds presentTime);
 
-	// Don't override this.  Override TryVideoMode() instead.
-	// This will set the video mode to be as close as possible to params.
-	// Return true if device was re-created and we need to reload textures.
-	auto SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
-	  -> std::string;
-
 	// Call this when the resolution has been changed externally:
 	virtual void ResolutionChanged();
-	auto IsD3D() -> bool;
 
 	virtual auto BeginFrame() -> bool;
 	virtual void EndFrame();
-	[[nodiscard]] virtual auto GetActualVideoModeParams() const
-	  -> const ActualVideoModeParams* = 0;
-	auto IsWindowed() -> bool { return (*GetActualVideoModeParams()).windowed; }
 
 	auto GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 		-> float;
@@ -336,12 +357,6 @@ class RageDisplay
 
 	virtual auto IsD3DInternal() -> bool;
 
-	// return std::string() if mode change was successful, an error message
-	// otherwise. bNewDeviceOut is set true if a new device was created and
-	// textures need to be reloaded.
-	virtual auto TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
-	  -> std::string = 0;
-
 	void DrawPolyLine(const RageSpriteVertex& p1,
 					  const RageSpriteVertex& p2,
 					  float LineWidth);
@@ -462,7 +477,8 @@ class RageDisplay
 	 * GLFW is used, even if OpenGL is not used. If the GLFW_CLIENT_API window
 	 * hint is set to GLFW_NO_API, then only an empty will be created.
 	 */
-	std::unique_ptr<Core::Platform::Window::GLFWWindowBackend> window;
+	std::unique_ptr<GLFWWindowBackend> window;
+	VideoMode videoMode;
 };
 
 extern RageDisplay*

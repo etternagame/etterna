@@ -8,7 +8,7 @@ class RageDisplay_D3D : public RageDisplay
   public:
 	RageDisplay_D3D();
 	~RageDisplay_D3D() override;
-	auto Init(const VideoModeParams& p, bool bAllowUnacceleratedRenderer)
+	auto Init(const VideoMode& p, bool bAllowUnacceleratedRenderer)
 	  -> std::string override;
 
 	[[nodiscard]] auto GetApiDescription() const -> std::string override
@@ -22,8 +22,7 @@ class RageDisplay_D3D : public RageDisplay
 
 	auto BeginFrame() -> bool override;
 	void EndFrame() override;
-	[[nodiscard]] auto GetActualVideoModeParams() const
-	  -> const ActualVideoModeParams* override;
+
 	void SetBlendMode(BlendMode mode) override;
 	auto SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime = false)
 	  -> bool override;
@@ -98,7 +97,7 @@ class RageDisplay_D3D : public RageDisplay
 	void DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 									  int iMeshIndex) override;
 
-	auto TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
+	auto TryVideoMode(const VideoMode& p, bool& bNewDeviceOut)
 	  -> std::string override;
 	auto CreateScreenshot() -> RageSurface* override;
 	auto GetOrthoMatrix(float l, float r, float b, float t, float zn, float zf)

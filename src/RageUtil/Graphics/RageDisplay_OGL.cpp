@@ -467,14 +467,17 @@ static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
 												  "with this game and should "
 												  "be disabled.");
 std::string
-RageDisplay_Legacy::Init(const VideoModeParams& p,
+RageDisplay_Legacy::Init(const VideoMode& p,
 						 bool bAllowUnacceleratedRenderer)
 {
-    window = std::make_unique<GLFWWindowBackend>(p.sWindowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
+    this->videoMode = p;
+    window = std::make_unique<GLFWWindowBackend>(p.windowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
     window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
     window->create();
+
+    this->videoMode.refreshRate = window->getRefreshRate();
 
     auto bIgnore = false;
 	auto sError = SetVideoMode(p, bIgnore);
@@ -687,7 +690,8 @@ SetupExtensions()
 bool
 RageDisplay_Legacy::UseOffscreenRenderTarget()
 {
-	if (!(*GetActualVideoModeParams()).renderOffscreen || !TEXTUREMAN) {
+//	if (!(*GetActualVideoModeParams()).renderOffscreen || !TEXTUREMAN) {
+    if (false || !TEXTUREMAN) {
 		return false;
 	}
 
@@ -696,8 +700,8 @@ RageDisplay_Legacy::UseOffscreenRenderTarget()
 		param.bWithDepthBuffer = true;
 		param.bWithAlpha = true;
 		param.bFloat = false;
-		param.iWidth = (*GetActualVideoModeParams()).width;
-		param.iHeight = (*GetActualVideoModeParams()).height;
+		param.iWidth = window->getFrameBufferSize().width; //(*GetActualVideoModeParams()).width;
+		param.iHeight = window->getFrameBufferSize().height; //(*GetActualVideoModeParams()).height;
 		const RageTextureID id(
 		  ssprintf("FullscreenTexture%dx%d", param.iWidth, param.iHeight));
 		// See if we have this texture loaded already
@@ -735,7 +739,7 @@ RageDisplay_Legacy::ResolutionChanged()
 // bNewDeviceOut is set true if a new device was created and textures
 // need to be reloaded.
 std::string
-RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
+RageDisplay_Legacy::TryVideoMode(const VideoMode& p, bool& bNewDeviceOut)
 {
 	// LOG->Warn( "RageDisplay_Legacy::TryVideoMode( %d, %d, %d, %d, %d, %d )",
 	// p.windowed, p.width, p.height, p.bpp, p.rate, p.vsync );
@@ -829,10 +833,10 @@ RageDisplay_Legacy::EndFrame()
 		CameraPushMatrix();
 		LoadMenuPerspective(
 		  0,
-		  static_cast<float>(GetActualVideoModeParams()->width),
-		  static_cast<float>(GetActualVideoModeParams()->height),
-		  static_cast<float>(GetActualVideoModeParams()->width) / 2.f,
-		  static_cast<float>(GetActualVideoModeParams()->height) / 2.f);
+		  static_cast<float>(window->getFrameBufferSize().width),
+		  static_cast<float>(window->getFrameBufferSize().height),
+		  static_cast<float>(window->getFrameBufferSize().width) / 2.f,
+		  static_cast<float>(window->getFrameBufferSize().height) / 2.f);
 		fullscreenSprite.Draw();
 		CameraPopMatrix();
 	}
@@ -851,7 +855,7 @@ RageDisplay_Legacy::EndFrame()
 
 	SetPresentTime(endTime);
 
-	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
+	FrameLimitAfterVsync(videoMode.refreshRate);
 
 	g_pWind->Update();
 
@@ -942,18 +946,6 @@ RageDisplay_Legacy::GetTexture(intptr_t iTexture)
 	AssertNoGLError();
 
 	return pImage;
-}
-
-const ActualVideoModeParams*
-RageDisplay_Legacy::GetActualVideoModeParams() const
-{
-    return new ActualVideoModeParams{
-            VideoModeParams(true, "display_id",
-                            1280, 720, 32, 60, true,
-                            false, true, true, true,
-                            false, "title", "", false,
-                            1280 / 720)};
-//	return g_pWind->GetActualVideoModeParams();
 }
 
 static void
@@ -1586,7 +1578,7 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 										  int iNumVerts,
 										  float fLineWidth)
 {
-	if (!(*GetActualVideoModeParams()).bSmoothLines) {
+	if (!PREFSMAN->m_bSmoothLines) {
 		/* Fall back on the generic polygon-based line strip. */
 		RageDisplay::DrawLineStripInternal(v, iNumVerts, fLineWidth);
 		return;
@@ -1766,10 +1758,10 @@ RageDisplay_Legacy::SetTextureFiltering(TextureUnit tu, bool b)
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 1, GL_TEXTURE_WIDTH, &iWidth2);
 		if (iWidth1 > 1 && iWidth2 != 0) {
 			/* Mipmaps are enabled. */
-//			if ((*g_pWind->GetActualVideoModeParams()).bTrilinearFiltering)
+			if (PREFSMAN->m_bTrilinearFiltering)
 				iMinFilter = GL_LINEAR_MIPMAP_LINEAR;
-//			else
-//				iMinFilter = GL_LINEAR_MIPMAP_NEAREST;
+			else
+				iMinFilter = GL_LINEAR_MIPMAP_NEAREST;
 		} else {
 			iMinFilter = GL_LINEAR;
 		}
@@ -2263,15 +2255,14 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 
 	glBindTexture(GL_TEXTURE_2D, iTexHandle);
 
-//	if ((*g_pWind->GetActualVideoModeParams()).bAnisotropicFiltering &&
-//		GLEW_EXT_texture_filter_anisotropic) {
+	if (PREFSMAN->m_bAnisotropicFiltering && GLAD_GL_EXT_texture_filter_anisotropic) {
 		GLfloat fLargestSupportedAnisotropy;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
 					&fLargestSupportedAnisotropy);
 		glTexParameterf(GL_TEXTURE_2D,
 						GL_TEXTURE_MAX_ANISOTROPY_EXT,
 						fLargestSupportedAnisotropy);
-//	}
+	}
 
 	SetTextureFiltering(TextureUnit_1, true);
 	SetTextureWrapping(TextureUnit_1, false);

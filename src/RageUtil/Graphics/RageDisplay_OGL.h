@@ -36,7 +36,7 @@ class RageDisplay_Legacy : public RageDisplay
   public:
 	RageDisplay_Legacy();
 	~RageDisplay_Legacy() override;
-	std::string Init(const VideoModeParams& p,
+	std::string Init(const VideoMode& p,
 					 bool bAllowUnacceleratedRenderer) override;
 
 	std::string GetApiDescription() const override { return "OpenGL"; }
@@ -47,7 +47,6 @@ class RageDisplay_Legacy : public RageDisplay
 
 	bool BeginFrame() override;
 	void EndFrame() override;
-	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
@@ -133,7 +132,7 @@ class RageDisplay_Legacy : public RageDisplay
 	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 										int iNumVerts) override;
 
-	std::string TryVideoMode(const VideoModeParams& p,
+	std::string TryVideoMode(const VideoMode& p,
 							 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
 	RagePixelFormat GetImgPixelFormat(RageSurface*& img,
