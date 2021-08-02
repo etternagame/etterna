@@ -11,15 +11,13 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <archutils/Win32/GraphicsWindow.h>
-
 #endif
 
 #include <GLFW/glfw3.h>
 
 namespace Core::Platform::Window {
 
-    GLFWWindowBackend::GLFWWindowBackend(std::string_view title, const Dimensions &size)
-    : IWindowBackend(title, size) {
+    GLFWWindowBackend::GLFWWindowBackend(const VideoMode &params) : IWindowBackend(params) {
         glfwInit();
 
         glfwSetErrorCallback([](int error, const char* desc){
@@ -66,7 +64,7 @@ namespace Core::Platform::Window {
         // invokable function, and should not be called.
         // Window Resize Callback
         glfwSetWindowSizeCallback(this->windowHandle, [](GLFWwindow *window, int width, int height){
-            Dimensions newSize{static_cast<unsigned int>(width), static_cast<unsigned int>(height)};
+            Dimensions newSize{width, height};
             auto backend = static_cast<GLFWWindowBackend*>(glfwGetWindowUserPointer(window));
             backend->size = newSize;
             backend->onResized(newSize);
@@ -151,7 +149,7 @@ namespace Core::Platform::Window {
     Dimensions GLFWWindowBackend::getFrameBufferSize() const {
         int width, height;
         glfwGetFramebufferSize(this->windowHandle, &width, &height);
-        return {static_cast<unsigned int>(width), static_cast<unsigned int>(height)};
+        return {width, height};
     }
 
     int GLFWWindowBackend::getRefreshRate() const {

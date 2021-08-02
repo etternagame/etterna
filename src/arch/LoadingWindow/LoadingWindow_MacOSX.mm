@@ -1,6 +1,7 @@
 #import <Cocoa/Cocoa.h>
 #import "LoadingWindow_MacOSX.h"
 #import "Core/Platform/Window/GLFWWindowBackend.hpp"
+#import "Core/Platform/Window/VideoMode.hpp"
 #import "RageUtil/Utils/RageUtil.h"
 #import "RageUtil/File/RageFile.h"
 #import "Etterna/Singletons/ThemeManager.h"
@@ -68,13 +69,12 @@ static LoadingWindowHelper *g_helper = nullptr;
     windowRect = NSMakeRect( 0, 0, size.width, size.height + height + progressHeight + padding);
 
     // Prepare window
-    Dimensions dims{
-            static_cast<unsigned int>(windowRect.size.width),
-            static_cast<unsigned int>(windowRect.size.height)
-    };
+    VideoMode videoMode;
+    videoMode.width = static_cast<int>(windowRect.size.width);
+    videoMode.height = static_cast<int>(windowRect.size.height);
 
     // Create window via GLFW
-    window = std::make_unique<GLFWWindowBackend>(Core::AppInfo::APP_TITLE, dims);
+    window = std::make_unique<GLFWWindowBackend>(videoMode);
     GLFWWindowBackend::setWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window->create();
     window->update();

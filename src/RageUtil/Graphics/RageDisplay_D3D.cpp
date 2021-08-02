@@ -206,7 +206,7 @@ RageDisplay_D3D::Init(const VideoMode& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
     this->videoMode = p;
-	window = std::make_unique<GLFWWindowBackend>(p.windowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
+	window = std::make_unique<GLFWWindowBackend>(p);
 	window->setWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });

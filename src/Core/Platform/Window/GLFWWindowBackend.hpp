@@ -10,7 +10,7 @@ namespace Core::Platform::Window {
 
 class GLFWWindowBackend : public IWindowBackend {
 public:
-    GLFWWindowBackend(std::string_view title, const Dimensions &size);
+    explicit GLFWWindowBackend(const VideoMode& params);
     ~GLFWWindowBackend() override;
 
     // Overridden Functions
