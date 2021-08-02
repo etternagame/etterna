@@ -5,6 +5,7 @@
 
 /** @brief Sets up a window for OpenGL/D3D. */
 namespace GraphicsWindow {
+	void SetIsFullscreen(bool value);
 	auto GetHwnd() -> HWND;
 	void SetHwnd(HWND hwnd);
 
