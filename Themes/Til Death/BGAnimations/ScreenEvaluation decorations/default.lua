@@ -540,11 +540,11 @@ function scoreBoard(pn, position)
 					color("1,1,1,0")
 				)
 				if aboutToForceWindowSettings then return end
-				self:sleep(0.5):decelerate(2):zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
+				self:sleep(0.2):smooth(1.5):zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
 			end,
 			ForceWindowMessageCommand = function(self, params)
 				local rescoreJudges = getRescoredJudge(dvt, judge, k)
-				self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
+				self:finishtweening():smooth(0.2):zoomx(frameWidth * rescoreJudges / totalTaps)
 			end,
 			ScoreChangedMessageCommand = function(self)
 				self:zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
@@ -552,10 +552,10 @@ function scoreBoard(pn, position)
 			CodeMessageCommand = function(self, params)
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 					local rescoreJudges = getRescoredJudge(dvt, judge, k)
-					self:finishtweening():decelerate(2):zoomx(frameWidth * rescoreJudges / totalTaps)
+					self:finishtweening():bounceend(0.2):zoomx(frameWidth * rescoreJudges / totalTaps)
 				end
 				if params.Name == "ResetJudge" then
-					self:finishtweening():decelerate(2):zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
+					self:finishtweening():bounceend(0.2):zoomx(frameWidth * score:GetTapNoteScore(v) / totalTaps)
 				end
 			end
 		}
