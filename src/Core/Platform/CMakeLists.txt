@@ -2,6 +2,7 @@ list(APPEND CORE_PLATFORM_HPP
      Platform.hpp
      Window/IWindowBackend.hpp
      Window/GLFWWindowBackend.hpp
+     Window/VideoMode.hpp
      )
 
 list(APPEND CORE_PLATFORM_CPP
