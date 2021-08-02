@@ -111,6 +111,9 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 	Locator::getLogger()->trace("TryVideoMode failed: {}", err.c_str());
 	vs.push_back(err);
 
+	/**
+	 * Commenting out this section to not worry abot sDisplayId and bpp for the time being
+	 *
 	// fall back to settings that will most likely work
 	p.bpp = 16;
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
@@ -153,6 +156,7 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
 	vs.push_back(err);
+	*/
 
 	return SETVIDEOMODE_FAILED.GetValue() + " " + join(";", vs);
 }
