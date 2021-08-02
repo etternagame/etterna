@@ -2,11 +2,12 @@
 #define STEP_MANIA_H
 
 #include <string>
+#include "Core/Platform/Window/VideoMode.hpp"
+using namespace Core::Platform::Window;
+
 
 struct Game;
 class RageTimer;
-class VideoModeParams;
-
 
 /** @brief Utility functions for controlling the whole game. */
 namespace StepMania {
@@ -17,7 +18,7 @@ namespace StepMania {
     std::string GetInitialScreen();
     std::string GetSelectMusicScreen();
     void InitializeCurrentGame(const Game* g);
-    void GetPreferredVideoModeParams(VideoModeParams& paramsOut);
+    void GetPreferredVideoModeParams(VideoMode& paramsOut);
     bool GetHighResolutionTextures();
     void HandleInputEvents(float fDeltaTime);
 

@@ -7,8 +7,7 @@ class RageDisplay_Null : public RageDisplay
 {
   public:
 	RageDisplay_Null();
-	std::string Init(const VideoModeParams& p,
-					 bool bAllowUnacceleratedRenderer) override;
+	std::string Init(const VideoMode& p, bool bAllowUnacceleratedRenderer) override;
 
 	std::string GetApiDescription() const override { return "Null"; }
 	void GetDisplaySpecs(DisplaySpecs& out) const override;
@@ -17,10 +16,7 @@ class RageDisplay_Null : public RageDisplay
 
 	bool BeginFrame() override { return true; }
 	void EndFrame() override;
-	const ActualVideoModeParams* GetActualVideoModeParams() const override
-	{
-		return (ActualVideoModeParams*)&m_Params;
-	}
+
 	void SetBlendMode(BlendMode) override {}
 	bool SupportsTextureFormat(RagePixelFormat,
 							   bool /* realtime */ = false) override
@@ -124,9 +120,8 @@ class RageDisplay_Null : public RageDisplay
 	{
 	}
 
-	VideoModeParams m_Params;
-	std::string TryVideoMode(const VideoModeParams& p,
-							 bool& /* bNewDeviceOut */) override
+	VideoMode m_Params;
+	std::string TryVideoMode(const VideoMode& p, bool& /* bNewDeviceOut */) override
 	{
 		m_Params = p;
 		return std::string();

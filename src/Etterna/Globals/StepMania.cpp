@@ -222,13 +222,17 @@ bool CheckVideoDefaultSettings() {
 }
 
 static std::string GetActualGraphicOptionsString() {
-	const VideoModeParams& params = (*DISPLAY->GetActualVideoModeParams());
-	std::string sFormat = "%s %s %dx%d %d " + COLOR.GetValue() + " %d " +
+	auto params = DISPLAY->getVideoMode();
+	std::string sFormat = "%s %s %dx%d " + COLOR.GetValue() + " %d " +
 						  TEXTURE.GetValue() + " %dHz %s %s";
 	std::string sLog = ssprintf(sFormat,
-			   GetVideoDriverName().c_str(), (params.windowed ? WINDOWED : FULLSCREEN).GetValue().c_str(),
-			   params.width, params.height, params.bpp, static_cast<int>(PREFSMAN->m_iTextureColorDepth),
-			   params.rate, (params.vsync ? VSYNC : NO_VSYNC).GetValue().c_str(),
+			   GetVideoDriverName().c_str(),
+			   (params.isFullscreen ? FULLSCREEN : WINDOWED).GetValue().c_str(),
+			   params.width, params.height,
+//			   params.bpp,
+			   static_cast<int>(PREFSMAN->m_iTextureColorDepth),
+			   params.refreshRate,
+			   (params.isVsyncEnabled ? VSYNC : NO_VSYNC).GetValue().c_str(),
 			   (PREFSMAN->m_bSmoothLines ? SMOOTH_LINES : NO_SMOOTH_LINES).GetValue().c_str());
 	return sLog;
 }
@@ -419,9 +423,9 @@ static void StoreActualGraphicOptions() {
 	/* Store the settings that RageDisplay was actually able to use so that
 	 * we don't go through the process of auto-detecting a usable video mode
 	 * every time. */
-	const VideoModeParams& params = (*DISPLAY->GetActualVideoModeParams());
-	PREFSMAN->m_bWindowed.Set(params.windowed && !params.bWindowIsFullscreenBorderless);
-	if (!params.windowed && !params.bWindowIsFullscreenBorderless) {
+	auto params = DISPLAY->getVideoMode();
+	PREFSMAN->m_bWindowed.Set(!params.isFullscreen);
+	if (!params.isFullscreen) {
 		// In all other cases, want to preserve the value of this preference,
 		// but if DISPLAY decides to go fullscreen exclusive, we'll persist that
 		// decision
@@ -435,14 +439,12 @@ static void StoreActualGraphicOptions() {
 		PREFSMAN->m_iDisplayHeight.Set(params.height);
 	}
 
-	PREFSMAN->m_iDisplayColorDepth.Set(params.bpp);
-
 	if (PREFSMAN->m_iRefreshRate != REFRESH_DEFAULT)
-		PREFSMAN->m_iRefreshRate.Set(params.rate);
+		PREFSMAN->m_iRefreshRate.Set(params.refreshRate);
 
-	PREFSMAN->m_bVsync.Set(params.vsync);
+	PREFSMAN->m_bVsync.Set(params.isVsyncEnabled);
 
-	Dialog::SetWindowed(params.windowed);
+	Dialog::SetWindowed(!params.isFullscreen);
 }
 
 static void SwitchToLastPlayedGame() {
@@ -536,68 +538,50 @@ RageDisplay* CreateDisplay() {
 	 * better.
 	 */
 
-	// bool bAppliedDefaults = CheckVideoDefaultSettings();
-	CheckVideoDefaultSettings();
+    if (noWindow) return new RageDisplay_Null; // Determine if display should be created
 
-	VideoModeParams params;
-	StepMania::GetPreferredVideoModeParams(params);
+    // Set default error value
+    std::string error = ERROR_INITIALIZING_CARD.GetValue() + "\n\n" + ERROR_DONT_FILE_BUG.GetValue() + "\n\n" +
+                        ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) + "\n\n";
 
-	std::string error =
-	  ERROR_INITIALIZING_CARD.GetValue() + "\n\n" +
-	  ERROR_DONT_FILE_BUG.GetValue() + "\n\n" +
-	  ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) +
-	  "\n\n";
+	// Load VideoMode settings
+    CheckVideoDefaultSettings();
+    Core::Platform::Window::VideoMode videoMode;
+    StepMania::GetPreferredVideoModeParams(videoMode);
 
-	std::vector<std::string> asRenderers;
-	split(PREFSMAN->m_sVideoRenderers, ",", asRenderers, true);
+	// Load list of backends to use
+    std::vector<std::string> renderers;
+    split(PREFSMAN->m_sVideoRenderers, ",", renderers, true);
+    if(renderers.empty()) {
+        Locator::getLogger()->warn("'VideoRenderers' list in Preferences.ini is empty. Resetting to default: {}",
+                                   PREFSMAN->m_sVideoRenderers.GetDefault());
+        PREFSMAN->m_sVideoRenderers.LoadDefault();
+        split(PREFSMAN->m_sVideoRenderers, ",", renderers, true);
+    }
 
-	if (asRenderers.empty())
-		RageException::Throw("%s", ERROR_NO_VIDEO_RENDERERS.GetValue().c_str());
+	// Determine Backend
+    RageDisplay* display = nullptr;
+    for (const auto& backend : renderers) {
+        if(CompareNoCase(backend, "opengl") == 0){
+            display = new RageDisplay_Legacy; break;
+        }
+        else if(CompareNoCase(backend, "d3d") == 0) {
+            #if defined(SUPPORT_D3D)
+                display = new RageDisplay_D3D; break;
+            #endif
+        }
+        else if(CompareNoCase(backend, "null") == 0){
+            display = new RageDisplay_Null; break;
+        }
+    }
 
-	RageDisplay* pRet = nullptr;
-	if (noWindow) {
-		return new RageDisplay_Null;
-	} else {
-		for (unsigned i = 0; i < asRenderers.size(); i++) {
-			std::string sRenderer = asRenderers[i];
+    // If display is still null, throw error
+    if(display == nullptr) RageException::Throw("%s", error.c_str());
 
-			if (CompareNoCase(sRenderer, "opengl") == 0) {
-				pRet = new RageDisplay_Legacy;
-			} else if (CompareNoCase(sRenderer, "d3d") == 0) {
-// TODO: ANGLE/RageDisplay_Modern
-#if defined(SUPPORT_D3D)
-				pRet = new RageDisplay_D3D;
-#endif
-			} else if (CompareNoCase(sRenderer, "null") == 0) {
-				return new RageDisplay_Null;
-			} else {
-				RageException::Throw(
-				  ERROR_UNKNOWN_VIDEO_RENDERER.GetValue().c_str(),
-				  sRenderer.c_str());
-			}
+    // Run display init process
+    display->Init(videoMode, PREFSMAN->m_bAllowUnacceleratedRenderer);
 
-			if (pRet == nullptr)
-				continue;
-
-			std::string sError =
-			  pRet->Init(params, PREFSMAN->m_bAllowUnacceleratedRenderer);
-			if (!sError.empty()) {
-				error +=
-				  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +
-				  "\n" + sError;
-				SAFE_DELETE(pRet);
-				error += "\n\n\n";
-				continue;
-			}
-
-			break; // the display is ready to go
-		}
-	}
-
-	if (pRet == nullptr)
-		RageException::Throw("%s", error.c_str());
-
-	return pRet;
+    return display;
 }
 #pragma endregion
 
@@ -909,7 +893,7 @@ namespace StepMania {
         }
     }
 
-    void GetPreferredVideoModeParams(VideoModeParams& paramsOut) {
+    void GetPreferredVideoModeParams(VideoMode& paramsOut) {
         // resolution handling code that probably needs fixing
         int iWidth = PREFSMAN->m_iDisplayWidth;
         if (PREFSMAN->m_bWindowed) {
@@ -922,23 +906,14 @@ namespace StepMania {
             iWidth -= iWidth % 2;
         }
 
-        paramsOut = VideoModeParams(
-          PREFSMAN->m_bWindowed || PREFSMAN->m_bFullscreenIsBorderlessWindow,
-          PREFSMAN->m_sDisplayId,
-          iWidth,
-          PREFSMAN->m_iDisplayHeight,
-          PREFSMAN->m_iDisplayColorDepth,
-          PREFSMAN->m_iRefreshRate,
-          PREFSMAN->m_bVsync,
-          PREFSMAN->m_bInterlaced,
-          PREFSMAN->m_bSmoothLines,
-          PREFSMAN->m_bTrilinearFiltering,
-          PREFSMAN->m_bAnisotropicFiltering,
-          !PREFSMAN->m_bWindowed && PREFSMAN->m_bFullscreenIsBorderlessWindow,
-          CommonMetrics::WINDOW_TITLE,
-          THEME->GetPathG("Common", "window icon"),
-          PREFSMAN->m_bPAL,
-          PREFSMAN->m_fDisplayAspectRatio);
+        paramsOut.windowTitle = CommonMetrics::WINDOW_TITLE;
+        paramsOut.windowIcon = THEME->GetPathG("Common", "window icon");
+        paramsOut.width = iWidth;
+        paramsOut.height = PREFSMAN->m_iDisplayHeight;
+        paramsOut.refreshRate = PREFSMAN->m_iRefreshRate;
+        paramsOut.isFullscreen = PREFSMAN->m_bFullscreenIsBorderlessWindow;
+        paramsOut.isBorderless = PREFSMAN->m_bFullscreenIsBorderlessWindow;
+        paramsOut.isVsyncEnabled = PREFSMAN->m_bVsync;
     }
 
     bool GetHighResolutionTextures() {
@@ -958,9 +933,9 @@ namespace StepMania {
     void ApplyGraphicOptions(){
         bool bNeedReload = false;
 
-        VideoModeParams params;
-        GetPreferredVideoModeParams(params);
-        std::string sError = DISPLAY->SetVideoMode(params, bNeedReload);
+//        VideoModeParams params;
+//        GetPreferredVideoModeParams(params);
+        std::string sError = "";//DISPLAY->SetVideoMode(params, bNeedReload);
         if (!sError.empty())
             RageException::Throw("%s", sError.c_str());
 

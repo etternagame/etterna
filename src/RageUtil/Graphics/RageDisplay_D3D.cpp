@@ -12,6 +12,7 @@
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/GraphicsWindow.h"
+#include "Etterna/Singletons/PrefsManager.h"
 
 #include "Etterna/Globals/GameLoop.h"
 
@@ -201,11 +202,11 @@ static LocalizedString HARDWARE_ACCELERATION_NOT_AVAILABLE(
   "manufacturer.");
 
 auto
-RageDisplay_D3D::Init(const VideoModeParams& p,
+RageDisplay_D3D::Init(const VideoMode& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
-    using namespace Core::Platform::Window;
-	window = std::make_unique<GLFWWindowBackend>(p.sWindowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
+    this->videoMode = p;
+	window = std::make_unique<GLFWWindowBackend>(p.windowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
 	window->setWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
@@ -530,7 +531,7 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 	const auto displayFormat = FindBackBufferType(p.windowed, p.bpp);
 	auto enableMultiSampling = false;
 
-	if (p.bSmoothLines &&
+	if (PREFSMAN->m_bSmoothLines &&
 		SUCCEEDED(g_pd3d->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT,
 													 D3DDEVTYPE_HAL,
 													 displayFormat,
@@ -580,7 +581,7 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 
 // Set the video mode.
 auto
-RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
+RageDisplay_D3D::TryVideoMode(const VideoMode& _p, bool& bNewDeviceOut)
   -> std::string
 {
 	auto p = _p;
@@ -820,18 +821,6 @@ RageDisplay_D3D::CreateScreenshot() -> RageSurface*
 	}
 
 	return result;
-}
-
-auto
-RageDisplay_D3D::GetActualVideoModeParams() const
-  -> const ActualVideoModeParams*
-{
-	    return new ActualVideoModeParams{
-            VideoModeParams(true, "display_id",
-                            1280, 720, 32, 60, true,
-                            false, true, true, true,
-                            false, "title", "", false,
-                            1280 / 720)};
 }
 
 void

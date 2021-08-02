@@ -101,7 +101,7 @@ XToString(RagePixelFormat);
 static LocalizedString SETVIDEOMODE_FAILED("RageDisplay",
 										   "SetVideoMode failed:");
 std::string
-RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
+RageDisplay::SetVideoMode(VideoMode p, bool& bNeedReloadTextures)
 {
 	std::string err;
 	std::vector<std::string> vs;
@@ -909,10 +909,8 @@ RageDisplay::GetCenteringMatrix(float fTranslateX,
 {
 	// in screen space, left edge = -1, right edge = 1, bottom edge = -1. top
 	// edge = 1
-	const auto fWidth =
-	  static_cast<float>((*GetActualVideoModeParams()).windowWidth);
-	const auto fHeight =
-	  static_cast<float>((*GetActualVideoModeParams()).windowHeight);
+	const auto fWidth = window->getFrameBufferSize().width;
+	const auto fHeight = window->getFrameBufferSize().height;
 	const auto fPercentShiftX = SCALE(fTranslateX, 0, fWidth, 0, +2.0f);
 	const auto fPercentShiftY = SCALE(fTranslateY, 0, fHeight, 0, -2.0f);
 	const auto fPercentScaleX = SCALE(fAddWidth, 0, fWidth, 1.0f, 2.0f);
@@ -946,12 +944,12 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 	 * to output screenshots in a strange (non-1) sample aspect ratio. */
 	if (format != SAVE_LOSSLESS && format != SAVE_LOSSLESS_SENSIBLE) {
 		// Maintain the DAR.
-		ASSERT((*GetActualVideoModeParams()).fDisplayAspectRatio > 0);
 		const auto iHeight = 480;
 		// This used to be lrintf. However, lrintf causes odd resolutions like
 		// 639x480 (4:3) and 853x480 (16:9). ceilf gives correct values. -aj
-		const auto iWidth = static_cast<int>(
-		  ceilf(iHeight * (*GetActualVideoModeParams()).fDisplayAspectRatio));
+		auto dims = window->getFrameBufferSize();
+		const auto iWidth = static_cast<int>((float)dims.width / (float)dims.height);
+		timer.Touch();
 		RageSurfaceUtils::Zoom(surface, iWidth, iHeight);
 	}
 
@@ -1352,15 +1350,13 @@ class LunaRageDisplay : public Luna<RageDisplay>
   public:
 	static int GetDisplayWidth(T* p, lua_State* L)
 	{
-		const VideoModeParams params = *p->GetActualVideoModeParams();
-		LuaHelpers::Push(L, params.width);
+		LuaHelpers::Push(L, p->getVideoMode().width);
 		return 1;
 	}
 
 	static int GetDisplayHeight(T* p, lua_State* L)
 	{
-		const VideoModeParams params = *p->GetActualVideoModeParams();
-		LuaHelpers::Push(L, params.height);
+		LuaHelpers::Push(L, p->getVideoMode().height);
 		return 1;
 	}
 
@@ -1384,8 +1380,7 @@ class LunaRageDisplay : public Luna<RageDisplay>
 
 	static int GetDisplayRefreshRate(T* p, lua_State* L)
 	{
-		const auto params = p->GetActualVideoModeParams();
-		lua_pushnumber(L, params->rate);
+		lua_pushnumber(L, p->getVideoMode().refreshRate);
 		return 1;
 	}
 
