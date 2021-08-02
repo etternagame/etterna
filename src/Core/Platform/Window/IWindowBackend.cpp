@@ -2,7 +2,8 @@
 
 namespace Core::Platform::Window {
 
-    IWindowBackend::IWindowBackend(std::string_view title, const Dimensions &size) : title(title), size(size) {
+    IWindowBackend::IWindowBackend(const VideoMode& params)
+        : title(params.windowTitle), size(Dimensions{params.width, params.height}) {
     }
 
 

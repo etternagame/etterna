@@ -2,18 +2,19 @@
 #define CORE_PLATFORM_WINDOW_WINDOW_HPP
 
 #include "Core/Utility/ActionDelegate.hpp"
+#include "Core/Platform/Window/VideoMode.hpp"
 
 #include <string>
 
 namespace Core::Platform::Window {
     struct Dimensions {
-        unsigned int width;
-        unsigned int height;
+        int width;
+        int height;
     };
 
     class IWindowBackend {
     public:
-        IWindowBackend(std::string_view title, const Dimensions &size);
+        explicit IWindowBackend(const VideoMode& params);
         virtual ~IWindowBackend() = default;
 
     public:

@@ -468,7 +468,7 @@ RageDisplay_Legacy::Init(const VideoMode& p,
 						 bool bAllowUnacceleratedRenderer)
 {
     this->videoMode = p;
-    window = std::make_unique<GLFWWindowBackend>(p.windowTitle, Dimensions{static_cast<unsigned int>(p.width), static_cast<unsigned int>(p.height)});
+    window = std::make_unique<GLFWWindowBackend>(p);
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
     window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
