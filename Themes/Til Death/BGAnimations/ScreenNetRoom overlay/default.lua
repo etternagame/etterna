@@ -6,8 +6,15 @@ t[#t + 1] =
 		if params.Name == "AvatarShow" and not SCREENMAN:get_input_redirected(PLAYER_1) then
 			SCREENMAN:SetNewScreen("ScreenAssetSettings")
 		end
+	end,
+	OnCommand = function(self)
+		inScreenSelectMusic = true
+	end,
+	EndCommand = function(self)
+		inScreenSelectMusic = nil
 	end
 }
+
 t[#t + 1] = LoadActor("../_frame")
 t[#t + 1] = LoadActor("../_PlayerInfo")
 t[#t + 1] = LoadActor("currentsort")
