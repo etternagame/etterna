@@ -21,6 +21,7 @@ public:
     void *getNativeWindow() const override;
     void setTitle(const std::string &title) override;
     Dimensions getFrameBufferSize() const override;
+    int getRefreshRate() const override;
 
     static void setWindowHint(int hint, int value);
 

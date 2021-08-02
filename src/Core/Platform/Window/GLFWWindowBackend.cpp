@@ -153,6 +153,12 @@ namespace Core::Platform::Window {
         return {static_cast<unsigned int>(width), static_cast<unsigned int>(height)};
     }
 
+    int GLFWWindowBackend::getRefreshRate() const {
+        // TODO(james): Don't default to primary monitor?
+        auto videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        return videoMode->refreshRate;
+    }
+
     DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode, int mods){
         // GLFW keycodes are all uppercase ascii. If we're in that ascii, determine if uppercase
         // or lowercase, and convert if necessary.
