@@ -2,18 +2,18 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 
 static HWND g_hWndMain;
-static VideoModeParams g_CurrentParams;
-static ActualVideoModeParams g_ActualParams;
+static bool isFullscreen;
 
 HWND GraphicsWindow::GetHwnd() { return g_hWndMain; }
 void GraphicsWindow::SetHwnd(HWND hwnd){ g_hWndMain = hwnd; }
+void GraphicsWindow::SetIsFullscreen(bool value) { isFullscreen = value; }
 
 BOOL
 GraphicsWindow::PushWindow(int a, int b)
 {
 	HWND g = GetHwnd();
 
-	if (!g_ActualParams.windowed)
+	if (isFullscreen)
 		return 0;
 
 	RECT r;
