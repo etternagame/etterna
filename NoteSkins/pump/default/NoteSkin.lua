@@ -4,8 +4,6 @@ local Noteskin = {}
 Noteskin.bBlanks = {
 	--["element"] = true|false;
 	["Hold Tail Active"] = true,
-	["Hold Tail Active"] = true,
-	["Roll Tail Inactive"] = true,
 	["Roll Tail Inactive"] = true
 }
 Noteskin.PartsToRotate = {

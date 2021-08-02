@@ -34,7 +34,7 @@ DBProfile::LoadDBFromDir(const std::string& dir)
 		// Open a database file
 		db = new SQLite::Database(FILEMAN->ResolvePath(dir) + PROFILE_DB,
 								  SQLite::OPEN_READWRITE);
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedNoProfile;
 	}
 	try {
@@ -46,7 +46,7 @@ DBProfile::LoadDBFromDir(const std::string& dir)
 		LoadScoreGoals(db);
 		LoadPlayLists(db);
 		LoadPlayerScores(db);
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedTampered;
 	}
 	delete db;
@@ -470,7 +470,7 @@ DBProfile::SaveDBToDir(const string& dir,
 		// Open a database file
 		db = new SQLite::Database(filename,
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedNoProfile;
 	}
 	try {
@@ -517,7 +517,7 @@ DBProfile::SaveDBToDir(const string& dir,
 		db->exec("CREATE INDEX IF NOT EXISTS idx_songs "
 				 "ON songs(song, pack, id)");
 		transaction.commit();
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedTampered;
 	}
 	delete db;
@@ -1003,7 +1003,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 										insertOffset.exec();
 									}
 								}
-							} catch (std::exception) { // No replay data for
+							} catch (std::exception&) { // No replay data for
 													   // this score }
 								hs->UnloadReplayData();
 							}
@@ -1127,7 +1127,7 @@ DBProfile::WriteReplayData(const HighScore* hs)
 		// Open a database file
 		db = new SQLite::Database(filename,
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedNoProfile != 0u;
 	}
 	try {
@@ -1148,7 +1148,7 @@ DBProfile::WriteReplayData(const HighScore* hs)
 			insertOffset.exec();
 		}
 		transaction.commit();
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedTampered != 0;
 	}
 	delete db;
