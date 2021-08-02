@@ -234,9 +234,10 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				end,
 				BeginCommand = function(self)
 					if hsTable[index] == nil then return end
-					local wstring = "Wife"
+					local wv = hsTable[index]:GetWifeVers()
+					local wstring = "Wife" .. wv
 					if usingSSRSort then
-						wstring = "Wife J4"
+						wstring = "Wife" .. wv .. " J4"
 					end
 					if hsTable[index]:GetWifeScore() == 0 then
 						self:settextf("NA (%s)", wstring)
