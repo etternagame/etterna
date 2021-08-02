@@ -149,7 +149,37 @@ namespace Core::Platform::Window {
         return {static_cast<unsigned int>(width), static_cast<unsigned int>(height)};
     }
 
-    DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode){
+    int GLFWWindowBackend::getRefreshRate() const {
+        // TODO(james): Don't default to primary monitor?
+        auto videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        return videoMode->refreshRate;
+    }
+
+    DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode, int mods){
+        // GLFW keycodes are all uppercase ascii. If we're in that ascii, determine if uppercase
+        // or lowercase, and convert if necessary.
+        if(65 <= keycode && keycode <= 90) {
+            char asChar = static_cast<char>(keycode);
+            if (mods & GLFW_MOD_SHIFT){
+                switch(keycode){
+                    case GLFW_KEY_1: return KEY_EXCL;
+                    case GLFW_KEY_2: return KEY_AT;
+                    case GLFW_KEY_3: return KEY_HASH;
+                    case GLFW_KEY_4: return KEY_DOLLAR;
+                    case GLFW_KEY_5: return KEY_PERCENT;
+                    case GLFW_KEY_6: return KEY_CARAT;
+                    case GLFW_KEY_7: return KEY_AMPER;
+                    case GLFW_KEY_8: return KEY_ASTERISK;
+                    case GLFW_KEY_9: return KEY_LPAREN;
+                    case GLFW_KEY_0: return KEY_RPAREN;
+                    default:         return DeviceButton(asChar);
+                }
+            } else {
+                return DeviceButton(tolower(asChar));
+            }
+        }
+
+        // Check other keys if not ascii.
         switch (keycode) {
             case GLFW_KEY_BACKSPACE:        return KEY_BACK;
             case GLFW_KEY_TAB:              return KEY_TAB;
