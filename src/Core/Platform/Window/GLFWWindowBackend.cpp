@@ -120,7 +120,8 @@ namespace Core::Platform::Window {
 
         // Window specific mouse position callback
         glfwSetCursorPosCallback(this->windowHandle, [](GLFWwindow* window, double xpos, double ypos){
-            INPUTFILTER->UpdateCursorLocation(static_cast<float>(xpos), static_cast<float>(ypos));
+            if(INPUTFILTER)
+                INPUTFILTER->UpdateCursorLocation(static_cast<float>(xpos), static_cast<float>(ypos));
         });
 
         glfwMakeContextCurrent(this->windowHandle); // Set as render context
