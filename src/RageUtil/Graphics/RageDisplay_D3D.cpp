@@ -673,7 +673,6 @@ auto
 RageDisplay_D3D::BeginFrame() -> bool
 {
 	window->update();
-	window->swapBuffers();
 
 	switch (g_pd3dDevice->TestCooperativeLevel()) {
 		case D3DERR_DEVICELOST:
