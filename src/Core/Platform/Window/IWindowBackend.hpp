@@ -18,10 +18,15 @@ namespace Core::Platform::Window {
         virtual ~IWindowBackend() = default;
 
     public:
+        // Context Related
         virtual void create() = 0;
         virtual void update() const = 0;
         virtual bool exited() const = 0;
         virtual void swapBuffers() const = 0;
+        virtual void setContext() const = 0;
+        virtual void clearContext() const = 0;
+
+        // Data Related
         virtual void *getNativeWindow() const = 0;
         virtual void setTitle(const std::string& title) = 0;
         virtual Dimensions getFrameBufferSize() const = 0;

@@ -13,11 +13,15 @@ public:
     explicit GLFWWindowBackend(const VideoMode& params);
     ~GLFWWindowBackend() override;
 
-    // Overridden Functions
+    // Context Related
     void create() override;
     void update() const override;
     bool exited() const override;
     void swapBuffers() const override;
+    void setContext() const override;
+    void clearContext() const override;
+
+    // Data Related
     void *getNativeWindow() const override;
     void setTitle(const std::string &title) override;
     Dimensions getFrameBufferSize() const override;
