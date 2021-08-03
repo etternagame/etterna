@@ -16,7 +16,7 @@ namespace Core::Platform::Window {
         this->onMoved += func;
     }
 
-    void IWindowBackend::registerOnResized(const ActionDelegate<Dimensions>::CallbackFunc& func) {
+    void IWindowBackend::registerOnWindowResized(const ActionDelegate<int, int>::CallbackFunc& func) {
         this->onResized += func;
     }
 
@@ -32,12 +32,16 @@ namespace Core::Platform::Window {
         this->onFocusGain += func;
     }
 
-    void IWindowBackend::registerOnWindowMinimized(const ActionDelegate<>::VoidFunc& func) {
+    void IWindowBackend::registerOnMaximized(const ActionDelegate<>::VoidFunc& func) {
+        this->onWindowMaximized += func;
+    }
+
+    void IWindowBackend::registerOnMinimized(const ActionDelegate<>::VoidFunc& func) {
         this->onWindowMinimized += func;
     }
 
-    void IWindowBackend::registerOnWindowMaximized(const ActionDelegate<>::VoidFunc& func) {
-        this->onWindowMaximized += func;
+    void IWindowBackend::registerOnFrameBufferResized(const ActionDelegate<int, int>::CallbackFunc &func) {
+        this->onFrameBufferResize += func;
     }
 
 }

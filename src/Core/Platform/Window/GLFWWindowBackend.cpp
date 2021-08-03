@@ -67,7 +67,7 @@ namespace Core::Platform::Window {
             auto backend = static_cast<GLFWWindowBackend*>(glfwGetWindowUserPointer(window));
             backend->videoMode.width = width;
             backend->videoMode.height = height;
-            backend->onResized(Dimensions{width, height});
+            backend->onResized(width, height);
         });
 
         // Window Focus Callback
