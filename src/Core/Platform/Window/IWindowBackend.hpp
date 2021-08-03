@@ -14,7 +14,7 @@ namespace Core::Platform::Window {
 
     class IWindowBackend {
     public:
-        explicit IWindowBackend(const VideoMode& params);
+        explicit IWindowBackend(VideoMode  params);
         virtual ~IWindowBackend() = default;
 
     public:
@@ -32,8 +32,7 @@ namespace Core::Platform::Window {
         virtual Dimensions getFrameBufferSize() const = 0;
         virtual int getRefreshRate() const = 0;
 
-        const std::string& getTitle() const;
-        Dimensions getDimensions() const;
+        const VideoMode& getVideoMode() const;
 
         // Callback Registration
         void registerOnMoved(const ActionDelegate<int, int>::CallbackFunc& func);
@@ -46,8 +45,7 @@ namespace Core::Platform::Window {
 
     protected:
         // Window data
-        std::string title;
-        Dimensions size;
+        VideoMode videoMode;
 
         // Window Callbacks
         ActionDelegate<int, int> onMoved;         /** @brief Triggered when window position changes */
