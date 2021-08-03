@@ -341,8 +341,6 @@ InputFilter::Update(float fDeltaTime)
 {
 	auto now = std::chrono::steady_clock::now();
 
-	INPUTMAN->Update();
-
 	/* Make sure that nothing gets inserted while we do this, to prevent things
 	 * like "key pressed, key release, key repeat". */
 	LockMut(*queuemutex);

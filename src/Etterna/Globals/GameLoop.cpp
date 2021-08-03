@@ -264,22 +264,6 @@ namespace GameLoop {
              * acting on song beat from last frame */
             StepMania::HandleInputEvents(fDeltaTime);
 
-            static float deviceCheckWait = 0.f;
-            deviceCheckWait += fDeltaTime;
-
-            if (deviceCheckWait >= 1.0f) {
-                deviceCheckWait = 0.f;
-
-                if (INPUTMAN->DevicesChanged()) {
-                    INPUTFILTER->Reset(); // fix "buttons stuck" if button held
-                                          // while unplugged
-                    INPUTMAN->LoadDrivers();
-                    std::string sMessage;
-                    if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
-                        SCREENMAN->SystemMessage(sMessage);
-                }
-            }
-
             // Render
             SCREENMAN->Draw();
         }

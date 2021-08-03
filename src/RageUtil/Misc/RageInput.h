@@ -15,17 +15,12 @@ class RageInput
 	RageInput();
 	~RageInput();
 
-	void LoadDrivers();
-	void Update();
-	bool DevicesChanged();
-	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vOut) const;
-	void WindowReset();
-	void AddHandler(InputHandler* pHandler);
-	InputHandler* GetHandlerForDevice(InputDevice id);
-	std::string GetDeviceSpecificInputString(const DeviceInput& di);
-	std::string GetLocalizedInputString(const DeviceInput& di);
-	wchar_t DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers);
-	InputDeviceState GetInputDeviceState(InputDevice id);
+	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vOut) const;
+	static InputHandler* GetHandlerForDevice(InputDevice id);
+	static std::string GetDeviceSpecificInputString(const DeviceInput& di);
+	static std::string GetLocalizedInputString(const DeviceInput& di);
+	static wchar_t DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers);
+	static InputDeviceState GetInputDeviceState(InputDevice id);
 	std::string GetDisplayDevicesString() const;
 
 	// Lua

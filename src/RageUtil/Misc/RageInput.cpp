@@ -37,7 +37,6 @@ RageInput::RageInput()
 		LUA->Release(L);
 	}
 
-	LoadDrivers();
 }
 
 RageInput::~RageInput()
@@ -54,82 +53,21 @@ RageInput::~RageInput()
 
 static LocalizedString NO_INPUT_DEVICES_LOADED("RageInput",
 											   "No input devices were loaded.");
-void
-RageInput::LoadDrivers()
-{
-	return;
-	for (auto& m_InputHandler : m_InputHandlers)
-		delete m_InputHandler.m_pDevice;
-	m_InputHandlers.clear();
-	g_mapDeviceToHandler.clear();
 
-	// Init optional devices.
-	std::vector<InputHandler*> apDevices;
-
-//	InputHandler::Create(g_sInputDrivers, apDevices);
-	for (auto& apDevice : apDevices)
-		AddHandler(apDevice);
-
-	// If no input devices are loaded, the user won't be able to input anything.
-	if (apDevices.size() == 0)
-		Locator::getLogger()->warn(NO_INPUT_DEVICES_LOADED.GetValue().c_str());
-}
 
 void
-RageInput::Update()
-{
-	// Update optional devices.
-//	for (auto& m_InputHandler : m_InputHandlers)
-//		m_InputHandler.m_pDevice->Update();
-}
-
-bool
-RageInput::DevicesChanged()
-{
-	// Update optional devices.
-//	for (auto& m_InputHandler : m_InputHandlers) {
-//		if (m_InputHandler.m_pDevice->DevicesChanged())
-//			return true;
-//	}
-	return false;
-}
-
-void
-RageInput::GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut) const
+RageInput::GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut) const
 {
 //	for (auto& m_InputHandler : m_InputHandlers)
 //		m_InputHandler.m_pDevice->GetDevicesAndDescriptions(vDevicesOut);
 }
 
-void
-RageInput::WindowReset()
-{
-//	for (auto& m_InputHandler : m_InputHandlers)
-//		m_InputHandler.m_pDevice->WindowReset();
-}
-
-void
-RageInput::AddHandler(InputHandler* pHandler)
-{
-	return;
-	ASSERT(pHandler != nullptr);
-
-	LoadedInputHandler hand;
-	hand.m_pDevice = pHandler;
-	m_InputHandlers.push_back(hand);
-
-	vector<InputDeviceInfo> aDeviceInfo;
-//	hand.m_pDevice->GetDevicesAndDescriptions(aDeviceInfo);
-	for (auto& idi : aDeviceInfo)
-		g_mapDeviceToHandler[idi.id] = pHandler;
-}
 
 /** @brief Return the first InputDriver for the requested InputDevice. */
 InputHandler*
 RageInput::GetHandlerForDevice(const InputDevice id)
 {
-	std::map<InputDevice, InputHandler*>::iterator it =
-	  g_mapDeviceToHandler.find(id);
+	auto it = g_mapDeviceToHandler.find(id);
 	if (it == g_mapDeviceToHandler.end())
 		return nullptr;
 	return it->second;
@@ -138,54 +76,48 @@ RageInput::GetHandlerForDevice(const InputDevice id)
 std::string
 RageInput::GetDeviceSpecificInputString(const DeviceInput& di)
 {
-	return "GetDeviceSpecificInputStringRetVal";
-//	InputHandler* pDriver = GetHandlerForDevice(di.device);
-//	if (pDriver != nullptr)
-//		return pDriver->GetDeviceSpecificInputString(di);
-//	else
-//		return di.ToString();
+	if (di.device == InputDevice_Invalid)
+		return std::string();
+
+	if (di.device == DEVICE_KEYBOARD) {
+		wchar_t c = DeviceInputToChar(di, false);
+		if (c && c != L' ') // Don't show "Key  " for space.
+			return InputDeviceToString(di.device) + " " +
+				   Capitalize(WStringToString(std::wstring() + c));
+	}
+
+	std::string s = DeviceButtonToString(di.button);
+	if (di.device != DEVICE_KEYBOARD)
+		s = InputDeviceToString(di.device) + " " + s;
+	return s;
 }
 
 std::string
 RageInput::GetLocalizedInputString(const DeviceInput& di)
 {
-//	InputHandler* pDriver = GetHandlerForDevice(di.device);
-//	if (pDriver != nullptr)
-//		return pDriver->GetLocalizedInputString(di);
-//	else
-//		return Capitalize(DeviceButtonToString(di.button));
-    return "GetLocalizedInputStringRetVal";
+   return Capitalize(DeviceButtonToString(di.button));
 }
 
 wchar_t
 RageInput::DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers)
 {
-	InputHandler* pDriver = GetHandlerForDevice(di.device);
-	if (pDriver != nullptr){
-
-//        return pDriver->DeviceButtonToChar(di.button, bUseCurrentKeyModifiers);
-
-    } else {
-	    auto button = di.button;
-        wchar_t c = L'\0';
-        switch (button) {
-            case KEY_KP_SLASH:      c = L'/'; break;
-            case KEY_KP_ASTERISK:   c = L'*'; break;
-            case KEY_KP_HYPHEN:     c = L'-'; break;
-            case KEY_KP_PLUS:       c = L'+'; break;
-            case KEY_KP_PERIOD:     c = L'.'; break;
-            case KEY_KP_EQUAL:      c = L'='; break;
-            default:
-                if (button < 127)
-                    c = (wchar_t)button;
-                else if (button >= KEY_KP_C0 && button <= KEY_KP_C9)
-                    c = (wchar_t)(button - KEY_KP_C0) + '0';
-                break;
-        }
-        return c;
-	}
-
-	return '\0';
+    auto button = di.button;
+    wchar_t c = L'\0';
+    switch (button) {
+        case KEY_KP_SLASH:      c = L'/'; break;
+        case KEY_KP_ASTERISK:   c = L'*'; break;
+        case KEY_KP_HYPHEN:     c = L'-'; break;
+        case KEY_KP_PLUS:       c = L'+'; break;
+        case KEY_KP_PERIOD:     c = L'.'; break;
+        case KEY_KP_EQUAL:      c = L'='; break;
+        default:
+            if (button < 127)
+                c = (wchar_t)button;
+            else if (button >= KEY_KP_C0 && button <= KEY_KP_C9)
+                c = (wchar_t)(button - KEY_KP_C0) + '0';
+            break;
+    }
+    return c;
 }
 
 InputDeviceState
