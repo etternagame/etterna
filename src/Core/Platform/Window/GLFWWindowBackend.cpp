@@ -117,7 +117,6 @@ namespace Core::Platform::Window {
             INPUTFILTER->UpdateCursorLocation(static_cast<float>(xpos), static_cast<float>(ypos));
         });
 
-        glfwMakeContextCurrent(this->windowHandle); // Set as render context
 		glfwSwapInterval(0); // Don't wait for vsync
     }
 
@@ -131,6 +130,14 @@ namespace Core::Platform::Window {
 
     void GLFWWindowBackend::swapBuffers() const {
         glfwSwapBuffers(this->windowHandle);
+    }
+
+    void GLFWWindowBackend::setContext() const {
+        glfwMakeContextCurrent(this->windowHandle);
+    }
+
+    void GLFWWindowBackend::clearContext() const {
+        glfwMakeContextCurrent(nullptr);
     }
 
     void *GLFWWindowBackend::getNativeWindow() const {

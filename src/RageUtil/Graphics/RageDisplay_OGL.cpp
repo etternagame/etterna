@@ -473,6 +473,7 @@ RageDisplay_Legacy::Init(const VideoMode& p,
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
     window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
     window->create();
+    window->setContext();
 
     this->videoMode.refreshRate = window->getRefreshRate();
 
