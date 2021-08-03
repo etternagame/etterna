@@ -1,18 +1,15 @@
 #include "IWindowBackend.hpp"
 
+#include <utility>
+
 namespace Core::Platform::Window {
 
-    IWindowBackend::IWindowBackend(const VideoMode& params)
-        : title(params.windowTitle), size(Dimensions{params.width, params.height}) {
+    IWindowBackend::IWindowBackend(VideoMode  params) : videoMode(std::move(params)) {
     }
 
 
-    const std::string& IWindowBackend::getTitle() const {
-        return title;
-    }
-
-    Dimensions IWindowBackend::getDimensions() const {
-        return size;
+    const VideoMode& IWindowBackend::getVideoMode() const {
+        return videoMode;
     }
 
     void IWindowBackend::registerOnMoved(const ActionDelegate<int, int>::CallbackFunc& func) {

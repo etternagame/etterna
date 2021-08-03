@@ -2,6 +2,7 @@
 
 #include "Etterna/Singletons/InputFilter.h"
 #include "Core/Services/Locator.hpp"
+#include "RageUtil/File/RageFile.h"
 
 #include <chrono>
 #include <glad/glad.h>
@@ -46,8 +47,7 @@ namespace Core::Platform::Window {
 //#endif
 
         // Create Window
-        this->windowHandle = glfwCreateWindow(static_cast<int>(size.width),static_cast<int>(size.height),
-                                              title.data(), nullptr, nullptr);
+        this->windowHandle = glfwCreateWindow(videoMode.width, videoMode.height, videoMode.windowTitle.c_str(), nullptr, nullptr);
 
         // Reset window hints after window creating in-case other hints have been made.
         glfwDefaultWindowHints();
@@ -64,10 +64,10 @@ namespace Core::Platform::Window {
         // invokable function, and should not be called.
         // Window Resize Callback
         glfwSetWindowSizeCallback(this->windowHandle, [](GLFWwindow *window, int width, int height){
-            Dimensions newSize{width, height};
             auto backend = static_cast<GLFWWindowBackend*>(glfwGetWindowUserPointer(window));
-            backend->size = newSize;
-            backend->onResized(newSize);
+            backend->videoMode.width = width;
+            backend->videoMode.height = height;
+            backend->onResized(Dimensions{width, height});
         });
 
         // Window Focus Callback
