@@ -472,7 +472,7 @@ RageDisplay_Legacy::Init(const VideoMode& p,
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
     window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
-    window->registerOnResized([&](auto size){ ResolutionChanged(); });
+    window->registerOnFrameBufferResized([&](int w, int h){ ResolutionChanged(); });
     window->create();
     window->setContext();
 

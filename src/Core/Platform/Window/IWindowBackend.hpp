@@ -36,25 +36,27 @@ namespace Core::Platform::Window {
 
         // Callback Registration
         void registerOnMoved(const ActionDelegate<int, int>::CallbackFunc& func);
-        void registerOnResized(const ActionDelegate<Dimensions>::CallbackFunc& func);
+        void registerOnWindowResized(const ActionDelegate<int, int>::CallbackFunc& func);
         void registerOnCloseRequested(const ActionDelegate<>::VoidFunc& func);
+		void registerOnFocusGain(const ActionDelegate<>::VoidFunc& func);
         void registerOnFocusLost(const ActionDelegate<>::VoidFunc& func);
-        void registerOnFocusGain(const ActionDelegate<>::VoidFunc& func);
-        void registerOnWindowMinimized(const ActionDelegate<>::VoidFunc& func);
-        void registerOnWindowMaximized(const ActionDelegate<>::VoidFunc& func);
+		void registerOnMaximized(const ActionDelegate<>::VoidFunc& func);
+		void registerOnMinimized(const ActionDelegate<>::VoidFunc& func);
+		void registerOnFrameBufferResized(const ActionDelegate<int, int>::CallbackFunc& func);
 
     protected:
         // Window data
         VideoMode videoMode;
 
         // Window Callbacks
-        ActionDelegate<int, int> onMoved;         /** @brief Triggered when window position changes */
-        ActionDelegate<Dimensions> onResized;     /** @brief Triggered when window changes size */
-        ActionDelegate<> onCloseRequested;        /** @brief Triggered when window close button is clicked */
-        ActionDelegate<> onFocusLost;             /** @brief Triggered when windows loses focus*/
-        ActionDelegate<> onFocusGain;             /** @brief Triggered when window gains focus */
-        ActionDelegate<> onWindowMinimized;       /** @brief Triggered when window is minimized */
-        ActionDelegate<> onWindowMaximized;       /** @brief Triggered when window is maximized */
+        ActionDelegate<int, int> onMoved;               /** @brief Triggered when window position changes */
+        ActionDelegate<int, int> onResized;             /** @brief Triggered when window changes size */
+        ActionDelegate<> onCloseRequested;              /** @brief Triggered when window close button is clicked */
+        ActionDelegate<> onFocusLost;                   /** @brief Triggered when windows loses focus*/
+        ActionDelegate<> onFocusGain;                   /** @brief Triggered when window gains focus */
+        ActionDelegate<> onWindowMinimized;             /** @brief Triggered when window is minimized */
+        ActionDelegate<> onWindowMaximized;             /** @brief Triggered when window is maximized */
+        ActionDelegate<int, int> onFrameBufferResize;   /** @brief Triggered when framebuffer is resized */
     };
 
 }
