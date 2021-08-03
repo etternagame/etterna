@@ -89,6 +89,7 @@ local defaultConfig = {
 	ComboText = true,
 	CBHighlight = true,
 
+	ConvertedAspectRatio = false, -- defaults false so that we can load and convert element positions, then set true
 	CurrentHeight = SCREEN_HEIGHT,
 	CurrentWidth = SCREEN_WIDTH,
 
@@ -153,7 +154,36 @@ playerConfig.load = function(self, slot)
 	x = x:load(slot)
 
 	-- aspect ratio is not the same. we must account for this
-	if x.CurrentHeight and x.CurrentWidth and (x.CurrentHeight ~= defaultConfig.CurrentHeight or x.CurrentWidth ~= defaultConfig.CurrentWidth) then
+	if x.GameplayXYCoordinates ~= nil and (not x.ConvertedAspectRatio or x.CurrentHeight ~= defaultConfig.CurrentHeight or x.CurrentWidth ~= defaultConfig.CurrentWidth) then
+		x.ConvertedAspectRatio = true
+		defaultConfig.ConvertedAspectRatio = true
+
+		-- set up a default 16:9 480p (all themes that use playerConfig use this, Til' Death and spawncamping-wallhack)
+		-- i realize this is not 16:9 but promise, this is correct according to how the game works
+		-- no further explanation
+		if not x.CurrentHeight then
+			x.CurrentHeight = 480
+		end
+		if not x.CurrentWidth then
+			x.CurrentWidth = 854
+		end
+
+		--[[
+			OTHER VALUES FOR THE WEIRDOS THAT USE THEM: IM NOT GONNA BOTHER ACCOMODATING YOU ANY FURTHER THAN THIS
+			(all HEIGHT values are 480)
+			(if your height value is not 480, you know how to generate these numbers - stop looking at them, they are not correct for you)
+				4:3 - WIDTH: 640
+				16:10 - WIDTH: 768
+				21:9 - WIDTH: 1120
+				8:3 - WIDTH: 1280
+				5:4 - WIDTH: 600
+				1:1 - WIDTH: 480
+				3:4 - WIDTH: 360
+			USE A CUSTOM DisplayAspectRatio PREFERENCE? FIGURE IT OUT YOURSELF
+			HINT: IT ISN'T 480 x DisplayAspectRatio (look in ScreenDimensions.cpp)
+			ms.ok(SCREEN_WIDTH .. " " .. SCREEN_HEIGHT)
+		]]
+
 		convertXPosRatio = x.CurrentWidth / defaultConfig.CurrentWidth
 		convertYPosRatio = x.CurrentHeight / defaultConfig.CurrentHeight
 	end
@@ -199,13 +229,17 @@ if coords and coords["4K"] then
 	-- converting all categories individually
 	for cat, t in pairs(playerConfig:get_data().GameplayXYCoordinates) do
 		for e, v in pairs(t) do
-			if e:sub(-1) == "Y" then
-				-- convert y pos
-				t[e] = v / convertYPosRatio
-			elseif e:sub(-1) == "X" then
-				-- convert x pos
-				t[e] = v / convertXPosRatio
+			-- dont scale defaulted coordinates
+			if defaultGameplayCoordinates[e] ~= nil and v ~= defaultGameplayCoordinates[e] then
+				if e:sub(-1) == "Y" then
+					-- convert y pos
+					t[e] = v / convertYPosRatio
+				elseif e:sub(-1) == "X" then
+					-- convert x pos
+					t[e] = v / convertXPosRatio
+				end
 			end
 		end
 	end
+	playerConfig:get_data().ConvertedAspectRatio = true
 end
