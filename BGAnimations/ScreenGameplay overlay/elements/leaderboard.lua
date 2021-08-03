@@ -14,7 +14,7 @@ end
 local CRITERIA = "GetWifeScore"
 local NUM_ENTRIES = 32
 local VISIBLE_ENTRIES = 5
-local ENTRY_HEIGHT = IsUsingWideScreen() and 35 or 20
+local ENTRY_HEIGHT = (IsUsingWideScreen() and 35 or 20) / GAMEPLAY_SIZING_RATIO
 local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
 local jdgs = {
 	-- Table of judgments for the judgecounter

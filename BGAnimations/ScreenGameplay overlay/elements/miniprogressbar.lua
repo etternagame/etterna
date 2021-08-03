@@ -1,7 +1,7 @@
 -- mini progress bar. song progress but small
 
-local width = 34
-local height = 4
+local width = 34 / GAMEPLAY_SIZING_RATIO
+local height = 4 / GAMEPLAY_SIZING_RATIO
 local alpha = 0.3
 
 return Def.ActorFrame {

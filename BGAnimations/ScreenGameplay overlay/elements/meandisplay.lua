@@ -2,7 +2,7 @@
 
 -- i dunno less copy paste whatever bro
 local formatstr = "%5.2fms"
-local meanTextSize = 0.3
+local meanTextSize = 0.3 / GAMEPLAY_SIZING_RATIO
 
 local curMeanSum = 0
 local curMeanCount = 0

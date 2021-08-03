@@ -1,7 +1,7 @@
 -- Number of bars. Older bars will refresh if judgments/barDuration exceeds this value.
 local barcount = playerConfig:get_data().ErrorBarCount
 -- Width of the bars.
-local barWidth = 2
+local barWidth = 2 / GAMEPLAY_SIZING_RATIO
 -- Time duration in seconds before the ticks fade out. Doesn't need to be higher than 1. Maybe if you have 300 bars I guess.
 local barDuration = 0.75
 
@@ -20,7 +20,7 @@ local lastAvg
 -- max offset is 180ms
 local wscale = MovableValues.ErrorBarWidth / 180
 
-local earlylateTextSize = 0.35
+local earlylateTextSize = 0.35 / GAMEPLAY_SIZING_RATIO
 
 -- the error bar can either load as Regular or Exponential Weighted Moving Average
 -- Regular loads a certain number of bars and places them continuously

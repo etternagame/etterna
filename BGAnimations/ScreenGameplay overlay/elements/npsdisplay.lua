@@ -10,8 +10,9 @@ local minWindow = 1 -- this will be the minimum size of the "window" in seconds.
 
 --Graph related stuff
 local initialPeak = 10 -- Initial height of the NPS graph.
-local graphWidth = 140
-local graphHeight = 100
+local graphWidth = 140 / GAMEPLAY_SIZING_RATIO
+local graphHeight = 100 / GAMEPLAY_SIZING_RATIO
+local npsDisplayTextSize = 1 / GAMEPLAY_SIZING_RATIO
 
 local maxVerts = 100 -- Higher numbers allows for more detailed graph that spans for a longer duration. But may lead to performance issues
 local graphFreq = 0.2 -- The frequency in which the graph updates in seconds.
@@ -154,7 +155,9 @@ local function npsDisplay()
 		t[#t + 1] = LoadFont("Common Normal") .. {
 			Name = "Text",
 			InitCommand = function(self)
-				self:halign(0):valign(0):settext("0 NPS (Peak 0.0)")
+				self:halign(0):valign(0)
+				self:settext("0 NPS (Peak 0.0)")
+				self:zoom(npsDisplayTextSize)
 			end,
 		}
 	end

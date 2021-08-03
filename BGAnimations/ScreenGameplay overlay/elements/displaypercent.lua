@@ -2,7 +2,7 @@
 
 -- i dunno less copy paste whatever bro
 local formatstr = "%05.2f%%"
-local wifepercentTextSize = 0.3
+local wifepercentTextSize = 0.3 / GAMEPLAY_SIZING_RATIO
 
 return Def.ActorFrame {
 	Name = "DisplayPercent",

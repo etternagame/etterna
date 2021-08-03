@@ -6,7 +6,7 @@ local t = Def.ActorFrame {
 	Name = "TargetTracker",
 	InitCommand = function(self)
 		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY)
-        self:zoom(MovableValues.TargetTrackerZoom)
+        self:zoom(MovableValues.TargetTrackerZoom / GAMEPLAY_SIZING_RATIO)
 	end,
 }
 

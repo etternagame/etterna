@@ -1,11 +1,11 @@
 -- progress bar that goes across the screen
 
-local width = SCREEN_WIDTH / 2 - 100
+local width = SCREEN_WIDTH / 2 - 100 / GAMEPLAY_SIZING_RATIO
 local height = SCREEN_HEIGHT / 50
 local alpha = 0.7
 local isReplay = GAMESTATE:GetPlayerState():GetPlayerController() == "PlayerController_Replay"
 
-local progressbarTextSize = 0.45
+local progressbarTextSize = 0.45 / GAMEPLAY_SIZING_RATIO
 
 -- ternary logic
 -- will become either nothing or a slider

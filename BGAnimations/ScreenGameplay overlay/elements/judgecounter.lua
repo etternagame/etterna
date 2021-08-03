@@ -12,12 +12,12 @@ local jdgT = {
 	"HoldNoteScore_LetGo",
 }
 
-local spacing = 10 -- Spacing between the judgetypes
-local frameWidth = 60 -- Width of the Frame
-local frameHeight = ((#jdgT + 1) * spacing) -- Height of the Frame
-local judgeFontSize = 0.40 -- Font sizes for different text elements
-local countFontSize = 0.35
-local gradeFontSize = 0.45
+local spacing = 10 / GAMEPLAY_SIZING_RATIO -- Spacing between the judgetypes
+local frameWidth = 60 / GAMEPLAY_SIZING_RATIO-- Width of the Frame
+local frameHeight = ((#jdgT + 1) * spacing) / GAMEPLAY_SIZING_RATIO -- Height of the Frame
+local judgeFontSize = 0.40 / GAMEPLAY_SIZING_RATIO -- Font sizes for different text elements
+local countFontSize = 0.35 / GAMEPLAY_SIZING_RATIO
+local gradeFontSize = 0.45 / GAMEPLAY_SIZING_RATIO
 
 -- the text actors for each judge count
 local judgeCounts = {}
