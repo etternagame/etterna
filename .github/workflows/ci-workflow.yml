@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install apt packages
-        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
+        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev
 
       - name: Print gcc + clang version
         run: ${{matrix.cfg.cpp-version}} --version
@@ -34,8 +34,14 @@ jobs:
         run: cd build && ninja
 
   macos:
-    name: macOS x64
-    runs-on: macos-latest
+    name: macOS x64 ${{matrix.cfg.name}}
+    runs-on: ${{matrix.cfg.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        cfg:
+          - { os: macos-10.15,  name: "Catalina" }
+
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v2
