@@ -357,6 +357,8 @@ ScreenTextEntry::Init()
 {
 	ScreenWithMenuElements::Init();
 
+	MESSAGEMAN->Broadcast("BeginTextEntry");
+
 	m_textQuestion.LoadFromFont(THEME->GetPathF(m_sName, "question"));
 	m_textQuestion.SetName("Question");
 	LOAD_ALL_COMMANDS(m_textQuestion);
@@ -550,6 +552,7 @@ ScreenTextEntry::End(bool bCancelled)
 
 		Cancel(SM_GoToNextScreen);
 		// TweenOffScreen();
+		MESSAGEMAN->Broadcast("CancelTextEntry");
 	} else {
 		std::string sAnswer = WStringToString(m_sAnswer);
 		std::string sError;
@@ -581,6 +584,8 @@ ScreenTextEntry::End(bool bCancelled)
 		} else if (g_pOnOK != nullptr) {
 			g_pOnOK(ret);
 		}
+
+		MESSAGEMAN->Broadcast("CompleteTextEntry");
 
 		StartTransitioningScreen(SM_GoToNextScreen);
 		SCREENMAN->PlayStartSound();
