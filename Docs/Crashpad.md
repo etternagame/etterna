@@ -1,7 +1,7 @@
 # Using Google Crashpad with Etterna
 
 Etterna now uses Google Crashpad for crash handling, which gives developers significantly more
-information when it comes to discovering why the program crashed, but also affects users when it
+information when it comes to discovering why the program crashed but also affects users when it
 comes to submitting crash reports.
 
 ## Table of Contents
@@ -23,9 +23,9 @@ comes to submitting crash reports.
 ## Overview
 
 Using Crashpad changes the CI process. For each release, we need to generate symbols for the build.
-These symbols contain information about each binary, which let us decode and find exactly what line
+These symbols contain information about each binary, which lets us decode and find exactly what line
 of code and function was being run at the time of the crash. When the game starts, a "crashpad
-handler" executable is run in the background, and watches the game waiting for it to crash. When it
+handler" executable is run in the background and watches the game waiting for it to crash. When it
 crashes, it generates a minidump. We can process the minidump with the symbols to see how
 the game crashed.
 
@@ -36,7 +36,7 @@ regions of a crashed process." This includes the runtime stack, CPU register val
 architecture, and operating system. Since it is exactly what is contained within RAM, some personal
 information like usernames, passwords, and anything stored in RAM may be stored in the minidump. It
 would take a motivated attack to be able to determine those values in the chance that personal
-information is stored within the crashdump. If you would rather not send the Etterna team your
+information is stored within the crash dump. If you would rather not send the Etterna team your
 minidump file for debugging the crash you experienced, learn how you can decode
 the minidump yourself in the [Decoding Minidumps](#Decoding-Minidumps) section.
 
@@ -58,7 +58,7 @@ The following tools are necessary:
    dump_syms -g Etterna.dsym Etterna.app/Contents/MacOS/Etterna > Etterna.sym # macOS
    ```
 
-- `minidump_stackwalk`: Decodes the `.dmp` file, and outputs a stacktrace of what error to cause the
+- `minidump_stackwalk`: Decodes the `.dmp` file and outputs a stack trace of what error caused the 
   generated `.dmp` file. One of the arguments is a directory to where the symbols get stored. Those symbols
   must be organized in a specific manner, which is described below. Command will usually look like the following: 
    ```bash
@@ -70,14 +70,14 @@ The following tools are necessary:
 Written in a step-by-step process:
 
 1. Get [depot_tools](https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up). 
-   This is a collection of tools which googled created to help with compilation of their projects.
-   It must be installed as written on that page, and added to your user/system path accordingly.
+   This is a collection of tools which google created to help with the compilation of their projects.
+   It must be installed as written on that page and added to your user/system path accordingly.
    After it is added to the path (and restart the terminal session if necessary), you can run `gclient`
    to ensure the path has been properly modified.
 
 2. Get [breakpad](https://chromium.googlesource.com/breakpad/breakpad). While crashpad is the crash-reporting 
    system that Etterna uses, it is the successor to breakpad, and the decoding tools have remained the same.
-   It is recommended to create a folder for the breakpad project prior to downloading it. Once cloned, there will
+   It is recommended to create a folder for the breakpad project before downloading it. Once cloned, there will
    be a `src` folder with the breakpad source code. Commands are as follows:
    ```bash
    mkdir breakpad && cd breakpad
@@ -136,9 +136,9 @@ for compiling `dump_syms.exe`
    `#include <memory>` at the top of the file. The build should work after the includes. 
    
 The `dump_syms.exe` will be located in the `src\tools\windows\dump_syms\Release\dump_syms.exe`. At this point,
-the executable will run, but it will not generate sym output until the following step is completed.
+the executable will run, but it will not generate symbol output until the following step is completed.
 
-4. Open an administrator windows command prompt, and navigate to the following directory in your Visual Studio
+4. Open an administrator command prompt, and navigate to the following directory in your Visual Studio
    install.
     ```bash
     cd "C:\Program Files (x86)\Microsoft Visual Studio\2019"
@@ -153,14 +153,14 @@ the executable will run, but it will not generate sym output until the following
     ```bash
     regsvr32 msdia140.dll
     ```
-    This is a dll which is installed which Visual Studio, but does not get registered to the system,
+    This is a dll that is installed which Visual Studio but does not get registered to the system,
     so we must register it ourselves. Once that line executes in an admin command prompt, `dump_syms.exe`
     should properly dump symbols.
 
 ## Generating Symbols
 
 Symbol files relate instructions in the compiled binary file to the source code which created it.
-You don't need the source code; it's all within the symbol file (which could be upwards of 30-40mb).
+You don't need the source code; it's all within the symbol file (which could be upwards of 30-40MB).
 
 ### Linux Symbol Generation
 
@@ -192,7 +192,7 @@ dump_syms -g Etterna.dsym Etterna.app/Contents/MacOS/Etterna > Etterna.sym
 
 1. Before we can generation symbols, we need to build the game with debug information. That means
 setting `CMAKE_BUILD_TYPE` to `Debug` or `RelWithDebInfo` and building the game. The debug
-information is stored within the binary, and we'll first want to extract it into its own file.
+information is stored within the binary, and we'll first want to extract it into a separate file.
 
     ```bash
     cd etterna/
@@ -200,7 +200,7 @@ information is stored within the binary, and we'll first want to extract it into
     ```
 
     - `-o Etterna.dsym`: A `.dSYM` on macOS is an Xcode debugging symbol folder. This option lets us
-      choose the output folder. We include this, otherwise the folder will be generated in the
+      choose the output folder. We include this, otherwise, the folder will be generated in the
       `Etterna.app/Contents/MacOS/` folder.
 
     - `Etterna.app/Contents/MacOS/Etterna` is the actual binary of Etterna. macOS `.app` folders
@@ -238,7 +238,7 @@ Use this folder when running `minidump_stackwalk`
 ### Explanation
 
 Now that we have the `Etterna.sym` file, we have everything we need to be able to debug a minidump.
-In order for the decoder to read the symbols, it must be in a specific folder format called
+For the decoder to read the symbols, it must be in a specific folder format called
 "Breakpad Directory Structure." (I don't know if that is the official name, but that is what I'm
 going to refer to it as.) That format is `EtternaSymbols/<debug_name>/<breakpad-id>/<sym_name>`. For
 Etterna, you can expect symbols to look like `EtternaSymbols/Etterna/<breakpad-id>/Etterna.sym`
@@ -251,9 +251,9 @@ symbols.
 
 ### Linux and macOS
 
-Crashpad comes with a tool called `minidump_stackwalk` that reads the minidump and symbols, and produces
-a stacktrace for the developer. Pass in the minidump file, then the symbol folder as parameters,
-and you will get a stacktrace.
+Crashpad comes with a tool called `minidump_stackwalk` that reads the minidump and symbols, then produces
+a stack trace for the developer. Pass in the minidump file, then the symbol folder as parameters,
+and you will get a stack trace.
 
 ```bash
 minidump_stackwalk minidumpfile.dmp EtternaSymbols/
@@ -267,6 +267,6 @@ can find these files on the corresponding releases pages.
 
 You can open a minidump on Windows using `WinDbg` or Visual Studio. `WinDbg` can be found either on the Windows Store
 or within the Windows 10 SDK. Opening the minidump alone will provide information about the exception,
-but not much else that is readable to a human. For all of the symbol related features, you must point your
+but not much else that is readable to a human. For all of the symbol-related features, you must point your
 debugging program of choice to the exact `.exe` and associated `.pdb` which caused the crash. Access to the Etterna
 source files will also give additional information about the source lines which caused the crash.
