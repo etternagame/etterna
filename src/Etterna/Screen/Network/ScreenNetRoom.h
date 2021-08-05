@@ -22,8 +22,8 @@ class ScreenNetRoom : public ScreenNetSelectBase
 	void InfoSetVisible(bool visibility);
 
 	void UpdateRoomsList();
-	vector<BitmapText> m_RoomList;
-	vector<RoomData>* m_Rooms;
+	std::vector<BitmapText> m_RoomList;
+	std::vector<RoomData>* m_Rooms;
 	int m_iRoomPlace;
 	RoomInfoDisplay m_roomInfo;
 

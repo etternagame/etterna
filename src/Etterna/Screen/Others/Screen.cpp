@@ -70,7 +70,7 @@ Screen::Init()
 
 	PlayCommandNoRecurse(Message("Init"));
 
-	vector<std::string> asList;
+	std::vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (auto& i : asList) {
 		Locator::getLogger()->trace(

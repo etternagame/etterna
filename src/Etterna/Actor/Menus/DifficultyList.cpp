@@ -129,7 +129,7 @@ StepsDisplayList::UpdatePositions()
 	// both.
 	const int P1Choice = iCurrentRow;
 
-	vector<Row>& Rows = m_Rows;
+	std::vector<Row>& Rows = m_Rows;
 
 	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
 	if (!BothPlayersActivated) {
@@ -256,7 +256,7 @@ StepsDisplayList::SetFromGameState()
 		// FIXME: This clamps to between the min and the max difficulty, but
 		// it really should round to the nearest difficulty that's in
 		// DIFFICULTIES_TO_SHOW.
-		const vector<Difficulty>& difficulties =
+		const std::vector<Difficulty>& difficulties =
 		  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 		m_Rows.resize(difficulties.size());
 
@@ -282,7 +282,7 @@ StepsDisplayList::SetFromGameState()
 			++i;
 		}
 	} else {
-		vector<Steps*> vpSteps;
+		std::vector<Steps*> vpSteps;
 		SongUtil::GetPlayableSteps(pSong, vpSteps);
 		// Should match the sort in ScreenSelectMusic::AfterMusicChange.
 

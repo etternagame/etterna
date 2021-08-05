@@ -286,7 +286,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 								  "?, ?, ?, "
 								  "?, ?, ?, "
 								  "?, ?, ?, ?, ?, ?, ?, ?)");
-	vector<std::string> lines;
+	std::vector<std::string> lines;
 	auto stepsIndex = 1;
 	insertSteps.bind(stepsIndex++, pSteps->GetChartName());
 	insertSteps.bind(stepsIndex++, pSteps->m_StepsTypeStr);
@@ -303,7 +303,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 
 	insertSteps.bind(stepsIndex++, pSteps->GetMusicFile()); // musicfile
 
-	vector<std::string> asRadarValues;
+	std::vector<std::string> asRadarValues;
 	const auto& rv = pSteps->GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
@@ -793,7 +793,7 @@ join(R1<R2<T, A2...>, A1...> const& outer)
 void
 SongCacheIndex::LoadCache(
   LoadingWindow* ld,
-  vector<pair<pair<std::string, unsigned int>, Song*>*>& cache) const
+  std::vector<pair<pair<std::string, unsigned int>, Song*>*>& cache) const
 {
 	auto count = 0;
 	try {
@@ -817,7 +817,7 @@ SongCacheIndex::LoadCache(
 	  [&data, fivePercent, &abort](
 		int limit,
 		int offset,
-		vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart) {
+		std::vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart) {
 		  auto counter = 0;
 		  auto lastUpdate = 0;
 		  try {
@@ -855,12 +855,12 @@ SongCacheIndex::LoadCache(
 		  data._threadsFinished++;
 		  data.setUpdated(true);
 	  };
-	vector<thread> threadpool;
-	vector<vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
+	std::vector<thread> threadpool;
+	std::vector<std::vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
 	cacheParts.reserve(threads);
 	for (auto i = 0; i < threads; i++)
 		cacheParts.emplace_back(
-		  vector<pair<pair<std::string, unsigned int>, Song*>*>());
+		  std::vector<pair<pair<std::string, unsigned int>, Song*>*>());
 	threadpool.reserve(threads);
 	for (auto i = 0; i < threads; i++)
 		threadpool.emplace_back(
@@ -1092,7 +1092,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 		string animationstwo =
 		  static_cast<const char*>(query.getColumn(index++));
 
-		vector<std::string> aFGChangeExpressions;
+		std::vector<std::string> aFGChangeExpressions;
 		split(static_cast<const char*>(query.getColumn(index++)),
 			  ",",
 			  aFGChangeExpressions);
@@ -1171,7 +1171,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			string radarValues =
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
-			vector<std::string> values;
+			std::vector<std::string> values;
 			split(radarValues, ",", values, true);
 			RadarValues rv;
 			rv.Zero();

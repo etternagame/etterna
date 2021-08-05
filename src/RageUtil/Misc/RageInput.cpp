@@ -20,7 +20,7 @@ struct LoadedInputHandler
 {
 	InputHandler* m_pDevice;
 };
-vector<LoadedInputHandler> m_InputHandlers;
+std::vector<LoadedInputHandler> m_InputHandlers;
 std::map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 } // namespace
 
@@ -64,7 +64,7 @@ RageInput::LoadDrivers()
 	g_mapDeviceToHandler.clear();
 
 	// Init optional devices.
-	vector<InputHandler*> apDevices;
+	std::vector<InputHandler*> apDevices;
 
 	InputHandler::Create(g_sInputDrivers, apDevices);
 	for (auto& apDevice : apDevices)
@@ -95,7 +95,7 @@ RageInput::DevicesChanged()
 }
 
 void
-RageInput::GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut) const
+RageInput::GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut) const
 {
 	for (auto& m_InputHandler : m_InputHandlers)
 		m_InputHandler.m_pDevice->GetDevicesAndDescriptions(vDevicesOut);
@@ -117,7 +117,7 @@ RageInput::AddHandler(InputHandler* pHandler)
 	hand.m_pDevice = pHandler;
 	m_InputHandlers.push_back(hand);
 
-	vector<InputDeviceInfo> aDeviceInfo;
+	std::vector<InputDeviceInfo> aDeviceInfo;
 	hand.m_pDevice->GetDevicesAndDescriptions(aDeviceInfo);
 	for (auto& idi : aDeviceInfo)
 		g_mapDeviceToHandler[idi.id] = pHandler;
@@ -177,10 +177,10 @@ RageInput::GetInputDeviceState(InputDevice id)
 std::string
 RageInput::GetDisplayDevicesString() const
 {
-	vector<InputDeviceInfo> vDevices;
+	std::vector<InputDeviceInfo> vDevices;
 	GetDevicesAndDescriptions(vDevices);
 
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 	for (auto& vDevice : vDevices) {
 		const std::string& sDescription = vDevice.sDesc;
 		InputDevice id = vDevice.id;
@@ -199,9 +199,9 @@ class LunaRageInput : public Luna<RageInput>
   public:
 	static int GetDescriptions(T* p, lua_State* L)
 	{
-		vector<InputDeviceInfo> vDevices;
+		std::vector<InputDeviceInfo> vDevices;
 		p->GetDevicesAndDescriptions(vDevices);
-		vector<std::string> vsDescriptions;
+		std::vector<std::string> vsDescriptions;
 		for (auto& idi : vDevices)
 			vsDescriptions.push_back(idi.sDesc);
 		LuaHelpers::CreateTableFromArray(vsDescriptions, L);

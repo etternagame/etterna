@@ -15,7 +15,7 @@ void
 FileSet::GetFilesMatching(const std::string& sBeginning_,
 						  const std::string& sContaining_,
 						  const std::string& sEnding_,
-						  vector<std::string>& asOut,
+						  std::vector<std::string>& asOut,
 						  bool bOnlyDirs) const
 {
 	/* "files" is a case-insensitive mapping, by filename.  Use lower_bound to
@@ -68,7 +68,7 @@ FileSet::GetFilesMatching(const std::string& sBeginning_,
 
 void
 FileSet::GetFilesEqualTo(const std::string& sStr,
-						 vector<std::string>& asOut,
+						 std::vector<std::string>& asOut,
 						 bool bOnlyDirs) const
 {
 	set<File>::const_iterator i = files.find(File(sStr));
@@ -230,7 +230,7 @@ FilenameDB::GetFilesMatching(const std::string& sDir,
 							 const std::string& sBeginning,
 							 const std::string& sContaining,
 							 const std::string& sEnding,
-							 vector<std::string>& asOut,
+							 std::vector<std::string>& asOut,
 							 bool bOnlyDirs)
 {
 	ASSERT(!m_Mutex.IsLockedByThisThread());
@@ -243,7 +243,7 @@ FilenameDB::GetFilesMatching(const std::string& sDir,
 void
 FilenameDB::GetFilesEqualTo(const std::string& sDir,
 							const std::string& sFile,
-							vector<std::string>& asOut,
+							std::vector<std::string>& asOut,
 							bool bOnlyDirs)
 {
 	ASSERT(!m_Mutex.IsLockedByThisThread());
@@ -256,7 +256,7 @@ FilenameDB::GetFilesEqualTo(const std::string& sDir,
 void
 FilenameDB::GetFilesSimpleMatch(const std::string& sDir,
 								const std::string& sMask,
-								vector<std::string>& asOut,
+								std::vector<std::string>& asOut,
 								bool bOnlyDirs)
 {
 	/* Does this contain a wildcard? */
@@ -417,11 +417,11 @@ FilenameDB::AddFile(const std::string& sPath_,
 	if (sPath[0] != '/')
 		sPath = "/" + sPath;
 
-	vector<std::string> asParts;
+	std::vector<std::string> asParts;
 	split(sPath, "/", asParts, false);
 
-	vector<std::string>::const_iterator begin = asParts.begin();
-	vector<std::string>::const_iterator end = asParts.end();
+	std::vector<std::string>::const_iterator begin = asParts.begin();
+	std::vector<std::string>::const_iterator end = asParts.end();
 
 	bool IsDir = true;
 	if (sPath[sPath.size() - 1] != '/')
@@ -602,7 +602,7 @@ FilenameDB::GetFilePriv(const std::string& path)
 
 void
 FilenameDB::GetDirListing(const std::string& sPath_,
-						  vector<std::string>& asAddTo,
+						  std::vector<std::string>& asAddTo,
 						  bool bOnlyDirs,
 						  bool bReturnPathToo)
 {

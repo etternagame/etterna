@@ -71,7 +71,7 @@ static LocalizedString MUTE_ACTIONS_OFF("ScreenDebugOverlay",
 										"Mute actions off");
 
 class IDebugLine;
-static vector<IDebugLine*>* g_pvpSubscribers = nullptr;
+static std::vector<IDebugLine*>* g_pvpSubscribers = nullptr;
 
 class IDebugLine
 {
@@ -79,7 +79,7 @@ class IDebugLine
 	IDebugLine()
 	{
 		if (g_pvpSubscribers == nullptr)
-			g_pvpSubscribers = new vector<IDebugLine*>;
+			g_pvpSubscribers = new std::vector<IDebugLine*>;
 		g_pvpSubscribers->push_back(this);
 	}
 

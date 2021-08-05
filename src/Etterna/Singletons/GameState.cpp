@@ -670,7 +670,7 @@ GameState::SetCompatibleStylesForPlayers()
 		if (m_pCurSteps != nullptr) {
 			st = m_pCurSteps->m_StepsType;
 		} else {
-			vector<StepsType> vst;
+			std::vector<StepsType> vst;
 			GAMEMAN->GetStepsTypesForGame(m_pCurGame, vst);
 			st = vst[0];
 		}
@@ -1070,7 +1070,7 @@ GameState::CurrentOptionsDisqualifyPlayer(PlayerNumber pn)
 }
 
 void
-GameState::GetAllUsedNoteSkins(vector<std::string>& out) const
+GameState::GetAllUsedNoteSkins(std::vector<std::string>& out) const
 {
 	// if this list returns multiple values, the values should be unique.
 	out.push_back(m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin);
@@ -1176,7 +1176,7 @@ GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 bool
 GameState::ChangePreferredDifficulty(PlayerNumber pn, int dir)
 {
-	const vector<Difficulty>& v =
+	const std::vector<Difficulty>& v =
 	  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
 	Difficulty d = GetClosestShownDifficulty(pn);
@@ -1199,7 +1199,7 @@ GameState::ChangePreferredDifficulty(PlayerNumber pn, int dir)
 Difficulty
 GameState::GetClosestShownDifficulty(PlayerNumber pn) const
 {
-	const vector<Difficulty>& v =
+	const std::vector<Difficulty>& v =
 	  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
 	auto iClosest = static_cast<Difficulty>(0);
@@ -1641,7 +1641,7 @@ class LunaGameState : public Luna<GameState>
 			return 0;
 
 		// use a vector and not a set so that ordering is maintained
-		vector<const Steps*> vpStepsToShow;
+		std::vector<const Steps*> vpStepsToShow;
 		const Steps* pSteps = GAMESTATE->m_pCurSteps;
 		if (pSteps == nullptr)
 			return 0;
@@ -1672,7 +1672,7 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetPreferredSongGroup, m_sPreferredSongGroup.Get());
 	static int GetHumanPlayers(T* p, lua_State* L)
 	{
-		vector<PlayerNumber> vHP;
+		std::vector<PlayerNumber> vHP;
 		vHP.push_back(PLAYER_1);
 
 		LuaHelpers::CreateTableFromArray(vHP, L);
@@ -1680,7 +1680,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetEnabledPlayers(T*, lua_State* L)
 	{
-		vector<PlayerNumber> vEP;
+		std::vector<PlayerNumber> vEP;
 		vEP.push_back(PLAYER_1);
 		LuaHelpers::CreateTableFromArray(vEP, L);
 		return 1;

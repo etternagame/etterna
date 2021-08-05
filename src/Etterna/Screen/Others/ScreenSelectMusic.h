@@ -76,14 +76,14 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	virtual bool GenericTweenOff() const { return true; }
 	void UpdateSelectButton(PlayerNumber pn, bool bBeingPressed);
 
-	void AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns);
+	void AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns);
 	void SwitchToPreferredDifficulty();
 	void AfterMusicChange();
 
 	void CheckBackgroundRequests(bool bForce);
 	bool DetectCodes(const InputEventPlus& input);
 
-	vector<Steps*> m_vpSteps;
+	std::vector<Steps*> m_vpSteps;
 	int m_iSelection;
 
 	RageTimer m_timerIdleComment;

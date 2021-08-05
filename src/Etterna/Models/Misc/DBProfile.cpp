@@ -231,7 +231,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 
 	string lastPlayListName;
 	int lastCourseRunID = 0;
-	vector<string> tmpCourseRun;
+	std::vector<string> tmpCourseRun;
 
 	// Read one row
 	if (courseRunsQuery.executeStep()) {

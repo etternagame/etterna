@@ -16,7 +16,7 @@ namespace DWILoader {
  * @param out a vector of files found in the path.
  */
 void
-GetApplicableFiles(const std::string& sPath, vector<std::string>& out);
+GetApplicableFiles(const std::string& sPath, std::vector<std::string>& out);
 /**
  * @brief Attempt to load a song from a specified path.
  * @param sPath a const reference to the path on the hard drive to check.

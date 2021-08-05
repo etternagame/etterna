@@ -78,7 +78,7 @@ class PlayerInfo
 	 * @brief The list of Steps a player has to go through in this set.
 	 *
 	 * The size may be greater than 1 if playing a course. */
-	vector<Steps*> m_vpStepsQueue;
+	std::vector<Steps*> m_vpStepsQueue;
 
 	/** @brief The LifeMeter showing a Player's health. */
 	LifeMeter* m_pLifeMeter;

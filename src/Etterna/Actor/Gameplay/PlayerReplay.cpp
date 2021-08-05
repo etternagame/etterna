@@ -82,7 +82,7 @@ PlayerReplay::Load()
 void
 PlayerReplay::UpdateHoldNotes(int iSongRow,
 							  float fDeltaTime,
-							  vector<TrackRowTapNote>& vTN)
+							  std::vector<TrackRowTapNote>& vTN)
 {
 	Player::UpdateHoldNotes(iSongRow, fDeltaTime, vTN);
 	ASSERT(!vTN.empty());
@@ -173,7 +173,7 @@ PlayerReplay::UpdateHoldsAndRolls(
 				++iter;
 		}
 
-		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
+		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
 		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
@@ -193,7 +193,7 @@ PlayerReplay::UpdateHoldsAndRolls(
 				case TapNoteSubType_Hold:
 					break;
 				case TapNoteSubType_Roll: {
-					vector<TrackRowTapNote> v;
+					std::vector<TrackRowTapNote> v;
 					v.push_back(trtn);
 					UpdateHoldNotes(iSongRow, fDeltaTime, v);
 				}

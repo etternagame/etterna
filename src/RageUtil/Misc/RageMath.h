@@ -3,6 +3,8 @@
 #ifndef RAGE_MATH_H
 #define RAGE_MATH_H
 
+#include <vector>
+
 #define PI (3.141592653589793f)
 #define DegreeToRadian(degree) ((degree) * (PI / 180.0f))
 #define RadianToDegree(radian) ((radian) * (180.0f / PI))
@@ -31,7 +33,7 @@ RageVec2Normalize(struct RageVector2* pOut, const struct RageVector2* pV);
 void
 RageVec3Normalize(struct RageVector3* pOut, const struct RageVector3* pV);
 void
-VectorFloatNormalize(vector<float>& v);
+VectorFloatNormalize(std::vector<float>& v);
 void
 RageVec3Cross(struct RageVector3* ret,
 			  struct RageVector3 const* a,

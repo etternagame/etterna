@@ -25,7 +25,7 @@ class Foreground : public ActorFrame
 		bool m_bFinished;
 	};
 
-	vector<LoadedBGA> m_BGAnimations;
+	std::vector<LoadedBGA> m_BGAnimations;
 	float m_fLastMusicSeconds = 0.F;
 	const Song* m_pSong;
 };

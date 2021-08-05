@@ -209,7 +209,7 @@ RageModelGeometry::LoadMilkshapeAscii(const std::string& _sPath,
 				if (sscanf(sLine.c_str(), "%d", &nNumNormals) != 1)
 					THROW;
 
-				vector<RageVector3> Normals;
+				std::vector<RageVector3> Normals;
 				Normals.resize(nNumNormals);
 				for (auto j = 0; j < nNumNormals; j++) {
 					if (f.GetLine(sLine) <= 0)

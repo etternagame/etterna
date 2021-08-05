@@ -118,7 +118,7 @@ struct garv_state
 	int lifts_hit{ 0 };
 	// hold_ends tracks where currently active holds will end, which is used
 	// to count the number of hands. -Kyz
-	vector<hold_status> hold_ends;
+	std::vector<hold_status> hold_ends;
 	int num_notes_on_curr_row{ 0 };
 	// num_holds_on_curr_row saves us the work of tracking where holds started
 	// just to keep a jump of two holds from counting as a hand.

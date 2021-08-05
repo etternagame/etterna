@@ -224,8 +224,8 @@ class RageSound : public RageSoundBase
 	  recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
 	std::shared_ptr<LuaReference> soundPlayCallback;
-	vector<float, MufftAllocator<float>> recentPCMSamples;
-	vector<cfloat, MufftAllocator<cfloat>> fftBuffer;
+	std::vector<float, MufftAllocator<float>> recentPCMSamples;
+	std::vector<cfloat, MufftAllocator<cfloat>> fftBuffer;
 	mufft_plan_1d *fftPlan{ nullptr };
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position

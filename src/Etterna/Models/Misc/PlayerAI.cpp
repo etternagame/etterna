@@ -20,12 +20,12 @@ using std::map;
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
-map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
-map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
-map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
+map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
+map<int, std::vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
+map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 map<int, ReplaySnapshot> PlayerAI::m_ReplaySnapshotMap;
-map<float, vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
-map<float, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
+map<float, std::vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
+map<float, std::vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
 float PlayerAI::replayRate = 1.f;
 std::string PlayerAI::replayModifiers;
 bool PlayerAI::replayUsedMirror = false;
@@ -200,7 +200,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
 			m_ReplayTapMap[replayNoteRowVector[i]].push_back(trr);
 		} else {
-			vector<TapReplayResult> trrVector = { trr };
+			std::vector<TapReplayResult> trrVector = { trr };
 			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
 			validNoterows.insert(replayNoteRowVector[i]);
 		}
@@ -217,7 +217,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (m_ReplayHoldMap.count(i.row) != 0) {
 			m_ReplayHoldMap[i.row].push_back(i);
 		} else {
-			vector<HoldReplayResult> hrrVector = { i };
+			std::vector<HoldReplayResult> hrrVector = { i };
 			m_ReplayHoldMap[i.row] = hrrVector;
 			validNoterows.insert(i.row);
 		}
@@ -268,7 +268,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayExactTapMap.count(tapRow) != 0) {
 				m_ReplayExactTapMap[tapRow].push_back(trr);
 			} else {
-				vector<TapReplayResult> trrVector = { trr };
+				std::vector<TapReplayResult> trrVector = { trr };
 				m_ReplayExactTapMap[tapRow] = trrVector;
 			}
 
@@ -276,7 +276,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
 				m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
 			} else {
-				vector<TapReplayResult> trrVector = { trr };
+				std::vector<TapReplayResult> trrVector = { trr };
 				m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
 			}
 		}
@@ -291,7 +291,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayHoldMapByElapsedTime.count(dropTime) != 0) {
 				m_ReplayHoldMapByElapsedTime[dropTime].push_back(hrr);
 			} else {
-				vector<HoldReplayResult> hrrVector = { hrr };
+				std::vector<HoldReplayResult> hrrVector = { hrr };
 				m_ReplayHoldMapByElapsedTime[dropTime] = hrrVector;
 			}
 		}
@@ -328,7 +328,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 					if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
 						m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
 					} else {
-						vector<TapReplayResult> trrVector = { trr };
+						std::vector<TapReplayResult> trrVector = { trr };
 						m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
 					}
 				}
@@ -592,7 +592,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	// now update the wifescore values for each relevant snapshot.
 	// some snapshots end up with 0 values due to being "missing" from the
 	// replay data and we have to account for those
-	vector<int> snapShotsUnused;
+	std::vector<int> snapShotsUnused;
 	snapShotsUnused.reserve(m_ReplaySnapshotMap.size());
 	for (auto& it : m_ReplaySnapshotMap)
 		snapShotsUnused.push_back(it.first);
@@ -828,10 +828,10 @@ PlayerAI::IsTapAtRowAndColumn(int noteRow, int col)
 	return false;
 }
 
-vector<TapReplayResult>
+std::vector<TapReplayResult>
 PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 {
-	vector<TapReplayResult> output;
+	std::vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
@@ -854,10 +854,10 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 	return output;
 }
 
-vector<TapReplayResult>
+std::vector<TapReplayResult>
 PlayerAI::GetTapsToTapForRow(int noteRow)
 {
-	vector<TapReplayResult> output;
+	std::vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
@@ -1210,11 +1210,11 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 	return lifeRecord;
 }
 
-vector<PlayerStageStats::Combo_t>
+std::vector<PlayerStageStats::Combo_t>
 PlayerAI::GenerateComboListForReplay(float timingScale)
 {
 	Locator::getLogger()->trace("Generating ComboList from ReplayData");
-	vector<PlayerStageStats::Combo_t> combos;
+	std::vector<PlayerStageStats::Combo_t> combos;
 	const PlayerStageStats::Combo_t firstCombo;
 	const auto rateUsed = pScoreData->GetMusicRate();
 	auto allOffset = 0.f;

@@ -54,7 +54,7 @@ ActorUtil::ResolvePath(std::string& sPath,
 	// so "foo" doesn't partial match "foobar" if "foo" exists.
 	const auto ft = FILEMAN->GetFileType(sPath);
 	if (ft != RageFileManager::TYPE_FILE && ft != RageFileManager::TYPE_DIR) {
-		vector<std::string> asPaths;
+		std::vector<std::string> asPaths;
 		GetDirListing(sPath + "*", asPaths, false, true); // return path too
 
 		if (asPaths.empty()) {
@@ -476,7 +476,7 @@ CompareActorsByZPosition(const Actor* p1, const Actor* p2)
 }
 
 void
-ActorUtil::SortByZPosition(vector<Actor*>& vActors)
+ActorUtil::SortByZPosition(std::vector<Actor*>& vActors)
 {
 	// Preserve ordering of Actors with equal Z positions.
 	stable_sort(vActors.begin(), vActors.end(), CompareActorsByZPosition);
@@ -492,7 +492,7 @@ LuaXType(FileType);
 
 // convenience so the for-loop lines can be shorter.
 typedef map<std::string, FileType> etft_cont_t;
-typedef map<FileType, vector<std::string>> fttel_cont_t;
+typedef map<FileType, std::vector<std::string>> fttel_cont_t;
 etft_cont_t ExtensionToFileType;
 fttel_cont_t FileTypeToExtensionList;
 
@@ -548,14 +548,14 @@ ActorUtil::InitFileTypeLists()
 	}
 }
 
-vector<std::string> const&
+std::vector<std::string> const&
 ActorUtil::GetTypeExtensionList(FileType ft)
 {
 	return FileTypeToExtensionList[ft];
 }
 
 void
-ActorUtil::AddTypeExtensionsToList(FileType ft, vector<std::string>& add_to)
+ActorUtil::AddTypeExtensionsToList(FileType ft, std::vector<std::string>& add_to)
 {
 	auto ext_list = FileTypeToExtensionList.find(ft);
 	if (ext_list != FileTypeToExtensionList.end()) {

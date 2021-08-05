@@ -27,7 +27,7 @@ ScreenOptionsEditProfile::BeginScreen()
 {
 	m_Original = *GAMESTATE->GetEditLocalProfile();
 
-	vector<OptionRowHandler*> vHands;
+	std::vector<OptionRowHandler*> vHands;
 
 	Profile* pProfile =
 	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);

@@ -29,11 +29,11 @@ class GraphDisplay : public ActorFrame
   private:
 	void UpdateVerts();
 
-	vector<float> m_Values;
+	std::vector<float> m_Values;
 
 	RectF m_quadVertices;
 
-	vector<Actor*> m_vpSongBoundaries;
+	std::vector<Actor*> m_vpSongBoundaries;
 	AutoActor m_sprBarely;
 	AutoActor m_sprBacking;
 	AutoActor m_sprSongBoundary;

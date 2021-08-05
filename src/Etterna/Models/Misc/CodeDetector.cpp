@@ -194,13 +194,13 @@ CodeDetector::ChangeScrollSpeed(GameController controller, bool bIncrement)
 	std::string sTitleOut;
 	ScreenOptionsMaster::SetList( row, hand, "Speed", sTitleOut );
 
-	vector<ModeChoice>& entries = hand.ListEntries;
+	std::vector<ModeChoice>& entries = hand.ListEntries;
 
 	std::string sScrollSpeed = po.GetScrollSpeedAsString();
 	if (sScrollSpeed.empty())
 		sScrollSpeed = "1x";
 
-	for ( vector<ModeChoice>::iterator it = entries.begin(); it != entries.end(); ++it )
+	for ( std::vector<ModeChoice>::iterator it = entries.begin(); it != entries.end(); ++it )
 	{
 		ModeChoice& modeChoice = *it;
 		if ( modeChoice.m_sModifiers == sScrollSpeed ) {

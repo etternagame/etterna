@@ -76,7 +76,7 @@ ScreenMapControllers::Init()
 		/* Map the specified buttons. */
 		// Specifying gamebuttons here crashes when switching games.
 		// Specify menu buttons here (using metrics) if need to be rebound.
-		vector<std::string> asBits;
+		std::vector<std::string> asBits;
 		split(sButtons, ",", asBits);
 		for (unsigned i = 0; i < asBits.size(); ++i) {
 			KeyToMap k;
@@ -803,7 +803,7 @@ ScreenMapControllers::ExitAction()
 bool
 ScreenMapControllers::SanityCheckWrapper()
 {
-	vector<std::string> reasons_not_sane;
+	std::vector<std::string> reasons_not_sane;
 	INPUTMAPPER->SanityCheckMappings(reasons_not_sane);
 	if (reasons_not_sane.empty()) {
 		return true;

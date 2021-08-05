@@ -37,7 +37,7 @@ BGAnimation::AddLayersFromAniDir(const std::string& _sAniDir,
 	const auto& sAniDir = _sAniDir;
 
 	{
-		vector<std::string> vsLayerNames;
+		std::vector<std::string> vsLayerNames;
 		FOREACH_CONST_Child(pNode, pLayer)
 		{
 			if (strncmp(pLayer->GetName().c_str(), "Layer", 5) == 0)
@@ -102,7 +102,7 @@ BGAnimation::LoadFromAniDir(const std::string& _sAniDir)
 		// This is an 3.0 and before-style BGAnimation (not using .ini)
 
 		// loading a directory of layers
-		vector<std::string> asImagePaths;
+		std::vector<std::string> asImagePaths;
 		ASSERT(sAniDir != "");
 
 		GetDirListing(sAniDir + "*.png", asImagePaths, false, true);

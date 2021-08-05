@@ -21,7 +21,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
-vector<TimingData> AdjustSync::s_vpTimingDataOriginal;
+std::vector<TimingData> AdjustSync::s_vpTimingDataOriginal;
 float AdjustSync::s_fGlobalOffsetSecondsOriginal = 0.0f;
 int AdjustSync::s_iAutosyncOffsetSample = 0;
 float AdjustSync::s_fAutosyncOffset[AdjustSync::OFFSET_SAMPLE_COUNT];
@@ -35,7 +35,7 @@ AdjustSync::ResetOriginalSyncData()
 	if (GAMESTATE->m_pCurSong) {
 		s_vpTimingDataOriginal.push_back(GAMESTATE->m_pCurSong->m_SongTiming);
 		const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-		for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+		for (auto& s : const_cast<std::vector<Steps*>&>(vpSteps)) {
 			s_vpTimingDataOriginal.push_back(s->m_Timing);
 		}
 	} else {
@@ -118,7 +118,7 @@ AdjustSync::RevertSyncChanges()
 
 	unsigned location = 1;
 	const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-	for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+	for (auto& s : const_cast<std::vector<Steps*>&>(vpSteps)) {
 		s->m_Timing = s_vpTimingDataOriginal[location];
 		location++;
 	}
@@ -174,7 +174,7 @@ AdjustSync::AutosyncOffset()
 				  mean;
 				GAMESTATE->m_pCurSong->m_SongTiming.PrepareLookup();
 				const auto& vpSteps = GAMESTATE->m_pCurSong->GetAllSteps();
-				for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+				for (auto& s : const_cast<std::vector<Steps*>&>(vpSteps)) {
 					// Empty TimingData means it's inherited
 					// from the song and is already changed.
 					if (s->m_Timing.empty())
@@ -217,7 +217,7 @@ static LocalizedString SONG_OFFSET_FROM(
   "Song offset from %+.3f to %+.3f (notes %s)");
 
 void
-AdjustSync::GetSyncChangeTextGlobal(vector<std::string>& vsAddTo)
+AdjustSync::GetSyncChangeTextGlobal(std::vector<std::string>& vsAddTo)
 {
 	{
 		auto fOld =
@@ -236,7 +236,7 @@ AdjustSync::GetSyncChangeTextGlobal(vector<std::string>& vsAddTo)
 }
 
 void
-AdjustSync::GetSyncChangeTextSong(vector<std::string>& vsAddTo)
+AdjustSync::GetSyncChangeTextSong(std::vector<std::string>& vsAddTo)
 {
 	if (!GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get()) {
 		unsigned int iOriginalSize = vsAddTo.size();

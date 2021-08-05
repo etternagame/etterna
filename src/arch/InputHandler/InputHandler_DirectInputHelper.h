@@ -57,7 +57,7 @@ struct DIDevice
 
 	bool buffered;
 	int buttons, axes, hats;
-	vector<input_t> Inputs;
+	std::vector<input_t> Inputs;
 	InputDevice dev;
 
 	DIDevice();

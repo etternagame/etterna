@@ -60,7 +60,7 @@ ValidateLocalProfileName(const std::string& sAnswer, std::string& sErrorOut)
 	if (pProfile != nullptr && sAnswer == pProfile->m_sDisplayName)
 		return true; // unchanged
 
-	vector<std::string> vsProfileNames;
+	std::vector<std::string> vsProfileNames;
 	PROFILEMAN->GetLocalProfileDisplayNames(vsProfileNames);
 	auto bAlreadyAProfileWithThisName =
 	  find(vsProfileNames.begin(), vsProfileNames.end(), sAnswer) !=
@@ -89,7 +89,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 {
 	// FIXME
 	// int iIndex = 0;
-	vector<OptionRowHandler*> OptionRowHandlers;
+	std::vector<OptionRowHandler*> OptionRowHandlers;
 
 	if (SHOW_CREATE_NEW) {
 		auto pHand = OptionRowHandlerUtil::Make(ParseCommands(
@@ -145,7 +145,7 @@ ScreenOptionsManageProfiles::BeginScreen()
 
 	// select the last chosen profile
 	if (!sEditLocalProfileID.empty()) {
-		vector<std::string>::const_iterator iter =
+		std::vector<std::string>::const_iterator iter =
 		  find(m_vsLocalProfileID.begin(),
 			   m_vsLocalProfileID.end(),
 			   sEditLocalProfileID);
@@ -309,7 +309,7 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 
 	if (SHOW_CREATE_NEW && iCurRow == 0) // "create new"
 	{
-		vector<std::string> vsUsedNames;
+		std::vector<std::string> vsUsedNames;
 		PROFILEMAN->GetLocalProfileDisplayNames(vsUsedNames);
 
 		std::string sPotentialName;

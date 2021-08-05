@@ -322,7 +322,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 	HRESULT hr;
 
 	// If windowed, then bpp is ignored.  Use whatever works.
-	vector<D3DFORMAT> vBackBufferFormats; // throw all possibilities in here
+	std::vector<D3DFORMAT> vBackBufferFormats; // throw all possibilities in here
 
 	// When windowed, add all formats; otherwise add only formats that match
 	// dwBPP.
@@ -935,7 +935,7 @@ RageDisplay_D3D::SendCurrentMatrices()
 class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>& /*vMeshes*/) override
+	void Allocate(const std::vector<msMesh>& /*vMeshes*/) override
 	{
 		m_vVertex.resize(
 		  std::max(1U, static_cast<unsigned>(GetTotalVertices())));
@@ -943,7 +943,7 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 		  std::max(1U, static_cast<unsigned>(GetTotalTriangles())));
 	}
 
-	void Change(const vector<msMesh>& vMeshes) override
+	void Change(const std::vector<msMesh>& vMeshes) override
 	{
 		for (unsigned i = 0; i < vMeshes.size(); i++) {
 			const auto& meshInfo = m_vMeshInfo[i];
@@ -1010,8 +1010,8 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 	}
 
   protected:
-	vector<RageModelVertex> m_vVertex;
-	vector<msTriangle> m_vTriangles;
+	std::vector<RageModelVertex> m_vVertex;
+	std::vector<msTriangle> m_vTriangles;
 };
 
 auto
@@ -1036,7 +1036,7 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<int> vIndices;
+	static std::vector<int> vIndices;
 	const int iOldSize = vIndices.size();
 	const auto uNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(uNewSize);
@@ -1085,7 +1085,7 @@ RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteVertex v[],
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<int> vIndices;
+	static std::vector<int> vIndices;
 	const int iOldSize = vIndices.size();
 	const auto iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);
@@ -1132,7 +1132,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<int> vIndices;
+	static std::vector<int> vIndices;
 	const int iOldSize = vIndices.size();
 	const auto iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);

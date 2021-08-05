@@ -82,7 +82,7 @@ class Player : public ActorFrame
 	};
 	virtual void UpdateHoldNotes(int iSongRow,
 								 float fDeltaTime,
-								 vector<TrackRowTapNote>& vTN);
+								 std::vector<TrackRowTapNote>& vTN);
 
 	virtual void Init(const std::string& sType,
 					  PlayerState* pPlayerState,
@@ -156,7 +156,7 @@ class Player : public ActorFrame
 	bool m_inside_lua_set_life;
 
 	// Mina perma-temp stuff
-	vector<int> nerv;	// the non empty row vector where we are somehwere in
+	std::vector<int> nerv;	// the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
 	float maxwifescore = 0.F;
 	float curwifescore = 0.F;
@@ -193,7 +193,7 @@ class Player : public ActorFrame
 	void HandleHoldCheckpoint(int iRow,
 							  int iNumHoldsHeldThisRow,
 							  int iNumHoldsMissedThisRow,
-							  const vector<int>& viColsWithHold);
+							  const std::vector<int>& viColsWithHold);
 	void DrawTapJudgments();
 	void DrawHoldJudgments();
 	void SendComboMessages(unsigned int iOldCombo,
@@ -310,7 +310,7 @@ class Player : public ActorFrame
  */
 class JudgedRows
 {
-	vector<bool> m_vRows;
+	std::vector<bool> m_vRows;
 	int m_iStart{ 0 };
 	int m_iOffset{ 0 };
 	void Resize(size_t iMin);

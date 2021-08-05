@@ -22,11 +22,11 @@ class LinuxInputManager
   private:
 	bool m_bEventEnabled;
 	InputHandler_Linux_Event* m_EventDriver;
-	vector<std::string> m_vsPendingEventDevices;
+	std::vector<std::string> m_vsPendingEventDevices;
 
 	bool m_bJoystickEnabled;
 	InputHandler_Linux_Joystick* m_JoystickDriver;
-	vector<std::string> m_vsPendingJoystickDevices;
+	std::vector<std::string> m_vsPendingJoystickDevices;
 };
 
 extern LinuxInputManager*

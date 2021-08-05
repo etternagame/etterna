@@ -112,7 +112,7 @@ SlideDuplicateDifficulties(Song& p)
 			if (dc == Difficulty_Edit)
 				continue;
 
-			vector<Steps*> vSteps;
+			std::vector<Steps*> vSteps;
 			SongUtil::GetSteps(&p, vSteps, st, dc);
 
 			StepsUtil::SortNotesArrayByDifficulty(vSteps);
@@ -129,7 +129,7 @@ SlideDuplicateDifficulties(Song& p)
 
 void
 BMSLoader::GetApplicableFiles(const std::string& sPath,
-							  vector<std::string>& out)
+							  std::vector<std::string>& out)
 {
 	GetDirListing(sPath + std::string("*.bms"), out);
 	GetDirListing(sPath + std::string("*.bme"), out);
@@ -241,8 +241,8 @@ struct bmsCommandTree
 		};
 
 		BMSHeaders Commands;
-		vector<std::string> ChannelCommands;
-		vector<bmsNodeS*> branches;
+		std::vector<std::string> ChannelCommands;
+		std::vector<bmsNodeS*> branches;
 		bmsNodeS* parent;
 
 		bmsNodeS()
@@ -262,7 +262,7 @@ struct bmsCommandTree
 
 	bmsNodeS* currentNode;
 	bmsNodeS root;
-	vector<unsigned int> randomStack;
+	std::vector<unsigned int> randomStack;
 
 	int line;
 	std::string path;
@@ -348,7 +348,7 @@ struct bmsCommandTree
 
 	void appendNodeElements(bmsNodeS* node,
 							BMSHeaders& headersOut,
-							vector<std::string>& linesOut)
+							std::vector<std::string>& linesOut)
 	{
 		for (auto& Command : node->Commands) {
 			headersOut[Command.first] = Command.second;
@@ -361,7 +361,7 @@ struct bmsCommandTree
 
 	bool triggerBranches(bmsNodeS* node,
 						 BMSHeaders& headersOut,
-						 vector<std::string>& linesOut)
+						 std::vector<std::string>& linesOut)
 	{
 		for (auto& b : node->branches)
 			if (evaluateNode(b, headersOut, linesOut)) {
@@ -373,7 +373,7 @@ struct bmsCommandTree
 
 	bool evaluateNode(bmsNodeS* node,
 					  BMSHeaders& headersOut,
-					  vector<std::string>& linesOut)
+					  std::vector<std::string>& linesOut)
 	{
 		switch (node->conditionType) {
 			case bmsNodeS::CT_CONDITIONALCHAIN:
@@ -406,7 +406,7 @@ struct bmsCommandTree
 		return false;
 	}
 
-	void evaluateBMSTree(BMSHeaders& headersOut, vector<std::string>& linesOut)
+	void evaluateBMSTree(BMSHeaders& headersOut, std::vector<std::string>& linesOut)
 	{
 		evaluateNode(&root, headersOut, linesOut);
 	}
@@ -567,7 +567,7 @@ BMSChart::Load(const std::string& chartPath)
 		Tree.doStatement(line, referencedTracks);
 	}
 
-	vector<std::string> lines;
+	std::vector<std::string> lines;
 	Tree.evaluateBMSTree(headers, lines);
 
 	for (const auto& line : lines) {
@@ -672,7 +672,7 @@ BMSSong::AllocateKeysound(const std::string& filename, const std::string& path)
 		dir = Dirname(path);
 
 	if (!IsAFile(dir + normalizedFilename)) {
-		vector<std::string> const& exts =
+		std::vector<std::string> const& exts =
 		  ActorUtil::GetTypeExtensionList(FT_Sound);
 		for (const auto& ext : exts) {
 			std::string fn = SetExtension(normalizedFilename, ext);
@@ -736,7 +736,7 @@ BMSSong::GetBackground(const std::string& filename,
 	}
 
 	if (!IsAFile(dir + normalizedFilename)) {
-		vector<std::string> exts;
+		std::vector<std::string> exts;
 		ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
 		ActorUtil::AddTypeExtensionsToList(FT_Bitmap, exts);
 		for (auto& ext : exts) {
@@ -768,9 +768,9 @@ BMSSong::PrecacheBackgrounds(const std::string& dir)
 	if (backgroundsPrecached)
 		return;
 	backgroundsPrecached = true;
-	vector<std::string> arrayPossibleFiles;
+	std::vector<std::string> arrayPossibleFiles;
 
-	vector<std::string> exts;
+	std::vector<std::string> exts;
 	ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
 	ActorUtil::AddTypeExtensionsToList(FT_Bitmap, exts);
 	FILEMAN->GetDirListingWithMultipleExtensions(
@@ -1287,7 +1287,7 @@ BMSChartReader::ReadNoteData()
 		}
 	}
 
-	vector<BMSAutoKeysound> autos;
+	std::vector<BMSAutoKeysound> autos;
 
 	for (auto& obj : in->objects) {
 		while (trackMeasure < obj.measure) {
@@ -1485,7 +1485,7 @@ class BMSSongLoader
 {
 	std::string dir;
 	BMSSong song;
-	vector<BMSStepsInfo> loadedSteps;
+	std::vector<BMSStepsInfo> loadedSteps;
 
   public:
 	BMSSongLoader(const std::string& songDir, Song* outSong);
@@ -1738,7 +1738,7 @@ BMSLoader::LoadFromDir(const std::string& sDir, Song& out)
 
 	ASSERT(out.m_vsKeysoundFile.empty());
 
-	vector<std::string> arrayBMSFileNames;
+	std::vector<std::string> arrayBMSFileNames;
 	GetApplicableFiles(sDir, arrayBMSFileNames);
 
 	/* We should have at least one; if we had none, we shouldn't have been

@@ -38,7 +38,7 @@ class RoomInfoDisplay : public ActorFrame
 	BitmapText m_songArtist;
 
 	BitmapText m_players;
-	vector<BitmapText*> m_playerList;
+	std::vector<BitmapText*> m_playerList;
 
 	RageTimer m_deployDelay;
 
