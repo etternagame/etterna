@@ -229,23 +229,29 @@ information is stored within the binary, and we'll first want to extract it into
 MODULE windows x86_64 7E72B03B469446899BB92B0EB45174FA2f Etterna-RelWithDebInfo.pdb
 ```
 
-2. Take the long string of characters in the center, and create a directory structure that looks like the following
+2. Take note of two parts of the above string:
+
+- Build ID: `7E72B03B469446899BB92B0EB45174FA2f`
+- Module ID: `Etterna-RelWithDebInfo.pdb`
+
+With the above parts, we must create a directory structure that looks like the following
+
 ```text
-mkdir -p EtternaSymbols/Etterna/7E72B03B469446899BB92B0EB45174FA2f/Etterna.sym
+mkdir -p EtternaSymbols/Etterna-RelWithDebInfo.pdb/7E72B03B469446899BB92B0EB45174FA2f/Etterna.sym
 ```
-Use this folder when running `minidump_stackwalk`
+Use the `EtternaSymbols` folder when running `minidump_stackwalk`.
 
 ### Explanation
 
 Now that we have the `Etterna.sym` file, we have everything we need to be able to debug a minidump.
 For the decoder to read the symbols, it must be in a specific folder format called
 "Breakpad Directory Structure." (I don't know if that is the official name, but that is what I'm
-going to refer to it as.) That format is `EtternaSymbols/<debug_name>/<breakpad-id>/<sym_name>`. For
-Etterna, you can expect symbols to look like `EtternaSymbols/Etterna/<breakpad-id>/Etterna.sym`
-where `breakpad-id` will be the random string very first line of the `.sym` file. That is how the
-minidump decoder will find what symbol file should be used for a particular minidump. The
-`EtternaSymbols` folder name can be whatever you want, that is just the root folder for Etterna
-symbols.
+going to refer to it as.) That format is `EtternaSymbols/<module-id>/<build-id>/<sym_name>`. For
+Etterna, you can expect symbols to look like `EtternaSymbols/<module-id>/<build-id>/Etterna.sym`
+where `build-id` will be the random string `MODULE` line of the `.sym` file, and `module-id`
+will be the last part of the `MODULE` line of the `.sym`. That is how the  minidump decoder will
+find what symbol file should be used for a particular minidump. The `EtternaSymbols` folder name
+can be whatever you want, that is just the root folder for Etterna symbols.
 
 ## Decoding Minidumps
 
