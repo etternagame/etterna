@@ -18,7 +18,7 @@ class ReceptorArrowRow : public ActorFrame
 	void DrawOverlay();
 
 	void Load(const PlayerState* pPlayerState, float fYReverseOffset);
-	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
+	void SetColumnRenderers(std::vector<NoteColumnRenderer>& renderers);
 	[[nodiscard]] int GetRendererCount() const
 	{
 		if (m_renderers != nullptr)

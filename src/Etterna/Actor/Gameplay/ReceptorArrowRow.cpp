@@ -42,7 +42,7 @@ ReceptorArrowRow::Load(const PlayerState* pPlayerState, float fYReverseOffset)
 }
 
 void
-ReceptorArrowRow::SetColumnRenderers(vector<NoteColumnRenderer>& renderers)
+ReceptorArrowRow::SetColumnRenderers(std::vector<NoteColumnRenderer>& renderers)
 {
 	ASSERT_M(renderers.size() == m_ReceptorArrow.size(),
 			 "Notefield has different number of columns than receptor row.");

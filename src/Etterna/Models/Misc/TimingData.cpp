@@ -13,7 +13,7 @@
 #include "AdjustSync.h"
 
 static void
-EraseSegment(vector<TimingSegment*>& vSegs, int index, TimingSegment* cur);
+EraseSegment(std::vector<TimingSegment*>& vSegs, int index, TimingSegment* cur);
 static const int INVALID_INDEX = -1;
 
 TimingSegment*
@@ -72,7 +72,7 @@ TimingData::PrepareLookup()
 	// thing.  So release the lookups. -Kyz
 	ReleaseLookup();
 	const unsigned int segments_per_lookup = 16;
-	const vector<TimingSegment*>* segs = m_avpTimingSegments;
+	const std::vector<TimingSegment*>* segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -117,7 +117,7 @@ TimingData::ReleaseLookup()
 }
 
 std::string
-SegInfoStr(const vector<TimingSegment*>& segs,
+SegInfoStr(const std::vector<TimingSegment*>& segs,
 		   unsigned int index,
 		   const std::string& name)
 {
@@ -517,7 +517,7 @@ TimingData::GetSegmentAtRow(int iNoteRow, TimingSegmentType tst)
 }
 
 static void
-EraseSegment(vector<TimingSegment*>& vSegs, int index, TimingSegment* cur)
+EraseSegment(std::vector<TimingSegment*>& vSegs, int index, TimingSegment* cur)
 {
 #ifdef WITH_LOGGING_TIMING_DATA
 	Locator::getLogger()->trace("EraseSegment({}, {})", index, cur);
@@ -647,7 +647,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 		vSegs[index] = cpy;
 	} else {
 		// copy and insert a new segment
-		vector<TimingSegment*>::iterator it;
+		std::vector<TimingSegment*>::iterator it;
 		it = upper_bound(vSegs.begin(), vSegs.end(), cpy, ts_less());
 		vSegs.insert(it, cpy);
 	}
@@ -691,10 +691,10 @@ FindEvent(int& event_row,
 		  TimingData::GetBeatStarts& start,
 		  float beat,
 		  bool find_marker,
-		  const vector<TimingSegment*>& bpms,
-		  const vector<TimingSegment*>& warps,
-		  const vector<TimingSegment*>& stops,
-		  const vector<TimingSegment*>& delays)
+		  const std::vector<TimingSegment*>& bpms,
+		  const std::vector<TimingSegment*>& warps,
+		  const std::vector<TimingSegment*>& stops,
+		  const std::vector<TimingSegment*>& delays)
 {
 	if (start.is_warping) {
 		const auto eventBeat = BeatToNoteRow(start.warp_destination);
@@ -1231,11 +1231,11 @@ TimingData::NoteRowToMeasureAndBeat(int iNoteRow,
 	FAIL_M("Failed to get measure and beat for note row");
 }
 
-vector<std::string>
+std::vector<std::string>
 TimingData::ToVectorString(TimingSegmentType tst, int dec) const
 {
 	const auto segs = GetTimingSegments(tst);
-	vector<std::string> ret;
+	std::vector<std::string> ret;
 
 	ret.reserve(segs.size());
 	for (auto* seg : segs) {
@@ -1361,23 +1361,23 @@ TimingData::WhereUAtBroNoOffset(float beat) const
 	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
-vector<float>
-TimingData::ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv,
+std::vector<float>
+TimingData::ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
 											  float rate)
 {
-	vector<float> o;
+	std::vector<float> o;
 	o.reserve(nrv.size());
 	for (auto nr : nrv)
 		o.emplace_back(WhereUAtBro(nr) / rate);
 	return o;
 }
 
-const vector<float>&
-TimingData::BuildAndGetEtaner(const vector<int>& nerv)
+const std::vector<float>&
+TimingData::BuildAndGetEtaner(const std::vector<int>& nerv)
 {
 	ElapsedTimesAtNonEmptyRows.clear();
 
-	const vector<TimingSegment*>* segs = m_avpTimingSegments;
+	const std::vector<TimingSegment*>* segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -1453,7 +1453,7 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 	return ElapsedTimesAtAllRows;
 }
 
-const vector<float>&
+const std::vector<float>&
 TimingData::BuildAndGetEtar(int lastrow)
 {
 	ElapsedTimesAtAllRows.clear();
@@ -1537,7 +1537,7 @@ class LunaTimingData : public Luna<TimingData>
 #undef GET_FUNCTION
 	static int GetBPMs(T* p, lua_State* L)
 	{
-		vector<float> vBPMs;
+		std::vector<float> vBPMs;
 		const auto& bpms = p->GetTimingSegments(SEGMENT_BPM);
 
 		vBPMs.reserve(bpms.size());
@@ -1554,7 +1554,7 @@ class LunaTimingData : public Luna<TimingData>
 		float fMinBPM = 0.f;
 		float fMaxBPM = 0.f;
 		p->GetActualBPM(fMinBPM, fMaxBPM);
-		vector<float> fBPMs;
+		std::vector<float> fBPMs;
 		fBPMs.push_back(fMinBPM);
 		fBPMs.push_back(fMaxBPM);
 		LuaHelpers::CreateTableFromArray(fBPMs, L);

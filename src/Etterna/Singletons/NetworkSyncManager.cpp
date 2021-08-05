@@ -695,7 +695,7 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, Value& ch)
 			}
 		}
 	} else {
-		vector<Song*> AllSongs = SONGMAN->GetAllSongs();
+		std::vector<Song*> AllSongs = SONGMAN->GetAllSongs();
 		for (size_t i = 0; i < AllSongs.size(); i++) {
 			auto& m_cSong = AllSongs[i];
 			if ((n->m_sArtist.empty() ||
@@ -965,9 +965,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						auto& offsets = replay["offsets"];
 						auto& noterows = replay["noterows"];
 						auto& tracks = replay["tracks"];
-						vector<float> v_offsets;
-						vector<int> v_noterows;
-						vector<int> v_tracks;
+						std::vector<float> v_offsets;
+						std::vector<int> v_noterows;
+						std::vector<int> v_tracks;
 						for (auto& offset : offsets.GetArray())
 							if (offset.IsNumber())
 								v_offsets.push_back(offset.GetFloat());
@@ -2019,7 +2019,7 @@ PacketFunctions::ClearPacket()
 }
 
 void
-NetworkSyncManager::GetListOfLANServers(vector<NetServerInfo>& AllServers)
+NetworkSyncManager::GetListOfLANServers(std::vector<NetServerInfo>& AllServers)
 {
 	AllServers = m_vAllLANServers;
 }

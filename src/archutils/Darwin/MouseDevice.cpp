@@ -125,7 +125,7 @@ MouseDevice::Open()
 
 void
 MouseDevice::GetButtonPresses(
-  vector<DeviceInput>& vPresses,
+  std::vector<DeviceInput>& vPresses,
   IOHIDElementCookie cookie,
   int value,
   const std::chrono::time_point<std::chrono::steady_clock>& now) const
@@ -156,7 +156,7 @@ MouseDevice::GetButtonPresses(
 }
 
 void
-MouseDevice::GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevices) const
+MouseDevice::GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevices) const
 {
 	vDevices.push_back(InputDeviceInfo(DEVICE_MOUSE, "Mouse"));
 }

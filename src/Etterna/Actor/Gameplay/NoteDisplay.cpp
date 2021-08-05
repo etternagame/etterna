@@ -486,7 +486,7 @@ NoteDisplay::Load(int iColNum,
 	m_fYReverseOffsetPixels = fYReverseOffsetPixels;
 
 	const auto pn = m_pPlayerState->m_PlayerNumber;
-	vector<GameInput> GameI;
+	std::vector<GameInput> GameI;
 	GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
 	  ->StyleInputToGameInput(iColNum, pn, GameI);
 
@@ -496,7 +496,7 @@ NoteDisplay::Load(int iColNum,
 
 	cache->Load(sButton);
 
-	vector<std::string> Colors = { "4th",  "8th",  "12th", "16th", "24th",
+	std::vector<std::string> Colors = { "4th",  "8th",  "12th", "16th", "24th",
 								   "32nd", "48th", "64th", "192nd" };
 
 	for (auto& Color : Colors) {
@@ -556,7 +556,7 @@ bool
 NoteDisplay::DrawHoldsInRange(
   const NoteFieldRenderArgs& field_args,
   const NoteColumnRenderArgs& column_args,
-  const vector<NoteData::TrackMap::const_iterator>& tap_set)
+  const std::vector<NoteData::TrackMap::const_iterator>& tap_set)
 {
 	auto any_upcoming = false;
 	for (const auto tapit : tap_set) {
@@ -640,7 +640,7 @@ bool
 NoteDisplay::DrawTapsInRange(
   const NoteFieldRenderArgs& field_args,
   const NoteColumnRenderArgs& column_args,
-  const vector<NoteData::TrackMap::const_iterator>& tap_set)
+  const std::vector<NoteData::TrackMap::const_iterator>& tap_set)
 {
 	auto any_upcoming = false;
 	// draw notes from furthest to closest
@@ -878,7 +878,7 @@ enum hold_part_type
 };
 
 void
-NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
+NoteDisplay::DrawHoldPart(std::vector<Sprite*>& vpSpr,
 						  const NoteFieldRenderArgs& field_args,
 						  const NoteColumnRenderArgs& column_args,
 						  const draw_hold_part_args& part_args,
@@ -1196,9 +1196,9 @@ NoteDisplay::DrawHoldPart(vector<Sprite*>& vpSpr,
 }
 
 void
-NoteDisplay::DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
-								  vector<Sprite*>& sprite_body,
-								  vector<Sprite*>& sprite_bottom,
+NoteDisplay::DrawHoldBodyInternal(std::vector<Sprite*>& sprite_top,
+								  std::vector<Sprite*>& sprite_body,
+								  std::vector<Sprite*>& sprite_bottom,
 								  const NoteFieldRenderArgs& field_args,
 								  const NoteColumnRenderArgs& column_args,
 								  draw_hold_part_args& part_args,
@@ -1260,7 +1260,7 @@ NoteDisplay::DrawHoldBody(const TapNote& tn,
 	part_args.percent_fade_to_fail = percent_fade_to_fail;
 	part_args.color_scale = color_scale;
 	part_args.overlapped_time = tn.HoldResult.fOverlappedTime;
-	vector<Sprite*> vpSprTop;
+	std::vector<Sprite*> vpSprTop;
 	auto* pSpriteTop =
 	  GetHoldSprite(m_HoldTopCap,
 					NotePart_HoldTopCap,
@@ -1269,7 +1269,7 @@ NoteDisplay::DrawHoldBody(const TapNote& tn,
 					being_held && !cache->m_bHoldActiveIsAddLayer);
 	vpSprTop.push_back(pSpriteTop);
 
-	vector<Sprite*> vpSprBody;
+	std::vector<Sprite*> vpSprBody;
 	auto* const pSpriteBody =
 	  GetHoldSprite(m_HoldBody,
 					NotePart_HoldBody,
@@ -1278,7 +1278,7 @@ NoteDisplay::DrawHoldBody(const TapNote& tn,
 					being_held && !cache->m_bHoldActiveIsAddLayer);
 	vpSprBody.push_back(pSpriteBody);
 
-	vector<Sprite*> vpSprBottom;
+	std::vector<Sprite*> vpSprBottom;
 	auto* pSpriteBottom =
 	  GetHoldSprite(m_HoldBottomCap,
 					NotePart_HoldBottomCap,
@@ -1899,8 +1899,8 @@ NoteColumnRenderer::DrawPrimitives()
 	// lists to the displays to draw.
 	// The vector in the NUM_PlayerNumber slot should stay empty, not worth
 	// optimizing it out. -Kyz
-	vector<NoteData::TrackMap::const_iterator> holds;
-	vector<NoteData::TrackMap::const_iterator> taps;
+	std::vector<NoteData::TrackMap::const_iterator> holds;
+	std::vector<NoteData::TrackMap::const_iterator> taps;
 	NoteData::TrackMap::const_iterator begin, end;
 	m_field_render_args->note_data->GetTapNoteRangeInclusive(
 	  m_column,

@@ -273,7 +273,7 @@ GetInfoLog(GLhandleARB h)
 GLhandleARB
 CompileShader(GLenum ShaderType,
 			  std::string sFile,
-			  vector<std::string> asDefines)
+			  std::vector<std::string> asDefines)
 {
 	/* XXX: This would not be necessary if it wasn't for the special case for
 	 * Cel. */
@@ -305,8 +305,8 @@ CompileShader(GLenum ShaderType,
 	if (PREFSMAN->m_verbose_log > 1)
 		Locator::getLogger()->trace("Compiling shader {}", sFile.c_str());
 	const auto hShader = glCreateShaderObjectARB(ShaderType);
-	vector<const GLcharARB*> apData;
-	vector<GLint> aiLength;
+	std::vector<const GLcharARB*> apData;
+	std::vector<GLint> aiLength;
 	for (auto& s : asDefines) {
 		s = ssprintf("#define %s\n", s.c_str());
 		apData.push_back(s.data());
@@ -339,7 +339,7 @@ CompileShader(GLenum ShaderType,
 }
 
 GLhandleARB
-LoadShader(GLenum ShaderType, std::string sFile, vector<std::string> asDefines)
+LoadShader(GLenum ShaderType, std::string sFile, std::vector<std::string> asDefines)
 {
 	/* Vertex shaders are supported by more hardware than fragment shaders.
 	 * If this causes any trouble I will have to up the requirement for both
@@ -412,7 +412,7 @@ InitShaders()
 	// xxx: replace this with a ShaderManager or something that reads in
 	// the shaders and determines shader type by file extension. -aj
 	// argh shaders in stepmania are painful -colby
-	const vector<std::string> asDefines;
+	const std::vector<std::string> asDefines;
 
 	// used for scrolling textures (I think)
 	g_bTextureMatrixShader =
@@ -507,7 +507,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 		{
 			const auto szExtensionString =
 			  (const char*)glGetString(GL_EXTENSIONS);
-			vector<std::string> asExtensions;
+			std::vector<std::string> asExtensions;
 			split(szExtensionString, " ", asExtensions);
 			sort(asExtensions.begin(), asExtensions.end());
 			size_t iNextToPrint = 0;
@@ -515,7 +515,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 				auto iLastToPrint = iNextToPrint;
 				std::string sType;
 				for (auto i = iNextToPrint; i < asExtensions.size(); ++i) {
-					vector<std::string> asBits;
+					std::vector<std::string> asBits;
 					split(asExtensions[i], "_", asBits);
 					std::string sThisType;
 					if (asBits.size() > 2)
@@ -535,7 +535,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 				auto sList = ssprintf("  %s: ", sType.c_str());
 				while (iNextToPrint <= iLastToPrint) {
-					vector<std::string> asBits;
+					std::vector<std::string> asBits;
 					split(asExtensions[iNextToPrint], "_", asBits);
 					const auto sShortExt =
 					  join(std::string("_"), asBits.begin() + 2, asBits.end());
@@ -1108,7 +1108,7 @@ RageDisplay_Legacy::SendCurrentMatrices()
 class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>& vMeshes) override
+	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
 		m_vPosition.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
@@ -1119,7 +1119,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 		m_vTriangles.resize(
 		  max(1U, static_cast<unsigned>(GetTotalTriangles())));
 	}
-	void Change(const vector<msMesh>& vMeshes) override
+	void Change(const std::vector<msMesh>& vMeshes) override
 	{
 		for (unsigned i = 0; i < vMeshes.size(); i++) {
 			const auto& meshInfo = m_vMeshInfo[i];
@@ -1194,11 +1194,11 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	}
 
   protected:
-	vector<RageVector3> m_vPosition;
-	vector<RageVector2> m_vTexture;
-	vector<RageVector3> m_vNormal;
-	vector<msTriangle> m_vTriangles;
-	vector<RageVector2> m_vTexMatrixScale;
+	std::vector<RageVector3> m_vPosition;
+	std::vector<RageVector2> m_vTexture;
+	std::vector<RageVector3> m_vNormal;
+	std::vector<msTriangle> m_vTriangles;
+	std::vector<RageVector2> m_vTexMatrixScale;
 };
 
 class InvalidateObject;
@@ -1241,8 +1241,8 @@ class RageCompiledGeometryHWOGL
 	/* This is called when our OpenGL context is invalidated. */
 	void Invalidate() override;
 
-	void Allocate(const vector<msMesh>& vMeshes) override;
-	void Change(const vector<msMesh>& vMeshes) override;
+	void Allocate(const std::vector<msMesh>& vMeshes) override;
+	void Change(const std::vector<msMesh>& vMeshes) override;
 	void Draw(int iMeshIndex) const override;
 };
 
@@ -1366,7 +1366,7 @@ RageCompiledGeometryHWOGL::Invalidate()
 }
 
 void
-RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
+RageCompiledGeometryHWOGL::Allocate(const std::vector<msMesh>& vMeshes)
 {
 	DebugFlushGLErrors();
 
@@ -1412,7 +1412,7 @@ RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 }
 
 void
-RageCompiledGeometryHWOGL::Change(const vector<msMesh>& vMeshes)
+RageCompiledGeometryHWOGL::Change(const std::vector<msMesh>& vMeshes)
 {
 	RageCompiledGeometrySWOGL::Change(vMeshes);
 
@@ -1576,7 +1576,7 @@ RageDisplay_Legacy::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
+	static std::vector<uint16_t> vIndices;
 	const unsigned uOldSize = vIndices.size();
 	const auto uNewSize = max(uOldSize, static_cast<unsigned>(iNumIndices));
 	vIndices.resize(uNewSize);

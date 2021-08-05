@@ -75,7 +75,7 @@ class RageSoundSplitterImpl
 
 	/* m_sBuffer[0] corresponds to frame number m_iBufferPositionFrames. */
 	int m_iBufferPositionFrames;
-	vector<float> m_sBuffer;
+	std::vector<float> m_sBuffer;
 };
 
 int

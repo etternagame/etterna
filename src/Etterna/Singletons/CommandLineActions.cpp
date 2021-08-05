@@ -20,7 +20,7 @@
 /** @brief The directory where languages should be installed. */
 const std::string INSTALLER_LANGUAGES_DIR = "Themes/_Installer/Languages/";
 
-vector<CommandLineActions::CommandLineArgs> CommandLineActions::ToProcess;
+std::vector<CommandLineActions::CommandLineArgs> CommandLineActions::ToProcess;
 
 static void
 Nsis()
@@ -29,7 +29,7 @@ Nsis()
 	if (!out.Open("nsis_strings_temp.inc", RageFile::WRITE))
 		RageException::Throw("Error opening file for write.");
 
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 	GetDirListing(INSTALLER_LANGUAGES_DIR + "*.ini", vs, false, false);
 	for (auto& s : vs) {
 		std::string sThrowAway, sLangCode;

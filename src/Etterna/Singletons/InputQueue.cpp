@@ -77,7 +77,7 @@ InputQueueCode::EnteredCode(GameController controller) const
 
 	// iterate newest to oldest
 	int iSequenceIndex = m_aPresses.size() - 1; // count down
-	const vector<InputEventPlus>& aQueue = INPUTQUEUE->GetQueue(controller);
+	const std::vector<InputEventPlus>& aQueue = INPUTQUEUE->GetQueue(controller);
 	int iQueueIndex = aQueue.size() - 1;
 	while (iQueueIndex >= 0) {
 		/* If the buttons are too old, stop searching because we're not going to
@@ -183,10 +183,10 @@ InputQueueCode::Load(std::string sButtonsNames)
 {
 	m_aPresses.clear();
 
-	vector<std::string> asPresses;
+	std::vector<std::string> asPresses;
 	split(sButtonsNames, ",", asPresses, false);
 	for (auto& sPress : asPresses) {
-		vector<std::string> asButtonNames;
+		std::vector<std::string> asButtonNames;
 
 		split(sPress, "-", asButtonNames, false);
 

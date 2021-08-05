@@ -11,7 +11,7 @@ RageFileDriver::~RageFileDriver()
 int
 RageFileDriver::GetPathValue(const std::string& sPath)
 {
-	vector<std::string> asParts;
+	std::vector<std::string> asParts;
 	split(sPath, "/", asParts, true);
 
 	std::string sPartialPath;
@@ -44,7 +44,7 @@ RageFileDriver::GetPathValue(const std::string& sPath)
 
 void
 RageFileDriver::GetDirListing(const std::string& sPath,
-							  vector<std::string>& asAddTo,
+							  std::vector<std::string>& asAddTo,
 							  bool bOnlyDirs,
 							  bool bReturnPathToo)
 {

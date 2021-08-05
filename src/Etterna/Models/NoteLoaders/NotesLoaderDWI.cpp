@@ -566,7 +566,7 @@ ParseBrokenDWITimestamp(const std::string& arg1,
 
 void
 DWILoader::GetApplicableFiles(const std::string& sPath,
-							  vector<std::string>& out)
+							  std::vector<std::string>& out)
 {
 	GetDirListing(sPath + std::string("*.dwi"), out);
 }
@@ -616,7 +616,7 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 					   Song& out,
 					   std::set<std::string>& BlacklistedImages)
 {
-	vector<std::string> aFileNames;
+	std::vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
 
 	if (aFileNames.size() > 1) {
@@ -738,11 +738,11 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 		}
 
 		else if (EqualsNoCase(sValueName, "FREEZE")) {
-			vector<std::string> arrayFreezeExpressions;
+			std::vector<std::string> arrayFreezeExpressions;
 			split(sParams[1], ",", arrayFreezeExpressions);
 
 			for (auto& arrayFreezeExpression : arrayFreezeExpressions) {
-				vector<std::string> arrayFreezeValues;
+				std::vector<std::string> arrayFreezeValues;
 				split(arrayFreezeExpression, "=", arrayFreezeValues);
 				if (arrayFreezeValues.size() != 2) {
 					/*LOG->UserLog("Song file",
@@ -765,11 +765,11 @@ DWILoader::LoadFromDir(const std::string& sPath_,
 
 		else if (EqualsNoCase(sValueName, "CHANGEBPM") ||
 				 EqualsNoCase(sValueName, "BPMCHANGE")) {
-			vector<std::string> arrayBPMChangeExpressions;
+			std::vector<std::string> arrayBPMChangeExpressions;
 			split(sParams[1], ",", arrayBPMChangeExpressions);
 
 			for (auto& arrayBPMChangeExpression : arrayBPMChangeExpressions) {
-				vector<std::string> arrayBPMChangeValues;
+				std::vector<std::string> arrayBPMChangeValues;
 				split(arrayBPMChangeExpression, "=", arrayBPMChangeValues);
 				if (arrayBPMChangeValues.size() != 2) {
 					/*LOG->UserLog("Song file",

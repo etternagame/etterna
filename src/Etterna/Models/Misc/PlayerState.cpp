@@ -145,7 +145,7 @@ class LunaPlayerState : public Luna<PlayerState>
 	static int GetPlayerOptionsArray(T* p, lua_State* L)
 	{
 		const auto m = Enum::Check<ModsLevel>(L, 1);
-		vector<std::string> s;
+		std::vector<std::string> s;
 		p->m_PlayerOptions.Get(m).GetMods(s);
 		LuaHelpers::CreateTableFromArray<std::string>(s, L);
 		return 1;

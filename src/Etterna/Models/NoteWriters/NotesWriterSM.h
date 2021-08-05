@@ -12,7 +12,7 @@ namespace NotesWriterSM {
  * @param out the Song to be written out.
  * @return its success or failure. */
 bool
-Write(const std::string& sPath, Song& out, const vector<Steps*>& vpStepsToSave);
+Write(const std::string& sPath, Song& out, const std::vector<Steps*>& vpStepsToSave);
 /**
  * @brief Get some contents about the edit file first.
  * @param pSong the Song in question.

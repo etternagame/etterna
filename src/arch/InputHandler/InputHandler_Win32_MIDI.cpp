@@ -74,7 +74,7 @@ InputHandler_Win32_MIDI::~InputHandler_Win32_MIDI()
 
 void
 InputHandler_Win32_MIDI::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	if (m_bFoundDevice) {
 		vDevicesOut.push_back(InputDeviceInfo(DEVICE_MIDI, "Win32_MIDI"));

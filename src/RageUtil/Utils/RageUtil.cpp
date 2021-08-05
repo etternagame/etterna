@@ -229,7 +229,7 @@ BinaryToHex(const std::string& sString)
 float
 HHMMSSToSeconds(const std::string& sHHMMSS)
 {
-	vector<std::string> arrayBits;
+	std::vector<std::string> arrayBits;
 	split(sHHMMSS, ":", arrayBits, false);
 
 	while (arrayBits.size() < 3)
@@ -610,7 +610,7 @@ static const LanguageInfo g_langs[] = {
 };
 
 void
-GetLanguageInfos(vector<const LanguageInfo*>& vAddTo)
+GetLanguageInfos(std::vector<const LanguageInfo*>& vAddTo)
 {
 	for (const auto& g_lang : g_langs)
 		vAddTo.push_back(&g_lang);
@@ -628,7 +628,7 @@ GetLanguageInfo(const std::string& sIsoCode)
 }
 
 std::string
-join(const std::string& sDeliminator, const vector<std::string>& sSource)
+join(const std::string& sDeliminator, const std::vector<std::string>& sSource)
 {
 	if (sSource.empty())
 		return std::string();
@@ -652,8 +652,8 @@ join(const std::string& sDeliminator, const vector<std::string>& sSource)
 
 std::string
 join(const std::string& sDelimitor,
-	 vector<std::string>::const_iterator begin,
-	 vector<std::string>::const_iterator end)
+	 std::vector<std::string>::const_iterator begin,
+	 std::vector<std::string>::const_iterator end)
 {
 	if (begin == end)
 		return std::string();
@@ -680,7 +680,7 @@ join(const std::string& sDelimitor,
 }
 
 std::string
-luajoin(const std::string& sDeliminator, const vector<std::string>& sSource)
+luajoin(const std::string& sDeliminator, const std::vector<std::string>& sSource)
 {
 	if (sSource.empty())
 		return std::string();
@@ -704,8 +704,8 @@ luajoin(const std::string& sDeliminator, const vector<std::string>& sSource)
 
 std::string
 luajoin(const std::string& sDelimitor,
-		vector<std::string>::const_iterator begin,
-		vector<std::string>::const_iterator end)
+		std::vector<std::string>::const_iterator begin,
+		std::vector<std::string>::const_iterator end)
 {
 	if (begin == end)
 		return std::string();
@@ -816,7 +816,7 @@ template<class S, class C>
 void
 do_split(const S& Source,
 		 const C Delimitor,
-		 vector<S>& AddIt,
+		 std::vector<S>& AddIt,
 		 const bool bIgnoreEmpty)
 {
 	/* Short-circuit if the source is empty; we want to return an empty vector
@@ -850,7 +850,7 @@ do_split(const S& Source,
 void
 split(const std::string& sSource,
 	  const std::string& sDelimitor,
-	  vector<std::string>& asAddIt,
+	  std::vector<std::string>& asAddIt,
 	  const bool bIgnoreEmpty)
 {
 	if (sDelimitor.size() == 1)
@@ -862,7 +862,7 @@ split(const std::string& sSource,
 void
 split(const wstring& sSource,
 	  const wstring& sDelimitor,
-	  vector<wstring>& asAddIt,
+	  std::vector<wstring>& asAddIt,
 	  const bool bIgnoreEmpty)
 {
 	if (sDelimitor.size() == 1)
@@ -962,7 +962,7 @@ splitpath(const std::string& sPath,
 {
 	sDir = sFilename = sExt = "";
 
-	vector<std::string> asMatches;
+	std::vector<std::string> asMatches;
 
 	/*
 	 * One level of escapes for the regex, one for C. Ew.
@@ -1046,11 +1046,11 @@ MakeValidFilename(std::string& sName)
 }
 
 bool
-FindFirstFilenameContaining(const vector<std::string>& filenames,
+FindFirstFilenameContaining(const std::vector<std::string>& filenames,
 							std::string& out,
-							const vector<std::string>& starts_with,
-							const vector<std::string>& contains,
-							const vector<std::string>& ends_with)
+							const std::vector<std::string>& starts_with,
+							const std::vector<std::string>& contains,
+							const std::vector<std::string>& ends_with)
 {
 	for (const auto& filename : filenames) {
 		auto lower = make_lower(GetFileNameWithoutExtension(filename));
@@ -1198,7 +1198,7 @@ DirectoryIsEmpty(const std::string& sDir)
 	if (!DoesFileExist(sDir))
 		return true;
 
-	vector<std::string> asFileNames;
+	std::vector<std::string> asFileNames;
 	GetDirListing(sDir, asFileNames);
 	return asFileNames.empty();
 }
@@ -1216,7 +1216,7 @@ CompareStringsDesc(const std::string& a, const std::string& b)
 }
 
 void
-SortStringArray(vector<std::string>& arrayStrings, const bool bSortAscending)
+SortStringArray(std::vector<std::string>& arrayStrings, const bool bSortAscending)
 {
 	sort(arrayStrings.begin(),
 		 arrayStrings.end(),
@@ -1339,7 +1339,7 @@ DerefRedir(const std::string& _path)
 
 		sPath2 += "*";
 
-		vector<std::string> matches;
+		std::vector<std::string> matches;
 		GetDirListing(sPath2, matches, false, true);
 
 		if (matches.empty())
@@ -1394,7 +1394,7 @@ GetFileContents(const std::string& sPath, std::string& sOut, bool bOneLine)
 }
 
 bool
-GetFileContents(const std::string& sFile, vector<std::string>& asOut)
+GetFileContents(const std::string& sFile, std::vector<std::string>& asOut)
 {
 	RageFile file;
 	if (!file.Open(sFile)) {
@@ -1508,7 +1508,7 @@ Regex::Compare(const std::string& sStr)
 }
 
 bool
-Regex::Compare(const std::string& sStr, vector<std::string>& asMatches)
+Regex::Compare(const std::string& sStr, std::vector<std::string>& asMatches)
 {
 	asMatches.clear();
 
@@ -1548,7 +1548,7 @@ Regex::Replace(const std::string& sReplacement,
 			   const std::string& sSubject,
 			   std::string& sOut)
 {
-	vector<std::string> asMatches;
+	std::vector<std::string> asMatches;
 	if (!Compare(sSubject, asMatches))
 		return false;
 

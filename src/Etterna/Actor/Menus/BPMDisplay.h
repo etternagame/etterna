@@ -102,7 +102,7 @@ class BPMDisplay : public BitmapText
 	/** @brief The current BPM index used. */
 	int m_iCurrentBPM;
 	/** @brief The list of BPMs. */
-	vector<float> m_BPMS;
+	std::vector<float> m_BPMS;
 	float m_fPercentInState;
 	/** @brief How long it takes to cycle the various BPMs. */
 	float m_fCycleTime;

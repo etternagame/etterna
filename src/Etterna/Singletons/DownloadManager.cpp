@@ -127,7 +127,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 {
 	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
 		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
-	vector<std::string> v_packs;
+	std::vector<std::string> v_packs;
 	GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, true, true);
 
 	string doot = TEMP_ZIP_MOUNT_POINT;
@@ -139,9 +139,9 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		doot = doot.substr(0, doot.length() - 4) + "/";
 	}
 
-	vector<string> vsFiles;
+	std::vector<string> vsFiles;
 	{
-		vector<std::string> vsRawFiles;
+		std::vector<std::string> vsRawFiles;
 		GetDirListingRecursive(doot, "*", vsRawFiles);
 
 		if (vsRawFiles.empty()) {
@@ -149,7 +149,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 			return false;
 		}
 
-		vector<string> vsPrettyFiles;
+		std::vector<string> vsPrettyFiles;
 		for (auto& s : vsRawFiles) {
 			if (EqualsNoCase(GetExtension(s), "ctl"))
 				continue;
@@ -349,7 +349,7 @@ SetCURLFormPostField(CURL* curlHandle,
 inline void
 EmptyTempDLFileDir()
 {
-	vector<std::string> files;
+	std::vector<std::string> files;
 	FILEMAN->GetDirListing(DL_DIR + "*", files, false, true);
 	for (auto& file : files) {
 		if (FILEMAN->IsAFile(file))
@@ -467,7 +467,7 @@ Download::Update(float fDeltaSeconds)
 Download*
 DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 {
-	vector<std::string> packs;
+	std::vector<std::string> packs;
 	SONGMAN->GetSongGroupNames(packs);
 	for (auto packName : packs) {
 		if (packName == pack->name) {
@@ -775,7 +775,7 @@ DownloadManager::AddGoal(const string& chartkey,
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
-	vector<pair<string, string>> postParams = {
+	std::vector<pair<string, string>> postParams = {
 		make_pair("chartkey", chartkey),
 		make_pair("rate", to_string(rate)),
 		make_pair("wife", to_string(wife)),
@@ -800,7 +800,7 @@ DownloadManager::UpdateGoal(const string& chartkey,
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
-	vector<pair<string, string>> postParams = {
+	std::vector<pair<string, string>> postParams = {
 		make_pair("chartkey", chartkey),
 		make_pair("rate", to_string(rate)),
 		make_pair("wife", to_string(wife)),
@@ -960,7 +960,7 @@ DownloadManager::UploadScore(HighScore* hs,
 					   hs->GetChartKey().c_str());
 			return;
 		}
-		vector<float> timestamps =
+		std::vector<float> timestamps =
 		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
 			rows, hs->GetMusicRate());
 		for (size_t i = 0; i < offsets.size(); i++) {
@@ -1161,7 +1161,7 @@ DownloadManager::UploadScores()
 	// scores that have been rescored from wife2 to wife3
 	auto scores = SCOREMAN->GetAllPBPtrs();
 	auto& newly_rescored = SCOREMAN->rescores;
-	vector<HighScore*> toUpload;
+	std::vector<HighScore*> toUpload;
 	for (auto& vec : scores) {
 		for (auto& s : vec) {
 			// probably not worth uploading fails, they get rescored now
@@ -1355,7 +1355,7 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 
 HTTPRequest*
 DownloadManager::SendRequest(string requestName,
-							 vector<pair<string, string>> params,
+							 std::vector<pair<string, string>> params,
 							 function<void(HTTPRequest&, CURLMsg*)> done,
 							 bool requireLogin,
 							 bool post,
@@ -1374,7 +1374,7 @@ DownloadManager::SendRequest(string requestName,
 HTTPRequest*
 DownloadManager::SendRequestToURL(
   string url,
-  vector<pair<string, string>> params,
+  std::vector<pair<string, string>> params,
   function<void(HTTPRequest&, CURLMsg*)> afterDone,
   bool requireLogin,
   bool post,
@@ -1481,7 +1481,7 @@ DownloadManager::RefreshCountryCodes()
 		DLMAN->countryCodes.push_back(string("Global"));
 	};
 	SendRequest(
-	  "/misc/countrycodes", vector<pair<string, string>>(), done, true);
+	  "/misc/countrycodes", std::vector<pair<string, string>>(), done, true);
 }
 
 void
@@ -1493,12 +1493,12 @@ DownloadManager::RequestReplayData(const string& scoreid,
 {
 	auto done = [scoreid, callback, userid, username, chartkey](
 				  HTTPRequest& req, CURLMsg*) {
-		vector<pair<float, float>> replayData;
-		vector<float> timestamps;
-		vector<float> offsets;
-		vector<int> tracks;
-		vector<int> rows;
-		vector<TapNoteType> types;
+		std::vector<pair<float, float>> replayData;
+		std::vector<float> timestamps;
+		std::vector<float> offsets;
+		std::vector<int> tracks;
+		std::vector<int> rows;
+		std::vector<TapNoteType> types;
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
@@ -1604,7 +1604,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 		}
 	};
 	SendRequest("/replay/" + to_string(userid) + "/" + scoreid,
-				vector<pair<string, string>>(),
+				std::vector<pair<string, string>>(),
 				done,
 				true);
 }
@@ -1619,7 +1619,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 			Locator::getLogger()->trace("RequestChartLeaderBoard Error: Malformed request response: {}", req.result);
 			return;
 		}
-		vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
+		std::vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
 		vec.clear();
 
 		long response_code;
@@ -1887,7 +1887,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 		}
 	};
 	SendRequest("/charts/" + chartkey + "/leaderboards",
-				vector<pair<string, string>>(),
+				std::vector<pair<string, string>>(),
 				done,
 				true);
 }
@@ -1934,11 +1934,11 @@ DownloadManager::RefreshCoreBundles()
 	SendRequest("packs/collections/", {}, done, false);
 }
 
-vector<DownloadablePack*>
+std::vector<DownloadablePack*>
 DownloadManager::GetCoreBundle(const string& whichoneyo)
 {
 	return bundles.count(whichoneyo) ? bundles[whichoneyo]
-									 : vector<DownloadablePack*>();
+									 : std::vector<DownloadablePack*>();
 }
 
 void
@@ -1974,7 +1974,7 @@ DownloadManager::RefreshLastVersion()
 			this->lastVersion = GAMESTATE->GetEtternaVersion();
 	};
 	SendRequest("client/version",
-				vector<pair<string, string>>(),
+				std::vector<pair<string, string>>(),
 				done,
 				false,
 				false,
@@ -2000,7 +2000,7 @@ DownloadManager::RefreshRegisterPage()
 			this->registerPage = "";
 	};
 	SendRequest("client/registration",
-				vector<pair<string, string>>(),
+				std::vector<pair<string, string>>(),
 				done,
 				false,
 				false,
@@ -2027,7 +2027,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 			  "Malformed top25 scores request response: {}", req.result);
 			return;
 		}
-		vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
+		std::vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
 		auto& scores = d["data"];
 		for (auto& score_obj : scores.GetArray()) {
 			if (!score_obj.HasMember("attributes")) {
@@ -2404,7 +2404,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetAllPacks(T* p, lua_State* L)
 	{
-		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		std::vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
 		lua_createtable(L, packs.size(), 0);
 		for (unsigned i = 0; i < packs.size(); ++i) {
 			packs[i].PushSelf(L);
@@ -2414,8 +2414,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
 	{
-		vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
-		vector<DownloadablePack*> dling;
+		std::vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		std::vector<DownloadablePack*> dling;
 		for (auto& pack : packs) {
 			if (pack.downloading)
 				dling.push_back(&pack);
@@ -2739,7 +2739,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 	static int GetChartLeaderBoard(T* p, lua_State* L)
 	{
-		vector<HighScore*> filteredLeaderboardScores;
+		std::vector<HighScore*> filteredLeaderboardScores;
 		std::unordered_set<string> userswithscores;
 		auto ck = SArg(1);
 		auto& leaderboardScores = DLMAN->chartLeaderboards[ck];

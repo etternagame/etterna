@@ -23,7 +23,7 @@ class InputHandler : public RageDriver
 {
   public:
 	static void Create(const std::string& sDrivers,
-					   vector<InputHandler*>& apAdd);
+					   std::vector<InputHandler*>& apAdd);
 	static DriverList m_pDriverList;
 
 	InputHandler()
@@ -34,7 +34,7 @@ class InputHandler : public RageDriver
 	virtual void Update() {}
 	virtual bool DevicesChanged() { return false; }
 	virtual void GetDevicesAndDescriptions(
-	  vector<InputDeviceInfo>& vDevicesOut) = 0;
+	  std::vector<InputDeviceInfo>& vDevicesOut) = 0;
 
 	// Override to return a pretty string that's specific to the controller
 	// type.

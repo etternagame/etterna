@@ -34,7 +34,7 @@ find_stack_direction2(char* p) NOINLINE;
 static int
 find_stack_direction() NOINLINE;
 
-static vector<SignalHandler::handler> handlers;
+static std::vector<SignalHandler::handler> handlers;
 SaveSignals* saved_sigs;
 
 static int signals[] = { SIGALRM, SIGBUS,	SIGFPE,  SIGHUP,  SIGILL,

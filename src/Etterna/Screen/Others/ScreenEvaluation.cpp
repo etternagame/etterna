@@ -239,7 +239,7 @@ ScreenEvaluation::HandleMenuStart()
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
 
-		const vector<std::string> oldturns = GAMEMAN->m_vTurnsToReset;
+		const std::vector<std::string> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
 			  .ResetModsToStringVector(oldturns);
@@ -299,7 +299,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	{
 		int row = IArg(1);
 		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
-		vector<int> toPush;
+		std::vector<int> toPush;
 
 		FOREACH_ENUM(TapNoteScore, tns)
 		toPush.emplace_back(rs->judgments[tns]);

@@ -15,10 +15,10 @@
 using std::map;
 using std::string;
 
-vector<string>
+std::vector<string>
 split(string str, const string& token)
 {
-	vector<string> result;
+	std::vector<string> result;
 	while (!str.empty()) {
 		auto index = str.find(token);
 		if (index != string::npos) {
@@ -37,8 +37,8 @@ split(string str, const string& token)
 map<string, map<string, string>>
 OsuLoader::ParseFileString(const string& fileContents)
 {
-	vector<string> sections;
-	vector<vector<string>> contents;
+	std::vector<string> sections;
+	std::vector<std::vector<string>> contents;
 
 	SeparateTagsAndContents(fileContents, sections, contents);
 
@@ -61,8 +61,8 @@ OsuLoader::ParseFileString(const string& fileContents)
 
 void
 OsuLoader::SeparateTagsAndContents(string fileContents,
-								   vector<string>& tagsOut,
-								   vector<vector<string>>& contentsOut)
+								   std::vector<string>& tagsOut,
+								   std::vector<std::vector<string>>& contentsOut)
 {
 	char lastByte = '\0';
 	bool isComment = false;
@@ -91,7 +91,7 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 				tagsOut.emplace_back(tag);
 				isTag = false;
 				content = "";
-				contentsOut.emplace_back(vector<string>());
+				contentsOut.emplace_back(std::vector<string>());
 				isContent = true;
 			} else {
 				tag = tag + currentByte;
@@ -144,7 +144,7 @@ OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
 void
 OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 {
-	vector<std::pair<int, float>> tp;
+	std::vector<std::pair<int, float>> tp;
 
 	for (auto& it : parsedData["TimingPoints"]) {
 		auto line = it.first;
@@ -159,7 +159,7 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 			 return a.first < b.first;
 		 });
 
-	vector<std::pair<int, float>> bpms;
+	std::vector<std::pair<int, float>> bpms;
 	float lastpositivebpm = 0;
 	int offset = 0;
 	int lastoffset = -9999;
@@ -273,7 +273,7 @@ OsuLoader::LoadChartData(Song* song,
 
 void
 OsuLoader::GetApplicableFiles(const std::string& sPath,
-							  vector<std::string>& out)
+							  std::vector<std::string>& out)
 {
 	GetDirListing(sPath + std::string("*.osu"), out);
 }
@@ -303,8 +303,8 @@ OsuLoader::LoadNoteDataFromParsedData(
 	NoteData newNoteData;
 	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
 
-	vector<OsuNote> taps;
-	vector<OsuHold> holds;
+	std::vector<OsuNote> taps;
+	std::vector<OsuHold> holds;
 	bool useLifts = PREFSMAN->LiftsOnOsuHolds;
 	for (auto& it : parsedData["HitObjects"]) {
 		auto line = it.first;
@@ -387,7 +387,7 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 bool
 OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 {
-	vector<std::string> aFileNames;
+	std::vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
 
 	// const std::string sPath = sPath_ + aFileNames[0];

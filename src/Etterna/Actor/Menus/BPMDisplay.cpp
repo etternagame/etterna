@@ -106,7 +106,7 @@ BPMDisplay::SetBPMRange(const DisplayBpms& bpms)
 
 	m_BPMS.clear();
 
-	const vector<float>& BPMS = bpms.vfBpms;
+	const std::vector<float>& BPMS = bpms.vfBpms;
 
 	bool AllIdentical = true;
 	for (unsigned i = 0; i < BPMS.size(); ++i) {

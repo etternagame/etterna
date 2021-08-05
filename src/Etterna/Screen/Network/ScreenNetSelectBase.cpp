@@ -307,7 +307,7 @@ ScreenNetSelectBase::SetUsersVisible(bool visibility)
 	return;
 }
 
-vector<BitmapText>*
+std::vector<BitmapText>*
 ScreenNetSelectBase::ToUsers()
 {
 	return &m_textUsers;

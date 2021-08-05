@@ -78,7 +78,7 @@ struct EventDevice
 	DeviceButton aiAbsMappingLow[ABS_MAX];
 };
 
-static vector<EventDevice*> g_apEventDevices;
+static std::vector<EventDevice*> g_apEventDevices;
 
 /* Return true if the numbered event device exists.  sysfs may not always be
  * there; return false if we don't know. */
@@ -171,7 +171,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 		Locator::getLogger()->warn("ioctl(EV_MAX): {}", strerror(errno));
 
 	{
-		vector<std::string> setEventTypes;
+		std::vector<std::string> setEventTypes;
 
 		if (BitIsSet(iEventTypes, EV_SYN))
 			setEventTypes.push_back("syn");
@@ -473,7 +473,7 @@ InputHandler_Linux_Event::InputThread()
 
 void
 InputHandler_Linux_Event::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	for (unsigned i = 0; i < g_apEventDevices.size(); ++i) {
 		EventDevice* pDev = g_apEventDevices[i];

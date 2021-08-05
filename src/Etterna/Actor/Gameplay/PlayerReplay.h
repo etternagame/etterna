@@ -12,7 +12,7 @@ class PlayerReplay : public Player
 
 	void UpdateHoldNotes(int iSongRow,
 						 float fDeltaTime,
-						 vector<TrackRowTapNote>& vTN) override;
+						 std::vector<TrackRowTapNote>& vTN) override;
 	void Init(const std::string& sType,
 			  PlayerState* pPlayerState,
 			  PlayerStageStats* pPlayerStageStats,
