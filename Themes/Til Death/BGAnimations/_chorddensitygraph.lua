@@ -55,6 +55,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+		parent.npsVector = npsVector
 		local numberOfColumns = #npsVector
 		local columnWidth = wodth/numberOfColumns * rate
 		
