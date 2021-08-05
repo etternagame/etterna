@@ -8,18 +8,22 @@ t[#t + 1] = Def.ActorFrame {
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
 			if event.DeviceInput.button == "DeviceButton_left mouse button" then
-				if event.type ~= "InputEventType_Release" then
+				if event.type == "InputEventType_FirstPress" then
 					mdown = true
 
-					self:SetUpdateFunction(function(self)
-						local mx = SCREEN_WIDTH - INPUTFILTER:GetMouseX()
-						local my = SCREEN_HEIGHT - INPUTFILTER:GetMouseY()
-						if moving or mx < 32 and mx > 0 and my < 440 and my > 48 then
-							moving = true
-							self:playcommand("ClickingMusicWheelScroller")
-						end
-					end)
-				else
+					local mx = SCREEN_WIDTH - INPUTFILTER:GetMouseX()
+					local my = SCREEN_HEIGHT - INPUTFILTER:GetMouseY()
+					if mx < 32 and mx > 0 and my < 440 and my > 48 then
+						self:SetUpdateFunction(function(self)
+							local mx = SCREEN_WIDTH - INPUTFILTER:GetMouseX()
+							local my = SCREEN_HEIGHT - INPUTFILTER:GetMouseY()
+							if moving or mx < 32 and mx > 0 and my < 440 and my > 48 then
+								moving = true
+								self:playcommand("ClickingMusicWheelScroller")
+							end
+						end)
+					end
+				elseif event.type == "InputEventType_Release" then
 					mdown = false
 					moving = false
 					self:SetUpdateFunction(nil)
