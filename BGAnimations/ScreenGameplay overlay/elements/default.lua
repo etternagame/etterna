@@ -22,4 +22,8 @@ if customizationEnabled then
     t[#t+1] = LoadActor("_gameplaycustomization")
 end
 
+if practiceEnabled or replayEnabled or customizationEnabled then
+    t[#t+1] = LoadActor("../../_mouse.lua")
+end
+
 return t

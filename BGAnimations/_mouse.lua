@@ -1,7 +1,7 @@
-local screenName = ...
+local screenName = Var("LoadingScreen") or ...
 local topScreen
 
-assert(type(screenName) == "string", "Screen Name must be specified when loading _mouse.lua")
+assert(type(screenName) == "string", "Screen Name was missing when loading _mouse.lua")
 BUTTON:ResetButtonTable(screenName)
 
 local function cursorCheck()
