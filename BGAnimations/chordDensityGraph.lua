@@ -71,7 +71,14 @@ local t = Def.ActorFrame {
                     local perc = lx / bg:GetZoomedWidth()
                     local dist = perc * stepsinuse:GetLengthSeconds()
                     local postext = SecondsToHHMMSS(dist)
-                    TOOLTIP:SetText(postext)
+                    local stro = postext
+                    if self.npsVector ~= nil and #self.npsVector > 0 then
+                        local percent = clamp(lx / bg:GetZoomedWidth(), 0, 1)
+                        local hoveredIndex = clamp(math.ceil(#self.npsVector * percent), math.min(1, #self.npsVector), #self.npsVector)
+                        local hoveredNPS = self.npsVector[hoveredIndex]
+                        stro = string.format("%s - %d NPS", postext, hoveredNPS)
+                    end
+                    TOOLTIP:SetText(stro)
                     TOOLTIP:Show()
                     tipOn = true
                 end
@@ -123,6 +130,7 @@ local function updateGraphMultiVertex(parent, self, steps)
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+        parent.npsVector = npsVector
 		local numberOfColumns = #npsVector
 		local columnWidth = sizing.Width / numberOfColumns * rate
 		
