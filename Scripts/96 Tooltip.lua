@@ -64,7 +64,7 @@ function TOOLTIP.New(self)
     return t, p
 end
 
-function TOOLTIP.SetText(self, text, wrapWidth)
+function TOOLTIP.SetText(self, text)
     self.Actor:GetChild("Text"):settext(text)
     local height = self.Actor:GetChild("Text"):GetHeight() * textScale
     local width = self.Actor:GetChild("Text"):GetWidth() * textScale
