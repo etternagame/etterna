@@ -75,7 +75,7 @@ Written in a step-by-step process:
    After it is added to the path (and restart the terminal session if necessary), you can run `gclient`
    to ensure the path has been properly modified.
 
-2. Get [breakpad](https://chromium.googlesource.com/breakpad/breakpad). While crashpad is the crash-reporting 
+2. Get [breakpad](https://chromium.googlesource.com/breakpad/breakpad#getting-started-from-main). While crashpad is the crash-reporting 
    system that Etterna uses, it is the successor to breakpad, and the decoding tools have remained the same.
    It is recommended to create a folder for the breakpad project before downloading it. Once cloned, there will
    be a `src` folder with the breakpad source code. Commands are as follows:
@@ -153,7 +153,7 @@ the executable will run, but it will not generate symbol output until the follow
     ```bash
     regsvr32 msdia140.dll
     ```
-    This is a dll that is installed which Visual Studio but does not get registered to the system,
+    This is a DLL which is installed by Visual Studio, but does not get registered to the system,
     so we must register it ourselves. Once that line executes in an admin command prompt, `dump_syms.exe`
     should properly dump symbols.
 
