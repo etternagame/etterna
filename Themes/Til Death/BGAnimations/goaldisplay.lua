@@ -323,9 +323,9 @@ local function makeGoalDisplay(i)
 			},
 		Def.Sprite {
 			-- delete button
-			Texture = THEME:GetPathG("goaldisplay","goalX.png"),
+			Texture = THEME:GetPathG("","X.png"),
 			InitCommand = function(self)
-				self:xy(c0x - 13,pdh/2.3):zoom(0.3):halign(0):valign(1):diffuse(byJudgment("TapNoteScore_Miss"))
+				self:xy(c0x - 13,pdh/2.3):zoom(0.3):halign(0):valign(1):diffuse(Color.Red)
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
