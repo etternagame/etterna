@@ -103,8 +103,8 @@ are relative to the command you run `make` in.*
 
 In the `src` directory, run the following commands:
 ```bash
-CXXFLAGS="$CXXFLAGS -std=c++17" ./configure && make                                           # Build minidump_stackwalk
-xcodebuild -project src/tools/mac/dump_syms/dump_syms.xcodeproj -target dump_syms -std=c++17  # Build dump_syms
+CXXFLAGS="$CXXFLAGS -std=c++17" ./configure && make # Build minidump_stackwalk
+xcodebuild -project src/tools/mac/dump_syms/dump_syms.xcodeproj -target dump_syms CLANG_CXX_LANGUAGE_STANDARD=c++17 # Build dump_syms
 ```
 
 This will build and place the tools in the following locations:
