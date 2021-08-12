@@ -14,8 +14,11 @@ class FilterManager
 
 	PlayerState* m_pPlayerState;
 
-	std::array<float, NUM_Skillset + 2> SSFilterLowerBounds;
-	std::array<float, NUM_Skillset + 2> SSFilterUpperBounds;
+	constexpr static auto NUM_FILTERS =
+	  NUM_Skillset + 2; // The skillsets, plus 2 more for Length and Clear%
+
+	std::array<float, NUM_FILTERS> FilterLowerBounds;
+	std::array<float, NUM_FILTERS> FilterUpperBounds;
 	/* Skill_Overall,
 	 * Skill_Stream,
 	 * Skill_Jumpstream,
@@ -32,8 +35,8 @@ class FilterManager
 	bool ExclusiveFilter = false; // if true the filter system will only match
 								  // songs that meet all criteria rather than
 								  // all that meet any - mina
-	auto GetSSFilter(Skillset ss, int bound) -> float;
-	void SetSSFilter(float v, Skillset ss, int bound);
+	auto GetFilter(Skillset ss, int bound) -> float;
+	void SetFilter(float v, Skillset ss, int bound);
 	void ResetSSFilters(); // reset button for filters
 	void ResetAllFilters();
 	bool HighestSkillsetsOnly = false;

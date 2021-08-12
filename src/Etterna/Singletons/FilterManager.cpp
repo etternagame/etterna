@@ -7,8 +7,8 @@ FilterManager* FILTERMAN = nullptr;
 FilterManager::FilterManager()
 {
 	// filter stuff - mina
-	SSFilterUpperBounds.fill(0);
-	SSFilterLowerBounds.fill(0);
+	FilterUpperBounds.fill(0);
+	FilterLowerBounds.fill(0);
 	m_pPlayerState = new PlayerState;
 	m_pPlayerState->SetPlayerNumber(PLAYER_1);
 
@@ -31,33 +31,33 @@ FilterManager::~FilterManager()
 }
 
 float
-FilterManager::GetSSFilter(Skillset ss, int bound)
+FilterManager::GetFilter(Skillset ss, int bound)
 {
 	// Bound checking is done within the Lua binding
 	if (bound == 0)
-		return SSFilterLowerBounds.at(ss);
+		return FilterLowerBounds.at(ss);
 
-	return SSFilterUpperBounds.at(ss);
+	return FilterUpperBounds.at(ss);
 }
 
 void
-FilterManager::SetSSFilter(float v, Skillset ss, int bound)
+FilterManager::SetFilter(float v, Skillset ss, int bound)
 {
 	// Bound checking is done within the Lua binding
 	if (bound == 0)
-		SSFilterLowerBounds.at(ss) = v;
+		FilterLowerBounds.at(ss) = v;
 	else
-		SSFilterUpperBounds.at(ss) = v;
+		FilterUpperBounds.at(ss) = v;
 }
 
 // reset button for filters
 void
 FilterManager::ResetSSFilters()
 {
-	for (auto& val : SSFilterLowerBounds) {
+	for (auto& val : FilterLowerBounds) {
 		val = 0;
 	}
-	for (auto& val : SSFilterUpperBounds) {
+	for (auto& val : FilterUpperBounds) {
 		val = 0;
 	}
 }
@@ -77,11 +77,11 @@ FilterManager::ResetAllFilters()
 bool
 FilterManager::AnyActiveFilter()
 {
-	for (const auto& val : SSFilterLowerBounds) {
+	for (const auto& val : FilterLowerBounds) {
 		if (val > 0)
 			return true;
 	}
-	for (const auto& val : SSFilterUpperBounds) {
+	for (const auto& val : FilterUpperBounds) {
 		if (val > 0)
 			return true;
 	}
@@ -115,25 +115,25 @@ class LunaFilterManager : public Luna<FilterManager>
 	{
 		// float v, Skillset ss, int bound
 		int ss = IArg(2) - 1;
-		if (ss < 0 || ss >= NUM_Skillset + 2) {
+		if (ss < 0 || ss >= FilterManager::NUM_FILTERS) {
 			luaL_error(
 			  L, "Invalid skillset value %d in call to SetSSFilter", ss);
 			return 0;
 		}
-		p->SetSSFilter(FArg(1), static_cast<Skillset>(IArg(2) - 1), IArg(3));
+		p->SetFilter(FArg(1), static_cast<Skillset>(IArg(2) - 1), IArg(3));
 		return 0;
 	}
 	static int GetSSFilter(T* p, lua_State* L)
 	{
 		// Skillset ss, int bound
 		int ss = IArg(1) - 1;
-		if (ss < 0 || ss >= NUM_Skillset + 2) {
+		if (ss < 0 || ss >= FilterManager::NUM_FILTERS) {
 			luaL_error(
 			  L, "Invalid skillset value %d in call to GetSSFilter", ss);
 			lua_pushnumber(L, 0);
 			return 1;
 		}
-		float f = p->GetSSFilter(static_cast<Skillset>(IArg(1) - 1), IArg(2));
+		float f = p->GetFilter(static_cast<Skillset>(IArg(1) - 1), IArg(2));
 		lua_pushnumber(L, f);
 		return 1;
 	}
