@@ -3,6 +3,7 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/PlayerNumber.h"
 #include <unordered_map>
+#include <array>
 
 class PlayerState;
 class FilterManager
@@ -13,8 +14,8 @@ class FilterManager
 
 	PlayerState* m_pPlayerState;
 
-	float SSFilterLowerBounds[NUM_Skillset + 2] = { 0 }; // Zero-initialize
-	float SSFilterUpperBounds[NUM_Skillset + 2] = { 0 }; // Zero-initialize
+	std::array<float, NUM_Skillset + 2> SSFilterLowerBounds;
+	std::array<float, NUM_Skillset + 2> SSFilterUpperBounds;
 	/* Skill_Overall,
 	 * Skill_Stream,
 	 * Skill_Jumpstream,

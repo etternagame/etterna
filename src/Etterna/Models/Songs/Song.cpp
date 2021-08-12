@@ -1750,8 +1750,8 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 		/* Iterate over all skillsets, as well as
 		 * two placeholders for song length and best clear %
 		 */
-		const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
-		const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
+		const auto lb = FILTERMAN->GetSSFilter(static_cast<Skillset>(ss), 0);
+		const auto ub = FILTERMAN->GetSSFilter(static_cast<Skillset>(ss), 1);
 		if (lb > 0.F || ub > 0.F) { // If either bound is active, continue
 			if (!FILTERMAN->ExclusiveFilter) {
 				/* Non-Exclusive filter
