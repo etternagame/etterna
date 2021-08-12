@@ -111,12 +111,13 @@ end
 local choiceNames = ms.SkillSets
 
 local itemCount = 15
+local maxPages = 40
 local scoreListAnimationSeconds = 0.03
 local textListAnimationSeconds = 0.03
 -- we can potentially display every score on the profile
 -- there isn't a good reason to do that or not to do that
 -- so let's just default to about twice as many as we are used to
-local upperBoundOfScoreCount = itemCount * 40
+local upperBoundOfScoreCount = itemCount * maxPages
 
 local indicatorTextSize = 0.7
 local pageTextSize = 0.7
