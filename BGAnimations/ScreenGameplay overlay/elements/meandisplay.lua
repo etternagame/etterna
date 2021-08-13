@@ -17,7 +17,7 @@ return Def.ActorFrame {
     end,
     JudgmentMessageCommand = function(self, params)
         -- should work fine only for judged taps, not misses or holds
-        if not params.HoldNoteScore and params.Offset ~= nil then
+        if not params.HoldNoteScore and params.Offset ~= nil and params.Offset < 1000 then
             curMeanSum = curMeanSum + params.Offset
             curMeanCount = curMeanCount + 1
             self:playcommand("UpdateMeanText")
