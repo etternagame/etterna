@@ -123,14 +123,18 @@ local t =
 		self:queuecommand("BORPBORPNORFNORFc"):visible(false)
 	end,
 	OffCommand = function(self)
-		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		--for some reason, tweening this tab causes a recursing tween error?????? help  -ulti
+		--self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		self:diffusealpha(0)
 		self:sleep(0.04):queuecommand("Invis")
 	end,
 	InvisCommand= function(self)
 		self:visible(false)
 	end,
 	OnCommand = function(self)
-		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+		--here too
+		--self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+		self:diffusealpha(1)
 	end,
 	MouseRightClickMessageCommand = function(self)
 		if onTab then
