@@ -1,4 +1,5 @@
-local width, height = SCREEN_WIDTH - capWideScale(get43size(350), 350) - 10, SCREEN_HEIGHT * 0.035
+local width = THEME:GetMetric("ScreenChatOverlay","ChatWidth")
+local height = THEME:GetMetric("ScreenChatOverlay","ChatHeight")
 local maxlines = 20
 local lineNumber = 20
 local inputLineNumber = 2
