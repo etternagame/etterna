@@ -867,7 +867,15 @@ t[#t+1] = Def.ActorFrame {
                     local dist = params.MouseY
                     self:GetParent():GetParent():GetChild("Wheel"):playcommand("Move", {percent = dist / max})
                 end
-            end
+            end,
+            MouseDragCommand = function(self, params)
+                if not visible then return end
+                if params.event == "DeviceButton_left mouse button" then
+                    local max = self:GetZoomedHeight()
+                    local dist = params.MouseY
+                    self:GetParent():GetParent():GetChild("Wheel"):playcommand("Move", {percent = dist / max})
+                end
+            end,
         },
         Def.Sprite {
             Name = "Position",
