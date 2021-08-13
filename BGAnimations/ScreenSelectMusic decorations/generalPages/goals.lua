@@ -83,6 +83,7 @@ local pageTextSize = 0.7
 
 -- our fontpage SUCKS so this should make things look better
 -- undo this if the fontpage doesnt SUCK
+-- update i fixed the font but it looked back after i undid this
 local dividerUpwardBump = 1
 
 local choiceTextSize = 0.7

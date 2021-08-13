@@ -83,7 +83,6 @@ local textZoomFudge = 5
 -- increase the highlight area height of the buttons
 -- only for the left buttons, not the scoreitems
 local buttonSizingFudge = 8
-local buttonBGYOffset = -1
 local buttonHoverAlpha = 0.8
 local buttonRegularAlpha = 1
 local itemBGHoverAlpha = 0.2
@@ -682,7 +681,7 @@ t[#t+1] = Def.ActorFrame {
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
-            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            bg:y(-buttonSizingFudge / 2)
         end,
         UpdateToggleStatusCommand = function(self)
             -- lit when isLocal is true
@@ -719,7 +718,7 @@ t[#t+1] = Def.ActorFrame {
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
-            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            bg:y(-buttonSizingFudge / 2)
             self:playcommand("UpdateToggleStatus")
         end,
         UpdateToggleStatusCommand = function(self)
@@ -770,7 +769,7 @@ t[#t+1] = Def.ActorFrame {
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
-            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            bg:y(-buttonSizingFudge / 2)
         end,
         UpdateToggleStatusCommand = function(self)
             -- invisible if local
@@ -818,7 +817,7 @@ t[#t+1] = Def.ActorFrame {
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
-            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            bg:y(-buttonSizingFudge / 2)
         end,
         UpdateToggleStatusCommand = function(self)
             -- invisible if local
@@ -866,7 +865,7 @@ t[#t+1] = Def.ActorFrame {
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
-            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            bg:y(-buttonSizingFudge / 2)
         end,
         UpdateToggleStatusCommand = function(self)
             -- lit if allRates is false
@@ -902,7 +901,7 @@ t[#t+1] = Def.ActorFrame {
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
             bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
-            bg:y(-buttonSizingFudge / 2 + buttonBGYOffset)
+            bg:y(-buttonSizingFudge / 2)
         end,
         UpdateToggleStatusCommand = function(self)
             -- lit if allRates is true

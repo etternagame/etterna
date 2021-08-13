@@ -142,10 +142,10 @@ local textzoomFudge = 5
 -- basically z movement is necessary to tell which buttons are on top even if they are invisible
 -- invisible buttons on top of other buttons will make the bottom buttons inaccessible
 local overallPageZBump = 0.1
--- upward vertical distance to move the button bg to fix positional related issues with the button bg quad relative to the text
--- if we used a sane baseline for text then this wouldnt be an issue
--- ... too late to fix this.
-local scoreitembgbump = 3
+-- this upwards bump fixes font related positioning
+-- the font has a baseline which pushes it downward by some bit
+-- this corrects the bg so that the hover is not wrong as a result
+local scoreitembgbump = 1
 
 local function createChoices()
     local selectedIndex = 1
@@ -388,9 +388,6 @@ local function createList()
                     
                     txt:halign(0):valign(0)
                     bg:halign(0):valign(0)
-                    -- this upwards bump fixes font related positioning
-                    -- the font has a baseline which pushes it downward by some bit
-                    -- this corrects the bg so that the hover is not wrong as a result
                     bg:y(-scoreitembgbump)
 
                     txt:zoom(nameTextSize)

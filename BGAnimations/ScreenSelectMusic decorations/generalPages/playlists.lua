@@ -94,10 +94,6 @@ local msdTextSize = 0.9
 local diffTextSize = 0.9
 local detailPageTextSize = 0.7
 
--- our fontpage SUCKS so this should make things look better
--- undo this if the fontpage doesnt SUCK
-local dividerUpwardBump = 1
-
 local choiceTextSize = 0.7
 local buttonHoverAlpha = 0.6
 local textzoomFudge = 5
@@ -439,7 +435,7 @@ local function playlistList()
                         -- this upwards bump fixes font related positioning
                         -- the font has a baseline which pushes it downward by some bit
                         -- this corrects the bg so that the hover is not wrong as a result
-                        bg:y(-3)
+                        bg:y(-1)
     
                         txt:zoom(nameTextSize)
                         txt:maxwidth(nameW / nameTextSize - textzoomFudge)
@@ -499,7 +495,7 @@ local function playlistList()
                         -- this upwards bump fixes font related positioning
                         -- the font has a baseline which pushes it downward by some bit
                         -- this corrects the bg so that the hover is not wrong as a result
-                        bg:y(-3)
+                        bg:y(-1)
 
                         txt:zoom(rateTextSize)
                         txt:maxwidth(rateW / rateTextSize - textzoomFudge)

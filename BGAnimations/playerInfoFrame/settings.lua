@@ -93,8 +93,7 @@ local colorConfigChoiceTextSize = 0.75
 
 local optionTitleTextSize = 0.7
 local optionChoiceTextSize = 0.7
--- basically our font is bad and not on the baseline or equivalent to what a BitMapText:isOver says it is, so this is a modifier to the invisible text button size
--- could also be moved even further for whatever accessibility concerns
+-- for accessibility concerns, make buttons a bit bigger than the text they cover
 local textButtonHeightFudgeScalarMultiplier = 1.6
 local optionRowAnimationSeconds = 0.15
 local optionRowQuickAnimationSeconds = 0.07
@@ -1812,8 +1811,6 @@ local function leftFrame()
                     Name = "TopRightSide",
                     InitCommand = function(self)
                         self:x(boxSize + actuals.EdgePadding * 2 + sliderWidth)
-                        -- fudge for font reasons
-                        self:y(-2)
                     end,
                     LoadFont("Common Normal") .. {
                         Name = "CurrentPreset",
@@ -2461,9 +2458,7 @@ local function rightFrame()
                 txt:settext("Toggle Chart Preview")
                 registerActorToColorConfigElement(txt, "main", "SecondaryText")
 
-                -- fudge movement due to font misalign
                 bg:halign(0)
-                bg:y(1)
                 bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 bg:diffusealpha(0.2)
                 registerActorToColorConfigElement(bg, "options", "Cursor")
@@ -5143,8 +5138,6 @@ local function rightFrame()
                         registerActorToColorConfigElement(txt, "main", "PrimaryText")
 
                         bg:halign(0)
-                        -- fudge movement due to font misalign
-                        bg:y(1)
                         bg:zoomto(0, txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end,
                     DrawElementCommand = function(self)
@@ -5705,8 +5698,6 @@ local function rightFrame()
                             registerActorToColorConfigElement(txt, "main", "SecondaryText")
 
                             bg:halign(0)
-                            -- fudge movement due to font misalign
-                            bg:y(1)
                             bg:zoomto(0, txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         end,
                         SetChoiceTextCommand = function(self)
