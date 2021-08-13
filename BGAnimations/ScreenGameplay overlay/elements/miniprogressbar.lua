@@ -1,7 +1,7 @@
 -- mini progress bar. song progress but small
 
-local width = 34 / GAMEPLAY_SIZING_RATIO
-local height = 4 / GAMEPLAY_SIZING_RATIO
+local width = GAMEPLAY:getItemWidth("miniProgressBar")
+local height = GAMEPLAY:getItemHeight("miniProgressBar")
 local alpha = 0.3
 
 return Def.ActorFrame {

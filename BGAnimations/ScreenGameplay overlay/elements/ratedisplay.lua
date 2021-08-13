@@ -1,6 +1,6 @@
 -- music rate. its the rate of the music
 
-local rateTextSize = 0.35 / GAMEPLAY_SIZING_RATIO
+local rateTextSize = GAMEPLAY:getItemHeight("rateDisplayText")
 
 return Def.ActorFrame {
 	Name = "MusicRate",

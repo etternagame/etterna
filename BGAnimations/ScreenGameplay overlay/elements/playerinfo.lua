@@ -1,34 +1,32 @@
 -- Various player and stage info
 local profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
-local PlayerFrameX = 0
-local PlayerFrameY = SCREEN_HEIGHT - 50 / GAMEPLAY_SIZING_RATIO
+local PlayerFrameX = GAMEPLAY:getItemX("playerInfoFrameX")
+local PlayerFrameY = SCREEN_HEIGHT - GAMEPLAY:getItemY("playerInfoFrameYFromBottom")
 
 local translated_info = {
 	Judge = "Judge",
 	Scoring = "Scoring",
 }
 
-local modstringTextSize = 0.4 / GAMEPLAY_SIZING_RATIO
-local judgeDiffTextSize = 0.45 / GAMEPLAY_SIZING_RATIO
-local difficultyTextSize = 0.45 / GAMEPLAY_SIZING_RATIO
-local msdTextSize = 1.1 / GAMEPLAY_SIZING_RATIO -- something weird about this
-local scoringTextSize = 0.45 / GAMEPLAY_SIZING_RATIO
+local modstringTextSize = GAMEPLAY:getItemHeight("playerInfoModsText")
+local judgeDiffTextSize = GAMEPLAY:getItemHeight("playerInfoJudgeText")
+local difficultyTextSize = GAMEPLAY:getItemHeight("playerInfoMeterText")
+local msdTextSize = GAMEPLAY:getItemHeight("playerInfoMSDText")
+local scoringTextSize = GAMEPLAY:getItemHeight("playerInfoScoreTypeText")
 
--- a lot of really bad magic numbers
--- clean this
-local avatarSize = 50 / GAMEPLAY_SIZING_RATIO
-local diffwidth = 120 / GAMEPLAY_SIZING_RATIO -- width as a magic number is very bad
-local diffXOffset = 90 / GAMEPLAY_SIZING_RATIO
-local diffYOffset = 24 / GAMEPLAY_SIZING_RATIO
-local msdXOffset = 52 / GAMEPLAY_SIZING_RATIO
-local msdYOffset = 28 / GAMEPLAY_SIZING_RATIO
+local avatarSize = GAMEPLAY:getItemHeight("playerInfoAvatar")
+local diffwidth = GAMEPLAY:getItemWidth("playerInfoMeter")
+local diffXOffset = GAMEPLAY:getItemX("playerInfoMeterX")
+local diffYOffset = GAMEPLAY:getItemY("playerInfoMeterY")
+local msdXOffset = GAMEPLAY:getItemX("playerInfoMSDX")
+local msdYOffset = GAMEPLAY:getItemY("playerInfoMSDY")
 local msdwidth = diffXOffset - msdXOffset
-local modsXOffset = 91 / GAMEPLAY_SIZING_RATIO
-local modsYOffset = 39 / GAMEPLAY_SIZING_RATIO -- lack of width
-local judgeXOffset = 53 / GAMEPLAY_SIZING_RATIO
-local judgeYOffset = -2 / GAMEPLAY_SIZING_RATIO -- lack of width
-local scoreTypeXOffset = 53 / GAMEPLAY_SIZING_RATIO
-local scoreTypeYOffset = 8 / GAMEPLAY_SIZING_RATIO -- lack of width
+local modsXOffset = GAMEPLAY:getItemX("playerInfoModsX")
+local modsYOffset = GAMEPLAY:getItemY("playerInfoModsY")
+local judgeXOffset = GAMEPLAY:getItemX("playerInfoJudgeX")
+local judgeYOffset = GAMEPLAY:getItemY("playerInfoJudgeY")
+local scoreTypeXOffset = GAMEPLAY:getItemX("playerInfoScoreTypeX")
+local scoreTypeYOffset = GAMEPLAY:getItemY("playerInfoScoreTypeY")
 
 return Def.ActorFrame {
     Name = "PlayerInfoContainer",

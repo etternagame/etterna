@@ -19,7 +19,7 @@ local function initbpm(self)
 end
 -------
 
-local bpmTextSize = 0.4 / GAMEPLAY_SIZING_RATIO
+local bpmTextSize = GAMEPLAY:getItemHeight("bpmDisplayText")
 
 return Def.ActorFrame {
 	Name = "BPMText",

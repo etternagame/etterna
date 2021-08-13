@@ -2,13 +2,6 @@
 
 setMovableKeymode(getCurrentKeyMode())
 
--- a global variable, declared here because only gameplay elements should use it
--- describes the difference between 480p and current resolution (theme elements are resized based on theme height)
--- for the purpose of scaling some hardcoded values for element sizing purposes
--- if things are sized very oddly, maybe you forgot to apply this
--- also dont let this be 0 or infinite for some reason
-GAMEPLAY_SIZING_RATIO = (480 / SCREEN_HEIGHT)
-
 local t = Def.ActorFrame {
     Name = "GameplayElementsController",
 

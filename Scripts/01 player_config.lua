@@ -1,3 +1,75 @@
+local defaultGameplaySizeRatios = {
+	HEIGHTBASED = {
+		-- instances of 480 are based on til death
+		-- otherwise should probably be 720
+		-- old gameplay text sizes should probably go here too
+		judgeDisplayVerticalSpacing = 10 / 480,
+		miniProgressBar = 4 / 480,
+		npsGraph = 100 / 480,
+		playerInfoFrameYFromBottom = 50 / 480,
+		playerInfoAvatar = 50 / 480,
+		playerInfoMeterY = 24 / 480,
+		playerInfoMSDY = 28 / 480,
+		playerInfoModsY = 39 / 480,
+		playerInfoJudgeY = -2 / 480,
+		playerInfoScoreTypeY = 8 / 480,
+
+		-- textsizes
+		bpmDisplayText = 0.4 / 480,
+		errorBarText = 0.35 / 480,
+		fullProgressBarText = 0.45 / 480,
+		judgeDisplayJudgeText = 0.4 / 480,
+		judgeDisplayCountText = 0.35 / 480,
+		meanDisplayText = 0.3 / 480,
+		npsDisplayText = 1 / 480,
+		playerInfoModsText = 0.4 / 480,
+		playerInfoJudgeText = 0.45 / 480,
+		playerInfoMeterText = 0.45 / 480,
+		playerInfoMSDText = 1.1 / 480,
+		playerInfoScoreTypeText = 0.45 / 480,
+		rateDisplayText = 0.35 / 480,
+		wifeDisplayText = 0.3 / 480,
+	},
+	WIDTHBASED = {
+		-- instances of 854 are based on til death
+		-- otherwise should probably be 1280
+		errorBarBarWidth = 2 / 854,
+		fullProgressBarWidthBeforeHalf = 100 / 854, -- these names dont ask
+		judgeDisplay = 60 / 854,
+		miniProgressBar = 34 / 854,
+		npsGraph = 140 / 854,
+		playerInfoFrameX = 0 / 854,
+		playerInfoMeter = 120 / 854,
+		playerInfoMeterX = 90 / 854,
+		playerInfoMSDX = 52 / 854,
+		playerInfoModsX = 91 / 854,
+		playerInfoJudgeX = 53 / 854,
+		playerInfoScoreTypeX = 53 / 854,
+	},
+}
+
+GAMEPLAY = {}
+function GAMEPLAY.getItemHeight(self, item)
+	if defaultGameplaySizeRatios.HEIGHTBASED[item] == nil then
+		return 0
+	end
+	return defaultGameplaySizeRatios.HEIGHTBASED[item] * SCREEN_HEIGHT
+end
+function GAMEPLAY.getItemWidth(self, item)
+	if defaultGameplaySizeRatios.WIDTHBASED[item] == nil then
+		return 0
+	end
+	return defaultGameplaySizeRatios.WIDTHBASED[item] * SCREEN_WIDTH
+end
+-- im not gonna be that mean, have some aliases
+function GAMEPLAY.getItemY(self, item)
+	return self:getItemHeight(item)
+end
+function GAMEPLAY.getItemX(self, item)
+	return self:getItemWidth(item)
+end
+
+
 local defaultGameplayCoordinates = {
 	JudgeX = 0,
 	JudgeY = 0,
@@ -18,9 +90,9 @@ local defaultGameplayCoordinates = {
 	DisplayMeanX = SCREEN_CENTER_X / 2 + 60/2, -- below the judge counter, middle of it
 	DisplayMeanY = SCREEN_CENTER_Y + 50,
 	NPSDisplayX = 5,
-	NPSDisplayY = SCREEN_BOTTOM - 170,
+	NPSDisplayY = SCREEN_BOTTOM - 175 - 55,
 	NPSGraphX = 0,
-	NPSGraphY = SCREEN_BOTTOM - 160,
+	NPSGraphY = SCREEN_BOTTOM - 160 - 55,
 	NotefieldX = 0,
 	NotefieldY = 0,
 	ProgressBarPos = 1,

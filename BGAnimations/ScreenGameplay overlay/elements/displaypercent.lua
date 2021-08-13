@@ -2,7 +2,7 @@
 
 -- i dunno less copy paste whatever bro
 local formatstr = "%05.2f%%"
-local wifepercentTextSize = 0.3 / GAMEPLAY_SIZING_RATIO
+local wifepercentTextSize = GAMEPLAY:getItemHeight("wifeDisplayText")
 
 return Def.ActorFrame {
 	Name = "DisplayPercent",
@@ -33,14 +33,14 @@ return Def.ActorFrame {
 	Def.Quad {
         Name = "PercentBacking",
 		InitCommand = function(self)
-            self:halign(1):valign(0)
+            self:halign(1):valign(2)
             self:diffuse(color("0,0,0,0.4"))
 		end
 	},
 	LoadFont("Common Large") .. {
         Name = "DisplayPercent",
         InitCommand = function(self)
-            self:halign(1):valign(0)
+            self:halign(1):valign(2)
             self:zoom(wifepercentTextSize)
             -- maybe we want to set the text color here
         end,

@@ -2,6 +2,11 @@ local target = playerConfig:get_data().TargetGoal
 GAMESTATE:GetPlayerState():SetTargetGoal(target / 100)
 local targetTrackerMode = playerConfig:get_data().TargetTrackerMode
 
+-- describes the difference between 480p and current resolution (theme elements are resized based on theme height)
+-- for the purpose of scaling some hardcoded values for element sizing purposes
+-- was extremely lazy here
+local GAMEPLAY_SIZING_RATIO = (480 / SCREEN_HEIGHT)
+
 local t = Def.ActorFrame {
 	Name = "TargetTracker",
 	InitCommand = function(self)

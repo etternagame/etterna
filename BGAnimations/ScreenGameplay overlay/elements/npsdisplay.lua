@@ -10,9 +10,9 @@ local minWindow = 1 -- this will be the minimum size of the "window" in seconds.
 
 --Graph related stuff
 local initialPeak = 10 -- Initial height of the NPS graph.
-local graphWidth = 140 / GAMEPLAY_SIZING_RATIO
-local graphHeight = 100 / GAMEPLAY_SIZING_RATIO
-local npsDisplayTextSize = 1 / GAMEPLAY_SIZING_RATIO
+local graphWidth = GAMEPLAY:getItemWidth("npsGraph")
+local graphHeight = GAMEPLAY:getItemHeight("npsGraph")
+local npsDisplayTextSize = GAMEPLAY:getItemHeight("npsDisplayText")
 
 local maxVerts = 100 -- Higher numbers allows for more detailed graph that spans for a longer duration. But may lead to performance issues
 local graphFreq = 0.2 -- The frequency in which the graph updates in seconds.
