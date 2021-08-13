@@ -138,7 +138,7 @@ local t =
 	end
 }
 
-local filterColor = COLORS:getGameplayColor("notefieldBG")
+local filterColor = COLORS:getGameplayColor("NotefieldBG")
 local filterAlphas = playerConfig:get_data().ScreenFilter
 if filterAlphas == nil then
 	filterAlphas = 0

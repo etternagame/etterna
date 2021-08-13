@@ -10,8 +10,8 @@ local t = Def.ActorFrame {
 	end,
 }
 
-local aheadColor = COLORS:getGameplayColor("targetGoalAhead")
-local behindColor = COLORS:getGameplayColor("targetGoalBehind")
+local aheadColor = COLORS:getGameplayColor("TargetGoalAhead")
+local behindColor = COLORS:getGameplayColor("TargetGoalBehind")
 
 if targetTrackerMode == 0 then
 	t[#t+1] = LoadFont("Common Normal") .. {

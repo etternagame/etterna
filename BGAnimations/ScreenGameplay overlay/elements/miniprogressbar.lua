@@ -14,7 +14,7 @@ return Def.ActorFrame {
 		Name = "BG",
 		InitCommand = function(self)
 			self:zoomto(width, height)
-			self:diffuse(COLORS:getGameplayColor("miniProgressBarBG"))
+			self:diffuse(COLORS:getGameplayColor("MiniProgressBarBG"))
 			self:diffusealpha(alpha)
 		end,
 	},
@@ -23,7 +23,7 @@ return Def.ActorFrame {
 		InitCommand = function(self)
 			self:x(1 + width / 2)
 			self:zoomto(1, height)
-			self:diffuse(COLORS:getGameplayColor("miniProgressBarEnd"))
+			self:diffuse(COLORS:getGameplayColor("MiniProgressBarEnd"))
 			self:diffusealpha(1)
 		end,
 	},
@@ -36,7 +36,7 @@ return Def.ActorFrame {
 		Stream = Def.Quad {
 			InitCommand = function(self)
 				self:zoomy(height)
-				self:diffuse(COLORS:getGameplayColor("miniProgressBar"))
+				self:diffuse(COLORS:getGameplayColor("MiniProgressBar"))
 				self:diffusealpha(1)
 			end
 		}

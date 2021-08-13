@@ -39,7 +39,7 @@ return Def.ActorFrame {
 		Name = "BG",
 		InitCommand = function(self)
 			self:zoomto(width, height)
-			self:diffuse(COLORS:getGameplayColor("fullProgressBarBG"))
+			self:diffuse(COLORS:getGameplayColor("FullProgressBarBG"))
 			self:diffusealpha(alpha)
 		end
 	},
@@ -52,7 +52,7 @@ return Def.ActorFrame {
 		Stream = Def.Quad {
 			InitCommand = function(self)
 				self:zoomy(height)
-				self:diffuse(COLORS:getGameplayColor("fullProgressBar"))
+				self:diffuse(COLORS:getGameplayColor("FullProgressBar"))
 				self:diffusealpha(alpha)
 			end
 		}

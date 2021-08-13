@@ -7,9 +7,9 @@ if MovableValues == nil or MovableValues.NotefieldWidth == nil then
 	return Def.Actor {}
 end
 
-local laneColor = COLORS:getGameplayColor("laneCover")
-local bpmColor = COLORS:getGameplayColor("laneCoverBPM")
-local heightColor = COLORS:getGameplayColor("laneCoverHeight")
+local laneColor = COLORS:getGameplayColor("LaneCover")
+local bpmColor = COLORS:getGameplayColor("LaneCoverBPM")
+local heightColor = COLORS:getGameplayColor("LaneCoverHeight")
 
 local cols = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
 local evencols = cols - cols%2

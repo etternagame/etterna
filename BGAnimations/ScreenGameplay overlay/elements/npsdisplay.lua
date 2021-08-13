@@ -18,7 +18,7 @@ local maxVerts = 100 -- Higher numbers allows for more detailed graph that spans
 local graphFreq = 0.2 -- The frequency in which the graph updates in seconds.
 --------------------
 
-local graphColor = COLORS:getGameplayColor("npsGraph")
+local graphColor = COLORS:getGameplayColor("NPSGraph")
 local npsWindow = maxWindow
 
 -- This table holds the timestamp of each judgment.

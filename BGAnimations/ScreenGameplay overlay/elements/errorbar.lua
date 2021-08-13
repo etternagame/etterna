@@ -93,7 +93,7 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
 			self:zoomto(2, MovableValues.ErrorBarHeight)
-			self:diffuse(COLORS:getGameplayColor("errorBarCenter"))
+			self:diffuse(COLORS:getGameplayColor("ErrorBarCenter"))
 		end
 	},
 
@@ -131,7 +131,7 @@ if errorbarType == "EWMA" then
 		InitCommand = function(self)
 			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
 			self:zoomto(barWidth, MovableValues.ErrorBarHeight)
-			self:diffuse(COLORS:getGameplayColor("errorBarEWMABar"))
+			self:diffuse(COLORS:getGameplayColor("ErrorBarEWMABar"))
 			self:diffusealpha(1)
 		end,
 		SpottedOffsetCommand = function(self, params)
