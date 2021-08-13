@@ -1,12 +1,20 @@
-local prevZoom = 0.65
-local musicratio = 1
+-- this file is responsible for practice-mode only behavior
+-- mostly it handles the additional inputs and functionality surrounding the chord density graph
+-- right clicking or pressing InsertCoin to set bookmarks, etc
 
--- hurrrrr nps quadzapalooza -mina
-local wodth = capWideScale(get43size(240), 280)
-local hidth = 40
+local musicratio = 1
+local width = 280
+local height = 53 / 555 * SCREEN_HEIGHT
 local cd
 local loopStartPos
 local loopEndPos
+
+local bookmarkWidth = 1 / 1080 * SCREEN_WIDTH
+local bookmarkAlpha = 1
+local regionAlpha = 0.5
+
+local bookmarkColor = COLORS:getGameplayColor("PracticeBookmark")
+local regionColor = COLORS:getGameplayColor("PracticeRegion")
 
 local function handleRegionSetting(positionGiven)
 	-- don't allow a negative region 
@@ -78,6 +86,8 @@ local function duminput(event)
 		if event.DeviceInput.button == "DeviceButton_backspace" then
 			if loopStartPos ~= nil then
 				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(loopStartPos, 1, true)
+			else
+				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(0, 1, true)
 			end
 		elseif event.button == "EffectUp" then
 			SCREENMAN:GetTopScreen():AddToRate(0.05)
@@ -111,118 +121,79 @@ local function duminput(event)
 	return false
 end
 
-local function UpdatePreviewPos(self)
-	local pos = SCREENMAN:GetTopScreen():GetSongPosition() / musicratio
-	self:GetChild("Pos"):zoomto(math.min(math.max(0, pos), wodth), hidth)
-	self:queuecommand("Highlight")
-end
-
 local t = Def.ActorFrame {
-	Name = "ChartPreview",
+	Name = "GameplayPracticeController",
 	InitCommand = function(self)
-		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
-		self:SetUpdateFunction(UpdatePreviewPos)
-		cd = self:GetChild("ChordDensityGraph"):visible(true):draworder(1000):y(20)
-		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
 	BeginCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / (wodth)
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / width
 		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
-		cd:GetChild("cdbg"):diffusealpha(0)
-		self:SortByDrawOrder()
-		self:queuecommand("GraphUpdate")
 	end,
 	PracticeModeReloadMessageCommand = function(self)
-		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / wodth
+		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / width
 	end,
-	Def.Quad {
-		Name = "BG",
+
+	-- invisible button covering the entire screen
+	-- right clicking anywhere that hits it (anywhere but the graph) pauses music
+	UIElements.QuadButton(1, 1) .. {
+		Name = "PauseArea",
 		InitCommand = function(self)
-			self:x(wodth / 2)
-			self:diffuse(color("0.05,0.05,0.05,1"))
-		end
-	},
-	Def.Quad {
-		Name = "PosBG",
-		InitCommand = function(self)
-			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900)
+			self:halign(0):valign(0)
+			self:z(1)
+			self:diffusealpha(0)
+			self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
 		end,
-		HighlightCommand = function(self) -- use the bg for detection but move the seek pointer -mina
-			if isOver(self) then
-				self:GetParent():GetChild("Seek"):visible(true)
-				self:GetParent():GetChild("Seektext"):visible(true)
-				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
-				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4) -- todo: refactor this lmao -mina
-				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
-				self:GetParent():GetChild("Seektext"):settextf(
-					"%0.2f",
-					self:GetParent():GetChild("Seek"):GetX() * musicratio / getCurRateValue()
-				)
-			else
-				self:GetParent():GetChild("Seektext"):visible(false)
-				self:GetParent():GetChild("Seek"):visible(false)
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_right mouse button" then
+				local top = SCREENMAN:GetTopScreen()
+				if top then
+					top:TogglePause()
+				end
 			end
-		end
-	},
-	Def.Quad {
-		Name = "Pos",
-		InitCommand = function(self)
-			self:zoomto(0, hidth):diffuse(color("0,1,0,.5")):halign(0):draworder(900)
-		end
+		end,
 	}
 }
 
 -- Load the CDGraph with a forced width parameter.
-t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {
-	Width = wodth,
-    Height = 53 / 555 * SCREEN_HEIGHT,
+t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
+	Width = width,
+    Height = height,
     NPSThickness = 1.5,
     TextSize = 0.45,
-})
-
--- more draw order shenanigans
-t[#t + 1] = LoadFont("Common Normal") .. {
-	Name = "Seektext",
-	InitCommand = function(self)
-		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
-	end
-}
-
-t[#t + 1] = Def.Quad {
-	Name = "Seek",
-	InitCommand = function(self)
-		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
-	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) then
-			local withCtrl = INPUTFILTER:IsControlPressed()
-			if withCtrl then
-				handleRegionSetting(self:GetX() * musicratio)
-			else
-				SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0, false)
-			end
+}}) .. {
+	BeginCommand = function(self)
+		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
+		self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
+		-- doing this in a really awkward way to inject the desired behavior into the existing SeekBar
+		local seekbar = self:GetChild("SeekBar")
+		local bg = self:GetChild("BG")
+		if seekbar and bg then
+			bg:addcommand("HandleRegionSetting", function(self, params)
+				local positionGiven = params.positionGiven
+				handleRegionSetting(positionGiven)
+			end)
 		end
 	end,
-	MouseRightClickMessageCommand = function(self)
-		if isOver(self) then
-			handleRegionSetting(self:GetX() * musicratio)
-		else
-			if not (allowedCustomization) then
-				SCREENMAN:GetTopScreen():TogglePause()
-			end
-		end
-	end
 }
-
-t[#t + 1] = Def.Quad {
+-- extra quad for bookmark position and region
+t[#t+1] = Def.Quad {
 	Name = "BookmarkPos",
 	InitCommand = function(self)
-		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5):draworder(1100)
+		-- trickery
+		self:SetFakeParent(self:GetParent():GetChild("ChordDensityGraphFile"))
+
+		self:valign(0)
+		self:zoomto(bookmarkWidth, height)
+		self:diffuse(bookmarkColor)
+		self:diffusealpha(bookmarkAlpha)
+		self:draworder(1100)
 		self:visible(false)
 	end,
 	SetCommand = function(self)
 		self:visible(true)
-		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5)
+		self:zoomto(bookmarkWidth, height)
+		self:diffuse(bookmarkColor)
+		self:diffusealpha(bookmarkAlpha)
 		self:x(loopStartPos / musicratio)
 	end,
 	RegionSetMessageCommand = function(self, params)
@@ -230,8 +201,11 @@ t[#t + 1] = Def.Quad {
 			self:playcommand("Set")
 		else
 			self:visible(true)
-			self:x(loopStartPos / musicratio):halign(0)
-			self:zoomto(params.loopLength / musicratio, hidth):diffuse(color(".7,.2,.7,0.5"))
+			self:halign(0)
+			self:x(loopStartPos / musicratio)
+			self:zoomto(params.loopLength / musicratio, height)
+			self:diffuse(regionColor)
+			self:diffusealpha(regionAlpha)
 		end
 	end,
 	CurrentRateChangedMessageCommand = function(self)

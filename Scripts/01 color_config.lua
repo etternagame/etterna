@@ -97,6 +97,8 @@ local defaultConfig = {
 		laneCoverHeight = "#ffffff",
 		npsGraph = "#ffffff",
 		notefieldBG = "#000000",
+		PracticeBookmark = "#1080ff",
+		PracticeRegion = "#c010c0",
 	},
 	combo = {
 		MarvFullCombo = "#00aeef",

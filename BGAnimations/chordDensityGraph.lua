@@ -51,12 +51,19 @@ local t = Def.ActorFrame {
             local top = SCREENMAN:GetTopScreen()
             local song = GAMESTATE:GetCurrentSong()
             local musicpositionratio = 1
-            if stepsinuse ~= nil and top ~= nil and top.GetSampleMusicPosition and song then
+            if stepsinuse ~= nil and top ~= nil and song then
                 local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
                 musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
-                local pos = top:GetSampleMusicPosition() / musicpositionratio
-                bar:zoomx(clamp(pos, 0, sizing.Width))
+                if top.GetSampleMusicPosition then
+                    local pos = top:GetSampleMusicPosition() / musicpositionratio
+                    bar:zoomx(clamp(pos, 0, sizing.Width))
+                elseif top.GetSongPosition then
+                    local pos = top:GetSongPosition() / musicpositionratio
+                    bar:zoomx(clamp(pos, 0, sizing.Width))
+                else
+                    bar:zoomx(0)
+                end
             else
                 bar:zoomx(0)
             end
@@ -69,12 +76,12 @@ local t = Def.ActorFrame {
 
                 if stepsinuse ~= nil then
                     local perc = lx / bg:GetZoomedWidth()
-                    local dist = perc * stepsinuse:GetLengthSeconds()
+                    local dist = perc * (stepsinuse:GetLengthSeconds())
                     local postext = SecondsToHHMMSS(dist)
                     local stro = postext
                     if self.npsVector ~= nil and #self.npsVector > 0 then
                         local percent = clamp(lx / bg:GetZoomedWidth(), 0, 1)
-                        local hoveredIndex = clamp(math.ceil(#self.npsVector * percent), math.min(1, #self.npsVector), #self.npsVector)
+                        local hoveredIndex = clamp(math.ceil(self.finalNPSVectorIndex * percent), math.min(1, self.finalNPSVectorIndex), self.finalNPSVectorIndex)
                         local hoveredNPS = self.npsVector[hoveredIndex]
                         stro = string.format("%s - %d NPS", postext, hoveredNPS)
                     end
@@ -130,7 +137,6 @@ local function updateGraphMultiVertex(parent, self, steps)
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
-        parent.npsVector = npsVector
 		local numberOfColumns = #npsVector
 		local columnWidth = sizing.Width / numberOfColumns * rate
 		
@@ -147,14 +153,21 @@ local function updateGraphMultiVertex(parent, self, steps)
         
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
+        local lastIndex = 1
 		for density = 1,ncol do
 			for column = 1,numberOfColumns do
                 if graphVectors[density][column] > 0 then
                     local barColor = getColorForDensity(density, ncol)
                     makeABar(verts, math.min(column * columnWidth, sizing.Width), yOffset, columnWidth, graphVectors[density][column] * 2 * heightScale, barColor)
+                    if column > lastIndex then
+                        lastIndex = column
+                    end
                 end
 			end
 		end
+
+        parent.npsVector = npsVector
+        parent.finalNPSVectorIndex = lastIndex -- massive hack because npsVector is padded with 0s on uprates
 		
 		self:SetVertices(verts)
         self:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
@@ -183,16 +196,37 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
     MouseDownCommand = function(self, params)
         local lx = params.MouseX - self:GetParent():GetX()
         local top = SCREENMAN:GetTopScreen()
-        if params.event == "DeviceButton_left mouse button" then
+        if top and top.SetSongPosition then
             local song = GAMESTATE:GetCurrentSong()
-            if top.SetSampleMusicPosition and stepsinuse and song then
+            -- logic for gameplay chord density graph
+            if stepsinuse and song then
                 local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
                 local musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
-                top:SetSampleMusicPosition(lx * musicpositionratio)
+                if params.event == "DeviceButton_left mouse button" then
+                    local withCtrl = INPUTFILTER:IsControlPressed()
+                    if withCtrl then
+                        -- this command is defined remotely by _gameplaypractice.lua
+                        self:playcommand("HandleRegionSetting", {positionGiven = lx * musicpositionratio})
+                    else
+                        top:SetSongPosition(lx * musicpositionratio, 0, false)
+                    end
+                elseif params.event == "DeviceButton_right mouse button" then
+                    -- this command is defined remotely by _gameplaypractice.lua
+                    self:playcommand("HandleRegionSetting", {positionGiven = lx * musicpositionratio})
+                end
             end
-        else
-            if top.PauseSampleMusic then
+        elseif top and top.SetSampleMusicPosition then
+            -- logic for selectmusic chord density graph
+            if params.event == "DeviceButton_left mouse button" then
+                local song = GAMESTATE:GetCurrentSong()
+                if stepsinuse and song then
+                    local r = getCurRateValue()
+                    local length = stepsinuse:GetLengthSeconds()
+                    local musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
+                    top:SetSampleMusicPosition(lx * musicpositionratio)
+                end
+            else
                 top:PauseSampleMusic()
             end
         end
