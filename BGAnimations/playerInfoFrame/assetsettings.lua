@@ -244,7 +244,7 @@ local function assetList()
         local path = assetFolders[type] .. name
         curPath = path
         selectedPath = path
-        selectedIndex = curIndex
+        selectedIndex = lastClickedIndex+((curPage-1)*maxColumns*maxRows)
 
         setAssetsByType(type, GUID, path)
 
@@ -296,7 +296,7 @@ local function assetList()
         return out
     end
 
-    -- Get cursor index
+    -- Get not the cursor index (really this doesnt work)
     local function getSelectedIndex()
         local out = ((curPage-1) * maxColumns * maxRows) + selectedIndex
         return out
