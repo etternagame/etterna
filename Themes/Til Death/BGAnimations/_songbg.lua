@@ -10,9 +10,8 @@ if enabled then
 			self:diffusealpha(0)
 		end,
 		CurrentSongChangedMessageCommand = function(self)
-			--self:stoptweening():decelerate(self:GetDiffuseAlpha()):diffusealpha(0)
-			self:stoptweening():decelerate(0.08):diffusealpha(0)
-			self:sleep(0.07):queuecommand("ModifySongBackground")
+			self:stoptweening():smooth(0.5):diffusealpha(0)
+			self:sleep(0.2):queuecommand("ModifySongBackground")
 		end,
 		ModifySongBackgroundCommand = function(self)
 			if GAMESTATE:GetCurrentSong() and GAMESTATE:GetCurrentSong():GetBackgroundPath() then
@@ -20,13 +19,14 @@ if enabled then
 				self:visible(true)
 				self:LoadBackground(GAMESTATE:GetCurrentSong():GetBackgroundPath())
 				self:scaletocover(0, 0, SCREEN_WIDTH, SCREEN_BOTTOM)
+				self:sleep(0.05)
 				self:smooth(0.4):diffusealpha(brightness)
 			else
 				self:visible(false)
 			end
 		end,
 		OffCommand = function(self)
-			self:smooth(0.2):diffusealpha(0)
+			self:smooth(0.6):diffusealpha(0)
 		end,
 	}
 end
