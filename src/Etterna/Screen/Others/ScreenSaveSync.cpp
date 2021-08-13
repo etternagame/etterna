@@ -19,14 +19,14 @@ GetPromptText()
 	std::string s;
 
 	{
-		vector<std::string> vs;
+		std::vector<std::string> vs;
 		AdjustSync::GetSyncChangeTextGlobal(vs);
 		if (!vs.empty())
 			s += join("\n", vs) + "\n\n";
 	}
 
 	{
-		vector<std::string> vs;
+		std::vector<std::string> vs;
 		AdjustSync::GetSyncChangeTextSong(vs);
 		if (!vs.empty()) {
 			s += ssprintf(CHANGED_TIMING_OF.GetValue() + "\n"

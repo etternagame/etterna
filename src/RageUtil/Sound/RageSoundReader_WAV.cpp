@@ -201,7 +201,7 @@ struct WavReaderPCM : public WavReader
 struct WavReaderADPCM : public WavReader
 {
   public:
-	vector<int16_t> m_iaCoef1, m_iaCoef2;
+	std::vector<int16_t> m_iaCoef1, m_iaCoef2;
 	int16_t m_iFramesPerBlock;
 	float* m_pBuffer;
 	int m_iBufferAvail, m_iBufferUsed;

@@ -70,7 +70,7 @@ struct Centering
 	int m_iTranslateX, m_iTranslateY, m_iAddWidth, m_iAddHeight;
 };
 
-static vector<Centering> g_CenteringStack(1, Centering(0, 0, 0, 0));
+static std::vector<Centering> g_CenteringStack(1, Centering(0, 0, 0, 0));
 
 RageDisplay* DISPLAY =
   nullptr; // global and accessible from anywhere in our program
@@ -102,7 +102,7 @@ std::string
 RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 {
 	std::string err;
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
@@ -284,7 +284,7 @@ RageDisplay::DrawPolyLines(const RageSpriteVertex v[],
 						   int iNumVerts,
 						   float LineWidth)
 {
-	vector<RageSpriteVertex> batchVerts;
+	std::vector<RageSpriteVertex> batchVerts;
 	batchVerts.reserve(iNumVerts * 4);
 
 	for (auto i = 0; i < iNumVerts - 1; ++i) {
@@ -386,7 +386,7 @@ RageDisplay::IsD3DInternal()
 // Matrix stuff
 class MatrixStack
 {
-	vector<RageMatrix> stack;
+	std::vector<RageMatrix> stack;
 
   public:
 	MatrixStack()
@@ -1080,7 +1080,7 @@ RageDisplay::DrawTriangles(const RageSpriteVertex v[], int iNumVerts)
 void
 RageDisplay::DrawCompiledGeometry(const RageCompiledGeometry* p,
 								  int iMeshIndex,
-								  const vector<msMesh>& vMeshes)
+								  const std::vector<msMesh>& vMeshes)
 {
 	this->DrawCompiledGeometryInternal(p, iMeshIndex);
 
@@ -1253,7 +1253,7 @@ RageCompiledGeometry::~RageCompiledGeometry()
 }
 
 void
-RageCompiledGeometry::Set(const vector<msMesh>& vMeshes, bool bNeedsNormals)
+RageCompiledGeometry::Set(const std::vector<msMesh>& vMeshes, bool bNeedsNormals)
 {
 	m_bNeedsNormals = bNeedsNormals;
 

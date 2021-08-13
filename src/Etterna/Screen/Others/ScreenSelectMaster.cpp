@@ -93,7 +93,7 @@ ScreenSelectMaster::Init()
 
 	m_TrackingRepeatingInput = GameButton_Invalid;
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	GetActiveElementPlayerNumbers(vpns);
 
 #define PLAYER_APPEND_NO_SPACE(p)                                              \
@@ -117,7 +117,7 @@ ScreenSelectMaster::Init()
 	m_vsprIcon.resize(m_aGameCommands.size());
 	m_vsprScroll.resize(m_aGameCommands.size());
 
-	vector<RageVector3> positions;
+	std::vector<RageVector3> positions;
 	bool positions_set_by_lua = false;
 	if (THEME->HasMetric(m_sName, "IconChoicePosFunction")) {
 		positions_set_by_lua = true;
@@ -178,7 +178,7 @@ ScreenSelectMaster::Init()
 
 		// init icon
 		if (SHOW_ICON) {
-			vector<std::string> vs;
+			std::vector<std::string> vs;
 			vs.push_back("Icon");
 			if (PER_CHOICE_ICON_ELEMENT)
 				vs.push_back("Choice" + mc.m_sName);
@@ -214,7 +214,7 @@ ScreenSelectMaster::Init()
 		if (SHOW_SCROLLER) {
 			FOREACH(PlayerNumber, vpns, p)
 			{
-				vector<std::string> vs;
+				std::vector<std::string> vs;
 				vs.push_back("Scroll");
 				if (PER_CHOICE_SCROLL_ELEMENT)
 					vs.push_back("Choice" + mc.m_sName);
@@ -273,7 +273,7 @@ ScreenSelectMaster::Init()
 	FOREACH_MenuDir(dir)
 	{
 		const std::string order = OPTION_ORDER.GetValue(dir);
-		vector<std::string> parts;
+		std::vector<std::string> parts;
 		split(order, ",", parts, true);
 
 		for (unsigned part = 0; part < parts.size(); ++part) {
@@ -375,7 +375,7 @@ ScreenSelectMaster::HandleScreenMessage(const ScreenMessage& SM)
 {
 	ScreenSelect::HandleScreenMessage(SM);
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	GetActiveElementPlayerNumbers(vpns);
 
 	if (SM == SM_PlayPostSwitchPage) {
@@ -430,7 +430,7 @@ ScreenSelectMaster::GetSelectionIndex(PlayerNumber pn)
 void
 ScreenSelectMaster::UpdateSelectableChoices()
 {
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	GetActiveElementPlayerNumbers(vpns);
 	int first_playable = -1;
 	bool on_unplayable;
@@ -656,7 +656,7 @@ ScreenSelectMaster::ChangePage(int iNewChoice)
 		m_sprMore[page]->PlayCommand(sIconAndExplanationCommand);
 	}
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	GetActiveElementPlayerNumbers(vpns);
 
 	Message msg("PreSwitchPage");
@@ -704,7 +704,7 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 		return ChangePage(iNewChoice);
 	}
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	if (SHARED_SELECTION || page != PAGE_1) {
 		/* Set the new m_iChoice even for disabled players, since a player might
 		 * join on a SHARED_SELECTION after the cursor has been moved. */
@@ -753,7 +753,7 @@ ScreenSelectMaster::ChangeSelection(PlayerNumber pn,
 
 		if (SHOW_SCROLLER) {
 			ActorScroller& scroller = m_Scroller;
-			vector<AutoActor>& vScroll = m_vsprScroll;
+			std::vector<AutoActor>& vScroll = m_vsprScroll;
 
 			if (WRAP_SCROLLER) {
 				// HACK: We can't tell from the option orders whether or not we
@@ -876,7 +876,7 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 		m_bDoubleChoice = true;
 
 		if (SHOW_SCROLLER) {
-			vector<AutoActor>& vScroll = m_vsprScroll;
+			std::vector<AutoActor>& vScroll = m_vsprScroll;
 			vScroll[m_iChoice]->PlayCommand("InitialSelection");
 		}
 
@@ -950,7 +950,7 @@ ScreenSelectMaster::MenuStart(const InputEventPlus& input)
 void
 ScreenSelectMaster::TweenOnScreen()
 {
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	GetActiveElementPlayerNumbers(vpns);
 
 	if (SHOW_ICON) {
@@ -995,7 +995,7 @@ ScreenSelectMaster::TweenOffScreen()
 {
 	ScreenSelect::TweenOffScreen();
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	GetActiveElementPlayerNumbers(vpns);
 
 	for (unsigned c = 0; c < m_aGameCommands.size(); c++) {

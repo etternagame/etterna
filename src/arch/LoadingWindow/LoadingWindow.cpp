@@ -14,7 +14,7 @@ LoadingWindow::Create()
 #else
 	// Don't load NULL by default.
 	const std::string drivers = "win32,macosx,gtk";
-	vector<std::string> DriversToTry;
+	std::vector<std::string> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	ASSERT(DriversToTry.size() != 0);

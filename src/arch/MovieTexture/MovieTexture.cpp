@@ -96,7 +96,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 	if (sDrivers.empty())
 		sDrivers = DEFAULT_MOVIE_DRIVER_LIST;
 
-	vector<std::string> DriversToTry;
+	std::vector<std::string> DriversToTry;
 	split(sDrivers, ",", DriversToTry, true);
 
 	if (DriversToTry.empty())

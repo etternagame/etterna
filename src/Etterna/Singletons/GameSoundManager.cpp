@@ -85,9 +85,9 @@ static MusicPlaying* g_Playing;
 
 static RageThread MusicThread;
 
-vector<std::string> g_SoundsToPlayOnce;
-vector<std::string> g_SoundsToPlayOnceFromDir;
-vector<std::string> g_SoundsToPlayOnceFromAnnouncer;
+std::vector<std::string> g_SoundsToPlayOnce;
+std::vector<std::string> g_SoundsToPlayOnceFromDir;
+std::vector<std::string> g_SoundsToPlayOnceFromAnnouncer;
 
 struct MusicToPlay
 {
@@ -100,7 +100,7 @@ struct MusicToPlay
 	bool bAlignBeat = false, bApplyMusicRate = false, bAccurateSync = false;
 	MusicToPlay() { HasTiming = false; }
 };
-vector<MusicToPlay> g_MusicsToPlay;
+std::vector<MusicToPlay> g_MusicsToPlay;
 static GameSoundManager::PlayMusicParams g_FallbackMusicParams;
 
 // A position to be set on a sound
@@ -109,7 +109,7 @@ struct SoundPositionSetter
 	RageSound* m_psound;
 	float fSeconds;
 };
-vector<SoundPositionSetter> g_PositionsToSet;
+std::vector<SoundPositionSetter> g_PositionsToSet;
 
 // A param to set on a sound
 struct MusicParamSetter
@@ -117,7 +117,7 @@ struct MusicParamSetter
 	RageSound* m_psound;
 	RageSoundParams p;
 };
-vector<MusicParamSetter> g_ParamsToSet;
+std::vector<MusicParamSetter> g_ParamsToSet;
 
 void
 GameSoundManager::StartMusic(MusicToPlay& ToPlay)
@@ -319,7 +319,7 @@ GameSoundManager::DoPlayOnceFromDir(std::string sPath)
 	// make sure there's a slash at the end of this path
 	ensure_slash_at_end((sPath));
 
-	vector<std::string> arraySoundFiles;
+	std::vector<std::string> arraySoundFiles;
 	GetDirListing(sPath + "*.mp3", arraySoundFiles);
 	GetDirListing(sPath + "*.wav", arraySoundFiles);
 	GetDirListing(sPath + "*.ogg", arraySoundFiles);
@@ -345,14 +345,14 @@ void
 GameSoundManager::StartQueuedSounds()
 {
 	g_Mutex->Lock();
-	vector<std::string> aSoundsToPlayOnce = g_SoundsToPlayOnce;
+	std::vector<std::string> aSoundsToPlayOnce = g_SoundsToPlayOnce;
 	g_SoundsToPlayOnce.clear();
-	vector<std::string> aSoundsToPlayOnceFromDir = g_SoundsToPlayOnceFromDir;
+	std::vector<std::string> aSoundsToPlayOnceFromDir = g_SoundsToPlayOnceFromDir;
 	g_SoundsToPlayOnceFromDir.clear();
-	vector<std::string> aSoundsToPlayOnceFromAnnouncer =
+	std::vector<std::string> aSoundsToPlayOnceFromAnnouncer =
 	  g_SoundsToPlayOnceFromAnnouncer;
 	g_SoundsToPlayOnceFromAnnouncer.clear();
-	vector<MusicToPlay> aMusicsToPlay = g_MusicsToPlay;
+	std::vector<MusicToPlay> aMusicsToPlay = g_MusicsToPlay;
 	g_MusicsToPlay.clear();
 	g_Mutex->Unlock();
 
@@ -403,7 +403,7 @@ void
 GameSoundManager::HandleSetPosition()
 {
 	g_Mutex->Lock();
-	vector<SoundPositionSetter> vec = g_PositionsToSet;
+	std::vector<SoundPositionSetter> vec = g_PositionsToSet;
 	g_PositionsToSet.clear();
 	g_Mutex->Unlock();
 	for (unsigned i = 0; i < vec.size(); i++) {
@@ -418,7 +418,7 @@ void
 GameSoundManager::HandleSetParams()
 {
 	g_Mutex->Lock();
-	vector<MusicParamSetter> vec = g_ParamsToSet;
+	std::vector<MusicParamSetter> vec = g_ParamsToSet;
 	g_ParamsToSet.clear();
 	g_Mutex->Unlock();
 	for (unsigned i = 0; i < vec.size(); i++) {
@@ -1059,7 +1059,7 @@ LuaFunc_get_sound_driver_list(lua_State* L);
 int
 LuaFunc_get_sound_driver_list(lua_State* L)
 {
-	vector<std::string> driver_names;
+	std::vector<std::string> driver_names;
 	split(
 	  RageSoundDriver::GetDefaultSoundDriverList(), ",", driver_names, true);
 	lua_createtable(L, driver_names.size(), 0);

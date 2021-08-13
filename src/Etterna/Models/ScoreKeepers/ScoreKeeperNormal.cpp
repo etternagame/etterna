@@ -58,8 +58,8 @@ ScoreKeeperNormal::ScoreKeeperNormal(PlayerState* pPlayerState,
 }
 
 void
-ScoreKeeperNormal::Load(const vector<Song*>& apSongs,
-						const vector<Steps*>& apSteps)
+ScoreKeeperNormal::Load(const std::vector<Song*>& apSongs,
+						const std::vector<Steps*>& apSteps)
 {
 	m_apSteps = apSteps;
 	ASSERT(apSongs.size() == apSteps.size());

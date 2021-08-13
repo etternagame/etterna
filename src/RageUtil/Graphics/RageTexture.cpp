@@ -70,7 +70,7 @@ RageTexture::GetFrameDimensionsFromFileName(const std::string& sPath,
 											int source_height)
 {
 	static Regex match(" ([0-9]+)x([0-9]+)([\\. ]|$)");
-	vector<std::string> asMatch;
+	std::vector<std::string> asMatch;
 	if (!match.Compare(sPath, asMatch)) {
 		*piFramesWide = *piFramesHigh = 1;
 		return;

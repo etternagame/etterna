@@ -3,6 +3,9 @@
 #ifndef CsvFile_H
 #define CsvFile_H
 
+#include <string>
+#include <vector>
+
 class RageFileBasic;
 
 class CsvFile
@@ -15,8 +18,8 @@ class CsvFile
 	bool WriteFile(const std::string& sPath) const;
 	bool WriteFile(RageFileBasic& sFile) const;
 
-	typedef vector<std::string> StringVector;
-	vector<StringVector> m_vvs;
+	typedef std::vector<std::string> StringVector;
+	std::vector<StringVector> m_vvs;
 
   private:
 	std::string m_sPath;

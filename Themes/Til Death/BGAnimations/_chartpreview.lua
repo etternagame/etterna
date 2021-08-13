@@ -14,7 +14,8 @@ if not yPos then yPos = 55 end
 if not yPosReverse then yPosReverse = 208 end
 
 local translated_info = {
-	Paused = THEME:GetString("ChartPreview", "Paused")
+	Paused = THEME:GetString("ChartPreview", "Paused"),
+	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
 }
 
 local function UpdatePreviewPos(self)
@@ -159,12 +160,24 @@ local t = Def.ActorFrame {
 		end,
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina
 			if isOver(self) then
-				self:GetParent():GetChild("Seek"):visible(true)
-				self:GetParent():GetChild("Seektext"):visible(true)
-				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
-				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
-				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
-				self:GetParent():GetChild("Seektext"):settextf("%0.2f", self:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
+				local seek = self:GetParent():GetChild("Seek")
+				local seektext = self:GetParent():GetChild("Seektext")
+				local cdg = self:GetParent():GetChild("ChordDensityGraph")
+
+				seek:visible(true)
+				seektext:visible(true)
+				seek:x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
+				seektext:x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
+				seektext:y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
+				if cdg.npsVector ~= nil and #cdg.npsVector > 0 then
+					local percent = clamp((INPUTFILTER:GetMouseX() - self:GetParent():GetX()) / wodth, 0, 1)
+					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
+					local hoverednps = cdg.npsVector[hoveredindex]
+					seektext:settextf("%0.2f - %d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"])
+				else
+					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())
+				end
+
 				updateCalcInfoDisplays(self)
 			else
 				self:GetParent():GetChild("Seektext"):visible(false)

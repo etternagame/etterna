@@ -82,7 +82,7 @@ PlayerReplay::Load()
 void
 PlayerReplay::UpdateHoldNotes(int iSongRow,
 							  float fDeltaTime,
-							  vector<TrackRowTapNote>& vTN)
+							  std::vector<TrackRowTapNote>& vTN)
 {
 	Player::UpdateHoldNotes(iSongRow, fDeltaTime, vTN);
 	ASSERT(!vTN.empty());
@@ -173,7 +173,7 @@ PlayerReplay::UpdateHoldsAndRolls(
 				++iter;
 		}
 
-		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
+		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
 		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
@@ -193,7 +193,7 @@ PlayerReplay::UpdateHoldsAndRolls(
 				case TapNoteSubType_Hold:
 					break;
 				case TapNoteSubType_Roll: {
-					vector<TrackRowTapNote> v;
+					std::vector<TrackRowTapNote> v;
 					v.push_back(trtn);
 					UpdateHoldNotes(iSongRow, fDeltaTime, v);
 				}
@@ -391,7 +391,9 @@ PlayerReplay::HandleTapRowScore(unsigned row)
 	 * we can't use GAMESTATE->m_fMusicSeconds. Use fStepsSeconds instead. */
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 
 	ChangeLife(scoreOfLastTap);
 }
@@ -676,7 +678,6 @@ PlayerReplay::Step(int col,
 			if (fNoteOffset == -2.f) // we hit a mine
 			{
 				score = TNS_HitMine;
-				PlayerAI::RemoveTapFromVectors(rowToJudge, col);
 			} else if (pTN->type == TapNoteType_Mine) // we are looking
 													  // at a mine but
 													  // missed it
@@ -689,6 +690,8 @@ PlayerReplay::Step(int col,
 															   fNoteOffset);
 			}
 		}
+
+		PlayerAI::RemoveTapFromVectors(rowToJudge, col);
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);

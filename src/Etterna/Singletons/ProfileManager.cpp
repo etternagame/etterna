@@ -58,7 +58,7 @@ struct DirAndProfile
 		profile.swap(other.profile);
 	}
 };
-static vector<DirAndProfile> g_vLocalProfile;
+static std::vector<DirAndProfile> g_vLocalProfile;
 
 static ThemeMetric<bool> FIXED_PROFILES("ProfileManager", "FixedProfiles");
 static ThemeMetric<int> NUM_FIXED_PROFILES("ProfileManager",
@@ -268,7 +268,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 		ld->SetText("Loading Profiles");
 	UnloadAllLocalProfiles();
 
-	vector<std::string> profile_ids;
+	std::vector<std::string> profile_ids;
 	GetDirListing(USER_PROFILES_DIR + "*", profile_ids, true, true);
 
 	for (auto& id : profile_ids) {
@@ -313,7 +313,7 @@ ProfileManager::CreateLocalProfile(const std::string& sName,
 	// handled. -Kyz
 	int max_profile_number = -1;
 	int first_free_number = 0;
-	vector<std::string> profile_ids;
+	std::vector<std::string> profile_ids;
 	GetLocalProfileIDs(profile_ids);
 	for (auto& id : profile_ids) {
 		int tmp = 0;
@@ -500,7 +500,7 @@ ProfileManager::AddStepTotals(PlayerNumber pn,
 }
 
 void
-ProfileManager::GetLocalProfileIDs(vector<std::string>& vsProfileIDsOut) const
+ProfileManager::GetLocalProfileIDs(std::vector<std::string>& vsProfileIDsOut) const
 {
 	vsProfileIDsOut.clear();
 	for (auto& i : g_vLocalProfile) {
@@ -511,7 +511,7 @@ ProfileManager::GetLocalProfileIDs(vector<std::string>& vsProfileIDsOut) const
 
 void
 ProfileManager::GetLocalProfileDisplayNames(
-  vector<std::string>& vsProfileDisplayNamesOut) const
+  std::vector<std::string>& vsProfileDisplayNamesOut) const
 {
 	vsProfileDisplayNamesOut.clear();
 	for (auto& i : g_vLocalProfile) {
@@ -688,14 +688,14 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int GetLocalProfileIDs(T* p, lua_State* L)
 	{
-		vector<std::string> vsProfileIDs;
+		std::vector<std::string> vsProfileIDs;
 		p->GetLocalProfileIDs(vsProfileIDs);
 		LuaHelpers::CreateTableFromArray<std::string>(vsProfileIDs, L);
 		return 1;
 	}
 	static int GetLocalProfileDisplayNames(T* p, lua_State* L)
 	{
-		vector<std::string> vsProfileNames;
+		std::vector<std::string> vsProfileNames;
 		p->GetLocalProfileDisplayNames(vsProfileNames);
 		LuaHelpers::CreateTableFromArray<std::string>(vsProfileNames, L);
 		return 1;

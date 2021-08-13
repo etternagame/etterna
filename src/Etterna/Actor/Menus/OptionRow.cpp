@@ -174,7 +174,7 @@ OptionRow::ChoicesChanged(RowType type, bool reset_focus)
 		m_vbSelected.erase(m_vbSelected.begin());
 	}
 
-	vector<bool>& vbSelected = m_vbSelected;
+	std::vector<bool>& vbSelected = m_vbSelected;
 	vbSelected.resize(0);
 	vbSelected.resize(m_pHand->m_Def.m_vsChoices.size(), false);
 
@@ -407,7 +407,6 @@ OptionRow::AfterImportOptions(PlayerNumber pn)
 		PlayerNumber pnCopyFrom = GAMESTATE->GetMasterPlayerNumber();
 		if (GAMESTATE->GetMasterPlayerNumber() == PLAYER_INVALID)
 			pnCopyFrom = PLAYER_1;
-		m_vbSelected = m_vbSelected; // haha this doesnt do anything -poco
 	}
 
 	switch (m_pHand->m_Def.m_selectType) {
@@ -431,7 +430,7 @@ OptionRow::AfterImportOptions(PlayerNumber pn)
 void
 OptionRow::PositionUnderlines(PlayerNumber pn)
 {
-	vector<OptionsCursor*>& vpUnderlines = m_Underline;
+	std::vector<OptionsCursor*>& vpUnderlines = m_Underline;
 	if (vpUnderlines.empty())
 		return;
 
@@ -706,7 +705,7 @@ OptionRow::GetOneSharedSelection(bool bAllowFail) const
 void
 OptionRow::SetOneSelection(PlayerNumber pn, int iChoice)
 {
-	vector<bool>& vb = m_vbSelected;
+	std::vector<bool>& vb = m_vbSelected;
 	if (vb.empty())
 		return;
 	FOREACH(bool, vb, b)

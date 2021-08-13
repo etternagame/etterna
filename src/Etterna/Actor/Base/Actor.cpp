@@ -38,8 +38,8 @@ REGISTER_ACTOR_CLASS_WITH_NAME(HiddenActor, Actor);
 float Actor::g_fCurrentBGMTime = 0, Actor::g_fCurrentBGMBeat;
 float Actor::g_fCurrentBGMTimeNoOffset = 0,
 	  Actor::g_fCurrentBGMBeatNoOffset = 0;
-vector<float> Actor::g_vfCurrentBGMBeatPlayer(NUM_PlayerNumber, 0);
-vector<float> Actor::g_vfCurrentBGMBeatPlayerNoOffset(NUM_PlayerNumber, 0);
+std::vector<float> Actor::g_vfCurrentBGMBeatPlayer(NUM_PlayerNumber, 0);
+std::vector<float> Actor::g_vfCurrentBGMBeatPlayerNoOffset(NUM_PlayerNumber, 0);
 
 Actor*
 Actor::Copy() const

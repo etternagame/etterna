@@ -166,8 +166,16 @@ namespace Core::Platform {
     }
 
     bool openWebsite(const std::string& url){
+        // Escape double quotes.
+        std::string url_escaped = url;
+        size_t index = 0;
+        while ((index = url_escaped.find('"', index)) != std::string::npos) {
+            url_escaped.replace(index, 1, "\\\""); // `1` is the length of the old `"`.
+            index += 2; // `2` is the length of the new `\"`.
+        }
+
         // xgd-open is the most portable command. Use in popular desktop environments
-        int resCode = system(fmt::format("xdg-open {}", url).c_str());
+        int resCode = system(fmt::format("xdg-open \"{}\"", url_escaped).c_str());
         if(resCode != 0){
             Locator::getLogger()->warn("Unable to open url. xdg-open return code: {}. URL: {}", resCode, url);
             return false;

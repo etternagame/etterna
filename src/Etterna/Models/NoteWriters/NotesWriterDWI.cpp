@@ -385,7 +385,7 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 	f.PutLine(
 	  ssprintf("#ARTIST:%s;", DwiEscape(out.GetTranslitArtist()).c_str()));
 
-	const vector<TimingSegment*>& bpms =
+	const std::vector<TimingSegment*>& bpms =
 	  out.m_SongTiming.GetTimingSegments(SEGMENT_BPM);
 	ASSERT_M(bpms[0]->GetRow() == 0,
 			 ssprintf("The first BPM Segment must be defined at row 0, not %d!",
@@ -421,7 +421,7 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 	}
 
 	// TODO: Also check for delays, add them as stops minus one row?
-	const vector<TimingSegment*>& stops =
+	const std::vector<TimingSegment*>& stops =
 	  out.m_SongTiming.GetTimingSegments(SEGMENT_STOP);
 	if (!stops.empty()) {
 		f.Write("#FREEZE:");
@@ -449,7 +449,7 @@ NotesWriterDWI::Write(const std::string& sPath, const Song& out)
 		f.PutLine(";");
 	}
 
-	const vector<Steps*>& vpSteps = out.GetAllSteps();
+	const std::vector<Steps*>& vpSteps = out.GetAllSteps();
 	for (auto pSteps : vpSteps) {
 		if (!WriteDWINotesTag(f, *pSteps))
 			continue;

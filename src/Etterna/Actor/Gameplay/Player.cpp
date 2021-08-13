@@ -178,7 +178,7 @@ inline void
 JudgedRows::Resize(size_t iMin)
 {
 	const auto iNewSize = std::max(2 * m_vRows.size(), iMin);
-	vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
+	std::vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
 	vNewRows.reserve(iNewSize);
 	vNewRows.insert(
 	  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
@@ -356,7 +356,9 @@ Player::Init(const std::string& sType,
 	if ((m_pLifeMeter != nullptr) && (m_pPlayerStageStats != nullptr)) {
 		const auto fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
+		  fLife,
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 		// m_pPlayerStageStats->SetWifeRecordAt( 1.f,
 		// STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
@@ -875,7 +877,7 @@ Player::UpdatePressedFlags()
 		ASSERT(m_pPlayerState != nullptr);
 
 		// TODO(Sam): Remove use of PlayerNumber.
-		vector<GameInput> GameI;
+		std::vector<GameInput> GameI;
 		GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		  ->StyleInputToGameInput(col, m_pPlayerState->m_PlayerNumber, GameI);
 
@@ -943,7 +945,7 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 			}
 		}
 
-		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
+		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
 		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
@@ -971,7 +973,7 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 				case TapNoteSubType_Hold:
 					break;
 				case TapNoteSubType_Roll: {
-					vector<TrackRowTapNote> v;
+					std::vector<TrackRowTapNote> v;
 					v.push_back(trtn);
 					UpdateHoldNotes(iSongRow, fDeltaTime, v);
 				}
@@ -1083,7 +1085,7 @@ Player::Update(float fDeltaTime)
 void
 Player::UpdateHoldNotes(int iSongRow,
 						float fDeltaTime,
-						vector<TrackRowTapNote>& vTN)
+						std::vector<TrackRowTapNote>& vTN)
 {
 	ASSERT(!vTN.empty());
 
@@ -1200,7 +1202,7 @@ Player::UpdateHoldNotes(int iSongRow,
 					}
 				}
 			} else {
-				vector<GameInput> GameI;
+				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, PLAYER_1, GameI);
 
@@ -1608,7 +1610,9 @@ Player::ChangeLifeRecord() const
 	if (fLife != -1) {
 		if (m_pPlayerStageStats != nullptr) {
 			m_pPlayerStageStats->SetLifeRecordAt(
-			  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
+			  fLife,
+			  GAMESTATE->m_Position.m_fMusicSeconds /
+				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 		}
 	}
 }
@@ -1620,7 +1624,9 @@ Player::ChangeWifeRecord() const
 	// That's not right.
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  curwifescore / maxwifescore, GAMESTATE->m_Position.m_fMusicSeconds);
+		  curwifescore / maxwifescore,
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	}
 }
 
@@ -2458,7 +2464,7 @@ Player::CrossedRows(int iLastRowCrossed,
 				tn.HoldResult.fLife = INITIAL_HOLD_LIFE;
 				if (!REQUIRE_STEP_ON_HOLD_HEADS) {
 					const auto pn = m_pPlayerState->m_PlayerNumber;
-					vector<GameInput> GameI;
+					std::vector<GameInput> GameI;
 					GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 					  ->StyleInputToGameInput(iTrack, pn, GameI);
 					if (PREFSMAN->m_fPadStickSeconds > 0.F) {
@@ -2488,7 +2494,7 @@ Player::CrossedRows(int iLastRowCrossed,
 				// to explode
 				// TODO(Sam): Remove use of PlayerNumber.
 				const auto pn = m_pPlayerState->m_PlayerNumber;
-				vector<GameInput> GameI;
+				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, pn, GameI);
 				if (PREFSMAN->m_fPadStickSeconds > 0.0F) {
@@ -2561,7 +2567,7 @@ Player::CrossedRows(int iLastRowCrossed,
 			// There is a tick count at this row
 			if (tickCurrent > 0 && r % (ROWS_PER_BEAT / tickCurrent) == 0) {
 
-				vector<int> viColsWithHold;
+				std::vector<int> viColsWithHold;
 				auto iNumHoldsHeldThisRow = 0;
 				auto iNumHoldsMissedThisRow = 0;
 
@@ -2886,7 +2892,9 @@ Player::HandleTapRowScore(unsigned row)
 	 * fStepsSeconds instead. */
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 	}
 
 	ChangeLife(scoreOfLastTap);
@@ -2896,7 +2904,7 @@ void
 Player::HandleHoldCheckpoint(int iRow,
 							 int iNumHoldsHeldThisRow,
 							 int iNumHoldsMissedThisRow,
-							 const vector<int>& viColsWithHold)
+							 const std::vector<int>& viColsWithHold)
 {
 	const auto bNoCheating = true;
 #ifdef DEBUG
@@ -2945,7 +2953,9 @@ Player::HandleHoldCheckpoint(int iRow,
 		SetCombo(m_pPlayerStageStats->m_iCurCombo,
 				 m_pPlayerStageStats->m_iCurMissCombo);
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 	}
 
 	ChangeLife(iNumHoldsMissedThisRow == 0 ? TNS_CheckpointHit

@@ -36,15 +36,15 @@ class PlayerAI
 
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result
-	static std::map<int, vector<TapReplayResult>> m_ReplayTapMap;
+	static std::map<int, std::vector<TapReplayResult>> m_ReplayTapMap;
 	// A map with indices for each row of the chart, pointing to nothing or hold
 	// drop results.
-	static std::map<int, vector<HoldReplayResult>> m_ReplayHoldMap;
+	static std::map<int, std::vector<HoldReplayResult>> m_ReplayHoldMap;
 	// A map with indices for each row of the chart, pointing to nothing or a
 	// Normal Result. However, note that the rows within are actually calculated
 	// so that they are adjusted for offsets relative to the actual replay
 	// data/notedata. This map is only useful for charts with column data.
-	static std::map<int, vector<TapReplayResult>> m_ReplayExactTapMap;
+	static std::map<int, std::vector<TapReplayResult>> m_ReplayExactTapMap;
 
 	// A map with indices for each row of the chart, pointing to a snapshot
 	// of the Replay at that moment
@@ -52,9 +52,9 @@ class PlayerAI
 
 	// For Life/Combo graph calculations
 	// A reformatting of the ExactTapMap with elapsed times as keys
-	static std::map<float, vector<TapReplayResult>> m_ReplayTapMapByElapsedTime;
+	static std::map<float, std::vector<TapReplayResult>> m_ReplayTapMapByElapsedTime;
 	// A reformatting of the HoldMap with elapsed times as keys
-	static std::map<float, vector<HoldReplayResult>>
+	static std::map<float, std::vector<HoldReplayResult>>
 	  m_ReplayHoldMapByElapsedTime;
 
 	static std::string oldModifiers;
@@ -110,11 +110,11 @@ class PlayerAI
 	static auto TapExistsAtThisRow(int noteRow) -> bool;
 	static auto TapExistsAtOrBeforeThisRow(int noteRow) -> bool;
 	// Build a list of columns/tracks to tap based on the given noterow.
-	static auto GetTapsToTapForRow(int noteRow) -> vector<TapReplayResult>;
+	static auto GetTapsToTapForRow(int noteRow) -> std::vector<TapReplayResult>;
 	static auto GetReplayType() -> int;
 	// Build a list of columns/tracks that happened at or before the given
 	// noterow. (if we lag and somehow skip rows)
-	static auto GetTapsAtOrBeforeRow(int noteRow) -> vector<TapReplayResult>;
+	static auto GetTapsAtOrBeforeRow(int noteRow) -> std::vector<TapReplayResult>;
 	// Given a column and row, retrieve the adjusted row.
 	static auto GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 	  -> int;
@@ -148,7 +148,7 @@ class PlayerAI
 	// combo graph.
 	static auto GenerateComboListForReplay(
 	  float timingScale = Player::GetTimingWindowScale())
-	  -> vector<PlayerStageStats::Combo_t>;
+	  -> std::vector<PlayerStageStats::Combo_t>;
 };
 
 #endif

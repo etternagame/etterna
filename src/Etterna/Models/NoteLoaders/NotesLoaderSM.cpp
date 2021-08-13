@@ -27,7 +27,7 @@ struct SMSongTagInfo
 	Song* song;
 	const MsdFile::value_t* params;
 	const std::string& path;
-	vector<pair<float, float>> BPMChanges, Stops;
+	std::vector<pair<float, float>> BPMChanges, Stops;
 	SMSongTagInfo(SMLoader* l, Song* s, const std::string& p)
 	  : loader(l)
 	  , song(s)
@@ -209,7 +209,7 @@ SMSetBGChanges(SMSongTagInfo& info)
 void
 SMSetFGChanges(SMSongTagInfo& info)
 {
-	vector<std::string> aFGChangeExpressions;
+	std::vector<std::string> aFGChangeExpressions;
 	split((*info.params)[1], ",", aFGChangeExpressions);
 
 	for (auto& aFGChangeExpression : aFGChangeExpressions) {
@@ -301,7 +301,7 @@ SMLoader::GetSongTitle() const
 bool
 SMLoader::LoadFromDir(const std::string& sPath, Song& out)
 {
-	vector<std::string> aFileNames;
+	std::vector<std::string> aFileNames;
 	GetApplicableFiles(sPath, aFileNames);
 	return LoadFromSimfile(sPath + aFileNames[0], out);
 }
@@ -402,7 +402,7 @@ SMLoader::ProcessBGChanges(Song& out,
 //					 "has a #BGCHANGES tag \"%s\" that is out of range.",
 //					 sValueName.c_str());
 	} else {
-		vector<std::string> aBGChangeExpressions;
+		std::vector<std::string> aBGChangeExpressions;
 		split(sParam, ",", aBGChangeExpressions);
 
 		for (auto& aBGChangeExpression : aBGChangeExpressions) {
@@ -416,10 +416,10 @@ SMLoader::ProcessBGChanges(Song& out,
 void
 SMLoader::ProcessInstrumentTracks(Song& out, const std::string& sParam)
 {
-	vector<std::string> vs1;
+	std::vector<std::string> vs1;
 	split(sParam, ",", vs1);
 	for (auto& s : vs1) {
-		vector<std::string> vs2;
+		std::vector<std::string> vs2;
 		split(s, "=", vs2);
 		if (vs2.size() >= 2) {
 			auto it = StringToInstrumentTrack(vs2[0]);
@@ -430,15 +430,15 @@ SMLoader::ProcessInstrumentTracks(Song& out, const std::string& sParam)
 }
 
 void
-SMLoader::ParseBPMs(vector<pair<float, float>>& out,
+SMLoader::ParseBPMs(std::vector<pair<float, float>>& out,
 					const std::string& line,
 					const int rowsPerBeat)
 {
-	vector<std::string> arrayBPMChangeExpressions;
+	std::vector<std::string> arrayBPMChangeExpressions;
 	split(line, ",", arrayBPMChangeExpressions);
 
 	for (auto& arrayBPMChangeExpression : arrayBPMChangeExpressions) {
-		vector<std::string> arrayBPMChangeValues;
+		std::vector<std::string> arrayBPMChangeValues;
 		split(arrayBPMChangeExpression, "=", arrayBPMChangeValues);
 		if (arrayBPMChangeValues.size() != 2) {
 //			LOG->UserLog("Song file",
@@ -462,15 +462,15 @@ SMLoader::ParseBPMs(vector<pair<float, float>>& out,
 }
 
 void
-SMLoader::ParseStops(vector<pair<float, float>>& out,
+SMLoader::ParseStops(std::vector<pair<float, float>>& out,
 					 const std::string& line,
 					 const int rowsPerBeat)
 {
-	vector<std::string> arrayFreezeExpressions;
+	std::vector<std::string> arrayFreezeExpressions;
 	split(line, ",", arrayFreezeExpressions);
 
 	for (auto& arrayFreezeExpression : arrayFreezeExpressions) {
-		vector<std::string> arrayFreezeValues;
+		std::vector<std::string> arrayFreezeValues;
 		split(arrayFreezeExpression, "=", arrayFreezeValues);
 		if (arrayFreezeValues.size() != 2) {
 //			LOG->UserLog("Song file",
@@ -509,11 +509,11 @@ compare_first(pair<float, float> a, pair<float, float> b)
 //     parameter, already sorted by beat.
 void
 SMLoader::ProcessBPMsAndStops(TimingData& out,
-							  vector<pair<float, float>>& vBPMs,
-							  vector<pair<float, float>>& vStops)
+							  std::vector<pair<float, float>>& vBPMs,
+							  std::vector<pair<float, float>>& vStops)
 {
-	vector<pair<float, float>>::const_iterator ibpm, ibpmend;
-	vector<pair<float, float>>::const_iterator istop, istopend;
+	std::vector<pair<float, float>>::const_iterator ibpm, ibpmend;
+	std::vector<pair<float, float>>::const_iterator istop, istopend;
 
 	// Current BPM (positive or negative)
 	float bpm = 0;
@@ -721,11 +721,11 @@ SMLoader::ProcessDelays(TimingData& out,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<std::string> arrayDelayExpressions;
+	std::vector<std::string> arrayDelayExpressions;
 	split(line, ",", arrayDelayExpressions);
 
 	for (auto& arrayDelayExpression : arrayDelayExpressions) {
-		vector<std::string> arrayDelayValues;
+		std::vector<std::string> arrayDelayValues;
 		split(arrayDelayExpression, "=", arrayDelayValues);
 		if (arrayDelayValues.size() != 2) {
 //			LOG->UserLog("Song file",
@@ -768,11 +768,11 @@ SMLoader::ProcessTimeSignatures(TimingData& out,
 								const string& songname,
 								const int rowsPerBeat)
 {
-	vector<std::string> vs1;
+	std::vector<std::string> vs1;
 	split(line, ",", vs1);
 
 	for (auto& s1 : vs1) {
-		vector<std::string> vs2;
+		std::vector<std::string> vs2;
 		split(s1, "=", vs2);
 
 		if (vs2.size() < 3) {
@@ -833,11 +833,11 @@ SMLoader::ProcessTickcounts(TimingData& out,
 							const string& songname,
 							const int rowsPerBeat)
 {
-	vector<std::string> arrayTickcountExpressions;
+	std::vector<std::string> arrayTickcountExpressions;
 	split(line, ",", arrayTickcountExpressions);
 
 	for (auto& arrayTickcountExpression : arrayTickcountExpressions) {
-		vector<std::string> arrayTickcountValues;
+		std::vector<std::string> arrayTickcountValues;
 		split(arrayTickcountExpression, "=", arrayTickcountValues);
 		if (arrayTickcountValues.size() != 2) {
 //			LOG->UserLog("Song file",
@@ -870,11 +870,11 @@ SMLoader::ProcessSpeeds(TimingData& out,
 						const string& songname,
 						const int rowsPerBeat)
 {
-	vector<std::string> vs1;
+	std::vector<std::string> vs1;
 	split(line, ",", vs1);
 
 	for (auto& s1 : vs1) {
-		vector<std::string> vs2;
+		std::vector<std::string> vs2;
 		split(s1, "=", vs2);
 
 		if (vs2[0].c_str() == nullptr &&
@@ -940,11 +940,11 @@ SMLoader::ProcessFakes(TimingData& out,
 					   const string& songname,
 					   const int rowsPerBeat)
 {
-	vector<std::string> arrayFakeExpressions;
+	std::vector<std::string> arrayFakeExpressions;
 	split(line, ",", arrayFakeExpressions);
 
 	for (auto& arrayFakeExpression : arrayFakeExpressions) {
-		vector<std::string> arrayFakeValues;
+		std::vector<std::string> arrayFakeValues;
 		split(arrayFakeExpression, "=", arrayFakeValues);
 		if (arrayFakeValues.size() != 2) {
 //			LOG->UserLog("Song file",
@@ -974,7 +974,7 @@ bool
 SMLoader::LoadFromBGChangesString(BackgroundChange& change,
 								  const std::string& sBGChangeExpression)
 {
-	vector<std::string> aBGChangeValues;
+	std::vector<std::string> aBGChangeValues;
 	split(sBGChangeExpression, "=", aBGChangeValues, false);
 
 	aBGChangeValues.resize(
@@ -1218,7 +1218,7 @@ SMLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 }
 
 void
-SMLoader::GetApplicableFiles(const std::string& sPath, vector<std::string>& out)
+SMLoader::GetApplicableFiles(const std::string& sPath, std::vector<std::string>& out)
 {
 	GetDirListing(sPath + std::string("*" + this->GetFileExtension()), out);
 }

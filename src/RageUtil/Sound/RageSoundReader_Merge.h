@@ -42,7 +42,7 @@ class RageSoundReader_Merge : public RageSoundReader
 	int m_iSampleRate;
 	unsigned m_iChannels;
 
-	vector<RageSoundReader*> m_aSounds;
+	std::vector<RageSoundReader*> m_aSounds;
 
 	/* Read state: */
 	int m_iNextSourceFrame;

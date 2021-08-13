@@ -94,7 +94,7 @@ class BackgroundImpl : public ActorFrame
 	} /* overrides pref and Cover */
 
 	void GetLoadedBackgroundChanges(
-	  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
+	  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
 
   protected:
 	bool m_bInitted;
@@ -134,7 +134,7 @@ class BackgroundImpl : public ActorFrame
 		  const map<std::string, BackgroundTransition>& mapNameToTransition);
 
 		map<BackgroundDef, Actor*> m_BGAnimations;
-		vector<BackgroundChange> m_aBGChanges;
+		std::vector<BackgroundChange> m_aBGChanges;
 		int m_iCurBGChangeIndex;
 		Actor* m_pCurrentBGA;
 		Actor* m_pFadingBGA;
@@ -204,7 +204,7 @@ BackgroundImpl::Init()
 	// load transitions
 	{
 		ASSERT(m_mapNameToTransition.empty());
-		vector<std::string> vsPaths, vsNames;
+		std::vector<std::string> vsPaths, vsNames;
 		BackgroundUtil::GetBackgroundTransitions("", vsPaths, vsNames);
 		for (unsigned i = 0; i < vsPaths.size(); i++) {
 			const auto& sPath = vsPaths[i];
@@ -285,13 +285,13 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 	ASSERT(m_BGAnimations.find(bd) == m_BGAnimations.end());
 
 	// Resolve the background names
-	vector<std::string> vsToResolve;
+	std::vector<std::string> vsToResolve;
 	vsToResolve.push_back(bd.m_sFile1);
 	vsToResolve.push_back(bd.m_sFile2);
 
-	vector<std::string> vsResolved;
+	std::vector<std::string> vsResolved;
 	vsResolved.resize(vsToResolve.size());
-	vector<LuaThreadVariable*> vsResolvedRef;
+	std::vector<LuaThreadVariable*> vsResolvedRef;
 	vsResolvedRef.resize(vsToResolve.size());
 
 	for (unsigned i = 0; i < vsToResolve.size(); i++) {
@@ -308,7 +308,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 		 * RandomMovies dir
 		 * BGAnimations dir.
 		 */
-		vector<std::string> vsPaths, vsThrowAway;
+		std::vector<std::string> vsPaths, vsThrowAway;
 
 		// Look for BGAnims in the song dir
 		if (sToResolve == SONG_BACKGROUND_FILE)
@@ -386,7 +386,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 	// Resolve the effect file.
 	std::string sEffectFile;
 	for (auto i = 0; i < 2; i++) {
-		vector<std::string> vsPaths, vsThrowAway;
+		std::vector<std::string> vsPaths, vsThrowAway;
 		BackgroundUtil::GetBackgroundEffects(sEffect, vsPaths, vsThrowAway);
 		if (vsPaths.empty()) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -545,7 +545,7 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 
 	// Choose a bunch of backgrounds that we'll use for the random file marker
 	{
-		vector<std::string> vsThrowAway, vsNames;
+		std::vector<std::string> vsThrowAway, vsNames;
 		switch (g_RandomBackgroundMode) {
 			default:
 				ASSERT_M(0,
@@ -890,7 +890,7 @@ BackgroundImpl::DrawPrimitives()
 
 void
 BackgroundImpl::GetLoadedBackgroundChanges(
-  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
+  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
 {
 	FOREACH_BackgroundLayer(i) * pBackgroundChangesOut[i] =
 	  m_Layer[i].m_aBGChanges;
@@ -1029,7 +1029,7 @@ Background::SetBrightness(float fBrightness)
 }
 void
 Background::GetLoadedBackgroundChanges(
-  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
+  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
 {
 	m_pImpl->GetLoadedBackgroundChanges(pBackgroundChangesOut);
 }

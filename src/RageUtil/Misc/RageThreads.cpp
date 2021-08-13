@@ -30,7 +30,7 @@ bool RageThread::s_bSystemSupportsTLS = false;
 bool RageThread::s_bIsShowingDialog = false;
 
 #define MAX_THREADS 128
-// static vector<RageMutex*> *g_MutexList = NULL; /* watch out for static
+// static std::vector<RageMutex*> *g_MutexList = NULL; /* watch out for static
 // initialization order problems */
 
 struct ThreadSlot

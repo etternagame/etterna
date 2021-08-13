@@ -868,7 +868,7 @@ class Actor : public MessageSubscriber
 
 	// Stuff for effects
 #if defined(SSC_FUTURES) // be able to stack effects
-	vector<Effect> m_Effects;
+	std::vector<Effect> m_Effects;
 #else // compatibility
 	Effect m_Effect;
 #endif

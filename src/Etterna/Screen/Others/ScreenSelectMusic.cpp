@@ -205,7 +205,7 @@ ScreenSelectMusic::BeginScreen()
 		Locator::getLogger()->trace("The Style has not been set.  A theme must set the Style "
 				   "before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
-		vector<StepsType> vst;
+		std::vector<StepsType> vst;
 		GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, vst);
 		const auto* pStyle = GAMEMAN->GetFirstCompatibleStyle(
 		  GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
@@ -472,7 +472,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			auto* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr) {
 				auto stepses = to_reload->GetAllSteps();
-				vector<string> oldChartkeys;
+				std::vector<string> oldChartkeys;
 				for (auto* steps : stepses)
 					oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -986,7 +986,7 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 			return;
 	}
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	if (pn == PLAYER_1 || GAMESTATE->DifficultiesLocked()) {
 		vpns.push_back(PLAYER_1);
 	}
@@ -1313,7 +1313,7 @@ ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 }
 
 void
-ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
+ScreenSelectMusic::AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns)
 {
 	const auto pn = PLAYER_1;
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
@@ -1396,7 +1396,7 @@ ScreenSelectMusic::AfterMusicChange()
 								 // if we forget about it -mina
 
 	m_vpSteps.clear();
-	vector<std::string> m_Artists, m_AltArtists;
+	std::vector<std::string> m_Artists, m_AltArtists;
 
 	if (SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_LastSong) {
 		m_sSampleMusicToPlay = "";
@@ -1541,7 +1541,7 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_StartedLoadingAt.Touch();
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	vpns.push_back(PLAYER_1);
 
 	AfterStepsOrTrailChange(vpns);

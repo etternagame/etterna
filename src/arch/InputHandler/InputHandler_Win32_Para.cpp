@@ -41,7 +41,7 @@ InputHandler_Win32_Para::InputHandler_Win32_Para()
 
 void
 InputHandler_Win32_Para::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	// The device appears as a HID joystick
 }

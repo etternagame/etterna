@@ -15,6 +15,7 @@
 #include "PlayerStageStats.h"
 
 #include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <sstream>
 #include <utility>
@@ -305,13 +306,13 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 			uploaded.emplace_back(server.c_str());
 		}
 	}
-	
+
 	// Attempt to recover SurviveSeconds or otherwise try to
 	// load a correct number here
 	auto psSuccess = pNode->GetChildValue("PlayedSeconds", played_seconds);
 	if (!psSuccess || played_seconds <= 1.F) {
 		played_seconds = 0.F;
-		
+
 		// Attempt to use the chart length for PlayedSeconds
 		// Only if the grade is a fail
 		auto* steps = SONGMAN->GetStepsByChartkey(ChartKey);
@@ -321,7 +322,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 			auto r = 1.F;
 			if (fMusicRate > 0.F)
 				r = fMusicRate;
-			
+
 			sLength = steps->GetLengthSeconds(r);
 		}
 		float survSeconds = 0.F;
@@ -342,7 +343,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		// (setting it to 0 grants potential to fix it later)
 	}
 
-	
+
 	pNode->GetChildValue("MaxCombo", iMaxCombo);
 	if (pNode->GetChildValue("Modifiers", s)) {
 		sModifiers = s;
@@ -509,13 +510,13 @@ HighScoreImpl::WriteInputData() -> bool
 		FILE* infile =
 		  fopen(path.c_str(), "rb");
 		gzFile outfile = gzopen(path_z.c_str(), "wb");
-		if (!infile || !outfile) {
+		if ((infile == nullptr) || (outfile == nullptr)) {
 			Locator::getLogger()->warn("Failed to compress new input data.");
 			return false;
 		}
 
 		char buf[128];
-		int num_read = 0;
+		unsigned int num_read = 0;
 		unsigned long total_read = 0;
 		while ((num_read = fread(buf, 1, sizeof(buf), infile)) > 0) {
 			total_read += num_read;
@@ -542,7 +543,7 @@ HighScoreImpl::WriteInputData() -> bool
 		fileStream.close();
 		return false;
 	}
-	
+
 
 	// for writing binary output for "compression"
 	// write vector size, then dump vector data
@@ -570,7 +571,7 @@ HighScoreImpl::WriteInputData() -> bool
 auto
 HighScore::LoadInputData() -> bool
 {
-	if (m_Impl->InputData.size() > 0)
+	if (!m_Impl->InputData.empty())
 		return true;
 
 	auto path = INPUT_DATA_DIR + m_Impl->ScoreKey;
@@ -585,7 +586,7 @@ HighScore::LoadInputData() -> bool
 		return false;
 	}
 	*/
-	
+
 	// read vector size, then read vector data
 	/*
 	try {
@@ -604,7 +605,7 @@ HighScore::LoadInputData() -> bool
 		gzFile infile = gzopen(path_z.c_str(), "rb");
 		// hope nothing already exists here
 		FILE* outfile = fopen(path.c_str(), "wb");
-		if (!infile || !outfile) {
+		if ((infile == nullptr) || (outfile == nullptr)) {
 			Locator::getLogger()->warn("Failed to read input data at {}",
 									   path_z.c_str());
 			return false;
@@ -625,7 +626,8 @@ HighScore::LoadInputData() -> bool
 			return false;
 		}
 
-		std::string line, buffer;
+		std::string line;
+		std::string buffer;
 		std::vector<std::string> tokens;
 		while (getline(inputStream, line)) {
 			InputDataEvent ev;
@@ -642,15 +644,15 @@ HighScore::LoadInputData() -> bool
 			}
 
 			ev.column = std::stoi(tokens[0]);
-			ev.is_press = std::stoi(tokens[1]);
+			ev.is_press = (std::stoi(tokens[1]) != 0);
 			ev.songPositionSeconds = std::stof(tokens[2]);
 			m_Impl->InputData.push_back(ev);
-			
+
 			tokens.clear();
 		}
 
 		Locator::getLogger()->trace("Loaded input data at {}", path.c_str());
-		
+
 		if (FILEMAN->Remove(path))
 			Locator::getLogger()->trace("Deleted uncompressed input data");
 		else
@@ -694,8 +696,8 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 	std::string line;
 	std::string buffer;
 	std::vector<string> tokens;
-	int noteRow;
-	float offset;
+	int noteRow = 0;
+	float offset = 0.f;
 
 	// check file
 	if (!fileStream) {
@@ -774,11 +776,11 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
-	int noteRow;
-	float offset;
-	int track;
-	TapNoteType tnt;
-	int tmp;
+	int noteRow = 0;
+	float offset = 0.f;
+	int track = 0;
+	TapNoteType tnt = TapNoteType_Invalid;
+	int tmp = 0;
 
 	// check file
 	if (!fileStream) {
@@ -926,17 +928,14 @@ HighScore::IsEmpty() const -> bool
 auto
 HighScore::IsEmptyNormalized() const -> bool
 {
-	if (m_Impl->iTapNoteScoresNormalized[TNS_W1] != 0 ||
+	return !(m_Impl->iTapNoteScoresNormalized[TNS_W1] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W2] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W3] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W4] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_W5] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_Miss] != 0 ||
 		m_Impl->iTapNoteScoresNormalized[TNS_HitMine] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] != 0) {
-		return false;
-	}
-	return true;
+		m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] != 0);
 }
 
 auto
@@ -1425,9 +1424,9 @@ HighScore::GenerateValidationKeys() -> std::string
 		key.append(std::to_string(GetHoldNoteScore(hns)));
 	}
 
-	norms = lround(GetSSRNormPercent() * 1000000.F);
-	musics = lround(GetMusicRate() * 100.F);
-	judges = lround(GetJudgeScale() * 100.F);
+	norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
+	musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
+	judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));
 
 	key.append(GetScoreKey());
 	key.append(GetChartKey());
@@ -1442,7 +1441,7 @@ HighScore::GenerateValidationKeys() -> std::string
 
 	std::string hash_string = CryptManager::GetSHA256ForString(key);
 	std::string hash_hex_str =
-	  BinaryToHex(hash_string.data(), hash_string.size());
+	  BinaryToHex(hash_string.data(), static_cast<int>(hash_string.size()));
 
 	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
 
@@ -1560,10 +1559,9 @@ HighScore::RescoreToWife2Judge(int x) -> float
 		}
 	}
 
-	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -6.F;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8.F;
+	p += static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
+		  m_Impl->iHoldNoteScores[HNS_Missed] * -6);
+	p += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -8);
 
 	// this is a bad assumption but im leaving it here
 	auto pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
@@ -1573,12 +1571,12 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	denominators however full replays store mine hits as offsets, meaning
 	we have to screen them out when calculating the max points*/
 	if (m_Impl->ReplayType == 2) {
-		pmax += m_Impl->iTapNoteScores[TNS_HitMine] * -2.F;
+		pmax += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -2);
 
 		// we screened out extra offsets due to mines in the replay from the
 		// denominator but we've still increased the numerator with 0.00f
 		// offsets (2pts)
-		p += m_Impl->iTapNoteScores[TNS_HitMine] * -2.F;
+		p += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -2);
 	}
 
 	return p / pmax;
@@ -1617,11 +1615,11 @@ HighScore::RescoreToWife3(float pmax) -> bool
 		}
 	}
 
-	const auto holdpoints = (m_Impl->iHoldNoteScores[HNS_LetGo] +
+	const auto holdpoints = static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
 							 m_Impl->iHoldNoteScores[HNS_Missed]) *
 							wife3_hold_drop_weight;
 	const auto minepoints =
-	  m_Impl->iTapNoteScores[TNS_HitMine] * wife3_mine_hit_weight;
+	  static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine]) * wife3_mine_hit_weight;
 
 	p4 += holdpoints + minepoints;
 	pj += holdpoints + minepoints;
@@ -1650,7 +1648,7 @@ HighScore::RescoreToDPJudge(int x) -> float
 	auto m2 = 0;
 	for (auto& f : m_Impl->vOffsetVector) {
 		m2 += 2;
-		const auto x = abs(f * 1000.F);
+		const auto x = std::abs(f * 1000.F);
 		if (x <= ts * 22.5F) {
 			++marv;
 		} else if (x <= ts * 45.F) {
@@ -1688,10 +1686,10 @@ HighScore::RescoreToDPJudge(int x) -> float
 		 -6;
 
 	auto m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-	m += (m_Impl->radarValues[RadarCategory_Holds] +
+	m += static_cast<float>(m_Impl->radarValues[RadarCategory_Holds] +
 		  m_Impl->radarValues[RadarCategory_Rolls]) *
 		 6;
-	return p / m;
+	return static_cast<float>(p) / m;
 }
 
 auto
@@ -1716,14 +1714,14 @@ HighScore::NormalizeJudgments() -> bool
 	}
 	// otherwise ....
 
-	
+
 	// exit early if no replay data to convert
 	// this will work if replay doesn't physically exist
 	// that case occurs if coming via FillInHighScore with PSS data
 	// replaydata loading "fails" if size isnt more than 4
 	// we don't really want that to happen
 	// this is because replays dont save for the same reason
-	if (!LoadReplayData() && m_Impl->vOffsetVector.size() == 0) {
+	if (!LoadReplayData() && m_Impl->vOffsetVector.empty()) {
 		return false;
 	}
 
@@ -1741,7 +1739,7 @@ HighScore::NormalizeJudgments() -> bool
 			auto& type = m_Impl->vTapNoteTypeVector[i];
 			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
 				type == TapNoteType_Lift) {
-				const auto x = abs(m_Impl->vOffsetVector[i] * 1000.F);
+				const auto x = std::abs(m_Impl->vOffsetVector[i] * 1000.F);
 				if (x <= 22.5F) {
 					m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
 				} else if (x <= 45.F) {
@@ -1763,7 +1761,7 @@ HighScore::NormalizeJudgments() -> bool
 	else {
 		// or just blindly convert, nobody cares too much about old replays...
 		for (auto& n : m_Impl->vOffsetVector) {
-			const auto x = abs(n * 1000.F);
+			const auto x = std::abs(n * 1000.F);
 			if (x <= 22.5F) {
 				m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
 			} else if (x <= 45.F) {
@@ -1790,7 +1788,7 @@ HighScore::NormalizeJudgments() -> bool
 		Locator::getLogger()->warn(
 		  "While converting score key {} a Miss mismatch was found.", GetScoreKey());
 	}
-	
+
 	return true;
 }
 
@@ -1833,15 +1831,15 @@ HighScore::ConvertDpToWife() -> float
 	const auto ts = 1.F;
 	auto estpoints = 0.F;
 	auto maxpoints = 0.F;
-	estpoints += m_Impl->iTapNoteScores[TNS_W1] * wife3(.01125F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W2] * wife3(.03375F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W3] * wife3(.0675F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W4] * wife3(.1125F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_W5] * wife3(.1575F, ts);
-	estpoints += m_Impl->iTapNoteScores[TNS_Miss] * wife3_miss_weight;
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W1]) * wife3(.01125F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W2]) * wife3(.03375F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W3]) * wife3(.0675F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W4]) * wife3(.1125F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W5]) * wife3(.1575F, ts);
+	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_Miss]) * wife3_miss_weight;
 
 	FOREACH_ENUM(TapNoteScore, tns)
-	maxpoints += 2 * m_Impl->iTapNoteScores[tns];
+	maxpoints += static_cast<float>(2 * m_Impl->iTapNoteScores[tns]);
 
 	return estpoints / maxpoints;
 }
@@ -2096,7 +2094,7 @@ class LunaHighScore : public Luna<HighScore>
 		}
 		return 1;
 	}
-	
+
 	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
 		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",

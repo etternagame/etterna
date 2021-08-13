@@ -81,7 +81,7 @@ FontPage::Load(const FontPageSettings& cfg)
 	}
 
 	// load character widths
-	vector<int> aiFrameWidths;
+	std::vector<int> aiFrameWidths;
 
 	int default_width =
 	  m_FontPageTextures.m_pTextureMain->GetSourceFrameWidth();
@@ -149,7 +149,7 @@ FontPage::Load(const FontPageSettings& cfg)
 }
 
 void
-FontPage::SetTextureCoords(const vector<int>& widths, int iAdvanceExtraPixels)
+FontPage::SetTextureCoords(const std::vector<int>& widths, int iAdvanceExtraPixels)
 {
 	for (int i = 0; i < m_FontPageTextures.m_pTextureMain->GetNumFrames();
 		 ++i) {
@@ -455,10 +455,10 @@ Font::SetDefaultGlyph(FontPage* pPage)
 // Given the INI for a font, find all of the texture pages for the font.
 void
 Font::GetFontPaths(const std::string& sFontIniPath,
-				   vector<std::string>& asTexturePathsOut)
+				   std::vector<std::string>& asTexturePathsOut)
 {
 	std::string sPrefix = SetExtension(sFontIniPath, "");
-	vector<std::string> asFiles;
+	std::vector<std::string> asFiles;
 	GetDirListing(sPrefix + "*", asFiles, false, true);
 
 	for (auto& asFile : asFiles) {
@@ -597,7 +597,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				 * Map hiragana to 0-84:
 				 * range Unicode #3041-3094=0
 				 */
-				vector<std::string> asMatches;
+				std::vector<std::string> asMatches;
 				static Regex parse(
 				  "^RANGE ([A-Z0-9\\-]+)( ?#([0-9A-F]+)-([0-9A-F]+))?$");
 				bool match = parse.Compare(sName, asMatches);
@@ -790,7 +790,7 @@ FontPageSettings::MapRange(const std::string& sMapping,
 	return std::string();
 }
 
-static vector<std::string> LoadStack;
+static std::vector<std::string> LoadStack;
 
 /* A font set is a set of files, eg:
  *
@@ -840,7 +840,7 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 	m_sChars = sChars;
 
 	// Get the filenames associated with this font.
-	vector<std::string> asTexturePaths;
+	std::vector<std::string> asTexturePaths;
 	GetFontPaths(sIniPath, asTexturePaths);
 
 	bool bCapitalsOnly = false;
@@ -858,7 +858,7 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 	}
 
 	{
-		vector<std::string> ImportList;
+		std::vector<std::string> ImportList;
 
 		bool bIsTopLevelFont = LoadStack.size() == 1;
 

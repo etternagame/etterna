@@ -1,8 +1,9 @@
 local t = Def.ActorFrame {}
 -- Controls the song search relevant children of the ScreenSelectMusic decorations actorframe
 
-local searchstring = ""
 local active = false
+local lastsearchstring = ""
+local searchstring = ""
 local whee
 
 -- imagine making a text input field just a regex char match of keyboard presses

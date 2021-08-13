@@ -81,7 +81,7 @@ void
 ScreenSyncOverlay::UpdateText(bool forcedChange)
 {
 	// Update Status
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 
 	PlayerController pc = GamePreferences::m_AutoPlay.Get();
 
@@ -261,9 +261,9 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 					if (GAMESTATE->m_pCurSong != nullptr) {
 						GAMESTATE->m_pCurSong->m_SongTiming
 						  .m_fBeat0OffsetInSeconds += fDelta;
-						const vector<Steps*>& vpSteps =
+						const std::vector<Steps*>& vpSteps =
 						  GAMESTATE->m_pCurSong->GetAllSteps();
-						for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+						for (auto& s : const_cast<std::vector<Steps*>&>(vpSteps)) {
 							// Empty means it inherits song timing,
 							// which has already been updated.
 							if (s->m_Timing.empty())

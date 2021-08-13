@@ -232,7 +232,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 		// glGetString(GL_EXTENSIONS) doesn't work for GL3 core profiles.
 		// this will be useful in the future.
 #if 0
-		vector<string> extensions;
+		std::vector<string> extensions;
 		const char *ext = 0;
 		for (int i = 0; (ext = (const char*)glGetStringi(GL_EXTENSIONS, i)); i++)
 		{
@@ -247,7 +247,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			string type;
 			for( size_t i = next; i<extensions.size(); ++i )
 			{
-				vector<string> segments;
+				std::vector<string> segments;
 				split(extensions[i], '_', segments);
 				string this_type;
 				if (segments.size() > 2)
@@ -268,7 +268,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			string sList = ssprintf( "  %s: ", type.c_str() );
 			while( next <= last )
 			{
-				vector<string> segments;
+				std::vector<string> segments;
 				split( extensions[next], '_', segments );
 				string ext_short = join( "_", segments.begin()+2, segments.end() );
 				sList += ext_short;
@@ -284,7 +284,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 		}
 #else
 		const char* szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
-		vector<std::string> asExtensions;
+		std::vector<std::string> asExtensions;
 		split(szExtensionString, " ", asExtensions);
 		sort(asExtensions.begin(), asExtensions.end());
 		size_t iNextToPrint = 0;
@@ -292,7 +292,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			size_t iLastToPrint = iNextToPrint;
 			std::string sType;
 			for (size_t i = iNextToPrint; i < asExtensions.size(); ++i) {
-				vector<std::string> asBits;
+				std::vector<std::string> asBits;
 				split(asExtensions[i], "_", asBits);
 				std::string sThisType;
 				if (asBits.size() > 2)
@@ -311,7 +311,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 
 			std::string sList = ssprintf("  %s: ", sType.c_str());
 			while (iNextToPrint <= iLastToPrint) {
-				vector<std::string> asBits;
+				std::vector<std::string> asBits;
 				split(asExtensions[iNextToPrint], "_", asBits);
 				std::string sShortExt = join("_", asBits.begin() + 2, asBits.end());
 				sList += sShortExt;
@@ -490,11 +490,11 @@ RageDisplay_GLES2::GetOrthoMatrix(float l,
 class RageCompiledGeometryGLES2 : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>& vMeshes) override
+	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
 		// TODO
 	}
-	void Change(const vector<msMesh>& vMeshes) override
+	void Change(const std::vector<msMesh>& vMeshes) override
 	{
 		// TODO
 	}

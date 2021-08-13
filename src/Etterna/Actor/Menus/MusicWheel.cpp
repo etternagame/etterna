@@ -120,7 +120,6 @@ MusicWheel::BeginScreen()
 	{
 		const auto& from = getWheelItemsData(SORT_MODE_MENU);
 		for (auto* i : from) {
-			assert(&*i->m_pAction != nullptr);
 			if (i->m_pAction->DescribesCurrentModeForAllPlayers()) {
 				m_sLastModeMenuItem = i->m_pAction->m_sName;
 				break;
@@ -492,7 +491,7 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 	// checks and short circuits. Instead, we want to just not check at all.
 	// It's a baby sized optimization but adds up over time. The binary comments
 	// help verify which things are being checked.
-	vector<Song*> tmp;
+	std::vector<Song*> tmp;
 	std::function<bool(Song*)> check;
 	if (!super_search) {
 		// 0000
@@ -680,22 +679,22 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 }
 
 void
-MusicWheel::SetHashList(const vector<string>& newHashList)
+MusicWheel::SetHashList(const std::vector<string>& newHashList)
 {
 	hashList = newHashList;
 }
 void
-MusicWheel::SetOutHashList(const vector<string>& newOutHashList)
+MusicWheel::SetOutHashList(const std::vector<string>& newOutHashList)
 {
 	outHashList = newOutHashList;
 }
 
 void
-MusicWheel::FilterByAndAgainstStepKeys(vector<Song*>& inv)
+MusicWheel::FilterByAndAgainstStepKeys(std::vector<Song*>& inv)
 {
-	vector<Song*> tmp;
-	const std::function<bool(Song*, vector<string>&)> check =
-	  [this](Song* x, vector<string>& hl) {
+	std::vector<Song*> tmp;
+	const std::function<bool(Song*, std::vector<string>&)> check =
+	  [this](Song* x, std::vector<string>& hl) {
 		  for (auto& ck : hl) {
 			  if (x->HasChartByHash(ck)) {
 				  return true;
@@ -745,9 +744,9 @@ MusicWheel::SearchGroupNames(const std::string& findme) -> bool
 // called the iteration an outcome is determined on instead of clumsily using
 // continue - mina
 void
-MusicWheel::FilterBySkillsets(vector<Song*>& inv)
+MusicWheel::FilterBySkillsets(std::vector<Song*>& inv)
 {
-	vector<Song*> tmp;
+	std::vector<Song*> tmp;
 
 	for (auto* song : inv) {
 		auto addsong = false;
@@ -999,7 +998,7 @@ MusicWheel::BuildWheelItemDatas(
 				if (allSongsByGroupFiltered.at(so).count(sLastSection) != 0u) {
 					allSongsByGroupFiltered.at(so)[sLastSection].emplace_back(pSong);
 				} else {
-					vector<Song*> v;
+					std::vector<Song*> v;
 					v.emplace_back(pSong);
 					allSongsByGroupFiltered.at(so)[sLastSection] = v;
 				}
@@ -1050,7 +1049,7 @@ MusicWheel::BuildWheelItemDatas(
 						if (allSongsByGroupFiltered.at(so).count(gname) != 0u) {
 							allSongsByGroupFiltered.at(so)[gname].emplace_back(s);
 						} else {
-							vector<Song*> v;
+							std::vector<Song*> v;
 							v.emplace_back(s);
 							allSongsByGroupFiltered.at(so)[gname] = v;
 						}
@@ -1062,7 +1061,7 @@ MusicWheel::BuildWheelItemDatas(
 }
 
 auto
-MusicWheel::getWheelItemsData(SortOrder so) -> vector<MusicWheelItemData*>&
+MusicWheel::getWheelItemsData(SortOrder so) -> std::vector<MusicWheelItemData*>&
 {
 	// Update the popularity and init icons.
 	readyWheelItemsData(so, false, "");
@@ -1091,8 +1090,8 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 }
 
 void
-MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
-								 vector<MusicWheelItemData*>& aFilteredData,
+MusicWheel::FilterWheelItemDatas(std::vector<MusicWheelItemData*>& aUnFilteredDatas,
+								 std::vector<MusicWheelItemData*>& aFilteredData,
 								 SortOrder /*so*/) const
 {
 	aFilteredData.clear();
@@ -1109,7 +1108,7 @@ MusicWheel::FilterWheelItemDatas(vector<MusicWheelItemData*>& aUnFilteredDatas,
 		}
 	}
 
-	vector<bool> aiRemove;
+	std::vector<bool> aiRemove;
 	aiRemove.insert(aiRemove.begin(), unfilteredSize, false);
 
 	/* Mark any songs that aren't playable in aiRemove. */
@@ -1359,7 +1358,7 @@ MusicWheel::NextSort() -> bool // return true if change successful
 		return false;
 	}
 
-	vector<SortOrder> aSortOrders;
+	std::vector<SortOrder> aSortOrders;
 	{
 		auto* L = LUA->Get();
 		SORT_ORDERS.PushSelf(L);
@@ -1461,7 +1460,7 @@ MusicWheel::SetOpenSection(const std::string& group)
 		old = GetCurWheelItemData(m_iSelection);
 	}
 
-	vector<const Style*> vpPossibleStyles;
+	std::vector<const Style*> vpPossibleStyles;
 	if (CommonMetrics::AUTO_SET_STYLE) {
 		GAMEMAN->GetCompatibleStyles(GAMESTATE->m_pCurGame,
 									 GAMESTATE->GetNumPlayersEnabled(),

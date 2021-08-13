@@ -34,7 +34,7 @@ NotesLoader::LoadFromDir(const std::string& sPath,
 						 Song& out,
 						 std::set<std::string>& BlacklistedImages)
 {
-	vector<std::string> list;
+	std::vector<std::string> list;
 
 	BlacklistedImages.clear();
 	SSCLoader loaderSSC;

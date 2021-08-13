@@ -16,7 +16,7 @@ namespace NotesWriterETT {
  * @param bSavingCache a flag to see if we're saving certain cache data.
  * @return its success or failure. */
 bool
-Write(std::string& sPath, const Song& out, const vector<Steps*>& vpStepsToSave);
+Write(std::string& sPath, const Song& out, const std::vector<Steps*>& vpStepsToSave);
 }
 
 #endif

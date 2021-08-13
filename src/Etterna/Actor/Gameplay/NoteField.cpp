@@ -146,7 +146,7 @@ NoteField::CacheAllUsedNoteSkins()
 	 * battle
 	 * play, so we don't have to load them later (such as between course songs).
 	 */
-	vector<std::string> asSkinsLower;
+	std::vector<std::string> asSkinsLower;
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
 	  m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin);
@@ -745,7 +745,7 @@ NoteField::DrawPrimitives()
 	}
 
 	const auto* const pTiming = &m_pPlayerState->GetDisplayedTiming();
-	const vector<TimingSegment*>* segs[NUM_TimingSegmentType];
+	const std::vector<TimingSegment*>* segs[NUM_TimingSegmentType];
 
 	FOREACH_TimingSegmentType(tst) segs[tst] =
 	  &(pTiming->GetTimingSegments(tst));

@@ -14,7 +14,7 @@ class OptionListRow : public ActorFrame
 	void Load(OptionsList* pOptions, const std::string& sType);
 	void SetFromHandler(const OptionRowHandler* pHandler);
 	void SetTextFromHandler(const OptionRowHandler* pHandler);
-	void SetUnderlines(const vector<bool>& aSelections,
+	void SetUnderlines(const std::vector<bool>& aSelections,
 					   const OptionRowHandler* pHandler);
 
 	void PositionCursor(Actor* pCursor, int iSelection);

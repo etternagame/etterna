@@ -38,7 +38,7 @@ Command::GetOriginalCommandString() const
 static void
 SplitWithQuotes(const std::string sSource,
 				const char Delimitor,
-				vector<std::string>& asOut,
+				std::vector<std::string>& asOut,
 				const bool bIgnoreEmpty)
 {
 	/* Short-circuit if the source is empty; we want to return an empty vector
@@ -98,7 +98,7 @@ ParseCommands(const std::string& sCommands,
 			  Commands& vCommandsOut,
 			  bool bLegacy)
 {
-	vector<std::string> vsCommands;
+	std::vector<std::string> vsCommands;
 	if (bLegacy)
 		split(sCommands, ";", vsCommands, true);
 	else

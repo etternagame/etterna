@@ -29,7 +29,7 @@ struct pos_map_t
 
 struct pos_map_impl
 {
-	vector<pos_map_t> m_Queue;
+	std::vector<pos_map_t> m_Queue;
 	void Cleanup();
 };
 

@@ -41,7 +41,7 @@ typedef std::string SongDir;
 struct Group
 {
 	std::string name;
-	vector<SongDir> songs;
+	std::vector<SongDir> songs;
 	Group(std::string name)
 	  : name(std::move(std::move(name)))
 	{
@@ -108,7 +108,7 @@ SongManager::~SongManager()
 void
 SongManager::InitAll(LoadingWindow* ld)
 {
-	vector<std::string> never_cache;
+	std::vector<std::string> never_cache;
 	split(PREFSMAN->m_NeverCacheList, ",", never_cache);
 	for (auto& group : never_cache) {
 		m_GroupsToNeverCache.insert(group);
@@ -151,10 +151,10 @@ SongManager::DifferentialReloadDir(string dir) -> int
 
 	auto newsongs = 0;
 
-	vector<std::string> folders;
+	std::vector<std::string> folders;
 	GetDirListing(dir + "*", folders, true);
 
-	vector<Group> groups;
+	std::vector<Group> groups;
 	Group unknownGroup("Unknown Group");
 	int groupIndex;
 	int songCount;
@@ -167,7 +167,7 @@ SongManager::DifferentialReloadDir(string dir) -> int
 			songCount++;
 			unknownGroup.songs.emplace_back(SongDir(folder));
 		} else {
-			vector<std::string> songdirs;
+			std::vector<std::string> songdirs;
 			GetDirListing(dir + folder + "/*", songdirs, true, true);
 			Group group(folder);
 			for (auto& song : songdirs) {
@@ -246,12 +246,12 @@ SongManager::DifferentialReloadDir(string dir) -> int
 }
 
 template<typename T>
-using it = typename vector<T>::iterator;
+using it = typename std::vector<T>::iterator;
 template<typename T>
 using p = std::pair<it<T>, it<T>>;
 template<typename T>
 auto
-split(vector<T>& v, size_t elementsPerThread) -> std::vector<p<T>>
+split(std::vector<T>& v, size_t elementsPerThread) -> std::vector<p<T>>
 {
 	std::vector<p<T>> ranges;
 	if (elementsPerThread <= 0 || elementsPerThread >= v.size()) {
@@ -386,7 +386,7 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 void
 SongManager::CalcTestStuff()
 {
-	vector<float> test_vals[NUM_Skillset];
+	std::vector<float> test_vals[NUM_Skillset];
 
 	// output calc differences for chartkeys and targets and stuff
 	for (const auto& p : testChartList) {
@@ -515,7 +515,7 @@ Playlist::CreateNode() const -> XNode*
 	cl->AppendChild(ch->CreateNode(true));
 
 	auto cr = new XNode("CourseRuns");
-	FOREACH_CONST(vector<string>, courseruns, run)
+	FOREACH_CONST(std::vector<string>, courseruns, run)
 	{
 		auto r = new XNode("Run");
 		FOREACH_CONST(string, *run, sk)
@@ -558,7 +558,7 @@ Playlist::LoadFromNode(const XNode* node)
 		if (cr != nullptr) {
 			FOREACH_CONST_Child(cr, run)
 			{
-				vector<string> tmp;
+				std::vector<string> tmp;
 				FOREACH_CONST_Child(run, sk) tmp.emplace_back(sk->GetName());
 				courseruns.emplace_back(tmp);
 			}
@@ -578,7 +578,7 @@ SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists)
 	}
 	playlistGroups.clear();
 	for (auto& p : playlists) {
-		vector<Song*> playlistgroup;
+		std::vector<Song*> playlistgroup;
 		for (auto& n : p.second.chartlist) {
 			if (n.loaded) {
 				playlistgroup.emplace_back(SONGMAN->GetSongByChartkey(n.key));
@@ -614,9 +614,9 @@ Playlist::GetAverageRating() -> float
 }
 
 auto
-Playlist::GetKeys() -> vector<string>
+Playlist::GetKeys() -> std::vector<string>
 {
-	vector<string> o;
+	std::vector<string> o;
 	for (auto& i : chartlist) {
 		o.emplace_back(i.key);
 	}
@@ -895,7 +895,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			ld->SetProgress(progress);
 		}
 	};
-	vector<Group> workload;
+	std::vector<Group> workload;
 	workload.reserve(groups.size());
 	for (auto& group : groups) {
 		workload.emplace_back(group);
@@ -1013,14 +1013,14 @@ const
 }
 */
 void
-SongManager::GetSongGroupNames(vector<std::string>& AddTo) const
+SongManager::GetSongGroupNames(std::vector<std::string>& AddTo) const
 {
 	AddTo.insert(
 	  AddTo.end(), m_sSongGroupNames.begin(), m_sSongGroupNames.end());
 }
 
 auto
-SongManager::GetSongGroupNames() const -> const vector<std::string>&
+SongManager::GetSongGroupNames() const -> const std::vector<std::string>&
 {
 	return m_sSongGroupNames;
 }
@@ -1085,9 +1085,9 @@ SongManager::ResetGroupColors()
 
 auto
 SongManager::GetSongs(const std::string& sGroupName) const
-  -> const vector<Song*>&
+  -> const std::vector<Song*>&
 {
-	static const vector<Song*> vEmpty;
+	static const std::vector<Song*> vEmpty;
 
 	if (sGroupName == GROUP_ALL) {
 		return m_pSongs;
@@ -1104,7 +1104,7 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 	auto songs = GetSongs(sGroupName);
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();
-		vector<string> oldChartkeys;
+		std::vector<string> oldChartkeys;
 		oldChartkeys.reserve(stepses.size());
 		for (auto steps : stepses) {
 			oldChartkeys.emplace_back(steps->GetChartKey());
@@ -1116,7 +1116,7 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 }
 
 void
-SongManager::GetFavoriteSongs(vector<Song*>& songs) const
+SongManager::GetFavoriteSongs(std::vector<Song*>& songs) const
 {
 	for (const auto& song : m_pSongs) {
 		if (song->IsFavorited()) {
@@ -1195,7 +1195,7 @@ SongManager::GetPlaylists() -> map<string, Playlist>&
 void
 SongManager::SaveEnabledSongsToPref()
 {
-	vector<std::string> vsDisabledSongs;
+	std::vector<std::string> vsDisabledSongs;
 
 	// Intentionally drop disabled song entries for songs that aren't
 	// currently loaded.
@@ -1213,7 +1213,7 @@ SongManager::SaveEnabledSongsToPref()
 void
 SongManager::LoadEnabledSongsFromPref()
 {
-	vector<std::string> asDisabledSongs;
+	std::vector<std::string> asDisabledSongs;
 	split(g_sDisabledSongs, ";", asDisabledSongs, true);
 
 	for (auto& s : asDisabledSongs) {
@@ -1469,7 +1469,7 @@ class LunaSongManager : public Luna<SongManager>
 
 	static auto GetSongGroupNames(T* p, lua_State* L) -> int
 	{
-		vector<std::string> v;
+		std::vector<std::string> v;
 		p->GetSongGroupNames(v);
 		LuaHelpers::CreateTableFromArray<std::string>(v, L);
 		return 1;
@@ -1477,7 +1477,7 @@ class LunaSongManager : public Luna<SongManager>
 
 	static auto GetSongsInGroup(T* p, lua_State* L) -> int
 	{
-		vector<Song*> v = p->GetSongs(SArg(1));
+		std::vector<Song*> v = p->GetSongs(SArg(1));
 		LuaHelpers::CreateTableFromArray<Song*>(v, L);
 		return 1;
 	}
