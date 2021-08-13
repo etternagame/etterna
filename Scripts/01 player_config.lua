@@ -73,49 +73,49 @@ end
 local defaultGameplayCoordinates = {
 	JudgeX = 0,
 	JudgeY = 0,
-	ComboX = 30,
-	ComboY = -20,
+	ComboX = 30/854*SCREEN_WIDTH,
+	ComboY = -20/480*SCREEN_HEIGHT,
 	ErrorBarX = SCREEN_CENTER_X,
-	ErrorBarY = SCREEN_CENTER_Y + 53,
-	TargetTrackerX = SCREEN_CENTER_X + 26,
-	TargetTrackerY = SCREEN_CENTER_Y + 25,
-	MiniProgressBarX = SCREEN_CENTER_X + 44,
-	MiniProgressBarY = SCREEN_CENTER_Y + 34,
+	ErrorBarY = SCREEN_CENTER_Y + 53/480*SCREEN_HEIGHT,
+	TargetTrackerX = SCREEN_CENTER_X + 26/854*SCREEN_WIDTH,
+	TargetTrackerY = SCREEN_CENTER_Y + 25/480*SCREEN_HEIGHT,
+	MiniProgressBarX = SCREEN_CENTER_X + 44/854*SCREEN_WIDTH,
+	MiniProgressBarY = SCREEN_CENTER_Y + 34/480*SCREEN_HEIGHT,
 	FullProgressBarX = SCREEN_CENTER_X,
-	FullProgressBarY = 20,
+	FullProgressBarY = 20/480*SCREEN_HEIGHT,
 	JudgeCounterX = SCREEN_CENTER_X / 2,
 	JudgeCounterY = SCREEN_CENTER_Y,
 	DisplayPercentX = SCREEN_CENTER_X / 2 + 60/2, -- above the judge counter, middle of it
-	DisplayPercentY = SCREEN_CENTER_Y - 60,
+	DisplayPercentY = SCREEN_CENTER_Y - 54.5/480*SCREEN_HEIGHT,
 	DisplayMeanX = SCREEN_CENTER_X / 2 + 60/2, -- below the judge counter, middle of it
-	DisplayMeanY = SCREEN_CENTER_Y + 50,
+	DisplayMeanY = SCREEN_CENTER_Y + 46.5/480*SCREEN_HEIGHT,
 	NPSDisplayX = 5,
-	NPSDisplayY = SCREEN_BOTTOM - 175 - 55,
+	NPSDisplayY = SCREEN_BOTTOM - 175/480*SCREEN_HEIGHT,
 	NPSGraphX = 0,
-	NPSGraphY = SCREEN_BOTTOM - 160 - 55,
+	NPSGraphY = SCREEN_BOTTOM - 160/480*SCREEN_HEIGHT,
 	NotefieldX = 0,
 	NotefieldY = 0,
 	ProgressBarPos = 1,
 	LeaderboardX = 0,
 	LeaderboardY = SCREEN_HEIGHT / 10,
-	ReplayButtonsX = SCREEN_WIDTH - 45,
-	ReplayButtonsY = SCREEN_HEIGHT / 2 - 100,
-	LifeP1X = 178,
-	LifeP1Y = 10,
+	ReplayButtonsX = SCREEN_WIDTH - 45/854*SCREEN_WIDTH,
+	ReplayButtonsY = SCREEN_HEIGHT / 2 - 100/480*SCREEN_HEIGHT,
+	LifeP1X = 178/854*SCREEN_WIDTH,
+	LifeP1Y = 10/480*SCREEN_HEIGHT,
 	LifeP1Rotation = 0,
-	PracticeCDGraphX = 10,
-	PracticeCDGraphY = 85,
+	PracticeCDGraphX = 10/854*SCREEN_WIDTH,
+	PracticeCDGraphY = 85/480*SCREEN_HEIGHT,
 	BPMTextX = SCREEN_CENTER_X,
-	BPMTextY = SCREEN_BOTTOM - 20,
+	BPMTextY = SCREEN_BOTTOM - 20/480*SCREEN_HEIGHT,
 	MusicRateX = SCREEN_CENTER_X,
-	MusicRateY = SCREEN_BOTTOM - 10
+	MusicRateY = SCREEN_BOTTOM - 10/480*SCREEN_HEIGHT,
 }
 
 local defaultGameplaySizes = {
 	JudgeZoom = 1.0,
 	ComboZoom = 0.6,
-	ErrorBarWidth = 240,
-	ErrorBarHeight = 10,
+	ErrorBarWidth = 240/854*SCREEN_WIDTH,
+	ErrorBarHeight = 10/480*SCREEN_HEIGHT,
 	TargetTrackerZoom = 0.4,
 	FullProgressBarWidth = 1.0,
 	FullProgressBarHeight = 1.0,
@@ -310,6 +310,19 @@ if coords and coords["4K"] then
 					-- convert x pos
 					t[e] = v / convertXPosRatio
 				end
+			end
+		end
+	end
+	
+	-- hacks for specifically the error bar this is really bad
+	local sz = playerConfig:get_data().GameplaySizes
+	if sz and sz["4K"] then
+		for cat, t in pairs(sz) do
+			if t["ErrorBarWidth"] ~= defaultGameplaySizes["ErrorBarWidth"] then
+				sz[cat]["ErrorBarWidth"] = t["ErrorBarWidth"] / convertXPosRatio
+			end
+			if t["ErrorBarHeight"] ~= defaultGameplaySizes["ErrorBarHeight"] then
+				sz[cat]["ErrorBarHeight"] = t["ErrorBarHeight"] / convertYPosRatio
 			end
 		end
 	end
