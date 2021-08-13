@@ -3,6 +3,8 @@
 -- i dunno less copy paste whatever bro
 local formatstr = "%05.2f%%"
 local wifepercentTextSize = GAMEPLAY:getItemHeight("wifeDisplayText")
+local bgMargin = 4
+local bgalpha = 0.4
 
 return Def.ActorFrame {
 	Name = "DisplayPercent",
@@ -26,23 +28,26 @@ return Def.ActorFrame {
             end
         end
         if bg and perc then
-            bg:zoomto(perc:GetZoomedWidth() + 4, perc:GetZoomedHeight() + 4)
+            bg:zoomto(perc:GetZoomedWidth() + bgMargin, perc:GetZoomedHeight() + bgMargin)
         end
     end,
 
 	Def.Quad {
         Name = "PercentBacking",
 		InitCommand = function(self)
-            self:halign(1):valign(2)
-            self:diffuse(color("0,0,0,0.4"))
+            self:halign(1):valign(0)
+            self:xy(bgMargin/2,-bgMargin/2)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            self:diffusealpha(bgalpha)
 		end
 	},
 	LoadFont("Common Large") .. {
         Name = "DisplayPercent",
         InitCommand = function(self)
-            self:halign(1):valign(2)
+            self:halign(1):valign(0)
             self:zoom(wifepercentTextSize)
-            -- maybe we want to set the text color here
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
+            self:diffusealpha(1)
         end,
     }
 }

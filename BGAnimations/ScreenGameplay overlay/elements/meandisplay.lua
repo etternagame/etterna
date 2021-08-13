@@ -3,6 +3,8 @@
 -- i dunno less copy paste whatever bro
 local formatstr = "%5.2fms"
 local meanTextSize = GAMEPLAY:getItemHeight("meanDisplayText")
+local bgMargin = 4
+local bgalpha = 0.4
 
 local curMeanSum = 0
 local curMeanCount = 0
@@ -38,7 +40,7 @@ return Def.ActorFrame {
             end
         end
         if bg and perc then
-            bg:zoomto(perc:GetZoomedWidth() + 4, perc:GetZoomedHeight() + 4)
+            bg:zoomto(perc:GetZoomedWidth() + bgMargin, perc:GetZoomedHeight() + bgMargin)
         end
     end,
 
@@ -46,7 +48,9 @@ return Def.ActorFrame {
         Name = "MeanBacking",
         InitCommand = function(self)
             self:halign(1):valign(0)
-            self:diffuse(color("0,0,0,0.4"))
+            self:xy(bgMargin/2, -bgMargin/2)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            self:diffusealpha(bgalpha)
         end
     },
     LoadFont("Common Large") .. {
@@ -54,7 +58,8 @@ return Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:zoom(meanTextSize)
-            -- maybe we want to set the text color here
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
+            self:diffusealpha(1)
         end,
     }
 }
