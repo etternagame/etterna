@@ -1746,12 +1746,12 @@ Song::ChartMatchesFilter(Steps* chart, float rate) const
 	 * matches_skills=false), and accept if any skill filters match.
 	 */
 
-	for (auto ss = 0; ss < NUM_Skillset + 2; ss++) {
+	for (auto ss = 0; ss < FilterManager::NUM_FILTERS; ss++) {
 		/* Iterate over all skillsets, as well as
 		 * two placeholders for song length and best clear %
 		 */
-		const auto lb = FILTERMAN->SSFilterLowerBounds[ss];
-		const auto ub = FILTERMAN->SSFilterUpperBounds[ss];
+		const auto lb = FILTERMAN->GetFilter(static_cast<Skillset>(ss), 0);
+		const auto ub = FILTERMAN->GetFilter(static_cast<Skillset>(ss), 1);
 		if (lb > 0.F || ub > 0.F) { // If either bound is active, continue
 			if (!FILTERMAN->ExclusiveFilter) {
 				/* Non-Exclusive filter
