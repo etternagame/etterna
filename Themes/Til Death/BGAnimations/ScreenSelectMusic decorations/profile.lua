@@ -30,13 +30,17 @@ local t =
 	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		self:sleep(0.04):queuecommand("Invis")
+	end,
+	InvisCommand= function(self)
+		self:visible(false)
 	end,
 	OnCommand = function(self)
 		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
 	end,
 	SetCommand = function(self)
 		self:finishtweening()
-		if getTabIndex() == 4 then
+		if getTabIndex() == 4 or SCREENMAN:GetTopScreen():GetName() == "ScreenNetRoom" and getTabIndex() == 1 then
 			self:queuecommand("On")
 			self:visible(true)
 			update = true
@@ -73,6 +77,7 @@ local scoreYspacing = 10
 local distY = 15
 local offsetX = -10
 local offsetY = 20
+local txtDist = 33
 local rankingSkillset = 1
 local rankingPage = 1
 local numrankingpages = 10
@@ -91,9 +96,24 @@ end
 t[#t + 1] =
 	Def.Quad {
 	InitCommand = function(self)
-		self:xy(frameX, frameY):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+		self:xy(frameX, frameY):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(getMainColor("tabs"))
 	end
 }
+
+-- should maybe make some of these generic
+local function highlight(self)
+	if self:IsVisible() then
+		self:queuecommand("Highlight")
+	end
+end
+-- note: will use the local isover functionality
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
 
 local function byValidity(valid)
 	if valid then
@@ -125,12 +145,12 @@ local function rankingLabel(i)
 	local xoffset
 	local onlineScore
 
-	local t =
-		Def.ActorFrame {
+	local t = Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(rankingX + offsetX, rankingY + offsetY + 10 + (i - 1) * scoreYspacing)
+			self:xy(rankingX + offsetX + 7, rankingY + offsetY + 10 + (i - 1) * scoreYspacing)
 			-- self:RunCommandsOnChildren(cmd(halign,0;zoom,fontScale))
 			self:visible(false)
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 		end,
 		UpdateRankingMessageCommand = function(self)
 			if rankingSkillset > 1 and update and not recentactive then
@@ -160,164 +180,169 @@ local function rankingLabel(i)
 			end
 		end,
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:maxwidth(100)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					if not showOnline then
-						if ths then
-							self:halign(0.5)
-							self:settext(((rankingPage - 1) * 25) + i .. ".")
-							self:diffuse(byValidity(ths:GetEtternaValid()))
-						end
-					else
-						self:halign(0.5)
-						self:settext(i .. ".")
-						self:diffuse(getMainColor("positive"))
-					end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(15):maxwidth(160)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					if not showOnline then
-						if ths then
-							self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
-							self:diffuse(byValidity(ths:GetEtternaValid()))
-						else
-							self:settext("")
-						end
-					else
-						if onlineScore then
-							self:settextf("%5.2f", onlineScore.ssr)
-							self:diffuse(getMainColor("positive"))
-						else
-							self:settext("")
-						end
-					end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(55):maxwidth(580)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					if not showOnline then
-						if thssong then
-							self:settext(thssong:GetDisplayMainTitle())
-							self:diffuse(byValidity(ths:GetEtternaValid()))
-						else
-							self:settext("")
-						end
-					else
-						if onlineScore then
-							self:settext(onlineScore.songName)
-							self:diffuse(getMainColor("positive"))
-						else
-							self:settext("")
-						end
-					end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(220)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					if not showOnline then
-						if ths then
-							self:halign(0.5)
-							local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "") .. "x"
-							self:settext(ratestring)
-							self:diffuse(byValidity(ths:GetEtternaValid()))
-						else
-							self:settext("")
-						end
-					else
-						if onlineScore then
-							local ratestring = string.format("%.2f", onlineScore.rate):gsub("%.?0+$", "") .. "x"
-							self:halign(0.5)
-							self:settext(ratestring)
-							self:diffuse(getMainColor("positive"))
-						else
-							self:settext("")
-						end
-					end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(240):maxwidth(160)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					if not showOnline then
-						if ths then
-							self:settextf("%5.2f%%", ths:GetWifeScore() * 100)
-							if not ths:GetEtternaValid() then
-								self:diffuse(byJudgment("TapNoteScore_Miss"))
-							else
-								self:diffuse(getGradeColor(ths:GetWifeGrade()))
-							end
-						else
-							self:settext("")
-						end
-					else
-						if onlineScore then
-							self:settextf("%5.2f%%", onlineScore.wife * 100)
-							self:diffuse(getGradeColor(onlineScore.grade))
-						else
-							self:settext("")
-						end
-					end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(300)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					self:halign(0.5)
-					if not showOnline then
-						if thssteps then
-							local diff = thssteps:GetDifficulty()
-							self:diffuse(byDifficulty(diff))
-							self:settext(getShortDifficulty(diff))
-						else
-							self:settext("")
-						end
-					else
-						if onlineScore then
-							local diff = onlineScore.difficulty
-							self:diffuse(byDifficulty(diff))
-							self:settext(getShortDifficulty(diff))
-						else
-							self:settext("")
-						end
-					end
-				end
-			},
-		Def.Quad {
+		{
+			Name = "text1",
 			InitCommand = function(self)
 				self:halign(0):zoom(fontScale)
-				self:diffusealpha(buttondiffuse)
+				self:maxwidth(100)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				if not showOnline then
+					if ths then
+						self:halign(0.5)
+						self:settext(((rankingPage - 1) * 25) + i .. ".")
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					end
+				else
+					self:halign(0.5)
+					self:settext(i .. ".")
+					self:diffuse(getMainColor("positive"))
+				end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "text2",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(15):maxwidth(160)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				if not showOnline then
+					if ths then
+						self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[rankingSkillset]))
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						self:settextf("%5.2f", onlineScore.ssr)
+						self:diffuse(getMainColor("positive"))
+					else
+						self:settext("")
+					end
+				end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "text3",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(60):maxwidth(580)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				if not showOnline then
+					if thssong and ths then
+						self:settext(thssong:GetDisplayMainTitle())
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						self:settext(onlineScore.songName)
+						self:diffuse(getMainColor("positive"))
+					else
+						self:settext("")
+					end
+				end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "text4",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(225)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				if not showOnline then
+					if ths then
+						self:halign(0.5)
+						local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "") .. "x"
+						self:settext(ratestring)
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						local ratestring = string.format("%.2f", onlineScore.rate):gsub("%.?0+$", "") .. "x"
+						self:halign(0.5)
+						self:settext(ratestring)
+						self:diffuse(getMainColor("positive"))
+					else
+						self:settext("")
+					end
+				end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "text5",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(245):maxwidth(160)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				if not showOnline then
+					if ths then
+						self:settextf("%5.2f%%", ths:GetWifeScore() * 100)
+						if not ths:GetEtternaValid() then
+							self:diffuse(byJudgment("TapNoteScore_Miss"))
+						else
+							self:diffuse(getGradeColor(ths:GetWifeGrade()))
+						end
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						self:settextf("%5.2f%%", onlineScore.wife * 100)
+						self:diffuse(getGradeColor(onlineScore.grade))
+					else
+						self:settext("")
+					end
+				end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "text6",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(305)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				self:halign(0.5)
+				if not showOnline then
+					if thssteps then
+						local diff = thssteps:GetDifficulty()
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					else
+						self:settext("")
+					end
+				else
+					if onlineScore then
+						local diff = onlineScore.difficulty
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					else
+						self:settext("")
+					end
+				end
+			end
+		},
+		Def.Quad {
+			InitCommand = function(self)
+				self:x(-8):halign(0):diffusealpha(buttondiffuse)
 			end,
 			DisplayProfileRankingLabelsMessageCommand = function(self) -- hacky
 				self:visible(true)
-				self:zoomto(300, scoreYspacing)
+				self:zoomto(frameWidth - capWideScale(38,78), scoreYspacing * .995)
 			end,
 			MouseRightClickMessageCommand = function(self)
 				if not showOnline and ths and ButtonActive(self) then
@@ -343,27 +368,34 @@ local function rankingLabel(i)
 						end
 					end
 				end
-			end
+			end,
+			HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				for i = 1,6 do
+					self:GetParent():GetChild("text" .. i):diffusealpha(alph)
+				end
+			end,
 		}
 	}
 	return t
 end
 
 local function rankingButton(i)
-	local t =
-		Def.ActorFrame {
+	local t = Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(rankingX + (i - 1) * rankingTitleSpacing, rankingY)
+			self:xy(rankingX + (i - 1) * rankingTitleSpacing, rankingY * 1.15)
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 		end,
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(rankingTitleSpacing, 30):diffuse(getMainColor("frames")):diffusealpha(0.35)
+				self:zoomto(rankingTitleSpacing, 26):diffuse(getMainColor("frames")):diffusealpha(0.2)
 			end,
 			SetCommand = function(self)
 				if i == rankingSkillset and not recentactive then
 					self:diffusealpha(1)
 				else
-					self:diffusealpha(0.35)
+					self:diffusealpha(0.2)
 				end
 			end,
 			MouseLeftClickMessageCommand = function(self)
@@ -377,17 +409,24 @@ local function rankingButton(i)
 			end,
 			UpdateRankingMessageCommand = function(self)
 				self:queuecommand("Set")
-			end
+			end,
+			HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				self:GetParent():GetChild("RankButtonTxt"):diffusealpha(alph)
+
+			end,
 		},
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
-				end,
-				BeginCommand = function(self)
-					self:settext(ms.SkillSetsTranslated[i])
-				end
-			}
+		{
+			Name = "RankButtonTxt",
+			InitCommand = function(self)
+				self:addy(-1):diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing*2):zoom(0.42)
+			end,
+			BeginCommand = function(self)
+				self:settext(ms.SkillSetsShortTranslated[i])
+			end
+		}
 	}
 	return t
 end
@@ -401,11 +440,11 @@ local function recentLabel(i)
 	local xoffset
 	local onlineScore
 
-	local t =
-		Def.ActorFrame {
+	local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(rankingX - 38 , rankingY + offsetY + 10 + (i - 1) * scoreYspacing)
 			self:visible(false)
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 		end,
 		UpdateRankingMessageCommand = function(self)
 			if recentactive and update then
@@ -425,116 +464,137 @@ local function recentLabel(i)
 			end
 		end,
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:maxwidth(100)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					if ths then
-						self:halign(0.5)
-						self:settext(((rankingPage - 1) * 25) + i .. ".")
-						self:diffuse(byValidity(ths:GetEtternaValid()))
-					end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(15):maxwidth(160)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-						if ths then
-							self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[1]))
-							self:diffuse(byValidity(ths:GetEtternaValid()))
-						else
-							self:settext("")
-						end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(55):maxwidth(580)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					
-						if thssong then
-							self:settext(thssong:GetDisplayMainTitle())
-							self:diffuse(byValidity(ths:GetEtternaValid()))
-						else
-							self:settext("")
-						end
-					
-					
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(220)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					
-						if ths then
-							self:halign(0.5)
-							local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "") .. "x"
-							self:settext(ratestring)
-							self:diffuse(byValidity(ths:GetEtternaValid()))
-						else
-							self:settext("")
-						end
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(240):maxwidth(160)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-			
-						if ths then
-							self:settextf("%5.2f%%", ths:GetWifeScore() * 100)
-							if not ths:GetEtternaValid() then
-								self:diffuse(byJudgment("TapNoteScore_Miss"))
-							else
-								self:diffuse(getGradeColor(ths:GetWifeGrade()))
-							end
-						else
-							self:settext("")
-						end
-
-				end
-			},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:halign(0):zoom(fontScale)
-					self:x(300)
-				end,
-				DisplayProfileRankingLabelsMessageCommand = function(self)
-					self:halign(0.5)
-						if thssteps then
-							local diff = thssteps:GetDifficulty()
-							self:diffuse(byDifficulty(diff))
-							self:settext(getShortDifficulty(diff))
-						else
-							self:settext("")
-						end
-				end
-			},
-		Def.Quad {
+		{
+			Name = "rectext1",
 			InitCommand = function(self)
 				self:halign(0):zoom(fontScale)
-				self:diffusealpha(buttondiffuse)
+				self:maxwidth(100)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				if ths and IsUsingWideScreen() then
+					self:halign(0.5)
+					self:settext(((rankingPage - 1) * 25) + i .. ".")
+					self:diffuse(byValidity(ths:GetEtternaValid()))
+				end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "rectext2",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(15):maxwidth(160)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+					if ths then
+						self:settextf("%5.2f", ths:GetSkillsetSSR(ms.SkillSets[1]))
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "rectext3",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(55):maxwidth(580)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+					if thssong and ths then
+						self:settext(thssong:GetDisplayMainTitle())
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "rectext4",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(220)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+
+					if ths then
+						self:halign(0.5)
+						local ratestring = string.format("%.2f", ths:GetMusicRate()):gsub("%.?0+$", "") .. "x"
+						self:settext(ratestring)
+						self:diffuse(byValidity(ths:GetEtternaValid()))
+					else
+						self:settext("")
+					end
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "rectext5",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(240):maxwidth(160)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+
+					if ths then
+						self:settextf("%5.2f%%", ths:GetWifeScore() * 100)
+						if not ths:GetEtternaValid() then
+							self:diffuse(byJudgment("TapNoteScore_Miss"))
+						else
+							self:diffuse(getGradeColor(ths:GetWifeGrade()))
+						end
+					else
+						self:settext("")
+					end
+
+			end
+		},
+		LoadFont("Common Large") ..
+		{
+			Name = "rectext6",
+			InitCommand = function(self)
+				self:halign(0):zoom(fontScale)
+				self:x(300)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				self:halign(0.5)
+					if thssteps then
+						local diff = thssteps:GetDifficulty()
+						self:diffuse(byDifficulty(diff))
+						self:settext(getShortDifficulty(diff))
+					else
+						self:settext("")
+					end
+			end
+		},
+		LoadFont("Common Normal") ..
+		{
+			Name = "rectext7",
+			--date
+			InitCommand = function(self)
+				self:x(312):zoom(fontScale + 0.05):halign(0)
+			end,
+			DisplayProfileRankingLabelsMessageCommand = function(self)
+				if ths then
+					if not IsUsingWideScreen() then
+						self:settext(ths:GetDate():sub(1,10)):x(318)
+					else
+						self:settext(ths:GetDate())
+					end
+				else
+					self:settext("")
+				end
+			end,
+		},
+		Def.Quad {
+			InitCommand = function(self)
+				self:x(capWideScale(15,-7)):halign(0):zoom(fontScale):diffusealpha(buttondiffuse)
 			end,
 			DisplayProfileRankingLabelsMessageCommand = function(self) -- hacky
 				self:visible(true)
-				self:zoomto(300, scoreYspacing)
+				self:zoomto(frameWidth - capWideScale(14,10), scoreYspacing * .995)
 			end,
 			MouseLeftClickMessageCommand = function(self)
 				if recentactive and ButtonActive(self) then
@@ -555,19 +615,12 @@ local function recentLabel(i)
 						end
 					end
 				end
-			end
-		},
-		LoadFont("Common Normal") ..
-		{
-			--date
-			InitCommand = function(self)
-				self:x(310):zoom(fontScale + 0.05):halign(0)
 			end,
-			DisplayProfileRankingLabelsMessageCommand = function(self)
-				if ths then
-					self:settext(ths:GetDate())
-				else
-					self:settext("")
+			HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				for i = 1,7 do
+					self:GetParent():GetChild("rectext" .. i):diffusealpha(alph)
 				end
 			end,
 		},
@@ -579,17 +632,18 @@ local function recentButton()
 	local t =
 		Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(rankingX + (3.5) * rankingTitleSpacing, offsetY * 0.65):valign(1)
+			self:xy(rankingX + (3.5) * rankingTitleSpacing, 24 * 0.75):valign(1)
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 		end,
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(rankingTitleSpacing, offsetY):diffuse(getMainColor("frames")):diffusealpha(0.35)
+				self:zoomto(rankingTitleSpacing, 26):diffuse(getMainColor("frames")):diffusealpha(0.2)
 			end,
 			SetCommand = function(self)
 				if recentactive then
 					self:diffusealpha(1)
 				else
-					self:diffusealpha(0.35)
+					self:diffusealpha(0.2)
 				end
 			end,
 			MouseLeftClickMessageCommand = function(self)
@@ -602,24 +656,32 @@ local function recentButton()
 			end,
 			UpdateRankingMessageCommand = function(self)
 				self:queuecommand("Set")
-			end
+			end,
+			HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				self:GetParent():GetChild("RecentButtonTxt"):diffusealpha(alph)
+			end,
 		},
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
-				end,
-				BeginCommand = function(self)
-					self:settext(translated_info["Recent"])
-				end
-			}
+		{
+			Name = "RecentButtonTxt",
+			InitCommand = function(self)
+				self:addy(-1):diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing * 2):zoom(0.42)
+			end,
+			BeginCommand = function(self)
+				self:settext(translated_info["Recent"])
+			end
+		}
 	}
 	return t
 end
 
+-- Online and Local buttons
 t[#t + 1] =
 	Def.ActorFrame {
 	InitCommand = function(self)
+		self:x(8)
 		if DLMAN:IsLoggedIn() then
 			self:visible(true)
 		else
@@ -638,17 +700,60 @@ t[#t + 1] =
 	end,
 	Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(rankingX + frameWidth / 4 - rankingTitleSpacing, rankingY + offsetY * 0.9)
+			self:xy(rankingX + frameWidth * 6 / 8 - rankingTitleSpacing, rankingY + offsetY + 2)
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 		end,
 		Def.Quad {
 			InitCommand = function(self)
-				self:zoomto(rankingTitleSpacing, offsetY):diffusealpha(0.35)
+				self:zoomto(rankingTitleSpacing, 26):diffusealpha(0.2):diffuse(getMainColor("frames"))
+			end,
+			SetCommand = function(self)
+				if not showOnline then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.2)
+				end
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if ButtonActive(self) then
+					showOnline = false
+					BroadcastIfActive("UpdateRanking")
+				end
+			end,
+			UpdateRankingMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				self:GetParent():GetChild("LocalTxt"):diffusealpha(alph)
+			end,
+		},
+		LoadFont("Common Large") ..
+			{
+				Name = "LocalTxt",
+				InitCommand = function(self)
+					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing*2):zoom(0.42)
+				end,
+				BeginCommand = function(self)
+					self:settext(translated_info["Local"])
+				end
+			}
+	},
+	Def.ActorFrame {
+		InitCommand = function(self)
+			self:xy(rankingX + frameWidth * 7 / 8 - rankingTitleSpacing, rankingY + offsetY + 2)
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
+		end,
+		Def.Quad {
+			InitCommand = function(self)
+				self:zoomto(rankingTitleSpacing, 26):diffusealpha(0.2)
 				if DLMAN:IsLoggedIn() then
 					self:diffuse(getMainColor("frames"))
 					if showOnline then
 						self:diffusealpha(1)
 					else
-						self:diffusealpha(0.35)
+						self:diffusealpha(0.2)
 					end
 				else
 					self:diffuse(getMainColor("disabled")):diffusealpha(0.1)
@@ -660,7 +765,7 @@ t[#t + 1] =
 					if showOnline then
 						self:diffusealpha(1)
 					else
-						self:diffusealpha(0.35)
+						self:diffusealpha(0.2)
 					end
 				else
 					self:diffuse(getMainColor("disabled")):diffusealpha(0.1)
@@ -674,59 +779,31 @@ t[#t + 1] =
 			end,
 			UpdateRankingMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				self:GetParent():GetChild("OnlineTxt"):diffusealpha(alph)
 			end
 		},
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
-				end,
-				BeginCommand = function(self)
-					self:settext(translated_info["Online"])
-				end
-			}
-	},
-	Def.ActorFrame {
-		InitCommand = function(self)
-			self:xy(rankingX + frameWidth * 3 / 4 - rankingTitleSpacing, rankingY + offsetY * 0.9)
-		end,
-		Def.Quad {
+		{
+			Name = "OnlineTxt",
 			InitCommand = function(self)
-				self:zoomto(rankingTitleSpacing, offsetY):diffusealpha(0.35):diffuse(getMainColor("frames"))
+				self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing*2):zoom(0.42)
 			end,
-			SetCommand = function(self)
-				if not showOnline then
-					self:diffusealpha(1)
-				else
-					self:diffusealpha(0.35)
-				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if ButtonActive(self) then
-					showOnline = false
-					BroadcastIfActive("UpdateRanking")
-				end
-			end,
-			UpdateRankingMessageCommand = function(self)
-				self:queuecommand("Set")
+			BeginCommand = function(self)
+				self:settext(translated_info["Online"])
 			end
-		},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing):maxheight(25):zoom(0.85)
-				end,
-				BeginCommand = function(self)
-					self:settext(translated_info["Local"])
-				end
-			}
-	}
+		}
+	},
+
 }
 -- prev/next page
-r[#r + 1] =
-	Def.ActorFrame {
+r[#r + 1] = Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(10, frameHeight - offsetY):visible(false)
+		self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 	end,
 	UpdateRankingMessageCommand = function(self)
 		if (rankingSkillset > 1 or recentactive ) and not showOnline then
@@ -742,7 +819,7 @@ r[#r + 1] =
 	end,
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(300, -8):zoomto(40, 20):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(buttondiffuse)
+			self:xy(capWideScale(300,336.25), -8.5):zoomto(40, 20):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.2)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
@@ -753,17 +830,23 @@ r[#r + 1] =
 				end
 				BroadcastIfActive("UpdateRanking")
 			end
-		end
+		end,
+		HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				self:GetParent():GetChild("NextP"):diffusealpha(alph)
+		end,
 	},
 	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:x(300):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["NextPage"])
-			end
-		},
+	{
+		Name = "NextP",
+		InitCommand = function(self)
+			self:x(capWideScale(304.25,340)):halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["NextPage"])
+		end,
+	},
 	Def.Quad {
 		InitCommand = function(self)
-			self:y(-8):zoomto(65, 20):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(buttondiffuse)
+			self:xy(-2,-8.5):zoomto(65, 20):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.2)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
@@ -774,23 +857,29 @@ r[#r + 1] =
 				end
 				BroadcastIfActive("UpdateRanking")
 			end
-		end
+		end,
+		HighlightCommand = function(self)
+				local alph = 1
+				if isOver(self) then alph = .7 end
+				self:GetParent():GetChild("PrevP"):diffusealpha(alph)
+		end,
 	},
 	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["PrevPage"])
-			end
-		},
+	{
+		Name = "PrevP",
+		InitCommand = function(self)
+			self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["PrevPage"])
+		end,
+	},
 	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor("positive"))
-			end,
-			DisplayCommand = function(self)
-				self:settextf("%i-%i", ((rankingPage - 1) * 25) + 1, rankingPage * 25)
-			end
-		}
+	{
+		InitCommand = function(self)
+			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor("positive"))
+		end,
+		DisplayCommand = function(self)
+			self:settextf("%i-%i", ((rankingPage - 1) * 25) + 1, rankingPage * 25)
+		end
+	}
 }
 
 for i = 1, scoresperpage do
@@ -813,7 +902,7 @@ local function littlebits(i)
 	local t =
 		Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(frameX + 30, frameY + 50)
+			self:xy(frameX + capWideScale(28,45), frameY - 30)
 		end,
 		UpdateRankingMessageCommand = function(self)
 			if rankingSkillset == 1 and update and not recentactive then
@@ -823,37 +912,42 @@ local function littlebits(i)
 			end
 		end,
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:y(22 * i):maxwidth(170 * 2):halign(0):zoom(0.5):diffuse(getMainColor("positive"))
-				end,
-				SetCommand = function(self)
-					self:settext(ms.SkillSetsTranslated[i] .. ":")
-				end
-			},
+		{
+			InitCommand = function(self)
+				self:y(txtDist * i):maxwidth(170 * 2):halign(0):zoom(0.575)
+			end,
+			SetCommand = function(self)
+				self:settext(ms.SkillSetsTranslated[i] .. ":")
+			end,
+		},
 		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:xy(170, 22 * i):halign(0):zoom(0.5)
-				end,
-				SetCommand = function(self)
-					local rating = 0
-					if not showOnline then
-						rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
-						self:settextf("%5.2f", rating)
-					else
-						rating = DLMAN:GetSkillsetRating(ms.SkillSets[i])
-						self:settextf("%5.2f(#%i)", rating, DLMAN:GetSkillsetRank(ms.SkillSets[i]))
-					end
-					self:diffuse(byMSD(rating))
-				end,
-				UpdateRankingMessageCommand = function(self)
-					self:queuecommand("Set")
-				end,
-				PlayerRatingUpdatedMessageCommand = function(self)
-					self:queuecommand("Set")
+		{
+			InitCommand = function(self)
+				self:xy(210, txtDist * i):halign(0):zoom(0.575)
+			end,
+			SetCommand = function(self)
+				local rating = 0
+				if not showOnline then
+					rating = profile:GetPlayerSkillsetRating(ms.SkillSets[i])
+					self:settextf("%05.2f", rating)
+					self:GetParent():x(frameX + capWideScale(28,45))
+					self:x(210)
+				else
+					rating = DLMAN:GetSkillsetRating(ms.SkillSets[i])
+					self:settextf("%05.2f (#%i)", rating, DLMAN:GetSkillsetRank(ms.SkillSets[i]))
+					self:GetParent():x(frameX)
+					self:x(capWideScale(184,198)):maxwidth(9999)
+					if not IsUsingWideScreen() then self:maxwidth(270) end
 				end
-			}
+				self:diffuse(byMSD(rating))
+			end,
+			UpdateRankingMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			PlayerRatingUpdatedMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		}
 	}
 	return t
 end
@@ -866,99 +960,109 @@ local user
 local pass
 local profilebuttons =
 	Def.ActorFrame {
-	InitCommand = function(self)
-		self:xy(frameX + 45, frameHeight + 20)
-		user = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName
-		local passToken = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken
-		if passToken ~= "" and answer ~= "" then
-			if not DLMAN:IsLoggedIn() then
-				DLMAN:LoginWithToken(user, passToken)
+		InitCommand = function(self)
+			user = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName
+			local passToken = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken
+			if passToken ~= "" and answer ~= "" then
+				if not DLMAN:IsLoggedIn() then
+					DLMAN:LoginWithToken(user, passToken)
+				end
+			else
+				passToken = ""
+				user = ""
 			end
-		else
-			passToken = ""
-			user = ""
-		end
-	end,
-	UpdateRankingMessageCommand = function(self)
-		if rankingSkillset == 1 and update and not recentactive then
-			self:visible(true)
-		else
-			self:visible(false)
-		end
-	end,
-	LoadFont("Common Large") ..
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
+		end,
+		UpdateRankingMessageCommand = function(self)
+			if rankingSkillset == 1 and update and not recentactive then
+				self:visible(true)
+			else
+				self:visible(false)
+			end
+		end,
+		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:diffuse(getMainColor("positive")):settext(translated_info["Save"]):zoom(0.3)
-			end
-		},
-	Def.Quad {
-		InitCommand = function(self)
-			self:zoomto(100, 20):diffusealpha(buttondiffuse)
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if ButtonActive(self) and rankingSkillset == 1 and not recentactive then
-				if PROFILEMAN:SaveProfile(PLAYER_1) then
-					ms.ok(translated_info["Success"])
-					STATSMAN:UpdatePlayerRating()
-				else
-					ms.ok(translated_info["Failure"])
+				self:xy(frameX + frameWidth * 1/6, frameHeight + 04):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
+				self:settext(translated_info["Save"])
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if ButtonActive(self) and rankingSkillset == 1 and not recentactive then
+					if PROFILEMAN:SaveProfile(PLAYER_1) then
+						ms.ok(translated_info["Success"])
+						STATSMAN:UpdatePlayerRating()
+					else
+						ms.ok(translated_info["Failure"])
+					end
 				end
 			end
-		end
-	},
-	LoadFont("Common Large") ..
+		},
+		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(100):diffuse(getMainColor("positive")):settext(translated_info["AssetSettings"]):zoom(0.3)
-			end
+				self:xy(frameX + frameWidth * 3/6, frameHeight + 04):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
+				self:settext(translated_info["AssetSettings"])
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if ButtonActive(self) and rankingSkillset == 1 and not recentactive then
+					SCREENMAN:SetNewScreen("ScreenAssetSettings")
+				end
+			end,
 		},
-	Def.Quad {
-		InitCommand = function(self)
-			self:x(100):zoomto(100, 20):diffusealpha(buttondiffuse)
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if ButtonActive(self) and rankingSkillset == 1 and not recentactive then
-				SCREENMAN:SetNewScreen("ScreenAssetSettings")
-			end
-		end
-	},
-	LoadFont("Common Large") ..
+		LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:x(200):diffuse(getMainColor("positive")):settext(translated_info["ValidateAll"]):zoom(0.3)
-			end
+				self:xy(frameX + frameWidth * 1/6, frameHeight + 26):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
+				self:settext(translated_info["ValidateAll"])
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if ButtonActive(self) and rankingSkillset == 1 and not recentactive then
+					profile:UnInvalidateAllScores()
+					STATSMAN:UpdatePlayerRating()
+				end
+			end,
 		},
-	Def.Quad {
-		InitCommand = function(self)
-			self:x(200):zoomto(100, 20):diffusealpha(buttondiffuse)
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if ButtonActive(self) and rankingSkillset == 1 and not recentactive then
-				profile:UnInvalidateAllScores()
-				STATSMAN:UpdatePlayerRating()
-			end
-		end
-	},
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:x(300):diffuse(getMainColor("positive")):settext(translated_info["ForceRecalc"]):zoom(0.3)
-		end
-	},
-	Def.Quad {
-	InitCommand = function(self)
-		self:x(300):zoomto(100, 20):diffusealpha(buttondiffuse)
-	end,
-	MouseLeftClickMessageCommand = function(self)
-		if ButtonActive(self) and rankingSkillset == 1 and not recentactive  then
-			ms.ok("Recalculating Scores... this might be slow and may or may not crash")
-			profile:ForceRecalcScores()
-			STATSMAN:UpdatePlayerRating()
-		end
-	end
-}
-}
+		LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + frameWidth * 3/6, frameHeight + 26):diffuse(getMainColor("positive")):zoom(0.3)
+				self:settext(translated_info["ForceRecalc"])
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if ButtonActive(self) and rankingSkillset == 1 and not recentactive  then
+					ms.ok("Recalculating Scores... this might be slow and may or may not crash")
+					profile:ForceRecalcScores()
+					STATSMAN:UpdatePlayerRating()	
+				end
+			end,
+		},
+		LoadFont("Common Large") .. --placeholder 1
+		{
+			InitCommand = function(self)
+				self:xy(frameX + frameWidth * 5/6, frameHeight + 04):halign(0.5):zoom(0.5):diffuse(1,1,1,0.05)
+				self:settext("-")
+			end,
+		},
+		LoadFont("Common Large") .. --placeholder 2
+		{
+			InitCommand = function(self)
+				self:xy(frameX + frameWidth * 5/6, frameHeight + 26):halign(0.5):zoom(0.5):diffuse(1,1,1,0.05)
+				self:settext("-")
+			end,
+		},
+	}
 
 t[#t + 1] = profilebuttons
 t[#t + 1] = r

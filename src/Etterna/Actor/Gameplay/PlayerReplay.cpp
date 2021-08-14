@@ -552,7 +552,7 @@ PlayerReplay::Step(int col,
 	// Check for tap
 	int iStepSearchRows;
 	static const auto StepSearchDistance = GetMaxStepDistanceSeconds();
-	
+
 	// if the nerv is too small, dont optimize
 	auto skipstart = nerv.size() > 10 ? nerv[10] : iSongRow + 1;
 
@@ -695,8 +695,6 @@ PlayerReplay::Step(int col,
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
-		if (score == TNS_W1 && !GAMESTATE->ShowW1())
-			score = TNS_W2;
 
 		if (score != TNS_None) {
 			pTN->result.tns = score;

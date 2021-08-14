@@ -3,6 +3,8 @@ local topFrameHeight = 35
 local bottomFrameHeight = 54
 local borderWidth = 4
 
+local widescreen = GetScreenAspectRatio() > 1.7
+
 local t =
 	Def.ActorFrame {
 	Name = "PlayerAvatar"
@@ -16,7 +18,7 @@ local playTimeP1 = 0
 local noteCountP1 = 0
 
 local AvatarXP1 = 5
-local AvatarYP1 = 50
+local AvatarYP1 = 44
 
 local bpms = {}
 if GAMESTATE:GetCurrentSong() then
@@ -167,7 +169,7 @@ local NSPreviewSize = 0.5
 local NSPreviewX = 20
 local NSPreviewY = 125
 local NSPreviewXSpan = 35
-local NSPreviewReceptorY = -30
+local NSPreviewReceptorY = -32
 local OptionRowHeight = 35
 local NoteskinRow = 0
 local NSDirTable = GameToNSkinElements()
@@ -182,21 +184,23 @@ local function NSkinPreviewWrapper(dir, ele)
 end
 local function NSkinPreviewExtraTaps()
 	local out = Def.ActorFrame {}
-	for i = 2, #NSDirTable do
-		out[#out+1] = Def.ActorFrame {
-			Def.ActorFrame {
-				InitCommand = function(self)
-					self:x(NSPreviewXSpan * (i-1))
-				end,
-				NSkinPreviewWrapper(NSDirTable[i], "Tap Note")
-			},
-			Def.ActorFrame {
-				InitCommand = function(self)
-					self:x(NSPreviewXSpan * (i-1)):y(NSPreviewReceptorY)
-				end,
-				NSkinPreviewWrapper(NSDirTable[i], "Receptor")
+	for i = 1, #NSDirTable do
+		if i ~= 2 then
+			out[#out+1] = Def.ActorFrame {
+				Def.ActorFrame {
+					InitCommand = function(self)
+						self:x(NSPreviewXSpan * (i-1))
+					end,
+					NSkinPreviewWrapper(NSDirTable[i], "Tap Note")
+				},
+				Def.ActorFrame {
+					InitCommand = function(self)
+						self:x(NSPreviewXSpan * (i-1)):y(NSPreviewReceptorY)
+					end,
+					NSkinPreviewWrapper(NSDirTable[i], "Receptor")
+				}
 			}
-		}
+		end
 	end
 	return out
 end
@@ -226,16 +230,28 @@ t[#t + 1] =
 		)
 	end,
 	Def.ActorFrame {
-		NSkinPreviewWrapper(NSDirTable[1], "Tap Note")
+		InitCommand = function(self)
+			if widescreen then
+				self:x(NSPreviewXSpan)
+			else
+				self:x(NSPreviewXSpan/4)
+			end
+		end,
+		NSkinPreviewWrapper(NSDirTable[2], "Tap Note")
 	},
 	Def.ActorFrame {
 		InitCommand = function(self)
+			if widescreen then
+				self:x(NSPreviewXSpan)
+			else
+				self:x(NSPreviewXSpan/4)
+			end
 			self:y(NSPreviewReceptorY)
 		end,
-		NSkinPreviewWrapper(NSDirTable[1], "Receptor")
+		NSkinPreviewWrapper(NSDirTable[2], "Receptor")
 	}
 }
-if GetScreenAspectRatio() > 1.7 then
+if widescreen then
 	t[#t][#(t[#t]) + 1] = NSkinPreviewExtraTaps()
 end
 return t

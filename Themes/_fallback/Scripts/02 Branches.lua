@@ -1,10 +1,10 @@
 --[[
 Lines with a single string (e.g. TitleMenu = "ScreenTitleMenu") are referenced
 in the metrics as Branch.keyname.
-If the line is a function, you'll have to use Branch.keyname() instead.
+For functions in the Branch table, you'll have to use Branch.keyname() instead.
 --]]
--- used for various SMOnline-enabled screens:
-function SMOnlineScreen()
+
+function SMOnlineScreen() -- used for various SMOnline-enabled screens:
 	if not IsNetSMOnline() then
 		return "ScreenSelectMusic"
 	end
@@ -54,32 +54,13 @@ Branch = {
 			return "ScreenLogo"
 		end
 	end,
-	NoiseTrigger = function()
-		local hour = Hour()
-		return hour > 3 and hour < 6 and "ScreenNoise" or "ScreenHighScores"
-	end,
 	TitleMenu = function()
-		-- home mode is the most assumed use of sm-ssc.
-		if GAMESTATE:GetCoinMode() == "CoinMode_Home" then
-			return "ScreenTitleMenu"
-		end
-		-- arcade junk:
-		if GAMESTATE:GetCoinsNeededToJoin() > GAMESTATE:GetCoins() then
-			-- if no credits are inserted, don't show the Join screen. SM4 has
-			-- this as the initial screen, but that means we'd be stuck in a
-			-- loop with ScreenInit. No good.
-			return "ScreenTitleJoin"
-		else
-			return "ScreenTitleJoin"
-		end
+		return "ScreenTitleMenu"
 	end,
 	AfterTitleMenu = function()
 		return Branch.StartGame()
 	end,
 	StartGame = function()
-		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
-			return "ScreenHowToInstallSongs"
-		end
 		if PROFILEMAN:GetNumLocalProfiles() >= 2 then
 			return "ScreenSelectProfile"
 		else
@@ -102,10 +83,6 @@ Branch = {
 		end
 	end,
 	OptionsEdit = function()
-		-- Similar to above, don't let anyone in here with 0 songs.
-		if SONGMAN:GetNumSongs() == 0 and SONGMAN:GetNumAdditionalSongs() == 0 then
-			return "ScreenHowToInstallSongs"
-		end
 		return "ScreenOptionsEdit"
 	end,
 	AfterSelectStyle = function()
@@ -147,10 +124,6 @@ Branch = {
 			return "ScreenNetSelectMusic"
 		end
 	end,
-	GetGameInformationScreen = function()
-		bTrue = PREFSMAN:GetPreference("ShowInstructions")
-		return (bTrue and GoToMusic() or "ScreenGameInformation")
-	end,
 	AfterSMOLogin = SMOnlineScreen,
 	BackOutOfPlayerOptions = function()
 		return "ScreenSelectMusic"
@@ -168,21 +141,21 @@ Branch = {
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return SelectFirstOptionsScreen()
 		else
-			return "ScreenStageInformation"
+			return ToGameplay()
 		end
 	end,
 	PlayerOptions = function()
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenPlayerOptions"
 		else
-			return "ScreenStageInformation"
+			return ToGameplay()
 		end
 	end,
 	SongOptions = function()
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenSongOptions"
 		else
-			return "ScreenStageInformation"
+			return ToGameplay()
 		end
 	end,
 	AfterGameplay = function()
@@ -195,7 +168,9 @@ Branch = {
 		local Failed = STATSMAN:GetCurStageStats():Failed()
 		local song = GAMESTATE:GetCurrentSong()
 
-		if GAMESTATE:IsEventMode() or stagesLeft >= 1 then
+		if not SCREENMAN:GetTopScreen():GetStageStats():GetLivePlay() then
+			return "ScreenSelectMusic"
+		elseif GAMESTATE:IsEventMode() or stagesLeft >= 1 then
 			return "ScreenProfileSave"
 		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and Failed then
 			return "ScreenProfileSaveSummary"

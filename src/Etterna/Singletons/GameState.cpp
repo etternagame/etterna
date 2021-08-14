@@ -1113,20 +1113,6 @@ GameState::GetPlayerFailType(const PlayerState* pPlayerState) const
 }
 
 bool
-GameState::ShowW1() const
-{
-	AllowW1 pref = PREFSMAN->m_AllowW1;
-	switch (pref) {
-		case ALLOW_W1_NEVER:
-			return false;
-		case ALLOW_W1_EVERYWHERE:
-			return true;
-		default:
-			FAIL_M(ssprintf("Invalid AllowW1 preference: %i", pref));
-	}
-}
-
-bool
 GameState::AllAreInDangerOrWorse() const
 {
 	if (m_pPlayerState->m_HealthState < HealthState_Danger)
@@ -1413,7 +1399,6 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetPlayerDisplayName, GetPlayerDisplayName(PLAYER_1))
 	DEFINE_METHOD(GetMasterPlayerNumber, GetMasterPlayerNumber())
 	DEFINE_METHOD(GetNumMultiplayerNoteFields, m_iNumMultiplayerNoteFields)
-	DEFINE_METHOD(ShowW1, ShowW1())
 
 	static int SetNumMultiplayerNoteFields(T* p, lua_State* L)
 	{
@@ -1894,7 +1879,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetMasterPlayerNumber);
 		ADD_METHOD(GetNumMultiplayerNoteFields);
 		ADD_METHOD(SetNumMultiplayerNoteFields);
-		ADD_METHOD(ShowW1);
 		ADD_METHOD(GetPlayerState);
 		ADD_METHOD(GetMultiPlayerState);
 		ADD_METHOD(ApplyGameCommand);

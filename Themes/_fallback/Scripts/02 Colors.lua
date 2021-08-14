@@ -234,7 +234,11 @@ function ColorToHex(c)
 	local bX = hex(scale(b, 0, 1, 0, 255))
 	local aX = hex(scale(a, 0, 1, 0, 255))
 
-	return rX .. gX .. bX .. aX
+	if aX == "FF" then
+		return rX .. gX .. bX
+	else
+		return rX .. gX .. bX .. aX
+	end
 end
 
 -- HSV utilities (adapted from http://www.cs.rit.edu/~ncs/color/t_convert.html)
@@ -424,3 +428,23 @@ function Alpha(color, percent)
 	c.Alpha = percent
 	return HSVToColor(c)
 end
+
+function ColorMultiplier(color, multi)
+	-- error checking
+	if multi < 0 then
+		multi = 0.0
+	end
+	color[1] = color[1] * multi
+	color[2] = color[2] * multi
+	color[3] = color[3] * multi
+	return color
+end
+
+
+function SameColor(c1,c2)
+	if c1[1] == c2[1] and c1[2] == c2[2] and c1[3] == c2[3] then
+		return true
+	end
+	return false
+end
+

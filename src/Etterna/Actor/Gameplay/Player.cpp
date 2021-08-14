@@ -2047,7 +2047,7 @@ Player::Step(int col,
 
 	// if the nerv is too small, dont optimize
 	auto skipstart = nerv.size() > 10 ? nerv[10] : iSongRow + 1;
-	
+
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
 		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
@@ -2325,9 +2325,6 @@ Player::Step(int col,
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
-		if (score == TNS_W1 && !GAMESTATE->ShowW1()) {
-			score = TNS_W2;
-		}
 
 		if (score != TNS_None) {
 			pTN->result.tns = score;

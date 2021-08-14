@@ -272,7 +272,7 @@ ScoreKeeperNormal::AddScoreInternal(TapNoteScore score)
 				p = 10;
 				break;
 			case TNS_W2:
-				p = GAMESTATE->ShowW1() ? 9 : 10;
+				p = 9;
 				break;
 			case TNS_W3:
 				p = 5;
@@ -784,8 +784,6 @@ ScoreKeeperNormal::HoldNoteScoreToGradePoints(HoldNoteScore hns) const
 int
 ScoreKeeperNormal::TapNoteScoreToDancePoints(TapNoteScore tns, bool bBeginner)
 {
-	if (!GAMESTATE->ShowW1() && tns == TNS_W1)
-		tns = TNS_W2;
 
 	/* This is used for Oni percentage displays. Grading values are currently in
 	 * StageStats::GetGrade. */
@@ -851,8 +849,6 @@ ScoreKeeperNormal::HoldNoteScoreToDancePoints(HoldNoteScore hns, bool bBeginner)
 int
 ScoreKeeperNormal::TapNoteScoreToGradePoints(TapNoteScore tns, bool bBeginner)
 {
-	if (!GAMESTATE->ShowW1() && tns == TNS_W1)
-		tns = TNS_W2;
 
 	/* This is used for Oni percentage displays. Grading values are currently in
 	 * StageStats::GetGrade. */

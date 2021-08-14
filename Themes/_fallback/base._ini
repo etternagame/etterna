@@ -1986,7 +1986,7 @@ AllTimeY=110
 AllTimeOnCommand=zoom,0.7;diffuseshift;effectcolor1,0.5,0.5,0.5,1
 TitleX=SCREEN_CENTER_X
 TitleY=140
-TitleOnCommand=zoom,0.8 
+TitleOnCommand=zoom,0.8
 DataX=0
 DataY=SCREEN_CENTER_Y+16
 DataOnCommand=
@@ -2425,7 +2425,7 @@ IdleTimeoutSeconds=0
 
 [ScreenOptionsAdvanced]
 Fallback="ScreenOptionsServiceChild"
-LineNames="1,2,3,4,5,6,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32"
+LineNames="1,2,3,4,5,6,8,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32"
 Line1="conf,MenuTimer"
 Line2="conf,ScoringType"
 Line3="conf,TimingWindowScale"
@@ -2435,7 +2435,6 @@ Line6="conf,ProgressiveStageLifebar"
 Line8="conf,DefaultFailType"
 Line9="conf,ShowSongOptions"
 Line10="conf,GetRankingName"
-Line11="conf,AllowW1"
 Line12="conf,Center1Player"
 Line13="conf,HiddenSongs"
 Line14="conf,EasterEggs"

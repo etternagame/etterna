@@ -1,12 +1,23 @@
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local c
 local enabledCombo = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ComboText
+local CenterCombo = CenteredComboEnabled()
+local CTEnabled = ComboTweensEnabled()
 
-local function arbitraryComboX(value) 
-	c.Label:x(value) 
-	c.Number:x(value - 4)
+local Pulse = THEME:GetMetric("Combo", "PulseCommand")
+local NumberMinZoom = THEME:GetMetric("Combo", "NumberMinZoom")
+local NumberMaxZoom = THEME:GetMetric("Combo", "NumberMaxZoom")
+local NumberMaxZoomAt = THEME:GetMetric("Combo", "NumberMaxZoomAt")
+
+local function arbitraryComboX(value)
+	c.Label:x(value)
+	if not CenterCombo then
+		c.Number:x(value - 4)
+	else
+		c.Number:x(value - 24)
+	end
 	c.Border:x(value)
-  end 
+  end
 
 local function arbitraryComboZoom(value)
 	c.Label:zoom(value)
@@ -35,9 +46,11 @@ local t =
 		{
 			Name = "Number",
 			InitCommand = function(self)
-				self:xy(MovableValues.ComboX - 4, MovableValues.ComboY):halign(1):valign(1):skewx(-0.125):visible(
-					false
-				)
+				if not CenterCombo then
+					self:xy(MovableValues.ComboX - 4, MovableValues.ComboY):halign(1):valign(1):skewx(-0.125):visible(false)
+				else
+					self:xy(MovableValues.ComboX - 24, MovableValues.ComboY):halign(0.5):valign(1):skewx(-0.125):visible(false)
+				end
 			end
 		},
 	LoadFont("Common Normal") ..
@@ -57,18 +70,19 @@ local t =
 			Movable.DeviceButton_3.condition = enabledCombo
 			Movable.DeviceButton_4.condition = enabledCombo
 			Movable.DeviceButton_3.Border = self:GetChild("Border")
-			Movable.DeviceButton_3.DeviceButton_left.arbitraryFunction = arbitraryComboX 
-			Movable.DeviceButton_3.DeviceButton_right.arbitraryFunction = arbitraryComboX 
+			Movable.DeviceButton_3.DeviceButton_left.arbitraryFunction = arbitraryComboX
+			Movable.DeviceButton_3.DeviceButton_right.arbitraryFunction = arbitraryComboX
 			Movable.DeviceButton_4.DeviceButton_up.arbitraryFunction = arbitraryComboZoom
 			Movable.DeviceButton_4.DeviceButton_down.arbitraryFunction = arbitraryComboZoom
 		end
 	end,
 	OnCommand = function(self)
 		if (allowedCustomization) then
-			c.Label:settext(translated_combo)
 			c.Number:visible(true)
-			c.Label:visible(true)
 			c.Number:settext(1000)
+			c.Label:visible(not CenterCombo)
+			c.Label:settext(translated_combo)
+
 			Movable.DeviceButton_3.propertyOffsets = {self:GetTrueX() -6, self:GetTrueY() + c.Number:GetHeight()*1.5}	-- centered to screen/valigned
 			setBorderAlignment(c.Border, 0.5, 1)
 		end
@@ -82,10 +96,10 @@ local t =
 			return
 		end
 
-		c.Label:settext(translated_combo)
 		c.Number:visible(true)
-		c.Label:visible(true)
 		c.Number:settext(iCombo)
+		c.Label:visible(not CenterCombo)
+		c.Label:settext(translated_combo)
 
 		-- FullCombo Rewards
 		if param.FullComboW1 then
@@ -103,13 +117,20 @@ local t =
 			c.Label:diffuse(labelColor)
 			c.Label:diffusebottomedge(color("0.75,0.75,0.75,1"))
 		else
-			-- I actually don't know what this is. 
+			-- I actually don't know what this is.
 			-- It's probably for if you want to fade out the combo after a miss.
 			-- Oh well; Til death doesn't care.		-poco
 			c.Number:diffuse(color("#ff0000"))
 			c.Number:stopeffect()
 			c.Label:diffuse(Color("Red"))
 			c.Label:diffusebottomedge(color("0.5,0,0,1"))
+		end
+
+		--Animations
+		param.Zoom = scale(iCombo, 0, NumberMaxZoomAt, NumberMinZoom, NumberMaxZoom)
+		param.Zoom = clamp(param.Zoom, NumberMinZoom, NumberMaxZoom)
+		if CTEnabled then
+			Pulse(c.Number, param)
 		end
 	end,
 	MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),

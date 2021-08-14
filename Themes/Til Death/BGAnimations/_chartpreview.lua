@@ -91,22 +91,12 @@ local t = Def.ActorFrame {
 		cd:GetChild("cdbg"):diffusealpha(0)	-- we want to use our position background for draw order stuff -mina
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
 	end,
-	OptionsScreenClosedMessageCommand = function(self)
-		local rev = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-		if self:GetChild("NoteField") ~= nil then
-			if not rev then
-				self:GetChild("NoteField"):y(yPos * 1.5)
-			else
-				self:GetChild("NoteField"):y(yPos * 1.5 + yPosReverse)
-			end
-		end
-	end,
 
 	Def.NoteFieldPreview {
 		Name = "NoteField",
-		DrawDistanceBeforeTargetsPixels = 800,
+		DrawDistanceBeforeTargetsPixels = 600,
 		DrawDistanceAfterTargetsPixels = 0,
-		YReverseOffsetPixels = 100,
+		--YReverseOffsetPixels = 100,
 
 		BeginCommand = function(self)
 			self:zoom(prevZoom):draworder(90)
@@ -133,7 +123,7 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
-			self:xy(wodth/2, SCREEN_HEIGHT/2) 
+			self:xy(wodth/2, SCREEN_HEIGHT/2)
 			self:diffuse(color("0.05,0.05,0.05,1"))
 		end,
 		CurrentStyleChangedMessageCommand=function(self)
@@ -141,11 +131,12 @@ local t = Def.ActorFrame {
 			self:zoomto(48 * cols, SCREEN_HEIGHT)
 		end
 	},
-	LoadFont("Common Normal") .. {
+	LoadFont("Common Large") .. {
 		Name = "pausetext",
 		InitCommand = function(self)
-			self:xy(wodth/2, SCREEN_HEIGHT/2)
+			self:xy(wodth/2, SCREEN_HEIGHT/2):draworder(900):zoom(0.5)
 			self:settext(""):diffuse(color("0.8,0,0"))
+			self:shadowlength(1):shadowcolor(0,0,0,1)
 		end,
 		NoteFieldVisibleMessageCommand = function(self)
 			self:settext("")
@@ -154,9 +145,9 @@ local t = Def.ActorFrame {
 			self:playcommand("Set")
 		end,
 		SetCommand = function(self)
-			if SCREENMAN:GetTopScreen():IsSampleMusicPaused() then 
+			if SCREENMAN:GetTopScreen():IsSampleMusicPaused() then
 				self:settext(translated_info["Paused"])
-			else 
+			else
 				self:settext("")
 			end
 		end
@@ -167,7 +158,7 @@ local t = Def.ActorFrame {
 			--self:zoomto(wodth, hidth):halign(0):diffuse(color(".1,.1,.1,1")):draworder(900) -- alt bg for calc info
 			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900) -- cdgraph bg
 		end,
-		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina 
+		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina
 			if isOver(self) then
 				local seek = self:GetParent():GetChild("Seek")
 				local seektext = self:GetParent():GetChild("Seektext")

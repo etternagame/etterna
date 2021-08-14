@@ -20,6 +20,31 @@ for i = 1, #ms.SkillSets + 2 do
 end
 local numbersafterthedecimal = 0
 
+-- should maybe make some of these generic
+local function highlight(self)
+	if self:IsVisible() then
+		self:queuecommand("Highlight")
+	end
+end
+
+-- note: will use the local isover functionality
+local function highlightIfOver(self)
+	if isOver(self) then
+		self:diffusealpha(0.6)
+	else
+		self:diffusealpha(1)
+	end
+end
+local function highlightIfOver2(self)
+	if isOver(self) and not FILTERMAN:GetFilterMode() then
+		self:diffusealpha(0.6)
+	elseif FILTERMAN:GetFilterMode() then
+		self:diffusealpha(0.2)
+	else
+		self:diffusealpha(1)
+	end
+end
+
 local function FilterInput(event)
 	if event.type ~= "InputEventType_Release" and ActiveSS > 0 and active then
 		local shouldUpdate = false
@@ -100,38 +125,31 @@ local translated_info = {
 
 local f =
 	Def.ActorFrame {
-	InitCommand = function(self)
-		self:xy(frameX, frameY):halign(0)
-	end,
-	Def.Quad {
-		InitCommand = function(self)
-			self:zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
-		end
-	},
-	Def.Quad {
-		InitCommand = function(self)
-			self:zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.5)
-		end
-	},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(5, offsetY - 9):zoom(0.6):halign(0):diffuse(getMainColor("positive")):settext(translated_info["Title"])
-			end
-		},
-	OnCommand = function(self)
+	BeginCommand = function(self)
+		self:halign(0):visible(false)
+		self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 		SCREENMAN:GetTopScreen():AddInputCallback(FilterInput)
+		self:queuecommand("Set")
+	end,
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, frameY):diffusealpha(0)
+		self:sleep(0.04):queuecommand("Invis")
+	end,
+	InvisCommand= function(self)
 		self:visible(false)
+	end,
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(frameX, frameY):diffusealpha(1)
 	end,
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == 5 then
 			self:visible(true)
+			self:queuecommand("On")
 			active = true
 		else
 			MESSAGEMAN:Broadcast("NumericInputEnded")
-			self:visible(false)
 			self:queuecommand("Off")
 			active = false
 		end
@@ -145,6 +163,23 @@ local f =
 		MESSAGEMAN:Broadcast("UpdateFilter")
 		SCREENMAN:set_input_redirected(PLAYER_1, false)
 	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(getMainColor("tabs"))
+		end
+	},
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.5)
+		end
+	},
+	LoadFont("Common Normal") ..
+		{
+			InitCommand = function(self)
+				self:xy(5, offsetY - 9):zoom(0.6):halign(0):settext(translated_info["Title"])
+				self:diffuse(Saturation(getMainColor("positive"), 0.1))
+			end
+		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
@@ -191,6 +226,7 @@ local f =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + frameWidth / 2, 175):zoom(textzoom):halign(0)
+				self:diffuse(getMainColor("positive"))
 			end,
 			SetCommand = function(self)
 				self:settextf("%s:%5.1fx", translated_info["MaxRate"], FILTERMAN:GetMaxFilterRate())
@@ -200,6 +236,9 @@ local f =
 			end,
 			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
 			end
 		},
 	Def.Quad {
@@ -225,6 +264,7 @@ local f =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + frameWidth / 2, 175 + spacingY):zoom(textzoom):halign(0)
+				self:diffuse(getMainColor("positive"))
 			end,
 			SetCommand = function(self)
 				self:settextf("%s:%5.1fx", translated_info["MinRate"], FILTERMAN:GetMinFilterRate())
@@ -234,6 +274,9 @@ local f =
 			end,
 			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
 			end
 		},
 	Def.Quad {
@@ -259,6 +302,7 @@ local f =
 		{
 			InitCommand = function(self)
 				self:xy(frameX + frameWidth / 2, 175 + spacingY * 2):zoom(textzoom):halign(0)
+				self:diffuse(getMainColor("positive"))
 			end,
 			SetCommand = function(self)
 				if FILTERMAN:GetFilterMode() then
@@ -272,6 +316,9 @@ local f =
 			end,
 			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
 			end
 		},
 	Def.Quad {
@@ -299,9 +346,9 @@ local f =
 					self:settextf("%s: %s", translated, translated_info["Off"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				end
 				if FILTERMAN:GetFilterMode() then
-					self:diffuse(color("#666666"))
+					self:diffuse(1,1,1,0.2)
 				else
-					self:diffuse(color("#FFFFFF"))
+					self:diffuse(getMainColor("positive"))
 				end
 			end,
 			FilterModeChangedMessageCommand = function(self)
@@ -309,6 +356,9 @@ local f =
 			end,
 			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver2(self)
 			end
 		},
 	Def.Quad {
@@ -316,7 +366,7 @@ local f =
 			self:xy(frameX + frameWidth / 2, 175 + spacingY * 3):zoomto(180, 18):halign(0):diffusealpha(0)
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and active then
+			if isOver(self) and active and not FILTERMAN:GetFilterMode() then
 				FILTERMAN:ToggleHighestSkillsetsOnly()
 				MESSAGEMAN:Broadcast("FilterModeChanged")
 				whee:SongSearch("")
@@ -336,9 +386,9 @@ local f =
 					self:settextf("%s: %s", translated, translated_info["Off"]):maxwidth(frameWidth / 2 / textzoom - 50)
 				end
 				if FILTERMAN:GetFilterMode() then
-					self:diffuse(color("#666666"))
+					self:diffuse(1,1,1,0.2)
 				else
-					self:diffuse(color("#FFFFFF"))
+					self:diffuse(getMainColor("positive"))
 				end
 			end,
 			FilterModeChangedMessageCommand = function(self)
@@ -346,6 +396,9 @@ local f =
 			end,
 			ResetFilterMessageCommand = function(self)
 				self:queuecommand("Set")
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver2(self)
 			end
 		},
 	Def.Quad {
@@ -353,7 +406,7 @@ local f =
 			self:xy(frameX + frameWidth / 2, 175 + spacingY * 4):zoomto(180, 18):halign(0):diffusealpha(0)
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and active then
+			if isOver(self) and active and not FILTERMAN:GetFilterMode() then
 				FILTERMAN:ToggleHighestDifficultyOnly()
 				MESSAGEMAN:Broadcast("FilterModeChanged")
 				whee:SongSearch("")
@@ -581,6 +634,10 @@ f[#f + 1] =
 		InitCommand = function(self)
 			self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2):halign(0.5):zoom(0.35)
 			self:settext(THEME:GetString("TabFilter", "Reset"))
+			self:diffuse(getMainColor("positive"))
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
 		end
 	}
 

@@ -43,7 +43,7 @@ local englishes = {
 	";"
 }
 local frameX = 10
-local frameY = 180 + capWideScale(get43size(120), 120)
+local frameY = 300
 local active = false
 local whee
 local searchtitle = ""
@@ -59,7 +59,7 @@ local CtrlPressed = false
 
 local offsetX = -10
 local offsetY = 20
-local frameWidth = capWideScale(360, 400)
+local frameWidth = 400
 local frameHeight = 350
 
 local function searchInput(event)
@@ -159,7 +159,7 @@ end
 local t =
 	Def.ActorFrame {
 	InitCommand = function(self)
-		self:zoom(0.85)
+		self:zoom(0.9)
 	end,
 	BeginCommand = function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
@@ -176,16 +176,26 @@ local t =
 		end
 		self:queuecommand("Set")
 	end,
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		self:sleep(0.04):queuecommand("Invis")
+	end,
+	InvisCommand= function(self)
+		self:visible(false)
+	end,
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+	end,
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == (NSMAN:IsETTP() and 0 or 1) then
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
+			self:queuecommand("On")
 			active = true
 			whee:Move(0)
 			MESSAGEMAN:Broadcast("RefreshSearchResults")
 		else
-			self:visible(false)
 			self:queuecommand("Off")
 			active = false
 		end
@@ -195,7 +205,7 @@ local t =
 	end,
 	Def.Quad {
 		SetCommand = function(self)
-			self:xy(frameX, 45):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+			self:xy(frameX, 45):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end
 	},
 	Def.Quad {
@@ -203,18 +213,6 @@ local t =
 			self:xy(frameX, 45):zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.5)
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 225, frameY - 200):zoom(0.4):maxwidth(700)
-			end,
-			SetCommand = function(self)
-				self:settext(searchtitle)
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
-			end
-		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
@@ -228,9 +226,9 @@ local t =
 		end,
 		SetCommand = function(self)
 			if 1 == inputting then
-				self:diffusealpha(0.25)
+				self:diffuse(color("#FFFFFF66"))
 			else
-				self:diffusealpha(0.55)
+				self:diffuse(getMainColor("frames")):diffusealpha(0.55)
 			end
 		end,
 		UpdateStringMessageCommand = function(self)
@@ -246,18 +244,6 @@ local t =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 225, frameY - 150):zoom(0.4):maxwidth(700)
-			end,
-			SetCommand = function(self)
-				self:settext(searchdesc)
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
 				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
 				self:settextf("%s: ", translated_info["Subtitle"])
 			end
@@ -268,9 +254,9 @@ local t =
 		end,
 		SetCommand = function(self)
 			if 2 == inputting then
-				self:diffusealpha(0.25)
+				self:diffuse(color("#FFFFFF66"))
 			else
-				self:diffusealpha(0.55)
+				self:diffuse(getMainColor("frames")):diffusealpha(0.55)
 			end
 		end,
 		UpdateStringMessageCommand = function(self)
@@ -283,6 +269,30 @@ local t =
 			end
 		end
 	},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 225, frameY - 202):zoom(0.4):maxwidth(700)
+			end,
+			SetCommand = function(self)
+				self:settext(searchtitle)
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
+	LoadFont("Common Large") ..
+		{
+			InitCommand = function(self)
+				self:xy(frameX + 225, frameY - 152):zoom(0.4):maxwidth(700)
+			end,
+			SetCommand = function(self)
+				self:settext(searchdesc)
+			end,
+			UpdateStringMessageCommand = function(self)
+				self:queuecommand("Set")
+			end
+		},
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
@@ -380,8 +390,9 @@ local t =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(frameX + 5, offsetY + 36):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
+				self:xy(frameX + 5, offsetY + 34):zoom(0.65):halign(0)
 				self:settext(translated_info["TabTitle"])
+				self:diffuse(Saturation(getMainColor("positive"), 0.1))
 			end
 		}
 }

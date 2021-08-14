@@ -65,17 +65,6 @@ ms.SkillSets = {
 	"Technical"
 }
 
-ms.SkillSetsShort = {
-	"Overall",
-	"Stream",
-	"JS",
-	"HS",
-	"Stam",
-	"Jack Speed",
-	"Chordjack",
-	"Tech"
-}
-
 ms.SkillSetsTranslatedByName = {
 	Overall = THEME:GetString("Skillsets", "Overall"),
 	Stream = THEME:GetString("Skillsets", "Stream"),
@@ -97,6 +86,18 @@ ms.SkillSetsTranslated = {
 	THEME:GetString("Skillsets", "Chordjack"),
 	THEME:GetString("Skillsets", "Technical"),
 }
+
+ms.SkillSetsShortTranslated = {
+	THEME:GetString("Skillsets", "OverallShort"),
+	THEME:GetString("Skillsets", "StreamShort"),
+	THEME:GetString("Skillsets", "JumpstreamShort"),
+	THEME:GetString("Skillsets", "HandstreamShort"),
+	THEME:GetString("Skillsets", "StaminaShort"),
+	THEME:GetString("Skillsets", "JackSpeedShort"),
+	THEME:GetString("Skillsets", "ChordjackShort"),
+	THEME:GetString("Skillsets", "TechnicalShort"),
+}
+
 
 ms.JudgeScalers = GAMESTATE:GetTimingScales()
 
@@ -341,17 +342,21 @@ function getRateString(x)
 	return string.format("%.2f", x):gsub("%.?0+$", "") .. "x"
 end
 
-function getCurRateDisplayString()
-	return getRateDisplayString(getCurRateString())
+function getCurRateDisplayString(ignoremusicstr)
+	return getRateDisplayString(getCurRateString(),ignoremusicstr)
 end
 
-function getRateDisplayString(x)
+function getRateDisplayString(x,ignoremusicstr)
 	if x == "1x" then
 		x = "1.0x"
 	elseif x == "2x" then
 		x = "2.0x"
 	end
-	return x .. musicstr
+	if ignoremusicstr then
+		return x
+	else
+		return x .. musicstr
+	end
 end
 
 function getCurRateValue()

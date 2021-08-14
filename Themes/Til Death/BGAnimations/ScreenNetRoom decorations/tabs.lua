@@ -94,14 +94,14 @@ function tabs(index)
 		end,
 		SetCommand = function(self)
 			self:finishtweening()
-			self:linear(0.1)
+			self:smooth(0.1)
 			--show tab if it's the currently selected one
 			if getTabIndex() == index - 1 then
-				self:y(frameY)
-				self:diffusealpha(1)
+				self:diffusealpha(1):y(frameY - 1)
+				self:GetChild("TabBG"):diffusecolor(Brightness(getMainColor("positive"),0.3)):diffusealpha(0.5)
 			else -- otherwise "Hide" them
-				self:y(frameY)
-				self:diffusealpha(0.65)
+				self:diffusealpha(0.7):y(frameY)
+				self:GetChild("TabBG"):diffusecolor(getMainColor("frames")):diffusealpha(0.7)
 			end
 		end,
 		TabChangedMessageCommand = function(self)
@@ -116,7 +116,7 @@ function tabs(index)
 		Def.Quad {
 		Name = "TabBG",
 		InitCommand = function(self)
-			self:y(2):valign(0):zoomto(frameWidth, 20):diffusecolor(getMainColor("frames")):diffusealpha(0.85)
+			self:y(2):valign(0):zoomto(frameWidth, 20):diffusecolor(getMainColor("frames")):diffusealpha(0.7)
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) then
@@ -131,7 +131,7 @@ function tabs(index)
 		LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:y(5):valign(0):zoom(0.45):diffuse(getMainColor("positive"))
+				self:y(4):valign(0):zoom(0.45):diffuse(getMainColor("positive"))
 			end,
 			BeginCommand = function(self)
 				self:queuecommand("Set")

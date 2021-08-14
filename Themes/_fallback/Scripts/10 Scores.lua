@@ -266,7 +266,7 @@ function getScoreHoldNoteScore(score, tns)
 	end
 end
 
-function getScoreMissCount(score)
+function getScoreComboBreaks(score)
 	return getScoreTapNoteScore(score, "TapNoteScore_Miss") + getScoreTapNoteScore(score, "TapNoteScore_W5") +
 		getScoreTapNoteScore(score, "TapNoteScore_W4")
 end
@@ -510,7 +510,7 @@ function getRescoredCustomPercentage(customWindows, rst)
 	return p * 100.0
 end
 
-function GetDisplayScoreByFilter(perc, CurRate) -- moved from wifetwirl, displays the score for the current rate if there is one, 
+function GetDisplayScoreByFilter(perc, CurRate) -- moved from wifetwirl, displays the score for the current rate if there is one,
 	local rtTable = getRateTable()				-- if not it looks for what might plausibly be your best by going down each rate
 	if not rtTable then
 		return nil
@@ -632,7 +632,7 @@ function getRescoredWife3Judge(version, judgeScale, rst)
 	local ts = tso[judgeScale]
 	local p = 0.0
 	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
-		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)	
+		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)
 	end
 	p = p + (rst["holdsMissed"] * -4.5)
 	p = p + (rst["minesHit"] * -7)

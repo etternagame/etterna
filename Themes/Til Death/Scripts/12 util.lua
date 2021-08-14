@@ -1,23 +1,23 @@
-function easyInputStringWithParams(question, maxLength, isPassword, f, params)
+function easyInputStringWithParams(question, maxLength, isPassword, funcOK, params)
 	SCREENMAN:AddNewScreenToTop("ScreenTextEntry")
 	local settings = {
 		Question = question,
 		MaxInputLength = maxLength,
 		Password = isPassword,
 		OnOK = function(answer)
-			f(answer, params)
+			funcOK(answer, params)
 		end
 	}
 	SCREENMAN:GetTopScreen():Load(settings)
 end
 
-function easyInputStringWithFunction(question, maxLength, isPassword, f)
+function easyInputStringWithFunction(question, maxLength, isPassword, func)
 	easyInputStringWithParams(
 		question,
 		maxLength,
 		isPassword,
 		function(answer, params)
-			f(answer)
+			func(answer)
 		end,
 		{}
 	)
@@ -34,4 +34,20 @@ function easyInputString(question, maxLength, isPassword, tablewithvalue)
 		end,
 		{}
 	)
+end
+
+function easyInputStringOKCancel(question, maxLength, isPassword, funcOK, funcCancel)
+	SCREENMAN:AddNewScreenToTop("ScreenTextEntry")
+	local settings = {
+		Question = question,
+		MaxInputLength = maxLength,
+		Password = isPassword,
+		OnOK = function(answer)
+			funcOK(answer)
+		end,
+		OnCancel = function()
+			funcCancel()
+		end,
+	}
+	SCREENMAN:GetTopScreen():Load(settings)
 end

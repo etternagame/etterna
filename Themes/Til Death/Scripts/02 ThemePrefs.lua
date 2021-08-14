@@ -572,7 +572,7 @@ function LaneCover()
 		ExportOnChange = true,
 		Choices = {
 			THEME:GetString("OptionNames", "Off"),
-			THEME:GetString("OptionNames", "Sudden"), 
+			THEME:GetString("OptionNames", "Sudden"),
 			THEME:GetString("OptionNames", "Hidden")
 		},
 		LoadSelections = function(self, list, pn)
@@ -635,7 +635,7 @@ function BackgroundType()
 		ExportOnChange = true,
 		Choices = {
 			THEME:GetString("OptionNames", "Default"),
-			THEME:GetString("OptionNames", "StaticBG"), 
+			THEME:GetString("OptionNames", "StaticBG"),
 			THEME:GetString("OptionNames", "RandomBG")
 		},
 		LoadSelections = function(self, list, pn)
@@ -1041,6 +1041,46 @@ function InstantSearch()
 	return t
 end
 
+function IgnoreTabInput()
+	local t = {
+		Name = "IgnoreTabInput",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = true,
+		Choices = {
+			THEME:GetString("OptionNames", "Off"),
+			THEME:GetString("OptionNames", "OnlyInSearch"),
+			THEME:GetString("OptionNames", "Always")
+		},
+		LoadSelections = function(self, list, pn)
+			local pref = themeConfig:get_data().global.IgnoreTabInput
+			if pref == 1 then
+				list[1] = true
+			elseif pref == 2 then
+				list[2] = true
+			else
+				list[3] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			if list[1] == true then
+				value = 1
+			elseif list[2] == true then
+				value = 2
+			else
+				value = 3
+			end
+			themeConfig:get_data().global.IgnoreTabInput = value
+			themeConfig:set_dirty()
+			themeConfig:save()
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 function ProgressBar()
 	local keymode = getCurrentKeyMode()
 	local t = {
@@ -1103,6 +1143,102 @@ function NPSWindow()
 		end
 	}
 	setmetatable(t, t)
+	return t
+end
+
+function JudgmentTween()
+	local t = {
+		Name = "JudgmentTween",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = themeConfig:get_data().global.JudgmentTween
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			if list[1] then
+				value = false
+			else
+				value = true
+			end
+			themeConfig:get_data().global.JudgmentTween = value
+			themeConfig:set_dirty()
+			themeConfig:save()
+		end
+	}
+	setmetatable( t, t )
+	return t
+end
+
+function ComboTween()
+	local t = {
+		Name = "ComboTween",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = themeConfig:get_data().global.ComboTween
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			if list[1] then
+				value = false
+			else
+				value = true
+			end
+			themeConfig:get_data().global.ComboTween = value
+			themeConfig:set_dirty()
+			themeConfig:save()
+		end
+	}
+	setmetatable( t, t )
+	return t
+end
+
+function CenteredCombo()
+	local t = {
+		Name = "CenteredCombo",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		ExportOnChange = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = themeConfig:get_data().global.CenteredCombo
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			if list[1] then
+				value = false
+			else
+				value = true
+			end
+			themeConfig:get_data().global.CenteredCombo = value
+			themeConfig:set_dirty()
+			themeConfig:save()
+		end
+	}
+	setmetatable( t, t )
 	return t
 end
 

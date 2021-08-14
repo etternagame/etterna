@@ -92,7 +92,6 @@ local o =
 	InitCommand = function(self)
 		cheese = self
 		self:SetUpdateFunction(highlight)
-		self:SetUpdateFunctionInterval(0.05)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
@@ -192,7 +191,7 @@ local o =
 		c5x = dwidth -- right aligned cols
 		c4x = c5x - adjx - (tzoom * 3 * adjx) -- right aligned cols
 		c3x = c4x - adjx - (tzoom * 10 * adjx) -- right aligned cols
-		headeroff = packspaceY / 1.5
+		headeroff = packspaceY / 2
 		row2yoff = 1
 		collapsed = false
 		self:diffusealpha(1)
@@ -202,13 +201,13 @@ local o =
 	Def.Quad {
 		Name = "FrameDisplay",
 		InitCommand = function(self)
-			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(color("#333333"))
+			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end,
 		HighlightCommand = function(self)
-			if isOver(self) and collapsed then
+			if collapsed then
 				self:diffusealpha(1)
 			else
-				self:diffusealpha(0.8)
+				self:diffusealpha(0.6)
 			end
 		end,
 		MouseRightClickMessageCommand = function(self)
@@ -243,10 +242,12 @@ local o =
 					local ny = INPUTFILTER:GetMouseY() - self:GetY()
 					self:GetParent():SaveXY(nx, ny) -- this can probably be wrapped for convenience -mina
 					self:GetParent():LoadXY()
+					self:GetParent():SetUpdateFunctionInterval(0.01)
 				else
 					self:zoomto(dwidth / 2, pdh / 2):valign(1):halign(0)
 				end
 			else
+				self:GetParent():SetUpdateFunctionInterval(0.04)
 				self:diffuse(getMainColor("frames")):diffusealpha(0)
 			end
 		end
@@ -297,6 +298,7 @@ local o =
 			--current rate toggle
 			InitCommand = function(self)
 				self:xy(c5x, headeroff):zoom(tzoom):halign(1):valign(1)
+				self:diffuse(getMainColor("positive"))
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -320,10 +322,11 @@ local o =
 		{
 			--top score/all score toggle
 			InitCommand = function(self)
+				self:diffuse(getMainColor("positive"))
 				if collapsed then
 					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1):valign(1)
 				else
-					self:xy(c5x - 160, headeroff):zoom(tzoom):halign(1):valign(1)
+					self:xy(c5x - capWideScale(160,190), headeroff):zoom(tzoom):halign(1):valign(1)
 				end
 			end,
 			HighlightCommand = function(self)
@@ -348,12 +351,13 @@ local o =
 		{
 			--ccon/off filter toggle
 			InitCommand = function(self)
+				self:diffuse(getMainColor("positive"))
 				if collapsed then
 					self:visible(false)
 					--self:xy(c5x - 110, headeroff):zoom(tzoom):halign(1):valign(1)
 				else
 					self:visible(true)
-					self:xy(c5x - 80, headeroff):zoom(tzoom):halign(1):valign(1)
+					self:xy(c5x - capWideScale(80,96), headeroff):zoom(tzoom):halign(1):valign(1)
 				end
 			end,
 			HighlightCommand = function(self)
@@ -619,7 +623,7 @@ local function makeScoreDisplay(i)
 								hs,
 								function()
 									setScoreForPlot(hs)
-									SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")					
+									SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
 								end
 							)
 						end

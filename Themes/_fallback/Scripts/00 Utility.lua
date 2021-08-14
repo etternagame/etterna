@@ -315,7 +315,8 @@ end
 -- @treturn {string} translated string of modifiers
 function getModifierTranslations(source)
 	local translated = {}
-	for mod in string.gmatch(source, "[^,%s]+") do
+	for mod in string.gmatch(source, "[^,]+") do
+		mod = mod:match("^%s*(.-)%s*$") -- trim whitespace from beginning and end -kangalioo
 		table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
 	end
 	return table.concat(translated, ", ")
