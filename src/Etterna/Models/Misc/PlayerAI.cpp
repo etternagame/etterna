@@ -587,6 +587,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	 * However, completely missed holds are present in replay data.
 	 * The second issue does not cause miscounts, but does cause butchered holds
 	 * to be missed (but not judged)
+	 *
+	 * Retrospective comment: im not sure if the above is true anymore
 	 */
 
 	// now update the wifescore values for each relevant snapshot.
@@ -596,13 +598,18 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	snapShotsUnused.reserve(m_ReplaySnapshotMap.size());
 	for (auto& it : m_ReplaySnapshotMap)
 		snapShotsUnused.push_back(it.first);
-	auto cws = 0.f;
-	auto mws = 0.f;
+	auto cws = 0.f; // curwifescore
+	auto mws = 0.f; // maxwifescore
+	auto totaloffset = 0.f; // sum of tap deviations
+	auto taps = 0; // tap count
+	auto runningmean = 0.f;
+	auto runningvariance = 0.f;
 	for (auto it = m_ReplayTapMap.begin(); it != m_ReplayTapMap.end();) {
 		const auto r = it->first;
 		if (r > snapShotsUnused.front()) {
 			// if we somehow skipped a snapshot, the only difference should be
 			// in misses and non taps
+			// dont have to update mean/sd in that case
 			auto rs = &m_ReplaySnapshotMap[snapShotsUnused.front()];
 			rs->curwifescore = cws +
 							   (rs->judgments[TNS_Miss] * wife3_miss_weight) +
@@ -618,8 +625,27 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			if (trr.type == TapNoteType_Mine) {
 				cws += wife3_mine_hit_weight;
 			} else {
-				cws += wife3(trr.offset, timingScale);
+				auto tapscore = wife3(trr.offset, timingScale);
+				cws += tapscore;
 				mws += 2.f;
+
+				// do mean/sd for all non miss taps
+				// AT THE TIME OF WRITING, THIS IS VERY SLIGHTLY WRONG
+				// BE AWARE
+				if (tapscore != wife3_miss_weight) {
+					totaloffset += trr.offset;
+					taps++;
+
+					// universe brain algorithm (Welford's)
+					auto delta = trr.offset - runningmean;
+					runningmean += delta / taps;
+					auto delta2 = trr.offset - runningmean;
+					runningvariance += delta * delta2;
+
+					rs->mean = runningmean;
+					//rs->mean = totaloffset / taps;
+					rs->standardDeviation = taps > 1 ? std::sqrt(runningvariance / (taps - 1)) : 0.f;
+				}
 			}
 		}
 		rs->curwifescore =
@@ -630,6 +656,37 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		snapShotsUnused.erase(snapShotsUnused.begin());
 		++it;
 	}
+
+	/*
+	// slow algorithm to get sd of all snapshots
+	for (auto it = m_ReplayTapMap.begin(); it != m_ReplayTapMap.end(); it++) {
+		const auto r = it->first;
+		auto rs = GetReplaySnapshotForNoterow(r);
+		auto mean = rs->mean;
+		auto sdtotal = 0.f;
+		auto sdtaps = 0;
+		for (auto nit = m_ReplayTapMap.begin();
+			 nit != it && nit != m_ReplayTapMap.end();
+			 nit++) {
+			const auto r2 = nit->first;
+
+			for (auto& trr : nit->second) {
+				if (trr.type != TapNoteType_Mine) {
+					auto tapscore = wife3(trr.offset, timingScale);
+
+					// do d for all non miss taps
+					if (tapscore != wife3_miss_weight) {
+						sdtaps++;
+						sdtotal += std::pow(trr.offset - mean, 2);
+					}
+				}
+			}
+		}
+		rs->standardDeviation =
+		  sdtaps > 0 ? std::sqrt(sdtotal / (sdtaps - 1)) : 0;
+	}
+	*/
+
 	if (!snapShotsUnused.empty()) {
 		for (auto row : snapShotsUnused) {
 			// This might not be technically correct

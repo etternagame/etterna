@@ -315,6 +315,20 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
 		return 1;
 	}
+	static int GetReplaySnapshotSDForNoterow(T* p, lua_State* L) {
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+
+		lua_pushnumber(L, rs->standardDeviation);
+		return 1;
+	}
+	static int GetReplaySnapshotMeanForNoterow(T* p, lua_State* L) {
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+
+		lua_pushnumber(L, rs->mean);
+		return 1;
+	}
 	static int GetReplayRate(T* p, lua_State* L)
 	{
 		Locator::getLogger()->trace("Getting replay rate");
@@ -374,6 +388,8 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		ADD_METHOD(SetPlayerStageStatsFromReplayData);
 		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
 		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
+		ADD_METHOD(GetReplaySnapshotSDForNoterow);
+		ADD_METHOD(GetReplaySnapshotMeanForNoterow);
 		ADD_METHOD(GetReplayRate);
 		ADD_METHOD(GetReplayJudge);
 		ADD_METHOD(ScoreUsedInvalidModifier);

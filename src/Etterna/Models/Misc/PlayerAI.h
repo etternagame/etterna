@@ -20,6 +20,8 @@ struct ReplaySnapshot
 	int hns[NUM_HoldNoteScore] = { 0 };
 	float curwifescore = 0.F;
 	float maxwifescore = 0.F;
+	float standardDeviation = 0.F;
+	float mean = 0.F;
 };
 
 // also known as ReplayManager
