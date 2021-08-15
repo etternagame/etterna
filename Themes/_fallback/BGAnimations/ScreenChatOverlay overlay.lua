@@ -107,7 +107,7 @@ chat.ScreenChangedMessageCommand = function(self)
 	end
 
 	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-	isGameplay = (currentScreen == "ScreenGameplay" or currentScreen == "ScreenNetGameplay")
+	isGameplay = (currentScreen:find("Gameplay") ~= nil or currentScreen:find("StageInformation") ~= nil)
 
 	if isGameplay or isInSinglePlayer then
 		self:visible(false)
