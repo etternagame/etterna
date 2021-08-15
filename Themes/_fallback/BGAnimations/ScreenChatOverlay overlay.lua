@@ -98,7 +98,8 @@ chat.ScreenChangedMessageCommand = function(self)
 	if
 		oldScreen ~= currentScreen and
 			(currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or
-				currentScreen == "ScreenOptionsService" or currentScreen == "ScreenInit")
+				currentScreen == "ScreenOptionsService" or currentScreen == "ScreenInit" or
+				currentScreen == "ScreenPackDownloader" or currentScreen == "ScreenBundleSelect")
 	 then
 		isInSinglePlayer = true
 	end
