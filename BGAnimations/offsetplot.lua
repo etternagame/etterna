@@ -211,6 +211,8 @@ local t = Def.ActorFrame {
                 local judgments = top:GetReplaySnapshotJudgmentsForNoterow(row)
                 local wifescore = top:GetReplaySnapshotWifePercentForNoterow(row) * 100
                 local time = SecondsToHHMMSS(td:GetElapsedTimeFromNoteRow(row))
+                local mean = top:GetReplaySnapshotMeanForNoterow(row)
+                local sd = top:GetReplaySnapshotSDForNoterow(row)
 
                 local marvCount = judgments[10]
                 local perfCount = judgments[9]
@@ -221,7 +223,7 @@ local t = Def.ActorFrame {
 
                 -- excessively long string format for translation support
                 local txt = string.format(
-                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %s",
+                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2fms\n%s: %0.2fms\n%s: %s",
                     wifescore,
                     "Marvelous", marvCount,
                     "Perfect", perfCount,
@@ -229,6 +231,8 @@ local t = Def.ActorFrame {
                     "Good", goodCount,
                     "Bad", badCount,
                     "Miss", missCount,
+                    "Std. Dev", sd,
+                    "Mean", mean,
                     "Time", time
                 )
 
