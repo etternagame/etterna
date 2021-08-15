@@ -584,6 +584,7 @@ function MPinput(event)
 		elseif (INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")) and
 			event.DeviceInput.button == "DeviceButton_v" then
 			typingText = typingText .. Arch.getClipboard()
+			update = true
 		elseif event.DeviceInput.button == "DeviceButton_backspace" then
 			typingText = typingText:sub(1, -2)
 			update = true
