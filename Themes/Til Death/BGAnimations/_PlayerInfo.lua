@@ -16,7 +16,6 @@ local AvatarY = SCREEN_HEIGHT - 50
 local playerRating = 0
 local uploadbarwidth = 100
 local uploadbarheight = 10
-local redir = SCREENMAN:get_input_redirected(PLAYER_1)
 
 local ButtonColor = getMainColor("positive")
 local nonButtonColor = ColorMultiplier(getMainColor("positive"), 1.25)
@@ -94,6 +93,7 @@ end
 
 -- handle logging in
 local function loginStep1(self)
+	local redir = SCREENMAN:get_input_redirected(PLAYER_1)
 	local function off()
 		if redir then
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
@@ -132,6 +132,7 @@ end
 
 -- do not use this function outside of first calling loginStep1
 local function loginStep2()
+	local redir = SCREENMAN:get_input_redirected(PLAYER_1)
 	local function off()
 		if redir then
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
@@ -215,7 +216,7 @@ t[#t + 1] =
 			self:zoomto(50, 50)
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not redir then
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				local top = SCREENMAN:GetTopScreen()
 				SCREENMAN:SetNewScreen("ScreenAssetSettings")
 			end
@@ -239,7 +240,7 @@ t[#t + 1] =
 				end
 			end,
 			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and not redir then
+				if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 					easyInputStringWithFunction(translated_info["NameChange"], 64, false, setnewdisplayname)
 				end
 			end,
@@ -372,7 +373,7 @@ t[#t + 1] =
 			ms.ok(translated_info["LoginSuccess"])
 		end,
 		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not redir then
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				if DLMAN:IsLoggedIn() then
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
 					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
