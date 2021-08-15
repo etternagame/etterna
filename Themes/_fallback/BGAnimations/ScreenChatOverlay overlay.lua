@@ -429,19 +429,20 @@ chatWindow[#chatWindow + 1] =
 	end
 }
 chatWindow[#chatWindow + 1] =
-	LoadFont("Common Normal") ..
+	LoadColorFont("Common Normal") ..
 	{
 		Name = "ChatBoxText",
 		InitCommand = function(self)
 			self:settext("")
 			self:halign(0):valign(0)
+			self:vertspacing(0)
 			self:zoom(scale)
+			self:SetMaxLines(maxlines, 1)
 			self:wrapwidthpixels((width - 8) / scale)
 			self:diffuse(color("#FFFFFF"))
 		end,
 		UpdateChatOverlayMessageCommand = function(self)
 			self:settext(typingText)
-			self:wrapwidthpixels((width - 8) / scale)
 			self:xy(x + 4, height * (maxlines + 1) + y + 4 + 4)
 		end
 	}
