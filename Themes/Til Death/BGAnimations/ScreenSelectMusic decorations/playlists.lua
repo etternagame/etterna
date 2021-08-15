@@ -401,21 +401,39 @@ local function rankingLabel(i)
 						end
 					end
 				},
-				LoadFont("Common Large") .. {
-					Name = "text",
+				Def.ActorFrame {
+					Name = "mouseovertextcontainer",
 					InitCommand = function(self)
-						self:xy(15, -10):maxwidth(580):halign(0):zoom(fontScale)
+						self:xy(15, -10)
 					end,
 					DisplayPackCommand = function(self)
 						if songlist[i + ((currentchartpage - 1) * chartsperplaylist)] then
-							self:settext(songlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetGroupName())
+							local txt = self:GetChild("text")
+							local bg = self:GetChild("BG")
+							txt:settext(songlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetGroupName())
+							bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * 1.4)
 							self:finishtweening()
 							self:diffusealpha(1)
 							self:linear(0.25)
 							self:diffusealpha(0)
 						end
-					end
-				}
+					end,
+					Def.Quad {
+						Name = "BG",
+						InitCommand = function(self)
+							self:halign(0)
+							self:diffuse(color("0,0,0,0.6"))
+						end,
+					},
+					LoadFont("Common Large") .. {
+						Name = "text",
+						InitCommand = function(self)
+							self:maxwidth(580)
+							self:halign(0)
+							self:zoom(fontScale)
+						end,
+					},
+				},
 			},
 		LoadFont("Common Large") ..
 			{
