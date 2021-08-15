@@ -65,7 +65,7 @@ local function applyHSV()
 	saturationSliderPos:y(colorBoxHeight * satNum)
 	alphaSliderPos:y(colorBoxHeight * (1-alphaNum))
 
-	textCursorPos = 9
+	textCursorPos = 7
 	hexEntryString = "#" .. ColorToHex(currentColor)
 
 	MESSAGEMAN:Broadcast("ClickedNewColor")
@@ -127,7 +127,7 @@ end
 
 local function cursorCanMove(speed)
 
-	local maxTextSize = (#hexEntryString == 9 and 9 or #hexEntryString + 1)
+	local maxTextSize = (#hexEntryString == 7 and 7 or #hexEntryString + 1)
 
 	local tmpCursor = textCursorPos + speed
 	if tmpCursor > maxTextSize or tmpCursor < 2 then
@@ -160,9 +160,9 @@ end
 
 local function handleHexEntry(character)
 	character = character:upper()
-	
-	if #hexEntryString <= 9 then -- #23 45 67 89 format
-		if #hexEntryString == 9 and textCursorPos == 9 then
+
+	if #hexEntryString <= 7 then -- #23 45 67 89 format
+		if #hexEntryString == 7 and textCursorPos == 7 then
 			hexEntryString = hexEntryString:sub(1,-2) .. character
 		else
 			if textCursorPos == #hexEntryString + 1 then
@@ -175,7 +175,7 @@ local function handleHexEntry(character)
 			textCursorPos = textCursorPos + 1
 		end
 	end
-	if textCursorPos > 9 then textCursorPos = 9 end
+	if textCursorPos > 7 then textCursorPos = 7 end
 
 	aboutToSave = false
 	MESSAGEMAN:Broadcast("UpdateStringDisplay")
@@ -191,7 +191,7 @@ local function handleTextUpdate()
 		finalcolor[3] = tonumber("0x"..hexEntryString:sub(4,4)) / 15
 		if hxl == 4 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,5)) / 15 end
 		if hxl == 5 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,6)) / 255 end
-	elseif hxl == 6 or hxl == 7 or hxl == 8 then -- color 6/7/8 hex 
+	elseif hxl == 6 or hxl == 7 or hxl == 8 then -- color 6/7/8 hex
 		finalcolor[1] = tonumber("0x"..hexEntryString:sub(2,3)) / 255
 		finalcolor[2] = tonumber("0x"..hexEntryString:sub(4,5)) / 255
 		finalcolor[3] = tonumber("0x"..hexEntryString:sub(6,7)) / 255
@@ -558,7 +558,7 @@ t[#t+1] = Def.ActorFrame {
 		UpdateStringDisplayMessageCommand = function(self)
 			self:visible(aboutToSave)
 		end
-		
+
 	},
 	LoadFont("Common Large") .. {
 		Name = "SelectedTypeIndicator",

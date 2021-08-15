@@ -1,3 +1,5 @@
+#include <vector>
+
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "DialogDriver_MacOSX.h"
@@ -45,7 +47,7 @@ ShowAlert(CFOptionFlags flags,
 
 	// Flush all input that's accumulated while the dialog box was up.
 	if (INPUTFILTER) {
-		vector<InputEvent> dummy;
+		std::vector<InputEvent> dummy;
 		INPUTFILTER->Reset();
 		INPUTFILTER->GetInputEvents(dummy);
 	}

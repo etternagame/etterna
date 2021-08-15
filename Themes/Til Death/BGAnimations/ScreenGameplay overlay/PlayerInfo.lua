@@ -2,6 +2,7 @@
 local profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
 local PlayerFrameX = 0
 local PlayerFrameY = SCREEN_HEIGHT - 50
+local bgalpha = PREFSMAN:GetPreference("BGBrightness")
 
 local translated_info = {
 	Judge = THEME:GetString("ScreenGameplay", "ScoringJudge"),
@@ -10,6 +11,18 @@ local translated_info = {
 
 local t =
 	Def.ActorFrame {
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(0, SCREEN_HEIGHT):align(0,1):zoomto(150,61)
+			self:diffuse(0,0,0,bgalpha-0.2)
+		end,
+	},
+	Def.Quad {
+		InitCommand = function(self)
+			self:xy(150, SCREEN_HEIGHT):align(0,1):zoomto((SCREEN_WIDTH*.44)-150,18)
+			self:diffuse(0,0,0,bgalpha-0.2):faderight(0.7)
+		end,
+	},
 	Def.Sprite {
 		InitCommand = function(self)
 			self:halign(0):valign(0):xy(PlayerFrameX, PlayerFrameY)
@@ -23,15 +36,15 @@ local t =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(PlayerFrameX + 90, PlayerFrameY + 24):halign(0):zoom(0.45):maxwidth(120):diffuse(getMainColor("positive"))
+				self:xy(PlayerFrameX + 90, PlayerFrameY + 24.5):halign(0):zoom(0.4):maxwidth(140):diffuse(getMainColor("positive"))
 			end,
 			SetCommand = function(self)
-				self:settext(getDifficulty(GAMESTATE:GetCurrentSteps(PLAYER_1):GetDifficulty()))
+				self:settext(getDifficulty(GAMESTATE:GetCurrentSteps():GetDifficulty()))
 				self:diffuse(
 					getDifficultyColor(
 						GetCustomDifficulty(
-							GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType(),
-							GAMESTATE:GetCurrentSteps(PLAYER_1):GetDifficulty()
+							GAMESTATE:GetCurrentSteps():GetStepsType(),
+							GAMESTATE:GetCurrentSteps():GetDifficulty()
 						)
 					)
 				)
@@ -43,10 +56,10 @@ local t =
 	LoadFont("Common Large") ..
 		{
 			InitCommand = function(self)
-				self:xy(PlayerFrameX + 52, PlayerFrameY + 28):halign(0):zoom(0.75):maxwidth(50)
+				self:xy(PlayerFrameX + 52, PlayerFrameY + 30):halign(0):zoom(0.75):maxwidth(50)
 			end,
 			SetCommand = function(self)
-				local meter = GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1)
+				local meter = GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)
 				self:settextf("%05.2f", meter)
 				self:diffuse(byMSD(meter))
 			end,
@@ -63,16 +76,16 @@ local t =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(PlayerFrameX + 91, PlayerFrameY + 39):halign(0):zoom(0.4):maxwidth(SCREEN_WIDTH * 0.8)
+				self:xy(PlayerFrameX + 91, PlayerFrameY + 40):halign(0):zoom(0.4):maxwidth(SCREEN_WIDTH * 0.8)
 			end,
 			BeginCommand = function(self)
-				self:settext(getModifierTranslations(GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerOptionsString("ModsLevel_Current")))
+				self:settext(getModifierTranslations(GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current")))
 			end
 		},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(PlayerFrameX + 53, PlayerFrameY - 2):halign(0):zoom(0.45)
+				self:xy(PlayerFrameX + 53, PlayerFrameY - 4):halign(0):zoom(0.45)
 			end,
 			BeginCommand = function(self)
 				self:settextf("%s: %d", translated_info["Judge"], GetTimingDifficulty())
@@ -81,7 +94,7 @@ local t =
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
-				self:xy(PlayerFrameX + 53, PlayerFrameY + 8):halign(0):zoom(0.45)
+				self:xy(PlayerFrameX + 53, PlayerFrameY + 9):halign(0):zoom(0.45)
 			end,
 			BeginCommand = function(self)
 				self:settextf("%s: %s", translated_info["Scoring"], scoringToText(themeConfig:get_data().global.DefaultScoreType))

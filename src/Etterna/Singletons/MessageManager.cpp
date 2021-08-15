@@ -87,7 +87,7 @@ XToString(MessageID);
 
 static RageMutex g_Mutex("MessageManager");
 
-typedef std::set<IMessageSubscriber*> SubscribersSet;
+using SubscribersSet = std::set<IMessageSubscriber *>;
 static std::map<std::string, SubscribersSet> g_MessageToSubscribers;
 
 Message::Message(const std::string& s)
@@ -225,8 +225,7 @@ MessageManager::Broadcast(Message& msg) const
 
 	LockMut(g_Mutex);
 
-	std::map<std::string, SubscribersSet>::const_iterator iter =
-	  g_MessageToSubscribers.find(msg.GetName());
+	auto iter = g_MessageToSubscribers.find(msg.GetName());
 	if (iter == g_MessageToSubscribers.end())
 		return;
 
@@ -252,7 +251,7 @@ MessageManager::Broadcast(MessageID m) const
 
 bool
 MessageManager::IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-									  const std::string& sMessage) const
+									  const std::string& sMessage)
 {
 	auto& subs = g_MessageToSubscribers[sMessage];
 	return subs.find(pSubscriber) != subs.end();

@@ -65,17 +65,6 @@ ms.SkillSets = {
 	"Technical"
 }
 
-ms.SkillSetsShort = {
-	"Overall",
-	"Stream",
-	"JS",
-	"HS",
-	"Stam",
-	"Jack Speed",
-	"Chordjack",
-	"Tech"
-}
-
 ms.SkillSetsTranslatedByName = {
 	Overall = THEME:GetString("Skillsets", "Overall"),
 	Stream = THEME:GetString("Skillsets", "Stream"),
@@ -97,6 +86,18 @@ ms.SkillSetsTranslated = {
 	THEME:GetString("Skillsets", "Chordjack"),
 	THEME:GetString("Skillsets", "Technical"),
 }
+
+ms.SkillSetsShortTranslated = {
+	THEME:GetString("Skillsets", "OverallShort"),
+	THEME:GetString("Skillsets", "StreamShort"),
+	THEME:GetString("Skillsets", "JumpstreamShort"),
+	THEME:GetString("Skillsets", "HandstreamShort"),
+	THEME:GetString("Skillsets", "StaminaShort"),
+	THEME:GetString("Skillsets", "JackSpeedShort"),
+	THEME:GetString("Skillsets", "ChordjackShort"),
+	THEME:GetString("Skillsets", "TechnicalShort"),
+}
+
 
 ms.JudgeScalers = GAMESTATE:GetTimingScales()
 
@@ -126,12 +127,27 @@ end
 
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
+local function dump(o)
+	if type(o) == "table" then
+		local s = "{ "
+		for k, v in pairs(o) do
+			if type(k) ~= "number" then
+				k = '"' .. k .. '"'
+			end
+			s = s .. "[" .. k .. "] = " .. dump(v) .. ","
+		end
+		return s .. "} "
+	else
+		return tostring(o)
+	end
+end
+
 -- **Functions**
 function ms.ok(m)
 	if not m then
 		SCREENMAN:SystemMessage("nahbro")
 	else
-		SCREENMAN:SystemMessage(m)
+		SCREENMAN:SystemMessage(dump(m))
 	end
 end
 
@@ -326,17 +342,21 @@ function getRateString(x)
 	return string.format("%.2f", x):gsub("%.?0+$", "") .. "x"
 end
 
-function getCurRateDisplayString()
-	return getRateDisplayString(getCurRateString())
+function getCurRateDisplayString(ignoremusicstr)
+	return getRateDisplayString(getCurRateString(),ignoremusicstr)
 end
 
-function getRateDisplayString(x)
+function getRateDisplayString(x,ignoremusicstr)
 	if x == "1x" then
 		x = "1.0x"
 	elseif x == "2x" then
 		x = "2.0x"
 	end
-	return x .. musicstr
+	if ignoremusicstr then
+		return x
+	else
+		return x .. musicstr
+	end
 end
 
 function getCurRateValue()
@@ -344,7 +364,7 @@ function getCurRateValue()
 end
 
 function getCurKey()
-	return GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+	return GAMESTATE:GetCurrentSteps():GetChartKey()
 end
 
 -- returns a string of keys for a table
@@ -371,7 +391,7 @@ function formLink(x, y)
 end
 
 function GetPlayableTime()
-	local step = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	local step = GAMESTATE:GetCurrentSteps()
 	return step:GetLengthSeconds()
 end
 

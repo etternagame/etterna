@@ -121,6 +121,8 @@ class Screen : public ActorFrame
 	std::vector<int> delayedPeriodicFunctionIdsToDelete;
 	void SetInterval(const std::function<void()>& f, float ms, int fRemove);
 
+	bool b_PreviewNoteFieldIsActive = false;
+
   protected:
 	/** @brief Holds the messages sent to a Screen. */
 	struct QueuedScreenMessage

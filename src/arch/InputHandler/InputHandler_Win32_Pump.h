@@ -12,7 +12,7 @@ class InputHandler_Win32_Pump : public InputHandler
 	InputHandler_Win32_Pump();
 	~InputHandler_Win32_Pump();
 	std::string GetDeviceSpecificInputString(const DeviceInput& di);
-	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut);
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut);
 
   private:
 	USBDevice* m_pDevice;

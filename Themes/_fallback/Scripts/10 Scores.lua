@@ -121,8 +121,8 @@ end
 function getMaxNotes(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		steps = GAMESTATE:GetCurrentSteps(pn)
+	if GAMESTATE:IsPlayerEnabled() then
+		steps = GAMESTATE:GetCurrentSteps()
 		if steps ~= nil then
 			if GAMESTATE:GetCurrentGame():CountNotesSeparately() then
 				return steps:GetRadarValues(pn):GetValue("RadarCategory_Notes") or 0
@@ -137,8 +137,8 @@ end
 function getMaxHolds(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		steps = GAMESTATE:GetCurrentSteps(pn)
+	if GAMESTATE:IsPlayerEnabled() then
+		steps = GAMESTATE:GetCurrentSteps()
 		if steps ~= nil then
 			return (steps:GetRadarValues(pn):GetValue("RadarCategory_Holds") +
 				steps:GetRadarValues(pn):GetValue("RadarCategory_Rolls")) or 0
@@ -266,7 +266,7 @@ function getScoreHoldNoteScore(score, tns)
 	end
 end
 
-function getScoreMissCount(score)
+function getScoreComboBreaks(score)
 	return getScoreTapNoteScore(score, "TapNoteScore_Miss") + getScoreTapNoteScore(score, "TapNoteScore_W5") +
 		getScoreTapNoteScore(score, "TapNoteScore_W4")
 end
@@ -374,9 +374,9 @@ function getScoresByKey(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local profile
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
+	if GAMESTATE:IsPlayerEnabled() then
 		profile = GetPlayerOrMachineProfile(pn)
-		steps = GAMESTATE:GetCurrentSteps(pn)
+		steps = GAMESTATE:GetCurrentSteps()
 		if profile ~= nil and steps ~= nil and song ~= nil then
 			return SCOREMAN:GetScoresByKey(steps:GetChartKey())
 		end
@@ -510,7 +510,7 @@ function getRescoredCustomPercentage(customWindows, rst)
 	return p * 100.0
 end
 
-function GetDisplayScoreByFilter(perc, CurRate) -- moved from wifetwirl, displays the score for the current rate if there is one, 
+function GetDisplayScoreByFilter(perc, CurRate) -- moved from wifetwirl, displays the score for the current rate if there is one,
 	local rtTable = getRateTable()				-- if not it looks for what might plausibly be your best by going down each rate
 	if not rtTable then
 		return nil
@@ -632,7 +632,7 @@ function getRescoredWife3Judge(version, judgeScale, rst)
 	local ts = tso[judgeScale]
 	local p = 0.0
 	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
-		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)	
+		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)
 	end
 	p = p + (rst["holdsMissed"] * -4.5)
 	p = p + (rst["minesHit"] * -7)

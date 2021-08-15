@@ -1,13 +1,15 @@
 local usersZoom = 0.45
-local usersWidth = 50
-local usersWidthSmall = 25
-local usersWidthZoom = 50 * (1 / usersZoom)
-local usersWidthSmallZoom = 25 * (1 / usersZoom)
-local usersRowSize = 4
-local usersX = SCREEN_WIDTH / 4
-local usersY = SCREEN_TOP + 15
-local usersHeight = 10
-local showVisualizer = themeConfig:get_data().global.ShowVisualizer
+local usersWidth = capWideScale(50,66)
+local usersWidthSmall = capWideScale(36,48)
+local usersWidthZoom = usersWidth * (1 / usersZoom)
+local usersWidthSmallZoom = usersWidthSmall * (1 / usersZoom)
+local usersRowSize = 7
+local usersRowSizeSmall = 10
+local usersX = 6
+local usersY = SCREEN_TOP + 40
+local usersXGap = 3
+local usersYGap = 4
+local usersHeight = 8
 
 local top = SCREENMAN:GetTopScreen()
 local qty = 0
@@ -34,17 +36,13 @@ local r =
 }
 
 local function userLabel(i)
-	local x = usersX + usersWidth * ((i-1) % usersRowSize)
-	local y = usersY + math.floor((i-1) / usersRowSize) * usersHeight
 	local aux =
 		LoadFont("Common Normal") ..
 		{
 			Name = i,
 			BeginCommand = function(self)
-				if showVisualizer then
-					y = y + 25
-				end
-				self:xy(x, y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
+				self:halign(0)
+				self:zoom(usersZoom):diffuse(posit):queuecommand("Set")
 			end,
 			SetCommand = function(self)
 				if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
@@ -77,9 +75,17 @@ local function userLabel(i)
 				else
 					self:settext("")
 				end
-				if qty < 9 then
+				if qty < 8 then
+					self:x(usersX + (usersWidth + usersXGap) * ((i-1) % usersRowSize))
+					self:y(usersY + 6.5)
+					self:maxwidth(usersWidthZoom)
+				elseif qty < 15 then
+					self:x(usersX + (usersWidth + usersXGap) * ((i-1) % usersRowSize))
+					self:y(usersY + math.floor((i-1) / usersRowSize) * (usersHeight + usersYGap))
 					self:maxwidth(usersWidthZoom)
 				else
+					self:x(usersX + (usersWidthSmall + usersXGap/3) * ((i-1) % usersRowSizeSmall))
+					self:y(usersY + math.floor((i-1) / usersRowSizeSmall) * (usersHeight + usersYGap))
 					self:maxwidth(usersWidthSmallZoom)
 				end
 			end,
@@ -96,7 +102,7 @@ local function userLabel(i)
 	return aux
 end
 
-for i = 1, 32 do
+for i = 1,20  do
 	r[#r + 1] = userLabel(i)
 end
 

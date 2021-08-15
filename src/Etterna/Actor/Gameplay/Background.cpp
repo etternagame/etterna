@@ -14,7 +14,6 @@
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
@@ -45,7 +44,6 @@ static ThemeMetric<bool> RAND_BG_ENDS_AT_LAST_BEAT("Background",
 												   "RandomBGEndsAtLastBeat");
 
 static Preference<bool> g_bShowDanger("ShowDanger", false);
-static Preference<float> g_fBGBrightness("BGBrightness", 0.2f);
 static Preference<RandomBackgroundMode> g_RandomBackgroundMode(
   "RandomBackgroundMode",
   BGMODE_OFF);
@@ -96,7 +94,7 @@ class BackgroundImpl : public ActorFrame
 	} /* overrides pref and Cover */
 
 	void GetLoadedBackgroundChanges(
-	  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
+	  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer]);
 
   protected:
 	bool m_bInitted;
@@ -136,7 +134,7 @@ class BackgroundImpl : public ActorFrame
 		  const map<std::string, BackgroundTransition>& mapNameToTransition);
 
 		map<BackgroundDef, Actor*> m_BGAnimations;
-		vector<BackgroundChange> m_aBGChanges;
+		std::vector<BackgroundChange> m_aBGChanges;
 		int m_iCurBGChangeIndex;
 		Actor* m_pCurrentBGA;
 		Actor* m_pFadingBGA;
@@ -206,7 +204,7 @@ BackgroundImpl::Init()
 	// load transitions
 	{
 		ASSERT(m_mapNameToTransition.empty());
-		vector<std::string> vsPaths, vsNames;
+		std::vector<std::string> vsPaths, vsNames;
 		BackgroundUtil::GetBackgroundTransitions("", vsPaths, vsNames);
 		for (unsigned i = 0; i < vsPaths.size(); i++) {
 			const auto& sPath = vsPaths[i];
@@ -287,13 +285,13 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 	ASSERT(m_BGAnimations.find(bd) == m_BGAnimations.end());
 
 	// Resolve the background names
-	vector<std::string> vsToResolve;
+	std::vector<std::string> vsToResolve;
 	vsToResolve.push_back(bd.m_sFile1);
 	vsToResolve.push_back(bd.m_sFile2);
 
-	vector<std::string> vsResolved;
+	std::vector<std::string> vsResolved;
 	vsResolved.resize(vsToResolve.size());
-	vector<LuaThreadVariable*> vsResolvedRef;
+	std::vector<LuaThreadVariable*> vsResolvedRef;
 	vsResolvedRef.resize(vsToResolve.size());
 
 	for (unsigned i = 0; i < vsToResolve.size(); i++) {
@@ -310,7 +308,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 		 * RandomMovies dir
 		 * BGAnimations dir.
 		 */
-		vector<std::string> vsPaths, vsThrowAway;
+		std::vector<std::string> vsPaths, vsThrowAway;
 
 		// Look for BGAnims in the song dir
 		if (sToResolve == SONG_BACKGROUND_FILE)
@@ -388,7 +386,7 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 	// Resolve the effect file.
 	std::string sEffectFile;
 	for (auto i = 0; i < 2; i++) {
-		vector<std::string> vsPaths, vsThrowAway;
+		std::vector<std::string> vsPaths, vsThrowAway;
 		BackgroundUtil::GetBackgroundEffects(sEffect, vsPaths, vsThrowAway);
 		if (vsPaths.empty()) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -540,12 +538,14 @@ BackgroundImpl::LoadFromSong(const Song* pSong)
 	m_pSong = pSong;
 	m_StaticBackgroundDef.m_sFile1 = SONG_BACKGROUND_FILE;
 
-	if (g_fBGBrightness == 0.0f)
+	// do not load any background if it will never change and is 0 brightness
+	// this allows something like lua to load or modify in the background layer
+	if (PREFSMAN->m_fBGBrightness == 0.f && !m_pSong->HasBGChanges())
 		return;
 
 	// Choose a bunch of backgrounds that we'll use for the random file marker
 	{
-		vector<std::string> vsThrowAway, vsNames;
+		std::vector<std::string> vsThrowAway, vsNames;
 		switch (g_RandomBackgroundMode) {
 			default:
 				ASSERT_M(0,
@@ -871,7 +871,7 @@ BackgroundImpl::Update(float fDeltaTime)
 void
 BackgroundImpl::DrawPrimitives()
 {
-	if (g_fBGBrightness == 0.0f)
+	if (PREFSMAN->m_fBGBrightness == 0.0f)
 		return;
 
 	{
@@ -890,7 +890,7 @@ BackgroundImpl::DrawPrimitives()
 
 void
 BackgroundImpl::GetLoadedBackgroundChanges(
-  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
+  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
 {
 	FOREACH_BackgroundLayer(i) * pBackgroundChangesOut[i] =
 	  m_Layer[i].m_aBGChanges;
@@ -951,7 +951,7 @@ BrightnessOverlay::SetActualBrightness()
 	auto fRightBrightness =
 	  1 - GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_fCover;
 
-	const float fBaseBGBrightness = g_fBGBrightness;
+	const float fBaseBGBrightness = PREFSMAN->m_fBGBrightness;
 
 	// Revision:  Themes that implement a training mode should handle the
 	// brightness for it.  The engine should not force the brightness for
@@ -1029,7 +1029,7 @@ Background::SetBrightness(float fBrightness)
 }
 void
 Background::GetLoadedBackgroundChanges(
-  vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
+  std::vector<BackgroundChange>* pBackgroundChangesOut[NUM_BackgroundLayer])
 {
 	m_pImpl->GetLoadedBackgroundChanges(pBackgroundChangesOut);
 }

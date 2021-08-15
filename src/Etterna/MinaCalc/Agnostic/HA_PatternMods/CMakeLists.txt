@@ -3,6 +3,7 @@ list(APPEND HA_PATTERN_MODS
     "CJDensity.h"
     "FlamJam.h"
     "HS.h"
+    "HSDensity.h"
     "JS.h"
     "Stream.h"
     "TheThingFinder.h")

@@ -10,13 +10,13 @@ local width = SCREEN_WIDTH * 0.56
 local dwidth = width - offx * 2
 local height = (numgoals + 2) * packspaceY
 
-local adjx = 14
-local c0x = 10
-local c1x = 10 + c0x
-local c2x = c1x + (tzoom * 7 * adjx) -- guesswork adjustment for epxected text length
-local c5x = dwidth -- right aligned cols
-local c4x = c5x - adjx - (tzoom * 3 * adjx) -- right aligned cols
-local c3x = c4x - adjx - (tzoom * 10 * adjx) -- right aligned cols
+local adjx = 10
+local c0x = 20 -- for: priority and delete button
+local c1x = c0x + 25 -- for: rate header, rate and percent
+local c2x = c1x + (tzoom * 4 * adjx) -- for: song header and song name
+local c5x = dwidth -- for: diff header, msd and steps diff
+local c4x = c5x - adjx - (tzoom * 3.5 * adjx) -- for: date header, assigned, achieved
+local c3x = c4x - adjx - (tzoom * 10 * adjx) -- for: filter header and song name
 local headeroff = packspaceY / 1.5
 
 local moving
@@ -53,11 +53,10 @@ local function highlightIfOver(self)
 	end
 end
 
-local function byAchieved(scoregoal)
+local function byAchieved(scoregoal, nocolor, yescolor)
 	if not scoregoal or scoregoal:IsAchieved() then
-		return getMainColor("positive")
-	end
-	return color("#aaaaaa")
+		return yescolor or Saturation(getMainColor("enabled"), 0.55) end
+	return nocolor or color("#aaaaaa")
 end
 local filts = {
 	THEME:GetString("TabGoals", "FilterAll"),
@@ -125,43 +124,34 @@ local o =
 	Def.Quad {
 		Name = "FrameDisplay",
 		InitCommand = function(self)
-			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(color("#333333"))
+			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end
 	},
 	-- headers
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(offx, headeroff):zoomto(dwidth, pdh):halign(0):diffuse(color("#111111"))
+			self:xy(offx, headeroff):zoomto(dwidth, pdh):halign(0):diffuse(getMainColor("frames"))
 		end
 	},
 	LoadFont("Common normal") ..
 		{
-			--index
+			--priority header
 			InitCommand = function(self)
-				self:xy(width / 2, headeroff):zoom(tzoom):halign(0.5)
-			end,
-			UpdateCommand = function(self)
-				self:settextf("%i-%i", ind + 1, ind + numgoals)
-			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--priority
-			InitCommand = function(self)
-				self:xy(c0x + 10, headeroff):zoom(tzoom):halign(0.5)
+				self:xy(c0x, headeroff):zoom(tzoom):halign(0.5)
+				self:diffuse(getMainColor("positive"))
 			end,
 			UpdateCommand = function(self)
 				self:settext(translated_info["PriorityShort"])
 			end,
 			HighlightCommand = function(self)
 				if isOver(self) then
-					self:settext(translated_info["PriorityLong"]):diffusealpha(0.6)
+					self:settext(translated_info["PriorityLong"]):diffusealpha(0.6):x(c0x+9)
+					self:GetParent():GetChild("RateHeader"):settext(translated_info["RateShort"]):x(c1x+12):zoom(tzoom/1.5)
 				else
-					self:settext(translated_info["PriorityShort"]):diffusealpha(1)
+					self:settext(translated_info["PriorityShort"]):diffusealpha(1):x(c0x)
+					self:GetParent():GetChild("RateHeader"):settext(translated_info["RateLong"]):x(c1x):zoom(tzoom)
 				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
+			end, MouseLeftClickMessageCommand = function(self) if isOver(self) then
 					GetPlayerOrMachineProfile(PLAYER_1):SortByPriority()
 					ind = 0
 					self:GetParent():queuecommand("GoalTableRefresh")
@@ -170,19 +160,14 @@ local o =
 		},
 	LoadFont("Common normal") ..
 		{
-			--rate
+			--rate header
+			Name = "RateHeader",
 			InitCommand = function(self)
-				self:xy(c1x + 25, headeroff):zoom(tzoom):halign(0.5)
-			end,
-			UpdateCommand = function(self)
-				self:settext(translated_info["RateShort"])
+				self:xy(c1x, headeroff):zoom(tzoom):halign(0.5):settext(translated_info["RateLong"])
+				self:diffuse(getMainColor("positive"))
 			end,
 			HighlightCommand = function(self)
-				if isOver(self) then
-					self:settext(translated_info["RateLong"]):diffusealpha(0.6)
-				else
-					self:settext(translated_info["RateShort"]):diffusealpha(1)
-				end
+				highlightIfOver(self)
 			end,
 			MouseLeftClickMessageCommand = function(self)
 				if isOver(self) then
@@ -194,9 +179,10 @@ local o =
 		},
 	LoadFont("Common normal") ..
 		{
-			--name
+			--song header
 			InitCommand = function(self)
 				self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext(translated_info["Song"])
+				self:diffuse(getMainColor("positive"))
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -211,9 +197,20 @@ local o =
 		},
 	LoadFont("Common normal") ..
 		{
-			--completed toggle // filters
+			--index header
 			InitCommand = function(self)
-				self:xy(c3x - capWideScale(15, 40), headeroff):zoom(tzoom):halign(0):settext(filts[1])
+				self:xy(width / 2, headeroff):zoom(tzoom):halign(0.5)
+			end,
+			UpdateCommand = function(self)
+				self:settextf("%i-%i (%i)", ind + 1, ind + numgoals, #goaltable)
+			end
+		},
+	LoadFont("Common normal") ..
+		{
+			--completed toggle // filter header
+			InitCommand = function(self)
+				self:xy(width/2 + capWideScale(37, 45), headeroff):zoom(tzoom):halign(0):settext(filts[1])
+				self:diffuse(getMainColor("positive"))
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -229,9 +226,10 @@ local o =
 		},
 	LoadFont("Common normal") ..
 		{
-			--date
+			--date header
 			InitCommand = function(self)
-				self:xy(c4x - 5, headeroff):zoom(tzoom):halign(1):settext(translated_info["Date"])
+				self:xy(c4x - capWideScale(5, 35), headeroff):zoom(tzoom):halign(1):settext(translated_info["Date"])
+				self:diffuse(getMainColor("positive"))
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -246,9 +244,10 @@ local o =
 		},
 	LoadFont("Common normal") ..
 		{
-			--diff
+			--diff header
 			InitCommand = function(self)
 				self:xy(c5x, headeroff):zoom(tzoom):halign(1):settext(translated_info["Difficulty"])
+				self:diffuse(getMainColor("positive"))
 			end,
 			HighlightCommand = function(self)
 				highlightIfOver(self)
@@ -291,20 +290,23 @@ local function makeGoalDisplay(i)
 				self:x(offx):zoomto(dwidth, pdh):halign(0)
 			end,
 			DisplayCommand = function(self)
-				self:diffuse(color("#111111CC"))
+				self:diffuse(color("#111111D9"))
 			end
 		},
 		LoadFont("Common normal") ..
 			{
 				--priority
 				InitCommand = function(self)
-					self:x(c0x):zoom(tzoom):halign(-0.5):valign(1)
+					self:x(c0x):zoom(tzoom):halign(0.5):valign(1)
 				end,
 				DisplayCommand = function(self)
 					self:settext(sg:GetPriority())
+					self:diffuse(byAchieved(sg, getMainColor("positive"),Color.White))
 				end,
 				HighlightCommand = function(self)
-					highlightIfOver(self)
+					if sg and not sg:IsAchieved() then
+						highlightIfOver(self)
+					end
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) and sg then
@@ -319,35 +321,38 @@ local function makeGoalDisplay(i)
 					end
 				end
 			},
-		LoadFont("Common normal") ..
-			{
-				--steps diff
-				InitCommand = function(self)
-					self:x(c0x):zoom(tzoom):halign(0):valign(0)
-				end,
-				DisplayCommand = function(self)
-					if goalsteps and goalsong then
-						local diff = goalsteps:GetDifficulty()
-						self:settext(getShortDifficulty(diff))
-						self:diffuse(byDifficulty(diff))
-					else
-						self:settext("??")
-						self:diffuse(getMainColor("negative"))
-					end
+		Def.Sprite {
+			-- delete button
+			Texture = THEME:GetPathG("","X.png"),
+			InitCommand = function(self)
+				self:xy(c0x - 13,pdh/2.3):zoom(0.3):halign(0):valign(1):diffuse(Color.Red)
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) then
+					sg:Delete()
+					GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
+					self:GetParent():GetParent():queuecommand("GoalTableRefresh")
 				end
-			},
+			end
+		},
 		LoadFont("Common normal") ..
 			{
 				--rate
 				InitCommand = function(self)
-					self:x(c1x):zoom(tzoom):halign(-0.5):valign(1)
+					self:x(c1x):zoom(tzoom):halign(0.5):valign(1)
 				end,
 				DisplayCommand = function(self)
 					local ratestring = string.format("%.2f", sg:GetRate()):gsub("%.?0$", "") .. "x"
 					self:settext(ratestring)
+					self:diffuse(byAchieved(sg, getMainColor("positive")))
 				end,
 				HighlightCommand = function(self)
-					highlightIfOver(self)
+					if sg and not sg:IsAchieved() then
+						highlightIfOver(self)
+					end
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) and sg then
@@ -366,7 +371,7 @@ local function makeGoalDisplay(i)
 			{
 				--percent
 				InitCommand = function(self)
-					self:x(c1x):zoom(tzoom):halign(-0.5):valign(0):maxwidth((50 - capWideScale(10, 10)) / tzoom)
+					self:x(c1x):zoom(tzoom):halign(0.5):valign(0):maxwidth((50 - capWideScale(10, 10)) / tzoom)
 				end,
 				DisplayCommand = function(self)
 					local perc = notShit.round(sg:GetPercent() * 100000) / 1000
@@ -377,10 +382,12 @@ local function makeGoalDisplay(i)
 					else
 						self:settextf("%.3f%%", perc)
 					end
-					self:diffuse(byAchieved(sg)):x(c1x + (2 * adjx) - self:GetZoomedWidth()) -- def doing this alignment wrong
+					self:diffuse(byAchieved(sg, getMainColor("positive")))
 				end,
 				HighlightCommand = function(self)
-					highlightIfOver(self)
+					if sg and not sg:IsAchieved() then
+						highlightIfOver(self)
+					end
 				end,
 				MouseLeftClickMessageCommand = function(self)
 					if isOver(self) and sg then
@@ -397,9 +404,9 @@ local function makeGoalDisplay(i)
 			},
 		LoadFont("Common normal") ..
 			{
-				--name
+				--song name
 				InitCommand = function(self)
-					self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
+					self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(32, 62)) / tzoom):halign(0):valign(1):draworder(1)
 				end,
 				DisplayCommand = function(self)
 					if goalsong then
@@ -475,7 +482,7 @@ local function makeGoalDisplay(i)
 			},
 		LoadFont("Common normal") ..
 			{
-				--diff
+				--msd diff
 				InitCommand = function(self)
 					self:x(c5x):zoom(tzoom):halign(1):valign(1)
 				end,
@@ -488,28 +495,23 @@ local function makeGoalDisplay(i)
 					end
 				end
 			},
-		Def.Quad {
-			-- delete button
-			InitCommand = function(self)
-				self:x(c5x):zoom(tzoom):halign(1):valign(-1):zoomto(4, 4):diffuse(byJudgment("TapNoteScore_Miss"))
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if sg and isOver(self) and update and sg then
-					sg:Delete()
-					MESSAGEMAN:Broadcast("UpdateGoals")
+		LoadFont("Common normal") ..
+			{
+				--steps diff
+				InitCommand = function(self)
+					self:x(c5x):zoom(tzoom):halign(1):valign(0)
+				end,
+				DisplayCommand = function(self)
+					if goalsteps and goalsong then
+						local diff = goalsteps:GetDifficulty()
+						self:settext(getShortDifficulty(diff))
+						self:diffuse(byDifficulty(diff))
+					else
+						self:settext("??")
+						self:diffuse(getMainColor("negative"))
+					end
 				end
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					sg:Delete()
-					GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
-					self:GetParent():GetParent():queuecommand("GoalTableRefresh")
-				end
-			end
-		}
+			},
 	}
 	return o
 end

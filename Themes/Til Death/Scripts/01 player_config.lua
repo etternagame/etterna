@@ -16,9 +16,9 @@ local defaultGameplayCoordinates = {
 	DisplayPercentX = SCREEN_CENTER_X - 170,
 	DisplayPercentY = SCREEN_CENTER_Y - 60,
 	NPSDisplayX = 5,
-	NPSDisplayY = SCREEN_BOTTOM - 170,
+	NPSDisplayY = SCREEN_BOTTOM - 175,
 	NPSGraphX = 0,
-	NPSGraphY = SCREEN_BOTTOM - 160,
+	NPSGraphY = SCREEN_BOTTOM - 163,
 	NotefieldX = 0,
 	NotefieldY = 0,
 	ProgressBarPos = 1,
@@ -121,6 +121,14 @@ local defaultConfig = {
 		["16K"] = DeepCopy(defaultGameplaySizes)
 	}
 }
+
+function getDefaultGameplaySize(obj)
+	return defaultGameplaySizes[obj]
+end
+
+function getDefaultGameplayCoordinate(obj)
+	return defaultGameplayCoordinates[obj]
+end
 
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
 local tmp2 = playerConfig.load

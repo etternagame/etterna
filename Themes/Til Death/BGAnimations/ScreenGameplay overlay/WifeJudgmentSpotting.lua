@@ -146,7 +146,7 @@ local enabledTargetTracker = playerConfig:get_data(pn_to_profile_slot(PLAYER_1))
 local enabledDisplayPercent = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).DisplayPercent
 local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgeCounter
 local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-local isReplay = GAMESTATE:GetPlayerState(PLAYER_1):GetPlayerController() == "PlayerController_Replay"
+local isReplay = GAMESTATE:GetPlayerState():GetPlayerController() == "PlayerController_Replay"
 
 local function arbitraryErrorBarValue(value)
 	errorBarFrameWidth = capWideScale(get43size(value), value)
@@ -193,7 +193,7 @@ local t =
 		end
 		-- truncated to 128 characters(discord hard limit)
 		detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
-		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps(PLAYER_1):GetMSD(getCurRateValue(), 1))
+		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1))
 		local endTime = os.time() + GetPlayableTime()
 		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
 
@@ -207,7 +207,7 @@ local t =
 		File.Write("nowplaying.txt", streamerstuff)
 
 		screen = SCREENMAN:GetTopScreen()
-		usingReverse = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+		usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
 		Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(MovableValues.NotefieldX)
@@ -313,7 +313,7 @@ end
 ]]
 -- Mostly clientside now. We set our desired target goal and listen to the results rather than calculating ourselves.
 local target = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetGoal
-GAMESTATE:GetPlayerState(PLAYER_1):SetTargetGoal(target / 100)
+GAMESTATE:GetPlayerState():SetTargetGoal(target / 100)
 
 -- We can save space by wrapping the personal best and set percent trackers into one function, however
 -- this would make the actor needlessly cumbersome and unnecessarily punish those who don't use the
@@ -913,7 +913,7 @@ t[#t + 1] =
 	Better optimized frame update bpm display.
 ]]
 local BPM
-local a = GAMESTATE:GetPlayerState(PLAYER_1):GetSongPosition()
+local a = GAMESTATE:GetPlayerState():GetSongPosition()
 local r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
 local GetBPS = SongPosition.GetCurBPS
 
@@ -1110,7 +1110,7 @@ local function duminput(event)
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" then
 			if GAMESTATE:IsPaused() then
 				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
-				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+				local dir = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() and 1 or -1
 				local nextpos = pos + dir * 0.05
 				if loopEndPos ~= nil and nextpos >= loopEndPos then
 					handleRegionSetting(nextpos + 1)
@@ -1120,7 +1120,7 @@ local function duminput(event)
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
 			if GAMESTATE:IsPaused() then
 				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
-				local dir = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+				local dir = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() and 1 or -1
 				local nextpos = pos - dir * 0.05
 				if loopEndPos ~= nil and nextpos >= loopEndPos then
 					handleRegionSetting(nextpos + 1)
@@ -1180,15 +1180,23 @@ local pm =
 		end,
 		HighlightCommand = function(self) -- use the bg for detection but move the seek pointer -mina
 			if isOver(self) then
-				self:GetParent():GetChild("Seek"):visible(true)
-				self:GetParent():GetChild("Seektext"):visible(true)
-				self:GetParent():GetChild("Seek"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
-				self:GetParent():GetChild("Seektext"):x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4) -- todo: refactor this lmao -mina
-				self:GetParent():GetChild("Seektext"):y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
-				self:GetParent():GetChild("Seektext"):settextf(
-					"%0.2f",
-					self:GetParent():GetChild("Seek"):GetX() * musicratio / getCurRateValue()
-				)
+				local seek = self:GetParent():GetChild("Seek")
+				local seektext = self:GetParent():GetChild("Seektext")
+				local cdg = self:GetParent():GetChild("ChordDensityGraph")
+
+				seek:visible(true)
+				seektext:visible(true)
+				seek:x(INPUTFILTER:GetMouseX() - self:GetParent():GetX())
+				seektext:x(INPUTFILTER:GetMouseX() - self:GetParent():GetX() - 4)	-- todo: refactor this lmao -mina
+				seektext:y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
+				if cdg.npsVector ~= nil and #cdg.npsVector > 0 then
+					local percent = clamp((INPUTFILTER:GetMouseX() - self:GetParent():GetX()) / wodth, 0, 1)
+					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
+					local hoverednps = cdg.npsVector[hoveredindex]
+					seektext:settextf("%0.2f - %d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"])
+				else
+					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())
+				end
 			else
 				self:GetParent():GetChild("Seektext"):visible(false)
 				self:GetParent():GetChild("Seek"):visible(false)
@@ -1297,7 +1305,7 @@ mc = Def.ActorFrame {
 		self:x(200)
 		self:y(200)
 
-		local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+		local steps = GAMESTATE:GetCurrentSteps()
 		local loot = steps:GetNPSPerMeasure(1)
 						
 		local peak = 0

@@ -1,7 +1,6 @@
 local t = Def.ActorFrame {}
 t[#t + 1] = LoadActor("../_frame")
 t[#t + 1] = LoadActor("../_PlayerInfo")
-t[#t + 1] = LoadActor("currenttime")
 
 translated_info = {
 	Title = THEME:GetString("ScreenEvaluation", "Title"),

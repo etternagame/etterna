@@ -60,7 +60,9 @@ t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
 		InitCommand=function(self)
-			self:xy(75,frameY-82):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
+			self:xy(125,frameY-82):zoom(0.7):align(0.5,1)
+			self:diffusetopedge(Saturation(getMainColor("highlight"), 0.5))
+			self:diffusebottomedge(Saturation(getMainColor("positive"), 0.8))
 		end,
 		OnCommand=function(self)
 			self:settext("Etterna")
@@ -69,48 +71,70 @@ t[#t + 1] =
 
 --Theme text
 t[#t + 1] =
-	LoadFont("Common Normal") .. 
+	LoadFont("Common Large") ..
 	{
 		InitCommand=function(self)
-			self:xy(95,frameY-52):zoom(0.65):valign(1):halign(0):diffuse(getMainColor('positive'))
+			self:xy(125,frameY-52):zoom(0.325):align(0.5,1)
+			self:diffusetopedge(Saturation(getMainColor("highlight"), 0.5))
+			self:diffusebottomedge(Saturation(getMainColor("positive"), 0.8))
 		end,
 		OnCommand=function(self)
-		self:settext(getThemeName())
+			self:settext(getThemeName())
 		end
 }
 
--- lazy game update button -mina
-local gameneedsupdating = false
-local buttons = {x = 122, y = 40, width = 140, height = 36, fontScale = 0.3, color = getMainColor("frames")}
-t[#t + 1] =
-	Def.Quad {
-	InitCommand = function(self)
-		self:xy(buttons.x, buttons.y):zoomto(buttons.width, buttons.height):halign(1):valign(0):diffuse(buttons.color):diffusealpha(
-			0
-		)
-		local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
-		local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
-		if latest and latest > current then
-			gameneedsupdating = true
-		end
-	end,
-	OnCommand = function(self)
-		if gameneedsupdating then
-			self:diffusealpha(1)
-		end
-	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) and gameneedsupdating then
-			GAMESTATE:ApplyGameCommand("urlnoexit,https://github.com/etternagame/etterna/releases;text,GitHub")
-		end
-	end
-}
-
+--Version number
 t[#t + 1] =
 	LoadFont("Common Large") ..
 	{
+		Name = "Version",
+		InitCommand=function(self)
+			self:xy(125,frameY-35):zoom(0.25):align(0.5,1)
+			self:diffusetopedge(Saturation(getMainColor("highlight"), 0.5))
+			self:diffusebottomedge(Saturation(getMainColor("positive"), 0.8))
+		end,
+		BeginCommand = function(self)
+			self:settext(GAMESTATE:GetEtternaVersion())
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			local tag = "urlnoexit,https://github.com/etternagame/etterna/releases/tag/v" .. GAMESTATE:GetEtternaVersion()
+			if isOver(self) then
+				GAMESTATE:ApplyGameCommand(tag)
+			end
+		end
+	}
+
+--game update button
+local gameneedsupdating = false
+local buttons = {x = 20, y = 20, width = 142, height = 42, fontScale = 0.35, color = getMainColor("frames")}
+t[#t + 1] = Def.ActorFrame {
+	InitCommand = function(self)
+		self:xy(buttons.x,buttons.y)
+	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(buttons.width, buttons.height):halign(0):valign(0):diffuse(buttons.color):diffusealpha(0)
+			local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
+			local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
+			if latest and latest > current then
+				gameneedsupdating = true
+			end
+		end,
 		OnCommand = function(self)
-			self:xy(buttons.x + 3, buttons.y + 14):halign(1):zoom(buttons.fontScale):diffuse(getMainColor("positive"))
+			if gameneedsupdating then
+				self:diffusealpha(0.3)
+			end
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) and gameneedsupdating then
+				GAMESTATE:ApplyGameCommand("urlnoexit,https://github.com/etternagame/etterna/releases;text,GitHub")
+			end
+		end
+	},
+	LoadFont("Common Large") ..
+	{
+		OnCommand = function(self)
+			self:xy(1.7, 1):align(0,0):zoom(buttons.fontScale):diffuse(getMainColor("positive"))
 			if gameneedsupdating then
 				self:settext(THEME:GetString("ScreenTitleMenu", "UpdateAvailable"))
 			else
@@ -118,6 +142,7 @@ t[#t + 1] =
 			end
 		end
 	}
+}
 
 function mysplit(inputstr, sep)
 	if sep == nil then
@@ -155,7 +180,7 @@ for i = 1, choiceCount do
 				SCREENMAN:GetTopScreen():playcommand("MadeChoicePlayer_1")
 				SCREENMAN:GetTopScreen():playcommand("Choose")
 				if choices[i] == "Multi" or choices[i] == "GameStart" then
-					GAMESTATE:JoinPlayer(PLAYER_1)
+					GAMESTATE:JoinPlayer()
 				end
 				GAMESTATE:ApplyGameCommand(THEME:GetMetric("ScreenTitleMenu", "Choice" .. choices[i]))
 			end

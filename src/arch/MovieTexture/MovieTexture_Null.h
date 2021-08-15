@@ -6,7 +6,7 @@
 class RageMovieTextureDriver_Null : public RageMovieTextureDriver
 {
   public:
-	virtual std::shared_ptr<RageMovieTexture> Create(const RageTextureID& ID,
+	virtual RageMovieTexture* Create(const RageTextureID& ID,
 									 std::string& sError);
 };
 

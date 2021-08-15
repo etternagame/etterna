@@ -134,7 +134,7 @@ class InputHandler_SextetStream::Impl
 		}
 	}
 
-	virtual void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut)
+	virtual void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut)
 	{
 		vDevicesOut.push_back(InputDeviceInfo(FIRST_DEVICE, "SextetStream"));
 	}
@@ -245,7 +245,7 @@ class InputHandler_SextetStream::Impl
 
 void
 InputHandler_SextetStream::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	if (_impl != NULL) {
 		_impl->GetDevicesAndDescriptions(vDevicesOut);

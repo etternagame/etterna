@@ -1,5 +1,5 @@
 local itsOn = false
-local stepsdisplayx = SCREEN_WIDTH * 0.56 - capWideScale(48, 56)
+local stepsdisplayx = SCREEN_WIDTH * 0.56 - 54
 local thesteps
 
 local rowwidth = 60
@@ -39,7 +39,7 @@ local sd =
 	end,
 	CurrentSongChangedMessageCommand = function(self, song)
 		local song = song.ptr
-		if song then 
+		if song then
 			thesteps = song:GetChartsMatchingFilter()
 			-- if in online scores tab it still pops up for 1 frame
 			-- so the bug fixed in the above command makes a return
@@ -48,15 +48,15 @@ local sd =
 				self:playcommand("On")
 			end
 			self:playcommand("UpdateStepsRows")
-		else 
+		else
 			self:playcommand("Off")
 		end
 	end,
 	DelayedChartUpdateMessageCommand = function(self)
 		local leaderboardEnabled =
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
-		if leaderboardEnabled and GAMESTATE:GetCurrentSteps(PLAYER_1) then
-			local chartkey = GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+		if leaderboardEnabled and GAMESTATE:GetCurrentSteps() then
+			local chartkey = GAMESTATE:GetCurrentSteps():GetChartKey()
 			if SCREENMAN:GetTopScreen():GetMusicWheel():IsSettled() then
 				DLMAN:RequestChartLeaderBoardFromOnline(
 					chartkey,
@@ -97,12 +97,12 @@ local function stepsRows(i)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
-				if steps then 
+				if steps then
 					self:visible(true)
 					local diff = steps:GetDifficulty()
 					self:diffuse(getDifficultyColor(diff))
 					self:diffusealpha(0.4)
-				else 
+				else
 					self:visible(false)
 				end
 			end,
@@ -120,11 +120,11 @@ local function stepsRows(i)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
-				if steps then 
+				if steps then
 					self:visible(true)
 					local diff = steps:GetDifficulty()
-					self:diffuse(byDifficulty(diff))					
-				else 
+					self:diffuse(byDifficulty(diff))
+				else
 					self:visible(false)
 				end
 			end
@@ -132,20 +132,21 @@ local function stepsRows(i)
 		-- Chart defined "Meter" value, not msd (useful to have this for reference)
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x(rowwidth - cursorwidth - 5):addy(-1):zoom(0.35):settext(""):halign(1)
+				self:x(rowwidth - cursorwidth - 2):addy(-1):zoom(0.35):settext(""):halign(1):maxwidth(75)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
-				if steps then 
+				if steps then
 					self:settext(steps:GetMeter())
 				else
 					self:settext("")
 				end
 			end
 		},
+		--chart difficulty name
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x(12):zoom(0.2):settext(""):halign(0.5):valign(0)
+				self:x(12):zoom(0.18):settext(""):halign(0.5):valign(0)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
@@ -157,9 +158,10 @@ local function stepsRows(i)
 				end
 			end
 		},
+		--chart steps type
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x(12):addy(-9):zoom(0.2):settext(""):halign(0.5):valign(0):maxwidth(20 / 0.2)
+				self:x(12):addy(-9):zoom(0.18):settext(""):halign(0.5):valign(0):maxwidth(23 / 0.18)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
@@ -210,10 +212,10 @@ sd[#sd + 1] = Def.Quad {
 		end
 
 		if #thesteps > numshown and #thesteps - displayindexoffset < numshown then
-			displayindexoffset = #thesteps - numshown 
+			displayindexoffset = #thesteps - numshown
 		end
 
-		self:y(cursorheight * (currentindex - 1))
+		self:smooth(0.03):y(cursorheight * (currentindex - 1))
 		self:GetParent():GetChild("StepsRows"):queuecommand("UpdateStepsRows")
 	end
 }

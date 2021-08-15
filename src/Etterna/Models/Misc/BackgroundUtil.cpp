@@ -56,7 +56,7 @@ BackgroundDef::CreateNode() const
 std::string
 BackgroundChange::GetTextDescription() const
 {
-	vector<std::string> vsParts;
+	std::vector<std::string> vsParts;
 	if (!m_def.m_sFile1.empty())
 		vsParts.push_back(m_def.m_sFile1);
 	if (!m_def.m_sFile2.empty())
@@ -124,7 +124,7 @@ CompareBackgroundChanges(const BackgroundChange& seg1,
 
 void
 BackgroundUtil::SortBackgroundChangesArray(
-  vector<BackgroundChange>& vBackgroundChanges)
+  std::vector<BackgroundChange>& vBackgroundChanges)
 {
 	sort(vBackgroundChanges.begin(),
 		 vBackgroundChanges.end(),
@@ -133,10 +133,10 @@ BackgroundUtil::SortBackgroundChangesArray(
 
 void
 BackgroundUtil::AddBackgroundChange(
-  vector<BackgroundChange>& vBackgroundChanges,
+  std::vector<BackgroundChange>& vBackgroundChanges,
   const BackgroundChange& seg)
 {
-	vector<BackgroundChange>::iterator it;
+	std::vector<BackgroundChange>::iterator it;
 	it = upper_bound(vBackgroundChanges.begin(),
 					 vBackgroundChanges.end(),
 					 seg,
@@ -146,8 +146,8 @@ BackgroundUtil::AddBackgroundChange(
 
 void
 BackgroundUtil::GetBackgroundEffects(const std::string& _sName,
-									 vector<std::string>& vsPathsOut,
-									 vector<std::string>& vsNamesOut)
+									 std::vector<std::string>& vsPathsOut,
+									 std::vector<std::string>& vsNamesOut)
 {
 	auto sName = _sName;
 	if (sName.empty())
@@ -164,8 +164,8 @@ BackgroundUtil::GetBackgroundEffects(const std::string& _sName,
 
 void
 BackgroundUtil::GetBackgroundTransitions(const std::string& _sName,
-										 vector<std::string>& vsPathsOut,
-										 vector<std::string>& vsNamesOut)
+										 std::vector<std::string>& vsPathsOut,
+										 std::vector<std::string>& vsNamesOut)
 {
 	auto sName = _sName;
 	if (sName.empty())
@@ -185,8 +185,8 @@ BackgroundUtil::GetBackgroundTransitions(const std::string& _sName,
 void
 BackgroundUtil::GetSongBGAnimations(const Song* pSong,
 									const std::string& sMatch,
-									vector<std::string>& vsPathsOut,
-									vector<std::string>& vsNamesOut)
+									std::vector<std::string>& vsPathsOut,
+									std::vector<std::string>& vsNamesOut)
 {
 	vsPathsOut.clear();
 	if (sMatch.empty()) {
@@ -203,8 +203,8 @@ BackgroundUtil::GetSongBGAnimations(const Song* pSong,
 void
 BackgroundUtil::GetSongMovies(const Song* pSong,
 							  const std::string& sMatch,
-							  vector<std::string>& vsPathsOut,
-							  vector<std::string>& vsNamesOut)
+							  std::vector<std::string>& vsPathsOut,
+							  std::vector<std::string>& vsNamesOut)
 {
 	vsPathsOut.clear();
 	if (sMatch.empty()) {
@@ -226,8 +226,8 @@ BackgroundUtil::GetSongMovies(const Song* pSong,
 void
 BackgroundUtil::GetSongBitmaps(const Song* pSong,
 							   const std::string& sMatch,
-							   vector<std::string>& vsPathsOut,
-							   vector<std::string>& vsNamesOut)
+							   std::vector<std::string>& vsPathsOut,
+							   std::vector<std::string>& vsNamesOut)
 {
 	vsPathsOut.clear();
 	if (sMatch.empty()) {
@@ -249,8 +249,8 @@ BackgroundUtil::GetSongBitmaps(const Song* pSong,
 void
 BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 									  const std::string& sMatch,
-									  vector<std::string>& vsPathsOut,
-									  vector<std::string>& vsNamesOut)
+									  std::vector<std::string>& vsPathsOut,
+									  std::vector<std::string>& vsNamesOut)
 {
 	vsPathsOut.clear();
 	GetDirListing(BG_ANIMS_DIR + sMatch + "*", vsPathsOut, true, true);
@@ -266,7 +266,7 @@ BackgroundUtil::BakeAllBackgroundChanges(Song* pSong)
 {
 	Background bg;
 	bg.LoadFromSong(pSong);
-	vector<BackgroundChange>* vBGChanges[NUM_BackgroundLayer];
+	std::vector<BackgroundChange>* vBGChanges[NUM_BackgroundLayer];
 	FOREACH_BackgroundLayer(i) vBGChanges[i] = &pSong->GetBackgroundChanges(i);
 	bg.GetLoadedBackgroundChanges(vBGChanges);
 }

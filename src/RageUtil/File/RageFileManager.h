@@ -63,6 +63,11 @@ class RageFileManager
 	 * @return the absolute path. */
 	auto ResolvePath(const std::string& path) -> std::string;
 
+	// This function fails if the path given is in AdditionalSongs
+	// when using multiple AdditionalSongs mount points
+	auto ResolveSongFolder(const std::string& path,
+						   bool additionalSongs = false) -> std::string;
+
 	auto Mount(const std::string& sType,
 			   const std::string& sRealPath,
 			   const std::string& sMountPoint,

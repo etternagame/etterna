@@ -14,7 +14,7 @@ class OptionListRow : public ActorFrame
 	void Load(OptionsList* pOptions, const std::string& sType);
 	void SetFromHandler(const OptionRowHandler* pHandler);
 	void SetTextFromHandler(const OptionRowHandler* pHandler);
-	void SetUnderlines(const vector<bool>& aSelections,
+	void SetUnderlines(const std::vector<bool>& aSelections,
 					   const OptionRowHandler* pHandler);
 
 	void PositionCursor(Actor* pCursor, int iSelection);
@@ -62,7 +62,7 @@ class OptionsList : public ActorFrame
 	ThemeMetric<std::string> TOP_MENU;
 
 	void SelectItem(const std::string& sRowName, int iMenuItem);
-	void MoveItem(const std::string& sRowName, int iMove);
+	void MoveItem(const std::string& sRowName, int iMove) {}
 	void SwitchMenu(int iDir);
 	void PositionCursor();
 	void SelectionsChanged(const std::string& sRowName);

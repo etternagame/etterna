@@ -14,7 +14,7 @@ class InputHandler_DInput : public InputHandler
   public:
 	InputHandler_DInput();
 	~InputHandler_DInput();
-	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut);
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut);
 	wchar_t DeviceButtonToChar(DeviceButton button,
 							   bool bUseCurrentKeyModifiers);
 	void Update();

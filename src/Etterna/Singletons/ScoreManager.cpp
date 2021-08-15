@@ -16,6 +16,9 @@
 #include <numeric>
 #include <algorithm>
 
+#include "GameManager.h"
+#include "Etterna/MinaCalc/MinaCalcHelpers.h"
+
 using std::lock_guard;
 using std::mutex;
 
@@ -95,10 +98,10 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 }
 
 auto
-ScoresAtRate::GetSortedKeys() const -> const vector<string>
+ScoresAtRate::GetSortedKeys() const -> const std::vector<string>
 {
 	std::map<float, string, std::greater<>> tmp;
-	vector<string> o;
+	std::vector<string> o;
 	if (PREFSMAN->m_bSortBySSRNorm) {
 		for (const auto& i : scores) {
 			tmp.emplace(i.second.GetSSRNormPercent(), i.first);
@@ -118,9 +121,9 @@ ScoresAtRate::GetSortedKeys() const -> const vector<string>
 }
 
 auto
-ScoresAtRate::GetAllScores() -> const vector<HighScore*>
+ScoresAtRate::GetAllScores() -> const std::vector<HighScore*>
 {
-	vector<HighScore*> o;
+	std::vector<HighScore*> o;
 	for (auto& i : scores) {
 		o.emplace_back(&i.second);
 	}
@@ -226,9 +229,9 @@ ScoresForChart::AddScore(HighScore& hs) -> HighScore*
 }
 
 auto
-ScoresForChart::GetPlayedRates() const -> const vector<float>
+ScoresForChart::GetPlayedRates() const -> const std::vector<float>
 {
-	vector<float> o;
+	std::vector<float> o;
 	for (const auto& i : ScoresByRate) {
 		o.emplace_back(KeyToRate(i.first));
 	}
@@ -237,9 +240,9 @@ ScoresForChart::GetPlayedRates() const -> const vector<float>
 }
 
 auto
-ScoresForChart::GetPlayedRateKeys() const -> const vector<int>
+ScoresForChart::GetPlayedRateKeys() const -> const std::vector<int>
 {
-	vector<int> o;
+	std::vector<int> o;
 	for (const auto& i : ScoresByRate) {
 		o.emplace_back(i.first);
 	}
@@ -248,9 +251,9 @@ ScoresForChart::GetPlayedRateKeys() const -> const vector<int>
 }
 
 auto
-ScoresForChart::GetPlayedRateDisplayStrings() const -> const vector<string>
+ScoresForChart::GetPlayedRateDisplayStrings() const -> const std::vector<string>
 {
-	vector<string> o;
+	std::vector<string> o;
 	for (const auto& rate : GetPlayedRates()) {
 		o.emplace_back(RateKeyToDisplayString(rate));
 	}
@@ -263,7 +266,7 @@ ScoresForChart::GetPlayedRateDisplayStrings() const -> const vector<string>
 void
 ScoresForChart::SetTopScores()
 {
-	vector<HighScore*> eligiblescores;
+	std::vector<HighScore*> eligiblescores;
 	for (auto& i : ScoresByRate) {
 		auto& hs = i.second.noccPBptr;
 		if ((hs != nullptr) && hs->GetSSRCalcVersion() == GetCalcVersion() &&
@@ -315,9 +318,9 @@ ScoresForChart::SetTopScores()
 }
 
 auto
-ScoresForChart::GetAllPBPtrs() -> const vector<HighScore*>
+ScoresForChart::GetAllPBPtrs() -> const std::vector<HighScore*>
 {
-	vector<HighScore*> o;
+	std::vector<HighScore*> o;
 	for (auto& i : ScoresByRate) {
 		o.emplace_back(i.second.PBptr);
 	}
@@ -326,9 +329,9 @@ ScoresForChart::GetAllPBPtrs() -> const vector<HighScore*>
 }
 
 auto
-ScoresForChart::GetAllScores() -> const vector<HighScore*>
+ScoresForChart::GetAllScores() -> const std::vector<HighScore*>
 {
-	vector<HighScore*> o;
+	std::vector<HighScore*> o;
 	for (auto& i : ScoresByRate) {
 		for (const auto& s : i.second.GetAllScores()) {
 			o.emplace_back(s);
@@ -341,9 +344,9 @@ ScoresForChart::GetAllScores() -> const vector<HighScore*>
 // is there any reason for this to be nested and not just a single vector?
 auto
 ScoreManager::GetAllPBPtrs(const string& profileID)
-  -> const vector<vector<HighScore*>>
+  -> const std::vector<vector<HighScore*>>
 {
-	vector<vector<HighScore*>> vec;
+	std::vector<vector<HighScore*>> vec;
 	for (auto& i : pscores.at(profileID)) {
 		if (!SONGMAN->IsChartLoaded(i.first)) {
 			continue;
@@ -428,16 +431,16 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 	auto scoreindex = 0;
 
 	mutex songVectorPtrMutex;
-	vector<std::uintptr_t> currentlyLockedSongs;
+	std::vector<std::uintptr_t> currentlyLockedSongs;
 	// This is meant to ensure mutual exclusion for a song
 	class SongLock
 	{
 	  public:
 		mutex& songVectorPtrMutex; // This mutex guards the vector
-		vector<std::uintptr_t>&
+		std::vector<std::uintptr_t>&
 		  currentlyLockedSongs; // Vector of currently locked songs
 		std::uintptr_t song;	// The song for this lock
-		SongLock(vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
+		SongLock(std::vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
 		  : currentlyLockedSongs(vec)
 		  , songVectorPtrMutex(mut)
 		  , song(k)
@@ -482,6 +485,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
 			const auto per_thread_calc = std::make_unique<Calc>();
+			per_thread_calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
 
 			auto* pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
@@ -519,6 +523,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				auto* td = steps->GetTimingData();
 				NoteData nd;
 
+				// try to normalize judgments
+				// this function handles skip logic if not necessary
+				hs->NormalizeJudgments();
+
 				auto remarried = false;
 				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
 					hs->HasReplayData()) {
@@ -544,7 +552,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 					continue;
 				}
 
-				const vector<NoteInfo>* serializednd_ptr = nullptr;
+				const std::vector<NoteInfo>* serializednd_ptr = nullptr;
 				if (!steps->serializenotedatacache.empty()) {
 					serializednd_ptr = &(steps->serializenotedatacache);
 				} else {
@@ -557,7 +565,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				}
 
 				const auto& serializednd = *serializednd_ptr;
-				vector<float> dakine;
+				std::vector<float> dakine;
 
 				if (steps->m_StepsType == StepsType_dance_single) {
 					// dakine = MinaSDCalc(serializednd, musicrate,
@@ -566,8 +574,10 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 										musicrate,
 										ssrpercent,
 										per_thread_calc.get());
-				} else if (steps->m_StepsType == StepsType_dance_solo) {
-					dakine = SoloCalc(serializednd, musicrate, ssrpercent);
+				} else {
+					int columnCount =
+					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+					dakine = SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
 				}
 
 				auto ssrVals = dakine;
@@ -637,16 +647,16 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 	const auto& scores = SCOREMAN->GetAllProfileScores(profileID);
 
 	mutex songVectorPtrMutex;
-	vector<std::uintptr_t> currentlyLockedSongs;
+	std::vector<std::uintptr_t> currentlyLockedSongs;
 	// This is meant to ensure mutual exclusion for a song
 	class SongLock
 	{
 	  public:
 		mutex& songVectorPtrMutex; // This mutex guards the vector
-		vector<std::uintptr_t>&
+		std::vector<std::uintptr_t>&
 		  currentlyLockedSongs; // Vector of currently locked songs
 		std::uintptr_t song;	// The song for this lock
-		SongLock(vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
+		SongLock(std::vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
 		  : currentlyLockedSongs(vec)
 		  , songVectorPtrMutex(mut)
 		  , song(k)
@@ -691,6 +701,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
 			const auto per_thread_calc = std::make_unique<Calc>();
+			per_thread_calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
 
 			auto scoreIndex = 0;
 			for (auto it = workload.first; it != workload.second; ++it) {
@@ -700,9 +711,8 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 				auto ck = hs->GetChartKey();
 				auto* steps = SONGMAN->GetStepsByChartkey(ck);
 
-				// check for unloaded steps, only allow 4k
-				if (steps == nullptr ||
-					steps->m_StepsType != StepsType_dance_single) {
+				// check for unloaded steps
+				if (steps == nullptr) {
 					continue;
 				}
 
@@ -724,13 +734,18 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 				steps->GetNoteData(nd);
 
 				auto serializednd = nd.SerializeNoteData2(td);
-				vector<float> dakine;
+				std::vector<float> dakine;
 
 				if (steps->m_StepsType == StepsType_dance_single) {
 					dakine = MinaSDCalc(serializednd,
 										musicrate,
 										ssrpercent,
 										per_thread_calc.get());
+				} else {
+					int columnCount =
+					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+					dakine = SoloCalc(
+					  serializednd, columnCount, musicrate, ssrpercent);
 				}
 
 				auto ssrVals = dakine;
@@ -760,27 +775,6 @@ ScoreManager::UnInvalidateAllScores(const string& profileID)
 	}
 }
 
-inline auto
-AggregateSkillsets(const vector<float>& skillsets,
-				   float rating,
-				   float res,
-				   int iter) -> float
-{
-	double sum;
-	do {
-		rating += res;
-		sum = 0.0;
-		for (const auto& ss : skillsets) {
-			sum += std::max(0.0, 2.F / erfc(0.1 * (ss - rating)) - 2);
-		}
-	} while (pow(2, rating * 0.1) < sum);
-	if (iter == 11) {
-		return rating;
-	}
-
-	return AggregateSkillsets(skillsets, rating - res, res / 2.F, iter + 1);
-}
-
 void
 ScoreManager::CalcPlayerRating(float& prating,
 							   float* pskillsets,
@@ -788,7 +782,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 {
 	SetAllTopScores(profileID);
 
-	vector<float> skillz;
+	std::vector<float> skillz;
 	FOREACH_ENUM(Skillset, ss)
 	{
 		// skip overall ss
@@ -796,50 +790,20 @@ ScoreManager::CalcPlayerRating(float& prating,
 			continue;
 		}
 
-		SortTopSSRPtrs(ss, profileID);
-		pskillsets[ss] = AggregateSSRs(ss, 0.F, 10.24F, 1) * 1.05F;
+		std::vector<float> ssrs = SortTopSSRPtrs(ss, profileID, true);
+		pskillsets[ss] = aggregate_skill(ssrs, 0.1, 1.05, 0.0, 10.24);
 		CLAMP(pskillsets[ss], 0.F, 100.F);
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = AggregateSkillsets(skillz, 0.F, 10.24F, 1) * 1.125F;
+	prating = aggregate_skill(skillz, 0.1, 1.125, 0.0, 10.24);
 	pskillsets[Skill_Overall] = prating;
 }
 
-// perhaps we will need a generalized version again someday, but not today
-// currently set to only allow dance single scores
-auto
-ScoreManager::AggregateSSRs(Skillset ss,
-							float rating,
-							float res,
-							int iter) const -> float
+std::vector<float>
+ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID, bool getSSRs)
 {
-	double sum;
-	do {
-		rating += res;
-		sum = 0.0;
-		for (const auto& ts : TopSSRs) {
-			if (ts->GetSSRCalcVersion() == GetCalcVersion() &&
-				ts->GetEtternaValid() &&
-				static_cast<int>(ts->GetChordCohesion()) == 0 &&
-				ts->GetTopScore() != 0 &&
-				SONGMAN->GetStepsByChartkey(ts->GetChartKey())->m_StepsType ==
-				  StepsType_dance_single) {
-				sum += std::max(
-				  0.0, 2.F / erfc(0.1 * (ts->GetSkillsetSSR(ss) - rating)) - 2);
-			}
-		}
-	} while (pow(2, rating * 0.1) < sum);
-	if (iter == 11) {
-		return rating;
-	}
-
-	return AggregateSSRs(ss, rating - res, res / 2.F, iter + 1);
-}
-
-void
-ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
-{
+	std::vector<float> o;
 	TopSSRs.clear();
 	for (auto& i : pscores[profileID]) {
 		if (!SONGMAN->IsChartLoaded(i.first)) {
@@ -847,6 +811,21 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 		}
 		for (const auto& hs : i.second.GetAllPBPtrs()) {
 			TopSSRs.emplace_back(hs);
+
+			if (getSSRs) {
+				if (hs->GetSSRCalcVersion() != GetCalcVersion())
+					continue;
+				if (!hs->GetEtternaValid())
+					continue;
+				if (static_cast<int>(hs->GetChordCohesion()) == 1)
+					continue;
+				if (hs->GetTopScore() == 0)
+					continue;
+				if (SONGMAN->GetStepsByChartkey(hs->GetChartKey())
+					  ->m_StepsType != StepsType_dance_single)
+					continue;
+				o.emplace_back(hs->GetSkillsetSSR(ss));
+			}
 		}
 	}
 
@@ -855,6 +834,9 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID)
 	};
 
 	sort(TopSSRs.begin(), TopSSRs.end(), ssrcomp);
+	if (getSSRs)
+		sort(o.begin(), o.end());
+	return o;
 }
 
 void
@@ -942,7 +924,7 @@ ScoreManager::SortRecentScoresForGame(const string& profileID)
 auto
 ScoreManager::GetRecentScore(const int rank) -> HighScore*
 {
-	if (rank >= 0 && rank < TopSSRs.size()) {
+	if (rank >= 0 && rank < static_cast<int>(TopSSRs.size())) {
 		return TopSSRs[rank];
 	}
 
@@ -952,7 +934,7 @@ ScoreManager::GetRecentScore(const int rank) -> HighScore*
 auto
 ScoreManager::GetRecentScoreForGame(const int rank) -> HighScore*
 {
-	if (rank >= 0 && rank < TopSSRsForGame.size()) {
+	if (rank >= 0 && rank < static_cast<int>(TopSSRsForGame.size())) {
 		return TopSSRsForGame[rank];
 	}
 
@@ -1093,6 +1075,11 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 	FOREACH_CONST_Child(node, p)
 	{
 		p->GetAttrValue("Key", sk);
+
+		// Fill in stuff for the highscores
+		scores[sk].SetChartKey(ck);
+		scores[sk].SetScoreKey(sk);
+		scores[sk].SetMusicRate(rate);
 		scores[sk].LoadFromEttNode(p);
 
 		// Set any pb
@@ -1106,11 +1093,6 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		}
 
 		HandleNoCCPB(scores[sk]);
-
-		// Fill in stuff for the highscores
-		scores[sk].SetChartKey(ck);
-		scores[sk].SetScoreKey(sk);
-		scores[sk].SetMusicRate(rate);
 
 		bestGrade = std::min(scores[sk].GetWifeGrade(), bestGrade);
 		if (scores[sk].GetWifeGrade() != Grade_Failed) {
@@ -1141,6 +1123,13 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		const auto getremarried =
 		  scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
 
+		// check to see if a file does not have normalized judgments
+		// this will pile up but only for cases of large amounts of scores
+		// missing replay data
+		const auto notnormalized =
+		  scores[sk].IsEmptyNormalized() &&
+		  (scores[sk].HasReplayData() || scores[sk].GetJudgeScale() == 1.F);
+
 		/* technically we don't need to have charts loaded to rescore to
 		 * wife3, however trying to do this might be quite a bit of work (it
 		 * would require making a new lambda loop) and while it would be
@@ -1148,7 +1137,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * and while it sort of makes sense from a user convenience aspect
 		 * to allow this, it definitely does not make sense from a clarity
 		 * or consistency perspective */
-		if ((oldcalc || getremarried) && SONGMAN->IsChartLoaded(ck)) {
+		if ((oldcalc || getremarried || notnormalized) && SONGMAN->IsChartLoaded(ck)) {
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 		}
 	}
@@ -1371,7 +1360,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		// expecting a profile ID here
 		auto v = p->GetTopPlayedSkillsets(s);
 		LuaHelpers::CreateTableFromArray(v, L);
-		
+
 		return 1;
 	}
 
@@ -1424,4 +1413,6 @@ class LunaScoreManager : public Luna<ScoreManager>
 	}
 };
 
+// put this here because didnt want to include lua in MinaCalc
+LuaFunction(GetCalcVersion, GetCalcVersion())
 LUA_REGISTER_CLASS(ScoreManager)

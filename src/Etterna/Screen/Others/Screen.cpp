@@ -70,7 +70,7 @@ Screen::Init()
 
 	PlayCommandNoRecurse(Message("Init"));
 
-	vector<std::string> asList;
+	std::vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (auto& i : asList) {
 		Locator::getLogger()->trace(
@@ -221,8 +221,9 @@ Screen::Update(float fDeltaTime)
 		unsigned iSize = m_QueuedMessages.size();
 
 		// send this sucker!
-		Locator::getLogger()->trace("ScreenMessage({})",
-				   ScreenMessageHelpers::ScreenMessageToString(SM).c_str());
+		Locator::getLogger()->trace(
+		  "ScreenMessage({})",
+		  ScreenMessageHelpers::ScreenMessageToString(SM).c_str());
 		this->HandleScreenMessage(SM);
 
 		// If the size changed, start over.
@@ -420,7 +421,7 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "button");
 	Enum::Push(L, input.type);
 	lua_setfield(L, -2, "type");
-	char s[5];
+	char s[MB_LEN_MAX];
 	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
 	LuaHelpers::Push(L, std::string(1, s[0]));
 	lua_setfield(L, -2, "char");
@@ -606,6 +607,11 @@ class LunaScreen : public Luna<Screen>
 		}
 		return 0;
 	}
+	static int IsPreviewNoteFieldActive(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->b_PreviewNoteFieldIsActive);
+		return 1;
+	}
 
 	LunaScreen()
 	{
@@ -621,6 +627,7 @@ class LunaScreen : public Luna<Screen>
 		ADD_METHOD(GetScreenType);
 		ADD_METHOD(AddInputCallback);
 		ADD_METHOD(RemoveInputCallback);
+		ADD_METHOD(IsPreviewNoteFieldActive);
 	}
 };
 

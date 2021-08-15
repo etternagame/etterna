@@ -417,8 +417,8 @@ WheelBase::ChangeMusic(int iDist)
 void
 WheelBase::RebuildWheelItems(int iDist)
 {
-	const vector<WheelItemBaseData*>& data = m_CurWheelItemData;
-	vector<WheelItemBase*>& items = m_WheelBaseItems;
+	const std::vector<WheelItemBaseData*>& data = m_CurWheelItemData;
+	std::vector<WheelItemBase*>& items = m_WheelBaseItems;
 
 	// rewind to first index that will be displayed;
 	int iFirstVisibleIndex = m_iSelection;

@@ -10,9 +10,11 @@
 #include "RageUtil/Misc/RageInputDevice.h"
 struct Game;
 
-const int NUM_GAME_TO_DEVICE_SLOTS =
-  5; // five device inputs may map to one game input
+// five device inputs may map to one game input
+const int NUM_GAME_TO_DEVICE_SLOTS = 5;
+// three device inputs are shown to the player
 const int NUM_SHOWN_GAME_TO_DEVICE_SLOTS = 3;
+// two are allowed to be bound by the player
 const int NUM_USER_GAME_TO_DEVICE_SLOTS = 2;
 extern const std::string DEVICE_INPUT_SEPARATOR;
 
@@ -214,6 +216,7 @@ class InputMapper
   public:
 	InputMapper();
 	~InputMapper();
+	void PushSelf(lua_State* L);
 
 	void SetInputScheme(const InputScheme* pInputScheme);
 	[[nodiscard]] auto GetInputScheme() const -> const InputScheme*;

@@ -16,7 +16,7 @@
 
 REGISTER_INPUT_HANDLER_CLASS2(DirectInput, DInput);
 
-static vector<DIDevice> Devices;
+static std::vector<DIDevice> Devices;
 
 // Number of joysticks found:
 static int g_iNumJoysticks;
@@ -816,7 +816,7 @@ InputHandler_DInput::InputThreadMain()
 	// Enable priority boosting.
 	SetThreadPriorityBoost(GetCurrentThread(), FALSE);
 
-	vector<DIDevice*> BufferedDevices;
+	std::vector<DIDevice*> BufferedDevices;
 	HANDLE Handle = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	for (unsigned i = 0; i < Devices.size(); ++i) {
 		if (!Devices[i].buffered)
@@ -868,7 +868,7 @@ InputHandler_DInput::InputThreadMain()
 
 void
 InputHandler_DInput::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	for (unsigned i = 0; i < Devices.size(); ++i)
 		vDevicesOut.push_back(

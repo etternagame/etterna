@@ -191,3 +191,145 @@ function PracticeMode()
 	setmetatable(t, t)
 	return t
 end
+
+function RateList()
+    local ratelist = {}
+    do
+        local startrate = 0.05
+        local upperrate = 3.00
+        local increment = 0.05
+        while startrate <= upperrate do
+            ratelist[#ratelist+1] = tostring(startrate) .. "x"
+            startrate = notShit.round(startrate + increment, 2)
+        end
+    end
+
+    local t = {
+        Name = "RateList",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = ratelist,
+        LoadSelections = function(self, list, pn)
+            local rateindex = 1
+            local rate = notShit.round(GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(), 2)
+            local acceptable_delta = 0.025 / 2
+            for i = 1, #ratelist do
+                local r = tonumber(ratelist[i]:sub(1, -2))
+                if r == rate or (rate - acceptable_delta <= r and rate + acceptable_delta >= r) then
+                    rateindex = i
+                    break
+                end
+            end
+            list[rateindex] = true
+        end,
+        SaveSelections = function(self, list, pn)
+            for i, v in ipairs(list) do
+                if v == true then
+                    local r = notShit.round(tonumber(ratelist[i]:sub(1, -2)), 2)
+                    GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(r)
+                    GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(r)
+                    GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(r)
+                    break
+                end
+            end
+        end
+    }
+    setmetatable(t, t)
+    return t
+end
+
+function GranularHiddenOffset()
+    local HOlist = {}
+    do
+        local startperc = -50
+        local upperperc = 150
+        local increment = 10
+        while startperc <= upperperc do
+            HOlist[#HOlist+1] = tostring(startperc) .. "%"
+            startperc = notShit.round(startperc + increment, 2)
+        end
+    end
+	local t = {
+        Name = "GranularHiddenOffset",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = HOlist,
+	LoadSelections = function(self, list, pn)
+		local HOindex = 1
+		local HiddenOffset = notShit.round(GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Current"):HiddenOffset(), 1)
+		local acceptable_delta = 0.05 / 2
+		for i = 1, #HOlist do
+			local ho = tonumber(HOlist[i]:sub(1, -2)/100)
+			if ho == HiddenOffset or (HiddenOffset - acceptable_delta <= ho and HiddenOffset + acceptable_delta >= ho) then
+				HOindex = i
+				break
+			end
+		end
+		list[HOindex] = true
+	end,
+	SaveSelections = function(self, list, pn)
+		for i, v in ipairs(list) do
+			if v == true then
+				local ho = notShit.round(tonumber(HOlist[i]:sub(1, -2)/100), 2)
+				GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred"):HiddenOffset(ho)
+				GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Song"):HiddenOffset(ho)
+				GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Current"):HiddenOffset(ho)
+				break
+			end
+		end
+	end
+	}
+    setmetatable(t, t)
+	return t
+end
+
+function GranularSuddenOffset()
+    local SOlist = {}
+    do
+        local startperc = -50
+        local upperperc = 150
+        local increment = 10
+        while startperc <= upperperc do
+            SOlist[#SOlist+1] = tostring(startperc) .. "%"
+            startperc = notShit.round(startperc + increment, 2)
+        end
+    end
+	local t = {
+        Name = "GranularSuddenOffset",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = SOlist,
+	LoadSelections = function(self, list, pn)
+		local SOindex = 1
+		local SuddenOffset = notShit.round(GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Current"):SuddenOffset(), 1)
+		local acceptable_delta = 0.05 / 2
+		for i = 1, #SOlist do
+			local so = tonumber(SOlist[i]:sub(1, -2)/100)
+			if so == SuddenOffset or (SuddenOffset - acceptable_delta <= so and SuddenOffset + acceptable_delta >= so) then
+				SOindex = i
+				break
+			end
+		end
+		list[SOindex] = true
+	end,
+	SaveSelections = function(self, list, pn)
+		for i, v in ipairs(list) do
+			if v == true then
+				local so = notShit.round(tonumber(SOlist[i]:sub(1, -2)/100), 2)
+				GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred"):SuddenOffset(so)
+				GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Song"):SuddenOffset(so)
+				GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Current"):SuddenOffset(so)
+				break
+			end
+		end
+	end
+	}
+    setmetatable(t, t)
+	return t
+end

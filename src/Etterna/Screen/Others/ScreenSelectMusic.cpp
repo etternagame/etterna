@@ -78,13 +78,6 @@ ScreenSelectMusic::Init()
 {
 	GAMESTATE->m_bPlayingMulti = false;
 	g_ScreenStartedLoadingAt.Touch();
-	if (PREFSMAN->m_sTestInitialScreen.Get() == m_sName) {
-		GAMESTATE->SetCurrentStyle(
-		  GAMEMAN->GameAndStringToStyle(GAMEMAN->GetDefaultGame(), "versus"),
-		  PLAYER_INVALID);
-		GAMESTATE->JoinPlayer(PLAYER_1);
-		GAMESTATE->SetMasterPlayerNumber(PLAYER_1);
-	}
 	if (GamePreferences::m_AutoPlay == PC_REPLAY)
 		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
 	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY)
@@ -188,8 +181,6 @@ ScreenSelectMusic::Init()
 	m_soundOptionsChange.Load(THEME->GetPathS(m_sName, "options"));
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
-	// Chart Preview.
-	m_pPreviewNoteField = nullptr;
 	// Replay Data Manager Reset.
 	PlayerAI::ResetScoreData();
 
@@ -214,7 +205,7 @@ ScreenSelectMusic::BeginScreen()
 		Locator::getLogger()->trace("The Style has not been set.  A theme must set the Style "
 				   "before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
-		vector<StepsType> vst;
+		std::vector<StepsType> vst;
 		GAMEMAN->GetStepsTypesForGame(GAMESTATE->m_pCurGame, vst);
 		const auto* pStyle = GAMEMAN->GetFirstCompatibleStyle(
 		  GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
@@ -288,14 +279,10 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 	// we need something similar to the previewmusic delay except for charts, so
 	// heavy duty chart specific operations can be delayed when scrolling (chord
 	// density graph, possibly chart leaderboards, etc) -mina
-
-	// in theory the notedata load for chartpreviews could go here however a
-	// delay might make it weird when swapping between difficulties to compare
-	// sections for which you would want instantaneous action -mina
 	if (delayedchartupdatewaiting) {
 		if (g_ScreenStartedLoadingAt
 			  .Ago() > // not sure if i need the "moving fast" check -mina
-			SAMPLE_MUSIC_DELAY_INIT) // todo: decoupled this mina
+			SAMPLE_MUSIC_DELAY_INIT)
 		{
 			MESSAGEMAN->Broadcast("DelayedChartUpdate");
 			delayedchartupdatewaiting = false;
@@ -309,7 +296,7 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 }
 
 void
-ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccurate)
+ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccurate, bool bExtended)
 {
 	if (g_bSampleMusicWaiting || bForcePlay) {
 		if (g_ScreenStartedLoadingAt.Ago() < SAMPLE_MUSIC_DELAY_INIT)
@@ -336,13 +323,22 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 			}
 			m_pSampleMusicTimingData = &pSong->m_SongTiming;
 			m_fSampleStartSeconds = pSong->GetPreviewStartSeconds();
-			m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
+			if (bExtended) {
+				m_fSampleLengthSeconds =
+				  pSong->GetLastSecond() - m_fSampleStartSeconds + 2.F;
+				if (m_fSampleLengthSeconds < 3.F) {
+					m_fSampleStartSeconds = 5.F;
+					m_fSampleLengthSeconds = pSong->GetLastSecond() + 2.F;
+				}
+			}
+			else
+				m_fSampleLengthSeconds = pSong->m_fMusicSampleLengthSeconds;
 		}
 
 		GameSoundManager::PlayMusicParams PlayParams;
 		PlayParams.sFile = HandleLuaMusicFile(m_sSampleMusicToPlay);
 		PlayParams.pTiming = m_pSampleMusicTimingData;
-		PlayParams.bForceLoop = SAMPLE_MUSIC_LOOPS;
+		PlayParams.bForceLoop = SAMPLE_MUSIC_LOOPS || bExtended;
 		PlayParams.fStartSecond = m_fSampleStartSeconds;
 		PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 		PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
@@ -354,8 +350,8 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		// The way music playing works does not cause stutter, but
 		// will cause inconsistent music playing experience and an overall
 		// negative feel.
-		// But if chart preview is active, force it to be synced
-		PlayParams.bAccurateSync = GAMESTATE->m_bIsChartPreviewActive || bForceAccurate;
+		// But if chart preview is active, it should probably be synced
+		PlayParams.bAccurateSync = bForceAccurate;
 
 		GameSoundManager::PlayMusicParams FallbackMusic;
 		FallbackMusic.sFile = m_sLoopMusicPath;
@@ -437,8 +433,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// reset announcer timer
 	m_timerIdleComment.GetDeltaTime();
 
-	// debugging?
-	// I just like being able to see untransliterated titles occasionally.
+	// toggle transliteration
 	if (input.DeviceI.device == DEVICE_KEYBOARD &&
 		input.DeviceI.button == KEY_F9) {
 		if (input.type != IET_FIRST_PRESS)
@@ -447,6 +442,14 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		MESSAGEMAN->Broadcast("DisplayLanguageChanged");
 		m_MusicWheel.RebuildWheelItems();
 		return true;
+	}
+
+	// dont allow touching anything on the transition into view eval/replays
+	// the only time this would not be null is if replay is being started
+	// it is nulled at the start of this screen
+	// if input breaks, this is why (it shouldnt break)
+	if (PlayerAI::pScoreData != nullptr) {
+		return false;
 	}
 
 	if (!IsTransitioning() && m_SelectionState != SelectionState_Finalized) {
@@ -469,7 +472,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			auto* to_reload = m_MusicWheel.GetSelectedSong();
 			if (to_reload != nullptr) {
 				auto stepses = to_reload->GetAllSteps();
-				vector<string> oldChartkeys;
+				std::vector<string> oldChartkeys;
 				for (auto* steps : stepses)
 					oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -983,7 +986,7 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 			return;
 	}
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	if (pn == PLAYER_1 || GAMESTATE->DifficultiesLocked()) {
 		vpns.push_back(PLAYER_1);
 	}
@@ -1231,8 +1234,9 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 			// I believe this is for those who like pump pro. -aj
 			MESSAGEMAN->Broadcast("SongChosen");
 			break;
-		case SelectionState_SelectingSteps: {
-		} break;
+		case SelectionState_SelectingSteps:
+		default:
+			break;
 	}
 	if (m_SelectionState == SelectionState_SelectingSteps) {
 		if (m_OptionsList.IsOpened())
@@ -1249,11 +1253,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 	if (m_SelectionState == SelectionState_Finalized) {
 		DLMAN->UpdateDLSpeed(true);
 
-		if (GAMESTATE->m_bIsChartPreviewActive) {
-			MESSAGEMAN->Broadcast("hELPidontDNOKNOW");
-		} // we dont know who owns the notefield preview so we broadcast to get
-		  // the owner to submit itself for deletion -mina
-
 		if (!m_bStepsChosen) {
 			m_bStepsChosen = true;
 			// Don't play start sound. We play it again below on finalized
@@ -1269,7 +1268,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 
 		CheckBackgroundRequests(true);
 		m_MusicWheel.Lock();
-		if (OPTIONS_MENU_AVAILABLE) {
+		if (OPTIONS_MENU_AVAILABLE && mode != GameplayMode_Replay) {
 			// show "hold START for options"
 			this->PlayCommand("ShowPressStartForOptions");
 
@@ -1314,7 +1313,7 @@ ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 }
 
 void
-ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
+ScreenSelectMusic::AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns)
 {
 	const auto pn = PLAYER_1;
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
@@ -1330,12 +1329,8 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns)
 			GAMESTATE->SetCompatibleStyle(pSteps->m_StepsType, pn);
 
 		if (pSteps) {
-			if (m_pPreviewNoteField != nullptr) {
-				GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds,
-											  *(pSteps->GetTimingData()));
-				pSteps->GetNoteData(m_PreviewNoteData);
-				m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
-			}
+			GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds,
+										  *pSteps->GetTimingData());
 			delayedchartupdatewaiting = true;
 		}
 	}
@@ -1386,15 +1381,13 @@ ScreenSelectMusic::AfterMusicChange()
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong == nullptr) {
 		GAMESTATE->m_pCurSteps.Set(nullptr);
-		if (m_pPreviewNoteField) {
-			m_pPreviewNoteField->SetVisible(false);
-			// if previewnotefield is active and we are moving out of a pack
-			// into the pack list (that's what this block of code is for
-			// handling) manually call songmans cleanup function (compresses all
-			// steps); we could optimize by only compressing the pack but this
-			// is pretty fast anyway -mina
+		if (b_PreviewNoteFieldIsActive)
+		// if previewnotefield we are moving out of a pack
+		// into the pack list (that's what this block of code is for
+		// handling) manually call songmans cleanup function (compresses all
+		// steps); we could optimize by only compressing the pack but this
+		// is pretty fast anyway -mina
 			SONGMAN->Cleanup();
-		}
 	} else {
 		GAMESTATE->m_pPreferredSong = pSong;
 	}
@@ -1403,7 +1396,7 @@ ScreenSelectMusic::AfterMusicChange()
 								 // if we forget about it -mina
 
 	m_vpSteps.clear();
-	vector<std::string> m_Artists, m_AltArtists;
+	std::vector<std::string> m_Artists, m_AltArtists;
 
 	if (SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_LastSong) {
 		m_sSampleMusicToPlay = "";
@@ -1548,7 +1541,7 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_StartedLoadingAt.Touch();
 
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	vpns.push_back(PLAYER_1);
 
 	AfterStepsOrTrailChange(vpns);
@@ -1585,67 +1578,17 @@ ScreenSelectMusic::GetSelectionState()
 }
 
 void
-ScreenSelectMusic::GeneratePreviewNoteField()
+ScreenSelectMusic::SetSampleMusicPosition(float given)
 {
-	if (m_pPreviewNoteField != nullptr)
-		return;
-	const auto song = GAMESTATE->m_pCurSong;
-	Steps* steps = GAMESTATE->m_pCurSteps;
-
-	if (song && steps &&
-		GAMESTATE->GetCurrentStyle(PLAYER_1)->m_StepsType ==
-		  GAMESTATE->m_pCurSteps->m_StepsType) {
-		steps->GetNoteData(m_PreviewNoteData);
-	} else {
-		return;
-	}
-
-	GAMESTATE->m_bIsChartPreviewActive = true;
-	GAMESTATE->SetPaused(false);
-
-	// Create and Render the NoteField afterwards
-	// It is done in this order so we don't see it before the music changes.
-	m_pPreviewNoteField = new NoteField;
-	m_pPreviewNoteField->SetName(
-	  "NoteField"); // Use this to get the ActorFrame from the Screen Children
-
-	m_pPreviewNoteField->Init(GAMESTATE->m_pPlayerState, 100);
-	m_pPreviewNoteField->Load(&m_PreviewNoteData, 0, 800);
+	SOUND->WithRageSoundPlaying([given](RageSound* pMusic) {
+		SOUND->SetSoundPosition(pMusic, given);
+		if (GAMESTATE->GetPaused())
+			pMusic->Pause(true);
+	});
 }
 
 void
-ScreenSelectMusic::DeletePreviewNoteField()
-{
-	if (m_pPreviewNoteField != nullptr) {
-		SAFE_DELETE(m_pPreviewNoteField);
-		GAMESTATE->m_bIsChartPreviewActive = false;
-		const auto song = GAMESTATE->m_pCurSong;
-		if (song && m_SelectionState != SelectionState_Finalized) {
-			// SOUND->StopMusic();
-			m_sSampleMusicToPlay = song->GetPreviewMusicPath();
-			m_fSampleStartSeconds = song->GetPreviewStartSeconds();
-			m_fSampleLengthSeconds = song->m_fMusicSampleLengthSeconds;
-			g_bSampleMusicWaiting = true;
-			CheckBackgroundRequests(true);
-		}
-		GAMESTATE->SetPaused(false);
-	}
-}
-
-void
-ScreenSelectMusic::SetPreviewNoteFieldMusicPosition(float given)
-{
-	if (m_pPreviewNoteField != nullptr && GAMESTATE->m_bIsChartPreviewActive) {
-		SOUND->WithRageSoundPlaying([given](RageSound* pMusic) {
-			SOUND->SetSoundPosition(pMusic, given);
-			if (GAMESTATE->GetPaused())
-				pMusic->Pause(true);
-		});
-	}
-}
-
-void
-ScreenSelectMusic::PausePreviewNoteFieldMusic()
+ScreenSelectMusic::PauseSampleMusic()
 {
 	auto paused = GAMESTATE->GetPaused();
 	SOUND->WithRageSoundPlaying([paused](RageSound* pMusic) {
@@ -1938,8 +1881,9 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// go
 		Locator::getLogger()->trace("Viewing evaluation screen for score key {}",
 				   score->GetScoreKey().c_str());
-		SCREENMAN->SetNewScreen("ScreenEvaluationNormal");
-
+		p->SetNextScreenName("ScreenEvaluationNormal");
+		p->StartTransitioningScreen(SM_BeginFadingOut);
+		
 		// set rate back to what it was before
 		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
@@ -1949,70 +1893,28 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		return 1;
 	}
 
-	// This will return the Preview Notefield if it is successful.
-	static int CreatePreviewNoteField(T* p, lua_State* L)
-	{
-		p->GeneratePreviewNoteField();
-		if (p->m_pPreviewNoteField != nullptr) {
-			p->m_pPreviewNoteField->PushSelf(L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	// This will delete the Preview Notefield if it exists.
-	// NOTE: This is triggered by a DeletePreviewNoteField Message.
-	// It is not necessary to use this except for rare circumstances.
-	static int DeletePreviewNoteField(T* p, lua_State* L)
-	{
-		auto* king = Luna<ActorFrame>::check(L, 1);
-		king->RemoveChild(p->m_pPreviewNoteField);
-		p->DeletePreviewNoteField();
-		return 0;
-	}
-
-	// Get the Preview Notefield ActorFrame if it exists.
-	static int GetPreviewNoteField(T* p, lua_State* L)
-	{
-		if (p->m_pPreviewNoteField != nullptr) {
-			p->m_pPreviewNoteField->PushSelf(L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static int SetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
+	static int SetSampleMusicPosition(T* p, lua_State* L)
 	{
 		const auto given = FArg(1);
-		if (GAMESTATE->m_bIsChartPreviewActive) {
-			p->SetPreviewNoteFieldMusicPosition(given);
-		}
+		p->SetSampleMusicPosition(given);
 		return 0;
 	}
 
-	static int GetPreviewNoteFieldMusicPosition(T* p, lua_State* L)
+	static int GetSampleMusicPosition(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, GAMESTATE->m_Position.m_fMusicSeconds);
 		return 1;
 	}
 
-	static int PausePreviewNoteField(T* p, lua_State* L)
+	static int PauseSampleMusic(T* p, lua_State* L)
 	{
-		p->PausePreviewNoteFieldMusic();
+		p->PauseSampleMusic();
 		return 0;
 	}
-	static int IsPreviewNoteFieldPaused(T* p, lua_State* L)
+	static int IsSampleMusicPaused(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, GAMESTATE->GetPaused());
 		return 1;
-	}
-	static int dootforkfive(T* p, lua_State* L)
-	{
-		auto* king = Luna<ActorFrame>::check(L, 1);
-		king->AddChild(p->m_pPreviewNoteField);
-		COMMON_RETURN_SELF;
 	}
 	static int ChangeSteps(T* p, lua_State* L)
 	{
@@ -2026,7 +1928,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	}
 	static int PlayCurrentSongSampleMusic(T* p, lua_State* L)
 	{
-		p->PlayCurrentSongSampleMusic(true, BArg(1));
+		p->PlayCurrentSongSampleMusic(true, BArg(1), BArg(2));
 		return 0;
 	}
 	LunaScreenSelectMusic()
@@ -2041,14 +1943,10 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(StartPlaylistAsCourse);
 		ADD_METHOD(PlayReplay);
 		ADD_METHOD(ShowEvalScreenForScore);
-		ADD_METHOD(CreatePreviewNoteField);
-		ADD_METHOD(DeletePreviewNoteField);
-		ADD_METHOD(GetPreviewNoteField);
-		ADD_METHOD(SetPreviewNoteFieldMusicPosition);
-		ADD_METHOD(GetPreviewNoteFieldMusicPosition);
-		ADD_METHOD(PausePreviewNoteField);
-		ADD_METHOD(IsPreviewNoteFieldPaused);
-		ADD_METHOD(dootforkfive);
+		ADD_METHOD(SetSampleMusicPosition);
+		ADD_METHOD(GetSampleMusicPosition);
+		ADD_METHOD(PauseSampleMusic);
+		ADD_METHOD(IsSampleMusicPaused);
 		ADD_METHOD(ChangeSteps);
 		ADD_METHOD(PlayCurrentSongSampleMusic);
 	}

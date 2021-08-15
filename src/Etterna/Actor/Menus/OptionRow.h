@@ -141,9 +141,9 @@ class OptionRow : public ActorFrame
 
 	ActorFrame m_Frame;
 
-	vector<BitmapText*>
+	std::vector<BitmapText*>
 	  m_textItems; // size depends on m_bRowIsLong and which players are joined
-	vector<OptionsCursor*> m_Underline; // size depends on
+	std::vector<OptionsCursor*> m_Underline; // size depends on
 										// m_bRowIsLong and which
 										// players are joined
 
@@ -156,7 +156,7 @@ class OptionRow : public ActorFrame
 
 	int m_iChoiceInRowWithFocus; // this choice has input focus
 	// Only one will true at a time if m_pHand->m_Def.bMultiSelect
-	vector<bool> m_vbSelected;		   // size = m_pHand->m_Def.choices.size()
+	std::vector<bool> m_vbSelected;		   // size = m_pHand->m_Def.choices.size()
 	Actor::TweenState m_tsDestination; // this should approach m_tsDestination.
 
   public:

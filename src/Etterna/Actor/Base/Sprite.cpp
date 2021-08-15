@@ -182,7 +182,7 @@ Sprite::LoadFromNode(const XNode* pNode)
 		// overwriting the states that LoadFromTexture created.
 		// If the .sprite file doesn't define any states, leave
 		// frames and delays created during LoadFromTexture().
-		vector<State> aStates;
+		std::vector<State> aStates;
 
 		auto pFrames = pNode->GetChild("Frames");
 		if (pFrames != nullptr) {
@@ -321,7 +321,7 @@ Sprite::EnableAnimation(bool bEnable)
 }
 
 void
-Sprite::SetTexture(std::shared_ptr<RageTexture> pTexture)
+Sprite::SetTexture(RageTexture* pTexture)
 {
 	ASSERT(pTexture != nullptr);
 
@@ -351,8 +351,8 @@ Sprite::LoadFromTexture(const RageTextureID& ID)
 {
 	// LOG->Trace( "Sprite::LoadFromTexture( %s )", ID.filename.c_str() );
 
-	std::shared_ptr<RageTexture> pTexture;
-	if ((m_pTexture != nullptr) && m_pTexture->GetID() == ID)
+	RageTexture* pTexture = nullptr;
+	if (m_pTexture != nullptr && m_pTexture->GetID() == ID)
 		pTexture = m_pTexture;
 	else
 		pTexture = TEXTUREMAN->LoadTexture(ID);
@@ -1291,7 +1291,7 @@ class LunaSprite : public Luna<Sprite>
 		if (!lua_istable(L, 1)) {
 			luaL_error(L, "State properties must be in a table.");
 		}
-		vector<Sprite::State> new_states;
+		std::vector<Sprite::State> new_states;
 		const auto num_states = lua_objlen(L, 1);
 		if (num_states == 0) {
 			luaL_error(L, "A Sprite cannot have zero states.");
@@ -1366,17 +1366,17 @@ class LunaSprite : public Luna<Sprite>
 	}
 	static int SetTexture(T* p, lua_State* L)
 	{
-		auto pTexture = Luna<RageTexture>::check(L, 1);
-		std::shared_ptr<RageTexture> rt(pTexture);
-		rt = TEXTUREMAN->CopyTexture(rt);
-		p->SetTexture(rt);
+		auto* pTexture = Luna<RageTexture>::check(L, 1);
+		pTexture = TEXTUREMAN->CopyTexture(pTexture);
+		p->SetTexture(pTexture);
 		COMMON_RETURN_SELF;
 	}
 	static int GetTexture(T* p, lua_State* L)
 	{
-		auto pTexture = p->GetTexture();
-		if (pTexture != nullptr)
+		auto* pTexture = p->GetTexture();
+		if (pTexture != nullptr) {
 			pTexture->PushSelf(L);
+		}
 		else
 			lua_pushnil(L);
 		return 1;

@@ -199,15 +199,18 @@ InputFilter::ButtonPressed(const DeviceInput& di)
 	LockMut(*queuemutex);
 
 	if (di.ts == std::chrono::time_point<std::chrono::steady_clock>())
-		Locator::getLogger()->warn("InputFilter::ButtonPressed: zero timestamp is invalid");
+		Locator::getLogger()->warn(
+		  "InputFilter::ButtonPressed: zero timestamp is invalid");
 
 	// Filter out input that is beyond the range of the current system.
 	if (di.device >= NUM_InputDevice) {
-		Locator::getLogger()->trace("InputFilter::ButtonPressed: Invalid device {}", di.device);
+		Locator::getLogger()->trace(
+		  "InputFilter::ButtonPressed: Invalid device {}", di.device);
 		return;
 	}
 	if (di.button >= NUM_DeviceButton) {
-		Locator::getLogger()->trace("InputFilter::ButtonPressed: Invalid button {}", di.button);
+		Locator::getLogger()->trace(
+		  "InputFilter::ButtonPressed: Invalid button {}", di.button);
 		return;
 	}
 
@@ -229,6 +232,11 @@ InputFilter::ButtonPressed(const DeviceInput& di)
 	// Try to report presses immediately.
 	MakeButtonStateList(g_CurrentState);
 	CheckButtonChange(bs, di, now);
+
+	if (di.button == KEY_CAPSLOCK && di.bDown) {
+		// This might not be the right place to do this
+		capsLockEnabled = !capsLockEnabled;
+	}
 }
 
 void
@@ -314,7 +322,7 @@ InputFilter::ReportButtonChange(const DeviceInput& di, InputEventType t)
 }
 
 void
-InputFilter::MakeButtonStateList(vector<DeviceInput>& aInputOut) const
+InputFilter::MakeButtonStateList(std::vector<DeviceInput>& aInputOut) const
 {
 	aInputOut.clear();
 	aInputOut.reserve(g_ButtonStates.size());
@@ -343,7 +351,7 @@ InputFilter::Update(float fDeltaTime)
 
 	MakeButtonStateList(g_CurrentState);
 
-	vector<ButtonStateMap::iterator> ButtonsToErase;
+	std::vector<ButtonStateMap::iterator> ButtonsToErase;
 
 	FOREACHM(DeviceButtonPair, ButtonState, g_ButtonStates, b)
 	{
@@ -488,7 +496,7 @@ InputFilter::RepeatStopKey(const DeviceInput& di)
 }
 
 void
-InputFilter::GetInputEvents(vector<InputEvent>& array)
+InputFilter::GetInputEvents(std::vector<InputEvent>& array)
 {
 	array.clear();
 	LockMut(*queuemutex);
@@ -496,7 +504,7 @@ InputFilter::GetInputEvents(vector<InputEvent>& array)
 }
 
 void
-InputFilter::GetPressedButtons(vector<DeviceInput>& array) const
+InputFilter::GetPressedButtons(std::vector<DeviceInput>& array) const
 {
 	LockMut(*queuemutex);
 	array = g_CurrentState;
@@ -544,14 +552,22 @@ class LunaInputFilter : public Luna<InputFilter>
 	static int GetMouseX(T* p, lua_State* L)
 	{
 		float fX = p->GetCursorX();
-		fX = SCALE(fX, 0, Core::Platform::getWindowDimensions().width, SCREEN_LEFT, SCREEN_RIGHT);
+		fX = SCALE(fX,
+				   0,
+				   Core::Platform::getWindowDimensions().width,
+				   SCREEN_LEFT,
+				   SCREEN_RIGHT);
 		lua_pushnumber(L, fX);
 		return 1;
 	}
 	static int GetMouseY(T* p, lua_State* L)
 	{
 		float fY = p->GetCursorY();
-		fY = SCALE(fY, 0, Core::Platform::getWindowDimensions().height, SCREEN_TOP, SCREEN_BOTTOM);
+		fY = SCALE(fY,
+				   0,
+				   Core::Platform::getWindowDimensions().height,
+				   SCREEN_TOP,
+				   SCREEN_BOTTOM);
 		lua_pushnumber(L, fY);
 		return 1;
 	}

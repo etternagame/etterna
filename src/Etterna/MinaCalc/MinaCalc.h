@@ -69,6 +69,10 @@ class Calc
 	// set to true for scores, false for cache
 	bool ssr = true;
 
+	// set to true to load params
+	// alternative to telling load_params to force load
+	bool loadparams = false;
+
   private:
 	/* Splits up the chart by each hand and processes them individually to
 	 * produce hand specific base difficulty values, which are then passed to

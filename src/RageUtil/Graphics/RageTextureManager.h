@@ -49,18 +49,16 @@ class RageTextureManager
 	~RageTextureManager();
 	void Update(float fDeltaTime);
 
-	std::shared_ptr<RageTexture> LoadTexture(const RageTextureID& ID);
-	std::shared_ptr<RageTexture> CopyTexture(
-	  std::shared_ptr<RageTexture>
-		pCopy); // returns a ref to the same texture, not a deep copy
+	RageTexture* LoadTexture(const RageTextureID& ID);
+	RageTexture* CopyTexture(
+	  RageTexture* pCopy); // returns a ref to the same texture, not a deep copy
 	bool IsTextureRegistered(RageTextureID ID) const;
-	void RegisterTexture(RageTextureID ID, std::shared_ptr<RageTexture> p);
+	void RegisterTexture(RageTextureID ID, RageTexture* p);
 	void VolatileTexture(const RageTextureID& ID);
-	void UnloadTexture(std::shared_ptr<RageTexture> t);
+	void UnloadTexture(RageTexture* t);
 	void ReloadAll();
 
-	void RegisterTextureForUpdating(const RageTextureID& id,
-									std::shared_ptr<RageTexture> tex);
+	void RegisterTextureForUpdating(const RageTextureID& id, RageTexture* tex);
 
 	bool SetPrefs(RageTextureManagerPrefs prefs);
 	RageTextureManagerPrefs GetPrefs() { return m_Prefs; };
@@ -97,14 +95,14 @@ class RageTextureManager
 	RageSurface* GetScreenSurface();
 
   private:
-	void DeleteTexture(std::shared_ptr<RageTexture> t);
+	void DeleteTexture(RageTexture* t);
 	enum GCType
 	{
 		screen_changed,
 		delayed_delete
 	};
 	void GarbageCollect(GCType type);
-	std::shared_ptr<RageTexture> LoadTextureInternal(RageTextureID ID);
+	RageTexture* LoadTextureInternal(RageTextureID ID);
 
 	RageTextureManagerPrefs m_Prefs;
 	int m_iNoWarnAboutOddDimensions{ 0 };

@@ -43,7 +43,7 @@ Foreground::LoadFromSong(const Song* pSong)
 
 		LoadedBGA bga;
 		if (DoesFileExist(sLuaFile)) {
-			Locator::getLogger()->warn("Mod map detected, invalidating sequential assumption.");
+			Locator::getLogger()->warn("Modchart detected, invalidating sequential assumption.");
 			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 			td->InvalidateSequentialAssmption();
 

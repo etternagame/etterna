@@ -408,13 +408,6 @@ auto
 DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
   -> bool
 {
-
-	// 4k and 6k only
-	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single &&
-		GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_solo) {
-		return false;
-	}
-
 	// chord cohesion is invalid
 	if (!GAMESTATE->CountNotesSeparately()) {
 		return false;
@@ -566,9 +559,7 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetJudgeScale(pss.GetTimingScale());
 	hs.SetChordCohesion(GAMESTATE->CountNotesSeparately());
 	hs.SetMaxCombo(pss.GetMaxCombo().m_cnt);
-
-	auto played_seconds = 1.F;
-	hs.SetPlayedSeconds(played_seconds);
+	hs.SetPlayedSeconds(pss.m_fPlayedSeconds);
 
 	std::vector<std::string> asModifiers;
 	{
@@ -621,8 +612,15 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetTrackVector(pss.GetTrackVector());
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
 		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
-		hs.SetReplayType(
-		  2); // flag this before rescore so it knows we're LEGGIT
+		// flag this before rescore so it knows we're LEGGIT
+		hs.SetReplayType(2);
+		if (hs.GetTapNoteTypeVector().size() < hs.GetNoteRowVector().size() ||
+			hs.GetTrackVector().size() < hs.GetNoteRowVector().size()) {
+			// what happened here is most likely that the replay type is not 2
+			// (missing column data, missing type data)
+			// it's a replay made before 0.60
+			hs.SetReplayType(1);
+		}
 
 		// ok this is a little jank but there's a few things going on here,
 		// first we can't trust that scores getting here are necessarily either
@@ -663,11 +661,26 @@ FillInHighScore(const PlayerStageStats& pss,
 		}
 	}
 
+	// Input data.
+	hs.SetInputDataVector(pss.GetInputDataVector());
+
+	// Normalize Judgments to J4 (regardless of wifepercent)
+	// If it fails, reset the replay data from pss and try one more time
+	if (!hs.NormalizeJudgments()) {
+		hs.SetOffsetVector(pss.GetOffsetVector());
+		hs.SetNoteRowVector(pss.GetNoteRowVector());
+		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
+		// potentially empty, that's fine
+		hs.SetTrackVector(pss.GetTrackVector());
+
+		if (!hs.NormalizeJudgments())
+			Locator::getLogger()->warn(
+			  "Failed to normalize judgments for HighScore Key {}",
+			  hs.GetScoreKey());
+	}
+
 	hs.GenerateValidationKeys();
 
-	if (!pss.InputData.empty()) {
-		hs.WriteInputData(pss.InputData);
-	}
 	return hs;
 }
 
@@ -675,12 +688,8 @@ void
 StageStats::FinalizeScores(bool /*bSummary*/)
 {
 	Locator::getLogger()->trace("Finalizing Score");
-	SCOREMAN->camefromreplay =
-	  false; // if we're viewing an online replay this gets set to true -mina
-	if (!PREFSMAN->m_sTestInitialScreen.Get().empty()) {
-		m_player.m_iPersonalHighScoreIndex = 0;
-		m_player.m_iMachineHighScoreIndex = 0;
-	}
+	// if we're viewing an online replay this gets set to true -mina
+	SCOREMAN->camefromreplay = false;
 
 	// don't save scores if the player chose not to
 	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore) {
@@ -770,6 +779,9 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	if (m_player.m_fWifeScore > 0.F) {
 		const auto writesuccess = hs.WriteReplayData();
 	}
+
+	// input data
+	//hs.WriteInputData();
 
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
 							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,

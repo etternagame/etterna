@@ -22,7 +22,7 @@ AppendOctal(int n, int digits, std::string& out);
 namespace SongUtil {
 void
 GetSteps(const Song* pSong,
-		 vector<Steps*>& arrayAddTo,
+		 std::vector<Steps*>& arrayAddTo,
 		 StepsType st = StepsType_Invalid,
 		 Difficulty dc = Difficulty_Invalid,
 		 int iMeterLow = -1,
@@ -68,46 +68,46 @@ GetClosestNotes(const Song* pSong,
 void
 AdjustDuplicateSteps(Song* pSong); // part of TidyUpData
 void
-DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps);
+DeleteDuplicateSteps(Song* pSong, std::vector<Steps*>& vSteps);
 
 void
 MakeSortString(std::string& s);
 auto
 MakeSortString(const std::string& in) -> std::string;
 void
-SortSongPointerArrayByTitle(vector<Song*>& vpSongsInOut);
+SortSongPointerArrayByTitle(std::vector<Song*>& vpSongsInOut);
 void
-SortSongPointerArrayByBPM(vector<Song*>& vpSongsInOut);
+SortSongPointerArrayByBPM(std::vector<Song*>& vpSongsInOut);
 void
-SortSongPointerArrayByWifeScore(vector<Song*>& v);
+SortSongPointerArrayByWifeScore(std::vector<Song*>& v);
 void
-SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut);
+SortSongPointerArrayByArtist(std::vector<Song*>& vpSongsInOut);
 void
-SortSongPointerArrayByDisplayArtist(vector<Song*>& vpSongsInOut);
+SortSongPointerArrayByDisplayArtist(std::vector<Song*>& vpSongsInOut);
 void
-SortSongPointerArrayByGenre(vector<Song*>& vpSongsInOut);
+SortSongPointerArrayByGenre(std::vector<Song*>& vpSongsInOut);
 void
-SortSongPointerArrayByGroupAndTitle(vector<Song*>& vpSongsInOut);
+SortSongPointerArrayByGroupAndTitle(std::vector<Song*>& vpSongsInOut);
 void
-SortSongPointerArrayByGroupAndMSD(vector<Song*>& vpSongsInOut, Skillset ss);
+SortSongPointerArrayByGroupAndMSD(std::vector<Song*>& vpSongsInOut, Skillset ss);
 void
-SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
+SortSongPointerArrayByNumPlays(std::vector<Song*>& vpSongsInOut,
 							   ProfileSlot slot,
 							   bool bDescending);
 void
-SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
+SortSongPointerArrayByNumPlays(std::vector<Song*>& vpSongsInOut,
 							   const Profile* pProfile,
 							   bool bDescending);
 void
-SortSongPointerArrayByStepsTypeAndMeter(vector<Song*>& vpSongsInOut,
+SortSongPointerArrayByStepsTypeAndMeter(std::vector<Song*>& vpSongsInOut,
 										StepsType st,
 										Difficulty dc);
 auto
 GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so) -> std::string;
 void
-SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut, SortOrder so);
+SortSongPointerArrayBySectionName(std::vector<Song*>& vpSongsInOut, SortOrder so);
 void
-SortSongPointerArrayByLength(vector<Song*>& vpSongsInOut);
+SortSongPointerArrayByLength(std::vector<Song*>& vpSongsInOut);
 
 auto
 CompareSongPointersByGroup(const Song* pSong1, const Song* pSong2) -> int;
@@ -155,11 +155,11 @@ ValidateCurrentStepsMusic(const std::string& answer, std::string& error)
   -> bool;
 
 void
-GetAllSongGenres(vector<std::string>& vsOut);
+GetAllSongGenres(std::vector<std::string>& vsOut);
 void
 GetPlayableStepsTypes(const Song* pSong, std::set<StepsType>& vOut);
 void
-GetPlayableSteps(const Song* pSong, vector<Steps*>& vOut, bool filteringSteps = false);
+GetPlayableSteps(const Song* pSong, std::vector<Steps*>& vOut, bool filteringSteps = false);
 auto
 IsStepsTypePlayable(Song* pSong, StepsType st) -> bool;
 auto

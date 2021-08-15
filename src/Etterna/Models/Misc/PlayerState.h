@@ -39,6 +39,7 @@ class PlayerState
 	void Update(float fDelta);
 
 	void SetPlayerNumber(PlayerNumber pn);
+	void ResetCacheInfo(/*const NoteData& notes*/);
 
 	/**
 	 * @brief The PlayerNumber assigned to this Player: usually 1 or 2.

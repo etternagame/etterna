@@ -12,7 +12,7 @@ DriverList RageSoundDriver::m_pDriverList;
 RageSoundDriver*
 RageSoundDriver::Create(const std::string& drivers)
 {
-	vector<std::string> drivers_to_try;
+	std::vector<std::string> drivers_to_try;
 	if (drivers.empty()) {
 		split(DEFAULT_SOUND_DRIVER_LIST, ",", drivers_to_try);
 	} else {

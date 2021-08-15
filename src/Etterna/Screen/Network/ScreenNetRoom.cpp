@@ -28,6 +28,8 @@ static LocalizedString ENTER_ROOM_PASSWORD(
   "Enter a password for the room (blank, no password):");
 static LocalizedString ENTER_ROOM_REQPASSWORD("ScreenNetRoom",
 											  "Enter Room's Password:");
+static LocalizedString ROOM_NAME_EMPTY("ScreenNetRoom",
+											  "Room name cannot be empty");
 
 REGISTER_SCREEN_CLASS(ScreenNetRoom);
 
@@ -97,8 +99,12 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 	} else if (SM == SM_BackFromRoomName) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
 			m_newRoomName = ScreenTextEntry::s_sLastAnswer;
-			ScreenTextEntry::TextEntry(
-			  SM_BackFromRoomDesc, ENTER_ROOM_DESCRIPTION, "", 255);
+			if (m_newRoomName != "") {
+				ScreenTextEntry::TextEntry(
+				SM_BackFromRoomDesc, ENTER_ROOM_DESCRIPTION, "", 255);
+			} else {
+				SCREENMAN->SystemMessage(ROOM_NAME_EMPTY);
+			}
 		}
 	} else if (SM == SM_BackFromRoomDesc) {
 		if (!ScreenTextEntry::s_bCancelledLast) {

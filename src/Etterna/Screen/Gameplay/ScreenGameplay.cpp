@@ -46,6 +46,8 @@
 
 #include <algorithm>
 
+#include "Core/Platform/Platform.hpp"
+
 #define SONG_POSITION_METER_WIDTH                                              \
 	THEME->GetMetricF(m_sName, "SongPositionMeterWidth")
 
@@ -537,6 +539,9 @@ ScreenGameplay::LoadNextSong()
 	// script forces it when loaded below -mina
 	SCREENMAN->set_input_redirected(m_vPlayerInfo.m_pn, false);
 
+	// Time begins now (so each individual song can be counted)
+	m_initTimer.Touch();
+
 	GAMESTATE->ResetMusicStatistics();
 
 	m_vPlayerInfo.GetPlayerStageStats()->m_iSongsPlayed++;
@@ -1024,8 +1029,14 @@ ScreenGameplay::Update(float fDeltaTime)
 					fSecondsToStartTransitioningOut += BEGIN_FAILED_DELAY;
 				}
 
+				// fire NoteEnded a bit after the last note.
+				// this is to deal with possibly missing the last note
+				//  that would ruin an FC
+				//  otherwise this fires before the last note is judged
+				//   granting a fake FC (or more)
+				//  (HACK?)
 				if (GAMESTATE->m_Position.m_fMusicSeconds >=
-					  fSecondsToStartTransitioningOut &&
+					  fSecondsToStartTransitioningOut + m_vPlayerInfo.m_pPlayer->GetMaxStepDistanceSeconds() &&
 					!m_NextSong.IsTransitioning()) {
 					this->PostScreenMessage(SM_NotesEnded, 0);
 				}
@@ -1457,6 +1468,10 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 		GAMESTATE->m_iPlayerStageTokens = 0;
 	}
 
+	// How long did this Gameplay session last?
+	auto tDiff = m_initTimer.GetDeltaTime();
+	STATSMAN->m_CurStageStats.m_player.m_fPlayedSeconds = tDiff;
+
 	// Properly set the LivePlay bool
 	STATSMAN->m_CurStageStats.m_bLivePlay = true;
 
@@ -1658,7 +1673,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		StartPlayingSong(MIN_SECONDS_TO_STEP_NEXT_SONG, 0);
 	} else if (SM == SM_PlayToasty) {
 		if (PREFSMAN->m_bEasterEggs) {
-			if (m_Toasty.IsWaiting()) {
+			if (m_Toasty.IsWaiting() || PREFSMAN->m_AllowMultipleToasties) {
 				m_Toasty.Reset();
 				m_Toasty.StartTransitioning();
 			}
@@ -1687,7 +1702,12 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		}
 	} else if (SM == SM_DoNextScreen) {
 		SongFinished();
-		this->StageFinished(false);
+
+		// Don't save here for Playlists
+		// SM_NotesEnded handles all saving for that case (always saves at end of song)
+		if (!GAMESTATE->IsPlaylistCourse())
+			this->StageFinished(false);
+
 		const auto syncing =
 		  !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
 		auto replaying = false;

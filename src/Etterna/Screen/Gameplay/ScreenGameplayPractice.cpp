@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include "Etterna/Models/Misc/AdjustSync.h"
+
 REGISTER_SCREEN_CLASS(ScreenGameplayPractice);
 
 void
@@ -100,7 +102,10 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 				return true;
 			}
 
+			AdjustSync::ResetOriginalSyncData();
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps);
+			if (!m_vPlayerInfo.m_NoteData.IsEmpty())
+				m_vPlayerInfo.GetPlayerState()->ResetCacheInfo();
 
 			float fSecondsToStartFadingOutMusic;
 			float fSecondsToStartTransitioningOut;

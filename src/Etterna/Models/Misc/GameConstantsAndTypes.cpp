@@ -85,12 +85,12 @@ static const char* GameplayModeNames[] = {
 XToString(GameplayMode);
 LuaXType(GameplayMode);
 
-static const char* SortOrderNames[] = { "Group",	 "Title",	   "BPM",
-										"TopGrades", "Artist",	   "Genre",
-										"ModeMenu",	 "Favorites",  "Overall",
-										"Stream",	 "Jumpstream", "Handstream",
-										"Stamina",	 "JackSpeed",  "Chordjack",
-										"Technical", "Length" };
+static const char* SortOrderNames[] = {
+	"Group",	  "Title",		"BPM",		 "TopGrades", "Artist",
+	"Genre",	  "ModeMenu",	"Favorites", "Overall",	  "Stream",
+	"Jumpstream", "Handstream", "Stamina",	 "JackSpeed", "Chordjack",
+	"Technical",  "Length",		"Ungrouped"
+};
 XToString(SortOrder);
 StringToX(SortOrder);
 LuaXType(SortOrder);
@@ -218,6 +218,7 @@ static const char* CalcPatternModNames[] = {
 	// "CJS",
 	// "CJJ",
 	"CJDensity",
+	"HSDensity",
 	"OHJumpMod",
 	// "OHJBaseProp",
 	// "OHJPropComp",
@@ -269,7 +270,7 @@ LuaXType(CalcDiffValue);
 static const char* CalcDebugMiscNames[] = { "Pts",
 											"PtLoss",
 											//"JackPtLoss",
-											"StamMod"};
+											"StamMod" };
 XToString(CalcDebugMisc);
 LuaXType(CalcDebugMisc);
 

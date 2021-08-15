@@ -61,7 +61,7 @@ protected:
     virtual void log(ILogger::Severity logLevel, const std::string_view message) = 0;
 
 private:
-	template <typename... Args> inline std::string_view safe_format(const std::string_view log, const Args& ... args) {
+	template <typename... Args> inline std::string safe_format(const std::string_view log, const Args& ... args) {
 		try {
 			return fmt::format(log, args...);
 		} catch (fmt::v7::format_error& e) {
@@ -69,7 +69,7 @@ private:
 							"message - Report to developers: ");
 			msg.append(e.what());
 			this->log(Severity::ERR, msg);
-			return log;
+			return std::string(log);
 		}
 	}
 };

@@ -37,6 +37,7 @@
 #include "HoldJudgment.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Globals/rngthing.h"
+#include "Etterna/Globals/GameLoop.h"
 
 #include <algorithm>
 using std::max;
@@ -177,7 +178,7 @@ inline void
 JudgedRows::Resize(size_t iMin)
 {
 	const auto iNewSize = std::max(2 * m_vRows.size(), iMin);
-	vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
+	std::vector<bool> vNewRows(m_vRows.begin() + m_iOffset, m_vRows.end());
 	vNewRows.reserve(iNewSize);
 	vNewRows.insert(
 	  vNewRows.end(), m_vRows.begin(), m_vRows.begin() + m_iOffset);
@@ -355,7 +356,9 @@ Player::Init(const std::string& sType,
 	if ((m_pLifeMeter != nullptr) && (m_pPlayerStageStats != nullptr)) {
 		const auto fLife = m_pLifeMeter->GetLife();
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
+		  fLife,
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 		// m_pPlayerStageStats->SetWifeRecordAt( 1.f,
 		// STATSMAN->m_CurStageStats.m_fStepsSeconds);
 	}
@@ -524,46 +527,6 @@ Player::NeedsHoldJudging(const TapNote& tn) -> bool
 	}
 }
 
-static void
-GenerateCacheDataStructure(PlayerState* pPlayerState, const NoteData& notes)
-{
-
-	pPlayerState->m_CacheDisplayedBeat.clear();
-
-	const auto vScrolls =
-	  pPlayerState->GetDisplayedTiming().GetTimingSegments(SEGMENT_SCROLL);
-
-	auto displayedBeat = 0.0F;
-	auto lastRealBeat = 0.0F;
-	auto lastRatio = 1.0F;
-	for (auto vScroll : vScrolls) {
-		auto* const seg = ToScroll(vScroll);
-		displayedBeat += (seg->GetBeat() - lastRealBeat) * lastRatio;
-		lastRealBeat = seg->GetBeat();
-		lastRatio = seg->GetRatio();
-		CacheDisplayedBeat c = { seg->GetBeat(),
-								 displayedBeat,
-								 seg->GetRatio() };
-		pPlayerState->m_CacheDisplayedBeat.push_back(c);
-	}
-
-	pPlayerState->m_CacheNoteStat.clear();
-
-	auto it = notes.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW, true);
-	auto count = 0;
-	auto lastCount = 0;
-	for (; !it.IsAtEnd(); ++it) {
-		for (auto t = 0; t < notes.GetNumTracks(); t++) {
-			if (notes.GetTapNote(t, it.Row()) != TAP_EMPTY) {
-				count++;
-			}
-		}
-		CacheNoteStat c = { NoteRowToBeat(it.Row()), lastCount, count };
-		lastCount = count;
-		pPlayerState->m_CacheNoteStat.push_back(c);
-	}
-}
-
 void
 Player::Load()
 {
@@ -656,7 +619,7 @@ Player::Load()
 		->m_StepsType);
 
 	// Generate some cache data structure.
-	GenerateCacheDataStructure(m_pPlayerState, m_NoteData);
+	m_pPlayerState->ResetCacheInfo(/*m_NoteData*/);
 
 	const int iDrawDistanceAfterTargetsPixels =
 	  DRAW_DISTANCE_AFTER_TARGET_PIXELS;
@@ -914,7 +877,7 @@ Player::UpdatePressedFlags()
 		ASSERT(m_pPlayerState != nullptr);
 
 		// TODO(Sam): Remove use of PlayerNumber.
-		vector<GameInput> GameI;
+		std::vector<GameInput> GameI;
 		GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		  ->StyleInputToGameInput(col, m_pPlayerState->m_PlayerNumber, GameI);
 
@@ -982,7 +945,7 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 			}
 		}
 
-		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
+		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
 		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
@@ -1010,7 +973,7 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 				case TapNoteSubType_Hold:
 					break;
 				case TapNoteSubType_Roll: {
-					vector<TrackRowTapNote> v;
+					std::vector<TrackRowTapNote> v;
 					v.push_back(trtn);
 					UpdateHoldNotes(iSongRow, fDeltaTime, v);
 				}
@@ -1122,7 +1085,7 @@ Player::Update(float fDeltaTime)
 void
 Player::UpdateHoldNotes(int iSongRow,
 						float fDeltaTime,
-						vector<TrackRowTapNote>& vTN)
+						std::vector<TrackRowTapNote>& vTN)
 {
 	ASSERT(!vTN.empty());
 
@@ -1131,6 +1094,15 @@ Player::UpdateHoldNotes(int iSongRow,
 	LOG->Trace("[Player::UpdateHoldNotes] begins");
 	LOG->Trace( ssprintf("song row %i, deltaTime = %f",iSongRow,fDeltaTime) );
 	*/
+
+	// dont let gameloop updaterate changes break hold note life.
+	// in fact, make it harsh to halt abusers:
+	// instant kill holds if the update rate is 0
+	auto rate = GameLoop::GetUpdateRate();
+	if (rate > 0)
+		fDeltaTime /= rate;
+	else
+		fDeltaTime = 9999;
 
 	const auto iStartRow = vTN[0].iRow;
 	auto iMaxEndRow = INT_MIN;
@@ -1230,7 +1202,7 @@ Player::UpdateHoldNotes(int iSongRow,
 					}
 				}
 			} else {
-				vector<GameInput> GameI;
+				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, PLAYER_1, GameI);
 
@@ -1638,7 +1610,9 @@ Player::ChangeLifeRecord() const
 	if (fLife != -1) {
 		if (m_pPlayerStageStats != nullptr) {
 			m_pPlayerStageStats->SetLifeRecordAt(
-			  fLife, GAMESTATE->m_Position.m_fMusicSeconds);
+			  fLife,
+			  GAMESTATE->m_Position.m_fMusicSeconds /
+				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 		}
 	}
 }
@@ -1650,7 +1624,9 @@ Player::ChangeWifeRecord() const
 	// That's not right.
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->SetLifeRecordAt(
-		  curwifescore / maxwifescore, GAMESTATE->m_Position.m_fMusicSeconds);
+		  curwifescore / maxwifescore,
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	}
 }
 
@@ -1966,9 +1942,8 @@ Player::Step(int col,
 	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
 	const auto fTimeSinceStep = stepAgo;
 
-	// idk if this is the correct value for input logs but we'll use them to
-	// test -mina ok this is 100% not the place to do this
-	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
+	// input data
+	//m_pPlayerStageStats->InputData.emplace_back(!bRelease, col, fPositionSeconds);
 
 	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
@@ -2072,7 +2047,7 @@ Player::Step(int col,
 
 	// if the nerv is too small, dont optimize
 	auto skipstart = nerv.size() > 10 ? nerv[10] : iSongRow + 1;
-	
+
 	if (iSongRow < skipstart || iSongRow > static_cast<int>(nerv.size()) - 10) {
 		iStepSearchRows =
 		  max(BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
@@ -2350,9 +2325,6 @@ Player::Step(int col,
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
-		if (score == TNS_W1 && !GAMESTATE->ShowW1()) {
-			score = TNS_W2;
-		}
 
 		if (score != TNS_None) {
 			pTN->result.tns = score;
@@ -2492,7 +2464,7 @@ Player::CrossedRows(int iLastRowCrossed,
 				tn.HoldResult.fLife = INITIAL_HOLD_LIFE;
 				if (!REQUIRE_STEP_ON_HOLD_HEADS) {
 					const auto pn = m_pPlayerState->m_PlayerNumber;
-					vector<GameInput> GameI;
+					std::vector<GameInput> GameI;
 					GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 					  ->StyleInputToGameInput(iTrack, pn, GameI);
 					if (PREFSMAN->m_fPadStickSeconds > 0.F) {
@@ -2522,7 +2494,7 @@ Player::CrossedRows(int iLastRowCrossed,
 				// to explode
 				// TODO(Sam): Remove use of PlayerNumber.
 				const auto pn = m_pPlayerState->m_PlayerNumber;
-				vector<GameInput> GameI;
+				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, pn, GameI);
 				if (PREFSMAN->m_fPadStickSeconds > 0.0F) {
@@ -2595,7 +2567,7 @@ Player::CrossedRows(int iLastRowCrossed,
 			// There is a tick count at this row
 			if (tickCurrent > 0 && r % (ROWS_PER_BEAT / tickCurrent) == 0) {
 
-				vector<int> viColsWithHold;
+				std::vector<int> viColsWithHold;
 				auto iNumHoldsHeldThisRow = 0;
 				auto iNumHoldsMissedThisRow = 0;
 
@@ -2920,7 +2892,9 @@ Player::HandleTapRowScore(unsigned row)
 	 * fStepsSeconds instead. */
 	if (m_pPlayerStageStats != nullptr) {
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 	}
 
 	ChangeLife(scoreOfLastTap);
@@ -2930,7 +2904,7 @@ void
 Player::HandleHoldCheckpoint(int iRow,
 							 int iNumHoldsHeldThisRow,
 							 int iNumHoldsMissedThisRow,
-							 const vector<int>& viColsWithHold)
+							 const std::vector<int>& viColsWithHold)
 {
 	const auto bNoCheating = true;
 #ifdef DEBUG
@@ -2979,7 +2953,9 @@ Player::HandleHoldCheckpoint(int iRow,
 		SetCombo(m_pPlayerStageStats->m_iCurCombo,
 				 m_pPlayerStageStats->m_iCurMissCombo);
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 	}
 
 	ChangeLife(iNumHoldsMissedThisRow == 0 ? TNS_CheckpointHit

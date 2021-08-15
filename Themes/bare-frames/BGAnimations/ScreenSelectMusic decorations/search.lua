@@ -1,8 +1,9 @@
 local t = Def.ActorFrame {}
 -- Controls the song search relevant children of the ScreenSelectMusic decorations actorframe
 
-local searchstring = ""
 local active = false
+local lastsearchstring = ""
+local searchstring = ""
 local whee
 
 -- imagine making a text input field just a regex char match of keyboard presses
@@ -23,15 +24,13 @@ local function searcher(event)
 			searchstring = searchstring:sub(1, -2) -- remove the last element of the string
 		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			searchstring = ""
-		elseif event.DeviceInput.button == "DeviceButton_=" then
-			searchstring = searchstring .. "="
 		else
 			local CtrlPressed = INPUTFILTER:IsControlPressed()
 			if event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
 				searchstring = searchstring .. Arch.getClipboard()
 			elseif
 			--if not nil and (not a number or (ctrl pressed and not online))
-				event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') and
+				event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w%[%]%{%}%`%\\]') and
 					(not tonumber(event.char) or CtrlPressed)
 			 then
 				searchstring = searchstring .. event.char

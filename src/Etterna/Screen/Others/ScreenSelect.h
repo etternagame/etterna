@@ -28,9 +28,9 @@ class ScreenSelect : public ScreenWithMenuElements
 	 * @brief The game commands available.
 	 *
 	 * Derived classes should look here for the choices. */
-	vector<GameCommand> m_aGameCommands;
+	std::vector<GameCommand> m_aGameCommands;
 
-	vector<std::string> m_asSubscribedMessages;
+	std::vector<std::string> m_asSubscribedMessages;
 
 	/** @brief Count up to the time between idle comment announcer sounds. */
 	RageTimer m_timerIdleComment;

@@ -1,6 +1,9 @@
 #ifndef TITLE_SUBSTITUTION_H
 #define TITLE_SUBSTITUTION_H
 
+#include <string>
+#include <vector>
+
 /** @brief The different fields to potentially translate. */
 struct TitleFields
 {
@@ -40,7 +43,7 @@ struct TitleTrans;
 /** @brief Automatic translation for Song titles. */
 class TitleSubst
 {
-	vector<TitleTrans*> ttab;
+	std::vector<TitleTrans*> ttab;
 
 	void AddTrans(const TitleTrans& tr);
 

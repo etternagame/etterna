@@ -10,7 +10,7 @@
  * patterns have lower enps than streams, streams default to 1 and chordstreams
  * start lower, stam is a special case and may use normalizers again */
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.93F, 0.885F, 0.84F, 0.925F, 0.8833277F, 0.8F, 0.83F
+	0.F, 0.93F, 0.885F, 0.84F, 0.93F, 0.8833277F, 0.8F, 0.83F
 };
 
 static const std::string calc_params_xml = "Save/calc params.xml";
@@ -48,7 +48,7 @@ MSSmooth(std::vector<float>& input,
 }
 
 static const std::vector<CalcPatternMod> agnostic_mods = {
-	Stream, JS, HS, CJ, CJDensity, FlamJam, TheThing, TheThing2,
+	Stream, JS, HS, CJ, CJDensity, HSDensity, FlamJam, TheThing, TheThing2,
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
@@ -120,13 +120,21 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 Calc& calc,
 							 const float& offset = 0.F) -> bool
 {
+	// an inf rowtime means 0 bpm or some other odd gimmick that may break things
+	// skip this file
+	// nan/inf can occur before the end of the file
+	// but the way these are generated, the last should be the largest
+	// therefore if any are inf, this is inf
+	if (std::isinf(ni.back().rowTime) || std::isnan(ni.back().rowTime))
+		return true;
+	
 	/* add 1 to convert index to size, we're just using this to guess due to
 	 * potential float precision differences, the actual numitv will be set at
 	 * the end */
 	calc.numitv = time_to_itv_idx(ni.back().rowTime / rate) + 1;
 
 	// are there more intervals than our emplaced max
-	if (calc.numitv >= calc.itv_size.size()) {
+	if (calc.numitv >= static_cast<int>(calc.itv_size.size())) {
 		// hard cap for memory considerations
 		if (calc.numitv >= max_intervals)
 			return true;

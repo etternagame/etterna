@@ -8,7 +8,7 @@ RageWorkerThread::RageWorkerThread(const std::string& sName)
   , m_HeartbeatEvent("\"" + sName + "\" heartbeat event")
 {
 	m_sName = sName;
-	m_Timeout.SetZero();
+	m_Timeout = 0.F;
 	m_iRequest = REQ_NONE;
 	m_bTimedOut = false;
 	m_fHeartbeat = -1;
@@ -28,10 +28,9 @@ RageWorkerThread::SetTimeout(float fSeconds)
 {
 	m_WorkerEvent.Lock();
 	if (fSeconds < 0)
-		m_Timeout.SetZero();
+		m_Timeout = 0.F;
 	else {
-		m_Timeout.Touch();
-		m_Timeout += fSeconds;
+		m_Timeout = fSeconds;
 	}
 	m_WorkerEvent.Unlock();
 }
@@ -74,7 +73,7 @@ RageWorkerThread::DoRequest(int iRequest)
 	ASSERT(!m_bTimedOut);
 	ASSERT(m_iRequest == REQ_NONE);
 
-	if (m_Timeout.IsZero() && iRequest != REQ_SHUTDOWN)
+	if (m_Timeout <= 0.F && iRequest != REQ_SHUTDOWN)
 		Locator::getLogger()->warn("Request made with timeout disabled ({}, iRequest = {})", m_sName.c_str(), iRequest);
 
 	/* Set the request, and wake up the worker thread. */
@@ -85,7 +84,7 @@ RageWorkerThread::DoRequest(int iRequest)
 
 	/* Wait for it to complete or time out. */
 	while (!m_bRequestFinished) {
-		bool bTimedOut = !m_WorkerEvent.Wait(&m_Timeout);
+		bool bTimedOut = !m_WorkerEvent.Wait(m_Timeout);
 		if (bTimedOut)
 			break;
 	}
@@ -114,8 +113,8 @@ RageWorkerThread::WorkerMain()
 		bool bTimeToRunHeartbeat = false;
 		m_WorkerEvent.Lock();
 		while (m_iRequest == REQ_NONE && !bTimeToRunHeartbeat) {
-			if (!m_WorkerEvent.Wait(m_fHeartbeat != -1 ? &m_NextHeartbeat
-													   : nullptr))
+			if (!m_WorkerEvent.Wait(m_fHeartbeat != -1 ? m_NextHeartbeat
+													   : 0.F))
 				bTimeToRunHeartbeat = true;
 		}
 		const int iRequest = m_iRequest;
@@ -133,8 +132,7 @@ RageWorkerThread::WorkerMain()
 			m_HeartbeatEvent.Unlock();
 
 			/* Schedule the next heartbeat. */
-			m_NextHeartbeat.Touch();
-			m_NextHeartbeat += m_fHeartbeat;
+			m_NextHeartbeat = m_fHeartbeat;
 		}
 
 		if (iRequest != REQ_NONE) {
@@ -189,7 +187,7 @@ RageWorkerThread::WaitForOneHeartbeat()
 	ASSERT(m_fHeartbeat != -1);
 
 	m_HeartbeatEvent.Lock();
-	bool bTimedOut = !m_HeartbeatEvent.Wait(&m_Timeout);
+	bool bTimedOut = !m_HeartbeatEvent.Wait(m_Timeout);
 	m_HeartbeatEvent.Unlock();
 
 	return !bTimedOut;

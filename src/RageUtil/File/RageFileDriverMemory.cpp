@@ -177,7 +177,7 @@ RageFileDriverMem::Remove(const std::string& sPath)
 
 	/* Unregister the file. */
 	FDB->DelFile(sPath);
-	vector<RageFileObjMemFile*>::iterator it =
+	std::vector<RageFileObjMemFile*>::iterator it =
 	  find(m_Files.begin(), m_Files.end(), pFile);
 	ASSERT(it != m_Files.end());
 	m_Files.erase(it);

@@ -61,21 +61,11 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	int GetSelectionState();
 
-	// Generate and Display a "fake" NoteField ActorFrame on the Screen.
-	// It functions relatively normally, according to the currently playing
-	// music. It automatically deletes any other pre-existing Preview NoteField.
-	void GeneratePreviewNoteField();
-	// Manually delete a Preview NoteField.
-	// Note: This is triggered by a DeletePreviewNoteField Message.
-	void DeletePreviewNoteField();
-
-	void SetPreviewNoteFieldMusicPosition(float);
-	void PausePreviewNoteFieldMusic();
+	void SetSampleMusicPosition(float);
+	void PauseSampleMusic();
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
-									bool bForceAccurate = false);
-
-	NoteData m_PreviewNoteData;
-	NoteField* m_pPreviewNoteField;
+									bool bForceAccurate = false,
+									bool bExtended = false);
 
 	void ChangeSteps(PlayerNumber pn, int dir);
 	// Lua
@@ -86,14 +76,14 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	virtual bool GenericTweenOff() const { return true; }
 	void UpdateSelectButton(PlayerNumber pn, bool bBeingPressed);
 
-	void AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns);
+	void AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns);
 	void SwitchToPreferredDifficulty();
 	void AfterMusicChange();
 
 	void CheckBackgroundRequests(bool bForce);
 	bool DetectCodes(const InputEventPlus& input);
 
-	vector<Steps*> m_vpSteps;
+	std::vector<Steps*> m_vpSteps;
 	int m_iSelection;
 
 	RageTimer m_timerIdleComment;

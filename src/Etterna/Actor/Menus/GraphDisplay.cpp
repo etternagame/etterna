@@ -115,8 +115,8 @@ class GraphLine : public Actor
 	GraphLine* Copy() const override;
 
   private:
-	vector<RageSpriteVertex> m_Quads;
-	vector<RageSpriteVertex> m_pCircles;
+	std::vector<RageSpriteVertex> m_Quads;
+	std::vector<RageSpriteVertex> m_pCircles;
 };
 REGISTER_ACTOR_CLASS(GraphLine);
 
@@ -152,7 +152,7 @@ class GraphBody : public Actor
 		DISPLAY->DrawQuadStrip(m_Slices, ARRAYLEN(m_Slices));
 	}
 
-	std::shared_ptr<RageTexture> m_pTexture;
+	RageTexture* m_pTexture;
 	RageSpriteVertex m_Slices[2 * VALUE_RESOLUTION];
 };
 

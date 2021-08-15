@@ -6,7 +6,7 @@
 class ScreenGameplayPractice : public ScreenGameplay
 {
   public:
-	virtual void FillPlayerInfo(PlayerInfo* playerInfoOut);
+	void FillPlayerInfo(PlayerInfo* playerInfoOut) override;
 	ScreenGameplayPractice();
 	void Init() override;
 	~ScreenGameplayPractice() override;

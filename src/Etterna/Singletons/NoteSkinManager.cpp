@@ -39,7 +39,7 @@ struct NoteSkinData
 	IniFile metrics;
 
 	// When looking for an element, search these dirs from head to tail.
-	vector<std::string> vsDirSearchOrder;
+	std::vector<std::string> vsDirSearchOrder;
 
 	LuaReference m_Loader;
 };
@@ -89,7 +89,7 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 	  SpecialFiles::NOTESKINS_DIR + "global" + "/";
 	auto sThemeSkinFolder =
 	  THEME->GetCurThemeDir() + "/NoteSkins/" + gameName + "/";
-	vector<std::string> asNoteSkinNames;
+	std::vector<std::string> asNoteSkinNames;
 	GetDirListing(sBaseSkinFolder + "*", asNoteSkinNames, true);
 	GetDirListing(sGlobalSkinFolder + "*", asNoteSkinNames, true);
 	GetDirListing(sThemeSkinFolder + "*", asNoteSkinNames, true);
@@ -223,20 +223,20 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const std::string& sNoteSkinName_,
 }
 
 void
-NoteSkinManager::GetNoteSkinNames(vector<std::string>& AddTo)
+NoteSkinManager::GetNoteSkinNames(std::vector<std::string>& AddTo)
 {
 	GetNoteSkinNames(GAMESTATE->m_pCurGame, AddTo);
 }
 
 void
-NoteSkinManager::GetNoteSkinNames(const Game* pGame, vector<std::string>& AddTo)
+NoteSkinManager::GetNoteSkinNames(const Game* pGame, std::vector<std::string>& AddTo)
 {
 	GetAllNoteSkinNamesForGame(pGame, AddTo);
 }
 
 bool
 NoteSkinManager::NoteSkinNameInList(const std::string& name,
-									const vector<std::string>& name_list)
+									const std::vector<std::string>& name_list)
 {
 	for (size_t i = 0; i < name_list.size(); ++i) {
 		if (0 == strcasecmp(name.c_str(), name_list[i].c_str())) {
@@ -249,7 +249,7 @@ NoteSkinManager::NoteSkinNameInList(const std::string& name,
 bool
 NoteSkinManager::DoesNoteSkinExist(const std::string& sSkinName)
 {
-	vector<std::string> asSkinNames;
+	std::vector<std::string> asSkinNames;
 	GetAllNoteSkinNamesForGame(GAMESTATE->m_pCurGame, asSkinNames);
 	return NoteSkinNameInList(sSkinName, asSkinNames);
 }
@@ -257,7 +257,7 @@ NoteSkinManager::DoesNoteSkinExist(const std::string& sSkinName)
 bool
 NoteSkinManager::DoNoteSkinsExistForGame(const Game* pGame)
 {
-	vector<std::string> asSkinNames;
+	std::vector<std::string> asSkinNames;
 	GetAllNoteSkinNamesForGame(pGame, asSkinNames);
 	return !asSkinNames.empty();
 }
@@ -266,7 +266,7 @@ std::string
 NoteSkinManager::GetDefaultNoteSkinName()
 {
 	auto name = THEME->GetMetric("Common", "DefaultNoteSkinName");
-	vector<std::string> all_names;
+	std::vector<std::string> all_names;
 	GetAllNoteSkinNamesForGame(GAMESTATE->m_pCurGame, all_names);
 	if (all_names.empty()) {
 		return "";
@@ -290,9 +290,19 @@ NoteSkinManager::ValidateNoteSkinName(std::string& name)
 	}
 }
 
+std::string
+NoteSkinManager::GetFirstWorkingNoteSkin()
+{
+	std::vector<std::string> all_names;
+	GetAllNoteSkinNamesForGame(GAMESTATE->m_pCurGame, all_names);
+	if (all_names.size() > 0)
+		return all_names[0];
+	return "";
+}
+
 void
 NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
-											vector<std::string>& AddTo)
+											std::vector<std::string>& AddTo)
 {
 	if (pGame == m_pCurGame) {
 		// Faster:
@@ -580,7 +590,7 @@ std::string
 NoteSkinManager::GetPathFromDirAndFile(const std::string& sDir,
 									   const std::string& sFileName)
 {
-	vector<std::string> matches; // fill this with the possible files
+	std::vector<std::string> matches; // fill this with the possible files
 
 	GetDirListing(sDir + sFileName + "*", matches, false, true);
 
@@ -646,7 +656,7 @@ class LunaNoteSkinManager : public Luna<NoteSkinManager>
 #undef FOR_NOTESKIN
 	static int GetNoteSkinNames(T* p, lua_State* L)
 	{
-		vector<std::string> vNoteskins;
+		std::vector<std::string> vNoteskins;
 		p->GetNoteSkinNames(vNoteskins);
 		LuaHelpers::CreateTableFromArray(vNoteskins, L);
 		return 1;
@@ -655,7 +665,7 @@ class LunaNoteSkinManager : public Luna<NoteSkinManager>
 	static int GetNoteSkinNamesForGame( T* p, lua_State *L )
 	{
 		Game *pGame = Luna<Game>::check( L, 1 );
-		vector< std::string> vGameNoteskins;
+		std::vector< std::string> vGameNoteskins;
 		p->GetNoteSkinNames( pGame, vGameNoteskins );
 		LuaHelpers::CreateTableFromArray(vGameNoteskins, L);
 		return 1;

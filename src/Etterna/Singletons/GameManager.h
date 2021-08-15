@@ -30,23 +30,23 @@ class GameManager
 	~GameManager();
 
 	void GetStylesForGame(const Game* pGame,
-						  vector<const Style*>& aStylesAddTo,
+						  std::vector<const Style*>& aStylesAddTo,
 						  bool editor = false);
 	auto GetGameForStyle(const Style* pStyle) -> const Game*;
 	void GetStepsTypesForGame(const Game* pGame,
-							  vector<StepsType>& aStepsTypeAddTo);
+							  std::vector<StepsType>& aStepsTypeAddTo);
 	auto GetEditorStyleForStepsType(StepsType st) -> const Style*;
 	void GetDemonstrationStylesForGame(const Game* pGame,
-									   vector<const Style*>& vpStylesOut);
+									   std::vector<const Style*>& vpStylesOut);
 	auto GetHowToPlayStyleForGame(const Game* pGame) -> const Style*;
 	void GetCompatibleStyles(const Game* pGame,
 							 int iNumPlayers,
-							 vector<const Style*>& vpStylesOut);
+							 std::vector<const Style*>& vpStylesOut);
 	auto GetFirstCompatibleStyle(const Game* pGame,
 								 int iNumPlayers,
 								 StepsType st) -> const Style*;
 
-	void GetEnabledGames(vector<const Game*>& aGamesOut);
+	void GetEnabledGames(std::vector<const Game*>& aGamesOut);
 	auto GetDefaultGame() -> const Game*;
 	auto IsGameEnabled(const Game* pGame) -> bool;
 	auto GetIndexFromGame(const Game* pGame) -> int;
@@ -63,7 +63,7 @@ class GameManager
 	bool m_bResetTurns;
 	float m_fPreviousRate;
 	std::string m_sModsToReset;
-	vector<std::string> m_vTurnsToReset;
+	std::vector<std::string> m_vTurnsToReset;
 
 	// Lua
 	void PushSelf(lua_State* L);

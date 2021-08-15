@@ -39,7 +39,7 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
 ## Remaining Libraries
-add_subdirectory(LuaJIT-2.1.0-beta3)
+add_subdirectory(luajit)
 add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
@@ -72,7 +72,7 @@ list(APPEND EXT_TARGETS
     ogg vorbis glfw
     libcurl fmt)
 
-list(APPEND LUA_TARGETS luajit lua minilua buildvm)
+list(APPEND LUA_TARGETS luajit libluajit minilua buildvm)
 
 ## Sort all extern libraries to a IDE folder/filter
 set_property(TARGET ${EXT_TARGETS} PROPERTY FOLDER "External Libraries")

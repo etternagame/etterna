@@ -58,7 +58,7 @@ SongOptions::Approach(const SongOptions& other, float fDeltaSeconds)
 }
 
 void
-SongOptions::GetMods(vector<std::string>& AddTo) const
+SongOptions::GetMods(std::vector<std::string>& AddTo) const
 {
 	if (m_fMusicRate != 1) {
 		auto s = ssprintf("%2.2f", m_fMusicRate);
@@ -106,7 +106,7 @@ SongOptions::GetMods(vector<std::string>& AddTo) const
 }
 
 void
-SongOptions::GetLocalizedMods(vector<std::string>& v) const
+SongOptions::GetLocalizedMods(std::vector<std::string>& v) const
 {
 	GetMods(v);
 	for (auto& s : v) {
@@ -117,7 +117,7 @@ SongOptions::GetLocalizedMods(vector<std::string>& v) const
 std::string
 SongOptions::GetString() const
 {
-	vector<std::string> v;
+	std::vector<std::string> v;
 	GetMods(v);
 	return join(", ", v);
 }
@@ -125,7 +125,7 @@ SongOptions::GetString() const
 std::string
 SongOptions::GetLocalizedString() const
 {
-	vector<std::string> v;
+	std::vector<std::string> v;
 	GetLocalizedMods(v);
 	return join(", ", v);
 }
@@ -136,7 +136,7 @@ void
 SongOptions::FromString(const std::string& sMultipleMods)
 {
 	const auto sTemp = sMultipleMods;
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 	split(sTemp, ",", vs, true);
 	std::string sThrowAway;
 	for (auto& s : vs) {
@@ -152,7 +152,7 @@ SongOptions::FromOneModString(const std::string& sOneMod,
 	Trim(sBit);
 
 	Regex mult("^([0-9]+(\\.[0-9]+)?)xmusic$");
-	vector<std::string> matches;
+	std::vector<std::string> matches;
 	if (mult.Compare(sBit, matches)) {
 		m_fMusicRate = StringToFloat(matches[0]);
 		MESSAGEMAN->Broadcast("RateChanged");
@@ -161,7 +161,7 @@ SongOptions::FromOneModString(const std::string& sOneMod,
 
 	matches.clear();
 
-	vector<std::string> asParts;
+	std::vector<std::string> asParts;
 	split(sBit, " ", asParts, true);
 	auto on = true;
 	if (asParts.size() > 1) {

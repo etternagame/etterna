@@ -164,7 +164,7 @@ function getClearTypeFromScore(pn, score, ret)
 		return getClearTypeItem(13, ret)
 	end
 	song = GAMESTATE:GetCurrentSong()
-	steps = GAMESTATE:GetCurrentSteps(pn)
+	steps = GAMESTATE:GetCurrentSteps()
 	profile = GetPlayerOrMachineProfile(pn)
 	if not isScoreValid(pn, steps, score) then
 		return getClearTypeItem(12, ret)

@@ -207,7 +207,7 @@ function SpeedMods()
 		ExportOnChange = false,
 		Choices = GetSpeedMods(),
 		LoadSelections = function(self, list, pn)
-			local pref = GAMESTATE:GetPlayerState(pn):GetPlayerOptionsString("ModsLevel_Preferred")
+			local pref = GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Preferred")
 			local selected = 0
 
 			for i, choice in ipairs(self.Choices) do
@@ -230,7 +230,7 @@ function SpeedMods()
 			end
 		end,
 		SaveSelections = function(self, list, pn)
-			local state = GAMESTATE:GetPlayerState(pn)
+			local state = GAMESTATE:GetPlayerState()
 			for i, choice in ipairs(self.Choices) do
 				if list[i] then
 					state:SetPlayerOptions("ModsLevel_Preferred", choice)
@@ -344,7 +344,7 @@ function SpeedModIncLarge()
 end
 
 function GetSpeedModeAndValueFromPoptions(pn)
-	local poptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+	local poptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
 	local speed = nil
 	local mode = nil
 	if poptions:MaxScrollBPM() > 0 then
@@ -379,11 +379,11 @@ function ArbitrarySpeedMods()
 		end,
 		SaveSelections = function(self, list, pn)
 			local val = self.CurValues[pn]
-			local poptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+			local poptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
 			-- modify stage, song and current too so this will work in edit mode.
-			local stoptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Stage")
-			local soptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Song")
-			local coptions = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Current")
+			local stoptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Stage")
+			local soptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Song")
+			local coptions = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Current")
 			if val.mode == "x" then
 				local speed = val.speed / 100
 				poptions:XMod(speed)
@@ -418,7 +418,7 @@ function ArbitrarySpeedMods()
 					val.speed = math.round(new_val)
 				end
 			elseif real_choice >= 5 then
-				val.mode = ({"x", "C", "m"})[real_choice - 4]
+				val.mode = ({"C", "x", "M"})[real_choice - 4]
 			end
 			self:GenChoices()
 			MESSAGEMAN:Broadcast("SpeedChoiceChanged", {pn = pn, mode = val.mode, speed = val.speed})
@@ -447,9 +447,9 @@ function ArbitrarySpeedMods()
 				"+" .. small_inc,
 				"-" .. small_inc,
 				"-" .. big_inc,
-				"Xmod",
-				"Cmod",
-				"Mmod"
+				THEME:GetString("OptionNames", "CMod"),
+				THEME:GetString("OptionNames", "XMod"),
+				THEME:GetString("OptionNames", "MMod"),
 			}
 			-- Insert the status element for P2 first so it will be second
 			for i, pn in ipairs({PLAYER_2, PLAYER_1}) do
@@ -467,7 +467,7 @@ function ArbitrarySpeedMods()
 		NumPlayers = 0 -- for ease when adjusting for the status elements.
 	}
 	for i, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
-		if GAMESTATE:IsHumanPlayer(pn) then
+		if GAMESTATE:IsHumanPlayer() then
 			local speed, mode = GetSpeedModeAndValueFromPoptions(pn)
 			ret.CurValues[pn] = {mode = mode, speed = speed}
 			ret.NumPlayers = ret.NumPlayers + 1

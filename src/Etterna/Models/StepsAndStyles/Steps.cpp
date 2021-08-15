@@ -355,11 +355,6 @@ Steps::Decompress()
 auto
 Steps::IsRecalcValid() -> bool
 {
-	if (m_StepsType != StepsType_dance_single &&
-		m_StepsType != StepsType_dance_solo) {
-		return false;
-	}
-
 	if (m_CachedRadarValues[RadarCategory_Notes] < 200 &&
 		m_CachedRadarValues[RadarCategory_Notes] != 4) {
 		return false;
@@ -378,18 +373,24 @@ Steps::IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool
 auto
 Steps::GetMSD(float rate, Skillset ss) const -> float
 {
-	if (rate > 2.F) // just extrapolate from 2x+
+	if (rate > 2.F) // extrapolate from 2x+
 	{
 		const auto pDiff = diffByRate[13][ss];
 		return pDiff + pDiff * ((rate - 2.F) * .5F);
 	}
+	if (rate < .7F) { // extrapolate from .7x- steeper
+		const auto pDiff = diffByRate[0][ss];
+		return std::max(pDiff - pDiff * ((.7F - rate)), 0.F);
+	}
 
+	// return whole rates by the cached value
 	const auto idx = static_cast<int>(rate * 10) - 7;
 	const auto prop = fmod(rate * 10.F, 1.F);
 	if (prop == 0 && rate <= 2.F) {
 		return diffByRate[idx][ss];
 	}
 
+	// linear interpolate half rates using surrounding cached values
 	const auto pDiffL = diffByRate[idx][ss];
 	const auto pDiffH = diffByRate[idx + 1][ss];
 	return lerp(prop, pDiffL, pDiffH);
@@ -419,8 +420,10 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	const auto& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	if (m_StepsType == StepsType_dance_solo) {
-		diffByRate = SoloCalc(cereal);
+	if (m_StepsType != StepsType_dance_single) {
+		int columnCount =
+		  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
+		diffByRate = SoloCalc(cereal, columnCount);
 	} else if (m_StepsType == StepsType_dance_single) {
 		if (calc == nullptr) {
 			// reloading at music select
@@ -920,7 +923,7 @@ class LunaSteps : public Luna<Steps>
 
 	static auto GetMSD(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = FArg(1);
 		const auto index = static_cast<Skillset>(IArg(2) - 1);
 		lua_pushnumber(L, p->GetMSD(rate, index));
 		return 1;
@@ -939,8 +942,10 @@ class LunaSteps : public Luna<Steps>
 		}
 		std::vector<float> d;
 
-		if (p->m_StepsType == StepsType_dance_solo) {
-			d = SoloCalc(ni, rate, goal);
+		if (p->m_StepsType != StepsType_dance_single) {
+			int columnCount =
+			  GAMEMAN->GetStepsTypeInfo(p->m_StepsType).iNumTracks;
+			d = SoloCalc(ni, columnCount, rate, goal);
 		} else {
 			d = MinaSDCalc(ni, rate, goal, SONGMAN->calc.get());
 		}
@@ -1065,10 +1070,15 @@ class LunaSteps : public Luna<Steps>
 			lua_createtable(L, 0, SONGMAN->calc->jack_diff.at(hand).size());
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
 			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
-			for (auto i = 0; i < static_cast<int>(vals.size()); i++) {
-				std::vector<float> stuff{ vals[i].first,
-										  vals[i].second,
-										  stam_vals[i] };
+			for (size_t i = 0; i < vals.size(); i++) {
+				auto v1 = vals[i].first;
+				auto v2 = vals[i].second;
+				auto v3 = 0.F;
+				// this is required because stam_vals is not guaranteed the same size
+				// also due to a calc bug
+				if (i < stam_vals.size())
+					v3 = stam_vals[i];
+				std::vector<float> stuff{ v1, v2, v3 };
 				LuaHelpers::CreateTableFromArray(stuff, L);
 				lua_rawseti(L, -2, i + 1);
 			}

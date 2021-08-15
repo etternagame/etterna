@@ -163,11 +163,6 @@ class GameState
 	 * @param t the timing data. */
 	void SetProcessedTimingData(TimingData* t);
 
-	/**
-	 * @brief Do we show the W1 timing judgment?
-	 * @return true if we do, or false otherwise. */
-	[[nodiscard]] auto ShowW1() const -> bool;
-
 	BroadcastOnChange<std::string>
 	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
 	bool m_bFailTypeWasExplicitlySet; // true if FailType was changed in the
@@ -311,7 +306,6 @@ class GameState
 	bool m_bIsUsingStepTiming{ true };
 	BroadcastOnChange<std::string> m_sEditLocalProfileID;
 	auto GetEditLocalProfile() -> Profile*;
-	bool m_bIsChartPreviewActive;
 
 	// Current mode of Gameplay
 	BroadcastOnChange<GameplayMode> m_gameplayMode;

@@ -73,9 +73,9 @@ MovieTexture_Null::~MovieTexture_Null()
 
 REGISTER_MOVIE_TEXTURE_CLASS(Null);
 
-std::shared_ptr<RageMovieTexture>
+RageMovieTexture*
 RageMovieTextureDriver_Null::Create(const RageTextureID& ID,
 									std::string& sError)
 {
-	return std::make_shared<MovieTexture_Null>(ID);
+	return new MovieTexture_Null(ID);
 }

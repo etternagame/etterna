@@ -9,6 +9,8 @@
 #include <vector>
 
 #include <fmt/format.h>
+#include <stdio.h>
+#import <dlfcn.h>
 
 
 // Translation Unit Specific Functions
@@ -19,10 +21,44 @@ static std::string getSysctlName(const char* name) {
     return buffer;
 }
 
+// Apple API Translocation variables
+// Apple introduced app translocation in macOS Sierra v10.12, which prevents apps from accessing files outside
+// their own .app directory (via a relative reference). This is a problem for Etterna since all files are accessed with
+// relative references to where the .app directory is located. Apple moves the app to a secure location, then
+// attempts to run the program. Etterna fails right away as it requires those local files. The code in init()
+// will load Apple's private security API, load the functions, and call on them to untranslocate by removing
+// the quarantine restriction on the original binary location. Apple will not accept the app into their app store
+// unless this code is removed.
+void (*mySecTranslocateIsTranslocatedURL)(CFURLRef path, bool *isTranslocated, CFErrorRef* __nullable error);
+CFURLRef __nullable (*mySecTranslocateCreateOriginalPathForURL)(CFURLRef translocatedPath, CFErrorRef * __nullable error);
+
 namespace Core::Platform {
 
     void init(){
-        Locator::getLogger()->info("macOS has not platform specific initialization");
+        // Load Apple private security API
+        void *handle = dlopen("/System/Library/Frameworks/Security.framework/Security", RTLD_LAZY);
+        mySecTranslocateIsTranslocatedURL = reinterpret_cast<void (*)(CFURLRef, bool *, CFErrorRef *)>(dlsym(handle, "SecTranslocateIsTranslocatedURL"));
+        mySecTranslocateCreateOriginalPathForURL = reinterpret_cast<CFURLRef __nullable (*)(CFURLRef, CFErrorRef * __nullable)>(dlsym(handle, "SecTranslocateCreateOriginalPathForURL"));
+
+        // Check if we are translocated
+        bool isTranslocated = false;
+        mySecTranslocateIsTranslocatedURL((__bridge CFURLRef)[NSURL fileURLWithPath:[[NSBundle mainBundle] bundlePath]], &isTranslocated, nullptr);
+
+        if(isTranslocated) {
+            Locator::getLogger()->info("App is translocated! Removing com.apple.quarantine extended attribute");
+
+            // Get original app location
+            auto untranslocatedURL = (NSURL *)mySecTranslocateCreateOriginalPathForURL(static_cast<CFURLRef>(NSBundle.mainBundle.bundleURL), nullptr);
+
+            // Remove quarantine flag
+            std::system(fmt::format("xattr -rd com.apple.quarantine {}", untranslocatedURL.path.UTF8String).c_str());
+
+            // Reopen ignoring other instances
+            std::system(fmt::format("open -n -a {}", untranslocatedURL.path.UTF8String).c_str());
+
+            // Close this instance
+            std::exit(0);
+        }
     }
 
     std::string getSystem(){
@@ -87,9 +123,10 @@ namespace Core::Platform {
             Locator::getLogger()->warn("Could not open folder. Note a folder. Path: \"{}\"", path.string());
             return false;
         }
-        int res = system(fmt::format("open {}", path.string()).c_str());
-        if(res != 0){
-            Locator::getLogger()->warn("Unable to open folder. \"open\" command return code: {}. URL: {}", res, path.string());
+		NSURL* directory = [NSURL fileURLWithPath:@(path.c_str())];
+		bool succeeded = [[NSWorkspace sharedWorkspace]openURL:directory];
+		if(!succeeded){
+            Locator::getLogger()->warn("Unable to open folder: {}", path.string());
             return false;
         }
         return true;
@@ -121,8 +158,17 @@ namespace Core::Platform {
 	}
 
     bool isOtherInstanceRunning(int argc, char** argv){
-        Locator::getLogger()->warn("Core::Platform::isOtherInstanceRunning not implemented");
-        return false;
+		FILE* fd = popen("pgrep Etterna", "r");
+		char buf[128]; //Random value. No-one is going to have a PID size > 128
+		bool found_other_process = false;
+		if(fgets(buf, sizeof(buf), fd)!=nullptr){
+			//Quick and dirty way to check "Is there another process open?"
+			//If pgrep has any output, there is another process open right now.
+			// (Pgrep excludes the calling process from its output by default)
+			found_other_process = true;
+		}
+		pclose(fd);
+		return found_other_process;
     }
 
     bool boostPriority()

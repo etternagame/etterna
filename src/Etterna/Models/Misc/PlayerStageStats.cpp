@@ -16,6 +16,8 @@
 #include <map>
 #include <algorithm>
 
+#include "Etterna/Singletons/GameManager.h"
+
 using std::map;
 using std::max;
 using std::min;
@@ -337,7 +339,7 @@ PlayerStageStats::GetMaxWifeScore() const
 {
 	return MaxWifeScore;
 }
-vector<float>
+std::vector<float>
 PlayerStageStats::CalcSSR(float ssrpercent) const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
@@ -349,9 +351,12 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 		  serializednd, musicrate, ssrpercent, SONGMAN->calc.get());
 	}
 
-	// solo calc
-	if (steps->m_StepsType == StepsType_dance_solo)
-		return SoloCalc(serializednd, musicrate, ssrpercent);
+	// N-key calc
+	if (steps->m_StepsType != StepsType_dance_single) {
+		int columnCount =
+		  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+		return SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
+	}
 
 	// anything else
 	return { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
@@ -362,27 +367,32 @@ PlayerStageStats::GetTimingScale() const
 {
 	return m_fTimingScale;
 }
-vector<float>
+std::vector<InputDataEvent>
+PlayerStageStats::GetInputDataVector() const
+{
+	return InputData;
+}
+std::vector<float>
 PlayerStageStats::GetOffsetVector() const
 {
 	return m_vOffsetVector;
 }
-vector<int>
+std::vector<int>
 PlayerStageStats::GetNoteRowVector() const
 {
 	return m_vNoteRowVector;
 }
-vector<int>
+std::vector<int>
 PlayerStageStats::GetTrackVector() const
 {
 	return m_vTrackVector;
 }
-vector<TapNoteType>
+std::vector<TapNoteType>
 PlayerStageStats::GetTapNoteTypeVector() const
 {
 	return m_vTapNoteTypeVector;
 }
-vector<HoldReplayResult>
+std::vector<HoldReplayResult>
 PlayerStageStats::GetHoldReplayDataVector() const
 {
 	return m_vHoldReplayData;

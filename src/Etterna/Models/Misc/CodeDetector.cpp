@@ -38,7 +38,8 @@ const char* CodeNames[] = {
 	"SaveScreenshot1",
 	"SaveScreenshot2",
 	"CancelAllPlayerOptions",
-	"CloseCurrentFolder",
+	"CloseCurrentFolder1",
+	"CloseCurrentFolder2",
 };
 XToString(Code);
 
@@ -68,7 +69,8 @@ CodeDetector::RefreshCacheItems(std::string sClass)
 bool
 CodeDetector::EnteredCloseFolder(GameController controller)
 {
-	return EnteredCode(controller, CODE_CLOSE_CURRENT_FOLDER);
+	return EnteredCode(controller, CODE_CLOSE_CURRENT_FOLDER1) ||
+		   EnteredCode(controller, CODE_CLOSE_CURRENT_FOLDER2);
 }
 
 bool
@@ -192,13 +194,13 @@ CodeDetector::ChangeScrollSpeed(GameController controller, bool bIncrement)
 	std::string sTitleOut;
 	ScreenOptionsMaster::SetList( row, hand, "Speed", sTitleOut );
 
-	vector<ModeChoice>& entries = hand.ListEntries;
+	std::vector<ModeChoice>& entries = hand.ListEntries;
 
 	std::string sScrollSpeed = po.GetScrollSpeedAsString();
 	if (sScrollSpeed.empty())
 		sScrollSpeed = "1x";
 
-	for ( vector<ModeChoice>::iterator it = entries.begin(); it != entries.end(); ++it )
+	for ( std::vector<ModeChoice>::iterator it = entries.begin(); it != entries.end(); ++it )
 	{
 		ModeChoice& modeChoice = *it;
 		if ( modeChoice.m_sModifiers == sScrollSpeed ) {

@@ -301,7 +301,7 @@ class DownloadManager
 	std::string countryCode;
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = true);
+	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = false);
 	std::map<std::string, std::vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
 	std::vector<DownloadablePack*> GetCoreBundle(const std::string& whichoneyo);

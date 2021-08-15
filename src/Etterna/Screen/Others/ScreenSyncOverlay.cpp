@@ -81,7 +81,7 @@ void
 ScreenSyncOverlay::UpdateText(bool forcedChange)
 {
 	// Update Status
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 
 	PlayerController pc = GamePreferences::m_AutoPlay.Get();
 
@@ -129,21 +129,25 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 		m_overlay->HandleMessage(set_status);
 	}
 
-	// Update SyncInfo
+	// Update Adjustments
 	bool visible =
 	  GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType != AutosyncType_Off;
 	std::string s;
 	if (visible) {
-		float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
-		float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
-		float fStdDev = AdjustSync::s_fStandardDeviation;
-		s += OLD_OFFSET.GetValue() + ssprintf(": %0.3f\n", fOld);
-		s += NEW_OFFSET.GetValue() + ssprintf(": %0.3f\n", fNew);
-		s += STANDARD_DEVIATION.GetValue() + ssprintf(": %0.3f\n", fStdDev);
-		s += COLLECTING_SAMPLE.GetValue() +
-			 ssprintf(": %d / %d",
-					  AdjustSync::s_iAutosyncOffsetSample + 1,
-					  AdjustSync::OFFSET_SAMPLE_COUNT);
+		// Offset text removed due to clutter, Status text already shows it
+		// If you're considering putting it back, figure out how to make
+		// the offset variables change (global/song sync) first   -ulti_fd
+
+		//float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
+		//float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
+		float fStdDev = AdjustSync::s_fStandardDeviation*1000;
+        //s += ssprintf("%0.3f | ", fOld) + OLD_OFFSET.GetValue() + "\n";
+		//s += ssprintf("%0.3f | ", fNew) + NEW_OFFSET.GetValue() + "\n";
+		s += ssprintf("%04.1fms | ", fStdDev) + STANDARD_DEVIATION.GetValue()
+																	+ "\n";
+		s += ssprintf("%02d / %d | ", AdjustSync::s_iAutosyncOffsetSample,
+			AdjustSync::OFFSET_SAMPLE_COUNT) + COLLECTING_SAMPLE.GetValue()
+																	+ "\n";
 	}
 
 	if (forcedChange || visible || type != lastSyncType ||
@@ -257,9 +261,9 @@ ScreenSyncOverlay::Input(const InputEventPlus& input)
 					if (GAMESTATE->m_pCurSong != nullptr) {
 						GAMESTATE->m_pCurSong->m_SongTiming
 						  .m_fBeat0OffsetInSeconds += fDelta;
-						const vector<Steps*>& vpSteps =
+						const std::vector<Steps*>& vpSteps =
 						  GAMESTATE->m_pCurSong->GetAllSteps();
-						for (auto& s : const_cast<vector<Steps*>&>(vpSteps)) {
+						for (auto& s : const_cast<std::vector<Steps*>&>(vpSteps)) {
 							// Empty means it inherits song timing,
 							// which has already been updated.
 							if (s->m_Timing.empty())

@@ -28,6 +28,7 @@ local t =
 		self:SetUpdateFunctionInterval(0.025)
 		local s = SCREENMAN:GetTopScreen()
 		s:AddInputCallback(input)
+		setenv("NewOptions","Main")
 	end
 }
 
@@ -37,7 +38,13 @@ t[#t + 1] =
 		if params.Name == "AvatarShow" and getTabIndex() == 0 and not SCREENMAN:get_input_redirected(PLAYER_1) then
 			SCREENMAN:SetNewScreen("ScreenAssetSettings")
 		end
-	end
+	end,
+	OnCommand = function(self)
+		inScreenSelectMusic = true
+	end,
+	EndCommand = function(self)
+		inScreenSelectMusic = nil
+	end,
 }
 
 t[#t + 1] = LoadActor("../_frame")
@@ -92,7 +99,6 @@ t[#t + 1] =
 	}
 
 t[#t + 1] = LoadActor("../_cursor")
-t[#t + 1] = LoadActor("currenttime")
 t[#t + 1] = LoadActor("../_halppls")
 
 GAMESTATE:UpdateDiscordMenu(

@@ -3,7 +3,7 @@ local t = Def.ActorFrame {}
 
 local song = GAMESTATE:GetCurrentSong()
 local steps = GAMESTATE:GetCurrentSteps()
-local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 local score = pss:GetHighScore()
 
 local judges = {

@@ -6,25 +6,25 @@ local spacing = 34
 
 local song = STATSMAN:GetCurStageStats():GetPlayedSongs()[1]
 
-local steps = STATSMAN:GetCurStageStats():GetPlayerStageStats(player):GetPlayedSteps()[1]
+local steps = STATSMAN:GetCurStageStats():GetPlayerStageStats():GetPlayedSteps()[1]
 local origTable = getScoresByKey(player)
 local score = SCOREMAN:GetMostRecentScore()
-local rtTable = getRateTable(origTable)
+local rtTable = getRateTable(origTable) or {}
 local hsTable = rtTable[getRate(score)] or {score}
 local scoreIndex = getHighScoreIndex(hsTable, score)
 
 local usingSSRSort = PREFSMAN:GetPreference("SortBySSRNormPercent")
-	
+
 if rtTable == nil then
 	return {}
 end
-	
+
 
 local curPage = 1
 local maxPages = math.ceil(#hsTable/lines)
 
 local function movePage(n)
-	if n > 0 then 
+	if n > 0 then
 		curPage = ((curPage+n-1) % maxPages + 1)
 	else
 		curPage = ((curPage+n+maxPages-1) % maxPages+1)
@@ -50,6 +50,9 @@ local function input(event)
 					)
 					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("option"):visible(
 						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("option"):GetVisible()
+					)
+					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("ClearType"):visible(
+						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("ClearType"):GetVisible()
 					)
 				end
 			end
@@ -127,7 +130,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = nil})
 		end,
 		BeginCommand = function(self)
-			if hsTable[index] == nil then 
+			if hsTable[index] == nil then
 				self:playcommand("Hide")
 			end
 		end,
@@ -139,7 +142,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				):diffusealpha(1):diffuserightedge(color("#33333333"))
 			end,
 			BeginCommand = function(self)
-				self:visible(GAMESTATE:IsHumanPlayer(pn))
+				self:visible(GAMESTATE:IsHumanPlayer())
 			end
 		},
 		--Highlight quad for the current score
@@ -151,11 +154,11 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			HahaThisCodeINeedHelpCommand = function(self, params)
 				local equis = params.doot == index
-				self:visible(GAMESTATE:IsHumanPlayer(pn) and equis)
+				self:visible(GAMESTATE:IsHumanPlayer() and equis)
 			end,
 			BeginCommand = function(self)
-				self:visible(GAMESTATE:IsHumanPlayer(pn) and equals)
-				
+				self:visible(GAMESTATE:IsHumanPlayer() and equals)
+
 				-- it was once asked if anything had been hacked so hard as some thing that had been hacked really hard.. but yes.. this is
 				-- hackered... even hardered.... force the offset plot to update if the index in the scoreboard list matches the currently
 				-- displayed score.. this is because the offset plot was previously using pss to get its info and the way the current system
@@ -175,10 +178,14 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			LeftClickMessageCommand = function(self)
 				if isOver(self) then
-					newindex = getHighScoreIndex(hsTable, hsTable[index])
-					self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = newindex})
-					self:GetParent():GetParent():GetParent():GetChild("BLah"):playcommand("ChangeScore", {score =  hsTable[index]})
-					self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
+					local score = hsTable[index]
+					if score ~= nil then
+						if not score:HasReplayData() then return end
+						newindex = getHighScoreIndex(hsTable, hsTable[index])
+						self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = newindex})
+						self:GetParent():GetParent():GetParent():GetChild("BLah"):playcommand("ChangeScore", {score =  hsTable[index]})
+						self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
+					end
 				end
 			end
 		},
@@ -189,7 +196,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			BeginCommand = function(self)
 				if hsTable[index] == nil then return end
-				self:visible(GAMESTATE:IsHumanPlayer(pn)):diffuse(
+				self:visible(GAMESTATE:IsHumanPlayer()):diffuse(
 					getClearTypeFromScore(pn, hsTable[index], 2))
 			end
 		},
@@ -227,9 +234,10 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				end,
 				BeginCommand = function(self)
 					if hsTable[index] == nil then return end
-					local wstring = "Wife"
+					local wv = hsTable[index]:GetWifeVers()
+					local wstring = "Wife" .. wv
 					if usingSSRSort then
-						wstring = "Wife J4"
+						wstring = "Wife" .. wv .. " J4"
 					end
 					if hsTable[index]:GetWifeScore() == 0 then
 						self:settextf("NA (%s)", wstring)
@@ -254,6 +262,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 		--grade text
 		LoadFont("Common normal") ..
 			{
+				Name = "Grade",
 				InitCommand = function(self)
 					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
 						(frameWidth - 15) / 0.35
@@ -270,6 +279,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 		--cleartype text
 		LoadFont("Common normal") ..
 			{
+				Name = "ClearType",
 				InitCommand = function(self)
 					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
 						(frameWidth - 15) / 0.35
@@ -382,6 +392,7 @@ local function Update(self)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):diffusealpha(0)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):visible(true)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):visible(true)
+			self:GetChild("scoreItem" .. tostring(i)):GetChild("ClearType"):visible(true)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("date"):visible(false)
 			self:GetChild("scoreItem" .. tostring(i)):GetChild("option"):visible(false)
 		end

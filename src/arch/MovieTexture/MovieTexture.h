@@ -11,7 +11,7 @@ ForceToAscii(std::string& str);
 class RageMovieTexture : public RageTexture
 {
   public:
-	static std::shared_ptr<RageMovieTexture> Create(const RageTextureID& ID);
+	static RageMovieTexture* Create(const RageTextureID& ID);
 
 	RageMovieTexture(const RageTextureID& ID)
 	  : RageTexture(ID)
@@ -37,7 +37,7 @@ class RageMovieTextureDriver : public RageDriver
 {
   public:
 	~RageMovieTextureDriver() override = default;
-	virtual std::shared_ptr<RageMovieTexture> Create(const RageTextureID& ID,
+	virtual RageMovieTexture* Create(const RageTextureID& ID,
 									 std::string& sError) = 0;
 	static DriverList m_pDriverList;
 };

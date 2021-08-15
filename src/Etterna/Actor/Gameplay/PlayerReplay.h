@@ -12,7 +12,7 @@ class PlayerReplay : public Player
 
 	void UpdateHoldNotes(int iSongRow,
 						 float fDeltaTime,
-						 vector<TrackRowTapNote>& vTN) override;
+						 std::vector<TrackRowTapNote>& vTN) override;
 	void Init(const std::string& sType,
 			  PlayerState* pPlayerState,
 			  PlayerStageStats* pPlayerStageStats,
@@ -31,10 +31,11 @@ class PlayerReplay : public Player
 			  int rowToJudge = -1);
 
   protected:
-	void UpdateHoldsAndRolls(float fDeltaTime,
-							 const std::chrono::steady_clock::time_point& now);
-	void HandleTapRowScore(unsigned row);
-	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds);
+	void UpdateHoldsAndRolls(
+	  float fDeltaTime,
+	  const std::chrono::steady_clock::time_point& now) override;
+	void HandleTapRowScore(unsigned row) override;
+	void UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds) override;
 };
 
 #endif

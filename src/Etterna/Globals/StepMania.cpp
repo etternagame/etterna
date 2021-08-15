@@ -352,10 +352,6 @@ ThemeMetric<std::string> INITIAL_SCREEN("Common", "InitialScreen");
 std::string
 StepMania::GetInitialScreen()
 {
-	if (!PREFSMAN->m_sTestInitialScreen.Get().empty() &&
-		SCREENMAN->IsScreenNameValid(PREFSMAN->m_sTestInitialScreen)) {
-		return PREFSMAN->m_sTestInitialScreen;
-	}
 	std::string screen_name = INITIAL_SCREEN.GetValue();
 	if (!SCREENMAN->IsScreenNameValid(screen_name)) {
 		screen_name = "ScreenInitialScreenIsInvalid";
@@ -794,7 +790,7 @@ CreateDisplay()
 	  ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) +
 	  "\n\n";
 
-	vector<std::string> asRenderers;
+	std::vector<std::string> asRenderers;
 	split(PREFSMAN->m_sVideoRenderers, ",", asRenderers, true);
 
 	if (asRenderers.empty())
@@ -999,6 +995,13 @@ sm_main(int argc, char* argv[])
 	FILEMAN = new RageFileManager(argv[0]);
 	FILEMAN->Mount("dir", Core::Platform::getAppDirectory(), "/");
 
+#ifdef __unix__
+	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
+	 * on. This is /rootfs, not /root, to avoid confusion with root's home
+	 * directory. */
+	FILEMAN->Mount("dir", "/", "/rootfs");
+#endif
+
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
 
@@ -1018,13 +1021,13 @@ sm_main(int argc, char* argv[])
 
 	// Set up alternative filesystem trees.
 	if (!PREFSMAN->m_sAdditionalFolders.Get().empty()) {
-		vector<std::string> dirs;
+		std::vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/");
 	}
 	if (!PREFSMAN->m_sAdditionalSongFolders.Get().empty()) {
-		vector<std::string> dirs;
+		std::vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
@@ -1403,7 +1406,7 @@ void StepMania::HandleInputEvents(float fDeltaTime) {
 	if (SCREENMAN->GetTopScreen()->IsFirstUpdate())
 		return;
 
-	vector<InputEvent> ieArray;
+	std::vector<InputEvent> ieArray;
 	INPUTFILTER->GetInputEvents(ieArray);
 
 	// If we don't have focus, discard input.

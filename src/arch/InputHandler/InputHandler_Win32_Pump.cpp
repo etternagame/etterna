@@ -113,7 +113,7 @@ InputHandler_Win32_Pump::GetDeviceSpecificInputString(const DeviceInput& di)
 
 void
 InputHandler_Win32_Pump::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	for (int i = 0; i < NUM_PUMPS; ++i) {
 		if (m_pDevice[i].IsOpen()) {
@@ -139,7 +139,7 @@ InputHandler_Win32_Pump::InputThreadMain()
 	/* Enable priority boosting. */
 	SetThreadPriorityBoost(GetCurrentThread(), FALSE);
 
-	vector<WindowsFileIO*> apSources;
+	std::vector<WindowsFileIO*> apSources;
 	for (int i = 0; i < NUM_PUMPS; ++i) {
 		if (m_pDevice[i].m_IO.IsOpen())
 			apSources.push_back(&m_pDevice[i].m_IO);

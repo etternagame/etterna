@@ -65,25 +65,25 @@ auto
 CompareNotesPointersByDifficulty(const Steps* pSteps1, const Steps* pSteps2)
   -> bool;
 void
-SortNotesArrayByDifficulty(vector<Steps*>& vpStepsInOut);
+SortNotesArrayByDifficulty(std::vector<Steps*>& vpStepsInOut);
 auto
 CompareStepsPointersByTypeAndDifficulty(const Steps* pStep1,
 										const Steps* pStep2) -> bool;
 void
-SortStepsByTypeAndDifficulty(vector<Steps*>& vpStepsInOut);
+SortStepsByTypeAndDifficulty(std::vector<Steps*>& vpStepsInOut);
 void
-SortStepsPointerArrayByNumPlays(vector<Steps*>& vpStepsInOut,
+SortStepsPointerArrayByNumPlays(std::vector<Steps*>& vpStepsInOut,
 								ProfileSlot slot,
 								bool bDescending);
 void
-SortStepsPointerArrayByNumPlays(vector<Steps*>& vpStepsInOut,
+SortStepsPointerArrayByNumPlays(std::vector<Steps*>& vpStepsInOut,
 								const Profile* pProfile,
 								bool bDescending);
 auto
 CompareStepsPointersByDescription(const Steps* pStep1, const Steps* pStep2)
   -> bool;
 void
-SortStepsByDescription(vector<Steps*>& vpStepsInOut);
+SortStepsByDescription(std::vector<Steps*>& vpStepsInOut);
 } // namespace StepsUtil
 
 class StepsID

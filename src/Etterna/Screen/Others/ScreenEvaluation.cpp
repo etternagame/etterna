@@ -120,6 +120,30 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 	if (IsTransitioning())
 		return false;
 
+	// restart gameplay should work
+	// but only if not online and not in a replay
+	if (input.DeviceI.device == DEVICE_KEYBOARD &&
+		input.MenuI == GAME_BUTTON_RESTART) {
+		if (input.type != IET_FIRST_PRESS)
+			return false;
+
+		// this was probably a replay, dont allow
+		if (!m_pStageStats->m_bLivePlay)
+			return false;
+
+		// not in netplay
+		if (m_sName.find("Net") != std::string::npos)
+			return false;
+
+		// technically this is correct
+		GAMESTATE->m_bRestartedGameplay = false;
+		PlayerAI::ResetScoreData();
+
+		// go
+		SetPrevScreenName("ScreenStageInformation");
+		HandleScreenMessage(SM_GoToPrevScreen);
+	}
+			
 	if (input.GameI.IsValid()) {
 		if (CodeDetector::EnteredCode(input.GameI.controller,
 									  CODE_SAVE_SCREENSHOT1) ||
@@ -215,7 +239,7 @@ ScreenEvaluation::HandleMenuStart()
 		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = oldRate;
 		GAMEMAN->m_bResetModifiers = false;
 
-		const vector<std::string> oldturns = GAMEMAN->m_vTurnsToReset;
+		const std::vector<std::string> oldturns = GAMEMAN->m_vTurnsToReset;
 		if (GAMEMAN->m_bResetTurns) {
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong()
 			  .ResetModsToStringVector(oldturns);
@@ -275,7 +299,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	{
 		int row = IArg(1);
 		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
-		vector<int> toPush;
+		std::vector<int> toPush;
 
 		FOREACH_ENUM(TapNoteScore, tns)
 		toPush.emplace_back(rs->judgments[tns]);
@@ -289,6 +313,20 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
 
 		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
+		return 1;
+	}
+	static int GetReplaySnapshotSDForNoterow(T* p, lua_State* L) {
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+
+		lua_pushnumber(L, rs->standardDeviation);
+		return 1;
+	}
+	static int GetReplaySnapshotMeanForNoterow(T* p, lua_State* L) {
+		int row = IArg(1);
+		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+
+		lua_pushnumber(L, rs->mean);
 		return 1;
 	}
 	static int GetReplayRate(T* p, lua_State* L)
@@ -350,6 +388,8 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		ADD_METHOD(SetPlayerStageStatsFromReplayData);
 		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
 		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
+		ADD_METHOD(GetReplaySnapshotSDForNoterow);
+		ADD_METHOD(GetReplaySnapshotMeanForNoterow);
 		ADD_METHOD(GetReplayRate);
 		ADD_METHOD(GetReplayJudge);
 		ADD_METHOD(ScoreUsedInvalidModifier);

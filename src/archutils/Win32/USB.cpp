@@ -211,7 +211,7 @@ WindowsFileIO::read(void* p)
 }
 
 int
-WindowsFileIO::read_several(const vector<WindowsFileIO*>& sources,
+WindowsFileIO::read_several(const std::vector<WindowsFileIO*>& sources,
 							void* p,
 							int& actual,
 							float timeout)

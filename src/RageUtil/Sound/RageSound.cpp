@@ -366,12 +366,12 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 	std::string error;
 	soundPlayCallback->PushSelf(L);
 	lua_newtable(L);
-	for (auto i = 0; i < fftBuffer.size(); ++i) {
+	for (size_t i = 0; i < fftBuffer.size(); ++i) {
 		auto r = fftBuffer[i].real;
 		auto im = fftBuffer[i].imag;
 		lua_pushnumber(L,
-					   (r * r + im * im) / (0.01f + SOUNDMAN->GetMixVolume()) /
-						 (0.01f + SOUNDMAN->GetMixVolume()) / 15.f);
+					   (r * r + im * im) / (0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
+						 (0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) / 15.f);
 		lua_rawseti(L, -2, i + 1);
 	}
 	PushSelf(L);
@@ -697,7 +697,7 @@ RageSound::ApplyParams()
 	m_pSource->SetProperty("FadeSeconds", m_Param.m_fFadeOutSeconds);
 	m_pSource->SetProperty("AccurateSync", m_Param.m_bAccurateSync);
 
-	auto fVolume = m_Param.m_Volume * SOUNDMAN->GetMixVolume();
+	auto fVolume = m_Param.m_Volume;
 	if (!m_Param.m_bIsCriticalSound)
 		fVolume *= m_Param.m_fAttractVolume;
 	m_pSource->SetProperty("Volume", fVolume);

@@ -10,10 +10,10 @@ struct FlamJamMod
 	const std::string name = "FlamJamMod";
 
 #pragma region params
-	float min_mod = 0.5F;
+	float min_mod = 0.3F;
 	float max_mod = 1.F;
-	float scaler = 2.75F;
-	float base = 0.1F;
+	float scaler = 0.001F;
+	float base = 0.5F;
 
 	float group_tol = 35.F;
 	float step_tol = 17.5F;

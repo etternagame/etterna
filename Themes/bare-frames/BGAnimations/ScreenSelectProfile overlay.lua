@@ -10,7 +10,7 @@ local translated_info = {
 	PressStart = "Press Start"
 }
 
-function GetLocalProfiles()
+local function GetLocalProfiles()
 	local t = {}
 
 	for p = 0, PROFILEMAN:GetNumLocalProfiles() - 1 do
@@ -44,7 +44,7 @@ function GetLocalProfiles()
 	return t
 end
 
-function LoadPlayerStuff(Player)
+local function LoadPlayerStuff(Player)
 	local t = {}
 	t[#t + 1] =
 		Def.ActorFrame {
@@ -80,13 +80,13 @@ function LoadPlayerStuff(Player)
 	return t
 end
 
-function UpdateInternal3(self, Player)
+local function UpdateInternal3(self, Player)
 	local pn = (Player == PLAYER_1) and 1
 	local frame = self:GetChild(string.format("P%uFrame", pn))
 	local scroller = frame:GetChild("Scroller")
 	local smallframe = frame:GetChild("SmallFrame")
 
-	if GAMESTATE:IsHumanPlayer(Player) then
+	if GAMESTATE:IsHumanPlayer() then
 		frame:visible(true)
 			smallframe:visible(true)
 			scroller:visible(true)

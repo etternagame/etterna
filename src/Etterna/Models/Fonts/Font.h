@@ -14,11 +14,11 @@ class IniFile;
 struct FontPageTextures
 {
 	/** @brief The primary texture drawn underneath Main. */
-	std::shared_ptr<RageTexture> m_pTextureMain;
+	RageTexture* m_pTextureMain;
 	/** @brief an optional texture drawn underneath Main.
 	 *
 	 * This can help to acheive complicated layer styles. */
-	std::shared_ptr<RageTexture> m_pTextureStroke;
+	RageTexture* m_pTextureStroke;
 
 	/** @brief Set up the initial textures. */
 	FontPageTextures()

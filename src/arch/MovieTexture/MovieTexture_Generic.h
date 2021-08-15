@@ -112,8 +112,8 @@ class MovieTexture_Generic : public RageMovieTexture
 	bool m_bWantRewind;
 
 	intptr_t m_uTexHandle;
-	std::shared_ptr<RageTextureRenderTarget> m_pRenderTarget;
-	std::shared_ptr<RageTexture> m_pTextureIntermediate;
+	RageTextureRenderTarget* m_pRenderTarget;
+	RageTexture* m_pTextureIntermediate;
 	Sprite* m_pSprite;
 
 	RageTextureLock* m_pTextureLock;

@@ -16,6 +16,7 @@
 #include "Agnostic/HA_PatternMods/HS.h"
 #include "Agnostic/HA_PatternMods/CJ.h"
 #include "Agnostic/HA_PatternMods/CJDensity.h"
+#include "Agnostic/HA_PatternMods/HSDensity.h"
 #include "Agnostic/HA_PatternMods/FlamJam.h"
 #include "Agnostic/HA_PatternMods/TheThingFinder.h"
 
@@ -86,6 +87,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	HSMod _hs;
 	CJMod _cj;
 	CJDensityMod _cjd;
+	HSDensityMod _hsd;
 	OHJumpModGuyThing _ohj;
 	CJOHJumpMod _cjohj;
 	RollMod _roll;
@@ -110,13 +112,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
-	{
-#ifndef RELWITHDEBINFO
-#if NDEBUG
-		load_calc_params_from_disk();
-#endif
-#endif
-		
+	{		
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
@@ -174,6 +170,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		PatternMods::set_agnostic(_hs._pmod, _hs(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cjd._pmod, _cjd(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hsd._pmod, _hsd(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_fj._pmod, _fj(), itv, _calc);
 		PatternMods::set_agnostic(_tt._pmod, _tt(), itv, _calc);
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
@@ -397,7 +394,9 @@ struct TheGreatBazoinkazoinkInTheSky
 					// don't like having this here
 					any_ms = ms_from(row_time, last_row_time);
 
-					assert(any_ms > 0.F);
+					// To catch division by 0, not preventing significant issues as-is
+					//	So disabled assert for now
+					// assert(any_ms > 0.F);
 
 					ct = determine_col_type(row_notes, ids);
 
@@ -502,8 +501,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		int iError;
 
 		// Hold calc params program-global persistent info
-		static RageFileBasic* pFile;
-		static XNode params;
+		thread_local RageFileBasic* pFile;
+		thread_local XNode params;
 		// Only ever try to load params once per thread unless forcing
 		thread_local bool paramsLoaded = false;
 
@@ -512,11 +511,10 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (paramsLoaded && !bForce)
 			return;
 
-		// Load if missing or allow a force reload
+		// Load if missing
 		if (pFile == nullptr || bForce) {
 			delete pFile;
 			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
-			paramsLoaded = true;
 			// Failed to load
 			if (pFile == nullptr)
 				return;
@@ -536,12 +534,14 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (vers.empty() || stoi(vers) != GetCalcVersion()) {
 			return;
 		}
+		paramsLoaded = true;
 
 		load_params_for_mod(&params, _s._params, _s.name);
 		load_params_for_mod(&params, _js._params, _js.name);
 		load_params_for_mod(&params, _hs._params, _hs.name);
 		load_params_for_mod(&params, _cj._params, _cj.name);
 		load_params_for_mod(&params, _cjd._params, _cjd.name);
+		load_params_for_mod(&params, _hsd._params, _hsd.name);
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
@@ -568,6 +568,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
 		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
+		calcparams->AppendChild(make_mod_param_node(_hsd._params, _hsd.name));
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(
 		  make_mod_param_node(_cjohj._params, _cjohj.name));

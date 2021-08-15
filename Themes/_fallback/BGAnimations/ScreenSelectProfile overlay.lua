@@ -193,7 +193,7 @@ function UpdateInternal3(self, Player)
 	local smallframe = frame:GetChild("SmallFrame")
 	local bigframe = frame:GetChild("BigFrame")
 
-	if GAMESTATE:IsHumanPlayer(Player) then
+	if GAMESTATE:IsHumanPlayer() then
 		frame:visible(true)
 			--using profile if any
 			joinframe:visible(false)
@@ -237,13 +237,13 @@ local t =
 			if event.type == "InputEventType_FirstPress" then
 				if event.button == "Start" then
 					MESSAGEMAN:Broadcast("StartButton")
-					if not GAMESTATE:IsHumanPlayer(PLAYER_1) then
+					if not GAMESTATE:IsHumanPlayer() then
 						SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, -1)
 					else
 						SCREENMAN:GetTopScreen():Finish()
 					end
 				elseif event.button == "MenuUp"  or event.button == "Up" then
-					if GAMESTATE:IsHumanPlayer(PLAYER_1) then
+					if GAMESTATE:IsHumanPlayer() then
 						local ind = SCREENMAN:GetTopScreen():GetProfileIndex(PLAYER_1)
 						if ind > 1 then
 							if SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, ind - 1) then
@@ -253,7 +253,7 @@ local t =
 						end
 					end
 				elseif event.button == "MenuDown" or event.button == "Down" then
-					if GAMESTATE:IsHumanPlayer(PLAYER_1) then
+					if GAMESTATE:IsHumanPlayer() then
 						local ind = SCREENMAN:GetTopScreen():GetProfileIndex(PLAYER_1)
 						if ind > 0 then
 							if SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, ind + 1) then

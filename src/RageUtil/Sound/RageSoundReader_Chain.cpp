@@ -247,7 +247,7 @@ RageSoundReader_Chain::ActivateSound(Sound* s)
 void
 RageSoundReader_Chain::ReleaseSound(Sound* s)
 {
-	vector<Sound*>::iterator it =
+	std::vector<Sound*>::iterator it =
 	  find(m_apActiveSounds.begin(), m_apActiveSounds.end(), s);
 	ASSERT(it != m_apActiveSounds.end());
 	RageSoundReader*& pSound = s->pSound;

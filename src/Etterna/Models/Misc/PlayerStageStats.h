@@ -24,7 +24,7 @@ class PlayerStageStats
 	void Init(PlayerNumber pn);
 	void Init(MultiPlayer pn);
 
-	vector<NoteInfo> serializednd;
+	std::vector<NoteInfo> serializednd;
 
 	/**
 	 * @brief Add stats from one PlayerStageStats to another.
@@ -38,19 +38,20 @@ class PlayerStageStats
 	// Calculate the difficulty rating for a specific score obtained by a player
 	// - Mina
 	auto GetWifeGrade() -> Grade;
-	[[nodiscard]] auto CalcSSR(float ssrpercent) const -> vector<float>;
+	[[nodiscard]] auto CalcSSR(float ssrpercent) const -> std::vector<float>;
 	void GenerateValidationKeys(HighScore& hs) const;
 	[[nodiscard]] auto GetPercentDancePoints() const -> float;
 	[[nodiscard]] auto GetWifeScore() const -> float;
 	[[nodiscard]] auto GetCurWifeScore() const -> float;
 	[[nodiscard]] auto GetMaxWifeScore() const -> float;
 	[[nodiscard]] auto GetTimingScale() const -> float;
-	[[nodiscard]] auto GetOffsetVector() const -> vector<float>;
-	[[nodiscard]] auto GetNoteRowVector() const -> vector<int>;
-	[[nodiscard]] auto GetTrackVector() const -> vector<int>;
-	[[nodiscard]] auto GetTapNoteTypeVector() const -> vector<TapNoteType>;
+	[[nodiscard]] auto GetInputDataVector() const -> std::vector<InputDataEvent>;
+	[[nodiscard]] auto GetOffsetVector() const -> std::vector<float>;
+	[[nodiscard]] auto GetNoteRowVector() const -> std::vector<int>;
+	[[nodiscard]] auto GetTrackVector() const -> std::vector<int>;
+	[[nodiscard]] auto GetTapNoteTypeVector() const -> std::vector<TapNoteType>;
 	[[nodiscard]] auto GetHoldReplayDataVector() const
-	  -> vector<HoldReplayResult>;
+	  -> std::vector<HoldReplayResult>;
 	[[nodiscard]] auto GetCurMaxPercentDancePoints() const -> float;
 
 	[[nodiscard]] auto GetLessonScoreActual() const -> int;
@@ -85,12 +86,12 @@ class PlayerStageStats
 	float CurWifeScore{};
 	float MaxWifeScore{};
 	float m_fTimingScale{};
-	vector<HoldReplayResult> m_vHoldReplayData;
-	vector<float> m_vOffsetVector;
-	vector<int> m_vNoteRowVector;
-	vector<TapNoteType> m_vTapNoteTypeVector;
-	vector<int> m_vTrackVector;
-	vector<float> InputData;
+	std::vector<HoldReplayResult> m_vHoldReplayData;
+	std::vector<float> m_vOffsetVector;
+	std::vector<int> m_vNoteRowVector;
+	std::vector<TapNoteType> m_vTapNoteTypeVector;
+	std::vector<int> m_vTrackVector;
+	std::vector<InputDataEvent> InputData;
 	int m_iTapNoteScores[NUM_TapNoteScore]{};
 	int m_iHoldNoteScores[NUM_HoldNoteScore]{};
 	/** @brief The Player's current combo. */
@@ -190,7 +191,7 @@ class PlayerStageStats
 		Combo_t() = default;
 		[[nodiscard]] auto IsZero() const -> bool { return m_fStartSecond < 0; }
 	};
-	vector<Combo_t> m_ComboList;
+	std::vector<Combo_t> m_ComboList;
 	float m_fFirstSecond{};
 	float m_fLastSecond{};
 
@@ -219,6 +220,7 @@ class PlayerStageStats
 	void UnloadReplayData(); // i don't really trust the deconstructors here,
 							 // also prefer flexibility in this -mina
 	HighScore m_HighScore;
+	float m_fPlayedSeconds{};
 
 	// Lua
 	void PushSelf(lua_State* L);

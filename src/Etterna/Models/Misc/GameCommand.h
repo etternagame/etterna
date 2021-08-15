@@ -43,8 +43,8 @@ class GameCommand
 	void Apply(PlayerNumber pn) const;
 
   private:
-	void Apply(const vector<PlayerNumber>& vpns) const;
-	void ApplySelf(const vector<PlayerNumber>& vpns) const;
+	void Apply(const std::vector<PlayerNumber>& vpns) const;
+	void ApplySelf(const std::vector<PlayerNumber>& vpns) const;
 
   public:
 	[[nodiscard]] auto DescribesCurrentMode(PlayerNumber pn) const -> bool;
@@ -80,7 +80,7 @@ class GameCommand
 	std::string m_sSongGroup;
 	SortOrder m_SortOrder{ SortOrder_Invalid };
 	std::string m_sSoundPath; // "" for no sound
-	vector<std::string> m_vsScreensToPrepare;
+	std::vector<std::string> m_vsScreensToPrepare;
 	std::string m_sProfileID;
 	std::string m_sUrl;
 	// sm-ssc adds:

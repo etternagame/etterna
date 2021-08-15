@@ -12,11 +12,11 @@ SMALoader::ProcessMultipliers(TimingData& out,
 							  const int iRowsPerBeat,
 							  const std::string& sParam)
 {
-	vector<std::string> arrayMultiplierExpressions;
+	std::vector<std::string> arrayMultiplierExpressions;
 	split(sParam, ",", arrayMultiplierExpressions);
 
 	for (auto& arrayMultiplierExpression : arrayMultiplierExpressions) {
-		vector<std::string> arrayMultiplierValues;
+		std::vector<std::string> arrayMultiplierValues;
 		split(arrayMultiplierExpression, "=", arrayMultiplierValues);
 		unsigned size = arrayMultiplierValues.size();
 		if (size < 2) {
@@ -43,11 +43,11 @@ SMALoader::ProcessMultipliers(TimingData& out,
 void
 SMALoader::ProcessBeatsPerMeasure(TimingData& out, const std::string& sParam)
 {
-	vector<std::string> vs1;
+	std::vector<std::string> vs1;
 	split(sParam, ",", vs1);
 
 	for (auto& s1 : vs1) {
-		vector<std::string> vs2;
+		std::vector<std::string> vs2;
 		split(s1, "=", vs2);
 
 		if (vs2.size() < 2) {
@@ -87,11 +87,11 @@ SMALoader::ProcessSpeeds(TimingData& out,
 						 const std::string& line,
 						 const int rowsPerBeat)
 {
-	vector<std::string> vs1;
+	std::vector<std::string> vs1;
 	split(line, ",", vs1);
 
 	for (auto& s1 : vs1) {
-		vector<std::string> vs2;
+		std::vector<std::string> vs2;
 		vs2.clear(); // trying something.
 		auto loopTmp = s1;
 		Trim(loopTmp);
@@ -281,10 +281,10 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 			 * value doesn't seem to be editable in SMA. When it
 			 * becomes so, make adjustments to this code. */
 			if (iRowsPerBeat < 0) {
-				vector<std::string> arrayBeatChangeExpressions;
+				std::vector<std::string> arrayBeatChangeExpressions;
 				split(sParams[1], ",", arrayBeatChangeExpressions);
 
-				vector<std::string> arrayBeatChangeValues;
+				std::vector<std::string> arrayBeatChangeValues;
 				split(
 				  arrayBeatChangeExpressions[0], "=", arrayBeatChangeValues);
 				iRowsPerBeat = StringToInt(arrayBeatChangeValues[1]);
@@ -333,7 +333,7 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 		}
 
 		else if (sValueName == "FGCHANGES") {
-			vector<std::string> aFGChangeExpressions;
+			std::vector<std::string> aFGChangeExpressions;
 			split(sParams[1], ",", aFGChangeExpressions);
 
 			for (auto& aFGChangeExpression : aFGChangeExpressions) {

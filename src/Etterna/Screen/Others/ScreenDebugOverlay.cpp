@@ -32,6 +32,9 @@
 
 #include <map>
 
+#include "RageUtil/File/RageFileManager.h"
+#include "Core/Platform/Platform.hpp"
+
 static bool g_bIsDisplayed = false;
 static bool g_bIsSlow = false;
 static bool g_bIsHalt = false;
@@ -68,7 +71,7 @@ static LocalizedString MUTE_ACTIONS_OFF("ScreenDebugOverlay",
 										"Mute actions off");
 
 class IDebugLine;
-static vector<IDebugLine*>* g_pvpSubscribers = nullptr;
+static std::vector<IDebugLine*>* g_pvpSubscribers = nullptr;
 
 class IDebugLine
 {
@@ -76,7 +79,7 @@ class IDebugLine
 	IDebugLine()
 	{
 		if (g_pvpSubscribers == nullptr)
-			g_pvpSubscribers = new vector<IDebugLine*>;
+			g_pvpSubscribers = new std::vector<IDebugLine*>;
 		g_pvpSubscribers->push_back(this);
 	}
 
@@ -418,6 +421,7 @@ ScreenDebugOverlay::UpdateText()
 
 		txt2.SetX(LINE_FUNCTION_X);
 		txt2.SetY(fY);
+		txt2.SetMaxWidth((SCREEN_WIDTH - LINE_FUNCTION_X) / txt2.GetZoom());
 
 		std::string s1 = (*p)->GetDisplayTitle();
 		std::string s2 = (*p)->GetDisplayValue();
@@ -649,6 +653,8 @@ static LocalizedString GLOBAL_OFFSET_DOWN("ScreenDebugOverlay",
 static LocalizedString GLOBAL_OFFSET_RESET("ScreenDebugOverlay",
 										   "Global Offset Reset");
 static LocalizedString KEY_CONFIG("ScreenDebugOverlay", "Key Config");
+static LocalizedString CHART_FOLDER("ScreenDebugOverlay", "Chart Folder");
+static LocalizedString CHART_KEY("ScreenDebugOverlay", "Chartkey");
 static LocalizedString VOLUME_UP("ScreenDebugOverlay", "Volume Up");
 static LocalizedString VOLUME_DOWN("ScreenDebugOverlay", "Volume Down");
 static LocalizedString UPTIME("ScreenDebugOverlay", "Uptime");
@@ -1548,9 +1554,48 @@ class DebugLineKeyConfig : public IDebugLine
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		SCREENMAN->PopAllScreens();
+		SCREENMAN->set_input_redirected(PLAYER_1, false);
 		GAMESTATE->Reset();
 		SCREENMAN->SetNewScreen("ScreenMapControllers");
 	}
+};
+
+class DebugLineChartFolder: public IDebugLine
+{
+	std::string GetDisplayTitle() override { return CHART_FOLDER.GetValue(); }
+	std::string GetDisplayValue() override { return std::string();	}
+	std::string GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return GAMESTATE->m_pCurSong != nullptr; }
+
+	void DoAndLog(std::string& sMessageOut) override
+	{
+		Song* s = GAMESTATE->m_pCurSong;
+		if (s != nullptr) {
+			auto d = s->GetSongDir();
+			auto b = SONGMAN->WasLoadedFromAdditionalSongs(s);
+			auto p = FILEMAN->ResolveSongFolder(d, b);
+
+			Core::Platform::openFolder(p);
+			IDebugLine::DoAndLog(sMessageOut);
+			sMessageOut += " - Opened " + s->m_sSongFileName;
+		}
+	}
+};
+
+class DebugLineChartkey : public IDebugLine
+{
+	std::string GetDisplayTitle() override { return CHART_KEY.GetValue(); }
+	std::string GetDisplayValue() override
+	{
+		auto c = GAMESTATE->m_pCurSteps;
+		if (c != nullptr)
+			return c->GetChartKey();
+		return std::string("None");
+	}
+	std::string GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return true; }
+
+	void DoAndLog(std::string& sMessageOut) override {}
 };
 
 /* #ifdef out the lines below if you don't want them to appear on certain
@@ -1602,3 +1647,5 @@ DECLARE_ONE(DebugLineGlobalOffsetDown);
 DECLARE_ONE(DebugLineGlobalOffsetUp);
 DECLARE_ONE(DebugLineGlobalOffsetReset);
 DECLARE_ONE(DebugLineKeyConfig);
+DECLARE_ONE(DebugLineChartFolder);
+DECLARE_ONE(DebugLineChartkey);

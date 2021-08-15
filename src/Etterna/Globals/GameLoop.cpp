@@ -24,7 +24,8 @@
 // Static Variables
 //// On the next update, change themes, and load sNewScreen.
 static std::mutex archMutex;
-static bool toggleWindowed, hasFocus, focusChanged;
+static bool toggleWindowed, focusChanged;
+static bool hasFocus = true;
 
 static bool userQuit = false;
 static std::string g_NewTheme;
@@ -203,6 +204,10 @@ namespace GameLoop {
 
     void SetUpdateRate(float fUpdateRate) {
         g_fUpdateRate = fUpdateRate;
+    }
+
+	float GetUpdateRate() {
+		return g_fUpdateRate;
     }
 
     void ChangeTheme(const std::string& sNewTheme) {

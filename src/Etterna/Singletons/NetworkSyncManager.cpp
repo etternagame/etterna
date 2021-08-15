@@ -113,30 +113,36 @@ correct_non_utf_8(string* str)
 				to.append(1, c);
 			}
 			continue;
-		} else if (c < 127) { // normal ASCII
+		}
+		if (c < 127) { // normal ASCII
 			to.append(1, c);
 			continue;
-		} else if (c < 160) { // control char (nothing should be defined here
+		}
+		if (c < 160) { // control char (nothing should be defined here
 							  // either ASCI, ISO_8859-1 or UTF8, so skipping)
 			if (c2 == 128) {  // fix microsoft mess, add euro
-				to.append(1, 226);
-				to.append(1, 130);
-				to.append(1, 172);
+				to.append(1, static_cast<unsigned char>(226));
+				to.append(1, static_cast<unsigned char>(130));
+				to.append(1, static_cast<unsigned char>(172));
 			}
 			if (c2 == 133) { // fix IBM mess, add NEL = \n\r
 				to.append(1, 10);
 				to.append(1, 13);
 			}
 			continue;
-		} else if (c < 192) { // invalid for UTF8, converting ASCII
+		}
+		if (c < 192) { // invalid for UTF8, converting ASCII
 			to.append(1, static_cast<unsigned char>(194));
 			to.append(1, c);
 			continue;
-		} else if (c < 194) { // invalid for UTF8, converting ASCII
+		}
+		if (c < 194) { // invalid for UTF8, converting ASCII
 			to.append(1, static_cast<unsigned char>(195));
 			to.append(1, c - 64);
 			continue;
-		} else if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
+		}
+		
+		if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
 			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
 				if (c == 194 && c2 < 160) { // control char, skipping
@@ -689,7 +695,7 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, Value& ch)
 			}
 		}
 	} else {
-		vector<Song*> AllSongs = SONGMAN->GetAllSongs();
+		std::vector<Song*> AllSongs = SONGMAN->GetAllSongs();
 		for (size_t i = 0; i < AllSongs.size(); i++) {
 			auto& m_cSong = AllSongs[i];
 			if ((n->m_sArtist.empty() ||
@@ -847,6 +853,18 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 										score["mods"].IsString()
 									  ? score["mods"].GetString()
 									  : "");
+					if (score.HasMember("wifever") && score["wifever"].IsInt())
+						hs.SetWifeVersion(score["wifever"].GetInt());
+					RadarValues rv;
+					FOREACH_ENUM(RadarCategory, rc)
+					{
+						auto rcs = RadarCategoryToString(rc).c_str();
+						if (score.HasMember(rcs) && score[rcs].IsInt()) {
+							rv[rc] = score[rcs].GetInt();
+						}
+					}
+					hs.SetRadarValues(rv);
+
 					FOREACH_ENUM(Skillset, ss)
 					{
 						auto str = SkillsetToString(ss);
@@ -947,9 +965,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						auto& offsets = replay["offsets"];
 						auto& noterows = replay["noterows"];
 						auto& tracks = replay["tracks"];
-						vector<float> v_offsets;
-						vector<int> v_noterows;
-						vector<int> v_tracks;
+						std::vector<float> v_offsets;
+						std::vector<int> v_noterows;
+						std::vector<int> v_tracks;
 						for (auto& offset : offsets.GetArray())
 							if (offset.IsNumber())
 								v_offsets.push_back(offset.GetFloat());
@@ -962,6 +980,19 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						hs.SetOffsetVector(v_offsets);
 						hs.SetNoteRowVector(v_noterows);
 						hs.SetTrackVector(v_tracks);
+
+						// add some backwards compatibility with pre 0.71
+						// multi users
+						if (replay.HasMember("notetypes") &&
+							replay["notetypes"].IsArray())
+						{
+							auto& notetypes = replay["notetypes"];
+							std::vector<TapNoteType> v_types;
+							for (auto& type : notetypes.GetArray())
+								if (type.IsInt()) 
+									v_types.push_back(static_cast<TapNoteType>(type.GetInt()));
+							hs.SetTapNoteTypeVector(v_types);
+						}
 					}
 					result.nameStr = payload["name"].GetString();
 					result.hs = hs;
@@ -1129,7 +1160,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							std::string SMOnlineSelectScreen = THEME->GetMetric(
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
-						} catch (std::exception e) {
+						} catch (std::exception& e) {
 							Locator::getLogger()->trace("Error while parsing ettp json enter "
 									   "room response: {}",
 									   e.what());
@@ -1275,8 +1306,11 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
+				case ettps_end:
+				default:
+					break;
 			}
-		} catch (std::exception e) {
+		} catch (std::exception& e) {
 			Locator::getLogger()->trace("Error while parsing ettp json message: {}", e.what());
 		}
 	}
@@ -1579,6 +1613,14 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	writer.Int(hs->GetTapNoteScore(TNS_W1));
 	writer.Key("score");
 	writer.Double(hs->GetSSRNormPercent());
+	writer.Key("wifever");
+	writer.Int(hs->GetWifeVersion());
+	auto& r = hs->GetRadarValues();
+	FOREACH_ENUM(RadarCategory, rc)
+	{
+		writer.Key(RadarCategoryToString(rc).c_str());
+		writer.Int(r[rc]);
+	}
 	FOREACH_ENUM(Skillset, ss)
 	{
 		writer.Key(SkillsetToString(ss).c_str());
@@ -1621,6 +1663,7 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	const auto& offsets = pss.GetOffsetVector();
 	const auto& noterows = pss.GetNoteRowVector();
 	const auto& tracks = pss.GetTrackVector();
+	const auto& types = pss.GetTapNoteTypeVector();
 	if (offsets.size() > 0) {
 		writer.Key("replay");
 		writer.StartObject();
@@ -1638,6 +1681,11 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 		writer.StartArray();
 		for (size_t i = 0; i < tracks.size(); i++)
 			writer.Int(tracks[i]);
+		writer.EndArray();
+		writer.Key("notetypes");
+		writer.StartArray();
+		for (size_t i = 0; i < types.size(); i++)
+			writer.Int(types[i]);
 		writer.EndArray();
 		writer.EndObject();
 	}
@@ -1971,7 +2019,7 @@ PacketFunctions::ClearPacket()
 }
 
 void
-NetworkSyncManager::GetListOfLANServers(vector<NetServerInfo>& AllServers)
+NetworkSyncManager::GetListOfLANServers(std::vector<NetServerInfo>& AllServers)
 {
 	AllServers = m_vAllLANServers;
 }
