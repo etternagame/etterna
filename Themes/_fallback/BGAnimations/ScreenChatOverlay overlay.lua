@@ -16,6 +16,7 @@ local curmsgh = 0
 local closeTabSize = 10
 local tweentime = 0.25
 local tipshown = false
+local getMainColor = getMainColor or function(e) if e == "positive" then return color("#9654FD") else return color("2E2E2E99") end end
 local topbaroffset = capWideScale(6,0)
 local Colors = {
 	background = getMainColor("tabs"),
