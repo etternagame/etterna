@@ -94,6 +94,7 @@ local function toggleNoteField()
 		mcbootlarder:diffusealpha(1)
 
 		pOptions = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions()
+		usingreverse = pOptions:UsingReverse()
 		local usingscrollmod = false
 		if pOptions:Split() ~= 0 or pOptions:Alternate() ~= 0 or pOptions:Cross() ~= 0 or pOptions:Centered() ~= 0 then
 			usingscrollmod = true
