@@ -416,8 +416,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	// Have to account for mirror being in the highscore options
 	// please dont change styles in the middle of calculation and break this
 	// thanks
-	if (pScoreData->GetModifiers().find("mirror") != std::string::npos ||
-		pScoreData->GetModifiers().find("Mirror") != std::string::npos) {
+	if (pScoreData != nullptr && (pScoreData->GetModifiers().find("mirror") != std::string::npos ||
+		pScoreData->GetModifiers().find("Mirror") != std::string::npos)) {
 		PlayerOptions po;
 		po.Init();
 		po.m_bTurns[PlayerOptions::TURN_MIRROR] = true;
@@ -600,10 +600,9 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		snapShotsUnused.push_back(it.first);
 	auto cws = 0.f; // curwifescore
 	auto mws = 0.f; // maxwifescore
-	auto totaloffset = 0.f; // sum of tap deviations
 	auto taps = 0; // tap count
-	auto runningmean = 0.f;
-	auto runningvariance = 0.f;
+	double runningmean = 0.0;
+	double runningvariance = 0.0;
 	for (auto it = m_ReplayTapMap.begin(); it != m_ReplayTapMap.end();) {
 		const auto r = it->first;
 		if (r > snapShotsUnused.front()) {
@@ -630,21 +629,19 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				mws += 2.f;
 
 				// do mean/sd for all non miss taps
-				// AT THE TIME OF WRITING, THIS IS VERY SLIGHTLY WRONG
-				// BE AWARE
-				if (tapscore != wife3_miss_weight) {
-					totaloffset += trr.offset;
+				auto tns =
+				  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
+				if (tns != TNS_Miss && tns != TNS_None) {
 					taps++;
 
 					// universe brain algorithm (Welford's)
-					auto delta = trr.offset - runningmean;
+					double delta = trr.offset * 1000.0 - runningmean;
 					runningmean += delta / taps;
-					auto delta2 = trr.offset - runningmean;
+					double delta2 = trr.offset * 1000.0 - runningmean;
 					runningvariance += delta * delta2;
 
 					rs->mean = runningmean;
-					//rs->mean = totaloffset / taps;
-					rs->standardDeviation = taps > 1 ? std::sqrt(runningvariance / (taps - 1)) : 0.f;
+					rs->standardDeviation = taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 				}
 			}
 		}
@@ -656,37 +653,6 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		snapShotsUnused.erase(snapShotsUnused.begin());
 		++it;
 	}
-
-	/*
-	// slow algorithm to get sd of all snapshots
-	for (auto it = m_ReplayTapMap.begin(); it != m_ReplayTapMap.end(); it++) {
-		const auto r = it->first;
-		auto rs = GetReplaySnapshotForNoterow(r);
-		auto mean = rs->mean;
-		auto sdtotal = 0.f;
-		auto sdtaps = 0;
-		for (auto nit = m_ReplayTapMap.begin();
-			 nit != it && nit != m_ReplayTapMap.end();
-			 nit++) {
-			const auto r2 = nit->first;
-
-			for (auto& trr : nit->second) {
-				if (trr.type != TapNoteType_Mine) {
-					auto tapscore = wife3(trr.offset, timingScale);
-
-					// do d for all non miss taps
-					if (tapscore != wife3_miss_weight) {
-						sdtaps++;
-						sdtotal += std::pow(trr.offset - mean, 2);
-					}
-				}
-			}
-		}
-		rs->standardDeviation =
-		  sdtaps > 0 ? std::sqrt(sdtotal / (sdtaps - 1)) : 0;
-	}
-	*/
-
 	if (!snapShotsUnused.empty()) {
 		for (auto row : snapShotsUnused) {
 			// This might not be technically correct
@@ -699,6 +665,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			auto rs = &m_ReplaySnapshotMap[row];
 			rs->curwifescore = prevrs->curwifescore;
 			rs->maxwifescore = prevrs->maxwifescore;
+			rs->mean = prevrs->mean;
+			rs->standardDeviation = prevrs->standardDeviation;
 		}
 	}
 }

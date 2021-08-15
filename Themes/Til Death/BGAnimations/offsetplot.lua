@@ -19,7 +19,15 @@ local translated_info = {
 	Right = THEME:GetString("OffsetPlot", "ExplainRight"),
 	Down = THEME:GetString("OffsetPlot", "ExplainDown"),
 	Early = THEME:GetString("OffsetPlot", "Early"),
-	Late = THEME:GetString("OffsetPlot", "Late")
+	Late = THEME:GetString("OffsetPlot", "Late"),
+	SD = THEME:GetString("ScreenEvaluation", "StandardDev"),
+	Mean = THEME:GetString("ScreenEvaluation", "Mean"),
+	TapNoteScore_W1 = getJudgeStrings("TapNoteScore_W1"),
+	TapNoteScore_W2 = getJudgeStrings("TapNoteScore_W2"),
+	TapNoteScore_W3 = getJudgeStrings("TapNoteScore_W3"),
+	TapNoteScore_W4 = getJudgeStrings("TapNoteScore_W4"),
+	TapNoteScore_W5 = getJudgeStrings("TapNoteScore_W5"),
+	TapNoteScore_Miss = getJudgeStrings("TapNoteScore_Miss"),
 }
 
 -- initialize tables we need for replay data here, we don't know where we'll be loading from yet
@@ -254,6 +262,8 @@ o[#o + 1] =
 			local row = convertXToRow(xpos)
 			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
 			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
+			local mean = SCREENMAN:GetTopScreen():GetReplaySnapshotMeanForNoterow(row)
+			local sd = SCREENMAN:GetTopScreen():GetReplaySnapshotSDForNoterow(row)
 			local timebro = td:GetElapsedTimeFromNoteRow(row) / getCurRateValue()
 			local marvCount = judgments[10]
 			local perfCount = judgments[9]
@@ -264,7 +274,18 @@ o[#o + 1] =
 
 			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
 			-- The odd formatting here is in case we want to add translation support.
-			txt:settextf("%f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2f", wifescore, "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount, "timebro", timebro)
+			txt:settextf("%f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2fms\n%s: %0.2fms\n%s: %0.2fs",
+				wifescore,
+				translated_info["TapNoteScore_W1"], marvCount,
+				translated_info["TapNoteScore_W2"], perfCount,
+				translated_info["TapNoteScore_W3"], greatCount,
+				translated_info["TapNoteScore_W4"], goodCount,
+				translated_info["TapNoteScore_W5"], badCount,
+				translated_info["TapNoteScore_Miss"], missCount,
+				translated_info["SD"], sd,
+				translated_info["Mean"], mean,
+				"Time", timebro
+			)
 		else
 			bar:visible(false)
 			txt:visible(false)
