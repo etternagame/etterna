@@ -1048,6 +1048,7 @@ local function highlightIfOver(self)
 		self:diffusealpha(1)
 	end
 end
+local prevplayerops = "Main"
 
 t[#t + 1] = Def.ActorFrame {
 	Name = "LittleButtonsOnTheLeft",
@@ -1122,7 +1123,23 @@ t[#t + 1] = Def.ActorFrame {
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
 		end,
+		OptionsScreenClosedMessageCommand = function(self)
+			-- hate this so much
+			-- the point of this is to force the multi paged options screen to work when using this button
+			-- its a massive hack
+			local nextplayerops = getenv("NewOptions") or "Main"
+			if nextplayerops == prevplayerops then
+				-- exit the options and dont reopen and reset its state
+				setenv("NewOptions", "Main")
+				prevplayerops = "Main"
+				return
+			end
 
+			prevplayerops = nextplayerops
+			setenv("NewOptions", nextplayerops)
+			-- if you ever reload the options screen and the game hard locks, this is why
+			SCREENMAN:GetTopScreen():OpenOptions()
+		end,
 	},
 
 --[[ -- This is the Widget Button alternative of the above implementation.
