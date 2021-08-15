@@ -608,18 +608,24 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		if (r > snapShotsUnused.front()) {
 			// if we somehow skipped a snapshot, the only difference should be
 			// in misses and non taps
-			// dont have to update mean/sd in that case
 			auto rs = &m_ReplaySnapshotMap[snapShotsUnused.front()];
 			rs->curwifescore = cws +
 							   (rs->judgments[TNS_Miss] * wife3_miss_weight) +
 							   ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) *
 								wife3_hold_drop_weight);
 			rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
-			snapShotsUnused.erase(snapShotsUnused.begin());
+			rs->mean = runningmean;
+			rs->standardDeviation =
+			  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 
+			snapShotsUnused.erase(snapShotsUnused.begin());
 			continue; // retry the iteration (it++ is moved to below)
 		}
 		auto rs = GetReplaySnapshotForNoterow(r);
+		// set mean and sd initially
+		rs->mean = runningmean;
+		rs->standardDeviation =
+		  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
 				cws += wife3_mine_hit_weight;
@@ -639,10 +645,12 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 					runningmean += delta / taps;
 					double delta2 = trr.offset * 1000.0 - runningmean;
 					runningvariance += delta * delta2;
-
-					rs->mean = runningmean;
-					rs->standardDeviation = taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 				}
+
+				// set mean and sd again to update it if necessary
+				rs->mean = runningmean;
+				rs->standardDeviation =
+				  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 			}
 		}
 		rs->curwifescore =
