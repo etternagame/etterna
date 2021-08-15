@@ -165,6 +165,7 @@ function PONextScreen()
 		end,
 		SaveSelections = function(self,list)
 			local entnames = {"Main","Theme","Effect"}
+			SCREENMAN:GetTopScreen():SetNextScreenName(ToGameplay())
 			for i,v in ipairs(self.Values) do
 				if list[i] and i > 1 then
 					SCREENMAN:GetTopScreen():SetNextScreenName( "ScreenPlayerOptions" )
