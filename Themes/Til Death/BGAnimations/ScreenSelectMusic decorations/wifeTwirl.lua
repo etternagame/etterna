@@ -93,6 +93,7 @@ local function toggleNoteField()
 		mcbootlarder:xy(prevX, prevY)
 		mcbootlarder:diffusealpha(1)
 
+		pOptions = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions()
 		local usingscrollmod = false
 		if pOptions:Split() ~= 0 or pOptions:Alternate() ~= 0 or pOptions:Cross() ~= 0 or pOptions:Centered() ~= 0 then
 			usingscrollmod = true
@@ -1119,7 +1120,8 @@ t[#t + 1] = Def.ActorFrame {
 			if isOver(self) and song then
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
-		end
+		end,
+
 	},
 
 --[[ -- This is the Widget Button alternative of the above implementation.

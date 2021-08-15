@@ -91,6 +91,23 @@ local t = Def.ActorFrame {
 		cd:GetChild("cdbg"):diffusealpha(0)	-- we want to use our position background for draw order stuff -mina
 		cd:queuecommand("GraphUpdate")		-- first graph will be empty if we dont force this on initial creation
 	end,
+	OptionsScreenClosedMessageCommand = function(self)
+		local pOptions = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions()
+		local usingscrollmod = false
+		local usingreverse = pOptions:UsingReverse()
+		local nf = self:GetChild("NoteField")
+		if not nf then return end
+		if pOptions:Split() ~= 0 or pOptions:Alternate() ~= 0 or pOptions:Cross() ~= 0 or pOptions:Centered() ~= 0 then
+			usingscrollmod = true
+		end
+
+		nf:y(yPos * 2.85)
+		if usingscrollmod then
+			nf:y(yPos * 3.55)
+		elseif usingreverse then
+			nf:y(yPos * 2.85 + yPosReverse)
+		end
+	end,
 
 	Def.NoteFieldPreview {
 		Name = "NoteField",
