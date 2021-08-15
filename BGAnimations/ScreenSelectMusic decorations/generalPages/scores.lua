@@ -1081,7 +1081,7 @@ local function createList()
             end
         },
         LoadFont("Common Normal") .. {
-            Name = "MissCount",
+            Name = "CBs",
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:xy(actuals.DetailLineLeftGap, actuals.DetailLine2TopGap)
@@ -1092,11 +1092,11 @@ local function createList()
             end,
             UpdateListCommand = function(self)
                 if localscore ~= nil then
-                    local mc = getScoreMissCount(localscore)
+                    local mc = getScoreComboBreaks(localscore)
                     if mc ~= nil then
-                        self:settextf("Miss Count: %s", mc)
+                        self:settextf("Combo Breaks: %s", mc)
                     else
-                        self:settext("Miss Count: -")
+                        self:settext("Combo Breaks: -")
                     end
                 end
             end
