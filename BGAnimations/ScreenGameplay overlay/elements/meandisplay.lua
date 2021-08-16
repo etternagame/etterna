@@ -14,6 +14,7 @@ return Def.ActorFrame {
     InitCommand = function(self)
         self:xy(MovableValues.DisplayMeanX, MovableValues.DisplayMeanY)
         self:zoom(MovableValues.DisplayMeanZoom)
+        registerActorToCustomizeGameplayUI(self)
     end,
     JudgmentMessageCommand = function(self, params)
         -- should work fine only for judged taps, not misses or holds

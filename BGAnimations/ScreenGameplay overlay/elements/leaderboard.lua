@@ -5,7 +5,10 @@ local entryActors = {}
 local t = Widg.Container {
 	x = MovableValues.LeaderboardX,
 	y = MovableValues.LeaderboardY,
-	name = "Leaderboard"
+	name = "Leaderboard",
+	onInit = function(self)
+		registerActorToCustomizeGameplayUI(self)
+	end,
 }
 
 if not leaderboardEnabled then

@@ -116,6 +116,7 @@ local function npsDisplay()
 		InitCommand = function(self)
 			self:xy(MovableValues.NPSDisplayX, MovableValues.NPSDisplayY)
 			self:zoom(MovableValues.NPSDisplayZoom)
+			registerActorToCustomizeGameplayUI(self)
 		end,
 		-- Whenever a MessageCommand is broadcasted,
 		-- a table contanining parameters can also be passed along.

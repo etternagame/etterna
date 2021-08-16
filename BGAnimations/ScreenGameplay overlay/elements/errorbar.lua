@@ -74,6 +74,7 @@ local t = Def.ActorFrame {
 			avg = 0
 			lastAvg = 0
 		end
+		registerActorToCustomizeGameplayUI(self)
 	end,
 	SpottedOffsetCommand = function(self, params)
 		if errorbarType == "Regular" then

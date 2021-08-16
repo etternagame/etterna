@@ -8,6 +8,7 @@ return Def.ActorFrame {
 	Name = "MiniProgressBar",
 	InitCommand = function(self)
 		self:xy(MovableValues.MiniProgressBarX, MovableValues.MiniProgressBarY)
+		registerActorToCustomizeGameplayUI(self)
 	end,
 	
 	Def.Quad {

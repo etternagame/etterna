@@ -12,6 +12,7 @@ local t = Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY)
         self:zoom(MovableValues.TargetTrackerZoom / GAMEPLAY_SIZING_RATIO)
+        registerActorToCustomizeGameplayUI(self)
 	end,
 }
 

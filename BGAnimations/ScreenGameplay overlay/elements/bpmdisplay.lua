@@ -26,22 +26,26 @@ return Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(MovableValues.BPMTextX, MovableValues.BPMTextY)
 		self:zoom(MovableValues.BPMTextZoom)
+		self:playcommand("Set")
+		registerActorToCustomizeGameplayUI(self)
+	end,
+	SetCommand = function(self)
 		initbpm(self)
 	end,
 	CurrentRateChangedMessageCommand = function(self)
-		initbpm(self)
+		self:playcommand("Set")
 	end,
 	PracticeModeReloadMessageCommand = function(self)
-		self:playcommand("CurrentRateChanged")
+		self:playcommand("Set")
 	end,
 	DoneLoadingNextSongMessageCommand = function(self)
-		self:queuecommand("Init")
+		self:playcommand("Set")
 	end,
 
 	LoadFont("Common Normal") .. {
         Name = "BPM",
         InitCommand = function(self)
-            self:halign(0.5):zoom(bpmTextSize)
+			self:zoom(bpmTextSize)
         end,
     },
 }

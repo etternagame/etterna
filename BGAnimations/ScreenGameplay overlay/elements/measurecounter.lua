@@ -5,6 +5,7 @@ local measure = 1
 local thingy = 1
 local active = false
 local t = Def.ActorFrame {
+	Name = "MeasureCounter",
 	InitCommand = function(self)
 		self:x(200)
 		self:y(200)
@@ -38,9 +39,11 @@ local t = Def.ActorFrame {
 				m_len = 0
 			end
 		end
+		registerActorToCustomizeGameplayUI(self)
 	end,
 	
 	LoadFont("Common Normal") .. {
+		Name = "MeasureText",
 		OnCommand = function(self)
 			self:visible(false)
 			self:settext("")

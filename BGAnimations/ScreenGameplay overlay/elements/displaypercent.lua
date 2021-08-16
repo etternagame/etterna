@@ -11,6 +11,7 @@ return Def.ActorFrame {
 	InitCommand = function(self)
         self:xy(MovableValues.DisplayPercentX, MovableValues.DisplayPercentY)
 		self:zoom(MovableValues.DisplayPercentZoom)
+        registerActorToCustomizeGameplayUI(self)
 	end,
     SpottedOffsetCommand = function(self, params)
         local bg = self:GetChild("PercentBacking")

@@ -7,12 +7,13 @@ return Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(MovableValues.MusicRateX, MovableValues.MusicRateY)
 		self:zoom(MovableValues.MusicRateZoom)
+		registerActorToCustomizeGameplayUI(self)
 	end,
 
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:zoom(rateTextSize)
-			self:settext(getCurRateDisplayString())
+			self:playcommand("SetRate")
 		end,
 		SetRateCommand = function(self)
 			self:settext(getCurRateDisplayString())

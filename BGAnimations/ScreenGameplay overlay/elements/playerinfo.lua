@@ -32,6 +32,7 @@ return Def.ActorFrame {
     Name = "PlayerInfoContainer",
     InitCommand = function(self)
         self:xy(PlayerFrameX, PlayerFrameY)
+        registerActorToCustomizeGameplayUI(self)
     end,
 
 	Def.Sprite {

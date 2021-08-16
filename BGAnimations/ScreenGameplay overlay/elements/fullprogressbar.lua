@@ -32,6 +32,7 @@ return Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(MovableValues.FullProgressBarX, MovableValues.FullProgressBarY)
 		self:zoomto(MovableValues.FullProgressBarWidth, MovableValues.FullProgressBarHeight)
+		registerActorToCustomizeGameplayUI(self)
 	end,
 
 	replaySlider,
