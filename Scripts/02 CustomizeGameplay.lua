@@ -72,12 +72,24 @@ local function loadValuesTable()
 	MovableValues.MusicRateZoom = playerConfig:get_data().GameplaySizes[keymode].MusicRateZoom
 end
 
+-- registry for elements which are able to be modified in customizegameplay
+local customizeGameplayElements = {}
+function registerActorToCustomizeGameplayUI(element)
+	customizeGameplayElements[#customizeGameplayElements+1] = element
+end
+
+function getCustomizeGameplayElements()
+	return customizeGameplayElements
+end
+
 function unsetMovableKeymode()
 	MovableValues = {}
+	customizeGameplayElements = {}
 end
 
 function setMovableKeymode(key)
 	keymode = key
+	customizeGameplayElements = {}
 	loadValuesTable()
 end
 
