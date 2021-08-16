@@ -173,6 +173,7 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
 				handleRegionSetting(positionGiven)
 			end)
 		end
+		registerActorToCustomizeGameplayUI(self)
 	end,
 }
 -- extra quad for bookmark position and region

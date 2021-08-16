@@ -43,6 +43,9 @@ local t = Def.ActorFrame {
         local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
         local noteColumns = nf:get_column_actors()
 
+        registerActorToCustomizeGameplayUI(lifebar)
+        registerActorToCustomizeGameplayUI(nf)
+
         Movable.pressed = false
         Movable.current = "None"
         Movable.DeviceButton_r.element = nf
@@ -71,7 +74,7 @@ local function makeUI()
     local itemsPerPage = 8
     local itemListFrame = nil
 
-    -- init moved to BeginCommand due to timing reasons
+    -- init moved to OnCommand due to timing reasons
     local elements = {}
     local page = 1
     local maxPage = 1
@@ -123,7 +126,7 @@ local function makeUI()
         InitCommand = function(self)
             itemListFrame = self
         end,
-        BeginCommand = function(self)
+        OnCommand = function(self)
             elements = getCustomizeGameplayElements()
             maxPage = math.ceil(#elements / itemsPerPage)
             self:playcommand("UpdateItemList")

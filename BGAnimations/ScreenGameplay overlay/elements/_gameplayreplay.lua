@@ -128,6 +128,7 @@ end
 scroller[#scroller + 1] = Widg.Container {
 	name = "ReplayButtons",
 	onInit = function(self)
+		registerActorToCustomizeGameplayUI(self)
 	end,
 	content = {
 		button(
