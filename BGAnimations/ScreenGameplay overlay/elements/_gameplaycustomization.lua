@@ -17,6 +17,8 @@ local actuals = {
 }
 
 local uiBGAlpha = 0.6
+local textButtonHeightFudgeScalarMultiplier = 1.4
+local buttonHoverAlpha = 0.6
 
 local function spaceNotefieldCols(inc)
 	if inc == nil then inc = 0 end
@@ -99,23 +101,46 @@ local function makeUI()
     local function item(i)
         local index = i
         local element = elements[index]
-        return LoadFont("Common Normal") .. {
+        return UIElements.TextButton(1, 1, "Common Normal") .. {
             Name = "Item_"..i,
             InitCommand = function(self)
-                self:halign(0)
+                local txt = self:GetChild("Text")
+                local bg = self:GetChild("BG")
+                txt:halign(0)
+                bg:halign(0)
+                bg:diffusealpha(0.4)
                 self:x(-actuals.MenuWidth + actuals.EdgePadding)
                 local allowedSpace = actuals.MenuHeight - actuals.MenuDraggerHeight - (actuals.EdgePadding*2)
                 local topItemY = -actuals.MenuHeight/2 + actuals.MenuDraggerHeight + actuals.EdgePadding
                 self:y(topItemY + (allowedSpace / itemsPerPage) * (i-1) + (allowedSpace / itemsPerPage / 2))
+
+                self.alphaDeterminingFunction = function(self)
+                    local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
+                    local visiblemultiplier = self:IsInvisible() and 0 or 1
+                    self:diffusealpha(1 * hovermultiplier * visiblemultiplier)
+                end
             end,
             SetItemCommand = function(self)
+                local txt = self:GetChild("Text")
+                local bg = self:GetChild("BG")
                 index = (page - 1) * itemsPerPage + i
                 element = elements[index]
                 if element ~= nil then
                     self:diffusealpha(1)
-                    self:settext(element:GetName())
+                    txt:settext(element:GetName())
+                    bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 else
                     self:diffusealpha(0)
+                end
+            end,
+            RolloverUpdateCommand = function(self, params)
+                if self:IsInvisible() then return end
+                self:alphaDeterminingFunction()
+            end,
+            ClickCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if params.update == "OnMouseDown" then
+                    self:alphaDeterminingFunction()
                 end
             end,
         }
