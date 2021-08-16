@@ -201,11 +201,17 @@ local function makeUI()
             end,
             RolloverUpdateCommand = function(self, params)
                 if self:IsInvisible() then return end
+                if selectedElement == nil then
+                    cursorPos = index
+                    self:playcommand("UpdateCursor")
+                end
                 self:alphaDeterminingFunction()
             end,
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update == "OnMouseDown" then
+                    cursorPos = index
+                    self:playcommand("UpdateCursor")
                     self:alphaDeterminingFunction()
                 end
             end,
