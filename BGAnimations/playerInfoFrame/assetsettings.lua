@@ -112,15 +112,12 @@ t[#t+1] = LoadFont("Common Normal") .. {
 local function assetList()
     local settingsframe = nil
 
-    local curType = 1
-    local assetTypes = {}
-    -- assetFolders? yes, this is a global made available by something in theme scripts.
-    -- dont mess with it
-    for k,v in pairs(assetFolders) do
-        assetTypes[curType] = k
-        curType = curType + 1
-    end
-    curType = 2 -- start on Avatar page
+    local curType = 2 -- start on Avatar page
+    local assetTypes = {
+        "toasty",
+        "avatar",
+        "judgment",
+    }
 
     -- state
     local maxPage = 1
