@@ -226,7 +226,7 @@ t[#t + 1] =
 		{
 			Name = "Name",
 			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(350,410)):halign(0):zoom(0.55):diffuse(ButtonColor)
+				self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(360,500)):halign(0):zoom(0.55):diffuse(ButtonColor)
 			end,
 			SetCommand = function(self)
 				self:settextf("%s: %5.2f", profileName, playerRating)
@@ -255,44 +255,6 @@ t[#t + 1] =
 		{
 			Name = "loginlogout",
 			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(ButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				if DLMAN:IsLoggedIn() then
-					self:queuecommand("Login")
-				else
-					self:queuecommand("LogOut")
-				end
-			end,
-			LogOutMessageCommand = function(self)
-				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settext(translated_info["ClickLogin"])
-				else
-					self:settext(translated_info["NotLoggedIn"])
-				end
-			end,
-			LoginMessageCommand = function(self) --this seems a little clunky -mina
-				if not DLMAN:IsLoggedIn() then return end
-				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settext(translated_info["ClickLogout"])
-				else
-					self:settext("")
-				end
-			end,
-			OnlineUpdateMessageCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
-			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			Name = "LoggedInAs",
-			InitCommand = function(self)
 				self:xy(SCREEN_CENTER_X, AvatarY + 8):halign(0.5):zoom(0.45):diffuse(ButtonColor)
 			end,
 			BeginCommand = function(self)
@@ -306,7 +268,82 @@ t[#t + 1] =
 				end
 			end,
 			LogOutMessageCommand = function(self)
-				if SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
+				local top = SCREENMAN:GetTopScreen():GetName()
+				if DLMAN:IsLoggedIn() then
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
+					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+					playerConfig:save(pn_to_profile_slot(PLAYER_1))
+					DLMAN:Logout()
+				end
+				if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
+					self:settext(translated_info["ClickLogin"])
+				else
+					self:settext(translated_info["NotLoggedIn"])
+				end
+			end,
+			LoginMessageCommand = function(self)
+				local top = SCREENMAN:GetTopScreen():GetName()
+				if not DLMAN:IsLoggedIn() then return end
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
+				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+				playerConfig:save(pn_to_profile_slot(PLAYER_1))
+				ms.ok(translated_info["LoginSuccess"])
+				if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
+					self:settext(translated_info["ClickLogout"])
+				else
+					self:settext("")
+				end
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+					if DLMAN:IsLoggedIn() then
+						self:queuecommand("LogOut")
+					else
+						loginStep1(self)
+					end
+				end
+			end,
+			OnlineUpdateMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			HighlightCommand=function(self)
+				highlightIfOver(self)
+			end,
+			LoginFailedMessageCommand = function(self)
+				ms.ok(translated_info["LoginFailed"])
+			end,
+			LoginHotkeyPressedMessageCommand = function(self)
+				if DLMAN:IsLoggedIn() then
+					self:queuecommand("LogOut")
+				else
+					loginStep1(self)
+				end
+			end,
+			LoginStep2Command = function(self)
+				loginStep2()
+			end
+		},
+	LoadFont("Common Normal") ..
+		{
+			Name = "LoggedInAs",
+			InitCommand = function(self)
+				self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(ButtonColor)
+			end,
+			BeginCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			SetCommand = function(self)
+				if DLMAN:IsLoggedIn() then
+					self:queuecommand("Login")
+				else
+					self:queuecommand("LogOut")
+				end
+			end,
+			LogOutMessageCommand = function(self)
+				local top = SCREENMAN:GetTopScreen():GetName()
+				if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
 					self:settext("")
 					self:GetParent():SetUpdateFunction(highlight2)
 				else
@@ -328,11 +365,6 @@ t[#t + 1] =
 						DLMAN:GetSkillsetRank(ms.SkillSets[1])
 					)
 					self:GetParent():SetUpdateFunction(highlight2)
-					if not IsUsingWideScreen() then
-						self:halign(0):x(SCREEN_CENTER_X - (self:GetParent():GetChild("loginlogout"):GetWidth() / 2) * 0.45 )
-					else
-						self:halign(0.5):x(SCREEN_CENTER_X)
-					end
 				else
 					self:settextf(
 						"%s %s (%5.2f: #%i)",
@@ -357,42 +389,6 @@ t[#t + 1] =
 				highlightIfOver(self)
 			end
 		},
-	Def.Quad {
-		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, AvatarY + 25):halign(0.5):zoomto(100, 15):diffusealpha(0)
-		end,
-		LoginFailedMessageCommand = function(self)
-			ms.ok(translated_info["LoginFailed"])
-		end,
-		LoginMessageCommand = function(self)
-			if not DLMAN:IsLoggedIn() then return end
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
-			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
-			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-			playerConfig:save(pn_to_profile_slot(PLAYER_1))
-			ms.ok(translated_info["LoginSuccess"])
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-				if DLMAN:IsLoggedIn() then
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
-					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-					playerConfig:save(pn_to_profile_slot(PLAYER_1))
-					DLMAN:Logout()
-				else
-					loginStep1(self)
-				end
-			end
-		end,
-		LoginHotkeyPressedMessageCommand = function(self)
-			loginStep1(self)
-		end,
-		LoginStep2Command = function(self)
-			loginStep2()
-		end
-
-	},
 	LoadFont("Common Normal") ..
 		{
 			InitCommand = function(self)
