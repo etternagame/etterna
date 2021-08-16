@@ -2,13 +2,15 @@
 local top
 local profile = PROFILEMAN:GetProfile(PLAYER_1)
 
-local curType = 1
-local assetTypes = {}
+local curType = 2
+local assetTypes = {
+	"toasty",
+	"avatar",
+	"judgment",
+}
 local translated_assets = {}
-for k,v in pairs(assetFolders) do
-	assetTypes[curType] = k
-	translated_assets[k] = THEME:GetString("ScreenAssetSettings", k)
-	curType = curType + 1
+for _,v in ipairs(assetTypes) do
+	translated_assets[v] = THEME:GetString("ScreenAssetSettings", v)
 end
 
 local translated_info = {
@@ -20,7 +22,6 @@ local translated_info = {
 	Hovered = THEME:GetString("ScreenAssetSettings","Hovered")
 }
 
-curType = 2
 
 local maxPage = 1
 local curPage = 1
@@ -739,8 +740,8 @@ t[#t+1] = mainContainer() .. {
 
 local l = 1
 local capTypes = {}
-for k,v in pairs(translated_assets) do
-	capTypes[l] = v
+for i,v in pairs(assetTypes) do
+	capTypes[l] = translated_assets[v]
 	l = l+1
 end
 local typeTabs = TAB:new(capTypes)
