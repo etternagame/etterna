@@ -4,6 +4,10 @@ local customizationEnabled = false
 local practiceEnabled = GAMESTATE:IsPracticeMode()
 local replayEnabled = GAMESTATE:GetGameplayMode() == "GameplayMode_Replay"
 
+if not replayEnabled and not customizationEnabled and not practiceEnabled then
+	Arch.setCursorVisible(false)
+end
+
 
 local t = Def.ActorFrame {Name = "CustomGameplayElementLoader"}
 
