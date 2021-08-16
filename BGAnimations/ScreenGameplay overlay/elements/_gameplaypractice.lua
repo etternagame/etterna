@@ -75,59 +75,57 @@ local function handleRegionSetting(positionGiven)
 	MESSAGEMAN:Broadcast("RegionSet", {loopLength = loopEndPos-loopStartPos})
 end
 
-local function duminput(event)
-	if event.type == "InputEventType_Release" then
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
-			MESSAGEMAN:Broadcast("MouseRightClick")
-		end
-	elseif event.type == "InputEventType_FirstPress" then
-		if event.DeviceInput.button == "DeviceButton_backspace" then
-			if loopStartPos ~= nil then
-				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(loopStartPos, 1, true)
-			else
-				SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(0, 1, true)
-			end
-		elseif event.button == "EffectUp" then
-			SCREENMAN:GetTopScreen():AddToRate(0.05)
-		elseif event.button == "EffectDown" then
-			SCREENMAN:GetTopScreen():AddToRate(-0.05)
-		elseif event.button == "Coin" then
-			handleRegionSetting(SCREENMAN:GetTopScreen():GetSongPosition())
-		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" then
-			if GAMESTATE:IsPaused() then
-				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
-				local dir = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() and 1 or -1
-				local nextpos = pos + dir * 0.05
-				if loopEndPos ~= nil and nextpos >= loopEndPos then
-					handleRegionSetting(nextpos + 1)
-				end
-				SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
-			end
-		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
-			if GAMESTATE:IsPaused() then
-				local pos = SCREENMAN:GetTopScreen():GetSongPosition()
-				local dir = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() and 1 or -1
-				local nextpos = pos - dir * 0.05
-				if loopEndPos ~= nil and nextpos >= loopEndPos then
-					handleRegionSetting(nextpos + 1)
-				end
-				SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
-			end
-		end
-	end
-	
-	return false
-end
-
 local t = Def.ActorFrame {
 	Name = "GameplayPracticeController",
 	InitCommand = function(self)
 	end,
 	BeginCommand = function(self)
 		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / width
-		SCREENMAN:GetTopScreen():AddInputCallback(duminput)
+
+		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if event.type == "InputEventType_Release" then
+				if event.DeviceInput.button == "DeviceButton_left mouse button" then
+					MESSAGEMAN:Broadcast("MouseLeftClick")
+				elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+					MESSAGEMAN:Broadcast("MouseRightClick")
+				end
+			elseif event.type == "InputEventType_FirstPress" then
+				if event.DeviceInput.button == "DeviceButton_backspace" then
+					if loopStartPos ~= nil then
+						SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(loopStartPos, 1, true)
+					else
+						SCREENMAN:GetTopScreen():SetSongPositionAndUnpause(0, 1, true)
+					end
+				elseif event.button == "EffectUp" then
+					SCREENMAN:GetTopScreen():AddToRate(0.05)
+				elseif event.button == "EffectDown" then
+					SCREENMAN:GetTopScreen():AddToRate(-0.05)
+				elseif event.button == "Coin" then
+					handleRegionSetting(SCREENMAN:GetTopScreen():GetSongPosition())
+				elseif event.DeviceInput.button == "DeviceButton_mousewheel up" then
+					if GAMESTATE:IsPaused() then
+						local pos = SCREENMAN:GetTopScreen():GetSongPosition()
+						local dir = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+						local nextpos = pos + dir * 0.05
+						if loopEndPos ~= nil and nextpos >= loopEndPos then
+							handleRegionSetting(nextpos + 1)
+						end
+						SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
+					end
+				elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+					if GAMESTATE:IsPaused() then
+						local pos = SCREENMAN:GetTopScreen():GetSongPosition()
+						local dir = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse() and 1 or -1
+						local nextpos = pos - dir * 0.05
+						if loopEndPos ~= nil and nextpos >= loopEndPos then
+							handleRegionSetting(nextpos + 1)
+						end
+						SCREENMAN:GetTopScreen():SetSongPosition(nextpos, 0, false)
+					end
+				end
+			end
+			return false
+		end)
 	end,
 	PracticeModeReloadMessageCommand = function(self)
 		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / width
