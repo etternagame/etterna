@@ -69,7 +69,7 @@ local frameWidth = capWideScale(360, 400)
 local frameHeight = 350
 local fontScale = 0.25
 
-local scoreYspacing = 10
+local scoreYspacing = 13
 local distY = 15
 local offsetX = -10
 local offsetY = 20
@@ -94,7 +94,7 @@ local chartlist = {}
 
 local currentchartpage = 1
 local numchartpages
-local chartsperplaylist = 25
+local chartsperplaylist = 20
 
 local allplaylists
 local currentplaylistpage = 1
@@ -378,7 +378,7 @@ local function rankingLabel(i)
 				DisplayPPMessageCommand = function(self)
 					self:halign(0.5)
 					self:diffuse(getMainColor("positive"))
-					self:settext(((rankingPage - 1) * 25) + i + ((currentchartpage - 1) * chartsperplaylist) .. ".")
+					self:settext(((rankingPage - 1) * chartsperplaylist) + i + ((currentchartpage - 1) * chartsperplaylist) .. ".")
 				end
 			},
 			Def.ActorFrame {
@@ -404,7 +404,7 @@ local function rankingLabel(i)
 				Def.ActorFrame {
 					Name = "mouseovertextcontainer",
 					InitCommand = function(self)
-						self:xy(15, -10)
+						self:xy(15, -12)
 					end,
 					DisplayPackCommand = function(self)
 						if songlist[i + ((currentchartpage - 1) * chartsperplaylist)] then
@@ -704,7 +704,7 @@ local function PlaylistSelectLabel(i)
 				end,
 				AllDisplayMessageCommand = function(self)
 					self:halign(0.5)
-					self:settext(((rankingPage - 1) * 25) + i + ((currentplaylistpage - 1) * playlistsperpage) .. ".")
+					self:settext(((rankingPage - 1) * chartsperplaylist) + i + ((currentplaylistpage - 1) * playlistsperpage) .. ".")
 				end
 			},
 		LoadFont("Common Large") ..

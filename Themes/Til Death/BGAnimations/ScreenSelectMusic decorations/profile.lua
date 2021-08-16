@@ -72,8 +72,8 @@ local frameY = 45
 local frameWidth = capWideScale(360, 400)
 local frameHeight = 350
 local fontScale = 0.25
-local scoresperpage = 25
-local scoreYspacing = 10
+local scoresperpage = 20
+local scoreYspacing = 12.5
 local distY = 15
 local offsetX = -10
 local offsetY = 20
@@ -190,7 +190,7 @@ local function rankingLabel(i)
 				if not showOnline then
 					if ths then
 						self:halign(0.5)
-						self:settext(((rankingPage - 1) * 25) + i .. ".")
+						self:settext(((rankingPage - 1) * scoresperpage) + i .. ".")
 						self:diffuse(byValidity(ths:GetEtternaValid()))
 					end
 				else
@@ -473,7 +473,7 @@ local function recentLabel(i)
 			DisplayProfileRankingLabelsMessageCommand = function(self)
 				if ths and IsUsingWideScreen() then
 					self:halign(0.5)
-					self:settext(((rankingPage - 1) * 25) + i .. ".")
+					self:settext(((rankingPage - 1) * scoresperpage) + i .. ".")
 					self:diffuse(byValidity(ths:GetEtternaValid()))
 				end
 			end
@@ -871,15 +871,6 @@ r[#r + 1] = Def.ActorFrame {
 			self:halign(0):zoom(0.3):diffuse(getMainColor("positive")):settext(translated_info["PrevPage"])
 		end,
 	},
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:x(175):halign(0.5):zoom(0.3):diffuse(getMainColor("positive"))
-		end,
-		DisplayCommand = function(self)
-			self:settextf("%i-%i", ((rankingPage - 1) * 25) + 1, rankingPage * 25)
-		end
-	}
 }
 
 for i = 1, scoresperpage do
@@ -1044,7 +1035,7 @@ local profilebuttons =
 				if ButtonActive(self) and rankingSkillset == 1 and not recentactive  then
 					ms.ok("Recalculating Scores... this might be slow and may or may not crash")
 					profile:ForceRecalcScores()
-					STATSMAN:UpdatePlayerRating()	
+					STATSMAN:UpdatePlayerRating()
 				end
 			end,
 		},
