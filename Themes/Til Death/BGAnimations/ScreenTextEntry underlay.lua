@@ -11,7 +11,12 @@ t[#t + 1] = LoadActor(THEME:GetPathG("", "_OptionsScreen")) .. {
 
 t[#t+1] = Def.Quad {
 	InitCommand = function(self)
-		self:zoomto(SCREEN_WIDTH-250,90):Center():addy(-8)
+		local profileName = GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName()
+		if profileName == "Default Profile" or profileName == "" then
+			self:zoomto(SCREEN_WIDTH-250,110):Center():addy(-18)
+		else
+			self:zoomto(SCREEN_WIDTH-250,90):Center():addy(-8)
+		end
 		self:diffuse(0,0,0,0)
 	end,
 	OnCommand = function(self)
