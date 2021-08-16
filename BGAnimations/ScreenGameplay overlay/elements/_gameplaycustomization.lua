@@ -19,6 +19,8 @@ local actuals = {
 local uiBGAlpha = 0.6
 local textButtonHeightFudgeScalarMultiplier = 1.4
 local buttonHoverAlpha = 0.6
+local cursorAlpha = 0.5
+local cursorAnimationSeconds = 0.05
 
 local function spaceNotefieldCols(inc)
 	if inc == nil then inc = 0 end
@@ -81,6 +83,9 @@ local function makeUI()
     local page = 1
     local maxPage = 1
 
+    local cursorPos = 1
+    local selectedElement = nil
+
     local function movePage(n)
         if maxPage <= 1 then
             return
@@ -93,8 +98,59 @@ local function makeUI()
         end
         page = nn
 
+        local currentPageLowerBound = (page-1) * itemsPerPage + 1
+        local currentPageUpperBound = page * itemsPerPage
+        if cursorPos < currentPageLowerBound then
+            cursorPos = currentPageLowerBound
+            if itemListFrame ~= nil then
+                itemListFrame:queuecommand("UpdateCursor")
+            end
+        elseif cursorPos > currentPageUpperBound then
+            cursorPos = currentPageUpperBound
+            if itemListFrame ~= nil then
+                itemListFrame:queuecommand("UpdateCursor")
+            end
+        end
+
         if itemListFrame ~= nil then
             itemListFrame:playcommand("UpdateItemList")
+        end
+    end
+
+    local function moveCursor(n)
+        cursorPos = cursorPos + n
+        if cursorPos > #elements then
+            cursorPos = 1
+            page = 1
+            if maxPage ~= 1 and itemListFrame ~= nil then
+                itemListFrame:playcommand("UpdateItemList")
+            end
+        elseif cursorPos < 1 then
+            cursorPos = #elements
+            page = maxPage
+            if maxPage ~= 1 and itemListFrame ~= nil then
+                itemListFrame:playcommand("UpdateItemList")
+            end
+        end
+
+        local currentPageLowerBound = (page-1) * itemsPerPage + 1
+        local currentPageUpperBound = page * itemsPerPage
+        if cursorPos < currentPageLowerBound then
+            -- lazy: move only 1 page but its possible to move many pages
+            page = page-1
+            if itemListFrame ~= nil then
+                itemListFrame:playcommand("UpdateItemList")
+            end
+        elseif cursorPos > currentPageUpperBound then
+            -- lazy: move only 1 page but its possible to move many pages
+            page = page+1
+            if itemListFrame ~= nil then
+                itemListFrame:playcommand("UpdateItemList")
+            end
+        end
+
+        if itemListFrame ~= nil then
+            itemListFrame:playcommand("UpdateCursor")
         end
     end
 
@@ -108,7 +164,6 @@ local function makeUI()
                 local bg = self:GetChild("BG")
                 txt:halign(0)
                 bg:halign(0)
-                bg:diffusealpha(0.4)
                 self:x(-actuals.MenuWidth + actuals.EdgePadding)
                 local allowedSpace = actuals.MenuHeight - actuals.MenuDraggerHeight - (actuals.EdgePadding*2)
                 local topItemY = -actuals.MenuHeight/2 + actuals.MenuDraggerHeight + actuals.EdgePadding
@@ -131,6 +186,17 @@ local function makeUI()
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 else
                     self:diffusealpha(0)
+                end
+            end,
+            UpdateCursorCommand = function(self)
+                if index == cursorPos then
+                    local cursor = self:GetParent():GetChild("Cursor")
+                    cursor:finishtweening()
+                    cursor:smooth(cursorAnimationSeconds)
+                    cursor:xy(self:GetX(), self:GetY())
+                    local bg = self:GetChild("BG")
+                    cursor:zoomto(bg:GetZoomedWidth(), bg:GetZoomedHeight())
+                    cursor:diffusealpha(cursorAlpha)
                 end
             end,
             RolloverUpdateCommand = function(self, params)
@@ -162,7 +228,54 @@ local function makeUI()
                 end
             )
             maxPage = math.ceil(#elements / itemsPerPage)
+
+            SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
+                    local gameButton = event.button
+                    local key = event.DeviceInput.button
+                    local up = gameButton == "Up" or gameButton == "MenuUp"
+                    local down = gameButton == "Down" or gameButton == "MenuDown"
+                    local right = gameButton == "MenuRight" or gameButton == "Right"
+                    local left = gameButton == "MenuLeft" or gameButton == "Left"
+                    local enter = gameButton == "Start"
+                    local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
+                    local shift = INPUTFILTER:IsShiftPressed()
+                    local back = key == "DeviceButton_escape" or key == "DeviceButton_backspace"
+
+                    if selectedElement ~= nil then
+                        if up or down or left or right then
+                            if shift then
+                                -- fine movement
+                            else
+                                -- regular movement
+                            end
+                        elseif back then
+                            if ctrl then
+                                -- reset to default
+                            else
+                                -- undo changes and return
+                            end
+                        elseif enter then
+                            -- save position and return
+                        end
+                    else
+                        if up or left then
+                            -- up
+                            moveCursor(-1)
+                        elseif down or right then
+                            -- down
+                            moveCursor(1)
+                        elseif enter then
+                            -- select category, select element
+                        elseif back then
+                            -- up one level
+                        end
+                    end
+                end
+            end)
             self:playcommand("UpdateItemList")
+            self:playcommand("UpdateCursor")
+            self:finishtweening()
         end,
         UpdateItemListCommand = function(self)
             self:playcommand("SetItem")
@@ -207,6 +320,15 @@ local function makeUI()
     for i = 1, itemsPerPage do
         t[#t+1] = item(i)
     end
+
+    t[#t+1] = Def.Quad {
+        Name = "Cursor",
+        InitCommand = function(self)
+            self:halign(0)
+            registerActorToColorConfigElement(self, "main", "SeparationDivider")
+            self:diffusealpha(cursorAlpha)
+        end,
+    }
     return t
 end
 
