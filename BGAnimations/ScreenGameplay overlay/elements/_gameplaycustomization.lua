@@ -127,7 +127,15 @@ local function makeUI()
             itemListFrame = self
         end,
         OnCommand = function(self)
+            -- these are initialized here because most elements either need BeginCommand or InitCommand to run for them to be registered
+            -- Order of execution: Init -> Begin -> On
             elements = getCustomizeGameplayElements()
+            table.sort(
+                elements,
+                function(a, b)
+                    return a:GetName():lower() < b:GetName():lower()
+                end
+            )
             maxPage = math.ceil(#elements / itemsPerPage)
             self:playcommand("UpdateItemList")
         end,
@@ -155,7 +163,7 @@ local function makeUI()
             end
         },
         UIElements.QuadButton(1) .. { 
-            Name = "Draggy",
+            Name = "DraggableLip",
             InitCommand = function(self)
                 self:halign(1):valign(0)
                 self:y(-actuals.MenuHeight / 2)
