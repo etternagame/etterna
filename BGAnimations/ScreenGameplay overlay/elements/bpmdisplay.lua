@@ -26,7 +26,7 @@ return Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(MovableValues.BPMTextX, MovableValues.BPMTextY)
 		self:zoom(MovableValues.BPMTextZoom)
-		self:playcommand("Set")
+		self:queuecommand("Set")
 		registerActorToCustomizeGameplayUI(self)
 	end,
 	SetCommand = function(self)
