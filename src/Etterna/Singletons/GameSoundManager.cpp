@@ -543,14 +543,16 @@ GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
 	 * by more than that, we probably had a frame skip, in which case we have
 	 * bigger skip problems, so don't adjust.
 	 */
-	static int iLastFPS = 0;
-	int iThisFPS = DISPLAY->GetFPS();
 
-	if (iThisFPS != (*DISPLAY->GetActualVideoModeParams()).rate ||
-		iThisFPS != iLastFPS) {
-		iLastFPS = iThisFPS;
+	if (DISPLAY->GetActualVideoModeParams()->vsync == false) {
 		return 0;
 	}
+
+	if (DISPLAY->IsPredictiveFrameLimit()) {
+		return 0;
+	}
+
+	int iThisFPS = DISPLAY->GetActualVideoModeParams()->rate;
 
 	const float fExpectedDelay = 1.0f / iThisFPS;
 	const float fExtraDelay = fDeltaTime - fExpectedDelay;
