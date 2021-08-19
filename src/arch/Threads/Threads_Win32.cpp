@@ -385,13 +385,7 @@ EventImpl_Win32::Wait(float timeout)
 
 	unsigned iMilliseconds = INFINITE;
 	if (timeout > 0.F) {
-		// Does this break threads?
-		//   No. (???)
-		// Is this correct?
-		//   Quite the opposite.
-		// Why do we do this here but not the same in PThreads?
-		//   Because in PThreads Mac black screens completely
-		float fSecondsInFuture = -timeout;
+		float fSecondsInFuture = timeout;
 		iMilliseconds = static_cast<unsigned>(
 		  std::max(0, static_cast<int>(fSecondsInFuture * 1000)));
 	}
