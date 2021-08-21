@@ -103,7 +103,8 @@ end
 
 local translated_info = {
 	ErrorLate = THEME:GetString("ScreenGameplay", "ErrorBarLate"),
-	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly")
+	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly"),
+	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
 }
 
 -- Screenwide params
