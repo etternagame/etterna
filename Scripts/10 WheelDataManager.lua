@@ -362,6 +362,7 @@ function WHEELDATA.ResetSorts(self)
 end
 
 local sortmodes = {
+    [0] = "Sort Mode Menu",
     "Group", -- group by pack, all "alphabetical order"
     "Title", -- group by title letter
     "Author", -- group by chartist
@@ -446,6 +447,22 @@ end
 -- the second function describes the method used to find the folder that a song is in
 -- the third function describes the method used to find the folder banner given a folder name
 local sortmodeImplementations = {
+    [0] = { -- The Sort Mode Menu -- all "group" items but pressing enter opens a sort mode
+        function()
+            WHEELDATA:ResetSorts()
+            for _, v in ipairs(sortmodes) do
+                WHEELDATA.AllSongsByFolder[v] = {}
+                WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = v
+            end
+        end,
+        function(song)
+            return nil
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
     {   -- "Group" sort -- by pack, alphabetical within
         function()
             WHEELDATA:ResetSorts()

@@ -263,6 +263,32 @@ Wheel.mt = {
         MESSAGEMAN:Broadcast("ModifiedGroups", {group = whee.group, index = whee.index, maxIndex = #whee.items})
         MESSAGEMAN:Broadcast("WheelSettled", {song = nil, group = whee.group, hovered = whee:getCurrentItem(), steps = nil, index = whee.index, maxIndex = #whee.items})
     end,
+    openSortModeMenu = function(w)
+        -- 0 is the sort mode menu
+        WHEELDATA:SetCurrentSort(0)
+        WHEELDATA:UpdateFilteredSonglist()
+
+        local newItems = WHEELDATA:GetFilteredFolders()
+        WHEELDATA:SetWheelItems(newItems)
+
+        w.index = 1
+        w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
+        w.startIndex = 1
+        w.items = newItems
+        w.group = nil
+        crossedGroupBorder = true
+        forceGroupCheck = true
+        GAMESTATE:SetCurrentSong(nil)
+        GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+        
+        MESSAGEMAN:Broadcast("ClosedGroup", {group = w.group})
+        w:rebuildFrames()
+        MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
+        w:updateGlobalsFromCurrentItem()
+        w:updateMusicFromCurrentItem()
+        MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+        w.settled = true
+    end,
     getItem = function(whee, idx)
         return whee.items[getIndexCircularly(whee.items, idx)]
         -- For some reason i have to +1 here
@@ -395,6 +421,7 @@ function Wheel:new(params)
         local anm = self:GetName()
         CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
         local heldButtons = {}
+        local buttonQueue = {}
         local interval = nil
         -- the polling interval for button presses to keep moving the wheel
         -- basically replaces the repeat event type for the input stuff
@@ -411,6 +438,26 @@ function Wheel:new(params)
                 local up = gameButton == "Up" or gameButton == "MenuUp"
                 local down = gameButton == "Down" or gameButton == "MenuDown"
                 local keydirection = key == "DeviceButton_left" or key == "DeviceButton_right"
+
+                if event.type == "InputEventType_FirstPress" then
+                    buttonQueue[#buttonQueue + 1] = gameButton
+                    if #buttonQueue > 4 then
+                        buttonQueue[1] = buttonQueue[2]
+                        buttonQueue[2] = buttonQueue[3]
+                        buttonQueue[3] = buttonQueue[4]
+                        buttonQueue[4] = buttonQueue[5]
+                        buttonQueue[5] = nil
+                    end
+                    -- check for up down up down
+                    local function u(b) return b == "Up" or b == "MenuUp" end
+                    local function d(b) return b == "Down" or b == "MenuDown" end
+                    if u(buttonQueue[1]) and d(buttonQueue[2]) and u(buttonQueue[3]) and d(buttonQueue[4]) then
+                        -- open sort mode menu
+                        whee:openSortModeMenu()
+                        buttonQueue = {}
+                        return false
+                    end
+                end
 
                 if left or right then
                     local direction = left and "left" or "right"
@@ -637,6 +684,38 @@ function MusicWheel:new(params)
                 MESSAGEMAN:Broadcast("SelectedSong")
             else
                 local group = songOrPack
+
+                if WHEELDATA:GetCurrentSort() == 0 then
+                    -- IN SORT MODE MENU
+                    -- PICKING SORT
+                    -- group is the name of the sortmode
+                    
+                    WHEELDATA:SetCurrentSort(group)
+                    WHEELDATA:UpdateFilteredSonglist()
+        
+                    local newItems = WHEELDATA:GetFilteredFolders()
+                    WHEELDATA:SetWheelItems(newItems)
+
+                    w.index = 1
+                    w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
+                    w.startIndex = 1
+                    w.items = newItems
+                    w.group = nil
+                    crossedGroupBorder = true
+                    forceGroupCheck = true
+                    GAMESTATE:SetCurrentSong(nil)
+                    GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+                    
+                    MESSAGEMAN:Broadcast("ClosedGroup", {group = w.group})
+                    w:rebuildFrames()
+                    MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
+                    w:updateGlobalsFromCurrentItem()
+                    w:updateMusicFromCurrentItem()
+                    MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                    w.settled = true
+                    return
+                end
+
                 if w.group and w.group == group then
                     -- CLOSING PACK
                     crossedGroupBorder = false
@@ -804,6 +883,10 @@ function MusicWheel:new(params)
         w:updateMusicFromCurrentItem()
         MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
         w.settled = true
+    end
+
+    w.OpenSortModeMenuCommand = function(self)
+        w:openSortModeMenu()
     end
 
     return w

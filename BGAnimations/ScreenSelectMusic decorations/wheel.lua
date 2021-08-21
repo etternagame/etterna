@@ -923,6 +923,12 @@ t[#t+1] = Def.ActorFrame {
         self:GetChild("GroupPage"):playcommand("Out")
         self:GetChild("MiscPage"):playcommand("In")
     end,
+    OnCommand = function(self)
+        if openedGroup == nil or openedGroup == "" then
+            self:GetChild("GroupPage"):playcommand("Out")
+            self:GetChild("MiscPage"):playcommand("In")
+        end
+    end,
 
     UIElements.QuadButton(1) .. {
         Name = "BG",
