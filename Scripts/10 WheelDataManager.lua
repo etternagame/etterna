@@ -819,7 +819,10 @@ local function countableStepsTypeForDiff(stepstype)
         stepstype_dance_single = true,
         stepstype_dance_solo = true,
     }
-    return thelist[stepstype:lower()] ~= nil
+    -- at this time the calc handles any type of file
+    -- uncomment the below line to control what forms the average rating for a pack
+    return true
+    --return thelist[stepstype:lower()] ~= nil
 end
 
 -- get the average difficulty of all valid Steps in a list of Songs
