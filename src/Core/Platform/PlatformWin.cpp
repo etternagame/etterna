@@ -122,6 +122,27 @@ namespace Core::Platform {
         /* Windows boosts priority on keyboard input, among other things.  Disable
          * that for the main thread. */
         SetThreadPriorityBoost(GetCurrentThread(), TRUE);
+
+		/* Set the timer resolution of the OS thread scheduler.
+		 *
+		 * More information:
+		 * https://web.archive.org/web/20210802214440/https://randomascii.wordpress.com/2020/10/04/windows-timer-resolution-the-great-rule-change/
+		 *
+		 * This affects every process using a high resolution clock and is
+		 * bad for battery life. The input thread is scheduled quick enough
+		 * with or without timeBeginPeriod, but Etterna's audio code relies on
+		 * this being better than the default of ~16ms. */
+		bool isOnBatteryPower = false;
+		SYSTEM_POWER_STATUS powerStatus = {};
+		if (GetSystemPowerStatus(&powerStatus)) {
+			isOnBatteryPower = (powerStatus.ACLineStatus == 0);
+		}
+
+		if (isOnBatteryPower) {
+			timeBeginPeriod(8);
+		} else {
+			timeBeginPeriod(1);
+		}
     }
 
 	std::string getSystem(){
