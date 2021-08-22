@@ -243,8 +243,9 @@ class GameState
 	void SetPaused(bool p) { m_paused = p; }
 	[[nodiscard]] auto GetPaused() const -> bool { return m_paused; }
 	void UpdateSongPosition(float fPositionSeconds,
+							float fAdjust,
 							const TimingData& timing,
-							const RageTimer& timestamp = RageZeroTimer);
+							RageTimer timestamp = RageTimer(0));
 	[[nodiscard]] auto GetSongPercent(float beat) const -> float;
 
 	[[nodiscard]] auto AllAreInDangerOrWorse() const -> bool;

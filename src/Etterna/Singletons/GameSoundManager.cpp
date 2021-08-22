@@ -642,6 +642,7 @@ GameSoundManager::Update(float fDeltaTime)
 		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
 										fDeltaTime *
 										  g_Playing->m_Music->GetPlaybackRate(),
+									  fAdjust,
 									  g_Playing->m_Timing);
 		return;
 	}
@@ -688,12 +689,12 @@ GameSoundManager::Update(float fDeltaTime)
 	if (g_Playing->m_bTimingDelayed) {
 		/* We're still waiting for the new sound to start playing, so keep using
 		 * the old timing data and fake the time. */
-		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
-										fDeltaTime,
+		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds + fDeltaTime,
+									  fAdjust,
 									  g_Playing->m_Timing);
 	} else {
 		GAMESTATE->UpdateSongPosition(
-		  fSeconds + fAdjust, g_Playing->m_Timing, tm + fAdjust);
+		  fSeconds, fAdjust, g_Playing->m_Timing, tm);
 	}
 
 	// Send crossed messages
