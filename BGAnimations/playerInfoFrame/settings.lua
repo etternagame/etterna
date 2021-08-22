@@ -3045,7 +3045,9 @@ local function rightFrame()
                             Name = tostring(i),
                             ChosenFunction = function()
                                 -- set judge
-                                SetTimingDifficulty(i)
+                                local scale = ms.JudgeScalers[i]
+                                if scale == nil then scale = 1 end
+                                SetTimingDifficulty(scale)
                             end,
                         }
                     end
@@ -3053,7 +3055,9 @@ local function rightFrame()
                         Name = "Justice",
                         ChosenFunction = function()
                             -- sets j9
-                            SetTimingDifficulty(9)
+                            local scale = ms.JudgeScalers[9]
+                            if scale == nil then scale = 1 end
+                            SetTimingDifficulty(scale)
                         end,
                     }
                     return o
