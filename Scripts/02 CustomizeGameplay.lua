@@ -76,6 +76,10 @@ end
 local customizeGameplayElements = {}
 function registerActorToCustomizeGameplayUI(element)
 	customizeGameplayElements[#customizeGameplayElements+1] = element
+
+	if allowedCustomization or true then
+		element:AddChildFromPath(THEME:GetPathG("", "elementborder"))
+	end
 end
 
 function getCustomizeGameplayElements()

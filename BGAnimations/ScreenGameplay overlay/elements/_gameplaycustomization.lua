@@ -67,11 +67,12 @@ local t = Def.ActorFrame {
         Movable.DeviceButton_n.DeviceButton_up.arbitraryFunction = spaceNotefieldCols
         Movable.DeviceButton_n.DeviceButton_down.arbitraryFunction = spaceNotefieldCols
     end,
-
-    Def.ActorFrame {
-        Name = "LifeP1",
-        MovableBorder(200, 5, 1, -35, 0)
-    },
+    OnCommand = function(self)
+        -- most elements either need BeginCommand or InitCommand to run for them to be registered
+        -- Order of execution: Init -> Begin -> On
+        -- now that everything is registered, do the thing
+        local elements = getCustomizeGameplayElements()
+    end,
 }
 
 local function makeUI()

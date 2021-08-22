@@ -149,7 +149,6 @@ local function npsDisplay()
 				lastJudgment = params.TapNoteScore
 			end
 		end,
-		MovableBorder(100, 200, 1, 0, 0),
 	}
 	-- the text that will be updated by the update function.
 	if enabledNPSDisplay then
@@ -172,8 +171,7 @@ local function npsGraph()
 		InitCommand = function(self)
 			self:xy(MovableValues.NPSGraphX, MovableValues.NPSGraphY)
 			self:zoomto(MovableValues.NPSGraphWidth, MovableValues.NPSGraphHeight)
-			Movable.DeviceButton_i.element = self
-			Movable.DeviceButton_o.element = self
+			registerActorToCustomizeGameplayUI(self)
 		end,
 	}
 	local verts = {

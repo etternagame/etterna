@@ -35,6 +35,15 @@ return Def.ActorFrame {
         registerActorToCustomizeGameplayUI(self)
     end,
 
+    Def.Quad {
+        Name = "BG",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:zoomto(modsXOffset + SCREEN_WIDTH/5, avatarSize)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            self:diffusealpha(0.1)
+        end,
+    },
 	Def.Sprite {
         Name = "Avatar",
 		InitCommand = function(self)
@@ -98,7 +107,7 @@ return Def.ActorFrame {
             self:halign(0)
             self:xy(modsXOffset, modsYOffset)
             self:zoom(modstringTextSize)
-            self:maxwidth(SCREEN_WIDTH / 3 / modstringTextSize)
+            self:maxwidth(SCREEN_WIDTH / 5 / modstringTextSize)
         end,
         BeginCommand = function(self)
             self:settext(getModifierTranslations(GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current")))

@@ -43,8 +43,7 @@ local function smeltErrorBar(index)
 		end,
 		UpdateErrorBarCommand = function(self, params)
 			if not params or params.judgeCurrent == nil or params.judgeOffset == nil then return end
-			-- if this bar was somehow already in use, quickly move it along
-			self:hurrytweening(0.1)
+			self:finishtweening()
 			self:diffusealpha(1)
 			-- now make it the color for this new judgment
 			self:diffuse(colorByJudgment(params.judgeCurrent))
@@ -89,6 +88,15 @@ local t = Def.ActorFrame {
 		self:RemoveChild("DestroyMe2")
 	end,
 
+	Def.Quad {
+		Name = "BG",
+		InitCommand = function(self)
+			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
+			self:zoomto(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight)
+			registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+			self:diffusealpha(0.1)
+		end,
+	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand = function(self)

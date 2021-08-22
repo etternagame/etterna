@@ -32,22 +32,11 @@ local regNumbers = getComboColor("RegularCombo")
 local translated_combo = "Combo"--THEME:GetString("ScreenGameplay", "ComboText")
 
 local t = Def.ActorFrame {
-	InitCommand = function(self)
-		self:vertalign(bottom)
-	end,
+	Name = "ComboContainer",
 	InitCommand = function(self)
 		c = self:GetChildren()
-		if (allowedCustomization) then
-			Movable.DeviceButton_3.element = c
-			Movable.DeviceButton_4.element = c
-			Movable.DeviceButton_3.condition = enabledCombo
-			Movable.DeviceButton_4.condition = enabledCombo
-			Movable.DeviceButton_3.Border = self:GetChild("Border")
-			Movable.DeviceButton_3.DeviceButton_left.arbitraryFunction = arbitraryComboX
-			Movable.DeviceButton_3.DeviceButton_right.arbitraryFunction = arbitraryComboX
-			Movable.DeviceButton_4.DeviceButton_up.arbitraryFunction = arbitraryComboZoom
-			Movable.DeviceButton_4.DeviceButton_down.arbitraryFunction = arbitraryComboZoom
-		end
+		self:xy(MovableValues.ComboX, MovableValues.ComboY)
+		registerActorToCustomizeGameplayUI(self)
 	end,
 	OnCommand = function(self)
 		if (allowedCustomization) then
@@ -73,6 +62,9 @@ local t = Def.ActorFrame {
 		c.Number:settext(iCombo)
 		c.Label:visible(not CenterCombo)
 		c.Label:settext(translated_combo)
+		
+		c.BG:x(-c.Number:GetZoomedWidth() - (CenterCombo and 24 or 4))
+		c.BG:zoomto(c.Number:GetZoomedWidth() + c.Label:GetZoomedWidth() + (CenterCombo and 24 or 4), c.Label:GetZoomedHeight())
 
 		-- FullCombo Rewards
 		if param.FullComboW1 then
@@ -98,25 +90,37 @@ local t = Def.ActorFrame {
 		end
 	end,
 
+	Def.Quad { -- not normally visible but acts as a way for customize gameplay to hook into the combo size
+		Name = "BG",
+		InitCommand = function(self)
+			self:halign(0):valign(1)
+			self:visible(false)
+		end,
+	},
 	LoadFont("Combo", "numbers") .. {
 		Name = "Number",
 		InitCommand = function(self)
 			if not CenterCombo then
-				self:xy(MovableValues.ComboX - 4, MovableValues.ComboY):halign(1):valign(1):skewx(-0.125):visible(false)
+				self:halign(1):valign(1)
+				self:x(-4)
+				self:skewx(-0.125)
+				self:visible(false)
 			else
-				self:xy(MovableValues.ComboX - 24, MovableValues.ComboY):halign(0.5):valign(1):skewx(-0.125):visible(false)
+				self:halign(0.5):valign(1)
+				self:x(-24)
+				self:skewx(-0.125)
+				self:visible(false)
 			end
 		end
 	},
 	LoadFont("Common Normal") .. {
 		Name = "Label",
 		InitCommand = function(self)
-			self:xy(MovableValues.ComboX, MovableValues.ComboY):diffusebottomedge(color("0.75,0.75,0.75,1")):halign(0):valign(
-				1
-			):visible(false)
+			self:halign(0):valign(1)
+			self:diffusebottomedge(color("0.75,0.75,0.75,1"))
+			self:visible(false)
 		end
 	},
-	MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),
 }
 
 if enabledCombo then

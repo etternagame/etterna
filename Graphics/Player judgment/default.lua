@@ -1,4 +1,3 @@
--- Removed all the protiming junk, it's obsoleted
 local allowedCustomization = playerConfig:get_data().CustomizeGameplay
 local c
 local enabledJudgment = playerConfig:get_data().JudgmentText
@@ -30,20 +29,28 @@ local function judgmentZoom(value)
 	end
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
+	Name = "Judgment", -- c++ renames this to "Judgment" 
+	BeginCommand = function(self)
+		c = self:GetChildren()
+	end,
 	Def.Sprite {
 		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
 		InitCommand = function(self)
-			self:pause():visible(false):xy(MovableValues.JudgeX, MovableValues.JudgeY)
+			self:pause()
+			self:visible(false)
+			self:xy(MovableValues.JudgeX, MovableValues.JudgeY)
+			registerActorToCustomizeGameplayUI(self:GetParent())
 		end,
 		ResetCommand = function(self)
-			self:finishtweening():stopeffect():visible(false)
+			self:finishtweening()
+			self:stopeffect()
+			self:visible(false)
 		end
 	},
+
 	OnCommand = function(self)
-		c = self:GetChildren()
 		judgmentZoom(MovableValues.JudgeZoom)
 		if allowedCustomization then
 			Movable.DeviceButton_1.element = c
@@ -78,7 +85,6 @@ local t =
 			JudgeCmds[param.TapNoteScore](c.Judgment)
 		end
 	end,
-	MovableBorder(0, 0, 1, MovableValues.JudgeX, MovableValues.JudgeY)
 }
 
 if enabledJudgment then
