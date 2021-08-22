@@ -1330,6 +1330,7 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns
 
 		if (pSteps) {
 			GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds,
+										  0,
 										  *pSteps->GetTimingData());
 			delayedchartupdatewaiting = true;
 		}
@@ -1883,7 +1884,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 				   score->GetScoreKey().c_str());
 		p->SetNextScreenName("ScreenEvaluationNormal");
 		p->StartTransitioningScreen(SM_BeginFadingOut);
-		
+
 		// set rate back to what it was before
 		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
