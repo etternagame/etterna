@@ -1157,15 +1157,17 @@ RageDisplay::FrameLimitBeforeVsync()
 		//  while (t > now());
 		//
 		// is too tight and waits slightly too long (trivially, by at least
-		// the amount of time required to exit the loop). In practice this
+		// the amount of time required to exit the busy loop). In practice this
 		// effect noticeably reduces measured FPS. To account for it, measure
 		// the frame times we are actually getting and gradually adjust the
 		// delay to bring it in line with the target frame time.
-		auto adjustment = (g_LastFrameDuration - waitNanoseconds).count() / 16;
-		g_FrameCorrection -= std::chrono::nanoseconds(adjustment);
-		CLAMP(g_FrameCorrection,
-			  std::chrono::milliseconds(-8),
-			  std::chrono::milliseconds(0));
+		auto error = g_LastFrameDuration - waitNanoseconds;
+		if (error < std::chrono::milliseconds(1)) {
+			g_FrameCorrection -= error / 64;
+			CLAMP(g_FrameCorrection,
+				std::chrono::milliseconds(-1),
+				std::chrono::milliseconds(0));
+		}
 
 		auto estimatedTimeToWait = waitNanoseconds + g_FrameCorrection;
 		auto t = g_LastFrameEndedAt + estimatedTimeToWait;
