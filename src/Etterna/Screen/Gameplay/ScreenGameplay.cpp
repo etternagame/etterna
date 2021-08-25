@@ -1356,8 +1356,22 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 		return false;
 	}
 
-	const auto iCol =
-	  GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI);
+	/* Restart gameplay button moved from theme to allow for rebinding for
+	 * people who dont want to edit lua files :)
+	 */
+	auto bHoldingRestart = false;
+	if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) ==
+		Column_Invalid) {
+		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
+	}
+	if (bHoldingRestart && (m_DancingState != STATE_OUTRO || AllAreFailing())) {
+		// delayedback pref will work, or if it's off just go immediately
+		// but also just let it be instant if you failed
+		if ((PREFSMAN->m_bDelayedBack &&
+			 INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0F) ||
+			!PREFSMAN->m_bDelayedBack || AllAreFailing())
+			RestartGameplay();
+	}
 
 	// Don't pass on any inputs to Player that aren't a press or a release.
 	switch (input.type) {
@@ -1368,17 +1382,8 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 			return false;
 	}
 
-	/* Restart gameplay button moved from theme to allow for rebinding for
-	 * people who dont want to edit lua files :)
-	 */
-	auto bHoldingRestart = false;
-	if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) ==
-		Column_Invalid) {
-		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
-	}
-	if (bHoldingRestart && (m_DancingState != STATE_OUTRO || AllAreFailing())) {
-		RestartGameplay();
-	}
+	const auto iCol =
+	  GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI);
 
 	// handle a step or battle item activate
 	if (GAMESTATE->IsHumanPlayer(input.pn)) {

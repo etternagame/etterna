@@ -257,7 +257,12 @@ ScreenGameplayReplay::Input(const InputEventPlus& input) -> bool
 		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
 	}
 	if (bHoldingRestart) {
-		RestartGameplay();
+		// delayedback pref will work, or if it's off just go immediately
+		// but also just let it be instant if you failed
+		if ((PREFSMAN->m_bDelayedBack &&
+			 INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0F) ||
+			!PREFSMAN->m_bDelayedBack || AllAreFailing())
+			RestartGameplay();
 	}
 
 	return false;
