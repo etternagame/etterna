@@ -759,6 +759,8 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 							  const TimingData& timing,
 							  RageTimer timestamp)
 {
+	const float fMusicRate = m_SongOptions.GetSong().m_fMusicRate;
+
 	/* It's not uncommon to get a lot of duplicated positions from the sound
 	 * driver, like so: 13.120953,13.130975,13.130975,13.130975,13.140998,...
 	 * This causes visual stuttering of the arrows. To compensate, keep a
@@ -766,13 +768,13 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 	 * rate when applied. */
 	if (fPositionSeconds == m_LastPositionSeconds && !m_paused) {
 		fPositionSeconds +=
-		  m_LastPositionTimer.Ago() * m_SongOptions.GetSong().m_fMusicRate;
+		  m_LastPositionTimer.Ago() * fMusicRate;
 	} else {
 		m_LastPositionTimer.Touch();
 		m_LastPositionSeconds = fPositionSeconds;
 	}
 
-	fPositionSeconds += fAdjust;
+	fPositionSeconds += fAdjust * fMusicRate;
 	timestamp += fAdjust;
 
 	if (m_pCurSteps) {
