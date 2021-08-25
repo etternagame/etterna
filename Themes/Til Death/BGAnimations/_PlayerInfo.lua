@@ -283,13 +283,13 @@ t[#t + 1] =
 				end
 			end,
 			LoginMessageCommand = function(self)
+				if not SCREENMAN:GetTopScreen() then return end -- ?????
 				local top = SCREENMAN:GetTopScreen():GetName()
 				if not DLMAN:IsLoggedIn() then return end
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
 				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
 				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				ms.ok(translated_info["LoginSuccess"])
 				if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
 					self:settext(translated_info["ClickLogout"])
 				else
