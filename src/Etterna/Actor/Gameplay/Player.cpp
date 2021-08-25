@@ -1397,10 +1397,7 @@ Player::UpdateHoldNotes(int iSongRow,
 void
 Player::DrawPrimitives()
 {
-	// TODO(Sam): Remove use of PlayerNumber.
-	const auto pn = m_pPlayerState->m_PlayerNumber;
-
-	if (pn != PLAYER_1) {
+	if (m_pPlayerState == nullptr) {
 		return;
 	}
 
