@@ -18,6 +18,9 @@
 constexpr float anchor_spacing_buffer_ms = 10.F;
 constexpr float anchor_speed_increase_cutoff_factor = 2.34F;
 static const int len_cap = 5;
+// ms to pass that definitely means a jack has finished and we started a new one
+constexpr float jack_spacing_buffer_ms = 1000.F;
+
 
 enum anch_status
 {
@@ -173,6 +176,9 @@ struct Anchor_Sequencing
 
 		ms = ms < min_ms ? min_ms : ms;
 
+		if (std::isnan(ms))
+			ms = _max_ms;
+
 		if (_len == len_cap) {
 			_len_cap_ms = ms;
 		}
@@ -213,12 +219,21 @@ struct AnchorSequencer
 	{
 		// update the one
 		if (ct == col_left || ct == col_right) {
+			auto opposite_col = ct == col_left ? col_right : col_left;
 			anch.at(ct)(ct, row_time);
 
 			// set max seen for this col for this interval
 			max_seen.at(ct) = anch.at(ct)._len > max_seen.at(ct)
 								? anch.at(ct)._len
 								: max_seen.at(ct);
+
+			// reset the other column if necessary
+			// this is particularly for jacks -- not resetting this breaks
+			// difficulty
+			if (ms_from(row_time, anch.at(opposite_col)._last) >
+				jack_spacing_buffer_ms) {
+				anch.at(opposite_col).full_reset();
+			}
 		} else if (ct == col_ohjump) {
 
 			// update both
@@ -339,7 +354,19 @@ struct SequencerGeneral
 	void advance_sequencing(const col_type& ct,
 							const float& row_time,
 							const float& ms_now)
-	{ // update sequencers
+	{
+		if (ct != col_ohjump) {
+			auto reset_sequencer =
+			  ms_from(row_time, _as.anch.at(ct)._last) > jack_spacing_buffer_ms;
+			if (reset_sequencer) {
+				_as.anch.at(ct).full_reset();
+				_mw_sc_ms.at(ct).fill(ms_init);
+				_mw_cc_ms.fill(ms_init);
+				_mw_any_ms.fill(ms_init);
+			}
+		}
+
+		// update sequencers
 		_as(ct, row_time);
 
 		// i guess we keep track of ms sequencing here instead of mhi, or
