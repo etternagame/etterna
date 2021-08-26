@@ -4,6 +4,7 @@ local plotX, plotY = oldWidth+3 + plotWidth/2, -20 + plotHeight/2
 local highest = 0
 local lowest = 0
 local lowerGraphMax = 0
+local lowerGraphMaxJack = 0
 local upperGraphMax = 0
 local lowerGraphMin = 0
 local upperGraphMin = 0
@@ -384,6 +385,7 @@ local function updateCoolStuff()
             ssrs = {}
         end
         lowerGraphMax = 0
+        lowerGraphMaxJack = 0
         local bap = steps:GetCalcDebugOutput()
         debugstrings = steps:GetDebugStrings()
 
@@ -402,9 +404,11 @@ local function updateCoolStuff()
             for i = 1, upperiter do
                 if jap["Left"][i] then
                     jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2], jap["Left"][i][3] }
+                    if jap["Left"][i][2] > lowerGraphMaxJack then lowerGraphMaxJack = jap["Left"][i][2] end
                 end
                 if jap["Right"][i] then
                     jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2], jap["Right"][i][3] }
+                    if jap["Right"][i][2] > lowerGraphMaxJack then lowerGraphMaxJack = jap["Right"][i][2] end
                 end
             end
         end
@@ -1316,7 +1320,7 @@ local function bottomGraphLineJack(colorToUse, hand)
                     -- if used, final/firstsecond must be halved
                     -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
                     local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
-                    local y = fitY2(values[i][2], lowerGraphMin, lowerGraphMax)
+                    local y = fitY2(values[i][2], lowerGraphMin, lowerGraphMaxJack)
 
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
