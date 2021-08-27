@@ -837,10 +837,17 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 				case Skill_JackSpeed: {
 					if (i < calc.jack_diff.at(hi).size()) {
 						auto* jack_diff = &calc.jack_diff.at(hi).at(i).second;
-						if (*jack_diff > 0) {
+						// magic number
+						// basically, a low enough jack diff we dont care about
+						// so dont try to consider other patterns to modify it further
+						// this mixing with the fraction within causes spikes into inf
+						if (*jack_diff > 0.3f) {
 							auto tech_funk_at_jacks = calc.soap.at(hi).at(TechBase).at(i) * tp_mods.at(ss) * basescalers.at(ss);
 							tech_funk_at_jacks /= max<float>(calc.doot.at(hi).at(CJ).at(i) * calc.doot.at(hi).at(CJ).at(i), 1.0F);
-							*jack_diff = lerp(0.3179549F, *jack_diff, tech_funk_at_jacks / fastsqrt(*jack_diff));
+							*jack_diff =
+							  lerp(0.3179549F,
+								   *jack_diff,
+								   tech_funk_at_jacks / fastsqrt(*jack_diff));
 						}
 					}
 				} break;
@@ -958,7 +965,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 446;
+int mina_calc_version = 447;
 auto
 GetCalcVersion() -> int
 {
