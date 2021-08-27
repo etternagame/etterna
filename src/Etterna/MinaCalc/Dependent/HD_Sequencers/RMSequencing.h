@@ -501,6 +501,14 @@ struct RM_Sequencer
 		 * column jacks and off anchor jacks on the same hand */
 		last_anchor_time = as._last;
 
+		// if anchor_sequencing passes forward s_init, reset everything
+		// this means the rm for this finger should definitely be dead
+		// (nuclear bandaid, probably just want to set status to inactive)
+		if (last_anchor_time == s_init) {
+			full_reset();
+			return;
+		}
+
 		// determine what we should do
 		switch (bt) {
 			case base_left_right:
