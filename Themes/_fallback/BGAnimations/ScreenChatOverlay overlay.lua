@@ -155,8 +155,7 @@ chat.MultiplayerDisconnectionMessageCommand = function(self)
 end
 
 local bg
-chat[#chat + 1] =
-	Def.Quad {
+chat[#chat + 1] = Def.Quad {
 	Name = "Background",
 	InitCommand = function(self)
 		bg = self
@@ -166,8 +165,7 @@ chat[#chat + 1] =
 	end
 }
 local minbar
-chat[#chat + 1] =
-	Def.Quad {
+chat[#chat + 1] = Def.Quad {
 	Name = "Bar",
 	InitCommand = function(self)
 		minbar = self
@@ -202,67 +200,60 @@ chat[#chat + 1] =
 		self:stopeffect()
 	end,
 }
-chat[#chat + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "BarLabel",
-		InitCommand = function(self)
-			self:settext(translated_info["WindowTitle"])
-			self:halign(0):valign(0.5)
-			self:zoom(0.5)
-			self:diffuse(color("#000000"))
-			self:visible(true)
-			self:xy(x + 3 + width * 0.425, y - 0.5 + height * 0.5)
-			self:addx(topbaroffset)
-		end,
-		MinimiseMessageCommand = function(self)
-			self:accelerate(tweentime):diffusealpha(minimised and 1 or 0)
+chat[#chat + 1] = LoadFont("Common Normal") .. {
+	Name = "BarLabel",
+	InitCommand = function(self)
+		self:settext(translated_info["WindowTitle"])
+		self:halign(0):valign(0.5)
+		self:zoom(0.5)
+		self:diffuse(color("#000000"))
+		self:visible(true)
+		self:xy(x + 3 + width * 0.425, y - 0.5 + height * 0.5)
+		self:addx(topbaroffset)
+	end,
+	MinimiseMessageCommand = function(self)
+		self:accelerate(tweentime):diffusealpha(minimised and 1 or 0)
+	end
+}
+chat[#chat + 1] = LoadFont("Common Normal") .. {
+	Name = "BarLabel2",
+	InitCommand = function(self)
+		self:settext("-")
+		self:halign(1):valign(0.5)
+		self:zoom(0.8)
+		self:diffuse(color("#000000"))
+		self:visible(true)
+		self:xy(x - 3 + width * 0.575, y - 0.5 + height * 0.5)
+		self:addx(topbaroffset)
+	end,
+	MinimiseMessageCommand = function(self)
+		self:settext(minimised and "+" or "-")
+		self:y(minimised and y - 1 + height * 0.5 or y - 2.5 + height * 0.5)
+		self:accelerate(tweentime):diffusealpha(minimised and 1 or 0)
+	end
+}
+chat[#chat + 1] = LoadFont("Common Normal") .. {
+	Name = "InsertShortcutTip",
+	InitCommand = function(self)
+		self:settext(translated_info["ToggleTip"])
+		self:halign(0):valign(0.5)
+		self:zoom(0.5)
+		self:xy(x + 3 + width * 0.575, y - 0.5 + height * 0.5)
+		self:addx(topbaroffset)
+		self:diffusealpha(0)
+		self:maxwidth((width * 0.425 - 6 - topbaroffset) / 0.5)
+		self:shadowlength(1)
+	end,
+	MinimiseMessageCommand = function(self)
+		if not minimised and not tipshown then
+			tipshown = true
+			self:diffusealpha(1):sleep(3)
+			self:linear(0.5):diffusealpha(0)
 		end
-	}
-chat[#chat + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "BarLabel2",
-		InitCommand = function(self)
-			self:settext("-")
-			self:halign(1):valign(0.5)
-			self:zoom(0.8)
-			self:diffuse(color("#000000"))
-			self:visible(true)
-			self:xy(x - 3 + width * 0.575, y - 0.5 + height * 0.5)
-			self:addx(topbaroffset)
-		end,
-		MinimiseMessageCommand = function(self)
-			self:settext(minimised and "+" or "-")
-			self:y(minimised and y - 1 + height * 0.5 or y - 2.5 + height * 0.5)
-			self:accelerate(tweentime):diffusealpha(minimised and 1 or 0)
-		end
-	}
-chat[#chat + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "InsertShortcutTip",
-		InitCommand = function(self)
-			self:settext(translated_info["ToggleTip"])
-			self:halign(0):valign(0.5)
-			self:zoom(0.5)
-			self:xy(x + 3 + width * 0.575, y - 0.5 + height * 0.5)
-			self:addx(topbaroffset)
-			self:diffusealpha(0)
-			self:maxwidth((width * 0.425 - 6 - topbaroffset) / 0.5)
-			self:shadowlength(1)
-		end,
-		MinimiseMessageCommand = function(self)
-			if not minimised and not tipshown then
-				tipshown = true
-				self:diffusealpha(1):sleep(3)
-				self:linear(0.5):diffusealpha(0)
-			end
-		end
-	}
+	end
+}
 
-local chatWindow =
-	Def.ActorFrame {
+local chatWindow = Def.ActorFrame {
 	InitCommand = function(self)
 		self:visible(true)
 	end,
@@ -282,8 +273,7 @@ local chatWindow =
 	end
 }
 local chatbg
-chatWindow[#chatWindow + 1] =
-	Def.Quad {
+chatWindow[#chatWindow + 1] = Def.Quad {
 	Name = "ChatWindow",
 	InitCommand = function(self)
 		chatbg = self
@@ -296,42 +286,38 @@ chatWindow[#chatWindow + 1] =
 		MESSAGEMAN:Broadcast("UpdateChatOverlayMsgs")
 	end
 }
-chatWindow[#chatWindow + 1] =
-	Def.Quad { --masking quad, hides any text outside chatwindow
-		InitCommand = function(self)
-			self:stretchto(x, -SCREEN_HEIGHT, width + x, height * 2 + y)
-			self:zwrite(true):blend("BlendMode_NoEffect")
-		end,
+chatWindow[#chatWindow + 1] = Def.Quad { --masking quad, hides any text outside chatwindow
+	InitCommand = function(self)
+		self:stretchto(x, -SCREEN_HEIGHT, width + x, height * 2 + y)
+		self:zwrite(true):blend("BlendMode_NoEffect")
+	end,
 }
-chatWindow[#chatWindow + 1] =
-	LoadColorFont("Common Normal") ..
-	{
-		Name = "ChatText",
-		InitCommand = function(self)
-			self:settext("")
-			self:halign(0):valign(1)
-			self:vertspacing(0)
-			self:zoom(scale)
-			self:SetMaxLines(maxlines, 1)
-			self:wrapwidthpixels((width - 8) / scale)
-			self:xy(x + 4, y + height * (maxlines + tabHeight) - 4)
-			self:ztest(true)
-		end,
-		UpdateChatOverlayMsgsMessageCommand = function(self)
-			local t = ""
-			for i = lineNumber - 1, lineNumber - maxlines, -1 do
-				if messages[#messages - i] then
-					t = t .. messages[#messages - i] .. "\n"
-				end
+chatWindow[#chatWindow + 1] = LoadColorFont("Common Normal") .. {
+	Name = "ChatText",
+	InitCommand = function(self)
+		self:settext("")
+		self:halign(0):valign(1)
+		self:vertspacing(0)
+		self:zoom(scale)
+		self:SetMaxLines(maxlines, 1)
+		self:wrapwidthpixels((width - 8) / scale)
+		self:xy(x + 4, y + height * (maxlines + tabHeight) - 4)
+		self:ztest(true)
+	end,
+	UpdateChatOverlayMsgsMessageCommand = function(self)
+		local t = ""
+		for i = lineNumber - 1, lineNumber - maxlines, -1 do
+			if messages[#messages - i] then
+				t = t .. messages[#messages - i] .. "\n"
 			end
-			self:settext(t)
 		end
-	}
+		self:settext(t)
+	end
+}
 
 local tabWidth = width / maxTabs
 for i = 0, maxTabs - 1 do
-	chatWindow[#chatWindow + 1] =
-		Def.ActorFrame {
+	chatWindow[#chatWindow + 1] = Def.ActorFrame {
 		Name = "Tab" .. i + 1,
 		UpdateChatOverlayMessageCommand = function(self)
 			self:visible(not (not tabs[i + 1]))
@@ -365,39 +351,38 @@ for i = 0, maxTabs - 1 do
 				self:stretchto(x + tabWidth * (i + 1) - 1, y + height,x + tabWidth * (i + 1), y + height * (1 + tabHeight))
 			end,
 		},
-		LoadFont("Common Normal") ..
-			{
-				Name = "TabName",
-				InitCommand = function(self)
-					self:halign(0):valign(0.5)
-					self:maxwidth((tabWidth - 5) / scale)
-					self:zoom(scale)
-					self:diffuse(color("#000000"))
-					self:xy(x + tabWidth * i + 4 - 1.5, y + height * (1 + (tabHeight / 2.3)))
-				end,
-				UpdateChatOverlayMessageCommand = function(self)
-					if not tabs[i + 1] then
-						self:settext("")
-						return
-					end
-					if tabs[i + 1][1] == 0 and tabs[i + 1][2] == "" then
-						self:settext(translated_info["LobbyTab"])
-					elseif tabs[i + 1][1] ~= 0 and tabs[i + 1][2] == "" then
-						self:settext(translated_info["ServerTab"])
-					else
-						self:settext(tabs[i + 1][2] or "")
-					end
-					if
-						tabs[i + 1] and
-							((tabs[i + 1][1] == 0 and tabs[i + 1][2] == "") or
-								(tabs[i + 1][1] == 1 and tabs[i + 1][2] ~= nil and tabs[i + 1][2] == NSMAN:GetCurrentRoomName()))
-						then
-						self:maxwidth((tabWidth - 5) / scale)
-					else
-						self:maxwidth((tabWidth - 15) / scale)
-					end
+		LoadFont("Common Normal") .. {
+			Name = "TabName",
+			InitCommand = function(self)
+				self:halign(0):valign(0.5)
+				self:maxwidth((tabWidth - 5) / scale)
+				self:zoom(scale)
+				self:diffuse(color("#000000"))
+				self:xy(x + tabWidth * i + 4 - 1.5, y + height * (1 + (tabHeight / 2.3)))
+			end,
+			UpdateChatOverlayMessageCommand = function(self)
+				if not tabs[i + 1] then
+					self:settext("")
+					return
 				end
-			},
+				if tabs[i + 1][1] == 0 and tabs[i + 1][2] == "" then
+					self:settext(translated_info["LobbyTab"])
+				elseif tabs[i + 1][1] ~= 0 and tabs[i + 1][2] == "" then
+					self:settext(translated_info["ServerTab"])
+				else
+					self:settext(tabs[i + 1][2] or "")
+				end
+				if
+					tabs[i + 1] and
+						((tabs[i + 1][1] == 0 and tabs[i + 1][2] == "") or
+							(tabs[i + 1][1] == 1 and tabs[i + 1][2] ~= nil and tabs[i + 1][2] == NSMAN:GetCurrentRoomName()))
+					then
+					self:maxwidth((tabWidth - 5) / scale)
+				else
+					self:maxwidth((tabWidth - 15) / scale)
+				end
+			end
+		},
 		Def.Sprite {
 			Texture = THEME:GetPathG("","X.png"),
 			InitCommand = function(self)
@@ -417,13 +402,12 @@ for i = 0, maxTabs - 1 do
 					self:visible(true)
 				end
 			end
-			}
+		}
 	}
 end
 
 local inbg
-chatWindow[#chatWindow + 1] =
-	Def.Quad {
+chatWindow[#chatWindow + 1] = Def.Quad {
 	Name = "ChatBox",
 	InitCommand = function(self)
 		inbg = self
@@ -435,24 +419,22 @@ chatWindow[#chatWindow + 1] =
 		self:diffuse(typing and Colors.activeInput or Colors.input):diffusealpha(transparency)
 	end
 }
-chatWindow[#chatWindow + 1] =
-	LoadColorFont("Common Normal") ..
-	{
-		Name = "ChatBoxText",
-		InitCommand = function(self)
-			self:settext("")
-			self:halign(0):valign(0)
-			self:vertspacing(0)
-			self:zoom(scale)
-			self:SetMaxLines(maxlines, 1)
-			self:wrapwidthpixels((width - 8) / scale)
-			self:diffuse(color("#FFFFFF"))
-		end,
-		UpdateChatOverlayMessageCommand = function(self)
-			self:settext(typingText)
-			self:xy(x + 4, height * (maxlines + 1) + y + 4 + 4)
-		end
-	}
+chatWindow[#chatWindow + 1] = LoadColorFont("Common Normal") .. {
+	Name = "ChatBoxText",
+	InitCommand = function(self)
+		self:settext("")
+		self:halign(0):valign(0)
+		self:vertspacing(0)
+		self:zoom(scale)
+		self:SetMaxLines(maxlines, 1)
+		self:wrapwidthpixels((width - 8) / scale)
+		self:diffuse(color("#FFFFFF"))
+	end,
+	UpdateChatOverlayMessageCommand = function(self)
+		self:settext(typingText)
+		self:xy(x + 4, height * (maxlines + 1) + y + 4 + 4)
+	end
+}
 
 chat[#chat + 1] = chatWindow
 
