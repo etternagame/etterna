@@ -137,7 +137,7 @@ local judges = {
 	"TapNoteScore_Miss"
 }
 
-local dvt
+local dvt = {}
 local totalTaps
 
 local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
