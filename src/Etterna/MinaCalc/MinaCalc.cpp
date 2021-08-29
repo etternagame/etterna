@@ -468,42 +468,42 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	ulbu_that_which_consumes_all();
 
 	// main hand loop
-	for (const auto& hi : { left_hand, right_hand }) {
-		InitAdjDiff(*this, hi);
+	for (const auto& hand : { left_hand, right_hand }) {
+		InitAdjDiff(*this, hand);
 
 		// post pattern mod smoothing for cj
-		Smooth(base_adj_diff.at(hi).at(Skill_Chordjack), 1.F, numitv);
+		Smooth(base_adj_diff.at(hand).at(Skill_Chordjack), 1.F, numitv);
 	}
 
 	// debug info loop
 	if (debugmode) {
-		for (const auto& hi : { left_hand, right_hand }) {
+		for (const auto& hand : { left_hand, right_hand }) {
 			// pattern mods and base msd never change, set debug
 			// output for them now
 
 			// 3 = number of different debug types
-			debugValues.at(hi).resize(3);
-			debugValues.at(hi)[0].resize(NUM_CalcPatternMod);
-			debugValues.at(hi)[1].resize(NUM_CalcDiffValue);
-			debugValues.at(hi)[2].resize(NUM_CalcDebugMisc);
+			debugValues.at(hand).resize(3);
+			debugValues.at(hand)[0].resize(NUM_CalcPatternMod);
+			debugValues.at(hand)[1].resize(NUM_CalcDiffValue);
+			debugValues.at(hand)[2].resize(NUM_CalcDebugMisc);
 
 			// pattern mods first
 			for (auto pmod = 0; pmod < NUM_CalcPatternMod; ++pmod) {
-				debugValues.at(hi)[0][pmod].resize(numitv);
+				debugValues.at(hand)[0][pmod].resize(numitv);
 
 				for (auto itv = 0; itv < numitv; ++itv) {
-					debugValues.at(hi)[0][pmod][itv] =
-					  doot.at(hi).at(pmod).at(itv);
+					debugValues.at(hand)[0][pmod][itv] =
+					  doot.at(hand).at(pmod).at(itv);
 				}
 			}
 
 			// set the base diffs - everything but final adjusted values
 			for (auto diff = 0; diff < NUM_CalcDiffValue - 1; ++diff) {
-				debugValues.at(hi)[1][diff].resize(numitv);
+				debugValues.at(hand)[1][diff].resize(numitv);
 
 				for (auto itv = 0; itv < numitv; ++itv) {
-					debugValues.at(hi)[1][diff][itv] =
-					  soap.at(hi).at(diff).at(itv);
+					debugValues.at(hand)[1][diff][itv] =
+					  soap.at(hand).at(diff).at(itv);
 				}
 			}
 		}
@@ -670,7 +670,7 @@ Calc::Chisel(const float player_skill,
  * misclassing hard and polluting leaderboards, and good scores on overrated
  * files will simply produce high ratings in every category */
 inline void
-Calc::InitAdjDiff(Calc& calc, const int& hi)
+Calc::InitAdjDiff(Calc& calc, const int& hand)
 {
 	static const std::array<std::vector<int>, NUM_Skillset> pmods_used = { {
 	  // overall, nothing, don't handle here
@@ -780,7 +780,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 			}
 
 			for (const auto& pmod : pmods_used.at(ss)) {
-				tp_mods.at(ss) *= calc.doot.at(hi).at(pmod).at(i);
+				tp_mods.at(ss) *= calc.doot.at(hand).at(pmod).at(i);
 			}
 		}
 
@@ -791,12 +791,12 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 			}
 
 			// this should work and not be super slow?
-			auto* adj_diff = &(calc.base_adj_diff.at(hi).at(ss).at(i));
+			auto* adj_diff = &(calc.base_adj_diff.at(hand).at(ss).at(i));
 			auto* stam_base =
-			  &(calc.base_diff_for_stam_mod.at(hi).at(ss).at(i));
+			  &(calc.base_diff_for_stam_mod.at(hand).at(ss).at(i));
 
 			// ditto?
-			const auto funk = calc.soap.at(hi).at(NPSBase).at(i) *
+			const auto funk = calc.soap.at(hand).at(NPSBase).at(i) *
 							  tp_mods.at(ss) * basescalers.at(ss);
 			*adj_diff = funk;
 			*stam_base = funk;
@@ -811,17 +811,17 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 				 * stuff, but it might be one reason why js is more problematic
 				 * than hs? */
 				case Skill_Jumpstream: {
-					*adj_diff /= max<float>(calc.doot.at(hi).at(HS).at(i), 1.F);
+					*adj_diff /= max<float>(calc.doot.at(hand).at(HS).at(i), 1.F);
 					*adj_diff /=
-					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i) * 0.95F);
+					  fastsqrt(calc.doot.at(hand).at(OHJumpMod).at(i) * 0.95F);
 
 					*adj_diff *=
 					  min(1.F,
-						  fastsqrt(calc.doot.at(hi).at(WideRangeRoll).at(i) +
+						  fastsqrt(calc.doot.at(hand).at(WideRangeRoll).at(i) +
 								   0.1F));
 
 					auto a = *adj_diff;
-					auto b = calc.soap.at(hi).at(NPSBase).at(i) *
+					auto b = calc.soap.at(hand).at(NPSBase).at(i) *
 							 tp_mods[Skill_Handstream];
 					*stam_base = max<float>(a, b);
 				} break;
@@ -830,20 +830,20 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					// adj_diff /=
 					// fastsqrt(doot.at(hi).at(OHJump).at(i));
 					auto a = funk;
-					auto b = calc.soap.at(hi).at(NPSBase).at(i) *
+					auto b = calc.soap.at(hand).at(NPSBase).at(i) *
 							 tp_mods[Skill_Jumpstream];
 					*stam_base = max<float>(a, b);
 				} break;
 				case Skill_JackSpeed: {
-					if (i < calc.jack_diff.at(hi).size()) {
-						auto* jack_diff = &calc.jack_diff.at(hi).at(i).second;
+					if (i < calc.jack_diff.at(hand).size()) {
+						auto* jack_diff = &calc.jack_diff.at(hand).at(i).second;
 						// magic number
 						// basically, a low enough jack diff we dont care about
 						// so dont try to consider other patterns to modify it further
 						// this mixing with the fraction within causes spikes into inf
 						if (*jack_diff > 0.3f) {
-							auto tech_funk_at_jacks = calc.soap.at(hi).at(TechBase).at(i) * tp_mods.at(ss) * basescalers.at(ss);
-							tech_funk_at_jacks /= max<float>(calc.doot.at(hi).at(CJ).at(i) * calc.doot.at(hi).at(CJ).at(i), 1.0F);
+							auto tech_funk_at_jacks = calc.soap.at(hand).at(TechBase).at(i) * tp_mods.at(ss) * basescalers.at(ss);
+							tech_funk_at_jacks /= max<float>(calc.doot.at(hand).at(CJ).at(i) * calc.doot.at(hand).at(CJ).at(i), 1.0F);
 							*jack_diff =
 							  lerp(0.3179549F,
 								   *jack_diff,
@@ -852,15 +852,15 @@ Calc::InitAdjDiff(Calc& calc, const int& hi)
 					}
 				} break;
 				case Skill_Chordjack:
-					*adj_diff *= fastsqrt(calc.doot.at(hi).at(CJOHJump).at(i));
+					*adj_diff *= fastsqrt(calc.doot.at(hand).at(CJOHJump).at(i));
 					break;
 				case Skill_Technical:
 					*adj_diff =
-					  calc.soap.at(hi).at(TechBase).at(i) * tp_mods.at(ss) *
+					  calc.soap.at(hand).at(TechBase).at(i) * tp_mods.at(ss) *
 					  basescalers.at(ss) /
-					  max<float>(fastpow(calc.doot.at(hi).at(CJ).at(i), 2.F),
+					  max<float>(fastpow(calc.doot.at(hand).at(CJ).at(i), 2.F),
 								 1.F) /
-					  fastsqrt(calc.doot.at(hi).at(OHJumpMod).at(i));
+					  fastsqrt(calc.doot.at(hand).at(OHJumpMod).at(i));
 					break;
 				default:
 					break;
