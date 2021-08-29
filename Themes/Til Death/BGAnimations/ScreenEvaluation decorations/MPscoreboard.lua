@@ -1,4 +1,4 @@
-local lines = 10 -- number of scores to display
+local lines = 32 -- number of scores to display
 local framex = SCREEN_WIDTH - capWideScale(get43size(230), 230)
 local framey = 60
 local frameWidth = capWideScale(get43size(220), 220)
@@ -24,7 +24,8 @@ local function input(event)
 		if event.type == "InputEventType_Release" then
 			local scoreboard_items = scoreBoard:GetChildren()
 			for i = 1, #multiscores do
-				if isOver(scoreboard_items[tostring(i)]:GetChild("mouseOver")) then
+				local ac = scoreboard_items[tostring(i)] 
+				if ac ~= nil and isOver(ac:GetChild("mouseOver")) then
 					SetActivePlayer(i)
 				end
 			end
