@@ -735,7 +735,7 @@ function scoreBoard(pn, position)
 			SetCommand = function(self)
 				self:settextf(
 					"%03d/%03d",
-					score:GetRadarValues():GetValue("RadarCategory_" .. fart[i]),
+					gatherRadarValue("RadarCategory_" .. fart[i], score),
 					score:GetRadarPossible():GetValue("RadarCategory_" .. fart[i])
 				)
 			end,
