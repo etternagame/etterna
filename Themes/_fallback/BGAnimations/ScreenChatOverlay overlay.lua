@@ -62,7 +62,60 @@ function changeTab(tabName, tabType)
 	end
 	messages = chats[tabType][tabName]
 end
-local chat = Def.ActorFrame {}
+local chat = Def.ActorFrame {
+	BeginCommand = function(self)
+		self:SetUpdateFunction(function(self)
+			local s = SCREENMAN:GetTopScreen()
+			if not s then
+				return
+			end
+			local oldScreen = currentScreen
+			currentScreen = s:GetName()
+			if currentScreen == oldScreen then return end
+		
+			-- prevent the chat from showing in singleplayer because it can be annoying
+			if
+				oldScreen ~= currentScreen and
+					(currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or
+						currentScreen == "ScreenOptionsService" or currentScreen == "ScreenInit" or
+						currentScreen == "ScreenPackDownloader" or currentScreen == "ScreenBundleSelect")
+			then
+				isInSinglePlayer = true
+			end
+			if string.sub(currentScreen, 1, 9) == "ScreenNet" and currentScreen ~= "ScreenNetSelectProfile" then
+				isInSinglePlayer = false
+			end
+		
+			online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+			isGameplay = (currentScreen:find("Gameplay") ~= nil or currentScreen:find("StageInformation") ~= nil
+							or currentScreen:find("PlayerOptions") ~= nil)
+		
+			if isGameplay or isInSinglePlayer then
+				self:visible(false)
+				show = false
+				typing = false
+				s:setTimeout(
+					function()
+						self:visible(false)
+					end,
+					0.025
+				)
+			else
+				self:visible(online and not isInSinglePlayer)
+				show = true
+			end
+			if currentScreen == "ScreenNetSelectMusic" then
+				for i = 1, #tabs do
+					if tabs[i] and tabs[i][2] == NSMAN:GetCurrentRoomName() then
+						changeTab(tabs[i][2], tabs[i][1])
+					end
+				end
+			end
+			MESSAGEMAN:Broadcast("UpdateChatOverlay")
+		end)
+		self:SetUpdateFunctionInterval(0.1)
+	end,
+}
 local currentScreen
 local show = true
 local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
@@ -86,53 +139,6 @@ chat.BeginTextEntryMessageCommand = function(self)
 end
 local isGameplay
 local isInSinglePlayer
-chat.ScreenChangedMessageCommand = function(self)
-	local s = SCREENMAN:GetTopScreen()
-	if not s then
-		return
-	end
-	local oldScreen = currentScreen
-	currentScreen = s:GetName()
-
-	-- prevent the chat from showing in singleplayer because it can be annoying
-	if
-		oldScreen ~= currentScreen and
-			(currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or
-				currentScreen == "ScreenOptionsService" or currentScreen == "ScreenInit" or
-				currentScreen == "ScreenPackDownloader" or currentScreen == "ScreenBundleSelect")
-	 then
-		isInSinglePlayer = true
-	end
-	if string.sub(currentScreen, 1, 9) == "ScreenNet" and currentScreen ~= "ScreenNetSelectProfile" then
-		isInSinglePlayer = false
-	end
-
-	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-	isGameplay = (currentScreen:find("Gameplay") ~= nil or currentScreen:find("StageInformation") ~= nil)
-
-	if isGameplay or isInSinglePlayer then
-		self:visible(false)
-		show = false
-		typing = false
-		s:setTimeout(
-			function()
-				self:visible(false)
-			end,
-			0.025
-		)
-	else
-		self:visible(online and not isInSinglePlayer)
-		show = true
-	end
-	if currentScreen == "ScreenNetSelectMusic" then
-		for i = 1, #tabs do
-			if tabs[i] and tabs[i][2] == NSMAN:GetCurrentRoomName() then
-				changeTab(tabs[i][2], tabs[i][1])
-			end
-		end
-	end
-	MESSAGEMAN:Broadcast("UpdateChatOverlay")
-end
 chat.MultiplayerDisconnectionMessageCommand = function(self)
 	online = false
 	self:visible(false)
