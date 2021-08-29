@@ -396,27 +396,31 @@ function GetPlayableTime()
 end
 
 function ChangeMusicRate(rate, params)
-	if params.Name == "PrevScore" and rate < 2.95 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.1)
-		MESSAGEMAN:Broadcast("CurrentRateChanged")
-	elseif params.Name == "NextScore" and rate > 0.55 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.1)
-		MESSAGEMAN:Broadcast("CurrentRateChanged")
+	local min = 0.05 -- going below this is not a good idea (0 crashes)
+	local max = 3 -- going over this tends to crash or whatever
+	local old = getCurRateValue()
+	local new = getCurRateValue()
+	local largeincrement = 0.1
+	local smallincrement = 0.05
+
+	-- larger increment
+	if params.Name == "PrevScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old + largeincrement, min, max)
+	elseif params.Name == "NextScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old - largeincrement, min, max)
 	end
 
-	if params.Name == "PrevRate" and rate < 3 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.05)
-		MESSAGEMAN:Broadcast("CurrentRateChanged")
-	elseif params.Name == "NextRate" and rate > 0.5 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)
+	-- smaller increment
+	if params.Name == "PrevRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old + smallincrement, min, max)
+	elseif params.Name == "NextRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old - smallincrement, min, max)
+	end
+
+	if new ~= old then
+		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(new)
+		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(new)
+		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(new)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
 	end
 end
