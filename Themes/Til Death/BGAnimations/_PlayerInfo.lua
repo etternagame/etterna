@@ -223,7 +223,12 @@ t[#t + 1] = Def.ActorFrame {
 	LoadFont("Common Normal") .. {
 		Name = "Name",
 		InitCommand = function(self)
-			self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(360,500)):halign(0):zoom(0.55):diffuse(ButtonColor)
+			self:halign(0)
+			self:xy(AvatarX + 54, AvatarY + 8)
+			self:zoom(0.55)
+			self:maxwidth(capWideScale(360,500))
+			self:maxheight(22)
+			self:diffuse(ButtonColor)
 		end,
 		SetCommand = function(self)
 			self:settextf("%s: %5.2f", profileName, playerRating)
