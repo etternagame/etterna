@@ -352,11 +352,13 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		_calc.soap.at(hand)[TechBase].at(itv) =
-		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv), _calc);
+		_calc.init_base_diff_vals.at(hand)[TechBase].at(itv) =
+		  _diffz._tc.get_itv_diff(
+			_calc.init_base_diff_vals.at(hand)[NPSBase].at(itv), _calc);
 
 		// mostly for debug output.. optimize later
-		_calc.soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
+		_calc.init_base_diff_vals.at(hand)[RMABase].at(itv) =
+		  _diffz._tc.get_itv_rma_diff();
 	}
 
 	void run_dependent_pmod_loop()
@@ -380,7 +382,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			// maybe we _don't_ want this smoothed before the tech pass? and so
 			// it could be constructed parallel? NEEDS TEST
-			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
+			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
 			for (auto itv = 0; itv < _calc.numitv; ++itv) {
 				auto jack_counter = 0;

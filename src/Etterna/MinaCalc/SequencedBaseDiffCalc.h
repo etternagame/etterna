@@ -22,7 +22,7 @@ struct nps
 			}
 
 			// nps for this interval
-			calc.soap.at(hi).at(NPSBase).at(itv) =
+			calc.init_base_diff_vals.at(hi).at(NPSBase).at(itv) =
 			  static_cast<float>(notes) * finalscaler * 1.6F;
 
 			// set points for this interval

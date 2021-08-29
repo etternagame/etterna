@@ -24,19 +24,19 @@ class Calc;
 * number of intervals required is above 1000, the vectors will resize to fit.
 * 1000 intervals should be enough to fit most files (8.3 minutes)
 */
-static const int default_interval_count = 1000;
+static constexpr int default_interval_count = 1000;
 
 /** This is a hard cap to file length in terms of intervals to prevent massive
 * memory allocations. Almost every file that exists (except a handful) fit this.
 */
-static const int max_intervals = 100000;
+static constexpr int max_intervals = 100000;
 
 /** This is a hard cap on how many rows should fit into an interval.
 * Intervals are one half second. If this is reached, this implies that the
 * file has a 100 nps burst. Nobody could ever possibly hit that (in 4k).
 * Any file that reaches this in any interval is skipped.
 */
-static const int max_rows_for_single_interval = 50;
+static constexpr int max_rows_for_single_interval = 50;
 
 /** Defining which hands exist (the left and right).
 * Values in this enum are referred to when iterating hands and when checking
@@ -48,6 +48,9 @@ enum hands
 	right_hand,
 	num_hands,
 };
+
+// Both hands, left to right
+static constexpr hands both_hands[num_hands] = { left_hand, right_hand };
 
 /** Each NoteInfo is translated into this struct and stored in Calc::adj_ni.
 * The point is to precalculate a bit of the information for clarity and speed.
@@ -154,14 +157,15 @@ class Calc
 	*/
 	std::array<std::array<std::vector<float>, NUM_CalcPatternMod>,
 			   num_hands>
-	  doot{};
+	  pmod_vals{};
 
-	/** Holds calculated difficulties, one float per interval per type per hand.
+	/** Holds base calculated difficulties, one float per interval per type per hand.
 	* Contains NPS, MSD, Runningman, and Tech related values.
+	* Mostly used for its NPSBase values.
 	*/
 	std::array<std::array<std::vector<float>, NUM_CalcDiffValue>,
 			   num_hands>
-	  soap{};
+	  init_base_diff_vals{};
 
 	/** Holds base difficulties adjusted by patternmods. It begins at NPSBase.
 	* One float per interval per skillset per hand.
@@ -261,10 +265,10 @@ class Calc
 		itv_size.resize(amt);
 		for (auto& v : itv_points)
 			v.resize(amt);
-		for (auto& a : doot)
+		for (auto& a : pmod_vals)
 			for (auto& v : a)
 				v.resize(amt);
-		for (auto& a : soap)
+		for (auto& a : init_base_diff_vals)
 			for (auto& v : a)
 				v.resize(amt);
 		for (auto& a : base_adj_diff)
