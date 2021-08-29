@@ -43,6 +43,14 @@ function ToGameplay()
 	end
 end
 
+function ToStageInformation()
+	if not IsNetSMOnline() then
+		return "ScreenStageInformation"
+	else
+		return "ScreenNetStageInformation"
+	end
+end
+
 Branch = {
 	Init = function()
 		return "ScreenInit"
@@ -141,21 +149,21 @@ Branch = {
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return SelectFirstOptionsScreen()
 		else
-			return ToGameplay()
+			return ToStageInformation()
 		end
 	end,
 	PlayerOptions = function()
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenPlayerOptions"
 		else
-			return ToGameplay()
+			return ToStageInformation()
 		end
 	end,
 	SongOptions = function()
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenSongOptions"
 		else
-			return ToGameplay()
+			return ToStageInformation()
 		end
 	end,
 	AfterGameplay = function()
