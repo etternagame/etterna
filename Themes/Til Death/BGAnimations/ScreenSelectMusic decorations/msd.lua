@@ -164,7 +164,7 @@ t[#t + 1] =
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + offsetX/2, frameY + offsetY - 11):zoom(0.65):halign(0)
-			self:settextf("%s (v%s)",translated_text["Title"], GetCalcVersion())
+			self:settextf("%s (Calc v%s)",translated_text["Title"], GetCalcVersion())
 			self:diffuse(Saturation(getMainColor("positive"), 0.1))
 		end
 	}
