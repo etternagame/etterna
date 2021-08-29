@@ -421,11 +421,13 @@ local function makeGoalDisplay(i)
 				MouseLeftClickMessageCommand = function(self)
 					if sg then
 						if isOver(self) and sg and goalsong and goalsteps then
-							SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(sg:GetRate())
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(sg:GetRate())
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(sg:GetRate())
-							MESSAGEMAN:Broadcast("GoalSelected")
+							local success = SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
+							if success then
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(sg:GetRate())
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(sg:GetRate())
+								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(sg:GetRate())
+								MESSAGEMAN:Broadcast("GoalSelected")
+							end
 						end
 					end
 				end
