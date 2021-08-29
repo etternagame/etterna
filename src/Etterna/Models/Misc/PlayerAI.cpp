@@ -156,23 +156,34 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		// This should only occur for mines that were hit by tapping them
 		// Check specifically for this happening
 		if (pScoreData->GetReplayType() == 2) {
-			// if scoring issues continue to happen, finish this
-			// right now, only checking for mines
-			if (replayTapNoteTypeVector[i] == TapNoteType_Mine) {
-				if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
-					// search for other mines in this column
-					// if a relevant one exists, set it to this offset
-					// skip iteration if a match is found
-					for (auto& t : m_ReplayTapMap[replayNoteRowVector[i]]) {
-						if (t.track == replayTrackVector[i] &&
-							t.type == replayTapNoteTypeVector[i]) {
-							if (fabsf(replayOffsetVector[i]) >
-								fabsf(t.offset)) {
-								t.offset = replayOffsetVector[i];
-								t.offsetAdjustedRow = replayNoteRowVector[i];
+			// skip out of bounds indices...
+			// this happens in some very far edge cases
+			// replays can be type 2 without tapnotetype vectors
+			// (multiplayer related usually)
+			if (i < replayNoteRowVector.size() &&
+				i < replayTapNoteTypeVector.size() &&
+				i < replayOffsetVector.size() &&
+				i < replayTrackVector.size()) {
+
+				// if scoring issues continue to happen, finish this
+				// right now, only checking for mines
+				if (replayTapNoteTypeVector[i] == TapNoteType_Mine) {
+					if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
+						// search for other mines in this column
+						// if a relevant one exists, set it to this offset
+						// skip iteration if a match is found
+						for (auto& t : m_ReplayTapMap[replayNoteRowVector[i]]) {
+							if (t.track == replayTrackVector[i] &&
+								t.type == replayTapNoteTypeVector[i]) {
+								if (fabsf(replayOffsetVector[i]) >
+									fabsf(t.offset)) {
+									t.offset = replayOffsetVector[i];
+									t.offsetAdjustedRow =
+									  replayNoteRowVector[i];
+								}
+								dontMakeNewTRR = true;
+								break;
 							}
-							dontMakeNewTRR = true;
-							break;
 						}
 					}
 				}
@@ -189,7 +200,12 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		if (pScoreData->GetReplayType() == 2) {
 			// 2 means that this is a Full Replay
 			trr.track = replayTrackVector[i];
-			trr.type = replayTapNoteTypeVector[i];
+
+			// bad bandaid, the correct type could be resolved from notedata
+			if (i < replayTapNoteTypeVector.size())
+				trr.type = replayTapNoteTypeVector[i];
+			else
+				trr.type = TapNoteType_Tap;
 		} else {
 			// Anything else (and we got this far without crashing) means
 			// it's not a Full Replay
