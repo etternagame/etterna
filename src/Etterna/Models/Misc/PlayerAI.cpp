@@ -110,7 +110,7 @@ PlayerAI::ResetScoreData()
 }
 
 void
-PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
+PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData, TimingData* pTimingData)
 {
 	Locator::getLogger()->trace("Setting PlayerAI Score Data");
 	auto successful = false;
@@ -118,6 +118,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		successful = pHighScore->LoadReplayData();
 
 	pScoreData = pHighScore;
+	pReplayTiming = pTimingData;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
@@ -434,6 +435,13 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(*pNoteData, row)
 	{
 		auto tapsMissedInRow = 0;
+
+		// some rows are not judgeable so should be ignored
+		// (fake regions, warps)
+		if (pReplayTiming != nullptr) {
+			if (!pReplayTiming->IsJudgableAtRow(row))
+				continue;
+		}
 
 		// For every track in the row...
 		for (auto track = 0; track < pNoteData->GetNumTracks(); track++) {

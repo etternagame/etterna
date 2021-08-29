@@ -423,7 +423,8 @@ ScreenGameplayReplay::TogglePause()
 		// Restarts the basic replay data in case something went weird
 		SetupNoteDataFromRow(pSteps, rowNow);
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
-		PlayerAI::SetScoreData(PlayerAI::pScoreData, rowNow);
+		PlayerAI::SetScoreData(
+		  PlayerAI::pScoreData, rowNow, nullptr, PlayerAI::pReplayTiming);
 		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 		auto* pss = m_vPlayerInfo.GetPlayerStageStats();

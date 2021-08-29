@@ -1760,7 +1760,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 		// Player AI Setup.
 		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(hs, 0, &nd);
+		PlayerAI::SetScoreData(
+		  hs, 0, &nd, GAMESTATE->m_pCurSteps->GetTimingData());
 
 		// prepare old mods to return to
 		const auto oldMods =
@@ -1826,8 +1827,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 		auto* td = steps->GetTimingData();
 		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(score, 0, &nd);
-		PlayerAI::SetUpExactTapMap(td);
+		PlayerAI::SetScoreData(score, 0, &nd, td);
+		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 		auto& pss = ss.m_player;
 		pss.m_HighScore = *score;
