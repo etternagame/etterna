@@ -77,8 +77,7 @@ local function input(event)
 	return false
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	Name = "scoreBoard",
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
@@ -95,8 +94,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 	local equals = (index == scoreIndex)
 
 	--
-	local t =
-		Def.ActorFrame {
+	local t = Def.ActorFrame {
 		Name = "scoreItem" .. tostring(drawindex),
 		ShowCommand = function(self)
 			self:playcommand("Begin")
@@ -201,150 +199,142 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end
 		},
 		--rank
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(framex - 8, framey + 12 + (drawindex * spacing)):zoom(0.35)
-				end,
-				HahaThisCodeINeedHelpCommand = function(self, params)
-					if params.doot == index then
+		LoadFont("Common normal") .. {
+			InitCommand = function(self)
+				self:xy(framex - 8, framey + 12 + (drawindex * spacing)):zoom(0.35)
+			end,
+			HahaThisCodeINeedHelpCommand = function(self, params)
+				if params.doot == index then
+					self:diffuse(color("#ffcccc"))
+				else
+					self:diffuse(color("ffffff"))
+				end
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 then
+					self:settext(index)
+					if equals then
 						self:diffuse(color("#ffcccc"))
 					else
-						self:diffuse(color("ffffff"))
-					end
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 then
-						self:settext(index)
-						if equals then
-							self:diffuse(color("#ffcccc"))
-						else
-							self:stopeffect()
-						end
+						self:stopeffect()
 					end
 				end
-			},
+			end
+		},
 		-- Wife grade and %score
-		LoadFont("Common normal") ..
-			{
-				Name = "grade",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					local wv = hsTable[index]:GetWifeVers()
-					local wstring = "Wife" .. wv
-					if usingSSRSort then
-						wstring = "Wife" .. wv .. " J4"
-					end
-					if hsTable[index]:GetWifeScore() == 0 then
-						self:settextf("NA (%s)", wstring)
-					else
-						self:settextf("%05.2f%% (%s)", notShit.floor(hsTable[index]:GetWifeScore() * 10000) / 100, wstring)
-					end
+		LoadFont("Common normal") .. {
+			Name = "grade",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				local wv = hsTable[index]:GetWifeVers()
+				local wstring = "Wife" .. wv
+				if usingSSRSort then
+					wstring = "Wife" .. wv .. " J4"
 				end
-			},
+				if hsTable[index]:GetWifeScore() == 0 then
+					self:settextf("NA (%s)", wstring)
+				else
+					self:settextf("%05.2f%% (%s)", notShit.floor(hsTable[index]:GetWifeScore() * 10000) / 100, wstring)
+				end
+			end
+		},
 		--mods
-		LoadFont("Common normal") ..
-			{
-				Name = "option",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					self:settext(getModifierTranslations(hsTable[index]:GetModifiers()))
-					self:visible(false)
-				end
-			},
+		LoadFont("Common normal") .. {
+			Name = "option",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				self:settext(getModifierTranslations(hsTable[index]:GetModifiers()))
+				self:visible(false)
+			end
+		},
 		--grade text
-		LoadFont("Common normal") ..
-			{
-				Name = "Grade",
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settext(getGradeStrings(hsTable[index]:GetWifeGrade()))
-						self:diffuse(getGradeColor(hsTable[index]:GetWifeGrade()))
-					end
+		LoadFont("Common normal") .. {
+			Name = "Grade",
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settext(getGradeStrings(hsTable[index]:GetWifeGrade()))
+					self:diffuse(getGradeColor(hsTable[index]:GetWifeGrade()))
 				end
-			},
+			end
+		},
 		--cleartype text
-		LoadFont("Common normal") ..
-			{
-				Name = "ClearType",
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settext(getClearTypeFromScore(pn, hsTable[index], 0))
-						self:diffuse(getClearTypeFromScore(pn, hsTable[index], 2))
-					end
+		LoadFont("Common normal") .. {
+			Name = "ClearType",
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settext(getClearTypeFromScore(pn, hsTable[index], 0))
+					self:diffuse(getClearTypeFromScore(pn, hsTable[index], 2))
 				end
-			},
+			end
+		},
 		--max combo
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settextf("%sx", hsTable[index]:GetMaxCombo())
-					end
+		LoadFont("Common normal") .. {
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settextf("%sx", hsTable[index]:GetMaxCombo())
 				end
-			},
+			end
+		},
 		--judgment
-		LoadFont("Common normal") ..
-			{
-				Name = "judge",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settextf(
-							"%d / %d / %d / %d / %d / %d",
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W1"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W2"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W3"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W4"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W5"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_Miss")
-						)
-					end
+		LoadFont("Common normal") .. {
+			Name = "judge",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settextf(
+						"%d / %d / %d / %d / %d / %d",
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W1"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W2"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W3"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W4"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W5"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_Miss")
+					)
 				end
-			},
+			end
+		},
 		--date
-		LoadFont("Common normal") ..
-			{
-				Name = "date",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settext(hsTable[index]:GetDate())
-					end
-					self:visible(false)
+		LoadFont("Common normal") .. {
+			Name = "date",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settext(hsTable[index]:GetDate())
 				end
-			}
+				self:visible(false)
+			end
+		}
 	}
 	return t
 end
@@ -418,8 +408,7 @@ t[#t+1] = Def.Quad {
 		if isOver(self) then
 			movePage(1)
 		end
-	end
-
+	end,
 }
 
 return t
