@@ -49,7 +49,7 @@ enum hands
 	num_hands,
 };
 
-// Both hands, left to right
+/// Both hands, left to right
 static constexpr hands both_hands[num_hands] = { left_hand, right_hand };
 
 /** Each NoteInfo is translated into this struct and stored in Calc::adj_ni.
