@@ -13,13 +13,14 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		InitCommand = function(self)
 			self:xy(0, SCREEN_HEIGHT):align(0,1):zoomto(150,61)
-			self:diffuse(0,0,0,bgalpha-0.2)
+			self:diffuse(0,0,0,bgalpha*0.4)
 		end,
 	},
 	Def.Quad {
 		InitCommand = function(self)
 			self:xy(150, SCREEN_HEIGHT):align(0,1):zoomto((SCREEN_WIDTH*.44)-150,18)
-			self:diffuse(0,0,0,bgalpha-0.2):faderight(0.7)
+			self:diffuse(0,0,0,bgalpha*0.4)
+			self:faderight(0.7)
 		end,
 	},
 	Def.Sprite {
