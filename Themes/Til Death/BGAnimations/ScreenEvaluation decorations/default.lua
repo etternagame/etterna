@@ -21,6 +21,25 @@ local originaljudge = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or G
 -- im going to cry
 local aboutToForceWindowSettings = false
 
+local function scaleToJudge(scale)
+	scale = notShit.round(scale, 2)
+	local scales = ms.JudgeScalers
+	local out = 4
+	for k,v in pairs(scales) do
+		if v == scale then
+			out = k
+		end
+	end
+	return out
+end
+
+local judge = PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty()
+local judge2 = judge
+local score = SCOREMAN:GetMostRecentScore()
+if not score then
+	score = SCOREMAN:GetTempReplayScore()
+end
+
 t[#t + 1] = LoadFont("Common Large") .. {
 	InitCommand = function(self)
 		self:xy(SCREEN_CENTER_X, capWideScale(124, 150)):zoom(0.25):maxwidth(capWideScale(250 / 0.25, 180 / 0.25))
@@ -92,10 +111,15 @@ local function GraphDisplay(pn)
 				self:zoom(0.8)
 				self:xy(-22, 8)
 			end,
+			ScoreChangedMessageCommand = function(self)
+				if score and judge then
+					self:playcommand("RecalculateGraphs", {judge=judge})
+				end
+			end,
 			RecalculateGraphsMessageCommand = function(self, params)
 				-- called by the end of a codemessagecommand somewhere else
 				if not tso[params.judge] then return end
-				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), tso[params.judge], nil)
+				local success = SCREENMAN:GetTopScreen():SetPlayerStageStatsFromReplayData(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), tso[params.judge], score)
 				if not success then return end
 				self:playcommand("Begin")
 				MESSAGEMAN:Broadcast("SetComboGraph")
@@ -166,46 +190,35 @@ local frameX = 20
 local frameY = 140
 local frameWidth = SCREEN_CENTER_X - 120
 
-function scoreBoard(pn, position)
-	local judge = PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty()
-	local judge2 = judge
-	local score = SCOREMAN:GetMostRecentScore()
-	if not score then
-		score = SCOREMAN:GetTempReplayScore()
-	end
-
-	local dvtTmp = score:GetOffsetVector()
-	local tvt = score:GetTapNoteTypeVector()
-	-- if available, filter out non taps from the deviation list
-	-- (hitting mines directly without filtering would make them appear here)
-	if tvt ~= nil and #tvt > 0 then
-		dvt = {}
-		for i, d in ipairs(dvtTmp) do
-			local ty = tvt[i]
-			if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
-				dvt[#dvt+1] = d
-			end
-		end
-	else
-		dvt = dvtTmp
-	end
-
+local function scoreBoard(pn, position)
+	local dvtTmp = {}
+	local tvt = {}
+	dvt = {}
 	totalTaps = 0
-	for k, v in ipairs(judges) do
-		totalTaps = totalTaps + score:GetTapNoteScore(v)
-	end
 
-	local function scaleToJudge(scale)
-		scale = notShit.round(scale, 2)
-		local scales = ms.JudgeScalers
-		local out = 4
-		for k,v in pairs(scales) do
-			if v == scale then
-				out = k
+	local function setupNewScoreData(score)
+		local dvtTmp = score:GetOffsetVector()
+		local tvt = score:GetTapNoteTypeVector()
+		-- if available, filter out non taps from the deviation list
+		-- (hitting mines directly without filtering would make them appear here)
+		if tvt ~= nil and #tvt > 0 then
+			dvt = {}
+			for i, d in ipairs(dvtTmp) do
+				local ty = tvt[i]
+				if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
+					dvt[#dvt+1] = d
+				end
 			end
+		else
+			dvt = dvtTmp
 		end
-		return out
+
+		totalTaps = 0
+		for k, v in ipairs(judges) do
+			totalTaps = totalTaps + score:GetTapNoteScore(v)
+		end
 	end
+	setupNewScoreData(score)
 
 	-- we removed j1-3 so uhhh this stops things lazily
 	local function clampJudge()
@@ -236,10 +249,8 @@ function scoreBoard(pn, position)
 		ChangeScoreCommand = function(self, params)
 			if params.score then
 				score = params.score
-				totalTaps = 0
-				for k, v in ipairs(judges) do
-					totalTaps = totalTaps + score:GetTapNoteScore(v)
-				end
+
+				setupNewScoreData(score)
 			end
 
 			MESSAGEMAN:Broadcast("ScoreChanged")
