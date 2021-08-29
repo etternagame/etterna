@@ -79,8 +79,7 @@ local translated_info = {
 }
 
 local goaltable
-local o =
-	Def.ActorFrame {
+local o = Def.ActorFrame {
 	Name = "GoalDisplay",
 	InitCommand = function(self)
 		cheese = self
@@ -133,133 +132,126 @@ local o =
 			self:xy(offx, headeroff):zoomto(dwidth, pdh):halign(0):diffuse(getMainColor("frames"))
 		end
 	},
-	LoadFont("Common normal") ..
-		{
-			--priority header
-			InitCommand = function(self)
-				self:xy(c0x, headeroff):zoom(tzoom):halign(0.5)
-				self:diffuse(getMainColor("positive"))
-			end,
-			UpdateCommand = function(self)
-				self:settext(translated_info["PriorityShort"])
-			end,
-			HighlightCommand = function(self)
-				if isOver(self) then
-					self:settext(translated_info["PriorityLong"]):diffusealpha(0.6):x(c0x+9)
-					self:GetParent():GetChild("RateHeader"):settext(translated_info["RateShort"]):x(c1x+12):zoom(tzoom/1.5)
-				else
-					self:settext(translated_info["PriorityShort"]):diffusealpha(1):x(c0x)
-					self:GetParent():GetChild("RateHeader"):settext(translated_info["RateLong"]):x(c1x):zoom(tzoom)
-				end
-			end, MouseLeftClickMessageCommand = function(self) if isOver(self) then
-					GetPlayerOrMachineProfile(PLAYER_1):SortByPriority()
-					ind = 0
-					self:GetParent():queuecommand("GoalTableRefresh")
-				end
+	LoadFont("Common normal") .. {
+		--priority header
+		InitCommand = function(self)
+			self:xy(c0x, headeroff):zoom(tzoom):halign(0.5)
+			self:diffuse(getMainColor("positive"))
+		end,
+		UpdateCommand = function(self)
+			self:settext(translated_info["PriorityShort"])
+		end,
+		HighlightCommand = function(self)
+			if isOver(self) then
+				self:settext(translated_info["PriorityLong"]):diffusealpha(0.6):x(c0x+9)
+				self:GetParent():GetChild("RateHeader"):settext(translated_info["RateShort"]):x(c1x+12):zoom(tzoom/1.5)
+			else
+				self:settext(translated_info["PriorityShort"]):diffusealpha(1):x(c0x)
+				self:GetParent():GetChild("RateHeader"):settext(translated_info["RateLong"]):x(c1x):zoom(tzoom)
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--rate header
-			Name = "RateHeader",
-			InitCommand = function(self)
-				self:xy(c1x, headeroff):zoom(tzoom):halign(0.5):settext(translated_info["RateLong"])
-				self:diffuse(getMainColor("positive"))
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					GetPlayerOrMachineProfile(PLAYER_1):SortByRate()
-					ind = 0
-					self:GetParent():queuecommand("GoalTableRefresh")
-				end
+		end, MouseLeftClickMessageCommand = function(self) if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):SortByPriority()
+				ind = 0
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--song header
-			InitCommand = function(self)
-				self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext(translated_info["Song"])
-				self:diffuse(getMainColor("positive"))
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					GetPlayerOrMachineProfile(PLAYER_1):SortByName()
-					ind = 0
-					self:GetParent():queuecommand("GoalTableRefresh")
-				end
+		end
+	},
+	LoadFont("Common normal") .. {
+		--rate header
+		Name = "RateHeader",
+		InitCommand = function(self)
+			self:xy(c1x, headeroff):zoom(tzoom):halign(0.5):settext(translated_info["RateLong"])
+			self:diffuse(getMainColor("positive"))
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):SortByRate()
+				ind = 0
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--index header
-			InitCommand = function(self)
-				self:xy(width / 2, headeroff):zoom(tzoom):halign(0.5)
-			end,
-			UpdateCommand = function(self)
-				self:settextf("%i-%i (%i)", ind + 1, ind + numgoals, #goaltable)
+		end
+	},
+	LoadFont("Common normal") .. {
+		--song header
+		InitCommand = function(self)
+			self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext(translated_info["Song"])
+			self:diffuse(getMainColor("positive"))
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):SortByName()
+				ind = 0
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--completed toggle // filter header
-			InitCommand = function(self)
-				self:xy(width/2 + capWideScale(37, 45), headeroff):zoom(tzoom):halign(0):settext(filts[1])
-				self:diffuse(getMainColor("positive"))
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter()
-					ind = 0
-					self:settext(filts[GetPlayerOrMachineProfile(PLAYER_1):GetFilterMode()])
-					self:GetParent():queuecommand("GoalTableRefresh")
-				end
+		end
+	},
+	LoadFont("Common normal") .. {
+		--index header
+		InitCommand = function(self)
+			self:xy(width / 2, headeroff):zoom(tzoom):halign(0.5)
+		end,
+		UpdateCommand = function(self)
+			self:settextf("%i-%i (%i)", ind + 1, ind + numgoals, #goaltable)
+		end
+	},
+	LoadFont("Common normal") .. {
+		--completed toggle // filter header
+		InitCommand = function(self)
+			self:xy(width/2 + capWideScale(37, 45), headeroff):zoom(tzoom):halign(0):settext(filts[1])
+			self:diffuse(getMainColor("positive"))
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter()
+				ind = 0
+				self:settext(filts[GetPlayerOrMachineProfile(PLAYER_1):GetFilterMode()])
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--date header
-			InitCommand = function(self)
-				self:xy(c4x - capWideScale(5, 35), headeroff):zoom(tzoom):halign(1):settext(translated_info["Date"])
-				self:diffuse(getMainColor("positive"))
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					GetPlayerOrMachineProfile(PLAYER_1):SortByDate()
-					ind = 0
-					self:GetParent():queuecommand("GoalTableRefresh")
-				end
+		end
+	},
+	LoadFont("Common normal") .. {
+		--date header
+		InitCommand = function(self)
+			self:xy(c4x - capWideScale(5, 35), headeroff):zoom(tzoom):halign(1):settext(translated_info["Date"])
+			self:diffuse(getMainColor("positive"))
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):SortByDate()
+				ind = 0
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--diff header
-			InitCommand = function(self)
-				self:xy(c5x, headeroff):zoom(tzoom):halign(1):settext(translated_info["Difficulty"])
-				self:diffuse(getMainColor("positive"))
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					GetPlayerOrMachineProfile(PLAYER_1):SortByDiff()
-					ind = 0
-					self:GetParent():queuecommand("GoalTableRefresh")
-				end
+		end
+	},
+	LoadFont("Common normal") .. {
+		--diff header
+		InitCommand = function(self)
+			self:xy(c5x, headeroff):zoom(tzoom):halign(1):settext(translated_info["Difficulty"])
+			self:diffuse(getMainColor("positive"))
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) then
+				GetPlayerOrMachineProfile(PLAYER_1):SortByDiff()
+				ind = 0
+				self:GetParent():queuecommand("GoalTableRefresh")
 			end
-		}
+		end
+	}
 }
 
 local function makeGoalDisplay(i)
@@ -268,8 +260,7 @@ local function makeGoalDisplay(i)
 	local goalsong
 	local goalsteps
 
-	local o =
-		Def.ActorFrame {
+	local o = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(packspaceY * i + headeroff)
 		end,
@@ -293,34 +284,33 @@ local function makeGoalDisplay(i)
 				self:diffuse(color("#111111D9"))
 			end
 		},
-		LoadFont("Common normal") ..
-			{
-				--priority
-				InitCommand = function(self)
-					self:x(c0x):zoom(tzoom):halign(0.5):valign(1)
-				end,
-				DisplayCommand = function(self)
-					self:settext(sg:GetPriority())
-					self:diffuse(byAchieved(sg, getMainColor("positive"),Color.White))
-				end,
-				HighlightCommand = function(self)
-					if sg and not sg:IsAchieved() then
-						highlightIfOver(self)
-					end
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) and sg then
-						sg:SetPriority(sg:GetPriority() + 1)
-						self:GetParent():queuecommand("Update")
-					end
-				end,
-				MouseRightClickMessageCommand = function(self)
-					if isOver(self) and sg then
-						sg:SetPriority(sg:GetPriority() - 1)
-						self:GetParent():queuecommand("Update")
-					end
+		LoadFont("Common normal") .. {
+			--priority
+			InitCommand = function(self)
+				self:x(c0x):zoom(tzoom):halign(0.5):valign(1)
+			end,
+			DisplayCommand = function(self)
+				self:settext(sg:GetPriority())
+				self:diffuse(byAchieved(sg, getMainColor("positive"),Color.White))
+			end,
+			HighlightCommand = function(self)
+				if sg and not sg:IsAchieved() then
+					highlightIfOver(self)
 				end
-			},
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) and sg then
+					sg:SetPriority(sg:GetPriority() + 1)
+					self:GetParent():queuecommand("Update")
+				end
+			end,
+			MouseRightClickMessageCommand = function(self)
+				if isOver(self) and sg then
+					sg:SetPriority(sg:GetPriority() - 1)
+					self:GetParent():queuecommand("Update")
+				end
+			end
+		},
 		Def.Sprite {
 			-- delete button
 			Texture = THEME:GetPathG("","X.png"),
@@ -338,182 +328,174 @@ local function makeGoalDisplay(i)
 				end
 			end
 		},
-		LoadFont("Common normal") ..
-			{
-				--rate
-				InitCommand = function(self)
-					self:x(c1x):zoom(tzoom):halign(0.5):valign(1)
-				end,
-				DisplayCommand = function(self)
-					local ratestring = string.format("%.2f", sg:GetRate()):gsub("%.?0$", "") .. "x"
-					self:settext(ratestring)
-					self:diffuse(byAchieved(sg, getMainColor("positive")))
-				end,
-				HighlightCommand = function(self)
-					if sg and not sg:IsAchieved() then
-						highlightIfOver(self)
-					end
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) and sg then
-						sg:SetRate(sg:GetRate() + 0.1)
-						self:GetParent():queuecommand("Update")
-					end
-				end,
-				MouseRightClickMessageCommand = function(self)
-					if isOver(self) and sg then
-						sg:SetRate(sg:GetRate() - 0.1)
-						self:GetParent():queuecommand("Update")
-					end
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--percent
-				InitCommand = function(self)
-					self:x(c1x):zoom(tzoom):halign(0.5):valign(0):maxwidth((50 - capWideScale(10, 10)) / tzoom)
-				end,
-				DisplayCommand = function(self)
-					local perc = notShit.round(sg:GetPercent() * 100000) / 1000
-					if perc <= 99 or perc == 100 then
-						self:settextf("%.f%%", perc)
-					elseif (perc < 99.8) then
-						self:settextf("%.2f%%", perc)
-					else
-						self:settextf("%.3f%%", perc)
-					end
-					self:diffuse(byAchieved(sg, getMainColor("positive")))
-				end,
-				HighlightCommand = function(self)
-					if sg and not sg:IsAchieved() then
-						highlightIfOver(self)
-					end
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) and sg then
-						sg:SetPercent(sg:GetPercent() + 0.01)
-						self:GetParent():queuecommand("Update")
-					end
-				end,
-				MouseRightClickMessageCommand = function(self)
-					if isOver(self) and sg then
-						sg:SetPercent(sg:GetPercent() - 0.01)
-						self:GetParent():queuecommand("Update")
-					end
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--song name
-				InitCommand = function(self)
-					self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(32, 62)) / tzoom):halign(0):valign(1):draworder(1)
-				end,
-				DisplayCommand = function(self)
-					if goalsong then
-						self:settext(goalsong:GetDisplayMainTitle()):diffuse(getMainColor("positive"))
-					else
-						self:settext(sg:GetChartKey()):diffuse(getMainColor("negative"))
-					end
-				end,
-				HighlightCommand = function(self)
+		LoadFont("Common normal") .. {
+			--rate
+			InitCommand = function(self)
+				self:x(c1x):zoom(tzoom):halign(0.5):valign(1)
+			end,
+			DisplayCommand = function(self)
+				local ratestring = string.format("%.2f", sg:GetRate()):gsub("%.?0$", "") .. "x"
+				self:settext(ratestring)
+				self:diffuse(byAchieved(sg, getMainColor("positive")))
+			end,
+			HighlightCommand = function(self)
+				if sg and not sg:IsAchieved() then
 					highlightIfOver(self)
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if sg then
-						if isOver(self) and sg and goalsong and goalsteps then
-							local success = SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
-							if success then
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(sg:GetRate())
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(sg:GetRate())
-								GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(sg:GetRate())
-								MESSAGEMAN:Broadcast("GoalSelected")
-							end
+				end
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) and sg then
+					sg:SetRate(sg:GetRate() + 0.1)
+					self:GetParent():queuecommand("Update")
+				end
+			end,
+			MouseRightClickMessageCommand = function(self)
+				if isOver(self) and sg then
+					sg:SetRate(sg:GetRate() - 0.1)
+					self:GetParent():queuecommand("Update")
+				end
+			end
+		},
+		LoadFont("Common normal") .. {
+			--percent
+			InitCommand = function(self)
+				self:x(c1x):zoom(tzoom):halign(0.5):valign(0):maxwidth((50 - capWideScale(10, 10)) / tzoom)
+			end,
+			DisplayCommand = function(self)
+				local perc = notShit.round(sg:GetPercent() * 100000) / 1000
+				if perc <= 99 or perc == 100 then
+					self:settextf("%.f%%", perc)
+				elseif (perc < 99.8) then
+					self:settextf("%.2f%%", perc)
+				else
+					self:settextf("%.3f%%", perc)
+				end
+				self:diffuse(byAchieved(sg, getMainColor("positive")))
+			end,
+			HighlightCommand = function(self)
+				if sg and not sg:IsAchieved() then
+					highlightIfOver(self)
+				end
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if isOver(self) and sg then
+					sg:SetPercent(sg:GetPercent() + 0.01)
+					self:GetParent():queuecommand("Update")
+				end
+			end,
+			MouseRightClickMessageCommand = function(self)
+				if isOver(self) and sg then
+					sg:SetPercent(sg:GetPercent() - 0.01)
+					self:GetParent():queuecommand("Update")
+				end
+			end
+		},
+		LoadFont("Common normal") .. {
+			--song name
+			InitCommand = function(self)
+				self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(32, 62)) / tzoom):halign(0):valign(1):draworder(1)
+			end,
+			DisplayCommand = function(self)
+				if goalsong then
+					self:settext(goalsong:GetDisplayMainTitle()):diffuse(getMainColor("positive"))
+				else
+					self:settext(sg:GetChartKey()):diffuse(getMainColor("negative"))
+				end
+			end,
+			HighlightCommand = function(self)
+				highlightIfOver(self)
+			end,
+			MouseLeftClickMessageCommand = function(self)
+				if sg then
+					if isOver(self) and sg and goalsong and goalsteps then
+						local success = SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
+						if success then
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(sg:GetRate())
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(sg:GetRate())
+							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(sg:GetRate())
+							MESSAGEMAN:Broadcast("GoalSelected")
 						end
 					end
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--pb
-				InitCommand = function(self)
-					self:x(c2x):zoom(tzoom):halign(0):valign(0)
-				end,
-				DisplayCommand = function(self)
-					local pb = sg:GetPBUpTo()
-					if pb then
-						if pb:GetMusicRate() < sg:GetRate() then
-							local ratestring = string.format("%.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
-							self:settextf("%s: %5.2f%% (%s)", translated_info["Best"], pb:GetWifeScore() * 100, ratestring)
-						else
-							self:settextf("%s: %5.2f%%", translated_info["Best"], pb:GetWifeScore() * 100)
-						end
-						self:diffuse(getGradeColor(pb:GetWifeGrade()))
-						self:visible(true)
+			end
+		},
+		LoadFont("Common normal") .. {
+			--pb
+			InitCommand = function(self)
+				self:x(c2x):zoom(tzoom):halign(0):valign(0)
+			end,
+			DisplayCommand = function(self)
+				local pb = sg:GetPBUpTo()
+				if pb then
+					if pb:GetMusicRate() < sg:GetRate() then
+						local ratestring = string.format("%.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
+						self:settextf("%s: %5.2f%% (%s)", translated_info["Best"], pb:GetWifeScore() * 100, ratestring)
 					else
-						self:settextf("(%s: %5.2f%%)", translated_info["Best"], 0)
-						self:diffuse(byAchieved(sg))
+						self:settextf("%s: %5.2f%%", translated_info["Best"], pb:GetWifeScore() * 100)
 					end
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--assigned
-				InitCommand = function(self)
-					self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth(width / 4 / tzoom)
-				end,
-				DisplayCommand = function(self)
-					self:settextf("%s: %s", translated_info["Assigned"], sg:WhenAssigned()):diffuse(byAchieved(sg))
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--achieved
-				InitCommand = function(self)
-					self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth(width / 4 / tzoom)
-				end,
-				DisplayCommand = function(self)
-					if sg:IsAchieved() then
-						self:settextf("%s: %s", translated_info["Achieved"], sg:WhenAchieved())
-					elseif sg:IsVacuous() then
-						self:settext(translated_info["Vacuous"])
-					else
-						self:settext("")
-					end
+					self:diffuse(getGradeColor(pb:GetWifeGrade()))
+					self:visible(true)
+				else
+					self:settextf("(%s: %5.2f%%)", translated_info["Best"], 0)
 					self:diffuse(byAchieved(sg))
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--msd diff
-				InitCommand = function(self)
-					self:x(c5x):zoom(tzoom):halign(1):valign(1)
-				end,
-				DisplayCommand = function(self)
-					if goalsteps then
-						local msd = goalsteps:GetMSD(sg:GetRate(), 1)
-						self:settextf("%5.1f", msd):diffuse(byMSD(msd))
-					else
-						self:settext("??")
-					end
+			end
+		},
+		LoadFont("Common normal") .. {
+			--assigned
+			InitCommand = function(self)
+				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth(width / 4 / tzoom)
+			end,
+			DisplayCommand = function(self)
+				self:settextf("%s: %s", translated_info["Assigned"], sg:WhenAssigned()):diffuse(byAchieved(sg))
+			end
+		},
+		LoadFont("Common normal") .. {
+			--achieved
+			InitCommand = function(self)
+				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth(width / 4 / tzoom)
+			end,
+			DisplayCommand = function(self)
+				if sg:IsAchieved() then
+					self:settextf("%s: %s", translated_info["Achieved"], sg:WhenAchieved())
+				elseif sg:IsVacuous() then
+					self:settext(translated_info["Vacuous"])
+				else
+					self:settext("")
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--steps diff
-				InitCommand = function(self)
-					self:x(c5x):zoom(tzoom):halign(1):valign(0)
-				end,
-				DisplayCommand = function(self)
-					if goalsteps and goalsong then
-						local diff = goalsteps:GetDifficulty()
-						self:settext(getShortDifficulty(diff))
-						self:diffuse(byDifficulty(diff))
-					else
-						self:settext("??")
-						self:diffuse(getMainColor("negative"))
-					end
+				self:diffuse(byAchieved(sg))
+			end
+		},
+		LoadFont("Common normal") .. {
+			--msd diff
+			InitCommand = function(self)
+				self:x(c5x):zoom(tzoom):halign(1):valign(1)
+			end,
+			DisplayCommand = function(self)
+				if goalsteps then
+					local msd = goalsteps:GetMSD(sg:GetRate(), 1)
+					self:settextf("%5.1f", msd):diffuse(byMSD(msd))
+				else
+					self:settext("??")
 				end
-			},
+			end
+		},
+		LoadFont("Common normal") .. {
+			--steps diff
+			InitCommand = function(self)
+				self:x(c5x):zoom(tzoom):halign(1):valign(0)
+			end,
+			DisplayCommand = function(self)
+				if goalsteps and goalsong then
+					local diff = goalsteps:GetDifficulty()
+					self:settext(getShortDifficulty(diff))
+					self:diffuse(byDifficulty(diff))
+				else
+					self:settext("??")
+					self:diffuse(getMainColor("negative"))
+				end
+			end
+		},
 	}
 	return o
 end
