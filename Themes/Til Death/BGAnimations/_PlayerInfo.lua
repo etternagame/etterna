@@ -168,8 +168,7 @@ end
 
 
 
-t[#t + 1] =
-	Def.Actor {
+t[#t + 1] = Def.Actor {
 	BeginCommand = function(self)
 		self:queuecommand("Set")
 	end,
@@ -187,8 +186,7 @@ t[#t + 1] =
 	end
 }
 
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	Name = "Avatar" .. PLAYER_1,
 	BeginCommand = function(self)
 		self:queuecommand("Set")
@@ -222,287 +220,278 @@ t[#t + 1] =
 			end
 		end
 	},
-	LoadFont("Common Normal") ..
-		{
-			Name = "Name",
-			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(360,500)):halign(0):zoom(0.55):diffuse(ButtonColor)
-			end,
-			SetCommand = function(self)
-				self:settextf("%s: %5.2f", profileName, playerRating)
-				if profileName == "Default Profile" or profileName == "" then
-					easyInputStringWithFunction(
-						translated_info["ProfileNew"],
-						64,
-						false,
-						setnewdisplayname
-					)
-				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-					easyInputStringWithFunction(translated_info["NameChange"], 64, false, setnewdisplayname)
-				end
-			end,
-			ProfileRenamedMessageCommand = function(self, params)
-				self:settextf("%s: %5.2f", params.doot, playerRating)
-			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
+	LoadFont("Common Normal") .. {
+		Name = "Name",
+		InitCommand = function(self)
+			self:xy(AvatarX + 54, AvatarY + 8):maxwidth(capWideScale(360,500)):halign(0):zoom(0.55):diffuse(ButtonColor)
+		end,
+		SetCommand = function(self)
+			self:settextf("%s: %5.2f", profileName, playerRating)
+			if profileName == "Default Profile" or profileName == "" then
+				easyInputStringWithFunction(
+					translated_info["ProfileNew"],
+					64,
+					false,
+					setnewdisplayname
+				)
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			Name = "loginlogout",
-			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 8):halign(0.5):zoom(0.45):diffuse(ButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				if DLMAN:IsLoggedIn() then
-					self:queuecommand("Login")
-				else
-					self:queuecommand("LogOut")
-				end
-			end,
-			LogOutMessageCommand = function(self)
-				local top = SCREENMAN:GetTopScreen():GetName()
-				if DLMAN:IsLoggedIn() then
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
-					playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
-					playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
-					playerConfig:save(pn_to_profile_slot(PLAYER_1))
-					DLMAN:Logout()
-				end
-				if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
-					self:settext(translated_info["ClickLogin"])
-				else
-					self:settext(translated_info["NotLoggedIn"])
-				end
-			end,
-			LoginMessageCommand = function(self)
-				if not SCREENMAN:GetTopScreen() then return end -- ?????
-				local top = SCREENMAN:GetTopScreen():GetName()
-				if not DLMAN:IsLoggedIn() then return end
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
-				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+				easyInputStringWithFunction(translated_info["NameChange"], 64, false, setnewdisplayname)
+			end
+		end,
+		ProfileRenamedMessageCommand = function(self, params)
+			self:settextf("%s: %5.2f", params.doot, playerRating)
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end
+	},
+	LoadFont("Common Normal") .. {
+		Name = "loginlogout",
+		InitCommand = function(self)
+			self:xy(SCREEN_CENTER_X, AvatarY + 8):halign(0.5):zoom(0.45):diffuse(ButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			if DLMAN:IsLoggedIn() then
+				self:queuecommand("Login")
+			else
+				self:queuecommand("LogOut")
+			end
+		end,
+		LogOutMessageCommand = function(self)
+			local top = SCREENMAN:GetTopScreen():GetName()
+			if DLMAN:IsLoggedIn() then
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = ""
+				playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = ""
 				playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
 				playerConfig:save(pn_to_profile_slot(PLAYER_1))
-				if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
-					self:settext(translated_info["ClickLogout"])
-				else
-					self:settext("")
-				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
-					if DLMAN:IsLoggedIn() then
-						self:queuecommand("LogOut")
-					else
-						loginStep1(self)
-					end
-				end
-			end,
-			OnlineUpdateMessageCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
-			end,
-			LoginFailedMessageCommand = function(self)
-				ms.ok(translated_info["LoginFailed"])
-			end,
-			LoginHotkeyPressedMessageCommand = function(self)
+				DLMAN:Logout()
+			end
+			if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
+				self:settext(translated_info["ClickLogin"])
+			else
+				self:settext(translated_info["NotLoggedIn"])
+			end
+		end,
+		LoginMessageCommand = function(self)
+			if not SCREENMAN:GetTopScreen() then return end -- ?????
+			local top = SCREENMAN:GetTopScreen():GetName()
+			if not DLMAN:IsLoggedIn() then return end
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName = DLMAN:GetUsername()
+			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken = DLMAN:GetToken()
+			playerConfig:set_dirty(pn_to_profile_slot(PLAYER_1))
+			playerConfig:save(pn_to_profile_slot(PLAYER_1))
+			if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
+				self:settext(translated_info["ClickLogout"])
+			else
+				self:settext("")
+			end
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				if DLMAN:IsLoggedIn() then
 					self:queuecommand("LogOut")
 				else
 					loginStep1(self)
 				end
-			end,
-			LoginStep2Command = function(self)
-				loginStep2()
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			Name = "LoggedInAs",
-			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(ButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				if DLMAN:IsLoggedIn() then
-					self:queuecommand("Login")
-				else
-					self:queuecommand("LogOut")
-				end
-			end,
-			LogOutMessageCommand = function(self)
-				local top = SCREENMAN:GetTopScreen():GetName()
-				if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
-					self:settext("")
-					self:GetParent():SetUpdateFunction(highlight2)
-				else
-					self:settext("")
-					self:GetParent():SetUpdateFunction(highlight)
-				end
-			end,
-			LoginMessageCommand = function(self) --this seems a little clunky -mina
-				if not DLMAN:IsLoggedIn() then
-					self:halign(0.5)
-					return
-				end
-				if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-					self:settextf(
-						"%s %s (%5.2f: #%i)",
-						translated_info["LoggedInAs"],
-						DLMAN:GetUsername(),
-						DLMAN:GetSkillsetRating("Overall"),
-						DLMAN:GetSkillsetRank(ms.SkillSets[1])
-					)
-					self:GetParent():SetUpdateFunction(highlight2)
-				else
-					self:settextf(
-						"%s %s (%5.2f: #%i)",
-						translated_info["LoggedInAs"],
-						DLMAN:GetUsername(),
-						DLMAN:GetSkillsetRating("Overall"),
-						DLMAN:GetSkillsetRank(ms.SkillSets[1])
-					)
-					self:GetParent():SetUpdateFunction(highlight)
-				end
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				local userpage = "urlnoexit,https://etternaonline.com/user/" .. DLMAN:GetUsername()
-				if isOver(self) then
-					GAMESTATE:ApplyGameCommand(userpage)
-				end
-			end,
-			OnlineUpdateMessageCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
+		end,
+		OnlineUpdateMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		LoginFailedMessageCommand = function(self)
+			ms.ok(translated_info["LoginFailed"])
+		end,
+		LoginHotkeyPressedMessageCommand = function(self)
+			if DLMAN:IsLoggedIn() then
+				self:queuecommand("LogOut")
+			else
+				loginStep1(self)
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 21):halign(0):zoom(0.35):diffuse(nonButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settextf("%s %s", playCount, translated_info["Plays"])
+		end,
+		LoginStep2Command = function(self)
+			loginStep2()
+		end
+	},
+	LoadFont("Common Normal") .. {
+		Name = "LoggedInAs",
+		InitCommand = function(self)
+			self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(ButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			if DLMAN:IsLoggedIn() then
+				self:queuecommand("Login")
+			else
+				self:queuecommand("LogOut")
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 31.5):halign(0):zoom(0.35):diffuse(nonButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				local time = SecondsToHHMMSS(playTime)
-				self:settextf("%s %s", time, translated_info["Playtime"])
+		end,
+		LogOutMessageCommand = function(self)
+			local top = SCREENMAN:GetTopScreen():GetName()
+			if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
+				self:settext("")
+				self:GetParent():SetUpdateFunction(highlight2)
+			else
+				self:settext("")
+				self:GetParent():SetUpdateFunction(highlight)
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(AvatarX + 54, AvatarY + 42):halign(0):zoom(0.35):diffuse(nonButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settextf("%s %s", noteCount, translated_info["TapsHit"])
+		end,
+		LoginMessageCommand = function(self) --this seems a little clunky -mina
+			if not DLMAN:IsLoggedIn() then
+				self:halign(0.5)
+				return
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(SCREEN_CENTER_X - capWideScale(125,175), AvatarY + 41):halign(0.5):zoom(0.4):diffuse(nonButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			OptionsScreenClosedMessageCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
-				self:y(AvatarY + 41 - (online and 18 or 0))
-				self:settextf("%s: %s", translated_info["Judge"], GetTimingDifficulty())
+			if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
+				self:settextf(
+					"%s %s (%5.2f: #%i)",
+					translated_info["LoggedInAs"],
+					DLMAN:GetUsername(),
+					DLMAN:GetSkillsetRating("Overall"),
+					DLMAN:GetSkillsetRank(ms.SkillSets[1])
+				)
+				self:GetParent():SetUpdateFunction(highlight2)
+			else
+				self:settextf(
+					"%s %s (%5.2f: #%i)",
+					translated_info["LoggedInAs"],
+					DLMAN:GetUsername(),
+					DLMAN:GetSkillsetRating("Overall"),
+					DLMAN:GetSkillsetRank(ms.SkillSets[1])
+				)
+				self:GetParent():SetUpdateFunction(highlight)
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			Name = "Version",
-			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 3, AvatarY + 8):halign(1):zoom(0.42):diffuse(ButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settext(GAMESTATE:GetEtternaVersion())
-			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				local tag = "urlnoexit,https://github.com/etternagame/etterna/releases/tag/v" .. GAMESTATE:GetEtternaVersion()
-				if isOver(self) then
-					GAMESTATE:ApplyGameCommand(tag)
-				end
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			local userpage = "urlnoexit,https://etternaonline.com/user/" .. DLMAN:GetUsername()
+			if isOver(self) then
+				GAMESTATE:ApplyGameCommand(userpage)
 			end
-		},
+		end,
+		OnlineUpdateMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(AvatarX + 54, AvatarY + 21):halign(0):zoom(0.35):diffuse(nonButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settextf("%s %s", playCount, translated_info["Plays"])
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(AvatarX + 54, AvatarY + 31.5):halign(0):zoom(0.35):diffuse(nonButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			local time = SecondsToHHMMSS(playTime)
+			self:settextf("%s %s", time, translated_info["Playtime"])
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(AvatarX + 54, AvatarY + 42):halign(0):zoom(0.35):diffuse(nonButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settextf("%s %s", noteCount, translated_info["TapsHit"])
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(SCREEN_CENTER_X - capWideScale(125,175), AvatarY + 41):halign(0.5):zoom(0.4):diffuse(nonButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		OptionsScreenClosedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+			self:y(AvatarY + 41 - (online and 18 or 0))
+			self:settextf("%s: %s", translated_info["Judge"], GetTimingDifficulty())
+		end
+	},
+	LoadFont("Common Normal") .. {
+		Name = "Version",
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH - 3, AvatarY + 8):halign(1):zoom(0.42):diffuse(ButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settext(GAMESTATE:GetEtternaVersion())
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			local tag = "urlnoexit,https://github.com/etternagame/etterna/releases/tag/v" .. GAMESTATE:GetEtternaVersion()
+			if isOver(self) then
+				GAMESTATE:ApplyGameCommand(tag)
+			end
+		end
+	},
 	LoadFont("Common Normal") .. {
 		Name = "refreshbutton",
-			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 3, AvatarY + 19):halign(1):zoom(0.35):diffuse(ButtonColor)
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH - 3, AvatarY + 19):halign(1):zoom(0.35):diffuse(ButtonColor)
 
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settextf(translated_info["RefreshSongs"])
-			end,
-			HighlightCommand=function(self)
-				highlightIfOver(self)
-			end,
-			MouseLeftClickMessageCommand=function(self)
-				if isOver(self) then
-					SONGMAN:DifferentialReload()
-				end
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settextf(translated_info["RefreshSongs"])
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MouseLeftClickMessageCommand=function(self)
+			if isOver(self) then
+				SONGMAN:DifferentialReload()
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH - 3, AvatarY + 30):halign(1):zoom(0.35):diffuse(nonButtonColor)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settextf("%s: %i", translated_info["SongsLoaded"], SONGMAN:GetNumSongs())
-			end,
-			DFRFinishedMessageCommand = function(self)
-				self:queuecommand("Set")
-			end
-		},
-		-- ok coulda done this as a separate object to avoid copy paste but w.e
-		-- upload progress bar bg
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH - 3, AvatarY + 30):halign(1):zoom(0.35):diffuse(nonButtonColor)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settextf("%s: %i", translated_info["SongsLoaded"], SONGMAN:GetNumSongs())
+		end,
+		DFRFinishedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	},
+	-- ok coulda done this as a separate object to avoid copy paste but w.e
+	-- upload progress bar bg
 	Def.Quad {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 41):zoomto(uploadbarwidth, uploadbarheight)
@@ -514,8 +503,8 @@ t[#t + 1] =
 				self:diffusealpha(0)
 			end
 		end
-		},
-		-- fill bar
+	},
+	-- fill bar
 	Def.Quad {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 41):zoomto(0, uploadbarheight)
@@ -529,9 +518,8 @@ t[#t + 1] =
 			end
 		end
 		},
-		-- super required explanatory text
-	LoadFont("Common Normal") ..
-		{
+	-- super required explanatory text
+	LoadFont("Common Normal") .. {
 	    InitCommand = function(self)
 			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 27):halign(0):valign(0)
 			self:diffuse(nonButtonColor):diffusealpha(0):zoom(0.35)
@@ -543,22 +531,21 @@ t[#t + 1] =
 				self:diffusealpha(0)
 			end
 		end
-		}
 	}
+}
 
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	InitCommand = function(self)
 		self:SetUpdateFunction(UpdateTime)
 	end,
-	LoadFont("Common Normal") ..  {
+	LoadFont("Common Normal") .. {
 		Name = "CurrentTime",
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 3, SCREEN_BOTTOM - 3.5):halign(1):valign(1):zoom(0.45)
 		end
 	},
 
-	LoadFont("Common Normal") ..  {
+	LoadFont("Common Normal") .. {
 		Name = "SessionTime",
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_BOTTOM - 5):halign(0.5):valign(1):zoom(0.45)
