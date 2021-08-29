@@ -3,7 +3,7 @@ local framex = SCREEN_WIDTH - capWideScale(get43size(230), 230)
 local framey = 60
 local frameWidth = capWideScale(get43size(220), 220)
 local spacing = 34
-local multiscores
+local multiscores = {}
 
 -- Takes an index into multiscores
 local function SetActivePlayer(locaIndex)
