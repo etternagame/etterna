@@ -64,7 +64,8 @@ function changeTab(tabName, tabType)
 end
 local chat = Def.ActorFrame {
 	BeginCommand = function(self)
-		self:SetUpdateFunction(function(self)
+		currentScreen = SCREENMAN:GetTopScreen()
+		local updf = function(self)
 			local s = SCREENMAN:GetTopScreen()
 			if not s then
 				return
@@ -112,7 +113,9 @@ local chat = Def.ActorFrame {
 				end
 			end
 			MESSAGEMAN:Broadcast("UpdateChatOverlay")
-		end)
+		end
+		self:SetUpdateFunction(updf)
+		updf(self)
 		self:SetUpdateFunctionInterval(0.1)
 	end,
 }
