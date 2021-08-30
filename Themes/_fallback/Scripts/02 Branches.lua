@@ -8,7 +8,7 @@ function SMOnlineScreen() -- used for various SMOnline-enabled screens:
 	if not IsNetSMOnline() then
 		return "ScreenSelectMusic"
 	end
-	if not IsSMOnlineLoggedIn(PLAYER1) then
+	if not IsSMOnlineLoggedIn() then
 		return "ScreenSMOnlineLogin"
 	end
 	return "ScreenNetRoom"
@@ -71,7 +71,7 @@ Branch = {
 	end,
 	MultiScreen = function()
 		if IsNetSMOnline() then
-			if not IsSMOnlineLoggedIn(PLAYER_1) then
+			if not IsSMOnlineLoggedIn() then
 				return "ScreenNetSelectProfile"
 			else
 				return "ScreenNetRoom"

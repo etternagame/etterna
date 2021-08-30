@@ -49,7 +49,7 @@ local isGameplay = false
 local isInSinglePlayer = false
 local currentScreen
 local show = true
-local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+local online = IsNetSMOnline() and IsSMOnlineLoggedIn() and NSMAN:IsETTP()
 local function changeTab(tabName, tabType)
 	currentTabName = tabName
 	currentTabType = tabType
@@ -91,7 +91,7 @@ local chat = Def.ActorFrame {
 				isInSinglePlayer = false
 			end
 		
-			online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+			online = IsNetSMOnline() and IsSMOnlineLoggedIn() and NSMAN:IsETTP()
 			isGameplay = (currentScreen:find("Gameplay") ~= nil or currentScreen:find("StageInformation") ~= nil
 							or currentScreen:find("PlayerOptions") ~= nil)
 		
@@ -131,7 +131,7 @@ chat.MinimiseMessageCommand = function(self)
 end
 local i = 0
 chat.InitCommand = function(self)
-	online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+	online = IsNetSMOnline() and IsSMOnlineLoggedIn() and NSMAN:IsETTP()
 	self:visible(false)
 	MESSAGEMAN:Broadcast("Minimise")
 end

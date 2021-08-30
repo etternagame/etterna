@@ -2,12 +2,7 @@ function SMOnlineScreen() -- used for various SMOnline-enabled screens:
 	if not IsNetSMOnline() then
 		return "ScreenSelectMusic"
 	end
-	for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
-		if not IsSMOnlineLoggedIn(pn) then
-			return "ScreenSMOnlineLogin"
-		end
-	end
-	if not IsSMOnlineLoggedIn(pn) then
+	if not IsSMOnlineLoggedIn() then
 		return "ScreenSMOnlineLogin"
 	end
 	return "ScreenNetRoom"
@@ -25,7 +20,7 @@ Branch.StartGame = function()
 end
 Branch.MultiScreen = function()
 	if IsNetSMOnline() then
-		if not IsSMOnlineLoggedIn(PLAYER_1) then
+		if not IsSMOnlineLoggedIn() then
 			return "ScreenNetSelectProfile"
 		else
 			return "ScreenNetSelectProfile" --return "ScreenNetRoom" 	-- cant do this, we need to select a local profile even
