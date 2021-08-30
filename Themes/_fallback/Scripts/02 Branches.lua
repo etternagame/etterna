@@ -8,20 +8,10 @@ function SMOnlineScreen() -- used for various SMOnline-enabled screens:
 	if not IsNetSMOnline() then
 		return "ScreenSelectMusic"
 	end
-	for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
-		if not IsSMOnlineLoggedIn(pn) then
-			return "ScreenSMOnlineLogin"
-		end
+	if not IsSMOnlineLoggedIn(PLAYER1) then
+		return "ScreenSMOnlineLogin"
 	end
 	return "ScreenNetRoom"
-end
-
-function SelectMusicOrCourse()
-	if IsNetSMOnline() then
-		return "ScreenNetSelectMusic"
-	else
-		return "ScreenSelectMusic"
-	end
 end
 
 function GameOverOrContinue()
@@ -44,7 +34,7 @@ function ToGameplay()
 end
 
 function ToStageInformation()
-	if not IsNetSMOnline() then
+	if not IsSMOnlineLoggedIn() then
 		return "ScreenStageInformation"
 	else
 		return "ScreenNetStageInformation"
