@@ -45,8 +45,12 @@ local tabs = {{0, ""}}
 local messages = chats[0][""]
 local currentTabName = ""
 local currentTabType = 0
-
-function changeTab(tabName, tabType)
+local isGameplay = false
+local isInSinglePlayer = false
+local currentScreen
+local show = true
+local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
+local function changeTab(tabName, tabType)
 	currentTabName = tabName
 	currentTabType = tabType
 	if not chats[tabType][tabName] then
@@ -119,9 +123,6 @@ local chat = Def.ActorFrame {
 		self:SetUpdateFunctionInterval(0.1)
 	end,
 }
-local currentScreen
-local show = true
-local online = IsNetSMOnline() and IsSMOnlineLoggedIn(PLAYER_1) and NSMAN:IsETTP()
 
 chat.MinimiseMessageCommand = function(self)
 	self:decelerate(tweentime)
@@ -140,8 +141,7 @@ chat.BeginTextEntryMessageCommand = function(self)
 		MESSAGEMAN:Broadcast("Minimise")
 	end
 end
-local isGameplay
-local isInSinglePlayer
+
 chat.MultiplayerDisconnectionMessageCommand = function(self)
 	online = false
 	self:visible(false)
@@ -445,20 +445,20 @@ chat.UpdateChatOverlayMessageCommand = function(self)
 	SCREENMAN:set_input_redirected("PlayerNumber_P1", typing)
 end
 
-function shiftTab(fromIndex, toIndex)
+local function shiftTab(fromIndex, toIndex)
 	-- tabs[index of tab][parameter table....]
 	-- 					[1 is type, 2 is tab contents?]
 	tabs[toIndex] = tabs[fromIndex]
 	tabs[fromIndex] = nil
 end
 
-function shiftAllTabs(emptyIndex)
+local function shiftAllTabs(emptyIndex)
 	for i = emptyIndex + 1, maxTabs - 1 do
 		shiftTab(i, i - 1)
 	end
 end
 
-function overTab(mx, my)
+local function overTab(mx, my)
 	for i = 0, maxTabs - 1 do
 		if tabs[i + 1] then
 			if
