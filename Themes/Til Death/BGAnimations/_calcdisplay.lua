@@ -1124,9 +1124,10 @@ o[#o + 1] = LoadFont("Common Normal") .. {
         else
             if diffGroups[activeDiffGroup]["Jack"] and steps then
                 local jackpbm = 1.0013144
-                local maxpoints = steps:GetRelevantRadars()[1] * jackpbm
+                local tappoints = steps:GetRelevantRadars()[1] * 2
+                local maxpoints = tappoints * jackpbm
                 local afterloss = maxpoints - jackLossSumRight - jackLossSumLeft
-                local reqpoints = steps:GetRelevantRadars()[1] * 0.93
+                local reqpoints = tappoints * 0.93
                 self:settextf("Upper Bound: %.2f  |  Loss Sum L: %5.2f  |  Loss Sum R: %5.2f  |  Pt AfterLoss/Req/Max: %5.2f/%5.2f/%5.2f", lowerGraphMaxJack*0.9, jackLossSumLeft, jackLossSumRight, afterloss, reqpoints, maxpoints)
             else
                 self:settextf("Upper Bound: %.4f", lowerGraphMax)
