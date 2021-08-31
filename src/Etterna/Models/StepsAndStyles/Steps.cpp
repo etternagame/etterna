@@ -1057,8 +1057,8 @@ class LunaSteps : public Luna<Steps>
 		lua_pushstring(L, "JackHand");
 		lua_createtable(L, 0, 2);
 		if (p->calcdebugoutput.empty()) {
-			for (auto i = 0; i < 2; i++) {
-				lua_pushstring(L, i != 0 ? "Right" : "Left");
+			for (auto hand = 0; hand < 2; hand++) {
+				lua_pushstring(L, hand != 0 ? "Right" : "Left");
 				std::vector<float> nothing;
 				LuaHelpers::CreateTableFromArray(nothing, L);
 				lua_rawset(L, -3);
@@ -1070,15 +1070,17 @@ class LunaSteps : public Luna<Steps>
 			lua_createtable(L, 0, SONGMAN->calc->jack_diff.at(hand).size());
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
 			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
+			auto loss_vals = SONGMAN->calc->jack_loss.at(hand);
 			for (size_t i = 0; i < vals.size(); i++) {
 				auto v1 = vals[i].first;
 				auto v2 = vals[i].second;
 				auto v3 = 0.F;
+				auto v4 = loss_vals[i];
 				// this is required because stam_vals is not guaranteed the same size
 				// also due to a calc bug
 				if (i < stam_vals.size())
 					v3 = stam_vals[i];
-				std::vector<float> stuff{ v1, v2, v3 };
+				std::vector<float> stuff{ v1, v2, v3, v4 };
 				LuaHelpers::CreateTableFromArray(stuff, L);
 				lua_rawseti(L, -2, i + 1);
 			}

@@ -353,20 +353,28 @@ jack_pointloser_func(const float& x, const float& y) -> float
  * this sets pointloss debug values only, not diff. Note: jackloss should always
  * be a positive value, and be subtracted */
 inline auto
-jackloss(const float& x, Calc& calc, const int& hand, const bool stam) -> float
+jackloss(const float& x, Calc& calc, const int& hand, const bool stam, const bool debug = false) -> float
 {
-	calc.jack_loss.at(hand).resize(calc.numitv);
-	for (auto itv = 0; itv < calc.numitv; ++itv) {
-		calc.jack_loss.at(hand).at(itv) = 0.F;
-	}
-
 	const auto& v = stam ? JackStamAdjust(x, calc, hand) : calc.jack_diff.at(hand);
 	auto total = 0.F;
 
-	for (const auto& y : v) {
-		if (x < y.second && y.second > 0.F) {
-			const auto pointslost = jack_pointloser_func(x, y.second);
-			total += pointslost;
+	if (debug) {
+		calc.jack_loss.at(hand).resize(v.size());
+		calc.jack_loss.at(hand).assign(v.size(), 0.F);
+		for (size_t i = 0; i < v.size(); i++) {
+			const auto& y = v[i];
+			if (x < y.second && y.second > 0.F) {
+				const auto pointslost = jack_pointloser_func(x, y.second);
+				calc.jack_loss.at(hand).at(i) = pointslost;
+				total += pointslost;
+			}
+		}
+	} else {
+		for (const auto& y : v) {
+			if (x < y.second && y.second > 0.F) {
+				const auto pointslost = jack_pointloser_func(x, y.second);
+				total += pointslost;
+			}
 		}
 	}
 
@@ -421,10 +429,6 @@ CalcInternal(float& gotpoints,
 	// i don't like the copypasta either but the boolchecks where
 	// they were were too slow
 	if (debug) {
-		calc.debugValues.at(hand)[2][StamMod].resize(calc.numitv);
-		calc.debugValues.at(hand)[2][Pts].resize(calc.numitv);
-		calc.debugValues.at(hand)[2][PtLoss].resize(calc.numitv);
-		calc.debugValues.at(hand)[1][MSD].resize(calc.numitv);
 		// final debug output should always be with stam activated
 		StamAdjust(x, ss, calc, hand, true);
 		for (auto i = 0; i < calc.numitv; ++i) {
@@ -627,7 +631,19 @@ Calc::Chisel(const float player_skill,
 	 * clarification, player_skill value being passed into here is
 	 * the final value we've determined */
 	if (debugoutput) {
+		// also keep it in mind that the skillset passed here is
+		// the highest stam adjusted skillset
 		for (const auto& hand : both_hands) {
+			debugValues.at(hand)[2][StamMod].resize(numitv);
+			debugValues.at(hand)[2][StamMod].assign(numitv, 0.F);
+			debugValues.at(hand)[2][Pts].resize(numitv);
+			debugValues.at(hand)[2][Pts].assign(numitv, 0.F);
+			debugValues.at(hand)[2][PtLoss].resize(numitv);
+			debugValues.at(hand)[2][PtLoss].assign(numitv, 0.F);
+			debugValues.at(hand)[1][MSD].resize(numitv);
+			debugValues.at(hand)[1][MSD].assign(numitv, 0.F);
+
+			// fills MSD, Pts, PtLoss debugValues
 			CalcInternal(gotpoints,
 						 curr_player_skill,
 						 ss,
@@ -635,6 +651,9 @@ Calc::Chisel(const float player_skill,
 						 *this,
 						 hand,
 						 debugoutput);
+
+			// fills jack_loss debug values
+			jackloss(curr_player_skill, *this, hand, stamina, debugoutput);
 
 			/* set total pattern mod value (excluding stam for now), essentially
 			 * this value is the cumulative effect of pattern mods on base nps
