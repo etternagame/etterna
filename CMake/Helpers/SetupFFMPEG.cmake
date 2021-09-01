@@ -44,7 +44,7 @@ list(APPEND FFMPEG_BUILD_LIBS
 
 ExternalProject_Add(ffmpeg_dl
     PREFIX ${PROJECT_BINARY_DIR}/ffmpeg_dl
-    GIT_REPOSITORY "https://github.com/stepmania/ffmpeg.git"
+    GIT_REPOSITORY "https://github.com/etternagame/ffmpeg.git"
     GIT_PROGRESS TRUE
     GIT_SHALLOW TRUE
     GIT_TAG "n2.1.3"
