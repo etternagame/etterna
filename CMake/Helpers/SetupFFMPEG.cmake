@@ -1,6 +1,6 @@
 include(ExternalProject)
 
-set(FFMPEG_ROOT "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg-2.1.3-src")
+set(FFMPEG_ROOT "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg-3.0.1-src")
 set(FFMPEG_BIN  "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg_dl-build")
 
 list(APPEND FFMPEG_CONFIGURE
@@ -47,7 +47,7 @@ ExternalProject_Add(ffmpeg_dl
     GIT_REPOSITORY "https://github.com/etternagame/ffmpeg.git"
     GIT_PROGRESS TRUE
     GIT_SHALLOW TRUE
-    GIT_TAG "n2.1.3"
+    GIT_TAG "n3.0.1"
     
     BUILD_BYPRODUCTS ${FFMPEG_BUILD_LIBS}
     SOURCE_DIR ${FFMPEG_ROOT}
