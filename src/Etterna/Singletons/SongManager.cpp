@@ -407,7 +407,7 @@ SongManager::CalcTestStuff()
 	{
 		if (!test_vals[ss].empty()) {
 			Locator::getLogger()->trace(
-			  "%{:+0.2f} avg delta for test group {}",
+			  "{:+0.2f} avg delta for test group {}",
 			  std::accumulate(begin(test_vals[ss]), end(test_vals[ss]), 0.F) /
 				test_vals[ss].size(),
 			  SkillsetToString(ss).c_str());
