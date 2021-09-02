@@ -17,7 +17,7 @@
 // bpm flux float precision etc
 constexpr float anchor_spacing_buffer_ms = 10.F;
 constexpr float anchor_speed_increase_cutoff_factor = 1.9F;
-static const int len_cap = 5;
+static const int len_cap = 4;
 // ms to pass that definitely means a jack has finished and we started a new one
 constexpr float jack_spacing_buffer_ms = 1000.F;
 

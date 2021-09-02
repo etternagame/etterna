@@ -303,7 +303,7 @@ JackStamAdjust(const float x, Calc& calc, const int hand)
 	// Jack stamina Model params (see above)
 	static const auto stam_ceil = 1.05234F;
 	static const auto stam_mag = 23.F;
-	static const auto stam_fscale = 2150.F;
+	static const auto stam_fscale = 750.F;
 	static const auto stam_prop = 0.49424F;
 	auto stam_floor = 0.95F;
 	auto mod = 0.95F;
@@ -336,7 +336,7 @@ JackStamAdjust(const float x, Calc& calc, const int hand)
 	return output;
 }
 
-constexpr float magic_num = 16.F;
+constexpr float magic_num = 12.F;
 
 [[nodiscard]] inline auto
 jack_pointloser_func(const float& x, const float& y) -> float
@@ -985,7 +985,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 451;
+int mina_calc_version = 452;
 auto
 GetCalcVersion() -> int
 {
