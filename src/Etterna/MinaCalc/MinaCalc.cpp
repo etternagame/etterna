@@ -105,7 +105,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 * files */
 		for (auto i = 0; i < NUM_Skillset; ++i) {
 			if (iteration_skillet_values[i] > base * 0.9f) {
-				iteration_skillet_values[i] = Chisel(iteration_skillet_values[i] * 0.82792711F,
+				iteration_skillet_values[i] = Chisel(iteration_skillet_values[i] * 0.9F,
 									0.32F,
 									score_goal,
 									static_cast<Skillset>(i),
@@ -301,11 +301,11 @@ JackStamAdjust(const float x, Calc& calc, const int hand)
   -> std::vector<std::pair<float, float>>
 {
 	// Jack stamina Model params (see above)
-	static const auto stam_ceil = 1.0087639F;
-	static const auto stam_mag = 22.086582F;
-	static const auto stam_fscale = 2060.1338F;
-	static const auto stam_prop = 0.48069301F;
-	auto stam_floor = 0.90450478F;
+	static const auto stam_ceil = 1.05234F;
+	static const auto stam_mag = 23.F;
+	static const auto stam_fscale = 2150.F;
+	static const auto stam_prop = 0.49424F;
+	auto stam_floor = 0.95F;
 	auto mod = 0.95F;
 
 	auto avs2 = 0.F;
@@ -319,7 +319,7 @@ JackStamAdjust(const float x, Calc& calc, const int hand)
 	for (size_t i = 0; i < diff.size(); i++) {
 		const auto avs1 = avs2;
 		avs2 = diff.at(i).second;
-		mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.0156831F) / stam_mag;
+		mod += ((((avs1 + avs2) / 2.F) / (stam_prop * x)) - 1.F) / stam_mag;
 		if (mod > 0.95F) {
 			stam_floor += (mod - 0.95F) / stam_fscale;
 		}
@@ -336,12 +336,12 @@ JackStamAdjust(const float x, Calc& calc, const int hand)
 	return output;
 }
 
-constexpr float magic_num = 16.077566F;
+constexpr float magic_num = 16.F;
 
 [[nodiscard]] inline auto
 jack_pointloser_func(const float& x, const float& y) -> float
 {
-	return std::max(static_cast<float>(magic_num * erf(0.096623257F * (y - x))), 0.040538613F);
+	return std::max(static_cast<float>(magic_num * erf(0.04F * (y - x))), 0.F);
 }
 
 /* ok this is a little jank, we are calculating jack loss looping over the
@@ -529,7 +529,7 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
  * degree above the actual max points as a cheap hack to water down some of the
  * absurd scaling hs/js/cj had. Note: do not set these values below 1 */
 constexpr float tech_pbm = 1.F;
-constexpr float jack_pbm = 1.0013144F;
+constexpr float jack_pbm = 1.0175F;
 constexpr float stream_pbm = 1.01F;
 constexpr float bad_newbie_skillsets_pbm = 1.05F;
 
@@ -867,30 +867,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 							 pmod_product_cur_interval[Skill_Jumpstream];
 					*stam_base = max<float>(a, b);
 				} break;
-				case Skill_JackSpeed: {
-					if (i < calc.jack_diff.at(hand).size()) {
-						auto* jack_diff = &calc.jack_diff.at(hand).at(i).second;
-						// magic number
-						// basically, a low enough jack diff we dont care about
-						// so dont try to consider other patterns to modify it further
-						// this mixing with the fraction within causes spikes into inf
-						if (*jack_diff > 0.3f) {
-							auto tech_funk_at_jacks =
-							  calc.init_base_diff_vals.at(hand).at(TechBase).at(
-								i) *
-							  pmod_product_cur_interval.at(ss) *
-							  basescalers.at(ss);
-							tech_funk_at_jacks /=
-							  max<float>(calc.pmod_vals.at(hand).at(CJ).at(i) *
-										   calc.pmod_vals.at(hand).at(CJ).at(i),
-										 1.0F);
-							*jack_diff =
-							  lerp(0.3179549F,
-								   *jack_diff,
-								   tech_funk_at_jacks / fastsqrt(*jack_diff));
-						}
-					}
-				} break;
+				case Skill_JackSpeed:
+					break;
 				case Skill_Chordjack:
 					*adj_diff *=
 					  fastsqrt(calc.pmod_vals.at(hand).at(CJOHJump).at(i));
@@ -1007,7 +985,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 450;
+int mina_calc_version = 451;
 auto
 GetCalcVersion() -> int
 {
