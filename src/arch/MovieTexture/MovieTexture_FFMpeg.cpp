@@ -507,8 +507,8 @@ MovieDecoder_FFMpeg::OpenCodec()
 	m_pStream->codec->idct_algo = FF_IDCT_AUTO;
 	m_pStream->codec->error_concealment = 3;
 
-	if (pCodec->capabilities & CODEC_CAP_DR1)
-		m_pStream->codec->flags |= CODEC_FLAG_EMU_EDGE;
+	if (pCodec->capabilities & AV_CODEC_CAP_DR1)
+		m_pStream->codec->flags |= AV_CODEC_FLAG_EMU_EDGE;
 
 	Locator::getLogger()->trace("Opening codec {}", pCodec->name);
 
