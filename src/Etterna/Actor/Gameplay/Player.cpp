@@ -637,10 +637,12 @@ Player::Load()
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
 	  GAMESTATE->m_pCurSteps->GetChartKey(),
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	if (pb != nullptr) {
-		wifescorepersonalbest = pb->GetWifeScore();
-	} else {
+	
+	// the latter condition checks for Grade_Failed, NUM_Grade, Grade_Invalid
+	if (pb == nullptr || pb->GetGrade() >= 20) {
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
+	} else {
+		wifescorepersonalbest = pb->GetWifeScore();
 	}
 
 	if (m_pPlayerStageStats != nullptr) {
