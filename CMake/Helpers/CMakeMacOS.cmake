@@ -18,11 +18,19 @@ find_library(MAC_FRAME_CARBON Carbon)
 find_library(MAC_FRAME_COREAUDIO CoreAudio)
 find_library(MAC_FRAME_IOKIT IOKit)
 find_library(MAC_FRAME_METAL Metal)
+find_library(MAC_FRAME_VIDEO CoreVideo)
+find_library(MAC_FRAME_VIDEODECODEACCELERATION VideoDecodeAcceleration)
+find_library(MAC_FRAME_COREMEDIA CoreMedia)
+find_library(MAC_FRAME_VIDEOTOOLBOX VideoToolbox)
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_AUDIOUNIT})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_CARBON})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_COREAUDIO})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_IOKIT})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_METAL})
+target_link_libraries(Etterna PRIVATE ${MAC_FRAME_VIDEO})
+target_link_libraries(Etterna PRIVATE ${MAC_FRAME_VIDEODECODEACCELERATION})
+target_link_libraries(Etterna PRIVATE ${MAC_FRAME_COREMEDIA})
+target_link_libraries(Etterna PRIVATE ${MAC_FRAME_VIDEOTOOLBOX})
 
 # Extern Libraries
 target_link_libraries(Etterna PRIVATE ffmpeg)
@@ -34,4 +42,8 @@ find_package(Iconv REQUIRED)
 target_link_libraries(Etterna PRIVATE ${OPENGL_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${BZIP2_LIBRARIES})
 target_link_libraries(Etterna PUBLIC ${ICONV_LIBRARIES})
+
+# lzma
+include(FindLibLZMA)
+target_link_libraries(Etterna PUBLIC ${LIBLZMA_LIBRARIES})
 
