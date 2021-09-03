@@ -144,7 +144,7 @@ struct Jack_Sequencing : public Finger_Sequencing
 		}
 	}
 
-	void operator()(const col_type ct, const float& now) override
+	inline void operator()(const col_type ct, const float& now) override
 	{
 		assert(ct == _ct);
 		_sc_ms = ms_from(now, _last);
@@ -162,7 +162,7 @@ struct Jack_Sequencing : public Finger_Sequencing
 	}
 
 	/// returns an adjusted MS average value, not converted to nps
-	float get_ms() override
+	inline float get_ms() override
 	{
 		assert(_sc_ms > 0.F);
 
@@ -232,7 +232,7 @@ struct Anchor_Sequencing : public Finger_Sequencing
 		}
 	}
 
-	void operator()(const col_type ct, const float& now) override
+	inline void operator()(const col_type ct, const float& now) override
 	{
 		assert(ct == _ct);
 		_sc_ms = ms_from(now, _last);
@@ -250,7 +250,7 @@ struct Anchor_Sequencing : public Finger_Sequencing
 	}
 
 	/// returns an adjusted MS average value, not converted to nps
-	float get_ms() override
+	inline float get_ms() override
 	{
 		assert(_sc_ms > 0.F);
 
