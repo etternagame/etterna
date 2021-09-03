@@ -155,7 +155,7 @@ struct RunningManMod
 							const AnchorSequencer& as)
 	{
 		for (const auto& c : ct_loop_no_jumps) {
-			rms.at(c)(ct, bt, mt, as.anch.at(c));
+			rms.at(c)(ct, bt, mt, *as.anch.at(c));
 		}
 
 		highest_rm = get_active_rm_with_higher_difficulty();

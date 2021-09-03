@@ -330,7 +330,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		auto thing =
 		  std::pair{ row_time,
-					 ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
+					 ms_to_scaled_nps(_seq._as.get_lowest_jack_ms()) *
 					   basescalers[Skill_JackSpeed] };
 		if (std::isnan(thing.second)) {
 			thing.second = 0.F;
