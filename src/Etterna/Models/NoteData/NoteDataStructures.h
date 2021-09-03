@@ -38,6 +38,7 @@ enum CalcPatternMod
 	// CJJ, // pattern mod (values between 0-1)
 	CJDensity,
 	HSDensity,
+	Chains,
 	OHJumpMod, // pattern mod (values between 0-1)
 	// OHJBaseProp,
 	// OHJPropComp,

@@ -32,6 +32,7 @@
 #include "Dependent/HD_PatternMods/OHT.h"
 #include "Dependent/HD_PatternMods/VOHT.h"
 #include "Dependent/HD_PatternMods/Chaos.h"
+#include "Dependent/HD_PatternMods/Chains.h"
 #include "Dependent/HD_PatternMods/WideRangeBalance.h"
 #include "Dependent/HD_PatternMods/WideRangeRoll.h"
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
@@ -95,6 +96,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	OHTrillMod _oht;
 	VOHTrillMod _voht;
 	ChaosMod _ch;
+	ChainsMod _chain;
 	RunningManMod _rm;
 	WideRangeBalanceMod _wrb;
 	WideRangeRollMod _wrr;
@@ -219,6 +221,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
+		_chain.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_last_ct);
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_voht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);
@@ -250,6 +253,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
+		  hand, _chain._pmod, _chain(_mitvhi), itv, _calc);
+		PatternMods::set_dependent(
 		  hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _oht._pmod, _oht(_mitvhi._itvhi), itv, _calc);
@@ -279,6 +284,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	void full_hand_reset()
 	{
 		_ohj.full_reset();
+		_chain.full_reset();
 		_cjohj.full_reset();
 		_bal.full_reset();
 		_roll.full_reset();

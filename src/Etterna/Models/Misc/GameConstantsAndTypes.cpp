@@ -219,6 +219,7 @@ static const char* CalcPatternModNames[] = {
 	// "CJJ",
 	"CJDensity",
 	"HSDensity",
+	"Chains",
 	"OHJumpMod",
 	// "OHJBaseProp",
 	// "OHJPropComp",
