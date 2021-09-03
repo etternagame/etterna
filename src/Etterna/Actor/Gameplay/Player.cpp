@@ -639,7 +639,7 @@ Player::Load()
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
 	
 	// the latter condition checks for Grade_Failed, NUM_Grade, Grade_Invalid
-	if (pb == nullptr || pb->GetGrade() >= 20) {
+	if (pb == nullptr || pb->GetGrade() >= Grade_Failed) {
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
 	} else {
 		wifescorepersonalbest = pb->GetWifeScore();
