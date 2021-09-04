@@ -900,7 +900,7 @@ Actor::UpdateInternal(float delta_time)
 			break;
 		case CLOCK_TIMER_GLOBAL:
 			generic_global_timer_update(
-			  static_cast<float>(RageTimer::GetUsecsSinceStart()),
+			  RageTimer::GetTimeSinceStart(),
 			  m_fEffectDelta,
 			  m_fSecsIntoEffect);
 			break;
