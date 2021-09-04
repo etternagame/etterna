@@ -72,7 +72,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: "Etterna - macOS x64"
-          path: '${{github.workspace}}/build/*.dmg'
+          path: '${{github.workspace}}/main/build/*.dmg'
 
       - name: Update Environment Variables
         run: |
@@ -106,6 +106,12 @@ jobs:
       - name: Upload Symbols to Crash Server
         if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         run: symupload ${{github.workspace}}/main/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{secrets.CRASHSERVER_API_KEY}}&version=${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Upload files to Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        with:
+          files: ${{github.workspace}}/main/build/*.dmg
 
   windows: # Windows x64 and x86 build matrix
     strategy:
@@ -200,3 +206,10 @@ jobs:
       - name: Upload Symbols to Crash Server
         if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         run: curl --request POST -F symbol_file=@${{github.workspace}}/main/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{ secrets.CRASHSERVER_API_KEY }}&version=${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Upload files to Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        with:
+          files: |
+            ${{github.workspace}}/main/build/*.exe
