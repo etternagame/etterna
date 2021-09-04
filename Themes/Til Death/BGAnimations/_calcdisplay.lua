@@ -793,11 +793,13 @@ o[#o + 1] = Def.Quad {
                     local jklosstxt = ""
                     for h = 1,2 do
                         local hnd = h == 1 and "Left" or "Right"
-                        local hand = h == 1 and "L" or "R"
-                        local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
-                        jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
-                        jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3])
-                        jklosstxt = jklosstxt .. string.format("%s: %5.4f\n", "Jack Loss"..hand, jackdiffs[hnd][index][4])
+                        if jackdiffs[hnd] ~= nil and #jackdiffs[hnd] > 0 then
+                            local hand = h == 1 and "L" or "R"
+                            local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
+                            jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
+                            jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3])
+                            jklosstxt = jklosstxt .. string.format("%s: %5.4f\n", "Jack Loss"..hand, jackdiffs[hnd][index][4])
+                        end
                     end
                     modText = modText .. jktxt .. jkstmtxt .. jklosstxt
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
