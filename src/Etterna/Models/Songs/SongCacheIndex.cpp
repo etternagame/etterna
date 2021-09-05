@@ -720,7 +720,7 @@ SongCacheIndex::~SongCacheIndex()
 	if (curTransaction != nullptr) {
 		try {
 			curTransaction->commit();
-		} catch (exception& e) {
+		} catch (...) {
 			// DB transaction commit failed, we're destructing so we dont care.
 			// There really shouldnt be a transaction left anyways
 		}
@@ -810,7 +810,9 @@ SongCacheIndex::LoadCache(
 	cache.reserve(count);
 	auto fivePercent = std::max(count / 100 * 5, 1);
 	const unsigned int threads = std::thread::hardware_concurrency();
-	const auto limit = count / threads;
+	const unsigned int limit =
+	  std::ceil(static_cast<float>(count) / static_cast<float>(threads));
+
 	ThreadData data;
 	std::atomic<bool> abort(false);
 	auto threadCallback =
@@ -858,14 +860,14 @@ SongCacheIndex::LoadCache(
 	std::vector<thread> threadpool;
 	std::vector<std::vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
 	cacheParts.reserve(threads);
-	for (auto i = 0; i < threads; i++)
+	for (unsigned int i = 0; i < threads; i++)
 		cacheParts.emplace_back(
 		  std::vector<pair<pair<std::string, unsigned int>, Song*>*>());
 	threadpool.reserve(threads);
-	for (auto i = 0; i < threads; i++)
+	for (unsigned int i = 0; i < threads; i++)
 		threadpool.emplace_back(
 		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));
-	while (data._threadsFinished < threads) {
+	while (data._threadsFinished < static_cast<int>(threads)) {
 		data.waitForUpdate();
 		if (abort) {
 			for (auto& thread : threadpool)
@@ -960,7 +962,7 @@ SongCacheIndex::FinishTransaction()
 		return;
 	try {
 		curTransaction->commit();
-	} catch (exception& e) {
+	} catch (...) {
 		// DB transaction commit failed, we're destructing so we dont care.
 		// There really shouldnt be a transaction left anyways
 	}
