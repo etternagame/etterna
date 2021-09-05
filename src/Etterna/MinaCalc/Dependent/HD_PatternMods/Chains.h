@@ -12,12 +12,13 @@ struct ChainsMod
 	float min_mod = 0.7F;
 	float max_mod = 1.2F;
 
-	float max_seq_weight = 1.F;
+	float max_seq_weight = .5F;
 	float max_seq_pool = 1.F;
 	float max_seq_scaler = 1.F;
 
 	float chain_swap_pool = 1.F;
 	float chain_swap_scaler = 1.F;
+	float chain_swap_weight = .1F;
 
 	float prop_pool = 1.F;
 	float prop_scaler = 1.F;
@@ -32,6 +33,7 @@ struct ChainsMod
 
 		{ "chain_swap_pool", &chain_swap_pool },
 		{ "chain_swap_scaler", &chain_swap_scaler },
+		{ "chain_swap_weight", &chain_swap_weight },
 
 		{ "prop_pool", &prop_pool },
 		{ "prop_scaler", &prop_scaler },
@@ -39,11 +41,9 @@ struct ChainsMod
 #pragma endregion params and param map
 
 	Chain_Sequencer chain;
-	int max_chain_single_taps = 0;
-	int max_chain_ohj = 0;
-	int max_chain_len = 0;
 	int max_chain_swaps = 0;
-	int cc_taps = 0;
+	int max_total_len = 0;
+	int max_anchor_len = 0;
 
 	// combination of max components of sequencer
 	float base_seq_prop = 0.F;
@@ -60,11 +60,9 @@ struct ChainsMod
 	{
 		chain.zero();
 
-		max_chain_single_taps = 0;
-		max_chain_ohj = 0;
-		max_chain_len = 0;
 		max_chain_swaps = 0;
-		cc_taps = 0;
+		max_total_len = 0;
+		max_anchor_len = 0;
 
 		base_seq_prop = 0.F;
 		base_size_prop = 0.F;
@@ -101,20 +99,12 @@ struct ChainsMod
 	void set_pmod(const metaItvHandInfo& mitvhi)
 	{
 		const auto& itvhi = mitvhi._itvhi;
+		const auto& base_types = mitvhi._base_types;
 
-		cc_taps = mitvhi._base_types[base_left_right] +
-				  mitvhi._base_types[base_right_left];
-
-		assert(cc_taps >= 0);
-
-		// if cur_seq > max when we ended the interval, grab it
-		max_chain_single_taps = chain.get_largest_chain_single_taps();
-		max_chain_ohj = chain.get_largest_chain_ohj();
-		max_chain_swaps = chain.chain_swaps > chain.max_chain_swaps
-							? chain.chain_swaps
-							: chain.max_chain_swaps;
-		max_chain_len =
-		  chain._len > chain._max_len ? chain._len : chain._max_len;
+		// if cur > max when we ended the interval, grab it
+		max_chain_swaps = chain.get_max_chain_swaps();
+		max_total_len = chain.get_max_total_len();
+		max_anchor_len = chain.get_max_anchor_len();
 
 		// nothing here
 		if (itvhi.get_taps_nowi() == 0) {
@@ -125,37 +115,39 @@ struct ChainsMod
 		// an interval with only jacks of 11112222 has no completed seq
 		// the clamp should catch that scenario
 		// otherwise assume conditions which continue chains are in chains
-		auto taps_in_any_sequence =
-		  std::clamp(mitvhi._base_types[base_single_single] +
-					   mitvhi._base_types[base_single_jump] +
-					   mitvhi._base_types[base_jump_single],
-					 0,
-					 max_chain_single_taps + max_chain_ohj);
-	
+		auto taps_in_any_sequence = std::clamp(base_types[base_single_single] +
+												 base_types[base_single_jump] +
+												 base_types[base_jump_single],
+											   0,
+											   max_total_len);
 
-		// for js we lean into max sequences more, since they're better
-		// indicators of inflated difficulty
-
-		auto ctF = static_cast<float>(max_chain_single_taps);
-		auto cjF = static_cast<float>(max_chain_ohj);
 		auto csF = static_cast<float>(max_chain_swaps);
+		auto clF = static_cast<float>(max_total_len);
 
 		// proportion of swaps to chain size
 		// any swap also requires a chain of size 2
 		// some intervals have no chains, so could divide by 0
-		auto chain_swap_prop = std::max(csF, 1.F) / std::max((ctF + cjF), 1.F);
+		auto chain_swap_prop = std::max(csF, 1.F) / std::max(clF, 1.F);
+		auto swap_prop_scaled = fastsqrt(std::max(
+		  chain_swap_pool - (chain_swap_prop * chain_swap_scaler), .1F));
 		
-		base_seq_prop = (ctF + cjF) / mitvhi._itvhi.get_taps_nowf();
-		base_seq_prop *= fastsqrt(
-		  1.F + std::max(chain_swap_pool - (chain_swap_prop * chain_swap_scaler),
-					   0.F));
+		base_seq_prop = clF / itvhi.get_taps_nowf();
 		set_max_seq_comp();
-		max_seq_component = std::clamp(max_seq_component, 0.1F, max_mod);
-
 		base_size_prop = taps_in_any_sequence / itvhi.get_taps_nowf();
 		set_prop_comp();
+
+		// chain_swap_weight should be [0,1]
+		// 1 -> max_seq_comp = max_seq_comp
+		// 0 -> max_seq_comp = chain_swap_prop
+		max_seq_component = weighted_average(
+		  max_seq_component, swap_prop_scaled, chain_swap_weight, 1.F);
+		max_seq_component = std::clamp(max_seq_component, 0.1F, max_mod);
+
 		prop_component = std::clamp(prop_component, 0.1F, max_mod);
 
+		// max_seq_weight should be [0,1]
+		// 1 -> pmod = max_seq_component
+		// 0 -> pmod = prop_component
 		pmod = weighted_average(
 		  max_seq_component, prop_component, max_seq_weight, 1.F);
 		pmod = std::clamp(pmod, min_mod, max_mod);
@@ -172,13 +164,9 @@ struct ChainsMod
 	void interval_end()
 	{
 		// reset any interval stuff here
-		cc_taps = 0;
-		chain._max_len = 0;
-		chain.max_chain_ohj = 0;
-		chain.max_chain_single_taps = 0;
-		max_chain_ohj = 0;
-		max_chain_single_taps = 0;
-		max_chain_len = 0;
+		chain.reset_max_seq();
 		max_chain_swaps = 0;
+		max_total_len = 0;
+		max_anchor_len = 0;
 	}
 };

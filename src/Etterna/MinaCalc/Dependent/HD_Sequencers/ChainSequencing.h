@@ -14,43 +14,44 @@
 */
 struct Chain_Sequencer
 {
-	int cur_chain_single_taps = 0;
-	int cur_chain_ohj = 0;
-	int _len = 0;
 	int chain_swaps = 0;
+	int cur_len = 0;
+	int cur_anchor_len = 0;
 	bool chain_swapping = false;
 
-	int _max_len = 0;
-	int max_chain_single_taps = 0;
-	int max_chain_ohj = 0;
 	int max_chain_swaps = 0;
-	col_type chaining_col = col_init;
+	int max_total_len = 0;
+	int max_anchor_len = 0;
+	col_type anchor_col = col_init;
 
 	void zero()
 	{
-		cur_chain_single_taps = 0;
-		cur_chain_ohj = 0;
+		reset_max_seq();
+		reset_seq();
+	}
+
+	void reset_seq() {
 		chain_swaps = 0;
-		_len = 0;
-		chaining_col = col_init;
-		_max_len = 0;
-		max_chain_single_taps = 0;
-		max_chain_ohj = 0;
-		max_chain_swaps = 0;
+		cur_len = 0;
+		cur_anchor_len = 0;
+
 		chain_swapping = false;
+		anchor_col = col_init;
 	}
 
-	int get_largest_chain_single_taps()
-	{
-		return cur_chain_single_taps > max_chain_single_taps ? cur_chain_single_taps
-													  : max_chain_single_taps;
+	void reset_max_seq() {
+		max_chain_swaps = 0;
+		max_total_len = 0;
+		max_anchor_len = 0;
 	}
 
-	int get_largest_chain_ohj()
-	{
-		return cur_chain_ohj > max_chain_ohj ? cur_chain_ohj : max_chain_ohj;
+	void update_max_seq() {
+		max_chain_swaps = get_max_chain_swaps();
+		max_total_len = get_max_total_len();
+		max_anchor_len = get_max_anchor_len();
 	}
 
+	/// to reset the current chain and continue a new one
 	void complete_seq()
 	{
 		assert(_len >= 0);
@@ -58,21 +59,23 @@ struct Chain_Sequencer
 		// remove this check to consider 1111122222 a chain
 		// otherwise, only 11111[12]22222 is a chain
 		if (chain_swaps != 0) {
-			// find a way to break this
-			max_chain_single_taps = get_largest_chain_single_taps();
-			max_chain_ohj = get_largest_chain_ohj();
-			_max_len = _len > _max_len ? _len : _max_len;
-			max_chain_swaps =
-			  chain_swaps > max_chain_swaps ? chain_swaps : max_chain_swaps;
+			update_max_seq();
 		}
 
 		// reset curr chain info
-		cur_chain_single_taps = 0;
-		cur_chain_ohj = 0;
-		_len = 0;
-		chaining_col = col_init;
-		chain_swaps = 0;
+		reset_seq();
+	}
+
+	/// execute a chain swap. set longest anchor size, etc
+	/// base pattern required for successful chain swap:
+	/// 01
+	/// 11
+	/// 10
+	void chain_swap()
+	{
 		chain_swapping = false;
+		max_anchor_len = get_max_anchor_len();
+		cur_anchor_len = 0;
 	}
 
 	void operator()(const col_type& ct, const base_type& bt, const col_type& last_ct)
@@ -88,17 +91,16 @@ struct Chain_Sequencer
 			case base_single_single:
 				// consecutive 11 or 22
 				// mid chain or about to chain
-				chaining_col = ct;
-				cur_chain_single_taps++;
-				_len++;
+				anchor_col = ct;
+				cur_len++;
+				cur_anchor_len++;
 				break;
 			case base_single_jump:
 				// 1[12] or 2[12]
 				// chain expects a swap in columns
 				// or may complete
-				chaining_col = last_ct; // set to the column we used to be on
-				cur_chain_ohj++;
-				_len++;
+				anchor_col = last_ct; // set to the column we used to be on
+				cur_len++;
 				chain_swapping = true;
 				break;
 			case base_jump_single:
@@ -106,17 +108,16 @@ struct Chain_Sequencer
 				// chain continuing
 				// check to see if it is valid to continue
 				if (chain_swapping) {
-					chain_swapping = false;
-					chain_swaps++;
+					chain_swap();
 				}
 
-				if ((chaining_col == col_left && ct == col_right) ||
-					(chaining_col == col_right && ct == col_left)) {
+				if ((anchor_col == col_left && ct == col_right) ||
+					(anchor_col == col_right && ct == col_left)) {
 					// valid to swap columns and continue
-					chaining_col = ct;
-					cur_chain_single_taps++;
-					_len++;
-				} else if (_len >= 2) {
+					anchor_col = ct;
+					cur_len++;
+					cur_anchor_len++;
+				} else if (cur_len >= 2) {
 					// require length to be at least 2
 					// otherwise we dont really know anything
 					// if sufficient length, chain is broken
@@ -134,4 +135,16 @@ struct Chain_Sequencer
 		
 	}
 
+	int get_max_total_len() {
+		return cur_len > max_total_len ? cur_len : max_total_len;
+	}
+
+	int get_max_anchor_len() {
+		return cur_anchor_len > max_anchor_len ? cur_anchor_len
+											   : max_anchor_len;
+	}
+
+	int get_max_chain_swaps() {
+		return chain_swaps > max_chain_swaps ? chain_swaps : max_chain_swaps;
+	}
 };
