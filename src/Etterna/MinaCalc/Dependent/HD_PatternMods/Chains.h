@@ -12,31 +12,39 @@ struct ChainsMod
 	float min_mod = 0.7F;
 	float max_mod = 1.2F;
 
-	float max_seq_weight = .5F;
-	float max_seq_pool = 1.F;
+	float max_seq_prop_weight = .5F;
+	float max_seq_base = 1.F;
 	float max_seq_scaler = 1.F;
 
-	float chain_swap_pool = 1.F;
+	float anchor_base = 1.F;
+	float anchor_scaler = 1.F;
+	float chain_swap_base = 1.F;
 	float chain_swap_scaler = 1.F;
-	float chain_swap_weight = .1F;
+	/// how much chain swap or how much anchor matters
+	float chain_anchor_weight = .5F;
+	/// how much the result of the chain/anchor component matters
+	/// when weighted against the sequence component
+	float chain_anchor_component_weight = .5F;
 
-	float prop_pool = 1.F;
+	float prop_base = 1.F;
 	float prop_scaler = 1.F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 
-		{ "max_seq_weight", &max_seq_weight },
-		{ "max_seq_pool", &max_seq_pool },
+		{ "max_seq_prop_weight", &max_seq_prop_weight },
+		{ "max_seq_base", &max_seq_base },
 		{ "max_seq_scaler", &max_seq_scaler },
-
-		{ "chain_swap_pool", &chain_swap_pool },
-		{ "chain_swap_scaler", &chain_swap_scaler },
-		{ "chain_swap_weight", &chain_swap_weight },
-
-		{ "prop_pool", &prop_pool },
+		{ "prop_base", &prop_base },
 		{ "prop_scaler", &prop_scaler },
+
+		{ "anchor_base", &anchor_base },
+		{ "anchor_scaler", &anchor_scaler },
+		{ "chain_swap_base", &chain_swap_base },
+		{ "chain_swap_scaler", &chain_swap_scaler },
+		{ "chain_anchor_weight", &chain_anchor_weight },
+		{ "chain_anchor_component_weight", &chain_anchor_component_weight },
 	};
 #pragma endregion params and param map
 
@@ -82,7 +90,7 @@ struct ChainsMod
 	// build component based on max sequence relative to hand taps
 	void set_max_seq_comp()
 	{
-		max_seq_component = max_seq_pool - (base_seq_prop * max_seq_scaler);
+		max_seq_component = max_seq_base + (base_seq_prop * max_seq_scaler);
 		max_seq_component = max_seq_component < 0.1F ? 0.1F : max_seq_component;
 		max_seq_component = fastsqrt(max_seq_component);
 	}
@@ -91,7 +99,7 @@ struct ChainsMod
 	// relative to hand taps
 	void set_prop_comp()
 	{
-		prop_component = prop_pool - (base_size_prop * prop_scaler);
+		prop_component = prop_base + (base_size_prop * prop_scaler);
 		prop_component = prop_component < 0.1F ? 0.1F : prop_component;
 		prop_component = fastsqrt(prop_component);
 	}
@@ -123,33 +131,49 @@ struct ChainsMod
 
 		auto csF = static_cast<float>(max_chain_swaps);
 		auto clF = static_cast<float>(max_total_len);
+		auto caF = static_cast<float>(max_anchor_len);
 
 		// proportion of swaps to chain size
 		// any swap also requires a chain of size 2
 		// some intervals have no chains, so could divide by 0
 		auto chain_swap_prop = std::max(csF, 1.F) / std::max(clF, 1.F);
 		auto swap_prop_scaled = fastsqrt(std::max(
-		  chain_swap_pool - (chain_swap_prop * chain_swap_scaler), .1F));
+		  chain_swap_base + (chain_swap_prop * chain_swap_scaler), .1F));
+
+		// proportion of longest anchor to longest chain
+		// a chain will swap at least once
+		// longest anchor will be up to (max_total_len - 2)
+		auto longest_anchor_prop = std::max(caF, 1.F) / std::max(clF, 1.F);
+		auto anchor_prop_scaled = fastsqrt(
+		  std::max(anchor_base + (longest_anchor_prop * anchor_scaler), .1F));
 		
 		base_seq_prop = clF / itvhi.get_taps_nowf();
 		set_max_seq_comp();
 		base_size_prop = taps_in_any_sequence / itvhi.get_taps_nowf();
 		set_prop_comp();
 
-		// chain_swap_weight should be [0,1]
-		// 1 -> max_seq_comp = max_seq_comp
-		// 0 -> max_seq_comp = chain_swap_prop
-		max_seq_component = weighted_average(
-		  max_seq_component, swap_prop_scaled, chain_swap_weight, 1.F);
-		max_seq_component = std::clamp(max_seq_component, 0.1F, max_mod);
+		// chain_anchor_weight should be [0,1]
+		// 1 -> anchor-swap_component = chain_swap_prop
+		// 0 -> anchor-swap_component = anchor_prop
+		auto anchor_swap_component = weighted_average(
+		  swap_prop_scaled, anchor_prop_scaled, chain_anchor_weight, 1.F);
 
+		// chain_anchor_component_weight should be [0,1]
+		// 1 -> seq_component = anchor-swap_component
+		// 0 -> seq_component = seq_component
+		max_seq_component = weighted_average(anchor_swap_component,
+											 max_seq_component,
+											 chain_anchor_component_weight,
+											 1.F);
+
+		max_seq_component = std::clamp(max_seq_component, 0.1F, max_mod);
 		prop_component = std::clamp(prop_component, 0.1F, max_mod);
 
 		// max_seq_weight should be [0,1]
 		// 1 -> pmod = max_seq_component
 		// 0 -> pmod = prop_component
 		pmod = weighted_average(
-		  max_seq_component, prop_component, max_seq_weight, 1.F);
+		  max_seq_component, prop_component, max_seq_prop_weight, 1.F);
 		pmod = std::clamp(pmod, min_mod, max_mod);
 	}
 
