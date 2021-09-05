@@ -54,7 +54,7 @@ struct Chain_Sequencer
 	/// to reset the current chain and continue a new one
 	void complete_seq()
 	{
-		assert(_len >= 0);
+		assert(cur_len >= 0);
 
 		// remove this check to consider 1111122222 a chain
 		// otherwise, only 11111[12]22222 is a chain
