@@ -76,6 +76,7 @@ struct Chain_Sequencer
 		chain_swapping = false;
 		max_anchor_len = get_max_anchor_len();
 		cur_anchor_len = 0;
+		chain_swaps++;
 	}
 
 	void operator()(const col_type& ct, const base_type& bt, const col_type& last_ct)
