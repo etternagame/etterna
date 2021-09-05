@@ -131,7 +131,7 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = PlayerAI::oldRate;
 		GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = PlayerAI::oldRate;
 	} else {
-		PlayerAI::SetScoreData();
+		PlayerAI::SetScoreData(PlayerAI::pScoreData, 0, nullptr, PlayerAI::pReplayTiming);
 	}
 }
 
@@ -274,7 +274,10 @@ ScreenGameplayReplay::SaveStats()
 	// Reload the notedata after finishing in case we truncated it
 	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, -1);
 	// Reload the replay data to make sure it is clean for calculations
-	PlayerAI::SetScoreData();
+	PlayerAI::SetScoreData(PlayerAI::pScoreData,
+						   0,
+						   nullptr,
+						   GAMESTATE->m_pCurSteps->GetTimingData());
 	PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
 
 	ScreenGameplay::SaveStats();

@@ -1488,11 +1488,12 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		auto* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
 		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
+		auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 
 		// Load the replay data for the current score so some cool functionality
 		// works immediately
 		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(pHS, 0, &nd);
+		PlayerAI::SetScoreData(pHS, 0, &nd, td);
 		GAMESTATE->CommitStageStats();
 	}
 
