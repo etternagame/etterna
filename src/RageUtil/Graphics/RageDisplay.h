@@ -278,7 +278,7 @@ class RageDisplay
 	  -> const ActualVideoModeParams* = 0;
 	auto IsWindowed() -> bool { return (*GetActualVideoModeParams()).windowed; }
 
-	auto GetFrameTimingAdjustment()
+	auto GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 		-> float;
 
 	virtual void SetBlendMode(BlendMode mode) = 0;

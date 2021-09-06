@@ -708,7 +708,7 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 	}
 
 	const auto correctedPosition = extrapolatedPosition + correction;
-	const auto vsyncAdjust = DISPLAY->GetFrameTimingAdjustment();
+	const auto vsyncAdjust = DISPLAY->GetFrameTimingAdjustment(tm.tm);
 
 #if defined(TRACY_ENABLE) && defined(TRACE_BUTTER)
 	TracyPlot("acc ms", 1000.0f * (correction));

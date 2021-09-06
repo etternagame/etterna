@@ -1121,7 +1121,7 @@ RageDisplay::DrawCircle(const RageSpriteVertex& v, float radius)
 }
 
 float
-RageDisplay::GetFrameTimingAdjustment()
+RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 {
 	/*
 	 * We get one update per frame, and we're updated early, almost immediately
@@ -1152,14 +1152,16 @@ RageDisplay::GetFrameTimingAdjustment()
 	const int iThisFPS = GetActualVideoModeParams()->rate;
 
 	std::chrono::duration<float> dDelta = g_LastFrameDuration;
+	std::chrono::duration<float> dTimeIntoFrame = now - g_LastFrameEndedAt;
 	const float fExpectedDelay = 1.0f / iThisFPS;
 	const float fDeltaTime = dDelta.count();
 	const float fExtraDelay = fDeltaTime - fExpectedDelay;
+	const float fAdjustTo = -dTimeIntoFrame.count();
 
 	if (fabsf(fExtraDelay) >= fExpectedDelay / 2)
-		return 0;
+		return fAdjustTo;
 
-	return std::min(-fExtraDelay, 0.0f);
+	return fAdjustTo + std::min(-fExtraDelay, 0.0f);
 }
 
 static auto
