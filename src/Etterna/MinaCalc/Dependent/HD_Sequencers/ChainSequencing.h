@@ -11,6 +11,18 @@
 * 11
 * 01
 * 01 ...
+*
+* or
+* 01
+* 11
+* 11
+* 10 ...
+*
+* but not
+* 01
+* 11
+* 11
+* 01 ...
 */
 struct Chain_Sequencer
 {
@@ -82,12 +94,18 @@ struct Chain_Sequencer
 	void operator()(const col_type& ct, const base_type& bt, const col_type& last_ct)
 	{
 		switch (bt) {
-			case base_jump_jump:
 			case base_left_right:
 			case base_right_left:
 				// not exactly a chain ...
 				// end it
 				complete_seq();
+				break;
+			case base_jump_jump:
+				// allow [12][12] to continue a chain
+				// anchor_col does not change
+				cur_len++;
+				cur_anchor_len++;
+				chain_swapping = true;
 				break;
 			case base_single_single:
 				// consecutive 11 or 22

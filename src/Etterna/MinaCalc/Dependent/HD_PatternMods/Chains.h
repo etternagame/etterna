@@ -9,14 +9,14 @@ struct ChainsMod
 
 #pragma region params
 
-	float min_mod = 0.7F;
-	float max_mod = 1.2F;
+	float min_mod = 1.F;
+	float max_mod = 1.1F;
 
 	float anchor_len_weight = .5F;
-	float len_scaler = 0.0003F;
-	float swap_scaler = 0.00075F;
+	float len_scaler = 0.1F;
+	float swap_scaler = 0.10775F;
 
-	float base = 1.F;
+	float base = .75F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -96,8 +96,8 @@ struct ChainsMod
 		auto anchor_len_worth =
 		  weighted_average(clF, caF, anchor_len_weight, 1.F);
 
-		auto anchor_worth = fastsqrt(anchor_len_worth / tapsF * len_scaler);
-		auto swap_worth = fastsqrt(csF / tapsF * swap_scaler);
+		auto anchor_worth = fastsqrt(anchor_len_worth / tapsF) * len_scaler;
+		auto swap_worth = fastsqrt(csF / tapsF) * swap_scaler;
 		pmod = std::clamp(base + anchor_worth + swap_worth, min_mod, max_mod);
 	}
 

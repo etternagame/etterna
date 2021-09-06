@@ -767,6 +767,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		CJ,
 		CJDensity,
 		// CJOHJump // SQRTD BELOW
+		Chains,
 		VOHTrill,
 		WideRangeAnchor,
 	  	FlamJam, // you may say, why? why not?
@@ -985,7 +986,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 457;
+int mina_calc_version = 458;
 auto
 GetCalcVersion() -> int
 {
