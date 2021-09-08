@@ -28,6 +28,7 @@
 #include "RageSoundUtil.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "RageSoundReader_Extend.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageSoundReader_Pan.h"
@@ -707,6 +708,7 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 	}
 
 	const auto correctedPosition = extrapolatedPosition + correction;
+	const auto vsyncAdjust = DISPLAY->GetFrameTimingAdjustment();
 
 #if defined(TRACY_ENABLE) && defined(TRACE_BUTTER)
 	TracyPlot("acc ms", 1000.0f * (correction));
@@ -714,6 +716,7 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 	TracyPlot("extrapolatedPosition error from rdtsc ms", 1000.0f * err);
 	TracyPlot("correctedPosition error from rdtsc ms", 1000.0f *
 		((tm - syncTime) * rate - (correctedPosition - syncPosition)));
+	TracyPlot("vsyncAdjust ms", 1000.0f * vsyncAdjust);
 #endif
 
 	m_Pasteurizer.tm = tm;
@@ -723,7 +726,8 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 	m_Pasteurizer.syncPosition = syncPosition;
 	m_Pasteurizer.acc = acc;
 
-	return correctedPosition;
+	*pTimestamp += vsyncAdjust;
+	return correctedPosition + vsyncAdjust * rate;
 }
 
 bool

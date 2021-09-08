@@ -143,7 +143,7 @@ ScreenGameplayReplay::Update(const float fDeltaTime)
 		return;
 	}
 
-	UpdateSongPosition(fDeltaTime);
+	UpdateSongPosition();
 
 	if (m_bZeroDeltaOnNextUpdate) {
 		ScreenWithMenuElements::Update(0); // NOLINT(bugprone-parent-virtual-call)
@@ -359,7 +359,7 @@ ScreenGameplayReplay::SetRate(const float newRate) -> float
 
 	// misc info update
 	GAMESTATE->m_Position.m_fMusicSeconds = fSeconds;
-	UpdateSongPosition(0);
+	UpdateSongPosition();
 	MESSAGEMAN->Broadcast(
 	  "CurrentRateChanged"); // Tell the theme we changed the rate
 
