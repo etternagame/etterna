@@ -637,12 +637,11 @@ GameSoundManager::Update(float fDeltaTime)
 		return;
 
 	const float fAdjust = GetFrameTimingAdjustment(fDeltaTime);
+	const float fRate = g_Playing->m_Music->GetPlaybackRate();
 	if (!g_Playing->m_Music->IsPlaying()) {
 		/* There's no song playing.  Fake it. */
 		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
-										fDeltaTime *
-										  g_Playing->m_Music->GetPlaybackRate(),
-									  fAdjust,
+										(fDeltaTime + fAdjust) * fRate,
 									  g_Playing->m_Timing);
 		return;
 	}
@@ -659,8 +658,7 @@ GameSoundManager::Update(float fDeltaTime)
 	// Check for song timing skips.
 	if (PREFSMAN->m_bLogSkips && !g_Playing->m_bTimingDelayed) {
 		const float fExpectedTimePassed =
-		  (tm - GAMESTATE->m_Position.m_LastBeatUpdate) *
-		  g_Playing->m_Music->GetPlaybackRate();
+		  (tm - GAMESTATE->m_Position.m_LastBeatUpdate) * fRate;
 		const float fSoundTimePassed =
 		  fSeconds - GAMESTATE->m_Position.m_fMusicSeconds;
 		const float fDiff = fExpectedTimePassed - fSoundTimePassed;
@@ -689,12 +687,12 @@ GameSoundManager::Update(float fDeltaTime)
 	if (g_Playing->m_bTimingDelayed) {
 		/* We're still waiting for the new sound to start playing, so keep using
 		 * the old timing data and fake the time. */
-		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds + fDeltaTime,
-									  fAdjust,
+		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds
+									 + (fDeltaTime + fAdjust) * fRate,
 									  g_Playing->m_Timing);
 	} else {
 		GAMESTATE->UpdateSongPosition(
-		  fSeconds, fAdjust, g_Playing->m_Timing, tm);
+		  fSeconds + fAdjust * fRate, g_Playing->m_Timing, tm + fAdjust);
 	}
 
 	// Send crossed messages

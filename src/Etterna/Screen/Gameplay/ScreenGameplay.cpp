@@ -778,11 +778,13 @@ ScreenGameplay::UpdateSongPosition(float fDeltaTime)
 		return;
 	}
 
+	const auto rate = GAMESTATE->m_SongOptions.GetSong().m_fMusicRate;
+
 	RageTimer tm = RageZeroTimer;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
-	const auto fAdjust = SOUND->GetFrameTimingAdjustment(fDeltaTime);
+	const auto vsyncAdjust = SOUND->GetFrameTimingAdjustment(fDeltaTime);
 	GAMESTATE->UpdateSongPosition(
-	  fSeconds, fAdjust, GAMESTATE->m_pCurSong->m_SongTiming, tm);
+	  fSeconds + vsyncAdjust * rate, GAMESTATE->m_pCurSong->m_SongTiming, tm + vsyncAdjust);
 }
 
 void

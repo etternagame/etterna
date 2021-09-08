@@ -1330,7 +1330,6 @@ ScreenSelectMusic::AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns
 
 		if (pSteps) {
 			GAMESTATE->UpdateSongPosition(pSong->m_fMusicSampleStartSeconds,
-										  0,
 										  *pSteps->GetTimingData());
 			delayedchartupdatewaiting = true;
 		}
