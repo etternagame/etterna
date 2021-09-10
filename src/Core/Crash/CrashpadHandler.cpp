@@ -50,9 +50,11 @@ bool Core::Crash::initCrashpad() {
         handler, // relative path to executable handler file
         dataDir, // the crashpad database
         dataDir, // an existing directory for metrics data
-        "", // an upload server. A url is required, even if nothing is uploaded.
+
+        // an upload server. A url is required, even if nothing is uploaded.
+        "https://crash.etterna.dev/api/minidump/upload?api_key=0b03527eb91c4d4f8d7576cf4e4939c4",
         {}, // crash report metadata
-        {}, // any additional handler arguments
+        {"--no-upload-gzip"}, // any additional handler arguments
         true, // auto-restart if handler dies
         startHandlerFromBGThread // start handler from background thread (windows only)
     );
