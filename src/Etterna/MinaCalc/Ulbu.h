@@ -221,7 +221,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
-		_chain.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_last_ct);
+		_chain.advance_sequencing(
+		  _mhi->_ct, _mhi->_bt, _mhi->_last_ct, _seq._mw_any_ms.get_now());
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_voht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);

@@ -1,6 +1,10 @@
 #pragma once
 
-/* Looks for chains.
+/// multiply the time between previous jacks in the chain by this
+/// if the gap is bigger than that, it is a new chain
+constexpr float chain_slowdown_scale_threshold = 1.99F;
+
+/** Looks for chains.
 * this:
 *
 * 01
@@ -35,11 +39,13 @@ struct Chain_Sequencer
 	int max_total_len = 0;
 	int max_anchor_len = 0;
 	col_type anchor_col = col_init;
+	float last_ms = ms_init;
 
 	void zero()
 	{
 		reset_max_seq();
 		reset_seq();
+		last_ms = ms_init;
 	}
 
 	void reset_seq() {
@@ -49,6 +55,7 @@ struct Chain_Sequencer
 
 		chain_swapping = false;
 		anchor_col = col_init;
+		// not resetting ms time here
 	}
 
 	void reset_max_seq() {
@@ -91,8 +98,14 @@ struct Chain_Sequencer
 		chain_swaps++;
 	}
 
-	void operator()(const col_type& ct, const base_type& bt, const col_type& last_ct)
+	void operator()(const col_type& ct, const base_type& bt, const col_type& last_ct, const float& any_ms)
 	{
+		if (last_ms * chain_slowdown_scale_threshold < any_ms) {
+			// if the taps were too slow, reset
+			complete_seq();
+		}
+		last_ms = any_ms;
+
 		switch (bt) {
 			case base_left_right:
 			case base_right_left:

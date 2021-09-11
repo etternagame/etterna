@@ -51,9 +51,9 @@ struct ChainsMod
 
 #pragma endregion
 
-	void advance_sequencing(const col_type& ct, const base_type& bt, const col_type& last_ct)
+	void advance_sequencing(const col_type& ct, const base_type& bt, const col_type& last_ct, const float& any_ms)
 	{
-		chain(ct, bt, last_ct);
+		chain(ct, bt, last_ct, any_ms);
 	}
 
 	void set_pmod(const metaItvHandInfo& mitvhi)
