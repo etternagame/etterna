@@ -1,7 +1,9 @@
 #include "CrashpadHandler.hpp"
 
 #include "Core/Platform/Platform.hpp"
+#include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
+#include "arch/Dialog/Dialog.h"
 
 #include <ghc/filesystem.hpp>
 #include "client/crash_report_database.h"
@@ -9,15 +11,9 @@
 #include "client/simulate_crash.h"
 #include "client/settings.h"
 #include <string>
+#include <tuple>
 
-/**
- * Initialize the crashpad_handler watchdog, and configure the settings database.
- * The preprocessor defines are only needed since crashpad's StartHandler
- * function uses different parameter types for windows vs non-windows.
- *
- * @return True if successfully initialized, False if otherwise.
- */
-bool Core::Crash::initCrashpad() {
+std::tuple<base::FilePath, base::FilePath, bool> getCrashpadInfo(){
     auto exeDir = Core::Platform::getExecutableDirectory();
     auto dataPath = exeDir / "CrashData";
 
@@ -41,6 +37,19 @@ bool Core::Crash::initCrashpad() {
     base::FilePath dataDir(dataPath);
 	const bool startHandlerFromBGThread = false; // not available, assert crash if true
 #endif
+
+    return {handler, dataDir, startHandlerFromBGThread};
+}
+
+/**
+ * Initialize the crashpad_handler watchdog, and configure the settings database.
+ * The preprocessor defines are only needed since crashpad's StartHandler
+ * function uses different parameter types for windows vs non-windows.
+ *
+ * @return True if successfully initialized, False if otherwise.
+ */
+bool Core::Crash::initCrashpad() {
+    auto[handler, dataDir, startHandlerFromBGThread] = getCrashpadInfo();
 
     auto database = crashpad::CrashReportDatabase::Initialize(dataDir);
     if (database == nullptr) return false;
@@ -67,4 +76,20 @@ bool Core::Crash::initCrashpad() {
  */
 void Core::Crash::generateMinidump() {
     CRASHPAD_SIMULATE_CRASH();
+}
+
+/**
+ * Allows for enabling or disabling of crashpad after initialization.
+ * @param shouldUpload True if game should upload minidump on crash, false otherwise.
+ */
+void Core::Crash::setShouldUpload(bool shouldUpload) {
+    auto[handler, dataDir, BGthread] = getCrashpadInfo();
+
+    auto database = crashpad::CrashReportDatabase::InitializeWithoutCreating(dataDir);
+    if (database != nullptr && database->GetSettings() != nullptr) {
+        database->GetSettings()->SetUploadsEnabled(shouldUpload);
+        Locator::getLogger()->info("Crash dumps {} be uploaded if the game crashes.", shouldUpload ? "WILL" : "WILL NOT");
+    } else {
+        Locator::getLogger()->info("Unable to enable/disable minidump upload.");
+    }
 }
