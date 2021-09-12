@@ -104,16 +104,22 @@ struct PatternMods
 	}
 };
 
-// converts time to interval index, if there's an offset to add or a rate to
-// scale by, it should be done prior
+/// converts time to interval index, if there's an offset to add or a rate to
+/// scale by, it should be done prior
 inline auto
 time_to_itv_idx(const float& time) -> int
 {
 	return static_cast<int>(time / interval_span);
 }
 
-// checks to see if the noteinfo will fit in our static arrays, if it won't it's
-// some garbage joke file and we can throw it out, setting values to 0
+inline auto
+itv_idx_to_time(const int& idx) -> float
+{
+	return static_cast<float>(idx) * interval_span;
+}
+
+/// checks to see if the noteinfo will fit in our static arrays, if it won't it's
+/// some garbage joke file and we can throw it out, setting values to 0
 inline auto
 fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 const float& rate,

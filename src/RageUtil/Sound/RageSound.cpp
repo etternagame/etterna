@@ -65,9 +65,12 @@ RageSound::RageSound()
 
 RageSound::~RageSound()
 {
-	if (fftPlan)
-		mufft_free_plan_1d(fftPlan);
-
+	{
+		std::lock_guard<std::mutex> guard(recentSamplesMutex);
+		if (fftPlan)
+			mufft_free_plan_1d(fftPlan);
+	}
+	
 	Unload();
 }
 

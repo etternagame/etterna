@@ -221,7 +221,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
-		_chain.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_last_ct);
+		_chain.advance_sequencing(
+		  _mhi->_ct, _mhi->_bt, _mhi->_last_ct, _seq._mw_any_ms.get_now());
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_voht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);
@@ -552,6 +553,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _hsd._params, _hsd.name);
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
+		load_params_for_mod(&params, _chain._params, _chain.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
 		load_params_for_mod(&params, _voht._params, _voht.name);
@@ -580,6 +582,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(
 		  make_mod_param_node(_cjohj._params, _cjohj.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_chain._params, _chain.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
 		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));
