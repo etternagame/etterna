@@ -101,11 +101,20 @@ struct techyo
 	{
 		// for now do simple thing, for this interval either use the higher
 		// between weighted adjusted ms/nps base and runningman diff
-		// we definitely don't want to average here because we don't want tech
+		// we definitely don't want to pure average here because we don't want tech
 		// to only be files with strong runningman pattern detection, but we
 		// could probably do something more robust at some point
-		return std::max(weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F),
-						rm_itv_max_diff);
+		auto tc = weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F);
+		auto rm = rm_itv_max_diff;
+		if (rm >= tc) {
+			// for rm dominant intervals, use tc to drag diff down
+			// weight should be [0,1]
+			// 1 -> all rm
+			// 0 -> all tc
+			constexpr float weight = 0.6F;
+			rm = weighted_average(rm, tc, weight, 1.F);
+		}
+		return std::max(tc, rm);
 	}
 
 	void interval_end()
