@@ -8,25 +8,87 @@
  * be placed into statically allocated arrays for base difficulties. (in
  * threaded calc object now, though) */
 
+/// required percentage of average notes to pass
+static const float min_threshold = 0.25F;
+/// scale of failed intervals for the grindscaler.
+/// prop = failed / non_empty_intervals
+static const float failed_interval_scaler = .25F;
+static const float failed_min = .9F;
+/// scale of empty intervals for the grindscaler.
+/// prop = empty / total_intervals
+static const float empty_interval_scaler = .4F;
+static const float empty_min = .8F;
+
 struct nps
 {
-	static void actual_cancer(Calc& calc, const int& hi)
+	/// determine NPSBase, itv_points, and grindscaler for this hand
+	static void actual_cancer(Calc& calc, const int& hand)
 	{
+		auto populated_intervals = 0;
+		auto avg_notes = 0.F;
+
 		for (auto itv = 0; itv < calc.numitv; ++itv) {
 
 			auto notes = 0;
 
 			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 				const auto& cur = calc.adj_ni.at(itv).at(row);
-				notes += cur.hand_counts.at(hi);
+				notes += cur.hand_counts.at(hand);
 			}
 
 			// nps for this interval
-			calc.init_base_diff_vals.at(hi).at(NPSBase).at(itv) =
+			calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) =
 			  static_cast<float>(notes) * finalscaler * 1.6F;
 
 			// set points for this interval
-			calc.itv_points.at(hi).at(itv) = notes * 2;
+			calc.itv_points.at(hand).at(itv) = notes * 2;
+
+			// grindscaler stuff
+			if (notes > 0) {
+				avg_notes += notes;
+				populated_intervals++;
+			}
+		}
+
+		// always apply scaling on files that are too short to be real
+		const auto file_length = itv_idx_to_time(populated_intervals);
+		const auto timescaler =
+		  std::clamp(0.95F + (0.05F * (file_length - 35.F) / 35.F), 0.9F, 1.F) *
+		  std::clamp(0.9F + (0.1F * (file_length - 25.F) / 25.F), 0.8F, 1.F) *
+		  std::clamp(0.7F + (0.1F * (file_length - 5.F) / 5.F), 0.6F, 1.F);
+		if (populated_intervals > 0) {
+			const auto empty_intervals = static_cast<float>(calc.numitv - populated_intervals);
+			avg_notes /= populated_intervals;
+
+			auto failed_intervals = 0.F;
+
+			for (auto itv = 0; itv < calc.numitv; itv++) {
+				auto notes = 0.F;
+				for (auto row = 0; row < calc.itv_size.at(itv); row++) {
+					notes += calc.adj_ni.at(itv).at(row).hand_counts.at(hand);
+				}
+
+				// count only intervals with notes
+				if (notes > 0.F && notes < avg_notes * min_threshold)
+					failed_intervals += 1.F;
+			}
+
+			const auto empty_prop =
+			  (empty_intervals / static_cast<float>(calc.numitv)) *
+			  empty_interval_scaler;
+			const auto failed_prop =
+			  (failed_intervals / static_cast<float>(populated_intervals)) *
+			  failed_interval_scaler;
+
+			const auto empty_comp =
+			  std::clamp(1.F - empty_prop, empty_min, 1.F);
+			const auto failed_comp =
+			  std::clamp(1.F - failed_prop, failed_min, 1.F);
+
+			calc.grindscaler.at(hand) = std::clamp(
+			  timescaler * empty_comp * failed_comp, .1F, 1.F);
+		} else {
+			calc.grindscaler.at(hand) = .1F;
 		}
 	}
 };

@@ -48,21 +48,6 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			   const float music_rate,
 			   const float score_goal) -> std::vector<float>
 {
-	// in flux
-	const auto grindscaler =
-	  std::clamp(
-		0.9F + (0.1F * ((NoteInfo.back().rowTime / music_rate) - 35.F) / 35.F),
-		0.9F,
-		1.F) *
-	  std::clamp(
-		0.9F + (0.1F * ((NoteInfo.back().rowTime / music_rate) - 15.F) / 15.F),
-		0.9F,
-		1.F) *
-	  std::clamp(
-		0.4F + (0.6F * ((NoteInfo.back().rowTime / music_rate) - 10.F) / 10.F),
-		0.4F,
-		1.F);
-
 	// for multi offset passes
 	// const int num_offset_passes = ssr ? 3 : 1;
 	const auto num_offset_passes = 1;
@@ -204,6 +189,9 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		}
 	}
 
+	auto length_density_scaler =
+	  std::max(grindscaler.at(left_hand), grindscaler.at(right_hand));
+
 	// final output is the average of all skillset values of all iterations
 	// also applies the grindscaler
 	// (at the time of writing there is only 1 iteration)
@@ -214,7 +202,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		for (auto& ssvals : all_skillset_values) {
 			iteration_ss_vals.push_back(ssvals[i]);
 		}
-		output[i] = mean(iteration_ss_vals) * grindscaler;
+		output[i] = mean(iteration_ss_vals) * length_density_scaler;
 		iteration_ss_vals.clear();
 	}
 	return output;
@@ -986,7 +974,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 460;
+int mina_calc_version = 461;
 auto
 GetCalcVersion() -> int
 {
