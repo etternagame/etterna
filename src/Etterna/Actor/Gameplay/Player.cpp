@@ -71,19 +71,21 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 		case TW_W5:
 			defaultValueOut = 0.180F;
 			break;
-		case TW_Mine: // ~same as j5 great, the explanation for this is quite
-					  // long but the general
-			defaultValueOut = 0.075F; // idea is that mines are more punishing
-									  // now so we can give a little back
+		case TW_Mine:
+			// ~same as j5 great, the explanation for this is quite long but
+			// the general idea is that mines are more punishing now so we
+			// can give a little back
+			defaultValueOut = 0.075F;
 			break;
-		case TW_Hold: // allow enough time to take foot off and put back on
+		case TW_Hold:
+			// allow enough time to take foot off and put back on
 			defaultValueOut = 0.250F;
 			break;
 		case TW_Roll:
 			defaultValueOut = 0.500F;
 			break;
-		case TW_Checkpoint: // similar to TW_Hold, but a little more
-							// strict/accurate to Pump play.
+		case TW_Checkpoint:
+		 	// similar to TW_Hold, but a little more strict
 			defaultValueOut = 0.1664F;
 			break;
 		default:
