@@ -266,8 +266,6 @@ t.JudgmentMessageCommand = function(self, params)
 	end
 end
 
-t[#t + 1] = MovableBorder(WIDTH, 200, 1, 0, 0)
-
 t.OnCommand = function(self, params)
 	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
 	self:zoomtowidth(MovableValues.LeaderboardWidth)

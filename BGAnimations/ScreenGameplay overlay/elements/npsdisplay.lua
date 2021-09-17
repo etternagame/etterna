@@ -246,7 +246,6 @@ local function npsGraph()
 			self:queuecommand("GraphUpdate")
 		end,
 	}
-	t[#t + 1] = MovableBorder(graphWidth, graphHeight, 1, 0, 0)
 	return t
 end
 
