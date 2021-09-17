@@ -101,7 +101,7 @@ namespace Core::Platform::Window {
             auto time = std::chrono::steady_clock::now();
             if(action == GLFW_REPEAT) return; // We do our own repeat
             auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(key, mods);
-            DeviceInput di(DEVICE_KEYBOARD, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
+            DeviceInput di(DEVICE_KEYBOARD, legacy_key, action == GLFW_PRESS ? 1.0f : 0.0f, time);
             if(INPUTFILTER)
                 INPUTFILTER->ButtonPressed(di);
         });
@@ -111,7 +111,7 @@ namespace Core::Platform::Window {
             auto time = std::chrono::steady_clock::now();
             if(action == GLFW_REPEAT) return; // We do our own repeat
             auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(button, 0);
-            DeviceInput di(DEVICE_MOUSE, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
+            DeviceInput di(DEVICE_MOUSE, legacy_key, action == GLFW_PRESS ? 1.0f : 0.0f, time);
             if(INPUTFILTER)
                 INPUTFILTER->ButtonPressed(di);
         });
