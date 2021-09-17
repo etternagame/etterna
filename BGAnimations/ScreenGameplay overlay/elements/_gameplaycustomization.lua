@@ -317,9 +317,13 @@ local function makeUI()
                 self:diffusealpha(uiBGAlpha)
             end,
             MouseDragCommand = function(self, params)
-                local newx = params.MouseX + actuals.MenuWidth/2
-                local newy = params.MouseY + actuals.MenuHeight/2 - actuals.MenuDraggerHeight/2
+                local newx = params.MouseX - (self.initialClickX or 0)
+                local newy = params.MouseY - (self.initialClickY or 0)
                 self:GetParent():addx(newx):addy(newy)
+            end,
+            MouseDownCommand = function(self, params)
+                self.initialClickX = params.MouseX
+                self.initialClickY = params.MouseY
             end,
         },
     }
