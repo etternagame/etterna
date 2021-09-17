@@ -23,6 +23,7 @@ local steplength = 0
 local graphVecs = {}
 local jackdiffs = {}
 local ssrs = {}
+local grindscaler = {Left = 0, Right = 0}
 local activeModGroup = 1
 local activeDiffGroup = 1
 local debugstrings
@@ -392,6 +393,8 @@ local function updateCoolStuff()
         jackLossSumRight = 0
         local bap = steps:GetCalcDebugOutput()
         debugstrings = steps:GetDebugStrings()
+
+        grindscaler = bap["Grindscaler"]
 
         -- Jack debug output got hyper convoluted so im trying to make it as sane as possible
         -- basically jackdiffs[hand][index] = {row time, diff, stam, loss}
@@ -1134,7 +1137,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
                 local reqpoints = tappoints * 0.93
                 self:settextf("Upper Bound: %.2f  |  Loss Sum L: %5.2f  |  Loss Sum R: %5.2f  |  Pt AfterLoss/Req/Max: %5.2f/%5.2f/%5.2f", lowerGraphMaxJack*0.9, jackLossSumLeft, jackLossSumRight, afterloss, reqpoints, maxpoints)
             else
-                self:settextf("Upper Bound: %.4f", lowerGraphMax)
+                self:settextf("Upper Bound: %.4f  |  Grindscaler: %5.2f   (L: %5.2f  R: %5.2f)", lowerGraphMax, math.max(grindscaler["Left"], grindscaler["Right"]), grindscaler["Left"], grindscaler["Right"])
             end
         end
     end,
