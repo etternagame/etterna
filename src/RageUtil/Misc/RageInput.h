@@ -6,6 +6,8 @@
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageInputDevice.h"
 
+#include <vector>
+
 struct lua_State;
 class InputHandler;
 
@@ -15,7 +17,7 @@ class RageInput
 	RageInput();
 	~RageInput();
 
-	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vOut) const;
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vOut) const;
 	static InputHandler* GetHandlerForDevice(InputDevice id);
 	static std::string GetDeviceSpecificInputString(const DeviceInput& di);
 	static std::string GetLocalizedInputString(const DeviceInput& di);

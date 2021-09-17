@@ -56,7 +56,7 @@ static LocalizedString NO_INPUT_DEVICES_LOADED("RageInput",
 
 
 void
-RageInput::GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut) const
+RageInput::GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut) const
 {
 //	for (auto& m_InputHandler : m_InputHandlers)
 //		m_InputHandler.m_pDevice->GetDevicesAndDescriptions(vDevicesOut);
