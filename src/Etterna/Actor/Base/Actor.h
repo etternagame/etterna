@@ -185,6 +185,8 @@ class Actor : public MessageSubscriber
 	auto GetTrueY() -> float; // same
 	auto GetTrueRotationZ() -> float; // same
 	auto GetTrueZoom() -> float;	  // same
+	auto GetTrueZoomX() -> float;
+	auto GetTrueZoomY() -> float;
 	auto IsVisible() -> bool; // same but for gating updates on things that may
 							  // not explicitly set visible = false -mina
 
