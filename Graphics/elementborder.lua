@@ -12,7 +12,6 @@ return Def.ActorFrame {
         end,
         SetUpCommand = function(self)
             local pf = self:GetParent():GetParent()
-            ms.ok(pf:GetName())
 
             -- avoid shadowing self in the below nested functions, so store self in some variable
             local poop = self
@@ -35,7 +34,6 @@ return Def.ActorFrame {
                 poop:x(eleh:GetX())
                 poop:y(eleh:GetY())
                 poop:zoomto(bigw, bigh)
-                poop:visible(true)
             end)
             self:diffusealpha(borderAlpha)
 
@@ -43,7 +41,7 @@ return Def.ActorFrame {
             self:z(5)
 
             -- place the quad behind the whole actorframe we are bordering
-            self:draworder(-9999)
+            self:draworder(-99)
             pf:SortByDrawOrder()
 
             self.alphaDeterminingFunction = function(self)
@@ -63,12 +61,33 @@ return Def.ActorFrame {
             self:alphaDeterminingFunction()
         end,
         MouseDragCommand = function(self, params)
-            local newx = params.MouseX
-            local newy = params.MouseY
-            self:GetParent():GetParent():addx(newx):addy(newy)
+            local pp = self:GetParent():GetParent()
+            local ppp = pp:GetParent()
+            local trueX = pp:GetTrueX()
+            local trueY = pp:GetTrueY()
+            local zoomfactor = 1
+
+            -- this is almost always true but
+            -- the primary reason this exists is to offset the Player related things properly
+            -- normally it should be 0, but instead it is 640 for example
+            -- hindsight comment: gonna be real with u chief this is a huge hack but it works
+            -- if it stops working RESTRUCTURE YOUR ELEMENTS
+            -- this only works because 'pp' is the ActorFrame that represents the gameplay element
+            -- if ppp has been zoomed (breaking everything), then pp is a child of something that isn't a screen,
+            -- such as the NoteField being pp and the Player being ppp
+            if ppp ~= nil then
+                trueX = trueX - ppp:GetTrueX()
+                trueY = trueY - ppp:GetTrueY()
+                zoomfactor = ppp:GetZoom()
+            end
+
+            local newx = params.MouseX + trueX - (self.initialClickX or 0)
+            local newy = params.MouseY + trueY - (self.initialClickY or 0)
+            pp:x(newx / zoomfactor):y(newy / zoomfactor)
         end,
         MouseDownCommand = function(self, params)
-
+            self.initialClickX = params.MouseX
+            self.initialClickY = params.MouseY
         end,
     }
 }
