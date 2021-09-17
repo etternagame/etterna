@@ -12,6 +12,8 @@
 #import <GLFW/glfw3.h>
 #import <GLFW/glfw3native.h>
 
+#import <vector>
+
 using namespace Core::Platform::Window;
 
 @interface LoadingWindowHelper : NSObject  {
@@ -106,7 +108,7 @@ LoadingWindow_MacOSX::LoadingWindow_MacOSX() {
     // The first one added will be the fallback.
     // The fall back should always exist
     // Find image location
-    vector<std::string> foundFiles;
+    std::vector<std::string> foundFiles;
     GetDirListing("Data/splash*.png", foundFiles, false, true);
 
     if(THEME != nullptr)
