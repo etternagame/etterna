@@ -26,6 +26,7 @@ include(FetchContent)
 # git repository *during project generation*.
 FetchContent_Declare(depot_tools
 	GIT_REPOSITORY https://chromium.googlesource.com/chromium/tools/depot_tools.git
+	GIT_TAG	main
 	GIT_PROGRESS TRUE
 	GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(depot_tools)
