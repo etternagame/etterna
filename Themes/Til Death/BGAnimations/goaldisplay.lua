@@ -427,11 +427,22 @@ local function makeGoalDisplay(i)
 			DisplayCommand = function(self)
 				local pb = sg:GetPBUpTo()
 				if pb then
+					local pbwife = pb:GetWifeScore() * 100
+					local pbstr = ""
+					if pbwife > 99.65 then
+						if pbwife > 99.99 then
+							pbstr = string.format("%05.5f%%", notShit.floor(pbwife, 5))
+						else
+							pbstr = string.format("%05.4f%%", notShit.floor(pbwife, 4))
+						end
+					else
+						pbstr = string.format("%05.2f%%", notShit.floor(pbwife, 2))
+					end
 					if pb:GetMusicRate() < sg:GetRate() then
 						local ratestring = string.format("%.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
-						self:settextf("%s: %5.2f%% (%s)", translated_info["Best"], pb:GetWifeScore() * 100, ratestring)
+						self:settextf("%s: %s (%s)", translated_info["Best"], pbstr, ratestring)
 					else
-						self:settextf("%s: %5.2f%%", translated_info["Best"], pb:GetWifeScore() * 100)
+						self:settextf("%s: %s", translated_info["Best"], pbstr)
 					end
 					self:diffuse(getGradeColor(pb:GetWifeGrade()))
 					self:visible(true)

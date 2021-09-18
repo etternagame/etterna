@@ -238,7 +238,16 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				if hsTable[index]:GetWifeScore() == 0 then
 					self:settextf("NA (%s)", wstring)
 				else
-					self:settextf("%05.2f%% (%s)", notShit.floor(hsTable[index]:GetWifeScore() * 10000) / 100, wstring)
+					local perc = hsTable[index]:GetWifeScore() * 100
+					if perc > 99 then
+						if perc > 99.99 then
+							self:settextf("%05.5f%% (%s)", notShit.floor(perc, 5), wstring)
+						else
+							self:settextf("%05.4f%% (%s)", notShit.floor(perc, 4), wstring)
+						end
+					else
+						self:settextf("%05.2f%% (%s)", notShit.floor(perc, 2), wstring)
+					end
 				end
 			end
 		},

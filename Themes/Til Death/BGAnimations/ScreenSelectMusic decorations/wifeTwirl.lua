@@ -485,7 +485,16 @@ t[#t + 1] =
 		end,
 		MintyFreshCommand = function(self)
 			if song and score then
-				self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
+				local perc = score:GetWifeScore() * 100
+				if perc > 99.65 then
+					if perc > 99.99 then
+						self:settextf("%05.5f%%", notShit.floor(perc, 5))
+					else
+						self:settextf("%05.4f%%", notShit.floor(perc, 4))
+					end
+				else
+					self:settextf("%05.2f%%", notShit.floor(perc, 2))
+				end
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
 			else
 				self:settext("")

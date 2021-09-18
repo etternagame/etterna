@@ -414,7 +414,16 @@ local l =
 					if judge < 4 then judge = 4 end
 					local js = judge ~= 9 and judge or "ustice"
 					local perc = score:GetWifeScore() * 100
-					self:settextf("%05.2f%% (%s)", notShit.floor(perc, 2), ws .. js):diffuse(byGrade(score:GetWifeGrade()))
+					if perc > 99.65 then
+						if perc > 99.99 then
+							self:settextf("%05.5f%% (%s)", notShit.floor(perc, 5), ws .. js)
+						else
+							self:settextf("%05.4f%% (%s)", notShit.floor(perc, 4), ws .. js)
+						end
+					else
+						self:settextf("%05.2f%% (%s)", notShit.floor(perc, 2), ws .. js)
+					end
+					self:diffuse(byGrade(score:GetWifeGrade()))
 				end
 			end
 		},

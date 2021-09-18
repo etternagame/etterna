@@ -170,12 +170,16 @@ local function scoreitem(pn, i)
 				self:xy(framex + 10, framey + 11 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
 			end,
 			UpdateNetScoreCommand = function(self)
-				self:settextf(
-					"%05.2f%% (%s) - %sx",
-					notShit.floor(multiscores[i].highscore:GetWifeScore() * 10000) / 100,
-					"Wife",
-					string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", "")
-				)
+				local perc = multiscores[i].highscore:GetWifeScore() * 100
+				if perc > 99.65 then
+					if perc > 99.99 then
+						self:settextf("%05.5f%% (%s) - %sx", notShit.floor(perc, 5), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
+					else
+						self:settextf("%05.4f%% (%s) - %sx", notShit.floor(perc, 4), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
+					end
+				else
+					self:settextf("%05.2f%% (%s) - %sx", notShit.floor(perc, 2), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
+				end
 			end
 		},
 		LoadFont("Common normal") .. {
