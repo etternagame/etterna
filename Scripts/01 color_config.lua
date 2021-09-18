@@ -23,6 +23,7 @@ local defaultConfig = {
 		GraphLine = "#ffffff",
 		Favorite = "#ffff00",
 		Permamirror = "#1111bb",
+		HighlightColor = "#ffffff",
 	},
 	generalBox = {
 		SliderBackground = "#000000",
@@ -597,6 +598,20 @@ function registerActorToColorConfigElement(self, category, element, stroke)
 		if self.strokecolor and stroke ~= 0 then
 			self:strokecolor(Brightness(clr, stroke))
 		end
+	end
+	cmd(self)
+	self:addcommand("ColorConfigUpdatedMessage", cmd)
+end
+
+-- same as the above but instead its for elements that use diffuseramp
+function registerActorToColorConfigElementForDiffuseRamp(self, category, element, lowAlpha, hiAlpha)
+	local cmd = function(self)
+		local lowColor = COLORS:getColor(category, element)
+		lowColor[4] = lowAlpha
+		local hiColor = COLORS:getColor(category, element)
+		hiColor[4] = hiAlpha
+		self:effectcolor1(lowColor)
+		self:effectcolor2(hiColor)
 	end
 	cmd(self)
 	self:addcommand("ColorConfigUpdatedMessage", cmd)

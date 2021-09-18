@@ -714,9 +714,10 @@ t[#t+1] = Def.ActorFrame {
                     -- move it by half the size and make it that much smaller
                     self:x(actuals.BannerWidth / 2)
                     self:zoomto(actuals.Width - actuals.BannerWidth, actuals.ItemHeight)
-                    self:diffusealpha(0.1)
+                    self:diffusealpha(0.2)
                     self:diffuseramp()
                     self:effectclock("beat")
+                    registerActorToColorConfigElementForDiffuseRamp(self, "musicWheel", "HighlightColor", 0.5, 0.8)
                 end
             }
         }
