@@ -239,7 +239,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					self:settextf("NA (%s)", wstring)
 				else
 					local perc = hsTable[index]:GetWifeScore() * 100
-					if perc > 99 then
+					if perc > 99.65 then
 						if perc > 99.99 then
 							self:settextf("%05.5f%% (%s)", notShit.floor(perc, 5), wstring)
 						else
