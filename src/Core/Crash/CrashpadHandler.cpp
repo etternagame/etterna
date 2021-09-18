@@ -3,7 +3,6 @@
 #include "Core/Platform/Platform.hpp"
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
-#include "arch/Dialog/Dialog.h"
 
 #include <ghc/filesystem.hpp>
 #include "client/crash_report_database.h"

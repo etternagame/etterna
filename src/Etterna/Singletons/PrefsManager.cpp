@@ -198,6 +198,7 @@ PrefsManager::PrefsManager()
   , m_show_theme_errors("ShowThemeErrors", false)
   , m_bAlwaysLoadCalcParams("AlwaysLoadCalcParams", false)
   , m_bEnableCrashUpload("EnableMinidumpUpload", false)
+  , m_bShowMinidumpUploadDialogue("ShowMinidumpUploadDialogue", true)
 
 {
 	Init();

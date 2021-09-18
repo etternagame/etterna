@@ -232,6 +232,7 @@ class PrefsManager
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play
 
 	Preference<bool> m_bEnableCrashUpload;
+	Preference<bool> m_bShowMinidumpUploadDialogue;
 
 	void ReadPrefsFromIni(const IniFile& ini,
 						  const std::string& sSection,
