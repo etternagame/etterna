@@ -271,7 +271,7 @@ end
 
 -- works like the process of loading any config but loads it from a directory of configs instead
 function COLORS.loadColorConfigPresets(self)
-	print("Loading color config presets")
+	print("Loading color config presets.")
 	FILEMAN:FlushDirCache(presetfolder) -- the dir cache resets every 30 seconds. we need to be faster
 
 	-- put the default in
