@@ -100,8 +100,10 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 auto
 ScoresAtRate::GetSortedKeys() const -> const std::vector<string>
 {
-	std::map<float, string, std::greater<>> tmp;
-	std::vector<string> o;
+	// it is technically possible for 2 scores to have the same percent
+	// use a multimap to support this
+	std::multimap<float, std::string, std::greater<>> tmp{};
+	std::vector<std::string> o{};
 	if (PREFSMAN->m_bSortBySSRNorm) {
 		for (const auto& i : scores) {
 			tmp.emplace(i.second.GetSSRNormPercent(), i.first);
