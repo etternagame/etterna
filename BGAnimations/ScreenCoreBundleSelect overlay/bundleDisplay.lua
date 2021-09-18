@@ -48,7 +48,7 @@ local actuals = {
 }
 
 local infoTextSize = 0.37
-local progressTextSize = 0.5
+local progressTextSize = 0.35
 local bundleNameTextSize = 0.4
 local bundleDescTextSize = 0.4
 local textZoomFudge = 5
@@ -199,6 +199,32 @@ local t = Def.ActorFrame {
         Name = "ProgressFrame",
         InitCommand = function(self)
             self:xy(SCREEN_CENTER_X, SCREEN_HEIGHT)
+            self:visible(false)
+        end,
+        DLProgressAndQueueUpdateMessageCommand = function(self)
+            local dls = DLMAN:GetDownloads()
+            if #dls > 0 then
+                local progress = dls[1]:GetKBDownloaded()
+                local size = dls[1]:GetTotalKB()
+                local kbsec = dls[1]:GetKBPerSecond()
+                self:playcommand("UpdateProgress", {
+                    progress = progress, -- progress of current dl, not total
+                    size = size, -- size of current dl, not total
+                    kbsec = kbsec,
+                    filesRemaining = #dls-1, -- how many more downloads after the current one
+                })
+            else
+                self:playcommand("ClearProgress")
+            end
+        end,
+        AllDownloadsCompletedMessageCommand = function(self)
+            self:playcommand("ClearProgress")
+        end,
+        UpdateProgressCommand = function(self)
+            self:visible(true)
+        end,
+        ClearProgressCommand = function(self)
+            self:visible(false)
         end,
 
         LoadFont("Common Large") .. {
@@ -206,8 +232,15 @@ local t = Def.ActorFrame {
             InitCommand = function(self)
                 self:valign(1)
                 self:y(-actuals.ProgressTextBottomGap)
-                self:settext("Dopwnloooadign (%$45454)?")
                 self:zoom(progressTextSize)
+                self:maxwidth(actuals.ProgressBarWidth / progressTextSize)
+            end,
+            UpdateProgressCommand = function(self, params)
+                if params.filesRemaining > 0 then
+                    self:settextf("Downloading ... (%5.2f%% %dKB/s %d packs remaining)", params.progress / params.size * 100, params.kbsec, params.filesRemaining)
+                else
+                    self:settextf("Downloading ... (%5.2f%% %dKB/s)", params.progress / params.size * 100, params.kbsec)
+                end
             end,
         },
         Def.ActorFrame {
@@ -230,8 +263,11 @@ local t = Def.ActorFrame {
                 InitCommand = function(self)
                     self:valign(1):halign(0)
                     self:x(-actuals.ProgressBarWidth/2)
-                    self:zoomto(actuals.ProgressBarWidth/2, actuals.ProgressBarHeight)
+                    self:zoomto(0, actuals.ProgressBarHeight)
                     self:diffuse(color("1,1,1"))
+                end,
+                UpdateProgressCommand = function(self, params)
+                    self:zoomx(actuals.ProgressBarWidth * (params.progress / params.size))
                 end,
             }
         }
