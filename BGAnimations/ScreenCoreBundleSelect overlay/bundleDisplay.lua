@@ -52,6 +52,7 @@ local progressTextSize = 0.5
 local bundleNameTextSize = 0.4
 local bundleDescTextSize = 0.4
 local textZoomFudge = 5
+local buttonHoverAlpha = 0.6
 
 local function bundleList()
     local bundles = {
@@ -93,12 +94,21 @@ local function bundleList()
                 self:y(yIncrement * (i-1) + yIncrement / 2)
             end,
 
-            Def.Quad {
+            UIElements.QuadButton(1) .. {
                 Name = "BG",
                 InitCommand = function(self)
                     self:halign(0)
                     self:zoomto(actuals.BundleItemWidth, yIncrement - (actuals.BundleItemGap))
                     self:diffuse(color(bundle.Color))
+                end,
+                MouseDownCommand = function(self, params)
+					DLMAN:DownloadCoreBundle(bundle.Name:lower())
+                end,
+                MouseOverCommand = function(self, params)
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self, params)
+                    self:diffusealpha(1)
                 end,
             },
             LoadFont("Common Large") .. {
@@ -158,7 +168,6 @@ local t = Def.ActorFrame {
                 self:halign(0)
                 self:xy(actuals.InfoHorizontalBuffer, actuals.InfoHeight/2)
                 self:zoom(infoTextSize)
-                --self:maxwidth((actuals.InfoWidth - (actuals.InfoHorizontalBuffer*2)) / infoTextSize)
                 self:maxheight((actuals.InfoHeight - (actuals.InfoVerticalBuffer*2)) / infoTextSize)
                 self:wrapwidthpixels((actuals.InfoWidth - (actuals.InfoHorizontalBuffer*2)) / infoTextSize)
                 self:settext("Welcome to Etterna!\nLet's start by installing some songs. Click the button that corresponds to your skill level and the installation will proceed automatically.")
@@ -201,7 +210,6 @@ local t = Def.ActorFrame {
                 self:zoom(progressTextSize)
             end,
         },
-
         Def.ActorFrame {
             Name = "BarContainer",
             InitCommand = function(self)
