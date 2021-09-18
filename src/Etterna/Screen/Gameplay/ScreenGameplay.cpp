@@ -723,7 +723,7 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 
 	/* Make sure GAMESTATE->m_fMusicSeconds is set up. */
 	GAMESTATE->m_Position.m_fMusicSeconds = -5000;
-	UpdateSongPosition(0);
+	UpdateSongPosition();
 
 	ASSERT(GAMESTATE->m_Position.m_fMusicSeconds >
 		   -4000); /* make sure the "fake timer" code doesn't trigger */
@@ -772,17 +772,18 @@ ScreenGameplay::PlayAnnouncer(const std::string& type,
 }
 
 void
-ScreenGameplay::UpdateSongPosition(float fDeltaTime)
+ScreenGameplay::UpdateSongPosition()
 {
 	if (!m_pSoundMusic->IsPlaying()) {
 		return;
 	}
 
-	RageTimer tm;
+	const auto rate = GAMESTATE->m_SongOptions.GetSong().m_fMusicRate;
+
+	RageTimer tm = RageZeroTimer;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
-	const auto fAdjust = SOUND->GetFrameTimingAdjustment(fDeltaTime);
 	GAMESTATE->UpdateSongPosition(
-	  fSeconds + fAdjust, GAMESTATE->m_pCurSong->m_SongTiming, tm + fAdjust);
+	  fSeconds, GAMESTATE->m_pCurSong->m_SongTiming, tm);
 }
 
 void
@@ -887,7 +888,7 @@ ScreenGameplay::Update(float fDeltaTime)
 		return;
 	}
 
-	UpdateSongPosition(fDeltaTime);
+	UpdateSongPosition();
 
 	if (m_bZeroDeltaOnNextUpdate) {
 		ScreenWithMenuElements::Update(0);

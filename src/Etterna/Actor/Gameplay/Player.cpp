@@ -1932,25 +1932,15 @@ Player::Step(int col,
 			 bool bRelease,
 			 float padStickSeconds)
 {
-	// Do everything that depends on a timer here;
-	// set your breakpoints somewhere after this block.
-	std::chrono::duration<float> stepDelta =
-	  std::chrono::steady_clock::now() - tm;
-	auto stepAgo = stepDelta.count() - padStickSeconds;
-
-	const auto fLastBeatUpdate = GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
-	const auto fPositionSeconds =
-	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
-	const auto fTimeSinceStep = stepAgo;
-
-	// input data
-	//m_pPlayerStageStats->InputData.emplace_back(!bRelease, col, fPositionSeconds);
-
-	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
-
-	if (GAMESTATE->m_pCurSteps != nullptr) {
-		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
-	}
+	const auto fMusicRate =
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	const auto fHitUpdateDelta =
+		(GAMESTATE->m_Position.m_LastBeatUpdate - RageTimer(tm)) - padStickSeconds;
+	const auto fMusicSeconds =
+		GAMESTATE->m_Position.m_fMusicSeconds - (fHitUpdateDelta * fMusicRate);
+	const auto fSongBeat =
+		GAMESTATE->m_pCurSteps ? m_Timing->GetBeatFromElapsedTime(fMusicSeconds)
+							   : GAMESTATE->m_Position.m_fSongBeat;
 
 	const auto iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
 
@@ -2108,41 +2098,12 @@ Player::Step(int col,
 	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
 		auto fNoteOffset = 0.F;
-		// only valid if
-		auto fMusicSeconds = 0.F;
 		// we need this later if we are autosyncing
 		const auto fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
 		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
 		if (row == -1) {
-			// We actually stepped on the note this long ago:
-			// fTimeSinceStep
-
-			/* GAMESTATE->m_fMusicSeconds is the music time as of
-			 * GAMESTATE->m_LastBeatUpdate. Figure out what the music time
-			 * is as of now. */
-			const auto fCurrentMusicSeconds =
-			  GAMESTATE->m_Position.m_fMusicSeconds +
-			  (fLastBeatUpdate *
-			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-
-			// ... which means it happened at this point in the music:
-			fMusicSeconds =
-			  fCurrentMusicSeconds -
-			  fTimeSinceStep *
-				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-
-			// The offset from the actual step in seconds:
-			fNoteOffset = (fStepSeconds - fMusicSeconds) /
-						  GAMESTATE->m_SongOptions.GetCurrent()
-							.m_fMusicRate; // account for music rate
-										   /*
-										   LOG->Trace("step was %.3f ago, music is off by %f: %f vs %f,
-										   step							    was %f off",
-										   fTimeSinceStep,
-										   GAMESTATE->m_LastBeatUpdate.Ago()/GAMESTATE->m_SongOptions.m_fMusicRate,
-											   fStepSeconds, fMusicSeconds, fNoteOffset );
-										   */
+			fNoteOffset = (fStepSeconds - fMusicSeconds) / fMusicRate;
 		}
 
 		NOTESKIN->SetLastSeenColor(

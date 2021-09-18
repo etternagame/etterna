@@ -163,7 +163,7 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 		return;
 	}
 
-	UpdateSongPosition(fDeltaTime);
+	UpdateSongPosition();
 
 	if (m_bZeroDeltaOnNextUpdate) {
 		ScreenWithMenuElements::Update(0); // NOLINT(bugprone-parent-virtual-call)
@@ -382,7 +382,7 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 
 	// Set the final position
 	SOUND->SetSoundPosition(m_pSoundMusic, newSongPositionSeconds - noteDelay);
-	UpdateSongPosition(0);
+	UpdateSongPosition();
 
 	// Unpause the music if we want it unpaused
 	if (unpause && isPaused) {

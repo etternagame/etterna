@@ -919,14 +919,14 @@ RageDisplay_Legacy::EndFrame()
 	g_pWind->SwapBuffers();
 	glFlush();
 
-	g_pWind->Update();
-
 	const auto afterPresent = std::chrono::steady_clock::now();
 	const auto endTime = afterPresent - beforePresent;
 
 	SetPresentTime(endTime);
 
 	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
+
+	g_pWind->Update();
 
 	RageDisplay::EndFrame();
 }

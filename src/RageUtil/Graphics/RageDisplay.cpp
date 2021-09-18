@@ -12,7 +12,6 @@
 #include "RageSurface_Save_BMP.h"
 #include "RageSurface_Save_JPEG.h"
 #include "RageSurface_Save_PNG.h"
-#include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
@@ -48,8 +47,11 @@ RageDisplay::GetCumFPS() const
 
 static int g_iFramesRenderedSinceLastCheck, g_iFramesRenderedSinceLastReset,
   g_iVertsRenderedSinceLastCheck, g_iNumChecksSinceLastReset;
-static RageTimer g_LastFrameEndedAtRage(RageZeroTimer);
 static auto g_LastFrameEndedAt = std::chrono::steady_clock::now();
+static std::chrono::nanoseconds g_LastFrameDuration =
+  std::chrono::duration<int64_t>();
+static std::chrono::nanoseconds g_FrameCorrection =
+  std::chrono::duration<int64_t>(0);
 static auto g_FrameRenderTime = std::chrono::steady_clock::now();
 static std::chrono::nanoseconds g_LastFrameRenderTime;
 static std::chrono::nanoseconds g_LastFramePresentTime;
@@ -958,9 +960,7 @@ RageDisplay::UpdateCentering()
 bool
 RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 {
-	RageTimer timer;
 	auto surface = this->CreateScreenshot();
-	//	LOG->Trace( "CreateScreenshot took %f seconds", timer.GetDeltaTime() );
 	/* Unless we're in lossless, resize the image to 640x480.  If we're saving
 	 * lossy, there's no sense in saving 1280x960 screenshots, and we don't want
 	 * to output screenshots in a strange (non-1) sample aspect ratio. */
@@ -972,12 +972,7 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 		// 639x480 (4:3) and 853x480 (16:9). ceilf gives correct values. -aj
 		const auto iWidth = static_cast<int>(
 		  ceilf(iHeight * (*GetActualVideoModeParams()).fDisplayAspectRatio));
-		timer.Touch();
 		RageSurfaceUtils::Zoom(surface, iWidth, iHeight);
-		//		LOG->Trace( "%ix%i -> %ix%i (%.3f) in %f seconds", surface->w,
-		// surface->h, iWidth, iHeight,
-		// GetActualVideoModeParams().fDisplayAspectRatio, timer.GetDeltaTime()
-		//);
 	}
 
 	RageFile out;
@@ -988,7 +983,6 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 	}
 
 	auto bSuccess = false;
-	timer.Touch();
 	std::string strError = "";
 	switch (format) {
 		case SAVE_LOSSLESS:
@@ -1005,8 +999,6 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 			break;
 			DEFAULT_FAIL(format);
 	}
-	//	LOG->Trace( "Saving Screenshot file took %f seconds.",
-	// timer.GetDeltaTime() );
 
 	SAFE_DELETE(surface);
 
@@ -1128,32 +1120,107 @@ RageDisplay::DrawCircle(const RageSpriteVertex& v, float radius)
 	this->DrawCircleInternal(v, radius);
 }
 
+float
+RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
+{
+	/*
+	 * We get one update per frame, and we're updated early, almost immediately
+	 * after vsync, near the beginning of the game loop.  However, it's very
+	 * likely that we'll lose the scheduler while waiting for vsync, and some
+	 * other thread will be working.  Especially with a low-resolution scheduler
+	 * (Linux 2.4, Win9x), we may not get the scheduler back immediately after
+	 * the vsync; there may be up to a ~10ms delay.  This can cause jitter in
+	 * the rendered arrows.
+	 *
+	 * Compensate.  If vsync is enabled, and we're maintaining the refresh rate
+	 * consistently, we should have a very precise game loop interval.  If we
+	 * have that, but we're off by a small amount (less than the interval),
+	 * adjust the time to line it up.  As long as we adjust both the sound time
+	 * and the timestamp, this won't adversely affect input timing. If we're off
+	 * by more than that, we probably had a frame skip, in which case we have
+	 * bigger skip problems, so don't adjust.
+	 */
+
+	if (GetActualVideoModeParams()->vsync == false) {
+		return 0;
+	}
+
+	if (IsPredictiveFrameLimit()) {
+		return 0;
+	}
+
+	const int iThisFPS = GetActualVideoModeParams()->rate;
+
+	std::chrono::duration<float> dDelta = g_LastFrameDuration;
+	std::chrono::duration<float> dTimeIntoFrame = now - g_LastFrameEndedAt;
+	const float fExpectedDelay = 1.0f / iThisFPS;
+	const float fDeltaTime = dDelta.count();
+	const float fExtraDelay = fDeltaTime - fExpectedDelay;
+	const float fAdjustTo = -dTimeIntoFrame.count();
+
+	if (fabsf(fExtraDelay) >= fExpectedDelay / 2)
+		return fAdjustTo;
+
+	return fAdjustTo + std::min(-fExtraDelay, 0.0f);
+}
+
+static auto
+targetFrameTime() -> double
+{
+	auto result = 0.0;
+	if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr)) {
+		auto inGameplay =
+		  SCREENMAN->GetTopScreen()->GetScreenType() == gameplay;
+		if (inGameplay && g_fFrameLimitGameplay.Get() > 0) {
+			result = 1.0 / g_fFrameLimitGameplay.Get();
+		} else if (!inGameplay && g_fFrameLimit.Get() > 0) {
+			result = 1.0 / g_fFrameLimit.Get();
+		}
+	}
+	return result;
+}
+
 void
 RageDisplay::FrameLimitBeforeVsync()
 {
+	auto waitTime = targetFrameTime();
 	if (g_fPredictiveFrameLimit.Get()) {
 		const auto afterRender = std::chrono::steady_clock::now();
 		const auto endTime = afterRender - g_FrameRenderTime;
 
 		g_LastFrameRenderTime = endTime;
-	} else if (!g_fPredictiveFrameLimit.Get() &&
-			   !g_LastFrameEndedAtRage.IsZero() &&
-			   (g_fFrameLimit.Get() != 0 || g_fFrameLimitGameplay.Get() != 0)) {
-		auto expectedDelta = 0.0;
-		if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr)) {
-			if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay &&
-				g_fFrameLimitGameplay.Get() > 0)
-				expectedDelta = 1.0 / g_fFrameLimitGameplay.Get();
-			else if (SCREENMAN->GetTopScreen()->GetScreenType() != gameplay &&
-					 g_fFrameLimit.Get() > 0)
-				expectedDelta = 1.0 / g_fFrameLimit.Get();
+	} else if (!PREFSMAN->m_bVsync.Get() && waitTime > 0.0) {
+		auto waitNanoseconds =
+		  std::chrono::duration_cast<std::chrono::nanoseconds>(
+			std::chrono::duration<double>(waitTime));
+
+		// Estimate how long to wait to meet our frame time.
+		// Rationale: the following
+		//
+		//  auto t = g_LastFrameEndedAt + waitTime;
+		//  while (t > now());
+		//
+		// is too tight and waits slightly too long (trivially, by at least
+		// the amount of time required to exit the busy loop). In practice this
+		// effect noticeably reduces measured FPS. To account for it, measure
+		// the frame times we are actually getting and gradually adjust the
+		// delay to bring it in line with the target frame time.
+		auto error = g_LastFrameDuration - waitNanoseconds;
+		if (error < std::chrono::milliseconds(1)) {
+			g_FrameCorrection -= error / 64;
+			CLAMP(g_FrameCorrection,
+				std::chrono::milliseconds(-1),
+				std::chrono::milliseconds(0));
 		}
 
-		auto advanceDelay =
-		  expectedDelta - g_LastFrameEndedAtRage.GetDeltaTime();
-		while (advanceDelay > 0.0) {
-			advanceDelay -= g_LastFrameEndedAtRage.GetDeltaTime();
+		auto estimatedTimeToWait = waitNanoseconds + g_FrameCorrection;
+		auto t = g_LastFrameEndedAt + estimatedTimeToWait;
+		while (t > std::chrono::steady_clock::now()) {
+			std::this_thread::yield();
 		}
+	} else {
+		// Ignore frame limit preferences if v-sync is enabled without
+		// predictive frame limit.
 	}
 
 	if (!GameLoop::isGameFocused())
@@ -1172,25 +1239,18 @@ RageDisplay::FrameLimitBeforeVsync()
 void
 RageDisplay::FrameLimitAfterVsync(int iFPS)
 {
+	const auto frameEndedAt = std::chrono::steady_clock::now();
+	g_LastFrameDuration = frameEndedAt - g_LastFrameEndedAt;
+	g_LastFrameEndedAt = frameEndedAt;
+
 	if (!g_fPredictiveFrameLimit.Get()) {
-		g_LastFrameEndedAtRage.Touch();
 		return;
 	}
-	if (!PREFSMAN->m_bVsync.Get() && g_fFrameLimit.Get() == 0 &&
-		g_fFrameLimitGameplay.Get() == 0)
+
+	auto waitTime = targetFrameTime();
+
+	if (!PREFSMAN->m_bVsync.Get() && waitTime == 0.0) {
 		return;
-
-	g_LastFrameEndedAt = std::chrono::steady_clock::now();
-
-	// Get the target frame time
-	auto waitTime = 0.0;
-	if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr)) {
-		if (SCREENMAN->GetTopScreen()->GetScreenType() == gameplay &&
-			g_fFrameLimitGameplay.Get() > 0)
-			waitTime = 1.0 / g_fFrameLimitGameplay.Get();
-		else if (SCREENMAN->GetTopScreen()->GetScreenType() != gameplay &&
-				 g_fFrameLimit.Get() > 0)
-			waitTime = 1.0 / g_fFrameLimit.Get();
 	}
 
 	// Not using frame limiter and vsync is enabled

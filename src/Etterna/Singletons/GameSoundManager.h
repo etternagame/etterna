@@ -71,7 +71,6 @@ class GameSoundManager : MessageSubscriber
 	void PlayOnceFromAnnouncer(const std::string& sFolderName);
 
 	void HandleSongTimer(bool on = true);
-	auto GetFrameTimingAdjustment(float fDeltaTime) -> float;
 
 	static auto GetPlayerBalance(PlayerNumber pn) -> float;
 	void WithRageSoundPlaying(std::function<void(RageSound*)> f);
