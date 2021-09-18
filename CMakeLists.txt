@@ -131,7 +131,7 @@ add_subdirectory(src/Core)
 
 ## The source_group line creates the full visual studio filter layout
 get_target_property(sources Etterna SOURCES)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Etterna" FILES ${sources})
+source_group(TREE ${CMAKE_SOURCE_DIR} PREFIX "Etterna" FILES ${sources})
 
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)
