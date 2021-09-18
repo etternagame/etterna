@@ -12,10 +12,11 @@ local ratios = {
     MainDisplayWidth = 1471 / 1920, -- big box width
     MainDisplayHeight = 648 / 1080, -- big box height
 
-    BundleListTopGap = 24 / 1080, -- top edge to top of button
-    BundleListEdgeBuffer = 39 / 1920, -- left edge to left edge of button, also from right edge big box to right edge text
+    BundleListTopGap = 24 / 1080, -- top edge of box to top of button
+    BundleListEdgeBuffer = 39 / 1920, -- left edge of box to left edge of button, also from right edge big box to right edge text
     BundleListTextBuffer = 10 / 1920, -- from bundle button to text
     BundleItemWidth = 404 / 1920, -- button width
+    BundleItemGap = 29 / 1080, -- gap in between items
 
     ProgressTextBottomGap = 105 / 1080, -- bottom screen to bottom text
     -- progress text is centered screen
@@ -39,6 +40,7 @@ local actuals = {
     BundleListEdgeBuffer = ratios.BundleListEdgeBuffer * SCREEN_WIDTH,
     BundleListTextBuffer = ratios.BundleListTextBuffer * SCREEN_WIDTH,
     BundleItemWidth = ratios.BundleItemWidth * SCREEN_WIDTH,
+    BundleItemGap = ratios.BundleItemGap * SCREEN_HEIGHT,
     ProgressTextBottomGap = ratios.ProgressTextBottomGap * SCREEN_HEIGHT,
     ProgressBarBottomGap = ratios.ProgressBarBottomGap * SCREEN_HEIGHT,
     ProgressBarWidth = ratios.ProgressBarWidth * SCREEN_WIDTH,
@@ -47,6 +49,9 @@ local actuals = {
 
 local infoTextSize = 0.37
 local progressTextSize = 0.5
+local bundleNameTextSize = 0.4
+local bundleDescTextSize = 0.4
+local textZoomFudge = 5
 
 local function bundleList()
     local bundles = {
@@ -80,26 +85,47 @@ local function bundleList()
     local function bundleItem(i)
         local bundle = bundles[i]
         local bundleUserdata = DLMAN:GetCoreBundle(bundle.Name:lower())
+        local yIncrement = (actuals.MainDisplayHeight - (actuals.BundleListTopGap*2)) / #bundles
         return Def.ActorFrame {
             Name = "Bundle_"..i,
             InitCommand = function(self)
+                -- center y
+                self:y(yIncrement * (i-1) + yIncrement / 2)
             end,
 
             Def.Quad {
                 Name = "BG",
-
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:zoomto(actuals.BundleItemWidth, yIncrement - (actuals.BundleItemGap))
+                    self:diffuse(color(bundle.Color))
+                end,
             },
             LoadFont("Common Large") .. {
                 Name = "BundleNameSize",
+                InitCommand = function(self)
+                    self:x(actuals.BundleItemWidth / 2)
+                    self:zoom(bundleNameTextSize)
+                    self:maxwidth(actuals.BundleItemWidth / bundleNameTextSize - textZoomFudge)
+                    self:settextf("%s Bundle (%dMB)", bundle.Name, bundleUserdata.TotalSize)
+                end,
             },
             LoadFont("Common Large") .. {
                 Name = "BundleDescription",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:x(actuals.BundleItemWidth + actuals.BundleListTextBuffer)
+                    self:zoom(bundleDescTextSize)
+                    self:maxheight(yIncrement * 0.75 / bundleDescTextSize)
+                    self:wrapwidthpixels((actuals.MainDisplayWidth - actuals.BundleListTextBuffer - actuals.BundleItemWidth - (actuals.BundleListEdgeBuffer*2)) / bundleDescTextSize)
+                    self:settext(bundle.Description)
+                end,
             }
 
         }
     end
 
-    local t = Def.ActorFrame {Name = "BundleListContainer",}
+    local t = Def.ActorFrame {Name = "BundleListContainer"}
 
     for i = 1, #bundles do
         t[#t+1] = bundleItem(i)
@@ -110,7 +136,7 @@ end
 
 local t = Def.ActorFrame {
     Name = "BundleDisplayFile",
-    
+
     Def.ActorFrame {
         Name = "InfoBoxFrame",
         InitCommand = function(self)
@@ -152,6 +178,11 @@ local t = Def.ActorFrame {
                 self:zoomto(actuals.MainDisplayWidth, actuals.MainDisplayHeight)
                 self:diffuse(color("0,0,0"))
                 self:diffusealpha(0.6)
+            end,
+        },
+        bundleList() .. {
+            InitCommand = function(self)
+                self:xy(actuals.BundleListEdgeBuffer, actuals.BundleListTopGap)
             end,
         },
     },
