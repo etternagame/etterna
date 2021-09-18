@@ -23,6 +23,9 @@ SCUFF.preview = {
     resetmusic = false,
 }
 
+-- if the user skipped the screen dont force it on them (once per game session)
+SCUFF.visitedCoreBundleSelect = false
+
 -- for controlling what happens after GameplaySyncMachine
 -- change this before entering ScreenGameplaySyncMachine
 -- HACK: ALSO USING THIS FOR ScreenTestInput
