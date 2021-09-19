@@ -15,6 +15,10 @@ t[#t + 1] = Def.Quad {
 	end
 }
 
+-- skip showing the prompt
+if not themeConfig:get_data().global.ShowPlayerOptionsHint then return t end
+
+
 --enter options prompt
 t[#t + 1] = Def.ActorFrame {
 	InitCommand = function(self)
