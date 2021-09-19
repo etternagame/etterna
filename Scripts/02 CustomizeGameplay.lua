@@ -32,11 +32,11 @@ local function loadValuesTable()
 	MovableValues.DisplayMeanX = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayMeanX
 	MovableValues.DisplayMeanY = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayMeanY
 	MovableValues.DisplayMeanZoom = playerConfig:get_data().GameplaySizes[keymode].DisplayMeanZoom
-	MovableValues.NotefieldX = playerConfig:get_data().GameplayXYCoordinates[keymode].NotefieldX
-	MovableValues.NotefieldY = playerConfig:get_data().GameplayXYCoordinates[keymode].NotefieldY
-	MovableValues.NotefieldWidth = playerConfig:get_data().GameplaySizes[keymode].NotefieldWidth
-	MovableValues.NotefieldHeight = playerConfig:get_data().GameplaySizes[keymode].NotefieldHeight
-	MovableValues.NotefieldSpacing = playerConfig:get_data().GameplaySizes[keymode].NotefieldSpacing
+	MovableValues.NoteFieldX = playerConfig:get_data().GameplayXYCoordinates[keymode].NoteFieldX
+	MovableValues.NoteFieldY = playerConfig:get_data().GameplayXYCoordinates[keymode].NoteFieldY
+	MovableValues.NoteFieldWidth = playerConfig:get_data().GameplaySizes[keymode].NoteFieldWidth
+	MovableValues.NoteFieldHeight = playerConfig:get_data().GameplaySizes[keymode].NoteFieldHeight
+	MovableValues.NoteFieldSpacing = playerConfig:get_data().GameplaySizes[keymode].NoteFieldSpacing
 	MovableValues.JudgeCounterX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterX
 	MovableValues.JudgeCounterY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterY
 	MovableValues.ReplayButtonsX = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsX
@@ -398,8 +398,8 @@ Movable = {
 		}
 	},
 	DeviceButton_r = {
-		name = "Notefield",
-		textHeader = "Notefield Position:",
+		name = "NoteField",
+		textHeader = "NoteField Position:",
 		element = {},
 		properties = {"X", "Y"},
 		elementTree = "GameplayXYCoordinates",
@@ -424,8 +424,8 @@ Movable = {
 		}
 	},
 	DeviceButton_t = {
-		name = "Notefield",
-		textHeader = "Notefield Size:",
+		name = "NoteField",
+		textHeader = "NoteField Size:",
 		element = {},
 		elementList = true, -- god bless the notefield
 		properties = {"Width", "Height"},
@@ -865,8 +865,8 @@ Movable = {
 		}
 	},
 	DeviceButton_n = {
-		name = "Notefield",
-		textHeader = "Notefield Columns:",
+		name = "NoteField",
+		textHeader = "NoteField Columns:",
 		properties = {"Spacing"},
 		elementTree = "GameplaySizes",
 		noBorder = true,

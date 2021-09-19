@@ -22,7 +22,7 @@ local buttonHoverAlpha = 0.6
 local cursorAlpha = 0.5
 local cursorAnimationSeconds = 0.05
 
-local function spaceNotefieldCols(inc)
+local function spaceNoteFieldCols(inc)
 	if inc == nil then inc = 0 end
 	local hCols = math.floor(#noteColumns/2)
 	for i, col in ipairs(noteColumns) do
@@ -64,8 +64,8 @@ local t = Def.ActorFrame {
         Movable.DeviceButton_l.element = lifebar
         Movable.DeviceButton_l.condition = true
         Movable.DeviceButton_n.condition = true
-        Movable.DeviceButton_n.DeviceButton_up.arbitraryFunction = spaceNotefieldCols
-        Movable.DeviceButton_n.DeviceButton_down.arbitraryFunction = spaceNotefieldCols
+        Movable.DeviceButton_n.DeviceButton_up.arbitraryFunction = spaceNoteFieldCols
+        Movable.DeviceButton_n.DeviceButton_down.arbitraryFunction = spaceNoteFieldCols
     end,
     OnCommand = function(self)
         -- most elements either need BeginCommand or InitCommand to run for them to be registered

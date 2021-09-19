@@ -26,16 +26,16 @@ local t = Def.ActorFrame {
         local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
         if nf then
 			local noteColumns = nf:get_column_actors()
-            nf:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
-            nf:addx(MovableValues.NotefieldX)
+            nf:addy(MovableValues.NoteFieldY * (usingReverse and 1 or -1))
+            nf:addx(MovableValues.NoteFieldX)
 
 			-- notefield column sizing
             for i, actor in ipairs(noteColumns) do
-                actor:zoomtowidth(MovableValues.NotefieldWidth)
-                actor:zoomtoheight(MovableValues.NotefieldHeight)
+                actor:zoomtowidth(MovableValues.NoteFieldWidth)
+                actor:zoomtoheight(MovableValues.NoteFieldHeight)
             end
 			-- notefield column movement
-			local inc = MovableValues.NotefieldSpacing
+			local inc = MovableValues.NoteFieldSpacing
 			if inc == nil then inc = 0 end
 			local hCols = math.floor(#noteColumns/2)
 			for i, col in ipairs(noteColumns) do
@@ -48,8 +48,8 @@ local t = Def.ActorFrame {
 
         -- playlists reset notefield positioning ??
 		if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
-			Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
-			Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
+			NoteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
+			NoteField:addy(MovableValues.NoteFieldY * (usingReverse and 1 or -1))
 		end
 		-- update all stats in gameplay (as if it was a reset) when loading a new song
 		-- particularly for playlists

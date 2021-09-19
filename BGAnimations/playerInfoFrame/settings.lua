@@ -3195,7 +3195,7 @@ local function rightFrame()
             {
                 Name = "Perspective",
                 Type = "SingleChoice",
-                Explanation = "Controls tilt/skew of the Notefield.",
+                Explanation = "Controls tilt/skew of the NoteField.",
                 Choices = {
                     -- the numbers in these defs are like the percentages you would put in metrics instead
                     -- 1 is 100%
@@ -3346,7 +3346,7 @@ local function rightFrame()
             {
                 Name = "Default Centered NoteField",
                 Type = "SingleChoice",
-                Explanation = "Horizontally center the Notefield in Gameplay (Legacy Shortcut).",
+                Explanation = "Horizontally center the NoteField in Gameplay (Legacy Shortcut).",
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("Center1Player", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Center1Player", true),
@@ -3354,7 +3354,7 @@ local function rightFrame()
             {
                 Name = "NoteField BG Opacity",
                 Type = "SingleChoice",
-                Explanation = "Set the opacity of the board behind the Notefield in Gameplay.",
+                Explanation = "Set the opacity of the board behind the NoteField in Gameplay.",
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 0, 10 do -- 11 choices

@@ -102,7 +102,7 @@ local defaultConfig = {
 		LaneCoverBPM = "#4cbb17",
 		LaneCoverHeight = "#ffffff",
 		NPSGraph = "#ffffff",
-		NotefieldBG = "#000000",
+		NoteFieldBG = "#000000",
 		PracticeBookmark = "#1080ff",
 		PracticeRegion = "#c010c0",
 	},

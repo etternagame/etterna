@@ -3,7 +3,7 @@ local moveDownP1 = false
 
 local cover
 
-if MovableValues == nil or MovableValues.NotefieldWidth == nil then
+if MovableValues == nil or MovableValues.NoteFieldWidth == nil then
 	return Def.Actor {}
 end
 
@@ -15,8 +15,8 @@ local cols = GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()
 local evencols = cols - cols%2
 
 -- load from prefs later
-local nfspace = MovableValues.NotefieldSpacing and MovableValues.NotefieldSpacing or 0
-local width = 64 * cols * MovableValues.NotefieldWidth + nfspace * (evencols)
+local nfspace = MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0
+local width = 64 * cols * MovableValues.NoteFieldWidth + nfspace * (evencols)
 local padding = 8
 
 local prefsP1 = playerConfig:get_data().LaneCover
@@ -100,11 +100,11 @@ local function input(event)
 		end
 		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
 			if event.DeviceInput.button == "DeviceButton_left" then
-				width = 64 * cols * MovableValues.NotefieldWidth - 0.01 + MovableValues.NotefieldSpacing * (cols-1)
+				width = 64 * cols * MovableValues.NoteFieldWidth - 0.01 + MovableValues.NoteFieldSpacing * (cols-1)
 				cover:playcommand("Update")
 			end
 			if event.DeviceInput.button == "DeviceButton_right" then
-				width = 64 * cols * MovableValues.NotefieldWidth + 0.01 + MovableValues.NotefieldSpacing * (cols-1)
+				width = 64 * cols * MovableValues.NoteFieldWidth + 0.01 + MovableValues.NoteFieldSpacing * (cols-1)
 				cover:playcommand("Update")
 			end
 		end
