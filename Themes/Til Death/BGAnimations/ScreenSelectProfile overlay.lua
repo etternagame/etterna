@@ -14,7 +14,7 @@ local translated_info = {
 	PressStart = THEME:GetString("ScreenSelectProfile", "PressStartToJoin")
 }
 
-function GetLocalProfiles()
+local function GetLocalProfiles()
 	local t = {}
 
 	for p = 0, PROFILEMAN:GetNumLocalProfiles() - 1 do
@@ -28,7 +28,7 @@ function GetLocalProfiles()
 			Def.Quad {
 				InitCommand = function(self)
 					self:y(-3.25):align(0.5,0.5):zoomto(260, 39.5):ztest(true)
-					self:visible(false)
+					self:diffusealpha(0)
 				end,
 				LeftClickMessageCommand = function(self)
 					if isOver(self) then
@@ -83,9 +83,8 @@ function GetLocalProfiles()
 	return t
 end
 
-function LoadCard(cColor)
-	local t =
-		Def.ActorFrame {
+local function LoadCard(cColor)
+	local t = Def.ActorFrame {
 		Def.Quad {
 			InitCommand = function(self)
 				self:zoomto(260 + 4, 230 + 4)
@@ -105,34 +104,30 @@ function LoadCard(cColor)
 	}
 	return t
 end
-function LoadPlayerStuff(Player)
+local function LoadPlayerStuff(Player)
 	local t = {}
 
 	local pn = (Player == PLAYER_1) and 1
 
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "JoinFrame",
 		LoadCard(Color("Purple")),
-		LoadFont("Common Normal") ..
-			{
-				Text = translated_info["PressStart"],
-				InitCommand = function(self)
-					self:shadowlength(1)
-				end,
-				OnCommand = function(self)
-					self:diffuseshift():effectcolor1(Color("White")):effectcolor2(color("0.5,0.5,0.5"))
-				end
-			}
+		LoadFont("Common Normal") .. {
+			Text = translated_info["PressStart"],
+			InitCommand = function(self)
+				self:shadowlength(1)
+			end,
+			OnCommand = function(self)
+				self:diffuseshift():effectcolor1(Color("White")):effectcolor2(color("0.5,0.5,0.5"))
+			end
+		}
 	}
 
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "BigFrame",
 		LoadCard(Brightness(getMainColor("positive"), 0.3)),
 	}
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "SmallFrame",
 		InitCommand = function(self)
 			self:y(-2)
@@ -147,8 +142,7 @@ function LoadPlayerStuff(Player)
 		}
 	}
 
-	t[#t + 1] =
-		Def.ActorScroller {
+	t[#t + 1] = Def.ActorScroller {
 		Name = "Scroller",
 		NumItemsToDraw = 6,
 		OnCommand = function(self)
@@ -162,24 +156,21 @@ function LoadPlayerStuff(Player)
 		children = GetLocalProfiles()
 	}
 
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "EffectFrame"
 	}
-	t[#t + 1] =
-		LoadFont("Common Normal") ..
-		{
-			--is there a reason we dont use this just for showing the "no profile" text??
-			Name = "SelectedProfileText",
-			InitCommand = function(self)
-				self:y(160):maxwidth(SCREEN_WIDTH * 0.9):visible(0)
-			end
-		}
+	t[#t + 1] = LoadFont("Common Normal") .. {
+		--is there a reason we dont use this just for showing the "no profile" text??
+		Name = "SelectedProfileText",
+		InitCommand = function(self)
+			self:y(160):maxwidth(SCREEN_WIDTH * 0.9):visible(0)
+		end
+	}
 
 	return t
 end
 
-function UpdateInternal3(self, Player)
+local function UpdateInternal3(self, Player)
 	local pn = (Player == PLAYER_1) and 1
 	local frame = self:GetChild(string.format("P%uFrame", pn))
 	local scroller = frame:GetChild("Scroller")
@@ -223,13 +214,14 @@ end
 
 local t = Def.ActorFrame {}
 
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	StorageDevicesChangedMessageCommand = function(self, params)
 		self:queuecommand("UpdateInternal2")
 	end,
 	BeginCommand = function(self)
+		ms.ok("BEING BEINGIN EIN GIERN GIERN")
 		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			ms.ok(event)
 			if event.type == "InputEventType_FirstPress" then
 				if event.button == "Start" then
 					MESSAGEMAN:Broadcast("StartButton")
@@ -296,34 +288,29 @@ t[#t + 1] =
 			children = LoadPlayerStuff(PLAYER_1)
 		},
 		-- sounds
-		LoadActor(THEME:GetPathS("Common", "start")) ..
-			{
-				StartButtonMessageCommand = function(self)
-					self:play()
-				end
-			},
-		LoadActor(THEME:GetPathS("Common", "cancel")) ..
-			{
-				BackButtonMessageCommand = function(self)
-					self:play()
-				end
-			},
-		LoadActor(THEME:GetPathS("Common", "value")) ..
-			{
-				DirectionButtonMessageCommand = function(self)
-					self:play()
-				end
-			}
+		LoadActor(THEME:GetPathS("Common", "start")) .. {
+			StartButtonMessageCommand = function(self)
+				self:play()
+			end
+		},
+		LoadActor(THEME:GetPathS("Common", "cancel")) .. {
+			BackButtonMessageCommand = function(self)
+				self:play()
+			end
+		},
+		LoadActor(THEME:GetPathS("Common", "value")) .. {
+			DirectionButtonMessageCommand = function(self)
+				self:play()
+			end
+		}
 	}
 }
 t[#t + 1] = LoadActor("_frame")
-t[#t + 1] =
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
-			self:settextf("%s:", translated_info["Title"])
-		end
-	}
+t[#t + 1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
+		self:settextf("%s:", translated_info["Title"])
+	end
+}
 
 return t
