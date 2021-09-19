@@ -70,6 +70,9 @@ local function loadValuesTable()
 	MovableValues.MusicRateX = playerConfig:get_data().GameplayXYCoordinates[keymode].MusicRateX
 	MovableValues.MusicRateY = playerConfig:get_data().GameplayXYCoordinates[keymode].MusicRateY
 	MovableValues.MusicRateZoom = playerConfig:get_data().GameplaySizes[keymode].MusicRateZoom
+	MovableValues.PlayerInfoX = playerConfig:get_data().GameplayXYCoordinates[keymode].PlayerInfoX
+	MovableValues.PlayerInfoY = playerConfig:get_data().GameplayXYCoordinates[keymode].PlayerInfoY
+	MovableValues.PlayerInfoZoom = playerConfig:get_data().GameplaySizes[keymode].PlayerInfoZoom
 end
 
 -- registry for elements which are able to be modified in customizegameplay

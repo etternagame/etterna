@@ -1,7 +1,5 @@
 -- Various player and stage info
 local profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
-local PlayerFrameX = GAMEPLAY:getItemX("playerInfoFrameX")
-local PlayerFrameY = SCREEN_HEIGHT - GAMEPLAY:getItemY("playerInfoFrameYFromBottom")
 
 local translated_info = {
 	Judge = "Judge",
@@ -29,9 +27,10 @@ local scoreTypeXOffset = GAMEPLAY:getItemX("playerInfoScoreTypeX")
 local scoreTypeYOffset = GAMEPLAY:getItemY("playerInfoScoreTypeY")
 
 return Def.ActorFrame {
-    Name = "PlayerInfoContainer",
+    Name = "PlayerInfo",
     InitCommand = function(self)
-        self:xy(PlayerFrameX, PlayerFrameY)
+        self:xy(MovableValues.PlayerInfoX, MovableValues.PlayerInfoY)
+        self:zoom(MovableValues.PlayerInfoZoom)
         registerActorToCustomizeGameplayUI(self)
     end,
 

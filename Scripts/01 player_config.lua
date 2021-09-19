@@ -109,6 +109,8 @@ local defaultGameplayCoordinates = {
 	BPMTextY = SCREEN_BOTTOM - 20/480*SCREEN_HEIGHT,
 	MusicRateX = SCREEN_CENTER_X,
 	MusicRateY = SCREEN_BOTTOM - 10/480*SCREEN_HEIGHT,
+	PlayerInfoX = GAMEPLAY:getItemX("playerInfoFrameX"),
+	PlayerInfoY = SCREEN_HEIGHT - GAMEPLAY:getItemY("playerInfoFrameYFromBottom"),
 }
 
 local defaultGameplaySizes = {
@@ -137,7 +139,8 @@ local defaultGameplaySizes = {
 	PracticeCDGraphWidth = 0.8,
 	PracticeCDGraphHeight = 1,
 	MusicRateZoom = 1.0,
-	BPMTextZoom = 1.0
+	BPMTextZoom = 1.0,
+	PlayerInfoZoom = 1.0,
 }
 
 local defaultConfig = {
