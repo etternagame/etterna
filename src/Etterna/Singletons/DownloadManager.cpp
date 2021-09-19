@@ -1930,6 +1930,8 @@ DownloadManager::RefreshCoreBundles()
 				}
 			}
 		}
+		if (MESSAGEMAN != nullptr)
+			MESSAGEMAN->Broadcast("CoreBundlesRefreshed");
 	};
 	SendRequest("packs/collections/", {}, done, false);
 }
@@ -2319,6 +2321,8 @@ DownloadManager::RefreshPackList(const string& url)
 
 			packlist.push_back(tmp);
 		}
+		if (MESSAGEMAN != nullptr)
+			MESSAGEMAN->Broadcast("PackListRefreshed");
 		DLMAN->RefreshCoreBundles();
 	};
 	SendRequestToURL(url, {}, done, false, false, true, false);
