@@ -54,6 +54,7 @@ local infoTextSize = 0.37
 local progressTextSize = 0.35
 local bundleNameTextSize = 0.4
 local bundleDescTextSize = 0.4
+local disconnectedTextSize = 0.7
 local textZoomFudge = 5
 local buttonHoverAlpha = 0.6
 
@@ -139,7 +140,19 @@ local function bundleList()
                     self:x(actuals.BundleItemWidth / 2)
                     self:zoom(bundleNameTextSize)
                     self:maxwidth(actuals.BundleItemWidth / bundleNameTextSize - textZoomFudge)
-                    self:settextf("%s Bundle (%dMB)", bundle.Name, bundleUserdata.TotalSize)
+                    self:playcommand("Set")
+                end,
+                SetCommand = function(self)
+                    if bundleUserdata.TotalSize == 0 then
+                        -- odd situation. maybe the api is down? no connection?
+                        self:settextf("%s Bundle", bundle.Name)
+                    else
+                        self:settextf("%s Bundle (%dMB)", bundle.Name, bundleUserdata.TotalSize)
+                    end
+                end,
+                CoreBundlesRefreshedMessageCommand = function(self)
+                    bundleUserdata = DLMAN:GetCoreBundle(bundle.Name:lower())
+                    self:playcommand("Set")
                 end,
             },
             LoadFont("Common Large") .. {
@@ -152,8 +165,7 @@ local function bundleList()
                     self:wrapwidthpixels((actuals.MainDisplayWidth - actuals.BundleListTextBuffer - actuals.BundleItemWidth - (actuals.BundleListEdgeBuffer*2)) / bundleDescTextSize)
                     self:settext(bundle.Description)
                 end,
-            }
-
+            },
         }
     end
 
@@ -236,6 +248,30 @@ local t = Def.ActorFrame {
                 self:zoomto(actuals.MainDisplayWidth, actuals.MainDisplayHeight)
                 self:diffuse(color("0,0,0"))
                 self:diffusealpha(0.6)
+            end,
+        },
+        LoadFont("Common Large") .. {
+            Name = "DisconnectedAlert",
+            InitCommand = function(self)
+                self:visible(false)
+                self:settext("Server pack listing is empty.\nDisconnected from API?")
+                self:xy(actuals.MainDisplayWidth/2, actuals.MainDisplayHeight/2)
+                self:zoom(disconnectedTextSize)
+            end,
+            BeginCommand = function(self)
+                if #DLMAN:GetAllPacks() >= 0 then
+                    self:visible(true)
+                    self:GetParent():GetChild("BundleListContainer"):visible(false)
+                end
+            end,
+            CoreBundlesRefreshedMessageCommand = function(self)
+                if #DLMAN:GetAllPacks() == 0 then
+                    self:visible(true)
+                    self:GetParent():GetChild("BundleListContainer"):visible(false)
+                else
+                    self:visible(false)
+                    self:GetParent():GetChild("BundleListContainer"):visible(true)
+                end
             end,
         },
         bundleList() .. {
