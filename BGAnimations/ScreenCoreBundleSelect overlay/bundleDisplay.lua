@@ -86,6 +86,15 @@ local function bundleList()
         },
     }
 
+    local cursorIndex = 1
+    local function moveCursor(n)
+        local newpos = cursorIndex + n
+        if newpos > #bundles then newpos = 1 end
+        if newpos < 1 then newpos = #bundles end
+        cursorIndex = newpos
+        MESSAGEMAN:Broadcast("UpdateCursor")
+    end
+
     local function bundleItem(i)
         local bundle = bundles[i]
         local bundleUserdata = DLMAN:GetCoreBundle(bundle.Name:lower())
@@ -96,6 +105,11 @@ local function bundleList()
                 -- center y
                 self:y(yIncrement * (i-1) + yIncrement / 2)
             end,
+            SelectCurrentCommand = function(self)
+                if cursorIndex == i then
+                    DLMAN:DownloadCoreBundle(bundle.Name:lower())
+                end
+            end,
 
             UIElements.QuadButton(1) .. {
                 Name = "BG",
@@ -104,14 +118,19 @@ local function bundleList()
                     self:zoomto(actuals.BundleItemWidth, yIncrement - (actuals.BundleItemGap))
                     self:diffuse(bundle.Color)
                 end,
+                UpdateCursorMessageCommand = function(self)
+                    if cursorIndex == i then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                end,
                 MouseDownCommand = function(self, params)
 					DLMAN:DownloadCoreBundle(bundle.Name:lower())
                 end,
                 MouseOverCommand = function(self, params)
-                    self:diffusealpha(buttonHoverAlpha)
-                end,
-                MouseOutCommand = function(self, params)
-                    self:diffusealpha(1)
+                    cursorIndex = i
+                    self:GetParent():GetParent():playcommand("UpdateCursor")
                 end,
             },
             LoadFont("Common Large") .. {
@@ -138,7 +157,34 @@ local function bundleList()
         }
     end
 
-    local t = Def.ActorFrame {Name = "BundleListContainer"}
+    local t = Def.ActorFrame {
+        Name = "BundleListContainer",
+        BeginCommand = function(self)
+            SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+                if event.type == "InputEventType_Release" then return end
+
+                local gameButton = event.button
+                local key = event.DeviceInput.button
+                local up = gameButton == "Up" or gameButton == "MenuUp"
+                local down = gameButton == "Down" or gameButton == "MenuDown"
+                local right = gameButton == "MenuRight" or gameButton == "Right"
+                local left = gameButton == "MenuLeft" or gameButton == "Left"
+                local enter = gameButton == "Start"
+                local back = key == "DeviceButton_escape"
+
+                if up or left then
+                    moveCursor(-1)
+                elseif down or right then
+                    moveCursor(1)
+                elseif enter then
+                    self:playcommand("SelectCurrent")
+                elseif back then
+                    SCREENMAN:GetTopScreen():Cancel()
+                end
+            end)
+            self:playcommand("UpdateCursor")
+        end,
+    }
 
     for i = 1, #bundles do
         t[#t+1] = bundleItem(i)
