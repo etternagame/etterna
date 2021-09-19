@@ -74,6 +74,7 @@ end
 
 -- registry for elements which are able to be modified in customizegameplay
 local customizeGameplayElements = {}
+local selectedElementActor = nil
 function registerActorToCustomizeGameplayUI(element)
 	customizeGameplayElements[#customizeGameplayElements+1] = element
 
@@ -84,6 +85,40 @@ end
 
 function getCustomizeGameplayElements()
 	return customizeGameplayElements
+end
+
+function setSelectedCustomizeGameplayElement(elementName)
+	local index = 0
+	local elementActor = nil
+	for i, e in ipairs(customizeGameplayElements) do
+		if e:GetName() == elementName then
+			index = i
+			elementActor = e
+			break
+		end
+	end
+
+	-- element found, set up things
+	if elementActor ~= nil then
+		selectedElementActor = elementActor
+	end
+end
+
+-- set the new XY coordinates of an element using the DIFFERENCE from before it was changed and the new value
+function setSelectedCustomizeGameplayElementPosition(differenceX, differenceY)
+	if selectedElementActor ~= nil then
+		local name = selectedElementActor:GetName()
+		local xv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"]
+		local yv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"]
+
+		if xv ~= nil then
+			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"] = xv + differenceX
+		end
+		if yv ~= nil then
+			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"] = yv + differenceY
+		end
+		playerConfig:set_dirty()
+	end
 end
 
 function unsetMovableKeymode()
