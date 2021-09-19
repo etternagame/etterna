@@ -14,7 +14,7 @@ return Def.ActorFrame {
             local pf = self:GetParent():GetParent()
 
             -- avoid shadowing self in the below nested functions, so store self in some variable
-            local poop = self
+            local shelf = self
             self:GetParent():SetUpdateFunction(function(self)
                 -- find the largest actor child of the assigned parent we are making a border for
                 -- assign this border to match its size basically
@@ -29,15 +29,17 @@ return Def.ActorFrame {
                         if h > bigh then bigh = h eleh = self end
                     end
                 )
-                poop:halign(eleh:GetHAlign())
-                poop:valign(eleh:GetVAlign())
-                poop:x(eleh:GetX())
-                poop:y(eleh:GetY())
-                poop:zoomto(bigw, bigh)
+                shelf:halign(eleh:GetHAlign())
+                shelf:valign(eleh:GetVAlign())
+                shelf:x(eleh:GetX())
+                shelf:y(eleh:GetY())
+                shelf:zoomto(bigw, bigh)
             end)
             self:diffusealpha(borderAlpha)
 
             -- allow this to function as a button
+            -- even with the comment this makes no sense. basically it has to do with layering stuff
+            -- buttons on buttons and buttons in front or behind certain elements breaks stuff
             self:z(5)
 
             -- place the quad behind the whole actorframe we are bordering
