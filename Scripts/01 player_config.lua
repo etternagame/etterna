@@ -260,6 +260,26 @@ playerConfig.load = function(self, slot)
 		convertYPosRatio = x.CurrentHeight / defaultConfig.CurrentHeight
 	end
 
+	-------
+	-- cope with a minor renaming of the NoteField elements
+	-- didnt test
+	if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.NotefieldX ~= nil then
+		defaultGameplayCoordinates.NoteFieldX = x.GameplayXYCoordinates.NotefieldX
+	end
+	if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.NotefieldY ~= nil then
+		defaultGameplayCoordinates.NoteFieldY = x.GameplayXYCoordinates.NotefieldY
+	end
+	if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldWidth ~= nil then
+		defaultGameplaySizes.NoteFieldWidth = x.GameplaySizes.NotefieldWidth
+	end
+	if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldSpacing ~= nil then
+		defaultGameplaySizes.NoteFieldSpacing = x.GameplaySizes.NotefieldSpacing
+	end
+	if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldHeight ~= nil then
+		defaultGameplaySizes.NoteFieldHeight = x.GameplaySizes.NotefieldHeight
+	end
+	-------
+
 	--------
 	-- converts single 4k setup to the multi keymode setup (compatibility with very old customize gameplay versions)
 	local coords = x.GameplayXYCoordinates
