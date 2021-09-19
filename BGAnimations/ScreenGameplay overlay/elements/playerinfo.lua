@@ -15,16 +15,11 @@ local scoringTextSize = GAMEPLAY:getItemHeight("playerInfoScoreTypeText")
 local avatarSize = GAMEPLAY:getItemHeight("playerInfoAvatar")
 local diffwidth = GAMEPLAY:getItemWidth("playerInfoMeter")
 local diffXOffset = GAMEPLAY:getItemX("playerInfoMeterX")
-local diffYOffset = GAMEPLAY:getItemY("playerInfoMeterY")
 local msdXOffset = GAMEPLAY:getItemX("playerInfoMSDX")
-local msdYOffset = GAMEPLAY:getItemY("playerInfoMSDY")
 local msdwidth = diffXOffset - msdXOffset
 local modsXOffset = GAMEPLAY:getItemX("playerInfoModsX")
-local modsYOffset = GAMEPLAY:getItemY("playerInfoModsY")
 local judgeXOffset = GAMEPLAY:getItemX("playerInfoJudgeX")
-local judgeYOffset = GAMEPLAY:getItemY("playerInfoJudgeY")
 local scoreTypeXOffset = GAMEPLAY:getItemX("playerInfoScoreTypeX")
-local scoreTypeYOffset = GAMEPLAY:getItemY("playerInfoScoreTypeY")
 
 return Def.ActorFrame {
     Name = "PlayerInfo",
@@ -57,8 +52,8 @@ return Def.ActorFrame {
 	LoadFont("Common Large") .. {
         Name = "Difficulty",
         InitCommand = function(self)
-            self:halign(0)
-            self:xy(diffXOffset, diffYOffset)
+            self:halign(0):valign(0)
+            self:xy(diffXOffset, avatarSize/2 - 5)
             self:zoom(difficultyTextSize)
             self:maxwidth(diffwidth)
         end,
@@ -80,8 +75,8 @@ return Def.ActorFrame {
 	LoadFont("Common Large") .. {
         Name = "MSD",
         InitCommand = function(self)
-            self:halign(0)
-            self:xy(msdXOffset, msdYOffset)
+            self:halign(0):valign(1)
+            self:xy(msdXOffset, avatarSize - 2)
             self:zoom(msdTextSize)
             self:maxwidth(msdwidth / msdTextSize)
         end,
@@ -103,8 +98,8 @@ return Def.ActorFrame {
 	LoadFont("Common Normal") .. {
         Name = "ModString",
         InitCommand = function(self)
-            self:halign(0)
-            self:xy(modsXOffset, modsYOffset)
+            self:halign(0):valign(1)
+            self:xy(modsXOffset, avatarSize - 2)
             self:zoom(modstringTextSize)
             self:maxwidth(SCREEN_WIDTH / 5 / modstringTextSize)
         end,
@@ -115,8 +110,8 @@ return Def.ActorFrame {
 	LoadFont("Common Normal") .. {
         Name = "Judge",
         InitCommand = function(self)
-            self:halign(0)
-            self:xy(judgeXOffset, judgeYOffset)
+            self:halign(0):valign(0)
+            self:xy(judgeXOffset, avatarSize/24)
             self:zoom(judgeDiffTextSize)
         end,
         BeginCommand = function(self)
@@ -126,8 +121,8 @@ return Def.ActorFrame {
 	LoadFont("Common Normal") .. {
         Name = "ScoreType",
         InitCommand = function(self)
-            self:halign(0)
-            self:xy(scoreTypeXOffset, scoreTypeYOffset)
+            self:halign(0):valign(1)
+            self:xy(scoreTypeXOffset, avatarSize/2 - avatarSize/8)
             self:zoom(scoringTextSize)
         end,
         BeginCommand = function(self)

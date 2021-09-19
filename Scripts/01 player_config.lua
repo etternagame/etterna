@@ -11,7 +11,7 @@ local defaultGameplaySizeRatios = {
 		playerInfoMeterY = 24 / 480,
 		playerInfoMSDY = 28 / 480,
 		playerInfoModsY = 39 / 480,
-		playerInfoJudgeY = -2 / 480,
+		playerInfoJudgeY = 2 / 480,
 		playerInfoScoreTypeY = 8 / 480,
 
 		-- textsizes
@@ -22,10 +22,10 @@ local defaultGameplaySizeRatios = {
 		judgeDisplayCountText = 0.35 / 480,
 		meanDisplayText = 0.3 / 480,
 		npsDisplayText = 1 / 480,
-		playerInfoModsText = 0.4 / 480,
+		playerInfoModsText = 0.45 / 480,
 		playerInfoJudgeText = 0.45 / 480,
-		playerInfoMeterText = 0.45 / 480,
-		playerInfoMSDText = 1.1 / 480,
+		playerInfoMeterText = 0.55 / 480,
+		playerInfoMSDText = 1.0 / 480,
 		playerInfoScoreTypeText = 0.45 / 480,
 		rateDisplayText = 0.35 / 480,
 		wifeDisplayText = 0.3 / 480,
