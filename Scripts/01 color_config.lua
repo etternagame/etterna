@@ -49,6 +49,11 @@ local defaultConfig = {
 		ProgressBarBackground = "#ffffff",
 		InstalledIcon = "#00ff00",
 		NotInstalledIcon = "#ffffff",
+		Bundle1Easiest = "#66ccff",
+		Bundle2Easy = "#099948",
+		Bundle3Medium = "#ddaa00",
+		Bundle4Hard = "#ff6666",
+		Bundle5Hardest = "#c97bff",
 	},
 	options = {
 		Cursor = "#ffffff",

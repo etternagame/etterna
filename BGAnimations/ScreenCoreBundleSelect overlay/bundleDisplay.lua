@@ -23,6 +23,8 @@ local ratios = {
     ProgressBarBottomGap = 49 / 1080, -- bottom screen to bottom bar
     ProgressBarWidth = 1255 / 1920, -- width
     ProgressBarHeight = 25 / 1080, -- height
+
+    IconSize = 47 / 1080,
 }
 
 local actuals = {
@@ -45,6 +47,7 @@ local actuals = {
     ProgressBarBottomGap = ratios.ProgressBarBottomGap * SCREEN_HEIGHT,
     ProgressBarWidth = ratios.ProgressBarWidth * SCREEN_WIDTH,
     ProgressBarHeight = ratios.ProgressBarHeight * SCREEN_HEIGHT,
+    IconSize = ratios.IconSize * SCREEN_HEIGHT,
 }
 
 local infoTextSize = 0.37
@@ -58,27 +61,27 @@ local function bundleList()
     local bundles = {
         {
             Name = "Novice",
-            Color = "#66ccff",
+            Color = COLORS:getColor("downloader", "Bundle1Easiest"),
             Description = "A bundle aimed at people who are entirely new to rhythm games.\nMostly single notes throughout the song and very little pattern complexity.",
         },
         {
             Name = "Beginner",
-            Color = "#099948",
+            Color = COLORS:getColor("downloader", "Bundle2Easy"),
             Description = "A bundle for those who have formed some muscle memory.\nJumps (2 note chords) are introduced; some technical patterns start to appear.",
         },
         {
             Name = "Intermediate",
-            Color = "#ddaa00",
+            Color = COLORS:getColor("downloader", "Bundle3Medium"),
             Description = "A bundle for players who can confidently play complex patterns.\nJumpstream/handstream, very technical patterns, and jacks are common.",
         },
         {
             Name = "Advanced",
-            Color = "#ff6666",
+            Color = COLORS:getColor("downloader", "Bundle4Hard"),
             Description = "A bundle for advanced players.\nDumps are introduced. Very fast patterns in stamina intensive and complex files.",
         },
         {
             Name = "Expert",
-            Color = "#c97bff",
+            Color = COLORS:getColor("downloader", "Bundle5Hardest"),
             Description = "A bundle for veterans.\nSome of the hardest songs the game has to offer. Nothing is off-limits.",
         },
     }
@@ -99,7 +102,7 @@ local function bundleList()
                 InitCommand = function(self)
                     self:halign(0)
                     self:zoomto(actuals.BundleItemWidth, yIncrement - (actuals.BundleItemGap))
-                    self:diffuse(color(bundle.Color))
+                    self:diffuse(bundle.Color)
                 end,
                 MouseDownCommand = function(self, params)
 					DLMAN:DownloadCoreBundle(bundle.Name:lower())
@@ -192,6 +195,23 @@ local t = Def.ActorFrame {
         bundleList() .. {
             InitCommand = function(self)
                 self:xy(actuals.BundleListEdgeBuffer, actuals.BundleListTopGap)
+            end,
+        },
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "exit")) .. {
+            Name = "Exit",
+            InitCommand = function(self)
+                self:valign(0):halign(1)
+                self:xy(actuals.MainDisplayWidth - actuals.InfoVerticalBuffer/4, actuals.InfoVerticalBuffer/4)
+                self:zoomto(actuals.IconSize, actuals.IconSize)
+            end,
+            MouseDownCommand = function(self, params)
+                SCREENMAN:GetTopScreen():Cancel()
+            end,
+            MouseOverCommand = function(self, params)
+                self:diffusealpha(buttonHoverAlpha)
+            end,
+            MouseOutCommand = function(self, params)
+                self:diffusealpha(1)
             end,
         },
     },
