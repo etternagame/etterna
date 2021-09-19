@@ -8,11 +8,6 @@ local defaultGameplaySizeRatios = {
 		npsGraph = 100 / 480,
 		playerInfoFrameYFromBottom = 50 / 480,
 		playerInfoAvatar = 50 / 480,
-		playerInfoMeterY = 24 / 480,
-		playerInfoMSDY = 28 / 480,
-		playerInfoModsY = 39 / 480,
-		playerInfoJudgeY = 2 / 480,
-		playerInfoScoreTypeY = 8 / 480,
 
 		-- textsizes
 		bpmDisplayText = 0.4 / 480,
@@ -270,7 +265,8 @@ playerConfig.load = function(self, slot)
 		defaultGameplayCoordinates.NoteFieldX = x.GameplayXYCoordinates.NotefieldX
 	end
 	if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.NotefieldY ~= nil then
-		defaultGameplayCoordinates.NoteFieldY = x.GameplayXYCoordinates.NotefieldY
+		-- the negative 1 here because
+		defaultGameplayCoordinates.NoteFieldY = x.GameplayXYCoordinates.NotefieldY * -1
 	end
 	if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldWidth ~= nil then
 		defaultGameplaySizes.NoteFieldWidth = x.GameplaySizes.NotefieldWidth
