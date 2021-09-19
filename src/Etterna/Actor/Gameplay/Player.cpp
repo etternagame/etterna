@@ -308,42 +308,6 @@ Player::Init(const std::string& sType,
 	COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO.Load("Player",
 											  "ComboBreakOnImmediateHoldLetGo");
 
-	{
-		// Init judgment positions
-		const auto bPlayerUsingBothSides =
-		  GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
-			->GetUsesCenteredArrows();
-		Actor TempJudgment;
-		TempJudgment.SetName("Judgment");
-		ActorUtil::LoadCommand(TempJudgment, sType, "Transform");
-
-		Actor TempCombo;
-		TempCombo.SetName("Combo");
-		ActorUtil::LoadCommand(TempCombo, sType, "Transform");
-
-		const auto iEnabledPlayerIndex = 0;
-		const auto iNumEnabledPlayers = 1;
-
-		for (auto i = 0; i < NUM_REVERSE; i++) {
-			for (auto j = 0; j < NUM_CENTERED; j++) {
-				Message msg("Transform");
-				msg.SetParam("Player", pPlayerState->m_PlayerNumber);
-				msg.SetParam("MultiPlayer", pPlayerState->m_mp);
-				msg.SetParam("iEnabledPlayerIndex", iEnabledPlayerIndex);
-				msg.SetParam("iNumEnabledPlayers", iNumEnabledPlayers);
-				msg.SetParam("bPlayerUsingBothSides", bPlayerUsingBothSides);
-				msg.SetParam("bReverse", !(i == 0));
-				msg.SetParam("bCentered", !(j == 0));
-
-				TempJudgment.HandleMessage(msg);
-				m_tsJudgment[i][j] = TempJudgment.DestTweenState();
-
-				TempCombo.HandleMessage(msg);
-				m_tsCombo[i][j] = TempCombo.DestTweenState();
-			}
-		}
-	}
-
 	this->SortByDrawOrder();
 
 	m_pPlayerState = pPlayerState;
@@ -828,32 +792,6 @@ Player::UpdateVisibleParts()
 	// NoteField accounts for reverse on its own now.
 	// if( m_pNoteField )
 	//	m_pNoteField->SetY( fGrayYPos );
-
-	const auto bReverse =
-	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
-		0) == 1;
-	const auto fPercentCentered = m_pPlayerState->m_PlayerOptions.GetCurrent()
-									.m_fScrolls[PlayerOptions::SCROLL_CENTERED];
-
-	if (m_pActorWithJudgmentPosition != nullptr) {
-		const auto& ts1 = m_tsJudgment[bReverse ? 1 : 0][0];
-		const auto& ts2 = m_tsJudgment[bReverse ? 1 : 0][1];
-		TweenState::MakeWeightedAverage(
-		  m_pActorWithJudgmentPosition->DestTweenState(),
-		  ts1,
-		  ts2,
-		  fPercentCentered);
-	}
-
-	if (m_pActorWithComboPosition != nullptr) {
-		const auto& ts1 = m_tsCombo[bReverse ? 1 : 0][0];
-		const auto& ts2 = m_tsCombo[bReverse ? 1 : 0][1];
-		TweenState::MakeWeightedAverage(
-		  m_pActorWithComboPosition->DestTweenState(),
-		  ts1,
-		  ts2,
-		  fPercentCentered);
-	}
 
 	const auto fNoteFieldZoom = 1 - fMiniPercent * 0.5F;
 	if (m_pNoteField != nullptr) {

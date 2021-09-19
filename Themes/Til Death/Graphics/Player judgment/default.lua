@@ -52,7 +52,7 @@ local t =
 			Movable.DeviceButton_2.condition = enabledJudgment
 			Movable.DeviceButton_2.DeviceButton_up.arbitraryFunction = judgmentZoom
 			Movable.DeviceButton_2.DeviceButton_down.arbitraryFunction = judgmentZoom
-			Movable.DeviceButton_1.propertyOffsets = {self:GetTrueX() , self:GetTrueY() - c.Judgment:GetHeight()}	-- centered to screen/valigned
+			Movable.DeviceButton_1.propertyOffsets = {self:GetTrueX() , self:GetTrueY()}	-- centered to screen/valigned
 		end
 	end,
 	JudgmentMessageCommand = function(self, param)

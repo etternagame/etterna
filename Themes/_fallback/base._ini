@@ -2059,7 +2059,6 @@ PulseCommand=%function(self,param) self:stoptweening(); self:zoom(1.2*param.Zoom
 [Player]
 ReceptorArrowsYStandard=-144
 ReceptorArrowsYReverse=144
-JudgmentTransformCommand=%JudgmentTransformCommand
 JudgmentOnCommand=
 ComboTransformCommand=%ComboTransformCommand
 DrawDistanceBeforeTargetsPixels=400

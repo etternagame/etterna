@@ -83,7 +83,7 @@ local t =
 			c.Label:visible(not CenterCombo)
 			c.Label:settext(translated_combo)
 
-			Movable.DeviceButton_3.propertyOffsets = {self:GetTrueX() -6, self:GetTrueY() + c.Number:GetHeight()*1.5}	-- centered to screen/valigned
+			Movable.DeviceButton_3.propertyOffsets = {self:GetTrueX() -6, self:GetTrueY()}	-- centered to screen/valigned
 			setBorderAlignment(c.Border, 0.5, 1)
 		end
 		arbitraryComboZoom(MovableValues.ComboZoom)
