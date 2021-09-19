@@ -219,9 +219,7 @@ t[#t + 1] = Def.ActorFrame {
 		self:queuecommand("UpdateInternal2")
 	end,
 	BeginCommand = function(self)
-		ms.ok("BEING BEINGIN EIN GIERN GIERN")
 		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
-			ms.ok(event)
 			if event.type == "InputEventType_FirstPress" then
 				if event.button == "Start" then
 					MESSAGEMAN:Broadcast("StartButton")

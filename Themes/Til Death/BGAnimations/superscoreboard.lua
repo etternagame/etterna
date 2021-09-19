@@ -655,7 +655,13 @@ local function makeScoreDisplay(i)
 					end
 				end,
 				DisplayCommand = function(self)
-					self:settextf("%05.4f%%", notShit.floor(hs:GetWifeScore() * 100, 5)):diffuse(byGrade(hs:GetWifeGrade()))
+					local perc = hs:GetWifeScore() * 100
+					if perc > 99.7 then
+						self:settextf("%05.5f%%", notShit.floor(perc, 5))
+					else
+						self:settextf("%05.4f%%", notShit.floor(perc, 4))
+					end
+					self:diffuse(byGrade(hs:GetWifeGrade()))
 				end
 			},
 		LoadFont("Common normal") ..
