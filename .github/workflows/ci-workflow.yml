@@ -118,8 +118,8 @@ jobs:
       fail-fast: false # Don't cancel other matrix jobs if one fails
       matrix:
         cfg:
-        - { name: i386, arch: x64,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
-        - { name: x64,  arch: x86,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
+        - { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
+        - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
     runs-on: windows-2019
