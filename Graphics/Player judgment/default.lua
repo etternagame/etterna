@@ -21,14 +21,6 @@ local TNSFrames = {
 	TapNoteScore_Miss = 5
 }
 
-local function judgmentZoom(value)
-    c.Judgment:zoom(value)
-    if allowedCustomization then
-	    c.Border:playcommand("ChangeWidth", {val = c.Judgment:GetZoomedWidth()})
-	    c.Border:playcommand("ChangeHeight", {val = c.Judgment:GetZoomedHeight()})
-	end
-end
-
 local t = Def.ActorFrame {
 	Name = "Judgment", -- c++ renames this to "Judgment" 
 	BeginCommand = function(self)
@@ -40,7 +32,7 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:pause()
 			self:visible(false)
-			self:xy(MovableValues.JudgeX, MovableValues.JudgeY)
+			self:xy(MovableValues.JudgmentX, MovableValues.JudgmentY)
 			registerActorToCustomizeGameplayUI(self:GetParent())
 		end,
 		ResetCommand = function(self)
@@ -51,16 +43,7 @@ local t = Def.ActorFrame {
 	},
 
 	OnCommand = function(self)
-		judgmentZoom(MovableValues.JudgeZoom)
-		if allowedCustomization then
-			Movable.DeviceButton_1.element = c
-			Movable.DeviceButton_2.element = c
-			Movable.DeviceButton_1.condition = enabledJudgment
-			Movable.DeviceButton_2.condition = enabledJudgment
-			Movable.DeviceButton_2.DeviceButton_up.arbitraryFunction = judgmentZoom
-			Movable.DeviceButton_2.DeviceButton_down.arbitraryFunction = judgmentZoom
-			Movable.DeviceButton_1.propertyOffsets = {self:GetTrueX() , self:GetTrueY() - c.Judgment:GetHeight()}	-- centered to screen/valigned
-		end
+		c.Judgment:zoom(MovableValues.JudgmentZoom)
 	end,
 	JudgmentMessageCommand = function(self, param)
 		if param.HoldNoteScore or param.FromReplay then

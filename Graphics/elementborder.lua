@@ -91,12 +91,13 @@ return Def.ActorFrame {
             local differenceY = newy - pp:GetY()
 
             pp:x(newx):y(newy)
-            setSelectedCustomizeGameplayElementPosition(differenceX, differenceY)
+            setSelectedCustomizeGameplayElementActorPosition(differenceX, differenceY)
         end,
         MouseDownCommand = function(self, params)
             self.initialClickX = params.MouseX
             self.initialClickY = params.MouseY
-            setSelectedCustomizeGameplayElement(self:GetParent():GetParent():GetName())
+            local name = self:GetParent():GetParent():GetName()
+            setSelectedCustomizeGameplayElementActorByName(name)
         end,
     }
 }

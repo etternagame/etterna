@@ -7,9 +7,9 @@ MovableValues = {}
 local function loadValuesTable()
 	allowedCustomization = playerConfig:get_data().CustomizeGameplay
 	usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-	MovableValues.JudgeX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeX
-	MovableValues.JudgeY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeY
-	MovableValues.JudgeZoom = playerConfig:get_data().GameplaySizes[keymode].JudgeZoom
+	MovableValues.JudgmentX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentX
+	MovableValues.JudgmentY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentY
+	MovableValues.JudgmentZoom = playerConfig:get_data().GameplaySizes[keymode].JudgmentZoom
 	MovableValues.ComboX = playerConfig:get_data().GameplayXYCoordinates[keymode].ComboX
 	MovableValues.ComboY = playerConfig:get_data().GameplayXYCoordinates[keymode].ComboY
 	MovableValues.ComboZoom = playerConfig:get_data().GameplaySizes[keymode].ComboZoom
@@ -78,11 +78,11 @@ end
 -- registry for elements which are able to be modified in customizegameplay
 local customizeGameplayElements = {}
 local selectedElementActor = nil
-function registerActorToCustomizeGameplayUI(element)
-	customizeGameplayElements[#customizeGameplayElements+1] = element
+function registerActorToCustomizeGameplayUI(elementFrame)
+	customizeGameplayElements[#customizeGameplayElements+1] = elementFrame
 
 	if allowedCustomization or true then
-		element:AddChildFromPath(THEME:GetPathG("", "elementborder"))
+		elementFrame:AddChildFromPath(THEME:GetPathG("", "elementborder"))
 	end
 end
 
@@ -90,7 +90,7 @@ function getCustomizeGameplayElements()
 	return customizeGameplayElements
 end
 
-function setSelectedCustomizeGameplayElement(elementName)
+function setSelectedCustomizeGameplayElementActorByName(elementName)
 	local index = 0
 	local elementActor = nil
 	for i, e in ipairs(customizeGameplayElements) do
@@ -107,8 +107,12 @@ function setSelectedCustomizeGameplayElement(elementName)
 	end
 end
 
+function getSelectedCustomizeGameplayMovableActor()
+	return selectedElementActor
+end
+
 -- set the new XY coordinates of an element using the DIFFERENCE from before it was changed and the new value
-function setSelectedCustomizeGameplayElementPosition(differenceX, differenceY)
+function setSelectedCustomizeGameplayElementActorPosition(differenceX, differenceY)
 	if selectedElementActor ~= nil then
 		local name = selectedElementActor:GetName()
 		local xv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"]

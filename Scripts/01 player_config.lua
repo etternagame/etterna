@@ -66,8 +66,8 @@ end
 
 
 local defaultGameplayCoordinates = {
-	JudgeX = 0,
-	JudgeY = 0,
+	JudgmentX = 0,
+	JudgmentY = 0,
 	ComboX = 30/854*SCREEN_WIDTH,
 	ComboY = -20/480*SCREEN_HEIGHT,
 	ErrorBarX = SCREEN_CENTER_X,
@@ -109,7 +109,7 @@ local defaultGameplayCoordinates = {
 }
 
 local defaultGameplaySizes = {
-	JudgeZoom = 1.0,
+	JudgmentZoom = 1.0,
 	ComboZoom = 0.6,
 	ErrorBarWidth = 240/854*SCREEN_WIDTH,
 	ErrorBarHeight = 10/480*SCREEN_HEIGHT,
@@ -276,6 +276,16 @@ playerConfig.load = function(self, slot)
 	end
 	if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldHeight ~= nil then
 		defaultGameplaySizes.NoteFieldHeight = x.GameplaySizes.NotefieldHeight
+	end
+	-- also cope with minor renaming of actor Judge to Judgment
+	if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.JudgeX ~= nil then
+		defaultGameplayCoordinates.JudgmentX = x.GameplayXYCoordinates.JudgeX
+	end
+	if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.JudgeY ~= nil then
+		defaultGameplayCoordinates.JudgementY = x.GameplayXYCoordinates.JudgeY
+	end
+	if x.GameplaySizes ~= nil and x.GameplaySizes.JudgeZoom ~= nil then
+		defaultGameplaySizes.JudgmentZoom = x.GameplaySizes.JudgeZoom
 	end
 	-------
 

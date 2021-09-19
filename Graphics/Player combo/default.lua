@@ -32,7 +32,7 @@ local regNumbers = getComboColor("RegularCombo")
 local translated_combo = "Combo"--THEME:GetString("ScreenGameplay", "ComboText")
 
 local t = Def.ActorFrame {
-	Name = "ComboContainer",
+	Name = "Combo",
 	InitCommand = function(self)
 		c = self:GetChildren()
 		self:xy(MovableValues.ComboX, MovableValues.ComboY)
