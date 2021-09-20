@@ -37,31 +37,33 @@ local regNumbers = getComboColor("RegularCombo")
 
 local translated_combo = THEME:GetString("ScreenGameplay", "ComboText")
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	InitCommand = function(self)
 		self:vertalign(bottom)
 	end,
-	LoadFont("Combo", "numbers") ..
-		{
-			Name = "Number",
-			InitCommand = function(self)
-				if not CenterCombo then
-					self:xy(MovableValues.ComboX - 4, MovableValues.ComboY):halign(1):valign(1):skewx(-0.125):visible(false)
-				else
-					self:xy(MovableValues.ComboX - 24, MovableValues.ComboY):halign(0.5):valign(1):skewx(-0.125):visible(false)
-				end
+	LoadFont("Combo", "numbers") .. {
+		Name = "Number",
+		InitCommand = function(self)
+			if not CenterCombo then
+				self:halign(1):valign(1):skewx(-0.125)
+				self:xy(MovableValues.ComboX - 4, MovableValues.ComboY)
+				self:visible(false)
+			else
+				self:halign(0.5):valign(1):skewx(-0.125)
+				self:xy(MovableValues.ComboX - 24, MovableValues.ComboY)
+				self:visible(false)
 			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			Name = "Label",
-			InitCommand = function(self)
-				self:xy(MovableValues.ComboX, MovableValues.ComboY):diffusebottomedge(color("0.75,0.75,0.75,1")):halign(0):valign(
-					1
-				):visible(false)
-			end
-		},
+		end
+	},
+	LoadFont("Common Normal") .. {
+		Name = "Label",
+		InitCommand = function(self)
+			self:halign(0):valign(1)
+			self:xy(MovableValues.ComboX, MovableValues.ComboY)
+			self:diffusebottomedge(color("0.75,0.75,0.75,1"))
+			self:visible(false)
+		end
+	},
 	InitCommand = function(self)
 		c = self:GetChildren()
 		if (allowedCustomization) then

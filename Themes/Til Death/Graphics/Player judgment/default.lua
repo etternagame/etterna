@@ -1,4 +1,3 @@
--- Removed all the protiming junk, it's obsoleted
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local c
 local enabledJudgment = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgmentText
@@ -10,7 +9,7 @@ local JudgeCmds = {
 	TapNoteScore_W3 = THEME:GetMetric("Judgment", "JudgmentW3Command"),
 	TapNoteScore_W4 = THEME:GetMetric("Judgment", "JudgmentW4Command"),
 	TapNoteScore_W5 = THEME:GetMetric("Judgment", "JudgmentW5Command"),
-	TapNoteScore_Miss = THEME:GetMetric("Judgment", "JudgmentMissCommand")
+	TapNoteScore_Miss = THEME:GetMetric("Judgment", "JudgmentMissCommand"),
 }
 
 local TNSFrames = {
@@ -30,8 +29,7 @@ local function judgmentZoom(value)
 	end
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	Def.Sprite {
 		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",

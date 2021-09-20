@@ -246,8 +246,6 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 
 	totalwifescore = 0;
 	m_Timing = nullptr;
-	m_pActorWithJudgmentPosition = nullptr;
-	m_pActorWithComboPosition = nullptr;
 	m_LastTapNoteScore = TNS_None;
 	m_iFirstUncrossedRow = -1;
 	m_iLastSeenCombo = 0;
@@ -395,7 +393,6 @@ Player::Init(const std::string& sType,
 
 		m_sprCombo.Load(THEME->GetPathG(sType, "combo"));
 		m_sprCombo->SetName("Combo");
-		m_pActorWithComboPosition = &*m_sprCombo;
 		this->AddChild(m_sprCombo);
 
 		// todo: allow for judgments to be loaded per-column a la pop'n?
@@ -403,11 +400,7 @@ Player::Init(const std::string& sType,
 		// it would need more work. -aj
 		m_sprJudgment.Load(THEME->GetPathG(sType, "judgment"));
 		m_sprJudgment->SetName("Judgment");
-		m_pActorWithJudgmentPosition = &*m_sprJudgment;
 		this->AddChild(m_sprJudgment);
-	} else {
-		m_pActorWithComboPosition = nullptr;
-		m_pActorWithJudgmentPosition = nullptr;
 	}
 
 	// Load HoldJudgments
@@ -796,14 +789,6 @@ Player::UpdateVisibleParts()
 	const auto fNoteFieldZoom = 1 - fMiniPercent * 0.5F;
 	if (m_pNoteField != nullptr) {
 		m_pNoteField->SetZoom(fNoteFieldZoom);
-	}
-	if (m_pActorWithJudgmentPosition != nullptr) {
-		m_pActorWithJudgmentPosition->SetZoom(
-		  m_pActorWithJudgmentPosition->GetZoom() * fJudgmentZoom);
-	}
-	if (m_pActorWithComboPosition != nullptr) {
-		m_pActorWithComboPosition->SetZoom(
-		  m_pActorWithComboPosition->GetZoom() * fJudgmentZoom);
 	}
 }
 
@@ -3407,18 +3392,6 @@ class LunaPlayer : public Luna<Player>
 		p->m_inside_lua_set_life = false;
 		COMMON_RETURN_SELF;
 	}
-	static auto SetActorWithJudgmentPosition(T* p, lua_State* L) -> int
-	{
-		auto* const pActor = Luna<Actor>::check(L, 1);
-		p->SetActorWithJudgmentPosition(pActor);
-		COMMON_RETURN_SELF;
-	}
-	static auto SetActorWithComboPosition(T* p, lua_State* L) -> int
-	{
-		auto* const pActor = Luna<Actor>::check(L, 1);
-		p->SetActorWithComboPosition(pActor);
-		COMMON_RETURN_SELF;
-	}
 	static auto GetPlayerTimingData(T* p, lua_State* L) -> int
 	{
 		p->GetPlayerTimingData().PushSelf(L);
@@ -3429,8 +3402,6 @@ class LunaPlayer : public Luna<Player>
 	{
 		ADD_METHOD(SetLife);
 		ADD_METHOD(ChangeLife);
-		ADD_METHOD(SetActorWithJudgmentPosition);
-		ADD_METHOD(SetActorWithComboPosition);
 		ADD_METHOD(GetPlayerTimingData);
 	}
 };

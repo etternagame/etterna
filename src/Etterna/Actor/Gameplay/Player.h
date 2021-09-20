@@ -132,15 +132,6 @@ class Player : public ActorFrame
 	auto GetNoteData() const -> const NoteData& { return m_NoteData; }
 	auto HasVisibleParts() const -> bool { return m_pNoteField != nullptr; }
 
-	void SetActorWithJudgmentPosition(Actor* pActor)
-	{
-		m_pActorWithJudgmentPosition = pActor;
-	}
-	void SetActorWithComboPosition(Actor* pActor)
-	{
-		m_pActorWithComboPosition = pActor;
-	}
-
 	void SetSendJudgmentAndComboMessages(bool b)
 	{
 		m_bSendJudgmentAndComboMessages = b;
@@ -272,8 +263,6 @@ class Player : public ActorFrame
 
 	AutoActor m_sprJudgment;
 	AutoActor m_sprCombo;
-	Actor* m_pActorWithJudgmentPosition;
-	Actor* m_pActorWithComboPosition;
 
 	TapNoteScore m_LastTapNoteScore;
 	LifeMeter* m_pLifeMeter;
