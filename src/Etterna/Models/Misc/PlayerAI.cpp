@@ -763,6 +763,10 @@ PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 std::shared_ptr<ReplaySnapshot>
 PlayerAI::GetReplaySnapshotForNoterow(int row)
 {
+	if (m_ReplaySnapshotMap.empty()) {
+		return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
+	}
+
 	// The row doesn't necessarily have to exist in the Snapshot map.
 	// Because after a Snapshot, we can try this again for a later row
 	// And if there are no new snapshots (no events) nothing changes
