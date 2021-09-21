@@ -31,6 +31,7 @@ local function highlight(self)
 end
 
 local update = false
+local clickedForSinglePlaylist = false
 local t = Def.ActorFrame {
 	BeginCommand = function(self)
 		self:queuecommand("Set"):visible(false)
@@ -251,10 +252,9 @@ local function TitleDisplayButton(i)
 				self:x(-22):zoomto(212, scoreYspacing):halign(0):diffusealpha(0)
 			end,
 			MouseLeftClickMessageCommand = function(self)
-				if
-					ButtonActive(self) and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)] and
+				if ButtonActive(self) and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)] and
 						chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() and
-						singleplaylistactive
+						singleplaylistactive and not clickedForSinglePlaylist
 				 then
 					whee:SelectSong(songlist[i + ((currentchartpage - 1) * chartsperplaylist)])
 				end
@@ -593,8 +593,12 @@ local function PlaylistTitleDisplayButton(i)
 					SONGMAN:SetActivePlaylist(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
 					pl = allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]
 					MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
+					clickedForSinglePlaylist = true
 				end
-			end
+			end,
+			MouseUpMessageCommand = function(self)
+				clickedForSinglePlaylist = false
+			end,
 		},
 		LoadFont("Common Large") .. {
 			Name = "Text",

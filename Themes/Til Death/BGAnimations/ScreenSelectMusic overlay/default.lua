@@ -1,10 +1,20 @@
 local showVisualizer = themeConfig:get_data().global.ShowVisualizer
 
 local function input(event)
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and event.type == "InputEventType_Release" then
-		MESSAGEMAN:Broadcast("MouseLeftClick")
-	elseif event.DeviceInput.button == "DeviceButton_right mouse button" and event.type == "InputEventType_Release" then
-		MESSAGEMAN:Broadcast("MouseRightClick")
+	if event.DeviceInput.button == "DeviceButton_left mouse button" then 
+		if event.type == "InputEventType_Release" then
+			MESSAGEMAN:Broadcast("MouseLeftClick")
+			MESSAGEMAN:Broadcast("MouseUp", {event = event})
+		elseif event.type == "InputEventType_FirstPress" then
+			MESSAGEMAN:Broadcast("MouseDown", {event = event})
+		end
+	elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+		if event.type == "InputEventType_Release" then
+			MESSAGEMAN:Broadcast("MouseRightClick")
+			MESSAGEMAN:Broadcast("MouseUp", {event = event})
+		elseif event.type == "InputEventType_FirstPress" then
+			MESSAGEMAN:Broadcast("MouseDown", {event = event})
+		end
 	end
 	return false
 end
