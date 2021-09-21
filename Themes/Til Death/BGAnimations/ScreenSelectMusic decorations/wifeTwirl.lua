@@ -151,8 +151,7 @@ local function toggleNoteField()
 end
 
 local update = false
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 		toggleCalcInfo(false)
@@ -336,33 +335,30 @@ local t =
 }
 
 -- Music Rate Display
-t[#t + 1] =
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:xy(20, SCREEN_BOTTOM - 226):visible(true):halign(0):zoom(0.4):maxwidth(
-				capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
-			)
-		end,
-		MintyFreshCommand = function(self)
-			if song then
-				self:settext(getCurRateDisplayString())
-			else
-				self:settext("")
-			end
-		end,
-		CodeMessageCommand = function(self, params)
-			local rate = getCurRateValue()
-			ChangeMusicRate(rate, params)
+t[#t + 1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(20, SCREEN_BOTTOM - 226):visible(true):halign(0):zoom(0.4):maxwidth(
+			capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
+		)
+	end,
+	MintyFreshCommand = function(self)
+		if song then
 			self:settext(getCurRateDisplayString())
-		end,
-		GoalSelectedMessageCommand = function(self)
-			self:queuecommand("MintyFresh")
+		else
+			self:settext("")
 		end
-	}
+	end,
+	CodeMessageCommand = function(self, params)
+		local rate = getCurRateValue()
+		ChangeMusicRate(rate, params)
+		self:settext(getCurRateDisplayString())
+	end,
+	GoalSelectedMessageCommand = function(self)
+		self:queuecommand("MintyFresh")
+	end
+}
 
-t[#t + 1] =
-	Def.Actor {
+t[#t + 1] = Def.Actor {
 	MintyFreshCommand = function(self)
 		if song then
 			ptags = tags:get_data().playerTags
@@ -378,8 +374,7 @@ t[#t + 1] =
 	end
 }
 
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	Name = "RateDependentStuff", -- msd/display score/bpm/songlength -mina
 	InitCommand = function(self)
 		self:SetUpdateFunction( function(self)
@@ -394,8 +389,7 @@ t[#t + 1] =
 		self:queuecommand("MintyFresh") --steps stuff
 		self:queuecommand("MortyFarts") --songs stuff
 	end,
-	LoadFont("Common Large") ..
-	{
+	LoadFont("Common Large") .. {
 		Name = "MSD",
 		InitCommand = function(self)
 			self:xy(frameX + 58, frameY - 62):halign(0.5):zoom(0.6):maxwidth(110 / 0.6)
@@ -412,8 +406,7 @@ t[#t + 1] =
 		end
 	},
 	-- skillset suff (these 3 can prolly be wrapped)
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 120, frameY - 60):halign(0):zoom(0.6, maxwidth, 125)
 		end,
@@ -434,8 +427,7 @@ t[#t + 1] =
 			self:visible(true)
 		end
 	},
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 120, frameY - 30):halign(0):zoom(0.6, maxwidth, 125)
 		end,
@@ -455,8 +447,7 @@ t[#t + 1] =
 			self:visible(true)
 		end
 	},
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 120, frameY):halign(0):zoom(0.6, maxwidth, 125)
 		end,
@@ -514,8 +505,7 @@ t[#t + 1] =
 		end
 	},
 	-- Rate for the displayed score
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 58, frameY + 57):zoom(0.5):halign(0.5)
 		end,
@@ -539,8 +529,7 @@ t[#t + 1] =
 		end
 	},
 	-- wife 2/3 indicator
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 76, frameY + 57):zoom(0.5):halign(0):maxwidth(140)
 		end,
@@ -555,8 +544,7 @@ t[#t + 1] =
 		end
 	},
 	-- goal for current rate if there is one stuff
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		Name = "Goalll",
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 140,frameX + 154), frameY + 27):zoom(0.6):halign(0.5):valign(0)
@@ -602,8 +590,7 @@ t[#t + 1] =
 		end,
 	},
 	-- Date score achieved on
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 59):zoom(0.4):halign(0)
 		end,
@@ -616,8 +603,7 @@ t[#t + 1] =
 		end
 	},
 	-- MaxCombo
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 45):zoom(0.4):halign(0)
 		end,
@@ -629,8 +615,7 @@ t[#t + 1] =
 			end
 		end
 	},
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		Name = "ClearType",
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 30):zoom(0.6):halign(0)
@@ -661,8 +646,7 @@ t[#t + 1] =
 			end
 		end
 	},
-	LoadFont("Common Large") ..
-	{
+	LoadFont("Common Large") .. {
 		Name = "PlayableDuration",
 		InitCommand = function(self)
 			self:xy((capWideScale(get43size(384), 400)) + 62, SCREEN_BOTTOM - 91.5):visible(true):halign(1):zoom(
@@ -678,14 +662,13 @@ t[#t + 1] =
 				self:settext("")
 			end
 		end
-	}
+	},
 }
 
 -- "Radar values", noteinfo that isn't rate dependent -mina
 local function radarPairs(i)
 	local o = Def.ActorFrame {
-		LoadFont("Common Normal") ..
-		{
+		LoadFont("Common Normal") .. {
 			InitCommand = function(self)
 				self:xy(frameX + 13, frameY - 52 + 13 * i):zoom(0.5):halign(0):maxwidth(120)
 			end,
@@ -697,8 +680,7 @@ local function radarPairs(i)
 				end
 			end
 		},
-		LoadFont("Common Normal") ..
-		{
+		LoadFont("Common Normal") .. {
 			InitCommand = function(self)
 				self:xy(frameX + 105, frameY + -52 + 13 * i):zoom(0.5):halign(1):maxwidth(60)
 			end,
@@ -709,14 +691,13 @@ local function radarPairs(i)
 					self:settext("")
 				end
 			end
-		}
+		},
 	}
 	return o
 end
 
-local r =
-	Def.ActorFrame {
-		Name = "RadarValues"
+local r = Def.ActorFrame {
+	Name = "RadarValues",
 }
 
 -- Create the radar values
@@ -725,41 +706,37 @@ for i = 1, 5 do
 end
 
 -- putting neg bpm warning here i guess
-r[#r + 1] =
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 120, SCREEN_BOTTOM - 245):visible(true):halign(0):zoom(0.5)
-			self:diffuse(getMainColor("negative"))
-		end,
-		MintyFreshCommand = function(self)
-			if song and steps:GetTimingData():HasWarps() then
-				self:settext(translated_info["NegBPM"])
-			else
-				self:settext("")
-			end
+r[#r + 1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 120, SCREEN_BOTTOM - 245):visible(true):halign(0):zoom(0.5)
+		self:diffuse(getMainColor("negative"))
+	end,
+	MintyFreshCommand = function(self)
+		if song and steps:GetTimingData():HasWarps() then
+			self:settext(translated_info["NegBPM"])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 t[#t + 1] = r
 
 -- song only stuff that doesnt change with rate
 
 -- bpm
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(capWideScale(get43size(379), 395) + 41, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50)
-		end,
-		MortyFartsCommand = function(self)
-			if song then
-				self:settext(translated_info["BPM"])
-			else
-				self:settext("")
-			end
+t[#t + 1] =LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(capWideScale(get43size(379), 395) + 41, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50)
+	end,
+	MortyFartsCommand = function(self)
+		if song then
+			self:settext(translated_info["BPM"])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 -- cdtitle
 t[#t + 1] = Def.Sprite {
@@ -976,56 +953,50 @@ t[#t + 1] = Def.Quad {
 -- }
 
 -- tags?
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
-		end,
-		MintyFreshCommand = function(self)
-			if song and ctags[1] then
-				self:settext(ctags[1])
-			else
-				self:settext("")
-			end
-		end,
-		ChartPreviewOnMessageCommand = function(self)
-			self:visible(false)
-		end,
-		ChartPreviewOffMessageCommand = function(self)
-			self:visible(true)
+t[#t + 1] = LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
+	end,
+	MintyFreshCommand = function(self)
+		if song and ctags[1] then
+			self:settext(ctags[1])
+		else
+			self:settext("")
 		end
-	}
+	end,
+	ChartPreviewOnMessageCommand = function(self)
+		self:visible(false)
+	end,
+	ChartPreviewOffMessageCommand = function(self)
+		self:visible(true)
+	end
+}
 
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
-		end,
-		MintyFreshCommand = function(self)
-			if song and ctags[2] then
-				self:settext(ctags[2])
-			else
-				self:settext("")
-			end
+t[#t + 1] = LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
+	end,
+	MintyFreshCommand = function(self)
+		if song and ctags[2] then
+			self:settext(ctags[2])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
-		end,
-		MintyFreshCommand = function(self)
-			if song and ctags[3] then
-				self:settext(ctags[3])
-			else
-				self:settext("")
-			end
+t[#t + 1] = LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
+	end,
+	MintyFreshCommand = function(self)
+		if song and ctags[3] then
+			self:settext(ctags[3])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 --Chart Preview Button
 local yesiwantnotefield = false
@@ -1062,56 +1033,54 @@ t[#t + 1] = Def.ActorFrame {
 		self:SetUpdateFunctionInterval(0.025)
 	end,
 
-	LoadFont("Common Normal") ..
-	{
-	Name = "PreviewViewer",
-	BeginCommand = function(self)
-		mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
-		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
-		SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
-		self:xy(20, 235):zoom(0.5):halign(0)
-		self:diffuse(getMainColor("positive"))
-	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) and (song or noteField) then
-			toggleNoteField()
-		end
-	end,
-	MouseRightClickMessageCommand = function(self)
-		if isOver(self) and (song or noteField) then
-			if mcbootlarder:IsVisible() then
-				toggleCalcInfo(not infoOnScreen)
-			else
-				if toggleNoteField() then
-					toggleCalcInfo(true)
+	LoadFont("Common Normal") .. {
+		Name = "PreviewViewer",
+		BeginCommand = function(self)
+			mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
+			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
+			SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
+			self:xy(20, 235):zoom(0.5):halign(0)
+			self:diffuse(getMainColor("positive"))
+		end,
+		MouseLeftClickMessageCommand = function(self)
+			if isOver(self) and (song or noteField) then
+				toggleNoteField()
+			end
+		end,
+		MouseRightClickMessageCommand = function(self)
+			if isOver(self) and (song or noteField) then
+				if mcbootlarder:IsVisible() then
+					toggleCalcInfo(not infoOnScreen)
+				else
+					if toggleNoteField() then
+						toggleCalcInfo(true)
+					end
 				end
 			end
-		end
-	end,
-	ChartPreviewOnMessageCommand = function(self)
-		readyButton:Disable()
-		forceStart:Disable()
-	end,
-	ChartPreviewOffMessageCommand = function(self)
-		if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-			readyButton:Enable()
-			forceStart:Enable()
-		end
-	end,
-	HighlightCommand=function(self)
-		highlightIfOver(self)
-	end,
-	MintyFreshCommand = function(self)
-		if song then
-			self:settext(translated_info["TogglePreview"])
-		else
-			self:settext("")
-		end
-	end,
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			readyButton:Disable()
+			forceStart:Disable()
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+				readyButton:Enable()
+				forceStart:Enable()
+			end
+		end,
+		HighlightCommand=function(self)
+			highlightIfOver(self)
+		end,
+		MintyFreshCommand = function(self)
+			if song then
+				self:settext(translated_info["TogglePreview"])
+			else
+				self:settext("")
+			end
+		end,
 	},
 
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		Name = "PlayerOptionsButton",
 		BeginCommand = function(self)
 			self:xy(20, 218):halign(0):zoom(0.5)
@@ -1161,8 +1130,7 @@ t[#t + 1] =
 	end
 }]]
 
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		Name = "MusicWheelSortButton",
 		BeginCommand = function(self)
 			self:xy(20, 201):zoom(0.5):halign(0):settext(translated_info["OpenSort"])
