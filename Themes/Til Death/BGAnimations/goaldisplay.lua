@@ -430,11 +430,7 @@ local function makeGoalDisplay(i)
 					local pbwife = pb:GetWifeScore() * 100
 					local pbstr = ""
 					if pbwife > 99.65 then
-						if pbwife > 99.99 then
-							pbstr = string.format("%05.5f%%", notShit.floor(pbwife, 5))
-						else
-							pbstr = string.format("%05.4f%%", notShit.floor(pbwife, 4))
-						end
+						pbstr = string.format("%05.4f%%", notShit.floor(pbwife, 4))
 					else
 						pbstr = string.format("%05.2f%%", notShit.floor(pbwife, 2))
 					end

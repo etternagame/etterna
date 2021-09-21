@@ -172,11 +172,7 @@ local function scoreitem(pn, i)
 			UpdateNetScoreCommand = function(self)
 				local perc = multiscores[i].highscore:GetWifeScore() * 100
 				if perc > 99.65 then
-					if perc > 99.99 then
-						self:settextf("%05.5f%% (%s) - %sx", notShit.floor(perc, 5), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
-					else
-						self:settextf("%05.4f%% (%s) - %sx", notShit.floor(perc, 4), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
-					end
+					self:settextf("%05.4f%% (%s) - %sx", notShit.floor(perc, 4), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
 				else
 					self:settextf("%05.2f%% (%s) - %sx", notShit.floor(perc, 2), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
 				end

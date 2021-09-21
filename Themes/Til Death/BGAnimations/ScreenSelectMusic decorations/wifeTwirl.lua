@@ -478,8 +478,7 @@ t[#t + 1] =
 	},
 	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
-	LoadFont("Common Large") ..
-	{
+	LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 58, frameY + 48):zoom(0.6):halign(0.5):maxwidth(150):valign(1)
 		end,
@@ -487,11 +486,7 @@ t[#t + 1] =
 			if song and score then
 				local perc = score:GetWifeScore() * 100
 				if perc > 99.65 then
-					if perc > 99.99 then
-						self:settextf("%05.5f%%", notShit.floor(perc, 5))
-					else
-						self:settextf("%05.4f%%", notShit.floor(perc, 4))
-					end
+					self:settextf("%05.4f%%", notShit.floor(perc, 4))
 				else
 					self:settextf("%05.2f%%", notShit.floor(perc, 2))
 				end
@@ -502,8 +497,7 @@ t[#t + 1] =
 		end
 	},
 	-- Mirror PB Indicator
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 37, frameY + 57):zoom(0.5):halign(1)
 		end,
