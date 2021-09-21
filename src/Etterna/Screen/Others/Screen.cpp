@@ -35,7 +35,19 @@ Screen::InitScreen(Screen* pScreen)
 	pScreen->Init();
 }
 
-Screen::~Screen() = default;
+Screen::~Screen()
+{
+	// unregister the periodic functions
+	auto* L = LUA->Get();
+	for (auto& dfunc : delayedPeriodicFunctions) {
+		auto id = std::get<3>(dfunc);
+		luaL_unref(L, LUA_REGISTRYINDEX, id);
+	}
+	delayedFunctions.clear();
+	delayedPeriodicFunctions.clear();
+	delayedPeriodicFunctionIdsToDelete.clear();
+	LUA->Release(L);
+};
 
 bool
 Screen::SortMessagesByDelayRemaining(const Screen::QueuedScreenMessage& m1,
