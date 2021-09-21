@@ -639,6 +639,8 @@ local function DeletePlaylistButton(i)
 			MouseLeftClickMessageCommand = function(self)
 				if ButtonActive(self) and allplaylistsactive then
 					SONGMAN:DeletePlaylist(allplaylists[i + ((currentplaylistpage - 1) * playlistsperpage)]:GetName())
+					allplaylists = SONGMAN:GetPlaylists()
+					numplaylistpages = notShit.ceil(#allplaylists / playlistsperpage)
 					MESSAGEMAN:Broadcast("DisplayAll")
 				end
 			end
