@@ -150,8 +150,13 @@ local function toggleNoteField()
 	return false
 end
 
+local mintyFreshIntervalFunction = nil
 local update = false
 local t = Def.ActorFrame {
+	Name = "wifetwirler",
+	BeginCommand = function(self)
+		self:queuecommand("MintyFresh")
+	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 		toggleCalcInfo(false)
@@ -315,7 +320,24 @@ local t = Def.ActorFrame {
 		end
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
-		self:queuecommand("MintyFresh")
+		-- this basically queues MintyFresh every 0.5 seconds but only once and also resets the 0.5 seconds
+		-- if you scroll again
+		-- so if you scroll really fast it doesnt pop at all until you slow down
+		-- lag begone
+		local topscr = SCREENMAN:GetTopScreen()
+
+		if mintyFreshIntervalFunction ~= nil then
+			topscr:clearInterval(mintyFreshIntervalFunction)
+			mintyFreshIntervalFunction = nil
+		end
+		mintyFreshIntervalFunction = topscr:setInterval(function()
+			self:queuecommand("MintyFresh")
+			if mintyFreshIntervalFunction ~= nil then
+				topscr:clearInterval(mintyFreshIntervalFunction)
+				mintyFreshIntervalFunction = nil
+			end
+		end,
+		0.05)
 	end,
 	Def.Quad {
 		InitCommand = function(self)
@@ -668,6 +690,7 @@ t[#t + 1] = Def.ActorFrame {
 -- "Radar values", noteinfo that isn't rate dependent -mina
 local function radarPairs(i)
 	local o = Def.ActorFrame {
+		Name = "radarpair_"..i,
 		LoadFont("Common Normal") .. {
 			InitCommand = function(self)
 				self:xy(frameX + 13, frameY - 52 + 13 * i):zoom(0.5):halign(0):maxwidth(120)

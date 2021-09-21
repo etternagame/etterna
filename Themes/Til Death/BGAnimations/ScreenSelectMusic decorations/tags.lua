@@ -161,8 +161,10 @@ local t = Def.ActorFrame {
 		self:queuecommand("BORPBORPNORFNORFc")
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
-		self:queuecommand("BORPBORPNORFNORFc")
-	end
+		if getTabIndex() == 9 then
+			self:playcommand("BORPBORPNORFNORFc"):finishtweening()
+		end
+	end,
 }
 
 t[#t + 1] = Def.Quad {

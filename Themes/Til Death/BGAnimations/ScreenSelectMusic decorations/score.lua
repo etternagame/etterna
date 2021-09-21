@@ -117,8 +117,7 @@ local function updateLeaderBoardForCurrentChart()
 	end
 end
 
-local ret =
-	Def.ActorFrame {
+local ret = Def.ActorFrame {
 	Name = "Scoretab",
 	BeginCommand = function(self)
 		moped = self:GetChild("ScoreDisplay")
@@ -177,7 +176,8 @@ local ret =
 		updateLeaderBoardForCurrentChart()
 	end,
 	ChangeStepsMessageCommand = function(self)
-		self:queuecommand("Set")
+		if getTabIndex() ~= 2 then return end
+		self:playcommand("Set"):finishtweening()
 		updateLeaderBoardForCurrentChart()
 	end,
 	CollapseCommand = function(self)
@@ -219,10 +219,6 @@ local ret =
 		end
 	end,
 	NestedTabChangedMessageCommand = function(self)
-		self:queuecommand("Set")
-		updateLeaderBoardForCurrentChart()
-	end,
-	CurrentStepsChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,

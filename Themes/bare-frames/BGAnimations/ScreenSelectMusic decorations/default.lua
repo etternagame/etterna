@@ -43,8 +43,7 @@ local space = 20
 local stepsdisplayx = wheelX + arbitraryWheelXThing + space + capWideScale(get43size(365),365)-50
 
 -- This works in conjunction with the ScreenSelectMusic StepsDisplayList.lua
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	Name = "StepsDisplay",
 	InitCommand = function(self)
 		self:xy(stepsdisplayx, 20 + 10 * #ms.SkillSets + 30)

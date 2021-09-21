@@ -383,8 +383,8 @@ local o =
 local function makeScoreDisplay(i)
 	local hs
 
-	local o =
-		Def.ActorFrame {
+	local o = Def.ActorFrame {
+		Name = "Scoredisplay_"..i,
 		InitCommand = function(self)
 			self:y(packspaceY * i + headeroff)
 			if i > numscores then

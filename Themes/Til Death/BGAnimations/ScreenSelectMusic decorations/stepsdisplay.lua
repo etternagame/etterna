@@ -1,6 +1,6 @@
-local itsOn = false
+local itsOn = false -- chart preview state
 local stepsdisplayx = SCREEN_WIDTH * 0.56 - 54
-local thesteps
+local thesteps = nil
 
 local rowwidth = 60
 local rowheight = 17
@@ -11,8 +11,7 @@ local numshown = 7
 local currentindex = 1
 local displayindexoffset = 0
 
-local sd =
-	Def.ActorFrame {
+local sd = Def.ActorFrame {
 	Name = "StepsDisplay",
 	InitCommand = function(self)
 		self:xy(stepsdisplayx, 68):valign(0)
@@ -33,6 +32,7 @@ local sd =
 				return
 			end
 			self:playcommand("On")
+			self:playcommand("UpdateStepsRows")
 		else
 			self:playcommand("Off")
 		end
@@ -178,9 +178,8 @@ local function stepsRows(i)
 	return o
 end
 
-local sdr =
-	Def.ActorFrame {
-	Name = "StepsRows"
+local sdr = Def.ActorFrame {
+	Name = "StepsRows",
 }
 
 for i = 1, numshown do
@@ -191,6 +190,7 @@ sd[#sd + 1] = sdr
 local center = math.ceil(numshown / 2)
 -- cursor goes on top
 sd[#sd + 1] = Def.Quad {
+	Name = "StepsCursor",
 	InitCommand = function(self)
 		self:x(rowwidth):zoomto(cursorwidth, cursorheight):halign(1):valign(0.5):diffusealpha(0.6)
 	end,
@@ -215,8 +215,12 @@ sd[#sd + 1] = Def.Quad {
 			displayindexoffset = #thesteps - numshown
 		end
 
+		self:finishtweening()
 		self:smooth(0.03):y(cursorheight * (currentindex - 1))
-		self:GetParent():GetChild("StepsRows"):queuecommand("UpdateStepsRows")
+
+		if self:GetParent():GetVisible() then
+			self:GetParent():GetChild("StepsRows"):playcommand("UpdateStepsRows")
+		end
 	end
 }
 

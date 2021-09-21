@@ -6,6 +6,7 @@ local t = Def.ActorFrame {}
 -- bg
 if enabled then
 	t[#t + 1] = Def.Sprite {
+		Name = "BGSprite",
 		InitCommand = function(self)
 			self:diffusealpha(0)
 		end,
