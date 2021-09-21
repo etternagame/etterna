@@ -162,6 +162,7 @@ local r = Def.ActorFrame {
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 	end,
 	DisplaySinglePlaylistMessageCommand = function(self)
+		if getTabIndex() ~= 7 then return end
 		if update then
 			pl = SONGMAN:GetActivePlaylist()
 			if pl then
@@ -196,9 +197,11 @@ local r = Def.ActorFrame {
 			self:visible(true)
 		end,
 		DisplayAllMessageCommand = function(self)
-			self:visible(false)
-			singleplaylistactive = false
-			allplaylistsactive = true
+			if getTabIndex() == 7 then
+				self:visible(false)
+				singleplaylistactive = false
+				allplaylistsactive = true
+			end
 		end
 	}
 }
@@ -518,8 +521,8 @@ r[#r + 1] = Def.ActorFrame {
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
 			self:visible(true)
-		end
-		,MouseLeftClickMessageCommand = function(self)
+		end,
+		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and currentchartpage < numplaylistpages and singleplaylistactive then
 				currentchartpage = currentchartpage + 1
 				MESSAGEMAN:Broadcast("DisplaySinglePlaylist")
@@ -766,10 +769,14 @@ r[#r + 1] = Def.ActorFrame {
 			self:settext(translated_info["Next"])
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
-			self:visible(false)
+			if update then
+				self:visible(false)
+			end
 		end,
 		DisplayAllMessageCommand = function(self)
-			self:visible(true)
+			if update then
+				self:visible(true)
+			end
 		end,
 		MouseLeftClickMessageCommand = function(self)
 			if isOver(self) and currentplaylistpage < numplaylistpages and allplaylistsactive then
