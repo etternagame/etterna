@@ -825,6 +825,17 @@ NoteField::DrawPrimitives()
 	cur->m_ReceptorArrowRow.DrawOverlay();
 
 	m_sprCover->Draw();
+
+	// there are always 2 true children of the NoteField
+	// both of those are the Cover and Board
+	// but through ActorFrame methods, more children can be added
+	// draw them here
+	if (m_SubActors.size() > 2) {
+		for (auto& sub : m_SubActors) {
+			if (sub != m_sprCover && sub != m_sprBoard)
+				sub->Draw();
+		}
+	}
 }
 
 void
