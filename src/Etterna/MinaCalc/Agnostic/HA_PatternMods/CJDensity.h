@@ -1,6 +1,9 @@
 #pragma once
 #include "../../PatternModHelpers.h"
 
+/// Hand-Agnostic PatternMod describing chord density.
+/// Forms a value based on counts of chords of different sizes
+/// relative to the number of notes in the interval
 struct CJDensityMod
 {
 	const CalcPatternMod _pmod = CJDensity;

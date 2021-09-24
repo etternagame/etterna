@@ -1,9 +1,9 @@
 #pragma once
 
-// one hand jump sequencer, not complex enough to require its own pattern struct
-// used by ohjmod
-// note we do want the occasional single ohjump in js to count as a sequence of
-// length 1
+/// one hand jump sequencer, not complex enough to require its own pattern struct
+/// used by ohjmod
+/// note we do want the occasional single ohjump in js to count as a sequence of
+/// length 1
 struct OHJ_Sequencer
 {
 	// COUNT TAPS IN JUMPS

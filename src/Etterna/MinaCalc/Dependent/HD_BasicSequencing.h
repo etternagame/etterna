@@ -13,9 +13,9 @@
 // "---1", "1--1", "-1-1", "11-1",
 // "--11", "1-11", "-111", "1111" };
 
-// col_type is determined from serialized notedata, successive column types are
-// used to build base patterns, sometimes we care only about left and right,
-// sometimes we care about left and right and jumps, it's not perfect
+/// col_type is determined from serialized notedata, successive column types are
+/// used to build base patterns, sometimes we care only about left and right,
+/// sometimes we care about left and right and jumps, it's not perfect
 enum col_type
 {
 	col_left,
@@ -35,6 +35,7 @@ static const std::array<col_type, num_cols_per_hand> ct_loop_no_jumps = {
 	col_right
 };
 
+/// Given notes for a certain hand, tell what kind of tap it is for this hand
 static inline auto
 determine_col_type(const unsigned& notes, const unsigned& hand_id) -> col_type
 {
@@ -68,8 +69,8 @@ determine_col_type(const unsigned& notes, const unsigned& hand_id) -> col_type
 	return col_init;
 }
 
-// inverting ct type for col_left or col_right only, col name here is very much
-// intentional
+/// inverting ct type for col_left or col_right only, col name here is very much
+/// intentional
 inline auto
 invert_col(const col_type& col) -> col_type
 {
@@ -77,11 +78,11 @@ invert_col(const col_type& col) -> col_type
 	return col == col_left ? col_right : col_left;
 }
 
-// basic pattern permutations are based on two successive non-empty col types as
-// noted above. this is important, for basic pattern structure we do not care
-// about any notes on the other hand, we only care about sequences of notes on
-// this hand, this means that no sequencing done by the row by row sequencer
-// should take place if col == col_empty (nothing on this hand)
+/// basic pattern permutations are based on two successive non-empty col types as
+/// noted above. this is important, for basic pattern structure we do not care
+/// about any notes on the other hand, we only care about sequences of notes on
+/// this hand, this means that no sequencing done by the row by row sequencer
+/// should take place if col == col_empty (nothing on this hand)
 enum base_type
 {
 	base_left_right,
@@ -94,6 +95,7 @@ enum base_type
 	base_type_init,
 };
 
+/// Given two consecutive column types, what is the pattern forming?
 inline auto
 determine_base_pattern_type(const col_type& now, const col_type& last)
   -> base_type
@@ -127,9 +129,9 @@ determine_base_pattern_type(const col_type& now, const col_type& last)
 	return base_type_init;
 }
 
-// note, base_left_right and base_right_left will be referred to as cross column
-// hits, as in, successive single notes that cross columns and are exclusive of
-// ohjumps
+/// note, base_left_right and base_right_left will be referred to as cross column
+/// hits, as in, successive single notes that cross columns and are exclusive of
+/// ohjumps
 inline auto
 is_cc_tap(const base_type& bt) -> bool
 {

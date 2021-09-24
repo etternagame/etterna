@@ -5,6 +5,9 @@
 // just - and then normalization, we will use this to depress the
 // stream rating for non-stream files.
 
+/// Hand-Agnostic PatternMod detecting Stream.
+/// Looks for single taps out of all taps in the interval.
+/// Begins to dampen in value if too many jacks are present
 struct StreamMod
 {
 	const CalcPatternMod _pmod = Stream;

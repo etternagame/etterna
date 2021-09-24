@@ -2,6 +2,9 @@
 #include "../MetaIntervalHandInfo.h"
 #include "../HD_Sequencers/ChainSequencing.h"
 
+/// Hand-Dependent PatternMod detecting Chains.
+/// Looks for jack into jump into jack on alternate finger.
+/// Very lenient: accepts 11...1[12]...[12]2...22
 struct ChainsMod
 {
 	const CalcPatternMod _pmod = Chains;

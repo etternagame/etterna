@@ -8,7 +8,8 @@
 
 static const int max_trills_per_interval = 4;
 
-// almost identical to wrr, refer to comments there
+/// Hand-Dependent PatternMod detecting one hand trills.
+/// almost identical to wrr, refer to comments there
 struct OHTrillMod
 {
 	const CalcPatternMod _pmod = OHTrill;

@@ -1,6 +1,8 @@
 #pragma once
 #include "../../PatternModHelpers.h"
 
+/// Hand-Agnostic PatternMod detecting Jumpstream.
+/// Looks for jacks, jumptrills, and jumps (2-chords)
 struct JSMod
 {
 	const CalcPatternMod _pmod = JS;

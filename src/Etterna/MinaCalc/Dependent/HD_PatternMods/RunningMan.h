@@ -2,7 +2,8 @@
 #include "../../PatternModHelpers.h"
 #include "../HD_Sequencers/RMSequencing.h"
 
-/* Unlike other pattern mods runningman sequencing has 2 core purposes, the
+/** Hand-Dependent PatternMod detecting a RunningMen.
+ * Unlike other pattern mods runningman sequencing has 2 core purposes, the
  * primary one involves tracking the anchor speed of a runningman sequence and
  * using that plus other characteristics of the runningman to guess at a more ms
  * oriented baseline difficulty, which gets rolled into the tech base
@@ -12,7 +13,6 @@
  * anchor speed. This is to slightly push up small runningman anchors inside
  * streams, or js, etc, and to fully push up much heavier runningman oriented
  * patterns in those same skillsets (policy in the sky, etc) */
-
 struct RunningManMod
 {
 	const CalcPatternMod _pmod = RanMan;

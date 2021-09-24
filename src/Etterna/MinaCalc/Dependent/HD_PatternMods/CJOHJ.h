@@ -2,9 +2,10 @@
 #include "../IntervalHandInfo.h"
 #include "../HD_Sequencers/OHJSequencing.h"
 
-/* initially copied from ohj but the logic should probably be adjusted on
- * multiple levels */
-
+/// Hand-Dependent PatternMod detecting one hand jumps.
+/// This is used specifically for Chordjacks.
+/// initially copied from ohj but the logic should probably be adjusted on
+/// multiple levels
 struct CJOHJumpMod
 {
 	const CalcPatternMod _pmod = CJOHJump;

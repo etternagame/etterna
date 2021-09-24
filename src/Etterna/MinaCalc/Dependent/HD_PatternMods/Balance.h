@@ -1,6 +1,9 @@
 #pragma once
 #include "../IntervalHandInfo.h"
 
+/// Hand-Dependent PatternMod describing the balance between fingers.
+/// The value of the mod is lowest when both fingers are equally loaded.
+/// Currently only runs off of raw tap counts in the interval
 struct BalanceMod
 {
 	const CalcPatternMod _pmod = Balance;

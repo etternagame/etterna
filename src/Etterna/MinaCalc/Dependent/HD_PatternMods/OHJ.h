@@ -2,6 +2,9 @@
 #include "../MetaIntervalHandInfo.h"
 #include "../HD_Sequencers/OHJSequencing.h"
 
+/// Hand-Dependent PatternMod detecting one hand jumps.
+/// Looks for one hand jumps in general in the interval.
+/// Utilizes sequencing to find continuous one hand jumps.
 struct OHJumpModGuyThing
 {
 	const CalcPatternMod _pmod = OHJumpMod;

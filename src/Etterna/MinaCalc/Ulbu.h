@@ -47,9 +47,8 @@
 
 #include <cmath>
 
-/* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
+/** I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
-
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
@@ -213,10 +212,10 @@ struct TheGreatBazoinkazoinkInTheSky
 #pragma endregion
 
 #pragma region hand dependent pmod loop
-	// some pattern mod detection builds across rows, see rm_sequencing for
-	// an example, actually all sequencing should be done in objects
-	// following rm_sequencing's template and be stored in mhi, and then
-	// passed to whichever mods need them, but that's for later
+	/// some pattern mod detection builds across rows, see rm_sequencing for
+	/// an example, actually all sequencing should be done in objects
+	/// following rm_sequencing's template and be stored in mhi, and then
+	/// passed to whichever mods need them, but that's for later
 	void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
@@ -279,9 +278,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv, _calc);
 	}
 
-	// reset any moving windows or values when starting the other hand, this
-	// shouldn't matter too much practically, but we should be disciplined
-	// enough to do it anyway
+	/// reset any moving windows or values when starting the other hand, this
+	/// shouldn't matter too much practically, but we should be disciplined
+	/// enough to do it anyway
 	void full_hand_reset()
 	{
 		_ohj.full_reset();
@@ -329,7 +328,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz.interval_end();
 	}
 
-	// update base difficulty stuff
+	/// update base difficulty stuff
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
 									 const int& jack_counter,

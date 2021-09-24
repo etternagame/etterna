@@ -17,6 +17,9 @@ static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 constexpr float interval_span = 0.5F;
 
+/// smoothing function to reduce spikes and holes in a given vector
+/// biases vector beginning towards neutral
+/// uses an average of 3 continuous elements
 inline void
 Smooth(std::vector<float>& input,
 	   const float neutral,
@@ -33,6 +36,9 @@ Smooth(std::vector<float>& input,
 	}
 }
 
+/// smoothing function to reduce spikes and holes in a given vector.
+/// biases vector beginning towards neutral
+/// uses an average of 2 continuous elements
 inline void
 MSSmooth(std::vector<float>& input,
 		 const float neutral,

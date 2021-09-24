@@ -3,8 +3,7 @@
 #include "MetaIntervalInfo.h"
 #include "../SequencingHelpers.h"
 
-/* counterpart to metahandinfo */
-
+/// counterpart to metahandinfo
 struct metaRowInfo
 {
 	static const bool dbg = false;
