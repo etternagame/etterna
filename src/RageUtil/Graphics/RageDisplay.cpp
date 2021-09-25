@@ -949,7 +949,6 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 		// 639x480 (4:3) and 853x480 (16:9). ceilf gives correct values. -aj
 		auto dims = window->getFrameBufferSize();
 		const auto iWidth = static_cast<int>((float)dims.width / (float)dims.height);
-		timer.Touch();
 		RageSurfaceUtils::Zoom(surface, iWidth, iHeight);
 	}
 
@@ -1120,7 +1119,7 @@ RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 	 * bigger skip problems, so don't adjust.
 	 */
 
-	if (GetActualVideoModeParams()->vsync == false) {
+	if (videoMode.isVsyncEnabled == false) {
 		return 0;
 	}
 
@@ -1128,7 +1127,7 @@ RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 		return 0;
 	}
 
-	const int iThisFPS = GetActualVideoModeParams()->rate;
+	const int iThisFPS = videoMode.refreshRate;
 
 	std::chrono::duration<float> dDelta = g_LastFrameDuration;
 	std::chrono::duration<float> dTimeIntoFrame = now - g_LastFrameEndedAt;
