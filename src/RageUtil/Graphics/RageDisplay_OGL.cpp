@@ -845,11 +845,8 @@ RageDisplay_Legacy::EndFrame()
 
 	FrameLimitBeforeVsync();
 	const auto beforePresent = std::chrono::steady_clock::now();
-//	g_pWind->SwapBuffers();
 	window->swapBuffers();
 	glFlush();
-
-//	g_pWind->Update();
 	window->update();
 
 	const auto afterPresent = std::chrono::steady_clock::now();
@@ -858,8 +855,6 @@ RageDisplay_Legacy::EndFrame()
 	SetPresentTime(endTime);
 
 	FrameLimitAfterVsync(videoMode.refreshRate);
-
-	g_pWind->Update();
 
 	RageDisplay::EndFrame();
 }
