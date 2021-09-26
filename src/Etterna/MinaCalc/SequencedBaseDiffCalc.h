@@ -9,15 +9,7 @@
  * threaded calc object now, though) */
 
 /// required percentage of average notes to pass
-static const float min_threshold = 0.25F;
-/// scale of failed intervals for the grindscaler.
-/// prop = failed / non_empty_intervals
-static const float failed_interval_scaler = .25F;
-static const float failed_min = .9F;
-/// scale of empty intervals for the grindscaler.
-/// prop = empty / total_intervals
-static const float empty_interval_scaler = .4F;
-static const float empty_min = .8F;
+static const float min_threshold = 0.8F;
 
 struct nps
 {
@@ -50,17 +42,12 @@ struct nps
 			}
 		}
 
-		// always apply scaling on files that are too short to be real
-		const auto file_length = itv_idx_to_time(populated_intervals);
-		const auto timescaler =
-		  std::clamp(0.95F + (0.05F * (file_length - 35.F) / 35.F), 0.9F, 1.F) *
-		  std::clamp(0.9F + (0.1F * (file_length - 25.F) / 25.F), 0.8F, 1.F) *
-		  std::clamp(0.7F + (0.1F * (file_length - 5.F) / 5.F), 0.6F, 1.F);
 		if (populated_intervals > 0) {
-			const auto empty_intervals = static_cast<float>(calc.numitv - populated_intervals);
+			const auto empty_intervals =
+			  static_cast<float>(calc.numitv - populated_intervals);
 			avg_notes /= populated_intervals;
 
-			auto failed_intervals = 0.F;
+			auto failed_intervals = 0;
 
 			for (auto itv = 0; itv < calc.numitv; itv++) {
 				auto notes = 0.F;
@@ -70,23 +57,22 @@ struct nps
 
 				// count only intervals with notes
 				if (notes > 0.F && notes < avg_notes * min_threshold)
-					failed_intervals += 1.F;
+					failed_intervals++;
 			}
 
-			const auto empty_prop =
-			  (empty_intervals / static_cast<float>(calc.numitv)) *
-			  empty_interval_scaler;
-			const auto failed_prop =
-			  (failed_intervals / static_cast<float>(populated_intervals)) *
-			  failed_interval_scaler;
+			// base grindscaler on how many intervals are passing
+			// if the entire file is just single taps or empty:
+			//   ask yourself... is it really worth playing?
+			const auto file_length =
+			  itv_idx_to_time(populated_intervals - failed_intervals);
+			const auto timescaler =
+			  std::clamp(
+				0.95F + (0.05F * (file_length - 35.F) / 35.F), 0.9F, 1.F) *
+			  std::clamp(
+				0.9F + (0.1F * (file_length - 25.F) / 25.F), 0.8F, 1.F) *
+			  std::clamp(0.7F + (0.1F * (file_length - 5.F) / 5.F), 0.6F, 1.F);
 
-			const auto empty_comp =
-			  std::clamp(1.F - empty_prop, empty_min, 1.F);
-			const auto failed_comp =
-			  std::clamp(1.F - failed_prop, failed_min, 1.F);
-
-			calc.grindscaler.at(hand) = std::clamp(
-			  timescaler * empty_comp * failed_comp, .1F, 1.F);
+			calc.grindscaler.at(hand) = std::clamp(timescaler, .1F, 1.F);
 		} else {
 			calc.grindscaler.at(hand) = .1F;
 		}
