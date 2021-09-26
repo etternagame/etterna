@@ -159,7 +159,7 @@ struct techyo
 			// weight should be [0,1]
 			// 1 -> all rm
 			// 0 -> all tc
-			constexpr float weight = 0.6F;
+			constexpr float weight = 0.9F;
 			rm = weighted_average(rm, tc, weight, 1.F);
 		}
 		return std::max(tc, rm);
