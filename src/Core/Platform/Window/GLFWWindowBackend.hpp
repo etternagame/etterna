@@ -4,7 +4,7 @@
 #include <RageUtil/Misc/RageInputDevice.h>
 #include "Core/Platform/Window/IWindowBackend.hpp"
 
-class GLFWwindow;
+struct GLFWwindow;
 
 namespace Core::Platform::Window {
 
