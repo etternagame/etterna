@@ -284,4 +284,10 @@ namespace Core::Platform {
         Locator::getLogger()->warn("Core::Platform::unboostPriority not implemented");
 		return true;
     }
+
+    bool flashWindow()
+    {
+        Locator::getLogger()->warn("Core::Platform::flashWindow not implemented");
+        return true;
+    }
 }

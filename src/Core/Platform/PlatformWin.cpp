@@ -380,4 +380,32 @@ namespace Core::Platform {
 		return SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS) != 0;
     }
 
+	bool flashWindow()
+	{
+		/* Search for the existing window.  Prefer to use the class name, which
+		 * is less likely to have a false match, and will match the gameplay
+		 * window. If that fails, try the window name, which should match the
+		 * loading window. */
+		HWND hWnd = FindWindow(Core::AppInfo::APP_TITLE, nullptr);
+		if (hWnd == nullptr)
+			hWnd = FindWindow(nullptr, Core::AppInfo::APP_TITLE);
+
+		// If after two find window attempts, the pointer is still null,
+		// then no other game instance was found.
+		if (hWnd == nullptr)
+			return false;
+
+		FLASHWINFO flwnfo;
+		flwnfo.cbSize = sizeof(flwnfo); // why
+		flwnfo.hwnd = hWnd;
+		// tray icon continuously until app is foregrounded
+		flwnfo.dwFlags = FLASHW_TRAY | FLASHW_TIMERNOFG;
+		flwnfo.dwTimeout = 0;
+		flwnfo.uCount = 5u;
+
+		// this is always successful, basically
+		// nonzero return means it was already focused or similar
+		return FlashWindowEx(&flwnfo) >= 0;
+	}
+
 }

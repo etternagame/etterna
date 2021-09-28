@@ -169,6 +169,12 @@ namespace Core::Platform {
 	 */
 	bool unboostPriority();
 
+	/*
+	 * Flash the window or the icon for the window a few times.
+	 * @return True if successful.
+	 */
+	bool flashWindow();
+
     namespace Time {
 
         /**

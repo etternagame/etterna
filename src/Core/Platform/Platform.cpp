@@ -68,11 +68,18 @@ int setCursorVisible(lua_State* L){
     return 0;
 }
 
+int
+flashWindow(lua_State* L) {
+	lua_pushboolean(L, Core::Platform::flashWindow());
+	return 1;
+}
+
 const luaL_Reg ArchTable[] = {
         LIST_METHOD(isGameFocused),
         LIST_METHOD(getSystem),
         LIST_METHOD(getClipboard),
         LIST_METHOD(setCursorVisible),
+		LIST_METHOD(flashWindow),
         { nullptr, nullptr }
 };
 
