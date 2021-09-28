@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install apt packages
-        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev
+        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
 
       - name: Generate CMake
         run: mkdir build && cd build && cmake -G Ninja ..
