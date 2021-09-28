@@ -8,7 +8,6 @@
 #include <zircon/types.h>
 
 #include "base/logging.h"
-#include "base/macros.h"
 
 // Use the ZX_LOG family of macros along with a zx_status_t containing a Zircon
 // error. The error value will be decoded so that logged messages explain the
@@ -23,12 +22,14 @@ class ZxLogMessage : public logging::LogMessage {
                int line,
                LogSeverity severity,
                zx_status_t zx_err);
+
+  ZxLogMessage(const ZxLogMessage&) = delete;
+  ZxLogMessage& operator=(const ZxLogMessage&) = delete;
+
   ~ZxLogMessage();
 
  private:
   zx_status_t zx_err_;
-
-  DISALLOW_COPY_AND_ASSIGN(ZxLogMessage);
 };
 
 }  // namespace logging

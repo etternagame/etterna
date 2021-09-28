@@ -20,7 +20,6 @@
 #include <memory>
 #include <set>
 
-#include "base/macros.h"
 #include "util/linux/ptrace_connection.h"
 #include "util/misc/initialization_state_dcheck.h"
 #include "util/process/process_memory_linux.h"
@@ -35,6 +34,10 @@ namespace test {
 class FakePtraceConnection : public PtraceConnection {
  public:
   FakePtraceConnection();
+
+  FakePtraceConnection(const FakePtraceConnection&) = delete;
+  FakePtraceConnection& operator=(const FakePtraceConnection&) = delete;
+
   ~FakePtraceConnection();
 
   //! \brief Initializes this connection for the process whose process ID is
@@ -65,14 +68,15 @@ class FakePtraceConnection : public PtraceConnection {
   //! \todo Not yet implemented.
   bool Threads(std::vector<pid_t>* threads) override;
 
+  //! \\todo Not yet implemented.
+  ssize_t ReadUpTo(VMAddress address, size_t size, void* buffer) override;
+
  private:
   std::set<pid_t> attachments_;
   std::unique_ptr<ProcessMemoryLinux> memory_;
   pid_t pid_;
   bool is_64_bit_;
   InitializationStateDcheck initialized_;
-
-  DISALLOW_COPY_AND_ASSIGN(FakePtraceConnection);
 };
 
 }  // namespace test

@@ -5,7 +5,6 @@
 #ifndef MINI_CHROMIUM_BASE_SYS_BYTEORDER_H_
 #define MINI_CHROMIUM_BASE_SYS_BYTEORDER_H_
 
-#include "base/macros.h"
 #include "build/build_config.h"
 
 #if defined(OS_APPLE)
