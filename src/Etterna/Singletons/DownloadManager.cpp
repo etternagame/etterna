@@ -2380,7 +2380,7 @@ Download::~Download()
 void
 Download::Install()
 {
-	Core::Platform::flashWindow();
+	Core::Platform::requestUserAttention();
 	Message* msg;
 	if (!DLMAN->InstallSmzip(m_TempFileName))
 		msg = new Message("DownloadFailed");
