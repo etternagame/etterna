@@ -380,7 +380,7 @@ namespace Core::Platform {
 		return SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS) != 0;
     }
 
-	bool flashWindow()
+	bool requestUserAttention()
 	{
 		/* Search for the existing window.  Prefer to use the class name, which
 		 * is less likely to have a false match, and will match the gameplay

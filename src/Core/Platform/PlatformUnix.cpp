@@ -285,7 +285,7 @@ namespace Core::Platform {
 		return true;
     }
 
-    bool flashWindow()
+    bool requestUserAttention()
     {
         Locator::getLogger()->warn("Core::Platform::flashWindow not implemented");
         return true;

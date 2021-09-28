@@ -173,7 +173,7 @@ namespace Core::Platform {
 	 * Flash the window or the icon for the window a few times.
 	 * @return True if successful.
 	 */
-	bool flashWindow();
+	bool requestUserAttention();
 
     namespace Time {
 
