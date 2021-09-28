@@ -50,11 +50,13 @@ endif()
 if(WIN32)
 	list(APPEND OUTPUT_LIBS
 		${BINARY_DIR}/obj/client/client.lib
+		${BINARY_DIR}/obj/client/common.lib
 		${BINARY_DIR}/obj/util/util.lib
 		${BINARY_DIR}/obj/third_party/mini_chromium/mini_chromium/base/base.lib)
 elseif(UNIX)
 	list(APPEND OUTPUT_LIBS
 		${BINARY_DIR}/obj/client/libclient.a
+		${BINARY_DIR}/obj/client/libcommon.a
 		${BINARY_DIR}/obj/util/libutil.a
 		${BINARY_DIR}/obj/third_party/mini_chromium/mini_chromium/base/libbase.a)
 endif()
