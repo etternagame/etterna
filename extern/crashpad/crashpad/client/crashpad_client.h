@@ -24,7 +24,6 @@
 
 #include "base/files/file_path.h"
 #include "build/build_config.h"
-#include "build/chromeos_buildflags.h"
 #include "util/file/file_io.h"
 #include "util/misc/capture_context.h"
 
@@ -726,16 +725,6 @@ class CrashpadClient {
   //!     This may be useful when a child process inherits its parent’s Crashpad
   //!     handler, but wants to sever this tie.
   static void UseSystemDefaultHandler();
-#endif
-
-#if BUILDFLAG(IS_CHROMEOS_ASH)
-  //! \brief Sets a timestamp on the signal handler to be passed on to
-  //!     crashpad_handler and then eventually Chrome OS's crash_reporter.
-  //!
-  //! \note This method is used by clients that use `StartHandler()` to start
-  //!     a handler and not by clients that use any other handler starting
-  //!     methods.
-  static void SetCrashLoopBefore(uint64_t crash_loop_before_time);
 #endif
 
  private:
