@@ -3,6 +3,7 @@
 #include "ScreenManager.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "Core/Services/Locator.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "RageUtil/File/RageFile.h"
 #include "DownloadManager.h"
 #include "GameState.h"
@@ -2358,6 +2359,7 @@ Download::~Download()
 void
 Download::Install()
 {
+	Core::Platform::flashWindow();
 	Message* msg;
 	if (!DLMAN->InstallSmzip(m_TempFileName))
 		msg = new Message("DownloadFailed");
