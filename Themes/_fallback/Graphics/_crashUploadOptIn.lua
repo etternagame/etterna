@@ -23,7 +23,7 @@ local t = Def.ActorFrame {
 
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
             if not enabled then return end
-            if event.type ~= "InputEventType_FirstPress" then return end
+            if event.type ~= "InputEventType_FirstPress" then return true end
 
             -- mega lazy triple copy paste
             if event.DeviceInput.button == "DeviceButton_y" then
