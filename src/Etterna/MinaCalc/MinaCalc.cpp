@@ -189,9 +189,6 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		}
 	}
 
-	auto length_density_scaler =
-	  std::max(grindscaler.at(left_hand), grindscaler.at(right_hand));
-
 	// final output is the average of all skillset values of all iterations
 	// also applies the grindscaler
 	// (at the time of writing there is only 1 iteration)
@@ -202,7 +199,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		for (auto& ssvals : all_skillset_values) {
 			iteration_ss_vals.push_back(ssvals[i]);
 		}
-		output[i] = mean(iteration_ss_vals) * length_density_scaler;
+		output[i] = mean(iteration_ss_vals) * grindscaler;
 		iteration_ss_vals.clear();
 	}
 	return output;
@@ -974,7 +971,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 463;
+int mina_calc_version = 464;
 auto
 GetCalcVersion() -> int
 {

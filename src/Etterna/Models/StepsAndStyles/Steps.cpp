@@ -1158,15 +1158,7 @@ class LunaSteps : public Luna<Steps>
 		lua_rawset(L, -3);
 
 		lua_pushstring(L, "Grindscaler");
-		lua_createtable(L, 0, 2);
-		{
-			lua_pushstring(L, "Left");
-			lua_pushnumber(L, SONGMAN->calc->grindscaler.at(0));
-			lua_rawset(L, -3);
-			lua_pushstring(L, "Right");
-			lua_pushnumber(L, SONGMAN->calc->grindscaler.at(1));
-			lua_rawset(L, -3);
-		}
+		lua_pushnumber(L, SONGMAN->calc->grindscaler);
 		lua_rawset(L, -3);
 
 		return 1;

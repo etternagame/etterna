@@ -241,9 +241,9 @@ class Calc
 	/// Total points achievable in the current file (two per note)
 	float MaxPoints = 0;
 
-	/// multiplier to resultant hand difficulty roughly determined by a combination
+	/// multiplier to resultant roughly determined by a combination
 	/// of nps and file length
-	std::array<float, num_hands> grindscaler{};
+	float grindscaler = 1.F;
 
 	/** Debug values - mostly patternmod values per interval per hand.
 	* These are unnecessary now that the active session calc is a persistent

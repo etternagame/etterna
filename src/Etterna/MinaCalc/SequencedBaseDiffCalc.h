@@ -9,16 +9,14 @@
  * threaded calc object now, though) */
 
 /// required percentage of average notes to pass
-static const float min_threshold = 0.8F;
+constexpr float min_threshold = 0.75F;
+static const float downscale_logbase = std::log(6.2F);
 
 struct nps
 {
-	/// determine NPSBase, itv_points, and grindscaler for this hand
+	/// determine NPSBase, itv_points for this hand
 	static void actual_cancer(Calc& calc, const int& hand)
 	{
-		auto populated_intervals = 0;
-		auto avg_notes = 0.F;
-
 		for (auto itv = 0; itv < calc.numitv; ++itv) {
 
 			auto notes = 0;
@@ -34,8 +32,20 @@ struct nps
 
 			// set points for this interval
 			calc.itv_points.at(hand).at(itv) = notes * 2;
+		}
+	}
 
-			// grindscaler stuff
+	/// determine grindscaler using smoothed npsbase
+	static void grindscale(Calc& calc) {
+		auto populated_intervals = 0;
+		auto avg_notes = 0.F;
+		for (auto itv = 0; itv < calc.numitv; ++itv) {
+			auto notes = 0.F;
+
+			for (auto& hand : both_hands) {
+				notes += calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv);
+			}
+
 			if (notes > 0) {
 				avg_notes += notes;
 				populated_intervals++;
@@ -51,9 +61,9 @@ struct nps
 
 			for (auto itv = 0; itv < calc.numitv; itv++) {
 				auto notes = 0.F;
-				for (auto row = 0; row < calc.itv_size.at(itv); row++) {
-					notes += calc.adj_ni.at(itv).at(row).hand_counts.at(hand);
-				}
+				for (auto& hand : both_hands)
+					notes +=
+					  calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv);
 
 				// count only intervals with notes
 				if (notes > 0.F && notes < avg_notes * min_threshold)
@@ -65,16 +75,14 @@ struct nps
 			//   ask yourself... is it really worth playing?
 			const auto file_length =
 			  itv_idx_to_time(populated_intervals - failed_intervals);
+			// log minimum but if you move this you need to move the log base
+			const auto ping = .3F;
 			const auto timescaler =
-			  std::clamp(
-				0.95F + (0.05F * (file_length - 35.F) / 35.F), 0.9F, 1.F) *
-			  std::clamp(
-				0.9F + (0.1F * (file_length - 25.F) / 25.F), 0.8F, 1.F) *
-			  std::clamp(0.7F + (0.1F * (file_length - 5.F) / 5.F), 0.6F, 1.F);
+			  (ping * (std::log(file_length + 1) / downscale_logbase)) + ping;
 
-			calc.grindscaler.at(hand) = std::clamp(timescaler, .1F, 1.F);
+			calc.grindscaler = std::clamp(timescaler, .1F, 1.F);
 		} else {
-			calc.grindscaler.at(hand) = .1F;
+			calc.grindscaler = .1F;
 		}
 	}
 };

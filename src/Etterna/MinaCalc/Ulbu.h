@@ -467,6 +467,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			// when we finish left hand
 			++hand;
 		}
+
+		nps::grindscale(_calc);
 	}
 #pragma endregion
 
