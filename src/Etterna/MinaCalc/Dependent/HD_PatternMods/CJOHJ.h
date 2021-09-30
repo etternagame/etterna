@@ -13,7 +13,7 @@ struct CJOHJumpMod
 
 #pragma region params
 
-	float min_mod = 0.65F;
+	float min_mod = 0.5F;
 	float max_mod = 1.F;
 
 	float max_seq_weight = 0.65F;
