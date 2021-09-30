@@ -13,26 +13,87 @@ jobs:
       fail-fast: false
       matrix:
         cfg:
-          - { os: ubuntu-18.04, cpp-version: g++-8 }
-          - { os: ubuntu-18.04, cpp-version: g++-9 }
-          - { os: ubuntu-18.04, cpp-version: clang++-7 }
-          - { os: ubuntu-18.04, cpp-version: clang++-8 }
-          - { os: ubuntu-18.04, cpp-version: clang++-9 }
+          - { os: ubuntu-18.04, cpp-version: g++-8,      dist: false}
+          - { os: ubuntu-18.04, cpp-version: g++-9,      dist: false}
+          - { os: ubuntu-18.04, cpp-version: clang++-7,  dist: false}
+          - { os: ubuntu-18.04, cpp-version: clang++-8,  dist: false}
+          - { os: ubuntu-18.04, cpp-version: clang++-9,  dist: true}
 
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout CrashpadTools
+        uses: actions/checkout@v2
+        with:
+          repository: etternagame/CrashpadTools
+          path: tools
 
       - name: Install apt packages
         run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
 
       - name: Generate CMake
-        run: mkdir build && cd build && cmake -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja ..
         env:
           CXX: ${{matrix.cfg.cpp-version}}
 
       - name: Build Project
-        run: cd build && ninja
+        run: cd main/build && ninja
+
+      - name: Generate binary
+        if: ${{matrix.cfg.dist}}
+        run: cd main/build && cpack
+      
+      - name: Upload Binary
+        if: ${{matrix.cfg.dist}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna - Linux x64"
+          path: '${{github.workspace}}/main/build/*.tar.gz'
+
+      - name: Update Environment Variables
+        if: ${{matrix.cfg.dist}}
+        run: echo "${{github.workspace}}/tools/linux" >> $GITHUB_PATH
+
+      - name: Generate Symbols
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "Running objcopy..."
+          mkdir ${{github.workspace}}/sym
+          objcopy --only-keep-debug ${{github.workspace}}/main/Etterna ${{github.workspace}}/sym/Etterna.obj
+          echo "Dumping Symbols..."
+          dump_syms ${{github.workspace}}/sym/Etterna.obj ${{github.workspace}}/main/Etterna > ${{github.workspace}}/sym/Etterna.sym
+          echo "Stripping debug symbols from binary..."
+          strip ${{github.workspace}}/main/Etterna
+      
+      - name: Prepare symbols for upload artifacts
+        if: ${{matrix.cfg.dist}}
+        run: cd ${{github.workspace}}/sym && ${{github.workspace}}/main/.ci/prepare_symbols.py
+
+      - name: Upload Symbols to action artifacts
+        if: ${{matrix.cfg.dist}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Etterna Symbols - ${{github.sha}}
+          path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
+
+      - name: Get version for CrashServer Upload
+        id: get_version
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      
+      - name: Upload Symbols to Crash Server
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        run: symupload ${{github.workspace}}/main/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{secrets.CRASHSERVER_API_KEY}}&version=${{steps.get_version.outputs.VERSION}}"
+
+      - name: Upload files to Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        with:
+          files: ${{github.workspace}}/main/build/*.tar.gz
 
   macos:
     name: macOS x64 ${{matrix.cfg.name}}
