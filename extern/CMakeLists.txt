@@ -34,6 +34,11 @@ set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
 add_subdirectory(discord-rpc)
 
+## plog
+set(PLOG_BUILD_SAMPLES OFF)
+add_subdirectory(plog)
+
+
 ## Header Only
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
@@ -46,7 +51,6 @@ add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(fmt)
-add_subdirectory(plog)
 add_subdirectory(boost/nowide)
 add_subdirectory(filesystem)
 
