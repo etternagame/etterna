@@ -952,6 +952,9 @@ local pass
 local profilebuttons =
 	Def.ActorFrame {
 		InitCommand = function(self)
+			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
+		end,
+		BeginCommand = function(self)
 			user = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).UserName
 			local passToken = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).PasswordToken
 			if passToken ~= "" and answer ~= "" then
@@ -962,7 +965,6 @@ local profilebuttons =
 				passToken = ""
 				user = ""
 			end
-			self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
 		end,
 		UpdateRankingMessageCommand = function(self)
 			if rankingSkillset == 1 and update and not recentactive then
