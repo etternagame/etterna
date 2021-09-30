@@ -21,7 +21,7 @@ if (PULSEAUDIO_INCLUDE_DIR AND PULSEAUDIO_LIBRARY)
 endif (PULSEAUDIO_INCLUDE_DIR AND PULSEAUDIO_LIBRARY)
 
 if (NOT WIN32)
-   include(FindPkgConfig)
+   find_package(PkgConfig)
    pkg_check_modules(PULSEAUDIO libpulse)
    if(PULSEAUDIO_FOUND)
       set(PULSEAUDIO_LIBRARY ${PULSEAUDIO_LIBRARIES} CACHE FILEPATH "Path to the PulseAudio library")
@@ -40,7 +40,7 @@ if (NOT PULSEAUDIO_LIBRARY)
 endif (NOT PULSEAUDIO_LIBRARY)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(PULSEAUDIO DEFAULT_MSG
+find_package_handle_standard_args(PulseAudio DEFAULT_MSG
   PULSEAUDIO_INCLUDE_DIR PULSEAUDIO_LIBRARY)
 
 mark_as_advanced(PULSEAUDIO_INCLUDE_DIR PULSEAUDIO_LIBRARY)
