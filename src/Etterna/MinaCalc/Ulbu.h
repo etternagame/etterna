@@ -32,7 +32,7 @@
 #include "Dependent/HD_PatternMods/OHT.h"
 #include "Dependent/HD_PatternMods/VOHT.h"
 #include "Dependent/HD_PatternMods/Chaos.h"
-#include "Dependent/HD_PatternMods/Chains.h"
+#include "Dependent/HD_PatternMods/CJOHAnchor.h"
 #include "Dependent/HD_PatternMods/WideRangeBalance.h"
 #include "Dependent/HD_PatternMods/WideRangeRoll.h"
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
@@ -95,7 +95,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	OHTrillMod _oht;
 	VOHTrillMod _voht;
 	ChaosMod _ch;
-	ChainsMod _chain;
+	CJOHAnchorMod _chain;
 	RunningManMod _rm;
 	WideRangeBalanceMod _wrb;
 	WideRangeRollMod _wrr;

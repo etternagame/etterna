@@ -312,7 +312,7 @@ local debugGroups = {
         TotalPatternMod = true,
     },
     {   -- Group 10
-        Chains = true,
+        CJOHAnchor = true,
     },
     {   -- Group 11
         Chaos = true,
@@ -886,7 +886,7 @@ local modnames = {
     --"cjj",
     "cjd",
     "hsd",
-    "chains",
+    "cjohanch",
     "ohj",
     --"ohjbp",
     --"ohjpc",
@@ -946,7 +946,7 @@ local modColors = {
 	--color("1,0,0"),			-- red			= chordjack jack
 	color("1,1,0"),			-- yellow		= cjdensity
     color("1,1,0"),         -- yello        = hsdensity
-    color(".1,.3,.9"),      -- something    = chains
+    color(".1,.3,.9"),      -- something    = CJOHAnchor
     color("1,0.4,0"),       -- orange2		= ohjump
 	--color("1,1,1"),			-- ohjbp
 	--color("1,1,1"),			-- ohjpc

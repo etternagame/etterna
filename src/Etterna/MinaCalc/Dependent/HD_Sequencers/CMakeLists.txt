@@ -1,5 +1,5 @@
 list(APPEND HD_SEQUENCERS
-    "ChainSequencing.h"
+    "CJOHASequencing.h"
     "GenericSequencing.h"
     "OHJSequencing.h"
     "RMSequencing.h")
