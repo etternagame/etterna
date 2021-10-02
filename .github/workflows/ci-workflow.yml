@@ -102,8 +102,8 @@ jobs:
       fail-fast: false
       matrix:
         cfg:
-          - { os: macos-10.15,  name: "Catalina" }
-          - { os: macos-11,     name: "Big Sur" }
+          - { os: macos-10.15,  name: "Catalina", dist: true}
+          - { os: macos-11,     name: "Big Sur",  dist: false}
 
     steps:
 
@@ -128,20 +128,24 @@ jobs:
         run: cd main/build && ninja
 
       - name: Generate binary
+        if: ${{matrix.cfg.dist}}
         run: cd main/build && cpack
 
       - name: Upload Binary
+        if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v2
         with:
           name: "Etterna - macOS x64"
           path: '${{github.workspace}}/main/build/*.dmg'
 
       - name: Update Environment Variables
+        if: ${{matrix.cfg.dist}}
         run: |
           echo "${{github.workspace}}/tools/mac" >> $GITHUB_PATH
           echo "ETTERNA_ARCH=x64" >> $GITHUB_ENV
 
       - name: Generate Symbols
+        if: ${{matrix.cfg.dist}}
         run: |
           echo "Running dsymutil..."
           dsymutil -o ${{github.workspace}}/main/Etterna.dsym main/Etterna.app/Contents/MacOS/Etterna > /dev/null
@@ -151,9 +155,11 @@ jobs:
           strip main/Etterna.app/Contents/MacOS/Etterna
 
       - name: Prepare symbols for upload artifacts
+        if: ${{matrix.cfg.dist}}
         run: cd main && ${{github.workspace}}/main/.ci/prepare_symbols.py
 
       - name: Upload Symbols to action artifacts
+        if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v2
         with:
           name: Etterna Symbols - ${{github.sha}}
@@ -161,17 +167,17 @@ jobs:
 
       - name: Get version for CrashServer Upload
         id: get_version
-        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
         run: |
           echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
 
       - name: Upload Symbols to Crash Server
-        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
         run: symupload ${{github.workspace}}/main/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{secrets.CRASHSERVER_API_KEY}}&version=${{ steps.get_version.outputs.VERSION }}"
 
       - name: Upload files to Release
         uses: softprops/action-gh-release@v1
-        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
         with:
           files: ${{github.workspace}}/main/build/*.dmg
 
