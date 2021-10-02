@@ -103,6 +103,7 @@ jobs:
       matrix:
         cfg:
           - { os: macos-10.15,  name: "Catalina" }
+          - { os: macos-11,     name: "Big Sur" }
 
     steps:
 
@@ -118,7 +119,7 @@ jobs:
           path: tools
 
       - name: Install homebrew packages
-        run: brew install cmake nasm ninja
+        run: brew install cmake nasm ninja openssl
 
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
