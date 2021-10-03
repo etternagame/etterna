@@ -48,7 +48,7 @@ local t = Def.ActorFrame {
         local noteColumns = nf:get_column_actors()
 
         registerActorToCustomizeGameplayUI(lifebar)
-        registerActorToCustomizeGameplayUI(nf)
+        registerActorToCustomizeGameplayUI(nf, 4)
 
         Movable.pressed = false
         Movable.current = "None"
@@ -223,6 +223,9 @@ local function makeUI()
         Name = "ItemListContainer",
         InitCommand = function(self)
             itemListFrame = self
+            -- make container above all other button elements
+            -- not guaranteed but this works for now
+            self:z(10)
         end,
         OnCommand = function(self)
             -- these are initialized here because most elements either need BeginCommand or InitCommand to run for them to be registered
