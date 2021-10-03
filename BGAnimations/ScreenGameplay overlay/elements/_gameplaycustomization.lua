@@ -253,6 +253,10 @@ local function makeUI()
             -- not guaranteed but this works for now
             self:z(10)
         end,
+        EndCommand = function(self)
+            -- triggered immediately before screen deletion
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end,
         OnCommand = function(self)
             -- these are initialized here because most elements either need BeginCommand or InitCommand to run for them to be registered
             -- Order of execution: Init -> Begin -> On
@@ -265,6 +269,9 @@ local function makeUI()
             )
             maxPage = math.ceil(#elements / itemsPerPage)
 
+            -- lock input events to only lua, no c++
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 if event.type ~= "InputEventType_Release" then -- allow Repeat and FirstPress
                     local gameButton = event.button
@@ -273,10 +280,13 @@ local function makeUI()
                     local down = gameButton == "Down" or gameButton == "MenuDown"
                     local right = gameButton == "MenuRight" or gameButton == "Right"
                     local left = gameButton == "MenuLeft" or gameButton == "Left"
-                    local enter = gameButton == "Start"
                     local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
                     local shift = INPUTFILTER:IsShiftPressed()
-                    local back = key == "DeviceButton_escape" or key == "DeviceButton_backspace"
+
+                    -- these inputs shouldnt repeat just to prevent being annoying
+                    local enter = gameButton == "Start" and event.type == "InputEventType_FirstPress"
+                    local back = (key == "DeviceButton_backspace" or gameButton == "Back") and event.type == "InputEventType_FirstPress"
+                    local del = (key == "DeviceButton_delete" or gameButton == "RestartGameplay") and event.type == "InputEventType_FirstPress"
 
                     if selectedElement ~= nil then
                         if up or down or left or right then
@@ -290,6 +300,7 @@ local function makeUI()
                                 -- reset to default
                             else
                                 -- undo changes and return
+                                resetElementUsingStoredState()
                             end
                         elseif enter then
                             -- save position and return
@@ -304,10 +315,24 @@ local function makeUI()
                         elseif enter then
                             -- select category, select element
                         elseif back then
-                            -- up one level
+                            -- exit
+                            SCREENMAN:GetTopScreen():begin_backing_out()
                         end
                     end
+
+                    -- let all mouse inputs through
+                    if event.DeviceInput.button:find("mouse") ~= nil then
+                        return false
+                    end    
+                    -- eat all other inputs to not let duplicates get through
+                    return true
                 end
+
+                -- let all mouse inputs through
+                if event.DeviceInput.button:find("mouse") ~= nil then
+                    return false
+                end
+                return true
             end)
             self:playcommand("UpdateItemList")
             self:playcommand("UpdateCursor")
@@ -322,12 +347,19 @@ local function makeUI()
             local name = params.name
             selectedElement = name
             updateSelectedElementValues()
+            setStoredStateForUndoAction(name)
             self:playcommand("UpdateItemList")
         end,
         CustomizeGameplayElementMovedMessageCommand = function(self, params)
             if params == nil or params.name == nil then return end
 
             local name = params.name
+            updateSelectedElementValues()
+            self:playcommand("UpdateItemInfo")
+        end,
+        CustomizeGameplayElementUndoMessageCommand = function(self, params)
+            if params == nil or params.name == nil then return end
+
             updateSelectedElementValues()
             self:playcommand("UpdateItemInfo")
         end,

@@ -77,6 +77,7 @@ end
 
 -- registry for elements which are able to be modified in customizegameplay
 local customizeGameplayElements = {}
+local storedStateForUndoAction = {}
 local selectedElementActor = nil
 function registerActorToCustomizeGameplayUI(elementFrame, layer)
 	customizeGameplayElements[#customizeGameplayElements+1] = elementFrame
@@ -97,6 +98,91 @@ end
 
 function getCustomizeGameplayElements()
 	return customizeGameplayElements
+end
+
+function getCoordinatesForElementName(name)
+	local xv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"]
+	local yv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"]
+	local rotZv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Rotation"]
+	
+	return {
+		x = xv,
+		y = yv,
+		rotation = rotZv,
+	}
+end
+
+function getSizesForElementName(name)
+	local zoom = playerConfig:get_data().GameplaySizes[keymode][name .. "Zoom"]
+	local width = playerConfig:get_data().GameplaySizes[keymode][name .. "Width"]
+	local height = playerConfig:get_data().GameplaySizes[keymode][name .. "Height"]
+	local spacing = playerConfig:get_data().GameplaySizes[keymode][name .. "Spacing"]
+
+	return {
+		zoom = zoom,
+		width = width,
+		height = height,
+		spacing = spacing,
+	}
+end
+
+-- store the current state of the element for an undo action later
+-- if necessary
+function setStoredStateForUndoAction(name)
+	storedStateForUndoAction.coords = getCoordinatesForElementName(name)
+	storedStateForUndoAction.sizes = getSizesForElementName(name)
+	storedStateForUndoAction.name = name
+	storedStateForUndoAction.actor = selectedElementActor
+end
+
+function getStoredStateForUndoAction()
+	return storedStateForUndoAction
+end
+
+-- execute an undo action
+function resetElementUsingStoredState()
+	local coord = storedStateForUndoAction.coords
+	local size = storedStateForUndoAction.sizes
+	if storedStateForUndoAction.name == nil or storedStateForUndoAction.actor == nil then
+		return
+	end
+	local name = storedStateForUndoAction.name
+	local actor = storedStateForUndoAction.actor
+
+	if coord ~= nil then
+		if coord.x ~= nil then
+			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"] = coord.x
+			actor:x(coord.x)
+		end
+		if coord.y ~= nil then
+			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"] = coord.y
+			actor:y(coord.y)
+		end
+		if coord.rotation ~= nil then
+			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Rotation"] = coord.rotation
+			actor:rotationz(coord.rotation)
+		end
+	end
+	if size ~= nil then
+		if size.zoom ~= nil then
+			playerConfig:get_data().GameplaySizes[keymode][name .. "Zoom"] = size.zoom
+			actor:zoom(size.zoom)
+		end
+		if size.width ~= nil then
+			playerConfig:get_data().GameplaySizes[keymode][name .. "Width"] = size.width
+			actor:zoomtowidth(size.width)
+		end
+		if size.height ~= nil then
+			playerConfig:get_data().GameplaySizes[keymode][name .. "Height"] = size.height
+			actor:zoomtoheight(size.height)
+		end
+		if size.spacing ~= nil then
+			playerConfig:get_data().GameplaySizes[keymode][name .. "Spacing"] = size.spacing
+			--actor:setspacing(size.spacing)
+		end
+	end
+	playerConfig:set_dirty()
+	MESSAGEMAN:Broadcast("CustomizeGameplayElementUndo", {name=name})
 end
 
 function setSelectedCustomizeGameplayElementActorByName(elementName)
@@ -137,32 +223,6 @@ function setSelectedCustomizeGameplayElementActorPosition(differenceX, differenc
 		playerConfig:set_dirty()
 		MESSAGEMAN:Broadcast("CustomizeGameplayElementMoved", {name=name})
 	end
-end
-
-function getCoordinatesForElementName(name)
-	local xv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"]
-	local yv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"]
-	local rotZv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Rotation"]
-	
-	return {
-		x = xv,
-		y = yv,
-		rotation = rotZv,
-	}
-end
-
-function getSizesForElementName(name)
-	local zoom = playerConfig:get_data().GameplaySizes[keymode][name .. "Zoom"]
-	local width = playerConfig:get_data().GameplaySizes[keymode][name .. "Width"]
-	local height = playerConfig:get_data().GameplaySizes[keymode][name .. "Height"]
-	local spacing = playerConfig:get_data().GameplaySizes[keymode][name .. "Spacing"]
-
-	return {
-		zoom = zoom,
-		width = width,
-		height = height,
-		spacing = spacing,
-	}
 end
 
 function unsetMovableKeymode()
