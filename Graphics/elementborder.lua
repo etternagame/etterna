@@ -55,6 +55,7 @@ return Def.ActorFrame {
                     self:diffusealpha(borderAlpha)
                 end
             end
+            self:queuecommand("SetUpFinished")
         end,
         MouseOverCommand = function(self)
             self:alphaDeterminingFunction()

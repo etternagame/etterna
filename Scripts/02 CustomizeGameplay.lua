@@ -78,11 +78,21 @@ end
 -- registry for elements which are able to be modified in customizegameplay
 local customizeGameplayElements = {}
 local selectedElementActor = nil
-function registerActorToCustomizeGameplayUI(elementFrame)
+function registerActorToCustomizeGameplayUI(elementFrame, layer)
 	customizeGameplayElements[#customizeGameplayElements+1] = elementFrame
 
 	if allowedCustomization or true then
 		elementFrame:AddChildFromPath(THEME:GetPathG("", "elementborder"))
+		if layer ~= nil then
+			ms.ok(layer)
+			elementFrame:GetChild("BorderContainer"):RunCommandsRecursively(
+				function(self)
+					local cmd = function(shelf)
+						shelf:z(layer)
+					end
+					self:addcommand("SetUpFinished", cmd)
+			end)
+		end
 	end
 end
 
