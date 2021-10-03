@@ -24,7 +24,8 @@ local ratios = {
     ProgressBarWidth = 1255 / 1920, -- width
     ProgressBarHeight = 25 / 1080, -- height
 
-    IconSize = 47 / 1080,
+    IconExitWidth = 47 / 1920,
+    IconExitHeight = 36 / 1080,
 }
 
 local actuals = {
@@ -47,7 +48,8 @@ local actuals = {
     ProgressBarBottomGap = ratios.ProgressBarBottomGap * SCREEN_HEIGHT,
     ProgressBarWidth = ratios.ProgressBarWidth * SCREEN_WIDTH,
     ProgressBarHeight = ratios.ProgressBarHeight * SCREEN_HEIGHT,
-    IconSize = ratios.IconSize * SCREEN_HEIGHT,
+    IconExitWidth = ratios.IconExitWidth * SCREEN_WIDTH,
+    IconExitHeight = ratios.IconExitHeight * SCREEN_HEIGHT,
 }
 
 local infoTextSize = 0.37
@@ -254,12 +256,14 @@ local t = Def.ActorFrame {
             Name = "DisconnectedAlert",
             InitCommand = function(self)
                 self:visible(false)
-                self:settext("Server pack listing is empty.\nDisconnected from API?")
+                self:settext("Server pack listing is empty.\nIs the API down?\nIs your network connection down?\nYou may have to install songs manually.")
                 self:xy(actuals.MainDisplayWidth/2, actuals.MainDisplayHeight/2)
+                self:maxheight(actuals.MainDisplayHeight / disconnectedTextSize)
+                self:maxwidth(actuals.MainDisplayWidth / disconnectedTextSize)
                 self:zoom(disconnectedTextSize)
             end,
             BeginCommand = function(self)
-                if #DLMAN:GetAllPacks() >= 0 then
+                if #DLMAN:GetAllPacks() == 0 then
                     self:visible(true)
                     self:GetParent():GetChild("BundleListContainer"):visible(false)
                 end
@@ -284,16 +288,20 @@ local t = Def.ActorFrame {
             InitCommand = function(self)
                 self:valign(0):halign(1)
                 self:xy(actuals.MainDisplayWidth - actuals.InfoVerticalBuffer/4, actuals.InfoVerticalBuffer/4)
-                self:zoomto(actuals.IconSize, actuals.IconSize)
+                self:zoomto(actuals.IconExitWidth, actuals.IconExitHeight)
             end,
             MouseDownCommand = function(self, params)
                 SCREENMAN:GetTopScreen():Cancel()
+                TOOLTIP:Hide()
             end,
             MouseOverCommand = function(self, params)
                 self:diffusealpha(buttonHoverAlpha)
+                TOOLTIP:SetText("Exit")
+                TOOLTIP:Show()
             end,
             MouseOutCommand = function(self, params)
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end,
         },
     },
