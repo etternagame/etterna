@@ -22,6 +22,11 @@ local buttonHoverAlpha = 0.6
 local cursorAlpha = 0.5
 local cursorAnimationSeconds = 0.05
 
+local elementNameTextSize = 1
+local elementCoordTextSize = 1
+local elementSizeTextSize = 1
+local elementListTextSize = 1
+
 local function spaceNoteFieldCols(inc)
 	if inc == nil then inc = 0 end
 	local hCols = math.floor(#noteColumns/2)
@@ -183,6 +188,8 @@ local function makeUI()
                 local txt = self:GetChild("Text")
                 local bg = self:GetChild("BG")
                 txt:halign(0)
+                txt:zoom(elementListTextSize)
+                txt:maxwidth((actuals.MenuWidth-(actuals.EdgePadding*2)) / elementListTextSize)
                 bg:halign(0)
                 self:x(-actuals.MenuWidth + actuals.EdgePadding)
                 self:y(topItemY + (allowedSpace / itemsPerPage) * (i-1) + (allowedSpace / itemsPerPage / 2))
@@ -395,6 +402,7 @@ local function makeUI()
                     self:valign(0)
                     self:y((allowedSpace / itemsPerPage) * (line - 1) - (allowedSpace / itemsPerPage)/2)
                     self:settext(" ")
+                    self:maxwidth(actuals.MenuWidth / elementNameTextSize)
                 end,
                 UpdateItemInfoCommand = function(self)
                     self:settextf("%s", selectedElement)
@@ -407,6 +415,7 @@ local function makeUI()
                     self:valign(0)
                     self:y((allowedSpace / itemsPerPage) * (line - 1) - (allowedSpace / itemsPerPage)/2)
                     self:settext(" ")
+                    self:maxwidth(actuals.MenuWidth / elementCoordTextSize)
                 end,
                 UpdateItemInfoCommand = function(self, params)
                     local outstr = {}
@@ -427,6 +436,7 @@ local function makeUI()
                 InitCommand = function(self)
                     self:valign(0)
                     self:settext(" ")
+                    self:maxwidth(actuals.MenuWidth / elementSizeTextSize)
                 end,
                 UpdateItemInfoCommand = function(self, params)
                     local outstr = {}
