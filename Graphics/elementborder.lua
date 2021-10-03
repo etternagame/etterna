@@ -95,9 +95,11 @@ return Def.ActorFrame {
             setSelectedCustomizeGameplayElementActorPosition(differenceX, differenceY)
         end,
         MouseDownCommand = function(self, params)
+            local pp = self:GetParent():GetParent()
             self.initialClickX = params.MouseX
             self.initialClickY = params.MouseY
-            local name = self:GetParent():GetParent():GetName()
+            
+            local name = pp:GetName()
             setSelectedCustomizeGameplayElementActorByName(name)
         end,
     }
