@@ -86,6 +86,11 @@ local function makeUI()
 
     local cursorPos = 1
     local selectedElement = nil
+    local selectedElementCoords = {}
+    local selectedElementSizes = {}
+
+    local allowedSpace = actuals.MenuHeight - actuals.MenuDraggerHeight - (actuals.EdgePadding*2)
+    local topItemY = -actuals.MenuHeight/2 + actuals.MenuDraggerHeight + actuals.EdgePadding
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -155,6 +160,20 @@ local function makeUI()
         end
     end
 
+    local function visibilityBySelectedElement(self, reverse)
+        if reverse then
+            self:visible(selectedElement ~= nil)
+        else
+            self:visible(selectedElement == nil)
+        end
+    end
+
+    local function updateSelectedElementValues()
+        if selectedElement == nil then return end
+        selectedElementCoords = getCoordinatesForElementName(selectedElement)
+        selectedElementSizes = getSizesForElementName(selectedElement)
+    end
+
     local function item(i)
         local index = i
         local element = elements[index]
@@ -166,8 +185,6 @@ local function makeUI()
                 txt:halign(0)
                 bg:halign(0)
                 self:x(-actuals.MenuWidth + actuals.EdgePadding)
-                local allowedSpace = actuals.MenuHeight - actuals.MenuDraggerHeight - (actuals.EdgePadding*2)
-                local topItemY = -actuals.MenuHeight/2 + actuals.MenuDraggerHeight + actuals.EdgePadding
                 self:y(topItemY + (allowedSpace / itemsPerPage) * (i-1) + (allowedSpace / itemsPerPage / 2))
 
                 self.alphaDeterminingFunction = function(self)
@@ -177,6 +194,8 @@ local function makeUI()
                 end
             end,
             SetItemCommand = function(self)
+                visibilityBySelectedElement(self)
+
                 local txt = self:GetChild("Text")
                 local bg = self:GetChild("BG")
                 index = (page - 1) * itemsPerPage + i
@@ -290,6 +309,21 @@ local function makeUI()
         UpdateItemListCommand = function(self)
             self:playcommand("SetItem")
         end,
+        CustomizeGameplayElementSelectedMessageCommand = function(self, params)
+            if params == nil or params.name == nil then return end
+
+            local name = params.name
+            selectedElement = name
+            updateSelectedElementValues()
+            self:playcommand("UpdateItemList")
+        end,
+        CustomizeGameplayElementMovedMessageCommand = function(self, params)
+            if params == nil or params.name == nil then return end
+
+            local name = params.name
+            updateSelectedElementValues()
+            self:playcommand("UpdateItemInfo")
+        end,
 
         Def.Quad {
             Name = "BG",
@@ -329,6 +363,93 @@ local function makeUI()
                 self.initialClickY = params.MouseY
             end,
         },
+        Def.ActorFrame {
+            Name = "SelectedElementPage",
+            InitCommand = function(self)
+                self:y(topItemY + (allowedSpace / itemsPerPage / 2))
+                self:x(-actuals.MenuWidth/2)
+            end,
+            UpdateItemListCommand = function(self)
+                visibilityBySelectedElement(self, true)
+                if selectedElement ~= nil then
+                    self:playcommand("UpdateItemInfo")
+                end
+            end,
+            UpdateItemInfoCommand = function(self)
+                -- line management
+                self.cl = 0
+                self.sl = 0
+                if selectedElementCoords["x"] then self.cl = self.cl + 1 end
+                if selectedElementCoords["y"] then self.cl = self.cl + 1 end
+                if selectedElementCoords["rotation"] then self.cl = self.cl + 1 end
+                if selectedElementSizes["zoom"] then self.sl = self.sl + 1 end
+                if selectedElementSizes["width"] then self.sl = self.sl + 1 end
+                if selectedElementSizes["height"] then self.sl = self.sl + 1 end
+                if selectedElementSizes["spacing"] then self.sl = self.sl + 1 end
+            end,
+
+            LoadFont("Common Normal") .. {
+                Name = "ElementName",
+                InitCommand = function(self)
+                    local line = 1
+                    self:valign(0)
+                    self:y((allowedSpace / itemsPerPage) * (line - 1) - (allowedSpace / itemsPerPage)/2)
+                    self:settext(" ")
+                end,
+                UpdateItemInfoCommand = function(self)
+                    self:settextf("%s", selectedElement)
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "CurrentCoordinates",
+                InitCommand = function(self)
+                    local line = 2
+                    self:valign(0)
+                    self:y((allowedSpace / itemsPerPage) * (line - 1) - (allowedSpace / itemsPerPage)/2)
+                    self:settext(" ")
+                end,
+                UpdateItemInfoCommand = function(self, params)
+                    local outstr = {}
+                    if selectedElementCoords["x"] ~= nil then
+                        outstr[#outstr+1] = string.format("X: %5.2f", selectedElementCoords["x"])
+                    end
+                    if selectedElementCoords["y"] ~= nil then
+                        outstr[#outstr+1] = string.format("Y: %5.2f", selectedElementCoords["y"])
+                    end
+                    if selectedElementCoords["rotation"] ~= nil then
+                        outstr[#outstr+1] = string.format("Rotation: %5.2f", selectedElementCoords["rotation"])
+                    end
+                    self:settextf(table.concat(outstr, "\n"))
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "CurrentSizing",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:settext(" ")
+                end,
+                UpdateItemInfoCommand = function(self, params)
+                    local outstr = {}
+                    local coordLines = self:GetParent().cl
+                    local coordactor = self:GetParent():GetChild("CurrentCoordinates")
+                    self:y(coordactor:GetY() + coordactor:GetZoomedHeight() + (allowedSpace / itemsPerPage)/2)
+                    
+                    if selectedElementSizes["zoom"] ~= nil then
+                        outstr[#outstr+1] = string.format("Zoom: %5.2f", selectedElementSizes["zoom"])
+                    end
+                    if selectedElementSizes["width"] ~= nil then
+                        outstr[#outstr+1] = string.format("Width: %5.2f", selectedElementSizes["width"])
+                    end
+                    if selectedElementSizes["height"] ~= nil then
+                        outstr[#outstr+1] = string.format("Height: %5.2f", selectedElementSizes["height"])
+                    end
+                    if selectedElementSizes["spacing"] ~= nil then
+                        outstr[#outstr+1] = string.format("Spacing: %5.2f", selectedElementSizes["spacing"])
+                    end
+                    self:settextf(table.concat(outstr, "\n"))
+                end
+            },
+        }
     }
 
     for i = 1, itemsPerPage do
@@ -341,6 +462,9 @@ local function makeUI()
             self:halign(0)
             registerActorToColorConfigElement(self, "main", "SeparationDivider")
             self:diffusealpha(cursorAlpha)
+        end,
+        UpdateItemListCommand = function(self)
+            visibilityBySelectedElement(self)
         end,
     }
     return t

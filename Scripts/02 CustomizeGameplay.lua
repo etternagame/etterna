@@ -135,7 +135,34 @@ function setSelectedCustomizeGameplayElementActorPosition(differenceX, differenc
 			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"] = yv + differenceY
 		end
 		playerConfig:set_dirty()
+		MESSAGEMAN:Broadcast("CustomizeGameplayElementMoved", {name=name})
 	end
+end
+
+function getCoordinatesForElementName(name)
+	local xv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"]
+	local yv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"]
+	local rotZv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Rotation"]
+	
+	return {
+		x = xv,
+		y = yv,
+		rotation = rotZv,
+	}
+end
+
+function getSizesForElementName(name)
+	local zoom = playerConfig:get_data().GameplaySizes[keymode][name .. "Zoom"]
+	local width = playerConfig:get_data().GameplaySizes[keymode][name .. "Width"]
+	local height = playerConfig:get_data().GameplaySizes[keymode][name .. "Height"]
+	local spacing = playerConfig:get_data().GameplaySizes[keymode][name .. "Spacing"]
+
+	return {
+		zoom = zoom,
+		width = width,
+		height = height,
+		spacing = spacing,
+	}
 end
 
 function unsetMovableKeymode()
