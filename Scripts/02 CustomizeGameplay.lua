@@ -113,6 +113,7 @@ function setSelectedCustomizeGameplayElementActorByName(elementName)
 	-- element found, set up things
 	if elementActor ~= nil then
 		selectedElementActor = elementActor
+		MESSAGEMAN:Broadcast("CustomizeGameplayElementSelected", {name=elementName})
 	end
 end
 
