@@ -84,14 +84,13 @@ function registerActorToCustomizeGameplayUI(elementFrame, layer)
 	if allowedCustomization or true then
 		elementFrame:AddChildFromPath(THEME:GetPathG("", "elementborder"))
 		if layer ~= nil then
-			ms.ok(layer)
 			elementFrame:GetChild("BorderContainer"):RunCommandsRecursively(
 				function(self)
 					local cmd = function(shelf)
 						shelf:z(layer)
 					end
 					self:addcommand("SetUpFinished", cmd)
-			end)
+				end)
 		end
 	end
 end
