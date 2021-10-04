@@ -26,6 +26,7 @@ local elementNameTextSize = 1
 local elementCoordTextSize = 1
 local elementSizeTextSize = 1
 local elementListTextSize = 1
+local uiInstructionTextSize = 0.6
 
 local function spaceNoteFieldCols(inc)
 	if inc == nil then inc = 0 end
@@ -93,9 +94,87 @@ local function makeUI()
     local selectedElement = nil
     local selectedElementCoords = {}
     local selectedElementSizes = {}
+    -- valid choices: "Coordinate", "Zoom" (zoomx), "Size" (zoomto), "Spacing", "Rotation"
+    local selectedElementMovementType = ""
 
     local allowedSpace = actuals.MenuHeight - actuals.MenuDraggerHeight - (actuals.EdgePadding*2)
     local topItemY = -actuals.MenuHeight/2 + actuals.MenuDraggerHeight + actuals.EdgePadding
+
+    -- get the next element movement type
+    -- provide curr to set a starting point to search
+    -- will run recursively until it finds a working match
+    local function getNextElementMovementType(curr, recurses)
+        if selectedElementMovementType == nil then setSelectedElementMovementType() return selectedElementMovementType end
+        if curr == nil then curr = selectedElementMovementType end
+        if recurses == nil then recurses = 1 end
+        if recurses > 10 then return nil end
+        if curr == "Coordinate" then
+            if selectedElementCoords ~= nil and selectedElementCoords.rotation ~= nil then
+                return "Rotation"
+            end
+            return getNextElementMovementType("Rotation", recurses + 1)
+        end
+        if curr == "Rotation" then
+            if selectedElementSizes ~= nil and selectedElementSizes.zoom ~= nil then
+                return "Zoom"
+            end
+            return getNextElementMovementType("Zoom", recurses + 1)
+        end
+        if curr == "Zoom" then
+            if selectedElementSizes ~= nil and selectedElementSizes.width ~= nil or selectedElementSizes.height ~= nil then
+                return "Size"
+            end
+            return getNextElementMovementType("Size", recurses + 1)
+        end
+        if curr == "Size" then
+            if selectedElementSizes ~= nil and selectedElementSizes.spacing ~= nil then
+                return "Spacing"
+            end
+            return getNextElementMovementType("Spacing", recurses + 1)
+        end
+        if curr == "Spacing" then
+            if selectedElementCoords ~= nil and selectedElementCoords.x ~= nil or selectedElementCoords.y ~= nil then
+                return "Coordinate"
+            end
+            return getNextElementMovementType("Coordinate", recurses + 1)
+        end
+    end
+
+    -- set the selected element movement type
+    -- if no param is given, set the default (first available)
+    -- if param is given, find the next one available (i know, unintuitive, dont care)
+    local function setSelectedElementMovementType(movementType)
+        if movementType == nil then
+            if selectedElementCoords ~= nil then
+                if selectedElementCoords.x ~= nil or selectedElementCoords.y ~= nil then
+                    selectedElementMovementType = "Coordinate"
+                    return
+                end
+                if selectedElementCoords.rotation ~= nil then
+                    selectedElementMovementType = "Rotation"
+                    return
+                end
+            end
+            if selectedElementSizes ~= nil then
+                if selectedElementSizes.zoom ~= nil then
+                    selectedElementMovementType = "Zoom"
+                    return
+                end
+                if selectedElementSizes.width ~= nil or selectedElementSizes.height ~= nil then
+                    selectedElementMovementType = "Size"
+                    return
+                end
+                if selectedElementSizes.spacing ~= nil then
+                    selectedElementMovementType = "Spacing"
+                    return
+                end
+            end
+            -- impossible??
+            ms.ok("Selected element movement type could not be determined. Report to developer")
+        else
+            selectedElementMovementType = getNextElementMovementType(movementType)
+        end
+    end
 
     local function movePage(n)
         if maxPage <= 1 then
@@ -282,6 +361,7 @@ local function makeUI()
                     local left = gameButton == "MenuLeft" or gameButton == "Left"
                     local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
                     local shift = INPUTFILTER:IsShiftPressed()
+                    local space = key == "DeviceButton_space"
 
                     -- these inputs shouldnt repeat just to prevent being annoying
                     local enter = (gameButton == "Start") 
@@ -300,11 +380,17 @@ local function makeUI()
                         if up or down or left or right then
                             local increment = 5
                             if shift then
-                                -- fine movement
+                                -- small increment arrow key usage
                                 increment = 1
                             else
-                                -- regular movement
+                                -- regular arrow key usage
                             end
+                        elseif space then
+                            -- go to next element movement type
+                            setSelectedElementMovementType(selectedElementMovementType)
+                            -- set a checkpoint for undo
+                            setStoredStateForUndoAction(selectedElement)
+                            self:playcommand("UpdateItemList")
                         elseif back then
                             if ctrl then
                                 -- reset to default
@@ -319,6 +405,7 @@ local function makeUI()
                             -- save position and return
                             -- the reality is all positions are saved always haha
                             -- just go back in this case
+                            -- save to disk will occur at screen exit
                             selectedElement = nil
                             self:playcommand("UpdateItemList")
                         end
@@ -333,6 +420,7 @@ local function makeUI()
                             -- select element
                             selectedElement = elements[cursorPos]:GetName()
                             updateSelectedElementValues()
+                            setSelectedElementMovementType()
                             setStoredStateForUndoAction(selectedElement)
                             self:playcommand("UpdateItemList")
                         elseif back then
@@ -369,6 +457,7 @@ local function makeUI()
             local name = params.name
             selectedElement = name
             updateSelectedElementValues()
+            setSelectedElementMovementType()
             setStoredStateForUndoAction(name)
             self:playcommand("UpdateItemList")
         end,
@@ -435,6 +524,7 @@ local function makeUI()
             end,
             UpdateItemListCommand = function(self)
                 visibilityBySelectedElement(self, true)
+                ms.ok(selectedElementMovementType)
                 if selectedElement ~= nil then
                     self:playcommand("UpdateItemInfo")
                 end
@@ -477,13 +567,16 @@ local function makeUI()
                 UpdateItemInfoCommand = function(self, params)
                     local outstr = {}
                     if selectedElementCoords["x"] ~= nil then
-                        outstr[#outstr+1] = string.format("X: %5.2f", selectedElementCoords["x"])
+                        local fstr = selectedElementMovementType == "Coordinate" and "[X: %5.2f]" or "X: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, selectedElementCoords["x"])
                     end
                     if selectedElementCoords["y"] ~= nil then
-                        outstr[#outstr+1] = string.format("Y: %5.2f", selectedElementCoords["y"])
+                        local fstr = selectedElementMovementType == "Coordinate" and "[Y: %5.2f]" or "Y: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, selectedElementCoords["y"])
                     end
                     if selectedElementCoords["rotation"] ~= nil then
-                        outstr[#outstr+1] = string.format("Rotation: %5.2f", selectedElementCoords["rotation"])
+                        local fstr = selectedElementMovementType == "Rotation" and "[Rotation: %5.2f]" or "Rotation: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, selectedElementCoords["rotation"])
                     end
                     self:settextf(table.concat(outstr, "\n"))
                 end,
@@ -502,20 +595,35 @@ local function makeUI()
                     self:y(coordactor:GetY() + coordactor:GetZoomedHeight() + (allowedSpace / itemsPerPage)/2)
                     
                     if selectedElementSizes["zoom"] ~= nil then
-                        outstr[#outstr+1] = string.format("Zoom: %5.2f", selectedElementSizes["zoom"])
+                        local fstr = selectedElementMovementType == "Zoom" and "[Zoom: %5.2f]" or "Zoom: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["zoom"])
                     end
                     if selectedElementSizes["width"] ~= nil then
-                        outstr[#outstr+1] = string.format("Width: %5.2f", selectedElementSizes["width"])
+                        local fstr = selectedElementMovementType == "Size" and "[Width: %5.2f]" or "Width: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["width"])
                     end
                     if selectedElementSizes["height"] ~= nil then
-                        outstr[#outstr+1] = string.format("Height: %5.2f", selectedElementSizes["height"])
+                        local fstr = selectedElementMovementType == "Size" and "[Height: %5.2f]" or "Height: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["height"])
                     end
                     if selectedElementSizes["spacing"] ~= nil then
-                        outstr[#outstr+1] = string.format("Spacing: %5.2f", selectedElementSizes["spacing"])
+                        local fstr = selectedElementMovementType == "Spacing" and "[Spacing: %5.2f]" or "Spacing: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["spacing"])
                     end
                     self:settextf(table.concat(outstr, "\n"))
                 end
             },
+            LoadFont("Common Normal") .. {
+                Name = "Instruction",
+                InitCommand = function(self)
+                    self:valign(1)
+                    self:y(topItemY + (allowedSpace / itemsPerPage / 2))
+                    self:addy(actuals.MenuHeight - actuals.EdgePadding)
+                    self:zoom(uiInstructionTextSize)
+                    self:maxwidth(actuals.MenuWidth / uiInstructionTextSize)
+                    self:settext("Space to scroll movement types")
+                end,
+            }
         }
     }
 

@@ -294,6 +294,7 @@ function getSelectedCustomizeGameplayMovableActor()
 end
 
 -- set the new XY coordinates of an element using the DIFFERENCE from before it was changed and the new value
+-- mostly just meant to be used with the mouse dragging functionality
 function setSelectedCustomizeGameplayElementActorPosition(differenceX, differenceY)
 	if selectedElementActor ~= nil then
 		local name = selectedElementActor:GetName()
