@@ -16,10 +16,6 @@ local function arbitraryComboX(value)
 local function arbitraryComboZoom(value)
 	c.Label:zoom(value)
 	c.Number:zoom(value - 0.1)
-	if allowedCustomization then
-		c.Border:playcommand("ChangeWidth", {val = c.Number:GetZoomedWidth() + c.Label:GetZoomedWidth()})
-		c.Border:playcommand("ChangeHeight", {val = c.Number:GetZoomedHeight()})
-	end
 end
 
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt")
@@ -45,9 +41,6 @@ local t = Def.ActorFrame {
 			c.Number:settext(1000)
 			c.Label:visible(not CenterCombo)
 			c.Label:settext(translated_combo)
-
-			Movable.DeviceButton_3.propertyOffsets = {self:GetTrueX() -6, self:GetTrueY() + c.Number:GetHeight()*1.5}	-- centered to screen/valigned
-			setBorderAlignment(c.Border, 0.5, 1)
 		end
 	end,
 	SetUpMovableValuesMessageCommand = function(self)
