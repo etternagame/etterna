@@ -42,6 +42,7 @@ return Def.ActorFrame {
             -- allow this to function as a button
             -- even with the comment this makes no sense. basically it has to do with layering stuff
             -- buttons on buttons and buttons in front or behind certain elements breaks stuff
+            -- a higher z value is more "in front"
             self:z(5)
 
             -- place the quad behind the whole actorframe we are bordering
