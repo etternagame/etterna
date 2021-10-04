@@ -366,9 +366,9 @@ local function makeUI()
                     -- these inputs shouldnt repeat just to prevent being annoying
                     local enter = (gameButton == "Start") 
                         and event.type == "InputEventType_FirstPress"
-                    local back = (key == "DeviceButton_backspace" or gameButton == "Back")
+                    local back = (gameButton == "Back")
                         and event.type == "InputEventType_FirstPress"
-                    local del = (key == "DeviceButton_delete" or gameButton == "RestartGameplay")
+                    local undo = (key == "DeviceButton_delete" or gameButton == "RestartGameplay" or key == "DeviceButton_backspace")
                         and event.type == "InputEventType_FirstPress"
 
                     -- handled in a really special way to prevent holding left mouse and right clicking
@@ -424,7 +424,7 @@ local function makeUI()
                             -- set a checkpoint for undo
                             setStoredStateForUndoAction(selectedElement)
                             self:playcommand("UpdateItemList")
-                        elseif back then
+                        elseif undo then
                             if ctrl then
                                 -- reset to default
                                 resetElementToDefault()
@@ -559,7 +559,6 @@ local function makeUI()
             end,
             UpdateItemListCommand = function(self)
                 visibilityBySelectedElement(self, true)
-                ms.ok(selectedElementMovementType)
                 if selectedElement ~= nil then
                     self:playcommand("UpdateItemInfo")
                 end
