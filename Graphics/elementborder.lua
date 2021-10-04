@@ -23,10 +23,12 @@ return Def.ActorFrame {
                 local eleh = nil
                 pf:RunCommandsRecursively(
                     function(self)
-                        local w = self:GetZoomedWidth()
-                        local h = self:GetZoomedHeight()
-                        if w > bigw then bigw = w eleh = self end
-                        if h > bigh then bigh = h eleh = self end
+                        if self:GetName() ~= shelf:GetName() then
+                            local w = self:GetZoomedWidth()
+                            local h = self:GetZoomedHeight()
+                            if w > bigw then bigw = w eleh = self end
+                            if h > bigh then bigh = h eleh = self end
+                        end
                     end
                 )
                 shelf:halign(eleh:GetHAlign())
