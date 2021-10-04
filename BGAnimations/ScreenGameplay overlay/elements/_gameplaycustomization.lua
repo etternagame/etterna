@@ -258,6 +258,15 @@ local function makeUI()
         selectedElementSizes = getSizesForElementName(selectedElement)
     end
 
+    local function selectCurrent()
+        selectedElement = elements[cursorPos]:GetName()
+        updateSelectedElementValues()
+        setSelectedElementMovementType()
+        setStoredStateForUndoAction(selectedElement)
+        setSelectedCustomizeGameplayElementActorByName(selectedElement)
+        itemListFrame:playcommand("UpdateItemList")
+    end
+
     local function item(i)
         local index = i
         local element = elements[index]
@@ -317,6 +326,7 @@ local function makeUI()
                 if self:IsInvisible() then return end
                 if params.update == "OnMouseDown" then
                     cursorPos = index
+                    selectCurrent()
                     self:playcommand("UpdateCursor")
                     self:alphaDeterminingFunction()
                 end
@@ -452,12 +462,7 @@ local function makeUI()
                             moveCursor(1)
                         elseif enter then
                             -- select element
-                            selectedElement = elements[cursorPos]:GetName()
-                            updateSelectedElementValues()
-                            setSelectedElementMovementType()
-                            setStoredStateForUndoAction(selectedElement)
-                            setSelectedCustomizeGameplayElementActorByName(selectedElement)
-                            self:playcommand("UpdateItemList")
+                            selectCurrent()
                         elseif back then
                             -- exit
                             -- (why did we make a specific function for this instead of :Cancel() ?)
