@@ -298,8 +298,10 @@ local function makeUI()
 
                     if selectedElement ~= nil then
                         if up or down or left or right then
+                            local increment = 5
                             if shift then
                                 -- fine movement
+                                increment = 1
                             else
                                 -- regular movement
                             end
@@ -329,7 +331,10 @@ local function makeUI()
                             moveCursor(1)
                         elseif enter then
                             -- select element
-
+                            selectedElement = elements[cursorPos]:GetName()
+                            updateSelectedElementValues()
+                            setStoredStateForUndoAction(selectedElement)
+                            self:playcommand("UpdateItemList")
                         elseif back then
                             -- exit
                             -- (why did we make a specific function for this instead of :Cancel() ?)
