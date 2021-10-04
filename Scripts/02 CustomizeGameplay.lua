@@ -318,6 +318,30 @@ function setSelectedCustomizeGameplayElementActorPosition(differenceX, differenc
 	end
 end
 
+local function updateCustomizeGameplayTables(tname, increment, tableName)
+	if selectedElementActor ~= nil then
+		local beforeVal = playerConfig:get_data()[tableName][keymode][tname]
+		if beforeVal ~= nil then
+			playerConfig:get_data()[tableName][keymode][tname] = beforeVal + increment
+			MovableValues[tname] = beforeVal + increment
+			playerConfig:set_dirty()
+			-- tell everything to update MovableValues (lazy)
+			MESSAGEMAN:Broadcast("SetUpMovableValues")
+			MESSAGEMAN:Broadcast("CustomizeGameplayElementMoved", {name=selectedElementActor:GetName()})
+		end
+	end
+end
+
+-- set any GameplayXYCoordinates value using an increment of the existing value
+function updateGameplayCoordinate(tname, increment)
+	updateCustomizeGameplayTables(tname, increment, "GameplayXYCoordinates")
+end
+
+-- set any GameplaySizes value using an increment of the existing value
+function updateGameplaySize(tname, increment)
+	updateCustomizeGameplayTables(tname, increment, "GameplaySizes")
+end
+
 function unsetMovableKeymode()
 	MovableValues = {}
 	customizeGameplayElements = {}

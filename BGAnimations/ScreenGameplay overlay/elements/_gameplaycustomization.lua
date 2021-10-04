@@ -385,6 +385,39 @@ local function makeUI()
                             else
                                 -- regular arrow key usage
                             end
+
+                            if down or left then increment = increment * -1 end
+                            local tname = selectedElement
+
+                            if selectedElementMovementType == "Coordinate" then
+                                if selectedElementCoords ~= nil then
+                                    if left or right then tname = tname .. "X" end
+                                    if up or down then tname = tname .. "Y" increment = increment * -1 end
+                                    updateGameplayCoordinate(tname, increment)
+                                end
+                            elseif selectedElementMovementType == "Rotation" then
+                                if selectedElementCoords ~= nil then
+                                    tname = tname .. "Rotation"
+                                    updateGameplayCoordinate(tname, increment)
+                                end
+                            elseif selectedElementMovementType == "Zoom" then
+                                if selectedElementSizes ~= nil then
+                                    tname = tname .. "Zoom"
+                                    updateGameplaySize(tname, increment / 10)
+                                end
+                            elseif selectedElementMovementType == "Size" then
+                                if selectedElementSizes ~= nil then
+                                    if left or right then tname = tname .. "Width" end
+                                    if up or down then tname = tname .. "Height" end
+                                    updateGameplaySize(tname, increment / 10)
+                                end
+                            elseif selectedElementMovementType == "Spacing" then
+                                if selectedElementSizes ~= nil then
+                                    tname = tname .. "Spacing"
+                                    updateGameplaySize(tname, increment)
+                                end
+                            end
+                            
                         elseif space then
                             -- go to next element movement type
                             setSelectedElementMovementType(selectedElementMovementType)
@@ -422,6 +455,7 @@ local function makeUI()
                             updateSelectedElementValues()
                             setSelectedElementMovementType()
                             setStoredStateForUndoAction(selectedElement)
+                            setSelectedCustomizeGameplayElementActorByName(selectedElement)
                             self:playcommand("UpdateItemList")
                         elseif back then
                             -- exit
