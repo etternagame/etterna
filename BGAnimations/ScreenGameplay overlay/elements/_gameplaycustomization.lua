@@ -73,6 +73,10 @@ local t = Def.ActorFrame {
         Movable.DeviceButton_n.DeviceButton_up.arbitraryFunction = spaceNoteFieldCols
         Movable.DeviceButton_n.DeviceButton_down.arbitraryFunction = spaceNoteFieldCols
     end,
+    EndCommand = function(self)
+        -- exiting customize gameplay will turn off autoplay
+        GAMESTATE:SetAutoplay(false)
+    end,
 }
 
 local function makeUI()
