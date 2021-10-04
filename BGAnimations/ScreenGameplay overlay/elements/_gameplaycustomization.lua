@@ -58,20 +58,6 @@ local t = Def.ActorFrame {
 
         Movable.pressed = false
         Movable.current = "None"
-        Movable.DeviceButton_r.element = nf
-        Movable.DeviceButton_t.element = noteColumns
-        Movable.DeviceButton_r.condition = true
-        Movable.DeviceButton_t.condition = true
-        --self:GetChild("LifeP1"):GetChild("Border"):SetFakeParent(lifebar)
-        Movable.DeviceButton_j.element = lifebar
-        Movable.DeviceButton_j.condition = true
-        Movable.DeviceButton_k.element = lifebar
-        Movable.DeviceButton_k.condition = true
-        Movable.DeviceButton_l.element = lifebar
-        Movable.DeviceButton_l.condition = true
-        Movable.DeviceButton_n.condition = true
-        Movable.DeviceButton_n.DeviceButton_up.arbitraryFunction = spaceNoteFieldCols
-        Movable.DeviceButton_n.DeviceButton_down.arbitraryFunction = spaceNoteFieldCols
     end,
     EndCommand = function(self)
         -- exiting customize gameplay will turn off autoplay
