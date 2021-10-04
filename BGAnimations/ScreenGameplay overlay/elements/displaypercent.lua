@@ -9,10 +9,13 @@ local bgalpha = 0.4
 return Def.ActorFrame {
 	Name = "DisplayPercent",
 	InitCommand = function(self)
-        self:xy(MovableValues.DisplayPercentX, MovableValues.DisplayPercentY)
-		self:zoom(MovableValues.DisplayPercentZoom)
+        self:playcommand("SetUpMovableValues")
         registerActorToCustomizeGameplayUI(self)
 	end,
+    SetUpMovableValuesMessageCommand = function(self)
+        self:xy(MovableValues.DisplayPercentX, MovableValues.DisplayPercentY)
+		self:zoom(MovableValues.DisplayPercentZoom)
+    end,
     SpottedOffsetCommand = function(self, params)
         local bg = self:GetChild("PercentBacking")
         local perc = self:GetChild("DisplayPercent")

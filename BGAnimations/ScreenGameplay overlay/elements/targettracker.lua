@@ -10,10 +10,13 @@ local GAMEPLAY_SIZING_RATIO = (480 / SCREEN_HEIGHT)
 local t = Def.ActorFrame {
 	Name = "TargetTracker",
 	InitCommand = function(self)
-		self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY)
-        self:zoom(MovableValues.TargetTrackerZoom / GAMEPLAY_SIZING_RATIO)
+        self:playcommand("SetUpMovableValues")
         registerActorToCustomizeGameplayUI(self)
 	end,
+    SetUpMovableValuesMessageCommand = function(self)
+        self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY)
+        self:zoom(MovableValues.TargetTrackerZoom / GAMEPLAY_SIZING_RATIO)
+    end,
 }
 
 local aheadColor = COLORS:getGameplayColor("TargetGoalAhead")

@@ -32,19 +32,21 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:pause()
 			self:visible(false)
-			self:xy(MovableValues.JudgmentX, MovableValues.JudgmentY)
+			-- queued to run slightly late
+			self:queuecommand("SetUpMovableValues")
 			registerActorToCustomizeGameplayUI(self:GetParent())
+		end,
+		SetUpMovableValuesMessageCommand = function(self)
+			self:xy(MovableValues.JudgmentX, MovableValues.JudgmentY)
+			self:zoom(MovableValues.JudgmentZoom)
 		end,
 		ResetCommand = function(self)
 			self:finishtweening()
 			self:stopeffect()
 			self:visible(false)
-		end
+		end,
 	},
 
-	OnCommand = function(self)
-		c.Judgment:zoom(MovableValues.JudgmentZoom)
-	end,
 	JudgmentMessageCommand = function(self, param)
 		if param.HoldNoteScore or param.FromReplay then
 			return

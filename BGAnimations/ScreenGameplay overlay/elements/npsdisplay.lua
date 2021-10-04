@@ -114,9 +114,12 @@ local function npsDisplay()
 	local t = Def.ActorFrame {
 		Name = "NPSDisplay",
 		InitCommand = function(self)
+			self:playcommand("SetUpMovableValues")
+			registerActorToCustomizeGameplayUI(self)
+		end,
+		SetUpMovableValuesMessageCommand = function(self)
 			self:xy(MovableValues.NPSDisplayX, MovableValues.NPSDisplayY)
 			self:zoom(MovableValues.NPSDisplayZoom)
-			registerActorToCustomizeGameplayUI(self)
 		end,
 		-- Whenever a MessageCommand is broadcasted,
 		-- a table contanining parameters can also be passed along.
@@ -169,9 +172,12 @@ local function npsGraph()
 	local t = Def.ActorFrame {
 		Name = "NPSGraph",
 		InitCommand = function(self)
+			self:playcommand("SetUpMovableValues")
+			registerActorToCustomizeGameplayUI(self)
+		end,
+		SetUpMovableValuesMessageCommand = function(self)
 			self:xy(MovableValues.NPSGraphX, MovableValues.NPSGraphY)
 			self:zoomto(MovableValues.NPSGraphWidth, MovableValues.NPSGraphHeight)
-			registerActorToCustomizeGameplayUI(self)
 		end,
 	}
 	local verts = {

@@ -70,10 +70,13 @@ end
 scroller = Def.ActorFrame {
 	Name = "ReplayButtons",
 	InitCommand = function(self)
-		self:xy(MovableValues.ReplayButtonsX, MovableValues.ReplayButtonsY)
+		self:playcommand("SetUpMovableValues")
 	end,
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.ReplayButtonsX, MovableValues.ReplayButtonsY)
 	end,
 	ReplayScrollCommand = function(self)
 		local newpos = getNewSongPos()

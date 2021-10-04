@@ -151,38 +151,124 @@ function resetElementUsingStoredState()
 
 	if coord ~= nil then
 		if coord.x ~= nil then
-			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"] = coord.x
-			actor:x(coord.x)
+			local tname = name .. "X"
+			local v = coord.x
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 		if coord.y ~= nil then
-			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"] = coord.y
-			actor:y(coord.y)
+			local tname = name .. "Y"
+			local v = coord.y
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 		if coord.rotation ~= nil then
-			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Rotation"] = coord.rotation
-			actor:rotationz(coord.rotation)
+			local tname = name .. "Rotation"
+			local v = coord.rotation
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 	end
 	if size ~= nil then
 		if size.zoom ~= nil then
-			playerConfig:get_data().GameplaySizes[keymode][name .. "Zoom"] = size.zoom
-			actor:zoom(size.zoom)
+			local tname = name .. "Zoom"
+			local v = size.zoom
+			playerConfig:get_data().GameplaySizes[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 		if size.width ~= nil then
-			playerConfig:get_data().GameplaySizes[keymode][name .. "Width"] = size.width
-			actor:zoomtowidth(size.width)
+			local tname = name .. "Width"
+			local v = size.width
+			playerConfig:get_data().GameplaySizes[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 		if size.height ~= nil then
-			playerConfig:get_data().GameplaySizes[keymode][name .. "Height"] = size.height
-			actor:zoomtoheight(size.height)
+			local tname = name .. "Height"
+			local v = size.height
+			playerConfig:get_data().GameplaySizes[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 		if size.spacing ~= nil then
-			playerConfig:get_data().GameplaySizes[keymode][name .. "Spacing"] = size.spacing
-			--actor:setspacing(size.spacing)
+			local tname = name .. "Spacing"
+			local v = size.spacing
+			playerConfig:get_data().GameplaySizes[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 	end
+	-- tell everything to update MovableValues (lazy)
+	MESSAGEMAN:Broadcast("SetUpMovableValues")
+
 	playerConfig:set_dirty()
+	-- alert ui of update
 	MESSAGEMAN:Broadcast("CustomizeGameplayElementUndo", {name=name})
+end
+
+-- reset an element to its default state
+-- this leverages the storedStateForUndoAction
+-- as such, you need to setStoredStateForUndoAction first
+-- which basically means you utilized setSelectedCustomizeGameplayElementActorByName
+-- (an element must be first selected to be reset to default.)
+function resetElementToDefault()
+	local coord = storedStateForUndoAction.coords
+	local size = storedStateForUndoAction.sizes
+	if storedStateForUndoAction.name == nil or storedStateForUndoAction.actor == nil then
+		return
+	end
+	local name = storedStateForUndoAction.name
+	local actor = storedStateForUndoAction.actor
+
+	if coord ~= nil then
+		if coord.x ~= nil then
+			local tname = name .. "X"
+			local default = getDefaultGameplayCoordinate(tname)
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = default
+			MovableValues[tname] = default
+		end
+		if coord.y ~= nil then
+			local tname = name .. "Y"
+			local default = getDefaultGameplayCoordinate(tname)
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = default
+			MovableValues[tname] = default
+		end
+		if coord.rotation ~= nil then
+			local tname = name .. "Rotation"
+			local default = getDefaultGameplayCoordinate(tname)
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = default
+			MovableValues[tname] = default
+		end
+	end
+	if size ~= nil then
+		if size.zoom ~= nil then
+			local tname = name .. "Zoom"
+			local default = getDefaultGameplaySize(tname)
+			playerConfig:get_data().GameplaySizes[keymode][tname] = default
+			MovableValues[tname] = default
+		end
+		if size.width ~= nil then
+			local tname = name .. "Width"
+			local default = getDefaultGameplaySize(tname)
+			playerConfig:get_data().GameplaySizes[keymode][tname] = default
+			MovableValues[tname] = default
+		end
+		if size.height ~= nil then
+			local tname = name .. "Height"
+			local default = getDefaultGameplaySize(tname)
+			playerConfig:get_data().GameplaySizes[keymode][tname] = default
+			MovableValues[tname] = default
+		end
+		if size.spacing ~= nil then
+			local tname = name .. "Spacing"
+			local default = getDefaultGameplaySize(tname)
+			playerConfig:get_data().GameplaySizes[keymode][tname] = default
+			MovableValues[tname] = default
+		end
+	end
+	-- tell everything to update MovableValues (lazy)
+	MESSAGEMAN:Broadcast("SetUpMovableValues")
+
+	playerConfig:set_dirty()
+	-- alert ui of update
+	MESSAGEMAN:Broadcast("CustomizeGameplayElementDefaulted", {name=name})
 end
 
 function setSelectedCustomizeGameplayElementActorByName(elementName)
@@ -215,10 +301,16 @@ function setSelectedCustomizeGameplayElementActorPosition(differenceX, differenc
 		local yv = playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"]
 
 		if xv ~= nil then
-			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"] = xv + differenceX
+			local tname = name .. "X"
+			local v = xv + differenceX
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 		if yv ~= nil then
-			playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"] = yv + differenceY
+			local tname = name .. "Y"
+			local v = yv + differenceY
+			playerConfig:get_data().GameplayXYCoordinates[keymode][tname] = v
+			MovableValues[tname] = v
 		end
 		playerConfig:set_dirty()
 		MESSAGEMAN:Broadcast("CustomizeGameplayElementMoved", {name=name})

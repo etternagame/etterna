@@ -37,7 +37,6 @@ local function smeltErrorBar(index)
 	return Def.Quad {
 		Name = index,
 		InitCommand = function(self)
-			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
 			self:zoomto(barWidth, MovableValues.ErrorBarHeight)
 			self:diffusealpha(0)
 		end,
@@ -49,8 +48,7 @@ local function smeltErrorBar(index)
 			self:diffuse(colorByJudgment(params.judgeCurrent))
 			-- and set up the position
 			if MovableValues and MovableValues.ErrorBarX then
-				self:x(MovableValues.ErrorBarX + params.judgeOffset * wscale)
-				self:y(MovableValues.ErrorBarY)
+				self:x(params.judgeOffset * wscale)
 				self:zoomtoheight(MovableValues.ErrorBarHeight)
 			end
 			self:linear(barDuration)
@@ -73,7 +71,12 @@ local t = Def.ActorFrame {
 			avg = 0
 			lastAvg = 0
 		end
+		self:playcommand("SetUpMovableValues")
 		registerActorToCustomizeGameplayUI(self)
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
+		wscale = MovableValues.ErrorBarWidth / 180
 	end,
 	SpottedOffsetCommand = function(self, params)
 		if errorbarType == "Regular" then
@@ -91,43 +94,49 @@ local t = Def.ActorFrame {
 	Def.Quad {
 		Name = "BG",
 		InitCommand = function(self)
-			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
-			self:zoomto(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight)
 			registerActorToColorConfigElement(self, "main", "PrimaryBackground")
 			self:diffusealpha(0.1)
+		end,
+		SetUpMovableValuesMessageCommand = function(self)
+			self:zoomto(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight)
 		end,
 	},
 	Def.Quad {
 		Name = "Center",
 		InitCommand = function(self)
-			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
-			self:zoomto(2, MovableValues.ErrorBarHeight)
 			self:diffuse(COLORS:getGameplayColor("ErrorBarCenter"))
-		end
+		end,
+		SetUpMovableValuesMessageCommand = function(self)
+			self:zoomto(2, MovableValues.ErrorBarHeight)
+		end,
 	},
 
 	-- Indicates which side is which (early/late) These should be destroyed after the song starts.
 	LoadFont("Common Normal") .. {
         Name = "DestroyMe",
         InitCommand = function(self)
-            self:xy(MovableValues.ErrorBarX + MovableValues.ErrorBarWidth / 4, MovableValues.ErrorBarY)
 			self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
             self:settext(translated_info["ErrorLate"])
             self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
-        end
+        end,
+		SetUpMovableValuesMessageCommand = function(self)
+            self:x(MovableValues.ErrorBarWidth / 4)
+		end,
     },
 	LoadFont("Common Normal") .. {
         Name = "DestroyMe2",
         InitCommand = function(self)
-            self:xy(MovableValues.ErrorBarX - MovableValues.ErrorBarWidth / 4, MovableValues.ErrorBarY)
 			self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
             self:settext(translated_info["ErrorEarly"])
             self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand("Doot")
         end,
+		SetUpMovableValuesMessageCommand = function(self)
+            self:x(-MovableValues.ErrorBarWidth / 4)
+		end,
         DootCommand = function(self)
             self:GetParent():queuecommand("Doot")
         end
@@ -138,10 +147,11 @@ if errorbarType == "EWMA" then
 	t[#t+1] = Def.Quad {
 		Name = "WeightedBar",
 		InitCommand = function(self)
-			self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
-			self:zoomto(barWidth, MovableValues.ErrorBarHeight)
 			self:diffuse(COLORS:getGameplayColor("ErrorBarEWMABar"))
 			self:diffusealpha(1)
+		end,
+		SetUpMovableValuesMessageCommand = function(self)
+			self:zoomto(barWidth, MovableValues.ErrorBarHeight)
 		end,
 		SpottedOffsetCommand = function(self, params)
 			if params and params.judgeOffset ~= nil then

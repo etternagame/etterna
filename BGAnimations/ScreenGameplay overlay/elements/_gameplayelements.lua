@@ -8,8 +8,12 @@ local t = Def.ActorFrame {
     BeginCommand = function(self)
         updateDiscordStatusForGameplay()
         updateNowPlaying()
-
-        local screen = SCREENMAN:GetTopScreen()
+		
+		-- queue so it doesnt reach the children
+		self:queuecommand("SetUpMovableValues")
+    end,
+	SetUpMovableValuesMessageCommand = function(self)
+		local screen = SCREENMAN:GetTopScreen()
         local usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 
         -- lifebar movement
@@ -42,7 +46,7 @@ local t = Def.ActorFrame {
 				col:addx((i-hCols-1) * inc)
 			end
         end
-    end,
+	end,
     DoneLoadingNextSongMessageCommand = function(self)
 		local screen = SCREENMAN:GetTopScreen()
 

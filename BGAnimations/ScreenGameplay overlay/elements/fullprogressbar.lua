@@ -30,9 +30,12 @@ local replaySlider = isReplay and
 return Def.ActorFrame {
 	Name = "FullProgressBar",
 	InitCommand = function(self)
+		self:playcommand("SetUpMovableValues")
+		registerActorToCustomizeGameplayUI(self)
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
 		self:xy(MovableValues.FullProgressBarX, MovableValues.FullProgressBarY)
 		self:zoomto(MovableValues.FullProgressBarWidth, MovableValues.FullProgressBarHeight)
-		registerActorToCustomizeGameplayUI(self)
 	end,
 
 	replaySlider,

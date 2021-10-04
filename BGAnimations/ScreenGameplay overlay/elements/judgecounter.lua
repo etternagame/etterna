@@ -24,13 +24,16 @@ local judgeCounts = {}
 local t = Def.ActorFrame {
 	Name = "JudgeCounter",
 	InitCommand = function(self)
-		self:xy(MovableValues.JudgeCounterX, MovableValues.JudgeCounterY)
+		self:playcommand("SetUpMovableValues")
 		registerActorToCustomizeGameplayUI(self)
 	end,
 	BeginCommand = function(self)
 		for _, j in ipairs(jdgT) do
 			judgeCounts[j] = self:GetChild(j .. "count")
 		end
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.JudgeCounterX, MovableValues.JudgeCounterY)
 	end,
 	SpottedOffsetCommand = function(self, params)
 		if params == nil then return end

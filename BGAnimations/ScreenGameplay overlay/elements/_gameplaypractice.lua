@@ -160,7 +160,7 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
     TextSize = 0.45,
 }}) .. {
 	BeginCommand = function(self)
-		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
+		self:playcommand("SetUpMovableValues")
 		self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
 		-- doing this in a really awkward way to inject the desired behavior into the existing SeekBar
 		local seekbar = self:GetChild("SeekBar")
@@ -172,6 +172,9 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
 			end)
 		end
 		registerActorToCustomizeGameplayUI(self)
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
 	end,
 }
 -- extra quad for bookmark position and region

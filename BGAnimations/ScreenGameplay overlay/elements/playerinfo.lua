@@ -24,9 +24,12 @@ local scoreTypeXOffset = GAMEPLAY:getItemX("playerInfoScoreTypeX")
 return Def.ActorFrame {
     Name = "PlayerInfo",
     InitCommand = function(self)
+        self:playcommand("SetUpMovableValues")
+        registerActorToCustomizeGameplayUI(self)
+    end,
+    SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.PlayerInfoX, MovableValues.PlayerInfoY)
         self:zoom(MovableValues.PlayerInfoZoom)
-        registerActorToCustomizeGameplayUI(self)
     end,
 
     Def.Quad {

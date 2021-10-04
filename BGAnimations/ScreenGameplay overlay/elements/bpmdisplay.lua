@@ -24,10 +24,13 @@ local bpmTextSize = GAMEPLAY:getItemHeight("bpmDisplayText")
 return Def.ActorFrame {
 	Name = "BPMText",
 	InitCommand = function(self)
-		self:xy(MovableValues.BPMTextX, MovableValues.BPMTextY)
-		self:zoom(MovableValues.BPMTextZoom)
+		self:playcommand("SetUpMovableValues")
 		self:queuecommand("Set")
 		registerActorToCustomizeGameplayUI(self)
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.BPMTextX, MovableValues.BPMTextY)
+		self:zoom(MovableValues.BPMTextZoom)
 	end,
 	SetCommand = function(self)
 		initbpm(self)

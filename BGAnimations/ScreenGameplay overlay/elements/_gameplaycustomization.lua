@@ -284,9 +284,17 @@ local function makeUI()
                     local shift = INPUTFILTER:IsShiftPressed()
 
                     -- these inputs shouldnt repeat just to prevent being annoying
-                    local enter = gameButton == "Start" and event.type == "InputEventType_FirstPress"
-                    local back = (key == "DeviceButton_backspace" or gameButton == "Back") and event.type == "InputEventType_FirstPress"
-                    local del = (key == "DeviceButton_delete" or gameButton == "RestartGameplay") and event.type == "InputEventType_FirstPress"
+                    local enter = (gameButton == "Start") 
+                        and event.type == "InputEventType_FirstPress"
+                    local back = (key == "DeviceButton_backspace" or gameButton == "Back")
+                        and event.type == "InputEventType_FirstPress"
+                    local del = (key == "DeviceButton_delete" or gameButton == "RestartGameplay")
+                        and event.type == "InputEventType_FirstPress"
+
+                    -- handled in a really special way to prevent holding left mouse and right clicking
+                    -- stop trying to break things
+                    local rightclick = (key == "DeviceButton_right mouse button")
+                        and event.type == "InputEventType_FirstPress" and not INPUTFILTER:IsBeingPressed("left mouse button", "Mouse")
 
                     if selectedElement ~= nil then
                         if up or down or left or right then
@@ -298,12 +306,19 @@ local function makeUI()
                         elseif back then
                             if ctrl then
                                 -- reset to default
+                                resetElementToDefault()
                             else
                                 -- undo changes and return
                                 resetElementUsingStoredState()
+                                selectedElement = nil
+                                self:playcommand("UpdateItemList")
                             end
-                        elseif enter then
+                        elseif enter or rightclick then
                             -- save position and return
+                            -- the reality is all positions are saved always haha
+                            -- just go back in this case
+                            selectedElement = nil
+                            self:playcommand("UpdateItemList")
                         end
                     else
                         if up or left then
@@ -313,9 +328,11 @@ local function makeUI()
                             -- down
                             moveCursor(1)
                         elseif enter then
-                            -- select category, select element
+                            -- select element
+
                         elseif back then
                             -- exit
+                            -- (why did we make a specific function for this instead of :Cancel() ?)
                             SCREENMAN:GetTopScreen():begin_backing_out()
                         end
                     end
@@ -362,6 +379,9 @@ local function makeUI()
 
             updateSelectedElementValues()
             self:playcommand("UpdateItemInfo")
+        end,
+        CustomizeGameplayElementDefaultedMessageCommand = function(self, params)
+            self:playcommand("CustomizeGameplayElementUndo", params)
         end,
 
         Def.Quad {

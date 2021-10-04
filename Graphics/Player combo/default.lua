@@ -35,7 +35,8 @@ local t = Def.ActorFrame {
 	Name = "Combo",
 	InitCommand = function(self)
 		c = self:GetChildren()
-		self:xy(MovableValues.ComboX, MovableValues.ComboY)
+		-- queued to execute slightly late
+		self:queuecommand("SetUpMovableValues")
 		registerActorToCustomizeGameplayUI(self)
 	end,
 	OnCommand = function(self)
@@ -48,6 +49,9 @@ local t = Def.ActorFrame {
 			Movable.DeviceButton_3.propertyOffsets = {self:GetTrueX() -6, self:GetTrueY() + c.Number:GetHeight()*1.5}	-- centered to screen/valigned
 			setBorderAlignment(c.Border, 0.5, 1)
 		end
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.ComboX, MovableValues.ComboY)
 		arbitraryComboZoom(MovableValues.ComboZoom)
 	end,
 	ComboCommand = function(self, param)

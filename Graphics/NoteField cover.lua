@@ -150,6 +150,10 @@ local t = Def.ActorFrame {
 		playerConfig:set_dirty()
 		playerConfig:save()
 	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		width = 64 * cols * MovableValues.NoteFieldWidth + nfspace * (evencols)
+		self:playcommand("SetMovableWidths")
+	end,
 }
 
 t[#t + 1] = Def.Quad {
@@ -157,10 +161,13 @@ t[#t + 1] = Def.Quad {
 	InitCommand = function(self)
 		self:valign(0)
 		self:y(SCREEN_TOP)
-		self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), heightP1)
+		self:playcommand("SetMovableWidths")
 		self:diffuse(laneColor)
 		self:diffusealpha(1)
 		cover = self
+	end,
+	SetMovableWidthsCommand = function(self)
+		self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), heightP1)
 	end,
 	BeginCommand = function(self)
 		if isReverseP1 then
@@ -174,26 +181,26 @@ t[#t + 1] = Def.Quad {
 	UpdateCommand = function(self)
 		if isReverseP1 then
 			self:valign(0)
-			self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), heightP1)
+			self:playcommand("SetMovableWidths")
 			self:y(SCREEN_TOP)
 			self:diffuse(laneColor)
 			self:diffusealpha(1)
 		else
 			self:valign(1)
-			self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), heightP1)
+			self:playcommand("SetMovableWidths")
 			self:y(SCREEN_BOTTOM)
 			self:diffuse(laneColor)
 			self:diffusealpha(1)
 		end
 		cover = self
-	end
+	end,
 }
 
 t[#t + 1] = LoadFont("Common Normal") .. {
 	Name = "CoverTextP1White",
 	InitCommand = function(self)
 		self:valign(1)
-		self:x(-(width * getNoteFieldScale(PLAYER_1) / 8))
+		self:playcommand("SetMovableWidths")
 		self:zoom(0.5)
 		self:diffuse(heightColor)
 		self:diffusealpha(1)
@@ -213,17 +220,23 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 		self:sleep(0.25)
 		self:smooth(0.75)
 		self:diffusealpha(0)
-	end
+	end,
+	SetMovableWidthsCommand = function(self)
+		self:x(-(width * getNoteFieldScale(PLAYER_1) / 8))
+	end,
 }
 t[#t + 1] = LoadFont("Common Normal") .. {
 	Name = "CoverTextP1Green",
 	InitCommand = function(self)
 		self:valign(1)
-		self:x((width * getNoteFieldScale(PLAYER_1) / 8))
+		self:playcommand("SetMovableWidths")
 		self:zoom(0.5)
 		self:diffuse(bpmColor)
 		self:diffusealpha(1)
 		self:settext(0)
+	end,
+	SetMovableWidthsCommand = function(self)
+		self:x((width * getNoteFieldScale(PLAYER_1) / 8))
 	end,
 	BeginCommand = function(self)
 		self:settext(math.floor(getSpeed(PLAYER_1)))

@@ -267,9 +267,7 @@ t.JudgmentMessageCommand = function(self, params)
 end
 
 t.OnCommand = function(self, params)
-	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
-	self:zoomtowidth(MovableValues.LeaderboardWidth)
-	self:zoomtoheight(MovableValues.LeaderboardHeight)
+	self:playcommand("SetUpMovableValues")
 	for i, entry in ipairs(entryActors) do
 		for name, label in pairs(entry) do
 			if scoreboard[i] ~= nil then
@@ -277,6 +275,12 @@ t.OnCommand = function(self, params)
 			end
 		end
 	end
+end
+
+t.SetUpMovableValuesMessageCommand = function(self)
+	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
+	self:zoomtowidth(MovableValues.LeaderboardWidth)
+	self:zoomtoheight(MovableValues.LeaderboardHeight)
 end
 
 return t

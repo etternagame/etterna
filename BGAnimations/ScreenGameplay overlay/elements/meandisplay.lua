@@ -12,9 +12,12 @@ local curMeanCount = 0
 return Def.ActorFrame {
     Name = "DisplayMean",
     InitCommand = function(self)
+        self:playcommand("SetUpMovableValues")
+        registerActorToCustomizeGameplayUI(self)
+    end,
+    SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.DisplayMeanX, MovableValues.DisplayMeanY)
         self:zoom(MovableValues.DisplayMeanZoom)
-        registerActorToCustomizeGameplayUI(self)
     end,
     JudgmentMessageCommand = function(self, params)
         -- should work fine only for judged taps, not misses or holds

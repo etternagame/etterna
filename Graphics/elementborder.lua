@@ -64,6 +64,7 @@ return Def.ActorFrame {
             self:alphaDeterminingFunction()
         end,
         MouseDragCommand = function(self, params)
+            if params.event == "DeviceButton_right mouse button" then return end
             local pp = self:GetParent():GetParent()
             local ppp = pp:GetParent()
             local trueX = pp:GetTrueX()
@@ -95,10 +96,11 @@ return Def.ActorFrame {
             setSelectedCustomizeGameplayElementActorPosition(differenceX, differenceY)
         end,
         MouseDownCommand = function(self, params)
+            if params.event == "DeviceButton_right mouse button" then return end
             local pp = self:GetParent():GetParent()
             self.initialClickX = params.MouseX
             self.initialClickY = params.MouseY
-            
+
             local name = pp:GetName()
             setSelectedCustomizeGameplayElementActorByName(name)
         end,

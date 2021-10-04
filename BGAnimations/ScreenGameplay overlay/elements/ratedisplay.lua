@@ -5,9 +5,12 @@ local rateTextSize = GAMEPLAY:getItemHeight("rateDisplayText")
 return Def.ActorFrame {
 	Name = "MusicRate",
 	InitCommand = function(self)
+		self:playcommand("SetUpMovableValues")
+		registerActorToCustomizeGameplayUI(self)
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
 		self:xy(MovableValues.MusicRateX, MovableValues.MusicRateY)
 		self:zoom(MovableValues.MusicRateZoom)
-		registerActorToCustomizeGameplayUI(self)
 	end,
 
 	LoadFont("Common Normal") .. {

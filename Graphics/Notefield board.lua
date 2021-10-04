@@ -73,8 +73,15 @@ local function laneHighlight()
 	for i = 1, cols do
 		r[#r+1] = Def.Quad {
 			InitCommand = function(self)
-				self:zoomto((arrowWidth - 4) * noteFieldWidth, SCREEN_HEIGHT * 2)
+				self:playcommand("SetUpMovableValues")
 				
+				self:fadebottom(0.6):fadetop(0.6)
+				self:visible(false)
+			end,
+			SetUpMovableValuesMessageCommand = function(self)
+				noteFieldWidth = MovableValues.NoteFieldWidth
+				self:zoomto((arrowWidth - 4) * noteFieldWidth, SCREEN_HEIGHT * 2)
+
 				local reverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 				local receptor = reverse and THEME:GetMetric("Player", "ReceptorArrowsYStandard") or THEME:GetMetric("Player", "ReceptorArrowsYReverse")
 
@@ -92,8 +99,6 @@ local function laneHighlight()
 				-- mimic the behavior of the moving function for spacing to set the last bit of x position
 				-- this moves all columns except "the middle" by however much the spacing requires
 				self:addx((i - hCols - 1) * (MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0))
-				self:fadebottom(0.6):fadetop(0.6)
-				self:visible(false)
 			end,
 			JudgmentMessageCommand=function(self,params)
 				local notes = params.Notes
@@ -149,12 +154,16 @@ end
 t[#t+1] = Def.Quad {
 	Name = "SinglePlayerFilter",
 	InitCommand = function(self)
-		self:zoomto(filterWidth * noteFieldWidth + (MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) * evenCols, SCREEN_HEIGHT * 2)
-		-- offset the filter by this much for even column counts
-		self:addx(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) / 2 or 0)
+		self:playcommand("SetUpMovableValues")
 		self:diffuse(filterColor)
 		self:diffusealpha(filterAlphas)
 		filter = self
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:x(0)
+		self:zoomto(filterWidth * noteFieldWidth + (MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) * evenCols, SCREEN_HEIGHT * 2)
+		-- offset the filter by this much for even column counts
+		self:addx(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) / 2 or 0)
 	end,
 	UpdateCommand = function(self)
 		noteFieldWidth = MovableValues.NoteFieldWidth
