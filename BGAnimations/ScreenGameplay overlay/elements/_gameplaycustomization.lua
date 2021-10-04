@@ -428,6 +428,7 @@ local function makeUI()
                             if ctrl then
                                 -- reset to default
                                 resetElementToDefault()
+                                setStoredStateForUndoAction(selectedElement)
                             else
                                 -- undo changes and return
                                 resetElementUsingStoredState()
