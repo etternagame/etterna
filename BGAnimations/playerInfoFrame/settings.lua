@@ -114,6 +114,10 @@ SCUFF.showingPreview = false
 SCUFF.showingColor = false
 SCUFF.showingKeybinds = false
 
+-- reset customize gameplay here
+-- couldnt think of a really good place to put it instead
+playerConfig:get_data().CustomizeGameplay = false
+
 local t = Def.ActorFrame {
     Name = "SettingsFile",
     InitCommand = function(self)
