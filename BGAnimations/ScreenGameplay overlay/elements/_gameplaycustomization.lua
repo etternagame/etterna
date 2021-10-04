@@ -360,7 +360,7 @@ local function makeUI()
                     local right = gameButton == "MenuRight" or gameButton == "Right"
                     local left = gameButton == "MenuLeft" or gameButton == "Left"
                     local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
-                    local shift = INPUTFILTER:IsShiftPressed()
+                    local shift = INPUTFILTER:IsBeingPressed("left shift") or INPUTFILTER:IsBeingPressed("right shift")
                     local space = key == "DeviceButton_space"
 
                     -- these inputs shouldnt repeat just to prevent being annoying
