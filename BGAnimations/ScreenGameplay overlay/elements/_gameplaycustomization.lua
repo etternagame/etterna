@@ -386,6 +386,13 @@ local function makeUI()
                     local rightclick = (key == "DeviceButton_right mouse button")
                         and event.type == "InputEventType_FirstPress" and not INPUTFILTER:IsBeingPressed("left mouse button", "Mouse")
 
+                    -- exit
+                    if back then
+                        -- (why did we make a specific function for this instead of :Cancel() ?)
+                        SCREENMAN:GetTopScreen():begin_backing_out()
+                        return true
+                    end
+
                     if selectedElement ~= nil then
                         if up or down or left or right then
                             local increment = 5
@@ -463,10 +470,6 @@ local function makeUI()
                         elseif enter then
                             -- select element
                             selectCurrent()
-                        elseif back then
-                            -- exit
-                            -- (why did we make a specific function for this instead of :Cancel() ?)
-                            SCREENMAN:GetTopScreen():begin_backing_out()
                         end
                     end
 
