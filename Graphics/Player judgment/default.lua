@@ -25,6 +25,13 @@ local t = Def.ActorFrame {
 	Name = "Judgment", -- c++ renames this to "Judgment" 
 	BeginCommand = function(self)
 		c = self:GetChildren()
+		-- queued to run slightly late
+		self:queuecommand("SetUpMovableValues")
+		registerActorToCustomizeGameplayUI(self)
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.JudgmentX, MovableValues.JudgmentY)
+		self:zoom(MovableValues.JudgmentZoom)
 	end,
 	Def.Sprite {
 		Texture = "../../../../" .. getAssetPath("judgment"),
@@ -32,13 +39,6 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:pause()
 			self:visible(false)
-			-- queued to run slightly late
-			self:queuecommand("SetUpMovableValues")
-			registerActorToCustomizeGameplayUI(self:GetParent())
-		end,
-		SetUpMovableValuesMessageCommand = function(self)
-			self:xy(MovableValues.JudgmentX, MovableValues.JudgmentY)
-			self:zoom(MovableValues.JudgmentZoom)
 		end,
 		ResetCommand = function(self)
 			self:finishtweening()
