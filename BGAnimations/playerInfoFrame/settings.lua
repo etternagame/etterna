@@ -3144,6 +3144,19 @@ local function rightFrame()
                         ChosenFunction = function()
                             -- activate customize gameplay
                             -- go into gameplay
+                            playerConfig:get_data().CustomizeGameplay = true
+
+                            local wheel = SCREENMAN:GetTopScreen():GetChild("WheelFile")
+                            if GAMESTATE:GetCurrentSong() ~= nil then
+                                -- select current
+                                wheel:playcommand("SelectCurrent")
+                            else
+                                -- select random
+                                local group = WHEELDATA:GetRandomFolder()
+                                local song = WHEELDATA:GetRandomSongInFolder(group)
+                                wheel:playcommand("FindSong", {song = song})
+                                wheel:playcommand("SelectCurrent")
+                            end
                         end,
                     }
                 }

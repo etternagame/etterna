@@ -82,7 +82,7 @@ local selectedElementActor = nil
 function registerActorToCustomizeGameplayUI(elementFrame, layer)
 	customizeGameplayElements[#customizeGameplayElements+1] = elementFrame
 
-	if allowedCustomization or true then
+	if allowedCustomization then
 		elementFrame:AddChildFromPath(THEME:GetPathG("", "elementborder"))
 		if layer ~= nil then
 			elementFrame:GetChild("BorderContainer"):RunCommandsRecursively(
