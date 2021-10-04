@@ -30,7 +30,9 @@ local t = Def.ActorFrame {
         local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
         if nf then
 			local noteColumns = nf:get_column_actors()
+			nf:y(0)
             nf:addy(MovableValues.NoteFieldY * (usingReverse and -1 or 1))
+			nf:x(0)
             nf:addx(MovableValues.NoteFieldX)
 
 			-- notefield column sizing
