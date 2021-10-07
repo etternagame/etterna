@@ -23,6 +23,7 @@
 
 #include "base/mac/mach_logging.h"
 #include "base/numerics/safe_conversions.h"
+#include "base/strings/stringprintf.h"
 #include "base/strings/sys_string_conversions.h"
 #include "build/build_config.h"
 
@@ -51,6 +52,7 @@ std::string ReadStringSysctlByName(const char* name) {
 }  // namespace
 
 namespace crashpad {
+namespace internal {
 
 IOSSystemDataCollector::IOSSystemDataCollector()
     : major_version_(0),
@@ -84,17 +86,21 @@ IOSSystemDataCollector::IOSSystemDataCollector()
   // TODO(justincohen): Consider adding board and model information to
   // |machine_description| as well (similar to MacModelAndBoard in
   // util/mac/mac_util.cc).
-  switch (UI_USER_INTERFACE_IDIOM()) {
-    case UIUserInterfaceIdiomPhone:
-      machine_description_ = "iOS Simulator (iPhone)";
-      break;
-    case UIUserInterfaceIdiomPad:
-      machine_description_ = "iOS Simulator (iPad)";
-      break;
-    default:
-      machine_description_ = "iOS Simulator (Unknown)";
-      break;
+  const char* model = getenv("SIMULATOR_MODEL_IDENTIFIER");
+  if (model == nullptr) {
+    switch ([[UIDevice currentDevice] userInterfaceIdiom]) {
+      case UIUserInterfaceIdiomPhone:
+        model = "iPhone";
+        break;
+      case UIUserInterfaceIdiomPad:
+        model = "iPad";
+        break;
+      default:
+        model = "Unknown";
+        break;
+    }
   }
+  machine_description_ = base::StringPrintf("iOS Simulator (%s)", model);
 #elif TARGET_OS_IPHONE
   utsname uts;
   if (uname(&uts) == 0) {
@@ -114,12 +120,10 @@ IOSSystemDataCollector::~IOSSystemDataCollector() {
 
 void IOSSystemDataCollector::OSVersion(int* major,
                                        int* minor,
-                                       int* bugfix,
-                                       std::string* build) const {
+                                       int* bugfix) const {
   *major = major_version_;
   *minor = minor_version_;
   *bugfix = patch_version_;
-  build->assign(build_);
 }
 
 void IOSSystemDataCollector::InstallHandlers() {
@@ -206,4 +210,5 @@ void IOSSystemDataCollector::OrientationDidChangeNotification() {
       base::saturated_cast<int>([[UIDevice currentDevice] orientation]);
 }
 
+}  // namespace internal
 }  // namespace crashpad

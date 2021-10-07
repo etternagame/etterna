@@ -17,7 +17,7 @@
 #include <windows.h>
 
 #include "base/check.h"
-#include "base/process/process_metrics.h"
+#include "base/memory/page_size.h"
 
 namespace crashpad {
 namespace test {

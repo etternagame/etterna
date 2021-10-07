@@ -136,6 +136,10 @@ void InitializeFile(const base::FilePath& path,
 class MapChildTest : public Multiprocess {
  public:
   MapChildTest() : Multiprocess(), page_size_(getpagesize()) {}
+
+  MapChildTest(const MapChildTest&) = delete;
+  MapChildTest& operator=(const MapChildTest&) = delete;
+
   ~MapChildTest() {}
 
  private:
@@ -249,8 +253,6 @@ class MapChildTest : public Multiprocess {
   }
 
   const size_t page_size_;
-
-  DISALLOW_COPY_AND_ASSIGN(MapChildTest);
 };
 
 TEST(MemoryMap, MapChild) {
@@ -326,6 +328,10 @@ TEST(MemoryMap, SelfLargeMapFile) {
 class MapRunningChildTest : public Multiprocess {
  public:
   MapRunningChildTest() : Multiprocess(), page_size_(getpagesize()) {}
+
+  MapRunningChildTest(const MapRunningChildTest&) = delete;
+  MapRunningChildTest& operator=(const MapRunningChildTest&) = delete;
+
   ~MapRunningChildTest() {}
 
  private:
@@ -384,8 +390,6 @@ class MapRunningChildTest : public Multiprocess {
 
   static constexpr size_t kNumMappings = 1024;
   const size_t page_size_;
-
-  DISALLOW_COPY_AND_ASSIGN(MapRunningChildTest);
 };
 
 TEST(MemoryMap, MapRunningChild) {

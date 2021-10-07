@@ -16,7 +16,7 @@ set(ICONV_NAMES ${ICONV_NAMES} iconv libiconv libiconv-2 c)
 find_library(ICONV_LIBRARIES NAMES ${ICONV_NAMES})
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(ICONV DEFAULT_MSG ICONV_LIBRARIES ICONV_INCLUDE_DIR)
+find_package_handle_standard_args(Iconv DEFAULT_MSG ICONV_LIBRARIES ICONV_INCLUDE_DIR)
 
 mark_as_advanced(ICONV_INCLUDE_DIR ICONV_LIBRARIES)
 

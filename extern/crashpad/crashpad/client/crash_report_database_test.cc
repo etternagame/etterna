@@ -32,6 +32,9 @@ class CrashReportDatabaseTest : public testing::Test {
  public:
   CrashReportDatabaseTest() {}
 
+  CrashReportDatabaseTest(const CrashReportDatabaseTest&) = delete;
+  CrashReportDatabaseTest& operator=(const CrashReportDatabaseTest&) = delete;
+
  protected:
   // testing::Test:
   void SetUp() override {
@@ -125,8 +128,6 @@ class CrashReportDatabaseTest : public testing::Test {
  private:
   ScopedTempDir temp_dir_;
   std::unique_ptr<CrashReportDatabase> db_;
-
-  DISALLOW_COPY_AND_ASSIGN(CrashReportDatabaseTest);
 };
 
 TEST_F(CrashReportDatabaseTest, Initialize) {
@@ -828,8 +829,7 @@ TEST_F(CrashReportDatabaseTest, CleanBrokenDatabase) {
 
   ASSERT_TRUE(LoggingWriteFile(
       handle.get(), &expired_timestamp, sizeof(expired_timestamp)));
-  ASSERT_TRUE(LoggingCloseFile(handle.get()));
-  ignore_result(handle.release());
+  ASSERT_TRUE(LoggingCloseFile(handle.release()));
 
   EXPECT_EQ(db()->CleanDatabase(0), 1);
 

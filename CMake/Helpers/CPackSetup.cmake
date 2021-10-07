@@ -8,6 +8,20 @@ set(CPACK_COMPONENT_ETTERNA_REQUIRED TRUE)  # Require Etterna component to be in
 # Custom Variables
 set(INSTALL_DIR "Etterna")
 
+if(UNIX)
+    set(CPACK_GENERATOR TGZ)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
+    set(CPACK_PACKAGE_CONTACT https://github.com/etternagame/etterna)
+
+    install(TARGETS Etterna COMPONENT Etterna DESTINATION ${INSTALL_DIR})
+    install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler
+            COMPONENT Etterna
+            DESTINATION ${INSTALL_DIR}
+            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                        GROUP_READ GROUP_EXECUTE
+                        WORLD_READ WORLD_EXECUTE)
+endif()
+
 # Windows Specific CPack
 if(WIN32)
     set(CPACK_GENERATOR "NSIS")
