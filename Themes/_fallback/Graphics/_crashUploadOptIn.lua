@@ -7,7 +7,7 @@ local textsize = 0.7
 local boxw = SCREEN_WIDTH/1.5
 local boxh = SCREEN_HEIGHT/3.3
 local bufferspace = 5
-local txt = "NOTICE\nWith your permission, Etterna will upload crash dumps to our server at crash.etterna.dev.\nTo opt in, click the button below or press Y and then restart the game.\nOtherwise, press Escape or click outside the box."
+local txt = "NOTICE\nWith your permission, Etterna will upload crash dumps and logs to our server at crash.etterna.dev.\nTo opt in, click the button below or press Y and then restart the game.\nOtherwise, press Escape or click outside the box."
 
 local t = Def.ActorFrame {
     Name = "CrashUploadOptInDialogue",
