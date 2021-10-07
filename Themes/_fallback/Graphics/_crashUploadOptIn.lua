@@ -30,7 +30,7 @@ local t = Def.ActorFrame {
                 -- "press Y"
                 self:visible(false)
                 enabled = false
-                ms.ok("CRASH DUMP UPLOADING OPTED IN")
+                ms.ok("CRASH DUMP UPLOADING OPTED IN. RESTART TO TAKE EFFECT.")
                 SCREENMAN:set_input_redirected(PLAYER_1, redirb4)
                 PREFSMAN:SetPreference("EnableMinidumpUpload", true)
                 PREFSMAN:SetPreference("ShowMinidumpUploadDialogue", false)
