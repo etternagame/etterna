@@ -55,9 +55,6 @@ local t = Def.ActorFrame {
 
         registerActorToCustomizeGameplayUI(lifebar)
         registerActorToCustomizeGameplayUI(nf, 4)
-
-        Movable.pressed = false
-        Movable.current = "None"
     end,
     EndCommand = function(self)
         -- exiting customize gameplay will turn off autoplay
