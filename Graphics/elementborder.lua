@@ -67,7 +67,7 @@ return Def.ActorFrame {
             self:alphaDeterminingFunction()
         end,
         MouseDragCommand = function(self, params)
-            if params.event == "DeviceButton_right mouse button" then return end
+            if params.event == "DeviceButton_right mouse button" or not self.canDrag then return end
             local pp = self:GetParent():GetParent()
             local ppp = pp:GetParent()
             local trueX = pp:GetTrueX()
@@ -105,7 +105,7 @@ return Def.ActorFrame {
             self.initialClickY = params.MouseY
 
             local name = pp:GetName()
-            setSelectedCustomizeGameplayElementActorByName(name)
+            self.canDrag = setSelectedCustomizeGameplayElementActorByName(name)
         end,
     }
 }

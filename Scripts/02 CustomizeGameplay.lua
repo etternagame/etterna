@@ -126,6 +126,10 @@ function getSizesForElementName(name)
 	}
 end
 
+function elementHasAnyMovableCoordinates(name)
+	return playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "X"] ~= nil or playerConfig:get_data().GameplayXYCoordinates[keymode][name .. "Y"]
+end
+
 -- store the current state of the element for an undo action later
 -- if necessary
 function setStoredStateForUndoAction(name)
@@ -287,6 +291,7 @@ function setSelectedCustomizeGameplayElementActorByName(elementName)
 		selectedElementActor = elementActor
 		MESSAGEMAN:Broadcast("CustomizeGameplayElementSelected", {name=elementName})
 	end
+	return elementHasAnyMovableCoordinates(elementName)
 end
 
 function getSelectedCustomizeGameplayMovableActor()
