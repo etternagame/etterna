@@ -73,6 +73,7 @@ local function loadValuesTable()
 	MovableValues.PlayerInfoX = playerConfig:get_data().GameplayXYCoordinates[keymode].PlayerInfoX
 	MovableValues.PlayerInfoY = playerConfig:get_data().GameplayXYCoordinates[keymode].PlayerInfoY
 	MovableValues.PlayerInfoZoom = playerConfig:get_data().GameplaySizes[keymode].PlayerInfoZoom
+	MovableValues.CoverHeight = playerConfig:get_data().GameplaySizes[keymode].CoverHeight
 end
 
 -- registry for elements which are able to be modified in customizegameplay

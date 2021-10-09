@@ -136,6 +136,7 @@ local defaultGameplaySizes = {
 	MusicRateZoom = 1.0,
 	BPMTextZoom = 1.0,
 	PlayerInfoZoom = 1.0,
+	CoverHeight = 75,
 }
 
 local defaultConfig = {
@@ -170,7 +171,6 @@ local defaultConfig = {
 	TargetGoal = 93,
 	TargetTrackerMode = 0,
 	leaderboardEnabled = false,
-	LaneCoverHeight = 10,
 	ReceptorSize = 100,
 	ErrorBarCount = 30,
 	BackgroundType = 1,
@@ -286,6 +286,9 @@ playerConfig.load = function(self, slot)
 	end
 	if x.GameplaySizes ~= nil and x.GameplaySizes.JudgeZoom ~= nil then
 		defaultGameplaySizes.JudgmentZoom = x.GameplaySizes.JudgeZoom
+	end
+	if x.LaneCoverHeight ~= nil then
+		defaultGameplaySizes.CoverHeight = x.LaneCoverHeight
 	end
 	-------
 
