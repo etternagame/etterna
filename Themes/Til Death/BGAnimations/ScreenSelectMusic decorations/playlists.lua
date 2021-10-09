@@ -273,12 +273,19 @@ local function TitleDisplayButton(i)
 			DisplaySinglePlaylistLevel2MessageCommand = function(self)
 				self:zoom(fontScale)
 				self:maxwidth(480)
-				self:settext(chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetSongTitle())
-				if chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() then
+				local chartentry = chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]
+				if chartentry == nil then return end
+				if chartentry:IsLoaded() then
+					local songentry = songlist[i + ((currentchartpage - 1) * chartsperplaylist)]
 					self:diffuse(getMainColor("positive"))
+					self:settext(songentry:GetDisplayMainTitle())
 				else
 					self:diffuse(byJudgment("TapNoteScore_Miss"))
+					self:settext(chartentry:GetSongTitle())
 				end
+			end,
+			DisplayLanguageChangedMessageCommand = function(self)
+				self:playcommand("DisplaySinglePlaylistLevel2")
 			end,
 		}
 	}
