@@ -199,9 +199,24 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		for (auto& ssvals : all_skillset_values) {
 			iteration_ss_vals.push_back(ssvals[i]);
 		}
-		output[i] = mean(iteration_ss_vals) * grindscaler;
+		output[i] = mean(iteration_ss_vals);
 		iteration_ss_vals.clear();
 	}
+	// lighten grindscaler for jack files only
+	Skillset highest_final_ss = Skill_Overall;
+	auto highest_final_ssv = -1.F;
+	for (size_t i = 0; i < output.size(); i++) {
+		if (i == Skill_Overall)
+			continue;
+		if (output[i] > highest_final_ssv) {
+			highest_final_ss = static_cast<Skillset>(i);
+			highest_final_ssv = output[i];
+		}
+	}
+	if (highest_final_ss == Skill_JackSpeed || highest_final_ss == Skill_Chordjack)
+		grindscaler = fastsqrt(grindscaler);
+	for (auto& ssv : output)
+		ssv *= grindscaler;
 	return output;
 }
 
@@ -971,7 +986,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 466;
+int mina_calc_version = 467;
 auto
 GetCalcVersion() -> int
 {

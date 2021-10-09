@@ -9,7 +9,7 @@
  * threaded calc object now, though) */
 
 /// required percentage of average notes to pass
-constexpr float min_threshold = 0.75F;
+constexpr float min_threshold = 0.65F;
 static const float downscale_logbase = std::log(6.2F);
 
 struct nps
