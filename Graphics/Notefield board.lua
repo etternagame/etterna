@@ -19,33 +19,7 @@ if noteFieldWidth == nil then
 	return Def.ActorFrame {}
 end
 
-local function input(event)
-	if getAutoplay() ~= 0 then
-		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_left" then
-				oldWidth = noteFieldWidth
-				noteFieldWidth = noteFieldWidth - 0.01
-				filter:playcommand("Update")
-				cbContainer:playcommand("Update")
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				oldWidth = noteFieldWidth
-				noteFieldWidth = noteFieldWidth + 0.01
-				filter:playcommand("Update")
-				cbContainer:playcommand("Update")
-			end
-		end
-
-		if Movable.current == "DeviceButton_n" and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" or event.DeviceInput.button == "DeviceButton_down" then
-				filter:playcommand("Update")
-				cbContainer:playcommand("Update")
-				oldspacing = MovableValues.NoteFieldSpacing
-			end
-		end
-	end
-	return false
-end
+local t = Def.ActorFrame {Name = "NoteFieldBoardFile"}
 
 local style = GAMESTATE:GetCurrentStyle()
 local cols = style:ColumnsPerPlayer()
@@ -116,32 +90,12 @@ local function laneHighlight()
 					end
 				end
 			end,
-			UpdateCommand = function(self)
-				noteFieldWidth = MovableValues.NoteFieldWidth
-				self:zoomtowidth((colWidth-border) * noteFieldWidth)
-				-- add x here, accounting for the difference in the width of the notefield and the difference in the spacing
-				self:addx((i-(cols/2)-(1/2))*colWidth * (noteFieldWidth - oldWidth) + (i - hCols - 1) * (MovableValues.NoteFieldSpacing - oldspacing))
-			end
 		}
 	end
 
 	return r
 end
 
-local t =
-	Def.ActorFrame {
-	OnCommand = function()
-		if (allowedCustomization) then
-			-- this isnt really necessary but it stops lua errors
-			-- basically this just triggers if we exit playeroptions into gameplay
-			-- and i dont want to investigate what causes it
-			-- but it doesnt break anything when it happens
-			-- so this just stops the lua error and breaks nothing else
-			if SCREENMAN:GetTopScreen() == nil then return end
-			SCREENMAN:GetTopScreen():AddInputCallback(input)
-		end
-	end
-}
 
 local filterColor = COLORS:getGameplayColor("NoteFieldBG")
 local filterAlphas = playerConfig:get_data().ScreenFilter
@@ -165,12 +119,6 @@ t[#t+1] = Def.Quad {
 		-- offset the filter by this much for even column counts
 		self:addx(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) / 2 or 0)
 	end,
-	UpdateCommand = function(self)
-		noteFieldWidth = MovableValues.NoteFieldWidth
-		-- offset the filter by the difference in spacing for even column counts
-		self:addx(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing - oldspacing) / (cols-1) or 0)
-		self:zoomto(filterWidth * noteFieldWidth + MovableValues.NoteFieldSpacing * evenCols, SCREEN_HEIGHT * 2)
-	end
 }
 
 t[#t+1] = laneHighlight()
