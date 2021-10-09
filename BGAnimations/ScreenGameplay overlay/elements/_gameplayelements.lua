@@ -45,6 +45,7 @@ local t = Def.ActorFrame {
 			if inc == nil then inc = 0 end
 			local hCols = math.floor(#noteColumns/2)
 			for i, col in ipairs(noteColumns) do
+				col:x(0)
 				col:addx((i-hCols-1) * inc)
 			end
         end
