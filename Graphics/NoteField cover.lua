@@ -1,11 +1,8 @@
-local moveUpP1 = false
-local moveDownP1 = false
-
-local cover
-
 if MovableValues == nil or MovableValues.NoteFieldWidth == nil then
 	return Def.Actor {}
 end
+local allowedCustomization = playerConfig:get_data().CustomizeGameplay
+
 
 local laneColor = COLORS:getGameplayColor("LaneCover")
 local bpmColor = COLORS:getGameplayColor("LaneCoverBPM")
@@ -19,17 +16,18 @@ local nfspace = MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacin
 local width = 64 * cols * MovableValues.NoteFieldWidth + nfspace * (evencols)
 local padding = 8
 
-local prefsP1 = playerConfig:get_data().LaneCover
+local prefsP1 = 1--playerConfig:get_data().LaneCover
 local isReverseP1 = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 if prefsP1 == 2 then -- it's a Hidden LaneCover
 	isReverseP1 = not isReverseP1
 end
 
-local heightP1 = playerConfig:get_data().LaneCoverHeight
+local heightP1 = MovableValues.CoverHeight
 
 if prefsP1 == 0 then
 	return Def.Actor {Name = "Cover"}
 end
+
 
 local function getPlayerBPM()
 	local songPosition = GAMESTATE:GetPlayerState():GetSongPosition()
@@ -69,15 +67,17 @@ local yoffsetstandard = THEME:GetMetric("Player", "ReceptorArrowsYStandard")
 local function getNoteFieldHeight()
 	local usingreverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 	if usingreverse then
-		return SCREEN_CENTER_Y + yoffsetreverse
+		return (SCREEN_CENTER_Y + yoffsetreverse)
 	else
-		return SCREEN_CENTER_Y - yoffsetstandard
+		return (SCREEN_CENTER_Y - yoffsetstandard)
 	end
 end
 
 local function getScrollSpeed(LaneCoverHeight)
+	local questionableNumber = 22 -- 22 is the "edge of screen" position for some reason???
 	local height = getNoteFieldHeight()
 	local speed = getSpeed()
+	LaneCoverHeight = LaneCoverHeight - questionableNumber
 
 	if LaneCoverHeight < height then
 		return speed * (height / (height - LaneCoverHeight))
@@ -86,72 +86,50 @@ local function getScrollSpeed(LaneCoverHeight)
 	end
 end
 
-local selectPressed = false
-local skibby = nil
-local function input(event)
-	if getAutoplay() ~= 0 and playerConfig:get_data().LaneCover ~= 0 then
-		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_left" then
-				cover:addx(-3)
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				cover:addx(3)
-			end
-		end
-		if Movable.current == "DeviceButton_t" and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_left" then
-				width = 64 * cols * MovableValues.NoteFieldWidth - 0.01 + MovableValues.NoteFieldSpacing * (cols-1)
-				cover:playcommand("Update")
-			end
-			if event.DeviceInput.button == "DeviceButton_right" then
-				width = 64 * cols * MovableValues.NoteFieldWidth + 0.01 + MovableValues.NoteFieldSpacing * (cols-1)
-				cover:playcommand("Update")
-			end
-		end
-		if Movable.current == "DeviceButton_n" and event.type ~= "InputEventType_Release" then
-			if event.DeviceInput.button == "DeviceButton_up" or event.DeviceInput.button == "DeviceButton_down" then
-				local dir = event.DeviceInput.button
-				local inc = Movable.DeviceButton_n[dir].inc
-				width = width + inc * evencols
-				cover:playcommand("Update")
-			end
-		end
-	end
-	if event.type == "InputEventType_Release" then
-		moveDownP1 = false
-		moveUpP1 = false
-		if event.button == "Select" then
-			selectPressed = false
-		end
-	end
-	if event.type == "InputEventType_FirstPress" then
-		if event.button == "EffectUp" and selectPressed then
-			moveDownP1 = false
-			moveUpP1 = true
-			skibby:playcommand("SavePrefs")
-		elseif event.button == "EffectDown" and selectPressed then
-			moveDownP1 = true
-			moveUpP1 = false
-			skibby:playcommand("SavePrefs")
-		elseif event.button == "Select" then
-			selectPressed = true
-		end
-	end
-	return false
-end
-
 local t = Def.ActorFrame {
-	Name = "LaneCover",
+	Name = "Cover",
 	InitCommand = function(self)
-		skibby = self
-	end,
-	SavePrefsCommand = function(self)
-		playerConfig:get_data().LaneCoverHeight = heightP1
-		playerConfig:set_dirty()
-		playerConfig:save()
+		registerActorToCustomizeGameplayUI(self, 5)
+		self:playcommand("SetUpMovableValues")
 	end,
 	SetUpMovableValuesMessageCommand = function(self)
-		width = 64 * cols * MovableValues.NoteFieldWidth + nfspace * (evencols)
+		local wb4 = width
+		local hb4 = heightP1
+		width = 64 * cols * MovableValues.NoteFieldWidth + MovableValues.NoteFieldSpacing * (evencols)
+		heightP1 = MovableValues.CoverHeight
+
+		if width ~= wb4 or heightP1 ~= hb4 then
+			local whitetext = self:GetChild("CoverTextP1White")
+			local greentext = self:GetChild("CoverTextP1Green")
+			whitetext:settext(math.floor(heightP1))
+			if prefsP1 == 1 then -- don't update greennumber for hidden lanecovers
+				greentext:settext(math.floor(getScrollSpeed(heightP1)))
+			end
+		
+			if isReverseP1 then
+				whitetext:y(heightP1 - 5 - getNoteFieldHeight()/2)
+				greentext:y(heightP1 - 5 - getNoteFieldHeight()/2)
+			else
+				whitetext:y(getNoteFieldHeight()/2 - heightP1 + 5)
+				greentext:y(getNoteFieldHeight()/2 - heightP1 + 5)
+			end
+		
+			whitetext:finishtweening()
+			whitetext:diffusealpha(1)
+			whitetext:sleep(0.25)
+			whitetext:smooth(0.75)
+			whitetext:diffusealpha(0)
+
+			greentext:finishtweening()
+			greentext:diffusealpha(1)
+			greentext:sleep(0.25)
+			greentext:smooth(0.75)
+			greentext:diffusealpha(0)
+
+			whitetext:x(-(width * getNoteFieldScale(PLAYER_1) / 8))
+			greentext:x((width * getNoteFieldScale(PLAYER_1) / 8))
+		end
+
 		self:playcommand("SetMovableWidths")
 	end,
 }
@@ -159,40 +137,45 @@ local t = Def.ActorFrame {
 t[#t + 1] = Def.Quad {
 	Name = "CoverP1",
 	InitCommand = function(self)
-		self:valign(0)
-		self:y(SCREEN_TOP)
+		if isReverseP1 then
+			self:y(-getNoteFieldHeight()/2)
+			self:valign(0)
+		else
+			self:y(getNoteFieldHeight()/2)
+			self:valign(1)
+		end
 		self:playcommand("SetMovableWidths")
 		self:diffuse(laneColor)
 		self:diffusealpha(1)
-		cover = self
+
 	end,
 	SetMovableWidthsCommand = function(self)
+		self:x(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) / 2 or 0)
 		self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), heightP1)
 	end,
-	BeginCommand = function(self)
+}
+
+-- harming your fps in the name of making things look not bad if you have a bad setup
+t[#t+1] = Def.Quad {
+	Name = "CoverYouNeverSeeUnlessYouMoveTheNotefield",
+	InitCommand = function(self)
 		if isReverseP1 then
-			self:y(SCREEN_TOP)
-			self:valign(0)
-		else
-			self:y(SCREEN_BOTTOM)
+			self:y(-getNoteFieldHeight()/2)
 			self:valign(1)
+		else
+			self:y(getNoteFieldHeight()/2)
+			self:valign(0)
 		end
+		self:playcommand("SetMovableWidths")
+		self:diffuse(laneColor)
+		self:diffusealpha(1)
 	end,
-	UpdateCommand = function(self)
-		if isReverseP1 then
-			self:valign(0)
-			self:playcommand("SetMovableWidths")
-			self:y(SCREEN_TOP)
-			self:diffuse(laneColor)
-			self:diffusealpha(1)
-		else
-			self:valign(1)
-			self:playcommand("SetMovableWidths")
-			self:y(SCREEN_BOTTOM)
-			self:diffuse(laneColor)
-			self:diffusealpha(1)
+	SetMovableWidthsCommand = function(self)
+		self:x(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) / 2 or 0)
+		self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), SCREEN_HEIGHT)
+		if allowedCustomization then
+			self:zoomy(0)
 		end
-		cover = self
 	end,
 }
 
@@ -209,10 +192,10 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 	BeginCommand = function(self)
 		self:settext(0)
 		if isReverseP1 then
-			self:y(heightP1 - 5)
+			self:y(heightP1 - 5 - getNoteFieldHeight()/2)
 			self:valign(1)
 		else
-			self:y(SCREEN_BOTTOM - heightP1 + 5)
+			self:y(getNoteFieldHeight()/2 - heightP1 + 5)
 			self:valign(0)
 		end
 		self:finishtweening()
@@ -254,60 +237,5 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 		self:diffusealpha(0)
 	end
 }
-
-local function Update(self)
-	t.InitCommand = function(self)
-		self:SetUpdateFunction(Update)
-	end
-	self:SetUpdateRate(5)
-	local whitetext = self:GetChild("CoverTextP1White")
-	local greentext = self:GetChild("CoverTextP1Green")
-
-	if moveDownP1 then
-		if isReverseP1 then
-			heightP1 = math.min(SCREEN_BOTTOM, math.max(0, heightP1 + 0.1))
-		else
-			heightP1 = math.min(SCREEN_BOTTOM, math.max(0, heightP1 - 0.1))
-		end
-	end
-	if moveUpP1 then
-		if isReverseP1 then
-			heightP1 = math.min(SCREEN_BOTTOM, math.max(0, heightP1 - 0.1))
-		else
-			heightP1 = math.min(SCREEN_BOTTOM, math.max(0, heightP1 + 0.1))
-		end
-	end
-
-	self:GetChild("CoverP1"):zoomy(heightP1)
-	whitetext:settext(math.floor(heightP1))
-	if prefsP1 == 1 then -- don't update greennumber for hidden lanecovers
-		greentext:settext(math.floor(getScrollSpeed(heightP1)))
-	end
-
-	if isReverseP1 then
-		whitetext:y(heightP1 - 5)
-		greentext:y(heightP1 - 5)
-	else
-		whitetext:y(SCREEN_BOTTOM - heightP1 + 5)
-		greentext:y(SCREEN_BOTTOM - heightP1 + 5)
-	end
-
-	if moveDownP1 or moveUpP1 then
-		whitetext:finishtweening()
-		whitetext:diffusealpha(1)
-		whitetext:sleep(0.25)
-		whitetext:smooth(0.75)
-		whitetext:diffusealpha(0)
-
-		greentext:finishtweening()
-		greentext:diffusealpha(1)
-		greentext:sleep(0.25)
-		greentext:smooth(0.75)
-		greentext:diffusealpha(0)
-
-		whitetext:x(-(width * getNoteFieldScale(PLAYER_1) / 8))
-		greentext:x((width * getNoteFieldScale(PLAYER_1) / 8))
-	end
-end
 
 return t
