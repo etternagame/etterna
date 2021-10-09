@@ -321,12 +321,20 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     end,
     MouseOverCommand = function(self)
         self:diffusealpha(hoverAlpha)
+        if DLMAN:IsLoggedIn() then
+            TOOLTIP:SetText("Log out")
+        else
+            TOOLTIP:SetText("Log in")
+        end
+        TOOLTIP:Show()
     end,
     MouseOutCommand = function(self)
         self:diffusealpha(1)
+        TOOLTIP:Hide()
     end,
     MouseDownCommand = function(self, params)
         if params.event == "DeviceButton_left mouse button" then
+            TOOLTIP:Hide()
             if DLMAN:IsLoggedIn() then
                 DLMAN:Logout()
             else
@@ -564,18 +572,25 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
+                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:Show()
             end
         end,
         MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end
         end,
-        MouseDownCommand = function(self, params)
-            if params.event == "DeviceButton_left mouse button" then
+        InvokeCommand = function(self)
+            if selectable(self:GetName()) then
+                TOOLTIP:Hide()
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
                 SCREENMAN:GetTopScreen():Cancel()
             end
+        end,
+        MouseDownCommand = function(self, params)
+            self:playcommand("Invoke")
         end
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "settings")) .. {
@@ -595,15 +610,19 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
+                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:Show()
             end
         end,
         MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end
         end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                TOOLTIP:Hide()
                 -- if clicking or otherwise invoking this twice, just toggle back to generalBox
                 if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "Settings") then
                     MESSAGEMAN:Broadcast("GeneralTabSet")
@@ -633,15 +652,19 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
+                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:Show()
             end
         end,
         MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end
         end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                TOOLTIP:Hide()
             end
         end,
         MouseDownCommand = function(self, params)
@@ -670,15 +693,19 @@ t[#t+1] = Def.ActorFrame {
             MouseOverCommand = function(self)
                 if selectable(self:GetName()) then
                     self:diffusealpha(hoverAlpha)
+                    TOOLTIP:SetText(self:GetName())
+                    TOOLTIP:Show()
                 end
             end,
             MouseOutCommand = function(self)
                 if selectable(self:GetName()) then
                     self:diffusealpha(1)
+                    TOOLTIP:Hide()
                 end
             end,
             InvokeCommand = function(self)
                 if selectable(self:GetName()) then
+                    TOOLTIP:Hide()
                     -- if clicking or otherwise invoking this twice, just toggle back to generalBox
                     if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "Downloads") then
                         MESSAGEMAN:Broadcast("GeneralTabSet")
@@ -757,15 +784,19 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
+                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:Show()
             end
         end,
         MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end
         end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                TOOLTIP:Hide()
                 local scr = SCREENMAN:GetTopScreen()
                 local group = WHEELDATA:GetRandomFolder()
                 local song = WHEELDATA:GetRandomSongInFolder(group)
@@ -793,15 +824,19 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
+                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:Show()
             end
         end,
         MouseOutCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end
         end,
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
+                TOOLTIP:Hide()
                 -- if clicking or otherwise invoking this twice, just toggle back to generalBox
                 if CONTEXTMAN:CheckContextSet(SCREENMAN:GetTopScreen():GetName(), "Search") then
                     MESSAGEMAN:Broadcast("GeneralTabSet")
