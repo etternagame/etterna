@@ -89,8 +89,12 @@ void Core::Crash::setShouldUpload(bool shouldUpload) {
 
     auto database = crashpad::CrashReportDatabase::InitializeWithoutCreating(dataDir);
     if (database != nullptr && database->GetSettings() != nullptr) {
+#ifdef ALLOW_CRASH_UPLOAD
         database->GetSettings()->SetUploadsEnabled(shouldUpload);
         Locator::getLogger()->info("Crash dumps {} be uploaded if the game crashes.", shouldUpload ? "WILL" : "WILL NOT");
+#else
+		database->GetSettings()->SetUploadsEnabled(false);
+#endif
     } else {
         Locator::getLogger()->info("Unable to enable/disable minidump upload.");
     }

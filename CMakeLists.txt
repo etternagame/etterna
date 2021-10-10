@@ -133,6 +133,11 @@ add_subdirectory(src/Core)
 get_target_property(sources Etterna SOURCES)
 source_group(TREE ${CMAKE_SOURCE_DIR} PREFIX "Etterna" FILES ${sources})
 
+# Compile Definitions
+if(DEFINED ENV{CI})
+    target_compile_definitions(Etterna PRIVATE ALLOW_CRASH_UPLOAD)
+endif()
+
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)
 
