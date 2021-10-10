@@ -1,4 +1,3 @@
-local allowedCustomization = playerConfig:get_data().CustomizeGameplay
 local c
 local enabledJudgment = playerConfig:get_data().JudgmentText
 local JTEnabled = false--JudgementTweensEnabled()

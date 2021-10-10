@@ -5,7 +5,6 @@ if not leaderboardEnabled then
 	return Def.ActorFrame {}
 end
 local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil or false
-local allowedCustomization = playerConfig:get_data().CustomizeGameplay
 
 -- bad idea
 if not DLMAN:GetCurrentRateFilter() then

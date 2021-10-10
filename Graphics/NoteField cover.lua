@@ -1,7 +1,6 @@
 if MovableValues == nil or MovableValues.NoteFieldWidth == nil then
 	return Def.Actor {}
 end
-local allowedCustomization = playerConfig:get_data().CustomizeGameplay
 
 
 local laneColor = COLORS:getGameplayColor("LaneCover")

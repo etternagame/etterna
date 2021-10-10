@@ -1,12 +1,13 @@
 local keymode
-local allowedCustomization
 local usingReverse
 
 MovableValues = {}
+allowedCustomization = false
 
 local function loadValuesTable()
 	allowedCustomization = playerConfig:get_data().CustomizeGameplay
 	usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
+	MovableValues.ScreenScale = playerConfig:get_data().GameplaySizes[keymode].ScreenScale
 	MovableValues.JudgmentX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentX
 	MovableValues.JudgmentY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentY
 	MovableValues.JudgmentZoom = playerConfig:get_data().GameplaySizes[keymode].JudgmentZoom

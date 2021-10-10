@@ -1,4 +1,3 @@
-local allowedCustomization = playerConfig:get_data().CustomizeGameplay
 local c
 local enabledCombo = playerConfig:get_data().ComboText
 local CenterCombo = false--CenteredComboEnabled()

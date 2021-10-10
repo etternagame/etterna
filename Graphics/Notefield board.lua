@@ -3,7 +3,6 @@
 -- usually used for measure counters and stuff for edit mode
 -- but this lua defines a black background and the cbhighlight stuff
 
-local allowedCustomization = playerConfig:get_data().CustomizeGameplay
 local padding = 20 -- 10px on each side
 local arrowWidth = 64 -- until noteskin metrics are implemented...
 
