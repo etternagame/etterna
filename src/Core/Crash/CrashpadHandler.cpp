@@ -65,7 +65,7 @@ bool Core::Crash::initCrashpad() {
 		dataDir, // an existing directory for metrics data
 		"https://crash.etterna.dev/api/minidump/upload?api_key=0b03527eb91c4d4f8d7576cf4e4939c4", // an upload server
 		{}, // crash report metadata
-		{"--no-upload-gzip"}, // any additional handler arguments
+		{"--no-upload-gzip", "--no-rate-limit"}, // any additional handler arguments
 		true, // auto-restart if handler dies
 		startHandlerFromBGThread,
 		{logFile});
