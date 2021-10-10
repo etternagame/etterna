@@ -32,7 +32,7 @@ endif()
 if(APPLE)
   list(APPEND FFMPEG_CONFIGURE
     "--arch=x86_64"
-    "--cc=clang -m64"
+    "--cc=clang -arch x86_64"
     "--enable-sse")
 endif()
 list(APPEND FFMPEG_CONFIGURE "--enable-gpl")
