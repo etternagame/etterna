@@ -5,6 +5,7 @@ if not leaderboardEnabled then
 	return Def.ActorFrame {}
 end
 local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil or false
+local allowedCustomization = playerConfig:get_data().CustomizeGameplay
 
 -- bad idea
 if not DLMAN:GetCurrentRateFilter() then
@@ -85,11 +86,24 @@ local t = Def.ActorFrame {
 	SetUpMovableValuesMessageCommand = function(self)
 		self:xy(MovableValues.LeaderboardX, MovableValues.LeaderboardY)
 		for i, entry in ipairs(entryActors) do
+			entry.container:xy(0, (i-1) * ENTRY_HEIGHT * 1.3)
 			entry.container:addy((i - 1) * MovableValues.LeaderboardSpacing)
 		end
 		self:zoomtowidth(MovableValues.LeaderboardWidth)
 		self:zoomtoheight(MovableValues.LeaderboardHeight)
 	end,
+	Def.Quad {
+		Name = "Background",
+		InitCommand = function(self)
+			self:visible(false)
+			self:valign(0):halign(0)
+			self:x(WIDTH/5)
+		end,
+		SetUpMovableValuesMessageCommand = function(self)
+			if not allowedCustomization then return end
+			self:zoomto(WIDTH, ENTRY_HEIGHT * 1.3 * (VISIBLE_ENTRIES) + ENTRY_HEIGHT + (MovableValues.LeaderboardSpacing * VISIBLE_ENTRIES) )
+		end,
+	}
 }
 
 local function leaderboardSortingFunction(h1, h2)
@@ -173,7 +187,6 @@ local function scoreEntry(i)
 	local entry = Def.ActorFrame {
 		Name = "Entry_"..i,
 		InitCommand = function(self)
-			self:xy(0, (i-1) * ENTRY_HEIGHT * 1.3)
 			entryActors[i]["container"] = self
 			self.update = function(self, hs)
 				self:visible(not (not hs) and i <= VISIBLE_ENTRIES)
