@@ -1,26 +1,18 @@
 local leaderboardEnabled = 
     (NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
 	(playerConfig:get_data().leaderboardEnabled and DLMAN:IsLoggedIn())
-local entryActors = {}
-local t = Widg.Container {
-	x = MovableValues.LeaderboardX,
-	y = MovableValues.LeaderboardY,
-	name = "Leaderboard",
-	onInit = function(self)
-		registerActorToCustomizeGameplayUI(self)
-	end,
-}
-
 if not leaderboardEnabled then
-	return t
+	return Def.ActorFrame {}
 end
-local CRITERIA = "GetWifeScore"
-local NUM_ENTRIES = 32
-local VISIBLE_ENTRIES = 5
-local ENTRY_HEIGHT = (IsUsingWideScreen() and 35 / 480 * SCREEN_HEIGHT or 20 / 480 * SCREEN_HEIGHT)
-local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
+local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil or false
+
+-- bad idea
+if not DLMAN:GetCurrentRateFilter() then
+	DLMAN:ToggleRateFilter()
+end
+
 local jdgs = {
-	-- Table of judgments for the judgecounter
+	-- Table of judgments for the judgecounters
 	"TapNoteScore_W1",
 	"TapNoteScore_W2",
 	"TapNoteScore_W3",
@@ -29,16 +21,81 @@ local jdgs = {
 	"TapNoteScore_Miss",
 }
 
-local function arbitraryLeaderboardSpacing(value)
-	for i, entry in ipairs(entryActors) do
-		entry.container:addy((i - 1) * value)
-	end
+local textSize = 0.6
+
+local entryActors = {}
+local scoreboard = {}
+local onlineScores = {}
+local multiScores = {}
+local curScore = {
+	GetDisplayName = function()
+		return DLMAN:GetUsername()
+	end,
+	GetWifeGrade = function(self)
+		return GetGradeFromPercent(self.curWifeScore)
+	end,
+	GetWifeScore = function(self)
+		return self.curWifeScore
+	end,
+	GetSkillsetSSR = function()
+		return -1
+	end,
+	GetJudgmentString = function(self)
+		local str = ""
+		for i, v in ipairs(jdgs) do
+			str = str .. self.jdgVals[v] .. " | "
+		end
+		return str .. "x" .. self.combo
+	end,
+	combo = 0,
+	curWifeScore = 0,
+	curGrade = "Grade_Tier02",
+	jdgVals = {},
+}
+for i,v in ipairs(jdgs) do
+	curScore.jdgVals[v] = 0;
 end
 
-if not DLMAN:GetCurrentRateFilter() then
-	DLMAN:ToggleRateFilter()
+-- scores in the leaderboard are sorted by this
+local CRITERIA = "GetWifeScore"
+local NUM_ENTRIES = 32
+local VISIBLE_ENTRIES = 5
+local ENTRY_HEIGHT = (IsUsingWideScreen() and 35 / 480 * SCREEN_HEIGHT or 20 / 480 * SCREEN_HEIGHT)
+local WIDTH = SCREEN_WIDTH * (IsUsingWideScreen() and 0.3 or 0.275)
+
+for i = 1, NUM_ENTRIES do
+	entryActors[i] = {}
 end
-local multiScores = {}
+
+local t = Def.ActorFrame {
+	Name = "Leaderboard",
+	InitCommand = function(self)
+		registerActorToCustomizeGameplayUI(self)
+	end,
+	OnCommand = function(self)
+		self:playcommand("SetUpMovableValues")
+		for i, entry in ipairs(entryActors) do
+			for name, label in pairs(entry) do
+				if scoreboard[i] ~= nil then
+					label:visible(not (not scoreboard[i]:GetDisplayName()) and i <= VISIBLE_ENTRIES)
+				end
+			end
+		end
+	end,
+	SetUpMovableValuesMessageCommand = function(self)
+		self:xy(MovableValues.LeaderboardX, MovableValues.LeaderboardY)
+		for i, entry in ipairs(entryActors) do
+			entry.container:addy((i - 1) * MovableValues.LeaderboardSpacing)
+		end
+		self:zoomtowidth(MovableValues.LeaderboardWidth)
+		self:zoomtoheight(MovableValues.LeaderboardHeight)
+	end,
+}
+
+local function leaderboardSortingFunction(h1, h2)
+	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
+end
+
 local function scoreUsingMultiScore(idx)
 	return {
 		GetDisplayName = function()
@@ -55,133 +112,131 @@ local function scoreUsingMultiScore(idx)
 		end,
 		GetJudgmentString = function()
 			return multiScores[idx] and multiScores[idx].jdgstr or ""
-		end
+		end,
 	}
 end
-local onlineScores = {}
-local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation" or false
-if isMulti then
-	multiScores = NSMAN:GetMPLeaderboard()
-	for i = 1, NUM_ENTRIES do
-		onlineScores[i] = scoreUsingMultiScore(i)
-	end
-else
-	onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey())
-end
-local sortFunction = function(h1, h2)
-	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
-end
-table.sort(onlineScores, sortFunction)
-local curScore
-curScore = {
-	GetDisplayName = function()
-		return DLMAN:GetUsername()
-	end,
-	GetWifeGrade = function()
-		return GetGradeFromPercent(curScore.curWifeScore)
-	end,
-	GetWifeScore = function()
-		return curScore.curWifeScore
-	end,
-	GetSkillsetSSR = function()
-		return -1
-	end,
-	GetJudgmentString = function()
-		local str = ""
-		for i, v in ipairs(jdgs) do
-			str = str .. curScore.jdgVals[v] .. " | "
-		end
-		return str .. "x" .. curScore.combo
-	end
-}
-curScore.combo = 0
-curScore.curWifeScore = 0
-curScore.curGrade = "Grade_Tier02"
-curScore.jdgVals = {
-	["TapNoteScore_W1"] = 0,
-	["TapNoteScore_W2"] = 0,
-	["TapNoteScore_W3"] = 0,
-	["TapNoteScore_W4"] = 0,
-	["TapNoteScore_W5"] = 0,
-	["TapNoteScore_Miss"] = 0
-}
-local scoreboard = {}
-for i = 1, NUM_ENTRIES - 1 do
-	scoreboard[i] = onlineScores[i]
-end
-local done = false
-if not isMulti then
-	for i = 1, NUM_ENTRIES do
-		if not done and not scoreboard[i] then
-			scoreboard[i] = curScore
-			done = true
-		end
-	end
-end
-table.sort(scoreboard, sortFunction)
 
-for i = 1, NUM_ENTRIES do
-	entryActors[i] = {}
+local function setUpOnlineScores()
+	if isMulti then
+		multiScores = NSMAN:GetMPLeaderboard()
+		for i = 1, NUM_ENTRIES do
+			onlineScores[i] = scoreUsingMultiScore(i)
+		end
+	else
+		onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey())
+	end
+
+	-- hard limiting
+	if #onlineScores > NUM_ENTRIES then
+		for i = NUM_ENTRIES, #onlineScores do
+			onlineScores[i] = nil
+		end
+	end
+
+	table.sort(onlineScores, leaderboardSortingFunction)
 end
+
+local function findCurscoreInScoreboard()
+	for i, s in ipairs(scoreboard) do
+		if s == curScore then
+			return i
+		end
+	end
+	return 1 -- how
+end
+
+local function emplaceCurscore()
+	scoreboard = onlineScores
+	local done = false
+	local ind = #scoreboard
+
+	if not isMulti then
+		local inserted = false
+		for i = 1, #scoreboard do
+			if not inserted and leaderboardSortingFunction(scoreboard[i], curScore) then
+				table.insert(scoreboard, i, curScore)
+				inserted = true
+				ind = i
+				break
+			end
+		end
+		if not inserted then
+			table.insert(scoreboard, curScore)
+			ind = #scoreboard
+		end
+	end
+	table.sort(scoreboard, leaderboardSortingFunction)
+	return ind
+end
+
 local function scoreEntry(i)
-	local entryActor
-	local entry = Widg.Container {
-		x = 0,
-		y = (i - 1) * ENTRY_HEIGHT * 1.3,
-		onInit = function(self)
-			self = self.actor
-			entryActor = self
+	local entry = Def.ActorFrame {
+		Name = "Entry_"..i,
+		InitCommand = function(self)
+			self:xy(0, (i-1) * ENTRY_HEIGHT * 1.3)
 			entryActors[i]["container"] = self
 			self.update = function(self, hs)
 				self:visible(not (not hs) and i <= VISIBLE_ENTRIES)
 			end
 			self:update(scoreboard[i])
-		end
+		end,
 	}
-	entry:add(
-		Widg.Rectangle {
-			width = WIDTH,
-			height = ENTRY_HEIGHT,
-			color = getLeaderboardColor("background"),
-			halign = 0.5
+
+	local labelContainer = Def.ActorFrame {
+		Name = "Label",
+		InitCommand = function(self)
+			self:x(WIDTH / 5)
+		end,
+		Def.Quad {
+			Name = "Background",
+			InitCommand = function(self)
+				self:valign(0):halign(0)
+				self:zoomto(WIDTH, ENTRY_HEIGHT)
+				self:diffuse(getLeaderboardColor("Background"))
+				self:diffusealpha(1)
+			end,
 		}
-	)
-	local labelContainer =
-		Widg.Container {
-		x = WIDTH / 5
 	}
-	entry:add(labelContainer)
-	local y
-	local addLabel = function(name, fn, x, y)
+
+	local y = 0
+	local function addLabel(name, onUpdate, x, y)
 		y = (y or 0) - (IsUsingWideScreen() and 0 or ENTRY_HEIGHT / 3.2)
-		labelContainer:add(
-			Widg.Label {
-				onInit = function(self)
-					self = self.actor
-					entryActors[i][name] = self
-					self.update = function(self, hs)
-						if hs then
-							self:visible(true)
-							fn(self, hs)
-						else
-							self:visible(false)
-						end
+		labelContainer[#labelContainer+1] = LoadFont("Common Normal") .. {
+			Name = name,
+			InitCommand = function(self)
+				entryActors[i][name] = self
+				self:halign(0)
+				self:zoom(textSize)
+				self:xy(x, 10 + y)
+				self:settext("")
+				self:diffuse(getLeaderboardColor("Text"))
+				self:diffusealpha(1)
+
+				self.update = function(self, hs, rank)
+					if hs then
+						self:visible(true)
+						onUpdate(self, hs, rank)
+					else
+						self:visible(false)
 					end
-					self:update(scoreboard[i])
-				end,
-				halign = 0,
-				scale = 0.4,
-				x = (x - WIDTH / 2) * 0.4,
-				y = 10 + y,
-				text = "",
-				color = getLeaderboardColor("text")
-			}
-		)
+				end
+				self:update(scoreboard[i])
+			end,
+		}
 	end
+
 	addLabel(
 		"rank",
-		function(self, hs)
-			self:settext(tostring(i))
+		function(self, hs, rank)
+			if rank ~= nil then
+				if rank >= NUM_ENTRIES then
+					self:settext(tostring(rank) .. "+")
+				else
+					self:settext(tostring(rank))
+				end
+			else
+				self:settext(tostring(i))
+			end
 		end,
 		5,
 		ENTRY_HEIGHT / 4
@@ -193,10 +248,11 @@ local function scoreEntry(i)
 			if ssr < 0 then
 				self:settext("")
 			else
-				self:settextf("%.2f", ssr):diffuse(byMSD(ssr))
+				self:settextf("%.2f", ssr):diffuse(colorByMSD(ssr))
 			end
 		end,
-		WIDTH / 5
+		WIDTH / 15,
+		ENTRY_HEIGHT/4
 	)
 	addLabel(
 		"name",
@@ -207,39 +263,42 @@ local function scoreEntry(i)
 				entryActor:visible(not (not n))
 			end
 		end,
-		WIDTH / 1.3
+		WIDTH / 5
 	)
-	--WIDTH - 84
 	addLabel(
 		"wife",
 		function(self, hs)
-			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(hs:GetWifeGrade()))
+			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(colorByGrade(hs:GetWifeGrade()))
 		end,
-		1.8 * WIDTH
+		WIDTH / 1.3
 	)
 	addLabel(
 		"grade",
 		function(self, hs)
 			self:settext(getGradeStrings(hs:GetWifeGrade()))
-			self:diffuse(byGrade(hs:GetWifeGrade()))
+			self:diffuse(colorByGrade(hs:GetWifeGrade()))
 			self:halign(0.5)
 		end,
-		2 * WIDTH,
+		WIDTH / 1.2,
 		ENTRY_HEIGHT / 2
 	)
 	addLabel(
 		"judges",
 		function(self, hs)
-			self:settext(hs:GetJudgmentString())
+			self:settext(hs:GetJudgmentString():gsub("I", "|"))
 		end,
 		WIDTH / 5,
 		ENTRY_HEIGHT / 2
 	)
+	entry[#entry+1] = labelContainer
 	return entry
 end
 for i = 1, NUM_ENTRIES do
 	t[#t + 1] = scoreEntry(i)
 end
+
+setUpOnlineScores()
+emplaceCurscore()
 
 t.ComboChangedMessageCommand = function(self, params)
 	curScore.combo = params.PlayerStageStats and params.PlayerStageStats:GetCurrentCombo() or params.OldCombo
@@ -257,30 +316,24 @@ t.JudgmentMessageCommand = function(self, params)
 		multiScores = NSMAN:GetMPLeaderboard()
 	end
 	if old ~= curScore.curWifeScore then
-		table.sort(scoreboard, sortFunction)
+		table.sort(scoreboard, leaderboardSortingFunction)
+
+		local myscoreIndex = findCurscoreInScoreboard()
+
 		for i, entry in ipairs(entryActors) do
 			for name, label in pairs(entry) do
 				label:update(scoreboard[i])
 			end
 		end
-	end
-end
-
-t.OnCommand = function(self, params)
-	self:playcommand("SetUpMovableValues")
-	for i, entry in ipairs(entryActors) do
-		for name, label in pairs(entry) do
-			if scoreboard[i] ~= nil then
-				label:visible(not (not scoreboard[i]:GetDisplayName()))
+		
+		if myscoreIndex > VISIBLE_ENTRIES then
+			for name, label in pairs(entryActors[VISIBLE_ENTRIES + 1]) do
+				label:update(curScore, myscoreIndex)
+				label:visible(true)
 			end
 		end
-	end
-end
 
-t.SetUpMovableValuesMessageCommand = function(self)
-	arbitraryLeaderboardSpacing(MovableValues.LeaderboardSpacing)
-	self:zoomtowidth(MovableValues.LeaderboardWidth)
-	self:zoomtoheight(MovableValues.LeaderboardHeight)
+	end
 end
 
 return t
