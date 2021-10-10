@@ -68,12 +68,12 @@ return Def.ActorFrame {
         end,
         MouseDragCommand = function(self, params)
             if params.event == "DeviceButton_right mouse button" or not self.canDrag then return end
+            local screenscale = MovableValues.ScreenZoom
             local pp = self:GetParent():GetParent()
             local ppp = pp:GetParent()
-            local trueX = pp:GetTrueX()
-            local trueY = pp:GetTrueY()
+            local trueX = pp:GetTrueX() / screenscale
+            local trueY = pp:GetTrueY() / screenscale
             local zoomfactor = 1
-            local screenscale = MovableValues.ScreenZoom
 
             -- this is almost always true but
             -- the primary reason this exists is to offset the Player related things properly
@@ -84,15 +84,13 @@ return Def.ActorFrame {
             -- if ppp has been zoomed (breaking everything), then pp is a child of something that isn't a screen,
             -- such as the NoteField being pp and the Player being ppp
             if ppp ~= nil then
-                trueX = trueX - ppp:GetTrueX()
-                trueY = trueY - ppp:GetTrueY()
+                trueX = trueX - (ppp:GetTrueX() / screenscale)
+                trueY = trueY - (ppp:GetTrueY() / screenscale)
                 zoomfactor = ppp:GetZoom()
             end
 
-            params.MouseX = params.MouseX
-
-            local newx = params.MouseX + trueX - (self.initialClickX or 0)
-            local newy = params.MouseY + trueY - (self.initialClickY or 0)
+            local newx = params.MouseX + trueX - ((self.initialClickX or 0) / screenscale)
+            local newy = params.MouseY + trueY - ((self.initialClickY or 0) / screenscale)
             newx = newx / zoomfactor
             newy = newy / zoomfactor
             local differenceX = newx - pp:GetX()
@@ -106,8 +104,8 @@ return Def.ActorFrame {
             local pp = self:GetParent():GetParent()
             local screenscale = MovableValues.ScreenZoom
 
-            self.initialClickX = params.MouseX
-            self.initialClickY = params.MouseY
+            self.initialClickX = params.MouseX * screenscale
+            self.initialClickY = params.MouseY * screenscale
 
             local name = pp:GetName()
             self.canDrag = setSelectedCustomizeGameplayElementActorByName(name)
