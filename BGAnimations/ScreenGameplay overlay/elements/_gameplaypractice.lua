@@ -159,6 +159,7 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
     NPSThickness = 1.5,
     TextSize = 0.45,
 }}) .. {
+	Name = "PracticeCDGraph",
 	BeginCommand = function(self)
 		self:playcommand("SetUpMovableValues")
 		self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
@@ -175,6 +176,19 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
 	end,
 	SetUpMovableValuesMessageCommand = function(self)
 		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
+		local wb4 = width
+		local hb4 = height
+		width = MovableValues.PracticeCDGraphWidth * 280
+		height = MovableValues.PracticeCDGraphHeight * (53 / 555 * SCREEN_HEIGHT)
+		self:playcommand("UpdateSizing", {sizing = {
+			Width = width,
+			Height = height,
+		}})
+		if width ~= wb4 or height ~= hb4 then
+			self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
+		end
+
+		self:finishtweening()
 	end,
 }
 -- extra quad for bookmark position and region
