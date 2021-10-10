@@ -106,6 +106,8 @@ local defaultGameplayCoordinates = {
 	MusicRateY = SCREEN_BOTTOM - 10/480*SCREEN_HEIGHT,
 	PlayerInfoX = GAMEPLAY:getItemX("playerInfoFrameX"),
 	PlayerInfoY = SCREEN_HEIGHT - GAMEPLAY:getItemY("playerInfoFrameYFromBottom"),
+	MeasureCounterX = SCREEN_CENTER_X,
+	MeasureCounterY = SCREEN_CENTER_Y,
 }
 
 local defaultGameplaySizes = {
@@ -138,6 +140,7 @@ local defaultGameplaySizes = {
 	PlayerInfoZoom = 1.0,
 	CoverHeight = 75,
 	ScreenZoom = 1.0,
+	MeasureCounterZoom = 1.0,
 }
 
 local defaultConfig = {
