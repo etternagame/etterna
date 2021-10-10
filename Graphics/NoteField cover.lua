@@ -16,7 +16,7 @@ local nfspace = MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacin
 local width = 64 * cols * MovableValues.NoteFieldWidth + nfspace * (evencols)
 local padding = 8
 
-local prefsP1 = 1--playerConfig:get_data().LaneCover
+local prefsP1 = playerConfig:get_data().LaneCover
 local isReverseP1 = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 if prefsP1 == 2 then -- it's a Hidden LaneCover
 	isReverseP1 = not isReverseP1
