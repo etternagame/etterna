@@ -59,6 +59,7 @@ local t = Def.ActorFrame {
     EndCommand = function(self)
         -- exiting customize gameplay will turn off autoplay
         GAMESTATE:SetAutoplay(false)
+        playerConfig:save()
     end,
 }
 
@@ -529,7 +530,7 @@ local function makeUI()
                 end
             end
         },
-        UIElements.QuadButton(1) .. { 
+        UIElements.QuadButton(1) .. {
             Name = "DraggableLip",
             InitCommand = function(self)
                 self:halign(1):valign(0)

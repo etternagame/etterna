@@ -117,6 +117,8 @@ SCUFF.showingKeybinds = false
 -- reset customize gameplay here
 -- couldnt think of a really good place to put it instead
 playerConfig:get_data().CustomizeGameplay = false
+playerConfig:set_dirty()
+playerConfig:save()
 
 local t = Def.ActorFrame {
     Name = "SettingsFile",
