@@ -17,7 +17,6 @@ namespace Core::Platform::Window {
         explicit IWindowBackend(VideoMode  params);
         virtual ~IWindowBackend() = default;
 
-    public:
         // Context Related
         virtual void create() = 0;
         virtual void update() const = 0;
