@@ -91,7 +91,7 @@ local defaultGameplayCoordinates = {
 	NoteFieldX = 0,
 	NoteFieldY = 0,
 	ProgressBarPos = 1,
-	LeaderboardX = 0,
+	LeaderboardX = SCREEN_WIDTH * 0.62,
 	LeaderboardY = SCREEN_HEIGHT / 10,
 	ReplayButtonsX = SCREEN_WIDTH - 45/854*SCREEN_WIDTH,
 	ReplayButtonsY = SCREEN_HEIGHT / 2 - 100/480*SCREEN_HEIGHT,
@@ -107,7 +107,7 @@ local defaultGameplayCoordinates = {
 	PlayerInfoX = GAMEPLAY:getItemX("playerInfoFrameX"),
 	PlayerInfoY = SCREEN_HEIGHT - GAMEPLAY:getItemY("playerInfoFrameYFromBottom"),
 	MeasureCounterX = SCREEN_CENTER_X,
-	MeasureCounterY = SCREEN_CENTER_Y,
+	MeasureCounterY = SCREEN_HEIGHT * 0.4,
 }
 
 local defaultGameplaySizes = {
