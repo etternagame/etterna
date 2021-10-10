@@ -452,87 +452,46 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		return false;
 	}
 
-	// mods that modify notedata other than mirror (too lazy to figure out how
-	// to check for these in po)
-	auto mods = ps.m_PlayerOptions.GetStage().GetString();
-
-	// should take care of all 3 shuffle mods
-	if (mods.find("Shuffle") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
+	auto& tfs = ps.m_PlayerOptions.GetStage().m_bTransforms;
+	auto& turns = ps.m_PlayerOptions.GetStage().m_bTurns;
 
 	// only do this if the file doesnt have mines
-	if (mods.find("NoMines") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos &&
-		pss.filegotmines) {
+	if (tfs[PlayerOptions::TRANSFORM_NOMINES] && pss.filegotmines)
 		return false;
+
+	// only do this if the file has holds
+	if ((tfs[PlayerOptions::TRANSFORM_NOHOLDS] ||
+		 tfs[PlayerOptions::TRANSFORM_NOROLLS]) &&
+		pss.filegotholds)
+		return false;
+
+	// invalidate if any transforms are on (Insert and Remove mods)
+	// (this starts after nomines/noholds/norolls)
+	for (int tfi = PlayerOptions::TRANSFORM_LITTLE;
+		 tfi < PlayerOptions::NUM_TRANSFORMS;
+		 tfi++) {
+		PlayerOptions::Transform tf =
+		  static_cast<PlayerOptions::Transform>(tfi);
+
+		if (tfs[tf])
+			return false;
 	}
 
-	// This is a mod which adds mines, replacing existing notes and making files
-	// easier
-	if (ps.m_PlayerOptions.GetStage()
-		  .m_bTransforms[PlayerOptions::TRANSFORM_MINES]) {
-		return false;
+	// invalidate if any turns are on other than Mirror (shuffle)
+	// (this starts after mirror)
+	for (int ti = PlayerOptions::TURN_BACKWARDS;
+		 ti < PlayerOptions::NUM_TURNS;
+		 ti++) {
+		PlayerOptions::Turn t =
+		  static_cast<PlayerOptions::Turn>(ti);
+
+		if (turns[t])
+			return false;
 	}
 
-	// this would be difficult to accomplish but for parity's sake we should
-	if (mods.find("NoHolds") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos &&
-		pss.filegotholds) {
+	// impossible for this to happen but just in case
+	if (ps.m_PlayerOptions.GetStage().m_bPractice)
 		return false;
-	}
-
-	if (mods.find("Left") != std::basic_string<char,
-											   std::char_traits<char>,
-											   std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("Right") != std::basic_string<char,
-												std::char_traits<char>,
-												std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("Backwards") !=
-		std::basic_string<char, std::char_traits<char>, std::allocator<char>>::
-		  npos) {
-		return false;
-	}
-
-	if (mods.find("Little") != std::basic_string<char,
-												 std::char_traits<char>,
-												 std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoJumps") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoHands") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoQuads") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoStretch") !=
-		std::basic_string<char, std::char_traits<char>, std::allocator<char>>::
-		  npos) {
-		return false;
-	}
 
 	return true;
 }
