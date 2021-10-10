@@ -73,6 +73,7 @@ return Def.ActorFrame {
             local trueX = pp:GetTrueX()
             local trueY = pp:GetTrueY()
             local zoomfactor = 1
+            local screenscale = MovableValues.ScreenZoom
 
             -- this is almost always true but
             -- the primary reason this exists is to offset the Player related things properly
@@ -88,6 +89,8 @@ return Def.ActorFrame {
                 zoomfactor = ppp:GetZoom()
             end
 
+            params.MouseX = params.MouseX
+
             local newx = params.MouseX + trueX - (self.initialClickX or 0)
             local newy = params.MouseY + trueY - (self.initialClickY or 0)
             newx = newx / zoomfactor
@@ -101,6 +104,8 @@ return Def.ActorFrame {
         MouseDownCommand = function(self, params)
             if params.event == "DeviceButton_right mouse button" then return end
             local pp = self:GetParent():GetParent()
+            local screenscale = MovableValues.ScreenZoom
+
             self.initialClickX = params.MouseX
             self.initialClickY = params.MouseY
 

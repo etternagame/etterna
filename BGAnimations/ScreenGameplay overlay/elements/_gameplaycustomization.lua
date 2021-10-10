@@ -243,8 +243,12 @@ local function makeUI()
         selectedElement = elements[cursorPos]:GetName()
         updateSelectedElementValues()
         setSelectedElementMovementType()
+        if selectedElement == "Screen" then
+            setSelectedCustomizeGameplayElementActor(SCREENMAN:GetTopScreen(), "Screen")
+        else
+            setSelectedCustomizeGameplayElementActorByName(selectedElement)
+        end
         setStoredStateForUndoAction(selectedElement)
-        setSelectedCustomizeGameplayElementActorByName(selectedElement)
         itemListFrame:playcommand("UpdateItemList")
     end
 
@@ -331,6 +335,10 @@ local function makeUI()
             -- these are initialized here because most elements either need BeginCommand or InitCommand to run for them to be registered
             -- Order of execution: Init -> Begin -> On
             elements = getCustomizeGameplayElements()
+            -- hacky addition of the ScreenZoom element, which affects the entire screen zoom
+            elements[#elements+1] = {
+                GetName = function(self) return "Screen" end,
+            }
             table.sort(
                 elements,
                 function(a, b)

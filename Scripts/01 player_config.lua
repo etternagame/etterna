@@ -137,6 +137,7 @@ local defaultGameplaySizes = {
 	BPMTextZoom = 1.0,
 	PlayerInfoZoom = 1.0,
 	CoverHeight = 75,
+	ScreenZoom = 1.0,
 }
 
 local defaultConfig = {

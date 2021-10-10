@@ -7,7 +7,7 @@ allowedCustomization = false
 local function loadValuesTable()
 	allowedCustomization = playerConfig:get_data().CustomizeGameplay
 	usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-	MovableValues.ScreenScale = playerConfig:get_data().GameplaySizes[keymode].ScreenScale
+	MovableValues.ScreenZoom = playerConfig:get_data().GameplaySizes[keymode].ScreenZoom
 	MovableValues.JudgmentX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentX
 	MovableValues.JudgmentY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentY
 	MovableValues.JudgmentZoom = playerConfig:get_data().GameplaySizes[keymode].JudgmentZoom
@@ -294,6 +294,12 @@ function setSelectedCustomizeGameplayElementActorByName(elementName)
 		MESSAGEMAN:Broadcast("CustomizeGameplayElementSelected", {name=elementName})
 	end
 	return elementHasAnyMovableCoordinates(elementName)
+end
+
+function setSelectedCustomizeGameplayElementActor(actor, name)
+	selectedElementActor = actor
+	MESSAGEMAN:Broadcast("CustomizeGameplayElementSelected", {name=name})
+	return elementHasAnyMovableCoordinates(name)
 end
 
 function getSelectedCustomizeGameplayMovableActor()

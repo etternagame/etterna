@@ -16,6 +16,11 @@ local t = Def.ActorFrame {
 		local screen = SCREENMAN:GetTopScreen()
         local usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 
+		-- screen scale
+		local screenscale = MovableValues.ScreenZoom
+        screen:zoom(screenscale)
+        screen:xy(SCREEN_WIDTH * (1 - screenscale) / 2, SCREEN_HEIGHT * (1 - screenscale) / 2)
+
         -- lifebar movement
 		local lifebar = screen:GetLifeMeter(PLAYER_1)
 		if lifebar ~= nil then
