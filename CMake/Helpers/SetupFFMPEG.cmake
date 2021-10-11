@@ -5,6 +5,7 @@ set(FFMPEG_BIN  "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg_dl-build")
 
 list(APPEND FFMPEG_CONFIGURE
   "rm"
+  "-f"
   "${FFMPEG_ROOT}/VERSION"
   "&&"  
   "${FFMPEG_ROOT}/configure"
