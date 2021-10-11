@@ -116,6 +116,20 @@ namespace Core::Platform::Window {
                 INPUTFILTER->ButtonPressed(di);
         });
 
+        // Mouse scroll callback
+        glfwSetScrollCallback(this->windowHandle, [](GLFWwindow* window, double xoffset, double yoffset){
+            auto time = std::chrono::steady_clock::now();
+			if(!INPUTFILTER) return;
+
+            // Send desired output
+            INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP, yoffset > 0 ? 1 : 0, time));
+            INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, yoffset > 0 ? 0 : 1, time));
+
+            // Reset immediately
+            INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_MOUSE, MOUSE_WHEELUP, 0, time));
+			INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_MOUSE, MOUSE_WHEELDOWN, 0, time));
+        });
+
         // Window specific mouse position callback
         glfwSetCursorPosCallback(this->windowHandle, [](GLFWwindow* window, double xpos, double ypos){
             if(INPUTFILTER)
