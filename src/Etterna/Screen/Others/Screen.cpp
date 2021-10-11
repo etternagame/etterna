@@ -434,7 +434,7 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	Enum::Push(L, input.type);
 	lua_setfield(L, -2, "type");
 	char s[MB_LEN_MAX];
-	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
+	wctomb(s, DeviceInputToChar(input.DeviceI, true));
 	LuaHelpers::Push(L, std::string(1, s[0]));
 	lua_setfield(L, -2, "char");
 	LuaHelpers::Push(

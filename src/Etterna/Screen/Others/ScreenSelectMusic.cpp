@@ -463,7 +463,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
 
-		auto c = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+		auto c = DeviceInputToChar(input.DeviceI, false);
 		MakeUpper(&c, 1);
 
 		// Reload currently selected song

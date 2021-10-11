@@ -459,7 +459,7 @@ ScreenTextEntry::Input(const InputEventPlus& input)
 				break;
 		}
 	} else if (input.type == IET_FIRST_PRESS) {
-		wchar_t c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
+		wchar_t c = DeviceInputToChar(input.DeviceI, true);
 		// Detect Ctrl+V
 		auto ctrlPressed = INPUTFILTER->IsControlPressed();
 		auto vPressed =

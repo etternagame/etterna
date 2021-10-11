@@ -98,28 +98,6 @@ RageInput::GetLocalizedInputString(const DeviceInput& di)
    return Capitalize(DeviceButtonToString(di.button));
 }
 
-wchar_t
-RageInput::DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers)
-{
-    auto button = di.button;
-    wchar_t c = L'\0';
-    switch (button) {
-        case KEY_KP_SLASH:      c = L'/'; break;
-        case KEY_KP_ASTERISK:   c = L'*'; break;
-        case KEY_KP_HYPHEN:     c = L'-'; break;
-        case KEY_KP_PLUS:       c = L'+'; break;
-        case KEY_KP_PERIOD:     c = L'.'; break;
-        case KEY_KP_EQUAL:      c = L'='; break;
-        default:
-            if (button < 127)
-                c = (wchar_t)button;
-            else if (button >= KEY_KP_C0 && button <= KEY_KP_C9)
-                c = (wchar_t)(button - KEY_KP_C0) + '0';
-            break;
-    }
-    return c;
-}
-
 InputDeviceState
 RageInput::GetInputDeviceState(InputDevice id)
 {

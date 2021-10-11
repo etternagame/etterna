@@ -1060,4 +1060,7 @@ GetConnectsDisconnects(const std::vector<T>& before,
 	GetAsNotInBs(after, before, connects);
 }
 
+struct DeviceInput;
+wchar_t DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers);
+
 #endif

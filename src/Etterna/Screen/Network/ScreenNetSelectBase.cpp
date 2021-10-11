@@ -87,7 +87,7 @@ ScreenNetSelectBase::Input(const InputEventPlus& input)
 	// If holding control skip chatbox input
 	// This allows lua input bindings to work on regular keys+control
 	if (!NSMAN->IsETTP() && bHoldingCtrl) {
-		wchar_t ch = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+		wchar_t ch = DeviceInputToChar(input.DeviceI, false);
 		MakeUpper(&ch, 1);
 		if (ch == 'V') {
 			PasteClipboard();
@@ -132,8 +132,7 @@ ScreenNetSelectBase::Input(const InputEventPlus& input)
 				UpdateTextInput();
 				break;
 			default:
-				wchar_t c;
-				c = INPUTMAN->DeviceInputToChar(input.DeviceI, true);
+				wchar_t c = DeviceInputToChar(input.DeviceI, true);
 				if (c >= L' ' && enableChatboxInput) {
 					m_sTextInput += WStringToString(std::wstring() + c);
 					UpdateTextInput();

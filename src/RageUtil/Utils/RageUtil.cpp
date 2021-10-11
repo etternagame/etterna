@@ -7,6 +7,7 @@
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
 #include "RageUtil.h"
 #include "RageUtil/Misc/RageUnicode.h"
+#include "RageUtil/Misc/RageInputDevice.h"
 
 #include <algorithm>
 #include <ctime>
@@ -2386,6 +2387,28 @@ FileCopy(RageFileBasic& in,
 
 	return true;
 }
+
+
+wchar_t DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers) {
+    auto button = di.button;
+    wchar_t c = L'\0';
+    switch (button) {
+        case KEY_KP_SLASH:      c = L'/'; break;
+        case KEY_KP_ASTERISK:   c = L'*'; break;
+        case KEY_KP_HYPHEN:     c = L'-'; break;
+        case KEY_KP_PLUS:       c = L'+'; break;
+        case KEY_KP_PERIOD:     c = L'.'; break;
+        case KEY_KP_EQUAL:      c = L'='; break;
+        default:
+            if (button < 127)
+                c = (wchar_t)button;
+            else if (button >= KEY_KP_C0 && button <= KEY_KP_C9)
+                c = (wchar_t)(button - KEY_KP_C0) + '0';
+            break;
+    }
+    return c;
+}
+
 
 LuaFunction(SecondsToMSSMsMs, SecondsToMSSMsMs(FArg(1)))
   LuaFunction(SecondsToHHMMSS, SecondsToHHMMSS(FArg(1)))

@@ -73,7 +73,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			DeviceInput(DEVICE_KEYBOARD, KEY_LSHIFT)) ||
 		  INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT));
 
-		auto c = INPUTMAN->DeviceInputToChar(input.DeviceI, false);
+		auto c = DeviceInputToChar(input.DeviceI, false);
 		MakeUpper(&c, 1);
 
 		// if you press ctrl+shift+R, you reload the song like in Music Select
