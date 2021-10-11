@@ -21,7 +21,6 @@ class RageInput
 	static InputHandler* GetHandlerForDevice(InputDevice id);
 	static std::string GetDeviceSpecificInputString(const DeviceInput& di);
 	static std::string GetLocalizedInputString(const DeviceInput& di);
-	static InputDeviceState GetInputDeviceState(InputDevice id);
 	std::string GetDisplayDevicesString() const;
 
 	// Lua

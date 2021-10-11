@@ -98,16 +98,6 @@ RageInput::GetLocalizedInputString(const DeviceInput& di)
    return Capitalize(DeviceButtonToString(di.button));
 }
 
-InputDeviceState
-RageInput::GetInputDeviceState(InputDevice id)
-{
-	InputHandler* pDriver = GetHandlerForDevice(id);
-//	if (pDriver != nullptr)
-//		return pDriver->GetInputDeviceState(id);
-
-	return InputDeviceState_NoInputHandler;
-}
-
 std::string
 RageInput::GetDisplayDevicesString() const
 {
