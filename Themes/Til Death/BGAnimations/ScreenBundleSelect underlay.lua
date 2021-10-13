@@ -20,10 +20,6 @@ local function input(event)
 	elseif (event.DeviceInput.button == "DeviceButton_mousewheel down" or event.button == "MenuDown" or event.button == "MenuRight") and event.type == "InputEventType_FirstPress" then
 		moving = true
 		MESSAGEMAN:Broadcast("WheelDownSlow")
-	elseif event.DeviceInput.button == "DeviceButton_left mouse button" then
-		if event.type == "InputEventType_Release" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		end
 	elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
 		if event.type == "InputEventType_Release" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
@@ -67,8 +63,7 @@ local offy = 40
 local packtable
 local ind = 0
 
-local o =
-	Def.ActorFrame {
+local o = Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(offx + width / 2, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx - (offx + width / 2), offy * 2 + 14):visible(false) --- uuuu messy... basically cancel out the x coord of the parent
@@ -92,72 +87,67 @@ local o =
 			self:y(0):zoomto(width, 500):diffuse(getMainColor("frames")):diffusealpha(1)
 		end
 	},
-	LoadFont("Common normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(width / 2 + offx, 24):zoom(tzoom):halign(0)
-			end,
-			OnCommand = function(self)
-				self:settext(translated_info["Explanation"])
+	LoadFont("Common normal") .. {
+		InitCommand = function(self)
+			self:xy(width / 2 + offx, 24):zoom(tzoom):halign(0)
+		end,
+		OnCommand = function(self)
+			self:settext(translated_info["Explanation"])
+		end
+	},
+	LoadFont("Common Large") .. {
+		--selected bundle
+		InitCommand = function(self)
+			self:xy(width / 2 + offx, offy * 2 - 20):zoom(0.4):halign(0)
+		end,
+		PackTableRefreshCommand = function(self)
+			self:settextf("%s: %s", translated_info["Selected"], minidoots[ind]:gsub("-Expanded", " ("..translated_info["Expanded"]..")")):diffuse(
+				color(diffcolors[math.ceil(ind / 2)])
+			)
+		end
+	},
+	LoadFont("Common normal") .. {
+		--avg diff
+		InitCommand = function(self)
+			self:xy(width / 2 + offx, offy * 2):zoom(tzoom + 0.1):halign(0):maxwidth(width / 2 / tzoom)
+		end,
+		PackTableRefreshCommand = function(self)
+			self:settextf("%s: %0.2f", translated_info["AverageDiff"], packtable.AveragePackDifficulty):diffuse(byMSD(packtable.AveragePackDifficulty))
+		end
+	},
+	LoadFont("Common normal") .. {
+		--total size
+		InitCommand = function(self)
+			self:xy(width * 2 + width / 2 - 150, offy * 2):zoom(tzoom + 0.1):halign(1):maxwidth(width / 2 / tzoom)
+		end,
+		PackTableRefreshCommand = function(self)
+			self:settextf("%s: %i(%s)", translated_info["TotalSize"], packtable.TotalSize, translated_info["MB"]):diffuse(byFileSize(packtable.TotalSize))
+		end
+	},
+	UIElements.TextToolTip(1, 1, "Common normal") .. {
+		--download all
+		InitCommand = function(self)
+			self:xy(width * 2 + width / 2 - 40, offy * 2):zoom(tzoom + 0.1):halign(1):maxwidth(width / 2 / tzoom)
+		end,
+		PackTableRefreshCommand = function(self)
+			self:settext(translated_info["DownloadAll"])
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
 			end
-		},
-	LoadFont("Common Large") ..
-		{
-			--selected bundle
-			InitCommand = function(self)
-				self:xy(width / 2 + offx, offy * 2 - 20):zoom(0.4):halign(0)
-			end,
-			PackTableRefreshCommand = function(self)
-				self:settextf("%s: %s", translated_info["Selected"], minidoots[ind]:gsub("-Expanded", " ("..translated_info["Expanded"]..")")):diffuse(
-					color(diffcolors[math.ceil(ind / 2)])
-				)
-			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--avg diff
-			InitCommand = function(self)
-				self:xy(width / 2 + offx, offy * 2):zoom(tzoom + 0.1):halign(0):maxwidth(width / 2 / tzoom)
-			end,
-			PackTableRefreshCommand = function(self)
-				self:settextf("%s: %0.2f", translated_info["AverageDiff"], packtable.AveragePackDifficulty):diffuse(byMSD(packtable.AveragePackDifficulty))
-			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--total size
-			InitCommand = function(self)
-				self:xy(width * 2 + width / 2 - 150, offy * 2):zoom(tzoom + 0.1):halign(1):maxwidth(width / 2 / tzoom)
-			end,
-			PackTableRefreshCommand = function(self)
-				self:settextf("%s: %i(%s)", translated_info["TotalSize"], packtable.TotalSize, translated_info["MB"]):diffuse(byFileSize(packtable.TotalSize))
-			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--download all
-			InitCommand = function(self)
-				self:xy(width * 2 + width / 2 - 40, offy * 2):zoom(tzoom + 0.1):halign(1):maxwidth(width / 2 / tzoom)
-			end,
-			PackTableRefreshCommand = function(self)
-				self:settext(translated_info["DownloadAll"])
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
-				end
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end
-		},
+		end,
+		HighlightCommand = function(self)
+			highlightIfOver(self)
+		end
+	},
 	--return to normal search
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:y(offy):zoomto(width, packh - 2):valign(0):diffuse(color("#ffffff")):diffusealpha(0.4)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				SCREENMAN:SetNewScreen("ScreenPackDownloader")
 			end
 		end,
@@ -169,12 +159,11 @@ local o =
 			end
 		end
 	},
-	LoadFont("Common normal") ..
-		{
-			InitCommand = function(self)
-				self:y(offy + 16):zoom(tzoom + 0.1):halign(0.5):maxwidth(width / 2 / tzoom):settext(translated_info["GoBack"])
-			end
-		}
+	LoadFont("Common normal") .. {
+		InitCommand = function(self)
+			self:y(offy + 16):zoom(tzoom + 0.1):halign(0.5):maxwidth(width / 2 / tzoom):settext(translated_info["GoBack"])
+		end
+	}
 }
 
 local function UpdateHighlight(self)
@@ -183,13 +172,12 @@ end
 
 local function makedoots(i)
 	local packinfo
-	local t =
-		Def.ActorFrame {
+	local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(packspacing * i + offy + 10)
 			self:SetUpdateFunction(UpdateHighlight)
 		end,
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			Name = "Doot",
 			InitCommand = function(self)
 				self:y(-12):zoomto(width, packh):valign(0):diffuse(color(diffcolors[math.ceil(i / 2)]))
@@ -203,8 +191,8 @@ local function makedoots(i)
 					self:diffusealpha(0.5)
 				end
 			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
 					packlist:SetFromCoreBundle(minidoots[i]:lower())
 					packtable = packlist:GetPackTable()
 					self:GetParent():GetParent():queuecommand("PackTableRefresh") -- perhaps it would be best if the packlist broadcast instead - mina
@@ -213,25 +201,23 @@ local function makedoots(i)
 				end
 			end
 		},
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:zoom(tzoom)
-				end,
-				OnCommand = function(self)
-					self:settext(minidoots[i]:gsub("-Expanded", " ("..translated_info["Expanded"]..")"))
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:y(14):zoom(tzoom)
-				end,
-				OnCommand = function(self)
-					local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
-					self:settextf("(%d%s)", bundle["TotalSize"], translated_info["MB"])
-				end
-			}
+		LoadFont("Common normal") .. {
+			InitCommand = function(self)
+				self:zoom(tzoom)
+			end,
+			OnCommand = function(self)
+				self:settext(minidoots[i]:gsub("-Expanded", " ("..translated_info["Expanded"]..")"))
+			end
+		},
+		LoadFont("Common normal") .. {
+			InitCommand = function(self)
+				self:y(14):zoom(tzoom)
+			end,
+			OnCommand = function(self)
+				local bundle = DLMAN:GetCoreBundle(minidoots[i]:lower())
+				self:settextf("(%d%s)", bundle["TotalSize"], translated_info["MB"])
+			end
+		}
 	}
 	return t
 end

@@ -35,29 +35,7 @@ end
 --Input event for mouse clicks
 local function input(event)
 	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and scoreBoard then
-		if event.type == "InputEventType_Release" then
-			for i = 0, math.min(lines, #hsTable) - 1 do
-				if isOver(scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver")) then
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):GetVisible()
-					)
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):GetVisible()
-					)
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("date"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("date"):GetVisible()
-					)
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("option"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("option"):GetVisible()
-					)
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("ClearType"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("ClearType"):GetVisible()
-					)
-				end
-			end
-		end
-	end
+
 	if event.type == "InputEventType_FirstPress" and scoreBoard then
 		if event.button == "MenuLeft" then
 			movePage(-1)
@@ -167,15 +145,28 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end
 		},
 		--Quad that will act as the bounding box for mouse rollover/click stuff.
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			Name = "mouseOver",
 			InitCommand = function(self)
 				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(frameWidth*2, 30):halign(0):valign(0):diffuse(
 					getMainColor("highlight")
 				):diffusealpha(0)
 			end,
-			LeftClickMessageCommand = function(self)
-				if isOver(self) then
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					local p = self:GetParent()
+					local grade = p:GetChild("grade")
+					local judge = p:GetChild("judge")
+					local date = p:GetChild("date")
+					local option = p:GetChild("option")
+					local cleartype = p:GetChild("ClearType")
+					
+					grade:visible(not grade:GetVisible())
+					judge:visible(not judge:GetVisible())
+					date:visible(not date:GetVisible())
+					option:visible(not option:GetVisible())
+					cleartype:visible(not cleartype:GetVisible())
+
 					local score = hsTable[index]
 					if score ~= nil then
 						if not score:HasReplayData() then return end
@@ -185,7 +176,24 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 						self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
 					end
 				end
-			end
+			end,
+			MouseOverCommand = function(self)
+				self:diffusealpha(0.2)
+			end,
+			MouseOutCommand = function(self)
+				local p = self:GetParent()
+				local grade = p:GetChild("grade")
+				local judge = p:GetChild("judge")
+				local date = p:GetChild("date")
+				local option = p:GetChild("option")
+				local cleartype = p:GetChild("ClearType")
+				self:diffusealpha(0)
+				grade:visible(true)
+				judge:visible(true)
+				date:visible(false)
+				cleartype:visible(true)
+				option:visible(false)
+			end,
 		},
 		--ClearType lamps
 		Def.Quad {
@@ -373,28 +381,6 @@ while drawindex < lines do
 	t[#t+1] = scoreitem(player,startind,scoreIndex,drawindex)
 	startind = startind+1
 	drawindex  = drawindex+1
-end
-
---Update function for showing mouse rollovers
-local function Update(self)
-	t.InitCommand = function(self)
-		self:SetUpdateFunction(Update)
-	end
-	for i = 0, drawindex - 1 do
-		if isOver(self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver")) then
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):diffusealpha(0.2)
-		else
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):diffusealpha(0)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):visible(true)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):visible(true)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("ClearType"):visible(true)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("date"):visible(false)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("option"):visible(false)
-		end
-	end
-end
-t.InitCommand = function(self)
-	self:SetUpdateFunction(Update)
 end
 
 t[#t+1] = Def.Quad {

@@ -91,7 +91,7 @@ local function stepsRows(i)
 		InitCommand = function(self)
 			self:y(rowheight * (i - 1))
 		end,
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			InitCommand = function(self)
 				self:zoomto(rowwidth, rowheight):halign(0)
 			end,
@@ -106,9 +106,9 @@ local function stepsRows(i)
 					self:visible(false)
 				end
 			end,
-			MouseLeftClickMessageCommand = function(self)
+			MouseDownCommand = function(self, params)
 				local steps = thesteps[i + displayindexoffset]
-				if steps and isOver(self) then
+				if steps and params.event == "DeviceButton_left mouse button" then
 					SCREENMAN:GetTopScreen():ChangeSteps(i - currentindex)
 					SCREENMAN:GetTopScreen():ChangeSteps(0)
 				end

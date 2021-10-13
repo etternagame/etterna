@@ -10,11 +10,6 @@ local function input(event)
 				MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = i-1})
 			end
 		end
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
-			MESSAGEMAN:Broadcast("MouseRightClick")
-		end
 	end
 	if event.DeviceInput.button == "DeviceButton_left ctrl" then
 		if event.type == "InputEventType_Release" then
@@ -33,8 +28,7 @@ local function input(event)
 	return false
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,
@@ -82,9 +76,8 @@ local frameWidth = (SCREEN_WIDTH * (7 / 24)) / (#tabNames - 1)
 local frameX = frameWidth / 2
 local frameY = SCREEN_HEIGHT - 70
 
-function tabs(index)
-	local t =
-		Def.ActorFrame {
+local function tabs(index)
+	local t = Def.ActorFrame {
 		Name = "Tab" .. index,
 		InitCommand = function(self)
 			self:xy(frameX + ((index - 1) * frameWidth), frameY)
@@ -112,14 +105,13 @@ function tabs(index)
 		end
 	}
 
-	t[#t + 1] =
-		Def.Quad {
+	t[#t + 1] = UIElements.QuadButton(1, 1) .. {
 		Name = "TabBG",
 		InitCommand = function(self)
 			self:y(2):valign(0):zoomto(frameWidth, 20):diffusecolor(getMainColor("frames")):diffusealpha(0.7)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local tind = getTabIndex()
 				setTabIndex(index - 1)
 				MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = index-1})
@@ -127,27 +119,25 @@ function tabs(index)
 		end
 	}
 
-	t[#t + 1] =
-		LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:y(4):valign(0):zoom(0.45):diffuse(getMainColor("positive"))
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settext(THEME:GetString("TabNames", tabNames[index]))
-				if isTabEnabled(index) then
-					self:diffuse(getMainColor("positive"))
-				else
-					self:diffuse(color("#666666"))
-				end
-			end,
-			PlayerJoinedMessageCommand = function(self)
-				self:queuecommand("Set")
+	t[#t + 1] = LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:y(4):valign(0):zoom(0.45):diffuse(getMainColor("positive"))
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settext(THEME:GetString("TabNames", tabNames[index]))
+			if isTabEnabled(index) then
+				self:diffuse(getMainColor("positive"))
+			else
+				self:diffuse(color("#666666"))
 			end
-		}
+		end,
+		PlayerJoinedMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	}
 	return t
 end
 

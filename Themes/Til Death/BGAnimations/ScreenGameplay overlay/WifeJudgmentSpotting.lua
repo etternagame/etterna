@@ -1092,9 +1092,7 @@ end
 
 local function duminput(event)
 	if event.type == "InputEventType_Release" then
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+		if event.DeviceInput.button == "DeviceButton_right mouse button" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
 	elseif event.type == "InputEventType_FirstPress" then
@@ -1140,8 +1138,7 @@ local function UpdatePreviewPos(self)
 	self:queuecommand("Highlight")
 end
 
-local pm =
-	Def.ActorFrame {
+local pm = Def.ActorFrame {
 	Name = "ChartPreview",
 	InitCommand = function(self)
 		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
@@ -1150,12 +1147,7 @@ local pm =
 		if (allowedCustomization) then
 			Movable.DeviceButton_z.element = self
 			Movable.DeviceButton_z.condition = practiceMode
-		--Movable.DeviceButton_z.Border = self:GetChild("Border")
-		--Movable.DeviceButton_x.element = self
-		--Movable.DeviceButton_x.condition = practiceMode
-		--Movable.DeviceButton_x.Border = self:GetChild("Border")
 		end
-		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
 	BeginCommand = function(self)
 		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / (wodth)
@@ -1217,44 +1209,33 @@ local pm =
 pm[#pm + 1] = LoadActorWithParams("../_chorddensitygraph.lua", {width = wodth})
 
 -- more draw order shenanigans
-pm[#pm + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "Seektext",
-		InitCommand = function(self)
-			self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
-		end
-	}
+pm[#pm + 1] = LoadFont("Common Normal") .. {
+	Name = "Seektext",
+	InitCommand = function(self)
+		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+	end
+}
 
-pm[#pm + 1] =
-	Def.Quad {
+pm[#pm + 1] = UIElements.QuadButton(1, 1) .. {
 	Name = "Seek",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
 	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) then
+	MouseDownCommand = function(self, params)
+		if params.event == "DeviceButton_left mouse button" then
 			local withCtrl = INPUTFILTER:IsControlPressed()
 			if withCtrl then
 				handleRegionSetting(self:GetX() * musicratio)
 			else
 				SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0, false)
 			end
+		elseif params.event == "DeviceButton_right mouse button" then
+			handleRegionSetting(self:GetX() * musicratio)
 		end
 	end,
-	MouseRightClickMessageCommand = function(self)
-		if isOver(self) then
-			handleRegionSetting(self:GetX() * musicratio)
-		else
-			if not (allowedCustomization) then
-				SCREENMAN:GetTopScreen():TogglePause()
-			end
-		end
-	end
 }
 
-pm[#pm + 1] =
-	Def.Quad {
+pm[#pm + 1] = Def.Quad {
 	Name = "BookmarkPos",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5):draworder(1100)
@@ -1288,6 +1269,26 @@ pm[#pm + 1] =
 
 if practiceMode and not isReplay then
 	t[#t + 1] = pm
+	if not allowedCustomization then
+		-- enable pausing
+		t[#t+1] = UIElements.QuadButton(1, 1) .. {
+			Name = "PauseArea",
+			InitCommand = function(self)
+				self:halign(0):valign(0)
+				self:z(1)
+				self:diffusealpha(0)
+				self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_right mouse button" then
+					local top = SCREENMAN:GetTopScreen()
+					if top then
+						top:TogglePause()
+					end
+				end
+			end,
+		}
+	end
 end
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

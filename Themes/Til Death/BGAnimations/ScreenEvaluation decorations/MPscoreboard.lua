@@ -17,22 +17,6 @@ local function SetActivePlayer(locaIndex)
 	item:GetChild("judge"):visible(not item:GetChild("judge"):GetVisible())
 	item:GetChild("option"):visible(not item:GetChild("option"):GetVisible())
 end
---Input event for mouse clicks
-local function input(event)
-	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and scoreBoard then
-		if event.type == "InputEventType_Release" then
-			local scoreboard_items = scoreBoard:GetChildren()
-			for i = 1, #multiscores do
-				local ac = scoreboard_items[tostring(i)] 
-				if ac ~= nil and isOver(ac:GetChild("mouseOver")) then
-					SetActivePlayer(i)
-				end
-			end
-		end
-	end
-	return false
-end
 
 local function Update(self)
 	for i = 1, lines do
@@ -93,7 +77,6 @@ local t = Def.ActorFrame {
 		self:SetUpdateFunction(Update)
 	end,
 	BeginCommand = function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 	end,
 	NewMultiScoreMessageCommand = updateScoreBoard
@@ -109,12 +92,17 @@ local function scoreitem(pn, i)
 			self:visible(i <= #multiscores)
 		end,
 		--The main quad
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			InitCommand = function(self)
 				self:xy(framex, framey + ((i - 1) * spacing) - 4):zoomto(frameWidth, 30):halign(0):valign(0):diffuse(
 					color("#333333")
 				):diffusealpha(1):diffuserightedge(color("#33333333"))
-			end
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					SetActivePlayer(i)
+				end
+			end,
 		},
 		--Highlight quad for the current score
 		Def.Quad {
@@ -253,17 +241,16 @@ local function scoreitem(pn, i)
 			end
 		}
 		--[[ -- this doesnt do anything useful, usually just displays january 1900, why do we need it
-		LoadFont("Common normal") ..
-			{
-				Name = "date",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + ((i - 1) * spacing)):zoom(0.35):halign(0)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settext(multiscores[i].highscore:GetDate())
-					self:visible(false)
-				end
-			}
+		LoadFont("Common normal") .. {
+			Name = "date",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 20 + ((i - 1) * spacing)):zoom(0.35):halign(0)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settext(multiscores[i].highscore:GetDate())
+				self:visible(false)
+			end
+		}
 		]]
 	}
 	return t

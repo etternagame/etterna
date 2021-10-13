@@ -223,13 +223,13 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 	end
 }
 
-t[#t + 1] = Def.Quad {
+t[#t + 1] = UIElements.QuadButton(1, 1) .. {
 	Name = "Seek",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
 	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) then
+	MouseDownCommand = function(self, params)
+		if params.event == "DeviceButton_left mouse button" then
 			SCREENMAN:GetTopScreen():SetSampleMusicPosition( self:GetX() * musicratio )
 		end
 	end

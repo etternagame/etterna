@@ -64,13 +64,8 @@ local function toggleCalcInfo(state)
 	end
 end
 
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.8)
-	else
-		self:diffusealpha(1)
-	end
-end
+local hoverAlpha = 0.8
+local hoverAlpha2 = 0.6
 
 -- to reduce repetitive code for setting preview visibility with booleans
 local function setPreviewPartsState(state)
@@ -398,12 +393,6 @@ t[#t + 1] = Def.Actor {
 
 t[#t + 1] = Def.ActorFrame {
 	Name = "RateDependentStuff", -- msd/display score/bpm/songlength -mina
-	InitCommand = function(self)
-		self:SetUpdateFunction( function(self)
-			self:queuecommand("Highlight")
-		end)
-		self:SetUpdateFunctionInterval(0.025)
-	end,
 	MintyFreshCommand = function()
 		score = GetDisplayScore()
 	end,
@@ -566,7 +555,7 @@ t[#t + 1] = Def.ActorFrame {
 		end
 	},
 	-- goal for current rate if there is one stuff
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "Goalll",
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 140,frameX + 154), frameY + 27):zoom(0.6):halign(0.5):valign(0)
@@ -589,26 +578,28 @@ t[#t + 1] = Def.ActorFrame {
 				self:settext("")
 			end
 		end,
-		MouseLeftClickMessageCommand = function(self)
+		MouseDownCommand = function(self, params)
 			if song and steps then
-				local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
-				if sg and isOver(self) and update then
-					sg:SetPercent(sg:GetPercent() + 0.01)
-					self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+				if params.event == "DeviceButton_left mouse button" then
+					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+					if sg and update then
+						sg:SetPercent(sg:GetPercent() + 0.01)
+						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+					end
+				elseif params.event == "DeviceButton_right mouse button" then
+					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+					if sg and update then
+						sg:SetPercent(sg:GetPercent() - 0.01)
+						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+					end
 				end
 			end
 		end,
-		MouseRightClickMessageCommand = function(self)
-			if song and steps then
-				local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
-				if sg and isOver(self) and update then
-					sg:SetPercent(sg:GetPercent() - 0.01)
-					self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
-				end
-			end
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
 		end,
 	},
 	-- Date score achieved on
@@ -853,7 +844,7 @@ local enabledC = "#099948"
 local disabledC = "#ff6666"
 local force = false
 local ready = false
-function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, enabledF)
+local function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, enabledF)
 	local button
 	button =
 		Widg.Button {
@@ -1038,25 +1029,12 @@ local function ihatestickinginputcallbackseverywhere(event)
 	return false
 end
 
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
 local prevplayerops = "Main"
 
 t[#t + 1] = Def.ActorFrame {
 	Name = "LittleButtonsOnTheLeft",
-	InitCommand = function(self)
-		self:SetUpdateFunction( function(self)
-			self:queuecommand("Highlight")
-		end)
-		self:SetUpdateFunctionInterval(0.025)
-	end,
 
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "PreviewViewer",
 		BeginCommand = function(self)
 			mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
@@ -1065,13 +1043,10 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(20, 235):zoom(0.5):halign(0)
 			self:diffuse(getMainColor("positive"))
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and (song or noteField) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and (song or noteField) then
 				toggleNoteField()
-			end
-		end,
-		MouseRightClickMessageCommand = function(self)
-			if isOver(self) and (song or noteField) then
+			elseif params.event == "DeviceButton_right mouse button" and (song or noteField) then
 				if mcbootlarder:IsVisible() then
 					toggleCalcInfo(not infoOnScreen)
 				else
@@ -1091,8 +1066,11 @@ t[#t + 1] = Def.ActorFrame {
 				forceStart:Enable()
 			end
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha2)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
 		end,
 		MintyFreshCommand = function(self)
 			if song then
@@ -1103,18 +1081,21 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 	},
 
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "PlayerOptionsButton",
 		BeginCommand = function(self)
 			self:xy(20, 218):halign(0):zoom(0.5)
 			self:settext(translated_info["PlayerOptions"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha2)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and song then
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and song then
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
 		end,
@@ -1153,14 +1134,14 @@ t[#t + 1] =
 	end
 }]]
 
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "MusicWheelSortButton",
 		BeginCommand = function(self)
 			self:xy(20, 201):zoom(0.5):halign(0):settext(translated_info["OpenSort"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local ind = 0 -- 0 is group sort usually
 				-- find the sort mode menu no matter where it is
 				for i, sm in ipairs(SortOrder) do
@@ -1172,8 +1153,11 @@ t[#t + 1] =
 				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(ind)
 			end
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha2)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
 		end,
 	}
 }
