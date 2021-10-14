@@ -136,6 +136,7 @@ namespace Core::Platform::Window {
                 INPUTFILTER->UpdateCursorLocation(static_cast<float>(xpos), static_cast<float>(ypos));
         });
 
+        glfwSetInputMode(this->windowHandle, GLFW_LOCK_KEY_MODS, GLFW_TRUE); // Acknowledge caps lock
 		glfwSwapInterval(0); // Don't wait for vsync
     }
 
@@ -184,7 +185,7 @@ namespace Core::Platform::Window {
         // or lowercase, and convert if necessary.
         if(65 <= keycode && keycode <= 90) {
             char asChar = static_cast<char>(keycode);
-            if (mods & GLFW_MOD_SHIFT){
+            if (mods & GLFW_MOD_SHIFT || mods & GLFW_MOD_CAPS_LOCK){
                 switch(keycode){
                     case GLFW_KEY_1: return KEY_EXCL;
                     case GLFW_KEY_2: return KEY_AT;
