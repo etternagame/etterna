@@ -32,6 +32,11 @@ public:
 private:
     GLFWwindow *windowHandle{nullptr}; /** @brief A reference to the window backend*/
     static DeviceButton convertKeyToLegacy(int keycode, int mods);
+
+    // TODO(james): Fix me? IWindowBackend is not the place for this game-specific function, but is currently
+    //              the only reasonable place to implement the feature. Only used in GLFWWindowBackend.
+    //              To be moved to an appropriate location for a more complete input rework.
+    bool nextInputFirst{false};
 };
 
 }

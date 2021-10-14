@@ -75,6 +75,7 @@ namespace Core::Platform::Window {
             auto backend = static_cast<GLFWWindowBackend*>(glfwGetWindowUserPointer(window));
             if(focus == GLFW_TRUE){
                 backend->onFocusGain();
+                backend->nextInputFirst = true;
             } else if(focus == GLFW_FALSE){
                 backend->onFocusLost();
             }
@@ -118,7 +119,15 @@ namespace Core::Platform::Window {
         // Window mouse callback
         glfwSetMouseButtonCallback(this->windowHandle, [](GLFWwindow* window, int button, int action, int mods){
             auto time = std::chrono::steady_clock::now();
+            auto backend = static_cast<GLFWWindowBackend*>(glfwGetWindowUserPointer(window));
             if(action == GLFW_REPEAT) return; // We do our own repeat
+
+            // TODO(james): this does not belong at this low a level, and should be relocated for input rework.
+            if(backend->nextInputFirst) {
+                backend->nextInputFirst = false;
+                return;
+            }
+
             auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(button, 0);
             DeviceInput di(DEVICE_MOUSE, legacy_key, action == GLFW_PRESS ? 1.0f : 0.0f, time);
             if(INPUTFILTER)
