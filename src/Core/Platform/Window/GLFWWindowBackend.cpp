@@ -99,11 +99,20 @@ namespace Core::Platform::Window {
         // Window key callback
         glfwSetKeyCallback(this->windowHandle, [](GLFWwindow* window, int key, int scancode, int action, int mods){
             auto time = std::chrono::steady_clock::now();
-            if(action == GLFW_REPEAT) return; // We do our own repeat
+            if(action == GLFW_REPEAT || !INPUTFILTER) return; // We do our own repeat
             auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(key, mods);
-            DeviceInput di(DEVICE_KEYBOARD, legacy_key, action == GLFW_PRESS ? 1.0f : 0.0f, time);
-            if(INPUTFILTER)
-                INPUTFILTER->ButtonPressed(di);
+            
+            if (action == GLFW_PRESS){
+                INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_KEYBOARD, legacy_key, 1.0f, time));
+            } else if(action == GLFW_RELEASE){
+                // INPUTFILTER sees "A" and "a" as two different keys, as the game current works of key codes and not physical keys.
+                // Because of this, when a key is release, we must release both the uppercase and lowercase versions, incase
+                // a user is typing, and releases shift before they release the alphakey they pressed
+                auto key_upper = GLFWWindowBackend::convertKeyToLegacy(key, GLFW_MOD_SHIFT);
+                auto key_lower = GLFWWindowBackend::convertKeyToLegacy(key, 0);
+                INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_KEYBOARD, key_upper, 0.0f, time));
+                INPUTFILTER->ButtonPressed(DeviceInput(DEVICE_KEYBOARD, key_lower, 0.0f, time));
+            }
         });
 
         // Window mouse callback
