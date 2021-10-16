@@ -176,7 +176,7 @@ local o = Def.ActorFrame {
 		FILTERMAN:HelpImTrappedInAChineseFortuneCodingFactory(false)
 		self:playcommand("Init")
 	end,
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {-- this is a nonfunctional button to mask buttons behind the window
 		Name = "FrameDisplay",
 		InitCommand = function(self)
 			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(getMainColor("tabs"))
@@ -413,7 +413,7 @@ local function makeScoreDisplay(i)
 				self:visible(false)
 			end
 		end,
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {-- this is a non functional button to mask buttons behind the box
 			InitCommand = function(self)
 				self:x(offx):zoomto(dwidth, pdh):halign(0)
 			end,
