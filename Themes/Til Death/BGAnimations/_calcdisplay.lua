@@ -689,7 +689,7 @@ o[#o + 1] = Def.Quad {
 }
 
 -- graph bg
-o[#o + 1] = Def.Quad {
+o[#o + 1] = UIElements.QuadButton(1, 1) .. {
     InitCommand = function(self)
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
@@ -697,7 +697,9 @@ o[#o + 1] = Def.Quad {
         topgraph = self
     end,
     DoTheThingCommand = function(self)
-        self:visible(song ~= nil)
+        local visible = song ~= nil
+        self:visible(visible)
+        self:z(visible and 5 or -5) -- higher button z has priority (to block musicwheel button clicking)
     end,
     HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("GraphSeekBar")
@@ -749,7 +751,7 @@ o[#o+1] = LoadFont("Common Normal") .. {
 }
 
 -- second bg
-o[#o + 1] = Def.Quad {
+o[#o + 1] = UIElements.QuadButton(1, 1) .. {
     Name = "G2BG",
     InitCommand = function(self)
         self:y(plotHeight + 5)
@@ -759,7 +761,9 @@ o[#o + 1] = Def.Quad {
         bottomgraph = self
     end,
     DoTheThingCommand = function(self)
-        self:visible(song ~= nil)
+        local visible = song ~= nil
+        self:visible(visible)
+        self:z(visible and 5 or -5) -- higher button z has priority (to block musicwheel button clicking)
     end,
     HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("Seek2")
