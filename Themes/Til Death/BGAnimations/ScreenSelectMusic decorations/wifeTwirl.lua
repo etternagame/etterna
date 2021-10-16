@@ -932,18 +932,11 @@ do
 	}
 end
 
-t[#t + 1] = forceStart
-t[#t + 1] = readyButton
-
-t[#t + 1] = Def.Quad {
-	-- Little hack to only show forceStart and ready in netselect
-	BeginCommand = function()
-		if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
-			readyButton:Disable()
-			forceStart:Disable()
-		end
-	end,
-}
+local sn = Var ("LoadingScreen")
+if sn and sn:find("Net") ~= nil then
+	t[#t + 1] = forceStart
+	t[#t + 1] = readyButton
+end
 
 -- t[#t+1] = LoadFont("Common Large") .. {
 -- InitCommand=function(self)
