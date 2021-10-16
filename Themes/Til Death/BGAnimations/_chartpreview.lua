@@ -65,15 +65,6 @@ local t = Def.ActorFrame {
             musicratio = (GAMESTATE:GetCurrentSong():GetFirstSecond() / getCurRateValue() + GAMESTATE:GetCurrentSteps():GetLengthSeconds()) / wodth * getCurRateValue()
 		end
 	end,
-	MouseRightClickMessageCommand=function(self)
-		local tab = getTabIndex()
-		-- the Score and Profile tabs have right click functionality
-		-- so ignore right clicks if on those
-		if tab ~= 2 and tab ~= 4 then
-			SCREENMAN:GetTopScreen():PauseSampleMusic()
-			self:GetChild("pausetext"):playcommand("Set")
-		end
-	end,
     SetupNoteFieldCommand=function(self)
 		self:playcommand("NoteFieldVisible")
 	end,
@@ -167,7 +158,10 @@ local t = Def.ActorFrame {
 			else
 				self:settext("")
 			end
-		end
+		end,
+		MusicPauseToggledMessageCommand = function(self)
+			self:playcommand("Set")
+		end,
 	},
 	Def.Quad {
 		Name = "PosBG",

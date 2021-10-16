@@ -47,4 +47,18 @@ t[#t + 1] = Def.Quad {
 	end
 }
 
+t[#t+1] = UIElements.QuadButton(1, 100) .. {-- a fullscreen button for right click pausing so your right clicks dont pause accidentally
+	InitCommand = function(self)
+		self:valign(0):halign(0)
+		self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+		self:diffusealpha(0)
+	end,
+	MouseDownCommand = function(self, params)
+		if params.event == "DeviceButton_right mouse button" then
+			SCREENMAN:GetTopScreen():PauseSampleMusic()
+			MESSAGEMAN:Broadcast("MusicPauseToggled")
+		end
+	end
+}
+
 return t
