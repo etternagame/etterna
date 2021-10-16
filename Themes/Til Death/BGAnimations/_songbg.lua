@@ -47,7 +47,7 @@ t[#t + 1] = Def.Quad {
 	end
 }
 
-t[#t+1] = UIElements.QuadButton(1, 100) .. {-- a fullscreen button for right click pausing so your right clicks dont pause accidentally
+t[#t+1] = UIElements.QuadButton(-1000, 1) .. {-- a fullscreen button for right click pausing so your right clicks dont pause accidentally
 	InitCommand = function(self)
 		self:valign(0):halign(0)
 		self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)

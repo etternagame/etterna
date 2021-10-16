@@ -350,7 +350,7 @@ function BUTTON.GetTopButton(self, x, y)
         return
     end
 
-	local topZ = 0
+	local topZ = -99999
 	local topButton = nil
 	local topButtonDepth = 0
 
