@@ -844,53 +844,67 @@ local enabledC = "#099948"
 local disabledC = "#ff6666"
 local force = false
 local ready = false
-local function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, enabledF)
-	local button
-	button =
-		Widg.Button {
-		text = textDisabled,
-		width = 50 + extrawidth,
-		height = 24,
-		border = false,
-		bgColor = color(disabledC),
-		border = {
-			color = "#333333",
-			width = 1.5,
-		},
-		highlight = {color = getMainColor("highlight")},
-		x = 10 - 115 + capWideScale(get43size(384), 384) + x,
-		y = 66 + capWideScale(get43size(120), 120),
-		font = {
-			scale = 0.3,
-			name = "Common Large",
-			color = color("#FFFFFF"),
-			padding = {
-				x = 10,
-				y = 0
-			}
-		},
-		onInit = function(self)
-			button.turnedOn = false
-			button.updateToggleButton = function()
-				button:diffuse(color(button.turnedOn and enabledC or disabledC))
-				button:settext(button.turnedOn and textEnabled or textDisabled)
+local function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, y, enabledF)
+	local ison = false
+	return Def.ActorFrame {
+		InitCommand = function(self)
+			self:xy(10 - 115 + capWideScale(get43size(384), 384) + x, 66 + capWideScale(get43size(120), 120) + y)
+			self.updatebutton = function()
+				if self.ison ~= nil then
+					ison = self.ison
+				end
+
+				-- wtf
+				self:GetChild("Top"):diffuse((ison and color(enabledC) or (isOver(self:GetChild("Top")) and getMainColor("highlight") or color(disabledC))))
+				self:GetChild("Words"):settext(ison and textEnabled or textDisabled)
 			end
 		end,
-		onClick = function(self)
-			-- If we have an enabled function use that to know
-			-- the enabled state, otherwise toggle it
-			if enabledF then
-				button.turnedOn = enabledF()
-			else
-				button.turnedOn = (not button.turnedOn)
-			end
-			button.updateToggleButton()
-			NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())
-		end
+
+		Def.Quad {
+			Name = "BG",
+			InitCommand = function(self)
+				self:zoomto(50 + extrawidth + 1.5, 24 + 1.5)
+				self:diffuse(color("#333333"))
+			end,
+		},
+		UIElements.QuadButton(1, 1) .. {
+			Name = "Top",
+			InitCommand = function(self)
+				self:zoomto(50 + extrawidth, 24)
+				self:diffuse(color(disabledC))
+			end,
+			MouseOverCommand = function(self)
+				self:diffuse(ison and color(enabledC) or getMainColor("highlight"))
+			end,
+			MouseOutCommand = function(self)
+				self:diffuse(color(ison and enabledC or disabledC))
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					if enabledF then
+						ison = enabledF()
+					else
+						ison = (not ison)
+					end
+					
+					-- wtf 2
+					self:diffuse(ison and color(enabledC) or getMainColor("highlight"))
+					NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())
+				end
+			end,
+		},
+		LoadFont("Common Large") .. {
+			Name = "Words",
+			InitCommand = function(self)
+				self:zoom(0.3)
+				self:diffuse(color("#FFFFFF"))
+				self:maxwidth((50 + extrawidth) / 0.3)
+				self:settext(textDisabled)
+			end,
+		},
 	}
-	return button
 end
-local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", -35, 30)
+local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", -35, 30, 11)
 local readyButton
 do
 	-- do-end block to minimize the scope of 'f'
@@ -906,14 +920,16 @@ do
 				end
 			end
 			-- ???? this should never happen
+			-- retroactive - had this happen once and i still dont know why
 			error "Could not find ourselves in the userlist"
 		end
 	end
-	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, 0, areWeReadiedUp)
-	readyButton.UsersUpdateMessageCommand = function(self)
-		readyButton.turnedOn = areWeReadiedUp()
-		readyButton.updateToggleButton()
-	end
+	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, 0, 11, areWeReadiedUp) .. {
+		UsersUpdateMessageCommand = function(self)
+			self.ison = areWeReadiedUp()
+			self.updatebutton()
+		end
+	}
 end
 
 t[#t + 1] = forceStart
