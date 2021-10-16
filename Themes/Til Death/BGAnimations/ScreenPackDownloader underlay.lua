@@ -97,10 +97,6 @@ local function DlInput(event)
 	end
 end
 
-local function highlight(self)
-	self:queuecommand("Highlight")
-end
-
 local function diffuseIfActiveButton(self, cond)
 	if cond then
 		self:diffuse(color("#666666"))
@@ -120,14 +116,6 @@ end
 local activealpha = 0.1
 local inactivealpha = 0.3
 local highlightalpha = 0.5
-
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(highlightalpha)
-	else
-		self:diffusealpha(inactivealpha)
-	end
-end
 
 local translated_info = {
 	Filters = THEME:GetString("ScreenPackDownloader", "Filters"),
@@ -157,7 +145,6 @@ local o = Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(0, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx, offy * 2 + 14)
-		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(DlInput)
@@ -216,13 +203,12 @@ local o = Def.ActorFrame {
 				SCREENMAN:SetNewScreen("ScreenBundleSelect")
 			end
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(0.8)
-			else
-				self:diffusealpha(0.4)
-			end
-		end
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.8)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(0.4)
+		end,
 	},
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)
@@ -245,13 +231,12 @@ local o = Def.ActorFrame {
 				end
 			end
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(0.8)
-			else
-				self:diffusealpha(0.4)
-			end
-		end
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.8)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(0.4)
+		end,
 	},
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)
@@ -275,13 +260,12 @@ local o = Def.ActorFrame {
 				end
 			end
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(0.8)
-			else
-				self:diffusealpha(0.4)
-			end
-		end
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.8)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(0.4)
+		end,
 	},
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)
@@ -312,9 +296,12 @@ local function numFilter(i, x, y)
 			SetCommand = function(self)
 				diffuseIfActiveButton(self, inputting == i)
 			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end
+			MouseOverCommand = function(self)
+				self:diffusealpha(highlightalpha)
+			end,
+			MouseOutCommand = function(self)
+				self:diffusealpha(inactivealpha)
+			end,
 		},
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
@@ -361,9 +348,12 @@ o[#o + 1] = Def.ActorFrame {
 		SetCommand = function(self)
 			diffuseIfActiveButton(self, inputting == 1)
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
-		end
+		MouseOverCommand = function(self)
+			self:diffusealpha(highlightalpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(inactivealpha)
+		end,
 	},
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)

@@ -1,11 +1,3 @@
--- should maybe make some of these generic
-local function highlight(self)
-	if self:IsVisible() then
-		self:queuecommand("Highlight")
-	end
-end
-
-
 local translated_info = {
 	Title = THEME:GetString("ScreenSelectProfile", "Title"),
 	SongPlayed = THEME:GetString("ScreenSelectProfile", "SongPlayed"),
@@ -22,28 +14,24 @@ local function GetLocalProfiles()
 		local profile = PROFILEMAN:GetLocalProfileFromIndex(p)
 		local ProfileCard = Def.ActorFrame {
 			Name = p,
-			InitCommand = function(self)
-				self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
-			end,
-			Def.Quad {
+			UIElements.QuadButton(1, 1) .. {
 				InitCommand = function(self)
 					self:y(-3.25):align(0.5,0.5):zoomto(260, 39.5):ztest(true)
 					self:diffusealpha(0)
 				end,
-				LeftClickMessageCommand = function(self)
-					if isOver(self) then
+				MouseDownCommand = function(self, params)
+					if params.event == "DeviceButton_left mouse button" then
 						SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, self:GetParent():GetName() + 1)
 						SCREENMAN:GetTopScreen():Finish()
 					end
 				end,
-				HighlightCommand = function(self)
-					if isOver(self) then
-						self:GetParent():GetChild("PlayerName"):diffusealpha(0.8)
-						self:GetParent():GetChild("SongsPlayed"):diffusealpha(0.8)
-					else
-						self:GetParent():GetChild("PlayerName"):diffusealpha(1)
-						self:GetParent():GetChild("SongsPlayed"):diffusealpha(1)
-					end
+				MouseOverCommand = function(self)
+					self:GetParent():GetChild("PlayerName"):diffusealpha(0.8)
+					self:GetParent():GetChild("SongsPlayed"):diffusealpha(0.8)
+				end,
+				MouseOutCommand = function(self)
+					self:GetParent():GetChild("PlayerName"):diffusealpha(1)
+					self:GetParent():GetChild("SongsPlayed"):diffusealpha(1)
 				end,
 			},
 			LoadFont("Common Large") ..  {

@@ -70,16 +70,11 @@ local o = Def.ActorFrame {
 	}
 }
 
-local function UpdateHighlight(self)
-	self:GetChild("Doot"):playcommand("Doot")
-end
-
 local function makedoots(i)
 	local packinfo
 	local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(packspacing * i)
-			self:SetUpdateFunction(UpdateHighlight)
 		end,
 		UIElements.QuadButton(1, 1) .. {
 			Name = "Doot",
@@ -105,15 +100,20 @@ local function makedoots(i)
 					self:diffusealpha(1)
 				end
 			end,
-			DootCommand = function(self)
-				if isOver(self) and ind ~= i then
+			MouseOverCommand = function(self)
+				if ind ~= i then
 					self:diffusealpha(0.75)
-				elseif ind == i then
+				else
+					self:diffusealpha(0.5)
+				end
+			end,
+			MouseOutCommand = function(self)
+				if ind == i then
 					self:diffusealpha(1)
 				else
 					self:diffusealpha(0.5)
 				end
-			end
+			end,
 		},
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)

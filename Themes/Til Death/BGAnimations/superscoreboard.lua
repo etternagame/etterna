@@ -43,28 +43,7 @@ local function input(event)
 	return false
 end
 
-local function highlight(self)
-	if self:IsVisible() then
-		self:queuecommand("Highlight")
-		self:queuecommand("WHAZZZAAAA")
-	end
-end
-
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
 local hoverAlpha = 0.6
-
-local function byAchieved(scoregoal)
-	if not scoregoal or scoregoal:IsAchieved() then
-		return getMainColor("positive")
-	end
-	return color("#aaaaaa")
-end
 
 local filts = {
 	THEME:GetString("NestedScores", "FilterAll"),
@@ -91,7 +70,6 @@ local o = Def.ActorFrame {
 	Name = "ScoreDisplay",
 	InitCommand = function(self)
 		cheese = self
-		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
@@ -220,30 +198,58 @@ local o = Def.ActorFrame {
 		end
 	},
 	-- grabby thing
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
-			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(
-				0.5
-			):valign(1)
+			self:valign(1):halign(0)
+			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom)
+			self:diffuse(getMainColor("frames"))
+			self:diffusealpha(0)
 		end,
-		WHAZZZAAAACommand = function(self)
-			if isOver(self) and collapsed then
+		CollapseCommand = function(self)
+			self:zoomto(dwidth / 2, pdh / 2):diffusealpha(0.5)
+		end,
+		ExpandCommand = function(self)
+			self:diffusealpha(0):zoomto(400, 400):valign(0.5):halign(0.5)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and collapsed then
 				self:diffusealpha(0.6):diffuse(color("#fafafa"))
-				if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
-					self:diffusealpha(0):zoomto(400, 400):valign(0.5):halign(0.5)
-					local nx = INPUTFILTER:GetMouseX() - width / 2
-					local ny = INPUTFILTER:GetMouseY() - self:GetY()
-					self:GetParent():SaveXY(nx, ny) -- this can probably be wrapped for convenience -mina
-					self:GetParent():LoadXY()
-					self:GetParent():SetUpdateFunctionInterval(0.01)
-				else
-					self:zoomto(dwidth / 2, pdh / 2):valign(1):halign(0)
-				end
-			else
-				self:GetParent():SetUpdateFunctionInterval(0.04)
-				self:diffuse(getMainColor("frames")):diffusealpha(0)
+				self.initialClickX = params.MouseX - self:GetTrueX()
+				self.initialClickY = params.MouseY - self:GetTrueY()
+			elseif params.event == "DeviceButton_right mouse button" and collapsed then
+				self:zoomto(dwidth / 2, pdh / 2):valign(1):halign(0)
 			end
-		end
+		end,
+		MouseUpCommand = function(self, params)
+			self.gettindragged = false
+			if params.event == "DeviceButton_left mouse button" and collapsed then
+				self:diffusealpha(0.5):diffuse(getMainColor("frames"))
+			end
+		end,
+		MouseReleaseCommand = function(self, params)
+			self.gettindragged = false
+			if params.event == "DeviceButton_left mouse button" and collapsed then
+				self:diffusealpha(0.5):diffuse(getMainColor("frames"))
+			end
+		end,
+		MouseDragCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and collapsed then
+				local nx = params.MouseX - self:GetX() - self.initialClickX or 0
+				local ny = params.MouseY - self:GetY() - self.initialClickY or 0
+				self:GetParent():SaveXY(nx, ny)
+				self:GetParent():LoadXY()
+				self.gettindragged = true
+			end
+		end,
+		MouseOutCommand = function(self)
+			if not collapsed then return end
+			if self.gettindragged then return end -- dragging fast triggers this
+			self:diffuse(getMainColor("frames")):diffusealpha(0.5)
+		end,
+		MouseOverCommand = function(self)
+			if not collapsed then return end
+			self:diffusealpha(1)
+		end,
 	},
 	LoadFont("Common normal") .. {
 		-- informational text about online scores
@@ -387,11 +393,9 @@ local function makeScoreDisplay(i)
 			self:y(packspaceY * i + headeroff)
 			if i > numscores then
 				self:visible(false)
+			else
+				self:visible(true)
 			end
-			self:SetUpdateFunction(function(self)
-				self:queuecommand("PercentMouseover")
-			end)
-			self:SetUpdateFunctionInterval(0.025)
 		end,
 		CurrentSongChangedMessageCommand = function(self)
 			self:visible(false)
@@ -600,11 +604,14 @@ local function makeScoreDisplay(i)
 				end
 				self:diffusealpha(0)
 			end,
-			PercentMouseoverCommand = function(self)
-				if isOver(self) and self:IsVisible() then
+			MouseOverCommand = function(self)
+				if self:IsVisible() then
 					self:GetParent():GetChild("NormalText"):visible(false)
 					self:GetParent():GetChild("LongerText"):visible(true)
-				else
+				end
+			end,
+			MouseOutCommand = function(self)
+				if self:IsVisible() then
 					self:GetParent():GetChild("NormalText"):visible(true)
 					self:GetParent():GetChild("LongerText"):visible(false)
 				end
@@ -645,6 +652,7 @@ local function makeScoreDisplay(i)
 				if collapsed then
 					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
 				end
+				self:visible(false)
 			end,
 			DisplayCommand = function(self)
 				local perc = hs:GetWifeScore() * 100

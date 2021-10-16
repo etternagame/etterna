@@ -490,12 +490,6 @@ local function assetBox(i)
 	return t
 end
 
-
-
-local function highlight(self)
-	self:queuecommand("Highlight")
-end
-
 local function mainContainer()
 	local fontScale = 0.5
 	local smallFontScale = 0.35
@@ -503,11 +497,7 @@ local function mainContainer()
 	local fontRow1 = -frameHeight/2+20
 	local fontSpacing = 15
 
-	local t = Def.ActorFrame {
-		InitCommand = function(self)
-			self:SetUpdateFunction(highlight)
-		end
-	}
+	local t = Def.ActorFrame {}
 
 	t[#t+1] = Def.Quad {
 		InitCommand = function(self)

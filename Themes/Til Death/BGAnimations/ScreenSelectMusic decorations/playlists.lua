@@ -354,23 +354,17 @@ local function rankingLabel(i)
 		},
 		Def.ActorFrame {
 			Name = "PackMouseOver",
-			InitCommand = function(self)
-				self:SetUpdateFunction(function(self)
-					if self:IsVisible() then
-						self:queuecommand("PackMouseover")
-					end
-				end)
-			end,
-			Def.Quad {
+			UIElements.QuadButton(1, 1) .. {
 				InitCommand = function(self)
 					Name = "mouseover",
 					self:x(-7):zoomto(212, scoreYspacing):halign(0):diffusealpha(0)
 				end,
-				PackMouseoverMessageCommand = function(self)
-					if isOver(self) then
-						self:GetParent():queuecommand("DisplayPack")
-					end
-				end
+				MouseOverCommand = function(self)
+					self:GetParent():queuecommand("DisplayPack")
+				end,
+				MouseOutCommand = function(self)
+					self:GetParent():queuecommand("UNDisplayPack")
+				end,
 			},
 			Def.ActorFrame {
 				Name = "mouseovertextcontainer",
@@ -385,6 +379,14 @@ local function rankingLabel(i)
 						bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * 1.4)
 						self:finishtweening()
 						self:diffusealpha(1)
+					end
+				end,
+				UNDisplayPackCommand = function(self)
+					if songlist[i + ((currentchartpage - 1) * chartsperplaylist)] then
+						local txt = self:GetChild("text")
+						local bg = self:GetChild("BG")
+						txt:settext(songlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetGroupName())
+						bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * 1.4)
 						self:linear(0.25)
 						self:diffusealpha(0)
 					end

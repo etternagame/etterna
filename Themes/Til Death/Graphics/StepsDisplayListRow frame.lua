@@ -1,16 +1,3 @@
-local function highlight(self)
-	if self:IsVisible() then
-		self:queuecommand("Highlight")
-	end
-end
-
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.75)
-	else
-		self:diffusealpha(0.5)
-	end
-end
 local hoverAlpha = 0.6
 
 local t = Def.ActorFrame {}

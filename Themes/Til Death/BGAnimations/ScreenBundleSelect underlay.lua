@@ -30,17 +30,7 @@ local function input(event)
 	return false
 end
 
-local function highlight(self)
-	self:queuecommand("Highlight")
-end
-
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
+local hoverAlpha = 0.6
 
 local translated_info = {
 	Selected = THEME:GetString("ScreenBundleSelect", "Selected Bundle"),
@@ -68,7 +58,6 @@ local o = Def.ActorFrame {
 		self:xy(offx + width / 2, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx - (offx + width / 2), offy * 2 + 14):visible(false) --- uuuu messy... basically cancel out the x coord of the parent
 		packlist = PackList:new()
-		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
@@ -137,9 +126,12 @@ local o = Def.ActorFrame {
 				DLMAN:DownloadCoreBundle(minidoots[ind]:lower())
 			end
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
-		end
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
 	},
 	--return to normal search
 	UIElements.QuadButton(1, 1) .. {
@@ -151,13 +143,12 @@ local o = Def.ActorFrame {
 				SCREENMAN:SetNewScreen("ScreenPackDownloader")
 			end
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(0.8)
-			else
-				self:diffusealpha(0.4)
-			end
-		end
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.8)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(0.4)
+		end,
 	},
 	LoadFont("Common normal") .. {
 		InitCommand = function(self)
@@ -166,26 +157,26 @@ local o = Def.ActorFrame {
 	}
 }
 
-local function UpdateHighlight(self)
-	self:GetChild("Doot"):playcommand("Doot")
-end
-
 local function makedoots(i)
 	local packinfo
 	local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:y(packspacing * i + offy + 10)
-			self:SetUpdateFunction(UpdateHighlight)
 		end,
 		UIElements.QuadButton(1, 1) .. {
 			Name = "Doot",
 			InitCommand = function(self)
 				self:y(-12):zoomto(width, packh):valign(0):diffuse(color(diffcolors[math.ceil(i / 2)]))
 			end,
-			DootCommand = function(self)
-				if isOver(self) and ind ~= i then
+			MouseOverCommand = function(self)
+				if ind ~= i then
 					self:diffusealpha(0.75)
-				elseif ind == i then
+				else
+					self:diffusealpha(0.5)
+				end
+			end,
+			MouseOutCommand = function(self)
+				if ind == i then
 					self:diffusealpha(1)
 				else
 					self:diffusealpha(0.5)
