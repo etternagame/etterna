@@ -175,6 +175,7 @@ class RageDisplay
     [[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
     auto IsD3D() -> bool;
     VideoMode getVideoMode() { return videoMode; }
+    int getRefreshRate() { return window->getRefreshRate(); } /** TODO(james): Exists for compat. Move in render pr.*/
 
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
