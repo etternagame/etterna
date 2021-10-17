@@ -143,7 +143,7 @@ t[#t+1] = Def.NoteFieldPreview {
     DrawDistanceAfterTargetsPixels = notefieldAllowBeyondReceptorPixels, -- notes disappear at the receptor
 
     InitCommand = function(self)
-        self:x(rightHalfXBegin + 15)
+        self:playcommand("SetPosition")
         self:y(notefieldYCenter)
         self:zoom(notefieldZoomBaseline)
         -- make mods work
@@ -158,6 +158,16 @@ t[#t+1] = Def.NoteFieldPreview {
         self:draworder(1)
         self:GetParent():GetChild("ChordDensityGraphFile"):draworder(2)
         self:GetParent():SortByDrawOrder()
+    end,
+    SetPositionCommand = function(self)
+        -- THESE ARE LITERALLY RANDOM NUMBERS
+        -- I DO NOT KNOW WHY THIS IS NECESSARY
+        -- IT DOES NOT MAKE ANY SENSE
+        if getWheelPosition() then
+            self:x(rightHalfXBegin + 15)
+        else
+            self:x(rightHalfXBegin + (actuals.Width - rightHalfXBegin) / 2)
+        end
     end,
     LoadNoteDataCommand = function(self, params)
         local steps = params.steps
@@ -190,6 +200,10 @@ t[#t+1] = Def.NoteFieldPreview {
             }
             if options[params.name] ~= nil then
                 self:playcommand("LoadNoteData", {steps = GAMESTATE:GetCurrentSteps()})
+            end
+
+            if params.name == "Music Wheel Position" then
+                self:playcommand("SetPosition")
             end
         end
     end,
