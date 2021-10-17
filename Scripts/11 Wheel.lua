@@ -1,12 +1,3 @@
---[[
-	Note: This is still a WIP
-	Feel free to contribute to it
---]]
-local find = function(t, x)
-    local k = findKeyOf(t, x)
-    return k and t[k] or nil
-end
-
 local Wheel = {}
 local function fillNilTableFieldsFrom(table1, defaultTable)
     for key, value in pairs(defaultTable) do
@@ -14,25 +5,6 @@ local function fillNilTableFieldsFrom(table1, defaultTable)
             table1[key] = defaultTable[key]
         end
     end
-end
-
-local function dump(o)
-    if type(o) == "table" then
-        local s = "{ "
-        for k, v in pairs(o) do
-            if type(k) ~= "number" then
-                k = '"' .. k .. '"'
-            end
-            s = s .. "[" .. k .. "] = " .. dump(v) .. ","
-        end
-        return s .. "} "
-    else
-        return tostring(o)
-    end
-end
-
-local function print(x)
-    SCREENMAN:SystemMessage(dump(x))
 end
 
 local function getIndexCircularly(table, idx)
@@ -165,14 +137,6 @@ Wheel.mt = {
         end
     end,
     move = function(whee, num)
-        --[[
-        if whee.moveInterval then
-            SCREENMAN:GetTopScreen():clearInterval(whee.moveInterval)
-        end
-        if num == 0 then
-            whee.moveInterval = nil
-            return
-        end]]
         if num == whee.moving then return end
 
         if whee.moving ~= 0 and num == 0 and whee.timeBeforeMovingBegins == 0 then
@@ -181,32 +145,13 @@ Wheel.mt = {
             end
         end
 
-        whee.timeBeforeMovingBegins = 1 / 8
-        whee.spinSpeed = 15 -- preference based
+        whee.timeBeforeMovingBegins = 1 / 8 -- this was hardcoded and there is no justification for it
+        whee.spinSpeed = 15 -- preference based (CHANGE THIS)
         whee.moving = num
 
         if whee.moving ~= 0 then
             whee:changemusic(whee.moving)
         end
-
-        --whee.floatingOffset = num
-        --local interval = whee.pollingSeconds / 60
-        --whee.index = getIndexCircularly(whee.items, whee.index + num)
-        --MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
-        --[[
-        whee.moveInterval =
-            SCREENMAN:GetTopScreen():setInterval(
-            function()
-                whee.floatingOffset = whee.floatingOffset - num / (whee.pollingSeconds / interval)
-                if num < 0 and whee.floatingOffset >= 0 or num > 0 and whee.floatingOffset <= 0 then
-                    SCREENMAN:GetTopScreen():clearInterval(whee.moveInterval)
-                    whee.moveInterval = nil
-                    whee.floatingOffset = 0
-                end
-                whee:update()
-            end,
-            interval
-        )]]
 
         -- stop the music if moving so we dont leave it playing in a random place
         SOUND:StopMusic()
@@ -214,45 +159,57 @@ Wheel.mt = {
     changemusic = function(whee, num)
         whee.index = getIndexCircularly(whee.items, whee.index + num)
         whee.positionOffsetFromSelection = whee.positionOffsetFromSelection + num
-        MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
+        MESSAGEMAN:Broadcast("WheelIndexChanged", {
+            index = whee.index,
+            maxIndex = #whee.items,
+        })
     end,
-    findSong = function(whee, chartkey)
-        -- in this case, we want to set based on preferred info
+    setNewState = function(whee, index, startindex, itemsgetter, items, group)
+        -- effectively moves the song wheel based on the params you give, but it needs to have an update run
+        whee.index = index
+        whee.startIndex = startindex
+        whee.itemsGetter = itemsgetter
+        whee.items = items
+        whee.group = group
+    end,
+    findSong = function(whee, chartkey) -- returns the group that opened while finding this song
+        local song = nil
+        local steps = nil
+
+        -- either use profile/preference based song or locate by chartkey
         if chartkey == nil then
-            local song = GAMESTATE:GetPreferredSong()
-
-            if song ~= nil then
-                local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
-                WHEELDATA:SetWheelItems(newItems)
-
-                whee.index = finalIndex
-                whee.startIndex = finalIndex
-                whee.itemsGetter = function() return WHEELDATA:GetWheelItems() end
-                whee.items = newItems
-                whee.group = songgroup
-                GAMESTATE:SetCurrentSong(song)
-                GAMESTATE:SetCurrentSteps(PLAYER_1, WHEELDATA:GetChartsMatchingFilter(song)[1])
-                return songgroup
-            end
+            song = GAMESTATE:GetPreferredSong()
         else
-            local song = SONGMAN:GetSongByChartKey(chartkey)
-            if song == nil then return nil end
-
-            local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
-            WHEELDATA:SetWheelItems(newItems)
-
-            whee.index = finalIndex
-            whee.startIndex = finalIndex
-            whee.itemsGetter = function() return WHEELDATA:GetWheelItems() end
-            whee.items = newItems
-            whee.group = songgroup
-            GAMESTATE:SetCurrentSong(song)
-            GAMESTATE:SetCurrentSteps(PLAYER_1, SONGMAN:GetStepsByChartKey(chartkey))
-            return songgroup
+            song = SONGMAN:GetSongByChartKey(chartkey)
         end
-        return nil
+
+        -- jump to the first instance of the song if it exists
+        if song ~= nil then
+            local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+
+            if chartkey == nil then
+                steps = WHEELDATA:GetChartsMatchingFilter(song)[1]
+            else
+                steps = SONGMAN:GetStepsByChartKey(chartkey)
+            end
+
+            WHEELDATA:SetWheelItems(newItems)
+            whee:setNewState(
+                finalIndex,
+                finalIndex,
+                function() return WHEELDATA:GetWheelItems() end,
+                newItems,
+                songgroup
+            )
+            GAMESTATE:SetCurrentSong(song)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, steps)
+
+            return songgroup
+        else
+            return nil
+        end
     end,
-    findGroup = function(whee, name, openGroup)
+    findGroup = function(whee, name, openGroup) -- returns success status
         if name == nil then name = whee.group end
         if name == nil then return nil end
 
@@ -264,12 +221,13 @@ Wheel.mt = {
             items = WHEELDATA:GetWheelItemsForOpenedFolder(name)
         end
         WHEELDATA:SetWheelItems(items)
-        
-        whee.index = index
-        whee.startIndex = index
-        whee.itemsGetter = function() return WHEELDATA:GetWheelItems() end
-        whee.items = items
-        whee.group = nil
+        whee:setNewState(
+            index,
+            index,
+            function() return WHEELDATA:GetWheelItems() end,
+            items,
+            nil
+        )
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
         return true
@@ -282,9 +240,22 @@ Wheel.mt = {
         whee:updateGlobalsFromCurrentItem()
         whee:updateMusicFromCurrentItem()
         whee:rebuildFrames()
-        MESSAGEMAN:Broadcast("ClosedGroup", {group = whee.group})
-        MESSAGEMAN:Broadcast("ModifiedGroups", {group = whee.group, index = whee.index, maxIndex = #whee.items})
-        MESSAGEMAN:Broadcast("WheelSettled", {song = nil, group = whee.group, hovered = whee:getCurrentItem(), steps = nil, index = whee.index, maxIndex = #whee.items})
+        MESSAGEMAN:Broadcast("ClosedGroup", {
+            group = whee.group,
+        })
+        MESSAGEMAN:Broadcast("ModifiedGroups", {
+            group = whee.group,
+            index = whee.index,
+            maxIndex = #whee.items,
+        })
+        MESSAGEMAN:Broadcast("WheelSettled", {
+            song = nil,
+            group = whee.group,
+            hovered = whee:getCurrentItem(),
+            steps = nil,
+            index = whee.index,
+            maxIndex = #whee.items,
+        })
     end,
     openSortModeMenu = function(w)
         -- 0 is the sort mode menu
@@ -294,27 +265,42 @@ Wheel.mt = {
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
-        w.index = 1
-        w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
-        w.startIndex = 1
-        w.items = newItems
-        w.group = nil
+        w:setNewState(
+            1,
+            1,
+            function() return WHEELDATA:GetWheelItems() end,
+            newItems,
+            nil
+        )
         crossedGroupBorder = true
         forceGroupCheck = true
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
         
-        MESSAGEMAN:Broadcast("ClosedGroup", {group = w.group})
+        MESSAGEMAN:Broadcast("ClosedGroup", {
+            group = w.group
+        })
         w:rebuildFrames()
-        MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
+        MESSAGEMAN:Broadcast("ModifiedGroups", {
+            group = w.group,
+            index = w.index,
+            maxIndex = #w.items,
+        })
         w:updateGlobalsFromCurrentItem()
         w:updateMusicFromCurrentItem()
-        MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+        MESSAGEMAN:Broadcast("WheelSettled", {
+            song = GAMESTATE:GetCurrentSong(),
+            group = w.group,
+            hovered = w:getCurrentItem(),
+            steps = GAMESTATE:GetCurrentSteps(),
+            index = w.index, maxIndex = #w.items,
+        })
         w.settled = true
     end,
     getItem = function(whee, idx)
         return whee.items[getIndexCircularly(whee.items, idx)]
         -- For some reason i have to +1 here
+        -- (why am i not doing it anymore?)
     end,
     getCurrentItem = function(whee)
         return whee:getItem(whee.index)
@@ -322,6 +308,7 @@ Wheel.mt = {
     getFrame = function(whee, idx)
         return whee.frames[getIndexCircularly(whee.frames, idx)]
         -- For some reason i have to +1 here
+        -- (why am i not doing it anymore?)
     end,
     getCurrentFrame = function(whee)
         return whee:getFrame(whee.index)
@@ -351,13 +338,17 @@ Wheel.mt = {
                 if forceGroupCheck or not crossedGroupBorder then
                     crossedGroupBorder = true
                     forceGroupCheck = false
-                    MESSAGEMAN:Broadcast("ScrolledIntoGroup", {group = whee.group})
+                    MESSAGEMAN:Broadcast("ScrolledIntoGroup", {
+                        group = whee.group
+                    })
                 end
             else
                 if forceGroupCheck or crossedGroupBorder then
                     crossedGroupBorder = false
                     forceGroupCheck = false
-                    MESSAGEMAN:Broadcast("ScrolledOutOfGroup", {group = whee.group})
+                    MESSAGEMAN:Broadcast("ScrolledOutOfGroup", {
+                        group = whee.group
+                    })
                 end
             end
 
@@ -369,7 +360,14 @@ Wheel.mt = {
             whee:updateMusicFromCurrentItem()
             -- settled brings along the Song, Group, Steps, and HoveredItem
             -- Steps should be set correctly immediately on Move, so no problems should arise.
-            MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group, hovered = whee:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = whee.index, maxIndex = #whee.items})
+            MESSAGEMAN:Broadcast("WheelSettled", {
+                song = GAMESTATE:GetCurrentSong(),
+                group = whee.group,
+                hovered = whee:getCurrentItem(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                index = whee.index,
+                maxIndex = #whee.items
+            })
             whee.settled = true
         end
         if whee.positionOffsetFromSelection ~= 0 then
@@ -429,18 +427,15 @@ function Wheel:new(params)
     whee.sort = params.sort
     whee.startIndex = params.startIndex
     whee.frameUpdater = params.frameUpdater
-    whee.floatingOffset = 0
     whee.buildOnInit = params.buildOnInit
     whee.frameTransformer = params.frameTransformer
     whee.index = whee.startIndex
     whee.onSelection = params.onSelection
-    whee.pollingSeconds = 1 / params.speed
     whee.positionOffsetFromSelection = 0
     whee.moving = 0
     whee.timeBeforeMovingBegins = 0
     whee.x = params.x
     whee.y = params.y
-    whee.moveHeight = 10
     whee.items = {}
     whee.BeginCommand = function(self)
         local snm = SCREENMAN:GetTopScreen():GetName()
@@ -448,11 +443,6 @@ function Wheel:new(params)
         CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
         local heldButtons = {}
         local buttonQueue = {}
-        local interval = nil
-        -- the polling interval for button presses to keep moving the wheel
-        -- basically replaces the repeat event type for the input stuff
-        -- because we want to go faster
-        local repeatseconds = 0.097
         SCREENMAN:GetTopScreen():AddInputCallback(
             function(event)
                 local gameButton = event.button
@@ -491,9 +481,9 @@ function Wheel:new(params)
                         -- dont allow input, but do allow left and right arrow input
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") and not keydirection then return end
                         heldButtons[direction] = true
-                        -- dont move if holding both buttons
+                        
                         if (left and heldButtons["right"]) or (right and heldButtons["left"]) then
-                            -- do nothing
+                            -- dont move if holding both buttons
                             whee:move(0)
                         else
                             -- move on single press or repeat
@@ -502,6 +492,7 @@ function Wheel:new(params)
                     elseif event.type == "InputEventType_Release" then
                         heldButtons[direction] = false
                         if heldButtons["left"] == false and heldButtons["right"] == false then
+                            -- cease movement
                             whee:move(0)
                         end
                     end
@@ -531,36 +522,43 @@ function Wheel:new(params)
                 return false
             end
         )
-        self:SetUpdateFunction(function(self, delta)
+        self:SetUpdateFunction(
+            function(self, delta)
+                -- begin the moving
+                if whee.moving ~= 0 then
+                    whee.timeBeforeMovingBegins = clamp(whee.timeBeforeMovingBegins - delta, 0, whee.timeBeforeMovingBegins)
+                end
 
-            if whee.moving ~= 0 then
-                whee.timeBeforeMovingBegins = clamp(whee.timeBeforeMovingBegins - delta, 0, whee.timeBeforeMovingBegins)
-            end
-            if whee.positionOffsetFromSelection ~= 0 then
-                whee:update()
-                whee.keepupdating = true
-            elseif whee.keepupdating then
-                whee.keepupdating = false
-                whee:update()
-            end
-            if whee.moving ~= 0 and whee.timeBeforeMovingBegins == 0 then
-                local sping = whee.spinSpeed * whee.moving
-                whee.positionOffsetFromSelection = clamp(whee.positionOffsetFromSelection - (sping * delta), -1, 1)
-                if (whee.moving == -1 and whee.positionOffsetFromSelection >= 0) or
-                    (whee.moving == 1 and whee.positionOffsetFromSelection <= 0) then
-                        whee:changemusic(whee.moving)
+                -- little hack to make sure the wheel doesnt update when nothing has to move
+                if whee.positionOffsetFromSelection ~= 0 then
+                    whee:update()
+                    whee.keepupdating = true
+                elseif whee.keepupdating then
+                    whee.keepupdating = false
+                    whee:update()
                 end
-                -- maybe play moving sound here based on delta 
-            else
-                -- the wheel should rotate toward selection but isnt "moving"
-                local sping = 0.2 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
-                if whee.positionOffsetFromSelection > 0 then
-                    whee.positionOffsetFromSelection = math.max(whee.positionOffsetFromSelection - (sping * delta), 0)
-                elseif whee.positionOffsetFromSelection < 0 then
-                    whee.positionOffsetFromSelection = math.min(whee.positionOffsetFromSelection + (sping * delta), 0)
+
+                -- handle wheel movement moving moves
+                if whee.moving ~= 0 and whee.timeBeforeMovingBegins == 0 then
+                    local sping = whee.spinSpeed * whee.moving
+                    whee.positionOffsetFromSelection = clamp(whee.positionOffsetFromSelection - (sping * delta), -1, 1)
+                    if (whee.moving == -1 and whee.positionOffsetFromSelection >= 0) or
+                        (whee.moving == 1 and whee.positionOffsetFromSelection <= 0) then
+                            whee:changemusic(whee.moving)
+                    end
+                    -- maybe play moving sound here based on delta 
+                else
+                    -- the wheel should rotate toward selection but isnt "moving"
+                    local sping = 0.2 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
+                    if whee.positionOffsetFromSelection > 0 then
+                        whee.positionOffsetFromSelection = math.max(whee.positionOffsetFromSelection - (sping * delta), 0)
+                    elseif whee.positionOffsetFromSelection < 0 then
+                        whee.positionOffsetFromSelection = math.min(whee.positionOffsetFromSelection + (sping * delta), 0)
+                    end
                 end
             end
-        end)
+        )
+        -- default interval is 0.016 which is TOO SLOW C++ IS LITERALLY 0 WTF
         self:SetUpdateFunctionInterval(0.001)
 
         -- mega hack to make things init 0.1 seconds after real init
@@ -575,61 +573,52 @@ function Wheel:new(params)
     end
     whee.InitCommand = function(self)
         whee.actor = self
-        local interval = false
         self:x(whee.x):y(whee.y)
     end
     whee.frames = {}
     for i = 1, (params.count) do
-        local frame =
-            params.frameBuilder() ..
-            {
-                InitCommand = function(self)
-                    whee.frames[i] = self
-                    self.index = i
-                end
-            }
-        whee[#whee + 1] = frame
-    end
-    whee[#whee + 1] =
-        params.highlightBuilder() ..
-        {
+        local frame = params.frameBuilder() .. {
             InitCommand = function(self)
-                whee.highlight = self
+                whee.frames[i] = self
+                self.index = i
             end
         }
+        whee[#whee + 1] = frame
+    end
+    whee[#whee + 1] = params.highlightBuilder() .. {
+        InitCommand = function(self)
+            whee.highlight = self
+        end
+    }
     return whee
 end
 MusicWheel = {}
 MusicWheel.defaultParams = {
     songActorBuilder = function()
         local s
-        s =
-            Def.ActorFrame {
+        s = Def.ActorFrame {
             InitCommand = function(self)
                 s.actor = self
             end,
-            LoadFont("Common Normal") ..
-                {
-                    BeginCommand = function(self)
-                        s.actor.fontActor = self
-                    end
-                }
+            LoadFont("Common Normal") .. {
+                BeginCommand = function(self)
+                    s.actor.fontActor = self
+                end
+            }
         }
         return s
     end,
     groupActorBuilder = function()
         local g
-        g =
-            Def.ActorFrame {
+        g = Def.ActorFrame {
             InitCommand = function(self)
                 g.actor = self
             end,
-            LoadFont("Common Normal") ..
-                {
-                    BeginCommand = function(self)
-                        g.actor.fontActor = self
-                    end
-                }
+            LoadFont("Common Normal") .. {
+                BeginCommand = function(self)
+                    g.actor.fontActor = self
+                end
+            }
         }
         return g
     end,
@@ -640,7 +629,7 @@ MusicWheel.defaultParams = {
         (self.fontActor):settext(packName)
     end,
     highlightBuilder = nil,
-    frameTransformer = nil --function(frame, offsetFromCenter, index, total) -- Handle frame positioning
+    frameTransformer = nil, --function(frame, offsetFromCenter, index, total) -- Handle frame positioning
 }
 
 function MusicWheel:new(params)
@@ -663,8 +652,7 @@ function MusicWheel:new(params)
     WHEELDATA:Init()
 
     local w
-    w =
-        Wheel:new {
+    w = Wheel:new {
         count = params.count,
         buildOnInit = params.buildOnInit,
         frameTransformer = params.frameTransformer,
@@ -673,23 +661,20 @@ function MusicWheel:new(params)
         y = params.y,
         frameBuilder = noOverrideFrameBuilder and params.frameBuilder or function()
             local x
-            x =
-                Def.ActorFrame {
+            x = Def.ActorFrame {
                 InitCommand = function(self)
                     x.actor = self
                 end,
-                groupActorBuilder() ..
-                    {
-                        BeginCommand = function(self)
-                            x.actor.g = self
-                        end
-                    },
-                songActorBuilder() ..
-                    {
-                        BeginCommand = function(self)
-                            x.actor.s = self
-                        end
-                    }
+                groupActorBuilder() .. {
+                    BeginCommand = function(self)
+                        x.actor.g = self
+                    end
+                },
+                songActorBuilder() .. {
+                    BeginCommand = function(self)
+                        x.actor.s = self
+                    end
+                }
             }
             return x
         end,
@@ -733,22 +718,37 @@ function MusicWheel:new(params)
                     local newItems = WHEELDATA:GetFilteredFolders()
                     WHEELDATA:SetWheelItems(newItems)
 
-                    w.index = 1
-                    w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
-                    w.startIndex = 1
-                    w.items = newItems
-                    w.group = nil
+                    w:setNewState(
+                        1,
+                        1,
+                        function() return WHEELDATA:GetWheelItems() end,
+                        newItems,
+                        nil
+                    )
                     crossedGroupBorder = true
                     forceGroupCheck = true
                     GAMESTATE:SetCurrentSong(nil)
                     GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
                     
-                    MESSAGEMAN:Broadcast("ClosedGroup", {group = w.group})
+                    MESSAGEMAN:Broadcast("ClosedGroup", {
+                        group = w.group,
+                    })
                     w:rebuildFrames()
-                    MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
+                    MESSAGEMAN:Broadcast("ModifiedGroups", {
+                        group = w.group,
+                        index = w.index,
+                        maxIndex = #w.items,
+                    })
                     w:updateGlobalsFromCurrentItem()
                     w:updateMusicFromCurrentItem()
-                    MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                    MESSAGEMAN:Broadcast("WheelSettled", {
+                        song = GAMESTATE:GetCurrentSong(),
+                        group = w.group,
+                        hovered = w:getCurrentItem(),
+                        steps = GAMESTATE:GetCurrentSteps(),
+                        index = w.index,
+                        maxIndex = #w.items,
+                    })
                     w.settled = true
                     return
                 end
@@ -764,7 +764,9 @@ function MusicWheel:new(params)
                     w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
 
-                    MESSAGEMAN:Broadcast("ClosedGroup", {group = group})
+                    MESSAGEMAN:Broadcast("ClosedGroup", {
+                        group = group,
+                    })
                 else
                     -- OPENING PACK
                     crossedGroupBorder = false
@@ -777,10 +779,16 @@ function MusicWheel:new(params)
                     w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
 
                     crossedGroupBorder = true
-                    MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                    MESSAGEMAN:Broadcast("OpenedGroup", {
+                        group = group,
+                    })
                 end
                 w:rebuildFrames()
-                MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
+                MESSAGEMAN:Broadcast("ModifiedGroups", {
+                    group = w.group,
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
             end
         end,
         itemsGetter = function()
@@ -831,9 +839,15 @@ function MusicWheel:new(params)
                 -- found the song, set up the group focus and send out the related messages for consistency
                 crossedGroupBorder = true
                 forceGroupCheck = true
-                MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                MESSAGEMAN:Broadcast("OpenedGroup", {
+                    group = group,
+                })
                 w:rebuildFrames()
-                MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+                MESSAGEMAN:Broadcast("ModifiedGroups", {
+                    group = group,
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
             else
                 -- if the song was not found or there are no items to refresh, do nothing
                 w:rebuildFrames()
@@ -848,13 +862,26 @@ function MusicWheel:new(params)
                 -- found the song, set up the group focus and send out the related messages for consistency
                 crossedGroupBorder = true
                 forceGroupCheck = true
-                MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                MESSAGEMAN:Broadcast("OpenedGroup", {
+                    group = group,
+                })
                 w:rebuildFrames()
-                MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+                MESSAGEMAN:Broadcast("ModifiedGroups", {
+                    group = group,
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
                 w:move(0)
                 w:updateGlobalsFromCurrentItem()
                 w:updateMusicFromCurrentItem()
-                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                MESSAGEMAN:Broadcast("WheelSettled", {
+                    song = GAMESTATE:GetCurrentSong(),
+                    group = w.group,
+                    hovered = w:getCurrentItem(),
+                    steps = GAMESTATE:GetCurrentSteps(),
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
                 w.settled = true
             end
         elseif params.song ~= nil then
@@ -865,12 +892,25 @@ function MusicWheel:new(params)
                     -- found the song, set up the group focus and send out the related messages for consistency
                     crossedGroupBorder = true
                     forceGroupCheck = true
-                    MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                    MESSAGEMAN:Broadcast("OpenedGroup", {
+                        group = group,
+                    })
                     w:rebuildFrames()
-                    MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+                    MESSAGEMAN:Broadcast("ModifiedGroups", {
+                        group = group,
+                        index = w.index,
+                        maxIndex = #w.items,
+                    })
                     w:updateGlobalsFromCurrentItem()
                     w:updateMusicFromCurrentItem()
-                    MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                    MESSAGEMAN:Broadcast("WheelSettled", {
+                        song = GAMESTATE:GetCurrentSong(),
+                        group = w.group,
+                        hovered = w:getCurrentItem(),
+                        steps = GAMESTATE:GetCurrentSteps(),
+                        index = w.index,
+                        maxIndex = #w.items,
+                    })
                     w.settled = true
                 end
             end
@@ -883,12 +923,25 @@ function MusicWheel:new(params)
             if success then
                 crossedGroupBorder = true
                 forceGroupCheck = true
-                MESSAGEMAN:Broadcast("OpenedGroup", {group = group})
+                MESSAGEMAN:Broadcast("OpenedGroup", {
+                    group = group,
+                })
                 w:rebuildFrames()
-                MESSAGEMAN:Broadcast("ModifiedGroups", {group = group, index = w.index, maxIndex = #w.items})
+                MESSAGEMAN:Broadcast("ModifiedGroups", {
+                    group = group,
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
                 w:updateGlobalsFromCurrentItem()
                 w:updateMusicFromCurrentItem()
-                MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+                MESSAGEMAN:Broadcast("WheelSettled", {
+                    song = GAMESTATE:GetCurrentSong(),
+                    group = w.group,
+                    hovered = w:getCurrentItem(),
+                    steps = GAMESTATE:GetCurrentSteps(),
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
                 w.settled = true
             else
                 -- in this case there was something wrong with the input
@@ -905,22 +958,37 @@ function MusicWheel:new(params)
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
-        w.index = 1
-        w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
-        w.startIndex = 1
-        w.items = newItems
-        w.group = nil
+        w:setNewState(
+            1,
+            1,
+            function() return WHEELDATA:GetWheelItems() end,
+            newItems,
+            nil
+        )
         crossedGroupBorder = true
         forceGroupCheck = true
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
         
-        MESSAGEMAN:Broadcast("ClosedGroup", {group = w.group})
+        MESSAGEMAN:Broadcast("ClosedGroup", {
+            group = w.group,
+        })
         w:rebuildFrames()
-        MESSAGEMAN:Broadcast("ModifiedGroups", {group = w.group, index = w.index, maxIndex = #w.items})
+        MESSAGEMAN:Broadcast("ModifiedGroups", {
+            group = w.group,
+            index = w.index,
+            maxIndex = #w.items,
+        })
         w:updateGlobalsFromCurrentItem()
         w:updateMusicFromCurrentItem()
-        MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = w.group, hovered = w:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = w.index, maxIndex = #w.items})
+        MESSAGEMAN:Broadcast("WheelSettled", {
+            song = GAMESTATE:GetCurrentSong(),
+            group = w.group,
+            hovered = w:getCurrentItem(),
+            steps = GAMESTATE:GetCurrentSteps(),
+            index = w.index,
+            maxIndex = #w.items
+        })
         w.settled = true
     end
 
