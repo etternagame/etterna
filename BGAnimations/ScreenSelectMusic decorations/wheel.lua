@@ -238,6 +238,9 @@ local wheelHiddenX = -actuals.Width
 local visible = true
 local t = Def.ActorFrame {
     Name = "WheelFile",
+    InitCommand = function(self)
+        self:playcommand("SetThePositionForThisFrameNothingElse")
+    end,
     HideWheelMessageCommand = function(self)
         if not visible then return end
         visible = false
@@ -264,9 +267,24 @@ local t = Def.ActorFrame {
     OptionUpdatedMessageCommand = function(self, params)
         if params and params.name == "Music Wheel Banners" then
             self:playcommand("UpdateWheelBanners")
-        elseif params and params.name == "Music Wheel Position" then
-            self:playcommand("UpdateWheelPosition")
         end
+    end,
+    SetThePositionForThisFrameNothingElseCommand = function(self)
+        if getWheelPosition() then
+            wheelVisibleX = 0
+            wheelHiddenX = -actuals.Width
+        else
+            wheelVisibleX = SCREEN_WIDTH - actuals.Width - actuals.LeftGap - actuals.ScrollBarWidth
+            wheelHiddenX = SCREEN_WIDTH
+        end
+        if visible then
+            self:x(wheelVisibleX)
+        else
+            self:x(wheelHiddenX)
+        end
+    end,
+    UpdateWheelPositionCommand = function(self)
+        self:playcommand("SetThePositionForThisFrameNothingElse")
     end,
 }
 
@@ -286,19 +304,36 @@ local function wheelItemBase()
         Def.Quad { 
             Name = "Divider",
             InitCommand = function(self)
-                self:halign(0):valign(0)
-                self:playcommand("UpdateWheelBanners")
+                self:valign(0)
+                self:halign(0)
+                self:playcommand("SetPosition")
                 self:diffusealpha(1)
                 registerActorToColorConfigElement(self, "musicWheel", "ItemDivider")
             end,
-            UpdateWheelBannersCommand = function(self)
-                if useWheelBanners() then
-                    self:zoomto(actuals.ItemDividerLength, actuals.ItemDividerThickness)
-                    self:xy(actuals.Width / 2 - actuals.ItemDividerLength, -actuals.ItemHeight/2)
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    if useWheelBanners() then
+                        self:zoomto(actuals.ItemDividerLength, actuals.ItemDividerThickness)
+                        self:xy(actuals.Width / 2 - actuals.ItemDividerLength, -actuals.ItemHeight/2)
+                    else
+                        self:zoomto(actuals.Width, actuals.ItemDividerThickness)
+                        self:xy(actuals.Width / 2 - actuals.Width, -actuals.ItemHeight/2)
+                    end
                 else
-                    self:zoomto(actuals.Width, actuals.ItemDividerThickness)
-                    self:xy(actuals.Width / 2 - actuals.Width, -actuals.ItemHeight/2)
+                    if useWheelBanners() then
+                        self:zoomto(actuals.ItemDividerLength, actuals.ItemDividerThickness)
+                        self:xy(-actuals.Width / 2, -actuals.ItemHeight/2)
+                    else
+                        self:zoomto(actuals.Width, actuals.ItemDividerThickness)
+                        self:xy(-actuals.Width / 2, -actuals.ItemHeight/2)
+                    end
                 end
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         },
     }
@@ -380,7 +415,7 @@ local function songActorBuilder()
         LoadFont("Common Normal") .. {
             Name = "Title",
             InitCommand = function(self)
-                self:playcommand("UpdateWheelBanners")
+                self:playcommand("SetPosition")
                 self:zoom(wheelItemTitleTextSize)
                 self:halign(0)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemTitleTextSize)
@@ -394,21 +429,36 @@ local function songActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().Title = self
             end,
-            UpdateWheelBannersCommand = function(self)
-                if useWheelBanners() then
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
+                    end
                 else
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
-                    self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
+                    self:x((-actuals.Width / 2) + actuals.ItemGradeTextMaxWidth + actuals.ItemGradeTextRightGap)
+                    if useWheelBanners() then
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
+                    else
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemTitleTextSize - textzoomfudge)
+                    end
                 end
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         },
         LoadFont("Common Normal") .. {
             Name = "SubTitle",
             InitCommand = function(self)
-                self:playcommand("UpdateWheelBanners")
+                self:playcommand("SetPosition")
                 self:zoom(wheelItemSubTitleTextSize)
                 self:halign(0)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemSubTitleTextSize)
@@ -418,23 +468,37 @@ local function songActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().SubTitle = self
             end,
-            UpdateWheelBannersCommand = function(self)
-                if useWheelBanners() then
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
+                    end
                 else
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
-                    self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
+                    self:x((-actuals.Width / 2) + actuals.ItemGradeTextMaxWidth + actuals.ItemGradeTextRightGap)
+                    if useWheelBanners() then
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
+                    else
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemSubTitleTextSize - textzoomfudge)
+                    end
                 end
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextCenterDistance)
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         },
         LoadFont("Common Normal") .. {
             Name = "Artist",
             InitCommand = function(self)
-                self:playcommand("UpdateWheelBanners")
+                self:playcommand("SetPosition")
                 self:zoom(wheelItemArtistTextSize)
-                self:halign(0)
                 self:maxheight(actuals.ItemHeight / 3 / wheelItemArtistTextSize)
                 self:diffusealpha(1)
                 registerActorToColorConfigElement(self, "main", "SecondaryText")
@@ -442,22 +506,39 @@ local function songActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().Artist = self
             end,
-            UpdateWheelBannersCommand = function(self)
-                if useWheelBanners() then
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemArtistTextSize - textzoomfudge)
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    self:halign(0)
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemArtistTextSize - textzoomfudge)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemArtistTextSize - textzoomfudge)
+                    end
                 else
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
-                    self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemArtistTextSize - textzoomfudge)
+                    self:halign(1)
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.BannerWidth - actuals.ItemGradeTextRightGap)
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap * 2) / wheelItemArtistTextSize - textzoomfudge)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemArtistTextSize - textzoomfudge)
+                    end
                 end
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         },
         LoadFont("Common Normal") .. {
             Name = "Grade",
             InitCommand = function(self)
-                self:halign(1)
-                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                self:playcommand("SetPosition")
                 self:zoom(wheelItemGradeTextSize)
                 self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
             end,
@@ -471,20 +552,42 @@ local function songActorBuilder()
                 else
                     self:settext("")
                 end
-            end
+            end,
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    self:halign(1)
+                    self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                else
+                    self:halign(0)
+                    self:x(-actuals.Width / 2 + actuals.ItemGradeTextRightGap)
+                end
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
         },
         Def.Sprite {
             Name = "Banner",
             InitCommand = function(self)
                 -- y is already set: relative to "center"
-                self:x(-actuals.Width / 2):halign(0)
+                self:playcommand("SetPosition")
                 self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
                 -- dont play movies because they lag the wheel so much like wow please dont ever use those (for now)
                 self:SetDecodeMovie(false)
             end,
             BeginCommand = function(self)
                 self:GetParent().Banner = self
-            end
+            end,
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    self:x(-actuals.Width / 2):halign(0)
+                else
+                    self:x(actuals.Width / 2):halign(1)
+                end
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
         },
         Def.Sprite {
             Name = "FavoriteIcon",
@@ -492,7 +595,7 @@ local function songActorBuilder()
             InitCommand = function(self)
                 -- same y line as the artist text
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
-                self:x(-actuals.Width / 2 + actuals.BannerWidth - actuals.ItemFavoriteIconRightGap)
+                self:playcommand("SetPosition")
                 self:zoomto(actuals.ItemFavoriteIconSize, actuals.ItemFavoriteIconSize)
                 self:diffusealpha(0)
                 registerActorToColorConfigElement(self, "musicWheel", "Favorite")
@@ -500,6 +603,27 @@ local function songActorBuilder()
             end,
             BeginCommand = function(self)
                 self:GetParent().Favorited = self
+            end,
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    if useWheelBanners() then
+                        self:x(-actuals.Width / 2 + actuals.BannerWidth - actuals.ItemFavoriteIconRightGap)
+                    else
+                        self:x(actuals.Width / 2)
+                    end
+                else
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.BannerWidth + actuals.ItemFavoriteIconRightGap)
+                    else
+                        self:x(-actuals.Width / 2)
+                    end
+                end
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         }
     }
@@ -603,6 +727,9 @@ local function scoreStatsFrame()
         UpdateWheelBannersCommand = function(self)
             self:playcommand("SetInfo")
         end,
+        UpdateWheelPositionCommand = function(self)
+            self:playcommand("SetInfo")
+        end,
         Def.Quad {
             Name = "Outline",
             InitCommand = function(self)
@@ -642,7 +769,7 @@ local function groupActorBuilder()
         LoadFont("Common Normal") .. {
             Name = "GroupName",
             InitCommand = function(self)
-                self:playcommand("UpdateWheelBanners")
+                self:playcommand("SetPosition")
                 self:zoom(wheelItemGroupTextSize)
                 self:halign(0)
                 self:diffusealpha(1)
@@ -655,23 +782,37 @@ local function groupActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().Title = self
             end,
-            UpdateWheelBannersCommand = function(self)
-                if useWheelBanners() then
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
+                    end
                 else
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
-                    self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
+                    self:x((-actuals.Width / 2) + actuals.ItemGradeTextMaxWidth + actuals.ItemGradeTextRightGap)
+                    if useWheelBanners() then
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
+                    else
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupTextSize - textzoomfudge)
+                    end
                 end
                 self:y(-actuals.ItemHeight / 2 + actuals.ItemTextUpperGap)
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         },
         LoadFont("Common Normal") .. {
             Name = "GroupInfo",
             InitCommand = function(self)
-                self:playcommand("UpdateWheelBanners")
+                self:playcommand("SetPosition")
                 self:zoom(wheelItemGroupInfoTextSize)
-                self:halign(0)
                 self:diffusealpha(1)
                 registerActorToColorConfigElement(self, "main", "SecondaryText")
                 self.avg = 0
@@ -688,22 +829,39 @@ local function groupActorBuilder()
             UpdateTextCommand = function(self)
                 self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
             end,
-            UpdateWheelBannersCommand = function(self)
-                if useWheelBanners() then
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
-                    self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupInfoTextSize - textzoomfudge)
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    self:halign(0)
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupInfoTextSize - textzoomfudge)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupInfoTextSize - textzoomfudge)
+                    end
                 else
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
-                    self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupInfoTextSize - textzoomfudge)
+                    self:halign(1)
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.BannerWidth - actuals.ItemGradeTextRightGap)
+                        self:maxwidth((actuals.ItemDividerLength - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap * 2) / wheelItemGroupInfoTextSize - textzoomfudge)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                        self:maxwidth(((actuals.ItemDividerLength + actuals.BannerWidth) - actuals.ItemGradeTextMaxWidth - actuals.ItemGradeTextRightGap) / wheelItemGroupInfoTextSize - textzoomfudge)
+                    end
                 end
                 self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         },
         LoadFont("Common Normal") .. {
             Name = "ClearStats",
             InitCommand = function(self)
-                self:halign(1)
-                self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                self:playcommand("SetPosition")
                 self:zoom(wheelItemGradeTextSize)
                 self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
                 self.lamp = nil
@@ -730,7 +888,19 @@ local function groupActorBuilder()
                     end
                 end
                 self:settext(lstr)
-            end
+            end,
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    self:halign(1)
+                    self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                else
+                    self:halign(0)
+                    self:x(-actuals.Width / 2 + actuals.ItemGradeTextRightGap)
+                end
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
         },
         scoreStatsFrame() .. {
             InitCommand = function(self)
@@ -740,26 +910,46 @@ local function groupActorBuilder()
             BeginCommand = function(self)
                 self:GetParent().ScoreStats = self
             end,
-            UpdateWheelBannersCommand = function(self)
-                if useWheelBanners() then
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
+                    end
                 else
-                    self:x(actuals.Width / 2 - actuals.ItemDividerLength - actuals.BannerWidth)
+                    self:x((-actuals.Width / 2) + actuals.ItemGradeTextMaxWidth + actuals.ItemGradeTextRightGap)
                 end
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
             end,
         },
         Def.Sprite {
             Name = "Banner",
             InitCommand = function(self)
                 -- y is already set: relative to "center"
-                self:x(-actuals.Width / 2):halign(0)
+                self:playcommand("SetPosition")
                 self:scaletoclipped(actuals.BannerWidth, actuals.ItemHeight)
                 -- dont play movies because they lag the wheel so much like wow please dont ever use those (for now)
                 self:SetDecodeMovie(false)
             end,
             BeginCommand = function(self)
                 self:GetParent().Banner = self
-            end
+            end,
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    self:x(-actuals.Width / 2):halign(0)
+                else
+                    self:x(actuals.Width / 2):halign(1)
+                end
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
         }
     }
 end
@@ -803,20 +993,36 @@ t[#t+1] = Def.ActorFrame {
                 InitCommand = function(self)
                     -- the highlighter should not cover the banner
                     -- move it by half the size and make it that much smaller
-                    self:playcommand("UpdateWheelBanners")
+                    self:playcommand("SetPosition")
                     self:diffusealpha(0.2)
                     self:diffuseramp()
                     self:effectclock("beat")
                     registerActorToColorConfigElementForDiffuseRamp(self, "musicWheel", "HighlightColor", 0.5, 0.8)
                 end,
-                UpdateWheelBannersCommand = function(self)
-                    if useWheelBanners() then
-                        self:x(actuals.BannerWidth / 2)
-                        self:zoomto(actuals.Width - actuals.BannerWidth, actuals.ItemHeight)
+                SetPositionCommand = function(self)
+                    if getWheelPosition() then
+                        if useWheelBanners() then
+                            self:x(actuals.BannerWidth / 2)
+                            self:zoomto(actuals.Width - actuals.BannerWidth, actuals.ItemHeight)
+                        else
+                            self:x(0)
+                            self:zoomto(actuals.Width, actuals.ItemHeight)
+                        end
                     else
-                        self:x(0)
-                        self:zoomto(actuals.Width, actuals.ItemHeight)
+                        if useWheelBanners() then
+                            self:x(-actuals.BannerWidth / 2)
+                            self:zoomto(actuals.Width - actuals.BannerWidth, actuals.ItemHeight)
+                        else
+                            self:x(0)
+                            self:zoomto(actuals.Width, actuals.ItemHeight)
+                        end
                     end
+                end,
+                UpdateWheelPositionCommand = function(self)
+                    self:playcommand("SetPosition")
+                end,
+                UpdateWheelBannersCommand = function(self)
+                    self:playcommand("SetPosition")
                 end,
             }
         }
@@ -937,10 +1143,20 @@ t[#t+1] = Def.ActorFrame {
     Def.ActorFrame {
         Name = "ScrollBar",
         InitCommand = function(self)
-            self:x(-actuals.LeftGap / 2 - actuals.Width / 2)
+            self:playcommand("SetWPosition")
             -- places the frame at the top of the wheel
             -- positions will be relative to that
             self:y(-actuals.ItemHeight * numWheelItems / 2 + actuals.ItemHeight * 1.242)
+        end,
+        SetWPositionCommand = function(self)
+            if getWheelPosition() then
+                self:x(-actuals.LeftGap / 2 - actuals.Width / 2)
+            else
+                self:x(actuals.Width / 2 + actuals.ScrollBarWidth / 2)
+            end
+        end,
+        UpdateWheelPositionCommand = function(self)
+            self:playcommand("SetWPosition")
         end,
 
         Def.Sprite {

@@ -17,7 +17,7 @@ local t = Def.ActorFrame {
 local ratios = {
     LeftGap = 1140 / 1920, -- left side of screen to left edge of frame
     TopGap = 468 / 1080, -- top of screen to top of frame
-    Width = 780 / 1920,
+    Width = Var("widthRatio"), -- width of the box taken from the loading file default.lua
     Height = 612 / 1080,
     LowerLipHeight = 57 / 1080,
 }
