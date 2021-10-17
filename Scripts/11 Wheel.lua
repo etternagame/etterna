@@ -165,17 +165,35 @@ Wheel.mt = {
         end
     end,
     move = function(whee, num)
+        --[[
         if whee.moveInterval then
             SCREENMAN:GetTopScreen():clearInterval(whee.moveInterval)
         end
         if num == 0 then
             whee.moveInterval = nil
             return
+        end]]
+        if num == whee.moving then return end
+
+        if whee.moving ~= 0 and num == 0 and whee.timeBeforeMovingBegins == 0 then
+            if math.abs(whee.positionOffsetFromSelection) < 0.25 then
+                whee:changemusic(whee.moving)
+            end
         end
-        whee.floatingOffset = num
-        local interval = whee.pollingSeconds / 60
-        whee.index = getIndexCircularly(whee.items, whee.index + num)
-        MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
+
+        whee.timeBeforeMovingBegins = 1 / 8
+        whee.spinSpeed = 15 -- preference based
+        whee.moving = num
+
+        if whee.moving ~= 0 then
+            whee:changemusic(whee.moving)
+        end
+
+        --whee.floatingOffset = num
+        --local interval = whee.pollingSeconds / 60
+        --whee.index = getIndexCircularly(whee.items, whee.index + num)
+        --MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
+        --[[
         whee.moveInterval =
             SCREENMAN:GetTopScreen():setInterval(
             function()
@@ -188,10 +206,15 @@ Wheel.mt = {
                 whee:update()
             end,
             interval
-        )
+        )]]
 
         -- stop the music if moving so we dont leave it playing in a random place
         SOUND:StopMusic()
+    end,
+    changemusic = function(whee, num)
+        whee.index = getIndexCircularly(whee.items, whee.index + num)
+        whee.positionOffsetFromSelection = whee.positionOffsetFromSelection + num
+        MESSAGEMAN:Broadcast("WheelIndexChanged", {index = whee.index, maxIndex = #whee.items})
     end,
     findSong = function(whee, chartkey)
         -- in this case, we want to set based on preferred info
@@ -306,7 +329,7 @@ Wheel.mt = {
     update = function(whee)
         -- this is written so that iteration runs in a specific direction
         -- pretty much to avoid certain texture updating issues
-        local direction = whee.floatingOffset >= 0 and 1 or -1
+        local direction = whee.positionOffsetFromSelection >= 0 and 1 or -1
         local startI = direction == 1 and 1 or #whee.frames
         local endI = startI == 1 and #whee.frames or 1
 
@@ -316,7 +339,7 @@ Wheel.mt = {
 
         for i = startI, endI, direction do
             local frame = whee.frames[i]
-            local offset = i - math.ceil(numFrames / 2) + whee.floatingOffset
+            local offset = i - math.ceil(numFrames / 2) + whee.positionOffsetFromSelection
             whee.frameTransformer(frame, offset - 1, i, whee.count)
             whee.frameUpdater(frame, whee:getItem(idx), offset)
             idx = idx + direction
@@ -341,7 +364,7 @@ Wheel.mt = {
         end
 
         -- the wheel has settled
-        if whee.floatingOffset == 0 and not whee.settled then
+        if whee.positionOffsetFromSelection == 0 and not whee.settled then
             whee:updateGlobalsFromCurrentItem()
             whee:updateMusicFromCurrentItem()
             -- settled brings along the Song, Group, Steps, and HoveredItem
@@ -349,7 +372,7 @@ Wheel.mt = {
             MESSAGEMAN:Broadcast("WheelSettled", {song = GAMESTATE:GetCurrentSong(), group = whee.group, hovered = whee:getCurrentItem(), steps = GAMESTATE:GetCurrentSteps(), index = whee.index, maxIndex = #whee.items})
             whee.settled = true
         end
-        if whee.floatingOffset ~= 0 then
+        if whee.positionOffsetFromSelection ~= 0 then
             whee.settled = false
         end
     end,
@@ -412,6 +435,9 @@ function Wheel:new(params)
     whee.index = whee.startIndex
     whee.onSelection = params.onSelection
     whee.pollingSeconds = 1 / params.speed
+    whee.positionOffsetFromSelection = 0
+    whee.moving = 0
+    whee.timeBeforeMovingBegins = 0
     whee.x = params.x
     whee.y = params.y
     whee.moveHeight = 10
@@ -461,45 +487,23 @@ function Wheel:new(params)
 
                 if left or right then
                     local direction = left and "left" or "right"
-                    if event.type == "InputEventType_FirstPress" then
+                    if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
                         -- dont allow input, but do allow left and right arrow input
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") and not keydirection then return end
                         heldButtons[direction] = true
                         -- dont move if holding both buttons
                         if (left and heldButtons["right"]) or (right and heldButtons["left"]) then
-                            if interval ~= nil then
-                                SCREENMAN:GetTopScreen():clearInterval(interval)
-                                interval = nil
-                            end
+                            -- do nothing
+                            whee:move(0)
                         else
-                            -- move on a single press
+                            -- move on single press or repeat
                             whee:move(right and 1 or -1)
-
-                            if interval ~= nil then
-                                SCREENMAN:GetTopScreen():clearInterval(interval)
-                                interval = nil
-                            end
-                            interval = SCREENMAN:GetTopScreen():setInterval(
-                                function()
-                                    if heldButtons["left"] then
-                                        whee:move(-1)
-                                    elseif heldButtons["right"] then
-                                        whee:move(1)
-                                    end
-                                end,
-                                repeatseconds
-                            )
                         end
                     elseif event.type == "InputEventType_Release" then
                         heldButtons[direction] = false
-                        if interval ~= nil then
-                            SCREENMAN:GetTopScreen():clearInterval(interval)
-                            interval = nil
+                        if heldButtons["left"] == false and heldButtons["right"] == false then
+                            whee:move(0)
                         end
-                    else
-                        -- input repeat event
-                        -- keep moving
-                        -- (movement is handled by the interval function above)
                     end
                 elseif enter then
                     if event.type == "InputEventType_FirstPress" then
@@ -527,6 +531,39 @@ function Wheel:new(params)
                 return false
             end
         )
+        self:SetUpdateFunction(function(self, delta)
+
+            if whee.moving ~= 0 then
+                whee.timeBeforeMovingBegins = clamp(whee.timeBeforeMovingBegins - delta, 0, whee.timeBeforeMovingBegins)
+            end
+            if whee.positionOffsetFromSelection ~= 0 then
+                whee:update()
+                whee.keepupdating = true
+            elseif whee.keepupdating then
+                whee.keepupdating = false
+                whee:update()
+            end
+            if whee.moving ~= 0 and whee.timeBeforeMovingBegins == 0 then
+                local sping = whee.spinSpeed * whee.moving
+                whee.positionOffsetFromSelection = clamp(whee.positionOffsetFromSelection - (sping * delta), -1, 1)
+                if (whee.moving == -1 and whee.positionOffsetFromSelection >= 0) or
+                    (whee.moving == 1 and whee.positionOffsetFromSelection <= 0) then
+                        whee:changemusic(whee.moving)
+                end
+                -- maybe play moving sound here based on delta 
+            else
+                -- the wheel should rotate toward selection but isnt "moving"
+                local sping = 0.2 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
+                if whee.positionOffsetFromSelection > 0 then
+                    whee.positionOffsetFromSelection = math.max(whee.positionOffsetFromSelection - (sping * delta), 0)
+                elseif whee.positionOffsetFromSelection < 0 then
+                    whee.positionOffsetFromSelection = math.min(whee.positionOffsetFromSelection + (sping * delta), 0)
+                end
+            end
+        end)
+        self:SetUpdateFunctionInterval(0.001)
+
+        -- mega hack to make things init 0.1 seconds after real init
         SCREENMAN:GetTopScreen():setTimeout(
             function()
                 if params.buildOnInit then
@@ -757,12 +794,14 @@ function MusicWheel:new(params)
     w.MoveCommand = function(self, params)
         if params and params.direction and tonumber(params.direction) then
             w:move(params.direction)
+            w:move(0)
         elseif params.percent and tonumber(params.percent) >= 0 then
             local now = w.index
             local max = #w.items
             local indexFromPercent = clamp(math.floor(params.percent * max), 0, max)
             local distanceToMove = indexFromPercent - now
             w:move(distanceToMove)
+            w:move(0)
         end
     end
 
