@@ -521,6 +521,20 @@ void
 RageDisplay_Legacy::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
+	// Prepare DisplayMode for following DisplaySpec
+	std::set<DisplayMode> available;
+	for(auto mode : this->window->getDisplayModes()){
+		available.insert(DisplayMode{
+			static_cast<unsigned int>(mode.width),
+			static_cast<unsigned int>(mode.height),
+			static_cast<double>(mode.refreshRate)});
+	}
+
+	// Current Mode
+	auto current = this->window->getCurrentDisplayMode();
+	DisplayMode m{static_cast<unsigned int>(current.width), static_cast<unsigned int>(current.height), static_cast<double>(current.refreshRate)};
+	RectI bounds = {0, 0, static_cast<int>(current.width), static_cast<int>(current.height)};
+	out.insert(DisplaySpec("", "Fullscreen", available, m, bounds));
 }
 
 static void
@@ -744,6 +758,7 @@ RageDisplay_Legacy::TryVideoMode(const VideoMode& p, bool& bNewDeviceOut)
 	// p.windowed, p.width, p.height, p.bpp, p.rate, p.vsync );
 
 	std::string err;
+	window->setVideoMode(p);
 	if (!err.empty())
 		return err; // failed to set video mode
 

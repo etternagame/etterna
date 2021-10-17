@@ -911,7 +911,7 @@ namespace StepMania {
         paramsOut.width = iWidth;
         paramsOut.height = PREFSMAN->m_iDisplayHeight;
         paramsOut.refreshRate = PREFSMAN->m_iRefreshRate;
-        paramsOut.isFullscreen = PREFSMAN->m_bFullscreenIsBorderlessWindow;
+        paramsOut.isFullscreen = !PREFSMAN->m_bWindowed;
         paramsOut.isBorderless = PREFSMAN->m_bFullscreenIsBorderlessWindow;
         paramsOut.isVsyncEnabled = PREFSMAN->m_bVsync;
     }
@@ -933,9 +933,10 @@ namespace StepMania {
     void ApplyGraphicOptions(){
         bool bNeedReload = false;
 
-//        VideoModeParams params;
-//        GetPreferredVideoModeParams(params);
-        std::string sError = "";//DISPLAY->SetVideoMode(params, bNeedReload);
+        VideoMode params;
+        GetPreferredVideoModeParams(params);
+        DISPLAY->SetVideoMode(params, bNeedReload);
+        std::string sError;
         if (!sError.empty())
             RageException::Throw("%s", sError.c_str());
 
