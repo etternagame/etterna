@@ -1117,8 +1117,20 @@ t[#t+1] = Def.ActorFrame {
             -- the wheel positioning is not as clear as it could be
             self:halign(0)
             self:y(-(actuals.HeaderHeight + actuals.ItemHeight) / 2)
-            self:x(-actuals.LeftGap - actuals.Width / 2)
+            self:playcommand("SetPosition")
             self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 2.45)
+        end,
+        SetPositionCommand = function(self)
+            if getWheelPosition() then
+                self:halign(0)
+                self:x(-actuals.LeftGap - actuals.Width / 2)
+            else
+                self:halign(1)
+                self:x(actuals.LeftGap + actuals.Width / 2)
+            end
+        end,
+        UpdateWheelPositionCommand = function(self)
+            self:playcommand("SetPosition")
         end,
         MouseScrollMessageCommand = function(self, params)
             if isOver(self) and visible then
