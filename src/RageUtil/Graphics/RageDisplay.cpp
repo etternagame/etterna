@@ -1379,7 +1379,7 @@ class LunaRageDisplay : public Luna<RageDisplay>
 
 	static int GetDisplayRefreshRate(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->getVideoMode().refreshRate);
+		lua_pushnumber(L, p->getRefreshRate());
 		return 1;
 	}
 
