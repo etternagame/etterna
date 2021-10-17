@@ -6,6 +6,7 @@ local defaultConfig = {
 		ShowVisualizer = true,
 		ShowBackgrounds = true,
 		WheelPosition = true, -- true = left, false = right
+		WheelBanners = true, -- true = on, false = off
 		InstantSearch = true, -- true = search per press, false = search on enter button
 	},
 	eval = {
@@ -22,3 +23,11 @@ local defaultConfig = {
 
 themeConfig = create_setting("themeConfig", "themeConfig.lua", defaultConfig, -1)
 themeConfig:load()
+
+function getWheelPosition()
+	-- true means left, false means right
+	return themeConfig:get_data().global.WheelPosition
+end
+function useWheelBanners()
+	return themeConfig:get_data().global.WheelBanners
+end
