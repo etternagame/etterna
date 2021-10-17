@@ -18,3 +18,7 @@ trim_trailing_whitespace = false
 [{CMakeLists.txt, *.cmake}]
 indent_style = tab
 indent_size = 4
+
+[*.lua]
+indent_style = space
+indent_size = 4
