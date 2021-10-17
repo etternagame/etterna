@@ -2663,6 +2663,29 @@ local function rightFrame()
         return resolutions
     end
 
+    local function getdataTHEME(category, propertyname)
+        return function() return themeConfig:get_data()[category][propertyname] end
+    end
+    local function setdataTHEME(category, propertyname, val)
+        themeConfig:get_data()[category][propertyname] = val
+        themeConfig:set_dirty()
+        themeConfig:save()
+    end
+    local function getdataPLAYER(category, propertyname)
+        return function() return playerConfig:get_data()[category][propertyname] end
+    end
+    local function setdataPLAYER(category, propertyname, val)
+        playerConfig:get_data()[category][propertyname] = val
+        playerConfig:set_dirty()
+        playerConfig:save()
+    end
+    local function themeoption(category, propertyname)
+        return {get = getdataTHEME(category, propertyname), set = function(x) setdataTHEME(category, propertyname, x) end}
+    end
+    local function playeroption(category, propertyname)
+        return {get = getdataPLAYER(category, propertyname), set = function(x) setdataPLAYER(category, propertyname, x) end}
+    end
+
     --
     -- -----
 
@@ -2690,11 +2713,12 @@ local function rightFrame()
             list = THEME:GetLanguages(),
             current = THEME:GetCurLanguage(),
         },
-        instantSearch = themeConfigData.global.InstantSearch,
-        wheelPosition = themeConfigData.global.WheelPosition,
-        showBackgrounds = themeConfigData.global.ShowBackgrounds,
-        showVisualizer = themeConfigData.global.ShowVisualizer,
-        tipType = themeConfigData.global.TipType,
+        instantSearch = themeoption("global", "InstantSearch"),
+        wheelPosition = themeoption("global", "WheelPosition"),
+        wheelBanners = themeoption("global", "WheelBanners"),
+        showBackgrounds = themeoption("global", "ShowBackgrounds"),
+        showVisualizer = themeoption("global", "ShowVisualizer"),
+        tipType = themeoption("global", "TipType"),
         display = {
             ratios = { -- hardcoded aspect ratio list
                 {n = 3, d = 4},
@@ -2774,6 +2798,27 @@ local function rightFrame()
         -- oneValue is what we expect for choice index 1 (the first one)
         return function()
             if optionData[optionDataPropertyName] == oneValue then
+                return 1
+            else
+                return 2
+            end
+        end
+    end
+    local function optionDataToggleDirectionsTHEME(optionDataPropertyName, trueValue, falseValue)
+        return {
+            Toggle = function()
+                if optionData[optionDataPropertyName].get() == trueValue then
+                    optionData[optionDataPropertyName].set(falseValue)
+                else
+                    optionData[optionDataPropertyName].set(trueValue)
+                end
+            end,
+        }
+    end
+    local function optionDataToggleIndexGetterTHEME(optionDataPropertyName, oneValue)
+        -- oneValue is what we expect for choice index 1 (the first one)
+        return function()
+            if optionData[optionDataPropertyName].get() == oneValue then
                 return 1
             else
                 return 2
@@ -4002,16 +4047,24 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Explanation = "Set the side of the screen for the music wheel.",
                 Choices = choiceSkeleton("Left", "Right"),
-                Directions = optionDataToggleDirections("wheelPosition", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetter("wheelPosition", true),
+                Directions = optionDataToggleDirectionsTHEME("wheelPosition", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("wheelPosition", true),
+            },
+            {
+                Name = "Music Wheel Banners",
+                Type = "SingleChoice",
+                Explanation = "Toggle the banners on the music wheel.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsTHEME("wheelBanners", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("wheelBanners", true),
             },
             {
                 Name = "Show Backgrounds",
                 Type = "SingleChoice",
                 Explanation = "Toggle showing backgrounds everywhere.",
                 Choices = choiceSkeleton("Yes", "No"),
-                Directions = optionDataToggleDirections("showBackgrounds", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetter("showBackgrounds", true),
+                Directions = optionDataToggleDirectionsTHEME("showBackgrounds", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("showBackgrounds", true),
             },
             {
                 Name = "Easter Eggs & Toasties",
@@ -4026,8 +4079,8 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Explanation = "Toggle showing the visualizer in the song select screen.",
                 Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirections("showVisualizer", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetter("showVisualizer", true),
+                Directions = optionDataToggleDirectionsTHEME("showVisualizer", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("showVisualizer", true),
             },
             {
                 Name = "Mid Grades",
@@ -4075,8 +4128,8 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Explanation = "Change the quips shown at the bottom of the evaluation screen.",
                 Choices = choiceSkeleton("Tips", "Quotes"),
-                Directions = optionDataToggleDirections("tipType", 1, 2),
-                ChoiceIndexGetter = optionDataToggleIndexGetter("tipType", 1),
+                Directions = optionDataToggleDirectionsTHEME("tipType", 1, 2),
+                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("tipType", 1),
             },
             {
                 Name = "Set BG Fit Mode",
