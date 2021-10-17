@@ -54,16 +54,14 @@ local actuals = {
 
 local visibleframeX = SCREEN_WIDTH - actuals.Width
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
+local hiddenframeX = SCREEN_WIDTH
 local animationSeconds = 0.1
 local focused = false
 
 local t = Def.ActorFrame {
     Name = "DownloadsFile",
     InitCommand = function(self)
-        -- lets just say uh ... despite the fact that this file might want to be portable ...
-        -- lets ... just .... assume it always goes in the same place ... and the playerInfoFrame is the same size always
-        self:x(SCREEN_WIDTH)
-        self:y(visibleframeY)
+        self:playcommand("SetPosition")
         self:diffusealpha(0)
     end,
     GeneralTabSetMessageCommand = function(self, params)
@@ -72,7 +70,7 @@ local t = Def.ActorFrame {
         self:finishtweening()
         self:smooth(animationSeconds)
         self:diffusealpha(0)
-        self:x(SCREEN_WIDTH)
+        self:x(hiddenframeX)
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self, params)
         if params.tab and params.tab == "Downloads" then
@@ -86,7 +84,7 @@ local t = Def.ActorFrame {
             self:finishtweening()
             self:smooth(animationSeconds)
             self:diffusealpha(0)
-            self:x(SCREEN_WIDTH)
+            self:x(hiddenframeX)
             focused = false
         end
     end,
@@ -95,7 +93,24 @@ local t = Def.ActorFrame {
         -- the reason is that we dont want to trigger Ctrl+3 inputting a 3 on the search field immediately
         focused = true
         CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Downloads")
-    end
+    end,
+    SetPositionCommand = function(self)
+        if getWheelPosition() then
+            visibleframeX = SCREEN_WIDTH - actuals.Width
+            hiddenframeX = SCREEN_WIDTH
+        else
+            visibleframeX = 0
+            hiddenframeX = -actuals.Width
+        end
+        if focused then
+            self:x(visibleframeX)
+        else
+            self:x(hiddenframeX)
+        end
+    end,
+    UpdateWheelPositionCommand = function(self)
+        self:playcommand("SetPosition")
+    end,
 }
 
 local titleTextSize = 0.8

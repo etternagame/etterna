@@ -12,7 +12,12 @@ local t = Def.ActorFrame {
     end,
     OnlineUpdateMessageCommand = function(self)
         self:playcommand("Set")
-    end
+    end,
+    OptionUpdatedMessageCommand = function(self, params)
+        if params and params.name == "Music Wheel Position" then
+            self:playcommand("UpdateWheelPosition")
+        end
+    end,
 }
 
 local visEnabled = Var("visualizer")

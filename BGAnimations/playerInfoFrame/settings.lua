@@ -123,8 +123,6 @@ playerConfig:save()
 local t = Def.ActorFrame {
     Name = "SettingsFile",
     InitCommand = function(self)
-        -- lets just say uh ... despite the fact that this file might want to be portable ...
-        -- lets ... just .... assume it always goes in the same place ... and the playerInfoFrame is the same size always
         self:y(visibleframeY)
         self:diffusealpha(0)
     end,
@@ -189,6 +187,9 @@ local t = Def.ActorFrame {
             end
         end
     end,
+    UpdateWheelPositionCommand = function(self)
+        self:playcommand("SetPosition")
+    end,
 }
 
 
@@ -199,7 +200,7 @@ local function leftFrame()
     local t = Def.ActorFrame {
         Name = "LeftFrame",
         InitCommand = function(self)
-            self:x(offscreenX)
+            self:playcommand("SetPosition")
             self:diffusealpha(0)
         end,
         HideLeftCommand = function(self)
@@ -217,6 +218,20 @@ local function leftFrame()
             self:diffusealpha(1)
             self:x(onscreenX)
             lefthidden = false
+        end,
+        SetPositionCommand = function(self)
+            if getWheelPosition() then
+                onscreenX = 0
+                offscreenX = -actuals.LeftWidth
+            else
+                onscreenX = SCREEN_WIDTH - actuals.LeftWidth
+                offscreenX = SCREEN_WIDTH
+            end
+            if lefthidden then
+                self:x(offscreenX)
+            else
+                self:x(onscreenX)
+            end
         end,
 
         Def.Quad {
@@ -2355,7 +2370,7 @@ local function rightFrame()
     local t = Def.ActorFrame {
         Name = "RightFrame",
         InitCommand = function(self)
-            self:x(offscreenX)
+            self:playcommand("SetPosition")
             self:diffusealpha(0)
         end,
         HideRightCommand = function(self)
@@ -2371,6 +2386,20 @@ local function rightFrame()
             self:smooth(animationSeconds)
             self:diffusealpha(1)
             self:x(onscreenX)
+        end,
+        SetPositionCommand = function(self)
+            if getWheelPosition() then
+                onscreenX = SCREEN_WIDTH - actuals.RightWidth
+                offscreenX = SCREEN_WIDTH
+            else
+                onscreenX = 0
+                offscreenX = -actuals.RightWidth
+            end
+            if focused then
+                self:x(onscreenX)
+            else
+                self:x(offscreenX)
+            end
         end,
 
         Def.Quad {
