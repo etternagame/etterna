@@ -194,6 +194,7 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
         self:zoomto(sizing.Width, sizing.Height)
     end,
     MouseDownCommand = function(self, params)
+        if self:IsInvisible() then return end
         local lx = params.MouseX - self:GetParent():GetX()
         local top = SCREENMAN:GetTopScreen()
         if top and top.SetSongPosition then
