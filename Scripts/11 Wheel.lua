@@ -493,7 +493,7 @@ function Wheel:new(params)
                         end
                     elseif event.type == "InputEventType_Release" then
                         heldButtons[direction] = false
-                        if heldButtons["left"] == false and heldButtons["right"] == false then
+                        if not heldButtons["left"] and not heldButtons["right"] then
                             -- cease movement
                             whee:move(0)
                         end
