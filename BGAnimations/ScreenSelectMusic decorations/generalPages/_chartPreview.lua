@@ -47,6 +47,8 @@ local t = Def.ActorFrame {
         else
             -- chart preview turning off
             self:diffusealpha(0)
+            -- hide in case you are hovering the graph
+            TOOLTIP:Hide()
         end
     end
 }
