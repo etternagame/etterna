@@ -20,6 +20,8 @@ local t = Def.ActorFrame {
 		local screenscale = MovableValues.ScreenZoom
         screen:zoom(screenscale)
         screen:xy(SCREEN_WIDTH * (1 - screenscale) / 2, SCREEN_HEIGHT * (1 - screenscale) / 2)
+		screen:addx(MovableValues.ScreenX)
+		screen:addy(MovableValues.ScreenY)
 
         -- lifebar movement
 		local lifebar = screen:GetLifeMeter(PLAYER_1)

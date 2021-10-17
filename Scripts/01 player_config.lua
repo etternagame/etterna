@@ -108,6 +108,8 @@ local defaultGameplayCoordinates = {
 	PlayerInfoY = SCREEN_HEIGHT - GAMEPLAY:getItemY("playerInfoFrameYFromBottom"),
 	MeasureCounterX = SCREEN_CENTER_X,
 	MeasureCounterY = SCREEN_HEIGHT * 0.4,
+	ScreenX = 0, -- 0 is center of screen
+	ScreenY = 0, -- 0 is center of screen
 }
 
 local defaultGameplaySizes = {

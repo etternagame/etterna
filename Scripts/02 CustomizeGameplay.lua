@@ -8,6 +8,8 @@ local function loadValuesTable()
 	allowedCustomization = playerConfig:get_data().CustomizeGameplay
 	usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 	MovableValues.ScreenZoom = playerConfig:get_data().GameplaySizes[keymode].ScreenZoom
+	MovableValues.ScreenX = playerConfig:get_data().GameplayXYCoordinates[keymode].ScreenX
+	MovableValues.ScreenY = playerConfig:get_data().GameplayXYCoordinates[keymode].ScreenY
 	MovableValues.JudgmentX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentX
 	MovableValues.JudgmentY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgmentY
 	MovableValues.JudgmentZoom = playerConfig:get_data().GameplaySizes[keymode].JudgmentZoom

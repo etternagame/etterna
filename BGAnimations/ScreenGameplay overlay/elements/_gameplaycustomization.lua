@@ -336,7 +336,7 @@ local function makeUI()
             -- these are initialized here because most elements either need BeginCommand or InitCommand to run for them to be registered
             -- Order of execution: Init -> Begin -> On
             elements = getCustomizeGameplayElements()
-            -- hacky addition of the ScreenZoom element, which affects the entire screen zoom
+            -- hacky addition of the Screen element, which affects the entire screen zoom and X/Y
             elements[#elements+1] = {
                 GetName = function(self) return "Screen" end,
             }
