@@ -831,6 +831,11 @@ function MusicWheel:new(params)
         w:rebuildFrames()
     end
 
+    -- external access to force update the wheel state visually
+    w.UpdateWheelCommand = function(self)
+        w:update()
+    end
+
     -- building the wheel with startOnPreferred causes init to start on the chart stored in Gamestate
     if params.startOnPreferred then
         w.OnCommand = function(self)
