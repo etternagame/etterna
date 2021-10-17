@@ -14,9 +14,10 @@ local t = Def.ActorFrame {
     end
 }
 
-local tooltip, pointer = TOOLTIP:New()
+local tooltip, pointer, clickwave = TOOLTIP:New()
 t[#t+1] = tooltip
 t[#t+1] = pointer
+t[#t+1] = clickwave
 
 
 return t;
