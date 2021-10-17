@@ -1003,5 +1003,11 @@ function MusicWheel:new(params)
         w:openSortModeMenu()
     end
 
+    w.SetFrameTransformerCommand = function(self, params)
+        if params and params.f then
+            w.frameTransformer = params.f
+        end
+    end
+
     return w
 end
