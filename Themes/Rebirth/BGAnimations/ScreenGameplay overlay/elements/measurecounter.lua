@@ -24,118 +24,118 @@ local peakNPSThreshold = 0.625
 local runNPSLossThreshold = 2
 
 local t = Def.ActorFrame {
-	Name = "MeasureCounter",
-	InitCommand = function(self)
+    Name = "MeasureCounter",
+    InitCommand = function(self)
 
-		local steps = GAMESTATE:GetCurrentSteps()
-		local loot = steps:GetNPSPerMeasure(1)
+        local steps = GAMESTATE:GetCurrentSteps()
+        local loot = steps:GetNPSPerMeasure(1)
 
-		-- determine peak
-		local peak = 0
-		for i = 1, #loot do
-			if loot[i] > peak then
-				peak = loot[i]
-			end
-		end
-	
-		local m_len = 0
-		local m_spd = 0
-		local m_start = 0
-		for i = 1, #loot do
-			-- run init
-			-- set speed and start measure
-			if m_len == 0 then
-				m_spd = loot[i]
-				m_start = i
-			end
-			
-			if math.abs(m_spd - loot[i]) < runNPSLossThreshold then
-				-- if the past measure is not too much different from the current, continue the run
-				m_len = m_len + 1
-				m_spd = (m_spd + loot[i]) / 2
-			elseif m_len > 1 and m_spd > peak * peakNPSThreshold then
-				-- if this measure bursts above the nps threshold, end the run
-				measures[#measures + 1] = { m_start, m_len, m_spd }
-				m_len = 0
-			else
-				m_len = 0
-			end
-		end
+        -- determine peak
+        local peak = 0
+        for i = 1, #loot do
+            if loot[i] > peak then
+                peak = loot[i]
+            end
+        end
 
-		self:playcommand("SetUpMovableValues")
-		registerActorToCustomizeGameplayUI(self)
-	end,
-	OnCommand = function(self)
-		self:visible(false)
+        local m_len = 0
+        local m_spd = 0
+        local m_start = 0
+        for i = 1, #loot do
+            -- run init
+            -- set speed and start measure
+            if m_len == 0 then
+                m_spd = loot[i]
+                m_start = i
+            end
 
-		-- if the start measure is a measure to display, go
-		if measure == measures[thingy][1] then	
-			self:playcommand("Dootz")
-		end
+            if math.abs(m_spd - loot[i]) < runNPSLossThreshold then
+                -- if the past measure is not too much different from the current, continue the run
+                m_len = m_len + 1
+                m_spd = (m_spd + loot[i]) / 2
+            elseif m_len > 1 and m_spd > peak * peakNPSThreshold then
+                -- if this measure bursts above the nps threshold, end the run
+                measures[#measures + 1] = { m_start, m_len, m_spd }
+                m_len = 0
+            else
+                m_len = 0
+            end
+        end
 
-		if allowedCustomization then
-			self:visible(true)
-			self:GetChild("Text"):settext("99 / 99")
-		end
-	end,
-	SetUpMovableValuesMessageCommand = function(self)
-		self:xy(MovableValues.MeasureCounterX, MovableValues.MeasureCounterY)
-		self:zoom(MovableValues.MeasureCounterZoom)
-	end,
-	DootzCommand = function(self)
-		active = true
-		self:visible(true)
+        self:playcommand("SetUpMovableValues")
+        registerActorToCustomizeGameplayUI(self)
+    end,
+    OnCommand = function(self)
+        self:visible(false)
 
-		local txt = self:GetChild("Text")
-		local bg = self:GetChild("Background")
+        -- if the start measure is a measure to display, go
+        if measure == measures[thingy][1] then
+            self:playcommand("Dootz")
+        end
 
-		txt:settextf("%d / %d", measure - measures[thingy][1], measures[thingy][2])
-		bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight())
-	end,
-	UnDootzCommand = function(self)
-		active = false
-		self:visible(false)
-	end,
-	BeatCrossedMessageCommand = function(self)
-		if thingy <= #measures then
-			beatcounter = beatcounter + 1
-			if beatcounter == 4 then
-				measure = measure + 1
-				beatcounter = 0
+        if allowedCustomization then
+            self:visible(true)
+            self:GetChild("Text"):settext("99 / 99")
+        end
+    end,
+    SetUpMovableValuesMessageCommand = function(self)
+        self:xy(MovableValues.MeasureCounterX, MovableValues.MeasureCounterY)
+        self:zoom(MovableValues.MeasureCounterZoom)
+    end,
+    DootzCommand = function(self)
+        active = true
+        self:visible(true)
 
-				if measure == measures[thingy][1] then
-					self:playcommand("Dootz")
-				end
+        local txt = self:GetChild("Text")
+        local bg = self:GetChild("Background")
 
-				if measure > measures[thingy][1] + measures[thingy][2] then
-					self:playcommand("UnDootz")
-					thingy = thingy + 1
-				end
+        txt:settextf("%d / %d", measure - measures[thingy][1], measures[thingy][2])
+        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight())
+    end,
+    UnDootzCommand = function(self)
+        active = false
+        self:visible(false)
+    end,
+    BeatCrossedMessageCommand = function(self)
+        if thingy <= #measures then
+            beatcounter = beatcounter + 1
+            if beatcounter == 4 then
+                measure = measure + 1
+                beatcounter = 0
 
-				if active then
-					self:playcommand("MeasureCrossed")
-				end
-			end
-		end
-	end,
-	MeasureCrossedCommand = function(self)
-		local txt = self:GetChild("Text")
-		local bg = self:GetChild("Background")
+                if measure == measures[thingy][1] then
+                    self:playcommand("Dootz")
+                end
 
-		txt:settextf("%d / %d", measure - measures[thingy][1], measures[thingy][2])
-		bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight())
-	end,
-	
-	Def.Quad {
-		Name = "Background",
-		InitCommand = function(self)
-			self:diffusealpha(0.6)
-			registerActorToColorConfigElement(self, "main", "PrimaryBackground")
-		end,
-	},
-	LoadFont("Common Normal") .. {
-		Name = "Text",
-	}
+                if measure > measures[thingy][1] + measures[thingy][2] then
+                    self:playcommand("UnDootz")
+                    thingy = thingy + 1
+                end
+
+                if active then
+                    self:playcommand("MeasureCrossed")
+                end
+            end
+        end
+    end,
+    MeasureCrossedCommand = function(self)
+        local txt = self:GetChild("Text")
+        local bg = self:GetChild("Background")
+
+        txt:settextf("%d / %d", measure - measures[thingy][1], measures[thingy][2])
+        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight())
+    end,
+
+    Def.Quad {
+        Name = "Background",
+        InitCommand = function(self)
+            self:diffusealpha(0.6)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+        end,
+    },
+    LoadFont("Common Normal") .. {
+        Name = "Text",
+    }
 }
 
 return t

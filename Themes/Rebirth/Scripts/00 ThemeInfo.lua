@@ -1,22 +1,22 @@
 THEMEINFO = {
-	Name = "Rebirth",
-	Version = "1",
-	Date = "20211017",
-	Author = "Celebelian, poco0317, and the Etterna Team"
+    Name = "Rebirth",
+    Version = "1",
+    Date = "20211017",
+    Author = "Celebelian, poco0317, and the Etterna Team"
 }
 
 function getThemeName()
-	return THEMEINFO["Name"]
+    return THEMEINFO["Name"]
 end
 
 function getThemeVersion()
-	return THEMEINFO["Version"]
+    return THEMEINFO["Version"]
 end
 
 function getThemeDate()
-	return THEMEINFO["Date"]
+    return THEMEINFO["Date"]
 end
 
 function getThemeAuthor()
-	return THEMEINFO["Author"]
+    return THEMEINFO["Author"]
 end

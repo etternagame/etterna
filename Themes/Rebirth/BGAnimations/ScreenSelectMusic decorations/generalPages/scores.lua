@@ -741,7 +741,7 @@ local function createList()
                 local selectPressed = false
                 SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                     -- require context is set and the general box is set to this tab
-                    if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab ~= SCUFF.scoretabindex then 
+                    if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab ~= SCUFF.scoretabindex then
                         selectPressed = false
                         return
                     end
@@ -1064,11 +1064,11 @@ local function createList()
                     local wifecolr = colorByGrade(localscore:GetWifeGrade())
                     local wv = "Wife "..localscore:GetWifeVers()
                     local judge = 4
-					if PREFSMAN:GetPreference("SortBySSRNormPercent") == false then
-						judge = table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2))
-					end
-					if not judge then judge = 4 end
-					if judge < 4 then judge = 4 end
+                    if PREFSMAN:GetPreference("SortBySSRNormPercent") == false then
+                        judge = table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2))
+                    end
+                    if not judge then judge = 4 end
+                    if judge < 4 then judge = 4 end
                     local js = judge ~= 9 and judge or "Justice"
                     local perc = string.format("%5.2f%%", notShit.floor(wife, 2))
                     self:ClearAttributes()
@@ -1201,7 +1201,7 @@ local function createList()
                         local holds = localscore:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
-    
+
                         self:playcommand("LoadOffsets", {
                             offsetVector = offsets,
                             trackVector = tracks,
@@ -1282,7 +1282,7 @@ local function createList()
             self:finishtweening()
             self:smooth(scoreListAnimationSeconds)
             local steps = GAMESTATE:GetCurrentSteps()
-            
+
             if isLocal then
                 if localrtTable == nil and GAMESTATE:GetCurrentSong() ~= nil then
                     self:diffusealpha(1)

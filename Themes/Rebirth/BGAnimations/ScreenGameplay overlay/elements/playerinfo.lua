@@ -2,8 +2,8 @@
 local profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
 
 local translated_info = {
-	Judge = "Judge",
-	Scoring = "Scoring",
+    Judge = "Judge",
+    Scoring = "Scoring",
 }
 
 local modstringTextSize = GAMEPLAY:getItemHeight("playerInfoModsText")
@@ -41,18 +41,18 @@ return Def.ActorFrame {
             self:diffusealpha(0.1)
         end,
     },
-	Def.Sprite {
+    Def.Sprite {
         Name = "Avatar",
-		InitCommand = function(self)
-			self:halign(0):valign(0)
-		end,
-		BeginCommand = function(self)
-			self:finishtweening()
-			self:Load(getAvatarPath(PLAYER_1))
-			self:zoomto(avatarSize, avatarSize)
-		end
-	},
-	LoadFont("Common Large") .. {
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+        end,
+        BeginCommand = function(self)
+            self:finishtweening()
+            self:Load(getAvatarPath(PLAYER_1))
+            self:zoomto(avatarSize, avatarSize)
+        end
+    },
+    LoadFont("Common Large") .. {
         Name = "Difficulty",
         InitCommand = function(self)
             self:halign(0):valign(0)
@@ -75,7 +75,7 @@ return Def.ActorFrame {
             self:queuecommand("Set")
         end
     },
-	LoadFont("Common Large") .. {
+    LoadFont("Common Large") .. {
         Name = "MSD",
         InitCommand = function(self)
             self:halign(0):valign(1)
@@ -98,7 +98,7 @@ return Def.ActorFrame {
             self:queuecommand("Set")
         end,
     },
-	LoadFont("Common Normal") .. {
+    LoadFont("Common Normal") .. {
         Name = "ModString",
         InitCommand = function(self)
             self:halign(0):valign(1)
@@ -110,7 +110,7 @@ return Def.ActorFrame {
             self:settext(getModifierTranslations(GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current")))
         end
     },
-	LoadFont("Common Normal") .. {
+    LoadFont("Common Normal") .. {
         Name = "Judge",
         InitCommand = function(self)
             self:halign(0):valign(0)
@@ -121,7 +121,7 @@ return Def.ActorFrame {
             self:settextf("%s: %d", translated_info["Judge"], GetTimingDifficulty())
         end
     },
-	LoadFont("Common Normal") .. {
+    LoadFont("Common Normal") .. {
         Name = "ScoreType",
         InitCommand = function(self)
             self:halign(0):valign(1)

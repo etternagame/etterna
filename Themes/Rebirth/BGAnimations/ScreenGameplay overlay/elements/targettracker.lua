@@ -8,11 +8,11 @@ local targetTrackerMode = playerConfig:get_data().TargetTrackerMode
 local GAMEPLAY_SIZING_RATIO = (480 / SCREEN_HEIGHT)
 
 local t = Def.ActorFrame {
-	Name = "TargetTracker",
-	InitCommand = function(self)
+    Name = "TargetTracker",
+    InitCommand = function(self)
         self:playcommand("SetUpMovableValues")
         registerActorToCustomizeGameplayUI(self)
-	end,
+    end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY)
         self:zoom(MovableValues.TargetTrackerZoom / GAMEPLAY_SIZING_RATIO)
@@ -23,7 +23,7 @@ local aheadColor = COLORS:getGameplayColor("TargetGoalAhead")
 local behindColor = COLORS:getGameplayColor("TargetGoalBehind")
 
 if targetTrackerMode == 0 then
-	t[#t+1] = LoadFont("Common Normal") .. {
+    t[#t+1] = LoadFont("Common Normal") .. {
         Name = "PercentDifferential",
         InitCommand = function(self)
             self:halign(0):valign(1)
@@ -40,7 +40,7 @@ if targetTrackerMode == 0 then
         end
     }
 else
-	t[#t+1] = LoadFont("Common Normal") .. {
+    t[#t+1] = LoadFont("Common Normal") .. {
         Name = "PBDifferential",
         InitCommand = function(self)
             self:halign(0):valign(1)

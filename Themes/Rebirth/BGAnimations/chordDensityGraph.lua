@@ -106,56 +106,56 @@ local t = Def.ActorFrame {
 
 local function getColorForDensity(density, nColumns)
     -- Generically (generally? intelligently? i dont know) set a range
-	-- The value var describes the level of density.
+    -- The value var describes the level of density.
     -- Beginning at lowVal for 0, to highVal for nColumns.
     local interval = 1 / nColumns
-	local value = density * interval
+    local value = density * interval
     return lerp_color(value, lowDensityColor, highDensityColor)
 end
 
 local function makeABar(vertices, x, y, barWidth, barHeight, thecolor)
-	-- These bars are vertical, progressively going across the screen
-	-- Their corners are: (x,y), (x, y-barHeight), (x-barWidth, y-barHeight), (x-barWidth, y)
-	vertices[#vertices + 1] = {{x,y-barHeight,0},thecolor}
-	vertices[#vertices + 1] = {{x-barWidth,y-barHeight,0},thecolor}
-	vertices[#vertices + 1] = {{x-barWidth,y,0},thecolor}
-	vertices[#vertices + 1] = {{x,y,0},thecolor}
+    -- These bars are vertical, progressively going across the screen
+    -- Their corners are: (x,y), (x, y-barHeight), (x-barWidth, y-barHeight), (x-barWidth, y)
+    vertices[#vertices + 1] = {{x,y-barHeight,0},thecolor}
+    vertices[#vertices + 1] = {{x-barWidth,y-barHeight,0},thecolor}
+    vertices[#vertices + 1] = {{x-barWidth,y,0},thecolor}
+    vertices[#vertices + 1] = {{x,y,0},thecolor}
 end
 
 local function updateGraphMultiVertex(parent, self, steps)
-	if steps then
-		local ncol = steps:GetNumColumns()
-		local rate = math.max(1, getCurRateValue())
+    if steps then
+        local ncol = steps:GetNumColumns()
+        local rate = math.max(1, getCurRateValue())
         local graphVectors = steps:GetCDGraphVectors(rate)
         local txt = parent:GetChild("NPSText")
-		if graphVectors == nil then
-			-- reset everything if theres nothing to show
-			self:SetVertices({})
+        if graphVectors == nil then
+            -- reset everything if theres nothing to show
+            self:SetVertices({})
             self:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
             txt:settext("")
-			return
-		end
-		
-		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
-		local numberOfColumns = #npsVector
-		local columnWidth = sizing.Width / numberOfColumns * rate
-		
-		-- set height scale of graph relative to the max nps
-		local heightScale = 0
-		for i=1,#npsVector do
-			if npsVector[i] * 2 > heightScale then
-				heightScale = npsVector[i] * 2
-			end
-		end
-		
+            return
+        end
+
+        local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+        local numberOfColumns = #npsVector
+        local columnWidth = sizing.Width / numberOfColumns * rate
+
+        -- set height scale of graph relative to the max nps
+        local heightScale = 0
+        for i=1,#npsVector do
+            if npsVector[i] * 2 > heightScale then
+                heightScale = npsVector[i] * 2
+            end
+        end
+
         txt:settext(heightScale / 2 * 0.7 .. "NPS")
         heightScale = sizing.Height / heightScale
-        
-		local verts = {} -- reset the vertices for the graph
-		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
+
+        local verts = {} -- reset the vertices for the graph
+        local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
         local lastIndex = 1
-		for density = 1,ncol do
-			for column = 1,numberOfColumns do
+        for density = 1,ncol do
+            for column = 1,numberOfColumns do
                 if graphVectors[density][column] > 0 then
                     local barColor = getColorForDensity(density, ncol)
                     makeABar(verts, math.min(column * columnWidth, sizing.Width), yOffset, columnWidth, graphVectors[density][column] * 2 * heightScale, barColor)
@@ -163,20 +163,20 @@ local function updateGraphMultiVertex(parent, self, steps)
                         lastIndex = column
                     end
                 end
-			end
-		end
+            end
+        end
 
         parent.npsVector = npsVector
         parent.finalNPSVectorIndex = lastIndex -- massive hack because npsVector is padded with 0s on uprates
-		
-		self:SetVertices(verts)
+
+        self:SetVertices(verts)
         self:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
     else
         -- reset everything if theres nothing to show
         self:SetVertices({})
         self:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
         parent:GetChild("NPSText"):settext("")
-	end
+    end
 end
 
 local textzoomFudge = 5

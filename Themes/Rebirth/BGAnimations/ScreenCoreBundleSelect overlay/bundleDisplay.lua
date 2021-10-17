@@ -129,7 +129,7 @@ local function bundleList()
                     end
                 end,
                 MouseDownCommand = function(self, params)
-					DLMAN:DownloadCoreBundle(bundle.Name:lower())
+                    DLMAN:DownloadCoreBundle(bundle.Name:lower())
                 end,
                 MouseOverCommand = function(self, params)
                     cursorIndex = i
@@ -305,7 +305,7 @@ local t = Def.ActorFrame {
             end,
         },
     },
-    Def.ActorFrame { 
+    Def.ActorFrame {
         Name = "ProgressFrame",
         InitCommand = function(self)
             self:xy(SCREEN_CENTER_X, SCREEN_HEIGHT)

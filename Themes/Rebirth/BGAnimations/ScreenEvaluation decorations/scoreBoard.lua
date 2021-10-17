@@ -163,7 +163,7 @@ local function scoreList()
     -- we don't tell anyone
     -- the Global country just shows everyone
     local dlmanScoreboardCountryFilter = "Global"
-    
+
     local mostRecentScore = SCOREMAN:GetMostRecentScore()
     local selectedScorekey = mostRecentScore:GetScoreKey()
     local scores = {}
@@ -216,7 +216,7 @@ local function scoreList()
                         end
                     end
                     -- sort it by Overall SSR
-                    table.sort(scores, 
+                    table.sort(scores,
                     function(a,b)
                         return a:GetSkillsetSSR("Overall") > b:GetSkillsetSSR("Overall")
                     end)
@@ -363,7 +363,7 @@ local function scoreList()
                     end
                 end,
                 MouseOverCommand = function(self) self:playcommand("RolloverUpdate",{update = "over"}) end,
-        		MouseOutCommand = function(self) self:playcommand("RolloverUpdate",{update = "out"}) end,
+                MouseOutCommand = function(self) self:playcommand("RolloverUpdate",{update = "out"}) end,
                 RolloverUpdateCommand = function(self, params)
                     -- hovering
                     if self:GetParent():GetDiffuseAlpha() ~= 0 then
@@ -561,7 +561,7 @@ local function scoreList()
             end
         end,
     }
-    
+
     for i = 1, itemCount do
         t[#t+1] = scoreItem(i)
     end
@@ -599,7 +599,7 @@ local function scoreList()
             self:finishtweening()
             self:smooth(scoreListAnimationSeconds)
             local steps = GAMESTATE:GetCurrentSteps()
-            
+
             if isLocal then
                 if scores ~= nil and #scores == 0 then
                     self:diffusealpha(1)
@@ -649,7 +649,7 @@ local function scoreList()
             self:settextf("Showing %d-%d of %d scores", lb, ub, #scores)
         end
     }
-    
+
     return t
 end
 

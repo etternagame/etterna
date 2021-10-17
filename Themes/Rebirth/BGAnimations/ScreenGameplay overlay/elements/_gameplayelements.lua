@@ -8,103 +8,103 @@ local t = Def.ActorFrame {
     BeginCommand = function(self)
         updateDiscordStatusForGameplay()
         updateNowPlaying()
-		
-		-- queue so it doesnt reach the children
-		self:queuecommand("SetUpMovableValues")
+
+        -- queue so it doesnt reach the children
+        self:queuecommand("SetUpMovableValues")
     end,
-	SetUpMovableValuesMessageCommand = function(self)
-		local screen = SCREENMAN:GetTopScreen()
+    SetUpMovableValuesMessageCommand = function(self)
+        local screen = SCREENMAN:GetTopScreen()
         local usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 
-		-- screen scale
-		local screenscale = MovableValues.ScreenZoom
+        -- screen scale
+        local screenscale = MovableValues.ScreenZoom
         screen:zoom(screenscale)
         screen:xy(SCREEN_WIDTH * (1 - screenscale) / 2, SCREEN_HEIGHT * (1 - screenscale) / 2)
-		screen:addx(MovableValues.ScreenX)
-		screen:addy(MovableValues.ScreenY)
+        screen:addx(MovableValues.ScreenX)
+        screen:addy(MovableValues.ScreenY)
 
         -- lifebar movement
-		local lifebar = screen:GetLifeMeter(PLAYER_1)
-		if lifebar ~= nil then
-			lifebar:zoomtowidth(MovableValues.LifeP1Width)
-			lifebar:zoomtoheight(MovableValues.LifeP1Height)
-			lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
-			lifebar:rotationz(MovableValues.LifeP1Rotation)
-		end
+        local lifebar = screen:GetLifeMeter(PLAYER_1)
+        if lifebar ~= nil then
+            lifebar:zoomtowidth(MovableValues.LifeP1Width)
+            lifebar:zoomtoheight(MovableValues.LifeP1Height)
+            lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
+            lifebar:rotationz(MovableValues.LifeP1Rotation)
+        end
 
         -- notefield movement
         -- notefield column movement
         local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
         if nf then
-			local noteColumns = nf:get_column_actors()
-			nf:y(0)
+            local noteColumns = nf:get_column_actors()
+            nf:y(0)
             nf:addy(MovableValues.NoteFieldY * (usingReverse and -1 or 1))
-			nf:x(0)
+            nf:x(0)
             nf:addx(MovableValues.NoteFieldX)
 
-			-- notefield column sizing
+            -- notefield column sizing
             for i, actor in ipairs(noteColumns) do
                 actor:zoomtowidth(MovableValues.NoteFieldWidth)
                 actor:zoomtoheight(MovableValues.NoteFieldHeight)
             end
-			-- notefield column movement
-			local inc = MovableValues.NoteFieldSpacing
-			if inc == nil then inc = 0 end
-			local hCols = math.floor(#noteColumns/2)
-			for i, col in ipairs(noteColumns) do
-				col:x(0)
-				col:addx((i-hCols-1) * inc)
-			end
+            -- notefield column movement
+            local inc = MovableValues.NoteFieldSpacing
+            if inc == nil then inc = 0 end
+            local hCols = math.floor(#noteColumns/2)
+            for i, col in ipairs(noteColumns) do
+                col:x(0)
+                col:addx((i-hCols-1) * inc)
+            end
         end
-	end,
+    end,
     DoneLoadingNextSongMessageCommand = function(self)
-		local screen = SCREENMAN:GetTopScreen()
+        local screen = SCREENMAN:GetTopScreen()
 
         -- playlists reset notefield positioning ??
-		if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
-			NoteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
-			NoteField:addy(MovableValues.NoteFieldY * (usingReverse and 1 or -1))
-		end
-		-- update all stats in gameplay (as if it was a reset) when loading a new song
-		-- particularly for playlists
-		self:playcommand("PracticeModeReset")
-	end,
-	JudgmentMessageCommand = function(self, msg)
+        if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
+            NoteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
+            NoteField:addy(MovableValues.NoteFieldY * (usingReverse and 1 or -1))
+        end
+        -- update all stats in gameplay (as if it was a reset) when loading a new song
+        -- particularly for playlists
+        self:playcommand("PracticeModeReset")
+    end,
+    JudgmentMessageCommand = function(self, msg)
         -- for each judgment, every tap and hold judge
-		local targetDiff = msg.WifeDifferential
-		local wifePercent = notShit.floor(msg.WifePercent * 100) / 100
-		local judgeCount = msg.Val
-		local dvCur = nil
-		if msg.Offset ~= nil then
-			dvCur = msg.Offset
-		end
-		local pbTarget = nil
-		if msg.WifePBGoal ~= nil and targetTrackerMode ~= 0 then
-			pbTarget = msg.WifePBGoal
-			targetDiff = msg.WifePBDifferential
-		end
-		local jdgCur = msg.Judgment
+        local targetDiff = msg.WifeDifferential
+        local wifePercent = notShit.floor(msg.WifePercent * 100) / 100
+        local judgeCount = msg.Val
+        local dvCur = nil
+        if msg.Offset ~= nil then
+            dvCur = msg.Offset
+        end
+        local pbTarget = nil
+        if msg.WifePBGoal ~= nil and targetTrackerMode ~= 0 then
+            pbTarget = msg.WifePBGoal
+            targetDiff = msg.WifePBDifferential
+        end
+        local jdgCur = msg.Judgment
 
-		self:playcommand("SpottedOffset", {
-			targetDiff = targetDiff, -- wifepoints difference from target goal
-			pbTarget = pbTarget, -- goal target equivalent to current rate pb
-			wifePercent = wifePercent, -- visual wifepercent converted from internal wifepercent value
-			judgeCount = judgeCount, -- current count of the given judgment that sent the JudgmentMessage
-			judgeOffset = dvCur, -- offset assigned to judged tap; nil if is a hold judgment
-			judgeCurrent = jdgCur, -- the judgment that triggered this JudgmentMessage
-		})
-	end,
-	PracticeModeResetMessageCommand = function(self)
+        self:playcommand("SpottedOffset", {
+            targetDiff = targetDiff, -- wifepoints difference from target goal
+            pbTarget = pbTarget, -- goal target equivalent to current rate pb
+            wifePercent = wifePercent, -- visual wifepercent converted from internal wifepercent value
+            judgeCount = judgeCount, -- current count of the given judgment that sent the JudgmentMessage
+            judgeOffset = dvCur, -- offset assigned to judged tap; nil if is a hold judgment
+            judgeCurrent = jdgCur, -- the judgment that triggered this JudgmentMessage
+        })
+    end,
+    PracticeModeResetMessageCommand = function(self)
         -- reset stats for practice mode reverts mostly
-		self:playcommand("SpottedOffset", {
-			targetDiff = 0,
-			pbTarget = 0,
-			wifePercent = 0,
-			judgeCount = 0,
-			judgeOffset = nil,
-			judgeCurrent = nil,
-		})
-	end
+        self:playcommand("SpottedOffset", {
+            targetDiff = 0,
+            pbTarget = 0,
+            wifePercent = 0,
+            judgeCount = 0,
+            judgeOffset = nil,
+            judgeCurrent = nil,
+        })
+    end
 }
 
 if playerConfig:get_data().BPMDisplay then
@@ -131,11 +131,11 @@ end
 
 if (NSMAN:IsETTP() and Var("LoadingScreen"):find("Net") ~= nil) or
 (playerConfig:get_data().leaderboardEnabled and DLMAN:IsLoggedIn()) then
-	t[#t+1] = LoadActor("leaderboard")
+    t[#t+1] = LoadActor("leaderboard")
 end
 
 if playerConfig:get_data().DisplayMean then
-	t[#t+1] = LoadActor("meandisplay")
+    t[#t+1] = LoadActor("meandisplay")
 end
 
 if playerConfig:get_data().MeasureCounter then
@@ -151,7 +151,7 @@ if playerConfig:get_data().NPSDisplay then
 end
 
 if playerConfig:get_data().PlayerInfo then
-	t[#t+1] = LoadActor("playerinfo")
+    t[#t+1] = LoadActor("playerinfo")
 end
 
 if playerConfig:get_data().RateDisplay then

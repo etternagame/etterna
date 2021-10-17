@@ -1,11 +1,11 @@
 -- this delegates the existence and further control and customization of all gameplay elements
--- decided to put this into its own folder for organization related reasons 
+-- decided to put this into its own folder for organization related reasons
 local customizationEnabled = playerConfig:get_data().CustomizeGameplay == true
 local practiceEnabled = GAMESTATE:IsPracticeMode()
 local replayEnabled = GAMESTATE:GetGameplayMode() == "GameplayMode_Replay"
 
 if not replayEnabled and not customizationEnabled and not practiceEnabled then
-	Arch.setCursorVisible(false)
+    Arch.setCursorVisible(false)
 end
 
 

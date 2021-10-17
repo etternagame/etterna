@@ -1,4 +1,4 @@
---Random quotes,phrases and memes from various rhythm gaming communities /o/ 
+--Random quotes,phrases and memes from various rhythm gaming communities /o/
 --(that you may or may not be familar with.... heck i don't even know the references for some of these)
 --mainly from ossu, stepman and bms
 
@@ -72,10 +72,10 @@ local Phrases = {
     "i'm not a kaiden i'm a ninja gaiden",
     "did you seriously pay peppy 4$ to upload a fucking thomas the tank engine dump",
     "mania is a pile of unmanageblae shit i'm not fixing it - peppy",
-    "Korean Mmorpg", -- For a free 42 hour silence and a potential ban 
+    "Korean Mmorpg", -- For a free 42 hour silence and a potential ban
     "I had a SV change trauma this SV change requires my no response in flying ball towards me", -- ABCD
     "Re:apparantly wearing a fedora improves sightreading???", -- a thread on oss
-    "How does your osu have all notes go to one place?", -- Taiko 
+    "How does your osu have all notes go to one place?", -- Taiko
     "Fuga Fuuuga Fuuuuuckga Fuuuuuuuuckga Darkstar PAZO light TRASH ACE WOOD HELL", -- Fuga Hall of Shame
     "JESUS WON'T COME TO SAVE YOU IN RHYTHM GAME HELL SON",
     "slapping colorful hamburgers is one of my many hobbies", -- popn
@@ -86,52 +86,52 @@ local Phrases = {
     "What is SOWS? I tried to Google it but all I get is pictures of female pigs",
     "To Abcdullah: your cheating is obvious, doing 100.00% on lv.26-28 maps from the first attempt is cheating, admit it.", -- osu pm
     "konmai", -- konami
-	"gonz:pork",
-	"BMS = Button Mashing Simulator", -- Some yt comment... might have been doorknob
-	"leonid fucking hard", -- LUXURY"
-	"in Norway every girl is blonde, blue eyed and 300BPMs", -- Roar176
-	"vROFL",
-	"Sandbaggerrrrrrr", -- How to win FFR tourneys 
-	"I'm gonna suee your ass to pakistan", -- Gundam-Dude
-	"what is the romaji of 皿 : scratches", -- AKA: sarachan >~<
-	"solo rulz",
-	"(o:",
-	"TSUMOOOOOO", -- Chiitoitsu dora2 4000/2000 and y'all owe me a simfile
-	"maniera fuck", -- ideu
-	"Solord State Squad", -- solid state squad
-	"fripSide noodle factory", -- EVERY 17VA MAP
-	"StepMania changed my life!",
-	"Lincle Prim is best Prim", -- best prim 
-	"Bubububub~", -- best prim
-	"Lovery Radio",  -- prim
-	"えいニャ！　えいニャ！",  -- prim
-	"Dat MA",
-	"IT HAS MEI IN IT", -- Toy's march 
-	"J1L1", -- Pr0 settings 
-	"(KOOKY)", -- EVERY BMS DUMP
-	"(^^)/★★", -- ABCD
-	"less apm for more swage", -- Roar
-	"people age at a rate of about 1 year per year", -- Choofers
-	"Overjoy in 6 months", -- Yume
-	"FDFD in 6 months", -- what Yume could've done if he didn't rq bms for popn
-	"FUCGELO", -- ↓YOU FUC 
-	"earbleed",
-	"にっこにっこにー☆", -- raburaibu
-	"%E3%83%96%E3%83%B3%E3%82%BF%E3%83%B3 ～Falling in B mix～", -- buntan
-	"~koreastep~",
-	"solocock.png", -- "Mine is Bigger" also solorulz
-	"Gigadelicious",
-	"hot sexy touhou", -- AKA: HST
-	"Today's Popn", -- leonid
-	"B..bbut... you're supposed to play this on a dance mat", -- Every youtube comment ever on stepmania vids
-	"WinDEU hates you",
-	"~kawaii chordsmash~", -- https://www.youtube.com/watch?v=52laML7s9y0
-	"tatataatatatatattatatattatatataii hihhihihihihhihhihihihihiihihhihihihihhihhi", -- francium 
-	"Is dis a game? If it is can I ask for da link and I need to play dis so badly and I wanna know if dere is any vocaloid songs on it",
-	"Korea team for 4k: Captain:abcd right hand, player 2: abcd left hand", -- longgone
-	"hory shiet", -- Zak
-	"(=^._.^)/☆", --0
-	"if i train a cat to play bms for 15 years it will pass overjoy", -- Leonid
+    "gonz:pork",
+    "BMS = Button Mashing Simulator", -- Some yt comment... might have been doorknob
+    "leonid fucking hard", -- LUXURY"
+    "in Norway every girl is blonde, blue eyed and 300BPMs", -- Roar176
+    "vROFL",
+    "Sandbaggerrrrrrr", -- How to win FFR tourneys
+    "I'm gonna suee your ass to pakistan", -- Gundam-Dude
+    "what is the romaji of 皿 : scratches", -- AKA: sarachan >~<
+    "solo rulz",
+    "(o:",
+    "TSUMOOOOOO", -- Chiitoitsu dora2 4000/2000 and y'all owe me a simfile
+    "maniera fuck", -- ideu
+    "Solord State Squad", -- solid state squad
+    "fripSide noodle factory", -- EVERY 17VA MAP
+    "StepMania changed my life!",
+    "Lincle Prim is best Prim", -- best prim
+    "Bubububub~", -- best prim
+    "Lovery Radio",  -- prim
+    "えいニャ！　えいニャ！",  -- prim
+    "Dat MA",
+    "IT HAS MEI IN IT", -- Toy's march
+    "J1L1", -- Pr0 settings
+    "(KOOKY)", -- EVERY BMS DUMP
+    "(^^)/★★", -- ABCD
+    "less apm for more swage", -- Roar
+    "people age at a rate of about 1 year per year", -- Choofers
+    "Overjoy in 6 months", -- Yume
+    "FDFD in 6 months", -- what Yume could've done if he didn't rq bms for popn
+    "FUCGELO", -- ↓YOU FUC
+    "earbleed",
+    "にっこにっこにー☆", -- raburaibu
+    "%E3%83%96%E3%83%B3%E3%82%BF%E3%83%B3 ～Falling in B mix～", -- buntan
+    "~koreastep~",
+    "solocock.png", -- "Mine is Bigger" also solorulz
+    "Gigadelicious",
+    "hot sexy touhou", -- AKA: HST
+    "Today's Popn", -- leonid
+    "B..bbut... you're supposed to play this on a dance mat", -- Every youtube comment ever on stepmania vids
+    "WinDEU hates you",
+    "~kawaii chordsmash~", -- https://www.youtube.com/watch?v=52laML7s9y0
+    "tatataatatatatattatatattatatataii hihhihihihihhihhihihihihiihihhihihihihhihhi", -- francium
+    "Is dis a game? If it is can I ask for da link and I need to play dis so badly and I wanna know if dere is any vocaloid songs on it",
+    "Korea team for 4k: Captain:abcd right hand, player 2: abcd left hand", -- longgone
+    "hory shiet", -- Zak
+    "(=^._.^)/☆", --0
+    "if i train a cat to play bms for 15 years it will pass overjoy", -- Leonid
     "i could train a cat to pass overjoy in 15 years -- whether or not i could keep it alive for that long is another question", -- Mina
     "You're in denial, your SVs suck and your map needs work", -- moar ossu drama
     "StepMania Detected", -- choof
@@ -179,7 +179,7 @@ local Phrases = {
     "like if there's a L.E.D. song titled GIGANTIC ONION CANNON I won't be shocked", -- UBerserker
     "2D IS GOOOOOOOOOOOOOOLD!", -- TWO DEEKS GOOOOOLD-
     "I seriously can't go to clubs and dance with random girls because they're so freaking off sync. -- change their global offset", -- jordan
-    "eyelid sudden+", -- Asian perks 
+    "eyelid sudden+", -- Asian perks
     "Nanahira is love. I hope she makes collab with Prim sometime.", -- shortly followed by "Have mercy on our ears"
     "we should impersonize the scratch from lr2 into some annoying anime chick", -- sarachan >w
     "be-music salt", -- BMS
@@ -193,7 +193,7 @@ local Phrases = {
     "10th dan is too cynical", -- LG
     "you need to assert your kaiden aura", -- drace
     "I want to see cookiezi in mwc this year", -- attang
-    "ROARD TOOTHBRUSH", -- Stai birthday stream 
+    "ROARD TOOTHBRUSH", -- Stai birthday stream
     "The dance pad. Does it count as a toy?", -- http://zenius-i-vanisher.com/v5.2/thread?threadid=7696
     "Thou shalt not look down at lifebar whilst vigorously mashing keys to survive", -- LG
     "is it possible to make the lifebar hidden? -- Post it note on screen",
@@ -212,7 +212,7 @@ local Phrases = {
     "you dont start playing o2jam until you clear lvl 70's",
     "guys please NO DRAMA", -- GAYM
     "8k>4k ..... *runs*",
-    "I can pass overjoy on osu so I should be able to do that in lr2 easily", -- logic 
+    "I can pass overjoy on osu so I should be able to do that in lr2 easily", -- logic
     "why can't everything be image replacements like osu smh",
     "metrics.ini is a giant shitshow",
     "O-oooooooooo AAAAE-A-A-I-A-U- JO-oooooooooooo AAE-O-A-A-U-U-A- E-eee-ee-eee AAAAE-A-E-I-E-A- JO-ooo-oo-oo-oo EEEEO-A-AAA-AAAA﻿", -- sdvx brain power
@@ -228,7 +228,7 @@ local Phrases = {
     "SOUND VOLTAGE", -- #SOUND_VOLTAGE FOR SGDQ 2016
     "you can't say that you're d7 because you can only jack off in one direction", -- eze
     "SUGOI MISS", -- symbolic gear
-    "ideu food", 
+    "ideu food",
     "WE LOVE LOBSAK -- WE NEED LOBSAK", -- https://www.youtube.com/watch?v=mvZz_Ulkg1o
     "mayumi is only prim when she's high",
     "DAMN DANIEL",
@@ -272,7 +272,7 @@ local Phrases = {
     "UNCLE BEN'S RICE SMOOTHIE", -- stai's stream
     "it's basically impossible to have played stepmania and not heard of osu", -- lurker
     "go play your stupid d7 hyper ultra stamina death killer files -- and get cts", -- Tim
-    "I grind the LR2 now I am the Insane of the kaiden dan and come to score on you prepare for anus shrekktering :) :) :)", -- RoFAIL 
+    "I grind the LR2 now I am the Insane of the kaiden dan and come to score on you prepare for anus shrekktering :) :) :)", -- RoFAIL
     "After having been diagnosed with carpal tunnel 2 days ago, I pushed as hard as I could on osu and saw insane results", -- mlr_tachyon
     "youll be good at sm again if you quit quitting every 3 hours", -- Walrusizer
     "I have really bad RSI so I have to play with my hands pretty much limp -- right hand even had carpool tunnel in the past", -- KirasCat

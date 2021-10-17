@@ -283,7 +283,7 @@ local function gatherRescoreTableFromScore(score)
     o["dvt"] = score:GetOffsetVector()
     -- holds
     o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
-	o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
+    o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
     o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
     -- mines
     o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
@@ -292,7 +292,7 @@ local function gatherRescoreTableFromScore(score)
     for _, j in ipairs(tapJudgments) do
         o["totalTaps"] = o["totalTaps"] + score:GetTapNoteScore(j)
     end
-	return o
+    return o
 end
 
 local function subTypeStats()
@@ -427,11 +427,11 @@ local function accuracyStats()
         local currentPFC = 0
         local marvsForRA = 0 -- we are counting ridic as marvs normally, so count marvs alone separately to calculate RA
         local greatCount = 0
-        
+
         for i, o in ipairs(offsetTable) do
             if typeTable[i] ~= nil and (typeTable[i] == "TapNoteType_Tap" or typeTable[i] == "TapNoteType_HoldHead") then
                 local off = math.abs(o)
-                
+
                 -- count judgments
                 if off <= ridicThreshold then
                     currentMFC = currentMFC + 1
@@ -560,7 +560,7 @@ local function calculatedStats()
 
     local evenColumns = true
     local indexToSkip = 5 -- the middle cb index
-    
+
     -- contains the data corresponding to each of the above stat strings
     local statData = {
         0, -- mean
@@ -619,7 +619,7 @@ local function calculatedStats()
                     else
                         middleCB = middleCB + 1
                     end
-                    
+
                     cbInfo[tracks[i]+1] = cbInfo[tracks[i]+1] + 1
                 end
             end
@@ -1135,7 +1135,7 @@ t[#t+1] = Def.ActorFrame {
                 self:y(-actuals.WifePercentLowerGap)
             end
         },
-        
+
         LoadFont("Common Large") .. {
             Name = "MSDSSRDiff",
             InitCommand = function(self)

@@ -80,7 +80,7 @@ end
 function strtrim(str)
     if str == '' then
         return str
-    else  
+    else
         local startPos = 1
         local endPos   = #str
 
@@ -208,12 +208,12 @@ end
 
 -- funny alias to just remove the Music at the end of the string
 function getRateDisplayString2(x)
-	if x == "1x" then
-		x = "1.0x"
-	elseif x == "2x" then
-		x = "2.0x"
-	end
-	return x
+    if x == "1x" then
+        x = "1.0x"
+    elseif x == "2x" then
+        x = "2.0x"
+    end
+    return x
 end
 
 -- alias for wifesundries ChangeMusicRate which is really bad
@@ -222,7 +222,7 @@ function changeMusicRate(direction)
     -- the classic clamps are 0.7 and 3
     -- the game wont allow 0 and wont allow over 3
     local next = clamp(now + direction, 0.05, 3)
-    
+
     GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(next)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(next)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(next)
@@ -232,12 +232,12 @@ end
 
 function askForInputStringWithFunction(question, maxInputLength, obfuscate, onOK, validateFunc, onCancel)
     SCREENMAN:AddNewScreenToTop("ScreenTextEntry")
-	local settings = {
-		Question = question,
-		MaxInputLength = maxInputLength,
-		Password = obfuscate,
-		OnOK = function(answer)
-			onOK(answer)
+    local settings = {
+        Question = question,
+        MaxInputLength = maxInputLength,
+        Password = obfuscate,
+        OnOK = function(answer)
+            onOK(answer)
         end,
         Validate = function(answer)
             return validateFunc(answer)
@@ -245,8 +245,8 @@ function askForInputStringWithFunction(question, maxInputLength, obfuscate, onOK
         OnCancel = function()
             onCancel()
         end,
-	}
-	SCREENMAN:GetTopScreen():Load(settings)
+    }
+    SCREENMAN:GetTopScreen():Load(settings)
 end
 
 -- set the given text but truncate it if a width is reached

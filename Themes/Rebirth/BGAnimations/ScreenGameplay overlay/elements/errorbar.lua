@@ -28,115 +28,115 @@ local earlylateTextSize = GAMEPLAY:getItemHeight("errorBarText")
 local errorbarType = playerConfig:get_data().ErrorBar == 1 and "Regular" or "EWMA"
 
 local translated_info = {
-	ErrorLate = "Late",
-	ErrorEarly = "Early",
+    ErrorLate = "Late",
+    ErrorEarly = "Early",
 }
 
 -- procedurally generated error bars
 local function smeltErrorBar(index)
-	return Def.Quad {
-		Name = index,
-		InitCommand = function(self)
-			self:zoomto(barWidth, MovableValues.ErrorBarHeight)
-			self:diffusealpha(0)
-		end,
-		UpdateErrorBarCommand = function(self, params)
-			if not params or params.judgeCurrent == nil or params.judgeOffset == nil then return end
-			self:finishtweening()
-			self:diffusealpha(1)
-			-- now make it the color for this new judgment
-			self:diffuse(colorByJudgment(params.judgeCurrent))
-			-- and set up the position
-			if MovableValues and MovableValues.ErrorBarX then
-				self:x(params.judgeOffset * wscale)
-				self:zoomtoheight(MovableValues.ErrorBarHeight)
-			end
-			self:linear(barDuration)
-			self:diffusealpha(0)
-		end,
-		PracticeModeResetMessageCommand = function(self)
-			self:diffusealpha(0)
-		end
-	}
+    return Def.Quad {
+        Name = index,
+        InitCommand = function(self)
+            self:zoomto(barWidth, MovableValues.ErrorBarHeight)
+            self:diffusealpha(0)
+        end,
+        UpdateErrorBarCommand = function(self, params)
+            if not params or params.judgeCurrent == nil or params.judgeOffset == nil then return end
+            self:finishtweening()
+            self:diffusealpha(1)
+            -- now make it the color for this new judgment
+            self:diffuse(colorByJudgment(params.judgeCurrent))
+            -- and set up the position
+            if MovableValues and MovableValues.ErrorBarX then
+                self:x(params.judgeOffset * wscale)
+                self:zoomtoheight(MovableValues.ErrorBarHeight)
+            end
+            self:linear(barDuration)
+            self:diffusealpha(0)
+        end,
+        PracticeModeResetMessageCommand = function(self)
+            self:diffusealpha(0)
+        end
+    }
 end
 
 local t = Def.ActorFrame {
-	Name = "ErrorBar",
-	InitCommand = function(self)
-		if errorbarType == "Regular" then
-			for i = 1, barcount do
-				ingots[#ingots + 1] = self:GetChild(i)
-			end
-		else
-			avg = 0
-			lastAvg = 0
-		end
-		self:playcommand("SetUpMovableValues")
-		registerActorToCustomizeGameplayUI(self)
-	end,
-	SetUpMovableValuesMessageCommand = function(self)
-		self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
-		wscale = MovableValues.ErrorBarWidth / 180
-	end,
-	SpottedOffsetCommand = function(self, params)
-		if errorbarType == "Regular" then
-			if params and params.judgeOffset ~= nil then
-				currentbar = ((currentbar) % barcount) + 1
-				ingots[currentbar]:playcommand("UpdateErrorBar", params) -- Update the next bar in the queue
-			end
-		end
-	end,
-	DootCommand = function(self)
-		self:RemoveChild("DestroyMe")
-		self:RemoveChild("DestroyMe2")
-	end,
+    Name = "ErrorBar",
+    InitCommand = function(self)
+        if errorbarType == "Regular" then
+            for i = 1, barcount do
+                ingots[#ingots + 1] = self:GetChild(i)
+            end
+        else
+            avg = 0
+            lastAvg = 0
+        end
+        self:playcommand("SetUpMovableValues")
+        registerActorToCustomizeGameplayUI(self)
+    end,
+    SetUpMovableValuesMessageCommand = function(self)
+        self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)
+        wscale = MovableValues.ErrorBarWidth / 180
+    end,
+    SpottedOffsetCommand = function(self, params)
+        if errorbarType == "Regular" then
+            if params and params.judgeOffset ~= nil then
+                currentbar = ((currentbar) % barcount) + 1
+                ingots[currentbar]:playcommand("UpdateErrorBar", params) -- Update the next bar in the queue
+            end
+        end
+    end,
+    DootCommand = function(self)
+        self:RemoveChild("DestroyMe")
+        self:RemoveChild("DestroyMe2")
+    end,
 
-	Def.Quad {
-		Name = "BG",
-		InitCommand = function(self)
-			registerActorToColorConfigElement(self, "main", "PrimaryBackground")
-			self:diffusealpha(0.1)
-		end,
-		SetUpMovableValuesMessageCommand = function(self)
-			self:zoomto(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight)
-		end,
-	},
-	Def.Quad {
-		Name = "Center",
-		InitCommand = function(self)
-			self:diffuse(COLORS:getGameplayColor("ErrorBarCenter"))
-		end,
-		SetUpMovableValuesMessageCommand = function(self)
-			self:zoomto(2, MovableValues.ErrorBarHeight)
-		end,
-	},
+    Def.Quad {
+        Name = "BG",
+        InitCommand = function(self)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            self:diffusealpha(0.1)
+        end,
+        SetUpMovableValuesMessageCommand = function(self)
+            self:zoomto(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight)
+        end,
+    },
+    Def.Quad {
+        Name = "Center",
+        InitCommand = function(self)
+            self:diffuse(COLORS:getGameplayColor("ErrorBarCenter"))
+        end,
+        SetUpMovableValuesMessageCommand = function(self)
+            self:zoomto(2, MovableValues.ErrorBarHeight)
+        end,
+    },
 
-	-- Indicates which side is which (early/late) These should be destroyed after the song starts.
-	LoadFont("Common Normal") .. {
+    -- Indicates which side is which (early/late) These should be destroyed after the song starts.
+    LoadFont("Common Normal") .. {
         Name = "DestroyMe",
         InitCommand = function(self)
-			self:zoom(earlylateTextSize)
+            self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
             self:settext(translated_info["ErrorLate"])
             self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
         end,
-		SetUpMovableValuesMessageCommand = function(self)
+        SetUpMovableValuesMessageCommand = function(self)
             self:x(MovableValues.ErrorBarWidth / 4)
-		end,
+        end,
     },
-	LoadFont("Common Normal") .. {
+    LoadFont("Common Normal") .. {
         Name = "DestroyMe2",
         InitCommand = function(self)
-			self:zoom(earlylateTextSize)
+            self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
             self:settext(translated_info["ErrorEarly"])
             self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand("Doot")
         end,
-		SetUpMovableValuesMessageCommand = function(self)
+        SetUpMovableValuesMessageCommand = function(self)
             self:x(-MovableValues.ErrorBarWidth / 4)
-		end,
+        end,
         DootCommand = function(self)
             self:GetParent():queuecommand("Doot")
         end
@@ -144,29 +144,29 @@ local t = Def.ActorFrame {
 }
 
 if errorbarType == "EWMA" then
-	t[#t+1] = Def.Quad {
-		Name = "WeightedBar",
-		InitCommand = function(self)
-			self:diffuse(COLORS:getGameplayColor("ErrorBarEWMABar"))
-			self:diffusealpha(1)
-		end,
-		SetUpMovableValuesMessageCommand = function(self)
-			self:zoomto(barWidth, MovableValues.ErrorBarHeight)
-		end,
-		SpottedOffsetCommand = function(self, params)
-			if params and params.judgeOffset ~= nil then
-				avg = alpha * params.judgeOffset + (1 - alpha) * lastAvg
-				lastAvg = avg
-				self:x(MovableValues.ErrorBarX + avg * wscale)
-			end
-		end
-	}
+    t[#t+1] = Def.Quad {
+        Name = "WeightedBar",
+        InitCommand = function(self)
+            self:diffuse(COLORS:getGameplayColor("ErrorBarEWMABar"))
+            self:diffusealpha(1)
+        end,
+        SetUpMovableValuesMessageCommand = function(self)
+            self:zoomto(barWidth, MovableValues.ErrorBarHeight)
+        end,
+        SpottedOffsetCommand = function(self, params)
+            if params and params.judgeOffset ~= nil then
+                avg = alpha * params.judgeOffset + (1 - alpha) * lastAvg
+                lastAvg = avg
+                self:x(MovableValues.ErrorBarX + avg * wscale)
+            end
+        end
+    }
 end
 
 if errorbarType == "Regular" then
-	for i = 1, barcount do
-		t[#t+1] = smeltErrorBar(i)
-	end
+    for i = 1, barcount do
+        t[#t+1] = smeltErrorBar(i)
+    end
 end
 
 return t

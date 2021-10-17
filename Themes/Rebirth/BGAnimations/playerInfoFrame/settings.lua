@@ -312,7 +312,7 @@ local function leftFrame()
         local function setUpKeyBindings()
             INPUTBINDING:RemoveDoubleBindings(false)
             automaticallyBindingEverything = false
-            
+
             -- kill your precious menu double bindings (not gonna lie couldnt think of a better way to guarantee what you see is what is bound)
             -- will only mess with the left side bindings (controller 0)
             for _, b in ipairs(menuButtonsToMap) do
@@ -1267,14 +1267,14 @@ local function leftFrame()
             end
             MESSAGEMAN:Broadcast("UpdateColorConfigChoiceCursorDisplay")
         end
-        
+
         -- apply the HSV+A vars to the current state of the config
         -- updates the elements which display the information about the color
         local function applyHSV()
             local newColor = HSV(hueNum, 1 - satNum, 1 - valNum)
             newColor[4] = alphaNum
             currentColor = newColor
-        
+
             -- the color information Actors may not be present for various reasons
             if colorPickPosition ~= nil then
                 colorPickPosition:xy(boxSize * hueNum/360, boxSize * valNum)
@@ -1288,11 +1288,11 @@ local function leftFrame()
             if alphaSliderPos ~= nil then
                 alphaSliderPos:y(boxSize * (1-alphaNum))
             end
-        
+
             textCursorPos = hexStringMaxLength
             hexEntryString = "#" .. ColorToHex(currentColor)
             hexEntryString = hexEntryString:sub(1,hexStringMaxLength)
-        
+
             MESSAGEMAN:Broadcast("ClickedNewColor")
         end
         local function updateSaturation(percent)
@@ -1346,7 +1346,7 @@ local function leftFrame()
                 finalcolor[3] = tonumber("0x"..hexEntryString:sub(4,4)) / 15
                 if hxl == 4 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,5)) / 15 end
                 if hxl == 5 then finalcolor[4] = tonumber("0x"..hexEntryString:sub(5,6)) / 255 end
-            elseif hxl == 6 or hxl == 7 or hxl == 8 then -- color 6/7/8 hex 
+            elseif hxl == 6 or hxl == 7 or hxl == 8 then -- color 6/7/8 hex
                 finalcolor[1] = tonumber("0x"..hexEntryString:sub(2,3)) / 255
                 finalcolor[2] = tonumber("0x"..hexEntryString:sub(4,5)) / 255
                 finalcolor[3] = tonumber("0x"..hexEntryString:sub(6,7)) / 255
@@ -1513,7 +1513,7 @@ local function leftFrame()
                 end
             end
             off()
-        
+
             local function f(answer)
                 -- success:
                 -- blank color info, jump to preset select page
@@ -3885,7 +3885,7 @@ local function rightFrame()
                     local closestindex = 1
                     local mindist = -1
                     local w = PREFSMAN:GetPreference("DisplayWidth")
-            		local h = PREFSMAN:GetPreference("DisplayHeight")
+                    local h = PREFSMAN:GetPreference("DisplayHeight")
                     for i, resolution in ipairs(optionData.display.resolutions) do
                         -- resolution is a rectangle and contains a width w and a height h
                         local dist = math.sqrt((resolution.w - w)^2 + (resolution.h - h)^2)

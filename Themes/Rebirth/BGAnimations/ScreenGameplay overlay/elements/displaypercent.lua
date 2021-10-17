@@ -7,14 +7,14 @@ local bgMargin = 4
 local bgalpha = 0.4
 
 return Def.ActorFrame {
-	Name = "DisplayPercent",
-	InitCommand = function(self)
+    Name = "DisplayPercent",
+    InitCommand = function(self)
         self:playcommand("SetUpMovableValues")
         registerActorToCustomizeGameplayUI(self)
-	end,
+    end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.DisplayPercentX, MovableValues.DisplayPercentY)
-		self:zoom(MovableValues.DisplayPercentZoom)
+        self:zoom(MovableValues.DisplayPercentZoom)
     end,
     SpottedOffsetCommand = function(self, params)
         local bg = self:GetChild("PercentBacking")
@@ -36,16 +36,16 @@ return Def.ActorFrame {
         end
     end,
 
-	Def.Quad {
+    Def.Quad {
         Name = "PercentBacking",
-		InitCommand = function(self)
+        InitCommand = function(self)
             self:halign(1):valign(0)
             self:xy(bgMargin/2,-bgMargin/2)
             registerActorToColorConfigElement(self, "main", "PrimaryBackground")
             self:diffusealpha(bgalpha)
-		end
-	},
-	LoadFont("Common Large") .. {
+        end
+    },
+    LoadFont("Common Large") .. {
         Name = "DisplayPercent",
         InitCommand = function(self)
             self:halign(1):valign(0)

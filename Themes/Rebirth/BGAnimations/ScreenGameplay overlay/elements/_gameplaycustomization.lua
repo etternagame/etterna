@@ -29,11 +29,11 @@ local elementListTextSize = 1
 local uiInstructionTextSize = 0.6
 
 local function spaceNoteFieldCols(inc)
-	if inc == nil then inc = 0 end
-	local hCols = math.floor(#noteColumns/2)
-	for i, col in ipairs(noteColumns) do
-	    col:addx((i-hCols-1) * inc)
-	end
+    if inc == nil then inc = 0 end
+    local hCols = math.floor(#noteColumns/2)
+    for i, col in ipairs(noteColumns) do
+        col:addx((i-hCols-1) * inc)
+    end
 end
 
 local t = Def.ActorFrame {
@@ -364,7 +364,7 @@ local function makeUI()
                     local space = key == "DeviceButton_space"
 
                     -- these inputs shouldnt repeat just to prevent being annoying
-                    local enter = (gameButton == "Start") 
+                    local enter = (gameButton == "Start")
                         and event.type == "InputEventType_FirstPress"
                     local back = (gameButton == "Back")
                         and event.type == "InputEventType_FirstPress"
@@ -424,7 +424,7 @@ local function makeUI()
                                     updateGameplaySize(tname, increment)
                                 end
                             end
-                            
+
                         elseif space then
                             -- go to next element movement type
                             setSelectedElementMovementType(selectedElementMovementType)
@@ -466,7 +466,7 @@ local function makeUI()
                     -- let all mouse inputs through
                     if event.DeviceInput.button:find("mouse") ~= nil then
                         return false
-                    end    
+                    end
                     -- eat all other inputs to not let duplicates get through
                     return true
                 end
@@ -625,7 +625,7 @@ local function makeUI()
                     local coordLines = self:GetParent().cl
                     local coordactor = self:GetParent():GetChild("CurrentCoordinates")
                     self:y(coordactor:GetY() + coordactor:GetZoomedHeight() + (allowedSpace / itemsPerPage)/2)
-                    
+
                     if selectedElementSizes["zoom"] ~= nil then
                         local fstr = selectedElementMovementType == "Zoom" and "[Zoom: %5.2f]" or "Zoom: %5.2f"
                         outstr[#outstr+1] = string.format(fstr, selectedElementSizes["zoom"])

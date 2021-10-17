@@ -118,7 +118,7 @@ local function calcAverageWifePercentThisSession()
     end
 
     -- prevent division by 0
-    if playsThisSession == 0 then 
+    if playsThisSession == 0 then
         return 0
     else
         return sum / playsThisSession
@@ -208,7 +208,7 @@ end
 
 -- generate vertices for 1 dot in the graph
 local function createVertices(vt, x, y, c)
-	vt[#vt + 1] = {{x, y, 0}, c}
+    vt[#vt + 1] = {{x, y, 0}, c}
 end
 
 -- generate the vertices to put into the ActorFrameTexture for the MiscPage graph
@@ -301,7 +301,7 @@ local function wheelItemBase()
                 -- coloring is somehow handled by the song/group stuff
             end,
         },
-        Def.Quad { 
+        Def.Quad {
             Name = "Divider",
             InitCommand = function(self)
                 self:valign(0)
@@ -1117,7 +1117,7 @@ t[#t+1] = Def.ActorFrame {
             end
         end
     }),
-    
+
     Def.Quad {
         Name = "MouseWheelRegion",
         InitCommand = function(self)
@@ -1224,7 +1224,7 @@ t[#t+1] = Def.ActorFrame {
             end,
             SetPositionCommand = function(self, params)
                 -- something really quirky here is that last element of the wheel is considered the first
-                -- its a side effect of the currentSelection index being moved in the wheel so that the 
+                -- its a side effect of the currentSelection index being moved in the wheel so that the
                 --      highlight is centered.
                 -- this is a bad thing, but at least thats the explanation
                 local maxY = self:GetParent():GetChild("BG"):GetZoomedHeight()

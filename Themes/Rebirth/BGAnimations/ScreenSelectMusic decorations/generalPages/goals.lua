@@ -32,7 +32,7 @@ local t = Def.ActorFrame {
 local ratios = {
     UpperLipHeight = 43 / 1080,
     LipSeparatorThickness = 2 / 1080,
-    
+
     PageTextRightGap = 33 / 1920, -- right of frame, right of text
     PageNumberUpperGap = 48 / 1080, -- bottom of upper lip to top of text
 
@@ -93,10 +93,10 @@ local textzoomFudge = 5
 local goalListAnimationSeconds = 0.05
 
 local function byAchieved(scoregoal)
-	if not scoregoal or scoregoal:IsAchieved() then
-		return COLORS:getColor("generalBox", "GoalAchieved")
-	end
-	return COLORS:getColor("generalBox", "GoalDefault")
+    if not scoregoal or scoregoal:IsAchieved() then
+        return COLORS:getColor("generalBox", "GoalAchieved")
+    end
+    return COLORS:getColor("generalBox", "GoalDefault")
 end
 
 --=====
@@ -105,7 +105,7 @@ end
 --  we do this from lua because i dont want to let C++ control this
 --  and im micromanaging most of the equal cases so it comes out as clean as possible
 --  yea
---  my only justification for doing this in a drawn out and purpose specific manner is 
+--  my only justification for doing this in a drawn out and purpose specific manner is
 --      that i want to make all the logic exposed and in one place
 --
 --  dategetter is a function that takes a goal as input and outputs a date
@@ -454,7 +454,7 @@ local function goalList()
 
         page = 1
         maxPage = math.ceil(#goalTable / goalItemCount)
-        
+
         -- set up date getter for sorting
         local dategetter
         if visibleGoalType == "Complete" then
@@ -527,7 +527,7 @@ local function goalList()
                     self:diffusealpha(1)
                 end
             end,
-        
+
             Def.Quad {
                 Name = "BG",
                 InitCommand = function(self)
@@ -697,11 +697,11 @@ local function goalList()
                     local perc = notShit.round(goal:GetPercent() * 100000) / 1000
                     local percStr = ""
                     if perc <= 99 or perc == 100 then
-						percStr = string.format("%.f%%", perc)
-					elseif (perc < 99.8) then
-						percStr = string.format("%.2f%%", perc)
-					else
-						percStr = string.format("%.3f%%", perc)
+                        percStr = string.format("%.f%%", perc)
+                    elseif (perc < 99.8) then
+                        percStr = string.format("%.2f%%", perc)
+                    else
+                        percStr = string.format("%.3f%%", perc)
                     end
 
                     local pb = goal:GetPBUpTo()
@@ -810,7 +810,7 @@ local function goalList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if goal == nil then return end
-                    
+
                     if params.event == "DeviceButton_left mouse button" then
                         -- delete goal and then refresh the list
                         goal:Delete()
@@ -1165,7 +1165,7 @@ local function goalList()
             -- in case tooltip is stuck for some reason
             TOOLTIP:Hide()
         end,
-        
+
         goalChoices(),
         Def.Quad {
             Name = "MouseWheelRegion",
