@@ -198,6 +198,31 @@ namespace Core::Platform::Window {
         return videoMode->refreshRate;
     }
 
+    std::vector<DisplayMode> GLFWWindowBackend::getDisplayModes() const {
+        std::vector<DisplayMode> res;
+        int modeCount = 0;
+        auto *modes = glfwGetVideoModes(glfwGetPrimaryMonitor(), &modeCount);
+        for(int i = 0; i < modeCount; i++){
+            GLFWvidmode mode = modes[i];
+            res.push_back(DisplayMode{mode.width, mode.height, mode.refreshRate});
+        }
+        return res;
+    }
+
+    DisplayMode GLFWWindowBackend::getCurrentDisplayMode() const {
+        auto mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        return DisplayMode{mode->width, mode->height, mode->refreshRate};
+    }
+
+    bool GLFWWindowBackend::setVideoMode(const VideoMode& p) {
+        this->videoMode = p;
+        int px, py;
+        glfwGetWindowPos(this->windowHandle, &px, &py);
+        glfwSetWindowMonitor(this->windowHandle, p.isFullscreen ? glfwGetPrimaryMonitor() : nullptr, px, py, p.width, p.height, p.refreshRate);
+        glfwSetInputMode(this->windowHandle, GLFW_CURSOR, p.isFullscreen ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
+        return true;
+    }
+
     DeviceButton GLFWWindowBackend::convertKeyToLegacy(int keycode, int mods){
         // GLFW keycodes are all uppercase ascii. If we're in that ascii, determine if uppercase
         // or lowercase, and convert if necessary.

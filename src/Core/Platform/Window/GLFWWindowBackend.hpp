@@ -26,6 +26,9 @@ public:
     void setTitle(const std::string &title) override;
     Dimensions getFrameBufferSize() const override;
     int getRefreshRate() const override;
+    std::vector<DisplayMode> getDisplayModes() const override;
+    DisplayMode getCurrentDisplayMode() const override;
+    bool setVideoMode(const VideoMode& p) override;
 
     static void setWindowHint(int hint, int value);
 

@@ -3,8 +3,10 @@
 
 #include "Core/Utility/ActionDelegate.hpp"
 #include "Core/Platform/Window/VideoMode.hpp"
+#include "Core/Platform/DisplayMode.hpp"
 
 #include <string>
+#include <vector>
 
 namespace Core::Platform::Window {
     struct Dimensions {
@@ -30,7 +32,10 @@ namespace Core::Platform::Window {
         virtual void setTitle(const std::string& title) = 0;
         virtual Dimensions getFrameBufferSize() const = 0;
         virtual int getRefreshRate() const = 0;
+        virtual std::vector<DisplayMode> getDisplayModes() const = 0;
+        virtual DisplayMode getCurrentDisplayMode() const = 0;
 
+        virtual bool setVideoMode(const VideoMode& p) = 0;
         const VideoMode& getVideoMode() const;
 
         // Callback Registration
