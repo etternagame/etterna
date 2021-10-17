@@ -62,6 +62,7 @@ local t = Def.ActorFrame {
     Name = "DownloadsFile",
     InitCommand = function(self)
         self:playcommand("SetPosition")
+        self:y(visibleframeY)
         self:diffusealpha(0)
     end,
     GeneralTabSetMessageCommand = function(self, params)

@@ -35,6 +35,7 @@ local t = Def.ActorFrame {
     Name = "SearchFile",
     InitCommand = function(self)
         self:playcommand("SetPosition")
+        self:y(visibleframeY)
         self:diffusealpha(0)
     end,
     GeneralTabSetMessageCommand = function(self, params)
