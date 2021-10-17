@@ -761,6 +761,25 @@ local function scoreStatsFrame()
     return t
 end
 
+-- return a transformer function for the x position of the wheel items
+-- changes parameters based on the getWheelPosition result
+local function getFrameTransformer()
+    local direction = getWheelPosition() and 1 or -1
+
+    return function(frame, offsetFromCenter, index, total)
+        -- this stuff makes the x position of the item go way off screen for the end indices
+        -- should induce less of a feeling of items materializing from nothing
+        local bias = -actuals.Width * 3
+        local ofc = math.ceil(total / 2) + offsetFromCenter
+        -- the power of 50 and the rounding here are kind of specific for our application
+        -- if you mess with overall parameters to the wheel size or count, you will want to mess with this
+        -- maybe
+        local result = math.round(math.pow(ofc / ((total - 2) / 2) - (((total + 2) / 2) / ((total - 2) / 2)), 50), 2)
+        local xp = bias * result * direction
+        frame:xy(xp, offsetFromCenter * actuals.ItemHeight)
+    end
+end
+
 -- see songActorBuilder comment
 local function groupActorBuilder()
     return Def.ActorFrame {
@@ -977,6 +996,9 @@ t[#t+1] = Def.ActorFrame {
     UpdateWheelBannersCommand = function(self)
         self:playcommand("UpdateWheel")
     end,
+    UpdateWheelPositionCommand = function(self)
+        self:playcommand("SetFrameTransformer", {f = getFrameTransformer()})
+    end,
 
 
     -- because of the above, all of the X/Y positions are "relative" to center of the wheel
@@ -1029,18 +1051,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         songActorUpdater = songActorUpdater,
         groupActorUpdater = groupActorUpdater,
-        frameTransformer = function(frame, offsetFromCenter, index, total)
-            -- this stuff makes the x position of the item go way off screen for the end indices
-            -- should induce less of a feeling of items materializing from nothing
-            local bias = -actuals.Width * 3
-            local ofc = math.ceil(total / 2) + offsetFromCenter
-            -- the power of 50 and the rounding here are kind of specific for our application
-            -- if you mess with overall parameters to the wheel size or count, you will want to mess with this
-            -- maybe
-            local result = math.round(math.pow(ofc / ((total - 2) / 2) - (((total + 2) / 2) / ((total - 2) / 2)), 50), 2)
-            local xp = bias * result
-            frame:xy(xp, offsetFromCenter * actuals.ItemHeight)
-        end,
+        frameTransformer = getFrameTransformer(),
         frameBuilder = function()
             local f
             f = Def.ActorFrame {
