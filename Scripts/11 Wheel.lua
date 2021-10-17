@@ -478,6 +478,8 @@ function Wheel:new(params)
                 if left or right then
                     local direction = left and "left" or "right"
                     if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
+                        -- dont allow keyboard input on the wheel while in settings
+                        if CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
                         -- dont allow input, but do allow left and right arrow input
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") and not keydirection then return end
                         heldButtons[direction] = true
