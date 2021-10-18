@@ -205,7 +205,6 @@ auto
 RageDisplay_D3D::Init(const VideoMode& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
-    this->videoMode = p;
 	window = std::make_unique<GLFWWindowBackend>(p);
 	window->setWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
@@ -714,7 +713,7 @@ RageDisplay_D3D::EndFrame()
 	const auto afterPresent = std::chrono::steady_clock::now();
 	SetPresentTime(afterPresent - beforePresent);
 
-	FrameLimitAfterVsync(videoMode.refreshRate);
+	FrameLimitAfterVsync(window->getRefreshRate());
 
 	RageDisplay::EndFrame();
 }
