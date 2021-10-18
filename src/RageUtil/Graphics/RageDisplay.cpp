@@ -1118,7 +1118,7 @@ RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 	 * bigger skip problems, so don't adjust.
 	 */
 
-	if (videoMode.isVsyncEnabled == false) {
+	if (window->getVideoMode().isVsyncEnabled == false) {
 		return 0;
 	}
 
@@ -1126,7 +1126,7 @@ RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 		return 0;
 	}
 
-	const int iThisFPS = videoMode.refreshRate;
+	const int iThisFPS = window->getRefreshRate();
 
 	std::chrono::duration<float> dDelta = g_LastFrameDuration;
 	std::chrono::duration<float> dTimeIntoFrame = now - g_LastFrameEndedAt;

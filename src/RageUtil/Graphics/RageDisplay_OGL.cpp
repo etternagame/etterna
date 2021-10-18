@@ -470,7 +470,6 @@ std::string
 RageDisplay_Legacy::Init(const VideoMode& p,
 						 bool bAllowUnacceleratedRenderer)
 {
-    this->videoMode = p;
     window = std::make_unique<GLFWWindowBackend>(p);
     window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
     window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
@@ -478,8 +477,6 @@ RageDisplay_Legacy::Init(const VideoMode& p,
     window->registerOnWindowResized([&](int x, int y){ ResolutionChanged(); });
     window->create();
     window->setContext();
-
-    this->videoMode.refreshRate = window->getRefreshRate();
 
     auto bIgnore = false;
 	auto sError = SetVideoMode(p, bIgnore);
@@ -869,7 +866,7 @@ RageDisplay_Legacy::EndFrame()
 
 	SetPresentTime(endTime);
 
-	FrameLimitAfterVsync(videoMode.refreshRate);
+	FrameLimitAfterVsync(this->window->getRefreshRate());
 
 	RageDisplay::EndFrame();
 }

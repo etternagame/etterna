@@ -174,7 +174,7 @@ class RageDisplay
     // Display State/Info related
     [[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
     auto IsD3D() -> bool;
-    VideoMode getVideoMode() { return videoMode; }
+    VideoMode getVideoMode() { return window->getVideoMode(); }
     int getRefreshRate() { return window->getRefreshRate(); } /** TODO(james): Exists for compat. Move in render pr.*/
 
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
@@ -479,7 +479,6 @@ class RageDisplay
 	 * hint is set to GLFW_NO_API, then only an empty will be created.
 	 */
 	std::unique_ptr<GLFWWindowBackend> window;
-	VideoMode videoMode;
 };
 
 extern RageDisplay*
