@@ -2,6 +2,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
+#include "Etterna/Singletons/InputFilter.h" 
 #include "RageUtil/File/RageFile.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundReader_FileReader.h"
@@ -19,6 +20,8 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <Etterna/Singletons/InputFilter.h>
+
 #endif
 
 using std::max;
@@ -2388,6 +2391,42 @@ FileCopy(RageFileBasic& in,
 	return true;
 }
 
+wchar_t ApplyKeyModifiers(wchar_t c) {
+	bool bHoldingShift = INPUTFILTER->IsShiftPressed();
+	bool bHoldingCtrl = INPUTFILTER->IsControlPressed();
+
+	// todo: handle Caps Lock -freem
+	if (bHoldingShift && !bHoldingCtrl) {
+		MakeUpper(&c, 1);
+
+		switch (c) {
+			case L'`': c = L'~'; break;
+			case L'1': c = L'!'; break;
+			case L'2': c = L'@'; break;
+          /*case L'§': c = L'±'; break;*/ // what the fuck is this?
+			case L'3': c = L'#'; break;
+			case L'4': c = L'$'; break;
+			case L'5': c = L'%'; break;
+			case L'6': c = L'^'; break;
+			case L'7': c = L'&'; break;
+			case L'8': c = L'*'; break;
+			case L'9': c = L'('; break;
+			case L'0': c = L')'; break;
+			case L'-': c = L'_'; break;
+			case L'=': c = L'+'; break;
+			case L'[': c = L'{'; break;
+			case L']': c = L'}'; break;
+			case L'\'': c = L'"'; break;
+			case L'\\': c = L'|'; break;
+			case L';': c = L':'; break;
+			case L',': c = L'<'; break;
+			case L'.': c = L'>'; break;
+			case L'/': c = L'?'; break;
+		}
+	}
+
+	return c;
+}
 
 wchar_t DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers) {
     auto button = di.button;
@@ -2406,6 +2445,10 @@ wchar_t DeviceInputToChar(DeviceInput di, bool bUseCurrentKeyModifiers) {
                 c = (wchar_t)(button - KEY_KP_C0) + '0';
             break;
     }
+
+    if (bUseCurrentKeyModifiers) {
+		c = ApplyKeyModifiers(c);
+	}
     return c;
 }
 
