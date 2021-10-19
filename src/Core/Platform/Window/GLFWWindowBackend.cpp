@@ -240,7 +240,7 @@ namespace Core::Platform::Window {
                     case GLFW_KEY_8: return KEY_ASTERISK;
                     case GLFW_KEY_9: return KEY_LPAREN;
                     case GLFW_KEY_0: return KEY_RPAREN;
-                    default:         return DeviceButton(asChar);
+                    default:         return DeviceButton(toupper(asChar));
                 }
             } else {
                 return DeviceButton(tolower(asChar));
