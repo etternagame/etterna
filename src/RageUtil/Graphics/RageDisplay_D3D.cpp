@@ -583,6 +583,7 @@ RageDisplay_D3D::TryVideoMode(const VideoMode& _p, bool& bNewDeviceOut)
   -> std::string
 {
 	auto p = _p;
+    window->setVideoMode(p);
 	Locator::getLogger()->warn("RageDisplay_D3D::TryVideoMode( {}, {}, {}, {}, {} )",
 			  static_cast<int>(!p.isFullscreen),
 			  p.width,
