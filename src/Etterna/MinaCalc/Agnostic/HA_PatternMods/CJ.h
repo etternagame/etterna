@@ -65,6 +65,11 @@ struct CJMod
 	float t_taps = 0.F;
 	float last_mod = 0.F;
 
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
+
 	void decay_mod()
 	{
 		pmod = std::clamp(last_mod - decay_factor, min_mod, max_mod);

@@ -155,6 +155,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void full_agnostic_reset()
 	{
+		_js.full_reset();
+		_hs.full_reset();
+		_cj.full_reset();
+
 		_mri.get()->reset();
 		_last_mri.get()->reset();
 	}
