@@ -236,6 +236,7 @@ InputFilter::ButtonPressed(const DeviceInput& di)
 	if (di.button == KEY_CAPSLOCK && di.bDown) {
 		// This might not be the right place to do this
 		capsLockEnabled = !capsLockEnabled;
+        Locator::getLogger()->info("caps lock: {}", capsLockEnabled);
 	}
 }
 

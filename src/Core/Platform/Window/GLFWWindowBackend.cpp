@@ -228,23 +228,7 @@ namespace Core::Platform::Window {
         // or lowercase, and convert if necessary.
         if(65 <= keycode && keycode <= 90) {
             char asChar = static_cast<char>(keycode);
-            if (mods & GLFW_MOD_SHIFT || mods & GLFW_MOD_CAPS_LOCK){
-                switch(keycode){
-                    case GLFW_KEY_1: return KEY_EXCL;
-                    case GLFW_KEY_2: return KEY_AT;
-                    case GLFW_KEY_3: return KEY_HASH;
-                    case GLFW_KEY_4: return KEY_DOLLAR;
-                    case GLFW_KEY_5: return KEY_PERCENT;
-                    case GLFW_KEY_6: return KEY_CARAT;
-                    case GLFW_KEY_7: return KEY_AMPER;
-                    case GLFW_KEY_8: return KEY_ASTERISK;
-                    case GLFW_KEY_9: return KEY_LPAREN;
-                    case GLFW_KEY_0: return KEY_RPAREN;
-                    default:         return DeviceButton(toupper(asChar));
-                }
-            } else {
-                return DeviceButton(tolower(asChar));
-            }
+            return DeviceButton(tolower(asChar));
         }
 
         // Check other keys if not ascii.

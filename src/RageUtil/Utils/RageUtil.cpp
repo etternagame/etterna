@@ -2394,8 +2394,12 @@ FileCopy(RageFileBasic& in,
 wchar_t ApplyKeyModifiers(wchar_t c) {
 	bool bHoldingShift = INPUTFILTER->IsShiftPressed();
 	bool bHoldingCtrl = INPUTFILTER->IsControlPressed();
+    bool bCapsLockEnabled = INPUTFILTER->IsCapsLockEnabled();
 
-	// todo: handle Caps Lock -freem
+    if ((bHoldingShift ^ bCapsLockEnabled) && !bHoldingCtrl) {
+        MakeUpper(&c, 1);
+    }
+
 	if (bHoldingShift && !bHoldingCtrl) {
 		MakeUpper(&c, 1);
 
