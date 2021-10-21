@@ -247,14 +247,15 @@ namespace Core::Platform::Window {
             case GLFW_KEY_KP_7:             return KEY_KP_C7;
             case GLFW_KEY_KP_8:             return KEY_KP_C8;
             case GLFW_KEY_KP_9:             return KEY_KP_C9;
-            case GLFW_KEY_PERIOD:           return KEY_KP_PERIOD;
-            case GLFW_KEY_SLASH:            return KEY_KP_SLASH;
+            case GLFW_KEY_PERIOD:           return KEY_PERIOD;
+            case GLFW_KEY_SLASH:            return KEY_SLASH;
             case GLFW_KEY_KP_MULTIPLY:      return KEY_KP_ASTERISK;
             case GLFW_KEY_KP_SUBTRACT:      return KEY_KP_HYPHEN;
             case GLFW_KEY_KP_ADD:           return KEY_KP_PLUS;
             case GLFW_KEY_KP_EQUAL:         return KEY_KP_EQUAL;
             case GLFW_KEY_KP_ENTER:         return KEY_KP_ENTER;
             case GLFW_KEY_KP_DECIMAL:       return KEY_KP_PERIOD;
+            case GLFW_KEY_KP_DIVIDE:        return KEY_KP_SLASH;
             case GLFW_KEY_UP:               return KEY_UP;
             case GLFW_KEY_DOWN:             return KEY_DOWN;
             case GLFW_KEY_RIGHT:            return KEY_RIGHT;
