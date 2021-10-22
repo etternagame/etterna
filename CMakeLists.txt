@@ -24,7 +24,7 @@ project(Etterna
         LANGUAGES C CXX ASM)
 
 ## CMake and Compiler Setup
-set(CMAKE_CXX_STANDARD 17)                                      # Minimum C++ Version
+set(CMAKE_CXX_STANDARD 20)                                      # Minimum C++ Version
 set(CMAKE_CXX_EXTENSIONS OFF)                                   # True if compiler extensions are necessary. (Changes -std flag)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                             # True to require minimum C++ version to compile
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                          # Tell xcodebuild to target an older osx platform

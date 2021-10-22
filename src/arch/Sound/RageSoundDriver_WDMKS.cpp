@@ -458,7 +458,8 @@ WinWdmFilter::CreatePin(unsigned long iPinId, std::string& sError)
 								&pDataRangesItem,
 								sError)) {
 		sError = "KSPROPERTY_PIN_DATARANGES: " + sError;
-		goto error;
+        delete pPin;
+	    return nullptr;
 	}
 
 	KSDATARANGE* pDataRanges = (KSDATARANGE*)(pDataRangesItem + 1);
@@ -506,18 +507,14 @@ WinWdmFilter::CreatePin(unsigned long iPinId, std::string& sError)
 
 	if (pPin->m_dataRangesItem.size() == 0) {
 		sError = "Pin has no supported audio data ranges";
-		goto error;
+        delete pPin;
+	    return nullptr;
 	}
 
 	/* Success */
 	sError = "";
 	Locator::getLogger()->trace("Pin created successfully");
 	return pPin;
-
-error:
-	/* Error cleanup */
-	delete pPin;
-	return nullptr;
 }
 
 /* If the pin handle is open, close it */
@@ -1126,8 +1123,10 @@ WinWdmStream::Open(WinWdmFilter* pFilter,
 												   iPreferredSampleRate,
 												   sError);
 
-	if (m_pPlaybackPin == nullptr)
-		goto error;
+	if (m_pPlaybackPin == nullptr){
+        Close();
+        return false;
+    }
 
 	m_DeviceSampleFormat = PreferredOutputSampleFormat;
 	m_iDeviceOutputChannels = iPreferredOutputChannels;
@@ -1201,10 +1200,6 @@ WinWdmStream::Open(WinWdmFilter* pFilter,
 	}
 
 	return true;
-
-error:
-	Close();
-	return false;
 }
 
 bool
