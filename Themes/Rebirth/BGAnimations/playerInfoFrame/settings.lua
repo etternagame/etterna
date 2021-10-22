@@ -3103,7 +3103,7 @@ local function rightFrame()
                     local skinNames = NOTESKIN:GetNoteSkinNames()
                     for i, name in ipairs(skinNames) do
                         o[#o+1] = {
-                            Name = name,
+                            Name = name:upper(),
                             ChosenFunction = function()
                                 setPlayerOptionsModValueAllLevels("NoteSkin", name)
                                 MESSAGEMAN:Broadcast("UpdateVisibleSkin", {name = name})
