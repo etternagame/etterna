@@ -856,7 +856,9 @@ t[#t+1] = Def.ActorFrame {
     }
 }
 
-
+-- if off at first, cannot toggle at runtime
+-- for fps/compat reasons (this causes random crashes for some people)
+-- but if it is on at first, allow toggling visibility
 if visEnabled then
     local intervals = {0, 10, 26, 48, 60, 92, 120, 140, 240, 400, 800, 1600, 2600, 3500, 4000}
     t[#t+1] = audioVisualizer:new {
@@ -879,7 +881,12 @@ if visEnabled then
             self:x(x)
             registerActorToColorConfigElement(self, "main", "Visualizer")
             self:playcommand("ResetWidth", {width = newVisualizerWidth})
-        end
+        end,
+        OptionUpdatedMessageCommand = function(self, params)
+            if params and params.name == "Music Visualizer" then
+                self:visible(params.choiceName == "On")
+            end
+        end,
     }
 end
 
