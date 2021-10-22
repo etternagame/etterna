@@ -3157,13 +3157,13 @@ local function rightFrame()
                 Explanation = "Size of receptors and notes. 50% Receptor Size may be called 100% Mini.",
                 Directions = {
                     Left = function()
-                        local sz = optionData.receptorSize
+                        local sz = optionData["receptorSize"].get()
                         sz = sz - 1
                         if sz < 1 then sz = 200 end
                         optionData["receptorSize"].set(sz)
                     end,
                     Right = function()
-                        local sz = optionData.receptorSize
+                        local sz = optionData["receptorSize"].get()
                         sz = sz + 1
                         if sz > 200 then sz = 1 end
                         optionData["receptorSize"].set(sz)
