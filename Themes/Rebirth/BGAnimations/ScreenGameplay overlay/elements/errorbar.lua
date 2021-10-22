@@ -157,7 +157,7 @@ if errorbarType == "EWMA" then
             if params and params.judgeOffset ~= nil then
                 avg = alpha * params.judgeOffset + (1 - alpha) * lastAvg
                 lastAvg = avg
-                self:x(MovableValues.ErrorBarX + avg * wscale)
+                self:x(avg * wscale)
             end
         end
     }

@@ -3859,10 +3859,10 @@ local function rightFrame()
             {
                 Name = "Error Bar",
                 Type = "SingleChoice",
-                Explanation = "Toggle the error bar. On displays your recent tap offsets. EWMA displays the exponential mean weighted average of recent taps.",
+                Explanation = "Toggle the error bar. Regular displays your recent tap offsets. EWMA displays the exponential mean weighted average of recent taps.",
                 Choices = {
                     {
-                        Name = "On",
+                        Name = "Regular",
                         ChosenFunction = function()
                             optionData["errorBar"].set(1)
                         end,
@@ -3894,7 +3894,7 @@ local function rightFrame()
             {
                 Name = "Error Bar Count",
                 Type = "SingleChoice",
-                Explanation = "Choose either how many taps are allowed to show or how many taps are considered for the EWMA error bar.",
+                Explanation = "Choose either how many taps are allowed to show for the Regular error bar, or how many taps are considered for the EWMA error bar.",
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 1, 50 do
