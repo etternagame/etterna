@@ -493,7 +493,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			// Favorite the currently selected song. -Not Kyz
-			auto* fav_me_biatch = m_MusicWheel.GetSelectedSong();
+			auto fav_me_biatch = GAMESTATE->m_pCurSong;
 			if (fav_me_biatch != nullptr) {
 				auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
@@ -526,7 +526,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				// update favorites playlist _display_
 				MESSAGEMAN->Broadcast("DisplayAll");
 
-				m_MusicWheel.ChangeMusic(0);
+				m_MusicWheel.RebuildWheelItems(0);
 				return true;
 			}
 		} else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() &&

@@ -1009,5 +1009,9 @@ function MusicWheel:new(params)
         end
     end
 
+    w.FavoritesUpdatedMessageCommand = function(self)
+        w:update()
+    end
+
     return w
 end
