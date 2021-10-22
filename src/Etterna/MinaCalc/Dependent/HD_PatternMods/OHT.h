@@ -73,6 +73,7 @@ struct OHTrillMod
 	void full_reset()
 	{
 		badjuju.zero();
+		_mw_oht_taps.zero();
 
 		luca_turilli = false;
 		found_oht = 0;
