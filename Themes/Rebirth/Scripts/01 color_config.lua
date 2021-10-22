@@ -283,6 +283,7 @@ function COLORS.loadColorConfigPresets(self)
     -- put the default in
     if not FILEMAN:DoesFileExist(defaultpresetpath) then
         writeDefaultPreset()
+        FILEMAN:FlushDirCache(presetfolder)
     end
 
     -- check the preset folder for more presets
@@ -294,6 +295,7 @@ function COLORS.loadColorConfigPresets(self)
         end
     end
 
+    self.presets = {}
     if #confignames == 0 then
         print("No color config presets present even after writing the default one!!!")
         return
@@ -301,7 +303,6 @@ function COLORS.loadColorConfigPresets(self)
 
     local count = 0
     -- load all the presets
-    self.presets = {}
     for _, name in ipairs(confignames) do
         count = count + 1
         local pname = presetfolder .. name .. ".lua"
