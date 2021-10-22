@@ -227,7 +227,11 @@ local function scoreList()
                     -- particularly for scores that dont actually exist in your profile, like online replays
                     -- in those cases, we put the mostRecentScore into its own fallback table
                     -- mostRecentScore will never be nil. if it is, the game actually crashes before it gets here.
-                    scores = scoresByRate[getRate(mostRecentScore)] or {mostRecentScore}
+                    if scoresByRate == nil then
+                        scores = {}
+                    else
+                        scores = scoresByRate[getRate(mostRecentScore)] or {mostRecentScore}
+                    end
                 end
             else
                 local steps = GAMESTATE:GetCurrentSteps()
