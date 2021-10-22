@@ -146,7 +146,7 @@ if playerConfig:get_data().MiniProgressBar then
     t[#t+1] = LoadActor("miniprogressbar")
 end
 
-if playerConfig:get_data().NPSDisplay then
+if playerConfig:get_data().NPSDisplay or playerConfig:get_data().NPSGraph then
     t[#t+1] = LoadActor("npsdisplay")
 end
 
