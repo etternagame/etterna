@@ -2765,9 +2765,12 @@ local function rightFrame()
         rateDisplay = playeroption("RateDisplay"),
         targetTracker = playeroption("TargetTracker"),
         targetTrackerMode = playeroption("TargetTrackerMode"), -- 0 is goal, anything else is pb
+        targetTrackerGoal = playeroption("TargetGoal"), -- only valid for TargetTrackerMode 0 unless no pb
         laneCover = playeroption("LaneCover"), -- 0 off, 1 sudden, 2 hidden
         judgmentText = playeroption("JudgmentText"),
+        judgmentTweens = playeroption("JudgmentTweens"),
         comboText = playeroption("ComboText"),
+        comboLabel = playeroption("ComboLabel"),
 
         cbHighlight = playeroption("CBHighlight"),
         screenFilter = playeroption("ScreenFilter"), -- [0,1] notefield bg
@@ -2919,6 +2922,7 @@ local function rightFrame()
     -- these values must correspond to the keys of optionPageCategoryLists
     local pageNames = {
         "Player",
+        "Gameplay",
         "Graphics",
         "Sound",
         "Input",
@@ -2934,9 +2938,11 @@ local function rightFrame()
         Player = {
             "Essential Options",
             "Appearance Options",
-            "Gameplay Elements",
-            "More Gameplay Elements",
             "Invalidating Options",
+        },
+        Gameplay = {
+            "Gameplay Elements 1",
+            "Gameplay Elements 2",
         },
         Graphics = {
             "Global Options",
@@ -3154,17 +3160,17 @@ local function rightFrame()
                         local sz = optionData.receptorSize
                         sz = sz - 1
                         if sz < 1 then sz = 200 end
-                        optionData.receptorSize = sz
+                        optionData["receptorSize"].set(sz)
                     end,
                     Right = function()
                         local sz = optionData.receptorSize
                         sz = sz + 1
                         if sz > 200 then sz = 1 end
-                        optionData.receptorSize = sz
+                        optionData["receptorSize"].set(sz)
                     end,
                 },
                 ChoiceIndexGetter = function()
-                    return optionData.receptorSize .. "%"
+                    return optionData["receptorSize"].get() .. "%"
                 end,
             },
             {
@@ -3271,6 +3277,7 @@ local function rightFrame()
                     return o
                 end,
             },
+            customizeGameplayButton(),
             {
                 Name = "Customize Keybinds",
                 Type = "Button",
@@ -3512,14 +3519,14 @@ local function rightFrame()
                         o[#o+1] = {
                             Name = notShit.round(i*10,0).."%",
                             ChosenFunction = function()
-                                optionData.screenFilter = notShit.round(i / 10, 1)
+                                optionData["screenFilter"].set(notShit.round(i / 10, 1))
                             end,
                         }
                     end
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = notShit.round(optionData.screenFilter, 1)
+                    local v = notShit.round(optionData["screenFilter"].get(), 1)
                     local ind = notShit.round(v * 10, 0) + 1
                     if ind > 0 and ind < 11 then -- this 11 should match the number of choices above
                         return ind
@@ -3646,36 +3653,6 @@ local function rightFrame()
                     if po:Boomerang() ~= 0 then o[5] = true end
                     return o
                 end,
-            }
-        },
-        --
-        -----
-        -- GAMEPLAY ELEMENTS
-        ["Gameplay Elements"] = {
-            customizeGameplayButton(),
-            {
-                Name = "BPM Display",
-                Type = "SingleChoice",
-                Explanation = "Toggle the BPM display.",
-                Choices = {
-                    {Name = "On", ChosenFunction = function() end}
-                },
-                ChoiceIndexGetter = function() return 1 end
-            }
-        },
-        --
-        -----
-        -- MORE GAMEPLAY ELEMENTS
-        ["More Gameplay Elements"] = {
-            customizeGameplayButton(),
-            {
-                Name = "BPM Display",
-                Type = "SingleChoice",
-                Explanation = "Toggle the BPM display.",
-                Choices = {
-                    {Name = "On", ChosenFunction = function() end}
-                },
-                ChoiceIndexGetter = function() return 1 end
             }
         },
         --
@@ -3841,6 +3818,344 @@ local function rightFrame()
                     return o
                 end,
             }
+        },
+        --
+        -----
+        -- GAMEPLAY ELEMENTS P1
+        ["Gameplay Elements 1"] = {
+            customizeGameplayButton(),
+            {
+                Name = "BPM Display",
+                Type = "SingleChoice",
+                Explanation = "Toggle the BPM display.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("bpmDisplay", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("bpmDisplay", true),
+            },
+            {
+                Name = "Rate Display",
+                Type = "SingleChoice",
+                Explanation = "Toggle the music rate display.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("rateDisplay", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("rateDisplay", true),
+            },
+            {
+                Name = "Percent Display",
+                Type = "SingleChoice",
+                Explanation = "Toggle the wife percent display.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayPercent", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayPercent", true),
+            },
+            {
+                Name = "Mean Display",
+                Type = "SingleChoice",
+                Explanation = "Toggle the tap mean display.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayMean", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayMean", true),
+            },
+            {
+                Name = "Error Bar",
+                Type = "SingleChoice",
+                Explanation = "Toggle the error bar. On displays your recent tap offsets. EWMA displays the exponential mean weighted average of recent taps.",
+                Choices = {
+                    {
+                        Name = "On",
+                        ChosenFunction = function()
+                            optionData["errorBar"].set(1)
+                        end,
+                    },
+                    {
+                        Name = "EWMA",
+                        ChosenFunction = function()
+                            optionData["errorBar"].set(2)
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        ChosenFunction = function()
+                            optionData["errorBar"].set(0)
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = optionData["errorBar"].get()
+                    if v == 0 then
+                        return 3 -- off
+                    elseif v == 1 then
+                        return 1 -- on
+                    else
+                        return 2 -- ewma
+                    end
+                end,
+            },
+            {
+                Name = "Error Bar Count",
+                Type = "SingleChoice",
+                Explanation = "Choose either how many taps are allowed to show or how many taps are considered for the EWMA error bar.",
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = 1, 50 do
+                        o[#o+1] = {
+                            Name = i,
+                            ChosenFunction = function()
+                                optionData["errorBarCount"].set(i)
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local v = optionData["errorBarCount"].get()
+                    if v < 1 or v > 50 then
+                        return 1
+                    else
+                        return v
+                    end
+                end,
+            },
+            {
+                Name = "Full Progress Bar",
+                Type = "SingleChoice",
+                Explanation = "Toggle the large progress bar.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("fullProgressBar", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("fullProgressBar", true),
+            },
+            {
+                Name = "Mini Progress Bar",
+                Type = "SingleChoice",
+                Explanation = "Toggle the small progress bar.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("miniProgressBar", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("miniProgressBar", true),
+            },
+
+            {
+                Name = "Leaderboard",
+                Type = "SingleChoice",
+                Explanation = "Toggle the gameplay leaderboard.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("leaderboard", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("leaderboard", true),
+            },
+
+            {
+                Name = "Player Info",
+                Type = "SingleChoice",
+                Explanation = "Toggle the miscellaneous player info display.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("playerInfo", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("playerInfo", true),
+            },
+            {
+                Name = "Target Tracker",
+                Type = "SingleChoice",
+                Explanation = "Toggle the target tracker. This displays your score and points relative to a target.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("targetTracker", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("targetTracker", true),
+            },
+            {
+                Name = "Target Tracker Mode",
+                Type = "SingleChoice",
+                Explanation = "Toggle the target tracker mode. PB uses your PB unless it is does not exist. Then it falls back to Goal Percent.",
+                Choices = {
+                    {
+                        Name = "Personal Best",
+                        ChosenFunction = function()
+                            optionData["targetTrackerMode"].set(1)
+                        end,
+                    },
+                    {
+                        Name = "Goal Percent",
+                        ChosenFunction = function()
+                            optionData["targetTrackerMode"].set(0)
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = optionData["targetTrackerMode"].get()
+                    if v == 0 then
+                        return 2 -- goal
+                    else
+                        return 1 -- pb
+                    end
+                end,
+            },
+            {
+                Name = "Target Tracker Goal",
+                Type = "SingleChoice",
+                Explanation = "Pick a goal percent for the target tracker.",
+                ChoiceGenerator = function()
+                    local o = {}
+                    local function cf(i)
+                        return {
+                            Name = tostring(notShit.round(i, 4)),
+                            ChosenFunction = function() optionData["targetTrackerGoal"].set(notShit.round(i, 4)) end
+                        }
+                    end
+                    for i = 0, 46 do
+                        o[#o+1] = cf(i + 50)
+                    end
+                    -- extra choices to fit grades
+                    o[#o+1] = cf(96.65) -- AA.
+                    o[#o+1] = cf(97)
+                    o[#o+1] = cf(98)
+                    o[#o+1] = cf(99) -- AA:
+                    o[#o+1] = cf(99.7) -- AAA
+                    o[#o+1] = cf(99.8)
+                    o[#o+1] = cf(99.9)
+                    o[#o+1] = cf(99.955) -- AAAA
+                    o[#o+1] = cf(99.97)
+                    o[#o+1] = cf(99.98)
+                    o[#o+1] = cf(99.9935) -- AAAAA
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local v = optionData["errorBarCount"].get()
+                    if v < 50 or v > 99.995 then
+                        return 1
+                    elseif v <= 96 then
+                        return v - 50 + 1
+                    elseif v > 96 then
+                        local extra = {
+                            96.65,
+                            97,
+                            98,
+                            99,
+                            99.7,
+                            99.8,
+                            99.9,
+                            99.955,
+                            99.97,
+                            99.98,
+                            99.9935,
+                        }
+                        for i,vv in ipairs(extra) do
+                            if v == vv then
+                                return 47 + i
+                            end
+                        end
+                        return 47
+                    end
+                end,
+            },
+            {
+                Name = "Lane Cover",
+                Type = "SingleChoice",
+                Explanation = "Toggle the lane cover. Hidden is on top of the receptors. Sudden is away from the receptors.",
+                Choices = {
+                    {
+                        Name = "Hidden",
+                        ChosenFunction = function()
+                            optionData["laneCover"].set(2)
+                        end,
+                    },
+                    {
+                        Name = "Sudden",
+                        ChosenFunction = function()
+                            optionData["laneCover"].set(1)
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        ChosenFunction = function()
+                            optionData["laneCover"].set(0)
+                        end,
+                    }
+                },
+                ChoiceIndexGetter = function()
+                    local v = optionData["laneCover"].get()
+                    if v == 0 then
+                        return 3 -- off
+                    elseif v == 1 then
+                        return 2 -- sudden
+                    else
+                        return 1 -- hidden
+                    end
+                end,
+            },
+        },
+        --
+        -----
+        -- GAMEPLAY ELEMENTS P2
+        ["Gameplay Elements 2"] = {
+            customizeGameplayButton(),
+            {
+                Name = "Judge Counter",
+                Type = "SingleChoice",
+                Explanation = "Toggle the judgment counter.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("judgeCounter", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("judgeCounter", true),
+            },
+            {
+                Name = "Judgment Text",
+                Type = "SingleChoice",
+                Explanation = "Toggle the judgment text.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("judgmentText", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("judgmentText", true),
+            },
+            {
+                Name = "Judgment Animations",
+                Type = "SingleChoice",
+                Explanation = "Toggle the judgment text animations.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("judgmentTweens", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("judgmentTweens", true),
+            },
+            {
+                Name = "Combo Text",
+                Type = "SingleChoice",
+                Explanation = "Toggle the combo text.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("comboText", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboText", true),
+            },
+            {
+                Name = "Combo Label",
+                Type = "SingleChoice",
+                Explanation = "Toggle the word 'Combo' as part of the combo text.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("comboLabel", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboLabel", true),
+            },
+            {
+                Name = "Combo Breaker Highlights",
+                Type = "SingleChoice",
+                Explanation = "Toggle showing which column a combo breaker occurs.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("cbHighlight", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("cbHighlight", true),
+            },
+            {
+                Name = "Measure Counter",
+                Type = "SingleChoice",
+                Explanation = "Toggle the measure counter. This shows up for longer runs of relatively high NPS.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("measureCounter", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureCounter", true),
+            },
+            {
+                Name = "NPS Display",
+                Type = "SingleChoice",
+                Explanation = "Toggle the notes per second display. Displays just NPS and max NPS.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("npsDisplay", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("npsDisplay", true),
+            },
+            {
+                Name = "NPS Graph",
+                Type = "SingleChoice",
+                Explanation = "Toggle the notes per second graph. Displays the NPS over time.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("npsGraph", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("npsGraph", true),
+            },
         },
         --
         -----
@@ -4182,6 +4497,14 @@ local function rightFrame()
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = optionDataToggleDirectionsFUNC("showBackgrounds", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBackgrounds", true),
+            },
+            {
+                Name = "Allow Background Changes",
+                Type = "SingleChoice",
+                Explanation = "Toggle gameplay backgrounds changing.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("allowBGChanges", false, true),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("allowBGChanges", false),
             },
             {
                 Name = "Easter Eggs & Toasties",
@@ -5211,8 +5534,7 @@ local function rightFrame()
                 Name = "OptionRow_"..i,
                 InitCommand = function(self)
                     self:x(actuals.EdgePadding)
-                    -- why the -1.5? to squish the options just a tiny bit and allow room for chart preview toggle
-                    self:y((actuals.OptionAllottedHeight / #rowChoiceCount-1.5) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
+                    self:y((actuals.OptionAllottedHeight / #rowChoiceCount) * (i-1) + (actuals.OptionAllottedHeight / #rowChoiceCount / 2))
                     rowHandle = self
                 end,
                 SetChoicePageCommand = function(self, params)
@@ -5390,7 +5712,7 @@ local function rightFrame()
                     Name = "MouseWheelRegion",
                     InitCommand = function(self)
                         self:halign(0)
-                        self:diffusealpha(0)
+                        self:diffusealpha(0.3)
                         self:zoomto(500, actuals.OptionAllottedHeight / optionRowCount)
                     end,
                     MouseScrollMessageCommand = function(self, params)
