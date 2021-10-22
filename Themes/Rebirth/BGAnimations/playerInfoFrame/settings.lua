@@ -2732,12 +2732,10 @@ local function rightFrame()
         noteSkins = {
             names = NOTESKIN:GetNoteSkinNames(),
         },
-        receptorSize = playerConfigData.ReceptorSize,
         gameMode = {
             modes = GAMEMAN:GetEnabledGames(),
             current = GAMESTATE:GetCurrentGame():GetName(),
         },
-        screenFilter = playerConfigData.ScreenFilter,
         language = {
             list = THEME:GetLanguages(),
             current = THEME:GetCurLanguage(),
@@ -2748,6 +2746,34 @@ local function rightFrame()
         showBackgrounds = themeoption("global", "ShowBackgrounds"),
         showVisualizer = themeoption("global", "ShowVisualizer"),
         tipType = themeoption("global", "TipType"),
+        allowBGChanges = themeoption("global", "StaticBackgrounds"),
+
+        -- gameplay elements
+        bpmDisplay = playeroption("BPMDisplay"),
+        displayPercent = playeroption("DisplayPercent"),
+        errorBar = playeroption("ErrorBar"), -- has on, off, ewma
+        errorBarCount = playeroption("ErrorBarCount"), -- how many bar count
+        fullProgressBar = playeroption("FullProgressBar"),
+        miniProgressBar = playeroption("MiniProgressBar"),
+        judgeCounter = playeroption("JudgeCounter"),
+        leaderboard = playeroption("leaderboardEnabled"),
+        displayMean = playeroption("DisplayMean"),
+        measureCounter = playeroption("MeasureCounter"),
+        npsDisplay = playeroption("NPSDisplay"),
+        npsGraph = playeroption("NPSGraph"),
+        playerInfo = playeroption("PlayerInfo"),
+        rateDisplay = playeroption("RateDisplay"),
+        targetTracker = playeroption("TargetTracker"),
+        targetTrackerMode = playeroption("TargetTrackerMode"), -- 0 is goal, anything else is pb
+        laneCover = playeroption("LaneCover"), -- 0 off, 1 sudden, 2 hidden
+        judgmentText = playeroption("JudgmentText"),
+        comboText = playeroption("ComboText"),
+
+        cbHighlight = playeroption("CBHighlight"),
+        screenFilter = playeroption("ScreenFilter"), -- [0,1] notefield bg
+        receptorSize = playeroption("ReceptorSize"),
+
+
         display = {
             ratios = { -- hardcoded aspect ratio list
                 {n = 3, d = 4},
