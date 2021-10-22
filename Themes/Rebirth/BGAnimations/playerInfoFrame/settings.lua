@@ -2700,19 +2700,19 @@ local function rightFrame()
         themeConfig:set_dirty()
         themeConfig:save()
     end
-    local function getdataPLAYER(category, propertyname)
-        return function() return playerConfig:get_data()[category][propertyname] end
+    local function getdataPLAYER(propertyname)
+        return function() return playerConfig:get_data()[propertyname] end
     end
-    local function setdataPLAYER(category, propertyname, val)
-        playerConfig:get_data()[category][propertyname] = val
+    local function setdataPLAYER(propertyname, val)
+        playerConfig:get_data()[propertyname] = val
         playerConfig:set_dirty()
         playerConfig:save()
     end
     local function themeoption(category, propertyname)
         return {get = getdataTHEME(category, propertyname), set = function(x) setdataTHEME(category, propertyname, x) end}
     end
-    local function playeroption(category, propertyname)
-        return {get = getdataPLAYER(category, propertyname), set = function(x) setdataPLAYER(category, propertyname, x) end}
+    local function playeroption(propertyname)
+        return {get = getdataPLAYER(propertyname), set = function(x) setdataPLAYER(propertyname, x) end}
     end
 
     --
@@ -2833,7 +2833,7 @@ local function rightFrame()
             end
         end
     end
-    local function optionDataToggleDirectionsTHEME(optionDataPropertyName, trueValue, falseValue)
+    local function optionDataToggleDirectionsFUNC(optionDataPropertyName, trueValue, falseValue)
         return {
             Toggle = function()
                 if optionData[optionDataPropertyName].get() == trueValue then
@@ -2844,7 +2844,7 @@ local function rightFrame()
             end,
         }
     end
-    local function optionDataToggleIndexGetterTHEME(optionDataPropertyName, oneValue)
+    local function optionDataToggleIndexGetterFUNC(optionDataPropertyName, oneValue)
         -- oneValue is what we expect for choice index 1 (the first one)
         return function()
             if optionData[optionDataPropertyName].get() == oneValue then
@@ -4138,24 +4138,24 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Explanation = "Set the side of the screen for the music wheel.",
                 Choices = choiceSkeleton("Left", "Right"),
-                Directions = optionDataToggleDirectionsTHEME("wheelPosition", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("wheelPosition", true),
+                Directions = optionDataToggleDirectionsFUNC("wheelPosition", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("wheelPosition", true),
             },
             {
                 Name = "Music Wheel Banners",
                 Type = "SingleChoice",
                 Explanation = "Toggle the banners on the music wheel.",
                 Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirectionsTHEME("wheelBanners", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("wheelBanners", true),
+                Directions = optionDataToggleDirectionsFUNC("wheelBanners", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("wheelBanners", true),
             },
             {
                 Name = "Show Backgrounds",
                 Type = "SingleChoice",
                 Explanation = "Toggle showing backgrounds everywhere.",
                 Choices = choiceSkeleton("Yes", "No"),
-                Directions = optionDataToggleDirectionsTHEME("showBackgrounds", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("showBackgrounds", true),
+                Directions = optionDataToggleDirectionsFUNC("showBackgrounds", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBackgrounds", true),
             },
             {
                 Name = "Easter Eggs & Toasties",
@@ -4170,8 +4170,8 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Explanation = "Toggle showing the visualizer in the song select screen.",
                 Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirectionsTHEME("showVisualizer", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("showVisualizer", true),
+                Directions = optionDataToggleDirectionsFUNC("showVisualizer", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showVisualizer", true),
             },
             {
                 Name = "Mid Grades",
@@ -4219,8 +4219,8 @@ local function rightFrame()
                 Type = "SingleChoice",
                 Explanation = "Change the quips shown at the bottom of the evaluation screen.",
                 Choices = choiceSkeleton("Tips", "Quotes"),
-                Directions = optionDataToggleDirectionsTHEME("tipType", 1, 2),
-                ChoiceIndexGetter = optionDataToggleIndexGetterTHEME("tipType", 1),
+                Directions = optionDataToggleDirectionsFUNC("tipType", 1, 2),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("tipType", 1),
             },
             {
                 Name = "Set BG Fit Mode",
