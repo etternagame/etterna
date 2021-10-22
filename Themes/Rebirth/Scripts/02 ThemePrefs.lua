@@ -149,6 +149,34 @@ function JudgmentText()
     return t
 end
 
+function JudgmentAnimations()
+    local t = {
+        Name = "JudgmentAnimations",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+        LoadSelections = function(self, list, pn)
+            local pref = playerConfig:get_data().JudgmentTweens
+            if pref then
+                list[2] = true
+            else
+                list[1] = true
+            end
+        end,
+        SaveSelections = function(self, list, pn)
+            local value
+            value = list[2]
+            playerConfig:get_data().JudgmentTweens = value
+            playerConfig:set_dirty()
+            playerConfig:save()
+        end
+    }
+    setmetatable(t, t)
+    return t
+end
+
 function ComboText()
     local t = {
         Name = "ComboText",
@@ -169,6 +197,34 @@ function ComboText()
             local value
             value = list[2]
             playerConfig:get_data().ComboText = value
+            playerConfig:set_dirty()
+            playerConfig:save()
+        end
+    }
+    setmetatable(t, t)
+    return t
+end
+
+function ComboLabel()
+    local t = {
+        Name = "ComboLabel",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = {THEME:GetString("OptionNames", "Hide"), THEME:GetString("OptionNames", "Show")},
+        LoadSelections = function(self, list, pn)
+            local pref = playerConfig:get_data().ComboLabel
+            if pref then
+                list[2] = true
+            else
+                list[1] = true
+            end
+        end,
+        SaveSelections = function(self, list, pn)
+            local value
+            value = list[2]
+            playerConfig:get_data().ComboLabel = value
             playerConfig:set_dirty()
             playerConfig:save()
         end
@@ -626,9 +682,9 @@ function NPSDisplay()
     return t
 end
 
-function BackgroundType()
+function StaticBackgrounds()
     local t = {
-        Name = "BackgroundType",
+        Name = "StaticBG",
         LayoutType = "ShowAllInRow",
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = true,
@@ -636,22 +692,23 @@ function BackgroundType()
         Choices = {
             THEME:GetString("OptionNames", "Default"),
             THEME:GetString("OptionNames", "StaticBG"),
-            THEME:GetString("OptionNames", "RandomBG")
         },
         LoadSelections = function(self, list, pn)
-            local pref = playerConfig:get_data().BackgroundType
-            list[pref] = true
+            local pref = themeConfig:get_data().global.StaticBackgrounds
+            if pref then
+                list[2] = true
+            else
+                list[1] = true
+            end
         end,
         SaveSelections = function(self, list, pn)
             local value
             if list[1] then
-                value = 1
+                value = false
             elseif list[2] then
-                value = 2
-            else
-                value = 3
+                value = true
             end
-            playerConfig:get_data().BackgroundType = value
+            playerConfig:get_data().StaticBackgrounds = value
             playerConfig:set_dirty()
             playerConfig:save()
         end
