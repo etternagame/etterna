@@ -152,8 +152,8 @@ local defaultConfig = {
     FullProgressBar = true,
     JudgeCounter = true,
     LaneCover = 0, -- soon to be changed to: 0=off, 1=sudden, 2=hidden
-    -- leaderboard
     DisplayMean = true,
+    leaderboardEnabled = false,
     MeasureCounter = true,
     MiniProgressBar = true,
     NPSDisplay = true,
@@ -171,15 +171,10 @@ local defaultConfig = {
     CurrentWidth = SCREEN_WIDTH,
 
     ScreenFilter = 1,
-    JudgeType = 1,
-    AvgScoreType = 0,
-    GhostScoreType = 1,
     TargetGoal = 93,
     TargetTrackerMode = 0,
-    leaderboardEnabled = false,
     ReceptorSize = 100,
     ErrorBarCount = 30,
-    BackgroundType = 1,
     UserName = "",
     PasswordToken = "",
     CustomizeGameplay = false,
