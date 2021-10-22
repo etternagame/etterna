@@ -2854,6 +2854,35 @@ local function rightFrame()
             end
         end
     end
+    local function customizeGameplayButton()
+        return {
+            Name = "Customize Playfield",
+            Type = "Button",
+            Explanation = "Customize Gameplay elements.",
+            Choices = {
+                {
+                    Name = "Customize Playfield",
+                    ChosenFunction = function()
+                        -- activate customize gameplay
+                        -- go into gameplay
+                        playerConfig:get_data().CustomizeGameplay = true
+
+                        local wheel = SCREENMAN:GetTopScreen():GetChild("WheelFile")
+                        if GAMESTATE:GetCurrentSong() ~= nil then
+                            -- select current
+                            wheel:playcommand("SelectCurrent")
+                        else
+                            -- select random
+                            local group = WHEELDATA:GetRandomFolder()
+                            local song = WHEELDATA:GetRandomSongInFolder(group)
+                            wheel:playcommand("FindSong", {song = song})
+                            wheel:playcommand("SelectCurrent")
+                        end
+                    end,
+                }
+            }
+        }
+    end
     --
     -- -----
 
@@ -2879,6 +2908,8 @@ local function rightFrame()
         Player = {
             "Essential Options",
             "Appearance Options",
+            "Gameplay Elements",
+            "More Gameplay Elements",
             "Invalidating Options",
         },
         Graphics = {
@@ -3215,16 +3246,31 @@ local function rightFrame()
                 end,
             },
             {
-                Name = "Customize Playfield",
+                Name = "Customize Keybinds",
                 Type = "Button",
-                Explanation = "Customize Gameplay elements.",
+                Explanation = "Customize Keybinds.",
                 Choices = {
                     {
-                        Name = "Customize Playfield",
+                        Name = "Customize Keybinds",
                         ChosenFunction = function()
-                            -- activate customize gameplay
+                            -- activate keybind screen
+                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Customize Keybinds"})
+                        end,
+                    }
+                }
+            },
+            {
+                Name = "Enter Practice Mode",
+                Type = "Button",
+                Explanation = "Enter Practice Mode",
+                Choices = {
+                    {
+                        Name = "Enter Practice Mode",
+                        ChosenFunction = function()
+                            -- activate practice mode
                             -- go into gameplay
-                            playerConfig:get_data().CustomizeGameplay = true
+                            playerConfig:get_data().PracticeMode = true
+                            GAMESTATE:SetPracticeMode(true)
 
                             local wheel = SCREENMAN:GetTopScreen():GetChild("WheelFile")
                             if GAMESTATE:GetCurrentSong() ~= nil then
@@ -3240,21 +3286,7 @@ local function rightFrame()
                         end,
                     }
                 }
-            },
-            {
-                Name = "Customize Keybinds",
-                Type = "Button",
-                Explanation = "Customize Keybinds.",
-                Choices = {
-                    {
-                        Name = "Customize Keybinds",
-                        ChosenFunction = function()
-                            -- activate keybind screen
-                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Customize Keybinds"})
-                        end,
-                    }
-                }
-            },
+            }
         },
         --
         -----
@@ -3588,6 +3620,36 @@ local function rightFrame()
                     if po:Boomerang() ~= 0 then o[5] = true end
                     return o
                 end,
+            }
+        },
+        --
+        -----
+        -- GAMEPLAY ELEMENTS
+        ["Gameplay Elements"] = {
+            customizeGameplayButton(),
+            {
+                Name = "BPM Display",
+                Type = "SingleChoice",
+                Explanation = "Toggle the BPM display.",
+                Choices = {
+                    {Name = "On", ChosenFunction = function() end}
+                },
+                ChoiceIndexGetter = function() return 1 end
+            }
+        },
+        --
+        -----
+        -- MORE GAMEPLAY ELEMENTS
+        ["More Gameplay Elements"] = {
+            customizeGameplayButton(),
+            {
+                Name = "BPM Display",
+                Type = "SingleChoice",
+                Explanation = "Toggle the BPM display.",
+                Choices = {
+                    {Name = "On", ChosenFunction = function() end}
+                },
+                ChoiceIndexGetter = function() return 1 end
             }
         },
         --
