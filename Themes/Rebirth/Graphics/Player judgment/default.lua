@@ -1,6 +1,6 @@
 local c
 local enabledJudgment = playerConfig:get_data().JudgmentText
-local JTEnabled = false--JudgementTweensEnabled()
+local enabledAnimations = playerConfig:get_data().JudgmentTweens
 
 local JudgeCmds = {
     TapNoteScore_W1 = THEME:GetMetric("Judgment", "JudgmentW1Command"),
@@ -65,7 +65,7 @@ local t = Def.ActorFrame {
         self:playcommand("Reset")
         c.Judgment:visible(true)
         c.Judgment:setstate(iFrame)
-        if JTEnabled then
+        if enabledAnimations then
             JudgeCmds[param.TapNoteScore](c.Judgment)
         end
     end,

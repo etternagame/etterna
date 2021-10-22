@@ -1,16 +1,6 @@
 local c
 local enabledCombo = playerConfig:get_data().ComboText
-local CenterCombo = false--CenteredComboEnabled()
-
-local function arbitraryComboX(value)
-    c.Label:x(value)
-    if not CenterCombo then
-        c.Number:x(value - 4)
-    else
-        c.Number:x(value - 24)
-    end
-    c.Border:x(value)
-  end
+local enabledLabel = playerConfig:get_data().ComboLabel
 
 local function arbitraryComboZoom(value)
     c.Label:zoom(value)
@@ -38,7 +28,7 @@ local t = Def.ActorFrame {
         if (allowedCustomization) then
             c.Number:visible(true)
             c.Number:settext(1000)
-            c.Label:visible(not CenterCombo)
+            c.Label:visible(enabledLabel)
             c.Label:settext(translated_combo)
         end
     end,
@@ -56,11 +46,11 @@ local t = Def.ActorFrame {
 
         c.Number:visible(true)
         c.Number:settext(iCombo)
-        c.Label:visible(not CenterCombo)
+        c.Label:visible(enabledLabel)
         c.Label:settext(translated_combo)
 
-        c.BG:x(-c.Number:GetZoomedWidth() - (CenterCombo and 24 or 4))
-        c.BG:zoomto(c.Number:GetZoomedWidth() + c.Label:GetZoomedWidth() + (CenterCombo and 24 or 4), c.Label:GetZoomedHeight())
+        c.BG:x(-c.Number:GetZoomedWidth() - (enabledLabel and 24 or 4))
+        c.BG:zoomto(c.Number:GetZoomedWidth() + c.Label:GetZoomedWidth() + (enabledLabel and 24 or 4), c.Label:GetZoomedHeight())
 
         -- FullCombo Rewards
         if param.FullComboW1 then
@@ -96,7 +86,7 @@ local t = Def.ActorFrame {
     LoadFont("Combo", "numbers") .. {
         Name = "Number",
         InitCommand = function(self)
-            if not CenterCombo then
+            if enabledLabel then
                 self:halign(1):valign(1)
                 self:x(-4)
                 self:skewx(-0.125)

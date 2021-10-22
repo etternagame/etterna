@@ -151,7 +151,7 @@ local defaultConfig = {
     ErrorBar = 1,
     FullProgressBar = true,
     JudgeCounter = true,
-    LaneCover = 0, -- soon to be changed to: 0=off, 1=sudden, 2=hidden
+    LaneCover = 0, -- 0=off, 1=sudden, 2=hidden
     DisplayMean = true,
     leaderboardEnabled = false,
     MeasureCounter = true,
@@ -163,7 +163,9 @@ local defaultConfig = {
     TargetTracker = true,
 
     JudgmentText = true,
+    JudgmentTweens = false,
     ComboText = true,
+    ComboLabel = true,
     CBHighlight = true,
 
     ConvertedAspectRatio = false, -- defaults false so that we can load and convert element positions, then set true
