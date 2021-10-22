@@ -4015,7 +4015,7 @@ local function rightFrame()
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = optionData["errorBarCount"].get()
+                    local v = optionData["targetTrackerGoal"].get()
                     if v < 50 or v > 99.995 then
                         return 1
                     elseif v <= 96 then
@@ -5712,7 +5712,7 @@ local function rightFrame()
                     Name = "MouseWheelRegion",
                     InitCommand = function(self)
                         self:halign(0)
-                        self:diffusealpha(0.3)
+                        self:diffusealpha(0)
                         self:zoomto(500, actuals.OptionAllottedHeight / optionRowCount)
                     end,
                     MouseScrollMessageCommand = function(self, params)
