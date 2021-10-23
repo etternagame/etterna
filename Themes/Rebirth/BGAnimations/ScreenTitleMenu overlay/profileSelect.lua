@@ -565,6 +565,7 @@ local function generateItems()
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
             end
             self:GetChild("FocusBG"):playcommand("FocusChange")
+            self:GetChild("InfoText"):playcommand("FocusChange")
         end,
 
         UIElements.QuadButton(1, 1) .. {
@@ -609,6 +610,27 @@ local function generateItems()
                     TITLE:ChangeFocus()
                 end
             end
+        },
+        LoadFont("Common Large") .. {
+            Name = "InfoText",
+            InitCommand = function(self)
+                self:halign(1)
+                self:xy(actuals.Width, -actuals.FrameUpperGap/2)
+                self:zoom(0.5)
+                self:settext("Select a Profile")
+                self:diffusealpha(0)
+            end,
+            FocusChangeCommand = function(self)
+                if focused then
+                    self:hurrytweening(0.5)
+                    self:smooth(0.4)
+                    self:diffusealpha(1)
+                else
+                    self:hurrytweening(0.5)
+                    self:smooth(0.4)
+                    self:diffusealpha(0)
+                end
+            end,
         },
         Def.Quad {
             Name = "MouseWheelRegion",
