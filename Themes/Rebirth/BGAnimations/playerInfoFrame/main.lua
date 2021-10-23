@@ -531,6 +531,17 @@ t[#t+1] = Def.ActorFrame {
                 if CONTEXTMAN:CheckContextSet(snm, ctx) then ctxBypasses = true break end
             end
 
+            local ctrl = INPUTFILTER:IsControlPressed()
+
+            -- login logout shortcut
+            if ctrl and event.DeviceInput.button == "DeviceButton_l" then
+                if not DLMAN:IsLoggedIn() then
+                    beginLoginProcess(self)
+                else
+                    DLMAN:Logout()
+                end
+            end
+
             -- allowing ctrl+n to go back to general tabs
             if ctxBypasses then
                 if event.char and tonumber(event.char) and INPUTFILTER:IsControlPressed() then
@@ -572,6 +583,9 @@ t[#t+1] = Def.ActorFrame {
                 self:GetChild("Search"):playcommand("Invoke")
             end
         end)
+    end,
+    LoginStep2Command = function(self)
+        loginStep2()
     end,
 
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "exit")) .. {
