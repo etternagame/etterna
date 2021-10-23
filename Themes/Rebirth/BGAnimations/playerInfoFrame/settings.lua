@@ -1175,7 +1175,7 @@ local function leftFrame()
         local colorPickPosition = nil
         local saturationSliderPos = nil
         local alphaSliderPos = nil
-        local textCursorPos = nil
+        local textCursorPos = 1
         local boxSize = math.min(actuals.ColorBoxHeight, actuals.ColorBoxWidth)
         local sliderWidth = boxSize / 10
         local textLineSeparation = boxSize / 8 -- basically the y position of the bottom of each line
