@@ -205,7 +205,7 @@ class DownloadManager
 
 	void AddFavorite(const std::string& chartkey);
 	void RemoveFavorite(const std::string& chartkey);
-	void RefreshFavourites();
+	void RefreshFavorites();
 	std::vector<std::string> favorites;
 
 	void AddGoal(const std::string& chartkey,
