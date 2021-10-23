@@ -937,6 +937,13 @@ t[#t+1] = Def.ActorFrame {
                 end
             end
         end,
+        HoverWheelHeaderMessageCommand = function(self, params)
+            if params and params.on then
+                self:diffusealpha(hoverAlpha)
+            elseif params and params.off then
+                self:diffusealpha(1)
+            end
+        end,
         MouseDownCommand = function(self, params)
             self:playcommand("Invoke", params)
         end

@@ -112,6 +112,7 @@ local accThisSession = 0
 -- need to keep them respectable ... dont allow below 50 or above 100
 local graphUpperBound = 100
 local graphLowerBound = 50
+local hoverAlpha = 0.9
 
 -- calculate average wife percent for scores set this session
 -- ignores negative percents
@@ -1348,7 +1349,15 @@ t[#t+1] = Def.ActorFrame {
                     self:GetParent():GetParent():GetChild("WheelContainer"):playcommand("FindGroup", {group = group})
                 end
             end
-        end
+        end,
+        MouseOverCommand = function(self)
+            self:GetParent():diffusealpha(hoverAlpha)
+            MESSAGEMAN:Broadcast("HoverWheelHeader", {on = true})
+        end,
+        MouseOutCommand = function(self)
+            self:GetParent():diffusealpha(1)
+            MESSAGEMAN:Broadcast("HoverWheelHeader", {off = true})
+        end,
     },
     Def.ActorFrame {
         Name = "GroupPage",
