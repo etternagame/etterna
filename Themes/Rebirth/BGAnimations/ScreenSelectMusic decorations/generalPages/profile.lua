@@ -571,6 +571,48 @@ local function createList()
         local profile = GetPlayerOrMachineProfile(PLAYER_1)
         local pname = profile:GetDisplayName()
 
+        -- convenience to control the rename profile dialogue logic and input redir scope
+        local function renameProfileDialogue(profile)
+            local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+            local function off()
+                if redir then
+                    SCREENMAN:set_input_redirected(PLAYER_1, false)
+                end
+            end
+            local function on()
+                if redir then
+                    SCREENMAN:set_input_redirected(PLAYER_1, true)
+                end
+            end
+            off()
+
+            local function f(answer)
+                profile:RenameProfile(answer)
+                MESSAGEMAN:Broadcast("ProfileRenamed")
+                on()
+            end
+            local question = "RENAME PROFILE\nPlease enter a new profile name."
+            askForInputStringWithFunction(
+                question,
+                255,
+                false,
+                f,
+                function(answer)
+                    local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
+                    if not result then
+                        SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'\nTo exit, press Esc.")
+                    end
+                    return result, "Response invalid."
+                end,
+                function()
+                    -- upon exit, do nothing
+                    -- profile name is unchanged
+                    MESSAGEMAN:Broadcast("ProfileRenamed")
+                    on()
+                end
+            )
+        end
+
         -- list of skillsets mapped to number of plays
         -- sorted immediately after being emplaced here
         local playsbyskillset = SCOREMAN:GetPlaycountPerSkillset(profile)
@@ -907,7 +949,7 @@ local function createList()
                     self:zoomto(actuals.AvatarSize, actuals.AvatarSize)
                 end
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "NameRank",
                 InitCommand = function(self)
                     self:halign(0):valign(0)
@@ -923,6 +965,21 @@ local function createList()
                         self:settextf("%s (#%d)", pname, rank)
                     else
                         self:settext(pname)
+                    end
+                end,
+                ProfileRenamedMessageCommand = function(self)
+                    pname = profile:GetDisplayName()
+                    self:playcommand("Set")
+                end,
+                MouseOverCommand = function(self)
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if params.event == "DeviceButton_left mouse button" then
+                        renameProfileDialogue(profile)
                     end
                 end,
                 UpdateLoginStatusCommand = function(self)
