@@ -1,16 +1,42 @@
 local t = Def.ActorFrame {
     Name = "PlayerInfoFrame",
+    BeginCommand = function(self)
+        if not DLMAN:IsLoggedIn() then
+            local username = playerConfig:get_data().UserName
+            local token = playerConfig:get_data().PasswordToken
+            if username ~= nil and #username > 0 then
+                if token ~= nil and #token > 0 then
+                    DLMAN:LoginWithToken(username, token)
+                end
+            end
+        end
+    end,
     LoginMessageCommand = function(self)
         self:playcommand("Set")
         ms.ok("Login Successful")
+
+        playerConfig:get_data().UserName = DLMAN:GetUsername()
+        playerConfig:get_data().PasswordToken = DLMAN:GetToken()
+        playerConfig:set_dirty()
+        playerConfig:save()
     end,
     LogOutMessageCommand = function(self)
         self:playcommand("Set")
         ms.ok("Logged out")
+
+        playerConfig:get_data().UserName = ""
+        playerConfig:get_data().PasswordToken = ""
+        playerConfig:set_dirty()
+        playerConfig:save()
     end,
     LoginFailedMessageCommand = function(self)
         self:playcommand("Set")
         ms.ok("Login Failed")
+
+        playerConfig:get_data().UserName = ""
+        playerConfig:get_data().PasswordToken = ""
+        playerConfig:set_dirty()
+        playerConfig:save()
     end,
     OnlineUpdateMessageCommand = function(self)
         self:playcommand("Set")
