@@ -718,6 +718,7 @@ function MusicWheel:new(params)
                     -- IN SORT MODE MENU
                     -- PICKING SORT
                     -- group is the name of the sortmode
+                    group = group:gsub("Sort by ", "")
                     
                     WHEELDATA:SetCurrentSort(group)
                     WHEELDATA:UpdateFilteredSonglist()

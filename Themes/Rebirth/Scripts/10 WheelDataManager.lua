@@ -458,7 +458,7 @@ local sortmodeImplementations = {
             WHEELDATA:ResetSorts()
             for _, v in ipairs(sortmodes) do
                 WHEELDATA.AllSongsByFolder[v] = {}
-                WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = v
+                WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = "Sort by "..v
             end
         end,
         function(song)
