@@ -6,6 +6,10 @@ local screen
 local choiceTextZoom = 0.6
 local buttonVerticalFudge = 5
 
+-- initial width of the selector
+-- it may be bigger or smaller in reality due to item resizing done in ScreenTitleMenu underlay
+local selectorWidth = 574 / 1920 * SCREEN_WIDTH
+
 -- look through the choices defined in metrics.ini [ScreenTitleMenu] ChoiceNames
 -- the Scrollers (choices) are named "ScrollChoice<GameCommandName>" so we just have to look for it that way
 -- we offset it by 1 to index it from 0: the index being sent back to c++ needs to be 0 indexed
@@ -55,7 +59,7 @@ return Def.ActorFrame {
             self:halign(0)
             self:diffusealpha(0)
             local txt = self:GetParent():GetChild("ScrollerText")
-            self:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() + buttonVerticalFudge)
+            self:zoomto(selectorWidth, txt:GetZoomedHeight() + buttonVerticalFudge)
         end,
         MouseOverCommand = function(self)
             -- if not focused on the scroller, don't allow controlling it
