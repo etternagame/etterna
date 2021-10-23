@@ -99,7 +99,7 @@ local function upperSection()
 
     -- the base text for each line
     local entryTextTable = {
-        "Any Seach", -- this is spelled wrong on purpose
+        "Any Search",
         "Title Search",
         "Subtitle Search",
         "Artist Search",
