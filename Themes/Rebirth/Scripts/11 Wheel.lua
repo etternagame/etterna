@@ -42,7 +42,7 @@ Wheel.mt = {
             end
         end
     end,
-    updateGlobalsFromCurrentItem = function(whee)
+    updateGlobalsFromCurrentItem = function(whee, updateSteps)
         -- update Gamestate current song
         local currentItem = whee:getItem(whee.index)
         if currentItem.GetDisplayMainTitle then
@@ -117,18 +117,21 @@ Wheel.mt = {
                 return index, dadiff
             end
 
-            -- setting diff stuff
-            local stepslist = WHEELDATA:GetChartsMatchingFilter(currentItem)
-            if #stepslist == 0 then
-                -- this scenario should be impossible but lets prepare for the case
-                GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-            else
-                local prefdiff = GAMESTATE:GetPreferredDifficulty()
-                
-                diffSelection = findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(stepslist, prefdiff, GAMESTATE:GetPreferredStepsType())
-                diffSelection = clamp(diffSelection, 1, #stepslist)
+            -- only update steps if we want to
+            if dontUpdateSteps == true then
+                -- setting diff stuff
+                local stepslist = WHEELDATA:GetChartsMatchingFilter(currentItem)
+                if #stepslist == 0 then
+                    -- this scenario should be impossible but lets prepare for the case
+                    GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+                else
+                    local prefdiff = GAMESTATE:GetPreferredDifficulty()
+                    
+                    diffSelection = findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(stepslist, prefdiff, GAMESTATE:GetPreferredStepsType())
+                    diffSelection = clamp(diffSelection, 1, #stepslist)
 
-                GAMESTATE:SetCurrentSteps(PLAYER_1, stepslist[diffSelection])
+                    GAMESTATE:SetCurrentSteps(PLAYER_1, stepslist[diffSelection])
+                end
             end
         else
             -- currentItem is a GROUP
@@ -701,7 +704,8 @@ function MusicWheel:new(params)
             if songOrPack.GetAllSteps then
                 -- STARTING SONG
                 crossedGroupBorder = true
-                w:updateGlobalsFromCurrentItem()
+                -- dont update steps (pass true as param)
+                w:updateGlobalsFromCurrentItem(true)
 
                 SCREENMAN:GetTopScreen():SelectCurrent()
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
