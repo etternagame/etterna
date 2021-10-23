@@ -366,6 +366,7 @@ local function upperSection()
                     if event.type ~= "InputEventType_Release" then
                         local btn = event.DeviceInput.button
                         local shift = INPUTFILTER:IsShiftPressed()
+                        local ctrl = INPUTFILTER:IsControlPressed()
                         local focusedChild = self:GetChild("RowFrame_"..focusedField)
 
                         if btn == "DeviceButton_enter" or event.button == "Start" then
@@ -380,11 +381,17 @@ local function upperSection()
                         else
                             local del = btn == "DeviceButton_delete"
                             local bs = btn == "DeviceButton_backspace"
+                            local copypasta = btn == "DeviceButton_v" and ctrl
                             local char = inputToCharacter(event)
 
                             -- if ctrl is pressed with a number, let the general tab input handler deal with this
                             if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
                                 return
+                            end
+
+                            -- paste
+                            if copypasta then
+                                char = Arch.getClipboard()
                             end
 
                             focusedChild:playcommand("Input", {delete = del, backspace = bs, char = char})
