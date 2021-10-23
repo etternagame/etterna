@@ -1372,13 +1372,21 @@ local function leftFrame()
             local tlChar1 = self:getGlyphRect(1) -- top left vertex of first char in text
             local tlCharIndex = self:getGlyphRect(index) -- top left of char at text
             -- the [1] index is the x coordinate of the vertex
-            local theX = tlCharIndex[1] - tlChar1[1]
-            return theX * self:GetZoom()
+            if tlCharIndex and tlChar1 then
+                local theX = tlCharIndex[1] - tlChar1[1]
+                return theX * self:GetZoom()
+            else
+                return 0
+            end
         end
         local function getWidthOfChar(self, index)
             local tl, bl, tr, br = self:getGlyphRect(index) -- topleft/bottomleft/topright/bottomright coord tables
-            local glyphWidth = tr[1] - bl[1]
-            return glyphWidth * self:GetZoom() * 0.95 -- slightly smaller than needed because it was too big
+            if tr and br then
+                local glyphWidth = tr[1] - bl[1]
+                return glyphWidth * self:GetZoom() * 0.95 -- slightly smaller than needed because it was too big
+            else
+                return 1
+            end
         end
         local function cursorCanMove(speed)
             local maxTextSize = (#hexEntryString == hexStringMaxLength and hexStringMaxLength or #hexEntryString + 1)
