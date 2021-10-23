@@ -44,7 +44,11 @@ class Download
 	void Failed();
 	std::string StartMessage()
 	{
-		return "Downloading file " + m_TempFileName + " from " + m_Url;
+		auto str = "Downloading: " + m_TempFileName;
+		if (str.length() > 64) {
+			str = str.substr(0, 60) + "...";
+		}
+		return str;
 	};
 	std::string Status()
 	{
