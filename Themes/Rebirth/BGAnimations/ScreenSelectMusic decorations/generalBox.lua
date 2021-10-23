@@ -40,6 +40,7 @@ local choiceNames = {
     "Tags",
 }
 SCUFF.generaltabcount = #choiceNames
+SCUFF.generaltab = 1 -- reset generaltab page
 
 local choiceTextSize = 0.8
 local buttonHoverAlpha = 0.6
