@@ -606,6 +606,48 @@ local function lowerSection()
             end
         end
 
+        -- ended up copy pasting this 3 times and took a look and said no thanks
+        -- this is responsible for setting all the stuff related to clicky movy things
+        local function draggyEvent(self, params)
+            local localX = clamp(params.MouseX - xp, 0, width)
+            local localY = clamp(params.MouseY, 0, actuals.SliderThickness)
+
+            local lo, hi = theGetter()
+            local lb, ub = theLimits[1], theLimits[2]
+            -- convert upper 0 to 100% (infinite)
+            if hi == 0 then hi = ub end
+            local percentX = localX / width
+            local leftDotPercent = lo / ub
+            local rightDotPercent = hi / ub
+
+            -- make sure the dot being dragged is not dragged too close to or beyond the other dot
+            if grabbedDot == 0 then
+                if percentX > rightDotPercent then
+                    percentX = clamp(rightDotPercent - 0.001, 0, 1)
+                end
+                leftDotPercent = percentX
+            elseif grabbedDot == 1 then
+                if percentX < leftDotPercent then
+                    percentX = clamp(leftDotPercent + 0.001, 0, 1)
+                end
+                rightDotPercent = percentX
+            else
+                -- dont know how this could happen, but quit if it does
+                return
+            end
+
+            local fLower = ub * leftDotPercent
+            local fUpper = ub * rightDotPercent
+            -- an upper limit of 100% is meant to be 0 so it can be interpreted as infinite
+            if fUpper >= ub then fUpper = 0 end
+            fLower = clamp(fLower, 0, ub)
+            fUpper = clamp(fUpper, 0, ub)
+
+            theSetter(fLower, fUpper)
+            TOOLTIP:SetText(gatherToolTipString())
+            self:GetParent():playcommand("UpdateDots")
+        end
+
         return Def.ActorFrame {
             Name = "SliderOwnerFrame_"..i,
             InitCommand = function(self)
@@ -657,6 +699,9 @@ local function lowerSection()
                         end
                     end,
                     MouseOutCommand = function(self)
+                        if isOver(self:GetParent():GetChild("LowerBound")) then return end
+                        if isOver(self:GetParent():GetChild("UpperBound")) then return end
+
                         if grabbedSlider == nil then
                             TOOLTIP:Hide()
                         end
@@ -691,43 +736,7 @@ local function lowerSection()
                         if params.event ~= "DeviceButton_left mouse button" then return end
 
                         if grabbedDot ~= nil then
-                            local localX = clamp(params.MouseX - xp, 0, width)
-                            local localY = clamp(params.MouseY, 0, actuals.SliderThickness)
-
-                            local lo, hi = theGetter()
-                            local lb, ub = theLimits[1], theLimits[2]
-                            -- convert upper 0 to 100% (infinite)
-                            if hi == 0 then hi = ub end
-                            local percentX = localX / width
-                            local leftDotPercent = lo / ub
-                            local rightDotPercent = hi / ub
-
-                            -- make sure the dot being dragged is not dragged too close to or beyond the other dot
-                            if grabbedDot == 0 then
-                                if percentX > rightDotPercent then
-                                    percentX = clamp(rightDotPercent - 0.001, 0, 1)
-                                end
-                                leftDotPercent = percentX
-                            elseif grabbedDot == 1 then
-                                if percentX < leftDotPercent then
-                                    percentX = clamp(leftDotPercent + 0.001, 0, 1)
-                                end
-                                rightDotPercent = percentX
-                            else
-                                -- dont know how this could happen, but quit if it does
-                                return
-                            end
-
-                            local fLower = ub * leftDotPercent
-                            local fUpper = ub * rightDotPercent
-                            -- an upper limit of 100% is meant to be 0 so it can be interpreted as infinite
-                            if fUpper >= ub then fUpper = 0 end
-                            fLower = clamp(fLower, 0, ub)
-                            fUpper = clamp(fUpper, 0, ub)
-
-                            theSetter(fLower, fUpper)
-                            TOOLTIP:SetText(gatherToolTipString())
-                            self:GetParent():playcommand("UpdateDots")
+                            draggyEvent(self, params)
                         end
                     end,
                     MouseClickCommand = function(self, params)
@@ -749,9 +758,8 @@ local function lowerSection()
                         end
                     end,
                 },
-                Def.Sprite {
+                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "Marker")) .. {
                     Name = "LowerBound",
-                    Texture = THEME:GetPathG("", "Marker"),
                     InitCommand = function(self)
                         -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
@@ -763,11 +771,56 @@ local function lowerSection()
                         local lb, ub = theGetter()
                         local percentX = lb / theLimits[2]
                         self:x(percentX * width)
-                    end
+                    end,
+                    MouseDownCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+
+                        if params.event == "DeviceButton_left mouse button" then
+                            grabbedDot = 0
+                            grabbedSlider = i
+                        end
+                    end,
+                    MouseHoldCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+
+                        if grabbedDot ~= nil then
+                            draggyEvent(self, params)
+                        end
+                    end,
+                    MouseOverCommand = function(self)
+                        if grabbedSlider == nil then
+                            TOOLTIP:SetText(gatherToolTipString())
+                            TOOLTIP:Show()
+                        end
+                    end,
+                    MouseOutCommand = function(self)
+                        if isOver(self:GetParent():GetChild("SliderButtonArea")) then return end
+
+                        if grabbedSlider == nil then
+                            TOOLTIP:Hide()
+                        end
+                    end,
+                    MouseClickCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+                        -- for all release events while on this button (having already pressed it)
+                        grabbedDot = nil
+                        grabbedSlider = nil
+                        if not isOver(self) then
+                            TOOLTIP:Hide()
+                        end
+                    end,
+                    MouseReleaseCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+                        -- for all release events while not on this button (having already pressed it)
+                        grabbedDot = nil
+                        grabbedSlider = nil
+                        if not isOver(self) then
+                            TOOLTIP:Hide()
+                        end
+                    end,
                 },
-                Def.Sprite {
+                UIElements.SpriteButton(1, 1, THEME:GetPathG("", "Marker")) .. {
                     Name = "UpperBound",
-                    Texture = THEME:GetPathG("", "Marker"),
                     InitCommand = function(self)
                         -- we use the hypotenuse of a triangle to find the size of the dot but then make it smaller
                         local hypotenuse = math.sqrt(2 * (actuals.SliderThickness ^ 2)) / 2
@@ -780,7 +833,52 @@ local function lowerSection()
                         if ub == 0 then ub = theLimits[2] end
                         local percentX = ub / theLimits[2]
                         self:x(percentX * width)
-                    end
+                    end,
+                    MouseDownCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+
+                        if params.event == "DeviceButton_left mouse button" then
+                            grabbedDot = 1
+                            grabbedSlider = i
+                        end
+                    end,
+                    MouseHoldCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+
+                        if grabbedDot ~= nil then
+                            draggyEvent(self, params)
+                        end
+                    end,
+                    MouseOverCommand = function(self)
+                        if grabbedSlider == nil then
+                            TOOLTIP:SetText(gatherToolTipString())
+                            TOOLTIP:Show()
+                        end
+                    end,
+                    MouseOutCommand = function(self)
+                        if isOver(self:GetParent():GetChild("SliderButtonArea")) then return end
+                        if grabbedSlider == nil then
+                            TOOLTIP:Hide()
+                        end
+                    end,
+                    MouseClickCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+                        -- for all release events while on this button (having already pressed it)
+                        grabbedDot = nil
+                        grabbedSlider = nil
+                        if not isOver(self) then
+                            TOOLTIP:Hide()
+                        end
+                    end,
+                    MouseReleaseCommand = function(self, params)
+                        if params.event ~= "DeviceButton_left mouse button" then return end
+                        -- for all release events while not on this button (having already pressed it)
+                        grabbedDot = nil
+                        grabbedSlider = nil
+                        if not isOver(self) then
+                            TOOLTIP:Hide()
+                        end
+                    end,
                 }
 
             }
