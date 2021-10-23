@@ -1,3 +1,4 @@
+local openedGroup = ""
 local t = Def.ActorFrame {
     Name = "PlayerInfoFrame",
     BeginCommand = function(self)
@@ -45,6 +46,12 @@ local t = Def.ActorFrame {
         if params and params.name == "Music Wheel Position" then
             self:playcommand("UpdateWheelPosition")
         end
+    end,
+    OpenedGroupMessageCommand = function(self, params)
+        openedGroup = params.group
+    end,
+    ClosedGroupMessageCommand = function(self)
+        openedGroup = ""
     end,
 }
 
@@ -908,17 +915,30 @@ t[#t+1] = Def.ActorFrame {
                 TOOLTIP:Hide()
             end
         end,
-        InvokeCommand = function(self)
+        InvokeCommand = function(self, params)
             if selectable(self:GetName()) then
                 TOOLTIP:Hide()
                 local scr = SCREENMAN:GetTopScreen()
-                local group = WHEELDATA:GetRandomFolder()
-                local song = WHEELDATA:GetRandomSongInFolder(group)
-                scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
+                if not params or params and params.event == "DeviceButton_left mouse button" then
+                    local group = WHEELDATA:GetRandomFolder()
+                    local song = WHEELDATA:GetRandomSongInFolder(group)
+                    scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
+                else
+                    if openedGroup ~= nil and #openedGroup > 0 then
+                        -- for some reason this breaks you out of groups into others
+                        -- i believe this is either a race condition (???) or duplicate songs being found in other groups
+                        local song = WHEELDATA:GetRandomSongInFolder(openedGroup)
+                        scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
+                    else
+                        -- when not in any group, get a random group
+                        local group = WHEELDATA:GetRandomFolder()
+                        scr:GetChild("WheelFile"):playcommand("FindGroup", {group = group})
+                    end
+                end
             end
         end,
         MouseDownCommand = function(self, params)
-            self:playcommand("Invoke")
+            self:playcommand("Invoke", params)
         end
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "searchIcon")) .. {
