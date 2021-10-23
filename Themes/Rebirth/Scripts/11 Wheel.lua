@@ -42,7 +42,7 @@ Wheel.mt = {
             end
         end
     end,
-    updateGlobalsFromCurrentItem = function(whee, updateSteps)
+    updateGlobalsFromCurrentItem = function(whee, dontUpdateSteps)
         -- update Gamestate current song
         local currentItem = whee:getItem(whee.index)
         if currentItem.GetDisplayMainTitle then
@@ -118,7 +118,7 @@ Wheel.mt = {
             end
 
             -- only update steps if we want to
-            if dontUpdateSteps == true then
+            if not dontUpdateSteps then
                 -- setting diff stuff
                 local stepslist = WHEELDATA:GetChartsMatchingFilter(currentItem)
                 if #stepslist == 0 then
