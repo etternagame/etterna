@@ -458,6 +458,12 @@ function Wheel:new(params)
                 local down = gameButton == "Down" or gameButton == "MenuDown"
                 local keydirection = key == "DeviceButton_left" or key == "DeviceButton_right"
 
+                -- dont allow keyboard input on the wheel while in settings
+                if CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
+                if CONTEXTMAN:CheckContextSet(snm, "AssetSettings") then return end
+                if CONTEXTMAN:CheckContextSet(snm, "Keybindings") then return end
+                if CONTEXTMAN:CheckContextSet(snm, "ColorConfig") then return end
+
                 if event.type == "InputEventType_FirstPress" then
                     buttonQueue[#buttonQueue + 1] = gameButton
                     if #buttonQueue > 4 then
@@ -481,9 +487,6 @@ function Wheel:new(params)
                 if left or right then
                     local direction = left and "left" or "right"
                     if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
-                        -- dont allow keyboard input on the wheel while in settings
-                        if CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
-                        if CONTEXTMAN:CheckContextSet(snm, "AssetSettings") then return end
                         -- dont allow input, but do allow left and right arrow input
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") and not keydirection then return end
                         heldButtons[direction] = true
