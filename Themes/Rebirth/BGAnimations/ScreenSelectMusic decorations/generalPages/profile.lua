@@ -392,6 +392,7 @@ local function createList()
 
                     txt:zoom(nameTextSize)
                     txt:maxwidth(actuals.ItemSongNameWidth / nameTextSize - textzoomFudge)
+                    txt:maxheight(actuals.ItemAllottedSpace / itemCount / nameTextSize)
                     registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomy(actuals.ItemAllottedSpace / itemCount)
                 end,
