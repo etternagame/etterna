@@ -725,7 +725,7 @@ t[#t+1] = Def.ActorFrame {
                 self:playcommand("Invoke")
             end
         },
-        Def.Quad {
+        UIElements.QuadButton(1, 1) .. {
             Name = "Progress1BG",
             InitCommand = function(self)
                 self:valign(0)
@@ -735,7 +735,37 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(0)
                 registerActorToColorConfigElement(self, "downloader", "ProgressBarBackground")
             end,
+            ToolTipCommand = function(self)
+                if isOver(self) then
+                    local dlpacks = DLMAN:GetDownloadingPacks()
+                    local qpacks = DLMAN:GetQueuedPacks()
+
+                    local result = {}
+                    for i,p in ipairs(dlpacks) do
+                        result[#result+1] = "Downloading: " .. p:GetName()
+                    end
+                    for i,p in ipairs(qpacks) do
+                        result[#result+1] = "Queued: " .. p:GetName()
+                    end
+                    if #result > 0 then
+                        local ttstr = table.concat(result, "\n")
+                        TOOLTIP:SetText(ttstr)
+                        TOOLTIP:Show()
+                    end
+                else
+                    TOOLTIP:Hide()
+                end
+            end,
+            MouseOverCommand = function(self)
+                self:playcommand("ToolTip")
+            end,
+            MouseOutCommand = function(self)
+                self:playcommand("ToolTip")
+            end,
             DLProgressAndQueueUpdateMessageCommand = function(self)
+                if isOver(self) then
+                    self:playcommand("ToolTip")
+                end
                 local dls = DLMAN:GetDownloads()
                 if #dls > 0 then
                     self:diffusealpha(downloadsProgress1BGAlpha)
@@ -744,6 +774,9 @@ t[#t+1] = Def.ActorFrame {
                 end
             end,
             AllDownloadsCompletedMessageCommand = function(self)
+                if isOver(self) then
+                    self:playcommand("ToolTip")
+                end
                 self:diffusealpha(0)
             end
         },
