@@ -146,6 +146,7 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:scaletoclipped(actuals.Width, actuals.BannerHeight)
+            self:SetDecodeMovie(useVideoBanners())
         end,
         SetCommand = function(self, params)
             self:finishtweening()
@@ -214,6 +215,11 @@ t[#t+1] = Def.ActorFrame {
                 if isOver(self) then
                     self:diffusealpha(buttonHoverAlpha)
                 end
+            end
+        end,
+        OptionUpdatedMessageCommand = function(self, params)
+            if params and params.name == "Video Banners" then
+                self:SetDecodeMovie(useVideoBanners())
             end
         end,
     },

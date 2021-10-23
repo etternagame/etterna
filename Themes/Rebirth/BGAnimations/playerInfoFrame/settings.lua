@@ -2747,6 +2747,7 @@ local function rightFrame()
         showVisualizer = themeoption("global", "ShowVisualizer"),
         tipType = themeoption("global", "TipType"),
         allowBGChanges = themeoption("global", "StaticBackgrounds"),
+        videoBanners = themeoption("global", "VideoBanners"),
 
         -- gameplay elements
         bpmDisplay = playeroption("BPMDisplay"),
@@ -4450,6 +4451,7 @@ local function rightFrame()
         -----
         -- THEME OPTIONS
         ["Theme Options"] = {
+            --[[
             {
                 Name = "Theme",
                 Type = "SingleChoice",
@@ -4474,6 +4476,7 @@ local function rightFrame()
                     return 1
                 end,
             },
+            ]]
             {
                 Name = "Music Wheel Position",
                 Type = "SingleChoice",
@@ -4489,6 +4492,14 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("wheelBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("wheelBanners", true),
+            },
+            {
+                Name = "Video Banners",
+                Type = "SingleChoice",
+                Explanation = "Toggle allowing video banners to play at all on the wheel and other locations in music select.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("videoBanners", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("videoBanners", true),
             },
             {
                 Name = "Show Backgrounds",

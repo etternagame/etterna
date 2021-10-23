@@ -4,6 +4,7 @@ local defaultConfig = {
         ShowVisualizer = true,
         ShowBackgrounds = true, -- wheel and gameplay bg
         StaticBackgrounds = false,
+        VideoBanners = true,
         WheelPosition = true, -- true = left, false = right
         WheelBanners = true, -- true = on, false = off
         InstantSearch = true, -- true = search per press, false = search on enter button
@@ -19,4 +20,7 @@ function getWheelPosition()
 end
 function useWheelBanners()
     return themeConfig:get_data().global.WheelBanners
+end
+function useVideoBanners()
+    return themeConfig:get_data().global.VideoBanners
 end

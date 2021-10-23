@@ -346,7 +346,7 @@ local function songBannerSetter(self, song, isCurrentItem)
         return
     end
 
-    if isCurrentItem then
+    if isCurrentItem and useVideoBanners() then
         self:SetDecodeMovie(true)
     else
         self:SetDecodeMovie(false)
@@ -375,7 +375,7 @@ local function groupBannerSetter(self, group, isCurrentItem)
         return
     end
 
-    if isCurrentItem then
+    if isCurrentItem and useVideoBanners() then
         self:SetDecodeMovie(true)
     else
         self:SetDecodeMovie(false)
@@ -1328,6 +1328,7 @@ t[#t+1] = Def.ActorFrame {
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:scaletoclipped(actuals.HeaderBannerWidth, actuals.HeaderHeight)
+                self:SetDecodeMovie(useVideoBanners())
             end,
             SetCommand = function(self)
                 local bnpath = WHEELDATA:GetFolderBanner(openedGroup)
@@ -1338,7 +1339,12 @@ t[#t+1] = Def.ActorFrame {
                     self:visible(true)
                 end
                 self:Load(bnpath)
-            end
+            end,
+            OptionUpdatedMessageCommand = function(self, params)
+                if params and params.name == "Video Banners" then
+                    self:SetDecodeMovie(useVideoBanners())
+                end
+            end,
         },
         LoadFont("Common Normal") .. {
             Name = "GroupTitle",

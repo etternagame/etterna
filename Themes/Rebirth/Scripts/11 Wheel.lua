@@ -1018,5 +1018,14 @@ function MusicWheel:new(params)
         w:update()
     end
 
+    w.OptionUpdatedMessageCommand = function(self, params)
+        local optionNamesToUpdateOn = {
+            ["Video Banners"] = true,
+        }
+        if params and optionNamesToUpdateOn[params.name] then
+            w:update()
+        end
+    end
+
     return w
 end
