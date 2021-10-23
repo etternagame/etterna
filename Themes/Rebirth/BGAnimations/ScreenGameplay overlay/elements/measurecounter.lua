@@ -23,6 +23,8 @@ local peakNPSThreshold = 0.625
 -- (a break stops the current run)
 local runNPSLossThreshold = 2
 
+local totalmeasures = 0
+
 local t = Def.ActorFrame {
     Name = "MeasureCounter",
     InitCommand = function(self)
@@ -62,15 +64,19 @@ local t = Def.ActorFrame {
             end
         end
 
+        totalmeasures = #measures
+
         self:playcommand("SetUpMovableValues")
         registerActorToCustomizeGameplayUI(self)
     end,
     OnCommand = function(self)
         self:visible(false)
 
-        -- if the start measure is a measure to display, go
-        if measure == measures[thingy][1] then
-            self:playcommand("Dootz")
+        if totalmeasures > 0 then
+            -- if the start measure is a measure to display, go
+            if measure == measures[thingy][1] then
+                self:playcommand("Dootz")
+            end
         end
 
         if allowedCustomization then
@@ -97,7 +103,7 @@ local t = Def.ActorFrame {
         self:visible(false)
     end,
     BeatCrossedMessageCommand = function(self)
-        if thingy <= #measures then
+        if totalmeasures > 0 and thingy <= totalmeasures then
             beatcounter = beatcounter + 1
             if beatcounter == 4 then
                 measure = measure + 1
@@ -122,8 +128,10 @@ local t = Def.ActorFrame {
         local txt = self:GetChild("Text")
         local bg = self:GetChild("Background")
 
-        txt:settextf("%d / %d", measure - measures[thingy][1], measures[thingy][2])
-        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight())
+        if totalmeasures > 0 then
+            txt:settextf("%d / %d", measure - measures[thingy][1], measures[thingy][2])
+            bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight())
+        end
     end,
 
     Def.Quad {
