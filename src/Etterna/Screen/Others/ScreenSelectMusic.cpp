@@ -527,7 +527,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					SONGMAN->MakePlaylistFromFavorites(
 					  pProfile->FavoritedCharts, pProfile->allplaylists);
 				}
-				DLMAN->RefreshFavourites();
+				DLMAN->RefreshFavorites();
 				MESSAGEMAN->Broadcast("FavoritesUpdated");
 
 				// update favorites playlist _display_

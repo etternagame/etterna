@@ -815,7 +815,7 @@ DownloadManager::UpdateGoal(const string& chartkey,
 }
 
 void
-DownloadManager::RefreshFavourites()
+DownloadManager::RefreshFavorites()
 {
 	string req = "user/" + DLMAN->sessionUser + "/favorites";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
