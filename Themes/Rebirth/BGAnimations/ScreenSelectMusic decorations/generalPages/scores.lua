@@ -550,7 +550,13 @@ local function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        local wifeStr = string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
+                        local ws = score:GetWifeScore()
+                        local wifeStr = ""
+                        if ws < 0.99 then
+                            wifeStr = string.format("%05.2f%%", notShit.floor(ws * 10000) / 100)
+                        else
+                            wifeStr = string.format("%05.4f%%", notShit.floor(ws * 1000000) / 10000)
+                        end
                         local grade = GetGradeFromPercent(score:GetWifeScore())
                         self:settext(wifeStr)
                         self:diffuse(colorByGrade(grade))
@@ -1060,7 +1066,7 @@ local function createList()
                 if localscore ~= nil then
                     local ssrstr = string.format("%5.2f", localscore:GetSkillsetSSR("Overall"))
                     local ssrcolr = colorByMSD(localscore:GetSkillsetSSR("Overall"))
-                    local wife = localscore:GetWifeScore() * 100
+                    local wife = localscore:GetWifeScore()
                     local wifecolr = colorByGrade(localscore:GetWifeGrade())
                     local wv = "Wife "..localscore:GetWifeVers()
                     local judge = 4
@@ -1070,7 +1076,12 @@ local function createList()
                     if not judge then judge = 4 end
                     if judge < 4 then judge = 4 end
                     local js = judge ~= 9 and judge or "Justice"
-                    local perc = string.format("%5.2f%%", notShit.floor(wife, 2))
+                    local perc = ""
+                    if wife < 0.99 then
+                        perc = string.format("%05.2f%%", notShit.floor(wife * 10000) / 100)
+                    else
+                        perc = string.format("%05.4f%%", notShit.floor(wife * 1000000) / 10000)
+                    end
                     self:ClearAttributes()
                     self:diffuse(COLORS:getMainColor("PrimaryText"))
                     self:diffusealpha(1)

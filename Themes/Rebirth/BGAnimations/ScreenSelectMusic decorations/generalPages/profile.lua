@@ -520,10 +520,20 @@ local function createList()
                 SetScoreCommand = function(self)
                     if score ~= nil then
                         if isLocal then
-                            self:settextf("%5.2f%%", score:GetWifeScore() * 100)
+                            local w = score:GetWifeScore()
+                            if w < 0.99 then
+                                self:settextf("%05.2f%%", notShit.floor(w * 10000) / 100)
+                            else
+                                self:settextf("%05.4f%%", notShit.floor(w * 1000000) / 10000)
+                            end
                             self:diffuse(colorByGrade(score:GetWifeGrade()))
                         else
-                            self:settextf("%5.2f%%", score.wife * 100)
+                            local w = score.wife
+                            if w < 0.99 then
+                                self:settextf("%05.2f%%", notShit.floor(w * 10000) / 100)
+                            else
+                                self:settextf("%05.4f%%", notShit.floor(w * 1000000) / 10000)
+                            end
                             self:diffuse(colorByGrade(score.grade))
                         end
                     end

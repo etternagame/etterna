@@ -323,7 +323,7 @@ t.JudgmentMessageCommand = function(self, params)
     -- the online highscore curWifeScore is the wife percent...
     -- params.WifePercent is our current calculated wife percent.
     local old = curScore.curWifeScore
-    curScore.curWifeScore = notShit.floor(params.WifePercent * 100) / 10000
+    curScore.curWifeScore = notShit.floor(params.WifePercent * 10000) / 1000000
     if isMulti then
         multiScores = NSMAN:GetMPLeaderboard()
     end
