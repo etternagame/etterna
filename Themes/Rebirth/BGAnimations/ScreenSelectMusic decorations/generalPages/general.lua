@@ -10,6 +10,16 @@ local t = Def.ActorFrame {
         -- it sets to nil properly by itself
         displayScore = GetDisplayScore()
 
+        -- could not think of a good place to put this
+        -- this turns off mirror for the specific situation if you just finished a permamirrored chart
+        -- i have no idea why it works but it does
+        -- (shouldnt turning mirror off every time song changes break regular mirror? it doesnt)
+        if GetPlayerOrMachineProfile(PLAYER_1):IsCurrentChartPermamirror() then
+            local modslevel = topscreen == "ScreenEditOptions" and "ModsLevel_Stage" or "ModsLevel_Preferred"
+            local playeroptions = GAMESTATE:GetPlayerState():GetPlayerOptions(modslevel)
+            playeroptions:Mirror(false)
+        end
+
         -- cascade visual update to everything
         self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end,
@@ -35,7 +45,7 @@ local t = Def.ActorFrame {
     ChangedStepsMessageCommand = function(self, params)
         displayScore = GetDisplayScore()
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})
-    end
+    end,
 }
 
 local ratios = {
