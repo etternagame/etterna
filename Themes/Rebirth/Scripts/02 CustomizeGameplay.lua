@@ -340,8 +340,12 @@ local function updateCustomizeGameplayTables(tname, increment, tableName)
     if selectedElementActor ~= nil then
         local beforeVal = playerConfig:get_data()[tableName][keymode][tname]
         if beforeVal ~= nil then
-            playerConfig:get_data()[tableName][keymode][tname] = beforeVal + increment
-            MovableValues[tname] = beforeVal + increment
+            local afterVal = beforeVal + increment
+            if tname:find("Rotation") then
+                afterVal = afterVal % 360
+            end
+            playerConfig:get_data()[tableName][keymode][tname] = afterVal
+            MovableValues[tname] = afterVal
             playerConfig:set_dirty()
             -- tell everything to update MovableValues (lazy)
             MESSAGEMAN:Broadcast("SetUpMovableValues")
