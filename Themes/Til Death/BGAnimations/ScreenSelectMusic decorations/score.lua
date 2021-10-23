@@ -888,20 +888,35 @@ local function nestedTabButton(i)
 				self:diffuse(getMainColor("positive")):maxwidth(nestedTabButtonWidth - 80):maxheight(40):zoom(0.65)
 				self:settext(nestedTabs[i])
 				self:halign(0):valign(1)
+				self.hoverDiffusefunction = function(self)
+					local inTabNotHovered = 1
+					local offTabNotHovered = 0.6
+					local offTabHovered = 0.8
+					local inTabHovered = 0.6
+					if isOver(self) then
+						if nestedTab == i then
+							self:diffusealpha(inTabHovered)
+						else
+							self:diffusealpha(offTabHovered)
+						end
+					else
+						if nestedTab == i then
+							self:diffusealpha(inTabNotHovered)
+						else
+							self:diffusealpha(offTabNotHovered)
+						end
+					end
+				end
+				self:hoverDiffusefunction()
 			end,
 			MouseOverCommand = function(self)
-				if nestedTab ~= i then
-					self:diffusealpha(0.8)
-				else
-					self:diffusealpha(0.6)
-				end
+				self:hoverDiffusefunction()
 			end,
 			MouseOutCommand = function(self)
-				if nestedTab == i then
-					self:diffusealpha(1)
-				else
-					self:diffusealpha(0.6)
-				end
+				self:hoverDiffusefunction()
+			end,
+			NestedTabChangedMessageCommand = function(self)
+				self:hoverDiffusefunction()
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
