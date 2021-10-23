@@ -6,9 +6,11 @@ local t = Def.ActorFrame {
     end,
     LogOutMessageCommand = function(self)
         self:playcommand("Set")
+        ms.ok("Logged out")
     end,
     LoginFailedMessageCommand = function(self)
         self:playcommand("Set")
+        ms.ok("Login Failed")
     end,
     OnlineUpdateMessageCommand = function(self)
         self:playcommand("Set")

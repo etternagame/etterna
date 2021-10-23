@@ -2218,6 +2218,7 @@ DownloadManager::StartSession(
 			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
 			MESSAGEMAN->Broadcast("LoginFailed");
 			DLMAN->loggingIn = false;
+			return;
 		}
 
 		if (d.HasMember("data") && d["data"].IsObject() &&
@@ -2231,6 +2232,9 @@ DownloadManager::StartSession(
 			DLMAN->sessionPass = pass;
 		} else {
 			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
+			MESSAGEMAN->Broadcast("LoginFailed");
+			DLMAN->loggingIn = false;
+			return;
 		}
 		DLMAN->OnLogin();
 		callback(DLMAN->LoggedIn());
