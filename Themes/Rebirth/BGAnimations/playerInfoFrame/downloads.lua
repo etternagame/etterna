@@ -799,10 +799,17 @@ local function downloadsList()
                             local char = inputToCharacter(event)
                             local up = gbtn == "MenuUp" or gbtn == "Up"
                             local down = gbtn == "MenuDown" or gbtn == "Down"
+                            local ctrl = INPUTFILTER:IsControlPressed()
+                            local copypasta = btn == "DeviceButton_v" and ctrl
                             
                             -- if ctrl is pressed with a number, let the general tab input handler deal with this
                             if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
                                 return
+                            end
+
+                            -- paste
+                            if copypasta then
+                                char = Arch.getClipboard()
                             end
 
                             if bs then
