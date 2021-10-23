@@ -2313,6 +2313,11 @@ class LunaSong : public Luna<Song>
 		lua_pushboolean(L, p->IsFavorited());
 		return 1;
 	}
+	static int IsPermaMirror(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->IsPermaMirror());
+		return 1;
+	}
 	// has functions
 	static int HasMusic(T* p, lua_State* L)
 	{
@@ -2522,6 +2527,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(HasSignificantBPMChangesOrStops);
 		ADD_METHOD(HasEdits);
 		ADD_METHOD(IsFavorited);
+		ADD_METHOD(IsPermaMirror);
 		ADD_METHOD(GetStepsSeconds);
 		ADD_METHOD(GetFirstBeat);
 		ADD_METHOD(GetFirstSecond);

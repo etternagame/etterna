@@ -21,6 +21,8 @@ local ratios = {
     ItemGradeTextMaxWidth = 86 / 1920, -- approximation of width of the AAAAA grade
     ItemFavoriteIconRightGap = 18 / 1920, -- from right edge of banner to middle of favorite icon
     ItemFavoriteIconSize = 36 / 1080, -- width and height of the icon
+    ItemPermamirrorIconRightGap = 39 / 1920, -- from right edge of banner to middle of favorite icon
+    ItemPermamirrorIconSize = 36 / 1080, -- width and height of the icon
     BannerWidth = 265 / 1920,
     BannerItemGap = 18 / 1920, -- gap between banner and item text/dividers
     HeaderHeight = 110 / 1080,
@@ -62,6 +64,8 @@ local actuals = {
     ItemGradeTextMaxWidth = ratios.ItemGradeTextMaxWidth * SCREEN_WIDTH,
     ItemFavoriteIconRightGap = ratios.ItemFavoriteIconRightGap * SCREEN_WIDTH,
     ItemFavoriteIconSize = ratios.ItemFavoriteIconSize * SCREEN_HEIGHT,
+    ItemPermamirrorIconRightGap = ratios.ItemPermamirrorIconRightGap * SCREEN_WIDTH,
+    ItemPermamirrorIconSize = ratios.ItemPermamirrorIconSize * SCREEN_HEIGHT,
     BannerWidth = ratios.BannerWidth * SCREEN_WIDTH,
     BannerItemGap = ratios.BannerItemGap * SCREEN_WIDTH,
     HeaderHeight = ratios.HeaderHeight * SCREEN_HEIGHT,
@@ -402,6 +406,7 @@ local function songActorUpdater(songFrame, song, isCurrentItem)
     songFrame.Artist:settext("~"..song:GetDisplayArtist())
     songFrame.Grade:playcommand("SetGrade", {grade = song:GetHighestGrade()})
     songFrame.Favorited:diffusealpha(song:IsFavorited() and 1 or 0)
+    songFrame.Permamirror:diffusealpha(song:IsPermaMirror() and 1 or 0)
     songBannerSetter(songFrame.Banner, song, isCurrentItem)
 end
 
@@ -628,6 +633,43 @@ local function songActorBuilder()
                         self:x(actuals.Width / 2 - actuals.BannerWidth + actuals.ItemFavoriteIconRightGap)
                     else
                         self:x(-actuals.Width / 2)
+                    end
+                end
+            end,
+            UpdateWheelBannersCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+            UpdateWheelPositionCommand = function(self)
+                self:playcommand("SetPosition")
+            end,
+        },
+        Def.Sprite {
+            Name = "PermamirrorIcon",
+            Texture = THEME:GetPathG("", "mirror"),
+            InitCommand = function(self)
+                -- same y line as the artist text
+                self:y(actuals.ItemHeight / 2 - actuals.ItemTextLowerGap)
+                self:playcommand("SetPosition")
+                self:zoomto(actuals.ItemPermamirrorIconSize, actuals.ItemPermamirrorIconSize)
+                self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "musicWheel", "Permamirror")
+                self:wag()
+            end,
+            BeginCommand = function(self)
+                self:GetParent().Permamirror = self
+            end,
+            SetPositionCommand = function(self)
+                if getWheelPosition() then
+                    if useWheelBanners() then
+                        self:x(-actuals.Width / 2 + actuals.BannerWidth - actuals.ItemPermamirrorIconRightGap)
+                    else
+                        self:x(actuals.Width / 2 - actuals.ItemPermamirrorIconRightGap)
+                    end
+                else
+                    if useWheelBanners() then
+                        self:x(actuals.Width / 2 - actuals.BannerWidth + actuals.ItemPermamirrorIconRightGap)
+                    else
+                        self:x(-actuals.Width / 2 + actuals.ItemPermamirrorIconRightGap)
                     end
                 end
             end,
