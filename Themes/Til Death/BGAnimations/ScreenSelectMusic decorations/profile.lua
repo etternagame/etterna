@@ -80,8 +80,8 @@ local txtDist = 33
 local rankingSkillset = 1
 local rankingPage = 1
 local numrankingpages = 10
-local rankingWidth = frameWidth - capWideScale(15, 50)
-local rankingX = capWideScale(30, 50)
+local rankingWidth = frameWidth - capWideScale(10, 25)
+local rankingX = capWideScale(25, 35)
 local rankingY = capWideScale(40, 40)
 local rankingTitleSpacing = (rankingWidth / (#ms.SkillSets))
 local buttondiffuse = 0
@@ -400,10 +400,10 @@ local function rankingButton(i)
 		LoadFont("Common Large") .. {
 			Name = "RankButtonTxt",
 			InitCommand = function(self)
-				self:addy(-1):diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing*2):zoom(0.42)
+				self:addy(-1):diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing / 0.40 - 10):zoom(0.40)
 			end,
 			BeginCommand = function(self)
-				self:settext(ms.SkillSetsShortTranslated[i])
+				self:settext(ms.SkillSetsTranslated[i])
 			end
 		}
 	}
