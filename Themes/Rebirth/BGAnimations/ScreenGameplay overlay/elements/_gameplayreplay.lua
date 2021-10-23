@@ -14,43 +14,7 @@ local position = 0
 local scroller  -- just an alias for the actor that runs the commands
 
 local function input(event)
-    --SCREENMAN:SystemMessage(event.DeviceInput.button)
-    if event.DeviceInput.button == "DeviceButton_right ctrl" or event.DeviceInput.button == "DeviceButton_left ctrl" then
-        modifierPressed = not (event.type == "InputEventType_Release")
-    end
-    if event.DeviceInput.button == "DeviceButton_right shift" or event.DeviceInput.button == "DeviceButton_left shift" then
-        ratePressed = not (event.type == "InputEventType_Release")
-    end
-    if event.DeviceInput.button == "DeviceButton_right alt" or event.DeviceInput.button == "DeviceButton_left alt" then
-        bookmarkPressed = not (event.type == "InputEventType_Release")
-    end
-    if event.type ~= "InputEventType_Release" then
-        if event.GameButton == "EffectUp" then
-            if bookmarkPressed then
-                scroller:queuecommand("ReplayBookmarkSet")
-                return 0
-            end
-            forward = true
-            if ratePressed then
-                scroller:queuecommand("ReplayRate")
-            else
-                scroller:queuecommand("ReplayScroll")
-            end
-        elseif event.GameButton == "EffectDown" then
-            if bookmarkPressed then
-                scroller:queuecommand("ReplayBookmarkGoto")
-                return 0
-            end
-            forward = false
-            if ratePressed then
-                scroller:queuecommand("ReplayRate")
-            else
-                scroller:queuecommand("ReplayScroll")
-            end
-        elseif event.GameButton == "Coin" then
-            scroller:queuecommand("ReplayPauseToggle")
-        end
-    end
+    
 end
 
 local function getNewSongPos()
@@ -73,7 +37,45 @@ scroller = Def.ActorFrame {
         self:playcommand("SetUpMovableValues")
     end,
     OnCommand = function(self)
-        SCREENMAN:GetTopScreen():AddInputCallback(input)
+        SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+            --SCREENMAN:SystemMessage(event.DeviceInput.button)
+            if event.DeviceInput.button == "DeviceButton_right ctrl" or event.DeviceInput.button == "DeviceButton_left ctrl" then
+                modifierPressed = not (event.type == "InputEventType_Release")
+            end
+            if event.DeviceInput.button == "DeviceButton_right shift" or event.DeviceInput.button == "DeviceButton_left shift" then
+                ratePressed = not (event.type == "InputEventType_Release")
+            end
+            if event.DeviceInput.button == "DeviceButton_right alt" or event.DeviceInput.button == "DeviceButton_left alt" then
+                bookmarkPressed = not (event.type == "InputEventType_Release")
+            end
+            if event.type ~= "InputEventType_Release" then
+                if event.GameButton == "EffectUp" then
+                    if bookmarkPressed then
+                        self:queuecommand("ReplayBookmarkSet")
+                        return false
+                    end
+                    forward = true
+                    if ratePressed then
+                        self:queuecommand("ReplayRate")
+                    else
+                        self:queuecommand("ReplayScroll")
+                    end
+                elseif event.GameButton == "EffectDown" then
+                    if bookmarkPressed then
+                        self:queuecommand("ReplayBookmarkGoto")
+                        return false
+                    end
+                    forward = false
+                    if ratePressed then
+                        self:queuecommand("ReplayRate")
+                    else
+                        self:queuecommand("ReplayScroll")
+                    end
+                elseif event.GameButton == "Coin" then
+                    self:queuecommand("ReplayPauseToggle")
+                end
+            end
+        end)
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.ReplayButtonsX, MovableValues.ReplayButtonsY)
@@ -103,6 +105,10 @@ scroller = Def.ActorFrame {
 }
 local span = 50
 local x = -1 * span
+local textSize = 0.8
+local hoverAlpha = 0.6
+local width = 60
+local height = 30
 
 local translated_info = {
     Pause = THEME:GetString("ScreenGameplay", "ButtonPause"),
@@ -111,49 +117,81 @@ local translated_info = {
     Play = THEME:GetString("ScreenGameplay", "ButtonPlay")
 }
 
-local function button(txt, click)
-    x = x + span
-    return Widg.Button {
-        text = txt,
-        width = 60,
-        height = 30,
-        halign = 1,
-        bgColor = getMainColor("highlight"),
-        highlight = {color = getMainColor("positive")},
-        border = {color = getMainColor("highlight"), width = 2},
-        onClick = click,
-        y = x,
-        onInit = function(self)
-            buttons[#buttons+1] = self.actor
-        end
+local function button(i, txt, click)
+    return Def.ActorFrame {
+        InitCommand = function(self)
+            self:y(x + span*i) -- wow this is bad
+        end,
+
+        Def.Quad {
+            Name = "Border",
+            InitCommand = function(self)
+                self:halign(1)
+                self:zoomto(width, height)
+                self:diffuse(COLORS:getColor("replay", "ButtonBorder"))
+                self:diffusealpha(1)
+            end,
+        },
+        UIElements.QuadButton(1, 1) .. {
+            Name = "BG",
+            InitCommand = function(self)
+                self:halign(1)
+                self:x(-1)
+                self:zoomto(width - 2, height - 2)
+                self:diffuse(COLORS:getColor("replay", "ButtonBG"))
+                self:diffusealpha(1)
+            end,
+            MouseOverCommand = function(self)
+                self:diffusealpha(hoverAlpha)
+            end,
+            MouseOutCommand = function(self)
+                self:diffusealpha(1)
+            end,
+            MouseDownCommand = function(self, params)
+                if params and params.event == "DeviceButton_left mouse button" then
+                    click(self)
+                end
+            end,
+        },
+        LoadFont("Common Normal") .. {
+            Name = "Text",
+            InitCommand = function(self)
+                self:x(-width / 2)
+                self:zoom(textSize)
+                self:maxwidth(width / textSize)
+                self:settext(txt)
+                self:diffuse(COLORS:getMainColor("PrimaryText"))
+                self:diffusealpha(1)
+            end,
+        }
     }
 end
-scroller[#scroller + 1] = Widg.Container {
-    name = "ReplayButtons",
-    onInit = function(self)
+
+scroller[#scroller + 1] = Def.ActorFrame {
+    Name = "ReplayButtons",
+    InitCommand = function(self)
         registerActorToCustomizeGameplayUI(self)
     end,
-    content = {
-        button(
-            translated_info["Pause"],
-            function(self)
-                SCREENMAN:GetTopScreen():TogglePause()
-                local paused = GAMESTATE:IsPaused()
-                self.label.actor:settext(paused and translated_info["Play"] or translated_info["Pause"])
-            end
-        ),
-        button(
-            translated_info["FastForward"],
-            function()
-                SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
-            end
-        ),
-        button(
-            translated_info["Rewind"],
-            function()
-                SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
-            end
-        ),
-    }
+    
+    button(1,
+        translated_info["Pause"],
+        function(self)
+            SCREENMAN:GetTopScreen():TogglePause()
+            local paused = GAMESTATE:IsPaused()
+            self:GetParent():GetChild("Text"):settext(paused and translated_info["Play"] or translated_info["Pause"])
+        end
+    ),
+    button(2,
+        translated_info["FastForward"],
+        function(self)
+            SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
+        end
+    ),
+    button(3,
+        translated_info["Rewind"],
+        function(self)
+            SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
+        end
+    ),
 }
 return scroller

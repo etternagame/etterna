@@ -106,6 +106,10 @@ local defaultConfig = {
         PracticeBookmark = "#1080ff",
         PracticeRegion = "#c010c0",
     },
+    replay = {
+        ButtonBG = "#614080",
+        ButtonBorder = "#313030",
+    },
     combo = {
         MarvFullCombo = "#00aeef",
         PerfFullCombo = "#fff568",
