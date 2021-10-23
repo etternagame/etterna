@@ -68,6 +68,14 @@ return Def.ActorFrame {
         end,
         MouseDragCommand = function(self, params)
             if params.event == "DeviceButton_right mouse button" or not self.canDrag then return end
+
+            -- due to unknown math reasons, rotated elements enter an unstable state which causes them
+            -- to fly off the screen when their angle of rotation exceeds 60 degrees in either direction
+            -- so im disabling dragging any rotated elements
+            -- if you know how to fix this go ahead
+            if self:GetTrueRotationZ() ~= 0 then return end
+
+
             local screenscale = MovableValues.ScreenZoom
             local pp = self:GetParent():GetParent()
             local ppp = pp:GetParent()
