@@ -469,7 +469,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		// Reload currently selected song
 		if (holding_shift && bHoldingCtrl && c == 'R' &&
 			m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			auto* to_reload = m_MusicWheel.GetSelectedSong();
+			auto to_reload = GAMESTATE->m_pCurSong;
 			if (to_reload != nullptr) {
 				auto stepses = to_reload->GetAllSteps();
 				std::vector<string> oldChartkeys;
@@ -480,16 +480,23 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				SONGMAN->ReconcileChartKeysForReloadedSong(to_reload,
 														   oldChartkeys);
 
-				AfterMusicChange();
+				MESSAGEMAN->Broadcast("ReloadedCurrentSong");
+				m_MusicWheel.RebuildWheelItems(0);
 				return true;
 			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			SONGMAN->ForceReloadSongGroup(
-			  GetMusicWheel()->GetSelectedSection());
-			AfterMusicChange();
-			SCREENMAN->SystemMessage("Current pack reloaded");
-			return true;
+			auto to_reload = GAMESTATE->m_pCurSong;
+			if (to_reload != nullptr) {
+				SONGMAN->ForceReloadSongGroup(
+				  to_reload->m_sGroupName);
+
+				m_MusicWheel.RebuildWheelItems(0);
+
+				MESSAGEMAN->Broadcast("ReloadedCurrentPack");
+				SCREENMAN->SystemMessage("Current pack reloaded");
+				return true;
+			}
 		} else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			// Favorite the currently selected song. -Not Kyz
@@ -532,7 +539,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			// PermaMirror the currently selected song. -Not Kyz
-			auto* alwaysmirrorsmh = m_MusicWheel.GetSelectedSong();
+			auto alwaysmirrorsmh = GAMESTATE->m_pCurSong;
 			if (alwaysmirrorsmh != nullptr) {
 				auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
@@ -545,8 +552,12 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 					pProfile->RemoveFromPermaMirror(
 					  GAMESTATE->m_pCurSteps->GetChartKey());
 				}
+
+				// legacy compat TEMP
 				MESSAGEMAN->Broadcast("FavoritesUpdated");
-				m_MusicWheel.ChangeMusic(0);
+
+				MESSAGEMAN->Broadcast("PermamirrorUpdated");
+				m_MusicWheel.RebuildWheelItems(0);
 				return true;
 			}
 		} else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() &&
@@ -554,12 +565,17 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				   GAMESTATE->m_pCurSteps != nullptr) {
 			auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 			pProfile->AddGoal(GAMESTATE->m_pCurSteps->GetChartKey());
-			auto* asonglol = m_MusicWheel.GetSelectedSong();
+			auto asonglol = GAMESTATE->m_pCurSong;
 			if (!asonglol)
 				return true;
+
 			asonglol->SetHasGoal(true);
+
+			// legacy compat TEMP
 			MESSAGEMAN->Broadcast("FavoritesUpdated");
-			m_MusicWheel.ChangeMusic(0);
+
+			MESSAGEMAN->Broadcast("GoalsUpdated");
+			m_MusicWheel.RebuildWheelItems(0);
 			return true;
 		} else if (bHoldingCtrl && c == 'Q' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
