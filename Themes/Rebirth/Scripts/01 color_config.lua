@@ -22,7 +22,7 @@ local defaultConfig = {
         ItemDivider = "#999999",
         GraphLine = "#ffffff",
         Favorite = "#ffff00",
-        Permamirror = "#1111bb",
+        Permamirror = "#ffffff",
         HighlightColor = "#ffffff",
     },
     generalBox = {
