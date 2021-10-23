@@ -487,7 +487,7 @@ t[#t+1] = Def.ActorFrame {
     }
 }
 
-t[#t+1] = Def.Sprite {
+t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     Name = "CDTitle",
     InitCommand = function(self)
         -- lets... avoid aligning this.
@@ -503,6 +503,7 @@ t[#t+1] = Def.Sprite {
     end,
     SetCommand = function(self, params)
         self:finishtweening()
+        self.song = params.song
         if params.song then
             if params.song:HasCDTitle() then
                 self:diffusealpha(1)
@@ -530,7 +531,29 @@ t[#t+1] = Def.Sprite {
         else
             self:diffusealpha(0)
         end
-    end
+        if isOver(self) then
+            self:playcommand("ToolTip")
+        end
+    end,
+    ToolTipCommand = function(self)
+        if isOver(self) then
+            if self.song then
+                local auth = self.song:GetOrTryAtLeastToGetSimfileAuthor()
+                if auth and #auth > 0 then
+                    TOOLTIP:SetText(auth)
+                    TOOLTIP:Show()
+                end
+            end
+        end
+    end,
+    MouseOverCommand = function(self)
+        if self:IsInvisible() then return end
+        self:playcommand("ToolTip")
+    end,
+    MouseOutCommand = function(self)
+        if self:IsInvisible() then return end
+        TOOLTIP:Hide()
+    end,
 }
 
 t[#t+1] = createStatLines()
