@@ -490,7 +490,7 @@ t[#t+1] = Def.ActorFrame {
             end
         end
     },
-    LoadFont("Common Normal") .. {
+    UIElements.TextToolTip(1, 1, "Common Normal") .. {
         Name = "OfflineRating",
         InitCommand = function(self)
             self:y(actuals.RightTextTopGap2)
@@ -507,9 +507,20 @@ t[#t+1] = Def.ActorFrame {
             else
                 self:settextf("%5.2f", offlinerating)
             end
-        end
+        end,
+        MouseOverCommand = function(self)
+            self:diffusealpha(hoverAlpha)
+        end,
+        MouseOutCommand = function(self)
+            self:diffusealpha(1)
+        end,
+        MouseDownCommand = function(self, params)
+            if params.event == "DeviceButton_left mouse button" then
+                MESSAGEMAN:Broadcast("GeneralTabSet", {tab = SCUFF.profiletabindex})
+            end
+        end,
     },
-    LoadFont("Common Normal") .. {
+    UIElements.TextToolTip(1, 1, "Common Normal") .. {
         Name = "OnlineRating",
         InitCommand = function(self)
             self:y(actuals.RightTextTopGap3)
@@ -525,7 +536,18 @@ t[#t+1] = Def.ActorFrame {
             else
                 self:settext("")
             end
-        end
+        end,
+        MouseOverCommand = function(self)
+            self:diffusealpha(hoverAlpha)
+        end,
+        MouseOutCommand = function(self)
+            self:diffusealpha(1)
+        end,
+        MouseDownCommand = function(self, params)
+            if params.event == "DeviceButton_left mouse button" then
+                MESSAGEMAN:Broadcast("GeneralTabSet", {tab = SCUFF.profiletabindex})
+            end
+        end,
     },
 }
 
