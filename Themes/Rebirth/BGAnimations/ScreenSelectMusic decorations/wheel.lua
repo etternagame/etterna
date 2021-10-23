@@ -858,6 +858,7 @@ local function groupActorBuilder()
                 self:playcommand("UpdateText")
             end,
             UpdateTextCommand = function(self)
+                self:visible(not WHEELDATA:inSortModeMenu())
                 self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
             end,
             SetPositionCommand = function(self)
@@ -918,6 +919,7 @@ local function groupActorBuilder()
                         self:diffuse(colorByClearType("Clear"))
                     end
                 end
+                self:visible(not WHEELDATA:inSortModeMenu())
                 self:settext(lstr)
             end,
             SetPositionCommand = function(self)

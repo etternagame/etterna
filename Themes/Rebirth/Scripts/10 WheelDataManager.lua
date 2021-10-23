@@ -373,6 +373,12 @@ local function sortToString(val)
     return sortmodes[val]
 end
 
+-- getter for if you are in sortmode menu
+-- useful for like 2 things on the wheel
+function WHEELDATA.inSortModeMenu(self)
+    return self.CurrentSort == 0
+end
+
 -- mimicing SongUtil::MakeSortString here to keep behavior consistent
 function WHEELDATA.makeSortString(s)
     local st = s:upper()
