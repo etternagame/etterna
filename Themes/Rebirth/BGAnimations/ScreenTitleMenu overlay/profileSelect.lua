@@ -118,50 +118,6 @@ local function deleteProfileDialogue(id)
     )
 end
 
--- convenience to control the rename profile dialogue logic and input redir scope
--- difference between this function and the other RenameProfile dialogue way down below is this can be repeated
--- the one way down below cannot be repeated in all contexts because input redir may or may not be on in some situations
-local function renameProfileDialogue(profile, listframe)
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-
-    local function f(answer)
-        profile:RenameProfile(answer)
-        listframe:playcommand("UpdateProfiles")
-        on()
-    end
-    local question = "RENAME PROFILE\nPlease enter a new profile name."
-    askForInputStringWithFunction(
-        question,
-        64,
-        false,
-        f,
-        function(answer)
-            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
-            if not result then
-                SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'\nTo exit, press Esc.")
-            end
-            return result, "Response invalid."
-        end,
-        function()
-            -- upon exit, do nothing
-            -- profile name is unchanged
-            listframe:playcommand("UpdateProfiles")
-            on()
-        end
-    )
-end
-
 local function generateItems()
     -- add 1 to number of profiles so we can have a button to add profiles always as the last item
     local maxPage = math.ceil((#profileIDs) / numItems)
@@ -248,7 +204,7 @@ local function generateItems()
             BeginCommand = function(self)
                 self:playcommand("Set")
             end,
-            UpdateProfilesCommand = function(self)
+            ProfileRenamedMessageCommand = function(self)
                 self:playcommand("Set")
             end,
             MovedPageMessageCommand = function(self)
@@ -530,7 +486,7 @@ local function generateItems()
                 local profile = PROFILEMAN:GetLocalProfile(profileIDs[1])
                 local function f(answer)
                     profile:RenameProfile(answer)
-                    self:playcommand("UpdateProfiles")
+                    self:playcommand("ProfileRenamed")
                 end
                 local question = "No Profiles detected! A new one was made for you.\nPlease enter a new profile name."
                 askForInputStringWithFunction(
