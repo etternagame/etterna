@@ -67,7 +67,7 @@ local t = Def.ActorFrame {
             else
                 bar:zoomx(0)
             end
-            if isOver(bg) then
+            if song and isOver(bg) then
                 local mx = INPUTFILTER:GetMouseX()
                 local my = INPUTFILTER:GetMouseY()
                 local lx, ly = bg:GetLocalMousePos(mx, my, 0)
