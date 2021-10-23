@@ -3455,48 +3455,54 @@ local function rightFrame()
                     {
                         Name = "Miss",
                         ChosenFunction = function()
-                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_Miss")
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "Miss")
+                            setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "Miss")
                         end,
                     },
                     {
                         Name = "Bad",
                         ChosenFunction = function()
-                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W5")
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "W5")
+                            setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W5")
                         end,
                     },
                     {
                         Name = "Good",
                         ChosenFunction = function()
-                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W4")
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "W4")
+                            setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W4")
                         end,
                     },
                     {
                         Name = "Great",
                         ChosenFunction = function()
-                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W3")
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "W3")
+                            setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W3")
                         end,
                     },
                     {
                         Name = "Perfect",
                         ChosenFunction = function()
-                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W2")
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "W2")
+                            setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W2")
                         end,
                     },
                     {
                         Name = "Marvelous",
                         ChosenFunction = function()
-                            PREFSMAN:SetPreference("MinTNSToHideNotes", "TNS_W1")
+                            PREFSMAN:SetPreference("MinTNSToHideNotes", "W1")
+                            setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W1")
                         end,
                     },
                 },
                 ChoiceIndexGetter = function()
                     local opt = PREFSMAN:GetPreference("MinTNSToHideNotes")
-                    if opt == "TNS_Miss" then return 1
-                    elseif opt == "TNS_W5" then return 2
-                    elseif opt == "TNS_W4" then return 3
-                    elseif opt == "TNS_W3" then return 4
-                    elseif opt == "TNS_W2" then return 5
-                    elseif opt == "TNS_W1" then return 6
+                    if opt == "TapNoteScore_Miss" then return 1
+                    elseif opt == "TapNoteScore_W5" then return 2
+                    elseif opt == "TapNoteScore_W4" then return 3
+                    elseif opt == "TapNoteScore_W3" then return 4
+                    elseif opt == "TapNoteScore_W2" then return 5
+                    elseif opt == "TapNoteScore_W1" then return 6
                     else
                         return 4 -- this is the default option so default to this
                     end
