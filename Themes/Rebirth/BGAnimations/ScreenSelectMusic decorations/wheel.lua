@@ -340,10 +340,16 @@ local function wheelItemBase()
 end
 
 -- responsible for setting song banner for wheelitem updates
-local function songBannerSetter(self, song)
+local function songBannerSetter(self, song, isCurrentItem)
     if not useWheelBanners() then
         self:visible(false)
         return
+    end
+
+    if isCurrentItem then
+        self:SetDecodeMovie(true)
+    else
+        self:SetDecodeMovie(false)
     end
 
     if song then
@@ -363,10 +369,16 @@ local function songBannerSetter(self, song)
 end
 
 -- responsible for setting group banner for wheelitem updates
-local function groupBannerSetter(self, group)
+local function groupBannerSetter(self, group, isCurrentItem)
     if not useWheelBanners() then
         self:visible(false)
         return
+    end
+
+    if isCurrentItem then
+        self:SetDecodeMovie(true)
+    else
+        self:SetDecodeMovie(false)
     end
 
     local bnpath = WHEELDATA:GetFolderBanner(group)
@@ -384,17 +396,17 @@ local function groupBannerSetter(self, group)
 end
 
 -- updates all information for a song wheelitem
-local function songActorUpdater(songFrame, song)
+local function songActorUpdater(songFrame, song, isCurrentItem)
     songFrame.Title:settext(song:GetDisplayMainTitle())
     songFrame.SubTitle:settext(song:GetDisplaySubTitle())
     songFrame.Artist:settext("~"..song:GetDisplayArtist())
     songFrame.Grade:playcommand("SetGrade", {grade = song:GetHighestGrade()})
     songFrame.Favorited:diffusealpha(song:IsFavorited() and 1 or 0)
-    songBannerSetter(songFrame.Banner, song)
+    songBannerSetter(songFrame.Banner, song, isCurrentItem)
 end
 
 -- updates all information for a group wheelitem
-local function groupActorUpdater(groupFrame, packName)
+local function groupActorUpdater(groupFrame, packName, isCurrentItem)
     local packCount = WHEELDATA:GetFolderCount(packName)
     local packAverageDiff = WHEELDATA:GetFolderAverageDifficulty(packName)
     local clearstats = WHEELDATA:GetFolderClearStats(packName)
@@ -403,7 +415,7 @@ local function groupActorUpdater(groupFrame, packName)
     groupFrame.GroupInfo:playcommand("SetInfo", {count = packCount, avg = packAverageDiff[1]})
     groupFrame.ClearStats:playcommand("SetInfo", {stats = clearstats})
     groupFrame.ScoreStats:playcommand("SetInfo", {stats = clearstats, count = packCount})
-    groupBannerSetter(groupFrame.Banner, packName)
+    groupBannerSetter(groupFrame.Banner, packName, isCurrentItem)
 end
 
 -- to offer control of the actors specifically to us instead of the scripts
@@ -1099,21 +1111,21 @@ t[#t+1] = Def.ActorFrame {
             }
             return f
         end,
-        frameUpdater = function(frame, songOrPack)
+        frameUpdater = function(frame, songOrPack, offset, isCurrentItem)
             if songOrPack.GetAllSteps then
                 -- This is a song
                 local s = frame.s
                 s:visible(true)
                 local g = frame.g
                 g:visible(false)
-                songActorUpdater(s, songOrPack)
+                songActorUpdater(s, songOrPack, isCurrentItem)
             else
                 -- This is a group
                 local s = frame.s
                 s:visible(false)
                 local g = (frame.g)
                 g:visible(true)
-                groupActorUpdater(g, songOrPack)
+                groupActorUpdater(g, songOrPack, isCurrentItem)
             end
         end
     }),
@@ -1316,8 +1328,6 @@ t[#t+1] = Def.ActorFrame {
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:scaletoclipped(actuals.HeaderBannerWidth, actuals.HeaderHeight)
-                -- dont play movies because they lag the wheel so much like wow please dont ever use those (for now)
-                self:SetDecodeMovie(false)
             end,
             SetCommand = function(self)
                 local bnpath = WHEELDATA:GetFolderBanner(openedGroup)

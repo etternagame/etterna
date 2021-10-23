@@ -331,7 +331,7 @@ Wheel.mt = {
             local frame = whee.frames[i]
             local offset = i - math.ceil(numFrames / 2) + whee.positionOffsetFromSelection
             whee.frameTransformer(frame, offset - 1, i, whee.count)
-            whee.frameUpdater(frame, whee:getItem(idx), offset)
+            whee.frameUpdater(frame, whee:getItem(idx), offset, idx == whee.index)
             idx = idx + direction
         end
 
