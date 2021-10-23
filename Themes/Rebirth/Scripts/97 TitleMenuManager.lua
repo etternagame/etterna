@@ -26,6 +26,7 @@ function TITLE.HandleFinalGameStart(self)
     if self.triggeredFadeOut then return end
     self.triggeredFadeOut = true
     self.scrollerFocused = true
+    GAMESTATE:JoinPlayer()
     GAMESTATE:LoadProfiles(false)
 
     local top = SCREENMAN:GetTopScreen()

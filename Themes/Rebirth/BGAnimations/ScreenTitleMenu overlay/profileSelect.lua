@@ -300,7 +300,7 @@ local function generateItems()
                                 deleteProfileDialogue(id)
                             else
                                 -- otherwise, move cursor or select current profile
-                                if selectionIndex == index and focused then
+                                if selectionIndex == index then
                                     selectCurrent()
                                 else
                                     selectionIndex = index
