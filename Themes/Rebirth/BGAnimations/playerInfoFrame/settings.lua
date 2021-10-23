@@ -3345,8 +3345,8 @@ local function rightFrame()
                     if po:HiddenOffset() ~= 0 then o[2] = true end
                     if po:Sudden() ~= 0 then o[3] = true end
                     if po:SuddenOffset() ~= 0 then o[4] = true end
-                    if po:Stealth() ~= 0 then o[4] = true end
-                    if po:Blink() ~= 0 then o[5] = true end
+                    if po:Stealth() ~= 0 then o[5] = true end
+                    if po:Blink() ~= 0 then o[6] = true end
                     return o
                 end,
             },
