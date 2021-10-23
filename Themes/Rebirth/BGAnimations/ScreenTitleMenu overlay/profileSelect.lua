@@ -280,6 +280,12 @@ local function generateItems()
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then
+                        -- handle profile creation here
+                        if index == #profileIDs + 1 then
+                            createProfileDialogue(self:GetParent():GetParent())
+                            return
+                        end
+
                         -- because of button layering, pretend we are clicking through this button when it is invisible
                         -- (this stuff immediately below is the expected behavior)
                         if focused then
@@ -684,8 +690,9 @@ local function generateItems()
             end
         },
 
-        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "newProfile")) .. {
+        Def.Sprite {
             Name = "NewProfileButton",
+            Texture = THEME:GetPathG("", "newProfile"),
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(actuals.Width, actuals.ItemHeight)
@@ -702,14 +709,6 @@ local function generateItems()
                 else
                     self:x(1000)
                     self:diffusealpha(0)
-                end
-            end,
-            MouseDownCommand = function(self, params)
-                if self:IsInvisible() then return end
-                if params.event == "DeviceButton_left mouse button" then
-                    -- make profile
-                    -- this function is asking for the Actor which is the entire list frame
-                    createProfileDialogue(self:GetParent())
                 end
             end
         }
