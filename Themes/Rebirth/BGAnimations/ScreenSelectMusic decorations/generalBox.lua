@@ -88,7 +88,6 @@ local function createChoices()
                 if params.update == "OnMouseDown" then
                     selectedIndex = i
                     MESSAGEMAN:Broadcast("GeneralTabSet", {tab = i})
-                    self:GetParent():playcommand("UpdateSelectedIndex")
                 end
             end,
             RolloverUpdateCommand = function(self, params)
@@ -128,7 +127,6 @@ local function createChoices()
                         if n >= 1 and n <= #choiceNames or not focused then
                             selectedIndex = n
                             MESSAGEMAN:Broadcast("GeneralTabSet", {tab = n})
-                            self:GetParent():hurrytweening(0.5):playcommand("UpdateSelectedIndex")
                         end
                     elseif event.DeviceInput.button == "DeviceButton_space" and focused and SCUFF.generaltab == SCUFF.generaltabindex then
                         -- toggle chart preview if the general tab is the current tab visible
@@ -138,7 +136,14 @@ local function createChoices()
                     end
                 end
             end)
-        end
+        end,
+        GeneralTabSetMessageCommand = function(self, params)
+            if params and params.tab <= SCUFF.generaltabcount then
+                selectedIndex = params.tab
+                self:GetParent():hurrytweening(0.5):playcommand("UpdateSelectedIndex")
+            end
+        end,
+
     }
     for i = 1, #choiceNames do
         t[#t+1] = createChoice(i)
