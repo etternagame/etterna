@@ -203,6 +203,9 @@ local function leftFrame()
             self:playcommand("SetPosition")
             self:diffusealpha(0)
         end,
+        BeginCommand = function(self)
+            self:playcommand("HideLeft")
+        end,
         HideLeftCommand = function(self)
             -- move off screen left and go invisible
             self:finishtweening()
