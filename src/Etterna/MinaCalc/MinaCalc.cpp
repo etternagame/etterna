@@ -305,11 +305,14 @@ JackStamAdjust(const float x, Calc& calc, const int hand)
 	static const auto stam_mag = 23.F;
 	static const auto stam_fscale = 750.F;
 	static const auto stam_prop = 0.49424F;
+	// mod hard floor
 	auto stam_floor = 0.95F;
-	auto mod = 0.95F;
+	auto mod = 1.F;
 
 	auto avs2 = 0.F;
-	const auto super_stam_ceil = 1.09F;
+
+	// mod hard cap
+	const auto super_stam_ceil = 1.01F;
 
 	const auto& diff = calc.jack_diff.at(hand);
 	std::vector<std::pair<float, float>> output(diff.size());
@@ -986,7 +989,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 468;
+int mina_calc_version = 469;
 auto
 GetCalcVersion() -> int
 {
