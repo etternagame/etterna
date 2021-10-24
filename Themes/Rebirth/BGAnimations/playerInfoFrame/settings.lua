@@ -40,6 +40,10 @@ local ratios = {
     -- the smaller of these values is used to pick how big the color box is and how tall the sliders are
     ColorBoxHeight = 339 / 1080,
     ColorBoxWidth = 339 / 1920,
+
+    -- controls the width of the mouse wheel scroll box, should be the same number as the general box X position
+    -- (found in generalBox.lua)
+    GeneralBoxLeftGap = 1140 / 1920, -- distance from left edge to the left edge of the general box
 }
 
 local actuals = {
@@ -68,6 +72,7 @@ local actuals = {
     NoteskinDisplayTopGap = ratios.NoteskinDisplayTopGap * SCREEN_HEIGHT,
     ColorBoxHeight = ratios.ColorBoxHeight * SCREEN_HEIGHT,
     ColorBoxWidth = ratios.ColorBoxWidth * SCREEN_WIDTH,
+    GeneralBoxLeftGap = ratios.GeneralBoxLeftGap * SCREEN_WIDTH,
 }
 
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
@@ -1166,7 +1171,51 @@ local function leftFrame()
                         print("It appears that chart preview is not where it should be ....")
                     end
                 end,
-            }
+            },
+            Def.Quad {
+                Name = "MouseWheelRegion",
+                InitCommand = function(self)
+                    self:diffusealpha(0.4)
+                    -- the sizing here should make everything left of the wheel a mousewheel region
+                    -- and also just a bit above and below it
+                    -- and also the empty region to the right
+                    -- the wheel positioning is not as clear as it could be
+                    self:halign(0)
+                    self:valign(0)
+                    self:playcommand("SetPosition")
+                    self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height)
+                end,
+                SetPositionCommand = function(self)
+                    if getWheelPosition() then
+                        self:halign(0)
+                        self:x(0)
+                    else
+                        self:halign(1)
+                        self:x(actuals.LeftWidth)
+                    end
+                end,
+                UpdateWheelPositionCommand = function(self)
+                    self:playcommand("SetPosition")
+                end,
+                MouseScrollMessageCommand = function(self, params)
+                    if isOver(self) and SCUFF.showingPreview then
+                        if params.direction == "Up" then
+                            SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("Move", {direction = -1})
+                        else
+                            SCREENMAN:GetTopScreen():GetChild("WheelFile"):playcommand("Move", {direction = 1})
+                        end
+                    end
+                end,
+                MouseClickPressMessageCommand = function(self, params)
+                    if params ~= nil and params.button ~= nil and SCUFF.showingPreview then
+                        if params.button == "DeviceButton_right mouse button" then
+                            if isOver(self) then
+                                SCREENMAN:GetTopScreen():PauseSampleMusic()
+                            end
+                        end
+                    end
+                end
+            },
         }
         return t
     end
