@@ -470,6 +470,7 @@ local function playlistList()
                             local w = SCREENMAN:GetTopScreen():GetChild("WheelFile")
                             if w ~= nil then
                                 if chart:IsLoaded() then
+                                    setMusicRate(chart:GetRate())
                                     w:playcommand("FindSong", {chartkey = chartkey})
                                 else
                                     -- not loaded - do nothing
