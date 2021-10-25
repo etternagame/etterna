@@ -471,7 +471,7 @@ local function createList()
                     end
                 end
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "Rate",
                 InitCommand = function(self)
                     self:halign(1):valign(1)
@@ -485,9 +485,21 @@ local function createList()
                         local rt = score:GetMusicRate()
                         self:settext(getRateString(rt))
                     end
-                end
+                end,
+                MouseOverCommand = function(self)
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        setMusicRate(score:GetMusicRate())
+                    end
+                end,
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "PlayerName",
                 InitCommand = function(self)
                     self:halign(0):valign(0)
@@ -510,9 +522,24 @@ local function createList()
                         end
                         self:settext(n)
                     end
-                end
+                end,
+                MouseOverCommand = function(self)
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        if score ~= nil then
+                            local url = "https://etternaonline.com/user/" .. score:GetDisplayName()
+                            GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
+                        end
+                    end
+                end,
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "JudgmentsAndCombo",
                 InitCommand = function(self)
                     self:halign(0):valign(1)
@@ -533,7 +560,22 @@ local function createList()
                         local comboStr = tostring(score:GetMaxCombo())
                         self:settextf("%s  |  %s  |  %s  |  %s  |  %s  |  %s  x%s", jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr, comboStr)
                     end
-                end
+                end,
+                MouseOverCommand = function(self)
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        if score ~= nil then
+                            local url = "https://etternaonline.com/score/view/" .. score:GetScoreid() .. score:GetUserid()
+                            GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
+                        end
+                    end
+                end,
             },
             LoadFont("Common Normal") .. {
                 Name = "WifePercent",
