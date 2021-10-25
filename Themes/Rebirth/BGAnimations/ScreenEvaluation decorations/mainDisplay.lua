@@ -401,6 +401,14 @@ local function accuracyStats()
         0, -- PFC length
     }
 
+    -- BAD HACK TO FIT LONGEST RFC INTO THE EQUATION
+    -- I HATE THIS
+    local isMFC = false -- if true, Longest PFC becomes Longest RFC
+    local rfcStatIndex = 5
+    local rfcStatType = "EvalLongestRFC"
+    local pfcStatType = "EvalLongestPFC"
+    -- DONT DO THIS
+
     -- calculates the statData based on the given score
     local function calculateStatData(score)
         local offsetTable = score:GetOffsetVector()
@@ -423,31 +431,40 @@ local function accuracyStats()
         local marvThreshold = ms.JudgeScalers[judgeSetting] * 22.5 -- J4 Marvelous window
         local perfThreshold = ms.JudgeScalers[judgeSetting] * 45 -- J4 Perfect window
         local greatThreshold = ms.JudgeScalers[judgeSetting] * 90 -- J4 Great window
+        local currentRFC = 0
         local currentMFC = 0
         local currentPFC = 0
         local marvsForRA = 0 -- we are counting ridic as marvs normally, so count marvs alone separately to calculate RA
         local greatCount = 0
+        local longestRFC = 0
+
+        local validTaps = 0
 
         for i, o in ipairs(offsetTable) do
             if typeTable[i] ~= nil and (typeTable[i] == "TapNoteType_Tap" or typeTable[i] == "TapNoteType_HoldHead") then
                 local off = math.abs(o)
+                validTaps = validTaps + 1
 
                 -- count judgments
                 if off <= ridicThreshold then
+                    currentRFC = currentRFC + 1
                     currentMFC = currentMFC + 1
                     currentPFC = currentPFC + 1
                     output[1] = output[1] + 1
                     output[2] = output[2] + 1
                 elseif off <= marvThreshold then
+                    currentRFC = 0
                     currentMFC = currentMFC + 1
                     currentPFC = currentPFC + 1
                     output[2] = output[2] + 1
                     marvsForRA = marvsForRA + 1
                 elseif off <= perfThreshold then
+                    currentRFC = 0
                     currentMFC = 0
                     currentPFC = currentPFC + 1
                     output[3] = output[3] + 1
                 elseif off <= greatThreshold then
+                    currentRFC = 0
                     currentMFC = 0
                     currentPFC = 0
                     greatCount = greatCount + 1
@@ -464,7 +481,17 @@ local function accuracyStats()
                 if currentPFC > output[5] then
                     output[5] = currentPFC
                 end
+                if currentRFC > longestRFC then
+                    longestRFC = currentRFC
+                end
             end
+        end
+
+        if output[4] == validTaps then
+            output[rfcStatIndex] = longestRFC
+            statTypes[rfcStatIndex] = rfcStatType 
+        else
+            statTypes[rfcStatIndex] = pfcStatType 
         end
 
         -- prevent division by 0 here
