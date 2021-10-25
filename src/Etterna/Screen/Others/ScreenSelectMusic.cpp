@@ -1522,6 +1522,8 @@ ScreenSelectMusic::AfterMusicChange()
 						  pSong->m_fMusicSampleLengthSeconds;
 					}
 					break;
+				case SampleMusicPreviewMode_Nothing:
+					break;
 				default:
 					FAIL_M(ssprintf("Invalid preview mode: %i", pmode));
 			}
@@ -1543,11 +1545,12 @@ ScreenSelectMusic::AfterMusicChange()
 	// Don't stop music if it's already playing the right file.
 	g_bSampleMusicWaiting = false;
 	if (!m_MusicWheel.IsRouletting() &&
-		SOUND->GetMusicPath() != m_sSampleMusicToPlay) {
+		SOUND->GetMusicPath() != m_sSampleMusicToPlay &&
+		SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_Nothing) {
 		SOUND->StopMusic();
 		// some SampleMusicPreviewModes don't want the sample music immediately.
 		if (SAMPLE_MUSIC_PREVIEW_MODE !=
-			SampleMusicPreviewMode_StartToPreview) {
+			  SampleMusicPreviewMode_StartToPreview) {
 			if (!m_sSampleMusicToPlay.empty())
 				// dont run basic preview if chart preview is running
 				// lua handles that stuff (we need to change that)

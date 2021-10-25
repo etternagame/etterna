@@ -444,6 +444,7 @@ enum SampleMusicPreviewMode
 										 * preview the music, then once more to
 										 * select the song. */
 	SampleMusicPreviewMode_LastSong,	/**< continue playing the last song */
+	SampleMusicPreviewMode_Nothing, // music never plays
 	NUM_SampleMusicPreviewMode,
 	SampleMusicPreviewMode_Invalid,
 };

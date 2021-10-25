@@ -395,7 +395,8 @@ LuaXType(StyleType);
 static const char* SampleMusicPreviewModeNames[] = { "Normal",
 													 "StartToPreview",
 													 "ScreenMusic",
-													 "LastSong" };
+													 "LastSong",
+													 "Nothing" };
 XToString(SampleMusicPreviewMode);
 StringToX(SampleMusicPreviewMode);
 LuaXType(SampleMusicPreviewMode);
