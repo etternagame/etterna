@@ -1040,8 +1040,8 @@ local function createList()
                 else
                     wifeStr = string.format("%05.4f%%", notShit.floor(ws * 1000000) / 10000)
                 end
-                local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()
-                self:settextf("Showing J%d Plot  |  Score by: %s  |  %s", judgeSetting, score:GetName(), wifeStr)
+                --local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()
+                self:settextf("Showing J4 Plot  |  Score by: %s  |  %s", score:GetName(), wifeStr)
             end,
         },
         LoadFont("Common Normal") .. {
@@ -1059,7 +1059,9 @@ local function createList()
                 local score = params.score
                 if score == nil then return end
                 local steps = GAMESTATE:GetCurrentSteps()
-                local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()                if steps ~= nil then
+                --local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()
+                local judgeSetting = 4
+                if steps ~= nil then
                     if score:HasReplayData() then
                         local offsets = score:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
