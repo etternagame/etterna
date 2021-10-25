@@ -860,6 +860,7 @@ local function goalList()
                         local ck = goal:GetChartKey()
                         local wheel = SCREENMAN:GetTopScreen():GetChild("WheelFile")
                         if wheel then
+                            setMusicRate(goal:GetRate())
                             wheel:playcommand("FindSong", {chartkey = ck})
                         end
                     end
