@@ -238,14 +238,18 @@ end
 
 -- alias for wifesundries ChangeMusicRate which is really bad
 function changeMusicRate(direction)
-    local now = getCurRateValue()
+    local now = getCurRateValue() + direction
+    setMusicRate(now)
+end
+
+-- directly set a rate instead of going toward one
+function setMusicRate(rate)
     -- the classic clamps are 0.7 and 3
     -- the game wont allow 0 and wont allow over 3
-    local next = clamp(now + direction, 0.05, 3)
-
-    GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(next)
-    GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(next)
-    GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(next)
+    rate = clamp(rate, 0.05, 3)
+    GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate)
+    GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate)
+    GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate)
 
     MESSAGEMAN:Broadcast("CurrentRateChanged")
 end
