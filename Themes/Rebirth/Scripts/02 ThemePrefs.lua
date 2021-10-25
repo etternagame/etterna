@@ -1066,38 +1066,6 @@ function ShowVisualizer()
     return t
 end
 
-function InstantSearch()
-    local t = {
-        Name = "InstantSearch",
-        LayoutType = "ShowAllInRow",
-        SelectType = "SelectOne",
-        OneChoiceForAllPlayers = true,
-        ExportOnChange = true,
-        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
-        LoadSelections = function(self, list, pn)
-            local pref = themeConfig:get_data().global.InstantSearch
-            if pref then
-                list[2] = true
-            else
-                list[1] = true
-            end
-        end,
-        SaveSelections = function(self, list, pn)
-            local value
-            if list[1] then
-                value = false
-            else
-                value = true
-            end
-            themeConfig:get_data().global.InstantSearch = value
-            themeConfig:set_dirty()
-            themeConfig:save()
-        end
-    }
-    setmetatable(t, t)
-    return t
-end
-
 function ProgressBar()
     local keymode = getCurrentKeyMode()
     local t = {

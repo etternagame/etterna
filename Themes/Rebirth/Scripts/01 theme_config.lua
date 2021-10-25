@@ -7,7 +7,6 @@ local defaultConfig = {
         VideoBanners = true,
         WheelPosition = true, -- true = left, false = right
         WheelBanners = true, -- true = on, false = off
-        InstantSearch = true, -- true = search per press, false = search on enter button
     },
 }
 

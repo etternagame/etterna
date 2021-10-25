@@ -2800,7 +2800,6 @@ local function rightFrame()
             list = THEME:GetLanguages(),
             current = THEME:GetCurLanguage(),
         },
-        instantSearch = themeoption("global", "InstantSearch"),
         wheelPosition = themeoption("global", "WheelPosition"),
         wheelBanners = themeoption("global", "WheelBanners"),
         showBackgrounds = themeoption("global", "ShowBackgrounds"),
@@ -4642,14 +4641,6 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("Vsync", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Vsync", true),
-            },
-            {
-                Name = "Instant Search",
-                Type = "SingleChoice",
-                Explanation = "Song search behavior - turning this on will instantly update the song wheel as you type in song search.",
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirections("instantSearch", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetter("instantSearch", true),
             },
             {
                 Name = "Fast Note Rendering",
