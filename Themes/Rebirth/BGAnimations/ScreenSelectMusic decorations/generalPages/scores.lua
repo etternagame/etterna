@@ -219,6 +219,7 @@ local gradeTextSize = 2.2
 local clearTypeTextSize = 1.15
 local detailTextSize = 0.75
 local rateTextSize = 0.65
+local onlinePlotTextSize = 0.8
 
 -- functionally create the score list
 -- this is basically a slimmed version of the Evaluation Scoreboard
@@ -278,6 +279,9 @@ local function createList()
             end
             -- end hack
             page = 1
+
+            -- hide the online offset plot
+            self:playcommand("HidePlot")
 
             -- no steps, no scores.
             local steps = GAMESTATE:GetCurrentSteps()
@@ -364,6 +368,7 @@ local function createList()
                 self:GetChild("ScoreItem_"..i):playcommand("SetScore", {scoreIndex = index})
             end
             self:GetParent():playcommand("UpdateButtons")
+            self:playcommand("HidePlot")
         end,
         MovedPageCommand = function(self)
             self:playcommand("UpdateList")
@@ -577,7 +582,7 @@ local function createList()
                     end
                 end,
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "WifePercent",
                 InitCommand = function(self)
                     self:halign(1):valign(0)
@@ -603,7 +608,39 @@ local function createList()
                         self:settext(wifeStr)
                         self:diffuse(colorByGrade(grade))
                     end
-                end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    if score ~= nil and score:HasReplayData() then
+                        TOOLTIP:SetText("Show Offset Plot")
+                        TOOLTIP:Show()
+                        self:diffusealpha(buttonHoverAlpha)
+                    end
+                end,
+                MouseOutCommand = function(self)
+                    self:diffusealpha(1)
+                    TOOLTIP:Hide()
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        if score ~= nil then
+                            if score:HasReplayData() then
+                                ms.ok("Loading offsets...")
+                                DLMAN:RequestOnlineScoreReplayData(
+                                    score,
+                                    function()
+                                        ms.ok("Loaded offsets")
+                                        self:GetParent():GetParent():playcommand("DisplayOnlineOffsets", {
+                                            score = score,
+                                            index = i
+                                        })
+                                    end
+                                )
+                            end
+                        end
+                    end
+                end,
             },
             LoadFont("Common Normal") .. {
                 Name = "DateTime",
@@ -930,6 +967,146 @@ local function createList()
     for i = 1, itemCount do
         t[#t+1] = createItem(i)
     end
+    local extrasizing = 60 -- extra size added to the plot for padding stuff
+    t[#t+1] = Def.ActorFrame {
+        Name = "OnlineOffsetPlot",
+        InitCommand = function(self)
+            self:diffusealpha(0)
+            self:z(-200)
+        end,
+        DisplayOnlineOffsetsCommand = function(self, params)
+            local zoombias = 1.2
+            self:finishtweening()
+            self:diffusealpha(0)
+            self:x(actuals.MainGraphicWidth)
+            self:y((actuals.ItemAllottedSpace / (itemCount - 1)) * (params.index-1) + actuals.ItemUpperSpacing)
+            self:zoom(0)
+            self:zoomy(0)
+            self:z(-200)
+            self:decelerate(0.3)
+            self:diffusealpha(1)
+            self:xy((-actuals.MainGraphicWidth - 30) * zoombias, 0)
+            self:z(10)
+            self:zoom(zoombias)
+            self:zoomy(zoombias)
+        end,
+        HidePlotCommand = function(self)
+            self:finishtweening()
+            self:accelerate(0.3)
+            self:xy(actuals.MainGraphicWidth, 0)
+            self:zoom(0):zoomy(0)
+            self:z(-200)
+            self:diffusealpha(0)
+        end,
+
+        UIElements.QuadButton(1, 1) .. {
+            Name = "BG",
+            InitCommand = function(self)
+                self:valign(0):halign(0)
+                self:xy(-extrasizing / 2, -extrasizing / 2)
+                self:zoomto(actuals.MainGraphicWidth + extrasizing, actuals.OffsetPlotHeight + extrasizing)
+                self:diffusealpha(0.8)
+                registerActorToColorConfigElement(self, "main", "SecondaryBackground")
+            end,
+            MouseDownCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(0.8)
+                self:GetParent():playcommand("HidePlot")
+            end,
+            MouseOverCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(buttonHoverAlpha * 0.8)
+            end,
+            MouseOutCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(0.8)
+            end,
+        },
+        LoadFont("Common Normal") .. {
+            Name = "TopText",
+            InitCommand = function(self)
+                self:xy(actuals.MainGraphicWidth / 2, -extrasizing / 4)
+                self:zoom(onlinePlotTextSize)
+                self:maxwidth(((actuals.MainGraphicWidth)) / onlinePlotTextSize)
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
+            end,
+            DisplayOnlineOffsetsCommand = function(self, params)
+                local score = params.score
+                if score == nil then self:settext("") return end
+                local ws = score:GetWifeScore()
+                local wifeStr = ""
+                if ws < 0.99 then
+                    wifeStr = string.format("%05.2f%%", notShit.floor(ws * 10000) / 100)
+                else
+                    wifeStr = string.format("%05.4f%%", notShit.floor(ws * 1000000) / 10000)
+                end
+                local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()
+                self:settextf("Showing J%d Plot  |  Score by: %s  |  %s", judgeSetting, score:GetName(), wifeStr)
+            end,
+        },
+        LoadFont("Common Normal") .. {
+            Name = "BottomText",
+            InitCommand = function(self)
+                self:xy(actuals.MainGraphicWidth / 2, actuals.OffsetPlotHeight + extrasizing / 4)
+                self:zoom(onlinePlotTextSize)
+                self:maxwidth(((actuals.MainGraphicWidth)) / onlinePlotTextSize)
+                self:settext("Click this box or do anything to close")
+                registerActorToColorConfigElement(self, "main", "PrimaryText")
+            end,
+        },
+        LoadActorWithParams("../../offsetplot.lua", {sizing = {Width = actuals.MainGraphicWidth, Height = actuals.OffsetPlotHeight}, textsize = 0.43}) .. {
+            DisplayOnlineOffsetsCommand = function(self, params)
+                local score = params.score
+                if score == nil then return end
+                local steps = GAMESTATE:GetCurrentSteps()
+                local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()                if steps ~= nil then
+                    if score:HasReplayData() then
+                        local offsets = score:GetOffsetVector()
+                        -- for online offset vectors a 180 offset is a miss
+                        for i, o in ipairs(offsets) do
+                            if o >= 180 then
+                                offsets[i] = 1000
+                            end
+                        end
+                        local tracks = score:GetTrackVector()
+                        local types = score:GetTapNoteTypeVector()
+                        local noterows = score:GetNoteRowVector()
+                        local holds = score:GetHoldNoteVector()
+                        local timingdata = steps:GetTimingData()
+                        local lastSecond = steps:GetLastSecond()
+
+                        self:playcommand("LoadOffsets", {
+                            offsetVector = offsets,
+                            trackVector = tracks,
+                            timingData = timingdata,
+                            noteRowVector = noterows,
+                            typeVector = types,
+                            holdVector = holds,
+                            maxTime = lastSecond,
+                            judgeSetting = judgeSetting,
+                            columns = steps:GetNumColumns(),
+                            rejudged = true,
+                        })
+                        self:hurrytweening(0.2)
+                    else
+                        self:playcommand("LoadOffsets", {
+                            offsetVector = {},
+                            trackVector = {},
+                            timingData = nil,
+                            noteRowVector = {},
+                            typeVector = {},
+                            holdVector = {},
+                            maxTime = 1,
+                            judgeSetting = 4,
+                            columns = steps:GetNumColumns(),
+                            rejudged = true,
+                        })
+                        self:hurrytweening(0.1)
+                    end
+                end
+            end
+        },
+    }
 
     -- we have placed the local page into its own frame for management of everything quickly
     -- when local, this is visible
