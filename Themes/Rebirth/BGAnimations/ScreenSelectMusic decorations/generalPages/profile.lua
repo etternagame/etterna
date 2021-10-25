@@ -56,7 +56,7 @@ local ratios = {
     NameInfoSmallerLineSpacing = 26 / 1080, -- top of top line to top of next line
     RightTextLeftGap = 414 / 1920, -- left frame edge to left edge of rightmost text
     RightTextSlightOffset = 1 / 1920, -- really?
-    RightSmallTextUpperGap = 119 / 1080, -- top of frame to top of stream skillset
+    RightSmallTextUpperGap = 124 / 1080, -- top of frame to top of stream skillset
     RightSmallTextAllottedSpace = 410 / 1080, -- the reference doesnt show overall so we have to position based on this to be dynamic
 }
 
@@ -673,7 +673,12 @@ local function createList()
                 end,
                 -- empty padding
                 function(self)
-                    self:settextf("")
+                end,
+                function(self)
+                end,
+                -- score stats
+                function(self)
+                    self:settextf("Score Stats:")
                 end,
                 -- AAAAA count
                 function(self)
@@ -705,25 +710,14 @@ local function createList()
                 -- these are here for space padding
                 -- feel free to replace or remove them at will
                 function(self)
-                    self:settextf("")
                 end,
                 function(self)
-                    self:settextf("")
                 end,
                 function(self)
-                    self:settextf("")
                 end,
                 function(self)
-                    self:settextf("")
                 end,
                 function(self)
-                    self:settextf("")
-                end,
-                function(self)
-                    self:settextf("")
-                end,
-                function(self)
-                    self:settextf("")
                 end,
             },
         }
@@ -741,6 +735,9 @@ local function createList()
             },
             Right = {
                 -- [index] = function(self) end,
+                [5] = function(self) -- hack to make this text slightly bigger
+                    self:zoom(smalllineTextSize + 0.1)
+                end,
             },
         }
 
