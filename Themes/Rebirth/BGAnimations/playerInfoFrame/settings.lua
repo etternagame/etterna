@@ -1175,7 +1175,7 @@ local function leftFrame()
             Def.Quad {
                 Name = "MouseWheelRegion",
                 InitCommand = function(self)
-                    self:diffusealpha(0.4)
+                    self:diffusealpha(0)
                     -- the sizing here should make everything left of the wheel a mousewheel region
                     -- and also just a bit above and below it
                     -- and also the empty region to the right
