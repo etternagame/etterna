@@ -484,3 +484,45 @@ function renameProfileDialogue(profile)
         end
     )
 end
+
+-- convenience to control the rename dialogue logic and input redir scope
+function renamePlaylistDialogue(oldname)
+    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+
+    local function f(answer)
+        local success = SONGMAN:RenamePlaylistNoDialog(oldname, answer)
+        MESSAGEMAN:Broadcast("PlaylistRenamed", {success = success})
+        on()
+    end
+    local question = "RENAME PLAYLIST\nPlease enter a new playlist name."
+    askForInputStringWithFunction(
+        question,
+        255,
+        false,
+        f,
+        function(answer)
+            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
+            if not result then
+                SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'\nTo exit, press Esc.")
+            end
+            return result, "Response invalid."
+        end,
+        function()
+            -- upon exit, do nothing
+            -- playlist name is unchanged
+            MESSAGEMAN:Broadcast("PlaylistRenamed", {success = false})
+            on()
+        end
+    )
+end

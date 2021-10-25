@@ -1282,6 +1282,36 @@ makePlaylist(const std::string& answer)
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
 }
+
+bool
+renamePlaylist(const std::string& old, const std::string& answer)
+{
+	Playlist pl;
+	pl.name = answer;
+	auto& pls = SONGMAN->GetPlaylists();
+	// cant rename nonexistent
+	// cant duplicate playlist
+	if (pls.count(old) == 0 || pls.count(answer) == 1)
+		return false;
+
+	if (!pl.name.empty() && pls.count(pl.name) == 0) {
+		auto& oldpl = pls.at(old);
+		pl.chartlist = oldpl.chartlist;
+		pl.courseruns = oldpl.courseruns;
+
+		SONGMAN->GetPlaylists().emplace(pl.name, pl);
+		SONGMAN->activeplaylist = pl.name;
+		SONGMAN->DeletePlaylist(old);
+
+		MESSAGEMAN->Broadcast("DisplayAll");
+		PROFILEMAN->SaveProfile(PLAYER_1);
+
+		return true;
+	} else {
+		return false;
+	}
+}
+
 static const string calctest_XML = "CalcTestList.xml";
 
 auto
@@ -1569,6 +1599,16 @@ class LunaSongManager : public Luna<SongManager>
 		return 1;
 	}
 
+	static auto RenamePlaylistNoDialog(T* p, lua_State* L) -> int
+	{
+		auto old = SArg(1);
+		auto newname = SArg(2);
+
+		lua_pushboolean(L, renamePlaylist(old, newname));
+
+		return 1;
+	}
+
 	static auto GetPlaylists(T* p, lua_State* L) -> int
 	{
 		auto idx = 1;
@@ -1612,6 +1652,7 @@ class LunaSongManager : public Luna<SongManager>
 		ADD_METHOD(SetActivePlaylist);
 		ADD_METHOD(NewPlaylist);
 		ADD_METHOD(NewPlaylistNoDialog);
+		ADD_METHOD(RenamePlaylistNoDialog);
 		ADD_METHOD(GetPlaylists);
 		ADD_METHOD(DeletePlaylist);
 	}

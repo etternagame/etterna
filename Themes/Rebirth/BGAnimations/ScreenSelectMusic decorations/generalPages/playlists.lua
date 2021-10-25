@@ -100,6 +100,9 @@ local textzoomFudge = 5
 
 local itemListAnimationSeconds = 0.05
 
+-- for accessibility concerns, make buttons a bit bigger than the text they cover
+local textButtonHeightFudgeScalarMultiplier = 1.6
+
 -- the entire playlist display ActorFrame
 local function playlistList()
     -- modifiable parameters
@@ -682,21 +685,52 @@ local function playlistList()
                     self:settextf("%d-%d/%d", lb, ub, #chartlist)
                 end
             },
-            LoadFont("Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "PlaylistName",
                 InitCommand = function(self)
-                    self:halign(0):valign(0)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0):valign(0)
+                    bg:halign(0):valign(0)
                     self:x(actuals.Width - actuals.DetailPageLeftGap)
-                    self:zoom(detailPageTextSize)
+                    txt:zoom(detailPageTextSize)
                     -- oddly precise max width but this should fit with the original size
-                    self:maxwidth(actuals.Width / 3 * 2 / detailPageTextSize - textzoomFudge)
-                    registerActorToColorConfigElement(self, "main", "PrimaryText")
+                    txt:maxwidth(actuals.Width / 3 * 2 / detailPageTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                 end,
                 UpdateItemListCommand = function(self)
                     if playlist ~= nil then
-                        self:settext(playlist:GetName())
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+                        txt:settext(playlist:GetName())
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end
-                end
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        if params.event == "DeviceButton_left mouse button" then
+                            renamePlaylistDialogue(playlist:GetName())
+                            self:diffusealpha(1)
+                        end
+                    end
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                end,
+                PlaylistRenamedMessageCommand = function(self, params)
+                    if params and params.success then
+                        ms.ok("Successfully renamed playlist")
+                        self:playcommand("UpdateItemList")
+                    else
+                        ms.ok("Failed to rename playlist")
+                    end
+                end,
             },
         }
 
