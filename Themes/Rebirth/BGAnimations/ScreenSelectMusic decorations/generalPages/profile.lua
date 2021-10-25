@@ -640,17 +640,17 @@ local function createList()
                 -- top played skillset
                 function(self)
                     local count, name = getSkillsetPlaysByPosition(1)
-                    self:settextf("  %s (%d)", name, count)
+                    self:settextf("%s (%d)", name, count)
                 end,
                 -- 2nd top played skillset
                 function(self)
                     local count, name = getSkillsetPlaysByPosition(2)
-                    self:settextf("  %s (%d)", name, count)
+                    self:settextf("%s (%d)", name, count)
                 end,
                 -- 3rd top played skillset
                 function(self)
                     local count, name = getSkillsetPlaysByPosition(3)
-                    self:settextf("  %s (%d)", name, count)
+                    self:settextf("%s (%d)", name, count)
                 end,
             },
             Right = {
@@ -735,6 +735,9 @@ local function createList()
         local smallTextInitFunctions = {
             Left = {
                 -- [index] = function(self) end,
+                [5] = function(self) -- hack to make this text slightly bigger
+                    self:zoom(smalllineTextSize + 0.1)
+                end,
             },
             Right = {
                 -- [index] = function(self) end,
