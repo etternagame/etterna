@@ -186,6 +186,11 @@ Wheel.mt = {
             song = SONGMAN:GetSongByChartKey(chartkey)
         end
 
+        -- a song must pass the filter if being warped to
+        if song ~= nil and not WHEELDATA:FilterCheck(song) then
+            return nil
+        end
+
         -- jump to the first instance of the song if it exists
         if song ~= nil then
             local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
