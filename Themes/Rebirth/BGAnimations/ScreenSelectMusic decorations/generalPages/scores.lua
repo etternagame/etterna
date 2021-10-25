@@ -598,12 +598,7 @@ local function createList()
                 SetScoreCommand = function(self)
                     if score ~= nil then
                         local ws = score:GetWifeScore()
-                        local wifeStr = ""
-                        if ws < 0.99 then
-                            wifeStr = string.format("%05.2f%%", notShit.floor(ws * 10000) / 100)
-                        else
-                            wifeStr = string.format("%05.4f%%", notShit.floor(ws * 1000000) / 10000)
-                        end
+                        local wifeStr = checkWifeStr(ws)
                         local grade = GetGradeFromPercent(score:GetWifeScore())
                         self:settext(wifeStr)
                         self:diffuse(colorByGrade(grade))
@@ -1034,12 +1029,8 @@ local function createList()
                 local score = params.score
                 if score == nil then self:settext("") return end
                 local ws = score:GetWifeScore()
-                local wifeStr = ""
-                if ws < 0.99 then
-                    wifeStr = string.format("%05.2f%%", notShit.floor(ws * 10000) / 100)
-                else
-                    wifeStr = string.format("%05.4f%%", notShit.floor(ws * 1000000) / 10000)
-                end
+                local wifeStr = checkWifeStr(ws)
+                -- keeping these plots j4 because i dont want to complicate logic for stuff
                 --local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()
                 self:settextf("Showing J4 Plot  |  Score by: %s  |  %s", score:GetName(), wifeStr)
             end,
@@ -1059,6 +1050,7 @@ local function createList()
                 local score = params.score
                 if score == nil then return end
                 local steps = GAMESTATE:GetCurrentSteps()
+                -- keeping these plots j4 because i dont want to complicate logic for stuff
                 --local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()
                 local judgeSetting = 4
                 if steps ~= nil then
@@ -1310,12 +1302,7 @@ local function createList()
                     if not judge then judge = 4 end
                     if judge < 4 then judge = 4 end
                     local js = judge ~= 9 and judge or "Justice"
-                    local perc = ""
-                    if wife < 0.99 then
-                        perc = string.format("%05.2f%%", notShit.floor(wife * 10000) / 100)
-                    else
-                        perc = string.format("%05.4f%%", notShit.floor(wife * 1000000) / 10000)
-                    end
+                    local perc = checkWifeStr(wife)
                     self:ClearAttributes()
                     self:diffuse(COLORS:getMainColor("PrimaryText"))
                     self:diffusealpha(1)

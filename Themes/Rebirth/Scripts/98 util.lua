@@ -273,6 +273,17 @@ function askForInputStringWithFunction(question, maxInputLength, obfuscate, onOK
     SCREENMAN:GetTopScreen():Load(settings)
 end
 
+-- returns xx.xx% for sub 99 scores and xx.xxxx% for 99+ scores
+function checkWifeStr(wife)
+    local wifeStr = ""
+    if wife < 0.99 then
+        wifeStr = string.format("%05.2f%%", notShit.floor(wife * 10000) / 100)
+    else
+        wifeStr = string.format("%05.4f%%", notShit.floor(wife * 1000000) / 10000)
+    end
+    return wifeStr
+end
+
 -- set the given text but truncate it if a width is reached
 function BitmapText.truncateToWidth(self, text, maxwidth)
     for i = 1, #text do
