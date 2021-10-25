@@ -76,6 +76,26 @@ function strsplit(given, separator)
     return t
 end
 
+-- like a modulo operation but works in both directions and has an offset kind of
+-- allows a range of [-200,200] for example
+-- it should only receive whole numbers as input
+-- theres an adjustment of 0.001 on the min/max to deal with float imprecision
+-- this function is badly written btw please help
+function wrapulo(v, delta, min, max)
+    local min = notShit.round(min, 0)
+    local max = notShit.round(max, 0)
+    local newv = v + delta
+    local adjustednewv = newv - min
+    local range = max - min
+    if newv > max + 0.001 then
+        return min + (adjustednewv % range) - 1
+    elseif newv < min - 0.001 then
+        return max - (range - 1 - adjustednewv % range)
+    else
+        return newv
+    end
+end
+
 -- string trim, remove all whitespace from the edges of a string
 function strtrim(str)
     if str == '' then
