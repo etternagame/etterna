@@ -96,27 +96,6 @@ namespace Core::Platform::Window {
             }
         });
 
-        // Window key callback
-        glfwSetKeyCallback(this->windowHandle, [](GLFWwindow* window, int key, int scancode, int action, int mods){
-            auto time = std::chrono::steady_clock::now();
-            auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(key);
-            DeviceInput di(DEVICE_KEYBOARD, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
-            INPUTFILTER->ButtonPressed(di);
-        });
-
-        // Window mouse callback
-        glfwSetMouseButtonCallback(this->windowHandle, [](GLFWwindow* window, int button, int action, int mods){
-            auto time = std::chrono::steady_clock::now();
-            auto legacy_key = GLFWWindowBackend::convertKeyToLegacy(button);
-            DeviceInput di(DEVICE_MOUSE, legacy_key, action == GLFW_PRESS ? 1 : 0, time);
-            INPUTFILTER->ButtonPressed(di);
-        });
-
-        // Window specific mouse position callback
-        glfwSetCursorPosCallback(this->windowHandle, [](GLFWwindow* window, double xpos, double ypos){
-            INPUTFILTER->UpdateCursorLocation(static_cast<float>(xpos), static_cast<float>(ypos));
-        });
-
 		glfwSwapInterval(0); // Don't wait for vsync
     }
 

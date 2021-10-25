@@ -34,7 +34,7 @@ public:
 
 private:
     GLFWwindow *windowHandle{nullptr}; /** @brief A reference to the window backend*/
-    static DeviceButton convertKeyToLegacy(int keycode);
+    static DeviceButton convertKeyToLegacy(int keycode, int mods);
 };
 
 }
