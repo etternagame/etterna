@@ -107,12 +107,7 @@ local function upperSection()
     }
 
     -- used to actually search for things in WheelDataManager
-    searchentry = {
-        Title = "",
-        Subtitle = "",
-        Artist = "",
-        Author = "",
-    }
+    searchentry = WHEELDATA:GetSearch()
 
     -- search on the wheel immediately based on the text entered
     local function searchNow()
@@ -277,7 +272,6 @@ local function upperSection()
                     local rowtext = self:GetParent():GetChild("RowText")
                     self:x(rowtext:GetZoomedWidth() + textinputbuffer)
                     self:halign(0)
-                    self:settext("")
                     self:maxwidth((actuals.Width - actuals.EdgePadding * 2 - rowtext:GetZoomedWidth() - textinputbuffer) / textSize - textZoomFudge)
                     self:diffuse(COLORS:getMainColor("SecondaryText"))
                     self:diffusealpha(1)
@@ -355,6 +349,43 @@ local function upperSection()
         BeginCommand = function(self)
             local snm = SCREENMAN:GetTopScreen():GetName()
             local anm = self:GetName()
+
+            local function updateFields()
+                -- im just gonna.. update all the fields... for your information....
+                -- this is ... the ... worst possible way .... but also the best....
+                if focusedField == 1 then
+                    self:GetChild("RowFrame_2"):GetChild("RowInput"):settext(searchentry.Title)
+                    self:GetChild("RowFrame_3"):GetChild("RowInput"):settext(searchentry.Subtitle)
+                    self:GetChild("RowFrame_4"):GetChild("RowInput"):settext(searchentry.Artist)
+                    self:GetChild("RowFrame_5"):GetChild("RowInput"):settext(searchentry.Author)
+                else
+                    -- backwards engineering the any search field
+                    -- for the kids who have big brains and want bigger brains
+                    local finalstr = ""
+                    if searchentry.Title ~= "" or searchentry.Subtitle ~= "" or searchentry.Artist ~= "" or searchentry.Author ~= "" then
+                        if searchentry.Title ~= "" then
+                            finalstr = finalstr .. "title="..searchentry.Title..";"
+                        end
+                        if searchentry.Subtitle ~= "" then
+                            finalstr = finalstr .. "subtitle="..searchentry.Subtitle..";"
+                        end
+                        if searchentry.Artist ~= "" then
+                            finalstr = finalstr .. "artist="..searchentry.Artist..";"
+                        end
+                        if searchentry.Author ~= "" then
+                            finalstr = finalstr .. "author="..searchentry.Author..";"
+                        end
+                    end
+                    self:GetChild("RowFrame_1"):GetChild("RowInput"):settext(finalstr)
+                end
+            end
+            -- update all the search fields
+            updateFields()
+            focusedField = 2
+            updateFields()
+            focusedField = 1
+            -- it works
+
             -- init the search input context but start it out false
             CONTEXTMAN:RegisterToContextSet(snm, "Search", anm)
             CONTEXTMAN:ToggleContextSet(snm, "Search", false)
@@ -396,33 +427,7 @@ local function upperSection()
 
                             focusedChild:playcommand("Input", {delete = del, backspace = bs, char = char})
 
-                            -- im just gonna.. update all the fields... for your information....
-                            -- this is ... the ... worst possible way .... but also the best....
-                            if focusedField == 1 then
-                                self:GetChild("RowFrame_2"):GetChild("RowInput"):settext(searchentry.Title)
-                                self:GetChild("RowFrame_3"):GetChild("RowInput"):settext(searchentry.Subtitle)
-                                self:GetChild("RowFrame_4"):GetChild("RowInput"):settext(searchentry.Artist)
-                                self:GetChild("RowFrame_5"):GetChild("RowInput"):settext(searchentry.Author)
-                            else
-                                -- backwards engineering the any search field
-                                -- for the kids who have big brains and want bigger brains
-                                local finalstr = ""
-                                if searchentry.Title ~= "" or searchentry.Subtitle ~= "" or searchentry.Artist ~= "" or searchentry.Author ~= "" then
-                                    if searchentry.Title ~= "" then
-                                        finalstr = finalstr .. "title="..searchentry.Title..";"
-                                    end
-                                    if searchentry.Subtitle ~= "" then
-                                        finalstr = finalstr .. "subtitle="..searchentry.Subtitle..";"
-                                    end
-                                    if searchentry.Artist ~= "" then
-                                        finalstr = finalstr .. "artist="..searchentry.Artist..";"
-                                    end
-                                    if searchentry.Author ~= "" then
-                                        finalstr = finalstr .. "author="..searchentry.Author..";"
-                                    end
-                                end
-                                self:GetChild("RowFrame_1"):GetChild("RowInput"):settext(finalstr)
-                            end
+                            updateFields()
                         end
                     end
                 end

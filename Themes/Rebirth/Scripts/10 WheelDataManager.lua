@@ -5,7 +5,7 @@
 -- etc
 
 WHEELDATA = {}
-
+local firstTimeInit = false
 -- quickly reset the WHEELDATA storage
 function WHEELDATA.Reset(self)
     -- 1 is the "enum value" for Group sort, it should stay that way
@@ -46,6 +46,7 @@ function WHEELDATA.Reset(self)
     -- last generated list of WheelItems
     self.WheelItems = {}
 end
+WHEELDATA:Reset()
 
 -- get wheelItems
 function WHEELDATA.GetWheelItems(self)
@@ -1095,9 +1096,15 @@ end
 -- init all with default values
 -- group sort default
 -- etc
-function WHEELDATA.Init(self)
+function WHEELDATA.Init(self, forceReset)
     -- reset will handle setting sortmode to Group
-    self:Reset()
+    -- dont reset every time we init though
+    -- this is run at the start of SelectMusic
+    -- the end result is the filter is kept and the wheel data is kept
+    if not firstTimeInit or forceReset then
+        firstTimeInit = true
+        self:Reset()
+    end
     -- this will fill AllSongs and the SongsByGroup
     self:SetAllSongs()
     self:RefreshStats()
