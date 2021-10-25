@@ -1321,7 +1321,7 @@ local function createList()
         end
     }
 
-    t[#t+1] = LoadFont("Common Normal") .. {
+    t[#t+1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
         Name = "PageText",
         InitCommand = function(self)
             self:halign(1):valign(0)
@@ -1349,7 +1349,37 @@ local function createList()
                 local ub = clamp(page * itemCount, 0, #scores)
                 self:settextf("%d-%d/%d", lb, ub, #scores)
             end
-        end
+        end,
+        MouseDownCommand = function(self, params)
+            local dir = 0
+            if params.event == "DeviceButton_left mouse button" then
+                dir = 1
+            elseif params.event == "DeviceButton_right mouse button" then
+                dir = -1
+            else
+                return
+            end
+            if focused then
+                if isLocal then
+                    if localrtTable ~= nil and localrates ~= nil and #localrates > 0 then
+                        local max = #localrtTable[localrates[localrateIndex]]
+                        local beforeindex = localscoreIndex
+                        localscoreIndex = clamp(localscoreIndex+dir, 1, max)
+                        if localscoreIndex ~= beforeindex then
+                            self:GetParent():playcommand("UpdateList")
+                        end
+                    end
+                else
+                    movePage(dir)
+                end
+            end
+        end,
+        MouseOverCommand = function(self)
+            self:diffusealpha(buttonHoverAlpha)
+        end,
+        MouseOutCommand = function(self)
+            self:diffusealpha(1)
+        end,
     }
 
     -- this list defines the appearance of the lower lip buttons
