@@ -166,6 +166,22 @@ function WHEELDATA.GetExcludedTagMode(self)
     return self.ActiveFilter.excludeTags.mode
 end
 
+-- resetter for required tag filter
+function WHEELDATA.ResetRequiredTags(self)
+    self.ActiveFilter.requireTags = { -- require that a chart has tags
+        mode = true,    -- true = AND, false = OR - requires either ALL or ANY of the tags are on the chart
+        tags = {},
+    }
+end
+
+-- resetter for excluded tag filter
+function WHEELDATA.ResetExcludedTags(self)
+    self.ActiveFilter.excludeTags = { -- remove all charts that have these tags
+        mode = false,   -- true = AND, false = OR - hides charts that have either ALL or ANY of the tags
+        tags = {},
+    }
+end
+
 -- private function to handle checking to see if a chart passes the tag filters
 -- to reduce code copypasta
 -- expects a chart and the list of tags given by TAGMAN
