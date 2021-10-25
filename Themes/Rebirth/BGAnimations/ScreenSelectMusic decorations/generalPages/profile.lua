@@ -521,12 +521,12 @@ local function createList()
                     if score ~= nil then
                         if isLocal then
                             local w = score:GetWifeScore()
-                            local wifestr = checkwife(w)
+                            local wifestr = checkWifeStr(w)
                             self:settext(wifestr)
                             self:diffuse(colorByGrade(score:GetWifeGrade()))
                         else
                             local w = score.wife
-                            local wifestr = checkwife(w)
+                            local wifestr = checkWifeStr(w)
                             self:settext(wifestr)
                             self:diffuse(colorByGrade(score.grade))
                         end
@@ -864,7 +864,30 @@ local function createList()
                 end,
                 UpdateLoginStatusCommand = function(self)
                     self:playcommand("Set")
-                end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    if i % 2 ~= 0 then return end -- cant click non numbers
+                    if i <= 2 then return end -- cant click the overall skillset
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    if i % 2 ~= 0 then return end
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" and i % 2 == 0 then
+                        -- change chosen skillset and regrab all scores
+                        -- but know that overall does something different
+                        -- this many parents should lead to the t of this .lua
+                        self:GetParent():GetParent():GetParent():GetParent():playcommand("UpdateScores", {index = i/2})
+                        self:GetParent():GetParent():GetParent():GetParent():playcommand("UpdateSelectedIndex", {index = i/2})
+                        self:GetParent():GetParent():GetParent():GetParent():playcommand("UpdateList")
+                        self:diffusealpha(1)
+                    end
+                end,
             }
         end
 
@@ -1089,12 +1112,14 @@ local function createList()
                     for i = 1, skillsetTextCount do
                         local c = self:GetChild("RightTextSkillsets_"..i)
                         c:finishtweening()
+                        c:z(5)
                         c:smooth(textListAnimationSeconds * i)
                         c:diffusealpha(1)
                     end
                     for i = 1, statTextCount do
                         local c = self:GetChild("RightTextStats_"..i)
                         c:finishtweening()
+                        c:z(-5)
                         c:smooth(textListAnimationSeconds)
                         c:diffusealpha(0)
                     end
@@ -1103,12 +1128,14 @@ local function createList()
                     for i = 1, skillsetTextCount do
                         local c = self:GetChild("RightTextSkillsets_"..i)
                         c:finishtweening()
+                        c:z(-5)
                         c:smooth(textListAnimationSeconds)
                         c:diffusealpha(0)
                     end
                     for i = 1, statTextCount do
                         local c = self:GetChild("RightTextStats_"..i)
                         c:finishtweening()
+                        c:z(5)
                         c:smooth(textListAnimationSeconds * i)
                         c:diffusealpha(1)
                     end
