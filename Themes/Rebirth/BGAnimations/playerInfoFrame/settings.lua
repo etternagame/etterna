@@ -3390,12 +3390,14 @@ local function rightFrame()
                 Name = "Appearance",
                 Type = "MultiChoice",
                 Explanation = "Hidden - Notes disappear before receptor. Sudden - Notes appear later than usual. Stealth - Invisible notes. Blink - Notes flash.",
+                AssociatedOptions = {
+                    "Hidden Offset",
+                    "Sudden Offset",
+                },
                 Choices = {
                     -- multiple choices allowed
                     floatSettingChoice("Hidden", "Hidden", 1, 0),
-                    floatSettingChoice("HiddenOffset", "HiddenOffset", 1, 0),
                     floatSettingChoice("Sudden", "Sudden", 1, 0),
-                    floatSettingChoice("SuddenOffset", "SuddenOffset", 1, 0),
                     floatSettingChoice("Stealth", "Stealth", 1, 0),
                     floatSettingChoice("Blink", "Blink", 1, 0)
                 },
@@ -3403,18 +3405,105 @@ local function rightFrame()
                     local po = getPlayerOptions()
                     local o = {}
                     if po:Hidden() ~= 0 then o[1] = true end
-                    if po:HiddenOffset() ~= 0 then o[2] = true end
-                    if po:Sudden() ~= 0 then o[3] = true end
-                    if po:SuddenOffset() ~= 0 then o[4] = true end
-                    if po:Stealth() ~= 0 then o[5] = true end
-                    if po:Blink() ~= 0 then o[6] = true end
+                    if po:Sudden() ~= 0 then o[2] = true end
+                    if po:Stealth() ~= 0 then o[3] = true end
+                    if po:Blink() ~= 0 then o[4] = true end
                     return o
+                end,
+            },
+            {
+                Name = "Hidden Offset",
+                Type = "SingleChoiceModifier",
+                Explanation = "Offset the Hidden position. Hidden hides notes just before they reach the receptors.",
+                AssociatedOptions = {
+                    "Appearance",
+                },
+                Directions = {
+                    Left = function(multiplier)
+                        local po = getPlayerOptions()
+                        local increment = -0.01
+                        if multiplier then increment = -0.05 end
+                        local v = wrapulo(po:HiddenOffset() * 100, increment * 100, -200, 200) / 100
+                        if v ~= 0 then
+                            setPlayerOptionsModValueAllLevels("Hidden", 1)
+                            setPlayerOptionsModValueAllLevels("HiddenOffset", notShit.round(v, 2))
+                        else
+                            setPlayerOptionsModValueAllLevels("HiddenOffset", 0)
+                        end
+                    end,
+                    Right = function(multiplier)
+                        local po = getPlayerOptions()
+                        local increment = 0.01
+                        if multiplier then increment = 0.05 end
+                        local v = wrapulo(po:HiddenOffset() * 100, increment * 100, -200, 200) / 100
+                        if v ~= 0 then
+                            setPlayerOptionsModValueAllLevels("Hidden", 1)
+                            setPlayerOptionsModValueAllLevels("HiddenOffset", notShit.round(v, 2))
+                        else
+                            setPlayerOptionsModValueAllLevels("HiddenOffset", 0)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local hv = po:Hidden()
+                    if hv == 0 then
+                        setPlayerOptionsModValueAllLevels("HiddenOffset", 0)
+                    end
+                    local v = po:HiddenOffset()
+                    return notShit.round(v * 100, 0) .. "%"
+                end,
+            },
+            {
+                Name = "Sudden Offset",
+                Type = "SingleChoiceModifier",
+                Explanation = "Offset the Sudden position. Sudden hides notes until they pass a certain distance across the screen.",
+                AssociatedOptions = {
+                    "Appearance",
+                },
+                Directions = {
+                    Left = function(multiplier)
+                        local po = getPlayerOptions()
+                        local increment = -0.01
+                        if multiplier then increment = -0.05 end
+                        local v = wrapulo(po:SuddenOffset() * 100, increment * 100, -200, 200) / 100
+                        if v ~= 0 then
+                            setPlayerOptionsModValueAllLevels("Sudden", 1)
+                            setPlayerOptionsModValueAllLevels("SuddenOffset", notShit.round(v, 2))
+                        else
+                            setPlayerOptionsModValueAllLevels("SuddenOffset", 0)
+                        end
+                    end,
+                    Right = function(multiplier)
+                        local po = getPlayerOptions()
+                        local increment = 0.01
+                        if multiplier then increment = 0.05 end
+                        local v = wrapulo(po:SuddenOffset() * 100, increment * 100, -200, 200) / 100
+                        if v ~= 0 then
+                            setPlayerOptionsModValueAllLevels("Sudden", 1)
+                            setPlayerOptionsModValueAllLevels("SuddenOffset", notShit.round(v, 2))
+                        else
+                            setPlayerOptionsModValueAllLevels("SuddenOffset", 0)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    local sv = po:Sudden()
+                    if sv == 0 then
+                        setPlayerOptionsModValueAllLevels("SuddenOffset", 0)
+                    end
+                    local v = po:SuddenOffset()
+                    return notShit.round(v * 100, 0) .. "%"
                 end,
             },
             {
                 Name = "Perspective",
                 Type = "SingleChoice",
                 Explanation = "Controls tilt/skew of the NoteField.",
+                AssociatedOptions = {
+                    "Perspective Intensity",
+                },
                 Choices = {
                     -- the numbers in these defs are like the percentages you would put in metrics instead
                     -- 1 is 100%
@@ -3466,6 +3555,72 @@ local function rightFrame()
                     elseif po:Distant() ~= nil then return 5
                     end
                     return o
+                end,
+            },
+            {
+                Name = "Perspective Intensity",
+                Type = "SingleChoiceModifier",
+                Explanation = "Controls the intensity of the tilt/skew of the NoteField.",
+                Directions = {
+                    Left = function(multiplier)
+                        local po = getPlayerOptions()
+                        local increment = -0.01
+                        if multiplier then increment = -0.05 end
+                        local vs = {
+                            "Incoming",
+                            "Space",
+                            "Hallway",
+                            "Distant",
+                        }
+                        local activeMod = "Overhead"
+                        for _,v in ipairs(vs) do
+                            if po[v](po) ~= nil then activeMod = v break end
+                        end
+                        if activeMod ~= "Overhead" then
+                            local v = wrapulo(po[activeMod](po) * 100, increment * 100, 1, 200) / 100
+                            setPlayerOptionsModValueAllLevels(activeMod, notShit.round(v, 2))
+                        else
+                            -- do nothing. overhead cannot be changed from 100%
+                        end
+                    end,
+                    Right = function(multiplier)
+                        local po = getPlayerOptions()
+                        local increment = 0.01
+                        if multiplier then increment = 0.05 end
+                        local vs = {
+                            "Incoming",
+                            "Space",
+                            "Hallway",
+                            "Distant",
+                        }
+                        local activeMod = "Overhead"
+                        for _,v in ipairs(vs) do
+                            if po[v](po) ~= nil then activeMod = v break end
+                        end
+                        if activeMod ~= "Overhead" then
+                            local v = wrapulo(po[activeMod](po) * 100, increment * 100, 1, 200) / 100
+                            setPlayerOptionsModValueAllLevels(activeMod, notShit.round(v, 2))
+                        else
+                            -- do nothing. overhead cannot be changed from 100%
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    if po:Overhead() then
+                        return "--"
+                    end
+                    local vs = {
+                        "Incoming",
+                        "Space",
+                        "Hallway",
+                        "Distant",
+                    }
+                    for _,v in ipairs(vs) do
+                        local vv = po[v](po)
+                        if vv ~= nil then return notShit.round(vv * 100, 0) .. "%" end
+                    end
+                    return "???"
                 end,
             },
             {
@@ -5485,6 +5640,7 @@ local function rightFrame()
 
                                     -- update cursor sizing and stuff
                                     -- (i know without testing it that this will break if the associated element is a MultiChoice. please dont do that thanks)
+                                    -- retrospective comment: i tested this and it does work DONT KNOW WHY
                                     local cursorRow = getRowForCursorByCurrentPosition()
                                     if cursorRow ~= nil and cursorRow:GetName() == row:GetName() then
                                         setCursorPositionByCurrentConditions()
@@ -6437,6 +6593,7 @@ local function rightFrame()
                                             currentChoiceSelection = optionDef.ChoiceIndexGetter()
                                         end
                                         broadcastOptionUpdate(optionDef, choice)
+                                        updateAssociatedElements(optionDef)
                                         self:playcommand("DrawChoice")
                                     end
                                 end
