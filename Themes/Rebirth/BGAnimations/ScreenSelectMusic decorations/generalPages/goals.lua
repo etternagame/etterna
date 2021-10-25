@@ -641,7 +641,7 @@ local function goalList()
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if goal == nil then return end
-                    if goal:IsAchieved() or goal:IsVacuous() then return end -- completed goals cant be updated
+                    if goal:IsAchieved() then return end -- completed goals cant be updated
                     if params.update == "OnMouseDown" then
                         if params.event == "DeviceButton_left mouse button" then
                             goal:SetRate(goal:GetRate() + 0.05)
@@ -731,7 +731,7 @@ local function goalList()
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if goal == nil then return end
-                    if goal:IsAchieved() or goal:IsVacuous() then return end -- completed goals cant be updated
+                    if goal:IsAchieved() then return end -- completed goals cant be updated
                     if params.update == "OnMouseDown" then
                         if params.event == "DeviceButton_left mouse button" then
                             goal:SetPercent(goal:GetPercent() + 0.01)
