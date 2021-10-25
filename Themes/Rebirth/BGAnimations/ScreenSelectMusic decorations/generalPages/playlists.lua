@@ -528,9 +528,9 @@ local function playlistList()
                         if self:IsInvisible() then return end
                         if params.update == "OnMouseDown" then
                             if params.event == "DeviceButton_left mouse button" then
-                                chart:ChangeRate(0.1)
+                                chart:ChangeRate(0.05)
                             else
-                                chart:ChangeRate(-0.1)
+                                chart:ChangeRate(-0.05)
                             end
                             self:GetParent():GetParent():playcommand("UpdateDetailDisplay") 
                         end
