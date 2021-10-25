@@ -1157,10 +1157,12 @@ local function createList()
             if localscore ~= nil then
                 self:finishtweening()
                 self:smooth(localPageAnimationSeconds)
+                self:z(2)
                 self:diffusealpha(1)
             else
                 self:finishtweening()
                 self:smooth(localPageAnimationSeconds)
+                self:z(-2)
                 self:diffusealpha(0)
             end
         end,
