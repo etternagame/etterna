@@ -511,6 +511,14 @@ local function playlistList()
                             local txt = self:GetChild("Text")
                             local bg = self:GetChild("BG")
 
+                            -- cant change rate in the favorites playlist
+                            if playlist:GetName() == "Favorites" then
+                                self:diffusealpha(0)
+                                return
+                            else
+                                self:diffusealpha(1)
+                            end
+
                             local rate = chart:GetRate()
                             local ratestring = string.format("%.2f", rate):gsub("%.?0+$", "") .. "x"
                             txt:settext(ratestring)
@@ -709,7 +717,8 @@ local function playlistList()
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
-                    if params.update == "OnMouseDown" then
+                    -- cant rename the favorites playlist
+                    if params.update == "OnMouseDown" and playlist:GetName() ~= "Favorites" then
                         if params.event == "DeviceButton_left mouse button" then
                             renamePlaylistDialogue(playlist:GetName())
                             self:diffusealpha(1)
@@ -718,7 +727,7 @@ local function playlistList()
                 end,
                 RolloverUpdateCommand = function(self, params)
                     if self:IsInvisible() then return end
-                    if params.update == "in" then
+                    if params.update == "in" and playlist:GetName() ~= "Favorites" then
                         self:diffusealpha(buttonHoverAlpha)
                     else
                         self:diffusealpha(1)
