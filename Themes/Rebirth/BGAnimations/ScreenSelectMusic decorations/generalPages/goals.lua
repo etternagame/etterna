@@ -644,10 +644,10 @@ local function goalList()
                     if goal:IsAchieved() or goal:IsVacuous() then return end -- completed goals cant be updated
                     if params.update == "OnMouseDown" then
                         if params.event == "DeviceButton_left mouse button" then
-                            goal:SetRate(goal:GetRate() + 0.1)
+                            goal:SetRate(goal:GetRate() + 0.05)
                             self:GetParent():GetParent():playcommand("UpdateGoalList")
                         elseif params.event == "DeviceButton_right mouse button" then
-                            goal:SetRate(goal:GetRate() - 0.1)
+                            goal:SetRate(goal:GetRate() - 0.05)
                             self:GetParent():GetParent():playcommand("UpdateGoalList")
                         end
                     end
