@@ -783,7 +783,7 @@ local function wifePercentDisplay()
 
     -- """constants"""
     local nothoverdecimals = 2 -- when not hovering
-    local hoverdecimals = 5 -- when hovering
+    local hoverdecimals = 4 -- when hovering
     local infostr = "" -- example: W3 J4
 
     return UIElements.TextToolTip(1, 1, "Common Large") .. {
@@ -824,7 +824,7 @@ local function wifePercentDisplay()
                 end
                 -- scores over 99% should show more decimals
                 if percent > 99 or isOver(self) then
-                    decimals = 5
+                    decimals = 4
                 end
                 local pg = notShit.floor(percent, decimals)
                 local grade = GetGradeFromPercent(pg / 100)
