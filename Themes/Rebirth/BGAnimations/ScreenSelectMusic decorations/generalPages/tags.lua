@@ -377,6 +377,23 @@ local function tagList()
                     )
                 end,
             },
+            {   -- Button to apply tag filter changes to music wheel
+                Name = "apply",
+                Type = "Tap",
+                Display = {"Apply"},
+                Condition = function() return true end,
+                IndexGetter = function() return 1 end,
+                TapFunction = function()
+                    -- really all this does is trigger a search
+                    -- since the filter is always set to what you visually see, you just have to reload the wheel
+                    local scr = SCREENMAN:GetTopScreen()
+                    local w = scr:GetChild("WheelFile")
+                    if w ~= nil then
+                        w:sleep(0.01):queuecommand("UpdateFilters")
+                    end
+                    -- but we dont change the input context to keep it from being too jarring
+                end,
+            },
         }
 
         local function createChoice(i)
