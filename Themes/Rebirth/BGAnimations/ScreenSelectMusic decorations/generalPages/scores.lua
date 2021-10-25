@@ -1002,7 +1002,8 @@ local function createList()
     for i = 1, itemCount do
         t[#t+1] = createItem(i)
     end
-    local extrasizing = 60 -- extra size added to the plot for padding stuff
+    local extrasizing = 75 / 1920 * SCREEN_WIDTH -- extra size added to the plot for padding stuff
+    local graphbgalpha = 0.9
     t[#t+1] = Def.ActorFrame {
         Name = "OnlineOffsetPlot",
         InitCommand = function(self)
@@ -1010,7 +1011,8 @@ local function createList()
             self:z(-200)
         end,
         DisplayOnlineOffsetsCommand = function(self, params)
-            local zoombias = 1.2
+            -- very very very roughly the remaining width of the screen opposite of the scores tab, but lowered to 95%
+            local zoombias = (1 + (actuals.MainGraphicWidth + extrasizing) / (SCREEN_WIDTH - actuals.ItemWidth)) * 0.95
             self:finishtweening()
             self:diffusealpha(0)
             self:x(actuals.MainGraphicWidth)
@@ -1020,7 +1022,7 @@ local function createList()
             self:z(-200)
             self:decelerate(0.3)
             self:diffusealpha(1)
-            self:xy((-actuals.MainGraphicWidth - 30) * zoombias, 0)
+            self:xy((-actuals.MainGraphicWidth - extrasizing/2) * zoombias, 0)
             self:z(10)
             self:zoom(zoombias)
             self:zoomy(zoombias)
@@ -1038,29 +1040,29 @@ local function createList()
             Name = "BG",
             InitCommand = function(self)
                 self:valign(0):halign(0)
-                self:xy(-extrasizing / 2, -extrasizing / 2)
-                self:zoomto(actuals.MainGraphicWidth + extrasizing, actuals.OffsetPlotHeight + extrasizing)
-                self:diffusealpha(0.8)
+                self:xy(-extrasizing / 2, -extrasizing)
+                self:zoomto(actuals.MainGraphicWidth + extrasizing, actuals.OffsetPlotHeight + extrasizing * 2)
+                self:diffusealpha(graphbgalpha)
                 registerActorToColorConfigElement(self, "main", "SecondaryBackground")
             end,
             MouseDownCommand = function(self)
                 if self:IsInvisible() then return end
-                self:diffusealpha(0.8)
+                self:diffusealpha(graphbgalpha)
                 self:GetParent():playcommand("HidePlot")
             end,
             MouseOverCommand = function(self)
                 if self:IsInvisible() then return end
-                self:diffusealpha(buttonHoverAlpha * 0.8)
+                self:diffusealpha(buttonHoverAlpha * graphbgalpha)
             end,
             MouseOutCommand = function(self)
                 if self:IsInvisible() then return end
-                self:diffusealpha(0.8)
+                self:diffusealpha(graphbgalpha)
             end,
         },
         LoadFont("Common Normal") .. {
             Name = "TopText",
             InitCommand = function(self)
-                self:xy(actuals.MainGraphicWidth / 2, -extrasizing / 4)
+                self:xy(actuals.MainGraphicWidth / 2, -extrasizing / 2)
                 self:zoom(onlinePlotTextSize)
                 self:maxwidth(((actuals.MainGraphicWidth)) / onlinePlotTextSize)
                 registerActorToColorConfigElement(self, "main", "PrimaryText")
@@ -1078,7 +1080,7 @@ local function createList()
         LoadFont("Common Normal") .. {
             Name = "BottomText",
             InitCommand = function(self)
-                self:xy(actuals.MainGraphicWidth / 2, actuals.OffsetPlotHeight + extrasizing / 4)
+                self:xy(actuals.MainGraphicWidth / 2, actuals.OffsetPlotHeight + extrasizing / 2)
                 self:zoom(onlinePlotTextSize)
                 self:maxwidth(((actuals.MainGraphicWidth)) / onlinePlotTextSize)
                 self:settext("Click this box or do anything to close")
