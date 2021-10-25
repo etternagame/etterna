@@ -38,7 +38,7 @@ local ratios = {
     ItemRateWidth = 48 / 1920, -- rough estimaion, lines up with the song name width
     ItemPercentRightAlignLeftGap = 691 / 1920, -- left edge to right edge of percent
     ItemPercentWidth = 115 / 1920, -- slightly less than the distance to the rate
-    ItemDiffRightAlignLeftGap = 743 / 1920, -- left edge to right edge of diff
+    ItemDiffRightAlignLeftGap = 748 / 1920, -- left edge to right edge of diff
     ItemDiffWidth = 50 / 1920, -- slightly less than the distance to the percent
 
     ItemListUpperGap = 87 / 1080, -- top of frame to top of first item
