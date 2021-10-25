@@ -1443,20 +1443,27 @@ local function createList()
                     txt:settext(choiceNames[i][nameIndex])
                     registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(actuals.Width / #choiceNames, actuals.UpperLipHeight)
-                    if choiceOnlineOnly[i] and isLocal or not DLMAN:IsLoggedIn() then
-                        self:diffusealpha(0)
-                    else
-                        self:diffusealpha(1)
+
+                    self.visibleOnlineCheck = function(self)
+                        if choiceOnlineOnly[i] and isLocal or not DLMAN:IsLoggedIn() then
+                            self:diffusealpha(0)
+                            return false
+                        else
+                            self:diffusealpha(1)
+                            return true
+                        end
+                    end
+                    self.hoverAlphaCheck = function(self)
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
                     end
                 end,
                 UpdateToggleStatusCommand = function(self)
                     -- for online only elements, hide if not online
-                    if choiceOnlineOnly[i] and isLocal or not DLMAN:IsLoggedIn() then
-                        self:diffusealpha(0)
-                        return
-                    else
-                        self:diffusealpha(1)
-                    end
+                    if not self:visibleOnlineCheck() then return end
 
                     -- have to separate things because order of execution gets wacky
                     self:playcommand("UpdateText")
@@ -1473,15 +1480,12 @@ local function createList()
                             choiceFunctions[i](self)
                         end
                         self:playcommand("UpdateText")
+                        self:hoverAlphaCheck()
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
                     if self:IsInvisible() then return end
-                    if params.update == "in" then
-                        self:diffusealpha(buttonHoverAlpha)
-                    else
-                        self:diffusealpha(1)
-                    end
+                    self:hoverAlphaCheck()
                 end
             }
         end
