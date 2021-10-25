@@ -705,8 +705,21 @@ local function createList()
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
-                    localrateIndex = index
-                    localscoreIndex = 1
+                    if localrateIndex == index then
+                        local inc = 0
+                        if params.event == "DeviceButton_left mouse button" then
+                            inc = 1
+                        elseif params.event == "DeviceButton_right mouse button" then
+                            inc = -1
+                        end
+                        local max = #localrtTable[localrates[localrateIndex]]
+                        localscoreIndex = localscoreIndex + inc
+                        if localscoreIndex > max then localscoreIndex = 1 end
+                        if localscoreIndex < 1 then localscoreIndex = max end
+                    else
+                        localrateIndex = index
+                        localscoreIndex = 1
+                    end
                     -- [this] [rateframe] [localpage] [scorelist]
                     self:GetParent():GetParent():GetParent():playcommand("UpdateList")
                 end,
@@ -1364,7 +1377,9 @@ local function createList()
                     if localrtTable ~= nil and localrates ~= nil and #localrates > 0 then
                         local max = #localrtTable[localrates[localrateIndex]]
                         local beforeindex = localscoreIndex
-                        localscoreIndex = clamp(localscoreIndex+dir, 1, max)
+                        localscoreIndex = localscoreIndex + dir
+                        if localscoreIndex > max then localscoreIndex = 1 end
+                        if localscoreIndex < 1 then localscoreIndex = max end
                         if localscoreIndex ~= beforeindex then
                             self:GetParent():playcommand("UpdateList")
                         end
