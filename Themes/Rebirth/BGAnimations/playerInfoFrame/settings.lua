@@ -2976,7 +2976,7 @@ local function rightFrame()
     --
     -- -----
 
-    local optionRowCount = 17 -- weird behavior if you mess with this and have too many options in a category
+    local optionRowCount = 18 -- weird behavior if you mess with this and have too many options in a category
     local maxChoicesVisibleMultiChoice = 4 -- max number of choices visible in a MultiChoice OptionRow
 
     -- the names and order of the option pages
