@@ -335,7 +335,11 @@ local function tagList()
                 end,
                 Condition = function() return #tagNameList > 0 end,
                 TapFunction = function()
-                    tagListMode = "Delete"
+                    if tagListMode == "Delete" then
+                        tagListMode = "Assign"
+                    else
+                        tagListMode = "Delete"
+                    end
                 end,
             },
             {   -- Button to create tags
