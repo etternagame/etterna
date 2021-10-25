@@ -46,6 +46,9 @@ local t = Def.ActorFrame {
 -- this can be nil if no scores exist in the profile
 local mostRecentScore = SCOREMAN:GetMostRecentScore()
 
+-- make text buttons slightly taller
+local textButtonHeightFudgeScalarMultiplier = 1.6
+
 local ratios = {
     UpperLipHeight = 43 / 1080,
     LipSeparatorThickness = 2 / 1080,
@@ -476,45 +479,60 @@ local function createList()
                     end
                 end
             },
-            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "Rate",
                 InitCommand = function(self)
-                    self:halign(1):valign(1)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(1):valign(1)
+                    bg:halign(1):valign(1)
                     self:xy(actuals.LeftCenteredAlignmentLineLeftGap - actuals.LeftCenteredAlignmentDistance, actuals.ItemHeight)
-                    self:zoom(rateTextSize)
-                    self:maxwidth(actuals.SSRRateWidth / rateTextSize - textzoomFudge)
-                    registerActorToColorConfigElement(self, "main", "SecondaryText")
+                    txt:zoom(rateTextSize)
+                    txt:maxwidth(actuals.SSRRateWidth / rateTextSize - textzoomFudge)
+                    bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                    registerActorToColorConfigElement(txt, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
                         local rt = score:GetMusicRate()
-                        self:settext(getRateString(rt))
+                        txt:settext(getRateString(rt))
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end
                 end,
-                MouseOverCommand = function(self)
-                    self:diffusealpha(buttonHoverAlpha)
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
                 end,
-                MouseOutCommand = function(self)
-                    self:diffusealpha(1)
-                end,
-                MouseDownCommand = function(self, params)
+                ClickCommand = function(self, params)
+                    if params.update ~= "OnMouseDown" then return end
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         setMusicRate(score:GetMusicRate())
                     end
                 end,
             },
-            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "PlayerName",
                 InitCommand = function(self)
-                    self:halign(0):valign(0)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0):valign(0)
+                    bg:halign(0):valign(0)
                     self:x(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance)
-                    self:zoom(nameTextSize)
-                    self:maxwidth(actuals.NameJudgmentWidth / nameTextSize - textzoomFudge)
-                    registerActorToColorConfigElement(self, "main", "PrimaryText")
+                    txt:zoom(nameTextSize)
+                    txt:maxwidth(actuals.NameJudgmentWidth / nameTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
                         local n = score:GetName()
                         if n == "" then
                             n = "<No Name>"
@@ -525,16 +543,20 @@ local function createList()
                                 n = "You"
                             end
                         end
-                        self:settext(n)
+                        txt:settext(n)
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end
                 end,
-                MouseOverCommand = function(self)
-                    self:diffusealpha(buttonHoverAlpha)
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
                 end,
-                MouseOutCommand = function(self)
-                    self:diffusealpha(1)
-                end,
-                MouseDownCommand = function(self, params)
+                ClickCommand = function(self, params)
+                    if params.update ~= "OnMouseDown" then return end
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
@@ -544,17 +566,23 @@ local function createList()
                     end
                 end,
             },
-            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "JudgmentsAndCombo",
                 InitCommand = function(self)
-                    self:halign(0):valign(1)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0):valign(1)
+                    bg:halign(0):valign(1)
                     self:xy(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance, actuals.ItemHeight)
-                    self:zoom(judgmentTextSize)
-                    self:maxwidth(actuals.NameJudgmentWidth / judgmentTextSize - textzoomFudge)
-                    registerActorToColorConfigElement(self, "main", "SecondaryText")
+                    txt:zoom(judgmentTextSize)
+                    txt:maxwidth(actuals.NameJudgmentWidth / judgmentTextSize - textzoomFudge)
+                    registerActorToColorConfigElement(txt, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
+
                         -- a HighScore method does exist to produce this but we want to be able to modify it from the theme
                         local jgMaStr = tostring(score:GetTapNoteScore("TapNoteScore_W1"))
                         local jgPStr = tostring(score:GetTapNoteScore("TapNoteScore_W2"))
@@ -563,16 +591,20 @@ local function createList()
                         local jgBStr = tostring(score:GetTapNoteScore("TapNoteScore_W5"))
                         local jgMiStr = tostring(score:GetTapNoteScore("TapNoteScore_Miss"))
                         local comboStr = tostring(score:GetMaxCombo())
-                        self:settextf("%s  |  %s  |  %s  |  %s  |  %s  |  %s  x%s", jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr, comboStr)
+                        txt:settextf("%s  |  %s  |  %s  |  %s  |  %s  |  %s  x%s", jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr, comboStr)
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end
                 end,
-                MouseOverCommand = function(self)
-                    self:diffusealpha(buttonHoverAlpha)
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "in" then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
                 end,
-                MouseOutCommand = function(self)
-                    self:diffusealpha(1)
-                end,
-                MouseDownCommand = function(self, params)
+                ClickCommand = function(self, params)
+                    if params.update ~= "OnMouseDown" then return end
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
@@ -582,41 +614,49 @@ local function createList()
                     end
                 end,
             },
-            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+            UIElements.TextButton(1, 1, "Common Normal") .. {
                 Name = "WifePercent",
                 InitCommand = function(self)
-                    self:halign(1):valign(0)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(1):valign(0)
+                    bg:halign(1):valign(0)
                     self:x(actuals.ItemWidth - actuals.RightInfoRightAlignRightGap)
-                    self:zoom(wifePercentTextSize)
+                    txt:zoom(wifePercentTextSize)
                     -- 5/6 the space allowed vs the date
                     -- the icons take up the other half probably
-                    self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / 6 * 4 / wifePercentTextSize)
+                    txt:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / 6 * 4 / wifePercentTextSize)
                 end,
                 ColorConfigUpdatedMessageCommand = function(self)
                     self:playcommand("SetScore")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
+                        local txt = self:GetChild("Text")
+                        local bg = self:GetChild("BG")
                         local ws = score:GetWifeScore()
                         local wifeStr = checkWifeStr(ws)
                         local grade = GetGradeFromPercent(score:GetWifeScore())
-                        self:settext(wifeStr)
-                        self:diffuse(colorByGrade(grade))
+                        txt:settext(wifeStr)
+                        txt:diffuse(colorByGrade(grade))
+                        bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     end
                 end,
-                MouseOverCommand = function(self)
+                RolloverUpdateCommand = function(self, params)
                     if self:IsInvisible() then return end
-                    if score ~= nil and score:HasReplayData() then
-                        TOOLTIP:SetText("Show Offset Plot")
-                        TOOLTIP:Show()
-                        self:diffusealpha(buttonHoverAlpha)
+                    if params.update == "in" then
+                        if score ~= nil and score:HasReplayData() then
+                            TOOLTIP:SetText("Show Offset Plot")
+                            TOOLTIP:Show()
+                            self:diffusealpha(buttonHoverAlpha)
+                        end
+                    else
+                        self:diffusealpha(1)
+                        TOOLTIP:Hide()
                     end
                 end,
-                MouseOutCommand = function(self)
-                    self:diffusealpha(1)
-                    TOOLTIP:Hide()
-                end,
-                MouseDownCommand = function(self, params)
+                ClickCommand = function(self, params)
+                    if params.update ~= "OnMouseDown" then return end
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
@@ -1542,36 +1582,47 @@ local function createList()
         end
     }
 
-    t[#t+1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
+    -- the sizing on this button is slightly too big but hey it can never get too big
+    t[#t+1] = UIElements.TextButton(1, 1, "Common Normal") .. {
         Name = "PageText",
         InitCommand = function(self)
-            self:halign(1):valign(0)
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
+            txt:halign(1):valign(0)
+            bg:halign(1):valign(0)
             self:xy(actuals.Width - actuals.PageTextRightGap, actuals.PageTextUpperGap)
-            self:zoom(pageTextSize)
-            self:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
-            registerActorToColorConfigElement(self, "main", "PrimaryText")
+            txt:zoom(pageTextSize)
+            txt:maxwidth(actuals.Width / pageTextSize - textzoomFudge)
+            bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+            registerActorToColorConfigElement(txt, "main", "PrimaryText")
         end,
         UpdateListCommand = function(self)
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
+
             -- nil scores = no scores
             if scores == nil then
-                self:settext("0-0/0")
+                txt:settext("0-0/0")
+                bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 return
             end
 
             if isLocal then
                 if localrtTable ~= nil and localrates ~= nil and #localrates > 0 then
                     local mx = #localrtTable[localrates[localrateIndex]]
-                    self:settextf("%d/%d", localscoreIndex, mx)
+                    txt:settextf("%d/%d", localscoreIndex, mx)
                 else
-                    self:settext("")
+                    txt:settext("")
                 end
             else
                 local lb = clamp((page-1) * (itemCount) + 1, 0, #scores)
                 local ub = clamp(page * itemCount, 0, #scores)
-                self:settextf("%d-%d/%d", lb, ub, #scores)
+                txt:settextf("%d-%d/%d", lb, ub, #scores)
             end
+            bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
         end,
-        MouseDownCommand = function(self, params)
+        ClickCommand = function(self, params)
+            if params.update ~= "OnMouseDown" then return end
             local dir = 0
             if params.event == "DeviceButton_left mouse button" then
                 dir = 1
@@ -1597,11 +1648,12 @@ local function createList()
                 end
             end
         end,
-        MouseOverCommand = function(self)
-            self:diffusealpha(buttonHoverAlpha)
-        end,
-        MouseOutCommand = function(self)
-            self:diffusealpha(1)
+        RolloverUpdateCommand = function(self, params)
+            if params.update == "in" then
+                self:diffusealpha(buttonHoverAlpha)
+            else
+                self:diffusealpha(1)
+            end
         end,
     }
 
