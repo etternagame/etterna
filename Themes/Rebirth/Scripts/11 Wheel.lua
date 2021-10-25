@@ -888,7 +888,9 @@ function MusicWheel:new(params)
                     maxIndex = #w.items,
                 })
                 w:move(0)
-                w:updateGlobalsFromCurrentItem()
+                -- dont update the steps in updateGlobalsFromCurrentItem
+                -- the steps was set in w:findSong
+                w:updateGlobalsFromCurrentItem(true)
                 w:updateMusicFromCurrentItem()
                 MESSAGEMAN:Broadcast("WheelSettled", {
                     song = GAMESTATE:GetCurrentSong(),
