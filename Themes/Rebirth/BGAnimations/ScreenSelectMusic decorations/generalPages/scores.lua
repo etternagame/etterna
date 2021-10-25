@@ -64,7 +64,7 @@ local ratios = {
     LeftCenteredAlignmentLineLeftGap = 126 / 1920, -- from left edge of frame to half way between SSR and player name
     LeftCenteredAlignmentDistance = 8 / 1920, -- the distance to push each alignment away from the line above
     RightInfoLeftAlignLeftGap = 566 / 1920, -- left edge of frame to left edge of text/icons on right side
-    RightInfoRightAlignRightGap = 33 / 1920, -- right edge of frame to right edge of text
+    RightInfoRightAlignRightGap = 28 / 1920, -- right edge of frame to right edge of text
 
     SSRRateWidth = 70 / 1920, -- rough measurement of the area needed for SSR (rate should be smaller but will be restricted the same)
     NameJudgmentWidth = 430 / 1920, -- same but for name and judgments
