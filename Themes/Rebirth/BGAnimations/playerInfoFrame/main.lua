@@ -564,13 +564,36 @@ t[#t+1] = Def.ActorFrame {
         self:xy(SCREEN_WIDTH, actuals.IconUpperGap)
     end,
     BeginCommand = function(self)
-        local snm = SCREENMAN:GetTopScreen():GetName()
+        local tscr = SCREENMAN:GetTopScreen()
+        local snm = tscr:GetName()
         local anm = self:GetName()
         -- this keeps track of whether or not the user is allowed to use the keyboard to change tabs
         CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
 
+        -- timing out the button combo to go into asset settings
+        local inputqueue = {}
+        local comboTimeout = nil
+        local comboTimeoutSeconds = 1
+
+        local function clearTimeout()
+            if comboTimeout ~= nil then
+                tscr:clearInterval(comboTimeout)
+                comboTimeout = nil
+            end
+        end
+
+        local function resetTimeout()
+            clearTimeout()
+            -- we use setInterval because setTimeout doesnt do what is needed
+            comboTimeout = tscr:setInterval(function()
+                inputqueue = {}
+                clearTimeout()
+            end,
+            comboTimeoutSeconds)
+        end
+
         -- enable the possibility to press the keyboard to switch tabs
-        SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+        tscr:AddInputCallback(function(event)
             if event.type ~= "InputEventType_FirstPress" then return end
             -- this list of contexts are meant to be contexts of the PlayerInfo Frame
             -- full numeric input is allowed on these tabs and you must hold CTRL+Number to get out of them
@@ -586,8 +609,22 @@ t[#t+1] = Def.ActorFrame {
                 if CONTEXTMAN:CheckContextSet(snm, ctx) then ctxBypasses = true break end
             end
 
-            local ctrl = INPUTFILTER:IsControlPressed()
+            resetTimeout()
+            inputqueue[#inputqueue+1] = event.GameButton
+            if #inputqueue > 2 then
+                inputqueue[1] = inputqueue[2]
+                inputqueue[2] = inputqueue[3]
+                inputqueue[3] = nil
+            end
+            -- / / opens the sort menu
+            if inputqueue[1] == "Select" and inputqueue[2] == "Select" then
+                -- open asset settings
+                MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "General"})
+                inputqueue = {}
+                return
+            end
 
+            local ctrl = INPUTFILTER:IsControlPressed()
             -- login logout shortcut
             if ctrl and event.DeviceInput.button == "DeviceButton_l" then
                 if not DLMAN:IsLoggedIn() then

@@ -446,12 +446,35 @@ function Wheel:new(params)
     whee.y = params.y
     whee.items = {}
     whee.BeginCommand = function(self)
-        local snm = SCREENMAN:GetTopScreen():GetName()
+        local tscr = SCREENMAN:GetTopScreen()
+        local snm = tscr:GetName()
         local anm = self:GetName()
         CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
         local heldButtons = {}
+
+        -- timing out the button combo to go to the sort mode menu
         local buttonQueue = {}
-        SCREENMAN:GetTopScreen():AddInputCallback(
+        local comboTimeout = nil
+        local comboTimeoutSeconds = 1
+
+        local function clearTimeout()
+            if comboTimeout ~= nil then
+                tscr:clearInterval(comboTimeout)
+                comboTimeout = nil
+            end
+        end
+
+        local function resetTimeout()
+            clearTimeout()
+            -- we use setInterval because setTimeout doesnt do what is needed
+            comboTimeout = tscr:setInterval(function()
+                buttonQueue = {}
+                clearTimeout()
+            end,
+            comboTimeoutSeconds)
+        end
+
+        tscr:AddInputCallback(
             function(event)
                 local gameButton = event.button
                 local key = event.DeviceInput.button
@@ -470,6 +493,7 @@ function Wheel:new(params)
                 if CONTEXTMAN:CheckContextSet(snm, "ColorConfig") then return end
 
                 if event.type == "InputEventType_FirstPress" then
+                    resetTimeout()
                     buttonQueue[#buttonQueue + 1] = gameButton
                     if #buttonQueue > 4 then
                         buttonQueue[1] = buttonQueue[2]
@@ -519,7 +543,7 @@ function Wheel:new(params)
                     if event.type == "InputEventType_FirstPress" then
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                         SCREENMAN:set_input_redirected(PLAYER_1, false)
-                        SCREENMAN:GetTopScreen():Cancel()
+                        tscr:Cancel()
                     end
                 elseif up or down then
                     local direction = up and "up" or "down"
@@ -576,7 +600,7 @@ function Wheel:new(params)
         self:SetUpdateFunctionInterval(0.001)
 
         -- mega hack to make things init 0.1 seconds after real init
-        SCREENMAN:GetTopScreen():setTimeout(
+        tscr:setTimeout(
             function()
                 if params.buildOnInit then
                     whee:rebuildFrames()
