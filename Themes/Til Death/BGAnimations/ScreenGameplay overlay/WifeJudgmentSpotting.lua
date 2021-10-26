@@ -1220,6 +1220,7 @@ pm[#pm + 1] = UIElements.QuadButton(1, 1) .. {
 	Name = "Seek",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+		self:z(2)
 	end,
 	MouseDownCommand = function(self, params)
 		if params.event == "DeviceButton_left mouse button" then
