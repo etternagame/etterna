@@ -14,32 +14,39 @@ local function GetLocalProfiles()
 		local profile = PROFILEMAN:GetLocalProfileFromIndex(p)
 		local ProfileCard = Def.ActorFrame {
 			Name = p,
-			UIElements.QuadButton(1, 1) .. {
+			Def.Quad {
 				InitCommand = function(self)
 					self:y(-3.25):align(0.5,0.5):zoomto(260, 39.5):ztest(true)
 					self:diffusealpha(0)
 				end,
-				MouseDownCommand = function(self, params)
+			},
+			UIElements.TextButton(1, 1, "Common Large") ..  {
+				Name = "PlayerName",
+				InitCommand = function(self)
+					local txt = self:GetChild("Text")
+					local bg = self:GetChild("BG")
+					self:xy(38 / 2, -12)
+					txt:settextf("%s: %.2f", profile:GetDisplayName(), profile:GetPlayerRating())
+					txt:zoom(0.4):ztest(true):maxwidth((260 - 40 - 4) / 0.4)
+					bg:y(-3.25):align(0.5,0.5):zoomto(260, 39.5):zoomto(260, 39.5)
+					self:z((PROFILEMAN:GetNumLocalProfiles() - p))
+				end,
+				ClickCommand = function(self, params)
+					if params.update ~= "OnMouseDown" then return end
 					if params.event == "DeviceButton_left mouse button" then
 						SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, self:GetParent():GetName() + 1)
 						SCREENMAN:GetTopScreen():Finish()
 					end
 				end,
-				MouseOverCommand = function(self)
-					self:GetParent():GetChild("PlayerName"):diffusealpha(0.8)
-					self:GetParent():GetChild("SongsPlayed"):diffusealpha(0.8)
+				RolloverUpdateCommand = function(self, params)
+					if params.update == "in" then
+						self:diffusealpha(0.8)
+						self:GetParent():GetChild("SongsPlayed"):diffusealpha(0.8)
+					else		
+						self:diffusealpha(1)
+						self:GetParent():GetChild("SongsPlayed"):diffusealpha(1)
+					end
 				end,
-				MouseOutCommand = function(self)
-					self:GetParent():GetChild("PlayerName"):diffusealpha(1)
-					self:GetParent():GetChild("SongsPlayed"):diffusealpha(1)
-				end,
-			},
-			LoadFont("Common Large") ..  {
-				Name = "PlayerName",
-				Text = string.format("%s: %.2f", profile:GetDisplayName(), profile:GetPlayerRating()),
-				InitCommand = function(self)
-					self:xy(38 / 2, -12):zoom(0.4):ztest(true):maxwidth((260 - 40 - 4) / 0.4)
-				end
 			},
 			LoadFont("Common Normal") ..  {
 				Name = "SongsPlayed",
@@ -140,6 +147,7 @@ local function LoadPlayerStuff(Player)
 			local focus = scale(math.abs(offset), 0, 2, 1, 0)
 			self:visible(false)
 			self:y(math.floor(offset * 40))
+			self:z(offset)
 		end,
 		children = GetLocalProfiles()
 	}
@@ -298,5 +306,7 @@ t[#t + 1] = LoadFont("Common Large") .. {
 		self:settextf("%s:", translated_info["Title"])
 	end
 }
+
+t[#t + 1] = LoadActor("_cursor")
 
 return t
