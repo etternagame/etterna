@@ -172,7 +172,12 @@ end
 scroller[#scroller + 1] = Def.ActorFrame {
     Name = "ReplayButtons",
     InitCommand = function(self)
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            spacingInc = {5,1},
+            zoomInc = {0.1,0.05},
+        })
     end,
     
     button(1,

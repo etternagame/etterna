@@ -25,7 +25,10 @@ local t = Def.ActorFrame {
     Name = "JudgeCounter",
     InitCommand = function(self)
         self:playcommand("SetUpMovableValues")
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+        })
     end,
     BeginCommand = function(self)
         for _, j in ipairs(jdgT) do

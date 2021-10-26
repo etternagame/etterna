@@ -26,7 +26,11 @@ local t = Def.ActorFrame {
         c = self:GetChildren()
         -- queued to run slightly late
         self:queuecommand("SetUpMovableValues")
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            zoomInc = {0.1,0.05},
+        })
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.JudgmentX, MovableValues.JudgmentY)

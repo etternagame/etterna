@@ -172,7 +172,11 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
                 handleRegionSetting(positionGiven)
             end)
         end
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            sizeInc = {0.1,0.05},
+        })
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)

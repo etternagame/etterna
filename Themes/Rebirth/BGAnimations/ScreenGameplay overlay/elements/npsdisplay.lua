@@ -115,7 +115,11 @@ local function npsDisplay()
         Name = "NPSDisplay",
         InitCommand = function(self)
             self:playcommand("SetUpMovableValues")
-            registerActorToCustomizeGameplayUI(self)
+            registerActorToCustomizeGameplayUI({
+                actor = self,
+                coordInc = {5,1},
+                zoomInc = {0.1,0.05},
+            })
         end,
         SetUpMovableValuesMessageCommand = function(self)
             self:xy(MovableValues.NPSDisplayX, MovableValues.NPSDisplayY)
@@ -173,7 +177,11 @@ local function npsGraph()
         Name = "NPSGraph",
         InitCommand = function(self)
             self:playcommand("SetUpMovableValues")
-            registerActorToCustomizeGameplayUI(self)
+            registerActorToCustomizeGameplayUI({
+                actor = self,
+                coordInc = {5,1},
+                zoomInc = {0.1,0.05},
+            })
         end,
         SetUpMovableValuesMessageCommand = function(self)
             self:xy(MovableValues.NPSGraphX, MovableValues.NPSGraphY)

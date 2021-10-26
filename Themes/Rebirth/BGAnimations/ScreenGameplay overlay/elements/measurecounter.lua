@@ -67,7 +67,11 @@ local t = Def.ActorFrame {
         totalmeasures = #measures
 
         self:playcommand("SetUpMovableValues")
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            zoomInc = {0.1,0.05},
+        })
     end,
     OnCommand = function(self)
         self:visible(false)

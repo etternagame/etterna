@@ -22,7 +22,11 @@ local t = Def.ActorFrame {
         c = self:GetChildren()
         -- queued to execute slightly late
         self:queuecommand("SetUpMovableValues")
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            zoomInc = {0.1,0.05},
+        })
     end,
     OnCommand = function(self)
         if (allowedCustomization) then

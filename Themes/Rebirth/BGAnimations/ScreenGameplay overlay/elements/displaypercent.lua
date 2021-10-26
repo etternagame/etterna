@@ -10,7 +10,11 @@ return Def.ActorFrame {
     Name = "DisplayPercent",
     InitCommand = function(self)
         self:playcommand("SetUpMovableValues")
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            zoomInc = {0.1,0.05},
+        })
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.DisplayPercentX, MovableValues.DisplayPercentY)

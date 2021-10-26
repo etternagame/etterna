@@ -88,7 +88,10 @@ end
 local t = Def.ActorFrame {
     Name = "Cover",
     InitCommand = function(self)
-        registerActorToCustomizeGameplayUI(self, 5)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            zoomInc = {5,1},
+        }, 5)
         self:playcommand("SetUpMovableValues")
     end,
     SetUpMovableValuesMessageCommand = function(self)

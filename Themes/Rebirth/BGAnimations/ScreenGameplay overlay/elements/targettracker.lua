@@ -11,7 +11,11 @@ local t = Def.ActorFrame {
     Name = "TargetTracker",
     InitCommand = function(self)
         self:playcommand("SetUpMovableValues")
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            zoomInc = {0.1,0.05},
+        })
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.TargetTrackerX, MovableValues.TargetTrackerY)

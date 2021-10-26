@@ -86,8 +86,19 @@ end
 local customizeGameplayElements = {}
 local storedStateForUndoAction = {}
 local selectedElementActor = nil
-function registerActorToCustomizeGameplayUI(elementFrame, layer)
-    customizeGameplayElements[#customizeGameplayElements+1] = elementFrame
+-- must be passed elementinfo, a table of:
+--[[
+    {
+        actor = (an actorframe),
+        coordInc = {big, small}, increment size for coordinates
+        zoomInc = {big, small}, increment size for zooming (zoom or size bpth work here)
+        rotationInc = {big, small}, increment size for rotation
+        spacingInc = {big, small}, increment size for spacing
+    }
+]]
+function registerActorToCustomizeGameplayUI(elementinfo, layer)
+    customizeGameplayElements[#customizeGameplayElements+1] = elementinfo
+    local elementFrame = elementinfo.actor
 
     if allowedCustomization then
         elementFrame:AddChildFromPath(THEME:GetPathG("", "elementborder"))
@@ -102,9 +113,67 @@ function registerActorToCustomizeGameplayUI(elementFrame, layer)
         end
     end
 end
+function registerActorToCustomizeGameplayUINoElementBorder(elementinfo)
+    customizeGameplayElements[#customizeGameplayElements+1] = elementinfo
+end
 
 function getCustomizeGameplayElements()
-    return customizeGameplayElements
+    local o = {}
+    for i,t in ipairs(customizeGameplayElements) do
+        o[#o+1] = t.actor
+    end
+    return o
+end
+
+-- returns the big increment and the small increment
+function getInfoForSelectedGameplayElement()
+    if selectedElementActor == nil then return nil, nil end
+    for i,t in ipairs(customizeGameplayElements) do
+        if t.actor:GetName() == selectedElementActor:GetName() then
+            return t
+        end
+    end
+end
+
+-- convenience to make it look like we arent copy pasting everywhere
+-- and also return defaults for the ultra lazy
+function getCoordinc(info, big, reverse)
+    local o = 0
+    if info.coordInc == nil then
+        o = (big and 5 or 1)
+    else
+        o = (big and info.coordInc[1] or info.coordInc[2])
+    end
+    return o * (reverse and -1 or 1)
+end
+function getRotationinc(info, big, reverse)
+    local o = 0
+    if info.rotationInc == nil then
+        o = (big and 5 or 1)
+    else
+        o = (big and info.rotationInc[1] or info.rotationInc[2])
+    end
+    return o * (reverse and -1 or 1)
+end
+function getZoominc(info, big, reverse)
+    local o = 0
+    -- oops lol
+    if info.zoomInc == nil and info.sizeInc ~= nil then info.zoomInc = info.sizeInc end
+    if info.zoomInc == nil then
+        o = (big and 0.5 or 0.1)
+    else
+        o = (big and info.zoomInc[1] or info.zoomInc[2])
+    end
+    return o * (reverse and -1 or 1)
+end
+function getSpacinginc(info, big, reverse)
+    local o = 0
+    if info.spacingInc == nil then
+        o = (big and 5 or 1)
+    else
+        o = (big and info.spacingInc[1] or info.spacingInc[2])
+    end
+    return o * (reverse and -1 or 1)
 end
 
 function getCoordinatesForElementName(name)
@@ -286,9 +355,9 @@ function setSelectedCustomizeGameplayElementActorByName(elementName)
     local index = 0
     local elementActor = nil
     for i, e in ipairs(customizeGameplayElements) do
-        if e:GetName() == elementName then
+        if e.actor:GetName() == elementName then
             index = i
-            elementActor = e
+            elementActor = e.actor
             break
         end
     end

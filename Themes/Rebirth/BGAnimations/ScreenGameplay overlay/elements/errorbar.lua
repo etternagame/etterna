@@ -72,7 +72,11 @@ local t = Def.ActorFrame {
             lastAvg = 0
         end
         self:playcommand("SetUpMovableValues")
-        registerActorToCustomizeGameplayUI(self)
+        registerActorToCustomizeGameplayUI({
+            actor = self,
+            coordInc = {5,1},
+            zoomInc = {0.1,0.05},
+        })
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.ErrorBarX, MovableValues.ErrorBarY)

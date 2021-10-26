@@ -53,8 +53,18 @@ local t = Def.ActorFrame {
         local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
         local noteColumns = nf:get_column_actors()
 
-        registerActorToCustomizeGameplayUI(lifebar)
-        registerActorToCustomizeGameplayUI(nf, 4)
+        registerActorToCustomizeGameplayUI({
+            actor = lifebar,
+            coordInc = {5,1},
+            rotationInc = {5,1},
+            sizeInc = {0.1, 0.05},
+        })
+        registerActorToCustomizeGameplayUI({
+            actor = nf,
+            coordInc = {5,1},
+            sizeInc = {0.1, 0.05},
+            spacingInc = {5,1},
+        }, 4)
     end,
     EndCommand = function(self)
         -- exiting customize gameplay will turn off autoplay
@@ -385,41 +395,55 @@ local function makeUI()
 
                     if selectedElement ~= nil then
                         if up or down or left or right then
-                            local increment = 5
+                            local info = getInfoForSelectedGameplayElement()
+                            -- mega hack (sign of bad design)
+                            -- if the screen is selected, fake an info object
+                            info = {
+                                coordInc = {5,1},
+                                zoomInc = {0.05,0.01},
+                            }
+
+                            local bigIncrement = true
+                            local reverse = false
                             if shift then
                                 -- small increment arrow key usage
-                                increment = 1
+                                bigIncrement = false
                             else
                                 -- regular arrow key usage
                             end
 
-                            if down or left then increment = increment * -1 end
+                            if down or left then reverse = true end
                             local tname = selectedElement
 
                             if selectedElementMovementType == "Coordinate" then
                                 if selectedElementCoords ~= nil then
+                                    local increment = getCoordinc(info, bigIncrement, reverse)
                                     if left or right then tname = tname .. "X" end
                                     if up or down then tname = tname .. "Y" increment = increment * -1 end
                                     updateGameplayCoordinate(tname, increment)
                                 end
                             elseif selectedElementMovementType == "Rotation" then
                                 if selectedElementCoords ~= nil then
+                                    local increment = getRotationinc(info, bigIncrement, reverse)
                                     tname = tname .. "Rotation"
                                     updateGameplayCoordinate(tname, increment)
                                 end
                             elseif selectedElementMovementType == "Zoom" then
                                 if selectedElementSizes ~= nil then
+                                    local increment = getZoominc(info, bigIncrement, reverse)
                                     tname = tname .. "Zoom"
-                                    updateGameplaySize(tname, increment / 10)
+                                    updateGameplaySize(tname, increment)
                                 end
                             elseif selectedElementMovementType == "Size" then
                                 if selectedElementSizes ~= nil then
+                                    local increment = getZoominc(info, bigIncrement, reverse)
                                     if left or right then tname = tname .. "Width" end
                                     if up or down then tname = tname .. "Height" end
-                                    updateGameplaySize(tname, increment / 10)
+                                    updateGameplaySize(tname, increment)
                                 end
                             elseif selectedElementMovementType == "Spacing" then
                                 if selectedElementSizes ~= nil then
+                                    local increment = getSpacinginc(info, bigIncrement, reverse)
                                     tname = tname .. "Spacing"
                                     updateGameplaySize(tname, increment)
                                 end
