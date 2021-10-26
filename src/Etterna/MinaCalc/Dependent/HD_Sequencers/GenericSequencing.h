@@ -172,9 +172,9 @@ struct Jack_Sequencing : public Finger_Sequencing
 			return _len_cap_ms;
 		}
 
-		static const auto avg_ms_mult = 0.F; // was 1.075F;
-		static const auto anchor_time_buffer_ms = 80.F;
-		static const auto min_ms = 85.F;
+		static const auto avg_ms_mult = 1.5F;
+		static const auto anchor_time_buffer_ms = 30.F;
+		static const auto min_ms = 95.F;
 
 		// get total ms
 		const auto total_ms = ms_from(_last, _start);
@@ -196,7 +196,7 @@ struct Jack_Sequencing : public Finger_Sequencing
 		// BAD TEMP HACK LUL
 		if (_len == 2) {
 			ms *= 1.1F;
-			ms = ms < 155.F ? 155.F : ms;
+			ms = ms < 180.F ? 180.F : ms;
 		}
 
 		ms = ms < min_ms ? min_ms : ms;
