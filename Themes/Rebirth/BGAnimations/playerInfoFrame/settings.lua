@@ -2,6 +2,7 @@
 -- at least it isnt totally spaghetti code yet
 -- hmm
 -- this absolute behemoth of a file ...
+-- lol
 local ratios = {
     RightWidth = 782 / 1920,
     LeftWidth = 783 / 1920,
@@ -2427,6 +2428,72 @@ local function rightFrame()
     local offscreenX = SCREEN_WIDTH
     local onscreenX = SCREEN_WIDTH - actuals.RightWidth
 
+    -- settings stored here will get applied when the screen is hidden
+    -- the key can be anything but it should be consistent for a single setting
+    -- luckily they should all be preferences
+    --[[ format:
+    KeyName = {
+        -- either use a key-value Preference Value thing
+        Name = "Some Preference Name" (like FrameLimitGameplay)
+        Value = ???, -- a value to set for either the Preference Name or with the associated options enabled below
+        --
+        -- or give it one/all of these (all would probably break it)
+        SetGame = true/false, -- induces GAMEMAN:SetGame(newGame, curTheme)
+        SetTheme = true/false, -- induces GAMEMAN:SetGame(currentGame, newTheme)
+        SetGraphics = true/false, -- induces GAMEMAN:SetGame(currentGame, curTheme) (a graphics reset)
+        SetLanguage = true/false, -- induces THEME:SwitchThemeAndLanguage(theme, language)
+    }
+    ]]
+    local modsToApplyAtExit = {}
+
+    local function checkModsToApply()
+        ms.ok(modsToApplyAtExit)
+        local setGraphics = false
+        local setGame = nil
+        local setTheme = nil
+        local setLanguage = nil
+        for n, t in pairs(modsToApplyAtExit) do
+            local usedExtraThing = false -- want to avoid setting a preference and these at the same time
+            if t.SetGraphics then
+                setGraphics = t.SetGraphics
+                -- usedExtraThing = true -- produces funny results but we can skip this
+            end
+            if t.SetTheme then
+                setTheme = t.Value
+                usedExtraThing = true
+            end
+            if t.SetGame then
+                setGame = t.Value
+                usedExtraThing = true
+            end
+            if t.SetLanguage then
+                setLanguage = t.Value
+                usedExtraThing = true
+            end
+            if not usedExtraThing then
+                local prefname = t.Name
+                local val = t.Value
+                PREFSMAN:SetPreference(prefname, val)
+            end
+        end
+        modsToApplyAtExit = {}
+
+        -- SetGame - GAMEMAN:SetGame(game, theme)
+        -- SetTheme - GAMEMAN:SetGame(game, theme)
+        -- SetGraphics - GAMEMAN:SetGame(game, theme)
+        -- SetLanguage - THEME:SwitchThemeAndLanguage(theme, language)
+        local themeToUse = setTheme or THEME:GetCurThemeName()
+        if setLanguage then
+            THEME:SwitchThemeAndLanguage(THEME:GetCurThemeName(), setLanguage)
+        end
+        if setGraphics and not setGame and not setTheme then
+            THEME:SetTheme(THEME:GetCurThemeName())
+        elseif setGame or setTheme then
+            local gameToUse = setGame or GAMESTATE:GetCurrentGame():GetName()
+            GAMEMAN:SetGame(gameToUse, themeToUse)
+        end
+    end
+
     local t = Def.ActorFrame {
         Name = "RightFrame",
         InitCommand = function(self)
@@ -2434,6 +2501,8 @@ local function rightFrame()
             self:diffusealpha(0)
         end,
         HideRightCommand = function(self)
+            checkModsToApply()
+
             -- move off screen right and go invisible
             self:finishtweening()
             self:smooth(animationSeconds)
@@ -2731,27 +2800,6 @@ local function rightFrame()
         return o
     end
 
-    local function initDisplayResolutions()
-        local resolutions = {}
-        local displaySpecs = GetDisplaySpecs()
-        for _, spec in ipairs(displaySpecs) do
-            for __, mode in ipairs(spec:GetSupportedModes()) do
-                -- linear search? sure
-                local add = true
-                for ___, res in ipairs(resolutions) do
-                    if res.w == mode:GetWidth() and res.h == mode:GetHeight() then add = false break end
-                end
-                if add then
-                    resolutions[#resolutions+1] = {
-                        w = mode:GetWidth(),
-                        h = mode:GetHeight(),
-                    }
-                end
-            end
-        end
-        return resolutions
-    end
-
     local function getdataTHEME(category, propertyname)
         return function() return themeConfig:get_data()[category][propertyname] end
     end
@@ -2781,9 +2829,6 @@ local function rightFrame()
     -- -----
     -- Extra data for option temporary storage or cross option interaction
     --
-    local playerConfigData = playerConfig:get_data()
-    local themeConfigData = themeConfig:get_data()
-    local displaySpecs = GetDisplaySpecs()
     local optionData = {
         speedMod = {
             speed = getSpeedValueFromPlayerOptions(),
@@ -2836,49 +2881,130 @@ local function rightFrame()
         screenFilter = playeroption("ScreenFilter"), -- [0,1] notefield bg
         receptorSize = playeroption("ReceptorSize"),
 
-
-        display = {
-            ratios = { -- hardcoded aspect ratio list
-                {n = 3, d = 4},
-                {n = 1, d = 1},
-                {n = 5, d = 4},
-                {n = 4, d = 3},
-                {n = 16, d = 10},
-                {n = 16, d = 9},
-                {n = 8, d = 3},
-                {n = 21, d = 9}
-            },
-            refreshRates = { -- hardcoded refresh rate list (i dont know what im doing)
-                -- if you put floats here it is your fault if something breaks but go nuts if you want
-                --REFRESH_DEFAULT, -- skip this, it is hardcoded as the first value
-                59,
-                60,
-                70,
-                72,
-                75,
-                80,
-                85,
-                90,
-                100,
-                120,
-                144,
-                150,
-                240,
-            },
-            -- displayspec generated "compatible" ratios
-            dRatios = GetDisplayAspectRatios(displaySpecs),
-            wRatios = GetWindowAspectRatios(),
-            -- displayspec generated "compatible" resolutions
-            resolutions = initDisplayResolutions(),
-            loadedAspectRatio = PREFSMAN:GetPreference("DisplayAspectRatio")
-        },
         pickedTheme = THEME:GetCurThemeName(),
+        bWindowedBefore = PREFSMAN:GetPreference("Windowed"),
+        bWindowedNow = PREFSMAN:GetPreference("Windowed") or PREFSMAN:GetPreference("FullscreenIsBorderlessWindow"),
+        bBorderlessBefore = PREFSMAN:GetPreference("FullscreenIsBorderlessWindow"),
+        currentAspectRatio = PREFSMAN:GetPreference("DisplayAspectRatio"),
+        displayHeight = PREFSMAN:GetPreference("DisplayHeight"),
+        displayWidth = PREFSMAN:GetPreference("DisplayWidth"),
+        maxTextureResolutionBefore = PREFSMAN:GetPreference("MaxTextureResolution"),
+        displayColorDepthBefore = PREFSMAN:GetPreference("DisplayColorDepth"),
+        vsyncBefore = PREFSMAN:GetPreference("Vsync"),
     }
+
     --
     -- -----
 
     -- -----
     -- Extra utility functions that require optionData to be initialized first
+    local function resolutionChoices()
+        local specs = GetDisplaySpecs()
+        local isWindowed = optionData.bWindowedNow
+        local curDisplay = specs:ById(PREFSMAN:GetPreference("DisplayId"))
+        local curRatio = optionData.currentAspectRatio ~= 0 and optionData.currentAspectRatio
+        local resolutions = isWindowed and GetFeasibleWindowSizesForRatio(specs, curRatio)
+            or GetDisplayResolutionsForRatio(curDisplay, curRatio)
+
+        local choices = {}
+        local vals = {}
+        table.sort(resolutions, function(a, b) return a.h < b.h end)
+        for i, r in ipairs(resolutions) do
+            vals[#vals + 1] = r
+            choices[#choices + 1] = tostring(r.w) .. 'x' .. tostring(r.h)
+        end
+
+        return choices, vals
+    end
+    local function refreshRateChoices()
+        local specs = GetDisplaySpecs()
+        local isWindowed = optionData.bWindowedNow
+        local d = specs:ById(PREFSMAN:GetPreference("DisplayId"))
+        local w = optionData.displayWidth
+        local h = optionData.displayHeight
+        local rates = isWindowed and {}
+            or GetDisplayRatesForResolution(d, w, h)
+
+        local choices = {"Default"}
+        local choiceVals = {REFRESH_DEFAULT}
+        table.sort(rates)
+        for i, r in ipairs(rates) do
+            choiceVals[#choiceVals + 1] = math.round(r)
+            choices[#choices + 1] = tostring(math.round(r))
+        end
+        return choices, choiceVals
+    end
+    local function aspectRatioChoices()
+        local specs = GetDisplaySpecs()
+        local isWindowed = optionData.bWindowedNow
+        local curDisplayId = PREFSMAN:GetPreference("DisplayId")
+        local dRatios = GetDisplayAspectRatios(specs)
+    	local wRatios = GetWindowAspectRatios()
+        local ratios = isWindowed and wRatios or (dRatios[curDisplayId] or dRatios[specs[1]:GetId()])
+        local choices = {}
+        local vals = {}
+        local keys = {}
+        for k in pairs(ratios) do keys[#keys+1] = k end
+        for i, k in ipairs(keys) do
+            local r = ratios[k]
+            vals[#vals + 1] = r.n / r.d
+            choices[#choices + 1] = tostring(r.n) .. ':' .. tostring(r.d)
+        end
+        return choices, vals
+    end
+    local resolutionChoicest = 1
+    local refreshRateChoicest = 1
+    local aspectRatioChoicest = 1
+    -- set the correct starting numbers here
+    do -- restrict scope pollution
+        local choices, vals = resolutionChoices()
+        local w = PREFSMAN:GetPreference("DisplayWidth")
+        local h = PREFSMAN:GetPreference("DisplayHeight")
+        local closest = nil
+        local closestI = 1
+        local mindist = -1
+        for i, v in ipairs(vals) do
+            local dist = math.sqrt((v.w - w)^2 + (v.h - h)^2)
+            if mindist == -1 or dist < mindist then
+                mindist = dist
+                closest = v
+                closestI = i
+            end
+        end
+        resolutionChoicest = closestI
+    end
+    do -- again
+        local choices, vals = refreshRateChoices()
+        local curRate = PREFSMAN:GetPreference("RefreshRate")
+        local threshold = 10
+        local closestIdx = nil
+        local mindist = -1
+        for i, r in ipairs(vals) do
+            local dist = math.abs(r - curRate)
+            if mindist == -1 or dist < mindist then
+                mindist = dist
+                closestIdx = i
+            end
+        end
+        refreshRateChoicest = mindist < threshold and closestIdx or 1
+    end
+    do -- again again
+        local choices, vals = aspectRatioChoices()
+        local closestRatio = vals[1]
+        local closestDist = math.abs(vals[1] - optionData.currentAspectRatio)
+        local closI = 1
+        for i, v in ipairs(vals) do
+            local dist = math.abs(v - optionData.currentAspectRatio)
+            if dist < closestDist then
+                closestRatio = v
+                closestDist = dist
+                closI = i
+            end
+        end
+        aspectRatioChoicest = closI
+    end
+
+
     local function setSpeedValueFromOptionData()
         local mode = optionData.speedMod.mode
         local speed = optionData.speedMod.speed
@@ -3302,7 +3428,15 @@ local function rightFrame()
                         o[#o+1] = {
                             Name = strCapitalize(name),
                             ChosenFunction = function()
-                                --GAMEMAN:SetGame(name)
+                                if name == GAMESTATE:GetCurrentGame():GetName() then
+                                    modsToApplyAtExit["GameMode"] = nil
+                                else
+                                    modsToApplyAtExit["GameMode"] = {
+                                        Name = "Game",
+                                        Value = name,
+                                        SetGame = true,
+                                    }
+                                end
                                 optionData.gameMode.current = name
                             end,
                         }
@@ -4386,29 +4520,78 @@ local function rightFrame()
                 Name = "Language",
                 Type = "SingleChoice",
                 Explanation = "Modify the game language.",
+                ChoiceIndexGetter = function()
+                    for i, l in ipairs(optionData.language.list) do
+                        if l == optionData.language.current then
+                            return i
+                        end
+                    end
+                    return 1
+                end,
                 ChoiceGenerator = function()
                     local o = {}
                     for i, l in ipairs(optionData.language.list) do
                         o[#o+1] = {
                             Name = l:upper(),
                             ChosenFunction = function()
+                                if l == THEME:GetCurLanguage() then
+                                    modsToApplyAtExit["Language"] = nil
+                                else
+                                    modsToApplyAtExit["Language"] = {
+                                        Name = "Language",
+                                        Value = l,
+                                        SetLanguage = true,
+                                    }
+                                end
                                 optionData.language.current = l
                             end,
                         }
                     end
                     return o
                 end,
+            },
+            {
+                Name = "Theme",
+                Type = "SingleChoice",
+                Explanation = "Change the overall skin of the game.",
                 ChoiceIndexGetter = function()
-                    for i, l in ipairs(optionData.language.list) do
-                        if l == optionData.language.current then return i end
+                    local cur = optionData.pickedTheme
+                    for i, name in ipairs(THEME:GetSelectableThemeNames()) do
+                        if name == cur then return i end
                     end
                     return 1
+                end,
+                ChoiceGenerator = function()
+                    local o = {}
+                    for _, name in ipairs(THEME:GetSelectableThemeNames()) do
+                        o[#o+1] = {
+                            Name = name,
+                            ChosenFunction = function()
+                                if name == THEME:GetCurThemeName() then
+                                    modsToApplyAtExit["Theme"] = nil
+                                else
+                                    modsToApplyAtExit["Theme"] = {
+                                        Name = "Theme",
+                                        Value = name,
+                                        SetTheme = true,
+                                    }
+                                end
+                                optionData.pickedTheme = name
+                            end,
+                        }
+                    end
+                    return o
                 end,
             },
             {
                 Name = "Display Mode",
                 Type = "SingleChoice",
                 Explanation = "Change the game display mode. Borderless requires that you select your native fullscreen resolution.",
+                AssociatedOptions = {
+                    "Aspect Ratio",
+                    "Display Resolution",
+                    "Refresh Rate",
+                },
                 -- the idea behind Display Mode is to also allow selecting a Display to show the game
                 -- it is written into the lua side of the c++ options conf but unused everywhere as far as i know except maybe in linux
                 -- so here lets just hardcode windowed/fullscreen until that feature becomes a certain reality
@@ -4419,6 +4602,22 @@ local function rightFrame()
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("Windowed", true)
                             PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", false)
+                            optionData.bWindowedNow = true
+                            if optionData.bWindowedBefore and not optionData.bBorderlessBefore then
+                                modsToApplyAtExit["Windowed"] = nil
+                                modsToApplyAtExit["Borderless"] = nil
+                            else
+                                modsToApplyAtExit["Windowed"] = {
+                                    Name = "Windowed",
+                                    Value = true,
+                                    SetGraphics = true,
+                                }
+                                modsToApplyAtExit["Borderless"] = {
+                                    Name = "FullscreenIsBorderlessWindow",
+                                    Value = false,
+                                    SetGraphics = true,
+                                }
+                            end
                         end,
                     },
                     {
@@ -4426,6 +4625,22 @@ local function rightFrame()
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("Windowed", false)
                             PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", false)
+                            optionData.bWindowedNow = false
+                            if not optionData.bWindowedBefore and not optionData.bBorderlessBefore then
+                                modsToApplyAtExit["Windowed"] = nil
+                                modsToApplyAtExit["Borderless"] = nil
+                            else
+                                modsToApplyAtExit["Windowed"] = {
+                                    Name = "Windowed",
+                                    Value = false,
+                                    SetGraphics = true,
+                                }
+                                modsToApplyAtExit["Borderless"] = {
+                                    Name = "FullscreenIsBorderlessWindow",
+                                    Value = false,
+                                    SetGraphics = true,
+                                }
+                            end
                         end,
                     },
                     {
@@ -4435,6 +4650,22 @@ local function rightFrame()
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("Windowed", false)
                             PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", true)
+                            optionData.bWindowedNow = true
+                            if not optionData.bWindowedBefore and optionData.bBorderlessBefore then
+                                modsToApplyAtExit["Windowed"] = nil
+                                modsToApplyAtExit["Borderless"] = nil
+                            else
+                                modsToApplyAtExit["Windowed"] = {
+                                    Name = "Windowed",
+                                    Value = false,
+                                    SetGraphics = true,
+                                }
+                                modsToApplyAtExit["Borderless"] = {
+                                    Name = "FullscreenIsBorderlessWindow",
+                                    Value = true,
+                                    SetGraphics = true,
+                                }
+                            end
                         end,
                     }
 
@@ -4454,108 +4685,119 @@ local function rightFrame()
                 Name = "Aspect Ratio",
                 Type = "SingleChoice",
                 Explanation = "Change the game aspect ratio.",
-                ChoiceGenerator = function()
-                    local o = {}
-                    for _, ratio in ipairs(optionData.display.ratios) do
-                        -- ratio is a fraction, d is denominator and n is numerator
-                        local v = ratio.n / ratio.d
-                        o[#o+1] = {
-                            Name = ratio.n .. ":" .. ratio.d,
-                            ChosenFunction = function()
-                                PREFSMAN:SetPreference("DisplayAspectRatio", v)
-                            end,
+                AssociatedOptions = {
+                    "Display Resolution",
+                    "Refresh Rate",
+                },
+                Directions = {
+                    Left = function()
+                        aspectRatioChoicest = aspectRatioChoicest - 1
+                    end,
+                    Right = function()
+                        aspectRatioChoicest = aspectRatioChoicest + 1
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    local choices, vals = aspectRatioChoices()
+                    if aspectRatioChoicest > #choices then aspectRatioChoicest = 1 end
+                    if aspectRatioChoicest < 1 then aspectRatioChoicest = #choices end
+                    local v = vals[aspectRatioChoicest]
+                    local choice = choices[aspectRatioChoicest]
+
+                    if math.abs(v - PREFSMAN:GetPreference("DisplayAspectRatio")) < 0.044 then
+                        -- same
+                        modsToApplyAtExit["AspectRatio"] = nil
+                    else
+                        -- not
+                        modsToApplyAtExit["AspectRatio"] = {
+                            Name = "DisplayAspectRatio",
+                            Value = v,
+                            SetGraphics = true,
                         }
                     end
-                    return o
-                end,
-                ChoiceIndexGetter = function()
-                    local closestdiff = 100
-                    local closestindex = 1
-                    local curRatio = PREFSMAN:GetPreference("DisplayAspectRatio")
-                    for i, ratio in ipairs(optionData.display.ratios) do
-                        -- ratio is a fraction, d is denominator and n is numerator
-                        local v = ratio.n / ratio.d
-                        local diff = math.abs(v - curRatio)
-                        if diff < closestdiff then
-                            closestdiff = diff
-                            closestindex = i
-                        end
-                    end
-                    return closestindex
+                    optionData.currentAspectRatio = v
+
+                    return choice
                 end,
             },
             {
                 Name = "Display Resolution",
                 Type = "SingleChoice",
                 Explanation = "Change the game display resolution.",
-                ChoiceGenerator = function()
-                    local o = {}
+                AssociatedOptions = {
+                    "Aspect Ratio",
+                    "Refresh Rate",
+                },
+                Directions = {
+                    Left = function()
+                        resolutionChoicest = resolutionChoicest - 1
+                    end,
+                    Right = function()
+                        resolutionChoicest = resolutionChoicest + 1
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    local choices, vals = resolutionChoices()
+                    if resolutionChoicest > #choices then resolutionChoicest = 1 end
+                    if resolutionChoicest < 1 then resolutionChoicest = #choices end
+                    local v = vals[resolutionChoicest]
+                    local choice = choices[resolutionChoicest]
 
-                    -- i trust we didnt generate any duplicates but ....
-                    -- ....... hope not
-                    for _, resolution in ipairs(optionData.display.resolutions) do
-                        -- resolution is a rectangle and contains a width w and a height h
-                        o[#o+1] = {
-                            Name = resolution.w .. "x" .. resolution.h,
-                            ChosenFunction = function()
-                                PREFSMAN:SetPreference("DisplayWidth", resolution.w)
-                                PREFSMAN:SetPreference("DisplayHeight", resolution.h)
-                            end,
+                    if v.w == PREFSMAN:GetPreference("DisplayWidth") and v.h == PREFSMAN:GetPreference("DisplayHeight") then
+                        modsToApplyAtExit["DisplayWidth"] = nil
+                        modsToApplyAtExit["DisplayHeight"] = nil
+                    else
+                        modsToApplyAtExit["DisplayWidth"] = {
+                            Name = "DisplayWidth",
+                            Value = v.w,
+                            SetGraphics = true,
+                        }
+                        modsToApplyAtExit["DisplayHeight"] = {
+                            Name = "DisplayHeight",
+                            Value = v.h,
+                            SetGraphics = true,
                         }
                     end
-                    return o
-                end,
-                ChoiceIndexGetter = function()
-                    local closestindex = 1
-                    local mindist = -1
-                    local w = PREFSMAN:GetPreference("DisplayWidth")
-                    local h = PREFSMAN:GetPreference("DisplayHeight")
-                    for i, resolution in ipairs(optionData.display.resolutions) do
-                        -- resolution is a rectangle and contains a width w and a height h
-                        local dist = math.sqrt((resolution.w - w)^2 + (resolution.h - h)^2)
-                        if mindist == -1 or dist < mindist then
-                            mindist = dist
-                            closestindex = i
-                        end
-                    end
-                    return closestindex
+                    optionData.displayHeight = v.h
+                    optionData.displayWidth = v.w
+
+                    return choice
                 end,
             },
             {
                 Name = "Refresh Rate",
                 Type = "SingleChoice",
                 Explanation = "Change the game refresh rate. Set to default in most cases or if any issue occurs.",
-                ChoiceGenerator = function()
-                    local o = {
-                        {
-                            Name = "Default",
-                            ChosenFunction = function()
-                                PREFSMAN:SetPreference("RefreshRate", REFRESH_DEFAULT)
-                            end,
-                        }
-                    }
-                    for _, rate in ipairs(optionData.display.refreshRates) do
-                        o[#o+1] = {
-                            Name = tostring(rate),
-                            ChosenFunction = function()
-                                PREFSMAN:SetPreference("RefreshRate", rate)
-                            end,
-                        }
-                    end
-                    return o
-                end,
+                AssociatedOptions = {
+                    "Aspect Ratio",
+                    "Display Resolution",
+                },
+                Directions = {
+                    Left = function()
+                        refreshRateChoicest = refreshRateChoicest - 1
+                    end,
+                    Right = function()
+                        refreshRateChoicest = refreshRateChoicest + 1
+                    end,
+                },
                 ChoiceIndexGetter = function()
-                    local rate = PREFSMAN:GetPreference("RefreshRate")
-                    -- first choice element is this
-                    if rate == REFRESH_DEFAULT then return 1 end
+                    local choices, vals = refreshRateChoices()
+                    if refreshRateChoicest > #choices then refreshRateChoicest = 1 end
+                    if refreshRateChoicest < 1 then refreshRateChoicest = #choices end
+                    local v = vals[refreshRateChoicest]
+                    local choice = choices[refreshRateChoicest]
 
-                    -- add 1 to index if found
-                    for i, r in ipairs(optionData.display.refreshRates) do
-                        if rate == r then return i+1 end
+                    if v == PREFSMAN:GetPreference("RefreshRate") then
+                        modsToApplyAtExit["RefreshRate"] = nil
+                    else
+                        modsToApplyAtExit["RefreshRate"] = {
+                            Name = "RefreshRate",
+                            Value = v,
+                            SetGraphics = true,
+                        }
                     end
 
-                    -- default
-                    return 1
+                    return choice
                 end,
             },
             {
@@ -4568,6 +4810,15 @@ local function rightFrame()
                 },
                 ChoiceIndexGetter = function()
                     local v = PREFSMAN:GetPreference("DisplayColorDepth")
+                    if v == optionData.displayColorDepthBefore then
+                        modsToApplyAtExit["DisplayColorDepth"] = nil
+                    else
+                        modsToApplyAtExit["DisplayColorDepth"] = {
+                            Name = "DisplayColorDepth",
+                            Value = v,
+                            SetGraphics = true,
+                        }
+                    end
                     if v == 16 then return 1
                     elseif v == 32 then return 2
                     end
@@ -4578,19 +4829,134 @@ local function rightFrame()
                 Name = "Force High Resolution Textures",
                 Type = "SingleChoice",
                 Explanation = "Force high resolution textures. Turning this off disables the (doubleres) image tag.",
-                Choices = choiceSkeleton("Yes", "No"),
-                Directions = preferenceToggleDirections("HighResolutionTextures", true, false),
-                ChoiceIndexGetter = preferenceToggleIndexGetter("HighResolutionTextures", true),
+                Choices = {
+                    {
+                        Name = "Auto",
+                        ChosenFunction = function()
+                            local v = "HighResolutionTextures_Auto"
+                            PREFSMAN:SetPreference("HighResolutionTextures", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["HighResolutionTextures"] = nil
+                            else
+                                modsToApplyAtExit["HighResolutionTextures"] = {
+                                    Name = "HighResolutionTextures",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "Force On",
+                        ChosenFunction = function()
+                            local v = "HighResolutionTextures_ForceOn"
+                            PREFSMAN:SetPreference("HighResolutionTextures", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["HighResolutionTextures"] = nil
+                            else
+                                modsToApplyAtExit["HighResolutionTextures"] = {
+                                    Name = "HighResolutionTextures",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "Force Off",
+                        ChosenFunction = function()
+                            local v = "HighResolutionTextures_ForceOff"
+                            PREFSMAN:SetPreference("HighResolutionTextures", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["HighResolutionTextures"] = nil
+                            else
+                                modsToApplyAtExit["HighResolutionTextures"] = {
+                                    Name = "HighResolutionTextures",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("HighResolutionTextures")
+                    if v == "HighResolutionTextures_Auto" then return 1
+                    elseif v == "HighResolutionTextures_ForceOn" then return 2
+                    else return 3 end
+                end,
             },
             {
                 Name = "Texture Resolution",
                 Type = "SingleChoice",
                 Explanation = "Modify general texture resolution. Lower number will lower quality but may increase FPS.",
+                -- FUN FACT YOU CAN PUT ANY NUMBER IN FOR THESE
+                -- AS LONG AS IT ISNT INSANE OR 0 IT SHOULD WORK
                 Choices = {
-                    basicNamedPreferenceChoice("MaxTextureResolution", "256", 256),
-                    basicNamedPreferenceChoice("MaxTextureResolution", "512", 512),
-                    basicNamedPreferenceChoice("MaxTextureResolution", "1024", 1024),
-                    basicNamedPreferenceChoice("MaxTextureResolution", "2048", 2048),
+                    {
+                        Name = "256",
+                        ChosenFunction = function()
+                            local v = 256
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "512",
+                        ChosenFunction = function()
+                            local v = 512
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "1024",
+                        ChosenFunction = function()
+                            local v = 1024
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "2048",
+                        ChosenFunction = function()
+                            local v = 2048
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
                 },
                 ChoiceIndexGetter = function()
                     local v = PREFSMAN:GetPreference("MaxTextureResolution")
@@ -4602,6 +4968,7 @@ local function rightFrame()
                     return 1
                 end,
             },
+            --[[
             {
                 Name = "Texture Color Depth",
                 Type = "SingleChoice",
@@ -4634,13 +5001,49 @@ local function rightFrame()
                     return 1
                 end,
             },
+            ]]
             {
                 Name = "VSync",
                 Type = "SingleChoice",
                 Explanation = "Restrict the game refresh rate and FPS to the refresh rate you have set.",
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = preferenceToggleDirections("Vsync", true, false),
-                ChoiceIndexGetter = preferenceToggleIndexGetter("Vsync", true),
+                Choices = {
+                    {
+                        Name = "On",
+                        ChosenFunction = function()
+                            local v = true
+                            PREFSMAN:SetPreference("Vsync", v)
+                            if v == optionData.vsyncBefore then
+                                modsToApplyAtExit["Vsync"] = nil
+                            else
+                                modsToApplyAtExit["Vsync"] = {
+                                    Name = "Vsync",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        ChosenFunction = function()
+                            local v = false
+                            PREFSMAN:SetPreference("Vsync", v)
+                            if v == optionData.vsyncBefore then
+                                modsToApplyAtExit["Vsync"] = nil
+                            else
+                                modsToApplyAtExit["Vsync"] = {
+                                    Name = "Vsync",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("Vsync")
+                    if v then return 1 else return 2 end
+                end,
             },
             {
                 Name = "Fast Note Rendering",
@@ -4663,32 +5066,6 @@ local function rightFrame()
         -----
         -- THEME OPTIONS
         ["Theme Options"] = {
-            --[[
-            {
-                Name = "Theme",
-                Type = "SingleChoice",
-                Explanation = "Change the overall skin of the game.",
-                ChoiceGenerator = function()
-                    local o = {}
-                    for _, name in ipairs(THEME:GetSelectableThemeNames()) do
-                        o[#o+1] = {
-                            Name = name,
-                            ChosenFunction = function()
-                                optionData.pickedTheme = name
-                            end,
-                        }
-                    end
-                    return o
-                end,
-                ChoiceIndexGetter = function()
-                    local cur = optionData.pickedTheme
-                    for i, name in ipairs(THEME:GetSelectableThemeNames()) do
-                        if name == cur then return i end
-                    end
-                    return 1
-                end,
-            },
-            ]]
             {
                 Name = "Music Wheel Position",
                 Type = "SingleChoice",
