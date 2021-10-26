@@ -904,8 +904,10 @@ local function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, y, en
 		},
 	}
 end
-local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", -35, 30, 11)
-local readyButton
+local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", -35, 30, 11) .. {
+	Name = "ForceStart",
+}
+local readyButton = nil
 do
 	-- do-end block to minimize the scope of 'f'
 	local areWeReadiedUp = function()
@@ -925,6 +927,7 @@ do
 		end
 	end
 	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, 0, 11, areWeReadiedUp) .. {
+		Name = "Ready",
 		UsersUpdateMessageCommand = function(self)
 			self.ison = areWeReadiedUp()
 			self.updatebutton()
@@ -1066,13 +1069,25 @@ t[#t + 1] = Def.ActorFrame {
 			end
 		end,
 		ChartPreviewOnMessageCommand = function(self)
-			readyButton:Disable()
-			forceStart:Disable()
+			local ready = self:GetParent():GetParent():GetChild("Ready")
+			local force = self:GetParent():GetParent():GetChild("ForceStart")
+			if ready ~= nil then
+				ready:visible(false)
+			end
+			if force ~= nil then
+				force:visible(false)
+			end
 		end,
 		ChartPreviewOffMessageCommand = function(self)
-			if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-				readyButton:Enable()
-				forceStart:Enable()
+			if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+				local ready = self:GetParent():GetParent():GetChild("Ready")
+				local force = self:GetParent():GetParent():GetChild("ForceStart")
+				if ready ~= nil then
+					ready:visible(true)
+				end
+				if force ~= nil then
+					force:visible(true)
+				end
 			end
 		end,
 		MouseOverCommand = function(self)
