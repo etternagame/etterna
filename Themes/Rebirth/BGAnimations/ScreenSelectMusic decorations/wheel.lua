@@ -303,8 +303,10 @@ local t = Def.ActorFrame {
         WHEELDATA:ReloadWheelData()
         self:playcommand("UpdateFilters")
     end,
-    
-
+    ReloadedCurrentSongMessageCommand = function(self)
+        WHEELDATA:ReloadWheelData()
+        self:playcommand("UpdateFilters")
+    end,
 }
 
 
