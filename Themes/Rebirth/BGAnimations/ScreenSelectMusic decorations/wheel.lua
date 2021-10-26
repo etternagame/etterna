@@ -291,6 +291,14 @@ local t = Def.ActorFrame {
     UpdateWheelPositionCommand = function(self)
         self:playcommand("SetThePositionForThisFrameNothingElse")
     end,
+    DFRFinishedMessageCommand = function(self, params)
+        if params and params.newsongs then
+            if params.newsongs > 0 then
+                WHEELDATA:ReloadWheelData()
+                self:playcommand("UpdateFilters")
+            end
+        end
+    end,
 }
 
 
