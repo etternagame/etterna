@@ -5344,6 +5344,9 @@ local function rightFrame()
                         Name = "Create Profile",
                         ChosenFunction = function()
                             -- make a profile
+                            -- make profile, rename new profile
+                            local new = PROFILEMAN:CreateDefaultProfile()
+                            renameProfileDialogue(new)
                         end,
                     }
                 }
@@ -5357,6 +5360,7 @@ local function rightFrame()
                         Name = "Rename Profile",
                         ChosenFunction = function()
                             -- rename a profile
+                            renameProfileDialogue(GetPlayerOrMachineProfile(PLAYER_1))
                         end,
                     }
                 }
