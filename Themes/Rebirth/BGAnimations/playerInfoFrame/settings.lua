@@ -2447,7 +2447,6 @@ local function rightFrame()
     local modsToApplyAtExit = {}
 
     local function checkModsToApply()
-        ms.ok(modsToApplyAtExit)
         local setGraphics = false
         local setGame = nil
         local setTheme = nil
