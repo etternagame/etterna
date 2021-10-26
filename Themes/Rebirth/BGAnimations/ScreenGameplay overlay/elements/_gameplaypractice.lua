@@ -187,8 +187,11 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
         if width ~= wb4 or height ~= hb4 then
             self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
         end
-
+        musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / width
         self:finishtweening()
+    end,
+    PracticeModeReloadMessageCommand = function(self)
+        self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
     end,
 }
 -- extra quad for bookmark position and region
@@ -196,7 +199,7 @@ t[#t+1] = Def.Quad {
     Name = "BookmarkPos",
     InitCommand = function(self)
         -- trickery
-        self:SetFakeParent(self:GetParent():GetChild("ChordDensityGraphFile"))
+        self:SetFakeParent(self:GetParent():GetChild("PracticeCDGraph"))
 
         self:valign(0)
         self:zoomto(bookmarkWidth, height)
