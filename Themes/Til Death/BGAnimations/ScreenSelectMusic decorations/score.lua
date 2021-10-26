@@ -294,6 +294,12 @@ local t = Def.ActorFrame {
 		self:visible(nestedTab == 1)
 		self:queuecommand("Set")
 	end,
+	CurrentStepsChangedMessageCommand = function(self)
+		if getTabIndex() == 2 then
+			self:playcommand("On")
+			self:playcommand("Display")
+		end
+	end,
 	CodeMessageCommand = function(self, params)
 		if nestedTab == 1 and rtTable ~= nil and rtTable[rates[rateIndex]] ~= nil then
 			if params.Name == "NextRate" then
