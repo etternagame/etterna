@@ -299,6 +299,12 @@ local t = Def.ActorFrame {
             end
         end
     end,
+    ReloadedCurrentPackMessageCommand = function(self)
+        WHEELDATA:ReloadWheelData()
+        self:playcommand("UpdateFilters")
+    end,
+    
+
 }
 
 
