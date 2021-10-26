@@ -1605,6 +1605,17 @@ class LunaThemeManager : public Luna<ThemeManager>
 		GameLoop::ChangeTheme(theme_name);
 		return 0;
 	}
+	static int SwitchThemeAndLanguage(T* p, lua_State* L)
+	{
+		std::string theme_name = SArg(1);
+		if (!p->IsThemeSelectable(theme_name)) {
+			luaL_error(L, "SetTheme: Invalid Theme: '%s'", theme_name.c_str());
+		}
+		std::string lang_name = SArg(2);
+
+		p->SwitchThemeAndLanguage(theme_name, lang_name, PREFSMAN->m_bPseudoLocalize);
+		return 0;
+	}
 
 	LunaThemeManager()
 	{
@@ -1636,6 +1647,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 		ADD_METHOD(GetMetricNamesInGroup);
 		ADD_METHOD(GetStringNamesInGroup);
 		ADD_METHOD(SetTheme);
+		ADD_METHOD(SwitchThemeAndLanguage);
 	}
 };
 
