@@ -48,6 +48,21 @@ function WHEELDATA.Reset(self)
 end
 WHEELDATA:Reset()
 
+-- quickly reset just song search
+function getEmptyActiveFilterMetadata()
+    local metadata = {
+        Title = "",
+        Subtitle = "",
+        Artist = "",
+        Author = "",
+    }
+    return metadata
+end
+
+function WHEELDATA.ResetActiveFilterMetadata(self)
+    self.ActiveFilter.metadata = getEmptyActiveFilterMetadata()
+end
+
 -- get wheelItems
 function WHEELDATA.GetWheelItems(self)
     return self.WheelItems
@@ -1104,7 +1119,12 @@ function WHEELDATA.Init(self, forceReset)
     if not firstTimeInit or forceReset then
         firstTimeInit = true
         self:Reset()
+    else
+        -- people apparently dont like search not resetting
+        -- thats the only thing we will reset then
+        self:ResetActiveFilterMetadata()
     end
+
     -- this will fill AllSongs and the SongsByGroup
     self:SetAllSongs()
     self:RefreshStats()

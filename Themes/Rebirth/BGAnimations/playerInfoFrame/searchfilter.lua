@@ -107,7 +107,8 @@ local function upperSection()
     }
 
     -- used to actually search for things in WheelDataManager
-    searchentry = WHEELDATA:GetSearch()
+    -- get an empty one because we dont want to init with a search entry
+    searchentry = getEmptyActiveFilterMetadata()
 
     -- search on the wheel immediately based on the text entered
     local function searchNow()
