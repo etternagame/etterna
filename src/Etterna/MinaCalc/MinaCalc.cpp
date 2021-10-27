@@ -488,7 +488,8 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 		InitAdjDiff(*this, hand);
 
 		// post pattern mod smoothing for cj
-		Smooth(base_adj_diff.at(hand).at(Skill_Chordjack), 1.F, numitv);
+		// (Chordjack related tuning done: this is disabled for now)
+		// Smooth(base_adj_diff.at(hand).at(Skill_Chordjack), 1.F, numitv);
 	}
 
 	// debug info loop
@@ -989,7 +990,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 470;
+int mina_calc_version = 471;
 auto
 GetCalcVersion() -> int
 {

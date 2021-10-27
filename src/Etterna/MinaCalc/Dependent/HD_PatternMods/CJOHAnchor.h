@@ -13,15 +13,15 @@ struct CJOHAnchorMod
 
 #pragma region params
 
-	float min_mod = 1.F;
+	float min_mod = .9F;
 	float max_mod = 1.1F;
 
-	float anchor_len_weight = .5F;
-	float len_scaler = 0.1F;
+	float anchor_len_weight = 1.F;
+	float len_scaler = 0.175F;
 	float swap_scaler = 0.10775F;
 	float not_swap_scaler = 0.019F;
 
-	float base = .75F;
+	float base = .57F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
