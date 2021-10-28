@@ -227,6 +227,9 @@ jobs:
         if: ${{ matrix.cfg.arch == 'x64' }}
         run: choco install ninja nsis openssl curl -y
 
+      - name: Remove Chocolatey's CPack
+        run: rm "C:/ProgramData/Chocolatey/bin/cpack.exe"
+
       - name: Configure MSBuild
         uses: ilammy/msvc-dev-cmd@v1
         with:
