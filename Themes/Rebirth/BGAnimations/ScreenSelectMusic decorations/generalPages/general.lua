@@ -539,12 +539,14 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     end,
     ToolTipCommand = function(self)
         if isOver(self) then
-            if self.song then
+            if self.song and not self:IsInvisible() then
                 local auth = self.song:GetOrTryAtLeastToGetSimfileAuthor()
                 if auth and #auth > 0 then
                     TOOLTIP:SetText(auth)
                     TOOLTIP:Show()
                 end
+            else
+                TOOLTIP:Hide()
             end
         end
     end,
