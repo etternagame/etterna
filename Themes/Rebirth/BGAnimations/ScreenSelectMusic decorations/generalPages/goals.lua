@@ -697,11 +697,11 @@ local function goalList()
                     local perc = notShit.round(goal:GetPercent() * 100000) / 1000
                     local percStr = ""
                     if perc <= 99 or perc == 100 then
-                        percStr = string.format("%.f%%", perc)
+                        percStr = string.format("%5.2f", perc)
                     elseif (perc < 99.8) then
-                        percStr = string.format("%.2f%%", perc)
+                        percStr = string.format("%5.2f", perc)
                     else
-                        percStr = string.format("%.3f%%", perc)
+                        percStr = string.format("%5.3f", perc)
                     end
 
                     local pb = goal:GetPBUpTo()
@@ -709,20 +709,22 @@ local function goalList()
                     if pb then
                         local pbperc = notShit.round(pb:GetWifeScore() * 100000) / 1000
                         if pbperc <= 99 or pbperc == 100 then
-                            pbStr = string.format("%.f%%", pbperc)
+                            pbStr = string.format("%5.2f", pbperc)
                         elseif (perc < 99.8) then
-                            pbStr = string.format("%.2f%%", pbperc)
+                            pbStr = string.format("%5.2f", pbperc)
                         else
-                            pbStr = string.format("%.3f%%", pbperc)
+                            pbStr = string.format("%5.3f", pbperc)
                         end
 
                         local rstr = ""
                         if pb:GetMusicRate() < goal:GetRate() then
-                            rstr = string.format(" %.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
+                            rstr = string.format(" %5.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
                         end
-                        finalstr = string.format("%s (%s%s)", percStr, pbStr, rstr)
+                        -- these gsubs get rid of right trailing 0s and .
+                        finalstr = string.format("%s (%s%s)", percStr:gsub("%.?0+$", "") .. "%", pbStr:gsub("%.?0+$", "") .. "%", rstr)
                     else
-                        finalstr = string.format("%s", percStr)
+                        -- these gsubs get rid of right trailing 0s and .
+                        finalstr = string.format("%s", percStr:gsub("%.?0+$", "") .. "%")
                     end
 
                     txt:settext(finalstr)
