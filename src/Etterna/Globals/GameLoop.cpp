@@ -185,6 +185,7 @@ namespace {
          * now. There's probably be a better way to do it, but I'm not sure
          * what it'd be. -aj */
         THEME->UpdateLuaGlobals();
+		SCREENMAN->ReloadOverlayScreens();
         THEME->ReloadMetrics();
         g_NewGame = std::string();
         g_NewTheme = std::string();
