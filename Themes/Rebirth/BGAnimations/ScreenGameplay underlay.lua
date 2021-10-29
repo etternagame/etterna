@@ -4,11 +4,18 @@
 -- also permamirror and receptorsize/mini because this is early in gameplay init again
 local modslevel = "ModsLevel_Preferred"
 local playeroptions = GAMESTATE:GetPlayerState():GetPlayerOptions(modslevel)
-playeroptions:Mini(2 - playerConfig:get_data().ReceptorSize / 50)
 local profile = PROFILEMAN:GetProfile(PLAYER_1)
 local replaystate = GAMESTATE:GetPlayerState():GetPlayerController() == "PlayerController_Replay"
-if profile:IsCurrentChartPermamirror() and not replaystate then -- turn on mirror if song is flagged as perma mirror
+
+-- turn on mirror if song is flagged as perma mirror
+if profile:IsCurrentChartPermamirror() and not replaystate then
 	playeroptions:Mirror(true)
+end
+
+-- dont apply the player defined receptor size mini if viewing an emulated replay
+local emulating = PREFSMAN:GetPreference("ReplaysUseScoreMods") and replaystate
+if not emulating then
+	playeroptions:Mini(2 - playerConfig:get_data().ReceptorSize / 50)
 end
 
 -- we can set staticbg prefs here and somehow that works out to be early enough to matter
