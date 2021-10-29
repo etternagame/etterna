@@ -13,7 +13,7 @@ local evencols = cols - cols%2
 -- load from prefs later
 local nfspace = MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0
 local width = 64 * cols * MovableValues.NoteFieldWidth + nfspace * (evencols)
-local padding = 8
+local padding = 20
 
 local prefsP1 = playerConfig:get_data().LaneCover
 local isReverseP1 = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
@@ -66,9 +66,9 @@ local yoffsetstandard = THEME:GetMetric("Player", "ReceptorArrowsYStandard")
 local function getNoteFieldHeight()
     local usingreverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
     if usingreverse then
-        return (SCREEN_CENTER_Y + yoffsetreverse)
+        return (SCREEN_CENTER_Y + yoffsetreverse / getNoteFieldScale())
     else
-        return (SCREEN_CENTER_Y - yoffsetstandard)
+        return (SCREEN_CENTER_Y - yoffsetstandard / getNoteFieldScale())
     end
 end
 
@@ -128,8 +128,8 @@ local t = Def.ActorFrame {
             greentext:smooth(0.75)
             greentext:diffusealpha(0)
 
-            whitetext:x(-(width * getNoteFieldScale(PLAYER_1) / 8))
-            greentext:x((width * getNoteFieldScale(PLAYER_1) / 8))
+            whitetext:x(-(width / 8))
+            greentext:x((width / 8))
         end
 
         self:playcommand("SetMovableWidths")
@@ -149,11 +149,10 @@ t[#t + 1] = Def.Quad {
         self:playcommand("SetMovableWidths")
         self:diffuse(laneColor)
         self:diffusealpha(1)
-
     end,
     SetMovableWidthsCommand = function(self)
         self:x(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) / 2 or 0)
-        self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), heightP1)
+        self:zoomto((width + padding), heightP1)
     end,
 }
 
@@ -174,7 +173,7 @@ t[#t+1] = Def.Quad {
     end,
     SetMovableWidthsCommand = function(self)
         self:x(cols % 2 == 0 and -(MovableValues.NoteFieldSpacing and MovableValues.NoteFieldSpacing or 0) / 2 or 0)
-        self:zoomto((width + padding) * getNoteFieldScale(PLAYER_1), SCREEN_HEIGHT)
+        self:zoomto((width + padding), SCREEN_HEIGHT)
         if allowedCustomization then
             self:zoomy(0)
         end
@@ -207,7 +206,7 @@ t[#t + 1] = LoadFont("Common Normal") .. {
         self:diffusealpha(0)
     end,
     SetMovableWidthsCommand = function(self)
-        self:x(-(width * getNoteFieldScale(PLAYER_1) / 8))
+        self:x(-(width / 8))
     end,
 }
 t[#t + 1] = LoadFont("Common Normal") .. {
@@ -221,7 +220,7 @@ t[#t + 1] = LoadFont("Common Normal") .. {
         self:settext(0)
     end,
     SetMovableWidthsCommand = function(self)
-        self:x((width * getNoteFieldScale(PLAYER_1) / 8))
+        self:x((width / 8))
     end,
     BeginCommand = function(self)
         self:settext(math.floor(getSpeed(PLAYER_1)))
