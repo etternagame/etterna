@@ -13,9 +13,9 @@ local oldspacing = MovableValues.NoteFieldSpacing
 local filter
 local cbContainer
 
--- this happens when not in gameplay (we dont need it anyways)
-if noteFieldWidth == nil then
-    return Def.ActorFrame {}
+-- dont load outside of gameplay
+if Var("LoadingScreen") ~= nil and Var("LoadingScreen"):find("Gameplay") == nil then
+    return Def.Actor {}
 end
 
 local t = Def.ActorFrame {Name = "NoteFieldBoardFile"}

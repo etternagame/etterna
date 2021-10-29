@@ -1,7 +1,11 @@
-if MovableValues == nil or MovableValues.NoteFieldWidth == nil then
+-- the cover for the notefield
+-- responsible for basically being the bms/iidx lane cover
+-- and whatever else you want
+
+-- dont load outside of gameplay
+if Var("LoadingScreen") ~= nil and Var("LoadingScreen"):find("Gameplay") == nil then
     return Def.Actor {}
 end
-
 
 local laneColor = COLORS:getGameplayColor("LaneCover")
 local bpmColor = COLORS:getGameplayColor("LaneCoverBPM")
