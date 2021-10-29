@@ -24,9 +24,13 @@ end
 local crossedGroupBorder = false
 local forceGroupCheck = false
 local diffSelection = 1 -- index of the selected chart
+local enteringSong = false
 
 Wheel.mt = {
     updateMusicFromCurrentItem = function(whee)
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+
         SOUND:StopMusic()
 
         local top = SCREENMAN:GetTopScreen()
@@ -43,6 +47,9 @@ Wheel.mt = {
         end
     end,
     updateGlobalsFromCurrentItem = function(whee, dontUpdateSteps)
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+
         -- update Gamestate current song
         local currentItem = whee:getItem(whee.index)
         if currentItem.GetDisplayMainTitle then
@@ -140,6 +147,9 @@ Wheel.mt = {
         end
     end,
     move = function(whee, num)
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+        
         if num == whee.moving then return end
 
         if whee.moving ~= 0 and num == 0 and whee.timeBeforeMovingBegins == 0 then
@@ -160,6 +170,9 @@ Wheel.mt = {
         SOUND:StopMusic()
     end,
     changemusic = function(whee, num)
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+        
         whee.index = getIndexCircularly(whee.items, whee.index + num)
         whee.positionOffsetFromSelection = whee.positionOffsetFromSelection + num
         MESSAGEMAN:Broadcast("WheelIndexChanged", {
@@ -176,6 +189,9 @@ Wheel.mt = {
         whee.group = group
     end,
     findSong = function(whee, chartkey, group) -- returns the group that opened while finding this song
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+
         local song = nil
         local steps = nil
 
@@ -237,6 +253,9 @@ Wheel.mt = {
         end
     end,
     findGroup = function(whee, name, openGroup) -- returns success status
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+
         if name == nil then name = whee.group end
         if name == nil then return nil end
 
@@ -260,6 +279,9 @@ Wheel.mt = {
         return true
     end,
     exitGroup = function(whee)
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+
         if whee.group == nil then return end
         crossedGroupBorder = false
         forceGroupCheck = true
@@ -285,6 +307,9 @@ Wheel.mt = {
         })
     end,
     openSortModeMenu = function(w)
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+
         -- 0 is the sort mode menu
         WHEELDATA:SetCurrentSort(0)
         WHEELDATA:UpdateFilteredSonglist()
@@ -341,6 +366,9 @@ Wheel.mt = {
         return whee:getFrame(whee.index)
     end,
     update = function(whee)
+        -- if transitioning into a song dont let the wheel do anything
+        if enteringSong then return end
+
         -- this is written so that iteration runs in a specific direction
         -- pretty much to avoid certain texture updating issues
         local direction = whee.positionOffsetFromSelection >= 0 and 1 or -1
@@ -510,6 +538,9 @@ function Wheel:new(params)
                 if CONTEXTMAN:CheckContextSet(snm, "AssetSettings") then return end
                 if CONTEXTMAN:CheckContextSet(snm, "Keybindings") then return end
                 if CONTEXTMAN:CheckContextSet(snm, "ColorConfig") then return end
+
+                -- if transitioning into a song dont let the wheel do anything
+                if enteringSong then return end
 
                 if event.type == "InputEventType_FirstPress" then
                     resetTimeout()
@@ -707,6 +738,7 @@ function MusicWheel:new(params)
 
     -- reset all WHEELDATA info, set up stats
     WHEELDATA:Init()
+    enteringSong = false
 
     local w
     w = Wheel:new {
@@ -762,6 +794,7 @@ function MusicWheel:new(params)
                 SCREENMAN:GetTopScreen():SelectCurrent()
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
                 MESSAGEMAN:Broadcast("SelectedSong")
+                enteringSong = true
             else
                 local group = songOrPack
 
