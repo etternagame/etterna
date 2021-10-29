@@ -398,10 +398,12 @@ local function makeUI()
                             local info = getInfoForSelectedGameplayElement()
                             -- mega hack (sign of bad design)
                             -- if the screen is selected, fake an info object
-                            info = {
-                                coordInc = {5,1},
-                                zoomInc = {0.05,0.01},
-                            }
+                            if info == nil then
+                                info = {
+                                    coordInc = {5,1},
+                                    zoomInc = {0.05,0.01},
+                                }
+                            end
 
                             local bigIncrement = true
                             local reverse = false
