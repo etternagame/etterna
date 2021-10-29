@@ -268,6 +268,9 @@ t[#t + 1] = Def.Sprite {
         self:diffusealpha(1)
     end,
     ChangeStepsCommand = function(self, params)
+        -- just to make sure nothing funny happens make sure that we cant get into an impossible chart
+        if GAMESTATE:GetCurrentSong() == nil then return end
+
         -- actually do the work to set all game variables to make sure this diff plays if you press enter
         GAMESTATE:SetPreferredDifficulty(PLAYER_1, params.steps:GetDifficulty())
         GAMESTATE:SetCurrentSteps(PLAYER_1, params.steps)
