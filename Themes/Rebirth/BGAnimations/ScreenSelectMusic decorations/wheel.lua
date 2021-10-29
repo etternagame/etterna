@@ -1355,10 +1355,8 @@ t[#t+1] = Def.ActorFrame {
             if params.event == "DeviceButton_left mouse button" then
                 if not self:GetParent():GetChild("GroupPage"):IsInvisible() then
                     -- left clicking the group header gives a random song in the group
-                    -- for some reason this breaks you out of groups into others
-                    -- i believe this is either a race condition (???) or duplicate songs being found in other groups
                     local song = WHEELDATA:GetRandomSongInFolder(openedGroup)
-                    self:GetParent():GetParent():GetChild("WheelContainer"):playcommand("FindSong", {song = song})
+                    self:GetParent():GetParent():GetChild("WheelContainer"):playcommand("FindSong", {song = song, group = openedGroup})
                 elseif not self:GetParent():GetChild("MiscPage"):IsInvisible() then
                     -- left clicking the normal header gives a random group (???)
                     local group = WHEELDATA:GetRandomFolder()

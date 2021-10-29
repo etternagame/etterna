@@ -831,11 +831,12 @@ end
 -- find the index of the desired song in the filtered list of songs
 -- first by looking through all groups in order, then opening a group and finding it within
 -- this could instead use self:GetWheelItemsForOpenedFolder as a shortcut but today it shall not
-function WHEELDATA.FindIndexOfSong(self, song)
+-- group is entirely optional. if it is given, coerce the result into being in that group
+function WHEELDATA.FindIndexOfSong(self, song, givenGroup)
     local sortmode = self:GetCurrentSort()
     if sortmode == nil then return 1 end
 
-    local foldername = sortmodeImplementations[sortmode][2](song)
+    local foldername = givenGroup or sortmodeImplementations[sortmode][2](song)
     local folderIndex = self:FindIndexOfFolder(foldername)
     if folderIndex == -1 then return 1 end
     local sdir = song:GetSongDir()
@@ -852,7 +853,8 @@ function WHEELDATA.FindIndexOfSong(self, song)
 end
 
 -- a very generous helper function to do both of the above functions at once
-function WHEELDATA.GetWheelItemsAndGroupAndIndexForSong(self, song)
+-- group is entirely optional. if it is given, coerce the result group into being that group
+function WHEELDATA.GetWheelItemsAndGroupAndIndexForSong(self, song, givenGroup)
     local sortmode = self:GetCurrentSort()
     
     -- handle this exceptional case just for completeness
@@ -861,8 +863,8 @@ function WHEELDATA.GetWheelItemsAndGroupAndIndexForSong(self, song)
         return tableconcat(items1, {self.AllFolders[1]}, items2), self.AllFolders[1], 1
     end
 
-    local group = sortmodeImplementations[sortmode][2](song)
-    local index = self:FindIndexOfSong(song)
+    local index = self:FindIndexOfSong(song, givenGroup)
+    local group = givenGroup or sortmodeImplementations[sortmode][2](song)
     local outitems = self:GetWheelItemsForOpenedFolder(group)
 
     return outitems, group, index

@@ -957,15 +957,15 @@ t[#t+1] = Def.ActorFrame {
                 TOOLTIP:Hide()
                 local scr = SCREENMAN:GetTopScreen()
                 if not params or params and params.event == "DeviceButton_left mouse button" then
+                    -- full random
                     local group = WHEELDATA:GetRandomFolder()
                     local song = WHEELDATA:GetRandomSongInFolder(group)
                     scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
                 else
                     if openedGroup ~= nil and #openedGroup > 0 then
-                        -- for some reason this breaks you out of groups into others
-                        -- i believe this is either a race condition (???) or duplicate songs being found in other groups
+                        -- random song in group
                         local song = WHEELDATA:GetRandomSongInFolder(openedGroup)
-                        scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
+                        scr:GetChild("WheelFile"):playcommand("FindSong", {song = song, group = openedGroup})
                     else
                         -- when not in any group, get a random group
                         local group = WHEELDATA:GetRandomFolder()

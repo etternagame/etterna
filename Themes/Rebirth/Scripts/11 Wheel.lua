@@ -175,7 +175,7 @@ Wheel.mt = {
         whee.items = items
         whee.group = group
     end,
-    findSong = function(whee, chartkey) -- returns the group that opened while finding this song
+    findSong = function(whee, chartkey, group) -- returns the group that opened while finding this song
         local song = nil
         local steps = nil
 
@@ -183,7 +183,26 @@ Wheel.mt = {
         if chartkey == nil then
             song = GAMESTATE:GetPreferredSong()
         else
-            song = SONGMAN:GetSongByChartKey(chartkey)
+            -- if group is given, attempt to force the found song to be in that group
+            if group ~= nil then
+                local songs = WHEELDATA:GetSongsInFolder(group)
+                local function chartByChartkey(song)
+                    for _, c in ipairs(song:GetAllSteps()) do
+                        if c:GetChartKey() == chartkey then return c end
+                    end
+                    return nil
+                end
+                for _,s in ipairs(songs) do
+                    if chartByChartkey(s) ~= nil then
+                        song = s
+                        break
+                    end
+                end
+            end
+            -- if no group is given or song is never found in the group, this will always work
+            if song == nil then
+                song = SONGMAN:GetSongByChartKey(chartkey)
+            end
         end
 
         -- a song must pass the filter if being warped to
@@ -193,7 +212,7 @@ Wheel.mt = {
 
         -- jump to the first instance of the song if it exists
         if song ~= nil then
-            local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song)
+            local newItems, songgroup, finalIndex = WHEELDATA:GetWheelItemsAndGroupAndIndexForSong(song, group)
 
             if chartkey == nil then
                 steps = WHEELDATA:GetChartsMatchingFilter(song)[1]
@@ -902,7 +921,7 @@ function MusicWheel:new(params)
 
     w.FindSongCommand = function(self, params)
         if params.chartkey ~= nil then
-            local group = w:findSong(params.chartkey)
+            local group = w:findSong(params.chartkey, params.group)
             if group ~= nil then
                 -- found the song, set up the group focus and send out the related messages for consistency
                 crossedGroupBorder = true
@@ -934,7 +953,7 @@ function MusicWheel:new(params)
         elseif params.song ~= nil then
             local charts = WHEELDATA:GetChartsMatchingFilter(params.song)
             if #charts > 0 then
-                local group = w:findSong(charts[1]:GetChartKey())
+                local group = w:findSong(charts[1]:GetChartKey(), params.group)
                 if group ~= nil then
                     -- found the song, set up the group focus and send out the related messages for consistency
                     crossedGroupBorder = true
