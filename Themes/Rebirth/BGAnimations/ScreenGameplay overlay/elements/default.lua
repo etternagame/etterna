@@ -28,6 +28,10 @@ end
 
 if practiceEnabled or replayEnabled or customizationEnabled then
     t[#t+1] = LoadActor("../../_mouse.lua")
+else
+    -- re entering gameplay should empty the mouse overlay stuff
+    local screenName = Var("LoadingScreen") or ...
+    BUTTON:ResetButtonTable(screenName)
 end
 
 return t

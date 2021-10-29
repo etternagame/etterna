@@ -28,14 +28,6 @@ local elementSizeTextSize = 1
 local elementListTextSize = 1
 local uiInstructionTextSize = 0.6
 
-local function spaceNoteFieldCols(inc)
-    if inc == nil then inc = 0 end
-    local hCols = math.floor(#noteColumns/2)
-    for i, col in ipairs(noteColumns) do
-        col:addx((i-hCols-1) * inc)
-    end
-end
-
 local t = Def.ActorFrame {
     Name = "GameplayElementsCustomizer",
     InitCommand = function(self)
