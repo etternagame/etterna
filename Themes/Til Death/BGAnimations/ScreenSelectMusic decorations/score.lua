@@ -300,6 +300,9 @@ local t = Def.ActorFrame {
 	CurrentStepsChangedMessageCommand = function(self)
 		if getTabIndex() == 2 then
 			self:playcommand("On")
+			if rtTable == nil or #rtTable == 0 or rates == nil or #rates == 0 or rates[rateIndex] == nil or rtTable[rates[rateIndex]] == nil then
+				return
+			end
 			self:playcommand("Display")
 		end
 	end,
