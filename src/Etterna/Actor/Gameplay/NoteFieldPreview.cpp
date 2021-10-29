@@ -106,6 +106,15 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 	
 	Init(m_pPlayerState, noteFieldHeight, false);
 
+	// force update current player options
+	// (bad interim solution until we hand preview its own player options)
+	m_pPlayerState->m_PlayerOptions.GetCurrent() =
+	  m_pPlayerState->m_PlayerOptions.GetPreferred();
+	m_pPlayerState->m_PlayerOptions.GetStage() =
+	  m_pPlayerState->m_PlayerOptions.GetPreferred();
+	m_pPlayerState->m_PlayerOptions.GetSong() =
+	  m_pPlayerState->m_PlayerOptions.GetPreferred();
+
 	// If NoteData was loaded in InitCommand, this isn't necessary
 	// It would be null if not loaded in InitCommand
 	if (m_pNoteData == nullptr) {
