@@ -138,10 +138,13 @@ local ret = Def.ActorFrame {
 	SetCommand = function(self)
 		self:finishtweening(1)
 		if getTabIndex() == 2 then -- switching to this tab
+			local sd = self:GetParent():GetChild("StepsDisplay")
 			if nestedTab == 2 then
-				self:GetParent():GetChild("StepsDisplay"):visible(false)
+				sd.nested = true
+				sd:visible(false)
 			else
-				self:GetParent():GetChild("StepsDisplay"):visible(true)
+				sd.nested = false
+				sd:visible(true)
 			end
 			if collapsed then -- expand if collaped
 				self:queuecommand("Expand")

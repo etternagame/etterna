@@ -41,6 +41,10 @@ local sd = Def.ActorFrame {
 		local song = song.ptr
 		if song then
 			thesteps = song:GetChartsMatchingFilter()
+			if self.nested and getTabIndex() == 2 then
+				return
+			end
+
 			-- if in online scores tab it still pops up for 1 frame
 			-- so the bug fixed in the above command makes a return
 			-- how sad
