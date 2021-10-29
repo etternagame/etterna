@@ -788,8 +788,8 @@ local function scoreStatsFrame()
                     local grade = gradesToUse[i]
                     local child = self:GetChild("Bar_"..grade)
                     local percentSoFar = runningsum / params.count
-                    local percentForThisBar = barcounts[grade] / params.count
-                    runningsum = runningsum + barcounts[grade]
+                    local percentForThisBar = (barcounts[grade] or 0) / params.count
+                    runningsum = runningsum + (barcounts[grade] or 0)
                     child:x(outlineThickness + maxbarlength() * percentSoFar)
                     child:zoomx(maxbarlength() * percentForThisBar)
                 end
