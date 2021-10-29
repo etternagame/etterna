@@ -98,8 +98,8 @@ local t = Def.ActorFrame {
     Def.Quad {
         Name = "BG",
         InitCommand = function(self)
-            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
-            self:diffusealpha(0.1)
+            --registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            self:diffusealpha(0)
         end,
         SetUpMovableValuesMessageCommand = function(self)
             self:zoomto(MovableValues.ErrorBarWidth, MovableValues.ErrorBarHeight)
