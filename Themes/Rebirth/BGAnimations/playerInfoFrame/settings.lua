@@ -5060,6 +5060,14 @@ local function rightFrame()
                 Directions = preferenceToggleDirections("ShowStats", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
             },
+            {
+                Name = "Tap Glow",
+                Type = "SingleChoice",
+                Explanation = "Show a white flash before notes disappear when using Hidden or Sudden.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("NoGlow", false, true),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("NoGlow", false),
+            }
         },
         --
         -----
