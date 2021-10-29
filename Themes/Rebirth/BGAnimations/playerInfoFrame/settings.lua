@@ -290,7 +290,8 @@ local function leftFrame()
             "Coin",
             "EffectUp",
             "EffectDown",
-            "RestartGameplay"
+            "RestartGameplay",
+            "Select",
         }
         local inMenuPage = false
         local aspectRatioProportion = (16/9) / (SCREEN_WIDTH / SCREEN_HEIGHT)
