@@ -385,6 +385,11 @@ function ReceptorSizeToMini(percent)
     return 2 - percent / 0.5
 end
 
+-- convert a mini to receptor size because this math is really annoying
+function MiniToReceptorSize(mini)
+    return (1 - mini/2)
+end
+
 -- read the function name
 function updateDiscordStatusForGameplay()
     local profile = GetPlayerOrMachineProfile(PLAYER_1)
