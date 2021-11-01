@@ -21,7 +21,7 @@ struct CJOHAnchorMod
 	float swap_scaler = 0.10775F;
 	float not_swap_scaler = 0.019F;
 
-	float base = .57F;
+	float base = .5F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
