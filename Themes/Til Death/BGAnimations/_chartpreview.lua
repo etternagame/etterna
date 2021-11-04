@@ -11,7 +11,7 @@ local calcinfo
 local yPos = Var("yPos")
 local yPosReverse = Var("yPosReverse")
 if not yPos then yPos = 55 end
-if not yPosReverse then yPosReverse = 208 end
+if not yPosReverse then yPosReverse = 60 end
 
 local translated_info = {
 	Paused = THEME:GetString("ChartPreview", "Paused"),
