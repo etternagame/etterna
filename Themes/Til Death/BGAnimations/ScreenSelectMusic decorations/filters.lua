@@ -21,6 +21,7 @@ end
 local numbersafterthedecimal = 0
 
 local hoverAlpha = 0.6
+local instantSearch = themeConfig:get_data().global.InstantSearch
 
 local function FilterInput(event)
 	if event.type ~= "InputEventType_Release" and ActiveSS > 0 and active then
@@ -178,6 +179,7 @@ local f = Def.ActorFrame {
 			self:settext(translated_info["ExplainBounds"])
 		end
 	},
+	--[[ -- hiding extra unnecessary information
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:xy(frameX, frameY + 80 -17):zoom(0.3):halign(0)
@@ -190,6 +192,7 @@ local f = Def.ActorFrame {
 			self:settext(translated_info["ExplainHighestDifficulty"])
 		end
 	},
+	]]
 	UIElements.TextToolTip(1, 1, "Common Large") ..{
 		InitCommand = function(self)
 			self:xy(frameX + frameWidth / 2, 175):zoom(textzoom):halign(0)
@@ -581,13 +584,25 @@ local function CreateFilterInputBox(i)
 end
 
 --reset button
-f[#f + 1] = UIElements.QuadButton(1, 1) .. {
+f[#f + 1] = UIElements.TextButton(1, 1, "Common Large") .. {
 	InitCommand = function(self)
-		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2):zoomto(60, 20):halign(0.5):diffuse(getMainColor("frames")):diffusealpha(
-			0
-		)
+		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2)
+		local txt = self:GetChild("Text")
+		local bg = self:GetChild("BG")
+		txt:zoom(0.35)
+		txt:settext(THEME:GetString("TabFilter", "Reset"))
+		txt:diffuse(getMainColor("positive"))
+		bg:zoomto(60, 20)
 	end,
-	MouseDownCommand = function(self, params)
+	RolloverUpdateCommand = function(self, params)
+		if params.update == "in" then
+			self:diffusealpha(hoverAlpha)
+		else
+			self:diffusealpha(1)
+		end
+	end,
+	ClickCommand = function(self, params)
+		if params.update ~= "OnMouseDown" then return end
 		if params.event == "DeviceButton_left mouse button" and active then
 			FILTERMAN:ResetAllFilters()
 			for i = 1, #ms.SkillSets + 2 do
@@ -603,21 +618,37 @@ f[#f + 1] = UIElements.QuadButton(1, 1) .. {
 			SCREENMAN:set_input_redirected(PLAYER_1, false)
 			whee:SongSearch("")
 		end
-	end
+	end,
 }
-f[#f + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
+--[[
+-- apply button
+f[#f + 1] = UIElements.TextButton(1, 1, "Common Large") .. {
 	InitCommand = function(self)
-		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * 2):halign(0.5):zoom(0.35)
-		self:settext(THEME:GetString("TabFilter", "Reset"))
-		self:diffuse(getMainColor("positive"))
+		self:xy(frameX + frameWidth - 150, frameY + 250 + spacingY * -1)
+		local txt = self:GetChild("Text")
+		local bg = self:GetChild("BG")
+		txt:zoom(0.35)
+		txt:settext(THEME:GetString("TabFilter", "Apply"))
+		txt:diffuse(getMainColor("positive"))
+		bg:zoomto(60, 20)
 	end,
-	MouseOverCommand = function(self)
-		self:diffusealpha(hoverAlpha)
+	RolloverUpdateCommand = function(self, params)
+		if params.update == "in" then
+			self:diffusealpha(hoverAlpha)
+		else
+			self:diffusealpha(1)
+		end
 	end,
-	MouseOutCommand = function(self)
-		self:diffusealpha(1)
+	ClickCommand = function(self, params)
+		if params.update ~= "OnMouseDown" then return end
+		if params.event == "DeviceButton_left mouse button" and active then
+			MESSAGEMAN:Broadcast("NumericInputEnded")
+			SCREENMAN:set_input_redirected(PLAYER_1, false)
+			whee:SongSearch("")
+		end
 	end,
 }
+]]
 
 for i = 1, (#ms.SkillSets + 2) do
 	f[#f + 1] = CreateFilterInputBox(i)
