@@ -19,6 +19,7 @@
 #include "Etterna/Models/Songs/SongUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Singletons/ThemeManager.h"
+#include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Globals/rngthing.h"
 
 #include <algorithm>
@@ -947,6 +948,7 @@ MusicWheel::BuildWheelItemDatas(
 
 		allSongsFiltered = arraySongs;
 		allSongsByGroupFiltered[so].clear();
+		packProgressByGroup[so].clear();
 
 		// make WheelItemDatas with sections
 
@@ -1056,6 +1058,24 @@ MusicWheel::BuildWheelItemDatas(
 					}
 				}
 			}
+		}
+		// calculate the pack progress numbers for the sortorder
+		if (PREFSMAN->m_bPackProgressInWheel) {
+			auto allsongs = allSongsByGroupFiltered.at(so);
+			for (auto& groupname_songlist_pair : allsongs) {
+				int num_played_songs = 0;
+				for (auto& s : groupname_songlist_pair.second) {
+					for (auto& chart : s->GetChartsOfCurrentGameMode()) {
+						if (SCOREMAN->KeyHasScores(chart->GetChartKey())) {
+							num_played_songs++;
+							break;
+						}
+					}
+				}
+				packProgressByGroup.at(so)[groupname_songlist_pair.first] =
+				  num_played_songs;
+			}
+
 		}
 	}
 }

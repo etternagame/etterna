@@ -201,19 +201,10 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 				type = MusicWheelItemType_SectionCollapsed;
 			}
 
-			auto all_songs_by_group = wheel->allSongsByGroupFiltered.at(GAMESTATE->m_SortOrder);
-			auto songs_in_group = all_songs_by_group.find(pWID->m_sText);
-			if (PREFSMAN->m_bPackProgressInWheel && songs_in_group != all_songs_by_group.end()) {
-				int num_played_songs = 0;
-
-				for (auto song : songs_in_group->second) {
-					for (auto chart : song->GetChartsOfCurrentGameMode()) {
-						if (SCOREMAN->KeyHasScores(chart->GetChartKey())) {
-							num_played_songs++;
-							break;
-						}
-					}
-				}
+			auto plays_by_group = wheel->packProgressByGroup.at(GAMESTATE->m_SortOrder);
+			auto plays_in_group = plays_by_group.find(pWID->m_sText);
+			if (PREFSMAN->m_bPackProgressInWheel && plays_in_group != plays_by_group.end()) {
+				int num_played_songs = plays_in_group->second;
 
 				RageColor color;
 				if (num_played_songs == pWID->m_iSectionCount) {

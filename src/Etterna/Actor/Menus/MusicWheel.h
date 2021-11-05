@@ -69,6 +69,10 @@ class MusicWheel : public WheelBase
 	// all songs by sort order by group also filtered
 	std::vector<std::map<std::string, std::vector<Song*>>>
 	  allSongsByGroupFiltered{ NUM_SortOrder };
+	// song grade progress by group
+	std::vector<std::map<std::string, int>> packProgressByGroup{
+		NUM_SortOrder
+	};
 	auto SelectSongOrCourse() -> bool;
 	void SelectSongAfterSearch();
 
