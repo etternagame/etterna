@@ -244,6 +244,8 @@ local function scoreBoard(pn, position)
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
 				clampJudge()
 				judge2 = judge
+				MESSAGEMAN:Broadcast("ForceWindow", {judge=judge})
+				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
 			end
 		end,
 		ChangeScoreCommand = function(self, params)

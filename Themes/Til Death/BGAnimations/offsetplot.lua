@@ -12,6 +12,7 @@ local maxOffset = math.max(180, 180 * tso)
 local baralpha = 0.2
 local bgalpha = 0.8
 local textzoom = 0.35
+local forcedWindow = false
 
 local translated_info = {
 	Left = THEME:GetString("OffsetPlot", "ExplainLeft"),
