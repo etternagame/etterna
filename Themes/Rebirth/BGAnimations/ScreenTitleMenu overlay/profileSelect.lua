@@ -148,6 +148,7 @@ local function generateItems()
         if #profileIDs > 1 then
             SCREENMAN:GetTopScreen():PlaySelectSound()
         end
+        SCREENMAN:GetTopScreen():SetSelectionIndex(0) -- instantly select Game Start
         TITLE:HandleFinalGameStart()
     end
 
