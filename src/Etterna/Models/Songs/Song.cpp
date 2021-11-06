@@ -1195,9 +1195,11 @@ Song::GetStepsToSave(bool bSavingCache, const std::string& path)
 		}
 		vpStepsToSave.push_back(s);
 	}
+	/* // Dont save unknown styles. We can't deal with them
 	for (auto& s : m_UnknownStyleSteps) {
 		vpStepsToSave.push_back(s);
 	}
+	*/
 	return vpStepsToSave;
 }
 
