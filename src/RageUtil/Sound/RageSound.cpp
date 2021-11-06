@@ -353,9 +353,12 @@ RageSound::GetDataToPlay(float* pBuffer,
 			auto until = pBuffer + samplesToCopy;
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
-				mufft_execute_plan_1d(fftPlan, fftBuffer.data(), recentPCMSamples.data());
-				recentPCMSamples.clear();
-				pendingPlayBackCall = true;
+				if (fftPlan != nullptr) {
+					mufft_execute_plan_1d(
+					  fftPlan, fftBuffer.data(), recentPCMSamples.data());
+					recentPCMSamples.clear();
+					pendingPlayBackCall = true;
+				}
 			}
 		}
 	}
@@ -858,6 +861,9 @@ RageSound::ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 	fftBuffer.resize(recentPCMSamplesBufferSize / 2 + 1, {});
 	if (fftPlan) mufft_free_plan_1d(fftPlan);
 	fftPlan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
+	if (!fftPlan)
+		Locator::getLogger()->warn(
+		  "Failed to set playback callback in mufft...");
 }
 
 void
