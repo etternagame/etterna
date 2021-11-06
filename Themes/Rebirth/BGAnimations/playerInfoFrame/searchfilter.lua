@@ -474,6 +474,7 @@ local function lowerSection()
         "Chordjacks",
         "Technical",
         "Length",
+        "Clear %",
     }
 
     -- defines the bounds for each filter line
@@ -491,6 +492,7 @@ local function lowerSection()
         { 0, 40 },  -- Chordjacks
         { 0, 40 },  -- Technical
         { 0, 600 },  -- Length (in seconds)
+        { 85, 100 }, -- Percent
     }
 
     -- convenience to set the upper and lower bound for a skillset
@@ -508,46 +510,56 @@ local function lowerSection()
 
     -- functions for each filter, what they control
     -- each of these filters are range filters, take 2 parameters
+    -- the third parameter are the limits as determined by the filterCategoryLimits table
     -- i know this looks bad but this is just in case we decide to make more filters in the future
     -- and possibly separate the behavior for upper/lower bounds in some case
     local filterCategoryFunction = {
         -- Overall range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(1, lb, ub)
         end,
         -- Stream range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(2, lb, ub)
         end,
         -- Jumpstream range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(3, lb, ub)
         end,
         -- Handstream range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(4, lb, ub)
         end,
         -- Stamina range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(5, lb, ub)
         end,
         -- Jackspeed range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(6, lb, ub)
         end,
         -- Chordjacks range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(7, lb, ub)
         end,
         -- Tech range
-        function(lb, ub)
+        function(lb, ub, limits)
             setSSFilter(8, lb, ub)
         end,
         -- Length range
-        function(lb, ub)
+        function(lb, ub, limits)
             -- funny enough we put the length filter in the mysterious 9th skillset spot
             setSSFilter(9, lb, ub)
-        end
+        end,
+        -- Clear range
+        function(lb, ub, limits)
+            -- and we put the clear filter in the mysterious 10th skillset spot
+            if lb == limits[1] then
+                setSSFilter(10, 0, ub)
+            else
+                setSSFilter(10, lb, ub)
+            end
+        end,
     }
 
     -- functions for each filter, getters for what they control
@@ -589,7 +601,12 @@ local function lowerSection()
         function()
             -- funny enough we put the length filter in the mysterious 9th skillset spot
             return getSSFilter(9)
-        end
+        end,
+        -- Clear range
+        function()
+            -- and we put the clear filter in the mysterious 10th skillset spot
+            return getSSFilter(10)
+        end,
     }
 
     local grabbedSlider = nil
@@ -613,9 +630,9 @@ local function lowerSection()
             local lb, ub = theGetter()
             -- upper bound of 0 is infinite: display an indeterminant upper bound
             if ub == 0 then
-                return string.format("%s\n%d - %d+", theName, lb, theLimits[2])
+                return string.format("%s\n%.2f - %.2f+", theName, lb, theLimits[2])
             else
-                return string.format("%s\n%d - %d", theName, lb, ub)
+                return string.format("%s\n%.2f - %.2f", theName, lb, ub)
             end
         end
 
@@ -627,11 +644,15 @@ local function lowerSection()
 
             local lo, hi = theGetter()
             local lb, ub = theLimits[1], theLimits[2]
+            local range = ub - lb
+            lo = clamp(lo, lb, ub)
+            hi = clamp(hi, lb, ub)
             -- convert upper 0 to 100% (infinite)
             if hi == 0 then hi = ub end
+            if lo == lb then lo = 0 end
             local percentX = localX / width
-            local leftDotPercent = lo / ub
-            local rightDotPercent = hi / ub
+            local leftDotPercent = lo / range
+            local rightDotPercent = hi / range
 
             -- make sure the dot being dragged is not dragged too close to or beyond the other dot
             if grabbedDot == 0 then
@@ -649,14 +670,14 @@ local function lowerSection()
                 return
             end
 
-            local fLower = ub * leftDotPercent
-            local fUpper = ub * rightDotPercent
+            local fLower = lb + (range * leftDotPercent)
+            local fUpper = lb + (range * rightDotPercent)
             -- an upper limit of 100% is meant to be 0 so it can be interpreted as infinite
             if fUpper >= ub then fUpper = 0 end
             fLower = clamp(fLower, 0, ub)
             fUpper = clamp(fUpper, 0, ub)
 
-            theSetter(fLower, fUpper)
+            theSetter(fLower, fUpper, theLimits)
             TOOLTIP:SetText(gatherToolTipString())
             self:GetParent():playcommand("UpdateDots")
         end
@@ -782,7 +803,7 @@ local function lowerSection()
                     end,
                     UpdateDotsCommand = function(self)
                         local lb, ub = theGetter()
-                        local percentX = lb / theLimits[2]
+                        local percentX = clamp((lb - theLimits[1]) / (theLimits[2] - theLimits[1]), 0, 1)
                         self:x(percentX * width)
                     end,
                     MouseDownCommand = function(self, params)
@@ -844,7 +865,7 @@ local function lowerSection()
                     UpdateDotsCommand = function(self)
                         local lb, ub = theGetter()
                         if ub == 0 then ub = theLimits[2] end
-                        local percentX = ub / theLimits[2]
+                        local percentX = clamp((ub - theLimits[1]) / (theLimits[2] - theLimits[1]), 0, 1)
                         self:x(percentX * width)
                     end,
                     MouseDownCommand = function(self, params)
