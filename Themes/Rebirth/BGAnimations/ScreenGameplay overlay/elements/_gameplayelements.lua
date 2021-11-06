@@ -2,7 +2,7 @@
 
 setMovableKeymode(getCurrentKeyMode())
 
-local targetTrackerMode = playerConfig:get_data().TargetTracketMode
+local targetTrackerMode = playerConfig:get_data().TargetTrackerMode
 
 local t = Def.ActorFrame {
     Name = "GameplayElementsController",
