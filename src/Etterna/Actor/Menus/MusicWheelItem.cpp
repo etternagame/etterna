@@ -314,7 +314,7 @@ MusicWheelItem::RefreshGrades()
 	Difficulty dcBest = Difficulty_Invalid;
 	if (pWID->m_pSong != nullptr) {
 		bool hasCurrentStyleSteps = false;
-		auto& allSteps = pWID->m_pSong->GetChartsMatchingFilter();
+		auto allSteps = pWID->m_pSong->GetChartsMatchingFilter();
 		std::unordered_map<Difficulty, std::vector<Steps*>> difficultyToSteps{
 			NUM_Difficulty
 		};
