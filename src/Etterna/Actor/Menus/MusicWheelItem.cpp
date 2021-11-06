@@ -314,23 +314,38 @@ MusicWheelItem::RefreshGrades()
 	Difficulty dcBest = Difficulty_Invalid;
 	if (pWID->m_pSong != nullptr) {
 		bool hasCurrentStyleSteps = false;
+		auto& allSteps = pWID->m_pSong->GetChartsMatchingFilter();
+		std::unordered_map<Difficulty, std::vector<Steps*>> difficultyToSteps{
+			NUM_Difficulty
+		};
+		for (auto& s : allSteps) {
+			auto d = s->GetDifficulty();
+			if (difficultyToSteps.count(d) == 0u) {
+				std::vector<Steps*> v;
+				difficultyToSteps[d] = v;
+			}
+			difficultyToSteps[d].push_back(s);
+		}
 		FOREACH_ENUM_N(Difficulty, 6, i)
 		{
-			Steps* pSteps =
-			  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-			if (pSteps != nullptr) {
-				hasCurrentStyleSteps = true;
-				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-				if (gradeBest >= dcg) {
-					dcBest = i;
-					gradeBest = dcg;
+			if (difficultyToSteps.count(i) == 0u)
+				continue;
+			auto& stepslist = difficultyToSteps[i];
+			for (auto& s : stepslist) {
+				if (s->m_StepsType == st) {
+					hasCurrentStyleSteps = true;
+					Grade dcg =
+					  SCOREMAN->GetBestGradeFor(s->GetChartKey());
+					if (gradeBest >= dcg) {
+						dcBest = i;
+						gradeBest = dcg;
+					}
 				}
 			}
 		}
 		// If no grade was found for the current style/stepstype
 		if (!hasCurrentStyleSteps) {
 			// Get the best grade among all steps
-			auto& allSteps = pWID->m_pSong->GetAllSteps();
 			for (auto& stepsPtr : allSteps) {
 				if (stepsPtr->m_StepsType ==
 					st) // Skip already checked steps of type st
