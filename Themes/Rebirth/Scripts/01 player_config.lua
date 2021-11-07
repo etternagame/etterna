@@ -148,13 +148,13 @@ local defaultGameplaySizes = {
 local defaultConfig = {
     BPMDisplay = true,
     DisplayPercent = true,
-    ErrorBar = 1,
+    ErrorBar = 0, -- 0=off, 1=regular, anythingelse=ewma
     FullProgressBar = true,
     JudgeCounter = true,
     LaneCover = 0, -- 0=off, 1=sudden, 2=hidden
     DisplayMean = true,
     leaderboardEnabled = false,
-    MeasureCounter = true,
+    MeasureCounter = false,
     MiniProgressBar = true,
     NPSDisplay = true,
     NPSGraph = true,
@@ -166,7 +166,7 @@ local defaultConfig = {
     JudgmentTweens = false,
     ComboText = true,
     ComboLabel = true,
-    CBHighlight = true,
+    CBHighlight = false,
 
     ConvertedAspectRatio = false, -- defaults false so that we can load and convert element positions, then set true
     CurrentHeight = SCREEN_HEIGHT,
