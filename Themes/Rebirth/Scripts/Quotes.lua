@@ -242,7 +242,6 @@ local Phrases = {
     ":map:", -- etternaonline
     "Im not a furry", -- :denial:
     "i dont have a table", -- void, living in 1st world poverty
-    "they say do what u love and u never work a day in your life but imo turning your hobby into a job is just retarded. thats why i refuse to take any donations for this. i'll never owe you retards anything", -- mina
     "fucks wrong with your music taste?", -- a dd review on whitey's ice
     "hey what the fuck guys", -- a tim review on whitey's ice
     "who is minty?", -- dd
@@ -270,7 +269,7 @@ local Phrases = {
 	"apart from til death looking like absolute shit there's not too much wrong with it", -- Jole
 	"i keep shitting on 'til death", -- Jole 
 	"i'm pretty sure the celeb worshippers made a server or w/e", -- Sklitter, talking about The Leftovers
-	"do you know who i am", -- Cosmovibe/Stargroup after returning to stepmania(Etterna)
+	"do you know who i am", -- Cosmovibe/Stargroup after returning to Etterna
 	"can we call this the 'help im trapped in a dour pattern factory'", -- Mina, after seeing DourGent's tactical railroad dump
 	"ok i'm gonna sleep, ping me for new files or be FOREVER FUCKED", -- Celebelian at the end of Celeb's dumplings
 	"I took a sip of the ptet potion and I suddenly had carpal tunnel syndrome", -- Tim
@@ -279,9 +278,25 @@ local Phrases = {
 	"the leftovers pilgrimage to the bass pro shop pyramid 2022", -- Tim
 	"That's awesome man I look forward to the next episode on the hit sitcom, Zeta Here", -- tim
 	"so excited....",
-	"friday release!", -- its finally here
-	
-
+	"friday release!",
+	"i literally only stepped makiba", -- nathan
+	"I think all you really need is a good foundation in piano and to do strong hand exercises, and you can take this game far further than brute force. The people with real musical talent always seem to go (forward) so much faster than everyone else.", -- Mikeh/Untimely Friction
+	"I switched to bareframes, my game crashed, and now it's stuck in mandarin", -- aurum
+	"lord forbid zeta", -- Windoze
+	"tried playing etterna, shit just won’t lunch", -- https://twitter.com/cartisbunnylol/status/1453910047701061635
+	"waiting", -- Bamnks repeating himself after submitting a file for EVGP
+	"Wow, this is a horrible choice! don't even know why mines are in this game to begin with their stupid! ", -- https://www.reddit.com/r/Etterna/comments/awdl3i/no_mines_no_score/
+	"The look of til-death genuinely angers me", -- 	Jole complaining about til death for the umpteenth time
+	"I might be a weeb and a furry but I will never watch a vtuber", -- Nick12 being absolutely BASED. :acceptance:
+	"They didn't invent colours untill 2011", -- Void
+	"why does every charter save for me have to be painfully incompetent", -- Sklitterbeer in a twitch chat 
+	"watch your mouth steplet the D8 editor readers are listening", -- DourGent in response to foxfire talking about playtesting
+	"I have a friend from singapore, I'm basically japanese", -- DourGent, referring to Sheenoboo
+	"Acerola Revengance Rising Attack Trubo Reload all-nighter REMIX edition game of the year XTREME", -- DourGent trying to think of names for a potential Acerola sequel
+	"This files got about as much back end as Niki Minaj", -- Freemind2pointo, about PAM!!
+	"Wanna smell my feet right now?", -- Kraezymann on stream
+	"Mina-san!", -- Foxfire
+	"I am overstreaming so it's too slow", -- Heartbeat in EO 
 }
 
 function getRandomQuote(tipType)
