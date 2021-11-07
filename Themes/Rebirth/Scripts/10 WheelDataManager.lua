@@ -400,6 +400,19 @@ local sortmodes = {
     "Author", -- group by chartist
     "Favorite", -- show only Favorites
     "Cleartype", -- group by best cleartype on charts
+    "Ungrouped", -- no grouping, alphabetical order
+    "BPM", -- group by bpm ranges
+    "Top Grade", -- group by best grade
+    "Artist", -- group by song artist
+    "Overall MSD", -- group by highest overall MSD
+    "Stream MSD", -- group by highest stream MSD
+    "Jumpstream MSD", -- group by highest jumpstream MSD
+    "Handstream MSD", -- group by highest handstream MSD
+    "Stamina MSD", -- group by highest stamina MSD
+    "Jackspeed MSD", -- group by highest jack MSD
+    "Chordjack MSD", -- group by highest chordjack MSD
+    "Technical MSD", -- group by highest tech MSD
+    "Length", -- group by length range
 }
 local function sortToString(val)
     return sortmodes[val]
@@ -414,6 +427,7 @@ end
 -- mimicing SongUtil::MakeSortString here to keep behavior consistent
 function WHEELDATA.makeSortString(s)
     local st = s:upper()
+    if st == "." then return "." end
     if #st > 0 then
         if st:find("[.]") == 1 then
             st = string.sub(st, 2)
@@ -448,6 +462,22 @@ local function getTitleSortFoldernameForSong(song)
 end
 
 -- this function sits here for scoping reasons
+-- essentially mimics the C++ behavior to get the first letter of an artist
+local function getArtistSortFoldernameForSong(song)
+    local artist = song:GetTranslitArtist()
+    artist = WHEELDATA.makeSortString(artist)
+    if #artist == 0 then return "" end
+    local fchar = string.byte(artist)
+    if fchar >= string.byte("0") and fchar <= string.byte("9") then
+        return "0-9"
+    end
+    if fchar < string.byte("A") or fchar > string.byte("Z") then
+        return "?????"
+    end
+    return string.sub(artist, 1, 1)
+end
+
+-- this function sits here for scoping reasons
 -- gets the author of a file, for foldername purposes
 local function getAuthorSortFoldernameForSong(song)
     local author = strtrim(song:GetOrTryAtLeastToGetSimfileAuthor():lower():gsub("^%l", string.upper))
@@ -477,6 +507,56 @@ local function getBestCleartypeForSong(song)
         end
     end
     return getClearTypeText(cleartype)
+end
+
+-- this function sits here for scoping reasons
+-- gets the bpm range for the file, for foldername purposes
+local function getBPMSortFoldernameForSong(song)
+    local bpmdivision = 20
+    local bpms = song:GetDisplayBpms()
+    local maxbpm = bpms[2]
+    maxbpm = maxbpm + bpmdivision - (maxbpm % bpmdivision) - 1
+    return string.format("%03d-%03d", maxbpm - (bpmdivision - 1), maxbpm)
+end
+
+-- this function sits here for scoping reasons
+-- gets the length range for the file, for foldername purposes
+local function getLengthSortFoldernameForSong(song)
+    local lengthdivision = 60 -- in seconds
+    local len_a = 0
+    local charts = WHEELDATA:GetChartsMatchingFilter(song)
+    for _, s in ipairs(charts) do
+        local len = s:GetLengthSeconds()
+        len_a = len > len_a and len or len_a
+    end
+    local maxlen = len_a
+    maxlen = maxlen + (lengthdivision - (maxlen % lengthdivision) - 1)
+    local minlen = maxlen - (lengthdivision - 1)
+    return string.format("%s-%s", SecondsToMMSS(minlen), SecondsToMMSS(maxlen))
+end
+
+-- this function sits here for scoping reasons
+-- gets the top grade for the song for foldername purposes
+local function getTopGradeSortFoldernameForSong(song)
+    local grade = song:GetHighestGrade()
+    if grade == nil then
+        return "???"
+    else
+        if grade:find("Invalid") ~= nil then
+            return "???"
+        end
+        return THEME:GetString("Grade", grade:sub(#"Grade_T"))
+    end
+end
+
+local function getHighestDiffForSongBySkillset(song, skillset)
+    local charts = WHEELDATA:GetChartsMatchingFilter(song)
+    local highest = 0
+    for _, s in ipairs(charts) do
+        local msd = s:GetMSD(1, skillset)
+        if msd > highest then highest = msd end
+    end
+    return highest
 end
 
 -- functions responsible for actually sorting things according to the sortmodes table
@@ -685,6 +765,463 @@ local sortmodeImplementations = {
         end,
         function(song)
             return getBestCleartypeForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
+    {   -- Ungrouped sort -- alphabetical order, 1 folder
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+            local fname = "Ungrouped"
+
+            -- build the song list in the group
+            for _, song in ipairs(songs) do
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song 
+            end
+
+            -- sort the song list
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return "Ungrouped"
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
+    {   -- BPM sort -- alphabetical order within folders, folders are bpm ranges
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = getBPMSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getBPMSortFoldernameForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
+    {   -- Top Grade sort -- alphabetical order within folders, folders are best grade on song
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = getTopGradeSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getTopGradeSortFoldernameForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
+    {   -- Artist sort -- alphabetical order within folders, folders are artist names
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = getArtistSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getArtistSortFoldernameForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
+    {   -- Overall MSD sort -- pack folders sorted internally by overall
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 1) < getHighestDiffForSongBySkillset(b, 1)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Stream MSD sort -- pack folders sorted internally by stream
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 2) < getHighestDiffForSongBySkillset(b, 2)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Jumpstream MSD sort -- pack folders sorted internally by js
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 3) < getHighestDiffForSongBySkillset(b, 3)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Handstream MSD sort -- pack folders sorted internally by hs
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 4) < getHighestDiffForSongBySkillset(b, 4)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Stamina MSD sort -- pack folders sorted internally by stamina
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 5) < getHighestDiffForSongBySkillset(b, 5)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Jackspeed MSD sort -- pack folders sorted internally by jacks
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 6) < getHighestDiffForSongBySkillset(b, 6)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Chordjack MSD sort -- pack folders sorted internally by chordjacks
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 7) < getHighestDiffForSongBySkillset(b, 7)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Technical MSD sort -- pack folders sorted internally by technical
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        return getHighestDiffForSongBySkillset(a, 8) < getHighestDiffForSongBySkillset(b, 8)
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
+    },
+
+    {   -- Length sort -- alphabetical order, folders of length ranges
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = getLengthSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getLengthSortFoldernameForSong(song)
         end,
         function(packName)
             return ""
