@@ -545,7 +545,7 @@ local function getTopGradeSortFoldernameForSong(song)
         if grade:find("Invalid") ~= nil then
             return "???"
         end
-        return THEME:GetString("Grade", grade:sub(#"Grade_T"))
+        return THEME:GetString("Grade", grade:sub(#"Grade_T")), grade
     end
 end
 
@@ -822,7 +822,14 @@ local sortmodeImplementations = {
             end
 
             -- sort folders and songs
-            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            table.sort(
+                WHEELDATA.AllFolders,
+                function(a,b)
+                    local af = a:gsub("-", "")
+                    local bf = b:gsub("-", "")
+                    return tonumber(af) < tonumber(bf)
+                end
+            )
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
                     songlist,
@@ -843,9 +850,15 @@ local sortmodeImplementations = {
             WHEELDATA:ResetSorts()
             local songs = WHEELDATA:GetAllSongsPassingFilter()
 
+            -- dynamically track what the localized grades mean
+            -- to fix things for the sort function
+            local gradezz = {}
+
             -- go through AllSongs and construct it as we go, then sort
             for _, song in ipairs(songs) do
-                local fname = getTopGradeSortFoldernameForSong(song)
+                local fname, originalgrade = getTopGradeSortFoldernameForSong(song)
+                gradezz[fname] = originalgrade
+
                 if WHEELDATA.AllSongsByFolder[fname] ~= nil then
                     WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
                 else
@@ -856,7 +869,14 @@ local sortmodeImplementations = {
             end
 
             -- sort folders and songs
-            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            table.sort(
+                WHEELDATA.AllFolders,
+                function(a,b)
+                    if not gradezz[a] then return false end
+                    if not gradezz[b] then return true end
+                    return compareGrades(gradezz[a], gradezz[b])
+                end
+            )
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
                     songlist,
@@ -1212,7 +1232,14 @@ local sortmodeImplementations = {
             end
 
             -- sort folders and songs
-            table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+            table.sort(
+                WHEELDATA.AllFolders,
+                function(a,b)
+                    local af = a:gsub("-", ""):gsub(":", "")
+                    local bf = b:gsub("-", ""):gsub(":", "")
+                    return tonumber(af) < tonumber(bf)
+                end
+            )
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
                     songlist,
