@@ -413,6 +413,7 @@ local sortmodes = {
     "Chordjack MSD", -- group by highest chordjack MSD
     "Technical MSD", -- group by highest tech MSD
     "Length", -- group by length range
+    "Pack Clear Percent", -- group by pack, order packs by percentage of grades, then sort by grade; songs ordered by grade
 }
 local function sortToString(val)
     return sortmodes[val]
@@ -1253,6 +1254,71 @@ local sortmodeImplementations = {
         function(packName)
             return ""
         end,
+    },
+
+    {   -- Pack Clear Percent sort -- group by pack, order packs by percentage of grades, then sort by grade; songs ordered by grade
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- put all the songs in normal groups
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- calculate stats for the groups before sorting
+            WHEELDATA:RefreshStats()
+
+            -- sort by folders by percentage of songs in the groups that have scores
+            table.sort(
+                WHEELDATA.AllFolders,
+                function(a,b)
+                    local astats = WHEELDATA:GetFolderClearStats(a)
+                    local bstats = WHEELDATA:GetFolderClearStats(b)
+                    local aprop = astats.filesWithScores / math.max(astats.validFilesOverall, 1)
+                    local bprop = bstats.filesWithScores / math.max(bstats.validFilesOverall, 1)
+                    if aprop == bprop then
+                        local agrade = astats.lamp
+                        local bgrade = bstats.lamp
+                        if agrade == bgrade then
+                            return a:lower() < b:lower()
+                        else
+                            return compareGrades(agrade, bgrade)
+                        end
+                    else
+                        return aprop > bprop
+                    end
+                end
+            )
+            -- sort each folder by grade, same grades are alphabetical
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    function(a,b)
+                        local agrade = a:GetHighestGrade()
+                        local bgrade = b:GetHighestGrade()
+                        if agrade == bgrade then
+                            return SongUtil.SongTitleComparator(a, b)
+                        else
+                            return compareGrades(agrade, bgrade)
+                        end
+                    end
+                )
+            end
+        end,
+        function(song)
+            return song:GetGroupName()
+        end,
+        function(packName)
+            return SONGMAN:GetSongGroupBannerPath(packName)
+        end,
     }
 }
 
@@ -1475,6 +1541,8 @@ local function getClearStatsForGroup(group)
         lamp = nil, -- starting at nil, this lamp may be any Grade_TierXX. if Grade_Tier20, it is simply a Clear lamp
         clearPerGrade = {}, -- count of SONGS CLEARED per grade (the highest common grade for each song)
         totalScores = 0, -- count of SCORES in the whole group
+        filesWithScores = 0, -- count of SONGS CLEARED overall
+        validFilesOverall = 0, -- count of SONGS THAT ARE ELIGIBLE TO BE CLEARED overall
     }
 
     local maxlamp = "Grade_Tier01"
@@ -1530,12 +1598,16 @@ local function getClearStatsForGroup(group)
 
         -- skip stat intake for negbpm files for now
         if not useswarps then
+            -- add this to the count of valid files
+            out.validFilesOverall = out.validFilesOverall + 1
+
             -- no passing (C+) scores found on an entire song means no lamp is possible
             if foundgrade == nil then
                 if foundgradeUnder1 == nil then
                     maxlamp = nil
                     failed = true
                 else
+                    out.filesWithScores = out.filesWithScores + 1
                     if not failed then
                         maxlamp = "Grade_Tier20"
                     end
@@ -1547,6 +1619,7 @@ local function getClearStatsForGroup(group)
                     end
                 end
             else
+                out.filesWithScores = out.filesWithScores + 1
                 -- check if we found a new lowest common max grade
                 if not failed then
                     if highestrateclear < 1 then
@@ -1576,7 +1649,7 @@ function WHEELDATA.RefreshStats(self)
     self.TotalStats = {
         lampCount = 0,
         clearPerGrade = {},
-        scoreCount = 0
+        scoreCount = 0,
     }
     for groupname, songlist in pairs(self.AllSongsByFolder) do
         local clearStats = getClearStatsForGroup(songlist)
@@ -1653,7 +1726,7 @@ function WHEELDATA.GetFolderClearStats(self, name)
     if self.StatsByFolder[name] ~= nil then
         return self.StatsByFolder[name].clearStats
     end
-    return {lamp = nil,clearPerGrade = {},totalScores = 0,}
+    return {lamp = nil,clearPerGrade = {},totalScores = 0,filesWithScores = 0,validFilesOverall = 0,}
 end
 
 -- sort all songs again basically
