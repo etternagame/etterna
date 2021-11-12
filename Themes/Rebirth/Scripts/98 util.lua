@@ -567,3 +567,36 @@ function renamePlaylistDialogue(oldname)
         end
     )
 end
+
+function newPlaylistDialogue()
+    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+    -- input redirects are controlled here because we want to be careful not to break any prior redirects
+    askForInputStringWithFunction(
+        "Enter New Playlist Name",
+        128,
+        false,
+        function(answer)
+            -- success if the answer isnt blank
+            if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+                SONGMAN:NewPlaylistNoDialog(answer)
+            else
+                on()
+            end
+        end,
+        function() return true, "" end,
+        function()
+            on()
+        end
+    )
+end
