@@ -42,6 +42,9 @@ static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] = {
 };
 
 std::string ScreenTextEntry::s_sLastAnswer = "";
+bool ScreenTextEntry::s_bMustResetInputRedirAtClose = false;
+bool ScreenTextEntry::s_bResetInputRedirTo = false;
+
 
 // Settings:
 namespace {
@@ -386,6 +389,11 @@ ScreenTextEntry::BeginScreen()
 
 	ScreenWithMenuElements::BeginScreen();
 
+	if (s_bMustResetInputRedirAtClose) {
+		s_bResetInputRedirTo = SCREENMAN->get_input_redirected(PLAYER_1);
+		SCREENMAN->set_input_redirected(PLAYER_1, false);
+	}
+
 	if (sQuestion != "")
 		m_textQuestion.SetText(sQuestion);
 	else
@@ -593,6 +601,10 @@ ScreenTextEntry::End(bool bCancelled)
 
 	s_bCancelledLast = bCancelled;
 	s_sLastAnswer = bCancelled ? std::string("") : WStringToString(m_sAnswer);
+	if (s_bMustResetInputRedirAtClose) {
+		s_bMustResetInputRedirAtClose = false;
+		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
+	}
 }
 
 bool
