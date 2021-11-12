@@ -176,6 +176,42 @@ function extractDateFromDateString(given)
     end
 end
 
+-- convert "YYYY-MM-DD HH:MM:SS" to "YYYY-MM" only
+function extractYearAndMonthFromDateString(given)
+    if given == nil then
+        return "0001-01"
+    end
+    given = extractDateFromDateString(given)
+    local arglist = strsplit(given, "-")
+
+    -- 3 entries means it is the correct format
+    if #arglist == 3 then
+        return string.format("%s-%s", arglist[1], arglist[2])
+    else
+        -- uhh...?
+        return given
+    end
+end
+
+-- provide a comparison value to determine the order between 2 dates
+-- time is excluded
+function compareDates(a, b)
+    a = extractDateFromDateString(a)
+    b = extractDateFromDateString(b)
+
+    
+    a = a:gsub("-", "")
+    b = b:gsub("-", "")
+    local av = tonumber(a)
+    local bv = tonumber(b)
+    if av == nil then
+        return false
+    elseif bv == nil then
+        return true
+    end
+    return av < bv
+end
+
 -- convert a long number string into a shorter one
 function shortenNumber(num)
     local suffixes = {
