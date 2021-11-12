@@ -1013,6 +1013,8 @@ local function createList()
         DisplayOnlineOffsetsCommand = function(self, params)
             -- very very very roughly the remaining width of the screen opposite of the scores tab, but lowered to 95%
             local zoombias = (1 + (actuals.MainGraphicWidth + extrasizing) / (SCREEN_WIDTH - actuals.ItemWidth)) * 0.95
+            -- get the x pos based on the wheel position
+            local finalxPos = getWheelPosition() and ((-actuals.MainGraphicWidth - extrasizing/2) * zoombias) or (actuals.ItemWidth + extrasizing)
             self:finishtweening()
             self:diffusealpha(0)
             self:x(actuals.MainGraphicWidth)
@@ -1022,7 +1024,7 @@ local function createList()
             self:z(-200)
             self:decelerate(0.3)
             self:diffusealpha(1)
-            self:xy((-actuals.MainGraphicWidth - extrasizing/2) * zoombias, 0)
+            self:xy(finalxPos, 0)
             self:z(10)
             self:zoom(zoombias)
             self:zoomy(zoombias)
