@@ -978,7 +978,13 @@ local function playlistList()
             updatePlaylists()
             self:playcommand("UpdatePlaylistsTab")
         end,
-        
+        DisplaySinglePlaylistMessageCommand = function(self)
+            -- really hate this garbage naming convention for the message
+            -- this is used for displaying a single playlist in til death but i dont like it
+            updatePlaylists()
+            self:playcommand("UpdatePlaylistsTab")
+        end,
+
         tabChoices(),
         Def.Quad {
             Name = "MouseWheelRegion",
