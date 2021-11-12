@@ -982,7 +982,7 @@ local function playlistList()
             -- really hate this garbage naming convention for the message
             -- this is used for displaying a single playlist in til death but i dont like it
             updatePlaylists()
-            self:playcommand("UpdatePlaylistsTab")
+            self:playcommand("UpdateDetailDisplay")
         end,
 
         tabChoices(),
