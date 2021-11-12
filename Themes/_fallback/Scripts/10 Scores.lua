@@ -671,5 +671,11 @@ end
 -- returns true if A is worth more than B
 -- (based on gradeTiers, A would have a smaller value)
 function compareGrades(a, b)
+	if a == nil then -- covers both (a == nil and b == nil) and (a == nil and b ~= nil)
+		return false
+	elseif b == nil then -- covers (a ~= nil and b == nil)
+		return true
+	end
+	-- covers (a ~= nil and b ~= nil)
 	return gradeTiers[a] < gradeTiers[b]
 end
