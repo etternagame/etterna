@@ -963,6 +963,7 @@ local function createList()
                     self:diffusealpha(1)
                 end,
                 MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         renameProfileDialogue(profile)
                     end
