@@ -63,6 +63,12 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	void SetSampleMusicPosition(float);
 	void PauseSampleMusic();
+	bool ReloadCurrentSong();
+	bool ReloadCurrentPack();
+	bool ToggleCurrentFavorite();
+	bool ToggleCurrentPermamirror();
+	bool GoalFromCurrentChart();
+	bool AddCurrentChartToActivePlaylist();
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
 									bool bForceAccurate = false,
 									bool bExtended = false);

@@ -469,114 +469,25 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		// Reload currently selected song
 		if (holding_shift && bHoldingCtrl && c == 'R' &&
 			m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			auto to_reload = GAMESTATE->m_pCurSong;
-			if (to_reload != nullptr) {
-				auto stepses = to_reload->GetAllSteps();
-				std::vector<string> oldChartkeys;
-				for (auto* steps : stepses)
-					oldChartkeys.emplace_back(steps->GetChartKey());
-
-				to_reload->ReloadFromSongDir();
-				SONGMAN->ReconcileChartKeysForReloadedSong(to_reload,
-														   oldChartkeys);
-
-				MESSAGEMAN->Broadcast("ReloadedCurrentSong");
-				m_MusicWheel.RebuildWheelItems(0);
+			if (ReloadCurrentSong())
 				return true;
-			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			auto to_reload = GAMESTATE->m_pCurSong;
-			if (to_reload != nullptr) {
-				SONGMAN->ForceReloadSongGroup(
-				  to_reload->m_sGroupName);
-
-				m_MusicWheel.RebuildWheelItems(0);
-
-				MESSAGEMAN->Broadcast("ReloadedCurrentPack");
-				SCREENMAN->SystemMessage("Current pack reloaded");
+			if (ReloadCurrentPack())
 				return true;
-			}
 		} else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
-			// Favorite the currently selected song. -Not Kyz
-			auto fav_me_biatch = GAMESTATE->m_pCurSong;
-			if (fav_me_biatch != nullptr) {
-				auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-				if (!fav_me_biatch->IsFavorited()) {
-					fav_me_biatch->SetFavorited(true);
-					pProfile->AddToFavorites(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-					DLMAN->AddFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
-
-					// now update favorites playlist
-					// we have to do this here or it won't work for ??? reasons
-					pProfile->allplaylists.erase("Favorites");
-					SONGMAN->MakePlaylistFromFavorites(
-					  pProfile->FavoritedCharts, pProfile->allplaylists);
-				} else {
-					fav_me_biatch->SetFavorited(false);
-					pProfile->RemoveFromFavorites(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-					DLMAN->RemoveFavorite(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-
-					// we have to do this here or it won't work for ??? reasons
-					pProfile->allplaylists.erase("Favorites");
-					SONGMAN->MakePlaylistFromFavorites(
-					  pProfile->FavoritedCharts, pProfile->allplaylists);
-				}
-				DLMAN->RefreshFavorites();
-				MESSAGEMAN->Broadcast("FavoritesUpdated");
-
-				// update favorites playlist _display_
-				MESSAGEMAN->Broadcast("DisplayAll");
-
-				m_MusicWheel.RebuildWheelItems(0);
+			if (ToggleCurrentFavorite())
 				return true;
-			}
 		} else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
-			// PermaMirror the currently selected song. -Not Kyz
-			auto alwaysmirrorsmh = GAMESTATE->m_pCurSong;
-			if (alwaysmirrorsmh != nullptr) {
-				auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-				if (!alwaysmirrorsmh->IsPermaMirror()) {
-					alwaysmirrorsmh->SetPermaMirror(true);
-					pProfile->AddToPermaMirror(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-				} else {
-					alwaysmirrorsmh->SetPermaMirror(false);
-					pProfile->RemoveFromPermaMirror(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-				}
-
-				// legacy compat TEMP
-				MESSAGEMAN->Broadcast("FavoritesUpdated");
-
-				MESSAGEMAN->Broadcast("PermamirrorUpdated");
-				m_MusicWheel.RebuildWheelItems(0);
+			if (ToggleCurrentPermamirror())
 				return true;
-			}
 		} else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
-			auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-			pProfile->AddGoal(GAMESTATE->m_pCurSteps->GetChartKey());
-			auto asonglol = GAMESTATE->m_pCurSong;
-			if (!asonglol)
+			if (GoalFromCurrentChart())
 				return true;
-
-			asonglol->SetHasGoal(true);
-
-			// legacy compat TEMP
-			MESSAGEMAN->Broadcast("FavoritesUpdated");
-
-			MESSAGEMAN->Broadcast("GoalsUpdated");
-			m_MusicWheel.RebuildWheelItems(0);
-			return true;
 		} else if (bHoldingCtrl && c == 'Q' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			DifferentialReload();
@@ -616,17 +527,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
-			if (SONGMAN->GetPlaylists().empty())
+			if (AddCurrentChartToActivePlaylist())
 				return true;
-
-			SONGMAN->GetPlaylists()[SONGMAN->activeplaylist].AddChart(
-			  GAMESTATE->m_pCurSteps->GetChartKey());
-			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
-			SCREENMAN->SystemMessage(
-			  ssprintf(ADDED_TO_PLAYLIST.GetValue(),
-					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
-					   SONGMAN->activeplaylist.c_str()));
-			return true;
 		} else if (bHoldingCtrl && c == 'T' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
@@ -1619,6 +1521,143 @@ ScreenSelectMusic::PauseSampleMusic()
 	});
 }
 
+bool
+ScreenSelectMusic::ReloadCurrentSong()
+{
+	auto to_reload = GAMESTATE->m_pCurSong;
+	if (to_reload != nullptr) {
+		auto stepses = to_reload->GetAllSteps();
+		std::vector<string> oldChartkeys;
+		for (auto* steps : stepses)
+			oldChartkeys.emplace_back(steps->GetChartKey());
+
+		to_reload->ReloadFromSongDir();
+		SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
+
+		MESSAGEMAN->Broadcast("ReloadedCurrentSong");
+		m_MusicWheel.RebuildWheelItems(0);
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::ReloadCurrentPack()
+{
+	auto to_reload = GAMESTATE->m_pCurSong;
+	if (to_reload != nullptr) {
+		SONGMAN->ForceReloadSongGroup(to_reload->m_sGroupName);
+
+		m_MusicWheel.RebuildWheelItems(0);
+
+		MESSAGEMAN->Broadcast("ReloadedCurrentPack");
+		SCREENMAN->SystemMessage("Current pack reloaded");
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::ToggleCurrentFavorite()
+{
+	auto fav_me_biatch = GAMESTATE->m_pCurSong;
+	if (fav_me_biatch != nullptr) {
+		auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+		if (!fav_me_biatch->IsFavorited()) {
+			fav_me_biatch->SetFavorited(true);
+			pProfile->AddToFavorites(GAMESTATE->m_pCurSteps->GetChartKey());
+			DLMAN->AddFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
+
+			// now update favorites playlist
+			// we have to do this here or it won't work for ??? reasons
+			pProfile->allplaylists.erase("Favorites");
+			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
+											   pProfile->allplaylists);
+		} else {
+			fav_me_biatch->SetFavorited(false);
+			pProfile->RemoveFromFavorites(
+			  GAMESTATE->m_pCurSteps->GetChartKey());
+			DLMAN->RemoveFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
+
+			// we have to do this here or it won't work for ??? reasons
+			pProfile->allplaylists.erase("Favorites");
+			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
+											   pProfile->allplaylists);
+		}
+		DLMAN->RefreshFavorites();
+		MESSAGEMAN->Broadcast("FavoritesUpdated");
+
+		// update favorites playlist _display_
+		MESSAGEMAN->Broadcast("DisplayAll");
+
+		m_MusicWheel.RebuildWheelItems(0);
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::ToggleCurrentPermamirror()
+{
+	auto alwaysmirrorsmh = GAMESTATE->m_pCurSong;
+	if (alwaysmirrorsmh != nullptr) {
+		auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+		if (!alwaysmirrorsmh->IsPermaMirror()) {
+			alwaysmirrorsmh->SetPermaMirror(true);
+			pProfile->AddToPermaMirror(GAMESTATE->m_pCurSteps->GetChartKey());
+		} else {
+			alwaysmirrorsmh->SetPermaMirror(false);
+			pProfile->RemoveFromPermaMirror(
+			  GAMESTATE->m_pCurSteps->GetChartKey());
+		}
+
+		// legacy compat TEMP
+		MESSAGEMAN->Broadcast("FavoritesUpdated");
+
+		MESSAGEMAN->Broadcast("PermamirrorUpdated");
+		m_MusicWheel.RebuildWheelItems(0);
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::GoalFromCurrentChart()
+{
+	auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+	pProfile->AddGoal(GAMESTATE->m_pCurSteps->GetChartKey());
+	auto asonglol = GAMESTATE->m_pCurSong;
+	if (!asonglol)
+		return false;
+
+	asonglol->SetHasGoal(true);
+
+	// legacy compat TEMP
+	MESSAGEMAN->Broadcast("FavoritesUpdated");
+
+	MESSAGEMAN->Broadcast("GoalsUpdated");
+	m_MusicWheel.RebuildWheelItems(0);
+	return true;
+}
+
+bool
+ScreenSelectMusic::AddCurrentChartToActivePlaylist()
+{
+	if (SONGMAN->GetPlaylists().empty())
+		return false;
+
+	SONGMAN->GetPlaylists()[SONGMAN->activeplaylist].AddChart(
+	  GAMESTATE->m_pCurSteps->GetChartKey());
+	MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
+	SCREENMAN->SystemMessage(
+	  ssprintf(ADDED_TO_PLAYLIST.GetValue(),
+			   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
+			   SONGMAN->activeplaylist.c_str()));
+	return true;
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -1951,6 +1990,36 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->PlayCurrentSongSampleMusic(true, BArg(1), BArg(2));
 		return 0;
 	}
+	static int ReloadCurrentSong(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ReloadCurrentSong());
+		return 1;
+	}
+	static int ReloadCurrentPack(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ReloadCurrentPack());
+		return 1;
+	}
+	static int ToggleCurrentFavorite(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ToggleCurrentFavorite());
+		return 1;
+	}
+	static int ToggleCurrentPermamirror(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ToggleCurrentPermamirror());
+		return 1;
+	}
+	static int GoalFromCurrentChart(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->GoalFromCurrentChart());
+		return 1;
+	}
+	static int AddCurrentChartToActivePlaylist(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->AddCurrentChartToActivePlaylist());
+		return 1;
+	}
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(OpenOptions);
@@ -1969,6 +2038,12 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(IsSampleMusicPaused);
 		ADD_METHOD(ChangeSteps);
 		ADD_METHOD(PlayCurrentSongSampleMusic);
+		ADD_METHOD(ReloadCurrentSong);
+		ADD_METHOD(ReloadCurrentPack);
+		ADD_METHOD(ToggleCurrentFavorite);
+		ADD_METHOD(ToggleCurrentPermamirror);
+		ADD_METHOD(GoalFromCurrentChart);
+		ADD_METHOD(AddCurrentChartToActivePlaylist);
 	}
 };
 
