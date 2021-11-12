@@ -58,7 +58,7 @@ end
 -- based on the amount of difficulties displayed we can allow more room for the song information
 -- assuming that we are aligning difficulties to the right
 local function setMaxWidthForSongInfo()
-    local curSongBox = SCREENMAN:GetTopScreen():GetChild("RightFrame"):GetChild("CurSongBoxFile")
+    local curSongBox = SCREENMAN:GetTopScreen():safeGetChild("RightFrame", "CurSongBoxFile")
     if not curSongBox then return end
 
     local diffSlotsOpen = clamp(numshown - #thesteps, 0, numshown)
