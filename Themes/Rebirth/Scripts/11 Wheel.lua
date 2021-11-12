@@ -532,15 +532,85 @@ function Wheel:new(params)
                 local up = gameButton == "Up" or gameButton == "MenuUp"
                 local down = gameButton == "Down" or gameButton == "MenuDown"
                 local keydirection = key == "DeviceButton_left" or key == "DeviceButton_right"
+                
+
+                -- if transitioning into a song dont let the wheel do anything
+                if enteringSong then return end
+
+                -- MASSIVE HACK SECTION
+                -- HUGE HACKS RIGHT HERE
+                -- For every ScreenSelectMusic shortcut that is defined in c++, because the way things work
+                -- if any of those buttons happen to overlap with a GameButton, the c++ input wont be called if it is redirected.
+                -- that means some of the functionality will fail.
+                -- To cope, mimic that exact behavior right here instead.
+                if event.type == "InputEventType_FirstPress" and gameButton ~= "" and event.charNoModifiers ~= nil and SCREENMAN:get_input_redirected(PLAYER_1) then
+                    local ctrl = INPUTFILTER:IsControlPressed()
+                    local shift = INPUTFILTER:IsShiftPressed()
+                    local char = event.charNoModifiers:upper()
+                    local ssm = SCREENMAN:GetTopScreen()
+
+                    -- if settled and the current screen is [net]selectmusic
+                    local allowedToDoAnyOfThis = whee.settled and ssm ~= nil and ssm.GetMusicWheel ~= nil
+
+                    if allowedToDoAnyOfThis then
+                        if ctrl and shift and char == "R" then
+                            -- Reload current song from disk (ctrl shift R)
+                            ssm:ReloadCurrentSong()
+                            return true
+                        elseif ctrl and shift and char == "P" then
+                            -- Reload current pack from disk (ctrl shift P)
+                            ssm:ReloadCurrentPack()
+                            return true
+                        elseif ctrl and char == "F" then
+                            -- Toggle favorite on current chart (ctrl F)
+                            ssm:ToggleCurrentFavorite()
+                            return true
+                        elseif ctrl and char == "M" then
+                            -- Toggle permamirror on current chart (ctrl M)
+                            ssm:ToggleCurrentPermamirror()
+                            return true
+                        elseif ctrl and char == "G" then
+                            -- Set a new goal on current chart (ctrl G)
+                            ssm:GoalFromCurrentChart()
+                            return true
+                        elseif ctrl and char == "Q" then
+                            -- Check songs folder for new songs and load them (ctrl Q)
+                            SONGMAN:DifferentialReload()
+                            return true
+                        elseif ctrl and char == "O" then
+                            -- Toggle practice mode (ctrl O)
+                            GAMESTATE:SetPracticeMode(not GAMESTATE:IsPracticeMode())
+                            ms.ok("Practice Mode "..(GAMESTATE:IsPracticeMode() and "On" or "Off"))
+                            return true
+                        elseif ctrl and char == "S" then
+                            -- Save profile (ctrl S)
+                            if PROFILEMAN:SaveProfile() then
+                                ms.ok("Profile Saved")
+                            else
+                                ms.ok("Profile failed to save...")
+                            end
+                            return true
+                        elseif ctrl and char == "P" then
+                            -- Make a new playlist (ctrl P)
+                            newPlaylistDialogue()
+                            return true
+                        elseif ctrl and char == "A" then
+                            -- Add a new entry to the current playlist (ctrl A)
+                            ssm:AddCurrentChartToActivePlaylist()
+                            return true
+                        elseif ctrl and char == "T" then
+                            -- calc test stuff, dont care
+                        end
+                    end
+                end
+                -- END MASSIVE HACK SECTION
+                -----------
 
                 -- dont allow keyboard input on the wheel while in settings
                 if CONTEXTMAN:CheckContextSet(snm, "Settings") then return end
                 if CONTEXTMAN:CheckContextSet(snm, "AssetSettings") then return end
                 if CONTEXTMAN:CheckContextSet(snm, "Keybindings") then return end
                 if CONTEXTMAN:CheckContextSet(snm, "ColorConfig") then return end
-
-                -- if transitioning into a song dont let the wheel do anything
-                if enteringSong then return end
 
                 if event.type == "InputEventType_FirstPress" then
                     resetTimeout()
@@ -559,7 +629,7 @@ function Wheel:new(params)
                         -- open sort mode menu
                         whee:openSortModeMenu()
                         buttonQueue = {}
-                        return false
+                        return true
                     end
                 end
 
