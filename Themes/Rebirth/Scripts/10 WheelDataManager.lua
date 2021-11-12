@@ -414,6 +414,7 @@ local sortmodes = {
     "Technical MSD", -- group by highest tech MSD
     "Length", -- group by length range
     "Pack Clear Percent", -- group by pack, order packs by percentage of grades, then sort by grade; songs ordered by grade
+    "Last Score Date", -- group by month, order packs chronlogically, songs ordered alphabetically
 }
 local function sortToString(val)
     return sortmodes[val]
@@ -558,6 +559,38 @@ local function getHighestDiffForSongBySkillset(song, skillset)
         if msd > highest then highest = msd end
     end
     return highest
+end
+
+local function getLastMonthSortFoldernameForSong(song)
+    local charts = WHEELDATA:GetChartsMatchingFilter(song)
+    local recentDT = nil
+    for _, chart in ipairs(charts) do
+        local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
+        local useswarps = chart:GetTimingData():HasWarps()
+
+        -- scorestack is nil if no scores on the chart
+        -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
+        if scorestack ~= nil and not useswarps then
+            -- the scores are in lists for each rate
+            -- find the highest
+            for ___, l in pairs(scorestack) do
+                local scoresatrate = l:GetScores()
+                for ____, s in ipairs(scoresatrate) do
+                    local dt = getScoreDate(s)
+                    if dt ~= "" then
+                        if compareDates(recentDT, dt) then
+                            recentDT = dt
+                        end
+                    end
+                end
+            end
+        end
+    end
+    if recentDT == nil or recentDT == "" then
+        return "N/A"
+    else
+        return extractYearAndMonthFromDateString(recentDT)
+    end
 end
 
 -- functions responsible for actually sorting things according to the sortmodes table
@@ -1319,7 +1352,48 @@ local sortmodeImplementations = {
         function(packName)
             return SONGMAN:GetSongGroupBannerPath(packName)
         end,
-    }
+    },
+
+    {   -- Month of last score sort -- group by month, order packs chronlogically, songs ordered alphabetically
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- put all the songs in group by month
+            for _, song in ipairs(songs) do
+                local fname = getLastMonthSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders by the month (newest first)
+            table.sort(
+                WHEELDATA.AllFolders,
+                function(a,b)
+                    return compareDates(b,a)
+                end
+            )
+
+            -- sort songs alphabetically
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getLastMonthSortFoldernameForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    },
 }
 
 -- get the value and string value of the current sort
