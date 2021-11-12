@@ -297,6 +297,9 @@ local function playlistList()
                     -- this breaks so many things
                     if playlist == nil or playlist:GetName() == "Favorites" then
                         self:diffusealpha(0)
+                        if isOver(self) then
+                            TOOLTIP:Hide()
+                        end
                     else
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
@@ -318,6 +321,7 @@ local function playlistList()
                         updatePlaylists()
                         -- self - item - itemlist - playlist tab
                         self:GetParent():GetParent():GetParent():playcommand("UpdatePlaylistsTab")
+                        TOOLTIP:Hide()
                     end
                 end,
                 MouseOverCommand = function(self)
@@ -610,6 +614,9 @@ local function playlistList()
                         -- this breaks so many things
                         if chart == nil or playlist:GetName() == "Favorites" then
                             self:diffusealpha(0)
+                            if isOver(self) then
+                                TOOLTIP:Hide()
+                            end
                         else
                             if isOver(self) then
                                 self:diffusealpha(buttonHoverAlpha)
@@ -627,6 +634,7 @@ local function playlistList()
                         playlist:DeleteChart(index)
                         updatePlaylists()
                         self:GetParent():GetParent():playcommand("UpdateDetailDisplay")
+                        TOOLTIP:Hide()
                     end,
                     MouseOverCommand = function(self)
                         if self:IsInvisible() then return end
