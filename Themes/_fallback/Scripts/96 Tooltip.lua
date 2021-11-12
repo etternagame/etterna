@@ -26,6 +26,9 @@ function TOOLTIP.New(self)
         end,
         OnCommand = function(self)
         end,
+        ScreenChangedMessageCommand = function(self)
+            self:visible(false)
+        end,
         OffCommand = function(self)
             self:visible(false)
         end
