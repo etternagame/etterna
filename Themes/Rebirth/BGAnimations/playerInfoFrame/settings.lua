@@ -334,6 +334,9 @@ local function leftFrame()
                 INPUTMAPPER:SetInputMap(tmp, b, INPUTBINDING.defaultColumn, 0)
             end
 
+            -- make sure doing this didnt break menu navigation
+            INPUTBINDING:MakeSureMenuIsNavigable()
+
             MESSAGEMAN:Broadcast("UpdatedBoundKeys")
         end
 
@@ -413,6 +416,8 @@ local function leftFrame()
             INPUTMAPPER:SetInputMap(combinationPizzaHutAndTacoBell, currentKey, INPUTBINDING.defaultColumn, currentController)
             -- check to see if the button bound
             local result = INPUTMAPPER:GetButtonMapping(currentKey, currentController, INPUTBINDING.defaultColumn)
+            -- make sure we didnt just make navigation impossible
+            INPUTBINDING:MakeSureMenuIsNavigable()
             return result ~= nil
         end
 
