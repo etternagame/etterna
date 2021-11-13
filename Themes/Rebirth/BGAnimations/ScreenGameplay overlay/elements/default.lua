@@ -6,6 +6,7 @@ local replayEnabled = GAMESTATE:GetGameplayMode() == "GameplayMode_Replay"
 
 if not replayEnabled and not customizationEnabled and not practiceEnabled then
     Arch.setCursorVisible(false)
+    TOOLTIP:HidePointer()
 end
 
 
