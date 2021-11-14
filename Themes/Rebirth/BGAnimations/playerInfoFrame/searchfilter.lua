@@ -645,14 +645,12 @@ local function lowerSection()
             local lo, hi = theGetter()
             local lb, ub = theLimits[1], theLimits[2]
             local range = ub - lb
-            lo = clamp(lo, lb, ub)
-            hi = clamp(hi, lb, ub)
             -- convert upper 0 to 100% (infinite)
             if hi == 0 then hi = ub end
             if lo == lb then lo = 0 end
             local percentX = localX / width
-            local leftDotPercent = lo / range
-            local rightDotPercent = hi / range
+            local leftDotPercent = math.max(0, (lo - lb)) / range
+            local rightDotPercent = math.min(ub, (hi - lb)) / range
 
             -- make sure the dot being dragged is not dragged too close to or beyond the other dot
             if grabbedDot == 0 then
@@ -749,16 +747,25 @@ local function lowerSection()
 
                             local lo, hi = theGetter()
                             local lb, ub = theLimits[1], theLimits[2]
+                            local range = ub - lb
                             -- convert upper 0 to 100% (infinite)
                             if hi == 0 then hi = ub end
                             local percentX = localX / width
-                            local leftDotPercent = lo / ub
-                            local rightDotPercent = hi / ub
+                            local leftDotPercent = math.max(0, (lo - lb)) / range
+                            local rightDotPercent = math.min(ub, (hi - lb)) / range
 
                             -- set the grabbed dot to the closest dot
                             if math.abs(percentX - rightDotPercent) < math.abs(percentX - leftDotPercent) then
                                 -- closer to the right dot
                                 grabbedDot = 1
+                            elseif math.abs(percentX - rightDotPercent) == math.abs(percentX - leftDotPercent) then
+                                -- somehow in the center or the dots are on top of each other
+                                -- pick the closest dot by direction
+                                if percentX > rightDotPercent then
+                                    grabbedDot = 1
+                                elseif percentX < leftDotPercent then
+                                    grabbedDot = 0
+                                end
                             else
                                 -- closer to the left dot or in the middle
                                 grabbedDot = 0
