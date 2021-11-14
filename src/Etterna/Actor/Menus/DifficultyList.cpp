@@ -266,7 +266,7 @@ StepsDisplayList::SetFromGameState()
 			m_Lines.resize(m_Rows.size());
 
 			for (auto j = startingIndex; j < m_Lines.size(); j++) {
-				auto m_Line = m_Lines[j];
+				auto& m_Line = m_Lines[j];
 				m_Line.m_Meter.SetName("Row");
 				m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
 				this->AddChild(&m_Line.m_Meter);
@@ -294,7 +294,7 @@ StepsDisplayList::SetFromGameState()
 			m_Lines.resize(m_Rows.size());
 
 			for (auto j = startingIndex; j < m_Lines.size(); j++) {
-				auto m_Line = m_Lines[j];
+				auto& m_Line = m_Lines[j];
 				m_Line.m_Meter.SetName("Row");
 				m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
 				this->AddChild(&m_Line.m_Meter);
