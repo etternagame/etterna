@@ -807,7 +807,7 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 	MouseOutCommand = function(self)
 		self:diffusealpha(1)
 	end,
-	MouseDownCommand = function(self)
+	MouseDownCommand = function(self, params)
 		if nestedTab == 1 and params.event == "DeviceButton_left mouse button" then
 			if getTabIndex() == 2 and isOver(self) and DLMAN:IsLoggedIn() then
 				DLMAN:UploadScoresForChart(score:GetChartKey())
@@ -832,7 +832,7 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 	MouseOutCommand = function(self)
 		self:diffusealpha(1)
 	end,
-	MouseDownCommand = function(self)
+	MouseDownCommand = function(self, params)
 		if nestedTab == 1 and params.event == "DeviceButton_left mouse button" then
 			if getTabIndex() == 2 and isOver(self) and DLMAN:IsLoggedIn() then
 				DLMAN:UploadScoresForPack(GAMESTATE:GetCurrentSong():GetGroupName())
@@ -857,7 +857,7 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 	MouseOutCommand = function(self)
 		self:diffusealpha(1)
 	end,
-	MouseDownCommand = function(self)
+	MouseDownCommand = function(self, params)
 		if nestedTab == 1 and params.event == "DeviceButton_left mouse button" then
 			if getTabIndex() == 2 and isOver(self) and DLMAN:IsLoggedIn() then
 				DLMAN:UploadAllScores()
