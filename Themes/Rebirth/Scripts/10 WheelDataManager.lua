@@ -1859,6 +1859,8 @@ local function getClearStatsForGroup(group)
             end
         end
     end
+
+    if out.validFilesOverall == 0 then maxlamp = nil end
     out.lamp = maxlamp
 
     return out
