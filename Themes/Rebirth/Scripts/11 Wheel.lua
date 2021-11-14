@@ -857,6 +857,11 @@ function MusicWheel:new(params)
         onSelection = function(frame, songOrPack)
             if songOrPack.GetAllSteps then
                 -- STARTING SONG
+
+                -- force the wheel to settle, otherwise we would crash
+                w.positionOffsetFromSelection = 0
+                w:update()
+
                 crossedGroupBorder = true
                 -- dont update steps (pass true as param)
                 w:updateGlobalsFromCurrentItem(true)
