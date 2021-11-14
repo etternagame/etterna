@@ -56,6 +56,7 @@ class StepsDisplayList final : public ActorFrame
 		{
 			for (auto& x : other.lines)
 				this->lines.push_back(std::make_unique<StepsDisplay>(*x));
+			return *this;
 		}
 	};
 	Lines m_Lines;
