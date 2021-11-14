@@ -62,7 +62,7 @@ local t = Def.ActorFrame {
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
-            musicratio = (GAMESTATE:GetCurrentSong():GetFirstSecond() / getCurRateValue() + GAMESTATE:GetCurrentSteps():GetLengthSeconds()) / wodth * getCurRateValue()
+            musicratio = (GAMESTATE:GetCurrentSteps():GetFirstSecond() / getCurRateValue() + GAMESTATE:GetCurrentSteps():GetLengthSeconds()) / wodth * getCurRateValue()
 		end
 	end,
     SetupNoteFieldCommand=function(self)

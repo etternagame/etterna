@@ -54,7 +54,7 @@ local t = Def.ActorFrame {
             if stepsinuse ~= nil and top ~= nil and song then
                 local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
-                musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
+                musicpositionratio = (stepsinuse:GetFirstSecond() / r + length) / sizing.Width * r
                 if top.GetSampleMusicPosition then
                     local pos = top:GetSampleMusicPosition() / musicpositionratio
                     bar:zoomx(clamp(pos, 0, sizing.Width))
@@ -203,7 +203,7 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
             if stepsinuse and song then
                 local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
-                local musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
+                local musicpositionratio = (stepsinuse:GetFirstSecond() / r + length) / sizing.Width * r
                 if params.event == "DeviceButton_left mouse button" then
                     local withCtrl = INPUTFILTER:IsControlPressed()
                     if withCtrl then
@@ -224,7 +224,7 @@ t[#t+1] = UIElements.QuadButton(1, 1) .. {
                 if stepsinuse and song then
                     local r = getCurRateValue()
                     local length = stepsinuse:GetLengthSeconds()
-                    local musicpositionratio = (song:GetFirstSecond() / r + length) / sizing.Width * r
+                    local musicpositionratio = (stepsinuse:GetFirstSecond() / r + length) / sizing.Width * r
                     top:SetSampleMusicPosition(lx * musicpositionratio)
                 end
             else
