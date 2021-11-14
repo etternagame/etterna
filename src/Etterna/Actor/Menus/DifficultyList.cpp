@@ -50,6 +50,11 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	CAPITALIZE_DIFFICULTY_NAMES.Load(m_sName, "CapitalizeDifficultyNames");
 	MOVE_COMMAND.Load(m_sName, "MoveCommand");
 
+	// This reserve is important. It helps us ensure that when we resize m_Lines later on
+	// to something bigger on a song with more than LINES_INITIAL_ALLOCATION lines we don't
+	// need to reallocate the backing storage of the m_Lines vector. If we do that, the pointers
+	// to the initial LINES_INITIAL_ALLOCATION actors/lines (That we did AddChild on) will be invalidated
+	m_Lines.reserve(128);
 	m_Lines.resize(LINES_INITIAL_ALLOCATION);
 	m_CurSong = nullptr;
 
