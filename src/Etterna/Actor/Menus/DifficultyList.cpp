@@ -273,6 +273,7 @@ StepsDisplayList::SetFromGameState()
 				m_Line->Load("StepsDisplayListRow", nullptr);
 				this->AddChild(m_Line.get());
 			}
+			SortByDrawOrder();
 		}
 		
 		FOREACH_CONST(Difficulty, difficulties, d)
@@ -301,6 +302,7 @@ StepsDisplayList::SetFromGameState()
 				m_Line->Load("StepsDisplayListRow", nullptr);
 				this->AddChild(m_Line.get());
 			}
+			SortByDrawOrder();
 		}
 
 		FOREACH_CONST(Steps*, vpSteps, s)
