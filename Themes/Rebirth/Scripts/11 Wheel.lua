@@ -1098,11 +1098,11 @@ function MusicWheel:new(params)
                 crossedGroupBorder = true
                 forceGroupCheck = true
                 MESSAGEMAN:Broadcast("OpenedGroup", {
-                    group = group,
+                    group = w.group,
                 })
                 w:rebuildFrames()
                 MESSAGEMAN:Broadcast("ModifiedGroups", {
-                    group = group,
+                    group = w.group,
                     index = w.index,
                     maxIndex = #w.items,
                 })
@@ -1128,6 +1128,7 @@ function MusicWheel:new(params)
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
+        local success = false
         if params and params.chartkey ~= nil and params.group ~= nil then
             -- a specific chart within a group was given
             -- (this is used for reloading the wheel and remembering the current position)
@@ -1135,13 +1136,15 @@ function MusicWheel:new(params)
                 group = params.group,
                 chartkey = params.chartkey,
             })
+            success = w.group ~= nil and w.group ~= ""
         elseif params and params.group ~= nil and params.chartkey == nil then
             -- only a group was given. find the group but dont pick any song
-            self:playcommand("FindGroup", {
-                group = params.group,
-            })
-        else
-            -- reset wheel to 1 position
+            success = w:findGroup(params.group, false)
+        end
+
+        -- failure to succeed.
+        -- reset wheel to 1 position
+        if not success then
             w:setNewState(
                 1,
                 1,
