@@ -202,6 +202,7 @@ Wheel.mt = {
             -- if group is given, attempt to force the found song to be in that group
             if group ~= nil then
                 local songs = WHEELDATA:GetSongsInFolder(group)
+                if songs == nil or #songs == 0 then return nil end
                 local function chartByChartkey(song)
                     for _, c in ipairs(song:GetAllSteps()) do
                         if c:GetChartKey() == chartkey then return c end
