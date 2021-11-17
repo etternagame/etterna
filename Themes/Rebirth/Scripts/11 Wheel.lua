@@ -1182,6 +1182,7 @@ function MusicWheel:new(params)
             })
             w.settled = true
         else
+            w:changemusic(0)
             w:rebuildFrames()
         end
     end
