@@ -119,7 +119,7 @@ local function upperSection()
         local w = scr:GetChild("WheelFile")
         if w ~= nil then
             WHEELDATA:SetSearch(searchentry)
-            w:sleep(0.01):queuecommand("UpdateFilters")
+            w:sleep(0.01):queuecommand("ApplyFilter")
         end
         MESSAGEMAN:Broadcast("GeneralTabSet")
     end
@@ -1103,7 +1103,7 @@ local function lowerSection()
             local w = scr:GetChild("WheelFile")
             if w ~= nil then
                 WHEELDATA:SetSearch(searchentry)
-                w:sleep(0.01):queuecommand("UpdateFilters")
+                w:sleep(0.01):queuecommand("ApplyFilter")
             end
             -- but we dont change the input context to keep it from being too jarring
         end

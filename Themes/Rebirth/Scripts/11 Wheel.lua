@@ -1124,46 +1124,57 @@ function MusicWheel:new(params)
         end
     end
 
-    w.UpdateFiltersCommand = function(self)
-        -- reset wheel position to 1 (todo: dont)
-        -- refresh filters
-        WHEELDATA:UpdateFilteredSonglist()
-        
+    w.ReloadFilteredSongsCommand = function(self, params)
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
-        w:setNewState(
-            1,
-            1,
-            function() return WHEELDATA:GetWheelItems() end,
-            newItems,
-            nil
-        )
-        crossedGroupBorder = true
-        forceGroupCheck = true
-        GAMESTATE:SetCurrentSong(nil)
-        GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-        
-        MESSAGEMAN:Broadcast("ClosedGroup", {
-            group = w.group,
-        })
-        w:rebuildFrames()
-        MESSAGEMAN:Broadcast("ModifiedGroups", {
-            group = w.group,
-            index = w.index,
-            maxIndex = #w.items,
-        })
-        w:updateGlobalsFromCurrentItem()
-        w:updateMusicFromCurrentItem()
-        MESSAGEMAN:Broadcast("WheelSettled", {
-            song = GAMESTATE:GetCurrentSong(),
-            group = w.group,
-            hovered = w:getCurrentItem(),
-            steps = GAMESTATE:GetCurrentSteps(),
-            index = w.index,
-            maxIndex = #w.items
-        })
-        w.settled = true
+        if params and params.chartkey ~= nil and params.group ~= nil then
+            -- a specific chart within a group was given
+            -- (this is used for reloading the wheel and remembering the current position)
+            self:playcommand("FindSong", {
+                group = params.group,
+                chartkey = params.chartkey,
+            })
+        elseif params and params.group ~= nil and params.chartkey == nil then
+            -- only a group was given. find the group but dont pick any song
+            self:playcommand("FindGroup", {
+                group = params.group,
+            })
+        else
+            -- reset wheel to 1 position
+            w:setNewState(
+                1,
+                1,
+                function() return WHEELDATA:GetWheelItems() end,
+                newItems,
+                nil
+            )
+            crossedGroupBorder = true
+            forceGroupCheck = true
+            GAMESTATE:SetCurrentSong(nil)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            
+            MESSAGEMAN:Broadcast("ClosedGroup", {
+                group = w.group,
+            })
+            w:rebuildFrames()
+            MESSAGEMAN:Broadcast("ModifiedGroups", {
+                group = w.group,
+                index = w.index,
+                maxIndex = #w.items,
+            })
+            w:updateGlobalsFromCurrentItem()
+            w:updateMusicFromCurrentItem()
+            MESSAGEMAN:Broadcast("WheelSettled", {
+                song = GAMESTATE:GetCurrentSong(),
+                group = w.group,
+                hovered = w:getCurrentItem(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                index = w.index,
+                maxIndex = #w.items
+            })
+            w.settled = true
+        end
     end
 
     w.OpenSortModeMenuCommand = function(self)

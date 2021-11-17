@@ -104,28 +104,30 @@ end
 -- set the search table for filtering
 -- does not actually sort the songs, trigger that with WHEELDATA:SortByCurrentSortmode()
 function WHEELDATA.SetSearch(self, t)
-    if s == nil or s:gsub("^%s*(.-)%s*$", "%1") == "" then
-        if t.Title ~= nil then
-            self.ActiveFilter.metadata.Title = t.Title:lower()
-        else
-            self.ActiveFilter.metadata.Title = ""
-        end
-        if t.Subtitle ~= nil then
-            self.ActiveFilter.metadata.Subtitle = t.Subtitle:lower()
-        else
-            self.ActiveFilter.metadata.Subtitle = ""
-        end
-        if t.Artist ~= nil then
-            self.ActiveFilter.metadata.Artist = t.Artist:lower()
-        else
-            self.ActiveFilter.metadata.Artist = ""
-        end
-        if t.Author ~= nil then
-            self.ActiveFilter.metadata.Author = t.Author:lower()
-        else
-            self.ActiveFilter.metadata.Author = ""
-        end
+    if t == nil then return end
+    -- completely forgot what this is here for
+    -- if s == nil or s:gsub("^%s*(.-)%s*$", "%1") == "" then
+    if t.Title ~= nil then
+        self.ActiveFilter.metadata.Title = t.Title:lower()
+    else
+        self.ActiveFilter.metadata.Title = ""
     end
+    if t.Subtitle ~= nil then
+        self.ActiveFilter.metadata.Subtitle = t.Subtitle:lower()
+    else
+        self.ActiveFilter.metadata.Subtitle = ""
+    end
+    if t.Artist ~= nil then
+        self.ActiveFilter.metadata.Artist = t.Artist:lower()
+    else
+        self.ActiveFilter.metadata.Artist = ""
+    end
+    if t.Author ~= nil then
+        self.ActiveFilter.metadata.Author = t.Author:lower()
+    else
+        self.ActiveFilter.metadata.Author = ""
+    end
+    -- end
 end
 
 -- set the list of tags to exclude
@@ -348,6 +350,44 @@ function WHEELDATA.FilterCheck(self, g)
     end
 
     return passed
+end
+
+-- return whether or not the given song matches all active search terms
+-- note: the search terms should be set by WHEELDATA:SetSearch thus are already lowercase
+local function isExactMetadataMatch(song)
+    if WHEELDATA:IsSearchFilterEmpty() then return false end
+    if not WHEELDATA:IsSearchFilterEmpty() then
+        local title = song:GetDisplayMainTitle():lower()
+        local author = song:GetOrTryAtLeastToGetSimfileAuthor():lower()
+        local artist = song:GetDisplayArtist():lower()
+        local subtitle = song:GetDisplaySubTitle():lower()
+        if WHEELDATA.ActiveFilter.metadata.Title ~= "" then
+           if title ~= WHEELDATA.ActiveFilter.metadata.Title then return false end
+        end
+        if WHEELDATA.ActiveFilter.metadata.Subtitle ~= "" then
+            if subtitle ~= WHEELDATA.ActiveFilter.metadata.Subtitle then return false end
+        end
+        if WHEELDATA.ActiveFilter.metadata.Author ~= "" then
+            if author ~= self.ActiveFilter.metadata.Author then return false end
+        end
+        if WHEELDATA.ActiveFilter.metadata.Artist ~= "" then
+            if artist ~= self.ActiveFilter.metadata.Artist then return false end
+        end
+        return true
+    end
+    return false
+end
+
+-- based on the currently set filters and search terms, find any perfectly matching song
+-- if none exists, return nil
+-- if one exists, return the song
+function WHEELDATA.FindExactSearchMatchSong(self)
+    if not self:IsFiltered() then return nil end
+
+    for _, song in ipairs(self.AllFilteredSongs) do
+        if isExactMetadataMatch(song) then return song end
+    end
+    return nil
 end
 
 -- obtain all songs loaded that pass the active filter

@@ -393,7 +393,7 @@ local function tagList()
                     local scr = SCREENMAN:GetTopScreen()
                     local w = scr:GetChild("WheelFile")
                     if w ~= nil then
-                        w:sleep(0.01):queuecommand("UpdateFilters")
+                        w:sleep(0.01):queuecommand("ApplyFilter")
                     end
                     -- but we dont change the input context to keep it from being too jarring
                 end,
@@ -411,7 +411,7 @@ local function tagList()
                 if w ~= nil then
                     WHEELDATA:ResetExcludedTags()
                     WHEELDATA:ResetRequiredTags()
-                    w:sleep(0.01):queuecommand("UpdateFilters")
+                    w:sleep(0.01):queuecommand("ApplyFilter")
                 end
                 -- but we dont change the input context to keep it from being too jarring
             end,

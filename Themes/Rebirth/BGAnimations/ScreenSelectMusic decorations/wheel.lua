@@ -236,6 +236,12 @@ accThisSession = calcAverageWifePercentThisSession()
 calculateGraphBounds()
 -----
 
+-- the currently opened group (not necessarily the one hovered)
+local openedGroup = ""
+-- the hovered item (can be a group or a song)
+-- if a song: has GetDisplayMainTitle
+local hoveredItem = nil
+
 -- wheel horizontal movement animation speed
 local animationSeconds = 0.1
 local wheelVisibleX = 0
@@ -291,21 +297,83 @@ local t = Def.ActorFrame {
     UpdateWheelPositionCommand = function(self)
         self:playcommand("SetThePositionForThisFrameNothingElse")
     end,
+    WheelSettledMessageCommand = function(self, params)
+        -- just here to update hovered item for controlling the reload stuff
+        if params then
+            hoveredItem = params.hovered
+        end
+    end,
+    ReloadWheelCommand = function(self)
+        -- reloads the wheel data and places you back on the item you were on
+        -- updates any changed filters
+        local group = openedGroup
+        local chartkey = nil
+        if hoveredItem.GetDisplayMainTitle then
+            chartkey = GAMESTATE:GetCurrentSteps():GetChartKey()
+        else
+            group = hoveredItem
+        end
+        WHEELDATA:ReloadWheelData()
+        self:playcommand("ReloadFilteredSongs", {
+            group = group,
+            chartkey = chartkey,
+        })
+    end,
+    ApplyFilterCommand = function(self)
+        -- reloads the wheel data and places you on the first good match based on the search
+
+        -- figure out if we entered the name of a group
+        -- local searchterm = WHEELDATA:GetSearch().Title
+        local findGroup = false
+        --[[
+        if searchterm ~= nil and searchterm ~= "" then
+            -- WHEELDATA:ReloadWheelData() -- this is needed at least once before now
+            findGroup = WHEELDATA:FindIndexOfFolder(searchterm:lower()) ~= -1
+        end
+        ]]
+
+        if findGroup then
+            WHEELDATA:ReloadWheelData()
+
+            -- entered an exact group, go to that group
+            self:playcommand("FindGroup", {
+                group = searchterm:lower()
+            })
+        else
+            if WHEELDATA:IsSearchFilterEmpty() then
+                -- no search term? either search was removed or only a tag was applied.
+                -- in that case, make an attempt to keep the current position
+                -- if the current file got filtered out by a new tag, you are sent to position 1
+                self:playcommand("ReloadWheel")
+            else
+                WHEELDATA:ReloadWheelData()
+                local exactMatchSong = WHEELDATA:FindExactSearchMatchSong()
+                if exactMatchSong ~= nil then
+                    -- there is an exact match maybe we want to go to
+                    self:playcommand("FindSong", {
+                        song = exactMatchSong,
+                    })
+                else
+                    -- there isnt a precise match, just reset the wheel
+                    self:playcommand("ReloadFilteredSongs")
+                end
+            end
+        end
+    end,
     DFRFinishedMessageCommand = function(self, params)
         if params and params.newsongs then
             if params.newsongs > 0 then
-                WHEELDATA:ReloadWheelData()
-                self:playcommand("UpdateFilters")
+                self:playcommand("ReloadWheel")
+            else
+                ms.ok("No new songs loaded")
             end
         end
     end,
     ReloadedCurrentPackMessageCommand = function(self)
-        WHEELDATA:ReloadWheelData()
-        self:playcommand("UpdateFilters")
+        self:playcommand("ReloadWheel")
     end,
     ReloadedCurrentSongMessageCommand = function(self)
-        WHEELDATA:ReloadWheelData()
-        self:playcommand("UpdateFilters")
+        self:playcommand("ReloadWheel")
     end,
 }
 
@@ -1045,8 +1113,6 @@ local function groupActorBuilder()
         }
     }
 end
-
-local openedGroup = ""
 
 t[#t+1] = Def.ActorFrame {
     Name = "WheelContainer",
