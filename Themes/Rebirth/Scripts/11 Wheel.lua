@@ -1181,6 +1181,8 @@ function MusicWheel:new(params)
                 maxIndex = #w.items
             })
             w.settled = true
+        else
+            w:rebuildFrames()
         end
     end
 
