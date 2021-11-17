@@ -252,6 +252,73 @@ Wheel.mt = {
             return nil
         end
     end,
+    findSongHelper = function(w, params)
+        -- internalized function which takes a parameter table, usually from a Command
+        if params.chartkey ~= nil then
+            local group = w:findSong(params.chartkey, params.group)
+            if group ~= nil then
+                -- found the song, set up the group focus and send out the related messages for consistency
+                crossedGroupBorder = true
+                forceGroupCheck = true
+                MESSAGEMAN:Broadcast("OpenedGroup", {
+                    group = group,
+                })
+                w:rebuildFrames()
+                MESSAGEMAN:Broadcast("ModifiedGroups", {
+                    group = group,
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
+                w:move(0)
+                -- dont update the steps in updateGlobalsFromCurrentItem
+                -- the steps was set in w:findSong
+                w:updateGlobalsFromCurrentItem(true)
+                w:updateMusicFromCurrentItem()
+                MESSAGEMAN:Broadcast("WheelSettled", {
+                    song = GAMESTATE:GetCurrentSong(),
+                    group = w.group,
+                    hovered = w:getCurrentItem(),
+                    steps = GAMESTATE:GetCurrentSteps(),
+                    index = w.index,
+                    maxIndex = #w.items,
+                })
+                w.settled = true
+                return true
+            end
+        elseif params.song ~= nil then
+            local charts = WHEELDATA:GetChartsMatchingFilter(params.song)
+            if #charts > 0 then
+                local group = w:findSong(charts[1]:GetChartKey(), params.group)
+                if group ~= nil then
+                    -- found the song, set up the group focus and send out the related messages for consistency
+                    crossedGroupBorder = true
+                    forceGroupCheck = true
+                    MESSAGEMAN:Broadcast("OpenedGroup", {
+                        group = group,
+                    })
+                    w:rebuildFrames()
+                    MESSAGEMAN:Broadcast("ModifiedGroups", {
+                        group = group,
+                        index = w.index,
+                        maxIndex = #w.items,
+                    })
+                    w:updateGlobalsFromCurrentItem()
+                    w:updateMusicFromCurrentItem()
+                    MESSAGEMAN:Broadcast("WheelSettled", {
+                        song = GAMESTATE:GetCurrentSong(),
+                        group = w.group,
+                        hovered = w:getCurrentItem(),
+                        steps = GAMESTATE:GetCurrentSteps(),
+                        index = w.index,
+                        maxIndex = #w.items,
+                    })
+                    w.settled = true
+                    return true
+                end
+            end
+        end
+        return false
+    end,
     findGroup = function(whee, name, openGroup) -- returns success status
         -- if transitioning into a song dont let the wheel do anything
         if enteringSong then return end
@@ -1028,67 +1095,7 @@ function MusicWheel:new(params)
     end
 
     w.FindSongCommand = function(self, params)
-        if params.chartkey ~= nil then
-            local group = w:findSong(params.chartkey, params.group)
-            if group ~= nil then
-                -- found the song, set up the group focus and send out the related messages for consistency
-                crossedGroupBorder = true
-                forceGroupCheck = true
-                MESSAGEMAN:Broadcast("OpenedGroup", {
-                    group = group,
-                })
-                w:rebuildFrames()
-                MESSAGEMAN:Broadcast("ModifiedGroups", {
-                    group = group,
-                    index = w.index,
-                    maxIndex = #w.items,
-                })
-                w:move(0)
-                -- dont update the steps in updateGlobalsFromCurrentItem
-                -- the steps was set in w:findSong
-                w:updateGlobalsFromCurrentItem(true)
-                w:updateMusicFromCurrentItem()
-                MESSAGEMAN:Broadcast("WheelSettled", {
-                    song = GAMESTATE:GetCurrentSong(),
-                    group = w.group,
-                    hovered = w:getCurrentItem(),
-                    steps = GAMESTATE:GetCurrentSteps(),
-                    index = w.index,
-                    maxIndex = #w.items,
-                })
-                w.settled = true
-            end
-        elseif params.song ~= nil then
-            local charts = WHEELDATA:GetChartsMatchingFilter(params.song)
-            if #charts > 0 then
-                local group = w:findSong(charts[1]:GetChartKey(), params.group)
-                if group ~= nil then
-                    -- found the song, set up the group focus and send out the related messages for consistency
-                    crossedGroupBorder = true
-                    forceGroupCheck = true
-                    MESSAGEMAN:Broadcast("OpenedGroup", {
-                        group = group,
-                    })
-                    w:rebuildFrames()
-                    MESSAGEMAN:Broadcast("ModifiedGroups", {
-                        group = group,
-                        index = w.index,
-                        maxIndex = #w.items,
-                    })
-                    w:updateGlobalsFromCurrentItem()
-                    w:updateMusicFromCurrentItem()
-                    MESSAGEMAN:Broadcast("WheelSettled", {
-                        song = GAMESTATE:GetCurrentSong(),
-                        group = w.group,
-                        hovered = w:getCurrentItem(),
-                        steps = GAMESTATE:GetCurrentSteps(),
-                        index = w.index,
-                        maxIndex = #w.items,
-                    })
-                    w.settled = true
-                end
-            end
-        end
+        w:findSongHelper(params)
     end
 
     w.FindGroupCommand = function(self, params)
@@ -1132,11 +1139,7 @@ function MusicWheel:new(params)
         if params and params.chartkey ~= nil and params.group ~= nil then
             -- a specific chart within a group was given
             -- (this is used for reloading the wheel and remembering the current position)
-            self:playcommand("FindSong", {
-                group = params.group,
-                chartkey = params.chartkey,
-            })
-            success = w.group ~= nil and w.group ~= ""
+            success = w:findSongHelper(params)
         elseif params and params.group ~= nil and params.chartkey == nil then
             -- only a group was given. find the group but dont pick any song
             success = w:findGroup(params.group, false)

@@ -348,6 +348,9 @@ local t = Def.ActorFrame {
             else
                 WHEELDATA:ReloadWheelData()
                 local exactMatchSong = WHEELDATA:FindExactSearchMatchSong()
+                if exactMatchSong == nil then
+                    exactMatchSong = WHEELDATA:FindTheOnlySearchResult()
+                end
                 if exactMatchSong ~= nil then
                     -- there is an exact match maybe we want to go to
                     self:playcommand("FindSong", {

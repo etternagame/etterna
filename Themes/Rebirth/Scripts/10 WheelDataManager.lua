@@ -390,6 +390,38 @@ function WHEELDATA.FindExactSearchMatchSong(self)
     return nil
 end
 
+-- return the singular song that remains after a filter pass
+-- this will only work if between all matches they all contain the same set of chartkeys
+-- returns nil otherwise
+function WHEELDATA.FindTheOnlySearchResult(self)
+    if #self.AllFilteredSongs == 0 then return nil end
+    -- collect the chart keys we want to try to match across all filtered songs
+    local cks = {}
+    for _, c in ipairs(self:GetChartsMatchingFilter(self.AllFilteredSongs[1])) do
+        cks[#cks+1] = c:GetChartKey()
+    end
+
+    -- match those chart keys across every single filtered song
+    for _, song in ipairs(self.AllFilteredSongs) do
+        local cs = self:GetChartsMatchingFilter(song)
+        local thesekeys = {}
+        for __, c in ipairs(self:GetChartsMatchingFilter(song)) do
+            thesekeys[#thesekeys+1] = c:GetChartKey()
+        end
+        
+        -- verify that all the chart keys match in both directions.
+        -- this allows for duplicate chartkeys on both files (why would you do this?)
+        -- but if either set is a superset that is not exactly equivalent, we fail
+        for __, k in ipairs(cks) do
+            if findKeyOf(thesekeys, k) == nil then return nil end
+        end
+        for __, k in ipairs(thesekeys) do
+            if findKeyOf(cks, k) == nil then return nil end
+        end
+    end
+    return self.AllFilteredSongs[1]
+end
+
 -- obtain all songs loaded that pass the active filter
 -- requires WHEELDATA.AllSongs to be filled already
 function WHEELDATA.GetAllSongsPassingFilter(self)
