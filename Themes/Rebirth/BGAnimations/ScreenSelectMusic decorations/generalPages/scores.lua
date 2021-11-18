@@ -718,9 +718,11 @@ local function createList()
                             local scr = SCREENMAN:GetTopScreen()
                             local sng2 = GAMESTATE:GetCurrentSteps()
                             if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
-                                local success = SCREENMAN:GetTopScreen():PlayReplay(score)
-                                if success then
-                                    SCREENMAN:set_input_redirected(PLAYER_1, false)
+                                if scr:GetMusicWheel():SelectSong(GAMESTATE:GetCurrentSong()) then
+                                    local success = SCREENMAN:GetTopScreen():PlayReplay(score)
+                                    if success then
+                                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                                    end
                                 end
                             end
                         end
@@ -759,9 +761,11 @@ local function createList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
 
-                    local success = SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
-                    if success then
-                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    if SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(GAMESTATE:GetCurrentSong()) then
+                        local success = SCREENMAN:GetTopScreen():ShowEvalScreenForScore(score)
+                        if success then
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                        end
                     end
                 end,
                 MouseOverCommand = function(self)
@@ -1277,9 +1281,11 @@ local function createList()
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if localscore ~= nil and localscore:HasReplayData() then
-                    local success = SCREENMAN:GetTopScreen():ShowEvalScreenForScore(localscore)
-                    if success then
-                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    if SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(GAMESTATE:GetCurrentSong()) then
+                        local success = SCREENMAN:GetTopScreen():ShowEvalScreenForScore(localscore)
+                        if success then
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                        end
                     end
                 end
             end
@@ -1315,9 +1321,11 @@ local function createList()
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if localscore ~= nil and localscore:HasReplayData() then
-                    local success = SCREENMAN:GetTopScreen():PlayReplay(localscore)
-                    if success then
-                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    if SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(songOrPack) then
+                        local success = SCREENMAN:GetTopScreen():PlayReplay(localscore)
+                        if success then
+                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                        end
                     end
                 end
             end

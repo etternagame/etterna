@@ -934,6 +934,7 @@ function MusicWheel:new(params)
                 -- dont update steps (pass true as param)
                 w:updateGlobalsFromCurrentItem(true)
 
+                SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(songOrPack)
                 SCREENMAN:GetTopScreen():SelectCurrent()
                 SCREENMAN:set_input_redirected(PLAYER_1, false)
                 MESSAGEMAN:Broadcast("SelectedSong")
