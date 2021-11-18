@@ -367,6 +367,7 @@ local t = Def.ActorFrame {
         if params and params.newsongs then
             if params.newsongs > 0 then
                 self:playcommand("ReloadWheel")
+                ms.ok(params.newsongs .. " new songs loaded")
             else
                 ms.ok("No new songs loaded")
             end
