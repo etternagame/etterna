@@ -26,6 +26,14 @@ local forceGroupCheck = false
 local diffSelection = 1 -- index of the selected chart
 local enteringSong = false
 
+-- sounds (actors)
+local SOUND_MOVE = nil
+local SOUND_SELECT = nil
+
+-- timer stuff
+local last_wheel_move_timestamp = GetTimeSinceStart()
+local MAX_WHEEL_SOUND_SPEED = 15
+
 Wheel.mt = {
     updateMusicFromCurrentItem = function(whee)
         -- if transitioning into a song dont let the wheel do anything
@@ -164,6 +172,10 @@ Wheel.mt = {
 
         if whee.moving ~= 0 then
             whee:changemusic(whee.moving)
+        else
+            if SOUND_MOVE ~= nil then
+                SOUND_MOVE:play()
+            end
         end
 
         -- stop the music if moving so we dont leave it playing in a random place
@@ -540,7 +552,23 @@ Wheel.defaultParams = {
 function Wheel:new(params)
     params = params or {}
     fillNilTableFieldsFrom(params, Wheel.defaultParams)
-    local whee = Def.ActorFrame {Name = "Wheel"}
+    local whee = Def.ActorFrame {
+        Name = "Wheel",
+        Def.Sound {
+            Name = "MoveSound",
+            File = THEME:GetPathS("LuaWheel", "move"),
+            Precache = true,
+            IsAction = true,
+            InitCommand = function(self) SOUND_MOVE = self end,
+        },
+        Def.Sound {
+            Name = "SelectSound",
+            File = THEME:GetPathS("Common", "value"),
+            Precache = true,
+            IsAction = true,
+            InitCommand = function(self) SOUND_SELECT = self end,
+        }
+    }
     setmetatable(whee, {__index = Wheel.mt})
     crossedGroupBorder = false -- reset default
     diffSelection = 1 -- reset default
@@ -771,8 +799,23 @@ function Wheel:new(params)
                     if (whee.moving == -1 and whee.positionOffsetFromSelection >= 0) or
                         (whee.moving == 1 and whee.positionOffsetFromSelection <= 0) then
                             whee:changemusic(whee.moving)
+
+                            if whee.spinSpeed < MAX_WHEEL_SOUND_SPEED then
+                                if SOUND_MOVE ~= nil then
+                                    SOUND_MOVE:play()
+                                end
+                            end
                     end
-                    -- maybe play moving sound here based on delta 
+                    -- maybe play moving sound here based on delta
+
+                    local now = GetTimeSinceStart()
+                    if whee.spinSpeed >= MAX_WHEEL_SOUND_SPEED and now > (last_wheel_move_timestamp + (1 / MAX_WHEEL_SOUND_SPEED)) then
+                        last_wheel_move_timestamp = now
+                        if SOUND_MOVE ~= nil then
+                            SOUND_MOVE:play()
+                        end
+                    end
+
                 else
                     -- the wheel should rotate toward selection but isnt "moving"
                     local sping = 0.2 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
