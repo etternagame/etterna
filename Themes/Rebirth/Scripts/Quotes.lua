@@ -286,7 +286,7 @@ local Phrases = {
 	"tried playing etterna, shit just won’t lunch", -- https://twitter.com/cartisbunnylol/status/1453910047701061635
 	"waiting", -- Bamnks repeating himself after submitting a file for EVGP
 	"Wow, this is a horrible choice! don't even know why mines are in this game to begin with their stupid! ", -- https://www.reddit.com/r/Etterna/comments/awdl3i/no_mines_no_score/
-	"The look of til-death genuinely angers me", -- 	Jole complaining about til death for the umpteenth time
+	"The look of til-death genuinely angers me", -- Jole complaining about til death for the umpteenth time
 	"I might be a weeb and a furry but I will never watch a vtuber", -- Nick12 being absolutely BASED. :acceptance:
 	"They didn't invent colours untill 2011", -- Void
 	"why does every charter save for me have to be painfully incompetent", -- Sklitterbeer in a twitch chat 
