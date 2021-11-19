@@ -130,7 +130,7 @@ local function generateItems()
         local new = PROFILEMAN:CreateDefaultProfile()
         profileIDs = PROFILEMAN:GetLocalProfileIDs()
         maxPage = math.ceil((#profileIDs) / numItems)
-        renameProfileDialogue(new, listframe)
+        renameProfileDialogue(new, true)
     end
 
     -- select current option with keyboard or mouse double click
@@ -267,7 +267,7 @@ local function generateItems()
                         elseif params.event == "DeviceButton_right mouse button" then
                             -- right clicking allows profile name change
                             -- the Actor parameter is asking for the frame that holds the whole list
-                            renameProfileDialogue(profile, self:GetParent():GetParent()) 
+                            renameProfileDialogue(profile) 
                         end
                     end
                 end,

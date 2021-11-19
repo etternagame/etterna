@@ -485,7 +485,7 @@ function updateNowPlaying()
 end
 
 -- convenience to control the rename profile dialogue logic and input redir scope
-function renameProfileDialogue(profile)
+function renameProfileDialogue(profile, isNewProfile)
     local redir = SCREENMAN:get_input_redirected(PLAYER_1)
     local function off()
         if redir then
@@ -505,6 +505,9 @@ function renameProfileDialogue(profile)
         on()
     end
     local question = "RENAME PROFILE\nPlease enter a new profile name."
+    if isNewProfile then
+        question = "NEW PROFILE\nPlease enter a profile name."
+    end
     askForInputStringWithFunction(
         question,
         255,

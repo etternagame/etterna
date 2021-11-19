@@ -5359,7 +5359,7 @@ local function rightFrame()
                             -- make a profile
                             -- make profile, rename new profile
                             local new = PROFILEMAN:CreateDefaultProfile()
-                            renameProfileDialogue(new)
+                            renameProfileDialogue(new, true)
                         end,
                     }
                 }
