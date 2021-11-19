@@ -296,15 +296,32 @@ local Phrases = {
 	"This files got about as much back end as Niki Minaj", -- Freemind2pointo, about PAM!!
 	"Wanna smell my feet right now?", -- Kraezymann on stream
 	"Mina-san!", -- Foxfire
-	"I am overstreaming so it's too slow", -- Heartbeat in EO 
+	"I am overstreaming so it's too slow", -- Heartbeat in EO
+    "VRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOM HMHNHMNHM BROOOOOOOOOOOO<M REEEEEEEEEEEEEE SKRRRRRRRRRRRRR NYOOOOOOOOOOOOOOOM AAAAAAAAH REIRRHRUHIUREHIURIS BRHRURBUBRURBURBR BROOOOOOOOOOOOOOOOOOOOOOOM EEEEEEEEERRRRRRRRRRRRRRRRRRRRR SCHSHC VSCHOOOOOOOOOOM", -- Temma, car games
+	"Bing bong :reallycoolbird: bing bong", -- Prov's infinite wisdom
+	"Zeta 20, november New Jersey Texas Houston Astroworld Dallas mors Starbucks Peppermint Mocha Latte Venti Cake Pop Zeta64 Mario 64", -- Tim
+	"????????? do u weatchedf pornography??",
+	"when bahamut unleashes 79 terashits per exafart", -- Timothy, yet again
+	"Holy shit, you're cheating better than me", -- Thaor during Anmao's cheated client stream 
+	"sorry im a charter i just preview charts for 30 minutes and then close the game", -- Void
+    "yo mate this beat dropped so hard I drop kicked me nan down 7 sets of stairs. REPPIN THE MAKIN SCENE LIKE! rest in peace mc mental the legend", -- Dour, listening to MC mental
+	"damn bitch this beat has a fat ass", -- Chat in foxfire's stream 
 }
 
 function getRandomQuote(tipType)
-    if tipType == 2 then
-        return "TIP: "..Tips[math.random(#Tips)]
-    elseif tipType == 3 then
-        return Phrases[math.random(#Phrases)]
+    if tipType == 1 then
+        if #Tips > 0 then
+            return "TIP: "..Tips[math.random(#Tips)]
+        else
+            return "ERROR: No tips"
+        end
+    elseif tipType == 2 then
+        if #Phrases > 0 then
+            return Phrases[math.random(#Phrases)]
+        else
+            return "ERROR: No quotes"
+        end
     else
-        return ""
+        return "ERROR: bruh how did u break this ??????"
     end
 end
