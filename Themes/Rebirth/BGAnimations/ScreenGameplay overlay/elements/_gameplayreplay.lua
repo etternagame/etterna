@@ -109,6 +109,7 @@ local textSize = 0.8
 local hoverAlpha = 0.6
 local width = 60
 local height = 30
+local uiBGAlpha = 0.6
 
 local translated_info = {
     Pause = THEME:GetString("ScreenGameplay", "ButtonPause"),
@@ -186,6 +187,25 @@ scroller[#scroller + 1] = Def.ActorFrame {
             zoomInc = {0.1,0.05},
         })
     end,
+    UIElements.QuadButton(1) .. {
+        Name = "DraggableBox",
+        InitCommand = function(self)
+            self:halign(1):valign(0)
+            self:zoomto(width * 1.5, height * 3.5 + span * 4)
+            self:xy(width/4, -span)
+            registerActorToColorConfigElement(self, "main", "SecondaryBackground")
+            self:diffusealpha(uiBGAlpha)
+        end,
+        MouseDragCommand = function(self, params)
+            local newx = params.MouseX - (self.initialClickX or 0)
+            local newy = params.MouseY - (self.initialClickY or 0)
+            self:GetParent():addx(newx):addy(newy)
+        end,
+        MouseDownCommand = function(self, params)
+            self.initialClickX = params.MouseX
+            self.initialClickY = params.MouseY
+        end,
+    },
     
     button(1,
         translated_info["Pause"],
