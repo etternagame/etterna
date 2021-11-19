@@ -2904,6 +2904,7 @@ local function rightFrame()
         judgmentText = playeroption("JudgmentText"),
         judgmentTweens = playeroption("JudgmentTweens"),
         comboText = playeroption("ComboText"),
+        comboGlow = playeroption("ComboGlow"),
         comboLabel = playeroption("ComboLabel"),
 
         cbHighlight = playeroption("CBHighlight"),
@@ -4505,6 +4506,14 @@ local function rightFrame()
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboText", true),
             },
             {
+                Name = "Combo Glow",
+                Type = "SingleChoice",
+                Explanation = "Toggle the extra white glow on the Combo numbers during MFCs and PFCs.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("comboGlow", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboGlow", true),
+            },
+            {
                 Name = "Combo Label",
                 Type = "SingleChoice",
                 Explanation = "Toggle the word 'Combo' as part of the combo text.",
@@ -4513,7 +4522,7 @@ local function rightFrame()
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboLabel", true),
             },
             {
-                Name = "Combo Breaker Highlights",
+                Name = "Combo-Breaker Highlights",
                 Type = "SingleChoice",
                 Explanation = "Toggle showing which column a combo breaker occurs.",
                 Choices = choiceSkeleton("On", "Off"),

@@ -1,6 +1,7 @@
 local c
 local enabledCombo = playerConfig:get_data().ComboText
 local enabledLabel = playerConfig:get_data().ComboLabel
+local enableGlow = playerConfig:get_data().ComboGlow
 
 local function arbitraryComboZoom(value)
     c.Label:zoom(value)
@@ -59,16 +60,24 @@ local t = Def.ActorFrame {
         -- FullCombo Rewards
         if param.FullComboW1 then
             c.Number:diffuse(mfcNumbers)
-            c.Number:glowshift()
+            if enableGlow then
+                c.Number:glowshift()
+            end
         elseif param.FullComboW2 then
             c.Number:diffuse(pfcNumbers)
-            c.Number:glowshift()
+            if enableGlow then
+                c.Number:glowshift()
+            end
         elseif param.FullComboW3 then
             c.Number:diffuse(fcNumbers)
-            c.Number:stopeffect()
+            if enableGlow then
+                c.Number:stopeffect()
+            end
         elseif param.Combo then
             c.Number:diffuse(regNumbers)
-            c.Number:stopeffect()
+            if enableGlow then
+                c.Number:stopeffect()
+            end
             c.Label:diffuse(labelColor)
             c.Label:diffusebottomedge(color("0.75,0.75,0.75,1"))
         else
@@ -92,12 +101,12 @@ local t = Def.ActorFrame {
         InitCommand = function(self)
             if enabledLabel then
                 self:halign(1):valign(1)
-                self:x(-4)
+                self:xy(-4, -0.5)
                 self:skewx(-0.125)
                 self:visible(false)
             else
                 self:halign(0.5):valign(1)
-                self:x(-24)
+                self:xy(-24, -0.5)
                 self:skewx(-0.125)
                 self:visible(false)
             end
