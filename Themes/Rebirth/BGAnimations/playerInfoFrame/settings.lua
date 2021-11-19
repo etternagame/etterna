@@ -4772,7 +4772,7 @@ local function rightFrame()
             {
                 Name = "Refresh Rate",
                 Type = "SingleChoice",
-                Explanation = "Change the game refresh rate. Set to default in most cases or if any issue occurs.",
+                Explanation = "Change the game refresh rate. Set to default in most cases. Changes the refresh rate, but not the FPS cap. Only applies in exclusive fullscreen.",
                 AssociatedOptions = {
                     "Aspect Ratio",
                     "Display Resolution",
