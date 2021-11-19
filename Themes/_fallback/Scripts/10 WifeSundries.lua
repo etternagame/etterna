@@ -251,6 +251,7 @@ function wifeMean(t)
 	end
 	local o = 0
 	for i = 1, c do
+		-- ignore EO misses and replay mines
 		if t[i] ~= 1000 and t[i] ~= -1100 then
 			o = o + t[i]
 		else
@@ -268,6 +269,7 @@ function wifeAbsMean(t)
 	end
 	local o = 0
 	for i = 1, c do
+		-- ignore EO misses and replay mines
 		if t[i] ~= 1000 and t[i] ~= -1100 then
 			o = o + math.abs(t[i])
 		else
@@ -282,6 +284,7 @@ function wifeSd(t)
 	local u2 = 0
 	local m = 0
 	for i = 1, #t do
+		-- ignore EO misses and replay mines
 		if t[i] ~= 1000 and t[i] ~= -1100 then
 			u2 = u2 + (t[i] - u) ^ 2
 		else

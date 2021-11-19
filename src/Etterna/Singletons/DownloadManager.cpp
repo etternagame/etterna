@@ -1541,7 +1541,13 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				  std::make_pair(note[0].GetFloat(), note[1].GetFloat()));
 
 				timestamps.push_back(note[0].GetFloat());
-				offsets.push_back(note[1].GetFloat() / 1000.f);
+				// horrid temp hack --
+				// EO keeps misses as 180ms bads for not a great reason
+				// convert them back to misses here
+				auto offset = note[1].GetFloat() / 1000.F;
+				if (offset == .18F)
+					offset = 1.F;
+				offsets.push_back(offset);
 				if (note.Size() == 3 &&
 					note[2].IsInt()) { // pre-0.6 with noterows
 					rows.push_back(note[2].GetInt());
