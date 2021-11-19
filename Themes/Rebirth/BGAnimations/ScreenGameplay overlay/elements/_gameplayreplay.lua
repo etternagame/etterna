@@ -119,7 +119,7 @@ local translated_info = {
     Exit = "Exit",
 }
 
-local function button(i, txt, click)
+local function button(i, txt, click, mustBePaused)
     return Def.ActorFrame {
         InitCommand = function(self)
             self:y(x + span*i) -- wow this is bad
@@ -145,9 +145,16 @@ local function button(i, txt, click)
             end,
             MouseOverCommand = function(self)
                 self:diffusealpha(hoverAlpha)
+                if mustBePaused then
+                    if not GAMESTATE:IsPaused() then
+                        TOOLTIP:SetText("Must be paused")
+                        TOOLTIP:Show()
+                    end
+                end
             end,
             MouseOutCommand = function(self)
                 self:diffusealpha(1)
+                TOOLTIP:Hide()
             end,
             MouseDownCommand = function(self, params)
                 if params and params.event == "DeviceButton_left mouse button" then
@@ -192,13 +199,15 @@ scroller[#scroller + 1] = Def.ActorFrame {
         translated_info["FastForward"],
         function(self)
             SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
-        end
+        end,
+        true
     ),
     button(3,
         translated_info["Rewind"],
         function(self)
             SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
-        end
+        end,
+        true
     ),
     button(4,
         translated_info["Results"],
