@@ -32,7 +32,7 @@ local defaultConfig = {
         FilteredTag = "#88ff88",
         GoalBackground = "#ffffff",
         GoalAchieved = "#9654fd",
-        GoalDefault = "#111111",
+        GoalDefault = "#ff9999",
     },
     chartPreview = {
         Background = "#000000",
