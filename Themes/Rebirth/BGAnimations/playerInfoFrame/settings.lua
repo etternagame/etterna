@@ -2045,6 +2045,12 @@ local function leftFrame()
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                                 local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
                                 self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
+                                if isOver(bg) then
+                                    TOOLTIP:SetText("Undo: Alt-Delete")
+                                    TOOLTIP:Show()
+                                else
+                                    TOOLTIP:Hide()
+                                end
                             end
                         end,
                         RolloverUpdateCommand = function(self, params)
@@ -2084,6 +2090,12 @@ local function leftFrame()
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                                 local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
                                 self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
+                                if isOver(bg) then
+                                    TOOLTIP:SetText("Reset: Ctrl-Delete")
+                                    TOOLTIP:Show()
+                                else
+                                    TOOLTIP:Hide()
+                                end
                             end
                         end,
                         RolloverUpdateCommand = function(self, params)
@@ -2121,6 +2133,12 @@ local function leftFrame()
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                                 local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
                                 self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
+                                if isOver(bg) then
+                                    TOOLTIP:SetText("Save (or press Enter)")
+                                    TOOLTIP:Show()
+                                else
+                                    TOOLTIP:Hide()
+                                end
                             end
                         end,
                         SetCommand = function(self)
@@ -2168,6 +2186,12 @@ local function leftFrame()
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                                 self:diffusealpha(1 * hovermultiplier)
+                                if isOver(bg) then
+                                    TOOLTIP:SetText("New Preset: Ctrl-N")
+                                    TOOLTIP:Show()
+                                else
+                                    TOOLTIP:Hide()
+                                end
                             end
                         end,
                         RolloverUpdateCommand = function(self, params)
