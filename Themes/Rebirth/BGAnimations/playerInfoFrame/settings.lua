@@ -4389,6 +4389,8 @@ local function rightFrame()
                     o[#o+1] = cf(97)
                     o[#o+1] = cf(98)
                     o[#o+1] = cf(99) -- AA:
+                    o[#o+1] = cf(99.25)
+                    o[#o+1] = cf(99.5)
                     o[#o+1] = cf(99.7) -- AAA
                     o[#o+1] = cf(99.8)
                     o[#o+1] = cf(99.9)
@@ -4410,6 +4412,8 @@ local function rightFrame()
                             97,
                             98,
                             99,
+                            99.25,
+                            99.5,
                             99.7,
                             99.8,
                             99.9,
