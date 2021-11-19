@@ -652,6 +652,17 @@ local function createList()
                     local count, name = getSkillsetPlaysByPosition(3)
                     self:settextf("%s (%d)", name, count)
                 end,
+                -- blank
+                function(self)
+                end,
+                -- Upload all scores button
+                function(self)
+                    if DLMAN:IsLoggedIn() then
+                        self:settext("Upload all scores to EO") 
+                    else
+                        self:settext("")
+                    end
+                end
             },
             Right = {
                 -- playcount
@@ -752,6 +763,26 @@ local function createList()
         local smallTextHoverFunctions = {
             Left = {
                 -- [index] = { function(self) end, function(self) end }
+                [10] = {
+                    function(self)
+                        if DLMAN:IsLoggedIn() then
+                            self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText("May be slow - Will run in background")
+                            TOOLTIP:Show()
+                        end
+                    end,
+                    function(self)
+                        self:diffusealpha(1)
+                        TOOLTIP:Hide()
+                    end,
+                    function(self, params)
+                        if DLMAN:IsLoggedIn() then
+                            if params.event == "DeviceButton_left mouse button" then
+                                DLMAN:UploadAllScores()
+                            end
+                        end
+                    end,
+                }
             },
             Right = {
                 -- [index] = { function(self) end, function(self) end }
@@ -773,7 +804,8 @@ local function createList()
         local function leftTextSmall(i)
             local cHover = nil
             local cUnHover = nil
-            -- set the hover commands if they exist
+            local cClick = nil
+            -- set the mouse commands if they exist
             if smallTextHoverFunctions.Left[i] ~= nil then
                 cHover = function(self, params)
                     if self:IsInvisible() then return end
@@ -782,6 +814,10 @@ local function createList()
                 cUnHover = function(self, params)
                     if self:IsInvisible() then return end
                     smallTextHoverFunctions.Left[i][2](self)
+                end
+                cClick = function(self, params)
+                    if self:IsInvisible() then return end
+                    smallTextHoverFunctions.Left[i][3](self, params)
                 end
             end
 
@@ -800,6 +836,16 @@ local function createList()
                 StartupCommand = smallTextInitFunctions.Left[i],
                 MouseOverCommand = cHover,
                 MouseOutCommand = cUnHover,
+                MouseDownCommand = cClick,
+                UpdateLoginStatusCommand = function(self)
+                    self:playcommand("Set")
+                    if cHover ~= nil then
+                        if isOver(self) then self:playcommand("MouseOver") end
+                    end
+                    if cUnHover ~= nil then
+                        if not isOver(self) then self:playcommand("MouseOut") end
+                    end
+                end,
             }
         end
 
