@@ -1225,8 +1225,16 @@ local function createList()
                 if localscore ~= nil then
                     if localscore:HasReplayData() and DLMAN:IsLoggedIn() then
                         self:diffusealpha(1)
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText("Upload Score")
+                            TOOLTIP:Show()
+                        end
                     else
                         self:diffusealpha(0)
+                        if isOver(self) then
+                            TOOLTIP:Hide()
+                        end
                     end
                 end
             end,
@@ -1262,8 +1270,16 @@ local function createList()
                 if localscore ~= nil then
                     if localscore:HasReplayData() then
                         self:diffusealpha(1)
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText("Show Evaluation")
+                            TOOLTIP:Show()
+                        end
                     else
                         self:diffusealpha(0)
+                        if isOver(self) then
+                            TOOLTIP:Hide()
+                        end
                     end
                 end
             end,
@@ -1302,8 +1318,16 @@ local function createList()
                 if localscore ~= nil then
                     if localscore:HasReplayData() then
                         self:diffusealpha(1)
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText("Show Replay")
+                            TOOLTIP:Show()
+                        end
                     else
                         self:diffusealpha(0)
+                        if isOver(self) then
+                            TOOLTIP:Hide()
+                        end
                     end
                 end
             end,
