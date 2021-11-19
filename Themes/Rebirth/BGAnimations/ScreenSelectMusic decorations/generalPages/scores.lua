@@ -1227,7 +1227,11 @@ local function createList()
                         self:diffusealpha(1)
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("Upload Score")
+                            if WHEELDATA:GetCurrentSort() == 1 then
+                                TOOLTIP:SetText("Upload Score\nShift: All in pack")
+                            else
+                                TOOLTIP:SetText("Upload Score")
+                            end
                             TOOLTIP:Show()
                         end
                     else
@@ -1241,7 +1245,11 @@ local function createList()
             MouseOverCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(buttonHoverAlpha)
-                TOOLTIP:SetText("Upload Score")
+                if WHEELDATA:GetCurrentSort() == 1 then
+                    TOOLTIP:SetText("Upload Score\nShift: All in pack")
+                else
+                    TOOLTIP:SetText("Upload Score")
+                end
                 TOOLTIP:Show()
             end,
             MouseOutCommand = function(self)
@@ -1251,10 +1259,18 @@ local function createList()
             end,
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
-                if localscore ~= nil and localscore:HasReplayData() then
-                    DLMAN:SendReplayDataForOldScore(localscore:GetScoreKey())
-                    local steps = GAMESTATE:GetCurrentSteps()
-                    ms.ok(string.format("Uploading Score (chart %s key %s)", steps:GetChartKey(), localscore:GetScoreKey()))
+                -- holding shift in the group sort causes a pack score upload
+                if INPUTFILTER:IsShiftPressed() and WHEELDATA:GetCurrentSort() == 1 then
+                    DLMAN:UploadScoresForPack(GAMESTATE:GetCurrentSong():GetGroupName())
+                    ms.ok("Uploading all scores for pack: "..GAMESTATE:GetCurrentSong():GetGroupName())
+                else
+                    if localscore ~= nil and localscore:HasReplayData() then
+                        -- important to note this is actually for uploading replays.
+                        -- misnomer. .. bad functionality? oh no
+                        DLMAN:SendReplayDataForOldScore(localscore:GetScoreKey())
+                        local steps = GAMESTATE:GetCurrentSteps()
+                        ms.ok(string.format("Uploading Score (chart %s key %s)", steps:GetChartKey(), localscore:GetScoreKey()))
+                    end
                 end
             end
         },
