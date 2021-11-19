@@ -38,7 +38,7 @@ local t = Def.ActorFrame {
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.ComboX, MovableValues.ComboY)
-        arbitraryComboZoom(MovableValues.ComboZoom)
+        arbitraryComboZoom(MovableValues.ComboZoom * 1.25)
     end,
     ComboCommand = function(self, param)
         local iCombo = param.Combo
