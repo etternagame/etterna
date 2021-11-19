@@ -5203,7 +5203,7 @@ local function rightFrame()
                 ChoiceIndexGetter = function()
                     local cur = PREFSMAN:GetPreference("BackgroundFitMode")
                     for i, fit in ipairs(BackgroundFitMode) do
-                        if ToEnumShortString(fit) == cur then
+                        if "BackgroundFitMode_"..ToEnumShortString(fit) == cur then
                             return i
                         end
                     end
