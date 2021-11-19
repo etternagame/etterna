@@ -165,7 +165,7 @@ local defaultConfig = {
     JudgmentText = true,
     JudgmentTweens = false,
     ComboText = true,
-    ComboGlow = false,
+    ComboGlow = true,
     ComboLabel = true,
     CBHighlight = false,
 
