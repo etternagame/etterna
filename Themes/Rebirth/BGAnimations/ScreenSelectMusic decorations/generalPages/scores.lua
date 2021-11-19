@@ -1361,7 +1361,7 @@ local function createList()
             MouseDownCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if localscore ~= nil and localscore:HasReplayData() then
-                    if SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(songOrPack) then
+                    if SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(GAMESTATE:GetCurrentSong()) then
                         local success = SCREENMAN:GetTopScreen():PlayReplay(localscore)
                         if success then
                             SCREENMAN:set_input_redirected(PLAYER_1, false)
