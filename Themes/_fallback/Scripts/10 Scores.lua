@@ -438,6 +438,8 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	local upperBound = judge == 5 and math.max(windows[judge] * ts, 180.0) or windows[judge] * ts
 	local judgeCount = 0
 
+	if offsetVector == nil then return judgeCount end
+
 	if judge > 5 then
 		lowerBound = math.max(lowerBound, 180.0)
 		for i = 1, #offsetVector do
@@ -631,8 +633,11 @@ function getRescoredWife3Judge(version, judgeScale, rst)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
-		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)
+	local dvt = rst["dvt"]
+	if dvt == nil then return p end
+
+	for i = 1, #dvt do							-- wife2 does not require abs due to ^2 but this does
+		p = p + wife3(math.abs(dvt[i]), ts, version)
 	end
 	p = p + (rst["holdsMissed"] * -4.5)
 	p = p + (rst["minesHit"] * -7)
