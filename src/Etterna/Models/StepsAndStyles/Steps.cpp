@@ -436,7 +436,7 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
 	// set first and last second for this steps object
-	if (!cereal.empty()) {
+	if (!cereal.empty() || !m_pNoteData->IsEmpty()) {
 		firstsecond =
 		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
 		lastsecond =
