@@ -396,6 +396,9 @@ local function createList()
                     registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomy(actuals.ItemAllottedSpace / itemCount)
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetScore")
+                end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
                         local txt = self:GetChild("Text")
@@ -405,11 +408,17 @@ local function createList()
                             local song = SONGMAN:GetSongByChartKey(score:GetChartKey())
                             if song then
                                 txt:settext(song:GetDisplayMainTitle())
+                                if score:GetEtternaValid() then
+                                    txt:diffuse(COLORS:getMainColor("PrimaryText"))
+                                else
+                                    txt:diffuse(COLORS:getColor("generalBox", "InvalidScore"))
+                                end
                             else
                                 txt:settext("")
                             end
                         else
                             txt:settext(score.songName)
+                            txt:diffuse(COLORS:getMainColor("PrimaryText"))
                         end
                         -- for recent scores, cut the width in half to make room for the date
                         if chosenSkillset == "Recent" then
@@ -434,17 +443,29 @@ local function createList()
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if params.update == "OnMouseDown" then
-                        -- find song on click (even if filtered)
-                        local w = SCREENMAN:GetTopScreen():GetChild("WheelFile")
-                        if w ~= nil then
-                            local ck
-                            if isLocal then
-                                ck =  score:GetChartKey()
-                            else
-                                ck = score.chartkey
+                        if params.event == "DeviceButton_left mouse button" then
+                            -- find song on click (even if filtered)
+                            local w = SCREENMAN:GetTopScreen():GetChild("WheelFile")
+                            if w ~= nil then
+                                local ck
+                                if isLocal then
+                                    ck = score:GetChartKey()
+                                else
+                                    ck = score.chartkey
+                                end
+                                if ck ~= nil then
+                                    w:playcommand("FindSong", {chartkey = ck})
+                                end
                             end
-                            if ck ~= nil then
-                                w:playcommand("FindSong", {chartkey = ck})
+                        elseif params.event == "DeviceButton_right mouse button" and isLocal then
+                            if score ~= nil then
+                                score:ToggleEtternaValidation()
+                                if score:GetEtternaValid() then
+                                    ms.ok("Score validated")
+                                else
+                                    ms.ok("Score invalidated")
+                                end
+                                self:playcommand("SetScore")
                             end
                         end
                     end

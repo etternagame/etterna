@@ -33,6 +33,7 @@ local defaultConfig = {
         GoalBackground = "#ffffff",
         GoalAchieved = "#9654fd",
         GoalDefault = "#ff9999",
+        InvalidScore = "#ff9999",
     },
     chartPreview = {
         Background = "#000000",
