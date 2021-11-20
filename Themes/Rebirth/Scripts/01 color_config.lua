@@ -84,6 +84,7 @@ local defaultConfig = {
     title = {
         PrimaryText = "#ffffff",
         SecondaryText = "#ffffff",
+        UpdateText = "#efc57b",
         ProfileBackground = "#000000",
         Separator = "#ffffff",
         UnderlayBackground = "#333333",

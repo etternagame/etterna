@@ -36,6 +36,30 @@ local themenameTextSize = 0.8
 local versionTextSize = 0.5
 local versionTextSizeSmall = 0.25
 local animationSeconds = 0.5 -- the intro animation
+local updateDownloadIconSize = 30 / 1080 * SCREEN_HEIGHT
+
+-- information for the update button
+local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
+local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
+if latest ~= nil and current ~= nil and latest > current then
+    updateRequired = true
+end
+
+local buttonHoverAlpha = 0.6
+local function hoverfunc(self)
+    if self:IsInvisible() then return end
+    if isOver(self) then
+        self:diffusealpha(buttonHoverAlpha)
+    else
+        self:diffusealpha(1)
+    end
+end
+
+local function clickDownload(self, params)
+    if self:IsInvisible() then return end
+    if not params or params.event ~= "DeviceButton_left mouse button" then return end
+    GAMESTATE:ApplyGameCommand("urlnoexit,https://github.com/etternagame/etterna/releases;text,GitHub")
+end
 
 t[#t+1] = Def.ActorFrame {
     Name = "LeftSide",
@@ -121,7 +145,7 @@ t[#t+1] = Def.ActorFrame {
         },
         LoadFont("Menu Normal") .. {
             Name = "VersionNumber",
-            InitCommand = function(self)
+            InitCommand = function(self) -- happens first
                 self:halign(0):valign(0)
                 self:xy(versionNumberLeftGap, versionNumberUpperGap)
                 self:zoom(versionTextSize)
@@ -130,6 +154,49 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         },
+        UIElements.TextToolTip(100, 1, "Menu Normal") .. {
+            Name = "VersionUpdate",
+            BeginCommand = function(self) -- happens second
+                self:halign(0):valign(0)
+                local vnc = self:GetParent():GetChild("VersionNumber")
+                local bufferspace = 5 / 1920 * SCREEN_WIDTH
+                self:xy(vnc:GetX() + vnc:GetZoomedWidth() + bufferspace, versionNumberUpperGap)
+                self:zoom(versionTextSize)
+                self:maxwidth(((gradientwidth - vnc:GetX() - vnc:GetZoomedWidth() - logoFrameLeftGap - separatorthickness) / versionTextSize))
+                self:settextf("- Update Available (%s)", DLMAN:GetLastVersion())
+                self:diffuse(COLORS:getTitleColor("UpdateText"))
+                self:diffusealpha(1)
+                self:visible(false)
+
+                if updateRequired then
+                    self:visible(true)
+                end
+            end,
+            MouseOutCommand = hoverfunc,
+            MouseOverCommand = hoverfunc,
+            MouseDownCommand = clickDownload,
+        },
+        UIElements.SpriteButton(100, 1, THEME:GetPathG("", "updatedownload")) .. {
+            Name = "VersionUpdateDownload",
+            OnCommand = function(self) -- happens third
+                self:halign(0):valign(0)
+                local vuc = self:GetParent():GetChild("VersionUpdate")
+                local bufferspace = 5 / 1920 * SCREEN_WIDTH
+                self:xy(vuc:GetX() + vuc:GetZoomedWidth() + bufferspace, versionNumberUpperGap)
+                self:zoomto(updateDownloadIconSize, updateDownloadIconSize)
+                self:diffuse(COLORS:getTitleColor("UpdateText"))
+                self:diffusealpha(1)
+                self:visible(false)
+
+                if updateRequired then
+                    self:visible(true)
+                end
+            end,
+            MouseOutCommand = hoverfunc,
+            MouseOverCommand = hoverfunc,
+            MouseDownCommand = clickDownload,
+        },
+
         LoadFont("Menu Normal") .. {
             Name = "ThemeVersionAndCredits",
             InitCommand = function(self)
