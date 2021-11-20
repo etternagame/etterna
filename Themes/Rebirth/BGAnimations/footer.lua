@@ -70,7 +70,6 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:xy(actuals.TextHorizontalPadding, -actuals.Height / 2)
         self:zoom(textSize)
         self:maxwidth(actuals.Width * allowedPercentageForQuote / textSize - textZoomFudge)
-        ms.ok(themeConfig:get_data().global.TipType)
         self:settext(getRandomQuote(themeConfig:get_data().global.TipType))
         registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
