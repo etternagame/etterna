@@ -465,6 +465,7 @@ local function createList()
                                 else
                                     ms.ok("Score invalidated")
                                 end
+                                STATSMAN:UpdatePlayerRating()
                                 self:playcommand("SetScore")
                             end
                         end
@@ -946,6 +947,9 @@ local function createList()
                     end
                 end,
                 UpdateLoginStatusCommand = function(self)
+                    self:playcommand("Set")
+                end,
+                PlayerRatingUpdatedMessageCommand = function(self)
                     self:playcommand("Set")
                 end,
                 MouseOverCommand = function(self)

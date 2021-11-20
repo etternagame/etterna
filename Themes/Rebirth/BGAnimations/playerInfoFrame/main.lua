@@ -515,6 +515,9 @@ t[#t+1] = Def.ActorFrame {
                 self:settextf("%5.2f", offlinerating)
             end
         end,
+        PlayerRatingUpdatedMessageCommand = function(self)
+            self:playcommand("Set")
+        end,
         MouseOverCommand = function(self)
             self:diffusealpha(hoverAlpha)
         end,
