@@ -683,7 +683,11 @@ local function createList()
                     else
                         self:settext("")
                     end
-                end
+                end,
+                -- Validate all scores button
+                function(self)
+                    self:settext("Validate all scores")
+                end,
             },
             Right = {
                 -- playcount
@@ -774,9 +778,10 @@ local function createList()
         }
 
         -- these functions run as you mouse over the text
-        -- each subentry is 2 functions accepting no params, only self
+        -- each subentry is 3 functions accepting no params, only self
         -- first function is onHover (mouse on)
         -- second function is onUnHover (mouse out)
+        -- third function is onClick (mouse down)
         -- invisible checks are not necessary
         -- Left refers to the stat lines constantly on the left
         -- Right refers to the stat lines in the alt page on the right
@@ -803,7 +808,21 @@ local function createList()
                             end
                         end
                     end,
-                }
+                },
+                [11] = {
+                    function(self)
+                        self:diffusealpha(buttonHoverAlpha)
+                    end,
+                    function(self)
+                        self:diffusealpha(1)
+                    end,
+                    function(self, params)
+                        if profile then
+                            profile:UnInvalidateAllScores()
+                            STATSMAN:UpdatePlayerRating()
+                        end
+                    end,
+                },
             },
             Right = {
                 -- [index] = { function(self) end, function(self) end }
