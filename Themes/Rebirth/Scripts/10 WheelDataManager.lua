@@ -368,10 +368,10 @@ local function isExactMetadataMatch(song)
             if subtitle ~= WHEELDATA.ActiveFilter.metadata.Subtitle then return false end
         end
         if WHEELDATA.ActiveFilter.metadata.Author ~= "" then
-            if author ~= self.ActiveFilter.metadata.Author then return false end
+            if author ~= WHEELDATA.ActiveFilter.metadata.Author then return false end
         end
         if WHEELDATA.ActiveFilter.metadata.Artist ~= "" then
-            if artist ~= self.ActiveFilter.metadata.Artist then return false end
+            if artist ~= WHEELDATA.ActiveFilter.metadata.Artist then return false end
         end
         return true
     end
