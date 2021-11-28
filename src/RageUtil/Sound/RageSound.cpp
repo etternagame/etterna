@@ -345,7 +345,16 @@ RageSound::GetDataToPlay(float* pBuffer,
 		RageSoundUtil::ConvertMonoToStereoInPlace(pBuffer, iFramesStored);
 	if (soundPlayCallback != nullptr) {
 		std::lock_guard<std::mutex> guard(recentSamplesMutex);
-		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
+		// checking to see that the lua function exists
+		// also check to see that the source exists
+		// if the source exists, the sound is still valid
+		// why check to see that the source exists?
+		// the above lock has a chance to race:
+		//  lock is grabbed at ~RageSound, and source is nulled
+		//  lock is released, and then this code is executed
+		//  so if the source disappears before the lock is released, bad.
+		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet() &&
+			  m_pSource != nullptr) {
 			unsigned int currentSamples = recentPCMSamples.size();
 			auto samplesToCopy =
 			  std::min(iFramesStored * m_pSource->GetNumChannels(),
