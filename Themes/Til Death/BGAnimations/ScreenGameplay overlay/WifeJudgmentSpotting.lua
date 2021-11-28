@@ -105,6 +105,7 @@ local translated_info = {
 	ErrorLate = THEME:GetString("ScreenGameplay", "ErrorBarLate"),
 	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly"),
 	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
+	BPM = THEME:GetString("ChordDensityGraph", "BPM"),
 }
 
 -- Screenwide params
@@ -1186,7 +1187,9 @@ local pm = Def.ActorFrame {
 					local percent = clamp((INPUTFILTER:GetMouseX() - self:GetParent():GetX()) / wodth, 0, 1)
 					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
 					local hoverednps = cdg.npsVector[hoveredindex]
-					seektext:settextf("%0.2f - %d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"])
+					local td = GAMESTATE:GetCurrentSteps():GetTimingData()
+					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio / getCurRateValue()))
+					seektext:settextf("%0.2f\n%d %s\n%d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"], bpm, translated_info["BPM"])
 				else
 					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())
 				end

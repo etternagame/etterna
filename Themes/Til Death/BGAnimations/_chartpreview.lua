@@ -16,6 +16,7 @@ if not yPosReverse then yPosReverse = 60 end
 local translated_info = {
 	Paused = THEME:GetString("ChartPreview", "Paused"),
 	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
+	BPM = THEME:GetString("ChordDensityGraph", "BPM"),
 }
 
 local function UpdatePreviewPos(self)
@@ -184,7 +185,9 @@ local t = Def.ActorFrame {
 					local percent = clamp((INPUTFILTER:GetMouseX() - self:GetParent():GetX()) / wodth, 0, 1)
 					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
 					local hoverednps = cdg.npsVector[hoveredindex]
-					seektext:settextf("%0.2f - %d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"])
+					local td = GAMESTATE:GetCurrentSteps():GetTimingData()
+					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio / getCurRateValue()))
+					seektext:settextf("%0.2f\n%d %s\n%d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"], bpm, translated_info["BPM"])
 				else
 					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())
 				end
@@ -213,7 +216,7 @@ t[#t + 1] = LoadActor("_calcdisplay.lua")
 t[#t + 1] = LoadFont("Common Normal") .. {
 	Name = "Seektext",
 	InitCommand = function(self)
-		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+		self:y(8):valign(0):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
 	end
 }
 

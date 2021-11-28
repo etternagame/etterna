@@ -83,7 +83,9 @@ local t = Def.ActorFrame {
                         local percent = clamp(lx / bg:GetZoomedWidth(), 0, 1)
                         local hoveredIndex = clamp(math.ceil(self.finalNPSVectorIndex * percent), math.min(1, self.finalNPSVectorIndex), self.finalNPSVectorIndex)
                         local hoveredNPS = self.npsVector[hoveredIndex]
-                        stro = string.format("%s - %d NPS", postext, hoveredNPS)
+                        local td = stepsinuse:GetTimingData()
+                        local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(dist))
+                        stro = string.format("%s\n%d NPS\n%d BPM", postext, hoveredNPS, bpm)
                     end
                     TOOLTIP:SetText(stro)
                     TOOLTIP:Show()
