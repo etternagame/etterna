@@ -149,6 +149,22 @@ local ret = Def.ActorFrame {
 			if collapsed then -- expand if collaped
 				self:queuecommand("Expand")
 			else
+				-- if tab was already visible, swap nested tabs
+				if self:GetVisible() then
+					if nestedTab == 1 then nestedTab = 2 else nestedTab = 1 end
+					self:GetChild("Button_1"):playcommand("NestedTabChanged")
+					self:GetChild("Button_2"):playcommand("NestedTabChanged")
+					if nestedTab == 1 then
+						self:GetChild("ScoreDisplay"):visible(false)
+						self:GetChild("LocalScores"):visible(true)
+						sd:visible(true)
+					else
+						updateLeaderBoardForCurrentChart()
+						self:GetChild("ScoreDisplay"):visible(true)
+						self:GetChild("LocalScores"):visible(false)
+						sd:visible(false)
+					end
+				end
 				self:queuecommand("On")
 				self:visible(true)
 			end
@@ -886,9 +902,10 @@ ret[#ret + 1] = t
 
 local function nestedTabButton(i)
 	return Def.ActorFrame {
+		Name = "Button_"..i,
 		InitCommand = function(self)
 			self:xy(frameX + offsetX/2 + (i - 1) * (nestedTabButtonWidth - capWideScale(100, 80)), frameY + offsetY - 4)
-	end,
+		end,
 		CollapseCommand = function(self)
 			self:visible(false)
 		end,
