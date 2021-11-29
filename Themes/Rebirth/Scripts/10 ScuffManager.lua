@@ -26,6 +26,9 @@ SCUFF.preview = {
 -- if the user skipped the screen dont force it on them (once per game session)
 SCUFF.visitedCoreBundleSelect = false
 
+-- the screen to go to after the help screen
+SCUFF.helpmenuBackout = ""
+
 -- for controlling what happens after GameplaySyncMachine
 -- change this before entering ScreenGameplaySyncMachine
 -- HACK: ALSO USING THIS FOR ScreenTestInput

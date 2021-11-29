@@ -45,6 +45,9 @@ if latest ~= nil and current ~= nil and latest > current then
     updateRequired = true
 end
 
+-- if you go to the help screen this puts you back on the main menu
+SCUFF.helpmenuBackout = "ScreenTitleMenu"
+
 local buttonHoverAlpha = 0.6
 local function hoverfunc(self)
     if self:IsInvisible() then return end

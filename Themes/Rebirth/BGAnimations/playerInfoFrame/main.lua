@@ -158,7 +158,7 @@ local screensAllowedForButtons = {
         ScreenSelectMusic = true,
     },
     Help = {
-
+        ScreenSelectMusic = true,
     },
     Downloads = {
         ScreenSelectMusic = true,
@@ -793,6 +793,8 @@ t[#t+1] = Def.ActorFrame {
         InvokeCommand = function(self)
             if selectable(self:GetName()) then
                 TOOLTIP:Hide()
+                SCUFF.helpmenuBackout = SCREENMAN:GetTopScreen():GetName()
+                SCREENMAN:SetNewScreen("ScreenHelpMenu")
             end
         end,
         MouseDownCommand = function(self, params)
@@ -1078,7 +1080,7 @@ if selectable("Settings") then
 end
 
 if selectable("Help") then
-    -- nothing yet
+    -- nothing, it's just a button
 end
 
 if selectable("Downloads") then
