@@ -49,8 +49,8 @@ local actuals = {
 
 local infoTextSize = 0.65
 local listTextSize = 0.4
-local titleTextSize = 0.9
-local subtitleTextSize = 0.6
+local titleTextSize = 0.95
+local subtitleTextSize = 0.55
 local descTextSize = 0.4
 
 local textZoomFudge = 5
@@ -89,18 +89,6 @@ local function helpMenu()
     local optionDefs = {
         ["Common Terminology"] = {
             {
-                Name = "Split Jumptrill [13][24]",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/13 split jt"),
-            },
-            {
-                Name = "Split Jumptrill [14][23]",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/14 split jt"),
-            },
-            {
                 Name = "Roll (1234)",
                 ShortDescription = "",
                 Description = "",
@@ -119,16 +107,10 @@ local function helpMenu()
                 Image = THEME:GetPathG("", "Patterns/1423 roll"),
             },
             {
-                Name = "Anchor",
+                Name = "Gluts",
                 ShortDescription = "",
                 Description = "",
-                Image = THEME:GetPathG("", "Patterns/anchor"),
-            },
-            {
-                Name = "Burst",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/burst"),
+                Image = THEME:GetPathG("", "Patterns/gluts"),
             },
             {
                 Name = "Chordjack",
@@ -143,28 +125,10 @@ local function helpMenu()
                 Image = THEME:GetPathG("", "Patterns/dense chordjack"),
             },
             {
-                Name = "Gluts",
+                Name = "Stream",
                 ShortDescription = "",
                 Description = "",
-                Image = THEME:GetPathG("", "Patterns/gluts"),
-            },
-            {
-                Name = "Graces",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/graces"),
-            },
-            {
-                Name = "Handstream",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/handstream"),
-            },
-            {
-                Name = "Hold",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/hold"),
+                Image = THEME:GetPathG("", "Patterns/streams"),
             },
             {
                 Name = "Jumpstream",
@@ -173,22 +137,34 @@ local function helpMenu()
                 Image = THEME:GetPathG("", "Patterns/jumpstream"),
             },
             {
+                Name = "Handstream",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/handstream"),
+            },
+            {
+                Name = "Quadstream",
+                ShortDescription = "Taps into quads",
+                Description = "Quadstream is a sequence of notes with single taps transitioning into quads.\n\nThis forms a minijack and still flows like a 'stream' as opposed to a jacky pattern variant. Increasing the density of quads will lose this characteristic due to limited column space.",
+                Image = THEME:GetPathG("", "Patterns/quadstream"),
+            },
+            {
                 Name = "Jumptrill",
                 ShortDescription = "",
                 Description = "",
                 Image = THEME:GetPathG("", "Patterns/jumptrill"),
             },
             {
-                Name = "Longjack",
+                Name = "Split Jumptrill [13][24]",
                 ShortDescription = "",
                 Description = "",
-                Image = THEME:GetPathG("", "Patterns/longjack"),
+                Image = THEME:GetPathG("", "Patterns/13 split jt"),
             },
             {
-                Name = "Minedodge",
+                Name = "Split Jumptrill [14][23]",
                 ShortDescription = "",
                 Description = "",
-                Image = THEME:GetPathG("", "Patterns/minedodge"),
+                Image = THEME:GetPathG("", "Patterns/14 split jt"),
             },
             {
                 Name = "Minijacks",
@@ -197,16 +173,34 @@ local function helpMenu()
                 Image = THEME:GetPathG("", "Patterns/minijacks"),
             },
             {
-                Name = "Polyrhythm",
+                Name = "Longjack",
                 ShortDescription = "",
                 Description = "",
-                Image = THEME:GetPathG("", "Patterns/polyrhythms"),
+                Image = THEME:GetPathG("", "Patterns/longjack"),
             },
             {
-                Name = "Quadstream",
+                Name = "Anchor",
                 ShortDescription = "",
                 Description = "",
-                Image = THEME:GetPathG("", "Patterns/quadstream"),
+                Image = THEME:GetPathG("", "Patterns/anchor"),
+            },
+            {
+                Name = "Trill",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/trill"),
+            },
+            {
+                Name = "Minedodge",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/minedodge"),
+            },
+            {
+                Name = "Hold",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/hold"),
             },
             {
                 Name = "Roll / Rolld",
@@ -215,23 +209,29 @@ local function helpMenu()
                 Image = THEME:GetPathG("", "Patterns/rolld"),
             },
             {
+                Name = "Burst",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/burst"),
+            },
+            {
+                Name = "Polyrhythm",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/polyrhythms"),
+            },
+            {
+                Name = "Graces",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/graces"),
+            },
+            {
                 Name = "Runningman",
                 ShortDescription = "",
                 Description = "",
                 Image = THEME:GetPathG("", "Patterns/runningman"),
             },
-            {
-                Name = "Stream",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/streams"),
-            },
-            {
-                Name = "Trill",
-                ShortDescription = "",
-                Description = "",
-                Image = THEME:GetPathG("", "Patterns/trill"),
-            }
         }
     }
 
