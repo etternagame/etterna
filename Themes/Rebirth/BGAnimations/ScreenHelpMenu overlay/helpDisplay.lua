@@ -44,8 +44,12 @@ local actuals = {
 }
 
 local infoTextSize = 0.65
+local listTextSize = 0.4
 local textZoomFudge = 5
-local buttonHoverAlpha = 0.6
+local buttonHoverAlpha = 0.3
+local cursorAlpha = 0.3
+local cursorAnimationSeconds = 0.1
+local animationSeconds = 0.1
 
 -- special handling to make sure our beautiful icon doesnt get tarnished
 local logosourceHeight = 133
@@ -54,33 +58,320 @@ local logoratio = math.min(1920 / SCREEN_WIDTH, 1080 / SCREEN_HEIGHT)
 local logoH, logoW = getHWKeepAspectRatio(logosourceHeight, logosourceWidth, logosourceWidth / logosourceWidth)
 
 local function helpMenu()
-    local items = {
-        "a",
+
+    -- describe each category
+    -- this appears in the scroll list and large above the main screen
+    local categoryDefs = {
+        "Common Terminology",
     }
 
+    -- describe each option in each category
+    -- the definition is:
+    --[[
+    ["CategoryDef Entry"] = {
+        [1] = {
+            Name = "OptionName", -- this appears in the scroll list and large in the main area
+            ShortDescription = "1 sentence", -- this appears as a subtext to the large text in the main area
+            Description = "a paragraph", -- this appears as regular text in the remaining area
+            Image = "path to an image", -- OPTIONAL -- if supplied, this takes up the right half of the main area
+        },
+        [2] = {}, ....
+    }
+    ]]
+    local optionDefs = {
+        ["Common Terminology"] = {
+            {
+                Name = "Split Jumptrill [13][24]",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/13 split jt"),
+            },
+            {
+                Name = "Split Jumptrill [14][23]",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/14 split jt"),
+            },
+            {
+                Name = "Roll (1234)",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/1234 roll"),
+            },
+            {
+                Name = "Roll (1243)",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/1243 roll"),
+            },
+            {
+                Name = "Roll (1423)",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/1423 roll"),
+            },
+            {
+                Name = "Anchor",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/anchor"),
+            },
+            {
+                Name = "Burst",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/burst"),
+            },
+            {
+                Name = "Chordjack",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/chordjacks"),
+            },
+            {
+                Name = "Dense Chordjack",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/dense chordjack"),
+            },
+            {
+                Name = "Gluts",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/gluts"),
+            },
+            {
+                Name = "Graces",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/graces"),
+            },
+            {
+                Name = "Handstream",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/handstream"),
+            },
+            {
+                Name = "Hold",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/hold"),
+            },
+            {
+                Name = "Jumpstream",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/jumpstream"),
+            },
+            {
+                Name = "Jumptrill",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/jumptrill"),
+            },
+            {
+                Name = "Longjack",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/longjack"),
+            },
+            {
+                Name = "Minedodge",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/minedodge"),
+            },
+            {
+                Name = "Minijacks",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/minijacks"),
+            },
+            {
+                Name = "Polyrhythm",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/polyrhythms"),
+            },
+            {
+                Name = "Quadstream",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/quadstream"),
+            },
+            {
+                Name = "Roll / Rolld",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/rolld"),
+            },
+            {
+                Name = "Runningman",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/runningman"),
+            },
+            {
+                Name = "Stream",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/streams"),
+            },
+            {
+                Name = "Trill",
+                ShortDescription = "",
+                Description = "",
+                Image = THEME:GetPathG("", "Patterns/trill"),
+            }
+        }
+    }
+
+    -- generated table
+    -- basically the data representation of the scroller thing
+    -- categories are top level items
+    -- options are slightly shifted over
+    -- pagination and indexing is based on this table
+    local items = {}
+    for _, cat in ipairs(categoryDefs) do
+        items[#items+1] = {
+            isCategory = true,
+            Name = cat,
+        }
+        for __, optionDef in ipairs(optionDefs[cat]) do
+            items[#items+1] = {
+                isCategory = false,
+                Parent = cat,
+                Name = optionDef.Name,
+                Def = optionDef,
+            }
+        end
+    end
+
+    local itemsVisible = 20
     local cursorIndex = 1
+    local page = 1
+    local maxPage = math.ceil(#items / itemsVisible)
+    local function cursorHoversItem(i)
+        return ((cursorIndex-1) % itemsVisible == (i-1))
+    end
+    local function getPageFromIndex(i)
+        return math.ceil((i) / itemsVisible)
+    end
     local function moveCursor(n)
         local newpos = cursorIndex + n
         if newpos > #items then newpos = 1 end
         if newpos < 1 then newpos = #items end
         cursorIndex = newpos
+        local newpage = getPageFromIndex(cursorIndex)
+        if newpage ~= page then
+            page = newpage
+            MESSAGEMAN:Broadcast("UpdatePage")
+        end
         MESSAGEMAN:Broadcast("UpdateCursor")
     end
 
     local function menuItem(i)
-        local yIncrement = (actuals.MainDisplayHeight) / #items
+        local yIncrement = (actuals.MainDisplayHeight) / itemsVisible
+        local index = i
+        local item = items[index]
         return Def.ActorFrame {
             Name = "MenuItem_"..i,
             InitCommand = function(self)
+                self:x(actuals.ScrollerWidth + actuals.EdgeBuffer/2)
                 -- center y
                 self:y(yIncrement * (i-1) + yIncrement / 2)
+                self:playcommand("UpdateItem")
             end,
             SelectCurrentCommand = function(self)
-                if cursorIndex == i then
+                if cursorHoversItem(i) then
                     -- do something
                 end
             end,
+            UpdateItemCommand = function(self)
+                index = (page-1) * itemsVisible + i
+                item = items[index]
+                if item ~= nil then
+                    self:finishtweening()
+                    self:diffusealpha(0)
+                    self:smooth(animationSeconds)
+                    self:diffusealpha(1)
+                else
+                    self:finishtweening()
+                    self:smooth(animationSeconds)
+                    self:diffusealpha(0)
+                end
+            end,
+            UpdatePageMessageCommand = function(self)
+                self:playcommand("UpdateItem")
+            end,
 
+            UIElements.QuadButton(1, 1) .. {
+                Name = "ItemBG", -- also the "cursor" position
+                InitCommand = function(self)
+                    self:halign(0)
+                    -- 97% full size to allow a gap for mouse hover logic reasons
+                    self:zoomto(actuals.ListWidth - actuals.EdgeBuffer, yIncrement * 0.97)
+                    self:diffusealpha(0)
+                    self.alphaDeterminingFunction = function(self)
+                        local alpha = 1
+                        if isOver(self) then
+                            alpha = buttonHoverAlpha
+                            if cursorHoversItem(i) then
+                                alpha = (buttonHoverAlpha + 1) / 2
+                            end
+                        else
+                            alpha = 0
+                            if cursorHoversItem(i) then
+                                alpha = cursorAlpha
+                            end
+                        end
+
+                        self:diffusealpha(alpha)
+                    end
+                end,
+                CursorShowCommand = function(self)
+                    self:smooth(cursorAnimationSeconds)
+                    self:alphaDeterminingFunction()
+                end,
+                CursorHideCommand = function(self)
+                    self:smooth(cursorAnimationSeconds)
+                    self:alphaDeterminingFunction()
+                end,
+                MouseOverCommand = function(self)
+                    if self:GetParent():IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                MouseOutCommand = function(self)
+                    if self:GetParent():IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                UpdateCursorMessageCommand = function(self)
+                    self:alphaDeterminingFunction()
+                end,
+                MouseDownCommand = function(self)
+                    if self:GetParent():IsInvisible() then return end
+                    self:GetParent():playcommand("SelectCurrent")
+                end,
+            },
+            LoadFont("Menu Normal") .. {
+                Name = "Text",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:zoom(listTextSize)
+                    self:maxwidth((actuals.ListWidth - actuals.EdgeBuffer * 2) / listTextSize)
+                end,
+                UpdateItemCommand = function(self)
+                    if item ~= nil then
+                        if not item.isCategory then
+                            self:x(actuals.EdgeBuffer)
+                        else
+                            self:x(0)
+                        end
+                        self:settext(item.Name)
+                    end
+                end,
+            }
         }
     end
 
@@ -111,9 +402,22 @@ local function helpMenu()
             end)
             self:playcommand("UpdateCursor")
         end,
+        Def.Quad {
+            Name = "ScrollBar",
+            InitCommand = function(self)
+                self:zoomto(actuals.ScrollerWidth, actuals.MainDisplayHeight / maxPage)
+                self:halign(0):valign(0)
+                self:diffusealpha(0.6)
+            end,
+            UpdatePageMessageCommand = function(self)
+                self:finishtweening()
+                self:smooth(animationSeconds)
+                self:y(actuals.MainDisplayHeight / maxPage * (page-1))
+            end,
+        }
     }
 
-    for i = 1, #items do
+    for i = 1, itemsVisible do
         t[#t+1] = menuItem(i)
     end
     return t
