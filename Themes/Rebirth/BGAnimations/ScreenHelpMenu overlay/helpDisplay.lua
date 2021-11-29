@@ -17,6 +17,8 @@ local ratios = {
     SeparationGapWidth = 82 / 1920, -- width of the separation area between selection list and the info area
 
     TopBuffer = 45 / 1080, -- buffer from the top of any section to any item within the section
+    TopBuffer2 = 119 / 1080, -- from top edge of section to the subtitle text
+    TopBuffer3 = 200 / 1080, -- from top edge of section to the description text
     EdgeBuffer = 25 / 1920, -- buffer from the edge of any section to any item within the section
 
     IconExitWidth = 47 / 1920,
@@ -38,6 +40,8 @@ local actuals = {
     ListWidth = ratios.ListWidth * SCREEN_WIDTH,
     SeparationGapWidth = ratios.SeparationGapWidth * SCREEN_WIDTH,
     TopBuffer = ratios.TopBuffer * SCREEN_HEIGHT,
+    TopBuffer2 = ratios.TopBuffer2 * SCREEN_HEIGHT,
+    TopBuffer3 = ratios.TopBuffer3 * SCREEN_HEIGHT,
     EdgeBuffer = ratios.EdgeBuffer * SCREEN_WIDTH,
     IconExitWidth = ratios.IconExitWidth * SCREEN_WIDTH,
     IconExitHeight = ratios.IconExitHeight * SCREEN_HEIGHT,
@@ -45,6 +49,10 @@ local actuals = {
 
 local infoTextSize = 0.65
 local listTextSize = 0.4
+local titleTextSize = 0.9
+local subtitleTextSize = 0.6
+local descTextSize = 0.4
+
 local textZoomFudge = 5
 local buttonHoverAlpha = 0.3
 local cursorAlpha = 0.3
@@ -294,6 +302,7 @@ local function helpMenu()
             SelectCurrentCommand = function(self)
                 if cursorHoversItem(i) then
                     -- do something
+                    MESSAGEMAN:Broadcast("SelectedItem", {def = item.Def, category = item.Parent})
                 end
             end,
             UpdateItemCommand = function(self)
@@ -362,7 +371,12 @@ local function helpMenu()
                 end,
                 MouseDownCommand = function(self)
                     if self:GetParent():IsInvisible() then return end
+                    cursorIndex = index
                     self:GetParent():playcommand("SelectCurrent")
+                end,
+                SelectedItemMessageCommand = function(self)
+                    if self:GetParent():IsInvisible() then return end
+                    self:alphaDeterminingFunction()
                 end,
             },
             LoadFont("Menu Normal") .. {
@@ -386,6 +400,7 @@ local function helpMenu()
         }
     end
 
+    local rightAreaWidth = actuals.MainDisplayWidth - (actuals.ScrollerWidth + actuals.ListWidth + actuals.SeparationGapWidth)
     local t = Def.ActorFrame {
         Name = "MenuContainer",
         BeginCommand = function(self)
@@ -442,6 +457,125 @@ local function helpMenu()
                     end
                 end
             end,
+        },
+        Def.ActorFrame {
+            Name = "SelectedItemContainer",
+            InitCommand = function(self)
+                self:x(actuals.ScrollerWidth + actuals.ListWidth + actuals.SeparationGapWidth)
+                -- make empty defaults load
+                self:playcommand("UpdateSelectedItem")
+            end,
+            SelectedItemMessageCommand = function(self, params)
+                self:playcommand("UpdateSelectedItem", params)
+            end,
+
+            LoadFont("Menu Normal") .. {
+                Name = "Name",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(actuals.EdgeBuffer, actuals.TopBuffer)
+                    self:zoom(titleTextSize)
+                end,
+                UpdateSelectedItemCommand = function(self, params)
+                    if params and params.def ~= nil then
+                        local def = params.def
+                        self:settext(def.Name)
+
+                        if def.Image ~= nil and def.Image ~= "" then
+                            self:maxwidth(((rightAreaWidth / 2) - actuals.EdgeBuffer) / titleTextSize)
+                        else
+                            self:maxwidth((rightAreaWidth - actuals.EdgeBuffer) / titleTextSize)
+                        end
+                    else
+                        self:settext("")
+                    end
+                end,
+            },
+            LoadFont("Menu Normal") .. {
+                Name = "ShortDescription",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(actuals.EdgeBuffer, actuals.TopBuffer2)
+                    self:skewx(-0.15)
+                    self:zoom(subtitleTextSize)
+                end,
+                UpdateSelectedItemCommand = function(self, params)
+                    if params and params.def ~= nil then
+                        local def = params.def
+                        self:settext(def.ShortDescription)
+
+                        if def.Image ~= nil and def.Image ~= "" then
+                            self:wrapwidthpixels(((rightAreaWidth / 2) - actuals.EdgeBuffer) / subtitleTextSize)
+                        else
+                            self:wrapwidthpixels((rightAreaWidth - actuals.EdgeBuffer) / subtitleTextSize)
+                        end
+                    else
+                        self:settext("")
+                    end
+                end,
+            },
+            LoadFont("Menu Normal") .. {
+                Name = "Paragraph",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(actuals.EdgeBuffer, actuals.TopBuffer3)
+                end,
+                UpdateSelectedItemCommand = function(self, params)
+                    if params and params.def ~= nil then
+                        local def = params.def
+                        self:settext(def.Description)
+                        self:zoom(descTextSize)
+                        self:maxheight((actuals.MainDisplayHeight - actuals.TopBuffer3) / descTextSize)
+
+                        if def.Image ~= nil and def.Image ~= "" then
+                            self:wrapwidthpixels(((rightAreaWidth / 2) - actuals.EdgeBuffer) / descTextSize)
+                        else
+                            self:wrapwidthpixels((rightAreaWidth - actuals.EdgeBuffer) / descTextSize)
+                        end
+                    else
+                        self:zoom(subtitleTextSize)
+                        self:settext("Select an item on the left to get info.\nScroll through the list for more categories.")
+                        self:wrapwidthpixels((rightAreaWidth - actuals.EdgeBuffer) / subtitleTextSize)
+                    end
+                end,
+            },
+            UIElements.SpriteButton(1, 1, nil) .. {
+                Name = "Image",
+                InitCommand = function(self)
+                    self:valign(0)
+                    self:xy(rightAreaWidth / 4 * 3, actuals.TopBuffer)
+                end,
+                UpdateSelectedItemCommand = function(self, params)
+                    if params and params.def ~= nil then
+                        local def = params.def
+                        if def.Image ~= nil and def.Image ~= "" then
+                            self:diffusealpha(1)
+                            self:Load(def.Image)
+                            local h = self:GetHeight()
+                            local w = self:GetWidth()
+                            local allowedHeight = actuals.MainDisplayHeight - (actuals.TopBuffer * 2)
+                            local allowedWidth = rightAreaWidth - (actuals.EdgeBuffer + actuals.IconExitWidth)
+                            if h >= allowedHeight and w >= allowedWidth then
+                                if h * (allowedWidth / allowedHeight) >= w then
+                                    self:zoom(allowedHeight / h)
+                                else
+                                    self:zoom(allowedWidth / w)
+                                end
+                            elseif h >= allowedHeight then
+                                self:zoom(allowedHeight / h)
+                            elseif w >= allowedWidth then
+                                self:zoom(allowedWidth / w)
+                            else
+                                self:zoom(1)
+                            end
+                        else
+                            self:diffusealpha(0)
+                        end
+                    else
+                        self:diffusealpha(0)
+                    end
+                end,
+            },
         }
     }
 
@@ -487,8 +621,15 @@ local t = Def.ActorFrame {
                 self:zoom(infoTextSize)
                 self:maxheight((actuals.InfoHeight - (actuals.InfoVerticalBuffer*2)) / infoTextSize)
                 self:wrapwidthpixels(textw / infoTextSize)
-                self:settext("Ayo we got the mofukin boneless screen")
+                self:settext("Help")
             end,
+            SelectedItemMessageCommand = function(self, params)
+                if params and params.category ~= nil then
+                    self:settext(params.category)
+                else
+                    self:settext("Help")
+                end
+            end
         },
     },
     Def.ActorFrame {
