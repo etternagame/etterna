@@ -252,11 +252,19 @@ local function helpMenu()
     local cursorIndex = 1
     local page = 1
     local maxPage = math.ceil(#items / itemsVisible)
-    local function cursorHoversItem(i)
-        return ((cursorIndex-1) % itemsVisible == (i-1))
-    end
     local function getPageFromIndex(i)
         return math.ceil((i) / itemsVisible)
+    end
+    local function cursorHoversItem(i)
+        if getPageFromIndex(cursorIndex) ~= page then return false end
+        return ((cursorIndex-1) % itemsVisible == (i-1))
+    end
+    local function movePage(n)
+        local newpage = page + n
+        if newpage > maxPage then newpage = 1 end
+        if newpage < 1 then newpage = maxPage end
+        page = newpage
+        MESSAGEMAN:Broadcast("UpdatePage")
     end
     local function moveCursor(n)
         local newpos = cursorIndex + n
@@ -349,6 +357,9 @@ local function helpMenu()
                 UpdateCursorMessageCommand = function(self)
                     self:alphaDeterminingFunction()
                 end,
+                UpdateItemCommand = function(self)
+                    self:alphaDeterminingFunction()
+                end,
                 MouseDownCommand = function(self)
                     if self:GetParent():IsInvisible() then return end
                     self:GetParent():playcommand("SelectCurrent")
@@ -413,6 +424,23 @@ local function helpMenu()
                 self:finishtweening()
                 self:smooth(animationSeconds)
                 self:y(actuals.MainDisplayHeight / maxPage * (page-1))
+            end,
+        },
+        Def.Quad {
+            Name = "MouseScrollArea",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:diffusealpha(0)
+                self:zoomto(actuals.ScrollerWidth + actuals.ListWidth, actuals.MainDisplayHeight)
+            end,
+            MouseScrollMessageCommand = function(self, params)
+                if isOver(self) then
+                    if params.direction == "Up" then
+                        movePage(-1)
+                    else
+                        movePage(1)
+                    end
+                end
             end,
         }
     }
