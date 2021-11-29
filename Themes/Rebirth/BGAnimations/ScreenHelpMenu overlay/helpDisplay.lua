@@ -418,8 +418,10 @@ local function helpMenu()
 
                 if up or left then
                     moveCursor(-1)
+                    self:playcommand("SelectCurrent")
                 elseif down or right then
                     moveCursor(1)
+                    self:playcommand("SelectCurrent")
                 elseif enter then
                     self:playcommand("SelectCurrent")
                 elseif back then
