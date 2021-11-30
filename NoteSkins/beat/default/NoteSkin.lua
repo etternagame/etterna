@@ -61,15 +61,22 @@ ret.PartsToRotate = {
 -- ret.Rotate.UpLeft = 0;
 -- ret.Rotate.UpRight = 90;
 --
+
+--This table doesn't seem to do anything and I don't know why
 ret.Blank = {
 	["Hold Topcap Active"] = true,
 	["Hold Topcap Inactive"] = true,
 	["Roll Topcap Active"] = true,
 	["Roll Topcap Inactive"] = true,
+	["Hold BottomCap Active"] = true,
+	["Hold BottomCap Inactive"] = true,
+	["Roll BottomCap Active"] = true,
+	["Roll BottomCap Inactive"] = true,
 	["Hold Tail Active"] = true,
 	["Hold Tail Inactive"] = true,
 	["Roll Tail Active"] = true,
 	["Roll Tail Inactive"] = true
+
 }
 
 return ret
