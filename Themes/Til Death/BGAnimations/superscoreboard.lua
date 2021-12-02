@@ -641,7 +641,11 @@ local function makeScoreDisplay(i)
 				end
 			end,
 			DisplayCommand = function(self)
-				self:settextf("%05.2f%%", notShit.floor(hs:GetWifeScore() * 100, 2)):diffuse(byGrade(hs:GetWifeGrade()))
+				local append = ""
+				if hs:GetWifeVers() ~= 3 then
+					append = " W2"
+				end
+				self:settextf("%05.2f%%" .. append, notShit.floor(hs:GetWifeScore() * 100, 2)):diffuse(byGrade(hs:GetWifeGrade()))
 			end
 		},
 		LoadFont("Common normal") .. {

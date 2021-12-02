@@ -396,10 +396,11 @@ local function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 				local wv = score:GetWifeVers()
-				local ws = "Wife" .. wv .. " J"
 				local js = judge ~= 9 and judge or "ustice"
 				local rescoretable = getRescoreElements(score)
 				local rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
+				wv = 3 -- this should really only be applicable if we can convert the score
+				local ws = "Wife" .. wv .. " J"
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
 				self:settextf(
 					"%05.2f%% (%s)",
@@ -412,7 +413,6 @@ local function scoreBoard(pn, position)
 			CodeMessageCommand = function(self, params)
 				local rescoretable = getRescoreElements(score)
 				local rescorepercent = 0
-				local wv = score:GetWifeVers()
 				local ws = "Wife3" .. " J"
 				if params.Name == "PrevJudge" and judge > 4 then
 					judge = judge - 1
@@ -450,10 +450,11 @@ local function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 				local wv = score:GetWifeVers()
-				local ws = "Wife" .. wv .. " J"
 				local js = judge ~= 9 and judge or "ustice"
 				local rescoretable = getRescoreElements(score)
 				local rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
+				wv = 3 -- this should really only be applicable if we can convert the score
+				local ws = "Wife" .. wv .. " J"
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
 				self:settextf(
 					"%05.5f%% (%s)",

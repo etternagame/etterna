@@ -814,14 +814,16 @@ local function wifePercentDisplay()
         SetCommand = function(self, params)
             if params.score ~= nil then
                 local ver = params.score:GetWifeVers()
-                local ws = "W"..ver.." J"
-                ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
                 local percent = params.score:GetWifeScore() * 100
                 decimals = 2
                 if params.judgeSetting ~= nil then
                     local rescoreTable = gatherRescoreTableFromScore(params.score)
                     percent = getRescoredWife3Judge(3, params.judgeSetting, rescoreTable)
+                    ver = 3
                 end
+                -- wife version string
+                local ws = "W"..ver.." J"
+                ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
                 -- scores over 99% should show more decimals
                 if percent > 99 or isOver(self) then
                     decimals = 4
