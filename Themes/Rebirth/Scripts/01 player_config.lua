@@ -216,6 +216,27 @@ function getDefaultGameplayCoordinate(obj)
     return defaultGameplayCoordinates[obj]
 end
 
+local function setDefaultElementSize(element, val, mode)
+    defaultGameplaySizes[element] = val
+    if mode == nil then
+        for n, t in pairs(defaultConfig.GameplaySizes) do
+            defaultConfig.GameplaySizes[n][element] = val
+        end
+    else
+        defaultConfig.GameplaySizes[mode][element] = val
+    end
+end
+local function setDefaultElementCoord(element, val, mode)
+    defaultGameplayCoordinates[element] = val
+    if mode == nil then
+        for n, t in pairs(defaultConfig.GameplayXYCoordinates) do
+            defaultConfig.GameplayXYCoordinates[n][element] = val
+        end
+    else
+        defaultConfig.GameplayXYCoordinates[mode][element] = val
+    end
+end
+
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
 local convertXPosRatio = 1
 local convertYPosRatio = 1
@@ -264,35 +285,37 @@ playerConfig.load = function(self, slot)
 
     -------
     -- cope with a minor renaming of the NoteField elements
-    -- didnt test
-    if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.NotefieldX ~= nil then
-        defaultGameplayCoordinates.NoteFieldX = x.GameplayXYCoordinates.NotefieldX
+    for MODENAME, _ in pairs(defaultConfig.GameplaySizes) do
+        if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates[MODENAME] ~= nil and x.GameplayXYCoordinates[MODENAME].NotefieldX ~= nil then
+            setDefaultElementCoord("NoteFieldX", x.GameplayXYCoordinates[MODENAME].NotefieldX, MODENAME)
+        end
+        if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates[MODENAME] ~= nil and x.GameplayXYCoordinates[MODENAME].NotefieldY ~= nil then
+            -- the negative 1 here because i swapped things around mid development
+            setDefaultElementCoord("NoteFieldY", x.GameplayXYCoordinates[MODENAME].NotefieldY * -1, MODENAME)
+        end
+        if x.GameplaySizes ~= nil and x.GameplaySizes[MODENAME] ~= nil and x.GameplaySizes[MODENAME].NotefieldWidth ~= nil then
+            setDefaultElementSize("NoteFieldWidth", x.GameplaySizes[MODENAME].NotefieldWidth, MODENAME)
+        end
+        if x.GameplaySizes ~= nil and x.GameplaySizes[MODENAME] ~= nil and x.GameplaySizes[MODENAME].NotefieldSpacing ~= nil then
+            setDefaultElementSize("NoteFieldSpacing", x.GameplaySizes[MODENAME].NotefieldSpacing, MODENAME)
+        end
+        if x.GameplaySizes ~= nil and x.GameplaySizes[MODENAME] ~= nil and x.GameplaySizes[MODENAME].NotefieldHeight ~= nil then
+            setDefaultElementSize("NoteFieldHeight", x.GameplaySizes[MODENAME].NotefieldHeight, MODENAME)
+        end
+        -- also cope with minor renaming of actor Judge to Judgment
+        if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates[MODENAME] ~= nil and x.GameplayXYCoordinates[MODENAME].JudgeX ~= nil then
+            setDefaultElementCoord("JudgmentX", x.GameplayXYCoordinates[MODENAME].JudgeX, MODENAME)
+        end
+        if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates[MODENAME] ~= nil and x.GameplayXYCoordinates[MODENAME].JudgeY ~= nil then
+            setDefaultElementCoord("JudgementY", x.GameplayXYCoordinates[MODENAME].JudgeY, MODENAME)
+        end
+        if x.GameplaySizes ~= nil and x.GameplaySizes[MODENAME] ~= nil and x.GameplaySizes[MODENAME].JudgeZoom ~= nil then
+            setDefaultElementSize("JudgmentZoom", x.GameplaySizes[MODENAME].JudgeZoom, MODENAME)
+        end
     end
-    if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.NotefieldY ~= nil then
-        -- the negative 1 here because
-        defaultGameplayCoordinates.NoteFieldY = x.GameplayXYCoordinates.NotefieldY * -1
-    end
-    if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldWidth ~= nil then
-        defaultGameplaySizes.NoteFieldWidth = x.GameplaySizes.NotefieldWidth
-    end
-    if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldSpacing ~= nil then
-        defaultGameplaySizes.NoteFieldSpacing = x.GameplaySizes.NotefieldSpacing
-    end
-    if x.GameplaySizes ~= nil and x.GameplaySizes.NotefieldHeight ~= nil then
-        defaultGameplaySizes.NoteFieldHeight = x.GameplaySizes.NotefieldHeight
-    end
-    -- also cope with minor renaming of actor Judge to Judgment
-    if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.JudgeX ~= nil then
-        defaultGameplayCoordinates.JudgmentX = x.GameplayXYCoordinates.JudgeX
-    end
-    if x.GameplayXYCoordinates ~= nil and x.GameplayXYCoordinates.JudgeY ~= nil then
-        defaultGameplayCoordinates.JudgementY = x.GameplayXYCoordinates.JudgeY
-    end
-    if x.GameplaySizes ~= nil and x.GameplaySizes.JudgeZoom ~= nil then
-        defaultGameplaySizes.JudgmentZoom = x.GameplaySizes.JudgeZoom
-    end
+    -- applies to all modes because this is moved from a global setting to a keymode setting
     if x.LaneCoverHeight ~= nil then
-        defaultGameplaySizes.CoverHeight = x.LaneCoverHeight
+        setDefaultElementSize("CoverHeight", x.LaneCoverHeight)
     end
     -------
 
