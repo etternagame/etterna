@@ -542,6 +542,7 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetRadarValues(pss.m_radarActual);
 	hs.SetLifeRemainingSeconds(pss.m_fLifeRemainingSeconds);
 	hs.SetDisqualified(pss.IsDisqualified());
+	hs.SetDSFlag(pss.usedDoubleSetup);
 
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));

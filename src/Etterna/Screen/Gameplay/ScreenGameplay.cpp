@@ -73,12 +73,14 @@ AutoScreenMessage(SM_StopHereWeGo);
 
 static Preference<bool> g_bCenter1Player("Center1Player", true);
 static Preference<bool> g_bShowLyrics("ShowLyrics", false);
+static std::map<int, std::set<DeviceButton>> g_buttonsByColumnPressed{};
 
 ScreenGameplay::ScreenGameplay()
 {
 	m_pSongBackground = nullptr;
 	m_pSongForeground = nullptr;
 	m_delaying_ready_announce = false;
+	g_buttonsByColumnPressed.clear();
 
 	// Tell DownloadManager we are in Gameplay
 	DLMAN->UpdateDLSpeed(true);
@@ -1404,6 +1406,14 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 					return false;
 				case GameButtonType_Step:
 					if (iCol != -1) {
+
+						if (g_buttonsByColumnPressed.count(iCol) == 0u) {
+							std::set<DeviceButton> newset;
+							g_buttonsByColumnPressed[iCol] = newset;
+						}
+						g_buttonsByColumnPressed[iCol].emplace(
+						  input.DeviceI.button);
+
 						m_vPlayerInfo.m_pPlayer->Step(
 						  iCol, -1, input.DeviceI.ts, false, bRelease);
 					}
@@ -1481,6 +1491,15 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	// Properly set the LivePlay bool
 	STATSMAN->m_CurStageStats.m_bLivePlay = true;
 
+	bool usedDoubleSetup = false;
+	for (auto& s : g_buttonsByColumnPressed) {
+		if (s.second.size() > 1) {
+			usedDoubleSetup = true;
+			Locator::getLogger()->trace("Double setup detected");
+		}
+	}
+
+	STATSMAN->m_CurStageStats.m_player.usedDoubleSetup = usedDoubleSetup;
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 
 	// If we didn't cheat and aren't in Practice

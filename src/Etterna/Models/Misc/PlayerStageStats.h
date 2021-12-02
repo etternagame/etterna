@@ -140,6 +140,7 @@ class PlayerStageStats
 	bool gaveuplikeadumbass{}; // flag 'giving up' status so i can flag it as
 							   // failing so i dont have to remove the feature
 							   // entirely -mina
+	bool usedDoubleSetup{};
 
 	std::map<float, float> m_fLifeRecord;
 	void SetLifeRecordAt(float fLife, float fStepsSecond);

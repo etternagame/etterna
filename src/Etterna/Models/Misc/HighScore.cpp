@@ -69,6 +69,7 @@ struct HighScoreImpl
 	float fJudgeScale;
 	bool bNoChordCohesion;
 	bool bEtternaValid;
+	bool bUsedDS;
 	std::vector<std::string> uploaded;
 	std::vector<InputDataEvent> InputData;
 	std::vector<float> vOffsetVector;
@@ -205,6 +206,7 @@ HighScoreImpl::HighScoreImpl()
 	ReplayType = 2;
 	bNoChordCohesion = false;
 	bDisqualified = false;
+	bUsedDS = false;
 	WifeVersion = 0;
 }
 
@@ -233,6 +235,9 @@ HighScoreImpl::CreateEttNode() const -> XNode*
 	pNode->AppendChild("JudgeScale", fJudgeScale);
 	pNode->AppendChild("NoChordCohesion", bNoChordCohesion);
 	pNode->AppendChild("EtternaValid", bEtternaValid);
+	if (bUsedDS) {
+		pNode->AppendChild("DSFlag", bUsedDS);
+	}
 	pNode->AppendChild("PlayedSeconds", played_seconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
 	pNode->AppendChild("Modifiers", sModifiers);
@@ -303,6 +308,10 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	pNode->GetChildValue("JudgeScale", fJudgeScale);
 	pNode->GetChildValue("NoChordCohesion", bNoChordCohesion);
 	pNode->GetChildValue("EtternaValid", bEtternaValid);
+	auto dsSuccess = pNode->GetChildValue("DSFlag", bUsedDS);
+	if (!dsSuccess) {
+		bUsedDS = false;
+	}
 	const auto* pUploadedServers = pNode->GetChild("Servs");
 	if (pUploadedServers != nullptr) {
 		FOREACH_CONST_Child(pUploadedServers, p)
@@ -1109,6 +1118,11 @@ HighScore::GetEtternaValid() const -> bool
 	return m_Impl->bEtternaValid;
 }
 auto
+HighScore::GetDSFlag() const -> bool
+{
+	return m_Impl->bUsedDS;
+}
+auto
 HighScore::IsUploadedToServer(const std::string& s) const -> bool
 {
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
@@ -1359,6 +1373,11 @@ void
 HighScore::SetEtternaValid(bool b)
 {
 	m_Impl->bEtternaValid = b;
+}
+void
+HighScore::SetDSFlag(bool b)
+{
+	m_Impl->bUsedDS = b;
 }
 void
 HighScore::AddUploadedServer(const std::string& s)
