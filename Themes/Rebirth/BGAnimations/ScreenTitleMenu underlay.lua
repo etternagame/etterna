@@ -48,6 +48,10 @@ end
 -- if you go to the help screen this puts you back on the main menu
 SCUFF.helpmenuBackout = "ScreenTitleMenu"
 
+-- for the secret jukebox button
+local playingMusic = {}
+local playingMusicCounter = 1
+
 local buttonHoverAlpha = 0.6
 local function hoverfunc(self)
     if self:IsInvisible() then return end
@@ -114,13 +118,61 @@ t[#t+1] = Def.ActorFrame {
             self:xy(logoFrameLeftGap, logoFrameUpperGap)
         end,
     
-        Def.Sprite {
+        UIElements.SpriteButton(100, 1, THEME:GetPathG("", "Logo")) .. {
             Name = "Logo",
-            Texture = THEME:GetPathG("", "Logo"),
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(logoW, logoH)
-            end
+            end,
+            MouseOverCommand = function(self)
+                self:diffusealpha(buttonHoverAlpha)
+            end,
+            MouseOutCommand = function(self)
+                self:diffusealpha(1)
+            end,
+            MouseDownCommand = function(self, params)
+                if params.event == "DeviceButton_left mouse button" then
+                    local function startSong()
+                        local sngs = SONGMAN:GetAllSongs()
+                        if #sngs == 0 then ms.ok("No songs to play") return end
+
+                        local s = sngs[math.random(#sngs)]
+                        local p = s:GetMusicPath()
+                        local l = s:MusicLengthSeconds()
+                        local top = SCREENMAN:GetTopScreen()
+
+                        local thisSong = playingMusicCounter
+                        playingMusic[thisSong] = true
+
+                        SOUND:StopMusic()
+                        SOUND:PlayMusicPart(p, 0, l)
+            
+                        ms.ok("NOW PLAYING: "..s:GetMainTitle() .. " | LENGTH: "..SecondsToMMSS(l))
+            
+                        top:setTimeout(
+                            function()
+                                if not playingMusic[thisSong] then return end
+                                playingMusicCounter = playingMusicCounter + 1
+                                startSong()
+                            end,
+                            l
+                        )
+            
+                    end
+            
+                    SCREENMAN:GetTopScreen():setTimeout(function()
+                            playingMusic[playingMusicCounter] = false
+                            playingMusicCounter = playingMusicCounter + 1
+                            startSong()
+                        end,
+                    0.1)
+                else
+                    SOUND:StopMusic()
+                    playingMusic = {}
+                    playingMusicCounter = playingMusicCounter + 1
+                    ms.ok("Stopped music")
+                end
+            end,
         },
         LoadFont("Menu Bold") .. {
             Name = "GameName",
