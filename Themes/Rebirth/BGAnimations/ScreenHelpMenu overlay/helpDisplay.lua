@@ -153,7 +153,7 @@ local function helpMenu()
             {
                 Name = "Trill",
                 ShortDescription = "Like musical theory",
-                Description = "A trill is a sequence of two continuously alternating notes. In the context of this game, they can be either on one hand or split between both hands.\n\nWhen a trill is one hand, it is called a one hand trill. Otherwise, it is a two hand trill. Trills are not restricted to two adjacent columns, and can be on columns 1 and 3 for example.\n\nDepicted to the right is a simple two hand trill.",
+                Description = "A trill is a sequence of two continuously alternating notes. In the context of this game, they can be either on one hand or split between both hands.\n\nWhen a trill is one handed, it is called a one hand trill. Otherwise, it is a two hand trill. Trills are not restricted to two adjacent columns, and can be on columns 1 and 3 for example.\n\nDepicted to the right is a simple two hand trill.",
                 Image = THEME:GetPathG("", "Patterns/trill"),
             },
             {
