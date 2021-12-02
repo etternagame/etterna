@@ -286,17 +286,19 @@ function WHEELDATA.FilterCheck(self, g)
         local artist = g:GetDisplayArtist():lower()
         local subtitle = g:GetDisplaySubTitle():lower()
         if not self:IsSearchFilterEmpty() then
+            local startIndex = 1
+            local dontUsePatternMatching = true
             if self.ActiveFilter.metadata.Title ~= "" then
-               if title:find(self.ActiveFilter.metadata.Title) == nil then return false end
+               if title:find(self.ActiveFilter.metadata.Title, startIndex, dontUsePatternMatching) == nil then return false end
             end
             if self.ActiveFilter.metadata.Subtitle ~= "" then
-                if subtitle:find(self.ActiveFilter.metadata.Subtitle) == nil then return false end
+                if subtitle:find(self.ActiveFilter.metadata.Subtitle, startIndex, dontUsePatternMatching) == nil then return false end
             end
             if self.ActiveFilter.metadata.Author ~= "" then
-                if author:find(self.ActiveFilter.metadata.Author) == nil then return false end
+                if author:find(self.ActiveFilter.metadata.Author, startIndex, dontUsePatternMatching) == nil then return false end
             end
             if self.ActiveFilter.metadata.Artist ~= "" then
-                if artist:find(self.ActiveFilter.metadata.Artist) == nil then return false end
+                if artist:find(self.ActiveFilter.metadata.Artist, startIndex, dontUsePatternMatching) == nil then return false end
             end
         end
 
