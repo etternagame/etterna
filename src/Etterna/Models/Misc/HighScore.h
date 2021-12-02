@@ -58,6 +58,8 @@ struct HighScore
 	  -> const std::vector<TapNoteType>&;
 	[[nodiscard]] auto GetHoldReplayDataVector() const
 	  -> const std::vector<HoldReplayResult>&;
+	[[nodiscard]] auto GetMineReplayDataVector() const
+	  -> const std::vector<MineReplayResult>&;
 	[[nodiscard]] auto GetCopyOfOffsetVector() const -> std::vector<float>;
 	[[nodiscard]] auto GetCopyOfNoteRowVector() const -> std::vector<int>;
 	[[nodiscard]] auto GetCopyOfTrackVector() const -> std::vector<int>;
@@ -65,6 +67,8 @@ struct HighScore
 	  -> std::vector<TapNoteType>;
 	[[nodiscard]] auto GetCopyOfHoldReplayDataVector() const
 	  -> std::vector<HoldReplayResult>;
+	[[nodisard]] auto GetCopyOfMineReplayDataVector() const
+	  -> std::vector<MineReplayResult>;
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector() const
 	  -> std::vector<float>;
 	[[nodiscard]] auto GetInputDataVector() const -> const std::vector<InputDataEvent>&;
@@ -106,6 +110,7 @@ struct HighScore
 	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
+	void SetSongOffset(float f);
 	void SetPlayedSeconds(float f);
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
@@ -117,6 +122,7 @@ struct HighScore
 	void SetTrackVector(const std::vector<int>& v);
 	void SetTapNoteTypeVector(const std::vector<TapNoteType>& v);
 	void SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v);
+	void SetMineReplayDataVector(const std::vector<MineReplayResult>& v);
 	void SetOnlineReplayTimestampVector(const std::vector<float>& v);
 	void SetScoreKey(const std::string& sk);
 	void SetRescoreJudgeVector(const std::vector<int>& v);

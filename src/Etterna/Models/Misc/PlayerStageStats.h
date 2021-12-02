@@ -52,6 +52,8 @@ class PlayerStageStats
 	[[nodiscard]] auto GetTapNoteTypeVector() const -> std::vector<TapNoteType>;
 	[[nodiscard]] auto GetHoldReplayDataVector() const
 	  -> std::vector<HoldReplayResult>;
+	[[nodiscard]] auto GetMineReplayDataVector() const
+	  -> std::vector<MineReplayResult>;
 	[[nodiscard]] auto GetCurMaxPercentDancePoints() const -> float;
 
 	[[nodiscard]] auto GetLessonScoreActual() const -> int;
@@ -86,6 +88,7 @@ class PlayerStageStats
 	float CurWifeScore{};
 	float MaxWifeScore{};
 	float m_fTimingScale{};
+	std::vector<MineReplayResult> m_vMineReplayData;
 	std::vector<HoldReplayResult> m_vHoldReplayData;
 	std::vector<float> m_vOffsetVector;
 	std::vector<int> m_vNoteRowVector;

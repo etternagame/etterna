@@ -1848,6 +1848,15 @@ Player::AddHoldToReplayData(int col,
 }
 
 void
+Player::AddMineToReplayData(int col, int row) const
+{
+	MineReplayResult mrr;
+	mrr.row = row;
+	mrr.track = col;
+	m_pPlayerStageStats->m_vMineReplayData.emplace_back(mrr);
+}
+
+void
 Player::Step(int col,
 			 int row,
 			 const std::chrono::steady_clock::time_point& tm,
@@ -2027,6 +2036,14 @@ Player::Step(int col,
 
 		if (row == -1) {
 			fNoteOffset = (fStepSeconds - fMusicSeconds) / fMusicRate;
+			// input data (a real tap mapped to a note any distance away)
+			// this also skips things like mines hit by CrossedRows (holding)
+			m_pPlayerStageStats->InputData.emplace_back(
+			  !bRelease,
+			  col,
+			  fMusicSeconds,
+			  iRowOfOverlappingNoteOrRow,
+			  fNoteOffset);
 		}
 
 		NOTESKIN->SetLastSeenColor(
@@ -2248,6 +2265,14 @@ Player::Step(int col,
 					 m_NoteData, iRowOfOverlappingNoteOrRow)) {
 			FlashGhostRow(iRowOfOverlappingNoteOrRow);
 		}
+	} else {
+		// input data
+		// (autoplay, forced step, or step REALLY far away)
+		m_pPlayerStageStats->InputData.emplace_back(!bRelease,
+													col,
+													fMusicSeconds,
+													iRowOfOverlappingNoteOrRow,
+													0.F);
 	}
 
 	if (score == TNS_None) {
@@ -2646,11 +2671,11 @@ Player::UpdateJudgedRows(float /*fDeltaTime*/)
 					bAllJudged = false;
 					continue;
 				case TNS_AvoidMine:
-					SetMineJudgment(tn.result.tns, iter.Track());
+					SetMineJudgment(tn.result.tns, iter.Track(), iRow);
 					tn.result.bHidden = true;
 					continue;
 				case TNS_HitMine:
-					SetMineJudgment(tn.result.tns, iter.Track());
+					SetMineJudgment(tn.result.tns, iter.Track(), iRow);
 					break;
 			}
 			if (m_pNoteField != nullptr) {
@@ -2922,8 +2947,12 @@ Update: both message types are being sent out currently for compatability.
 -Mina*/
 //#define autoplayISHUMAN
 void
-Player::SetMineJudgment(TapNoteScore tns, int iTrack)
+Player::SetMineJudgment(TapNoteScore tns, int iTrack, int iRow)
 {
+	if (tns == TNS_HitMine) {
+		AddMineToReplayData(iTrack, iRow);
+	}
+
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Judgment");
 		msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);

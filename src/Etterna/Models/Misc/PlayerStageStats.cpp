@@ -397,6 +397,11 @@ PlayerStageStats::GetHoldReplayDataVector() const
 {
 	return m_vHoldReplayData;
 }
+std::vector<MineReplayResult>
+PlayerStageStats::GetMineReplayDataVector() const
+{
+	return m_vMineReplayData;
+}
 
 float
 PlayerStageStats::GetCurMaxPercentDancePoints() const

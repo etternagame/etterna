@@ -65,6 +65,7 @@ struct HighScoreImpl
 	float fSSRNormPercent;
 	float played_seconds;
 	float fMusicRate;
+	float fSongOffset;
 	float fJudgeScale;
 	bool bNoChordCohesion;
 	bool bEtternaValid;
@@ -75,6 +76,7 @@ struct HighScoreImpl
 	std::vector<int> vTrackVector;
 	std::vector<TapNoteType> vTapNoteTypeVector;
 	std::vector<HoldReplayResult> vHoldReplayDataVector;
+	std::vector<MineReplayResult> vMineReplayDataVector;
 	std::vector<float> vOnlineReplayTimestampVector;
 	std::vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo; // maximum combo obtained [SM5 alpha 1a+]
@@ -129,12 +131,14 @@ HighScoreImpl::UnloadReplayData()
 	vOffsetVector.clear();
 	vTrackVector.clear();
 	vTapNoteTypeVector.clear();
+	vMineReplayDataVector.clear();
 	InputData.clear();
 
 	vNoteRowVector.shrink_to_fit();
 	vOffsetVector.shrink_to_fit();
 	vTrackVector.shrink_to_fit();
 	vTapNoteTypeVector.shrink_to_fit();
+	vMineReplayDataVector.shrink_to_fit();
 	InputData.shrink_to_fit();
 
 	ReplayType = 0;
@@ -176,11 +180,13 @@ HighScoreImpl::HighScoreImpl()
 	fWifePoints = 0.F;
 	fSSRNormPercent = 0.F;
 	fMusicRate = 0.F;
+	fSongOffset = 0.F; // not for saving, only for replays
 	fJudgeScale = 0.F;
 	bEtternaValid = true;
 	vOffsetVector.clear();
 	vNoteRowVector.clear();
 	vRescoreJudgeVector.clear();
+	vMineReplayDataVector.clear();
 	InputData.clear();
 	played_seconds = 0.F;
 	iMaxCombo = 0;
@@ -498,13 +504,43 @@ HighScoreImpl::WriteInputData() -> bool
 
 	// for writing human readable text
 	try {
+		float fGlobalOffset = PREFSMAN->m_fGlobalOffsetSeconds.Get();
+		// header
+		auto headerLine1 = ChartKey + " " + ScoreKey + " " +
+						   std::to_string(fMusicRate) + " " +
+						   std::to_string(fSongOffset) + " " +
+						   std::to_string(fGlobalOffset) + "\n";
+		fileStream.write(headerLine1.c_str(), headerLine1.size());
+
+		// input data
 		const unsigned int idx = InputData.size() - 1;
 		for (unsigned int i = 0; i <= idx; i++) {
 			append = std::to_string(InputData[i].column) + " " +
 					 (InputData[i].is_press ? "1" : "0") + " " +
-					 std::to_string(InputData[i].songPositionSeconds) + "\n";
+					 std::to_string(InputData[i].songPositionSeconds) + " " +
+					 std::to_string(InputData[i].nearestTapNoterow) + " " +
+					 std::to_string(InputData[i].offsetFromNearest) + "\n";
 			fileStream.write(append.c_str(), append.size());
 		}
+
+		// dropped hold data
+		for (auto& hold : vHoldReplayDataVector) {
+			append = "H " + std::to_string(hold.row) + " " +
+					 std::to_string(hold.track) +
+					 (hold.subType != TapNoteSubType_Hold
+						? " " + std::to_string(hold.subType)
+						: "") +
+					 "\n";
+			fileStream.write(append.c_str(), append.size());
+		}
+
+		// hit mine data
+		for (auto& mine : vMineReplayDataVector) {
+			append = "M " + std::to_string(mine.row) + " " +
+					 std::to_string(mine.track) + "\n";
+			fileStream.write(append.c_str(), append.size());
+		}
+
 		fileStream.close();
 
 		FILE* infile =
@@ -577,6 +613,8 @@ HighScore::LoadInputData() -> bool
 	auto path = INPUT_DATA_DIR + m_Impl->ScoreKey;
 	auto path_z = path + "z";
 	std::vector<InputDataEvent> readInputs;
+	std::vector<HoldReplayResult> vHoldReplayDataVector;
+	std::vector<MineReplayResult> vMineReplayDataVector;
 
 	/*
 	std::ifstream inputStream(path, std::ios::binary);
@@ -629,6 +667,30 @@ HighScore::LoadInputData() -> bool
 		std::string line;
 		std::string buffer;
 		std::vector<std::string> tokens;
+
+		{
+			// get the header line
+			getline(inputStream, line);
+			std::stringstream ss(line);
+			while (ss >> buffer) {
+				tokens.emplace_back(buffer);
+			}
+			if (tokens.size() != 3) {
+				Locator::getLogger()->warn("Bad input data header detected: {}",
+										   GetScoreKey().c_str());
+				return false;
+			}
+
+			auto chartkey = tokens[0];
+			auto scorekey = tokens[1];
+			auto rate = std::stof(tokens[2]);
+			auto songoffset = std::stof(tokens[3]);
+			auto globaloffset = std::stof(tokens[4]);
+			// ... for later
+
+			tokens.clear();
+		}
+
 		while (getline(inputStream, line)) {
 			InputDataEvent ev;
 			std::stringstream ss(line);
@@ -637,19 +699,56 @@ HighScore::LoadInputData() -> bool
 				tokens.emplace_back(buffer);
 			}
 
-			if (tokens.size() != 3) {
+			// hold data
+			if (tokens[0] == "H") {
+				HoldReplayResult hrr;
+				hrr.row = std::stoi(tokens[1]);
+				hrr.track = std::stoi(tokens[2]);
+				auto tmp = 0;
+				tmp = tokens.size() > 3 ? std::stoi(tokens[3])
+										: TapNoteSubType_Hold;
+				if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
+					!(typeid(tmp) == typeid(int))) {
+					Locator::getLogger()->warn(
+					  "Failed to load replay data at {} (\"Tapnotesubtype "
+					  "value is not of type TapNoteSubType\")",
+					  path.c_str());
+				}
+				hrr.subType = static_cast<TapNoteSubType>(tmp);
+				vHoldReplayDataVector.emplace_back(hrr);
+				tokens.clear();
+				continue;
+			}
+
+			// mine data
+			if (tokens[0] == "M") {
+				MineReplayResult mrr;
+				mrr.row = std::stoi(tokens[1]);
+				mrr.track = std::stoi(tokens[2]);
+				vMineReplayDataVector.emplace_back(mrr);
+				tokens.clear();
+				continue;
+			}
+
+			// everything else is input data
+			if (tokens.size() != 5) {
 				Locator::getLogger()->warn("Bad input data detected: {}",
 										   GetScoreKey().c_str());
-				ASSERT(tokens.size() == 3);
+				return false;
 			}
 
 			ev.column = std::stoi(tokens[0]);
 			ev.is_press = (std::stoi(tokens[1]) != 0);
 			ev.songPositionSeconds = std::stof(tokens[2]);
+			ev.nearestTapNoterow = std::stoi(tokens[3]);
+			ev.offsetFromNearest = std::stof(tokens[4]);
 			m_Impl->InputData.push_back(ev);
 
 			tokens.clear();
 		}
+
+		SetMineReplayDataVector(vMineReplayDataVector);
+		SetHoldReplayDataVector(vHoldReplayDataVector);
 
 		Locator::getLogger()->trace("Loaded input data at {}", path.c_str());
 
@@ -1042,6 +1141,12 @@ HighScore::GetCopyOfHoldReplayDataVector() const
 	return m_Impl->vHoldReplayDataVector;
 }
 auto
+HighScore::GetCopyOfMineReplayDataVector() const
+-> std::vector<MineReplayResult>
+{
+	return m_Impl->vMineReplayDataVector;
+}
+auto
 HighScore::GetCopyOfSetOnlineReplayTimestampVector() const -> std::vector<float>
 {
 	return m_Impl->vOnlineReplayTimestampVector;
@@ -1076,6 +1181,12 @@ HighScore::GetHoldReplayDataVector() const
   -> const std::vector<HoldReplayResult>&
 {
 	return m_Impl->vHoldReplayDataVector;
+}
+auto
+HighScore::GetMineReplayDataVector() const
+-> const std::vector<MineReplayResult>&
+{
+	return m_Impl->vMineReplayDataVector;
 }
 auto
 HighScore::GetScoreKey() const -> const std::string&
@@ -1225,6 +1336,11 @@ HighScore::SetMusicRate(float f)
 	m_Impl->fMusicRate = f;
 }
 void
+HighScore::SetSongOffset(float f)
+{
+	m_Impl->fSongOffset = f;
+}
+void
 HighScore::SetPlayedSeconds(float f)
 {
 	m_Impl->played_seconds = f;
@@ -1281,6 +1397,11 @@ void
 HighScore::SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v)
 {
 	m_Impl->vHoldReplayDataVector = v;
+}
+void
+HighScore::SetMineReplayDataVector(const std::vector<MineReplayResult>& v)
+{
+	m_Impl->vMineReplayDataVector = v;
 }
 void
 HighScore::SetOnlineReplayTimestampVector(const std::vector<float>& v)

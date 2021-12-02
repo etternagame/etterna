@@ -571,6 +571,7 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetTrackVector(pss.GetTrackVector());
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
 		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
+		hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
 		// flag this before rescore so it knows we're LEGGIT
 		hs.SetReplayType(2);
 		if (hs.GetTapNoteTypeVector().size() < hs.GetNoteRowVector().size() ||
@@ -620,8 +621,9 @@ FillInHighScore(const PlayerStageStats& pss,
 		}
 	}
 
-	// Input data.
+	// Input data
 	hs.SetInputDataVector(pss.GetInputDataVector());
+	hs.SetSongOffset(ps.GetDisplayedTiming().m_fBeat0OffsetInSeconds);
 
 	// Normalize Judgments to J4 (regardless of wifepercent)
 	// If it fails, reset the replay data from pss and try one more time
@@ -736,11 +738,12 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	}
 
 	if (m_player.m_fWifeScore > 0.F) {
-		const auto writesuccess = hs.WriteReplayData();
-	}
+		// replay data (deprecated)
+		hs.WriteReplayData();
 
-	// input data
-	//hs.WriteInputData();
+		// compressed input data
+		hs.WriteInputData();
+	}
 
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
 							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
