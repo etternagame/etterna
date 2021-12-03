@@ -52,8 +52,7 @@ RageSoundDriver::Create(const std::string& drivers)
 
 		const std::string sError = pRet->Init();
 		if (sError.empty()) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->info("Sound driver: {}", Driver->c_str());
+			Locator::getLogger()->info("Sound driver: {}", Driver->c_str());
 			return pRet;
 		}
 		Locator::getLogger()->info("Couldn't load driver {}: {}", Driver->c_str(), sError.c_str());

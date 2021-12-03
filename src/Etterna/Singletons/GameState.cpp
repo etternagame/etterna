@@ -45,8 +45,7 @@ class GameStateMessageHandler : public MessageSubscriber
 		if (msg.GetName() == "RefreshCreditText") {
 			std::string sJoined("P1");
 
-			if (PREFSMAN->m_verbose_log > 0)
-				Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
+			Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
 		}
 	}
 };

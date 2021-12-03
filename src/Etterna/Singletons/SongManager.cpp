@@ -371,11 +371,9 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 	LoadEnabledSongsFromPref();
 	SONGINDEX->delay_save_cache = false;
 
-	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("Found {} songs in {} seconds.",
-									static_cast<unsigned int>(m_pSongs.size()),
-									tm.GetDeltaTime());
-	}
+	Locator::getLogger()->info("Found {} songs in {} seconds.",
+								static_cast<unsigned int>(m_pSongs.size()),
+								tm.GetDeltaTime());
 	for (auto& pair : cache) {
 		delete pair;
 	}

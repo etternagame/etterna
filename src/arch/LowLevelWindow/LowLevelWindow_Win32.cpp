@@ -133,9 +133,9 @@ DumpPixelFormat(const PIXELFORMATDESCRIPTOR& pfd)
 		str += ssprintf("%i accum ", pfd.cAccumBits);
 
 	if (bInvalidFormat)
-		Locator::getLogger()->warn("Invalid format: {}", str.c_str());
-	else if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->info(str);
+		Locator::getLogger()->warn("Invalid pixel format: {}", str.c_str());
+	else
+		Locator::getLogger()->debug("Pixel format: {}", str.c_str());
 }
 
 /* This function does not reset the video mode if it fails, because we might be
@@ -173,8 +173,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 
 	/* Set the display mode: switch to a fullscreen mode or revert to windowed
 	 * mode. */
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("SetScreenMode ...");
+	Locator::getLogger()->trace("SetScreenMode ...");
 	std::string sErr = GraphicsWindow::SetScreenMode(p);
 	if (!sErr.empty())
 		return sErr;
@@ -200,8 +199,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		if (memcmp(&DestPixelFormat,
 				   &g_CurrentPixelFormat,
 				   sizeof(PIXELFORMATDESCRIPTOR))) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("Reset: pixel format changing");
+			Locator::getLogger()->trace("Reset: pixel format changing");
 			bNeedToSetPixelFormat = true;
 		}
 	}

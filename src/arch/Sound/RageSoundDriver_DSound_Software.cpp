@@ -134,11 +134,9 @@ RageSoundDriver_DSound_Software::~RageSoundDriver_DSound_Software()
 	/* Signal the mixing thread to quit. */
 	if (m_MixingThread.IsCreated()) {
 		m_bShutdownMixerThread = true;
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Shutting down mixer thread ...");
+		Locator::getLogger()->info("Shutting down mixer thread ...");
 		m_MixingThread.Wait();
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Mixer thread shut down.");
+		Locator::getLogger()->info("Mixer thread shut down.");
 	}
 
 	delete m_pPCM;

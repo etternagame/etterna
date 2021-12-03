@@ -65,8 +65,7 @@ LoadingWindow::Create()
 	}
 
 	if (ret) {
-		if (PREFSMAN->m_verbose_log > 1)
-            Locator::getLogger()->info("Loading window: {}", Driver);
+		Locator::getLogger()->info("Loading window: {}", Driver);
 
 		ret->SetIndeterminate(true);
 	}

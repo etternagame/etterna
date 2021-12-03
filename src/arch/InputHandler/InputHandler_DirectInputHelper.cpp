@@ -37,8 +37,7 @@ DIDevice::Open()
 {
 	m_sName = ConvertACPToUTF8(JoystickInst.tszProductName);
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Opening device '{}'", m_sName.c_str());
+	Locator::getLogger()->info("Opening DIDevice '{}'", m_sName.c_str());
 	buffered = true;
 
 	LPDIRECTINPUTDEVICE8 tmpdevice;

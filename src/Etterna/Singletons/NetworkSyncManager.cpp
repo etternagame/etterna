@@ -452,8 +452,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	}
 
 	chat.rawMap.clear();
-	if (PREFSMAN->m_verbose_log > 0)
-		Locator::getLogger()->info("Attempting to connect to: {}, Port: {}", sAddress.c_str(), iPort);
+	Locator::getLogger()->info("Attempting to connect to: {}, Port: {}", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
 

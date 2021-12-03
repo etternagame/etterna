@@ -26,8 +26,7 @@ std::map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 
 RageInput::RageInput()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("RageInput::RageInput()");
+	Locator::getLogger()->info("RageInput::RageInput()");
 
 	// Register with Lua.
 	{

@@ -242,10 +242,8 @@ TurnOffHardwareVBO()
 
 RageDisplay_Legacy::RageDisplay_Legacy()
 {
-	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("RageDisplay_Legacy::RageDisplay_Legacy()");
-		Locator::getLogger()->trace("Current renderer: OpenGL");
-	}
+	Locator::getLogger()->info("RageDisplay_Legacy::RageDisplay_Legacy()");
+	Locator::getLogger()->info("Current renderer: OpenGL");
 
 	FixLittleEndian();
 	RageDisplay_Legacy_Helpers::Init();
@@ -302,8 +300,7 @@ CompileShader(GLenum ShaderType,
 		}
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Compiling shader {}", sFile.c_str());
+	Locator::getLogger()->info("Compiling shader {}", sFile.c_str());
 	const auto hShader = glCreateShaderObjectARB(ShaderType);
 	std::vector<const GLcharARB*> apData;
 	std::vector<GLint> aiLength;
@@ -494,16 +491,16 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
-		Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
-		Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
-		Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
-		Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
-		Locator::getLogger()->trace("GLU Version: {}", gluGetString(GLU_VERSION));
+	{
+		Locator::getLogger()->info("OGL Vendor: {}", glGetString(GL_VENDOR));
+		Locator::getLogger()->info("OGL Renderer: {}", glGetString(GL_RENDERER));
+		Locator::getLogger()->info("OGL Version: {}", glGetString(GL_VERSION));
+		Locator::getLogger()->info("OGL Max texture size: {}", GetMaxTextureSize());
+		Locator::getLogger()->info("OGL Texture units: {}", g_iMaxTextureUnits);
+		Locator::getLogger()->info("GLU Version: {}", gluGetString(GLU_VERSION));
 
 		/* Pretty-print the extension string: */
-		Locator::getLogger()->trace("OGL Extensions:");
+		Locator::getLogger()->info("OGL Extensions:");
 		{
 			const auto szExtensionString =
 			  (const char*)glGetString(GL_EXTENSIONS);
@@ -528,7 +525,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 				}
 
 				if (iNextToPrint == iLastToPrint) {
-					Locator::getLogger()->trace("  {}", asExtensions[iNextToPrint].c_str());
+					Locator::getLogger()->info("  {}", asExtensions[iNextToPrint].c_str());
 					++iNextToPrint;
 					continue;
 				}
@@ -545,7 +542,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 					if (iNextToPrint == iLastToPrint ||
 						sList.size() + asExtensions[iNextToPrint + 1].size() >
 						  120) {
-						Locator::getLogger()->trace(sList.c_str());
+						Locator::getLogger()->info(sList.c_str());
 						sList = "    ";
 					}
 					++iNextToPrint;
@@ -2400,17 +2397,16 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		ASSERT(iRealFormat == GL_RGBA8);
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace(
-		  "{} (format {}, {}x{}, format {}, type {}, pixfmt {}, imgpixfmt {})",
-		  bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",
-		  GLToString(glTexFormat).c_str(),
-		  pImg->w,
-		  pImg->h,
-		  GLToString(glImageFormat).c_str(),
-		  GLToString(glImageType).c_str(),
-		  pixfmt,
-		  SurfacePixFmt);
+	Locator::getLogger()->trace(
+		"{} (format {}, {}x{}, format {}, type {}, pixfmt {}, imgpixfmt {})",
+		bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",
+		GLToString(glTexFormat).c_str(),
+		pImg->w,
+		pImg->h,
+		GLToString(glImageFormat).c_str(),
+		GLToString(glImageType).c_str(),
+		pixfmt,
+		SurfacePixFmt);
 
 	DebugFlushGLErrors();
 

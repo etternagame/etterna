@@ -509,15 +509,13 @@ GameSoundManager::~GameSoundManager()
 	LUA->UnsetGlobal("SOUND");
 
 	/* Signal the mixing thread to quit. */
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Shutting down music start thread ...");
+	Locator::getLogger()->info("Shutting down music start thread ...");
 	g_Mutex->Lock();
 	g_Shutdown = true;
 	g_Mutex->Broadcast();
 	g_Mutex->Unlock();
 	MusicThread.Wait();
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Music start thread shut down.");
+	Locator::getLogger()->info("Music start thread shut down.");
 
 	SAFE_DELETE(g_Playing);
 	SAFE_DELETE(g_Mutex);

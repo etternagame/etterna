@@ -386,10 +386,8 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 		g_pLoadedThemeData->iniMetrics.SetValue(sBits[0], sBits[1], sBits[2]);
 	}
 
-	if (PREFSMAN->m_verbose_log > 1) {
-        Locator::getLogger()->trace("Theme: {}", m_sCurThemeName.c_str());
-        Locator::getLogger()->trace("Language: {}", m_sCurLanguage.c_str());
-	}
+	Locator::getLogger()->info("Theme: {}", m_sCurThemeName.c_str());
+	Locator::getLogger()->info("Language: {}", m_sCurLanguage.c_str());
 }
 
 std::string
@@ -447,10 +445,9 @@ ThemeManager::SwitchThemeAndLanguage(const std::string& sThemeName_,
 	if (sLanguage.empty())
 		sLanguage = GetDefaultLanguage();
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ThemeManager::SwitchThemeAndLanguage: \"{}\", \"{}\"",
-				   sThemeName.c_str(),
-				   sLanguage.c_str());
+	Locator::getLogger()->info("ThemeManager::SwitchThemeAndLanguage: \"{}\", \"{}\"",
+				sThemeName.c_str(),
+				sLanguage.c_str());
 
 	bool bNothingChanging = sThemeName == m_sCurThemeName &&
 							sLanguage == m_sCurLanguage &&
@@ -556,8 +553,7 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 
 		// load Lua files
 		for (auto& sPath : asElementPaths) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("Loading \"{}\" ...", sPath.c_str());
+			Locator::getLogger()->trace("Loading \"{}\" ...", sPath.c_str());
 			LuaHelpers::RunScriptFile(sPath);
 		}
 	} while (iter != g_vThemes.begin());

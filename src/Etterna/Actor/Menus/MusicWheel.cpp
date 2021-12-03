@@ -1102,10 +1102,8 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 		FilterWheelItemDatas(aUnFilteredDatas, m__WheelItemDatas[so], so);
 		m_WheelItemDatasStatus[so] = VALID;
 
-		if (PREFSMAN->m_verbose_log > 0) {
-			Locator::getLogger()->trace("MusicWheel sorting took: {}",
-										RageTimer::GetTimeSinceStart());
-		}
+		Locator::getLogger()->debug("MusicWheel sorting took: {}",
+									RageTimer::GetTimeSinceStart());
 	}
 }
 

@@ -102,12 +102,11 @@ ComboGraph::SetWithoutStageStats(const PlayerStageStats& pss, const float fLastS
 
 		const bool bIsMax = (combo.GetStageCnt() == iMaxComboSize);
 
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("combo {} is {}+{} of {}",
-										i,
-										combo.m_fStartSecond,
-										combo.m_fSizeSeconds,
-										fLastSecond);
+		Locator::getLogger()->trace("combo {} is {}+{} of {}",
+									i,
+									combo.m_fStartSecond,
+									combo.m_fSizeSeconds,
+									fLastSecond);
 		Actor* pSprite = bIsMax ? m_pMaxCombo->Copy() : m_pNormalCombo->Copy();
 
 		const float fStart =

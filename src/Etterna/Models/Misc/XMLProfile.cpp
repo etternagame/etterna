@@ -37,17 +37,15 @@ XMLProfile::LoadEttFromDir(string dir)
 	const std::unique_ptr<RageFileBasic> pFile(
 	  FILEMAN->Open(fn, RageFile::READ, iError));
 	if (pFile.get() == nullptr) {
-		Locator::getLogger()->trace("Error opening {}: {}", fn.c_str(), strerror(iError));
+		Locator::getLogger()->warn("Error opening {}: {}", fn.c_str(), strerror(iError));
 		return ProfileLoadResult_FailedTampered;
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Loading {}", fn.c_str());
+	Locator::getLogger()->info("Loading {}", fn.c_str());
 	XNode xml;
 	if (!XmlFileUtil::LoadFromFileShowErrors(xml, *pFile.get()))
 		return ProfileLoadResult_FailedTampered;
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Done.");
+	Locator::getLogger()->info("Done loading from file");
 
 	return LoadEttXmlFromNode(&xml);
 }
@@ -55,7 +53,7 @@ XMLProfile::LoadEttFromDir(string dir)
 bool
 XMLProfile::SaveEttXmlToDir(string sDir, const Profile* profile) const
 {
-	Locator::getLogger()->trace("Saving Etterna Profile to: {}", sDir.c_str());
+	Locator::getLogger()->info("Saving Etterna Profile to: {}", sDir.c_str());
 	const std::unique_ptr<XNode> xml(SaveEttXmlCreateNode(profile));
 	auto pDir = sDir + PROFILEMAN->GetStatsPrefix();
 	// Save Etterna.xml
@@ -100,7 +98,7 @@ XMLProfile::SaveEttXmlToDir(string sDir, const Profile* profile) const
 XNode*
 XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 {
-	Locator::getLogger()->trace("Saving the favorites node.");
+	Locator::getLogger()->debug("Saving the favorites node.");
 
 	auto favs = new XNode("Favorites");
 	for (auto& it : profile->FavoritedCharts) {
@@ -113,7 +111,7 @@ XMLProfile::SaveFavoritesCreateNode(const Profile* profile) const
 XNode*
 XMLProfile::SavePermaMirrorCreateNode(const Profile* profile) const
 {
-	Locator::getLogger()->trace("Saving the permamirror node.");
+	Locator::getLogger()->debug("Saving the permamirror node.");
 
 	auto pmir = new XNode("PermaMirror");
 	for (auto& it : profile->PermaMirrorCharts) {
@@ -138,7 +136,7 @@ GoalsForChart::CreateNode() const
 XNode*
 XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 {
-	Locator::getLogger()->trace("Saving the scoregoals node.");
+	Locator::getLogger()->debug("Saving the scoregoals node.");
 
 	auto goals = new XNode("ScoreGoals");
 	for (auto& i : profile->goalmap) {
@@ -151,7 +149,7 @@ XMLProfile::SaveScoreGoalsCreateNode(const Profile* profile) const
 XNode*
 XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 {
-	Locator::getLogger()->trace("Saving the playlists node.");
+	Locator::getLogger()->debug("Saving the playlists node.");
 
 	auto playlists = new XNode("Playlists");
 	const auto& pls = profile->allplaylists;
@@ -165,7 +163,7 @@ XMLProfile::SavePlaylistsCreateNode(const Profile* profile) const
 void
 XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 {
-	Locator::getLogger()->trace("Loading the favorites node.");
+	Locator::getLogger()->debug("Loading the favorites node.");
 
 	FOREACH_CONST_Child(pNode, ck)
 	  loadingProfile->FavoritedCharts.emplace(ck->GetName());
@@ -177,7 +175,7 @@ XMLProfile::LoadFavoritesFromNode(const XNode* pNode)
 void
 XMLProfile::LoadPermaMirrorFromNode(const XNode* pNode)
 {
-	Locator::getLogger()->trace("Loading the permamirror node.");
+	Locator::getLogger()->debug("Loading the permamirror node.");
 
 	FOREACH_CONST_Child(pNode, ck)
 	  loadingProfile->PermaMirrorCharts.emplace(ck->GetName());
@@ -202,7 +200,7 @@ GoalsForChart::LoadFromNode(const XNode* pNode)
 void
 XMLProfile::LoadScoreGoalsFromNode(const XNode* pNode)
 {
-	Locator::getLogger()->trace("Loading the scoregoals node.");
+	Locator::getLogger()->debug("Loading the scoregoals node.");
 
 	string ck;
 	FOREACH_CONST_Child(pNode, chgoals)
@@ -220,7 +218,7 @@ XMLProfile::LoadScoreGoalsFromNode(const XNode* pNode)
 void
 XMLProfile::LoadPlaylistsFromNode(const XNode* pNode)
 {
-	Locator::getLogger()->trace("Loading the playlists node.");
+	Locator::getLogger()->debug("Loading the playlists node.");
 
 	auto& pls = loadingProfile->allplaylists;
 	FOREACH_CONST_Child(pNode, pl)
@@ -235,7 +233,7 @@ XMLProfile::LoadPlaylistsFromNode(const XNode* pNode)
 XNode*
 XMLProfile::SaveEttGeneralDataCreateNode(const Profile* profile) const
 {
-	Locator::getLogger()->trace("Saving the general node.");
+	Locator::getLogger()->debug("Saving the general node.");
 
 	auto pGeneralDataNode = new XNode("GeneralData");
 

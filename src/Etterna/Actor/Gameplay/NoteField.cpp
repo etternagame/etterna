@@ -112,8 +112,7 @@ NoteField::CacheNoteSkin(const std::string& sNoteSkin_)
 
 	LockNoteSkin l(sNoteSkin_);
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
+	Locator::getLogger()->debug("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
 	auto* nd = new NoteDisplayCols(
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
 		->m_iColsPerPlayer);

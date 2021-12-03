@@ -188,10 +188,9 @@ RageSound::Load(const std::string& sSoundFilePath,
 				bool bPrecache,
 				const RageSoundLoadParams* pParams)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("RageSound: Load \"{}\" (precache: {})",
-				   sSoundFilePath.c_str(),
-				   bPrecache);
+	Locator::getLogger()->debug("RageSound: Load \"{}\" (precache: {})",
+		sSoundFilePath.c_str(),
+		bPrecache);
 
 	if (pParams == nullptr) {
 		static const RageSoundLoadParams Defaults;
@@ -427,9 +426,8 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	/* If m_StartTime is in the past, then we probably set a start time but took
 	 * too long loading.  We don't want that; log it, since it can be unobvious.
 	 */
-	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 &&
-		PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Sound \"{}\" has a start time {} seconds in the past",
+	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0)
+		Locator::getLogger()->debug("Sound \"{}\" has a start time {} seconds in the past",
 				   GetLoadedFilePath().c_str(),
 				   m_Param.m_StartTime.Ago());
 

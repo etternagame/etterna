@@ -124,9 +124,7 @@ std::vector<Actor*> g_vPreparedBackgrounds;
 void
 PushLoadedScreen(const LoadedScreen& ls)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("PushScreen: \"{}\"", ls.m_pScreen->GetName().c_str());
-    Locator::getLogger()->trace("Top Screen: {}",ls.m_pScreen->GetName().c_str());
+	Locator::getLogger()->info("PushLoadedScreen: \"{}\"", ls.m_pScreen->GetName().c_str());
 
 	// Be sure to push the screen first, so GetTopScreen returns the screen
 	// during BeginScreen.
@@ -266,8 +264,7 @@ ScreenManager::ScreenManager()
 
 ScreenManager::~ScreenManager()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenManager::~ScreenManager()");
+	Locator::getLogger()->debug("ScreenManager::~ScreenManager()");
 
 	SAFE_DELETE(g_pSharedBGA);
 	for (unsigned i = 0; i < g_ScreenStack.size(); i++) {
@@ -288,8 +285,7 @@ ScreenManager::~ScreenManager()
 void
 ScreenManager::ThemeChanged()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenManager::ThemeChanged");
+	Locator::getLogger()->info("ScreenManager::ThemeChanged");
 
 	// reload common sounds
 	m_soundStart.Load(THEME->GetPathS("Common", "start"));
@@ -478,8 +474,7 @@ ScreenManager::Update(float fDeltaTime)
 	 * Screen's first update.  Clamp the first update delta so that the
 	 * animations don't jump. */
 	if ((pScreen != nullptr) && m_bZeroNextUpdate) {
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Zeroing this update.  Was {}", fDeltaTime);
+		Locator::getLogger()->trace("Zeroing this update.  Was {}", fDeltaTime);
 		fDeltaTime = 0;
 		m_bZeroNextUpdate = false;
 	}
@@ -582,8 +577,7 @@ Screen*
 ScreenManager::MakeNewScreen(const std::string& sScreenName)
 {
 	RageTimer t;
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Loading screen: \"{}\"", sScreenName.c_str());
+	Locator::getLogger()->info("Loading screen: \"{}\"", sScreenName.c_str());
 
 	std::string sClassName = THEME->GetMetric(sScreenName, "Class");
 
@@ -602,11 +596,10 @@ ScreenManager::MakeNewScreen(const std::string& sScreenName)
 	CreateScreenFn pfn = iter->second;
 	Screen* ret = pfn(sScreenName);
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Loaded \"{}\" (\"{}\") in {}",
-				   sScreenName.c_str(),
-				   sClassName.c_str(),
-				   t.GetDeltaTime());
+	Locator::getLogger()->info("Loaded \"{}\" (\"{}\") in {}",
+				sScreenName.c_str(),
+				sClassName.c_str(),
+				t.GetDeltaTime());
 
 	return ret;
 }
@@ -648,8 +641,7 @@ ScreenManager::PrepareScreen(const std::string& sScreenName)
 		// Create the new background before deleting the previous so that we
 		// keep any common textures loaded.
 		if (pNewBGA == nullptr) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("Loading screen background \"{}\"", sNewBGA.c_str());
+			Locator::getLogger()->debug("Loading screen background \"{}\"", sNewBGA.c_str());
 			Actor* pActor = ActorUtil::MakeActor(sNewBGA);
 			if (pActor != nullptr) {
 				pActor->SetName(sNewBGA);

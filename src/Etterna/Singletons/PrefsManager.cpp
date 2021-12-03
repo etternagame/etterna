@@ -191,7 +191,7 @@ PrefsManager::PrefsManager()
   , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
   , m_bTrilinearFiltering("TrilinearFiltering", false)
   , m_bUseMidGrades("UseMidGrades", false)
-  , m_verbose_log("VerboseLogging", 1)
+  , m_logging_level("LoggingLevel", 2)
   , m_bForceLogFlush("ForceLogFlush", TRUE_IF_DEBUG)
   , m_bShowLogOutput("ShowLogOutput", TRUE_IF_DEBUG)
   , m_bLogSkips("LogSkips", false)
@@ -426,7 +426,7 @@ PrefsManager::GetPreferencesSection() const
 	GetFileContents(SpecialFiles::TYPE_TXT_FILE, sSection, true);
 
 	// OK if this fails
-	if (!GetCommandlineArgument("Type", &sSection) && m_verbose_log > 1)
+	if (!GetCommandlineArgument("Type", &sSection))
 		Locator::getLogger()->trace("Failed to find Type commandline argument (Not required)");
 
 	return sSection;

@@ -287,8 +287,7 @@ void
 RageTextureManager::GarbageCollect(GCType type)
 {
 	// Search for old textures with refcount==0 to unload
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Performing texture garbage collection.");
+	Locator::getLogger()->debug("Performing texture garbage collection.");
 
 	for (auto i = m_mapPathToTexture.begin(); i != m_mapPathToTexture.end();) {
 		const auto j = i;

@@ -53,8 +53,7 @@ ScreenGameplayPractice::Init()
 
 ScreenGameplayPractice::~ScreenGameplayPractice()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
+	Locator::getLogger()->debug("ScreenGameplayReplay::~ScreenGameplayReplay()");
 }
 
 auto

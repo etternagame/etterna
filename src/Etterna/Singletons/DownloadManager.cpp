@@ -1035,8 +1035,8 @@ DownloadManager::UploadScore(HighScore* hs,
 				  }
 				  // We don't log 406s because those are "not a a pb"
 				  // Which are normal, unless we're using verbose logging
-				  if (status != 406 || PREFSMAN->m_verbose_log > 1)
-					  Locator::getLogger()->trace(
+				  if (status != 406)
+					  Locator::getLogger()->debug(
 						"Score upload response contains error "
 						"(http status: {} error status: {} response body: "
 						"\"{}\" score key: \"{}\")",

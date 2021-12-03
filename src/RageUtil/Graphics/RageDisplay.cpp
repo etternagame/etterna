@@ -180,10 +180,10 @@ RageDisplay::ProcessStatsOnFlip()
 			  g_iVertsRenderedSinceLastCheck / g_iFramesRenderedSinceLastCheck;
 			g_iFramesRenderedSinceLastCheck = g_iVertsRenderedSinceLastCheck =
 			  0;
-			if (LOG_FPS && !(PREFSMAN->m_verbose_log > 1)) {
+			if (LOG_FPS) {
 				auto sStats = GetStats();
 				s_replace(sStats, "\n", ", ");
-				Locator::getLogger()->trace(sStats.c_str());
+				Locator::getLogger()->debug("{}", sStats.c_str());
 			}
 		}
 	}

@@ -382,8 +382,7 @@ ScreenGameplay::~ScreenGameplay()
 		GAMESTATE->CancelStage();
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenGameplay::~ScreenGameplay()");
+	Locator::getLogger()->debug("ScreenGameplay::~ScreenGameplay()");
 
 	SAFE_DELETE(m_pSongBackground);
 	SAFE_DELETE(m_pSongForeground);
@@ -1338,9 +1337,7 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 				  input.type == IET_REPEAT) ||
 				 (input.DeviceI.device != DEVICE_KEYBOARD &&
 				  INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0F))) {
-				if (PREFSMAN->m_verbose_log > 1) {
-					Locator::getLogger()->trace("Player {} went back", input.pn + 1);
-				}
+				Locator::getLogger()->info("Player {} went back", input.pn + 1);
 				BeginBackingOutFromGameplay();
 			} else if (PREFSMAN->m_bDelayedBack &&
 					   input.type == IET_FIRST_PRESS) {
