@@ -87,7 +87,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					sStr += (!sStr.empty() ? ", " : "") + *it;
 
 				if (PREFSMAN != nullptr)
-                    Locator::getLogger()->debug("Lost focus to: %s", sStr);
+                    Locator::getLogger()->debug("Lost focus to: {}", sStr);
 			}
 
 			if (!g_bD3D && !g_CurrentParams.windowed &&
@@ -148,7 +148,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 
 		case WM_CLOSE:
-			Locator::getLogger()->trace("WM_CLOSE: shutting down");
+			Locator::getLogger()->info("WM_CLOSE: shutting down");
 			GameLoop::setUserQuit();
 			return 0;
 

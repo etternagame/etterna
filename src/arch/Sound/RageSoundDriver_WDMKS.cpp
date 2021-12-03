@@ -1405,7 +1405,8 @@ RageSoundDriver_WDMKS::MixerThread()
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST))
 		//	if( !SetThreadPriority(GetCurrentThread(),
 		// THREAD_PRIORITY_TIME_CRITICAL) )
-		Locator::getLogger()->warn( werr_ssprintf(GetLastError(), "Failed to set sound thread priority"));
+		Locator::getLogger()->warn("{}", werr_ssprintf(
+		  GetLastError(), "Failed to set sound thread priority"));
 
 	/* Enable priority boosting. */
 	SetThreadPriorityBoost(GetCurrentThread(), FALSE);
@@ -1436,7 +1437,8 @@ RageSoundDriver_WDMKS::MixerThread()
 		  WaitForMultipleObjects(2, aEventHandles, FALSE, 1000);
 
 		if (iWait == WAIT_FAILED) {
-			Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "WaitForMultipleObjects"));
+			Locator::getLogger()->warn(
+			  "{}", werr_ssprintf(GetLastError(), "WaitForMultipleObjects"));
 			break;
 		}
 		if (iWait == WAIT_TIMEOUT)
@@ -1477,7 +1479,8 @@ void
 RageSoundDriver_WDMKS::SetupDecodingThread()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL))
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "Failed to set sound thread priority"));
+		Locator::getLogger()->warn("{}", werr_ssprintf(
+		  GetLastError(), "Failed to set sound thread priority"));
 }
 
 int64_t
@@ -1525,10 +1528,10 @@ RageSoundDriver_WDMKS::Init()
 
 	for (size_t i = 0; i < apFilters.size(); ++i) {
 		const WinWdmFilter* pFilter = apFilters[i];
-		Locator::getLogger()->trace("Device #{}: {}", i, pFilter->m_sFriendlyName.c_str());
+		Locator::getLogger()->info("Device #{}: {}", i, pFilter->m_sFriendlyName.c_str());
 		for (size_t j = 0; j < pFilter->m_apPins.size(); ++j) {
 			WinWdmPin* pPin = pFilter->m_apPins[j];
-			Locator::getLogger()->trace("  Pin {}", j);
+			Locator::getLogger()->info("  Pin {}", j);
 			FOREACH_CONST(KSDATARANGE_AUDIO, pPin->m_dataRangesItem, range)
 			{
 				std::string sSubFormat;
@@ -1545,7 +1548,7 @@ RageSoundDriver_WDMKS::Init()
 								 sizeof(GUID)))
 					sSubFormat = "FLOAT";
 
-				Locator::getLogger()->trace("     Range: {} channels, sample {}-{}, {}-{}hz ({})",
+				Locator::getLogger()->info("     Range: {} channels, sample {}-{}, {}-{}hz ({})",
 				  range->MaximumChannels,
 				  range->MinimumBitsPerSample, range->MaximumBitsPerSample,
 				  range->MinimumSampleFrequency, range->MaximumSampleFrequency,

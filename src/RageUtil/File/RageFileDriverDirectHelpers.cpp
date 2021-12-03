@@ -160,7 +160,7 @@ DirectFilenameDB::SetRoot(const std::string& root_)
 void
 DirectFilenameDB::CacheFile(const std::string& sPath)
 {
-	Locator::getLogger()->trace(std::string(root + sPath).c_str());
+	Locator::getLogger()->trace("{}", std::string(root + sPath).c_str());
 	std::string sDir = Dirname(sPath);
 	FileSet* pFileSet = GetFileSet(sDir, false);
 	if (pFileSet == nullptr) {

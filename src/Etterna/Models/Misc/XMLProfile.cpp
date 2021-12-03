@@ -336,7 +336,7 @@ XMLProfile::MoveBackupToDir(string sFromDir, string sToDir)
 void
 XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 {
-    Locator::getLogger()->trace("Loading the general node.");
+    Locator::getLogger()->debug("Loading the general node.");
 	ASSERT(pNode->GetName() == "GeneralData");
 
 	string s;
@@ -413,7 +413,7 @@ XMLProfile::LoadEttGeneralDataFromNode(const XNode* pNode)
 XNode*
 XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const
 {
-	Locator::getLogger()->trace("Saving the player scores node.");
+	Locator::getLogger()->debug("Saving the player scores node.");
 
 	ASSERT(profile != NULL);
 	SCOREMAN->SetAllTopScores(profile->m_sProfileID);
@@ -424,14 +424,14 @@ XMLProfile::SaveEttScoresCreateNode(const Profile* profile) const
 void
 XMLProfile::LoadEttScoresFromNode(const XNode* pSongScores)
 {
-	Locator::getLogger()->trace("Loading the player scores node.");
+	Locator::getLogger()->debug("Loading the player scores node.");
 	SCOREMAN->LoadFromNode(pSongScores, loadingProfile->m_sProfileID);
 }
 
 void
 XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 {
-	Locator::getLogger()->trace("Loading the node containing screenshot data.");
+	Locator::getLogger()->debug("Loading the node containing screenshot data.");
 
 	ASSERT(pScreenshotData->GetName() == "ScreenshotData");
 	FOREACH_CONST_Child(pScreenshotData, pScreenshot)
@@ -446,7 +446,7 @@ XMLProfile::LoadScreenshotDataFromNode(const XNode* pScreenshotData)
 XNode*
 XMLProfile::SaveScreenshotDataCreateNode(const Profile* profile) const
 {
-	Locator::getLogger()->trace("Getting the node containing screenshot data.");
+	Locator::getLogger()->debug("Getting the node containing screenshot data.");
 
 	ASSERT(profile != NULL);
 

@@ -94,7 +94,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			SongManager::ReconcileChartKeysForReloadedSong(cursong, oldKeys);
 
 			if (!success || GAMESTATE->m_pCurSteps->GetNoteData().IsEmpty()) {
-				Locator::getLogger()->trace("The Player attempted something resulting in an "
+				Locator::getLogger()->error("The Player attempted something resulting in an "
 						   "unrecoverable error while in Gameplay Practice and "
 						   "has been ejected.");
 				BeginBackingOutFromGameplay();
@@ -230,7 +230,7 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 			if (bGiveUpTimerFired) {
 				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
 				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
-				Locator::getLogger()->trace("Exited Practice Mode to Evaluation");
+				Locator::getLogger()->info("Exited Practice Mode to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
 				return;
 			}

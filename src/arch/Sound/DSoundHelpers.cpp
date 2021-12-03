@@ -54,7 +54,8 @@ DSound::SetPrimaryBufferMode()
 	IDirectSoundBuffer* pBuffer;
 	HRESULT hr = this->GetDS()->CreateSoundBuffer(&format, &pBuffer, nullptr);
 	if (FAILED(hr)) {
-		Locator::getLogger()->warn(hr_ssprintf(hr, "Couldn't create primary buffer"));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(hr, "Couldn't create primary buffer"));
 		return;
 	}
 
@@ -72,14 +73,17 @@ DSound::SetPrimaryBufferMode()
 	// Set the primary buffer's format
 	hr = IDirectSoundBuffer_SetFormat(pBuffer, &waveformat);
 	if (FAILED(hr))
-		Locator::getLogger()->warn(hr_ssprintf(hr, "SetFormat on primary buffer"));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(hr, "SetFormat on primary buffer"));
 
 	DWORD got;
 	hr = pBuffer->GetFormat(&waveformat, sizeof(waveformat), &got);
 	if (FAILED(hr))
-		Locator::getLogger()->warn(hr_ssprintf(hr, "GetFormat on primary buffer"));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(hr, "GetFormat on primary buffer"));
 	else if (waveformat.nSamplesPerSec != 44100)
-		Locator::getLogger()->warn("Primary buffer set to {} instead of 44100", waveformat.nSamplesPerSec);
+		Locator::getLogger()->warn("Primary buffer set to {} instead of 44100",
+								   waveformat.nSamplesPerSec);
 
 	/*
 	 * MS docs:
@@ -127,7 +131,8 @@ DSound::Init()
 		Caps.dwSize = sizeof(Caps);
 		HRESULT hr;
 		if (FAILED(hr = m_pDS->GetCaps(&Caps))) {
-			Locator::getLogger()->warn(hr_ssprintf(hr, "m_pDS->GetCaps failed"));
+			Locator::getLogger()->warn(
+			  "{}", hr_ssprintf(hr, "m_pDS->GetCaps failed"));
 		} else {
 			Locator::getLogger()->info("DirectSound sample rates: {}..{} {}",
 					  Caps.dwMinSecondarySampleRate,
@@ -161,7 +166,7 @@ DSound::IsEmulated() const
 	Caps.dwSize = sizeof(Caps);
 	HRESULT hr;
 	if (FAILED(hr = m_pDS->GetCaps(&Caps))) {
-		Locator::getLogger()->warn(hr_ssprintf(hr, "m_pDS->GetCaps failed"));
+		Locator::getLogger()->warn("{}", hr_ssprintf(hr, "m_pDS->GetCaps failed"));
 		/* This is strange, so let's be conservative. */
 		return true;
 	}
@@ -268,7 +273,8 @@ DSoundBuf::Init(DSound& ds,
 	DWORD got;
 	hr = m_pBuffer->GetFormat(&waveformat, sizeof(waveformat), &got);
 	if (FAILED(hr))
-		Locator::getLogger()->warn(hr_ssprintf(hr, "GetFormat on secondary buffer"));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(hr, "GetFormat on secondary buffer"));
 	else if (static_cast<int>(waveformat.nSamplesPerSec) != m_iSampleRate)
 		Locator::getLogger()->warn("Secondary buffer set to {} instead of {}",
 				  waveformat.nSamplesPerSec,
@@ -310,7 +316,7 @@ DSoundBuf::SetVolume(float fVolume)
 	if (FAILED(hr)) {
 		static bool bWarned = false;
 		if (!bWarned)
-			Locator::getLogger()->warn(hr_ssprintf(
+			Locator::getLogger()->warn("{}", hr_ssprintf(
 			  hr, "DirectSoundBuffer::SetVolume(%i) failed", iNewVolume));
 		bWarned = true;
 		return;
@@ -445,7 +451,7 @@ DSoundBuf::CheckUnderrun(int iCursorStart, int iCursorEnd)
 	for (auto& m_iLastCursor : m_iLastCursors)
 		s += ssprintf("%i, %i; ", m_iLastCursor[0], m_iLastCursor[1]);
 
-	Locator::getLogger()->trace(s);
+	Locator::getLogger()->trace("{}", s);
 }
 
 bool
@@ -467,7 +473,8 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 		result = m_pBuffer->GetCurrentPosition(&iCursorStart, &iCursorEnd);
 	}
 	if (result != DS_OK) {
-		Locator::getLogger()->warn(hr_ssprintf(result, "DirectSound::GetCurrentPosition failed"));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(result, "DirectSound::GetCurrentPosition failed"));
 		return false;
 	}
 
@@ -535,7 +542,7 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 			s += "; last: ";
 			for (auto& m_iLastCursor : m_iLastCursors)
 				s += ssprintf("%i, %i; ", m_iLastCursor[0], m_iLastCursor[1]);
-			Locator::getLogger()->trace(s);
+			Locator::getLogger()->trace("{}", s);
 			m_iWriteAhead -= used;
 			m_iExtraWriteahead -= used;
 		}
@@ -580,7 +587,8 @@ DSoundBuf::get_output_buf(char** pBuffer, unsigned* pBufferSize, int iChunksize)
 	}
 
 	if (result != DS_OK) {
-		Locator::getLogger()->warn(hr_ssprintf(result, "Couldn't lock the DirectSound buffer."));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(result, "Couldn't lock the DirectSound buffer."));
 		return false;
 	}
 
@@ -620,7 +628,8 @@ DSoundBuf::GetPosition() const
 		hr = m_pBuffer->GetCurrentPosition(&iCursor, &iJunk);
 	}
 	if (hr != DS_OK) {
-		Locator::getLogger()->warn(hr_ssprintf(hr, "DirectSound::GetPosition failed"));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(hr, "DirectSound::GetPosition failed"));
 		iCursor = 0;
 	}
 

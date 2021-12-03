@@ -23,7 +23,7 @@ FontManager::~FontManager()
 		const FontName& fn = i->first;
 		Font* pFont = i->second;
 		if (pFont->m_iRefCount > 0) {
-			Locator::getLogger()->trace("FONT LEAK: '{}', RefCount = {}.", fn.first, pFont->m_iRefCount);
+			Locator::getLogger()->warn("FONT LEAK: '{}', RefCount = {}.", fn.first, pFont->m_iRefCount);
 		}
 		delete pFont;
 	}

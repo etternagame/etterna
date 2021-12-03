@@ -481,7 +481,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 		}
 
 		pPref->LoadDefault();
-		Locator::getLogger()->trace("Restored preference \"{}\" to default \"{}\"",
+		Locator::getLogger()->info("Restored preference \"{}\" to default \"{}\"",
 				   sName.c_str(), pPref->ToString().c_str());
 		COMMON_RETURN_SELF;
 	}

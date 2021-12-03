@@ -49,7 +49,7 @@ RageWorkerThread::StopThread()
 	/* If we're timed out, wait. */
 	m_WorkerEvent.Lock();
 	if (m_bTimedOut) {
-		Locator::getLogger()->trace("Waiting for timed-out worker thread \"{}\" to complete ...",
+		Locator::getLogger()->debug("Waiting for timed-out worker thread \"{}\" to complete ...",
 				   m_sName.c_str());
 		while (m_bTimedOut)
 			m_WorkerEvent.Wait();

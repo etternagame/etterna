@@ -202,7 +202,7 @@ ScreenSelectMusic::BeginScreen()
 	}
 
 	if (GAMESTATE->GetCurrentStyle(PLAYER_INVALID) == nullptr) {
-		Locator::getLogger()->trace("The Style has not been set.  A theme must set the Style "
+		Locator::getLogger()->warn("The Style has not been set.  A theme must set the Style "
 				   "before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
 		std::vector<StepsType> vst;
@@ -874,7 +874,7 @@ ScreenSelectMusic::UpdateSelectButton(PlayerNumber pn, bool bSelectIsDown)
 void
 ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 {
-	Locator::getLogger()->trace("ScreenSelectMusic::ChangeSteps( {}, {} )", pn, dir);
+	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", pn, dir);
 
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 
@@ -1848,7 +1848,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		PlayerAI::oldFailType = ft;
 
 		// lock the game into replay mode and GO
-		Locator::getLogger()->trace("Viewing replay for score key {}",
+		Locator::getLogger()->info("Viewing replay for score key {}",
 				   hs->GetScoreKey().c_str());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_REPLAY;
@@ -1940,7 +1940,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		MESSAGEMAN->Broadcast("RateChanged");
 
 		// go
-		Locator::getLogger()->trace("Viewing evaluation screen for score key {}",
+		Locator::getLogger()->info("Viewing evaluation screen for score key {}",
 				   score->GetScoreKey().c_str());
 		p->SetNextScreenName("ScreenEvaluationNormal");
 		p->StartTransitioningScreen(SM_BeginFadingOut);

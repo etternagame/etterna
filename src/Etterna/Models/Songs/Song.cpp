@@ -336,7 +336,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	// There was no entry in the cache for this song, or it was out of date.
 	// Let's load it from a file, then write a cache entry.
 	if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages)) {
-		Locator::getLogger()->info(
+		Locator::getLogger()->debug(
 		  "Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
 
 		std::vector<std::string> vs;
@@ -347,7 +347,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 
 		if (!bHasMusic) {
 			Locator::getLogger()->info(
-			  "Song {} has no music file either. Ignoring this song directory.",
+			  "Song {} has no usable files detected. Ignoring this song directory.",
 			  sDir);
 			return false;
 		}
@@ -369,7 +369,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	FinalizeLoading();
 
 	if (!m_bHasMusic) {
-		Locator::getLogger()->info("Song {} has no music; ignored.", sDir);
+		Locator::getLogger()->warn("Song {} has metadata but no music; ignored.", sDir);
 		return false; // don't load this song
 	}
 	return true; // do load this song

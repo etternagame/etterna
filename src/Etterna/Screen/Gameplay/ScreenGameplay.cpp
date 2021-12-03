@@ -87,7 +87,7 @@ ScreenGameplay::ScreenGameplay()
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		Locator::getLogger()->trace("Unloading excess data.");
+		Locator::getLogger()->info("Freeing loaded replay data");
 		SCOREMAN->UnloadAllReplayData();
 	}
 
@@ -153,9 +153,9 @@ ScreenGameplay::Init()
 		auto* curSteps = m_vPlayerInfo.m_vpStepsQueue[i];
 		if (curSteps->IsNoteDataEmpty()) {
 			if (curSteps->GetNoteDataFromSimfile()) {
-				Locator::getLogger()->trace("Notes should be loaded for player 1");
+				Locator::getLogger()->debug("Notes should be loaded for player 1");
 			} else {
-				Locator::getLogger()->trace("Error loading notes for player 1");
+				Locator::getLogger()->error("Error loading notes for player 1");
 			}
 		}
 	}
@@ -967,7 +967,7 @@ ScreenGameplay::Update(float fDeltaTime)
 					m_vPlayerInfo.m_pLifeMeter->IsFailing() &&
 					!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
 
-					Locator::getLogger()->trace("Player {} failed", static_cast<int>(pn));
+					Locator::getLogger()->info("Player {} failed", static_cast<int>(pn));
 					m_vPlayerInfo.GetPlayerStageStats()->m_bFailed =
 					  true; // fail
 
@@ -1054,7 +1054,7 @@ ScreenGameplay::Update(float fDeltaTime)
 				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
 				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
 				ResetGiveUpTimers(false);
-				Locator::getLogger()->trace("Exited Gameplay to Evaluation");
+				Locator::getLogger()->info("Exited Gameplay to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
 				return;
 			}
@@ -1470,7 +1470,7 @@ ScreenGameplay::SongFinished()
 void
 ScreenGameplay::StageFinished(bool bBackedOut)
 {
-	Locator::getLogger()->trace("Finishing Stage");
+	Locator::getLogger()->info("Finishing Stage");
 	if (bBackedOut) {
 		GAMESTATE->CancelStage();
 		return;
@@ -1492,7 +1492,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	for (auto& s : g_buttonsByColumnPressed) {
 		if (s.second.size() > 1) {
 			usedDoubleSetup = true;
-			Locator::getLogger()->trace("Double setup detected");
+			Locator::getLogger()->info("Double setup detected");
 		}
 	}
 
@@ -1519,7 +1519,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->CalcAccumPlayedStageStats();
 	GAMESTATE->FinishStage();
-	Locator::getLogger()->trace("Done Finishing Stage");
+	Locator::getLogger()->info("Done Finishing Stage");
 }
 
 void
@@ -1599,7 +1599,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.Failed();
 		const auto bIsLastSong = m_apSongsQueue.size() == 1;
 
-		Locator::getLogger()->trace("bAllReallyFailed = {} bIsLastSong = {}, m_gave_up = {}",
+		Locator::getLogger()->info("bAllReallyFailed = {} bIsLastSong = {}, m_gave_up = {}",
 				   bAllReallyFailed,
 				   bIsLastSong,
 				   m_gave_up);

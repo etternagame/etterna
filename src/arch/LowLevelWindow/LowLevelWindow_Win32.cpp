@@ -146,7 +146,7 @@ std::string
 LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 								   bool& bNewDeviceOut)
 {
-	// Locator::getLogger()->warn( "LowLevelWindow_Win32::TryVideoMode" );
+	Locator::getLogger()->debug("LowLevelWindow_Win32::TryVideoMode");
 
 	ASSERT_M(p.bpp == 16 || p.bpp == 32, ssprintf("%i", p.bpp));
 
@@ -199,7 +199,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		if (memcmp(&DestPixelFormat,
 				   &g_CurrentPixelFormat,
 				   sizeof(PIXELFORMATDESCRIPTOR))) {
-			Locator::getLogger()->trace("Reset: pixel format changing");
+			Locator::getLogger()->info("Reset: pixel format changing");
 			bNeedToSetPixelFormat = true;
 		}
 	}
@@ -213,7 +213,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		 * one, the "maximized apps go under the taskbar" glitch will happen
 		 * when we quit. We have to create the new window first.
 		 */
-		Locator::getLogger()->trace("Mode requires new pixel format, and we've already set one; "
+		Locator::getLogger()->info("Mode requires new pixel format, and we've already set one; "
 				   "resetting OpenGL context");
 		if (g_HGLRC != nullptr) {
 			wglMakeCurrent(nullptr, nullptr);
@@ -261,7 +261,8 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		}
 
 		if (!wglShareLists(g_HGLRC, g_HGLRC_Background)) {
-			Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "wglShareLists failed"));
+			Locator::getLogger()->warn(
+			  "{}", werr_ssprintf(GetLastError(), "wglShareLists failed"));
 			wglDeleteContext(g_HGLRC_Background);
 			g_HGLRC_Background = nullptr;
 		}
@@ -284,7 +285,8 @@ void
 LowLevelWindow_Win32::BeginConcurrentRendering()
 {
 	if (!wglMakeCurrent(GraphicsWindow::GetHDC(), g_HGLRC_Background)) {
-		Locator::getLogger()->warn(hr_ssprintf(GetLastError(), "wglMakeCurrent"));
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(GetLastError(), "wglMakeCurrent"));
 		FAIL_M(hr_ssprintf(GetLastError(), "wglMakeCurrent"));
 	}
 }

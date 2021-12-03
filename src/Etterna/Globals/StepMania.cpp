@@ -686,7 +686,7 @@ CheckVideoDefaultSettings()
 		std::string sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			Locator::getLogger()->info("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
+			Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
 			break;
 		}
 	}
@@ -1038,7 +1038,10 @@ sm_main(int argc, char* argv[])
     // Used to be contents of ApplyLogPreferences
     Core::Crash::setShouldUpload(PREFSMAN->m_bEnableCrashUpload);
     Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
-    Locator::getLogger()->setLogLevel(static_cast<Core::ILogger::Severity>(PREFSMAN->m_logging_level.Get()));
+	Locator::getLogger()->info("Logging level {} (0 - TRACE | 5 - FATAL)",
+							   PREFSMAN->m_logging_level.Get());
+	Locator::getLogger()->setLogLevel(
+	  static_cast<Core::ILogger::Severity>(PREFSMAN->m_logging_level.Get()));
 
 	// This needs PREFSMAN.
 	Dialog::Init();
@@ -1368,7 +1371,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
-		Locator::getLogger()->trace("Screenshot took {} seconds.", timer.GetDeltaTime());
+		Locator::getLogger()->debug("Screenshot took {} seconds.", timer.GetDeltaTime());
 		return true; // handled
 	}
 

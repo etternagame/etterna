@@ -1,4 +1,4 @@
-﻿#include "global.h"
+#include "global.h"
 
 #include "Core/Crash/CrashpadHandler.hpp"
 #include "Core/Services/Locator.hpp"
@@ -47,7 +47,7 @@ void NORETURN sm_crash(const char* reason) {
 #ifdef _WIN32
     showCrashDialog(reason);
 #endif
-	Locator::getLogger()->fatal(reason);
+	Locator::getLogger()->fatal("{}", reason);
     Core::Crash::generateMinidump();
 
     _exit(1);

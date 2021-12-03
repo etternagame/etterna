@@ -620,7 +620,7 @@ void
 ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 {
 	if (lua_type(L, 1) != LUA_TTABLE) {
-		Locator::getLogger()->trace("not a table");
+		Locator::getLogger()->error("ScreenTextEntry FromStack: not a table");
 		return;
 	}
 

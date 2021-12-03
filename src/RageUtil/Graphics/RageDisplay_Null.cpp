@@ -48,7 +48,7 @@ static RageDisplay::RagePixelFormatDesc
 
 RageDisplay_Null::RageDisplay_Null()
 {
-	Locator::getLogger()->trace("Current renderer: null");
+	Locator::getLogger()->info("Current renderer: null");
 }
 
 std::string

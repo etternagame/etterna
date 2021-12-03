@@ -168,7 +168,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 
 	/* See if we can find timing data, if it's not already loaded. */
 	if (!ToPlay.HasTiming && IsAFile(ToPlay.m_sTimingFile)) {
-		Locator::getLogger()->trace("Found '{}'", ToPlay.m_sTimingFile.c_str());
+		Locator::getLogger()->debug("Found '{}'", ToPlay.m_sTimingFile.c_str());
 		Song song;
 		SSCLoader loaderSSC;
 		SMLoader loaderSM;

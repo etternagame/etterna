@@ -354,8 +354,12 @@ RageBitmapTexture::Create()
 				  fBetterSourceHeight,
 				  fBetterFrameWidth,
 				  fBetterFrameHeight);
-				Locator::getLogger()->warn("{}", sWarning.c_str());
-				Dialog::OK(sWarning, "FRAME_DIMENSIONS_WARNING");
+				// dont care about this for now....
+				// // dont forget about it
+				// // // TODO
+				// // // TODO
+				Locator::getLogger()->debug("{}", sWarning.c_str());
+				// Dialog::OK(sWarning, "FRAME_DIMENSIONS_WARNING");
 			}
 		}
 	}

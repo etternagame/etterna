@@ -133,7 +133,7 @@ AnnouncerManager::GetPathTo(const std::string& sAnnouncerName,
 	/* No announcer directory matched.  In debug, create the directory by
 	 * its preferred name. */
 #ifdef DEBUG
-	Locator::getLogger()->trace("The announcer in '{}' is missing the folder '{}'.",
+	Locator::getLogger()->warn("The announcer in '{}' is missing the folder '{}'.",
 			   AnnouncerPath.c_str(), sFolderName.c_str());
 	//	MessageBeep( MB_OK );
 	RageFile temp;

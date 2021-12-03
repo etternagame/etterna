@@ -502,7 +502,7 @@ FillInHighScore(const PlayerStageStats& pss,
 				const std::string& sRankingToFillInMarker,
 				const std::string& sPlayerGuid) -> HighScore
 {
-	Locator::getLogger()->trace("Filling Highscore");
+	Locator::getLogger()->info("Filling Highscore");
 	HighScore hs;
 	hs.SetName(sRankingToFillInMarker);
 
@@ -649,7 +649,7 @@ FillInHighScore(const PlayerStageStats& pss,
 void
 StageStats::FinalizeScores(bool /*bSummary*/)
 {
-	Locator::getLogger()->trace("Finalizing Score");
+	Locator::getLogger()->info("Finalizing Score");
 	// if we're viewing an online replay this gets set to true -mina
 	SCOREMAN->camefromreplay = false;
 
@@ -658,7 +658,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 		return;
 	}
 
-	Locator::getLogger()->trace("saving stats and high scores");
+	Locator::getLogger()->info("Saving stats and high scores");
 
 	// generate a HighScore for each player
 
@@ -678,7 +678,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	auto* const zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData != nullptr) {
-			Locator::getLogger()->trace("Determined a Replay is loaded");
+			Locator::getLogger()->debug("Determined a Replay is loaded");
 			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
 				   .empty()) {
 				SCOREMAN->tempscoreforonlinereplayviewing =
@@ -710,7 +710,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	// new score structure -mina
 	const auto istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
-		Locator::getLogger()->trace("Uploading score with replaydata.");
+		Locator::getLogger()->info("Uploading score with replaydata");
 		hs.SetTopScore(istop2); // ayy i did it --lurker
 		auto* steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto* td = steps->GetTimingData();
@@ -755,7 +755,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 		GAMESTATE->SavePlayerProfile();
 	}
 
-	Locator::getLogger()->trace("done saving stats and high scores");
+	Locator::getLogger()->info("Done saving stats and high scores");
 }
 
 auto

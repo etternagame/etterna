@@ -323,7 +323,7 @@ ThreadedFileWorker::Open(const std::string& sPath, int iMode, int& iErr)
 	m_iRequestMode = iMode;
 
 	if (!DoRequest(REQ_OPEN)) {
-		Locator::getLogger()->trace("Open({}) timed out", sPath.c_str());
+		Locator::getLogger()->debug("Open({}) timed out", sPath.c_str());
 		iErr = EFAULT; /* Win32 has no ETIMEDOUT */
 		return nullptr;
 	}
@@ -609,7 +609,7 @@ ThreadedFileWorker::PopulateFileSet(FileSet& fs, const std::string& sPath)
 
 	/* Kick off the worker thread, and wait for it to finish. */
 	if (!DoRequest(REQ_POPULATE_FILE_SET)) {
-		Locator::getLogger()->trace("PopulateFileSet({}) timed out", sPath.c_str());
+		Locator::getLogger()->debug("PopulateFileSet({}) timed out", sPath.c_str());
 		return false;
 	}
 
@@ -680,7 +680,7 @@ ThreadedFileWorker::FlushDirCache(const std::string& sPath)
 		if (!bTimeoutEnabled)
 			SetTimeout(-1);
 
-		Locator::getLogger()->trace("FlushDirCache({}) timed out", sPath.c_str());
+		Locator::getLogger()->debug("FlushDirCache({}) timed out", sPath.c_str());
 		return false;
 	}
 

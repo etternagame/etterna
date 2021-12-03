@@ -162,7 +162,7 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const std::string& sNoteSkinName_,
 			}
 		}
 
-		Locator::getLogger()->info("LoadNoteSkinDataRecursive: {} ({})",
+		Locator::getLogger()->debug("LoadNoteSkinDataRecursive: {} ({})",
 					sNoteSkinName.c_str(),sDir.c_str());
 
 		// read global fallback the current NoteSkin (if any)

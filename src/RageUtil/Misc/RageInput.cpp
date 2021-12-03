@@ -71,7 +71,8 @@ RageInput::LoadDrivers()
 
 	// If no input devices are loaded, the user won't be able to input anything.
 	if (apDevices.size() == 0)
-		Locator::getLogger()->warn(NO_INPUT_DEVICES_LOADED.GetValue().c_str());
+		Locator::getLogger()->fatal(
+		  "{}", NO_INPUT_DEVICES_LOADED.GetValue().c_str());
 }
 
 void

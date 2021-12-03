@@ -108,7 +108,7 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
-	Locator::getLogger()->trace("TryVideoMode failed: {}", err.c_str());
+	Locator::getLogger()->error("TryVideoMode failed: {}", err.c_str());
 	vs.push_back(err);
 
 	// fall back to settings that will most likely work
@@ -977,7 +977,7 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 
 	RageFile out;
 	if (!out.Open(sPath, RageFile::WRITE)) {
-		Locator::getLogger()->trace("Couldn't write {}: {}", sPath.c_str(), out.GetError().c_str());
+		Locator::getLogger()->warn("Couldn't write {}: {}", sPath.c_str(), out.GetError().c_str());
 		SAFE_DELETE(surface);
 		return false;
 	}
@@ -1003,7 +1003,8 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 	SAFE_DELETE(surface);
 
 	if (!bSuccess) {
-		Locator::getLogger()->trace("Couldn't write {}: {}", sPath.c_str(), out.GetError().c_str());
+		Locator::getLogger()->warn(
+		  "Couldn't write {}: {}", sPath.c_str(), out.GetError().c_str());
 		return false;
 	}
 

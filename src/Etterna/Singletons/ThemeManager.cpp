@@ -553,7 +553,7 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 
 		// load Lua files
 		for (auto& sPath : asElementPaths) {
-			Locator::getLogger()->trace("Loading \"{}\" ...", sPath.c_str());
+			Locator::getLogger()->info("Loading \"{}\" ...", sPath.c_str());
 			LuaHelpers::RunScriptFile(sPath);
 		}
 	} while (iter != g_vThemes.begin());

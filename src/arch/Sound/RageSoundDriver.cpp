@@ -43,7 +43,7 @@ RageSoundDriver::Create(const std::string& drivers)
 	{
 		RageDriver* pDriver = m_pDriverList.Create(*Driver);
 		if (pDriver == NULL) {
-			Locator::getLogger()->trace("Unknown sound driver: {}", Driver->c_str());
+			Locator::getLogger()->info("Unknown sound driver: {}", Driver->c_str());
 			continue;
 		}
 

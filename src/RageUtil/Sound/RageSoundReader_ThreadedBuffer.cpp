@@ -48,7 +48,7 @@ RageSoundReader_ThreadedBuffer::RageSoundReader_ThreadedBuffer(
 	  pSource->GetNextSourceFrame();
 	m_StreamPosition.back().fRate = pSource->GetStreamToSourceRatio();
 
-	m_Thread.SetName("Streaming sound buffering");
+	m_Thread.SetName("Buffered Audio Streamer");
 	m_Thread.Create(StartBufferingThread, this);
 }
 

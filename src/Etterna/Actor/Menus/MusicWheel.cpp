@@ -286,8 +286,8 @@ MusicWheel::SelectSongOrCourse() -> bool
 		}
 	}
 
-	Locator::getLogger()->trace(
-	  "MusicWheel::MusicWheel() - No selectable songs or courses "
+	Locator::getLogger()->info(
+	  "MusicWheel::MusicWheel() - No selectable songs "
 	  "found in WheelData");
 	return false;
 }

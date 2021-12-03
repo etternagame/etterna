@@ -202,12 +202,12 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 {
 	GraphicsWindow::Initialize(true);
 
-	Locator::getLogger()->trace("RageDisplay_D3D::RageDisplay_D3D()");
-	Locator::getLogger()->trace("Current renderer: Direct3D");
+	Locator::getLogger()->info("RageDisplay_D3D::RageDisplay_D3D()");
+	Locator::getLogger()->info("Current renderer: Direct3D");
 
 	g_pd3d = Direct3DCreate9(D3D_SDK_VERSION);
 	if (g_pd3d == nullptr) {
-		Locator::getLogger()->trace("Direct3DCreate9 failed");
+		Locator::getLogger()->fatal("Direct3DCreate9 failed");
 		return D3D_NOT_INSTALLED.GetValue();
 	}
 
@@ -219,7 +219,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	D3DADAPTER_IDENTIFIER9 identifier;
 	g_pd3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &identifier);
 
-	Locator::getLogger()->trace(
+	Locator::getLogger()->info(
 	  "Driver: {}\n"
 	  "Description: {}\n"
 	  "Max texture size: {}\n"
@@ -229,7 +229,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	  g_DeviceCaps.MaxTextureWidth,
 	  (g_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) ? "yes" : "no");
 
-	Locator::getLogger()->trace("This display adaptor supports the following modes:");
+	Locator::getLogger()->info("This display adaptor supports the following modes:");
 	D3DDISPLAYMODE mode;
 
 	const auto modeCount =
@@ -237,7 +237,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 
 	for (UINT u = 0; u < modeCount; u++) {
 		if (SUCCEEDED(g_pd3d->EnumAdapterModes(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, u, &mode))) {
-			Locator::getLogger()->trace("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
+			Locator::getLogger()->info("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
 		}
 	}
 
@@ -259,7 +259,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 
 RageDisplay_D3D::~RageDisplay_D3D()
 {
-	Locator::getLogger()->trace("RageDisplay_D3D::~RageDisplay()");
+	Locator::getLogger()->info("RageDisplay_D3D::~RageDisplay()");
 
 	GraphicsWindow::Shutdown();
 
@@ -353,7 +353,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 			fmtDisplay = vBackBufferFormat;
 		}
 
-		Locator::getLogger()->trace("Testing format: display {}, back buffer {}, windowed {}...",
+		Locator::getLogger()->debug("Testing format: display {}, back buffer {}, windowed {}...",
 				   fmtDisplay,
 				   fmtBackBuffer,
 				   static_cast<int>(bWindowed));
@@ -373,7 +373,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 		return fmtBackBuffer;
 	}
 
-	Locator::getLogger()->trace("Couldn't find an appropriate back buffer format.");
+	Locator::getLogger()->warn("Couldn't find an appropriate back buffer format.");
 	return D3DFMT_UNKNOWN;
 }
 
@@ -438,7 +438,7 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 	  g_pd3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat);
 	auto iBest = -1;
 	auto iBestScore = 0;
-	Locator::getLogger()->trace("cur: {}x{} {}Hz, format {}",
+	Locator::getLogger()->debug("cur: {}x{} {}Hz, format {}",
 			   current.Width, current.Height,
 			   current.RefreshRate, current.Format);
 	for (auto i = 0; i < iCnt; ++i) {
@@ -551,7 +551,7 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 
 	pD3Dpp->Flags = 0;
 
-	Locator::getLogger()->trace(
+	Locator::getLogger()->info(
 	  "Present Parameters: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
 	  pD3Dpp->BackBufferWidth,
 	  pD3Dpp->BackBufferHeight,

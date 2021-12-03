@@ -330,7 +330,7 @@ CompileShader(GLenum ShaderType,
 	}
 
 	if (!sInfo.empty())
-		Locator::getLogger()->trace("Messages compiling shader {}:\n{}", sFile.c_str(), sInfo.c_str());
+		Locator::getLogger()->info("Messages compiling shader {}:\n{}", sFile.c_str(), sInfo.c_str());
 
 	return hShader;
 }
@@ -448,7 +448,7 @@ InitShaders()
 		g_iAttribTextureMatrixScale =
 		  glGetAttribLocationARB(g_bTextureMatrixShader, "TextureMatrixScale");
 		if (g_iAttribTextureMatrixScale == -1) {
-			Locator::getLogger()->trace(R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
+			Locator::getLogger()->warn(R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
 			glDeleteObjectARB(g_bTextureMatrixShader);
 			g_bTextureMatrixShader = 0;
 		} else {
@@ -459,7 +459,7 @@ InitShaders()
 			glVertexAttrib2fARB(g_iAttribTextureMatrixScale, 1, 1);
 			const auto iError = glGetError();
 			if (iError == GL_INVALID_OPERATION) {
-				Locator::getLogger()->trace("Scaling shader failed: glVertexAttrib2fARB "
+				Locator::getLogger()->warn("Scaling shader failed: glVertexAttrib2fARB "
 						   "returned GL_INVALID_OPERATION");
 				glDeleteObjectARB(g_bTextureMatrixShader);
 				g_bTextureMatrixShader = 0;
@@ -693,7 +693,7 @@ CheckPalettedTextures()
 	 * palettes if it can't even get 8-bit ones right. */
 	glColorTableEXT = nullptr;
 	glGetColorTableParameterivEXT = nullptr;
-	Locator::getLogger()->trace("Paletted textures disabled: {}.", sError.c_str());
+	Locator::getLogger()->warn("Paletted textures disabled: {}.", sError.c_str());
 }
 
 static void
@@ -716,7 +716,7 @@ CheckReversePackedPixels()
 		g_bReversePackedPixelsWorks = true;
 	} else {
 		g_bReversePackedPixelsWorks = false;
-		Locator::getLogger()->trace("GL_UNSIGNED_SHORT_1_5_5_5_REV failed ({}), disabled",
+		Locator::getLogger()->warn("GL_UNSIGNED_SHORT_1_5_5_5_REV failed ({}), disabled",
 				  GLToString(glError).c_str());
 	}
 }
@@ -748,7 +748,7 @@ SetupExtensions()
 			/* The minimum GL_MAX_PIXEL_MAP_TABLE is 32; if it's not at least
 			 * 256, we can't fit a palette in it, so we can't send paletted data
 			 * as input for a non-paletted texture. */
-			Locator::getLogger()->trace("GL_MAX_PIXEL_MAP_TABLE is only {}",
+			Locator::getLogger()->warn("GL_MAX_PIXEL_MAP_TABLE is only {}",
 					  static_cast<int>(iMaxTableSize));
 			g_bColorIndexTableWorks = false;
 		} else {
@@ -2341,7 +2341,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 				break;
 			// OpenGL 1.2 types
 			default:
-				Locator::getLogger()->trace("Can't generate mipmaps for type {} because GLU "
+				Locator::getLogger()->debug("Can't generate mipmaps for type {} because GLU "
 						   "version {:.1f} is too old.",
 						   GLToString(glImageType).c_str(),
 						   g_gluVersion / 10.f);

@@ -85,7 +85,7 @@ Screen::Init()
 	std::vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (auto& i : asList) {
-		Locator::getLogger()->trace(
+		Locator::getLogger()->info(
 		  "Screen \"{}\" preparing \"{}\"", m_sName.c_str(), i.c_str());
 		SCREENMAN->PrepareScreen(i);
 	}

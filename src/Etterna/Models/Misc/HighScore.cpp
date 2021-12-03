@@ -432,7 +432,7 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 auto
 HighScoreImpl::WriteReplayData() -> bool
 {
-	Locator::getLogger()->trace("Writing out replay data to disk.");
+	Locator::getLogger()->info("Writing out replay data to disk");
 	std::string append;
 	std::string profiledir;
 	// These two lines should probably be somewhere else
@@ -472,7 +472,7 @@ HighScoreImpl::WriteReplayData() -> bool
 		fileStream.write(append.c_str(), append.size());
 	}
 	fileStream.close();
-	Locator::getLogger()->trace("Created replay file at {}", path.c_str());
+	Locator::getLogger()->info("Created replay file at {}", path.c_str());
 	return true;
 }
 
@@ -490,7 +490,7 @@ auto
 HighScoreImpl::WriteInputData() -> bool
 {
 	std::string append;
-
+	Locator::getLogger()->info("Writing out Input Data to disk");
 	// These two lines should probably be somewhere else
 	if (!FILEMAN->IsADirectory(INPUT_DATA_DIR)) {
 		FILEMAN->CreateDir(INPUT_DATA_DIR);
@@ -570,11 +570,11 @@ HighScoreImpl::WriteInputData() -> bool
 		fclose(infile);
 		gzclose(outfile);
 
-		Locator::getLogger()->trace("Created compressed input data file at {}",
+		Locator::getLogger()->info("Created compressed input data file at {}",
 									path_z.c_str());
 
 		if (FILEMAN->Remove(path))
-			Locator::getLogger()->trace("Deleted uncompressed input data");
+			Locator::getLogger()->debug("Deleted uncompressed input data");
 		else
 			Locator::getLogger()->warn(
 			  "Failed to delete uncompressed input data");
@@ -668,7 +668,7 @@ HighScore::LoadInputData() -> bool
 
 		std::ifstream inputStream(path, std::ios::binary);
 		if (!inputStream) {
-			Locator::getLogger()->trace("Failed to load input data at {}",
+			Locator::getLogger()->debug("Failed to load input data at {}",
 										path.c_str());
 			return false;
 		}
@@ -759,7 +759,7 @@ HighScore::LoadInputData() -> bool
 		SetMineReplayDataVector(vMineReplayDataVector);
 		SetHoldReplayDataVector(vHoldReplayDataVector);
 
-		Locator::getLogger()->trace("Loaded input data at {}", path.c_str());
+		Locator::getLogger()->info("Loaded input data at {}", path.c_str());
 
 		if (FILEMAN->Remove(path))
 			Locator::getLogger()->trace("Deleted uncompressed input data");
@@ -809,7 +809,7 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 
 	// check file
 	if (!fileStream) {
-		Locator::getLogger()->trace("Failed to load replay data at {}", path.c_str());
+		Locator::getLogger()->warn("Failed to load replay data at {}", path.c_str());
 		return false;
 	}
 
@@ -859,7 +859,7 @@ HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
 	SetOffsetVector(vOffsetVector);
 
 	m_Impl->ReplayType = 1;
-	Locator::getLogger()->trace("Loaded replay data type 1 at {}", path.c_str());
+	Locator::getLogger()->info("Loaded replay data type 1 at {}", path.c_str());
 	return true;
 }
 
@@ -920,8 +920,10 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 			  tokens.size() > 3 ? std::stoi(tokens[3]) : TapNoteSubType_Hold;
 			if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
 				!(typeid(tmp) == typeid(int))) {
-				Locator::getLogger()->warn("Failed to load replay data at {} (\"Tapnotesubtype value is not of type TapNoteSubType\")",
-						  path.c_str());
+				Locator::getLogger()->warn(
+				  "Failed to load replay data at {} (\"Tapnotesubtype value is "
+				  "not of type TapNoteSubType\")",
+				  path.c_str());
 			}
 			hrr.subType = static_cast<TapNoteSubType>(tmp);
 			vHoldReplayDataVector.emplace_back(hrr);
@@ -940,7 +942,9 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 		a = buffer == "9" || a;
 		a = buffer == "0" || a;
 		if (!a) {
-			Locator::getLogger()->warn("Replay data at {} appears to be HOT BROKEN GARBAGE WTF", path.c_str());
+			Locator::getLogger()->warn(
+			  "Replay data at {} appears to be HOT BROKEN GARBAGE WTF",
+			  path.c_str());
 			return false;
 		}
 
@@ -988,7 +992,7 @@ HighScore::LoadReplayDataFull(const std::string& dir) -> bool
 	SetHoldReplayDataVector(vHoldReplayDataVector);
 
 	m_Impl->ReplayType = 2;
-	Locator::getLogger()->trace("Loaded replay data type 2 at {}", path.c_str());
+	Locator::getLogger()->info("Loaded replay data type 2 at {}", path.c_str());
 	return true;
 }
 

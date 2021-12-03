@@ -429,7 +429,7 @@ ScreenManager::PopTopScreenInternal(bool bSendLoseFocus)
 	}
 
 	if (g_ScreenStack.size())
-        Locator::getLogger()->trace("Top Screen: {}",
+        Locator::getLogger()->info("After PopTopScreen - Top Screen: {}",
 					g_ScreenStack.back().m_pScreen->GetName().c_str());
 
 	return ls.m_SendOnPop;
@@ -864,7 +864,7 @@ ScreenManager::SendMessageToTopScreen(ScreenMessage SM)
 void
 ScreenManager::SystemMessage(const std::string& sMessage)
 {
-	Locator::getLogger()->trace("{}", sMessage.c_str());
+	Locator::getLogger()->info("{}", sMessage.c_str());
 	Message msg("SystemMessage");
 	msg.SetParam("Message", sMessage);
 	msg.SetParam("NoAnimate", false);

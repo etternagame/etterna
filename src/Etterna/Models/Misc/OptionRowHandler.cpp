@@ -323,7 +323,7 @@ class OptionRowHandlerList : public OptionRowHandler
 				  ssprintf("No options in row \"list,%s\" were selected, "
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
-				Locator::getLogger()->warn(s.c_str());
+				Locator::getLogger()->warn("{}", s.c_str());
 				iFallbackOption = 0;
 			}
 

@@ -533,7 +533,7 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 			std::string sMessage;
 			(*p)->DoAndLog(sMessage);
 			if (!sMessage.empty())
-				Locator::getLogger()->trace("DEBUG: {}", sMessage.c_str());
+				Locator::getLogger()->info("DEBUG: {}", sMessage.c_str());
 			if ((*p)->ForceOffAfterUse())
 				m_bForcedHidden = true;
 

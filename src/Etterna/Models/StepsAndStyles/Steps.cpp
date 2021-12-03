@@ -260,9 +260,9 @@ Steps::TidyUpData()
 	// new style, editing a simfile with unrecognized Steps won't silently
 	// delete them. -Kyz
 	if (m_StepsType == StepsType_Invalid) {
-        /*Locator::getLogger()->warn("Detected steps with unknown style '{}' in '{}'",
+        Locator::getLogger()->debug("Detected steps with unknown style '{}' in '{}'",
 				  m_StepsTypeStr.c_str(),
-				  m_pSong->m_sSongFileName.c_str());*/
+				  m_pSong->m_sSongFileName.c_str());
 	} else if (m_StepsTypeStr.empty()) {
 		m_StepsTypeStr = GAMEMAN->GetStepsTypeInfo(m_StepsType).szName;
 	}
@@ -468,7 +468,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 	if (vh.count(prev_vers) != 0U) {
 		last_msd = vh.at(prev_vers);
 	}
-	Locator::getLogger()->trace("{:+.2f} : {:+.2f} : {:+.2f} : ({:+06.2f}%) : {:+.2f} : {}",
+	Locator::getLogger()->info("{:+.2f} : {:+.2f} : {:+.2f} : ({:+06.2f}%) : {:+.2f} : {}",
 			   newcalc[ss],
 			   rate,
 			   newcalc[ss] - ev,

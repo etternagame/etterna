@@ -723,7 +723,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				cfg.MapRange("numbers", 0, 0, -1);
 				break;
 			default:
-				Locator::getLogger()->trace("Font page \"{}\" has no characters", sTexturePath.c_str());
+				Locator::getLogger()->warn("Font page \"{}\" has no characters", sTexturePath.c_str());
 		}
 	}
 

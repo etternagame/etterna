@@ -283,7 +283,7 @@ ScreenGameplayReplay::SaveStats()
 void
 ScreenGameplayReplay::StageFinished(bool bBackedOut)
 {
-	Locator::getLogger()->trace("Finishing Stage");
+	Locator::getLogger()->info("Finishing Stage");
 	if (bBackedOut) {
 		GAMESTATE->CancelStage();
 		return;
@@ -299,7 +299,7 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->CalcAccumPlayedStageStats();
 	GAMESTATE->FinishStage();
-	Locator::getLogger()->trace("Done Finishing Stage");
+	Locator::getLogger()->info("Done Finishing Stage");
 }
 
 auto

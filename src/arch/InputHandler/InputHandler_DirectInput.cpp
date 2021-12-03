@@ -519,7 +519,8 @@ InputHandler_DInput::UpdateBuffered(
 	}
 
 	if (hr != DI_OK) {
-		Locator::getLogger()->trace(hr_ssprintf(hr, "UpdateBuffered: IDirectInputDevice2_GetDeviceData"));
+		Locator::getLogger()->trace("{}", hr_ssprintf(
+		  hr, "UpdateBuffered: IDirectInputDevice2_GetDeviceData"));
 		return;
 	}
 
@@ -802,7 +803,8 @@ void
 InputHandler_DInput::InputThreadMain()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST))
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "Failed to set DirectInput thread priority"));
+		Locator::getLogger()->warn("{}", werr_ssprintf(
+		  GetLastError(), "Failed to set DirectInput thread priority"));
 
 	// Enable priority boosting.
 	SetThreadPriorityBoost(GetCurrentThread(), FALSE);
@@ -829,7 +831,8 @@ InputHandler_DInput::InputThreadMain()
 
 			int ret = WaitForSingleObjectEx(Handle, 50, true);
 			if (ret == -1) {
-				Locator::getLogger()->trace(werr_ssprintf(GetLastError(), "WaitForSingleObjectEx failed"));
+				Locator::getLogger()->trace("{}", werr_ssprintf(
+				  GetLastError(), "WaitForSingleObjectEx failed"));
 				continue;
 			}
 

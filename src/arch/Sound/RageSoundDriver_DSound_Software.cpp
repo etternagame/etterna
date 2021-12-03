@@ -30,7 +30,8 @@ RageSoundDriver_DSound_Software::MixerThread()
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 		if (!SetThreadPriority(GetCurrentThread(),
 							   THREAD_PRIORITY_ABOVE_NORMAL))
-			Locator::getLogger()->warn(werr_ssprintf(GetLastError(),
+			Locator::getLogger()->warn("{}", werr_ssprintf(
+			  GetLastError(),
 									"Failed to set sound thread priority"));
 
 	/* Fill a buffer before we start playing, so we don't play whatever junk is

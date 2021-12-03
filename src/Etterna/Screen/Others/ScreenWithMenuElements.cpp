@@ -176,13 +176,13 @@ ScreenWithMenuElements::HandleLuaMusicFile(std::string const& path)
 				} else {
 					// 2) perhaps it's a table with some params? unsure if I
 					// want to support this just yet. -aj
-					Locator::getLogger()->trace("Lua music script did not return a path to a sound.");
+					Locator::getLogger()->warn("Lua music script did not return a path to a sound.");
 					ret = "";
 				}
 			}
 			LUA->Release(L);
 		} else {
-			Locator::getLogger()->trace("run script failed hardcore, lol");
+			Locator::getLogger()->warn("run script failed hardcore, lol");
 			ret = "";
 		}
 	} else if (ft != FT_Sound) {
