@@ -71,7 +71,11 @@ local function helpMenu()
     -- this appears in the scroll list and large above the main screen
     -- the point of this table is solely to maintain the order of option categories that show up
     local categoryDefs = {
-        "Common Terminology",
+        "Common Pattern Terminology",
+        "Hotkeys",
+        "How-To",
+        "Information",
+        "Troubleshooting",
     }
 
     -- describe each option in each category
@@ -89,7 +93,7 @@ local function helpMenu()
     }
     ]]
     local optionDefs = {
-        ["Common Terminology"] = {
+        ["Common Pattern Terminology"] = {
             {
                 Name = "Roll (1234)",
                 ShortDescription = "Vaguely a jumptrill",
@@ -234,7 +238,273 @@ local function helpMenu()
                 Description = "Classically, runningman is a term referring to a stream that is anchored. We expand on that definition by allowing chords to be mixed in very lightly. An anchored jumpstream can technically contain a runningman, but is more likely to just be referred to as anchored jumpstream.\n\nIt is required that the anchor in a runningman be offset from the rest of the pattern so that it doesn't form chords with the rest of the pattern.\n\nTo the right is a runningman anchored on column 1. The off-taps may be on any column, but it is important that not too many taps be on the same hand as the anchor.",
                 Image = THEME:GetPathG("", "Patterns/runningman"),
             },
-        }
+        },
+        ["Hotkeys"] = {
+            {
+                Name = "Global Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "SelectMusic Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Gameplay Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Customize Gameplay Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Practice Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Replay Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Evaluation Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Multiplayer Hotkeys",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            }
+        },
+        ["How-To"] = {
+            {
+                Name = "Create Charts",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Manual Song Install",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Download Packs",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Song Search",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Song Filter",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Sortmodes",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Customize Gameplay",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Update Etterna",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Set Sync/Offset",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Change Theme",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Change Language",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Toggle Menu Sounds",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Toggle Pitch Rates",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Swap Wheel Side",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Login",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Upload Scores",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Favorite Songs",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Permanently Mirror",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+        },
+        ["Information"] = {
+            {
+                Name = "About Keymodes",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Old Key Config",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Graphics Options",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "SelectMusic Tips",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Profile Tab Usage",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Goals Tab Usage",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Playlists Tab Usage",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Tags Tab Usage",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Getting Support",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+        },
+        ["Troubleshooting"] = {
+            {
+                Name = "Softlocked",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "All Input Broke",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "General Tips",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Song Doesn't Load",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Song Doesn't Update",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Scores Don't Save",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Scores Worth 0.00",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+            {
+                Name = "Random Crashing",
+                ShortDescription = "",
+                Description = "",
+                Image = nil,
+            },
+        },
     }
 
     -- generated table
