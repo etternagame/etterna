@@ -242,100 +242,100 @@ local function helpMenu()
         ["Hotkeys"] = {
             {
                 Name = "Global Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys available anywhere",
+                Description = "F2 -- Reload Textures & Metrics\nF2 + Shift -- Reload Metrics\nF2 + Ctrl -- Reload Scripts\nF2 + Shift + Ctrl -- Reload Overlay Screens\nF3 -- Debug Menu (many shortcut options within)\nF9 -- Toggle author-defined metadata transliteration\nAlt + Enter -- Fullscreen Toggle\nTab -- Speed up animations x4\n~ -- Slow down animations x4\nPause|Break -- Toggle menu sounds\nPrintScreen -- Screenshot",
                 Image = nil,
             },
             {
                 Name = "SelectMusic Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys only in song selection",
+                Description = "F1 -- Song Search\nCtrl + Q -- Load new song folders\nShift + Ctrl + R -- Reload current song folder\nShift + Ctrl + P -- Reload current pack folder\nCtrl + F -- Favorite chart toggle\nCtrl + M -- Permanent mirror chart toggle\nCtrl + G -- Create goal on current chart\nCtrl + O -- Toggle practice mode\nCtrl + S -- Save profile\nCtrl + P -- Create playlist\nCtrl + A -- Add current chart to selected playlist\nCtrl + Number -- If main box active, access the top right buttons. If not, access main box tabs.\nNumber -- Switch tabs in main box/settings\nEscape/Back -- In side box context, exit to main box\nCtrl + L -- Login/Logout\nSpace -- General Tab/Settings Chart Preview toggle\nRight Click -- Pause music toggle if functionality not overridden",
                 Image = nil,
             },
             {
                 Name = "Gameplay Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys only in regular gameplay",
+                Description = "Hold Enter -- Force Fail\nF4 -- Undo sync changes before saving them\nF6 -- Toggle through Autosync Song, Autosync Machine\nF7 -- Toggle claps\nLeftShift + F7 -- Toggle metronome\nF8 -- Toggle autoplay\nF11 -- Move song offset earlier\nAlt + F11 -- Move song offset earlier (small increment)\nF12 -- Move song offset later\nAlt + F12 -- Move song offset later (small increment)\nShift + F11 -- Move global offset earlier\nAlt + Shift + F11 -- Move global offset earlier (small increment)\nShift + F12 -- Move global offset later\nAlt + Shift + F12 -- Move global offset later (small increment)",
                 Image = nil,
             },
             {
                 Name = "Customize Gameplay Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys only in gameplay customization",
+                Description = "Enter -- Select element or Deselect element\nDelete/Backspace/RestartGameplay -- Undo only the most recent change\nCtrl + Undo -- Reset selected element to default\nRight Click -- Deselect element\nDirectional -- Menu movement or selected element movement\nShift + Directional -- Smaller increment movement\nSpace -- Scroll through movement types of selected element",
                 Image = nil,
             },
             {
                 Name = "Practice Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys only in practice mode",
+                Description = "Backspace -- Jump to loop region start or bookmarked position\nEffectUp -- Increase rate 0.05x\nEffectDown -- Decrease rate 0.05x\nInsertCoin -- Set bookmark position or loop region boundaries\nInsertCoin twice while paused -- Reset loop region to a bookmark position\nMousewheel Scrolling -- If paused, move song position in fine increments\nRight Click -- Toggle pause\nLeft Click Graph -- Jump to position\nRight Click Graph -- Set bookmark or loop region boundaries",
                 Image = nil,
             },
             {
                 Name = "Replay Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys only in replays",
+                Description = "InsertCoin -- Toggle pause\n\nMust be paused before using any of the following:\nAlt + EffectUp -- Set bookmark position\nAlt + EffectDown -- Go to bookmark position\nShift + EffectUp -- Increase rate 0.05x\nShift + EffectDown -- Decrease rate 0.05x\nEffectUp -- Move song position 5 seconds\nCtrl + EffectUp -- Move song position 0.1 seconds\nEffectDown -- Move song position -5 seconds\nCtrl + EffectDown -- Move song position -0.01 seconds",
                 Image = nil,
             },
             {
                 Name = "Evaluation Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys only in the evaluation screen",
+                Description = "Ctrl + L -- Login/Logout\nUp/Down -- Scroll through column highlight settings\nEffectUp -- Increase display judge\nEffectDown -- Decrease display judge\nSelect -- Screenshot\nLeft + Right -- Screenshot",
                 Image = nil,
             },
             {
                 Name = "Multiplayer Hotkeys",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Hotkeys only in multiplayer",
+                Description = "Multiplayer isn't finished!",
                 Image = nil,
             }
         },
         ["How-To"] = {
             {
                 Name = "Create Charts",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Notes to noises",
+                Description = "You need an editor. Etterna doesn't currently come with an editor. The popular choices are ArrowVortex and DDReam. Others also choose to use the osu editor or older SM3/SM5 editors.\n\nWhat matters is you have a way to place notes and get them to a valid format like .sm.\n\nA chart only requires audio and the metadata file (.sm for example) to load. Be careful not to attempt to load the chart before both of these are present in your Etterna Songs folder.\n\nMore extensive tutorials on chart creation exist online, and most people are willing to help if you ask around.",
                 Image = nil,
             },
             {
                 Name = "Manual Song Install",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "When downloading in client isn't your thing",
+                Description = "Here's the scenario: you've created or downloaded a single song or a pack of songs. Now you need to make them load in the game.\n\nIdeally, the folders are structured in this pattern - /Packname/Songname/stuff.sm\n\nIf this applies to a pack you just downloaded, all you must do is extract the pack folder and place it in your Songs folder. The structure is then /Songs/Packname/Songname/stuff.sm.\n\nIf you have a single song, you should create a new pack folder for it in the Songs folder. It can have any name. After all of this is completed, either reopen the game or press Ctrl + Q in SelectMusic.\n\nIf for some reason you want to keep your install separate from your songs, open Preferences.ini and add a direct path to a new Songs folder in the AdditionalSongFolders field.",
                 Image = nil,
             },
             {
                 Name = "Download Packs",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "How to press a button",
+                Description = "Ingame, downloading packs is very simple. If you have no packs installed, you may be led first to the core bundle select screen which shows a few sets of packs of varying difficulty to get you started.\n\nIf you skipped that, don't want the bundles, or already have something installed, you can use the downloader screen in SelectMusic. In the top right, in the Ctrl + 3 menu, you should find every pack you could download from ingame. If this list is blank, you may not have an internet connection.\n\nThere are other sources of packs if these downloads ever fail which you must ask around for.\n\nDownloaded packs will extract and install automatically when finished. If it appears that they finish but nothing happens, the download may have failed instead.",
                 Image = nil,
             },
             {
                 Name = "Song Search",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Finding the song",
+                Description = "You may have been expecting to be able to search for a song that you don't have installed. Let's get that out of the way first - it isn't currently possible from within the client.\n\nYou can search for songs that are installed using the F1 menu (the leftmost button in the top right of SelectMusic). The interface should be simple to use. Just fill out the fields you care for and hit enter, and the results come to you.\n\nOtherwise, places that host packs may offer search capabilities.",
                 Image = nil,
             },
             {
                 Name = "Song Filter",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Filtering the songs",
+                Description = "The song filter is integrated with song search. It can be found in the F1 menu (the leftmost button in the top right of SelectMusic).\n\nThere is not currently any keyboard compatibility with this menu, but the sliders should be sufficient to let you set up a filter with your mouse. A slider placed at an extreme end is considered effectively 0 or infinite, a disabled bound.\n\nFilters stick if you happen to enter a song and come back, unlike the song search.",
                 Image = nil,
             },
             {
                 Name = "Sortmodes",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Sorting the songs",
+                Description = "The song wheel can be resorted in different predefined ways.\n\nTry pressing up-down-up-down in the main area, and it changes your wheel into a menu to select a sortmode. Some people will find some sortmodes more useful than others.\n\nMost of the time, Group sort is used because it is the natural order everyone expects. Some sorts are for more informational purposes.\n\nIf you would like to modify the behavior of these sortmodes, check out the implementation in Scripts/WheelDataManager.",
                 Image = nil,
             },
             {
                 Name = "Customize Gameplay",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Power at your fingertips",
+                Description = "Customize Gameplay is the gameplay screen which allows you to modify every element on the screen in almost any way to make it fit to your standard.\n\nOn the right side is the navigation and information panel which can be dragged around for visibility. The arrow keys can be used if the mouse is not preferred.\n\nEnter to select a highlighted element, or click an element to select it. Use space to change which movement type you are modifying (coordinates vs sizing). Some elements do not offer more than one type. The mouse can be used to drag around any element.\n\nHold shift to move with smaller increments. Use RestartGameplay to undo or hold Ctrl with it to reset to default.\n\nAll changes are saved to disk as soon as you exit the screen.",
                 Image = nil,
             },
             {
                 Name = "Update Etterna",
-                ShortDescription = "",
-                Description = "",
+                ShortDescription = "Backup your user data",
+                Description = "Updating Etterna is typically a painless process on all platforms. In all cases, we would recommend you take a backup of any content you directly added to the game - Noteskins, Save, Assets. Songs do not need to be backed up.\n\nOn Windows, the installer may ask for you to uninstall the old version, and the uninstaller can fail. It's safe to ignore that. As long as you are not directly overlaying the latest version on top of the old one, your new install will run fine.\n\nOn Mac, updating is simply reinstalling the game again, but with less configuration.\n\nOn Linux, updating can be moving to the latest binary or a git pull and rebuild.\n\nThe most important folder you never want to lose is the entire Save folder. Nearly every file in this folder is related to user scores or settings in some way.",
                 Image = nil,
             },
             {
@@ -393,7 +393,7 @@ local function helpMenu()
                 Image = nil,
             },
             {
-                Name = "Permanently Mirror",
+                Name = "Permanently Mirror Charts",
                 ShortDescription = "",
                 Description = "",
                 Image = nil,
@@ -782,7 +782,7 @@ local function helpMenu()
                         if def.Image ~= nil and def.Image ~= "" then
                             self:wrapwidthpixels(((rightAreaWidth / 2) - actuals.EdgeBuffer) / subtitleTextSize)
                         else
-                            self:wrapwidthpixels((rightAreaWidth - actuals.EdgeBuffer) / subtitleTextSize)
+                            self:wrapwidthpixels((rightAreaWidth - actuals.EdgeBuffer * 2) / subtitleTextSize)
                         end
                     else
                         self:settext("")
@@ -805,7 +805,7 @@ local function helpMenu()
                         if def.Image ~= nil and def.Image ~= "" then
                             self:wrapwidthpixels(((rightAreaWidth / 2) - actuals.EdgeBuffer) / descTextSize)
                         else
-                            self:wrapwidthpixels((rightAreaWidth - actuals.EdgeBuffer) / descTextSize)
+                            self:wrapwidthpixels((rightAreaWidth - actuals.EdgeBuffer * 2) / descTextSize)
                         end
                     else
                         self:zoom(subtitleTextSize)
