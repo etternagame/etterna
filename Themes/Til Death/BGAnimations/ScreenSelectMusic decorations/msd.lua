@@ -229,9 +229,10 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 		local notecount = 0
 		local length = 1
 		if steps ~= nil and song ~= nil and update then
-			length = song:GetStepsSeconds()
+			length = steps:GetLengthSeconds()
+			if length == 0 then length = 1 end
 			notecount = steps:GetRadarValues(pn):GetValue("RadarCategory_Notes")
-			self:settextf("%0.2f %s", notecount / length * getCurRateValue(), translated_text["AverageNPS"])
+			self:settextf("%0.2f %s", notecount / length, translated_text["AverageNPS"])
 			self:diffuse(Saturation(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())), 0.3))
 		else
 			self:settext("")
