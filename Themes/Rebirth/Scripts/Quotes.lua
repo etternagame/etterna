@@ -5,7 +5,60 @@
 -- Also (hopefully helpful) tips regarding the game/theme,etc.
 -----------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------
-local Tips = {}
+local Tips = {
+    "Rolls are the name of both a pattern and a note type.",
+    "Gluts are rapid sections of jumps forming minijacks.",
+    "A stream is a continuous run of notes, but utilizing multiple columns instead of just one.",
+    "Jack is short for jackhammer. Doesn't mean anything else. Trust me",
+    "Switching to a higher judge is only really necessary if you genuinely need the feedback. Otherwise, J4 is where it's at.",
+    "Hold tab to speed up menu animations.",
+    "The screenshot button is PrintScreen. It doesn't work for a lot of people in fullscreen. We know.",
+    "Reload songs by pressing Ctrl + Q.",
+    "Favorite a song by pressing Ctrl + F.",
+    "Toggle practice mode by pressing Ctrl + O.",
+    "Toggle chart preview by pressing Space.",
+    "Right click in most places to pause the music in SelectMusic.",
+    "The F3 Debug menu contains many helpful shortcuts to game options.",
+    "If changing the audio or visual sync isn't helping your mean, have you considered moving the NoteField or changing scroll speed?",
+    "The button display in Replay mode can be dragged.",
+    "The display in Customize Gameplay can be dragged.",
+    "Pressing RestartGameplay while in Customize Gameplay can undo a change you made, or reset to default by holding Ctrl, too.",
+    "Practice mode loop regions are very useful for practicing a pattern or mindblocking it ... Right click the graph to set one.",
+    "Replay mode functionality requires the music to be paused first.",
+    "You are allowed to log in or log out in the evaluation screen. Try Ctrl + L or click the connection symbol on your avatar.",
+    "To put an avatar into the game, put any image into Assets/Avatars and click your avatar ingame.",
+    "To customize your judgment, put a new judgment image into Assets/Judgments and click your avatar ingame to switch.",
+    "After a 250 perfect combo, a toasty will pop up to congratulate you.",
+    "DDReam is useful for syncing over ArrowVortex due to its ability to let you drag beats with your mouse among other things.",
+    "When manually installing songs, make sure to keep song folders inside of pack folders. Things go very bad otherwise.",
+    "To update a song from disk manually, try Ctrl + Shift + R.",
+    "To update a whole pack from disk manually, try Ctrl + Shift + P.",
+    "The game framerate can be limited to something other than VSync or 1000 by modifying FrameLimit in Preferences.ini.",
+    "Score uploading has no progress indicator... Just trust in the process.",
+    "Pack downloading can be rate limited by ISP sometimes. It's not always your fault or our fault.",
+    "Download speed is limited by framerate sometimes.",
+    "Song search resets when you enter a song, but filtering does not.",
+    "Song search, filtering, and pack tags can all be mixed together.",
+    "Some song sortmodes may offer a better experience for you. Check them out in the Up-Down-Up-Down menu.",
+    "Is a gameplay element bothering you? Turn it off or move it in customize gameplay.",
+    "A score is good if it's good for you. There will always be a bigger fish.",
+    "What's a good score? 0 mean 0 sd 100%",
+    "This game is an offline game. The online features are a bonus.",
+    "Hand bias ruining a chart? Try turning mirror on or just permamirror the chart with Ctrl + M.",
+    "F1 is a shortcut for song search just in case pressing 2 buttons was too much for you.",
+    "Jumping to a specific pack can be done by searching for a specific song, hovering the song, then removing your search.",
+    "Tags are useful for when you want to play a specific type of file later. Set tags on a file then filter by them.",
+    "The help screen details many features of the game that are useful to you that you might have never thought about.",
+    "Softlocked? Press Ctrl + Operator. Usually your Operator key is Scroll Lock.",
+    "You can get a glimpse of the secrets of the menus if you zoom out the game camera - F3 + F5 + 0.",
+    "If things don't save, you may have installed in the wrong location.",
+    "Songs under 200 notes produce invalid scores.",
+    "Opting in to crash uploading is helpful to developers to diagnose any issue that isn't being reported.",
+    "If your scores don't upload, try a force upload in the profile or scores tabs.",
+    "When updating the game, you should only have to backup Assets, Save, and Noteskins.",
+    "A CBrush is continuous combo breakers caused by an accidental early hit.",
+    "To cancel a CBrush, drop a miss or reset your hit timing.",
+}
 
 local Phrases = {
     "That guy is saltier than the dead sea.",
@@ -106,7 +159,7 @@ local Phrases = {
     "can someone send me helvetica so i can make gfx",--for solo rulz 3 http://www.flashflashrevolution.com/vbz/showpost.php?p=4253999&postcount=13
     "Human Sequencer", -- mei
     "whats more dense, a black hole or an icyworld file", -- choof
-    "fuk LN", -- Staiain's twitch chat
+    "fuk LN",
     "Mine Infested Files Killed The Game", -- http://www.flashflashrevolution.com/vbz/showthread.php?p=4300456#post4300456
     "STEPMANIA BROKEN", -- does anyone still remember the yt vid mfw-
     "HOLY SAMBALAND", -- the land of (^^)
@@ -143,7 +196,6 @@ local Phrases = {
     "*KEYBOARDING INTENSIFIES*", -- https://twitter.com/MOOMANiBE/status/685218392299552768
     "VAC",
     "Play along at home:\n djskdjksdjskdjksdjskdksjdksdjksjdksdjkjsdjkskkksksksdjjsdjksdjksdjkssdjksjdkjksdjksdjksdjksdjkskdjjskdjksdjkjksjdksjdksjkdjksdjkjsdkjsjdskdjksjdksjdskdjksjjdjsddssjssdjkkkkkkkkkkkkkkkkkkkdjksjkdsjksdkjskdjksksdjjsdsksjdkkjksjjksjksd",
-    "Is this how you beat RSI? You commission staiain to tap for you?", -- Sivarro
     "you can't say that you're d7 because you can only jack off in one direction", -- eze
     "SUGOI MISS", -- symbolic gear
     "WE LOVE LOBSAK -- WE NEED LOBSAK", -- https://www.youtube.com/watch?v=mvZz_Ulkg1o
@@ -214,7 +266,7 @@ local Phrases = {
     "cbrush stands for cool bro rush", -- poco
     "Etterna in 10!", -- foxfire
     "Get a life and fucking play the game and give me feedback. Jesus some people are petty",
-    "I will find and kill you. That's not a threat that's a promise.", --shireen_gh to DourGent
+    "That's not a threat that's a promise.", --shireen_gh to DourGent
     "You've literally just made the biggest mistake in your entire life.", --KcHecKa on Future World BL
     "FFR! here i come! better scoring there anyways", --Billmads on NoMines scores no longer counting
     "I feel like...he looks at my charts and thinks: I'm going to chart the polar opposite of what IcyWorld would do.", --IcyWorld talking about DourGent
@@ -225,7 +277,6 @@ local Phrases = {
     "I believe every file should be rate-able. Otherwise what's the point?", --Etienne on file standards
     "hahahah xDDDD IM SOOOO BUSY work!!! LOLOLOL I HAVE A LIFE LOSER EXCUSE ME IF I DONT SPEND MORE TIME DOING DEVELOPMENT WORK THAN GOING ON FORUMS AND DEFENDING THE GAME I DONT WORK ON LOL HAHAHA xDDDDDDDDDDDDDDDDDDD", -- small excerpt of a novel of etterna defensive commentary
     "Yeah. Framerates is BS and not a concern. That's just wasted cpu cycles",
-    "Video constantly desyncs from song audio during low impact play on sub-10 difficulty charts. Not to mention it also stutters more than an autistic child with a lisp.",
     "Please use an actual (non garbage) Stepmania Client. Thanks",
     "You can't judge the file this isn't even remotely jumptrillable - someone who can actually play the file", --Snover on Mario Paint from Fullerene Shift (70.13%)
     "Beat you!! >.<", --KcHecKA on getting 0.0001% over Ice on Savage Terminal, prompting a full scale attack to resolve the issue.
