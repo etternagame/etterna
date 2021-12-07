@@ -182,6 +182,9 @@ t[#t+1] = Def.NoteFieldPreview {
         -- when changing zoom of the notefield, the receptors change position just like the length needs to
         -- so need to move the notefield up or down to compensate for the change in zoom
         local compensation = -(actuals.NoteFieldHeight) * (notefieldZoomBaseline-z)/2
+        -- running from what you fear brings you yet closer to that which you loathe
+        -- magic numbers run the world
+        compensation = compensation + (getPlayerOptions():UsingReverse() and 25 or 0)
         self:y(notefieldYCenter - 40 + compensation)
         self:UpdateDrawDistance(notefieldAllowBeyondReceptorPixels, l)
         self:UpdateYReversePixels(r)
@@ -196,7 +199,8 @@ t[#t+1] = Def.NoteFieldPreview {
                 ["Hold Transform"] = true,
                 Remove = true,
                 Insert = true,
-                Mines = true
+                Mines = true,
+                ["Scroll Direction"] = true,
             }
             if options[params.name] ~= nil then
                 self:playcommand("LoadNoteData", {steps = GAMESTATE:GetCurrentSteps()})
