@@ -248,6 +248,7 @@ end
 
 local function createMSDLines()
     local function createMSDLine(i)
+        local labeltext = msdNames[i]
         return Def.ActorFrame {
             Name = "MSDLine"..i,
             InitCommand = function(self)
@@ -262,9 +263,27 @@ local function createMSDLines()
                     self:zoom(mainTextSize)
                     -- dont fudge this to avoid compressing static text
                     self:maxwidth(((actuals.RightTextLabelsMargin - actuals.RightTextNumbersMargin) / 1.7) / mainTextSize)
-                    self:settextf("%s:", msdNames[i])
+                    if labeltext then
+                        self:settextf("%s:", labeltext)
+                    end
                     registerActorToColorConfigElement(self, "main", "PrimaryText")
-                end
+                end,
+                SetCommand = function(self, params)
+                    -- HACKS HACKS HACKS
+                    -- (remove when validating negbpms soon)
+                    if i == 0 then
+                        if params.steps then
+                            if params.steps:GetTimingData():HasWarps() then
+                                self:settext("NegBPMs!")
+                                self:diffusealpha(1)
+                            else
+                                self:diffusealpha(0)
+                            end
+                        else
+                            self:diffusealpha(0)
+                        end
+                    end
+                end,
             },
             Def.RollingNumbers {
                 Name = "Number",
@@ -275,8 +294,10 @@ local function createMSDLines()
                     self:zoom(mainTextSize)
                     self:maxwidth(((actuals.RightTextLabelsMargin - actuals.RightTextNumbersMargin) / 2) / mainTextSize - textzoomFudge)
                     self:Load("RollingNumbers2Decimal")
+                    if not labeltext then self:visible(false) end
                 end,
                 SetCommand = function(self, params)
+                    if i == 0 then return end -- negbpm indicator HACKS remove when validating negbpms soon
                     -- i == 1 is Average NPS, otherwise are skillsets
                     if i == 1 then
                         if params.steps then
@@ -321,7 +342,7 @@ local function createMSDLines()
         }
     end
     local t = Def.ActorFrame {Name = "MSDLines"}
-    for i = 1, #msdNames do
+    for i = 0, #msdNames do -- starts at 0 for NegBPMs
         t[#t+1] = createMSDLine(i)
     end
     return t
