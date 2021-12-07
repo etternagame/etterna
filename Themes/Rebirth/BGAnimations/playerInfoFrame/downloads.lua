@@ -812,6 +812,8 @@ local function downloadsList()
                                 char = Arch.getClipboard()
                             end
 
+                            local searchb4 = searchstring
+
                             if bs then
                                 searchstring = searchstring:sub(1, -2)
                             elseif del then
@@ -826,6 +828,11 @@ local function downloadsList()
                                 movePage(1)
                             else
                                 if char == nil then return end
+                            end
+
+                            -- reset page if search changed
+                            if searchb4 ~= searchstring then
+                                page = 1
                             end
                             self:playcommand("UpdateSearch")
                             self:playcommand("UpdateItemList")
