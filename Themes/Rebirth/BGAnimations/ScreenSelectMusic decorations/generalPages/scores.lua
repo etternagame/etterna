@@ -637,9 +637,6 @@ local function createList()
                         local ws = score:GetWifeScore()
                         local wifeStr = checkWifeStr(ws)
                         local grade = GetGradeFromPercent(score:GetWifeScore())
-                        if score:GetWifeVers() ~= 3 then
-                            wifeStr = wifeStr .. " W2"
-                        end
                         txt:settext(wifeStr)
                         txt:diffuse(colorByGrade(grade))
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
