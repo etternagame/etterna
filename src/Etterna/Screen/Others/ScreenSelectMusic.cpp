@@ -904,11 +904,7 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 			return;
 	}
 
-	std::vector<PlayerNumber> vpns;
-	if (pn == PLAYER_1 || GAMESTATE->DifficultiesLocked()) {
-		vpns.push_back(PLAYER_1);
-	}
-	AfterStepsOrTrailChange(vpns);
+	AfterStepsOrTrailChange();
 
 	const auto fBalance = GameSoundManager::GetPlayerBalance(pn);
 	if (dir < 0) {
@@ -1233,8 +1229,9 @@ ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 }
 
 void
-ScreenSelectMusic::AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns)
+ScreenSelectMusic::AfterStepsOrTrailChange()
 {
+	// this used to be based on a list of given PlayerNumbers
 	const auto pn = PLAYER_1;
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 
@@ -1464,10 +1461,7 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_StartedLoadingAt.Touch();
 
-	std::vector<PlayerNumber> vpns;
-	vpns.push_back(PLAYER_1);
-
-	AfterStepsOrTrailChange(vpns);
+	AfterStepsOrTrailChange();
 }
 
 void

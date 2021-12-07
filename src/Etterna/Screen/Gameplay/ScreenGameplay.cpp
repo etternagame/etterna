@@ -641,7 +641,6 @@ ScreenGameplay::LoadNextSong()
 		m_pSongForeground->Unload();
 	}
 
-	// BeginnerHelper disabled, or failed to load.
 	if (m_pSongBackground != nullptr) {
 		m_pSongBackground->LoadFromSong(GAMESTATE->m_pCurSong);
 	}

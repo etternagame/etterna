@@ -1112,24 +1112,12 @@ GameState::GetNumCols(int pn)
 }
 
 bool
-GameState::DifficultiesLocked() const
-{
-	if (GetCurrentStyle(PLAYER_INVALID)->m_bLockDifficulties)
-		return true;
-	return false;
-}
-
-bool
 GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 												 Difficulty dc,
 												 StepsType st)
 {
 	m_PreferredDifficulty.Set(dc);
 	m_PreferredStepsType.Set(st);
-	if (DifficultiesLocked())
-		if (PLAYER_1 != pn)
-			m_PreferredDifficulty.Set(m_PreferredDifficulty);
-
 	return true;
 }
 
