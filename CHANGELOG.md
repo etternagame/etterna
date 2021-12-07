@@ -1,7 +1,7 @@
 # Changelog
 All releases of Etterna are listed in this file as well as links to files detailing all of the changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
-## [0.71.0] - 2021-12-XX - Rebirth
+## [0.71.0] - 2021-12-10 - Rebirth
 
 Windows x64, Windows i386, and Mac installer release. Linux binary.
 - New theme. Til Death refresher. A lot.
