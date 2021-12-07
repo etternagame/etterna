@@ -646,7 +646,6 @@ local function songActorBuilder()
             InitCommand = function(self)
                 self:playcommand("SetPosition")
                 self:zoom(wheelItemGradeTextSize)
-                self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
             end,
             BeginCommand = function(self)
                 self:GetParent().Grade = self
@@ -663,9 +662,11 @@ local function songActorBuilder()
                 if getWheelPosition() then
                     self:halign(1)
                     self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                    self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
                 else
-                    self:halign(0)
-                    self:x(-actuals.Width / 2 + actuals.ItemGradeTextRightGap)
+                    self:halign(0.5)
+                    self:x(-actuals.Width / 2 + (actuals.ItemGradeTextMaxWidth + actuals.ItemGradeTextRightGap) / 2)
+                    self:maxwidth((actuals.ItemGradeTextMaxWidth - (actuals.ItemGradeTextRightGap)) / wheelItemGradeTextSize)
                 end
             end,
             UpdateWheelPositionCommand = function(self)
@@ -1026,7 +1027,6 @@ local function groupActorBuilder()
             InitCommand = function(self)
                 self:playcommand("SetPosition")
                 self:zoom(wheelItemGradeTextSize)
-                self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
                 self.lamp = nil
                 self.scores = 0
             end,
@@ -1057,9 +1057,11 @@ local function groupActorBuilder()
                 if getWheelPosition() then
                     self:halign(1)
                     self:x(actuals.Width / 2 - actuals.ItemGradeTextRightGap)
+                    self:maxwidth(actuals.ItemGradeTextMaxWidth / wheelItemGradeTextSize)
                 else
-                    self:halign(0)
-                    self:x(-actuals.Width / 2 + actuals.ItemGradeTextRightGap)
+                    self:halign(0.5)
+                    self:x(-actuals.Width / 2 + (actuals.ItemGradeTextMaxWidth + actuals.ItemGradeTextRightGap) / 2)
+                    self:maxwidth((actuals.ItemGradeTextMaxWidth - (actuals.ItemGradeTextRightGap)) / wheelItemGradeTextSize)
                 end
             end,
             UpdateWheelPositionCommand = function(self)
