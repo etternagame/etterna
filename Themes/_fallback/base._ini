@@ -629,7 +629,6 @@ SongNumberP2X=SCREEN_CENTER_X+25
 SongNumberP2Y=SCREEN_CENTER_Y-206
 SongNumberP2OnCommand=addy,-100;linear,0.5;addy,100
 SongNumberP2OffCommand=linear,0.5;addy,-100
-ShowScoreInRave=true
 ScoreFrameX=SCREEN_CENTER_X
 ScoreFrameY=SCREEN_BOTTOM
 ScoreFrameOnCommand=vertalign,bottom;addy,100;linear,0.5;addy,-100;draworder,2
