@@ -1632,6 +1632,9 @@ local function createList()
             elseif #scores == 0 and steps and fetchingScores[steps:GetChartKey()] == false then
                 self:diffusealpha(1)
                 self:settext("No online scores recorded")
+            elseif isLocal and localscore == nil then
+                self:diffusealpha(1)
+                self:settext("No local scores recorded")
             else
                 self:diffusealpha(0)
                 self:settext("")
