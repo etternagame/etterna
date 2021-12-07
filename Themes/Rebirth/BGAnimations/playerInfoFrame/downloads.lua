@@ -816,6 +816,8 @@ local function downloadsList()
                                 searchstring = searchstring:sub(1, -2)
                             elseif del then
                                 searchstring = ""
+                            elseif char ~= nil then
+                                searchstring = searchstring .. char
                             elseif up then
                                 -- up move the page up
                                 movePage(-1)
@@ -824,7 +826,6 @@ local function downloadsList()
                                 movePage(1)
                             else
                                 if char == nil then return end
-                                searchstring = searchstring .. char
                             end
                             self:playcommand("UpdateSearch")
                             self:playcommand("UpdateItemList")
