@@ -62,9 +62,9 @@ jobs:
         run: |
           echo "Running objcopy..."
           mkdir ${{github.workspace}}/sym
-          objcopy --only-keep-debug ${{github.workspace}}/main/Etterna ${{github.workspace}}/sym/Etterna.obj
+          objcopy --only-keep-debug ${{github.workspace}}/main/Etterna ${{github.workspace}}/sym/Etterna
           echo "Dumping Symbols..."
-          dump_syms ${{github.workspace}}/sym/Etterna.obj ${{github.workspace}}/main/Etterna > ${{github.workspace}}/sym/Etterna.sym
+          dump_syms ${{github.workspace}}/sym/Etterna ${{github.workspace}}/main/Etterna > ${{github.workspace}}/sym/Etterna.sym
           echo "Stripping debug symbols from binary..."
           strip ${{github.workspace}}/main/Etterna
       
