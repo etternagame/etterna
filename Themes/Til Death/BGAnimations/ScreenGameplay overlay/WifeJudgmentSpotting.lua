@@ -1188,7 +1188,7 @@ local pm = Def.ActorFrame {
 					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
 					local hoverednps = cdg.npsVector[hoveredindex]
 					local td = GAMESTATE:GetCurrentSteps():GetTimingData()
-					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio / getCurRateValue()))
+					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio)) * getCurRateValue()
 					seektext:settextf("%0.2f\n%d %s\n%d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"], bpm, translated_info["BPM"])
 				else
 					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())

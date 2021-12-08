@@ -183,11 +183,12 @@ local t = Def.ActorFrame {
 				seektext:y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
 				if cdg.npsVector ~= nil and #cdg.npsVector > 0 then
 					local percent = clamp((INPUTFILTER:GetMouseX() - self:GetParent():GetX()) / wodth, 0, 1)
+					local xtime = seek:GetX() * musicratio / getCurRateValue()
 					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
 					local hoverednps = cdg.npsVector[hoveredindex]
 					local td = GAMESTATE:GetCurrentSteps():GetTimingData()
-					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio / getCurRateValue()))
-					seektext:settextf("%0.2f\n%d %s\n%d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"], bpm, translated_info["BPM"])
+					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio)) * getCurRateValue()
+					seektext:settextf("%0.2f\n%d %s\n%d %s", xtime, hoverednps, translated_info["NPS"], bpm, translated_info["BPM"])
 				else
 					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())
 				end

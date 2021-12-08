@@ -51,8 +51,8 @@ local t = Def.ActorFrame {
             local top = SCREENMAN:GetTopScreen()
             local song = GAMESTATE:GetCurrentSong()
             local musicpositionratio = 1
+            local r = getCurRateValue()
             if stepsinuse ~= nil and top ~= nil and song then
-                local r = getCurRateValue()
                 local length = stepsinuse:GetLengthSeconds()
                 musicpositionratio = (stepsinuse:GetFirstSecond() / r + length) / sizing.Width * r
                 if top.GetSampleMusicPosition then
@@ -84,7 +84,7 @@ local t = Def.ActorFrame {
                         local hoveredIndex = clamp(math.ceil(self.finalNPSVectorIndex * percent), math.min(1, self.finalNPSVectorIndex), self.finalNPSVectorIndex)
                         local hoveredNPS = self.npsVector[hoveredIndex]
                         local td = stepsinuse:GetTimingData()
-                        local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(dist))
+                        local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(dist * r)) * r
                         stro = string.format("%s\n%d NPS\n%d BPM", postext, hoveredNPS, bpm)
                     end
                     TOOLTIP:SetText(stro)
