@@ -186,7 +186,8 @@ function audioVisualizer:new(params)
     do
         local values = frame.values
         addToBin = function(magnitude, freq)
-            for i = 2, #freqIntervals do
+            local cap = #freqIntervals
+            for i = 2, cap do
                 if freq > freqIntervals[i - 1] and freq <= freqIntervals[i] then
                     values[i - 1] = values[i - 1] + magnitude
                     return

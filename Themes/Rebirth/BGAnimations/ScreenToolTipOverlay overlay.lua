@@ -3,8 +3,6 @@ local function UpdateLoop()
     local mouseY = INPUTFILTER:GetMouseY()
     TOOLTIP:SetPosition(mouseX, mouseY)
     BUTTON:UpdateMouseState()
-
-    return false
 end
 
 local t = Def.ActorFrame {

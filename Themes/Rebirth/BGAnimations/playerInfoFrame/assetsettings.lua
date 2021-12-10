@@ -384,6 +384,7 @@ local function assetList()
             -- but the reality is thats literally a lie because lua is forced to be single threaded here
             co = coroutine.create(updateImages)
             self:SetUpdateFunction(function(self, delta)
+                if not focused then return end
                 if coroutine.status(co) ~= "dead" then
                     coroutine.resume(co)
                 end
@@ -394,7 +395,6 @@ local function assetList()
                 -- pressing a number with ctrl should lead to the general tab
                 -- otherwise, typing numbers is allowed
                 if CONTEXTMAN:CheckContextSet(snm, "AssetSettings") then
-                    if inBundles then return end
                     if event.type ~= "InputEventType_Release" then
                         local btn = event.DeviceInput.button
                         local gbtn = event.button
