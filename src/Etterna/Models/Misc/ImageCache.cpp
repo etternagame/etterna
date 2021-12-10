@@ -384,7 +384,7 @@ ImageCache::CacheImage(const std::string& sImageDir,
 
 	const auto otImagePath = sImagePath; // Remove this when Global std::string
 										 // to std::string convert.
-	Locator::getLogger()->trace(otImagePath);
+	Locator::getLogger()->trace("{}", otImagePath);
 	if (!DoesFileExist(sImagePath))
 		return;
 

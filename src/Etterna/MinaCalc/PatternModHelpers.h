@@ -10,7 +10,7 @@
  * mods do their stuff */
 constexpr float neutral = 1.F;
 
-// Relies on endiannes (significantly inaccurate)
+/// Relies on endiannes (significantly inaccurate)
 inline auto
 fastpow(double a, double b) -> float
 {
@@ -22,7 +22,7 @@ fastpow(double a, double b) -> float
 	return static_cast<float>(a);
 }
 
-// not super accurate, good enough for our purposes
+/// not super accurate, good enough for our purposes
 inline auto
 fastsqrt(float _in) -> float
 {

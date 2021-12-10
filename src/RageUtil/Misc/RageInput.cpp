@@ -26,8 +26,7 @@ std::map<InputDevice, InputHandler*> g_mapDeviceToHandler;
 
 RageInput::RageInput()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("RageInput::RageInput()");
+	Locator::getLogger()->info("RageInput::RageInput()");
 
 	// Register with Lua.
 	{
@@ -72,7 +71,8 @@ RageInput::LoadDrivers()
 
 	// If no input devices are loaded, the user won't be able to input anything.
 	if (apDevices.size() == 0)
-		Locator::getLogger()->warn(NO_INPUT_DEVICES_LOADED.GetValue().c_str());
+		Locator::getLogger()->fatal(
+		  "{}", NO_INPUT_DEVICES_LOADED.GetValue().c_str());
 }
 
 void

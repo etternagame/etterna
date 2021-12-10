@@ -47,6 +47,7 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
   - Debian: `apt install libssl-dev`
   - Fedora: `dnf install openssl-devel`
   - Arch: `pacman -S openssl`
+  - Alpine: `apk add openssl-dev`
   - macOS: `brew install openssl`
   - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1i.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1i.exe)
 - [depot_tools](https://dev.chromium.org/developers/how-tos/install-depot-tools) - Installation is platform specific. To skip installing this, follow the relevant instructions in [CLI Project Generation](CLI-Project-Generation).
@@ -58,6 +59,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 - Debian: `apt install build-essential libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
 - Fedora: `dnf install openssl-static libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
 - Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack`
+- Alpine: `apk add build-base openssl-dev libx11-dev libxrandr-dev curl-dev mesa-dev glu-dev pulseaudio-dev libogg-dev alsa-lib-dev jack-dev`
 
 ### Windows Dependencies
 
@@ -173,6 +175,7 @@ To install ninja, use one of the following commands
 - Debian: `apt install ninja-build`
 - Fedora: `dnf install ninja-build`
 - Arch: `pacman -S ninja`
+- Alpine: `apk add samurai #As of 2021-11-10 ninja is not available in alpine main so use samurai instead`
 - macOS: `brew install ninja`
 
 To start compiling, run the cmake command with the Ninja generator, then run `ninja`.
@@ -227,6 +230,7 @@ cppcheck is a cross-platform static analysis tool which CMake supports by adding
 - Debian: `apt install cppcheck`
 - Fedora: `dnf install cppcheck`
 - Arch: `pacman -S cppcheck`
+- Alpine: `apk add cppcheck`
 - macOS: `brew install cppcheck`
 - Windows: An installer is available at the [cppcheck website](http://cppcheck.sourceforge.net/). Make sure that `cppcheck` runs when you enter the command in your CLI. If it doesn't, [check your system/user path](https://www.computerhope.com/issues/ch000549.htm) to ensure that the bin folder of where you installed cppcheck is listed there.
 
@@ -243,6 +247,7 @@ Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. 
 - Debian: `apt install doxygen`
 - Fedora: `dnf install doxygen`
 - Arch: `pacman -S doxygen`
+- Alpine: `apk add doxygen`
 - macOS: `brew install doxygen`
 - Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
 

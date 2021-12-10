@@ -122,6 +122,27 @@ namespace Core::Platform {
         /* Windows boosts priority on keyboard input, among other things.  Disable
          * that for the main thread. */
         SetThreadPriorityBoost(GetCurrentThread(), TRUE);
+
+		/* Set the timer resolution of the OS thread scheduler.
+		 *
+		 * More information:
+		 * https://web.archive.org/web/20210802214440/https://randomascii.wordpress.com/2020/10/04/windows-timer-resolution-the-great-rule-change/
+		 *
+		 * This affects every process using a high resolution clock and is
+		 * bad for battery life. The input thread is scheduled quick enough
+		 * with or without timeBeginPeriod, but Etterna's audio code relies on
+		 * this being better than the default of ~16ms. */
+		bool isOnBatteryPower = false;
+		SYSTEM_POWER_STATUS powerStatus = {};
+		if (GetSystemPowerStatus(&powerStatus)) {
+			isOnBatteryPower = (powerStatus.ACLineStatus == 0);
+		}
+
+		if (isOnBatteryPower) {
+			timeBeginPeriod(8);
+		} else {
+			timeBeginPeriod(1);
+		}
     }
 
 	std::string getSystem(){
@@ -358,5 +379,33 @@ namespace Core::Platform {
     {
 		return SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS) != 0;
     }
+
+	bool requestUserAttention()
+	{
+		/* Search for the existing window.  Prefer to use the class name, which
+		 * is less likely to have a false match, and will match the gameplay
+		 * window. If that fails, try the window name, which should match the
+		 * loading window. */
+		HWND hWnd = FindWindow(Core::AppInfo::APP_TITLE, nullptr);
+		if (hWnd == nullptr)
+			hWnd = FindWindow(nullptr, Core::AppInfo::APP_TITLE);
+
+		// If after two find window attempts, the pointer is still null,
+		// then no other game instance was found.
+		if (hWnd == nullptr)
+			return false;
+
+		FLASHWINFO flwnfo;
+		flwnfo.cbSize = sizeof(flwnfo); // why
+		flwnfo.hwnd = hWnd;
+		// tray icon continuously until app is foregrounded
+		flwnfo.dwFlags = FLASHW_TRAY | FLASHW_TIMERNOFG;
+		flwnfo.dwTimeout = 0;
+		flwnfo.uCount = 5u;
+
+		// this is always successful, basically
+		// nonzero return means it was already focused or similar
+		return FlashWindowEx(&flwnfo) >= 0;
+	}
 
 }

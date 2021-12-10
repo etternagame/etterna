@@ -1324,7 +1324,7 @@ InputMappings::ReadMappings(const InputScheme* pInputScheme,
 
 	IniFile ini;
 	if (!ini.ReadFile(sFilePath))
-		Locator::getLogger()->trace("Couldn't open mapping file \"{}\": {}.",
+		Locator::getLogger()->warn("Couldn't open mapping file \"{}\": {}.",
 				   SpecialFiles::KEYMAPS_PATH.c_str(),
 				   ini.GetError().c_str());
 

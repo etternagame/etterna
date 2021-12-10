@@ -219,6 +219,7 @@ static const char* CalcPatternModNames[] = {
 	// "CJJ",
 	"CJDensity",
 	"HSDensity",
+	"CJOHAnchor",
 	"OHJumpMod",
 	// "OHJBaseProp",
 	// "OHJPropComp",
@@ -394,7 +395,8 @@ LuaXType(StyleType);
 static const char* SampleMusicPreviewModeNames[] = { "Normal",
 													 "StartToPreview",
 													 "ScreenMusic",
-													 "LastSong" };
+													 "LastSong",
+													 "Nothing" };
 XToString(SampleMusicPreviewMode);
 StringToX(SampleMusicPreviewMode);
 LuaXType(SampleMusicPreviewMode);

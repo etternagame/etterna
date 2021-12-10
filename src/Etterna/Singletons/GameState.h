@@ -98,7 +98,6 @@ class GameState
 
 	bool m_bPlayingMulti = false;
 	int m_iNumMultiplayerNoteFields;
-	[[nodiscard]] auto DifficultiesLocked() const -> bool;
 	auto ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 											   Difficulty dc,
 											   StepsType st) -> bool;

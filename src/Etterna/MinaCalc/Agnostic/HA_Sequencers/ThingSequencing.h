@@ -5,8 +5,12 @@
  * jumptrillable, currently detection is separated, but it should probably be
  * combined */
 
-// find [xx]a[yy]b[zz]
-// used by tt_sequencer and thing 1
+/// Struct to handle sequence logic for an instance of TheThing.
+/// Pattern detected would decompose to jumptrills or something which can be
+/// easily mashed.
+/// 
+/// find [xx]a[yy]b[zz]
+/// used by tt_sequencer and thing 1
 struct the_slip
 {
 	enum to_slide_or_not_to_slide
@@ -19,11 +23,11 @@ struct the_slip
 		slip_complete
 	};
 
-	// what caused us to slip
+	/// what caused us to slip
 	unsigned slip = 0;
-	// are we slipping
+	/// are we slipping
 	bool slippin_till_ya_slips_come_true = false;
-	// how far those whomst'd've been slippinging
+	/// how far those whomst'd've been slippinging
 	int slide = 0;
 
 	// ms values, 4 ms values = 5 rows, optimize by just recycling values
@@ -116,8 +120,12 @@ struct the_slip
 	void reset() { slippin_till_ya_slips_come_true = false; }
 };
 
-// find [12]3[24]1[34]2[13]4[12]
-// used by tt2 and thing 2
+/// Struct to handle sequence logic for an instance of TheThing2.
+/// Pattern detected would decompose to jumptrills or something which can be
+/// easily mashed.
+///
+/// find [12]3[24]1[34]2[13]4[12]
+/// used by tt2 and thing 2
 struct the_slip2
 {
 	enum to_slide_or_not_to_slide
@@ -130,11 +138,11 @@ struct the_slip2
 		slip_complete
 	};
 
-	// what caused us to slip
+	/// what caused us to slip
 	unsigned slip = 0;
 	// are we slipping
 	bool slippin_till_ya_slips_come_true = false;
-	// how far those whomst'd've been slippinging
+	/// how far those whomst'd've been slippinging
 	int slide = 0;
 
 	// ms values, 4 ms values = 5 rows, optimize by just recycling values

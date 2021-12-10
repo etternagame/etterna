@@ -10,8 +10,6 @@
 #include <ostream>
 #include <string>
 
-#include "base/strings/string16.h"
-
 namespace base {
 
 template<typename StringType>
@@ -161,7 +159,8 @@ std::ostream& operator<<(std::ostream& ostream,
 }
 
 typedef BasicStringPiece<std::string> StringPiece;
-typedef BasicStringPiece<string16> StringPiece16;
+typedef BasicStringPiece<std::u16string> StringPiece16;
+typedef BasicStringPiece<std::wstring> WStringPiece;
 
 inline bool operator==(const StringPiece& x, const StringPiece& y) {
   if (x.size() != y.size())
@@ -177,9 +176,9 @@ inline bool operator==(const StringPiece16& x, const StringPiece16& y) {
   return StringPiece16::wordmemcmp(x.data(), y.data(), x.size()) == 0;
 }
 
-// This hash function is copied from base/strings/string16.h. We don't use the
-// ones already defined for string and string16 directly because it would
-// require the string constructors to be called, which we don't want.
+// This is a custom hash function. We don't use the ones already defined for
+// string and std::u16string directly because it would require the string
+// constructors to be called, which we don't want.
 #define HASH_STRING_PIECE(StringPieceType, string_piece)         \
   std::size_t result = 0;                                        \
   for (StringPieceType::const_iterator i = string_piece.begin(); \

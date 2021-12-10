@@ -189,7 +189,8 @@ WindowsFileIO::finish_read(void* p)
 	queue_read();
 
 	if (iRet == 0) {
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "Error reading USB device"));
+		Locator::getLogger()->warn(
+		  "{}", werr_ssprintf(GetLastError(), "Error reading USB device"));
 		return -1;
 	}
 
@@ -225,7 +226,9 @@ WindowsFileIO::read_several(const std::vector<WindowsFileIO*>& sources,
 	delete[] Handles;
 
 	if (ret == -1) {
-		Locator::getLogger()->trace(werr_ssprintf(GetLastError(), "WaitForMultipleObjectsEx failed"));
+		Locator::getLogger()->warn(
+		  "{}",
+		  werr_ssprintf(GetLastError(), "WaitForMultipleObjectsEx failed"));
 		return -1;
 	}
 

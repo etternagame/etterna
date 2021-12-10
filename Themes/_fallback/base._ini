@@ -629,7 +629,6 @@ SongNumberP2X=SCREEN_CENTER_X+25
 SongNumberP2Y=SCREEN_CENTER_Y-206
 SongNumberP2OnCommand=addy,-100;linear,0.5;addy,100
 SongNumberP2OffCommand=linear,0.5;addy,-100
-ShowScoreInRave=true
 ScoreFrameX=SCREEN_CENTER_X
 ScoreFrameY=SCREEN_BOTTOM
 ScoreFrameOnCommand=vertalign,bottom;addy,100;linear,0.5;addy,-100;draworder,2
@@ -2059,7 +2058,6 @@ PulseCommand=%function(self,param) self:stoptweening(); self:zoom(1.2*param.Zoom
 [Player]
 ReceptorArrowsYStandard=-144
 ReceptorArrowsYReverse=144
-JudgmentTransformCommand=%JudgmentTransformCommand
 JudgmentOnCommand=
 ComboTransformCommand=%ComboTransformCommand
 DrawDistanceBeforeTargetsPixels=400
@@ -2497,7 +2495,6 @@ Line13="conf,ShowLyrics"
 Line14="conf,RandomBackgroundMode"
 Line15="conf,BGBrightness"
 Line16="conf,ShowDanger"
-Line18="conf,ShowBeginnerHelper"
 Line19="conf,NumBackgrounds"
 
 [ScreenAttract]
@@ -3064,10 +3061,6 @@ Fallback="ScreenAttract"
 Class="ScreenEnding"
 NextScreen="ScreenHighScores"
 
-[ScreenGameOver]
-Fallback="ScreenEnding"
-TimerSeconds=10
-
 RemoveCardP1X=SCREEN_WIDTH*0.1
 RemoveCardP1Y=SCREEN_CENTER_Y
 RemoveCardP1OnCommand=
@@ -3092,15 +3085,6 @@ TimerSeconds=0
 Fallback="ScreenEnding"
 ; decorations send "SM_BeginFadingOut", so timer is disabled
 TimerSeconds=0
-
-[BeginnerHelper]
-# All X,Y coordinates are relative to the HelperX,Y
-Player1_X=-125
-Player2_X=SCREEN_CENTER_X-195
-PlayerAngle=40
-DancePadAngle=36
-HelperX=SCREEN_CENTER_X+0
-HelperY=SCREEN_CENTER_Y+80
 
 [ScreenOptionsMaster]
 Fallback="ScreenOptions"

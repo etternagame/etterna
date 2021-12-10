@@ -66,7 +66,8 @@ TryOpenFile(const std::string& sPath,
 		return ret;
 	}
 
-	//Locator::getLogger()->trace("Format {} failed: {}", format.c_str(), error.c_str());
+	Locator::getLogger()->error(
+	  "RageSurface Open: Format {} failed: {}", format.c_str(), error.c_str());
 	return nullptr;
 }
 

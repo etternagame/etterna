@@ -32,6 +32,7 @@
 #include "Dependent/HD_PatternMods/OHT.h"
 #include "Dependent/HD_PatternMods/VOHT.h"
 #include "Dependent/HD_PatternMods/Chaos.h"
+#include "Dependent/HD_PatternMods/CJOHAnchor.h"
 #include "Dependent/HD_PatternMods/WideRangeBalance.h"
 #include "Dependent/HD_PatternMods/WideRangeRoll.h"
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
@@ -46,9 +47,8 @@
 
 #include <cmath>
 
-/* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
+/** I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
-
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
@@ -95,6 +95,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	OHTrillMod _oht;
 	VOHTrillMod _voht;
 	ChaosMod _ch;
+	CJOHAnchorMod _chain;
 	RunningManMod _rm;
 	WideRangeBalanceMod _wrb;
 	WideRangeRollMod _wrr;
@@ -154,6 +155,10 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void full_agnostic_reset()
 	{
+		_js.full_reset();
+		_hs.full_reset();
+		_cj.full_reset();
+
 		_mri.get()->reset();
 		_last_mri.get()->reset();
 	}
@@ -211,14 +216,16 @@ struct TheGreatBazoinkazoinkInTheSky
 #pragma endregion
 
 #pragma region hand dependent pmod loop
-	// some pattern mod detection builds across rows, see rm_sequencing for
-	// an example, actually all sequencing should be done in objects
-	// following rm_sequencing's template and be stored in mhi, and then
-	// passed to whichever mods need them, but that's for later
+	/// some pattern mod detection builds across rows, see rm_sequencing for
+	/// an example, actually all sequencing should be done in objects
+	/// following rm_sequencing's template and be stored in mhi, and then
+	/// passed to whichever mods need them, but that's for later
 	void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
+		_chain.advance_sequencing(
+		  _mhi->_ct, _mhi->_bt, _mhi->_last_ct, _seq._mw_any_ms.get_now());
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_voht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);
@@ -250,6 +257,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
+		  hand, _chain._pmod, _chain(_mitvhi), itv, _calc);
+		PatternMods::set_dependent(
 		  hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _oht._pmod, _oht(_mitvhi._itvhi), itv, _calc);
@@ -273,12 +282,13 @@ struct TheGreatBazoinkazoinkInTheSky
 		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv, _calc);
 	}
 
-	// reset any moving windows or values when starting the other hand, this
-	// shouldn't matter too much practically, but we should be disciplined
-	// enough to do it anyway
+	/// reset any moving windows or values when starting the other hand, this
+	/// shouldn't matter too much practically, but we should be disciplined
+	/// enough to do it anyway
 	void full_hand_reset()
 	{
 		_ohj.full_reset();
+		_chain.full_reset();
 		_cjohj.full_reset();
 		_bal.full_reset();
 		_roll.full_reset();
@@ -322,7 +332,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz.interval_end();
 	}
 
-	// update base difficulty stuff
+	/// update base difficulty stuff
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
 									 const int& jack_counter,
@@ -330,7 +340,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		auto thing =
 		  std::pair{ row_time,
-					 ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
+					 ms_to_scaled_nps(_seq._as.get_lowest_jack_ms()) *
 					   basescalers[Skill_JackSpeed] };
 		if (std::isnan(thing.second)) {
 			thing.second = 0.F;
@@ -352,11 +362,13 @@ struct TheGreatBazoinkazoinkInTheSky
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		_calc.soap.at(hand)[TechBase].at(itv) =
-		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv), _calc);
+		_calc.init_base_diff_vals.at(hand)[TechBase].at(itv) =
+		  _diffz._tc.get_itv_diff(
+			_calc.init_base_diff_vals.at(hand)[NPSBase].at(itv), _calc);
 
 		// mostly for debug output.. optimize later
-		_calc.soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
+		_calc.init_base_diff_vals.at(hand)[RMABase].at(itv) =
+		  _diffz._tc.get_itv_rma_diff();
 	}
 
 	void run_dependent_pmod_loop()
@@ -380,7 +392,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			// maybe we _don't_ want this smoothed before the tech pass? and so
 			// it could be constructed parallel? NEEDS TEST
-			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
+			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
 			for (auto itv = 0; itv < _calc.numitv; ++itv) {
 				auto jack_counter = 0;
@@ -459,6 +471,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			// when we finish left hand
 			++hand;
 		}
+
+		nps::grindscale(_calc);
 	}
 #pragma endregion
 
@@ -544,6 +558,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _hsd._params, _hsd.name);
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
+		load_params_for_mod(&params, _chain._params, _chain.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
 		load_params_for_mod(&params, _voht._params, _voht.name);
@@ -572,6 +587,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(
 		  make_mod_param_node(_cjohj._params, _cjohj.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_chain._params, _chain.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
 		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));

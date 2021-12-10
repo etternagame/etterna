@@ -168,7 +168,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 
 	/* See if we can find timing data, if it's not already loaded. */
 	if (!ToPlay.HasTiming && IsAFile(ToPlay.m_sTimingFile)) {
-		Locator::getLogger()->trace("Found '{}'", ToPlay.m_sTimingFile.c_str());
+		Locator::getLogger()->debug("Found '{}'", ToPlay.m_sTimingFile.c_str());
 		Song song;
 		SSCLoader loaderSSC;
 		SMLoader loaderSM;
@@ -509,56 +509,16 @@ GameSoundManager::~GameSoundManager()
 	LUA->UnsetGlobal("SOUND");
 
 	/* Signal the mixing thread to quit. */
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Shutting down music start thread ...");
+	Locator::getLogger()->info("Shutting down music start thread ...");
 	g_Mutex->Lock();
 	g_Shutdown = true;
 	g_Mutex->Broadcast();
 	g_Mutex->Unlock();
 	MusicThread.Wait();
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Music start thread shut down.");
+	Locator::getLogger()->info("Music start thread shut down.");
 
 	SAFE_DELETE(g_Playing);
 	SAFE_DELETE(g_Mutex);
-}
-
-float
-GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
-{
-	/*
-	 * We get one update per frame, and we're updated early, almost immediately
-	 * after vsync, near the beginning of the game loop.  However, it's very
-	 * likely that we'll lose the scheduler while waiting for vsync, and some
-	 * other thread will be working.  Especially with a low-resolution scheduler
-	 * (Linux 2.4, Win9x), we may not get the scheduler back immediately after
-	 * the vsync; there may be up to a ~10ms delay.  This can cause jitter in
-	 * the rendered arrows.
-	 *
-	 * Compensate.  If vsync is enabled, and we're maintaining the refresh rate
-	 * consistently, we should have a very precise game loop interval.  If we
-	 * have that, but we're off by a small amount (less than the interval),
-	 * adjust the time to line it up.  As long as we adjust both the sound time
-	 * and the timestamp, this won't adversely affect input timing. If we're off
-	 * by more than that, we probably had a frame skip, in which case we have
-	 * bigger skip problems, so don't adjust.
-	 */
-	static int iLastFPS = 0;
-	int iThisFPS = DISPLAY->GetFPS();
-
-	if (iThisFPS != (*DISPLAY->GetActualVideoModeParams()).rate ||
-		iThisFPS != iLastFPS) {
-		iLastFPS = iThisFPS;
-		return 0;
-	}
-
-	const float fExpectedDelay = 1.0f / iThisFPS;
-	const float fExtraDelay = fDeltaTime - fExpectedDelay;
-	if (fabsf(fExtraDelay) >= fExpectedDelay / 2)
-		return 0;
-
-	/* Subtract the extra delay. */
-	return std::min(-fExtraDelay, 0.F);
 }
 
 void
@@ -634,12 +594,11 @@ GameSoundManager::Update(float fDeltaTime)
 	if (!g_UpdatingTimer)
 		return;
 
-	const float fAdjust = GetFrameTimingAdjustment(fDeltaTime);
+	const float fRate = g_Playing->m_Music->GetPlaybackRate();
 	if (!g_Playing->m_Music->IsPlaying()) {
 		/* There's no song playing.  Fake it. */
-		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
-										fDeltaTime *
-										  g_Playing->m_Music->GetPlaybackRate(),
+		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds
+									 + fDeltaTime * fRate,
 									  g_Playing->m_Timing);
 		return;
 	}
@@ -649,15 +608,14 @@ GameSoundManager::Update(float fDeltaTime)
 	 * timing data until we get a non-approximate time, indicating that the
 	 * sound has actually started playing. */
 	bool m_bApproximate;
-	RageTimer tm;
+	RageTimer tm = RageZeroTimer;
 	const float fSeconds =
 	  g_Playing->m_Music->GetPositionSeconds(&m_bApproximate, &tm);
 
 	// Check for song timing skips.
 	if (PREFSMAN->m_bLogSkips && !g_Playing->m_bTimingDelayed) {
 		const float fExpectedTimePassed =
-		  (tm - GAMESTATE->m_Position.m_LastBeatUpdate) *
-		  g_Playing->m_Music->GetPlaybackRate();
+		  (tm - GAMESTATE->m_Position.m_LastBeatUpdate) * fRate;
 		const float fSoundTimePassed =
 		  fSeconds - GAMESTATE->m_Position.m_fMusicSeconds;
 		const float fDiff = fExpectedTimePassed - fSoundTimePassed;
@@ -686,12 +644,11 @@ GameSoundManager::Update(float fDeltaTime)
 	if (g_Playing->m_bTimingDelayed) {
 		/* We're still waiting for the new sound to start playing, so keep using
 		 * the old timing data and fake the time. */
-		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
-										fDeltaTime,
+		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds
+									 + fDeltaTime * fRate,
 									  g_Playing->m_Timing);
 	} else {
-		GAMESTATE->UpdateSongPosition(
-		  fSeconds + fAdjust, g_Playing->m_Timing, tm + fAdjust);
+		GAMESTATE->UpdateSongPosition(fSeconds, g_Playing->m_Timing);
 	}
 
 	// Send crossed messages

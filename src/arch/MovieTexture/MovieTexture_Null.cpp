@@ -27,7 +27,7 @@ class MovieTexture_Null : public RageMovieTexture
 MovieTexture_Null::MovieTexture_Null(RageTextureID ID)
   : RageMovieTexture(ID)
 {
-	Locator::getLogger()->trace("MovieTexture_Null::MovieTexture_Null(ID)");
+	Locator::getLogger()->debug("MovieTexture_Null::MovieTexture_Null(ID)");
 	texHandle = 0;
 
 	RageTextureID actualID = GetID();

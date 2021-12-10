@@ -19,11 +19,11 @@ bool
 IniFile::ReadFile(const std::string& sPath)
 {
 	m_sPath = sPath;
-	Locator::getLogger()->trace("Reading '{}'", m_sPath.c_str());
+	Locator::getLogger()->debug("Reading '{}'", m_sPath.c_str());
 
 	RageFile f;
 	if (!f.Open(m_sPath)) {
-		Locator::getLogger()->trace("Reading '{}' failed: {}", m_sPath.c_str(), f.GetError().c_str());
+		Locator::getLogger()->warn("Reading '{}' failed: {}", m_sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}

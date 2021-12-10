@@ -178,8 +178,6 @@ class LunaStyle : public Luna<Style>
 		lua_pushnumber(L, p->GetWidth(pn));
 		return 1;
 	}
-	DEFINE_METHOD(LockedDifficulty, m_bLockDifficulties)
-
 	static int GetColumnInfo(T* p, lua_State* L)
 	{
 		auto pn = PLAYER_1;
@@ -228,7 +226,6 @@ class LunaStyle : public Luna<Style>
 		ADD_METHOD(ColumnsPerPlayer);
 		ADD_METHOD(NeedsZoomOutWith2Players);
 		ADD_METHOD(GetWidth);
-		ADD_METHOD(LockedDifficulty);
 	}
 };
 

@@ -37,7 +37,7 @@ DialogDriver::Create()
 
 		if (sError.empty())
 			return pRet;
-		Locator::getLogger()->info("Couldn't load driver {}: {}", Driver, sError.c_str());
+		Locator::getLogger()->warn("Couldn't load driver {}: {}", Driver, sError.c_str());
 		SAFE_DELETE(pRet);
 	}
 	return nullptr;

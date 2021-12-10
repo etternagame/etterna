@@ -102,8 +102,7 @@ ScreenSelect::BeginScreen()
 
 ScreenSelect::~ScreenSelect()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenSelect::~ScreenSelect()");
+	Locator::getLogger()->debug("ScreenSelect::~ScreenSelect()");
 	for (auto& m_asSubscribedMessage : m_asSubscribedMessages)
 		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessage);
 }

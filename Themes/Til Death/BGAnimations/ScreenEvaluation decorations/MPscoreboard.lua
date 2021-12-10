@@ -1,9 +1,9 @@
-local lines = 10 -- number of scores to display
+local lines = 32 -- number of scores to display
 local framex = SCREEN_WIDTH - capWideScale(get43size(230), 230)
 local framey = 60
 local frameWidth = capWideScale(get43size(220), 220)
 local spacing = 34
-local multiscores
+local multiscores = {}
 
 -- Takes an index into multiscores
 local function SetActivePlayer(locaIndex)
@@ -16,21 +16,6 @@ local function SetActivePlayer(locaIndex)
 	item:GetChild("combo"):visible(not item:GetChild("combo"):GetVisible())
 	item:GetChild("judge"):visible(not item:GetChild("judge"):GetVisible())
 	item:GetChild("option"):visible(not item:GetChild("option"):GetVisible())
-end
---Input event for mouse clicks
-local function input(event)
-	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and scoreBoard then
-		if event.type == "InputEventType_Release" then
-			local scoreboard_items = scoreBoard:GetChildren()
-			for i = 1, #multiscores do
-				if isOver(scoreboard_items[tostring(i)]:GetChild("mouseOver")) then
-					SetActivePlayer(i)
-				end
-			end
-		end
-	end
-	return false
 end
 
 local function Update(self)
@@ -86,22 +71,19 @@ local function updateScoreBoard(self)
 		SetActivePlayer(selectedIndex)
 	end
 end
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	Name = "scoreBoard",
 	InitCommand = function(self)
 		self:SetUpdateFunction(Update)
 	end,
 	BeginCommand = function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(input)
 		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
 	end,
 	NewMultiScoreMessageCommand = updateScoreBoard
 }
 
 local function scoreitem(pn, i)
-	local t =
-		Def.ActorFrame {
+	local t = Def.ActorFrame {
 		Name = tostring(i),
 		InitCommand = function(self)
 			self:visible(false)
@@ -110,12 +92,17 @@ local function scoreitem(pn, i)
 			self:visible(i <= #multiscores)
 		end,
 		--The main quad
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			InitCommand = function(self)
 				self:xy(framex, framey + ((i - 1) * spacing) - 4):zoomto(frameWidth, 30):halign(0):valign(0):diffuse(
 					color("#333333")
 				):diffusealpha(1):diffuserightedge(color("#33333333"))
-			end
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					SetActivePlayer(i)
+				end
+			end,
 		},
 		--Highlight quad for the current score
 		Def.Quad {
@@ -149,130 +136,121 @@ local function scoreitem(pn, i)
 			end
 		},
 		--rank
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(framex - 8, framey + 12 + ((i - 1) * spacing)):zoom(0.35)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settext(i)
-					if multiscores[i] and SCREENMAN:GetTopScreen():GetCurrentPlayer() == multiscores[i].idx then
-						self:diffuse(color("#ffcccc"))
-					else
-						self:diffuse(color("#FFFFFF"))
-					end
-				end,
-				UpdateNetEvalStatsMessageCommand = function(self)
-					self:playcommand("UpdateNetScore")
+		LoadFont("Common normal") .. {
+			InitCommand = function(self)
+				self:xy(framex - 8, framey + 12 + ((i - 1) * spacing)):zoom(0.35)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settext(i)
+				if multiscores[i] and SCREENMAN:GetTopScreen():GetCurrentPlayer() == multiscores[i].idx then
+					self:diffuse(color("#ffcccc"))
+				else
+					self:diffuse(color("#FFFFFF"))
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "wife",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settextf(
-						"%05.2f%% (%s) - %sx",
-						notShit.floor(multiscores[i].highscore:GetWifeScore() * 10000) / 100,
-						"Wife",
-						string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", "")
-					)
+			end,
+			UpdateNetEvalStatsMessageCommand = function(self)
+				self:playcommand("UpdateNetScore")
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "wife",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 11 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
+			end,
+			UpdateNetScoreCommand = function(self)
+				local perc = multiscores[i].highscore:GetWifeScore() * 100
+				if perc > 99.65 then
+					self:settextf("%05.4f%% (%s) - %sx", notShit.floor(perc, 4), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
+				else
+					self:settextf("%05.2f%% (%s) - %sx", notShit.floor(perc, 2), "Wife", string.format("%.2f", multiscores[i].highscore:GetMusicRate()):gsub("%.?0+$", ""))
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "user",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 1 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settextf(multiscores[i].user)
-					if Grade:Reverse()[GetGradeFromPercent(multiscores[i].highscore:GetWifeScore())] < 2 then -- this seeems right -mina
-						self:rainbowscroll(true)
-					end
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "user",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 1 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settextf(multiscores[i].user)
+				if Grade:Reverse()[GetGradeFromPercent(multiscores[i].highscore:GetWifeScore())] < 2 then -- this seeems right -mina
+					self:rainbowscroll(true)
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "option",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settext(multiscores[i].highscore:GetModifiers())
-					self:visible(false)
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "grade",
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + ((i - 1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settext(getGradeStrings(multiscores[i].highscore:GetWifeGrade()))
-					self:diffuse(getGradeColor(multiscores[i].highscore:GetWifeGrade()))
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "clear",
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + ((i - 1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settext(getClearTypeFromScore(pn, multiscores[i].highscore, 0))
-					self:diffuse(getClearTypeFromScore(pn, multiscores[i].highscore, 2))
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "combo",
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + ((i - 1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settextf("%sx", multiscores[i].highscore:GetMaxCombo())
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "judge",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settextf(
-						"%d / %d / %d / %d / %d / %d",
-						multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W1"),
-						multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W2"),
-						multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W3"),
-						multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W4"),
-						multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W5"),
-						multiscores[i].highscore:GetTapNoteScore("TapNoteScore_Miss")
-					)
-				end
-			}
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "option",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 11 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settext(multiscores[i].highscore:GetModifiers())
+				self:visible(false)
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "grade",
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + ((i - 1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settext(getGradeStrings(multiscores[i].highscore:GetWifeGrade()))
+				self:diffuse(getGradeColor(multiscores[i].highscore:GetWifeGrade()))
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "clear",
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + ((i - 1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settext(getClearTypeFromScore(pn, multiscores[i].highscore, 0))
+				self:diffuse(getClearTypeFromScore(pn, multiscores[i].highscore, 2))
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "combo",
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + ((i - 1) * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settextf("%sx", multiscores[i].highscore:GetMaxCombo())
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "judge",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 20 + ((i - 1) * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settextf(
+					"%d / %d / %d / %d / %d / %d",
+					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W1"),
+					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W2"),
+					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W3"),
+					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W4"),
+					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W5"),
+					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_Miss")
+				)
+			end
+		}
 		--[[ -- this doesnt do anything useful, usually just displays january 1900, why do we need it
-		LoadFont("Common normal") ..
-			{
-				Name = "date",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + ((i - 1) * spacing)):zoom(0.35):halign(0)
-				end,
-				UpdateNetScoreCommand = function(self)
-					self:settext(multiscores[i].highscore:GetDate())
-					self:visible(false)
-				end
-			}
+		LoadFont("Common normal") .. {
+			Name = "date",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 20 + ((i - 1) * spacing)):zoom(0.35):halign(0)
+			end,
+			UpdateNetScoreCommand = function(self)
+				self:settext(multiscores[i].highscore:GetDate())
+				self:visible(false)
+			end
+		}
 		]]
 	}
 	return t

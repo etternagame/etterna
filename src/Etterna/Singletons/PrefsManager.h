@@ -224,12 +224,20 @@ class PrefsManager
 	Preference<bool> m_show_theme_errors;
 	Preference<bool> m_bAlwaysLoadCalcParams;
 
-	// levels 0, 1, and 2 where higher numbers
-	// means more logging
-	Preference<int> m_verbose_log;
+	// logging level 0 - 5
+	// 0 = TRACE (all the logging)
+	// 1 = DEBUG
+	// 2 = INFO
+	// 3 = WARN
+	// 4 = ERR
+	// 5 = FATAL (almost no logging)
+	Preference<int> m_logging_level;
 
 	Preference<bool>
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play
+
+	Preference<bool> m_bEnableCrashUpload;
+	Preference<bool> m_bShowMinidumpUploadDialogue;
 
 	void ReadPrefsFromIni(const IniFile& ini,
 						  const std::string& sSection,

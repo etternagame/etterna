@@ -162,7 +162,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int SetMinFilterRate(T* p, lua_State* L)
 	{
 		float mfr = FArg(1);
-		CLAMP(mfr, 0.7f, p->MaxFilterRate);
+		CLAMP(mfr, 0.05f, p->MaxFilterRate);
 		p->MinFilterRate = mfr;
 		return 0;
 	}

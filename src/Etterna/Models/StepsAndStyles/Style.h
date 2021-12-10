@@ -76,6 +76,7 @@ class Style
 	/** @brief Map each input to a column, or GameButton_Invalid. */
 	int m_iInputColumn[NUM_GameController][NUM_GameButton];
 	int m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
+
 	/** @brief Does this style need to be zoomed out with two players due to too
 	 * many columns? */
 	// Design change:  Instead of having a flag in the style that toggles a
@@ -83,9 +84,6 @@ class Style
 	// calculates a zoom factor to apply to the notefield and puts it in the
 	// PlayerState. -Kyz
 	// bool		m_bNeedsZoomOutWith2Players;
-	/** @brief Can this style use the BeginnerHelper for assisting new people to
-	 * the game? */
-	bool m_bLockDifficulties;
 
 	void StyleInputToGameInput(int iCol,
 							   PlayerNumber pn,

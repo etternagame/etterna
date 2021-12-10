@@ -22,9 +22,8 @@
 #include "base/check.h"
 #include "base/mac/mach_logging.h"
 #include "base/mac/scoped_mach_port.h"
-#include "base/macros.h"
 #include "base/notreached.h"
-#include "base/strings/stringprintf.h"
+#include "build/build_config.h"
 #include "gtest/gtest.h"
 #include "test/mac/mach_errors.h"
 #include "test/mac/mach_multiprocess.h"
@@ -145,10 +144,12 @@ class TestExceptionPorts : public MachMultiprocess,
         who_crashes_(who_crashes),
         handled_(false) {
     if (who_crashes_ != kNobodyCrashes) {
-      // This is how the __builtin_trap() in Child::Crash() appears.
-      SetExpectedChildTermination(kTerminationSignal, SIGILL);
+      SetExpectedChildTerminationBuiltinTrap();
     }
   }
+
+  TestExceptionPorts(const TestExceptionPorts&) = delete;
+  TestExceptionPorts& operator=(const TestExceptionPorts&) = delete;
 
   SetOrSwap set_or_swap() const { return set_or_swap_; }
   SetOn set_on() const { return set_on_; }
@@ -205,8 +206,14 @@ class TestExceptionPorts : public MachMultiprocess,
       int signal;
       ExcCrashRecoverOriginalException(code[0], nullptr, &signal);
 
-      // The child crashed with __builtin_trap(), which shows up as SIGILL.
-      EXPECT_EQ(signal, SIGILL);
+#if defined(ARCH_CPU_X86_FAMILY)
+      constexpr int kBuiltinTrapSignal = SIGILL;
+#elif defined(ARCH_CPU_ARM64)
+      constexpr int kBuiltinTrapSignal = SIGTRAP;
+#else
+#error Port
+#endif
+      EXPECT_EQ(signal, kBuiltinTrapSignal);
     }
 
     EXPECT_EQ(AuditPIDFromMachMessageTrailer(trailer), 0);
@@ -224,6 +231,9 @@ class TestExceptionPorts : public MachMultiprocess,
           thread_(),
           init_semaphore_(0),
           crash_semaphore_(0) {}
+
+    Child(const Child&) = delete;
+    Child& operator=(const Child&) = delete;
 
     ~Child() {}
 
@@ -407,8 +417,6 @@ class TestExceptionPorts : public MachMultiprocess,
     // The child thread waits on this for the parent thread to indicate that the
     // child can test its exception ports and possibly crash, as appropriate.
     Semaphore crash_semaphore_;
-
-    DISALLOW_COPY_AND_ASSIGN(Child);
   };
 
   // MachMultiprocess:
@@ -578,8 +586,6 @@ class TestExceptionPorts : public MachMultiprocess,
 
   // true if an exception message was handled.
   bool handled_;
-
-  DISALLOW_COPY_AND_ASSIGN(TestExceptionPorts);
 };
 
 TEST(ExceptionPorts, TaskExceptionPorts_SetInProcess_NoCrash) {

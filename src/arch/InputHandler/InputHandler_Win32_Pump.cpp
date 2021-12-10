@@ -45,11 +45,9 @@ InputHandler_Win32_Pump::~InputHandler_Win32_Pump()
 {
 	if (InputThread.IsCreated()) {
 		m_bShutdown = true;
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Shutting down Pump thread ...");
+		Locator::getLogger()->info("Shutting down Pump thread ...");
 		InputThread.Wait();
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Pump thread shut down.");
+		Locator::getLogger()->info("Pump thread shut down.");
 	}
 
 	delete[] m_pDevice;
@@ -134,7 +132,8 @@ void
 InputHandler_Win32_Pump::InputThreadMain()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST))
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "Failed to set Pump thread priority"));
+		Locator::getLogger()->warn("{}", werr_ssprintf(
+		  GetLastError(), "Failed to set Pump thread priority"));
 
 	/* Enable priority boosting. */
 	SetThreadPriorityBoost(GetCurrentThread(), FALSE);

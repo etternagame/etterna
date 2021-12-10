@@ -49,7 +49,7 @@ ScreenEvaluation::~ScreenEvaluation() = default;
 void
 ScreenEvaluation::Init()
 {
-	Locator::getLogger()->trace("ScreenEvaluation::Init()");
+	Locator::getLogger()->debug("ScreenEvaluation::Init()");
 
 	if (STATSMAN->m_vPlayedStageStats.empty()) {
 		LuaHelpers::ReportScriptError("PlayerStageStats is empty!  Do not use "
@@ -270,7 +270,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int SetPlayerStageStatsFromReplayData(T* p, lua_State* L)
 	{
-		Locator::getLogger()->trace("Setting PSS from ReplayData via Lua");
+		Locator::getLogger()->info("Setting PSS from ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
 		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 
@@ -288,7 +288,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			lua_pushboolean(L, false);
 			return 1;
 		}
-		PlayerAI::SetScoreData(hs, 0);
+		PlayerAI::SetScoreData(hs, 0, nullptr, PlayerAI::pReplayTiming);
 		PlayerAI::SetUpSnapshotMap(&nd, std::set<int>(), ts);
 		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
 		PlayerAI::SetPlayerStageStatsForReplay(pPSS, ts);
@@ -331,7 +331,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayRate(T* p, lua_State* L)
 	{
-		Locator::getLogger()->trace("Getting replay rate");
+		Locator::getLogger()->info("Getting replay rate");
 		// if we have a replay, give the data
 		if (PlayerAI::pScoreData != nullptr) {
 			lua_pushnumber(L, PlayerAI::pScoreData->GetMusicRate());
@@ -344,41 +344,41 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayJudge(T* p, lua_State* L)
 	{
-		Locator::getLogger()->trace("Getting replay judge");
+		Locator::getLogger()->info("Getting replay judge");
 		if (PlayerAI::pScoreData != nullptr) {
 			lua_pushnumber(L, PlayerAI::pScoreData->GetJudgeScale());
 		} else {
 			lua_pushnumber(L, Player::GetTimingWindowScale());
 		}
-		Locator::getLogger()->trace("Got replay judge");
+		Locator::getLogger()->info("Got replay judge");
 		return 1;
 	}
 	static int GetReplayModifiers(T* p, lua_State* L)
 	{
-		Locator::getLogger()->trace("Getting replay modifiers");
+		Locator::getLogger()->info("Getting replay modifiers");
 		if (PlayerAI::pScoreData != nullptr) {
 			LuaHelpers::Push(L, PlayerAI::pScoreData->GetModifiers());
 		} else {
 			lua_pushnil(L);
 		}
-		Locator::getLogger()->trace("Got replay modifiers");
+		Locator::getLogger()->info("Got replay modifiers");
 		return 1;
 	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
-		Locator::getLogger()->trace("Checking for invalid modifiers on Highscore via Lua");
+		Locator::getLogger()->info("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
 		if (hs == nullptr) {
 			Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
 			lua_pushboolean(L, true);
 			return 1;
 		}
-		Locator::getLogger()->trace("Getting Player Options from HighScore...");
+		Locator::getLogger()->info("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
-		Locator::getLogger()->trace("Checking modifiers...");
+		Locator::getLogger()->info("Checking modifiers...");
 		lua_pushboolean(L, potmp.ContainsTransformOrTurn());
-		Locator::getLogger()->trace("Done checking.");
+		Locator::getLogger()->info("Done checking.");
 		return 1;
 	}
 

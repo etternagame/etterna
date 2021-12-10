@@ -955,7 +955,7 @@ RageSurfaceUtils::LoadSurface(const std::string& file)
 	 * created with a different version whose CreateSurface() behavior
 	 * was different. */
 	if (h.pitch != img->pitch) {
-		Locator::getLogger()->trace("Error loading \"{}\": expected pitch {}, got {} ({}bpp, {} width)",
+		Locator::getLogger()->error("Error loading \"{}\": expected pitch {}, got {} ({}bpp, {} width)",
 		  file.c_str(),
 		  h.pitch,
 		  img->pitch,

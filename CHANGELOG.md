@@ -1,6 +1,12 @@
 # Changelog
 All releases of Etterna are listed in this file as well as links to files detailing all of the changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
+## [0.71.0] - 2021-12-10 - Rebirth
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- New theme. Til Death refresher. A lot.
+- [Notes](.changelog/Release_0-71.md)
+
 ## [0.70.3] - 2020-07-17 - MSd Update
 
 Windows x64, Windows i386, and Mac installer release.
@@ -12,16 +18,19 @@ Windows x64, Windows i386, and Mac installer release.
 Windows x64, Windows i386, and Mac installer release.
 - Calc tuning and bugfixes.
 - [Notes](.changelog/Release_0-70-2.md)
+
 ## [0.70.1] - 2020-07-09 - Hotfix
 
 Windows x64, Windows i386, and Mac installer release.
 - Calc tuning and tiny feature additions.
 - [Notes](.changelog/Release_0-70-1.md)
+
 ## [0.70.0] - 2020-07-05 - Public Calc Test
 
 Windows x64, Windows i386, and Mac installer release.
 - The MSD Calculator has been rewritten.
 - [Notes](.changelog/Release_0-70-0.md)
+
 ## [0.69.1] - 2020-05-22 - Hotfix
 
 Windows x64, Windows i386, and Mac installer release.

@@ -1,11 +1,3 @@
--- should maybe make some of these generic
-local function highlight(self)
-	if self:IsVisible() then
-		self:queuecommand("Highlight")
-	end
-end
-
-
 local translated_info = {
 	Title = THEME:GetString("ScreenSelectProfile", "Title"),
 	SongPlayed = THEME:GetString("ScreenSelectProfile", "SongPlayed"),
@@ -14,7 +6,7 @@ local translated_info = {
 	PressStart = THEME:GetString("ScreenSelectProfile", "PressStartToJoin")
 }
 
-function GetLocalProfiles()
+local function GetLocalProfiles()
 	local t = {}
 
 	for p = 0, PROFILEMAN:GetNumLocalProfiles() - 1 do
@@ -22,36 +14,39 @@ function GetLocalProfiles()
 		local profile = PROFILEMAN:GetLocalProfileFromIndex(p)
 		local ProfileCard = Def.ActorFrame {
 			Name = p,
-			InitCommand = function(self)
-				self:SetUpdateFunction(highlight):SetUpdateFunctionInterval(0.025)
-			end,
 			Def.Quad {
 				InitCommand = function(self)
 					self:y(-3.25):align(0.5,0.5):zoomto(260, 39.5):ztest(true)
-					self:visible(false)
+					self:diffusealpha(0)
 				end,
-				LeftClickMessageCommand = function(self)
-					if isOver(self) then
+			},
+			UIElements.TextButton(1, 1, "Common Large") ..  {
+				Name = "PlayerName",
+				InitCommand = function(self)
+					local txt = self:GetChild("Text")
+					local bg = self:GetChild("BG")
+					self:xy(38 / 2, -12)
+					txt:settextf("%s: %.2f", profile:GetDisplayName(), profile:GetPlayerRating())
+					txt:zoom(0.4):ztest(true):maxwidth((260 - 40 - 4) / 0.4)
+					bg:y(-3.25):align(0.5,0.5):zoomto(260, 39.5):zoomto(260, 39.5)
+					self:z((PROFILEMAN:GetNumLocalProfiles() - p))
+				end,
+				ClickCommand = function(self, params)
+					if params.update ~= "OnMouseDown" then return end
+					if params.event == "DeviceButton_left mouse button" then
 						SCREENMAN:GetTopScreen():SetProfileIndex(PLAYER_1, self:GetParent():GetName() + 1)
 						SCREENMAN:GetTopScreen():Finish()
 					end
 				end,
-				HighlightCommand = function(self)
-					if isOver(self) then
-						self:GetParent():GetChild("PlayerName"):diffusealpha(0.8)
+				RolloverUpdateCommand = function(self, params)
+					if params.update == "in" then
+						self:diffusealpha(0.8)
 						self:GetParent():GetChild("SongsPlayed"):diffusealpha(0.8)
-					else
-						self:GetParent():GetChild("PlayerName"):diffusealpha(1)
+					else		
+						self:diffusealpha(1)
 						self:GetParent():GetChild("SongsPlayed"):diffusealpha(1)
 					end
 				end,
-			},
-			LoadFont("Common Large") ..  {
-				Name = "PlayerName",
-				Text = string.format("%s: %.2f", profile:GetDisplayName(), profile:GetPlayerRating()),
-				InitCommand = function(self)
-					self:xy(38 / 2, -12):zoom(0.4):ztest(true):maxwidth((260 - 40 - 4) / 0.4)
-				end
 			},
 			LoadFont("Common Normal") ..  {
 				Name = "SongsPlayed",
@@ -83,9 +78,8 @@ function GetLocalProfiles()
 	return t
 end
 
-function LoadCard(cColor)
-	local t =
-		Def.ActorFrame {
+local function LoadCard(cColor)
+	local t = Def.ActorFrame {
 		Def.Quad {
 			InitCommand = function(self)
 				self:zoomto(260 + 4, 230 + 4)
@@ -105,34 +99,30 @@ function LoadCard(cColor)
 	}
 	return t
 end
-function LoadPlayerStuff(Player)
+local function LoadPlayerStuff(Player)
 	local t = {}
 
 	local pn = (Player == PLAYER_1) and 1
 
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "JoinFrame",
 		LoadCard(Color("Purple")),
-		LoadFont("Common Normal") ..
-			{
-				Text = translated_info["PressStart"],
-				InitCommand = function(self)
-					self:shadowlength(1)
-				end,
-				OnCommand = function(self)
-					self:diffuseshift():effectcolor1(Color("White")):effectcolor2(color("0.5,0.5,0.5"))
-				end
-			}
+		LoadFont("Common Normal") .. {
+			Text = translated_info["PressStart"],
+			InitCommand = function(self)
+				self:shadowlength(1)
+			end,
+			OnCommand = function(self)
+				self:diffuseshift():effectcolor1(Color("White")):effectcolor2(color("0.5,0.5,0.5"))
+			end
+		}
 	}
 
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "BigFrame",
 		LoadCard(Brightness(getMainColor("positive"), 0.3)),
 	}
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "SmallFrame",
 		InitCommand = function(self)
 			self:y(-2)
@@ -147,8 +137,7 @@ function LoadPlayerStuff(Player)
 		}
 	}
 
-	t[#t + 1] =
-		Def.ActorScroller {
+	t[#t + 1] = Def.ActorScroller {
 		Name = "Scroller",
 		NumItemsToDraw = 6,
 		OnCommand = function(self)
@@ -158,28 +147,26 @@ function LoadPlayerStuff(Player)
 			local focus = scale(math.abs(offset), 0, 2, 1, 0)
 			self:visible(false)
 			self:y(math.floor(offset * 40))
+			self:z(offset)
 		end,
 		children = GetLocalProfiles()
 	}
 
-	t[#t + 1] =
-		Def.ActorFrame {
+	t[#t + 1] = Def.ActorFrame {
 		Name = "EffectFrame"
 	}
-	t[#t + 1] =
-		LoadFont("Common Normal") ..
-		{
-			--is there a reason we dont use this just for showing the "no profile" text??
-			Name = "SelectedProfileText",
-			InitCommand = function(self)
-				self:y(160):maxwidth(SCREEN_WIDTH * 0.9):visible(0)
-			end
-		}
+	t[#t + 1] = LoadFont("Common Normal") .. {
+		--is there a reason we dont use this just for showing the "no profile" text??
+		Name = "SelectedProfileText",
+		InitCommand = function(self)
+			self:y(160):maxwidth(SCREEN_WIDTH * 0.9):visible(0)
+		end
+	}
 
 	return t
 end
 
-function UpdateInternal3(self, Player)
+local function UpdateInternal3(self, Player)
 	local pn = (Player == PLAYER_1) and 1
 	local frame = self:GetChild(string.format("P%uFrame", pn))
 	local scroller = frame:GetChild("Scroller")
@@ -223,8 +210,7 @@ end
 
 local t = Def.ActorFrame {}
 
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	StorageDevicesChangedMessageCommand = function(self, params)
 		self:queuecommand("UpdateInternal2")
 	end,
@@ -296,34 +282,31 @@ t[#t + 1] =
 			children = LoadPlayerStuff(PLAYER_1)
 		},
 		-- sounds
-		LoadActor(THEME:GetPathS("Common", "start")) ..
-			{
-				StartButtonMessageCommand = function(self)
-					self:play()
-				end
-			},
-		LoadActor(THEME:GetPathS("Common", "cancel")) ..
-			{
-				BackButtonMessageCommand = function(self)
-					self:play()
-				end
-			},
-		LoadActor(THEME:GetPathS("Common", "value")) ..
-			{
-				DirectionButtonMessageCommand = function(self)
-					self:play()
-				end
-			}
+		LoadActor(THEME:GetPathS("Common", "start")) .. {
+			StartButtonMessageCommand = function(self)
+				self:play()
+			end
+		},
+		LoadActor(THEME:GetPathS("Common", "cancel")) .. {
+			BackButtonMessageCommand = function(self)
+				self:play()
+			end
+		},
+		LoadActor(THEME:GetPathS("Common", "value")) .. {
+			DirectionButtonMessageCommand = function(self)
+				self:play()
+			end
+		}
 	}
 }
 t[#t + 1] = LoadActor("_frame")
-t[#t + 1] =
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
-			self:settextf("%s:", translated_info["Title"])
-		end
-	}
+t[#t + 1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
+		self:settextf("%s:", translated_info["Title"])
+	end
+}
+
+t[#t + 1] = LoadActor("_cursor")
 
 return t

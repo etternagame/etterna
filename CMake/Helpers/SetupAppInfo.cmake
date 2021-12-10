@@ -11,5 +11,6 @@ endif()
 
 execute_process(
         COMMAND git describe --tags --dirty
+        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         OUTPUT_VARIABLE PROJECT_GIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE)

@@ -134,7 +134,7 @@ PrefsManager::PrefsManager()
   , m_BGFitMode("BackgroundFitMode", BFM_CoverPreserve)
   , m_bBlindlyTrustCache("BlindlyTrustCache", true)
   , m_ImageCache("CacheImages", IMGCACHE_OFF)
-  , m_sDefaultTheme("DefaultTheme", "Til Death")
+  , m_sDefaultTheme("DefaultTheme", "Rebirth")
   , m_bDelayedBack("DelayedBack", false)
   , m_bDelayedModelDelete("DelayedModelDelete", false)
   , m_bDelayedTextureDelete("DelayedTextureDeletion", true)
@@ -191,12 +191,14 @@ PrefsManager::PrefsManager()
   , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
   , m_bTrilinearFiltering("TrilinearFiltering", false)
   , m_bUseMidGrades("UseMidGrades", false)
-  , m_verbose_log("VerboseLogging", 1)
+  , m_logging_level("LoggingLevel", 2)
   , m_bForceLogFlush("ForceLogFlush", TRUE_IF_DEBUG)
   , m_bShowLogOutput("ShowLogOutput", TRUE_IF_DEBUG)
   , m_bLogSkips("LogSkips", false)
   , m_show_theme_errors("ShowThemeErrors", false)
   , m_bAlwaysLoadCalcParams("AlwaysLoadCalcParams", false)
+  , m_bEnableCrashUpload("EnableMinidumpUpload", false)
+  , m_bShowMinidumpUploadDialogue("ShowMinidumpUploadDialogue", true)
 
 {
 	Init();
@@ -424,7 +426,7 @@ PrefsManager::GetPreferencesSection() const
 	GetFileContents(SpecialFiles::TYPE_TXT_FILE, sSection, true);
 
 	// OK if this fails
-	if (!GetCommandlineArgument("Type", &sSection) && m_verbose_log > 1)
+	if (!GetCommandlineArgument("Type", &sSection))
 		Locator::getLogger()->trace("Failed to find Type commandline argument (Not required)");
 
 	return sSection;
@@ -479,7 +481,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 		}
 
 		pPref->LoadDefault();
-		Locator::getLogger()->trace("Restored preference \"{}\" to default \"{}\"",
+		Locator::getLogger()->info("Restored preference \"{}\" to default \"{}\"",
 				   sName.c_str(), pPref->ToString().c_str());
 		COMMON_RETURN_SELF;
 	}

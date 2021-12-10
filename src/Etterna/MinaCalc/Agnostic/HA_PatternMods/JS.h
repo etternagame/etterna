@@ -1,6 +1,8 @@
 #pragma once
 #include "../../PatternModHelpers.h"
 
+/// Hand-Agnostic PatternMod detecting Jumpstream.
+/// Looks for jacks, jumptrills, and jumps (2-chords)
 struct JSMod
 {
 	const CalcPatternMod _pmod = JS;
@@ -66,6 +68,11 @@ struct JSMod
 	//		doot[JSS][i] = jumptrill_prop;
 	//		doot[JSJ][i] = jack_prop;
 	//}
+
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
 
 	void decay_mod()
 	{

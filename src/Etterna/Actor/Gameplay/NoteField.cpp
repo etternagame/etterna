@@ -112,8 +112,7 @@ NoteField::CacheNoteSkin(const std::string& sNoteSkin_)
 
 	LockNoteSkin l(sNoteSkin_);
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
+	Locator::getLogger()->debug("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
 	auto* nd = new NoteDisplayCols(
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
 		->m_iColsPerPlayer);
@@ -825,6 +824,17 @@ NoteField::DrawPrimitives()
 	cur->m_ReceptorArrowRow.DrawOverlay();
 
 	m_sprCover->Draw();
+
+	// there are always 2 true children of the NoteField
+	// both of those are the Cover and Board
+	// but through ActorFrame methods, more children can be added
+	// draw them here
+	if (m_SubActors.size() > 2) {
+		for (auto& sub : m_SubActors) {
+			if (sub != m_sprCover && sub != m_sprBoard)
+				sub->Draw();
+		}
+	}
 }
 
 void

@@ -204,12 +204,12 @@ InputFilter::ButtonPressed(const DeviceInput& di)
 
 	// Filter out input that is beyond the range of the current system.
 	if (di.device >= NUM_InputDevice) {
-		Locator::getLogger()->trace(
+		Locator::getLogger()->warn(
 		  "InputFilter::ButtonPressed: Invalid device {}", di.device);
 		return;
 	}
 	if (di.button >= NUM_DeviceButton) {
-		Locator::getLogger()->trace(
+		Locator::getLogger()->warn(
 		  "InputFilter::ButtonPressed: Invalid button {}", di.button);
 		return;
 	}

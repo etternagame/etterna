@@ -13,7 +13,7 @@ local pOptions = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions()
 local usingreverse = pOptions:UsingReverse()
 local prevX = capWideScale(get43size(98), 98)
 local prevY = 55
-local prevrevY = 79
+local prevrevY = 60
 local boolthatgetssettotrueonsongchangebutonlyifonatabthatisntthisone = false
 local hackysack = false
 local songChanged = false
@@ -64,13 +64,8 @@ local function toggleCalcInfo(state)
 	end
 end
 
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.8)
-	else
-		self:diffusealpha(1)
-	end
-end
+local hoverAlpha = 0.8
+local hoverAlpha2 = 0.6
 
 -- to reduce repetitive code for setting preview visibility with booleans
 local function setPreviewPartsState(state)
@@ -150,9 +145,13 @@ local function toggleNoteField()
 	return false
 end
 
+local mintyFreshIntervalFunction = nil
 local update = false
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
+	Name = "wifetwirler",
+	BeginCommand = function(self)
+		self:queuecommand("MintyFresh")
+	end,
 	OffCommand = function(self)
 		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 		toggleCalcInfo(false)
@@ -316,7 +315,24 @@ local t =
 		end
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
-		self:queuecommand("MintyFresh")
+		-- this basically queues MintyFresh every 0.5 seconds but only once and also resets the 0.5 seconds
+		-- if you scroll again
+		-- so if you scroll really fast it doesnt pop at all until you slow down
+		-- lag begone
+		local topscr = SCREENMAN:GetTopScreen()
+
+		if mintyFreshIntervalFunction ~= nil then
+			topscr:clearInterval(mintyFreshIntervalFunction)
+			mintyFreshIntervalFunction = nil
+		end
+		mintyFreshIntervalFunction = topscr:setInterval(function()
+			self:queuecommand("MintyFresh")
+			if mintyFreshIntervalFunction ~= nil then
+				topscr:clearInterval(mintyFreshIntervalFunction)
+				mintyFreshIntervalFunction = nil
+			end
+		end,
+		0.05)
 	end,
 	Def.Quad {
 		InitCommand = function(self)
@@ -336,33 +352,30 @@ local t =
 }
 
 -- Music Rate Display
-t[#t + 1] =
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:xy(20, SCREEN_BOTTOM - 226):visible(true):halign(0):zoom(0.4):maxwidth(
-				capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
-			)
-		end,
-		MintyFreshCommand = function(self)
-			if song then
-				self:settext(getCurRateDisplayString())
-			else
-				self:settext("")
-			end
-		end,
-		CodeMessageCommand = function(self, params)
-			local rate = getCurRateValue()
-			ChangeMusicRate(rate, params)
+t[#t + 1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(20, SCREEN_BOTTOM - 226):visible(true):halign(0):zoom(0.4):maxwidth(
+			capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
+		)
+	end,
+	MintyFreshCommand = function(self)
+		if song then
 			self:settext(getCurRateDisplayString())
-		end,
-		GoalSelectedMessageCommand = function(self)
-			self:queuecommand("MintyFresh")
+		else
+			self:settext("")
 		end
-	}
+	end,
+	CodeMessageCommand = function(self, params)
+		local rate = getCurRateValue()
+		ChangeMusicRate(rate, params)
+		self:settext(getCurRateDisplayString())
+	end,
+	GoalSelectedMessageCommand = function(self)
+		self:queuecommand("MintyFresh")
+	end
+}
 
-t[#t + 1] =
-	Def.Actor {
+t[#t + 1] = Def.Actor {
 	MintyFreshCommand = function(self)
 		if song then
 			ptags = tags:get_data().playerTags
@@ -378,15 +391,8 @@ t[#t + 1] =
 	end
 }
 
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	Name = "RateDependentStuff", -- msd/display score/bpm/songlength -mina
-	InitCommand = function(self)
-		self:SetUpdateFunction( function(self)
-			self:queuecommand("Highlight")
-		end)
-		self:SetUpdateFunctionInterval(0.025)
-	end,
 	MintyFreshCommand = function()
 		score = GetDisplayScore()
 	end,
@@ -394,8 +400,7 @@ t[#t + 1] =
 		self:queuecommand("MintyFresh") --steps stuff
 		self:queuecommand("MortyFarts") --songs stuff
 	end,
-	LoadFont("Common Large") ..
-	{
+	LoadFont("Common Large") .. {
 		Name = "MSD",
 		InitCommand = function(self)
 			self:xy(frameX + 58, frameY - 62):halign(0.5):zoom(0.6):maxwidth(110 / 0.6)
@@ -412,8 +417,7 @@ t[#t + 1] =
 		end
 	},
 	-- skillset suff (these 3 can prolly be wrapped)
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 120, frameY - 60):halign(0):zoom(0.6, maxwidth, 125)
 		end,
@@ -434,8 +438,7 @@ t[#t + 1] =
 			self:visible(true)
 		end
 	},
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 120, frameY - 30):halign(0):zoom(0.6, maxwidth, 125)
 		end,
@@ -455,8 +458,7 @@ t[#t + 1] =
 			self:visible(true)
 		end
 	},
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 120, frameY):halign(0):zoom(0.6, maxwidth, 125)
 		end,
@@ -478,14 +480,18 @@ t[#t + 1] =
 	},
 	-- **score related stuff** These need to be updated with rate changed commands
 	-- Primary percent score
-	LoadFont("Common Large") ..
-	{
+	LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 58, frameY + 48):zoom(0.6):halign(0.5):maxwidth(150):valign(1)
 		end,
 		MintyFreshCommand = function(self)
 			if song and score then
-				self:settextf("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100)
+				local perc = score:GetWifeScore() * 100
+				if perc > 99.65 then
+					self:settextf("%05.4f%%", notShit.floor(perc, 4))
+				else
+					self:settextf("%05.2f%%", notShit.floor(perc, 2))
+				end
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
 			else
 				self:settext("")
@@ -493,8 +499,7 @@ t[#t + 1] =
 		end
 	},
 	-- Mirror PB Indicator
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 37, frameY + 57):zoom(0.5):halign(1)
 		end,
@@ -511,8 +516,7 @@ t[#t + 1] =
 		end
 	},
 	-- Rate for the displayed score
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 58, frameY + 57):zoom(0.5):halign(0.5)
 		end,
@@ -536,8 +540,7 @@ t[#t + 1] =
 		end
 	},
 	-- wife 2/3 indicator
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameX + 76, frameY + 57):zoom(0.5):halign(0):maxwidth(140)
 		end,
@@ -552,8 +555,7 @@ t[#t + 1] =
 		end
 	},
 	-- goal for current rate if there is one stuff
-	LoadFont("Common Normal") ..
-	{
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "Goalll",
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 140,frameX + 154), frameY + 27):zoom(0.6):halign(0.5):valign(0)
@@ -576,31 +578,32 @@ t[#t + 1] =
 				self:settext("")
 			end
 		end,
-		MouseLeftClickMessageCommand = function(self)
+		MouseDownCommand = function(self, params)
 			if song and steps then
-				local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
-				if sg and isOver(self) and update then
-					sg:SetPercent(sg:GetPercent() + 0.01)
-					self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+				if params.event == "DeviceButton_left mouse button" then
+					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+					if sg and update then
+						sg:SetPercent(sg:GetPercent() + 0.01)
+						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+					end
+				elseif params.event == "DeviceButton_right mouse button" then
+					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
+					if sg and update then
+						sg:SetPercent(sg:GetPercent() - 0.01)
+						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+					end
 				end
 			end
 		end,
-		MouseRightClickMessageCommand = function(self)
-			if song and steps then
-				local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
-				if sg and isOver(self) and update then
-					sg:SetPercent(sg:GetPercent() - 0.01)
-					self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
-				end
-			end
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
 		end,
 	},
 	-- Date score achieved on
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 59):zoom(0.4):halign(0)
 		end,
@@ -613,8 +616,7 @@ t[#t + 1] =
 		end
 	},
 	-- MaxCombo
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 45):zoom(0.4):halign(0)
 		end,
@@ -626,8 +628,7 @@ t[#t + 1] =
 			end
 		end
 	},
-	LoadFont("Common Normal") ..
-	{
+	LoadFont("Common Normal") .. {
 		Name = "ClearType",
 		InitCommand = function(self)
 			self:xy(capWideScale(frameX + 180,frameX + 205), frameY + 30):zoom(0.6):halign(0)
@@ -658,8 +659,7 @@ t[#t + 1] =
 			end
 		end
 	},
-	LoadFont("Common Large") ..
-	{
+	LoadFont("Common Large") .. {
 		Name = "PlayableDuration",
 		InitCommand = function(self)
 			self:xy((capWideScale(get43size(384), 400)) + 62, SCREEN_BOTTOM - 91.5):visible(true):halign(1):zoom(
@@ -675,14 +675,14 @@ t[#t + 1] =
 				self:settext("")
 			end
 		end
-	}
+	},
 }
 
 -- "Radar values", noteinfo that isn't rate dependent -mina
 local function radarPairs(i)
 	local o = Def.ActorFrame {
-		LoadFont("Common Normal") ..
-		{
+		Name = "radarpair_"..i,
+		LoadFont("Common Normal") .. {
 			InitCommand = function(self)
 				self:xy(frameX + 13, frameY - 52 + 13 * i):zoom(0.5):halign(0):maxwidth(120)
 			end,
@@ -694,8 +694,7 @@ local function radarPairs(i)
 				end
 			end
 		},
-		LoadFont("Common Normal") ..
-		{
+		LoadFont("Common Normal") .. {
 			InitCommand = function(self)
 				self:xy(frameX + 105, frameY + -52 + 13 * i):zoom(0.5):halign(1):maxwidth(60)
 			end,
@@ -706,14 +705,13 @@ local function radarPairs(i)
 					self:settext("")
 				end
 			end
-		}
+		},
 	}
 	return o
 end
 
-local r =
-	Def.ActorFrame {
-		Name = "RadarValues"
+local r = Def.ActorFrame {
+	Name = "RadarValues",
 }
 
 -- Create the radar values
@@ -722,41 +720,37 @@ for i = 1, 5 do
 end
 
 -- putting neg bpm warning here i guess
-r[#r + 1] =
-	LoadFont("Common Large") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 120, SCREEN_BOTTOM - 245):visible(true):halign(0):zoom(0.5)
-			self:diffuse(getMainColor("negative"))
-		end,
-		MintyFreshCommand = function(self)
-			if song and steps:GetTimingData():HasWarps() then
-				self:settext(translated_info["NegBPM"])
-			else
-				self:settext("")
-			end
+r[#r + 1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 120, SCREEN_BOTTOM - 245):visible(true):halign(0):zoom(0.5)
+		self:diffuse(getMainColor("negative"))
+	end,
+	MintyFreshCommand = function(self)
+		if song and steps:GetTimingData():HasWarps() then
+			self:settext(translated_info["NegBPM"])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 t[#t + 1] = r
 
 -- song only stuff that doesnt change with rate
 
 -- bpm
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(capWideScale(get43size(379), 395) + 41, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50)
-		end,
-		MortyFartsCommand = function(self)
-			if song then
-				self:settext(translated_info["BPM"])
-			else
-				self:settext("")
-			end
+t[#t + 1] =LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(capWideScale(get43size(379), 395) + 41, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50)
+	end,
+	MortyFartsCommand = function(self)
+		if song then
+			self:settext(translated_info["BPM"])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 -- cdtitle
 t[#t + 1] = Def.Sprite {
@@ -850,54 +844,70 @@ local enabledC = "#099948"
 local disabledC = "#ff6666"
 local force = false
 local ready = false
-function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, enabledF)
-	local button
-	button =
-		Widg.Button {
-		text = textDisabled,
-		width = 50 + extrawidth,
-		height = 24,
-		border = false,
-		bgColor = color(disabledC),
-		border = {
-			color = "#333333",
-			width = 1.5,
-		},
-		highlight = {color = getMainColor("highlight")},
-		x = 10 - 115 + capWideScale(get43size(384), 384) + x,
-		y = 66 + capWideScale(get43size(120), 120),
-		font = {
-			scale = 0.3,
-			name = "Common Large",
-			color = color("#FFFFFF"),
-			padding = {
-				x = 10,
-				y = 0
-			}
-		},
-		onInit = function(self)
-			button.turnedOn = false
-			button.updateToggleButton = function()
-				button:diffuse(color(button.turnedOn and enabledC or disabledC))
-				button:settext(button.turnedOn and textEnabled or textDisabled)
+local function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, y, enabledF)
+	local ison = false
+	return Def.ActorFrame {
+		InitCommand = function(self)
+			self:xy(10 - 115 + capWideScale(get43size(384), 384) + x, 66 + capWideScale(get43size(120), 120) + y)
+			self.updatebutton = function()
+				if self.ison ~= nil then
+					ison = self.ison
+				end
+
+				-- wtf
+				self:GetChild("Top"):diffuse((ison and color(enabledC) or (isOver(self:GetChild("Top")) and getMainColor("highlight") or color(disabledC))))
+				self:GetChild("Words"):settext(ison and textEnabled or textDisabled)
 			end
 		end,
-		onClick = function(self)
-			-- If we have an enabled function use that to know
-			-- the enabled state, otherwise toggle it
-			if enabledF then
-				button.turnedOn = enabledF()
-			else
-				button.turnedOn = (not button.turnedOn)
-			end
-			button.updateToggleButton()
-			NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())
-		end
+
+		Def.Quad {
+			Name = "BG",
+			InitCommand = function(self)
+				self:zoomto(50 + extrawidth + 1.5, 24 + 1.5)
+				self:diffuse(color("#333333"))
+			end,
+		},
+		UIElements.QuadButton(1, 1) .. {
+			Name = "Top",
+			InitCommand = function(self)
+				self:zoomto(50 + extrawidth, 24)
+				self:diffuse(color(disabledC))
+			end,
+			MouseOverCommand = function(self)
+				self:diffuse(ison and color(enabledC) or getMainColor("highlight"))
+			end,
+			MouseOutCommand = function(self)
+				self:diffuse(color(ison and enabledC or disabledC))
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					if enabledF then
+						ison = enabledF()
+					else
+						ison = (not ison)
+					end
+					
+					-- wtf 2
+					self:diffuse(ison and color(enabledC) or getMainColor("highlight"))
+					NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())
+				end
+			end,
+		},
+		LoadFont("Common Large") .. {
+			Name = "Words",
+			InitCommand = function(self)
+				self:zoom(0.3)
+				self:diffuse(color("#FFFFFF"))
+				self:maxwidth((50 + extrawidth) / 0.3)
+				self:settext(textDisabled)
+			end,
+		},
 	}
-	return button
 end
-local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", -35, 30)
-local readyButton
+local forceStart = toggleButton(translated_info["UnForceStart"], translated_info["ForceStart"], "/force", -35, 30, 11) .. {
+	Name = "ForceStart",
+}
+local readyButton = nil
 do
 	-- do-end block to minimize the scope of 'f'
 	local areWeReadiedUp = function()
@@ -912,28 +922,24 @@ do
 				end
 			end
 			-- ???? this should never happen
+			-- retroactive - had this happen once and i still dont know why
 			error "Could not find ourselves in the userlist"
 		end
 	end
-	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, 0, areWeReadiedUp)
-	readyButton.UsersUpdateMessageCommand = function(self)
-		readyButton.turnedOn = areWeReadiedUp()
-		readyButton.updateToggleButton()
-	end
+	readyButton = toggleButton(translated_info["Unready"], translated_info["Ready"], "/ready", 50, 0, 11, areWeReadiedUp) .. {
+		Name = "Ready",
+		UsersUpdateMessageCommand = function(self)
+			self.ison = areWeReadiedUp()
+			self.updatebutton()
+		end
+	}
 end
 
-t[#t + 1] = forceStart
-t[#t + 1] = readyButton
-
-t[#t + 1] = Def.Quad {
-	-- Little hack to only show forceStart and ready in netselect
-	BeginCommand = function()
-		if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetSelectMusic" then
-			readyButton:Disable()
-			forceStart:Disable()
-		end
-	end,
-}
+local sn = Var ("LoadingScreen")
+if sn and sn:find("Net") ~= nil then
+	t[#t + 1] = forceStart
+	t[#t + 1] = readyButton
+end
 
 -- t[#t+1] = LoadFont("Common Large") .. {
 -- InitCommand=function(self)
@@ -973,56 +979,50 @@ t[#t + 1] = Def.Quad {
 -- }
 
 -- tags?
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
-		end,
-		MintyFreshCommand = function(self)
-			if song and ctags[1] then
-				self:settext(ctags[1])
-			else
-				self:settext("")
-			end
-		end,
-		ChartPreviewOnMessageCommand = function(self)
-			self:visible(false)
-		end,
-		ChartPreviewOffMessageCommand = function(self)
-			self:visible(true)
+t[#t + 1] = LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 300, frameY - 60):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
+	end,
+	MintyFreshCommand = function(self)
+		if song and ctags[1] then
+			self:settext(ctags[1])
+		else
+			self:settext("")
 		end
-	}
+	end,
+	ChartPreviewOnMessageCommand = function(self)
+		self:visible(false)
+	end,
+	ChartPreviewOffMessageCommand = function(self)
+		self:visible(true)
+	end
+}
 
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
-		end,
-		MintyFreshCommand = function(self)
-			if song and ctags[2] then
-				self:settext(ctags[2])
-			else
-				self:settext("")
-			end
+t[#t + 1] = LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 300, frameY - 30):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
+	end,
+	MintyFreshCommand = function(self)
+		if song and ctags[2] then
+			self:settext(ctags[2])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
-t[#t + 1] =
-	LoadFont("Common Normal") ..
-	{
-		InitCommand = function(self)
-			self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
-		end,
-		MintyFreshCommand = function(self)
-			if song and ctags[3] then
-				self:settext(ctags[3])
-			else
-				self:settext("")
-			end
+t[#t + 1] = LoadFont("Common Normal") .. {
+	InitCommand = function(self)
+		self:xy(frameX + 300, frameY):halign(0):zoom(0.6):maxwidth(capWideScale(54, 450) / 0.6)
+	end,
+	MintyFreshCommand = function(self)
+		if song and ctags[3] then
+			self:settext(ctags[3])
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 --Chart Preview Button
 local yesiwantnotefield = false
@@ -1041,85 +1041,85 @@ local function ihatestickinginputcallbackseverywhere(event)
 	return false
 end
 
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
 local prevplayerops = "Main"
 
 t[#t + 1] = Def.ActorFrame {
 	Name = "LittleButtonsOnTheLeft",
-	InitCommand = function(self)
-		self:SetUpdateFunction( function(self)
-			self:queuecommand("Highlight")
-		end)
-		self:SetUpdateFunctionInterval(0.025)
-	end,
 
-	LoadFont("Common Normal") ..
-	{
-	Name = "PreviewViewer",
-	BeginCommand = function(self)
-		mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
-		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
-		SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
-		self:xy(20, 235):zoom(0.5):halign(0)
-		self:diffuse(getMainColor("positive"))
-	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) and (song or noteField) then
-			toggleNoteField()
-		end
-	end,
-	MouseRightClickMessageCommand = function(self)
-		if isOver(self) and (song or noteField) then
-			if mcbootlarder:IsVisible() then
-				toggleCalcInfo(not infoOnScreen)
-			else
-				if toggleNoteField() then
-					toggleCalcInfo(true)
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "PreviewViewer",
+		BeginCommand = function(self)
+			mcbootlarder = self:GetParent():GetParent():GetChild("ChartPreview")
+			SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
+			SCREENMAN:GetTopScreen():AddInputCallback(ihatestickinginputcallbackseverywhere)
+			self:xy(20, 235):zoom(0.5):halign(0)
+			self:diffuse(getMainColor("positive"))
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and (song or noteField) then
+				toggleNoteField()
+			elseif params.event == "DeviceButton_right mouse button" and (song or noteField) then
+				if mcbootlarder:IsVisible() then
+					toggleCalcInfo(not infoOnScreen)
+				else
+					if toggleNoteField() then
+						toggleCalcInfo(true)
+					end
 				end
 			end
-		end
-	end,
-	ChartPreviewOnMessageCommand = function(self)
-		readyButton:Disable()
-		forceStart:Disable()
-	end,
-	ChartPreviewOffMessageCommand = function(self)
-		if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-			readyButton:Enable()
-			forceStart:Enable()
-		end
-	end,
-	HighlightCommand=function(self)
-		highlightIfOver(self)
-	end,
-	MintyFreshCommand = function(self)
-		if song then
-			self:settext(translated_info["TogglePreview"])
-		else
-			self:settext("")
-		end
-	end,
+		end,
+		ChartPreviewOnMessageCommand = function(self)
+			local ready = self:GetParent():GetParent():GetChild("Ready")
+			local force = self:GetParent():GetParent():GetChild("ForceStart")
+			if ready ~= nil then
+				ready:visible(false)
+			end
+			if force ~= nil then
+				force:visible(false)
+			end
+		end,
+		ChartPreviewOffMessageCommand = function(self)
+			if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+				local ready = self:GetParent():GetParent():GetChild("Ready")
+				local force = self:GetParent():GetParent():GetChild("ForceStart")
+				if ready ~= nil then
+					ready:visible(true)
+				end
+				if force ~= nil then
+					force:visible(true)
+				end
+			end
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha2)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MintyFreshCommand = function(self)
+			if song then
+				self:settext(translated_info["TogglePreview"])
+			else
+				self:settext("")
+			end
+		end,
 	},
 
-	LoadFont("Common Normal") ..
-	{
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "PlayerOptionsButton",
 		BeginCommand = function(self)
 			self:xy(20, 218):halign(0):zoom(0.5)
 			self:settext(translated_info["PlayerOptions"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha2)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and song then
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and song then
 				SCREENMAN:GetTopScreen():OpenOptions()
 			end
 		end,
@@ -1158,15 +1158,14 @@ t[#t + 1] =
 	end
 }]]
 
-	LoadFont("Common Normal") ..
-	{
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "MusicWheelSortButton",
 		BeginCommand = function(self)
 			self:xy(20, 201):zoom(0.5):halign(0):settext(translated_info["OpenSort"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local ind = 0 -- 0 is group sort usually
 				-- find the sort mode menu no matter where it is
 				for i, sm in ipairs(SortOrder) do
@@ -1178,8 +1177,11 @@ t[#t + 1] =
 				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(ind)
 			end
 		end,
-		HighlightCommand=function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha2)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
 		end,
 	}
 }

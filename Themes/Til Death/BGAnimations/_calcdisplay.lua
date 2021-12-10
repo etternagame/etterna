@@ -4,6 +4,9 @@ local plotX, plotY = oldWidth+3 + plotWidth/2, -20 + plotHeight/2
 local highest = 0
 local lowest = 0
 local lowerGraphMax = 0
+local lowerGraphMaxJack = 0
+local jackLossSumLeft = 0
+local jackLossSumRight = 0
 local upperGraphMax = 0
 local lowerGraphMin = 0
 local upperGraphMin = 0
@@ -20,6 +23,7 @@ local steplength = 0
 local graphVecs = {}
 local jackdiffs = {}
 local ssrs = {}
+local grindscaler = 0
 local activeModGroup = 1
 local activeDiffGroup = 1
 local debugstrings
@@ -308,7 +312,7 @@ local debugGroups = {
         TotalPatternMod = true,
     },
     {   -- Group 10
-
+        CJOHAnchor = true,
     },
     {   -- Group 11
         Chaos = true,
@@ -384,11 +388,16 @@ local function updateCoolStuff()
             ssrs = {}
         end
         lowerGraphMax = 0
+        lowerGraphMaxJack = 0
+        jackLossSumLeft = 0
+        jackLossSumRight = 0
         local bap = steps:GetCalcDebugOutput()
         debugstrings = steps:GetDebugStrings()
 
+        grindscaler = bap["Grindscaler"]
+
         -- Jack debug output got hyper convoluted so im trying to make it as sane as possible
-        -- basically jackdiffs[hand][index] = {row time, diff, stam}
+        -- basically jackdiffs[hand][index] = {row time, diff, stam, loss}
         -- this is so we can place the indices based on row time instead of index
         -- also keep in mind the row times are already changed for each rate so 1.1 will be smaller than 1.0
         -- also all the row times are relative to the first non empty noterow so lets just pad it by the firstsecond/2 too
@@ -401,13 +410,19 @@ local function updateCoolStuff()
             local upperiter = #jap["Left"] > #jap["Right"] and #jap["Left"] or #jap["Right"]
             for i = 1, upperiter do
                 if jap["Left"][i] then
-                    jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2], jap["Left"][i][3] }
+                    jackdiffs["Left"][#jackdiffs["Left"] + 1] = { jap["Left"][i][1] + firstSecond/2/getCurRateValue(), jap["Left"][i][2], jap["Left"][i][3], jap["Left"][i][4] }
+                    if jap["Left"][i][2] > lowerGraphMaxJack then lowerGraphMaxJack = jap["Left"][i][2] end
+                    jackLossSumLeft = jackLossSumLeft + jap["Left"][i][4]
                 end
                 if jap["Right"][i] then
-                    jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2], jap["Right"][i][3] }
+                    jackdiffs["Right"][#jackdiffs["Right"] + 1] = { jap["Right"][i][1] + firstSecond/2/getCurRateValue(), jap["Right"][i][2], jap["Right"][i][3], jap["Right"][i][4] }
+                    if jap["Right"][i][2] > lowerGraphMaxJack then lowerGraphMaxJack = jap["Right"][i][2] end
+                    jackLossSumRight = jackLossSumRight + jap["Right"][i][4]
                 end
             end
         end
+        -- squeeze graph
+        lowerGraphMaxJack = lowerGraphMaxJack / 0.9
 
         -- for each debug output type and its corresponding list of values
         for debugtype, sublist in pairs(CalcDebugTypes) do
@@ -674,7 +689,7 @@ o[#o + 1] = Def.Quad {
 }
 
 -- graph bg
-o[#o + 1] = Def.Quad {
+o[#o + 1] = UIElements.QuadButton(1, 1) .. {
     InitCommand = function(self)
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
@@ -682,7 +697,9 @@ o[#o + 1] = Def.Quad {
         topgraph = self
     end,
     DoTheThingCommand = function(self)
-        self:visible(song ~= nil)
+        local visible = song ~= nil
+        self:visible(visible)
+        self:z(visible and 5 or -5) -- higher button z has priority (to block musicwheel button clicking)
     end,
     HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("GraphSeekBar")
@@ -734,7 +751,7 @@ o[#o+1] = LoadFont("Common Normal") .. {
 }
 
 -- second bg
-o[#o + 1] = Def.Quad {
+o[#o + 1] = UIElements.QuadButton(1, 1) .. {
     Name = "G2BG",
     InitCommand = function(self)
         self:y(plotHeight + 5)
@@ -744,7 +761,9 @@ o[#o + 1] = Def.Quad {
         bottomgraph = self
     end,
     DoTheThingCommand = function(self)
-        self:visible(song ~= nil)
+        local visible = song ~= nil
+        self:visible(visible)
+        self:z(visible and 5 or -5) -- higher button z has priority (to block musicwheel button clicking)
     end,
     HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("Seek2")
@@ -778,14 +797,18 @@ o[#o + 1] = Def.Quad {
                     modText = modText .. "\n"
                     local jktxt = ""
                     local jkstmtxt = ""
+                    local jklosstxt = ""
                     for h = 1,2 do
                         local hnd = h == 1 and "Left" or "Right"
-                        local hand = h == 1 and "L" or "R"
-                        local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
-                        jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
-                        jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3]) 
+                        if jackdiffs[hnd] ~= nil and #jackdiffs[hnd] > 0 then
+                            local hand = h == 1 and "L" or "R"
+                            local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
+                            jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
+                            jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3])
+                            jklosstxt = jklosstxt .. string.format("%s: %5.4f\n", "Jack Loss"..hand, jackdiffs[hnd][index][4])
+                        end
                     end
-                    modText = modText .. jktxt .. jkstmtxt
+                    modText = modText .. jktxt .. jkstmtxt .. jklosstxt
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
                 end
 
@@ -867,6 +890,7 @@ local modnames = {
     --"cjj",
     "cjd",
     "hsd",
+    "cjohanch",
     "ohj",
     --"ohjbp",
     --"ohjpc",
@@ -925,7 +949,8 @@ local modColors = {
 	--color("0,1,1"),			-- cyan			= chordjack stream
 	--color("1,0,0"),			-- red			= chordjack jack
 	color("1,1,0"),			-- yellow		= cjdensity
-    color("1,1,0"),
+    color("1,1,0"),         -- yello        = hsdensity
+    color(".1,.3,.9"),      -- something    = CJOHAnchor
     color("1,0.4,0"),       -- orange2		= ohjump
 	--color("1,1,1"),			-- ohjbp
 	--color("1,1,1"),			-- ohjpc
@@ -981,7 +1006,9 @@ local skillsetColors = {
 
 local jackdiffColors = {
     color("1,1,0"), -- jack diff left
-    color(".6,0,.7") -- jack diff right
+    color(".6,0,.7"), -- jack diff right
+    color("1,0,0,1"), -- jack loss left
+    color("1,0,0,1"), -- jack loss right
 }
 
 -- these are all CalcDiffValue mods only
@@ -1098,6 +1125,7 @@ end
 o[#o + 1] = LoadFont("Common Normal") .. {
     InitCommand = function(self)
         self:xy(-plotWidth/2 + 30, plotHeight/2 + 12):halign(0)
+        self:maxwidth((plotWidth-30) / 0.35)
         self:zoom(0.35)
         self:settext("")
     end,
@@ -1105,7 +1133,16 @@ o[#o + 1] = LoadFont("Common Normal") .. {
         if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["SSRS"]) then
             self:settextf("Upper SSR: %.4f", math.max(unpack(ssrs[1])))
         else
-            self:settextf("Upper Bound: %.4f", lowerGraphMax)
+            if diffGroups[activeDiffGroup]["Jack"] and steps then
+                local jackpbm = 1.0013144
+                local tappoints = steps:GetRelevantRadars()[1] * 2
+                local maxpoints = tappoints * jackpbm
+                local afterloss = maxpoints - jackLossSumRight - jackLossSumLeft
+                local reqpoints = tappoints * 0.93
+                self:settextf("Upper Bound: %.2f  |  Loss Sum L: %5.2f  |  Loss Sum R: %5.2f  |  Pt AfterLoss/Req/Max: %5.2f/%5.2f/%5.2f", lowerGraphMaxJack*0.9, jackLossSumLeft, jackLossSumRight, afterloss, reqpoints, maxpoints)
+            else
+                self:settextf("Upper Bound: %.4f  |  Grindscaler: %5.2f", lowerGraphMax, grindscaler)
+            end
         end
     end,
     DoTheThingCommand = function(self)
@@ -1316,7 +1353,59 @@ local function bottomGraphLineJack(colorToUse, hand)
                     -- if used, final/firstsecond must be halved
                     -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
                     local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
-                    local y = fitY2(values[i][2], lowerGraphMin, lowerGraphMax)
+                    local y = fitY2(values[i][2], lowerGraphMin, lowerGraphMaxJack)
+
+                    setOffsetVerts(verts, x, y, colorToUse)
+                end
+                
+                if #verts <= 1 then
+                    verts = {}
+                end
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
+            end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+            end
+        end
+    }
+end
+
+local function bottomGraphLineJackloss(colorToUse, hand)
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+                
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Jack"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+
+                local hand = hand == 1 and "Left" or "Right"
+                local verts = {}
+                local values = jackdiffs[hand]
+                if not values or not values[1] then return end
+
+                for i = 1, #values do
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    -- if used, final/firstsecond must be halved
+                    -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
+                    local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
+                    local y = fitY2(values[i][4], lowerGraphMin, lowerGraphMax)
 
                     setOffsetVerts(verts, x, y, colorToUse)
                 end
@@ -1462,6 +1551,12 @@ end
 -- jack stam
 for h = 1,2 do
     o[#o+1] = topGraphLineJackStam("jack_stam", color("1,1,1,1"), h)
+end
+
+-- jack loss
+for h = 1,2 do
+    local colr = jackdiffColors[h+2]
+    o[#o+1] = bottomGraphLineJackloss(colr, h)
 end
 
 -- a bunch of things for stuff and things

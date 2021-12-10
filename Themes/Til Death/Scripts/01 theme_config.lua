@@ -18,6 +18,7 @@ local defaultConfig = {
 		ComboTween = false,
 		CenteredCombo = false,
 		FadeNoteFieldInSyncMachine = true,
+		ShowPlayerOptionsHint = true,
 	},
 	NPSDisplay = {
 		DynamicWindow = false,

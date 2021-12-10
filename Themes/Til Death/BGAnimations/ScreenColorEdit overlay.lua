@@ -228,9 +228,7 @@ end
 
 local function inputeater(event)
 	if event.type == "InputEventType_FirstPress" then
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.char and event.char:match('[%x]') then -- match all hex
+		if event.char and event.char:match('[%x]') then -- match all hex
 			handleHexEntry(event.char)
 		elseif event.DeviceInput.button == "DeviceButton_delete" then
 			if INPUTFILTER:IsControlPressed() then
@@ -336,22 +334,27 @@ t[#t+1] = Def.ActorFrame {
 		self:xy(SCREEN_WIDTH / 12, SCREEN_HEIGHT / 8)
 	end,
 
-	Def.Sprite {
+	UIElements.SpriteButton(1, 1, THEME:GetPathG("", "color_hsv")) .. {
 		Name = "HSVImage",
-		Texture = THEME:GetPathG("", "color_hsv"),
 		InitCommand = function(self)
 			self:zoomto(colorBoxHeight, colorBoxHeight)
 			self:x(saturationSliderWidth)
 			self:valign(0):halign(0)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		InvokeCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local y = INPUTFILTER:GetMouseY()
 				local x = INPUTFILTER:GetMouseX()
 				local relX, relY = localMousePos(self, x, y)
 				aboutToSave = true
 				updateColor(relX / colorBoxHeight, relY / colorBoxHeight)
 			end
+		end,
+		MouseDragCommand = function(self, params)
+			self:playcommand("Invoke", params)
+		end,
+		MouseDownCommand = function(self, params)
+			self:playcommand("Invoke", params)
 		end
 	},
 	Def.Sprite {
@@ -365,21 +368,27 @@ t[#t+1] = Def.ActorFrame {
 			saturationOverlay = self
 		end,
 	},
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		Name = "SaturationSlider",
 		InitCommand = function(self)
 			self:zoomto(saturationSliderWidth, colorBoxHeight)
 			self:valign(0):halign(0)
 			self:diffuse(color(".7,.7,.7"))
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		InvokeCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local y = INPUTFILTER:GetMouseY()
 				local x = INPUTFILTER:GetMouseX()
 				local relX, relY = localMousePos(self, x, y)
 				aboutToSave = true
 				updateSaturation(relY / colorBoxHeight)
 			end
+		end,
+		MouseDragCommand = function(self, params)
+			self:playcommand("Invoke", params)
+		end,
+		MouseDownCommand = function(self, params)
+			self:playcommand("Invoke", params)
 		end
 	},
 	Def.Quad {
@@ -393,21 +402,27 @@ t[#t+1] = Def.ActorFrame {
 		end,
 	},
 
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		Name = "AlphaSlider",
 		InitCommand = function(self)
 			self:zoomto(saturationSliderWidth, colorBoxHeight)
 			self:valign(0):halign(1)
 			self:diffuse(color(".7,.7,.7"))
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		InvokeCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local y = INPUTFILTER:GetMouseY()
 				local x = INPUTFILTER:GetMouseX()
 				local relX, relY = localMousePos(self, x, y)
 				aboutToSave = true
 				updateAlpha(relY / colorBoxHeight)
 			end
+		end,
+		MouseDragCommand = function(self, params)
+			self:playcommand("Invoke", params)
+		end,
+		MouseDownCommand = function(self, params)
+			self:playcommand("Invoke", params)
 		end
 	},
 	Def.Quad {
@@ -453,28 +468,28 @@ t[#t+1] = Def.ActorFrame {
 		end
 	},
 
-	LoadFont("Common Large") .. {
+	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
 			self:valign(1)
 			self:xy(saturationSliderWidth/2, -3)
 			self:settext(translated_info["Saturation"])
 			self:zoom(0.15)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				updateSaturation(0)
 			end
 		end
 	},
-	LoadFont("Common Large") .. {
+	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
 			self:valign(1)
 			self:xy(-saturationSliderWidth/2, -3)
 			self:settext(translated_info["Alpha"])
 			self:zoom(0.15)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				updateAlpha(0)
 			end
 		end

@@ -2,6 +2,8 @@
 #include "../../PatternModHelpers.h"
 #include "../MetaIntervalInfo.h"
 
+/// Hand-Agnostic PatternMod detecting Handstream.
+/// Looks for jacks, jumptrills, and hands (3-chords)
 struct HSMod
 {
 	const CalcPatternMod _pmod = HS;
@@ -66,6 +68,11 @@ struct HSMod
 	float last_mod = min_mod;
 	float pmod = min_mod;
 	float t_taps = 0.F;
+
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
 
 	void decay_mod()
 	{

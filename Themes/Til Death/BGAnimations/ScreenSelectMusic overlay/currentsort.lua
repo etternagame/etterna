@@ -1,21 +1,7 @@
-local function highlight(self)
-	self:GetChild("rando"):queuecommand("Highlight")
-end
 
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
+local hoverAlpha = 0.6
 
-local t = Def.ActorFrame {
-	InitCommand=function(self)
-		self:SetUpdateFunction(highlight)
-		self:SetUpdateFunctionInterval(0.025)
-	end
-}
+local t = Def.ActorFrame {}
 
 local frameWidth = 280
 local frameHeight = 20
@@ -48,50 +34,53 @@ local translated_info = {
 }
 
 local group_rand = ""
-t[#t + 1] =
-	LoadFont("Common Large") ..
-	{
-		Name="rando",
-		InitCommand = function(self)
-			self:xy(frameX, frameY + 5):halign(1):zoom(0.55):maxwidth((frameWidth - 40) / 0.35)
-		end,
-		BeginCommand = function(self)
-			self:queuecommand("Set")
-		end,
-		SetCommand = function(self)
-			local sort = GAMESTATE:GetSortOrder()
-			local song = GAMESTATE:GetCurrentSong()
-			if sort == nil then
-				self:settextf("%s: ", translated_info["Sort"])
-			elseif sort == "SortOrder_Group" and song ~= nil then
-				group_rand = song:GetGroupName()
-				self:settext(group_rand)
-			else
-				self:settextf("%s: %s", translated_info["Sort"], sortTable[sort])
-				group_rand = ""
-			end
-		end,
-		SortOrderChangedMessageCommand = function(self)
-			self:queuecommand("Set"):diffuse(getMainColor("positive"))
-		end,
-		CurrentSongChangedMessageCommand = function(self)
-			self:queuecommand("Set")
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if group_rand ~= "" and isOver(self) then
-				local w = SCREENMAN:GetTopScreen():GetMusicWheel()
-				local t = w:GetSongsInGroup(group_rand)
-				if #t == 0 then return end
-				local random_song = t[math.random(#t)]
-				w:SelectSong(random_song)
-			end
-		end,
-		HighlightCommand=function(self)
-			if group_rand ~= "" then
-				highlightIfOver(self)
-			end
+t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
+	Name="rando",
+	InitCommand = function(self)
+		self:xy(frameX, frameY + 5):halign(1):zoom(0.55):maxwidth((frameWidth - 40) / 0.35)
+	end,
+	BeginCommand = function(self)
+		self:queuecommand("Set")
+	end,
+	SetCommand = function(self)
+		local sort = GAMESTATE:GetSortOrder()
+		local song = GAMESTATE:GetCurrentSong()
+		if sort == nil then
+			self:settextf("%s: ", translated_info["Sort"])
+		elseif sort == "SortOrder_Group" and song ~= nil then
+			group_rand = song:GetGroupName()
+			self:settext(group_rand)
+		else
+			self:settextf("%s: %s", translated_info["Sort"], sortTable[sort])
+			group_rand = ""
 		end
-	}
+	end,
+	SortOrderChangedMessageCommand = function(self)
+		self:queuecommand("Set"):diffuse(getMainColor("positive"))
+	end,
+	CurrentSongChangedMessageCommand = function(self)
+		self:playcommand("Set")
+	end,
+	MouseDownCommand = function(self, params)
+		if group_rand ~= "" and params.event == "DeviceButton_left mouse button" then
+			local w = SCREENMAN:GetTopScreen():GetMusicWheel()
+			local t = w:GetSongsInGroup(group_rand)
+			if #t == 0 then return end
+			local random_song = t[math.random(#t)]
+			w:SelectSong(random_song)
+		end
+	end,
+	MouseOverCommand = function(self)
+		if group_rand ~= "" then
+			self:diffusealpha(hoverAlpha)
+		end
+	end,
+	MouseOutCommand = function(self)
+		if group_rand ~= "" then
+			self:diffusealpha(1)
+		end
+	end,
+}
 
 t[#t + 1] = StandardDecorationFromFileOptional("BPMDisplay", "BPMDisplay")
 t[#t + 1] = StandardDecorationFromFileOptional("BPMLabel", "BPMLabel")

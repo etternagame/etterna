@@ -17,7 +17,6 @@
 #include "lj_cdata.h"
 #include "lj_clib.h"
 #include "lj_strfmt.h"
-#include "lj_fopen.h"
 
 /* -- OS-specific functions ----------------------------------------------- */
 
@@ -95,7 +94,7 @@ static const char *clib_check_lds(lua_State *L, const char *buf)
 /* Quick and dirty solution to resolve shared library name from ld script. */
 static const char *clib_resolve_lds(lua_State *L, const char *name)
 {
-  FILE *fp = _lua_fopen(name, "r");
+  FILE *fp = fopen(name, "r");
   const char *p = NULL;
   if (fp) {
     char buf[256];
@@ -120,16 +119,13 @@ static void *clib_loadlib(lua_State *L, const char *name, int global)
 		   RTLD_LAZY | (global?RTLD_GLOBAL:RTLD_LOCAL));
   if (!h) {
     const char *e, *err = dlerror();
-    /* Per the standard definition of `dlerror`, this should always be safe, but we have
-     * observed `dlerror()` returning NULL on Android 7.1.1 SDK 25 (Oculus Quest) anyway,
-     * which causes a crash. */
     if (err && *err == '/' && (e = strchr(err, ':')) &&
 	(name = clib_resolve_lds(L, strdata(lj_str_new(L, err, e-err))))) {
       h = dlopen(name, RTLD_LAZY | (global?RTLD_GLOBAL:RTLD_LOCAL));
       if (h) return h;
       err = dlerror();
     }
-    if (!err) err = "dlopen failed"; /* Tolerate nonstandard dlerror implementations */
+    if (!err) err = "dlopen failed";
     lj_err_callermsg(L, err);
   }
   return h;

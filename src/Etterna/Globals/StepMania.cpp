@@ -670,9 +670,8 @@ CheckVideoDefaultSettings()
 	// Video card changed since last run
 	std::string sVideoDriver = GetVideoDriverName();
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Last seen video driver: {}",
-				   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
+	Locator::getLogger()->info("Last seen video driver: {}",
+				PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
 
 	// allow players to opt out of the forced reset when a new video card is
 	// detected - mina
@@ -687,8 +686,7 @@ CheckVideoDefaultSettings()
 		std::string sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
+			Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
 			break;
 		}
 	}
@@ -729,8 +727,7 @@ CheckVideoDefaultSettings()
 				  defaults.sVideoRenderers.c_str(), PREFSMAN->m_sVideoRenderers.Get().c_str());
 	}
 
-	if (PREFSMAN->m_verbose_log > 0)
-		Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
+	Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
 	return bSetDefaultVideoParams;
 }
 
@@ -1039,8 +1036,12 @@ sm_main(int argc, char* argv[])
 
     // Setup options that require preference variables
     // Used to be contents of ApplyLogPreferences
+    Core::Crash::setShouldUpload(PREFSMAN->m_bEnableCrashUpload);
     Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
-    Locator::getLogger()->setLogLevel(static_cast<Core::ILogger::Severity>(PREFSMAN->m_verbose_log.Get()));
+	Locator::getLogger()->info("Logging level {} (0 - TRACE | 5 - FATAL)",
+							   PREFSMAN->m_logging_level.Get());
+	Locator::getLogger()->setLogLevel(
+	  static_cast<Core::ILogger::Severity>(PREFSMAN->m_logging_level.Get()));
 
 	// This needs PREFSMAN.
 	Dialog::Init();
@@ -1370,7 +1371,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
-		Locator::getLogger()->trace("Screenshot took {} seconds.", timer.GetDeltaTime());
+		Locator::getLogger()->debug("Screenshot took {} seconds.", timer.GetDeltaTime());
 		return true; // handled
 	}
 

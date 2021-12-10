@@ -48,6 +48,7 @@ public:
     }
 
     virtual void setLogLevel(ILogger::Severity logLevel) = 0;
+	virtual std::string getLogFile() = 0;
 
 protected:
     /**

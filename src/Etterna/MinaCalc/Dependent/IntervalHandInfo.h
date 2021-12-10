@@ -1,7 +1,7 @@
 #pragma once
 #include "../CalcWindow.h"
 
-// accumulates hand specific info across an interval as it's processed by row
+/// accumulates hand specific info across an interval as it's processed by row
 struct ItvHandInfo
 {
 	void set_col_taps(const col_type& col)
@@ -23,7 +23,7 @@ struct ItvHandInfo
 		}
 	}
 
-	// handle end of interval behavior here
+	/// handle end of interval behavior here
 	void interval_end()
 	{
 		// update interval mw for hand taps
@@ -38,8 +38,8 @@ struct ItvHandInfo
 		_col_taps.fill(0);
 	}
 
-	// zeroes out all values for everything, complete reset for when we swap
-	// hands maybe move to constructor and reconstruct when swapping hands??
+	/// zeroes out all values for everything, complete reset for when we swap
+	/// hands maybe move to constructor and reconstruct when swapping hands??
 	void zero()
 	{
 		_col_taps.fill(0);
@@ -50,14 +50,14 @@ struct ItvHandInfo
 		_mw_hand_taps.zero();
 	}
 
-	/* access functions for col tap counts */
+	/// access functions for col tap counts
 	[[nodiscard]] auto get_col_taps_nowi(const col_type& ct) const -> int
 	{
 		assert(ct < num_col_types);
 		return _mw_col_taps.at(ct).get_now();
 	}
 
-	// cast to float for divisioning and clean screen
+	/// cast to float for divisioning and clean screen
 	[[nodiscard]] auto get_col_taps_nowf(const col_type& ct) const -> float
 	{
 		assert(ct < num_col_types);
@@ -71,7 +71,7 @@ struct ItvHandInfo
 		return _mw_col_taps.at(ct).get_total_for_window(window);
 	}
 
-	// cast to float for divisioning and clean screen
+	/// cast to float for divisioning and clean screen
 	[[nodiscard]] auto get_col_taps_windowf(const col_type& ct,
 											const int& window) const -> float
 	{
@@ -80,7 +80,7 @@ struct ItvHandInfo
 		  _mw_col_taps.at(ct).get_total_for_window(window));
 	}
 
-	// col operations
+	/// col operations
 	[[nodiscard]] auto cols_equal_now() const -> bool
 	{
 		return get_col_taps_nowi(col_left) == get_col_taps_nowi(col_right);
@@ -131,14 +131,13 @@ struct ItvHandInfo
 								get_col_taps_windowi(col_right, window));
 	}
 
-	/* access functions for hand tap counts */
-
+	/// access functions for hand tap counts
 	[[nodiscard]] auto get_taps_nowi() const -> int
 	{
 		return _mw_hand_taps.get_now();
 	}
 
-	// cast to float for divisioning and clean screen
+	/// cast to float for divisioning and clean screen
 	[[nodiscard]] auto get_taps_nowf() const -> float
 	{
 		return static_cast<float>(_mw_hand_taps.get_now());
@@ -149,8 +148,8 @@ struct ItvHandInfo
 		assert(window < max_moving_window_size);
 		return _mw_hand_taps.get_total_for_window(window);
 	}
-
-	// cast to float for divisioning and clean screen
+	
+	/// cast to float for divisioning and clean screen
 	[[nodiscard]] auto get_taps_windowf(const int& window) const -> float
 	{
 		assert(window < max_moving_window_size);
@@ -160,10 +159,10 @@ struct ItvHandInfo
   private:
 	std::array<int, num_col_types> _col_taps = { 0, 0, 0 };
 
-	// switch to keeping generic moving windows here, if any mod needs a moving
-	// window query for anything here, we've already saved computation. any mod
-	// that needs custom moving windows based on sequencing will have to keep
-	// its own container, but otherwise these should be referenced
+	/// switch to keeping generic moving windows here, if any mod needs a moving
+	/// window query for anything here, we've already saved computation. any mod
+	/// that needs custom moving windows based on sequencing will have to keep
+	/// its own container, but otherwise these should be referenced
 	std::array<CalcMovingWindow<int>, num_col_types> _mw_col_taps;
 	CalcMovingWindow<int> _mw_hand_taps;
 };

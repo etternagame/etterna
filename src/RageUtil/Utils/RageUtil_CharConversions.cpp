@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil.h"
 #include "RageUtil_CharConversions.h"
@@ -15,7 +15,8 @@ CodePageConvert(std::string& sText, int iCodePage)
 	int iSize = MultiByteToWideChar(
 	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), nullptr, 0);
 	if (iSize == 0) {
-		Locator::getLogger()->trace(werr_ssprintf(GetLastError(), "err: ").c_str());
+		Locator::getLogger()->trace(
+		  "{}", werr_ssprintf(GetLastError(), "err: ").c_str());
 		return false; /* error */
 	}
 
@@ -78,7 +79,7 @@ ConvertFromCharset(std::string& sText, const char* szCharset)
 	iconv_close(converter);
 
 	if (size == (size_t)(-1)) {
-		Locator::getLogger()->trace(strerror(errno));
+		Locator::getLogger()->trace("{}", strerror(errno));
 		return false; /* Returned an error */
 	}
 

@@ -33,7 +33,6 @@ void (*mySecTranslocateIsTranslocatedURL)(CFURLRef path, bool *isTranslocated, C
 CFURLRef __nullable (*mySecTranslocateCreateOriginalPathForURL)(CFURLRef translocatedPath, CFErrorRef * __nullable error);
 
 namespace Core::Platform {
-
     void init(){
         // Load Apple private security API
         void *handle = dlopen("/System/Library/Frameworks/Security.framework/Security", RTLD_LAZY);
@@ -146,7 +145,18 @@ namespace Core::Platform {
     }
 
     void setCursorVisible(bool value){
-        Locator::getLogger()->warn("Core::Platform::setCursorVisible not implemented");
+		static bool cursor_visible = true;
+		/*NSCursor hide/unhide keeps a reference count; each hide
+		 * must be matched by an unhide. We don't want this behaviour, so
+		 * use a state variable
+		 */
+		if(value && !cursor_visible){
+			[NSCursor unhide];
+		}
+		if(!value && cursor_visible){
+			[NSCursor hide];
+		}
+		cursor_visible = value;
     }
 
     ghc::filesystem::path getExecutableDirectory(){
@@ -181,5 +191,11 @@ namespace Core::Platform {
     {
         Locator::getLogger()->warn("Core::Platform::unboostPriority not implemented");
 		return true;
+    }
+
+    bool requestUserAttention()
+    {
+		[NSApp requestUserAttention:NSInformationalRequest];
+        return true;
     }
 }

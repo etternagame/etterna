@@ -16,7 +16,7 @@
 
 #if defined(OS_FUCHSIA)
 #include "util/process/process_memory_fuchsia.h"
-#elif defined(OS_LINUX) || defined(OS_ANDROID)
+#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
 #include "util/process/process_memory_linux.h"
 #elif defined(OS_WIN)
 #include "util/process/process_memory_win.h"
@@ -29,7 +29,7 @@ namespace crashpad {
 #if defined(OS_FUCHSIA) || DOXYGEN
 //! \brief Alias for platform-specific native implementation of ProcessMemory.
 using ProcessMemoryNative = ProcessMemoryFuchsia;
-#elif defined(OS_LINUX) || defined(OS_ANDROID)
+#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
 using ProcessMemoryNative = ProcessMemoryLinux;
 #elif defined(OS_WIN)
 using ProcessMemoryNative = ProcessMemoryWin;

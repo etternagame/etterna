@@ -171,6 +171,9 @@ class ScreenTextEntry : public ScreenWithMenuElements
 	static std::string s_sLastAnswer;
 	static bool s_bCancelledLast;
 
+	static bool s_bMustResetInputRedirAtClose;
+	static bool s_bResetInputRedirTo;
+
 	// Lua
 	void PushSelf(lua_State* L) override;
 

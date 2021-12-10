@@ -1,7 +1,7 @@
 #pragma once
 #include "HD_BasicSequencing.h"
 
-/* meta patterns are formed by chains of base patterns, we could pick up
+/** meta patterns are formed by chains of base patterns, we could pick up
  * triplets (left_right, right_left), or triple jacks (single_single,
  * single_single), but these aren't particularly useful for our use case, meta
  * patterns types are largely used in conjunction with timing checks to pick up
@@ -22,13 +22,13 @@ enum meta_type
 	meta_type_init,
 };
 
-// 1212, 2121, etc
-// cccccc is cross column, cross column, cross column more colloquially known as
-// either an oht, or a roll, depending on the timing, since the definition is
-// timing dependent we will simply use the pattern configuration to refer to it,
-// until timing checks are run only called if both now and last_last are
-// base_left_right || base_right_lef,  then, if it's not cccccc, it's ccacc by
-// definition
+/// 1212, 2121, etc
+/// cccccc is cross column, cross column, cross column more colloquially known as
+/// either an oht, or a roll, depending on the timing, since the definition is
+/// timing dependent we will simply use the pattern configuration to refer to it,
+/// until timing checks are run only called if both now and last_last are
+/// base_left_right || base_right_lef,  then, if it's not cccccc, it's ccacc by
+/// definition
 inline auto
 detecc_cccccc(const base_type& now, const base_type& last_last) -> bool
 {
@@ -36,6 +36,7 @@ detecc_cccccc(const base_type& now, const base_type& last_last) -> bool
 	return now == last_last;
 }
 
+/// given 3 consecutive pattern bases (4 notes) - is it jack-cc-jack?
 inline auto
 detecc_acca(const base_type& a, const base_type& b, const base_type& c) -> bool
 {
@@ -43,9 +44,9 @@ detecc_acca(const base_type& a, const base_type& b, const base_type& c) -> bool
 	return a == base_single_single && is_cc_tap(b) && c == base_single_single;
 }
 
-// WHOMST'D'VE
-// 12[12]12, we'll check now for cc before entering this, so we can then
-// determine whether this is an inverted ccsjjscc or not (12[12]21)
+/// WHOMST'D'VE
+/// 12[12]12, we'll check now for cc before entering this, so we can then
+/// determine whether this is an inverted ccsjjscc or not (12[12]21)
 inline auto
 detecc_sjjscc(const base_type& last,
 			  const base_type& last_last,
@@ -66,6 +67,8 @@ detecc_sjjscc(const base_type& last,
 	return last == base_jump_single && last_last == base_single_jump;
 }
 
+/// given the context of the previous 5 rows and the meta type formed,
+/// what might be the overall meta pattern forming?
 inline auto
 determine_meta_type(const base_type& now,
 					const base_type& last,

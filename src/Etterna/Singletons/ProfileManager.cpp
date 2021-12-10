@@ -114,7 +114,7 @@ ProfileManager::FixedProfiles() const
 ProfileLoadResult
 ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 {
-	Locator::getLogger()->trace("LoadingProfile P{}, {}", pn + 1, sProfileDir.c_str());
+	Locator::getLogger()->debug("LoadingProfile P{}, {}", pn + 1, sProfileDir.c_str());
 
 	ASSERT(!sProfileDir.empty());
 	ASSERT(sProfileDir.back() == '/');
@@ -148,14 +148,14 @@ ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 		 * was failed_tampered, then the error should be failed_tampered and not
 		 * failed_no_profile. */
 		if (lr == ProfileLoadResult_FailedNoProfile) {
-			Locator::getLogger()->trace("Profile was corrupt and LastGood for {} doesn't exist; "
+			Locator::getLogger()->warn("Profile was corrupt and LastGood for {} doesn't exist; "
 					   "error is ProfileLoadResult_FailedTampered",
 					   sProfileDir.c_str());
 			lr = ProfileLoadResult_FailedTampered;
 		}
 	}
 
-	Locator::getLogger()->trace("Done loading profile - result {}", lr);
+	Locator::getLogger()->info("Done loading profile - result {}", lr);
 
 	return lr;
 }

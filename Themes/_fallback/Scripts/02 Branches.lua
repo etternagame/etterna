@@ -8,28 +8,10 @@ function SMOnlineScreen() -- used for various SMOnline-enabled screens:
 	if not IsNetSMOnline() then
 		return "ScreenSelectMusic"
 	end
-	for pn in ivalues(GAMESTATE:GetHumanPlayers()) do
-		if not IsSMOnlineLoggedIn(pn) then
-			return "ScreenSMOnlineLogin"
-		end
+	if not IsSMOnlineLoggedIn() then
+		return "ScreenSMOnlineLogin"
 	end
 	return "ScreenNetRoom"
-end
-
-function SelectMusicOrCourse()
-	if IsNetSMOnline() then
-		return "ScreenNetSelectMusic"
-	else
-		return "ScreenSelectMusic"
-	end
-end
-
-function GameOverOrContinue()
-	if THEME:GetMetric("ScreenContinue", "ContinueEnabled") then
-		return "ScreenContinue"
-	else
-		return "ScreenGameOver"
-	end
 end
 
 function ToGameplay()
@@ -40,6 +22,14 @@ function ToGameplay()
 		return "ScreenGameplayReplay"
 	else
 		return "ScreenGameplay"
+	end
+end
+
+function ToStageInformation()
+	if not IsSMOnlineLoggedIn() then
+		return "ScreenStageInformation"
+	else
+		return "ScreenNetStageInformation"
 	end
 end
 
@@ -73,7 +63,7 @@ Branch = {
 	end,
 	MultiScreen = function()
 		if IsNetSMOnline() then
-			if not IsSMOnlineLoggedIn(PLAYER_1) then
+			if not IsSMOnlineLoggedIn() then
 				return "ScreenNetSelectProfile"
 			else
 				return "ScreenNetRoom"
@@ -102,27 +92,13 @@ Branch = {
 		return SMOnlineScreen()
 	end,
 	AfterProfileSave = function()
-		-- Might be a little too broken? -- Midiman
-		if GAMESTATE:IsEventMode() then
-			return "ScreenSelectMusic"
-		elseif STATSMAN:GetCurStageStats():Failed() then
-			return GameOverOrContinue()
-		else
-			return "ScreenSelectMusic"
-		end
+		return "ScreenSelectMusic"
 	end,
 	AfterProfileLoad = function()
 		return "ScreenSelectMusic"
 	end,
 	AfterNetProfileSave = function()
-		-- Might be a little too broken? -- Midiman
-		if GAMESTATE:IsEventMode() then
-			return "ScreenNetSelectMusic"
-		elseif STATSMAN:GetCurStageStats():Failed() then
-			return GameOverOrContinue()
-		else
-			return "ScreenNetSelectMusic"
-		end
+		return "ScreenNetSelectMusic"
 	end,
 	AfterSMOLogin = SMOnlineScreen,
 	BackOutOfPlayerOptions = function()
@@ -141,21 +117,21 @@ Branch = {
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return SelectFirstOptionsScreen()
 		else
-			return ToGameplay()
+			return ToStageInformation()
 		end
 	end,
 	PlayerOptions = function()
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenPlayerOptions"
 		else
-			return ToGameplay()
+			return ToStageInformation()
 		end
 	end,
 	SongOptions = function()
 		if SCREENMAN:GetTopScreen():GetGoToOptions() then
 			return "ScreenSongOptions"
 		else
-			return ToGameplay()
+			return ToStageInformation()
 		end
 	end,
 	AfterGameplay = function()
@@ -170,40 +146,12 @@ Branch = {
 
 		if not SCREENMAN:GetTopScreen():GetStageStats():GetLivePlay() then
 			return "ScreenSelectMusic"
-		elseif GAMESTATE:IsEventMode() or stagesLeft >= 1 then
-			return "ScreenProfileSave"
-		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and Failed then
-			return "ScreenProfileSaveSummary"
-		elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and Failed then
-			return "ScreenProfileSaveSummary"
-		elseif maxStages >= 2 and stagesLeft < 1 and Failed then
-			return "ScreenProfileSaveSummary"
-		elseif Failed then
-			return "ScreenProfileSaveSummary"
 		else
 			return "ScreenProfileSave"
 		end
 	end,
 	AfterNetEvaluation = function()
-		local Failed = STATSMAN:GetCurStageStats():Failed()
-		local song = GAMESTATE:GetCurrentSong()
-
-		if GAMESTATE:IsEventMode() or stagesLeft >= 1 then
-			return "ScreenNetProfileSave"
-		elseif song:IsLong() and maxStages <= 2 and stagesLeft < 1 and Failed then
-			return "ScreenProfileSaveSummary"
-		elseif song:IsMarathon() and maxStages <= 3 and stagesLeft < 1 and Failed then
-			return "ScreenProfileSaveSummary"
-		elseif maxStages >= 2 and stagesLeft < 1 and Failed then
-			return "ScreenProfileSaveSummary"
-		elseif Failed then
-			return "ScreenProfileSaveSummary"
-		else
-			return "ScreenNetProfileSave"
-		end
-	end,
-	AfterSummary = function()
-		return "ScreenProfileSaveSummary"
+		return "ScreenNetProfileSave"
 	end,
 	Network = function()
 		return IsNetConnected() and Branch.MultiScreen() or "ScreenTitleMenu"
@@ -211,13 +159,7 @@ Branch = {
 	BackOutOfNetwork = function()
 		return "ScreenTitleMenu"
 	end,
-	AfterSaveSummary = function()
-		return GameOverOrContinue()
-	end,
 	AfterContinue = function()
-		if GAMESTATE:GetNumPlayersEnabled() == 0 then
-			return "ScreenGameOver"
-		end
 
 		if STATSMAN:GetStagesPlayed() == 0 then
 			return "ScreenSelectStyle"

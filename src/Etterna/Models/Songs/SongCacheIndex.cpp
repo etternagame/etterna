@@ -50,7 +50,7 @@ using std::to_string;
  * the directory hash) in order to find the cache file.
  */
 const std::string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 243;
+const unsigned int CACHE_DB_VERSION = 244;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -361,6 +361,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 bool
 SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 {
+	Locator::getLogger()->debug("Caching song {}", dir);
 	DeleteSongFromDBByDir(dir);
 	try {
 		SQLite::Statement insertSong(*db,
@@ -578,7 +579,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 		}
 		return true;
 	} catch (std::exception& e) {
-		Locator::getLogger()->trace("Error saving song {} to cache db: {}", dir.c_str(), e.what());
+		Locator::getLogger()->warn("Error saving song {} to cache db: {}", dir.c_str(), e.what());
 		return false;
 	}
 }
@@ -595,7 +596,7 @@ SongCacheIndex::DeleteDB()
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
 									SQLITE_OPEN_FULLMUTEX);
 	} catch (std::exception& e) {
-		Locator::getLogger()->trace("Error reading cache db: {}", e.what());
+		Locator::getLogger()->warn("Error reading cache db: {}", e.what());
 		if (curTransaction != nullptr) {
 			delete curTransaction;
 			curTransaction = nullptr;
@@ -700,7 +701,7 @@ SongCacheIndex::OpenDB()
 			return true;
 		}
 	} catch (std::exception& e) {
-		Locator::getLogger()->trace("Error reading cache db: {}", e.what());
+		Locator::getLogger()->warn("Error reading cache db: {}", e.what());
 		if (curTransaction != nullptr) {
 			delete curTransaction;
 			curTransaction = nullptr;
@@ -720,7 +721,7 @@ SongCacheIndex::~SongCacheIndex()
 	if (curTransaction != nullptr) {
 		try {
 			curTransaction->commit();
-		} catch (exception& e) {
+		} catch (...) {
 			// DB transaction commit failed, we're destructing so we dont care.
 			// There really shouldnt be a transaction left anyways
 		}
@@ -761,7 +762,7 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 		}
 
 	} catch (std::exception& e) {
-		Locator::getLogger()->trace("Error reading cache. last dir: {} . Error: {}",
+		Locator::getLogger()->warn("Error reading cache. last dir: {} . Error: {}",
 				   lastDir.c_str(),
 				   e.what());
 		ResetDB();
@@ -795,6 +796,7 @@ SongCacheIndex::LoadCache(
   LoadingWindow* ld,
   std::vector<pair<pair<std::string, unsigned int>, Song*>*>& cache) const
 {
+	Locator::getLogger()->info("Beginning LoadCache");
 	auto count = 0;
 	try {
 		count = db->execAndGet("SELECT COUNT(*) FROM songs");
@@ -810,14 +812,17 @@ SongCacheIndex::LoadCache(
 	cache.reserve(count);
 	auto fivePercent = std::max(count / 100 * 5, 1);
 	const unsigned int threads = std::thread::hardware_concurrency();
-	const auto limit = count / threads;
+	const unsigned int limit =
+	  std::ceil(static_cast<float>(count) / static_cast<float>(threads));
+
 	ThreadData data;
 	std::atomic<bool> abort(false);
 	auto threadCallback =
 	  [&data, fivePercent, &abort](
 		int limit,
 		int offset,
-		std::vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart) {
+		std::vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart,
+		int index) {
 		  auto counter = 0;
 		  auto lastUpdate = 0;
 		  try {
@@ -842,9 +847,8 @@ SongCacheIndex::LoadCache(
 					  data.setUpdated(true);
 				  }
 			  }
-
 		  } catch (std::exception& e) {
-			  Locator::getLogger()->trace("Error reading cache. Error: {}", e.what());
+			  Locator::getLogger()->warn("Error reading cache - ABORTING. Error: {}", e.what());
 			  if (abort)
 				  return;
 			  abort = true;
@@ -852,20 +856,22 @@ SongCacheIndex::LoadCache(
 			  SONGINDEX->ResetDB();
 			  return;
 		  }
+		  Locator::getLogger()->info("LoadCache Thread {} Finished", index);
 		  data._threadsFinished++;
 		  data.setUpdated(true);
 	  };
 	std::vector<thread> threadpool;
 	std::vector<std::vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
 	cacheParts.reserve(threads);
-	for (auto i = 0; i < threads; i++)
+	for (unsigned int i = 0; i < threads; i++)
 		cacheParts.emplace_back(
 		  std::vector<pair<pair<std::string, unsigned int>, Song*>*>());
 	threadpool.reserve(threads);
-	for (auto i = 0; i < threads; i++)
+	for (unsigned int i = 0; i < threads; i++)
 		threadpool.emplace_back(
-		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));
-	while (data._threadsFinished < threads) {
+		  thread(threadCallback, limit, i * limit, &(cacheParts[i]), i));
+	Locator::getLogger()->info("LoadCache Started {} Threads", threads);
+	while (data._threadsFinished < static_cast<int>(threads)) {
 		data.waitForUpdate();
 		if (abort) {
 			for (auto& thread : threadpool)
@@ -880,6 +886,7 @@ SongCacheIndex::LoadCache(
 	for (auto& thread : threadpool)
 		thread.join();
 	cache = join(cacheParts);
+	Locator::getLogger()->info("Finished LoadCache");
 }
 void
 SongCacheIndex::DeleteSongFromDBByCondition(const string& condition) const
@@ -960,7 +967,7 @@ SongCacheIndex::FinishTransaction()
 		return;
 	try {
 		curTransaction->commit();
-	} catch (exception& e) {
+	} catch (...) {
 		// DB transaction commit failed, we're destructing so we dont care.
 		// There really shouldnt be a transaction left anyways
 	}
@@ -1358,7 +1365,7 @@ SongCacheIndex::LoadSongFromCache(Song* song, const std::string& dir)
 
 		SongFromStatement(song, query);
 	} catch (std::exception& e) {
-		Locator::getLogger()->trace("Error reading song {} from cache: {}", dir.c_str(), e.what());
+		Locator::getLogger()->error("Error reading song {} from cache: {}", dir.c_str(), e.what());
 		ResetDB();
 		return false;
 	}

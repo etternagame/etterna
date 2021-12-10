@@ -341,6 +341,8 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 
 	const auto fSongBeat = position.m_fSongBeatVisible;
 	Steps* pCurSteps = GAMESTATE->m_pCurSteps;
+	if (pCurSteps == nullptr)
+		return 0.F;
 
 	/* Usually, fTimeSpacing is 0 or 1, in which case we use entirely beat
 	 * spacing or entirely time spacing (respectively). Occasionally, we tween

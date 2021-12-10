@@ -324,7 +324,7 @@ RageBitmapTexture::Create()
 			bRunCheck = false;
 		}
 
-		if (bRunCheck && PREFSMAN->m_verbose_log > 1) {
+		if (bRunCheck) {
 			auto fFrameWidth = this->GetSourceWidth() /
 							   static_cast<float>(this->GetFramesWide());
 			auto fFrameHeight = this->GetSourceHeight() /
@@ -354,8 +354,12 @@ RageBitmapTexture::Create()
 				  fBetterSourceHeight,
 				  fBetterFrameWidth,
 				  fBetterFrameHeight);
-				Locator::getLogger()->warn(sWarning.c_str());
-				Dialog::OK(sWarning, "FRAME_DIMENSIONS_WARNING");
+				// dont care about this for now....
+				// // dont forget about it
+				// // // TODO
+				// // // TODO
+				Locator::getLogger()->debug("{}", sWarning.c_str());
+				// Dialog::OK(sWarning, "FRAME_DIMENSIONS_WARNING");
 			}
 		}
 	}

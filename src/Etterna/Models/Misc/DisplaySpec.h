@@ -81,7 +81,7 @@ class DisplaySpec
 			// Drop the trailing ", "
 			msg.resize(msg.size() - 2);
 
-			Locator::getLogger()->warn(msg.c_str());
+			Locator::getLogger()->warn("{}", msg.c_str());
 		}
 	}
 

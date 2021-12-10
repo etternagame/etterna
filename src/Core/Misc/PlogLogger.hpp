@@ -8,9 +8,12 @@ class PlogLogger : public Core::ILogger {
 public:
     PlogLogger();
     void setLogLevel(ILogger::Severity logLevel) override;
+	std::string getLogFile() override;
 protected:
     void log(ILogger::Severity logLevel, const std::string_view message) override;
 private:
+  	std::string currentLogFile;
+
     static plog::Severity convertSeverity(Core::ILogger::Severity logLevel);
 };
 

@@ -43,27 +43,7 @@ local function input(event)
 	return false
 end
 
-local function highlight(self)
-	if self:IsVisible() then
-		self:queuecommand("Highlight")
-		self:queuecommand("WHAZZZAAAA")
-	end
-end
-
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
-
-local function byAchieved(scoregoal)
-	if not scoregoal or scoregoal:IsAchieved() then
-		return getMainColor("positive")
-	end
-	return color("#aaaaaa")
-end
+local hoverAlpha = 0.6
 
 local filts = {
 	THEME:GetString("NestedScores", "FilterAll"),
@@ -86,12 +66,10 @@ local translated_info = {
 }
 
 local scoretable = {}
-local o =
-	Def.ActorFrame {
+local o = Def.ActorFrame {
 	Name = "ScoreDisplay",
 	InitCommand = function(self)
 		cheese = self
-		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
@@ -198,17 +176,10 @@ local o =
 		FILTERMAN:HelpImTrappedInAChineseFortuneCodingFactory(false)
 		self:playcommand("Init")
 	end,
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {-- this is a nonfunctional button to mask buttons behind the window
 		Name = "FrameDisplay",
 		InitCommand = function(self)
 			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(getMainColor("tabs"))
-		end,
-		HighlightCommand = function(self)
-			if collapsed then
-				self:diffusealpha(1)
-			else
-				self:diffusealpha(0.6)
-			end
 		end,
 		MouseRightClickMessageCommand = function(self)
 			if isOver(self) and not collapsed then
@@ -227,173 +198,204 @@ local o =
 		end
 	},
 	-- grabby thing
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
-			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom):halign(0):diffuse(getMainColor("frames")):diffusealpha(
-				0.5
-			):valign(1)
+			self:valign(1):halign(0)
+			self:xy(dwidth / 4, headeroff):zoomto(dwidth - dwidth / 4, pdh - 8 * tzoom)
+			self:diffuse(getMainColor("frames"))
+			self:diffusealpha(0)
 		end,
-		WHAZZZAAAACommand = function(self)
-			if isOver(self) and collapsed then
+		CollapseCommand = function(self)
+			self:zoomto(dwidth / 2, pdh / 2):diffusealpha(0.5)
+		end,
+		ExpandCommand = function(self)
+			self:diffusealpha(0):zoomto(400, 400):valign(0.5):halign(0.5)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and collapsed then
 				self:diffusealpha(0.6):diffuse(color("#fafafa"))
-				if INPUTFILTER:IsBeingPressed("Mouse 0", "Mouse") then
-					self:diffusealpha(0):zoomto(400, 400):valign(0.5):halign(0.5)
-					local nx = INPUTFILTER:GetMouseX() - width / 2
-					local ny = INPUTFILTER:GetMouseY() - self:GetY()
-					self:GetParent():SaveXY(nx, ny) -- this can probably be wrapped for convenience -mina
-					self:GetParent():LoadXY()
-					self:GetParent():SetUpdateFunctionInterval(0.01)
-				else
-					self:zoomto(dwidth / 2, pdh / 2):valign(1):halign(0)
-				end
-			else
-				self:GetParent():SetUpdateFunctionInterval(0.04)
-				self:diffuse(getMainColor("frames")):diffusealpha(0)
+				self.initialClickX = params.MouseX - self:GetTrueX()
+				self.initialClickY = params.MouseY - self:GetTrueY()
+			elseif params.event == "DeviceButton_right mouse button" and collapsed then
+				self:zoomto(dwidth / 2, pdh / 2):valign(1):halign(0)
 			end
-		end
+		end,
+		MouseUpCommand = function(self, params)
+			self.gettindragged = false
+			if params.event == "DeviceButton_left mouse button" and collapsed then
+				self:diffusealpha(0.5):diffuse(getMainColor("frames"))
+			end
+		end,
+		MouseReleaseCommand = function(self, params)
+			self.gettindragged = false
+			if params.event == "DeviceButton_left mouse button" and collapsed then
+				self:diffusealpha(0.5):diffuse(getMainColor("frames"))
+			end
+		end,
+		MouseDragCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and collapsed then
+				local nx = params.MouseX - self:GetX() - self.initialClickX or 0
+				local ny = params.MouseY - self:GetY() - self.initialClickY or 0
+				self:GetParent():SaveXY(nx, ny)
+				self:GetParent():LoadXY()
+				self.gettindragged = true
+			end
+		end,
+		MouseOutCommand = function(self)
+			if not collapsed then return end
+			if self.gettindragged then return end -- dragging fast triggers this
+			self:diffuse(getMainColor("frames")):diffusealpha(0.5)
+		end,
+		MouseOverCommand = function(self)
+			if not collapsed then return end
+			self:diffusealpha(1)
+		end,
 	},
-	LoadFont("Common normal") ..
-		{
-			-- informational text about online scores
-			Name = "RequestStatus",
-			InitCommand = function(self)
-				if collapsed then
-					self:xy(c1x, headeroff + 15):zoom(tzoom):halign(0)
-				else
-					self:xy(c1x, headeroff + 25):zoom(tzoom):halign(0)
-				end
-			end,
-			UpdateCommand = function(self)
-				local numberofscores = scoretable ~= nil and #scoretable or 0
-				local online = DLMAN:IsLoggedIn()
-				if not GAMESTATE:GetCurrentSong() then
-					self:settext("")
-				elseif not online and scoretable ~= nil and #scoretable == 0 then
-					self:settext(translated_info["LoginToView"])
-				else
-					if scoretable ~= nil and #scoretable == 0 then
-						self:settext(translated_info["NoScoresFound"])
-					elseif scoretable == nil then
-						self:settext("Chart is not ranked")
-					else
-						self:settext("")
-					end
-				end
-			end,
-			CurrentSongChangedMessageCommand = function(self)
-				local online = DLMAN:IsLoggedIn()
-				if not GAMESTATE:GetCurrentSong() then
-					self:settext("")
-				elseif not online and scoretable ~= nil and #scoretable == 0 then
-					self:settext(translated_info["LoginToView"])
+	LoadFont("Common normal") .. {
+		-- informational text about online scores
+		Name = "RequestStatus",
+		InitCommand = function(self)
+			if collapsed then
+				self:xy(c1x, headeroff + 15):zoom(tzoom):halign(0)
+			else
+				self:xy(c1x, headeroff + 25):zoom(tzoom):halign(0)
+			end
+		end,
+		UpdateCommand = function(self)
+			local numberofscores = scoretable ~= nil and #scoretable or 0
+			local online = DLMAN:IsLoggedIn()
+			if not GAMESTATE:GetCurrentSong() then
+				self:settext("")
+			elseif not online and scoretable ~= nil and #scoretable == 0 then
+				self:settext(translated_info["LoginToView"])
+			else
+				if scoretable ~= nil and #scoretable == 0 then
+					self:settext(translated_info["NoScoresFound"])
 				elseif scoretable == nil then
 					self:settext("Chart is not ranked")
 				else
-					self:settext(translated_info["NoScoresFound"])
+					self:settext("")
 				end
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--current rate toggle
-			InitCommand = function(self)
-				self:xy(c5x, headeroff):zoom(tzoom):halign(1):valign(1)
-				self:diffuse(getMainColor("positive"))
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			UpdateCommand = function(self)
-				if DLMAN:GetCurrentRateFilter() then
-					self:settext(filts[2])
-				else
-					self:settext(filts[1])
-				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					DLMAN:ToggleRateFilter()
-					ind = 0
-					self:GetParent():queuecommand("GetFilteredLeaderboard")
-				end
+		end,
+		CurrentSongChangedMessageCommand = function(self)
+			local online = DLMAN:IsLoggedIn()
+			if not GAMESTATE:GetCurrentSong() then
+				self:settext("")
+			elseif not online and scoretable ~= nil and #scoretable == 0 then
+				self:settext(translated_info["LoginToView"])
+			elseif scoretable == nil then
+				self:settext("Chart is not ranked")
+			else
+				self:settext(translated_info["NoScoresFound"])
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--top score/all score toggle
-			InitCommand = function(self)
-				self:diffuse(getMainColor("positive"))
-				if collapsed then
-					self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1):valign(1)
-				else
-					self:xy(c5x - capWideScale(160,190), headeroff):zoom(tzoom):halign(1):valign(1)
-				end
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			UpdateCommand = function(self)
-				if DLMAN:GetTopScoresOnlyFilter() then
-					self:settext(topornah[1])
-				else
-					self:settext(topornah[2])
-				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					DLMAN:ToggleTopScoresOnlyFilter()
-					ind = 0
-					self:GetParent():queuecommand("GetFilteredLeaderboard")
-				end
+		end
+	},
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		--current rate toggle
+		InitCommand = function(self)
+			self:xy(c5x, headeroff):zoom(tzoom):halign(1):valign(1)
+			self:diffuse(getMainColor("positive"))
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		UpdateCommand = function(self)
+			if DLMAN:GetCurrentRateFilter() then
+				self:settext(filts[2])
+			else
+				self:settext(filts[1])
 			end
-		},
-	LoadFont("Common normal") ..
-		{
-			--ccon/off filter toggle
-			InitCommand = function(self)
-				self:diffuse(getMainColor("positive"))
-				if collapsed then
-					self:visible(false)
-					--self:xy(c5x - 110, headeroff):zoom(tzoom):halign(1):valign(1)
-				else
-					self:visible(true)
-					self:xy(c5x - capWideScale(80,96), headeroff):zoom(tzoom):halign(1):valign(1)
-				end
-			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end,
-			UpdateCommand = function(self)
-				if DLMAN:GetCCFilter() then
-					self:settext(ccornah[1])
-				else
-					self:settext(ccornah[2])
-				end
-			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
-					DLMAN:ToggleCCFilter()
-					ind = 0
-					self:GetParent():queuecommand("GetFilteredLeaderboard")
-				end
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				DLMAN:ToggleRateFilter()
+				ind = 0
+				self:GetParent():queuecommand("GetFilteredLeaderboard")
 			end
-		}
+		end
+	},
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		--top score/all score toggle
+		InitCommand = function(self)
+			self:diffuse(getMainColor("positive"))
+			if collapsed then
+				self:xy(c5x - 175, headeroff):zoom(tzoom):halign(1):valign(1)
+			else
+				self:xy(c5x - capWideScale(160,190), headeroff):zoom(tzoom):halign(1):valign(1)
+			end
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		UpdateCommand = function(self)
+			if DLMAN:GetTopScoresOnlyFilter() then
+				self:settext(topornah[1])
+			else
+				self:settext(topornah[2])
+			end
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				DLMAN:ToggleTopScoresOnlyFilter()
+				ind = 0
+				self:GetParent():queuecommand("GetFilteredLeaderboard")
+			end
+		end
+	},
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		--ccon/off filter toggle
+		InitCommand = function(self)
+			self:diffuse(getMainColor("positive"))
+			if collapsed then
+				self:visible(false)
+				--self:xy(c5x - 110, headeroff):zoom(tzoom):halign(1):valign(1)
+			else
+				self:visible(true)
+				self:xy(c5x - capWideScale(80,96), headeroff):zoom(tzoom):halign(1):valign(1)
+			end
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		UpdateCommand = function(self)
+			if DLMAN:GetCCFilter() then
+				self:settext(ccornah[1])
+			else
+				self:settext(ccornah[2])
+			end
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				DLMAN:ToggleCCFilter()
+				ind = 0
+				self:GetParent():queuecommand("GetFilteredLeaderboard")
+			end
+		end
+	}
 }
 
 local function makeScoreDisplay(i)
 	local hs
 
-	local o =
-		Def.ActorFrame {
+	local o = Def.ActorFrame {
+		Name = "Scoredisplay_"..i,
 		InitCommand = function(self)
 			self:y(packspaceY * i + headeroff)
 			if i > numscores then
 				self:visible(false)
+			else
+				self:visible(true)
 			end
-			self:SetUpdateFunction(function(self)
-				self:queuecommand("PercentMouseover")
-			end)
-			self:SetUpdateFunctionInterval(0.025)
 		end,
 		CurrentSongChangedMessageCommand = function(self)
 			self:visible(false)
@@ -411,275 +413,278 @@ local function makeScoreDisplay(i)
 				self:visible(false)
 			end
 		end,
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {-- this is a non functional button to mask buttons behind the box
 			InitCommand = function(self)
 				self:x(offx):zoomto(dwidth, pdh):halign(0)
 			end,
 			DisplayCommand = function(self)
 				self:diffuse(color("#111111CC"))
+				self:diffusealpha(0.8)
 			end,
-			HighlightCommand = function(self)
-				if isOver(self) then
-					self:diffusealpha(0.8)
+		},
+		LoadFont("Common normal") .. {
+			--rank
+			InitCommand = function(self)
+				self:x(c0x):zoom(tzoom):halign(0):valign(0)
+				if collapsed then
+					self:x(c0x):zoom(tzoom):halign(0):valign(0.5)
+				end
+			end,
+			DisplayCommand = function(self)
+				self:settextf("%i.", i + ind)
+			end
+		},
+		LoadFont("Common normal") .. {
+			--ssr
+			InitCommand = function(self)
+				self:x(c2x - c1x + offx):zoom(tzoom + 0.05):halign(0.5):valign(1)
+				if collapsed then
+					self:x(46):zoom(tzoom + 0.15):halign(0.5):valign(0.5):maxwidth(20 / tzoom)
+				end
+			end,
+			DisplayCommand = function(self)
+				local ssr = hs:GetSkillsetSSR("Overall")
+				self:settextf("%.2f", ssr):diffuse(byMSD(ssr))
+			end
+		},
+		LoadFont("Common normal") .. {
+			--rate
+			InitCommand = function(self)
+				self:x(c2x - c1x + offx):zoom(tzoom - 0.05):halign(0.5):valign(0):addy(row2yoff)
+				if collapsed then
+					self:x(c4x - 14):zoom(tzoom):halign(1):valign(0.5):addy(-row2yoff):maxwidth(30 / tzoom)
+				end
+			end,
+			DisplayCommand = function(self)
+				local ratestring = string.format("%.2f", hs:GetMusicRate()):gsub("%.?0$", "") .. "x"
+				self:settext(ratestring)
+			end,
+			ExpandCommand = function(self)
+				self:addy(-row2yoff)
+			end
+		},
+		UIElements.TextToolTip(1, 1, "Common Normal") .. {
+			Name = "Burt" .. i,
+			InitCommand = function(self)
+				self:x(c2x):zoom(tzoom + 0.1):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
+				if collapsed then
+					self:x(c2x + 10):maxwidth(60 / tzoom):zoom(tzoom + 0.2):valign(0.5)
+				end
+			end,
+			DisplayCommand = function(self)
+				self:settext(hs:GetDisplayName())
+				if hs:GetChordCohesion() then
+					self:diffuse(color("#F0EEA6"))
 				else
-					self:diffusealpha(0.6)
+					self:diffuse(getMainColor("positive"))
+				end
+			end,
+			MouseOverCommand = function(self)
+				self:diffusealpha(hoverAlpha)
+			end,
+			MouseOutCommand = function(self)
+				self:diffusealpha(1)
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					local urlstringyo = "https://etternaonline.com/user/" .. hs:GetDisplayName()
+					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 				end
 			end
 		},
-		LoadFont("Common normal") ..
-			{
-				--rank
-				InitCommand = function(self)
-					self:x(c0x):zoom(tzoom):halign(0):valign(0)
-					if collapsed then
-						self:x(c0x):zoom(tzoom):halign(0):valign(0.5)
-					end
-				end,
-				DisplayCommand = function(self)
-					self:settextf("%i.", i + ind)
+		UIElements.TextToolTip(1, 1, "Common Normal") .. {
+			Name = "Ernie" .. i,
+			InitCommand = function(self)
+				if not collapsed then
+					self:x(c2x):zoom(tzoom - 0.05):halign(0):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff)
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--ssr
-				InitCommand = function(self)
-					self:x(c2x - c1x + offx):zoom(tzoom + 0.05):halign(0.5):valign(1)
-					if collapsed then
-						self:x(46):zoom(tzoom + 0.15):halign(0.5):valign(0.5):maxwidth(20 / tzoom)
-					end
-				end,
-				DisplayCommand = function(self)
-					local ssr = hs:GetSkillsetSSR("Overall")
-					self:settextf("%.2f", ssr):diffuse(byMSD(ssr))
+			end,
+			DisplayCommand = function(self)
+				self:settext(hs:GetJudgmentString())
+				if hs:GetChordCohesion() then
+					self:diffuse(color("#F0EEA6"))
+				else
+					self:diffuse(getMainColor("positive"))
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--rate
-				InitCommand = function(self)
-					self:x(c2x - c1x + offx):zoom(tzoom - 0.05):halign(0.5):valign(0):addy(row2yoff)
-					if collapsed then
-						self:x(c4x - 14):zoom(tzoom):halign(1):valign(0.5):addy(-row2yoff):maxwidth(30 / tzoom)
-					end
-				end,
-				DisplayCommand = function(self)
-					local ratestring = string.format("%.2f", hs:GetMusicRate()):gsub("%.?0$", "") .. "x"
-					self:settext(ratestring)
-				end,
-				ExpandCommand = function(self)
-					self:addy(-row2yoff)
+			end,
+			MouseOverCommand = function(self)
+				self:diffusealpha(hoverAlpha)
+			end,
+			MouseOutCommand = function(self)
+				self:diffusealpha(1)
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					local urlstringyo = "https://etternaonline.com/score/view/" .. hs:GetScoreid() .. hs:GetUserid()
+					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "Burt" .. i,
-				InitCommand = function(self)
-					self:x(c2x):zoom(tzoom + 0.1):maxwidth((c3x - c2x - capWideScale(10, 40)) / tzoom):halign(0):valign(1)
-					if collapsed then
-						self:x(c2x + 10):maxwidth(60 / tzoom):zoom(tzoom + 0.2):valign(0.5)
-					end
-				end,
-				DisplayCommand = function(self)
-					self:settext(hs:GetDisplayName())
-					if hs:GetChordCohesion() then
-						self:diffuse(color("#F0EEA6"))
-					else
-						self:diffuse(getMainColor("positive"))
-					end
-				end,
-				HighlightCommand = function(self)
-					highlightIfOver(self)
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) then
-						local urlstringyo = "https://etternaonline.com/user/" .. hs:GetDisplayName()
-						GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
-					end
-				end
-			},
-		LoadFont("Common normal") ..
-			{
-				Name = "Ernie" .. i,
-				InitCommand = function(self)
-					if not collapsed then
-						self:x(c2x):zoom(tzoom - 0.05):halign(0):valign(0):maxwidth(width / 2 / tzoom):addy(row2yoff)
-					end
-				end,
-				DisplayCommand = function(self)
-					self:settext(hs:GetJudgmentString())
-					if hs:GetChordCohesion() then
-						self:diffuse(color("#F0EEA6"))
-					else
-						self:diffuse(getMainColor("positive"))
-					end
-				end,
-				HighlightCommand = function(self)
-					highlightIfOver(self)
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) then
-						local urlstringyo = "https://etternaonline.com/score/view/" .. hs:GetScoreid() .. hs:GetUserid()
-						GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
-					end
-				end,
-				CollapseCommand = function(self)
-					self:visible(false)
-				end,
-				ExpandCommand = function(self)
-					self:visible(true):addy(-row2yoff)
-				end
-			},
+			end,
+			CollapseCommand = function(self)
+				self:visible(false)
+			end,
+			ExpandCommand = function(self)
+				self:visible(true):addy(-row2yoff)
+			end
+		},
 
-			--[[ --wife version display ... not 100% reliable
-		LoadFont("Common normal") ..
-			{
-				Name = "WifeVers" .. i,
-				InitCommand = function(self)
-					if not collapsed then
-						self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.25):halign(1):valign(0.5):maxwidth(width / 2 / tzoom):diffuse(getMainColor("negative")):addy(-pdh/4)
-					end
-				end,
-				DisplayCommand = function(self)
-					if hs:GetWifeVers() ~= 3 then
-						self:settextf("W2/XML", hs:GetWifeVers())
+		--[[ --wife version display ... not 100% reliable
+		LoadFont("Common normal") .. {
+			Name = "WifeVers" .. i,
+			InitCommand = function(self)
+				if not collapsed then
+					self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.25):halign(1):valign(0.5):maxwidth(width / 2 / tzoom):diffuse(getMainColor("negative")):addy(-pdh/4)
+				end
+			end,
+			DisplayCommand = function(self)
+				if hs:GetWifeVers() ~= 3 then
+					self:settextf("W2/XML", hs:GetWifeVers())
+				else
+					self:settext("")
+				end
+			end,
+			CollapseCommand = function(self)
+				self:visible(false)
+			end,
+			ExpandCommand = function(self)
+				self:visible(true)
+			end
+		},
+		]]
+		UIElements.TextToolTip(1, 1, "Common Normal") .. {
+			Name = "Replay" .. i,
+			InitCommand = function(self)
+				if not collapsed then
+					self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 2 / tzoom):addy(
+						row2yoff
+					):diffuse(getMainColor("enabled"))
+				end
+			end,
+			BeginCommand = function(self)
+				if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
+					self:visible(false)
+				end
+			end,
+			DisplayCommand = function(self)
+				if GAMESTATE:GetCurrentSteps() then
+					if hs:HasReplayData() then
+						self:settext(translated_info["Watch"])
 					else
 						self:settext("")
 					end
-				end,
-				CollapseCommand = function(self)
-					self:visible(false)
-				end,
-				ExpandCommand = function(self)
-					self:visible(true)
 				end
-			},
-			]]
-		LoadFont("Common normal") ..
-			{
-				Name = "Replay" .. i,
-				InitCommand = function(self)
-					if not collapsed then
-						self:x(capWideScale(c3x + 52, c3x)):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 2 / tzoom):addy(
-							row2yoff
-						):diffuse(getMainColor("enabled"))
-					end
-				end,
-				BeginCommand = function(self)
-					if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then
-						self:visible(false)
-					end
-				end,
-				DisplayCommand = function(self)
-					if GAMESTATE:GetCurrentSteps() then
-						if hs:HasReplayData() then
-							self:settext(translated_info["Watch"])
-						else
-							self:settext("")
+			end,
+			MouseOverCommand = function(self)
+				self:diffusealpha(hoverAlpha)
+			end,
+			MouseOutCommand = function(self)
+				self:diffusealpha(1)
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" and hs then
+					DLMAN:RequestOnlineScoreReplayData(
+						hs,
+						function()
+							SCREENMAN:GetTopScreen():PlayReplay(hs)
 						end
-					end
-				end,
-				HighlightCommand = function(self)
-					highlightIfOver(self)
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) and hs then
+					)
+				end
+			end,
+			CollapseCommand = function(self)
+				self:visible(false)
+			end,
+			ExpandCommand = function(self)
+				self:visible(true):addy(-row2yoff)
+			end
+		},
+		UIElements.QuadButton(1, 1) .. {
+			InitCommand = function(self)
+				self:x(c5x):zoomto(50,10):halign(1):valign(1)
+				if collapsed then
+					self:x(c5x):zoomto(40, 10):halign(1):valign(0.5)
+				end
+				self:diffusealpha(0)
+			end,
+			MouseOverCommand = function(self)
+				if self:IsVisible() then
+					self:GetParent():GetChild("NormalText"):visible(false)
+					self:GetParent():GetChild("LongerText"):visible(true)
+				end
+			end,
+			MouseOutCommand = function(self)
+				if self:IsVisible() then
+					self:GetParent():GetChild("NormalText"):visible(true)
+					self:GetParent():GetChild("LongerText"):visible(false)
+				end
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" and hs and not collapsed then
+					if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then return end
+					if hs:HasReplayData() then
 						DLMAN:RequestOnlineScoreReplayData(
 							hs,
 							function()
-								SCREENMAN:GetTopScreen():PlayReplay(hs)
+								setScoreForPlot(hs)
+								SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
 							end
 						)
 					end
-				end,
-				CollapseCommand = function(self)
-					self:visible(false)
-				end,
-				ExpandCommand = function(self)
-					self:visible(true):addy(-row2yoff)
 				end
-			},
-		Def.Quad {
-				InitCommand = function(self)
-					self:x(c5x):zoomto(50,10):halign(1):valign(1)
-					if collapsed then
-						self:x(c5x):zoomto(40, 10):halign(1):valign(0.5)
-					end
-					self:diffusealpha(0)
-				end,
-				PercentMouseoverCommand = function(self)
-					if isOver(self) and self:IsVisible() then
-						self:GetParent():GetChild("NormalText"):visible(false)
-						self:GetParent():GetChild("LongerText"):visible(true)
-					else
-						self:GetParent():GetChild("NormalText"):visible(true)
-						self:GetParent():GetChild("LongerText"):visible(false)
-					end
-				end,
-				MouseLeftClickMessageCommand = function(self)
-					if isOver(self) and hs and not collapsed then
-						if SCREENMAN:GetTopScreen():GetName() == "ScreenNetSelectMusic" then return end
-						if hs:HasReplayData() then
-							DLMAN:RequestOnlineScoreReplayData(
-								hs,
-								function()
-									setScoreForPlot(hs)
-									SCREENMAN:AddNewScreenToTop("ScreenScoreTabOffsetPlot")
-								end
-							)
-						end
-					end
+			end
+		},
+		LoadFont("Common normal") .. {
+			--percent
+			Name="NormalText",
+			InitCommand = function(self)
+				self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
+				if collapsed then
+					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--percent
-				Name="NormalText",
-				InitCommand = function(self)
-					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
-					if collapsed then
-						self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
-					end
-				end,
-				DisplayCommand = function(self)
-					self:settextf("%05.2f%%", notShit.floor(hs:GetWifeScore() * 100, 2)):diffuse(byGrade(hs:GetWifeGrade()))
+			end,
+			DisplayCommand = function(self)
+				self:settextf("%05.2f%%", notShit.floor(hs:GetWifeScore() * 100, 2)):diffuse(byGrade(hs:GetWifeGrade()))
+			end
+		},
+		LoadFont("Common normal") .. {
+			--percent
+			Name="LongerText",
+			InitCommand = function(self)
+				self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
+				if collapsed then
+					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
 				end
-			},
-			LoadFont("Common normal") ..
-			{
-				--percent
-				Name="LongerText",
-				InitCommand = function(self)
-					self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(1)
-					if collapsed then
-						self:x(c5x):zoom(tzoom + 0.15):halign(1):valign(0.5):maxwidth(30 / tzoom)
-					end
-				end,
-				DisplayCommand = function(self)
-					self:settextf("%05.4f%%", notShit.floor(hs:GetWifeScore() * 100, 5)):diffuse(byGrade(hs:GetWifeGrade()))
+				self:visible(false)
+			end,
+			DisplayCommand = function(self)
+				local perc = hs:GetWifeScore() * 100
+				if perc > 99.7 then
+					self:settextf("%05.5f%%", notShit.floor(perc, 5))
+				else
+					self:settextf("%05.4f%%", notShit.floor(perc, 4))
 				end
-			},
-		LoadFont("Common normal") ..
-			{
-				--date
-				InitCommand = function(self)
-					if not collapsed then
-						self:x(c5x):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 4 / tzoom):addy(row2yoff)
-					end
-				end,
-				DisplayCommand = function(self)
-					if IsUsingWideScreen() then
-						self:settext(hs:GetDate())
-					else
-						self:settext(hs:GetDate():sub(1, 10))
-					end
-				end,
-				CollapseCommand = function(self)
-					self:visible(false)
-				end,
-				ExpandCommand = function(self)
-					self:visible(true):addy(-row2yoff)
+				self:diffuse(byGrade(hs:GetWifeGrade()))
+			end
+		},
+		LoadFont("Common normal") .. {
+			--date
+			InitCommand = function(self)
+				if not collapsed then
+					self:x(c5x):zoom(tzoom - 0.05):halign(1):valign(0):maxwidth(width / 4 / tzoom):addy(row2yoff)
 				end
-			}
+			end,
+			DisplayCommand = function(self)
+				if IsUsingWideScreen() then
+					self:settext(hs:GetDate())
+				else
+					self:settext(hs:GetDate():sub(1, 10))
+				end
+			end,
+			CollapseCommand = function(self)
+				self:visible(false)
+			end,
+			ExpandCommand = function(self)
+				self:visible(true):addy(-row2yoff)
+			end
+		}
 	}
 	return o
 end

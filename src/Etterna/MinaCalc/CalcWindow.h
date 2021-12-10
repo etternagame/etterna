@@ -3,20 +3,19 @@
 
 #include <array>
 
-/* custom moving window container that can do basic statistical operations on a
- * dynamic window */
-
 static const int max_moving_window_size = 6;
 
-// applies to acca and cccccc as well
+/// applies to acca and cccccc as well
 static const int ccacc_timing_check_size = 3;
 
+/// custom moving window container that can do basic statistical operations on 
+/// a dynamic window
 template<typename T>
 struct CalcMovingWindow
 {
-	// ok there's actually a good reason for indexing this way because it's more
-	// intuitive since we are scanning row by row the earliest values in the
-	// window are the oldest
+	/// ok there's actually a good reason for indexing this way because it's more
+	/// intuitive since we are scanning row by row the earliest values in the
+	/// window are the oldest
 	void operator()(const T& new_val)
 	{
 		// update the window
@@ -28,21 +27,22 @@ struct CalcMovingWindow
 		_itv_vals.at(max_moving_window_size - 1) = new_val;
 	}
 
-	// return type T
+	/// index moving window like an array
 	auto operator[](const int& pos) const -> T
 	{
 		assert(pos >= 0 && pos < max_moving_window_size);
 		return _itv_vals.at(pos);
 	}
 
-	// return type T
+	/// get most recent value in moving window
 	[[nodiscard]] auto get_now() const -> T { return _itv_vals.back(); }
+	/// get oldest value in moving window
 	[[nodiscard]] auto get_last() const -> T
 	{
 		return _itv_vals.at(max_moving_window_size - 2);
 	}
 
-	// return type T
+	/// get the sum for the moving window up to a given size
 	[[nodiscard]] auto get_total_for_window(const int& window) const -> T
 	{
 		T o = static_cast<T>(0);
@@ -55,7 +55,7 @@ struct CalcMovingWindow
 		return o;
 	}
 
-	// return type T
+	/// get the max for the moving window up to a given size
 	[[nodiscard]] auto get_max_for_window(const int& window) const -> T
 	{
 		T o = static_cast<T>(0);
@@ -68,7 +68,7 @@ struct CalcMovingWindow
 		return o;
 	}
 
-	// return type float
+	/// get the mean for the moving window up to a given size
 	[[nodiscard]] auto get_mean_of_window(const int& window) const -> float
 	{
 		T o = static_cast<T>(0);
@@ -82,7 +82,8 @@ struct CalcMovingWindow
 		return static_cast<float>(o) / static_cast<float>(window);
 	}
 
-	// return type float
+	/// get the total for the moving window up to a given size
+	/// specific for returning a float
 	[[nodiscard]] auto get_total_for_windowf(const int& window) const -> float
 	{
 		auto o = 0.F;
@@ -95,7 +96,7 @@ struct CalcMovingWindow
 		return o;
 	}
 
-	// return type float
+	/// get the coefficient of variance of the moving window up to a given size
 	[[nodiscard]] auto get_cv_of_window(const int& window) const -> float
 	{
 		auto sd = 0.F;
@@ -137,7 +138,7 @@ struct CalcMovingWindow
 	 * 0.25, which is a sensible cutoff that should avoid punishing
 	 * happenstances of this pattern in just regular files */
 
-	// perform cv check internally
+	/// perform cv check internally
 	[[nodiscard]] auto ccacc_timing_check(const float& factor,
 										  const float& threshold) -> bool
 	{
@@ -158,7 +159,7 @@ struct CalcMovingWindow
 	// this container to ensure that the values it's filling it with will
 	// actually produce usable results
 
-	// perform cv check internally
+	/// perform cv check internally
 	[[nodiscard]] auto acca_timing_check(const float& factor,
 										 const float& threshold) -> bool
 	{
@@ -169,7 +170,7 @@ struct CalcMovingWindow
 		return o < threshold;
 	}
 
-	// perform cv check internally
+	/// perform cv check internally
 	[[nodiscard]] auto roll_timing_check(const float& factor,
 										 const float& threshold) -> bool
 	{
@@ -192,7 +193,7 @@ struct CalcMovingWindow
 		return o;
 	}
 
-	// set everything to zero
+	/// set everything to zero
 	void zero() { _itv_vals.fill(static_cast<T>(0)); }
 	void fill(const T& val) { _itv_vals.fill(val); }
 

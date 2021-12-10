@@ -21,17 +21,13 @@ end
 local moving = false
 
 local function DlInput(event)
-
+	if event.DeviceInput.button == "DeviceButton_left mouse button" then return false end
 	if (event.DeviceInput.button == "DeviceButton_mousewheel up" or event.button == "MenuUp" or event.button == "MenuLeft") and event.type == "InputEventType_FirstPress" then
 		moving = true
 		MESSAGEMAN:Broadcast("WheelUpSlow")
 	elseif (event.DeviceInput.button == "DeviceButton_mousewheel down" or event.button == "MenuDown" or event.button == "MenuRight") and event.type == "InputEventType_FirstPress" then
 		moving = true
 		MESSAGEMAN:Broadcast("WheelDownSlow")
-	elseif event.DeviceInput.button == "DeviceButton_left mouse button" then
-		if event.type == "InputEventType_Release" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		end
 	elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
 		if event.type == "InputEventType_Release" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
@@ -86,6 +82,7 @@ local function DlInput(event)
 			return true
 		end
 	end
+	
 	if
 		event.type ~= "InputEventType_Release" and inputting == 0 and curInput == "" and
 			event.type == "InputEventType_FirstPress"
@@ -98,10 +95,6 @@ local function DlInput(event)
 			return true
 		end
 	end
-end
-
-local function highlight(self)
-	self:queuecommand("Highlight")
 end
 
 local function diffuseIfActiveButton(self, cond)
@@ -123,14 +116,6 @@ end
 local activealpha = 0.1
 local inactivealpha = 0.3
 local highlightalpha = 0.5
-
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(highlightalpha)
-	else
-		self:diffusealpha(inactivealpha)
-	end
-end
 
 local translated_info = {
 	Filters = THEME:GetString("ScreenPackDownloader", "Filters"),
@@ -156,12 +141,10 @@ local f1y = f0y + 40
 local f2y = f1y + 40
 local fdot = 24
 
-local o =
-	Def.ActorFrame {
+local o = Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(0, 0):halign(0.5):valign(0)
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx, offy * 2 + 14)
-		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(DlInput)
@@ -188,117 +171,108 @@ local o =
 			)
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0)
-				self:settextf("%s:", translated_info["Filters"])
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0)
-				self:settextf("%s:", translated_info["AverageDiff"])
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0)
-				self:settextf("%s:", translated_info["Size"])
-			end
-		},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0)
+			self:settextf("%s:", translated_info["Filters"])
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0)
+			self:settextf("%s:", translated_info["AverageDiff"])
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0)
+			self:settextf("%s:", translated_info["Size"])
+		end
+	},
 	-- maybe we'll have more one day
 
 	-- goes to bundles (funkied the xys to match bundle screen)
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH / 6 + 10, 40):zoomto(SCREEN_WIDTH / 3, packh - 2):valign(0):diffuse(color("#ffffff")):diffusealpha(
 				0.4
 			)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				SCREENMAN:SetNewScreen("ScreenBundleSelect")
 			end
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(0.8)
-			else
-				self:diffusealpha(0.4)
-			end
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.8)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(0.4)
+		end,
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2)
+			self:settext(translated_info["EnterBundles"])
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2)
-				self:settext(translated_info["EnterBundles"])
-			end
-		},
 	--[[
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH / 12 + 5, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
 				color("#ffffff")
 			):diffusealpha(0.4)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local dls = DLMAN:GetDownloads()
 				for i, dl in ipairs(dls) do
 					dl:Stop()
 				end
 			end
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(0.8)
-			else
-				self:diffusealpha(0.4)
-			end
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.8)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(0.4)
+		end,
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 12 + 10, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
+				"Cancel all dls"
+			)
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH / 12 + 10, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
-					"Cancel all dls"
-				)
-			end
-		},
 	--]]
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH / 4 + 15, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
 				color("#ffffff")
 			):diffusealpha(0.4)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local dl = DLMAN:GetDownloads()[1]
 				if dl then
 					dl:Stop()
 				end
 			end
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(0.8)
-			else
-				self:diffusealpha(0.4)
-			end
-		end
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.8)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(0.4)
+		end,
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3)
-				self:settext(translated_info["CancelCurrent"])
-			end
-		}
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(SCREEN_WIDTH / 4 + 15, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3)
+			self:settext(translated_info["CancelCurrent"])
+		end
+	}
 }
 
 local function numFilter(i, x, y)
@@ -306,12 +280,12 @@ local function numFilter(i, x, y)
 		InitCommand = function(self)
 			self:xy(fx + 10, f0y):addx(x):addy(y)
 		end,
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			InitCommand = function(self)
 				self:zoomto(fdot, fdot):halign(0):valign(0)
 			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
 					inputting = i
 					curInput = ""
 					self:GetParent():GetParent():queuecommand("Set")
@@ -322,21 +296,23 @@ local function numFilter(i, x, y)
 			SetCommand = function(self)
 				diffuseIfActiveButton(self, inputting == i)
 			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
-			end
+			MouseOverCommand = function(self)
+				self:diffusealpha(highlightalpha)
+			end,
+			MouseOutCommand = function(self)
+				self:diffusealpha(inactivealpha)
+			end,
 		},
-		LoadFont("Common Large") ..
-			{
-				InitCommand = function(self)
-					self:addx(fdot):halign(1):valign(0):maxwidth(fdot / fontScale):zoom(fontScale)
-				end,
-				SetCommand = function(self)
-					local fval = getFilter(i)
-					self:settext(fval)
-					diffuseIfActiveText(self, tonumber(fval) > 0 or inputting == i)
-				end
-			}
+		LoadFont("Common Large") .. {
+			InitCommand = function(self)
+				self:addx(fdot):halign(1):valign(0):maxwidth(fdot / fontScale):zoom(fontScale)
+			end,
+			SetCommand = function(self)
+				local fval = getFilter(i)
+				self:settext(fval)
+				diffuseIfActiveText(self, tonumber(fval) > 0 or inputting == i)
+			end
+		}
 	}
 end
 for i = 2, 3 do
@@ -352,17 +328,16 @@ local namey = 40
 local nhite = 22
 local nameoffx = 20
 -- name string search
-o[#o + 1] =
-	Def.ActorFrame {
+o[#o + 1] = Def.ActorFrame {
 	InitCommand = function(self)
 		self:xy(namex, namey):halign(0):valign(0)
 	end,
-	Def.Quad {
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:zoomto(nwidth, nhite):halign(0):valign(0)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				inputting = 1
 				curInput = ""
 				self:GetParent():GetParent():queuecommand("Set")
@@ -373,36 +348,36 @@ o[#o + 1] =
 		SetCommand = function(self)
 			diffuseIfActiveButton(self, inputting == 1)
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(highlightalpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(inactivealpha)
+		end,
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:x(nameoffx):halign(0):valign(0):maxwidth(nwidth / fontScale - nameoffx * 2):zoom(fontScale)
+		end,
+		SetCommand = function(self)
+			local fval = getFilter(1)
+			self:settext(fval)
+			diffuseIfActiveText(self, fval ~= "" or inputting == 1)
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:x(nameoffx):halign(0):valign(0):maxwidth(nwidth / fontScale - nameoffx * 2):zoom(fontScale)
-			end,
-			SetCommand = function(self)
-				local fval = getFilter(1)
-				self:settext(fval)
-				diffuseIfActiveText(self, fval ~= "" or inputting == 1)
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:zoom(fontScale):halign(1):valign(0)
-				self:settextf("%s:", translated_info["SearchName"]) -- this being so far down is kinda awkward
-			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(-90, 40)
-				self:zoom(fontScale):halign(0):valign(0)
-				self:settext(translated_info["SizeExplanation"])
-			end
-		}
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:zoom(fontScale):halign(1):valign(0)
+			self:settextf("%s:", translated_info["SearchName"]) -- this being so far down is kinda awkward
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(-90, 40)
+			self:zoom(fontScale):halign(0):valign(0)
+			self:settext(translated_info["SizeExplanation"])
+		end
+	}
 }
 o[#o + 1] = LoadActor("packlistDisplay")
 return o

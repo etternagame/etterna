@@ -6,6 +6,7 @@ local t = Def.ActorFrame {}
 -- bg
 if enabled then
 	t[#t + 1] = Def.Sprite {
+		Name = "BGSprite",
 		InitCommand = function(self)
 			self:diffusealpha(0)
 		end,
@@ -43,6 +44,20 @@ t[#t + 1] = Def.Quad {
 	InitCommand = function(self)
 		self:xy(SCREEN_WIDTH - capWideScale(get43size(350), 350), 0):halign(0):valign(0):zoomto(4, SCREEN_HEIGHT)
 		self:diffuse(getMainColor("highlight")):diffusealpha(0.5)
+	end
+}
+
+t[#t+1] = UIElements.QuadButton(-1000, 1) .. {-- a fullscreen button for right click pausing so your right clicks dont pause accidentally
+	InitCommand = function(self)
+		self:valign(0):halign(0)
+		self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+		self:diffusealpha(0)
+	end,
+	MouseDownCommand = function(self, params)
+		if params.event == "DeviceButton_right mouse button" then
+			SCREENMAN:GetTopScreen():PauseSampleMusic()
+			MESSAGEMAN:Broadcast("MusicPauseToggled")
+		end
 	end
 }
 

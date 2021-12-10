@@ -71,19 +71,21 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 		case TW_W5:
 			defaultValueOut = 0.180F;
 			break;
-		case TW_Mine: // ~same as j5 great, the explanation for this is quite
-					  // long but the general
-			defaultValueOut = 0.075F; // idea is that mines are more punishing
-									  // now so we can give a little back
+		case TW_Mine:
+			// ~same as j5 great, the explanation for this is quite long but
+			// the general idea is that mines are more punishing now so we
+			// can give a little back
+			defaultValueOut = 0.075F;
 			break;
-		case TW_Hold: // allow enough time to take foot off and put back on
+		case TW_Hold:
+			// allow enough time to take foot off and put back on
 			defaultValueOut = 0.250F;
 			break;
 		case TW_Roll:
 			defaultValueOut = 0.500F;
 			break;
-		case TW_Checkpoint: // similar to TW_Hold, but a little more
-							// strict/accurate to Pump play.
+		case TW_Checkpoint:
+		 	// similar to TW_Hold, but a little more strict
 			defaultValueOut = 0.1664F;
 			break;
 		default:
@@ -244,8 +246,6 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 
 	totalwifescore = 0;
 	m_Timing = nullptr;
-	m_pActorWithJudgmentPosition = nullptr;
-	m_pActorWithComboPosition = nullptr;
 	m_LastTapNoteScore = TNS_None;
 	m_iFirstUncrossedRow = -1;
 	m_iLastSeenCombo = 0;
@@ -305,42 +305,6 @@ Player::Init(const std::string& sType,
 	ROLL_BODY_INCREMENTS_COMBO.Load("Player", "RollBodyIncrementsCombo");
 	COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO.Load("Player",
 											  "ComboBreakOnImmediateHoldLetGo");
-
-	{
-		// Init judgment positions
-		const auto bPlayerUsingBothSides =
-		  GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
-			->GetUsesCenteredArrows();
-		Actor TempJudgment;
-		TempJudgment.SetName("Judgment");
-		ActorUtil::LoadCommand(TempJudgment, sType, "Transform");
-
-		Actor TempCombo;
-		TempCombo.SetName("Combo");
-		ActorUtil::LoadCommand(TempCombo, sType, "Transform");
-
-		const auto iEnabledPlayerIndex = 0;
-		const auto iNumEnabledPlayers = 1;
-
-		for (auto i = 0; i < NUM_REVERSE; i++) {
-			for (auto j = 0; j < NUM_CENTERED; j++) {
-				Message msg("Transform");
-				msg.SetParam("Player", pPlayerState->m_PlayerNumber);
-				msg.SetParam("MultiPlayer", pPlayerState->m_mp);
-				msg.SetParam("iEnabledPlayerIndex", iEnabledPlayerIndex);
-				msg.SetParam("iNumEnabledPlayers", iNumEnabledPlayers);
-				msg.SetParam("bPlayerUsingBothSides", bPlayerUsingBothSides);
-				msg.SetParam("bReverse", !(i == 0));
-				msg.SetParam("bCentered", !(j == 0));
-
-				TempJudgment.HandleMessage(msg);
-				m_tsJudgment[i][j] = TempJudgment.DestTweenState();
-
-				TempCombo.HandleMessage(msg);
-				m_tsCombo[i][j] = TempCombo.DestTweenState();
-			}
-		}
-	}
 
 	this->SortByDrawOrder();
 
@@ -429,7 +393,6 @@ Player::Init(const std::string& sType,
 
 		m_sprCombo.Load(THEME->GetPathG(sType, "combo"));
 		m_sprCombo->SetName("Combo");
-		m_pActorWithComboPosition = &*m_sprCombo;
 		this->AddChild(m_sprCombo);
 
 		// todo: allow for judgments to be loaded per-column a la pop'n?
@@ -437,11 +400,7 @@ Player::Init(const std::string& sType,
 		// it would need more work. -aj
 		m_sprJudgment.Load(THEME->GetPathG(sType, "judgment"));
 		m_sprJudgment->SetName("Judgment");
-		m_pActorWithJudgmentPosition = &*m_sprJudgment;
 		this->AddChild(m_sprJudgment);
-	} else {
-		m_pActorWithComboPosition = nullptr;
-		m_pActorWithJudgmentPosition = nullptr;
 	}
 
 	// Load HoldJudgments
@@ -600,10 +559,12 @@ Player::Load()
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
 	  GAMESTATE->m_pCurSteps->GetChartKey(),
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	if (pb != nullptr) {
-		wifescorepersonalbest = pb->GetWifeScore();
-	} else {
+	
+	// the latter condition checks for Grade_Failed, NUM_Grade, Grade_Invalid
+	if (pb == nullptr || pb->GetGrade() >= Grade_Failed) {
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
+	} else {
+		wifescorepersonalbest = pb->GetWifeScore();
 	}
 
 	if (m_pPlayerStageStats != nullptr) {
@@ -825,43 +786,9 @@ Player::UpdateVisibleParts()
 	// if( m_pNoteField )
 	//	m_pNoteField->SetY( fGrayYPos );
 
-	const auto bReverse =
-	  m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(
-		0) == 1;
-	const auto fPercentCentered = m_pPlayerState->m_PlayerOptions.GetCurrent()
-									.m_fScrolls[PlayerOptions::SCROLL_CENTERED];
-
-	if (m_pActorWithJudgmentPosition != nullptr) {
-		const auto& ts1 = m_tsJudgment[bReverse ? 1 : 0][0];
-		const auto& ts2 = m_tsJudgment[bReverse ? 1 : 0][1];
-		TweenState::MakeWeightedAverage(
-		  m_pActorWithJudgmentPosition->DestTweenState(),
-		  ts1,
-		  ts2,
-		  fPercentCentered);
-	}
-
-	if (m_pActorWithComboPosition != nullptr) {
-		const auto& ts1 = m_tsCombo[bReverse ? 1 : 0][0];
-		const auto& ts2 = m_tsCombo[bReverse ? 1 : 0][1];
-		TweenState::MakeWeightedAverage(
-		  m_pActorWithComboPosition->DestTweenState(),
-		  ts1,
-		  ts2,
-		  fPercentCentered);
-	}
-
 	const auto fNoteFieldZoom = 1 - fMiniPercent * 0.5F;
 	if (m_pNoteField != nullptr) {
 		m_pNoteField->SetZoom(fNoteFieldZoom);
-	}
-	if (m_pActorWithJudgmentPosition != nullptr) {
-		m_pActorWithJudgmentPosition->SetZoom(
-		  m_pActorWithJudgmentPosition->GetZoom() * fJudgmentZoom);
-	}
-	if (m_pActorWithComboPosition != nullptr) {
-		m_pActorWithComboPosition->SetZoom(
-		  m_pActorWithComboPosition->GetZoom() * fJudgmentZoom);
 	}
 }
 
@@ -1397,10 +1324,7 @@ Player::UpdateHoldNotes(int iSongRow,
 void
 Player::DrawPrimitives()
 {
-	// TODO(Sam): Remove use of PlayerNumber.
-	const auto pn = m_pPlayerState->m_PlayerNumber;
-
-	if (pn != PLAYER_1) {
+	if (m_pPlayerState == nullptr) {
 		return;
 	}
 
@@ -1924,6 +1848,15 @@ Player::AddHoldToReplayData(int col,
 }
 
 void
+Player::AddMineToReplayData(int col, int row) const
+{
+	MineReplayResult mrr;
+	mrr.row = row;
+	mrr.track = col;
+	m_pPlayerStageStats->m_vMineReplayData.emplace_back(mrr);
+}
+
+void
 Player::Step(int col,
 			 int row,
 			 const std::chrono::steady_clock::time_point& tm,
@@ -1931,25 +1864,15 @@ Player::Step(int col,
 			 bool bRelease,
 			 float padStickSeconds)
 {
-	// Do everything that depends on a timer here;
-	// set your breakpoints somewhere after this block.
-	std::chrono::duration<float> stepDelta =
-	  std::chrono::steady_clock::now() - tm;
-	auto stepAgo = stepDelta.count() - padStickSeconds;
-
-	const auto fLastBeatUpdate = GAMESTATE->m_Position.m_LastBeatUpdate.Ago();
-	const auto fPositionSeconds =
-	  GAMESTATE->m_Position.m_fMusicSeconds - stepAgo;
-	const auto fTimeSinceStep = stepAgo;
-
-	// input data
-	//m_pPlayerStageStats->InputData.emplace_back(!bRelease, col, fPositionSeconds);
-
-	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
-
-	if (GAMESTATE->m_pCurSteps != nullptr) {
-		fSongBeat = m_Timing->GetBeatFromElapsedTime(fPositionSeconds);
-	}
+	const auto fMusicRate =
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	const auto fHitUpdateDelta =
+		(GAMESTATE->m_Position.m_LastBeatUpdate - RageTimer(tm)) - padStickSeconds;
+	const auto fMusicSeconds =
+		GAMESTATE->m_Position.m_fMusicSeconds - (fHitUpdateDelta * fMusicRate);
+	const auto fSongBeat =
+		GAMESTATE->m_pCurSteps ? m_Timing->GetBeatFromElapsedTime(fMusicSeconds)
+							   : GAMESTATE->m_Position.m_fSongBeat;
 
 	const auto iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
 
@@ -2107,41 +2030,20 @@ Player::Step(int col,
 	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
 		auto fNoteOffset = 0.F;
-		// only valid if
-		auto fMusicSeconds = 0.F;
 		// we need this later if we are autosyncing
 		const auto fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
 		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
 		if (row == -1) {
-			// We actually stepped on the note this long ago:
-			// fTimeSinceStep
-
-			/* GAMESTATE->m_fMusicSeconds is the music time as of
-			 * GAMESTATE->m_LastBeatUpdate. Figure out what the music time
-			 * is as of now. */
-			const auto fCurrentMusicSeconds =
-			  GAMESTATE->m_Position.m_fMusicSeconds +
-			  (fLastBeatUpdate *
-			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-
-			// ... which means it happened at this point in the music:
-			fMusicSeconds =
-			  fCurrentMusicSeconds -
-			  fTimeSinceStep *
-				GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-
-			// The offset from the actual step in seconds:
-			fNoteOffset = (fStepSeconds - fMusicSeconds) /
-						  GAMESTATE->m_SongOptions.GetCurrent()
-							.m_fMusicRate; // account for music rate
-										   /*
-										   LOG->Trace("step was %.3f ago, music is off by %f: %f vs %f,
-										   step							    was %f off",
-										   fTimeSinceStep,
-										   GAMESTATE->m_LastBeatUpdate.Ago()/GAMESTATE->m_SongOptions.m_fMusicRate,
-											   fStepSeconds, fMusicSeconds, fNoteOffset );
-										   */
+			fNoteOffset = (fStepSeconds - fMusicSeconds) / fMusicRate;
+			// input data (a real tap mapped to a note any distance away)
+			// this also skips things like mines hit by CrossedRows (holding)
+			m_pPlayerStageStats->InputData.emplace_back(
+			  !bRelease,
+			  col,
+			  fMusicSeconds,
+			  iRowOfOverlappingNoteOrRow,
+			  fNoteOffset);
 		}
 
 		NOTESKIN->SetLastSeenColor(
@@ -2363,6 +2265,14 @@ Player::Step(int col,
 					 m_NoteData, iRowOfOverlappingNoteOrRow)) {
 			FlashGhostRow(iRowOfOverlappingNoteOrRow);
 		}
+	} else {
+		// input data
+		// (autoplay, forced step, or step REALLY far away)
+		m_pPlayerStageStats->InputData.emplace_back(!bRelease,
+													col,
+													fMusicSeconds,
+													iRowOfOverlappingNoteOrRow,
+													0.F);
 	}
 
 	if (score == TNS_None) {
@@ -2761,11 +2671,11 @@ Player::UpdateJudgedRows(float /*fDeltaTime*/)
 					bAllJudged = false;
 					continue;
 				case TNS_AvoidMine:
-					SetMineJudgment(tn.result.tns, iter.Track());
+					SetMineJudgment(tn.result.tns, iter.Track(), iRow);
 					tn.result.bHidden = true;
 					continue;
 				case TNS_HitMine:
-					SetMineJudgment(tn.result.tns, iter.Track());
+					SetMineJudgment(tn.result.tns, iter.Track(), iRow);
 					break;
 			}
 			if (m_pNoteField != nullptr) {
@@ -3037,8 +2947,12 @@ Update: both message types are being sent out currently for compatability.
 -Mina*/
 //#define autoplayISHUMAN
 void
-Player::SetMineJudgment(TapNoteScore tns, int iTrack)
+Player::SetMineJudgment(TapNoteScore tns, int iTrack, int iRow)
 {
+	if (tns == TNS_HitMine) {
+		AddMineToReplayData(iTrack, iRow);
+	}
+
 	if (m_bSendJudgmentAndComboMessages) {
 		Message msg("Judgment");
 		msg.SetParam("Player", m_pPlayerState->m_PlayerNumber);
@@ -3507,18 +3421,6 @@ class LunaPlayer : public Luna<Player>
 		p->m_inside_lua_set_life = false;
 		COMMON_RETURN_SELF;
 	}
-	static auto SetActorWithJudgmentPosition(T* p, lua_State* L) -> int
-	{
-		auto* const pActor = Luna<Actor>::check(L, 1);
-		p->SetActorWithJudgmentPosition(pActor);
-		COMMON_RETURN_SELF;
-	}
-	static auto SetActorWithComboPosition(T* p, lua_State* L) -> int
-	{
-		auto* const pActor = Luna<Actor>::check(L, 1);
-		p->SetActorWithComboPosition(pActor);
-		COMMON_RETURN_SELF;
-	}
 	static auto GetPlayerTimingData(T* p, lua_State* L) -> int
 	{
 		p->GetPlayerTimingData().PushSelf(L);
@@ -3529,8 +3431,6 @@ class LunaPlayer : public Luna<Player>
 	{
 		ADD_METHOD(SetLife);
 		ADD_METHOD(ChangeLife);
-		ADD_METHOD(SetActorWithJudgmentPosition);
-		ADD_METHOD(SetActorWithComboPosition);
 		ADD_METHOD(GetPlayerTimingData);
 	}
 };

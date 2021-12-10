@@ -254,8 +254,10 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 			if (tn.type == TapNoteType_HoldHead &&
 				tn.iDuration == MAX_NOTE_ROW) {
 				auto iRow = begin->first;
-				Locator::getLogger()->info("While loading .sm/.ssc note data, there was an unmatched 2 at beat {}",
-							 NoteRowToBeat(iRow));
+				Locator::getLogger()->debug(
+				  "While loading .sm/.ssc note data, there was an unmatched 2 "
+				  "at beat {}",
+				  NoteRowToBeat(iRow));
 				out.RemoveTapNote(t, begin);
 			}
 

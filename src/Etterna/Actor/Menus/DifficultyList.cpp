@@ -50,7 +50,7 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	CAPITALIZE_DIFFICULTY_NAMES.Load(m_sName, "CapitalizeDifficultyNames");
 	MOVE_COMMAND.Load(m_sName, "MoveCommand");
 
-	m_Lines.resize(LINES_INITIAL_ALLOCATION);
+	m_Lines.lines.resize(LINES_INITIAL_ALLOCATION);
 	m_CurSong = nullptr;
 
 	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
@@ -82,11 +82,12 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 		this->AddChild(&m_CursorFrames);
 	}
 
-	for (auto& m_Line : m_Lines) {
+	for (auto& m_Line : m_Lines.lines) {
+		m_Line = std::make_unique<StepsDisplay>();
 		// todo: Use Row1, Row2 for names? also m_sName+"Row" -aj
-		m_Line.m_Meter.SetName("Row");
-		m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
-		this->AddChild(&m_Line.m_Meter);
+		m_Line->SetName("Row");
+		m_Line->Load("StepsDisplayListRow", nullptr);
+		this->AddChild(m_Line.get());
 	}
 
 	UpdatePositions();
@@ -204,9 +205,9 @@ StepsDisplayList::UpdatePositions()
 void
 StepsDisplayList::PositionItems()
 {
-	for (size_t i = 0; i < m_Lines.size(); ++i) {
+	for (size_t i = 0; i < m_Lines.lines.size(); ++i) {
 		const bool bUnused = i >= m_Rows.size();
-		m_Lines[i].m_Meter.SetVisible(!bUnused);
+		m_Lines.lines[i]->SetVisible(!bUnused);
 	}
 
 	for (int m = 0; m < static_cast<int>(m_Rows.size()); ++m) {
@@ -216,24 +217,24 @@ StepsDisplayList::PositionItems()
 			bHidden = true;
 
 		const float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
-		if (m_Lines[m].m_Meter.GetDestY() != row.m_fY ||
-			m_Lines[m].m_Meter.DestTweenState().diffuse[0][3] !=
+		if (m_Lines.lines[m]->GetDestY() != row.m_fY ||
+			m_Lines.lines[m]->DestTweenState().diffuse[0][3] !=
 			  fDiffuseAlpha) {
-			m_Lines[m].m_Meter.RunCommands(MOVE_COMMAND.GetValue());
-			m_Lines[m].m_Meter.RunCommandsOnChildren(MOVE_COMMAND.GetValue());
+			m_Lines.lines[m]->RunCommands(MOVE_COMMAND.GetValue());
+			m_Lines.lines[m]->RunCommandsOnChildren(MOVE_COMMAND.GetValue());
 		}
-		m_Lines[m].m_Meter.mypos = m;
-		m_Lines[m].m_Meter.SetY(row.m_fY);
+		m_Lines.lines[m]->mypos = m;
+		m_Lines.lines[m]->SetY(row.m_fY);
 	}
 
-	for (size_t m = 0; m < m_Lines.size(); ++m) {
+	for (size_t m = 0; m < m_Lines.lines.size(); ++m) {
 		bool bHidden = true;
 		if (m_bShown && m < m_Rows.size())
 			bHidden = m_Rows[m].m_bHidden;
 
 		const float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
 
-		m_Lines[m].m_Meter.SetDiffuseAlpha(fDiffuseAlpha);
+		m_Lines.lines[m]->SetDiffuseAlpha(fDiffuseAlpha);
 	}
 
 	const int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
@@ -260,24 +261,25 @@ StepsDisplayList::SetFromGameState()
 		  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 		m_Rows.resize(difficulties.size());
 
-		// m_Lines needs to be resized to allow the number of rows used
-		if (m_Rows.size() > m_Lines.size()) {
-			auto startingIndex = m_Lines.size();
-			m_Lines.resize(m_Rows.size());
+		// m_Lines.lines needs to be resized to allow the number of rows used
+		if (m_Rows.size() > m_Lines.lines.size()) {
+			auto startingIndex = m_Lines.lines.size();
+			m_Lines.lines.resize(m_Rows.size());
 
-			for (auto j = startingIndex; j < m_Lines.size(); j++) {
-				auto m_Line = m_Lines[j];
-				m_Line.m_Meter.SetName("Row");
-				m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
-				this->AddChild(&m_Line.m_Meter);
+			for (auto j = startingIndex; j < m_Lines.lines.size(); j++) {
+				auto& m_Line = m_Lines.lines[j];
+				m_Line = std::make_unique<StepsDisplay>();
+				m_Line->SetName("Row");
+				m_Line->Load("StepsDisplayListRow", nullptr);
+				this->AddChild(m_Line.get());
 			}
+			SortByDrawOrder();
 		}
 		
 		FOREACH_CONST(Difficulty, difficulties, d)
 		{
 			m_Rows[i].m_dc = *d;
-			m_Lines[i]
-			  .m_Meter.SetFromStepsTypeAndMeterAndDifficultyAndCourseType(
+			m_Lines.lines[i]->SetFromStepsTypeAndMeterAndDifficultyAndCourseType(
 				GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType, 0, *d);
 			++i;
 		}
@@ -288,46 +290,48 @@ StepsDisplayList::SetFromGameState()
 
 		m_Rows.resize(vpSteps.size());
 
-		// m_Lines needs to be resized to allow the number of rows used
-		if (m_Rows.size() > m_Lines.size()) {
-			auto startingIndex = m_Lines.size();
-			m_Lines.resize(m_Rows.size());
+		// m_Lines.lines needs to be resized to allow the number of rows used
+		if (m_Rows.size() > m_Lines.lines.size()) {
+			auto startingIndex = m_Lines.lines.size();
+			m_Lines.lines.resize(m_Rows.size());
 
-			for (auto j = startingIndex; j < m_Lines.size(); j++) {
-				auto m_Line = m_Lines[j];
-				m_Line.m_Meter.SetName("Row");
-				m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
-				this->AddChild(&m_Line.m_Meter);
+			for (auto j = startingIndex; j < m_Lines.lines.size(); j++) {
+				auto& m_Line = m_Lines.lines[j];
+				m_Line = std::make_unique<StepsDisplay>();
+				m_Line->SetName("Row");
+				m_Line->Load("StepsDisplayListRow", nullptr);
+				this->AddChild(m_Line.get());
 			}
+			SortByDrawOrder();
 		}
 
 		FOREACH_CONST(Steps*, vpSteps, s)
 		{
 			// LOG->Trace(ssprintf("setting steps for row %i",i));
 			m_Rows[i].m_Steps = *s;
-			m_Lines[i].m_Meter.SetFromSteps(*s);
+			m_Lines.lines[i]->SetFromSteps(*s);
 			++i;
 		}
 	}
 
-	for (auto& m_Line : m_Lines)
-		m_Line.m_Meter.Unset();
+	for (auto& m_Line : m_Lines.lines)
+		m_Line->Unset();
 
 	UpdatePositions();
 	PositionItems();
 
-	for (auto& m_Line : m_Lines)
-		m_Line.m_Meter.FinishTweening();
+	for (auto& m_Line : m_Lines.lines)
+		m_Line->FinishTweening();
 }
 
 void
 StepsDisplayList::HideRows()
 {
 	for (unsigned m = 0; m < m_Rows.size(); ++m) {
-		Line& l = m_Lines[m];
+		auto& l = m_Lines.lines[m];
 
-		l.m_Meter.FinishTweening();
-		l.m_Meter.SetDiffuseAlpha(0);
+		l->FinishTweening();
+		l->SetDiffuseAlpha(0);
 	}
 }
 
@@ -336,14 +340,14 @@ StepsDisplayList::TweenOnScreen()
 {
 	ON_COMMAND(m_Cursors);
 
-	for (auto& m_Line : m_Lines)
-		ON_COMMAND(m_Line.m_Meter);
+	for (auto& m_Line : m_Lines.lines)
+		ON_COMMAND(m_Line.get());
 
 	m_bShown = true;
 	for (unsigned m = 0; m < m_Rows.size(); ++m) {
-		Line& l = m_Lines[m];
+		auto& l = m_Lines.lines[m];
 
-		l.m_Meter.FinishTweening();
+		l->FinishTweening();
 	}
 
 	HideRows();

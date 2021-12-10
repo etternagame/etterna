@@ -14,11 +14,43 @@
 
 #include "base/check.h"
 #include "base/check_op.h"
-#include "base/macros.h"
 #include "base/notreached.h"
 #include "build/build_config.h"
 
 namespace logging {
+
+// A bitmask of potential logging destinations.
+using LoggingDestination = uint32_t;
+
+// Specifies where logs will be written. Multiple destinations can be specified
+// with bitwise OR.
+// Unless destination is LOG_NONE, all logs with severity ERROR and above will
+// be written to stderr in addition to the specified destination.
+enum : LoggingDestination {
+  LOG_NONE = 0,
+  LOG_TO_FILE = 1 << 0,
+  LOG_TO_SYSTEM_DEBUG_LOG = 1 << 1,
+  LOG_TO_STDERR = 1 << 2,
+
+  LOG_TO_ALL = LOG_TO_FILE | LOG_TO_SYSTEM_DEBUG_LOG | LOG_TO_STDERR,
+
+#if defined(OS_WIN)
+  LOG_DEFAULT = LOG_TO_FILE,
+#elif defined(OS_FUCHSIA)
+  LOG_DEFAULT = LOG_TO_SYSTEM_DEBUG_LOG,
+#elif defined(OS_POSIX)
+  LOG_DEFAULT = LOG_TO_SYSTEM_DEBUG_LOG | LOG_TO_STDERR,
+#endif
+};
+
+struct LoggingSettings {
+  LoggingDestination logging_dest = LOG_DEFAULT;
+};
+
+// Sets the logging destination.
+//
+// TODO(jperaza): LOG_TO_FILE is not yet supported.
+bool InitLogging(const LoggingSettings& settings);
 
 typedef int LogSeverity;
 const LogSeverity LOG_VERBOSE = -1;
@@ -73,6 +105,10 @@ class LogMessage {
              const char* file_path,
              int line,
              std::string* result);
+
+  LogMessage(const LogMessage&) = delete;
+  LogMessage& operator=(const LogMessage&) = delete;
+
   ~LogMessage();
 
   std::ostream& stream() { return stream_; }
@@ -85,8 +121,6 @@ class LogMessage {
   size_t message_start_;
   const int line_;
   LogSeverity severity_;
-
-  DISALLOW_COPY_AND_ASSIGN(LogMessage);
 };
 
 class LogMessageVoidify {
@@ -104,12 +138,14 @@ class Win32ErrorLogMessage : public LogMessage {
                        int line,
                        LogSeverity severity,
                        unsigned long err);
+
+  Win32ErrorLogMessage(const Win32ErrorLogMessage&) = delete;
+  Win32ErrorLogMessage& operator=(const Win32ErrorLogMessage&) = delete;
+
   ~Win32ErrorLogMessage();
 
  private:
   unsigned long err_;
-
-  DISALLOW_COPY_AND_ASSIGN(Win32ErrorLogMessage);
 };
 #elif defined(OS_POSIX)
 class ErrnoLogMessage : public LogMessage {
@@ -119,12 +155,14 @@ class ErrnoLogMessage : public LogMessage {
                   int line,
                   LogSeverity severity,
                   int err);
+
+  ErrnoLogMessage(const ErrnoLogMessage&) = delete;
+  ErrnoLogMessage& operator=(const ErrnoLogMessage&) = delete;
+
   ~ErrnoLogMessage();
 
  private:
   int err_;
-
-  DISALLOW_COPY_AND_ASSIGN(ErrnoLogMessage);
 };
 #endif
 
@@ -271,5 +309,9 @@ const LogSeverity LOG_0 = LOG_ERROR;
 
 #undef assert
 #define assert(condition) DLOG_ASSERT(condition)
+
+namespace std {
+ostream& operator<<(ostream& out, const u16string& str);
+}  // namespace std
 
 #endif  // MINI_CHROMIUM_BASE_LOGGING_H_

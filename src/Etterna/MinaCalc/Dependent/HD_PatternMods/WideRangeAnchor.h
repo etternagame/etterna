@@ -2,7 +2,8 @@
 #include "../IntervalHandInfo.h"
 #include "../HD_Sequencers/GenericSequencing.h"
 
-// general mod, should maybe make cj specific one
+/// Hand-Dependent PatternMod detecting anchors in general.
+/// general mod, should maybe make cj specific one
 struct WideRangeAnchorMod
 {
 	const CalcPatternMod _pmod = WideRangeAnchor;

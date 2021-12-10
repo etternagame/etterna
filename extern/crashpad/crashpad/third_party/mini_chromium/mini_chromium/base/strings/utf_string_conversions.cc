@@ -8,8 +8,8 @@
 
 #include <string>
 
-#include "base/strings/string16.h"
 #include "base/strings/utf_string_conversion_utils.h"
+#include "build/build_config.h"
 
 namespace {
 
@@ -36,18 +36,18 @@ bool ConvertUnicode(const SRC_CHAR* src,
 
 namespace base {
 
-bool UTF8ToUTF16(const char* src, size_t src_len, string16* output) {
+bool UTF8ToUTF16(const char* src, size_t src_len, std::u16string* output) {
   base::PrepareForUTF16Or32Output(src, src_len, output);
   return ConvertUnicode(src, src_len, output);
 }
 
-string16 UTF8ToUTF16(const StringPiece& utf8) {
-  string16 ret;
+std::u16string UTF8ToUTF16(const StringPiece& utf8) {
+  std::u16string ret;
   UTF8ToUTF16(utf8.data(), utf8.length(), &ret);
   return ret;
 }
 
-bool UTF16ToUTF8(const char16* src, size_t src_len, std::string* output) {
+bool UTF16ToUTF8(const char16_t* src, size_t src_len, std::string* output) {
   base::PrepareForUTF8Output(src, src_len, output);
   return ConvertUnicode(src, src_len, output);
 }
@@ -57,5 +57,20 @@ std::string UTF16ToUTF8(const StringPiece16& utf16) {
   UTF16ToUTF8(utf16.data(), utf16.length(), &ret);
   return ret;
 }
+
+#if defined(WCHAR_T_IS_UTF16)
+std::string WideToUTF8(WStringPiece wide) {
+  std::string ret;
+  UTF16ToUTF8(
+      reinterpret_cast<const char16_t*>(wide.data()), wide.size(), &ret);
+  return ret;
+}
+
+std::wstring UTF8ToWide(StringPiece utf8) {
+  std::u16string utf16 = UTF8ToUTF16(utf8);
+  return std::wstring(reinterpret_cast<const wchar_t*>(utf16.data()),
+                      utf16.size());
+}
+#endif  // defined(WCHAR_T_IS_UTF16)
 
 }  // namespace
