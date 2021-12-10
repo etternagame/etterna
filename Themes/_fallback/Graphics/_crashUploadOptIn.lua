@@ -8,6 +8,7 @@ local boxw = SCREEN_WIDTH/1.5
 local boxh = SCREEN_HEIGHT/3.3
 local bufferspace = 5
 local txt = "NOTICE\nWith your permission, Etterna will upload crash dumps and logs to our server at crash.etterna.dev.\nTo opt in, click the button below or press Y and then restart the game.\nOtherwise, press Escape or click outside the box."
+local redirb4 = false
 
 local t = Def.ActorFrame {
     Name = "CrashUploadOptInDialogue",
@@ -18,8 +19,12 @@ local t = Def.ActorFrame {
         -- input redirection management FAILS IF YOU RESTART/EXIT THE SCREEN UNNATURALLY (like with F3)
         -- BEWARE THEMERS
         -- if you get input locked, just ctrl+operator out of it
-        local redirb4 = SCREENMAN:get_input_redirected(PLAYER_1)
+        redirb4 = SCREENMAN:get_input_redirected(PLAYER_1)
         SCREENMAN:set_input_redirected(PLAYER_1, true)
+
+        -- have to forcibly set redir true after a little bit of time
+        -- the chat overlay turns it off randomly
+        self:sleep(0.5):queuecommand("InputRedirSet")
 
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
             if not enabled then return end
@@ -63,6 +68,9 @@ local t = Def.ActorFrame {
             -- eat input, dont let it pass through to anything else
             return true
         end)
+    end,
+    InputRedirSetCommand = function(self)
+        SCREENMAN:set_input_redirected(PLAYER_1, true)
     end,
 
     Def.Quad {
