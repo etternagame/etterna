@@ -157,6 +157,7 @@
 - LuaJIT updated to slightly more recent version - [614c4d0](../../../commit/614c4d088218137cf2814561b43c5e4bfab39607) [055ec0a](../../../commit/055ec0a4aff7adb988eaa0288d27a6bbe0e03566)
 - Metrics can determine the fallback Noteskin name for NoteFields instead of just the rest of the game - [521a699](../../../commit/521a69993ae19f12ecc1c3b19ba9a368f5531302)
 - Multiplayer chat window resized and refactored for clarity and usability - [1efb16b](../../../commit/1efb16bb2146fe504aa784b3fc8238de6345ac36) [79aea80](../../../commit/79aea80834ca67664df1c058ec395d9e14608c6a)
+- Multiplayer chat message sending is limited to 500 characters - [be74a6f](../../../commit/be74a6f278a0bf9a277bab4cce4c5e2d05dd55bf)
 - NoteField disappears in GameplaySyncMachine in order to force the player to play by audio - [e4684d9](../../../commit/e4684d9b4aac35582f19e08ead4c920c9b8d8817) [b31e678](../../../commit/b31e678a8277b984cec1cb2216ad25ef54438a24) [a5a9804](../../../commit/a5a9804cd21372f18210f4d1378e649dc72c9f7d)
 - NoteField NoteDisplays no longer sit in arrays - [cd27903](../../../commit/cd27903c7af99469d2a5f1bc38d954daa5650001)
 - No longer possible to access Player Options when transitioning to view a Replay - [2f64656](../../../commit/2f646564355281c14a87bb0085b2bd09b204350c)
