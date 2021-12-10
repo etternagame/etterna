@@ -1382,7 +1382,10 @@ ETTProtocol::SendChat(const std::string& message, string tab, int type)
 	writer.Key("payload");
 	writer.StartObject();
 	writer.Key("msg");
-	writer.String(message.c_str());
+	if (message.length() > 500)
+		writer.String(message.substr(0, 500).c_str());
+	else
+		writer.String(message.c_str());
 	writer.Key("tab");
 	writer.String(tab.c_str());
 	writer.Key("msgtype");
