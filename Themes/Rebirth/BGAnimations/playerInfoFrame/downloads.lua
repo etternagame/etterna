@@ -434,6 +434,9 @@ local function downloadsList()
                     self:zoom(nameTextSize)
                     self:maxwidth((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / nameTextSize - textZoomFudge)
                     registerActorToColorConfigElement(self, "main", "SecondaryText")
+                    self.alphaDeterminingFunction = function(self)
+                        if isOver(self) and pack ~= nil then self:diffusealpha(buttonHoverAlpha) else self:diffusealpha(1) end
+                    end
                 end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
@@ -442,6 +445,22 @@ local function downloadsList()
                         local expanded = i % 2 == 0 and " Expanded" or ""
                         self:settext(bundleTypes[index] .. expanded)
                     end
+                    self:alphaDeterminingFunction()
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if pack ~= nil then
+                        local urlstring = "https://etternaonline.com/pack/" .. pack:GetID()
+					    GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstring)
+                    end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
                 end,
             },
             LoadFont("Common Normal") .. {
