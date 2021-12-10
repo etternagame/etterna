@@ -61,7 +61,6 @@ local t = Def.ActorFrame {
     EndCommand = function(self)
         -- exiting customize gameplay will turn off autoplay
         GAMESTATE:SetAutoplay(false)
-        playerConfig:save()
     end,
 }
 
