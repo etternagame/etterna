@@ -1,9 +1,9 @@
 #pragma once
 #include "../IntervalHandInfo.h"
 
-// slightly different implementation of the old chaos mod, basically picks up
-// polyishness and tries to detect awkward transitions
-
+/// slightly different implementation of the old chaos mod, basically picks up
+/// polyishness and tries to detect awkward transitions
+/// In other words, detects chaotic timing between continuous notes.
 struct ChaosMod
 {
 	const CalcPatternMod _pmod = Chaos;
@@ -80,7 +80,7 @@ struct ChaosMod
 		}
 
 		pmod = base + _wot.get_mean_of_window(max_moving_window_size);
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = std::clamp(pmod, min_mod, max_mod);
 		return pmod;
 	}
 };

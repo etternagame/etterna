@@ -14,11 +14,7 @@ enum MessageID
 	Message_PlayModeChanged,
 	Message_CoinsChanged,
 	Message_CurrentSongChanged,
-	Message_CurrentStepsP1Changed,
-	Message_CurrentStepsP2Changed,
-	Message_CurrentCourseChanged,
-	Message_CurrentTrailP1Changed,
-	Message_CurrentTrailP2Changed,
+	Message_CurrentStepsChanged,
 	Message_GameplayLeadInChanged,
 	Message_GameplayModeChanged,
 	Message_EditStepsTypeChanged,
@@ -98,7 +94,7 @@ struct Message
 	[[nodiscard]] auto GetName() const -> std::string { return m_sName; }
 
 	[[nodiscard]] auto IsBroadcast() const -> bool { return m_bBroadcast; }
-	void SetBroadcast(bool b) { m_bBroadcast = b; }
+	void SetBroadcast(const bool b) { m_bBroadcast = b; }
 
 	void PushParamTable(lua_State* L);
 	[[nodiscard]] auto GetParamTable() const -> const LuaReference&;
@@ -136,7 +132,7 @@ struct Message
 	}
 
 	auto operator==(const std::string& s) const -> bool { return m_sName == s; }
-	auto operator==(MessageID id) const -> bool
+	auto operator==(const MessageID id) const -> bool
 	{
 		return MessageIDToString(id) == m_sName;
 	}
@@ -196,20 +192,20 @@ class MessageManager
 	MessageManager();
 	~MessageManager();
 
-	void Subscribe(IMessageSubscriber* pSubscriber,
+	static void Subscribe(IMessageSubscriber* pSubscriber,
 				   const std::string& sMessage);
-	void Subscribe(IMessageSubscriber* pSubscriber, MessageID m);
-	void Unsubscribe(IMessageSubscriber* pSubscriber,
+	static void Subscribe(IMessageSubscriber* pSubscriber, MessageID m);
+	static void Unsubscribe(IMessageSubscriber* pSubscriber,
 					 const std::string& sMessage);
-	void Unsubscribe(IMessageSubscriber* pSubscriber, MessageID m);
+	static void Unsubscribe(IMessageSubscriber* pSubscriber, MessageID m);
 	void Broadcast(Message& msg) const;
 	void Broadcast(const std::string& sMessage) const;
 	void Broadcast(MessageID m) const;
-	auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-							   const std::string& sMessage) const -> bool;
+	static auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
+							   const std::string& sMessage) -> bool;
 
-	auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-							   MessageID message) const -> bool
+	static auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
+							   const MessageID message) -> bool
 	{
 		return IsSubscribedToMessage(pSubscriber, MessageIDToString(message));
 	}
@@ -227,17 +223,16 @@ extern MessageManager*
 template<class T>
 class BroadcastOnChange
 {
-  private:
 	MessageID mSendWhenChanged;
 	T val;
 
   public:
-	explicit BroadcastOnChange(MessageID m)
+	explicit BroadcastOnChange(const MessageID m)
 	{
 		val = T();
 		mSendWhenChanged = m;
 	}
-	[[nodiscard]] auto Get() const -> const T { return val; }
+	[[nodiscard]] auto Get() const -> T { return val; }
 	void Set(T t)
 	{
 		val = t;
@@ -258,46 +253,27 @@ Push(lua_State* L, const BroadcastOnChange<T>& Object)
 }
 }
 
-template<class T, int N>
-class BroadcastOnChange1D
-{
-  private:
-	using MyType = BroadcastOnChange<T>;
-	std::vector<MyType> val;
-
-  public:
-	explicit BroadcastOnChange1D(MessageID m)
-	{
-		for (unsigned i = 0; i < N; i++)
-			val.push_back(BroadcastOnChange<T>((MessageID)(m + i)));
-	}
-	auto operator[](unsigned i) const -> const BroadcastOnChange<T>&
-	{
-		return val[i];
-	}
-	auto operator[](unsigned i) -> BroadcastOnChange<T>& { return val[i]; }
-};
-
 template<class T>
 class BroadcastOnChangePtr
 {
-  private:
 	MessageID mSendWhenChanged;
 	T* val;
 
   public:
-	explicit BroadcastOnChangePtr(MessageID m)
+	explicit BroadcastOnChangePtr(const MessageID m)
 	{
 		mSendWhenChanged = m;
-		val = NULL;
+		val = nullptr;
 	}
 	[[nodiscard]] auto Get() const -> T* { return val; }
 	void Set(T* t)
 	{
 		val = t;
-		if (MESSAGEMAN)
+		if (MESSAGEMAN) {
 			MESSAGEMAN->Broadcast(MessageIDToString(mSendWhenChanged));
+		}
 	}
+
 	/* This is only intended to be used for setting temporary values; always
 	 * restore the original value when finished, so listeners don't get confused
 	 * due to missing a message. */
@@ -306,24 +282,35 @@ class BroadcastOnChangePtr
 	auto operator->() const -> T* { return val; }
 };
 
-template<class T, int N>
-class BroadcastOnChangePtr1D
+template<class T>
+class BroadcastOnChangePtrWithSelf
 {
-  private:
-	using MyType = BroadcastOnChangePtr<T>;
-	std::vector<MyType> val;
+	MessageID mSendWhenChanged;
+	T* val;
 
   public:
-	explicit BroadcastOnChangePtr1D(MessageID m)
+	explicit BroadcastOnChangePtrWithSelf(const MessageID m)
 	{
-		for (unsigned i = 0; i < N; i++)
-			val.push_back(BroadcastOnChangePtr<T>((MessageID)(m + i)));
+		mSendWhenChanged = m;
+		val = nullptr;
 	}
-	auto operator[](unsigned i) const -> const BroadcastOnChangePtr<T>&
+	[[nodiscard]] auto Get() const -> T* { return val; }
+	void Set(T* t)
 	{
-		return val[i];
+		val = t;
+		if (MESSAGEMAN) {
+			Message msg(MessageIDToString(mSendWhenChanged));
+			msg.SetParam("ptr", t);
+			MESSAGEMAN->Broadcast(msg);
+		}
 	}
-	auto operator[](unsigned i) -> BroadcastOnChangePtr<T>& { return val[i]; }
+
+	/* This is only intended to be used for setting temporary values; always
+	 * restore the original value when finished, so listeners don't get confused
+	 * due to missing a message. */
+	void SetWithoutBroadcast(T* t) { val = t; }
+	operator T*() const { return val; }
+	auto operator->() const -> T* { return val; }
 };
 
 #endif

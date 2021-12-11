@@ -14,7 +14,8 @@
 #include "Etterna/Screen/Others/ScreenPrompt.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
@@ -236,13 +237,6 @@ GameCommand::LoadOne(const Command& cmd)
 		}
 	}
 
-	else if (sName == "song") {
-		CHECK_INVALID_COND(m_pSong,
-						   SONGMAN->FindSong(sValue),
-						   (SONGMAN->FindSong(sValue) == NULL),
-						   (ssprintf("Song \"%s\" not found", sValue.c_str())));
-	}
-
 	else if (sName == "steps") {
 		const auto sSteps = sValue;
 
@@ -389,7 +383,7 @@ GameCommand::IsPlayable(std::string* why) const
 void
 GameCommand::ApplyToAllPlayers() const
 {
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 
 	vpns.push_back(PLAYER_1);
 
@@ -399,13 +393,13 @@ GameCommand::ApplyToAllPlayers() const
 void
 GameCommand::Apply(PlayerNumber pn) const
 {
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	vpns.push_back(pn);
 	Apply(vpns);
 }
 
 void
-GameCommand::Apply(const vector<PlayerNumber>& vpns) const
+GameCommand::Apply(const std::vector<PlayerNumber>& vpns) const
 {
 	if (!m_Commands.v.empty()) {
 		// We were filled using a GameCommand from metrics. Apply the options in
@@ -426,7 +420,7 @@ GameCommand::Apply(const vector<PlayerNumber>& vpns) const
 }
 
 void
-GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
+GameCommand::ApplySelf(const std::vector<PlayerNumber>& vpns) const
 {
 	if (m_pStyle != nullptr) {
 		GAMESTATE->SetCurrentStyle(m_pStyle,
@@ -438,8 +432,8 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 			case StyleType_OnePlayerTwoSides:
 				break;
 			default:
-				LuaHelpers::ReportScriptError("Invalid StyleType: " +
-											  m_pStyle->m_StyleType);
+				LuaHelpers::ReportScriptError(ssprintf(
+				  "%s%d", "Invalid StyleType: ", m_pStyle->m_StyleType));
 		}
 	}
 	if (m_dc != Difficulty_Invalid)
@@ -499,7 +493,7 @@ GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 	ProfileManager::m_sDefaultLocalProfileID[*pn].Set(m_sProfileID);
 	if (!m_sUrl.empty()) {
-		if (HOOKS->GoToURL(m_sUrl)) {
+		if (Core::Platform::openWebsite(m_sUrl)) {
 			if (m_bUrlExits)
 				SCREENMAN->SetNewScreen("ScreenExit");
 		} else

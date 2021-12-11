@@ -16,9 +16,9 @@ local defaultGameplayCoordinates = {
 	DisplayPercentX = SCREEN_CENTER_X - 170,
 	DisplayPercentY = SCREEN_CENTER_Y - 60,
 	NPSDisplayX = 5,
-	NPSDisplayY = SCREEN_BOTTOM - 170,
+	NPSDisplayY = SCREEN_BOTTOM - 175,
 	NPSGraphX = 0,
-	NPSGraphY = SCREEN_BOTTOM - 160,
+	NPSGraphY = SCREEN_BOTTOM - 163,
 	NotefieldX = 0,
 	NotefieldY = 0,
 	ProgressBarPos = 1,
@@ -103,6 +103,7 @@ local defaultConfig = {
 		["6K"] = DeepCopy(defaultGameplayCoordinates),
 		["7K"] = DeepCopy(defaultGameplayCoordinates),
 		["8K"] = DeepCopy(defaultGameplayCoordinates),
+		["9K"] = DeepCopy(defaultGameplayCoordinates),
 		["10K"] = DeepCopy(defaultGameplayCoordinates),
 		["12K"] = DeepCopy(defaultGameplayCoordinates),
 		["16K"] = DeepCopy(defaultGameplayCoordinates)
@@ -114,11 +115,20 @@ local defaultConfig = {
 		["6K"] = DeepCopy(defaultGameplaySizes),
 		["7K"] = DeepCopy(defaultGameplaySizes),
 		["8K"] = DeepCopy(defaultGameplaySizes),
+		["9K"] = DeepCopy(defaultGameplaySizes),
 		["10K"] = DeepCopy(defaultGameplaySizes),
 		["12K"] = DeepCopy(defaultGameplaySizes),
 		["16K"] = DeepCopy(defaultGameplaySizes)
 	}
 }
+
+function getDefaultGameplaySize(obj)
+	return defaultGameplaySizes[obj]
+end
+
+function getDefaultGameplayCoordinate(obj)
+	return defaultGameplayCoordinates[obj]
+end
 
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
 local tmp2 = playerConfig.load
@@ -137,6 +147,7 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplaySizes["6K"] = sizes
 		defaultConfig.GameplaySizes["7K"] = sizes
 		defaultConfig.GameplaySizes["8K"] = sizes
+		defaultConfig.GameplaySizes["9K"] = sizes
 		defaultConfig.GameplaySizes["10K"] = sizes
 		defaultConfig.GameplaySizes["12K"] = sizes
 		defaultConfig.GameplaySizes["16K"] = sizes
@@ -149,6 +160,7 @@ playerConfig.load = function(self, slot)
 		defaultConfig.GameplayXYCoordinates["6K"] = coords
 		defaultConfig.GameplayXYCoordinates["7K"] = coords
 		defaultConfig.GameplayXYCoordinates["8K"] = coords
+		defaultConfig.GameplayXYCoordinates["9K"] = coords
 		defaultConfig.GameplayXYCoordinates["10K"] = coords
 		defaultConfig.GameplayXYCoordinates["12K"] = coords
 		defaultConfig.GameplayXYCoordinates["16K"] = coords

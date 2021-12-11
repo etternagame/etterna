@@ -3,16 +3,16 @@ local t = Def.ActorFrame {}
 
 local song = GAMESTATE:GetCurrentSong()
 local steps = GAMESTATE:GetCurrentSteps()
-local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 local score = pss:GetHighScore()
 
 local judges = {
-	"TapNoteScore_W1",
-	"TapNoteScore_W2",
-	"TapNoteScore_W3",
-	"TapNoteScore_W4",
-	"TapNoteScore_W5",
-	"TapNoteScore_Miss"
+    "TapNoteScore_W1",
+    "TapNoteScore_W2",
+    "TapNoteScore_W3",
+    "TapNoteScore_W4",
+    "TapNoteScore_W5",
+    "TapNoteScore_Miss"
 }
 
 -- functionally create the judgment things to save space

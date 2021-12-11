@@ -16,6 +16,7 @@
 #include "Agnostic/HA_PatternMods/HS.h"
 #include "Agnostic/HA_PatternMods/CJ.h"
 #include "Agnostic/HA_PatternMods/CJDensity.h"
+#include "Agnostic/HA_PatternMods/HSDensity.h"
 #include "Agnostic/HA_PatternMods/FlamJam.h"
 #include "Agnostic/HA_PatternMods/TheThingFinder.h"
 
@@ -31,6 +32,7 @@
 #include "Dependent/HD_PatternMods/OHT.h"
 #include "Dependent/HD_PatternMods/VOHT.h"
 #include "Dependent/HD_PatternMods/Chaos.h"
+#include "Dependent/HD_PatternMods/CJOHAnchor.h"
 #include "Dependent/HD_PatternMods/WideRangeBalance.h"
 #include "Dependent/HD_PatternMods/WideRangeRoll.h"
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
@@ -43,9 +45,10 @@
 // a new thing
 #include "SequencedBaseDiffCalc.h"
 
-/* I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
- * ulbu is all. Praise ulbu. */
+#include <cmath>
 
+/** I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
+ * ulbu is all. Praise ulbu. */
 struct TheGreatBazoinkazoinkInTheSky
 {
 	bool dbg = false;
@@ -84,6 +87,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	HSMod _hs;
 	CJMod _cj;
 	CJDensityMod _cjd;
+	HSDensityMod _hsd;
 	OHJumpModGuyThing _ohj;
 	CJOHJumpMod _cjohj;
 	RollMod _roll;
@@ -91,6 +95,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	OHTrillMod _oht;
 	VOHTrillMod _voht;
 	ChaosMod _ch;
+	CJOHAnchorMod _chain;
 	RunningManMod _rm;
 	WideRangeBalanceMod _wrb;
 	WideRangeRollMod _wrr;
@@ -108,30 +113,23 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
-	{
-#ifndef RELWITHDEBINFO
-#if NDEBUG
-		load_calc_params_from_disk();
-#endif
-#endif
-		/* ok so the problem atm is the multithreading of songload, if we want
-		 * to update the file on disk with new values and not just overwrite it
-		 * we have to write out after loading the values player defined, so the
-		 * quick hack solution to do that is to only do it during debug output
-		 * generation, which is fine for the time being, though not ideal */
-		if (calc.debugmode) {
-			write_params_to_disk();
-		}
-
+	{		
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
 		_last_mhi = std::make_unique<metaHandInfo>();
 		_mhi = std::make_unique<metaHandInfo>();
 	}
-
+	
 	void operator()()
 	{
+		hand = 0;
+
+		// should redundant but w.e not sure
+		full_hand_reset();
+		full_agnostic_reset();
+		reset_row_sequencing();
+
 		run_agnostic_pmod_loop();
 		run_dependent_pmod_loop();
 	}
@@ -147,26 +145,37 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void setup_agnostic_pmods()
 	{
-		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern
-		// sequencing
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing */
 		_fj.setup();
 		_tt.setup();
 		_tt2.setup();
 	}
 
+	void full_agnostic_reset()
+	{
+		_js.full_reset();
+		_hs.full_reset();
+		_cj.full_reset();
+
+		_mri.get()->reset();
+		_last_mri.get()->reset();
+	}
+
 	void set_agnostic_pmods(const int& itv)
 	{
-		// these pattern mods operate on all columns, only need basic meta
-		// interval data, and do not need any more advanced pattern
-		// sequencing just set only one hand's values and we'll copy them
-		// over (or figure out how not to need to) later
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing. Just set only one hand's values and we'll copy them
+		 * over (or figure out how not to need to) later */
 
 		PatternMods::set_agnostic(_s._pmod, _s(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_js._pmod, _js(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_hs._pmod, _hs(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cjd._pmod, _cjd(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hsd._pmod, _hsd(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_fj._pmod, _fj(), itv, _calc);
 		PatternMods::set_agnostic(_tt._pmod, _tt(), itv, _calc);
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
@@ -207,14 +216,16 @@ struct TheGreatBazoinkazoinkInTheSky
 #pragma endregion
 
 #pragma region hand dependent pmod loop
-	// some pattern mod detection builds across rows, see rm_sequencing for
-	// an example, actually all sequencing should be done in objects
-	// following rm_sequencing's template and be stored in mhi, and then
-	// passed to whichever mods need them, but that's for later
+	/// some pattern mod detection builds across rows, see rm_sequencing for
+	/// an example, actually all sequencing should be done in objects
+	/// following rm_sequencing's template and be stored in mhi, and then
+	/// passed to whichever mods need them, but that's for later
 	void handle_row_dependent_pattern_advancement()
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
+		_chain.advance_sequencing(
+		  _mhi->_ct, _mhi->_bt, _mhi->_last_ct, _seq._mw_any_ms.get_now());
 		_oht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_voht.advance_sequencing(_mhi->_mt, _seq._mw_any_ms);
 		_rm.advance_sequencing(_mhi->_ct, _mhi->_bt, _mhi->_mt, _seq._as);
@@ -246,6 +257,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
+		  hand, _chain._pmod, _chain(_mitvhi), itv, _calc);
+		PatternMods::set_dependent(
 		  hand, _cjohj._pmod, _cjohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _oht._pmod, _oht(_mitvhi._itvhi), itv, _calc);
@@ -269,12 +282,13 @@ struct TheGreatBazoinkazoinkInTheSky
 		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv, _calc);
 	}
 
-	// reset any moving windows or values when starting the other hand, this
-	// shouldn't matter too much practically, but we should be disciplined
-	// enough to do it anyway
+	/// reset any moving windows or values when starting the other hand, this
+	/// shouldn't matter too much practically, but we should be disciplined
+	/// enough to do it anyway
 	void full_hand_reset()
 	{
 		_ohj.full_reset();
+		_chain.full_reset();
 		_cjohj.full_reset();
 		_bal.full_reset();
 		_roll.full_reset();
@@ -292,6 +306,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mhi->full_reset();
 		_last_mhi->full_reset();
 		_diffz.full_reset();
+	}
+
+	void reset_row_sequencing()
+	{
+		_mitvi.reset();
 	}
 
 	void handle_dependent_interval_end(const int& itv)
@@ -313,17 +332,22 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz.interval_end();
 	}
 
-	// update base difficulty stuff
+	/// update base difficulty stuff
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
 									 const int& jack_counter,
-							const float& row_time)
+									 const float& row_time)
 	{
+		auto thing =
+		  std::pair{ row_time,
+					 ms_to_scaled_nps(_seq._as.get_lowest_jack_ms()) *
+					   basescalers[Skill_JackSpeed] };
+		if (std::isnan(thing.second)) {
+			thing.second = 0.F;
+		}
 		// jack speed updates with highest anchor difficulty seen
 		// _between either column_ for _this row_
-		_calc.jack_diff.at(hand).push_back(
-		  { row_time, ms_to_scaled_nps(_seq._as.get_lowest_anchor_ms()) *
-			basescalers[Skill_JackSpeed] });
+		_calc.jack_diff.at(hand).push_back(thing);
 
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
@@ -333,16 +357,18 @@ struct TheGreatBazoinkazoinkInTheSky
 	void set_sequenced_base_diffs(const int& itv) const
 	{
 		// this is no longer done for intervals, but per row, in the row
-		// loop _calc.soap.at(hand)[JackBase].at(itv) =
+		// loop _calc->soap.at(hand)[JackBase].at(itv) =
 		// _diffz._jk.get_itv_diff();
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
-		_calc.soap.at(hand)[TechBase].at(itv) =
-		  _diffz._tc.get_itv_diff(_calc.soap.at(hand)[NPSBase].at(itv), _calc);
+		_calc.init_base_diff_vals.at(hand)[TechBase].at(itv) =
+		  _diffz._tc.get_itv_diff(
+			_calc.init_base_diff_vals.at(hand)[NPSBase].at(itv), _calc);
 
 		// mostly for debug output.. optimize later
-		_calc.soap.at(hand)[RMABase].at(itv) = _diffz._tc.get_itv_rma_diff();
+		_calc.init_base_diff_vals.at(hand)[RMABase].at(itv) =
+		  _diffz._tc.get_itv_rma_diff();
 	}
 
 	void run_dependent_pmod_loop()
@@ -366,7 +392,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			// maybe we _don't_ want this smoothed before the tech pass? and so
 			// it could be constructed parallel? NEEDS TEST
-			Smooth(_calc.soap.at(hand).at(NPSBase), 0.F, _calc.numitv);
+			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase), 0.F, _calc.numitv);
 
 			for (auto itv = 0; itv < _calc.numitv; ++itv) {
 				auto jack_counter = 0;
@@ -380,7 +406,9 @@ struct TheGreatBazoinkazoinkInTheSky
 					// don't like having this here
 					any_ms = ms_from(row_time, last_row_time);
 
-					assert(any_ms > 0.F);
+					// To catch division by 0, not preventing significant issues as-is
+					//	So disabled assert for now
+					// assert(any_ms > 0.F);
 
 					ct = determine_col_type(row_notes, ids);
 
@@ -416,7 +444,8 @@ struct TheGreatBazoinkazoinkInTheSky
 					 * are sequenced here, meaning they are order dependent
 					 * (jack might not be for the moment actually) nps base
 					 * is still calculated in the old way */
-					update_sequenced_base_diffs(ct, itv, jack_counter, row_time);
+					update_sequenced_base_diffs(
+					  ct, itv, jack_counter, row_time);
 					++jack_counter;
 
 					// only ohj uses this atm (and probably into the future)
@@ -432,7 +461,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				}
 
 				// maybe this should go back into the diffz object...
-				// _calc.itv_jack_diff_size.at(hand).at(itv) = jack_counter;
+				// _calc->itv_jack_diff_size.at(hand).at(itv) = jack_counter;
 
 				handle_dependent_interval_end(itv);
 			}
@@ -442,6 +471,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			// when we finish left hand
 			++hand;
 		}
+
+		nps::grindscale(_calc);
 	}
 #pragma endregion
 
@@ -478,19 +509,37 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 	}
 
-	void load_calc_params_from_disk() const
+	void load_calc_params_from_disk(bool bForce = false) const
 	{
 		const auto fn = calc_params_xml;
 		int iError;
-		const std::unique_ptr<RageFileBasic> pFile(
-		  FILEMAN->Open(fn, RageFile::READ, iError));
-		if (pFile == nullptr) {
+
+		// Hold calc params program-global persistent info
+		thread_local RageFileBasic* pFile;
+		thread_local XNode params;
+		// Only ever try to load params once per thread unless forcing
+		thread_local bool paramsLoaded = false;
+
+		// Don't keep loading params if nothing to load/no reason to
+		// Allow a force to bypass
+		if (paramsLoaded && !bForce)
 			return;
+
+		// Load if missing
+		if (pFile == nullptr || bForce) {
+			delete pFile;
+			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
+			// Failed to load
+			if (pFile == nullptr)
+				return;
 		}
 
-		XNode params;
-		if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
-			return;
+		// If it isn't loaded or we are forcing a load, load it
+		if (params.ChildrenEmpty() || bForce)
+		{
+			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
+				return;
+			}
 		}
 
 		// ignore params from older versions
@@ -499,14 +548,17 @@ struct TheGreatBazoinkazoinkInTheSky
 		if (vers.empty() || stoi(vers) != GetCalcVersion()) {
 			return;
 		}
+		paramsLoaded = true;
 
 		load_params_for_mod(&params, _s._params, _s.name);
 		load_params_for_mod(&params, _js._params, _js.name);
 		load_params_for_mod(&params, _hs._params, _hs.name);
 		load_params_for_mod(&params, _cj._params, _cj.name);
 		load_params_for_mod(&params, _cjd._params, _cjd.name);
+		load_params_for_mod(&params, _hsd._params, _hsd.name);
 		load_params_for_mod(&params, _ohj._params, _ohj.name);
 		load_params_for_mod(&params, _cjohj._params, _cjohj.name);
+		load_params_for_mod(&params, _chain._params, _chain.name);
 		load_params_for_mod(&params, _bal._params, _bal.name);
 		load_params_for_mod(&params, _oht._params, _oht.name);
 		load_params_for_mod(&params, _voht._params, _voht.name);
@@ -531,9 +583,12 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
 		calcparams->AppendChild(make_mod_param_node(_cjd._params, _cjd.name));
+		calcparams->AppendChild(make_mod_param_node(_hsd._params, _hsd.name));
 		calcparams->AppendChild(make_mod_param_node(_ohj._params, _ohj.name));
 		calcparams->AppendChild(
 		  make_mod_param_node(_cjohj._params, _cjohj.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_chain._params, _chain.name));
 		calcparams->AppendChild(make_mod_param_node(_bal._params, _bal.name));
 		calcparams->AppendChild(make_mod_param_node(_oht._params, _oht.name));
 		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));

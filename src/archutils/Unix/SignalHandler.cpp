@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "SignalHandler.h"
 #include "GetSysInfo.h"
 
@@ -34,7 +34,7 @@ find_stack_direction2(char* p) NOINLINE;
 static int
 find_stack_direction() NOINLINE;
 
-static vector<SignalHandler::handler> handlers;
+static std::vector<SignalHandler::handler> handlers;
 SaveSignals* saved_sigs;
 
 static int signals[] = { SIGALRM, SIGBUS,	SIGFPE,  SIGHUP,  SIGILL,
@@ -177,7 +177,7 @@ SignalHandler::OnClose(handler h)
 			ss.ss_size = AltStackSize;
 			ss.ss_flags = 0;
 			if (sigaltstack(&ss, NULL) == -1) {
-				LOG->Info("sigaltstack failed: %s", strerror(errno));
+				Locator::getLogger()->info("sigaltstack failed: {}", strerror(errno));
 				p = NULL; /* no SA_ONSTACK */
 			}
 		}

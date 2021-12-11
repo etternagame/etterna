@@ -37,7 +37,7 @@ RageSurface_Load_XPM(char* const* xpm, std::string& error)
 		return nullptr;
 	}
 
-	vector<RageSurfaceColor> colors;
+	std::vector<RageSurfaceColor> colors;
 
 	std::map<std::string, int> name_to_color;
 	for (auto i = 0; i < num_colors; ++i) {

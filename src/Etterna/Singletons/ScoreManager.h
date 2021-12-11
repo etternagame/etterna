@@ -26,7 +26,7 @@ struct ScoresAtRate
 
 	auto AddScore(HighScore& hs) -> HighScore*;
 
-	[[nodiscard]] auto GetSortedKeys() const -> const vector<std::string>;
+	[[nodiscard]] auto GetSortedKeys() const -> const std::vector<std::string>;
 	void PushSelf(lua_State* L);
 
 	auto HandleNoCCPB(HighScore& hs) -> bool;
@@ -37,7 +37,7 @@ struct ScoresAtRate
 					  const float& rate,
 					  const std::string& profileID);
 
-	auto GetAllScores() -> const vector<HighScore*>;
+	auto GetAllScores() -> const std::vector<HighScore*>;
 	std::unordered_map<std::string, HighScore> scores;
 };
 
@@ -52,21 +52,21 @@ struct ScoresForChart
 
 	auto GetPBAt(float rate) -> HighScore*;
 	auto GetPBUpTo(float rate) -> HighScore*;
-	auto GetAllPBPtrs() -> const vector<HighScore*>;
+	auto GetAllPBPtrs() -> const std::vector<HighScore*>;
 
 	auto AddScore(HighScore& hs) -> HighScore*;
 
-	[[nodiscard]] auto GetPlayedRates() const -> const vector<float>;
-	[[nodiscard]] auto GetPlayedRateKeys() const -> const vector<int>;
+	[[nodiscard]] auto GetPlayedRates() const -> const std::vector<float>;
+	[[nodiscard]] auto GetPlayedRateKeys() const -> const std::vector<int>;
 	[[nodiscard]] auto GetPlayedRateDisplayStrings() const
-	  -> const vector<std::string>;
+	  -> const std::vector<std::string>;
 
 	void PushSelf(lua_State* L);
 
 	Chart ch;
 
 	auto GetScoresAtRate(const int& rate) -> ScoresAtRate*;
-	auto GetAllScores() -> const vector<HighScore*>;
+	auto GetAllScores() -> const std::vector<HighScore*>;
 	[[nodiscard]] auto CreateNode(const std::string& ck) const -> XNode*;
 	void LoadFromNode(const XNode* node,
 					  const std::string& ck,
@@ -110,7 +110,7 @@ class ScoreManager
 
 	auto GetAllPBPtrs(const std::string& profileID =
 						PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
-	  -> const vector<vector<HighScore*>>;
+	  -> const std::vector<vector<HighScore*>>;
 
 	auto GetChartPBAt(const std::string& ck,
 					  float rate,
@@ -157,8 +157,9 @@ class ScoreManager
 					PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) -> int
 	{
 		HighScore hs = hs_;
-		RegisterScoreInProfile(
-		  pscores[profileID][hs.GetChartKey()].AddScore(hs), profileID);
+		HighScore* h = pscores[profileID][hs.GetChartKey()].AddScore(hs);
+		RegisterScoreThisSession(h);
+		RegisterScoreInProfile(h, profileID);
 		return hs.GetTopScore();
 	}
 
@@ -170,9 +171,14 @@ class ScoreManager
 	const float minpercent = PREFSMAN->m_fMinPercentToSaveScores;
 
 	// Player Rating and SSR functions
-	void SortTopSSRPtrs(Skillset ss,
-						const std::string& profileID =
-						  PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	std::vector<float> SortTopSSRPtrs(
+	  Skillset ss,
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID,
+	  bool getSSRs = false);
+	std::map<DateTime, std::vector<float>> GetPlayerRatingOverTime(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void SortTopSSRPtrsForGame(
 	  Skillset ss,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
@@ -182,10 +188,6 @@ class ScoreManager
 	void CalcPlayerRating(float& prating,
 						  float* pskillsets,
 						  const std::string& profileID);
-	[[nodiscard]] auto AggregateSSRs(Skillset ss,
-									 float rating,
-									 float res,
-									 int iter) const -> float;
 
 	auto GetTopSSRValue(unsigned int rank, int ss) -> float;
 
@@ -204,7 +206,7 @@ class ScoreManager
 	  const std::string& profileID =
 		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID) const -> bool
 	{
-		return pscores.at(profileID).count(ck) == 1;
+		return pscores.count(profileID) == 1 && pscores.at(profileID).count(ck) == 1;
 	}
 	[[nodiscard]] auto HasAnyScores() const -> bool
 	{
@@ -222,7 +224,7 @@ class ScoreManager
 						   const std::string& profileID =
 							 PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
 	  -> ScoresForChart*;
-	auto GetSortedKeys() -> const vector<std::string>;
+	auto GetSortedKeys() -> const std::vector<std::string>;
 
 	void PushSelf(lua_State* L);
 	auto GetMostRecentScore() -> HighScore*
@@ -232,7 +234,9 @@ class ScoreManager
 					 "Temp score for Replay & Practice viewing was empty.");
 			return tempscoreforonlinereplayviewing;
 		}
-		ASSERT_M(!AllScores.empty(), "Profile has no Scores.");
+		// Allow Lua to receive null HS here
+		if (AllScores.empty())
+			return nullptr;
 		return AllScores.back();
 	}
 	void PutScoreAtTheTop(const std::string& scorekey)
@@ -240,14 +244,14 @@ class ScoreManager
 		auto score = ScoresByKey[scorekey];
 		std::swap(score, AllScores.back());
 	}
-	auto GetAllScores() -> const vector<HighScore*>& { return AllScores; }
+	auto GetAllScores() -> const std::vector<HighScore*>& { return AllScores; }
 	auto GetScoresByKey() -> const std::unordered_map<std::string, HighScore*>&
 	{
 		return ScoresByKey;
 	}
 	auto GetAllProfileScores(const std::string& profileID =
 							   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
-	  -> const vector<HighScore*>&
+	  -> const std::vector<HighScore*>&
 	{
 		return AllProfileScores[profileID];
 	}
@@ -257,6 +261,13 @@ class ScoreManager
 		ScoresByKey.emplace(hs->GetScoreKey(), hs);
 	}
 	void RegisterScoreInProfile(HighScore* hs_, const std::string& profileID);
+
+	// return all skillsets ordered by number of plays
+	std::vector<Skillset> GetTopPlayedSkillsets(
+	  const std::string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+
+	std::vector<int> GetPlaycountPerSkillset(
+	  const std::string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 
 	void SetAllTopScores(const std::string& profileID =
 						   PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
@@ -278,10 +289,23 @@ class ScoreManager
 	}
 	bool camefromreplay = false;
 	HighScore* tempscoreforonlinereplayviewing;
-	vector<HighScore*> scorestorecalc;
+	std::vector<HighScore*> scorestorecalc;
 
 	// probably can avoid copying strings if we're sure it's safe
 	std::set<HighScore*> rescores;
+
+	auto GetNumScoresThisSession() -> int
+	{
+		return scoresThisSession.size();
+	}
+	auto GetScoresThisSession() -> std::vector<HighScore*>
+	{
+		return scoresThisSession;
+	}
+	void RegisterScoreThisSession(HighScore* hs)
+	{
+		scoresThisSession.push_back(hs);
+	}
 
   private:
 	std::unordered_map<std::string,
@@ -290,14 +314,19 @@ class ScoreManager
 
 	// Instead of storing pointers for each skillset just reshuffle the same set
 	// of pointers it's inexpensive and not called often
-	vector<HighScore*> TopSSRs;
-	vector<HighScore*> TopSSRsForGame;
-	vector<HighScore*> AllScores;
-	std::unordered_map<std::string, vector<HighScore*>> AllProfileScores;
+	std::vector<HighScore*> TopSSRs;
+	std::vector<HighScore*> TopSSRsForGame;
+	std::vector<HighScore*> AllScores;
+	std::unordered_map<std::string, std::vector<HighScore*>> AllProfileScores;
 
 	// pointers in a keyed index (by scorekey, in case it's not immediately
 	// obvious)
 	std::unordered_map<std::string, HighScore*> ScoresByKey;
+
+	// a more thought out (not really) replacement for STATSMAN played stage stats
+	// note: scoresThisSession is NOT meant to reset on profile load
+	// (design choice)
+	std::vector<HighScore*> scoresThisSession;
 };
 
 extern ScoreManager* SCOREMAN;

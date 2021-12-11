@@ -32,23 +32,17 @@ local function makeABar(vertices, x, y, barWidth, barHeight, prettycolor)
 	vertices[#vertices + 1] = {{x,y,0},prettycolor}
 end
 
-local function getColorForDensity(density, ncol)
-	if density == 1 then
-		return color(".75,.75,.75") -- nps color
-	elseif density == ncol then
-		return color(".1,.1,.1")	-- biggest chord color
-	elseif density == 2 then
-		return color(".5,.5,.5") -- jumps color
-	elseif density == 3 then
-		return color(".25,.25,.25") -- hands color
-	--else
-		--local c =  lerp(density / (ncol +1 ), .1, .75) 	-- im sure we can programmatically handle n columns but im too lazy 
-		--return color(c..","..c..","..c..","..c)			-- to make this look nice atm -mina
-	end
+local function getColorForDensity(density, nColumns)
+    -- Generically (generally? intelligently? i dont know) set a range
+	-- The value var describes the level of density.
+    -- Beginning at lowVal for 0, to highVal for nColumns.
+    local interval = 1 / nColumns
+	local value = 1 - density * interval
+	return color(tostring(value)..","..tostring(value)..","..tostring(value))
 end
 
 local function updateGraphMultiVertex(parent, realgraph)
-	local steps = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	local steps = GAMESTATE:GetCurrentSteps()
 	if steps then
 		local ncol = steps:GetNumColumns()
 		local rate = math.max(1, getCurRateValue())
@@ -61,6 +55,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+		parent.npsVector = npsVector
 		local numberOfColumns = #npsVector
 		local columnWidth = wodth/numberOfColumns * rate
 		
@@ -77,14 +72,20 @@ local function updateGraphMultiVertex(parent, realgraph)
 		hodth = hidth/hodth
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
+		local lastIndex = 1
 		for density = 1,ncol do
 			for column = 1,numberOfColumns do
 					if graphVectors[density][column] > 0 then
 						local barColor = getColorForDensity(density, ncol)
 						makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
+						if column > lastIndex then
+							lastIndex = column
+						end
 					end
 			end
 		end
+
+		parent.finalNPSVectorIndex = lastIndex
 		
 		realgraph:SetVertices(verts)
 		realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
@@ -121,8 +122,7 @@ local t = Def.ActorFrame {
     }
 }
 
-t[#t+1] =
-	Def.ActorMultiVertex {
+t[#t+1] = Def.ActorMultiVertex {
 		Name = "CDGraphDrawer",
 		GraphUpdateCommand = function(self)
 			if self:IsVisible() then

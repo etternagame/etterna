@@ -121,8 +121,8 @@ end
 function getMaxNotes(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		steps = GAMESTATE:GetCurrentSteps(pn)
+	if GAMESTATE:IsPlayerEnabled() then
+		steps = GAMESTATE:GetCurrentSteps()
 		if steps ~= nil then
 			if GAMESTATE:GetCurrentGame():CountNotesSeparately() then
 				return steps:GetRadarValues(pn):GetValue("RadarCategory_Notes") or 0
@@ -137,8 +137,8 @@ end
 function getMaxHolds(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
-		steps = GAMESTATE:GetCurrentSteps(pn)
+	if GAMESTATE:IsPlayerEnabled() then
+		steps = GAMESTATE:GetCurrentSteps()
 		if steps ~= nil then
 			return (steps:GetRadarValues(pn):GetValue("RadarCategory_Holds") +
 				steps:GetRadarValues(pn):GetValue("RadarCategory_Rolls")) or 0
@@ -228,7 +228,7 @@ end
 
 function getScoreGrade(score)
 	if score ~= nil then
-		return score:GetGrade()
+		return score:GetWifeGrade()
 	else
 		return "Grade_None"
 	end
@@ -266,7 +266,7 @@ function getScoreHoldNoteScore(score, tns)
 	end
 end
 
-function getScoreMissCount(score)
+function getScoreComboBreaks(score)
 	return getScoreTapNoteScore(score, "TapNoteScore_Miss") + getScoreTapNoteScore(score, "TapNoteScore_W5") +
 		getScoreTapNoteScore(score, "TapNoteScore_W4")
 end
@@ -374,9 +374,9 @@ function getScoresByKey(pn)
 	local song = GAMESTATE:GetCurrentSong()
 	local profile
 	local steps
-	if GAMESTATE:IsPlayerEnabled(pn) then
+	if GAMESTATE:IsPlayerEnabled() then
 		profile = GetPlayerOrMachineProfile(pn)
-		steps = GAMESTATE:GetCurrentSteps(pn)
+		steps = GAMESTATE:GetCurrentSteps()
 		if profile ~= nil and steps ~= nil and song ~= nil then
 			return SCOREMAN:GetScoresByKey(steps:GetChartKey())
 		end
@@ -437,6 +437,8 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	local lowerBound = judge > 1 and windows[judge - 1] * ts or -1.0
 	local upperBound = judge == 5 and math.max(windows[judge] * ts, 180.0) or windows[judge] * ts
 	local judgeCount = 0
+
+	if offsetVector == nil then return judgeCount end
 
 	if judge > 5 then
 		lowerBound = math.max(lowerBound, 180.0)
@@ -510,7 +512,7 @@ function getRescoredCustomPercentage(customWindows, rst)
 	return p * 100.0
 end
 
-function GetDisplayScoreByFilter(perc, CurRate) -- moved from wifetwirl, displays the score for the current rate if there is one, 
+function GetDisplayScoreByFilter(perc, CurRate) -- moved from wifetwirl, displays the score for the current rate if there is one,
 	local rtTable = getRateTable()				-- if not it looks for what might plausibly be your best by going down each rate
 	if not rtTable then
 		return nil
@@ -581,12 +583,12 @@ function GetDisplayScore()	-- wrapper for above that prioritizes current rate's 
 end
 
 -- erf constants
-a1 =  0.254829592
-a2 = -0.284496736
-a3 =  1.421413741
-a4 = -1.453152027
-a5 =  1.061405429
-p  =  0.3275911
+local a1 =  0.254829592
+local a2 = -0.284496736
+local a3 =  1.421413741
+local a4 = -1.453152027
+local a5 =  1.061405429
+local p  =  0.3275911
 
 
 function erf(x)
@@ -631,10 +633,54 @@ function getRescoredWife3Judge(version, judgeScale, rst)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
-		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)	
+	local dvt = rst["dvt"]
+	if dvt == nil then return p end
+
+	for i = 1, #dvt do							-- wife2 does not require abs due to ^2 but this does
+		p = p + wife3(math.abs(dvt[i]), ts, version)
 	end
 	p = p + (rst["holdsMissed"] * -4.5)
 	p = p + (rst["minesHit"] * -7)
 	return (p / (rst["totalTaps"] * 2)) * 100.0
+end
+
+-- convert midgrades to full grades to help cope with the midgrade preference
+function midgradeToGrade(grade)
+
+	local gradeTiers = {
+		Grade_Tier01 = 1,
+		Grade_Tier02 = 4,
+		Grade_Tier03 = 4,
+		Grade_Tier04 = 4,
+		Grade_Tier05 = 7,
+		Grade_Tier06 = 7,
+		Grade_Tier07 = 7,
+		Grade_Tier08 = 10,
+		Grade_Tier09 = 10,
+		Grade_Tier10 = 10,
+		Grade_Tier11 = 13,
+		Grade_Tier12 = 13,
+		Grade_Tier13 = 13,
+		Grade_Tier14 = 14,
+		Grade_Tier15 = 15,
+		Grade_Tier16 = 16,
+		Grade_Tier17 = 17,
+		Grade_Tier18 = 18,
+		Grade_Tier19 = 19,
+		Grade_Tier20 = 20,
+		Grade_Failed = 21
+	}
+	return gradeTiers[grade]
+end
+
+-- returns true if A is worth more than B
+-- (based on gradeTiers, A would have a smaller value)
+function compareGrades(a, b)
+	if a == nil then -- covers both (a == nil and b == nil) and (a == nil and b ~= nil)
+		return false
+	elseif b == nil then -- covers (a ~= nil and b == nil)
+		return true
+	end
+	-- covers (a ~= nil and b ~= nil)
+	return gradeTiers[a] < gradeTiers[b]
 end

@@ -7,6 +7,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Core/Services/Locator.hpp"
 
 #include <algorithm>
 
@@ -42,7 +43,7 @@ Foreground::LoadFromSong(const Song* pSong)
 
 		LoadedBGA bga;
 		if (DoesFileExist(sLuaFile)) {
-			LOG->Warn("Mod map detected, invalidating sequential assumption.");
+			Locator::getLogger()->warn("Modchart detected, invalidating sequential assumption.");
 			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 			td->InvalidateSequentialAssmption();
 

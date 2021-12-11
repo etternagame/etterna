@@ -1,10 +1,12 @@
 #pragma once
 #include "../../PatternModHelpers.h"
 
+/// Hand-Agnostic PatternMod detecting Chordjacks.
+/// Looks for continuous chords which form jacks
 struct CJMod
 {
 	const CalcPatternMod _pmod = CJ;
-	// const vector<CalcPatternMod> _dbg = { CJS, CJJ };
+	// const std::vector<CalcPatternMod> _dbg = { CJS, CJJ };
 	const std::string name = "CJMod";
 
 #pragma region params
@@ -29,6 +31,7 @@ struct CJMod
 	float not_jack_scaler = 1.75F;
 
 	float vibro_flag = 1.F;
+	float decay_factor = 0.1F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -51,6 +54,7 @@ struct CJMod
 		{ "not_jack_scaler", &not_jack_scaler },
 
 		{ "vibro_flag", &vibro_flag },
+		{ "decay_factor", &decay_factor },
 	};
 #pragma endregion params and param map
 
@@ -59,8 +63,20 @@ struct CJMod
 	float not_jack_prop = 0.F;
 	float pmod = min_mod;
 	float t_taps = 0.F;
+	float last_mod = 0.F;
 
-	// inline void set_dbg(vector<float> doot[], const int& i)
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
+
+	void decay_mod()
+	{
+		pmod = std::clamp(last_mod - decay_factor, min_mod, max_mod);
+		last_mod = pmod;
+	}
+
+	// inline void set_dbg(std::vector<float> doot[], const int& i)
 	//{
 	//	doot[CJS][i] = not_jack_prop;
 	//	doot[CJJ][i] = jack_prop;
@@ -76,7 +92,8 @@ struct CJMod
 
 		// no chords
 		if (itvi.chord_taps == 0) {
-			return min_mod;
+			decay_mod();
+			return pmod;
 		}
 
 		t_taps = static_cast<float>(itvi.total_taps);
@@ -91,17 +108,17 @@ struct CJMod
 										prop_buffer) /
 					 (t_taps - prop_buffer) * total_prop_scaler;
 		total_prop =
-		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
+		  std::clamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// make sure there's at least a couple of jacks
 		jack_prop =
-		  CalcClamp(static_cast<float>(mitvi.actual_jacks_cj) - jack_base,
-					jack_min,
-					jack_max);
+		  std::clamp(static_cast<float>(mitvi.actual_jacks_cj) - jack_base,
+					 jack_min,
+					 jack_max);
 
 		// explicitly detect broken chordstream type stuff so we can give more
 		// leeway to single note jacks brop_two_return_of_brop_electric_bropaloo
-		not_jack_prop = CalcClamp(
+		not_jack_prop = std::clamp(
 		  not_jack_pool -
 			(static_cast<float>(static_cast<float>(mitvi.definitely_not_jacks) *
 								not_jack_scaler) /
@@ -110,7 +127,7 @@ struct CJMod
 		  not_jack_max);
 
 		pmod =
-		  CalcClamp(total_prop * jack_prop * not_jack_prop, min_mod, max_mod);
+		  std::clamp(total_prop * jack_prop * not_jack_prop, min_mod, max_mod);
 
 		// ITS JUST VIBRO THEN(unique note permutations per interval < 3 ), use
 		// this other places ?
@@ -123,6 +140,9 @@ struct CJMod
 				pmod *= 0.95F * vibro_flag;
 			}
 		}
+
+		// set for decay
+		last_mod = pmod;
 
 		return pmod;
 	}

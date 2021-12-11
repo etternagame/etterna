@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "InputHandler_Linux_PIUIO.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <string.h>
@@ -21,29 +21,29 @@ REGISTER_INPUT_HANDLER_CLASS2(PIUIO, Linux_PIUIO);
 
 InputHandler_Linux_PIUIO::InputHandler_Linux_PIUIO()
 {
-	LOG->Trace("InputHandler_Linux_PIUIO::InputHandler_Linux_PIUIO");
+	Locator::getLogger()->trace("InputHandler_Linux_PIUIO::InputHandler_Linux_PIUIO");
 
 	// Open device file and make sure it's actually a device...
 	fd = open("/dev/piuio0", O_RDONLY);
 	if (fd < 0) {
-		LOG->Warn("Couldn't open PIUIO device: %s", strerror(errno));
+		Locator::getLogger()->warn("Couldn't open PIUIO device: {}", strerror(errno));
 		return;
 	}
 
 	struct stat st;
 	if (fstat(fd, &st) == -1) {
-		LOG->Warn("Couldn't stat PIUIO device: %s", strerror(errno));
+		Locator::getLogger()->warn("Couldn't stat PIUIO device: {}", strerror(errno));
 		close(fd);
 		return;
 	}
 
 	if (!S_ISCHR(st.st_mode)) {
-		LOG->Warn("Ignoring /dev/piuio0: not a character device");
+		Locator::getLogger()->warn("Ignoring /dev/piuio0: not a character device");
 		close(fd);
 		return;
 	}
 
-	LOG->Info("Opened PIUIO device for input");
+	Locator::getLogger()->info("Opened PIUIO device for input");
 
 	// Set up a flag we can use to stop the input thread gracefully
 	m_bShutdown = false;
@@ -57,9 +57,9 @@ InputHandler_Linux_PIUIO::~InputHandler_Linux_PIUIO()
 	// Shut down the thread if it's running
 	if (m_InputThread.IsCreated()) {
 		m_bShutdown = true;
-		LOG->Trace("Shutting down PIUIO thread ...");
+		Locator::getLogger()->trace("Shutting down PIUIO thread ...");
 		m_InputThread.Wait();
-		LOG->Info("PIUIO thread shut down.");
+		Locator::getLogger()->info("PIUIO thread shut down.");
 	}
 
 	if (fd >= 0)
@@ -88,9 +88,8 @@ InputHandler_Linux_PIUIO::InputThread()
 
 		int ret = read(fd, &inputs, sizeof(inputs));
 		if (ret != sizeof(inputs)) {
-			LOG->Warn("Unexpected packet (size %i != %i) from PIUIO",
-					  ret,
-					  (int)sizeof(inputs));
+			Locator::getLogger()->warn("Unexpected packet (size {} != {}) from PIUIO",
+					  ret, (int)sizeof(inputs));
 			continue;
 		}
 		auto now = std::chrono::steady_clock::now();
@@ -133,7 +132,7 @@ InputHandler_Linux_PIUIO::InputThread()
 
 void
 InputHandler_Linux_PIUIO::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	vDevicesOut.push_back(InputDeviceInfo(InputDevice(DEVICE_PIUIO), "PIUIO"));
 }

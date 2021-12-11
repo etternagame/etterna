@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/Foreach.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSoundMixBuffer.h"
 #include "RageSoundReader_Chain.h"
 #include "RageSoundReader_FileReader.h"
@@ -87,9 +87,8 @@ RageSoundReader_Chain::LoadSound(std::string sPath)
 	RageSoundReader* pReader =
 	  RageSoundReader_FileReader::OpenFile(sPath, sError, &bPrebuffer);
 	if (pReader == nullptr) {
-		LOG->Warn("RageSoundReader_Chain: error opening sound \"%s\": %s",
-				  sPath.c_str(),
-				  sError.c_str());
+		Locator::getLogger()->warn("RageSoundReader_Chain: error opening sound \"{}\": {}",
+				  sPath.c_str(), sError.c_str());
 		return -1;
 	}
 
@@ -138,7 +137,7 @@ RageSoundReader_Chain::Finish()
 		FOREACH(RageSoundReader*, m_apLoadedSounds, it)
 		{
 			if ((*it)->GetNumChannels() != m_iChannels) {
-				LOG->Warn("Discarded sound with %i channels, not %i",
+				Locator::getLogger()->warn("Discarded sound with {} channels, not {}",
 						  (*it)->GetNumChannels(),
 						  m_iChannels);
 				delete (*it);
@@ -248,7 +247,7 @@ RageSoundReader_Chain::ActivateSound(Sound* s)
 void
 RageSoundReader_Chain::ReleaseSound(Sound* s)
 {
-	vector<Sound*>::iterator it =
+	std::vector<Sound*>::iterator it =
 	  find(m_apActiveSounds.begin(), m_apActiveSounds.end(), s);
 	ASSERT(it != m_apActiveSounds.end());
 	RageSoundReader*& pSound = s->pSound;
@@ -302,8 +301,7 @@ RageSoundReader_Chain::GetStreamToSourceRatio() const
 	float iRate = m_apActiveSounds[0]->pSound->GetStreamToSourceRatio();
 	for (unsigned i = 1; i < m_apActiveSounds.size(); ++i) {
 		if (m_apActiveSounds[i]->pSound->GetStreamToSourceRatio() != iRate)
-			LOG->Warn(
-			  "RageSoundReader_Chain: sound rates changing differently");
+			Locator::getLogger()->warn("RageSoundReader_Chain: sound rates changing differently");
 	}
 
 	return iRate;

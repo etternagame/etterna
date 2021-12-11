@@ -45,7 +45,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageFile.h"
 #include "RageFileDriverTimeout.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
 #include "RageUtil/Utils/RageUtil_WorkerThread.h"
@@ -106,7 +106,7 @@ class ThreadedFileWorker : public RageWorkerThread
 	RageFileDriver* m_pChildDriver;
 
 	/* List of files to delete: */
-	vector<RageFileBasic*> m_apDeletedFiles;
+	std::vector<RageFileBasic*> m_apDeletedFiles;
 	RageMutex m_DeletedFilesLock;
 
 	/* REQ_OPEN, REQ_POPULATE_FILE_SET, REQ_FLUSH_DIR_CACHE, REQ_REMOVE,
@@ -145,7 +145,7 @@ class ThreadedFileWorker : public RageWorkerThread
 	char* m_pRequestBuffer; /* in */
 };
 
-static vector<ThreadedFileWorker*> g_apWorkers;
+static std::vector<ThreadedFileWorker*> g_apWorkers;
 static RageMutex g_apWorkersMutex("WorkersMutex");
 
 /* Set the timeout length, and reset the timer. */
@@ -165,9 +165,7 @@ ThreadedFileWorker::ThreadedFileWorker(std::string sPath)
 	/* Grab a reference to the child driver.  We'll operate on it directly. */
 	m_pChildDriver = FILEMAN->GetFileDriver(sPath);
 	if (m_pChildDriver == nullptr)
-		WARN(ssprintf("ThreadedFileWorker: Mountpoint \"%s\" not found",
-					  sPath.c_str())
-			   .c_str());
+		Locator::getLogger()->warn("ThreadedFileWorker: Mountpoint \"{}\" not found", sPath.c_str());
 
 	m_pResultFile = nullptr;
 	m_pRequestFile = nullptr;
@@ -204,7 +202,7 @@ ThreadedFileWorker::HandleRequest(int iRequest)
 {
 	{
 		m_DeletedFilesLock.Lock();
-		vector<RageFileBasic*> apDeletedFiles = m_apDeletedFiles;
+		std::vector<RageFileBasic*> apDeletedFiles = m_apDeletedFiles;
 		m_apDeletedFiles.clear();
 		m_DeletedFilesLock.Unlock();
 
@@ -325,7 +323,7 @@ ThreadedFileWorker::Open(const std::string& sPath, int iMode, int& iErr)
 	m_iRequestMode = iMode;
 
 	if (!DoRequest(REQ_OPEN)) {
-		LOG->Trace("Open(%s) timed out", sPath.c_str());
+		Locator::getLogger()->debug("Open({}) timed out", sPath.c_str());
 		iErr = EFAULT; /* Win32 has no ETIMEDOUT */
 		return nullptr;
 	}
@@ -611,7 +609,7 @@ ThreadedFileWorker::PopulateFileSet(FileSet& fs, const std::string& sPath)
 
 	/* Kick off the worker thread, and wait for it to finish. */
 	if (!DoRequest(REQ_POPULATE_FILE_SET)) {
-		LOG->Trace("PopulateFileSet(%s) timed out", sPath.c_str());
+		Locator::getLogger()->debug("PopulateFileSet({}) timed out", sPath.c_str());
 		return false;
 	}
 
@@ -682,7 +680,7 @@ ThreadedFileWorker::FlushDirCache(const std::string& sPath)
 		if (!bTimeoutEnabled)
 			SetTimeout(-1);
 
-		LOG->Trace("FlushDirCache(%s) timed out", sPath.c_str());
+		Locator::getLogger()->debug("FlushDirCache({}) timed out", sPath.c_str());
 		return false;
 	}
 
@@ -905,10 +903,8 @@ RageFileDriverTimeout::Move(const std::string& sOldPath,
 {
 	int iRet = m_pWorker->Move(sOldPath, sNewPath);
 	if (iRet == -1) {
-		WARN(ssprintf("RageFileDriverTimeout::Move(%s,%s) failed",
-					  sOldPath.c_str(),
-					  sNewPath.c_str())
-			   .c_str());
+		Locator::getLogger()->warn("RageFileDriverTimeout::Move({},{}) failed",
+					  sOldPath.c_str(), sNewPath.c_str());
 		return false;
 	}
 
@@ -920,8 +916,7 @@ RageFileDriverTimeout::Remove(const std::string& sPath)
 {
 	int iRet = m_pWorker->Remove(sPath);
 	if (iRet == -1) {
-		WARN(ssprintf("RageFileDriverTimeout::Remove(%s) failed", sPath.c_str())
-			   .c_str());
+        Locator::getLogger()->warn("RageFileDriverTimeout::Remove({}) failed", sPath.c_str());
 		return false;
 	}
 

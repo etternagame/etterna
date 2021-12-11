@@ -17,14 +17,6 @@ enum MusicWheelUsesSections
 	NUM_MusicWheelUsesSections,
 	MusicWheelUsesSections_Invalid
 };
-/** @brief The options for allowing the W1 timing. */
-enum AllowW1
-{
-	ALLOW_W1_NEVER,		 /**< The W1 timing is not used. */
-	ALLOW_W1_EVERYWHERE, /**< The W1 timing is used for all modes. */
-	NUM_AllowW1,
-	AllowW1_Invalid
-};
 enum Maybe
 {
 	Maybe_ASK,
@@ -106,7 +98,6 @@ class PrefsManager
 	// Game-specific prefs.  Copy these off and save them every time the game
 	// changes
 	Preference<std::string> m_sAnnouncer;
-	Preference<std::string> m_sTheme;
 	Preference<std::string> m_sDefaultModifiers;
 
   protected:
@@ -119,12 +110,12 @@ class PrefsManager
 		GamePrefs();
 
 		std::string m_sAnnouncer;
-		std::string m_sTheme;
 		std::string m_sDefaultModifiers;
 	};
 	std::map<std::string, GamePrefs> m_mapGameNameToGamePrefs;
 
   public:
+	Preference<std::string> m_sTheme;
 	Preference<bool> m_bWindowed;
 	Preference<std::string> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
@@ -160,13 +151,8 @@ class PrefsManager
 	Preference<bool> m_bMenuTimer;
 
 	Preference<float> m_fLifeDifficultyScale;
+	Preference<float> m_fBGBrightness;
 
-	// Whoever added these: Please add a comment saying what they do. -Chris
-	Preference<int> m_iRegenComboAfterMiss;	   // combo that must be met after a
-											   // Miss to regen life
-	Preference<int> m_iMaxRegenComboAfterMiss; // caps RegenComboAfterMiss if
-											   // multiple Misses occur in rapid
-											   // succession
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowHoldForOptions;
 	Preference<bool> m_bShowInstructions;
@@ -179,8 +165,7 @@ class PrefsManager
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
 	Preference<int> m_iMusicWheelSwitchSpeed;
 	Preference<bool> m_bSortBySSRNorm;
-	Preference<AllowW1>
-	  m_AllowW1; // this should almost always be on, given use cases. -aj
+	Preference<bool> m_bPackProgressInWheel;
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
 
@@ -192,11 +177,10 @@ class PrefsManager
 	Preference<int> m_iCenterImageTranslateY;
 	Preference<int> m_fCenterImageAddWidth;
 	Preference<int> m_fCenterImageAddHeight;
-	Preference<bool> m_bCelShadeModels;
-	Preference<bool> m_bPreferredSortUsesGroups;
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
+	Preference<bool> m_AllowMultipleToasties;
 	Preference<bool> m_bUseMidGrades;
 
 	// Number of seconds it takes for a button on the controller to release
@@ -210,12 +194,6 @@ class PrefsManager
 	Preference<bool> m_bAnisotropicFiltering; // has no effect without mipmaps
 											  // on.  Not mutually exclusive
 											  // with trilinear.
-
-	// If true, then signatures created when writing profile data and verified
-	// when reading profile data. Leave this false if you want to use a profile
-	// on different machines that don't have the same key, or else the
-	// profile's data will be discarded.
-	Preference<bool> m_bSignProfileData;
 
 	Preference<std::string> m_sAdditionalSongFolders;
 	Preference<std::string> m_sAdditionalFolders;
@@ -233,7 +211,6 @@ class PrefsManager
 	Preference<bool> m_bAllowUnacceleratedRenderer;
 	Preference<bool> m_bThreadedInput;
 	Preference<bool> m_bThreadedMovieDecode;
-	Preference<std::string> m_sTestInitialScreen;
 	Preference<bool> m_MuteActions;
 	Preference<int> ThreadsToUse;
 
@@ -242,17 +219,25 @@ class PrefsManager
 	Preference<bool> m_bForceLogFlush;
 	Preference<bool> m_bShowLogOutput;
 	Preference<bool> m_bLogSkips;
-	Preference<bool> m_bLogCheckpoints;
 	Preference<bool> m_bShowLoadingWindow;
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
+	Preference<bool> m_bAlwaysLoadCalcParams;
 
-	// levels 0, 1, and 2 where higher numbers
-	// means more logging
-	Preference<int> m_verbose_log;
+	// logging level 0 - 5
+	// 0 = TRACE (all the logging)
+	// 1 = DEBUG
+	// 2 = INFO
+	// 3 = WARN
+	// 4 = ERR
+	// 5 = FATAL (almost no logging)
+	Preference<int> m_logging_level;
 
 	Preference<bool>
 	  m_bEnableScoreboard; // Alows disabling of scoreboard in network play
+
+	Preference<bool> m_bEnableCrashUpload;
+	Preference<bool> m_bShowMinidumpUploadDialogue;
 
 	void ReadPrefsFromIni(const IniFile& ini,
 						  const std::string& sSection,
@@ -279,12 +264,6 @@ class PrefsManager
 							  const std::string& sSection);
 };
 
-/* This is global, because it can be accessed by crash handlers and error
- * handlers that are run after PREFSMAN shuts down (and probably don't want to
- * deref that pointer anyway). */
-extern bool g_bAutoRestart;
-
-extern PrefsManager*
-  PREFSMAN; // global and accessible from anywhere in our program
+extern PrefsManager* PREFSMAN; // global and accessible from anywhere in our program
 
 #endif

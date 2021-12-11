@@ -18,7 +18,7 @@
 /* for TEXTUREMAN->GetTextureColorDepth() */
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageException.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "arch/Dialog/Dialog.h"
@@ -67,7 +67,7 @@ CheckCodecVersion(std::string codec, std::string desc)
 		int major, minor, rev;
 		if (sscanf(desc, "DivX %i.%i.%i", &major, &minor, &rev) != 3 &&
 			sscanf(desc, "DivX Pro %i.%i.%i", &major, &minor, &rev) != 3) {
-			LOG->Warn("Couldn't parse DivX version \"%s\"", desc.c_str());
+			Locator::getLogger()->warn("Couldn't parse DivX version \"{}\"", desc.c_str());
 			return;
 		}
 
@@ -92,48 +92,39 @@ static void
 GetVideoCodecDebugInfo()
 {
 	ICINFO info = { sizeof(ICINFO) };
-	LOG->Info("Video codecs:");
-	CHECKPOINT;
+	Locator::getLogger()->info("Video codecs:");
 	int i;
 	for (i = 0; ICInfo(ICTYPE_VIDEO, i, &info); ++i) {
-		CHECKPOINT;
 		if (FourCCToString(info.fccHandler) == "ASV1") {
 			/* Broken. */
-			LOG->Info(
-			  "%i: %s: skipped", i, FourCCToString(info.fccHandler).c_str());
+			Locator::getLogger()->info("{}: {}: skipped", i, FourCCToString(info.fccHandler).c_str());
 			continue;
 		}
 
-		LOG->Trace("Scanning codec %s",
-				   FourCCToString(info.fccHandler).c_str());
-		CHECKPOINT;
+		Locator::getLogger()->trace("Scanning codec {}", FourCCToString(info.fccHandler).c_str());
 		HIC hic = ICOpen(info.fccType, info.fccHandler, ICMODE_DECOMPRESS);
 		if (!hic) {
-			LOG->Info("Couldn't open video codec %s",
-					  FourCCToString(info.fccHandler).c_str());
+			Locator::getLogger()->info("Couldn't open video codec {}", FourCCToString(info.fccHandler).c_str());
 			continue;
 		}
 
-		CHECKPOINT;
 		if (ICGetInfo(hic, &info, sizeof(ICINFO))) {
 			CheckCodecVersion(FourCCToString(info.fccHandler),
 							  WStringToString(info.szDescription));
-			CHECKPOINT;
 
-			LOG->Info("    %s: %ls (%ls)",
+			Locator::getLogger()->info("    {}: {} ({})",
 					  FourCCToString(info.fccHandler).c_str(),
 					  info.szName,
 					  info.szDescription);
 		} else
-			LOG->Info("ICGetInfo(%s) failed",
+			Locator::getLogger()->info("ICGetInfo({}) failed",
 					  FourCCToString(info.fccHandler).c_str());
 
-		CHECKPOINT;
 		ICClose(hic);
 	}
 
 	if (i == 0)
-		LOG->Info("    None found");
+		Locator::getLogger()->info("    None found");
 }
 
 MovieTexture_DShow::MovieTexture_DShow(RageTextureID ID)
@@ -141,7 +132,7 @@ MovieTexture_DShow::MovieTexture_DShow(RageTextureID ID)
   , buffer_lock("buffer_lock", 1)
   , buffer_finished("buffer_finished", 0)
 {
-	LOG->Trace("MovieTexture_DShow::MovieTexture_DShow()");
+	Locator::getLogger()->trace("MovieTexture_DShow::MovieTexture_DShow()");
 
 	static bool bFirst = true;
 	if (bFirst) {
@@ -188,8 +179,7 @@ MovieTexture_DShow::StopSkippingUpdates()
 
 MovieTexture_DShow::~MovieTexture_DShow()
 {
-	LOG->Trace("MovieTexture_DShow::~MovieTexture_DShow");
-	LOG->Flush();
+	Locator::getLogger()->trace("MovieTexture_DShow::~MovieTexture_DShow");
 
 	SkipUpdates();
 
@@ -197,8 +187,7 @@ MovieTexture_DShow::~MovieTexture_DShow()
 	 * call SkipUpdates again, which will deadlock if we call it twice
 	 * in a row. */
 	if (m_pGB) {
-		LOG->Trace("MovieTexture_DShow: shutdown");
-		LOG->Flush();
+		Locator::getLogger()->trace("MovieTexture_DShow: shutdown");
 		CComPtr<IMediaControl> pMC;
 		m_pGB.QueryInterface(&pMC);
 
@@ -210,8 +199,7 @@ MovieTexture_DShow::~MovieTexture_DShow()
 		//		Stop();
 		m_pGB.Release();
 	}
-	LOG->Trace("MovieTexture_DShow: shutdown ok");
-	LOG->Flush();
+	Locator::getLogger()->trace("MovieTexture_DShow: shutdown ok");
 	if (m_uTexHandle)
 		DISPLAY->DeleteTexture(m_uTexHandle);
 }
@@ -229,8 +217,6 @@ MovieTexture_DShow::CheckFrame()
 {
 	if (buffer == NULL)
 		return;
-
-	CHECKPOINT;
 
 	/* Just in case we were invalidated: */
 	CreateTexture();
@@ -257,28 +243,20 @@ MovieTexture_DShow::CheckFrame()
 	 * it'll have to do a very slow conversion.  Both RGB8 and BGR8 are both
 	 * (usually) valid formats.
 	 */
-	CHECKPOINT;
 	DISPLAY->UpdateTexture(
 	  m_uTexHandle, pFromDShow, 0, 0, m_iImageWidth, m_iImageHeight);
-	CHECKPOINT;
 
 	delete pFromDShow;
 
 	buffer = NULL;
 
-	CHECKPOINT;
-
 	/* Start the decoding thread again. */
 	buffer_finished.Post();
-
-	CHECKPOINT;
 }
 
 void
 MovieTexture_DShow::Update(float fDeltaTime)
 {
-	CHECKPOINT;
-
 	// restart the movie if we reach the end
 	if (m_bLoop) {
 		// Check for completion events
@@ -290,9 +268,6 @@ MovieTexture_DShow::Update(float fDeltaTime)
 		if (lEventCode == EC_COMPLETE)
 			SetPosition(0);
 	}
-
-	CHECKPOINT;
-
 	CheckFrame();
 }
 
@@ -392,7 +367,7 @@ MovieTexture_DShow::Create()
 	if (FAILED(hr = m_pGB->Connect(pFSrcPinOut, pFTRPinIn)))
 		return PrintCodecError(hr, "Could not connect pins");
 
-	LOG->Trace("Filters: %s", GetActiveFilterList().c_str());
+	Locator::getLogger()->trace("Filters: {}", GetActiveFilterList().c_str());
 
 	// Pass us to our TextureRenderer.
 	pCTR->SetRenderTarget(this);
@@ -423,11 +398,8 @@ MovieTexture_DShow::Create()
 	 * set when this function returns. */
 	Pause();
 
-	CHECKPOINT;
 	pCTR->m_OneFrameDecoded.Wait();
-	CHECKPOINT;
 	CheckFrame();
-	CHECKPOINT;
 
 	// Start the graph running
 	Play();
@@ -505,7 +477,7 @@ MovieTexture_DShow::Play()
 {
 	SkipUpdates();
 
-	LOG->Trace("MovieTexture_DShow::Play()");
+	Locator::getLogger()->trace("MovieTexture_DShow::Play()");
 	CComPtr<IMediaControl> pMC;
 	m_pGB.QueryInterface(&pMC);
 

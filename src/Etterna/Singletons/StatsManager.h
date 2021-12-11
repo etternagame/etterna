@@ -17,7 +17,7 @@ class StatsManager
 	 *
 	 * This is not necessarily passed stage stats if this is an Extra Stage. */
 	StageStats m_CurStageStats;
-	vector<StageStats> m_vPlayedStageStats;
+	std::vector<StageStats> m_vPlayedStageStats;
 
 	// Only the latest 3 normal songs + passed extra stages.
 	void GetFinalEvalStageStats(StageStats& statsOut) const;
@@ -31,7 +31,7 @@ class StatsManager
 	}
 
 	static void CommitStatsToProfiles(const StageStats* pSS);
-	void AddPlayerStatsToProfile(Profile* pProfile);
+	static void AddPlayerStatsToProfile(Profile* pProfile);
 
 	void UnjoinPlayer(PlayerNumber pn);
 	void GetStepsInUse(std::set<Steps*>& apInUseOut) const;

@@ -47,7 +47,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	/**
 	 * @brief Determine if we are to center the columns for just one player.
 	 * @return true if we center the solo player, false otherwise. */
-	bool Center1Player() const;
+	static bool Center1Player();
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -100,13 +100,13 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	void PlayTicks();
 	// Used to update some pointers
-	void UpdateSongPosition(float fDeltaTime);
+	void UpdateSongPosition();
 	void SongFinished();
 	virtual void SaveStats();
 	virtual void StageFinished(bool bBackedOut);
 	bool AllAreFailing();
 
-	void RestartGameplay();
+	virtual void RestartGameplay();
 
 	virtual void SetupNoteDataFromRow(Steps* pSteps, int row);
 
@@ -139,6 +139,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	Background* m_pSongBackground;
 	Foreground* m_pSongForeground;
+	RageTimer m_initTimer;
 
 	/** @brief Used between songs in a course to show the next song. */
 	Transition m_NextSong;

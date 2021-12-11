@@ -24,10 +24,10 @@ enum WheelState
 	NUM_WheelState,
 	WheelState_Invalid,
 };
-const std::string&
-WheelStateToString(WheelState ws);
-WheelState
-StringToWheelState(const std::string& sDC);
+auto
+WheelStateToString(WheelState ws) -> const std::string&;
+auto
+StringToWheelState(const std::string& sDC) -> WheelState;
 LuaDeclareType(WheelState);
 
 /** @brief A wheel with data elements. */
@@ -46,8 +46,8 @@ class WheelBase : public ActorFrame
 	virtual void SetOpenSection(const std::string& group) {}
 
 	// Return true if we're moving fast automatically.
-	int IsMoving() const;
-	bool IsSettled() const;
+	auto IsMoving() const -> int;
+	auto IsSettled() const -> bool;
 
 	void GetItemPosition(float fPosOffsetsFromMiddle,
 						 float& fX_out,
@@ -56,13 +56,14 @@ class WheelBase : public ActorFrame
 						 float& fRotationX_out);
 	void SetItemPosition(Actor& item, int item_index, float offset_from_middle);
 
-	virtual bool Select(); // return true if this selection can end the screen
+	virtual auto Select()
+	  -> bool; // return true if this selection can end the screen
 
-	std::string GetCurrentGroup();
+	auto GetCurrentGroup() -> std::string;
 
-	WheelState GetWheelState() { return m_WheelState; }
+	auto GetWheelState() -> WheelState { return m_WheelState; }
 	void Lock() { m_WheelState = STATE_LOCKED; }
-	bool WheelIsLocked()
+	auto WheelIsLocked() -> bool
 	{
 		return (m_WheelState == STATE_LOCKED ? true : false);
 	}
@@ -71,23 +72,27 @@ class WheelBase : public ActorFrame
 	// manager (SONGMAN)
 	virtual void ReloadSongList() {}
 
-	virtual unsigned int GetNumItems() const
+	virtual auto GetNumItems() const -> unsigned int
 	{
 		return m_CurWheelItemData.size();
 	}
-	bool IsEmpty() { return m_bEmpty; }
-	WheelItemBaseData* GetItem(unsigned int index);
-	WheelItemBaseData* LastSelected();
-	WheelItemBase* GetWheelItem(int i)
+	auto IsEmpty() -> bool { return m_bEmpty; }
+	auto GetItem(unsigned int index) -> WheelItemBaseData*;
+	auto LastSelected() -> WheelItemBaseData*;
+	auto GetWheelItem(int i) -> WheelItemBase*
 	{
-		if (i < 0 || i >= static_cast<int>(m_WheelBaseItems.size()))
+		if (i < 0 || i >= static_cast<int>(m_WheelBaseItems.size())) {
 			return nullptr;
+		}
 		return m_WheelBaseItems[i];
 	}
-	std::string GetExpandedSectionName() { return m_sExpandedSectionName; }
-	int GetCurrentIndex() { return m_iSelection; }
+	auto GetExpandedSectionName() -> std::string
+	{
+		return m_sExpandedSectionName;
+	}
+	auto GetCurrentIndex() -> int { return m_iSelection; }
 
-	WheelItemDataType GetSelectedType()
+	auto GetSelectedType() -> WheelItemDataType
 	{
 		return m_CurWheelItemData[m_iSelection]->m_Type;
 	}
@@ -99,35 +104,35 @@ class WheelBase : public ActorFrame
 	void TweenOnScreenForSort();
 	void TweenOffScreenForSort();
 
-	virtual WheelItemBase* MakeItem() = 0;
+	virtual auto MakeItem() -> WheelItemBase* = 0;
 	virtual void UpdateSwitch();
-	virtual bool MoveSpecific(int n);
+	virtual auto MoveSpecific(int n) -> bool;
 	void SetPositions();
 
-	int FirstVisibleIndex();
+	auto FirstVisibleIndex() -> int;
 
 	ScrollBar m_ScrollBar;
 	AutoActor m_sprHighlight;
 
-	vector<WheelItemBaseData*> m_CurWheelItemData;
-	vector<WheelItemBase*> m_WheelBaseItems;
-	WheelItemBaseData* m_LastSelection;
+	std::vector<WheelItemBaseData*> m_CurWheelItemData;
+	std::vector<WheelItemBase*> m_WheelBaseItems;
+	WheelItemBaseData* m_LastSelection{};
 
-	bool m_bEmpty;
-	int m_iSelection; // index into m_CurWheelItemBaseData
+	bool m_bEmpty{};
+	int m_iSelection{}; // index into m_CurWheelItemBaseData
 	std::string m_sExpandedSectionName;
 
-	int m_iSwitchesLeftInSpinDown;
-	float m_fLockedWheelVelocity;
+	int m_iSwitchesLeftInSpinDown{};
+	float m_fLockedWheelVelocity{};
 	// 0 = none; -1 or 1 = up/down
-	int m_Moving;
+	int m_Moving{};
 	RageTimer m_MovingSoundTimer;
-	float m_TimeBeforeMovingBegins;
-	float m_SpinSpeed;
+	float m_TimeBeforeMovingBegins{};
+	float m_SpinSpeed{};
 
 	WheelState m_WheelState;
-	float m_fTimeLeftInState;
-	float m_fPositionOffsetFromSelection;
+	float m_fTimeLeftInState{};
+	float m_fPositionOffsetFromSelection{};
 
 	RageSound m_soundChangeMusic;
 	RageSound m_soundExpand;

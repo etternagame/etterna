@@ -4,7 +4,6 @@
 #include <array>
 
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "archutils/Unix/X11Helper.h"
@@ -13,7 +12,6 @@
 #include <X11/keysym.h>
 
 using namespace X11Helper;
-using std::vector;
 
 REGISTER_INPUT_HANDLER_CLASS(X11);
 
@@ -411,7 +409,7 @@ InputHandler_X11::Update()
 
 void
 InputHandler_X11::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	if (Dpy && Win) {
 		vDevicesOut.push_back(InputDeviceInfo(DEVICE_KEYBOARD, "Keyboard"));

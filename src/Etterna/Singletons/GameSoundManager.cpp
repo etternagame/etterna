@@ -8,7 +8,7 @@
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -85,9 +85,9 @@ static MusicPlaying* g_Playing;
 
 static RageThread MusicThread;
 
-vector<std::string> g_SoundsToPlayOnce;
-vector<std::string> g_SoundsToPlayOnceFromDir;
-vector<std::string> g_SoundsToPlayOnceFromAnnouncer;
+std::vector<std::string> g_SoundsToPlayOnce;
+std::vector<std::string> g_SoundsToPlayOnceFromDir;
+std::vector<std::string> g_SoundsToPlayOnceFromAnnouncer;
 
 struct MusicToPlay
 {
@@ -100,7 +100,7 @@ struct MusicToPlay
 	bool bAlignBeat = false, bApplyMusicRate = false, bAccurateSync = false;
 	MusicToPlay() { HasTiming = false; }
 };
-vector<MusicToPlay> g_MusicsToPlay;
+std::vector<MusicToPlay> g_MusicsToPlay;
 static GameSoundManager::PlayMusicParams g_FallbackMusicParams;
 
 // A position to be set on a sound
@@ -109,7 +109,15 @@ struct SoundPositionSetter
 	RageSound* m_psound;
 	float fSeconds;
 };
-vector<SoundPositionSetter> g_PositionsToSet;
+std::vector<SoundPositionSetter> g_PositionsToSet;
+
+// A param to set on a sound
+struct MusicParamSetter
+{
+	RageSound* m_psound;
+	RageSoundParams p;
+};
+std::vector<MusicParamSetter> g_ParamsToSet;
 
 void
 GameSoundManager::StartMusic(MusicToPlay& ToPlay)
@@ -160,7 +168,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 
 	/* See if we can find timing data, if it's not already loaded. */
 	if (!ToPlay.HasTiming && IsAFile(ToPlay.m_sTimingFile)) {
-		LOG->Trace("Found '%s'", ToPlay.m_sTimingFile.c_str());
+		Locator::getLogger()->debug("Found '{}'", ToPlay.m_sTimingFile.c_str());
 		Song song;
 		SSCLoader loaderSSC;
 		SMLoader loaderSM;
@@ -311,7 +319,7 @@ GameSoundManager::DoPlayOnceFromDir(std::string sPath)
 	// make sure there's a slash at the end of this path
 	ensure_slash_at_end((sPath));
 
-	vector<std::string> arraySoundFiles;
+	std::vector<std::string> arraySoundFiles;
 	GetDirListing(sPath + "*.mp3", arraySoundFiles);
 	GetDirListing(sPath + "*.wav", arraySoundFiles);
 	GetDirListing(sPath + "*.ogg", arraySoundFiles);
@@ -329,21 +337,22 @@ GameSoundManager::SoundWaiting()
 {
 	return !g_SoundsToPlayOnce.empty() || !g_SoundsToPlayOnceFromDir.empty() ||
 		   !g_SoundsToPlayOnceFromAnnouncer.empty() ||
-		   !g_MusicsToPlay.empty() || !g_PositionsToSet.empty();
+		   !g_MusicsToPlay.empty() || !g_PositionsToSet.empty() ||
+		   !g_ParamsToSet.empty();
 }
 
 void
 GameSoundManager::StartQueuedSounds()
 {
 	g_Mutex->Lock();
-	vector<std::string> aSoundsToPlayOnce = g_SoundsToPlayOnce;
+	std::vector<std::string> aSoundsToPlayOnce = g_SoundsToPlayOnce;
 	g_SoundsToPlayOnce.clear();
-	vector<std::string> aSoundsToPlayOnceFromDir = g_SoundsToPlayOnceFromDir;
+	std::vector<std::string> aSoundsToPlayOnceFromDir = g_SoundsToPlayOnceFromDir;
 	g_SoundsToPlayOnceFromDir.clear();
-	vector<std::string> aSoundsToPlayOnceFromAnnouncer =
+	std::vector<std::string> aSoundsToPlayOnceFromAnnouncer =
 	  g_SoundsToPlayOnceFromAnnouncer;
 	g_SoundsToPlayOnceFromAnnouncer.clear();
-	vector<MusicToPlay> aMusicsToPlay = g_MusicsToPlay;
+	std::vector<MusicToPlay> aMusicsToPlay = g_MusicsToPlay;
 	g_MusicsToPlay.clear();
 	g_Mutex->Unlock();
 
@@ -374,7 +383,7 @@ GameSoundManager::StartQueuedSounds()
 		if (i + 1 == aMusicsToPlay.size())
 			StartMusic(aMusicsToPlay[i]);
 		else {
-			CHECKPOINT_M(ssprintf("Removing old sound at index %d", i).c_str());
+			Locator::getLogger()->trace("Removing old sound at index {}", i);
 			/* StopPlaying() can take a while, so don't hold the lock while we
 			 * stop the sound. */
 			g_Mutex->Lock();
@@ -394,14 +403,28 @@ void
 GameSoundManager::HandleSetPosition()
 {
 	g_Mutex->Lock();
-	vector<SoundPositionSetter> vec = g_PositionsToSet;
+	std::vector<SoundPositionSetter> vec = g_PositionsToSet;
 	g_PositionsToSet.clear();
 	g_Mutex->Unlock();
 	for (unsigned i = 0; i < vec.size(); i++) {
 		// I wonder if this can crash when sounds get deleted
 		// only one way to find out - checkpoint and see if someone crashes :)
-		CHECKPOINT_M("Setting position for sound.");
+		Locator::getLogger()->trace("Setting position for sound.");
 		vec[i].m_psound->SetPositionSeconds(vec[i].fSeconds);
+	}
+}
+
+void
+GameSoundManager::HandleSetParams()
+{
+	g_Mutex->Lock();
+	std::vector<MusicParamSetter> vec = g_ParamsToSet;
+	g_ParamsToSet.clear();
+	g_Mutex->Unlock();
+	for (unsigned i = 0; i < vec.size(); i++) {
+		Locator::getLogger()->trace("Setting params for sound.");
+		// vec[i].m_psound->SetParams(vec[i].p);
+		g_Playing->m_Music->SetParams(vec[i].p);
 	}
 }
 
@@ -437,6 +460,7 @@ MusicThread_start(void* p)
 
 		soundman->StartQueuedSounds();
 
+		soundman->HandleSetParams();
 		soundman->HandleSetPosition();
 
 		if (bFlushing) {
@@ -485,56 +509,16 @@ GameSoundManager::~GameSoundManager()
 	LUA->UnsetGlobal("SOUND");
 
 	/* Signal the mixing thread to quit. */
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Shutting down music start thread ...");
+	Locator::getLogger()->info("Shutting down music start thread ...");
 	g_Mutex->Lock();
 	g_Shutdown = true;
 	g_Mutex->Broadcast();
 	g_Mutex->Unlock();
 	MusicThread.Wait();
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Music start thread shut down.");
+	Locator::getLogger()->info("Music start thread shut down.");
 
 	SAFE_DELETE(g_Playing);
 	SAFE_DELETE(g_Mutex);
-}
-
-float
-GameSoundManager::GetFrameTimingAdjustment(float fDeltaTime)
-{
-	/*
-	 * We get one update per frame, and we're updated early, almost immediately
-	 * after vsync, near the beginning of the game loop.  However, it's very
-	 * likely that we'll lose the scheduler while waiting for vsync, and some
-	 * other thread will be working.  Especially with a low-resolution scheduler
-	 * (Linux 2.4, Win9x), we may not get the scheduler back immediately after
-	 * the vsync; there may be up to a ~10ms delay.  This can cause jitter in
-	 * the rendered arrows.
-	 *
-	 * Compensate.  If vsync is enabled, and we're maintaining the refresh rate
-	 * consistently, we should have a very precise game loop interval.  If we
-	 * have that, but we're off by a small amount (less than the interval),
-	 * adjust the time to line it up.  As long as we adjust both the sound time
-	 * and the timestamp, this won't adversely affect input timing. If we're off
-	 * by more than that, we probably had a frame skip, in which case we have
-	 * bigger skip problems, so don't adjust.
-	 */
-	static int iLastFPS = 0;
-	int iThisFPS = DISPLAY->GetFPS();
-
-	if (iThisFPS != (*DISPLAY->GetActualVideoModeParams()).rate ||
-		iThisFPS != iLastFPS) {
-		iLastFPS = iThisFPS;
-		return 0;
-	}
-
-	const float fExpectedDelay = 1.0f / iThisFPS;
-	const float fExtraDelay = fDeltaTime - fExpectedDelay;
-	if (fabsf(fExtraDelay) >= fExpectedDelay / 2)
-		return 0;
-
-	/* Subtract the extra delay. */
-	return std::min(-fExtraDelay, 0.F);
 }
 
 void
@@ -610,16 +594,11 @@ GameSoundManager::Update(float fDeltaTime)
 	if (!g_UpdatingTimer)
 		return;
 
-	const float fAdjust = GetFrameTimingAdjustment(fDeltaTime);
+	const float fRate = g_Playing->m_Music->GetPlaybackRate();
 	if (!g_Playing->m_Music->IsPlaying()) {
 		/* There's no song playing.  Fake it. */
-		CHECKPOINT_M(ssprintf("%f, delta %f",
-							  GAMESTATE->m_Position.m_fMusicSeconds,
-							  fDeltaTime)
-					   .c_str());
-		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
-										fDeltaTime *
-										  g_Playing->m_Music->GetPlaybackRate(),
+		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds
+									 + fDeltaTime * fRate,
 									  g_Playing->m_Timing);
 		return;
 	}
@@ -629,15 +608,14 @@ GameSoundManager::Update(float fDeltaTime)
 	 * timing data until we get a non-approximate time, indicating that the
 	 * sound has actually started playing. */
 	bool m_bApproximate;
-	RageTimer tm;
+	RageTimer tm = RageZeroTimer;
 	const float fSeconds =
 	  g_Playing->m_Music->GetPositionSeconds(&m_bApproximate, &tm);
 
 	// Check for song timing skips.
 	if (PREFSMAN->m_bLogSkips && !g_Playing->m_bTimingDelayed) {
 		const float fExpectedTimePassed =
-		  (tm - GAMESTATE->m_Position.m_LastBeatUpdate) *
-		  g_Playing->m_Music->GetPlaybackRate();
+		  (tm - GAMESTATE->m_Position.m_LastBeatUpdate) * fRate;
 		const float fSoundTimePassed =
 		  fSeconds - GAMESTATE->m_Position.m_fMusicSeconds;
 		const float fDiff = fExpectedTimePassed - fSoundTimePassed;
@@ -648,14 +626,10 @@ GameSoundManager::Update(float fDeltaTime)
 		/* If fSoundTimePassed < 0, the sound has probably looped. */
 		if (sLastFile == ThisFile && fSoundTimePassed >= 0 &&
 			fabsf(fDiff) > 0.003f)
-			LOG->Trace("Song position skip in %s: expected %.3f, got %.3f (cur "
-					   "%f, prev %f) (%.3f difference)",
-					   Basename(ThisFile).c_str(),
-					   fExpectedTimePassed,
-					   fSoundTimePassed,
-					   fSeconds,
-					   GAMESTATE->m_Position.m_fMusicSeconds,
-					   fDiff);
+			Locator::getLogger()->trace("Song position skip in {}: expected {:.3f}, got {:.3f} (cur "
+					   "{}, prev {}) ({:.3f} difference)",
+					   Basename(ThisFile).c_str(), fExpectedTimePassed, fSoundTimePassed,
+					   fSeconds, GAMESTATE->m_Position.m_fMusicSeconds, fDiff);
 		sLastFile = ThisFile;
 	}
 
@@ -670,12 +644,11 @@ GameSoundManager::Update(float fDeltaTime)
 	if (g_Playing->m_bTimingDelayed) {
 		/* We're still waiting for the new sound to start playing, so keep using
 		 * the old timing data and fake the time. */
-		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds +
-										fDeltaTime,
+		GAMESTATE->UpdateSongPosition(GAMESTATE->m_Position.m_fMusicSeconds
+									 + fDeltaTime * fRate,
 									  g_Playing->m_Timing);
 	} else {
-		GAMESTATE->UpdateSongPosition(
-		  fSeconds + fAdjust, g_Playing->m_Timing, tm + fAdjust);
+		GAMESTATE->UpdateSongPosition(fSeconds, g_Playing->m_Timing);
 	}
 
 	// Send crossed messages
@@ -730,6 +703,36 @@ GameSoundManager::SetSoundPosition(RageSound* s, float fSeconds)
 	g_PositionsToSet.push_back(snd);
 	g_Mutex->Broadcast();
 	g_Mutex->Unlock();
+}
+
+void
+GameSoundManager::SetPlayingMusicParams(RageSoundParams p)
+{
+	// This will replace the params for the music pointer
+	// So needs to be first filled out by the existing params
+	// (preferably, unless the intention is to overwrite them)
+	MusicParamSetter prm;
+	// prm.m_psound = g_Playing->m_Music;
+	prm.p = p;
+	g_Mutex->Lock();
+	g_ParamsToSet.push_back(prm);
+	g_Mutex->Broadcast();
+	g_Mutex->Unlock();
+}
+
+const RageSoundParams&
+GameSoundManager::GetPlayingMusicParams()
+{
+	return g_Playing->m_Music->GetParams();
+}
+
+void
+GameSoundManager::ResyncMusicPlaying()
+{
+	// This function is primarily just useful for hacking MP3 sync back to normal since moving sound backwards force it to completely resync at the moment
+	auto* rs = g_Playing->m_Music;
+	auto now = rs->GetPositionSeconds();
+	SetSoundPosition(rs, now - 0.01F);
 }
 
 void
@@ -891,9 +894,6 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		CLAMP(fVol, 0.0f, 1.0f);
 		pRet->Set(fVol);
 		SOUNDMAN->SetMixVolume();
-		p->DimMusic(
-		  FArg(1),
-		  0.01f); // lazy hack to update volume without changing songs - mina
 		return 0;
 	}
 	static int PlayOnce(T* p, lua_State* L)
@@ -987,6 +987,11 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		g_Mutex->Unlock();
 		COMMON_RETURN_SELF;
 	}
+	static int ResyncMusicPlaying(T* p, lua_State* L)
+	{
+		p->ResyncMusicPlaying();
+		COMMON_RETURN_SELF;
+	}
 
 	LunaGameSoundManager()
 	{
@@ -1000,6 +1005,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(StopMusic);
 		ADD_METHOD(IsTimingDelayed);
 		ADD_METHOD(SetVolume);
+		ADD_METHOD(ResyncMusicPlaying);
 	}
 };
 
@@ -1010,7 +1016,7 @@ LuaFunc_get_sound_driver_list(lua_State* L);
 int
 LuaFunc_get_sound_driver_list(lua_State* L)
 {
-	vector<std::string> driver_names;
+	std::vector<std::string> driver_names;
 	split(
 	  RageSoundDriver::GetDefaultSoundDriverList(), ",", driver_names, true);
 	lua_createtable(L, driver_names.size(), 0);

@@ -41,9 +41,7 @@ t[#t+1] = Def.ActorFrame {
         self:x(wheelX + arbitraryWheelXThing + space + capWideScale(get43size(365),365)-50)
         self:y(20)
     end,
-    CurrentStepsP1ChangedMessageCommand = function(self)
-        steps = GAMESTATE:GetCurrentSteps()
-        song = GAMESTATE:GetCurrentSong()
+    SetMeterCommand = function(self)
         if steps then
             meter = {}
             for i = 1, #ms.SkillSets do
@@ -51,6 +49,15 @@ t[#t+1] = Def.ActorFrame {
                 meter[i] = m
             end
         end
+    end,
+    CurrentStepsChangedMessageCommand = function(self)
+        steps = GAMESTATE:GetCurrentSteps()
+        song = GAMESTATE:GetCurrentSong()
+        self:playcommand("SetMeter")
+        self:playcommand("SetStuff")
+    end,
+    CurrentRateChangedMessageCommand = function(self)
+        self:playcommand("SetMeter")
         self:playcommand("SetStuff")
     end,
 
@@ -67,19 +74,19 @@ t[#t+1] = Def.ActorFrame {
     },
 
     Def.BPMDisplay {
-		File = THEME:GetPathF("BPMDisplay", "bpm"),
-		Name = "BPMDisplay",
-		InitCommand = function(self)
-			self:xy(songinfoLine + 3, 20):halign(0):zoom(0.3)
-		end,
+        File = THEME:GetPathF("BPMDisplay", "bpm"),
+        Name = "BPMDisplay",
+        InitCommand = function(self)
+            self:xy(songinfoLine + 3, 20):halign(0):zoom(0.3)
+        end,
         SetStuffCommand = function(self)
             if song then
-				self:visible(true)
-				self:SetFromSong(song)
-			else
-				self:visible(false)
-			end
-		end
+                self:visible(true)
+                self:SetFromSong(song)
+            else
+                self:visible(false)
+            end
+        end
     },
     LoadFont("Common Normal") .. {
         InitCommand = function(self)
@@ -88,21 +95,21 @@ t[#t+1] = Def.ActorFrame {
         end
     },
 
-	LoadFont("Common Normal") .. {
+    LoadFont("Common Normal") .. {
         Name = "RateDisplay",
-		InitCommand = function(self)
-			self:xy(songinfoLine, 30):zoom(0.3)
-		end,
-		CurrentStepsP1ChangedMessageCommand = function(self)
-			self:settext(getCurRateDisplayString())
-		end,
+        InitCommand = function(self)
+            self:xy(songinfoLine, 30):zoom(0.3)
+        end,
+        CurrentStepsChangedMessageCommand = function(self)
+            self:settext(getCurRateDisplayString())
+        end,
         CodeMessageCommand = function(self, params)
-			local rate = getCurRateValue()
-			ChangeMusicRate(rate, params)
-			self:settext(getCurRateDisplayString())
-		end
-	}
-    
+            local rate = getCurRateValue()
+            ChangeMusicRate(rate, params)
+            self:settext(getCurRateDisplayString())
+        end
+    }
+
 }
 
 return t

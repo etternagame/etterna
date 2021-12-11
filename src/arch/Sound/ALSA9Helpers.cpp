@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ALSA9Helpers.h"
 #include "ALSA9Dynamic.h"
@@ -10,12 +10,12 @@
 /* int err; must be defined before using this macro */
 #define ALSA_CHECK(x)                                                          \
 	if (err < 0) {                                                             \
-		LOG->Info("ALSA: %s: %s", x, dsnd_strerror(err));                      \
+		Locator::getLogger()->info("ALSA: {}: {}", x, dsnd_strerror(err));                      \
 		return false;                                                          \
 	}
 #define ALSA_ASSERT(x)                                                         \
 	if (err < 0) {                                                             \
-		LOG->Warn("ALSA: %s: %s", x, dsnd_strerror(err));                      \
+		Locator::getLogger()->warn("ALSA: {}: {}", x, dsnd_strerror(err));                      \
 	}
 
 bool
@@ -135,7 +135,7 @@ Alsa9Buf::ErrorHandler(const char* file,
 	/* Annoying: these happen both normally (eg. "out of memory" when allocating
 	 * too many PCM slots) and abnormally, and there's no way to tell which is
 	 * which.  I don't want to pollute the warning output. */
-	LOG->Trace("ALSA error: %s:%i %s: %s", file, line, function, str.c_str());
+	Locator::getLogger()->trace("ALSA error: {}:{} {}: {}", file, line, function, str.c_str());
 }
 
 void
@@ -163,7 +163,7 @@ Alsa9Buf::GetSoundCardDebugInfo()
 	if (DoesFileExist("/rootfs/proc/asound/version")) {
 		std::string sVersion;
 		GetFileContents("/rootfs/proc/asound/version", sVersion, true);
-		LOG->Info("ALSA: %s", sVersion.c_str());
+		Locator::getLogger()->info("ALSA: {}", sVersion.c_str());
 	}
 
 	InitializeErrorHandler();
@@ -175,10 +175,8 @@ Alsa9Buf::GetSoundCardDebugInfo()
 		int err;
 		err = dsnd_ctl_open(&handle, id.c_str(), 0);
 		if (err < 0) {
-			LOG->Info("Couldn't open card #%i (\"%s\") to probe: %s",
-					  card,
-					  id.c_str(),
-					  dsnd_strerror(err));
+			Locator::getLogger()->info("Couldn't open card #{} (\"{}\") to probe: {}",
+					  card, id.c_str(), dsnd_strerror(err));
 			continue;
 		}
 
@@ -186,10 +184,8 @@ Alsa9Buf::GetSoundCardDebugInfo()
 		dsnd_ctl_card_info_alloca(&info);
 		err = dsnd_ctl_card_info(handle, info);
 		if (err < 0) {
-			LOG->Info("Couldn't get card info for card #%i (\"%s\"): %s",
-					  card,
-					  id.c_str(),
-					  dsnd_strerror(err));
+			Locator::getLogger()->info("Couldn't get card info for card #{} (\"{}\"): {}",
+					  card, id.c_str(), dsnd_strerror(err));
 			dsnd_ctl_close(handle);
 			continue;
 		}
@@ -204,14 +200,12 @@ Alsa9Buf::GetSoundCardDebugInfo()
 			err = dsnd_ctl_pcm_info(handle, pcminfo);
 			if (err < 0) {
 				if (err != -ENOENT)
-					LOG->Info("dsnd_ctl_pcm_info(%i) (%s) failed: %s",
-							  card,
-							  id.c_str(),
-							  dsnd_strerror(err));
+					Locator::getLogger()->info("dsnd_ctl_pcm_info({}) ({}) failed: {}",
+							  card, id.c_str(), dsnd_strerror(err));
 				continue;
 			}
 
-			LOG->Info("ALSA Driver: %i: %s [%s], device %i: %s [%s], %i/%i "
+			Locator::getLogger()->info("ALSA Driver: {}: {} [{}], device {}: {} [{}], {}/{} "
 					  "subdevices avail",
 					  card,
 					  dsnd_ctl_card_info_get_name(info),
@@ -226,10 +220,10 @@ Alsa9Buf::GetSoundCardDebugInfo()
 	}
 
 	if (card == 0)
-		LOG->Info("No ALSA sound cards were found.");
+		Locator::getLogger()->info("No ALSA sound cards were found.");
 
 	if (!PREFSMAN->m_iSoundDevice.Get().empty())
-		LOG->Info("ALSA device overridden to \"%s\"",
+		Locator::getLogger()->info("ALSA device overridden to \"{}\"",
 				  PREFSMAN->m_iSoundDevice.Get().c_str());
 }
 
@@ -271,20 +265,19 @@ Alsa9Buf::Init(int channels_, int iWriteahead, int iChunkSize, int iSampleRate)
 		  "dsnd_pcm_open(%s): %s", DeviceName().c_str(), dsnd_strerror(err));
 
 	if (!SetHWParams()) {
-		CHECKPOINT;
 		return "SetHWParams failed";
 	}
 
 	SetSWParams();
 
-	LOG->Info("ALSA: Mixing at %ihz", samplerate);
+	Locator::getLogger()->info("ALSA: Mixing at {}hz", samplerate);
 
 	if (preferred_writeahead != writeahead)
-		LOG->Info("ALSA: writeahead adjusted from %u to %u",
+		Locator::getLogger()->info("ALSA: writeahead adjusted from {} to {}",
 				  (unsigned)preferred_writeahead,
 				  (unsigned)writeahead);
 	if (preferred_chunksize != chunksize)
-		LOG->Info("ALSA: chunksize adjusted from %u to %u",
+		Locator::getLogger()->info("ALSA: chunksize adjusted from {} to {}",
 				  (unsigned)preferred_chunksize,
 				  (unsigned)chunksize);
 
@@ -313,7 +306,7 @@ Alsa9Buf::GetNumFramesToFill()
 	if (avail_frames > total_frames) {
 		/* underrun */
 		const int size = avail_frames - total_frames;
-		LOG->Trace("underrun (%i frames)", size);
+		Locator::getLogger()->trace("underrun ({} frames)", size);
 		int large_skip_threshold = 2 * samplerate;
 
 		/* For small underruns, ignore them.  We'll return the maximum
@@ -332,7 +325,7 @@ Alsa9Buf::GetNumFramesToFill()
 		avail_frames = dsnd_pcm_avail_update(pcm);
 
 	if (avail_frames < 0) {
-		LOG->Trace("RageSoundDriver_ALSA9::GetData: dsnd_pcm_avail_update: %s",
+		Locator::getLogger()->trace("RageSoundDriver_ALSA9::GetData: dsnd_pcm_avail_update: {}",
 				   dsnd_strerror(avail_frames));
 		return 0;
 	}
@@ -382,8 +375,8 @@ Alsa9Buf::Write(const int16_t* buffer, int frames)
 	} while (wrote == -EAGAIN);
 
 	if (wrote < 0) {
-		LOG->Trace(
-		  "RageSoundDriver_ALSA9::GetData: dsnd_pcm_mmap_writei: %s (%i)",
+		Locator::getLogger()->trace(
+		  "RageSoundDriver_ALSA9::GetData: dsnd_pcm_mmap_writei: {} ({})",
 		  dsnd_strerror(wrote),
 		  wrote);
 		return;
@@ -391,7 +384,7 @@ Alsa9Buf::Write(const int16_t* buffer, int frames)
 
 	last_cursor_pos += wrote;
 	if (wrote < frames)
-		LOG->Trace("Couldn't write whole buffer? (%i < %i)", wrote, frames);
+		Locator::getLogger()->trace("Couldn't write whole buffer? ({} < {})", wrote, frames);
 }
 
 /*
@@ -402,14 +395,14 @@ bool
 Alsa9Buf::Recover(int r)
 {
 	if (r == -EPIPE) {
-		LOG->Trace("RageSound_ALSA9::Recover (prepare)");
+		Locator::getLogger()->trace("RageSound_ALSA9::Recover (prepare)");
 		int err = dsnd_pcm_prepare(pcm);
 		ALSA_ASSERT("dsnd_pcm_prepare (Recover)");
 		return true;
 	}
 
 	if (r == -ESTRPIPE) {
-		LOG->Trace("RageSound_ALSA9::Recover (resume)");
+		Locator::getLogger()->trace("RageSound_ALSA9::Recover (resume)");
 		int err;
 		while ((err = dsnd_pcm_resume(pcm)) == -EAGAIN)
 			usleep(10000); // 10ms
@@ -463,7 +456,7 @@ Alsa9Buf::GetHardwareID(std::string name)
 	int err;
 	err = dsnd_ctl_open(&handle, name.c_str(), 0);
 	if (err < 0) {
-		LOG->Info("Couldn't open card \"%s\" to get ID: %s",
+		Locator::getLogger()->info("Couldn't open card \"{}\" to get ID: {}",
 				  name.c_str(),
 				  dsnd_strerror(err));
 		return "???";

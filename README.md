@@ -33,11 +33,13 @@ Etterna is a cross-platform rhythm game similar to [Dance Dance Revolution](http
 
 ### Windows and macOS
 
-Head to the [Github Releases](https://github.com/etternagame/etterna/releases) page, and download the relevant file for your operating system. For Windows, run the installer, and you should be ready to go. For macOS, mount the DMG and copy the Etterna folder to a location of your choice. Run the executable, and you are ready to go.
+Head to the [Github Releases](https://github.com/etternagame/etterna/releases) page, and download the relevant file for your operating system. For Windows, run the installer, and you should be ready to go. For macOS, first follow the below instructions. *After* doing them, mount the DMG and copy the Etterna folder to a location of your choice. Run the executable, and you are ready to go.
 
 ### macOS
 
-macOS has protection software called Gatekeeper. It ensures only trusted applications (code-signed apps) can be run on your system. Since we are an open-source project, we don't have the means to code-sign Etterna. If you have any trouble when opening Etterna on your system, please try to control-click the app, choose Open from the menu, and in the dialog that appears, click Open. Enter your admin name and password when prompted, and it should allow you to run the game.
+This macOS binary is not signed, so before it can be installed it must be de-quarantined by executing this command in the same directory (likely your downloads folder) as the Etterna dmg.
+
+`xattr -d com.apple.quarantine ./Etterna*.dmg`
 
 ### Linux
 

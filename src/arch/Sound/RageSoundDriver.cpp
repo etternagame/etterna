@@ -2,7 +2,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageSoundDriver.h"
 #include "RageUtil/Sound/RageSoundManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "arch/arch_default.h"
@@ -12,7 +12,7 @@ DriverList RageSoundDriver::m_pDriverList;
 RageSoundDriver*
 RageSoundDriver::Create(const std::string& drivers)
 {
-	vector<std::string> drivers_to_try;
+	std::vector<std::string> drivers_to_try;
 	if (drivers.empty()) {
 		split(DEFAULT_SOUND_DRIVER_LIST, ",", drivers_to_try);
 	} else {
@@ -23,7 +23,7 @@ RageSoundDriver::Create(const std::string& drivers)
 			if (m_pDriverList.m_pRegistrees->find(
 				  istring(drivers_to_try[to_try].c_str())) ==
 				m_pDriverList.m_pRegistrees->end()) {
-				LOG->Warn("Removed unusable sound driver %s",
+				Locator::getLogger()->warn("Removed unusable sound driver {}",
 						  drivers_to_try[to_try].c_str());
 				drivers_to_try.erase(drivers_to_try.begin() + to_try);
 				had_to_erase = true;
@@ -43,7 +43,7 @@ RageSoundDriver::Create(const std::string& drivers)
 	{
 		RageDriver* pDriver = m_pDriverList.Create(*Driver);
 		if (pDriver == NULL) {
-			LOG->Trace("Unknown sound driver: %s", Driver->c_str());
+			Locator::getLogger()->info("Unknown sound driver: {}", Driver->c_str());
 			continue;
 		}
 
@@ -52,12 +52,10 @@ RageSoundDriver::Create(const std::string& drivers)
 
 		const std::string sError = pRet->Init();
 		if (sError.empty()) {
-			if (PREFSMAN->m_verbose_log > 1)
-				LOG->Info("Sound driver: %s", Driver->c_str());
+			Locator::getLogger()->info("Sound driver: {}", Driver->c_str());
 			return pRet;
 		}
-		LOG->Info(
-		  "Couldn't load driver %s: %s", Driver->c_str(), sError.c_str());
+		Locator::getLogger()->info("Couldn't load driver {}: {}", Driver->c_str(), sError.c_str());
 		SAFE_DELETE(pRet);
 	}
 	return NULL;

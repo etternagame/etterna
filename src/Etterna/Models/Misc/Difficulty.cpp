@@ -75,7 +75,7 @@ GetCustomDifficulty(StepsType st, Difficulty dc)
 		return "Edit";
 	}
 	// OPTIMIZATION OPPORTUNITY: cache these metrics and cache the splitting
-	vector<std::string> vsNames;
+	std::vector<std::string> vsNames;
 	split(NAMES, ",", vsNames);
 	for (auto& sName : vsNames) {
 		ThemeMetric<StepsType> STEPS_TYPE("CustomDifficulty",

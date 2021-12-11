@@ -2,10 +2,12 @@
 #include "../../PatternModHelpers.h"
 #include "../MetaIntervalInfo.h"
 
+/// Hand-Agnostic PatternMod detecting Handstream.
+/// Looks for jacks, jumptrills, and hands (3-chords)
 struct HSMod
 {
 	const CalcPatternMod _pmod = HS;
-	// const vector<CalcPatternMod> _dbg = { HSS, HSJ };
+	// const std::vector<CalcPatternMod> _dbg = { HSS, HSJ };
 	const std::string name = "HSMod";
 	const int _tap_size = hand;
 
@@ -67,13 +69,18 @@ struct HSMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
+
 	void decay_mod()
 	{
-		pmod = CalcClamp(last_mod - decay_factor, min_mod, max_mod);
+		pmod = std::clamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
 	}
 
-	// inline void set_dbg(vector<float> doot[], const int& i)
+	// inline void set_dbg(std::vector<float> doot[], const int& i)
 	//{
 	//	doot[HSS][i] = jumptrill_prop;
 	//	doot[HSJ][i] = jack_prop;
@@ -103,22 +110,22 @@ struct HSMod
 										 prop_buffer) /
 					  (t_taps - prop_buffer) * total_prop_scaler);
 		total_prop =
-		  CalcClamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
+		  std::clamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
 		// downscale jumptrills for hs as well
-		jumptrill_prop = CalcClamp(
+		jumptrill_prop = std::clamp(
 		  split_hand_pool - (static_cast<float>(mitvi.not_hs) / t_taps),
 		  split_hand_min,
 		  split_hand_max);
 
 		// downscale by jack density rather than upscale, like cj does
-		jack_prop = CalcClamp(
+		jack_prop = std::clamp(
 		  jack_pool - (static_cast<float>(mitvi.actual_jacks) / t_taps),
 		  jack_min,
 		  jack_max);
 
 		pmod =
-		  CalcClamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
+		  std::clamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
 
 		if (mitvi.dunk_it) {
 			pmod *= 0.99F;

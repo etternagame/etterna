@@ -13,8 +13,8 @@
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "RageUtil/Graphics/RageSurfaceUtils_Zoom.h"
+#include "Core/Misc/AppInfo.hpp"
 
 #pragma comment(lib, "Dwmapi.lib")
 
@@ -109,7 +109,7 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg) {
 		case WM_INITDIALOG: {
-			vector<std::string> vs;
+			std::vector<std::string> vs;
 			GetDirListing("Data/splash*.png", vs, false, true);
 			if (!vs.empty())
 				g_hBitmap = LoadWin32Surface(vs[0], hWnd);
@@ -120,7 +120,7 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						STM_SETIMAGE,
 						(WPARAM)IMAGE_BITMAP,
 						(LPARAM)(HANDLE)g_hBitmap);
-			SetWindowTextA(hWnd, PRODUCT_ID);
+			SetWindowTextA(hWnd, Core::AppInfo::APP_TITLE);
 			break;
 
 		case WM_DESTROY:
@@ -294,7 +294,7 @@ LoadingWindow_Win32::SetTextInternal()
 	}
 	std::string& sText = lastText;
 
-	vector<std::string> asMessageLines;
+	std::vector<std::string> asMessageLines;
 	split(sText, "\n", asMessageLines, false);
 	while (asMessageLines.size() < 3)
 		asMessageLines.push_back("");

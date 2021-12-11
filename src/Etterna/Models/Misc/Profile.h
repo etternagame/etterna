@@ -73,12 +73,12 @@ class ScoreGoal
 	bool achieved = false;
 	DateTime timeassigned;
 	DateTime timeachieved;
-	std::string comment = "";
-	std::string chartkey = "";
+	std::string comment;
+	std::string chartkey;
 
 	// which specific score was this goal achieved by, reminder to consider
 	// what happens when individual score deletion is possibly added -mina
-	std::string scorekey = "";
+	std::string scorekey;
 
 	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* pNode);
@@ -126,13 +126,7 @@ class Profile
 	// added to SwapExceptPriority won't be swapped correctly when the user
 	// changes the list priority of a profile. -Kyz
 	Profile()
-	  :
-
-	  m_sDisplayName("")
-	  , m_sLastUsedHighScoreName("")
-	  , m_sGuid(MakeGuid())
-	  , m_sLastPlayedMachineGuid("")
-	  , profiledir("")
+	  : m_sGuid(MakeGuid())
 	{
 		m_lastSong.Unset();
 		m_fPlayerRating = 0.F;
@@ -248,7 +242,7 @@ class Profile
 	std::set<std::string> PermaMirrorCharts;
 
 	// more future goalman stuff -mina
-	void AddGoal(const std::string& ck);
+	bool AddGoal(const std::string& ck);
 	void RemoveGoal(const std::string& ck, DateTime assigned);
 	std::unordered_map<std::string, GoalsForChart> goalmap;
 	void FillGoalTable();
@@ -258,7 +252,7 @@ class Profile
 	int filtermode = 1; // 1=all, 2=completed, 3=uncompleted
 	bool asc = false;
 
-	auto HasGoal(const std::string& ck) -> bool
+	auto HasGoal(const std::string& ck) const -> bool
 	{
 		return goalmap.count(ck) == 1;
 	}
@@ -277,7 +271,7 @@ class Profile
 	// Screenshot Data
 	std::vector<Screenshot> m_vScreenshots;
 	void AddScreenshot(const Screenshot& screenshot);
-	auto GetNextScreenshotIndex() -> int { return m_vScreenshots.size(); }
+	int GetNextScreenshotIndex() const { return static_cast<int>(m_vScreenshots.size()); }
 
 	// Init'ing
 	void InitAll()
@@ -294,15 +288,14 @@ class Profile
 	void swap(Profile& other);
 
 	// Loading and saving
-	void HandleStatsPrefixChange(std::string dir, bool require_signature);
-	auto LoadAllFromDir(const std::string& sDir,
-						bool bRequireSignature,
-						LoadingWindow* ld) -> ProfileLoadResult;
+	void HandleStatsPrefixChange(std::string dir);
+	auto LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
+	  -> ProfileLoadResult;
 	auto LoadStatsFromDir(std::string dir, bool require_signature)
 	  -> ProfileLoadResult;
 	void LoadTypeFromDir(const std::string& dir);
 	void LoadCustomFunction(const std::string& sDir);
-	auto SaveAllToDir(const std::string& sDir, bool bSignData) const -> bool;
+	auto SaveAllToDir(const std::string& sDir) const -> bool;
 
 	auto LoadEditableDataFromDir(const std::string& sDir) -> ProfileLoadResult;
 
@@ -313,7 +306,6 @@ class Profile
 	void CalculateStatsFromScores();
 
 	void SaveStatsWebPageToDir(const std::string& sDir) const;
-	void SaveMachinePublicKeyToDir(const std::string& sDir) const;
 
 	static void MoveBackupToDir(const std::string& sFromDir,
 								const std::string& sToDir);

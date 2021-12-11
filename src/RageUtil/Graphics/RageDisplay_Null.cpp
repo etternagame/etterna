@@ -3,7 +3,7 @@
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "RageDisplay.h"
 #include "RageDisplay_Null.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSurface.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -48,7 +48,7 @@ static RageDisplay::RagePixelFormatDesc
 
 RageDisplay_Null::RageDisplay_Null()
 {
-	LOG->MapLog("renderer", "Current renderer: null");
+	Locator::getLogger()->info("Current renderer: null");
 }
 
 std::string
@@ -135,8 +135,8 @@ RageDisplay_Null::IsD3DInternal()
 class RageCompiledGeometryNull : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>&) override {}
-	void Change(const vector<msMesh>&) override {}
+	void Allocate(const std::vector<msMesh>&) override {}
+	void Change(const std::vector<msMesh>&) override {}
 	void Draw(int iMeshIndex) const override {}
 };
 

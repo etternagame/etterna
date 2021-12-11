@@ -8,6 +8,20 @@ set(CPACK_COMPONENT_ETTERNA_REQUIRED TRUE)  # Require Etterna component to be in
 # Custom Variables
 set(INSTALL_DIR "Etterna")
 
+if(UNIX)
+    set(CPACK_GENERATOR TGZ)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
+    set(CPACK_PACKAGE_CONTACT https://github.com/etternagame/etterna)
+
+    install(TARGETS Etterna COMPONENT Etterna DESTINATION ${INSTALL_DIR})
+    install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler
+            COMPONENT Etterna
+            DESTINATION ${INSTALL_DIR}
+            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                        GROUP_READ GROUP_EXECUTE
+                        WORLD_READ WORLD_EXECUTE)
+endif()
+
 # Windows Specific CPack
 if(WIN32)
     set(CPACK_GENERATOR "NSIS")
@@ -33,7 +47,8 @@ if(WIN32)
 
     # List every DLL etterna needs.
     list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
-                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll")
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll"
+                         ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler.exe)
     install(FILES ${WIN_DLLS}   COMPONENT Etterna DESTINATION Program)
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION Program)
     install(FILES CMake/CPack/license_install.txt COMPONENT Etterna DESTINATION Docs)
@@ -45,11 +60,15 @@ elseif(APPLE)
     set(CPACK_DMG_VOLUME_NAME Etterna)
 
     install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
+    install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler
+            COMPONENT Etterna DESTINATION ${INSTALL_DIR}
+            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                        GROUP_READ GROUP_EXECUTE
+                        WORLD_READ WORLD_EXECUTE)
 endif()
 
 # Universal Install Directories
 ## Files Only
-install(FILES portable.ini                  COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
 install(FILES Songs/instructions.txt        COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Songs")
 install(FILES Announcers/instructions.txt   COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Announcers")
 

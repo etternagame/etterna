@@ -3,7 +3,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "MeterDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/FileTypes/XmlFile.h"
@@ -31,9 +31,7 @@ MeterDisplay::Load(const std::string& sStreamPath,
 void
 MeterDisplay::LoadFromNode(const XNode* pNode)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("MeterDisplay::LoadFromNode(%s)",
-				   ActorUtil::GetWhere(pNode).c_str());
+	Locator::getLogger()->trace("MeterDisplay::LoadFromNode({})", ActorUtil::GetWhere(pNode).c_str());
 
 	const XNode* pStream = pNode->GetChild("Stream");
 	if (pStream == NULL) {

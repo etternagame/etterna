@@ -10,6 +10,7 @@
 #include "Etterna/Actor/Gameplay/LifeMeterBar.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Core/Services/Locator.hpp"
 
 #include <map>
 #include <algorithm>
@@ -19,12 +20,12 @@ using std::map;
 
 HighScore* PlayerAI::pScoreData = nullptr;
 TimingData* PlayerAI::pReplayTiming = nullptr;
-map<int, vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
-map<int, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
-map<int, vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
+map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayTapMap;
+map<int, std::vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMap;
+map<int, std::vector<TapReplayResult>> PlayerAI::m_ReplayExactTapMap;
 map<int, ReplaySnapshot> PlayerAI::m_ReplaySnapshotMap;
-map<float, vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
-map<float, vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
+map<float, std::vector<TapReplayResult>> PlayerAI::m_ReplayTapMapByElapsedTime;
+map<float, std::vector<HoldReplayResult>> PlayerAI::m_ReplayHoldMapByElapsedTime;
 float PlayerAI::replayRate = 1.f;
 std::string PlayerAI::replayModifiers;
 bool PlayerAI::replayUsedMirror = false;
@@ -109,14 +110,15 @@ PlayerAI::ResetScoreData()
 }
 
 void
-PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
+PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData, TimingData* pTimingData)
 {
-	CHECKPOINT_M("Setting PlayerAI Score Data");
+	Locator::getLogger()->info("Setting PlayerAI Score Data");
 	auto successful = false;
 	if (pHighScore != nullptr)
 		successful = pHighScore->LoadReplayData();
 
 	pScoreData = pHighScore;
+	pReplayTiming = pTimingData;
 	m_ReplayTapMap.clear();
 	m_ReplayHoldMap.clear();
 	m_ReplayExactTapMap.clear();
@@ -126,7 +128,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		m_ReplaySnapshotMap.clear();
 
 	if (!successful || pHighScore == nullptr) {
-		CHECKPOINT_M("Exiting Score Data setup - missing HS or ReplayData");
+		Locator::getLogger()->warn("Exiting Score Data setup - missing HS or ReplayData");
 		return;
 	}
 
@@ -148,19 +150,66 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (replayNoteRowVector[i] < firstRow)
 			continue;
 
+		bool dontMakeNewTRR = false;
+
+		// ReplayData recording allows for multiple taps in 1 row
+		// This should only occur for mines that were hit by tapping them
+		// Check specifically for this happening
+		if (pScoreData->GetReplayType() == 2) {
+			// skip out of bounds indices...
+			// this happens in some very far edge cases
+			// replays can be type 2 without tapnotetype vectors
+			// (multiplayer related usually)
+			if (i < replayNoteRowVector.size() &&
+				i < replayTapNoteTypeVector.size() &&
+				i < replayOffsetVector.size() &&
+				i < replayTrackVector.size()) {
+
+				// if scoring issues continue to happen, finish this
+				// right now, only checking for mines
+				if (replayTapNoteTypeVector[i] == TapNoteType_Mine) {
+					if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
+						// search for other mines in this column
+						// if a relevant one exists, set it to this offset
+						// skip iteration if a match is found
+						for (auto& t : m_ReplayTapMap[replayNoteRowVector[i]]) {
+							if (t.track == replayTrackVector[i] &&
+								t.type == replayTapNoteTypeVector[i]) {
+								if (fabsf(replayOffsetVector[i]) >
+									fabsf(t.offset)) {
+									t.offset = replayOffsetVector[i];
+									t.offsetAdjustedRow =
+									  replayNoteRowVector[i];
+								}
+								dontMakeNewTRR = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (dontMakeNewTRR)
+			continue;
+
 		TapReplayResult trr;
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
-		trr.offsetAdjustedRow = static_cast<int>(replayOffsetVector[i]);
-		if (pScoreData->GetReplayType() ==
-			2) // 2 means that this is a Full Replay
-		{
+		trr.offsetAdjustedRow = replayNoteRowVector[i];
+		if (pScoreData->GetReplayType() == 2) {
+			// 2 means that this is a Full Replay
 			trr.track = replayTrackVector[i];
-			trr.type = replayTapNoteTypeVector[i];
-		} else // Anything else (and we got this far without crashing) means
-			   // it's not a Full Replay
-		{
-			trr.track = NULL;
+
+			// bad bandaid, the correct type could be resolved from notedata
+			if (i < replayTapNoteTypeVector.size())
+				trr.type = replayTapNoteTypeVector[i];
+			else
+				trr.type = TapNoteType_Tap;
+		} else {
+			// Anything else (and we got this far without crashing) means
+			// it's not a Full Replay
+			trr.track = 0;
 			trr.type = TapNoteType_Empty;
 		}
 
@@ -168,7 +217,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (m_ReplayTapMap.count(replayNoteRowVector[i]) != 0) {
 			m_ReplayTapMap[replayNoteRowVector[i]].push_back(trr);
 		} else {
-			const vector<TapReplayResult> trrVector = { trr };
+			std::vector<TapReplayResult> trrVector = { trr };
 			m_ReplayTapMap[replayNoteRowVector[i]] = trrVector;
 			validNoterows.insert(replayNoteRowVector[i]);
 		}
@@ -185,7 +234,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 		if (m_ReplayHoldMap.count(i.row) != 0) {
 			m_ReplayHoldMap[i.row].push_back(i);
 		} else {
-			const vector<HoldReplayResult> hrrVector = { i };
+			std::vector<HoldReplayResult> hrrVector = { i };
 			m_ReplayHoldMap[i.row] = hrrVector;
 			validNoterows.insert(i.row);
 		}
@@ -195,14 +244,14 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData)
 	// We require the NoteData to validate the Judge count.
 	// If we don't have it, don't care.
 	if (pNoteData == nullptr) {
-		CHECKPOINT_M("Exiting Score Data setup - missing NoteData");
+		Locator::getLogger()->warn("Exiting Score Data setup - missing NoteData");
 		return;
 	}
 
 	// Set up a mapping of every noterow to a snapshot of what has happened up
 	// to that point
 	SetUpSnapshotMap(pNoteData, validNoterows);
-	CHECKPOINT_M("Finished Score Data setup");
+	Locator::getLogger()->info("Finished Score Data setup");
 }
 
 void
@@ -236,7 +285,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayExactTapMap.count(tapRow) != 0) {
 				m_ReplayExactTapMap[tapRow].push_back(trr);
 			} else {
-				const vector<TapReplayResult> trrVector = { trr };
+				std::vector<TapReplayResult> trrVector = { trr };
 				m_ReplayExactTapMap[tapRow] = trrVector;
 			}
 
@@ -244,7 +293,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
 				m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
 			} else {
-				const vector<TapReplayResult> trrVector = { trr };
+				std::vector<TapReplayResult> trrVector = { trr };
 				m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
 			}
 		}
@@ -259,7 +308,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 			if (m_ReplayHoldMapByElapsedTime.count(dropTime) != 0) {
 				m_ReplayHoldMapByElapsedTime[dropTime].push_back(hrr);
 			} else {
-				const vector<HoldReplayResult> hrrVector = { hrr };
+				std::vector<HoldReplayResult> hrrVector = { hrr };
 				m_ReplayHoldMapByElapsedTime[dropTime] = hrrVector;
 			}
 		}
@@ -296,7 +345,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 					if (m_ReplayTapMapByElapsedTime.count(tapTime) != 0) {
 						m_ReplayTapMapByElapsedTime[tapTime].push_back(trr);
 					} else {
-						const vector<TapReplayResult> trrVector = { trr };
+						std::vector<TapReplayResult> trrVector = { trr };
 						m_ReplayTapMapByElapsedTime[tapTime] = trrVector;
 					}
 				}
@@ -384,8 +433,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	// Have to account for mirror being in the highscore options
 	// please dont change styles in the middle of calculation and break this
 	// thanks
-	if (pScoreData->GetModifiers().find("mirror") != std::string::npos ||
-		pScoreData->GetModifiers().find("Mirror") != std::string::npos) {
+	if (pScoreData != nullptr && (pScoreData->GetModifiers().find("mirror") != std::string::npos ||
+		pScoreData->GetModifiers().find("Mirror") != std::string::npos)) {
 		PlayerOptions po;
 		po.Init();
 		po.m_bTurns[PlayerOptions::TURN_MIRROR] = true;
@@ -403,6 +452,13 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	{
 		auto tapsMissedInRow = 0;
 
+		// some rows are not judgeable so should be ignored
+		// (fake regions, warps)
+		if (pReplayTiming != nullptr) {
+			if (!pReplayTiming->IsJudgableAtRow(row))
+				continue;
+		}
+
 		// For every track in the row...
 		for (auto track = 0; track < pNoteData->GetNumTracks(); track++) {
 			// Find the tapnote we are on
@@ -415,19 +471,19 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 					auto isDropped = IsHoldDroppedInRowRangeForTrack(
 					  row, row + pTN->iDuration, track);
 					if (isDropped != -1) {
-						tempHNS[HNS_LetGo]++;
+						if (m_unjudgedholds[isDropped].size() > 0) {
+							tempHNS[HNS_LetGo]++;
 
-						// erase the hold from the mapping of unjudged holds
-						for (size_t i = 0;
-							 i < m_unjudgedholds[isDropped].size();
-							 i++) {
-							if (m_unjudgedholds[isDropped][i].track == track) {
-								m_unjudgedholds[isDropped].erase(
-								  m_unjudgedholds[isDropped].begin() + i);
-							}
+							// erase the hold from the mapping of unjudged holds
+							m_unjudgedholds[isDropped].erase(std::remove_if(
+							  m_unjudgedholds[isDropped].begin(),
+							  m_unjudgedholds[isDropped].end(),
+							  [track](const HoldReplayResult& hrrr) {
+								  return hrrr.track == track;
+							  }));
+							if (m_unjudgedholds[isDropped].empty())
+								m_unjudgedholds.erase(isDropped);
 						}
-						if (m_unjudgedholds[isDropped].empty())
-							m_unjudgedholds.erase(isDropped);
 					} else {
 						tempHNS[HNS_Held]++;
 					}
@@ -438,7 +494,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				// and the hold was short enough to bug out
 				// and the reported row of the dropped hold is weirdly placed
 				auto firstUnjudgedHold = m_unjudgedholds.begin();
-				if (firstUnjudgedHold != m_unjudgedholds.end()) {
+				if (firstUnjudgedHold != m_unjudgedholds.end() &&
+					row > firstUnjudgedHold->first) {
 					auto hrrs = firstUnjudgedHold->second;
 					for (size_t i = 0; i < hrrs.size(); i++) {
 						if (hrrs[i].track == track) {
@@ -554,17 +611,22 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 	 * However, completely missed holds are present in replay data.
 	 * The second issue does not cause miscounts, but does cause butchered holds
 	 * to be missed (but not judged)
+	 *
+	 * Retrospective comment: im not sure if the above is true anymore
 	 */
 
 	// now update the wifescore values for each relevant snapshot.
 	// some snapshots end up with 0 values due to being "missing" from the
 	// replay data and we have to account for those
-	vector<int> snapShotsUnused;
+	std::vector<int> snapShotsUnused;
 	snapShotsUnused.reserve(m_ReplaySnapshotMap.size());
 	for (auto& it : m_ReplaySnapshotMap)
 		snapShotsUnused.push_back(it.first);
-	auto cws = 0.f;
-	auto mws = 0.f;
+	auto cws = 0.f; // curwifescore
+	auto mws = 0.f; // maxwifescore
+	auto taps = 0; // tap count
+	double runningmean = 0.0;
+	double runningvariance = 0.0;
 	for (auto it = m_ReplayTapMap.begin(); it != m_ReplayTapMap.end();) {
 		const auto r = it->first;
 		if (r > snapShotsUnused.front()) {
@@ -576,17 +638,43 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 							   ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) *
 								wife3_hold_drop_weight);
 			rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
-			snapShotsUnused.erase(snapShotsUnused.begin());
+			rs->mean = runningmean;
+			rs->standardDeviation =
+			  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 
+			snapShotsUnused.erase(snapShotsUnused.begin());
 			continue; // retry the iteration (it++ is moved to below)
 		}
 		auto rs = GetReplaySnapshotForNoterow(r);
+		// set mean and sd initially
+		rs->mean = runningmean;
+		rs->standardDeviation =
+		  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
 				cws += wife3_mine_hit_weight;
 			} else {
-				cws += wife3(trr.offset, timingScale);
+				auto tapscore = wife3(trr.offset, timingScale);
+				cws += tapscore;
 				mws += 2.f;
+
+				// do mean/sd for all non miss taps
+				auto tns =
+				  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
+				if (tns != TNS_Miss && tns != TNS_None) {
+					taps++;
+
+					// universe brain algorithm (Welford's)
+					double delta = trr.offset * 1000.0 - runningmean;
+					runningmean += delta / taps;
+					double delta2 = trr.offset * 1000.0 - runningmean;
+					runningvariance += delta * delta2;
+				}
+
+				// set mean and sd again to update it if necessary
+				rs->mean = runningmean;
+				rs->standardDeviation =
+				  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 			}
 		}
 		rs->curwifescore =
@@ -609,6 +697,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			auto rs = &m_ReplaySnapshotMap[row];
 			rs->curwifescore = prevrs->curwifescore;
 			rs->maxwifescore = prevrs->maxwifescore;
+			rs->mean = prevrs->mean;
+			rs->standardDeviation = prevrs->standardDeviation;
 		}
 	}
 }
@@ -616,31 +706,42 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 void
 PlayerAI::RemoveTapFromVectors(int row, int col)
 {
-	// if the row is in the replay data
+	// the ExactTapMap is indexed by its offset adjusted rows
+	// take the offset adjusted row value from the TapMap
+	auto exactTapRowToErase = 0;
+
+	// if the row is in the replay data:
 	if (m_ReplayTapMap.count(row) != 0) {
 		for (auto i = 0; i < (int)m_ReplayTapMap[row].size(); i++) {
 			// if the column is in the row data
 			auto& trr = m_ReplayTapMap[row][i];
 			if (trr.track == col) {
-				// delete
-				m_ReplayTapMap[row].erase(m_ReplayTapMap[row].begin() + i);
-				if (m_ReplayTapMap[row].empty())
-					m_ReplayTapMap.erase(row);
+				exactTapRowToErase = trr.offsetAdjustedRow;
+				break;
 			}
 		}
+		auto& v = m_ReplayTapMap[row];
+		v.erase(std::remove_if(
+				  v.begin(),
+				  v.end(),
+				  [col](const TapReplayResult& trr) { return trr.track == col; }),
+		  v.end());
+		if (v.empty()) {
+			m_ReplayTapMap.erase(row);
+		}
 	}
-	// if the row is in the replay data
-	if (m_ReplayExactTapMap.count(row) != 0) {
-		for (auto i = 0; i < (int)m_ReplayExactTapMap[row].size(); i++) {
-			// if the column is in the row data
-			auto& trr = m_ReplayExactTapMap[row][i];
-			if (trr.track == col) {
-				// delete
-				m_ReplayExactTapMap[row].erase(
-				  m_ReplayExactTapMap[row].begin() + i);
-				if (m_ReplayExactTapMap[row].empty())
-					m_ReplayExactTapMap.erase(row);
-			}
+
+	// if the row is in the replay data:
+	if (m_ReplayExactTapMap.count(exactTapRowToErase) != 0) {
+		auto& v = m_ReplayExactTapMap[exactTapRowToErase];
+		v.erase(std::remove_if(v.begin(),
+							   v.end(),
+							   [col](const TapReplayResult& trr) {
+								   return trr.track == col;
+							   }),
+				v.end());
+		if (v.empty()) {
+			m_ReplayExactTapMap.erase(exactTapRowToErase);
 		}
 	}
 }
@@ -662,6 +763,10 @@ PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 std::shared_ptr<ReplaySnapshot>
 PlayerAI::GetReplaySnapshotForNoterow(int row)
 {
+	if (m_ReplaySnapshotMap.empty()) {
+		return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
+	}
+
 	// The row doesn't necessarily have to exist in the Snapshot map.
 	// Because after a Snapshot, we can try this again for a later row
 	// And if there are no new snapshots (no events) nothing changes
@@ -784,10 +889,10 @@ PlayerAI::IsTapAtRowAndColumn(int noteRow, int col)
 	return false;
 }
 
-vector<TapReplayResult>
+std::vector<TapReplayResult>
 PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 {
-	vector<TapReplayResult> output;
+	std::vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
@@ -810,10 +915,10 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 	return output;
 }
 
-vector<TapReplayResult>
+std::vector<TapReplayResult>
 PlayerAI::GetTapsToTapForRow(int noteRow)
 {
-	vector<TapReplayResult> output;
+	std::vector<TapReplayResult> output;
 
 	// 2 is a replay with column data
 	if (pScoreData->GetReplayType() == 2) {
@@ -907,7 +1012,7 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 			for (auto i = 0; i < (int)m_ReplayExactTapMap[noteRow].size();
 				 i++) // go over all elements in the row
 			{
-				const auto trr = m_ReplayExactTapMap[noteRow][i];
+				const auto& trr = m_ReplayExactTapMap[noteRow][i];
 				if (trr.track == col) // if the column expected is the
 									  // actual note, use it
 				{
@@ -917,16 +1022,17 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 						if (trr.type != TapNoteType_Lift)
 							continue;
 					}
-					m_ReplayExactTapMap[noteRow].erase(
-					  m_ReplayExactTapMap[noteRow].begin() + i);
-					if (m_ReplayExactTapMap[noteRow].empty())
-						m_ReplayExactTapMap.erase(noteRow);
 					return -trr.offset;
 				}
 			}
 		}
 	}
 
+	Locator::getLogger()->warn(
+	  "Replay Data playback error - could not find offset ROW {} COL {} TYPE {}",
+	  noteRow,
+	  col,
+	  pTN->type);
 	return -1.f; // data missing or invalid, give them a miss
 }
 
@@ -934,7 +1040,7 @@ void
 PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 										RadarValues& possibleRV)
 {
-	CHECKPOINT_M("Calculating Radar Values from ReplayData");
+	Locator::getLogger()->info("Calculating Radar Values from ReplayData");
 	// We will do this thoroughly just in case someone decides to use the
 	// other categories we don't currently use
 	auto tapsHit = 0;
@@ -1007,13 +1113,13 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 	rv[RadarCategory_Lifts] = liftsHit;
 	rv[RadarCategory_Fakes] = fakes;
 	rv[RadarCategory_Notes] = totalNotesHit;
-	CHECKPOINT_M("Finished Calculating Radar Values from ReplayData");
+	Locator::getLogger()->info("Finished Calculating Radar Values from ReplayData");
 }
 
 void
-PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
+PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss, float ts)
 {
-	CHECKPOINT_M("Entered PSSFromReplayData function");
+	Locator::getLogger()->info("Entered PSSFromReplayData function");
 	// Radar values.
 	// The possible radar values have already been handled, so we just do
 	// the real values.
@@ -1044,10 +1150,10 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss)
 
 	// Life record
 	pss->m_fLifeRecord.clear();
-	pss->m_fLifeRecord = GenerateLifeRecordForReplay();
+	pss->m_fLifeRecord = GenerateLifeRecordForReplay(ts);
 	pss->m_ComboList.clear();
-	pss->m_ComboList = GenerateComboListForReplay();
-	CHECKPOINT_M("Finished PSSFromReplayData function");
+	pss->m_ComboList = GenerateComboListForReplay(ts);
+	Locator::getLogger()->info("Finished PSSFromReplayData function");
 }
 
 std::pair<float, float>
@@ -1082,7 +1188,7 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 map<float, float>
 PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 {
-	CHECKPOINT_M("Generating LifeRecord from ReplayData");
+	Locator::getLogger()->info("Generating LifeRecord from ReplayData");
 	// Without a Snapshot Map, I assume we didn't calculate
 	// the other necessary stuff and this is going to turn out bad
 	if (m_ReplaySnapshotMap.empty())
@@ -1150,7 +1256,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			}
 			++holdIter;
 		} else {
-			LOG->Trace("Somehow while calculating the life graph, something "
+			Locator::getLogger()->warn("Somehow while calculating the life graph, something "
 					   "went wrong.");
 			++holdIter;
 			++tapIter;
@@ -1161,15 +1267,15 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 		lifeRecord[(now - allOffset) / rateUsed] = lifeLevel;
 	}
 
-	CHECKPOINT_M("Finished Generating LifeRecord from ReplayData");
+	Locator::getLogger()->info("Finished Generating LifeRecord from ReplayData");
 	return lifeRecord;
 }
 
-vector<PlayerStageStats::Combo_t>
+std::vector<PlayerStageStats::Combo_t>
 PlayerAI::GenerateComboListForReplay(float timingScale)
 {
-	CHECKPOINT_M("Generating ComboList from ReplayData");
-	vector<PlayerStageStats::Combo_t> combos;
+	Locator::getLogger()->info("Generating ComboList from ReplayData");
+	std::vector<PlayerStageStats::Combo_t> combos;
 	const PlayerStageStats::Combo_t firstCombo;
 	const auto rateUsed = pScoreData->GetMusicRate();
 	auto allOffset = 0.f;
@@ -1236,6 +1342,6 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	  (rowOfComboStart->first - allOffset) / rateUsed;
 	curCombo->m_fStartSecond = (rowOfComboStart->first - allOffset) / rateUsed;
 
-	CHECKPOINT_M("Finished Generating ComboList from ReplayData");
+	Locator::getLogger()->info("Finished Generating ComboList from ReplayData");
 	return combos;
 }

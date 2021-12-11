@@ -6,7 +6,7 @@
 #include "Etterna/Globals/SoloCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
@@ -15,6 +15,8 @@
 
 #include <map>
 #include <algorithm>
+
+#include "Etterna/Singletons/GameManager.h"
 
 using std::map;
 using std::max;
@@ -48,7 +50,6 @@ PlayerStageStats::InternalInit()
 	m_bJoined = false;
 	m_vpPossibleSteps.clear();
 	m_iStepsPlayed = 0;
-	m_fAliveSeconds = 0;
 	m_bFailed = false;
 	m_iPossibleDancePoints = 0;
 	m_iCurPossibleDancePoints = 0;
@@ -119,7 +120,6 @@ PlayerStageStats::AddStats(const PlayerStageStats& other)
 	for (const auto& s : other.m_vpPossibleSteps)
 		m_vpPossibleSteps.push_back(s);
 	m_iStepsPlayed += other.m_iStepsPlayed;
-	m_fAliveSeconds += other.m_fAliveSeconds;
 	m_bFailed |= static_cast<int>(other.m_bFailed);
 	m_iPossibleDancePoints += other.m_iPossibleDancePoints;
 	m_iActualDancePoints += other.m_iActualDancePoints;
@@ -339,7 +339,7 @@ PlayerStageStats::GetMaxWifeScore() const
 {
 	return MaxWifeScore;
 }
-vector<float>
+std::vector<float>
 PlayerStageStats::CalcSSR(float ssrpercent) const
 {
 	Steps* steps = GAMESTATE->m_pCurSteps;
@@ -351,9 +351,12 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 		  serializednd, musicrate, ssrpercent, SONGMAN->calc.get());
 	}
 
-	// solo calc
-	if (steps->m_StepsType == StepsType_dance_solo)
-		return SoloCalc(serializednd, musicrate, ssrpercent);
+	// N-key calc
+	if (steps->m_StepsType != StepsType_dance_single) {
+		int columnCount =
+		  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+		return SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
+	}
 
 	// anything else
 	return { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
@@ -364,30 +367,40 @@ PlayerStageStats::GetTimingScale() const
 {
 	return m_fTimingScale;
 }
-vector<float>
+std::vector<InputDataEvent>
+PlayerStageStats::GetInputDataVector() const
+{
+	return InputData;
+}
+std::vector<float>
 PlayerStageStats::GetOffsetVector() const
 {
 	return m_vOffsetVector;
 }
-vector<int>
+std::vector<int>
 PlayerStageStats::GetNoteRowVector() const
 {
 	return m_vNoteRowVector;
 }
-vector<int>
+std::vector<int>
 PlayerStageStats::GetTrackVector() const
 {
 	return m_vTrackVector;
 }
-vector<TapNoteType>
+std::vector<TapNoteType>
 PlayerStageStats::GetTapNoteTypeVector() const
 {
 	return m_vTapNoteTypeVector;
 }
-vector<HoldReplayResult>
+std::vector<HoldReplayResult>
 PlayerStageStats::GetHoldReplayDataVector() const
 {
 	return m_vHoldReplayData;
+}
+std::vector<MineReplayResult>
+PlayerStageStats::GetMineReplayDataVector() const
+{
+	return m_vMineReplayData;
 }
 
 float
@@ -471,7 +484,7 @@ PlayerStageStats::ResetScoreForLesson()
 void
 PlayerStageStats::SetLifeRecordAt(float fLife, float fStepsSecond)
 {
-	if (fStepsSecond < 0)
+	if (fStepsSecond < 0.F)
 		return;
 
 	m_fFirstSecond = min(fStepsSecond, m_fFirstSecond);
@@ -867,7 +880,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
   public:
 	DEFINE_METHOD(GetNumControllerSteps, m_iNumControllerSteps)
 	DEFINE_METHOD(GetLifeRemainingSeconds, m_fLifeRemainingSeconds)
-	DEFINE_METHOD(GetSurvivalSeconds, GetSurvivalSeconds())
 	DEFINE_METHOD(GetCurrentCombo, m_iCurCombo)
 	DEFINE_METHOD(GetCurrentMissCombo, m_iCurMissCombo)
 	DEFINE_METHOD(GetCurrentScoreMultiplier, m_iCurScoreMultiplier)
@@ -896,7 +908,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	DEFINE_METHOD(GetPersonalHighScoreIndex, m_iPersonalHighScoreIndex)
 	DEFINE_METHOD(GetMachineHighScoreIndex, m_iMachineHighScoreIndex)
 	DEFINE_METHOD(IsDisqualified, IsDisqualified())
-	DEFINE_METHOD(GetAliveSeconds, m_fAliveSeconds)
 	DEFINE_METHOD(GetTotalTaps, GetTotalTaps())
 	DEFINE_METHOD(GetPercentageOfTaps,
 				  GetPercentageOfTaps(Enum::Check<TapNoteScore>(L, 1)))
@@ -938,7 +949,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	{
 		auto& offs = p->m_vOffsetVector;
 		auto& type = p->m_vTapNoteTypeVector;
-		vector<float> doot;
+		std::vector<float> doot;
 		// type would not be empty in Full Replays (> v0.60)
 		if (!type.empty()) {
 			for (size_t i = 0; i < offs.size(); ++i)
@@ -1018,7 +1029,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			samples = IArg(2);
 			if (samples <= 0) {
-				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer "
+				Locator::getLogger()->trace("PlayerStageStats:GetLifeRecord requires an integer "
 						   "greater than 0.  Defaulting to 100.");
 				samples = 100;
 			}
@@ -1042,7 +1053,7 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
 			samples = IArg(2);
 			if (samples <= 0) {
-				LOG->Trace("PlayerStageStats:GetLifeRecord requires an integer "
+				Locator::getLogger()->trace("PlayerStageStats:GetLifeRecord requires an integer "
 						   "greater than 0.  Defaulting to 100.");
 				samples = 100;
 			}
@@ -1096,7 +1107,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 	{
 		ADD_METHOD(GetNumControllerSteps);
 		ADD_METHOD(GetLifeRemainingSeconds);
-		ADD_METHOD(GetSurvivalSeconds);
 		ADD_METHOD(GetCurrentCombo);
 		ADD_METHOD(GetCurrentMissCombo);
 		ADD_METHOD(GetCurrentScoreMultiplier);
@@ -1133,7 +1143,6 @@ LuaFunction(GetGradeFromPercent, GetGradeFromPercent(FArg(1)))
 		ADD_METHOD(GetComboList);
 		ADD_METHOD(GetLifeRecord);
 		ADD_METHOD(GetWifeRecord);
-		ADD_METHOD(GetAliveSeconds);
 		ADD_METHOD(GetPercentageOfTaps);
 		ADD_METHOD(GetTotalTaps);
 		ADD_METHOD(GetRadarActual);

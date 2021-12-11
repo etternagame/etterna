@@ -34,25 +34,35 @@ set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
 add_subdirectory(discord-rpc)
 
+## plog
+set(PLOG_BUILD_SAMPLES OFF)
+add_subdirectory(plog)
+
+
 ## Header Only
-add_subdirectory(picosha2)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
 ## Remaining Libraries
-add_subdirectory(libtomcrypt)
-add_subdirectory(libtommath)
-add_subdirectory(LuaJIT-2.1.0-beta3)
+add_subdirectory(luajit)
 add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
+add_subdirectory(fmt)
+add_subdirectory(boost/nowide)
+add_subdirectory(filesystem)
 
-## Vorbis depends on Vorbis
+## Vorbis depends on ogg
 add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 target_link_libraries(vorbis ogg)
+
+# Only enable crashpad if the user wants it.
+if(WITH_CRASHPAD)
+    add_subdirectory(crashpad)
+endif()
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
@@ -62,12 +72,11 @@ endif()
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
     discord-rpc muFFT
-    tomcrypt libtommath
     zlib libmad pcre
     ogg vorbis glfw
-    libcurl)
+    libcurl fmt)
 
-list(APPEND LUA_TARGETS luajit lua minilua buildvm)
+list(APPEND LUA_TARGETS luajit libluajit minilua buildvm)
 
 ## Sort all extern libraries to a IDE folder/filter
 set_property(TARGET ${EXT_TARGETS} PROPERTY FOLDER "External Libraries")

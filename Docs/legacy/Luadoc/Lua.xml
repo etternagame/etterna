@@ -1109,6 +1109,7 @@
 		<Class base='WheelBase' name='MusicWheel'>
 			<Function name='ChangeSort'/>
 			<Function name='FilterByStepKeys'/>
+			<Function name='FilterByAndAgainstStepKeys' />
 			<Function name='GetSelectedSection'/>
 			<Function name='IsRouletting'/>
 			<Function name='Move'/>

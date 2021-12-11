@@ -51,7 +51,7 @@ Style::GetTransformedNoteDataForStyle(PlayerNumber pn,
 void
 Style::StyleInputToGameInput(int iCol,
 							 PlayerNumber pn,
-							 vector<GameInput>& ret) const
+							 std::vector<GameInput>& ret) const
 {
 	ASSERT_M(pn < NUM_PLAYERS && iCol < MAX_COLS_PER_PLAYER,
 			 ssprintf("P%i C%i", pn, iCol));
@@ -144,7 +144,7 @@ Style::ColToButtonName(int iCol) const
 	if (pzColumnName != nullptr)
 		return pzColumnName;
 
-	vector<GameInput> GI;
+	std::vector<GameInput> GI;
 	StyleInputToGameInput(iCol, PLAYER_1, GI);
 	return INPUTMAPPER->GetInputScheme()->GetGameButtonName(GI[0].button);
 }
@@ -178,8 +178,6 @@ class LunaStyle : public Luna<Style>
 		lua_pushnumber(L, p->GetWidth(pn));
 		return 1;
 	}
-	DEFINE_METHOD(LockedDifficulty, m_bLockDifficulties)
-
 	static int GetColumnInfo(T* p, lua_State* L)
 	{
 		auto pn = PLAYER_1;
@@ -228,7 +226,6 @@ class LunaStyle : public Luna<Style>
 		ADD_METHOD(ColumnsPerPlayer);
 		ADD_METHOD(NeedsZoomOutWith2Players);
 		ADD_METHOD(GetWidth);
-		ADD_METHOD(LockedDifficulty);
 	}
 };
 

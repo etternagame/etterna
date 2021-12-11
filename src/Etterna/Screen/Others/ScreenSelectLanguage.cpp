@@ -2,7 +2,8 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "ScreenSelectLanguage.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SCREEN_CLASS(ScreenSelectLanguage);
@@ -11,7 +12,7 @@ void
 ScreenSelectLanguage::Init()
 {
 	// fill m_aGameCommands before calling Init()
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 	THEME->GetLanguages(vs);
 	SortStringArray(vs, true);
 
@@ -38,7 +39,7 @@ ScreenSelectLanguage::Init()
 std::string
 ScreenSelectLanguage::GetDefaultChoice()
 {
-	return HOOKS->GetPreferredLanguage().c_str();
+	return Core::Platform::getLanguage();
 }
 
 void

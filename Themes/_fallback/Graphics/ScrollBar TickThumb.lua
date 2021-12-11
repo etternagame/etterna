@@ -1,8 +1,7 @@
 local t = Def.ActorFrame {}
 local screname
 local whee
-t[#t + 1] =
-	Def.ActorFrame {
+t[#t + 1] = Def.ActorFrame {
 	Def.Quad {
 		Name = "DootyMcBooty",
 		BeginCommand = function(self)

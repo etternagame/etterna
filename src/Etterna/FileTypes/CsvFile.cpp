@@ -2,7 +2,7 @@
 #include "CsvFile.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 
 CsvFile::CsvFile() = default;
@@ -11,12 +11,11 @@ bool
 CsvFile::ReadFile(const std::string& sPath)
 {
 	m_sPath = sPath;
-	CHECKPOINT_M(ssprintf("Reading '%s'", m_sPath.c_str()));
+	Locator::getLogger()->debug("Reading '{}'", m_sPath.c_str());
 
 	RageFile f;
 	if (!f.Open(m_sPath)) {
-		LOG->Trace(
-		  "Reading '%s' failed: %s", m_sPath.c_str(), f.GetError().c_str());
+		Locator::getLogger()->warn("Reading '{}' failed: {}", m_sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}
@@ -43,7 +42,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 
 		utf8_remove_bom(line);
 
-		vector<std::string> vs;
+		std::vector<std::string> vs;
 
 		while (!line.empty()) {
 			if (line[0] == '\"') // quoted value
@@ -100,8 +99,7 @@ CsvFile::WriteFile(const std::string& sPath) const
 {
 	RageFile f;
 	if (!f.Open(sPath, RageFile::WRITE)) {
-		LOG->Trace(
-		  "Writing '%s' failed: %s", sPath.c_str(), f.GetError().c_str());
+		Locator::getLogger()->trace("Writing '{}' failed: {}", sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}

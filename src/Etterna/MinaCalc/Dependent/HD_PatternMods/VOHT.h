@@ -5,7 +5,10 @@
 
 static const int max_vtrills_per_interval = 4;
 
-// almost identical to wrr, refer to comments there
+/// Hand-Dependent PatternMod detecting one hand trills.
+/// Specific meant to downscale long continuous one hand trills
+/// to nerf jumpjack vibro.
+/// almost identical to wrr, refer to comments there
 struct VOHTrillMod
 {
 	const CalcPatternMod _pmod = VOHTrill;
@@ -80,9 +83,9 @@ struct VOHTrillMod
 	void setup()
 	{
 		window =
-		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
+		  std::clamp(static_cast<int>(window_param), 1, max_moving_window_size);
 		cc_window =
-		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
+		  std::clamp(static_cast<int>(window_param), 1, max_moving_window_size);
 	}
 
 #pragma endregion
@@ -104,7 +107,7 @@ struct VOHTrillMod
 			hello_my_name_is_goat =
 			  (static_cast<float>(v) / itv_taps) - suppression;
 		}
-		return CalcClamp(hello_my_name_is_goat, 0.1F, 1.F);
+		return std::clamp(hello_my_name_is_goat, 0.1F, 1.F);
 	}
 
 	void complete_seq()
@@ -189,7 +192,7 @@ struct VOHTrillMod
 		badjuju(make_thing(itvhi.get_taps_nowf()));
 
 		pmod = base - badjuju.get_mean_of_window(window);
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = std::clamp(pmod, min_mod, max_mod);
 	}
 
 	auto operator()(const ItvHandInfo& itvhi) -> float

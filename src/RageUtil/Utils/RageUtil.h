@@ -85,7 +85,7 @@ wife2(float maxms, float ts) -> float
 	float avedeviation = 95.F * ts;
 	float y = 1 - static_cast<float>(
 					pow(2, -1 * maxms * maxms / (avedeviation * avedeviation)));
-	y = pow(y, 2);
+	y = static_cast<float>(pow(y, 2));
 	return (2 - -8) * (1 - y) + -8;
 }
 
@@ -186,6 +186,8 @@ void
 CircularShift(std::vector<T>& v, int dist)
 {
 	for (int i = std::abs(dist); i > 0; i--) {
+		if (v.size() == 0)
+			break;
 		if (dist > 0) {
 			T t = v[0];
 			v.erase(v.begin());
@@ -543,6 +545,16 @@ FormatNumberAndSuffix(int i) -> std::string;
 auto
 GetLocalTime() -> struct tm;
 
+// Supress warnings about format strings not being string literals
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
+#elif defined(_MSC_VER)
+// TODO: Suppress warnings for Windows
+#endif
 template<typename... Args>
 auto
 ssprintf(const char* format, Args... args) -> std::string
@@ -551,10 +563,16 @@ ssprintf(const char* format, Args... args) -> std::string
 	size_t size = snprintf(nullptr, 0, format, args...) + 1;
 	std::unique_ptr<char[]> buf(new char[size]);
 	snprintf(buf.get(), size, format, args...);
-
 	// Don't want the '\0' inside
 	return std::string(buf.get(), buf.get() + size - 1);
 }
+#if defined(__clang__)
+#pragma clang pop
+#elif defined(__GNUC__)
+#pragma GCC pop
+#elif defined(_MSC_VER)
+// TODO: Suppress warnings for Windows
+#endif
 
 template<typename... Args>
 auto

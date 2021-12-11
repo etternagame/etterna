@@ -4,7 +4,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/OptionRowHandler.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
@@ -25,7 +25,7 @@ REGISTER_SCREEN_CLASS(ScreenOptionsMaster);
 void
 ScreenOptionsMaster::Init()
 {
-	vector<std::string> asLineNames;
+	std::vector<std::string> asLineNames;
 	split(LINE_NAMES, ",", asLineNames);
 	if (asLineNames.empty()) {
 		LuaHelpers::ReportScriptErrorFmt("\"%s:LineNames\" is empty.",
@@ -48,7 +48,7 @@ ScreenOptionsMaster::Init()
 	// Call this after enabling players, if any.
 	ScreenOptions::Init();
 
-	vector<OptionRowHandler*> OptionRowHandlers;
+	std::vector<OptionRowHandler*> OptionRowHandlers;
 	for (unsigned i = 0; i < asLineNames.size(); ++i) {
 		std::string sLineName = asLineNames[i];
 		std::string sRowCommands = LINE(sLineName);
@@ -81,8 +81,7 @@ ScreenOptionsMaster::ImportOptions(int r, const PlayerNumber& vpns)
 void
 ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 {
-	CHECKPOINT_M(
-	  ssprintf("%i/%i", r, static_cast<int>(m_pRows.size())).c_str());
+	Locator::getLogger()->trace("{}/{}", r, static_cast<int>(m_pRows.size()));
 
 	OptionRow& row = *m_pRows[r];
 	bool bRowHasFocus = false;
@@ -98,7 +97,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 		// Override ScreenOptions's calling of ExportOptions
 		m_iChangeMask = 0;
 
-		CHECKPOINT_M("Starting the export handling.");
+		Locator::getLogger()->trace("Starting the export handling.");
 
 		for (unsigned r = 0; r < m_pRows.size(); r++) // foreach row
 			ExportOptions(r, PLAYER_1);
@@ -127,7 +126,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 
 		if ((m_iChangeMask & OPT_SAVE_PREFERENCES) != 0) {
 			// Save preferences.
-			LOG->Trace("ROW_CONFIG used; saving ...");
+			Locator::getLogger()->trace("ROW_CONFIG used; saving ...");
 			PREFSMAN->SavePrefsToDisk();
 		}
 
@@ -139,7 +138,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 			SOUNDMAN->SetMixVolume();
 		}
 
-		CHECKPOINT_M("Transferring to the next screen now.");
+		Locator::getLogger()->trace("Transferring to the next screen now.");
 		this->HandleScreenMessage(SM_GoToNextScreen);
 		return;
 	}

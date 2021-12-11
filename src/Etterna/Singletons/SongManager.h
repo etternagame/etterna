@@ -38,8 +38,8 @@ class SongManager
 
 	void Invalidate(const Song* pStaleSong);
 	static auto GetPlaylists() -> std::map<std::string, Playlist>&;
-	void SaveEnabledSongsToPref();
-	void LoadEnabledSongsFromPref();
+	static void SaveEnabledSongsToPref();
+	static void LoadEnabledSongsFromPref();
 
 	void InitAll(LoadingWindow* ld); // songs, groups - everything.
 	auto DifferentialReload() -> int;
@@ -108,39 +108,24 @@ class SongManager
 		return m_pPopularSongs;
 	}
 
-	/**
-	 * @brief Retrieve all of the songs in a group that have at least one
-	 * valid step for the current gametype.
-	 * @param sGroupName the name of the group.
-	 * @return the songs within the group that have at least one valid Step. */
-	auto GetSongsOfCurrentGame(const std::string& sGroupName) const
-	  -> const std::vector<Song*>&;
-
 	void GetFavoriteSongs(std::vector<Song*>& songs) const;
-	auto FindSong(std::string sPath) const -> Song*;
-	auto FindSong(std::string sGroup, std::string sSong) const -> Song*;
 	/**
 	 * @brief Retrieve the number of songs in the game.
 	 * @return the number of songs. */
 	auto GetNumSongs() const -> int;
 	auto GetNumAdditionalSongs() const -> int;
 	auto GetNumSongGroups() const -> int;
-	auto GetRandomSong() -> Song*;
 	// sm-ssc addition:
-	auto GetSongGroupByIndex(unsigned index) -> std::string
+	auto GetSongGroupByIndex(const unsigned index) -> std::string
 	{
 		return m_sSongGroupNames[index];
 	}
 
-	void DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
-	auto WasLoadedFromAdditionalSongs(const Song* pSong) const -> bool;
+	static void DeleteSteps(Steps* pSteps); // transfers ownership of pSteps
+	static auto WasLoadedFromAdditionalSongs(const Song* pSong) -> bool;
 
 	auto GetSongFromDir(std::string sDir) const -> Song*;
 
-	void UpdateShuffled(); // re-shuffle songs
-	void UpdatePreferredSort(
-	  const std::string& sPreferredSongs = "PreferredSongs.txt",
-	  const std::string& sPreferredCourses = "PreferredCourses.txt");
 	void SortSongs(); // sort m_pSongs by CompareSongPointersByTitle
 
 	// Lua
@@ -148,15 +133,15 @@ class SongManager
 
 	std::string activeplaylist = "";
 	std::string playlistcourse = "";
-	void ReconcileChartKeysForReloadedSong(
+	static void ReconcileChartKeysForReloadedSong(
 	  const Song* reloadedSong,
-	  std::vector<std::string> oldChartkeys);
+	  const std::vector<std::string>& oldChartkeys);
 	void MakeSongGroupsFromPlaylists(
 	  std::map<std::string, Playlist>& playlists = GetPlaylists());
 	void DeletePlaylist(
-	  const std::string& ck,
+	  const std::string& pl,
 	  std::map<std::string, Playlist>& playlists = GetPlaylists());
-	void MakePlaylistFromFavorites(
+	static void MakePlaylistFromFavorites(
 	  std::set<std::string>& favs,
 	  std::map<std::string, Playlist>& playlists = GetPlaylists());
 
@@ -165,19 +150,18 @@ class SongManager
 											 // rebuilding
 											 // playlist groups
 
-	void FinalizeSong(Song* pNewSong, const std::string& dir);
+	static void FinalizeSong(Song* pNewSong, const std::string& dir);
 
 	// calc test stuff
 	auto SaveCalcTestCreateNode() const -> XNode*;
-	void LoadCalcTestNode() const;
+	static void LoadCalcTestNode();
 	void SaveCalcTestXmlToDir() const;
 	std::map<Skillset, CalcTestList> testChartList;
 	std::unique_ptr<Calc> calc;
 
   protected:
 	void LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
-	void LoadDWISongDir(const std::string& sDir);
-	auto IsSongDir(const std::string& sDir) -> bool;
+	static auto IsSongDir(const std::string& sDir) -> bool;
 	auto AddGroup(const std::string& sDir, const std::string& sGroupDirName)
 	  -> bool;
 
@@ -196,20 +180,12 @@ class SongManager
 	std::set<std::string> m_GroupsToNeverCache;
 	/** @brief The most popular songs ranked by number of plays. */
 	std::vector<Song*> m_pPopularSongs;
-	// vector<Song*>		m_pRecentSongs;	// songs recently played on the
-	// machine
-	std::vector<Song*> m_pShuffledSongs; // used by GetRandomSong
-	struct PreferredSortSection
-	{
-		std::string sName;
-		std::vector<Song*> vpSongs;
-	};
-	std::vector<PreferredSortSection> m_vPreferredSongSort;
+
 	std::vector<std::string> m_sSongGroupNames;
 	std::vector<std::string>
 	  m_sSongGroupBannerPaths; // each song group may have a
 							   // banner associated with it
-	// vector<std::string>		m_sSongGroupBackgroundPaths; // each song group
+	// std::vector<std::string>		m_sSongGroupBackgroundPaths; // each song group
 	// may have a background associated with it (very rarely)
 
 	struct Comp

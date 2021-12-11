@@ -65,17 +65,6 @@ ms.SkillSets = {
 	"Technical"
 }
 
-ms.SkillSetsShort = {
-	"Overall",
-	"Stream",
-	"JS",
-	"HS",
-	"Stam",
-	"Jack Speed",
-	"Chordjack",
-	"Tech"
-}
-
 ms.SkillSetsTranslatedByName = {
 	Overall = THEME:GetString("Skillsets", "Overall"),
 	Stream = THEME:GetString("Skillsets", "Stream"),
@@ -98,16 +87,67 @@ ms.SkillSetsTranslated = {
 	THEME:GetString("Skillsets", "Technical"),
 }
 
+ms.SkillSetsShortTranslated = {
+	THEME:GetString("Skillsets", "OverallShort"),
+	THEME:GetString("Skillsets", "StreamShort"),
+	THEME:GetString("Skillsets", "JumpstreamShort"),
+	THEME:GetString("Skillsets", "HandstreamShort"),
+	THEME:GetString("Skillsets", "StaminaShort"),
+	THEME:GetString("Skillsets", "JackSpeedShort"),
+	THEME:GetString("Skillsets", "ChordjackShort"),
+	THEME:GetString("Skillsets", "TechnicalShort"),
+}
+
+
 ms.JudgeScalers = GAMESTATE:GetTimingScales()
 
+ms.BaseJudgeWindows = {
+	22.5, -- max marvelous
+	45.0, -- max perfect
+	90.0, -- max great
+	135.0, -- max good
+	180.0 -- max bad
+}
+
+-- convert a Judge and Judgment to ms of the upper or lower bound of the window
+function ms.getLowerWindowForJudgment(judgment, scale)
+	local jdgIndex = ms.JudgeCountInverse[judgment]
+	if jdgIndex == 1 then
+		return 0
+	end
+	return ms.BaseJudgeWindows[jdgIndex - 1] * scale
+end
+function ms.getUpperWindowForJudgment(judgment, scale)
+	local jdgIndex = ms.JudgeCountInverse[judgment]
+	if jdgIndex >= 5 then
+		return 180 -- capped at 180
+	end
+	return ms.BaseJudgeWindows[jdgIndex] * scale
+end
+
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
+
+local function dump(o)
+	if type(o) == "table" then
+		local s = "{ "
+		for k, v in pairs(o) do
+			if type(k) ~= "number" then
+				k = '"' .. k .. '"'
+			end
+			s = s .. "[" .. k .. "] = " .. dump(v) .. ","
+		end
+		return s .. "} "
+	else
+		return tostring(o)
+	end
+end
 
 -- **Functions**
 function ms.ok(m)
 	if not m then
 		SCREENMAN:SystemMessage("nahbro")
 	else
-		SCREENMAN:SystemMessage(m)
+		SCREENMAN:SystemMessage(dump(m))
 	end
 end
 
@@ -211,6 +251,7 @@ function wifeMean(t)
 	end
 	local o = 0
 	for i = 1, c do
+		-- ignore EO misses and replay mines
 		if t[i] ~= 1000 and t[i] ~= -1100 then
 			o = o + t[i]
 		else
@@ -228,6 +269,7 @@ function wifeAbsMean(t)
 	end
 	local o = 0
 	for i = 1, c do
+		-- ignore EO misses and replay mines
 		if t[i] ~= 1000 and t[i] ~= -1100 then
 			o = o + math.abs(t[i])
 		else
@@ -242,6 +284,7 @@ function wifeSd(t)
 	local u2 = 0
 	local m = 0
 	for i = 1, #t do
+		-- ignore EO misses and replay mines
 		if t[i] ~= 1000 and t[i] ~= -1100 then
 			u2 = u2 + (t[i] - u) ^ 2
 		else
@@ -302,17 +345,21 @@ function getRateString(x)
 	return string.format("%.2f", x):gsub("%.?0+$", "") .. "x"
 end
 
-function getCurRateDisplayString()
-	return getRateDisplayString(getCurRateString())
+function getCurRateDisplayString(ignoremusicstr)
+	return getRateDisplayString(getCurRateString(),ignoremusicstr)
 end
 
-function getRateDisplayString(x)
+function getRateDisplayString(x,ignoremusicstr)
 	if x == "1x" then
 		x = "1.0x"
 	elseif x == "2x" then
 		x = "2.0x"
 	end
-	return x .. musicstr
+	if ignoremusicstr then
+		return x
+	else
+		return x .. musicstr
+	end
 end
 
 function getCurRateValue()
@@ -320,7 +367,7 @@ function getCurRateValue()
 end
 
 function getCurKey()
-	return GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey()
+	return GAMESTATE:GetCurrentSteps():GetChartKey()
 end
 
 -- returns a string of keys for a table
@@ -347,32 +394,36 @@ function formLink(x, y)
 end
 
 function GetPlayableTime()
-	local step = GAMESTATE:GetCurrentSteps(PLAYER_1)
+	local step = GAMESTATE:GetCurrentSteps()
 	return step:GetLengthSeconds()
 end
 
 function ChangeMusicRate(rate, params)
-	if params.Name == "PrevScore" and rate < 2.95 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.1)
-		MESSAGEMAN:Broadcast("CurrentRateChanged")
-	elseif params.Name == "NextScore" and rate > 0.55 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.1)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.1)
-		MESSAGEMAN:Broadcast("CurrentRateChanged")
+	local min = 0.05 -- going below this is not a good idea (0 crashes)
+	local max = 3 -- going over this tends to crash or whatever
+	local old = getCurRateValue()
+	local new = getCurRateValue()
+	local largeincrement = 0.1
+	local smallincrement = 0.05
+
+	-- larger increment
+	if params.Name == "PrevScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old + largeincrement, min, max)
+	elseif params.Name == "NextScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old - largeincrement, min, max)
 	end
 
-	if params.Name == "PrevRate" and rate < 3 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.05)
-		MESSAGEMAN:Broadcast("CurrentRateChanged")
-	elseif params.Name == "NextRate" and rate > 0.5 and (getTabIndex() == 0 or getTabIndex() == 1) then
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.05)
-		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)
+	-- smaller increment
+	if params.Name == "PrevRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old + smallincrement, min, max)
+	elseif params.Name == "NextRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
+		new = clamp(old - smallincrement, min, max)
+	end
+
+	if new ~= old then
+		GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(new)
+		GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(new)
+		GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(new)
 		MESSAGEMAN:Broadcast("CurrentRateChanged")
 	end
 end

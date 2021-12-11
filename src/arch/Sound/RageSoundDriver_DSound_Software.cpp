@@ -2,7 +2,7 @@
 #include "RageSoundDriver_DSound_Software.h"
 #include "DSoundHelpers.h"
 
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "archutils/Win32/ErrorStrings.h"
@@ -30,9 +30,9 @@ RageSoundDriver_DSound_Software::MixerThread()
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 		if (!SetThreadPriority(GetCurrentThread(),
 							   THREAD_PRIORITY_ABOVE_NORMAL))
-			LOG->Warn(werr_ssprintf(GetLastError(),
-									"Failed to set sound thread priority")
-						.c_str());
+			Locator::getLogger()->warn("{}", werr_ssprintf(
+			  GetLastError(),
+									"Failed to set sound thread priority"));
 
 	/* Fill a buffer before we start playing, so we don't play whatever junk is
 	 * in the buffer. */
@@ -120,7 +120,7 @@ RageSoundDriver_DSound_Software::Init()
 	if (sError != "")
 		return sError;
 
-	LOG->Info("Software mixing at %i hz", m_iSampleRate);
+	Locator::getLogger()->info("Software mixing at {} hz", m_iSampleRate);
 
 	StartDecodeThread();
 
@@ -135,13 +135,9 @@ RageSoundDriver_DSound_Software::~RageSoundDriver_DSound_Software()
 	/* Signal the mixing thread to quit. */
 	if (m_MixingThread.IsCreated()) {
 		m_bShutdownMixerThread = true;
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Shutting down mixer thread ...");
-		LOG->Flush();
+		Locator::getLogger()->info("Shutting down mixer thread ...");
 		m_MixingThread.Wait();
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Mixer thread shut down.");
-		LOG->Flush();
+		Locator::getLogger()->info("Mixer thread shut down.");
 	}
 
 	delete m_pPCM;
@@ -151,9 +147,8 @@ void
 RageSoundDriver_DSound_Software::SetupDecodingThread()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL))
-		LOG->Warn(werr_ssprintf(GetLastError(),
-								"Failed to set decoding thread priority")
-					.c_str());
+		Locator::getLogger()->warn(werr_ssprintf(GetLastError(),
+								"Failed to set decoding thread priority"));
 }
 
 float

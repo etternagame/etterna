@@ -7,13 +7,16 @@ set_directory_properties(PROPERTIES VS_STARTUP_PROJECT Etterna)
 set_target_properties(Etterna PROPERTIES RUNTIME_OUTPUT_DIRECTORY "$<1:${PROJECT_SOURCE_DIR}/Program>")
 
 # Universal Build Options
-set_target_properties(Etterna PROPERTIES 
+set_target_properties(Etterna PROPERTIES
 	COMPILE_FLAGS "/W3 /MP8 /INCREMENTAL /D_HAS_STD_BYTE=0"
 	LINK_FLAGS "/SUBSYSTEM:WINDOWS /SAFESEH:NO /INCREMENTAL"
 	COMPILE_DEFINITIONS "GLEW_STATIC")
 
 # By default MSVC has a 2^16 limit on the number of sections in an object file, and this needs more than that.
 set_source_files_properties(src/Etterna/Singletons/NetworkSyncManager.cpp PROPERTIES COMPILE_FLAGS /bigobj)
+
+# Ignore the safer function variants provided by VC++. They are not portable.
+target_compile_definitions(Etterna PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # Linking - Windows Only
 target_link_libraries(Etterna PUBLIC ffmpeg)

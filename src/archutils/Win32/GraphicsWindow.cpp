@@ -1,14 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "GraphicsWindow.h"
-#include "Etterna/Globals/ProductInfo.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/DisplaySpec.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Etterna/Globals/GameLoop.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "arch/InputHandler/InputHandler_DirectInput.h"
 #include "archutils/Win32/AppInstance.h"
-#include "archutils/Win32/Crash.h"
 #include "archutils/Win32/ErrorStrings.h"
 #include "archutils/Win32/WindowIcon.h"
 #include "archutils/Win32/GetFileInformation.h"
@@ -22,7 +21,7 @@
 #include <set>
 #include <dbt.h>
 
-static const std::string g_sClassName = PRODUCT_ID;
+static const std::string g_sClassName = Core::AppInfo::APP_TITLE;
 
 static HWND g_hWndMain;
 static HDC g_HDC;
@@ -61,9 +60,6 @@ GetNewWindow()
 static LRESULT CALLBACK
 GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	CHECKPOINT_M(
-	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
-
 	// Suppress autorun.
 	if (msg == g_iQueryCancelAutoPlayMessage)
 		return true;
@@ -74,8 +70,8 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			const bool bMinimized = (HIWORD(wParam) != 0);
 			const bool bHadFocus = g_bHasFocus;
 			g_bHasFocus = !bInactive && !bMinimized;
-			if (PREFSMAN != nullptr && PREFSMAN->m_verbose_log > 1)
-				LOG->Trace("WM_ACTIVATE (%i, %i): %s",
+			if (PREFSMAN != nullptr)
+				Locator::getLogger()->debug("WM_ACTIVATE ({}, {}): {}",
 						   bInactive,
 						   bMinimized,
 						   g_bHasFocus ? "has focus" : "doesn't have focus");
@@ -90,9 +86,8 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					 ++it)
 					sStr += (!sStr.empty() ? ", " : "") + *it;
 
-				if (PREFSMAN != nullptr && PREFSMAN->m_verbose_log > 1)
-					LOG->MapLog(
-					  "LOST_FOCUS", "Lost focus to: %s", sStr.c_str());
+				if (PREFSMAN != nullptr)
+                    Locator::getLogger()->debug("Lost focus to: {}", sStr);
 			}
 
 			if (!g_bD3D && !g_CurrentParams.windowed &&
@@ -153,8 +148,8 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 
 		case WM_CLOSE:
-			LOG->Trace("WM_CLOSE: shutting down");
-			ArchHooks::SetUserQuit();
+			Locator::getLogger()->info("WM_CLOSE: shutting down");
+			GameLoop::setUserQuit();
 			return 0;
 
 		case WM_WINDOWPOSCHANGED: {
@@ -204,9 +199,6 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 
-	CHECKPOINT_M(
-	  ssprintf("%p, %u, %08x, %08x", hWnd, msg, wParam, lParam).c_str());
-
 	if (m_bWideWindowClass)
 		return DefWindowProcW(hWnd, msg, wParam, lParam);
 	else
@@ -221,9 +213,7 @@ AdjustVideoModeParams(VideoModeParams& p)
 	dm.dmSize = sizeof(dm);
 	if (!EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &dm)) {
 		p.rate = 60;
-		LOG->Warn(
-		  "%s",
-		  werr_ssprintf(GetLastError(), "EnumDisplaySettings failed").c_str());
+		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "EnumDisplaySettings failed"));
 		return;
 	}
 
@@ -239,11 +229,8 @@ AdjustVideoModeParams(VideoModeParams& p)
 	if (!(dm.dmFields & DM_DISPLAYFREQUENCY) || dm.dmDisplayFrequency == 0 ||
 		dm.dmDisplayFrequency == 1) {
 		p.rate = 60;
-		LOG->Warn(
-		  "EnumDisplaySettings doesn't know what the refresh rate is. %d %d %d",
-		  dm.dmPelsWidth,
-		  dm.dmPelsHeight,
-		  dm.dmBitsPerPel);
+		Locator::getLogger()->warn("EnumDisplaySettings doesn't know what the refresh rate is. {} {} {}",
+		  dm.dmPelsWidth, dm.dmPelsHeight, dm.dmBitsPerPel);
 	} else {
 		p.rate = dm.dmDisplayFrequency;
 	}
@@ -344,7 +331,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 		}
 
 		g_hWndMain = hWnd;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 		g_HDC = GetDC(g_hWndMain);
 	}
 
@@ -412,7 +399,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 					  iWidth,
 					  iHeight,
 					  SWP_FRAMECHANGED | SWP_SHOWWINDOW))
-		LOG->Warn("%s", werr_ssprintf(GetLastError(), "SetWindowPos").c_str());
+		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "SetWindowPos"));
 
 	SetForegroundWindow(g_hWndMain);
 
@@ -435,33 +422,23 @@ GraphicsWindow::DestroyGraphicsWindow()
 		ReleaseDC(g_hWndMain, g_HDC);
 		g_HDC = nullptr;
 	}
-
-	CHECKPOINT;
-
 	if (g_hWndMain != nullptr) {
 		DestroyWindow(g_hWndMain);
 		g_hWndMain = nullptr;
-		CrashHandler::SetForegroundWindow(g_hWndMain);
+//		CrashHandler::SetForegroundWindow(g_hWndMain);
 	}
-
-	CHECKPOINT;
 
 	if (g_hIcon != nullptr) {
 		DestroyIcon(g_hIcon);
 		g_hIcon = nullptr;
 	}
 
-	CHECKPOINT;
-
 	MSG msg;
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
-		CHECKPOINT;
 		GetMessage(&msg, nullptr, 0, 0);
-		CHECKPOINT;
 		DispatchMessage(&msg);
 	}
 
-	CHECKPOINT;
 }
 
 void
@@ -550,7 +527,7 @@ GraphicsWindow::Update()
 		DispatchMessage(&msg);
 	}
 
-	HOOKS->SetHasFocus(g_bHasFocus);
+	GameLoop::setGameFocused(g_bHasFocus);
 
 	if (g_bResolutionChanged && DISPLAY != nullptr) {
 		// LOG->Warn( "Changing resolution" );
@@ -616,10 +593,10 @@ GraphicsWindow::GetDisplaySpecs(DisplaySpecs& out)
 		};
 		out.insert(DisplaySpec("", "Fullscreen", modes, m, bounds));
 	} else if (!modes.empty()) {
-		LOG->Warn("Could not retrieve valid current display mode");
+		Locator::getLogger()->warn("Could not retrieve valid current display mode");
 		out.insert(DisplaySpec("", "Fullscreen", *modes.begin()));
 	} else {
-		LOG->Warn("Could not retrieve *any* DisplaySpecs!");
+		Locator::getLogger()->warn("Could not retrieve *any* DisplaySpecs!");
 	}
 }
 

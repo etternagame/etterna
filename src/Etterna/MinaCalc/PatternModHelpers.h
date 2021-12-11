@@ -8,9 +8,9 @@
 
 /* generic pattern mod functions and defs to help either agnostic or dependent
  * mods do their stuff */
-static const float neutral = 1.F;
+constexpr float neutral = 1.F;
 
-// Relies on endiannes (significantly inaccurate)
+/// Relies on endiannes (significantly inaccurate)
 inline auto
 fastpow(double a, double b) -> float
 {
@@ -22,7 +22,7 @@ fastpow(double a, double b) -> float
 	return static_cast<float>(a);
 }
 
-// not super accurate, good enough for our purposes
+/// not super accurate, good enough for our purposes
 inline auto
 fastsqrt(float _in) -> float
 {
@@ -62,13 +62,6 @@ cv(const std::vector<float>& input) -> float
 	return fastsqrt(sd / static_cast<float>(input.size())) / average;
 }
 
-template<typename T>
-auto
-CalcClamp(T x, T l, T h) -> T
-{
-	return x > h ? h : (x < l ? l : x);
-}
-
 inline auto
 div_high_by_low(float a, float b) -> float
 {
@@ -101,4 +94,10 @@ weighted_average(const float& a, const float& b, const float& x, const float& y)
   -> float
 {
 	return (x * a + ((y - x) * b)) / y;
+}
+
+inline auto
+lerp(float t, float a, float b) -> float
+{
+	return (1.F - t)*a + t*b;
 }

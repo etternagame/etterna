@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Sound/RageSoundMixBuffer.h"
@@ -234,7 +234,7 @@ RageSoundDriver::DecodeThread()
 
 			Sound* pSound = &m_Sound;
 
-			CHECKPOINT_M("Processing the sound while buffers are available.");
+			//Locator::getLogger()->trace("Processing the sound while buffers are available.");
 			while (pSound->m_Buffer.num_writable()) {
 				int iWrote = GetDataForSound(*pSound);
 				if (iWrote == RageSoundReader::WOULD_BLOCK)
@@ -326,13 +326,7 @@ RageSoundDriver::Update()
 		/* Lockless: only Mix() can write to underruns. */
 		int current_underruns = underruns;
 		if (current_underruns > logged_underruns) {
-			if (PREFSMAN->m_verbose_log > 1) {
-				LOG->MapLog("GenericMixingUnderruns",
-							"Mixing underruns: %i",
-							current_underruns - logged_underruns);
-				LOG->Trace("Mixing underruns: %i",
-						   current_underruns - logged_underruns);
-			}
+			Locator::getLogger()->trace("Mixing underruns: {}", current_underruns - logged_underruns);
 			logged_underruns = current_underruns;
 
 			/* Don't log again for at least a second, or we'll burst output
@@ -408,16 +402,14 @@ RageSoundDriver::StopMixing(RageSoundBase* pSound)
 			break;
 	if (i == ARRAYLEN(m_Sounds)) {
 		m_Mutex.Unlock();
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("not stopping a sound because it's not playing");
+		Locator::getLogger()->trace("not stopping a sound because it's not playing");
 		return;
 	}
 
 	/* If we're already in STOPPED, there's nothing to do. */
 	if (m_Sounds[i].m_State == Sound::STOPPED) {
 		m_Mutex.Unlock();
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("not stopping a sound because it's already in STOPPED");
+		Locator::getLogger()->trace("not stopping a sound because it's already in STOPPED");
 		return;
 	}
 
@@ -456,7 +448,7 @@ RageSoundDriver::PauseMixing(RageSoundBase* pSound, bool bStop)
 	 * so externally it looks and acts like PLAYING.) */
 	if (i == ARRAYLEN(m_Sounds) || (m_Sounds[i].m_State != Sound::PLAYING &&
 									m_Sounds[i].m_State != Sound::STOPPING)) {
-		LOG->Trace("not pausing a sound because it's not playing");
+		Locator::getLogger()->trace("not pausing a sound because it's not playing");
 		return false;
 	}
 
@@ -497,19 +489,14 @@ RageSoundDriver::~RageSoundDriver()
 	/* Signal the decoding thread to quit. */
 	if (m_DecodeThread.IsCreated()) {
 		m_bShutdownDecodeThread = true;
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Shutting down decode thread ...");
-		LOG->Flush();
+		Locator::getLogger()->info("Shutting down decode thread ...");
 		m_DecodeThread.Wait();
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Decode thread shut down.");
-		LOG->Flush();
+		Locator::getLogger()->info("Decode thread shut down.");
 
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Info("Mixing %f ahead in %i Mix() calls",
-					  static_cast<float>(g_iTotalAhead) /
-						std::max(g_iTotalAheadCount, 1),
-					  g_iTotalAheadCount);
+		Locator::getLogger()->debug("Mixing {} ahead in {} Mix() calls",
+					static_cast<float>(g_iTotalAhead) /
+					std::max(g_iTotalAheadCount, 1),
+					g_iTotalAheadCount);
 	}
 }
 
@@ -524,8 +511,8 @@ RageSoundDriver::ClampHardwareFrame(int64_t iHardwareFrame) const
 		 * due to output spam. */
 		static RageTimer last(RageZeroTimer);
 		if (last.IsZero() || last.Ago() > 1.0f) {
-			LOG->Trace(
-			  "RageSoundDriver: driver returned a lesser position (%d < %d)",
+			Locator::getLogger()->trace(
+			  "RageSoundDriver: driver returned a lesser position ({} < {})",
 			  static_cast<int>(iHardwareFrame),
 			  static_cast<int>(m_iMaxHardwareFrame));
 			last.Touch();
@@ -564,7 +551,7 @@ RageSoundDriver::GetHardwareFrame(RageTimer* pTimestamp) const
 		static bool bLogged = false;
 		if (!bLogged) {
 			bLogged = true;
-			LOG->Warn("RageSoundDriver::GetHardwareFrame: too many tries");
+			Locator::getLogger()->warn("RageSoundDriver::GetHardwareFrame: too many tries");
 		}
 	}
 

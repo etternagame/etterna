@@ -17,7 +17,7 @@ FindLongestOverlappingHoldNoteForAnyTrack(const NoteData& in, int iRow) -> int;
 void
 LightTransformHelper(const NoteData& in,
 					 NoteData& out,
-					 const vector<int>& aiTracks);
+					 const std::vector<int>& aiTracks);
 
 /**
  * @brief Utility functions that deal with NoteData.

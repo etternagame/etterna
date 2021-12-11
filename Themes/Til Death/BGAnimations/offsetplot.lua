@@ -6,12 +6,13 @@ local judge = GetTimingDifficulty()
 local tso = tst[judge]
 
 local plotWidth, plotHeight = 400, 120
-local plotX, plotY = SCREEN_WIDTH - 9 - plotWidth / 2, SCREEN_HEIGHT - 56 - plotHeight / 2
+local plotX, plotY = SCREEN_WIDTH - 5 - plotWidth / 2, SCREEN_HEIGHT - 59.5 - plotHeight / 2
 local dotDims, plotMargin = 2, 4
 local maxOffset = math.max(180, 180 * tso)
 local baralpha = 0.2
 local bgalpha = 0.8
 local textzoom = 0.35
+local forcedWindow = false
 
 local translated_info = {
 	Left = THEME:GetString("OffsetPlot", "ExplainLeft"),
@@ -19,7 +20,15 @@ local translated_info = {
 	Right = THEME:GetString("OffsetPlot", "ExplainRight"),
 	Down = THEME:GetString("OffsetPlot", "ExplainDown"),
 	Early = THEME:GetString("OffsetPlot", "Early"),
-	Late = THEME:GetString("OffsetPlot", "Late")
+	Late = THEME:GetString("OffsetPlot", "Late"),
+	SD = THEME:GetString("ScreenEvaluation", "StandardDev"),
+	Mean = THEME:GetString("ScreenEvaluation", "Mean"),
+	TapNoteScore_W1 = getJudgeStrings("TapNoteScore_W1"),
+	TapNoteScore_W2 = getJudgeStrings("TapNoteScore_W2"),
+	TapNoteScore_W3 = getJudgeStrings("TapNoteScore_W3"),
+	TapNoteScore_W4 = getJudgeStrings("TapNoteScore_W4"),
+	TapNoteScore_W5 = getJudgeStrings("TapNoteScore_W5"),
+	TapNoteScore_Miss = getJudgeStrings("TapNoteScore_Miss"),
 }
 
 -- initialize tables we need for replay data here, we don't know where we'll be loading from yet
@@ -29,12 +38,15 @@ local ctt = {}
 local ntt = {}
 local wuab = {}
 local finalSecond = GAMESTATE:GetCurrentSteps():GetLastSecond()
-local td = GAMESTATE:GetCurrentSteps(PLAYER_1):GetTimingData()
+local td = GAMESTATE:GetCurrentSteps():GetTimingData()
 local oddColumns = false
 local middleColumn = 1.5 -- middle column for 4k but accounting for trackvector indexing at 0
 
 local handspecific = false
 local left = false
+local down = false
+local up = false
+local right = false
 local middle = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
@@ -90,12 +102,12 @@ end
 
 local o =
 	Def.ActorFrame {
+	Name = "OffsetPlot",
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
-
 		-- being explicit about the logic since atm these are the only 2 cases we handle
 		local name = SCREENMAN:GetTopScreen():GetName()
-		if name == "ScreenEvaluationNormal" or name == "ScreenNetEvaluation" then -- default case, all data is in pss and no disk load is required
+		if name == "ScreenNetEvaluation" then -- moving away from grabbing anything in pss, dont want to mess with net stuff atm
 			if not forcedWindow then
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
 				clampJudge()
@@ -105,29 +117,37 @@ local o =
 			if allowHovering then
 				self:SetUpdateFunction(HighlightUpdaterThing)
 			end
-			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(PLAYER_1)
+			local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 			dvt = pss:GetOffsetVector()
 			nrt = pss:GetNoteRowVector()
 			ctt = pss:GetTrackVector() -- column information for each offset
 			ntt = pss:GetTapNoteTypeVector() -- notetype information (we use this to handle mine hits differently- currently that means not displaying them)
-		elseif name == "ScreenScoreTabOffsetPlot" then -- loaded from scoretab not eval so we need to read from disk and adjust plot display
-			plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
-			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
-			textzoom = 0.5
-			bgalpha = 1
-
-			-- the internals here are really inefficient this should be handled better (internally) -mina
-			local score = getScoreForPlot()
-			dvt = score:GetOffsetVector()
-			nrt = score:GetNoteRowVector()
-			ctt = score:GetTrackVector()
-			ntt = score:GetTapNoteTypeVector()
+		else -- should be default behavior
+			if name == "ScreenScoreTabOffsetPlot" then
+				local score = getScoreForPlot()
+				plotWidth, plotHeight = SCREEN_WIDTH, SCREEN_WIDTH * 0.3
+				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+				textzoom = 0.5
+				bgalpha = 1
+				if score ~= nil then
+					if score:HasReplayData() then
+						dvt = score:GetOffsetVector()
+						nrt = score:GetNoteRowVector()
+						ctt = score:GetTrackVector()
+						ntt = score:GetTapNoteTypeVector()
+					end
+				end
+			else
+				local allowHovering = not SCREENMAN:GetTopScreen():ScoreUsedInvalidModifier()
+				if allowHovering then
+					self:SetUpdateFunction(HighlightUpdaterThing)
+				end
+			end
 		end
 
 		-- missing noterows. this happens with many online replays.
 		-- we can approximate, but i dont want to do that right now.
 		if nrt == nil then
-			ms.ok("While constructing the offset plot, an error occurred. Press ESC to continue.")
 			return
 		end
 
@@ -140,6 +160,24 @@ local o =
 		end
 
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
+	end,
+	SetFromScoreCommand = function(self, params)
+		if params.score then
+			local score = params.score
+
+			if score:HasReplayData() then
+				dvt = score:GetOffsetVector()
+				nrt = score:GetNoteRowVector()
+				ctt = score:GetTrackVector()
+				ntt = score:GetTapNoteTypeVector()
+			end
+
+			for i = 1, #nrt do
+				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+			end
+
+			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+		end
 	end,
 	CodeMessageCommand = function(self, params)
 		if params.Name == "PrevJudge" and judge > 1 then
@@ -155,14 +193,17 @@ local o =
 			if not handspecific then -- moving from none to left
 				handspecific = true
 				left = true
-			elseif handspecific and left then -- moving from left to middle
-				if oddColumns then
-					middle = true
-				end
+			elseif handspecific and left then
+				down = true
 				left = false
-			elseif handspecific and middle then -- moving from middle to right
-				middle = false
-			elseif handspecific and not left then -- moving from right to none
+			elseif handspecific and down then
+				down = false
+				up = true
+			elseif handspecific and up then
+				up = false
+				right = true
+			elseif handspecific and right then -- moving from right to none
+				right = false
 				handspecific = false
 			end
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
@@ -222,6 +263,9 @@ o[#o + 1] =
 			local row = convertXToRow(xpos)
 			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
 			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
+			local mean = SCREENMAN:GetTopScreen():GetReplaySnapshotMeanForNoterow(row)
+			local sd = SCREENMAN:GetTopScreen():GetReplaySnapshotSDForNoterow(row)
+			local timebro = td:GetElapsedTimeFromNoteRow(row) / getCurRateValue()
 			local marvCount = judgments[10]
 			local perfCount = judgments[9]
 			local greatCount = judgments[8]
@@ -231,7 +275,18 @@ o[#o + 1] =
 
 			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
 			-- The odd formatting here is in case we want to add translation support.
-			txt:settextf("%f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d", wifescore, "Marvelous", marvCount, "Perfect", perfCount, "Great", greatCount, "Good", goodCount, "Bad", badCount, "Miss", missCount)
+			txt:settextf("%f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2fms\n%s: %0.2fms\n%s: %0.2fs",
+				wifescore,
+				translated_info["TapNoteScore_W1"], marvCount,
+				translated_info["TapNoteScore_W2"], perfCount,
+				translated_info["TapNoteScore_W3"], greatCount,
+				translated_info["TapNoteScore_W4"], goodCount,
+				translated_info["TapNoteScore_W5"], badCount,
+				translated_info["TapNoteScore_Miss"], missCount,
+				translated_info["SD"], sd,
+				translated_info["Mean"], mean,
+				"Time", timebro
+			)
 		else
 			bar:visible(false)
 			txt:visible(false)
@@ -254,6 +309,8 @@ for i = 1, #fantabars do
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			self:finishtweening()
+			self:smooth(0.1)
 			self:y(fitY(fit))
 		end
 	}
@@ -262,6 +319,8 @@ for i = 1, #fantabars do
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			self:finishtweening()
+			self:smooth(0.1)
 			self:y(fitY(-fit))
 		end
 	}
@@ -294,7 +353,7 @@ o[#o + 1] =
 			local x = fitX(wuab[i])
 			local y = fitY(dvt[i])
 			local fit = math.max(183, 183 * tso)
-			
+
 			-- get the color for the tap
 			local cullur = offsetToJudgeColor(dvt[i], tst[judge])
 			cullur[4] = 1
@@ -316,19 +375,25 @@ o[#o + 1] =
 			-- remember that time i removed redundancy in this code 2 days ago and then did this -mina
 			if ntt[i] ~= "TapNoteType_Mine" then
 				if handspecific and left then
-					if ctt[i] < middleColumn then
+					if ctt[i] == 0 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight left
 					end
-				elseif handspecific and middle then
-					if ctt[i] == middleColumn then
+				elseif handspecific and down then
+					if ctt[i] == 1 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
-						setOffsetVerts(verts, x, y, cullurFaded) -- highlight middle
+						setOffsetVerts(verts, x, y, cullurFaded)
 					end
-				elseif handspecific then
-					if ctt[i] > middleColumn then
+				elseif handspecific and up then
+					if ctt[i] == 2 then
+						setOffsetVerts(verts, x, y, cullur)
+					else
+						setOffsetVerts(verts, x, y, cullurFaded)
+					end
+				elseif handspecific and right then
+					if ctt[i] == 3 then
 						setOffsetVerts(verts, x, y, cullur)
 					else
 						setOffsetVerts(verts, x, y, cullurFaded) -- highlight right
@@ -352,11 +417,13 @@ o[#o + 1] =
 			if #ntt > 0 then
 				if handspecific then
 					if left then
-						self:settext(translated_info["Left"])
-					elseif middle then
-						self:settext(translated_info["Middle"])
-					else
-						self:settext(translated_info["Right"])
+						self:settext("left")
+					elseif down then
+						self:settext("down")
+					elseif up then
+						self:settext("up")
+					elseif right then
+						self:settext("right")
 					end
 				else
 					self:settext(translated_info["Down"])
@@ -393,7 +460,7 @@ o[#o + 1] = Def.Quad {
 }
 
 -- Text for judgments at mouse position
-o[#o + 1] = 
+o[#o + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "PosText",
@@ -404,7 +471,7 @@ o[#o + 1] =
 
 -- Text for current judge window
 -- Only for SelectMusic (not Eval)
-o[#o + 1] = 
+o[#o + 1] =
 	LoadFont("Common Normal") ..
 	{
 		Name = "JudgeText",

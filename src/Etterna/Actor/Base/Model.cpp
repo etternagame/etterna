@@ -666,7 +666,7 @@ Model::AdvanceFrame(float fDeltaTime)
 void
 Model::SetBones(const msAnimation* pAnimation,
 				float fFrame,
-				vector<myBone_t>& vpBones)
+				std::vector<myBone_t>& vpBones)
 {
 	for (size_t i = 0; i < pAnimation->Bones.size(); ++i) {
 		const auto* pBone = &pAnimation->Bones[i];

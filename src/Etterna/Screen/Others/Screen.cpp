@@ -3,12 +3,12 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/InputMapper.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ThemeManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
 
 #include <tuple>
 #include <algorithm>
@@ -35,7 +35,19 @@ Screen::InitScreen(Screen* pScreen)
 	pScreen->Init();
 }
 
-Screen::~Screen() = default;
+Screen::~Screen()
+{
+	// unregister the periodic functions
+	auto* L = LUA->Get();
+	for (auto& dfunc : delayedPeriodicFunctions) {
+		auto id = std::get<3>(dfunc);
+		luaL_unref(L, LUA_REGISTRYINDEX, id);
+	}
+	delayedFunctions.clear();
+	delayedPeriodicFunctions.clear();
+	delayedPeriodicFunctionIdsToDelete.clear();
+	LUA->Release(L);
+};
 
 bool
 Screen::SortMessagesByDelayRemaining(const Screen::QueuedScreenMessage& m1,
@@ -51,7 +63,8 @@ Screen::Init()
 	HANDLE_BACK_BUTTON.Load(m_sName, "HandleBackButton");
 	REPEAT_RATE.Load(m_sName, "RepeatRate");
 	REPEAT_DELAY.Load(m_sName, "RepeatDelay");
-	HOOKS->sShowCursor(true);
+
+	Core::Platform::setCursorVisible(true);
 
 	delayedFunctions.clear();
 	delayedPeriodicFunctionIdsToDelete.clear();
@@ -69,11 +82,11 @@ Screen::Init()
 
 	PlayCommandNoRecurse(Message("Init"));
 
-	vector<std::string> asList;
+	std::vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (auto& i : asList) {
-		LOG->Trace(
-		  "Screen \"%s\" preparing \"%s\"", m_sName.c_str(), i.c_str());
+		Locator::getLogger()->info(
+		  "Screen \"{}\" preparing \"{}\"", m_sName.c_str(), i.c_str());
 		SCREENMAN->PrepareScreen(i);
 	}
 
@@ -220,10 +233,9 @@ Screen::Update(float fDeltaTime)
 		unsigned iSize = m_QueuedMessages.size();
 
 		// send this sucker!
-		CHECKPOINT_M(
-		  ssprintf("ScreenMessage(%s)",
-				   ScreenMessageHelpers::ScreenMessageToString(SM).c_str())
-			.c_str());
+		Locator::getLogger()->trace(
+		  "ScreenMessage({})",
+		  ScreenMessageHelpers::ScreenMessageToString(SM).c_str());
 		this->HandleScreenMessage(SM);
 
 		// If the size changed, start over.
@@ -421,10 +433,14 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	lua_setfield(L, -2, "button");
 	Enum::Push(L, input.type);
 	lua_setfield(L, -2, "type");
-	char s[5];
+	char s[MB_LEN_MAX];
 	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
 	LuaHelpers::Push(L, std::string(1, s[0]));
 	lua_setfield(L, -2, "char");
+	char snm[MB_LEN_MAX];
+	wctomb(snm, INPUTMAN->DeviceInputToChar(input.DeviceI, false));
+	LuaHelpers::Push(L, std::string(1, snm[0]));
+	lua_setfield(L, -2, "charNoModifiers");
 	LuaHelpers::Push(
 	  L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
 	lua_setfield(L, -2, "GameButton");
@@ -562,8 +578,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			f.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
-				std::string Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
+				std::string Error = "Error running Screen Timeout Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 1 args, 0 results
 			}
@@ -580,8 +595,7 @@ class LunaScreen : public Luna<Screen>
 			Lua* L = LUA->Get();
 			lua_rawgeti(L, LUA_REGISTRYINDEX, f);
 			if (!lua_isnil(L, -1)) {
-				std::string Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
+				std::string Error = "Error running Screen Interval Function: ";
 				LuaHelpers::RunScriptOnStack(
 				  L, Error, 0, 0, true); // 0 args, 0 results
 			}
@@ -609,6 +623,11 @@ class LunaScreen : public Luna<Screen>
 		}
 		return 0;
 	}
+	static int IsPreviewNoteFieldActive(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->b_PreviewNoteFieldIsActive);
+		return 1;
+	}
 
 	LunaScreen()
 	{
@@ -624,6 +643,7 @@ class LunaScreen : public Luna<Screen>
 		ADD_METHOD(GetScreenType);
 		ADD_METHOD(AddInputCallback);
 		ADD_METHOD(RemoveInputCallback);
+		ADD_METHOD(IsPreviewNoteFieldActive);
 	}
 };
 

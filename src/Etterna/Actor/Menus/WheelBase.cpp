@@ -2,7 +2,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h" // for sending SM_PlayMusicSample
 #include "Etterna/Singletons/ThemeManager.h"
@@ -36,8 +36,7 @@ WheelBase::~WheelBase()
 void
 WheelBase::Load(const std::string& sType)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("WheelBase::Load('%s')", sType.c_str());
+	Locator::getLogger()->debug("WheelBase::Load('{}')", sType.c_str());
 	ASSERT(this->GetNumChildren() == 0); // only load once
 
 	m_bEmpty = false;
@@ -237,7 +236,7 @@ WheelBase::UpdateSwitch()
 bool
 WheelBase::Select() // return true if this selection can end the screen
 {
-	LOG->Trace("WheelBase::Select()");
+	Locator::getLogger()->trace("WheelBase::Select()");
 
 	m_Moving = 0;
 
@@ -417,8 +416,8 @@ WheelBase::ChangeMusic(int iDist)
 void
 WheelBase::RebuildWheelItems(int iDist)
 {
-	const vector<WheelItemBaseData*>& data = m_CurWheelItemData;
-	vector<WheelItemBase*>& items = m_WheelBaseItems;
+	const std::vector<WheelItemBaseData*>& data = m_CurWheelItemData;
+	std::vector<WheelItemBase*>& items = m_WheelBaseItems;
 
 	// rewind to first index that will be displayed;
 	int iFirstVisibleIndex = m_iSelection;

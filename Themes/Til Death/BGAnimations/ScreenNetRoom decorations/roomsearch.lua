@@ -43,7 +43,7 @@ local englishes = {
 	";"
 }
 local frameX = 10
-local frameY = 180 + capWideScale(get43size(120), 120)
+local frameY = 300
 local active = false
 local whee
 local searchtitle = ""
@@ -59,18 +59,16 @@ local CtrlPressed = false
 
 local offsetX = -10
 local offsetY = 20
-local frameWidth = capWideScale(360, 400)
+local frameWidth = 400
 local frameHeight = 350
 
 local function searchInput(event)
 	if event.type ~= "InputEventType_Release" and active then
 		if event.DeviceInput.button == "DeviceButton_left mouse button" then
 			inputting = 0
-			MESSAGEMAN:Broadcast("MouseLeftClicks")
 			MESSAGEMAN:Broadcast("UpdateString")
 		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
 			inputting = 0
-			MESSAGEMAN:Broadcast("MouseRightClicks")
 			MESSAGEMAN:Broadcast("UpdateString")
 		end
 	end
@@ -100,7 +98,7 @@ local function searchInput(event)
 			backspace = true
 			inputchar = searchstring:sub(1, -2)
 		elseif event.DeviceInput.button == "DeviceButton_v" and CtrlPressed then
-			inputchar = HOOKS:GetClipboard()
+			inputchar = Arch.getClipboard()
 		else
 			for i = 1, #englishes do -- add standard characters to string
 				if event.DeviceInput.button == "DeviceButton_" .. englishes[i] then
@@ -156,10 +154,9 @@ local function ButtonActive(self)
 	return isOver(self) and update
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	InitCommand = function(self)
-		self:zoom(0.85)
+		self:zoom(0.9)
 	end,
 	BeginCommand = function(self)
 		whee = SCREENMAN:GetTopScreen():GetMusicWheel()
@@ -176,16 +173,26 @@ local t =
 		end
 		self:queuecommand("Set")
 	end,
+	OffCommand = function(self)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
+		self:sleep(0.04):queuecommand("Invis")
+	end,
+	InvisCommand= function(self)
+		self:visible(false)
+	end,
+	OnCommand = function(self)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
+	end,
 	SetCommand = function(self)
 		self:finishtweening()
 		if getTabIndex() == (NSMAN:IsETTP() and 0 or 1) then
 			MESSAGEMAN:Broadcast("BeginningSearch")
 			self:visible(true)
+			self:queuecommand("On")
 			active = true
 			whee:Move(0)
 			MESSAGEMAN:Broadcast("RefreshSearchResults")
 		else
-			self:visible(false)
 			self:queuecommand("Off")
 			active = false
 		end
@@ -195,7 +202,7 @@ local t =
 	end,
 	Def.Quad {
 		SetCommand = function(self)
-			self:xy(frameX, 45):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(color("#333333CC"))
+			self:xy(frameX, 45):zoomto(frameWidth, frameHeight):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end
 	},
 	Def.Quad {
@@ -203,94 +210,89 @@ local t =
 			self:xy(frameX, 45):zoomto(frameWidth, offsetY):halign(0):valign(0):diffuse(getMainColor("frames")):diffusealpha(0.5)
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 225, frameY - 200):zoom(0.4):maxwidth(700)
-			end,
-			SetCommand = function(self)
-				self:settext(searchtitle)
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
-				self:settextf("%s: ", translated_info["Title"])
-			end
-		},
-	Def.Quad {
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
+			self:settextf("%s: ", translated_info["Title"])
+		end
+	},
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(frameX + 225, frameY - 200):zoomto(300, 25):diffuse(getMainColor("frames")):diffusealpha(0.55)
 		end,
 		SetCommand = function(self)
 			if 1 == inputting then
-				self:diffusealpha(0.25)
+				self:diffuse(color("#FFFFFF66"))
 			else
-				self:diffusealpha(0.55)
+				self:diffuse(getMainColor("frames")):diffusealpha(0.55)
 			end
 		end,
 		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand = function(self)
-			if isOver(self) and active then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
 				inputting = 1
 				MESSAGEMAN:Broadcast("UpdateString")
 			end
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 225, frameY - 150):zoom(0.4):maxwidth(700)
-			end,
-			SetCommand = function(self)
-				self:settext(searchdesc)
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
-				self:settextf("%s: ", translated_info["Subtitle"])
-			end
-		},
-	Def.Quad {
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
+			self:settextf("%s: ", translated_info["Subtitle"])
+		end
+	},
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(frameX + 225, frameY - 150):zoomto(300, 25):diffuse(getMainColor("frames")):diffusealpha(0.55)
 		end,
 		SetCommand = function(self)
 			if 2 == inputting then
-				self:diffusealpha(0.25)
+				self:diffuse(color("#FFFFFF66"))
 			else
-				self:diffusealpha(0.55)
+				self:diffuse(getMainColor("frames")):diffusealpha(0.55)
 			end
 		end,
 		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand = function(self)
-			if isOver(self) and active then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
 				inputting = 2
 				MESSAGEMAN:Broadcast("UpdateString")
 			end
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY - 50):zoom(0.4):halign(0)
-				self:settext(translated_info["Opened"])
-			end
-		},
-	Def.Quad {
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 225, frameY - 202):zoom(0.4):maxwidth(700)
+		end,
+		SetCommand = function(self)
+			self:settext(searchtitle)
+		end,
+		UpdateStringMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 225, frameY - 152):zoom(0.4):maxwidth(700)
+		end,
+		SetCommand = function(self)
+			self:settext(searchdesc)
+		end,
+		UpdateStringMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY - 50):zoom(0.4):halign(0)
+			self:settext(translated_info["Opened"])
+		end
+	},
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(frameX + 50, frameY):zoomto(25, 25):diffuse(getMainColor("positive")):diffusealpha(0.35)
 		end,
@@ -304,22 +306,21 @@ local t =
 		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand = function(self)
-			if isOver(self) and active then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
 				searchingame = not searchingame
 				MESSAGEMAN:Broadcast("UpdateString")
 				whee:Search(searchtitle, searchdesc, searchingame, searchpassword, searchopen)
 			end
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + frameWidth / 2 - 50, frameY - 50):zoom(0.4):halign(0)
-				self:settext(translated_info["Passworded"])
-			end
-		},
-	Def.Quad {
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + frameWidth / 2 - 50, frameY - 50):zoom(0.4):halign(0)
+			self:settext(translated_info["Passworded"])
+		end
+	},
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(frameX + frameWidth / 2 - 12, frameY):zoomto(25, 25):diffuse(getMainColor("positive")):diffusealpha(0.35)
 		end,
@@ -333,22 +334,21 @@ local t =
 		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand = function(self)
-			if isOver(self) and active then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
 				searchpassword = not searchpassword
 				MESSAGEMAN:Broadcast("UpdateString")
 				whee:Search(searchtitle, searchdesc, searchingame, searchpassword, searchopen)
 			end
 		end
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + frameWidth - 100, frameY - 50):zoom(0.4):halign(0)
-				self:settext(translated_info["InGameplay"])
-			end
-		},
-	Def.Quad {
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + frameWidth - 100, frameY - 50):zoom(0.4):halign(0)
+			self:settext(translated_info["InGameplay"])
+		end
+	},
+	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(frameX + frameWidth - 80, frameY):zoomto(25, 25):diffuse(getMainColor("positive")):diffusealpha(0.35)
 		end,
@@ -362,28 +362,27 @@ local t =
 		UpdateStringMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		MouseLeftClicksMessageCommand = function(self)
-			if isOver(self) and active then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
 				searchopen = not searchopen
 				MESSAGEMAN:Broadcast("UpdateString")
 				whee:Search(searchtitle, searchdesc, searchingame, searchpassword, searchopen)
 			end
 		end
 	},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
-				self:settext(translated_info["Explanation"])
-			end,
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 5, offsetY + 36):zoom(0.6):halign(0):diffuse(getMainColor("positive"))
-				self:settext(translated_info["TabTitle"])
-			end
-		}
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY + 70):zoom(0.5):halign(0)
+			self:settext(translated_info["Explanation"])
+		end,
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 5, offsetY + 34):zoom(0.65):halign(0)
+			self:settext(translated_info["TabTitle"])
+			self:diffuse(Saturation(getMainColor("positive"), 0.1))
+		end
+	}
 }
 
 return t

@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageException.h"
-#include "RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageThreads.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -39,13 +39,7 @@ RageException::Throw(const char* sFmt, ...)
 			   "Exception: %s\n"
 			   "//////////////////////////////////////////////////////\n",
 			   error.c_str());
-	if (LOG != nullptr) {
-		LOG->Trace("%s", msg.c_str());
-		LOG->Flush();
-	} else {
-		puts(msg.c_str());
-		fflush(stdout);
-	}
+	Locator::getLogger()->error("{}", msg.c_str());
 
 #if (defined(_WIN32) && defined(DEBUG)) || defined(_XDBG) || defined(__APPLE__)
 	if (IsDebuggerPresent())

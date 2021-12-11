@@ -3,20 +3,23 @@
 #include "Etterna/Globals/rngthing.h"
 
 // Rage global classes
+#include "Core/Services/Locator.hpp"
+#include "Core/Misc/PlogLogger.hpp"
+#include "Core/Crash/CrashpadHandler.hpp"
+#include "Core/Misc/AppInfo.hpp"
+#include "Core/Platform/Platform.hpp"
+
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageInput.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
-#include "arch/ArchHooks/ArchHooks.h"
 #include "arch/Dialog/Dialog.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
-#include "ProductInfo.h"
 #include "Etterna/Models/Misc/CodeDetector.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
@@ -25,6 +28,7 @@
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
+#include "Etterna/Globals/GameLoop.h"
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
@@ -51,7 +55,6 @@
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "ver.h"
 #include "discord_rpc.h"
 
 #include <ctime>
@@ -307,19 +310,15 @@ ShutdownGame()
 	SAFE_DELETE(TEXTUREMAN);
 	SAFE_DELETE(DISPLAY);
 	Dialog::Shutdown();
-	SAFE_DELETE(LOG);
 	DLMAN.reset();
 	SAFE_DELETE(FILEMAN);
 	SAFE_DELETE(LUA);
-	SAFE_DELETE(HOOKS);
 	Discord_Shutdown();
 }
 
 static void
 HandleException(const std::string& sError)
 {
-	if (g_bAutoRestart)
-		HOOKS->RestartProgram();
 
 	// Shut down first, so we exit graphics mode before trying to open a dialog.
 	ShutdownGame();
@@ -334,6 +333,8 @@ StepMania::ResetGame()
 {
 	GAMESTATE->Reset();
 
+	// if somehow the current theme loaded does not exist anymore
+	// reset to a real one
 	if (!THEME->DoesThemeExist(THEME->GetCurThemeName())) {
 		std::string sGameName = GAMESTATE->GetCurrentGame()->m_szName;
 		if (!THEME->DoesThemeExist(sGameName))
@@ -351,10 +352,6 @@ ThemeMetric<std::string> INITIAL_SCREEN("Common", "InitialScreen");
 std::string
 StepMania::GetInitialScreen()
 {
-	if (!PREFSMAN->m_sTestInitialScreen.Get().empty() &&
-		SCREENMAN->IsScreenNameValid(PREFSMAN->m_sTestInitialScreen)) {
-		return PREFSMAN->m_sTestInitialScreen;
-	}
 	std::string screen_name = INITIAL_SCREEN.GetValue();
 	if (!SCREENMAN->IsScreenNameValid(screen_name)) {
 		screen_name = "ScreenInitialScreenIsInvalid";
@@ -385,7 +382,7 @@ AdjustForChangedSystemCapabilities()
 	if (g_iLastSeenMemory == Memory)
 		return;
 
-	LOG->Trace("Memory changed from %i to %i; settings changed",
+	Locator::getLogger()->trace("Memory changed from {} to {}; settings changed",
 			   g_iLastSeenMemory.Get(),
 			   Memory);
 	g_iLastSeenMemory.Set(Memory);
@@ -673,9 +670,8 @@ CheckVideoDefaultSettings()
 	// Video card changed since last run
 	std::string sVideoDriver = GetVideoDriverName();
 
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Last seen video driver: %s",
-				   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
+	Locator::getLogger()->info("Last seen video driver: {}",
+				PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
 
 	// allow players to opt out of the forced reset when a new video card is
 	// detected - mina
@@ -690,10 +686,7 @@ CheckVideoDefaultSettings()
 		std::string sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			if (PREFSMAN->m_verbose_log > 1)
-				LOG->Trace("Card matches '%s'.",
-						   !sDriverRegex.empty() ? sDriverRegex.c_str()
-												 : "(unknown card)");
+			Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
 			break;
 		}
 	}
@@ -704,11 +697,10 @@ CheckVideoDefaultSettings()
 	bool bSetDefaultVideoParams = false;
 	if (PREFSMAN->m_sVideoRenderers.Get().empty()) {
 		bSetDefaultVideoParams = true;
-		LOG->Trace("Applying defaults for %s.", sVideoDriver.c_str());
+		Locator::getLogger()->trace("Applying defaults for {}.", sVideoDriver.c_str());
 	} else if (PREFSMAN->m_sLastSeenVideoDriver.Get() != sVideoDriver) {
 		bSetDefaultVideoParams = true;
-		LOG->Trace(
-		  "Video card has changed from %s to %s.  Applying new defaults.",
+		Locator::getLogger()->trace("Video card has changed from {} to {}.  Applying new defaults.",
 		  PREFSMAN->m_sLastSeenVideoDriver.Get().c_str(),
 		  sVideoDriver.c_str());
 	}
@@ -723,11 +715,6 @@ CheckVideoDefaultSettings()
 			PREFSMAN->m_iMovieColorDepth.Set(defaults.iMovieColor);
 			PREFSMAN->m_iMaxTextureResolution.Set(defaults.iTextureSize);
 			PREFSMAN->m_bSmoothLines.Set(defaults.bSmoothLines);
-			// this only worked when we started in fullscreen by default. -aj
-			// PREFSMAN->m_fDisplayAspectRatio.Set(
-			// HOOKS->GetDisplayAspectRatio() );
-			// now that we start in windowed mode, use the new default aspect
-			// ratio.
 			PREFSMAN->m_fDisplayAspectRatio.Set(
 			  PREFSMAN->m_fDisplayAspectRatio);
 		}
@@ -736,14 +723,11 @@ CheckVideoDefaultSettings()
 		PREFSMAN->m_sLastSeenVideoDriver.Set(GetVideoDriverName());
 	} else if (CompareNoCase(PREFSMAN->m_sVideoRenderers.Get(),
 							 defaults.sVideoRenderers)) {
-		LOG->Warn("Video renderer list has been changed from '%s' to '%s'",
-				  defaults.sVideoRenderers.c_str(),
-				  PREFSMAN->m_sVideoRenderers.Get().c_str());
+		Locator::getLogger()->warn("Video renderer list has been changed from '{}' to '{}'",
+				  defaults.sVideoRenderers.c_str(), PREFSMAN->m_sVideoRenderers.Get().c_str());
 	}
 
-	if (PREFSMAN->m_verbose_log > 0)
-		LOG->Info("Video renderers: '%s'",
-				  PREFSMAN->m_sVideoRenderers.Get().c_str());
+	Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
 	return bSetDefaultVideoParams;
 }
 
@@ -799,11 +783,11 @@ CreateDisplay()
 
 	std::string error =
 	  ERROR_INITIALIZING_CARD.GetValue() + "\n\n" +
-	  ERROR_DONT_FILE_BUG.GetValue() + "\n\n" VIDEO_TROUBLESHOOTING_URL "\n\n" +
+	  ERROR_DONT_FILE_BUG.GetValue() + "\n\n" +
 	  ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) +
 	  "\n\n";
 
-	vector<std::string> asRenderers;
+	std::vector<std::string> asRenderers;
 	split(PREFSMAN->m_sVideoRenderers, ",", asRenderers, true);
 
 	if (asRenderers.empty())
@@ -872,9 +856,8 @@ SwitchToLastPlayedGame()
 
 	if (!GAMEMAN->IsGameEnabled(pGame) && pGame != GAMEMAN->GetDefaultGame()) {
 		pGame = GAMEMAN->GetDefaultGame();
-		LOG->Warn(R"(Default NoteSkin for "%s" missing, reverting to "%s")",
-				  pGame->m_szName,
-				  GAMEMAN->GetDefaultGame()->m_szName);
+		Locator::getLogger()->warn(R"(Default NoteSkin for "{}" missing, reverting to "{}")",
+				  pGame->m_szName, GAMEMAN->GetDefaultGame()->m_szName);
 	}
 
 	ASSERT(GAMEMAN->IsGameEnabled(pGame));
@@ -905,8 +888,7 @@ StepMania::InitializeCurrentGame(const Game* g)
 		argCurGame != sGametype) {
 		Game const* new_game = GAMEMAN->StringToGame(argCurGame);
 		if (new_game == nullptr) {
-			LOG->Warn("%s is not a known game type, ignoring.",
-					  argCurGame.c_str());
+			Locator::getLogger()->warn("{} is not a known game type, ignoring.", argCurGame.c_str());
 		} else {
 			PREFSMAN->SetCurrentGame(sGametype);
 			GAMESTATE->SetCurGame(new_game);
@@ -945,56 +927,8 @@ StepMania::InitializeCurrentGame(const Game* g)
 }
 
 static void
-MountTreeOfZips(const std::string& dir)
-{
-	vector<std::string> dirs;
-	dirs.push_back(dir);
-
-	while (!dirs.empty()) {
-		std::string path = dirs.back();
-		dirs.pop_back();
-
-		if (!IsADirectory(path))
-			continue;
-
-		vector<std::string> zips;
-		GetDirListing(path + "/*.zip", zips, false, true);
-		GetDirListing(path + "/*.smzip", zips, false, true);
-
-		for (unsigned i = 0; i < zips.size(); ++i) {
-			if (!IsAFile(zips[i]))
-				continue;
-
-			LOG->Trace("VFS: found %s", zips[i].c_str());
-			FILEMAN->Mount("zip", zips[i], "/");
-		}
-
-		GetDirListing(path + "/*", dirs, true, true);
-	}
-}
-
-static void
 WriteLogHeader()
 {
-	LOG->Info("%s%s", PRODUCT_FAMILY, product_version);
-
-	LOG->Info("(build %s)", ::version_git_hash);
-
-	time_t cur_time;
-	time(&cur_time);
-	struct tm now;
-	localtime_r(&cur_time, &now);
-
-	LOG->Info("Log starting %.4d-%.2d-%.2d %.2d:%.2d:%.2d",
-			  1900 + now.tm_year,
-			  now.tm_mon + 1,
-			  now.tm_mday,
-			  now.tm_hour,
-			  now.tm_min,
-			  now.tm_sec);
-	LOG->Info("\tVerbosity: %s", PREFSMAN->m_verbose_log.ToString().c_str());
-	LOG->Trace(" ");
-
 	if (g_argc > 1) {
 		std::string args;
 		for (int i = 1; i < g_argc; ++i) {
@@ -1006,20 +940,8 @@ WriteLogHeader()
 			// params.
 			args += ssprintf("[[%s]]", g_argv[i]);
 		}
-		LOG->Info(
-		  "Command line args (count=%d): %s", (g_argc - 1), args.c_str());
+		Locator::getLogger()->info("Command line args (count={}): {}", (g_argc - 1), args.c_str());
 	}
-}
-
-static void
-ApplyLogPreferences()
-{
-	LOG->SetShowLogOutput(PREFSMAN->m_bShowLogOutput);
-	LOG->SetLogToDisk(PREFSMAN->m_bLogToDisk);
-	LOG->SetInfoToDisk(true);
-	LOG->SetUserLogToDisk(true);
-	LOG->SetFlushing(PREFSMAN->m_bForceLogFlush);
-	Checkpoints::LogCheckpoints(PREFSMAN->m_bLogCheckpoints);
 }
 
 static LocalizedString COULDNT_OPEN_LOADING_WINDOW(
@@ -1032,17 +954,33 @@ sm_main(int argc, char* argv[])
 	g_RandomNumberGenerator.seed(static_cast<unsigned int>(time(nullptr)));
 	seed_lua_prng();
 
+	// Initialize Logging
+    Locator::provide(std::make_unique<PlogLogger>());
+
+    // Init Crash Handling
+	bool success = Core::Crash::initCrashpad();
+	if(!success)
+	    Locator::getLogger()->warn("Crash Handler could not be initialized. Crash reports will not be created.");
+
+    // Log App and System Information
+    Locator::getLogger()->info("{} v{} - Build {}",
+                               Core::AppInfo::APP_TITLE,
+                               Core::AppInfo::APP_VERSION,
+                               Core::AppInfo::GIT_HASH);
+    Locator::getLogger()->info("System: {}", Core::Platform::getSystem());
+    Locator::getLogger()->info("CPU: {}", Core::Platform::getSystemCPU());
+	Locator::getLogger()->info("System Architecture: {}", Core::Platform::getArchitecture());
+	Locator::getLogger()->info("Total Memory: {}GB", Core::Platform::getSystemMemory() / pow(1024, 3));
+
+    // Run Platform Initialization
+    Core::Platform::init();
+
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
 
 	SetCommandlineArguments(argc, argv);
 
-	// Set up arch hooks first.  This may set up crash handling.
-	HOOKS = ArchHooks::Create();
-	HOOKS->Init();
-
 	LUA = new LuaManager;
-	HOOKS->RegisterWithLua();
 
 	MESSAGEMAN = new MessageManager;
 
@@ -1052,46 +990,41 @@ sm_main(int argc, char* argv[])
 
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
-	FILEMAN->MountInitialFilesystems();
+	FILEMAN->Mount("dir", Core::Platform::getAppDirectory(), "/");
 
-	bool bPortable = DoesFileExist("Portable.ini");
-	if (!bPortable)
-		FILEMAN->MountUserFilesystems();
-
-	// Set this up next. Do this early, since it's needed for
-	// RageException::Throw.
-	LOG = new RageLog;
-
-	// Whew--we should be able to crash safely now!
+#ifdef __unix__
+	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
+	 * on. This is /rootfs, not /root, to avoid confusion with root's home
+	 * directory. */
+	FILEMAN->Mount("dir", "/", "/rootfs");
+#endif
 
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
 
-	/* Allow HOOKS to check for multiple instances.  We need to do this after
+	/* Allow ArchHooks to check for multiple instances.  We need to do this after
 	 * PREFS is initialized, so ArchHooks can use a preference to turn this off.
 	 * We want to do this before ApplyLogPreferences, so if we exit because of
 	 * another instance, we don't try to clobber its log.  We also want to do
 	 * this before opening the loading window, so if we give focus away, we
 	 * don't flash the window. */
-	if (!g_bAllowMultipleInstances.Get() &&
-		HOOKS->CheckForMultipleInstances(argc, argv)) {
+	if (!g_bAllowMultipleInstances.Get() && Core::Platform::isOtherInstanceRunning(argc, argv)) {
+	    Locator::getLogger()->warn("Multiple instances are disabled. Other instance detected. Shutting down...");
 		ShutdownGame();
 		return 0;
 	}
-
-	ApplyLogPreferences();
 
 	WriteLogHeader();
 
 	// Set up alternative filesystem trees.
 	if (!PREFSMAN->m_sAdditionalFolders.Get().empty()) {
-		vector<std::string> dirs;
+		std::vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/");
 	}
 	if (!PREFSMAN->m_sAdditionalSongFolders.Get().empty()) {
-		vector<std::string> dirs;
+		std::vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
@@ -1100,7 +1033,15 @@ sm_main(int argc, char* argv[])
 	/* One of the above filesystems might contain files that affect preferences
 	 * (e.g. Data/Static.ini). Re-read preferences. */
 	PREFSMAN->ReadPrefsFromDisk();
-	ApplyLogPreferences();
+
+    // Setup options that require preference variables
+    // Used to be contents of ApplyLogPreferences
+    Core::Crash::setShouldUpload(PREFSMAN->m_bEnableCrashUpload);
+    Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
+	Locator::getLogger()->info("Logging level {} (0 - TRACE | 5 - FATAL)",
+							   PREFSMAN->m_logging_level.Get());
+	Locator::getLogger()->setLogLevel(
+	  static_cast<Core::ILogger::Severity>(PREFSMAN->m_logging_level.Get()));
 
 	// This needs PREFSMAN.
 	Dialog::Init();
@@ -1123,14 +1064,8 @@ sm_main(int argc, char* argv[])
 			  "%s", COULDNT_OPEN_LOADING_WINDOW.GetValue().c_str());
 	}
 
-	/* Do this early, so we have debugging output if anything else fails. LOG
-	 * and Dialog must be set up first. It shouldn't take long, but it might
-	 * take a little time; do this after the LoadingWindow is shown, since we
-	 * don't want that to appear delayed. */
-	HOOKS->DumpDebugInfo();
-
 #if defined(HAVE_TLS)
-	LOG->Info("TLS is %savailable", RageThread::GetSupportsTLS() ? "" : "not ");
+	Locator::getLogger()->info("TLS is {}available", RageThread::GetSupportsTLS() ? "" : "not ");
 #endif
 
 	AdjustForChangedSystemCapabilities();
@@ -1145,44 +1080,6 @@ sm_main(int argc, char* argv[])
 
 	CommandLineActions::Handle(pLoadingWindow);
 
-	// Aldo: Check for updates here!
-#if 0
-	if( /* PREFSMAN->m_bUpdateCheckEnable (do this later) */ 0 )
-	{
-		// TODO - Aldo_MX: Use PREFSMAN->m_iUpdateCheckIntervalSeconds & PREFSMAN->m_iUpdateCheckLastCheckedSecond
-		unsigned long current_version = NetworkSyncManager::GetCurrentSMBuild( pLoadingWindow );
-		if( current_version )
-		{
-			if( current_version > version_num )
-			{
-				switch( Dialog::YesNo( "A new version of " PRODUCT_ID " is available. Do you want to download it?", "UpdateCheck" ) )
-				{
-				case Dialog::yes:
-					//PREFSMAN->SavePrefsToDisk();
-					// TODO: GoToURL for Linux
-					if( !HOOKS->GoToURL( SM_DOWNLOAD_URL ) )
-					{
-						Dialog::Error( "Please go to the following URL to download the latest version of " PRODUCT_ID ":\n\n" SM_DOWNLOAD_URL, "UpdateCheckConfirm" );
-					}
-					ShutdownGame();
-					return 0;
-				case Dialog::no:
-					break;
-				default:
-					FAIL_M("Invalid response to Yes/No dialog");
-				}
-			}
-			else if( version_num < current_version )
-			{
-				LOG->Info( "The current version is more recent than the public one, double check you downloaded it from " SM_DOWNLOAD_URL );
-			}
-		}
-		else
-		{
-			LOG->Info( "Unable to check for updates. The server might be offline." );
-		}
-	}
-#endif
 	if (!noWindow) {
 		/* Now that THEME is loaded, load the icon and splash for the current
 		 * theme into the loading window. */
@@ -1200,8 +1097,7 @@ sm_main(int argc, char* argv[])
 	}
 
 	if (PREFSMAN->m_iSoundWriteAhead)
-		LOG->Info("Sound writeahead has been overridden to %i",
-				  PREFSMAN->m_iSoundWriteAhead.Get());
+		Locator::getLogger()->info("Sound writeahead has been overridden to {}", PREFSMAN->m_iSoundWriteAhead.Get());
 
 	SONGINDEX = new SongCacheIndex;
 	SOUNDMAN = new RageSoundManager;
@@ -1222,14 +1118,11 @@ sm_main(int argc, char* argv[])
 	SONGMAN->InitAll(pLoadingWindow); // this takes a long time
 	SONGINDEX->FinishTransaction();
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
-	if (PREFSMAN->m_bSignProfileData)
-		CRYPTMAN->GenerateGlobalKeys();
 	SCOREMAN = new ScoreManager;
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
 	SONGMAN->CalcTestStuff();		  // must be after profileman init
 
-	SONGMAN->UpdatePreferredSort();
 	NSMAN = new NetworkSyncManager(pLoadingWindow);
 	STATSMAN = new StatsManager;
 
@@ -1239,7 +1132,7 @@ sm_main(int argc, char* argv[])
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */
-	if (ArchHooks::UserQuit()) {
+	if (GameLoop::hasUserQuit()) {
 		ShutdownGame();
 		return 0;
 	}
@@ -1248,7 +1141,7 @@ sm_main(int argc, char* argv[])
 	StartDisplay();
 
 	StoreActualGraphicOptions();
-	LOG->Info("%s", GetActualGraphicOptionsString().c_str());
+	Locator::getLogger()->info(GetActualGraphicOptionsString().c_str());
 
 	/* Input handlers can have dependences on the video system so
 	 * INPUTMAN must be initialized after DISPLAY. */
@@ -1289,7 +1182,6 @@ sm_main(int argc, char* argv[])
 std::string
 StepMania::SaveScreenshot(const std::string& Dir,
 						  bool SaveCompressed,
-						  bool MakeSignature,
 						  const std::string& NamePrefix,
 						  const std::string& NameSuffix)
 {
@@ -1323,24 +1215,9 @@ StepMania::SaveScreenshot(const std::string& Dir,
 
 	SCREENMAN->PlayScreenshotSound();
 
-	if (PREFSMAN->m_bSignProfileData && MakeSignature)
-		CryptManager::SignFileToFile(Path);
-
 	return FileName;
 }
 
-void
-StepMania::ClearCredits()
-{
-	SCREENMAN->PlayInvalidSound();
-
-	// TODO: remove this redundant message and things that depend on it
-	Message msg("CoinInserted");
-	// below params are unused
-	// msg.SetParam( "Coins", GAMESTATE->m_iCoins );
-	// msg.SetParam( "Clear", true );
-	MESSAGEMAN->Broadcast(msg);
-}
 
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
@@ -1376,6 +1253,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 				{
 					SCREENMAN->SystemMessage(SERVICE_SWITCH_PRESSED);
 					SCREENMAN->PopAllScreens();
+					SCREENMAN->set_input_redirected(PLAYER_1, false);
 					GAMESTATE->Reset();
 					SCREENMAN->SetNewScreen(
 					  CommonMetrics::OPERATOR_MENU_SCREEN);
@@ -1445,7 +1323,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 			INPUTFILTER->IsBeingPressed(DeviceInput(DEVICE_KEYBOARD, KEY_LALT),
 										&input.InputList)) {
 			// pressed Alt+F4
-			ArchHooks::SetUserQuit();
+			GameLoop::setUserQuit();
 			return true;
 		}
 	}
@@ -1492,9 +1370,8 @@ HandleGlobalInputs(const InputEventPlus& input)
 								DeviceInput(DEVICE_KEYBOARD, KEY_RSHIFT)));
 		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
-		StepMania::SaveScreenshot(
-		  "Screenshots/", bSaveCompressed, false, "", "");
-		LOG->Trace("Screenshot took %f seconds.", timer.GetDeltaTime());
+		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
+		Locator::getLogger()->debug("Screenshot took {} seconds.", timer.GetDeltaTime());
 		return true; // handled
 	}
 
@@ -1511,7 +1388,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		 * to put a timer in ArchHooks::SetToggleWindowed() and just not set the
 		 * bool it if it's been less than, say, half a second. */
 #if !defined(__APPLE__)
-		ArchHooks::SetToggleWindowed();
+		GameLoop::setToggleWindowed();
 #endif
 		return true;
 	}
@@ -1519,9 +1396,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 	return false;
 }
 
-void
-HandleInputEvents(float fDeltaTime)
-{
+void StepMania::HandleInputEvents(float fDeltaTime) {
 	INPUTFILTER->Update(fDeltaTime);
 
 	/* Hack: If the topmost screen hasn't been updated yet, don't process input,
@@ -1532,11 +1407,11 @@ HandleInputEvents(float fDeltaTime)
 	if (SCREENMAN->GetTopScreen()->IsFirstUpdate())
 		return;
 
-	vector<InputEvent> ieArray;
+	std::vector<InputEvent> ieArray;
 	INPUTFILTER->GetInputEvents(ieArray);
 
 	// If we don't have focus, discard input.
-	if (!HOOKS->AppHasFocus())
+	if (!GameLoop::isGameFocused())
 		return;
 
 	for (unsigned i = 0; i < ieArray.size(); i++) {
@@ -1594,15 +1469,14 @@ HandleInputEvents(float fDeltaTime)
 		SCREENMAN->Input(input);
 	}
 
-	if (ArchHooks::GetAndClearToggleWindowed()) {
+	if (GameLoop::GetAndClearToggleWindowed()) {
 		PREFSMAN->m_bWindowed.Set(!PREFSMAN->m_bWindowed);
 		StepMania::ApplyGraphicOptions();
 	}
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-int
-LuaFunc_SaveScreenshot(lua_State* L);
+
 int
 LuaFunc_SaveScreenshot(lua_State* L)
 {
@@ -1610,7 +1484,8 @@ LuaFunc_SaveScreenshot(lua_State* L)
 	// Otherwise, save to the machine.
 	PlayerNumber pn = Enum::Check<PlayerNumber>(L, 1, true);
 	bool compress = lua_toboolean(L, 2) != 0;
-	bool sign = lua_toboolean(L, 3) != 0;
+	bool sign =
+	  lua_toboolean(L, 3) != 0; // Legacy, unused. This should be removed later.
 	std::string prefix = luaL_optstring(L, 4, "");
 	std::string suffix = luaL_optstring(L, 5, "");
 	std::string dir;
@@ -1621,7 +1496,7 @@ LuaFunc_SaveScreenshot(lua_State* L)
 			  "Screenshots/";
 	}
 	std::string filename =
-	  StepMania::SaveScreenshot(dir, compress, sign, prefix, suffix);
+	  StepMania::SaveScreenshot(dir, compress, prefix, suffix);
 	if (pn != PlayerNumber_Invalid) {
 	}
 	std::string path = dir + filename;

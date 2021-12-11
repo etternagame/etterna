@@ -93,6 +93,8 @@ class InputFilter
 	// Lua
 	void PushSelf(lua_State* L);
 
+	bool IsCapsLockEnabled() { return capsLockEnabled; }
+
   private:
 	void CheckButtonChange(ButtonState& bs,
 						   DeviceInput di,
@@ -106,6 +108,8 @@ class InputFilter
 
 	InputFilter(const InputFilter& rhs);
 	InputFilter& operator=(const InputFilter& rhs);
+
+	bool capsLockEnabled = false;
 };
 
 extern InputFilter*

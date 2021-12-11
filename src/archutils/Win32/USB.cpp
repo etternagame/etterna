@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "USB.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
 
@@ -138,7 +138,7 @@ WindowsFileIO::~WindowsFileIO()
 bool
 WindowsFileIO::Open(const std::string& path, int iBlockSize)
 {
-	LOG->Trace("WindowsFileIO::open(%s)", path.c_str());
+	Locator::getLogger()->trace("WindowsFileIO::open({})", path.c_str());
 	m_iBlockSize = iBlockSize;
 
 	if (m_pBuffer)
@@ -175,7 +175,7 @@ WindowsFileIO::queue_read()
 int
 WindowsFileIO::finish_read(void* p)
 {
-	LOG->Trace("this %p, %p", this, p);
+	Locator::getLogger()->trace("this {}, {}", (void*)this, p);
 	/* We do; get the result.  It'll go into the original m_pBuffer
 	 * we supplied on the original call; that's why m_pBuffer is a
 	 * member instead of a local. */
@@ -189,8 +189,8 @@ WindowsFileIO::finish_read(void* p)
 	queue_read();
 
 	if (iRet == 0) {
-		LOG->Warn(
-		  werr_ssprintf(GetLastError(), "Error reading USB device").c_str());
+		Locator::getLogger()->warn(
+		  "{}", werr_ssprintf(GetLastError(), "Error reading USB device"));
 		return -1;
 	}
 
@@ -201,7 +201,7 @@ WindowsFileIO::finish_read(void* p)
 int
 WindowsFileIO::read(void* p)
 {
-	LOG->Trace("WindowsFileIO::read()");
+	Locator::getLogger()->trace("WindowsFileIO::read()");
 
 	/* See if we have a response for our request (which we may
 	 * have made on a previous call): */
@@ -212,7 +212,7 @@ WindowsFileIO::read(void* p)
 }
 
 int
-WindowsFileIO::read_several(const vector<WindowsFileIO*>& sources,
+WindowsFileIO::read_several(const std::vector<WindowsFileIO*>& sources,
 							void* p,
 							int& actual,
 							float timeout)
@@ -226,9 +226,9 @@ WindowsFileIO::read_several(const vector<WindowsFileIO*>& sources,
 	delete[] Handles;
 
 	if (ret == -1) {
-		LOG->Trace(
-		  werr_ssprintf(GetLastError(), "WaitForMultipleObjectsEx failed")
-			.c_str());
+		Locator::getLogger()->warn(
+		  "{}",
+		  werr_ssprintf(GetLastError(), "WaitForMultipleObjectsEx failed"));
 		return -1;
 	}
 

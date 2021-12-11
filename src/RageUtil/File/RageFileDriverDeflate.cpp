@@ -3,6 +3,7 @@
 #include "RageFileDriverDeflate.h"
 #include "RageFileDriverSlice.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "Core/Services/Locator.hpp"
 
 #include <memory>
 #include <algorithm>
@@ -35,7 +36,7 @@ RageFileObjInflate::RageFileObjInflate(RageFileBasic* pFile,
 	if (err == Z_MEM_ERROR)
 		RageException::Throw("inflateInit2( %i ): out of memory.", -MAX_WBITS);
 	if (err != Z_OK)
-		WARN(ssprintf("Huh? inflateInit2() err = %i", err).c_str());
+		Locator::getLogger()->warn("Huh? inflateInit2() err = {}", err);
 
 	decomp_buf_ptr = decomp_buf;
 	m_iFilePos = 0;
@@ -71,7 +72,7 @@ RageFileObjInflate::~RageFileObjInflate()
 
 	int err = inflateEnd(m_pInflate);
 	if (err != Z_OK)
-		WARN(ssprintf("Huh? inflateEnd() err = %i", err).c_str());
+        Locator::getLogger()->warn("Huh? inflateEnd() err = {}", err);
 
 	delete m_pInflate;
 }
@@ -123,7 +124,7 @@ RageFileObjInflate::ReadInternal(void* buf, size_t bytes)
 			case Z_OK:
 				break;
 			default:
-				WARN(ssprintf("Huh? inflate err %i", err).c_str());
+                Locator::getLogger()->warn("Huh? inflate err {}", err);
 		}
 
 		const int used = (char*)m_pInflate->next_in - decomp_buf_ptr;
@@ -198,7 +199,7 @@ RageFileObjDeflate::RageFileObjDeflate(RageFileBasic* pFile)
 	if (err == Z_MEM_ERROR)
 		RageException::Throw("inflateInit2( %i ): out of memory.", -MAX_WBITS);
 	if (err != Z_OK)
-		WARN(ssprintf("Huh? inflateInit2() err = %i", err).c_str());
+        Locator::getLogger()->warn("Huh? inflateInit2() err = {}", err);
 }
 
 RageFileObjDeflate::~RageFileObjDeflate()
@@ -210,7 +211,7 @@ RageFileObjDeflate::~RageFileObjDeflate()
 
 	int err = deflateEnd(m_pDeflate);
 	if (err != Z_OK)
-		WARN(ssprintf("Huh? deflateEnd() err = %i", err).c_str());
+        Locator::getLogger()->warn("Huh? deflateEnd() err = {}", err);
 
 	delete m_pDeflate;
 }

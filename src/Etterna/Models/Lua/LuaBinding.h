@@ -62,7 +62,7 @@ class Luna : public LuaBinding
 
 		// fill method table with methods from class T
 		for (auto const& m : m_aMethods) {
-			lua_pushlightuserdata(L, (void*)m.mfunc);
+			lua_pushlightuserdata(L, reinterpret_cast<void*>(m.mfunc));
 			lua_pushcclosure(L, thunk, 1);
 			lua_setfield(L, iMethods, m.regName.c_str());
 		}
@@ -95,7 +95,7 @@ class Luna : public LuaBinding
 
 	static auto get(lua_State* L, int narg) -> T*
 	{
-		return (T*)GetPointerFromStack(L, m_sClassName, narg);
+		return reinterpret_cast<T*>(GetPointerFromStack(L, m_sClassName, narg));
 	}
 
 	/* Push a table or userdata for the given object.  This is called on the
@@ -118,7 +118,7 @@ class Luna : public LuaBinding
 		lua_remove(L,
 				   1); // remove self so member function args start at index 1
 		// get member function from upvalue
-		binding_t* pFunc = (binding_t*)lua_touserdata(L, lua_upvalueindex(1));
+		auto* pFunc = reinterpret_cast<binding_t*>(lua_touserdata(L, lua_upvalueindex(1)));
 		return pFunc(obj, L); // call member function
 	}
 

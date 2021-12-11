@@ -1,7 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "archutils/Win32/WindowIcon.h"
-#include "RageUtil/Misc/RageLog.h"
-#include "RageUtil/Utils/RageUtil.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageSurfaceUtils.h"
 #include "RageUtil/Graphics/RageSurface_Load.h"
@@ -86,9 +85,8 @@ IconFromSurface(const RageSurface* pSrcImg)
 	free(pBitmap);
 
 	if (icon == NULL) {
-		LOG->Trace(
-		  "%s",
-		  werr_ssprintf(GetLastError(), "CreateIconFromResourceEx").c_str());
+		Locator::getLogger()->trace(
+		  "{}", werr_ssprintf(GetLastError(), "CreateIconFromResourceEx"));
 		return NULL;
 	}
 
@@ -101,8 +99,8 @@ IconFromFile(const std::string& sIconFile)
 	std::string sError;
 	RageSurface* pImg = RageSurfaceUtils::LoadFile(sIconFile, sError);
 	if (pImg == NULL) {
-		LOG->Warn(
-		  "Couldn't open icon \"%s\": %s", sIconFile.c_str(), sError.c_str());
+		Locator::getLogger()->warn(
+		  "Couldn't open icon \"{}\": {}", sIconFile.c_str(), sError.c_str());
 		return NULL;
 	}
 

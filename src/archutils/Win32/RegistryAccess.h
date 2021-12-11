@@ -3,6 +3,9 @@
 #ifndef REGISTRY_ACCESS_H
 #define REGISTRY_ACCESS_H
 
+#include <string>
+#include <vector>
+
 namespace RegistryAccess {
 bool
 GetRegValue(const std::string& sKey,
@@ -18,7 +21,7 @@ GetRegValue(const std::string& sKey, const std::string& sName, bool& val);
 
 bool
 GetRegSubKeys(const std::string& sKey,
-			  vector<std::string>& asList,
+			  std::vector<std::string>& asList,
 			  const std::string& sRegex = ".*",
 			  bool bReturnPathToo = true);
 

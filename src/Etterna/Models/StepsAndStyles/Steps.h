@@ -118,6 +118,11 @@ class Steps
 							 const std::vector<int>& nerv,
 							 float rate) -> std::vector<int>;
 
+	auto GetNPSPerMeasure(const NoteData& nd,
+						  const std::vector<float>& etaner,
+						  const std::vector<int>& nerv,
+						  float rate) -> std::vector<float>;
+
 	// takes size of chord and counts how many -NOTES- are in
 	// chords of that exact size (this functionally means
 	// multiplying chord counter by chord size) in a row -mina
@@ -131,7 +136,7 @@ class Steps
 	auto GetHash() const -> unsigned;
 	void GetNoteData(NoteData& noteDataOut) const;
 	auto GetNoteData() const -> NoteData;
-	void SetNoteData(const NoteData& noteDataNew);
+	void SetNoteData(const NoteData& noteDataNew) const;
 	void SetSMNoteData(const std::string& notes_comp);
 	void GetSMNoteData(std::string& notes_comp_out) const;
 
@@ -212,7 +217,7 @@ class Steps
 	/* This is a reimplementation of the lua version of the script to generate
 	chart keys, except this time using the notedata stored in game memory
 	immediately after reading it than parsing it using lua. - Mina */
-	auto GenerateChartKey(NoteData& nd, TimingData* td) -> std::string;
+	static auto GenerateChartKey(NoteData& nd, TimingData* td) -> std::string;
 
 	/**
 	 * @brief Determine if the Steps have any major timing changes during
@@ -262,8 +267,7 @@ class Steps
 	{
 		return debugstrings;
 	}
-	auto IsSkillsetHighest(Skillset skill, float rate) -> bool;
-	auto MatchesFilter(const float rate) -> bool;
+	auto IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool;
 
   private:
 	std::string ChartKey = "";

@@ -38,6 +38,7 @@ struct HighScore
 	 * @brief Determine if any judgments were tallied during this run.
 	 * @return true if no judgments were recorded, false otherwise. */
 	[[nodiscard]] auto IsEmpty() const -> bool;
+	[[nodiscard]] auto IsEmptyNormalized() const -> bool;
 	[[nodiscard]] auto GetWifeGrade() const -> Grade;
 	auto ConvertDpToWife() -> float;
 	[[nodiscard]] auto GetPercentDP() const -> float;
@@ -48,6 +49,7 @@ struct HighScore
 	[[nodiscard]] auto GetJudgeScale() const -> float;
 	[[nodiscard]] auto GetChordCohesion() const -> bool;
 	[[nodiscard]] auto GetEtternaValid() const -> bool;
+	[[nodiscard]] auto GetDSFlag() const -> bool;
 	[[nodiscard]] auto IsUploadedToServer(const std::string& s) const -> bool;
 	std::vector<float> timeStamps;
 	[[nodiscard]] auto GetOffsetVector() const -> const std::vector<float>&;
@@ -57,6 +59,8 @@ struct HighScore
 	  -> const std::vector<TapNoteType>&;
 	[[nodiscard]] auto GetHoldReplayDataVector() const
 	  -> const std::vector<HoldReplayResult>&;
+	[[nodiscard]] auto GetMineReplayDataVector() const
+	  -> const std::vector<MineReplayResult>&;
 	[[nodiscard]] auto GetCopyOfOffsetVector() const -> std::vector<float>;
 	[[nodiscard]] auto GetCopyOfNoteRowVector() const -> std::vector<int>;
 	[[nodiscard]] auto GetCopyOfTrackVector() const -> std::vector<int>;
@@ -64,16 +68,15 @@ struct HighScore
 	  -> std::vector<TapNoteType>;
 	[[nodiscard]] auto GetCopyOfHoldReplayDataVector() const
 	  -> std::vector<HoldReplayResult>;
+	[[nodisard]] auto GetCopyOfMineReplayDataVector() const
+	  -> std::vector<MineReplayResult>;
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector() const
 	  -> std::vector<float>;
+	[[nodiscard]] auto GetInputDataVector() const -> const std::vector<InputDataEvent>&;
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
 	[[nodiscard]] auto GetReplayType() const -> int;
-	/**
-	 * @brief Determine how many seconds the player had left in Survival mode.
-	 * @return the number of seconds left. */
-	[[nodiscard]] auto GetSurviveSeconds() const -> float;
-	[[nodiscard]] auto GetSurvivalSeconds() const -> float;
+	[[nodiscard]] auto GetPlayedSeconds() const -> float;
 	[[nodiscard]] auto GetMaxCombo() const -> unsigned int;
 	/**
 	 * @brief Get the modifiers used for this run.
@@ -85,6 +88,7 @@ struct HighScore
 	[[nodiscard]] auto GetCountryCode() const -> const std::string&;
 	[[nodiscard]] auto GetProductID() const -> int;
 	[[nodiscard]] auto GetTapNoteScore(TapNoteScore tns) const -> int;
+	[[nodiscard]] auto GetTNSNormalized(TapNoteScore tns) const -> int;
 	[[nodiscard]] auto GetHoldNoteScore(HoldNoteScore hns) const -> int;
 	[[nodiscard]] auto GetRadarValues() const -> const RadarValues&;
 	[[nodiscard]] auto GetLifeRemainingSeconds() const -> float;
@@ -107,20 +111,23 @@ struct HighScore
 	void SetWifePoints(float f);
 	void SetSSRNormPercent(float f);
 	void SetMusicRate(float f);
-	void SetSurviveSeconds(float f);
+	void SetSongOffset(float f);
+	void SetPlayedSeconds(float f);
 	void SetJudgeScale(float f);
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
+	void SetDSFlag(bool b);
 	void AddUploadedServer(const std::string& s);
+	void SetInputDataVector(const std::vector<InputDataEvent>& v);
 	void SetOffsetVector(const std::vector<float>& v);
 	void SetNoteRowVector(const std::vector<int>& v);
 	void SetTrackVector(const std::vector<int>& v);
 	void SetTapNoteTypeVector(const std::vector<TapNoteType>& v);
 	void SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v);
+	void SetMineReplayDataVector(const std::vector<MineReplayResult>& v);
 	void SetOnlineReplayTimestampVector(const std::vector<float>& v);
 	void SetScoreKey(const std::string& sk);
 	void SetRescoreJudgeVector(const std::vector<int>& v);
-	void SetAliveSeconds(float f);
 	void SetMaxCombo(unsigned int i);
 	void SetModifiers(const std::string& s);
 	void SetDateTime(DateTime d);
@@ -157,7 +164,8 @@ struct HighScore
 	void LoadFromEttNode(const XNode* pNode);
 
 	auto WriteReplayData() -> bool;
-	auto WriteInputData(const std::vector<float>& oop) -> bool;
+	auto WriteInputData() -> bool;
+	auto LoadInputData() -> bool;
 	auto LoadReplayData() -> bool;
 	auto LoadReplayDataBasic(const std::string& dir) -> bool;
 	auto LoadReplayDataFull(const std::string& dir) -> bool;
@@ -180,7 +188,9 @@ struct HighScore
 	auto GenerateValidationKeys() -> std::string;
 	[[nodiscard]] auto GetValidationKey(ValidationKey vk) const
 	  -> const std::string&;
+	void SetWifeVersion(int i);
 	auto GetRescoreJudgeVector(int x) -> std::vector<int>;
+	auto NormalizeJudgments() -> bool;
 	// laazy
 	std::string scoreid;
 	int userid = -1;

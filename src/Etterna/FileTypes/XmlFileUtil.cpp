@@ -706,7 +706,7 @@ XmlFileUtil::AnnotateXNodeTree(XNode* pNode, const std::string& sFile)
 {
 	std::string sDir = Dirname(sFile);
 
-	vector<XNode*> queue;
+	std::vector<XNode*> queue;
 	queue.push_back(pNode);
 	while (!queue.empty()) {
 		pNode = queue.back();
@@ -727,7 +727,7 @@ XmlFileUtil::AnnotateXNodeTree(XNode* pNode, const std::string& sFile)
 void
 XmlFileUtil::CompileXNodeTree(XNode* pNode, const std::string& sFile)
 {
-	vector<XNode*> aToCompile;
+	std::vector<XNode*> aToCompile;
 	aToCompile.push_back(pNode);
 
 	Lua* L = LUA->Get();
@@ -765,8 +765,8 @@ XNodeFromTableRecursive(lua_State* L,
 	}
 
 	// Iterate over the table, pulling out attributes and tables to process.
-	vector<std::string> NodeNamesToAdd;
-	vector<LuaReference> NodesToAdd;
+	std::vector<std::string> NodeNamesToAdd;
+	std::vector<LuaReference> NodesToAdd;
 
 	/* Add array elements first, in array order, so iterating over the XNode
 	 * keeps the array in order. */
@@ -881,7 +881,7 @@ XmlFileUtil::MergeIniUnder(XNode* pFrom, XNode* pTo)
 {
 	/* Batch up nodes to move, and do them all at once, to deal sanely
 	 * with the possibility of duplicate child names. */
-	vector<XNodes::iterator> aToMove;
+	std::vector<XNodes::iterator> aToMove;
 
 	// Iterate over each section in pFrom.
 	XNodes::iterator it = pFrom->GetChildrenBegin();

@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
 #include "Etterna/Models/NoteData/NoteData.h"
@@ -50,7 +50,7 @@ using std::to_string;
  * the directory hash) in order to find the cache file.
  */
 const std::string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 242;
+const unsigned int CACHE_DB_VERSION = 244;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -93,7 +93,7 @@ SongCacheIndex::SongCacheIndex()
 }
 
 int64_t
-SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
+SongCacheIndex::InsertStepsTimingData(const TimingData& timing) const
 {
 	SQLite::Statement insertTimingData(*db,
 									   "INSERT INTO timingdatas VALUES (NULL, "
@@ -104,11 +104,11 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	   (NULL, " "OFFSET=?, BPMS=?, STOPS=?, " "DELAYS=?, WARPS=?,
 	   TIMESIGNATURESEGMENT=?, TICKCOUNTS=?, " "COMBOS=?, SPEEDS=?, SCROLLS=?,
 	   FAKES=?, LABELS=?)");*/
-	unsigned int timingDataIndex = 1;
+	int timingDataIndex = 1;
 	insertTimingData.bind(timingDataIndex++, timing.m_fBeat0OffsetInSeconds);
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_BPM);
-		string bpms = "";
+		string bpms;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const BPMSegment* segment = ToBPM(seg);
@@ -122,145 +122,163 @@ SongCacheIndex::InsertStepsTimingData(const TimingData& timing)
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_STOP);
-		string stops = "";
+		string stops;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const StopSegment* segment = ToStop(seg);
-				stops.append(ssprintf("%.6f=%.6f",
+				stops.append(ssprintf("%.6f=%.6f,",
 									  NoteRowToBeat(segment->GetRow()),
 									  segment->GetPause()));
 			}
+			stops = stops.substr(0, stops.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, stops);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_DELAY);
-		string delays = "";
+		string delays;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const DelaySegment* segment = ToDelay(seg);
-				delays.append(ssprintf("%.6f=%.6f",
+				delays.append(ssprintf("%.6f=%.6f,",
 									   NoteRowToBeat(segment->GetRow()),
 									   segment->GetPause()));
 			}
+			delays = delays.substr(0, delays.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, delays);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_WARP);
-		string warps = "";
+		string warps;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const WarpSegment* segment = ToWarp(seg);
-				warps.append(ssprintf("%.6f=%.6f",
+				warps.append(ssprintf("%.6f=%.6f,",
 									  NoteRowToBeat(segment->GetRow()),
 									  segment->GetLength()));
 			}
+			warps = warps.substr(0, warps.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, warps);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_TIME_SIG);
-		string timesigs = "";
+		string timesigs;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TimeSignatureSegment* segment = ToTimeSignature(seg);
-				timesigs.append(ssprintf("%.6f=%d=%d",
+				timesigs.append(ssprintf("%.6f=%d=%d,",
 										 NoteRowToBeat(segment->GetRow()),
 										 segment->GetNum(),
 										 segment->GetDen()));
 			}
+			timesigs =
+			  timesigs.substr(0, timesigs.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, timesigs);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_TICKCOUNT);
-		string ticks = "";
+		string ticks;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const TickcountSegment* segment = ToTickcount(seg);
-				ticks.append(ssprintf("%.6f=%d",
+				ticks.append(ssprintf("%.6f=%d,",
 									  NoteRowToBeat(segment->GetRow()),
 									  segment->GetTicks()));
 			}
+			ticks = ticks.substr(0, ticks.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, ticks);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_COMBO);
-		string combos = "";
+		string combos;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const ComboSegment* segment = ToCombo(seg);
 				if (segment->GetCombo() == segment->GetMissCombo()) {
-					combos.append(ssprintf("%.6f=%d",
+					combos.append(ssprintf("%.6f=%d,",
 										   NoteRowToBeat(segment->GetRow()),
 										   segment->GetCombo()));
 				} else {
-					combos.append(ssprintf("%.6f=%d=%d",
+					combos.append(ssprintf("%.6f=%d=%d,",
 										   NoteRowToBeat(segment->GetRow()),
 										   segment->GetCombo(),
 										   segment->GetMissCombo()));
 				}
 			}
+			combos = combos.substr(0, combos.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, combos);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_SPEED);
-		string speeds = "";
+		string speeds;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const SpeedSegment* segment = ToSpeed(seg);
-				speeds.append(ssprintf("%.6f=%.6f=%.6f=%hd",
+				speeds.append(ssprintf("%.6f=%.6f=%.6f=%hd,",
 									   NoteRowToBeat(segment->GetRow()),
 									   segment->GetRatio(),
 									   segment->GetDelay(),
 									   segment->GetUnit()));
 			}
+			speeds = speeds.substr(0, speeds.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, speeds);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_SCROLL);
-		string scrolls = "";
+		string scrolls;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const ScrollSegment* segment = ToScroll(seg);
-				scrolls.append(ssprintf("%.6f=%.6f",
+				scrolls.append(ssprintf("%.6f=%.6f,",
 										NoteRowToBeat(segment->GetRow()),
 										segment->GetRatio()));
 			}
+			scrolls =
+			  scrolls.substr(0, scrolls.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, scrolls);
 	}
 	{
 		auto const& segs = timing.GetTimingSegments(SEGMENT_LABEL);
-		string labels = "";
+		string labels;
 		if (!segs.empty()) {
 			for (auto&& seg : segs) {
 				const LabelSegment* segment = ToLabel(seg);
 				if (!segment->GetLabel().empty()) {
-					labels.append(ssprintf("%.6f=%s",
+					labels.append(ssprintf("%.6f=%s,",
 										   NoteRowToBeat(segment->GetRow()),
 										   segment->GetLabel().c_str()));
 				}
 			}
+			labels = labels.substr(0, labels.size() - 1); // Remove trailing ','
+
 		}
 		insertTimingData.bind(timingDataIndex++, labels);
 	}
 	try {
 		insertTimingData.exec();
-	} catch (exception e) {
-		LOG->Warn(
-		  "Failed to execute statement to insert TimingData from Cache: %s",
-		  e.what());
+	} catch (exception& e) {
+		Locator::getLogger()->warn("Failed to execute statement to insert TimingData from Cache: {}", e.what());
 	}
 	return sqlite3_last_insert_rowid(db->getHandle());
 }
 
 int64_t
-SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
+SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 {
 	SQLite::Statement insertSteps(*db,
 								  "INSERT INTO steps VALUES (NULL, "
@@ -268,7 +286,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 								  "?, ?, ?, "
 								  "?, ?, ?, "
 								  "?, ?, ?, ?, ?, ?, ?, ?)");
-	vector<std::string> lines;
+	std::vector<std::string> lines;
 	auto stepsIndex = 1;
 	insertSteps.bind(stepsIndex++, pSteps->GetChartName());
 	insertSteps.bind(stepsIndex++, pSteps->m_StepsTypeStr);
@@ -285,7 +303,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 
 	insertSteps.bind(stepsIndex++, pSteps->GetMusicFile()); // musicfile
 
-	vector<std::string> asRadarValues;
+	std::vector<std::string> asRadarValues;
 	const auto& rv = pSteps->GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
@@ -330,20 +348,20 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID)
 	auto serializednd = nd.SerializeNoteData2(td);
 	insertSteps.bind(stepsIndex++,
 					 serializednd.data(),
-					 serializednd.size() * sizeof(NoteInfo));
+					 static_cast<int>(serializednd.size() * sizeof(NoteInfo)));
 	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
 	try {
 		insertSteps.exec();
-	} catch (exception e) {
-		LOG->Warn("Failed to execute statement to insert Steps from Cache: %s",
-				  e.what());
+	} catch (exception& e) {
+		Locator::getLogger()->warn("Failed to execute statement to insert Steps from Cache: {}", e.what());
 	}
 	return sqlite3_last_insert_rowid(db->getHandle());
 }
 /*	Save a song to the cache db*/
 bool
-SongCacheIndex::CacheSong(Song& song, const std::string& dir)
+SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 {
+	Locator::getLogger()->debug("Caching song {}", dir);
 	DeleteSongFromDBByDir(dir);
 	try {
 		SQLite::Statement insertSong(*db,
@@ -363,7 +381,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 									 "?, ?, ?, ?, "
 									 "?, ?, ?, ?, "
 									 "?, ?)");
-		unsigned int index = 1;
+		int index = 1;
 		insertSong.bind(index++, STEPFILE_VERSION_NUMBER);
 		insertSong.bind(index++, song.m_sMainTitle);
 		insertSong.bind(index++, song.m_sSubTitle);
@@ -479,7 +497,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		}; */
 		FOREACH_BackgroundLayer(b)
 		{
-			string bgchanges = "";
+			string bgchanges;
 			if (song.GetBackgroundChanges(b).empty()) {
 				insertSong.bind(index++);
 				continue; // skip
@@ -510,7 +528,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		}
 
 		if (!song.m_vsKeysoundFile.empty()) {
-			string keysounds = "";
+			string keysounds;
 			for (unsigned i = 0; i < song.m_vsKeysoundFile.size(); i++) {
 				keysounds.append(song.m_vsKeysoundFile[i]);
 				if (i != song.m_vsKeysoundFile.size() - 1) {
@@ -524,8 +542,8 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		insertSong.bind(index++, song.GetFirstSecond());
 		insertSong.bind(index++, song.GetLastSecond());
 		insertSong.bind(index++, song.m_sSongFileName.c_str());
-		insertSong.bind(index++, song.m_bHasMusic);
-		insertSong.bind(index++, song.m_bHasBanner);
+		insertSong.bind(index++, static_cast<int>(song.m_bHasMusic));
+		insertSong.bind(index++, static_cast<int>(song.m_bHasBanner));
 		insertSong.bind(index++, song.m_fMusicLengthSeconds);
 		insertSong.bind(index++, GetHashForDirectory(song.GetSongDir()));
 		insertSong.bind(index++, song.GetSongDir());
@@ -546,14 +564,14 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		auto vpStepsToSave = song.GetStepsToSave();
 		for (auto* steps : vpStepsToSave) {
 			if (steps->m_StepsType >= NUM_StepsType) {
-				LOG->Info("Not caching unrecognized stepstype in file %s",
+				Locator::getLogger()->info("Not caching unrecognized stepstype in file {}",
 						  dir.c_str());
 				continue;
 			}
 			if (steps->GetChartKey().empty()) { // Avoid writing cache tags for
 												// invalid chartkey files(empty
 												// steps) -Mina
-				LOG->Info("Not caching empty difficulty in file %s",
+				Locator::getLogger()->info("Not caching empty difficulty in file {}",
 						  dir.c_str());
 				continue;
 			}
@@ -561,8 +579,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir)
 		}
 		return true;
 	} catch (std::exception& e) {
-		LOG->Trace(
-		  "Error saving song %s to cache db: %s", dir.c_str(), e.what());
+		Locator::getLogger()->warn("Error saving song {} to cache db: {}", dir.c_str(), e.what());
 		return false;
 	}
 }
@@ -572,21 +589,19 @@ Must be open already	*/
 void
 SongCacheIndex::DeleteDB()
 {
-	if (db != nullptr)
-		delete db;
+	delete db;
 	FILEMAN->Remove(CACHE_DB);
 	try {
 		db = new SQLite::Database(FILEMAN->ResolvePath(CACHE_DB),
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE |
 									SQLITE_OPEN_FULLMUTEX);
 	} catch (std::exception& e) {
-		LOG->Trace("Error reading cache db: %s", e.what());
+		Locator::getLogger()->warn("Error reading cache db: {}", e.what());
 		if (curTransaction != nullptr) {
 			delete curTransaction;
 			curTransaction = nullptr;
 		}
 	}
-	return;
 }
 void
 SongCacheIndex::ResetDB()
@@ -595,7 +610,7 @@ SongCacheIndex::ResetDB()
 	CreateDBTables();
 }
 void
-SongCacheIndex::CreateDBTables()
+SongCacheIndex::CreateDBTables() const
 {
 	try {
 		db->exec("CREATE TABLE IF NOT EXISTS dbinfo (ID INTEGER PRIMARY KEY, "
@@ -651,7 +666,7 @@ SongCacheIndex::CreateDBTables()
 		db->exec("INSERT INTO dbinfo VALUES (NULL, " +
 				 to_string(CACHE_DB_VERSION) + ")");
 	} catch (SQLite::Exception& e) {
-		LOG->Warn("Failed to create Cache DB Tables: %s", e.what());
+		Locator::getLogger()->warn("Failed to create Cache DB Tables: {}", e.what());
 	}
 }
 /*	Returns weather or not the db had valid data*/
@@ -686,7 +701,7 @@ SongCacheIndex::OpenDB()
 			return true;
 		}
 	} catch (std::exception& e) {
-		LOG->Trace("Error reading cache db: %s", e.what());
+		Locator::getLogger()->warn("Error reading cache db: {}", e.what());
 		if (curTransaction != nullptr) {
 			delete curTransaction;
 			curTransaction = nullptr;
@@ -706,7 +721,7 @@ SongCacheIndex::~SongCacheIndex()
 	if (curTransaction != nullptr) {
 		try {
 			curTransaction->commit();
-		} catch (exception e) {
+		} catch (...) {
 			// DB transaction commit failed, we're destructing so we dont care.
 			// There really shouldnt be a transaction left anyways
 		}
@@ -720,7 +735,7 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 							   map<std::string, Song*>& hyperCache)
 {
 	const int count = db->execAndGet("SELECT COUNT(*) FROM songs");
-	if (ld && count > 0) {
+	if ((ld != nullptr) && count > 0) {
 		ld->SetIndeterminate(false);
 		ld->SetProgress(0);
 		ld->SetTotalWork(count);
@@ -740,20 +755,19 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 			lastDir = lastDir.substr(0, lastDir.find_last_of('/'));
 			// this is a song directory. Load a new song.
 			progress++;
-			if (ld && progress % onePercent == 0) {
+			if ((ld != nullptr) && progress % onePercent == 0) {
 				ld->SetProgress(progress);
 				ld->SetText("Loading Cache\n" + lastDir);
 			}
 		}
 
 	} catch (std::exception& e) {
-		LOG->Trace("Error reading cache. last dir: %s . Error: %s",
+		Locator::getLogger()->warn("Error reading cache. last dir: {} . Error: {}",
 				   lastDir.c_str(),
 				   e.what());
 		ResetDB();
 		return;
 	}
-	return;
 }
 
 template<template<class, class...> class R1,
@@ -780,8 +794,9 @@ join(R1<R2<T, A2...>, A1...> const& outer)
 void
 SongCacheIndex::LoadCache(
   LoadingWindow* ld,
-  vector<pair<pair<std::string, unsigned int>, Song*>*>& cache)
+  std::vector<pair<pair<std::string, unsigned int>, Song*>*>& cache) const
 {
+	Locator::getLogger()->info("Beginning LoadCache");
 	auto count = 0;
 	try {
 		count = db->execAndGet("SELECT COUNT(*) FROM songs");
@@ -791,22 +806,25 @@ SongCacheIndex::LoadCache(
 			ld->SetProgress(0);
 			ld->SetTotalWork(count);
 		}
-	} catch (exception e) {
-		LOG->Warn("Failed to count all from songs table in Cache DB: %s",
-				  e.what());
+	} catch (exception& e) {
+		Locator::getLogger()->warn("Failed to count all from songs table in Cache DB: {}", e.what());
 	}
 	cache.reserve(count);
 	auto fivePercent = std::max(count / 100 * 5, 1);
-	const int threads = std::thread::hardware_concurrency();
-	const auto limit = count / threads;
+	const unsigned int threads = std::thread::hardware_concurrency();
+	const unsigned int limit =
+	  std::ceil(static_cast<float>(count) / static_cast<float>(threads));
+
 	ThreadData data;
 	std::atomic<bool> abort(false);
 	auto threadCallback =
 	  [&data, fivePercent, &abort](
 		int limit,
 		int offset,
-		vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart) {
-		  auto counter = 0, lastUpdate = 0;
+		std::vector<pair<pair<std::string, unsigned int>, Song*>*>* cachePart,
+		int index) {
+		  auto counter = 0;
+		  auto lastUpdate = 0;
 		  try {
 			  SQLite::Statement query(*SONGINDEX->db,
 									  "SELECT * FROM songs LIMIT " +
@@ -829,9 +847,8 @@ SongCacheIndex::LoadCache(
 					  data.setUpdated(true);
 				  }
 			  }
-
 		  } catch (std::exception& e) {
-			  LOG->Trace("Error reading cache. Error: %s", e.what());
+			  Locator::getLogger()->warn("Error reading cache - ABORTING. Error: {}", e.what());
 			  if (abort)
 				  return;
 			  abort = true;
@@ -839,27 +856,29 @@ SongCacheIndex::LoadCache(
 			  SONGINDEX->ResetDB();
 			  return;
 		  }
+		  Locator::getLogger()->info("LoadCache Thread {} Finished", index);
 		  data._threadsFinished++;
 		  data.setUpdated(true);
 	  };
-	vector<thread> threadpool;
-	vector<vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
+	std::vector<thread> threadpool;
+	std::vector<std::vector<pair<pair<std::string, unsigned int>, Song*>*>> cacheParts;
 	cacheParts.reserve(threads);
-	for (auto i = 0; i < threads; i++)
+	for (unsigned int i = 0; i < threads; i++)
 		cacheParts.emplace_back(
-		  vector<pair<pair<std::string, unsigned int>, Song*>*>());
+		  std::vector<pair<pair<std::string, unsigned int>, Song*>*>());
 	threadpool.reserve(threads);
-	for (auto i = 0; i < threads; i++)
+	for (unsigned int i = 0; i < threads; i++)
 		threadpool.emplace_back(
-		  thread(threadCallback, limit, i * limit, &(cacheParts[i])));
-	while (data._threadsFinished < threads) {
+		  thread(threadCallback, limit, i * limit, &(cacheParts[i]), i));
+	Locator::getLogger()->info("LoadCache Started {} Threads", threads);
+	while (data._threadsFinished < static_cast<int>(threads)) {
 		data.waitForUpdate();
 		if (abort) {
 			for (auto& thread : threadpool)
 				thread.join();
 			return;
 		}
-		if (ld) {
+		if (ld != nullptr) {
 			ld->SetProgress(data._progress);
 		}
 		data.setUpdated(false);
@@ -867,10 +886,10 @@ SongCacheIndex::LoadCache(
 	for (auto& thread : threadpool)
 		thread.join();
 	cache = join(cacheParts);
-	return;
+	Locator::getLogger()->info("Finished LoadCache");
 }
 void
-SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
+SongCacheIndex::DeleteSongFromDBByCondition(const string& condition) const
 {
 	try {
 		db->exec(
@@ -883,28 +902,26 @@ SongCacheIndex::DeleteSongFromDBByCondition(string& condition)
 		   condition + ")")
 			.c_str());
 		db->exec(("DELETE FROM songs WHERE " + condition).c_str());
-	} catch (exception e) {
-		LOG->Warn("Failed to execute Song Deletion from DB with condition "
-				  "'%s'\nException: %s",
-				  condition.c_str(),
-				  e.what());
+	} catch (exception& e) {
+		Locator::getLogger()->warn("Failed to execute Song Deletion from DB with condition "
+				  "'{}'\nException: {}", condition.c_str(), e.what());
 	}
 }
 void
-SongCacheIndex::DeleteSongFromDB(Song* songPtr)
+SongCacheIndex::DeleteSongFromDB(Song* songPtr) const
 {
 	auto cond = "dir = \"" + songPtr->GetSongDir() + "\" AND hash = \"" +
 				to_string(GetHashForDirectory(songPtr->GetSongDir())) + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void
-SongCacheIndex::DeleteSongFromDBByDir(string dir)
+SongCacheIndex::DeleteSongFromDBByDir(const string& dir) const
 {
 	auto cond = "dir=\"" + dir + "\"";
 	DeleteSongFromDBByCondition(cond);
 }
 void
-SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash)
+SongCacheIndex::DeleteSongFromDBByDirHash(unsigned int hash) const
 {
 	auto cond = "hash=\"" + to_string(hash) + "\"";
 	DeleteSongFromDBByCondition(cond);
@@ -939,10 +956,9 @@ SongCacheIndex::StartTransaction()
 		return;
 	try {
 		curTransaction = new SQLite::Transaction(*db);
-	} catch (exception e) {
-		LOG->Warn("Failed to start transaction due to exception: %s", e.what());
+	} catch (exception& e) {
+		Locator::getLogger()->warn("Failed to start transaction due to exception: {}", e.what());
 	}
-	return;
 }
 void
 SongCacheIndex::FinishTransaction()
@@ -951,22 +967,21 @@ SongCacheIndex::FinishTransaction()
 		return;
 	try {
 		curTransaction->commit();
-	} catch (exception e) {
+	} catch (...) {
 		// DB transaction commit failed, we're destructing so we dont care.
 		// There really shouldnt be a transaction left anyways
 	}
 	delete curTransaction;
 	curTransaction = nullptr;
-	return;
 }
 
 inline pair<std::string, int>
-SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
+SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 {
 	// SSC::StepsTagInfo reused_steps_info(&*song, &out, dir, true);
 	SSCLoader loader;
 	string dir;
-	int dirhash;
+	int dirhash = 0;
 
 	try {
 		int songid = query.getColumn(0);
@@ -1084,7 +1099,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		string animationstwo =
 		  static_cast<const char*>(query.getColumn(index++));
 
-		vector<std::string> aFGChangeExpressions;
+		std::vector<std::string> aFGChangeExpressions;
 		split(static_cast<const char*>(query.getColumn(index++)),
 			  ",",
 			  aFGChangeExpressions);
@@ -1163,11 +1178,11 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++)));
 			string radarValues =
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
-			vector<std::string> values;
+			std::vector<std::string> values;
 			split(radarValues, ",", values, true);
 			RadarValues rv;
 			rv.Zero();
-			for (size_t i = 0; i < NUM_RadarCategory; ++i)
+			for (int i = 0; i < NUM_RadarCategory; ++i)
 				rv[i] = StringToInt(values[i]);
 			pNewNotes->SetCachedRadarValues(rv);
 			pNewNotes->SetCredit(
@@ -1274,9 +1289,9 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 				pNewNotes->SetMaxBPM(BPMmax);
 			}
 			pNewNotes->SetFirstSecond(
-			  static_cast<double>(qSteps.getColumn(stepsIndex++)));
+			  static_cast<float>(qSteps.getColumn(stepsIndex++).getDouble()));
 			pNewNotes->SetLastSecond(
-			  static_cast<double>(qSteps.getColumn(stepsIndex++)));
+			  static_cast<float>(qSteps.getColumn(stepsIndex++).getDouble()));
 			// pNewNotes->SetSMNoteData("");
 			pNewNotes->TidyUpData();
 			pNewNotes->SetFilename(
@@ -1316,19 +1331,17 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 		  static_cast<const char*>(query.getColumn(index++));
 		song->m_sPreviewVidPath =
 		  static_cast<const char*>(query.getColumn(index++));
-	} catch (exception e) {
-		LOG->Warn("Exception occurred while loading file from cache: %s",
-				  e.what());
+	} catch (exception& e) {
+		Locator::getLogger()->warn("Exception occurred while loading file from cache: {}", e.what());
 	}
 
 	SMLoader::TidyUpData(*song, true);
 
 	if (song->m_sMainTitle.empty() ||
 		(song->m_sMusicFile.empty() && song->m_vsKeysoundFile.empty())) {
-		LOG->Warn("Main title or music file for '%s' came up blank, forced to "
+		/*Locator::getLogger()->warn("Main title or music file for '{}' came up blank, forced to "
 				  "fall back on TidyUpData to fix title and paths.  Do not use "
-				  "# or ; in a song title.",
-				  dir.c_str());
+				  "# or ; in a song title.", dir.c_str());*/
 		// Tell TidyUpData that it's not loaded from the cache because it needs
 		// to hit the song folder to find the files that weren't found. -Kyz
 		song->TidyUpData(false, false);
@@ -1338,7 +1351,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query)
 /*	Load a song from Cache DB
 	Returns true if it was loaded**/
 bool
-SongCacheIndex::LoadSongFromCache(Song* song, std::string dir)
+SongCacheIndex::LoadSongFromCache(Song* song, const std::string& dir)
 {
 	try {
 		SQLite::Statement query(
@@ -1352,8 +1365,7 @@ SongCacheIndex::LoadSongFromCache(Song* song, std::string dir)
 
 		SongFromStatement(song, query);
 	} catch (std::exception& e) {
-		LOG->Trace(
-		  "Error reading song %s from cache: %s", dir.c_str(), e.what());
+		Locator::getLogger()->error("Error reading song {} from cache: {}", dir.c_str(), e.what());
 		ResetDB();
 		return false;
 	}

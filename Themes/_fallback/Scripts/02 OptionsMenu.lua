@@ -10,7 +10,7 @@ function OptionsRowTest()
 	end
 	return {
 		-- Name is used to retrieve the header and explanation text.
-		Name = "Foo",
+		Name = "FooBar",
 		-- Flags for this row.  Note that as this table only defines
 		-- a row, not a menu, only row settings can be set here, not
 		-- OptionMenuFlags.
@@ -21,7 +21,12 @@ function OptionsRowTest()
 		-- Choices are not resolved as metrics, since they might
 		-- be dynamic.  Add THEME Lua hooks if we want to translate
 		-- these.
-		Choices = {"Option1", "Option2"},
+		Choices = {
+			THEME:GetString("OptionNames","Foo"),
+			THEME:GetString("OptionNames","Bar"),
+		},
+		-- Or:
+		-- Choices = {"Option1", "Option2"},
 		-- Or:
 		-- for i = 1,20 do Choices[i] = "Option " .. i end
 
@@ -127,6 +132,50 @@ function OptionsWeight()
 	}
 	return t
 end
+
+function getPlayerOptionsList(itemSet)
+	local Items = {
+		["Main"] = "Speed,RateList,NoteSk,PRAC,ScrollDir,Center,Persp,Background,Judge,Life,Fail,Score",
+		["Theme"] = "RowTest",
+		["Effect"] = "Persp,App,GHO,SHO,Acc,Hide,Effect1,Effect2,Scroll,Turn,Insert,R1,R2,Holds,Mines"
+	}
+	return Items[itemSet] .. ",NextScr"
+end
+
+function PONextScreen()
+	return {
+		Name = "PONextScreen",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = true,
+		Choices = {
+			THEME:GetString("OptionNames","NextGameplay"),
+			THEME:GetString("OptionNames","NextMain"),
+			THEME:GetString("OptionNames","NextTheme"),
+			THEME:GetString("OptionNames","NextEffect"),
+		},
+		Values = {
+			ToGameplay(),
+			"ScreenPlayerOptions",
+			"ScreenPlayerOptions",
+			"ScreenPlayerOptions"
+		},
+		LoadSelections = function(self, list, pn)
+			list[1] = true
+		end,
+		SaveSelections = function(self,list)
+			local entnames = {"Main","Theme","Effect"}
+			SCREENMAN:GetTopScreen():SetNextScreenName(ToGameplay())
+			for i,v in ipairs(self.Values) do
+				if list[i] and i > 1 then
+					SCREENMAN:GetTopScreen():SetNextScreenName( "ScreenPlayerOptions" )
+					setenv("NewOptions", entnames[i-1] )
+				end
+			end
+		end,
+	}
+end
+
 
 -- (c) 2005 Glenn Maynard
 -- All rights reserved.

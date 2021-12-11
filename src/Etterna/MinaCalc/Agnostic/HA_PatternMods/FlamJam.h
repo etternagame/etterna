@@ -2,18 +2,25 @@
 #include "../../PatternModHelpers.h"
 #include "../HA_Sequencers/FlamSequencing.h"
 
-// MAKE FLAM WIDE RANGE?
-// ^ YES DO THIS
+/// Hand-Agnostic PatternMod detecting continuous flams.
+/// Flams are n taps which are close enough to be hit as a chord.
+/// Intended to downscale patterns which take advantage of
+/// flams as being misinterpreted as stream instead of something like
+/// chordjacks or jumpstream.
+///
+/// note for improvement:
+/// MAKE FLAM WIDE RANGE?
+/// ^ YES DO THIS
 struct FlamJamMod
 {
 	const CalcPatternMod _pmod = FlamJam;
 	const std::string name = "FlamJamMod";
 
 #pragma region params
-	float min_mod = 0.5F;
+	float min_mod = 0.3F;
 	float max_mod = 1.F;
-	float scaler = 2.75F;
-	float base = 0.1F;
+	float scaler = 0.001F;
+	float base = 0.5F;
 
 	float group_tol = 35.F;
 	float step_tol = 17.5F;
@@ -58,7 +65,7 @@ struct FlamJamMod
 			pmod += mp;
 		}
 		pmod /= 5.F;
-		pmod = CalcClamp(base + pmod, min_mod, max_mod);
+		pmod = std::clamp(base + pmod, min_mod, max_mod);
 
 		// reset flags n stuff
 		fj.handle_interval_end();

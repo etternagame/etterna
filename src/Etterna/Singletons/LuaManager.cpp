@@ -4,14 +4,15 @@
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/Dialog/Dialog.h"
-#include "ver.h"
+#include "Core/Misc/AppInfo.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <csetjmp>
@@ -30,7 +31,7 @@ struct Impl
 	  : g_pLock("Lua")
 	{
 	}
-	vector<lua_State*> g_FreeStateList;
+	std::vector<lua_State*> g_FreeStateList;
 	std::map<lua_State*, bool> g_ActiveStates;
 
 	RageMutex g_pLock;
@@ -428,7 +429,7 @@ LuaHelpers::save_lua_table_to_file(lua_State* L,
 }
 
 void
-LuaHelpers::CreateTableFromArrayB(Lua* L, const vector<bool>& aIn)
+LuaHelpers::CreateTableFromArrayB(Lua* L, const std::vector<bool>& aIn)
 {
 	lua_newtable(L);
 	for (unsigned i = 0; i < aIn.size(); ++i) {
@@ -438,7 +439,7 @@ LuaHelpers::CreateTableFromArrayB(Lua* L, const vector<bool>& aIn)
 }
 
 void
-LuaHelpers::ReadArrayFromTableB(Lua* L, vector<bool>& aOut)
+LuaHelpers::ReadArrayFromTableB(Lua* L, std::vector<bool>& aOut)
 {
 	luaL_checktype(L, -1, LUA_TTABLE);
 
@@ -457,29 +458,30 @@ LuaHelpers::rec_print_table(lua_State* L,
 {
 	switch (lua_type(L, -1)) {
 		case LUA_TNIL:
-			LOG->Trace("%s%s: nil", indent.c_str(), name.c_str());
+			Locator::getLogger()->info("{}{}: nil", indent.c_str(), name.c_str());
 			break;
 		case LUA_TNUMBER:
-			LOG->Trace("%s%s number: %f",
+			Locator::getLogger()->info("{}{} number: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tonumber(L, -1));
 			break;
 		case LUA_TBOOLEAN:
-			LOG->Trace("%s%s bool: %d",
+			Locator::getLogger()->info("{}{} bool: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_toboolean(L, -1));
 			break;
 		case LUA_TSTRING:
-			LOG->Trace("%s%s string: %s",
+			Locator::getLogger()->info("{}{} string: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tostring(L, -1));
 			break;
 		case LUA_TTABLE: {
 			size_t tablen = lua_objlen(L, -1);
-			LOG->Trace("%s%s table: %zu", indent.c_str(), name.c_str(), tablen);
+			Locator::getLogger()->info(
+			  "{}{} table: {}", indent.c_str(), name.c_str(), tablen);
 			std::string subindent = indent + "  ";
 			lua_pushnil(L);
 			while (lua_next(L, -2) != 0) {
@@ -491,16 +493,20 @@ LuaHelpers::rec_print_table(lua_State* L,
 			}
 		} break;
 		case LUA_TFUNCTION:
-			LOG->Trace("%s%s function:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} function:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TUSERDATA:
-			LOG->Trace("%s%s userdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} userdata:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TTHREAD:
-			LOG->Trace("%s%s thread:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} thread:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TLIGHTUSERDATA:
-			LOG->Trace("%s%s lightuserdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} lightuserdata:", indent.c_str(), name.c_str());
 			break;
 		default:
 			break;
@@ -559,7 +565,7 @@ GetLuaStack(lua_State* L)
 		// The function is now on the top of the stack.
 		const char* file = ar.source[0] == '@' ? ar.source + 1 : ar.short_src;
 		const char* name;
-		vector<std::string> vArgs;
+		std::vector<std::string> vArgs;
 
 		auto logAndPop = [&](char const* luaName) {
 			auto* luaStr = lua_tostring(L, -1);
@@ -619,13 +625,13 @@ LuaPanic(lua_State* L)
 }
 
 // Actor registration
-static vector<RegisterWithLuaFn>* g_vRegisterActorTypes = nullptr;
+static std::vector<RegisterWithLuaFn>* g_vRegisterActorTypes = nullptr;
 
 void
 LuaManager::Register(RegisterWithLuaFn pfn)
 {
 	if (g_vRegisterActorTypes == nullptr)
-		g_vRegisterActorTypes = new vector<RegisterWithLuaFn>;
+		g_vRegisterActorTypes = new std::vector<RegisterWithLuaFn>;
 
 	g_vRegisterActorTypes->push_back(pfn);
 }
@@ -924,7 +930,7 @@ namespace {
 struct LClass
 {
 	std::string m_sBaseName;
-	vector<std::string> m_vMethods;
+	std::vector<std::string> m_vMethods;
 };
 } // namespace
 
@@ -940,13 +946,13 @@ LuaHelpers::GetLuaInformation()
 	XNode* pEnumsNode = pLuaNode->AppendChild("Enums");
 	XNode* pConstantsNode = pLuaNode->AppendChild("Constants");
 
-	vector<std::string> vFunctions;
+	std::vector<std::string> vFunctions;
 	std::map<std::string, LClass> mClasses;
-	std::map<std::string, vector<std::string>> mNamespaces;
+	std::map<std::string, std::vector<std::string>> mNamespaces;
 	std::map<std::string, std::string> mSingletons;
 	std::map<std::string, float> mConstants;
 	std::map<std::string, std::string> mStringConstants;
-	std::map<std::string, vector<std::string>> mEnums;
+	std::map<std::string, std::vector<std::string>> mEnums;
 
 	Lua* L = LUA->Get();
 	FOREACH_LUATABLE(L, LUA_GLOBALSINDEX)
@@ -1039,7 +1045,7 @@ LuaHelpers::GetLuaInformation()
 		LuaHelpers::Pop(L, sNamespace);
 		if (find(BuiltInPackages.begin(), endIter, sNamespace) != endIter)
 			continue;
-		vector<std::string>& vNamespaceFunctions = mNamespaces[sNamespace];
+		std::vector<std::string>& vNamespaceFunctions = mNamespaces[sNamespace];
 		FOREACH_LUATABLE(L, -1)
 		{
 			std::string sFunction;
@@ -1084,7 +1090,7 @@ LuaHelpers::GetLuaInformation()
 	/* Namespaces */
 	for (auto& iter : mNamespaces) {
 		XNode* pNamespaceNode = pNamespacesNode->AppendChild("Namespace");
-		const vector<std::string>& vNamespace = iter.second;
+		const std::vector<std::string>& vNamespace = iter.second;
 		pNamespaceNode->AppendAttr("name", iter.first);
 
 		for (auto const& func : vNamespace) {
@@ -1097,7 +1103,7 @@ LuaHelpers::GetLuaInformation()
 	for (auto& iter : mEnums) {
 		XNode* pEnumNode = pEnumsNode->AppendChild("Enum");
 
-		const vector<std::string>& vEnum = iter.second;
+		const std::vector<std::string>& vEnum = iter.second;
 		pEnumNode->AppendAttr("name", iter.first);
 
 		for (unsigned i = 0; i < vEnum.size(); ++i) {
@@ -1212,7 +1218,7 @@ LuaHelpers::ReportScriptError(std::string const& Error,
 		ScriptErrorMessage(Error);
 		InReportScriptError = false;
 	}
-	LOG->Warn("%s", Error.c_str());
+	Locator::getLogger()->warn("{}", Error.c_str());
 	if (UseAbort) {
 		std::string with_correct =
 		  Error + "\nCorrect this and click Retry, click Abort to crash, or "
@@ -1397,7 +1403,7 @@ LuaHelpers::ParseCommandList(Lua* L,
 
 	std::string sError;
 	if (!LuaHelpers::RunScript(L, sLuaFunction, sName, sError, 0, 1))
-		LOG->Warn("Compiling \"%s\": %s", sLuaFunction.c_str(), sError.c_str());
+		Locator::getLogger()->warn("Compiling \"{}\": {}", sLuaFunction.c_str(), sError.c_str());
 
 	// The function is now on the stack.
 }
@@ -1478,10 +1484,9 @@ GetFuncArg(int n, lua_State* L)
 	return ref;
 }
 
-#include "Etterna/Globals/ProductInfo.h"
-LuaFunction(ProductFamily, (std::string)PRODUCT_FAMILY);
-LuaFunction(ProductVersion, (std::string)product_version);
-LuaFunction(ProductID, (std::string)PRODUCT_ID);
+LuaFunction(ProductFamily, (std::string)Core::AppInfo::APP_TITLE);
+LuaFunction(ProductVersion, (std::string)Core::AppInfo::APP_VERSION);
+LuaFunction(ProductID, (std::string)Core::AppInfo::APP_TITLE);
 
 LuaFunction(scale, SCALE(FArg(1), FArg(2), FArg(3), FArg(4), FArg(5)));
 
@@ -1493,20 +1498,20 @@ static int
 Trace(lua_State* L)
 {
 	std::string sString = SArg(1);
-	LOG->Trace("%s", sString.c_str());
+	// i know
+	Locator::getLogger()->info("{}", sString.c_str());
 	return 0;
 }
 static int
 Warn(lua_State* L)
 {
 	std::string sString = SArg(1);
-	LOG->Warn("%s", sString.c_str());
+	Locator::getLogger()->warn("{}", sString.c_str());
 	return 0;
 }
 static int
 Flush(lua_State*)
 {
-	LOG->Flush();
 	return 0;
 }
 static int
@@ -1549,7 +1554,7 @@ RunWithThreadVariables(lua_State* L)
 	luaL_checktype(L, 1, LUA_TFUNCTION);
 	luaL_checktype(L, 2, LUA_TTABLE);
 
-	vector<LuaThreadVariable*> apVars;
+	std::vector<LuaThreadVariable*> apVars;
 	FOREACH_LUATABLE(L, 2)
 	{
 		lua_pushvalue(L, -2);

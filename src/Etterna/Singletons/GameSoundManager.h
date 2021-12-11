@@ -5,6 +5,7 @@
 #include "Etterna/Models/Misc/PlayerNumber.h"
 #include "MessageManager.h"
 
+struct RageSoundParams;
 class TimingData;
 class Screen;
 class RageSound;
@@ -70,7 +71,6 @@ class GameSoundManager : MessageSubscriber
 	void PlayOnceFromAnnouncer(const std::string& sFolderName);
 
 	void HandleSongTimer(bool on = true);
-	auto GetFrameTimingAdjustment(float fDeltaTime) -> float;
 
 	static auto GetPlayerBalance(PlayerNumber pn) -> float;
 	void WithRageSoundPlaying(std::function<void(RageSound*)> f);
@@ -80,6 +80,10 @@ class GameSoundManager : MessageSubscriber
 	// Meant to avoid blocking the game execution (stutter)
 	void SetSoundPosition(RageSound* s, float fSeconds);
 
+	void SetPlayingMusicParams(RageSoundParams p);
+
+	const RageSoundParams& GetPlayingMusicParams();
+
 	void StartMusic(MusicToPlay& ToPlay);
 	void DoPlayOnce(std::string sPath);
 	void StartQueuedSounds();
@@ -87,11 +91,15 @@ class GameSoundManager : MessageSubscriber
 	auto SoundWaiting() -> bool;
 	void HandleSetPosition();
 
+	void HandleSetParams();
+
 	std::shared_ptr<LuaReference> soundPlayCallback;
 	unsigned int recentPCMSamplesBufferSize = 1024;
 	Screen* callbackOwningScreen{ nullptr };
 
 	void HandleMessage(const Message& msg) override;
+
+	void ResyncMusicPlaying();
 
 	// Lua
 	void PushSelf(lua_State* L);

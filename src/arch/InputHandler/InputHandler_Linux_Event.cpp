@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "InputHandler_Linux_Event.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "LinuxInputManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h" //needed for Axis Fix
@@ -78,7 +78,7 @@ struct EventDevice
 	DeviceButton aiAbsMappingLow[ABS_MAX];
 };
 
-static vector<EventDevice*> g_apEventDevices;
+static std::vector<EventDevice*> g_apEventDevices;
 
 /* Return true if the numbered event device exists.  sysfs may not always be
  * there; return false if we don't know. */
@@ -121,9 +121,9 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 		bLogged = true;
 		int iVersion;
 		if (ioctl(m_iFD, EVIOCGVERSION, &iVersion) == -1)
-			LOG->Warn("ioctl(EVIOCGVERSION): %s", strerror(errno));
+			Locator::getLogger()->warn("ioctl(EVIOCGVERSION): {}", strerror(errno));
 		else
-			LOG->Info("Event driver: v%i.%i.%i",
+			Locator::getLogger()->Info("Event driver: v{}.{}.{}",
 					  (iVersion >> 16) & 0xFF,
 					  (iVersion >> 8) & 0xFF,
 					  iVersion & 0xFF);
@@ -131,7 +131,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 
 	char szName[1024];
 	if (ioctl(m_iFD, EVIOCGNAME(sizeof(szName)), szName) == -1) {
-		LOG->Warn("ioctl(EVIOCGNAME): %s", strerror(errno));
+		Locator::getLogger()->warn("ioctl(EVIOCGNAME): {}", strerror(errno));
 
 		m_sName = "(unknown)";
 	} else {
@@ -140,25 +140,22 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 
 	input_id DevInfo;
 	if (ioctl(m_iFD, EVIOCGID, &DevInfo) == -1) {
-		LOG->Warn("ioctl(EVIOCGID): %s", strerror(errno));
+		Locator::getLogger()->warn("ioctl(EVIOCGID): {}", strerror(errno));
 	} else {
-		LOG->Info("Input device: %s: %s device, ID %04x:%04x, version %x: %s",
-				  sFile.c_str(),
-				  BustypeToString(DevInfo.bustype).c_str(),
-				  DevInfo.vendor,
-				  DevInfo.product,
-				  DevInfo.version,
+		Locator::getLogger()->Info("Input device: {}: {} device, ID {:04x}:{:04x}, version {:x}: {}",
+				  sFile.c_str(), BustypeToString(DevInfo.bustype).c_str(),
+				  DevInfo.vendor, DevInfo.product, DevInfo.version,
 				  m_sName.c_str());
 	}
 
 	uint8_t iABSMask[ABS_MAX / 8 + 1];
 	memset(iABSMask, 0, sizeof(iABSMask));
 	if (ioctl(m_iFD, EVIOCGBIT(EV_ABS, sizeof(iABSMask)), iABSMask) < 0)
-		LOG->Warn("ioctl(EVIOCGBIT(EV_ABS)): %s", strerror(errno));
+		Locator::getLogger()->warn("ioctl(EVIOCGBIT(EV_ABS)): {}", strerror(errno));
 
 	if (!BitIsSet(iABSMask, ABS_X) && !BitIsSet(iABSMask, ABS_THROTTLE) &&
 		!BitIsSet(iABSMask, ABS_WHEEL)) {
-		LOG->Info("    Not a joystick; ignored");
+		Locator::getLogger()->Info("    Not a joystick; ignored");
 		Close();
 		return false;
 	}
@@ -166,15 +163,15 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 	uint8_t iKeyMask[KEY_MAX / 8 + 1];
 	memset(iKeyMask, 0, sizeof(iKeyMask));
 	if (ioctl(m_iFD, EVIOCGBIT(EV_KEY, sizeof(iKeyMask)), iKeyMask) < 0)
-		LOG->Warn("ioctl(EVIOCGBIT(EV_KEY)): %s", strerror(errno));
+		Locator::getLogger()->warn("ioctl(EVIOCGBIT(EV_KEY)): {}", strerror(errno));
 
 	uint8_t iEventTypes[EV_MAX / 8];
 	memset(iEventTypes, 0, sizeof(iEventTypes));
 	if (ioctl(m_iFD, EVIOCGBIT(0, EV_MAX), iEventTypes) == -1)
-		LOG->Warn("ioctl(EV_MAX): %s", strerror(errno));
+		Locator::getLogger()->warn("ioctl(EV_MAX): {}", strerror(errno));
 
 	{
-		vector<std::string> setEventTypes;
+		std::vector<std::string> setEventTypes;
 
 		if (BitIsSet(iEventTypes, EV_SYN))
 			setEventTypes.push_back("syn");
@@ -201,7 +198,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 		if (BitIsSet(iEventTypes, EV_FF_STATUS))
 			setEventTypes.push_back("ff_status");
 
-		LOG->Info("    Event types: %s", join(", ", setEventTypes).c_str());
+		Locator::getLogger()->Info("    Event types: {}", join(", ", setEventTypes).c_str());
 	}
 
 	int iTotalKeys = 0;
@@ -221,11 +218,11 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 			continue;
 		struct input_absinfo absinfo;
 		if (ioctl(m_iFD, EVIOCGABS(i), &absinfo) < 0) {
-			LOG->Warn("ioctl(EVIOCGABS): %s", strerror(errno));
+			Locator::getLogger()->warn("ioctl(EVIOCGABS): {}", strerror(errno));
 			continue;
 		}
 
-		// LOG->Info( "    Axis %i: min: %i; max: %i; fuzz: %i; flat: %i",
+		// Locator::getLogger()->Info( "    Axis {}: min: {}; max: {}; fuzz: {}; flat: {}",
 		//		i, absinfo.minimum, absinfo.maximum, absinfo.fuzz, absinfo.flat
 		//);
 		aiAbsMin[i] = absinfo.minimum;
@@ -267,7 +264,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 
 		++iTotalAxes;
 	}
-	LOG->Info("    Total keys: %i; total axes: %i", iTotalKeys, iTotalAxes);
+	Locator::getLogger()->Info("    Total keys: {}; total axes: {}", iTotalKeys, iTotalAxes);
 
 	return true;
 }
@@ -313,9 +310,9 @@ void
 InputHandler_Linux_Event::StopThread()
 {
 	m_bShutdown = true;
-	LOG->Trace("Shutting down joystick thread ...");
+	Locator::getLogger()->trace("Shutting down joystick thread ...");
 	m_InputThread.Wait();
-	LOG->Trace("Joystick thread shut down.");
+	Locator::getLogger()->trace("Joystick thread shut down.");
 }
 
 bool
@@ -343,7 +340,7 @@ InputHandler_Linux_Event::TryDevice(std::string devfile)
 		// This is likely to fail; most systems still forbid ALL eventNN
 		// regardless of their type. Info it anyway, it could be useful for
 		// end-user troubleshooting.
-		LOG->Info("LinuxEvent: Couldn't open %s: %s.",
+		Locator::getLogger()->Info("LinuxEvent: Couldn't open {}: {}.",
 				  devfile.c_str(),
 				  strerror(errno));
 		return false;
@@ -392,7 +389,7 @@ InputHandler_Linux_Event::InputThread()
 			input_event event;
 			int ret = read(g_apEventDevices[i]->m_iFD, &event, sizeof(event));
 			if (ret == -1) {
-				LOG->Warn("Error reading from %s: %s; disabled",
+				Locator::getLogger()->warn("Error reading from {}: {}; disabled",
 						  g_apEventDevices[i]->m_sPath.c_str(),
 						  strerror(errno));
 				g_apEventDevices[i]->Close();
@@ -400,11 +397,8 @@ InputHandler_Linux_Event::InputThread()
 			}
 
 			if (ret != sizeof(event)) {
-				LOG->Warn("Unexpected packet (size %i != %i) from joystick %i; "
-						  "disabled",
-						  ret,
-						  (int)sizeof(event),
-						  i);
+				Locator::getLogger()->warn("Unexpected packet (size {} != {}) from joystick {}; "
+						  "disabled", ret, (int)sizeof(event), i);
 				g_apEventDevices[i]->Close();
 				continue;
 			}
@@ -479,7 +473,7 @@ InputHandler_Linux_Event::InputThread()
 
 void
 InputHandler_Linux_Event::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	for (unsigned i = 0; i < g_apEventDevices.size(); ++i) {
 		EventDevice* pDev = g_apEventDevices[i];

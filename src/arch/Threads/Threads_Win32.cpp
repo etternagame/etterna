@@ -377,15 +377,15 @@ PortableSignalObjectAndWait(HANDLE hObjectToSignal,
 
 // Event logic from http://www.cs.wustl.edu/~schmidt/win32-cv-1.html.
 bool
-EventImpl_Win32::Wait(RageTimer* pTimeout)
+EventImpl_Win32::Wait(float timeout)
 {
 	EnterCriticalSection(&m_iNumWaitingLock);
 	++m_iNumWaiting;
 	LeaveCriticalSection(&m_iNumWaitingLock);
 
 	unsigned iMilliseconds = INFINITE;
-	if (pTimeout != nullptr) {
-		float fSecondsInFuture = -pTimeout->Ago();
+	if (timeout > 0.F) {
+		float fSecondsInFuture = timeout;
 		iMilliseconds = static_cast<unsigned>(
 		  std::max(0, static_cast<int>(fSecondsInFuture * 1000)));
 	}

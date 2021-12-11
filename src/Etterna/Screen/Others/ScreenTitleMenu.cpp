@@ -5,6 +5,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenTitleMenu.h"
@@ -39,9 +40,8 @@ bool
 ScreenTitleMenu::Input(const InputEventPlus& input)
 {
 #if defined(DEBUG)
-	LOG->Trace("ScreenTitleMenu::Input( %d-%d )",
-			   input.DeviceI.device,
-			   input.DeviceI.button); // debugging gameport joystick problem
+	Locator::getLogger()->trace("ScreenTitleMenu::Input( {}-{} )",
+			   input.DeviceI.device, input.DeviceI.button); // debugging gameport joystick problem
 #endif
 
 	if (m_In.IsTransitioning() || m_Cancel.IsTransitioning()) /* not m_Out */

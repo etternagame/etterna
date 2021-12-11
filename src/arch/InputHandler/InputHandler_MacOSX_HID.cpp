@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "InputHandler_MacOSX_HID.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -30,7 +30,7 @@ InputHandler_MacOSX_HID::QueueCallback(void* target,
 	IOHIDEventStruct event;
 	AbsoluteTime zeroTime = { 0, 0 };
 	HIDDevice* dev = This->m_vDevices[size_t(refcon)];
-	vector<DeviceInput> vPresses;
+	std::vector<DeviceInput> vPresses;
 
 	while ((result = CALL(queue, getNextEvent, &event, zeroTime, 0)) ==
 		   kIOReturnSuccess) {
@@ -68,7 +68,7 @@ InputHandler_MacOSX_HID::Run(void* data)
 	{
 		const std::string sError = SetThreadPrecedence(1.0f);
 		if (!sError.empty())
-			LOG->Warn("Could not set precedence of the input thread: %s",
+			Locator::getLogger()->warn("Could not set precedence of the input thread: {}",
 					  sError.c_str());
 	}
 	// Add an observer for the start of the run loop
@@ -112,7 +112,7 @@ InputHandler_MacOSX_HID::Run(void* data)
 		  This->m_LoopRef, This->m_SourceRef, kCFRunLoopDefaultMode);
 	}
 	CFRunLoopRun();
-	LOG->Trace("Shutting down input handler thread...");
+	Locator::getLogger()->trace("Shutting down input handler thread...");
 	return 0;
 }
 
@@ -166,7 +166,7 @@ InputHandler_MacOSX_HID::~InputHandler_MacOSX_HID()
 		m_InputThread.Wait();
 		CFRelease(m_SourceRef);
 		CFRelease(m_LoopRef);
-		LOG->Trace("Input handler thread shut down.");
+		Locator::getLogger()->trace("Input handler thread shut down.");
 	}
 
 	FOREACH(io_iterator_t, m_vIters, i)
@@ -233,18 +233,18 @@ InputHandler_MacOSX_HID::AddDevices(int usagePage, int usage, InputDevice& id)
 
 	// Iterate over the devices and add them
 	while ((device = IOIteratorNext(iter))) {
-		LOG->Trace("\tFound device %d", id);
+		Locator::getLogger()->trace("\tFound device {}", id);
 		HIDDevice* dev = MakeDevice(id);
 		int num;
 
 		if (!dev) {
-			LOG->Trace("\t\tInvalid id, deleting device");
+			Locator::getLogger()->trace("\t\tInvalid id, deleting device");
 			IOObjectRelease(device);
 			continue;
 		}
 
 		if (!dev->Open(device) || (num = dev->AssignIDs(id)) == -1) {
-			LOG->Trace("\tFailed top open or assign id, deleting device");
+			Locator::getLogger()->trace("\tFailed top open or assign id, deleting device");
 			delete dev;
 			IOObjectRelease(device);
 			continue;
@@ -265,8 +265,7 @@ InputHandler_MacOSX_HID::AddDevices(int usagePage, int usage, InputDevice& id)
 		if (ret == KERN_SUCCESS)
 			m_vIters.push_back(i);
 		else
-			LOG->Trace(
-			  "\t\tFailed to add device changed notification, deleting device");
+			Locator::getLogger()->trace("\t\tFailed to add device changed notification, deleting device");
 		IOObjectRelease(device);
 	}
 }
@@ -281,19 +280,19 @@ InputHandler_MacOSX_HID::InputHandler_MacOSX_HID()
 	m_NotifyPort = IONotificationPortCreate(kIOMasterPortDefault);
 
 	// Add devices.
-	LOG->Trace("Finding keyboards");
+	Locator::getLogger()->trace("Finding keyboards");
 	AddDevices(kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard, id);
 
 	id = DEVICE_MOUSE;
 
-	LOG->Trace("Finding mice");
+	Locator::getLogger()->trace("Finding mice");
 	AddDevices(kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse, id);
 
-	LOG->Trace("Finding joysticks");
+	Locator::getLogger()->trace("Finding joysticks");
 	id = DEVICE_JOY1;
 	AddDevices(kHIDPage_GenericDesktop, kHIDUsage_GD_Joystick, id);
 	AddDevices(kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad, id);
-	LOG->Trace("Finding pump");
+	Locator::getLogger()->trace("Finding pump");
 	id = DEVICE_PUMP1;
 	AddDevices(kHIDPage_VendorDefinedStart,
 			   0x0001,
@@ -314,7 +313,7 @@ InputHandler_MacOSX_HID::InputHandler_MacOSX_HID()
 
 void
 InputHandler_MacOSX_HID::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevices)
+  std::vector<InputDeviceInfo>& vDevices)
 {
 	FOREACH_CONST(HIDDevice*, m_vDevices, i)
 	(*i)->GetDevicesAndDescriptions(vDevices);

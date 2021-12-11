@@ -164,14 +164,14 @@ function getClearTypeFromScore(pn, score, ret)
 		return getClearTypeItem(13, ret)
 	end
 	song = GAMESTATE:GetCurrentSong()
-	steps = GAMESTATE:GetCurrentSteps(pn)
+	steps = GAMESTATE:GetCurrentSteps()
 	profile = GetPlayerOrMachineProfile(pn)
 	if not isScoreValid(pn, steps, score) then
 		return getClearTypeItem(12, ret)
 	end
 	if score ~= nil and song ~= nil and steps ~= nil then
 		playCount = profile:GetSongNumTimesPlayed(song)
-		grade = score:GetGrade()
+		grade = score:GetWifeGrade()
 		perfcount = score:GetTapNoteScore("TapNoteScore_W2")
 		greatcount = score:GetTapNoteScore("TapNoteScore_W3")
 		misscount =

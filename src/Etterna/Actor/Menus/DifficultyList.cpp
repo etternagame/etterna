@@ -17,10 +17,11 @@
 /** @brief Specifies the max number of charts available for a song.
  *
  * This includes autogenned charts. */
-// reasonable limit to chart amount. if someone consistently crashes when
-// scrolling on a chart that has 25 diffs, THIS IS WHY
-// (this is a hardcoded value to optimize stepstype hover or something) -poco
-#define MAX_METERS 24
+
+// initial allocation for number of difficulties to load in the display
+// should be a reasonable number that covers most cases, but the code
+// will handle cases where the number needs to be larger
+#define LINES_INITIAL_ALLOCATION 12
 
 REGISTER_ACTOR_CLASS(StepsDisplayList);
 
@@ -29,9 +30,7 @@ StepsDisplayList::StepsDisplayList()
 	m_CurSong = nullptr;
 	m_bShown = true;
 	SubscribeToMessage(
-	  static_cast<MessageID>(Message_CurrentStepsP1Changed + PLAYER_1));
-	SubscribeToMessage(
-	  static_cast<MessageID>(Message_CurrentTrailP1Changed + PLAYER_1));
+	  static_cast<MessageID>(Message_CurrentStepsChanged + PLAYER_1));
 }
 
 StepsDisplayList::~StepsDisplayList() = default;
@@ -51,7 +50,7 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 	CAPITALIZE_DIFFICULTY_NAMES.Load(m_sName, "CapitalizeDifficultyNames");
 	MOVE_COMMAND.Load(m_sName, "MoveCommand");
 
-	m_Lines.resize(MAX_METERS);
+	m_Lines.lines.resize(LINES_INITIAL_ALLOCATION);
 	m_CurSong = nullptr;
 
 	const XNode* pChild = pNode->GetChild(ssprintf("CursorP%i", PLAYER_1 + 1));
@@ -83,11 +82,12 @@ StepsDisplayList::LoadFromNode(const XNode* pNode)
 		this->AddChild(&m_CursorFrames);
 	}
 
-	for (auto& m_Line : m_Lines) {
+	for (auto& m_Line : m_Lines.lines) {
+		m_Line = std::make_unique<StepsDisplay>();
 		// todo: Use Row1, Row2 for names? also m_sName+"Row" -aj
-		m_Line.m_Meter.SetName("Row");
-		m_Line.m_Meter.Load("StepsDisplayListRow", nullptr);
-		this->AddChild(&m_Line.m_Meter);
+		m_Line->SetName("Row");
+		m_Line->Load("StepsDisplayListRow", nullptr);
+		this->AddChild(m_Line.get());
 	}
 
 	UpdatePositions();
@@ -130,7 +130,7 @@ StepsDisplayList::UpdatePositions()
 	// both.
 	const int P1Choice = iCurrentRow;
 
-	vector<Row>& Rows = m_Rows;
+	std::vector<Row>& Rows = m_Rows;
 
 	const bool BothPlayersActivated = GAMESTATE->IsHumanPlayer(PLAYER_1);
 	if (!BothPlayersActivated) {
@@ -205,9 +205,9 @@ StepsDisplayList::UpdatePositions()
 void
 StepsDisplayList::PositionItems()
 {
-	for (int i = 0; i < MAX_METERS; ++i) {
-		const bool bUnused = (i >= static_cast<int>(m_Rows.size()));
-		m_Lines[i].m_Meter.SetVisible(!bUnused);
+	for (size_t i = 0; i < m_Lines.lines.size(); ++i) {
+		const bool bUnused = i >= m_Rows.size();
+		m_Lines.lines[i]->SetVisible(!bUnused);
 	}
 
 	for (int m = 0; m < static_cast<int>(m_Rows.size()); ++m) {
@@ -217,24 +217,24 @@ StepsDisplayList::PositionItems()
 			bHidden = true;
 
 		const float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
-		if (m_Lines[m].m_Meter.GetDestY() != row.m_fY ||
-			m_Lines[m].m_Meter.DestTweenState().diffuse[0][3] !=
+		if (m_Lines.lines[m]->GetDestY() != row.m_fY ||
+			m_Lines.lines[m]->DestTweenState().diffuse[0][3] !=
 			  fDiffuseAlpha) {
-			m_Lines[m].m_Meter.RunCommands(MOVE_COMMAND.GetValue());
-			m_Lines[m].m_Meter.RunCommandsOnChildren(MOVE_COMMAND.GetValue());
+			m_Lines.lines[m]->RunCommands(MOVE_COMMAND.GetValue());
+			m_Lines.lines[m]->RunCommandsOnChildren(MOVE_COMMAND.GetValue());
 		}
-		m_Lines[m].m_Meter.mypos = m;
-		m_Lines[m].m_Meter.SetY(row.m_fY);
+		m_Lines.lines[m]->mypos = m;
+		m_Lines.lines[m]->SetY(row.m_fY);
 	}
 
-	for (int m = 0; m < MAX_METERS; ++m) {
+	for (size_t m = 0; m < m_Lines.lines.size(); ++m) {
 		bool bHidden = true;
-		if (m_bShown && m < static_cast<int>(m_Rows.size()))
+		if (m_bShown && m < m_Rows.size())
 			bHidden = m_Rows[m].m_bHidden;
 
 		const float fDiffuseAlpha = bHidden ? 0.0f : 1.0f;
 
-		m_Lines[m].m_Meter.SetDiffuseAlpha(fDiffuseAlpha);
+		m_Lines.lines[m]->SetDiffuseAlpha(fDiffuseAlpha);
 	}
 
 	const int iCurrentRow = GetCurrentRowIndex(PLAYER_1);
@@ -257,50 +257,81 @@ StepsDisplayList::SetFromGameState()
 		// FIXME: This clamps to between the min and the max difficulty, but
 		// it really should round to the nearest difficulty that's in
 		// DIFFICULTIES_TO_SHOW.
-		const vector<Difficulty>& difficulties =
+		const std::vector<Difficulty>& difficulties =
 		  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 		m_Rows.resize(difficulties.size());
+
+		// m_Lines.lines needs to be resized to allow the number of rows used
+		if (m_Rows.size() > m_Lines.lines.size()) {
+			auto startingIndex = m_Lines.lines.size();
+			m_Lines.lines.resize(m_Rows.size());
+
+			for (auto j = startingIndex; j < m_Lines.lines.size(); j++) {
+				auto& m_Line = m_Lines.lines[j];
+				m_Line = std::make_unique<StepsDisplay>();
+				m_Line->SetName("Row");
+				m_Line->Load("StepsDisplayListRow", nullptr);
+				this->AddChild(m_Line.get());
+			}
+			SortByDrawOrder();
+		}
+		
 		FOREACH_CONST(Difficulty, difficulties, d)
 		{
 			m_Rows[i].m_dc = *d;
-			m_Lines[i]
-			  .m_Meter.SetFromStepsTypeAndMeterAndDifficultyAndCourseType(
+			m_Lines.lines[i]->SetFromStepsTypeAndMeterAndDifficultyAndCourseType(
 				GAMESTATE->GetCurrentStyle(PLAYER_INVALID)->m_StepsType, 0, *d);
 			++i;
 		}
 	} else {
-		vector<Steps*> vpSteps;
+		std::vector<Steps*> vpSteps;
 		SongUtil::GetPlayableSteps(pSong, vpSteps);
 		// Should match the sort in ScreenSelectMusic::AfterMusicChange.
 
 		m_Rows.resize(vpSteps.size());
+
+		// m_Lines.lines needs to be resized to allow the number of rows used
+		if (m_Rows.size() > m_Lines.lines.size()) {
+			auto startingIndex = m_Lines.lines.size();
+			m_Lines.lines.resize(m_Rows.size());
+
+			for (auto j = startingIndex; j < m_Lines.lines.size(); j++) {
+				auto& m_Line = m_Lines.lines[j];
+				m_Line = std::make_unique<StepsDisplay>();
+				m_Line->SetName("Row");
+				m_Line->Load("StepsDisplayListRow", nullptr);
+				this->AddChild(m_Line.get());
+			}
+			SortByDrawOrder();
+		}
+
 		FOREACH_CONST(Steps*, vpSteps, s)
 		{
 			// LOG->Trace(ssprintf("setting steps for row %i",i));
 			m_Rows[i].m_Steps = *s;
-			m_Lines[i].m_Meter.SetFromSteps(*s);
+			m_Lines.lines[i]->SetFromSteps(*s);
 			++i;
 		}
 	}
 
-	while (i < MAX_METERS)
-		m_Lines[i++].m_Meter.Unset();
+	for (auto& m_Line : m_Lines.lines)
+		m_Line->Unset();
 
 	UpdatePositions();
 	PositionItems();
 
-	for (int m = 0; m < MAX_METERS; ++m)
-		m_Lines[m].m_Meter.FinishTweening();
+	for (auto& m_Line : m_Lines.lines)
+		m_Line->FinishTweening();
 }
 
 void
 StepsDisplayList::HideRows()
 {
 	for (unsigned m = 0; m < m_Rows.size(); ++m) {
-		Line& l = m_Lines[m];
+		auto& l = m_Lines.lines[m];
 
-		l.m_Meter.FinishTweening();
-		l.m_Meter.SetDiffuseAlpha(0);
+		l->FinishTweening();
+		l->SetDiffuseAlpha(0);
 	}
 }
 
@@ -309,14 +340,14 @@ StepsDisplayList::TweenOnScreen()
 {
 	ON_COMMAND(m_Cursors);
 
-	for (int m = 0; m < MAX_METERS; ++m)
-		ON_COMMAND(m_Lines[m].m_Meter);
+	for (auto& m_Line : m_Lines.lines)
+		ON_COMMAND(m_Line.get());
 
 	m_bShown = true;
 	for (unsigned m = 0; m < m_Rows.size(); ++m) {
-		Line& l = m_Lines[m];
+		auto& l = m_Lines.lines[m];
 
-		l.m_Meter.FinishTweening();
+		l->FinishTweening();
 	}
 
 	HideRows();
@@ -356,7 +387,7 @@ void
 StepsDisplayList::HandleMessage(const Message& msg)
 {
 	if (msg.GetName() == MessageIDToString(static_cast<MessageID>(
-						   Message_CurrentStepsP1Changed + PLAYER_1)))
+						   Message_CurrentStepsChanged + PLAYER_1)))
 		SetFromGameState();
 
 	ActorFrame::HandleMessage(msg);

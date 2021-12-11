@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageBitmapTexture.h"
 #include "RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageSurfaceUtils_Dither.h"
@@ -30,7 +30,7 @@ GetResolutionFromFileName(std::string& sPath, int& iWidth, int& iHeight)
 	 * Be careful that this doesn't get mixed up with frame dimensions. */
 	static Regex re("\\([^\\)]*res ([0-9]+)x([0-9]+).*\\)");
 
-	vector<std::string> asMatches;
+	std::vector<std::string> asMatches;
 	if (!re.Compare(sPath, asMatches))
 		return;
 
@@ -81,6 +81,8 @@ RageBitmapTexture::Create()
 
 	ASSERT(!actualID.filename.empty());
 
+	delete m_pSurface;
+
 	/* Load the image into a RageSurface. */
 	std::string error;
 	RageSurface* pImg = nullptr;
@@ -95,7 +97,7 @@ RageBitmapTexture::Create()
 		auto warning = ssprintf("RageBitmapTexture: Couldn't load %s: %s",
 								actualID.filename.c_str(),
 								error.c_str());
-		LOG->Warn("%s", warning.c_str());
+		Locator::getLogger()->warn(warning.c_str());
 		Dialog::OK(warning, "missing_texture");
 		pImg = RageSurfaceUtils::MakeDummySurface(64, 64);
 		ASSERT(pImg != nullptr);
@@ -322,7 +324,7 @@ RageBitmapTexture::Create()
 			bRunCheck = false;
 		}
 
-		if (bRunCheck && PREFSMAN->m_verbose_log > 1) {
+		if (bRunCheck) {
 			auto fFrameWidth = this->GetSourceWidth() /
 							   static_cast<float>(this->GetFramesWide());
 			auto fFrameHeight = this->GetSourceHeight() /
@@ -352,13 +354,17 @@ RageBitmapTexture::Create()
 				  fBetterSourceHeight,
 				  fBetterFrameWidth,
 				  fBetterFrameHeight);
-				LOG->Warn("%s", sWarning.c_str());
-				Dialog::OK(sWarning, "FRAME_DIMENSIONS_WARNING");
+				// dont care about this for now....
+				// // dont forget about it
+				// // // TODO
+				// // // TODO
+				Locator::getLogger()->debug("{}", sWarning.c_str());
+				// Dialog::OK(sWarning, "FRAME_DIMENSIONS_WARNING");
 			}
 		}
 	}
 
-	delete pImg;
+	m_pSurface = pImg;
 
 	// Check for hints that override the apparent "size".
 	GetResolutionFromFileName(
@@ -393,5 +399,8 @@ RageBitmapTexture::Create()
 void
 RageBitmapTexture::Destroy()
 {
-	DISPLAY->DeleteTexture(m_uTexHandle);
+	// if DISPLAY is dead at this point, the program is probably dead
+	// memory will be free.... hopefully....
+	if (DISPLAY != nullptr)
+		DISPLAY->DeleteTexture(m_uTexHandle);
 }

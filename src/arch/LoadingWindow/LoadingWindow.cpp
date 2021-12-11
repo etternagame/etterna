@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "LoadingWindow.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "arch/arch_default.h"
 
 LoadingWindow*
@@ -14,7 +14,7 @@ LoadingWindow::Create()
 #else
 	// Don't load NULL by default.
 	const std::string drivers = "win32,macosx,gtk";
-	vector<std::string> DriversToTry;
+	std::vector<std::string> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	ASSERT(DriversToTry.size() != 0);
@@ -58,16 +58,14 @@ LoadingWindow::Create()
 
 		std::string sError = ret->Init();
 		if (sError != "") {
-			LOG->Info("Couldn't load driver %s: %s",
-					  DriversToTry[i].c_str(),
-					  sError.c_str());
+            Locator::getLogger()->info("Couldn't load driver {}: {}",
+					  DriversToTry[i].c_str(), sError.c_str());
 			SAFE_DELETE(ret);
 		}
 	}
 
 	if (ret) {
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Info("Loading window: %s", Driver.c_str());
+		Locator::getLogger()->info("Loading window: {}", Driver);
 
 		ret->SetIndeterminate(true);
 	}

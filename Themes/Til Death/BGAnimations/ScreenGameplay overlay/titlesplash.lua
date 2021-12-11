@@ -75,7 +75,7 @@ local t =
 				self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - 10):zoom(0.7):diffusealpha(0):valign(0)
 			end,
 			BeginCommand = function(self)
-				mods = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():GetInvalidatingMods()
+				mods = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():GetInvalidatingMods()
 				local translated = {}
 				if #mods > 0 then
 					for _,mod in ipairs(mods) do

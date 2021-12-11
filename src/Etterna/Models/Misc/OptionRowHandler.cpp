@@ -6,7 +6,7 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/NoteSkinManager.h"
 #include "OptionRowHandler.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenMiniMenu.h" // for MenuRowDef
@@ -51,33 +51,37 @@ XToString(LayoutType);
 StringToX(LayoutType);
 LuaXType(LayoutType);
 
-std::string
-OptionRowHandler::OptionTitle() const
+auto
+OptionRowHandler::OptionTitle() const -> std::string
 {
 	auto bTheme = false;
 
 	// HACK: Always theme the NEXT_ROW and EXIT items, even if metrics says not
 	// to theme.
-	if (m_Def.m_bAllowThemeTitle)
+	if (m_Def.m_bAllowThemeTitle) {
 		bTheme = true;
+	}
 
 	auto s = m_Def.m_sName;
-	if (s.empty())
+	if (s.empty()) {
 		return s;
+	}
 
 	return bTheme ? THEME->GetString("OptionTitles", s) : s;
 }
 
-std::string
-OptionRowHandler::GetThemedItemText(int iChoice) const
+auto
+OptionRowHandler::GetThemedItemText(int iChoice) const -> std::string
 {
 	auto s = m_Def.m_vsChoices[iChoice];
-	if (s.empty())
+	if (s.empty()) {
 		return "";
+	}
 	auto bTheme = false;
 
-	if (m_Def.m_bAllowThemeItems)
+	if (m_Def.m_bAllowThemeItems) {
 		bTheme = true;
+	}
 
 	// Items beginning with a pipe mean "don't theme".
 	// This allows us to disable theming on a per-choice basis for choice names
@@ -87,13 +91,14 @@ OptionRowHandler::GetThemedItemText(int iChoice) const
 		bTheme = false;
 	}
 
-	if (bTheme)
+	if (bTheme) {
 		s = CommonMetrics::LocalizeOptionItem(s, false);
+	}
 	return s;
 }
 
 void
-OptionRowHandler::GetIconTextAndGameCommand(int iFirstSelection,
+OptionRowHandler::GetIconTextAndGameCommand(int /*iFirstSelection*/,
 											std::string& sIconTextOut,
 											GameCommand& gcOut) const
 {
@@ -103,16 +108,17 @@ OptionRowHandler::GetIconTextAndGameCommand(int iFirstSelection,
 
 void
 OptionRowHandlerUtil::SelectExactlyOne(int iSelection,
-									   vector<bool>& vbSelectedOut)
+									   std::vector<bool>& vbSelectedOut)
 {
 	ASSERT_M(iSelection >= 0 && iSelection < (int)vbSelectedOut.size(),
 			 ssprintf("%d/%u", iSelection, unsigned(vbSelectedOut.size())));
-	for (auto i = 0; i < static_cast<int>(vbSelectedOut.size()); i++)
+	for (auto i = 0; i < static_cast<int>(vbSelectedOut.size()); i++) {
 		vbSelectedOut[i] = i == iSelection;
+	}
 }
 
-int
-OptionRowHandlerUtil::GetOneSelection(const vector<bool>& vbSelected)
+auto
+OptionRowHandlerUtil::GetOneSelection(const std::vector<bool>& vbSelected) -> int
 {
 	auto iRet = -1;
 	for (unsigned i = 0; i < vbSelected.size(); i++) {
@@ -135,7 +141,7 @@ static LocalizedString OFF("OptionRowHandler", "Off");
 	}
 
 #define CHECK_WRONG_NUM_ARGS(num)                                              \
-	ROW_INVALID_IF(command.m_vsArgs.size() != num,                             \
+	ROW_INVALID_IF(command.m_vsArgs.size() != (num),                           \
 				   "Wrong number of args to option row.",                      \
 				   false);
 #define CHECK_BLANK_ARG                                                        \
@@ -145,10 +151,10 @@ static LocalizedString OFF("OptionRowHandler", "Off");
 class OptionRowHandlerList : public OptionRowHandler
 {
   public:
-	vector<GameCommand> m_aListEntries;
+	std::vector<GameCommand> m_aListEntries;
 	GameCommand m_Default;
-	bool m_bUseModNameForIcon;
-	vector<std::string> m_vsBroadcastOnExport;
+	bool m_bUseModNameForIcon{};
+	std::vector<std::string> m_vsBroadcastOnExport;
 
 	OptionRowHandlerList() { Init(); }
 	void Init() override
@@ -159,7 +165,7 @@ class OptionRowHandlerList : public OptionRowHandler
 		m_bUseModNameForIcon = false;
 		m_vsBroadcastOnExport.clear();
 	}
-	bool LoadInternal(const Commands& cmds) override
+	auto LoadInternal(const Commands& cmds) -> bool override
 	{
 		const auto& command = cmds.v[0];
 		const auto sParam = command.GetArg(1).s;
@@ -183,35 +189,38 @@ class OptionRowHandlerList : public OptionRowHandler
 				const auto& cmd = lCmds.v[i];
 				auto sName = cmd.GetName();
 
-				if (sName == "together")
+				if (sName == "together") {
 					m_Def.m_bOneChoiceForAllPlayers = true;
-				else if (sName == "selectmultiple")
+				} else if (sName == "selectmultiple") {
 					m_Def.m_selectType = SELECT_MULTIPLE;
-				else if (sName == "selectone")
+				} else if (sName == "selectone") {
 					m_Def.m_selectType = SELECT_ONE;
-				else if (sName == "selectnone")
+				} else if (sName == "selectnone") {
 					m_Def.m_selectType = SELECT_NONE;
-				else if (sName == "showoneinrow")
+				} else if (sName == "showoneinrow") {
 					m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
-				else if (sName == "default")
+				} else if (sName == "default") {
 					m_Def.m_iDefault =
 					  StringToInt(cmd.GetArg(1).s) - 1; // match ENTRY_MODE
-				else if (sName == "reloadrowmessages") {
-					for (unsigned a = 1; a < cmd.m_vsArgs.size(); a++)
+				} else if (sName == "reloadrowmessages") {
+					for (unsigned a = 1; a < cmd.m_vsArgs.size(); a++) {
 						m_vsReloadRowMessages.push_back(cmd.m_vsArgs[a]);
+					}
 				} else if (sName == "enabledforplayers") {
 					m_Def.m_vEnabledForPlayers.clear();
 					for (unsigned a = 1; a < cmd.m_vsArgs.size(); a++) {
 						auto sArg = cmd.m_vsArgs[a];
-						auto pn = (PlayerNumber)(StringToInt(sArg) - 1);
+						auto pn =
+						  static_cast<PlayerNumber>(StringToInt(sArg) - 1);
 						ASSERT(pn >= 0 && pn < NUM_PLAYERS);
 						m_Def.m_vEnabledForPlayers.insert(pn);
 					}
 				} else if (sName == "exportonchange") {
 					m_Def.m_bExportOnChange = true;
 				} else if (sName == "broadcastonexport") {
-					for (unsigned j = 1; j < cmd.m_vsArgs.size(); j++)
+					for (unsigned j = 1; j < cmd.m_vsArgs.size(); j++) {
 						m_vsBroadcastOnExport.push_back(cmd.m_vsArgs[j]);
+					}
 				} else {
 					LuaHelpers::ReportScriptErrorFmt(
 					  "Unknown row flag \"%s\" on row %s.",
@@ -226,8 +235,9 @@ class OptionRowHandlerList : public OptionRowHandler
 				/* If the row has just one entry, use the name of the row as the
 				 * name of the entry. If it has more than one, each one must be
 				 * specified explicitly. */
-				if (mc.m_sName.empty() && NumCols == 1)
+				if (mc.m_sName.empty() && NumCols == 1) {
 					mc.m_sName = sParam;
+				}
 				if (mc.m_sName.empty()) {
 					LuaHelpers::ReportScriptErrorFmt(
 					  "List \"%s\", choice %i has no name.",
@@ -256,15 +266,16 @@ class OptionRowHandlerList : public OptionRowHandler
 		if (m_Def.m_selectType != SELECT_MULTIPLE && m_Def.m_iDefault == -1) {
 			for (unsigned e = 0; e < m_aListEntries.size(); ++e) {
 				const auto& mc = m_aListEntries[e];
-				if (mc.IsZero())
+				if (mc.IsZero()) {
 					m_Def.m_iDefault = e;
+				}
 			}
 		}
 		return true;
 	}
-	void ImportOption(OptionRow* pRow,
+	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		const auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
@@ -287,18 +298,20 @@ class OptionRowHandlerList : public OptionRowHandler
 			if (m_Def.m_bOneChoiceForAllPlayers) {
 				if (mc.DescribesCurrentModeForAllPlayers()) {
 					bUseFallbackOption = false;
-					if (m_Def.m_selectType != SELECT_MULTIPLE)
+					if (m_Def.m_selectType != SELECT_MULTIPLE) {
 						OptionRowHandlerUtil::SelectExactlyOne(e, vbSelOut);
-					else
+					} else {
 						vbSelOut[e] = true;
+					}
 				}
 			} else {
 				if (mc.DescribesCurrentMode(p)) {
 					bUseFallbackOption = false;
-					if (m_Def.m_selectType != SELECT_MULTIPLE)
+					if (m_Def.m_selectType != SELECT_MULTIPLE) {
 						OptionRowHandlerUtil::SelectExactlyOne(e, vbSelOut);
-					else
+					} else {
 						vbSelOut[e] = true;
+					}
 				}
 			}
 		}
@@ -310,8 +323,7 @@ class OptionRowHandlerList : public OptionRowHandler
 				  ssprintf("No options in row \"list,%s\" were selected, "
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
-				LOG->Warn("%s", s.c_str());
-				CHECKPOINT_M(s.c_str());
+				Locator::getLogger()->warn("{}", s.c_str());
 				iFallbackOption = 0;
 			}
 
@@ -321,17 +333,18 @@ class OptionRowHandlerList : public OptionRowHandler
 		VerifySelected(m_Def.m_selectType, vbSelOut, m_Def.m_sName);
 	}
 
-	[[nodiscard]] int ExportOption(
-	  const PlayerNumber& vpns,
-	  const vector<bool>& vbSelected) const override
+	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
+									const std::vector<bool>& vbSelected) const
+	  -> int override
 	{
 		const auto p = vpns;
 		const auto& vbSel = vbSelected;
 
 		m_Default.Apply(p);
 		for (unsigned i = 0; i < vbSel.size(); i++) {
-			if (vbSel[i])
+			if (vbSel[i]) {
 				m_aListEntries[i].Apply(p);
+			}
 		}
 		for (const auto& s : m_vsBroadcastOnExport) {
 			MESSAGEMAN->Broadcast(s);
@@ -340,7 +353,7 @@ class OptionRowHandlerList : public OptionRowHandler
 		return 0;
 	}
 
-	[[nodiscard]] int GetDefaultOption() const override
+	[[nodiscard]] auto GetDefaultOption() const -> int override
 	{
 		return m_Def.m_iDefault;
 	}
@@ -356,25 +369,26 @@ class OptionRowHandlerList : public OptionRowHandler
 		gcOut = m_aListEntries[iFirstSelection];
 	}
 
-	[[nodiscard]] std::string GetScreen(int iChoice) const override
+	[[nodiscard]] auto GetScreen(int iChoice) const -> std::string override
 	{
 		const auto& gc = m_aListEntries[iChoice];
 		return gc.m_sScreen;
 	}
 
-	ReloadChanged Reload() override
+	auto Reload() -> ReloadChanged override
 	{
 		// HACK: always reload "speed", to update the BPM text in the name of
 		// the speed line
-		if (!CompareNoCase(m_Def.m_sName, "speed"))
+		if (CompareNoCase(m_Def.m_sName, "speed") == 0) {
 			return RELOAD_CHANGED_ALL;
+		}
 
 		return OptionRowHandler::Reload();
 	}
 };
 
 static void
-SortNoteSkins(vector<std::string>& asSkinNames)
+SortNoteSkins(std::vector<std::string>& asSkinNames)
 {
 	std::set<std::string> setSkinNames;
 	setSkinNames.insert(asSkinNames.begin(), asSkinNames.end());
@@ -386,8 +400,9 @@ SortNoteSkins(vector<std::string>& asSkinNames)
 	asSkinNames.clear();
 
 	for (auto& sSkin : asSorted) {
-		if (setSkinNames.find(sSkin) == setSkinNames.end())
+		if (setSkinNames.find(sSkin) == setSkinNames.end()) {
 			continue;
+		}
 		asSkinNames.push_back(sSkin);
 		setUnusedSkinNames.erase(sSkin);
 	}
@@ -398,21 +413,22 @@ SortNoteSkins(vector<std::string>& asSkinNames)
 
 class OptionRowHandlerListNoteSkins : public OptionRowHandlerList
 {
-	virtual bool LoadInternal(const Commands&)
+	virtual auto LoadInternal(const Commands & /*cmds*/) -> bool
 	{
 		m_Def.m_sName = "NoteSkins";
 		m_Def.m_bOneChoiceForAllPlayers = false;
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 		m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 
-		vector<std::string> arraySkinNames;
+		std::vector<std::string> arraySkinNames;
 		NOTESKIN->GetNoteSkinNames(arraySkinNames);
 		SortNoteSkins(arraySkinNames);
 
 		for (unsigned skin = 0; skin < arraySkinNames.size(); skin++) {
 			if (arraySkinNames[skin] ==
-				CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue())
+				CommonMetrics::DEFAULT_NOTESKIN_NAME.GetValue()) {
 				m_Def.m_iDefault = skin;
+			}
 			GameCommand mc;
 			mc.m_sPreferredModifiers = arraySkinNames[skin];
 			// ms.m_sName = arraySkinNames[skin];
@@ -426,7 +442,7 @@ class OptionRowHandlerListNoteSkins : public OptionRowHandlerList
 // XXX: very similar to OptionRowHandlerSteps
 class OptionRowHandlerListSteps : public OptionRowHandlerList
 {
-	bool LoadInternal(const Commands&) override
+	auto LoadInternal(const Commands & /*cmds*/) -> bool override
 	{
 		m_Def.m_sName = "Steps";
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
@@ -438,17 +454,18 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		return true;
 	}
 
-	ReloadChanged Reload() override
+	auto Reload() -> ReloadChanged override
 	{
 		m_Def.m_vsChoices.clear();
 		m_aListEntries.clear();
 
-		if (GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) &&
-			GAMESTATE->m_pCurSong) // playing a song
+		if ((GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber()) !=
+			 nullptr) &&
+			(GAMESTATE->m_pCurSong != nullptr)) // playing a song
 		{
 			m_Def.m_layoutType = StringToLayoutType(STEPS_ROW_LAYOUT_TYPE);
 
-			vector<Steps*> vpSteps;
+			std::vector<Steps*> vpSteps;
 			Song* pSong = GAMESTATE->m_pCurSong;
 			SongUtil::GetSteps(
 			  pSong,
@@ -456,17 +473,18 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 			  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
 				->m_StepsType);
 			StepsUtil::SortNotesArrayByDifficulty(vpSteps);
-			for (auto pSteps : vpSteps) {
+			for (auto* pSteps : vpSteps) {
 				std::string s;
 				if (STEPS_USE_CHART_NAME) {
 					s = pSteps->GetChartName();
 				}
-				// TODO: find a way to make this use lua or metrics.
+				// TODO(Sam): find a way to make this use lua or metrics.
 				if (s.empty() || s == "blank" || s == "Blank") {
 					if (pSteps->GetDifficulty() == Difficulty_Edit) {
 						s = pSteps->GetChartName();
-						if (s.empty() || s == "blank" || s == "Blank")
+						if (s.empty() || s == "blank" || s == "Blank") {
 							s = pSteps->GetDescription();
+						}
 					} else {
 						s =
 						  CustomDifficultyToLocalizedString(GetCustomDifficulty(
@@ -483,8 +501,8 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		} else {
 			/* We have neither a song nor a course. We may be preloading the
 			 * screen for future use. */
-			m_Def.m_vsChoices.push_back("n/a");
-			m_aListEntries.push_back(GameCommand());
+			m_Def.m_vsChoices.emplace_back("n/a");
+			m_aListEntries.emplace_back();
 		}
 
 		return RELOAD_CHANGED_ALL;
@@ -494,11 +512,11 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 class OptionRowHandlerSteps : public OptionRowHandler
 {
   public:
-	BroadcastOnChangePtr<Steps>* m_ppStepsToFill;
-	BroadcastOnChange<Difficulty>* m_pDifficultyToFill;
-	const BroadcastOnChange<StepsType>* m_pst;
-	vector<Steps*> m_vSteps;
-	vector<Difficulty> m_vDifficulties;
+	BroadcastOnChangePtrWithSelf<Steps>* m_ppStepsToFill{};
+	BroadcastOnChange<Difficulty>* m_pDifficultyToFill{};
+	const BroadcastOnChange<StepsType>* m_pst{};
+	std::vector<Steps*> m_vSteps;
+	std::vector<Difficulty> m_vDifficulties;
 
 	OptionRowHandlerSteps() { Init(); }
 	void Init() override
@@ -511,7 +529,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		m_vDifficulties.clear();
 	}
 
-	bool LoadInternal(const Commands& cmds) override
+	auto LoadInternal(const Commands& cmds) -> bool override
 	{
 		const auto& command = cmds.v[0];
 		const auto sParam = command.GetArg(1).s;
@@ -526,8 +544,9 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		} else if (sParam == "EditSourceSteps") {
 			m_vsReloadRowMessages.push_back(
 			  MessageIDToString(Message_EditSourceStepsTypeChanged));
-			if (GAMESTATE->m_pCurSteps.Get() != nullptr)
+			if (GAMESTATE->m_pCurSteps.Get() != nullptr) {
 				m_Def.m_vEnabledForPlayers.clear(); // hide row
+			}
 		} else {
 			ROW_INVALID_IF(
 			  true, "Invalid StepsType param \"" + sParam + "\".", false);
@@ -544,13 +563,14 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		m_vDifficulties.clear();
 		m_vSteps.clear();
 
-		if (GAMESTATE->m_pCurSong) {
+		if (GAMESTATE->m_pCurSong != nullptr) {
 			FOREACH_ENUM(Difficulty, dc)
 			{
-				if (dc == Difficulty_Edit)
+				if (dc == Difficulty_Edit) {
 					continue;
+				}
 				m_vDifficulties.push_back(dc);
-				auto pSteps = SongUtil::GetStepsByDifficulty(
+				auto* pSteps = SongUtil::GetStepsByDifficulty(
 				  GAMESTATE->m_pCurSong, *m_pst, dc);
 				m_vSteps.push_back(pSteps);
 			}
@@ -564,37 +584,39 @@ class OptionRowHandlerSteps : public OptionRowHandler
 			}
 
 			for (unsigned i = 0; i < m_vSteps.size(); i++) {
-				auto pSteps = m_vSteps[i];
+				auto* pSteps = m_vSteps[i];
 				const auto dc = m_vDifficulties[i];
 
 				std::string s;
 				if (dc == Difficulty_Edit) {
-					if (pSteps)
+					if (pSteps != nullptr) {
 						s = pSteps->GetDescription();
-					else
+					} else {
 						s = "NewEdit";
+					}
 				}
 				m_Def.m_vsChoices.push_back(s);
 			}
 		} else {
 			m_vDifficulties.push_back(Difficulty_Edit);
 			m_vSteps.push_back(nullptr);
-			m_Def.m_vsChoices.push_back("none");
+			m_Def.m_vsChoices.emplace_back("none");
 		}
 
-		if (m_pDifficultyToFill)
+		if (m_pDifficultyToFill != nullptr) {
 			m_pDifficultyToFill->Set(m_vDifficulties[0]);
+		}
 		m_ppStepsToFill->Set(m_vSteps[0]);
 		return true;
 	}
-	void ImportOption(OptionRow* pRow,
+	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		const auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
 
-		ASSERT(m_vSteps.size() == vbSelOut.size());
+		assert(m_vSteps.size() == vbSelOut.size());
 
 		// look for matching steps
 		const auto iter =
@@ -606,7 +628,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 
 			// look for matching difficulty
 			auto matched = false;
-			if (m_pDifficultyToFill) {
+			if (m_pDifficultyToFill != nullptr) {
 				FOREACH_CONST(Difficulty, m_vDifficulties, d)
 				{
 					const unsigned i = d - m_vDifficulties.begin();
@@ -625,18 +647,18 @@ class OptionRowHandlerSteps : public OptionRowHandler
 		}
 	}
 
-	[[nodiscard]] int ExportOption(
-	  const PlayerNumber& vpns,
-	  const vector<bool>& vbSelected) const override
+	[[nodiscard]] auto ExportOption(const PlayerNumber& /*vpns*/,
+									const std::vector<bool>& vbSelected) const
+	  -> int override
 	{
-		auto p = vpns;
 		const auto& vbSel = vbSelected;
 
 		const auto index = OptionRowHandlerUtil::GetOneSelection(vbSel);
 		const auto dc = m_vDifficulties[index];
-		auto pSteps = m_vSteps[index];
-		if (m_pDifficultyToFill)
+		auto* pSteps = m_vSteps[index];
+		if (m_pDifficultyToFill != nullptr) {
 			m_pDifficultyToFill->Set(dc);
+		}
 		m_ppStepsToFill->Set(pSteps);
 
 		return 0;
@@ -645,13 +667,13 @@ class OptionRowHandlerSteps : public OptionRowHandler
 
 class OptionRowHandlerListStyles : public OptionRowHandlerList
 {
-	bool LoadInternal(const Commands&) override
+	auto LoadInternal(const Commands & /*cmds*/) -> bool override
 	{
 		m_Def.m_bOneChoiceForAllPlayers = true;
 		m_Def.m_sName = "Style";
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 
-		vector<const Style*> vStyles;
+		std::vector<const Style*> vStyles;
 		GAMEMAN->GetStylesForGame(GAMESTATE->m_pCurGame, vStyles);
 		ASSERT(!vStyles.empty());
 		FOREACH_CONST(const Style*, vStyles, s)
@@ -669,19 +691,19 @@ class OptionRowHandlerListStyles : public OptionRowHandlerList
 
 class OptionRowHandlerListGroups : public OptionRowHandlerList
 {
-	bool LoadInternal(const Commands&) override
+	auto LoadInternal(const Commands & /*cmds*/) -> bool override
 	{
 		m_Def.m_bOneChoiceForAllPlayers = true;
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 		m_Def.m_sName = "Group";
 		m_Default.m_sSongGroup = GROUP_ALL;
 
-		vector<std::string> vSongGroups;
+		std::vector<std::string> vSongGroups;
 		SONGMAN->GetSongGroupNames(vSongGroups);
 		ASSERT(!vSongGroups.empty());
 
 		{
-			m_Def.m_vsChoices.push_back("AllGroups");
+			m_Def.m_vsChoices.emplace_back("AllGroups");
 			GameCommand mc;
 			mc.m_sSongGroup = GROUP_ALL;
 			m_aListEntries.push_back(mc);
@@ -700,7 +722,7 @@ class OptionRowHandlerListGroups : public OptionRowHandlerList
 
 class OptionRowHandlerListDifficulties : public OptionRowHandlerList
 {
-	bool LoadInternal(const Commands&) override
+	auto LoadInternal(const Commands & /*cmds*/) -> bool override
 	{
 		m_Def.m_bOneChoiceForAllPlayers = true;
 		m_Def.m_sName = "Difficulty";
@@ -708,7 +730,7 @@ class OptionRowHandlerListDifficulties : public OptionRowHandlerList
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 
 		{
-			m_Def.m_vsChoices.push_back("AllDifficulties");
+			m_Def.m_vsChoices.emplace_back("AllDifficulties");
 			GameCommand mc;
 			mc.m_dc = Difficulty_Invalid;
 			m_aListEntries.push_back(mc);
@@ -717,7 +739,7 @@ class OptionRowHandlerListDifficulties : public OptionRowHandlerList
 		FOREACH_CONST(
 		  Difficulty, CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue(), d)
 		{
-			// TODO: Is this the best thing we can do here?
+			// TODO(Sam): Is this the best thing we can do here?
 			const auto st =
 			  GAMEMAN->GetHowToPlayStyleForGame(GAMESTATE->m_pCurGame)
 				->m_StepsType;
@@ -736,13 +758,14 @@ class OptionRowHandlerListDifficulties : public OptionRowHandlerList
 // XXX: very similar to OptionRowHandlerSongChoices
 class OptionRowHandlerListSongsInCurrentSongGroup : public OptionRowHandlerList
 {
-	bool LoadInternal(const Commands&) override
+	auto LoadInternal(const Commands & /*cmds*/) -> bool override
 	{
 		const auto& vpSongs =
 		  SONGMAN->GetSongs(GAMESTATE->m_sPreferredSongGroup);
 
-		if (GAMESTATE->m_pCurSong == nullptr)
+		if (GAMESTATE->m_pCurSong == nullptr) {
 			GAMESTATE->m_pCurSong.Set(vpSongs[0]);
+		}
 
 		m_Def.m_sName = "SongsInCurrentSongGroup";
 		m_Def.m_bOneChoiceForAllPlayers = true;
@@ -782,7 +805,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_pLuaTable->Unset();
 	}
 
-	bool SanityCheckTable(lua_State* L, std::string& RowName)
+	auto SanityCheckTable(lua_State* L, std::string& RowName) -> bool
 	{
 		if (m_pLuaTable->GetLuaType() != LUA_TTABLE) {
 			LuaHelpers::ReportScriptErrorFmt(
@@ -791,10 +814,10 @@ class OptionRowHandlerLua : public OptionRowHandler
 		}
 		m_pLuaTable->PushSelf(L);
 		lua_getfield(L, -1, "Name");
-		auto pStr = lua_tostring(L, -1);
+		const auto* pStr = lua_tostring(L, -1);
 		if (pStr == nullptr) {
 			LuaHelpers::ReportScriptErrorFmt(
-			  "LUA_ERROR:  \"%s\" \"Name\" entry is not a string.",
+			  R"(LUA_ERROR:  "%s" "Name" entry is not a string.)",
 			  RowName.c_str());
 			return false;
 		}
@@ -804,7 +827,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		pStr = lua_tostring(L, -1);
 		if (pStr == nullptr || StringToLayoutType(pStr) == LayoutType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
-			  "LUA_ERROR:  \"%s\" \"LayoutType\" entry is not a string.",
+			  R"(LUA_ERROR:  "%s" "LayoutType" entry is not a string.)",
 			  RowName.c_str());
 			return false;
 		}
@@ -814,7 +837,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		pStr = lua_tostring(L, -1);
 		if (pStr == nullptr || StringToSelectType(pStr) == SelectType_Invalid) {
 			LuaHelpers::ReportScriptErrorFmt(
-			  "LUA_ERROR:  \"%s\" \"SelectType\" entry is not a string.",
+			  R"(LUA_ERROR:  "%s" "SelectType" entry is not a string.)",
 			  RowName.c_str());
 			return false;
 		}
@@ -823,13 +846,12 @@ class OptionRowHandlerLua : public OptionRowHandler
 		lua_getfield(L, -1, "Choices");
 		if (!lua_istable(L, -1)) {
 			LuaHelpers::ReportScriptErrorFmt(
-			  "LUA_ERROR:  \"%s\" \"Choices\" is not a table.",
-			  RowName.c_str());
+			  R"(LUA_ERROR:  "%s" "Choices" is not a table.)", RowName.c_str());
 			return false;
 		}
 		if (!TableContainsOnlyStrings(L, lua_gettop(L))) {
 			LuaHelpers::ReportScriptErrorFmt(
-			  "LUA_ERROR:  \"%s\" \"Choices\" table contains a non-string.",
+			  R"(LUA_ERROR:  "%s" "Choices" table contains a non-string.)",
 			  RowName.c_str());
 			return false;
 		}
@@ -839,7 +861,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		if (!lua_isnil(L, -1)) {
 			if (!lua_isfunction(L, -1)) {
 				LuaHelpers::ReportScriptErrorFmt(
-				  "LUA_ERROR:  \"%s\" \"EnabledForPlayers\" is not a function.",
+				  R"(LUA_ERROR:  "%s" "EnabledForPlayers" is not a function.)",
 				  RowName.c_str());
 				return false;
 			}
@@ -872,7 +894,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		if (!lua_isnil(L, -1)) {
 			if (!lua_istable(L, -1)) {
 				LuaHelpers::ReportScriptErrorFmt(
-				  "LUA_ERROR:  \"%s\" \"ReloadRowMessages\" is not a table.",
+				  R"(LUA_ERROR:  "%s" "ReloadRowMessages" is not a table.)",
 				  RowName.c_str());
 				return false;
 			}
@@ -890,7 +912,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		if (!lua_isnil(L, -1)) {
 			if (!lua_isfunction(L, -1)) {
 				LuaHelpers::ReportScriptErrorFmt(
-				  "LUA_ERROR:  \"%s\" \"Reload\" entry is not a function.",
+				  R"(LUA_ERROR:  "%s" "Reload" entry is not a function.)",
 				  RowName.c_str());
 				return false;
 			}
@@ -900,7 +922,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		lua_getfield(L, -1, "LoadSelections");
 		if (!lua_isfunction(L, -1)) {
 			LuaHelpers::ReportScriptErrorFmt(
-			  "LUA_ERROR:  \"%s\" \"LoadSelections\" entry is not a function.",
+			  R"(LUA_ERROR:  "%s" "LoadSelections" entry is not a function.)",
 			  RowName.c_str());
 			return false;
 		}
@@ -909,7 +931,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		lua_getfield(L, -1, "SaveSelections");
 		if (!lua_isfunction(L, -1)) {
 			LuaHelpers::ReportScriptErrorFmt(
-			  "LUA_ERROR:  \"%s\" \"SaveSelections\" entry is not a function.",
+			  R"(LUA_ERROR:  "%s" "SaveSelections" entry is not a function.)",
 			  RowName.c_str());
 			return false;
 		}
@@ -934,7 +956,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		if (!m_TableIsSane) {
 			return;
 		}
-		auto L = LUA->Get();
+		auto* L = LUA->Get();
 
 		if (m_EnabledForPlayersFunc.IsNil()) {
 			LUA->Release(L);
@@ -972,15 +994,15 @@ class OptionRowHandlerLua : public OptionRowHandler
 		lua_pushnil(L);
 		while (lua_next(L, -2) != 0) {
 			// `key' is at index -2 and `value' at index -1
-			auto pValue = lua_tostring(L, -1);
+			const auto* pValue = lua_tostring(L, -1);
 			// LOG->Trace( "choice: '%s'", pValue);
-			m_Def.m_vsChoices.push_back(pValue);
+			m_Def.m_vsChoices.emplace_back(pValue);
 			lua_pop(L, 1); // removes `value'; keeps `key' for next iteration
 		}
 		lua_pop(L, 1); // pop choices table
 	}
 
-	bool LoadInternal(const Commands& cmds) override
+	auto LoadInternal(const Commands& cmds) -> bool override
 	{
 		const auto& command = cmds.v[0];
 		auto sParam = command.GetArg(1).s;
@@ -990,7 +1012,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_Def.m_bAllowThemeItems =
 		  false; // Lua options are always dynamic and can theme themselves.
 
-		auto L = LUA->Get();
+		auto* L = LUA->Get();
 
 		// Run the Lua expression.  It should return a table.
 		m_pLuaTable->SetFromExpression(sParam);
@@ -1004,7 +1026,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_pLuaTable->PushSelf(L);
 
 		lua_getfield(L, -1, "Name");
-		auto pStr = lua_tostring(L, -1);
+		const auto* pStr = lua_tostring(L, -1);
 		m_Def.m_sName = pStr;
 		lua_pop(L, 1);
 
@@ -1020,9 +1042,9 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_Def.m_bExportOnChange = lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
 
-		// TODO:  Change these to use the proper enum strings like everything
-		// else.  This will break theme compatibility, so it has to wait until
-		// after SM5.  -Kyz
+		// TODO(Sam):  Change these to use the proper enum strings like
+		// everything else.  This will break theme compatibility, so it has to
+		// wait until after SM5.  -Kyz
 		lua_getfield(L, -1, "LayoutType");
 		pStr = lua_tostring(L, -1);
 		m_Def.m_layoutType = StringToLayoutType(pStr);
@@ -1046,9 +1068,9 @@ class OptionRowHandlerLua : public OptionRowHandler
 			lua_pushnil(L);
 			while (lua_next(L, -2) != 0) {
 				// `key' is at index -2 and `value' at index -1
-				auto pValue = lua_tostring(L, -1);
+				const auto* pValue = lua_tostring(L, -1);
 				// LOG->Trace( "Found ReloadRowMessage '%s'", pValue);
-				m_vsReloadRowMessages.push_back(pValue);
+				m_vsReloadRowMessages.emplace_back(pValue);
 				lua_pop(L,
 						1); // removes `value'; keeps `key' for next iteration
 			}
@@ -1066,7 +1088,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		return m_TableIsSane;
 	}
 
-	ReloadChanged Reload() override
+	auto Reload() -> ReloadChanged override
 	{
 		if (!m_TableIsSane) {
 			return RELOAD_CHANGED_NONE;
@@ -1083,7 +1105,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		auto effect = RELOAD_CHANGED_ENABLED;
 
 		if (!m_ReloadFunc.IsNil()) {
-			auto L = LUA->Get();
+			auto* L = LUA->Get();
 			m_ReloadFunc.PushSelf(L);
 
 			// Argument 1: (self)
@@ -1108,14 +1130,14 @@ class OptionRowHandlerLua : public OptionRowHandler
 		return effect;
 	}
 
-	void ImportOption(OptionRow* pRow,
+	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		if (!m_TableIsSane) {
 			return;
 		}
-		auto L = LUA->Get();
+		auto* L = LUA->Get();
 
 		ASSERT(lua_gettop(L) == 0);
 
@@ -1126,8 +1148,9 @@ class OptionRowHandlerLua : public OptionRowHandler
 		 * array is a table representing vbSelectedOut. */
 
 		// All selections default to false.
-		for (auto&& i : vbSelOut)
+		for (auto&& i : vbSelOut) {
 			i = false;
+		}
 
 		// Create the vbSelectedOut table
 		LuaHelpers::CreateTableFromArrayB(L, vbSelOut);
@@ -1166,14 +1189,14 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LUA->Release(L);
 	}
 
-	[[nodiscard]] int ExportOption(
-	  const PlayerNumber& vpns,
-	  const vector<bool>& vbSelected) const override
+	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
+									const std::vector<bool>& vbSelected) const
+	  -> int override
 	{
 		if (!m_TableIsSane) {
 			return 0;
 		}
-		auto L = LUA->Get();
+		auto* L = LUA->Get();
 
 		ASSERT(lua_gettop(L) == 0);
 
@@ -1185,7 +1208,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 		/* Evaluate SaveSelections(self,array,pn) function, where array is
 		 * a table representing vbSelectedOut. */
 
-		const auto vbSelectedCopy = vbSel;
+		const auto& vbSelectedCopy = vbSel;
 
 		// Create the vbSelectedOut table.
 		LuaHelpers::CreateTableFromArrayB(L, vbSelectedCopy);
@@ -1230,12 +1253,12 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 		return effects;
 	}
-	bool NotifyOfSelection(PlayerNumber pn, int choice) override
+	auto NotifyOfSelection(PlayerNumber pn, int choice) -> bool override
 	{
 		if (!m_TableIsSane) {
 			return false;
 		}
-		auto L = LUA->Get();
+		auto* L = LUA->Get();
 		m_pLuaTable->PushSelf(L);
 
 		lua_getfield(L, -1, "NotifyOfSelection");
@@ -1257,9 +1280,9 @@ class OptionRowHandlerLua : public OptionRowHandler
 				lua_pushnil(L);
 				while (lua_next(L, -2) != 0) {
 					// `key' is at index -2 and `value' at index -1
-					auto pValue = lua_tostring(L, -1);
+					const auto* pValue = lua_tostring(L, -1);
 					// LOG->Trace( "choice: '%s'", pValue);
-					m_Def.m_vsChoices.push_back(pValue);
+					m_Def.m_vsChoices.emplace_back(pValue);
 					lua_pop(
 					  L, 1); // removes `value'; keeps `key' for next iteration
 				}
@@ -1269,13 +1292,13 @@ class OptionRowHandlerLua : public OptionRowHandler
 		LUA->Release(L);
 		return changed;
 	}
-	bool GoToFirstOnStart() override { return m_GoToFirstOnStart; }
+	auto GoToFirstOnStart() -> bool override { return m_GoToFirstOnStart; }
 };
 
 class OptionRowHandlerConfig : public OptionRowHandler
 {
   public:
-	const ConfOption* m_pOpt;
+	const ConfOption* m_pOpt{};
 
 	OptionRowHandlerConfig() { Init(); }
 	void Init() override
@@ -1283,7 +1306,7 @@ class OptionRowHandlerConfig : public OptionRowHandler
 		OptionRowHandler::Init();
 		m_pOpt = nullptr;
 	}
-	bool LoadInternal(const Commands& cmds) override
+	auto LoadInternal(const Commands& cmds) -> bool override
 	{
 		const auto& command = cmds.v[0];
 		const auto sParam = command.GetArg(1).s;
@@ -1295,9 +1318,10 @@ class OptionRowHandlerConfig : public OptionRowHandler
 		// Configuration values are never per-player.
 		m_Def.m_bOneChoiceForAllPlayers = true;
 
-		auto pConfOption = ConfOption::Find(sParam);
-		ROW_INVALID_IF(
-		  pConfOption == NULL, "Invalid Conf type \"" + sParam + "\".", false);
+		auto* pConfOption = ConfOption::Find(sParam);
+		ROW_INVALID_IF(pConfOption == nullptr,
+					   "Invalid Conf type \"" + sParam + "\".",
+					   false);
 
 		pConfOption->UpdateAvailableOptions();
 
@@ -1309,9 +1333,9 @@ class OptionRowHandlerConfig : public OptionRowHandler
 		m_Def.m_sName = m_pOpt->name;
 		return true;
 	}
-	void ImportOption(OptionRow*,
+	void ImportOption(OptionRow* /*unused*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
@@ -1320,9 +1344,9 @@ class OptionRowHandlerConfig : public OptionRowHandler
 		OptionRowHandlerUtil::SelectExactlyOne(iSelection, vbSelOut);
 	}
 
-	[[nodiscard]] int ExportOption(
-	  const PlayerNumber& vpns,
-	  const vector<bool>& vbSelected) const override
+	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
+									const std::vector<bool>& vbSelected) const
+	  -> int override
 	{
 		auto bChanged = false;
 
@@ -1341,8 +1365,9 @@ class OptionRowHandlerConfig : public OptionRowHandler
 		const auto iNew = m_pOpt->Get();
 
 		// If it didn't change, don't return any side-effects.
-		if (iOriginal != iNew)
+		if (iOriginal != iNew) {
 			bChanged = true;
+		}
 
 		return bChanged ? m_pOpt->GetEffects() : 0;
 	}
@@ -1351,8 +1376,8 @@ class OptionRowHandlerConfig : public OptionRowHandler
 class OptionRowHandlerStepsType : public OptionRowHandler
 {
   public:
-	BroadcastOnChange<StepsType>* m_pstToFill;
-	vector<StepsType> m_vStepsTypesToShow;
+	BroadcastOnChange<StepsType>* m_pstToFill{};
+	std::vector<StepsType> m_vStepsTypesToShow;
 
 	OptionRowHandlerStepsType() { Init(); }
 	void Init() override
@@ -1362,7 +1387,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 		m_vStepsTypesToShow.clear();
 	}
 
-	bool LoadInternal(const Commands& cmds) override
+	auto LoadInternal(const Commands& cmds) -> bool override
 	{
 		const auto& command = cmds.v[0];
 		const auto sParam = command.GetArg(1).s;
@@ -1372,11 +1397,12 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 		if (sParam == "EditStepsType") {
 		} else if (sParam == "EditSourceStepsType") {
 			m_vsReloadRowMessages.push_back(
-			  MessageIDToString(Message_CurrentStepsP1Changed));
+			  MessageIDToString(Message_CurrentStepsChanged));
 			m_vsReloadRowMessages.push_back(
 			  MessageIDToString(Message_EditStepsTypeChanged));
-			if (GAMESTATE->m_pCurSteps.Get() != nullptr)
+			if (GAMESTATE->m_pCurSteps.Get() != nullptr) {
 				m_Def.m_vEnabledForPlayers.clear(); // hide row
+			}
 		} else {
 			ROW_INVALID_IF(
 			  true, "Invalid StepsType param \"" + sParam + "\".", false);
@@ -1398,19 +1424,20 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 			m_Def.m_vsChoices.push_back(s);
 		}
 
-		if (*m_pstToFill == StepsType_Invalid)
+		if (*m_pstToFill == StepsType_Invalid) {
 			m_pstToFill->Set(m_vStepsTypesToShow[0]);
+		}
 		return true;
 	}
 
-	void ImportOption(OptionRow* pRow,
+	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
 
-		if (GAMESTATE->m_pCurSteps) {
+		if (GAMESTATE->m_pCurSteps != nullptr) {
 			const auto st = GAMESTATE->m_pCurSteps->m_StepsType;
 			const auto iter =
 			  find(m_vStepsTypesToShow.begin(), m_vStepsTypesToShow.end(), st);
@@ -1423,9 +1450,9 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 		vbSelOut[0] = true;
 	}
 
-	[[nodiscard]] int ExportOption(
-	  const PlayerNumber& vpns,
-	  const vector<bool>& vbSelected) const override
+	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
+									const std::vector<bool>& vbSelected) const
+	  -> int override
 	{
 		auto p = vpns;
 		const auto& vbSel = vbSelected;
@@ -1449,7 +1476,7 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 		m_gc.Init();
 		m_gc.ApplyCommitsScreens(false);
 	}
-	bool LoadInternal(const Commands& cmds) override
+	auto LoadInternal(const Commands& cmds) -> bool override
 	{
 		ROW_INVALID_IF(
 		  cmds.v.size() <= 1, "No args to construct GameCommand.", false);
@@ -1463,24 +1490,25 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 		m_Def.m_bOneChoiceForAllPlayers = true;
 		m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 		m_Def.m_selectType = SELECT_NONE;
-		m_Def.m_vsChoices.push_back("");
+		m_Def.m_vsChoices.emplace_back("");
 		return true;
 	}
 	void ImportOption(OptionRow* pRow,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 	}
 
-	[[nodiscard]] int ExportOption(
-	  const PlayerNumber& vpns,
-	  const vector<bool>& vbSelected) const override
+	[[nodiscard]] auto ExportOption(const PlayerNumber& /*vpns*/,
+									const std::vector<bool>& vbSelected) const
+	  -> int override
 	{
-		if (vbSelected[0])
+		if (vbSelected[0]) {
 			m_gc.ApplyToAllPlayers();
+		}
 		return 0;
 	}
-	void GetIconTextAndGameCommand(int iFirstSelection,
+	void GetIconTextAndGameCommand(int /*iFirstSelection*/,
 								   std::string& sIconTextOut,
 								   GameCommand& gcOut) const override
 	{
@@ -1488,7 +1516,7 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 		gcOut = m_gc;
 	}
 
-	[[nodiscard]] std::string GetScreen(int iChoice) const override
+	[[nodiscard]] auto GetScreen(int /*iChoice*/) const -> std::string override
 	{
 		return m_gc.m_sScreen;
 	}
@@ -1502,16 +1530,17 @@ class OptionRowHandlerNull : public OptionRowHandler
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-OptionRowHandler*
-OptionRowHandlerUtil::Make(const Commands& cmds)
+auto
+OptionRowHandlerUtil::Make(const Commands& cmds) -> OptionRowHandler*
 {
 	OptionRowHandler* pHand = nullptr;
 
-	ROW_INVALID_IF(cmds.v.empty(), "No commands for constructing row.", NULL);
+	ROW_INVALID_IF(
+	  cmds.v.empty(), "No commands for constructing row.", nullptr);
 	const auto& name = cmds.v[0].GetName();
 	ROW_INVALID_IF(name != "gamecommand" && cmds.v.size() != 1,
 				   "Row must be constructed from single command.",
-				   NULL);
+				   nullptr);
 
 	auto load_succeeded = false;
 #define MAKE(type)                                                             \
@@ -1527,7 +1556,7 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 		const auto sParam = command.GetArg(1).s;
 		ROW_INVALID_IF(command.m_vsArgs.size() != 2 || sParam.empty(),
 					   "list row command must be 'list,name' or 'list,type'.",
-					   NULL);
+					   nullptr);
 
 		if (CompareNoCase(sParam, "NoteSkins") == 0)
 			MAKE(OptionRowHandlerListNoteSkins)
@@ -1557,7 +1586,7 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 	else if (name == "gamecommand")
 		MAKE(OptionRowHandlerGameCommand)
 	else {
-		ROW_INVALID_IF(true, "Invalid row type.", NULL);
+		ROW_INVALID_IF(true, "Invalid row type.", nullptr);
 	}
 
 	if (load_succeeded) {
@@ -1566,8 +1595,8 @@ OptionRowHandlerUtil::Make(const Commands& cmds)
 	return nullptr;
 }
 
-OptionRowHandler*
-OptionRowHandlerUtil::MakeNull()
+auto
+OptionRowHandlerUtil::MakeNull() -> OptionRowHandler*
 {
 	OptionRowHandler* pHand = nullptr;
 	auto load_succeeded = false; // Part of the MAKE macro, but unused.
@@ -1580,10 +1609,10 @@ OptionRowHandlerUtil::MakeNull()
 	return nullptr;
 }
 
-OptionRowHandler*
-OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
+auto
+OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr) -> OptionRowHandler*
 {
-	auto pHand = OptionRowHandlerUtil::MakeNull();
+	auto* pHand = OptionRowHandlerUtil::MakeNull();
 
 	pHand->m_Def.m_sName = mr.sName;
 	FontCharAliases::ReplaceMarkers(
@@ -1603,8 +1632,9 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr)
 	pHand->m_Def.m_vsChoices = mr.choices;
 
 	// Each row must have at least one choice.
-	if (pHand->m_Def.m_vsChoices.empty())
-		pHand->m_Def.m_vsChoices.push_back("");
+	if (pHand->m_Def.m_vsChoices.empty()) {
+		pHand->m_Def.m_vsChoices.emplace_back("");
+	}
 
 	pHand->m_Def.m_bAllowThemeTitle = mr.bThemeTitle;
 	pHand->m_Def.m_bAllowThemeItems = mr.bThemeItems;

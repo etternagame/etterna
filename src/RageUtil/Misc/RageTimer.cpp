@@ -24,49 +24,23 @@
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 
-#include "arch/ArchHooks/ArchHooks.h"
-
 #include <chrono>
 
-// let this henceforth be referred to as the difference between a second and a
-// microsecond *kingly fanfare*
-#define TIMESTAMP_RESOLUTION 1000000
-
 const RageTimer RageZeroTimer(0);
-static std::chrono::microseconds g_iStartTime =
-  ArchHooks::GetChronoDurationSinceStart();
-
-static uint64_t
-GetTime()
-{
-	return ArchHooks::GetMicrosecondsSinceStart();
-}
-
-static std::chrono::microseconds
-GetChronoTime()
-{
-	return ArchHooks::GetChronoDurationSinceStart();
-}
+static auto g_iStartTime = std::chrono::steady_clock::now();
 
 float
 RageTimer::GetTimeSinceStart()
 {
-	const auto usecs = GetChronoTime();
-	const std::chrono::microseconds g = usecs - g_iStartTime;
-
-	return static_cast<float>(g.count()) / TIMESTAMP_RESOLUTION;
+	std::chrono::duration<float> t = std::chrono::steady_clock::now() - g_iStartTime;
+	return t.count();
 }
 
-uint64_t
-RageTimer::GetUsecsSinceStart()
+static double
+GetTimeSinceStart64()
 {
-	return GetTime() - g_iStartTime.count();
-}
-
-void
-RageTimer::Touch()
-{
-	this->c_dur = GetChronoTime();
+	std::chrono::duration<double> t = std::chrono::steady_clock::now() - g_iStartTime;
+	return t.count();
 }
 
 float
@@ -85,22 +59,6 @@ RageTimer::GetDeltaTime()
 	return diff;
 }
 
-/*
- * Get a timer representing half of the time ago as this one.  This is
- * useful for averaging time.  For example,
- *
- * RageTimer tm;
- * ... do stuff ...
- * RageTimer AverageTime = tm.Half();
- * printf( "Something happened approximately %f seconds ago.\n", tm.Ago() );
- */
-RageTimer
-RageTimer::Half() const
-{
-	const float fProbableDelay = Ago() / 2;
-	return *this + fProbableDelay;
-}
-
 RageTimer
 RageTimer::operator+(float tm) const
 {
@@ -116,28 +74,23 @@ RageTimer::operator-(const RageTimer& rhs) const
 bool
 RageTimer::operator<(const RageTimer& rhs) const
 {
-	return c_dur < rhs.c_dur;
+	return tm < rhs.tm;
 }
 
 RageTimer
 RageTimer::Sum(const RageTimer& lhs, float tm)
 {
-	const uint64_t usecs = static_cast<uint64_t>(tm * TIMESTAMP_RESOLUTION);
-	const std::chrono::microseconds period(usecs);
-
-	RageTimer ret(0); // Prevent unnecessarily checking the time
-	ret.c_dur = period + lhs.c_dur;
-
-	return ret;
+	const std::chrono::steady_clock::time_point ret =
+		lhs.tm + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<float>(tm));
+	return RageTimer(ret);
 }
 
 float
 RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 {
-	const std::chrono::microseconds diff = lhs.c_dur - rhs.c_dur;
-
-	return static_cast<float>(diff.count()) / TIMESTAMP_RESOLUTION;
+	const std::chrono::duration<float> diff = lhs.tm - rhs.tm;
+	return diff.count();
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStart())
+LuaFunction(GetTimeSinceStart, GetTimeSinceStart64())

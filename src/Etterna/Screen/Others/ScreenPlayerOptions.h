@@ -19,7 +19,7 @@ class ScreenPlayerOptions : public ScreenOptionsMaster
 	void PushSelf(lua_State* L) override;
 
   private:
-	vector<bool> m_bRowCausesDisqualified;
+	std::vector<bool> m_bRowCausesDisqualified;
 	void UpdateDisqualified(int row, PlayerNumber pn);
 
 	bool m_bAcceptedChoices;

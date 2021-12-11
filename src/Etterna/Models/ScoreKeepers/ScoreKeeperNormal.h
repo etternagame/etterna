@@ -34,8 +34,6 @@ class ScoreKeeperNormal : public ScoreKeeper
 
 	int m_iNumNotesHitThisRow; // Used by Custom Scoring only
 
-	ThemeMetric<bool> m_ComboIsPerRow;
-	ThemeMetric<bool> m_MissComboIsPerRow;
 	ThemeMetric<TapNoteScore> m_MinScoreToContinueCombo;
 	ThemeMetric<TapNoteScore> m_MinScoreToMaintainCombo;
 	ThemeMetric<TapNoteScore> m_MaxScoreToIncrementMissCombo;
@@ -46,7 +44,7 @@ class ScoreKeeperNormal : public ScoreKeeper
 	ThemeMetric<TapNoteScore> m_toasty_min_tns;
 	ThemeMetric<LuaReference> m_toasty_trigger;
 
-	vector<Steps*> m_apSteps;
+	std::vector<Steps*> m_apSteps;
 
 	virtual void AddTapScore(TapNoteScore tns);
 	virtual void AddHoldScore(HoldNoteScore hns);
@@ -62,8 +60,8 @@ class ScoreKeeperNormal : public ScoreKeeper
 	ScoreKeeperNormal(PlayerState* pPlayerState,
 					  PlayerStageStats* pPlayerStageStats);
 
-	void Load(const vector<Song*>& apSongs,
-			  const vector<Steps*>& apSteps) override;
+	void Load(const std::vector<Song*>& apSongs,
+			  const std::vector<Steps*>& apSteps) override;
 
 	// before a song plays (called multiple times if course)
 	void OnNextSong(int iSongInCourseIndex,

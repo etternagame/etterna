@@ -63,7 +63,7 @@ struct RollMod
 	void setup()
 	{
 		window =
-		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
+		  std::clamp(static_cast<int>(window_param), 1, max_moving_window_size);
 	}
 
 	void complete_seq() {}
@@ -80,7 +80,7 @@ struct RollMod
 			return;
 		}
 
-		pmod = CalcClamp(1.F, min_mod, max_mod);
+		pmod = std::clamp(1.F, min_mod, max_mod);
 	}
 
 	auto operator()(const ItvHandInfo& itvhi, const SequencerGeneral& _seq)

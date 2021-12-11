@@ -1,6 +1,8 @@
 #include "Etterna/Globals/global.h"
 
 #include "RageTexture.h"
+#include "RageSurface.h"
+#include "RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 RageTexture::RageTexture(const RageTextureID& name)
@@ -18,7 +20,10 @@ RageTexture::RageTexture(const RageTextureID& name)
 {
 }
 
-RageTexture::~RageTexture() = default;
+RageTexture::~RageTexture()
+{
+	delete m_pSurface;
+}
 
 void
 RageTexture::CreateFrameRects()
@@ -65,7 +70,7 @@ RageTexture::GetFrameDimensionsFromFileName(const std::string& sPath,
 											int source_height)
 {
 	static Regex match(" ([0-9]+)x([0-9]+)([\\. ]|$)");
-	vector<std::string> asMatch;
+	std::vector<std::string> asMatch;
 	if (!match.Compare(sPath, asMatch)) {
 		*piFramesWide = *piFramesHigh = 1;
 		return;
@@ -95,6 +100,15 @@ RageTexture::GetTextureCoordRect(int iFrameNo) const
 {
 	return &m_TextureCoordRects[iFrameNo % GetNumFrames()];
 }
+
+auto
+RageTexture::GetAverageColor(unsigned increment) const -> const RageColor
+{
+	if (m_pSurface == nullptr)
+		return RageColor(0, 0, 0, 1.F);
+	return RageSurfaceUtils::GetAverageRGB(m_pSurface, increment);
+}
+
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -137,6 +151,18 @@ class LunaRageTexture : public Luna<RageTexture>
 		p->Reload();
 		COMMON_RETURN_SELF;
 	}
+	static int GetAverageColor(T* p, lua_State* L)
+	{
+		// increment cant be negative or 0
+		// but keep in mind an increment of 1 is probably going to be slow
+		int increment = IArg(1);
+		if (increment <= 0)
+			increment = 1;
+		
+		// will return the average color of the texture independent of diffuse
+		p->GetAverageColor(increment).PushTable(L);
+		return 1;
+	}
 	DEFINE_METHOD(GetSourceWidth, GetSourceWidth());
 	DEFINE_METHOD(GetSourceHeight, GetSourceHeight());
 	DEFINE_METHOD(GetTextureWidth, GetTextureWidth());
@@ -160,6 +186,7 @@ class LunaRageTexture : public Luna<RageTexture>
 		ADD_METHOD(GetImageWidth);
 		ADD_METHOD(GetImageHeight);
 		ADD_METHOD(GetPath);
+		ADD_METHOD(GetAverageColor);
 	}
 };
 

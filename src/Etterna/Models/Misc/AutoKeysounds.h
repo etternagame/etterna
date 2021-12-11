@@ -33,7 +33,7 @@ class AutoKeysounds
 						   RageSoundReader*& pPlayer1);
 
 	NoteData m_ndAutoKeysoundsOnly;
-	vector<RageSound> m_vKeysounds;
+	std::vector<RageSound> m_vKeysounds;
 	RageSound m_sSound;
 	RageSoundReader* m_pChain;		  // owned by m_sSound
 	RageSoundReader* m_pPlayerSounds; // owned by m_sSound

@@ -23,7 +23,7 @@ class RandomSample
 	bool LoadSound(const std::string& sSoundFilePath);
 	int GetNextToPlay();
 
-	vector<RageSound*> m_pSamples;
+	std::vector<RageSound*> m_pSamples;
 	int m_iIndexLastPlayed;
 };
 

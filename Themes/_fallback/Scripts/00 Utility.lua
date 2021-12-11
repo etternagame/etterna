@@ -189,7 +189,7 @@ function getNoteFieldScale(pn_old_deprecated)
 		return 0
 	end
 	local pn = PLAYER_1
-	local po = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+	local po = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
 	local val, as = po:Mini()
 	local zoom = 1
 	zoom = 1 - (val * 0.5)
@@ -287,24 +287,26 @@ function getBPMChangeCount(bpmChanges)
 	return count
 end
 --- Returns a string of the form "(KeyCount)K" like "4K"
--- Uses GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()
+-- Uses GAMESTATE:GetCurrentSteps():GetStepsType()
 -- @treturn string keymode
 function getCurrentKeyMode()
 	local keys = {
 		StepsType_Dance_Threepanel = "3K",
 		StepsType_Dance_Single = "4K",
 		StepsType_Pump_Single = "5K",
+		StepsType_Pnm_Five = "5K",
 		StepsType_Pump_Halfdouble = "6K",
 		StepsType_Bm_Single5 = "6K",
 		StepsType_Dance_Solo = "6K",
 		StepsType_Kb7_Single = "7K",
 		StepsType_Bm_Single7 = "8K",
 		StepsType_Dance_Double = "8K",
+		StepsType_Pnm_Nine = "9K",
 		StepsType_Pump_Double = "10K",
 		StepsType_Bm_Double5 = "12K",
 		StepsType_Bm_Double7 = "16K",
 	}
-	local stepstype = GAMESTATE:GetCurrentSteps(PLAYER_1):GetStepsType()
+	local stepstype = GAMESTATE:GetCurrentSteps():GetStepsType()
 	return keys[stepstype]
 end
 
@@ -313,7 +315,8 @@ end
 -- @treturn {string} translated string of modifiers
 function getModifierTranslations(source)
 	local translated = {}
-	for mod in string.gmatch(source, "[^,%s]+") do
+	for mod in string.gmatch(source, "[^,]+") do
+		mod = mod:match("^%s*(.-)%s*$") -- trim whitespace from beginning and end -kangalioo
 		table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
 	end
 	return table.concat(translated, ", ")

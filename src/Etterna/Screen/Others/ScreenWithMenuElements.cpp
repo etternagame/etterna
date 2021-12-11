@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Actor/Menus/MenuTimer.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenWithMenuElements.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -176,14 +176,13 @@ ScreenWithMenuElements::HandleLuaMusicFile(std::string const& path)
 				} else {
 					// 2) perhaps it's a table with some params? unsure if I
 					// want to support this just yet. -aj
-					LOG->Trace(
-					  "Lua music script did not return a path to a sound.");
+					Locator::getLogger()->warn("Lua music script did not return a path to a sound.");
 					ret = "";
 				}
 			}
 			LUA->Release(L);
 		} else {
-			LOG->Trace("run script failed hardcore, lol");
+			Locator::getLogger()->warn("run script failed hardcore, lol");
 			ret = "";
 		}
 	} else if (ft != FT_Sound) {

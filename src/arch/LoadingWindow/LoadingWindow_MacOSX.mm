@@ -1,9 +1,9 @@
 #import <Cocoa/Cocoa.h>
-#import "Etterna/Globals/ProductInfo.h"
 #import "LoadingWindow_MacOSX.h"
 #import "RageUtil/Utils/RageUtil.h"
 #import "RageUtil/File/RageFile.h"
-#include "Etterna/Singletons/ThemeManager.h"
+#import "Etterna/Singletons/ThemeManager.h"
+#import "Core/Misc/AppInfo.hpp"
 
 @interface LoadingWindowHelper : NSObject
 {
@@ -75,7 +75,7 @@
 	[m_Window setReleasedWhenClosed:YES];
 	[m_Window setExcludedFromWindowsMenu:YES];
 	[m_Window useOptimizedDrawing:YES];
-	[m_Window setTitle:@PRODUCT_FAMILY];
+	[m_Window setTitle:[NSString stringWithUTF8String:Core::AppInfo::APP_TITLE]];
 	[m_Window center];
 
 	// Set subviews.
@@ -136,7 +136,7 @@ void LoadingWindow_MacOSX::SetSplash( const RageSurface *pSplash )
 {
 	RageFile f;
 	std::string data;
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 
 	// Try to load a custom splash from the current theme, first.
 	GetDirListing( THEME->GetPathG( "Common", "splash"), vs, false, true );

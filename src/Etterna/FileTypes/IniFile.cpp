@@ -7,7 +7,7 @@ http://en.wikipedia.org/wiki/INI_file
 #include "Etterna/Globals/global.h"
 #include "IniFile.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 
 IniFile::IniFile()
@@ -19,12 +19,11 @@ bool
 IniFile::ReadFile(const std::string& sPath)
 {
 	m_sPath = sPath;
-	CHECKPOINT_M(ssprintf("Reading '%s'", m_sPath.c_str()));
+	Locator::getLogger()->debug("Reading '{}'", m_sPath.c_str());
 
 	RageFile f;
 	if (!f.Open(m_sPath)) {
-		LOG->Trace(
-		  "Reading '%s' failed: %s", m_sPath.c_str(), f.GetError().c_str());
+		Locator::getLogger()->warn("Reading '{}' failed: {}", m_sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}
@@ -110,8 +109,7 @@ IniFile::WriteFile(const std::string& sPath) const
 {
 	RageFile f;
 	if (!f.Open(sPath, RageFile::WRITE)) {
-		LOG->Warn(
-		  "Writing '%s' failed: %s", sPath.c_str(), f.GetError().c_str());
+		Locator::getLogger()->warn("Writing '{}' failed: {}", sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}

@@ -3,7 +3,6 @@
 
 /* Define the default driver sets. */
 #ifdef _WIN32
-#include "ArchHooks/ArchHooks_Win32.h"
 #include "LoadingWindow/LoadingWindow_Win32.h"
 #include "LowLevelWindow/LowLevelWindow_Win32.h"
 #define DEFAULT_INPUT_DRIVER_LIST "DirectInput,Pump,Para"
@@ -11,7 +10,6 @@
 #define DEFAULT_SOUND_DRIVER_LIST "WaveOut,DirectSound-sw,WDMKS,Null"
 
 #elif defined(__APPLE__)
-#include "ArchHooks/ArchHooks_MacOSX.h"
 #include "LoadingWindow/LoadingWindow_MacOSX.h"
 #include "LowLevelWindow/LowLevelWindow_MacOSX.h"
 #define DEFAULT_INPUT_DRIVER_LIST "HID"
@@ -19,7 +17,6 @@
 #define DEFAULT_SOUND_DRIVER_LIST "AudioUnit,Null"
 
 #elif defined(__unix__)
-#include "ArchHooks/ArchHooks_Unix.h"
 #include "LowLevelWindow/LowLevelWindow_X11.h"
 
 #if defined(HAVE_GTK)

@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "InputHandler_SextetStream.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageThreads.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -115,8 +115,8 @@ class InputHandler_SextetStream::Impl
   public:
 	Impl(InputHandler_SextetStream* _this)
 	{
-		LOG->Info("Number of button states supported by current "
-				  "InputHandler_SextetStream: %u",
+		Locator::getLogger()->info("Number of button states supported by current "
+				  "InputHandler_SextetStream: {}",
 				  (unsigned)BUTTON_COUNT);
 		continueInputThread = false;
 		timeout_ms = DEFAULT_TIMEOUT_MS;
@@ -134,7 +134,7 @@ class InputHandler_SextetStream::Impl
 		}
 	}
 
-	virtual void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevicesOut)
+	virtual void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevicesOut)
 	{
 		vDevicesOut.push_back(InputDeviceInfo(FIRST_DEVICE, "SextetStream"));
 	}
@@ -197,9 +197,7 @@ class InputHandler_SextetStream::Impl
 				if (bi < BUTTON_COUNT) {
 					if (changes[m] & (1 << n)) {
 						bool value = newStateBuffer[m] & (1 << n);
-						LOG->Trace("SS button index %zu %s",
-								   bi,
-								   value ? "pressed" : "released");
+						Locator::getLogger()->trace("SS button index {} {}", bi, value ? "pressed" : "released");
 						DeviceInput di =
 						  DeviceInput(id, ButtonAtIndex(bi), value, now);
 						ButtonPressed(di);
@@ -217,17 +215,17 @@ class InputHandler_SextetStream::Impl
 		std::string line;
 		LineReader* linereader;
 
-		LOG->Trace("Input thread started; getting line reader");
+		Locator::getLogger()->trace("Input thread started; getting line reader");
 		linereader = getLineReader();
 
 		if (linereader == NULL) {
-			LOG->Warn("Could not open line reader for SextetStream input");
+			Locator::getLogger()->warn("Could not open line reader for SextetStream input");
 		} else {
-			LOG->Trace("Got line reader");
+			Locator::getLogger()->trace("Got line reader");
 			while (continueInputThread) {
-				LOG->Trace("Reading line");
+				Locator::getLogger()->trace("Reading line");
 				if (linereader->ReadLine(line)) {
-					LOG->Trace("Got line: '%s'", line.c_str());
+					Locator::getLogger()->trace("Got line: '{}'", line.c_str());
 					if (line.length() > 0) {
 						uint8_t newStateBuffer[STATE_BUFFER_SIZE];
 						GetNewState(newStateBuffer, line);
@@ -235,11 +233,11 @@ class InputHandler_SextetStream::Impl
 					}
 				} else {
 					// Error or EOF condition.
-					LOG->Trace("Reached end of SextetStream input");
+					Locator::getLogger()->trace("Reached end of SextetStream input");
 					continueInputThread = false;
 				}
 			}
-			LOG->Info("SextetStream input stopped");
+			Locator::getLogger()->info("SextetStream input stopped");
 			delete linereader;
 		}
 	}
@@ -247,7 +245,7 @@ class InputHandler_SextetStream::Impl
 
 void
 InputHandler_SextetStream::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	if (_impl != NULL) {
 		_impl->GetDevicesAndDescriptions(vDevicesOut);
@@ -294,24 +292,21 @@ class StdCFileLineReader : public LineReader
   public:
 	StdCFileLineReader(std::FILE* file)
 	{
-		LOG->Info(
-		  "Starting InputHandler_SextetStreamFromFile from open std::FILE");
+		Locator::getLogger()->info("Starting InputHandler_SextetStreamFromFile from open std::FILE");
 		this->file = file;
 	}
 
 	StdCFileLineReader(const std::string& filename)
 	{
-		LOG->Info("Starting InputHandler_SextetStreamFromFile from std::FILE "
-				  "with filename '%s'",
+		Locator::getLogger()->info("Starting InputHandler_SextetStreamFromFile from std::FILE with filename '{}'",
 				  filename.c_str());
 		file = std::fopen(filename.c_str(), "rb");
 
 		if (file == NULL) {
-			LOG->Warn("Error opening file '%s' for input (cstdio): %s",
-					  filename.c_str(),
-					  std::strerror(errno));
+			Locator::getLogger()->warn("Error opening file '{}' for input (cstdio): {}",
+					  filename.c_str(), std::strerror(errno));
 		} else {
-			LOG->Info("File opened");
+			Locator::getLogger()->info("File opened");
 			// Disable buffering on the file
 			std::setbuf(file, NULL);
 		}

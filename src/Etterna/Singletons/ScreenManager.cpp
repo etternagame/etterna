@@ -66,7 +66,7 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/Screen.h"
@@ -111,24 +111,20 @@ struct LoadedScreen
 
 Actor* g_pSharedBGA; // BGA object that's persistent between screens
 std::string m_sPreviousTopScreen;
-vector<LoadedScreen> g_ScreenStack; // bottommost to topmost
-vector<Screen*> g_OverlayScreens;
+std::vector<LoadedScreen> g_ScreenStack; // bottommost to topmost
+std::vector<Screen*> g_OverlayScreens;
 std::set<std::string> g_setGroupedScreens;
 std::set<std::string> g_setPersistantScreens;
 
-vector<LoadedScreen> g_vPreparedScreens;
-vector<Actor*> g_vPreparedBackgrounds;
+std::vector<LoadedScreen> g_vPreparedScreens;
+std::vector<Actor*> g_vPreparedBackgrounds;
 
 // Add a screen to g_ScreenStack. This is the only function that adds to
 // g_ScreenStack.
 void
 PushLoadedScreen(const LoadedScreen& ls)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("PushScreen: \"%s\"", ls.m_pScreen->GetName().c_str());
-	LOG->MapLog("ScreenManager::TopScreen",
-				"Top Screen: %s",
-				ls.m_pScreen->GetName().c_str());
+	Locator::getLogger()->info("PushLoadedScreen: \"{}\"", ls.m_pScreen->GetName().c_str());
 
 	// Be sure to push the screen first, so GetTopScreen returns the screen
 	// during BeginScreen.
@@ -202,7 +198,7 @@ AfterDeleteScreen()
  * Clear the prepared lists. The contents of apOut must be
  * freed by the caller. */
 void
-GrabPreparedActors(vector<Actor*>& apOut)
+GrabPreparedActors(std::vector<Actor*>& apOut)
 {
 	FOREACH(LoadedScreen, g_vPreparedScreens, s)
 	if (s->m_bDeleteWhenDone)
@@ -221,7 +217,7 @@ GrabPreparedActors(vector<Actor*>& apOut)
 void
 DeletePreparedScreens()
 {
-	vector<Actor*> apActorsToDelete;
+	std::vector<Actor*> apActorsToDelete;
 	GrabPreparedActors(apActorsToDelete);
 
 	BeforeDeleteScreen();
@@ -268,9 +264,7 @@ ScreenManager::ScreenManager()
 
 ScreenManager::~ScreenManager()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("ScreenManager::~ScreenManager()");
-	LOG->UnmapLog("ScreenManager::TopScreen");
+	Locator::getLogger()->debug("ScreenManager::~ScreenManager()");
 
 	SAFE_DELETE(g_pSharedBGA);
 	for (unsigned i = 0; i < g_ScreenStack.size(); i++) {
@@ -291,8 +285,7 @@ ScreenManager::~ScreenManager()
 void
 ScreenManager::ThemeChanged()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("ScreenManager::ThemeChanged");
+	Locator::getLogger()->info("ScreenManager::ThemeChanged");
 
 	// reload common sounds
 	m_soundStart.Load(THEME->GetPathS("Common", "start"));
@@ -321,7 +314,7 @@ ScreenManager::ReloadOverlayScreens()
 
 	// reload overlay screens
 	std::string sOverlays = THEME->GetMetric("Common", "OverlayScreens");
-	vector<std::string> asOverlays;
+	std::vector<std::string> asOverlays;
 	split(sOverlays, ",", asOverlays);
 	for (unsigned i = 0; i < asOverlays.size(); i++) {
 		Screen* pScreen = MakeNewScreen(asOverlays[i]);
@@ -436,11 +429,8 @@ ScreenManager::PopTopScreenInternal(bool bSendLoseFocus)
 	}
 
 	if (g_ScreenStack.size())
-		LOG->MapLog("ScreenManager::TopScreen",
-					"Top Screen: %s",
+        Locator::getLogger()->info("After PopTopScreen - Top Screen: {}",
 					g_ScreenStack.back().m_pScreen->GetName().c_str());
-	else
-		LOG->UnmapLog("ScreenManager::TopScreen");
 
 	return ls.m_SendOnPop;
 }
@@ -484,8 +474,7 @@ ScreenManager::Update(float fDeltaTime)
 	 * Screen's first update.  Clamp the first update delta so that the
 	 * animations don't jump. */
 	if ((pScreen != nullptr) && m_bZeroNextUpdate) {
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Zeroing this update.  Was %f", fDeltaTime);
+		Locator::getLogger()->trace("Zeroing this update.  Was {}", fDeltaTime);
 		fDeltaTime = 0;
 		m_bZeroNextUpdate = false;
 	}
@@ -588,8 +577,7 @@ Screen*
 ScreenManager::MakeNewScreen(const std::string& sScreenName)
 {
 	RageTimer t;
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Loading screen: \"%s\"", sScreenName.c_str());
+	Locator::getLogger()->info("Loading screen: \"{}\"", sScreenName.c_str());
 
 	std::string sClassName = THEME->GetMetric(sScreenName, "Class");
 
@@ -608,11 +596,10 @@ ScreenManager::MakeNewScreen(const std::string& sScreenName)
 	CreateScreenFn pfn = iter->second;
 	Screen* ret = pfn(sScreenName);
 
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Loaded \"%s\" (\"%s\") in %f",
-				   sScreenName.c_str(),
-				   sClassName.c_str(),
-				   t.GetDeltaTime());
+	Locator::getLogger()->info("Loaded \"{}\" (\"{}\") in {}",
+				sScreenName.c_str(),
+				sClassName.c_str(),
+				t.GetDeltaTime());
 
 	return ret;
 }
@@ -654,8 +641,7 @@ ScreenManager::PrepareScreen(const std::string& sScreenName)
 		// Create the new background before deleting the previous so that we
 		// keep any common textures loaded.
 		if (pNewBGA == nullptr) {
-			if (PREFSMAN->m_verbose_log > 1)
-				LOG->Trace("Loading screen background \"%s\"", sNewBGA.c_str());
+			Locator::getLogger()->debug("Loading screen background \"{}\"", sNewBGA.c_str());
 			Actor* pActor = ActorUtil::MakeActor(sNewBGA);
 			if (pActor != nullptr) {
 				pActor->SetName(sNewBGA);
@@ -768,7 +754,7 @@ ScreenManager::LoadDelayedScreen()
 	 * cleanup, so it doesn't get deleted by cleanup. */
 	bool bLoaded = ActivatePreparedScreenAndBackground(sScreenName);
 
-	vector<Actor*> apActorsToDelete;
+	std::vector<Actor*> apActorsToDelete;
 	if (g_setGroupedScreens.find(sScreenName) == g_setGroupedScreens.end()) {
 		/* It's time to delete all old prepared screens. Depending on
 		 * DelayedScreenLoad, we can either delete the screens before or after
@@ -878,7 +864,7 @@ ScreenManager::SendMessageToTopScreen(ScreenMessage SM)
 void
 ScreenManager::SystemMessage(const std::string& sMessage)
 {
-	LOG->Trace("%s", sMessage.c_str());
+	Locator::getLogger()->info("{}", sMessage.c_str());
 	Message msg("SystemMessage");
 	msg.SetParam("Message", sMessage);
 	msg.SetParam("NoAnimate", false);

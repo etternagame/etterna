@@ -1,5 +1,6 @@
 //
 // Created by Robert on 11/20/2019.
+// Modified for N-keys by poco0317
 //
 
 #include <vector>
@@ -8,14 +9,21 @@
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "SoloCalc.h"
 
+#include <numeric>
+
 // using std::vector;
 using namespace ::std;
 
-const float finalscaler = 2.564f * 1.05f * 1.1f * 1.10f * 1.10f *
-						  1.025f; // multiplier to standardize baselines
+// multipliers to each skillset
+static const std::array<float, NUM_Skillset> basescalars = {
+	0.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F
+};
+
+// global multiplier for baseline standardization
+static constexpr float finalscaler = 2.6f * 1.4f;
 
 inline void
-Smooth(vector<float>& input, float neutral)
+Smooth(std::vector<float>& input, float neutral)
 {
 	float f2 = neutral;
 	float f3 = neutral;
@@ -29,7 +37,7 @@ Smooth(vector<float>& input, float neutral)
 }
 
 inline void
-DifficultyMSSmooth(vector<float>& input)
+DifficultyMSSmooth(std::vector<float>& input)
 {
 	float f2 = 0.f;
 
@@ -41,7 +49,7 @@ DifficultyMSSmooth(vector<float>& input)
 }
 
 float
-CalcMSEstimate(vector<float>& input)
+CalcMSEstimate(std::vector<float>& input)
 {
 	if (input.empty())
 		return 0.f;
@@ -55,7 +63,7 @@ CalcMSEstimate(vector<float>& input)
 }
 
 float
-CalcInternal(float x, vector<float>& diff, vector<int>& v_itvpoints)
+CalcInternal(float x, std::vector<float>& diff, std::vector<int>& v_itvpoints)
 {
 	float output = 0.f;
 	for (size_t i = 0; i < diff.size(); i++) {
@@ -67,10 +75,12 @@ CalcInternal(float x, vector<float>& diff, vector<int>& v_itvpoints)
 
 float
 Chisel(float score_goal,
-	   vector<float>& ldiff,
-	   vector<int>& lv_itvpoints,
-	   vector<float>& rdiff,
-	   vector<int>& rv_itvpoints,
+	   std::vector<float>& ldiff,
+	   std::vector<int>& lv_itvpoints,
+	   std::vector<float>& rdiff,
+	   std::vector<int>& rv_itvpoints,
+	   std::vector<float>& mdiff,
+	   std::vector<int>& mv_itvpoints,
 	   float MaxPoints)
 {
 	float lower = 0.0f;
@@ -78,7 +88,8 @@ Chisel(float score_goal,
 	while (upper - lower > 0.01f) {
 		float mid = (lower + upper) / 2.f;
 		float gotpoints = CalcInternal(mid, ldiff, lv_itvpoints) +
-						  CalcInternal(mid, rdiff, rv_itvpoints);
+						  CalcInternal(mid, rdiff, rv_itvpoints) +
+						  CalcInternal(mid, mdiff, mv_itvpoints);
 		if (gotpoints / MaxPoints < score_goal) {
 			lower = mid;
 		} else {
@@ -90,21 +101,31 @@ Chisel(float score_goal,
 }
 
 void
-setHandDiffs(vector<float>& NPSdiff,
-			 vector<float>& MSdiff,
-			 vector<vector<vector<float>>>& AllIntervals,
-			 int column)
+setHandDiffs(std::vector<float>& NPSdiff,
+			 std::vector<float>& MSdiff,
+			 std::vector<vector<vector<float>>>& AllIntervals,
+			 unsigned columnToStart,
+			 unsigned columnsPerHand)
 {
-	for (size_t i = 0; i < AllIntervals[column].size(); i++) {
-		float nps =
-		  1.6f * static_cast<float>(AllIntervals[column][i].size() +
-									AllIntervals[column + 1][i].size() +
-									AllIntervals[column + 2][i].size());
-		float left_difficulty = CalcMSEstimate(AllIntervals[column][i]);
-		float middle_difficulty = CalcMSEstimate(AllIntervals[column + 1][i]);
-		float right_difficulty = CalcMSEstimate(AllIntervals[column + 2][i]);
-		float difficulty = std::max(
-		  std::max(left_difficulty, middle_difficulty), right_difficulty);
+	// early exit out of bounds
+	if (columnToStart > AllIntervals.size() || columnToStart < 0 || columnToStart + columnsPerHand > AllIntervals.size())
+		return;
+	
+	for (size_t i = 0; i < AllIntervals[columnToStart].size(); i++) {
+		
+		float nps = 0;
+		for (unsigned col = columnToStart; col < columnToStart + columnsPerHand;
+			 col++)
+			nps += static_cast<float>(AllIntervals[col][i].size());
+		nps *= 1.6f;
+
+		float difficulty = 0.f;
+		for (unsigned col = columnToStart; col < columnToStart + columnsPerHand; col++) {
+			float finger_difficulty = CalcMSEstimate(AllIntervals[col][i]);
+			if (finger_difficulty > difficulty)
+				difficulty = finger_difficulty;
+		}
+		
 		NPSdiff[i] = finalscaler * nps;
 		MSdiff[i] = finalscaler * (5.f * difficulty + 4.f * nps) / 9.f;
 	}
@@ -113,7 +134,7 @@ setHandDiffs(vector<float>& NPSdiff,
 }
 
 MinaSD
-SoloCalc(const std::vector<NoteInfo>& notes)
+SoloCalc(const std::vector<NoteInfo>& notes, unsigned columnCount)
 {
 
 	MinaSD allrates;
@@ -122,11 +143,11 @@ SoloCalc(const std::vector<NoteInfo>& notes)
 
 	if (notes.size() > 1) {
 		for (int i = 7; i < rateCount; i++) {
-			auto tempVal = SoloCalc(notes, i / 10.f, 0.93f);
+			auto tempVal = SoloCalc(notes, columnCount, i / 10.f, 0.93f);
 			allrates.emplace_back(tempVal);
 		}
 	} else {
-		vector<float> o{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+		std::vector<float> o{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 
 		for (int i = 7; i < rateCount; i++) {
 			allrates.emplace_back(o);
@@ -135,18 +156,19 @@ SoloCalc(const std::vector<NoteInfo>& notes)
 	return allrates;
 }
 
-vector<float>
-SoloCalc(const std::vector<NoteInfo>& notes, float music_rate, float goal)
+std::vector<float>
+SoloCalc(const std::vector<NoteInfo>& notes, unsigned columnCount, float music_rate, float goal)
 {
-	vector<float> skills{};
+	std::vector<float> skills{};
 
-	vector<vector<vector<float>>> AllIntervals(6, vector<vector<float>>());
+	std::vector<vector<vector<float>>> AllIntervals(columnCount,
+											   std::vector<vector<float>>());
 	int num_itv =
 	  static_cast<int>(std::ceil(notes.back().rowTime / (music_rate * 0.5f)));
-	for (unsigned int t = 0; t < 6; t++) {
+	for (unsigned int t = 0; t < columnCount; t++) {
 		int Interval = 0;
 		float last = -5.f;
-		AllIntervals[t] = vector<vector<float>>(num_itv, vector<float>());
+		AllIntervals[t] = std::vector<vector<float>>(num_itv, std::vector<float>());
 		unsigned int column = 1u << t;
 
 		for (auto i : notes) {
@@ -165,34 +187,86 @@ SoloCalc(const std::vector<NoteInfo>& notes, float music_rate, float goal)
 			}
 		}
 	}
-	vector<float> lv_itvNPSdiff(AllIntervals[0].size());
-	vector<float> lv_itvMSdiff(AllIntervals[0].size());
-	vector<float> rv_itvNPSdiff(AllIntervals[0].size());
-	vector<float> rv_itvMSdiff(AllIntervals[0].size());
 
-	setHandDiffs(lv_itvNPSdiff, lv_itvMSdiff, AllIntervals, 0);
-	setHandDiffs(rv_itvNPSdiff, rv_itvMSdiff, AllIntervals, 3);
+	int columnsPerHand = columnCount / 2;
+	bool hasCenterColumn = columnCount % 2 != 0;
 
-	vector<int> lv_itvpoints;
-	vector<int> rv_itvpoints;
+	int leftHandStartColumn = 0;
+	int rightHandStartColumn = columnCount / 2 + (hasCenterColumn ? 1 : 0);
+	
+	std::vector<int> lv_itvpoints;
+	std::vector<int> mv_itvpoints;
+	std::vector<int> rv_itvpoints;
+	std::vector<float> lv_itvMSdiff;
+	std::vector<float> mv_itvMSdiff;
+	std::vector<float> rv_itvMSdiff;
 
-	for (size_t i = 0; i < AllIntervals[0].size(); i++)
-		lv_itvpoints.emplace_back(static_cast<int>(AllIntervals[0][i].size()) +
-								  static_cast<int>(AllIntervals[1][i].size()) +
-								  static_cast<int>(AllIntervals[2][i].size()));
-	for (size_t i = 0; i < AllIntervals[0].size(); i++)
-		rv_itvpoints.emplace_back(static_cast<int>(AllIntervals[3][i].size()) +
-								  static_cast<int>(AllIntervals[4][i].size()) +
-								  static_cast<int>(AllIntervals[5][i].size()));
+	// check column count if the column count happens to be 1
+	// column count 1 would break this logic
+	if (columnCount > 1) {
+		std::vector<float> lv_itvNPSdiff(AllIntervals[0].size());
+		lv_itvMSdiff.resize(AllIntervals[0].size());
+		std::vector<float> rv_itvNPSdiff(AllIntervals[0].size());
+		rv_itvMSdiff.resize(AllIntervals[0].size());
+		
+		setHandDiffs(lv_itvNPSdiff,
+					 lv_itvMSdiff,
+					 AllIntervals,
+					 leftHandStartColumn,
+					 columnsPerHand);
+		setHandDiffs(rv_itvNPSdiff,
+					 rv_itvMSdiff,
+					 AllIntervals,
+					 rightHandStartColumn,
+					 columnsPerHand);
+		
+		for (size_t i = 0; i < AllIntervals[0].size(); i++) {
+			auto ptcnt = 0;
+			for (auto col = leftHandStartColumn;
+				 col < leftHandStartColumn + columnsPerHand;
+				 col++) {
+				ptcnt += static_cast<int>(AllIntervals[col][i].size());
+			}
+			lv_itvpoints.emplace_back(ptcnt);
+		}
+		for (size_t i = 0; i < AllIntervals[0].size(); i++) {
+			auto ptcnt = 0;
+			for (auto col = rightHandStartColumn;
+				 col < rightHandStartColumn + columnsPerHand;
+				 col++) {
+				ptcnt += static_cast<int>(AllIntervals[col][i].size());
+			}
+			rv_itvpoints.emplace_back(ptcnt);
+		}
+	}
+	
+	// for the center column lovers
+	if (hasCenterColumn) {
+		std::vector<float> mv_itvNPSdiff(AllIntervals[0].size());
+		mv_itvMSdiff.resize(AllIntervals[0].size());
+		setHandDiffs(mv_itvNPSdiff,
+				 mv_itvMSdiff,
+				 AllIntervals,
+				 leftHandStartColumn + columnsPerHand,
+				 1);
+		for (size_t i = 0; i < AllIntervals[0].size(); i++) {
+			mv_itvpoints.emplace_back(static_cast<int>(
+			  AllIntervals[std::max(0, rightHandStartColumn - 1)][i].size()));
+		}
+	}
 
-	float MaxPoints = 0.f;
-	for (size_t i = 0; i < lv_itvpoints.size(); i++)
-		MaxPoints += static_cast<float>(lv_itvpoints[i] + rv_itvpoints[i]);
+	float MaxPoints = static_cast<float>(
+	  std::accumulate(lv_itvpoints.begin(), lv_itvpoints.end(), 0) +
+	  std::accumulate(mv_itvpoints.begin(), mv_itvpoints.end(), 0) +
+	  std::accumulate(rv_itvpoints.begin(), rv_itvpoints.end(), 0));
+	
 	float sd = Chisel(min(goal, 0.965f),
 					  lv_itvMSdiff,
 					  lv_itvpoints,
 					  rv_itvMSdiff,
 					  rv_itvpoints,
+					  mv_itvMSdiff,
+					  mv_itvpoints,
 					  MaxPoints);
 
 	// hack to return the same sd for all skillsets, for now

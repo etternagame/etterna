@@ -44,7 +44,11 @@ class Download
 	void Failed();
 	std::string StartMessage()
 	{
-		return "Downloading file " + m_TempFileName + " from " + m_Url;
+		auto str = "Downloading: " + m_TempFileName;
+		if (str.length() > 64) {
+			str = str.substr(0, 60) + "...";
+		}
+		return str;
 	};
 	std::string Status()
 	{
@@ -132,6 +136,7 @@ class OnlineScore
 	std::map<Skillset, float> SSRs;
 	float rate{ 0.0f };
 	float wife{ 0.0f };
+	int wifeversion{ 0 };
 	int maxcombo{ 0 };
 	int miss{ 0 };
 	int bad{ 0 };
@@ -194,6 +199,7 @@ class DownloadManager
 		""
 	}; // Register page from server (Or empty if non was obtained)
 	std::map<std::string, std::vector<OnlineScore>> chartLeaderboards;
+	std::set<std::string> unrankedCharts;
 	std::vector<std::string> countryCodes;
 	std::map<Skillset, int>
 	  sessionRanks; // Leaderboard ranks for logged in user by skillset
@@ -203,7 +209,7 @@ class DownloadManager
 
 	void AddFavorite(const std::string& chartkey);
 	void RemoveFavorite(const std::string& chartkey);
-	void RefreshFavourites();
+	void RefreshFavorites();
 	std::vector<std::string> favorites;
 
 	void AddGoal(const std::string& chartkey,
@@ -299,7 +305,7 @@ class DownloadManager
 	std::string countryCode;
 	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
-	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = true);
+	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = false);
 	std::map<std::string, std::vector<DownloadablePack*>> bundles;
 	void RefreshCoreBundles();
 	std::vector<DownloadablePack*> GetCoreBundle(const std::string& whichoneyo);

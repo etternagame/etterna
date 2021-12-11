@@ -1,7 +1,7 @@
--- Removed all the protiming junk, it's obsoleted
 local allowedCustomization = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).CustomizeGameplay
 local c
 local enabledJudgment = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgmentText
+local JTEnabled = JudgementTweensEnabled()
 
 local JudgeCmds = {
 	TapNoteScore_W1 = THEME:GetMetric("Judgment", "JudgmentW1Command"),
@@ -9,7 +9,7 @@ local JudgeCmds = {
 	TapNoteScore_W3 = THEME:GetMetric("Judgment", "JudgmentW3Command"),
 	TapNoteScore_W4 = THEME:GetMetric("Judgment", "JudgmentW4Command"),
 	TapNoteScore_W5 = THEME:GetMetric("Judgment", "JudgmentW5Command"),
-	TapNoteScore_Miss = THEME:GetMetric("Judgment", "JudgmentMissCommand")
+	TapNoteScore_Miss = THEME:GetMetric("Judgment", "JudgmentMissCommand"),
 }
 
 local TNSFrames = {
@@ -29,8 +29,7 @@ local function judgmentZoom(value)
 	end
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	Def.Sprite {
 		Texture = "../../../../" .. getAssetPath("judgment"),
 		Name = "Judgment",
@@ -51,7 +50,7 @@ local t =
 			Movable.DeviceButton_2.condition = enabledJudgment
 			Movable.DeviceButton_2.DeviceButton_up.arbitraryFunction = judgmentZoom
 			Movable.DeviceButton_2.DeviceButton_down.arbitraryFunction = judgmentZoom
-			Movable.DeviceButton_1.propertyOffsets = {self:GetTrueX() , self:GetTrueY() - c.Judgment:GetHeight()}	-- centered to screen/valigned
+			Movable.DeviceButton_1.propertyOffsets = {self:GetTrueX() , self:GetTrueY()}	-- centered to screen/valigned
 		end
 	end,
 	JudgmentMessageCommand = function(self, param)
@@ -73,7 +72,9 @@ local t =
 		self:playcommand("Reset")
 		c.Judgment:visible(true)
 		c.Judgment:setstate(iFrame)
-		JudgeCmds[param.TapNoteScore](c.Judgment)
+		if JTEnabled then
+			JudgeCmds[param.TapNoteScore](c.Judgment)
+		end
 	end,
 	MovableBorder(0, 0, 1, MovableValues.JudgeX, MovableValues.JudgeY)
 }

@@ -39,16 +39,16 @@ struct CubicSpline
 
   private:
 	auto check_minimum_size() -> bool;
-	void prep_inner(size_t last, vector<float>& results);
+	void prep_inner(size_t last, std::vector<float>& results);
 	void set_results(size_t last,
-					 vector<float>& diagonals,
-					 vector<float>& results);
+					 std::vector<float>& diagonals,
+					 std::vector<float>& results);
 
 	struct SplinePoint
 	{
 		float a, b, c, d;
 	};
-	vector<SplinePoint> m_points;
+	std::vector<SplinePoint> m_points;
 };
 
 struct CubicSplineN
@@ -61,21 +61,21 @@ struct CubicSplineN
 								 const CubicSplineN& to,
 								 float between);
 	void solve();
-	void evaluate(float t, vector<float>& v) const;
-	void evaluate_derivative(float t, vector<float>& v) const;
-	void evaluate_second_derivative(float t, vector<float>& v) const;
-	void evaluate_third_derivative(float t, vector<float>& v) const;
+	void evaluate(float t, std::vector<float>& v) const;
+	void evaluate_derivative(float t, std::vector<float>& v) const;
+	void evaluate_second_derivative(float t, std::vector<float>& v) const;
+	void evaluate_third_derivative(float t, std::vector<float>& v) const;
 	void evaluate(float t, RageVector3& v) const;
 	void evaluate_derivative(float t, RageVector3& v) const;
-	void set_point(size_t i, const vector<float>& v);
+	void set_point(size_t i, const std::vector<float>& v);
 	void set_coefficients(size_t i,
-						  const vector<float>& b,
-						  const vector<float>& c,
-						  const vector<float>& d);
+						  const std::vector<float>& b,
+						  const std::vector<float>& c,
+						  const std::vector<float>& d);
 	void get_coefficients(size_t i,
-						  vector<float>& b,
-						  vector<float>& c,
-						  vector<float>& d);
+						  std::vector<float>& b,
+						  std::vector<float>& c,
+						  std::vector<float>& d);
 	void set_spatial_extent(size_t i, float extent);
 	auto get_spatial_extent(size_t i) -> float;
 	void resize(size_t s);
@@ -91,7 +91,7 @@ struct CubicSplineN
 		}
 		return static_cast<float>(size() - 1);
 	}
-	using spline_cont_t = vector<CubicSpline>;
+	using spline_cont_t = std::vector<CubicSpline>;
 	void set_loop(bool l);
 	[[nodiscard]] auto get_loop() const -> bool;
 	void set_polygonal(bool p);

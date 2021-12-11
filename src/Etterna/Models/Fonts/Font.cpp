@@ -4,7 +4,7 @@
 
 #include "FontCharAliases.h"
 #include "FontCharmaps.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -81,7 +81,7 @@ FontPage::Load(const FontPageSettings& cfg)
 	}
 
 	// load character widths
-	vector<int> aiFrameWidths;
+	std::vector<int> aiFrameWidths;
 
 	int default_width =
 	  m_FontPageTextures.m_pTextureMain->GetSourceFrameWidth();
@@ -149,7 +149,7 @@ FontPage::Load(const FontPageSettings& cfg)
 }
 
 void
-FontPage::SetTextureCoords(const vector<int>& widths, int iAdvanceExtraPixels)
+FontPage::SetTextureCoords(const std::vector<int>& widths, int iAdvanceExtraPixels)
 {
 	for (int i = 0; i < m_FontPageTextures.m_pTextureMain->GetNumFrames();
 		 ++i) {
@@ -455,10 +455,10 @@ Font::SetDefaultGlyph(FontPage* pPage)
 // Given the INI for a font, find all of the texture pages for the font.
 void
 Font::GetFontPaths(const std::string& sFontIniPath,
-				   vector<std::string>& asTexturePathsOut)
+				   std::vector<std::string>& asTexturePathsOut)
 {
 	std::string sPrefix = SetExtension(sFontIniPath, "");
-	vector<std::string> asFiles;
+	std::vector<std::string> asFiles;
 	GetDirListing(sPrefix + "*", asFiles, false, true);
 
 	for (auto& asFile : asFiles) {
@@ -551,19 +551,26 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 
 				wchar_t c;
 				if (sCodepoint.substr(0, 2) == "U+" &&
-					IsHexVal(sCodepoint.substr(2)))
-					sscanf(sCodepoint.substr(2).c_str(), "%x", &c);
-				else if (sCodepoint.size() > 0 &&
+					IsHexVal(sCodepoint.substr(2))) {
+					int c2;
+					if (!sscanf(sCodepoint.substr(2).c_str(), "%x", &c2))
+						Locator::getLogger()->warn(
+						  "Font definition '{}' has an invalid value '{}'.",
+						  ini.GetPath().c_str(),
+						  sName.c_str());
+					else
+						c = c2;
+				}
+				else if (!sCodepoint.empty() &&
 						 utf8_get_char_len(sCodepoint[0]) ==
 						   static_cast<int>(sCodepoint.size())) {
-					c = utf8_get_char(sCodepoint.c_str());
+					c = utf8_get_char(sCodepoint);
 					if (c == static_cast<wchar_t>(-1))
-						LOG->Warn(
-						  "Font definition '%s' has an invalid value '%s'.",
+						Locator::getLogger()->warn("Font definition '{}' has an invalid value '{}'.",
 						  ini.GetPath().c_str(),
 						  sName.c_str());
 				} else if (!FontCharAliases::GetChar(sCodepoint, c)) {
-					LOG->Warn("Font definition '%s' has an invalid value '%s'.",
+					Locator::getLogger()->warn("Font definition '{}' has an invalid value '{}'.",
 							  ini.GetPath().c_str(),
 							  sName.c_str());
 					continue;
@@ -590,7 +597,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				 * Map hiragana to 0-84:
 				 * range Unicode #3041-3094=0
 				 */
-				vector<std::string> asMatches;
+				std::vector<std::string> asMatches;
 				static Regex parse(
 				  "^RANGE ([A-Z0-9\\-]+)( ?#([0-9A-F]+)-([0-9A-F]+))?$");
 				bool match = parse.Compare(sName, asMatches);
@@ -608,9 +615,17 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				int count = -1;
 				int first = 0;
 				if (!asMatches[2].empty()) {
-					sscanf(asMatches[2].c_str(), "%x", &first);
+					if (!sscanf(asMatches[2].c_str(), "%x", &first))
+						Locator::getLogger()->warn(
+						  "Font definition {} parse error: {}",
+						  ini.GetPath().c_str(),
+						  sName.c_str());
 					int last;
-					sscanf(asMatches[3].c_str(), "%x", &last);
+					if (!sscanf(asMatches[3].c_str(), "%x", &last))
+						Locator::getLogger()->warn(
+						  "Font definition {} parse error: {}",
+						  ini.GetPath().c_str(),
+						  sName.c_str());
 					if (last < first) {
 						LuaHelpers::ReportScriptErrorFmt(
 						  "Font definition \"%s\" has an invalid range \"%s\": "
@@ -708,8 +723,7 @@ Font::LoadFontPageSettings(FontPageSettings& cfg,
 				cfg.MapRange("numbers", 0, 0, -1);
 				break;
 			default:
-				LOG->Trace("Font page \"%s\" has no characters",
-						   sTexturePath.c_str());
+				Locator::getLogger()->warn("Font page \"{}\" has no characters", sTexturePath.c_str());
 		}
 	}
 
@@ -776,7 +790,7 @@ FontPageSettings::MapRange(const std::string& sMapping,
 	return std::string();
 }
 
-static vector<std::string> LoadStack;
+static std::vector<std::string> LoadStack;
 
 /* A font set is a set of files, eg:
  *
@@ -820,14 +834,13 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 	LoadStack.push_back(sIniPath);
 
 	// The font is not already loaded. Figure out what we have.
-	CHECKPOINT_M(ssprintf(
-	  "Font::Load(\"%s\",\"%s\").", sIniPath.c_str(), m_sChars.c_str()));
+	Locator::getLogger()->trace("Font::Load(\"{}\",\"{}\").", sIniPath.c_str(), m_sChars.c_str());
 
 	path = sIniPath;
 	m_sChars = sChars;
 
 	// Get the filenames associated with this font.
-	vector<std::string> asTexturePaths;
+	std::vector<std::string> asTexturePaths;
 	GetFontPaths(sIniPath, asTexturePaths);
 
 	bool bCapitalsOnly = false;
@@ -845,7 +858,7 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 	}
 
 	{
-		vector<std::string> ImportList;
+		std::vector<std::string> ImportList;
 
 		bool bIsTopLevelFont = LoadStack.size() == 1;
 

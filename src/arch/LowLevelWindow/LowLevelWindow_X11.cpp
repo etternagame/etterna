@@ -1,9 +1,9 @@
 #include "Etterna/Globals/global.h"
 #include "LowLevelWindow_X11.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageException.h"
 #include "archutils/Unix/X11Helper.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Etterna/Globals/GameLoop.h"
 #include "RageUtil/Graphics/RageDisplay.h" // VideoModeParams
 #include "Etterna/Models/Misc/DisplaySpec.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -91,17 +91,13 @@ LowLevelWindow_X11::LowLevelWindow_X11()
 	iXServerVersion %= 1000;
 	int iPatch = iXServerVersion;
 
-	LOG->Info("Display: %s (screen %i)", DisplayString(Dpy), iScreen);
-	LOG->Info("X server vendor: %s [%i.%i.%i.%i]",
-			  XServerVendor(Dpy),
-			  iMajor,
-			  iMinor,
-			  iRevision,
-			  iPatch);
-	LOG->Info("Server GLX vendor: %s [%s]",
+	Locator::getLogger()->info("Display: {} (screen {})", DisplayString(Dpy), iScreen);
+	Locator::getLogger()->info("X server vendor: {} [{}.{}.{}.{}]",
+			  XServerVendor(Dpy), iMajor, iMinor, iRevision, iPatch);
+	Locator::getLogger()->info("Server GLX vendor: {} [{}]",
 			  glXQueryServerString(Dpy, iScreen, GLX_VENDOR),
 			  glXQueryServerString(Dpy, iScreen, GLX_VERSION));
-	LOG->Info("Client GLX vendor: %s [%s]",
+	Locator::getLogger()->info("Client GLX vendor: {} [{}]",
 			  glXGetClientString(Dpy, GLX_VENDOR),
 			  glXGetClientString(Dpy, GLX_VERSION));
 	m_bWasWindowed = true;
@@ -386,7 +382,7 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 			// What we do is directly reconfigure the CRTC of the primary
 			// display, Which prevents the (RandR) screen itself from resizing,
 			// and therefore leaving user's desktop unmolested.
-			LOG->Info("LowLevelWindow_X11: Using XRandR");
+			Locator::getLogger()->info("LowLevelWindow_X11: Using XRandR");
 
 			XRRScreenResources* scrRes = XRRGetScreenResources(Dpy, Win);
 			ASSERT(scrRes != NULL);
@@ -412,7 +408,7 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 				}
 			}
 			if (targetOut == None) {
-				LOG->Info("Did not find display output %s, trying another",
+				Locator::getLogger()->info("Did not find display output {}, trying another",
 						  p.sDisplayId.c_str());
 				// didn't find named output, pick primary/or at least one that
 				// works
@@ -513,7 +509,7 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 
 			const std::string tgtOutName = std::string(
 			  tgtOutInfo->name, static_cast<unsigned int>(tgtOutInfo->nameLen));
-			LOG->Info("XRandR output config using CRTC %lu in mode %lu, "
+			Locator::getLogger()->info("XRandR output config using CRTC {} in mode {}, "
 					  "driving output %s",
 					  g_usedCrtc,
 					  mode,
@@ -712,15 +708,14 @@ LowLevelWindow_X11::Update()
 	XEvent event;
 	if (XCheckTypedEvent(Dpy, ClientMessage, &event) &&
 		event.xclient.data.l[0] == g_wmDeleteMessage) {
-		ArchHooks::SetUserQuit();
+	    GameLoop::setUserQuit();
 	}
 }
 
 void
 LowLevelWindow_X11::LogDebugInformation() const
 {
-	LOG->Info("Direct rendering: %s",
-			  glXIsDirect(Dpy, glXGetCurrentContext()) ? "yes" : "no");
+	Locator::getLogger()->info("Direct rendering: {}", glXIsDirect(Dpy, glXGetCurrentContext()) ? "yes" : "no");
 }
 
 bool
@@ -1010,7 +1005,7 @@ RenderTarget_X11::Create(const RenderTargetParam& param,
 	glGenTextures(1, reinterpret_cast<GLuint*>(&m_iTexHandle));
 	glBindTexture(GL_TEXTURE_2D, m_iTexHandle);
 
-	LOG->Trace("n %i, %ix%i", m_iTexHandle, param.iWidth, param.iHeight);
+	Locator::getLogger()->trace("n {}, {}x{}", m_iTexHandle, param.iWidth, param.iHeight);
 	while (glGetError() != GL_NO_ERROR)
 		;
 

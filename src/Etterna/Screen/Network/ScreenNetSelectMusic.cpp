@@ -11,7 +11,7 @@
 #include "Etterna/Actor/Menus/MusicWheel.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "ScreenNetSelectMusic.h"
 #include "ScreenNetSelectBase.h"
@@ -193,8 +193,7 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 }
 ScreenNetSelectMusic::~ScreenNetSelectMusic()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("ScreenNetSelectMusic::~ScreenNetSelectMusic()");
+	Locator::getLogger()->debug("ScreenNetSelectMusic::~ScreenNetSelectMusic()");
 }
 
 bool

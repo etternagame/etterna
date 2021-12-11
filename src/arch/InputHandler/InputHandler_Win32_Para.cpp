@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "InputHandler_Win32_Para.h"
 
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageInputDevice.h"
 #include "archutils/Win32/USB.h"
@@ -21,9 +21,9 @@ InitHack(HANDLE h)
 	UCHAR hack[] = { 0, 1 };
 
 	if (HidD_SetFeature(h, (PVOID)hack, 2) == TRUE)
-		LOG->Info("Para controller powered on successfully");
+		Locator::getLogger()->info("Para controller powered on successfully");
 	else
-		LOG->Warn("Para controller power-on failed");
+		Locator::getLogger()->warn("Para controller power-on failed");
 }
 
 InputHandler_Win32_Para::InputHandler_Win32_Para()
@@ -34,14 +34,14 @@ InputHandler_Win32_Para::InputHandler_Win32_Para()
 	USBDevice* dev = new USBDevice;
 
 	if (dev->Open(para_usb_vid, para_usb_pid, sizeof(long), 0, InitHack)) {
-		LOG->Info("Para controller initialized");
+		Locator::getLogger()->info("Para controller initialized");
 	}
 	SAFE_DELETE(dev);
 }
 
 void
 InputHandler_Win32_Para::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	// The device appears as a HID joystick
 }

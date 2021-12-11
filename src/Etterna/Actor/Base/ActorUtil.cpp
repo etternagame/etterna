@@ -4,7 +4,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -54,7 +54,7 @@ ActorUtil::ResolvePath(std::string& sPath,
 	// so "foo" doesn't partial match "foobar" if "foo" exists.
 	const auto ft = FILEMAN->GetFileType(sPath);
 	if (ft != RageFileManager::TYPE_FILE && ft != RageFileManager::TYPE_DIR) {
-		vector<std::string> asPaths;
+		std::vector<std::string> asPaths;
 		GetDirListing(sPath + "*", asPaths, false, true); // return path too
 
 		if (asPaths.empty()) {
@@ -339,9 +339,8 @@ ActorUtil::MakeActor(const std::string& sPath_, Actor* pParentActor)
 				return ActorUtil::LoadFromNode(&xml, pParentActor);
 			}
 			default: {
-				LOG->Warn("File \"%s\" has unknown type, \"%s\".",
-						  sPath.c_str(),
-						  FileTypeToString(ft).c_str());
+				Locator::getLogger()->warn("File \"{}\" has unknown type, \"{}\".",
+						  sPath.c_str(), FileTypeToString(ft).c_str());
 
 				XNode xml;
 				xml.AppendAttr("Class", "Actor");
@@ -387,8 +386,7 @@ ActorUtil::GetAttrPath(const XNode* pNode,
 		std::string sDir;
 		if (!pNode->GetAttrValue("_Dir", sDir)) {
 			if (!optional) {
-				LOG->Warn("Relative path \"%s\", but path is unknown",
-						  sOut.c_str());
+				Locator::getLogger()->warn("Relative path \"{}\", but path is unknown", sOut.c_str());
 			}
 			return false;
 		}
@@ -478,7 +476,7 @@ CompareActorsByZPosition(const Actor* p1, const Actor* p2)
 }
 
 void
-ActorUtil::SortByZPosition(vector<Actor*>& vActors)
+ActorUtil::SortByZPosition(std::vector<Actor*>& vActors)
 {
 	// Preserve ordering of Actors with equal Z positions.
 	stable_sort(vActors.begin(), vActors.end(), CompareActorsByZPosition);
@@ -494,7 +492,7 @@ LuaXType(FileType);
 
 // convenience so the for-loop lines can be shorter.
 typedef map<std::string, FileType> etft_cont_t;
-typedef map<FileType, vector<std::string>> fttel_cont_t;
+typedef map<FileType, std::vector<std::string>> fttel_cont_t;
 etft_cont_t ExtensionToFileType;
 fttel_cont_t FileTypeToExtensionList;
 
@@ -550,14 +548,14 @@ ActorUtil::InitFileTypeLists()
 	}
 }
 
-vector<std::string> const&
+std::vector<std::string> const&
 ActorUtil::GetTypeExtensionList(FileType ft)
 {
 	return FileTypeToExtensionList[ft];
 }
 
 void
-ActorUtil::AddTypeExtensionsToList(FileType ft, vector<std::string>& add_to)
+ActorUtil::AddTypeExtensionsToList(FileType ft, std::vector<std::string>& add_to)
 {
 	auto ext_list = FileTypeToExtensionList.find(ft);
 	if (ext_list != FileTypeToExtensionList.end()) {

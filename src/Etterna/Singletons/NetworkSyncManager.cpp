@@ -16,7 +16,7 @@
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
 #include "rapidjson/writer.h"
@@ -113,30 +113,36 @@ correct_non_utf_8(string* str)
 				to.append(1, c);
 			}
 			continue;
-		} else if (c < 127) { // normal ASCII
+		}
+		if (c < 127) { // normal ASCII
 			to.append(1, c);
 			continue;
-		} else if (c < 160) { // control char (nothing should be defined here
+		}
+		if (c < 160) { // control char (nothing should be defined here
 							  // either ASCI, ISO_8859-1 or UTF8, so skipping)
 			if (c2 == 128) {  // fix microsoft mess, add euro
-				to.append(1, 226);
-				to.append(1, 130);
-				to.append(1, 172);
+				to.append(1, static_cast<unsigned char>(226));
+				to.append(1, static_cast<unsigned char>(130));
+				to.append(1, static_cast<unsigned char>(172));
 			}
 			if (c2 == 133) { // fix IBM mess, add NEL = \n\r
 				to.append(1, 10);
 				to.append(1, 13);
 			}
 			continue;
-		} else if (c < 192) { // invalid for UTF8, converting ASCII
+		}
+		if (c < 192) { // invalid for UTF8, converting ASCII
 			to.append(1, static_cast<unsigned char>(194));
 			to.append(1, c);
 			continue;
-		} else if (c < 194) { // invalid for UTF8, converting ASCII
+		}
+		if (c < 194) { // invalid for UTF8, converting ASCII
 			to.append(1, static_cast<unsigned char>(195));
 			to.append(1, c - 64);
 			continue;
-		} else if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
+		}
+		
+		if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
 			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
 				if (c == 194 && c2 < 160) { // control char, skipping
@@ -437,7 +443,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 		auto sub = ServerIP.substr(cLoc + 1);
 		iPort = static_cast<unsigned short>(strtol(sub.c_str(), &cEnd, 10));
 		if (*cEnd != 0 || errno != 0) {
-			LOG->Warn("Invalid port");
+			Locator::getLogger()->warn("Invalid port {}", sub);
 			return;
 		}
 	} else {
@@ -446,9 +452,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	}
 
 	chat.rawMap.clear();
-	if (PREFSMAN->m_verbose_log > 0)
-		LOG->Info(
-		  "Attempting to connect to: %s, Port: %i", sAddress.c_str(), iPort);
+	Locator::getLogger()->info("Attempting to connect to: {}, Port: {}", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
 
@@ -470,9 +474,9 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	m_sArtist = "";
 	difficulty = Difficulty_Invalid;
 	meter = -1;
-	LOG->Info("Server Version: %d %s",
-			  curProtocol->serverVersion,
-			  curProtocol->serverName.c_str());
+	Locator::getLogger()->info("Server Version: {} {}",
+	        curProtocol->serverVersion,
+	        curProtocol->serverName.c_str());
 	MESSAGEMAN->Broadcast("MultiplayerConnection");
 }
 
@@ -504,7 +508,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			return;
 		std::unique_ptr<Document> d(new Document);
 		if (d->Parse(message->get_payload().c_str()).HasParseError())
-			LOG->Trace("Error while processing ettprotocol json (message: %s )",
+			Locator::getLogger()->error("Error while processing ettprotocol json (message: {} )",
 					   message->get_payload().c_str());
 		else {
 			std::lock_guard<std::mutex> l(this->messageBufferMutex);
@@ -518,7 +522,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		finished_connecting = true;
 		this->hdl = std::make_shared<websocketpp::connection_hdl>(hdl);
 		n->isSMOnline = true;
-		LOG->Trace("Connected to ett server: %s", address.c_str());
+		Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
 	};
 	auto failHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
@@ -541,9 +545,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			client->set_open_handler(openHandler);
 			client->set_close_handler(closeHandler);
 		} catch (std::exception& e) {
-			LOG->Warn(
-			  "Failed to initialize ettp connection due to exception: %s",
-			  e.what());
+			Locator::getLogger()->warn("Failed to initialize ettp connection due to exception: {}", e.what());
 		}
 		finished_connecting = false;
 		websocketpp::lib::error_code ec;
@@ -553,7 +555,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 								   .c_str(),
 								 ec);
 		if (ec) {
-			LOG->Trace("Could not create ettp connection because: %s",
+			Locator::getLogger()->error("Could not create ettp connection because: {}",
 					   ec.message().c_str());
 		} else {
 			try {
@@ -563,8 +565,8 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 				if (n->isSMOnline)
 					this->secure_client = std::move(client);
 			} catch (websocketpp::http::exception& e) {
-				LOG->Warn("Failed to create ettp connection due to exception: "
-						  "%d --- %s",
+				Locator::getLogger()->warn("Failed to create ettp connection due to exception: "
+						  "{} --- {}",
 						  e.m_error_code,
 						  e.what());
 			}
@@ -580,9 +582,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			client->set_fail_handler(failHandler);
 			client->set_close_handler(closeHandler);
 		} catch (std::exception& e) {
-			LOG->Warn(
-			  "Failed to initialize ettp connection due to exception: %s",
-			  e.what());
+			Locator::getLogger()->warn("Failed to initialize ettp connection due to exception: {}", e.what());
 		}
 
 		finished_connecting = false;
@@ -592,7 +592,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			.c_str(),
 		  ec);
 		if (ec) {
-			LOG->Trace("Could not create ettp connection because: %s",
+			Locator::getLogger()->error("Could not create ettp connection because: {}",
 					   ec.message().c_str());
 		} else {
 			try {
@@ -603,8 +603,8 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 				if (n->isSMOnline)
 					this->client = std::move(client);
 			} catch (websocketpp::http::exception& e) {
-				LOG->Warn("Failed to create ettp connection due to exception: "
-						  "%d --- %s",
+				Locator::getLogger()->warn("Failed to create ettp connection due to exception: "
+						  "{} --- {}",
 						  e.m_error_code,
 						  e.what());
 			}
@@ -615,7 +615,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		this->thread = std::unique_ptr<std::thread>(
 		  new std::thread([client]() { client->run(); }));
 	} else
-		LOG->Trace("Failed to connect to ettp server: %s", address.c_str());
+		Locator::getLogger()->error("Failed to connect to ettp server: {}", address.c_str());
 	return n->isSMOnline;
 }
 RoomData
@@ -694,7 +694,7 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, Value& ch)
 			}
 		}
 	} else {
-		vector<Song*> AllSongs = SONGMAN->GetAllSongs();
+		std::vector<Song*> AllSongs = SONGMAN->GetAllSongs();
 		for (size_t i = 0; i < AllSongs.size(); i++) {
 			auto& m_cSong = AllSongs[i];
 			if ((n->m_sArtist.empty() ||
@@ -732,7 +732,7 @@ void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	if (this->client == nullptr) {
-		LOG->Trace("Disconnected from ett server %s", serverName.c_str());
+		Locator::getLogger()->info("Disconnected from ett server {}", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
@@ -755,23 +755,20 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				d.Accept(writer);
-				LOG->Trace((string("Recieved ETTP message with no type: ") +
-							buffer.GetString())
-							 .c_str());
+				Locator::getLogger()->warn(
+				  "Recieved ETTP message with no type: {}", buffer.GetString());
 				continue;
 			}
 			if (d.HasMember("error") && d["error"].IsString()) {
-				LOG->Trace((string("Error on ETTP message ") +
-							d["type"].GetString() + ": " +
-							d["error"].GetString())
-							 .c_str());
+				Locator::getLogger()->error("Error on ETTP message {}: {}",
+											d["type"].GetString(),
+											d["error"].GetString());
 				continue;
 			}
 			auto type = ettServerMessageMap.find(d["type"].GetString());
 			if (ettServerMessageMap.end() == type) {
-				LOG->Trace(
-				  (string("Unknown ETTP message type ") + d["type"].GetString())
-					.c_str());
+				Locator::getLogger()->warn("Unknown ETTP message type {}",
+											d["type"].GetString());
 				continue;
 			}
 			switch (type->second) {
@@ -803,7 +800,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						serverVersion = payload["version"].GetInt();
 					else
 						serverVersion = 1;
-					LOG->Trace("Ettp server identified: %s (Version: %d)",
+					Locator::getLogger()->info("Ettp server identified: {} (Version: {})",
 							   serverName.c_str(),
 							   serverVersion);
 					n->DisplayStartupStatus();
@@ -855,6 +852,18 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 										score["mods"].IsString()
 									  ? score["mods"].GetString()
 									  : "");
+					if (score.HasMember("wifever") && score["wifever"].IsInt())
+						hs.SetWifeVersion(score["wifever"].GetInt());
+					RadarValues rv;
+					FOREACH_ENUM(RadarCategory, rc)
+					{
+						auto rcs = RadarCategoryToString(rc).c_str();
+						if (score.HasMember(rcs) && score[rcs].IsInt()) {
+							rv[rc] = score[rcs].GetInt();
+						}
+					}
+					hs.SetRadarValues(rv);
+
 					FOREACH_ENUM(Skillset, ss)
 					{
 						auto str = SkillsetToString(ss);
@@ -955,9 +964,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						auto& offsets = replay["offsets"];
 						auto& noterows = replay["noterows"];
 						auto& tracks = replay["tracks"];
-						vector<float> v_offsets;
-						vector<int> v_noterows;
-						vector<int> v_tracks;
+						std::vector<float> v_offsets;
+						std::vector<int> v_noterows;
+						std::vector<int> v_tracks;
 						for (auto& offset : offsets.GetArray())
 							if (offset.IsNumber())
 								v_offsets.push_back(offset.GetFloat());
@@ -970,6 +979,19 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						hs.SetOffsetVector(v_offsets);
 						hs.SetNoteRowVector(v_noterows);
 						hs.SetTrackVector(v_tracks);
+
+						// add some backwards compatibility with pre 0.71
+						// multi users
+						if (replay.HasMember("notetypes") &&
+							replay["notetypes"].IsArray())
+						{
+							auto& notetypes = replay["notetypes"];
+							std::vector<TapNoteType> v_types;
+							for (auto& type : notetypes.GetArray())
+								if (type.IsInt()) 
+									v_types.push_back(static_cast<TapNoteType>(type.GetInt()));
+							hs.SetTapNoteTypeVector(v_types);
+						}
 					}
 					result.nameStr = payload["name"].GetString();
 					result.hs = hs;
@@ -1137,9 +1159,9 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							std::string SMOnlineSelectScreen = THEME->GetMetric(
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
-						} catch (std::exception e) {
-							LOG->Trace("Error while parsing ettp json enter "
-									   "room response: %s",
+						} catch (std::exception& e) {
+							Locator::getLogger()->error("Error while parsing ettp json enter "
+									   "room response: {}",
 									   e.what());
 						}
 					} else {
@@ -1162,7 +1184,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						!payload["room"].IsObject() ||
 						!payload["room"].HasMember("name") ||
 						!payload["room"]["name"].IsString()) {
-						LOG->Trace("Invalid ETTP  deleteroom room message");
+						Locator::getLogger()->warn("Invalid ETTP deleteroom room message");
 						continue;
 					}
 					string name = payload["room"]["name"].GetString();
@@ -1283,9 +1305,12 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
+				case ettps_end:
+				default:
+					break;
 			}
-		} catch (std::exception e) {
-			LOG->Trace("Error while parsing ettp json message: %s", e.what());
+		} catch (std::exception& e) {
+			Locator::getLogger()->error("Error while parsing ettp json message: {}", e.what());
 		}
 	}
 	newMessages.clear();
@@ -1357,7 +1382,10 @@ ETTProtocol::SendChat(const std::string& message, string tab, int type)
 	writer.Key("payload");
 	writer.StartObject();
 	writer.Key("msg");
-	writer.String(message.c_str());
+	if (message.length() > 500)
+		writer.String(message.substr(0, 500).c_str());
+	else
+		writer.String(message.c_str());
 	writer.Key("tab");
 	writer.String(tab.c_str());
 	writer.Key("msgtype");
@@ -1587,6 +1615,14 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	writer.Int(hs->GetTapNoteScore(TNS_W1));
 	writer.Key("score");
 	writer.Double(hs->GetSSRNormPercent());
+	writer.Key("wifever");
+	writer.Int(hs->GetWifeVersion());
+	auto& r = hs->GetRadarValues();
+	FOREACH_ENUM(RadarCategory, rc)
+	{
+		writer.Key(RadarCategoryToString(rc).c_str());
+		writer.Int(r[rc]);
+	}
 	FOREACH_ENUM(Skillset, ss)
 	{
 		writer.Key(SkillsetToString(ss).c_str());
@@ -1629,6 +1665,7 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 	const auto& offsets = pss.GetOffsetVector();
 	const auto& noterows = pss.GetNoteRowVector();
 	const auto& tracks = pss.GetTrackVector();
+	const auto& types = pss.GetTapNoteTypeVector();
 	if (offsets.size() > 0) {
 		writer.Key("replay");
 		writer.StartObject();
@@ -1646,6 +1683,11 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 		writer.StartArray();
 		for (size_t i = 0; i < tracks.size(); i++)
 			writer.Int(tracks[i]);
+		writer.EndArray();
+		writer.Key("notetypes");
+		writer.StartArray();
+		for (size_t i = 0; i < types.size(); i++)
+			writer.Int(types[i]);
 		writer.EndArray();
 		writer.EndObject();
 	}
@@ -1936,7 +1978,7 @@ PacketFunctions::Write1(uint8_t data)
 	if (Position >= NETMAXBUFFERSIZE)
 		return;
 	if (data != 1)
-		LOG->Trace("testing");
+		Locator::getLogger()->trace("testing");
 	memcpy(&Data[Position], &data, 1);
 	++Position;
 }
@@ -1978,14 +2020,8 @@ PacketFunctions::ClearPacket()
 	Position = 0;
 }
 
-std::string
-NetworkSyncManager::MD5Hex(const std::string& sInput)
-{
-	return make_upper(BinaryToHex(CryptManager::GetMD5ForString(sInput)));
-}
-
 void
-NetworkSyncManager::GetListOfLANServers(vector<NetServerInfo>& AllServers)
+NetworkSyncManager::GetListOfLANServers(std::vector<NetServerInfo>& AllServers)
 {
 	AllServers = m_vAllLANServers;
 }

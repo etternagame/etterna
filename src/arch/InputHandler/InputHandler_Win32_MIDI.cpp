@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "InputHandler_Win32_MIDI.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 
 #include <windows.h>
 #include <mmsystem.h>
@@ -44,15 +44,13 @@ InputHandler_Win32_MIDI::InputHandler_Win32_MIDI()
 								 (DWORD)this,
 								 CALLBACK_FUNCTION);
 	if (result != MMSYSERR_NOERROR) {
-		LOG->Warn("Error opening MIDI device: %s",
-				  GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error opening MIDI device: {}", GetMidiError(result).c_str());
 		return;
 	}
 
 	result = midiInStart(g_device);
 	if (result != MMSYSERR_NOERROR) {
-		LOG->Warn("Error starting MIDI device: %s",
-				  GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error starting MIDI device: {}", GetMidiError(result).c_str());
 		return;
 	}
 }
@@ -63,22 +61,20 @@ InputHandler_Win32_MIDI::~InputHandler_Win32_MIDI()
 
 	result = midiInReset(g_device);
 	if (result != MMSYSERR_NOERROR) {
-		LOG->Warn("Error resetting MIDI device: %s",
-				  GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error resetting MIDI device: {}", GetMidiError(result).c_str());
 		return;
 	}
 
 	result = midiInClose(g_device);
 	if (result != MMSYSERR_NOERROR) {
-		LOG->Warn("Error closing MIDI device: %s",
-				  GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error closing MIDI device: {}", GetMidiError(result).c_str());
 		return;
 	}
 }
 
 void
 InputHandler_Win32_MIDI::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	if (m_bFoundDevice) {
 		vDevicesOut.push_back(InputDeviceInfo(DEVICE_MIDI, "Win32_MIDI"));
