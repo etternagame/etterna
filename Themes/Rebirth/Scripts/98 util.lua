@@ -64,6 +64,17 @@ function getHWKeepAspectRatio(h, w, ratio)
     return he, we
 end
 
+-- find the multiplier to use when converting old coordinates to new theme resolutions
+function getThemeHeightRatio(new)
+    local old = 480 -- most people are used to 480 which is what we always used until now
+    return new / old
+end
+
+-- bias a magic number (height based) based on the difference between the current theme size and the old one
+function convertForThemeHeight(x)
+    return x * getThemeHeightRatio(SCREEN_HEIGHT)
+end
+
 -- string split, return a list given a string and a separator between items
 function strsplit(given, separator)
     if separator == nil then
