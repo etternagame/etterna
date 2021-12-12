@@ -5337,6 +5337,7 @@ local function rightFrame()
                             -- go to machine sync screen
                             SCUFF.screenAfterSyncMachine = SCREENMAN:GetTopScreen():GetName()
                             SCREENMAN:set_input_redirected(PLAYER_1, false)
+                            setSongOptionsModValueAllLevels("MusicRate", 1)
                             SCREENMAN:SetNewScreen("ScreenGameplaySyncMachine")
                         end,
                     },
