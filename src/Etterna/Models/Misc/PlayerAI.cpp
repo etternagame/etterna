@@ -430,6 +430,20 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 		}
 	}
 
+	// transform the notedata by style if necessary
+	if (pNoteData != nullptr) {
+		auto* pstate = GAMESTATE->m_pPlayerState;
+		if (pstate != nullptr) {
+			auto* style = GAMESTATE->GetCurrentStyle(pstate->m_PlayerNumber);
+			if (style != nullptr) {
+				NoteData ndo;
+				style->GetTransformedNoteDataForStyle(
+				  PLAYER_1, *pNoteData, ndo);
+				*pNoteData = ndo;
+			}
+		}
+	}
+
 	// Have to account for mirror being in the highscore options
 	// please dont change styles in the middle of calculation and break this
 	// thanks
