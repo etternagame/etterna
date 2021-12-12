@@ -2939,9 +2939,19 @@ local function rightFrame()
         local choices = {}
         local vals = {}
         table.sort(resolutions, function(a, b) return a.h < b.h end)
+        local containsCurrentResolution = false
         for i, r in ipairs(resolutions) do
             vals[#vals + 1] = r
             choices[#choices + 1] = tostring(r.w) .. 'x' .. tostring(r.h)
+            if r.w == optionData.displayWidth and r.h == optionData.displayHeight then
+                containsCurrentResolution = true
+            end
+        end
+
+        -- custom resolution compatibility
+        if not containsCurrentResolution then
+            vals[#vals+1] = {w = optionData.displayWidth, h = optionData.displayHeight}
+            choices[#choices+1] = tostring(optionData.displayWidth) .. 'x' .. tostring(optionData.displayHeight)
         end
 
         return choices, vals
