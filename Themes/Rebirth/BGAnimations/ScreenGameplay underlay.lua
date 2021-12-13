@@ -1,6 +1,10 @@
 -- the literal background is handled by the c++
 -- so here we micromanage underlay layer stuff
 
+-- reset context manager as early as possible in the gameplay init process
+-- this should be a safe place to do it, between all context manager registrations (if they take place)
+CONTEXTMAN:Reset()
+
 -- also permamirror and receptorsize/mini because this is early in gameplay init again
 local modslevel = "ModsLevel_Preferred"
 local playeroptions = GAMESTATE:GetPlayerState():GetPlayerOptions(modslevel)
