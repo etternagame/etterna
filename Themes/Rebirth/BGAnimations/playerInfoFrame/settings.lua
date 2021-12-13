@@ -2877,6 +2877,7 @@ local function rightFrame()
         wheelPosition = themeoption("global", "WheelPosition"),
         wheelBanners = themeoption("global", "WheelBanners"),
         showBackgrounds = themeoption("global", "ShowBackgrounds"),
+        useSingleColorBG = themeoption("global", "FallbackToAverageColorBG"),
         showVisualizer = themeoption("global", "ShowVisualizer"),
         tipType = themeoption("global", "TipType"),
         allowBGChanges = themeoption("global", "StaticBackgrounds"),
@@ -5157,6 +5158,14 @@ local function rightFrame()
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = optionDataToggleDirectionsFUNC("showBackgrounds", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBackgrounds", true),
+            },
+            {
+                Name = "BG Fallback to Banner Color",
+                Type = "SingleChoice",
+                Explanation = "Toggle using the average color of the pack or song banner when the background is not available. Only applies to music select.",
+                Choices = choiceSkeleton("Yes", "No"),
+                Directions = optionDataToggleDirectionsFUNC("useSingleColorBG", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("useSingleColorBG", true),
             },
             {
                 Name = "Allow Background Changes",

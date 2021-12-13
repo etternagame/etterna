@@ -1,4 +1,5 @@
 local showbg = function() return themeConfig:get_data().global.ShowBackgrounds end
+local avgcolorbg = function() return themeConfig:get_data().global.FallbackToAverageColorBG end
 local t = Def.ActorFrame {
     Name = "UnderlayFile",
     WheelSettledMessageCommand = function(self, params)
@@ -76,8 +77,12 @@ t[#t+1] = Def.Quad {
         local bn = params.actor
         if bn:GetVisible() then
             self:visible(true)
-            local c = bn:GetTexture():GetAverageColor(14)
-            self:diffuse(c)
+            if avgcolorbg() then
+                local c = bn:GetTexture():GetAverageColor(14)
+                self:diffuse(c)
+            else
+                self:diffuse(COLORS:getColor("main", "SelectMusicBackground"))
+            end
             self:diffusealpha(0.7)
         else
             self:visible(false)

@@ -9,6 +9,7 @@ local defaultConfig = {
         IconColor = "#ffffff",
         Visualizer = "#ffffff",
         SeparationDivider = "#ffffff", -- also some accents like slider markers and text cursors
+        SelectMusicBackground = "#000000", -- only used if single bg is on
     },
     leaderboard = {
         Background = "#111111",
