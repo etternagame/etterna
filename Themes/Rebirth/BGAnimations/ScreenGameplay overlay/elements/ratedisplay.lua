@@ -20,6 +20,7 @@ return Def.ActorFrame {
     LoadFont("Common Normal") .. {
         InitCommand = function(self)
             self:zoom(rateTextSize)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
             self:playcommand("SetRate")
         end,
         SetRateCommand = function(self)

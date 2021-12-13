@@ -98,7 +98,7 @@ local t = Def.ActorFrame {
     Def.Quad {
         Name = "BG",
         InitCommand = function(self)
-            --registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            --registerActorToColorConfigElement(self, "gameplay", "PrimaryBackground")
             self:diffusealpha(0)
         end,
         SetUpMovableValuesMessageCommand = function(self)

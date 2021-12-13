@@ -170,7 +170,7 @@ local function button(i, txt, click, mustBePaused)
                 self:zoom(textSize)
                 self:maxwidth(width / textSize)
                 self:settext(txt)
-                self:diffuse(COLORS:getMainColor("PrimaryText"))
+                self:diffuse(COLORS:getColor("gameplay", "PrimaryText"))
                 self:diffusealpha(1)
             end,
         }

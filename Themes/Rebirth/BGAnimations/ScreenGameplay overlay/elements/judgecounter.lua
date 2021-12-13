@@ -50,7 +50,8 @@ local t = Def.ActorFrame {
         Name = "BG",
         InitCommand = function(self)
             self:zoomto(frameWidth, frameHeight)
-            self:diffuse(color("0,0,0,0.4"))
+            self:diffuse(COLORS:getGameplayColor("PrimaryBackground"))
+            self:diffusealpha(0.4)
         end,
     },
 }
@@ -64,6 +65,7 @@ local function makeJudgeText(judge, index)
             self:zoom(judgeFontSize)
             self:settext(getShortJudgeStrings(judge))
             self:diffuse(COLORS:colorByJudgment(judge))
+            self:diffusealpha(1)
         end,
     }
 end
@@ -76,6 +78,8 @@ local function makeJudgeCount(judge, index)
             self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing))
             self:zoom(countFontSize)
             self:settext(0)
+            self:diffuse(COLORS:getGameplayColor("PrimaryText"))
+            self:diffusealpha(1)
         end,
         PracticeModeResetMessageCommand = function(self)
             self:settext(0)

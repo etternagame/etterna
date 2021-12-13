@@ -53,6 +53,8 @@ return Def.ActorFrame {
         Name = "BPM",
         InitCommand = function(self)
             self:zoom(bpmTextSize)
+            self:diffuse(COLORS:getColor("gameplay", "PrimaryText"))
+            self:diffusealpha(1)
         end,
     },
 }

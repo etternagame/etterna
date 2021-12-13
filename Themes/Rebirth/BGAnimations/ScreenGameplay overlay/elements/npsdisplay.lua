@@ -164,6 +164,8 @@ local function npsDisplay()
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:settext("0 NPS (Peak 0.0)")
+                self:diffuse(COLORS:getGameplayColor("PrimaryText"))
+                self:diffusealpha(1)
                 self:zoom(npsDisplayTextSize)
             end,
         }

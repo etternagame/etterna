@@ -1,6 +1,4 @@
 -- Various player and stage info
-local profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
-
 local translated_info = {
     Judge = "Judge",
     Scoring = "Scoring",
@@ -41,7 +39,7 @@ return Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(modsXOffset + SCREEN_WIDTH/5, avatarSize)
-            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryBackground")
             self:diffusealpha(0.1)
         end,
     },
@@ -109,6 +107,8 @@ return Def.ActorFrame {
             self:xy(modsXOffset, avatarSize - 2)
             self:zoom(modstringTextSize)
             self:maxwidth(SCREEN_WIDTH / 5 / modstringTextSize)
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
         end,
         BeginCommand = function(self)
             self:settext(getModifierTranslations(GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current")))
@@ -120,6 +120,8 @@ return Def.ActorFrame {
             self:halign(0):valign(0)
             self:xy(judgeXOffset, avatarSize/24)
             self:zoom(judgeDiffTextSize)
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
         end,
         BeginCommand = function(self)
             self:settextf("%s: %d", translated_info["Judge"], GetTimingDifficulty())
@@ -131,6 +133,8 @@ return Def.ActorFrame {
             self:halign(0):valign(1)
             self:xy(scoreTypeXOffset, avatarSize/2 - avatarSize/8)
             self:zoom(scoringTextSize)
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
         end,
         BeginCommand = function(self)
             self:settextf("%s: %s", translated_info["Scoring"], "Wife")

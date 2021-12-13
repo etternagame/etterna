@@ -107,6 +107,12 @@ local defaultConfig = {
         NoteFieldBG = "#000000",
         PracticeBookmark = "#1080ff",
         PracticeRegion = "#c010c0",
+        PrimaryText = "#ffffff",
+        --SecondaryText = "#ffffff",
+        PrimaryBackground = "#111111",
+        --SecondaryBackground = "#111111",
+        SplashBackground = "#111111",
+        SplashText = "#ffffff",
     },
     replay = {
         ButtonBG = "#614080",
