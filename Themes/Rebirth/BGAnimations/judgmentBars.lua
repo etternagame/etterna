@@ -98,7 +98,7 @@ local function makeJudgment(i)
                 -- allow 3/4 of the judgment area between the number alignment and the name alignment
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 * 3 / judgmentTextZoom)
                 self:settext(getJudgeStrings(ms.JudgeCount[i]))
-                registerActorToColorConfigElement(self, "main", "PrimaryText")
+                registerActorToColorConfigElement(self, "judgment", "TextOverBars")
             end
         },
         Def.RollingNumbers {
@@ -113,7 +113,7 @@ local function makeJudgment(i)
                 -- allow 1/4 of the judgment area between the number alignment and the name alignment
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 / judgmentTextZoom)
                 self:targetnumber(0)
-                registerActorToColorConfigElement(self, "main", "PrimaryText")
+                registerActorToColorConfigElement(self, "judgment", "TextOverBars")
             end,
             SetCommand = function(self, params)
                 if params.score == nil then
@@ -134,7 +134,7 @@ local function makeJudgment(i)
                 self:maxwidth((sizing.JudgmentCountRightGap - judgmentCountPercentBump) / judgmentPercentZoom - textzoomFudge)
                 self:strokecolor(textEmbossColor)
                 self:targetnumber(0)
-                registerActorToColorConfigElement(self, "main", "PrimaryText")
+                registerActorToColorConfigElement(self, "judgment", "TextOverBars")
             end,
             SetCommand = function(self, params)
                 if params.score == nil then

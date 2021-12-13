@@ -190,6 +190,7 @@ local defaultConfig = {
         TapNoteScore_Miss = "#cc2929",
         HoldNoteScore_Held = "#f2cb30",
         HoldNoteScore_LetGo = "#cc2929",
+        TextOverBars = "#ffffff", -- just for the text that goes over the bars
     },
 }
 
