@@ -23,7 +23,7 @@ local t = Def.ActorFrame {
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
 			self:zoomto(width, height)
 			self:valign(1)
-			self:diffuse(getMainColor("PrimaryBackground"))
+			self:diffuse(getGameplayColor("SplashBackground"))
 			self:fadeleft(0.4):faderight(0.4)
 			self:diffusealpha(0)
 		end,
@@ -40,7 +40,7 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - linesize * 2)
 			self:zoom(textSize)
-			self:diffuse(getMainColor("PrimaryText"))
+			self:diffuse(getGameplayColor("SplashText"))
 			self:diffusealpha(0)
 			self:maxwidth(width / textSize)
 		end,
@@ -60,7 +60,7 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - linesize * 1.5)
 			self:zoom(subtextSize)
-			self:diffuse(getMainColor("PrimaryText"))
+			self:diffuse(getGameplayColor("SplashText"))
 			self:diffusealpha(0)
 			self:maxwidth(width / subtextSize)
 		end,
@@ -80,7 +80,7 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - linesize)
 			self:zoom(subtextSize)
-			self:diffuse(getMainColor("PrimaryText"))
+			self:diffuse(getGameplayColor("SplashText"))
 			self:diffusealpha(0)
 			self:maxwidth(width / subtextSize)
 		end,
@@ -109,7 +109,7 @@ local t = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y + linesize)
 			self:zoom(bigTextSize)
-			self:diffuse(getMainColor("PrimaryText"))
+			self:diffuse(getGameplayColor("SplashText"))
 			self:diffusealpha(0)
 			self:valign(0)
 		end,

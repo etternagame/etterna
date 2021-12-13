@@ -391,7 +391,7 @@ local function makeScoreDisplay(i)
 		Name = "Scoredisplay_"..i,
 		InitCommand = function(self)
 			self:y(packspaceY * i + headeroff)
-			if i > numscores then
+			if i > numscores or hs == nil then
 				self:visible(false)
 			else
 				self:visible(true)

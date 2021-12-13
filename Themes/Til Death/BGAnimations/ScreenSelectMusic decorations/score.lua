@@ -161,10 +161,10 @@ local ret = Def.ActorFrame {
 			self:queuecommand("Off")
 		end
 	end,
-	TabChangedMessageCommand = function(self)
+	TabChangedMessageCommand = function(self, params)
 		self:queuecommand("Set")
 		-- if tab was already visible, swap nested tabs
-		if self:GetVisible() and not collapsed then
+		if params ~= nil and params.from == 2 and params.to == 2 and self:GetVisible() and not collapsed then
 			if nestedTab == 1 then nestedTab = 2 else nestedTab = 1 end
 			local sd = self:GetParent():GetChild("StepsDisplay")
 			self:GetChild("Button_1"):playcommand("NestedTabChanged")

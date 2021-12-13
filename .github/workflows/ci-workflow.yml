@@ -87,7 +87,7 @@ jobs:
       
       - name: Upload Symbols to Crash Server
         if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
-        run: symupload ${{github.workspace}}/main/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{secrets.CRASHSERVER_API_KEY}}&version=${{steps.get_version.outputs.VERSION}}"
+        run: symupload ${{github.workspace}}/sym/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{secrets.CRASHSERVER_API_KEY}}&version=${{steps.get_version.outputs.VERSION}}"
 
       - name: Upload files to Release
         uses: softprops/action-gh-release@v1

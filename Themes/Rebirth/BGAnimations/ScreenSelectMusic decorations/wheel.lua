@@ -713,17 +713,23 @@ local function songActorBuilder()
             end,
             SetPositionCommand = function(self)
                 if getWheelPosition() then
+                    self:x(actuals.Width / 2)
+                    --[[ old position was on the banner
                     if useWheelBanners() then
                         self:x(-actuals.Width / 2 + actuals.BannerWidth - actuals.ItemFavoriteIconRightGap)
                     else
                         self:x(actuals.Width / 2)
                     end
+                    ]]
                 else
+                    self:x(-actuals.Width / 2)
+                    --[[ old position was on the banner
                     if useWheelBanners() then
                         self:x(actuals.Width / 2 - actuals.BannerWidth + actuals.ItemFavoriteIconRightGap)
                     else
                         self:x(-actuals.Width / 2)
                     end
+                    ]]
                 end
             end,
             UpdateWheelBannersCommand = function(self)
@@ -750,17 +756,23 @@ local function songActorBuilder()
             end,
             SetPositionCommand = function(self)
                 if getWheelPosition() then
+                    self:x(actuals.Width / 2 - actuals.ItemPermamirrorIconRightGap)
+                    --[[ old position was on the banner
                     if useWheelBanners() then
                         self:x(-actuals.Width / 2 + actuals.BannerWidth - actuals.ItemPermamirrorIconRightGap)
                     else
                         self:x(actuals.Width / 2 - actuals.ItemPermamirrorIconRightGap)
                     end
+                    ]]
                 else
+                    self:x(-actuals.Width / 2 + actuals.ItemPermamirrorIconRightGap)
+                    --[[ old position was on the banner
                     if useWheelBanners() then
                         self:x(actuals.Width / 2 - actuals.BannerWidth + actuals.ItemPermamirrorIconRightGap)
                     else
                         self:x(-actuals.Width / 2 + actuals.ItemPermamirrorIconRightGap)
                     end
+                    ]]
                 end
             end,
             UpdateWheelBannersCommand = function(self)

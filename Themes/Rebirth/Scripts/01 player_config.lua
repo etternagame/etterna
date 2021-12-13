@@ -155,6 +155,7 @@ local defaultConfig = {
     DisplayMean = true,
     leaderboardEnabled = false,
     MeasureCounter = false,
+    MeasureLines = false,
     MiniProgressBar = true,
     NPSDisplay = true,
     NPSGraph = true,

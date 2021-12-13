@@ -367,6 +367,12 @@ local function makeTag(i)
 						MESSAGEMAN:Broadcast("RefreshTags")
 					end
 				end,
+				MouseOverCommand = function(self)
+					self:GetParent():diffusealpha(hoverAlpha)
+				end,
+				MouseOutCommand = function(self)
+					self:GetParent():diffusealpha(1)
+				end,
 			},
 			LoadFont("Common Large") .. {
 				Name = "Text",
@@ -416,20 +422,20 @@ local function funcButton(i)
 			end,
 			UpdateTagsMessageCommand = function(self)
 				self:queuecommand("BORPBORPNORFNORFc")
-			end
+			end,
+			MouseOverCommand = function(self)
+				self:GetParent():diffusealpha(0.6)
+			end,
+			MouseOutCommand = function(self)
+				self:GetParent():diffusealpha(1)
+			end,
 		},
-		UIElements.TextToolTip(1, 1, "Common Large") .. {
+		LoadFont("Common Large") .. {
 			InitCommand = function(self)
 				self:y(12):halign(0.5):diffuse(getMainColor("positive")):maxwidth((frameWidth / 3 - 30)):maxheight(22)
 			end,
 			BeginCommand = function(self)
 				self:settext(fawa[i])
-			end,
-			MouseOverCommand = function(self)
-				self:diffusealpha(hoverAlpha)
-			end,
-			MouseOutCommand = function(self)
-				self:diffusealpha(1)
 			end,
 		}
 	}
@@ -520,12 +526,6 @@ r[#r + 1] = Def.ActorFrame {
 		UpdateTagsMessageCommand = function(self)
 			self:queuecommand("BORPBORPNORFNORFc")
 		end,
-		MouseOverCommand = function(self)
-			self:diffusealpha(hoverAlpha)
-		end,
-		MouseOutCommand = function(self)
-			self:diffusealpha(1)
-		end,
 	},
 	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
@@ -537,7 +537,13 @@ r[#r + 1] = Def.ActorFrame {
 				filterChanged = true
 				MESSAGEMAN:Broadcast("RefreshTags")
 			end
-		end
+		end,
+		MouseOverCommand = function(self)
+			self:GetParent():diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:GetParent():diffusealpha(1)
+		end,
 	}
 }
 
@@ -564,12 +570,6 @@ r[#r + 1] = Def.ActorFrame {
 		UpdateTagsMessageCommand = function(self)
 			self:queuecommand("BORPBORPNORFNORFc")
 		end,
-		MouseOverCommand = function(self)
-			self:diffusealpha(hoverAlpha)
-		end,
-		MouseOutCommand = function(self)
-			self:diffusealpha(1)
-		end,
 	},
 	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
@@ -581,7 +581,13 @@ r[#r + 1] = Def.ActorFrame {
 				filterChanged = true
 				MESSAGEMAN:Broadcast("RefreshTags")
 			end
-		end
+		end,
+		MouseOverCommand = function(self)
+			self:GetParent():diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:GetParent():diffusealpha(1)
+		end,
 	}
 }
 

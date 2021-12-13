@@ -979,9 +979,10 @@ function MusicWheel:new(params)
 
                 SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(songOrPack)
                 SCREENMAN:GetTopScreen():SelectCurrent()
-                SCREENMAN:set_input_redirected(PLAYER_1, false)
+                SCREENMAN:set_input_redirected(PLAYER_1, false) -- unlock C++ input (the transition locks it in C++)
                 MESSAGEMAN:Broadcast("SelectedSong")
-                enteringSong = true
+                enteringSong = true -- lock wheel movement
+                CONTEXTMAN.ContextIgnored = true -- lock all context controlled input
             else
                 local group = songOrPack
 

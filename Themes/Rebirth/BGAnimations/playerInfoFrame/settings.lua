@@ -2877,6 +2877,7 @@ local function rightFrame()
         wheelPosition = themeoption("global", "WheelPosition"),
         wheelBanners = themeoption("global", "WheelBanners"),
         showBackgrounds = themeoption("global", "ShowBackgrounds"),
+        useSingleColorBG = themeoption("global", "FallbackToAverageColorBG"),
         showVisualizer = themeoption("global", "ShowVisualizer"),
         tipType = themeoption("global", "TipType"),
         allowBGChanges = themeoption("global", "StaticBackgrounds"),
@@ -2893,6 +2894,7 @@ local function rightFrame()
         leaderboard = playeroption("leaderboardEnabled"),
         displayMean = playeroption("DisplayMean"),
         measureCounter = playeroption("MeasureCounter"),
+        measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
         npsGraph = playeroption("NPSGraph"),
         playerInfo = playeroption("PlayerInfo"),
@@ -2939,9 +2941,19 @@ local function rightFrame()
         local choices = {}
         local vals = {}
         table.sort(resolutions, function(a, b) return a.h < b.h end)
+        local containsCurrentResolution = false
         for i, r in ipairs(resolutions) do
             vals[#vals + 1] = r
             choices[#choices + 1] = tostring(r.w) .. 'x' .. tostring(r.h)
+            if r.w == optionData.displayWidth and r.h == optionData.displayHeight then
+                containsCurrentResolution = true
+            end
+        end
+
+        -- custom resolution compatibility
+        if not containsCurrentResolution then
+            vals[#vals+1] = {w = optionData.displayWidth, h = optionData.displayHeight}
+            choices[#choices+1] = tostring(optionData.displayWidth) .. 'x' .. tostring(optionData.displayHeight)
         end
 
         return choices, vals
@@ -3423,6 +3435,29 @@ local function rightFrame()
                 end,
             },
             {
+                Name = "Mirror",
+                Type = "SingleChoice",
+                Explanation = "Horizontally flip Notedata.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = {
+                    Toggle = function()
+                        local po = getPlayerOptions()
+                        if po:Mirror() then
+                            setPlayerOptionsModValueAllLevels("Mirror", false)
+                        else
+                            setPlayerOptionsModValueAllLevels("Mirror", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if getPlayerOptions():Mirror() then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
+            },
+            {
                 Name = "Global Offset",
                 Type = "SingleChoice",
                 Explanation = "Global Audio Offset in seconds. Negative numbers are early.",
@@ -3784,29 +3819,6 @@ local function rightFrame()
                         if vv ~= nil then return notShit.round(vv * 100, 0) .. "%" end
                     end
                     return "???"
-                end,
-            },
-            {
-                Name = "Mirror",
-                Type = "SingleChoice",
-                Explanation = "Horizontally flip Notedata.",
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = {
-                    Toggle = function()
-                        local po = getPlayerOptions()
-                        if po:Mirror() then
-                            setPlayerOptionsModValueAllLevels("Mirror", false)
-                        else
-                            setPlayerOptionsModValueAllLevels("Mirror", true)
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if getPlayerOptions():Mirror() then
-                        return 1
-                    else
-                        return 2
-                    end
                 end,
             },
             {
@@ -4538,6 +4550,14 @@ local function rightFrame()
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureCounter", true),
             },
             {
+                Name = "Measure Lines",
+                Type = "SingleChoice",
+                Explanation = "Toggle showing a line on the NoteField for every measure.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("measureLines", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureLines", true),
+            },
+            {
                 Name = "NPS Display",
                 Type = "SingleChoice",
                 Explanation = "Toggle the notes per second display. Displays just NPS and max NPS.",
@@ -5149,6 +5169,14 @@ local function rightFrame()
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBackgrounds", true),
             },
             {
+                Name = "BG Fallback to Banner Color",
+                Type = "SingleChoice",
+                Explanation = "Toggle using the average color of the pack or song banner when the background is not available. Only applies to music select.",
+                Choices = choiceSkeleton("Yes", "No"),
+                Directions = optionDataToggleDirectionsFUNC("useSingleColorBG", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("useSingleColorBG", true),
+            },
+            {
                 Name = "Allow Background Changes",
                 Type = "SingleChoice",
                 Explanation = "Toggle gameplay backgrounds changing.",
@@ -5337,6 +5365,7 @@ local function rightFrame()
                             -- go to machine sync screen
                             SCUFF.screenAfterSyncMachine = SCREENMAN:GetTopScreen():GetName()
                             SCREENMAN:set_input_redirected(PLAYER_1, false)
+                            setSongOptionsModValueAllLevels("MusicRate", 1)
                             SCREENMAN:SetNewScreen("ScreenGameplaySyncMachine")
                         end,
                     },

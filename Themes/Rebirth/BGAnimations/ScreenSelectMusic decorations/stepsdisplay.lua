@@ -285,6 +285,11 @@ t[#t + 1] = Def.Sprite {
             end
         end
 
+        -- probably just changed songs and need to reset the offset completely (hack kind of)
+        if #thesteps <= numshown and displayindexoffset > #thesteps then
+            displayindexoffset = 0
+        end
+
         local cursorindex = currentindex
         if cursorindex <= center then
             displayindexoffset = clamp(displayindexoffset - 1, 0, #thesteps)

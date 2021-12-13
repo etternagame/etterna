@@ -75,7 +75,7 @@ local t = Def.ActorFrame {
         registerActorToCustomizeGameplayUI({
             actor = self,
             coordInc = {5,1},
-            zoomInc = {0.1,0.05},
+            zoomInc = {5,1},
         })
     end,
     SetUpMovableValuesMessageCommand = function(self)
@@ -98,7 +98,7 @@ local t = Def.ActorFrame {
     Def.Quad {
         Name = "BG",
         InitCommand = function(self)
-            --registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            --registerActorToColorConfigElement(self, "gameplay", "PrimaryBackground")
             self:diffusealpha(0)
         end,
         SetUpMovableValuesMessageCommand = function(self)

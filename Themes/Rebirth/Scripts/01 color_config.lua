@@ -9,6 +9,7 @@ local defaultConfig = {
         IconColor = "#ffffff",
         Visualizer = "#ffffff",
         SeparationDivider = "#ffffff", -- also some accents like slider markers and text cursors
+        SelectMusicBackground = "#000000", -- only used if single bg is on
     },
     leaderboard = {
         Background = "#111111",
@@ -107,6 +108,12 @@ local defaultConfig = {
         NoteFieldBG = "#000000",
         PracticeBookmark = "#1080ff",
         PracticeRegion = "#c010c0",
+        PrimaryText = "#ffffff",
+        --SecondaryText = "#ffffff",
+        PrimaryBackground = "#111111",
+        --SecondaryBackground = "#111111",
+        SplashBackground = "#111111",
+        SplashText = "#ffffff",
     },
     replay = {
         ButtonBG = "#614080",
@@ -184,6 +191,7 @@ local defaultConfig = {
         TapNoteScore_Miss = "#cc2929",
         HoldNoteScore_Held = "#f2cb30",
         HoldNoteScore_LetGo = "#cc2929",
+        TextOverBars = "#ffffff", -- just for the text that goes over the bars
     },
 }
 

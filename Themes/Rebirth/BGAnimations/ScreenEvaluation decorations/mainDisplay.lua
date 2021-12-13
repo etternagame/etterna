@@ -253,15 +253,15 @@ local subTypesChosen = {
 
 local modTextZoom = 0.6
 
-local subTypeTextZoom = 0.7
+local subTypeTextZoom = 0.75
 local subTypeTextBump = 5 -- a bump in position added to the bottom left numbers for spacing
 
-local statTextZoom = 0.7
-local statTextSuffixZoom = 0.6
-local accStatZoom = 0.7
+local statTextZoom = 0.75
+local statTextSuffixZoom = 0.65
+local accStatZoom = 0.75
 
 local titleTextSize = 0.8
-local songInfoTextSize = 0.55
+local songInfoTextSize = 0.63
 local scoreInfoTextSize = 0.8
 
 local textzoomFudge = 5
