@@ -2894,6 +2894,7 @@ local function rightFrame()
         leaderboard = playeroption("leaderboardEnabled"),
         displayMean = playeroption("DisplayMean"),
         measureCounter = playeroption("MeasureCounter"),
+        measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
         npsGraph = playeroption("NPSGraph"),
         playerInfo = playeroption("PlayerInfo"),
@@ -4547,6 +4548,14 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("measureCounter", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureCounter", true),
+            },
+            {
+                Name = "Measure Lines",
+                Type = "SingleChoice",
+                Explanation = "Toggle showing a line on the NoteField for every measure.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("measureLines", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureLines", true),
             },
             {
                 Name = "NPS Display",
