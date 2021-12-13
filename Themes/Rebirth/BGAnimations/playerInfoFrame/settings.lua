@@ -3434,6 +3434,29 @@ local function rightFrame()
                 end,
             },
             {
+                Name = "Mirror",
+                Type = "SingleChoice",
+                Explanation = "Horizontally flip Notedata.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = {
+                    Toggle = function()
+                        local po = getPlayerOptions()
+                        if po:Mirror() then
+                            setPlayerOptionsModValueAllLevels("Mirror", false)
+                        else
+                            setPlayerOptionsModValueAllLevels("Mirror", true)
+                        end
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    if getPlayerOptions():Mirror() then
+                        return 1
+                    else
+                        return 2
+                    end
+                end,
+            },
+            {
                 Name = "Global Offset",
                 Type = "SingleChoice",
                 Explanation = "Global Audio Offset in seconds. Negative numbers are early.",
@@ -3795,29 +3818,6 @@ local function rightFrame()
                         if vv ~= nil then return notShit.round(vv * 100, 0) .. "%" end
                     end
                     return "???"
-                end,
-            },
-            {
-                Name = "Mirror",
-                Type = "SingleChoice",
-                Explanation = "Horizontally flip Notedata.",
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = {
-                    Toggle = function()
-                        local po = getPlayerOptions()
-                        if po:Mirror() then
-                            setPlayerOptionsModValueAllLevels("Mirror", false)
-                        else
-                            setPlayerOptionsModValueAllLevels("Mirror", true)
-                        end
-                    end,
-                },
-                ChoiceIndexGetter = function()
-                    if getPlayerOptions():Mirror() then
-                        return 1
-                    else
-                        return 2
-                    end
                 end,
             },
             {
