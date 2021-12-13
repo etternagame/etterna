@@ -218,7 +218,7 @@ local textzoomFudge = 5
 
 local buttonHoverAlpha = 0.6
 
-local gradeTextSize = 2.2
+local gradeTextSize = 1.1
 local clearTypeTextSize = 1.15
 local detailTextSize = 0.75
 local rateTextSize = 0.65
@@ -1173,7 +1173,7 @@ local function createList()
             end
         end,
 
-        LoadFont("Common Normal") .. {
+        LoadFont("Common Large") .. {
             Name = "Grade",
             InitCommand = function(self)
                 self:halign(0):valign(0)
