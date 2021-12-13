@@ -68,7 +68,7 @@ struct HighScore
 	  -> std::vector<TapNoteType>;
 	[[nodiscard]] auto GetCopyOfHoldReplayDataVector() const
 	  -> std::vector<HoldReplayResult>;
-	[[nodisard]] auto GetCopyOfMineReplayDataVector() const
+	[[nodiscard]] auto GetCopyOfMineReplayDataVector() const
 	  -> std::vector<MineReplayResult>;
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector() const
 	  -> std::vector<float>;
