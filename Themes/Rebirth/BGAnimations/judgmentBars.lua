@@ -15,9 +15,9 @@ local judgmentsChosen = {
     "TapNoteScore_Miss", -- miss
 }
 
-local judgmentTextZoom = 0.6 * textSizeMultiplier
-local judgmentCountZoom = 0.6 * textSizeMultiplier
-local judgmentPercentZoom = 0.3 * textSizeMultiplier
+local judgmentTextZoom = 0.63 * textSizeMultiplier
+local judgmentCountZoom = 0.63 * textSizeMultiplier
+local judgmentPercentZoom = 0.325 * textSizeMultiplier
 local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
 
 local textzoomFudge = 5
