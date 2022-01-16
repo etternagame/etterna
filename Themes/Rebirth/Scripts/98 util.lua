@@ -438,7 +438,7 @@ function MiniToReceptorSize(mini)
 end
 
 -- read the function name
-function updateDiscordStatusForGameplay()
+function updateDiscordStatus(evaluation)
     local profile = GetPlayerOrMachineProfile(PLAYER_1)
     local song = GAMESTATE:GetCurrentSong()
     local steps = GAMESTATE:GetCurrentSteps()
@@ -466,8 +466,34 @@ function updateDiscordStatusForGameplay()
         "MSD: %05.2f",
         steps:GetMSD(getCurRateValue(), 1)
     )
-    local endTime = os.time() + GetPlayableTime()
+    local endTime = 0
+    if evaluation then
+        local score = SCOREMAN:GetMostRecentScore()
+        if not score then
+            score = SCOREMAN:GetTempReplayScore()
+        end
+
+        state = string.format(
+            "%s - %05.2f%% %s",
+            state,
+            notShit.floor(score:GetWifeScore() * 10000) / 100,
+            THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
+        )
+    else
+        endTime = os.time() + GetPlayableTime()
+    end
+
     GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
+end
+
+function updateDiscordStatusForMenus()
+    local profile = GetPlayerOrMachineProfile(PLAYER_1)
+    local detail = string.format(
+        "%s: %5.2f",
+        profile:GetDisplayName(),
+        profile:GetPlayerRating()
+    )
+    GAMESTATE:UpdateDiscordMenu(detail)
 end
 
 -- writes to the install directory a nowplaying.txt
