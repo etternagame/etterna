@@ -183,13 +183,7 @@ local t =
 		updateDiscordStatus(false)
 
 		-- now playing thing for streamers
-		local streamerstuff =
-			"Now playing " ..
-			GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
-				" by " ..
-					GAMESTATE:GetCurrentSong():GetDisplayArtist() ..
-						" in " .. GAMESTATE:GetCurrentSong():GetGroupName() .. " " .. state
-		File.Write("nowplaying.txt", streamerstuff)
+		updateNowPlaying()
 
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()

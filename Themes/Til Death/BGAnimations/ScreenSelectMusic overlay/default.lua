@@ -99,6 +99,6 @@ t[#t + 1] = LoadActor("../_cursor")
 t[#t + 1] = LoadActor("../_halppls")
 
 updateDiscordStatusForMenus()
+updateNowPlaying()
 
-File.Write("nowplaying.txt", " ")
 return t

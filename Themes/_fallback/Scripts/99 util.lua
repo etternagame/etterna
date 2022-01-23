@@ -59,3 +59,28 @@ function updateDiscordStatusForMenus()
     )
     GAMESTATE:UpdateDiscordMenu(detail)
 end
+
+-- writes to the install directory a nowplaying.txt
+-- will be blank if not in gameplay
+-- useful for stream overlays
+function updateNowPlaying()
+    local snm = SCREENMAN:GetTopScreen()
+    local steps = GAMESTATE:GetCurrentSteps()
+    local song = GAMESTATE:GetCurrentSong()
+    local fout = " "
+    if snm ~= nil and string.find(snm:GetName(), "Gameplay") ~= nil then
+        local state = string.format(
+            "MSD: %05.2f",
+            steps:GetMSD(getCurRateValue(), 1)
+        )
+        fout = string.format(
+            "Now playing %s by %s in %s %s",
+            song:GetDisplayMainTitle(),
+            song:GetDisplayArtist(),
+            song:GetGroupName(),
+            state
+        )
+    end
+
+    File.Write("nowplaying.txt", fout)
+end
