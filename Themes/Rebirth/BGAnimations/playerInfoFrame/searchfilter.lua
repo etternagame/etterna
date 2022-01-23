@@ -133,19 +133,20 @@ local function upperSection()
     local entryFunction = {
         -- "Any Search"
         function(input)
+            if input ~= nil then input = input:lower() end
             -- must parse the input for title, subtitle, artist, author
             -- same formatting as the old search
-            local artistpos = input:find("artist=")
-            local authorpos = input:find("author=")
-            local mapperpos = input:find("mapper=")
-            local charterpos = input:find("charter=")
-            local stepperpos = input:find("stepper=")
-            local titlepos = input:find("title=")
-            local subtitlepos = input:find("subtitle=")
+            local artistpos = input:find("artist=", 1, true)
+            local authorpos = input:find("author=", 1, true)
+            local mapperpos = input:find("mapper=", 1, true)
+            local charterpos = input:find("charter=", 1, true)
+            local stepperpos = input:find("stepper=", 1, true)
+            local titlepos = input:find("title=", 1, true)
+            local subtitlepos = input:find("subtitle=", 1, true)
 
             -- because title is a substring of subtitle we have to check to see if the match is incorrect
             if titlepos ~= nil and subtitlepos ~= nil and titlepos == subtitlepos + 3 then
-                titlepos = input:find("title=", titlepos + 1)
+                titlepos = input:find("title=", titlepos + 1, true)
             end
 
             local foundartist = ""
