@@ -227,7 +227,7 @@ local function helpMenu()
                 Image = THEME:GetPathG("", "Patterns/polyrhythms"),
             },
             {
-                Name = "Graces",
+                Name = "Graces / Flams",
                 ShortDescription = "A little extra flare",
                 Description = "Grace notes are slightly offset notes, exceptionally rarely forming minijacks, which represent a kind of grace or extra flare to an initial note.\n\nIn musical theory, these are defined as not so necessary, but typically when these are charted it means that a grace note was present in the music.\n\nFlams are made up of graces. Within this game, both usually mean the same. Graces usually break down to be a single chord, and can rarely contain chords themselves.",
                 Image = THEME:GetPathG("", "Patterns/graces"),
