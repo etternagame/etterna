@@ -437,39 +437,6 @@ function MiniToReceptorSize(mini)
     return (1 - mini/2)
 end
 
--- read the function name
-function updateDiscordStatusForGameplay()
-    local profile = GetPlayerOrMachineProfile(PLAYER_1)
-    local song = GAMESTATE:GetCurrentSong()
-    local steps = GAMESTATE:GetCurrentSteps()
-    -- Discord thingies
-    local largeImageTooltip = string.format(
-        "%s: %5.2f",
-        profile:GetDisplayName(),
-        profile:GetPlayerRating()
-    )
-    local mode = GAMESTATE:GetGameplayMode()
-    local detail = string.format(
-        "%s: %s [%s]",
-        song:GetDisplayMainTitle(),
-        string.gsub(getCurRateDisplayString(), "Music", ""),
-        song:GetGroupName()
-    )
-    if mode == "GameplayMode_Replay" then
-        detail = "Replaying: "..detail
-    elseif mode == "GameplayMode_Practice" then
-        detail = "Practicing: "..detail
-    end
-    -- truncated to 128 characters(discord hard limit)
-    detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
-    local state = string.format(
-        "MSD: %05.2f",
-        steps:GetMSD(getCurRateValue(), 1)
-    )
-    local endTime = os.time() + GetPlayableTime()
-    GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
-end
-
 -- writes to the install directory a nowplaying.txt
 -- will be blank if not in gameplay
 -- useful for stream overlays
