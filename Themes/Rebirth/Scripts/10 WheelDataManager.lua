@@ -1087,7 +1087,7 @@ local sortmodeImplementations = {
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
                 table.sort(
                     songlist,
-                    SongUtil.SongTitleComparator
+                    SongUtil.SongArtistComparator
                 )
             end
         end,
