@@ -122,6 +122,7 @@ local defaultGameplaySizes = {
     FullProgressBarHeight = 1.0,
     JudgeCounterHeight = 1.0,
     JudgeCounterWidth = 1.0,
+    JudgeCounterSpacing = 1.0,
     DisplayPercentZoom = 1,
     DisplayMeanZoom = 1,
     NPSDisplayZoom = 0.5,

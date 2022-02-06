@@ -48,6 +48,7 @@ local function loadValuesTable()
     MovableValues.JudgeCounterY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterY
     MovableValues.JudgeCounterHeight = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterHeight
     MovableValues.JudgeCounterWidth = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterWidth
+    MovableValues.JudgeCounterSpacing = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterSpacing
     MovableValues.ReplayButtonsX = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsX
     MovableValues.ReplayButtonsY = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsY
     MovableValues.ReplayButtonsSpacing = playerConfig:get_data().GameplaySizes[keymode].ReplayButtonsSpacing
