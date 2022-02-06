@@ -28,6 +28,7 @@ local t = Def.ActorFrame {
         registerActorToCustomizeGameplayUI({
             actor = self,
             coordInc = {5,1},
+            zoomInc = {0.1,0.05},
         })
     end,
     BeginCommand = function(self)
@@ -37,6 +38,7 @@ local t = Def.ActorFrame {
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.JudgeCounterX, MovableValues.JudgeCounterY)
+        self:zoomto(MovableValues.JudgeCounterWidth, MovableValues.JudgeCounterHeight)
     end,
     SpottedOffsetCommand = function(self, params)
         if params == nil then return end
