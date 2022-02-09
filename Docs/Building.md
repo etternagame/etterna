@@ -8,6 +8,7 @@ Interested in contributing to Etterna? This guide is the place to start!
 - [Quick Start](#Quick-Start)
 - [Universal Dependencies](#Universal-Dependencies)
   - [Linux Dependencies](#Linux-Dependencies)
+  - [Pop_OS! Notes](#Pop_OS-Notes)
   - [Windows Dependencies](#Windows-Dependencies)
   - [macOS Dependencies](#macOS-Dependencies)
 - [Project Generation](#Project-Generation)
@@ -56,10 +57,35 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
 
 While most dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
 
+For Pop_OS!, install the `Debian` dependencies, then refer to the [Pop_OS! Notes](#Pop_OS-Notes) section below.
+
 - Debian: `apt install build-essential libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
 - Fedora: `dnf install openssl-static libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
 - Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack`
 - Alpine: `apk add build-base openssl-dev libx11-dev libxrandr-dev curl-dev mesa-dev glu-dev pulseaudio-dev libogg-dev alsa-lib-dev jack-dev`
+
+### Pop_OS! Notes
+
+More recent builds of Pop_OS! are missing some required dependencies.
+
+#### Python 2.7
+
+The build requires Python 2.7 be installed and symlinked as `python`.
+
+Run `python --version`. If it's ok, skip this section. If `python --version` says `command not found`, run the following:
+
+```
+sudo apt install -y python2.7
+sudo ln -s /usr/bin/python2.7 /usr/local/bin/python
+```
+
+#### clang
+
+`clang++` is needed for compiling the source code.
+
+```
+sudo apt install -y clang
+```
 
 ### Windows Dependencies
 
@@ -75,7 +101,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 ## Project Generation
 
-First, ensure you have forked Etterna, cloned to your system, and checked out `develop`. 
+First, ensure you have forked Etterna, cloned to your system, and checked out `develop`.
 
 There are two stages apart of CMake projects.
 
@@ -128,6 +154,8 @@ Users of Linux be aware that the game builds on the `Debug` target by default. H
 - `-DCMAKE_BUILD_TYPE=RelWithDebInfo` - Builds Release binary with symbols, useful for debugging if any issues arise, almost same as Release otherwise.
 
 #### Sample CMake Commands
+
+**⚠️ Note**: You likely want to include `-DCMAKE_BUILD_TYPE=Release` when running `cmake`. This results in a smaller build that will often perform much better.
 
 ```bash
 cmake -G "Ninja" ..                                                             # Linux Ninja
@@ -225,7 +253,7 @@ To build a distribution file for the operating system you are using, run `cpack`
 
 ### cppcheck
 
-cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system. 
+cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system.
 
 - Debian: `apt install cppcheck`
 - Fedora: `dnf install cppcheck`
@@ -236,7 +264,7 @@ cppcheck is a cross-platform static analysis tool which CMake supports by adding
 
 When cppcheck is run, it will generate a file in the build directory called `cppcheck.txt` which will have the output of the command. The output is saved to a file as the command produces significant output, and can take some time to run.
 
-To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen. 
+To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen.
 
 ## Documentation
 
