@@ -81,7 +81,7 @@ sudo ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 #### clang
 
-`clang++` is needed for compiling the source code.
+`clang` is required for Crashpad. If you don't want to include Crashpad, add `-DWITH_CRASHPAD=OFF` when running `cmake`. Otherwise, install `clang`:
 
 ```
 sudo apt install -y clang
