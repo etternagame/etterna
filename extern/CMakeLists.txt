@@ -46,13 +46,14 @@ add_subdirectory(stb)
 ## Remaining Libraries
 add_subdirectory(luajit)
 add_subdirectory(muFFT)
-add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(fmt)
 add_subdirectory(boost/nowide)
 add_subdirectory(filesystem)
+add_subdirectory(glfw)
+add_subdirectory(glad)
 
 ## Vorbis depends on ogg
 add_subdirectory(newogg)

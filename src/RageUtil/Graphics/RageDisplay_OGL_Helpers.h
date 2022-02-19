@@ -5,7 +5,7 @@
 #include <windows.h>
 #endif
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 
 /* Import RageDisplay, for types.  Do not include RageDisplay_Legacy.h. */
 #include "RageDisplay.h"

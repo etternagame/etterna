@@ -126,7 +126,6 @@ ExternalProject_Add(crashpad_init
 # Re-running gn every single time is not the most efficient, though it has a very short runtime
 # on subsequent runs, and if nothing is changed the build step will do nothing.c
 ExternalProject_Add_Step(crashpad_init gn_configure
-	ALWAYS 1
 	USES_TERMINAL 1
 	WORKING_DIRECTORY ${SOURCE_DIR}
 	COMMAND ${EXE_DEPOT_GN} gen ${BINARY_DIR} "--args=target_cpu=\"${GN_TARGET_CPU}\" is_debug=${GN_IS_DEBUG} extra_cflags=\"${GN_WIN_LINK_FLAG}\"" && ${EXE_DEPOT_NINJA} -C ${BINARY_DIR} crashpad_handler

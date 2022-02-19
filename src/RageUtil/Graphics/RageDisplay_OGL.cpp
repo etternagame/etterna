@@ -12,17 +12,15 @@
 #include "RageTextureManager.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
-
-#include "arch/LowLevelWindow/LowLevelWindow.h"
+#include "Etterna/Globals/GameLoop.h"
+#include "Core/Platform/Window/GLFWWindowBackend.hpp"
+using namespace Core::Platform::Window;
 
 #include <algorithm>
 #include <chrono>
+#include <memory>
 #include <set>
 #include <map>
-
-#ifdef _WIN32
-#include <GL/wglew.h>
-#endif
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "opengl32.lib")
@@ -50,12 +48,6 @@ static bool g_bColorIndexTableWorks = true;
 static float g_line_range[2];
 static float g_point_range[2];
 
-/* OpenGL version * 10: */
-static int g_glVersion;
-
-/* GLU version * 10: */
-static int g_gluVersion;
-
 static int g_iMaxTextureUnits = 0;
 
 /* We don't actually use normals (we don't turn on lighting), there's just
@@ -65,8 +57,6 @@ static GLhandleARB g_bTextureMatrixShader = 0;
 
 static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
 static RenderTarget* g_pCurrentRenderTarget = nullptr;
-
-static LowLevelWindow* g_pWind;
 
 static bool g_bInvertY = false;
 
@@ -234,7 +224,7 @@ FixLittleEndian()
 static void
 TurnOffHardwareVBO()
 {
-	if (GLEW_ARB_vertex_buffer_object) {
+	if (GLAD_GL_ARB_vertex_buffer_object) {
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 	}
@@ -248,7 +238,7 @@ RageDisplay_Legacy::RageDisplay_Legacy()
 	FixLittleEndian();
 	RageDisplay_Legacy_Helpers::Init();
 
-	g_pWind = nullptr;
+//	g_pWind = nullptr;
 	g_bTextureMatrixShader = 0;
 }
 
@@ -275,8 +265,7 @@ CompileShader(GLenum ShaderType,
 {
 	/* XXX: This would not be necessary if it wasn't for the special case for
 	 * Cel. */
-	if (ShaderType == GL_FRAGMENT_SHADER_ARB &&
-		!glewIsSupported("GL_VERSION_2_0")) {
+	if (ShaderType == GL_FRAGMENT_SHADER_ARB && GLAD_GL_VERSION_2_0) {
 		Locator::getLogger()->warn("Fragment shaders not supported by driver. Some effects will "
 				  "not be available.");
 		return 0;
@@ -342,11 +331,7 @@ LoadShader(GLenum ShaderType, std::string sFile, std::vector<std::string> asDefi
 	 * If this causes any trouble I will have to up the requirement for both
 	 * of them to at least GL 2.0. Regardless we need basic GLSL support.
 	 * -Colby */
-	if (!glewIsSupported("GL_ARB_shading_language_100 GL_ARB_shader_objects") ||
-		(ShaderType == GL_FRAGMENT_SHADER_ARB &&
-		 !glewIsSupported("GL_VERSION_2_0")) ||
-		(ShaderType == GL_VERTEX_SHADER_ARB &&
-		 !glewIsSupported("GL_ARB_vertex_shader"))) {
+	if ((ShaderType == GL_FRAGMENT_SHADER_ARB) || (ShaderType == GL_VERTEX_SHADER_ARB)) {
 		Locator::getLogger()->warn("{} shaders not supported by driver. Some effects will not "
 				  "be available.",
 				  (ShaderType == GL_FRAGMENT_SHADER_ARB) ? "Fragment"
@@ -479,84 +464,32 @@ static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
 												  "with this game and should "
 												  "be disabled.");
 std::string
-RageDisplay_Legacy::Init(const VideoModeParams& p,
+RageDisplay_Legacy::Init(const VideoMode& p,
 						 bool bAllowUnacceleratedRenderer)
 {
-	g_pWind = LowLevelWindow::Create();
+    window = std::make_unique<GLFWWindowBackend>(p);
+    window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
+    window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
+    window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
+    window->registerOnWindowResized([&](int x, int y){ ResolutionChanged(); });
+    window->create();
+    window->setContext();
 
-	auto bIgnore = false;
+    auto bIgnore = false;
 	auto sError = SetVideoMode(p, bIgnore);
 	if (!sError.empty())
 		return sError;
 
 	// Log driver details
-	g_pWind->LogDebugInformation();
-	{
-		Locator::getLogger()->info("OGL Vendor: {}", glGetString(GL_VENDOR));
-		Locator::getLogger()->info("OGL Renderer: {}", glGetString(GL_RENDERER));
-		Locator::getLogger()->info("OGL Version: {}", glGetString(GL_VERSION));
-		Locator::getLogger()->info("OGL Max texture size: {}", GetMaxTextureSize());
-		Locator::getLogger()->info("OGL Texture units: {}", g_iMaxTextureUnits);
-		Locator::getLogger()->info("GLU Version: {}", gluGetString(GLU_VERSION));
+    Locator::getLogger()->info("OpenGL Vendor: {}", glGetString(GL_VENDOR));
+    Locator::getLogger()->info("OpenGL Renderer: {}", glGetString(GL_RENDERER));
+    Locator::getLogger()->info("OpenGL Version: {}", glGetString(GL_VERSION));
+    Locator::getLogger()->info("OpenGL Max texture size: {}", GetMaxTextureSize());
+    Locator::getLogger()->info("OpenGL Texture units: {}", g_iMaxTextureUnits);
+    Locator::getLogger()->info("OpenGL Version: {}.{}", GLVersion.major, GLVersion.minor);
 
-		/* Pretty-print the extension string: */
-		Locator::getLogger()->info("OGL Extensions:");
-		{
-			const auto szExtensionString =
-			  (const char*)glGetString(GL_EXTENSIONS);
-			std::vector<std::string> asExtensions;
-			split(szExtensionString, " ", asExtensions);
-			sort(asExtensions.begin(), asExtensions.end());
-			size_t iNextToPrint = 0;
-			while (iNextToPrint < asExtensions.size()) {
-				auto iLastToPrint = iNextToPrint;
-				std::string sType;
-				for (auto i = iNextToPrint; i < asExtensions.size(); ++i) {
-					std::vector<std::string> asBits;
-					split(asExtensions[i], "_", asBits);
-					std::string sThisType;
-					if (asBits.size() > 2)
-						sThisType = join(
-						  std::string("_"), asBits.begin(), asBits.begin() + 2);
-					if (i > iNextToPrint && sThisType != sType)
-						break;
-					sType = sThisType;
-					iLastToPrint = i;
-				}
-
-				if (iNextToPrint == iLastToPrint) {
-					Locator::getLogger()->info("  {}", asExtensions[iNextToPrint].c_str());
-					++iNextToPrint;
-					continue;
-				}
-
-				auto sList = ssprintf("  %s: ", sType.c_str());
-				while (iNextToPrint <= iLastToPrint) {
-					std::vector<std::string> asBits;
-					split(asExtensions[iNextToPrint], "_", asBits);
-					const auto sShortExt =
-					  join(std::string("_"), asBits.begin() + 2, asBits.end());
-					sList += sShortExt;
-					if (iNextToPrint < iLastToPrint)
-						sList += ", ";
-					if (iNextToPrint == iLastToPrint ||
-						sList.size() + asExtensions[iNextToPrint + 1].size() >
-						  120) {
-						Locator::getLogger()->info(sList.c_str());
-						sList = "    ";
-					}
-					++iNextToPrint;
-				}
-			}
-		}
-	}
-
-	if (g_pWind->IsSoftwareRenderer(sError)) {
-		if (!bAllowUnacceleratedRenderer)
-			return sError + "  " + OBTAIN_AN_UPDATED_VIDEO_DRIVER.GetValue() +
-				   "\n\n";
-		Locator::getLogger()->warn("Low-performance OpenGL renderer: {}", sError.c_str());
-	}
+    const auto szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
+    Locator::getLogger()->info("OpenGL Extensions: {}", szExtensionString);
 
 #ifdef _WIN32
 	/* GLDirect is a Direct3D wrapper for OpenGL.  It's rather buggy; and if in
@@ -577,14 +510,28 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 RageDisplay_Legacy::~RageDisplay_Legacy()
 {
-	delete g_pWind;
+    auto *win = window.release();
+    delete win;
 }
 
 void
 RageDisplay_Legacy::GetDisplaySpecs(DisplaySpecs& out) const
 {
 	out.clear();
-	g_pWind->GetDisplaySpecs(out);
+	// Prepare DisplayMode for following DisplaySpec
+	std::set<DisplayMode> available;
+	for(auto mode : this->window->getDisplayModes()){
+		available.insert(DisplayMode{
+			static_cast<unsigned int>(mode.width),
+			static_cast<unsigned int>(mode.height),
+			static_cast<double>(mode.refreshRate)});
+	}
+
+	// Current Mode
+	auto current = this->window->getCurrentDisplayMode();
+	DisplayMode m{static_cast<unsigned int>(current.width), static_cast<unsigned int>(current.height), static_cast<double>(current.refreshRate)};
+	RectI bounds = {0, 0, static_cast<int>(current.width), static_cast<int>(current.height)};
+	out.insert(DisplaySpec("", "Fullscreen", available, m, bounds));
 }
 
 static void
@@ -592,7 +539,7 @@ CheckPalettedTextures()
 {
 	std::string sError;
 	do {
-		if (!GLEW_EXT_paletted_texture) {
+		if (!GLAD_GL_EXT_paletted_texture) {
 			sError = "GL_EXT_paletted_texture missing";
 			break;
 		}
@@ -724,17 +671,10 @@ CheckReversePackedPixels()
 void
 SetupExtensions()
 {
-	const auto fGLVersion = StringToFloat((const char*)glGetString(GL_VERSION));
-	g_glVersion = lround(fGLVersion * 10);
-
-	const auto fGLUVersion =
-	  StringToFloat((const char*)gluGetString(GLU_VERSION));
-	g_gluVersion = lround(fGLUVersion * 10);
-
-	glewInit();
+    gladLoadGL();
 
 	g_iMaxTextureUnits = 1;
-	if (GLEW_ARB_multitexture)
+	if (GLAD_GL_ARB_multitexture)
 		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB,
 					  static_cast<GLint*>(&g_iMaxTextureUnits));
 
@@ -760,7 +700,8 @@ SetupExtensions()
 bool
 RageDisplay_Legacy::UseOffscreenRenderTarget()
 {
-	if (!(*GetActualVideoModeParams()).renderOffscreen || !TEXTUREMAN) {
+//	if (!(*GetActualVideoModeParams()).renderOffscreen || !TEXTUREMAN) {
+    if (false || !TEXTUREMAN) {
 		return false;
 	}
 
@@ -769,8 +710,8 @@ RageDisplay_Legacy::UseOffscreenRenderTarget()
 		param.bWithDepthBuffer = true;
 		param.bWithAlpha = true;
 		param.bFloat = false;
-		param.iWidth = (*GetActualVideoModeParams()).width;
-		param.iHeight = (*GetActualVideoModeParams()).height;
+		param.iWidth = window->getFrameBufferSize().width; //(*GetActualVideoModeParams()).width;
+		param.iHeight = window->getFrameBufferSize().height; //(*GetActualVideoModeParams()).height;
 		const RageTextureID id(
 		  ssprintf("FullscreenTexture%dx%d", param.iWidth, param.iHeight));
 		// See if we have this texture loaded already
@@ -808,13 +749,13 @@ RageDisplay_Legacy::ResolutionChanged()
 // bNewDeviceOut is set true if a new device was created and textures
 // need to be reloaded.
 std::string
-RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
+RageDisplay_Legacy::TryVideoMode(const VideoMode& p, bool& bNewDeviceOut)
 {
 	// LOG->Warn( "RageDisplay_Legacy::TryVideoMode( %d, %d, %d, %d, %d, %d )",
 	// p.windowed, p.width, p.height, p.bpp, p.rate, p.vsync );
 
 	std::string err;
-	err = g_pWind->TryVideoMode(p, bNewDeviceOut);
+	window->setVideoMode(p);
 	if (!err.empty())
 		return err; // failed to set video mode
 
@@ -843,7 +784,7 @@ RageDisplay_Legacy::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	}
 
 // I'm not sure this is correct -Colby
-#ifdef _WIN32
+#if 0
 	/* Set vsync the Windows way, if we can.  (What other extensions are there
 	 * to do this, for other archs?) */
 	if (wglewIsSupported("WGL_EXT_swap_control"))
@@ -873,8 +814,8 @@ RageDisplay_Legacy::BeginFrame()
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
 
-	const auto fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
-	const auto fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
+	const auto fWidth = window->getFrameBufferSize().width; //(*g_pWind->GetActualVideoModeParams()).windowWidth;
+	const auto fHeight = window->getFrameBufferSize().height; //(*g_pWind->GetActualVideoModeParams()).windowHeight;
 	glViewport(0, 0, fWidth, fHeight);
 	glClearColor(0, 0, 0, 0);
 	SetZWrite(true);
@@ -903,27 +844,26 @@ RageDisplay_Legacy::EndFrame()
 		CameraPushMatrix();
 		LoadMenuPerspective(
 		  0,
-		  static_cast<float>(GetActualVideoModeParams()->width),
-		  static_cast<float>(GetActualVideoModeParams()->height),
-		  static_cast<float>(GetActualVideoModeParams()->width) / 2.f,
-		  static_cast<float>(GetActualVideoModeParams()->height) / 2.f);
+		  static_cast<float>(window->getFrameBufferSize().width),
+		  static_cast<float>(window->getFrameBufferSize().height),
+		  static_cast<float>(window->getFrameBufferSize().width) / 2.f,
+		  static_cast<float>(window->getFrameBufferSize().height) / 2.f);
 		fullscreenSprite.Draw();
 		CameraPopMatrix();
 	}
 
 	FrameLimitBeforeVsync();
 	const auto beforePresent = std::chrono::steady_clock::now();
-	g_pWind->SwapBuffers();
+	window->swapBuffers();
 	glFlush();
+	window->update();
 
 	const auto afterPresent = std::chrono::steady_clock::now();
 	const auto endTime = afterPresent - beforePresent;
 
 	SetPresentTime(endTime);
 
-	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
-
-	g_pWind->Update();
+	FrameLimitAfterVsync(this->window->getRefreshRate());
 
 	RageDisplay::EndFrame();
 }
@@ -931,8 +871,8 @@ RageDisplay_Legacy::EndFrame()
 RageSurface*
 RageDisplay_Legacy::CreateScreenshot()
 {
-	const auto width = (*g_pWind->GetActualVideoModeParams()).width;
-	const auto height = (*g_pWind->GetActualVideoModeParams()).height;
+	const auto width = window->getFrameBufferSize().width; //(*g_pWind->GetActualVideoModeParams()).width;
+	const auto height = window->getFrameBufferSize().height; //(*g_pWind->GetActualVideoModeParams()).height;
 
 	RageSurface* image = nullptr;
 	if (offscreenRenderTarget) {
@@ -963,8 +903,10 @@ RageDisplay_Legacy::CreateScreenshot()
 
 		glReadPixels(0,
 					 0,
-					 (*g_pWind->GetActualVideoModeParams()).width,
-					 (*g_pWind->GetActualVideoModeParams()).height,
+                     window->getFrameBufferSize().width,
+                     window->getFrameBufferSize().height,
+//					 (*g_pWind->GetActualVideoModeParams()).width,
+//					 (*g_pWind->GetActualVideoModeParams()).height,
 					 GL_RGBA,
 					 GL_UNSIGNED_BYTE,
 					 image->pixels);
@@ -1012,12 +954,6 @@ RageDisplay_Legacy::GetTexture(intptr_t iTexture)
 	return pImage;
 }
 
-const ActualVideoModeParams*
-RageDisplay_Legacy::GetActualVideoModeParams() const
-{
-	return g_pWind->GetActualVideoModeParams();
-}
-
 static void
 SetupVertices(const RageSpriteVertex v[], int iNumVerts)
 {
@@ -1059,7 +995,7 @@ SetupVertices(const RageSpriteVertex v[], int iNumVerts)
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glTexCoordPointer(2, GL_FLOAT, 0, Texture);
 
-	if (GLEW_ARB_multitexture) {
+	if (GLAD_GL_ARB_multitexture) {
 		glClientActiveTextureARB(GL_TEXTURE1_ARB);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, 0, Texture);
@@ -1531,7 +1467,7 @@ RageCompiledGeometryHWOGL::Draw(int iMeshIndex) const
 RageCompiledGeometry*
 RageDisplay_Legacy::CreateCompiledGeometry()
 {
-	if (GLEW_ARB_vertex_buffer_object)
+	if (GLAD_GL_ARB_vertex_buffer_object)
 		return new RageCompiledGeometryHWOGL;
 	else
 		return new RageCompiledGeometrySWOGL;
@@ -1648,7 +1584,7 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 										  int iNumVerts,
 										  float fLineWidth)
 {
-	if (!(*GetActualVideoModeParams()).bSmoothLines) {
+	if (!PREFSMAN->m_bSmoothLines) {
 		/* Fall back on the generic polygon-based line strip. */
 		RageDisplay::DrawLineStripInternal(v, iNumVerts, fLineWidth);
 		return;
@@ -1669,11 +1605,10 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 		auto pMat = GetProjectionTop();
 		const auto fW = 2 / pMat->m[0][0];
 		const auto fH = -2 / pMat->m[1][1];
-		const auto fWidthVal =
-		  static_cast<float>((*g_pWind->GetActualVideoModeParams()).width) / fW;
-		const auto fHeightVal =
-		  static_cast<float>((*g_pWind->GetActualVideoModeParams()).height) /
-		  fH;
+//		const auto fWidthVal = static_cast<float>((*g_pWind->GetActualVideoModeParams()).width) / fW;
+//		const auto fHeightVal = static_cast<float>((*g_pWind->GetActualVideoModeParams()).height) / fH;
+        const auto fWidthVal = static_cast<float>(window->getFrameBufferSize().width) / fW;
+        const auto fHeightVal = static_cast<float>(window->getFrameBufferSize().height) / fH;
 		fLineWidth *= (fWidthVal + fHeightVal) / 2;
 	}
 
@@ -1724,12 +1659,12 @@ static bool
 SetTextureUnit(TextureUnit tu)
 {
 	// If multitexture isn't supported, ignore all textures except for 0.
-	if (!GLEW_ARB_multitexture && tu != TextureUnit_1)
+	if (!GLAD_GL_ARB_multitexture && tu != TextureUnit_1)
 		return false;
 
 	if (static_cast<int>(tu) > g_iMaxTextureUnits)
 		return false;
-	glActiveTextureARB(enum_add2(GL_TEXTURE0_ARB, tu));
+	glActiveTexture(enum_add2(GL_TEXTURE0_ARB, tu));
 	return true;
 }
 
@@ -1741,14 +1676,14 @@ RageDisplay_Legacy::ClearAllTextures()
 
 	// HACK:  Reset the active texture to 0.
 	// TODO:  Change all texture functions to take a stage number.
-	if (GLEW_ARB_multitexture)
+	if (GLAD_GL_ARB_multitexture)
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 }
 
 int
 RageDisplay_Legacy::GetNumTextureUnits()
 {
-	if (GLEW_ARB_multitexture)
+	if (GLAD_GL_ARB_multitexture)
 		return 1;
 
 	return g_iMaxTextureUnits;
@@ -1783,8 +1718,8 @@ RageDisplay_Legacy::SetTextureMode(TextureUnit tu, TextureMode tm)
 			break;
 		case TextureMode_Glow:
 			// the below function is glowmode,brighten:
-			if (!GLEW_ARB_texture_env_combine &&
-				!GLEW_EXT_texture_env_combine) {
+			if (!GLAD_GL_ARB_texture_env_combine &&
+				!GLAD_GL_EXT_texture_env_combine) {
 				/* This is changing blend state, instead of texture state, which
 				 * isn't great, but it's better than doing nothing. */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -1829,7 +1764,7 @@ RageDisplay_Legacy::SetTextureFiltering(TextureUnit tu, bool b)
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 1, GL_TEXTURE_WIDTH, &iWidth2);
 		if (iWidth1 > 1 && iWidth2 != 0) {
 			/* Mipmaps are enabled. */
-			if ((*g_pWind->GetActualVideoModeParams()).bTrilinearFiltering)
+			if (PREFSMAN->m_bTrilinearFiltering)
 				iMinFilter = GL_LINEAR_MIPMAP_LINEAR;
 			else
 				iMinFilter = GL_LINEAR_MIPMAP_NEAREST;
@@ -1846,8 +1781,8 @@ RageDisplay_Legacy::SetTextureFiltering(TextureUnit tu, bool b)
 void
 RageDisplay_Legacy::SetEffectMode(EffectMode effect)
 {
-	if (!GLEW_ARB_fragment_program || !GLEW_ARB_shading_language_100 ||
-		!GLEW_ARB_shader_objects)
+	if (!GLAD_GL_ARB_fragment_program || !GLAD_GL_ARB_shading_language_100 ||
+		!GLAD_GL_ARB_shader_objects)
 		return;
 
 	GLhandleARB hShader = 0;
@@ -2006,7 +1941,7 @@ RageDisplay_Legacy::SetBlendMode(BlendMode mode)
 			DEFAULT_FAIL(mode);
 	}
 
-	if (GLEW_EXT_blend_equation_separate)
+	if (GLAD_GL_EXT_blend_equation_separate)
 		glBlendFuncSeparateEXT(iSourceRGB, iDestRGB, iSourceAlpha, iDestAlpha);
 	else
 		glBlendFunc(iSourceRGB, iDestRGB);
@@ -2178,37 +2113,6 @@ RageDisplay_Legacy::GetPixelFormatDesc(RagePixelFormat pf) const
 	return &PIXEL_FORMAT_DESC[pf];
 }
 
-bool
-RageDisplay_Legacy::SupportsThreadedRendering()
-{
-	return g_pWind->SupportsThreadedRendering();
-}
-
-void
-RageDisplay_Legacy::BeginConcurrentRenderingMainThread()
-{
-	g_pWind->BeginConcurrentRenderingMainThread();
-}
-
-void
-RageDisplay_Legacy::EndConcurrentRenderingMainThread()
-{
-	g_pWind->EndConcurrentRenderingMainThread();
-}
-
-void
-RageDisplay_Legacy::BeginConcurrentRendering()
-{
-	g_pWind->BeginConcurrentRendering();
-	RageDisplay::BeginConcurrentRendering();
-}
-
-void
-RageDisplay_Legacy::EndConcurrentRendering()
-{
-	g_pWind->EndConcurrentRendering();
-}
-
 void
 RageDisplay_Legacy::DeleteTexture(intptr_t iTexture)
 {
@@ -2331,7 +2235,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 	// HACK:  OpenGL 1.2 types aren't available in GLU 1.3.  Don't call GLU for
 	// mip mapping if we're using an OGL 1.2 type and don't have >= GLU 1.3.
 	// http://pyopengl.sourceforge.net/documentation/manual/gluBuild2DMipmaps.3G.html
-	if (bGenerateMipMaps && g_gluVersion < 13) {
+	if (bGenerateMipMaps) {
 		switch (pixfmt) {
 			// OpenGL 1.1 types
 			case RagePixelFormat_RGBA8:
@@ -2341,10 +2245,8 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 				break;
 			// OpenGL 1.2 types
 			default:
-				Locator::getLogger()->debug("Can't generate mipmaps for type {} because GLU "
-						   "version {:.1f} is too old.",
-						   GLToString(glImageType).c_str(),
-						   g_gluVersion / 10.f);
+				Locator::getLogger()->trace("Can't generate mipmaps for type {} because GLU version is too old.",
+						   GLToString(glImageType).c_str());
 				bGenerateMipMaps = false;
 				break;
 		}
@@ -2359,8 +2261,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 
 	glBindTexture(GL_TEXTURE_2D, iTexHandle);
 
-	if ((*g_pWind->GetActualVideoModeParams()).bAnisotropicFiltering &&
-		GLEW_EXT_texture_filter_anisotropic) {
+	if (PREFSMAN->m_bAnisotropicFiltering && GLAD_GL_EXT_texture_filter_anisotropic) {
 		GLfloat fLargestSupportedAnisotropy;
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT,
 					&fLargestSupportedAnisotropy);
@@ -2541,7 +2442,7 @@ struct RageTextureLock_OGL
 RageTextureLock*
 RageDisplay_Legacy::CreateTextureLock()
 {
-	if (!GLEW_ARB_pixel_buffer_object)
+	if (!GLAD_GL_ARB_pixel_buffer_object)
 		return nullptr;
 
 	return new RageTextureLock_OGL;
@@ -2656,7 +2557,7 @@ RenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 	glBindTexture(GL_TEXTURE_2D, m_iTexHandle);
 	GLenum internalformat;
 	const GLenum type = param.bWithAlpha ? GL_RGBA : GL_RGB;
-	if (param.bFloat && GLEW_ARB_texture_float)
+	if (param.bFloat && GLAD_GL_ARB_texture_float)
 		internalformat = param.bWithAlpha ? GL_RGBA16F_ARB : GL_RGB16F_ARB;
 	else
 		internalformat = param.bWithAlpha ? GL_RGBA8 : GL_RGB8;
@@ -2754,7 +2655,7 @@ RenderTarget_FramebufferObject::FinishRenderingTo()
 bool
 RageDisplay_Legacy::SupportsRenderToTexture() const
 {
-	return GLEW_EXT_framebuffer_object || g_pWind->SupportsRenderToTexture();
+	return GLAD_GL_EXT_framebuffer_object;// || g_pWind->SupportsRenderToTexture();
 }
 
 bool
@@ -2764,8 +2665,9 @@ RageDisplay_Legacy::SupportsFullscreenBorderlessWindow() const
 	// implementation to support creating a fullscreen borderless window, and
 	// we're going to need RenderToTexture support in order to render in
 	// alternative resolutions
-	return g_pWind->SupportsFullscreenBorderlessWindow() &&
-		   SupportsRenderToTexture();
+//	return g_pWind->SupportsFullscreenBorderlessWindow() &&
+//		   SupportsRenderToTexture();
+    return SupportsRenderToTexture();
 }
 
 /*
@@ -2781,10 +2683,10 @@ RageDisplay_Legacy::CreateRenderTarget(const RenderTargetParam& param,
 									   int& iTextureHeightOut)
 {
 	RenderTarget* pTarget;
-	if (GLEW_EXT_framebuffer_object)
+//	if (GLEW_EXT_framebuffer_object)
 		pTarget = new RenderTarget_FramebufferObject;
-	else
-		pTarget = g_pWind->CreateRenderTarget();
+//	else
+//		pTarget = g_pWind->CreateRenderTarget();
 
 	intptr_t iTexture = 0;
 	if (pTarget) {
@@ -2819,9 +2721,10 @@ RageDisplay_Legacy::SetRenderTarget(intptr_t iTexture, bool bPreserveTexture)
 		DISPLAY->CameraPopMatrix();
 
 		/* Reset the viewport. */
-		const auto fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
-		const auto fHeight =
-		  (*g_pWind->GetActualVideoModeParams()).windowHeight;
+//		const auto fWidth = (*g_pWind->GetActualVideoModeParams()).windowWidth;
+//		const auto fHeight = (*g_pWind->GetActualVideoModeParams()).windowHeight;
+        const auto fWidth = window->getFrameBufferSize().width;
+        const auto fHeight = window->getFrameBufferSize().height;
 		glViewport(0, 0, fWidth, fHeight);
 
 		if (g_pCurrentRenderTarget != nullptr)
@@ -2961,7 +2864,7 @@ RageDisplay_Legacy::SupportsSurfaceFormat(RagePixelFormat pixfmt)
 {
 	switch (g_GLPixFmtInfo[pixfmt].type) {
 		case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-			return GLEW_EXT_bgra && g_bReversePackedPixelsWorks;
+			return GLAD_GL_EXT_bgra && g_bReversePackedPixelsWorks;
 		default:
 			return true;
 	}
@@ -2982,7 +2885,7 @@ RageDisplay_Legacy::SupportsTextureFormat(RagePixelFormat pixfmt,
 			return glColorTableEXT && glGetColorTableParameterivEXT;
 		case GL_BGR:
 		case GL_BGRA:
-			return !!GLEW_EXT_bgra;
+			return !!GLAD_GL_EXT_bgra;
 		default:
 			return true;
 	}
@@ -3018,7 +2921,7 @@ GLint iCelTexture1, iCelTexture2 = 0;
 void
 RageDisplay_Legacy::SetCelShaded(int stage)
 {
-	if (!GLEW_ARB_fragment_program && !GL_ARB_shading_language_100)
+	if (!GLAD_GL_ARB_fragment_program && !GL_ARB_shading_language_100)
 		return; // not supported
 
 	switch (stage) {

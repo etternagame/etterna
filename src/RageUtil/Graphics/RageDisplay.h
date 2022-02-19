@@ -5,10 +5,15 @@
 
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
+#include "Core/Platform/Window/GLFWWindowBackend.hpp"
+#include "Core/Platform/Window/VideoMode.hpp"
+using namespace Core::Platform::Window;
 
 #include <chrono>
 #include <set>
 #include <utility>
+#include <memory>
+#include <vector>
 
 class DisplaySpec;
 using DisplaySpecs = std::set<DisplaySpec>;
@@ -96,122 +101,6 @@ enum RagePixelFormat
 auto
 RagePixelFormatToString(RagePixelFormat i) -> const std::string&;
 
-/** @brief The parameters used for the present Video Mode. */
-class VideoModeParams
-{
-  public:
-	// Initialize with a constructor so to guarantee all paramters
-	// are filled (in case new params are added).
-	VideoModeParams(bool windowed_,
-					std::string sDisplayId_,
-					int width_,
-					int height_,
-					int bpp_,
-					int rate_,
-					bool vsync_,
-					bool interlaced_,
-					bool bSmoothLines_,
-					bool bTrilinearFiltering_,
-					bool bAnisotropicFiltering_,
-					bool bWindowIsFullscreenBorderless_,
-					std::string sWindowTitle_,
-					std::string sIconFile_,
-					bool PAL_,
-					float fDisplayAspectRatio_)
-	  : windowed(windowed_)
-	  , sDisplayId(std::move(sDisplayId_))
-	  , width(width_)
-	  , height(height_)
-	  , bpp(bpp_)
-	  , rate(rate_)
-	  , vsync(vsync_)
-	  , interlaced(interlaced_)
-	  , bSmoothLines(bSmoothLines_)
-	  , bTrilinearFiltering(bTrilinearFiltering_)
-	  , bAnisotropicFiltering(bAnisotropicFiltering_)
-	  , bWindowIsFullscreenBorderless(bWindowIsFullscreenBorderless_)
-	  , sWindowTitle(std::move(sWindowTitle_))
-	  , sIconFile(std::move(sIconFile_))
-	  , PAL(PAL_)
-	  , fDisplayAspectRatio(fDisplayAspectRatio_)
-	{
-	}
-
-	VideoModeParams(const VideoModeParams& other)
-	  : windowed(other.windowed)
-	  , sDisplayId(other.sDisplayId)
-	  , width(other.width)
-	  , height(other.height)
-	  , bpp(other.bpp)
-	  , rate(other.rate)
-	  , vsync(other.vsync)
-	  , interlaced(other.interlaced)
-	  , bSmoothLines(other.bSmoothLines)
-	  , bTrilinearFiltering(other.bTrilinearFiltering)
-	  , bAnisotropicFiltering(other.bAnisotropicFiltering)
-	  , bWindowIsFullscreenBorderless(other.bWindowIsFullscreenBorderless)
-	  , sWindowTitle(other.sWindowTitle)
-	  , sIconFile(other.sIconFile)
-	  , PAL(other.PAL)
-	  , fDisplayAspectRatio(other.fDisplayAspectRatio)
-	{
-	}
-	VideoModeParams() = default;
-	virtual ~VideoModeParams() {}
-
-	bool windowed{ false };
-	std::string sDisplayId;
-	int width{ 0 };
-	int height{ 0 };
-	int bpp{ 0 };
-	int rate{ 0 };
-	bool vsync{ false };
-	bool interlaced{ false };
-	bool bSmoothLines{ false };
-	bool bTrilinearFiltering{ false };
-	bool bAnisotropicFiltering{ false };
-	bool bWindowIsFullscreenBorderless{ false };
-	std::string sWindowTitle;
-	std::string sIconFile;
-	bool PAL{ false };
-	float fDisplayAspectRatio{ 0.0F };
-};
-
-/**
- * @brief The _actual_ VideoModeParams determined by the LowLevelWindow
- * implementation. Contains all the attributes of VideoModeParams, plus the
- * actual window width/height determined by LLW
- */
-class ActualVideoModeParams : public VideoModeParams
-{
-  public:
-	ActualVideoModeParams(const VideoModeParams& params)
-	  : VideoModeParams(params)
-	  , windowWidth(params.width)
-	  , windowHeight(params.height)
-	{
-	}
-	ActualVideoModeParams(const VideoModeParams& params,
-						  int windowWidth,
-						  int windowHeight,
-						  bool renderOffscreen)
-	  : VideoModeParams(params)
-	  , windowWidth(windowWidth)
-	  , windowHeight(windowHeight)
-	  , renderOffscreen(renderOffscreen)
-	{
-	}
-
-	ActualVideoModeParams() = default;
-
-	// If bWindowIsFullscreenBorderless is true,
-	// then these properties will differ from width/height (which describe the
-	// render size)
-	int windowWidth{ 0 };
-	int windowHeight{ 0 };
-	bool renderOffscreen{ false };
-};
-
 struct RenderTargetParam
 {
 	RenderTargetParam() = default;
@@ -254,29 +143,49 @@ class RageDisplay
 	RageDisplay();
 	virtual ~RageDisplay();
 
-	virtual auto Init(const VideoModeParams& p,
-					  bool bAllowUnacceleratedRenderer) -> std::string = 0;
+	// Display Initialization Related
+	/** @brief Attempt to create the window */
+	virtual auto Init(const VideoMode& p, bool bAllowUnacceleratedRenderer) -> std::string = 0;
 
-	[[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
+    /**
+     * Publicly accessible function to attempt changing the video mode.
+     *
+     * Don't override this.  Override TryVideoMode() instead.
+     * This will set the video mode to be as close as possible to params.
+     * Return true if device was re-created and we need to reload textures.
+     *
+     * @return Error string, empty if successful
+     */
+    auto SetVideoMode(VideoMode p, bool& bNeedReloadTextures) -> std::string;
+
+    /**
+     * Backend-specific function overridden to attempt a videomode change
+     *
+     * return std::string() if mode change was successful, an error message
+     * otherwise. bNewDeviceOut is set true if a new device was created and
+     * extures need to be reloaded.
+     *
+     * @param p
+     * @param bNewDeviceOut
+     * @return Error string, empty if successful.
+     */
+    virtual auto TryVideoMode(const VideoMode& p, bool& bNewDeviceOut) -> std::string = 0;
+
+    // Display State/Info related
+    [[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
+    auto IsD3D() -> bool;
+    VideoMode getVideoMode() { return window->getVideoMode(); }
+    int getRefreshRate() { return window->getRefreshRate(); } /** TODO(james): Exists for compat. Move in render pr.*/
+
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
 
 	void SetPresentTime(std::chrono::nanoseconds presentTime);
 
-	// Don't override this.  Override TryVideoMode() instead.
-	// This will set the video mode to be as close as possible to params.
-	// Return true if device was re-created and we need to reload textures.
-	auto SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
-	  -> std::string;
-
 	// Call this when the resolution has been changed externally:
 	virtual void ResolutionChanged();
-	auto IsD3D() -> bool;
 
 	virtual auto BeginFrame() -> bool;
 	virtual void EndFrame();
-	[[nodiscard]] virtual auto GetActualVideoModeParams() const
-	  -> const ActualVideoModeParams* = 0;
-	auto IsWindowed() -> bool { return (*GetActualVideoModeParams()).windowed; }
 
 	auto GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 		-> float;
@@ -285,15 +194,7 @@ class RageDisplay
 
 	virtual auto SupportsTextureFormat(RagePixelFormat pixfmt,
 									   bool realtime = false) -> bool = 0;
-	virtual auto SupportsThreadedRendering() -> bool { return false; }
 	virtual auto SupportsPerVertexMatrixScale() -> bool = 0;
-
-	// If threaded rendering is supported, these will be called from the
-	// rendering thread before and after rendering.
-	virtual void BeginConcurrentRenderingMainThread() {}
-	virtual void EndConcurrentRenderingMainThread() {}
-	virtual void BeginConcurrentRendering();
-	virtual void EndConcurrentRendering() {}
 
 	/* return 0 if failed or internal texture resource handle
 	 * (unsigned in OpenGL, texture pointer in D3D) */
@@ -457,12 +358,6 @@ class RageDisplay
 
 	virtual auto IsD3DInternal() -> bool;
 
-	// return std::string() if mode change was successful, an error message
-	// otherwise. bNewDeviceOut is set true if a new device was created and
-	// textures need to be reloaded.
-	virtual auto TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
-	  -> std::string = 0;
-
 	void DrawPolyLine(const RageSpriteVertex& p1,
 					  const RageSpriteVertex& p2,
 					  float LineWidth);
@@ -520,10 +415,6 @@ class RageDisplay
 							 float fHeight,
 							 float fVanishPointX,
 							 float fVanishPointY);
-	void LoadLookAt(float fov,
-					const RageVector3& Eye,
-					const RageVector3& At,
-					const RageVector3& Up);
 
 	// Centering matrix
 	void CenteringPushMatrix();
@@ -582,6 +473,12 @@ class RageDisplay
 
 	void FrameLimitBeforeVsync();
 	void FrameLimitAfterVsync(int iFPS);
+
+	/**
+	 * GLFW is used, even if OpenGL is not used. If the GLFW_CLIENT_API window
+	 * hint is set to GLFW_NO_API, then only an empty will be created.
+	 */
+	std::unique_ptr<GLFWWindowBackend> window;
 };
 
 extern RageDisplay*

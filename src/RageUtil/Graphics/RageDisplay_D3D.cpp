@@ -12,13 +12,18 @@
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/GraphicsWindow.h"
+#include "Etterna/Singletons/PrefsManager.h"
+
+#include "Etterna/Globals/GameLoop.h"
 
 #include <algorithm>
+#include <memory>
 #include <map>
 #include <list>
 #include <chrono>
 #include <D3dx9tex.h>
 #include <d3d9.h>
+#include <GLFW/glfw3.h>
 
 // Static libraries
 // load Windows D3D9 dynamically
@@ -197,10 +202,15 @@ static LocalizedString HARDWARE_ACCELERATION_NOT_AVAILABLE(
   "manufacturer.");
 
 auto
-RageDisplay_D3D::Init(const VideoModeParams& p,
+RageDisplay_D3D::Init(const VideoMode& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
-	GraphicsWindow::Initialize(true);
+	window = std::make_unique<GLFWWindowBackend>(p);
+	window->setWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    window->registerOnFocusGain([]{ GameLoop::setGameFocused(true); });
+    window->registerOnFocusLost([]{ GameLoop::setGameFocused(false); });
+    window->registerOnCloseRequested([]{ GameLoop::setUserQuit(); });
+    window->create();
 
 	Locator::getLogger()->info("RageDisplay_D3D::RageDisplay_D3D()");
 	Locator::getLogger()->info("Current renderer: Direct3D");
@@ -261,7 +271,8 @@ RageDisplay_D3D::~RageDisplay_D3D()
 {
 	Locator::getLogger()->info("RageDisplay_D3D::~RageDisplay()");
 
-	GraphicsWindow::Shutdown();
+	auto *ptr = window.release();
+	delete ptr;
 
 	if (g_pd3dDevice != nullptr) {
 		g_pd3dDevice->Release();
@@ -338,7 +349,6 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 	}
 
 	if (!bWindowed && iBPP != 16 && iBPP != 32) {
-		GraphicsWindow::Shutdown();
 		RageException::Throw("Invalid BPP '%i' specified", iBPP);
 	}
 
@@ -513,18 +523,17 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 }
 
 static void
-SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
-										D3DPRESENT_PARAMETERS* pD3Dpp)
+SetPresentParametersFromVideoModeParams(const VideoMode& p, D3DPRESENT_PARAMETERS* pD3Dpp)
 {
 	ZERO(*pD3Dpp);
-	const auto displayFormat = FindBackBufferType(p.windowed, p.bpp);
+	const auto displayFormat = FindBackBufferType(!p.isFullscreen, 32);
 	auto enableMultiSampling = false;
 
-	if (p.bSmoothLines &&
+	if (PREFSMAN->m_bSmoothLines &&
 		SUCCEEDED(g_pd3d->CheckDeviceMultiSampleType(D3DADAPTER_DEFAULT,
 													 D3DDEVTYPE_HAL,
 													 displayFormat,
-													 p.windowed,
+													 !p.isFullscreen,
 													 D3DMULTISAMPLE_8_SAMPLES,
 													 nullptr))) {
 		enableMultiSampling = true;
@@ -538,15 +547,15 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 	  enableMultiSampling ? D3DMULTISAMPLE_8_SAMPLES : D3DMULTISAMPLE_NONE;
 	pD3Dpp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 	pD3Dpp->hDeviceWindow = GraphicsWindow::GetHwnd();
-	pD3Dpp->Windowed = static_cast<BOOL>(p.windowed);
+	pD3Dpp->Windowed = static_cast<BOOL>(!p.isFullscreen);
 	pD3Dpp->EnableAutoDepthStencil = TRUE;
 	pD3Dpp->AutoDepthStencilFormat = D3DFMT_D16;
 	pD3Dpp->PresentationInterval =
-	  p.vsync ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
+	  p.isVsyncEnabled ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
 
 	pD3Dpp->FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-	if (!p.windowed && p.rate != REFRESH_DEFAULT) {
-		pD3Dpp->FullScreen_RefreshRateInHz = p.rate;
+	if (p.isFullscreen && p.refreshRate != REFRESH_DEFAULT) {
+		pD3Dpp->FullScreen_RefreshRateInHz = p.refreshRate;
 	}
 
 	pD3Dpp->Flags = 0;
@@ -570,32 +579,32 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 
 // Set the video mode.
 auto
-RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
+RageDisplay_D3D::TryVideoMode(const VideoMode& _p, bool& bNewDeviceOut)
   -> std::string
 {
 	auto p = _p;
-	Locator::getLogger()->warn("RageDisplay_D3D::TryVideoMode( {}, {}, {}, {}, {}, {} )",
-			  static_cast<int>(p.windowed),
+    window->setVideoMode(p);
+	Locator::getLogger()->warn("RageDisplay_D3D::TryVideoMode( {}, {}, {}, {}, {} )",
+			  static_cast<int>(!p.isFullscreen),
 			  p.width,
 			  p.height,
-			  p.bpp,
-			  p.rate,
-			  static_cast<int>(p.vsync));
+			  p.refreshRate,
+			  static_cast<int>(p.isVsyncEnabled));
 
-	if (FindBackBufferType(p.windowed, p.bpp) ==
+	if (FindBackBufferType(!p.isFullscreen, 32) ==
 		D3DFMT_UNKNOWN) { // no possible back buffer formats
 		return ssprintf("FindBackBufferType(%i,%i) failed",
-						p.windowed,
-						p.bpp); // failed to set mode
+						!p.isFullscreen,
+						32); // failed to set mode
 	}
 
 	/* Set up and display the window before setting up D3D. If we don't do this,
 	 * then setting up a fullscreen window (when we're not coming from windowed)
 	 * causes all other windows on the system to be resized to the new
 	 * resolution. */
-	GraphicsWindow::CreateGraphicsWindow(p);
+//	GraphicsWindow::CreateGraphicsWindow(p);
 
-	SetPresentParametersFromVideoModeParams(p, &g_d3dpp);
+	SetPresentParametersFromVideoModeParams(_p, &g_d3dpp);
 
 	// Display the window immediately, so we don't display the desktop ...
 	while (true) {
@@ -608,7 +617,7 @@ RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
 		/* It failed. We're probably selecting a video mode that isn't
 		 * supported. If we're fullscreen, search the mode list and find the
 		 * nearest lower mode. */
-		if (p.windowed || !D3DReduceParams(&g_d3dpp)) {
+		if (!p.isFullscreen || !D3DReduceParams(&g_d3dpp)) {
 			return sErr;
 		}
 
@@ -616,16 +625,16 @@ RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
 		p.height = g_d3dpp.BackBufferHeight;
 		p.width = g_d3dpp.BackBufferWidth;
 		if (g_d3dpp.FullScreen_RefreshRateInHz == D3DPRESENT_RATE_DEFAULT) {
-			p.rate = REFRESH_DEFAULT;
+			p.refreshRate = REFRESH_DEFAULT;
 		} else {
-			p.rate = g_d3dpp.FullScreen_RefreshRateInHz;
+			p.refreshRate = g_d3dpp.FullScreen_RefreshRateInHz;
 		}
 	}
 
 	/* Call this again after changing the display mode. If we're going to a
 	 * window from fullscreen, the first call can't set a larger window than the
 	 * old fullscreen resolution or set the window position. */
-	GraphicsWindow::CreateGraphicsWindow(p);
+//	GraphicsWindow::CreateGraphicsWindow(p);
 
 	ResolutionChanged();
 
@@ -663,7 +672,7 @@ RageDisplay_D3D::GetMaxTextureSize() const -> int
 auto
 RageDisplay_D3D::BeginFrame() -> bool
 {
-	GraphicsWindow::Update();
+	window->update();
 
 	switch (g_pd3dDevice->TestCooperativeLevel()) {
 		case D3DERR_DEVICELOST:
@@ -705,7 +714,7 @@ RageDisplay_D3D::EndFrame()
 	const auto afterPresent = std::chrono::steady_clock::now();
 	SetPresentTime(afterPresent - beforePresent);
 
-	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
+	FrameLimitAfterVsync(window->getRefreshRate());
 
 	RageDisplay::EndFrame();
 }
@@ -734,12 +743,6 @@ RageDisplay_D3D::SupportsTextureFormat(RagePixelFormat pixfmt,
 											  d3dfmt);
 
 	return SUCCEEDED(hr);
-}
-
-auto
-RageDisplay_D3D::SupportsThreadedRendering() -> bool
-{
-	return true;
 }
 
 auto
@@ -815,13 +818,6 @@ RageDisplay_D3D::CreateScreenshot() -> RageSurface*
 	}
 
 	return result;
-}
-
-auto
-RageDisplay_D3D::GetActualVideoModeParams() const
-  -> const ActualVideoModeParams*
-{
-	return static_cast<ActualVideoModeParams*>(GraphicsWindow::GetParams());
 }
 
 void
@@ -1954,8 +1950,9 @@ RageDisplay_D3D::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
 		/* Reset the viewport. */
 		D3DVIEWPORT9 viewData;
 		g_pd3dDevice->GetViewport(&viewData);
-		viewData.Width = GetActualVideoModeParams()->width;
-		viewData.Height = GetActualVideoModeParams()->height;
+		auto dims = window->getFrameBufferSize();
+		viewData.Width = dims.width;
+		viewData.Height = dims.height;
 		g_pd3dDevice->SetViewport(&viewData);
 
 		if (g_pCurrentRenderTarget != nullptr) {

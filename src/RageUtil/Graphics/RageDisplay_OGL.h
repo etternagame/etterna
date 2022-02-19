@@ -7,6 +7,7 @@
 #include "RageDisplay.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "RageUtil/Graphics/RageTextureRenderTarget.h"
+#include "Core/Platform/Window/IWindowBackend.hpp"
 
 /* Making an OpenGL call doesn't also flush the error state; if we happen
  * to have an error from a previous call, then the assert below will fail.
@@ -35,7 +36,7 @@ class RageDisplay_Legacy : public RageDisplay
   public:
 	RageDisplay_Legacy();
 	~RageDisplay_Legacy() override;
-	std::string Init(const VideoModeParams& p,
+	std::string Init(const VideoMode& p,
 					 bool bAllowUnacceleratedRenderer) override;
 
 	std::string GetApiDescription() const override { return "OpenGL"; }
@@ -44,15 +45,8 @@ class RageDisplay_Legacy : public RageDisplay
 	const RagePixelFormatDesc* GetPixelFormatDesc(
 	  RagePixelFormat pf) const override;
 
-	bool SupportsThreadedRendering() override;
-	void BeginConcurrentRenderingMainThread() override;
-	void EndConcurrentRenderingMainThread() override;
-	void BeginConcurrentRendering() override;
-	void EndConcurrentRendering() override;
-
 	bool BeginFrame() override;
 	void EndFrame() override;
-	const ActualVideoModeParams* GetActualVideoModeParams() const override;
 	void SetBlendMode(BlendMode mode) override;
 	bool SupportsTextureFormat(RagePixelFormat pixfmt,
 							   bool realtime = false) override;
@@ -138,7 +132,7 @@ class RageDisplay_Legacy : public RageDisplay
 	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 										int iNumVerts) override;
 
-	std::string TryVideoMode(const VideoModeParams& p,
+	std::string TryVideoMode(const VideoMode& p,
 							 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
 	RagePixelFormat GetImgPixelFormat(RageSurface*& img,

@@ -47,7 +47,7 @@ static void CheckGameLoopTimerSkips(float fDeltaTime) {
 	/* If vsync is on, and we have a solid framerate (vsync == refresh and we've
 	 * sustained this for at least one second), we expect the amount of time for
 	 * the last frame to be 1/FPS. */
-	if (iThisFPS != (*DISPLAY->GetActualVideoModeParams()).rate ||
+	if (iThisFPS != DISPLAY->getVideoMode().refreshRate ||
 		iThisFPS != iLastFPS) {
 		iLastFPS = iThisFPS;
 		return;

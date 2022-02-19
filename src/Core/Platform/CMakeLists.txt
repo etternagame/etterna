@@ -1,5 +1,15 @@
-list(APPEND CORE_PLATFORM_HPP Platform.hpp)
-list(APPEND CORE_PLATFORM_CPP Platform.cpp)
+list(APPEND CORE_PLATFORM_HPP
+     Platform.hpp
+     Window/IWindowBackend.hpp
+     Window/GLFWWindowBackend.hpp
+     Window/VideoMode.hpp
+     )
+
+list(APPEND CORE_PLATFORM_CPP
+     Platform.cpp
+     Window/IWindowBackend.cpp
+     Window/GLFWWindowBackend.cpp
+     )
 
 if(WIN32)
     list(APPEND CORE_PLATFORM_CPP PlatformWin.cpp)

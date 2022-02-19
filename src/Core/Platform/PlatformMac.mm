@@ -104,7 +104,7 @@ namespace Core::Platform {
     }
 
     Dimensions getWindowDimensions(){
-        auto dims = NSApplication.sharedApplication.mainWindow.frame;
+        auto dims = NSApplication.sharedApplication.mainWindow.contentView.frame;
         Dimensions res{
             static_cast<unsigned int>(dims.size.width),
             static_cast<unsigned int>(dims.size.height)};

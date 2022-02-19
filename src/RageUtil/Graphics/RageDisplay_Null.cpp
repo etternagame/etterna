@@ -52,7 +52,7 @@ RageDisplay_Null::RageDisplay_Null()
 }
 
 std::string
-RageDisplay_Null::Init(const VideoModeParams& p,
+RageDisplay_Null::Init(const VideoMode& p,
 					   bool /* bAllowUnacceleratedRenderer */)
 {
 	auto bIgnore = false;

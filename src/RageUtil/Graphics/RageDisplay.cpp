@@ -101,7 +101,7 @@ XToString(RagePixelFormat);
 static LocalizedString SETVIDEOMODE_FAILED("RageDisplay",
 										   "SetVideoMode failed:");
 std::string
-RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
+RageDisplay::SetVideoMode(VideoMode p, bool& bNeedReloadTextures)
 {
 	std::string err;
 	std::vector<std::string> vs;
@@ -111,6 +111,9 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 	Locator::getLogger()->error("TryVideoMode failed: {}", err.c_str());
 	vs.push_back(err);
 
+	/**
+	 * Commenting out this section to not worry abot sDisplayId and bpp for the time being
+	 *
 	// fall back to settings that will most likely work
 	p.bpp = 16;
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
@@ -153,6 +156,7 @@ RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
 	if ((err = this->TryVideoMode(p, bNeedReloadTextures)).empty())
 		return std::string();
 	vs.push_back(err);
+	*/
 
 	return SETVIDEOMODE_FAILED.GetValue() + " " + join(";", vs);
 }
@@ -230,12 +234,6 @@ void
 RageDisplay::EndFrame()
 {
 	ProcessStatsOnFlip();
-}
-
-void
-RageDisplay::BeginConcurrentRendering()
-{
-	this->SetDefaultRenderStates();
 }
 
 void
@@ -747,24 +745,6 @@ RageDisplay::CameraPopMatrix()
 	g_ViewStack.Pop();
 }
 
-/* gluLookAt. The result is pre-multiplied to the matrix (M = L * M) instead of
- * post-multiplied. */
-void
-RageDisplay::LoadLookAt(float fFOV,
-						const RageVector3& Eye,
-						const RageVector3& At,
-						const RageVector3& Up)
-{
-	const auto fAspect = (*GetActualVideoModeParams()).fDisplayAspectRatio;
-	g_ProjectionStack.LoadMatrix(GetPerspectiveMatrix(fFOV, fAspect, 1, 1000));
-
-	// Flip the Y coordinate, so positive numbers go down.
-	g_ProjectionStack.Scale(1, -1, 1);
-
-	g_ViewStack.LoadMatrix(
-	  RageLookAt(Eye.x, Eye.y, Eye.z, At.x, At.y, At.z, Up.x, Up.y, Up.z));
-}
-
 RageMatrix
 RageDisplay::GetPerspectiveMatrix(float fovy,
 								  float aspect,
@@ -929,10 +909,8 @@ RageDisplay::GetCenteringMatrix(float fTranslateX,
 {
 	// in screen space, left edge = -1, right edge = 1, bottom edge = -1. top
 	// edge = 1
-	const auto fWidth =
-	  static_cast<float>((*GetActualVideoModeParams()).windowWidth);
-	const auto fHeight =
-	  static_cast<float>((*GetActualVideoModeParams()).windowHeight);
+	const auto fWidth = window->getFrameBufferSize().width;
+	const auto fHeight = window->getFrameBufferSize().height;
 	const auto fPercentShiftX = SCALE(fTranslateX, 0, fWidth, 0, +2.0f);
 	const auto fPercentShiftY = SCALE(fTranslateY, 0, fHeight, 0, -2.0f);
 	const auto fPercentScaleX = SCALE(fAddWidth, 0, fWidth, 1.0f, 2.0f);
@@ -966,12 +944,11 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 	 * to output screenshots in a strange (non-1) sample aspect ratio. */
 	if (format != SAVE_LOSSLESS && format != SAVE_LOSSLESS_SENSIBLE) {
 		// Maintain the DAR.
-		ASSERT((*GetActualVideoModeParams()).fDisplayAspectRatio > 0);
 		const auto iHeight = 480;
 		// This used to be lrintf. However, lrintf causes odd resolutions like
 		// 639x480 (4:3) and 853x480 (16:9). ceilf gives correct values. -aj
-		const auto iWidth = static_cast<int>(
-		  ceilf(iHeight * (*GetActualVideoModeParams()).fDisplayAspectRatio));
+		auto dims = window->getFrameBufferSize();
+		const auto iWidth = static_cast<int>((float)dims.width / (float)dims.height);
 		RageSurfaceUtils::Zoom(surface, iWidth, iHeight);
 	}
 
@@ -1142,7 +1119,7 @@ RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 	 * bigger skip problems, so don't adjust.
 	 */
 
-	if (GetActualVideoModeParams()->vsync == false) {
+	if (window->getVideoMode().isVsyncEnabled == false) {
 		return 0;
 	}
 
@@ -1150,7 +1127,7 @@ RageDisplay::GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
 		return 0;
 	}
 
-	const int iThisFPS = GetActualVideoModeParams()->rate;
+	const int iThisFPS = window->getRefreshRate();
 
 	std::chrono::duration<float> dDelta = g_LastFrameDuration;
 	std::chrono::duration<float> dTimeIntoFrame = now - g_LastFrameEndedAt;
@@ -1372,15 +1349,13 @@ class LunaRageDisplay : public Luna<RageDisplay>
   public:
 	static int GetDisplayWidth(T* p, lua_State* L)
 	{
-		const VideoModeParams params = *p->GetActualVideoModeParams();
-		LuaHelpers::Push(L, params.width);
+		LuaHelpers::Push(L, p->getVideoMode().width);
 		return 1;
 	}
 
 	static int GetDisplayHeight(T* p, lua_State* L)
 	{
-		const VideoModeParams params = *p->GetActualVideoModeParams();
-		LuaHelpers::Push(L, params.height);
+		LuaHelpers::Push(L, p->getVideoMode().height);
 		return 1;
 	}
 
@@ -1404,8 +1379,7 @@ class LunaRageDisplay : public Luna<RageDisplay>
 
 	static int GetDisplayRefreshRate(T* p, lua_State* L)
 	{
-		const auto params = p->GetActualVideoModeParams();
-		lua_pushnumber(L, params->rate);
+		lua_pushnumber(L, p->getRefreshRate());
 		return 1;
 	}
 

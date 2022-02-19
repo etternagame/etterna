@@ -4,6 +4,7 @@
 #include "Etterna/Singletons/CommandLineActions.h"
 
 #include <Cocoa/Cocoa.h>
+#import <Etterna/Globals/StepMania.h>
 #include "archutils/Darwin/MouseDevice.h"
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
@@ -99,10 +100,9 @@ float MACMouseY()
     return self;
 }
 
-- (void) startGame:(id)sender
-{
-    // Hand off to main application code.
-    exit( sm_main(m_iArgc, m_pArgv) );
+- (void) startGame:(id)sender  {
+    // Hand off sto main application code.
+    exit(StepMania::sm_main(m_iArgc, m_pArgv));
 }
 
 /* From here:
@@ -233,6 +233,7 @@ static void SetupMenus( void )
 
 #undef main
 
+#if 0
 int main( int argc, char **argv )
 {
     RageThreadRegister guiThread( "GUI thread" );
@@ -258,6 +259,7 @@ int main( int argc, char **argv )
     [sm release];
     return 0;
 }
+#endif
 
 /*
  * (c) 2005-2009 Steve Checkoway
