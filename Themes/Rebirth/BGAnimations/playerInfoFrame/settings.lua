@@ -2991,7 +2991,17 @@ local function rightFrame()
             local r = ratios[k]
             vals[#vals + 1] = r.n / r.d
             choices[#choices + 1] = tostring(r.n) .. ':' .. tostring(r.d)
+            if math.abs(r.n / r.d - optionData.currentAspectRatio) < 0.01 then
+                containsCurrentRatio = true
+            end
         end
+
+        -- custom aspect ratio compatibility
+        if not containsCurrentRatio then
+            vals[#vals+1] = optionData.currentAspectRatio
+            choices[#choices + 1] = tostring(notShit.round(optionData.currentAspectRatio, 4))
+        end
+
         return choices, vals
     end
     local resolutionChoicest = 1
