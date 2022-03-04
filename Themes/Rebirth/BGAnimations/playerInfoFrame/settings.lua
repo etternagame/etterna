@@ -5396,9 +5396,9 @@ local function rightFrame()
                 Name = "Input Debounce Time",
                 Type = "SingleChoice",
                 Explanation = "Set the amount of time required between each repeated input.",
-                Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 1, 0.01),
+                Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 0.2, 0.001),
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 2) .. "s"
+                    return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 3) .. "s"
                 end,
             },
             {
