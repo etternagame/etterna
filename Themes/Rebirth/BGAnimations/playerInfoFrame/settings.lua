@@ -5385,6 +5385,14 @@ local function rightFrame()
                 ChoiceIndexGetter = preferenceToggleIndexGetter("DelayedBack", true),
             },
             {
+                Name = "Hold Start to Give Up",
+                Type = "SingleChoice",
+                Explanation = "In Gameplay, allow holding Start to fail after holding it for a few seconds.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("AllowStartToGiveUp", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("AllowStartToGiveUp", true),
+            },
+            {
                 Name = "Input Debounce Time",
                 Type = "SingleChoice",
                 Explanation = "Set the amount of time required between each repeated input.",

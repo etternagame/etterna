@@ -732,6 +732,7 @@ InitializeConfOptions()
 	ADD(ConfOption("ReplaysUseScoreMods", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("AllowStartToGiveUp", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
 				   MovePref<MusicWheelUsesSections>,

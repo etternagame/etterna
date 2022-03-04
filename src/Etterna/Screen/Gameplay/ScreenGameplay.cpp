@@ -1310,7 +1310,7 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 		}
 
 		// Exiting gameplay by holding Start (Forced Fail)
-		if (bHoldingGiveUp) {
+		if (bHoldingGiveUp && PREFSMAN->m_AllowStartToGiveUp) {
 			if (input.type == IET_RELEASE) {
 				AbortGiveUp(true);
 			} else if (input.type == IET_FIRST_PRESS &&

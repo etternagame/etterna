@@ -127,6 +127,7 @@ PrefsManager::PrefsManager()
 
   , m_bAllowedLag("AllowedLag", 0.001f)
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
+  , m_AllowStartToGiveUp("AllowStartToGiveUp", true)
   , m_bAllowMultitexture("AllowMultitexture", true)
   , m_bAllowUnacceleratedRenderer("AllowUnacceleratedRenderer", false)
   , m_bAnisotropicFiltering("AnisotropicFiltering", false)
