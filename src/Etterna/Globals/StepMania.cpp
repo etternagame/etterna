@@ -992,13 +992,6 @@ sm_main(int argc, char* argv[])
 	FILEMAN = new RageFileManager(argv[0]);
 	FILEMAN->Mount("dir", Core::Platform::getAppDirectory(), "/");
 
-#ifdef __unix__
-	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
-	 * on. This is /rootfs, not /root, to avoid confusion with root's home
-	 * directory. */
-	FILEMAN->Mount("dir", "/", "/rootfs");
-#endif
-
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
 
