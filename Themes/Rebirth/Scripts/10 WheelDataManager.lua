@@ -491,6 +491,7 @@ local sortmodes = {
     "Last Score Date", -- group by month, order packs chronlogically, songs ordered alphabetically
     "PB Date (Percent)", -- same as above, but picks the highest percent
     "PB Date (Score Rating)", -- same as above, but picks the highest rating
+    "Tournament", -- same as group alphabetical, but for packs with [x-x] title prefixes, sort by those prefixes
 }
 local function sortToString(val)
     return sortmodes[val]
@@ -1615,6 +1616,63 @@ local sortmodeImplementations = {
             return ""
         end,
     },
+
+    {   -- Tournament sort -- group by song group, sort all alphabetically, but if title has a [x-x] prefix, sort by that
+    function()
+        WHEELDATA:ResetSorts()
+        local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+        -- for reasons determined by higher powers, literally mimic the behavior of AllSongsByGroup construction
+        for _, song in ipairs(songs) do
+            local fname = song:GetGroupName()
+            if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+            else
+                WHEELDATA.AllSongsByFolder[fname] = {song}
+                WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+            end
+            WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+        end
+
+        local function getPrefixData(title)
+            if title == nil then return "" end
+            local f1, f2 = title:find("%[[%w%s%-]+%].+")
+            if f1 ~= nil then title:sub(f1, f2) end
+            return ""
+        end
+
+        -- sort the groups and then songlists in groups
+        table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
+        for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+            table.sort(
+                songlist,
+                function(a,b)
+                    local aPrefix = getPrefixData(a:GetMainTitle()) or ""
+                    local aPrefixTranslit = getPrefixData(a:GetTranslitMainTitle()) or ""
+                    local bPrefix = getPrefixData(b:GetMainTitle()) or ""
+                    local bPrefixTranslit = getPrefixData(b:GetTranslitMainTitle()) or ""
+                    local acomp = ""
+                    local bcomp = ""
+                    if aPrefix ~= "" then acomp = aPrefix or "" end
+                    if aPrefixTranslit ~= "" then acomp = aPrefixTranslit or "" end
+                    if bPrefix ~= "" then bcomp = bPrefix or "" end
+                    if bPrefixTranslit ~= "" then bcomp = bPrefixTranslit or "" end
+                    if (acomp == "" or acomp == nil) and (bcomp == "" or bcomp == nil) then
+                        return SongUtil.SongTitleComparator(a, b)
+                    else
+                        return WHEELDATA:makeSortString(acomp) < WHEELDATA:makeSortString(bcomp)
+                    end
+                end
+            )
+        end
+    end,
+    function(song)
+        return song:GetGroupName()
+    end,
+    function(packName)
+        return SONGMAN:GetSongGroupBannerPath(packName)
+    end,
+    }
 }
 
 -- get the value and string value of the current sort
