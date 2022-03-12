@@ -4304,7 +4304,7 @@ local function rightFrame()
                 Explanation = "Choose either how many taps are allowed to show for the Regular error bar, or how many taps are considered for the EWMA error bar.",
                 ChoiceGenerator = function()
                     local o = {}
-                    for i = 1, 50 do
+                    for i = 1, 200 do
                         o[#o+1] = {
                             Name = i,
                             ChosenFunction = function()
@@ -4316,7 +4316,7 @@ local function rightFrame()
                 end,
                 ChoiceIndexGetter = function()
                     local v = optionData["errorBarCount"].get()
-                    if v < 1 or v > 50 then
+                    if v < 1 or v > 200 then
                         return 1
                     else
                         return v
