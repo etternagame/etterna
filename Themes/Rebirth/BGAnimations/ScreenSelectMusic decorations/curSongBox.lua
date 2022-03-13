@@ -61,6 +61,7 @@ local actuals = {
     TopGap = ratios.TopGap * SCREEN_HEIGHT,
     Height = ratios.Height * SCREEN_HEIGHT,
     Width = ratios.Width * SCREEN_WIDTH,
+    BannerWidth = ratios.Width * SCREEN_WIDTH,
     BannerHeight = ratios.BannerHeight * SCREEN_HEIGHT,
     LowerLipHeight = ratios.LowerLipHeight * SCREEN_HEIGHT,
     LeftTextLeftGap = ratios.LeftTextLeftGap * SCREEN_WIDTH,
@@ -79,6 +80,25 @@ local actuals = {
     DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH,
     DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH,
 }
+
+-- require that the banner ratio is 3.2 for consistency
+local nonstandardBannerSizing = false
+do
+    local rat = actuals.BannerWidth / actuals.BannerHeight
+    if rat ~= 3.2 then
+        local possibleHeight = actuals.BannerWidth / 3.2
+        if possibleHeight > actuals.BannerHeight then
+            -- height stays, width moves
+            actuals.BannerWidth = actuals.BannerHeight * 3.2
+        else
+            -- width stays, height moves
+            actuals.BannerHeight = actuals.BannerWidth / 3.2
+        end
+        -- this will produce a visible gap but the ratio will stay the same
+        nonstandardBannerSizing = true
+    end
+    actuals.BannerAreaHeight = ratios.BannerHeight * SCREEN_HEIGHT
+end
 
 local textsize = 0.8
 local textzoomFudge = 5
@@ -145,7 +165,12 @@ t[#t+1] = Def.ActorFrame {
         Name = "Banner",
         InitCommand = function(self)
             self:halign(0):valign(0)
-            self:scaletoclipped(actuals.Width, actuals.BannerHeight)
+            if nonstandardBannerSizing then
+                -- when the banner has been resized to an unexpected size, to fit the 3.2 ratio, reposition it
+                -- this movement centers it in the area provided
+                self:xy((actuals.Width - actuals.BannerWidth) / 2, (actuals.BannerAreaHeight - actuals.BannerHeight) / 2)
+            end
+            self:scaletoclipped(actuals.BannerWidth, actuals.BannerHeight)
             self:SetDecodeMovie(useVideoBanners())
         end,
         SetCommand = function(self, params)
