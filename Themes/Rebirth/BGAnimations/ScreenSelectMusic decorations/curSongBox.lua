@@ -106,9 +106,9 @@ t[#t+1] = Def.ActorFrame {
             end
             if event.type == "InputEventType_FirstPress" then
                 if event.button == "EffectUp" then
-                    changeMusicRate(0.05 * (selectPressed and 1 or 2))
+                    changeMusicRate(1, selectPressed)
                 elseif event.button == "EffectDown" then
-                    changeMusicRate(-0.05 * (selectPressed and 1 or 2))
+                    changeMusicRate(-1, selectPressed)
                 elseif event.button == "Select" then
                     selectPressed = true
                 end
@@ -295,9 +295,9 @@ t[#t+1] = Def.ActorFrame {
             if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
                 if params.event == "DeviceButton_left mouse button" then
-                    changeMusicRate(0.05)
+                    changeMusicRate(1, true)
                 elseif params.event == "DeviceButton_right mouse button" then
-                    changeMusicRate(-0.05)
+                    changeMusicRate(-1, true)
                 end
             end
         end,
@@ -313,9 +313,9 @@ t[#t+1] = Def.ActorFrame {
             if self:IsInvisible() then return end
             if isOver(self:GetChild("BG")) then
                 if params.direction == "Up" then
-                    changeMusicRate(0.05)
+                    changeMusicRate(1, true)
                 elseif params.direction == "Down" then
-                    changeMusicRate(-0.05)
+                    changeMusicRate(-1, true)
                 end
             end
         end

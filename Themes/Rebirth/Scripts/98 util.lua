@@ -284,8 +284,14 @@ function getRateDisplayString2(x)
 end
 
 -- alias for wifesundries ChangeMusicRate which is really bad
-function changeMusicRate(direction)
-    local now = getCurRateValue() + direction
+function changeMusicRate(direction, useSmallIncrement)
+    local smallinc = 0.05
+    local biginc = 0.1
+
+    local inc = useSmallIncrement and smallinc or biginc
+    if direction == nil then direction = 1 end
+
+    local now = getCurRateValue() + inc * direction
     setMusicRate(now)
 end
 
