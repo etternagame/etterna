@@ -161,7 +161,52 @@ t[#t+1] = Def.ActorFrame {
         end
     },
     ]]
-    UIElements.SpriteButton(1, 1) .. {
+    UIElements.QuadButton(1, 1) .. {
+        Name = "BannerAreaButton",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:zoomto(actuals.Width, actuals.BannerAreaHeight)
+            self:diffusealpha(0)
+            self.banner = function(self) return self:GetParent():GetChild("Banner") end
+        end,
+        MouseDownCommand = function(self, params)
+            -- clicking the banner will toggle chart preview
+            -- tree:
+            -- self - frame - cursongbox.lua - rightframe
+            --      rightframe owns generalbox - owns general owns chart preview
+            -- this should work based on the actor tree that exists
+            -- if it fails, probably nothing was there to receive the message or the tree is bad
+            if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
+                SCUFF.preview.active = not SCUFF.preview.active
+                self:GetParent():GetParent():GetParent():playcommand("ToggleChartPreview")
+            elseif params.event == "DeviceButton_right mouse button" then
+                local top = SCREENMAN:GetTopScreen()
+                if top.PauseSampleMusic then
+                    top:PauseSampleMusic()
+                end
+            end
+        end,
+        MouseOverCommand = function(self)
+            if SCUFF.generaltab ~= SCUFF.generaltabindex then return end
+            self:banner():diffusealpha(buttonHoverAlpha)
+        end,
+        MouseOutCommand = function(self)
+            -- unhover state
+            self:banner():diffusealpha(1)
+        end,
+        GeneralTabSetMessageCommand = function(self, params)
+            -- prevent "stuck" hovered state
+            if SCUFF.generaltab ~= SCUFF.generaltabindex or params ~= nil and params.tab ~= SCUFF.generaltabindex then
+                self:banner():diffusealpha(1)
+            else
+                -- hover if already hovered
+                if isOver(self) then
+                    self:banner():diffusealpha(buttonHoverAlpha)
+                end
+            end
+        end,
+    },
+    Def.Sprite {
         Name = "Banner",
         InitCommand = function(self)
             self:halign(0):valign(0)
@@ -200,46 +245,6 @@ t[#t+1] = Def.ActorFrame {
             -- logic in the bg handles whether or not we successfully loaded a banner here
             if params.song == nil or params.song:GetBackgroundPath() == nil then
                 MESSAGEMAN:Broadcast("SetAverageColor", {actor=self})
-            end
-        end,
-        MouseDownCommand = function(self, params)
-            -- clicking the banner will toggle chart preview
-            -- tree:
-            -- self - frame - cursongbox.lua - rightframe
-            --      rightframe owns generalbox - owns general owns chart preview
-            -- this should work based on the actor tree that exists
-            -- if it fails, probably nothing was there to receive the message or the tree is bad
-            if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
-                SCUFF.preview.active = not SCUFF.preview.active
-                self:GetParent():GetParent():GetParent():playcommand("ToggleChartPreview")
-            elseif params.event == "DeviceButton_right mouse button" then
-                local top = SCREENMAN:GetTopScreen()
-                if top.PauseSampleMusic then
-                    top:PauseSampleMusic()
-                end
-            end
-        end,
-        MouseOverCommand = function(self)
-            if self:IsInvisible() then return end
-            -- hover state only when button would work
-            if SCUFF.generaltab ~= SCUFF.generaltabindex then return end
-            self:diffusealpha(buttonHoverAlpha)
-        end,
-        MouseOutCommand = function(self)
-            if self:IsInvisible() then return end
-            -- unhover state
-            self:diffusealpha(1)
-        end,
-        GeneralTabSetMessageCommand = function(self, params)
-            if self:IsInvisible() then return end
-            -- prevent "stuck" hovered state
-            if SCUFF.generaltab ~= SCUFF.generaltabindex or params ~= nil and params.tab ~= SCUFF.generaltabindex then
-                self:diffusealpha(1)
-            else
-                -- hover if already hovered
-                if isOver(self) then
-                    self:diffusealpha(buttonHoverAlpha)
-                end
             end
         end,
         OptionUpdatedMessageCommand = function(self, params)
