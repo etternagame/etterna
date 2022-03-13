@@ -311,14 +311,16 @@ function WHEELDATA.FilterCheck(self, g)
 
         -- c++ FILTERMAN mixed in with tag filtering
         local charts = self:GetChartsMatchingFilter(g)
-        if #charts == 0 then return false end
+        if charts == nil or #charts == 0 then return false end
 
-        -- tag filters
+        -- tag filters -- if any chart passes, this song passes
+        local tagFilterFails = 0
         for _, c in ipairs(charts) do
             if not chartPassesTagFilters(c, tags) then
-                return false
+                tagFilterFails = tagFilterFails + 1
             end
         end
+        return tagFilterFails ~= #charts
     elseif g.GetChartKey then
         -- working with a Steps
 
@@ -439,19 +441,25 @@ function WHEELDATA.GetAllSongsPassingFilter(self)
 end
 
 -- a kind of shadow to get the list of charts matching the lua filter and the c++ filter
+-- does not consider song search, but does consider tag filtering
 function WHEELDATA.GetChartsMatchingFilter(self, song)
-    local charts = song:GetChartsMatchingFilter()
+    local charts = song:GetChartsMatchingFilter() -- FILTERMAN check
+    local tags = TAGMAN:get_data().playerTags
     local t = {}
     for i, c in ipairs(charts) do
-        if self.ActiveFilter.valid ~= nil then
-            if not self.ActiveFilter.valid(c) then
-                -- failed to pass
-            else
-                -- passed
-                t[#t+1] = c
-            end
-        else
-            -- passed implicitly
+        local passed = true
+
+        -- arbitrary validation function check
+        if self.ActiveFilter.valid ~= nil and not self.ActiveFilter.valid(c) then
+            passed = false
+        end
+
+        -- tag check
+        if not chartPassesTagFilters(c, tags) then
+            passed = false
+        end
+
+        if passed then
             t[#t+1] = c
         end
     end
