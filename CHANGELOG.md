@@ -1,7 +1,7 @@
 # Changelog
 All releases of Etterna are listed in this file as well as links to files detailing all of the changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
-## [0.71.2] - 2022-??-?? - Hotfix
+## [0.71.2] - 2022-03-14 - Hotfix
 
 Windows x64, Windows i386, and Mac installer release. Linux binary.
 - Bugfixes and tiny quality improvements.
