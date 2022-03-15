@@ -164,7 +164,6 @@ t[#t+1] = Def.NoteFieldPreview {
         -- I DO NOT KNOW WHY THIS IS NECESSARY
         -- IT DOES NOT MAKE ANY SENSE
         if getWheelPosition() then
-            ms.ok(self:GetZoom())
             self:x((rightHalfXBegin + 75) * self:GetZoom())
         else
             self:x(rightHalfXBegin + (actuals.Width - rightHalfXBegin) / 2)
