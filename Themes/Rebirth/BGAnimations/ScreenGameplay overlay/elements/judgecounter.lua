@@ -18,6 +18,12 @@ local frameHeight = ((#jdgT + 1) * spacing) -- Height of the Frame
 local judgeFontSize = GAMEPLAY:getItemHeight("judgeDisplayJudgeText")
 local countFontSize = GAMEPLAY:getItemHeight("judgeDisplayCountText")
 
+local function recalcSizing()
+    spacing = GAMEPLAY:getItemHeight("judgeDisplayVerticalSpacing") * MovableValues.JudgeCounterSpacing
+    frameWidth = GAMEPLAY:getItemWidth("judgeDisplay")
+    frameHeight = ((#jdgT + 1) * spacing)
+end
+
 -- the text actors for each judge count
 local judgeCounts = {}
 
@@ -28,6 +34,8 @@ local t = Def.ActorFrame {
         registerActorToCustomizeGameplayUI({
             actor = self,
             coordInc = {5,1},
+            zoomInc = {0.1,0.05},
+            spacingInc = {0.1,0.05},
         })
     end,
     BeginCommand = function(self)
@@ -36,7 +44,11 @@ local t = Def.ActorFrame {
         end
     end,
     SetUpMovableValuesMessageCommand = function(self)
+        recalcSizing()
+
         self:xy(MovableValues.JudgeCounterX, MovableValues.JudgeCounterY)
+        self:zoomto(MovableValues.JudgeCounterWidth, MovableValues.JudgeCounterHeight)
+        self:playcommand("FinishSetUpMovableValues")
     end,
     SpottedOffsetCommand = function(self, params)
         if params == nil then return end
@@ -49,9 +61,11 @@ local t = Def.ActorFrame {
     Def.Quad {
         Name = "BG",
         InitCommand = function(self)
-            self:zoomto(frameWidth, frameHeight)
             self:diffuse(COLORS:getGameplayColor("PrimaryBackground"))
             self:diffusealpha(0.4)
+        end,
+        FinishSetUpMovableValuesMessageCommand = function(self)
+            self:zoomto(frameWidth, frameHeight)
         end,
     },
 }
@@ -60,12 +74,14 @@ local function makeJudgeText(judge, index)
     return LoadFont("Common normal") .. {
         Name = judge .. "text",
         InitCommand = function(self)
-            self:xy(-frameWidth / 2 + 5, -frameHeight / 2 + (index * spacing))
             self:halign(0)
-            self:zoom(judgeFontSize)
             self:settext(getShortJudgeStrings(judge))
             self:diffuse(COLORS:colorByJudgment(judge))
             self:diffusealpha(1)
+        end,
+        FinishSetUpMovableValuesMessageCommand = function(self)
+            self:xy(-frameWidth / 2 + 5, -frameHeight / 2 + (index * spacing))
+            self:zoom(judgeFontSize)
         end,
     }
 end
@@ -75,14 +91,16 @@ local function makeJudgeCount(judge, index)
         Name = judge .. "count",
         InitCommand = function(self)
             self:halign(1)
-            self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing))
-            self:zoom(countFontSize)
             self:settext(0)
             self:diffuse(COLORS:getGameplayColor("PrimaryText"))
             self:diffusealpha(1)
         end,
         PracticeModeResetMessageCommand = function(self)
             self:settext(0)
+        end,
+        FinishSetUpMovableValuesMessageCommand = function(self)
+            self:xy(frameWidth / 2 - 5, -frameHeight / 2 + (index * spacing))
+            self:zoom(countFontSize)
         end,
     }
 end

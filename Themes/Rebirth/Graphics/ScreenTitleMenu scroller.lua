@@ -67,9 +67,12 @@ return Def.ActorFrame {
             local ind = findChoiceIndex(self:GetParent():GetName())
             screen:SetSelectionIndex(ind)
         end,
-        MouseDownCommand = function(self)
+        MouseDownCommand = function(self, params)
             -- if not focused on the scroller, don't allow controlling it
             if not TITLE:GetFocus() then return end
+
+            -- left click buttons only
+            if params.event ~= "DeviceButton_left mouse button" then return end
 
             -- this should make clicking work the same as pressing enter
             screen:PlaySelectSound()

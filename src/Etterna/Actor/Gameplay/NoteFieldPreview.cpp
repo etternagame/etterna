@@ -231,8 +231,12 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps, bool bTransform)
 	if (nd != p_NoteDataFromSteps && p_NoteDataFromSteps != nullptr)
 		delete p_NoteDataFromSteps;
 	p_NoteDataFromSteps = nd;
-	
-	LoadNoteData(nd);
+
+	if (nd == nullptr) {
+		LoadDummyNoteData();
+	} else {
+		LoadNoteData(nd);
+	}
 }
 
 void

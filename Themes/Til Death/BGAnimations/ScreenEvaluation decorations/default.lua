@@ -950,29 +950,6 @@ if GAMESTATE:IsPlayerEnabled() then
 end
 
 t[#t + 1] = LoadActor("../offsetplot")
-
-local score = SCOREMAN:GetMostRecentScore()
-if not score then
-	score = SCOREMAN:GetTempReplayScore()
-end
--- Discord thingies
-local largeImageTooltip =
-	GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
-	": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
-local detail =
-	GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
-	" " .. string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
-if not STATSMAN:GetCurStageStats():GetLivePlay() then
-	detail = "Replayed: "..detail
-end
--- truncated to 128 characters(discord hard limit)
-detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
-local state =
-	"MSD: " ..
-	string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)) ..
-		" - " ..
-			string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100) ..
-				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
-GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, 0)
+updateDiscordStatus(true)
 
 return t

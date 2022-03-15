@@ -1037,7 +1037,7 @@ ScreenGameplay::Update(float fDeltaTime)
 				//   granting a fake FC (or more)
 				//  (HACK?)
 				if (GAMESTATE->m_Position.m_fMusicSeconds >=
-					  fSecondsToStartTransitioningOut + m_vPlayerInfo.m_pPlayer->GetMaxStepDistanceSeconds() &&
+					  fSecondsToStartTransitioningOut + Player::GetMaxStepDistanceSeconds() &&
 					!m_NextSong.IsTransitioning()) {
 					this->PostScreenMessage(SM_NotesEnded, 0);
 				}
@@ -1310,7 +1310,9 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 		}
 
 		// Exiting gameplay by holding Start (Forced Fail)
-		if (bHoldingGiveUp) {
+		// Never allow holding start in Practice Mode
+		if (bHoldingGiveUp && !GAMESTATE->IsPracticeMode() &&
+			PREFSMAN->m_AllowStartToGiveUp) {
 			if (input.type == IET_RELEASE) {
 				AbortGiveUp(true);
 			} else if (input.type == IET_FIRST_PRESS &&

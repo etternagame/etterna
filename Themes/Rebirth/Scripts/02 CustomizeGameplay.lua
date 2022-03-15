@@ -46,6 +46,9 @@ local function loadValuesTable()
     MovableValues.NoteFieldSpacing = playerConfig:get_data().GameplaySizes[keymode].NoteFieldSpacing
     MovableValues.JudgeCounterX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterX
     MovableValues.JudgeCounterY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterY
+    MovableValues.JudgeCounterHeight = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterHeight
+    MovableValues.JudgeCounterWidth = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterWidth
+    MovableValues.JudgeCounterSpacing = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterSpacing
     MovableValues.ReplayButtonsX = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsX
     MovableValues.ReplayButtonsY = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsY
     MovableValues.ReplayButtonsSpacing = playerConfig:get_data().GameplaySizes[keymode].ReplayButtonsSpacing
@@ -111,7 +114,7 @@ local selectedElementActor = nil
     {
         actor = (an actorframe),
         coordInc = {big, small}, increment size for coordinates
-        zoomInc = {big, small}, increment size for zooming (zoom or size bpth work here)
+        zoomInc = {big, small}, increment size for zooming (zoom or size both work here)
         rotationInc = {big, small}, increment size for rotation
         spacingInc = {big, small}, increment size for spacing
     }

@@ -61,6 +61,7 @@ local actuals = {
     TopGap = ratios.TopGap * SCREEN_HEIGHT,
     Height = ratios.Height * SCREEN_HEIGHT,
     Width = ratios.Width * SCREEN_WIDTH,
+    BannerWidth = ratios.Width * SCREEN_WIDTH,
     BannerHeight = ratios.BannerHeight * SCREEN_HEIGHT,
     LowerLipHeight = ratios.LowerLipHeight * SCREEN_HEIGHT,
     LeftTextLeftGap = ratios.LeftTextLeftGap * SCREEN_WIDTH,
@@ -79,6 +80,25 @@ local actuals = {
     DiffFrameLeftGap = ratios.DiffFrameLeftGap * SCREEN_WIDTH,
     DiffFrameRightGap = ratios.DiffFrameRightGap * SCREEN_WIDTH,
 }
+
+-- require that the banner ratio is 3.2 for consistency
+local nonstandardBannerSizing = false
+do
+    local rat = actuals.BannerWidth / actuals.BannerHeight
+    if rat ~= 3.2 then
+        local possibleHeight = actuals.BannerWidth / 3.2
+        if possibleHeight > actuals.BannerHeight then
+            -- height stays, width moves
+            actuals.BannerWidth = actuals.BannerHeight * 3.2
+        else
+            -- width stays, height moves
+            actuals.BannerHeight = actuals.BannerWidth / 3.2
+        end
+        -- this will produce a visible gap but the ratio will stay the same
+        nonstandardBannerSizing = true
+    end
+    actuals.BannerAreaHeight = ratios.BannerHeight * SCREEN_HEIGHT
+end
 
 local textsize = 0.8
 local textzoomFudge = 5
@@ -106,9 +126,9 @@ t[#t+1] = Def.ActorFrame {
             end
             if event.type == "InputEventType_FirstPress" then
                 if event.button == "EffectUp" then
-                    changeMusicRate(0.05 * (selectPressed and 1 or 2))
+                    changeMusicRate(1, selectPressed)
                 elseif event.button == "EffectDown" then
-                    changeMusicRate(-0.05 * (selectPressed and 1 or 2))
+                    changeMusicRate(-1, selectPressed)
                 elseif event.button == "Select" then
                     selectPressed = true
                 end
@@ -141,11 +161,61 @@ t[#t+1] = Def.ActorFrame {
         end
     },
     ]]
-    UIElements.SpriteButton(1, 1) .. {
+    UIElements.QuadButton(1, 1) .. {
+        Name = "BannerAreaButton",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:zoomto(actuals.Width, actuals.BannerAreaHeight)
+            self:diffusealpha(0)
+            self.banner = function(self) return self:GetParent():GetChild("Banner") end
+        end,
+        MouseDownCommand = function(self, params)
+            -- clicking the banner will toggle chart preview
+            -- tree:
+            -- self - frame - cursongbox.lua - rightframe
+            --      rightframe owns generalbox - owns general owns chart preview
+            -- this should work based on the actor tree that exists
+            -- if it fails, probably nothing was there to receive the message or the tree is bad
+            if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
+                SCUFF.preview.active = not SCUFF.preview.active
+                self:GetParent():GetParent():GetParent():playcommand("ToggleChartPreview")
+            elseif params.event == "DeviceButton_right mouse button" then
+                local top = SCREENMAN:GetTopScreen()
+                if top.PauseSampleMusic then
+                    top:PauseSampleMusic()
+                end
+            end
+        end,
+        MouseOverCommand = function(self)
+            if SCUFF.generaltab ~= SCUFF.generaltabindex then return end
+            self:banner():diffusealpha(buttonHoverAlpha)
+        end,
+        MouseOutCommand = function(self)
+            -- unhover state
+            self:banner():diffusealpha(1)
+        end,
+        GeneralTabSetMessageCommand = function(self, params)
+            -- prevent "stuck" hovered state
+            if SCUFF.generaltab ~= SCUFF.generaltabindex or params ~= nil and params.tab ~= SCUFF.generaltabindex then
+                self:banner():diffusealpha(1)
+            else
+                -- hover if already hovered
+                if isOver(self) then
+                    self:banner():diffusealpha(buttonHoverAlpha)
+                end
+            end
+        end,
+    },
+    Def.Sprite {
         Name = "Banner",
         InitCommand = function(self)
             self:halign(0):valign(0)
-            self:scaletoclipped(actuals.Width, actuals.BannerHeight)
+            if nonstandardBannerSizing then
+                -- when the banner has been resized to an unexpected size, to fit the 3.2 ratio, reposition it
+                -- this movement centers it in the area provided
+                self:xy((actuals.Width - actuals.BannerWidth) / 2, (actuals.BannerAreaHeight - actuals.BannerHeight) / 2)
+            end
+            self:scaletoclipped(actuals.BannerWidth, actuals.BannerHeight)
             self:SetDecodeMovie(useVideoBanners())
         end,
         SetCommand = function(self, params)
@@ -175,46 +245,6 @@ t[#t+1] = Def.ActorFrame {
             -- logic in the bg handles whether or not we successfully loaded a banner here
             if params.song == nil or params.song:GetBackgroundPath() == nil then
                 MESSAGEMAN:Broadcast("SetAverageColor", {actor=self})
-            end
-        end,
-        MouseDownCommand = function(self, params)
-            -- clicking the banner will toggle chart preview
-            -- tree:
-            -- self - frame - cursongbox.lua - rightframe
-            --      rightframe owns generalbox - owns general owns chart preview
-            -- this should work based on the actor tree that exists
-            -- if it fails, probably nothing was there to receive the message or the tree is bad
-            if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
-                SCUFF.preview.active = not SCUFF.preview.active
-                self:GetParent():GetParent():GetParent():playcommand("ToggleChartPreview")
-            elseif params.event == "DeviceButton_right mouse button" then
-                local top = SCREENMAN:GetTopScreen()
-                if top.PauseSampleMusic then
-                    top:PauseSampleMusic()
-                end
-            end
-        end,
-        MouseOverCommand = function(self)
-            if self:IsInvisible() then return end
-            -- hover state only when button would work
-            if SCUFF.generaltab ~= SCUFF.generaltabindex then return end
-            self:diffusealpha(buttonHoverAlpha)
-        end,
-        MouseOutCommand = function(self)
-            if self:IsInvisible() then return end
-            -- unhover state
-            self:diffusealpha(1)
-        end,
-        GeneralTabSetMessageCommand = function(self, params)
-            if self:IsInvisible() then return end
-            -- prevent "stuck" hovered state
-            if SCUFF.generaltab ~= SCUFF.generaltabindex or params ~= nil and params.tab ~= SCUFF.generaltabindex then
-                self:diffusealpha(1)
-            else
-                -- hover if already hovered
-                if isOver(self) then
-                    self:diffusealpha(buttonHoverAlpha)
-                end
             end
         end,
         OptionUpdatedMessageCommand = function(self, params)
@@ -295,9 +325,9 @@ t[#t+1] = Def.ActorFrame {
             if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
                 if params.event == "DeviceButton_left mouse button" then
-                    changeMusicRate(0.05)
+                    changeMusicRate(1, true)
                 elseif params.event == "DeviceButton_right mouse button" then
-                    changeMusicRate(-0.05)
+                    changeMusicRate(-1, true)
                 end
             end
         end,
@@ -313,9 +343,9 @@ t[#t+1] = Def.ActorFrame {
             if self:IsInvisible() then return end
             if isOver(self:GetChild("BG")) then
                 if params.direction == "Up" then
-                    changeMusicRate(0.05)
+                    changeMusicRate(1, true)
                 elseif params.direction == "Down" then
-                    changeMusicRate(-0.05)
+                    changeMusicRate(-1, true)
                 end
             end
         end

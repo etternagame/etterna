@@ -164,7 +164,8 @@ t[#t+1] = Def.NoteFieldPreview {
         -- I DO NOT KNOW WHY THIS IS NECESSARY
         -- IT DOES NOT MAKE ANY SENSE
         if getWheelPosition() then
-            self:x(rightHalfXBegin + 15)
+            ms.ok(self:GetZoom())
+            self:x((rightHalfXBegin + 75) * self:GetZoom())
         else
             self:x(rightHalfXBegin + (actuals.Width - rightHalfXBegin) / 2)
         end
@@ -178,6 +179,7 @@ t[#t+1] = Def.NoteFieldPreview {
         end
         local z, l, r = getSizeForStyle()
         self:zoom(z)
+        self:playcommand("SetPosition")
         self:SetConstantMini(ReceptorSizeToMini(z))
         -- when changing zoom of the notefield, the receptors change position just like the length needs to
         -- so need to move the notefield up or down to compensate for the change in zoom

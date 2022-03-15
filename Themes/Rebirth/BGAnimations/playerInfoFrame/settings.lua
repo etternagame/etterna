@@ -2991,7 +2991,17 @@ local function rightFrame()
             local r = ratios[k]
             vals[#vals + 1] = r.n / r.d
             choices[#choices + 1] = tostring(r.n) .. ':' .. tostring(r.d)
+            if math.abs(r.n / r.d - optionData.currentAspectRatio) < 0.01 then
+                containsCurrentRatio = true
+            end
         end
+
+        -- custom aspect ratio compatibility
+        if not containsCurrentRatio then
+            vals[#vals+1] = optionData.currentAspectRatio
+            choices[#choices + 1] = tostring(notShit.round(optionData.currentAspectRatio, 4))
+        end
+
         return choices, vals
     end
     local resolutionChoicest = 1
@@ -4294,7 +4304,7 @@ local function rightFrame()
                 Explanation = "Choose either how many taps are allowed to show for the Regular error bar, or how many taps are considered for the EWMA error bar.",
                 ChoiceGenerator = function()
                     local o = {}
-                    for i = 1, 50 do
+                    for i = 1, 200 do
                         o[#o+1] = {
                             Name = i,
                             ChosenFunction = function()
@@ -4306,7 +4316,7 @@ local function rightFrame()
                 end,
                 ChoiceIndexGetter = function()
                     local v = optionData["errorBarCount"].get()
-                    if v < 1 or v > 50 then
+                    if v < 1 or v > 200 then
                         return 1
                     else
                         return v
@@ -5385,12 +5395,20 @@ local function rightFrame()
                 ChoiceIndexGetter = preferenceToggleIndexGetter("DelayedBack", true),
             },
             {
+                Name = "Hold Start to Give Up",
+                Type = "SingleChoice",
+                Explanation = "In Gameplay, allow holding Start to fail after holding it for a few seconds.",
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("AllowStartToGiveUp", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("AllowStartToGiveUp", true),
+            },
+            {
                 Name = "Input Debounce Time",
                 Type = "SingleChoice",
                 Explanation = "Set the amount of time required between each repeated input.",
-                Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 1, 0.01),
+                Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 0.2, 0.001),
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 2) .. "s"
+                    return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 3) .. "s"
                 end,
             },
             {

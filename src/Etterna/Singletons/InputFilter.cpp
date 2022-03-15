@@ -274,15 +274,14 @@ InputFilter::CheckButtonChange(ButtonState& bs,
 
 	GameInput gi;
 
-	/* Possibly apply debounce,
-	 * If the input was coin, possibly apply distinct coin debounce in the else
-	 * below. */
+	// Possibly apply debounce
 	std::chrono::duration<float> timeDelta = now - bs.m_LastReportTime;
 	float delta = timeDelta.count();
-	if (!INPUTMAPPER->DeviceToGame(di, gi) && di.button != MOUSE_WHEELDOWN &&
-		di.button != MOUSE_WHEELUP) {
+	if (di.button != MOUSE_WHEELDOWN && di.button != MOUSE_WHEELUP) {
 		/* If the last IET_FIRST_PRESS or IET_RELEASE event was sent too
 		 * recently, wait a while before sending it. */
+		// note: a debounce time longer than the min IET_REPEAT time
+		// will cause repeat events to fire here
 		if (delta < g_fInputDebounceTime) {
 			return;
 		}

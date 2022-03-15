@@ -27,6 +27,7 @@ local t = Def.ActorFrame {
     BeginCommand = function(self)
         screen = SCREENMAN:GetTopScreen()
         screen:AddInputCallback(evalInput)
+        updateDiscordStatus(true)
     end,
     OnCommand = function(self)
         local score = SCOREMAN:GetMostRecentScore()
