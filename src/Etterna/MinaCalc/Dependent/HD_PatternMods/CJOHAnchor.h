@@ -92,7 +92,7 @@ struct CJOHAnchorMod
 												 base_types[base_single_jump] +
 												 base_types[base_jump_single],
 											   1,
-											   max_total_len);
+											   std::max(1, max_total_len));
 		auto tapsF = static_cast<float>(taps_in_any_sequence);
 
 		// 11[12]22
