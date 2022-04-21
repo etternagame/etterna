@@ -25,6 +25,37 @@ local actuals = {
     LowerSectionHeight = ratios.LowerSectionHeight * SCREEN_HEIGHT,
 }
 
+local translations = {
+    Title = THEME:GetString("SearchFilter", "Title"),
+    OmniSearch = THEME:GetString("SearchFilter", "OmniSearch"),
+    TitleSearch = THEME:GetString("SearchFilter", "TitleSearch"),
+    SubtitleSearch = THEME:GetString("SearchFilter", "SubtitleSearch"),
+    ArtistSearch = THEME:GetString("SearchFilter", "ArtistSearch"),
+    AuthorSearch = THEME:GetString("SearchFilter", "AuthorSearch"),
+    OverallFilter = THEME:GetString("SearchFilter", "OverallFilter"),
+    SteamFilter = THEME:GetString("SearchFilter", "SteamFilter"),
+    JumpstreamFilter = THEME:GetString("SearchFilter", "JumpstreamFilter"),
+    HandstreamFilter = THEME:GetString("SearchFilter", "HandstreamFilter"),
+    StaminaFilter = THEME:GetString("SearchFilter", "StaminaFilter"),
+    JackSpeedFilter = THEME:GetString("SearchFilter", "JackSpeedFilter"),
+    ChordjacksFilter = THEME:GetString("SearchFilter", "ChordjacksFilter"),
+    TechnicalFilter = THEME:GetString("SearchFilter", "TechnicalFilter"),
+    LengthFilter = THEME:GetString("SearchFilter", "LengthFilter"),
+    ClearPercentFilter = THEME:GetString("SearchFilter", "ClearPercentFilter"),
+    UpperBoundRate = THEME:GetString("SearchFilter", "UpperBoundRate"),
+    LowerBoundRate = THEME:GetString("SearchFilter", "LowerBoundRate"),
+    AnyAllMode = THEME:GetString("SearchFilter", "AnyAllMode"),
+    Any = THEME:GetString("SearchFilter", "Any"),
+    All = THEME:GetString("SearchFilter", "All"),
+    HighestSkillsetOnly = THEME:GetString("SearchFilter", "HighestSkillsetOnly"),
+    HardestChartOnly = THEME:GetString("SearchFilter", "HardestChartOnly"),
+    On = THEME:GetString("SearchFilter", "On"),
+    Off = THEME:GetString("SearchFilter", "Off"),
+    Results = THEME:GetString("SearchFilter", "Results"),
+    Reset = THEME:GetString("SearchFilter", "Reset"),
+    Apply = THEME:GetString("SearchFilter", "Apply"),
+}
+
 local visibleframeX = SCREEN_WIDTH - actuals.Width
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
 local hiddenframeX = SCREEN_WIDTH
@@ -99,11 +130,11 @@ local function upperSection()
 
     -- the base text for each line
     local entryTextTable = {
-        "Any Search",
-        "Title Search",
-        "Subtitle Search",
-        "Artist Search",
-        "Author Search",
+        translations["OmniSearch"],
+        translations["TitleSearch"],
+        translations["SubtitleSearch"],
+        translations["ArtistSearch"],
+        translations["AuthorSearch"],
     }
 
     -- used to actually search for things in WheelDataManager
@@ -466,21 +497,21 @@ local function lowerSection()
 
     -- names for each filter line
     local filterCategoryTable = {
-        "Overall",
-        "Stream",
-        "Jumpstream",
-        "Handstream",
-        "Stamina",
-        "JackSpeed",
-        "Chordjacks",
-        "Technical",
-        "Length",
-        "Clear %",
+        translations["OverallFilter"],
+        translations["SteamFilter"],
+        translations["JumpstreamFilter"],
+        translations["HandstreamFilter"],
+        translations["StaminaFilter"],
+        translations["JackSpeedFilter"],
+        translations["ChordjacksFilter"],
+        translations["TechnicalFilter"],
+        translations["LengthFilter"],
+        translations["ClearPercentFilter"],
     }
 
     -- defines the bounds for each filter line
     -- if a bound is at either limit, it is considered infinite in that direction
-    -- so a Length filter of 1400,3600 is really >1400
+    -- so a Length filter of 400,600 is really >400
     -- or a Length filter of 0,360 is really <360
     -- etc
     local filterCategoryLimits = {
@@ -964,7 +995,7 @@ local function lowerSection()
         end,
         UpdateTextCommand = function(self)
             local maxrate = FILTERMAN:GetMaxFilterRate()
-            self:settextf("Max Rate: %2.1f", maxrate)
+            self:settextf("%s: %2.1f", translations["UpperBoundRate"], maxrate)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
@@ -992,7 +1023,7 @@ local function lowerSection()
         end,
         UpdateTextCommand = function(self)
             local maxrate = FILTERMAN:GetMinFilterRate()
-            self:settextf("Min Rate: %2.1f", maxrate)
+            self:settextf("%s: %2.1f", translations["LowerBoundRate"], maxrate)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
@@ -1019,8 +1050,8 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local txt = FILTERMAN:GetFilterMode() and "AND" or "OR"
-            self:settextf("Mode: %s", txt)
+            local txt = FILTERMAN:GetFilterMode() and translations["All"] or translations["Any"]
+            self:settextf("%s: %s", translations["AnyAllMode"], txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
@@ -1036,8 +1067,8 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local txt = FILTERMAN:GetHighestSkillsetsOnly() and "ON" or "OFF"
-            self:settextf("Highest Skillset Only: %s", txt)
+            local txt = FILTERMAN:GetHighestSkillsetsOnly() and translations["On"] or translations["Off"]
+            self:settextf("%s: %s", translations["HighestSkillsetOnly"], txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
@@ -1053,8 +1084,8 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local txt = FILTERMAN:GetHighestDifficultyOnly() and "ON" or "OFF"
-            self:settextf("Highest Difficulty Only: %s", txt)
+            local txt = FILTERMAN:GetHighestDifficultyOnly() and translations["On"] or translations["Off"]
+            self:settextf("%s: %s", translations["HardestChartOnly"], txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
@@ -1069,7 +1100,7 @@ local function lowerSection()
         UpdateTextCommand = function(self)
             local count1 = WHEELDATA:GetFilteredSongCount()
             local count2 = WHEELDATA:GetSongCount()
-            self:settextf("Matches: %d/%d", count1, count2)
+            self:settextf("%s: %d/%d", translations["Results"], count1, count2)
         end,
         FinishedSortMessageCommand = function(self)
             self:playcommand("UpdateText")
@@ -1079,7 +1110,7 @@ local function lowerSection()
     t[#t+1] = filterMiscLine(7) .. {
         Name = "ResetLine",
         InitCommand = function(self)
-            self:settext("Reset")
+            self:settext(translations["Reset"])
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
@@ -1093,7 +1124,7 @@ local function lowerSection()
     t[#t+1] = filterMiscLine(8) .. {
         Name = "ApplyLine",
         InitCommand = function(self)
-            self:settext("Apply")
+            self:settext(translations["Apply"])
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
@@ -1140,7 +1171,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
         self:zoom(textSize)
         self:maxwidth(actuals.Width / textSize - textZoomFudge)
-        self:settext("Search and Filters")
+        self:settext(translations["Title"])
         registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
 }

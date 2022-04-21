@@ -25,6 +25,15 @@ local animationSeconds = 0.1
 local focused = false
 local prevScreen = ""
 
+local translations = {
+    Title = THEME:GetString("AssetSettings", "Title"),
+    HoveredItem = THEME:GetString("AssetSettings", "HoveredItem"),
+    SelectedItem = THEME:GetString("AssetSettings", "SelectedItem"),
+    ToastyPageDisplay = THEME:GetString("AssetSettings", "ToastyPageDisplay"),
+    AvatarPageDisplay = THEME:GetString("AssetSettings", "AvatarPageDisplay"),
+    JudgmentPageDisplay = THEME:GetString("AssetSettings", "JudgmentPageDisplay"),
+}
+
 local t = Def.ActorFrame {
     Name = "AssetSettingsFile",
     InitCommand = function(self)
@@ -119,7 +128,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
         self:zoom(titleTextSize)
         self:maxwidth(actuals.Width / titleTextSize - textZoomFudge)
-        self:settext("Asset Settings")
+        self:settext(translations["Title"])
         registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
 }
@@ -498,7 +507,7 @@ local function assetList()
                 if type ~= nil then
                     out = type:gsub("^%l", string.upper)
                 end
-                self:settextf("Hovered: %s", out)
+                self:settextf("%s: %s", translations["HoveredItem"], out)
             end,
             CursorMovedMessageCommand = function(self)
                 self:queuecommand("Set")
@@ -523,7 +532,7 @@ local function assetList()
                 if type ~= nil then
                     out = type:gsub("^%l", string.upper)
                 end
-                self:settextf("Selected: %s", out)
+                self:settextf("%s: %s", translations["SelectedItem"], out)
             end,
             PickChangedMessageCommand = function(self)
                 self:queuecommand("Set")
@@ -761,7 +770,7 @@ local function assetList()
             {   -- Set to Toasty Select Page
                 Name = "toasty",
                 Type = "Exclusive",
-                Display = {"Toasty"},
+                Display = {translations["ToastyPageDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -772,7 +781,7 @@ local function assetList()
             {   -- Set to Avatar Select Page
                 Name = "avatar",
                 Type = "Exclusive",
-                Display = {"Avatar"},
+                Display = {translations["AvatarPageDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -783,7 +792,7 @@ local function assetList()
             {   -- Set to Judgment Select Page
                 Name = "judgment",
                 Type = "Exclusive",
-                Display = {"Judgment"},
+                Display = {translations["JudgmentPageDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()

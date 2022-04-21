@@ -148,6 +148,26 @@ local actuals = {
     IconSearchRightGap = ratios.IconSearchRightGap * SCREEN_WIDTH,
 }
 
+local translations = {
+    LogOut = THEME:GetString("Header", "LogOut"),
+    LogIn = THEME:GetString("Header", "LogIn"),
+    Plays = THEME:GetString("Header", "Plays"),
+    ArrowsSmashed = THEME:GetString("Header", "ArrowsSmashed"),
+    PlayTime = THEME:GetString("Header", "PlayTime"),
+    PlayerRating = THEME:GetString("Header", "PlayerRating"),
+    PlayerRatings = THEME:GetString("Header", "PlayerRatings"),
+    OfflineRating = THEME:GetString("Header", "OfflineRating"),
+    OnlineRating = THEME:GetString("Header", "OnlineRating"),
+    Exit = THEME:GetString("Header", "Exit"),
+    Settings = THEME:GetString("Header", "Settings"),
+    Help = THEME:GetString("Header", "Help"),
+    Downloads = THEME:GetString("Header", "Downloads"),
+    Random = THEME:GetString("Header", "Random"),
+    Search = THEME:GetString("Header", "Search"),
+    DownloadingPacks = THEME:GetString("Header", "DownloadingPacks"),
+    QueuedPacks = THEME:GetString("Header", "QueuedPacks"),
+}
+
 -- the list of buttons and the lists of screens those buttons are allowed on
 -- if "All" is listed, the button is always active
 local screensAllowedForButtons = {
@@ -360,9 +380,9 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     MouseOverCommand = function(self)
         self:diffusealpha(hoverAlpha)
         if DLMAN:IsLoggedIn() then
-            TOOLTIP:SetText("Log out")
+            TOOLTIP:SetText(translations["LogOut"])
         else
-            TOOLTIP:SetText("Log in")
+            TOOLTIP:SetText(translations["LogIn"])
         end
         TOOLTIP:Show()
     end,
@@ -431,7 +451,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
-            self:settextf("%d plays", pcount)
+            self:settextf("%d %s", pcount, translations["Plays"])
             registerActorToColorConfigElement(self, "main", "SecondaryText")
         end
     },
@@ -442,7 +462,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
-            self:settextf("%s arrows smashed", strparrows)
+            self:settextf("%s %s", strparrows, translations["ArrowsSmashed"])
             registerActorToColorConfigElement(self, "main", "SecondaryText")
         end,
         MouseOverCommand = function(self)
@@ -456,13 +476,13 @@ t[#t+1] = Def.ActorFrame {
         end,
     },
     LoadFont("Common Normal") .. {
-        Name = "Playtime",
+        Name = "PlayTime",
         InitCommand = function(self)
             self:y(actuals.LeftTextTopGap4)
             self:halign(0)
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
-            self:settextf("%s playtime", SecondsToHHMMSS(ptime))
+            self:settextf("%s %s", SecondsToHHMMSS(ptime), translations["PlayTime"])
             registerActorToColorConfigElement(self, "main", "SecondaryText")
         end
     }
@@ -491,9 +511,9 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                self:settext("Player Ratings:")
+                self:settextf("%s:", translations["PlayerRatings"])
             else
-                self:settext("Player Rating:")
+                self:settextf("%s:", translations["PlayerRating"])
             end
         end
     },
@@ -510,7 +530,7 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self)
             local offlinerating = profile:GetPlayerRating()
             if DLMAN:IsLoggedIn() then
-                self:settextf("Offline - %5.2f", offlinerating)
+                self:settextf("%s - %5.2f", translations["OfflineRating"], offlinerating)
             else
                 self:settextf("%5.2f", offlinerating)
             end
@@ -542,7 +562,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                self:settextf("Online - %5.2f", DLMAN:GetSkillsetRating("Overall"))
+                self:settextf("%s - %5.2f", translations["OnlineRating"], DLMAN:GetSkillsetRating("Overall"))
             else
                 self:settext("")
             end
@@ -700,7 +720,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -738,7 +758,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -780,7 +800,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -823,7 +843,7 @@ t[#t+1] = Def.ActorFrame {
             MouseOverCommand = function(self)
                 if selectable(self:GetName()) then
                     self:diffusealpha(hoverAlpha)
-                    TOOLTIP:SetText(self:GetName())
+                    TOOLTIP:SetText(translations[self:GetName()])
                     TOOLTIP:Show()
                 end
             end,
@@ -865,10 +885,10 @@ t[#t+1] = Def.ActorFrame {
 
                     local result = {}
                     for i,p in ipairs(dlpacks) do
-                        result[#result+1] = "Downloading: " .. p:GetName()
+                        result[#result+1] = translations["DownloadingPacks"] .. ": " .. p:GetName()
                     end
                     for i,p in ipairs(qpacks) do
-                        result[#result+1] = "Queued: " .. p:GetName()
+                        result[#result+1] = translations["QueuedPacks"] .. ": " .. p:GetName()
                     end
                     if #result > 0 then
                         local ttstr = table.concat(result, "\n")
@@ -947,7 +967,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -1007,7 +1027,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
