@@ -537,7 +537,7 @@ local function accuracyStats()
         return Def.ActorFrame {
             Name = "Stat_"..i,
             InitCommand = function(self)
-                self:y((actuals.StatTextAllottedSpace / (#statStrings - 1)) * (i-1))
+                self:y((actuals.StatTextAllottedSpace / (#statTypes - 1)) * (i-1))
             end,
             Def.RollingNumbers {
                 Name = "Number",
@@ -563,7 +563,7 @@ local function accuracyStats()
         }
     end
 
-    for i = 1, #statStrings do
+    for i = 1, #statTypes do
         t[#t+1] = makeLine(i)
     end
     return t
