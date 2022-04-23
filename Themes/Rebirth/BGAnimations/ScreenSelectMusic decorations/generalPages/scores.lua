@@ -174,6 +174,38 @@ do
     end
 end
 
+local translations = {
+    LastScore = THEME:GetString("ScreenSelectMusic Scores", "LastScore"),
+    You = THEME:GetString("ScreenSelectMusic Scores", "You"),
+    NoName = THEME:GetString("ScreenSelectMusic Scores", "NoName"),
+    ShowOffsetPlot = THEME:GetString("ScreenSelectMusic Scores", "ShowOffsetPlot"),
+    ShowReplay = THEME:GetString("ScreenSelectMusic Scores", "ShowReplay"),
+    ShowingJudge4Plot = THEME:GetString("ScreenSelectMusic Scores", "ShowingJudge4Plot"),
+    ScoreBy = THEME:GetString("ScreenSelectMusic Scores", "ScoreBy"),
+    HowToCloseOffsetPlot = THEME:GetString("ScreenSelectMusic Scores", "HowToCloseOffsetPlot"),
+    UploadScore = THEME:GetString("ScreenSelectMusic Scores", "UploadScore"),
+    UploadScorePack = THEME:GetString("ScreenSelectMusic Scores", "UploadScorePack"),
+    ShowEvaluation = THEME:GetString("ScreenSelectMusic Scores", "ShowEvaluation"),
+    JudgeDifficulty = THEME:GetString("ScreenSelectMusic Scores", "JudgeDifficulty"),
+    JudgeJustice = THEME:GetString("ScreenSelectMusic Scores", "JudgeJustice"),
+    ComboBreakers = THEME:GetString("ScreenSelectMusic Scores", "ComboBreakers"),
+    MaxCombo = THEME:GetString("ScreenSelectMusic Scores", "MaxCombo"),
+    DateAchieved = THEME:GetString("ScreenSelectMusic Scores", "DateAchieved"),
+    ScoreModsUsed = THEME:GetString("ScreenSelectMusic Scores", "ScoreModsUsed"),
+    NoLocalScoresRecorded = THEME:GetString("ScreenSelectMusic Scores", "NoLocalScoresRecorded"),
+    ChartUnranked = THEME:GetString("ScreenSelectMusic Scores", "ChartUnranked"),
+    FetchingScores = THEME:GetString("ScreenSelectMusic Scores", "FetchingScores"),
+    NoOnlineScoresRecorded = THEME:GetString("ScreenSelectMusic Scores", "NoOnlineScoresRecorded"),
+    ShowOnlineScores = THEME:GetString("ScreenSelectMusic Scores", "ShowOnlineScores"),
+    ShowLocalScores = THEME:GetString("ScreenSelectMusic Scores", "ShowLocalScores"),
+    ShowTopScores = THEME:GetString("ScreenSelectMusic Scores", "ShowTopScores"),
+    ShowAllScores = THEME:GetString("ScreenSelectMusic Scores", "ShowAllScores"),
+    HideInvalidScores = THEME:GetString("ScreenSelectMusic Scores", "HideInvalidScores"),
+    ShowInvalidScores = THEME:GetString("ScreenSelectMusic Scores", "ShowInvalidScores"),
+    CurrentRateOnly = THEME:GetString("ScreenSelectMusic Scores", "CurrentRateOnly"),
+    AllRates = THEME:GetString("ScreenSelectMusic Scores", "AllRates"),
+}
+
 t[#t+1] = Def.Quad {
     Name = "UpperLip",
     InitCommand = function(self)
@@ -535,12 +567,12 @@ local function createList()
                         local bg = self:GetChild("BG")
                         local n = score:GetName()
                         if n == "" then
-                            n = "<No Name>"
+                            n = translations["NoName"]
                         elseif n == "#P1#" then
                             if score:GetScoreKey() == mostRecentScore:GetScoreKey() then
-                                n = "Last Score"
+                                n = translations["LastScore"]
                             else
-                                n = "You"
+                                n = translations["You"]
                             end
                         end
                         txt:settext(n)
@@ -646,7 +678,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.update == "in" then
                         if score ~= nil and score:HasReplayData() then
-                            TOOLTIP:SetText("Show Offset Plot")
+                            TOOLTIP:SetText(translations["ShowOffsetPlot"])
                             TOOLTIP:Show()
                             self:diffusealpha(buttonHoverAlpha)
                         end
@@ -731,7 +763,7 @@ local function createList()
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
                     self:diffusealpha(buttonHoverAlpha)
-                    TOOLTIP:SetText("Show Replay")
+                    TOOLTIP:SetText(translations["ShowReplay"])
                     TOOLTIP:Show()
                 end,
                 MouseOutCommand = function(self)
@@ -1080,7 +1112,7 @@ local function createList()
                 local wifeStr = checkWifeStr(ws)
                 -- keeping these plots j4 because i dont want to complicate logic for stuff
                 --local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))) or GetTimingDifficulty()
-                self:settextf("Showing J4 Plot  |  Score by: %s  |  %s", score:GetName(), wifeStr)
+                self:settextf("%s  |  %s: %s  |  %s", translations["ShowingJudge4Plot"], translations["ScoreBy"], score:GetName(), wifeStr)
             end,
         },
         LoadFont("Common Normal") .. {
@@ -1089,7 +1121,7 @@ local function createList()
                 self:xy(actuals.MainGraphicWidth / 2, actuals.OffsetPlotHeight + extrasizing / 2)
                 self:zoom(onlinePlotTextSize)
                 self:maxwidth(((actuals.MainGraphicWidth)) / onlinePlotTextSize)
-                self:settext("Click this box or do anything to close")
+                self:settext(translations["HowToCloseOffsetPlot"])
                 registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
         },
@@ -1228,9 +1260,9 @@ local function createList()
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
                             if WHEELDATA:GetCurrentSort() == 1 then
-                                TOOLTIP:SetText("Upload Score\nShift: All in pack")
+                                TOOLTIP:SetText(translations["UploadScorePack"])
                             else
-                                TOOLTIP:SetText("Upload Score")
+                                TOOLTIP:SetText(translations["UploadScore"])
                             end
                             TOOLTIP:Show()
                         end
@@ -1246,9 +1278,9 @@ local function createList()
                 if self:IsInvisible() then return end
                 self:diffusealpha(buttonHoverAlpha)
                 if WHEELDATA:GetCurrentSort() == 1 then
-                    TOOLTIP:SetText("Upload Score\nShift: All in pack")
+                    TOOLTIP:SetText(translations["UploadScorePack"])
                 else
-                    TOOLTIP:SetText("Upload Score")
+                    TOOLTIP:SetText(translations["UploadScore"])
                 end
                 TOOLTIP:Show()
             end,
@@ -1288,7 +1320,7 @@ local function createList()
                         self:diffusealpha(1)
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("Show Evaluation")
+                            TOOLTIP:SetText(translations["ShowEvaluation"])
                             TOOLTIP:Show()
                         end
                     else
@@ -1302,7 +1334,7 @@ local function createList()
             MouseOverCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(buttonHoverAlpha)
-                TOOLTIP:SetText("Show Evaluation")
+                TOOLTIP:SetText(translations["ShowEvaluation"])
                 TOOLTIP:Show()
             end,
             MouseOutCommand = function(self)
@@ -1336,7 +1368,7 @@ local function createList()
                         self:diffusealpha(1)
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("Show Replay")
+                            TOOLTIP:SetText(translations["ShowReplay"])
                             TOOLTIP:Show()
                         end
                     else
@@ -1350,7 +1382,7 @@ local function createList()
             MouseOverCommand = function(self)
                 if self:IsInvisible() then return end
                 self:diffusealpha(buttonHoverAlpha)
-                TOOLTIP:SetText("Show Replay")
+                TOOLTIP:SetText(translations["ShowReplay"])
                 TOOLTIP:Show()
             end,
             MouseOutCommand = function(self)
@@ -1395,12 +1427,12 @@ local function createList()
                     end
                     if not judge then judge = 4 end
                     if judge < 4 then judge = 4 end
-                    local js = judge ~= 9 and judge or "Justice"
+                    local js = judge ~= 9 and judge or translations["JudgeJustice"]
                     local perc = checkWifeStr(wife)
                     self:ClearAttributes()
                     self:diffuse(COLORS:getMainColor("PrimaryText"))
                     self:diffusealpha(1)
-                    self:settextf("%s | %s (%s | Judge %s)", ssrstr, perc, wv, js)
+                    self:settextf("%s | %s (%s | %s %s)", ssrstr, perc, wv, translations["JudgeDifficulty"], js)
                     self:AddAttribute(0, {Length = #ssrstr, Diffuse = ssrcolr})
                     self:AddAttribute(#string.format("%s | ", ssrstr), {Length = #perc, Diffuse = wifecolr})
                 end
@@ -1420,9 +1452,9 @@ local function createList()
                 if localscore ~= nil then
                     local mc = getScoreComboBreaks(localscore)
                     if mc ~= nil then
-                        self:settextf("Combo Breaks: %s", mc)
+                        self:settextf("%s: %s", translations["ComboBreakers"], mc)
                     else
-                        self:settext("Combo Breaks: -")
+                        self:settextf("%s: -", translations["ComboBreakers"])
                     end
                 end
             end
@@ -1440,7 +1472,7 @@ local function createList()
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local mc = localscore:GetMaxCombo()
-                    self:settextf("Max Combo: %d", mc)
+                    self:settextf("%s: %d", translations["MaxCombo"], mc)
                 end
             end
         },
@@ -1457,7 +1489,7 @@ local function createList()
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local d = getScoreDate(localscore)
-                    self:settextf("Date Achieved: %s", d)
+                    self:settextf("%s: %s", translations["DateAchieved"], d)
                 end
             end
         },
@@ -1474,7 +1506,7 @@ local function createList()
             UpdateListCommand = function(self)
                 if localscore ~= nil then
                     local m = getModifierTranslations(localscore:GetModifiers())
-                    self:settextf("Mods: %s", m)
+                    self:settextf("%s: %s", translations["ScoreModsUsed"], m)
                 end
             end
         },
@@ -1612,7 +1644,7 @@ local function createList()
             if isLocal then
                 if localrtTable == nil and GAMESTATE:GetCurrentSong() ~= nil then
                     self:diffusealpha(1)
-                    self:settext("No local scores recorded")
+                    self:settext(translations["NoLocalScoresRecorded"])
                 else
                     self:diffusealpha(0)
                     self:settext("")
@@ -1622,16 +1654,16 @@ local function createList()
 
             if scores == nil then
                 self:diffusealpha(1)
-                self:settext("Chart is unranked")
+                self:settext(translations["ChartUnranked"])
             elseif #scores == 0 and steps and fetchingScores[steps:GetChartKey()] == true then
                 self:diffusealpha(1)
-                self:settext("Fetching scores...")
+                self:settext(translations["FetchingScores"])
             elseif #scores == 0 and steps and fetchingScores[steps:GetChartKey()] == false then
                 self:diffusealpha(1)
-                self:settext("No online scores recorded")
+                self:settext(translations["NoOnlineScoresRecorded"])
             elseif isLocal and localscore == nil then
                 self:diffusealpha(1)
-                self:settext("No local scores recorded")
+                self:settext(translations["NoLocalScoresRecorded"])
             else
                 self:diffusealpha(0)
                 self:settext("")
@@ -1719,10 +1751,10 @@ local function createList()
     -- preferably the defaults are the first position
     -- the inner lists have to be length 2
     local choiceNames = {
-        {"Show Online", "Show Local"},
-        {"Top Scores", "All Scores"},
-        {"Hide Invalid", "Show Invalid"},
-        {"Current Rate", "All Rates"},
+        {translations["ShowOnlineScores"], translations["ShowLocalScores"]},
+        {translations["ShowTopScores"], translations["ShowAllScores"]},
+        {translations["HideInvalidScores"], translations["ShowInvalidScores"]},
+        {translations["CurrentRateOnly"], translations["AllRates"]},
     }
 
     -- this list defines how each choice finds its default choiceName index

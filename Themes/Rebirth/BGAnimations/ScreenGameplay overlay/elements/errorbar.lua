@@ -27,9 +27,9 @@ local earlylateTextSize = GAMEPLAY:getItemHeight("errorBarText")
 -- EWMA loads 1 bar and places it according to the EWMA of the previous n taps
 local errorbarType = playerConfig:get_data().ErrorBar == 1 and "Regular" or "EWMA"
 
-local translated_info = {
-    ErrorLate = "Late",
-    ErrorEarly = "Early",
+local translations = {
+    ErrorLate = THEME:GetString("ScreenGameplay", "ErrorBarLate"),
+    ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly"),
 }
 
 -- procedurally generated error bars
@@ -122,7 +122,7 @@ local t = Def.ActorFrame {
             self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
-            self:settext(translated_info["ErrorLate"])
+            self:settext(translations["ErrorLate"])
             self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0)
         end,
         SetUpMovableValuesMessageCommand = function(self)
@@ -135,7 +135,7 @@ local t = Def.ActorFrame {
             self:zoom(earlylateTextSize)
         end,
         BeginCommand = function(self)
-            self:settext(translated_info["ErrorEarly"])
+            self:settext(translations["ErrorEarly"])
             self:diffusealpha(0):smooth(0.5):diffusealpha(0.5):sleep(1.5):smooth(0.5):diffusealpha(0):queuecommand("Doot")
         end,
         SetUpMovableValuesMessageCommand = function(self)

@@ -119,13 +119,19 @@ do
     end
 end
 
+-- translations exclusive to this screen
+local translations = {
+    AverageNPS = THEME:GetString("ScreenSelectMusic General", "AverageNPS"),
+    NegativeBPMs = THEME:GetString("ScreenSelectMusic General", "NegativeBPMs"),
+}
+
 local statNames = {
-    "Notes",
-    "Jumps",
-    "Hands",
-    "Holds",
-    "Rolls",
-    "Mines",
+    THEME:GetString("RadarCategory", "Notes"),
+    THEME:GetString("RadarCategory", "Jumps"),
+    THEME:GetString("RadarCategory", "Hands"),
+    THEME:GetString("RadarCategory", "Holds"),
+    THEME:GetString("RadarCategory", "Rolls"),
+    THEME:GetString("RadarCategory", "Mines"),
 }
 
 -- output of the relevant radars function is in a certain order
@@ -144,14 +150,14 @@ local statMapping = {
 }
 
 local msdNames = {
-    "Average NPS",
-    "Stream",
-    "Jumpstream",
-    "Handstream",
-    "Stamina",
-    "JackSpeed",
-    "Chordjack",
-    "Technical",
+    translations["AverageNPS"],
+    ms.SkillSetsTranslatedByName["Stream"],
+    ms.SkillSetsTranslatedByName["Jumpstream"],
+    ms.SkillSetsTranslatedByName["Handstream"],
+    ms.SkillSetsTranslatedByName["Stamina"],
+    ms.SkillSetsTranslatedByName["JackSpeed"],
+    ms.SkillSetsTranslatedByName["Chordjack"],
+    ms.SkillSetsTranslatedByName["Technical"],
 }
 
 local mainTextSize = 1
@@ -274,7 +280,7 @@ local function createMSDLines()
                     if i == 0 then
                         if params.steps then
                             if params.steps:GetTimingData():HasWarps() then
-                                self:settext("NegBPMs!")
+                                self:settext(translations["NegativeBPMs"])
                                 self:diffusealpha(1)
                             else
                                 self:diffusealpha(0)

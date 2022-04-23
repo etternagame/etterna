@@ -106,6 +106,29 @@ do
     end
 end
 
+local translations = {
+    SongsLoaded = THEME:GetString("ScreenSelectMusic Profile", "SongsLoaded"),
+    PacksLoaded = THEME:GetString("ScreenSelectMusic Profile", "PacksLoaded"),
+    CountVisible = THEME:GetString("ScreenSelectMusic Profile", "CountVisible"),
+    JudgeDifficulty = THEME:GetString("ScreenSelectMusic Profile", "JudgeDifficulty"),
+    Top3PlayedSkillsets = THEME:GetString("ScreenSelectMusic Profile", "Top3PlayedSkillsets"),
+    UploadAllScores = THEME:GetString("ScreenSelectMusic Profile", "UploadAllScores"),
+    ValidateAllScores = THEME:GetString("ScreenSelectMusic Profile", "ValidateAllScores"),
+    Plays = THEME:GetString("ScreenSelectMusic Profile", "Plays"),
+    ArrowsSmashed = THEME:GetString("ScreenSelectMusic Profile", "ArrowsSmashed"),
+    Playtime = THEME:GetString("ScreenSelectMusic Profile", "Playtime"),
+    ScoreStats = THEME:GetString("ScreenSelectMusic Profile", "ScoreStats"),
+    PackLamps = THEME:GetString("ScreenSelectMusic Profile", "PackLamps"),
+    ScoreUploadMayBeSlow = THEME:GetString("ScreenSelectMusic Profile", "ScoreUploadMayBeSlow"),
+    OnlineServer = THEME:GetString("ScreenSelectMusic Profile", "OnlineServer"),
+    PlayerRatings = THEME:GetString("ScreenSelectMusic Profile", "PlayerRatings"),
+    OnlineSlashOffline = THEME:GetString("ScreenSelectMusic Profile", "OnlineSlashOffline"),
+    PlayerStats = THEME:GetString("ScreenSelectMusic Profile", "PlayerStats"),
+    ViewRecentScores = THEME:GetString("ScreenSelectMusic Profile", "ViewRecentScores"),
+    ShowingLocalScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingLocalScores"),
+    ShowingOnlineScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingOnlineScores"),
+}
+
 -- the page names in the order they go
 -- it happens to literally just be the skillsets including Overall
 local choiceNames = ms.SkillSets
@@ -163,7 +186,7 @@ local function createChoices()
                 self:x((actuals.Width / #choiceNames) * (i-1) + (actuals.Width / #choiceNames / 2))
                 txt:zoom(choiceTextSize)
                 txt:maxwidth(actuals.Width / #choiceNames / choiceTextSize - textzoomFudge)
-                txt:settext(choiceNames[i])
+                txt:settext(ms.SkillSetsTranslatedByName[choiceNames[i]])
                 registerActorToColorConfigElement(txt, "main", "PrimaryText")
                 bg:zoomto(actuals.Width / #choiceNames, actuals.LowerLipHeight)
             end,
@@ -635,44 +658,44 @@ local function createList()
                 -- songs loaded
                 function(self)
                     local count = SONGMAN:GetNumSongs()
-                    self:settextf("%d songs loaded", count)
+                    self:settextf("%d %s", count, translations["SongsLoaded"])
                 end,
                 -- song packs installed (and filtered)
                 function(self)
                     local packcount = SONGMAN:GetNumSongGroups()
                     local groupcount = #WHEELDATA:GetAllGroups()
                     if packcount ~= groupcount then
-                        self:settextf("%d packs loaded (%d visible)", packcount, groupcount)
+                        self:settextf("%d %s (%d %s)", packcount, translations["PacksLoaded"], groupcount, translations["CountVisible"])
                     else
-                        self:settextf("%d packs loaded", packcount)
+                        self:settextf("%d %s", packcount, translations["PacksLoaded"])
                     end
                 end,
                 -- current judge
                 function(self)
                     local judge = GetTimingDifficulty()
-                    self:settextf("Judge: %d", judge)
+                    self:settextf("%s: %d", translations["JudgeDifficulty"], judge)
                 end,
                 -- a line break
                 function(self)
                 end,
                 -- top skillset plays header
                 function(self)
-                    self:settext("Top 3 Played Skillsets")
+                    self:settext(translations["Top3PlayedSkillsets"])
                 end,
                 -- top played skillset
                 function(self)
                     local count, name = getSkillsetPlaysByPosition(1)
-                    self:settextf("%s (%d)", name, count)
+                    self:settextf("%s (%d)", ms.SkillSetsTranslatedByName[name], count)
                 end,
                 -- 2nd top played skillset
                 function(self)
                     local count, name = getSkillsetPlaysByPosition(2)
-                    self:settextf("%s (%d)", name, count)
+                    self:settextf("%s (%d)", ms.SkillSetsTranslatedByName[name], count)
                 end,
                 -- 3rd top played skillset
                 function(self)
                     local count, name = getSkillsetPlaysByPosition(3)
-                    self:settextf("%s (%d)", name, count)
+                    self:settextf("%s (%d)", ms.SkillSetsTranslatedByName[name], count)
                 end,
                 -- blank
                 function(self)
@@ -680,33 +703,33 @@ local function createList()
                 -- Upload all scores button
                 function(self)
                     if DLMAN:IsLoggedIn() then
-                        self:settext("Upload all scores to EO") 
+                        self:settext(translations["UploadAllScores"]) 
                     else
                         self:settext("")
                     end
                 end,
                 -- Validate all scores button
                 function(self)
-                    self:settext("Validate all scores")
+                    self:settext(translations["ValidateAllScores"])
                 end,
             },
             Right = {
                 -- playcount
                 function(self)
                     local pcount = SCOREMAN:GetTotalNumberOfScores()
-                    self:settextf("%d plays", pcount)
+                    self:settextf("%d %s", pcount, translations["Plays"])
                 end,
                 -- arrow count
                 function(self)
                     local parrows = profile:GetTotalTapsAndHolds()
                     -- shorten if over 1 million since the number is kind of long
                     local nstr = shortenIfOver1Mil(parrows)
-                    self:settextf("%s arrows smashed", nstr)
+                    self:settextf("%s %s", nstr, translations["ArrowsSmashed"])
                 end,
                 -- playtime (overall, not gameplay)
                 function(self)
                     local ptime = profile:GetTotalSessionSeconds()
-                    self:settextf("%s playtime", SecondsToHHMMSS(ptime))
+                    self:settextf("%s %s", SecondsToHHMMSS(ptime), translations["Playtime"])
                 end,
                 -- empty padding
                 function(self)
@@ -715,32 +738,32 @@ local function createList()
                 end,
                 -- score stats
                 function(self)
-                    self:settextf("Score Stats:")
+                    self:settextf("%s:", translations["ScoreStats"])
                 end,
                 -- AAAAA count
                 function(self)
                     local quints = WHEELDATA:GetTotalClearsByGrade("Grade_Tier01")
-                    self:settextf("AAAAAs: %d", quints)
+                    self:settextf("%ss: %d", getGradeStrings("Grade_Tier01"), quints)
                 end,
                 -- AAAA count
                 function(self)
                     local scores = WHEELDATA:GetTotalClearsByGrade("Grade_Tier02") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier03") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier04")
-                    self:settextf("AAAAs: %d", scores)
+                    self:settextf("%ss: %d", getGradeStrings("Grade_Tier04"), scores)
                 end,
                 -- AAA count
                 function(self)
                     local scores = WHEELDATA:GetTotalClearsByGrade("Grade_Tier05") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier06") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier07")
-                    self:settextf("AAAs: %d", scores)
+                    self:settextf("%ss: %d", getGradeStrings("Grade_Tier07"), scores)
                 end,
                 -- AA count
                 function(self)
                     local scores = WHEELDATA:GetTotalClearsByGrade("Grade_Tier08") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier09") + WHEELDATA:GetTotalClearsByGrade("Grade_Tier10")
-                    self:settextf("AAs: %d", scores)
+                    self:settextf("%ss: %d", getGradeStrings("Grade_Tier10"), scores)
                 end,
                 -- lamp count
                 function(self)
                     local lamps = WHEELDATA:GetTotalLampCount()
-                    self:settextf("Pack Lamps: %d", lamps)
+                    self:settextf("%s: %d", translations["PackLamps"], lamps)
                 end,
 
                 -- at the cost of your fps to make the game look better
@@ -794,7 +817,7 @@ local function createList()
                     function(self)
                         if DLMAN:IsLoggedIn() then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("May be slow - Will run in background")
+                            TOOLTIP:SetText(translations["ScoreUploadMayBeSlow"])
                             TOOLTIP:Show()
                         end
                     end,
@@ -943,7 +966,7 @@ local function createList()
                             self:diffuse(colorByMSD(rating))
                         end
                     else
-                        self:settextf("%s:", skillset)
+                        self:settextf("%s:", ms.SkillSetsTranslatedByName[skillset])
                     end
                 end,
                 UpdateLoginStatusCommand = function(self)
@@ -1074,7 +1097,7 @@ local function createList()
                 end,
                 SetCommand = function(self)
                     if DLMAN:IsLoggedIn() then
-                        self:settextf("(EO: %s)", DLMAN:GetUsername())
+                        self:settextf("(%s: %s)", translations["OnlineServer"], DLMAN:GetUsername())
                     else
                         self:settext("")
                     end
@@ -1109,12 +1132,12 @@ local function createList()
         
                     if self.ratings then
                         if DLMAN:IsLoggedIn() then
-                            txt:settext("Player Ratings (Online/Offline):")
+                            txt:settextf("%s (%s):", translations["PlayerRatings"], translations["OnlineSlashOffline"])
                         else
-                            txt:settext("Player Ratings:")
+                            txt:settextf("%s:", translations["PlayerRatings"])
                         end
                     else
-                        txt:settext("Player Stats:")
+                        txt:settextf("%s:", translations["PlayerStats"])
                     end
         
                     bg:zoomto(txt:GetZoomedWidth(), actuals.NameInfoLargeLineSpacing + textzoomFudge)
@@ -1151,7 +1174,7 @@ local function createList()
                     self:y(actuals.Height - actuals.InfoUpperMargin)
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
-                    self:settext("View Recent Scores")
+                    self:settext(translations["ViewRecentScores"])
                     registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 MouseOverCommand = function(self)
@@ -1296,9 +1319,9 @@ local function createList()
             end
 
             if isLocal then
-                txt:settext("Showing Local")
+                txt:settext(translations["ShowingLocalScores"])
             else
-                txt:settext("Showing Online")
+                txt:settext(translations["ShowingOnlineScores"])
             end
 
             -- itemspacing is probably a good approximation for this button height

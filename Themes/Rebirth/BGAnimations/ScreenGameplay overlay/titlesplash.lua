@@ -1,6 +1,6 @@
 local mods = {}
 
-local translated_info = {
+local translations = {
 	InvalidMods = THEME:GetString("ScreenGameplay", "InvalidMods")
 }
 
@@ -120,7 +120,7 @@ local t = Def.ActorFrame {
 				for _,mod in ipairs(mods) do
 					table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
 				end
-				self:settextf("%s\n%s", translated_info["InvalidMods"], table.concat(translated, "\n"))
+				self:settextf("%s\n%s", translations["InvalidMods"], table.concat(translated, "\n"))
 			end
 		end,
 		OnCommand = function(self)

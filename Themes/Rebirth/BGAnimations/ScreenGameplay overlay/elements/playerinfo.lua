@@ -1,7 +1,7 @@
 -- Various player and stage info
-local translated_info = {
-    Judge = "Judge",
-    Scoring = "Scoring",
+local translations = {
+    Judge = THEME:GetString("ScreenGameplay", "JudgeDifficulty"),
+    Scoring = THEME:GetString("ScreenGameplay", "ScoringType"),
 }
 
 local modstringTextSize = GAMEPLAY:getItemHeight("playerInfoModsText")
@@ -133,7 +133,7 @@ return Def.ActorFrame {
         end,
         BeginCommand = function(self)
             self:xy(avatarSize + bufferspace, avatarSize/24)
-            self:settextf("%s: %d", translated_info["Judge"], GetTimingDifficulty())
+            self:settextf("%s: %d", translations["Judge"], GetTimingDifficulty())
         end
     },
     LoadFont("Common Normal") .. {
@@ -146,7 +146,7 @@ return Def.ActorFrame {
         end,
         BeginCommand = function(self)
             self:xy(avatarSize + bufferspace, avatarSize/2 - avatarSize/8)
-            self:settextf("%s: %s", translated_info["Scoring"], "Wife")
+            self:settextf("%s: %s", translations["Scoring"], "Wife")
         end
     },
 }

@@ -231,6 +231,20 @@ local actuals = {
     OffsetPlotWidth = ratios.OffsetPlotWidth * SCREEN_WIDTH,
 }
 
+local translations = {
+    Title = THEME:GetString("ScreenEvaluation", "Title"),
+    ReplayTitle = THEME:GetString("ScreenEvaluation", "ReplayTitle"),
+    Mean = THEME:GetString("ScreenEvaluation", "Mean"),
+    StandardDeviation = THEME:GetString("ScreenEvaluation", "StandardDeviation"),
+    Largest = THEME:GetString("ScreenEvaluation", "Largest"),
+    LeftCBs = THEME:GetString("ScreenEvaluation", "LeftCBs"),
+    MiddleCBs = THEME:GetString("ScreenEvaluation", "MiddleCBs"),
+    RightCBs = THEME:GetString("ScreenEvaluation", "RightCBs"),
+    CBsPerColumn = THEME:GetString("ScreenEvaluation", "CBsPerColumn"),
+    Column = THEME:GetString("ScreenEvaluation", "Column"),
+    Justice = THEME:GetString("ScreenEvaluation", "Justice"),
+}
+
 -- constant list of judgments for rescoring purposes
 -- for the most part this list is the same as the one below but remains separate just "in case"
 local tapJudgments = {
@@ -313,7 +327,7 @@ local function subTypeStats()
                     self:halign(0):valign(0)
                     self:zoom(subTypeTextZoom)
                     self:maxwidth((actuals.SubTypeNumberCenter - subTypeTextBump - actuals.SubTypeNumberWidth / 2) / subTypeTextZoom - textzoomFudge)
-                    self:settext(rdr)
+                    self:settext(THEME:GetString("RadarCategory", rdr))
                     registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end
             },
@@ -380,19 +394,12 @@ local function subTypeStats()
 end
 
 local function accuracyStats()
-    local statStrings = {
-        "RA", -- Ridiculous Attack - Ratio of J7 Marvelous to J7 Perfect
-        "MA", -- Marvelous Attack - Ratio of Marvelous to Perfects
-        "PA", -- Perfect Attack - Ratio of Perfects to Greats
-        "Longest MFC", -- Longest streak of Marvelous or better
-        "Longest PFC", -- Longest streak of Perfect or better
-    }
     local statTypes = {
-        "EvalRA",
-        "EvalMA",
-        "EvalPA",
-        "EvalLongestMFC",
-        "EvalLongestPFC",
+        "EvalRA", -- Ridiculous Attack - Ratio of J7 Marvelous to J7 Perfect
+        "EvalMA", -- Marvelous Attack - Ratio of Marvelous to Perfects
+        "EvalPA", -- Perfect Attack - Ratio of Perfects to Greats
+        "EvalLongestMFC", -- Longest streak of Marvelous or better
+        "EvalLongestPFC", -- Longest streak of Perfect or better
     }
     local statData = {
         0, -- Ridiculous divided by Marvelous
@@ -527,7 +534,6 @@ local function accuracyStats()
         end
     }
     local function makeLine(i)
-        local statname = statStrings[i]
         return Def.ActorFrame {
             Name = "Stat_"..i,
             InitCommand = function(self)
@@ -567,12 +573,12 @@ local function calculatedStats()
     -- list of stats
     -- do not allow this list to be shorter than 2 in length
     local statStrings = {
-        "Mean",
-        "Sd",
-        "Largest",
-        "Left CBs",
-        "Middle CBs", -- skip this index for even column types
-        "Right CBs",
+        translations["Mean"],
+        translations["StandardDeviation"],
+        translations["Largest"],
+        translations["LeftCBs"],
+        translations["MiddleCBs"], -- skip this index for even column types
+        translations["RightCBs"],
     }
 
     -- RollingNumber types in metrics
@@ -757,9 +763,9 @@ local function calculatedStats()
         RolloverUpdateCommand = function(self, params)
             -- hovering
             if params.update == "over" then
-                local cbstr = {"CBs Per Column", "\n"}
+                local cbstr = {translations["CBsPerColumn"], "\n"}
                 for _ = 1, #cbInfo do
-                    cbstr[#cbstr+1] = string.format("Column %d: %d", _, cbInfo[_])
+                    cbstr[#cbstr+1] = string.format("%s %d: %d", translations["Column"], _, cbInfo[_])
                     cbstr[#cbstr+1] = "\n"
                 end
                 cbstr[#cbstr] = nil
@@ -823,8 +829,8 @@ local function wifePercentDisplay()
                     ver = 3
                 end
                 -- wife version string
-                local ws = "W"..ver.." J"
-                ws = ws .. (judgeSetting ~= 9 and judgeSetting or "ustice")
+                local ws = "W"..ver.." "
+                ws = ws .. (judgeSetting ~= 9 and "J"..judgeSetting or translations["Justice"])
                 -- scores over 99% should show more decimals
                 if percent > 99 or isOver(self) then
                     decimals = 4
@@ -996,7 +1002,7 @@ t[#t+1] = Def.ActorFrame {
             if not ss:GetLivePlay() then
                 mstr = screen:GetReplayModifiers()
             end
-            self:settext(mstr)
+            self:settext(getModifierTranslations(mstr))
         end
     },
     LoadActorWithParams("../judgmentBars", {
@@ -1037,9 +1043,9 @@ t[#t+1] = Def.ActorFrame {
             registerActorToColorConfigElement(self, "main", "PrimaryText")
             if GAMESTATE:GetCurrentSteps() ~= nil then
                 local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(GAMESTATE:GetCurrentSteps():GetStepsType()))
-                self:settextf("%s Results", st)
+                self:settextf("%s %s", st, translations["Title"])
             else
-                self:settext("Results")
+                self:settext(translations["Title"])
             end
         end,
         SetCommand = function(self, params)
@@ -1054,9 +1060,9 @@ t[#t+1] = Def.ActorFrame {
                 -- but view eval/replays also are mostrecentscores, so check the name
                 -- the name is set for scores set during this session
                 if mostRecentScore and params.score:GetName() == "#P1#" and params.score:GetScoreKey() == mostRecentScore:GetScoreKey() then
-                    self:settext(stStr.."Results")
+                    self:settext(stStr..translations["Title"])
                 else
-                    self:settext(stStr.."Replay Results")
+                    self:settext(stStr..translations["ReplayTitle"])
                 end
             end
         end

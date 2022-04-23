@@ -100,6 +100,11 @@ do
     actuals.BannerAreaHeight = ratios.BannerHeight * SCREEN_HEIGHT
 end
 
+local translations = {
+    Length = THEME:GetString("ScreenSelectMusic CurSongBox", "Length"),
+    BPM = THEME:GetString("ScreenSelectMusic CurSongBox", "BPM"),
+}
+
 local textsize = 0.8
 local textzoomFudge = 5
 
@@ -358,7 +363,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.LengthTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
             self:maxwidth((actuals.LengthNumberLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
-            self:settext("LENGTH")
+            self:settext(translations["Length"])
             registerActorToColorConfigElement(self, "main", "PrimaryText")
         end
     },
@@ -390,7 +395,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.BPMTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
             self:maxwidth((actuals.BPMNumberLeftGap - actuals.BPMTextLeftGap) / textsize - textzoomFudge)
-            self:settext("BPM")
+            self:settext(translations["BPM"])
             registerActorToColorConfigElement(self, "main", "PrimaryText")
         end
     },

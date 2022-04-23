@@ -5,6 +5,10 @@ local height = SCREEN_HEIGHT / 50
 local alpha = 0.7
 local isReplay = GAMESTATE:GetPlayerState():GetPlayerController() == "PlayerController_Replay" and not allowedCustomization
 
+local translations = {
+    MustBePaused = THEME:GetString("ScreenGameplay", "MustBePaused"),
+}
+
 local progressbarTextSize = GAMEPLAY:getItemHeight("fullProgressBarText")
 
 local function bounds()
@@ -26,7 +30,7 @@ local replaySlider = isReplay and
             if params.event ~= "DeviceButton_left mouse button" then return end
 
             if not GAMESTATE:IsPaused() then
-                TOOLTIP:SetText("Music must be paused")
+                TOOLTIP:SetText(translations["MustBePaused"])
                 TOOLTIP:Show()
             end
 

@@ -77,6 +77,23 @@ do
     end
 end
 
+local translations = {
+    DeleteGoal = THEME:GetString("ScreenSelectMusic Goals", "DeleteGoal"),
+    AlreadyBeat = THEME:GetString("ScreenSelectMusic Goals", "AlreadyBeat"),
+    VacuousGoal = THEME:GetString("ScreenSelectMusic Goals", "VacuousGoal"),
+    AchievedGoal = THEME:GetString("ScreenSelectMusic Goals", "AchievedGoal"),
+    SetGoal = THEME:GetString("ScreenSelectMusic Goals", "SetGoal"),
+    PrioritySortDisplay = THEME:GetString("ScreenSelectMusic Goals", "PrioritySortDisplay"),
+    RateSortDisplay = THEME:GetString("ScreenSelectMusic Goals", "RateSortDisplay"),
+    MSDSortDisplay = THEME:GetString("ScreenSelectMusic Goals", "MSDSortDisplay"),
+    NameSortDisplay = THEME:GetString("ScreenSelectMusic Goals", "NameSortDisplay"),
+    DateSortDisplay = THEME:GetString("ScreenSelectMusic Goals", "DateSortDisplay"),
+    NewGoal = THEME:GetString("ScreenSelectMusic Goals", "NewGoal"),
+    FilterShowAll = THEME:GetString("ScreenSelectMusic Goals", "FilterShowAll"),
+    FilterComplete = THEME:GetString("ScreenSelectMusic Goals", "FilterComplete"),
+    FilterIncomplete = THEME:GetString("ScreenSelectMusic Goals", "FilterIncomplete"),
+}
+
 local goalLine1TextSize = 0.85
 local goalLine2TextSize = 0.75
 local pageTextSize = 0.7
@@ -802,7 +819,7 @@ local function goalList()
                     else
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("Delete Goal")
+                            TOOLTIP:SetText(translations["DeleteGoal"])
                             TOOLTIP:Show()
                         else
                             self:diffusealpha(1)
@@ -827,7 +844,7 @@ local function goalList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
-                    TOOLTIP:SetText("Delete Goal")
+                    TOOLTIP:SetText(translations["DeleteGoal"])
                     TOOLTIP:Show()
                     self:diffusealpha(buttonHoverAlpha)
                 end,
@@ -899,13 +916,13 @@ local function goalList()
                     if status == "Achieved" then
                         when = extractDateFromDateString(goal:WhenAchieved())
                     elseif status == "Vacuous" then
-                        when = "- Already Beat"
+                        when = "- " .. translations["AlreadyBeat"]
                     else
                         -- Created/Set
                         when = extractDateFromDateString(goal:WhenAssigned())
                     end
 
-                    self:settextf("%s %s", status, when)
+                    self:settextf("%s %s", translations[status.."Goal"], when)
                 end
             }
         }
@@ -930,7 +947,7 @@ local function goalList()
             {   -- Sort by Priority
                 Name = "prioritysort",
                 Type = "Exclusive",
-                Display = {"Priority"},
+                Display = {translations["PrioritySortDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -946,7 +963,7 @@ local function goalList()
             {   -- Sort by Rate
                 Name = "ratesort",
                 Type = "Exclusive",
-                Display = {"Rate"},
+                Display = {translations["RateSortDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -962,7 +979,7 @@ local function goalList()
             {   -- Sort by MSD
                 Name = "msdsort",
                 Type = "Exclusive",
-                Display = {"MSD"},
+                Display = {translations["MSDSortDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -978,7 +995,7 @@ local function goalList()
             {   -- Sort by Song (Song + ChartKey)
                 Name = "namesort",
                 Type = "Exclusive",
-                Display = {"Name"},
+                Display = {translations["NameSortDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -994,7 +1011,7 @@ local function goalList()
             {   -- Sort by Set Date
                 Name = "datesort",
                 Type = "Exclusive",
-                Display = {"Date"},
+                Display = {translations["DateSortDisplay"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -1010,7 +1027,7 @@ local function goalList()
             {   -- New Goal on current Chart
                 Name = "newgoal",
                 Type = "Tap",
-                Display = {"New Goal"},
+                Display = {translations["NewGoal"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -1033,7 +1050,7 @@ local function goalList()
             {   -- Toggle between All, Completed, and Incomplete Goals
                 Name = "filtergoals",
                 Type = "Toggle",
-                Display = {"Showing All", "Showing Complete", "Showing Incomplete"},
+                Display = {translations["FilterShowAll"], translations["FilterComplete"], translations["FilterIncomplete"]},
                 IndexGetter = function()
                     if visibleGoalType == "All" then
                         return 1

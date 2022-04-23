@@ -1,7 +1,7 @@
 -- the mean display. it displays the mean
 
 -- i dunno less copy paste whatever bro
-local formatstr = "%5.2fms"
+local formatstr = THEME:GetString("ScreenGameplay", "MeanDisplayFormatStr")
 local meanTextSize = GAMEPLAY:getItemHeight("meanDisplayText")
 local bgMargin = 4
 local bgalpha = 0.4

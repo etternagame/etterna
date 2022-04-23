@@ -56,6 +56,23 @@ local actuals = {
     LeftButtonWidth = ratios.LeftButtonWidth * SCREEN_WIDTH,
 }
 
+local translations = {
+    NoReplayData = THEME:GetString("ScreenEvaluation", "NoReplayData"),
+    You = THEME:GetString("ScreenEvaluation", "You"),
+    LastScore = THEME:GetString("ScreenEvaluation", "LastScore"),
+    NoLocalScoresRecorded = THEME:GetString("ScreenEvaluation", "NoLocalScoresRecorded"),
+    ChartUnranked = THEME:GetString("ScreenEvaluation", "ChartUnranked"),
+    FetchingScores = THEME:GetString("ScreenEvaluation", "FetchingScores"),
+    NoOnlineScoresRecorded = THEME:GetString("ScreenEvaluation", "NoOnlineScoresRecorded"),
+    ShowingXXofXScoresFormatStr = THEME:GetString("ScreenEvaluation", "ShowingXXofXScoresFormatStr"),
+    Local = THEME:GetString("ScreenEvaluation", "Local"),
+    Online = THEME:GetString("ScreenEvaluation", "Online"),
+    AllScores = THEME:GetString("ScreenEvaluation", "AllScores"),
+    TopScores = THEME:GetString("ScreenEvaluation", "TopScores"),
+    CurrentRate = THEME:GetString("ScreenEvaluation", "CurrentRate"),
+    AllRates = THEME:GetString("ScreenEvaluation", "AllRates"),
+}
+
 -- we are expecting this file to be loaded with these params precalculated
 -- in reference, Height is measured divider edge to divider edge
 -- in reference, Width is the length of the horizontal divider
@@ -385,7 +402,7 @@ local function scoreList()
                     if score ~= nil and not score:HasReplayData() then
                         if params.update == "over" then
                             TOOLTIP:Show()
-                            TOOLTIP:SetText("No Replay Data")
+                            TOOLTIP:SetText(translations["NoReplayData"])
                         elseif params.update == "out" then
                             TOOLTIP:Hide()
                         end
@@ -406,7 +423,7 @@ local function scoreList()
                     -- replay data tooltip
                     if score ~= nil and isOver(self) and not score:HasReplayData() then
                         TOOLTIP:Show()
-                        TOOLTIP:SetText("No Replay Data")
+                        TOOLTIP:SetText(translations["NoReplayData"])
                     elseif score ~= nil and isOver(self) and score:HasReplayData() then
                         TOOLTIP:Hide()
                     end
@@ -511,13 +528,13 @@ local function scoreList()
                         local n = score:GetName()
                         if n == "" then
                             if isLocal then
-                                n = "You"
+                                n = translations["You"]
                             end
                         elseif n == "#P1#" then
                             if score:GetScoreKey() == mostRecentScore:GetScoreKey() then
-                                n = "Last Score"
+                                n = translations["LastScore"]
                             else
-                                n = "You"
+                                n = translations["You"]
                             end
                         end
                         self:settext(n)
@@ -607,7 +624,7 @@ local function scoreList()
             if isLocal then
                 if scores ~= nil and #scores == 0 then
                     self:diffusealpha(1)
-                    self:settext("No local scores recorded")
+                    self:settext(translations["NoLocalScoresRecorded"])
                 else
                     self:diffusealpha(0)
                     self:settext("")
@@ -617,13 +634,13 @@ local function scoreList()
 
             if scores == nil then
                 self:diffusealpha(1)
-                self:settext("Chart is unranked")
+                self:settext(translations["ChartUnranked"])
             elseif #scores == 0 and steps and fetchingScores == true then
                 self:diffusealpha(1)
-                self:settext("Fetching scores...")
+                self:settext(translations["FetchingScores"])
             elseif #scores == 0 and steps and fetchingScores == false then
                 self:diffusealpha(1)
-                self:settext("No online scores recorded")
+                self:settext(translations["NoOnlineScoresRecorded"])
             else
                 self:diffusealpha(0)
                 self:settext("")
@@ -650,7 +667,7 @@ local function scoreList()
 
             local lb = clamp((page-1) * (itemCount) + 1, 0, #scores)
             local ub = clamp(page * itemCount, 0, #scores)
-            self:settextf("Showing %d-%d of %d scores", lb, ub, #scores)
+            self:settextf(translations["ShowingXXofXScoresFormatStr"], lb, ub, #scores)
         end
     }
 
@@ -680,7 +697,7 @@ t[#t+1] = Def.ActorFrame {
             txt:valign(0):halign(0)
             txt:zoom(topButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
-            txt:settext("Local")
+            txt:settext(translations["Local"])
             registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
@@ -717,7 +734,7 @@ t[#t+1] = Def.ActorFrame {
             txt:valign(0):halign(0)
             txt:zoom(topButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
-            txt:settext("Online")
+            txt:settext(translations["Online"])
             registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
@@ -768,7 +785,7 @@ t[#t+1] = Def.ActorFrame {
             txt:valign(0):halign(0)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            txt:settext("All Scores")
+            txt:settext(translations["AllScores"])
             registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
@@ -816,7 +833,7 @@ t[#t+1] = Def.ActorFrame {
             txt:valign(0):halign(0)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            txt:settext("Top Scores")
+            txt:settext(translations["TopScores"])
             registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
@@ -864,7 +881,7 @@ t[#t+1] = Def.ActorFrame {
             txt:valign(0):halign(0)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            txt:settext("Current Rate")
+            txt:settext(translations["CurrentRate"])
             registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
@@ -900,7 +917,7 @@ t[#t+1] = Def.ActorFrame {
             txt:valign(0):halign(0)
             txt:zoom(bottomButtonSize)
             txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / bottomButtonSize - textZoomFudge)
-            txt:settext("All Rates")
+            txt:settext(translations["AllRates"])
             registerActorToColorConfigElement(txt, "main", "SecondaryText")
             local bg = self:GetChild("BG")
             bg:valign(0):halign(0)
