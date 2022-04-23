@@ -94,10 +94,8 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 }
 
 static Preference<float> m_fTimingWindowScale("TimingWindowScale", 1.0F);
-static Preference<float> m_fTimingWindowAdd("TimingWindowAdd", 0);
 static Preference1D<float> m_fTimingWindowSeconds(TimingWindowSecondsInit,
 												  NUM_TimingWindow);
-static Preference<float> m_fTimingWindowJump("TimingWindowJump", 0.25);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
 
 // moved out of being members of player.h
@@ -200,7 +198,6 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= m_fTimingWindowScale;
-	fSecs += m_fTimingWindowAdd;
 	return fSecs;
 }
 
@@ -213,7 +210,6 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= timingScale;
-	fSecs += m_fTimingWindowAdd;
 	return fSecs;
 }
 
