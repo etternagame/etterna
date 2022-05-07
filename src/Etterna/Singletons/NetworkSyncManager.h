@@ -2,7 +2,7 @@
 #define NetworkSyncManager_H
 
 #include "Etterna/Models/Misc/Difficulty.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include <queue>
 #include "rapidjson/document.h"
 #define ASIO_STANDALONE

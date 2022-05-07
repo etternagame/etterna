@@ -12,7 +12,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"

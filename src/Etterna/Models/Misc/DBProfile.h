@@ -2,7 +2,7 @@
 #define Profile_DB
 
 #include "GameConstantsAndTypes.h"
-#include "HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include <SQLiteCpp/SQLiteCpp.h>
 
 class Profile;
