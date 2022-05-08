@@ -44,7 +44,7 @@ A guide on this can be found in [the translations document](Translations.md).
 
 ## Packaging
 
-A few people have complained about the lack of packages for Linux in general. If you'd like to, you can try working on a package for your favorite distro. I've already made a more-or-less functional debian package here: https://github.com/nico-abram/etterna/tree/debian/
+A few people have complained about the lack of packages for Linux in general. If you'd like to, you can try working on a package for your favorite distro. 
 
 ## Graphic Design
 
