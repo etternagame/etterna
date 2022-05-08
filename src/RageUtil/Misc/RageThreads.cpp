@@ -454,11 +454,6 @@ RageMutex::Lock()
 			OtherSlotName = ssprintf("%s (%i)",
 									 OtherSlot->GetThreadName(),
 									 static_cast<int>(OtherSlot->m_iID));
-		const std::string sReason =
-		  ssprintf("Thread deadlock on mutex %s between %s and %s",
-				   GetName().c_str(),
-				   ThisSlotName.c_str(),
-				   OtherSlotName.c_str());
 
 		/* Don't leave GetThreadSlotsLock() locked when we call
 		 * ForceCrashHandlerDeadlock. */
@@ -466,9 +461,14 @@ RageMutex::Lock()
 		const uint64_t CrashHandle = OtherSlot ? OtherSlot->m_iID : 0;
 		GetThreadSlotsLock().Unlock();
 
-		/* Pass the crash handle of the other thread, so it can backtrace that
-		 * thread. */
-//		CrashHandler::ForceDeadlock(sReason, CrashHandle);
+		const std::string sReason =
+		  ssprintf("Thread deadlock on mutex %s between %s and %s CrashHandle %d",
+				   GetName().c_str(),
+				   ThisSlotName.c_str(),
+				   OtherSlotName.c_str(),
+				   CrashHandle);
+
+		sm_crash(sReason.c_str());
 	}
 
 	m_LockedBy = iThisThreadId;
