@@ -18,7 +18,7 @@ find_library(DL_LIBRARIES dl
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(DL DEFAULT_MSG DL_LIBRARIES DL_INCLUDE_DIR)
+find_package_handle_standard_args(DLFCN DEFAULT_MSG DL_LIBRARIES DL_INCLUDE_DIR)
 
 mark_as_advanced(DL_INCLUDE_DIR DL_LIBRARIES)
 

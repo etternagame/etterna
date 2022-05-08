@@ -10,7 +10,7 @@
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -270,7 +270,7 @@ Profile::LoadCustomFunction(const std::string& sDir)
 }
 
 void
-Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
+Profile::HandleStatsPrefixChange(std::string dir)
 {
 	// Temp variables to preserve stuff across the reload.
 	// Some stuff intentionally left out because the original reason for the
@@ -290,7 +290,7 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	const auto user_table = m_UserTable;
 	auto need_to_create_file = false;
 	if (IsAFile(dir + PROFILEMAN->GetStatsPrefix() + ETT_XML)) {
-		LoadAllFromDir(dir, require_signature, nullptr);
+		LoadAllFromDir(dir, nullptr);
 	} else {
 		ClearStats();
 		need_to_create_file = true;
@@ -309,16 +309,14 @@ Profile::HandleStatsPrefixChange(std::string dir, bool require_signature)
 	m_iTotalGameplaySeconds = total_gameplay_seconds;
 	m_UserTable = user_table;
 	if (need_to_create_file) {
-		SaveAllToDir(dir, require_signature);
+		SaveAllToDir(dir);
 	}
 }
 
 ProfileLoadResult
-Profile::LoadAllFromDir(const std::string& sDir,
-						bool bRequireSignature,
-						LoadingWindow* ld)
+Profile::LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
 {
-	LOG->Trace("Profile::LoadAllFromDir( %s )", sDir.c_str());
+	Locator::getLogger()->trace("Profile::LoadAllFromDir({})", sDir.c_str());
 	ASSERT(sDir.back() == '/');
 
 	InitAll();
@@ -357,7 +355,7 @@ Profile::LoadTypeFromDir(const std::string& dir)
 void
 Profile::CalculateStatsFromScores(LoadingWindow* ld)
 {
-	LOG->Trace("Calculating stats from scores");
+	Locator::getLogger()->trace("Calculating stats from scores");
 	const auto& all = SCOREMAN->GetAllProfileScores(m_sProfileID);
 	auto TotalGameplaySeconds = 0.f;
 	m_iTotalTapsAndHolds = 0;
@@ -365,7 +363,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 	m_iTotalMines = 0;
 
 	for (auto* hs : all) {
-		TotalGameplaySeconds += hs->GetSurvivalSeconds();
+		TotalGameplaySeconds += hs->GetPlayedSeconds();
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W1);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W2);
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W3);
@@ -391,7 +389,7 @@ Profile::CalculateStatsFromScores()
 }
 
 bool
-Profile::SaveAllToDir(const std::string& sDir, bool bSignData) const
+Profile::SaveAllToDir(const std::string& sDir) const
 {
 	m_LastPlayedDate = DateTime::GetNowDate();
 
@@ -466,6 +464,7 @@ Profile::AddStepTotals(int iTotalTapsAndHolds,
 					   int iTotalLifts)
 {
 	m_iTotalTapsAndHolds += iTotalTapsAndHolds;
+	m_iTotalDancePoints = m_iTotalTapsAndHolds * 2;
 	m_iTotalJumps += iTotalJumps;
 	m_iTotalHolds += iTotalHolds;
 	m_iTotalRolls += iTotalRolls;
@@ -488,7 +487,7 @@ Profile::RemoveFromPermaMirror(const string& ck)
 
 // more future goalman stuff (perhaps this should be standardized to "add" in
 // order to match scoreman nomenclature) -mina
-void
+bool
 Profile::AddGoal(const string& ck)
 {
 	ScoreGoal goal;
@@ -499,13 +498,14 @@ Profile::AddGoal(const string& ck)
 	if (goalmap.count(ck))
 		for (auto& n : goalmap[ck].goals)
 			if (n.rate == goal.rate && n.percent == goal.percent)
-				return;
+				return false;
 
 	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
 	DLMAN->AddGoal(ck, goal.percent, goal.rate, goal.timeassigned);
 	FillGoalTable();
 	MESSAGEMAN->Broadcast("GoalTableRefresh");
+	return true;
 }
 
 void
@@ -561,8 +561,7 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 	if (achieved) {
 		pNode->GetChildValue("TimeAchieved", s);
 		timeachieved.FromString(s);
-		pNode->GetChildValue("ScoreKey", s);
-		scorekey;
+		pNode->GetChildValue("ScoreKey", scorekey);
 	}
 
 	pNode->GetChildValue("Comment", comment);
@@ -617,7 +616,7 @@ Profile::SetAnyAchievedGoals(const string& ck,
 							 float& rate,
 							 const HighScore& pscore)
 {
-	CHECKPOINT_M("Scanning for any goals that may have been accomplished.");
+	Locator::getLogger()->trace("Scanning for any goals that may have been accomplished.");
 
 	if (!HasGoal(ck))
 		return;
@@ -658,14 +657,6 @@ Profile::SaveStatsWebPageToDir(const std::string& sDir) const
 }
 
 void
-Profile::SaveMachinePublicKeyToDir(const std::string& sDir) const
-{
-	if (PREFSMAN->m_bSignProfileData &&
-		IsAFile(CRYPTMAN->GetPublicKeyFileName()))
-		FileCopy(CRYPTMAN->GetPublicKeyFileName(), sDir + PUBLIC_KEY_FILE);
-}
-
-void
 Profile::AddScreenshot(const Screenshot& screenshot)
 {
 	m_vScreenshots.push_back(screenshot);
@@ -688,7 +679,7 @@ Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
 {
 	FILEMAN->FlushDirCache(sDir);
 	// Find a file name for the screenshot
-	vector<std::string> files;
+	std::vector<std::string> files;
 	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
 	sort(files.begin(), files.end());
 
@@ -696,7 +687,7 @@ Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
 
 	for (int i = files.size() - 1; i >= 0; --i) {
 		static Regex re("^" + sFileNameBeginning + "([0-9]{5})\\....$");
-		vector<std::string> matches;
+		std::vector<std::string> matches;
 		if (!re.Compare(files[i], matches))
 			continue;
 
@@ -907,6 +898,13 @@ class LunaProfile : public Luna<Profile>
 		LuaHelpers::CreateTableFromArray(p->goaltable, L);
 		return 1;
 	}
+	static int AddGoal(T* p, lua_State* L)
+	{
+		auto ck = SArg(1);
+		auto success = p->AddGoal(ck);
+		lua_pushboolean(L, success);
+		return 1;
+	}
 	static int SetFromAll(T* p, lua_State* L)
 	{
 		p->FillGoalTable();
@@ -1035,7 +1033,7 @@ class LunaProfile : public Luna<Profile>
 			return 0;
 		}
 
-		vector<ScoreGoal*> doot;
+		std::vector<ScoreGoal*> doot;
 		if (p->filtermode == 1) {
 			for (auto& sg : p->goaltable)
 				if (sg->achieved)
@@ -1174,6 +1172,7 @@ class LunaProfile : public Luna<Profile>
 		ADD_METHOD(IsCurrentChartPermamirror);
 		ADD_METHOD(GetEasiestGoalForChartAndRate);
 		ADD_METHOD(RenameProfile);
+		ADD_METHOD(AddGoal);
 		ADD_METHOD(SetFromAll);
 		ADD_METHOD(SortByDate);
 		ADD_METHOD(SortByRate);
@@ -1226,11 +1225,27 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 		if (!p->achieved) {
 			auto newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
+			if (newpercent > 0.99f)
+			{
+				if (p->percent < 0.99700f)
+					newpercent = 0.99700f; // AAA
+				else if (p->percent < 0.99955f)
+					newpercent = 0.99955f; // AAAA
+				else if (p->percent < 0.999935f)
+					newpercent = 0.999935f; // AAAAA
+			}
+			else if (newpercent > 0.985f)
+			{
+				if (p->percent > 0.999935f)
+					newpercent = 0.999935f; // AAAAA
+				else if (p->percent > 0.99955f)
+					newpercent = 0.99955f; // AAAA
+				else if (p->percent > 0.99700f)
+					newpercent = 0.99700f; // AAA
+				else
+					newpercent = 0.99f;
+			}
 
-			if (p->percent < 0.995f && newpercent > 0.995f)
-				newpercent = 0.9975f;
-			if (p->percent < 0.9990f && newpercent > 0.9997f)
-				newpercent = 0.9997f;
 
 			p->percent = newpercent;
 			p->CheckVacuity();
@@ -1243,7 +1258,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	{
 		if (!p->achieved) {
 			auto newpriority = IArg(1);
-			CLAMP(newpriority, 0, 100);
+			CLAMP(newpriority, 1, 100);
 			p->priority = newpriority;
 			p->UploadIfNotVacuous();
 		}

@@ -13,7 +13,7 @@
 #include <utility>
 #include <ext/hash_map>
 
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageInputDevice.h"
 
 /* A few helper functions. */
@@ -28,7 +28,7 @@ CFInt(int n)
 inline void
 PrintIOErr(IOReturn err, const char* s)
 {
-	LOG->Warn("%s - %s(%x,%d)", s, mach_error_string(err), err, err & 0xFFFFFF);
+	Locator::getLogger()->warn("{} - {}({:x},{})", s, mach_error_string(err), err, err & 0xFFFFFF);
 }
 
 inline Boolean
@@ -103,9 +103,8 @@ class HIDDevice
 	{
 		IOReturn ret = CALL(m_Queue, addElement, cookie, 0);
 		if (ret != KERN_SUCCESS)
-			LOG->Warn("Failed to add HID element with cookie %p to queue: %u",
-					  static_cast<UInt32>(cookie),
-					  ret);
+			Locator::getLogger()->warn("Failed to add HID element with cookie %p to queue: {}",
+					  static_cast<UInt32>(cookie),ret);
 	}
 
 	// Perform a synchronous set report on the HID interface.
@@ -144,7 +143,7 @@ class HIDDevice
 	 * passed to determine if this is a push or a release. The time is provided
 	 * as an optimization. */
 	virtual void GetButtonPresses(
-	  vector<DeviceInput>& vPresses,
+	  std::vector<DeviceInput>& vPresses,
 	  IOHIDElementCookie cookie,
 	  int value,
 	  const std::chrono::time_point<std::chrono::steady_clock>& now) const = 0;
@@ -159,7 +158,7 @@ class HIDDevice
 
 	// Add a device and a description for each logical device.
 	virtual void GetDevicesAndDescriptions(
-	  vector<InputDeviceInfo>& vDevices) const = 0;
+	  std::vector<InputDeviceInfo>& vDevices) const = 0;
 };
 
 #endif

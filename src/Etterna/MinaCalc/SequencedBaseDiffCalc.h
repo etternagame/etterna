@@ -8,9 +8,14 @@
  * be placed into statically allocated arrays for base difficulties. (in
  * threaded calc object now, though) */
 
+/// required percentage of average notes to pass
+constexpr float min_threshold = 0.65F;
+static const float downscale_logbase = std::log(6.2F);
+
 struct nps
 {
-	static void actual_cancer(Calc& calc, const int& hi)
+	/// determine NPSBase, itv_points for this hand
+	static void actual_cancer(Calc& calc, const int& hand)
 	{
 		for (auto itv = 0; itv < calc.numitv; ++itv) {
 
@@ -18,15 +23,66 @@ struct nps
 
 			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 				const auto& cur = calc.adj_ni.at(itv).at(row);
-				notes += cur.hand_counts.at(hi);
+				notes += cur.hand_counts.at(hand);
 			}
 
 			// nps for this interval
-			calc.soap.at(hi).at(NPSBase).at(itv) =
+			calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) =
 			  static_cast<float>(notes) * finalscaler * 1.6F;
 
 			// set points for this interval
-			calc.itv_points.at(hi).at(itv) = notes * 2;
+			calc.itv_points.at(hand).at(itv) = notes * 2;
+		}
+	}
+
+	/// determine grindscaler using smoothed npsbase
+	static void grindscale(Calc& calc) {
+		auto populated_intervals = 0;
+		auto avg_notes = 0.F;
+		for (auto itv = 0; itv < calc.numitv; ++itv) {
+			auto notes = 0.F;
+
+			for (auto& hand : both_hands) {
+				notes += calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv);
+			}
+
+			if (notes > 0) {
+				avg_notes += notes;
+				populated_intervals++;
+			}
+		}
+
+		if (populated_intervals > 0) {
+			const auto empty_intervals =
+			  static_cast<float>(calc.numitv - populated_intervals);
+			avg_notes /= populated_intervals;
+
+			auto failed_intervals = 0;
+
+			for (auto itv = 0; itv < calc.numitv; itv++) {
+				auto notes = 0.F;
+				for (auto& hand : both_hands)
+					notes +=
+					  calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv);
+
+				// count only intervals with notes
+				if (notes > 0.F && notes < avg_notes * min_threshold)
+					failed_intervals++;
+			}
+
+			// base grindscaler on how many intervals are passing
+			// if the entire file is just single taps or empty:
+			//   ask yourself... is it really worth playing?
+			const auto file_length =
+			  itv_idx_to_time(populated_intervals - failed_intervals);
+			// log minimum but if you move this you need to move the log base
+			const auto ping = .3F;
+			const auto timescaler =
+			  (ping * (std::log(file_length + 1) / downscale_logbase)) + ping;
+
+			calc.grindscaler = std::clamp(timescaler, .1F, 1.F);
+		} else {
+			calc.grindscaler = .1F;
 		}
 	}
 };
@@ -43,7 +99,7 @@ struct techyo
 		}
 
 		const auto a = seq.get_sc_ms_now(ct);
-		auto b = ms_init;
+		float b;
 		if (ct == col_ohjump) {
 			b = seq.get_sc_ms_now(ct, false);
 		} else {
@@ -56,13 +112,13 @@ struct techyo
 		auto porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
 		auto sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
 		const auto oioi = 0.5F;
-		pineapple = CalcClamp(pineapple + oioi, oioi, 1.F + oioi);
-		porcupine = CalcClamp(porcupine + oioi, oioi, 1.F + oioi);
-		sequins = CalcClamp(sequins + oioi, oioi, 1.F + oioi);
+		pineapple = std::clamp(pineapple + oioi, oioi, 1.F + oioi);
+		porcupine = std::clamp(porcupine + oioi, oioi, 1.F + oioi);
+		sequins = std::clamp(sequins + oioi, oioi, 1.F + oioi);
 
 		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
 		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
-		auto obliosis = 0.F;
+		float obliosis;
 
 		if (ct == col_left) {
 			obliosis = poliosis / scoliosis;
@@ -70,11 +126,11 @@ struct techyo
 			obliosis = scoliosis / poliosis;
 		}
 
-		obliosis = CalcClamp(obliosis, 1.F, 10.F);
+		obliosis = std::clamp(obliosis, 1.F, 10.F);
 		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
 		pewp /= obliosis;
-		const auto vertebrae = CalcClamp(
+		const auto vertebrae = std::clamp(
 		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
 
 		teehee(c / vertebrae);
@@ -101,11 +157,20 @@ struct techyo
 	{
 		// for now do simple thing, for this interval either use the higher
 		// between weighted adjusted ms/nps base and runningman diff
-		// we definitely don't want to average here because we don't want tech
+		// we definitely don't want to pure average here because we don't want tech
 		// to only be files with strong runningman pattern detection, but we
 		// could probably do something more robust at some point
-		return std::max(weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F),
-						rm_itv_max_diff);
+		auto tc = weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F);
+		auto rm = rm_itv_max_diff;
+		if (rm >= tc) {
+			// for rm dominant intervals, use tc to drag diff down
+			// weight should be [0,1]
+			// 1 -> all rm
+			// 0 -> all tc
+			constexpr float weight = 0.9F;
+			rm = weighted_average(rm, tc, weight, 1.F);
+		}
+		return std::max(tc, rm);
 	}
 
 	void interval_end()

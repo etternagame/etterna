@@ -37,8 +37,8 @@ class ScoreKeeper
   public:
 	ScoreKeeper(PlayerState* pPlayerState, PlayerStageStats* pPlayerStageStats);
 	virtual ~ScoreKeeper() = default;
-	virtual void Load(const vector<Song*>& /*unused*/,
-					  const vector<Steps*>& /*unused*/)
+	virtual void Load(const std::vector<Song*>& /*unused*/,
+					  const std::vector<Steps*>& /*unused*/)
 	{
 	}
 

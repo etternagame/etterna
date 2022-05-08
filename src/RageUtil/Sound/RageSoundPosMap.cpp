@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSoundPosMap.h"
 #include "RageUtil/Misc/RageTimer.h"
 
@@ -29,7 +29,7 @@ struct pos_map_t
 
 struct pos_map_impl
 {
-	vector<pos_map_t> m_Queue;
+	std::vector<pos_map_t> m_Queue;
 	void Cleanup();
 };
 
@@ -191,25 +191,14 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 	 * 3. Underflow; we'll be given a larger frame number than we know
 	 * about.
 	 */
-#ifdef _WIN32
-#define I64F "%I64i"
-#elif defined(__x86_64__)
-#define I64F "%li"
-#else
-#define I64F "%lli"
-#endif
+
 	static RageTimer last;
 	if (last.PeekDeltaTime() >= 1.0f) {
 		last.GetDeltaTime();
-		if (PREFSMAN->m_verbose_log > 1)
-			LOG->Trace("Approximate sound time: driver frame " I64F
-					   ", m_pImpl->m_Queue frame " I64F ".." I64F " (dist " I64F
-					   "), closest position is " I64F,
-					   iSourceFrame,
-					   pClosestBlock->m_iDestFrame,
-					   pClosestBlock->m_iDestFrame + pClosestBlock->m_iFrames,
-					   iClosestPositionDist,
-					   iClosestPosition);
+		Locator::getLogger()->trace("Approximate sound time: driver frame {}, m_pImpl->m_Queue frame {}..{} (dist {}), closest position is {}",
+					iSourceFrame, pClosestBlock->m_iDestFrame,
+					pClosestBlock->m_iDestFrame + pClosestBlock->m_iFrames,
+					iClosestPositionDist, iClosestPosition);
 	}
 
 	if (bApproximate)

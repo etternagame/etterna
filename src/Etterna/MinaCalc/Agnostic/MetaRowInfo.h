@@ -3,8 +3,7 @@
 #include "MetaIntervalInfo.h"
 #include "../SequencingHelpers.h"
 
-/* counterpart to metahandinfo */
-
+/// counterpart to metahandinfo
 struct metaRowInfo
 {
 	static const bool dbg = false;
@@ -25,6 +24,23 @@ struct metaRowInfo
 	bool alternating_chord_single = false;
 	bool gluts_maybe = false; // not really used/tested yet
 	bool twas_jack = false;
+
+	void reset()
+	{		
+		time = s_init;
+		ms_now = ms_init;
+		count = 0;
+		last_count = 0;
+		last_last_count = 0;
+		notes = 0;
+		last_notes = 0;
+		last_last_notes = 0;
+
+		alternating_chordstream = false;
+		alternating_chord_single = false;
+		gluts_maybe = false;
+		twas_jack = false;
+	}
 
 	void set_row_variations(metaItvInfo& mitvi) const
 	{
@@ -146,6 +162,8 @@ struct metaRowInfo
 			}
 		}
 
+		// if the previous 3 rows do not form any jacks
+		// and the current and previous rows are chords
 		if ((notes & last_notes) == 0 && count > 1 && last_count > 1) {
 			if ((last_notes & last.last_notes) == 0 && last_count > 1) {
 				mitvi.dunk_it = true;

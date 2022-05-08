@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil.h"
 #include "RageUtil_WorkerThread.h"
 
@@ -8,7 +8,7 @@ RageWorkerThread::RageWorkerThread(const std::string& sName)
   , m_HeartbeatEvent("\"" + sName + "\" heartbeat event")
 {
 	m_sName = sName;
-	m_Timeout.SetZero();
+	m_Timeout = 0.F;
 	m_iRequest = REQ_NONE;
 	m_bTimedOut = false;
 	m_fHeartbeat = -1;
@@ -28,10 +28,9 @@ RageWorkerThread::SetTimeout(float fSeconds)
 {
 	m_WorkerEvent.Lock();
 	if (fSeconds < 0)
-		m_Timeout.SetZero();
+		m_Timeout = 0.F;
 	else {
-		m_Timeout.Touch();
-		m_Timeout += fSeconds;
+		m_Timeout = fSeconds;
 	}
 	m_WorkerEvent.Unlock();
 }
@@ -50,7 +49,7 @@ RageWorkerThread::StopThread()
 	/* If we're timed out, wait. */
 	m_WorkerEvent.Lock();
 	if (m_bTimedOut) {
-		LOG->Trace("Waiting for timed-out worker thread \"%s\" to complete ...",
+		Locator::getLogger()->debug("Waiting for timed-out worker thread \"{}\" to complete ...",
 				   m_sName.c_str());
 		while (m_bTimedOut)
 			m_WorkerEvent.Wait();
@@ -63,7 +62,7 @@ RageWorkerThread::StopThread()
 
 	/* Shut down. */
 	if (!DoRequest(REQ_SHUTDOWN))
-		LOG->Warn("May have failed to shut down worker thread \"%s\"",
+		Locator::getLogger()->warn("May have failed to shut down worker thread \"{}\"",
 				  m_sName.c_str());
 	m_WorkerThread.Wait();
 }
@@ -74,10 +73,8 @@ RageWorkerThread::DoRequest(int iRequest)
 	ASSERT(!m_bTimedOut);
 	ASSERT(m_iRequest == REQ_NONE);
 
-	if (m_Timeout.IsZero() && iRequest != REQ_SHUTDOWN)
-		LOG->Warn("Request made with timeout disabled (%s, iRequest = %i)",
-				  m_sName.c_str(),
-				  iRequest);
+	if (m_Timeout <= 0.F && iRequest != REQ_SHUTDOWN)
+		Locator::getLogger()->warn("Request made with timeout disabled ({}, iRequest = {})", m_sName.c_str(), iRequest);
 
 	/* Set the request, and wake up the worker thread. */
 	m_WorkerEvent.Lock();
@@ -87,7 +84,7 @@ RageWorkerThread::DoRequest(int iRequest)
 
 	/* Wait for it to complete or time out. */
 	while (!m_bRequestFinished) {
-		bool bTimedOut = !m_WorkerEvent.Wait(&m_Timeout);
+		bool bTimedOut = !m_WorkerEvent.Wait(m_Timeout);
 		if (bTimedOut)
 			break;
 	}
@@ -116,8 +113,8 @@ RageWorkerThread::WorkerMain()
 		bool bTimeToRunHeartbeat = false;
 		m_WorkerEvent.Lock();
 		while (m_iRequest == REQ_NONE && !bTimeToRunHeartbeat) {
-			if (!m_WorkerEvent.Wait(m_fHeartbeat != -1 ? &m_NextHeartbeat
-													   : nullptr))
+			if (!m_WorkerEvent.Wait(m_fHeartbeat != -1 ? m_NextHeartbeat
+													   : 0.F))
 				bTimeToRunHeartbeat = true;
 		}
 		const int iRequest = m_iRequest;
@@ -135,17 +132,15 @@ RageWorkerThread::WorkerMain()
 			m_HeartbeatEvent.Unlock();
 
 			/* Schedule the next heartbeat. */
-			m_NextHeartbeat.Touch();
-			m_NextHeartbeat += m_fHeartbeat;
+			m_NextHeartbeat = m_fHeartbeat;
 		}
 
 		if (iRequest != REQ_NONE) {
 			/* Handle the request. */
 			if (iRequest != REQ_SHUTDOWN) {
-				CHECKPOINT_M(ssprintf("HandleRequest(%i)", iRequest).c_str());
+				Locator::getLogger()->trace("HandleRequest({})", iRequest);
 				HandleRequest(iRequest);
-				CHECKPOINT_M(
-				  ssprintf("HandleRequest(%i) done", iRequest).c_str());
+				Locator::getLogger()->trace("HandleRequest({}) done", iRequest);
 			}
 
 			/* Lock the mutex, to keep DoRequest where it is (if it's still
@@ -155,7 +150,7 @@ RageWorkerThread::WorkerMain()
 			m_WorkerEvent.Lock();
 
 			if (m_bTimedOut) {
-				LOG->Trace("Request %i timed out", iRequest);
+				Locator::getLogger()->trace("Request {} timed out", iRequest);
 
 				/* The calling thread timed out.  It's already gone and moved
 				 * on, so it's our responsibility to clean up.  No new requests
@@ -169,8 +164,7 @@ RageWorkerThread::WorkerMain()
 				 */
 				m_bTimedOut = false;
 			} else {
-				CHECKPOINT_M(
-				  ssprintf("HandleRequest(%i) OK", iRequest).c_str());
+				Locator::getLogger()->trace("HandleRequest({}) OK", iRequest);
 
 				m_bRequestFinished = true;
 
@@ -193,7 +187,7 @@ RageWorkerThread::WaitForOneHeartbeat()
 	ASSERT(m_fHeartbeat != -1);
 
 	m_HeartbeatEvent.Lock();
-	bool bTimedOut = !m_HeartbeatEvent.Wait(&m_Timeout);
+	bool bTimedOut = !m_HeartbeatEvent.Wait(m_Timeout);
 	m_HeartbeatEvent.Unlock();
 
 	return !bTimedOut;

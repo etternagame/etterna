@@ -1,9 +1,9 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver_JACK.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Models/Misc/Foreach.h"
 
 REGISTER_SOUND_DRIVER_CLASS(JACK);
@@ -37,12 +37,12 @@ RageSoundDriver_JACK::Init()
 	std::string error;
 
 	// Open JACK client and call it "StepMania" or whatever
-	client = jack_client_open(PRODUCT_FAMILY, JackNoStartServer, &status);
+	client = jack_client_open(Core::AppInfo::APP_TITLE, JackNoStartServer, &status);
 	if (client == NULL)
 		return "Couldn't connect to JACK server";
 
 	sample_rate = jack_get_sample_rate(client);
-	LOG->Trace("JACK connected at %u Hz", sample_rate);
+	Locator::getLogger()->trace("JACK connected at {}Hz", sample_rate);
 
 	// Start this before callbacks
 	StartDecodeThread();
@@ -87,11 +87,10 @@ RageSoundDriver_JACK::Init()
 		// Eh. Not fatal. JACK *is* running and we successfully created
 		// our source ports, so it's unlkely any other driver will
 		// function.
-		LOG->Warn("RageSoundDriver_JACK: Couldn't connect ports: %s",
-				  error.c_str());
+		Locator::getLogger()->warn("RageSoundDriver_JACK: Couldn't connect ports: {}",error.c_str());
 
 	// Success!
-	LOG->Trace("JACK sound driver started successfully");
+	Locator::getLogger()->trace("JACK sound driver started successfully");
 	return std::string();
 
 	// Not success!
@@ -108,7 +107,7 @@ out_close:
 std::string
 RageSoundDriver_JACK::ConnectPorts()
 {
-	vector<std::string> portNames;
+	std::vector<std::string> portNames;
 	split(PREFSMAN->m_iSoundDevice.Get(), ",", portNames, true);
 
 	const char *port_out_l = NULL, *port_out_r = NULL;

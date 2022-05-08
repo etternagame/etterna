@@ -3,6 +3,7 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/PlayerNumber.h"
 #include <unordered_map>
+#include <array>
 
 class PlayerState;
 class FilterManager
@@ -13,21 +14,41 @@ class FilterManager
 
 	PlayerState* m_pPlayerState;
 
-	float SSFilterLowerBounds[NUM_Skillset + 1];
-	float SSFilterUpperBounds[NUM_Skillset + 1];
-	float MaxFilterRate = 1.f;
+	constexpr static auto NUM_FILTERS =
+	  NUM_Skillset + 2; // The skillsets, plus 2 more for Length and Clear%
+
+	std::array<float, NUM_FILTERS> FilterLowerBounds;
+	std::array<float, NUM_FILTERS> FilterUpperBounds;
+	/* Skill_Overall,
+	 * Skill_Stream,
+	 * Skill_Jumpstream,
+	 * Skill_Handstream,
+	 * Skill_Stamina,
+	 * Skill_JackSpeed,
+	 * Skill_Chordjack,
+	 * Skill_Technical,
+	 * Length, //REQUIRED in non-exclusive filter if set
+	 * Clear % //REQUIRED in non-exclusive filter if set
+	 */
+	float MaxFilterRate = 1.F;
+	float MinFilterRate = 1.F;
 	bool ExclusiveFilter = false; // if true the filter system will only match
 								  // songs that meet all criteria rather than
 								  // all that meet any - mina
-	float GetSSFilter(Skillset ss, int bound);
-	void SetSSFilter(float v, Skillset ss, int bound);
+	auto GetFilter(Skillset ss, int bound) -> float;
+	void SetFilter(float v, Skillset ss, int bound);
 	void ResetSSFilters(); // reset button for filters
 	void ResetAllFilters();
 	bool HighestSkillsetsOnly = false;
-	bool AnyActiveFilter();
+	// Skillset is highest of the chart's skillset
+	bool HighestDifficultyOnly = false;
+	// Chart's skillset's MSD is the highest of all the MSDS of that
+	// skillset for all charts for that song.
+
+	auto AnyActiveFilter() -> bool;
 
 	void savepos(std::string name, int x, int y);
-	std::pair<int, int> loadpos(std::string name);
+	auto loadpos(std::string name) -> std::pair<int, int>;
 
 	// not actually filter stuff! but this doesn't get enough love so i'm going
 	// to put it here until i make something for it -mina

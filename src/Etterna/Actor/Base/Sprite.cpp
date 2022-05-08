@@ -119,6 +119,8 @@ Sprite::SongBGTexture(RageTextureID ID)
 
 	ID.bDither = true;
 
+	TEXTUREMAN->AdjustTextureID(ID);
+
 	return ID;
 }
 
@@ -144,6 +146,8 @@ Sprite::SongBannerTexture(RageTextureID ID)
 	// ID.bDither = true;
 
 	ID.Policy = RageTextureID::TEX_VOLATILE;
+
+	TEXTUREMAN->AdjustTextureID(ID);
 
 	return ID;
 }
@@ -178,7 +182,7 @@ Sprite::LoadFromNode(const XNode* pNode)
 		// overwriting the states that LoadFromTexture created.
 		// If the .sprite file doesn't define any states, leave
 		// frames and delays created during LoadFromTexture().
-		vector<State> aStates;
+		std::vector<State> aStates;
 
 		auto pFrames = pNode->GetChild("Frames");
 		if (pFrames != nullptr) {
@@ -348,7 +352,7 @@ Sprite::LoadFromTexture(const RageTextureID& ID)
 	// LOG->Trace( "Sprite::LoadFromTexture( %s )", ID.filename.c_str() );
 
 	RageTexture* pTexture = nullptr;
-	if ((m_pTexture != nullptr) && m_pTexture->GetID() == ID)
+	if (m_pTexture != nullptr && m_pTexture->GetID() == ID)
 		pTexture = m_pTexture;
 	else
 		pTexture = TEXTUREMAN->LoadTexture(ID);
@@ -1178,7 +1182,8 @@ class LunaSprite : public Luna<Sprite>
 		if (lua_isnil(L, 1)) {
 			p->UnloadTexture();
 		} else {
-			const RageTextureID ID(SArg(1));
+			RageTextureID ID(SArg(1));
+			TEXTUREMAN->AdjustTextureID(ID);
 			p->Load(ID);
 		}
 		COMMON_RETURN_SELF;
@@ -1189,7 +1194,7 @@ class LunaSprite : public Luna<Sprite>
 		TEXTUREMAN->DisableOddDimensionWarning();
 		p->Load(Sprite::SongBGTexture(ID));
 		TEXTUREMAN->EnableOddDimensionWarning();
-		return 1;
+		COMMON_RETURN_SELF;
 	}
 	static int LoadBanner(T* p, lua_State* L)
 	{
@@ -1197,7 +1202,7 @@ class LunaSprite : public Luna<Sprite>
 		TEXTUREMAN->DisableOddDimensionWarning();
 		p->Load(Sprite::SongBannerTexture(ID));
 		TEXTUREMAN->EnableOddDimensionWarning();
-		return 1;
+		COMMON_RETURN_SELF;
 	}
 
 	/* Commands that go in the tweening queue:
@@ -1286,7 +1291,7 @@ class LunaSprite : public Luna<Sprite>
 		if (!lua_istable(L, 1)) {
 			luaL_error(L, "State properties must be in a table.");
 		}
-		vector<Sprite::State> new_states;
+		std::vector<Sprite::State> new_states;
 		const auto num_states = lua_objlen(L, 1);
 		if (num_states == 0) {
 			luaL_error(L, "A Sprite cannot have zero states.");
@@ -1361,16 +1366,17 @@ class LunaSprite : public Luna<Sprite>
 	}
 	static int SetTexture(T* p, lua_State* L)
 	{
-		auto pTexture = Luna<RageTexture>::check(L, 1);
+		auto* pTexture = Luna<RageTexture>::check(L, 1);
 		pTexture = TEXTUREMAN->CopyTexture(pTexture);
 		p->SetTexture(pTexture);
 		COMMON_RETURN_SELF;
 	}
 	static int GetTexture(T* p, lua_State* L)
 	{
-		auto pTexture = p->GetTexture();
-		if (pTexture != nullptr)
+		auto* pTexture = p->GetTexture();
+		if (pTexture != nullptr) {
 			pTexture->PushSelf(L);
+		}
 		else
 			lua_pushnil(L);
 		return 1;

@@ -1,12 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSurface.h"
 #include "RageSurfaceUtils.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <thread>
 #include <algorithm>
+#include <RageUtil/Misc/RageTypes.h>
 
 using std::clamp;
 using std::max;
@@ -198,6 +199,59 @@ RageSurfaceUtils::ConvertSurface(RageSurface*& image,
 
 	delete image;
 	image = ret_image;
+}
+
+const RageColor
+RageSurfaceUtils::GetAverageRGB(const RageSurface* img, unsigned pixelIncrement)
+{
+	uint64_t rt = 0;
+	uint64_t gt = 0;
+	uint64_t bt = 0;
+
+	uint8_t tempR = 0;
+	uint8_t tempG = 0;
+	uint8_t tempB = 0;
+
+	// non alpha pixels taken into account
+	uint64_t pixelCount = 0;
+	int x = 0;
+
+	for (auto y = 0; y < img->h; y++) {
+		auto row = static_cast<uint8_t*>(img->pixels) + img->pitch * y;
+
+		// to allow pixelIncrement to offset the X position
+		if (x >= img->w)
+			x -= img->w;
+		
+		for (; x < img->w; x += pixelIncrement) {
+			const auto val = decodepixel(row, img->fmt.BytesPerPixel);
+			if (img->fmt.BitsPerPixel == 8) {
+				if (img->fmt.palette->colors[val].a) {
+					// This color isn't fully transparent, so grab it.
+					rt += img->fmt.palette->colors[val].r;
+					gt += img->fmt.palette->colors[val].g;
+					bt += img->fmt.palette->colors[val].b;
+					pixelCount++;
+				}
+			} else {
+				if (val & img->fmt.Amask) {
+					// This color isn't fully transparent, so grab it.
+					img->fmt.GetRGB(val, &tempR, &tempG, &tempB);
+					rt += tempR;
+					gt += tempG;
+					bt += tempB;
+					pixelCount++;
+				}
+			}
+
+			row += img->fmt.BytesPerPixel;
+		}
+	}
+	
+	if (pixelCount <= 0)
+		return RageColor(0,0,0,1.F);
+	
+	return RageColor(rt / pixelCount / 255.F, gt / pixelCount / 255.F, gt / pixelCount / 255.F, 1.F);
 }
 
 // Local helper for FixHiddenAlpha.
@@ -901,8 +955,7 @@ RageSurfaceUtils::LoadSurface(const std::string& file)
 	 * created with a different version whose CreateSurface() behavior
 	 * was different. */
 	if (h.pitch != img->pitch) {
-		LOG->Trace(
-		  "Error loading \"%s\": expected pitch %i, got %i (%ibpp, %i width)",
+		Locator::getLogger()->error("Error loading \"{}\": expected pitch {}, got {} ({}bpp, {} width)",
 		  file.c_str(),
 		  h.pitch,
 		  img->pitch,

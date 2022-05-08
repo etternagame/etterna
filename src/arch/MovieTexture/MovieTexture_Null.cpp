@@ -2,7 +2,7 @@
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "MovieTexture_Null.h"
 #include "RageUtil/Graphics/RageSurface.h"
 
@@ -27,7 +27,7 @@ class MovieTexture_Null : public RageMovieTexture
 MovieTexture_Null::MovieTexture_Null(RageTextureID ID)
   : RageMovieTexture(ID)
 {
-	LOG->Trace("MovieTexture_Null::MovieTexture_Null(ID)");
+	Locator::getLogger()->debug("MovieTexture_Null::MovieTexture_Null(ID)");
 	texHandle = 0;
 
 	RageTextureID actualID = GetID();

@@ -1,7 +1,7 @@
 #ifndef DisplaySpec_H
 #define DisplaySpec_H
 
-#include <RageUtil/Misc/RageLog.h>
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageTypes.h"
 
 #include <set>
@@ -81,7 +81,7 @@ class DisplaySpec
 			// Drop the trailing ", "
 			msg.resize(msg.size() - 2);
 
-			LOG->Warn(msg.c_str());
+			Locator::getLogger()->warn("{}", msg.c_str());
 		}
 	}
 

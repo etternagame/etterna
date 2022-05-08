@@ -1,13 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "Etterna/Singletons/CommandLineActions.h"
 
-#import <Cocoa/Cocoa.h>
-#include "Etterna/Globals/ProductInfo.h"
-#include "arch/ArchHooks/ArchHooks.h"
-#import "archutils/Darwin/MouseDevice.h"
+#include <Cocoa/Cocoa.h>
+#include "archutils/Darwin/MouseDevice.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Misc/AppInfo.hpp"
+#include "Etterna/Globals/GameLoop.h"
 
 CGFloat scrolled;
 
@@ -33,18 +33,6 @@ float MACMouseY()
     return frame.size.height - (mouseLoc.y - frame.origin.y - 1) - 10; //Appears to compensate for titlebar
     // This padding should be replaced in the future to use Cocoa calls to content
 }
-
-float MACWindowHeight()
-{
-    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
-    return frame.size.height;
-}
-float MACWindowWidth()
-{
-    NSRect frame = [[[NSApplication sharedApplication] mainWindow] frame];
-    return frame.size.width;
-}
-
 
 @interface NSApplication (PrivateShutUpWarning)
 - (void) setAppleMenu:(NSMenu *)menu;
@@ -123,7 +111,7 @@ float MACWindowWidth()
 {
     const char *url = [[[event paramDescriptorForKeyword:keyDirectObject] stringValue] UTF8String];
     
-    LOG->Info("Parsing URL: %s", url);
+    Locator::getLogger()->info("Parsing URL: {}", url);
     
     // I'm not sure this handles everything it needs to. - Colby
     CommandLineActions::CommandLineArgs args;
@@ -183,7 +171,7 @@ float MACWindowWidth()
 
 - (NSApplicationTerminateReply) applicationShouldTerminate:(NSApplication *)sender
 {
-    ArchHooks::SetUserQuit();
+    GameLoop::setUserQuit();
     return NSTerminateCancel;
 }
 @end
@@ -204,15 +192,15 @@ static void SetupMenus( void )
     // Get the localized strings from the file.
     NSString *sWindow =          NSLocalizedString( @"Window",                @"Menu title" );
     NSString *sHideOthers =      NSLocalizedString( @"Hide Others",           @"Menu item" );
-    NSString *sAbout =           NSLocalizedString( @"About " PRODUCT_FAMILY, @"Menu item" );
-    NSString *sHide =            NSLocalizedString( @"Hide " PRODUCT_FAMILY,  @"Menu item" );
+    NSString *sAbout =           NSLocalizedString( [NSString stringWithUTF8String:fmt::format("About {}", Core::AppInfo::APP_TITLE).c_str()], @"Menu item" );
+    NSString *sHide =            NSLocalizedString( [NSString stringWithUTF8String:fmt::format("Hide {}", Core::AppInfo::APP_TITLE).c_str()],  @"Menu item" );
     NSString *sShowAll =         NSLocalizedString( @"Show All",              @"Menu item" );
-    NSString *sQuit =            NSLocalizedString( @"Quit " PRODUCT_FAMILY,  @"Menu item" );
+    NSString *sQuit =            NSLocalizedString( [NSString stringWithUTF8String:fmt::format("Quit {}", Core::AppInfo::APP_TITLE).c_str()],  @"Menu item" );
     NSString *sMinimize =        NSLocalizedString( @"Minimize",              @"Menu item" );
     NSString *sEnterFullScreen = NSLocalizedString( @"Enter Full Screen",     @"Menu item" );
     
     NSMenu *mainMenu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
-    NSMenu *appMenu = [[[NSMenu alloc] initWithTitle:@PRODUCT_FAMILY] autorelease];
+    NSMenu *appMenu = [[[NSMenu alloc] initWithTitle:[NSString stringWithUTF8String:Core::AppInfo::APP_TITLE]] autorelease];
     NSMenu *windowMenu = [[[NSMenu alloc] initWithTitle:sWindow] autorelease];
     NSMenuItem *hideOthers = MenuItem( sHideOthers, @selector(hideOtherApplications:), @"h" );
     

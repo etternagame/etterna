@@ -4,7 +4,7 @@
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongManager.h"
 #include "DownloadManager.h"
@@ -58,7 +58,7 @@ struct DirAndProfile
 		profile.swap(other.profile);
 	}
 };
-static vector<DirAndProfile> g_vLocalProfile;
+static std::vector<DirAndProfile> g_vLocalProfile;
 
 static ThemeMetric<bool> FIXED_PROFILES("ProfileManager", "FixedProfiles");
 static ThemeMetric<int> NUM_FIXED_PROFILES("ProfileManager",
@@ -114,7 +114,7 @@ ProfileManager::FixedProfiles() const
 ProfileLoadResult
 ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 {
-	LOG->Trace("LoadingProfile P%d, %s", pn + 1, sProfileDir.c_str());
+	Locator::getLogger()->debug("LoadingProfile P{}, {}", pn + 1, sProfileDir.c_str());
 
 	ASSERT(!sProfileDir.empty());
 	ASSERT(sProfileDir.back() == '/');
@@ -124,8 +124,8 @@ ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 	m_bNeedToBackUpLastLoad = false;
 
 	// Try to load the original, non-backup data.
-	ProfileLoadResult lr = GetProfile(pn)->LoadAllFromDir(
-	  m_sProfileDir, PREFSMAN->m_bSignProfileData, nullptr);
+	ProfileLoadResult lr =
+	  GetProfile(pn)->LoadAllFromDir(m_sProfileDir, nullptr);
 
 	std::string sBackupDir = m_sProfileDir + LAST_GOOD_SUBDIR;
 
@@ -141,22 +141,21 @@ ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 	// Try to load from the backup if the original data fails to load
 	//
 	if (lr == ProfileLoadResult_FailedTampered) {
-		lr = GetProfile(pn)->LoadAllFromDir(
-		  sBackupDir, PREFSMAN->m_bSignProfileData, nullptr);
+		lr = GetProfile(pn)->LoadAllFromDir(sBackupDir, nullptr);
 		m_bLastLoadWasFromLastGood = lr == ProfileLoadResult_Success;
 
 		/* If the LastGood profile doesn't exist at all, and the actual profile
 		 * was failed_tampered, then the error should be failed_tampered and not
 		 * failed_no_profile. */
 		if (lr == ProfileLoadResult_FailedNoProfile) {
-			LOG->Trace("Profile was corrupt and LastGood for %s doesn't exist; "
+			Locator::getLogger()->warn("Profile was corrupt and LastGood for {} doesn't exist; "
 					   "error is ProfileLoadResult_FailedTampered",
 					   sProfileDir.c_str());
 			lr = ProfileLoadResult_FailedTampered;
 		}
 	}
 
-	LOG->Trace("Done loading profile - result %d", lr);
+	Locator::getLogger()->info("Done loading profile - result {}", lr);
 
 	return lr;
 }
@@ -211,8 +210,7 @@ ProfileManager::SaveProfile(PlayerNumber pn) const
 		Profile::MoveBackupToDir(m_sProfileDir, sBackupDir);
 	}
 
-	bool b =
-	  GetProfile(pn)->SaveAllToDir(m_sProfileDir, PREFSMAN->m_bSignProfileData);
+	bool b = GetProfile(pn)->SaveAllToDir(m_sProfileDir);
 
 	return b;
 }
@@ -223,7 +221,7 @@ ProfileManager::SaveLocalProfile(const std::string& sProfileID)
 	const Profile* pProfile = GetLocalProfile(sProfileID);
 	ASSERT(pProfile != NULL);
 	std::string sDir = LocalProfileIDToDir(sProfileID);
-	bool b = pProfile->SaveAllToDir(sDir, PREFSMAN->m_bSignProfileData);
+	bool b = pProfile->SaveAllToDir(sDir);
 	return b;
 }
 
@@ -270,7 +268,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 		ld->SetText("Loading Profiles");
 	UnloadAllLocalProfiles();
 
-	vector<std::string> profile_ids;
+	std::vector<std::string> profile_ids;
 	GetDirListing(USER_PROFILES_DIR + "*", profile_ids, true, true);
 
 	for (auto& id : profile_ids) {
@@ -283,7 +281,7 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	}
 
 	for (auto& p : g_vLocalProfile) {
-		p.profile.LoadAllFromDir(p.sDir, PREFSMAN->m_bSignProfileData, ld);
+		p.profile.LoadAllFromDir(p.sDir, ld);
 	}
 }
 
@@ -315,7 +313,7 @@ ProfileManager::CreateLocalProfile(const std::string& sName,
 	// handled. -Kyz
 	int max_profile_number = -1;
 	int first_free_number = 0;
-	vector<std::string> profile_ids;
+	std::vector<std::string> profile_ids;
 	GetLocalProfileIDs(profile_ids);
 	for (auto& id : profile_ids) {
 		int tmp = 0;
@@ -350,7 +348,7 @@ ProfileManager::CreateLocalProfile(const std::string& sName,
 
 	// Save it to disk.
 	std::string sProfileDir = LocalProfileIDToDir(profile_id);
-	if (!pProfile->SaveAllToDir(sProfileDir, PREFSMAN->m_bSignProfileData)) {
+	if (!pProfile->SaveAllToDir(sProfileDir)) {
 		delete pProfile;
 		sProfileIDOut = "";
 		return false;
@@ -403,7 +401,7 @@ ProfileManager::RenameLocalProfile(const std::string& sProfileID,
 	pProfile->m_sDisplayName = sNewName;
 
 	std::string sProfileDir = LocalProfileIDToDir(sProfileID);
-	return pProfile->SaveAllToDir(sProfileDir, PREFSMAN->m_bSignProfileData);
+	return pProfile->SaveAllToDir(sProfileDir);
 }
 
 bool
@@ -502,7 +500,7 @@ ProfileManager::AddStepTotals(PlayerNumber pn,
 }
 
 void
-ProfileManager::GetLocalProfileIDs(vector<std::string>& vsProfileIDsOut) const
+ProfileManager::GetLocalProfileIDs(std::vector<std::string>& vsProfileIDsOut) const
 {
 	vsProfileIDsOut.clear();
 	for (auto& i : g_vLocalProfile) {
@@ -513,7 +511,7 @@ ProfileManager::GetLocalProfileIDs(vector<std::string>& vsProfileIDsOut) const
 
 void
 ProfileManager::GetLocalProfileDisplayNames(
-  vector<std::string>& vsProfileDisplayNamesOut) const
+  std::vector<std::string>& vsProfileDisplayNamesOut) const
 {
 	vsProfileDisplayNamesOut.clear();
 	for (auto& i : g_vLocalProfile) {
@@ -560,7 +558,7 @@ ProfileManager::SetStatsPrefix(std::string const& prefix)
 	m_stats_prefix = prefix;
 	for (size_t i = 0; i < g_vLocalProfile.size(); ++i) {
 		g_vLocalProfile[i].profile.HandleStatsPrefixChange(
-		  g_vLocalProfile[i].sDir, PREFSMAN->m_bSignProfileData);
+		  g_vLocalProfile[i].sDir);
 	}
 }
 
@@ -690,17 +688,45 @@ class LunaProfileManager : public Luna<ProfileManager>
 	}
 	static int GetLocalProfileIDs(T* p, lua_State* L)
 	{
-		vector<std::string> vsProfileIDs;
+		std::vector<std::string> vsProfileIDs;
 		p->GetLocalProfileIDs(vsProfileIDs);
 		LuaHelpers::CreateTableFromArray<std::string>(vsProfileIDs, L);
 		return 1;
 	}
 	static int GetLocalProfileDisplayNames(T* p, lua_State* L)
 	{
-		vector<std::string> vsProfileNames;
+		std::vector<std::string> vsProfileNames;
 		p->GetLocalProfileDisplayNames(vsProfileNames);
 		LuaHelpers::CreateTableFromArray<std::string>(vsProfileNames, L);
 		return 1;
+	}
+	static int CreateDefaultProfile(T* p, lua_State* L)
+	{
+		std::string profileID;
+		p->CreateLocalProfile("Default Profile", profileID);
+		p->m_sDefaultLocalProfileID[PLAYER_1].Set(profileID);
+		p->LoadLocalProfileFromMachine(PLAYER_1);
+		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
+
+		Profile* pProfile = p->GetLocalProfile(profileID);
+		if (pProfile != nullptr)
+			pProfile->PushSelf(L);
+		else
+			lua_pushnil(L);
+		
+		return 1;
+	}
+	static int SetProfileIDToUse(T* p, lua_State* L)
+	{
+		p->UnloadProfile(PLAYER_1);
+		// no checking to make sure this is right.
+		// do it yourself. set this from an existing profile.
+		std::string id = SArg(1);
+		p->m_sDefaultLocalProfileID[PLAYER_1].Set(id);
+		p->LoadLocalProfileFromMachine(PLAYER_1);
+		GAMESTATE->LoadCurrentSettingsFromProfile(PLAYER_1);
+
+		COMMON_RETURN_SELF;
 	}
 	LunaProfileManager()
 	{
@@ -725,6 +751,8 @@ class LunaProfileManager : public Luna<ProfileManager>
 		ADD_METHOD(GetLocalProfileIDs);
 		ADD_METHOD(GetLocalProfileDisplayNames);
 		ADD_METHOD(LocalProfileIDToDir);
+		ADD_METHOD(CreateDefaultProfile);
+		ADD_METHOD(SetProfileIDToUse);
 	}
 };
 

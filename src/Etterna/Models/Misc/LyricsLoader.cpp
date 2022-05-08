@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "LyricsLoader.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/ThemeManager.h"
@@ -22,7 +22,7 @@ CompareLyricSegments(const LyricSegment& seg1, const LyricSegment& seg2)
 bool
 LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 {
-	LOG->Trace("LyricsLoader::LoadFromLRCFile(%s)", sPath.c_str());
+	Locator::getLogger()->trace("LyricsLoader::LoadFromLRCFile({})", sPath.c_str());
 
 	RageFile input;
 	if (!input.Open(sPath)) {
@@ -59,7 +59,7 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 		// "[data1] data2".  Ignore whitespace at the beginning of the line.
 		static Regex x("^ *\\[([^]]+)\\] *(.*)$");
 
-		vector<std::string> matches;
+		std::vector<std::string> matches;
 		if (!x.Compare(line, matches)) {
 			continue;
 		}
@@ -78,9 +78,8 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 			// According to the Dance With Intensity readme, one can set up to
 			// ten colors in a line and access them via "{cX}", where X is 0-9.
 			if (result != 3) {
-				LOG->Trace("The color value '%s' in '%s' is invalid.",
-						   sValueData.c_str(),
-						   sPath.c_str());
+				Locator::getLogger()->trace("The color value '{}' in '{}' is invalid.",
+						   sValueData.c_str(), sPath.c_str());
 				continue;
 			}
 
@@ -114,7 +113,7 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 	sort(out.m_LyricSegments.begin(),
 		 out.m_LyricSegments.end(),
 		 CompareLyricSegments);
-	LOG->Trace("LyricsLoader::LoadFromLRCFile done");
+	Locator::getLogger()->trace("LyricsLoader::LoadFromLRCFile done");
 
 	return true;
 }

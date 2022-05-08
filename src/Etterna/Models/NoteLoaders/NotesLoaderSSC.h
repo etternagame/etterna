@@ -2,7 +2,6 @@
 #ifndef NotesLoaderSSC_H
 #define NotesLoaderSSC_H
 
-#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "NotesLoaderSM.h"
 
 class MsdFile;
@@ -58,8 +57,8 @@ struct StepsTagInfo
 	  , has_own_timing(false)
 	  , ssc_format(false)
 	  , from_cache(fc)
-	  , for_load_edit(false)
 	  , steps(nullptr)
+	  , for_load_edit(false)
 	  , timing(nullptr)
 	{
 		params = nullptr;
@@ -80,7 +79,7 @@ struct SongTagInfo
 	{
 	}
 };
-vector<float>
+std::vector<float>
 msdsplit(const std::string& s);
 }
 /** @brief The version where fakes started to be used as a radar category. */
@@ -120,34 +119,6 @@ struct SSCLoader : public SMLoader
 	bool LoadFromSimfile(const std::string& sPath,
 						 Song& out,
 						 bool bFromCache = false) override;
-
-	/**
-	 * @brief Attempt to load an edit from the hard drive.
-	 * @param sEditFilePath a path on the hard drive to check.
-	 * @param slot the Profile of the user with the edit.
-	 * @param bAddStepsToSong a flag to determine if we add the edit steps to
-	 * the song file.
-	 * @return its success or failure.
-	 */
-	bool LoadEditFromFile(const std::string& sEditFilePath,
-						  ProfileSlot slot,
-						  bool bAddStepsToSong,
-						  Song* givenSong = nullptr) override;
-	/**
-	 * @brief Attempt to parse the edit file in question.
-	 * @param msd the edit file itself.
-	 * @param sEditFilePath a const reference to a path on the hard drive to
-	 * check.
-	 * @param slot the Profile of the user with the edit.
-	 * @param bAddStepsToSong a flag to determine if we add the edit steps to
-	 * the song file.
-	 * @return its success or failure.
-	 */
-	bool LoadEditFromMsd(const MsdFile& msd,
-						 const std::string& sEditFilePath,
-						 ProfileSlot slot,
-						 bool bAddStepsToSong,
-						 Song* givenSong = nullptr) override;
 
 	/**
 	 * @brief Retrieve the specific NoteData from the file.

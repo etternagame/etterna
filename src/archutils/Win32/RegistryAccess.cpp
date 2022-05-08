@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "RegistryAccess.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "archutils/Win32/ErrorStrings.h"
 
@@ -13,7 +13,7 @@ GetRegKeyType(const std::string& sIn, std::string& sOut, HKEY& key)
 {
 	size_t iBackslash = sIn.find('\\');
 	if (iBackslash == sIn.npos) {
-		LOG->Warn("Invalid registry key: \"%s\" ", sIn.c_str());
+		Locator::getLogger()->warn("Invalid registry key: \"{}\" ", sIn.c_str());
 		return false;
 	}
 
@@ -30,7 +30,7 @@ GetRegKeyType(const std::string& sIn, std::string& sOut, HKEY& key)
 	else if (!CompareNoCase(sType, "HKEY_USERS"))
 		key = HKEY_USERS;
 	else {
-		LOG->Warn("Invalid registry key: \"%s\" ", sIn.c_str());
+		Locator::getLogger()->warn("Invalid registry key: \"{}\" ", sIn.c_str());
 		return false;
 	}
 
@@ -62,10 +62,7 @@ OpenRegKey(const std::string& sKey, RegKeyMode mode, bool bWarnOnError = true)
 							   &hRetKey);
 	if (retval != ERROR_SUCCESS) {
 		if (bWarnOnError)
-			LOG->Warn(
-			  werr_ssprintf(
-				retval, "RegOpenKeyEx(%x,%s) error", hType, sSubkey.c_str())
-				.c_str());
+			Locator::getLogger()->warn(werr_ssprintf(retval, "RegOpenKeyEx(%x,%s) error", hType, sSubkey.c_str()));
 		return nullptr;
 	}
 
@@ -143,7 +140,7 @@ RegistryAccess::GetRegValue(const std::string& sKey,
 
 bool
 RegistryAccess::GetRegSubKeys(const std::string& sKey,
-							  vector<std::string>& lst,
+							  std::vector<std::string>& lst,
 							  const std::string& regex,
 							  bool bReturnPathToo)
 {
@@ -164,9 +161,7 @@ RegistryAccess::GetRegSubKeys(const std::string& sKey,
 			break;
 
 		if (iRet != ERROR_SUCCESS) {
-			LOG->Warn(
-			  werr_ssprintf(iRet, "GetRegSubKeys(%p,%i) error", hKey, index)
-				.c_str());
+			Locator::getLogger()->warn(werr_ssprintf(iRet, "GetRegSubKeys(%p,%i) error", hKey, index));
 			bError = true;
 			break;
 		}

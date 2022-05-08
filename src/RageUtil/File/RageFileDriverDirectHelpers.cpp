@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageFileDriverDirectHelpers.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "Core/Services/Locator.hpp"
 #include <sys/stat.h>
 
 #include <cerrno>
@@ -80,7 +81,7 @@ bool
 CreateDirectories(const std::string& Path)
 {
 	// XXX: handle "//foo/bar" paths in Windows
-	vector<std::string> parts;
+	std::vector<std::string> parts;
 	std::string curpath;
 
 	// If Path is absolute, add the initial slash ("ignore empty" will remove
@@ -114,9 +115,7 @@ CreateDirectories(const std::string& Path)
 		/* I can't reproduce this anymore.  If we get ENOENT, log it but keep
 		 * going. */
 		if (errno == ENOENT) {
-			WARN(ssprintf(
-				   "Couldn't create %s: %s", curpath.c_str(), strerror(errno))
-				   .c_str());
+			Locator::getLogger()->warn("Couldn't create {}: {}", curpath.c_str(), strerror(errno));
 			errno = EEXIST;
 		}
 #endif
@@ -125,19 +124,14 @@ CreateDirectories(const std::string& Path)
 			/* Make sure it's a directory. */
 			struct stat st;
 			if (DoStat(curpath.c_str(), &st) != -1 && !(st.st_mode & S_IFDIR)) {
-				WARN(ssprintf(
-					   "Couldn't create %s: path exists and is not a directory",
-					   curpath.c_str())
-					   .c_str());
+				Locator::getLogger()->warn("Couldn't create {}: path exists and is not a directory", curpath.c_str());
 				return false;
 			}
 
 			continue; // we expect to see this error
 		}
 
-		WARN(
-		  ssprintf("Couldn't create %s: %s", curpath.c_str(), strerror(errno))
-			.c_str());
+        Locator::getLogger()->warn("Couldn't create {}: {}", curpath.c_str(), strerror(errno));
 		return false;
 	}
 
@@ -166,7 +160,7 @@ DirectFilenameDB::SetRoot(const std::string& root_)
 void
 DirectFilenameDB::CacheFile(const std::string& sPath)
 {
-	CHECKPOINT_M(std::string(root + sPath).c_str());
+	Locator::getLogger()->trace("{}", std::string(root + sPath).c_str());
 	std::string sDir = Dirname(sPath);
 	FileSet* pFileSet = GetFileSet(sDir, false);
 	if (pFileSet == nullptr) {
@@ -200,9 +194,7 @@ DirectFilenameDB::CacheFile(const std::string& sPath)
 		int iError = errno;
 		// If it's a broken symlink, ignore it.  Otherwise, warn.
 		// Huh?
-		WARN(
-		  ssprintf("File '%s' is gone! (%s)", sPath.c_str(), strerror(iError))
-			.c_str());
+		Locator::getLogger()->warn("File '{}' is gone! ({})", sPath.c_str(), strerror(iError));
 	} else {
 		f.dir = (st.st_mode & S_IFDIR);
 		f.size = (int)st.st_size;
@@ -280,12 +272,8 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 				continue;
 
 			/* Huh? */
-			WARN(
-			  ssprintf("Got file '%s' in '%s' from list, but can't stat? (%s)",
-					   pEnt->d_name,
-					   sPath.c_str(),
-					   strerror(iError))
-				.c_str());
+			Locator::getLogger()->warn("Got file '{}' in '{}' from list, but can't stat? ({})",
+					   pEnt->d_name, sPath.c_str(), strerror(iError));
 			continue;
 		}
 
@@ -310,7 +298,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 	 */
 	static const std::string IGNORE_MARKER_BEGINNING = "ignore-";
 
-	vector<std::string> vsFilesToRemove;
+	std::vector<std::string> vsFilesToRemove;
 	for (std::set<File>::iterator iter =
 		   fs.files.lower_bound(IGNORE_MARKER_BEGINNING);
 		 iter != fs.files.end();

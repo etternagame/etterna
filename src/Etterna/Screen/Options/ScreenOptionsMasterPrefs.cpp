@@ -10,7 +10,7 @@
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenOptionsMasterPrefs.h"
 #include "Etterna/Models/Songs/SongOptions.h"
@@ -29,7 +29,7 @@ GetPrefsDefaultModifiers(PlayerOptions& po, SongOptions& so)
 static void
 SetPrefsDefaultModifiers(const PlayerOptions& po, const SongOptions& so)
 {
-	vector<std::string> as;
+	std::vector<std::string> as;
 #define remove_empty_back()                                                    \
 	if (as.back() == "") {                                                     \
 		as.pop_back();                                                         \
@@ -170,9 +170,9 @@ MoveNop(int& iSel, bool bToSel, const ConfOption* pConfOption)
 // TODO: Write GenerateValueList() function that can use ints and floats. -aj
 
 static void
-GameChoices(vector<std::string>& out)
+GameChoices(std::vector<std::string>& out)
 {
-	vector<const Game*> aGames;
+	std::vector<const Game*> aGames;
 	GAMEMAN->GetEnabledGames(aGames);
 	for (auto& g : aGames) {
 		std::string sGameName = g->m_szName;
@@ -183,7 +183,7 @@ GameChoices(vector<std::string>& out)
 static void
 GameSel(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<std::string> choices;
+	std::vector<std::string> choices;
 	pConfOption->MakeOptionsList(choices);
 
 	if (ToSel) {
@@ -194,16 +194,16 @@ GameSel(int& sel, bool ToSel, const ConfOption* pConfOption)
 			if (!strcasecmp(choices[i].c_str(), sCurGameName.c_str()))
 				sel = i;
 	} else {
-		vector<const Game*> aGames;
+		std::vector<const Game*> aGames;
 		GAMEMAN->GetEnabledGames(aGames);
 		PREFSMAN->SetCurrentGame(aGames[sel]->m_szName);
 	}
 }
 
 static void
-LanguageChoices(vector<std::string>& out)
+LanguageChoices(std::vector<std::string>& out)
 {
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 	THEME->GetLanguages(vs);
 	SortStringArray(vs, true);
 
@@ -220,7 +220,7 @@ LanguageChoices(vector<std::string>& out)
 static void
 Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 	THEME->GetLanguages(vs);
 	SortStringArray(vs, true);
 
@@ -237,10 +237,8 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 				sel = i;
 
 		if (sel == -1) {
-			LOG->Warn(
-			  "Couldn't find language \"%s\" or fallback \"%s\"; using \"%s\"",
-			  THEME->GetCurLanguage().c_str(),
-			  SpecialFiles::BASE_LANGUAGE.c_str(),
+			Locator::getLogger()->warn("Couldn't find language \"{}\" or fallback \"{}\"; using \"{}\"",
+			  THEME->GetCurLanguage().c_str(), SpecialFiles::BASE_LANGUAGE.c_str(),
 			  vs[0].c_str());
 			sel = 0;
 		}
@@ -256,7 +254,7 @@ Language(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 static void
-ThemeChoices(vector<std::string>& out)
+ThemeChoices(std::vector<std::string>& out)
 {
 	THEME->GetSelectableThemeNames(out);
 	for (auto& s : out) {
@@ -274,7 +272,7 @@ cache_display_specs()
 }
 
 static void
-DisplayResolutionChoices(vector<std::string>& out)
+DisplayResolutionChoices(std::vector<std::string>& out)
 {
 	cache_display_specs();
 	for (auto& iter : display_specs) {
@@ -287,10 +285,10 @@ DisplayResolutionChoices(vector<std::string>& out)
 static void
 RequestedTheme(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<std::string> choices;
+	std::vector<std::string> choices;
 	pConfOption->MakeOptionsList(choices);
 
-	vector<std::string> vsThemeNames;
+	std::vector<std::string> vsThemeNames;
 	THEME->GetSelectableThemeNames(vsThemeNames);
 
 	if (ToSel) {
@@ -308,7 +306,7 @@ RequestedTheme(int& sel, bool ToSel, const ConfOption* pConfOption)
 
 static LocalizedString OFF("ScreenOptionsMasterPrefs", "Off");
 static void
-AnnouncerChoices(vector<std::string>& out)
+AnnouncerChoices(std::vector<std::string>& out)
 {
 	ANNOUNCER->GetAnnouncerNames(out);
 	out.insert(out.begin(), OFF);
@@ -317,7 +315,7 @@ AnnouncerChoices(vector<std::string>& out)
 static void
 Announcer(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<std::string> choices;
+	std::vector<std::string> choices;
 	pConfOption->MakeOptionsList(choices);
 
 	if (ToSel) {
@@ -334,7 +332,7 @@ Announcer(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 static void
-DefaultNoteSkinChoices(vector<std::string>& out)
+DefaultNoteSkinChoices(std::vector<std::string>& out)
 {
 	NOTESKIN->GetNoteSkinNames(out);
 }
@@ -342,7 +340,7 @@ DefaultNoteSkinChoices(vector<std::string>& out)
 static void
 DefaultNoteSkin(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	vector<std::string> choices;
+	std::vector<std::string> choices;
 	pConfOption->MakeOptionsList(choices);
 
 	if (ToSel) {
@@ -550,7 +548,7 @@ operator-(res_t lhs, res_t const& rhs)
 static void
 DisplayResolutionM(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	static vector<res_t> res_choices;
+	static std::vector<res_t> res_choices;
 
 	if (res_choices.empty()) {
 		cache_display_specs();
@@ -696,7 +694,7 @@ EditRecordModeLeadIn(int& sel, bool to_sel, const ConfOption* conf_option)
 	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
 }
 
-static vector<ConfOption> g_ConfOptions;
+static std::vector<ConfOption> g_ConfOptions;
 static void
 InitializeConfOptions()
 {
@@ -734,6 +732,7 @@ InitializeConfOptions()
 	ADD(ConfOption("ReplaysUseScoreMods", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("AllowStartToGiveUp", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
 				   MovePref<MusicWheelUsesSections>,
@@ -851,9 +850,10 @@ InitializeConfOptions()
 	ADD(ConfOption("Center1Player", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EasterEggs", MovePref<bool>, "Off", "On"));
 	// W1 is Fantastic Timing
-	ADD(ConfOption("AllowW1", MovePref<AllowW1>, "Never", "Always"));
 	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("PackProgressInWheel", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("EnableMinidumpUpload", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
@@ -939,9 +939,8 @@ InitializeConfOptions()
 	ADD(ConfOption("TextureColorDepth", TextureColorDepth, "16bit", "32bit"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("MovieColorDepth", MovieColorDepth, "16bit", "32bit"));
-	ADD(ConfOption("DelayedTextureDelete", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("DelayedTextureDeletion", MovePref<bool>, "Off", "On"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
-	ADD(ConfOption("CelShadeModels", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("SmoothLines", MovePref<bool>, "Off", "On"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("RefreshRate",
@@ -1053,7 +1052,7 @@ ConfOption::UpdateAvailableOptions()
 }
 
 void
-ConfOption::MakeOptionsList(vector<std::string>& out) const
+ConfOption::MakeOptionsList(std::vector<std::string>& out) const
 {
 	out = names;
 }

@@ -8,6 +8,7 @@ Interested in contributing to Etterna? This guide is the place to start!
 - [Quick Start](#Quick-Start)
 - [Universal Dependencies](#Universal-Dependencies)
   - [Linux Dependencies](#Linux-Dependencies)
+  - [Pop_OS! Notes](#Pop_OS-Notes)
   - [Windows Dependencies](#Windows-Dependencies)
   - [macOS Dependencies](#macOS-Dependencies)
 - [Project Generation](#Project-Generation)
@@ -36,7 +37,7 @@ Here are some commands for current developers and contributors to get started. M
 
 ```bash
 cmake -G "Unix Makefiles" ..                                     # Linux
-cmake  -G "Visual Studio 16 2019" ..                             # Windows
+cmake -G "Visual Studio 16 2019" ..                              # Windows
 cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
 ```
 
@@ -46,21 +47,51 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
 - [OpenSSL](https://www.openssl.org/) (Version 1.1.1)
   - Debian: `apt install libssl-dev`
   - Fedora: `dnf install openssl-devel`
+  - Arch: `pacman -S openssl`
+  - Alpine: `apk add openssl-dev`
   - macOS: `brew install openssl`
-  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1g.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1g.exe)
+  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1i.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1i.exe)
+- [depot_tools](https://dev.chromium.org/developers/how-tos/install-depot-tools) - Installation is platform specific. To skip installing this, follow the relevant instructions in [CLI Project Generation](CLI-Project-Generation).
 
 ### Linux Dependencies
 
 While most dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
 
-- Debian: `apt install libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
-- Fedora: `dnf install libssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
+For Pop_OS!, install the `Debian` dependencies, then refer to the [Pop_OS! Notes](#Pop_OS-Notes) section below.
+
+- Debian: `apt install build-essential libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
+- Fedora: `dnf install openssl-static libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
+- Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack`
+- Alpine: `apk add build-base openssl-dev libx11-dev libxrandr-dev curl-dev mesa-dev glu-dev pulseaudio-dev libogg-dev alsa-lib-dev jack-dev`
+
+### Pop_OS! Notes
+
+More recent builds of Pop_OS! are missing some required dependencies.
+
+#### Python 2.7
+
+The build requires Python 2.7 be installed and symlinked as `python`.
+
+Run `python --version`. If it's ok, skip this section. If `python --version` says `command not found`, run the following:
+
+```
+sudo apt install -y python2.7
+sudo ln -s /usr/bin/python2.7 /usr/local/bin/python
+```
+
+#### clang
+
+`clang` is required for Crashpad. If you don't want to include Crashpad, add `-DWITH_CRASHPAD=OFF` when running `cmake`. Otherwise, install `clang`:
+
+```
+sudo apt install -y clang
+```
 
 ### Windows Dependencies
 
 - [Visual Studio](https://visualstudio.microsoft.com/downloads/) - Any modern version of Visual Studio should be compatible _(The earliest version we theoretically support is `Visual Studio 9 2008`, though we have only tested on `Visual Studio 15 2017` and after)_
-- [DirectX Runtimes](https://www.microsoft.com/en-us/download/details.aspx?id=8109) (June 2010)
-- [DirectX SDK](https://www.microsoft.com/en-us/download/details.aspx?id=6812)
+- [DirectX Runtimes](https://web.archive.org/web/20180112171750/http://www.microsoft.com/en-us/download/confirmation.aspx?id=8109) (June 2010)
+- [DirectX SDK](https://web.archive.org/web/20180113160705if_/https://www.microsoft.com/en-us/download/confirmation.aspx?id=6812)
 - [Microsoft Visual C++ Redistributables](http://www.microsoft.com/en-us/download/details.aspx?id=48145) - Both 32bit and 64bit
 - [Windows 10 Development Kit](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 
@@ -70,7 +101,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 ## Project Generation
 
-First, ensure you have forked Etterna, cloned to your system, and checked out `develop`. 
+First, ensure you have forked Etterna, cloned to your system, and checked out `develop`.
 
 There are two stages apart of CMake projects.
 
@@ -88,14 +119,20 @@ mkdir build && cd build
 
 Etterna has game resources in the root of the project, so the output binary is either placed in the root of the project *(Unix)* or in the `Program` folder in the project root *(Windows)*.
 
-To generate project files, you will only need to specify the `GENERATOR`. The `ARCHITECTURE` will assume 64bit if left undefined. If any trouble occurs with OpenSSL, the most likely answer will be to define where you have it installed through the `SSL_DIRECTORY` variable.
+To generate project files, you will only need to specify the `GENERATOR`. The `ARCHITECTURE` will assume 64bit if left undefined. If any trouble occurs with OpenSSL, the most likely answer will be to define where you have it installed through the `SSL_DIRECTORY` variable. If depot_tools is left uninstalled or misconfigured, you may be able to run `cmake` but the game will not compile. To get around this, build without Crashpad: Specify `-DWITH_CRASHPAD=OFF` in the `cmake` command.
 
+- `SSL_DIRECTORY`: The root directory of your OpenSSL install. It may be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 - `GENERATOR`: The generator you are choosing to use. Supported generators are listed below.
 - `ARCHITECTURE`: The target architecture. Currently we support `Win32` and `x64`. This parameter is only necessary if using a Visual Studio generator. `x64` will automatically be selected if the variable is left empty.
-- `SSL_DIRECTORY`: The root directory of your OpenSSL install. It may be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 
 ```bash
-cmake -G "GENERATOR" -A "ARCHITECTURE" -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" ..
+cmake -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" -G "GENERATOR" -A "ARCHITECTURE"  ..
+```
+
+Or to build without Crashpad:
+
+```bash
+cmake -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" -DWITH_CRASHPAD=OFF -G "GENERATOR" -A "ARCHITECTURE"  ..
 ```
 
 We actively support the following CMake generators
@@ -110,16 +147,27 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
 - Windows: CMake writes files to find the version of OpenSSL linked above. If that version is installed, it should not be necessary to specify this variable (unless you have OpenSSL installed in a non-standard location, in which case, you should set OPENSSL_ROOT_DIR to that location)
 
+Users building without Crashpad may choose to add the `-DWITH_CRASHPAD=OFF` option at the beginning of the command.
+
+Users of Linux be aware that the game builds on the `Debug` target by default. Here are better alternatives:
+- `-DCMAKE_BUILD_TYPE=Release` - Builds Release binary with no symbols, normal optimization.
+- `-DCMAKE_BUILD_TYPE=RelWithDebInfo` - Builds Release binary with symbols, useful for debugging if any issues arise, almost same as Release otherwise.
+
 #### Sample CMake Commands
 
+**⚠️ Note**: You likely want to include `-DCMAKE_BUILD_TYPE=Release` when running `cmake`. This results in a smaller build that will often perform much better.
+
 ```bash
-cmake -G "Ninja" ..                                                                 # Linux Ninja
-cmake -G "Unix Makefiles" ..                                                        # Linux Makefiles
-cmake -G "Visual Studio 16 2019" -A Win32 ..                                        # 32bit Windows
-cmake -G "Visual Studio 16 2019" -A x64 ..                                          # 64bit Windows
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                     # macOS Xcode
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                     # macOS Ninja
-cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..            # macOS Ninja
+cmake -G "Ninja" ..                                                             # Linux Ninja
+cmake -G "Unix Makefiles" ..                                                    # Linux Makefiles
+cmake -G "Visual Studio 16 2019" -A Win32 ..                                    # 32bit Windows
+cmake -G "Visual Studio 16 2019" -A x64 ..                                      # 64bit Windows
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..                 # macOS Xcode
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Ninja" ..                 # macOS Ninja
+cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Unix Makefiles" ..        # macOS Makefiles
+cmake -DWITH_CRASHPAD=OFF -G "Visual Studio 16 2019" -A x64 ..                  # Without Crashpad - 64bit Windows
+cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..                                  # Release Configuration - Linux Ninja
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -G "Ninja" ..                           # Release + Debug Symbols - Linux Ninja
 ```
 
 ##### macOS Xcode Generation Note
@@ -154,6 +202,8 @@ To install ninja, use one of the following commands
 
 - Debian: `apt install ninja-build`
 - Fedora: `dnf install ninja-build`
+- Arch: `pacman -S ninja`
+- Alpine: `apk add samurai #As of 2021-11-10 ninja is not available in alpine main so use samurai instead`
 - macOS: `brew install ninja`
 
 To start compiling, run the cmake command with the Ninja generator, then run `ninja`.
@@ -203,15 +253,18 @@ To build a distribution file for the operating system you are using, run `cpack`
 
 ### cppcheck
 
-cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system. 
+cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system.
 
-- macOS: `brew install cppcheck`
 - Debian: `apt install cppcheck`
+- Fedora: `dnf install cppcheck`
+- Arch: `pacman -S cppcheck`
+- Alpine: `apk add cppcheck`
+- macOS: `brew install cppcheck`
 - Windows: An installer is available at the [cppcheck website](http://cppcheck.sourceforge.net/). Make sure that `cppcheck` runs when you enter the command in your CLI. If it doesn't, [check your system/user path](https://www.computerhope.com/issues/ch000549.htm) to ensure that the bin folder of where you installed cppcheck is listed there.
 
 When cppcheck is run, it will generate a file in the build directory called `cppcheck.txt` which will have the output of the command. The output is saved to a file as the command produces significant output, and can take some time to run.
 
-To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen. 
+To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen.
 
 ## Documentation
 
@@ -219,8 +272,11 @@ To run `cppcheck`, run the target. Running the target will be different dependin
 
 Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
 
-- macOS: `brew install doxygen`
 - Debian: `apt install doxygen`
+- Fedora: `dnf install doxygen`
+- Arch: `pacman -S doxygen`
+- Alpine: `apk add doxygen`
+- macOS: `brew install doxygen`
 - Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
 
 Doxygen within CMake is able to use [graphviz](https://www.graphviz.org/download/) to generate better looking relationship/hierarchy graphs. You can see how to download it for your operating system at the [graphgiz download page](https://www.graphviz.org/download/).

@@ -10,15 +10,18 @@
  * patterns have lower enps than streams, streams default to 1 and chordstreams
  * start lower, stam is a special case and may use normalizers again */
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.93F, 0.885F, 0.84F, 0.925F, 0.91F, 0.8F, 0.83F
+	0.F, 0.93F, 0.885F, 0.84F, 0.93F, 1.02F, 0.785F, 0.83F
 };
 
 static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
-static const float interval_span = 0.5F;
+constexpr float interval_span = 0.5F;
 
+/// smoothing function to reduce spikes and holes in a given vector
+/// biases vector beginning towards neutral
+/// uses an average of 3 continuous elements
 inline void
-Smooth(std::array<float, max_intervals>& input,
+Smooth(std::vector<float>& input,
 	   const float neutral,
 	   const int end_interval)
 {
@@ -33,8 +36,11 @@ Smooth(std::array<float, max_intervals>& input,
 	}
 }
 
+/// smoothing function to reduce spikes and holes in a given vector.
+/// biases vector beginning towards neutral
+/// uses an average of 2 continuous elements
 inline void
-MSSmooth(std::array<float, max_intervals>& input,
+MSSmooth(std::vector<float>& input,
 		 const float neutral,
 		 const int end_interval)
 {
@@ -48,7 +54,7 @@ MSSmooth(std::array<float, max_intervals>& input,
 }
 
 static const std::vector<CalcPatternMod> agnostic_mods = {
-	Stream, JS, HS, CJ, CJDensity, FlamJam, TheThing, TheThing2,
+	Stream, JS, HS, CJ, CJDensity, HSDensity, FlamJam, TheThing, TheThing2,
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
@@ -65,7 +71,7 @@ struct PatternMods
 							 const int& pos,
 							 Calc& calc)
 	{
-		calc.doot.at(left_hand).at(pmod).at(pos) = val;
+		calc.pmod_vals.at(left_hand).at(pmod).at(pos) = val;
 	}
 
 	static void set_dependent(const int& hand,
@@ -74,20 +80,20 @@ struct PatternMods
 							  const int& pos,
 							  Calc& calc)
 	{
-		calc.doot.at(hand).at(pmod).at(pos) = val;
+		calc.pmod_vals.at(hand).at(pmod).at(pos) = val;
 	}
 
 	static void run_agnostic_smoothing_pass(const int& end_itv, Calc& calc)
 	{
 		for (const auto& pmod : agnostic_mods) {
-			Smooth(calc.doot.at(left_hand).at(pmod), neutral, end_itv);
+			Smooth(calc.pmod_vals.at(left_hand).at(pmod), neutral, end_itv);
 		}
 	}
 
 	static void run_dependent_smoothing_pass(const int& end_itv, Calc& calc)
 	{
 		for (const auto& pmod : dependent_mods) {
-			for (auto& h : calc.doot) {
+			for (auto& h : calc.pmod_vals) {
 				Smooth(h.at(pmod), neutral, end_itv);
 			}
 		}
@@ -97,37 +103,55 @@ struct PatternMods
 	{
 		for (const auto& pmod : agnostic_mods) {
 			for (auto i = 0; i < end_itv; i++) {
-				calc.doot.at(right_hand).at(pmod).at(i) =
-				  calc.doot.at(left_hand).at(pmod).at(i);
+				calc.pmod_vals.at(right_hand).at(pmod).at(i) =
+				  calc.pmod_vals.at(left_hand).at(pmod).at(i);
 			}
 		}
 	}
 };
 
-// converts time to interval index, if there's an offset to add or a rate to
-// scale by, it should be done prior
+/// converts time to interval index, if there's an offset to add or a rate to
+/// scale by, it should be done prior
 inline auto
 time_to_itv_idx(const float& time) -> int
 {
 	return static_cast<int>(time / interval_span);
 }
 
-// checks to see if the noteinfo will fit in our static arrays, if it won't it's
-// some garbage joke file and we can throw it out, setting values to 0
+inline auto
+itv_idx_to_time(const int& idx) -> float
+{
+	return static_cast<float>(idx) * interval_span;
+}
+
+/// checks to see if the noteinfo will fit in our static arrays, if it won't it's
+/// some garbage joke file and we can throw it out, setting values to 0
 inline auto
 fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 const float& rate,
 							 Calc& calc,
 							 const float& offset = 0.F) -> bool
 {
+	// an inf rowtime means 0 bpm or some other odd gimmick that may break things
+	// skip this file
+	// nan/inf can occur before the end of the file
+	// but the way these are generated, the last should be the largest
+	// therefore if any are inf, this is inf
+	if (std::isinf(ni.back().rowTime) || std::isnan(ni.back().rowTime))
+		return true;
+	
 	/* add 1 to convert index to size, we're just using this to guess due to
 	 * potential float precision differences, the actual numitv will be set at
 	 * the end */
 	calc.numitv = time_to_itv_idx(ni.back().rowTime / rate) + 1;
 
-	// are there more intervals than our alloted max
-	if (calc.numitv >= max_intervals) {
-		return true;
+	// are there more intervals than our emplaced max
+	if (calc.numitv >= static_cast<int>(calc.itv_size.size())) {
+		// hard cap for memory considerations
+		if (calc.numitv >= max_intervals)
+			return true;
+		// accesses can happen way at the end so give it some breathing room
+		calc.resize_interval_dependent_vectors(calc.numitv + 2);
 	}
 
 	// for various reasons we actually have to do this, scan the file and make
@@ -153,6 +177,11 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 		}
 
 		const auto& ri = i;
+
+		// either not a 4k file or malformed
+		if (ri.notes < 0 || ri.notes > 0b1111) {
+			return true;
+		}
 
 		// 90000 bpm flams may produce 0s due to float precision, we can ignore
 		// this for now, there should be no /0 errors due to it

@@ -5,7 +5,7 @@
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesWriterSSC.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
@@ -15,7 +15,7 @@
  * @param lines the list of lines to join.
  * @return the joined lines. */
 static std::string
-JoinLineList(vector<std::string>& lines)
+JoinLineList(std::vector<std::string>& lines)
 {
 	for (auto& line : lines)
 		TrimRight(line);
@@ -63,10 +63,10 @@ NotesWriterSSC::MSDsAtRateToString(const std::vector<float>& x)
 struct TimingTagWriter
 {
 
-	vector<std::string>* m_pvsLines;
+	std::vector<std::string>* m_pvsLines;
 	std::string m_sNext;
 
-	TimingTagWriter(vector<std::string>* pvsLines)
+	TimingTagWriter(std::vector<std::string>* pvsLines)
 	  : m_pvsLines(pvsLines)
 	{
 	}
@@ -110,7 +110,7 @@ struct TimingTagWriter
 };
 
 static void
-GetTimingTags(vector<std::string>& lines,
+GetTimingTags(std::vector<std::string>& lines,
 			  const TimingData& timing,
 			  bool bIsSong = false)
 {
@@ -120,7 +120,7 @@ GetTimingTags(vector<std::string>& lines,
 	// this here?
 #define WRITE_SEG_LOOP_OPEN(enum_type, seg_type, seg_name, to_func)            \
 	{                                                                          \
-		vector<TimingSegment*> const& segs =                                   \
+		std::vector<TimingSegment*> const& segs =                                   \
 		  timing.GetTimingSegments(enum_type);                                 \
 		if (!segs.empty()) {                                                   \
 			writer.Init(seg_name);                                             \
@@ -377,7 +377,7 @@ WriteGlobalTags(RageFile& f, const Song& out)
 }
 
 static void
-emplace_back_tag(vector<std::string>& lines,
+emplace_back_tag(std::vector<std::string>& lines,
 				 std::string const& format,
 				 std::string const& value)
 {
@@ -395,7 +395,7 @@ emplace_back_tag(vector<std::string>& lines,
 static std::string
 GetSSCNoteData(const Song& song, const Steps& in, bool bSavingCache)
 {
-	vector<std::string> lines;
+	std::vector<std::string> lines;
 
 	lines.emplace_back("");
 	// Escape to prevent some clown from making a comment of "\r\n;"
@@ -417,7 +417,7 @@ GetSSCNoteData(const Song& song, const Steps& in, bool bSavingCache)
 
 	emplace_back_tag(lines, "#MUSIC:%s;", in.GetMusicFile());
 
-	vector<std::string> asRadarValues;
+	std::vector<std::string> asRadarValues;
 	const RadarValues& rv = in.GetRadarValues();
 	FOREACH_ENUM(RadarCategory, rc)
 	asRadarValues.emplace_back(ssprintf("%i", rv[rc]));
@@ -470,7 +470,7 @@ GetSSCNoteData(const Song& song, const Steps& in, bool bSavingCache)
 														 : "#NOTES2:");
 
 		TrimLeft(sNoteData);
-		vector<std::string> splitData;
+		std::vector<std::string> splitData;
 		split(sNoteData, "\n", splitData);
 		lines.insert(lines.end(),
 					 std::make_move_iterator(splitData.begin()),
@@ -487,7 +487,7 @@ GetSSCNoteData(const Song& song, const Steps& in, bool bSavingCache)
 bool
 NotesWriterSSC::Write(std::string& sPath,
 					  const Song& out,
-					  const vector<Steps*>& vpStepsToSave,
+					  const std::vector<Steps*>& vpStepsToSave,
 					  bool bSavingCache)
 {
 	int flags = RageFile::WRITE;
@@ -500,10 +500,8 @@ NotesWriterSSC::Write(std::string& sPath,
 
 	RageFile f;
 	if (!f.Open(sPath, flags)) {
-		LOG->UserLog("Song file",
-					 sPath,
-					 "couldn't be opened for writing: %s",
-					 f.GetError().c_str());
+        Locator::getLogger()->info("Song file \"{}\" couldn't be opened for writing: {}",
+                                   sPath, f.GetError().c_str());
 		return false;
 	}
 
@@ -530,7 +528,7 @@ NotesWriterSSC::Write(std::string& sPath,
 			std::string sTag = GetSSCNoteData(out, *pSteps, bSavingCache);
 			f.PutLine(sTag);
 		} else {
-			LOG->Info("Not caching empty difficulty in file %s", sPath.c_str());
+            Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
 		}
 	}
 	if (f.Flush() == -1)
@@ -548,7 +546,7 @@ NotesWriterSSC::GetEditFileContents(const Song* pSong,
 	std::string sDir = pSong->GetSongDir();
 
 	// "Songs/foo/bar"; strip off "Songs/".
-	vector<std::string> asParts;
+	std::vector<std::string> asParts;
 	split(sDir, "/", asParts);
 	if (!asParts.empty())
 		sDir = join("/", asParts.begin() + 1, asParts.end());

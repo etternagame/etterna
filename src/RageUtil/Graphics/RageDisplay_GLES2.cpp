@@ -1,8 +1,8 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 
 #include "RageDisplay.h"
 #include "RageDisplay_GLES2.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageSurface.h"
 #include "RageTextureManager.h"
@@ -194,8 +194,8 @@ bool bAlphaTestEnabled = false;
 
 RageDisplay_GLES2::RageDisplay_GLES2()
 {
-	LOG->Trace("RageDisplay_GLES2::RageDisplay_GLES2()");
-	LOG->MapLog("renderer", "Current renderer: OpenGL ES 2.0");
+	Locator::getLogger()->trace("RageDisplay_GLES2::RageDisplay_GLES2()");
+	Locator::getLogger()->trace("Current renderer: OpenGL ES 2.0");
 
 	FixLittleEndian();
 	//	RageDisplay_GLES2_Helpers::Init();
@@ -220,19 +220,19 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	LOG->Info("OGL Vendor: %s", glGetString(GL_VENDOR));
-	LOG->Info("OGL Renderer: %s", glGetString(GL_RENDERER));
-	LOG->Info("OGL Version: %s", glGetString(GL_VERSION));
-	LOG->Info("OGL Max texture size: %i", Caps::iMaxTextureSize);
-	LOG->Info("OGL Texture units: %i", Caps::iMaxTextureUnits);
+	Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
+	Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
+	Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
+	Locator::getLogger()->trace("OGL Max texture size: {}", Caps::iMaxTextureSize);
+	Locator::getLogger()->trace("OGL Texture units: {}", Caps::iMaxTextureUnits);
 
 	/* Pretty-print the extension string: */
-	LOG->Info("OGL Extensions:");
+	Locator::getLogger()->trace("OGL Extensions:");
 	{
 		// glGetString(GL_EXTENSIONS) doesn't work for GL3 core profiles.
 		// this will be useful in the future.
 #if 0
-		vector<string> extensions;
+		std::vector<string> extensions;
 		const char *ext = 0;
 		for (int i = 0; (ext = (const char*)glGetStringi(GL_EXTENSIONS, i)); i++)
 		{
@@ -247,7 +247,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			string type;
 			for( size_t i = next; i<extensions.size(); ++i )
 			{
-				vector<string> segments;
+				std::vector<string> segments;
 				split(extensions[i], '_', segments);
 				string this_type;
 				if (segments.size() > 2)
@@ -268,7 +268,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			string sList = ssprintf( "  %s: ", type.c_str() );
 			while( next <= last )
 			{
-				vector<string> segments;
+				std::vector<string> segments;
 				split( extensions[next], '_', segments );
 				string ext_short = join( "_", segments.begin()+2, segments.end() );
 				sList += ext_short;
@@ -284,7 +284,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 		}
 #else
 		const char* szExtensionString = (const char*)glGetString(GL_EXTENSIONS);
-		vector<std::string> asExtensions;
+		std::vector<std::string> asExtensions;
 		split(szExtensionString, " ", asExtensions);
 		sort(asExtensions.begin(), asExtensions.end());
 		size_t iNextToPrint = 0;
@@ -292,7 +292,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			size_t iLastToPrint = iNextToPrint;
 			std::string sType;
 			for (size_t i = iNextToPrint; i < asExtensions.size(); ++i) {
-				vector<std::string> asBits;
+				std::vector<std::string> asBits;
 				split(asExtensions[i], "_", asBits);
 				std::string sThisType;
 				if (asBits.size() > 2)
@@ -304,14 +304,14 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 			}
 
 			if (iNextToPrint == iLastToPrint) {
-				LOG->Info("  %s", asExtensions[iNextToPrint].c_str());
+				Locator::getLogger()->trace("  {}", asExtensions[iNextToPrint].c_str());
 				++iNextToPrint;
 				continue;
 			}
 
 			std::string sList = ssprintf("  %s: ", sType.c_str());
 			while (iNextToPrint <= iLastToPrint) {
-				vector<std::string> asBits;
+				std::vector<std::string> asBits;
 				split(asExtensions[iNextToPrint], "_", asBits);
 				std::string sShortExt = join("_", asBits.begin() + 2, asBits.end());
 				sList += sShortExt;
@@ -320,7 +320,7 @@ RageDisplay_GLES2::Init(const VideoModeParams& p,
 				if (iNextToPrint == iLastToPrint ||
 					sList.size() + asExtensions[iNextToPrint + 1].size() >
 					  120) {
-					LOG->Info("%s", sList.c_str());
+					Locator::getLogger()->trace(sList.c_str());
 					sList = "    ";
 				}
 				++iNextToPrint;
@@ -348,7 +348,7 @@ RageDisplay_GLES2::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 {
 	VideoModeParams vm = p;
 	vm.windowed = true; // force windowed until I trust this thing.
-	LOG->Warn("RageDisplay_GLES2::TryVideoMode( %d, %d, %d, %d, %d, %d )",
+	Locator::getLogger()->warn("RageDisplay_GLES2::TryVideoMode( {}, {}, {}, {}, {}, {} )",
 			  vm.windowed,
 			  vm.width,
 			  vm.height,
@@ -490,11 +490,11 @@ RageDisplay_GLES2::GetOrthoMatrix(float l,
 class RageCompiledGeometryGLES2 : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>& vMeshes) override
+	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
 		// TODO
 	}
-	void Change(const vector<msMesh>& vMeshes) override
+	void Change(const std::vector<msMesh>& vMeshes) override
 	{
 		// TODO
 	}

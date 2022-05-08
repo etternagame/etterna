@@ -1,7 +1,5 @@
 #pragma once
 #include <array>
-/* simple struct to accumulate raw note info across an interval as it's
- * processed by row, will be reset at the end of the interval */
 
 enum tap_size
 {
@@ -12,20 +10,25 @@ enum tap_size
 	num_tap_size
 };
 
+/// simple struct to accumulate raw note info across an interval as it's
+/// processed by row, will be reset at the end of the interval
 struct ItvInfo
 {
+	/// total taps
 	int total_taps = 0;
+	/// non single taps
 	int chord_taps = 0;
+	/// count of taps for each tap_size
 	std::array<int, num_tap_size> taps_by_size = { 0, 0, 0, 0 };
+	/// number related to amount of jumps in the interval.
+	/// inflated by dense hs/js mix
 	int mixed_hs_density_tap_bonus = 0;
 
-	// resets all the stuff that accumulates across intervals
+	/// resets all the stuff that accumulates across intervals
 	void handle_interval_end()
 	{
-		// self explanatory
 		total_taps = 0;
 
-		// number of non-single taps
 		chord_taps = 0;
 		mixed_hs_density_tap_bonus = 0;
 

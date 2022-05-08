@@ -22,7 +22,7 @@ There's **A LOT** of things that need doing. If you don't have any specific thin
 
 ## Lua
 
-Lua is a fairly simple language. If you have experience in any other programming language, you'll probably be able to get the basics of its syntax in under an hour. The [Lua Syntax Guide](https://www.lua.org/pil/contents.html) isa good place to get started.
+Lua is a fairly simple language. If you have experience in any other programming language, you'll probably be able to get the basics of its syntax in under an hour. The [Lua Syntax Guide](https://www.lua.org/pil/contents.html) is a good place to get started.
 
 Lua is used in Etterna for Themes and Noteskins.
 
@@ -44,7 +44,7 @@ A guide on this can be found in [the translations document](Translations.md).
 
 ## Packaging
 
-A few people have complained about the lack of packages for Linux in general. If you'd like to, you can try working on a package for your favorite distro. I've already made a more-or-less functional debian package here: https://github.com/nico-abram/etterna/tree/debian/
+A few people have complained about the lack of packages for Linux in general. If you'd like to, you can try working on a package for your favorite distro. 
 
 ## Graphic Design
 

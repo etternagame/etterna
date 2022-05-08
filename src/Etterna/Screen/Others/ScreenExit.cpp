@@ -1,11 +1,10 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/GameSoundManager.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "ScreenExit.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Etterna/Globals/GameLoop.h"
 
 /* This screen used to wait for sounds to stop. However, implementing
  * GetPlayingSounds() is annoying, because sounds might be deleted at any time;
@@ -20,5 +19,5 @@ ScreenExit::Init()
 
 	m_Exited = false;
 
-	ArchHooks::SetUserQuit();
+	GameLoop::setUserQuit();
 }

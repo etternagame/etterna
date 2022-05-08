@@ -34,7 +34,7 @@ class ModIconRow : public ActorFrame
 	ThemeMetric<int> NUM_OPTION_ICONS;
 	ThemeMetric<std::string> OPTION_ICON_METRICS_GROUP;
 
-	vector<ModIcon*> m_vpModIcon;
+	std::vector<ModIcon*> m_vpModIcon;
 };
 
 #endif

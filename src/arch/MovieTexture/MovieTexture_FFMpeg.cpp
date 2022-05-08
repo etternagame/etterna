@@ -2,7 +2,7 @@
 #include "MovieTexture_FFMpeg.h"
 
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Graphics/RageSurface.h"
@@ -96,7 +96,7 @@ RageMovieTextureDriver_FFMpeg::AVCodecCreateCompatibleSurface(
 	iAVTexfmt = pfd->pf;
 	fmtout = pfd->YUV;
 
-	LOG->Trace("Texture pixel format: %i %i (%ibpp, %08x %08x %08x %08x)",
+	Locator::getLogger()->trace("Texture pixel format: {} {} ({}bpp, {:08x} {:08x} {:08x} {:08x})",
 			   iAVTexfmt,
 			   fmtout,
 			   pfd->bpp,
@@ -278,7 +278,7 @@ MovieDecoder_FFMpeg::DecodePacket(float fTargetTime)
 		  m_pStream->codec, m_Frame, &iGotFrame, &m_Packet);
 
 		if (len < 0) {
-			LOG->Warn("avcodec_decode_video2: %i", len);
+			Locator::getLogger()->warn("avcodec_decode_video2: {}    ", len);
 			return -1; // XXX
 		}
 
@@ -313,8 +313,7 @@ MovieDecoder_FFMpeg::DecodePacket(float fTargetTime)
 			const float expect = 0;
 			const float actual = m_fTimestamp;
 			if (actual - expect > 0) {
-				LOG->Trace(
-				  "Expect %f, got %f -> %f", expect, actual, actual - expect);
+				Locator::getLogger()->trace("Expect {}, got {} -> {}", expect, actual, actual - expect);
 				m_fTimestampOffset = actual - expect;
 			}
 		}
@@ -352,8 +351,7 @@ MovieDecoder_FFMpeg::GetFrame(RageSurface* pSurface)
 												 NULL,
 												 NULL);
 		if (m_swsctx == NULL) {
-			LOG->Warn(
-			  "Cannot initialize sws conversion context for (%d,%d) %d->%d",
+			Locator::getLogger()->warn("Cannot initialize sws conversion context for ({},{}) {}->{}",
 			  GetWidth(),
 			  GetHeight(),
 			  m_pStream->codec->pix_fmt,
@@ -417,7 +415,7 @@ AVIORageFile_Seek(void* opaque, int64_t offset, int whence)
 		return f->GetFileSize();
 
 	if (whence != SEEK_SET && whence != SEEK_CUR && whence != SEEK_END) {
-		LOG->Trace("Error: unsupported seek whence: %d", whence);
+		Locator::getLogger()->trace("Error: unsupported seek whence: {}", whence);
 		return -1;
 	}
 
@@ -479,8 +477,8 @@ MovieDecoder_FFMpeg::Open(const std::string& sFile)
 	if (!sError.empty())
 		return ssprintf("AVCodec (%s): %s", sFile.c_str(), sError.c_str());
 
-	LOG->Trace("Bitrate: %i", m_pStream->codec->bit_rate);
-	LOG->Trace("Codec pixel format: %s",
+	Locator::getLogger()->debug("Bitrate: {}", m_pStream->codec->bit_rate);
+	Locator::getLogger()->debug("Codec pixel format: {}",
 			   avcodec::av_get_pix_fmt_name(m_pStream->codec->pix_fmt));
 
 	return std::string();
@@ -507,7 +505,7 @@ MovieDecoder_FFMpeg::OpenCodec()
 	if (pCodec->capabilities & CODEC_CAP_DR1)
 		m_pStream->codec->flags |= CODEC_FLAG_EMU_EDGE;
 
-	LOG->Trace("Opening codec %s", pCodec->name);
+	Locator::getLogger()->trace("Opening codec {}", pCodec->name);
 
 	int ret = avcodec::avcodec_open2(m_pStream->codec, pCodec, NULL);
 	if (ret < 0)

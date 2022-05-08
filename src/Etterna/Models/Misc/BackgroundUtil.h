@@ -1,6 +1,9 @@
 #ifndef BackgroundUtil_H
 #define BackgroundUtil_H
 
+#include <string>
+#include <vector>
+
 class Song;
 class XNode;
 
@@ -91,40 +94,40 @@ struct BackgroundChange
 /** @brief Shared background-related routines. */
 namespace BackgroundUtil {
 void
-AddBackgroundChange(vector<BackgroundChange>& vBackgroundChanges,
+AddBackgroundChange(std::vector<BackgroundChange>& vBackgroundChanges,
 					const BackgroundChange& seg);
 void
-SortBackgroundChangesArray(vector<BackgroundChange>& vBackgroundChanges);
+SortBackgroundChangesArray(std::vector<BackgroundChange>& vBackgroundChanges);
 
 void
 GetBackgroundEffects(const std::string& sName,
-					 vector<std::string>& vsPathsOut,
-					 vector<std::string>& vsNamesOut);
+					 std::vector<std::string>& vsPathsOut,
+					 std::vector<std::string>& vsNamesOut);
 void
 GetBackgroundTransitions(const std::string& sName,
-						 vector<std::string>& vsPathsOut,
-						 vector<std::string>& vsNamesOut);
+						 std::vector<std::string>& vsPathsOut,
+						 std::vector<std::string>& vsNamesOut);
 
 void
 GetSongBGAnimations(const Song* pSong,
 					const std::string& sMatch,
-					vector<std::string>& vsPathsOut,
-					vector<std::string>& vsNamesOut);
+					std::vector<std::string>& vsPathsOut,
+					std::vector<std::string>& vsNamesOut);
 void
 GetSongMovies(const Song* pSong,
 			  const std::string& sMatch,
-			  vector<std::string>& vsPathsOut,
-			  vector<std::string>& vsNamesOut);
+			  std::vector<std::string>& vsPathsOut,
+			  std::vector<std::string>& vsNamesOut);
 void
 GetSongBitmaps(const Song* pSong,
 			   const std::string& sMatch,
-			   vector<std::string>& vsPathsOut,
-			   vector<std::string>& vsNamesOut);
+			   std::vector<std::string>& vsPathsOut,
+			   std::vector<std::string>& vsNamesOut);
 void
 GetGlobalBGAnimations(const Song* pSong,
 					  const std::string& sMatch,
-					  vector<std::string>& vsPathsOut,
-					  vector<std::string>& vsNamesOut);
+					  std::vector<std::string>& vsPathsOut,
+					  std::vector<std::string>& vsNamesOut);
 void
 BakeAllBackgroundChanges(Song* pSong);
 };

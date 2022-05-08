@@ -5,7 +5,7 @@
 #include "archutils/Win32/GraphicsWindow.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
@@ -133,9 +133,9 @@ DumpPixelFormat(const PIXELFORMATDESCRIPTOR& pfd)
 		str += ssprintf("%i accum ", pfd.cAccumBits);
 
 	if (bInvalidFormat)
-		LOG->Warn("Invalid format: %s", str.c_str());
-	else if (PREFSMAN->m_verbose_log > 1)
-		LOG->Info("%s", str.c_str());
+		Locator::getLogger()->warn("Invalid pixel format: {}", str.c_str());
+	else
+		Locator::getLogger()->debug("Pixel format: {}", str.c_str());
 }
 
 /* This function does not reset the video mode if it fails, because we might be
@@ -146,7 +146,7 @@ std::string
 LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 								   bool& bNewDeviceOut)
 {
-	// LOG->Warn( "LowLevelWindow_Win32::TryVideoMode" );
+	Locator::getLogger()->debug("LowLevelWindow_Win32::TryVideoMode");
 
 	ASSERT_M(p.bpp == 16 || p.bpp == 32, ssprintf("%i", p.bpp));
 
@@ -173,8 +173,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 
 	/* Set the display mode: switch to a fullscreen mode or revert to windowed
 	 * mode. */
-	if (PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("SetScreenMode ...");
+	Locator::getLogger()->trace("SetScreenMode ...");
 	std::string sErr = GraphicsWindow::SetScreenMode(p);
 	if (!sErr.empty())
 		return sErr;
@@ -200,8 +199,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		if (memcmp(&DestPixelFormat,
 				   &g_CurrentPixelFormat,
 				   sizeof(PIXELFORMATDESCRIPTOR))) {
-			if (PREFSMAN->m_verbose_log > 1)
-				LOG->Trace("Reset: pixel format changing");
+			Locator::getLogger()->info("Reset: pixel format changing");
 			bNeedToSetPixelFormat = true;
 		}
 	}
@@ -215,7 +213,7 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		 * one, the "maximized apps go under the taskbar" glitch will happen
 		 * when we quit. We have to create the new window first.
 		 */
-		LOG->Trace("Mode requires new pixel format, and we've already set one; "
+		Locator::getLogger()->info("Mode requires new pixel format, and we've already set one; "
 				   "resetting OpenGL context");
 		if (g_HGLRC != nullptr) {
 			wglMakeCurrent(nullptr, nullptr);
@@ -263,8 +261,8 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		}
 
 		if (!wglShareLists(g_HGLRC, g_HGLRC_Background)) {
-			LOG->Warn(
-			  werr_ssprintf(GetLastError(), "wglShareLists failed").c_str());
+			Locator::getLogger()->warn(
+			  "{}", werr_ssprintf(GetLastError(), "wglShareLists failed"));
 			wglDeleteContext(g_HGLRC_Background);
 			g_HGLRC_Background = nullptr;
 		}
@@ -287,7 +285,8 @@ void
 LowLevelWindow_Win32::BeginConcurrentRendering()
 {
 	if (!wglMakeCurrent(GraphicsWindow::GetHDC(), g_HGLRC_Background)) {
-		LOG->Warn(hr_ssprintf(GetLastError(), "wglMakeCurrent").c_str());
+		Locator::getLogger()->warn(
+		  "{}", hr_ssprintf(GetLastError(), "wglMakeCurrent"));
 		FAIL_M(hr_ssprintf(GetLastError(), "wglMakeCurrent"));
 	}
 }
@@ -305,8 +304,7 @@ bool
 LowLevelWindow_Win32::IsSoftwareRenderer(std::string& sError)
 {
 	std::string sVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-	std::string sRenderer =
-	  reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	std::string sRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 
 	if (sVendor == "Microsoft Corporation" && sRenderer == "GDI Generic") {
 		sError = OPENGL_NOT_AVAILABLE;

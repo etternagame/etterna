@@ -66,11 +66,11 @@ local onlineScores = {}
 local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation" or false
 if isMulti then
 	multiScores = NSMAN:GetMPLeaderboard()
-	for i = 1, 5 do
+	for i = 1, NUM_ENTRIES do
 		onlineScores[i] = scoreUsingMultiScore(i)
 	end
 else
-	onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps(PLAYER_1):GetChartKey())
+	onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey()) or {}
 end
 local sortFunction = function(h1, h2)
 	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
@@ -138,7 +138,8 @@ function scoreEntry(i)
 			entryActor = self
 			entryActors[i]["container"] = self
 			self.update = function(self, hs)
-				self:visible(not (not hs))
+				local hs_and_name = hs and hs:GetDisplayName()
+				self:visible(not (not hs_and_name))
 			end
 			self:update(scoreboard[i])
 		end
@@ -165,7 +166,8 @@ function scoreEntry(i)
 					self = self.actor
 					entryActors[i][name] = self
 					self.update = function(self, hs)
-						if hs then
+						local hs_and_name = hs and hs:GetDisplayName()
+						if (not (not hs_and_name)) then
 							self:visible(true)
 							fn(self, hs)
 						else

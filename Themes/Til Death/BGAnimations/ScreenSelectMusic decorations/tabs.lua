@@ -2,6 +2,17 @@ local active = true
 local numericinputactive = false
 local whee
 
+local function IgnoreTabInputs()
+	local IgnoreTabInput = themeConfig:get_data().global.IgnoreTabInput
+	if IgnoreTabInput == 3 then
+		return true
+	elseif IgnoreTabInput == 2 and getTabIndex() == 3 then
+		return true
+	else
+		return false
+	end
+end
+
 local tabNames = {"General", "MSD", "Scores", "Search", "Profile", "Filters", "Goals", "Playlists", "Packs", "Tags"} -- this probably should be in tabmanager.
 
 local function input(event)
@@ -14,12 +25,21 @@ local function input(event)
 			 then
 				if event.DeviceInput.button == "DeviceButton_0" then
 					local tind = getTabIndex()
-					setTabIndex(9)
-					MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 9})
+					-- if on the search tab dont let them press 0 if currently holding shift...
+					-- prevents attempting to enter ')' causing page change
+					-- (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK) (HACK)
+					if tind == 3 and (INPUTFILTER:IsBeingPressed("left shift") or INPUTFILTER:IsBeingPressed("right shift")) then
+						return false
+					end
+
+					if not IgnoreTabInputs() then
+						setTabIndex(9)
+						MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = 9})
+					end
 				else
 					for i = 1, #tabNames do
 						local numpad = event.DeviceInput.button == "DeviceButton_KP "..event.char	-- explicitly ignore numpad inputs for tab swapping (doesn't care about numlock) -mina
-						if not numpad and event.char and tonumber(event.char) and tonumber(event.char) == i then
+						if not numpad and event.char and tonumber(event.char) and tonumber(event.char) == i and not IgnoreTabInputs() then
 							local tind = getTabIndex()
 							setTabIndex(i - 1)
 							MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = i-1})
@@ -50,9 +70,8 @@ local frameWidth = capWideScale(get43size(450), 450) / (#tabNames - 1)
 local frameX = frameWidth / 2 + 2
 local frameY = SCREEN_HEIGHT - 70
 
-function tabs(index)
-	local t =
-		Def.ActorFrame {
+local function tabs(index)
+	local t = Def.ActorFrame {
 		Name = "Tab" .. index,
 		InitCommand = function(self)
 			self:xy(frameX + ((index - 1) * frameWidth), frameY)
@@ -62,14 +81,14 @@ function tabs(index)
 		end,
 		SetCommand = function(self)
 			self:finishtweening()
-			self:linear(0.1)
+			self:smooth(0.1)
 			--show tab if it's the currently selected one
 			if getTabIndex() == index - 1 then
-				self:y(frameY)
-				self:diffusealpha(1)
+				self:diffusealpha(1):y(frameY - 1)
+				self:GetChild("TabBG"):diffusecolor(Brightness(getMainColor("positive"),0.3)):diffusealpha(0.5)
 			else -- otherwise "Hide" them
-				self:y(frameY)
-				self:diffusealpha(0.65)
+				self:diffusealpha(0.7):y(frameY)
+				self:GetChild("TabBG"):diffusecolor(getMainColor("frames")):diffusealpha(0.7)
 			end
 		end,
 		TabChangedMessageCommand = function(self)
@@ -77,14 +96,13 @@ function tabs(index)
 		end
 	}
 
-	t[#t + 1] =
-		Def.Quad {
+	t[#t + 1] = UIElements.QuadButton(1, 1) .. {
 		Name = "TabBG",
 		InitCommand = function(self)
-			self:y(2):valign(0):zoomto(frameWidth, 20):diffusecolor(getMainColor("frames")):diffusealpha(0.85)
+			self:y(2):valign(0):zoomto(frameWidth, 20):diffusecolor(getMainColor("frames")):diffusealpha(0.7)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				local tind = getTabIndex()
 				setTabIndex(index - 1)
 				MESSAGEMAN:Broadcast("TabChanged", {from = tind, to = index - 1})
@@ -92,28 +110,27 @@ function tabs(index)
 		end
 	}
 
-	t[#t + 1] =
-		LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:y(5):valign(0):zoom(0.4):diffuse(getMainColor("positive")):maxwidth(frameWidth * 2)
-			end,
-			BeginCommand = function(self)
-				self:queuecommand("Set")
-			end,
-			SetCommand = function(self)
-				self:settext(THEME:GetString("TabNames", tabNames[index]))
-				if isTabEnabled(index) then
-					if index == 6 and FILTERMAN:AnyActiveFilter() then
-						self:diffuse(color("#cc2929"))
-					else
-						self:diffuse(getMainColor("positive"))
-					end
+	t[#t + 1] = LoadFont("Common Normal") .. {
+		Name = "TabText",
+		InitCommand = function(self)
+			self:y(4):valign(0):zoom(0.4):diffuse(getMainColor("positive")):maxwidth(frameWidth * 2)
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settext(THEME:GetString("TabNames", tabNames[index]))
+			if isTabEnabled(index) then
+				if index == 6 and FILTERMAN:AnyActiveFilter() then
+					self:diffuse(color("#cc2929"))
 				else
-					self:diffuse(color("#666666"))
+					self:diffuse(getMainColor("positive"))
 				end
+			else
+				self:diffuse(color("#666666"))
 			end
-		}
+		end
+	}
 	return t
 end
 

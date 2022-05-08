@@ -1,13 +1,18 @@
 #include "Etterna/Globals/global.h"
+#include "Etterna/Actor/Menus/MusicWheel.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Singletons/ProfileManager.h"
 #include "MusicWheelItem.h"
+#include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
+#include <cstdio>
 
 static const char* MusicWheelItemTypeNames[] = {
 	"Song", "SectionExpanded", "SectionCollapsed", "Roulette", "Sort",
@@ -95,10 +100,8 @@ MusicWheelItem::MusicWheelItem(const std::string& sType)
 	this->AddChild(m_pGradeDisplay);
 	LOAD_ALL_COMMANDS_AND_SET_XY(m_pGradeDisplay);
 
-	this->SubscribeToMessage(Message_CurrentStepsP1Changed);
-	this->SubscribeToMessage(Message_CurrentStepsP2Changed);
+	this->SubscribeToMessage(Message_CurrentStepsChanged);
 	this->SubscribeToMessage(Message_PreferredDifficultyP1Changed);
-	this->SubscribeToMessage(Message_PreferredDifficultyP2Changed);
 }
 
 MusicWheelItem::MusicWheelItem(const MusicWheelItem& cpy)
@@ -175,6 +178,8 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	std::string sDisplayName, sTranslitName;
 	MusicWheelItemType type = MusicWheelItemType_Invalid;
 
+	auto wheel = dynamic_cast<const MusicWheel*>(GetParent());
+
 	switch (pWID->m_Type) {
 		DEFAULT_FAIL(pWID->m_Type);
 		case WheelItemDataType_Song:
@@ -190,13 +195,33 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 			break;
 		case WheelItemDataType_Section: {
 			sDisplayName = SONGMAN->ShortenGroupName(pWID->m_sText);
-
-			if (GAMESTATE->sExpandedSectionName == pWID->m_sText)
+			if (GAMESTATE->sExpandedSectionName == pWID->m_sText) {
 				type = MusicWheelItemType_SectionExpanded;
-			else
+			} else {
 				type = MusicWheelItemType_SectionCollapsed;
+			}
 
-			m_pTextSectionCount->SetText(ssprintf("%d", pWID->m_iSectionCount));
+			auto plays_by_group = wheel->packProgressByGroup.at(GAMESTATE->m_SortOrder);
+			auto plays_in_group = plays_by_group.find(pWID->m_sText);
+			if (PREFSMAN->m_bPackProgressInWheel && plays_in_group != plays_by_group.end()) {
+				int num_played_songs = plays_in_group->second;
+
+				RageColor color;
+				if (num_played_songs == pWID->m_iSectionCount) {
+					color = RageColor(1, 1, 1, 0);
+				} else {
+					auto hue = (float) num_played_songs / pWID->m_iSectionCount * 100 - 5;
+					// Mix color with white, else the color would be too vibrant
+					color = RageColor::Lerp(RageColor(1, 1, 1, 0), RageColor::FromHue(hue), 0.5);
+				}
+
+				m_pTextSectionCount->SetText(ssprintf("%d/%d", num_played_songs, pWID->m_iSectionCount));
+				m_pTextSectionCount->SetDiffuseColor(color);
+			} else {
+				m_pTextSectionCount->SetText(ssprintf("%d", pWID->m_iSectionCount));
+				// m_pTextSectionCount->SetDiffuseColor(???);
+			}
+
 			m_pTextSectionCount->SetVisible(true);
 		} break;
 		case WheelItemDataType_Sort:
@@ -289,23 +314,38 @@ MusicWheelItem::RefreshGrades()
 	Difficulty dcBest = Difficulty_Invalid;
 	if (pWID->m_pSong != nullptr) {
 		bool hasCurrentStyleSteps = false;
+		auto allSteps = pWID->m_pSong->GetChartsMatchingFilter();
+		std::unordered_map<Difficulty, std::vector<Steps*>> difficultyToSteps{
+			NUM_Difficulty
+		};
+		for (auto& s : allSteps) {
+			auto d = s->GetDifficulty();
+			if (difficultyToSteps.count(d) == 0u) {
+				std::vector<Steps*> v;
+				difficultyToSteps[d] = v;
+			}
+			difficultyToSteps[d].push_back(s);
+		}
 		FOREACH_ENUM_N(Difficulty, 6, i)
 		{
-			Steps* pSteps =
-			  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-			if (pSteps != nullptr) {
-				hasCurrentStyleSteps = true;
-				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-				if (gradeBest >= dcg) {
-					dcBest = i;
-					gradeBest = dcg;
+			if (difficultyToSteps.count(i) == 0u)
+				continue;
+			auto& stepslist = difficultyToSteps[i];
+			for (auto& s : stepslist) {
+				if (s->m_StepsType == st) {
+					hasCurrentStyleSteps = true;
+					Grade dcg =
+					  SCOREMAN->GetBestGradeFor(s->GetChartKey());
+					if (gradeBest >= dcg) {
+						dcBest = i;
+						gradeBest = dcg;
+					}
 				}
 			}
 		}
 		// If no grade was found for the current style/stepstype
 		if (!hasCurrentStyleSteps) {
 			// Get the best grade among all steps
-			auto& allSteps = pWID->m_pSong->GetAllSteps();
 			for (auto& stepsPtr : allSteps) {
 				if (stepsPtr->m_StepsType ==
 					st) // Skip already checked steps of type st

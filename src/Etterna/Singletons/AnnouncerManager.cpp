@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "AnnouncerManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include <cstring>
 
@@ -29,7 +29,7 @@ AnnouncerManager::~AnnouncerManager()
 }
 
 void
-AnnouncerManager::GetAnnouncerNames(vector<std::string>& AddTo)
+AnnouncerManager::GetAnnouncerNames(std::vector<std::string>& AddTo)
 {
 	GetDirListing(ANNOUNCERS_DIR + "*", AddTo, true);
 
@@ -45,7 +45,7 @@ AnnouncerManager::DoesAnnouncerExist(const std::string& sAnnouncerName)
 	if (sAnnouncerName.empty())
 		return true;
 
-	vector<std::string> asAnnouncerNames;
+	std::vector<std::string> asAnnouncerNames;
 	GetAnnouncerNames(asAnnouncerNames);
 	for (unsigned i = 0; i < asAnnouncerNames.size(); i++)
 		if (0 ==
@@ -133,9 +133,8 @@ AnnouncerManager::GetPathTo(const std::string& sAnnouncerName,
 	/* No announcer directory matched.  In debug, create the directory by
 	 * its preferred name. */
 #ifdef DEBUG
-	LOG->Trace("The announcer in '%s' is missing the folder '%s'.",
-			   AnnouncerPath.c_str(),
-			   sFolderName.c_str());
+	Locator::getLogger()->warn("The announcer in '{}' is missing the folder '{}'.",
+			   AnnouncerPath.c_str(), sFolderName.c_str());
 	//	MessageBeep( MB_OK );
 	RageFile temp;
 	temp.Open(AnnouncerPath + sFolderName + "/announcer files go here.txt",
@@ -160,7 +159,7 @@ AnnouncerManager::HasSoundsFor(const std::string& sFolderName)
 void
 AnnouncerManager::NextAnnouncer()
 {
-	vector<std::string> as;
+	std::vector<std::string> as;
 	GetAnnouncerNames(as);
 	if (as.empty())
 		return;
@@ -194,7 +193,7 @@ class LunaAnnouncerManager : public Luna<AnnouncerManager>
 	}
 	static int GetAnnouncerNames(T* p, lua_State* L)
 	{
-		vector<std::string> vAnnouncers;
+		std::vector<std::string> vAnnouncers;
 		p->GetAnnouncerNames(vAnnouncers);
 		LuaHelpers::CreateTableFromArray(vAnnouncers, L);
 		return 1;

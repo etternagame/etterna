@@ -1,9 +1,11 @@
 #include "Etterna/Globals/global.h"
 #include "Crash.h"
-#include "Etterna/Globals/ProductInfo.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Platform/Platform.hpp"
+#include "Core/Misc/AppInfo.hpp"
 #include <CoreServices/CoreServices.h>
 #include <sys/types.h>
+#include <fmt/format.h>
 #if defined(HAVE_UNISTD_H)
 #include <unistd.h>
 #endif
@@ -20,42 +22,35 @@ CrashHandler::GetLogsDirectory()
 		FSRefMakePath(&fs, (UInt8*)dir, PATH_MAX)) {
 		return "/tmp";
 	}
-	return std::string(dir) + "/Logs/" PRODUCT_ID;
+	return fmt::format("{}/Logs/{}", dir, Core::AppInfo::APP_TITLE);
 }
 
 // XXX Can we use LocalizedString here instead?
 #define LSTRING(b, x)                                                          \
-	CFBundleCopyLocalizedString((b), CFSTR(x), NULL, CFSTR("Localizable"))
+	CFBundleCopyLocalizedString((b), CFStringCreateWithCString(kCFAllocatorDefault, x, kCFStringEncodingUTF8), NULL, CFSTR("Localizable"))
 
 void
 CrashHandler::InformUserOfCrash(const std::string& sPath)
 {
 	CFBundleRef bundle = CFBundleGetMainBundle();
-	CFStringRef sAlternate = LSTRING(bundle, "Quit " PRODUCT_FAMILY);
+	CFStringRef sAlternate = LSTRING(bundle, fmt::format("Quit {}", Core::AppInfo::APP_TITLE).c_str());
 	/* XXX Translate these and remove the redefine of LSTRING. Another way to do
 	 * this would be to pass bundle's URL to CFUserNotificationDisplayAlert's
 	 * localizationURL parameter and let it do it. This wouldn't work for sBody
 	 * though. */
-#undef LSTRING
-#define LSTRING(b, x) CFSTR(x)
 	CFStringRef sDefault = LSTRING(bundle, "File Bug Report");
 	CFStringRef sOther = LSTRING(bundle, "Open crashinfo.txt");
-	CFStringRef sTitle = LSTRING(bundle, PRODUCT_FAMILY " has crashed");
-	CFStringRef sFormat = LSTRING(
-	  bundle,
-	  PRODUCT_FAMILY " has crashed. "
+	CFStringRef sTitle = LSTRING(bundle, fmt::format("{} has crashed", Core::AppInfo::APP_TITLE).c_str());
+	CFStringRef sFormat = LSTRING(bundle, fmt::format("{} has crashed"
 					 "Debugging information has been output to\n\n%s\n\n"
-					 "Please file a bug report at\n\n%s");
+					 "Please file a bug report at\n\n%s", Core::AppInfo::APP_TITLE).c_str());
 	CFStringRef sBody = CFStringCreateWithFormat(
-	  kCFAllocatorDefault, NULL, sFormat, sPath.c_str(), REPORT_BUG_URL);
+	  kCFAllocatorDefault, NULL, sFormat, sPath.c_str(), Core::AppInfo::BUG_REPORT_URL);
 	CFOptionFlags response = kCFUserNotificationCancelResponse;
 	CFTimeInterval timeout = 0.0; // Should we ever time out?
 
-	CFUserNotificationDisplayAlert(timeout,
-								   kCFUserNotificationStopAlertLevel,
-								   NULL,
-								   NULL,
-								   NULL,
+	CFUserNotificationDisplayAlert(timeout,kCFUserNotificationStopAlertLevel,
+								   NULL, NULL, NULL,
 								   sTitle,
 								   sBody,
 								   sDefault,
@@ -65,11 +60,11 @@ CrashHandler::InformUserOfCrash(const std::string& sPath)
 
 	switch (response) {
 		case kCFUserNotificationDefaultResponse:
-			HOOKS->GoToURL(REPORT_BUG_URL);
+			Core::Platform::openWebsite(Core::AppInfo::BUG_REPORT_URL);
 			// Fall through.
 		case kCFUserNotificationOtherResponse:
 			// Open the file with the default application (probably TextEdit).
-			HOOKS->GoToURL("file://" + sPath);
+            Core::Platform::openWebsite("file://" + sPath);
 			break;
 	}
 	CFRelease(sBody);

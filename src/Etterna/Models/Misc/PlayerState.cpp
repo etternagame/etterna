@@ -66,6 +66,47 @@ PlayerState::GetDisplayedTiming() const
 	return *steps->GetTimingData();
 }
 
+void
+PlayerState::ResetCacheInfo(/*const NoteData& notes*/)
+{
+	m_CacheDisplayedBeat.clear();
+
+	const auto vScrolls =
+	  GetDisplayedTiming().GetTimingSegments(SEGMENT_SCROLL);
+
+	auto displayedBeat = 0.0F;
+	auto lastRealBeat = 0.0F;
+	auto lastRatio = 1.0F;
+	for (auto vScroll : vScrolls) {
+		auto* const seg = ToScroll(vScroll);
+		displayedBeat += (seg->GetBeat() - lastRealBeat) * lastRatio;
+		lastRealBeat = seg->GetBeat();
+		lastRatio = seg->GetRatio();
+		CacheDisplayedBeat c = { seg->GetBeat(),
+								 displayedBeat,
+								 seg->GetRatio() };
+		m_CacheDisplayedBeat.push_back(c);
+	}
+
+	// optimization: unused for now.
+	/*
+	m_CacheNoteStat.clear();
+	auto it = notes.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW, true);
+	auto count = 0;
+	auto lastCount = 0;
+	for (; !it.IsAtEnd(); ++it) {
+		for (auto t = 0; t < notes.GetNumTracks(); t++) {
+			if (notes.GetTapNote(t, it.Row()) != TAP_EMPTY) {
+				count++;
+			}
+		}
+		CacheNoteStat c = { NoteRowToBeat(it.Row()), lastCount, count };
+		lastCount = count;
+		m_CacheNoteStat.push_back(c);
+	}
+	*/
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -104,7 +145,7 @@ class LunaPlayerState : public Luna<PlayerState>
 	static int GetPlayerOptionsArray(T* p, lua_State* L)
 	{
 		const auto m = Enum::Check<ModsLevel>(L, 1);
-		vector<std::string> s;
+		std::vector<std::string> s;
 		p->m_PlayerOptions.Get(m).GetMods(s);
 		LuaHelpers::CreateTableFromArray<std::string>(s, L);
 		return 1;

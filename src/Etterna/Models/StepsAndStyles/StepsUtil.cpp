@@ -29,7 +29,7 @@ CompareStepsPointersBySortValueDescending(const Steps* pSteps1,
 }
 
 void
-StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
+StepsUtil::SortStepsPointerArrayByNumPlays(std::vector<Steps*>& vStepsPointers,
 										   ProfileSlot slot,
 										   bool bDescending)
 {
@@ -38,13 +38,13 @@ StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
 }
 
 void
-StepsUtil::SortStepsPointerArrayByNumPlays(vector<Steps*>& vStepsPointers,
+StepsUtil::SortStepsPointerArrayByNumPlays(std::vector<Steps*>& vStepsPointers,
 										   const Profile* pProfile,
 										   bool bDecending)
 {
 	// ugly...
 	auto vpSongs = SONGMAN->GetAllSongs();
-	vector<Steps*> vpAllSteps;
+	std::vector<Steps*> vpAllSteps;
 	std::map<Steps*, Song*> mapStepsToSong;
 	{
 		for (auto pSong : vpSongs) {
@@ -97,7 +97,7 @@ StepsUtil::CompareNotesPointersByDifficulty(const Steps* pSteps1,
 }
 
 void
-StepsUtil::SortNotesArrayByDifficulty(vector<Steps*>& arraySteps)
+StepsUtil::SortNotesArrayByDifficulty(std::vector<Steps*>& arraySteps)
 {
 	/* Sort in reverse order of priority. Sort by description first, to get
 	 * a predictable order for songs with no radar values (edits). */
@@ -123,7 +123,7 @@ StepsUtil::CompareStepsPointersByTypeAndDifficulty(const Steps* pStep1,
 }
 
 void
-StepsUtil::SortStepsByTypeAndDifficulty(vector<Steps*>& arraySongPointers)
+StepsUtil::SortStepsByTypeAndDifficulty(std::vector<Steps*>& arraySongPointers)
 {
 	sort(arraySongPointers.begin(),
 		 arraySongPointers.end(),
@@ -139,7 +139,7 @@ StepsUtil::CompareStepsPointersByDescription(const Steps* pStep1,
 }
 
 void
-StepsUtil::SortStepsByDescription(vector<Steps*>& arraySongPointers)
+StepsUtil::SortStepsByDescription(std::vector<Steps*>& arraySongPointers)
 {
 	sort(arraySongPointers.begin(),
 		 arraySongPointers.end(),

@@ -12,9 +12,9 @@ struct Mouse
 	IOHIDElementCookie x_axis, y_axis;
 	int x_min, x_max;
 	int y_min, y_max;
-	vector<int> z_min, z_max;
+	std::vector<int> z_min, z_max;
 
-	vector<IOHIDElementCookie> z_axis;
+	std::vector<IOHIDElementCookie> z_axis;
 
 	Mouse();
 };
@@ -24,10 +24,6 @@ float
 MACMouseY();
 float
 MACMouseScroll();
-float
-MACWindowHeight();
-float
-MACWindowWidth();
 
 class MouseDevice : public HIDDevice
 {
@@ -48,11 +44,11 @@ class MouseDevice : public HIDDevice
 
   public:
 	void GetButtonPresses(
-	  vector<DeviceInput>& vPresses,
+	  std::vector<DeviceInput>& vPresses,
 	  IOHIDElementCookie cookie,
 	  int value,
 	  const std::chrono::time_point<std::chrono::steady_clock>& now) const;
-	void GetDevicesAndDescriptions(vector<InputDeviceInfo>& vDevices) const;
+	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vDevices) const;
 };
 
 #endif

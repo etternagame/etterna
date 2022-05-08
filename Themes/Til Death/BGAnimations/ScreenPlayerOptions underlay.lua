@@ -1,7 +1,4 @@
-t = Def.ActorFrame {}
-
-local frameX = THEME:GetMetric("ScreenTitleMenu", "ScrollerX") - 10
-local frameY = THEME:GetMetric("ScreenTitleMenu", "ScrollerY")
+t = Def.ActorFrame { }
 
 t[#t + 1] =
 	LoadActor(THEME:GetPathG("", "_OptionsScreen")) ..
@@ -11,18 +8,33 @@ t[#t + 1] =
 		end
 	}
 
-local x = 75
-local y = 500
-if GetScreenAspectRatio() > 1.7 then
-	x = 310
-	y = 500
+if SameColor(getMainColor("positive"),color("#9654FD")) then
+	t[#t + 1] =
+		LoadActor(THEME:GetPathG("", "_OptionsSidebar")) ..
+		{
+			OnCommand = function(self)
+				self:zoomto(152, SCREEN_HEIGHT):align(0,0)
+			end
+		}
+else
+	t[#t + 1] =
+		LoadActor(THEME:GetPathG("", "_OptionsGreySidebar")) ..
+		{
+			OnCommand = function(self)
+				self:zoomto(152, SCREEN_HEIGHT):align(0,0)
+				self:diffuse(ColorMultiplier(getMainColor("positive"),1.5))
+			end
+		}
+	t[#t + 1] =
+		LoadActor(THEME:GetPathG("", "_OptionsGreySidebar")) ..
+		{
+			OnCommand = function(self)
+				self:zoomto(152, SCREEN_HEIGHT):align(0,0)
+				self:diffuse(ColorMultiplier(getMainColor("positive"),0.75))
+				self:diffusealpha(0.2):blend(Blend.Add)
+			end
+		}
 end
-t[#t + 2] =
-	LoadActor(THEME:GetPathG("", "_OptionsActor")) ..
-	{
-		OnCommand = function(self)
-			self:zoomto(x, y):y(SCREEN_CENTER_Y):diffusealpha(1)
-		end
-	}
+
 
 return t

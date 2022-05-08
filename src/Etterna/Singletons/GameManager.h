@@ -20,7 +20,7 @@ struct StepsTypeInfo
 	bool bAllowAutogen;
 	/** @brief The most basic StyleType that this StpesTypeInfo is used with. */
 	StepsTypeCategory m_StepsTypeCategory;
-	std::string GetLocalizedString() const;
+	[[nodiscard]] auto GetLocalizedString() const -> std::string;
 };
 
 class GameManager
@@ -30,40 +30,40 @@ class GameManager
 	~GameManager();
 
 	void GetStylesForGame(const Game* pGame,
-						  vector<const Style*>& aStylesAddTo,
+						  std::vector<const Style*>& aStylesAddTo,
 						  bool editor = false);
-	const Game* GetGameForStyle(const Style* pStyle);
+	auto GetGameForStyle(const Style* pStyle) -> const Game*;
 	void GetStepsTypesForGame(const Game* pGame,
-							  vector<StepsType>& aStepsTypeAddTo);
-	const Style* GetEditorStyleForStepsType(StepsType st);
+							  std::vector<StepsType>& aStepsTypeAddTo);
+	auto GetEditorStyleForStepsType(StepsType st) -> const Style*;
 	void GetDemonstrationStylesForGame(const Game* pGame,
-									   vector<const Style*>& vpStylesOut);
-	const Style* GetHowToPlayStyleForGame(const Game* pGame);
+									   std::vector<const Style*>& vpStylesOut);
+	auto GetHowToPlayStyleForGame(const Game* pGame) -> const Style*;
 	void GetCompatibleStyles(const Game* pGame,
 							 int iNumPlayers,
-							 vector<const Style*>& vpStylesOut);
-	const Style* GetFirstCompatibleStyle(const Game* pGame,
-										 int iNumPlayers,
-										 StepsType st);
+							 std::vector<const Style*>& vpStylesOut);
+	auto GetFirstCompatibleStyle(const Game* pGame,
+								 int iNumPlayers,
+								 StepsType st) -> const Style*;
 
-	void GetEnabledGames(vector<const Game*>& aGamesOut);
-	const Game* GetDefaultGame();
-	bool IsGameEnabled(const Game* pGame);
-	int GetIndexFromGame(const Game* pGame);
-	const Game* GetGameFromIndex(int index);
+	void GetEnabledGames(std::vector<const Game*>& aGamesOut);
+	auto GetDefaultGame() -> const Game*;
+	auto IsGameEnabled(const Game* pGame) -> bool;
+	auto GetIndexFromGame(const Game* pGame) -> int;
+	auto GetGameFromIndex(int index) -> const Game*;
 
-	const StepsTypeInfo& GetStepsTypeInfo(StepsType st);
-	StepsType StringToStepsType(std::string sStepsType);
-	const Game* StringToGame(const std::string& sGame);
-	const Style* GameAndStringToStyle(const Game* pGame,
-									  const std::string& sStyle);
-	std::string StyleToLocalizedString(const Style* s);
+	auto GetStepsTypeInfo(StepsType st) -> const StepsTypeInfo&;
+	auto StringToStepsType(std::string sStepsType) -> StepsType;
+	auto StringToGame(const std::string& sGame) -> const Game*;
+	auto GameAndStringToStyle(const Game* pGame, const std::string& sStyle)
+	  -> const Style*;
+	auto StyleToLocalizedString(const Style* s) -> std::string;
 
 	bool m_bResetModifiers;
 	bool m_bResetTurns;
 	float m_fPreviousRate;
 	std::string m_sModsToReset;
-	vector<std::string> m_vTurnsToReset;
+	std::vector<std::string> m_vTurnsToReset;
 
 	// Lua
 	void PushSelf(lua_State* L);

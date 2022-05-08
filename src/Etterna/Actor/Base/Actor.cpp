@@ -38,8 +38,8 @@ REGISTER_ACTOR_CLASS_WITH_NAME(HiddenActor, Actor);
 float Actor::g_fCurrentBGMTime = 0, Actor::g_fCurrentBGMBeat;
 float Actor::g_fCurrentBGMTimeNoOffset = 0,
 	  Actor::g_fCurrentBGMBeatNoOffset = 0;
-vector<float> Actor::g_vfCurrentBGMBeatPlayer(NUM_PlayerNumber, 0);
-vector<float> Actor::g_vfCurrentBGMBeatPlayerNoOffset(NUM_PlayerNumber, 0);
+std::vector<float> Actor::g_vfCurrentBGMBeatPlayer(NUM_PlayerNumber, 0);
+std::vector<float> Actor::g_vfCurrentBGMBeatPlayerNoOffset(NUM_PlayerNumber, 0);
 
 Actor*
 Actor::Copy() const
@@ -311,8 +311,8 @@ Actor::IsOver(float mx, float my)
 	const auto hal = GetHorizAlign();
 	const auto val = GetVertAlign();
 
-	const auto wi = GetZoomedWidth() * GetFakeParentOrParent()->GetTrueZoom();
-	const auto hi = GetZoomedHeight() * GetFakeParentOrParent()->GetTrueZoom();
+	const auto wi = GetZoomedWidth() * GetFakeParentOrParent()->GetTrueZoomX();
+	const auto hi = GetZoomedHeight() * GetFakeParentOrParent()->GetTrueZoomY();
 
 	const auto rotZ = GetTrueRotationZ();
 
@@ -346,10 +346,12 @@ Actor::GetTrueX()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
+
+	// need to account for 3d rotation
 	RageVector2 p1(GetX(), GetY());
 	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
 
-	return p1.x * mfp->GetTrueZoom() + mfp->GetTrueX();
+	return p1.x * mfp->GetTrueZoomX() + mfp->GetTrueX();
 }
 
 float
@@ -360,10 +362,48 @@ Actor::GetTrueY()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
+
+	// need to account for 3d rotation
 	RageVector2 p1(GetX(), GetY());
 	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
 
-	return p1.y * mfp->GetTrueZoom() + mfp->GetTrueY();
+	return p1.y * mfp->GetTrueZoomY() + mfp->GetTrueY();
+}
+
+float
+Actor::GetTrueZ()
+{
+	if (this == nullptr)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetZ();
+
+	// need to account for 3d rotation
+
+	return mfp->GetTrueZoomZ() + mfp->GetTrueZ();
+}
+
+float
+Actor::GetTrueRotationX()
+{
+	if (this == nullptr)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetRotationX();
+	return GetRotationX() + mfp->GetTrueRotationX();
+}
+
+float
+Actor::GetTrueRotationY()
+{
+	if (this == nullptr)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetRotationY();
+	return GetRotationY() + mfp->GetTrueRotationY();
 }
 
 float
@@ -386,6 +426,36 @@ Actor::GetTrueZoom()
 	if (!mfp)
 		return GetZoom();
 	return GetZoom() * mfp->GetTrueZoom();
+}
+float
+Actor::GetTrueZoomX()
+{
+	if (this == nullptr)
+		return 1.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetZoomX();
+	return GetZoomX() * mfp->GetTrueZoomX();
+}
+float
+Actor::GetTrueZoomY()
+{
+	if (this == nullptr)
+		return 1.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetZoomY();
+	return GetZoomY() * mfp->GetTrueZoomY();
+}
+float
+Actor::GetTrueZoomZ()
+{
+	if (this == nullptr)
+		return 1.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetZoomZ();
+	return GetZoomZ() * mfp->GetTrueZoomZ();
 }
 bool
 Actor::IsVisible()
@@ -900,7 +970,7 @@ Actor::UpdateInternal(float delta_time)
 			break;
 		case CLOCK_TIMER_GLOBAL:
 			generic_global_timer_update(
-			  static_cast<float>(RageTimer::GetUsecsSinceStart()),
+			  RageTimer::GetTimeSinceStart(),
 			  m_fEffectDelta,
 			  m_fSecsIntoEffect);
 			break;
@@ -2677,7 +2747,14 @@ class LunaActor : public Luna<Actor>
 	}
 	DEFINE_METHOD(GetTrueX, GetTrueX());
 	DEFINE_METHOD(GetTrueY, GetTrueY());
+	DEFINE_METHOD(GetTrueZ, GetTrueZ());
 	DEFINE_METHOD(GetTrueZoom, GetTrueZoom());
+	DEFINE_METHOD(GetTrueZoomX, GetTrueZoomX());
+	DEFINE_METHOD(GetTrueZoomY, GetTrueZoomY());
+	DEFINE_METHOD(GetTrueZoomZ, GetTrueZoomZ());
+	DEFINE_METHOD(GetTrueRotationX, GetTrueRotationX());
+	DEFINE_METHOD(GetTrueRotationY, GetTrueRotationY());
+	DEFINE_METHOD(GetTrueRotationZ, GetTrueRotationZ());
 	DEFINE_METHOD(IsVisible, IsVisible());
 	LunaActor()
 	{
@@ -2857,7 +2934,14 @@ class LunaActor : public Luna<Actor>
 
 		ADD_METHOD(GetTrueX);
 		ADD_METHOD(GetTrueY);
+		ADD_METHOD(GetTrueZ);
 		ADD_METHOD(GetTrueZoom);
+		ADD_METHOD(GetTrueZoomX);
+		ADD_METHOD(GetTrueZoomY);
+		ADD_METHOD(GetTrueZoomZ);
+		ADD_METHOD(GetTrueRotationX);
+		ADD_METHOD(GetTrueRotationY);
+		ADD_METHOD(GetTrueRotationZ);
 		ADD_METHOD(IsVisible);
 		ADD_METHOD(IsOver);
 	}

@@ -20,7 +20,7 @@ enum SelectType
 	SelectType_Invalid
 };
 const std::string&
-SelectTypeToString(SelectType pm);
+SelectTypeToString(SelectType x);
 SelectType
 StringToSelectType(const std::string& s);
 LuaDeclareType(SelectType);
@@ -33,7 +33,7 @@ enum LayoutType
 	LayoutType_Invalid
 };
 const std::string&
-LayoutTypeToString(LayoutType pm);
+LayoutTypeToString(LayoutType x);
 LayoutType
 StringToLayoutType(const std::string& s);
 LuaDeclareType(LayoutType);
@@ -47,7 +47,7 @@ enum ReloadChanged
 	ReloadChanged_Invalid
 };
 const std::string&
-ReloadChangedToString(ReloadChanged rc);
+ReloadChangedToString(ReloadChanged x);
 ReloadChanged
 StringToReloadChanged(const std::string& s);
 LuaDeclareType(ReloadChanged);
@@ -63,7 +63,7 @@ struct OptionRowDefinition
 	bool m_bOneChoiceForAllPlayers{ false };
 	SelectType m_selectType{ SELECT_ONE };
 	LayoutType m_layoutType{ LAYOUT_SHOW_ALL_IN_ROW };
-	vector<std::string> m_vsChoices;
+	std::vector<std::string> m_vsChoices;
 	std::set<PlayerNumber> m_vEnabledForPlayers; // only players in this set may
 												 // change focus to this row
 	int m_iDefault{ -1 };
@@ -223,7 +223,7 @@ class OptionRowHandler
 	}
 	// Returns an OPT mask.
 	[[nodiscard]] virtual int ExportOption(const PlayerNumber&,
-										   const vector<bool>& vbSelected) const
+										   const std::vector<bool>& vbSelected) const
 	{
 		return 0;
 	}
@@ -254,13 +254,13 @@ OptionRowHandler*
 MakeSimple(const MenuRowDef& mrd);
 
 void
-SelectExactlyOne(int iSelection, vector<bool>& vbSelectedOut);
+SelectExactlyOne(int iSelection, std::vector<bool>& vbSelectedOut);
 int
-GetOneSelection(const vector<bool>& vbSelected);
+GetOneSelection(const std::vector<bool>& vbSelected);
 }
 
 inline void
-VerifySelected(SelectType st, vector<bool>& selected, const std::string& sName)
+VerifySelected(SelectType st, std::vector<bool>& selected, const std::string& sName)
 {
 	auto num_selected = 0;
 	if (st == SELECT_ONE) {

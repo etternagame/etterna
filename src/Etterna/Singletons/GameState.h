@@ -98,7 +98,6 @@ class GameState
 
 	bool m_bPlayingMulti = false;
 	int m_iNumMultiplayerNoteFields;
-	[[nodiscard]] auto DifficultiesLocked() const -> bool;
 	auto ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 											   Difficulty dc,
 											   StepsType st) -> bool;
@@ -114,7 +113,6 @@ class GameState
 	// This is set to a random number per-game/round; it can be used for a
 	// random seed.
 	int m_iGameSeed, m_iStageSeed;
-	std::string m_sStageGUID;
 
 	void SetNewStageSeed();
 
@@ -128,7 +126,6 @@ class GameState
 	void SetCurrentStyle(const Style* style, PlayerNumber pn);
 	auto SetCompatibleStyle(StepsType stype, PlayerNumber pn) -> bool;
 
-	void GetPlayerInfo(PlayerNumber pn, bool& bIsEnabledOut, bool& bIsHumanOut);
 	[[nodiscard]] auto IsPlayerEnabled(PlayerNumber pn) const -> bool;
 	[[nodiscard]] auto IsMultiPlayerEnabled(MultiPlayer mp) const -> bool;
 	auto IsPlayerEnabled(const PlayerState* pPlayerState) const -> bool;
@@ -165,11 +162,6 @@ class GameState
 	 * @param t the timing data. */
 	void SetProcessedTimingData(TimingData* t);
 
-	/**
-	 * @brief Do we show the W1 timing judgment?
-	 * @return true if we do, or false otherwise. */
-	[[nodiscard]] auto ShowW1() const -> bool;
-
 	BroadcastOnChange<std::string>
 	  m_sPreferredSongGroup;		  // GROUP_ALL denotes no preferred group
 	bool m_bFailTypeWasExplicitlySet; // true if FailType was changed in the
@@ -197,8 +189,6 @@ class GameState
 	std::string sExpandedSectionName;
 
 	static auto GetNumStagesMultiplierForSong(const Song* pSong) -> int;
-	static auto GetNumStagesForSongAndStyleType(const Song* pSong, StyleType st)
-	  -> int;
 	[[nodiscard]] auto GetNumStagesForCurrentSongAndStepsOrCourse() const
 	  -> int;
 
@@ -213,7 +203,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static auto GetEtternaVersion() -> std::string { return "0.70.3"; }
+	static auto GetEtternaVersion() -> std::string { return "0.71.2"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4
@@ -232,10 +222,10 @@ class GameState
 
 	// NULL on ScreenSelectMusic if the currently selected wheel item isn't a
 	// Song.
-	BroadcastOnChangePtr<Song> m_pCurSong;
+	BroadcastOnChangePtrWithSelf<Song> m_pCurSong;
 	// The last Song that the user manually changed to.
 	Song* m_pPreferredSong;
-	BroadcastOnChangePtr<Steps> m_pCurSteps;
+	BroadcastOnChangePtrWithSelf<Steps> m_pCurSteps;
 
 	// Music statistics:
 	SongPosition m_Position;
@@ -315,7 +305,6 @@ class GameState
 	bool m_bIsUsingStepTiming{ true };
 	BroadcastOnChange<std::string> m_sEditLocalProfileID;
 	auto GetEditLocalProfile() -> Profile*;
-	bool m_bIsChartPreviewActive;
 
 	// Current mode of Gameplay
 	BroadcastOnChange<GameplayMode> m_gameplayMode;
@@ -349,7 +338,6 @@ class GameState
 	bool m_paused;
 
 	GameState(const GameState& rhs);
-	auto operator=(const GameState& rhs) -> GameState&;
 };
 
 extern GameState*

@@ -82,9 +82,9 @@ RageVec3Normalize(RageVector3* pOut, const RageVector3* pV)
 }
 
 void
-VectorFloatNormalize(vector<float>& v)
+VectorFloatNormalize(std::vector<float>& v)
 {
-	ASSERT_M(v.size() == 3, "Can't normalize a non-3D vector.");
+	ASSERT_M(v.size() == 3, "Can't normalize a non-3D std::vector.");
 	const auto scale = 1.0f / sqrtf(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 	v[0] *= scale;
 	v[1] *= scale;
@@ -815,7 +815,7 @@ struct sine_initter
 
 static sine_initter sinner;
 
-float
+const float
 RageFastSin(float angle)
 {
 	if (angle == 0) {
@@ -841,7 +841,7 @@ RageFastSin(float angle)
 	return result;
 }
 
-float
+const float
 RageFastCos(float x)
 {
 	return RageFastSin(x + 0.5f * PI);

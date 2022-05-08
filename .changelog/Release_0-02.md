@@ -5,6 +5,8 @@
 
 Binary only release to replace Stepmania.exe.
 
+### Added
+- Usable but hidden Jumpstream generators - [c5b3d03](../../../commit/c5b3d031c021d8de0015dc51d9156f0cfe63f8b4)
 ### Changed
 - For Windows, use D3DX instead of RageMath for some calculations - [2d4c053](../../../commit/2d4c0538a683da87c0a09ac68304f953b04542fa)
 - FPS with Holds on screen improved by 37%

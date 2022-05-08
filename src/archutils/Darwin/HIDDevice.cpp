@@ -41,7 +41,7 @@ HIDDevice::Open(io_object_t device)
 	result = IORegistryEntryCreateCFProperties(
 	  device, &properties, kCFAllocatorDefault, kNilOptions);
 	if (result != KERN_SUCCESS || !properties) {
-		LOG->Warn("Couldn't get properties.");
+		Locator::getLogger()->warn("Couldn't get properties.");
 		return false;
 	}
 
@@ -58,7 +58,7 @@ HIDDevice::Open(io_object_t device)
 	if (!IntValue(pidRef, pid))
 		pid = 0;
 	if (!InitDevice(vid, pid)) {
-		LOG->Warn("Couldn't initialize device.");
+		Locator::getLogger()->warn("Couldn't initialize device.");
 		CFRelease(properties);
 		return false;
 	}
@@ -70,11 +70,11 @@ HIDDevice::Open(io_object_t device)
 	}
 	if (m_sDescription == "")
 		m_sDescription = ssprintf("%04x:%04x", vid, pid);
-	LOG->Trace("\t\tDevice description: %s", m_sDescription.c_str());
+	Locator::getLogger()->trace("\t\tDevice description: {}", m_sDescription.c_str());
 
 	object = CFDictionaryGetValue(properties, CFSTR(kIOHIDElementKey));
 	if (!object || CFGetTypeID(object) != CFArrayGetTypeID()) {
-		LOG->Warn("Couldn't get HID elements.");
+		Locator::getLogger()->warn("Couldn't get HID elements.");
 		CFRelease(properties);
 		return false;
 	}
@@ -110,7 +110,7 @@ HIDDevice::Open(io_object_t device)
 	CALL(plugInInterface, Release);
 
 	if (hresult != S_OK) {
-		LOG->Warn("Couldn't get device interface from plugin interface.");
+		Locator::getLogger()->warn("Couldn't get device interface from plugin interface.");
 		m_Interface = NULL;
 		return false;
 	}
@@ -126,7 +126,7 @@ HIDDevice::Open(io_object_t device)
 	// alloc/create queue
 	m_Queue = CALL(m_Interface, allocQueue);
 	if (!m_Queue) {
-		LOG->Warn("Couldn't allocate a queue.");
+		Locator::getLogger()->warn("Couldn't allocate a queue.");
 		return false;
 	}
 
@@ -140,7 +140,7 @@ HIDDevice::Open(io_object_t device)
 	}
 
 	Open();
-	LOG->Trace("\t\tDevice open");
+	Locator::getLogger()->trace("\t\tDevice open");
 	return true;
 }
 

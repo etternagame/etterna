@@ -12,6 +12,16 @@
 class RageSoundReader;
 struct lua_State;
 
+struct Butter
+{
+	RageTimer tm;
+	RageTimer hwTime;
+	RageTimer syncTime;
+	float hwPosition;
+	float syncPosition;
+	float acc;
+};
+
 /* Driver interface for sounds: this is what drivers see. */
 class RageSoundBase
 {
@@ -51,7 +61,7 @@ struct RageSoundParams
 	// Number of seconds to spend fading out.
 	float m_fFadeOutSeconds{ 0 };
 
-	float m_Volume{ 1.0F };			// multiplies with SOUNDMAN->GetMixVolume()
+	float m_Volume{ 1.0F };
 	float m_fAttractVolume{ 1.0F }; // multiplies with m_Volume
 
 	/* Number of samples input and output when changing speed.
@@ -97,11 +107,17 @@ struct RageSoundLoadParams
 };
 
 template <class T>
-class MufftAllocator {
+class MufftAllocator
+{
   public:
 	typedef T value_type;
-	T* allocate (size_t n) { return static_cast<T*>(mufft_alloc(n * sizeof(T))); }
-	void deallocate (T* p, size_t n) { mufft_free(p); }
+	MufftAllocator() noexcept {};
+
+	T* allocate(size_t n) {	return static_cast<T*>(mufft_alloc(n * sizeof(T)));	}
+	void deallocate(T* p, size_t n) { mufft_free(p); }
+
+	template<typename U>
+	MufftAllocator(const MufftAllocator<U>& other) throw(){};
 };
 
 struct cfloat
@@ -169,7 +185,7 @@ class RageSound : public RageSoundBase
 
 	auto GetLengthSeconds() -> float;
 	auto GetPositionSeconds(bool* approximate = nullptr,
-							RageTimer* Timestamp = nullptr) const -> float;
+							RageTimer* Timestamp = nullptr) -> float;
 	auto GetLoadedFilePath() const -> std::string override
 	{
 		return m_sFilePath;
@@ -218,8 +234,8 @@ class RageSound : public RageSoundBase
 	  recentSamplesMutex; // For all operations related to sound play callbacks
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
 	std::shared_ptr<LuaReference> soundPlayCallback;
-	vector<float, MufftAllocator<float>> recentPCMSamples;
-	vector<cfloat, MufftAllocator<cfloat>> fftBuffer;
+	std::vector<float, MufftAllocator<float>> recentPCMSamples;
+	std::vector<cfloat, MufftAllocator<cfloat>> fftBuffer;
 	mufft_plan_1d *fftPlan{ nullptr };
 
 	/* Hack: When we stop a playing sound, we can't ask the driver the position
@@ -234,6 +250,8 @@ class RageSound : public RageSoundBase
 	bool m_bDeleteWhenFinished{ false };
 
 	std::string m_sError;
+
+	Butter m_Pasteurizer{};
 
 	auto GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
 										 bool* bApproximate = nullptr) const

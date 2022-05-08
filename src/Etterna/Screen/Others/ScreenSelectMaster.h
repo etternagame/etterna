@@ -47,6 +47,10 @@ class ScreenSelectMaster : public ScreenSelect
 	{
 		return GetSelectionIndex(pn);
 	}
+	bool ChangeSelection(PlayerNumber pn, MenuDir dir, int iNewChoice);
+	int GetChoiceCount() { return m_aGameCommands.size(); }
+	void PlayChangeSound() { m_soundChange.PlayCopy(true); }
+	void PlaySelectSound() { m_soundStart.PlayCopy(true); }
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -96,7 +100,6 @@ class ScreenSelectMaster : public ScreenSelect
 
 	bool Move(PlayerNumber pn, MenuDir dir);
 	bool ChangePage(int iNewChoice);
-	bool ChangeSelection(PlayerNumber pn, MenuDir dir, int iNewChoice);
 	float DoMenuStart(PlayerNumber pn);
 	virtual bool ProcessMenuStart(PlayerNumber pn) { return true; }
 

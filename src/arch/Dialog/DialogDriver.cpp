@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "DialogDriver.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 
 std::map<istring, CreateDialogDriverFn>* RegisterDialogDriver::g_pRegistrees;
 RegisterDialogDriver::RegisterDialogDriver(const istring& sName,
@@ -19,7 +19,7 @@ DialogDriver*
 DialogDriver::Create()
 {
 	std::string sDrivers = "win32,macosx,null";
-	vector<std::string> asDriversToTry;
+	std::vector<std::string> asDriversToTry;
 	split(sDrivers, ",", asDriversToTry, true);
 
 	ASSERT(asDriversToTry.size() != 0);
@@ -37,9 +37,7 @@ DialogDriver::Create()
 
 		if (sError.empty())
 			return pRet;
-		if (LOG)
-			LOG->Info(
-			  "Couldn't load driver %s: %s", Driver.c_str(), sError.c_str());
+		Locator::getLogger()->warn("Couldn't load driver {}: {}", Driver, sError.c_str());
 		SAFE_DELETE(pRet);
 	}
 	return nullptr;

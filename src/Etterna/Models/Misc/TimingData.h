@@ -3,7 +3,7 @@
 
 #include "NoteTypes.h"
 #include "TimingSegments.h"
-
+#include "Core/Services/Locator.hpp"
 #include <cfloat> // max float
 
 struct lua_State;
@@ -16,7 +16,7 @@ struct lua_State;
 /* convenience functions to handle static casting */
 template<class T>
 auto
-ToDerived(const TimingSegment* t, TimingSegmentType tst) -> T
+ToDerived(const TimingSegment* t, TimingSegmentType /*tst*/) -> T
 {
 	return static_cast<T>(t);
 }
@@ -56,7 +56,7 @@ class TimingData
 	/**
 	 * @brief Sets up initial timing data with a defined offset.
 	 * @param fOffset the offset from the 0th beat. */
-	TimingData(float fOffset = 0.F);
+	explicit TimingData(float fOffset = 0.F);
 	~TimingData();
 
 	void Copy(const TimingData& other);
@@ -760,18 +760,18 @@ class TimingData
 		auto& stops = m_avpTimingSegments[SEGMENT_STOP];
 
 		for (auto& i : bpms) {
-			auto bpm = ToBPM(i);
+			auto* bpm = ToBPM(i);
 			if (0 > bpm->GetBPM()) {
-				LOG->Warn("Sequential Assumption Invalidated.");
+				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
 				return;
 			}
 		}
 
 		for (auto& stop : stops) {
-			auto s = ToStop(stop);
+			auto* s = ToStop(stop);
 			if (0 > s->GetPause()) {
-				LOG->Warn("Sequential Assumption Invalidated.");
+				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
 				ValidSequentialAssumption = false;
 				return;
 			}

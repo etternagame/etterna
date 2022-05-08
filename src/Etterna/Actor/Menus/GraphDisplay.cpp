@@ -115,8 +115,8 @@ class GraphLine : public Actor
 	GraphLine* Copy() const override;
 
   private:
-	vector<RageSpriteVertex> m_Quads;
-	vector<RageSpriteVertex> m_pCircles;
+	std::vector<RageSpriteVertex> m_Quads;
+	std::vector<RageSpriteVertex> m_pCircles;
 };
 REGISTER_ACTOR_CLASS(GraphLine);
 
@@ -174,16 +174,7 @@ GraphDisplay::~GraphDisplay()
 void
 GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 {
-	const float fTotalStepSeconds = ss.GetTotalPossibleStepsSeconds();
-
-	m_Values.resize(VALUE_RESOLUTION);
-	pss.GetWifeRecord(
-	  &m_Values[0], VALUE_RESOLUTION, ss.GetTotalPossibleStepsSeconds());
-	for (unsigned i = 0; i < ARRAYLEN(m_Values); i++)
-		CLAMP(m_Values[i], 0.f, 1.f);
-
-	UpdateVerts();
-
+	/* Multiple song support
 	// Show song boundaries
 	float fSec = 0;
 	FOREACH_CONST(Song*, ss.m_vpPossibleSongs, song)
@@ -202,6 +193,19 @@ GraphDisplay::Set(const StageStats& ss, const PlayerStageStats& pss)
 		p->SetX(fX);
 		this->AddChild(p);
 	}
+	*/
+	SetWithoutStageStats(pss, ss.GetTotalPossibleStepsSeconds());
+}
+
+void
+GraphDisplay::SetWithoutStageStats(const PlayerStageStats& pss, const float fTotalStepSeconds)
+{
+	m_Values.resize(VALUE_RESOLUTION);
+	pss.GetWifeRecord(&m_Values[0], VALUE_RESOLUTION, fTotalStepSeconds);
+	for (unsigned i = 0; i < ARRAYLEN(m_Values); i++)
+		CLAMP(m_Values[i], 0.f, 1.f);
+
+	UpdateVerts();
 
 	if (!pss.m_bFailed) {
 		// Search for the min life record to show "Just Barely!"
@@ -328,11 +332,19 @@ class LunaGraphDisplay : public Luna<GraphDisplay>
 		p->Set(*pStageStats, *pPlayerStageStats);
 		COMMON_RETURN_SELF;
 	}
+	static int SetWithoutStageStats(T* p, lua_State* L)
+	{
+		auto* pss = Luna<PlayerStageStats>::check(L, 1);
+		const float flen = FArg(2);
+		p->SetWithoutStageStats(*pss, flen);
+		COMMON_RETURN_SELF;
+	}
 
 	LunaGraphDisplay()
 	{
 		ADD_METHOD(Load);
 		ADD_METHOD(Set);
+		ADD_METHOD(SetWithoutStageStats);
 	}
 };
 

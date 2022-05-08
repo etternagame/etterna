@@ -1,5 +1,5 @@
 #include "Etterna/Globals/global.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil.h"
 #include "RageUtil_CharConversions.h"
 
@@ -15,7 +15,8 @@ CodePageConvert(std::string& sText, int iCodePage)
 	int iSize = MultiByteToWideChar(
 	  iCodePage, MB_ERR_INVALID_CHARS, sText.data(), sText.size(), nullptr, 0);
 	if (iSize == 0) {
-		LOG->Trace("%s\n", werr_ssprintf(GetLastError(), "err: ").c_str());
+		Locator::getLogger()->trace(
+		  "{}", werr_ssprintf(GetLastError(), "err: ").c_str());
 		return false; /* error */
 	}
 
@@ -59,10 +60,7 @@ ConvertFromCharset(std::string& sText, const char* szCharset)
 {
 	iconv_t converter = iconv_open("UTF-8", szCharset);
 	if (converter == (iconv_t)-1) {
-		LOG->MapLog(ssprintf("conv %s", szCharset),
-					"iconv_open(%s): %s",
-					szCharset,
-					strerror(errno));
+		Locator::getLogger()->trace("iconv_open({}): {}", szCharset, strerror(errno));
 		return false;
 	}
 
@@ -81,13 +79,12 @@ ConvertFromCharset(std::string& sText, const char* szCharset)
 	iconv_close(converter);
 
 	if (size == (size_t)(-1)) {
-		LOG->Trace("%s\n", strerror(errno));
+		Locator::getLogger()->trace("{}", strerror(errno));
 		return false; /* Returned an error */
 	}
 
 	if (iInLeft != 0) {
-		LOG->Warn(
-		  "iconv(UTF-8,%s) for \"%s\": whole buffer not converted (%i left)",
+		Locator::getLogger()->warn("iconv(UTF-8,{}}) for \"{}}\": whole buffer not converted ({} left)",
 		  szCharset,
 		  sText.c_str(),
 		  int(iInLeft));

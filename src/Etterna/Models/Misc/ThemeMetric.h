@@ -202,18 +202,21 @@ class ThemeMetric1D : public IThemeMetric
 	void Load(const std::string& sGroup, MetricName1D pfn, size_t N)
 	{
 		m_metric.resize(N);
-		for (unsigned i = 0; i < N; i++)
+		for (unsigned i = 0; i < N; i++) {
 			m_metric[i].Load(sGroup, pfn(i));
+		}
 	}
 	void Read() override
 	{
-		for (unsigned i = 0; i < m_metric.size(); i++)
+		for (unsigned i = 0; i < m_metric.size(); i++) {
 			m_metric[i].Read();
+		}
 	}
 	void Clear() override
 	{
-		for (unsigned i = 0; i < m_metric.size(); i++)
+		for (unsigned i = 0; i < m_metric.size(); i++) {
 			m_metric[i].Clear();
+		}
 	}
 
 	[[nodiscard]] auto GetValue(size_t i) const -> const T&
@@ -298,18 +301,20 @@ class ThemeMetricMap : public IThemeMetric
 		for (typename std::map<std::string, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
-			 ++m)
+			 ++m) {
 			m->second.Read();
+		}
 	}
 	void Clear() override
 	{
 		for (typename std::map<std::string, ThemeMetric<T>>::iterator m =
 			   m_metric.begin();
 			 m != m_metric.end();
-			 ++m)
+			 ++m) {
 			m->second.Clear();
+		}
 	}
-	auto GetValue(const std::string& s) const -> const T&
+	[[nodiscard]] auto GetValue(const std::string& s) const -> const T&
 	{
 		// HACK: GCC (3.4) takes this and pretty much nothing else.
 		// I don't know why.

@@ -3,36 +3,40 @@
 #include <cassert>
 
 static const int max_flam_jammies = 4;
-/* keep track of potential flam formation */
+
+/// Struct describing a flam of 2-4 taps.
+/// A flam is not 1 tap.
+/// Flams are n > 1 taps which may be hit as a chord.
 struct flam
 {
-	// cols seen
+	/// columns seen
 	unsigned unsigned_unseen = 0U;
 
-	// size in ROWS, not columns, if flam size == 1 we do not yet have a flam
-	// and we have no current relevant values in ms[], any that are set will be
-	// leftovers from the last sequence, this is to optimize out setting
-	// rowtimes or calculating ms times
+	/// size in ROWS, not columns. if flam size == 1 we do not yet have a flam
+	/// and we have no current relevant values in ms[], any that are set will be
+	/// leftovers from the last sequence, this is to optimize out setting
+	/// rowtimes or calculating ms times
 	int size = 1;
 
-	// size > 1, is this actually more efficient than calling a bool check func?
+	/// size > 1.
+	/// is this actually more efficient than calling a bool check func?
 	bool flammin = false;
 
-	// ms values, 3 ms values = 4 rows, optimize by just recycling values
-	// without resetting and indexing up to the size counter to get duration
+	/// ms values, 3 ms values = 4 rows, optimize by just recycling values
+	/// without resetting and indexing up to the size counter to get duration
 	std::array<float, 3> ms = {
 		0.F,
 		0.F,
 		0.F,
 	};
 
-	// is this row exclusively additive with the current flam sequence?
+	/// is this row exclusively additive with the current flam sequence?
 	auto comma_comma_coolmeleon(const unsigned& notes) const -> bool
 	{
 		return (unsigned_unseen & notes) == 0U;
 	}
 
-	// to avoid keeping another float ??? idk
+	/// gather cumulative millisecond gap for entire flam
 	auto get_dur() -> float
 	{
 		// cba to loop
@@ -54,6 +58,7 @@ struct flam
 		return 0.F;
 	}
 
+	/// begin flam sequence processing
 	void start(const float& ms_now, const unsigned& notes)
 	{
 		flammin = true;
@@ -62,6 +67,7 @@ struct flam
 		grow(ms_now, notes);
 	}
 
+	/// continue flam sequence processing
 	void grow(const float& ms_now, const unsigned& notes)
 	{
 		if (size == max_flam_jammies) {
@@ -82,33 +88,34 @@ struct flam
 	}
 };
 
-// flam detection
-// used by flamjam
+/// Sequencer for FlamJam, to handle row by row processing of flams.
+/// Collects up to 4 flams per interval to describe its flammyness.
 struct FJ_Sequencer
 {
+	/// current tracking flam
 	flam flim;
 
-	// scan for flam chords in this window
+	/// scan for flam chords in this window
 	float group_tol = 0.F;
-	// tolerance for each column step
+	/// tolerance for each column step
 	float step_tol = 0.F;
 	float mod_scaler = 0.F;
 
-	// number of flams
+	/// number of flams
 	int flam_counter = 0;
 
-	// track up to 4 flams per interval, if the number of flams exceeds this
-	// number we'll just min_set (OR we could keep a moving array of flams, and
-	// not flams, which would make consecutive flams much more debilitating and
-	// interval proof the sequencing.. however.. it's probably not necessary to
-	// get that fancy
+	/// track up to 4 flams per interval, if the number of flams exceeds this
+	/// number we'll just min_set (OR we could keep a moving array of flams, and
+	/// not flams, which would make consecutive flams much more debilitating and
+	/// interval proof the sequencing.. however.. it's probably not necessary to
+	/// get that fancy
 
 	std::array<float, 4> mod_parts = { 1.F, 1.F, 1.F, 1.F };
 
-	// there's too many flams already, don't bother with new sequencing and
-	// shortcut into a minset in flamjammod
-	// technically this means we won't start constructing sequences again until
-	// the next interval.. not sure if this is desired behavior
+	/// there's too many flams already, don't bother with new sequencing and
+	/// shortcut into a minset in flamjammod
+	/// technically this means we won't start constructing sequences again until
+	/// the next interval.. not sure if this is desired behavior
 	bool the_fifth_flammament = false;
 
 	void set_params(const float& gt, const float& st, const float& ms)
@@ -145,7 +152,7 @@ struct FJ_Sequencer
 		return flim.comma_comma_coolmeleon(notes);
 	}
 
-	// check for anything that would break the sequence
+	/// check for anything that would break the sequence
 	auto flammin_tol_check(const float& ms_now) -> bool
 	{
 		// check if ms from last row is greater than the group tolerance
@@ -227,7 +234,7 @@ struct FJ_Sequencer
 		// punished less than those that register at 2%
 		float dur_prop = dur / group_tol;
 		dur_prop /= (static_cast<float>(flim.size) / mod_scaler);
-		dur_prop = CalcClamp(dur_prop, 0.F, 1.F);
+		dur_prop = std::clamp(dur_prop, 0.F, 1.F);
 
 		return fastsqrt(dur_prop);
 	}

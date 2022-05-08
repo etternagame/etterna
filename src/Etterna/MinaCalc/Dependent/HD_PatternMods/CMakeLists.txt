@@ -1,6 +1,7 @@
 list(APPEND HD_PATTERN_MODS
     "Balance.h"
     "Chaos.h"
+    "CJOHAnchor.h"
     "OHJ.h"
     "CJOHJ.h"
     "OHT.h"

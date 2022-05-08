@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSoundReader_FileReader.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageSoundReader_WAV.h"
@@ -44,7 +44,8 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 	std::string err = Sample->GetError();
 	delete Sample;
 
-	LOG->Trace("Format %s failed: %s", format.c_str(), err.c_str());
+	Locator::getLogger()->warn(
+	  "SoundReader Open: Format {} failed: {}", format.c_str(), err.c_str());
 
 	/*
 	 * The file failed to open, or failed to read.  This indicates a problem
@@ -120,9 +121,9 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 		}
 	}
 	std::set<std::string> FileTypes;
-	vector<std::string> const& sound_exts =
+	std::vector<std::string> const& sound_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
-	for (vector<std::string>::const_iterator curr = sound_exts.begin();
+	for (std::vector<std::string>::const_iterator curr = sound_exts.begin();
 		 curr != sound_exts.end();
 		 ++curr) {
 		FileTypes.insert(*curr);
@@ -149,10 +150,8 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 		RageSoundReader_FileReader* NewSample =
 		  TryOpenFile(pFile->Copy(), error, *it, bKeepTrying);
 		if (NewSample) {
-			LOG->UserLog("Sound file",
-						 pFile->GetDisplayPath(),
-						 "is really %s.",
-						 it->c_str());
+            Locator::getLogger()->info("Sound file {} is really {}.",
+						 pFile->GetDisplayPath(), it->c_str());
 			return NewSample;
 		}
 	}

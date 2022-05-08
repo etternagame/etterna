@@ -2,7 +2,7 @@
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "InputMapper.h"
 #include "InputQueue.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 
 #include <algorithm>
 
@@ -77,7 +77,7 @@ InputQueueCode::EnteredCode(GameController controller) const
 
 	// iterate newest to oldest
 	int iSequenceIndex = m_aPresses.size() - 1; // count down
-	const vector<InputEventPlus>& aQueue = INPUTQUEUE->GetQueue(controller);
+	const std::vector<InputEventPlus>& aQueue = INPUTQUEUE->GetQueue(controller);
 	int iQueueIndex = aQueue.size() - 1;
 	while (iQueueIndex >= 0) {
 		/* If the buttons are too old, stop searching because we're not going to
@@ -183,17 +183,16 @@ InputQueueCode::Load(std::string sButtonsNames)
 {
 	m_aPresses.clear();
 
-	vector<std::string> asPresses;
+	std::vector<std::string> asPresses;
 	split(sButtonsNames, ",", asPresses, false);
 	for (auto& sPress : asPresses) {
-		vector<std::string> asButtonNames;
+		std::vector<std::string> asButtonNames;
 
 		split(sPress, "-", asButtonNames, false);
 
 		if (asButtonNames.empty()) {
 			if (!sButtonsNames.empty())
-				LOG->Trace("Ignoring empty code \"%s\".",
-						   sButtonsNames.c_str());
+				Locator::getLogger()->trace("Ignoring empty code \"{}\".", sButtonsNames.c_str());
 			return false;
 		}
 
@@ -225,8 +224,8 @@ InputQueueCode::Load(std::string sButtonsNames)
 			const GameButton gb =
 			  INPUTMAPPER->GetInputScheme()->ButtonNameToIndex(sButtonName);
 			if (gb == GameButton_Invalid) {
-				LOG->Trace(
-				  "The code \"%s\" contains an unrecognized button \"%s\".",
+				Locator::getLogger()->trace(
+				  "The code \"{}\" contains an unrecognized button \"{}\".",
 				  sButtonsNames.c_str(),
 				  sButtonName.c_str());
 				m_aPresses.clear();

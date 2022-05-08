@@ -8,7 +8,6 @@ if(APPLE)
 		"Darwin/MouseDevice.cpp"
 		"Darwin/PumpDevice.cpp"
 		"Darwin/SMMain.mm"
-		"Darwin/SpecialDirs.cpp"
 		"Darwin/VectorHelper.cpp")
 
 	list(APPEND OS_DARWIN_HPP
@@ -20,7 +19,6 @@ if(APPLE)
 		"Darwin/KeyboardDevice.h"
 		"Darwin/MouseDevice.h"
 		"Darwin/PumpDevice.h"
-		"Darwin/SpecialDirs.h"
 		"Darwin/VectorHelper.h")
 
 	list(APPEND OS_SRC ${OS_DARWIN_SRC})
@@ -34,20 +32,13 @@ if(WIN32)
 		"Win32/arch_setup.cpp"
 		"Win32/arch_time.cpp"
 		"Win32/CommandLine.cpp"
-		"Win32/Crash.cpp"
-		"Win32/CrashHandlerChild.cpp"
-		"Win32/CrashHandlerNetworking.cpp"
-		"Win32/DebugInfoHunt.cpp"
 		"Win32/DialogUtil.cpp"
 		"Win32/DirectXHelpers.cpp"
 		"Win32/ErrorStrings.cpp"
 		"Win32/GetFileInformation.cpp"
-		"Win32/GotoURL.cpp"
 		"Win32/GraphicsWindow.cpp"
 		"Win32/MessageWindow.cpp"
 		"Win32/RegistryAccess.cpp"
-		"Win32/RestartProgram.cpp"
-		"Win32/SpecialDirs.cpp"
 		"Win32/USB.cpp"
 		"Win32/VideoDriverInfo.cpp"
 		"Win32/WindowIcon.cpp"
@@ -58,20 +49,13 @@ if(WIN32)
 		"Win32/AppInstance.h"
 		"Win32/arch_setup.h"
 		"Win32/CommandLine.h"
-		"Win32/Crash.h"
-		"Win32/CrashHandlerInternal.h"
-		"Win32/CrashHandlerNetworking.h"
-		"Win32/DebugInfoHunt.h"
 		"Win32/DialogUtil.h"
 		"Win32/DirectXHelpers.h"
 		"Win32/ErrorStrings.h"
 		"Win32/GetFileInformation.h"
-		"Win32/GotoURL.h"
 		"Win32/GraphicsWindow.h"
 		"Win32/MessageWindow.h"
 		"Win32/RegistryAccess.h"
-		"Win32/RestartProgram.h"
-		"Win32/SpecialDirs.h"
 		"Win32/USB.h"
 		"Win32/VideoDriverInfo.h"
 		"Win32/WindowIcon.h"
@@ -81,22 +65,16 @@ endif()
 
 if(NOT APPLE AND UNIX)
 	list(APPEND OS_SRC # TODO: X11 check, crash handler check
-		"Unix/AssertionHandler.cpp"
-		"Unix/EmergencyShutdown.cpp"
 		"Unix/GetSysInfo.cpp"
 		"Unix/RunningUnderValgrind.cpp"
 		"Unix/SignalHandler.cpp"
-		"Unix/SpecialDirs.cpp"
 		"Unix/StackCheck.cpp")
 
 	list(APPEND OS_HPP
 		"Unix/arch_setup.h"
-		"Unix/AssertionHandler.h"
-		"Unix/EmergencyShutdown.h"
 		"Unix/GetSysInfo.h"
 		"Unix/RunningUnderValgrind.h"
 		"Unix/SignalHandler.h"
-		"Unix/SpecialDirs.h"
 		"Common/gcc_byte_swaps.h")
 
 	list(APPEND OS_SRC "Unix/X11Helper.cpp")
@@ -107,18 +85,9 @@ endif()
 
 if(UNIX) # Includes Apple
 	list(APPEND OS_UNIX_CRASH_SRC
-		"Unix/Backtrace.cpp"
-		"Unix/BacktraceNames.cpp"
-		"Unix/CrashHandler.cpp"
-		"Unix/CrashHandlerChild.cpp"
-		"Unix/CrashHandlerInternal.cpp"
 		"Unix/SignalHandler.cpp")
 
 	list(APPEND OS_UNIX_CRASH_HPP
-		"Unix/Backtrace.h"
-		"Unix/BacktraceNames.h" 
-		"Unix/CrashHandler.h"
-		"Unix/CrashHandlerInternal.h"
 		"Unix/SignalHandler.h")
 
 	list(APPEND OS_SRC ${OS_UNIX_CRASH_SRC})

@@ -7,78 +7,84 @@
 
 # Ignore executables (Linux, macOS, Windows)
 /Etterna
-*.app
-*.exe
+/Etterna-debug
+/Etterna-MinSizeRelease
+/Etterna-RelWithDebInfo
+/*.app
+/*.exe
 
 # Etterna Related Ignore
-Cache/
-Logs/
-Program/
-Save/
-Screenshots/
-Songs/
+/Cache/
+/Logs/
+/Program/
+/Save/
+/Screenshots/
+/Songs/
 
 # Misc Ignores
-crashinfo.txt
-nowplaying.txt
+/CrashData
+/Program/CrashData
+/crashinfo.txt
+/nowplaying.txt
 
 ## Specific Ignores (To allow playing on development builds)
 # Some not included here because pending removal or not frequently changing (user assets)
-Announcers/*
-!Announcers/instructions.txt
+/Announcers/*
+!/Announcers/instructions.txt
 
-Assets/Avatars/*
-!Assets/Avatars/_fallback.png
-!Assets/Avatars/Divide By Zero.png
-!Assets/Avatars/Take Control.png
-!Assets/Avatars/takemetothepromisedland.png
+/Assets/Avatars/*
+!/Assets/Avatars/_fallback.png
+!/Assets/Avatars/Divide By Zero.png
+!/Assets/Avatars/Take Control.png
+!/Assets/Avatars/takemetothepromisedland.png
 
-Assets/Judgments/*
-!Assets/Judgments/default 1x6 (Doubleres).png
-!Assets/Judgments/Judgment Normal 2x6 (Doubleres).png
+/Assets/Judgments/*
+!/Assets/Judgments/default 1x6 (Doubleres).png
+!/Assets/Judgments/Judgment Normal 2x6 (Doubleres).png
 
-Assets/Toasties/*
-!Assets/Toasties/default/
-!Assets/Toasties/legacy/
+/Assets/Toasties/*
+!/Assets/Toasties/default/
+!/Assets/Toasties/legacy/
 
-NoteSkins/*
-!NoteSkins/instructions.txt
-!NoteSkins/beat/default/
-!NoteSkins/common/
+/NoteSkins/*
+!/NoteSkins/instructions.txt
+!/NoteSkins/beat/default/
+!/NoteSkins/common/
 
-!NoteSkins/dance/default/
-!NoteSkins/dance/DivideByInf/
-!NoteSkins/dance/DivideByZero_halved/
-!NoteSkins/dance/DivideByZero_semihalved/
-!NoteSkins/dance/DivideByZeroHollow/
-!NoteSkins/dance/MultiplyByZero/
-!NoteSkins/dance/MultiplyByZeroDoubleRes/
-!NoteSkins/dance/SubtractByZero/
+!/NoteSkins/dance/default/
+!/NoteSkins/dance/DivideByInf/
+!/NoteSkins/dance/DivideByZero_halved/
+!/NoteSkins/dance/DivideByZero_semihalved/
+!/NoteSkins/dance/DivideByZeroHollow/
+!/NoteSkins/dance/MultiplyByZero/
+!/NoteSkins/dance/MultiplyByZeroDoubleRes/
+!/NoteSkins/dance/SubtractByZero/
 
-!NoteSkins/kb7/default/
-!NoteSkins/kb7/orbital/
-!NoteSkins/kb7/retrobar/
-!NoteSkins/kb7/retrobar-iidx/
-!NoteSkins/kb7/retrobar-o2jam/
-!NoteSkins/kb7/retrobar-razor/
-!NoteSkins/kb7/retrobar-razor_o2/
+!/NoteSkins/kb7/default/
+!/NoteSkins/kb7/orbital/
+!/NoteSkins/kb7/retrobar/
+!/NoteSkins/kb7/retrobar-iidx/
+!/NoteSkins/kb7/retrobar-o2jam/
+!/NoteSkins/kb7/retrobar-razor/
+!/NoteSkins/kb7/retrobar-razor_o2/
 
-!NoteSkins/pump/cmd/
-!NoteSkins/pump/cmd-routine-p1/
-!NoteSkins/pump/cmd-routine-p2/
-!NoteSkins/pump/complex/
-!NoteSkins/pump/default/
-!NoteSkins/pump/delta/
-!NoteSkins/pump/delta-note/
-!NoteSkins/pump/delta-routine-p1/
-!NoteSkins/pump/delta-routine-p2/
-!NoteSkins/pump/frame5p/
-!NoteSkins/pump/newextra/
-!NoteSkins/pump/pad/
-!NoteSkins/pump/rhythm/
-!NoteSkins/pump/simple/
+!/NoteSkins/pump/cmd/
+!/NoteSkins/pump/cmd-routine-p1/
+!/NoteSkins/pump/cmd-routine-p2/
+!/NoteSkins/pump/complex/
+!/NoteSkins/pump/default/
+!/NoteSkins/pump/delta/
+!/NoteSkins/pump/delta-note/
+!/NoteSkins/pump/delta-routine-p1/
+!/NoteSkins/pump/delta-routine-p2/
+!/NoteSkins/pump/frame5p/
+!/NoteSkins/pump/newextra/
+!/NoteSkins/pump/pad/
+!/NoteSkins/pump/rhythm/
+!/NoteSkins/pump/simple/
 
-Themes/*
-!Themes/_fallback/
-!Themes/Til Death
-!Themes/bare-frames
+/Themes/*
+!/Themes/_fallback/
+!/Themes/Til Death
+!/Themes/bare-frames
+!/Themes/Rebirth

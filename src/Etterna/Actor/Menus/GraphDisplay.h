@@ -20,17 +20,20 @@ class GraphDisplay : public ActorFrame
 	void Load(const std::string& sMetricsGroup);
 	void Set(const StageStats& ss, const PlayerStageStats& s);
 
+	void SetWithoutStageStats(const PlayerStageStats& pss,
+							  const float fTotalStepSeconds);
+
 	// Lua
 	void PushSelf(lua_State* L) override;
 
   private:
 	void UpdateVerts();
 
-	vector<float> m_Values;
+	std::vector<float> m_Values;
 
 	RectF m_quadVertices;
 
-	vector<Actor*> m_vpSongBoundaries;
+	std::vector<Actor*> m_vpSongBoundaries;
 	AutoActor m_sprBarely;
 	AutoActor m_sprBacking;
 	AutoActor m_sprSongBoundary;

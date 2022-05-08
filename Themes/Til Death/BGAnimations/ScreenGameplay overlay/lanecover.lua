@@ -20,8 +20,8 @@ local padding = 8
 local styleType = ToEnumShortString(GAMESTATE:GetCurrentStyle():GetStyleType())
 
 local prefsP1 = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover
-local enabledP1 = prefsP1 ~= 0 and GAMESTATE:IsPlayerEnabled(PLAYER_1)
-local isReverseP1 = GAMESTATE:GetPlayerState(PLAYER_1):GetCurrentPlayerOptions():UsingReverse()
+local enabledP1 = prefsP1 ~= 0 and GAMESTATE:IsPlayerEnabled()
+local isReverseP1 = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 if prefsP1 == 2 then -- it's a Hidden LaneCover
 	isReverseP1 = not isReverseP1
 end
@@ -37,7 +37,7 @@ end
 
 local function getPlayerBPM(pn)
 	local pn = GAMESTATE:GetMasterPlayerNumber()
-	local songPosition = GAMESTATE:GetPlayerState(pn):GetSongPosition()
+	local songPosition = GAMESTATE:GetPlayerState():GetSongPosition()
 	local ts = SCREENMAN:GetTopScreen()
 	local bpm = 0
 	if ts:GetScreenType() == "ScreenType_Gameplay" then
@@ -46,10 +46,9 @@ local function getPlayerBPM(pn)
 	return bpm
 end
 
-local function getMaxDisplayBPM(pn)
-	local pn = GAMESTATE:GetMasterPlayerNumber()
+local function getMaxDisplayBPM()
 	local song = GAMESTATE:GetCurrentSong()
-	local steps = GAMESTATE:GetCurrentSteps(pn)
+	local steps = GAMESTATE:GetCurrentSteps()
 	if steps:GetDisplayBPMType() ~= "DisplayBPM_Random" then
 		return steps:GetDisplayBpms()[2]
 	else
@@ -58,13 +57,13 @@ local function getMaxDisplayBPM(pn)
 end
 
 local function getSpeed(pn)
-	local po = GAMESTATE:GetPlayerState(pn):GetPlayerOptions("ModsLevel_Preferred")
+	local po = GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
 	if po:XMod() ~= nil then
 		return po:XMod() * getPlayerBPM(pn)
 	elseif po:CMod() ~= nil then
 		return po:CMod()
 	elseif po:MMod() ~= nil then
-		return po:MMod() * (getPlayerBPM(pn) / getMaxDisplayBPM(pn))
+		return po:MMod() * (getPlayerBPM(pn) / getMaxDisplayBPM())
 	else
 		return getPlayerBPM(pn)
 	end
@@ -74,7 +73,7 @@ local yoffsetreverse = THEME:GetMetric("Player", "ReceptorArrowsYReverse")
 local yoffsetstandard = THEME:GetMetric("Player", "ReceptorArrowsYStandard")
 
 local function getNoteFieldHeight(pn)
-	local usingreverse = GAMESTATE:GetPlayerState(pn):GetCurrentPlayerOptions():UsingReverse()
+	local usingreverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
 	if usingreverse then
 		return SCREEN_CENTER_Y + yoffsetreverse
 	else
@@ -103,6 +102,8 @@ local function getIIDXGreenNumber(pn, LaneCoverHeight)
 		((getSpeed(pn) / getPlayerBPM(pn)) * getPlayerBPM(pn))
 end
 
+local selectPressed = false
+local skibby = nil
 local function input(event)
 	if getAutoplay() ~= 0 and playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 		if Movable.current == "DeviceButton_r" and event.type ~= "InputEventType_Release" then
@@ -139,27 +140,31 @@ local function input(event)
 			end
 		end
 	end
+	if event.type == "InputEventType_Release" then
+		moveDownP1 = false
+		moveUpP1 = false
+		if event.button == "Select" then
+			selectPressed = false
+		end
+	end
+	if event.type == "InputEventType_FirstPress" then
+		if event.button == "EffectUp" and selectPressed then
+			moveDownP1 = false
+			moveUpP1 = true
+			skibby:playcommand("SavePrefs")
+		elseif event.button == "EffectDown" and selectPressed then
+			moveDownP1 = true
+			moveUpP1 = false
+			skibby:playcommand("SavePrefs")
+		elseif event.button == "Select" then
+			selectPressed = true
+		end
+	end
 	return false
 end
 
 local t =
 	Def.ActorFrame {
-	CodeMessageCommand = function(self, params)
-		moveDownP1 = false
-		moveUpP1 = false
-		local doot = heightP1
-		if params.PlayerNumber == PLAYER_1 and allowedCustomization then
-			if params.Name == "LaneUp" then
-				moveUpP1 = true
-			elseif params.Name == "LaneDown" then
-				moveDownP1 = true
-			else
-				moveDownP1 = false
-				moveUpP1 = false
-			end
-			self:playcommand("SavePrefs")
-		end
-	end,
 	SavePrefsCommand = function(self)
 		if enabledP1 then
 			playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCoverHeight = heightP1
@@ -167,7 +172,8 @@ local t =
 			playerConfig:save(pn_to_profile_slot(PLAYER_1))
 		end
 	end,
-	OnCommand = function()
+	OnCommand = function(self)
+		skibby = self
 		if (allowedCustomization) then
 			SCREENMAN:GetTopScreen():AddInputCallback(input)
 		end

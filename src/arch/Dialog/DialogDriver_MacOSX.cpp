@@ -1,10 +1,13 @@
+#include <vector>
+
 #include "Etterna/Globals/global.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "DialogDriver_MacOSX.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "Etterna/Globals/ProductInfo.h"
 #include "Etterna/Singletons/InputFilter.h"
+#include "Core/Services/Locator.hpp"
 #include <CoreFoundation/CoreFoundation.h>
+#include <Core/Misc/AppInfo.hpp>
 
 REGISTER_DIALOG_DRIVER_CLASS(MacOSX);
 
@@ -23,7 +26,7 @@ ShowAlert(CFOptionFlags flags,
 		std::string error =
 		  ssprintf("CFString for dialog string \"%s\" could not be created.",
 				   sMessage.c_str());
-		WARN(error.c_str());
+		Locator::getLogger()->warn(error);
 		DEBUG_ASSERT_M(false, error.c_str());
 		return kCFUserNotificationDefaultResponse; // Is this better than
 												   // displaying an "unknown
@@ -34,7 +37,7 @@ ShowAlert(CFOptionFlags flags,
 								   NULL,
 								   NULL,
 								   NULL,
-								   CFSTR(PRODUCT_FAMILY),
+								   CFStringCreateWithCString(kCFAllocatorDefault, Core::AppInfo::APP_TITLE, kCFStringEncodingUTF8),
 								   text,
 								   OK,
 								   alt,
@@ -44,7 +47,7 @@ ShowAlert(CFOptionFlags flags,
 
 	// Flush all input that's accumulated while the dialog box was up.
 	if (INPUTFILTER) {
-		vector<InputEvent> dummy;
+		std::vector<InputEvent> dummy;
 		INPUTFILTER->Reset();
 		INPUTFILTER->GetInputEvents(dummy);
 	}

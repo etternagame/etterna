@@ -49,17 +49,6 @@
 #undef ASSERT
 #endif
 
-/** @brief RageThreads defines (don't pull in all of RageThreads.h here) */
-namespace Checkpoints {
-void
-SetCheckpoint(const char* file, int line, const char* message);
-}
-/** @brief Set a checkpoint with no message. */
-#define CHECKPOINT (Checkpoints::SetCheckpoint(__FILE__, __LINE__, NULL))
-/** @brief Set a checkpoint with a specified message. */
-#define CHECKPOINT_M(m)                                                        \
-	(Checkpoints::SetCheckpoint(__FILE__, __LINE__, std::string(m).c_str()))
-
 /**
  * @brief Define a macro to tell the compiler that a function doesn't return.
  *
@@ -96,7 +85,6 @@ sm_crash(const char* reason = "Internal error");
  * such as DSound init failure.) */
 #define FAIL_M(MESSAGE)                                                        \
 	do {                                                                       \
-		CHECKPOINT_M(std::string(MESSAGE).c_str());                            \
 		sm_crash(std::string(MESSAGE).c_str());                                \
 	} while (0)
 #define ASSERT_M(COND, MESSAGE)                                                \
@@ -120,10 +108,7 @@ ShowWarningOrTrace(const char* file,
 				   int line,
 				   const char* message,
 				   bool bWarning); // don't pull in LOG here
-#define WARN(MESSAGE) (ShowWarningOrTrace(__FILE__, __LINE__, MESSAGE, true))
-#if !defined(CO_EXIST_WITH_MFC)
-#define TRACE(MESSAGE) (ShowWarningOrTrace(__FILE__, __LINE__, MESSAGE, false))
-#endif
+
 
 #ifdef DEBUG
 // No reason to kill the program. A lot of these don't produce a crash in NDEBUG
@@ -161,9 +146,5 @@ struct CompileAssertDecl
 
 #include "RageUtil/Misc/RageException.h"
 /* Don't include our own headers here, since they tend to change often. */
-
-// SHOULD BE REMOVED EVENTUALLY, STOP GAP SO STUFF CAN COMPILE
-#include <vector>
-using std::vector;
 
 #endif

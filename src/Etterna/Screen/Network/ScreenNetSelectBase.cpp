@@ -6,7 +6,8 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Models/Misc/InputEventPlus.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
-#include "arch/ArchHooks/ArchHooks.h"
+#include "Core/Services/Locator.hpp"
+#include "Core/Platform/Platform.hpp"
 #include "ScreenNetSelectBase.h"
 
 #define CHAT_TEXT_OUTPUT_WIDTH THEME->GetMetricF(m_sName, "ChatTextOutputWidth")
@@ -183,7 +184,7 @@ ScreenNetSelectBase::UpdateTextInput()
 void
 ScreenNetSelectBase::PasteClipboard()
 {
-	m_sTextInput.append(HOOKS->GetClipboard());
+	m_sTextInput.append(Core::Platform::getClipboard());
 	UpdateTextInput();
 }
 
@@ -306,7 +307,7 @@ ScreenNetSelectBase::SetUsersVisible(bool visibility)
 	return;
 }
 
-vector<BitmapText>*
+std::vector<BitmapText>*
 ScreenNetSelectBase::ToUsers()
 {
 	return &m_textUsers;

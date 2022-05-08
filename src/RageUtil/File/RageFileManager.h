@@ -1,6 +1,9 @@
 #ifndef RAGE_FILE_MANAGER_H
 #define RAGE_FILE_MANAGER_H
 
+#include <string>
+#include <vector>
+
 /** @brief Constants for working with the RageFileManager. */
 namespace RageFileManagerUtil {
 extern std::string sInitialWorkingDirectory;
@@ -22,8 +25,6 @@ class RageFileManager
   public:
 	RageFileManager(const std::string& argv0);
 	~RageFileManager();
-	void MountInitialFilesystems();
-	void MountUserFilesystems();
 
 	void GetDirListing(const std::string& sPath,
 					   std::vector<std::string>& AddTo,
@@ -61,6 +62,11 @@ class RageFileManager
 	 * @param path the VPS path.
 	 * @return the absolute path. */
 	auto ResolvePath(const std::string& path) -> std::string;
+
+	// This function fails if the path given is in AdditionalSongs
+	// when using multiple AdditionalSongs mount points
+	auto ResolveSongFolder(const std::string& path,
+						   bool additionalSongs = false) -> std::string;
 
 	auto Mount(const std::string& sType,
 			   const std::string& sRealPath,

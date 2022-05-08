@@ -2,10 +2,13 @@
 #include "../IntervalHandInfo.h"
 
 // big brain stuff
-static const float wrjt_cv_factor = 3.F;
+constexpr float wrjt_cv_factor = 3.F;
 
-// should update detection so it's more similar to updated wrr
-// probably needs better debugoutput
+/// Hand-Dependent PatternMod detecting Jumptrills.
+/// Lenient in a particular way so as to detect a roll
+/// as a jumptrill.
+/// should update detection so it's more similar to updated wrr
+/// probably needs better debugoutput
 struct WideRangeJumptrillMod
 {
 	const CalcPatternMod _pmod = { WideRangeJumptrill };
@@ -61,7 +64,7 @@ struct WideRangeJumptrillMod
 	void setup()
 	{
 		window =
-		  CalcClamp(static_cast<int>(window_param), 1, max_moving_window_size);
+		  std::clamp(static_cast<int>(window_param), 1, max_moving_window_size);
 	}
 
 #pragma endregion
@@ -151,7 +154,7 @@ struct WideRangeJumptrillMod
 		pmod = itvhi.get_taps_windowf(window) /
 			   _mw_jt.get_total_for_windowf(window) * 0.75F;
 
-		pmod = CalcClamp(pmod, min_mod, max_mod);
+		pmod = std::clamp(pmod, min_mod, max_mod);
 	}
 
 	auto operator()(const ItvHandInfo& itvhi) -> float

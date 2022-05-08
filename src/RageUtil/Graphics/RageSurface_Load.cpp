@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "RageUtil/File/RageFile.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSurface_Load.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -66,7 +66,8 @@ TryOpenFile(const std::string& sPath,
 		return ret;
 	}
 
-	LOG->Trace("Format %s failed: %s", format.c_str(), error.c_str());
+	Locator::getLogger()->error(
+	  "RageSurface Open: Format {} failed: {}", format.c_str(), error.c_str());
 	return nullptr;
 }
 
@@ -108,7 +109,7 @@ RageSurfaceUtils::LoadFile(const std::string& sPath,
 		const auto ret =
 		  TryOpenFile(sPath, bHeaderOnly, error, *it, bKeepTrying);
 		if (ret) {
-			LOG->UserLog("Graphic file", sPath, "is really %s", it->c_str());
+            Locator::getLogger()->info("Graphic file", sPath, "is really %s", it->c_str());
 			return ret;
 		}
 	}

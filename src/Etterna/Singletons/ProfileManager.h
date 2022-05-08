@@ -45,9 +45,9 @@ class ProfileManager
 	  const std::string& sProfileID); // transfers ownership of pProfile
 	auto RenameLocalProfile(const std::string& sProfileID,
 							const std::string& sNewName) -> bool;
-	void GetLocalProfileIDs(vector<std::string>& vsProfileIDsOut) const;
+	void GetLocalProfileIDs(std::vector<std::string>& vsProfileIDsOut) const;
 	void GetLocalProfileDisplayNames(
-	  vector<std::string>& vsProfileDisplayNamesOut) const;
+	  std::vector<std::string>& vsProfileDisplayNamesOut) const;
 	auto GetLocalProfileIndexFromID(const std::string& sProfileID) const -> int;
 	auto GetNumLocalProfiles() const -> int;
 

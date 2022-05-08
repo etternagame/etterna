@@ -17,6 +17,13 @@ list(APPEND FONT_HPP
 	"Fonts/FontCharAliases.h"
 	"Fonts/FontCharmaps.h")
 
+list(APPEND HIGHSCORE_SRC
+	"HighScore/HighScore.cpp"
+	)
+
+list(APPEND HIGHSCORE_HPP
+	"HighScore/HighScore.h"
+	)
 
 list(APPEND NOTEDATA_SRC
 	"NoteData/NoteData.cpp"
@@ -104,7 +111,6 @@ list(APPEND REST_SRC
 	"Misc/Command.cpp"
 	"Misc/CommonMetrics.cpp"
 	"Misc/ControllerStateDisplay.cpp"
-	"Misc/CryptHelpers.cpp"
 	"Misc/DateTime.cpp"
 	"Misc/Difficulty.cpp"
 	"Misc/DisplaySpec.cpp"
@@ -116,7 +122,6 @@ list(APPEND REST_SRC
 	"Misc/GameplayAssist.cpp"
 	"Misc/GamePreferences.cpp"
 	"Misc/Grade.cpp"
-	"Misc/HighScore.cpp"
 	"Misc/LocalizedString.cpp"
 	"Misc/LyricsLoader.cpp"
 	"Misc/ModsGroup.cpp"
@@ -153,12 +158,10 @@ list(APPEND REST_HPP
 	"Misc/Command.h"
 	"Misc/CommonMetrics.h"
 	"Misc/ControllerStateDisplay.h"
-	"Misc/CryptHelpers.h"
 	"Misc/CubicSpline.h"
 	"Misc/DateTime.h"
 	"Misc/DisplaySpec.h"
 	"Misc/Difficulty.h"
-	"Misc/EnumHelper.h"
 	"Misc/EnumHelper.h"
 	"Misc/Foreach.h"
 	"Misc/Game.h"
@@ -168,7 +171,6 @@ list(APPEND REST_HPP
 	"Misc/GameplayAssist.h"
 	"Misc/GamePreferences.h"
 	"Misc/Grade.h"
-	"Misc/HighScore.h"
 	"Misc/InputEventPlus.h"
 	"Misc/LocalizedString.h"
 	"Misc/LyricsLoader.h"
@@ -201,6 +203,7 @@ list(APPEND REST_HPP
 list(APPEND ALL_DATA_SRC
   ${FONT_SRC}
   ${LUA_SRC}
+  ${HIGHSCORE_SRC}
   ${NOTEDATA_SRC}
   ${NOTELOAD_SRC}
   ${NOTEWRITE_SRC}
@@ -212,6 +215,7 @@ list(APPEND ALL_DATA_SRC
 list(APPEND ALL_DATA_HPP
   ${FONT_HPP}
   ${LUA_HPP}
+  ${HIGHSCORE_HPP}
   ${NOTEDATA_HPP}
   ${NOTELOAD_HPP}
   ${NOTEWRITE_HPP}

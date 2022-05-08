@@ -93,8 +93,8 @@ function audioVisualizer:new(params)
             sound = ActorSound
         }
     --]]
-    local frame =
-        Def.ActorFrame {
+    local frame = Def.ActorFrame {
+        Name = "vizframe",
         InitCommand = function(self)
             self:xy(params.x or 0, params.y or 0)
         end,

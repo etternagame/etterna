@@ -1,16 +1,18 @@
 local usersZoom = 0.45
 local usersWidth = 50
-local usersWidthSmall = 25
-local usersWidthZoom = 50 * (1 / usersZoom)
-local usersWidthSmallZoom = 25 * (1 / usersZoom)
-local usersRowSize = 4
-local usersX = SCREEN_WIDTH / 4
-local usersY = SCREEN_TOP + 15
-local usersHeight = 10
+local usersWidthSmall = capWideScale(25,32)
+local usersWidthZoom = usersWidth * (1 / usersZoom)
+local usersWidthSmallZoom = usersWidthSmall * (1 / usersZoom)
+local usersRowSize = 10
+local usersRowSizeSmall = 20
+local usersX = SCREEN_WIDTH / 7
+local usersY = SCREEN_TOP + 10
+local usersXGap = 4
+local usersYGap = 4
+local usersHeight = 8
 
 local lobbos
 local top = SCREENMAN:GetTopScreen()
-local qty = 0
 local posit = getMainColor("positive")
 local negat = getMainColor("negative")
 local enable = getMainColor("enabled")
@@ -32,14 +34,13 @@ local r =
 }
 
 local function userLabel(i)
-	local x = usersX + usersWidth * ((i-1) % usersRowSize)
-	local y = usersY + math.floor((i-1) / usersRowSize) * usersHeight
 	local aux =
 		LoadFont("Common Normal") ..
 		{
 			Name = i,
 			BeginCommand = function(self)
-				self:xy(x, y):zoom(usersZoom):diffuse(posit):queuecommand("Set")
+				self:halign(0)
+				self:zoom(usersZoom):diffuse(posit):queuecommand("Set")
 			end,
 			SetCommand = function(self)
 				if SCREENMAN:GetTopScreen():GetName() ~= "ScreenNetRoom" then
@@ -58,9 +59,13 @@ local function userLabel(i)
 				else
 					self:settext("")
 				end
-				if qty < 9 then
+				if #lobbos < 21 then
+					self:x(usersX + (usersWidth + usersXGap) * ((i-1) % usersRowSize))
+					self:y(usersY + math.floor((i-1) / usersRowSize) * (usersHeight + usersYGap))
 					self:maxwidth(usersWidthZoom)
 				else
+					self:x(usersX + (usersWidthSmall + usersXGap/2) * ((i-1) % usersRowSizeSmall))
+					self:y(usersY + math.floor((i-1) / usersRowSizeSmall) * (usersHeight + usersYGap))
 					self:maxwidth(usersWidthSmallZoom)
 				end
 			end,
@@ -77,7 +82,7 @@ local function userLabel(i)
 	return aux
 end
 
-for i = 1, 32 do
+for i = 1, 40 do
 	r[#r + 1] = userLabel(i)
 end
 

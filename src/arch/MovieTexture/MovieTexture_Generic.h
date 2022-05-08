@@ -116,8 +116,6 @@ class MovieTexture_Generic : public RageMovieTexture
 	RageTexture* m_pTextureIntermediate;
 	Sprite* m_pSprite;
 
-	RageSurface* m_pSurface;
-
 	RageTextureLock* m_pTextureLock;
 
 	/* The time the movie is actually at: */

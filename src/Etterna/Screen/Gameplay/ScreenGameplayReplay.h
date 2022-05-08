@@ -6,7 +6,7 @@
 class ScreenGameplayReplay : public ScreenGameplay
 {
   public:
-	virtual void FillPlayerInfo(PlayerInfo* playerInfoOut);
+	void FillPlayerInfo(PlayerInfo* playerInfoOut) override;
 	ScreenGameplayReplay();
 	void Init() override;
 	~ScreenGameplayReplay() override;

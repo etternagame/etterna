@@ -11,7 +11,7 @@
 
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFileBasic.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageSoundReader_WAV.h"
 #include "RageUtil/Utils/RageUtil.h"
 
@@ -201,7 +201,7 @@ struct WavReaderPCM : public WavReader
 struct WavReaderADPCM : public WavReader
 {
   public:
-	vector<int16_t> m_iaCoef1, m_iaCoef2;
+	std::vector<int16_t> m_iaCoef1, m_iaCoef2;
 	int16_t m_iFramesPerBlock;
 	float* m_pBuffer;
 	int m_iBufferAvail, m_iBufferUsed;
@@ -284,7 +284,7 @@ struct WavReaderADPCM : public WavReader
 		int iCoef1[2], iCoef2[2];
 		for (int i = 0; i < m_WavData.m_iChannels; ++i) {
 			if (iPredictor[i] >= static_cast<int>(m_iaCoef1.size())) {
-				LOG->Trace("%s: predictor out of range",
+				Locator::getLogger()->trace("{}: predictor out of range",
 						   m_File.GetDisplayPath().c_str());
 
 				/* XXX: silence this block? */
@@ -522,7 +522,7 @@ RageSoundReader_WAV::Open(RageFileBasic* pFile)
 
 		if (ChunkID == "fmt ") {
 			if (bGotFormatChunk)
-				LOG->Warn("File %s has more than one fmt chunk",
+				Locator::getLogger()->warn("File {} has more than one fmt chunk",
 						  m_pFile->GetDisplayPath().c_str());
 
 			m_WavData.m_iFormatTag = FileReading::read_16_le(*m_pFile, sError);
@@ -556,7 +556,7 @@ RageSoundReader_WAV::Open(RageFileBasic* pFile)
 			int iFileSize = m_pFile->GetFileSize();
 			int iMaxSize = iFileSize - m_WavData.m_iDataChunkPos;
 			if (iMaxSize < m_WavData.m_iDataChunkSize) {
-				LOG->Warn("File %s truncated (%i < data chunk size %i)",
+				Locator::getLogger()->warn("File {} truncated ({} < data chunk size {})",
 						  m_pFile->GetDisplayPath().c_str(),
 						  iMaxSize,
 						  m_WavData.m_iDataChunkSize);

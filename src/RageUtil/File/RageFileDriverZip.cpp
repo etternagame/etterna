@@ -9,6 +9,7 @@
 #include "RageFileDriverZip.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
+#include "Core/Services/Locator.hpp"
 
 #include <cerrno>
 #include <algorithm>
@@ -54,9 +55,7 @@ RageFileDriverZip::Load(const std::string& sPath)
 	auto* pFile = new RageFile;
 
 	if (!pFile->Open(sPath)) {
-		WARN(ssprintf(
-			   "Couldn't open %s: %s", sPath.c_str(), pFile->GetError().c_str())
-			   .c_str());
+        Locator::getLogger()->warn("Couldn't open {}: {}", sPath.c_str(), pFile->GetError().c_str());
 		delete pFile;
 		return false;
 	}
@@ -97,7 +96,7 @@ RageFileDriverZip::ReadEndCentralRecord(int& iTotalEntries,
 	m_sComment = FileReading::ReadString(*m_pZip, iCommentLength, sError);
 
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
+		Locator::getLogger()->warn("{}: {}", m_sPath.c_str(), sError.c_str());
 		return false;
 	}
 
@@ -121,8 +120,7 @@ RageFileDriverZip::SeekToEndCentralRecord()
 
 		int iGot = m_pZip->Read(buf, sizeof(buf));
 		if (iGot == -1) {
-			WARN(ssprintf("%s: %s", m_sPath.c_str(), m_pZip->GetError().c_str())
-				   .c_str());
+            Locator::getLogger()->warn("{}: {}", m_sPath.c_str(), m_pZip->GetError().c_str());
 			return false;
 		}
 
@@ -142,11 +140,8 @@ bool
 RageFileDriverZip::ParseZipfile()
 {
 	if (!SeekToEndCentralRecord()) {
-		WARN(
-		  ssprintf(
-			"Couldn't open %s: couldn't find end of central directory record",
-			m_sPath.c_str())
-			.c_str());
+		Locator::getLogger()->warn("Couldn't open {}: couldn't find end of central directory record",
+		  m_sPath.c_str());
 		return false;
 	}
 
@@ -177,9 +172,8 @@ RageFileDriverZip::ParseZipfile()
 	}
 
 	if (m_pFiles.size() == 0)
-		WARN(
-		  ssprintf("%s: no files found in central file header", m_sPath.c_str())
-			.c_str());
+		Locator::getLogger()->warn("{}: no files found in central file header",
+					  m_sPath.c_str());
 
 	return true;
 }
@@ -190,9 +184,8 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	std::string sError;
 	std::string sSig = FileReading::ReadString(*m_pZip, 4, sError);
 	if (sSig != "\x50\x4B\x01\x02") {
-		WARN(ssprintf("%s: central directory record signature not found",
-					  m_sPath.c_str())
-			   .c_str());
+		Locator::getLogger()->warn("{}: central directory record signature not found",
+					  m_sPath.c_str());
 		return -1;
 	}
 
@@ -220,7 +213,7 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 
 	/* Check for errors before reading variable-length fields. */
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
+		Locator::getLogger()->warn("{}: {}", m_sPath.c_str(), sError.c_str());
 		return -1;
 	}
 
@@ -231,17 +224,16 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 	  *m_pZip, iFileCommentLength, sError); /* skip file comment */
 
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
+		Locator::getLogger()->warn("{}: {}", m_sPath.c_str(), sError.c_str());
 		return -1;
 	}
 
 	/* Check usability last, so we always read past the whole entry and don't
 	 * leave the file pointer in the middle of a record. */
 	if ((iGeneralPurpose & 1) != 0) {
-		WARN(ssprintf("Skipped encrypted \"%s\" in \"%s\"",
+		Locator::getLogger()->warn("Skipped encrypted \"{}\" in \"{}\"",
 					  info.m_sName.c_str(),
-					  m_sPath.c_str())
-			   .c_str());
+					  m_sPath.c_str());
 		return 0;
 	}
 
@@ -262,12 +254,10 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 
 	if (info.m_iCompressionMethod != STORED &&
 		info.m_iCompressionMethod != DEFLATED) {
-		WARN(ssprintf(
-			   "File \"%s\" in \"%s\" uses unsupported compression method %i",
-			   info.m_sName.c_str(),
-			   m_sPath.c_str(),
-			   info.m_iCompressionMethod)
-			   .c_str());
+		Locator::getLogger()->warn("File \"{}\" in \"{}\" uses unsupported compression method {}",
+		  info.m_sName.c_str(),
+		  m_sPath.c_str(),
+		  info.m_iCompressionMethod);
 
 		return 0;
 	}
@@ -285,19 +275,17 @@ RageFileDriverZip::ReadLocalFileHeader(FileInfo& info)
 	std::string sSig = FileReading::ReadString(*m_pZip, 4, sError);
 
 	if (sError != "") {
-		WARN(ssprintf("%s: error opening \"%s\": %s",
+		Locator::getLogger()->warn("{}: error opening \"{}\": {}",
 					  m_sPath.c_str(),
 					  info.m_sName.c_str(),
-					  sError.c_str())
-			   .c_str());
+					  sError.c_str());
 		return false;
 	}
 
 	if (sSig != "\x50\x4B\x03\x04") {
-		WARN(ssprintf("%s: local file header not found for \"%s\"",
+		Locator::getLogger()->warn("{}: local file header not found for \"{}\"",
 					  m_sPath.c_str(),
-					  info.m_sName.c_str())
-			   .c_str());
+					  info.m_sName.c_str());
 		return false;
 	}
 
@@ -309,7 +297,7 @@ RageFileDriverZip::ReadLocalFileHeader(FileInfo& info)
 	info.m_iDataOffset = m_pZip->Tell() + iFilenameLength + iExtraFieldLength;
 
 	if (sError != "") {
-		WARN(ssprintf("%s: %s", m_sPath.c_str(), sError.c_str()).c_str());
+		Locator::getLogger()->warn("{}: {}", m_sPath.c_str(), sError.c_str());
 		return false;
 	}
 

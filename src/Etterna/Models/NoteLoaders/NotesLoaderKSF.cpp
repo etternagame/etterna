@@ -3,7 +3,6 @@
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/Misc/NoteTypes.h"
 #include "NotesLoaderKSF.h"
-#include "RageUtil/Misc/RageLog.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -23,11 +22,11 @@ HandleBunki(TimingData& timing,
 {
 	const auto BeatsPerSecond = fEarlyBPM / 60.0f;
 	const auto beat = (fPos + fGap) * BeatsPerSecond;
-	LOG->Trace("BPM %f, BPS %f, BPMPos %f, beat %f",
-			   fEarlyBPM,
-			   BeatsPerSecond,
-			   fPos,
-			   beat);
+//	LOG->Trace("BPM %f, BPS %f, BPMPos %f, beat %f",
+//			   fEarlyBPM,
+//			   BeatsPerSecond,
+//			   fPos,
+//			   beat);
 	timing.AddSegment(BPMSegment(BeatToNoteRow(beat), fCurBPM));
 }
 
@@ -37,13 +36,13 @@ LoadFromKSFFile(const std::string& sPath,
 				Song& song,
 				bool bKIUCompliant)
 {
-	LOG->Trace("Steps::LoadFromKSFFile( '%s' )", sPath.c_str());
+//	LOG->Trace("Steps::LoadFromKSFFile( '%s' )", sPath.c_str());
 
 	MsdFile msd;
 	if (!msd.ReadFile(sPath, false)) // don't unescape
 	{
-		LOG->UserLog(
-		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
 		return false;
 	}
 
@@ -51,7 +50,7 @@ LoadFromKSFFile(const std::string& sPath,
 	auto iTickCount = -1;
 	// used to adapt weird tickcounts
 	// float fScrollRatio = 1.0f; -- uncomment when ready to use.
-	vector<std::string> vNoteRows;
+	std::vector<std::string> vNoteRows;
 
 	// According to Aldo_MX, there is a default BPM and it's 60. -aj
 	auto bDoublesChart = false;
@@ -115,10 +114,10 @@ LoadFromKSFFile(const std::string& sPath,
 		else if (sValueName == "TICKCOUNT") {
 			iTickCount = StringToInt(sParams[1]);
 			if (iTickCount <= 0) {
-				LOG->UserLog("Song file",
-							 sPath,
-							 "has an invalid tick count: %d.",
-							 iTickCount);
+//				LOG->UserLog("Song file",
+//							 sPath,
+//							 "has an invalid tick count: %d.",
+//							 iTickCount);
 				return false;
 			}
 			stepsTiming.AddSegment(TickcountSegment(0, iTickCount));
@@ -143,10 +142,10 @@ LoadFromKSFFile(const std::string& sPath,
 
 	if (iTickCount == -1) {
 		iTickCount = 4;
-		LOG->UserLog("Song file",
-					 sPath,
-					 "doesn't have a TICKCOUNT. Defaulting to %i.",
-					 iTickCount);
+//		LOG->UserLog("Song file",
+//					 sPath,
+//					 "doesn't have a TICKCOUNT. Defaulting to %i.",
+//					 iTickCount);
 	}
 
 	// Prepare BPM stuff already if the file uses KSF syntax.
@@ -404,11 +403,11 @@ LoadFromKSFFile(const std::string& sPath,
 					tap = TAP_ORIGINAL_LIFT;
 					break;
 				default:
-					LOG->UserLog(
-					  "Song file",
-					  sPath,
-					  "has an invalid row \"%s\"; corrupt notes ignored.",
-					  sRowString.c_str());
+//					LOG->UserLog(
+//					  "Song file",
+//					  sPath,
+//					  "has an invalid row \"%s\"; corrupt notes ignored.",
+//					  sRowString.c_str());
 					// return false;
 					tap = TAP_EMPTY;
 					break;
@@ -437,7 +436,7 @@ LoadTags(const std::string& str, Song& out)
 	/* str is either a #TITLE or a directory component.  Fill in missing
 	 * information. str is either "title", "artist - title", or "artist - title
 	 * - difficulty". */
-	vector<std::string> asBits;
+	std::vector<std::string> asBits;
 	split(str, " - ", asBits, false);
 	// Ignore the difficulty, since we get that elsewhere.
 	if (asBits.size() == 3 &&
@@ -489,14 +488,14 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 	MsdFile msd;
 	if (!msd.ReadFile(sPath, false)) // don't unescape
 	{
-		LOG->UserLog(
-		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
+//		LOG->UserLog(
+//		  "Song file", sPath, "couldn't be opened: %s", msd.GetError().c_str());
 		return false;
 	}
 
 	// changed up there in case of something is found inside the SONGFILE tag in
 	// the head ksf -DaisuMaster search for music with song in the file name
-	vector<std::string> arrayPossibleMusic;
+	std::vector<std::string> arrayPossibleMusic;
 	GetDirListing(out.GetSongDir() + std::string("song.mp3"),
 				  arrayPossibleMusic);
 	GetDirListing(out.GetSongDir() + std::string("song.oga"),
@@ -514,7 +513,7 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 		  BPMPos3 = -1, BPM3 = -1;
 	auto iTickCount = -1;
 	bKIUCompliant = false;
-	vector<std::string> vNoteRows;
+	std::vector<std::string> vNoteRows;
 
 	for (unsigned i = 0; i < msd.GetNumValues(); i++) {
 		const auto& sParams = msd.GetValue(i);
@@ -579,10 +578,10 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 		//}
 		// end new cases
 		else {
-			LOG->UserLog("Song file",
-						 sPath,
-						 "has an unexpected value named \"%s\".",
-						 sValueName.c_str());
+//			LOG->UserLog("Song file",
+//						 sPath,
+//						 "has an unexpected value named \"%s\".",
+//						 sValueName.c_str());
 		}
 	}
 
@@ -635,7 +634,7 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 
 	// Try to fill in missing bits of information from the pathname.
 	{
-		vector<std::string> asBits;
+		std::vector<std::string> asBits;
 		split(sPath, "/", asBits, true);
 
 		ASSERT(asBits.size() > 1);
@@ -647,7 +646,7 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 
 void
 KSFLoader::GetApplicableFiles(const std::string& sPath,
-							  vector<std::string>& out)
+							  std::vector<std::string>& out)
 {
 	GetDirListing(sPath + std::string("*.ksf"), out);
 }
@@ -671,9 +670,9 @@ KSFLoader::LoadNoteDataFromSimfile(const std::string& cachePath, Steps& out)
 bool
 KSFLoader::LoadFromDir(const std::string& sDir, Song& out)
 {
-	LOG->Trace("KSFLoader::LoadFromDir(%s)", sDir.c_str());
+//	LOG->Trace("KSFLoader::LoadFromDir(%s)", sDir.c_str());
 
-	vector<std::string> arrayKSFFileNames;
+	std::vector<std::string> arrayKSFFileNames;
 	GetDirListing(sDir + std::string("*.ksf"), arrayKSFFileNames);
 
 	// We shouldn't have been called to begin with if there were no KSFs.

@@ -113,9 +113,9 @@ static const AutoMappings g_AutoKeyMappings_Dance = AutoMappings(
   AutoMappingEntry(0, KEY_UP, GAME_BUTTON_MENUUP, false),
   AutoMappingEntry(0, KEY_DOWN, GAME_BUTTON_MENUDOWN, false),
   AutoMappingEntry(0, KEY_Cz, DANCE_BUTTON_LEFT, false),
-  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
-  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UP, false),
   AutoMappingEntry(0, KEY_Cx, DANCE_BUTTON_DOWN, false),
+  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UP, false),
+  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
   AutoMappingEntry(0, KEY_ACCENT, GAME_BUTTON_RESTART, false),
@@ -136,12 +136,12 @@ static const AutoMappings g_AutoKeyMappings_Solo = AutoMappings(
   AutoMappingEntry(0, KEY_RIGHT, GAME_BUTTON_MENURIGHT, false),
   AutoMappingEntry(0, KEY_UP, GAME_BUTTON_MENUUP, false),
   AutoMappingEntry(0, KEY_DOWN, GAME_BUTTON_MENUDOWN, false),
-  AutoMappingEntry(0, KEY_Cz, DANCE_BUTTON_LEFT, false),
-  AutoMappingEntry(0, KEY_PERIOD, DANCE_BUTTON_RIGHT, false),
-  AutoMappingEntry(0, KEY_COMMA, DANCE_BUTTON_UPRIGHT, false),
-  AutoMappingEntry(0, KEY_Cx, DANCE_BUTTON_UPLEFT, false),
-  AutoMappingEntry(0, KEY_Cc, DANCE_BUTTON_DOWN, false),
-  AutoMappingEntry(0, KEY_Cm, DANCE_BUTTON_UP, false),
+  AutoMappingEntry(0, KEY_Cz, SOLO_BUTTON_LEFT, false),
+  AutoMappingEntry(0, KEY_PERIOD, SOLO_BUTTON_RIGHT, false),
+  AutoMappingEntry(0, KEY_COMMA, SOLO_BUTTON_UPRIGHT, false),
+  AutoMappingEntry(0, KEY_Cx, SOLO_BUTTON_UPLEFT, false),
+  AutoMappingEntry(0, KEY_Cc, SOLO_BUTTON_DOWN, false),
+  AutoMappingEntry(0, KEY_Cm, SOLO_BUTTON_UP, false),
   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
   AutoMappingEntry(0, KEY_ACCENT, GAME_BUTTON_RESTART, false),
@@ -149,12 +149,12 @@ static const AutoMappings g_AutoKeyMappings_Solo = AutoMappings(
   AutoMappingEntry(0, KEY_KP_ASTERISK, GAME_BUTTON_MENURIGHT, true),
   AutoMappingEntry(0, KEY_KP_HYPHEN, GAME_BUTTON_MENUUP, true),
   AutoMappingEntry(0, KEY_KP_PLUS, GAME_BUTTON_MENUDOWN, true),
-  AutoMappingEntry(0, KEY_KP_C4, DANCE_BUTTON_LEFT, true),
-  AutoMappingEntry(0, KEY_KP_C6, DANCE_BUTTON_RIGHT, true),
-  AutoMappingEntry(0, KEY_KP_C8, DANCE_BUTTON_UP, true),
-  AutoMappingEntry(0, KEY_KP_C2, DANCE_BUTTON_DOWN, true),
-  AutoMappingEntry(0, KEY_KP_C7, DANCE_BUTTON_UPLEFT, true),
-  AutoMappingEntry(0, KEY_KP_C9, DANCE_BUTTON_UPRIGHT, true));
+  AutoMappingEntry(0, KEY_KP_C4, SOLO_BUTTON_LEFT, true),
+  AutoMappingEntry(0, KEY_KP_C6, SOLO_BUTTON_RIGHT, true),
+  AutoMappingEntry(0, KEY_KP_C8, SOLO_BUTTON_UP, true),
+  AutoMappingEntry(0, KEY_KP_C2, SOLO_BUTTON_DOWN, true),
+  AutoMappingEntry(0, KEY_KP_C7, SOLO_BUTTON_UPLEFT, true),
+  AutoMappingEntry(0, KEY_KP_C9, SOLO_BUTTON_UPRIGHT, true));
 
 // xxx: get this from the theme? (see others)
 // the problem with getting it from the noteskin is that this is meant to be
@@ -191,14 +191,13 @@ static const Style g_Style_Dance_Single = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 0, 3, 2, 1, Style::END_MAPPING },
+	  { 0, 1, 2, 3, Style::END_MAPPING },
 	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
 	  2,
 	  3 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Dance_Double = {
@@ -225,8 +224,8 @@ static const Style g_Style_Dance_Double = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 0, 3, 2, 1, Style::END_MAPPING },
-	  { 4, 7, 6, 5, Style::END_MAPPING } },
+	  { 0, 1, 2, 3, Style::END_MAPPING },
+	  { 4, 5, 6, 7, Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
@@ -236,7 +235,6 @@ static const Style g_Style_Dance_Double = {
 	  5,
 	  6,
 	  7 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Solo_Single = {
@@ -244,7 +242,7 @@ static const Style g_Style_Solo_Single = {
 	true,						// m_bUsedForGameplay
 	true,						// m_bUsedForEdit
 	false,						// m_bUsedForDemonstration
-	false,						// m_bUsedForHowToPlay
+	true,						// m_bUsedForHowToPlay
 	"single",					// m_szName
 	StepsType_dance_solo,		// m_StepsType
 	StyleType_OnePlayerOneSide, // m_StyleType
@@ -261,7 +259,7 @@ static const Style g_Style_Solo_Single = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 0, 5, 3, 2, 1, 4, Style::END_MAPPING },
+	  { 0, 1, 2, 3, 4, 5, Style::END_MAPPING },
 	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
@@ -270,7 +268,6 @@ static const Style g_Style_Solo_Single = {
 	  3,
 	  4,
 	  5 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Dance_ThreePanel = {
@@ -293,13 +290,12 @@ static const Style g_Style_Dance_ThreePanel = {
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
 	  // 4 3 5
-	  { 0, 2, Style::NO_MAPPING, 1, 0, 2, Style::END_MAPPING },
+	  { 0, 1, Style::NO_MAPPING, 2, Style::END_MAPPING },
 	  { Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 	  0,
 	  1,
 	  2 },
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Dance_Styles[] = { &g_Style_Dance_Single,
@@ -319,9 +315,9 @@ static const Game g_Game_Dance = {
 	  {
 		// m_szButtonNames
 		{ "Left", GAME_BUTTON_LEFT },
-		{ "Right", GAME_BUTTON_RIGHT },
-		{ "Up", GAME_BUTTON_UP },
 		{ "Down", GAME_BUTTON_DOWN },
+		{ "Up", GAME_BUTTON_UP },
+		{ "Right", GAME_BUTTON_RIGHT },
 	  },
 	  &g_AutoKeyMappings_Dance },
 	{
@@ -353,11 +349,11 @@ static const Game g_Game_Solo = {
 	  {
 		// m_szButtonNames
 		{ "Left", GAME_BUTTON_LEFT },
-		{ "Right", GAME_BUTTON_RIGHT },
-		{ "Up", GAME_BUTTON_UP },
-		{ "Down", GAME_BUTTON_DOWN },
 		{ "UpLeft", GameButton_Invalid },
+		{ "Down", GAME_BUTTON_DOWN },
+		{ "Up", GAME_BUTTON_UP },
 		{ "UpRight", GameButton_Invalid },
+		{ "Right", GAME_BUTTON_RIGHT }
 	  },
 	  &g_AutoKeyMappings_Solo },
 	{
@@ -379,11 +375,11 @@ static const AutoMappings g_AutoKeyMappings_Pump =
   AutoMappings("",
 			   "",
 			   "",
-			   AutoMappingEntry(0, KEY_Cq, PUMP_BUTTON_UPLEFT, false),
-			   AutoMappingEntry(0, KEY_Ce, PUMP_BUTTON_UPRIGHT, false),
-			   AutoMappingEntry(0, KEY_Cs, PUMP_BUTTON_CENTER, false),
+			   AutoMappingEntry(0, KEY_Cx, PUMP_BUTTON_UPLEFT, false),
+			   AutoMappingEntry(0, KEY_COMMA, PUMP_BUTTON_UPRIGHT, false),
+			   AutoMappingEntry(0, KEY_SPACE, PUMP_BUTTON_CENTER, false),
 			   AutoMappingEntry(0, KEY_Cz, PUMP_BUTTON_DOWNLEFT, false),
-			   AutoMappingEntry(0, KEY_Cc, PUMP_BUTTON_DOWNRIGHT, false),
+			   AutoMappingEntry(0, KEY_PERIOD, PUMP_BUTTON_DOWNRIGHT, false),
 			   AutoMappingEntry(0, KEY_EQUAL, GAME_BUTTON_EFFECT_UP, false),
 			   AutoMappingEntry(0, KEY_HYPHEN, GAME_BUTTON_EFFECT_DOWN, false),
 
@@ -420,16 +416,15 @@ static const Style g_Style_Pump_Single = {
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
+	  { 0, 1, 2, 3, 4, Style::END_MAPPING },
 	  { Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
-	  2,
-	  1,
-	  3,
 	  0,
+	  1,
+	  2,
+	  3,
 	  4 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Pump_HalfDouble = {
@@ -454,17 +449,15 @@ static const Style g_Style_Pump_HalfDouble = {
 
 	},
 	{ // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { Style::NO_MAPPING, 1, 0, Style::NO_MAPPING, 2, Style::END_MAPPING },
-	  { 4, Style::NO_MAPPING, 5, 3, Style::NO_MAPPING, Style::END_MAPPING } },
+	  { Style::NO_MAPPING, Style::NO_MAPPING, 0, 1, 2, Style::END_MAPPING },
+	  { 3, 4, 5, Style::NO_MAPPING, Style::NO_MAPPING, Style::END_MAPPING } },
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
+	  0,
+	  1,
 	  2,
 	  3,
-	  1,
 	  4,
-	  0,
 	  5 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Pump_Double = {
@@ -494,22 +487,21 @@ static const Style g_Style_Pump_Double = {
 	},
 	{
 	  // m_iInputColumn[NUM_GameController][NUM_GameButton]
-	  { 1, 3, 2, 0, 4, Style::END_MAPPING },
-	  { 6, 8, 7, 5, 9, Style::END_MAPPING },
+	  { 0, 1, 2, 3, 4, Style::END_MAPPING },
+	  { 5, 6, 7, 8, 9, Style::END_MAPPING },
 	},
 	{ // m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
-	  2,
-	  1,
-	  3,
 	  0,
+	  1,
+	  2,
+	  3,
 	  4,
-	  2 + 5,
-	  1 + 5,
-	  3 + 5,
 	  0 + 5,
+	  1 + 5,
+	  2 + 5,
+	  3 + 5,
 	  4 + 5 },
 
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Pump_Styles[] = { &g_Style_Pump_Single,
@@ -528,10 +520,10 @@ static const Game g_Game_Pump = {
 	  NUM_PUMP_BUTTONS,	  // m_iButtonsPerController
 	  {
 		// m_szButtonNames
-		{ "UpLeft", GAME_BUTTON_UP },
-		{ "UpRight", GAME_BUTTON_DOWN },
-		{ "Center", GAME_BUTTON_START },
 		{ "DownLeft", GAME_BUTTON_LEFT },
+		{ "UpLeft", GAME_BUTTON_DOWN },
+		{ "Center", GameButton_Invalid },
+		{ "UpRight", GAME_BUTTON_UP },
 		{ "DownRight", GAME_BUTTON_RIGHT },
 	  },
 	  &g_AutoKeyMappings_Pump },
@@ -603,7 +595,6 @@ static const Style g_Style_KB7_Single = {
 	  6 // doesn't work?
 	},
 
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_KB7_Styles[] = { &g_Style_KB7_Single, nullptr };
@@ -683,8 +674,6 @@ static const Style g_Style_Ez2_Single = {
 	  3 // This should be from back to front: Down, UpLeft, UpRight, Upper Left
 		// Hand, Upper Right Hand
 	},
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Ez2_Real = {
@@ -725,8 +714,6 @@ static const Style g_Style_Ez2_Real = {
 	  4 // This should be from back to front: Down, UpLeft, UpRight, Lower Left
 		// Hand, Lower Right Hand, Upper Left Hand, Upper Right Hand
 	},
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Ez2_Double = {
@@ -773,8 +760,6 @@ static const Style g_Style_Ez2_Double = {
 	  8 // This should be from back to front: Down, UpLeft, UpRight, Upper Left
 		// Hand, Upper Right Hand
 	},
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Ez2_Styles[] = { &g_Style_Ez2_Single,
@@ -871,8 +856,6 @@ static const Style g_Style_DS3DDX_Single = {
 	  5,
 	  6,
 	  7 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_DS3DDX_Styles[] = { &g_Style_DS3DDX_Single,
@@ -973,8 +956,6 @@ static const Style g_Style_Beat_Single5 = {
 	  3,
 	  4,
 	  5 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Beat_Double5 = {
@@ -1038,8 +1019,6 @@ static const Style g_Style_Beat_Double5 = {
 	  9,
 	  10,
 	  11 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Beat_Single7 = {
@@ -1079,8 +1058,6 @@ static const Style g_Style_Beat_Single7 = {
 	  5,
 	  6,
 	  7 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Beat_Double7 = {
@@ -1136,8 +1113,6 @@ static const Style g_Style_Beat_Double7 = {
 	  13,
 	  14,
 	  15 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Beat_Styles[] = { &g_Style_Beat_Single5,
@@ -1232,8 +1207,6 @@ static const Style g_Style_Maniax_Single = {
 	  1,
 	  2,
 	  3 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Maniax_Double = {
@@ -1273,8 +1246,6 @@ static const Style g_Style_Maniax_Double = {
 	  5,
 	  6,
 	  7 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Maniax_Styles[] = { &g_Style_Maniax_Single,
@@ -1363,8 +1334,6 @@ static const Style g_Style_Popn_Five = {
 	  2,
 	  3,
 	  4 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Popn_Nine = {
@@ -1407,7 +1376,6 @@ static const Style g_Style_Popn_Nine = {
 	  7,
 	  8 },
 
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Popn_Styles[] = { &g_Style_Popn_Five,
@@ -1471,8 +1439,8 @@ static const Game g_Game_Popn = {
 };
 
 static const Game* g_Games[] = {
-	&g_Game_Dance, &g_Game_Pump,   &g_Game_KB7,	 &g_Game_Ez2,  &g_Game_DS3DDX,
-	&g_Game_Beat,  &g_Game_Maniax, &g_Game_Popn, &g_Game_Solo,
+	&g_Game_Dance,  &g_Game_Solo, &g_Game_KB7, &g_Game_Pump, &g_Game_Popn,
+	&g_Game_Beat,  &g_Game_Ez2, &g_Game_Maniax, &g_Game_DS3DDX,
 };
 
 GameManager::GameManager()
@@ -1480,8 +1448,6 @@ GameManager::GameManager()
 	m_bResetModifiers = false;
 	m_bResetTurns = false;
 	m_fPreviousRate = 1.f;
-	m_sModsToReset;
-	m_vTurnsToReset;
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -1500,7 +1466,7 @@ GameManager::~GameManager()
 
 void
 GameManager::GetStylesForGame(const Game* pGame,
-							  vector<const Style*>& aStylesAddTo,
+							  std::vector<const Style*>& aStylesAddTo,
 							  bool editor)
 {
 	for (int s = 0; pGame->m_apStyles[s] != nullptr; ++s) {
@@ -1544,7 +1510,7 @@ GameManager::GetEditorStyleForStepsType(StepsType st)
 
 void
 GameManager::GetStepsTypesForGame(const Game* pGame,
-								  vector<StepsType>& aStepsTypeAddTo)
+								  std::vector<StepsType>& aStepsTypeAddTo)
 {
 	for (int i = 0; pGame->m_apStyles[i] != nullptr; ++i) {
 		StepsType st = pGame->m_apStyles[i]->m_StepsType;
@@ -1567,7 +1533,7 @@ GameManager::GetStepsTypesForGame(const Game* pGame,
 
 void
 GameManager::GetDemonstrationStylesForGame(const Game* pGame,
-										   vector<const Style*>& vpStylesOut)
+										   std::vector<const Style*>& vpStylesOut)
 {
 	vpStylesOut.clear();
 
@@ -1597,7 +1563,7 @@ GameManager::GetHowToPlayStyleForGame(const Game* pGame)
 void
 GameManager::GetCompatibleStyles(const Game* pGame,
 								 int iNumPlayers,
-								 vector<const Style*>& vpStylesOut)
+								 std::vector<const Style*>& vpStylesOut)
 {
 	FOREACH_ENUM(StyleType, styleType)
 	{
@@ -1630,7 +1596,7 @@ GameManager::GetFirstCompatibleStyle(const Game* pGame,
 									 int iNumPlayers,
 									 StepsType st)
 {
-	vector<const Style*> vpStyles;
+	std::vector<const Style*> vpStyles;
 	GetCompatibleStyles(pGame, iNumPlayers, vpStyles);
 	for (auto& s : vpStyles) {
 		if (s->m_StepsType == st) {
@@ -1641,7 +1607,7 @@ GameManager::GetFirstCompatibleStyle(const Game* pGame,
 }
 
 void
-GameManager::GetEnabledGames(vector<const Game*>& aGamesOut)
+GameManager::GetEnabledGames(std::vector<const Game*>& aGamesOut)
 {
 	for (auto pGame : g_Games) {
 		if (IsGameEnabled(pGame))
@@ -1763,7 +1729,7 @@ class LunaGameManager : public Luna<GameManager>
 	{
 		Game* pGame = Luna<Game>::check(L, 1);
 
-		vector<StepsType> vstAddTo;
+		std::vector<StepsType> vstAddTo;
 		p->GetStepsTypesForGame(pGame, vstAddTo);
 		ASSERT(!vstAddTo.empty());
 		StepsType st = vstAddTo[0];
@@ -1788,7 +1754,7 @@ class LunaGameManager : public Luna<GameManager>
 			luaL_error(
 			  L, "GetStylesForGame: Invalid Game: '%s'", game_name.c_str());
 		}
-		vector<Style*> aStyles;
+		std::vector<Style*> aStyles;
 		lua_createtable(L, 0, 0);
 		for (int s = 0; pGame->m_apStyles[s] != nullptr; ++s) {
 			auto* pStyle = const_cast<Style*>(pGame->m_apStyles[s]);
@@ -1799,7 +1765,7 @@ class LunaGameManager : public Luna<GameManager>
 	}
 	static int GetEnabledGames(T* p, lua_State* L)
 	{
-		vector<const Game*> aGames;
+		std::vector<const Game*> aGames;
 		p->GetEnabledGames(aGames);
 		lua_createtable(L, aGames.size(), 0);
 		for (size_t i = 0; i < aGames.size(); ++i) {
@@ -1826,6 +1792,16 @@ class LunaGameManager : public Luna<GameManager>
 		GameLoop::ChangeGame(game_name, theme);
 		return 0;
 	}
+	static int GetGameFromString(T* p, lua_State* L)
+	{
+		std::string game = SArg(1);
+		const auto* g = p->StringToGame(game);
+		if (g == nullptr)
+			luaL_error(L, "GetGameFromString: Invalid Game: %s", game.c_str());
+		else
+			const_cast<Game*>(g)->PushSelf(L);
+		return 1;
+	}
 
 	LunaGameManager()
 	{
@@ -1835,6 +1811,7 @@ class LunaGameManager : public Luna<GameManager>
 		ADD_METHOD(GetStylesForGame);
 		ADD_METHOD(GetEnabledGames);
 		ADD_METHOD(SetGame);
+		ADD_METHOD(GetGameFromString);
 	};
 };
 

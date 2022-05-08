@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "RageSoundDriver_ALSA9_Software.h"
 
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -107,7 +107,7 @@ RageSoundDriver_ALSA9_Software::Init()
 	std::string sys;
 	int vers;
 	GetKernel(sys, vers);
-	LOG->Trace("OS: %s ver %06i", sys.c_str(), vers);
+	Locator::getLogger()->trace("OS: {} ver {}", sys.c_str(), vers);
 	if (sys == "Linux" && vers >= 20600)
 		g_iMaxWriteahead = g_iMaxWriteahead_linux_26;
 
@@ -137,9 +137,9 @@ RageSoundDriver_ALSA9_Software::~RageSoundDriver_ALSA9_Software()
 	if (m_MixingThread.IsCreated()) {
 		/* Signal the mixing thread to quit. */
 		m_bShutdown = true;
-		LOG->Trace("Shutting down mixer thread ...");
+		Locator::getLogger()->trace("Shutting down mixer thread ...");
 		m_MixingThread.Wait();
-		LOG->Trace("Mixer thread shut down.");
+		Locator::getLogger()->trace("Mixer thread shut down.");
 	}
 
 	delete m_pPCM;

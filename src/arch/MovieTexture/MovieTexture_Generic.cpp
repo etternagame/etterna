@@ -1,8 +1,9 @@
 #include "Etterna/Globals/global.h"
 #include "MovieTexture_Generic.h"
+#include "RageUtil/Graphics/RageSurfaceUtils.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Graphics/RageTextureRenderTarget.h"
@@ -22,8 +23,7 @@ MovieTexture_Generic::MovieTexture_Generic(const RageTextureID& ID,
 										   MovieDecoder* pDecoder)
   : RageMovieTexture(ID)
 {
-	LOG->Trace("MovieTexture_Generic::MovieTexture_Generic(%s)",
-			   ID.filename.c_str());
+	Locator::getLogger()->trace("MovieTexture_Generic::MovieTexture_Generic({})", ID.filename.c_str());
 
 	m_pDecoder = pDecoder;
 
@@ -65,17 +65,14 @@ MovieTexture_Generic::Init()
 
 	m_ImageWaiting = FRAME_DECODED;
 
-	LOG->Trace("Resolution: %ix%i (%ix%i, %ix%i)",
-			   m_iSourceWidth,
-			   m_iSourceHeight,
-			   m_iImageWidth,
-			   m_iImageHeight,
-			   m_iTextureWidth,
-			   m_iTextureHeight);
+	Locator::getLogger()->trace("Resolution: {}x{} ({}x{}, {}x{})",
+			   m_iSourceWidth, m_iSourceHeight,
+			   m_iImageWidth, m_iImageHeight,
+			   m_iTextureWidth, m_iTextureHeight);
 
 	UpdateFrame();
 
-	CHECKPOINT_M("Generic initialization completed. No errors found.");
+	Locator::getLogger()->trace("Generic initialization completed. No errors found.");
 
 	return std::string();
 }
@@ -98,9 +95,6 @@ MovieTexture_Generic::~MovieTexture_Generic()
 void
 MovieTexture_Generic::DestroyTexture()
 {
-	delete m_pSurface;
-	m_pSurface = NULL;
-
 	delete m_pTextureLock;
 	m_pTextureLock = NULL;
 
@@ -204,7 +198,7 @@ MovieTexture_Generic::CreateTexture()
 	if (m_uTexHandle || m_pRenderTarget != NULL)
 		return;
 
-	CHECKPOINT_M("About to create a generic texture.");
+	Locator::getLogger()->trace("About to create a generic texture.");
 
 	m_iSourceWidth = m_pDecoder->GetWidth();
 	m_iSourceHeight = m_pDecoder->GetHeight();
@@ -335,8 +329,7 @@ MovieTexture_Generic::DecodeFrame()
 	do {
 		if (m_bWantRewind) {
 			if (bTriedRewind) {
-				LOG->Trace("File \"%s\" looped more than once in one frame",
-						   GetID().filename.c_str());
+				Locator::getLogger()->trace("File \"{}\" looped more than once in one frame", GetID().filename.c_str());
 				return false;
 			}
 			m_bWantRewind = false;
@@ -369,7 +362,7 @@ MovieTexture_Generic::DecodeFrame()
 			if (!m_bLoop)
 				return false;
 
-			LOG->Trace("File \"%s\" looping", GetID().filename.c_str());
+			Locator::getLogger()->trace("File \"{}\" looping", GetID().filename.c_str());
 			m_bWantRewind = true;
 			continue;
 		}
@@ -397,7 +390,7 @@ MovieTexture_Generic::CheckFrameTime()
 	if (fOffset > 0.00001f) {
 		if (m_bFrameSkipMode) {
 			/* We're caught up; stop skipping frames. */
-			LOG->Trace("stopped skipping frames");
+			Locator::getLogger()->trace("stopped skipping frames");
 			m_bFrameSkipMode = false;
 		}
 		return fOffset;
@@ -423,11 +416,8 @@ MovieTexture_Generic::CheckFrameTime()
 	const float FrameSkipThreshold = 0.5f;
 
 	if (-fOffset >= FrameSkipThreshold && !m_bFrameSkipMode) {
-		LOG->Trace(
-		  "(%s) Time is %f, and the movie is at %f.  Entering frame skip mode.",
-		  GetID().filename.c_str(),
-		  m_fClock,
-		  m_pDecoder->GetTimestamp());
+		Locator::getLogger()->trace("({}) Time is {}, and the movie is at {}.  Entering frame skip mode.",
+		  GetID().filename.c_str(), m_fClock, m_pDecoder->GetTimestamp());
 		m_bFrameSkipMode = true;
 	}
 
@@ -462,7 +452,7 @@ MovieTexture_Generic::DecodeSeconds(float fSeconds)
 		return;
 	}
 
-	LOG->MapLog("movie_looping", "MovieTexture_Generic::Update looping");
+    Locator::getLogger()->trace("MovieTexture_Generic::Update looping");
 }
 
 void
@@ -483,7 +473,7 @@ MovieTexture_Generic::UpdateFrame()
 		m_pTextureLock->Unlock(m_pSurface, true);
 
 	if (m_pRenderTarget != NULL) {
-		CHECKPOINT_M("About to upload the texture.");
+		Locator::getLogger()->trace("About to upload the texture.");
 
 		/* If we have no m_pTextureLock, we still have to upload the texture. */
 		if (m_pTextureLock == NULL) {
@@ -529,13 +519,13 @@ MovieTexture_Generic::SetPosition(float fSeconds)
 	 * yet.  I don't think we ever actually seek except to 0 right now,
 	 * anyway. XXX */
 	if (fSeconds != 0) {
-		LOG->Warn("MovieTexture_Generic::SetPosition(%f): non-0 seeking "
-				  "unsupported; ignored",
-				  fSeconds);
+		Locator::getLogger()->warn("MovieTexture_Generic::SetPosition({}): "
+								   "non-0 seeking unsupported; ignored",
+								   fSeconds);
 		return;
 	}
 
-	LOG->Trace("Seek to %f", fSeconds);
+	Locator::getLogger()->trace("Seek to {}", fSeconds);
 	m_bWantRewind = true;
 }
 

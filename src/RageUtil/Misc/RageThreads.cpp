@@ -12,7 +12,7 @@
 #include "Etterna/Globals/global.h"
 
 #include "Etterna/Singletons/PrefsManager.h"
-#include "RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageThreads.h"
 #include "RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -24,19 +24,13 @@
 
 #include "arch/Threads/Threads.h"
 
-#ifdef _WIN32
-#include "archutils/Win32/crash.h"
-#elif defined(__linux__) || defined(__APPLE__)
-#include "archutils/Unix/CrashHandler.h"
-#endif
-
 /* Assume TLS doesn't work until told otherwise.  It's ArchHooks's job to set
  * this. */
 bool RageThread::s_bSystemSupportsTLS = false;
 bool RageThread::s_bIsShowingDialog = false;
 
 #define MAX_THREADS 128
-// static vector<RageMutex*> *g_MutexList = NULL; /* watch out for static
+// static std::vector<RageMutex*> *g_MutexList = NULL; /* watch out for static
 // initialization order problems */
 
 struct ThreadSlot
@@ -270,8 +264,7 @@ RageThread::Create(int (*fn)(void*), void* data)
 
 	strcpy(m_pSlot->m_szName, m_sName.c_str());
 
-	if (LOG && PREFSMAN->m_verbose_log > 1)
-		LOG->Trace("Starting thread: %s", m_sName.c_str());
+	Locator::getLogger()->info("Starting thread: {}", m_sName.c_str());
 	sprintf(m_pSlot->m_szThreadFormattedOutput, "Thread: %s", m_sName.c_str());
 
 	/* Start a thread using our own startup function.  We pass the id to fill
@@ -406,83 +399,6 @@ RageThread::GetInvalidThreadID()
 	return GetInvalidThreadId();
 }
 
-/* Normally, checkpoints are only seen in crash logs.  It's occasionally useful
- * to see them in logs, but this outputs a huge amount of text. */
-static bool g_LogCheckpoints = false;
-void
-Checkpoints::LogCheckpoints(bool on)
-{
-	g_LogCheckpoints = on;
-}
-
-void
-Checkpoints::SetCheckpoint(const char* file, int line, const char* message)
-{
-	ThreadSlot* slot = GetCurThreadSlot();
-	if (slot == NULL)
-		slot = GetUnknownThreadSlot();
-	/* We can't ASSERT here, since that uses checkpoints. */
-	if (slot == NULL)
-		sm_crash("GetUnknownThreadSlot() returned NULL");
-
-	/* Ignore everything up to and including the first "src/". */
-	const char* temp = strstr(file, "src/");
-	if (temp != nullptr)
-		file = temp + 4;
-	slot->m_Checkpoints[slot->m_iCurCheckpoint].Set(file, line, message);
-
-	if (g_LogCheckpoints)
-		LOG->Trace(
-		  "%s", slot->m_Checkpoints[slot->m_iCurCheckpoint].m_szFormattedBuf);
-
-	++slot->m_iCurCheckpoint;
-	slot->m_iNumCheckpoints =
-	  std::max(slot->m_iNumCheckpoints, slot->m_iCurCheckpoint);
-	slot->m_iCurCheckpoint %= CHECKPOINT_COUNT;
-}
-
-/* This is called under crash conditions.  Be careful. */
-static const char*
-GetCheckpointLog(int slotno, int lineno)
-{
-	ThreadSlot& slot = g_ThreadSlots[slotno];
-	if (!slot.m_bUsed)
-		return NULL;
-
-	/* Only show the "Unknown thread" entry if it has at least one checkpoint.
-	 */
-	if (&slot == g_pUnknownThreadSlot && slot.GetFormattedCheckpoint(0) == NULL)
-		return NULL;
-
-	if (lineno != 0)
-		return slot.GetFormattedCheckpoint(lineno - 1);
-
-	slot.m_szThreadFormattedOutput[sizeof(slot.m_szThreadFormattedOutput) - 1] =
-	  0;
-	return slot.m_szThreadFormattedOutput;
-}
-
-/* XXX: iSize check unimplemented */
-void
-Checkpoints::GetLogs(char* pBuf, int iSize, const char* delim)
-{
-	pBuf[0] = 0;
-
-	for (int slotno = 0; slotno < MAX_THREADS; ++slotno) {
-		const char* buf = GetCheckpointLog(slotno, 0);
-		if (buf == NULL)
-			continue;
-		strcat(pBuf, buf);
-		strcat(pBuf, delim);
-
-		for (int line = 1; (buf = GetCheckpointLog(slotno, line)) != NULL;
-			 ++line) {
-			strcat(pBuf, buf);
-			strcat(pBuf, delim);
-		}
-	}
-}
-
 /*
  * "Safe" mutexes: locking the same mutex more than once from the same
  * thread is refcounted and does not deadlock.
@@ -552,7 +468,7 @@ RageMutex::Lock()
 
 		/* Pass the crash handle of the other thread, so it can backtrace that
 		 * thread. */
-		CrashHandler::ForceDeadlock(sReason, CrashHandle);
+//		CrashHandler::ForceDeadlock(sReason, CrashHandle);
 	}
 
 	m_LockedBy = iThisThreadId;
@@ -625,7 +541,7 @@ LockMutex::Unlock()
 	if (file && locked_at != -1) {
 		const float dur = RageTimer::GetTimeSinceStart() - locked_at;
 		if (dur > 0.015f)
-			LOG->Trace("Lock at %s:%i took %f", file, line, dur);
+			Locator::getLogger()->trace("Lock at {}:{} took {}", file, line, dur);
 	}
 }
 
@@ -643,15 +559,12 @@ RageEvent::~RageEvent()
 /* For each of these calls, the mutex must be locked, and must not be locked
  * recursively. */
 bool
-RageEvent::Wait(RageTimer* pTimeout)
+RageEvent::Wait(float timeout)
 {
 	ASSERT(IsLockedByThisThread());
 	ASSERT(m_LockCnt == 0);
 
-	/* A zero RageTimer also means no timeout. */
-	if (pTimeout != NULL && pTimeout->IsZero())
-		pTimeout = NULL;
-	const bool bRet = m_pEvent->Wait(pTimeout);
+	const bool bRet = m_pEvent->Wait(timeout);
 
 	m_LockedBy = GetThisThreadId();
 	return bRet;
@@ -719,7 +632,7 @@ RageSemaphore::Wait(bool bFailOnTimeout)
 			   ThisSlot ? ThisSlot->GetThreadName()
 						: "(???"
 						  ")"); // stupid trigraph warnings
-	CrashHandler::ForceDeadlock(sReason, GetInvalidThreadId());
+//	CrashHandler::ForceDeadlock(sReason, GetInvalidThreadId());
 }
 
 bool

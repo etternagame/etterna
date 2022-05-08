@@ -35,10 +35,10 @@ class RageCompiledGeometry
   public:
 	virtual ~RageCompiledGeometry();
 
-	void Set(const vector<msMesh>& vMeshes, bool bNeedsNormals);
+	void Set(const std::vector<msMesh>& vMeshes, bool bNeedsNormals);
 
-	virtual void Allocate(const vector<msMesh>& vMeshes) = 0; // allocate space
-	virtual void Change(const vector<msMesh>& vMeshes) = 0; // new data must be
+	virtual void Allocate(const std::vector<msMesh>& vMeshes) = 0; // allocate space
+	virtual void Change(const std::vector<msMesh>& vMeshes) = 0; // new data must be
 															// the same size as
 															// was passed to
 															// Set()
@@ -70,7 +70,7 @@ class RageCompiledGeometry
 		int iTriangleCount;
 		bool m_bNeedsTextureMatrixScale;
 	};
-	vector<MeshInfo> m_vMeshInfo;
+	std::vector<MeshInfo> m_vMeshInfo;
 	bool m_bNeedsNormals{};
 	bool m_bAnyNeedsTextureMatrixScale{};
 };
@@ -278,6 +278,9 @@ class RageDisplay
 	  -> const ActualVideoModeParams* = 0;
 	auto IsWindowed() -> bool { return (*GetActualVideoModeParams()).windowed; }
 
+	auto GetFrameTimingAdjustment(std::chrono::steady_clock::time_point now)
+		-> float;
+
 	virtual void SetBlendMode(BlendMode mode) = 0;
 
 	virtual auto SupportsTextureFormat(RagePixelFormat pixfmt,
@@ -395,7 +398,7 @@ class RageDisplay
 	void DrawTriangles(const RageSpriteVertex v[], int iNumVerts);
 	void DrawCompiledGeometry(const RageCompiledGeometry* p,
 							  int iMeshIndex,
-							  const vector<msMesh>& vMeshes);
+							  const std::vector<msMesh>& vMeshes);
 	void DrawLineStrip(const RageSpriteVertex v[],
 					   int iNumVerts,
 					   float LineWidth);

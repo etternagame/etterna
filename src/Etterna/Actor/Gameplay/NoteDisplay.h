@@ -216,11 +216,11 @@ class NoteDisplay
 	auto DrawHoldsInRange(
 	  const NoteFieldRenderArgs& field_args,
 	  const NoteColumnRenderArgs& column_args,
-	  const vector<NoteData::TrackMap::const_iterator>& tap_set) -> bool;
+	  const std::vector<NoteData::TrackMap::const_iterator>& tap_set) -> bool;
 	auto DrawTapsInRange(
 	  const NoteFieldRenderArgs& field_args,
 	  const NoteColumnRenderArgs& column_args,
-	  const vector<NoteData::TrackMap::const_iterator>& tap_set) -> bool;
+	  const std::vector<NoteData::TrackMap::const_iterator>& tap_set) -> bool;
 	/**
 	 * @brief Draw the TapNote onto the NoteField.
 	 * @param tn the TapNote in question.
@@ -255,6 +255,7 @@ class NoteDisplay
 
 	[[nodiscard]] auto DrawHoldHeadForTapsOnSameRow() const -> bool;
 	[[nodiscard]] auto DrawRollHeadForTapsOnSameRow() const -> bool;
+	float m_fYReverseOffsetPixels;
 
   private:
 	void SetActiveFrame(float fNoteBeat,
@@ -303,15 +304,15 @@ class NoteDisplay
 				   float fPercentFadeToFail,
 				   float fColorScale,
 				   bool is_being_held) const;
-	void DrawHoldPart(vector<Sprite*>& vpSpr,
+	void DrawHoldPart(std::vector<Sprite*>& vpSpr,
 					  const NoteFieldRenderArgs& field_args,
 					  const NoteColumnRenderArgs& column_args,
 					  const draw_hold_part_args& part_args,
 					  bool glow,
 					  int part_type) const;
-	void DrawHoldBodyInternal(vector<Sprite*>& sprite_top,
-							  vector<Sprite*>& sprite_body,
-							  vector<Sprite*>& sprite_bottom,
+	void DrawHoldBodyInternal(std::vector<Sprite*>& sprite_top,
+							  std::vector<Sprite*>& sprite_body,
+							  std::vector<Sprite*>& sprite_bottom,
 							  const NoteFieldRenderArgs& field_args,
 							  const NoteColumnRenderArgs& column_args,
 							  draw_hold_part_args& part_args,
@@ -348,7 +349,6 @@ class NoteDisplay
 	NoteColorSprite m_HoldBody[NUM_HoldType][NUM_ActiveType];
 	NoteColorSprite m_HoldBottomCap[NUM_HoldType][NUM_ActiveType];
 	NoteColorActor m_HoldTail[NUM_HoldType][NUM_ActiveType];
-	float m_fYReverseOffsetPixels;
 };
 
 // So, this is a bit screwy, and it's partly because routine forces rendering
@@ -426,7 +426,7 @@ struct NoteColumnRenderer : public Actor
 	}
 
   private:
-	vector<NCR_TweenState> NCR_Tweens;
+	std::vector<NCR_TweenState> NCR_Tweens;
 	NCR_TweenState NCR_current;
 	NCR_TweenState NCR_start;
 };

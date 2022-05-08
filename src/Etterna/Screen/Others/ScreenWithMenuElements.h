@@ -46,7 +46,7 @@ class ScreenWithMenuElements : public Screen
 	AutoActor m_sprUnderlay;
 	MenuTimer* m_MenuTimer;
 	AutoActor m_sprOverlay;
-	vector<Actor*> m_vDecorations;
+	std::vector<Actor*> m_vDecorations;
 
 	Transition m_In;
 	Transition m_Out;

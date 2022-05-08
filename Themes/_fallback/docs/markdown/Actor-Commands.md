@@ -238,7 +238,7 @@ Broadcast when the current rate changes (So things like the current chart diffic
 
     params = { }
 
-### CurrentStepsP1ChangedMessageCommand
+### CurrentStepsChangedMessageCommand
 
 Triggered when the currently selected `Steps` (a.k.a chart within a `Song`) change, whether it be by changing the difficulty or selecting another song.
 

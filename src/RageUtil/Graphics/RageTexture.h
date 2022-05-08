@@ -8,6 +8,8 @@
 #include "RageUtil/Misc/RageTypes.h"
 
 struct lua_State;
+struct RageSurface;
+
 class RageTexture
 {
   public:
@@ -123,6 +125,8 @@ class RageTexture
 											   int source_width = 0,
 											   int source_height = 0);
 
+	virtual auto GetAverageColor(unsigned increment = 1) const -> const RageColor;
+
 	// Lua
 	virtual void PushSelf(lua_State* L);
 
@@ -139,7 +143,8 @@ class RageTexture
 	int m_iImageWidth, m_iImageHeight; // dimensions of the image in the texture
 	int m_iFramesWide, m_iFramesHigh;  // The number of frames of animation in
 									   // each row and column of this texture
-	vector<RectF> m_TextureCoordRects; // size = m_iFramesWide * m_iFramesHigh
+	std::vector<RectF> m_TextureCoordRects; // size = m_iFramesWide * m_iFramesHigh
+	RageSurface* m_pSurface{ nullptr };
 
 	virtual void CreateFrameRects();
 };

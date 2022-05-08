@@ -1,7 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "MovieTexture.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
@@ -37,7 +37,7 @@ RageMovieTexture::GetFourCC(const std::string& fn,
 	// iostream
 #define HANDLE_ERROR(x)                                                        \
 	{                                                                          \
-		LOG->Warn("Error reading %s: %s", fn.c_str(), x);                      \
+		Locator::getLogger()->warn("Error reading {}: {}", fn.c_str(), x);                      \
 		handler = type = "";                                                   \
 		return false;                                                          \
 	}
@@ -73,7 +73,7 @@ DumpAVIDebugInfo(const std::string& fn)
 	if (!RageMovieTexture::GetFourCC(fn, handler, type))
 		return;
 
-	LOG->Trace("Movie %s has handler '%s', type '%s'",
+	Locator::getLogger()->debug("Movie {} has handler '{}', type '{}'",
 			   fn.c_str(),
 			   handler.c_str(),
 			   type.c_str());
@@ -96,7 +96,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 	if (sDrivers.empty())
 		sDrivers = DEFAULT_MOVIE_DRIVER_LIST;
 
-	vector<std::string> DriversToTry;
+	std::vector<std::string> DriversToTry;
 	split(sDrivers, ",", DriversToTry, true);
 
 	if (DriversToTry.empty())
@@ -105,12 +105,12 @@ RageMovieTexture::Create(const RageTextureID& ID)
 	RageMovieTexture* ret = nullptr;
 
 	for (auto& Driver : DriversToTry) {
-		LOG->Trace("Initializing driver: %s", Driver.c_str());
+		Locator::getLogger()->trace("Initializing driver: {}", Driver);
 		RageDriver* pDriverBase =
 		  RageMovieTextureDriver::m_pDriverList.Create(Driver);
 
 		if (pDriverBase == nullptr) {
-			LOG->Trace("Unknown movie driver name: %s", Driver.c_str());
+			Locator::getLogger()->trace("Unknown movie driver name: {}", Driver);
 			continue;
 		}
 
@@ -123,12 +123,11 @@ RageMovieTexture::Create(const RageTextureID& ID)
 		delete pDriver;
 
 		if (ret == nullptr) {
-			LOG->Trace(
-			  "Couldn't load driver %s: %s", Driver.c_str(), sError.c_str());
+			Locator::getLogger()->trace("Couldn't load driver {}: {}", Driver, sError.c_str());
 			SAFE_DELETE(ret);
 			continue;
 		}
-		LOG->Trace("Created movie texture \"%s\" with driver \"%s\"",
+		Locator::getLogger()->debug("Created movie texture \"{}\" with driver \"{}\"",
 				   ID.filename.c_str(),
 				   Driver.c_str());
 		break;

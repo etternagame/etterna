@@ -2,7 +2,7 @@
 #include "EnumHelper.h"
 #include "Grade.h"
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
@@ -84,7 +84,7 @@ StringToGrade(const std::string& sGrade)
 	else if (s == "NODATA")
 		return Grade_Invalid;
 
-	LOG->Warn("Invalid grade: %s", sGrade.c_str());
+	Locator::getLogger()->warn("Invalid grade: {}", sGrade.c_str());
 	return Grade_Invalid;
 };
 
@@ -93,7 +93,7 @@ StringToGrade(const std::string& sGrade)
 Grade
 GetGradeFromPercent(float pc)
 {
-	if (pc >= 0.99996F) {
+	if (pc >= 0.999935F) {
 		return Grade_Tier01;
 	}
 	if (PREFSMAN->m_bUseMidGrades && pc >= 0.9998F) {

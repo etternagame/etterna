@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/Preference.h"
 #include "PrefsManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RageUtil/Misc/RageLog.h"
+#include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
 
@@ -21,14 +21,6 @@ static const char* MusicWheelUsesSectionsNames[] = {
 XToString(MusicWheelUsesSections);
 StringToX(MusicWheelUsesSections);
 LuaXType(MusicWheelUsesSections);
-
-static const char* AllowW1Names[] = {
-	"Never",
-	"Everywhere",
-};
-XToString(AllowW1);
-StringToX(AllowW1);
-LuaXType(AllowW1);
 
 static const char* MaybeNames[] = {
 	"Ask",
@@ -89,7 +81,6 @@ XToString(BackgroundFitMode);
 StringToX(BackgroundFitMode);
 LuaXType(BackgroundFitMode);
 
-bool g_bAutoRestart = false;
 #ifdef DEBUG
 #define TRUE_IF_DEBUG true
 #else
@@ -105,14 +96,12 @@ ValidateDisplayAspectRatio(float& val)
 
 PrefsManager::PrefsManager()
   : m_sCurrentGame("CurrentGame", "")
-  ,
-
-  m_sAnnouncer("Announcer", "")
+  , m_sAnnouncer("Announcer", "")
   , m_sTheme("Theme", SpecialFiles::BASE_THEME_NAME)
   , m_sDefaultModifiers("DefaultModifiers", "")
-  ,
+  , m_bFullscreenIsBorderlessWindow("FullscreenIsBorderlessWindow", false)
 
-  m_bWindowed("Windowed", true)
+  , m_bWindowed("Windowed", true)
   , m_sDisplayId("DisplayId", "")
   , m_iDisplayWidth("DisplayWidth", 800)
   , m_iDisplayHeight("DisplayHeight", 600)
@@ -120,114 +109,97 @@ PrefsManager::PrefsManager()
 						  16 / 9.f,
 						  ValidateDisplayAspectRatio)
   , m_iDisplayColorDepth("DisplayColorDepth", 32)
-  , m_iTextureColorDepth("TextureColorDepth", 32)
-  , m_iMovieColorDepth("MovieColorDepth", 32)
-  , m_bStretchBackgrounds("StretchBackgrounds", false)
-  , m_BGFitMode("BackgroundFitMode", BFM_CoverPreserve)
-  , m_HighResolutionTextures("HighResolutionTextures",
-							 HighResolutionTextures_Auto)
-  , m_iMaxTextureResolution("MaxTextureResolution", 1024)
-  , m_iRefreshRate("RefreshRate", REFRESH_DEFAULT)
-  , m_bAllowMultitexture("AllowMultitexture", true)
-  , m_bFullscreenIsBorderlessWindow("FullscreenIsBorderlessWindow", false)
-  , m_bAllowedLag("AllowedLag", 0.001f)
-  , m_bShowStats("ShowStats", TRUE_IF_DEBUG)
-  , m_bShowSkips("ShowSkips", true)
-  , m_bShowMouseCursor("ShowMouseCursor", true)
-  , m_bVsync("Vsync", false)
-  , m_FastNoteRendering("FastNoteRendering", true)
+  , m_sLastSeenVideoDriver("LastSeenVideoDriver", "")
+  , m_sVideoRenderers("VideoRenderers", "")
+
   , m_bInterlaced("Interlaced", false)
   , m_bPAL("PAL", false)
-  , m_bDelayedTextureDelete("DelayedTextureDelete", false)
-  , m_bDelayedModelDelete("DelayedModelDelete", false)
-  , m_ImageCache("CacheImages", IMGCACHE_OFF)
-  , m_bFastLoad("FastLoad", true)
-  , m_bBlindlyTrustCache("BlindlyTrustCache", true)
-  , m_bShrinkSongCache("RemoveCacheEntriesForDeletedSongs", false)
-  , m_NeverCacheList("NeverCacheList", "")
-  ,
-
-  m_bOnlyDedicatedMenuButtons("OnlyDedicatedMenuButtons", false)
-  , m_bMenuTimer("MenuTimer", false)
-  ,
-
-  m_fLifeDifficultyScale("LifeDifficultyScale", 1.0f)
-  ,
-
-  m_iRegenComboAfterMiss("RegenComboAfterMiss", 5)
-  , m_iMaxRegenComboAfterMiss("MaxRegenComboAfterMiss", 5)
-  , // this was 10 by default in SM3.95 -dguzek
-  m_bDelayedBack("DelayedBack", false)
-  , m_AllowHoldForOptions("AllowHoldForOptions", true)
-  , m_bShowInstructions("ShowInstruction", false)
-  , m_bFullTapExplosions("FullTapExplosions", true)
-  , m_bNoGlow("NoGlow", false)
-  , m_bReplaysUseScoreMods("ReplaysUseScoreMods", true)
-  , m_bShowNativeLanguage("ShowNativeLanguage", true)
-  , m_iArcadeOptionsNavigation("ArcadeOptionsNavigation", 0)
-  , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
-  , m_MusicWheelUsesSections("MusicWheelUsesSections",
-							 MusicWheelUsesSections_ALWAYS)
-  , m_iMusicWheelSwitchSpeed("MusicWheelSwitchSpeed", 15)
-  , m_AllowW1("AllowW1", ALLOW_W1_EVERYWHERE)
-  , m_bUseMidGrades("UseMidGrades", false)
-  , m_bEventMode("EventMode", true)
-  , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
-  , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
-  , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)
-  , m_bSortBySSRNorm("SortBySSRNormPercent", false)
-  , m_fGlobalOffsetSeconds("GlobalOffsetSeconds", 0)
-  , m_sLanguage("Language", "")
-  , // ThemeManager will deal with this invalid language
-  m_iCenterImageTranslateX("CenterImageTranslateX", 0)
+  , m_iRefreshRate("RefreshRate", REFRESH_DEFAULT)
+  , m_bVsync("Vsync", false)
+  , m_iCenterImageTranslateX("CenterImageTranslateX", 0)
   , m_iCenterImageTranslateY("CenterImageTranslateY", 0)
   , m_fCenterImageAddWidth("CenterImageAddWidth", 0)
   , m_fCenterImageAddHeight("CenterImageAddHeight", 0)
-  , m_bCelShadeModels("CelShadeModels", false)
-  , // Work-In-Progress.. disable by default.
-  m_bPreferredSortUsesGroups("PreferredSortUsesGroups", true)
-  , EnablePitchRates("EnablePitchRates", true)
-  , LiftsOnOsuHolds("LiftsOnOsuHolds", false)
-  , m_bEasterEggs("EasterEggs", true)
-  , m_fPadStickSeconds("PadStickSeconds", 0)
-  , m_bForceMipMaps("ForceMipMaps", false)
-  , m_bTrilinearFiltering("TrilinearFiltering", false)
-  , m_bAnisotropicFiltering("AnisotropicFiltering", false)
-  , m_bSignProfileData("SignProfileData", false)
+
+  , m_fGlobalOffsetSeconds("GlobalOffsetSeconds", 0)
   , m_sAdditionalSongFolders("AdditionalSongFolders", "")
   , m_sAdditionalFolders("AdditionalFolders", "")
-  , m_sDefaultTheme("DefaultTheme", "Til Death")
-  , m_sLastSeenVideoDriver("LastSeenVideoDriver", "")
-  , m_sVideoRenderers("VideoRenderers", "")
-  , // StepMania.cpp sets these on first run:
-  m_bSmoothLines("SmoothLines", false)
-  , m_iSoundWriteAhead("SoundWriteAhead", 0)
+
+  , m_bAllowedLag("AllowedLag", 0.001f)
+  , m_AllowHoldForOptions("AllowHoldForOptions", true)
+  , m_AllowStartToGiveUp("AllowStartToGiveUp", true)
+  , m_bAllowMultitexture("AllowMultitexture", true)
+  , m_bAllowUnacceleratedRenderer("AllowUnacceleratedRenderer", false)
+  , m_bAnisotropicFiltering("AnisotropicFiltering", false)
+  , m_iArcadeOptionsNavigation("ArcadeOptionsNavigation", 0)
+  , m_BGFitMode("BackgroundFitMode", BFM_CoverPreserve)
+  , m_bBlindlyTrustCache("BlindlyTrustCache", true)
+  , m_ImageCache("CacheImages", IMGCACHE_OFF)
+  , m_sDefaultTheme("DefaultTheme", "Rebirth")
+  , m_bDelayedBack("DelayedBack", false)
+  , m_bDelayedModelDelete("DelayedModelDelete", false)
+  , m_bDelayedTextureDelete("DelayedTextureDeletion", true)
+  , m_bEasterEggs("EasterEggs", true)
+  , m_AllowMultipleToasties("MultiToasty", false)
+  , EnablePitchRates("EnablePitchRates", true)
+  , m_bEnableScoreboard("EnableScoreboard", true)
+  , m_bEventMode("EventMode", true)
+  , m_bFastLoad("FastLoad", true)
+  , m_FastNoteRendering("FastNoteRendering", true)
+  , m_bForceMipMaps("ForceMipMaps", false)
+  , m_bFullTapExplosions("FullTapExplosions", true)
+  , m_HighResolutionTextures("HighResolutionTextures",
+							 HighResolutionTextures_Auto)
+  , m_sLanguage("Language", "")
+  , m_fLifeDifficultyScale("LifeDifficultyScale", 1.0f)
+  , LiftsOnOsuHolds("LiftsOnOsuHolds", false)
+  , m_bLogToDisk("LogToDisk", true)
+  , m_iMaxTextureResolution("MaxTextureResolution", 1024)
+  , m_bMenuTimer("MenuTimer", false)
+  , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)
+  , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
+  , m_iMovieColorDepth("MovieColorDepth", 32)
+  , m_MusicWheelUsesSections("MusicWheelUsesSections",
+							 MusicWheelUsesSections_ALWAYS)
+  , m_iMusicWheelSwitchSpeed("MusicWheelSwitchSpeed", 15)
+  , m_MuteActions("MuteActions", false)
+  , m_NeverCacheList("NeverCacheList", "")
+  , m_bNoGlow("NoGlow", false)
+  , m_bOnlyDedicatedMenuButtons("OnlyDedicatedMenuButtons", false)
+  , m_fPadStickSeconds("PadStickSeconds", 0)
+  , m_bPseudoLocalize("PseudoLocalize", false)
+  , m_bShrinkSongCache("RemoveCacheEntriesForDeletedSongs", false)
+  , m_bReplaysUseScoreMods("ReplaysUseScoreMods", true)
+  , m_bShowMouseCursor("ShowMouseCursor", true)
+  , m_bShowInstructions("ShowInstruction", false)
+  , m_bShowLoadingWindow("ShowLoadingWindow", true)
+  , m_bShowNativeLanguage("ShowNativeLanguage", true)
+  , m_bShowStats("ShowStats", TRUE_IF_DEBUG)
+  , m_bShowSkips("ShowSkips", true)
+  , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
+  , m_bSmoothLines("SmoothLines", false)
+  , m_bSortBySSRNorm("SortBySSRNormPercent", false)
+  , m_bPackProgressInWheel("PackProgressInWheel", false)
   , m_iSoundDevice("SoundDevice", "")
   , m_iSoundPreferredSampleRate("SoundPreferredSampleRate", 0)
-  , m_bAllowUnacceleratedRenderer("AllowUnacceleratedRenderer", false)
+  , m_iSoundWriteAhead("SoundWriteAhead", 0)
+  , m_bStretchBackgrounds("StretchBackgrounds", false)
+  , m_fBGBrightness("BGBrightness", 0.2f)
+  , m_iTextureColorDepth("TextureColorDepth", 32)
   , m_bThreadedInput("ThreadedInput", true)
   , m_bThreadedMovieDecode("ThreadedMovieDecode", true)
-  , m_sTestInitialScreen("TestInitialScreen", "")
-  , m_MuteActions("MuteActions", false)
   , ThreadsToUse("ThreadsToUse", 0)
-  , m_bLogToDisk("LogToDisk", true)
-  , m_verbose_log("VerboseLogging", 1)
-  ,
-#if defined(DEBUG)
-  m_bForceLogFlush("ForceLogFlush", true)
-  , m_bShowLogOutput("ShowLogOutput", true)
-  ,
-#else
-  m_bForceLogFlush("ForceLogFlush", false)
-  , m_bShowLogOutput("ShowLogOutput", false)
-  ,
-#endif
-  m_bLogSkips("LogSkips", false)
-  , m_bLogCheckpoints("LogCheckpoints", false)
-  , m_bShowLoadingWindow("ShowLoadingWindow", true)
-  , m_bPseudoLocalize("PseudoLocalize", false)
+  , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
+  , m_bTrilinearFiltering("TrilinearFiltering", false)
+  , m_bUseMidGrades("UseMidGrades", false)
+  , m_logging_level("LoggingLevel", 2)
+  , m_bForceLogFlush("ForceLogFlush", TRUE_IF_DEBUG)
+  , m_bShowLogOutput("ShowLogOutput", TRUE_IF_DEBUG)
+  , m_bLogSkips("LogSkips", false)
   , m_show_theme_errors("ShowThemeErrors", false)
-  , m_bEnableScoreboard("EnableScoreboard", true)
+  , m_bAlwaysLoadCalcParams("AlwaysLoadCalcParams", false)
+  , m_bEnableCrashUpload("EnableMinidumpUpload", false)
+  , m_bShowMinidumpUploadDialogue("ShowMinidumpUploadDialogue", true)
 
 {
 	Init();
@@ -280,7 +252,6 @@ PrefsManager::StoreGamePrefs()
 	// save off old values
 	GamePrefs& gp = m_mapGameNameToGamePrefs[m_sCurrentGame.ToString()];
 	gp.m_sAnnouncer = m_sAnnouncer.Get();
-	gp.m_sTheme = m_sTheme.Get();
 	gp.m_sDefaultModifiers = m_sDefaultModifiers.Get();
 }
 
@@ -297,7 +268,6 @@ PrefsManager::RestoreGamePrefs()
 		gp = iter->second;
 
 	m_sAnnouncer.Set(gp.m_sAnnouncer);
-	m_sTheme.Set(gp.m_sTheme);
 	m_sDefaultModifiers.Set(gp.m_sDefaultModifiers);
 
 	// give Static.ini a chance to clobber the saved game prefs
@@ -307,7 +277,6 @@ PrefsManager::RestoreGamePrefs()
 
 PrefsManager::GamePrefs::GamePrefs()
   : m_sAnnouncer("")
-  , m_sTheme(SpecialFiles::BASE_THEME_NAME)
   , m_sDefaultModifiers("")
 {
 }
@@ -391,9 +360,7 @@ PrefsManager::ReadGamePrefsFromIni(const std::string& sIni)
 		  section_name, section_name.length() - GAME_SECTION_PREFIX.length());
 		GamePrefs& gp = m_mapGameNameToGamePrefs[sGame];
 
-		// todo: read more prefs here? -aj
 		ini.GetValue(section_name, "Announcer", gp.m_sAnnouncer);
-		ini.GetValue(section_name, "Theme", gp.m_sTheme);
 		ini.GetValue(section_name, "DefaultModifiers", gp.m_sDefaultModifiers);
 	}
 }
@@ -446,7 +413,6 @@ PrefsManager::SavePrefsToIni(IniFile& ini)
 
 		// todo: write more values here? -aj
 		ini.SetValue(sSection, "Announcer", iter.second.m_sAnnouncer);
-		ini.SetValue(sSection, "Theme", iter.second.m_sTheme);
 		ini.SetValue(
 		  sSection, "DefaultModifiers", iter.second.m_sDefaultModifiers);
 	}
@@ -461,8 +427,8 @@ PrefsManager::GetPreferencesSection() const
 	GetFileContents(SpecialFiles::TYPE_TXT_FILE, sSection, true);
 
 	// OK if this fails
-	if (!GetCommandlineArgument("Type", &sSection) && m_verbose_log > 1)
-		LOG->Trace("Failed to find Type commandline argument (Not required)");
+	if (!GetCommandlineArgument("Type", &sSection))
+		Locator::getLogger()->trace("Failed to find Type commandline argument (Not required)");
 
 	return sSection;
 }
@@ -516,9 +482,8 @@ class LunaPrefsManager : public Luna<PrefsManager>
 		}
 
 		pPref->LoadDefault();
-		LOG->Trace("Restored preference \"%s\" to default \"%s\"",
-				   sName.c_str(),
-				   pPref->ToString().c_str());
+		Locator::getLogger()->info("Restored preference \"{}\" to default \"{}\"",
+				   sName.c_str(), pPref->ToString().c_str());
 		COMMON_RETURN_SELF;
 	}
 	static int PreferenceExists(T* p, lua_State* L)
