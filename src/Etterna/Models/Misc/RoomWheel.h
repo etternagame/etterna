@@ -26,7 +26,7 @@ class RoomData
 		m_state = 0;
 		m_iFlags = 0;
 	}
-	vector<std::string> players;
+	std::vector<std::string> players;
 
   private:
 	std::string m_name;
@@ -84,7 +84,7 @@ struct RoomInfo
 	std::string songArtist;
 	int numPlayers;
 	int maxPlayers;
-	vector<std::string> players;
+	std::vector<std::string> players;
 };
 
 struct RoomSearch
@@ -107,7 +107,7 @@ class RoomWheel : public WheelBase
 	~RoomWheel() override;
 	void Load(const std::string& sType) override;
 	virtual void BuildWheelItemsData(
-	  vector<WheelItemBaseData*>& arrayWheelItemDatas);
+	  std::vector<WheelItemBaseData*>& arrayWheelItemDatas);
 	unsigned int GetNumItems() const override;
 	bool Select() override;
 	void Move(int n) override;
@@ -127,7 +127,7 @@ class RoomWheel : public WheelBase
 	void Search(RoomSearch findme);
 
 	void BuildFromRoomDatas();
-	void UpdateRoomsList(vector<RoomData>* m_Roomsptr);
+	void UpdateRoomsList(std::vector<RoomData>* m_Roomsptr);
 	void FilterBySearch();
 
 	// Lua
@@ -137,8 +137,8 @@ class RoomWheel : public WheelBase
 	WheelItemBase* MakeItem() override;
 	int m_offset;
 
-	vector<RoomData>* allRooms;
-	vector<RoomData> roomsInWheel;
+	std::vector<RoomData>* allRooms;
+	std::vector<RoomData> roomsInWheel;
 
 	RoomSearch currentSearch;
 	bool searching;

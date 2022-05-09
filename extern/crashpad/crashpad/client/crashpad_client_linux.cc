@@ -28,6 +28,7 @@
 
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
+#include "build/chromeos_buildflags.h"
 #include "client/client_argv_handling.h"
 #include "third_party/lss/lss.h"
 #include "util/file/file_io.h"
@@ -128,6 +129,9 @@ std::vector<std::string> BuildArgsToLaunchWithLinker(
 // A base class for Crashpad signal handler implementations.
 class SignalHandler {
  public:
+  SignalHandler(const SignalHandler&) = delete;
+  SignalHandler& operator=(const SignalHandler&) = delete;
+
   // Returns the currently installed signal hander. May be `nullptr` if no
   // handler has been installed.
   static SignalHandler* Get() { return handler_; }
@@ -207,8 +211,6 @@ class SignalHandler {
   static SignalHandler* handler_;
 
   static thread_local bool disabled_for_thread_;
-
-  DISALLOW_COPY_AND_ASSIGN(SignalHandler);
 };
 SignalHandler* SignalHandler::handler_ = nullptr;
 thread_local bool SignalHandler::disabled_for_thread_ = false;
@@ -216,6 +218,9 @@ thread_local bool SignalHandler::disabled_for_thread_ = false;
 // Launches a single use handler to snapshot this process.
 class LaunchAtCrashHandler : public SignalHandler {
  public:
+  LaunchAtCrashHandler(const LaunchAtCrashHandler&) = delete;
+  LaunchAtCrashHandler& operator=(const LaunchAtCrashHandler&) = delete;
+
   static LaunchAtCrashHandler* Get() {
     static LaunchAtCrashHandler* instance = new LaunchAtCrashHandler();
     return instance;
@@ -271,12 +276,13 @@ class LaunchAtCrashHandler : public SignalHandler {
   std::vector<std::string> envp_strings_;
   std::vector<const char*> envp_;
   bool set_envp_ = false;
-
-  DISALLOW_COPY_AND_ASSIGN(LaunchAtCrashHandler);
 };
 
 class RequestCrashDumpHandler : public SignalHandler {
  public:
+  RequestCrashDumpHandler(const RequestCrashDumpHandler&) = delete;
+  RequestCrashDumpHandler& operator=(const RequestCrashDumpHandler&) = delete;
+
   static RequestCrashDumpHandler* Get() {
     static RequestCrashDumpHandler* instance = new RequestCrashDumpHandler();
     return instance;
@@ -335,7 +341,7 @@ class RequestCrashDumpHandler : public SignalHandler {
     ExceptionHandlerProtocol::ClientInformation info = {};
     info.exception_information_address =
         FromPointerCast<VMAddress>(&GetExceptionInfo());
-#if defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_CHROMEOS_ASH)
     info.crash_loop_before_time = crash_loop_before_time_;
 #endif
 
@@ -343,7 +349,7 @@ class RequestCrashDumpHandler : public SignalHandler {
     client.RequestCrashDump(info);
   }
 
-#if defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_CHROMEOS_ASH)
   void SetCrashLoopBefore(uint64_t crash_loop_before_time) {
     crash_loop_before_time_ = crash_loop_before_time;
   }
@@ -357,15 +363,13 @@ class RequestCrashDumpHandler : public SignalHandler {
   ScopedFileHandle sock_to_handler_;
   pid_t handler_pid_ = -1;
 
-#if defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_CHROMEOS_ASH)
   // An optional UNIX timestamp passed to us from Chrome.
   // This will pass to crashpad_handler and then to Chrome OS crash_reporter.
   // This should really be a time_t, but it's basically an opaque value (we
   // don't anything with it except pass it along).
   uint64_t crash_loop_before_time_ = 0;
 #endif
-
-  DISALLOW_COPY_AND_ASSIGN(RequestCrashDumpHandler);
 };
 
 }  // namespace
@@ -411,7 +415,7 @@ bool CrashpadClient::StartHandler(
       std::move(client_sock), handler_pid, &unhandled_signals_);
 }
 
-#if defined(OS_ANDROID) || defined(OS_LINUX)
+#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
 // static
 bool CrashpadClient::GetHandlerSocket(int* sock, pid_t* pid) {
   auto signal_handler = RequestCrashDumpHandler::Get();
@@ -515,7 +519,7 @@ bool CrashpadClient::InitializeSignalStackForThread() {
   }
   return true;
 }
-#endif  // OS_ANDROID || OS_LINUX
+#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
 
 #if defined(OS_ANDROID)
 
@@ -678,7 +682,7 @@ void CrashpadClient::SetUnhandledSignals(const std::set<int>& signals) {
   unhandled_signals_ = signals;
 }
 
-#if defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_CHROMEOS_ASH)
 // static
 void CrashpadClient::SetCrashLoopBefore(uint64_t crash_loop_before_time) {
   auto request_crash_dump_handler = RequestCrashDumpHandler::Get();

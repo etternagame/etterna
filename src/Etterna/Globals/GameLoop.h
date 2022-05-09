@@ -11,6 +11,7 @@ namespace GameLoop {
     bool GetAndClearToggleWindowed();
 
     void SetUpdateRate(float fUpdateRate);
+	float GetUpdateRate();
     void ChangeTheme(const std::string& sNewTheme);
     void ChangeGame(const std::string& new_game, const std::string& new_theme = "");
     void RunGameLoop();

@@ -9,3 +9,9 @@ bool Core::Crash::initCrashpad() {
 void Core::Crash::generateMinidump() {
 	Locator::getLogger()->warn("This build was compiled without crashpad. A minidump cannot be generated.");
 }
+
+void Core::Crash::setShouldUpload(bool shouldUpload) {
+	if (shouldUpload) {
+		Locator::getLogger()->warn("This build was compiled without crashpad. Crash dumps cannot be uploaded.");
+	}
+}

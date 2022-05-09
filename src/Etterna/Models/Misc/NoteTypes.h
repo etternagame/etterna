@@ -229,6 +229,18 @@ struct TapNote
 	}
 };
 
+struct MineReplayResult
+{
+	int row;
+	int track; // column
+
+	MineReplayResult()
+	{
+		row = 0;
+		track = 0;
+	}
+};
+
 struct HoldReplayResult
 {
 	int row;
@@ -258,6 +270,37 @@ struct TapReplayResult
 		offset = 0.F;
 		type = TapNoteType_Invalid;
 		offsetAdjustedRow = 0;
+	}
+};
+
+struct InputDataEvent
+{
+	bool is_press;
+	int column;
+	float songPositionSeconds;
+	int nearestTapNoterow;
+	float offsetFromNearest;
+
+	InputDataEvent()
+	{
+		is_press = false;
+		column = -1;
+		songPositionSeconds = 0.F;
+		nearestTapNoterow = 0;
+		offsetFromNearest = 0.F;
+	}
+
+	InputDataEvent(bool press,
+				   int col,
+				   float songPos,
+				   int row,
+				   float offset)
+	{
+		is_press = press;
+		column = col;
+		songPositionSeconds = songPos;
+		nearestTapNoterow = row;
+		offsetFromNearest = offset;
 	}
 };
 

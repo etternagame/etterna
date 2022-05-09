@@ -73,7 +73,7 @@ DumpAVIDebugInfo(const std::string& fn)
 	if (!RageMovieTexture::GetFourCC(fn, handler, type))
 		return;
 
-	Locator::getLogger()->trace("Movie {} has handler '{}', type '{}'",
+	Locator::getLogger()->debug("Movie {} has handler '{}', type '{}'",
 			   fn.c_str(),
 			   handler.c_str(),
 			   type.c_str());
@@ -96,7 +96,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 	if (sDrivers.empty())
 		sDrivers = DEFAULT_MOVIE_DRIVER_LIST;
 
-	vector<std::string> DriversToTry;
+	std::vector<std::string> DriversToTry;
 	split(sDrivers, ",", DriversToTry, true);
 
 	if (DriversToTry.empty())
@@ -127,7 +127,7 @@ RageMovieTexture::Create(const RageTextureID& ID)
 			SAFE_DELETE(ret);
 			continue;
 		}
-		Locator::getLogger()->trace("Created movie texture \"{}\" with driver \"{}\"",
+		Locator::getLogger()->debug("Created movie texture \"{}\" with driver \"{}\"",
 				   ID.filename.c_str(),
 				   Driver.c_str());
 		break;

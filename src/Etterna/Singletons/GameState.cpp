@@ -47,8 +47,7 @@ class GameStateMessageHandler : public MessageSubscriber
 		if (msg.GetName() == "RefreshCreditText") {
 			std::string sJoined("P1");
 
-			if (PREFSMAN->m_verbose_log > 0)
-				Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
+			Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
 		}
 	}
 };
@@ -672,7 +671,7 @@ GameState::SetCompatibleStylesForPlayers()
 		if (m_pCurSteps != nullptr) {
 			st = m_pCurSteps->m_StepsType;
 		} else {
-			vector<StepsType> vst;
+			std::vector<StepsType> vst;
 			GAMEMAN->GetStepsTypesForGame(m_pCurGame, vst);
 			st = vst[0];
 		}
@@ -763,26 +762,6 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 							  const RageTimer& timestamp)
 {
 	ZoneScoped;
-	/* It's not uncommon to get a lot of duplicated positions from the sound
-	 * driver, like so: 13.120953,13.130975,13.130975,13.130975,13.140998,...
-	 * This causes visual stuttering of the arrows. To compensate, keep a
-	 * RageTimer since the last change and multiply the delta by the current
-	 * rate when applied. */
-	if (fPositionSeconds == m_LastPositionSeconds && !m_paused) {
-		// LOG->Info("Time unchanged, adding: %+f",
-		//	m_LastPositionTimer.Ago()*m_SongOptions.GetSong().m_fMusicRate
-		//);
-		fPositionSeconds +=
-		  m_LastPositionTimer.Ago() * m_SongOptions.GetSong().m_fMusicRate;
-	} else {
-		// LOG->Info("Time difference: %+f",
-		//	m_LastPositionTimer.Ago() - (fPositionSeconds -
-		// m_LastPositionSeconds)
-		//);
-		m_LastPositionTimer.Touch();
-		m_LastPositionSeconds = fPositionSeconds;
-	}
-
 	if (m_pCurSteps) {
 		m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
@@ -796,8 +775,6 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 					  GAMESTATE->m_Position.m_fSongBeatVisible,
 					  fPositionSeconds,
 					  GAMESTATE->m_Position.m_fSongBeatNoOffset);
-	//	LOG->Trace( "m_fMusicSeconds = %f, m_fSongBeat = %f, m_fCurBPS = %f,
-	// m_bFreeze = %f", m_fMusicSeconds, m_fSongBeat, m_fCurBPS, m_bFreeze );
 }
 
 float
@@ -1075,7 +1052,7 @@ GameState::CurrentOptionsDisqualifyPlayer(PlayerNumber pn)
 }
 
 void
-GameState::GetAllUsedNoteSkins(vector<std::string>& out) const
+GameState::GetAllUsedNoteSkins(std::vector<std::string>& out) const
 {
 	// if this list returns multiple values, the values should be unique.
 	out.push_back(m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin);
@@ -1118,20 +1095,6 @@ GameState::GetPlayerFailType(const PlayerState* pPlayerState) const
 }
 
 bool
-GameState::ShowW1() const
-{
-	AllowW1 pref = PREFSMAN->m_AllowW1;
-	switch (pref) {
-		case ALLOW_W1_NEVER:
-			return false;
-		case ALLOW_W1_EVERYWHERE:
-			return true;
-		default:
-			FAIL_M(ssprintf("Invalid AllowW1 preference: %i", pref));
-	}
-}
-
-bool
 GameState::AllAreInDangerOrWorse() const
 {
 	if (m_pPlayerState->m_HealthState < HealthState_Danger)
@@ -1154,24 +1117,12 @@ GameState::GetNumCols(int pn)
 }
 
 bool
-GameState::DifficultiesLocked() const
-{
-	if (GetCurrentStyle(PLAYER_INVALID)->m_bLockDifficulties)
-		return true;
-	return false;
-}
-
-bool
 GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 												 Difficulty dc,
 												 StepsType st)
 {
 	m_PreferredDifficulty.Set(dc);
 	m_PreferredStepsType.Set(st);
-	if (DifficultiesLocked())
-		if (PLAYER_1 != pn)
-			m_PreferredDifficulty.Set(m_PreferredDifficulty);
-
 	return true;
 }
 
@@ -1181,7 +1132,7 @@ GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 bool
 GameState::ChangePreferredDifficulty(PlayerNumber pn, int dir)
 {
-	const vector<Difficulty>& v =
+	const std::vector<Difficulty>& v =
 	  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
 	Difficulty d = GetClosestShownDifficulty(pn);
@@ -1204,7 +1155,7 @@ GameState::ChangePreferredDifficulty(PlayerNumber pn, int dir)
 Difficulty
 GameState::GetClosestShownDifficulty(PlayerNumber pn) const
 {
-	const vector<Difficulty>& v =
+	const std::vector<Difficulty>& v =
 	  CommonMetrics::DIFFICULTIES_TO_SHOW.GetValue();
 
 	auto iClosest = static_cast<Difficulty>(0);
@@ -1418,7 +1369,6 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetPlayerDisplayName, GetPlayerDisplayName(PLAYER_1))
 	DEFINE_METHOD(GetMasterPlayerNumber, GetMasterPlayerNumber())
 	DEFINE_METHOD(GetNumMultiplayerNoteFields, m_iNumMultiplayerNoteFields)
-	DEFINE_METHOD(ShowW1, ShowW1())
 
 	static int SetNumMultiplayerNoteFields(T* p, lua_State* L)
 	{
@@ -1646,7 +1596,7 @@ class LunaGameState : public Luna<GameState>
 			return 0;
 
 		// use a vector and not a set so that ordering is maintained
-		vector<const Steps*> vpStepsToShow;
+		std::vector<const Steps*> vpStepsToShow;
 		const Steps* pSteps = GAMESTATE->m_pCurSteps;
 		if (pSteps == nullptr)
 			return 0;
@@ -1677,7 +1627,7 @@ class LunaGameState : public Luna<GameState>
 	DEFINE_METHOD(GetPreferredSongGroup, m_sPreferredSongGroup.Get());
 	static int GetHumanPlayers(T* p, lua_State* L)
 	{
-		vector<PlayerNumber> vHP;
+		std::vector<PlayerNumber> vHP;
 		vHP.push_back(PLAYER_1);
 
 		LuaHelpers::CreateTableFromArray(vHP, L);
@@ -1685,7 +1635,7 @@ class LunaGameState : public Luna<GameState>
 	}
 	static int GetEnabledPlayers(T*, lua_State* L)
 	{
-		vector<PlayerNumber> vEP;
+		std::vector<PlayerNumber> vEP;
 		vEP.push_back(PLAYER_1);
 		LuaHelpers::CreateTableFromArray(vEP, L);
 		return 1;
@@ -1899,7 +1849,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetMasterPlayerNumber);
 		ADD_METHOD(GetNumMultiplayerNoteFields);
 		ADD_METHOD(SetNumMultiplayerNoteFields);
-		ADD_METHOD(ShowW1);
 		ADD_METHOD(GetPlayerState);
 		ADD_METHOD(GetMultiPlayerState);
 		ADD_METHOD(ApplyGameCommand);

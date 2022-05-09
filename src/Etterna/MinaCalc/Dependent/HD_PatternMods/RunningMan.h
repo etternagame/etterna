@@ -2,7 +2,8 @@
 #include "../../PatternModHelpers.h"
 #include "../HD_Sequencers/RMSequencing.h"
 
-/* Unlike other pattern mods runningman sequencing has 2 core purposes, the
+/** Hand-Dependent PatternMod detecting a RunningMen.
+ * Unlike other pattern mods runningman sequencing has 2 core purposes, the
  * primary one involves tracking the anchor speed of a runningman sequence and
  * using that plus other characteristics of the runningman to guess at a more ms
  * oriented baseline difficulty, which gets rolled into the tech base
@@ -12,7 +13,6 @@
  * anchor speed. This is to slightly push up small runningman anchors inside
  * streams, or js, etc, and to fully push up much heavier runningman oriented
  * patterns in those same skillsets (policy in the sky, etc) */
-
 struct RunningManMod
 {
 	const CalcPatternMod _pmod = RanMan;
@@ -31,6 +31,11 @@ struct RunningManMod
 	float offhand_tap_prop_min = 0.F;
 	float offhand_tap_prop_max = 1.F;
 	float offhand_tap_prop_base = 1.7F;
+
+	float offhand_tap_prop_anch_diff_base = 1.2F;
+	float offhand_tap_prop_anch_diff_scaler = 1.1F;
+	float offhand_tap_prop_anch_diff_min = 0.75F;
+	float offhand_tap_prop_anch_diff_max = 1.F;
 
 	float off_tap_same_prop_scaler = 1.F;
 	float off_tap_same_prop_min = 0.F;
@@ -70,6 +75,11 @@ struct RunningManMod
 		{ "offhand_tap_prop_min", &offhand_tap_prop_min },
 		{ "offhand_tap_prop_max", &offhand_tap_prop_max },
 		{ "offhand_tap_prop_base", &offhand_tap_prop_base },
+
+		{ "offhand_tap_prop_anch_diff_base", &offhand_tap_prop_anch_diff_base },
+		{ "offhand_tap_prop_anch_diff_scaler", &offhand_tap_prop_anch_diff_scaler },
+		{ "offhand_tap_prop_anch_diff_min", &offhand_tap_prop_anch_diff_min },
+		{ "offhand_tap_prop_anch_diff_max", &offhand_tap_prop_anch_diff_max },
 
 		{ "off_tap_same_prop_scaler", &off_tap_same_prop_scaler },
 		{ "off_tap_same_prop_min", &off_tap_same_prop_min },
@@ -155,7 +165,7 @@ struct RunningManMod
 							const AnchorSequencer& as)
 	{
 		for (const auto& c : ct_loop_no_jumps) {
-			rms.at(c)(ct, bt, mt, as.anch.at(c));
+			rms.at(c)(ct, bt, mt, *as.anch.at(c));
 		}
 
 		highest_rm = get_active_rm_with_higher_difficulty();
@@ -171,10 +181,14 @@ struct RunningManMod
 		 * as well- this is called immediately after advance_sequencing, so
 		 * we've already determined which sequence to use as rm */
 
-		float oht_p = 1.5F - (highest_rm._rm.get_offhand_tap_prop() *
-							  offhand_tap_prop_scaler);
+		float oht_p = offhand_tap_prop_anch_diff_base -
+					  (highest_rm._rm.get_offhand_tap_prop() *
+					   offhand_tap_prop_anch_diff_scaler);
 
-		oht_p = std::clamp(oht_p, 0.75F, 1.0F);
+		oht_p = std::clamp(oht_p,
+						   offhand_tap_prop_anch_diff_min,
+						   offhand_tap_prop_anch_diff_max);
+
 		return highest_rm.get_difficulty() * oht_p;
 	}
 

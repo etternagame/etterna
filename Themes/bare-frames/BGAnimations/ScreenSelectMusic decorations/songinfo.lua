@@ -74,19 +74,19 @@ t[#t+1] = Def.ActorFrame {
     },
 
     Def.BPMDisplay {
-		File = THEME:GetPathF("BPMDisplay", "bpm"),
-		Name = "BPMDisplay",
-		InitCommand = function(self)
-			self:xy(songinfoLine + 3, 20):halign(0):zoom(0.3)
-		end,
+        File = THEME:GetPathF("BPMDisplay", "bpm"),
+        Name = "BPMDisplay",
+        InitCommand = function(self)
+            self:xy(songinfoLine + 3, 20):halign(0):zoom(0.3)
+        end,
         SetStuffCommand = function(self)
             if song then
-				self:visible(true)
-				self:SetFromSong(song)
-			else
-				self:visible(false)
-			end
-		end
+                self:visible(true)
+                self:SetFromSong(song)
+            else
+                self:visible(false)
+            end
+        end
     },
     LoadFont("Common Normal") .. {
         InitCommand = function(self)
@@ -95,21 +95,21 @@ t[#t+1] = Def.ActorFrame {
         end
     },
 
-	LoadFont("Common Normal") .. {
+    LoadFont("Common Normal") .. {
         Name = "RateDisplay",
-		InitCommand = function(self)
-			self:xy(songinfoLine, 30):zoom(0.3)
-		end,
-		CurrentStepsChangedMessageCommand = function(self)
-			self:settext(getCurRateDisplayString())
-		end,
+        InitCommand = function(self)
+            self:xy(songinfoLine, 30):zoom(0.3)
+        end,
+        CurrentStepsChangedMessageCommand = function(self)
+            self:settext(getCurRateDisplayString())
+        end,
         CodeMessageCommand = function(self, params)
-			local rate = getCurRateValue()
-			ChangeMusicRate(rate, params)
-			self:settext(getCurRateDisplayString())
-		end
-	}
-    
+            local rate = getCurRateValue()
+            ChangeMusicRate(rate, params)
+            self:settext(getCurRateDisplayString())
+        end
+    }
+
 }
 
 return t

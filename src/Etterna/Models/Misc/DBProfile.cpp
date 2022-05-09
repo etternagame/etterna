@@ -20,21 +20,21 @@ const string PROFILE_DB = "profile.db";
 const string WRITE_ONLY_PROFILE_DB = "webprofile.db";
 
 ProfileLoadResult
-DBProfile::LoadDBFromDir(std::string dir, Profile* profile)
+DBProfile::LoadDBFromDir(const std::string& dir, Profile* profile)
 {
 	loadingProfile = profile;
 	return LoadDBFromDir(dir);
 }
 
 ProfileLoadResult
-DBProfile::LoadDBFromDir(std::string dir)
+DBProfile::LoadDBFromDir(const std::string& dir)
 {
-	SQLite::Database* db;
+	SQLite::Database* db = nullptr;
 	try {
 		// Open a database file
 		db = new SQLite::Database(FILEMAN->ResolvePath(dir) + PROFILE_DB,
 								  SQLite::OPEN_READWRITE);
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedNoProfile;
 	}
 	try {
@@ -46,7 +46,7 @@ DBProfile::LoadDBFromDir(std::string dir)
 		LoadScoreGoals(db);
 		LoadPlayLists(db);
 		LoadPlayerScores(db);
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedTampered;
 	}
 	delete db;
@@ -113,7 +113,7 @@ DBProfile::LoadGeneralData(SQLite::Database* db)
 
 	SQLite::Statement userTableQuery(*db, "SELECT * FROM usertable");
 
-	auto L = LUA->Get();
+	auto* L = LUA->Get();
 
 	lua_newtable(L);
 
@@ -143,7 +143,7 @@ DBProfile::LoadFavourites(SQLite::Database* db)
 		loadingProfile->FavoritedCharts.emplace(key);
 	}
 	SONGMAN->SetFavoritedStatus(loadingProfile->FavoritedCharts);
-	SONGMAN->MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
+	SongManager::MakePlaylistFromFavorites(loadingProfile->FavoritedCharts);
 }
 
 void
@@ -162,7 +162,7 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 	  "ORDER BY playlists.name, chartkeys.chartkey, chartplaylists.rate");
 	auto& pls = loadingProfile->allplaylists;
 
-	Playlist* tmp;
+	Playlist* tmp = nullptr;
 
 	// Read one row
 	if (query.executeStep()) {
@@ -230,8 +230,8 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 	  "ORDER BY runs.scorekey, courseruns.id, playlists.name");
 
 	string lastPlayListName;
-	int lastCourseRunID;
-	vector<string> tmpCourseRun;
+	int lastCourseRunID = 0;
+	std::vector<string> tmpCourseRun;
 
 	// Read one row
 	if (courseRunsQuery.executeStep()) {
@@ -262,7 +262,6 @@ DBProfile::LoadPlayLists(SQLite::Database* db)
 	}
 	pls[lastPlayListName].courseruns.emplace_back(tmpCourseRun);
 	tmpCourseRun.clear();
-	return;
 }
 
 void
@@ -450,7 +449,7 @@ DBProfile::LoadScoreGoals(SQLite::Database* db)
 }
 
 ProfileLoadResult
-DBProfile::SaveDBToDir(string dir,
+DBProfile::SaveDBToDir(const string& dir,
 					   const Profile* profile,
 					   DBProfileMode mode) const
 {
@@ -463,13 +462,15 @@ DBProfile::SaveDBToDir(string dir,
 		case LocalWithoutReplayData:
 			filename = FILEMAN->ResolvePath(dir) + PROFILE_DB;
 			break;
+		default:
+			break;
 	}
-	SQLite::Database* db;
+	SQLite::Database* db = nullptr;
 	try {
 		// Open a database file
 		db = new SQLite::Database(filename,
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedNoProfile;
 	}
 	try {
@@ -516,7 +517,7 @@ DBProfile::SaveDBToDir(string dir,
 		db->exec("CREATE INDEX IF NOT EXISTS idx_songs "
 				 "ON songs(song, pack, id)");
 		transaction.commit();
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedTampered;
 	}
 	delete db;
@@ -524,7 +525,7 @@ DBProfile::SaveDBToDir(string dir,
 }
 
 void
-DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile) const
+DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS favourites");
@@ -542,7 +543,7 @@ DBProfile::SaveFavourites(SQLite::Database* db, const Profile* profile) const
 }
 
 void
-DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
+DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS generaldata");
@@ -569,8 +570,7 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 	insertGData.bind(4, profile->m_LastDifficulty);
 	insertGData.bind(
 	  5,
-	  ((profile->m_LastStepsType != StepsType_Invalid &&
-		profile->m_LastStepsType < NUM_StepsType)
+	  ((profile->m_LastStepsType < NUM_StepsType)
 		 ? GAMEMAN->GetStepsTypeInfo(profile->m_LastStepsType).szName
 		 : ""));
 	insertGData.bind(6, profile->m_lastSong.ToString());
@@ -595,7 +595,7 @@ DBProfile::SaveGeneralData(SQLite::Database* db, const Profile* profile) const
 	db->exec("CREATE TABLE defaultmodifiers (id INTEGER PRIMARY KEY, "
 			 "name TEXT, value TEXT)");
 
-	for (auto& it : profile->m_sDefaultModifiers) {
+	for (const auto& it : profile->m_sDefaultModifiers) {
 		db->exec("INSERT INTO defaultmodifiers VALUES (NULL, \"" + it.first +
 				 "\", \"" + it.second + "\")");
 	}
@@ -639,6 +639,8 @@ DBProfile::MoveBackupToDir(const string& sFromDir,
 		case LocalWithoutReplayData:
 			filename = PROFILE_DB;
 			break;
+		default:
+			break;
 	}
 
 	if (FILEMAN->IsAFile(sFromDir + filename))
@@ -646,7 +648,7 @@ DBProfile::MoveBackupToDir(const string& sFromDir,
 }
 
 void
-DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
+DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS permamirrors");
@@ -664,7 +666,7 @@ DBProfile::SavePermaMirrors(SQLite::Database* db, const Profile* profile) const
 }
 
 void
-DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
+DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile)
 {
 
 	db->exec("DROP TABLE IF EXISTS scoregoals");
@@ -676,12 +678,12 @@ DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
 	  "(chartkeyid) REFERENCES chartkeys(id))");
 
 	if (!profile->goalmap.empty()) {
-		for (auto& i : profile->goalmap) {
+		for (const auto& i : profile->goalmap) {
 			const auto& cg = i.second;
 			if (cg.goals.empty())
 				continue;
 			const auto chID = FindOrCreateChartKey(db, cg.goals[0].chartkey);
-			for (auto& sg : cg.goals) {
+			for (const auto& sg : cg.goals) {
 				SQLite::Statement insertScoreGoal(*db,
 												  "INSERT INTO scoregoals "
 												  "VALUES (NULL, ?, ?, ?, ?, "
@@ -707,7 +709,7 @@ DBProfile::SaveScoreGoals(SQLite::Database* db, const Profile* profile) const
 }
 
 void
-DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
+DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile)
 {
 	db->exec("DROP TABLE IF EXISTS playlists");
 	db->exec("CREATE TABLE playlists (id INTEGER PRIMARY KEY, name TEXT)");
@@ -732,9 +734,9 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 			 "CONSTRAINT fk_courserunid FOREIGN KEY (courserunid) REFERENCES "
 			 "courseruns(id))");
 
-	auto& pls = profile->allplaylists;
+	const auto& pls = profile->allplaylists;
 	if (!pls.empty()) {
-		for (auto& pl : pls) {
+		for (const auto& pl : pls) {
 			if (!pl.first.empty() && pl.first != "Favorites") {
 				SQLite::Statement insertPlaylist(
 				  *db, "INSERT INTO playlists VALUES (NULL, ?)");
@@ -744,7 +746,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 				// (pl->second).name + "\")");
 				auto plID =
 				  static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
-				for (auto& ch : pl.second.chartlist) {
+				for (const auto& ch : pl.second.chartlist) {
 					auto chartID = FindOrCreateChart(
 					  db, ch.key, ch.lastpack, ch.lastsong, ch.lastdiff);
 					SQLite::Statement insertChartPlaylist(
@@ -762,7 +764,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 					insertCourseRun.exec();
 					auto courseRunID = static_cast<int>(
 					  sqlite3_last_insert_rowid(db->getHandle()));
-					for (auto& sk : run) {
+					for (const auto& sk : run) {
 						SQLite::Statement insertRun(
 						  *db, "INSERT INTO runs VALUES (NULL, ?, ?)");
 						insertRun.bind(1, sk);
@@ -778,7 +780,7 @@ DBProfile::SavePlayLists(SQLite::Database* db, const Profile* profile) const
 void
 DBProfile::SavePlayerScores(SQLite::Database* db,
 							const Profile* profile,
-							DBProfileMode mode) const
+							DBProfileMode mode)
 {
 	if (mode != WriteOnlyWebExport) {
 		// Separate scorekeys table so we can not drop it when saving, and
@@ -875,7 +877,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 		for (auto& ratePair : chartPair.second.ScoresByRate) {
 			// first is rate int and second is ScoresAtRate
 			auto rate = ratePair.first;
-			int scoresAtRateID;
+			int scoresAtRateID = 0;
 			if (mode != WriteOnlyWebExport) {
 				SQLite::Statement insertScoresAtRate(
 				  *db, "INSERT INTO scoresatrates VALUES (NULL, ?, ?, ?, ?)");
@@ -895,10 +897,10 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 					  ratePair.second.PBptr->GetScoreKey()) {
 					// prune out sufficiently low scores
 					if (i.second.GetWifeScore() > SCOREMAN->minpercent) {
-						const auto hs = &(i.second);
+						auto* const hs = &(i.second);
 						// Add scores
-						SQLite::Statement* insertScore;
-						int scorekeyID;
+						SQLite::Statement* insertScore = nullptr;
+						int scorekeyID = 0;
 						if (mode != WriteOnlyWebExport) {
 							insertScore = new SQLite::Statement(
 							  *db,
@@ -936,8 +938,8 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 						insertScore->bind(5, hs->GetWifeScore());
 						insertScore->bind(6, hs->GetSSRNormPercent());
 						insertScore->bind(7, hs->GetJudgeScale());
-						insertScore->bind(8, hs->GetChordCohesion());
-						insertScore->bind(9, hs->GetEtternaValid());
+						insertScore->bind(8, static_cast<int>(hs->GetChordCohesion()));
+						insertScore->bind(9, static_cast<int>(hs->GetEtternaValid()));
 						insertScore->bind(10, hs->GetPlayedSeconds());
 						insertScore->bind(11, hs->GetMaxCombo());
 						insertScore->bind(12, hs->GetModifiers());
@@ -981,8 +983,8 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 							try {
 								// Save Replay Data
 								if (hs->LoadReplayData()) {
-									auto& offsets = hs->GetOffsetVector();
-									auto& rows = hs->GetNoteRowVector();
+									const auto& offsets = hs->GetOffsetVector();
+									const auto& rows = hs->GetNoteRowVector();
 									unsigned int idx =
 									  !rows.empty() ? rows.size() - 1 : 0U;
 									// loop for writing both vectors side by
@@ -1001,7 +1003,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 										insertOffset.exec();
 									}
 								}
-							} catch (std::exception) { // No replay data for
+							} catch (std::exception&) { // No replay data for
 													   // this score }
 								hs->UnloadReplayData();
 							}
@@ -1013,7 +1015,7 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 	}
 }
 int
-DBProfile::GetChartKeyID(SQLite::Database* db, string key)
+DBProfile::GetChartKeyID(SQLite::Database* db, const string& key)
 {
 	SQLite::Statement query(*db, "SELECT * FROM chartkeys WHERE chartkey=?");
 	query.bind(1, key);
@@ -1033,17 +1035,17 @@ DBProfile::GetChartKeyByID(SQLite::Database* db, int id)
 }
 
 int
-DBProfile::FindOrCreateChartKey(SQLite::Database* db, string key)
+DBProfile::FindOrCreateChartKey(SQLite::Database* db, const string& key)
 {
 	const auto exists = GetChartKeyID(db, key);
-	if (exists)
+	if (exists != 0)
 		return exists;
 	db->exec("INSERT INTO chartkeys VALUES (NULL, \"" + key + "\")");
 	return static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
 }
 
 int
-DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
+DBProfile::FindOrCreateSong(SQLite::Database* db, const string& pack, const string& song)
 {
 	SQLite::Statement query(
 	  *db, "SELECT songs.id FROM songs WHERE song=? AND pack =?");
@@ -1063,9 +1065,9 @@ DBProfile::FindOrCreateSong(SQLite::Database* db, string pack, string song)
 
 int
 DBProfile::FindOrCreateChart(SQLite::Database* db,
-							 string chartkey,
-							 string pack,
-							 string song,
+							 const string& chartkey,
+							 const string& pack,
+							 const string& song,
 							 Difficulty diff)
 {
 	const auto chartKeyID = FindOrCreateChartKey(db, chartkey);
@@ -1088,13 +1090,13 @@ DBProfile::FindOrCreateChart(SQLite::Database* db,
 		insertChart.bind(3, diff);
 		insertChart.exec();
 		return static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
-	} else {
-		return query.getColumn(0);
 	}
+
+	return query.getColumn(0);
 }
 
 int
-DBProfile::GetScoreKeyID(SQLite::Database* db, string key)
+DBProfile::GetScoreKeyID(SQLite::Database* db, const string& key)
 {
 	SQLite::Statement query(*db, "SELECT * FROM scorekeys WHERE scorekey=?");
 	query.bind(1, key);
@@ -1104,10 +1106,10 @@ DBProfile::GetScoreKeyID(SQLite::Database* db, string key)
 }
 
 int
-DBProfile::FindOrCreateScoreKey(SQLite::Database* db, string key)
+DBProfile::FindOrCreateScoreKey(SQLite::Database* db, const string& key)
 {
 	const auto exists = GetScoreKeyID(db, key);
-	if (exists)
+	if (exists != 0)
 		return exists;
 	db->exec("INSERT INTO scorekeys VALUES (NULL, \"" + key + "\")");
 	return static_cast<int>(sqlite3_last_insert_rowid(db->getHandle()));
@@ -1120,20 +1122,20 @@ DBProfile::WriteReplayData(const HighScore* hs)
 	  PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
 	const auto filename = profiledir + PROFILE_DB;
 
-	SQLite::Database* db;
+	SQLite::Database* db = nullptr;
 	try {
 		// Open a database file
 		db = new SQLite::Database(filename,
 								  SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
-	} catch (std::exception) {
-		return ProfileLoadResult_FailedNoProfile;
+	} catch (std::exception&) {
+		return ProfileLoadResult_FailedNoProfile != 0u;
 	}
 	try {
 		// Use the db
 		// Begin transaction
 		SQLite::Transaction transaction(*db);
-		auto& rows = hs->GetNoteRowVector();
-		auto& offsets = hs->GetOffsetVector();
+		const auto& rows = hs->GetNoteRowVector();
+		const auto& offsets = hs->GetOffsetVector();
 		const unsigned int idx = !rows.empty() ? rows.size() - 1 : 0U;
 		// loop for writing both vectors side by side
 		const auto scoreKeyID = FindOrCreateScoreKey(db, hs->GetScoreKey());
@@ -1146,7 +1148,7 @@ DBProfile::WriteReplayData(const HighScore* hs)
 			insertOffset.exec();
 		}
 		transaction.commit();
-	} catch (std::exception) {
+	} catch (std::exception&) {
 		return ProfileLoadResult_FailedTampered != 0;
 	}
 	delete db;

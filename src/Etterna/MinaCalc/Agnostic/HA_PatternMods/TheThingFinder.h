@@ -2,8 +2,12 @@
 #include "../../PatternModHelpers.h"
 #include "../HA_Sequencers/ThingSequencing.h"
 
-// the a things, they are there, we must find them...
-// probably add a timing check to this as well
+/// Hand-Agnostic PatternMod detecting rolly Jumpstream.
+/// Looks for continuous segments of a pattern with jumps
+/// which physically plays as a jumptrill or a mashed roll.
+///
+/// dev note:
+/// probably add a timing check to this as well
 struct TheThingLookerFinderThing
 {
 	const CalcPatternMod _pmod = TheThing;
@@ -59,8 +63,12 @@ struct TheThingLookerFinderThing
 	}
 };
 
-// the a things, they are there, we must find them...
-// probably add a timing check to this as well
+/// Hand-Agnostic PatternMod detecting rolly Jumpstream.
+/// Looks for continuous segments of a pattern with jumps
+/// which physically plays as a jumptrill or a mashed roll.
+///
+/// dev note:
+/// probably add a timing check to this as well
 struct TheThingLookerFinderThing2
 {
 	const CalcPatternMod _pmod = TheThing2;

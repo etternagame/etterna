@@ -242,10 +242,8 @@ TurnOffHardwareVBO()
 
 RageDisplay_Legacy::RageDisplay_Legacy()
 {
-	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("RageDisplay_Legacy::RageDisplay_Legacy()");
-		Locator::getLogger()->trace("Current renderer: OpenGL");
-	}
+	Locator::getLogger()->info("RageDisplay_Legacy::RageDisplay_Legacy()");
+	Locator::getLogger()->info("Current renderer: OpenGL");
 
 	FixLittleEndian();
 	RageDisplay_Legacy_Helpers::Init();
@@ -273,7 +271,7 @@ GetInfoLog(GLhandleARB h)
 GLhandleARB
 CompileShader(GLenum ShaderType,
 			  std::string sFile,
-			  vector<std::string> asDefines)
+			  std::vector<std::string> asDefines)
 {
 	/* XXX: This would not be necessary if it wasn't for the special case for
 	 * Cel. */
@@ -302,11 +300,10 @@ CompileShader(GLenum ShaderType,
 		}
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Compiling shader {}", sFile.c_str());
+	Locator::getLogger()->info("Compiling shader {}", sFile.c_str());
 	const auto hShader = glCreateShaderObjectARB(ShaderType);
-	vector<const GLcharARB*> apData;
-	vector<GLint> aiLength;
+	std::vector<const GLcharARB*> apData;
+	std::vector<GLint> aiLength;
 	for (auto& s : asDefines) {
 		s = ssprintf("#define %s\n", s.c_str());
 		apData.push_back(s.data());
@@ -333,13 +330,13 @@ CompileShader(GLenum ShaderType,
 	}
 
 	if (!sInfo.empty())
-		Locator::getLogger()->trace("Messages compiling shader {}:\n{}", sFile.c_str(), sInfo.c_str());
+		Locator::getLogger()->info("Messages compiling shader {}:\n{}", sFile.c_str(), sInfo.c_str());
 
 	return hShader;
 }
 
 GLhandleARB
-LoadShader(GLenum ShaderType, std::string sFile, vector<std::string> asDefines)
+LoadShader(GLenum ShaderType, std::string sFile, std::vector<std::string> asDefines)
 {
 	/* Vertex shaders are supported by more hardware than fragment shaders.
 	 * If this causes any trouble I will have to up the requirement for both
@@ -412,7 +409,7 @@ InitShaders()
 	// xxx: replace this with a ShaderManager or something that reads in
 	// the shaders and determines shader type by file extension. -aj
 	// argh shaders in stepmania are painful -colby
-	const vector<std::string> asDefines;
+	const std::vector<std::string> asDefines;
 
 	// used for scrolling textures (I think)
 	g_bTextureMatrixShader =
@@ -451,7 +448,7 @@ InitShaders()
 		g_iAttribTextureMatrixScale =
 		  glGetAttribLocationARB(g_bTextureMatrixShader, "TextureMatrixScale");
 		if (g_iAttribTextureMatrixScale == -1) {
-			Locator::getLogger()->trace(R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
+			Locator::getLogger()->warn(R"(Scaling shader link failed: couldn't bind attribute "TextureMatrixScale")");
 			glDeleteObjectARB(g_bTextureMatrixShader);
 			g_bTextureMatrixShader = 0;
 		} else {
@@ -462,7 +459,7 @@ InitShaders()
 			glVertexAttrib2fARB(g_iAttribTextureMatrixScale, 1, 1);
 			const auto iError = glGetError();
 			if (iError == GL_INVALID_OPERATION) {
-				Locator::getLogger()->trace("Scaling shader failed: glVertexAttrib2fARB "
+				Locator::getLogger()->warn("Scaling shader failed: glVertexAttrib2fARB "
 						   "returned GL_INVALID_OPERATION");
 				glDeleteObjectARB(g_bTextureMatrixShader);
 				g_bTextureMatrixShader = 0;
@@ -494,20 +491,20 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 
 	// Log driver details
 	g_pWind->LogDebugInformation();
-	if (PREFSMAN->m_verbose_log > 1) {
-		Locator::getLogger()->trace("OGL Vendor: {}", glGetString(GL_VENDOR));
-		Locator::getLogger()->trace("OGL Renderer: {}", glGetString(GL_RENDERER));
-		Locator::getLogger()->trace("OGL Version: {}", glGetString(GL_VERSION));
-		Locator::getLogger()->trace("OGL Max texture size: {}", GetMaxTextureSize());
-		Locator::getLogger()->trace("OGL Texture units: {}", g_iMaxTextureUnits);
-		Locator::getLogger()->trace("GLU Version: {}", gluGetString(GLU_VERSION));
+	{
+		Locator::getLogger()->info("OGL Vendor: {}", glGetString(GL_VENDOR));
+		Locator::getLogger()->info("OGL Renderer: {}", glGetString(GL_RENDERER));
+		Locator::getLogger()->info("OGL Version: {}", glGetString(GL_VERSION));
+		Locator::getLogger()->info("OGL Max texture size: {}", GetMaxTextureSize());
+		Locator::getLogger()->info("OGL Texture units: {}", g_iMaxTextureUnits);
+		Locator::getLogger()->info("GLU Version: {}", gluGetString(GLU_VERSION));
 
 		/* Pretty-print the extension string: */
-		Locator::getLogger()->trace("OGL Extensions:");
+		Locator::getLogger()->info("OGL Extensions:");
 		{
 			const auto szExtensionString =
 			  (const char*)glGetString(GL_EXTENSIONS);
-			vector<std::string> asExtensions;
+			std::vector<std::string> asExtensions;
 			split(szExtensionString, " ", asExtensions);
 			sort(asExtensions.begin(), asExtensions.end());
 			size_t iNextToPrint = 0;
@@ -515,7 +512,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 				auto iLastToPrint = iNextToPrint;
 				std::string sType;
 				for (auto i = iNextToPrint; i < asExtensions.size(); ++i) {
-					vector<std::string> asBits;
+					std::vector<std::string> asBits;
 					split(asExtensions[i], "_", asBits);
 					std::string sThisType;
 					if (asBits.size() > 2)
@@ -528,14 +525,14 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 				}
 
 				if (iNextToPrint == iLastToPrint) {
-					Locator::getLogger()->trace("  {}", asExtensions[iNextToPrint].c_str());
+					Locator::getLogger()->info("  {}", asExtensions[iNextToPrint].c_str());
 					++iNextToPrint;
 					continue;
 				}
 
 				auto sList = ssprintf("  %s: ", sType.c_str());
 				while (iNextToPrint <= iLastToPrint) {
-					vector<std::string> asBits;
+					std::vector<std::string> asBits;
 					split(asExtensions[iNextToPrint], "_", asBits);
 					const auto sShortExt =
 					  join(std::string("_"), asBits.begin() + 2, asBits.end());
@@ -545,7 +542,7 @@ RageDisplay_Legacy::Init(const VideoModeParams& p,
 					if (iNextToPrint == iLastToPrint ||
 						sList.size() + asExtensions[iNextToPrint + 1].size() >
 						  120) {
-						Locator::getLogger()->trace(sList.c_str());
+						Locator::getLogger()->info(sList.c_str());
 						sList = "    ";
 					}
 					++iNextToPrint;
@@ -696,7 +693,7 @@ CheckPalettedTextures()
 	 * palettes if it can't even get 8-bit ones right. */
 	glColorTableEXT = nullptr;
 	glGetColorTableParameterivEXT = nullptr;
-	Locator::getLogger()->trace("Paletted textures disabled: {}.", sError.c_str());
+	Locator::getLogger()->warn("Paletted textures disabled: {}.", sError.c_str());
 }
 
 static void
@@ -719,7 +716,7 @@ CheckReversePackedPixels()
 		g_bReversePackedPixelsWorks = true;
 	} else {
 		g_bReversePackedPixelsWorks = false;
-		Locator::getLogger()->trace("GL_UNSIGNED_SHORT_1_5_5_5_REV failed ({}), disabled",
+		Locator::getLogger()->warn("GL_UNSIGNED_SHORT_1_5_5_5_REV failed ({}), disabled",
 				  GLToString(glError).c_str());
 	}
 }
@@ -751,7 +748,7 @@ SetupExtensions()
 			/* The minimum GL_MAX_PIXEL_MAP_TABLE is 32; if it's not at least
 			 * 256, we can't fit a palette in it, so we can't send paletted data
 			 * as input for a non-paletted texture. */
-			Locator::getLogger()->trace("GL_MAX_PIXEL_MAP_TABLE is only {}",
+			Locator::getLogger()->warn("GL_MAX_PIXEL_MAP_TABLE is only {}",
 					  static_cast<int>(iMaxTableSize));
 			g_bColorIndexTableWorks = false;
 		} else {
@@ -919,14 +916,14 @@ RageDisplay_Legacy::EndFrame()
 	g_pWind->SwapBuffers();
 	glFlush();
 
-	g_pWind->Update();
-
 	const auto afterPresent = std::chrono::steady_clock::now();
 	const auto endTime = afterPresent - beforePresent;
 
 	SetPresentTime(endTime);
 
 	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
+
+	g_pWind->Update();
 
 	RageDisplay::EndFrame();
 }
@@ -1108,7 +1105,7 @@ RageDisplay_Legacy::SendCurrentMatrices()
 class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>& vMeshes) override
+	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
 		m_vPosition.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
@@ -1119,7 +1116,7 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 		m_vTriangles.resize(
 		  max(1U, static_cast<unsigned>(GetTotalTriangles())));
 	}
-	void Change(const vector<msMesh>& vMeshes) override
+	void Change(const std::vector<msMesh>& vMeshes) override
 	{
 		for (unsigned i = 0; i < vMeshes.size(); i++) {
 			const auto& meshInfo = m_vMeshInfo[i];
@@ -1194,11 +1191,11 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	}
 
   protected:
-	vector<RageVector3> m_vPosition;
-	vector<RageVector2> m_vTexture;
-	vector<RageVector3> m_vNormal;
-	vector<msTriangle> m_vTriangles;
-	vector<RageVector2> m_vTexMatrixScale;
+	std::vector<RageVector3> m_vPosition;
+	std::vector<RageVector2> m_vTexture;
+	std::vector<RageVector3> m_vNormal;
+	std::vector<msTriangle> m_vTriangles;
+	std::vector<RageVector2> m_vTexMatrixScale;
 };
 
 class InvalidateObject;
@@ -1241,8 +1238,8 @@ class RageCompiledGeometryHWOGL
 	/* This is called when our OpenGL context is invalidated. */
 	void Invalidate() override;
 
-	void Allocate(const vector<msMesh>& vMeshes) override;
-	void Change(const vector<msMesh>& vMeshes) override;
+	void Allocate(const std::vector<msMesh>& vMeshes) override;
+	void Change(const std::vector<msMesh>& vMeshes) override;
 	void Draw(int iMeshIndex) const override;
 };
 
@@ -1366,7 +1363,7 @@ RageCompiledGeometryHWOGL::Invalidate()
 }
 
 void
-RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
+RageCompiledGeometryHWOGL::Allocate(const std::vector<msMesh>& vMeshes)
 {
 	DebugFlushGLErrors();
 
@@ -1412,7 +1409,7 @@ RageCompiledGeometryHWOGL::Allocate(const vector<msMesh>& vMeshes)
 }
 
 void
-RageCompiledGeometryHWOGL::Change(const vector<msMesh>& vMeshes)
+RageCompiledGeometryHWOGL::Change(const std::vector<msMesh>& vMeshes)
 {
 	RageCompiledGeometrySWOGL::Change(vMeshes);
 
@@ -1576,7 +1573,7 @@ RageDisplay_Legacy::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<uint16_t> vIndices;
+	static std::vector<uint16_t> vIndices;
 	const unsigned uOldSize = vIndices.size();
 	const auto uNewSize = max(uOldSize, static_cast<unsigned>(iNumIndices));
 	vIndices.resize(uNewSize);
@@ -2344,7 +2341,7 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 				break;
 			// OpenGL 1.2 types
 			default:
-				Locator::getLogger()->trace("Can't generate mipmaps for type {} because GLU "
+				Locator::getLogger()->debug("Can't generate mipmaps for type {} because GLU "
 						   "version {:.1f} is too old.",
 						   GLToString(glImageType).c_str(),
 						   g_gluVersion / 10.f);
@@ -2400,17 +2397,16 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		ASSERT(iRealFormat == GL_RGBA8);
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace(
-		  "{} (format {}, {}x{}, format {}, type {}, pixfmt {}, imgpixfmt {})",
-		  bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",
-		  GLToString(glTexFormat).c_str(),
-		  pImg->w,
-		  pImg->h,
-		  GLToString(glImageFormat).c_str(),
-		  GLToString(glImageType).c_str(),
-		  pixfmt,
-		  SurfacePixFmt);
+	Locator::getLogger()->trace(
+		"{} (format {}, {}x{}, format {}, type {}, pixfmt {}, imgpixfmt {})",
+		bGenerateMipMaps ? "gluBuild2DMipmaps" : "glTexImage2D",
+		GLToString(glTexFormat).c_str(),
+		pImg->w,
+		pImg->h,
+		GLToString(glImageFormat).c_str(),
+		GLToString(glImageType).c_str(),
+		pixfmt,
+		SurfacePixFmt);
 
 	DebugFlushGLErrors();
 

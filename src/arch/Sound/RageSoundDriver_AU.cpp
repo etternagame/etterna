@@ -6,6 +6,7 @@
 #include <CoreServices/CoreServices.h>
 #include <AudioToolbox/AudioServices.h>
 #include <CoreAudio/CoreAudio.h>
+#include <AudioUnit/AudioComponent.h>
 
 REGISTER_SOUND_DRIVER_CLASS2(AudioUnit, AU);
 
@@ -67,7 +68,7 @@ SetSampleRate(AudioUnit au, Float64 desiredRate)
 									  0,
 									  &OutputDevice,
 									  &size))) {
-        Locator::getLogger()->warn(WERROR("No output device", error));
+		Locator::getLogger()->warn(WERROR("No output device", error));
 		return;
 	}
 
@@ -79,7 +80,8 @@ SetSampleRate(AudioUnit au, Float64 desiredRate)
 										kAudioDevicePropertyNominalSampleRate,
 										&size,
 										&rate))) {
-		Locator::getLogger()->warn(WERROR("Couldn't get the device's sample rate", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't get the device's sample rate", error));
 		return;
 	}
 	if (rate == desiredRate)
@@ -92,7 +94,8 @@ SetSampleRate(AudioUnit au, Float64 desiredRate)
 		   kAudioDevicePropertyAvailableNominalSampleRates,
 		   &size,
 		   NULL))) {
-		Locator::getLogger()->warn(WERROR("Couldn't get available nominal sample rates info", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't get available nominal sample rates info", error));
 		return;
 	}
 
@@ -106,7 +109,8 @@ SetSampleRate(AudioUnit au, Float64 desiredRate)
 		   kAudioDevicePropertyAvailableNominalSampleRates,
 		   &size,
 		   ranges))) {
-		Locator::getLogger()->warn(WERROR("Couldn't get available nominal sample rates", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't get available nominal sample rates", error));
 		delete[] ranges;
 		return;
 	}
@@ -135,14 +139,15 @@ SetSampleRate(AudioUnit au, Float64 desiredRate)
 										kAudioDevicePropertyNominalSampleRate,
 										sizeof(Float64),
 										&bestRate))) {
-		Locator::getLogger()->warn(WERROR("Couldn't set the device's sample rate", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't set the device's sample rate", error));
 	}
 }
 
 std::string
 RageSoundDriver_AU::Init()
 {
-	ComponentDescription desc;
+	AudioComponentDescription desc;
 
 	desc.componentType = kAudioUnitType_Output;
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
@@ -150,12 +155,12 @@ RageSoundDriver_AU::Init()
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 
-	Component comp = FindNextComponent(NULL, &desc);
+	AudioComponent comp = AudioComponentFindNext(NULL, &desc);
 
 	if (comp == NULL)
 		return "Failed to find the default output unit.";
 
-	OSStatus error = OpenAComponent(comp, &m_OutputUnit);
+	OSStatus error = AudioComponentInstanceNew(comp, &m_OutputUnit);
 
 	if (error != noErr || m_OutputUnit == NULL)
 		return ERROR("Could not open the default output unit", error);
@@ -210,7 +215,8 @@ RageSoundDriver_AU::Init()
 								 &renderQuality,
 								 sizeof(renderQuality));
 	if (error != noErr)
-		Locator::getLogger()->warn(WERROR("Failed to set the maximum render quality", error));
+		Locator::getLogger()->warn(
+		  WERROR("Failed to set the maximum render quality", error));
 
 	// Initialize the AU.
 	if ((error = AudioUnitInitialize(m_OutputUnit)))
@@ -233,7 +239,7 @@ RageSoundDriver_AU::~RageSoundDriver_AU()
 		m_Semaphore.Wait();
 	}
 	AudioUnitUninitialize(m_OutputUnit);
-	CloseComponent(m_OutputUnit);
+	AudioComponentInstanceDispose(m_OutputUnit);
 	delete m_pIOThread;
 	delete m_pNotificationThread;
 }
@@ -250,7 +256,9 @@ RageSoundDriver_AU::SetupDecodingThread()
 	/* Increase the scheduling precedence of the decoder thread. */
 	const std::string sError = SetThreadPrecedence(0.75f);
 	if (!sError.empty())
-		Locator::getLogger()->warn("Could not set precedence of the decoding thread: {}",sError.c_str());
+		Locator::getLogger()->warn(
+		  "Could not set precedence of the decoding thread: {}",
+		  sError.c_str());
 }
 
 float
@@ -279,7 +287,8 @@ RageSoundDriver_AU::GetPlayLatency() const
 										kAudioDevicePropertyNominalSampleRate,
 										&size,
 										&sampleRate))) {
-		Locator::getLogger()->warn(WERROR("Couldn't get the device sample rate", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't get the device sample rate", error));
 		return 0.0f;
 	}
 
@@ -290,7 +299,8 @@ RageSoundDriver_AU::GetPlayLatency() const
 										kAudioDevicePropertyBufferFrameSize,
 										&size,
 										&bufferSize))) {
-		Locator::getLogger()->warn(WERROR("Couldn't determine buffer size", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't determine buffer size", error));
 		bufferSize = 0;
 	}
 
@@ -303,7 +313,8 @@ RageSoundDriver_AU::GetPlayLatency() const
 										kAudioDevicePropertyLatency,
 										&size,
 										&frames))) {
-		Locator::getLogger()->warn(WERROR("Couldn't get device latency", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't get device latency", error));
 		frames = 0;
 	}
 
@@ -315,7 +326,8 @@ RageSoundDriver_AU::GetPlayLatency() const
 										kAudioDevicePropertySafetyOffset,
 										&size,
 										&frames))) {
-		Locator::getLogger()->warn(WERROR("Couldn't get device safety offset", error));
+		Locator::getLogger()->warn(
+		  WERROR("Couldn't get device safety offset", error));
 		frames = 0;
 	}
 	bufferSize += frames;
@@ -344,13 +356,15 @@ RageSoundDriver_AU::GetPlayLatency() const
 											kAudioDevicePropertyStreams,
 											&size,
 											streams))) {
-			Locator::getLogger()->warn(WERROR("Cannot get device's streams", error));
+			Locator::getLogger()->warn(
+			  WERROR("Cannot get device's streams", error));
 			delete[] streams;
 			break;
 		}
 		if ((error = AudioStreamGetProperty(
 			   streams[0], 0, kAudioDevicePropertyLatency, &size, &frames))) {
-			Locator::getLogger()->warn(WERROR("Stream does not report latency", error));
+			Locator::getLogger()->warn(
+			  WERROR("Stream does not report latency", error));
 			frames = 0;
 		}
 		delete[] streams;

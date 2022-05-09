@@ -20,6 +20,7 @@
 #include <string>
 
 namespace crashpad {
+namespace internal {
 
 //! \brief Used to collect system level data before a crash occurs.
 class IOSSystemDataCollector {
@@ -27,16 +28,17 @@ class IOSSystemDataCollector {
   IOSSystemDataCollector();
   ~IOSSystemDataCollector();
 
-  void OSVersion(int* major, int* minor, int* bugfix, std::string* build) const;
-  std::string MachineDescription() const { return machine_description_; }
+  void OSVersion(int* major, int* minor, int* bugfix) const;
+  const std::string& MachineDescription() const { return machine_description_; }
   int ProcessorCount() const { return processor_count_; }
-  std::string CPUVendor() const { return cpu_vendor_; }
+  const std::string& Build() const { return build_; }
+  const std::string& CPUVendor() const { return cpu_vendor_; }
   bool HasDaylightSavingTime() const { return has_next_daylight_saving_time_; }
   bool IsDaylightSavingTime() const { return is_daylight_saving_time_; }
   int StandardOffsetSeconds() const { return standard_offset_seconds_; }
   int DaylightOffsetSeconds() const { return daylight_offset_seconds_; }
-  std::string StandardName() const { return standard_name_; }
-  std::string DaylightName() const { return daylight_name_; }
+  const std::string& StandardName() const { return standard_name_; }
+  const std::string& DaylightName() const { return daylight_name_; }
 
   // Currently unused by minidump.
   int Orientation() const { return orientation_; }
@@ -76,6 +78,7 @@ class IOSSystemDataCollector {
   std::string daylight_name_;
 };
 
+}  // namespace internal
 }  // namespace crashpad
 
 #endif  // CRASHPAD_UTIL_IOS_IOS_SYSTEM_DATA_COLLECTOR_H_

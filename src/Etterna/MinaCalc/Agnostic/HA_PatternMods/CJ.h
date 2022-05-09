@@ -1,10 +1,12 @@
 #pragma once
 #include "../../PatternModHelpers.h"
 
+/// Hand-Agnostic PatternMod detecting Chordjacks.
+/// Looks for continuous chords which form jacks
 struct CJMod
 {
 	const CalcPatternMod _pmod = CJ;
-	// const vector<CalcPatternMod> _dbg = { CJS, CJJ };
+	// const std::vector<CalcPatternMod> _dbg = { CJS, CJJ };
 	const std::string name = "CJMod";
 
 #pragma region params
@@ -29,6 +31,7 @@ struct CJMod
 	float not_jack_scaler = 1.75F;
 
 	float vibro_flag = 1.F;
+	float decay_factor = 0.1F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -51,6 +54,7 @@ struct CJMod
 		{ "not_jack_scaler", &not_jack_scaler },
 
 		{ "vibro_flag", &vibro_flag },
+		{ "decay_factor", &decay_factor },
 	};
 #pragma endregion params and param map
 
@@ -59,8 +63,20 @@ struct CJMod
 	float not_jack_prop = 0.F;
 	float pmod = min_mod;
 	float t_taps = 0.F;
+	float last_mod = 0.F;
 
-	// inline void set_dbg(vector<float> doot[], const int& i)
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
+
+	void decay_mod()
+	{
+		pmod = std::clamp(last_mod - decay_factor, min_mod, max_mod);
+		last_mod = pmod;
+	}
+
+	// inline void set_dbg(std::vector<float> doot[], const int& i)
 	//{
 	//	doot[CJS][i] = not_jack_prop;
 	//	doot[CJJ][i] = jack_prop;
@@ -76,7 +92,8 @@ struct CJMod
 
 		// no chords
 		if (itvi.chord_taps == 0) {
-			return min_mod;
+			decay_mod();
+			return pmod;
 		}
 
 		t_taps = static_cast<float>(itvi.total_taps);
@@ -123,6 +140,9 @@ struct CJMod
 				pmod *= 0.95F * vibro_flag;
 			}
 		}
+
+		// set for decay
+		last_mod = pmod;
 
 		return pmod;
 	}

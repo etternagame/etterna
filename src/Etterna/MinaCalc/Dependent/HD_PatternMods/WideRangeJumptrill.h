@@ -4,8 +4,11 @@
 // big brain stuff
 constexpr float wrjt_cv_factor = 3.F;
 
-// should update detection so it's more similar to updated wrr
-// probably needs better debugoutput
+/// Hand-Dependent PatternMod detecting Jumptrills.
+/// Lenient in a particular way so as to detect a roll
+/// as a jumptrill.
+/// should update detection so it's more similar to updated wrr
+/// probably needs better debugoutput
 struct WideRangeJumptrillMod
 {
 	const CalcPatternMod _pmod = { WideRangeJumptrill };

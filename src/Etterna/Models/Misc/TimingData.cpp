@@ -8,9 +8,12 @@
 
 #include <cfloat>
 #include <algorithm>
+#include <cmath>
+
+#include "AdjustSync.h"
 
 static void
-EraseSegment(vector<TimingSegment*>& vSegs, int index, TimingSegment* cur);
+EraseSegment(std::vector<TimingSegment*>& vSegs, int index, TimingSegment* cur);
 static const int INVALID_INDEX = -1;
 
 TimingSegment*
@@ -69,7 +72,7 @@ TimingData::PrepareLookup()
 	// thing.  So release the lookups. -Kyz
 	ReleaseLookup();
 	const unsigned int segments_per_lookup = 16;
-	const vector<TimingSegment*>* segs = m_avpTimingSegments;
+	const std::vector<TimingSegment*>* segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -114,7 +117,7 @@ TimingData::ReleaseLookup()
 }
 
 std::string
-SegInfoStr(const vector<TimingSegment*>& segs,
+SegInfoStr(const std::vector<TimingSegment*>& segs,
 		   unsigned int index,
 		   const std::string& name)
 {
@@ -131,8 +134,8 @@ FindEntryInLookup(const TimingData::beat_start_lookup_t& lookup, float entry)
 	if (lookup.empty()) {
 		return lookup.end();
 	}
-	size_t lower = 0;
-	auto upper = lookup.size() - 1;
+	long lower = 0;
+	long upper = static_cast<long>(lookup.size() - 1);
 	if (lookup[lower].first > entry) {
 		return lookup.end();
 	}
@@ -184,7 +187,7 @@ TimingData::CopyRange(int start_row,
 			const auto& segs = GetTimingSegments(seg_type);
 			for (auto* seg : segs) {
 				if (seg->GetRow() >= start_row && seg->GetRow() <= end_row) {
-					auto copy = seg->Copy();
+					auto* copy = seg->Copy();
 					copy->SetRow(seg->GetRow() + row_offset);
 					dest.AddSegment(copy);
 					// TimingSegment::Copy creates a new segment with new, and
@@ -340,8 +343,10 @@ TimingData::GetSegmentIndexAtRow(TimingSegmentType tst, int iRow) const
 	if (vSegs.empty())
 		return INVALID_INDEX;
 
-	const int min = 0, max = vSegs.size() - 1;
-	auto l = min, r = max;
+	const int min = 0;
+	const int max = static_cast<int>(vSegs.size() - 1);
+	auto l = min;
+	auto r = max;
 	while (l <= r) {
 		const auto m = (l + r) / 2;
 		if ((m == min || vSegs[m]->GetRow() <= iRow) &&
@@ -376,7 +381,7 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 	// Change all other BPM segments in this range.
 	auto& bpms = m_avpTimingSegments[SEGMENT_BPM];
 	for (unsigned i = 0; i < bpms.size(); i++) {
-		auto bs = ToBPM(bpms[i]);
+		auto* bs = ToBPM(bpms[i]);
 		const auto iStartIndexThisSegment = bs->GetRow();
 		const auto bIsLastBPMSegment = i == bpms.size() - 1;
 		const auto iStartIndexNextSegment =
@@ -390,7 +395,7 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 		 * split it into two. */
 		if (iStartIndexThisSegment < iStartIndex &&
 			iStartIndexNextSegment > iStartIndex) {
-			auto b = new BPMSegment(iStartIndexNextSegment, bs->GetBPS());
+			auto* b = new BPMSegment(iStartIndexNextSegment, bs->GetBPS());
 			bpms.insert(bpms.begin() + i + 1, b);
 
 			/* Don't apply the BPM change to the first half of the segment we
@@ -401,7 +406,7 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 		// If this BPM segment crosses the end of the range, split it into two.
 		if (iStartIndexThisSegment < iEndIndex &&
 			iStartIndexNextSegment > iEndIndex) {
-			auto b = new BPMSegment(iEndIndex, bs->GetBPS());
+			auto* b = new BPMSegment(iEndIndex, bs->GetBPS());
 			bpms.insert(bpms.begin() + i + 1, b);
 		} else if (iStartIndexNextSegment > iEndIndex)
 			continue;
@@ -411,18 +416,18 @@ TimingData::MultiplyBPMInBeatRange(int iStartIndex,
 }
 
 bool
-TimingData::IsWarpAtRow(int iNoteRow) const
+TimingData::IsWarpAtRow(int iRow) const
 {
 	const auto& warps = GetTimingSegments(SEGMENT_WARP);
 	if (warps.empty())
 		return false;
 
-	const auto i = GetSegmentIndexAtRow(SEGMENT_WARP, iNoteRow);
+	const auto i = GetSegmentIndexAtRow(SEGMENT_WARP, iRow);
 	if (i == -1) {
 		return false;
 	}
 	const WarpSegment* s = ToWarp(warps[i]);
-	const auto beatRow = NoteRowToBeat(iNoteRow);
+	const auto beatRow = NoteRowToBeat(iRow);
 	if (s->GetBeat() <= beatRow && beatRow < (s->GetBeat() + s->GetLength())) {
 		// Allow stops inside warps to allow things like stop, warp, stop, warp,
 		// stop, and so on.
@@ -430,31 +435,25 @@ TimingData::IsWarpAtRow(int iNoteRow) const
 			GetTimingSegments(SEGMENT_DELAY).empty()) {
 			return true;
 		}
-		if (GetStopAtRow(iNoteRow) != 0.0f || GetDelayAtRow(iNoteRow) != 0.0f) {
-			return false;
-		}
-		return true;
+		return !(GetStopAtRow(iRow) != 0.f || GetDelayAtRow(iRow) != 0.f);
 	}
 	return false;
 }
 
 bool
-TimingData::IsFakeAtRow(int iNoteRow) const
+TimingData::IsFakeAtRow(int iRow) const
 {
 	const auto& fakes = GetTimingSegments(SEGMENT_FAKE);
 	if (fakes.empty())
 		return false;
 
-	const auto i = GetSegmentIndexAtRow(SEGMENT_FAKE, iNoteRow);
+	const auto i = GetSegmentIndexAtRow(SEGMENT_FAKE, iRow);
 	if (i == -1) {
 		return false;
 	}
 	const FakeSegment* s = ToFake(fakes[i]);
-	const auto beatRow = NoteRowToBeat(iNoteRow);
-	if (s->GetBeat() <= beatRow && beatRow < (s->GetBeat() + s->GetLength())) {
-		return true;
-	}
-	return false;
+	const auto beatRow = NoteRowToBeat(iRow);
+	return s->GetBeat() <= beatRow && beatRow < (s->GetBeat() + s->GetLength());
 }
 
 /* DummySegments: since our model relies on being able to get a segment at will,
@@ -518,7 +517,7 @@ TimingData::GetSegmentAtRow(int iNoteRow, TimingSegmentType tst)
 }
 
 static void
-EraseSegment(vector<TimingSegment*>& vSegs, int index, TimingSegment* cur)
+EraseSegment(std::vector<TimingSegment*>& vSegs, int index, TimingSegment* cur)
 {
 #ifdef WITH_LOGGING_TIMING_DATA
 	Locator::getLogger()->trace("EraseSegment({}, {})", index, cur);
@@ -551,7 +550,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 
 	const auto index = GetSegmentIndexAtRow(tst, seg->GetRow());
 	ASSERT(index != INVALID_INDEX);
-	auto cur = vSegs[index];
+	auto* cur = vSegs[index];
 
 	const auto bIsNotable = seg->IsNotable();
 	const auto bOnSameRow = seg->GetRow() == cur->GetRow();
@@ -573,7 +572,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 			break;
 		}
 		case SegmentEffectType_Indefinite: {
-			auto prev = cur;
+			auto* prev = cur;
 
 			// get the segment before last; if we're on the same
 			// row, get the segment in effect before 'cur'
@@ -589,7 +588,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 			// redundant, erase the next segment because that effectively moves
 			// it back to the prev segment. -Kyz
 			if (static_cast<size_t>(index) < vSegs.size() - 1) {
-				auto next = vSegs[index + 1];
+				auto* next = vSegs[index + 1];
 				if ((*seg) == (*next)) {
 					// The segment after this new one is redundant.
 					if ((*seg) == (*prev)) {
@@ -640,7 +639,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 
 	// Copy() the segment (which allocates a new segment), assign it
 	// to the position of the old one, then delete the old pointer.
-	auto cpy = seg->Copy();
+	auto* cpy = seg->Copy();
 
 	if (bOnSameRow) {
 		// delete the existing pointer and replace it
@@ -648,7 +647,7 @@ TimingData::AddSegment(const TimingSegment* seg)
 		vSegs[index] = cpy;
 	} else {
 		// copy and insert a new segment
-		vector<TimingSegment*>::iterator it;
+		std::vector<TimingSegment*>::iterator it;
 		it = upper_bound(vSegs.begin(), vSegs.end(), cpy, ts_less());
 		vSegs.insert(it, cpy);
 	}
@@ -692,10 +691,10 @@ FindEvent(int& event_row,
 		  TimingData::GetBeatStarts& start,
 		  float beat,
 		  bool find_marker,
-		  const vector<TimingSegment*>& bpms,
-		  const vector<TimingSegment*>& warps,
-		  const vector<TimingSegment*>& stops,
-		  const vector<TimingSegment*>& delays)
+		  const std::vector<TimingSegment*>& bpms,
+		  const std::vector<TimingSegment*>& warps,
+		  const std::vector<TimingSegment*>& stops,
+		  const std::vector<TimingSegment*>& delays)
 {
 	if (start.is_warping) {
 		const auto eventBeat = BeatToNoteRow(start.warp_destination);
@@ -736,7 +735,7 @@ TimingData::GetBeatInternal(GetBeatStarts& start,
 							GetBeatArgs& args,
 							unsigned int max_segment) const
 {
-	auto segs = m_avpTimingSegments;
+	const auto *segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -817,6 +816,8 @@ TimingData::GetBeatInternal(GetBeatStarts& start,
 				INC_INDEX(start.warp);
 				break;
 			}
+			default:
+				break;
 		}
 		start.last_row = event_row;
 	}
@@ -847,7 +848,7 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 								   float beat,
 								   unsigned int max_segment) const
 {
-	auto segs = m_avpTimingSegments;
+	const auto *segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -902,7 +903,7 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 				return start.last_time;
 			case FOUND_WARP: {
 				start.is_warping = true;
-				auto ws = ToWarp(warps[start.warp]);
+				auto* ws = ToWarp(warps[start.warp]);
 				const auto warp_sum = ws->GetLength() + ws->GetBeat();
 				if (warp_sum > start.warp_destination) {
 					start.warp_destination = warp_sum;
@@ -910,6 +911,8 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 				INC_INDEX(start.warp);
 				break;
 			}
+			default:
+				break;
 		}
 		start.last_row = event_row;
 	}
@@ -942,7 +945,7 @@ float
 TimingData::GetDisplayedBeat(float fBeat) const
 {
 	float fOutBeat = 0;
-	unsigned i;
+	unsigned i = 0;
 	const auto& scrolls = m_avpTimingSegments[SEGMENT_SCROLL];
 	for (i = 0; i < scrolls.size() - 1; i++) {
 		if (scrolls[i + 1]->GetBeat() > fBeat)
@@ -957,31 +960,31 @@ TimingData::GetDisplayedBeat(float fBeat) const
 
 void
 TimingData::ScaleRegion(float fScale,
-						int iStartIndex,
-						int iEndIndex,
+						int iStartRow,
+						int iEndRow,
 						bool bAdjustBPM)
 {
 	ASSERT(fScale > 0);
-	ASSERT(iStartIndex >= 0);
-	ASSERT(iStartIndex < iEndIndex);
+	ASSERT(iStartRow >= 0);
+	ASSERT(iStartRow < iEndRow);
 
-	const auto length = iEndIndex - iStartIndex;
-	const int newLength = lround(fScale * length);
+	const auto length = iEndRow - iStartRow;
+	const int newLength = static_cast<int>(std::lround(fScale * static_cast<float>(length)));
 
 	FOREACH_TimingSegmentType(tst) for (auto& j : m_avpTimingSegments[tst])
-	  j->Scale(iStartIndex, length, newLength);
+	  j->Scale(iStartRow, length, newLength);
 
 	// adjust BPM changes to preserve timing
 	if (bAdjustBPM) {
-		const auto iNewEndIndex = iStartIndex + newLength;
+		const auto iNewEndIndex = iStartRow + newLength;
 		const auto fEndBPMBeforeScaling = GetBPMAtRow(iNewEndIndex);
 		auto& bpms = m_avpTimingSegments[SEGMENT_BPM];
 
 		// adjust BPM changes "between" iStartIndex and iNewEndIndex
 		for (auto& i : bpms) {
-			auto bpm = ToBPM(i);
+			auto* bpm = ToBPM(i);
 			const auto iSegStart = bpm->GetRow();
-			if (iSegStart <= iStartIndex)
+			if (iSegStart <= iStartRow)
 				continue;
 			if (iSegStart >= iNewEndIndex)
 				continue;
@@ -989,7 +992,7 @@ TimingData::ScaleRegion(float fScale,
 		}
 
 		// set BPM at iStartIndex and iNewEndIndex.
-		SetBPMAtRow(iStartIndex, GetBPMAtRow(iStartIndex) * fScale);
+		SetBPMAtRow(iStartRow, GetBPMAtRow(iStartRow) * fScale);
 		SetBPMAtRow(iNewEndIndex, fEndBPMBeforeScaling);
 	}
 }
@@ -1025,7 +1028,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 	{
 		// Don't delete the indefinite segments that are still in effect
 		// at the end row; rather, shift them so they start there.
-		auto tsEnd = GetSegmentAtRow(iStartRow + iRowsToDelete, tst);
+		auto* tsEnd = GetSegmentAtRow(iStartRow + iRowsToDelete, tst);
 		if (tsEnd != nullptr &&
 			tsEnd->GetEffectType() == SegmentEffectType_Indefinite &&
 			iStartRow <= tsEnd->GetRow() &&
@@ -1040,7 +1043,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 		// Now delete and shift up
 		auto& segs = m_avpTimingSegments[tst];
 		for (unsigned j = 0; j < segs.size(); j++) {
-			auto seg = segs[j];
+			auto* seg = segs[j];
 			// Before deleted region:
 			if (seg->GetRow() < iStartRow)
 				continue;
@@ -1058,7 +1061,7 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 }
 
 float
-TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
+TimingData::GetDisplayedSpeedPercent(float fBeat, float fMusicSeconds) const
 {
 	/* HACK: Somehow we get called into this function when there is no
 	 * TimingData to work with. This seems to happen the most upon
@@ -1079,7 +1082,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 		return 1.0f;
 	}
 
-	const auto index = GetSegmentIndexAtBeat(SEGMENT_SPEED, fSongBeat);
+	const auto index = GetSegmentIndexAtBeat(SEGMENT_SPEED, fBeat);
 
 	if (index < 0) {
 #ifdef DEBUG
@@ -1092,7 +1095,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 	const auto fStartBeat = seg->GetBeat();
 	const auto fStartTime =
 	  WhereUAtBro(fStartBeat) - GetDelayAtBeat(fStartBeat);
-	float fEndTime;
+	float fEndTime = 0.f;
 	const auto fCurTime = fMusicSeconds;
 
 	if (seg->GetUnit() == SpeedSegment::UNIT_SECONDS) {
@@ -1102,7 +1105,7 @@ TimingData::GetDisplayedSpeedPercent(float fSongBeat, float fMusicSeconds) const
 				   GetDelayAtBeat(fStartBeat + seg->GetDelay());
 	}
 
-	auto first = ToSpeed(speeds[0]);
+	auto* first = ToSpeed(speeds[0]);
 
 	if ((index == 0 && first->GetDelay() > 0.0) && fCurTime < fStartTime) {
 		return 1.0f;
@@ -1132,7 +1135,7 @@ TimingData::TidyUpData(bool allowEmpty)
 		return;
 
 	// If there are no BPM segments, provide a default.
-	auto segs = m_avpTimingSegments;
+	auto* segs = m_avpTimingSegments;
 	if (segs[SEGMENT_BPM].empty()) {
         Locator::getLogger()->info("Song file {} has no BPM segments, default provided.", m_sFile);
 		AddSegment(BPMSegment(0, 60));
@@ -1200,7 +1203,7 @@ TimingData::NoteRowToMeasureAndBeat(int iNoteRow,
 	iMeasureIndexOut = 0;
 	const auto& tSigs = GetTimingSegments(SEGMENT_TIME_SIG);
 	for (unsigned i = 0; i < tSigs.size(); i++) {
-		auto curSig = ToTimeSignature(tSigs[i]);
+		auto* curSig = ToTimeSignature(tSigs[i]);
 		const auto iSegmentEndRow =
 		  (i + 1 == tSigs.size()) ? INT_MAX : curSig->GetRow();
 
@@ -1228,11 +1231,11 @@ TimingData::NoteRowToMeasureAndBeat(int iNoteRow,
 	FAIL_M("Failed to get measure and beat for note row");
 }
 
-vector<std::string>
+std::vector<std::string>
 TimingData::ToVectorString(TimingSegmentType tst, int dec) const
 {
 	const auto segs = GetTimingSegments(tst);
-	vector<std::string> ret;
+	std::vector<std::string> ret;
 
 	ret.reserve(segs.size());
 	for (auto* seg : segs) {
@@ -1257,9 +1260,9 @@ void
 TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L)
 {
 	const auto segs = td->GetTimingSegments(tst);
-	lua_createtable(L, segs.size(), 0);
+	lua_createtable(L, static_cast<int>(segs.size()), 0);
 	if (tst == SEGMENT_LABEL) {
-		for (size_t i = 0; i < segs.size(); ++i) {
+		for (int i = 0; i < segs.size(); ++i) {
 			lua_createtable(L, 2, 0);
 			lua_pushnumber(L, segs[i]->GetBeat());
 			lua_rawseti(L, -2, 1);
@@ -1268,12 +1271,12 @@ TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L)
 			lua_rawseti(L, -2, i + 1);
 		}
 	} else {
-		for (size_t i = 0; i < segs.size(); ++i) {
+		for (int i = 0; i < segs.size(); ++i) {
 			auto values = segs[i]->GetValues();
-			lua_createtable(L, values.size() + 1, 0);
+			lua_createtable(L, static_cast<int>(values.size()) + 1, 0);
 			lua_pushnumber(L, segs[i]->GetBeat());
 			lua_rawseti(L, -2, 1);
-			for (size_t v = 0; v < values.size(); ++v) {
+			for (int v = 0; v < values.size(); ++v) {
 				lua_pushnumber(L, values[v]);
 				lua_rawseti(L, -2, v + 2);
 			}
@@ -1290,8 +1293,7 @@ TimingData::WhereUAtBro(float beat)
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 				 PREFSMAN->m_fGlobalOffsetSeconds;
@@ -1307,8 +1309,7 @@ TimingData::WhereUAtBro(float beat) const
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 				 PREFSMAN->m_fGlobalOffsetSeconds;
@@ -1324,8 +1325,7 @@ TimingData::WhereUAtBro(int row)
 
 	if (ValidSequentialAssumption &&
 		static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 				 PREFSMAN->m_fGlobalOffsetSeconds;
@@ -1341,8 +1341,7 @@ TimingData::WhereUAtBroNoOffset(float beat)
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
 	return GetElapsedTimeFromBeatNoOffset(beat);
@@ -1356,30 +1355,29 @@ TimingData::WhereUAtBroNoOffset(float beat) const
 	const size_t row = BeatToNoteRow(beat);
 
 	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
-		GAMESTATE->m_SongOptions.GetCurrent().m_AutosyncType ==
-		  AutosyncType_Off)
+		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
 	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
-vector<float>
-TimingData::ConvertReplayNoteRowsToTimestamps(const vector<int>& nrv,
+std::vector<float>
+TimingData::ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
 											  float rate)
 {
-	vector<float> o;
+	std::vector<float> o;
 	o.reserve(nrv.size());
 	for (auto nr : nrv)
 		o.emplace_back(WhereUAtBro(nr) / rate);
 	return o;
 }
 
-const vector<float>&
-TimingData::BuildAndGetEtaner(const vector<int>& nerv)
+const std::vector<float>&
+TimingData::BuildAndGetEtaner(const std::vector<int>& nerv)
 {
 	ElapsedTimesAtNonEmptyRows.clear();
 
-	const vector<TimingSegment*>* segs = m_avpTimingSegments;
+	const std::vector<TimingSegment*>* segs = m_avpTimingSegments;
 	const auto& bpms = segs[SEGMENT_BPM];
 	const auto& warps = segs[SEGMENT_WARP];
 	const auto& stops = segs[SEGMENT_STOP];
@@ -1422,9 +1420,9 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
 			const auto next_event_time = last_time + time_to_next_event;
 			if (bps <= 0)
-				Locator::getLogger()->warn("Found {} bps in file {} - Very likely to crash.", bps, m_sFile);
+				Locator::getLogger()->fatal("Found {} bps in file {} - Very likely to crash.", bps, m_sFile);
 			while (idx < nerv.size() && nerv[idx] <= event_row) {
-				const auto perc = (nerv[idx] - lastbpmrow) /
+				const auto perc = static_cast<float>(nerv[idx] - lastbpmrow) /
 								  static_cast<float>(event_row - lastbpmrow);
 				ElapsedTimesAtNonEmptyRows.emplace_back(
 				  last_time + time_to_next_event * perc -
@@ -1441,7 +1439,7 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 		// fill out any timestamps that lie beyond the last bpm change
 		time_to_next_event = NoteRowToBeat(nerv.back() - lastbpmrow) / bps;
 		while (idx < nerv.size()) {
-			const auto perc = (nerv[idx] - lastbpmrow) /
+			const auto perc = static_cast<float>(nerv[idx] - lastbpmrow) /
 							  static_cast<float>(nerv.back() - lastbpmrow);
 			ElapsedTimesAtNonEmptyRows.emplace_back(
 			  last_time + time_to_next_event * perc - m_fBeat0OffsetInSeconds);
@@ -1455,7 +1453,7 @@ TimingData::BuildAndGetEtaner(const vector<int>& nerv)
 	return ElapsedTimesAtAllRows;
 }
 
-const vector<float>&
+const std::vector<float>&
 TimingData::BuildAndGetEtar(int lastrow)
 {
 	ElapsedTimesAtAllRows.clear();
@@ -1473,43 +1471,43 @@ class LunaTimingData : public Luna<TimingData>
   public:
 	static int HasStops(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasStops());
+		lua_pushboolean(L, static_cast<int>(p->HasStops()));
 		return 1;
 	}
 
 	static int HasDelays(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasDelays());
+		lua_pushboolean(L, static_cast<int>(p->HasDelays()));
 		return 1;
 	}
 
 	static int HasBPMChanges(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasBpmChanges());
+		lua_pushboolean(L, static_cast<int>(p->HasBpmChanges()));
 		return 1;
 	}
 
 	static int HasWarps(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasWarps());
+		lua_pushboolean(L, static_cast<int>(p->HasWarps()));
 		return 1;
 	}
 
 	static int HasFakes(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasFakes());
+		lua_pushboolean(L, static_cast<int>(p->HasFakes()));
 		return 1;
 	}
 
 	static int HasSpeedChanges(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasSpeedChanges());
+		lua_pushboolean(L, static_cast<int>(p->HasSpeedChanges()));
 		return 1;
 	}
 
 	static int HasScrollChanges(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasScrollChanges());
+		lua_pushboolean(L, static_cast<int>(p->HasScrollChanges()));
 		return 1;
 	}
 
@@ -1539,7 +1537,7 @@ class LunaTimingData : public Luna<TimingData>
 #undef GET_FUNCTION
 	static int GetBPMs(T* p, lua_State* L)
 	{
-		vector<float> vBPMs;
+		std::vector<float> vBPMs;
 		const auto& bpms = p->GetTimingSegments(SEGMENT_BPM);
 
 		vBPMs.reserve(bpms.size());
@@ -1553,9 +1551,10 @@ class LunaTimingData : public Luna<TimingData>
 	static int GetActualBPM(T* p, lua_State* L)
 	{
 		// certainly there's a better way to do it than this? -aj
-		float fMinBPM, fMaxBPM;
+		float fMinBPM = 0.f;
+		float fMaxBPM = 0.f;
 		p->GetActualBPM(fMinBPM, fMaxBPM);
-		vector<float> fBPMs;
+		std::vector<float> fBPMs;
 		fBPMs.push_back(fMinBPM);
 		fBPMs.push_back(fMaxBPM);
 		LuaHelpers::CreateTableFromArray(fBPMs, L);
@@ -1564,7 +1563,7 @@ class LunaTimingData : public Luna<TimingData>
 
 	static int HasNegativeBPMs(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->HasWarps());
+		lua_pushboolean(L, static_cast<int>(p->HasWarps()));
 		return 1;
 	}
 

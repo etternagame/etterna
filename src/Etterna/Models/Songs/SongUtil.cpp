@@ -31,7 +31,7 @@ ThemeMetric<bool> SHOW_SECTIONS_IN_BPM_SORT("MusicWheel",
 											"ShowSectionsInBPMSort");
 void
 SongUtil::GetSteps(const Song* pSong,
-				   vector<Steps*>& arrayAddTo,
+				   std::vector<Steps*>& arrayAddTo,
 				   StepsType st,
 				   Difficulty dc,
 				   int iMeterLow,
@@ -102,7 +102,7 @@ SongUtil::GetOneSteps(const Song* pSong,
 					  unsigned uHash,
 					  bool bIncludeAutoGen)
 {
-	vector<Steps*> vpSteps;
+	std::vector<Steps*> vpSteps;
 	GetSteps(pSong,
 			 vpSteps,
 			 st,
@@ -167,7 +167,7 @@ SongUtil::GetStepsByDescription(const Song* pSong,
 								StepsType st,
 								const std::string& sDescription)
 {
-	vector<Steps*> vNotes;
+	std::vector<Steps*> vNotes;
 	GetSteps(
 	  pSong, vNotes, st, Difficulty_Invalid, -1, -1, false, sDescription, "");
 	if (vNotes.empty())
@@ -180,7 +180,7 @@ SongUtil::GetStepsByCredit(const Song* pSong,
 						   StepsType st,
 						   const std::string& sCredit)
 {
-	vector<Steps*> vNotes;
+	std::vector<Steps*> vNotes;
 	GetSteps(pSong, vNotes, st, Difficulty_Invalid, -1, -1, false, "", sCredit);
 	if (vNotes.empty())
 		return nullptr;
@@ -227,7 +227,7 @@ SongUtil::AdjustDuplicateSteps(Song* pSong)
 			if (dc == Difficulty_Edit)
 				continue;
 
-			vector<Steps*> vSteps;
+			std::vector<Steps*> vSteps;
 			GetSteps(pSong, vSteps, st, dc);
 
 			/* Delete steps that are completely identical.  This happened due to
@@ -268,7 +268,7 @@ RemoveInitialWhitespace(std::string s)
 
 /* This is called within TidyUpData, before autogen notes are added. */
 void
-SongUtil::DeleteDuplicateSteps(Song* pSong, vector<Steps*>& vSteps)
+SongUtil::DeleteDuplicateSteps(Song* pSong, std::vector<Steps*>& vSteps)
 {
 	/* vSteps have the same StepsType and Difficulty.  Delete them if they have
 	 * the same m_sDescription, m_sCredit, m_iMeter and SMNoteData. */
@@ -385,6 +385,32 @@ CompareSongPointersByTitle(const Song* pSong1, const Song* pSong2)
 }
 
 static bool
+CompareSongPointersByArtist(const Song* pSong1, const Song* pSong2)
+{
+	// Prefer transliterations
+	auto s1 = pSong1->GetTranslitArtist();
+	auto s2 = pSong2->GetTranslitArtist();
+	if (s1 == s2) {
+		s1 = pSong1->GetTranslitMainTitle();
+		s2 = pSong2->GetTranslitMainTitle();
+	}
+
+	SongUtil::MakeSortString(s1);
+	SongUtil::MakeSortString(s2);
+
+	const auto ret = strcmp(s1.c_str(), s2.c_str());
+	if (ret < 0)
+		return true;
+	if (ret > 0)
+		return false;
+
+	/* They are the same.  Ensure we get a consistent ordering
+	 * by comparing the unique SongFilePaths. */
+	return CompareNoCase(pSong1->GetSongFilePath(), pSong2->GetSongFilePath()) <
+		   0;
+}
+
+static bool
 CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 {
 	// Prefer transliterations to full titles
@@ -404,7 +430,7 @@ CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 		   0;
 }
 void
-SongUtil::SortSongPointerArrayByTitle(vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByTitle(std::vector<Song*>& vpSongsInOut)
 {
 	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByTitle);
 }
@@ -426,7 +452,7 @@ CompareSongPointersByBPM(const Song* pSong1, const Song* pSong2)
 }
 
 void
-SongUtil::SortSongPointerArrayByBPM(vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByBPM(std::vector<Song*>& vpSongsInOut)
 {
 	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByBPM);
 }
@@ -468,7 +494,7 @@ CompareSongPointersByLength(const Song* a, const Song* b)
 }
 
 void
-SongUtil::SortSongPointerArrayByLength(vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByLength(std::vector<Song*>& vpSongsInOut)
 {
 	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByLength);
 }
@@ -523,13 +549,13 @@ CompareSongPointersByBestWifeScore(const Song* a, const Song* b)
 }
 
 void
-SongUtil::SortSongPointerArrayByWifeScore(vector<Song*>& v)
+SongUtil::SortSongPointerArrayByWifeScore(std::vector<Song*>& v)
 {
 	sort(v.begin(), v.end(), CompareSongPointersByBestWifeScore);
 }
 
 void
-SongUtil::SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByArtist(std::vector<Song*>& vpSongsInOut)
 {
 	for (auto& i : vpSongsInOut)
 		g_mapSongSortVal[i] =
@@ -542,7 +568,7 @@ SongUtil::SortSongPointerArrayByArtist(vector<Song*>& vpSongsInOut)
 /* This is for internal use, not display; sorting by Unicode codepoints isn't
  * very interesting for display. */
 void
-SongUtil::SortSongPointerArrayByDisplayArtist(vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByDisplayArtist(std::vector<Song*>& vpSongsInOut)
 {
 	for (auto& i : vpSongsInOut)
 		g_mapSongSortVal[i] = MakeSortString(i->GetDisplayArtist());
@@ -558,7 +584,7 @@ CompareSongPointersByGenre(const Song* pSong1, const Song* pSong2)
 }
 
 void
-SongUtil::SortSongPointerArrayByGenre(vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByGenre(std::vector<Song*>& vpSongsInOut)
 {
 	stable_sort(
 	  vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByGenre);
@@ -606,14 +632,14 @@ CompareSongPointersByGroupAndMSD(Skillset ss)
 	};
 }
 void
-SongUtil::SortSongPointerArrayByGroupAndTitle(vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByGroupAndTitle(std::vector<Song*>& vpSongsInOut)
 {
 	sort(vpSongsInOut.begin(),
 		 vpSongsInOut.end(),
 		 CompareSongPointersByGroupAndTitle);
 }
 void
-SongUtil::SortSongPointerArrayByGroupAndMSD(vector<Song*>& vpSongsInOut,
+SongUtil::SortSongPointerArrayByGroupAndMSD(std::vector<Song*>& vpSongsInOut,
 											Skillset ss)
 {
 	sort(vpSongsInOut.begin(),
@@ -622,7 +648,7 @@ SongUtil::SortSongPointerArrayByGroupAndMSD(vector<Song*>& vpSongsInOut,
 }
 
 void
-SongUtil::SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
+SongUtil::SortSongPointerArrayByNumPlays(std::vector<Song*>& vpSongsInOut,
 										 ProfileSlot slot,
 										 bool bDescending)
 {
@@ -632,7 +658,7 @@ SongUtil::SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
 
 // dumb and should be handled by scoreman
 void
-SongUtil::SortSongPointerArrayByNumPlays(vector<Song*>& vpSongsInOut,
+SongUtil::SortSongPointerArrayByNumPlays(std::vector<Song*>& vpSongsInOut,
 										 const Profile* pProfile,
 										 bool bDescending)
 {
@@ -737,13 +763,15 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 		}
 		case SORT_MODE_MENU:
 			return std::string();
+		case SORT_Ungrouped:
+			return "";
 		default:
 			FAIL_M(ssprintf("Invalid SortOrder: %i", so));
 	}
 }
 
 void
-SongUtil::SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut,
+SongUtil::SortSongPointerArrayBySectionName(std::vector<Song*>& vpSongsInOut,
 											SortOrder so)
 {
 	const auto sOther = SORT_OTHER.GetValue();
@@ -770,7 +798,7 @@ SongUtil::SortSongPointerArrayBySectionName(vector<Song*>& vpSongsInOut,
 }
 
 void
-SongUtil::SortSongPointerArrayByStepsTypeAndMeter(vector<Song*>& vpSongsInOut,
+SongUtil::SortSongPointerArrayByStepsTypeAndMeter(std::vector<Song*>& vpSongsInOut,
 												  StepsType st,
 												  Difficulty dc)
 {
@@ -994,7 +1022,7 @@ SongUtil::ValidateCurrentStepsMusic(const std::string& answer,
 }
 
 void
-SongUtil::GetAllSongGenres(vector<std::string>& vsOut)
+SongUtil::GetAllSongGenres(std::vector<std::string>& vsOut)
 {
 	set<std::string> genres;
 	for (const auto& song : SONGMAN->GetAllSongs()) {
@@ -1010,7 +1038,7 @@ SongUtil::GetAllSongGenres(vector<std::string>& vsOut)
 void
 SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 {
-	vector<const Style*> vpPossibleStyles;
+	std::vector<const Style*> vpPossibleStyles;
 	// If AutoSetStyle, or a Style hasn't been chosen, check StepsTypes for all
 	// Styles.
 	if (CommonMetrics::AUTO_SET_STYLE ||
@@ -1042,7 +1070,7 @@ SongUtil::GetPlayableStepsTypes(const Song* pSong, set<StepsType>& vOut)
 
 void
 SongUtil::GetPlayableSteps(const Song* pSong,
-						   vector<Steps*>& vOut,
+						   std::vector<Steps*>& vOut,
 						   bool filteringSteps)
 {
 	set<StepsType> vStepsType;
@@ -1067,7 +1095,7 @@ SongUtil::IsStepsTypePlayable(Song* pSong, StepsType st)
 bool
 SongUtil::IsStepsPlayable(Song* pSong, Steps* pSteps)
 {
-	vector<Steps*> vpSteps;
+	std::vector<Steps*> vpSteps;
 	GetPlayableSteps(pSong, vpSteps);
 	return find(vpSteps.begin(), vpSteps.end(), pSteps) != vpSteps.end();
 }
@@ -1178,7 +1206,7 @@ int
 GetPlayableSteps(lua_State* L)
 {
 	const Song* pSong = Luna<Song>::check(L, 1, true);
-	vector<Steps*> vSteps;
+	std::vector<Steps*> vSteps;
 	SongUtil::GetPlayableSteps(pSong, vSteps);
 	LuaHelpers::CreateTableFromArray<Steps*>(vSteps, L);
 	return 1;
@@ -1212,10 +1240,21 @@ SongTitleComparator(lua_State* L)
 	return 1;
 }
 
+int
+SongArtistComparator(lua_State* L)
+{
+	auto* p1 = Luna<Song>::check(L, 1, true);
+	auto* p2 = Luna<Song>::check(L, 2, true);
+	const auto b = CompareSongPointersByArtist(p1, p2);
+	LuaHelpers::Push(L, b);
+	return 1;
+}
+
 const luaL_Reg SongUtilTable[] = { LIST_METHOD(GetPlayableSteps),
 								   LIST_METHOD(IsStepsTypePlayable),
 								   LIST_METHOD(IsStepsPlayable),
 								   LIST_METHOD(SongTitleComparator),
+								   LIST_METHOD(SongArtistComparator),
 								   { nullptr, nullptr } };
 }
 

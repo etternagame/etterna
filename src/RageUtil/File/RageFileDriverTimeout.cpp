@@ -106,7 +106,7 @@ class ThreadedFileWorker : public RageWorkerThread
 	RageFileDriver* m_pChildDriver;
 
 	/* List of files to delete: */
-	vector<RageFileBasic*> m_apDeletedFiles;
+	std::vector<RageFileBasic*> m_apDeletedFiles;
 	RageMutex m_DeletedFilesLock;
 
 	/* REQ_OPEN, REQ_POPULATE_FILE_SET, REQ_FLUSH_DIR_CACHE, REQ_REMOVE,
@@ -145,7 +145,7 @@ class ThreadedFileWorker : public RageWorkerThread
 	char* m_pRequestBuffer; /* in */
 };
 
-static vector<ThreadedFileWorker*> g_apWorkers;
+static std::vector<ThreadedFileWorker*> g_apWorkers;
 static RageMutex g_apWorkersMutex("WorkersMutex");
 
 /* Set the timeout length, and reset the timer. */
@@ -202,7 +202,7 @@ ThreadedFileWorker::HandleRequest(int iRequest)
 {
 	{
 		m_DeletedFilesLock.Lock();
-		vector<RageFileBasic*> apDeletedFiles = m_apDeletedFiles;
+		std::vector<RageFileBasic*> apDeletedFiles = m_apDeletedFiles;
 		m_apDeletedFiles.clear();
 		m_DeletedFilesLock.Unlock();
 
@@ -323,7 +323,7 @@ ThreadedFileWorker::Open(const std::string& sPath, int iMode, int& iErr)
 	m_iRequestMode = iMode;
 
 	if (!DoRequest(REQ_OPEN)) {
-		Locator::getLogger()->trace("Open({}) timed out", sPath.c_str());
+		Locator::getLogger()->debug("Open({}) timed out", sPath.c_str());
 		iErr = EFAULT; /* Win32 has no ETIMEDOUT */
 		return nullptr;
 	}
@@ -609,7 +609,7 @@ ThreadedFileWorker::PopulateFileSet(FileSet& fs, const std::string& sPath)
 
 	/* Kick off the worker thread, and wait for it to finish. */
 	if (!DoRequest(REQ_POPULATE_FILE_SET)) {
-		Locator::getLogger()->trace("PopulateFileSet({}) timed out", sPath.c_str());
+		Locator::getLogger()->debug("PopulateFileSet({}) timed out", sPath.c_str());
 		return false;
 	}
 
@@ -680,7 +680,7 @@ ThreadedFileWorker::FlushDirCache(const std::string& sPath)
 		if (!bTimeoutEnabled)
 			SetTimeout(-1);
 
-		Locator::getLogger()->trace("FlushDirCache({}) timed out", sPath.c_str());
+		Locator::getLogger()->debug("FlushDirCache({}) timed out", sPath.c_str());
 		return false;
 	}
 

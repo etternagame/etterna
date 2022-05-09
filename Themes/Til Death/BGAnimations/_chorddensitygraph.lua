@@ -55,6 +55,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+		parent.npsVector = npsVector
 		local numberOfColumns = #npsVector
 		local columnWidth = wodth/numberOfColumns * rate
 		
@@ -71,14 +72,20 @@ local function updateGraphMultiVertex(parent, realgraph)
 		hodth = hidth/hodth
 		local verts = {} -- reset the vertices for the graph
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
+		local lastIndex = 1
 		for density = 1,ncol do
 			for column = 1,numberOfColumns do
 					if graphVectors[density][column] > 0 then
 						local barColor = getColorForDensity(density, ncol)
 						makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
+						if column > lastIndex then
+							lastIndex = column
+						end
 					end
 			end
 		end
+
+		parent.finalNPSVectorIndex = lastIndex
 		
 		realgraph:SetVertices(verts)
 		realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
@@ -115,8 +122,7 @@ local t = Def.ActorFrame {
     }
 }
 
-t[#t+1] =
-	Def.ActorMultiVertex {
+t[#t+1] = Def.ActorMultiVertex {
 		Name = "CDGraphDrawer",
 		GraphUpdateCommand = function(self)
 			if self:IsVisible() then

@@ -108,7 +108,7 @@ OptionRowHandler::GetIconTextAndGameCommand(int /*iFirstSelection*/,
 
 void
 OptionRowHandlerUtil::SelectExactlyOne(int iSelection,
-									   vector<bool>& vbSelectedOut)
+									   std::vector<bool>& vbSelectedOut)
 {
 	ASSERT_M(iSelection >= 0 && iSelection < (int)vbSelectedOut.size(),
 			 ssprintf("%d/%u", iSelection, unsigned(vbSelectedOut.size())));
@@ -118,7 +118,7 @@ OptionRowHandlerUtil::SelectExactlyOne(int iSelection,
 }
 
 auto
-OptionRowHandlerUtil::GetOneSelection(const vector<bool>& vbSelected) -> int
+OptionRowHandlerUtil::GetOneSelection(const std::vector<bool>& vbSelected) -> int
 {
 	auto iRet = -1;
 	for (unsigned i = 0; i < vbSelected.size(); i++) {
@@ -151,10 +151,10 @@ static LocalizedString OFF("OptionRowHandler", "Off");
 class OptionRowHandlerList : public OptionRowHandler
 {
   public:
-	vector<GameCommand> m_aListEntries;
+	std::vector<GameCommand> m_aListEntries;
 	GameCommand m_Default;
 	bool m_bUseModNameForIcon{};
-	vector<std::string> m_vsBroadcastOnExport;
+	std::vector<std::string> m_vsBroadcastOnExport;
 
 	OptionRowHandlerList() { Init(); }
 	void Init() override
@@ -275,7 +275,7 @@ class OptionRowHandlerList : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		const auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
@@ -323,7 +323,7 @@ class OptionRowHandlerList : public OptionRowHandler
 				  ssprintf("No options in row \"list,%s\" were selected, "
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
-				Locator::getLogger()->warn(s.c_str());
+				Locator::getLogger()->warn("{}", s.c_str());
 				iFallbackOption = 0;
 			}
 
@@ -334,7 +334,7 @@ class OptionRowHandlerList : public OptionRowHandler
 	}
 
 	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
-									const vector<bool>& vbSelected) const
+									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
 		const auto p = vpns;
@@ -388,7 +388,7 @@ class OptionRowHandlerList : public OptionRowHandler
 };
 
 static void
-SortNoteSkins(vector<std::string>& asSkinNames)
+SortNoteSkins(std::vector<std::string>& asSkinNames)
 {
 	std::set<std::string> setSkinNames;
 	setSkinNames.insert(asSkinNames.begin(), asSkinNames.end());
@@ -420,7 +420,7 @@ class OptionRowHandlerListNoteSkins : public OptionRowHandlerList
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 		m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 
-		vector<std::string> arraySkinNames;
+		std::vector<std::string> arraySkinNames;
 		NOTESKIN->GetNoteSkinNames(arraySkinNames);
 		SortNoteSkins(arraySkinNames);
 
@@ -465,7 +465,7 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 		{
 			m_Def.m_layoutType = StringToLayoutType(STEPS_ROW_LAYOUT_TYPE);
 
-			vector<Steps*> vpSteps;
+			std::vector<Steps*> vpSteps;
 			Song* pSong = GAMESTATE->m_pCurSong;
 			SongUtil::GetSteps(
 			  pSong,
@@ -515,8 +515,8 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	BroadcastOnChangePtrWithSelf<Steps>* m_ppStepsToFill{};
 	BroadcastOnChange<Difficulty>* m_pDifficultyToFill{};
 	const BroadcastOnChange<StepsType>* m_pst{};
-	vector<Steps*> m_vSteps;
-	vector<Difficulty> m_vDifficulties;
+	std::vector<Steps*> m_vSteps;
+	std::vector<Difficulty> m_vDifficulties;
 
 	OptionRowHandlerSteps() { Init(); }
 	void Init() override
@@ -611,7 +611,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		const auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
@@ -648,7 +648,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 	}
 
 	[[nodiscard]] auto ExportOption(const PlayerNumber& /*vpns*/,
-									const vector<bool>& vbSelected) const
+									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
 		const auto& vbSel = vbSelected;
@@ -673,7 +673,7 @@ class OptionRowHandlerListStyles : public OptionRowHandlerList
 		m_Def.m_sName = "Style";
 		m_Def.m_bAllowThemeItems = false; // we theme the text ourself
 
-		vector<const Style*> vStyles;
+		std::vector<const Style*> vStyles;
 		GAMEMAN->GetStylesForGame(GAMESTATE->m_pCurGame, vStyles);
 		ASSERT(!vStyles.empty());
 		FOREACH_CONST(const Style*, vStyles, s)
@@ -698,7 +698,7 @@ class OptionRowHandlerListGroups : public OptionRowHandlerList
 		m_Def.m_sName = "Group";
 		m_Default.m_sSongGroup = GROUP_ALL;
 
-		vector<std::string> vSongGroups;
+		std::vector<std::string> vSongGroups;
 		SONGMAN->GetSongGroupNames(vSongGroups);
 		ASSERT(!vSongGroups.empty());
 
@@ -1132,7 +1132,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 
 	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		if (!m_TableIsSane) {
 			return;
@@ -1190,7 +1190,7 @@ class OptionRowHandlerLua : public OptionRowHandler
 	}
 
 	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
-									const vector<bool>& vbSelected) const
+									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
 		if (!m_TableIsSane) {
@@ -1335,7 +1335,7 @@ class OptionRowHandlerConfig : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* /*unused*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
@@ -1345,7 +1345,7 @@ class OptionRowHandlerConfig : public OptionRowHandler
 	}
 
 	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
-									const vector<bool>& vbSelected) const
+									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
 		auto bChanged = false;
@@ -1377,7 +1377,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 {
   public:
 	BroadcastOnChange<StepsType>* m_pstToFill{};
-	vector<StepsType> m_vStepsTypesToShow;
+	std::vector<StepsType> m_vStepsTypesToShow;
 
 	OptionRowHandlerStepsType() { Init(); }
 	void Init() override
@@ -1432,7 +1432,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 
 	void ImportOption(OptionRow* /*pRow*/,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
@@ -1451,7 +1451,7 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 	}
 
 	[[nodiscard]] auto ExportOption(const PlayerNumber& vpns,
-									const vector<bool>& vbSelected) const
+									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
 		auto p = vpns;
@@ -1495,12 +1495,12 @@ class OptionRowHandlerGameCommand : public OptionRowHandler
 	}
 	void ImportOption(OptionRow* pRow,
 					  const PlayerNumber& vpns,
-					  vector<bool>& vbSelectedOut) const override
+					  std::vector<bool>& vbSelectedOut) const override
 	{
 	}
 
 	[[nodiscard]] auto ExportOption(const PlayerNumber& /*vpns*/,
-									const vector<bool>& vbSelected) const
+									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
 		if (vbSelected[0]) {

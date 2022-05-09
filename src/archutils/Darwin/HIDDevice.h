@@ -143,7 +143,7 @@ class HIDDevice
 	 * passed to determine if this is a push or a release. The time is provided
 	 * as an optimization. */
 	virtual void GetButtonPresses(
-	  vector<DeviceInput>& vPresses,
+	  std::vector<DeviceInput>& vPresses,
 	  IOHIDElementCookie cookie,
 	  int value,
 	  const std::chrono::time_point<std::chrono::steady_clock>& now) const = 0;
@@ -158,7 +158,7 @@ class HIDDevice
 
 	// Add a device and a description for each logical device.
 	virtual void GetDevicesAndDescriptions(
-	  vector<InputDeviceInfo>& vDevices) const = 0;
+	  std::vector<InputDeviceInfo>& vDevices) const = 0;
 };
 
 #endif

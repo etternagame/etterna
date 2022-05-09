@@ -48,22 +48,6 @@ public:
 };
 
 PlogLogger::PlogLogger() {
-    // Get current time for log file name. Format: YYYY_MM_DD-HH_MM_SS.log
-    char timeString[20]; // Date and time portion only
-    std::time_t t = std::time(nullptr);
-    std::strftime(timeString, sizeof(timeString), "%Y_%m_%d-%H_%M_%S", std::localtime(&t));
-    auto logDirectory = Core::Platform::getAppDirectory() / "Logs";
-
-    // Ensure log directory exists before initializing logger.
-    if(!ghc::filesystem::exists(logDirectory))
-        ghc::filesystem::create_directory(logDirectory);
-
-    auto logFilePath = logDirectory / fmt::format(FMT_STRING("{}.log"), timeString);
-
-    // File Appender
-    static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFilePath.c_str()};
-    plog::init(plog::Severity::info, &rollingFileAppender);
-
     // Console Appender. One for windows, and another for other operating systems.
     #ifdef _WIN32
         static plog::WindowsAppender<EtternaFormatter> consoleAppender;
@@ -71,6 +55,32 @@ PlogLogger::PlogLogger() {
         static plog::ColorConsoleAppender<EtternaFormatter> consoleAppender;
     #endif
     plog::init(plog::Severity::info, &consoleAppender);
+
+
+    // Get current time for log file name. Format: YYYY_MM_DD-HH_MM_SS.log
+    char timeString[20]; // Date and time portion only
+    std::time_t t = std::time(nullptr);
+    std::strftime(timeString, sizeof(timeString), "%Y_%m_%d-%H_%M_%S", std::localtime(&t));
+    auto logDirectory = Core::Platform::getAppDirectory() / "Logs";
+
+    namespace fs = ghc::filesystem;
+    // Ensure log directory exists and is writable before initializing logger.
+    auto appDirPerms = fs::status(Core::Platform::getAppDirectory()).permissions();
+    auto writable = (appDirPerms & (fs::perms::owner_write )) != fs::perms::none;
+
+    // If not writable, only output to console.
+    if(!writable)
+        return;
+
+    if(!fs::exists(logDirectory))
+        fs::create_directory(logDirectory);
+
+    auto logFilePath = logDirectory / fmt::format(FMT_STRING("{}.log"), timeString);
+
+    // File Appender
+    static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFilePath.c_str()};
+	currentLogFile = absolute(logFilePath);
+    plog::init(plog::Severity::info, &rollingFileAppender);
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
@@ -79,6 +89,10 @@ void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view me
 
 void PlogLogger::setLogLevel(Core::ILogger::Severity logLevel) {
     plog::get()->setMaxSeverity(convertSeverity(logLevel));
+}
+
+std::string PlogLogger::getLogFile(){
+	return currentLogFile;
 }
 
 plog::Severity PlogLogger::convertSeverity(ILogger::Severity logLevel) {

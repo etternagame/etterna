@@ -61,7 +61,11 @@ function GivenGameToFullNSkinElements(game)
 		solo = {
 			--"Left", "UpLeft", "UpRight", "Right"
 			"Left", "UpLeft", "Down", "Up", "UpRight", "Right"
-		}
+		},
+		popn = {
+			--"Left White", "Left Yellow", "Left Green", "Left Blue"
+			"Left White", "Left Yellow", "Left Green", "Left Blue", "Red", "Right Blue", "Right Green", "Right Yellow", "Right White"
+		},
 	}
 	return theTable[game]
 end
@@ -86,7 +90,11 @@ function GivenGameToNSkinElements(game)
 		solo = {
 			"Left", "UpLeft", "UpRight", "Right"
 			--"Left", "UpLeft", "Down", "Up", "UpRight", "Right"
-		}
+		},
+		popn = {
+			"Left White", "Left Yellow", "Left Green", "Left Blue" -- etc.....
+			--"Left White", "Left Yellow", "Left Green", "Left Blue", "Red", "Right Blue", "Right Green", "Right Yellow", "Right White"
+		},
 	}
 	return theTable[game]
 end

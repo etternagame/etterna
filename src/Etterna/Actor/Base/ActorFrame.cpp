@@ -148,7 +148,7 @@ ActorFrame::AddChild(Actor* pActor)
 {
 #ifdef DEBUG
 	// check that this Actor isn't already added.
-	vector<Actor*>::iterator iter =
+	std::vector<Actor*>::iterator iter =
 	  find(m_SubActors.begin(), m_SubActors.end(), pActor);
 	if (iter != m_SubActors.end())
 		Dialog::OK(ssprintf("Actor \"%s\" adds child \"%s\" more than once",
@@ -815,7 +815,7 @@ class LunaActorFrame : public Luna<ActorFrame>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		vector<float> coords;
+		std::vector<float> coords;
 		LuaHelpers::ReadArrayFromTable(coords, L);
 		lua_pop(L, 1);
 		if (coords.size() != 3) {

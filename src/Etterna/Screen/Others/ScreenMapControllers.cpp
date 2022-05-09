@@ -22,8 +22,8 @@ static LocalizedString SAVE_PROMPT("ScreenMapControllers", "SavePrompt");
 
 static const float g_fSecondsToWaitForInput = 0.05f;
 
-// reserve the 3rd slot for hard-coded keys
-static const int NUM_CHANGABLE_SLOTS = NUM_SHOWN_GAME_TO_DEVICE_SLOTS - 1;
+// two keys are allowed to be bound by the player
+static const int NUM_CHANGABLE_SLOTS = NUM_USER_GAME_TO_DEVICE_SLOTS;
 
 REGISTER_SCREEN_CLASS(ScreenMapControllers);
 
@@ -76,7 +76,7 @@ ScreenMapControllers::Init()
 		/* Map the specified buttons. */
 		// Specifying gamebuttons here crashes when switching games.
 		// Specify menu buttons here (using metrics) if need to be rebound.
-		vector<std::string> asBits;
+		std::vector<std::string> asBits;
 		split(sButtons, ",", asBits);
 		for (unsigned i = 0; i < asBits.size(); ++i) {
 			KeyToMap k;
@@ -803,7 +803,7 @@ ScreenMapControllers::ExitAction()
 bool
 ScreenMapControllers::SanityCheckWrapper()
 {
-	vector<std::string> reasons_not_sane;
+	std::vector<std::string> reasons_not_sane;
 	INPUTMAPPER->SanityCheckMappings(reasons_not_sane);
 	if (reasons_not_sane.empty()) {
 		return true;

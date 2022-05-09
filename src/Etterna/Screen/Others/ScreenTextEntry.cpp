@@ -42,6 +42,9 @@ static const char* g_szKeys[NUM_KeyboardRow][KEYS_PER_ROW] = {
 };
 
 std::string ScreenTextEntry::s_sLastAnswer = "";
+bool ScreenTextEntry::s_bMustResetInputRedirAtClose = false;
+bool ScreenTextEntry::s_bResetInputRedirTo = false;
+
 
 // Settings:
 namespace {
@@ -357,6 +360,8 @@ ScreenTextEntry::Init()
 {
 	ScreenWithMenuElements::Init();
 
+	MESSAGEMAN->Broadcast("BeginTextEntry");
+
 	m_textQuestion.LoadFromFont(THEME->GetPathF(m_sName, "question"));
 	m_textQuestion.SetName("Question");
 	LOAD_ALL_COMMANDS(m_textQuestion);
@@ -383,6 +388,11 @@ ScreenTextEntry::BeginScreen()
 		m_sAnswer = StringToWString(g_sInitialAnswer);
 
 	ScreenWithMenuElements::BeginScreen();
+
+	if (s_bMustResetInputRedirAtClose) {
+		s_bResetInputRedirTo = SCREENMAN->get_input_redirected(PLAYER_1);
+		SCREENMAN->set_input_redirected(PLAYER_1, false);
+	}
 
 	if (sQuestion != "")
 		m_textQuestion.SetText(sQuestion);
@@ -550,6 +560,7 @@ ScreenTextEntry::End(bool bCancelled)
 
 		Cancel(SM_GoToNextScreen);
 		// TweenOffScreen();
+		MESSAGEMAN->Broadcast("CancelTextEntry");
 	} else {
 		std::string sAnswer = WStringToString(m_sAnswer);
 		std::string sError;
@@ -582,12 +593,18 @@ ScreenTextEntry::End(bool bCancelled)
 			g_pOnOK(ret);
 		}
 
+		MESSAGEMAN->Broadcast("CompleteTextEntry");
+
 		StartTransitioningScreen(SM_GoToNextScreen);
 		SCREENMAN->PlayStartSound();
 	}
 
 	s_bCancelledLast = bCancelled;
 	s_sLastAnswer = bCancelled ? std::string("") : WStringToString(m_sAnswer);
+	if (s_bMustResetInputRedirAtClose) {
+		s_bMustResetInputRedirAtClose = false;
+		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
+	}
 }
 
 bool
@@ -603,7 +620,7 @@ void
 ScreenTextEntry::TextEntrySettings::FromStack(lua_State* L)
 {
 	if (lua_type(L, 1) != LUA_TTABLE) {
-		Locator::getLogger()->trace("not a table");
+		Locator::getLogger()->error("ScreenTextEntry FromStack: not a table");
 		return;
 	}
 

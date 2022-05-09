@@ -332,14 +332,14 @@ ActorMultiVertex::SetVertsFromSplinesInternal(size_t num_splines, size_t offset)
 	  AMV_DestTweenState().GetSafeNumToDraw(AMV_DestTweenState()._DrawMode,
 											AMV_DestTweenState().NumToDraw) -
 	  offset;
-	vector<float> tper(num_splines, 0.0f);
+	std::vector<float> tper(num_splines, 0.0f);
 	const auto num_parts =
 	  (static_cast<float>(num_verts) / static_cast<float>(num_splines)) - 1.0f;
 	for (size_t i = 0; i < num_splines; ++i) {
 		tper[i] = _splines[i].get_max_t() / num_parts;
 	}
 	for (size_t v = 0; v < num_verts; ++v) {
-		vector<float> pos;
+		std::vector<float> pos;
 		const int spi = v % num_splines;
 		const auto part = static_cast<float>(v) / num_splines;
 		_splines[spi].evaluate(part * tper[spi], pos);
@@ -1079,7 +1079,7 @@ class LunaActorMultiVertex : public Luna<ActorMultiVertex>
 		if (tex == nullptr) {
 			luaL_error(L, "The texture must be set before adding states.");
 		}
-		vector<ActorMultiVertex::State> new_states;
+		std::vector<ActorMultiVertex::State> new_states;
 		const auto num_states = lua_objlen(L, 1);
 		new_states.resize(num_states);
 		for (size_t i = 0; i < num_states; ++i) {

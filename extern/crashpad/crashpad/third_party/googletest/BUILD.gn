@@ -28,7 +28,6 @@ if (crashpad_is_in_chromium) {
   group("googletest") {
     testonly = true
     public_deps = [ "//third_party/googletest:gtest" ]
-    public_configs = [ "../..:disable_ubsan" ]
   }
   group("googlemock") {
     testonly = true
@@ -91,7 +90,7 @@ if (crashpad_is_in_chromium) {
     ]
     sources -= [ "$googletest_dir/googletest/src/gtest-all.cc" ]
     public_configs = [ ":googletest_public_config" ]
-    configs -= [ "$mini_chromium_dir/build:Wexit_time_destructors" ]
+    configs -= [ "$mini_chromium_dir/build/config:Wexit_time_destructors" ]
     configs += [ ":googletest_private_config" ]
     if (crashpad_is_fuchsia) {
       deps = [ "../fuchsia" ]
@@ -114,7 +113,6 @@ if (crashpad_is_in_chromium) {
       "$googletest_dir/googletest/test/googletest-message-test.cc",
       "$googletest_dir/googletest/test/googletest-options-test.cc",
       "$googletest_dir/googletest/test/googletest-port-test.cc",
-      "$googletest_dir/googletest/test/googletest-printers-test.cc",
       "$googletest_dir/googletest/test/googletest-test-part-test.cc",
       "$googletest_dir/googletest/test/gtest-typed-test2_test.cc",
       "$googletest_dir/googletest/test/gtest-typed-test_test.cc",
@@ -127,7 +125,16 @@ if (crashpad_is_in_chromium) {
       "$googletest_dir/googletest/test/production.cc",
       "$googletest_dir/googletest/test/production.h",
     ]
-    configs -= [ "$mini_chromium_dir/build:Wexit_time_destructors" ]
+
+    if (!crashpad_is_win) {
+      # TODO: Fix error C2015: too many characters in constant. As this error
+      # cannot be suppressed, removing the test on Windows. See
+      # https://chromium-review.googlesource.com/c/crashpad/crashpad/+/2855854/2
+      # for details.
+      sources +=
+          [ "$googletest_dir/googletest/test/googletest-printers-test.cc" ]
+    }
+    configs -= [ "$mini_chromium_dir/build/config:Wexit_time_destructors" ]
     configs += [ ":googletest_private_config" ]
     deps = [
       ":googletest",
@@ -166,7 +173,7 @@ if (crashpad_is_in_chromium) {
       "$googletest_dir/googletest/test/googletest-param-test-test.h",
       "$googletest_dir/googletest/test/googletest-param-test2-test.cc",
     ]
-    configs -= [ "$mini_chromium_dir/build:Wexit_time_destructors" ]
+    configs -= [ "$mini_chromium_dir/build/config:Wexit_time_destructors" ]
     configs += [ ":googletest_private_config" ]
     deps = [ ":googletest" ]
 
@@ -241,17 +248,6 @@ if (crashpad_is_in_chromium) {
 
   config("googlemock_public_config") {
     include_dirs = [ "$googletest_dir/googlemock/include" ]
-
-    if (crashpad_is_clang) {
-      cflags_cc = [
-        # The MOCK_METHODn() macros do not specify “override”, which triggers
-        # this warning in users: “error: 'Method' overrides a member function
-        # but is not marked 'override'
-        # [-Werror,-Winconsistent-missing-override]”. Suppress these warnings
-        # until https://github.com/google/googletest/issues/533 is fixed.
-        "-Wno-inconsistent-missing-override",
-      ]
-    }
   }
 
   static_library("googlemock") {
@@ -260,7 +256,6 @@ if (crashpad_is_in_chromium) {
       "$googletest_dir/googlemock/include/gmock/gmock-actions.h",
       "$googletest_dir/googlemock/include/gmock/gmock-cardinalities.h",
       "$googletest_dir/googlemock/include/gmock/gmock-function-mocker.h",
-      "$googletest_dir/googlemock/include/gmock/gmock-generated-actions.h",
       "$googletest_dir/googlemock/include/gmock/gmock-matchers.h",
       "$googletest_dir/googlemock/include/gmock/gmock-more-actions.h",
       "$googletest_dir/googlemock/include/gmock/gmock-more-matchers.h",
@@ -282,7 +277,7 @@ if (crashpad_is_in_chromium) {
     ]
     sources -= [ "$googletest_dir/googlemock/src/gmock-all.cc" ]
     public_configs = [ ":googlemock_public_config" ]
-    configs -= [ "$mini_chromium_dir/build:Wexit_time_destructors" ]
+    configs -= [ "$mini_chromium_dir/build/config:Wexit_time_destructors" ]
     configs += [ ":googlemock_private_config" ]
     deps = [ ":googletest" ]
   }
@@ -303,8 +298,6 @@ if (crashpad_is_in_chromium) {
       "$googletest_dir/googlemock/test/gmock-actions_test.cc",
       "$googletest_dir/googlemock/test/gmock-cardinalities_test.cc",
       "$googletest_dir/googlemock/test/gmock-function-mocker_test.cc",
-      "$googletest_dir/googlemock/test/gmock-generated-actions_test.cc",
-      "$googletest_dir/googlemock/test/gmock-generated-matchers_test.cc",
       "$googletest_dir/googlemock/test/gmock-internal-utils_test.cc",
       "$googletest_dir/googlemock/test/gmock-matchers_test.cc",
       "$googletest_dir/googlemock/test/gmock-more-actions_test.cc",
@@ -327,10 +320,19 @@ if (crashpad_is_in_chromium) {
 
     if (crashpad_is_clang) {
       cflags_cc = [
+        # googletest/googlemock/test/gmock-function-mocker_test.cc does not
+        # always use the override modifier with MOCK_METHOD.
+        "-Wno-inconsistent-missing-override",
+
         # For googletest/googlemock/test/gmock-matchers_test.cc’s
         # testing::googlemock_matchers_test::Unprintable::c_.
         "-Wno-unused-private-field",
       ]
+    }
+
+    if (crashpad_is_win) {
+      # TODO: Correct SDK in vc\tools\msvc\14.14.26428\include\functional
+      cflags = [ "/wd4789" ]  # VAR of size N bytes will be overrun
     }
   }
 
@@ -350,7 +352,7 @@ if (crashpad_is_in_chromium) {
 
   test("gmock_stress_test") {
     sources = [ "$googletest_dir/googlemock/test/gmock_stress_test.cc" ]
-    configs -= [ "$mini_chromium_dir/build:Wexit_time_destructors" ]
+    configs -= [ "$mini_chromium_dir/build/config:Wexit_time_destructors" ]
     configs += [ ":googlemock_private_config" ]
     deps = [
       ":googlemock",

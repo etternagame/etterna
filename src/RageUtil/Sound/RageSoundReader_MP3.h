@@ -18,22 +18,22 @@ fill_frame_index_cache(madlib_t* mad);
 class RageSoundReader_MP3 : public RageSoundReader_FileReader
 {
   public:
-	OpenResult Open(RageFileBasic* pFile);
+	OpenResult Open(RageFileBasic* pFile) override;
 	void Close();
-	int GetLength() const { return GetLengthConst(false); }
-	int GetLength_Fast() const { return GetLengthConst(true); }
-	int SetPosition(int iSample);
-	int Read(float* pBuf, int iFrames);
-	unsigned GetNumChannels() const { return Channels; }
-	int GetSampleRate() const { return SampleRate; }
-	int GetNextSourceFrame() const;
+	int GetLength() const override { return GetLengthConst(false); }
+	int GetLength_Fast() const override { return GetLengthConst(true); }
+	int SetPosition(int iSample) override;
+	int Read(float* pBuf, int iFrames) override;
+	unsigned GetNumChannels() const override { return Channels; }
+	int GetSampleRate() const override { return SampleRate; }
+	int GetNextSourceFrame() const override;
 	bool SetProperty(const std::string& sProperty, float fValue) override;
 
 	RageSoundReader_MP3();
 	~RageSoundReader_MP3();
 	RageSoundReader_MP3(
 	  const RageSoundReader_MP3&); /* not defined; don't use */
-	RageSoundReader_MP3* Copy() const;
+	RageSoundReader_MP3* Copy() const override;
 
   private:
 	int SampleRate;

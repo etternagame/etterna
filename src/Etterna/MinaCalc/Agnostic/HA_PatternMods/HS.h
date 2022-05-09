@@ -2,10 +2,12 @@
 #include "../../PatternModHelpers.h"
 #include "../MetaIntervalInfo.h"
 
+/// Hand-Agnostic PatternMod detecting Handstream.
+/// Looks for jacks, jumptrills, and hands (3-chords)
 struct HSMod
 {
 	const CalcPatternMod _pmod = HS;
-	// const vector<CalcPatternMod> _dbg = { HSS, HSJ };
+	// const std::vector<CalcPatternMod> _dbg = { HSS, HSJ };
 	const std::string name = "HSMod";
 	const int _tap_size = hand;
 
@@ -67,13 +69,18 @@ struct HSMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
+
 	void decay_mod()
 	{
 		pmod = std::clamp(last_mod - decay_factor, min_mod, max_mod);
 		last_mod = pmod;
 	}
 
-	// inline void set_dbg(vector<float> doot[], const int& i)
+	// inline void set_dbg(std::vector<float> doot[], const int& i)
 	//{
 	//	doot[HSS][i] = jumptrill_prop;
 	//	doot[HSJ][i] = jack_prop;

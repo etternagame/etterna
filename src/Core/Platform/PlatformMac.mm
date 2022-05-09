@@ -10,6 +10,7 @@
 
 #include <fmt/format.h>
 #include <stdio.h>
+#import <dlfcn.h>
 
 
 // Translation Unit Specific Functions
@@ -20,10 +21,51 @@ static std::string getSysctlName(const char* name) {
     return buffer;
 }
 
-namespace Core::Platform {
+// Apple API Translocation variables
+// Apple introduced app translocation in macOS Sierra v10.12, which prevents apps from accessing files outside
+// their own .app directory (via a relative reference). This is a problem for Etterna since all files are accessed with
+// relative references to where the .app directory is located. Apple moves the app to a secure location, then
+// attempts to run the program. Etterna fails right away as it requires those local files. The code in init()
+// will load Apple's private security API, load the functions, and call on them to untranslocate by removing
+// the quarantine restriction on the original binary location. Apple will not accept the app into their app store
+// unless this code is removed.
+void (*mySecTranslocateIsTranslocatedURL)(CFURLRef path, bool *isTranslocated, CFErrorRef* __nullable error);
+CFURLRef __nullable (*mySecTranslocateCreateOriginalPathForURL)(CFURLRef translocatedPath, CFErrorRef * __nullable error);
 
+namespace Core::Platform {
     void init(){
-        Locator::getLogger()->info("macOS has not platform specific initialization");
+        // Load Apple private security API
+        void *handle = dlopen("/System/Library/Frameworks/Security.framework/Security", RTLD_LAZY);
+		if(!handle){
+			Locator::getLogger()->info("Unable to load security framework!\nSkipping translocation check");
+			return;
+		}
+        mySecTranslocateIsTranslocatedURL = reinterpret_cast<void (*)(CFURLRef, bool *, CFErrorRef *)>(dlsym(handle, "SecTranslocateIsTranslocatedURL"));
+        mySecTranslocateCreateOriginalPathForURL = reinterpret_cast<CFURLRef __nullable (*)(CFURLRef, CFErrorRef * __nullable)>(dlsym(handle, "SecTranslocateCreateOriginalPathForURL"));
+		if(!mySecTranslocateIsTranslocatedURL || !mySecTranslocateCreateOriginalPathForURL){
+			Locator::getLogger()->info("Unable to find security framework translocation functions!\nSkipping translocation check");
+			return;
+		}
+
+        // Check if we are translocated
+        bool isTranslocated = false;
+        mySecTranslocateIsTranslocatedURL((__bridge CFURLRef)[NSURL fileURLWithPath:[[NSBundle mainBundle] bundlePath]], &isTranslocated, nullptr);
+
+        if(isTranslocated) {
+            Locator::getLogger()->info("App is translocated! Removing com.apple.quarantine extended attribute");
+
+            // Get original app location
+            auto untranslocatedURL = (NSURL *)mySecTranslocateCreateOriginalPathForURL(static_cast<CFURLRef>(NSBundle.mainBundle.bundleURL), nullptr);
+
+            // Remove quarantine flag
+            std::system(fmt::format("xattr -rd com.apple.quarantine {}", untranslocatedURL.path.UTF8String).c_str());
+
+            // Reopen ignoring other instances
+            std::system(fmt::format("open -n -a {}", untranslocatedURL.path.UTF8String).c_str());
+
+            // Close this instance
+            std::exit(0);
+        }
     }
 
     std::string getSystem(){
@@ -111,7 +153,18 @@ namespace Core::Platform {
     }
 
     void setCursorVisible(bool value){
-        Locator::getLogger()->warn("Core::Platform::setCursorVisible not implemented");
+		static bool cursor_visible = true;
+		/*NSCursor hide/unhide keeps a reference count; each hide
+		 * must be matched by an unhide. We don't want this behaviour, so
+		 * use a state variable
+		 */
+		if(value && !cursor_visible){
+			[NSCursor unhide];
+		}
+		if(!value && cursor_visible){
+			[NSCursor hide];
+		}
+		cursor_visible = value;
     }
 
     ghc::filesystem::path getExecutableDirectory(){
@@ -146,5 +199,11 @@ namespace Core::Platform {
     {
         Locator::getLogger()->warn("Core::Platform::unboostPriority not implemented");
 		return true;
+    }
+
+    bool requestUserAttention()
+    {
+		[NSApp requestUserAttention:NSInformationalRequest];
+        return true;
     }
 }

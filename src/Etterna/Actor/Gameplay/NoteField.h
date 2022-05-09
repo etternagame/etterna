@@ -21,7 +21,7 @@ class NoteField : public ActorFrame
 	void CalcPixelsBeforeAndAfterTargets();
 	void DrawBoardPrimitive();
 
-	void Init(const PlayerState* pPlayerState,
+	void Init(PlayerState* pPlayerState,
 			  float fYReverseOffsetPixels,
 			  bool use_states_zoom = true);
 	void Load(const NoteData* pNoteData,
@@ -108,7 +108,7 @@ class NoteField : public ActorFrame
 
 	const NoteData* m_pNoteData;
 
-	const PlayerState* m_pPlayerState;
+	PlayerState* m_pPlayerState;
 	int m_iDrawDistanceAfterTargetsPixels;	// this should be a negative number
 	int m_iDrawDistanceBeforeTargetsPixels; // this should be a positive number
 	float m_fYReverseOffsetPixels;
@@ -143,7 +143,8 @@ class NoteField : public ActorFrame
 	NoteDisplayCols* m_pDisplays;
 
 	// decorations, mostly used in MODE_EDIT
-	AutoActor m_sprBoard;
+	AutoActor m_sprBoard; // "underlay"
+	AutoActor m_sprCover; // "overlay"
 	float m_fBoardOffsetPixels;
 	float m_fCurrentBeatLastUpdate;		// -1 on first update
 	float m_fYPosCurrentBeatLastUpdate; // -1 on first update

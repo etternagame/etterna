@@ -408,13 +408,6 @@ auto
 DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
   -> bool
 {
-
-	// 4k and 6k only
-	if (GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_single &&
-		GAMESTATE->m_pCurSteps->m_StepsType != StepsType_dance_solo) {
-		return false;
-	}
-
 	// chord cohesion is invalid
 	if (!GAMESTATE->CountNotesSeparately()) {
 		return false;
@@ -459,87 +452,46 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		return false;
 	}
 
-	// mods that modify notedata other than mirror (too lazy to figure out how
-	// to check for these in po)
-	auto mods = ps.m_PlayerOptions.GetStage().GetString();
-
-	// should take care of all 3 shuffle mods
-	if (mods.find("Shuffle") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
+	auto& tfs = ps.m_PlayerOptions.GetStage().m_bTransforms;
+	auto& turns = ps.m_PlayerOptions.GetStage().m_bTurns;
 
 	// only do this if the file doesnt have mines
-	if (mods.find("NoMines") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos &&
-		pss.filegotmines) {
+	if (tfs[PlayerOptions::TRANSFORM_NOMINES] && pss.filegotmines)
 		return false;
+
+	// only do this if the file has holds
+	if ((tfs[PlayerOptions::TRANSFORM_NOHOLDS] ||
+		 tfs[PlayerOptions::TRANSFORM_NOROLLS]) &&
+		pss.filegotholds)
+		return false;
+
+	// invalidate if any transforms are on (Insert and Remove mods)
+	// (this starts after nomines/noholds/norolls)
+	for (int tfi = PlayerOptions::TRANSFORM_LITTLE;
+		 tfi < PlayerOptions::NUM_TRANSFORMS;
+		 tfi++) {
+		PlayerOptions::Transform tf =
+		  static_cast<PlayerOptions::Transform>(tfi);
+
+		if (tfs[tf])
+			return false;
 	}
 
-	// This is a mod which adds mines, replacing existing notes and making files
-	// easier
-	if (ps.m_PlayerOptions.GetStage()
-		  .m_bTransforms[PlayerOptions::TRANSFORM_MINES]) {
-		return false;
+	// invalidate if any turns are on other than Mirror (shuffle)
+	// (this starts after mirror)
+	for (int ti = PlayerOptions::TURN_BACKWARDS;
+		 ti < PlayerOptions::NUM_TURNS;
+		 ti++) {
+		PlayerOptions::Turn t =
+		  static_cast<PlayerOptions::Turn>(ti);
+
+		if (turns[t])
+			return false;
 	}
 
-	// this would be difficult to accomplish but for parity's sake we should
-	if (mods.find("NoHolds") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos &&
-		pss.filegotholds) {
+	// impossible for this to happen but just in case
+	if (ps.m_PlayerOptions.GetStage().m_bPractice)
 		return false;
-	}
-
-	if (mods.find("Left") != std::basic_string<char,
-											   std::char_traits<char>,
-											   std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("Right") != std::basic_string<char,
-												std::char_traits<char>,
-												std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("Backwards") !=
-		std::basic_string<char, std::char_traits<char>, std::allocator<char>>::
-		  npos) {
-		return false;
-	}
-
-	if (mods.find("Little") != std::basic_string<char,
-												 std::char_traits<char>,
-												 std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoJumps") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoHands") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoQuads") != std::basic_string<char,
-												  std::char_traits<char>,
-												  std::allocator<char>>::npos) {
-		return false;
-	}
-
-	if (mods.find("NoStretch") !=
-		std::basic_string<char, std::char_traits<char>, std::allocator<char>>::
-		  npos) {
-		return false;
-	}
 
 	return true;
 }
@@ -550,7 +502,7 @@ FillInHighScore(const PlayerStageStats& pss,
 				const std::string& sRankingToFillInMarker,
 				const std::string& sPlayerGuid) -> HighScore
 {
-	Locator::getLogger()->trace("Filling Highscore");
+	Locator::getLogger()->info("Filling Highscore");
 	HighScore hs;
 	hs.SetName(sRankingToFillInMarker);
 
@@ -590,6 +542,7 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetRadarValues(pss.m_radarActual);
 	hs.SetLifeRemainingSeconds(pss.m_fLifeRemainingSeconds);
 	hs.SetDisqualified(pss.IsDisqualified());
+	hs.SetDSFlag(pss.usedDoubleSetup);
 
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
@@ -619,6 +572,7 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetTrackVector(pss.GetTrackVector());
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
 		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
+		hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
 		// flag this before rescore so it knows we're LEGGIT
 		hs.SetReplayType(2);
 		if (hs.GetTapNoteTypeVector().size() < hs.GetNoteRowVector().size() ||
@@ -668,6 +622,10 @@ FillInHighScore(const PlayerStageStats& pss,
 		}
 	}
 
+	// Input data
+	hs.SetInputDataVector(pss.GetInputDataVector());
+	hs.SetSongOffset(ps.GetDisplayedTiming().m_fBeat0OffsetInSeconds);
+
 	// Normalize Judgments to J4 (regardless of wifepercent)
 	// If it fails, reset the replay data from pss and try one more time
 	if (!hs.NormalizeJudgments()) {
@@ -685,29 +643,22 @@ FillInHighScore(const PlayerStageStats& pss,
 
 	hs.GenerateValidationKeys();
 
-	if (!pss.InputData.empty()) {
-		hs.WriteInputData(pss.InputData);
-	}
 	return hs;
 }
 
 void
 StageStats::FinalizeScores(bool /*bSummary*/)
 {
-	Locator::getLogger()->trace("Finalizing Score");
-	SCOREMAN->camefromreplay =
-	  false; // if we're viewing an online replay this gets set to true -mina
-	if (!PREFSMAN->m_sTestInitialScreen.Get().empty()) {
-		m_player.m_iPersonalHighScoreIndex = 0;
-		m_player.m_iMachineHighScoreIndex = 0;
-	}
+	Locator::getLogger()->info("Finalizing Score");
+	// if we're viewing an online replay this gets set to true -mina
+	SCOREMAN->camefromreplay = false;
 
 	// don't save scores if the player chose not to
 	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore) {
 		return;
 	}
 
-	Locator::getLogger()->trace("saving stats and high scores");
+	Locator::getLogger()->info("Saving stats and high scores");
 
 	// generate a HighScore for each player
 
@@ -727,7 +678,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	auto* const zzz = PROFILEMAN->GetProfile(PLAYER_1);
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (PlayerAI::pScoreData != nullptr) {
-			Locator::getLogger()->trace("Determined a Replay is loaded");
+			Locator::getLogger()->debug("Determined a Replay is loaded");
 			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
 				   .empty()) {
 				SCOREMAN->tempscoreforonlinereplayviewing =
@@ -759,7 +710,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	// new score structure -mina
 	const auto istop2 = SCOREMAN->AddScore(hs);
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
-		Locator::getLogger()->trace("Uploading score with replaydata.");
+		Locator::getLogger()->info("Uploading score with replaydata");
 		hs.SetTopScore(istop2); // ayy i did it --lurker
 		auto* steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
 		auto* td = steps->GetTimingData();
@@ -788,7 +739,11 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 	}
 
 	if (m_player.m_fWifeScore > 0.F) {
-		const auto writesuccess = hs.WriteReplayData();
+		// replay data (deprecated)
+		hs.WriteReplayData();
+
+		// compressed input data
+		hs.WriteInputData();
 	}
 
 	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
@@ -800,7 +755,7 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 		GAMESTATE->SavePlayerProfile();
 	}
 
-	Locator::getLogger()->trace("done saving stats and high scores");
+	Locator::getLogger()->info("Done saving stats and high scores");
 }
 
 auto

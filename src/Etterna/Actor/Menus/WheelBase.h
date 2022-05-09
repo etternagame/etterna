@@ -114,8 +114,8 @@ class WheelBase : public ActorFrame
 	ScrollBar m_ScrollBar;
 	AutoActor m_sprHighlight;
 
-	vector<WheelItemBaseData*> m_CurWheelItemData;
-	vector<WheelItemBase*> m_WheelBaseItems;
+	std::vector<WheelItemBaseData*> m_CurWheelItemData;
+	std::vector<WheelItemBase*> m_WheelBaseItems;
 	WheelItemBaseData* m_LastSelection{};
 
 	bool m_bEmpty{};

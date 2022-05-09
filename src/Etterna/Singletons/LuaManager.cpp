@@ -31,7 +31,7 @@ struct Impl
 	  : g_pLock("Lua")
 	{
 	}
-	vector<lua_State*> g_FreeStateList;
+	std::vector<lua_State*> g_FreeStateList;
 	std::map<lua_State*, bool> g_ActiveStates;
 
 	RageMutex g_pLock;
@@ -429,7 +429,7 @@ LuaHelpers::save_lua_table_to_file(lua_State* L,
 }
 
 void
-LuaHelpers::CreateTableFromArrayB(Lua* L, const vector<bool>& aIn)
+LuaHelpers::CreateTableFromArrayB(Lua* L, const std::vector<bool>& aIn)
 {
 	lua_newtable(L);
 	for (unsigned i = 0; i < aIn.size(); ++i) {
@@ -439,7 +439,7 @@ LuaHelpers::CreateTableFromArrayB(Lua* L, const vector<bool>& aIn)
 }
 
 void
-LuaHelpers::ReadArrayFromTableB(Lua* L, vector<bool>& aOut)
+LuaHelpers::ReadArrayFromTableB(Lua* L, std::vector<bool>& aOut)
 {
 	luaL_checktype(L, -1, LUA_TTABLE);
 
@@ -458,29 +458,30 @@ LuaHelpers::rec_print_table(lua_State* L,
 {
 	switch (lua_type(L, -1)) {
 		case LUA_TNIL:
-			Locator::getLogger()->trace("{}{}: nil", indent.c_str(), name.c_str());
+			Locator::getLogger()->info("{}{}: nil", indent.c_str(), name.c_str());
 			break;
 		case LUA_TNUMBER:
-			Locator::getLogger()->trace("{}{} number: {}",
+			Locator::getLogger()->info("{}{} number: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tonumber(L, -1));
 			break;
 		case LUA_TBOOLEAN:
-			Locator::getLogger()->trace("{}{} bool: {}",
+			Locator::getLogger()->info("{}{} bool: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_toboolean(L, -1));
 			break;
 		case LUA_TSTRING:
-			Locator::getLogger()->trace("{}{} string: {}",
+			Locator::getLogger()->info("{}{} string: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tostring(L, -1));
 			break;
 		case LUA_TTABLE: {
 			size_t tablen = lua_objlen(L, -1);
-			Locator::getLogger()->trace("{}{} table: {}", indent.c_str(), name.c_str(), tablen);
+			Locator::getLogger()->info(
+			  "{}{} table: {}", indent.c_str(), name.c_str(), tablen);
 			std::string subindent = indent + "  ";
 			lua_pushnil(L);
 			while (lua_next(L, -2) != 0) {
@@ -492,16 +493,20 @@ LuaHelpers::rec_print_table(lua_State* L,
 			}
 		} break;
 		case LUA_TFUNCTION:
-			Locator::getLogger()->trace("{}{} function:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} function:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TUSERDATA:
-			Locator::getLogger()->trace("{}{} userdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} userdata:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TTHREAD:
-			Locator::getLogger()->trace("{}{} thread:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} thread:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TLIGHTUSERDATA:
-			Locator::getLogger()->trace("{}{} lightuserdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} lightuserdata:", indent.c_str(), name.c_str());
 			break;
 		default:
 			break;
@@ -560,7 +565,7 @@ GetLuaStack(lua_State* L)
 		// The function is now on the top of the stack.
 		const char* file = ar.source[0] == '@' ? ar.source + 1 : ar.short_src;
 		const char* name;
-		vector<std::string> vArgs;
+		std::vector<std::string> vArgs;
 
 		auto logAndPop = [&](char const* luaName) {
 			auto* luaStr = lua_tostring(L, -1);
@@ -620,13 +625,13 @@ LuaPanic(lua_State* L)
 }
 
 // Actor registration
-static vector<RegisterWithLuaFn>* g_vRegisterActorTypes = nullptr;
+static std::vector<RegisterWithLuaFn>* g_vRegisterActorTypes = nullptr;
 
 void
 LuaManager::Register(RegisterWithLuaFn pfn)
 {
 	if (g_vRegisterActorTypes == nullptr)
-		g_vRegisterActorTypes = new vector<RegisterWithLuaFn>;
+		g_vRegisterActorTypes = new std::vector<RegisterWithLuaFn>;
 
 	g_vRegisterActorTypes->push_back(pfn);
 }
@@ -925,7 +930,7 @@ namespace {
 struct LClass
 {
 	std::string m_sBaseName;
-	vector<std::string> m_vMethods;
+	std::vector<std::string> m_vMethods;
 };
 } // namespace
 
@@ -941,13 +946,13 @@ LuaHelpers::GetLuaInformation()
 	XNode* pEnumsNode = pLuaNode->AppendChild("Enums");
 	XNode* pConstantsNode = pLuaNode->AppendChild("Constants");
 
-	vector<std::string> vFunctions;
+	std::vector<std::string> vFunctions;
 	std::map<std::string, LClass> mClasses;
-	std::map<std::string, vector<std::string>> mNamespaces;
+	std::map<std::string, std::vector<std::string>> mNamespaces;
 	std::map<std::string, std::string> mSingletons;
 	std::map<std::string, float> mConstants;
 	std::map<std::string, std::string> mStringConstants;
-	std::map<std::string, vector<std::string>> mEnums;
+	std::map<std::string, std::vector<std::string>> mEnums;
 
 	Lua* L = LUA->Get();
 	FOREACH_LUATABLE(L, LUA_GLOBALSINDEX)
@@ -1040,7 +1045,7 @@ LuaHelpers::GetLuaInformation()
 		LuaHelpers::Pop(L, sNamespace);
 		if (find(BuiltInPackages.begin(), endIter, sNamespace) != endIter)
 			continue;
-		vector<std::string>& vNamespaceFunctions = mNamespaces[sNamespace];
+		std::vector<std::string>& vNamespaceFunctions = mNamespaces[sNamespace];
 		FOREACH_LUATABLE(L, -1)
 		{
 			std::string sFunction;
@@ -1085,7 +1090,7 @@ LuaHelpers::GetLuaInformation()
 	/* Namespaces */
 	for (auto& iter : mNamespaces) {
 		XNode* pNamespaceNode = pNamespacesNode->AppendChild("Namespace");
-		const vector<std::string>& vNamespace = iter.second;
+		const std::vector<std::string>& vNamespace = iter.second;
 		pNamespaceNode->AppendAttr("name", iter.first);
 
 		for (auto const& func : vNamespace) {
@@ -1098,7 +1103,7 @@ LuaHelpers::GetLuaInformation()
 	for (auto& iter : mEnums) {
 		XNode* pEnumNode = pEnumsNode->AppendChild("Enum");
 
-		const vector<std::string>& vEnum = iter.second;
+		const std::vector<std::string>& vEnum = iter.second;
 		pEnumNode->AppendAttr("name", iter.first);
 
 		for (unsigned i = 0; i < vEnum.size(); ++i) {
@@ -1493,7 +1498,8 @@ static int
 Trace(lua_State* L)
 {
 	std::string sString = SArg(1);
-	Locator::getLogger()->trace("{}", sString.c_str());
+	// i know
+	Locator::getLogger()->info("{}", sString.c_str());
 	return 0;
 }
 static int
@@ -1548,7 +1554,7 @@ RunWithThreadVariables(lua_State* L)
 	luaL_checktype(L, 1, LUA_TFUNCTION);
 	luaL_checktype(L, 2, LUA_TTABLE);
 
-	vector<LuaThreadVariable*> apVars;
+	std::vector<LuaThreadVariable*> apVars;
 	FOREACH_LUATABLE(L, 2)
 	{
 		lua_pushvalue(L, -2);

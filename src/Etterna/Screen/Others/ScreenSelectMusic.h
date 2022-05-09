@@ -11,7 +11,7 @@
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/Misc/ThemeMetric.h"
 #include "Etterna/Models/Misc/TimingData.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Actor/Gameplay/NoteField.h"
@@ -63,6 +63,12 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	void SetSampleMusicPosition(float);
 	void PauseSampleMusic();
+	bool ReloadCurrentSong();
+	bool ReloadCurrentPack();
+	bool ToggleCurrentFavorite();
+	bool ToggleCurrentPermamirror();
+	bool GoalFromCurrentChart();
+	bool AddCurrentChartToActivePlaylist();
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
 									bool bForceAccurate = false,
 									bool bExtended = false);
@@ -76,14 +82,14 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	virtual bool GenericTweenOff() const { return true; }
 	void UpdateSelectButton(PlayerNumber pn, bool bBeingPressed);
 
-	void AfterStepsOrTrailChange(const vector<PlayerNumber>& vpns);
+	void AfterStepsOrTrailChange();
 	void SwitchToPreferredDifficulty();
 	void AfterMusicChange();
 
 	void CheckBackgroundRequests(bool bForce);
 	bool DetectCodes(const InputEventPlus& input);
 
-	vector<Steps*> m_vpSteps;
+	std::vector<Steps*> m_vpSteps;
 	int m_iSelection;
 
 	RageTimer m_timerIdleComment;

@@ -14,17 +14,17 @@ local hsTable = rtTable[getRate(score)] or {score}
 local scoreIndex = getHighScoreIndex(hsTable, score)
 
 local usingSSRSort = PREFSMAN:GetPreference("SortBySSRNormPercent")
-	
+
 if rtTable == nil then
 	return {}
 end
-	
+
 
 local curPage = 1
 local maxPages = math.ceil(#hsTable/lines)
 
 local function movePage(n)
-	if n > 0 then 
+	if n > 0 then
 		curPage = ((curPage+n-1) % maxPages + 1)
 	else
 		curPage = ((curPage+n+maxPages-1) % maxPages+1)
@@ -35,26 +35,7 @@ end
 --Input event for mouse clicks
 local function input(event)
 	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
-	if event.DeviceInput.button == "DeviceButton_left mouse button" and scoreBoard then
-		if event.type == "InputEventType_Release" then
-			for i = 0, math.min(lines, #hsTable) - 1 do
-				if isOver(scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver")) then
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):GetVisible()
-					)
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):GetVisible()
-					)
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("date"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("date"):GetVisible()
-					)
-					scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("option"):visible(
-						not scoreBoard:GetChild("scoreItem" .. tostring(i)):GetChild("option"):GetVisible()
-					)
-				end
-			end
-		end
-	end
+
 	if event.type == "InputEventType_FirstPress" and scoreBoard then
 		if event.button == "MenuLeft" then
 			movePage(-1)
@@ -74,8 +55,7 @@ local function input(event)
 	return false
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	Name = "scoreBoard",
 	OnCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
@@ -92,8 +72,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 	local equals = (index == scoreIndex)
 
 	--
-	local t =
-		Def.ActorFrame {
+	local t = Def.ActorFrame {
 		Name = "scoreItem" .. tostring(drawindex),
 		ShowCommand = function(self)
 			self:playcommand("Begin")
@@ -127,7 +106,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = nil})
 		end,
 		BeginCommand = function(self)
-			if hsTable[index] == nil then 
+			if hsTable[index] == nil then
 				self:playcommand("Hide")
 			end
 		end,
@@ -155,7 +134,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end,
 			BeginCommand = function(self)
 				self:visible(GAMESTATE:IsHumanPlayer() and equals)
-				
+
 				-- it was once asked if anything had been hacked so hard as some thing that had been hacked really hard.. but yes.. this is
 				-- hackered... even hardered.... force the offset plot to update if the index in the scoreboard list matches the currently
 				-- displayed score.. this is because the offset plot was previously using pss to get its info and the way the current system
@@ -166,15 +145,28 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end
 		},
 		--Quad that will act as the bounding box for mouse rollover/click stuff.
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			Name = "mouseOver",
 			InitCommand = function(self)
 				self:xy(framex, framey + (drawindex * spacing) - 4):zoomto(frameWidth*2, 30):halign(0):valign(0):diffuse(
 					getMainColor("highlight")
 				):diffusealpha(0)
 			end,
-			LeftClickMessageCommand = function(self)
-				if isOver(self) then
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					local p = self:GetParent()
+					local grade = p:GetChild("grade")
+					local judge = p:GetChild("judge")
+					local date = p:GetChild("date")
+					local option = p:GetChild("option")
+					local cleartype = p:GetChild("ClearType")
+					
+					grade:visible(not grade:GetVisible())
+					judge:visible(not judge:GetVisible())
+					date:visible(not date:GetVisible())
+					option:visible(not option:GetVisible())
+					cleartype:visible(not cleartype:GetVisible())
+
 					local score = hsTable[index]
 					if score ~= nil then
 						if not score:HasReplayData() then return end
@@ -184,7 +176,24 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 						self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
 					end
 				end
-			end
+			end,
+			MouseOverCommand = function(self)
+				self:diffusealpha(0.2)
+			end,
+			MouseOutCommand = function(self)
+				local p = self:GetParent()
+				local grade = p:GetChild("grade")
+				local judge = p:GetChild("judge")
+				local date = p:GetChild("date")
+				local option = p:GetChild("option")
+				local cleartype = p:GetChild("ClearType")
+				self:diffusealpha(0)
+				grade:visible(true)
+				judge:visible(true)
+				date:visible(false)
+				cleartype:visible(true)
+				option:visible(false)
+			end,
 		},
 		--ClearType lamps
 		Def.Quad {
@@ -198,147 +207,147 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			end
 		},
 		--rank
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(framex - 8, framey + 12 + (drawindex * spacing)):zoom(0.35)
-				end,
-				HahaThisCodeINeedHelpCommand = function(self, params)
-					if params.doot == index then
+		LoadFont("Common normal") .. {
+			InitCommand = function(self)
+				self:xy(framex - 8, framey + 12 + (drawindex * spacing)):zoom(0.35)
+			end,
+			HahaThisCodeINeedHelpCommand = function(self, params)
+				if params.doot == index then
+					self:diffuse(color("#ffcccc"))
+				else
+					self:diffuse(color("ffffff"))
+				end
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 then
+					self:settext(index)
+					if equals then
 						self:diffuse(color("#ffcccc"))
 					else
-						self:diffuse(color("ffffff"))
-					end
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 then
-						self:settext(index)
-						if equals then
-							self:diffuse(color("#ffcccc"))
-						else
-							self:stopeffect()
-						end
+						self:stopeffect()
 					end
 				end
-			},
+			end
+		},
 		-- Wife grade and %score
-		LoadFont("Common normal") ..
-			{
-				Name = "grade",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					local wstring = "Wife"
-					if usingSSRSort then
-						wstring = "Wife J4"
-					end
-					if hsTable[index]:GetWifeScore() == 0 then
-						self:settextf("NA (%s)", wstring)
+		LoadFont("Common normal") .. {
+			Name = "grade",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.3)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				local wv = hsTable[index]:GetWifeVers()
+				local wstring = "Wife" .. wv
+				if usingSSRSort then
+					wstring = "Wife" .. wv .. " J4"
+				end
+				if hsTable[index]:GetWifeScore() == 0 then
+					self:settextf("NA (%s)", wstring)
+				else
+					local perc = hsTable[index]:GetWifeScore() * 100
+					if perc > 99.65 then
+						self:settextf("%05.4f%% (%s)", notShit.floor(perc, 4), wstring)
 					else
-						self:settextf("%05.2f%% (%s)", notShit.floor(hsTable[index]:GetWifeScore() * 10000) / 100, wstring)
+						self:settextf("%05.2f%% (%s)", notShit.floor(perc, 2), wstring)
 					end
 				end
-			},
+			end
+		},
 		--mods
-		LoadFont("Common normal") ..
-			{
-				Name = "option",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					self:settext(getModifierTranslations(hsTable[index]:GetModifiers()))
-					self:visible(false)
-				end
-			},
+		LoadFont("Common normal") .. {
+			Name = "option",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 11 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				self:settext(getModifierTranslations(hsTable[index]:GetModifiers()))
+				self:visible(false)
+			end
+		},
 		--grade text
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settext(getGradeStrings(hsTable[index]:GetWifeGrade()))
-						self:diffuse(getGradeColor(hsTable[index]:GetWifeGrade()))
-					end
+		LoadFont("Common normal") .. {
+			Name = "Grade",
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 2 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settext(getGradeStrings(hsTable[index]:GetWifeGrade()))
+					self:diffuse(getGradeColor(hsTable[index]:GetWifeGrade()))
 				end
-			},
+			end
+		},
 		--cleartype text
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settext(getClearTypeFromScore(pn, hsTable[index], 0))
-						self:diffuse(getClearTypeFromScore(pn, hsTable[index], 2))
-					end
+		LoadFont("Common normal") .. {
+			Name = "ClearType",
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 12 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settext(getClearTypeFromScore(pn, hsTable[index], 0))
+					self:diffuse(getClearTypeFromScore(pn, hsTable[index], 2))
 				end
-			},
+			end
+		},
 		--max combo
-		LoadFont("Common normal") ..
-			{
-				InitCommand = function(self)
-					self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
-						(frameWidth - 15) / 0.35
-					)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settextf("%sx", hsTable[index]:GetMaxCombo())
-					end
+		LoadFont("Common normal") .. {
+			InitCommand = function(self)
+				self:xy(framex + 130 + capWideScale(get43size(0), 50), framey + 22 + (drawindex * spacing)):zoom(0.35):halign(0.5):maxwidth(
+					(frameWidth - 15) / 0.35
+				)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settextf("%sx", hsTable[index]:GetMaxCombo())
 				end
-			},
+			end
+		},
 		--judgment
-		LoadFont("Common normal") ..
-			{
-				Name = "judge",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settextf(
-							"%d / %d / %d / %d / %d / %d",
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W1"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W2"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W3"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W4"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_W5"),
-							hsTable[index]:GetTapNoteScore("TapNoteScore_Miss")
-						)
-					end
+		LoadFont("Common normal") .. {
+			Name = "judge",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0):maxwidth((frameWidth - 15) / 0.35)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settextf(
+						"%d / %d / %d / %d / %d / %d",
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W1"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W2"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W3"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W4"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_W5"),
+						hsTable[index]:GetTapNoteScore("TapNoteScore_Miss")
+					)
 				end
-			},
+			end
+		},
 		--date
-		LoadFont("Common normal") ..
-			{
-				Name = "date",
-				InitCommand = function(self)
-					self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0)
-				end,
-				BeginCommand = function(self)
-					if hsTable[index] == nil then return end
-					if #hsTable >= 1 and index >= 1 then
-						self:settext(hsTable[index]:GetDate())
-					end
-					self:visible(false)
+		LoadFont("Common normal") .. {
+			Name = "date",
+			InitCommand = function(self)
+				self:xy(framex + 10, framey + 20 + (drawindex * spacing)):zoom(0.35):halign(0)
+			end,
+			BeginCommand = function(self)
+				if hsTable[index] == nil then return end
+				if #hsTable >= 1 and index >= 1 then
+					self:settext(hsTable[index]:GetDate())
 				end
-			}
+				self:visible(false)
+			end
+		}
 	}
 	return t
 end
@@ -374,27 +383,6 @@ while drawindex < lines do
 	drawindex  = drawindex+1
 end
 
---Update function for showing mouse rollovers
-local function Update(self)
-	t.InitCommand = function(self)
-		self:SetUpdateFunction(Update)
-	end
-	for i = 0, drawindex - 1 do
-		if isOver(self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver")) then
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):diffusealpha(0.2)
-		else
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("mouseOver"):diffusealpha(0)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("grade"):visible(true)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("judge"):visible(true)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("date"):visible(false)
-			self:GetChild("scoreItem" .. tostring(i)):GetChild("option"):visible(false)
-		end
-	end
-end
-t.InitCommand = function(self)
-	self:SetUpdateFunction(Update)
-end
-
 t[#t+1] = Def.Quad {
 	InitCommand = function(self)
 		self:xy(framex - 20,framey - 20)
@@ -411,8 +399,7 @@ t[#t+1] = Def.Quad {
 		if isOver(self) then
 			movePage(1)
 		end
-	end
-
+	end,
 }
 
 return t

@@ -8,8 +8,7 @@ local function input(event)
 	return false
 end
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	BeginCommand = function()
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
 	end,

@@ -44,7 +44,8 @@ RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 	std::string err = Sample->GetError();
 	delete Sample;
 
-	Locator::getLogger()->trace("Format {} failed: {}", format.c_str(), err.c_str());
+	Locator::getLogger()->warn(
+	  "SoundReader Open: Format {} failed: {}", format.c_str(), err.c_str());
 
 	/*
 	 * The file failed to open, or failed to read.  This indicates a problem
@@ -120,9 +121,9 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 		}
 	}
 	std::set<std::string> FileTypes;
-	vector<std::string> const& sound_exts =
+	std::vector<std::string> const& sound_exts =
 	  ActorUtil::GetTypeExtensionList(FT_Sound);
-	for (vector<std::string>::const_iterator curr = sound_exts.begin();
+	for (std::vector<std::string>::const_iterator curr = sound_exts.begin();
 		 curr != sound_exts.end();
 		 ++curr) {
 		FileTypes.insert(*curr);

@@ -36,8 +36,7 @@ WheelBase::~WheelBase()
 void
 WheelBase::Load(const std::string& sType)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("WheelBase::Load('{}')", sType.c_str());
+	Locator::getLogger()->debug("WheelBase::Load('{}')", sType.c_str());
 	ASSERT(this->GetNumChildren() == 0); // only load once
 
 	m_bEmpty = false;
@@ -417,8 +416,8 @@ WheelBase::ChangeMusic(int iDist)
 void
 WheelBase::RebuildWheelItems(int iDist)
 {
-	const vector<WheelItemBaseData*>& data = m_CurWheelItemData;
-	vector<WheelItemBase*>& items = m_WheelBaseItems;
+	const std::vector<WheelItemBaseData*>& data = m_CurWheelItemData;
+	std::vector<WheelItemBase*>& items = m_WheelBaseItems;
 
 	// rewind to first index that will be displayed;
 	int iFirstVisibleIndex = m_iSelection;

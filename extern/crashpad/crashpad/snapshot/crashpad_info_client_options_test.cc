@@ -16,7 +16,6 @@
 
 #include "base/auto_reset.h"
 #include "base/files/file_path.h"
-#include "base/macros.h"
 #include "base/strings/utf_string_conversions.h"
 #include "build/build_config.h"
 #include "client/crashpad_info.h"
@@ -63,6 +62,11 @@ class ScopedUnsetCrashpadInfoOptions {
       : crashpad_info_(crashpad_info) {
   }
 
+  ScopedUnsetCrashpadInfoOptions(const ScopedUnsetCrashpadInfoOptions&) =
+      delete;
+  ScopedUnsetCrashpadInfoOptions& operator=(
+      const ScopedUnsetCrashpadInfoOptions&) = delete;
+
   ~ScopedUnsetCrashpadInfoOptions() {
     crashpad_info_->set_crashpad_handler_behavior(TriState::kUnset);
     crashpad_info_->set_system_crash_reporter_forwarding(TriState::kUnset);
@@ -72,8 +76,6 @@ class ScopedUnsetCrashpadInfoOptions {
 
  private:
   CrashpadInfo* crashpad_info_;
-
-  DISALLOW_COPY_AND_ASSIGN(ScopedUnsetCrashpadInfoOptions);
 };
 
 CrashpadInfoClientOptions SelfProcessSnapshotAndGetCrashpadOptions() {
@@ -159,9 +161,9 @@ TEST(CrashpadInfoClientOptions, TwoModules) {
                               << dlerror();
 #elif defined(OS_WIN)
   ScopedModuleHandle module(LoadLibrary(module_path.value().c_str()));
-  ASSERT_TRUE(module.valid()) << "LoadLibrary "
-                              << base::UTF16ToUTF8(module_path.value()) << ": "
-                              << ErrorMessage();
+  ASSERT_TRUE(module.valid())
+      << "LoadLibrary " << base::WideToUTF8(module_path.value()) << ": "
+      << ErrorMessage();
 #else
 #error Port.
 #endif  // OS_APPLE
@@ -258,7 +260,7 @@ TEST_P(CrashpadInfoSizes_ClientOptions, DifferentlySizedStruct) {
 #elif defined(OS_WIN)
   ScopedModuleHandle module(LoadLibrary(module_path.value().c_str()));
   ASSERT_TRUE(module.valid())
-      << "LoadLibrary " << base::UTF16ToUTF8(module_path.value()) << ": "
+      << "LoadLibrary " << base::WideToUTF8(module_path.value()) << ": "
       << ErrorMessage();
 #else
 #error Port.

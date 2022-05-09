@@ -82,7 +82,7 @@ PlayerReplay::Load()
 void
 PlayerReplay::UpdateHoldNotes(int iSongRow,
 							  float fDeltaTime,
-							  vector<TrackRowTapNote>& vTN)
+							  std::vector<TrackRowTapNote>& vTN)
 {
 	Player::UpdateHoldNotes(iSongRow, fDeltaTime, vTN);
 	ASSERT(!vTN.empty());
@@ -173,7 +173,7 @@ PlayerReplay::UpdateHoldsAndRolls(
 				++iter;
 		}
 
-		vector<TrackRowTapNote> vHoldNotesToGradeTogether;
+		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
 		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
@@ -193,7 +193,7 @@ PlayerReplay::UpdateHoldsAndRolls(
 				case TapNoteSubType_Hold:
 					break;
 				case TapNoteSubType_Roll: {
-					vector<TrackRowTapNote> v;
+					std::vector<TrackRowTapNote> v;
 					v.push_back(trtn);
 					UpdateHoldNotes(iSongRow, fDeltaTime, v);
 				}
@@ -391,7 +391,9 @@ PlayerReplay::HandleTapRowScore(unsigned row)
 	 * we can't use GAMESTATE->m_fMusicSeconds. Use fStepsSeconds instead. */
 	if (m_pPlayerStageStats)
 		m_pPlayerStageStats->UpdateComboList(
-		  GAMESTATE->m_Position.m_fMusicSeconds, false);
+		  GAMESTATE->m_Position.m_fMusicSeconds /
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
+		  false);
 
 	ChangeLife(scoreOfLastTap);
 }
@@ -472,10 +474,6 @@ PlayerReplay::Step(int col,
 
 	// LOG->Trace(ssprintf("col %d\n\trow %d", col, row));
 
-	// idk if this is the correct value for input logs but we'll use them to
-	// test -mina ok this is 100% not the place to do this
-	// m_pPlayerStageStats->InputData.emplace_back(fPositionSeconds);
-
 	auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 
 	if (GAMESTATE->m_pCurSteps)
@@ -554,7 +552,7 @@ PlayerReplay::Step(int col,
 	// Check for tap
 	int iStepSearchRows;
 	static const auto StepSearchDistance = GetMaxStepDistanceSeconds();
-	
+
 	// if the nerv is too small, dont optimize
 	auto skipstart = nerv.size() > 10 ? nerv[10] : iSongRow + 1;
 
@@ -680,7 +678,6 @@ PlayerReplay::Step(int col,
 			if (fNoteOffset == -2.f) // we hit a mine
 			{
 				score = TNS_HitMine;
-				PlayerAI::RemoveTapFromVectors(rowToJudge, col);
 			} else if (pTN->type == TapNoteType_Mine) // we are looking
 													  // at a mine but
 													  // missed it
@@ -694,10 +691,10 @@ PlayerReplay::Step(int col,
 			}
 		}
 
+		PlayerAI::RemoveTapFromVectors(rowToJudge, col);
+
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
-		if (score == TNS_W1 && !GAMESTATE->ShowW1())
-			score = TNS_W2;
 
 		if (score != TNS_None) {
 			pTN->result.tns = score;

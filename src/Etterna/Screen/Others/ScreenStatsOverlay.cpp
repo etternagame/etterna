@@ -156,7 +156,7 @@ ScreenStatsOverlay::UpdateSkips()
 			AddTimestampLine(ssprintf("Lag: %.3fms", skipTime), colors[skip]);
 
 			if (PREFSMAN->m_bLogSkips)
-				Locator::getLogger()->trace("Lag: {:.3f}ms", skipTime);
+				Locator::getLogger()->info("Lag: {:.3f}ms", skipTime);
 		}
 	}
 }

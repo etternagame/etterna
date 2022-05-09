@@ -183,7 +183,7 @@ Sprite::LoadFromNode(const XNode* pNode)
 		// overwriting the states that LoadFromTexture created.
 		// If the .sprite file doesn't define any states, leave
 		// frames and delays created during LoadFromTexture().
-		vector<State> aStates;
+		std::vector<State> aStates;
 
 		auto pFrames = pNode->GetChild("Frames");
 		if (pFrames != nullptr) {
@@ -1296,7 +1296,7 @@ class LunaSprite : public Luna<Sprite>
 		if (!lua_istable(L, 1)) {
 			luaL_error(L, "State properties must be in a table.");
 		}
-		vector<Sprite::State> new_states;
+		std::vector<Sprite::State> new_states;
 		const auto num_states = lua_objlen(L, 1);
 		if (num_states == 0) {
 			luaL_error(L, "A Sprite cannot have zero states.");

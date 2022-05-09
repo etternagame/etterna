@@ -14,7 +14,7 @@
 
 #include "test/mac/mach_multiprocess.h"
 
-#include <AvailabilityMacros.h>
+#include <Availability.h>
 #include <bsm/libbsm.h>
 
 #include <memory>
@@ -22,6 +22,7 @@
 
 #include "base/auto_reset.h"
 #include "base/mac/scoped_mach_port.h"
+#include "base/macros.h"
 #include "gtest/gtest.h"
 #include "test/errors.h"
 #include "test/mac/mach_errors.h"
@@ -150,7 +151,7 @@ void MachMultiprocess::MultiprocessParent() {
   // and other processes will be able to look it up and send messages to it,
   // these checks disambiguate genuine failures later on in the test from those
   // that would occur if an errant process sends a message to this service.
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_8
+#if __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_8
   uid_t audit_auid;
   uid_t audit_euid;
   gid_t audit_egid;

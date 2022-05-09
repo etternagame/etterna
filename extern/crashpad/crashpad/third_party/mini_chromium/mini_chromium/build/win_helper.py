@@ -178,7 +178,7 @@ class WinTool(object):
           'Microsoft Visual Studio', 'Installer', 'vswhere.exe')
       if os.path.exists(vswhere_path):
         installation_path = subprocess.check_output(
-            [vswhere_path, '-latest', '-property', 'installationPath']).strip()
+            [vswhere_path, '-products', '*' ,'-latest', '-property', 'installationPath']).strip()
         if installation_path:
           return (installation_path,
                   os.path.join('VC', 'Auxiliary', 'Build', 'vcvarsall.bat'))

@@ -1,7 +1,10 @@
 #pragma once
 #include "../IntervalHandInfo.h"
 
-// ok new plan we will incloop the joomp
+/// Hand-Dependent PatternMod detecting continuous rolls.
+/// Lenient in a particular way to detect patterns that are
+/// mostly jumptrilly.
+/// ok new plan we will incloop the joomp
 struct WideRangeRollMod
 {
 	const CalcPatternMod _pmod = WideRangeRoll;

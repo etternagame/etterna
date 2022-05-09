@@ -1,6 +1,6 @@
-local itsOn = false
-local stepsdisplayx = SCREEN_WIDTH * 0.56 - capWideScale(48, 56)
-local thesteps
+local itsOn = false -- chart preview state
+local stepsdisplayx = SCREEN_WIDTH * 0.56 - 54
+local thesteps = nil
 
 local rowwidth = 60
 local rowheight = 17
@@ -11,8 +11,7 @@ local numshown = 7
 local currentindex = 1
 local displayindexoffset = 0
 
-local sd =
-	Def.ActorFrame {
+local sd = Def.ActorFrame {
 	Name = "StepsDisplay",
 	InitCommand = function(self)
 		self:xy(stepsdisplayx, 68):valign(0)
@@ -33,14 +32,19 @@ local sd =
 				return
 			end
 			self:playcommand("On")
+			self:playcommand("UpdateStepsRows")
 		else
 			self:playcommand("Off")
 		end
 	end,
 	CurrentSongChangedMessageCommand = function(self, song)
 		local song = song.ptr
-		if song then 
+		if song then
 			thesteps = song:GetChartsMatchingFilter()
+			if self.nested and getTabIndex() == 2 then
+				return
+			end
+
 			-- if in online scores tab it still pops up for 1 frame
 			-- so the bug fixed in the above command makes a return
 			-- how sad
@@ -48,7 +52,7 @@ local sd =
 				self:playcommand("On")
 			end
 			self:playcommand("UpdateStepsRows")
-		else 
+		else
 			self:playcommand("Off")
 		end
 	end,
@@ -91,24 +95,24 @@ local function stepsRows(i)
 		InitCommand = function(self)
 			self:y(rowheight * (i - 1))
 		end,
-		Def.Quad {
+		UIElements.QuadButton(1, 1) .. {
 			InitCommand = function(self)
 				self:zoomto(rowwidth, rowheight):halign(0)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
-				if steps then 
+				if steps then
 					self:visible(true)
 					local diff = steps:GetDifficulty()
 					self:diffuse(getDifficultyColor(diff))
 					self:diffusealpha(0.4)
-				else 
+				else
 					self:visible(false)
 				end
 			end,
-			MouseLeftClickMessageCommand = function(self)
+			MouseDownCommand = function(self, params)
 				local steps = thesteps[i + displayindexoffset]
-				if steps and isOver(self) then
+				if steps and params.event == "DeviceButton_left mouse button" then
 					SCREENMAN:GetTopScreen():ChangeSteps(i - currentindex)
 					SCREENMAN:GetTopScreen():ChangeSteps(0)
 				end
@@ -120,11 +124,11 @@ local function stepsRows(i)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
-				if steps then 
+				if steps then
 					self:visible(true)
 					local diff = steps:GetDifficulty()
-					self:diffuse(byDifficulty(diff))					
-				else 
+					self:diffuse(byDifficulty(diff))
+				else
 					self:visible(false)
 				end
 			end
@@ -132,20 +136,21 @@ local function stepsRows(i)
 		-- Chart defined "Meter" value, not msd (useful to have this for reference)
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x(rowwidth - cursorwidth - 5):addy(-1):zoom(0.35):settext(""):halign(1)
+				self:x(rowwidth - cursorwidth - 2):addy(-1):zoom(0.35):settext(""):halign(1):maxwidth(75)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
-				if steps then 
+				if steps then
 					self:settext(steps:GetMeter())
 				else
 					self:settext("")
 				end
 			end
 		},
+		--chart difficulty name
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x(12):zoom(0.2):settext(""):halign(0.5):valign(0)
+				self:x(12):zoom(0.18):settext(""):halign(0.5):valign(0)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
@@ -157,9 +162,10 @@ local function stepsRows(i)
 				end
 			end
 		},
+		--chart steps type
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x(12):addy(-9):zoom(0.2):settext(""):halign(0.5):valign(0):maxwidth(20 / 0.2)
+				self:x(12):addy(-9):zoom(0.18):settext(""):halign(0.5):valign(0):maxwidth(23 / 0.18)
 			end,
 			UpdateStepsRowsCommand = function(self)
 				local steps = thesteps[i + displayindexoffset]
@@ -176,9 +182,8 @@ local function stepsRows(i)
 	return o
 end
 
-local sdr =
-	Def.ActorFrame {
-	Name = "StepsRows"
+local sdr = Def.ActorFrame {
+	Name = "StepsRows",
 }
 
 for i = 1, numshown do
@@ -189,6 +194,7 @@ sd[#sd + 1] = sdr
 local center = math.ceil(numshown / 2)
 -- cursor goes on top
 sd[#sd + 1] = Def.Quad {
+	Name = "StepsCursor",
 	InitCommand = function(self)
 		self:x(rowwidth):zoomto(cursorwidth, cursorheight):halign(1):valign(0.5):diffusealpha(0.6)
 	end,
@@ -210,11 +216,15 @@ sd[#sd + 1] = Def.Quad {
 		end
 
 		if #thesteps > numshown and #thesteps - displayindexoffset < numshown then
-			displayindexoffset = #thesteps - numshown 
+			displayindexoffset = #thesteps - numshown
 		end
 
-		self:y(cursorheight * (currentindex - 1))
-		self:GetParent():GetChild("StepsRows"):queuecommand("UpdateStepsRows")
+		self:finishtweening()
+		self:smooth(0.03):y(cursorheight * (currentindex - 1))
+
+		if self:GetParent():GetVisible() then
+			self:GetParent():GetChild("StepsRows"):playcommand("UpdateStepsRows")
+		end
 	end
 }
 

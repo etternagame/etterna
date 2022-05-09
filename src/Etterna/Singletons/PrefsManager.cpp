@@ -22,14 +22,6 @@ XToString(MusicWheelUsesSections);
 StringToX(MusicWheelUsesSections);
 LuaXType(MusicWheelUsesSections);
 
-static const char* AllowW1Names[] = {
-	"Never",
-	"Everywhere",
-};
-XToString(AllowW1);
-StringToX(AllowW1);
-LuaXType(AllowW1);
-
 static const char* MaybeNames[] = {
 	"Ask",
 	"No",
@@ -133,9 +125,9 @@ PrefsManager::PrefsManager()
   , m_sAdditionalSongFolders("AdditionalSongFolders", "")
   , m_sAdditionalFolders("AdditionalFolders", "")
 
-  , m_AllowW1("AllowW1", ALLOW_W1_EVERYWHERE)
   , m_bAllowedLag("AllowedLag", 0.001f)
   , m_AllowHoldForOptions("AllowHoldForOptions", true)
+  , m_AllowStartToGiveUp("AllowStartToGiveUp", true)
   , m_bAllowMultitexture("AllowMultitexture", true)
   , m_bAllowUnacceleratedRenderer("AllowUnacceleratedRenderer", false)
   , m_bAnisotropicFiltering("AnisotropicFiltering", false)
@@ -143,11 +135,12 @@ PrefsManager::PrefsManager()
   , m_BGFitMode("BackgroundFitMode", BFM_CoverPreserve)
   , m_bBlindlyTrustCache("BlindlyTrustCache", true)
   , m_ImageCache("CacheImages", IMGCACHE_OFF)
-  , m_sDefaultTheme("DefaultTheme", "Til Death")
+  , m_sDefaultTheme("DefaultTheme", "Rebirth")
   , m_bDelayedBack("DelayedBack", false)
   , m_bDelayedModelDelete("DelayedModelDelete", false)
   , m_bDelayedTextureDelete("DelayedTextureDeletion", true)
   , m_bEasterEggs("EasterEggs", true)
+  , m_AllowMultipleToasties("MultiToasty", false)
   , EnablePitchRates("EnablePitchRates", true)
   , m_bEnableScoreboard("EnableScoreboard", true)
   , m_bEventMode("EventMode", true)
@@ -186,12 +179,12 @@ PrefsManager::PrefsManager()
   , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
   , m_bSmoothLines("SmoothLines", false)
   , m_bSortBySSRNorm("SortBySSRNormPercent", false)
+  , m_bPackProgressInWheel("PackProgressInWheel", false)
   , m_iSoundDevice("SoundDevice", "")
   , m_iSoundPreferredSampleRate("SoundPreferredSampleRate", 0)
   , m_iSoundWriteAhead("SoundWriteAhead", 0)
   , m_bStretchBackgrounds("StretchBackgrounds", false)
   , m_fBGBrightness("BGBrightness", 0.2f)
-  , m_sTestInitialScreen("TestInitialScreen", "")
   , m_iTextureColorDepth("TextureColorDepth", 32)
   , m_bThreadedInput("ThreadedInput", true)
   , m_bThreadedMovieDecode("ThreadedMovieDecode", true)
@@ -199,11 +192,14 @@ PrefsManager::PrefsManager()
   , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
   , m_bTrilinearFiltering("TrilinearFiltering", false)
   , m_bUseMidGrades("UseMidGrades", false)
-  , m_verbose_log("VerboseLogging", 1)
+  , m_logging_level("LoggingLevel", 2)
   , m_bForceLogFlush("ForceLogFlush", TRUE_IF_DEBUG)
   , m_bShowLogOutput("ShowLogOutput", TRUE_IF_DEBUG)
   , m_bLogSkips("LogSkips", false)
   , m_show_theme_errors("ShowThemeErrors", false)
+  , m_bAlwaysLoadCalcParams("AlwaysLoadCalcParams", false)
+  , m_bEnableCrashUpload("EnableMinidumpUpload", false)
+  , m_bShowMinidumpUploadDialogue("ShowMinidumpUploadDialogue", true)
 
 {
 	Init();
@@ -431,7 +427,7 @@ PrefsManager::GetPreferencesSection() const
 	GetFileContents(SpecialFiles::TYPE_TXT_FILE, sSection, true);
 
 	// OK if this fails
-	if (!GetCommandlineArgument("Type", &sSection) && m_verbose_log > 1)
+	if (!GetCommandlineArgument("Type", &sSection))
 		Locator::getLogger()->trace("Failed to find Type commandline argument (Not required)");
 
 	return sSection;
@@ -486,7 +482,7 @@ class LunaPrefsManager : public Luna<PrefsManager>
 		}
 
 		pPref->LoadDefault();
-		Locator::getLogger()->trace("Restored preference \"{}\" to default \"{}\"",
+		Locator::getLogger()->info("Restored preference \"{}\" to default \"{}\"",
 				   sName.c_str(), pPref->ToString().c_str());
 		COMMON_RETURN_SELF;
 	}

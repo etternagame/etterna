@@ -2,16 +2,26 @@
 local top
 local profile = PROFILEMAN:GetProfile(PLAYER_1)
 
-local curType = 1
-local assetTypes = {}
+local curType = 2
+local assetTypes = {
+	"toasty",
+	"avatar",
+	"judgment",
+}
 local translated_assets = {}
-for k,v in pairs(assetFolders) do
-	assetTypes[curType] = k
-	translated_assets[k] = THEME:GetString("ScreenAssetSettings", k)
-    curType = curType + 1
+for _,v in ipairs(assetTypes) do
+	translated_assets[v] = THEME:GetString("ScreenAssetSettings", v)
 end
 
-curType = 2
+local translated_info = {
+	Title = THEME:GetString("ScreenAssetSettings","Title"),
+	--Avatar = THEME:GetString("ScreenAssetSettings","avatar"),
+	--Judgement = THEME:GetString("ScreenAssetSettings","judgment"),
+	--Toasty = THEME:GetString("ScreenAssetSettings","toasty"),
+	Selected = THEME:GetString("ScreenAssetSettings","Selected"),
+	Hovered = THEME:GetString("ScreenAssetSettings","Hovered")
+}
+
 
 local maxPage = 1
 local curPage = 1
@@ -29,6 +39,7 @@ local frameWidth = SCREEN_WIDTH - 20
 local frameHeight = SCREEN_HEIGHT - 40
 local squareWidth = 50
 local judgmentWidth = 125
+local judgmentHeight = 20
 local assetWidth = squareWidth
 local assetHeight = 50
 local assetXSpacing = (frameWidth + assetWidth/2) / (maxColumns + 1)
@@ -136,10 +147,10 @@ end
 local function updateImages() -- Update all image actors (sprites)
 	loadAssetTable()
 	MESSAGEMAN:Broadcast("UpdatingAssets", {name = assetTypes[curType]})
-    for i=1, math.min(maxRows * maxColumns, #assetTable) do
-        MESSAGEMAN:Broadcast("UpdateAsset", {index = i})
-        coroutine.yield()
-    end
+	for i=1, math.min(maxRows * maxColumns, #assetTable) do
+		MESSAGEMAN:Broadcast("UpdateAsset", {index = i})
+		coroutine.yield()
+	end
 	MESSAGEMAN:Broadcast("UpdateFinished")
 end
 
@@ -154,50 +165,50 @@ end
 
 local function getIndex() -- Get cursor index
 	local out = ((curPage-1) * maxColumns * maxRows) + curIndex
-    return out
+	return out
 end
 
 local function getSelectedIndex() -- Get cursor index
 	local out = ((curPage-1) * maxColumns * maxRows) + selectedIndex
-    return out
+	return out
 end
 
 local function movePage(n) -- Move n pages forward/backward
-    local nextPage = curPage + n
-    if nextPage > maxPage then
-        nextPage = maxPage
-    elseif nextPage < 1 then
-        nextPage = 1
-    end
+	local nextPage = curPage + n
+	if nextPage > maxPage then
+		nextPage = maxPage
+	elseif nextPage < 1 then
+		nextPage = 1
+	end
 
-    -- This loads all images again if we actually move to a new page.
-    if nextPage ~= curPage then
+	-- This loads all images again if we actually move to a new page.
+	if nextPage ~= curPage then
 		curIndex = n < 0 and math.min(#assetTable, maxRows * maxColumns) or 1
 		lastClickedIndex = 0
-        curPage = nextPage
-        MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
-        co = coroutine.create(updateImages)
-    end
+		curPage = nextPage
+		MESSAGEMAN:Broadcast("PageMoved",{index = curIndex, page = curPage})
+		co = coroutine.create(updateImages)
+	end
 end
 
 local function moveCursor(x, y) -- move the cursor
-    local move = x + y * maxColumns
+	local move = x + y * maxColumns
 	local nextPage = curPage
 	local oldIndex = curIndex
 
-    if curPage > 1 and curIndex == 1 and move < 0 then
-        curIndex = math.min(#assetTable, maxRows * maxColumns)
-        nextPage = curPage - 1
-    elseif curPage < maxPage and curIndex == maxRows * maxColumns and move > 0 then
-        curIndex = 1
-        nextPage = curPage + 1
-    else
-        curIndex = curIndex + move
-        if curIndex < 1 then
-            curIndex = 1
-        elseif curIndex > math.min(maxRows * maxColumns, #assetTable - (maxRows * maxColumns * (curPage-1))) then
-            curIndex = math.min(maxRows * maxColumns, #assetTable - (maxRows * maxColumns * (curPage-1)))
-        end
+	if curPage > 1 and curIndex == 1 and move < 0 then
+		curIndex = math.min(#assetTable, maxRows * maxColumns)
+		nextPage = curPage - 1
+	elseif curPage < maxPage and curIndex == maxRows * maxColumns and move > 0 then
+		curIndex = 1
+		nextPage = curPage + 1
+	else
+		curIndex = curIndex + move
+		if curIndex < 1 then
+			curIndex = 1
+		elseif curIndex > math.min(maxRows * maxColumns, #assetTable - (maxRows * maxColumns * (curPage-1))) then
+			curIndex = math.min(maxRows * maxColumns, #assetTable - (maxRows * maxColumns * (curPage-1)))
+		end
 	end
 	lastClickedIndex = curIndex
 	if curPage == nextPage then
@@ -213,7 +224,7 @@ end
 local TAB = {
 	choices = {},
 	width = 100,
-	height = 20
+	height = 18
 }
 
 function TAB.new(self, choices)
@@ -224,53 +235,54 @@ function TAB.new(self, choices)
 end
 
 function TAB.makeTabActors(tab)
-	local t = Def.ActorFrame{}
-
-	for i,v in pairs(tab.choices) do
-
-		t[#t+1] = Def.Quad {
-		InitCommand = function(self)
-			self:halign(0)
-			self:zoomto(tab.width, tab.height)
-			self:x(tab.width*(i-1))
-			self:diffuse(color("#666666"))
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				MESSAGEMAN:Broadcast("TabPressed",{name = v, index=i})
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(0.7)
-				loadAssetType(i)
-			end
-		end,
+	local t = Def.ActorFrame{
 		MouseRightClickMessageCommand = function(self)
 			SCREENMAN:GetTopScreen():Cancel()
 		end,
-		TabPressedMessageCommand = function(self, params)
-			if params.name ~= v then
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(1)
-			end
-		end,
-		UpdatingAssetsMessageCommand = function(self)
-			if curType == i then
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(0.7)
-			else
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(1)
-			end
-		end
-
 	}
+
+	for i,v in pairs(tab.choices) do
+
+		t[#t+1] = UIElements.QuadButton(1, 1) .. {
+			InitCommand = function(self)
+				self:halign(0)
+				self:zoomto(tab.width, tab.height)
+				self:x(tab.width*(i-1))
+				self:diffuse(getMainColor("positive"))
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					MESSAGEMAN:Broadcast("TabPressed",{name = v, index=i})
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(0.7)
+					loadAssetType(i)
+				end
+			end,
+			
+			TabPressedMessageCommand = function(self, params)
+				if params.name ~= v then
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(1)
+				end
+			end,
+			UpdatingAssetsMessageCommand = function(self)
+				if curType == i then
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(0.7)
+				else
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(1)
+				end
+			end
+		}
 
 		t[#t+1] = LoadFont("Common Large") .. {
 			InitCommand = function(self)
-				self:x((tab.width/2)+(tab.width*(i-1)))
+				self:xy((tab.width/2)+(tab.width*(i-1)),-1)
 				self:maxwidth(tab.width/0.25)
 				self:zoom(0.25)
 				self:settext(v)
@@ -283,20 +295,20 @@ end
 ---
 
 local function assetBox(i)
-    local name = assetTable[i]
-    local t = Def.ActorFrame {
-        Name = tostring(i),
-        InitCommand = function(self)
-            self:x((((i-1) % maxColumns)+1)*assetXSpacing)
-            self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+50)
-            self:diffusealpha(0)
-        end,
-        PageMovedMessageCommand = function(self)
+	local name = assetTable[i]
+	local t = Def.ActorFrame {
+		Name = tostring(i),
+		InitCommand = function(self)
+			self:x((((i-1) % maxColumns)+1)*assetXSpacing)
+			self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+25)
+			self:diffusealpha(0)
+		end,
+		PageMovedMessageCommand = function(self)
 			self:finishtweening()
 			self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
 			self:diffusealpha(0)
-        end,
-        UpdateAssetMessageCommand = function(self, params)
+		end,
+		UpdateAssetMessageCommand = function(self, params)
 			if params.index == i then
 				if i+((curPage-1)*maxColumns*maxRows) > #assetTable then
 					self:finishtweening()
@@ -311,8 +323,10 @@ local function assetBox(i)
 
 					if curType == 3 then
 						assetWidth = judgmentWidth
+						assetHeight = judgmentHeight
 					else
 						assetWidth = squareWidth
+						assetHeight = squareWidth
 					end
 
 					-- Load the asset image
@@ -330,14 +344,14 @@ local function assetBox(i)
 						self:GetChild("Border"):diffuse(getMainColor("positive")):diffusealpha(0)
 					end
 
-					self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+50)
+					self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+25)
 					self:finishtweening()
 					self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
 					self:diffusealpha(1)
-					self:y((math.floor((i-1)/maxColumns)+1)*assetYSpacing+50)
-							
+					self:y((math.floor((i-1)/maxColumns)+1)*assetYSpacing+25)
+
 				end
-            end
+			end
 		end,
 		UpdateFinishedMessageCommand = function(self)
 			if assetTable[i+((curPage-1)*maxColumns*maxRows)] == nil then
@@ -350,11 +364,11 @@ local function assetBox(i)
 			end
 		end
 	}
-	
+
 	t[#t+1] = Def.Quad {
-        Name = "SelectedAssetIndicator",
-        InitCommand = function(self)
-            self:zoomto(assetWidth+14, assetHeight+14)
+		Name = "SelectedAssetIndicator",
+		InitCommand = function(self)
+			self:zoomto(assetWidth+14, assetHeight+14)
 			self:diffuse(color("#AAAAAA")):diffusealpha(0)
 		end,
 		SetCommand = function(self)
@@ -374,13 +388,13 @@ local function assetBox(i)
 		PickChangedMessageCommand = function(self)
 			self:queuecommand("Set")
 		end
-    }
+	}
 
-    t[#t+1] = Def.Quad {
-        Name = "Border",
-        InitCommand = function(self)
-            self:zoomto(assetWidth+4, assetHeight+4)
-            self:diffuse(getMainColor("positive")):diffusealpha(0.8)
+	t[#t+1] = UIElements.QuadButton(1, 1) .. {
+		Name = "Border",
+		InitCommand = function(self)
+			self:zoomto(assetWidth+4, assetHeight+4)
+			self:diffuse(getMainColor("positive")):diffusealpha(0.8)
 		end,
 		SelectCommand = function(self)
 			self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
@@ -392,7 +406,7 @@ local function assetBox(i)
 			self:zoomto(assetWidth+4, assetHeight+4)
 			self:diffuse(getMainColor("positive")):diffusealpha(0)
 		end,
-        CursorMovedMessageCommand = function(self, params)
+		CursorMovedMessageCommand = function(self, params)
 			self:finishtweening()
 			if params.index == i then
 				self:playcommand("Select")
@@ -408,8 +422,8 @@ local function assetBox(i)
 				self:playcommand("Deselect")
 			end
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and assetTable[i+((curPage-1)*maxColumns*maxRows)] ~= nil then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and assetTable[i+((curPage-1)*maxColumns*maxRows)] ~= nil then
 				if lastClickedIndex == i then
 					confirmPick()
 				end
@@ -420,9 +434,9 @@ local function assetBox(i)
 			end
 		end
 	}
-    
-    t[#t+1] = Def.Sprite {
-        Name = "Image",
+
+	t[#t+1] = Def.Sprite {
+		Name = "Image",
 		LoadAssetCommand = function(self)
 			local assets = findAssetsForPath(name)
 			if #assets > 1 then
@@ -431,7 +445,7 @@ local function assetBox(i)
 			else
 				self:LoadBackground(name)
 			end
-        end,
+		end,
 		CursorMovedMessageCommand = function(self, params)
 			self:finishtweening()
 			if params.index == i then
@@ -453,7 +467,7 @@ local function assetBox(i)
 			end
 		end
 	}
-	
+
 	t[#t+1] = Def.Sound {
 		Name = "Sound",
 		LoadAssetCommand = function(self)
@@ -472,14 +486,8 @@ local function assetBox(i)
 			end
 		end
 	}
-    
-    return t
-end
 
-
-
-local function highlight(self)
-	self:queuecommand("Highlight")
+	return t
 end
 
 local function mainContainer()
@@ -487,28 +495,23 @@ local function mainContainer()
 	local smallFontScale = 0.35
 	local tinyFontScale = 0.2
 	local fontRow1 = -frameHeight/2+20
-	local fontRow2 = -frameHeight/2+45
 	local fontSpacing = 15
 
-	local t = Def.ActorFrame {
+	local t = Def.ActorFrame {}
+
+	t[#t+1] = Def.Quad {
 		InitCommand = function(self)
-			self:SetUpdateFunction(highlight)
+			self:zoomto(frameWidth, frameHeight)
+			self:diffuse(Saturation(getMainColor("highlight"), 0.6)):diffusealpha(0.3)
 		end
 	}
 
-    t[#t+1] = Def.Quad {
-        InitCommand = function(self)
-            self:zoomto(frameWidth, frameHeight)
-            self:diffuse(color("#333333")):diffusealpha(0.8)
-        end
-	}
-	
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:zoom(fontScale)
 			self:halign(0)
 			self:xy(-frameWidth/2 + fontSpacing, fontRow1)
-			self:settext(THEME:GetString("ScreenAssetSettings", "Title"))
+			self:settextf("%s", translated_info["Title"])
 		end
 	}
 
@@ -524,8 +527,9 @@ local function mainContainer()
 
 	t[#t+1] = LoadFont("Common Large") .. {
 		InitCommand = function(self)
-			self:zoom(smallFontScale)
-			self:xy(-frameWidth/2 + fontSpacing + 35, fontRow2 + 5)
+			self:zoom(fontScale)
+			self:halign(1)
+			self:xy(frameWidth/2 - fontSpacing * 2, fontRow1)
 			self:settext("")
 		end,
 		SetCommand = function(self)
@@ -546,15 +550,15 @@ local function mainContainer()
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
 			self:halign(0)
-			self:xy(-frameWidth/2 + fontSpacing, frameHeight/2 - 15)
-			self:maxwidth((SCREEN_CENTER_X - TAB.width*#assetTypes/2 - 40)/smallFontScale)
+			self:xy(capWideScale(30,-15), frameHeight / 2 - 16)
+			self:maxwidth((frameWidth / 2 - fontSpacing - capWideScale(25,0)) / smallFontScale)
 		end,
 		SetCommand = function(self)
 			local type = assetTable[getIndex()]
 			if type == nil then
-				self:settext("")
+				self:settextf("%s: ", translated_info["Hovered"])
 			else
-				self:settext(type:gsub("^%l", string.upper))
+				self:settextf("%s: " .. type:gsub("^%l", string.upper), translated_info["Hovered"])
 			end
 		end,
 		CursorMovedMessageCommand = function(self)
@@ -570,15 +574,15 @@ local function mainContainer()
 		InitCommand = function(self)
 			self:zoom(smallFontScale)
 			self:halign(0)
-			self:xy(TAB.width*#assetTypes/2 + 15, frameHeight/2 - 15)
-			self:maxwidth((SCREEN_CENTER_X - TAB.width*#assetTypes/2 - 40)/smallFontScale)
+			self:xy(capWideScale(30,-15), frameHeight / 2 - 36)
+			self:maxwidth((frameWidth / 2 - fontSpacing - capWideScale(25,0)) / smallFontScale)
 		end,
 		SetCommand = function(self)
 			local type = assetTable[selectedIndex]
 			if type == nil then
-				self:settext("")
+				self:settextf("%s: ", translated_info["Selected"])
 			else
-				self:settext(type:gsub("^%l", string.upper))
+				self:settextf("%s: " .. type:gsub("^%l", string.upper), translated_info["Selected"])
 			end
 		end,
 		PickChangedMessageCommand = function(self)
@@ -604,48 +608,8 @@ local function mainContainer()
 			self:queuecommand("Set")
 		end
 	}
---[[
-	t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:zoom(smallFontScale)
-			self:xy(-100, frameHeight/2 - 18)
-			self:settext("Prev")
-		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(1)
-			else
-				self:diffusealpha(0.6)
-			end
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				loadAssetType(-1)
-			end
-		end
-	}
 
-	t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:zoom(smallFontScale)
-			self:xy(100, frameHeight/2 - 18)
-			self:settext("Next")
-		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(1)
-			else
-				self:diffusealpha(0.6)
-			end
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				loadAssetType(1)
-			end
-		end
-	}]]
-
-    return t
+	return t
 end
 
 
@@ -681,14 +645,11 @@ local function input(event)
 
 		if event.button == "EffectDown" then
 			loadAssetType(curType - 1)
-        end
+		end
 	end
 	if event.type == "InputEventType_FirstPress" then
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+		if event.DeviceInput.button == "DeviceButton_right mouse button" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
-		
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			movePage(-1)
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
@@ -711,35 +672,35 @@ end
 local t = Def.ActorFrame {
 	BeginCommand = function(self)
 		SCREENMAN:set_input_redirected(PLAYER_1, true)
-        top = SCREENMAN:GetTopScreen()
-        top:AddInputCallback(input)
-        co = coroutine.create(updateImages)
-        self:SetUpdateFunction(update)
+		top = SCREENMAN:GetTopScreen()
+		top:AddInputCallback(input)
+		co = coroutine.create(updateImages)
+		self:SetUpdateFunction(update)
 	end
 
 }
 
 t[#t+1] = mainContainer() .. {
-    InitCommand = function(self)
-        self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
-    end
+	InitCommand = function(self)
+		self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y)
+	end
 }
 
 local l = 1
 local capTypes = {}
-for k,v in pairs(translated_assets) do
-	capTypes[l] = v
-    l = l+1
+for i,v in pairs(assetTypes) do
+	capTypes[l] = translated_assets[v]
+	l = l+1
 end
 local typeTabs = TAB:new(capTypes)
 t[#t+1] = typeTabs:makeTabActors() .. {
 	InitCommand = function(self)
-		self:xy(SCREEN_CENTER_X - TAB.width*#assetTypes/2, SCREEN_CENTER_Y + frameHeight/2 - TAB.height/2)
+		self:xy(SCREEN_CENTER_X - frameWidth/2 + 30, SCREEN_CENTER_Y + frameHeight/2 - TAB.height/2)
 	end
 }
 
 for i=1, maxRows * maxColumns do
-    t[#t+1] = assetBox(i)
+	t[#t+1] = assetBox(i)
 end
 
 return t

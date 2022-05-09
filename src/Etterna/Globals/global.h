@@ -147,9 +147,6 @@ struct CompileAssertDecl
 #include "RageUtil/Misc/RageException.h"
 /* Don't include our own headers here, since they tend to change often. */
 
-// SHOULD BE REMOVED EVENTUALLY, STOP GAP SO STUFF CAN COMPILE
-#include <vector>
-using std::vector;
 
 #ifdef TRACY_ENABLE
 #if defined(_MSC_VER)

@@ -30,7 +30,7 @@ bool RageThread::s_bSystemSupportsTLS = false;
 bool RageThread::s_bIsShowingDialog = false;
 
 #define MAX_THREADS 128
-// static vector<RageMutex*> *g_MutexList = NULL; /* watch out for static
+// static std::vector<RageMutex*> *g_MutexList = NULL; /* watch out for static
 // initialization order problems */
 
 struct ThreadSlot
@@ -264,8 +264,7 @@ RageThread::Create(int (*fn)(void*), void* data)
 
 	strcpy(m_pSlot->m_szName, m_sName.c_str());
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Starting thread: {}", m_sName.c_str());
+	Locator::getLogger()->info("Starting thread: {}", m_sName.c_str());
 	sprintf(m_pSlot->m_szThreadFormattedOutput, "Thread: %s", m_sName.c_str());
 
 	/* Start a thread using our own startup function.  We pass the id to fill

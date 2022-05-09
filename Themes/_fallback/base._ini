@@ -22,7 +22,6 @@ PercentScoreDecimalPlaces=2
 NoScoreName="STEP"
 
 [Gameplay]
-ComboIsPerRow=false
 MinScoreToContinueCombo="TapNoteScore_W3"
 MinScoreToMaintainCombo="TapNoteScore_W3"
 
@@ -412,7 +411,6 @@ ScreenModsCommand=setupmusicstagemods
 PreviousSongButton="MenuLeft"
 NextSongButton="MenuRight"
 UseOptionsList=false
-TwoPartSelection=false
 TwoPartConfirmsOnly=false
 UsePlayerSelectMenu=false
 StepsDisplayP1X=
@@ -631,7 +629,6 @@ SongNumberP2X=SCREEN_CENTER_X+25
 SongNumberP2Y=SCREEN_CENTER_Y-206
 SongNumberP2OnCommand=addy,-100;linear,0.5;addy,100
 SongNumberP2OffCommand=linear,0.5;addy,-100
-ShowScoreInRave=true
 ScoreFrameX=SCREEN_CENTER_X
 ScoreFrameY=SCREEN_BOTTOM
 ScoreFrameOnCommand=vertalign,bottom;addy,100;linear,0.5;addy,-100;draworder,2
@@ -1988,7 +1985,7 @@ AllTimeY=110
 AllTimeOnCommand=zoom,0.7;diffuseshift;effectcolor1,0.5,0.5,0.5,1
 TitleX=SCREEN_CENTER_X
 TitleY=140
-TitleOnCommand=zoom,0.8 
+TitleOnCommand=zoom,0.8
 DataX=0
 DataY=SCREEN_CENTER_Y+16
 DataOnCommand=
@@ -2061,7 +2058,6 @@ PulseCommand=%function(self,param) self:stoptweening(); self:zoom(1.2*param.Zoom
 [Player]
 ReceptorArrowsYStandard=-144
 ReceptorArrowsYReverse=144
-JudgmentTransformCommand=%JudgmentTransformCommand
 JudgmentOnCommand=
 ComboTransformCommand=%ComboTransformCommand
 DrawDistanceBeforeTargetsPixels=400
@@ -2427,7 +2423,7 @@ IdleTimeoutSeconds=0
 
 [ScreenOptionsAdvanced]
 Fallback="ScreenOptionsServiceChild"
-LineNames="1,2,3,4,5,6,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32"
+LineNames="1,2,3,4,5,6,8,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32"
 Line1="conf,MenuTimer"
 Line2="conf,ScoringType"
 Line3="conf,TimingWindowScale"
@@ -2437,7 +2433,6 @@ Line6="conf,ProgressiveStageLifebar"
 Line8="conf,DefaultFailType"
 Line9="conf,ShowSongOptions"
 Line10="conf,GetRankingName"
-Line11="conf,AllowW1"
 Line12="conf,Center1Player"
 Line13="conf,HiddenSongs"
 Line14="conf,EasterEggs"
@@ -2500,7 +2495,6 @@ Line13="conf,ShowLyrics"
 Line14="conf,RandomBackgroundMode"
 Line15="conf,BGBrightness"
 Line16="conf,ShowDanger"
-Line18="conf,ShowBeginnerHelper"
 Line19="conf,NumBackgrounds"
 
 [ScreenAttract]
@@ -3067,10 +3061,6 @@ Fallback="ScreenAttract"
 Class="ScreenEnding"
 NextScreen="ScreenHighScores"
 
-[ScreenGameOver]
-Fallback="ScreenEnding"
-TimerSeconds=10
-
 RemoveCardP1X=SCREEN_WIDTH*0.1
 RemoveCardP1Y=SCREEN_CENTER_Y
 RemoveCardP1OnCommand=
@@ -3095,15 +3085,6 @@ TimerSeconds=0
 Fallback="ScreenEnding"
 ; decorations send "SM_BeginFadingOut", so timer is disabled
 TimerSeconds=0
-
-[BeginnerHelper]
-# All X,Y coordinates are relative to the HelperX,Y
-Player1_X=-125
-Player2_X=SCREEN_CENTER_X-195
-PlayerAngle=40
-DancePadAngle=36
-HelperX=SCREEN_CENTER_X+0
-HelperY=SCREEN_CENTER_Y+80
 
 [ScreenOptionsMaster]
 Fallback="ScreenOptions"

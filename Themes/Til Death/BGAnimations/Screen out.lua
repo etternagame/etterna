@@ -1,4 +1,7 @@
-return Def.Quad {
+local t = Def.ActorFrame {}
+
+--black fade
+t[#t + 1] = Def.Quad {
 	InitCommand = function(self)
 		self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y):zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
 	end,
@@ -6,3 +9,5 @@ return Def.Quad {
 		self:diffuse(color("0,0,0,0")):sleep(0.1):linear(0.1):diffusealpha(1)
 	end
 }
+
+return t

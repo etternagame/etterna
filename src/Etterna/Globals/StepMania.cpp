@@ -359,10 +359,6 @@ ThemeMetric<std::string> INITIAL_SCREEN("Common", "InitialScreen");
 std::string
 StepMania::GetInitialScreen()
 {
-	if (!PREFSMAN->m_sTestInitialScreen.Get().empty() &&
-		SCREENMAN->IsScreenNameValid(PREFSMAN->m_sTestInitialScreen)) {
-		return PREFSMAN->m_sTestInitialScreen;
-	}
 	std::string screen_name = INITIAL_SCREEN.GetValue();
 	if (!SCREENMAN->IsScreenNameValid(screen_name)) {
 		screen_name = "ScreenInitialScreenIsInvalid";
@@ -681,9 +677,8 @@ CheckVideoDefaultSettings()
 	// Video card changed since last run
 	std::string sVideoDriver = GetVideoDriverName();
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Last seen video driver: {}",
-				   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
+	Locator::getLogger()->info("Last seen video driver: {}",
+				PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
 
 	// allow players to opt out of the forced reset when a new video card is
 	// detected - mina
@@ -698,8 +693,7 @@ CheckVideoDefaultSettings()
 		std::string sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
+			Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
 			break;
 		}
 	}
@@ -740,8 +734,7 @@ CheckVideoDefaultSettings()
 				  defaults.sVideoRenderers.c_str(), PREFSMAN->m_sVideoRenderers.Get().c_str());
 	}
 
-	if (PREFSMAN->m_verbose_log > 0)
-		Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
+	Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
 	return bSetDefaultVideoParams;
 }
 
@@ -801,7 +794,7 @@ CreateDisplay()
 	  ssprintf(ERROR_VIDEO_DRIVER.GetValue(), GetVideoDriverName().c_str()) +
 	  "\n\n";
 
-	vector<std::string> asRenderers;
+	std::vector<std::string> asRenderers;
 	split(PREFSMAN->m_sVideoRenderers, ",", asRenderers, true);
 
 	if (asRenderers.empty())
@@ -1026,13 +1019,13 @@ sm_main(int argc, char* argv[])
 
 	// Set up alternative filesystem trees.
 	if (!PREFSMAN->m_sAdditionalFolders.Get().empty()) {
-		vector<std::string> dirs;
+		std::vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/");
 	}
 	if (!PREFSMAN->m_sAdditionalSongFolders.Get().empty()) {
-		vector<std::string> dirs;
+		std::vector<std::string> dirs;
 		split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
 		for (unsigned i = 0; i < dirs.size(); i++)
 			FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
@@ -1044,8 +1037,12 @@ sm_main(int argc, char* argv[])
 
     // Setup options that require preference variables
     // Used to be contents of ApplyLogPreferences
+    Core::Crash::setShouldUpload(PREFSMAN->m_bEnableCrashUpload);
     Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
-    Locator::getLogger()->setLogLevel(static_cast<Core::ILogger::Severity>(PREFSMAN->m_verbose_log.Get()));
+	Locator::getLogger()->info("Logging level {} (0 - TRACE | 5 - FATAL)",
+							   PREFSMAN->m_logging_level.Get());
+	Locator::getLogger()->setLogLevel(
+	  static_cast<Core::ILogger::Severity>(PREFSMAN->m_logging_level.Get()));
 
 		// This needs PREFSMAN.
 		Dialog::Init();
@@ -1377,7 +1374,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
-		Locator::getLogger()->trace("Screenshot took {} seconds.", timer.GetDeltaTime());
+		Locator::getLogger()->debug("Screenshot took {} seconds.", timer.GetDeltaTime());
 		return true; // handled
 	}
 
@@ -1413,7 +1410,7 @@ void StepMania::HandleInputEvents(float fDeltaTime) {
 	if (SCREENMAN->GetTopScreen()->IsFirstUpdate())
 		return;
 
-	vector<InputEvent> ieArray;
+	std::vector<InputEvent> ieArray;
 	INPUTFILTER->GetInputEvents(ieArray);
 
 	// If we don't have focus, discard input.

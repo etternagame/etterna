@@ -203,12 +203,12 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 {
 	GraphicsWindow::Initialize(true);
 
-	Locator::getLogger()->trace("RageDisplay_D3D::RageDisplay_D3D()");
-	Locator::getLogger()->trace("Current renderer: Direct3D");
+	Locator::getLogger()->info("RageDisplay_D3D::RageDisplay_D3D()");
+	Locator::getLogger()->info("Current renderer: Direct3D");
 
 	g_pd3d = Direct3DCreate9(D3D_SDK_VERSION);
 	if (g_pd3d == nullptr) {
-		Locator::getLogger()->trace("Direct3DCreate9 failed");
+		Locator::getLogger()->fatal("Direct3DCreate9 failed");
 		return D3D_NOT_INSTALLED.GetValue();
 	}
 
@@ -220,7 +220,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	D3DADAPTER_IDENTIFIER9 identifier;
 	g_pd3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &identifier);
 
-	Locator::getLogger()->trace(
+	Locator::getLogger()->info(
 	  "Driver: {}\n"
 	  "Description: {}\n"
 	  "Max texture size: {}\n"
@@ -230,7 +230,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	  g_DeviceCaps.MaxTextureWidth,
 	  (g_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) ? "yes" : "no");
 
-	Locator::getLogger()->trace("This display adaptor supports the following modes:");
+	Locator::getLogger()->info("This display adaptor supports the following modes:");
 	D3DDISPLAYMODE mode;
 
 	const auto modeCount =
@@ -238,7 +238,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 
 	for (UINT u = 0; u < modeCount; u++) {
 		if (SUCCEEDED(g_pd3d->EnumAdapterModes(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, u, &mode))) {
-			Locator::getLogger()->trace("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
+			Locator::getLogger()->info("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
 		}
 	}
 
@@ -260,7 +260,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 
 RageDisplay_D3D::~RageDisplay_D3D()
 {
-	Locator::getLogger()->trace("RageDisplay_D3D::~RageDisplay()");
+	Locator::getLogger()->info("RageDisplay_D3D::~RageDisplay()");
 
 	GraphicsWindow::Shutdown();
 
@@ -323,7 +323,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 	HRESULT hr;
 
 	// If windowed, then bpp is ignored.  Use whatever works.
-	vector<D3DFORMAT> vBackBufferFormats; // throw all possibilities in here
+	std::vector<D3DFORMAT> vBackBufferFormats; // throw all possibilities in here
 
 	// When windowed, add all formats; otherwise add only formats that match
 	// dwBPP.
@@ -354,7 +354,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 			fmtDisplay = vBackBufferFormat;
 		}
 
-		Locator::getLogger()->trace("Testing format: display {}, back buffer {}, windowed {}...",
+		Locator::getLogger()->debug("Testing format: display {}, back buffer {}, windowed {}...",
 				   fmtDisplay,
 				   fmtBackBuffer,
 				   static_cast<int>(bWindowed));
@@ -374,7 +374,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 		return fmtBackBuffer;
 	}
 
-	Locator::getLogger()->trace("Couldn't find an appropriate back buffer format.");
+	Locator::getLogger()->warn("Couldn't find an appropriate back buffer format.");
 	return D3DFMT_UNKNOWN;
 }
 
@@ -439,7 +439,7 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 	  g_pd3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat);
 	auto iBest = -1;
 	auto iBestScore = 0;
-	Locator::getLogger()->trace("cur: {}x{} {}Hz, format {}",
+	Locator::getLogger()->debug("cur: {}x{} {}Hz, format {}",
 			   current.Width, current.Height,
 			   current.RefreshRate, current.Format);
 	for (auto i = 0; i < iCnt; ++i) {
@@ -552,7 +552,7 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 
 	pD3Dpp->Flags = 0;
 
-	Locator::getLogger()->trace(
+	Locator::getLogger()->info(
 	  "Present Parameters: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
 	  pD3Dpp->BackBufferWidth,
 	  pD3Dpp->BackBufferHeight,
@@ -940,7 +940,7 @@ RageDisplay_D3D::SendCurrentMatrices()
 class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>& /*vMeshes*/) override
+	void Allocate(const std::vector<msMesh>& /*vMeshes*/) override
 	{
 		m_vVertex.resize(
 		  std::max(1U, static_cast<unsigned>(GetTotalVertices())));
@@ -948,7 +948,7 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 		  std::max(1U, static_cast<unsigned>(GetTotalTriangles())));
 	}
 
-	void Change(const vector<msMesh>& vMeshes) override
+	void Change(const std::vector<msMesh>& vMeshes) override
 	{
 		for (unsigned i = 0; i < vMeshes.size(); i++) {
 			const auto& meshInfo = m_vMeshInfo[i];
@@ -1015,8 +1015,8 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 	}
 
   protected:
-	vector<RageModelVertex> m_vVertex;
-	vector<msTriangle> m_vTriangles;
+	std::vector<RageModelVertex> m_vVertex;
+	std::vector<msTriangle> m_vTriangles;
 };
 
 auto
@@ -1043,7 +1043,7 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<int> vIndices;
+	static std::vector<int> vIndices;
 	const int iOldSize = vIndices.size();
 	const auto uNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(uNewSize);
@@ -1094,7 +1094,7 @@ RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteVertex v[],
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<int> vIndices;
+	static std::vector<int> vIndices;
 	const int iOldSize = vIndices.size();
 	const auto iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);
@@ -1141,7 +1141,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	const auto iNumIndices = iNumTriangles * 3;
 
 	// make a temporary index buffer
-	static vector<int> vIndices;
+	static std::vector<int> vIndices;
 	const int iOldSize = vIndices.size();
 	const auto iNewSize = std::max(iOldSize, iNumIndices);
 	vIndices.resize(iNewSize);

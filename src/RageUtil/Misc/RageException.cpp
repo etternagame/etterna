@@ -39,7 +39,7 @@ RageException::Throw(const char* sFmt, ...)
 			   "Exception: %s\n"
 			   "//////////////////////////////////////////////////////\n",
 			   error.c_str());
-    Locator::getLogger()->trace(msg.c_str());
+	Locator::getLogger()->error("{}", msg.c_str());
 
 #if (defined(_WIN32) && defined(DEBUG)) || defined(_XDBG) || defined(__APPLE__)
 	if (IsDebuggerPresent())

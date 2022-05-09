@@ -1,7 +1,8 @@
 #pragma once
 #include "../IntervalHandInfo.h"
 
-// this should mayb track offhand taps like the old behavior did
+/// Hand-Dependent PatternMod describing balance between fingers.
+/// this should maybe track offhand taps like the old behavior did
 struct WideRangeBalanceMod
 {
 	const CalcPatternMod _pmod = WideRangeBalance;

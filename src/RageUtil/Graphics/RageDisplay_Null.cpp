@@ -48,7 +48,7 @@ static RageDisplay::RagePixelFormatDesc
 
 RageDisplay_Null::RageDisplay_Null()
 {
-	Locator::getLogger()->trace("Current renderer: null");
+	Locator::getLogger()->info("Current renderer: null");
 }
 
 std::string
@@ -135,8 +135,8 @@ RageDisplay_Null::IsD3DInternal()
 class RageCompiledGeometryNull : public RageCompiledGeometry
 {
   public:
-	void Allocate(const vector<msMesh>&) override {}
-	void Change(const vector<msMesh>&) override {}
+	void Allocate(const std::vector<msMesh>&) override {}
+	void Change(const std::vector<msMesh>&) override {}
 	void Draw(int iMeshIndex) const override {}
 };
 

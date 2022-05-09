@@ -49,7 +49,7 @@ class RageFileDriverZip : public RageFileDriver
 	bool m_bFileOwned;
 
 	RageFileBasic* m_pZip;
-	vector<FileInfo*> m_pFiles;
+	std::vector<FileInfo*> m_pFiles;
 
 	std::string m_sPath;
 	std::string m_sComment;

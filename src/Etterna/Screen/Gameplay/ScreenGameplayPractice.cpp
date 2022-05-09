@@ -53,8 +53,7 @@ ScreenGameplayPractice::Init()
 
 ScreenGameplayPractice::~ScreenGameplayPractice()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenGameplayReplay::~ScreenGameplayReplay()");
+	Locator::getLogger()->debug("ScreenGameplayReplay::~ScreenGameplayReplay()");
 }
 
 auto
@@ -95,7 +94,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			SongManager::ReconcileChartKeysForReloadedSong(cursong, oldKeys);
 
 			if (!success || GAMESTATE->m_pCurSteps->GetNoteData().IsEmpty()) {
-				Locator::getLogger()->trace("The Player attempted something resulting in an "
+				Locator::getLogger()->error("The Player attempted something resulting in an "
 						   "unrecoverable error while in Gameplay Practice and "
 						   "has been ejected.");
 				BeginBackingOutFromGameplay();
@@ -103,8 +102,9 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			}
 
 			AdjustSync::ResetOriginalSyncData();
-
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps);
+			if (!m_vPlayerInfo.m_NoteData.IsEmpty())
+				m_vPlayerInfo.GetPlayerState()->ResetCacheInfo();
 
 			float fSecondsToStartFadingOutMusic;
 			float fSecondsToStartTransitioningOut;
@@ -162,7 +162,7 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 		return;
 	}
 
-	UpdateSongPosition(fDeltaTime);
+	UpdateSongPosition();
 
 	if (m_bZeroDeltaOnNextUpdate) {
 		ScreenWithMenuElements::Update(0); // NOLINT(bugprone-parent-virtual-call)
@@ -230,7 +230,7 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 			if (bGiveUpTimerFired) {
 				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
 				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
-				Locator::getLogger()->trace("Exited Practice Mode to Evaluation");
+				Locator::getLogger()->info("Exited Practice Mode to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
 				return;
 			}
@@ -381,7 +381,7 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 
 	// Set the final position
 	SOUND->SetSoundPosition(m_pSoundMusic, newSongPositionSeconds - noteDelay);
-	UpdateSongPosition(0);
+	UpdateSongPosition();
 
 	// Unpause the music if we want it unpaused
 	if (unpause && isPaused) {

@@ -6,10 +6,12 @@
  * sequencers do their stuff */
 static const std::array<unsigned, 4> col_ids = { 1U, 2U, 4U, 8U };
 
+/// default for any field tracking seconds
 constexpr float s_init = -5.F;
+/// default for any field tracking milliseconds
 constexpr float ms_init = 5000.F;
 
-// global multiplier to standardize baselines
+/// global multiplier to standardize baselines
 constexpr float finalscaler = 3.632F * 1.06F;
 
 inline auto
@@ -34,25 +36,29 @@ column_count(const unsigned& notes) -> int
 	return 2;
 }
 
+/// milliseconds between two given timestamps in seconds
 inline auto
 ms_from(const float& now, const float& last) -> float
 {
 	return (now - last) * 1000.F;
 }
 
+/// conversion of milliseconds to bpm
 inline auto
 ms_to_bpm(const float& x) -> float
 {
 	return 15000.F / x;
 }
 
+/// conversion of milliseconds to notes per second
 inline auto
 ms_to_nps(const float& x) -> float
 {
 	return 1000.F / x;
 }
 
-// maybe apply final scaler later and not have this?
+/// conversion of milliseconds to notes per second scaled.
+/// maybe apply final scaler later and not have this?
 inline auto
 ms_to_scaled_nps(const float& ms) -> float
 {

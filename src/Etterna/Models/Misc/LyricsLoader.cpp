@@ -59,7 +59,7 @@ LyricsLoader::LoadFromLRCFile(const std::string& sPath, Song& out)
 		// "[data1] data2".  Ignore whitespace at the beginning of the line.
 		static Regex x("^ *\\[([^]]+)\\] *(.*)$");
 
-		vector<std::string> matches;
+		std::vector<std::string> matches;
 		if (!x.Compare(line, matches)) {
 			continue;
 		}

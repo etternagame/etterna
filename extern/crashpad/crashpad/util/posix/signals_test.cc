@@ -24,9 +24,9 @@
 #include <limits>
 
 #include "base/compiler_specific.h"
+#include "base/cxx17_backports.h"
 #include "base/files/scoped_file.h"
 #include "base/logging.h"
-#include "base/stl_util.h"
 #include "base/strings/stringprintf.h"
 #include "build/build_config.h"
 #include "gtest/gtest.h"
@@ -51,7 +51,7 @@ bool CanCauseSignal(int sig) {
 #endif  // !defined(ARCH_CPU_ARM64)
 #if defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
          sig == SIGILL ||
-#endif  // defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL
+#endif  // defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
          sig == SIGPIPE ||
          sig == SIGSEGV ||
 #if defined(OS_APPLE)
@@ -68,7 +68,6 @@ void CauseSignal(int sig) {
   switch (sig) {
     case SIGABRT: {
       abort();
-      break;
     }
 
     case SIGALRM: {
@@ -114,7 +113,6 @@ void CauseSignal(int sig) {
       *mapped_file.addr_as<char*>() = 0;
 
       _exit(kUnexpectedExitStatus);
-      break;
     }
 
 #if !defined(ARCH_CPU_ARM64)
@@ -143,7 +141,6 @@ void CauseSignal(int sig) {
     case SIGILL: {
       // __builtin_trap() causes SIGTRAP on arm64 on Android.
       __builtin_trap();
-      break;
     }
 #endif  // defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARMEL)
 
@@ -208,7 +205,6 @@ void CauseSignal(int sig) {
     default: {
       LOG(ERROR) << "unexpected signal " << sig;
       _exit(kUnexpectedExitStatus);
-      break;
     }
   }
 }
@@ -232,6 +228,10 @@ class SignalsTest : public Multiprocess {
         sig_(sig),
         test_type_(test_type),
         signal_source_(signal_source) {}
+
+  SignalsTest(const SignalsTest&) = delete;
+  SignalsTest& operator=(const SignalsTest&) = delete;
+
   ~SignalsTest() {}
 
  private:
@@ -318,8 +318,6 @@ class SignalsTest : public Multiprocess {
   TestType test_type_;
   SignalSource signal_source_;
   static Signals::OldActions old_actions_;
-
-  DISALLOW_COPY_AND_ASSIGN(SignalsTest);
 };
 
 Signals::OldActions SignalsTest::old_actions_;
@@ -466,12 +464,16 @@ TEST(Signals, Raise_HandlerReraisesToDefault) {
     }
 
 #if defined(OS_APPLE)
-    if (sig == SIGBUS) {
-      // Signal handlers can’t distinguish between SIGBUS arising out of a
-      // hardware fault and SIGBUS raised asynchronously.
-      // Signals::RestoreHandlerAndReraiseSignalOnReturn() assumes that SIGBUS
-      // comes from a hardware fault, but this test uses raise(), so the
-      // re-raise test must be skipped.
+    if (sig == SIGBUS
+#if defined(ARCH_CPU_ARM64)
+        || sig == SIGILL || sig == SIGSEGV
+#endif  // defined(ARCH_CPU_ARM64)
+       ) {
+      // Signal handlers can’t distinguish between these signals arising out of
+      // hardware faults and raised asynchronously.
+      // Signals::RestoreHandlerAndReraiseSignalOnReturn() assumes that they
+      // come from hardware faults, but this test uses raise(), so the re-raise
+      // test must be skipped.
       continue;
     }
 #endif  // defined(OS_APPLE)
@@ -493,12 +495,16 @@ TEST(Signals, Raise_HandlerReraisesToPrevious) {
     }
 
 #if defined(OS_APPLE)
-    if (sig == SIGBUS) {
-      // Signal handlers can’t distinguish between SIGBUS arising out of a
-      // hardware fault and SIGBUS raised asynchronously.
-      // Signals::RestoreHandlerAndReraiseSignalOnReturn() assumes that SIGBUS
-      // comes from a hardware fault, but this test uses raise(), so the
-      // re-raise test must be skipped.
+    if (sig == SIGBUS
+#if defined(ARCH_CPU_ARM64)
+        || sig == SIGILL || sig == SIGSEGV
+#endif  // defined(ARCH_CPU_ARM64)
+       ) {
+      // Signal handlers can’t distinguish between these signals arising out of
+      // hardware faults and raised asynchronously.
+      // Signals::RestoreHandlerAndReraiseSignalOnReturn() assumes that they
+      // come from hardware faults, but this test uses raise(), so the re-raise
+      // test must be skipped.
       continue;
     }
 #endif  // defined(OS_APPLE)

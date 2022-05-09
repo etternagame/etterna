@@ -1,10 +1,12 @@
 #pragma once
 #include "../../PatternModHelpers.h"
 
+/// Hand-Agnostic PatternMod detecting Jumpstream.
+/// Looks for jacks, jumptrills, and jumps (2-chords)
 struct JSMod
 {
 	const CalcPatternMod _pmod = JS;
-	// const vector<CalcPatternMod> _dbg = { JSS, JSJ };
+	// const std::vector<CalcPatternMod> _dbg = { JSS, JSJ };
 	const std::string name = "JSMod";
 	const int _tap_size = jump;
 
@@ -61,11 +63,16 @@ struct JSMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 
-	// inline void set_dbg(vector<float> doot[], const int& i)
+	// inline void set_dbg(std::vector<float> doot[], const int& i)
 	//{
 	//		doot[JSS][i] = jumptrill_prop;
 	//		doot[JSJ][i] = jack_prop;
 	//}
+
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
 
 	void decay_mod()
 	{

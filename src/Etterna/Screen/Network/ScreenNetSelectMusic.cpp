@@ -193,8 +193,7 @@ ScreenNetSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 }
 ScreenNetSelectMusic::~ScreenNetSelectMusic()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenNetSelectMusic::~ScreenNetSelectMusic()");
+	Locator::getLogger()->debug("ScreenNetSelectMusic::~ScreenNetSelectMusic()");
 }
 
 bool

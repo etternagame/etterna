@@ -5,7 +5,10 @@
 
 static const int max_vtrills_per_interval = 4;
 
-// almost identical to wrr, refer to comments there
+/// Hand-Dependent PatternMod detecting one hand trills.
+/// Specific meant to downscale long continuous one hand trills
+/// to nerf jumpjack vibro.
+/// almost identical to wrr, refer to comments there
 struct VOHTrillMod
 {
 	const CalcPatternMod _pmod = VOHTrill;

@@ -19,7 +19,7 @@ DialogDriver*
 DialogDriver::Create()
 {
 	std::string sDrivers = "win32,macosx,null";
-	vector<std::string> asDriversToTry;
+	std::vector<std::string> asDriversToTry;
 	split(sDrivers, ",", asDriversToTry, true);
 
 	ASSERT(asDriversToTry.size() != 0);
@@ -37,7 +37,7 @@ DialogDriver::Create()
 
 		if (sError.empty())
 			return pRet;
-		Locator::getLogger()->info("Couldn't load driver {}: {}", Driver, sError.c_str());
+		Locator::getLogger()->warn("Couldn't load driver {}: {}", Driver, sError.c_str());
 		SAFE_DELETE(pRet);
 	}
 	return nullptr;

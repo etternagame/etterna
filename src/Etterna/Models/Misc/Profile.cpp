@@ -681,7 +681,7 @@ Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
 {
 	FILEMAN->FlushDirCache(sDir);
 	// Find a file name for the screenshot
-	vector<std::string> files;
+	std::vector<std::string> files;
 	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
 	sort(files.begin(), files.end());
 
@@ -689,7 +689,7 @@ Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
 
 	for (int i = files.size() - 1; i >= 0; --i) {
 		static Regex re("^" + sFileNameBeginning + "([0-9]{5})\\....$");
-		vector<std::string> matches;
+		std::vector<std::string> matches;
 		if (!re.Compare(files[i], matches))
 			continue;
 
@@ -1035,7 +1035,7 @@ class LunaProfile : public Luna<Profile>
 			return 0;
 		}
 
-		vector<ScoreGoal*> doot;
+		std::vector<ScoreGoal*> doot;
 		if (p->filtermode == 1) {
 			for (auto& sg : p->goaltable)
 				if (sg->achieved)
@@ -1223,7 +1223,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	}
 
 	static int SetPercent(T* p, lua_State* L)
-	{	
+	{
 		if (!p->achieved) {
 			auto newpercent = FArg(1);
 			CLAMP(newpercent, .8f, 1.f);
@@ -1247,7 +1247,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 				else
 					newpercent = 0.99f;
 			}
-			
+
 
 			p->percent = newpercent;
 			p->CheckVacuity();
@@ -1260,7 +1260,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	{
 		if (!p->achieved) {
 			auto newpriority = IArg(1);
-			CLAMP(newpriority, 0, 100);
+			CLAMP(newpriority, 1, 100);
 			p->priority = newpriority;
 			p->UploadIfNotVacuous();
 		}

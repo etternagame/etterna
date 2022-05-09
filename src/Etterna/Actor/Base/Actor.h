@@ -183,8 +183,14 @@ class Actor : public MessageSubscriber
 	auto GetFakeParentOrParent() -> Actor*; // fake parent > parent -mina
 	auto GetTrueX() -> float; // recursive with parent (for mouseovers) -mina
 	auto GetTrueY() -> float; // same
+	auto GetTrueZ() -> float;
+	auto GetTrueRotationX() -> float;
+	auto GetTrueRotationY() -> float;
 	auto GetTrueRotationZ() -> float; // same
 	auto GetTrueZoom() -> float;	  // same
+	auto GetTrueZoomX() -> float;
+	auto GetTrueZoomY() -> float;
+	auto GetTrueZoomZ() -> float;
 	auto IsVisible() -> bool; // same but for gating updates on things that may
 							  // not explicitly set visible = false -mina
 
@@ -868,7 +874,7 @@ class Actor : public MessageSubscriber
 
 	// Stuff for effects
 #if defined(SSC_FUTURES) // be able to stack effects
-	vector<Effect> m_Effects;
+	std::vector<Effect> m_Effects;
 #else // compatibility
 	Effect m_Effect;
 #endif

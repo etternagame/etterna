@@ -11,11 +11,11 @@ bool
 CsvFile::ReadFile(const std::string& sPath)
 {
 	m_sPath = sPath;
-	Locator::getLogger()->trace("Reading '{}'", m_sPath.c_str());
+	Locator::getLogger()->debug("Reading '{}'", m_sPath.c_str());
 
 	RageFile f;
 	if (!f.Open(m_sPath)) {
-		Locator::getLogger()->trace("Reading '{}' failed: {}", m_sPath.c_str(), f.GetError().c_str());
+		Locator::getLogger()->warn("Reading '{}' failed: {}", m_sPath.c_str(), f.GetError().c_str());
 		m_sError = f.GetError();
 		return false;
 	}
@@ -42,7 +42,7 @@ CsvFile::ReadFile(RageFileBasic& f)
 
 		utf8_remove_bom(line);
 
-		vector<std::string> vs;
+		std::vector<std::string> vs;
 
 		while (!line.empty()) {
 			if (line[0] == '\"') // quoted value

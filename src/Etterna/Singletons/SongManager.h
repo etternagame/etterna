@@ -185,7 +185,7 @@ class SongManager
 	std::vector<std::string>
 	  m_sSongGroupBannerPaths; // each song group may have a
 							   // banner associated with it
-	// vector<std::string>		m_sSongGroupBackgroundPaths; // each song group
+	// std::vector<std::string>		m_sSongGroupBackgroundPaths; // each song group
 	// may have a background associated with it (very rarely)
 
 	struct Comp

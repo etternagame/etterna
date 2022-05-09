@@ -23,7 +23,7 @@ static const std::array<float, NUM_Skillset> basescalars = {
 static constexpr float finalscaler = 2.6f * 1.4f;
 
 inline void
-Smooth(vector<float>& input, float neutral)
+Smooth(std::vector<float>& input, float neutral)
 {
 	float f2 = neutral;
 	float f3 = neutral;
@@ -37,7 +37,7 @@ Smooth(vector<float>& input, float neutral)
 }
 
 inline void
-DifficultyMSSmooth(vector<float>& input)
+DifficultyMSSmooth(std::vector<float>& input)
 {
 	float f2 = 0.f;
 
@@ -49,7 +49,7 @@ DifficultyMSSmooth(vector<float>& input)
 }
 
 float
-CalcMSEstimate(vector<float>& input)
+CalcMSEstimate(std::vector<float>& input)
 {
 	if (input.empty())
 		return 0.f;
@@ -63,7 +63,7 @@ CalcMSEstimate(vector<float>& input)
 }
 
 float
-CalcInternal(float x, vector<float>& diff, vector<int>& v_itvpoints)
+CalcInternal(float x, std::vector<float>& diff, std::vector<int>& v_itvpoints)
 {
 	float output = 0.f;
 	for (size_t i = 0; i < diff.size(); i++) {
@@ -75,12 +75,12 @@ CalcInternal(float x, vector<float>& diff, vector<int>& v_itvpoints)
 
 float
 Chisel(float score_goal,
-	   vector<float>& ldiff,
-	   vector<int>& lv_itvpoints,
-	   vector<float>& rdiff,
-	   vector<int>& rv_itvpoints,
-	   vector<float>& mdiff,
-	   vector<int>& mv_itvpoints,
+	   std::vector<float>& ldiff,
+	   std::vector<int>& lv_itvpoints,
+	   std::vector<float>& rdiff,
+	   std::vector<int>& rv_itvpoints,
+	   std::vector<float>& mdiff,
+	   std::vector<int>& mv_itvpoints,
 	   float MaxPoints)
 {
 	float lower = 0.0f;
@@ -101,9 +101,9 @@ Chisel(float score_goal,
 }
 
 void
-setHandDiffs(vector<float>& NPSdiff,
-			 vector<float>& MSdiff,
-			 vector<vector<vector<float>>>& AllIntervals,
+setHandDiffs(std::vector<float>& NPSdiff,
+			 std::vector<float>& MSdiff,
+			 std::vector<vector<vector<float>>>& AllIntervals,
 			 unsigned columnToStart,
 			 unsigned columnsPerHand)
 {
@@ -147,7 +147,7 @@ SoloCalc(const std::vector<NoteInfo>& notes, unsigned columnCount)
 			allrates.emplace_back(tempVal);
 		}
 	} else {
-		vector<float> o{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
+		std::vector<float> o{ 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f };
 
 		for (int i = 7; i < rateCount; i++) {
 			allrates.emplace_back(o);
@@ -156,19 +156,19 @@ SoloCalc(const std::vector<NoteInfo>& notes, unsigned columnCount)
 	return allrates;
 }
 
-vector<float>
+std::vector<float>
 SoloCalc(const std::vector<NoteInfo>& notes, unsigned columnCount, float music_rate, float goal)
 {
-	vector<float> skills{};
+	std::vector<float> skills{};
 
-	vector<vector<vector<float>>> AllIntervals(columnCount,
-											   vector<vector<float>>());
+	std::vector<vector<vector<float>>> AllIntervals(columnCount,
+											   std::vector<vector<float>>());
 	int num_itv =
 	  static_cast<int>(std::ceil(notes.back().rowTime / (music_rate * 0.5f)));
 	for (unsigned int t = 0; t < columnCount; t++) {
 		int Interval = 0;
 		float last = -5.f;
-		AllIntervals[t] = vector<vector<float>>(num_itv, vector<float>());
+		AllIntervals[t] = std::vector<vector<float>>(num_itv, std::vector<float>());
 		unsigned int column = 1u << t;
 
 		for (auto i : notes) {
@@ -194,19 +194,19 @@ SoloCalc(const std::vector<NoteInfo>& notes, unsigned columnCount, float music_r
 	int leftHandStartColumn = 0;
 	int rightHandStartColumn = columnCount / 2 + (hasCenterColumn ? 1 : 0);
 	
-	vector<int> lv_itvpoints;
-	vector<int> mv_itvpoints;
-	vector<int> rv_itvpoints;
-	vector<float> lv_itvMSdiff;
-	vector<float> mv_itvMSdiff;
-	vector<float> rv_itvMSdiff;
+	std::vector<int> lv_itvpoints;
+	std::vector<int> mv_itvpoints;
+	std::vector<int> rv_itvpoints;
+	std::vector<float> lv_itvMSdiff;
+	std::vector<float> mv_itvMSdiff;
+	std::vector<float> rv_itvMSdiff;
 
 	// check column count if the column count happens to be 1
 	// column count 1 would break this logic
 	if (columnCount > 1) {
-		vector<float> lv_itvNPSdiff(AllIntervals[0].size());
+		std::vector<float> lv_itvNPSdiff(AllIntervals[0].size());
 		lv_itvMSdiff.resize(AllIntervals[0].size());
-		vector<float> rv_itvNPSdiff(AllIntervals[0].size());
+		std::vector<float> rv_itvNPSdiff(AllIntervals[0].size());
 		rv_itvMSdiff.resize(AllIntervals[0].size());
 		
 		setHandDiffs(lv_itvNPSdiff,
@@ -242,7 +242,7 @@ SoloCalc(const std::vector<NoteInfo>& notes, unsigned columnCount, float music_r
 	
 	// for the center column lovers
 	if (hasCenterColumn) {
-		vector<float> mv_itvNPSdiff(AllIntervals[0].size());
+		std::vector<float> mv_itvNPSdiff(AllIntervals[0].size());
 		mv_itvMSdiff.resize(AllIntervals[0].size());
 		setHandDiffs(mv_itvNPSdiff,
 				 mv_itvMSdiff,

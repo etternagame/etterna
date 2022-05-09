@@ -260,9 +260,9 @@ Steps::TidyUpData()
 	// new style, editing a simfile with unrecognized Steps won't silently
 	// delete them. -Kyz
 	if (m_StepsType == StepsType_Invalid) {
-        /*Locator::getLogger()->warn("Detected steps with unknown style '{}' in '{}'",
+        Locator::getLogger()->debug("Detected steps with unknown style '{}' in '{}'",
 				  m_StepsTypeStr.c_str(),
-				  m_pSong->m_sSongFileName.c_str());*/
+				  m_pSong->m_sSongFileName.c_str());
 	} else if (m_StepsTypeStr.empty()) {
 		m_StepsTypeStr = GAMEMAN->GetStepsTypeInfo(m_StepsType).szName;
 	}
@@ -355,11 +355,6 @@ Steps::Decompress()
 auto
 Steps::IsRecalcValid() -> bool
 {
-	if (m_StepsType != StepsType_dance_single &&
-		m_StepsType != StepsType_dance_solo) {
-		return false;
-	}
-
 	if (m_CachedRadarValues[RadarCategory_Notes] < 200 &&
 		m_CachedRadarValues[RadarCategory_Notes] != 4) {
 		return false;
@@ -441,7 +436,7 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
 
 	// set first and last second for this steps object
-	if (!cereal.empty()) {
+	if (!cereal.empty() || !m_pNoteData->IsEmpty()) {
 		firstsecond =
 		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
 		lastsecond =
@@ -473,7 +468,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 	if (vh.count(prev_vers) != 0U) {
 		last_msd = vh.at(prev_vers);
 	}
-	Locator::getLogger()->trace("%{:+.2f} : %{:+.2f} : %{:+.2f} : ({:+06.2f}%%) : %{:+.2f} : {}",
+	Locator::getLogger()->info("{:+.2f} : {:+.2f} : {:+.2f} : ({:+06.2f}%) : {:+.2f} : {}",
 			   newcalc[ss],
 			   rate,
 			   newcalc[ss] - ev,
@@ -1062,8 +1057,8 @@ class LunaSteps : public Luna<Steps>
 		lua_pushstring(L, "JackHand");
 		lua_createtable(L, 0, 2);
 		if (p->calcdebugoutput.empty()) {
-			for (auto i = 0; i < 2; i++) {
-				lua_pushstring(L, i != 0 ? "Right" : "Left");
+			for (auto hand = 0; hand < 2; hand++) {
+				lua_pushstring(L, hand != 0 ? "Right" : "Left");
 				std::vector<float> nothing;
 				LuaHelpers::CreateTableFromArray(nothing, L);
 				lua_rawset(L, -3);
@@ -1075,15 +1070,17 @@ class LunaSteps : public Luna<Steps>
 			lua_createtable(L, 0, SONGMAN->calc->jack_diff.at(hand).size());
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
 			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
-			for (auto i = 0; i < static_cast<int>(vals.size()); i++) {
+			auto loss_vals = SONGMAN->calc->jack_loss.at(hand);
+			for (size_t i = 0; i < vals.size(); i++) {
 				auto v1 = vals[i].first;
 				auto v2 = vals[i].second;
 				auto v3 = 0.F;
+				auto v4 = loss_vals[i];
 				// this is required because stam_vals is not guaranteed the same size
 				// also due to a calc bug
 				if (i < stam_vals.size())
 					v3 = stam_vals[i];
-				std::vector<float> stuff{ v1, v2, v3 };
+				std::vector<float> stuff{ v1, v2, v3, v4 };
 				LuaHelpers::CreateTableFromArray(stuff, L);
 				lua_rawseti(L, -2, i + 1);
 			}
@@ -1159,6 +1156,11 @@ class LunaSteps : public Luna<Steps>
 			lua_rawset(L, -3);
 		}
 		lua_rawset(L, -3);
+
+		lua_pushstring(L, "Grindscaler");
+		lua_pushnumber(L, SONGMAN->calc->grindscaler);
+		lua_rawset(L, -3);
+
 		return 1;
 	}
 	static auto GetDebugStrings(T* p, lua_State* L) -> int

@@ -37,20 +37,23 @@ add_subdirectory(discord-rpc)
 ## Tracy Profiler
 set(ENABLE_TRACY_PROFILER OFF CACHE BOOL "")
 add_subdirectory(tracy)
+## plog
+set(PLOG_BUILD_SAMPLES OFF)
+add_subdirectory(plog)
+
 
 ## Header Only
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
 ## Remaining Libraries
-add_subdirectory(LuaJIT-2.1.0-beta3)
+add_subdirectory(luajit)
 add_subdirectory(muFFT)
 add_subdirectory(glew-1.5.8)
 add_subdirectory(pcre)
 add_subdirectory(zlib)
 add_subdirectory(mad-0.15.1b)
 add_subdirectory(fmt)
-add_subdirectory(plog)
 add_subdirectory(boost/nowide)
 add_subdirectory(filesystem)
 
@@ -76,7 +79,7 @@ list(APPEND EXT_TARGETS
     ogg vorbis glfw
     libcurl fmt tracy)
 
-list(APPEND LUA_TARGETS luajit lua minilua buildvm)
+list(APPEND LUA_TARGETS luajit libluajit minilua buildvm)
 
 ## Sort all extern libraries to a IDE folder/filter
 set_property(TARGET ${EXT_TARGETS} PROPERTY FOLDER "External Libraries")

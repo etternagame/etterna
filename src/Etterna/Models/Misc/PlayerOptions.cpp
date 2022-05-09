@@ -56,7 +56,7 @@ PlayerOptions::Init()
 	m_LifeType = LifeType_Bar;
 	m_DrainType = DrainType_Normal;
 	m_BatteryLives = 4;
-	m_MinTNSToHideNotes = PREFSMAN->m_MinTNSToHideNotes;
+	m_MinTNSToHideNotes = PREFSMAN->m_MinTNSToHideNotes.Get();
 	m_bSetScrollSpeed = false;
 	m_fMaxScrollBPM = 0;
 	m_SpeedfMaxScrollBPM = 1.0f;
@@ -150,7 +150,7 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 }
 
 static void
-AddPart(vector<std::string>& AddTo, float level, std::string name)
+AddPart(std::vector<std::string>& AddTo, float level, std::string name)
 {
 	if (level == 0)
 		return;
@@ -164,13 +164,13 @@ AddPart(vector<std::string>& AddTo, float level, std::string name)
 std::string
 PlayerOptions::GetString(bool bForceNoteSkin) const
 {
-	vector<std::string> v;
+	std::vector<std::string> v;
 	GetMods(v, bForceNoteSkin);
 	return join(", ", v);
 }
 
 void
-PlayerOptions::GetMods(vector<std::string>& AddTo, bool bForceNoteSkin) const
+PlayerOptions::GetMods(std::vector<std::string>& AddTo, bool bForceNoteSkin) const
 {
 	// std::string sReturn;
 
@@ -380,7 +380,7 @@ PlayerOptions::GetMods(vector<std::string>& AddTo, bool bForceNoteSkin) const
 }
 
 void
-PlayerOptions::GetTurnMods(vector<std::string>& AddTo)
+PlayerOptions::GetTurnMods(std::vector<std::string>& AddTo)
 {
 	if (m_bTurns[TURN_MIRROR])
 		AddTo.push_back("Mirror");
@@ -402,7 +402,7 @@ PlayerOptions::GetTurnMods(vector<std::string>& AddTo)
 // Do not use this for anything else.
 // It will not work.
 void
-PlayerOptions::ResetModsToStringVector(vector<std::string> mods)
+PlayerOptions::ResetModsToStringVector(std::vector<std::string> mods)
 {
 	std::string error;
 	ResetToggleableMods();
@@ -426,7 +426,7 @@ void
 PlayerOptions::FromString(const std::string& sMultipleMods)
 {
 	const auto sTemp = sMultipleMods;
-	vector<std::string> vs;
+	std::vector<std::string> vs;
 	split(sTemp, ",", vs, true);
 	std::string sThrowAway;
 	for (auto& s : vs) {
@@ -454,7 +454,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 
 	float level = 1;
 	float speed = 1;
-	vector<std::string> asParts;
+	std::vector<std::string> asParts;
 	split(sBit, " ", asParts, true);
 
 	for (auto& s : asParts) {
@@ -492,7 +492,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 	const auto on = (level > 0.5f);
 
 	static Regex mult("^([0-9]+(\\.[0-9]+)?)x$");
-	vector<std::string> matches;
+	std::vector<std::string> matches;
 	if (mult.Compare(sBit, matches)) {
 		StringConversion::FromString(matches[0], level);
 		SET_FLOAT(fScrollSpeed)
@@ -1140,16 +1140,16 @@ PlayerOptions::IsEasierForSongAndSteps(Song* pSong,
 }
 
 void
-PlayerOptions::GetLocalizedMods(vector<std::string>& AddTo) const
+PlayerOptions::GetLocalizedMods(std::vector<std::string>& AddTo) const
 {
-	vector<std::string> vMods;
+	std::vector<std::string> vMods;
 	GetMods(vMods);
 	for (auto& s : vMods) {
 		const auto& sOneMod = s;
 
 		ASSERT(!sOneMod.empty());
 
-		vector<std::string> asTokens;
+		std::vector<std::string> asTokens;
 		split(sOneMod, " ", asTokens);
 
 		if (asTokens.empty())
@@ -1193,10 +1193,10 @@ PlayerOptions::ContainsTransformOrTurn() const
 	return false;
 }
 
-vector<std::string>
+std::vector<std::string>
 PlayerOptions::GetInvalidatingModifiers() const
 {
-	vector<std::string> AddTo;
+	std::vector<std::string> AddTo;
 
 	if (m_bTurns[TURN_BACKWARDS])
 		AddTo.push_back("Backwards");
@@ -1217,10 +1217,40 @@ PlayerOptions::GetInvalidatingModifiers() const
 		AddTo.push_back("NoRolls");
 	if (m_bTransforms[TRANSFORM_NOMINES])
 		AddTo.push_back("NoMines");
-	if (m_bTransforms[TRANSFORM_MINES])
-		AddTo.push_back("Mines");
 	if (m_bTransforms[TRANSFORM_LITTLE])
 		AddTo.push_back("Little");
+	if (m_bTransforms[TRANSFORM_WIDE])
+		AddTo.push_back("Wide");
+	if (m_bTransforms[TRANSFORM_BIG])
+		AddTo.push_back("Big");
+	if (m_bTransforms[TRANSFORM_QUICK])
+		AddTo.push_back("Quick");
+	if (m_bTransforms[TRANSFORM_BMRIZE])
+		AddTo.push_back("BMRize");
+	if (m_bTransforms[TRANSFORM_SKIPPY])
+		AddTo.push_back("Skippy");
+	if (m_bTransforms[TRANSFORM_MINES])
+		AddTo.push_back("Mines");
+	if (m_bTransforms[TRANSFORM_ATTACKMINES])
+		AddTo.push_back("AttackMines");
+	if (m_bTransforms[TRANSFORM_ECHO])
+		AddTo.push_back("Echo");
+	if (m_bTransforms[TRANSFORM_STOMP])
+		AddTo.push_back("Stomp");
+	if (m_bTransforms[TRANSFORM_JACKJS])
+		AddTo.push_back("JackJS");
+	if (m_bTransforms[TRANSFORM_ANCHORJS])
+		AddTo.push_back("AnchorJS");
+	if (m_bTransforms[TRANSFORM_ICYWORLD])
+		AddTo.push_back("IcyWorld");
+	if (m_bTransforms[TRANSFORM_PLANTED])
+		AddTo.push_back("Planted");
+	if (m_bTransforms[TRANSFORM_FLOORED])
+		AddTo.push_back("Floored");
+	if (m_bTransforms[TRANSFORM_TWISTER])
+		AddTo.push_back("Twister");
+	if (m_bTransforms[TRANSFORM_HOLDROLLS])
+		AddTo.push_back("HoldsToRolls");
 	if (m_bTransforms[TRANSFORM_NOJUMPS])
 		AddTo.push_back("NoJumps");
 	if (m_bTransforms[TRANSFORM_NOHANDS])

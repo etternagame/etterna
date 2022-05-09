@@ -18,7 +18,7 @@ class ReceptorArrowRow : public ActorFrame
 	void DrawOverlay();
 
 	void Load(const PlayerState* pPlayerState, float fYReverseOffset);
-	void SetColumnRenderers(vector<NoteColumnRenderer>& renderers);
+	void SetColumnRenderers(std::vector<NoteColumnRenderer>& renderers);
 	[[nodiscard]] int GetRendererCount() const
 	{
 		if (m_renderers != nullptr)
@@ -42,10 +42,10 @@ class ReceptorArrowRow : public ActorFrame
 	{
 		m_fFadeToFailPercent = fFadeToFailPercent;
 	}
+	float m_fYReverseOffsetPixels;
 
   protected:
 	const PlayerState* m_pPlayerState;
-	float m_fYReverseOffsetPixels;
 	float m_fFadeToFailPercent;
 
 	std::vector<NoteColumnRenderer> const* m_renderers;

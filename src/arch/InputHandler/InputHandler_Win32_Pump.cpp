@@ -45,11 +45,9 @@ InputHandler_Win32_Pump::~InputHandler_Win32_Pump()
 {
 	if (InputThread.IsCreated()) {
 		m_bShutdown = true;
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Shutting down Pump thread ...");
+		Locator::getLogger()->info("Shutting down Pump thread ...");
 		InputThread.Wait();
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Pump thread shut down.");
+		Locator::getLogger()->info("Pump thread shut down.");
 	}
 
 	delete[] m_pDevice;
@@ -113,7 +111,7 @@ InputHandler_Win32_Pump::GetDeviceSpecificInputString(const DeviceInput& di)
 
 void
 InputHandler_Win32_Pump::GetDevicesAndDescriptions(
-  vector<InputDeviceInfo>& vDevicesOut)
+  std::vector<InputDeviceInfo>& vDevicesOut)
 {
 	for (int i = 0; i < NUM_PUMPS; ++i) {
 		if (m_pDevice[i].IsOpen()) {
@@ -134,12 +132,13 @@ void
 InputHandler_Win32_Pump::InputThreadMain()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST))
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "Failed to set Pump thread priority"));
+		Locator::getLogger()->warn("{}", werr_ssprintf(
+		  GetLastError(), "Failed to set Pump thread priority"));
 
 	/* Enable priority boosting. */
 	SetThreadPriorityBoost(GetCurrentThread(), FALSE);
 
-	vector<WindowsFileIO*> apSources;
+	std::vector<WindowsFileIO*> apSources;
 	for (int i = 0; i < NUM_PUMPS; ++i) {
 		if (m_pDevice[i].m_IO.IsOpen())
 			apSources.push_back(&m_pDevice[i].m_IO);

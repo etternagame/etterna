@@ -159,14 +159,14 @@ class FilenameDB
 
 	void GetFilesEqualTo(const std::string& sDir,
 						 const std::string& sName,
-						 vector<std::string>& asOut,
+						 std::vector<std::string>& asOut,
 						 bool bOnlyDirs);
 
 	void GetFilesMatching(const std::string& sDir,
 						  const std::string& sBeginning,
 						  const std::string& sContaining,
 						  const std::string& sEnding,
-						  vector<std::string>& asOut,
+						  std::vector<std::string>& asOut,
 						  bool bOnlyDirs);
 
 	void DelFileSet(std::map<std::string, FileSet*>::iterator dir);

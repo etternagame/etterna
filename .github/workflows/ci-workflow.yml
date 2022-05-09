@@ -1,5 +1,9 @@
 name: Etterna CI
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  release:
+    types: [published]
 
 jobs:
   linux-x64:
@@ -9,97 +13,181 @@ jobs:
       fail-fast: false
       matrix:
         cfg:
-          - { os: ubuntu-18.04, cpp-version: g++-8 }
-          - { os: ubuntu-18.04, cpp-version: g++-9 }
-          - { os: ubuntu-18.04, cpp-version: clang++-7 }
-          - { os: ubuntu-18.04, cpp-version: clang++-8 }
-          - { os: ubuntu-18.04, cpp-version: clang++-9 }
+          - { os: ubuntu-18.04, cpp-version: g++-8,      dist: false}
+          - { os: ubuntu-18.04, cpp-version: g++-9,      dist: false}
+          - { os: ubuntu-18.04, cpp-version: clang++-7,  dist: false}
+          - { os: ubuntu-18.04, cpp-version: clang++-8,  dist: false}
+          - { os: ubuntu-18.04, cpp-version: clang++-9,  dist: true}
 
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout CrashpadTools
+        uses: actions/checkout@v2
+        with:
+          repository: etternagame/CrashpadTools
+          path: tools
 
       - name: Install apt packages
-        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
-
-      - name: Print gcc + clang version
-        run: ${{matrix.cfg.cpp-version}} --version
+        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
 
       - name: Generate CMake
-        run: mkdir build && cd build && cmake -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         env:
           CXX: ${{matrix.cfg.cpp-version}}
 
       - name: Build Project
-        run: cd build && ninja
+        run: cd main/build && ninja
 
-  macos:
-    name: macOS x64
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Etterna
-        uses: actions/checkout@v2
+      - name: Generate binary
+        if: ${{matrix.cfg.dist}}
+        run: cd main/build && cpack
+      
+      - name: Upload Binary
+        if: ${{matrix.cfg.dist}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna - Linux x64"
+          path: '${{github.workspace}}/main/build/*.tar.gz'
 
       - name: Update Environment Variables
-        run: |
-          echo "${{github.workspace}}/extern/crashpad/breakpad/mac/" >> $GITHUB_PATH
-          echo "ETTERNA_ARCH=x64" >> $GITHUB_ENV
-
-      - name: Install homebrew packages
-        run: brew install cmake nasm ninja
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        if: github.ref == 'refs/heads/master'
-        with:
-          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
-          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-          aws-region: us-east-1
-
-      - name: Generate CMake
-        run: mkdir build && cd build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
-
-      - name: Build Project
-        run: cd build && ninja
+        if: ${{matrix.cfg.dist}}
+        run: echo "${{github.workspace}}/tools/linux" >> $GITHUB_PATH
 
       - name: Generate Symbols
+        if: ${{matrix.cfg.dist}}
         run: |
-          echo "Running dsymutil..."
-          dsymutil -o ${{github.workspace}}/Etterna.dsym Etterna.app/Contents/MacOS/Etterna > /dev/null
+          echo "Running objcopy..."
+          mkdir ${{github.workspace}}/sym
+          objcopy --only-keep-debug ${{github.workspace}}/main/Etterna ${{github.workspace}}/sym/Etterna
           echo "Dumping Symbols..."
-          dump_syms -g ${{github.workspace}}/Etterna.dsym Etterna.app/Contents/MacOS/Etterna > ${{github.workspace}}/Etterna.sym
+          dump_syms ${{github.workspace}}/sym/Etterna ${{github.workspace}}/main/Etterna > ${{github.workspace}}/sym/Etterna.sym
           echo "Stripping debug symbols from binary..."
-          strip Etterna.app/Contents/MacOS/Etterna
-
-      - name: Upload Symbols to AWS S3
-        if: github.ref == 'refs/heads/master'
-        run: ${{github.workspace}}/.ci/upload_symbols.py
-
+          strip ${{github.workspace}}/main/Etterna
+      
       - name: Prepare symbols for upload artifacts
-        run: ${{github.workspace}}/.ci/prepare_symbols.py
+        if: ${{matrix.cfg.dist}}
+        run: cd ${{github.workspace}}/sym && ${{github.workspace}}/main/.ci/prepare_symbols.py
 
       - name: Upload Symbols to action artifacts
+        if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v2
         with:
           name: Etterna Symbols - ${{github.sha}}
-          path: '${{github.workspace}}/EtternaSymbolsUploadDir'
+          path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
+
+      - name: Get version for CrashServer Upload
+        id: get_version
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      
+      - name: Upload Symbols to Crash Server
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        run: symupload ${{github.workspace}}/sym/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{secrets.CRASHSERVER_API_KEY}}&version=${{steps.get_version.outputs.VERSION}}"
+
+      - name: Upload files to Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        with:
+          files: ${{github.workspace}}/main/build/*.tar.gz
+
+  macos:
+    name: macOS x64 ${{matrix.cfg.name}}
+    runs-on: ${{matrix.cfg.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        cfg:
+          - { os: macos-10.15,  name: "Catalina", dist: true}
+          - { os: macos-11,     name: "Big Sur",  dist: false}
+
+    steps:
+
+      - name: Checkout Etterna
+        uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout CrashpadTools
+        uses: actions/checkout@v2
+        with:
+          repository: etternagame/CrashpadTools
+          path: tools
+
+      - name: Install homebrew packages
+        run: brew install cmake nasm ninja openssl
+
+      - name: Generate CMake
+        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
+
+      - name: Build Project
+        run: cd main/build && ninja
 
       - name: Generate binary
-        run: cd build && cpack
+        if: ${{matrix.cfg.dist}}
+        run: cd main/build && cpack
 
       - name: Upload Binary
+        if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v2
         with:
           name: "Etterna - macOS x64"
-          path: '${{github.workspace}}/build/*.dmg'
+          path: '${{github.workspace}}/main/build/*.dmg'
+
+      - name: Update Environment Variables
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "${{github.workspace}}/tools/mac" >> $GITHUB_PATH
+          echo "ETTERNA_ARCH=x64" >> $GITHUB_ENV
+
+      - name: Generate Symbols
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "Running dsymutil..."
+          dsymutil -o ${{github.workspace}}/main/Etterna.dsym main/Etterna.app/Contents/MacOS/Etterna > /dev/null
+          echo "Dumping Symbols..."
+          dump_syms -g ${{github.workspace}}/main/Etterna.dsym main/Etterna.app/Contents/MacOS/Etterna > ${{github.workspace}}/main/Etterna.sym
+          echo "Stripping debug symbols from binary..."
+          strip main/Etterna.app/Contents/MacOS/Etterna
+
+      - name: Prepare symbols for upload artifacts
+        if: ${{matrix.cfg.dist}}
+        run: cd main && ${{github.workspace}}/main/.ci/prepare_symbols.py
+
+      - name: Upload Symbols to action artifacts
+        if: ${{matrix.cfg.dist}}
+        uses: actions/upload-artifact@v2
+        with:
+          name: Etterna Symbols - ${{github.sha}}
+          path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
+
+      - name: Get version for CrashServer Upload
+        id: get_version
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+      - name: Upload Symbols to Crash Server
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        run: symupload ${{github.workspace}}/main/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{secrets.CRASHSERVER_API_KEY}}&version=${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Upload files to Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
+        with:
+          files: ${{github.workspace}}/main/build/*.dmg
 
   windows: # Windows x64 and x86 build matrix
     strategy:
       fail-fast: false # Don't cancel other matrix jobs if one fails
       matrix:
         cfg:
-        - { name: i386, arch: Win32, ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
-        - { name: x64,  arch: x64,   ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
+        - { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
+        - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
     runs-on: windows-2019
@@ -109,6 +197,12 @@ jobs:
         with:
           path: main
 
+      - name: Checkout CrashpadTools
+        uses: actions/checkout@v2
+        with:
+          repository: etternagame/CrashpadTools
+          path: tools
+
       - name: Checkout DirectX SDK
         uses: actions/checkout@v2
         with:
@@ -117,7 +211,7 @@ jobs:
 
       - name: Update Environment Variables
         run: |
-          echo "${{github.workspace}}/main/extern/crashpad/breakpad/win/" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "${{github.workspace}}/tools/win/" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo "ETTERNA_ARCH=${{matrix.cfg.name}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup Python 2.7
@@ -125,32 +219,35 @@ jobs:
         with:
           python-version: '2.7'
 
-      - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        if: github.ref == 'refs/heads/master'
-        with:
-          aws-access-key-id: ${{secrets.AWS_ACCESS_KEY_ID}}
-          aws-secret-access-key: ${{secrets.AWS_SECRET_ACCESS_KEY}}
-          aws-region: us-east-1
-
       - name: Install chocolatey packages (i386)
-        if: ${{ matrix.cfg.arch == 'Win32' }}
-        run: choco install ninja nsis openssl -y --x86
+        if: ${{ matrix.cfg.arch == 'x86' }}
+        run: choco install ninja nsis openssl curl -y --x86
 
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
-        run: choco install ninja nsis openssl -y
+        run: choco install ninja nsis openssl curl -y
+
+      - name: Configure MSBuild
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.cfg.arch }}
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G "Visual Studio 16 2019" -A "${{matrix.cfg.arch}}" -DCMAKE_BUILD_TYPE=RelWithDebInfo -DOPENSSL_ROOT_DIR="${{matrix.cfg.ssl-dir}}" ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 
       - name: Build Project
-        run: cd main/build && MSBuild Etterna.sln /p:Configuration=RelWithDebInfo /p:Platform=${{matrix.cfg.arch}}
+        run: cd main/build && ninja
+
+      - name: Generate binary
+        run: cd main/build && cpack
+
+      - name: Upload Binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: "Etterna - Windows ${{matrix.cfg.name}}"
+          path: '${{github.workspace}}/main/build/*.exe'
 
       - name: Setup Python 3
         uses: actions/setup-python@v2
@@ -162,10 +259,6 @@ jobs:
           echo "Dumping Symbols..."
           dump_syms.exe main/Program/Etterna.pdb > ${{github.workspace}}/main/Etterna.sym
 
-      - name: Upload Symbols to AWS S3
-        if: github.ref == 'refs/heads/master'
-        run: cd main && python ${{github.workspace}}/main/.ci/upload_symbols.py
-
       - name: Prepare symbols for action artifacts
         run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py
 
@@ -175,11 +268,18 @@ jobs:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
-      - name: Generate binary
-        run: cd main/build && cpack
+      - name: Get version for CrashServer Upload
+        id: get_version
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        run: $tag="${{ github.ref }}".Split('/')[-1]; echo "::set-output name=VERSION::$tag"
 
-      - name: Upload Binary
-        uses: actions/upload-artifact@v2
+      - name: Upload Symbols to Crash Server
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+        run: curl --request POST -F symbol_file=@${{github.workspace}}/main/Etterna.sym "https://crash.etterna.dev/api/symbol/upload?api_key=${{ secrets.CRASHSERVER_API_KEY }}&version=${{ steps.get_version.outputs.VERSION }}"
+
+      - name: Upload files to Release
+        uses: softprops/action-gh-release@v1
+        if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         with:
-          name: "Etterna - Windows ${{matrix.cfg.name}}"
-          path: '${{github.workspace}}/main/build/*.exe'
+          files: |
+            ${{github.workspace}}/main/build/*.exe

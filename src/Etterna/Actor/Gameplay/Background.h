@@ -28,7 +28,7 @@ class Background : public ActorFrame
 	bool EarlyAbortDraw() const override { return m_disable_draw; }
 
 	void GetLoadedBackgroundChanges(
-	  vector<BackgroundChange>** pBackgroundChangesOut);
+	  std::vector<BackgroundChange>** pBackgroundChangesOut);
 
   protected:
 	BackgroundImpl* m_pImpl;

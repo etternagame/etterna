@@ -58,16 +58,12 @@ ScoreKeeperNormal::ScoreKeeperNormal(PlayerState* pPlayerState,
 }
 
 void
-ScoreKeeperNormal::Load(const vector<Song*>& apSongs,
-						const vector<Steps*>& apSteps)
+ScoreKeeperNormal::Load(const std::vector<Song*>& apSongs,
+						const std::vector<Steps*>& apSteps)
 {
 	m_apSteps = apSteps;
 	ASSERT(apSongs.size() == apSteps.size());
 
-	// True if a jump is one to combo, false if combo is purely based on tap
-	// count.
-	m_ComboIsPerRow.Load("Gameplay", "ComboIsPerRow");
-	m_MissComboIsPerRow.Load("Gameplay", "MissComboIsPerRow");
 	m_MinScoreToContinueCombo.Load("Gameplay", "MinScoreToContinueCombo");
 	m_MinScoreToMaintainCombo.Load("Gameplay", "MinScoreToMaintainCombo");
 	m_MaxScoreToIncrementMissCombo.Load("Gameplay",
@@ -276,7 +272,7 @@ ScoreKeeperNormal::AddScoreInternal(TapNoteScore score)
 				p = 10;
 				break;
 			case TNS_W2:
-				p = GAMESTATE->ShowW1() ? 9 : 10;
+				p = 9;
 				break;
 			case TNS_W3:
 				p = 5;
@@ -492,13 +488,6 @@ ScoreKeeperNormal::HandleComboInternal(int iNumHitContinueCombo,
 									   int iNumBreakCombo,
 									   int iRow)
 {
-	// Regular combo
-	if (m_ComboIsPerRow) {
-		iNumHitContinueCombo = std::min(iNumHitContinueCombo, 1);
-		iNumHitMaintainCombo = std::min(iNumHitMaintainCombo, 1);
-		iNumBreakCombo = std::min(iNumBreakCombo, 1);
-	}
-
 	if (iNumHitContinueCombo > 0 || iNumHitMaintainCombo > 0) {
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
 	}
@@ -511,8 +500,7 @@ ScoreKeeperNormal::HandleComboInternal(int iNumHitContinueCombo,
 		m_pPlayerStageStats->m_iCurCombo = 0;
 		auto multiplier =
 		  (iRow == -1 ? 1 : td.GetComboSegmentAtRow(iRow)->GetMissCombo());
-		m_pPlayerStageStats->m_iCurMissCombo +=
-		  (m_MissComboIsPerRow ? 1 : iNumBreakCombo) * multiplier;
+		m_pPlayerStageStats->m_iCurMissCombo += iNumBreakCombo * multiplier;
 	}
 }
 
@@ -521,9 +509,6 @@ ScoreKeeperNormal::HandleRowComboInternal(TapNoteScore tns,
 										  int iNumTapsInRow,
 										  int iRow)
 {
-	if (m_ComboIsPerRow) {
-		iNumTapsInRow = std::min(iNumTapsInRow, 1);
-	}
 	auto& td = *GAMESTATE->m_pCurSteps->GetTimingData();
 	if (tns >= m_MinScoreToContinueCombo) {
 		m_pPlayerStageStats->m_iCurMissCombo = 0;
@@ -536,8 +521,7 @@ ScoreKeeperNormal::HandleRowComboInternal(TapNoteScore tns,
 		if (tns <= m_MaxScoreToIncrementMissCombo) {
 			auto multiplier =
 			  (iRow == -1 ? 1 : td.GetComboSegmentAtRow(iRow)->GetMissCombo());
-			m_pPlayerStageStats->m_iCurMissCombo +=
-			  (m_MissComboIsPerRow ? 1 : iNumTapsInRow) * multiplier;
+			m_pPlayerStageStats->m_iCurMissCombo += iNumTapsInRow * multiplier;
 		}
 	}
 }
@@ -800,8 +784,6 @@ ScoreKeeperNormal::HoldNoteScoreToGradePoints(HoldNoteScore hns) const
 int
 ScoreKeeperNormal::TapNoteScoreToDancePoints(TapNoteScore tns, bool bBeginner)
 {
-	if (!GAMESTATE->ShowW1() && tns == TNS_W1)
-		tns = TNS_W2;
 
 	/* This is used for Oni percentage displays. Grading values are currently in
 	 * StageStats::GetGrade. */
@@ -867,8 +849,6 @@ ScoreKeeperNormal::HoldNoteScoreToDancePoints(HoldNoteScore hns, bool bBeginner)
 int
 ScoreKeeperNormal::TapNoteScoreToGradePoints(TapNoteScore tns, bool bBeginner)
 {
-	if (!GAMESTATE->ShowW1() && tns == TNS_W1)
-		tns = TNS_W2;
 
 	/* This is used for Oni percentage displays. Grading values are currently in
 	 * StageStats::GetGrade. */

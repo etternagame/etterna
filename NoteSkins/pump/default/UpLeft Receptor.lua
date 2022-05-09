@@ -1,4 +1,6 @@
 local player = Var "Player" or GAMESTATE:GetMasterPlayerNumber()
+local style = GAMESTATE:GetCurrentStyle()
+local stepstype = style ~= nil and style:GetStepsType() or nil
 
 local function Beat(self)
 	-- too many locals
@@ -29,13 +31,13 @@ return Def.ActorFrame {
 	NOTESKIN:LoadActor("Center", "Outline Receptor") ..
 		{
 			Name = "Outline Full",
-			Condition = Var "Button" == "Center" and GAMESTATE:GetCurrentStyle():GetStepsType() ~= "StepsType_Pump_Halfdouble"
+			Condition = Var "Button" == "Center" and stepstype ~= "StepsType_Pump_Halfdouble"
 			--InitCommand=cmd(x,96);
 		},
 	NOTESKIN:LoadActor("DownLeft", "Outline Receptor") ..
 		{
 			Name = "Outline Half",
-			Condition = Var "Button" == "DownLeft" and GAMESTATE:GetCurrentStyle():GetStepsType() == "StepsType_Pump_Halfdouble"
+			Condition = Var "Button" == "DownLeft" and stepstype == "StepsType_Pump_Halfdouble"
 			--InitCommand=cmd(x,96);
 		},
 	NOTESKIN:LoadActor(Var "Button", "Ready Receptor") ..

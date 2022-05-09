@@ -106,6 +106,15 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 	
 	Init(m_pPlayerState, noteFieldHeight, false);
 
+	// force update current player options
+	// (bad interim solution until we hand preview its own player options)
+	m_pPlayerState->m_PlayerOptions.GetCurrent() =
+	  m_pPlayerState->m_PlayerOptions.GetPreferred();
+	m_pPlayerState->m_PlayerOptions.GetStage() =
+	  m_pPlayerState->m_PlayerOptions.GetPreferred();
+	m_pPlayerState->m_PlayerOptions.GetSong() =
+	  m_pPlayerState->m_PlayerOptions.GetPreferred();
+
 	// If NoteData was loaded in InitCommand, this isn't necessary
 	// It would be null if not loaded in InitCommand
 	if (m_pNoteData == nullptr) {
@@ -113,6 +122,33 @@ NoteFieldPreview::LoadFromNode(const XNode* pNode)
 			 m_iDrawDistanceAfterTargetsPixels,
 			 m_iDrawDistanceBeforeTargetsPixels);
 		loadedNoteDataAtLeastOnce = true;
+	}
+}
+
+void
+NoteFieldPreview::UpdateYReversePixels(float YReverseOffsetPixels)
+{
+	// requires a style to be set
+	if (attemptToEnsureStyle(m_pPlayerState) == nullptr)
+		return;
+	
+	m_fYReverseOffsetPixels = YReverseOffsetPixels;
+	m_FieldRenderArgs.reverse_offset_pixels = YReverseOffsetPixels;
+	for (auto& ndisplay : m_NoteDisplays) {
+		if (ndisplay.second == nullptr)
+			continue;
+		
+		for (auto c = 0;
+			 c < GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
+				   ->m_iColsPerPlayer;
+			 c++)
+				ndisplay.second->display[c].m_fYReverseOffsetPixels =
+				  YReverseOffsetPixels;
+		
+		ndisplay.second->m_ReceptorArrowRow.m_fYReverseOffsetPixels =
+		  YReverseOffsetPixels;
+		ndisplay.second->m_GhostArrowRow.m_fYReverseOffsetPixels =
+		  YReverseOffsetPixels;
 	}
 }
 
@@ -143,6 +179,10 @@ NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 		CacheAllUsedNoteSkins();
 	} else
 		loadedNoteDataAtLeastOnce = true;
+
+	// Generate some cache data structure.
+	if (pNoteData != p_dummyNoteData && pNoteData != nullptr && !pNoteData->IsEmpty())
+		m_pPlayerState->ResetCacheInfo(/**pNoteData*/);
 	
 	Load(pNoteData,
 		 m_iDrawDistanceAfterTargetsPixels,
@@ -164,8 +204,18 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps, bool bTransform)
 	// If the style must change to adapt to this new NoteData, do so
 	const auto* style = attemptToEnsureStyle(m_pPlayerState);
 	if (pSteps == GAMESTATE->m_pCurSteps && style != nullptr &&
-		nd->GetNumTracks() != style->m_iColsPerPlayer)
+		nd->GetNumTracks() != style->m_iColsPerPlayer) {
 		GAMESTATE->SetCompatibleStylesForPlayers();
+		style = GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber);
+	}
+
+	// This says it transforms the NoteData but really all it does:
+	// Map NoteData to the Style it is for (usually for beat or something?)
+	if (nd != nullptr && style != nullptr) {
+		NoteData ndo;
+		style->GetTransformedNoteDataForStyle(PLAYER_1, *nd, ndo);
+		*nd = ndo;
+	}
 
 	// Transform NoteData incoming (this being only here is because only lua uses it)
 	// (for now)
@@ -181,8 +231,12 @@ NoteFieldPreview::LoadNoteData(Steps* pSteps, bool bTransform)
 	if (nd != p_NoteDataFromSteps && p_NoteDataFromSteps != nullptr)
 		delete p_NoteDataFromSteps;
 	p_NoteDataFromSteps = nd;
-	
-	LoadNoteData(nd);
+
+	if (nd == nullptr) {
+		LoadDummyNoteData();
+	} else {
+		LoadNoteData(nd);
+	}
 }
 
 void
@@ -313,11 +367,17 @@ NoteFieldPreview::DrawPrimitives()
 			const auto reverse =
 			  curr_options.GetReversePercentForColumn(0) > 0.5F;
 			const auto tilt = curr_options.m_fPerspectiveTilt;
-			const auto mini =
-			  curr_options.m_fEffects[PlayerOptions::EFFECT_MINI];
 			const auto reverse_mult = (reverse ? -1 : 1);
 			const auto tilt_degrees =
 			  SCALE(tilt, -1.F, +1.F, +30, -30) * reverse_mult;
+
+			// for mini (HACK HACK HACK)
+			// zooming notefield freely is not possible if mini is taken from PO
+			// allow setting a constant mini separate from all PO
+			// (ideal solution: set a preview specific PlayerOptions)
+			auto mini = curr_options.m_fEffects[PlayerOptions::EFFECT_MINI];
+			if (usingConstantMini)
+				mini = constantMini;
 
 			const auto x = GetX();
 			const auto skew = curr_options.m_fSkew;
@@ -367,6 +427,14 @@ class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 		
 		COMMON_RETURN_SELF;	
 	}
+	static int UpdateYReversePixels(T* p, lua_State* L)
+	{
+		auto i = FArg(1);
+
+		p->UpdateYReversePixels(i);
+		
+		COMMON_RETURN_SELF;
+	}
 	static int LoadNoteData(T* p, lua_State* L)
 	{
 		auto* s = Luna<Steps>::check(L, 1);
@@ -388,13 +456,27 @@ class LunaNoteFieldPreview : public Luna<NoteFieldPreview>
 		p->SetPoseNoteField(b);
 		COMMON_RETURN_SELF;
 	}
+	static int SetConstantMini(T* p, lua_State* L)
+	{
+		auto f = FArg(1);
+		p->SetConstantMini(f);
+		COMMON_RETURN_SELF;
+	}
+	static int ResetConstantMini(T* p, lua_State* L)
+	{
+		p->ResetConstantMini();
+		COMMON_RETURN_SELF;
+	}
 	
 	LunaNoteFieldPreview()
 	{
 		ADD_METHOD(UpdateDrawDistance);
+		ADD_METHOD(UpdateYReversePixels);
 		ADD_METHOD(LoadNoteData);
 		ADD_METHOD(LoadDummyNoteData);
 		ADD_METHOD(SetFollowPlayerOptions);
+		ADD_METHOD(SetConstantMini);
+		ADD_METHOD(ResetConstantMini);
 	}
 };
 

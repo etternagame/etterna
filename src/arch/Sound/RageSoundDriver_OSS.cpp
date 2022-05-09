@@ -17,6 +17,7 @@
 #include <sys/ioctl.h>
 #include <sys/soundcard.h>
 #include <sys/select.h>
+#include <sys/stat.h>
 
 REGISTER_SOUND_DRIVER_CLASS(OSS);
 
@@ -145,8 +146,8 @@ RageSoundDriver_OSS::CheckOSSVersion(int fd)
 	 */
 #ifndef FORCE_OSS
 #define ALSA_SNDRV_OSS_VERSION ((3 << 16) | (8 << 8) | (1 << 4) | (0))
-	if (version == ALSA_SNDRV_OSS_VERSION &&
-		IsADirectory("/rootfs/proc/asound"))
+	struct stat st;
+	if( version == ALSA_SNDRV_OSS_VERSION && stat("/proc/asound", &st) && (st.st_mode & S_IFDIR) )
 		return "RageSoundDriver_OSS: ALSA detected.  ALSA OSS emulation is "
 			   "buggy; use ALSA natively.";
 #endif

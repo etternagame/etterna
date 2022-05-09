@@ -35,7 +35,8 @@ InputHandler::ButtonPressed(DeviceInput di)
 		 * counted; if the driver provides its own timestamps, UpdateTimer is
 		 * optional.
 		 */
-		Locator::getLogger()->warn("InputHandler::ButtonPressed: Driver sent many updates without calling UpdateTimer");
+		Locator::getLogger()->warn("InputHandler::ButtonPressed: Driver sent "
+								   "many updates without calling UpdateTimer");
 		FAIL_M("x");
 	}
 }
@@ -47,10 +48,11 @@ InputHandler::ApplyKeyModifiers(wchar_t c)
 
 	bool bHoldingCtrl = INPUTFILTER->IsControlPressed();
 
-	// todo: handle Caps Lock -freem
-	if (bHoldingShift && !bHoldingCtrl) {
+	bool bCapsLockEnabled = INPUTFILTER->IsCapsLockEnabled();
+	if ((bHoldingShift ^ bCapsLockEnabled) && !bHoldingCtrl) {
 		MakeUpper(&c, 1);
-
+	}
+	if (bHoldingShift && !bHoldingCtrl) {
 		switch (c) {
 			case L'`':
 				c = L'~';
@@ -244,12 +246,12 @@ DriverList InputHandler::m_pDriverList;
 static LocalizedString INPUT_HANDLERS_EMPTY("Arch",
 											"Input Handlers cannot be empty.");
 void
-InputHandler::Create(const std::string& drivers_, vector<InputHandler*>& Add)
+InputHandler::Create(const std::string& drivers_, std::vector<InputHandler*>& Add)
 {
 	const std::string drivers = drivers_.empty()
 								  ? std::string(DEFAULT_INPUT_DRIVER_LIST)
 								  : drivers_.c_str();
-	vector<std::string> DriversToTry;
+	std::vector<std::string> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	if (DriversToTry.empty())
@@ -259,7 +261,8 @@ InputHandler::Create(const std::string& drivers_, vector<InputHandler*>& Add)
 	{
 		RageDriver* pDriver = InputHandler::m_pDriverList.Create(*s);
 		if (pDriver == NULL) {
-			Locator::getLogger()->trace("Unknown Input Handler name: {}", s->c_str());
+			Locator::getLogger()->warn("Unknown Input Handler name: {}",
+										s->c_str());
 			continue;
 		}
 

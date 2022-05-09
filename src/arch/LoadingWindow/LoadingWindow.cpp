@@ -18,7 +18,7 @@ LoadingWindow::Create()
 #else
 	// Don't load NULL by default.
 	const std::string drivers = "win32,macosx,gtk";
-	vector<std::string> DriversToTry;
+	std::vector<std::string> DriversToTry;
 	split(drivers, ",", DriversToTry, true);
 
 	ASSERT(DriversToTry.size() != 0);
@@ -69,8 +69,7 @@ LoadingWindow::Create()
 	}
 
 	if (ret) {
-		if (PREFSMAN->m_verbose_log > 1)
-            Locator::getLogger()->info("Loading window: {}", Driver);
+		Locator::getLogger()->info("Loading window: {}", Driver);
 
 		ret->SetIndeterminate(true);
 	}

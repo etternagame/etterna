@@ -14,12 +14,12 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 
 /**
- * @brief Turn a vector of lines into a single line joined by newline
+ * @brief Turn a std::vector of lines into a single line joined by newline
  * characters.
  * @param lines the list of lines to join.
  * @return the joined lines. */
 static std::string
-JoinLineList(vector<std::string>& lines)
+JoinLineList(std::vector<std::string>& lines)
 {
 	for (auto& line : lines)
 		TrimRight(line);
@@ -53,10 +53,10 @@ MSDToString2(std::vector<std::vector<float>> x)
 struct TimingTagWriter
 {
 
-	vector<std::string>* m_pvsLines;
+	std::vector<std::string>* m_pvsLines;
 	std::string m_sNext;
 
-	TimingTagWriter(vector<std::string>* pvsLines)
+	TimingTagWriter(std::vector<std::string>* pvsLines)
 	  : m_pvsLines(pvsLines)
 	{
 	}
@@ -100,7 +100,7 @@ struct TimingTagWriter
 };
 
 static void
-GetTimingTags(vector<std::string>& lines,
+GetTimingTags(std::vector<std::string>& lines,
 			  const TimingData& timing,
 			  bool bIsSong = false)
 {
@@ -110,7 +110,7 @@ GetTimingTags(vector<std::string>& lines,
 	// this here?
 #define WRITE_SEG_LOOP_OPEN(enum_type, seg_type, seg_name, to_func)            \
 	{                                                                          \
-		vector<TimingSegment*> const& segs =                                   \
+		std::vector<TimingSegment*> const& segs =                                   \
 		  timing.GetTimingSegments(enum_type);                                 \
 		if (!segs.empty()) {                                                   \
 			writer.Init(seg_name);                                             \
@@ -458,7 +458,7 @@ GetETTNoteData(const Song& song, Steps& in)
 bool
 NotesWriterETT::Write(std::string& sPath,
 					  const Song& out,
-					  const vector<Steps*>& vpStepsToSave)
+					  const std::vector<Steps*>& vpStepsToSave)
 {
 	int flags = RageFile::WRITE;
 
@@ -488,13 +488,14 @@ NotesWriterETT::Write(std::string& sPath,
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
 		auto pSteps = *s;
-		if (!pSteps->GetChartKey().empty()) { // Avoid writing cache tags for
+		if (!pSteps->GetChartKey().empty()) {
+			// Avoid writing cache tags for
 			// invalid chartkey files(empty
 			// steps) -Mina
 			auto sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		} else {
-            //Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
+            Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
 		}
 	}
 	if (f.Flush() == -1)

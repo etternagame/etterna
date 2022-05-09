@@ -81,7 +81,7 @@ bool
 CreateDirectories(const std::string& Path)
 {
 	// XXX: handle "//foo/bar" paths in Windows
-	vector<std::string> parts;
+	std::vector<std::string> parts;
 	std::string curpath;
 
 	// If Path is absolute, add the initial slash ("ignore empty" will remove
@@ -160,7 +160,7 @@ DirectFilenameDB::SetRoot(const std::string& root_)
 void
 DirectFilenameDB::CacheFile(const std::string& sPath)
 {
-	Locator::getLogger()->trace(std::string(root + sPath).c_str());
+	Locator::getLogger()->trace("{}", std::string(root + sPath).c_str());
 	std::string sDir = Dirname(sPath);
 	FileSet* pFileSet = GetFileSet(sDir, false);
 	if (pFileSet == nullptr) {
@@ -298,7 +298,7 @@ DirectFilenameDB::PopulateFileSet(FileSet& fs, const std::string& path)
 	 */
 	static const std::string IGNORE_MARKER_BEGINNING = "ignore-";
 
-	vector<std::string> vsFilesToRemove;
+	std::vector<std::string> vsFilesToRemove;
 	for (std::set<File>::iterator iter =
 		   fs.files.lower_bound(IGNORE_MARKER_BEGINNING);
 		 iter != fs.files.end();

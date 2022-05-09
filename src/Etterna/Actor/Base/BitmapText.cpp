@@ -39,7 +39,7 @@ REGISTER_ACTOR_CLASS(ColorBitmapText);
 #define RAINBOW_COLOR(n)                                                       \
 	THEME->GetMetricC("BitmapText", ssprintf("RainbowColor%i", (n) + 1))
 
-static vector<RageColor> RAINBOW_COLORS;
+static std::vector<RageColor> RAINBOW_COLORS;
 
 BitmapText::BitmapText()
 {
@@ -574,11 +574,11 @@ BitmapText::SetTextInternal()
 		/* "...I can add Japanese wrapping, at least. We could handle hyphens
 		 * and soft hyphens and pretty easily, too." -glenn */
 		// TODO: Move this wrapping logic into Font.
-		vector<std::string> asLines;
+		std::vector<std::string> asLines;
 		split(m_sText, "\n", asLines, false);
 
 		for (auto& asLine : asLines) {
-			vector<std::string> asWords;
+			std::vector<std::string> asWords;
 			split(asLine, " ", asWords);
 
 			std::string sCurLine;
@@ -832,7 +832,7 @@ BitmapText::DrawPrimitives()
 				else
 					iEnd = i + attr.length * 4;
 				iEnd = min(iEnd, m_aVertices.size());
-				vector<RageColor> temp_attr_diffuse(NUM_DIFFUSE_COLORS,
+				std::vector<RageColor> temp_attr_diffuse(NUM_DIFFUSE_COLORS,
 													m_internalDiffuse);
 				for (size_t c = 0; c < NUM_DIFFUSE_COLORS; ++c) {
 					temp_attr_diffuse[c] *= attr.diffuse[c];
@@ -850,7 +850,7 @@ BitmapText::DrawPrimitives()
 		}
 
 		// apply jitter to verts
-		vector<RageVector3> vGlyphJitter;
+		std::vector<RageVector3> vGlyphJitter;
 		if (m_bJitter) {
 			const int iSeed = lround(RageTimer::GetTimeSinceStart() * 8);
 			RandomGen rnd(iSeed);

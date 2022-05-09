@@ -74,6 +74,7 @@ AutoScreenMessage(SM_StopHereWeGo);
 
 static Preference<bool> g_bCenter1Player("Center1Player", true);
 static Preference<bool> g_bShowLyrics("ShowLyrics", false);
+static std::map<int, std::set<DeviceButton>> g_buttonsByColumnPressed{};
 
 ScreenGameplay::ScreenGameplay()
 {
@@ -83,13 +84,14 @@ ScreenGameplay::ScreenGameplay()
 	m_pSongBackground = nullptr;
 	m_pSongForeground = nullptr;
 	m_delaying_ready_announce = false;
+	g_buttonsByColumnPressed.clear();
 
 	// Tell DownloadManager we are in Gameplay
 	DLMAN->UpdateDLSpeed(true);
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		Locator::getLogger()->trace("Unloading excess data.");
+		Locator::getLogger()->info("Freeing loaded replay data");
 		SCOREMAN->UnloadAllReplayData();
 	}
 
@@ -155,9 +157,9 @@ ScreenGameplay::Init()
 		auto* curSteps = m_vPlayerInfo.m_vpStepsQueue[i];
 		if (curSteps->IsNoteDataEmpty()) {
 			if (curSteps->GetNoteDataFromSimfile()) {
-				Locator::getLogger()->trace("Notes should be loaded for player 1");
+				Locator::getLogger()->debug("Notes should be loaded for player 1");
 			} else {
-				Locator::getLogger()->trace("Error loading notes for player 1");
+				Locator::getLogger()->error("Error loading notes for player 1");
 			}
 		}
 	}
@@ -384,8 +386,7 @@ ScreenGameplay::~ScreenGameplay()
 		GAMESTATE->CancelStage();
 	}
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenGameplay::~ScreenGameplay()");
+	Locator::getLogger()->debug("ScreenGameplay::~ScreenGameplay()");
 
 	SAFE_DELETE(m_pSongBackground);
 	SAFE_DELETE(m_pSongForeground);
@@ -644,7 +645,6 @@ ScreenGameplay::LoadNextSong()
 		m_pSongForeground->Unload();
 	}
 
-	// BeginnerHelper disabled, or failed to load.
 	if (m_pSongBackground != nullptr) {
 		m_pSongBackground->LoadFromSong(GAMESTATE->m_pCurSong);
 	}
@@ -727,7 +727,7 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 
 	/* Make sure GAMESTATE->m_fMusicSeconds is set up. */
 	GAMESTATE->m_Position.m_fMusicSeconds = -5000;
-	UpdateSongPosition(0);
+	UpdateSongPosition();
 
 	ASSERT(GAMESTATE->m_Position.m_fMusicSeconds >
 		   -4000); /* make sure the "fake timer" code doesn't trigger */
@@ -777,18 +777,19 @@ ScreenGameplay::PlayAnnouncer(const std::string& type,
 }
 
 void
-ScreenGameplay::UpdateSongPosition(float fDeltaTime)
+ScreenGameplay::UpdateSongPosition()
 {
 	ZoneScoped;
 	if (!m_pSoundMusic->IsPlaying()) {
 		return;
 	}
 
-	RageTimer tm;
+	const auto rate = GAMESTATE->m_SongOptions.GetSong().m_fMusicRate;
+
+	RageTimer tm = RageZeroTimer;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
-	const auto fAdjust = SOUND->GetFrameTimingAdjustment(fDeltaTime);
 	GAMESTATE->UpdateSongPosition(
-	  fSeconds + fAdjust, GAMESTATE->m_pCurSong->m_SongTiming, tm + fAdjust);
+	  fSeconds, GAMESTATE->m_pCurSong->m_SongTiming, tm);
 }
 
 void
@@ -894,7 +895,7 @@ ScreenGameplay::Update(float fDeltaTime)
 		return;
 	}
 
-	UpdateSongPosition(fDeltaTime);
+	UpdateSongPosition();
 
 	if (m_bZeroDeltaOnNextUpdate) {
 		ScreenWithMenuElements::Update(0);
@@ -972,7 +973,7 @@ ScreenGameplay::Update(float fDeltaTime)
 					m_vPlayerInfo.m_pLifeMeter->IsFailing() &&
 					!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
 
-					Locator::getLogger()->trace("Player {} failed", static_cast<int>(pn));
+					Locator::getLogger()->info("Player {} failed", static_cast<int>(pn));
 					m_vPlayerInfo.GetPlayerStageStats()->m_bFailed =
 					  true; // fail
 
@@ -1043,7 +1044,7 @@ ScreenGameplay::Update(float fDeltaTime)
 				//   granting a fake FC (or more)
 				//  (HACK?)
 				if (GAMESTATE->m_Position.m_fMusicSeconds >=
-					  fSecondsToStartTransitioningOut + m_vPlayerInfo.m_pPlayer->GetMaxStepDistanceSeconds() &&
+					  fSecondsToStartTransitioningOut + Player::GetMaxStepDistanceSeconds() &&
 					!m_NextSong.IsTransitioning()) {
 					this->PostScreenMessage(SM_NotesEnded, 0);
 				}
@@ -1059,7 +1060,7 @@ ScreenGameplay::Update(float fDeltaTime)
 				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
 				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
 				ResetGiveUpTimers(false);
-				Locator::getLogger()->trace("Exited Gameplay to Evaluation");
+				Locator::getLogger()->info("Exited Gameplay to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
 				return;
 			}
@@ -1317,7 +1318,9 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 		}
 
 		// Exiting gameplay by holding Start (Forced Fail)
-		if (bHoldingGiveUp) {
+		// Never allow holding start in Practice Mode
+		if (bHoldingGiveUp && !GAMESTATE->IsPracticeMode() &&
+			PREFSMAN->m_AllowStartToGiveUp) {
 			if (input.type == IET_RELEASE) {
 				AbortGiveUp(true);
 			} else if (input.type == IET_FIRST_PRESS &&
@@ -1343,9 +1346,7 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 				  input.type == IET_REPEAT) ||
 				 (input.DeviceI.device != DEVICE_KEYBOARD &&
 				  INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0F))) {
-				if (PREFSMAN->m_verbose_log > 1) {
-					Locator::getLogger()->trace("Player {} went back", input.pn + 1);
-				}
+				Locator::getLogger()->info("Player {} went back", input.pn + 1);
 				BeginBackingOutFromGameplay();
 			} else if (PREFSMAN->m_bDelayedBack &&
 					   input.type == IET_FIRST_PRESS) {
@@ -1364,8 +1365,22 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 		return false;
 	}
 
-	const auto iCol =
-	  GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI);
+	/* Restart gameplay button moved from theme to allow for rebinding for
+	 * people who dont want to edit lua files :)
+	 */
+	auto bHoldingRestart = false;
+	if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) ==
+		Column_Invalid) {
+		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
+	}
+	if (bHoldingRestart && (m_DancingState != STATE_OUTRO || AllAreFailing())) {
+		// delayedback pref will work, or if it's off just go immediately
+		// but also just let it be instant if you failed
+		if ((PREFSMAN->m_bDelayedBack &&
+			 INPUTFILTER->GetSecsHeld(input.DeviceI) >= 1.0F) ||
+			!PREFSMAN->m_bDelayedBack || AllAreFailing())
+			RestartGameplay();
+	}
 
 	// Don't pass on any inputs to Player that aren't a press or a release.
 	switch (input.type) {
@@ -1376,17 +1391,8 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 			return false;
 	}
 
-	/* Restart gameplay button moved from theme to allow for rebinding for
-	 * people who dont want to edit lua files :)
-	 */
-	auto bHoldingRestart = false;
-	if (GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI) ==
-		Column_Invalid) {
-		bHoldingRestart |= input.MenuI == GAME_BUTTON_RESTART;
-	}
-	if (bHoldingRestart && (m_DancingState != STATE_OUTRO || AllAreFailing())) {
-		RestartGameplay();
-	}
+	const auto iCol =
+	  GAMESTATE->GetCurrentStyle(input.pn)->GameInputToColumn(input.GameI);
 
 	// handle a step or battle item activate
 	if (GAMESTATE->IsHumanPlayer(input.pn)) {
@@ -1406,6 +1412,14 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 					return false;
 				case GameButtonType_Step:
 					if (iCol != -1) {
+
+						if (g_buttonsByColumnPressed.count(iCol) == 0u) {
+							std::set<DeviceButton> newset;
+							g_buttonsByColumnPressed[iCol] = newset;
+						}
+						g_buttonsByColumnPressed[iCol].emplace(
+						  input.DeviceI.button);
+
 						m_vPlayerInfo.m_pPlayer->Step(
 						  iCol, -1, input.DeviceI.ts, false, bRelease);
 					}
@@ -1465,7 +1479,7 @@ ScreenGameplay::SongFinished()
 void
 ScreenGameplay::StageFinished(bool bBackedOut)
 {
-	Locator::getLogger()->trace("Finishing Stage");
+	Locator::getLogger()->info("Finishing Stage");
 	if (bBackedOut) {
 		GAMESTATE->CancelStage();
 		return;
@@ -1483,6 +1497,15 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	// Properly set the LivePlay bool
 	STATSMAN->m_CurStageStats.m_bLivePlay = true;
 
+	bool usedDoubleSetup = false;
+	for (auto& s : g_buttonsByColumnPressed) {
+		if (s.second.size() > 1) {
+			usedDoubleSetup = true;
+			Locator::getLogger()->info("Double setup detected");
+		}
+	}
+
+	STATSMAN->m_CurStageStats.m_player.usedDoubleSetup = usedDoubleSetup;
 	STATSMAN->m_CurStageStats.FinalizeScores(false);
 
 	// If we didn't cheat and aren't in Practice
@@ -1491,11 +1514,12 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		auto* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
 		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
+		auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 
 		// Load the replay data for the current score so some cool functionality
 		// works immediately
 		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(pHS, 0, &nd);
+		PlayerAI::SetScoreData(pHS, 0, &nd, td);
 		GAMESTATE->CommitStageStats();
 	}
 
@@ -1504,7 +1528,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	STATSMAN->CalcAccumPlayedStageStats();
 	GAMESTATE->FinishStage();
-	Locator::getLogger()->trace("Done Finishing Stage");
+	Locator::getLogger()->info("Done Finishing Stage");
 }
 
 void
@@ -1584,7 +1608,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.Failed();
 		const auto bIsLastSong = m_apSongsQueue.size() == 1;
 
-		Locator::getLogger()->trace("bAllReallyFailed = {} bIsLastSong = {}, m_gave_up = {}",
+		Locator::getLogger()->info("bAllReallyFailed = {} bIsLastSong = {}, m_gave_up = {}",
 				   bAllReallyFailed,
 				   bIsLastSong,
 				   m_gave_up);
@@ -1681,7 +1705,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		StartPlayingSong(MIN_SECONDS_TO_STEP_NEXT_SONG, 0);
 	} else if (SM == SM_PlayToasty) {
 		if (PREFSMAN->m_bEasterEggs) {
-			if (m_Toasty.IsWaiting()) {
+			if (m_Toasty.IsWaiting() || PREFSMAN->m_AllowMultipleToasties) {
 				m_Toasty.Reset();
 				m_Toasty.StartTransitioning();
 			}

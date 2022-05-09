@@ -35,12 +35,24 @@ InputMapper* INPUTMAPPER =
 
 InputMapper::InputMapper()
 {
+	// Register with Lua.
+	{
+		auto L = LUA->Get();
+		lua_pushstring(L, "INPUTMAPPER");
+		this->PushSelf(L);
+		lua_settable(L, LUA_GLOBALSINDEX);
+		LUA->Release(L);
+	}
+
 	g_JoinControllers = PLAYER_INVALID;
 	m_pInputScheme = nullptr;
 }
 
 InputMapper::~InputMapper()
 {
+	// Unregister with Lua.
+	LUA->UnsetGlobal("SONGMAN");
+
 	SaveMappingsToDisk();
 	g_tempDItoGI.clear();
 }
@@ -79,12 +91,7 @@ static const AutoMappings g_DefaultKeyMappings = AutoMappings(
 void
 InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 {
-	// Clear default mappings.  Default mappings are in the third slot.
-	FOREACH_ENUM(GameController, i)
-	FOREACH_ENUM(GameButton, j)
-	ClearFromInputMap(GameInput(i, j), 2);
-
-	vector<AutoMappingEntry> aMaps;
+	std::vector<AutoMappingEntry> aMaps;
 	aMaps.reserve(32);
 
 	FOREACH_CONST(AutoMappingEntry, g_DefaultKeyMappings.m_vMaps, iter)
@@ -104,13 +111,16 @@ InputMapper::AddDefaultMappingsForCurrentGameIfUnmapped()
 		GameInput GameI(m->m_bSecondController ? GameController_2
 											   : GameController_1,
 						m->m_gb);
-		if (!IsMapped(DeviceI)) // if this key isn't already being used by
-								// another user-made mapping
+		// dont remap a button that is already being used
+		if (!IsMapped(DeviceI))
 		{
 			if (!GameI.IsValid())
 				ClearFromInputMap(DeviceI);
-			else
-				SetInputMap(DeviceI, GameI, 2);
+			else {
+				// dont remap a default column binding
+				if (!m_mappings.m_GItoDI[GameI.controller][GameI.button][2].IsValid())
+					SetInputMap(DeviceI, GameI, 2);
+			}
 		}
 	}
 }
@@ -607,7 +617,7 @@ InputMapper::Unmap(InputDevice id)
 }
 
 void
-InputMapper::ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
+InputMapper::ApplyMapping(const std::vector<AutoMappingEntry>& vMmaps,
 						  GameController gc,
 						  InputDevice id)
 {
@@ -637,15 +647,15 @@ InputMapper::ApplyMapping(const vector<AutoMappingEntry>& vMmaps,
 void
 InputMapper::AutoMapJoysticksForCurrentGame()
 {
-	vector<InputDeviceInfo> vDevices;
+	std::vector<InputDeviceInfo> vDevices;
 	INPUTMAN->GetDevicesAndDescriptions(vDevices);
 
 	// fill vector with all auto mappings
-	vector<AutoMappings> vAutoMappings;
+	std::vector<AutoMappings> vAutoMappings;
 	{
 		// file automaps - Add these first so that they can match before the
 		// hard-coded mappings
-		vector<std::string> vs;
+		std::vector<std::string> vs;
 		GetDirListing(AUTOMAPPINGS_DIR "*.ini", vs, false, true);
 		FOREACH_CONST(std::string, vs, sFilePath)
 		{
@@ -728,8 +738,8 @@ InputMapper::GetInputScheme() const
 	return m_pInputScheme;
 }
 
-const std::string DEVICE_INPUT_SEPARATOR =
-  ":"; // this isn't used in any key names
+// this isn't used in any key names
+const std::string DEVICE_INPUT_SEPARATOR = ":";
 
 void
 InputMapper::ReadMappingsFromDisk()
@@ -756,16 +766,16 @@ InputMapper::ResetMappingsToDefault()
 
 void
 InputMapper::CheckButtonAndAddToReason(GameButton menu,
-									   vector<std::string>& full_reason,
+									   std::vector<std::string>& full_reason,
 									   std::string const& sub_reason)
 {
-	vector<GameInput> inputs;
+	std::vector<GameInput> inputs;
 	bool exists = false;
 	// Only player 1 is checked because the player 2 buttons are rarely
 	// unmapped and do not exist on some keyboard models. -Kyz
 	GetInputScheme()->MenuButtonToGameInputs(menu, PLAYER_1, inputs);
 	if (!inputs.empty()) {
-		vector<DeviceInput> device_inputs;
+		std::vector<DeviceInput> device_inputs;
 		FOREACH(GameInput, inputs, inp)
 		{
 			for (int slot = 0; slot < NUM_GAME_TO_DEVICE_SLOTS; ++slot) {
@@ -803,7 +813,7 @@ InputMapper::CheckButtonAndAddToReason(GameButton menu,
 }
 
 void
-InputMapper::SanityCheckMappings(vector<std::string>& reason)
+InputMapper::SanityCheckMappings(std::vector<std::string>& reason)
 {
 	// This is just to check whether the current mapping has the minimum
 	// necessary to navigate the menus so the user can reach the config screen.
@@ -828,23 +838,23 @@ InputMapper::CheckForChangedInputDevicesAndRemap(std::string& sMessageOut)
 	// remap.
 
 	// update last seen joysticks
-	vector<InputDeviceInfo> vDevices;
+	std::vector<InputDeviceInfo> vDevices;
 	INPUTMAN->GetDevicesAndDescriptions(vDevices);
 
 	// Strip non-joysticks.
-	vector<std::string> vsLastSeenJoysticks;
+	std::vector<std::string> vsLastSeenJoysticks;
 	// Don't use "," since some vendors have a name like "company Ltd., etc".
 	// For now, use a pipe character. -aj, fix from Mordae.
 	split(g_sLastSeenInputDevices, "|", vsLastSeenJoysticks);
 
-	vector<std::string> vsCurrent;
-	vector<std::string> vsCurrentJoysticks;
+	std::vector<std::string> vsCurrent;
+	std::vector<std::string> vsCurrentJoysticks;
 	for (int i = vDevices.size() - 1; i >= 0; i--) {
 		vsCurrent.push_back(vDevices[i].sDesc);
 		if (IsJoystick(vDevices[i].id)) {
 			vsCurrentJoysticks.push_back(vDevices[i].sDesc);
 		} else {
-			vector<std::string>::iterator iter =
+			std::vector<std::string>::iterator iter =
 			  find(vsLastSeenJoysticks.begin(),
 				   vsLastSeenJoysticks.end(),
 				   vDevices[i].sDesc);
@@ -857,7 +867,7 @@ InputMapper::CheckForChangedInputDevicesAndRemap(std::string& sMessageOut)
 	if (!bJoysticksChanged)
 		return false;
 
-	vector<std::string> vsConnects, vsDisconnects;
+	std::vector<std::string> vsConnects, vsDisconnects;
 	GetConnectsDisconnects(
 	  vsLastSeenJoysticks, vsCurrentJoysticks, vsDisconnects, vsConnects);
 
@@ -986,7 +996,7 @@ InputMapper::SetJoinControllers(PlayerNumber pn)
 void
 InputMapper::MenuToGame(GameButton MenuI,
 						PlayerNumber pn,
-						vector<GameInput>& GameIout) const
+						std::vector<GameInput>& GameIout) const
 {
 	if (g_JoinControllers != PLAYER_INVALID)
 		pn = PLAYER_INVALID;
@@ -1022,7 +1032,7 @@ InputMapper::IsBeingPressed(GameButton MenuI, PlayerNumber pn) const
 	if (MenuI == GameButton_Invalid) {
 		return false;
 	}
-	vector<GameInput> GameI;
+	std::vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 	for (size_t i = 0; i < GameI.size(); i++)
 		if (IsBeingPressed(GameI[i]))
@@ -1032,7 +1042,7 @@ InputMapper::IsBeingPressed(GameButton MenuI, PlayerNumber pn) const
 }
 
 bool
-InputMapper::IsBeingPressed(const vector<GameInput>& GameI,
+InputMapper::IsBeingPressed(const std::vector<GameInput>& GameI,
 							MultiPlayer mp,
 							const DeviceInputList* pButtonState) const
 {
@@ -1063,7 +1073,7 @@ InputMapper::RepeatStopKey(GameButton MenuI, PlayerNumber pn)
 	if (MenuI == GameButton_Invalid) {
 		return;
 	}
-	vector<GameInput> GameI;
+	std::vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 	for (size_t i = 0; i < GameI.size(); i++)
 		RepeatStopKey(GameI[i]);
@@ -1098,7 +1108,7 @@ InputMapper::GetSecsHeld(GameButton MenuI, PlayerNumber pn) const
 	}
 	float fMaxSecsHeld = 0;
 
-	vector<GameInput> GameI;
+	std::vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 	for (size_t i = 0; i < GameI.size(); i++)
 		fMaxSecsHeld = std::max(fMaxSecsHeld, GetSecsHeld(GameI[i]));
@@ -1125,7 +1135,7 @@ InputMapper::ResetKeyRepeat(GameButton MenuI, PlayerNumber pn)
 	if (MenuI == GameButton_Invalid) {
 		return;
 	}
-	vector<GameInput> GameI;
+	std::vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 	for (size_t i = 0; i < GameI.size(); i++)
 		ResetKeyRepeat(GameI[i]);
@@ -1153,7 +1163,7 @@ InputMapper::GetLevel(GameButton MenuI, PlayerNumber pn) const
 	if (MenuI == GameButton_Invalid) {
 		return 0.f;
 	}
-	vector<GameInput> GameI;
+	std::vector<GameInput> GameI;
 	MenuToGame(MenuI, pn, GameI);
 
 	float fLevel = 0;
@@ -1193,11 +1203,11 @@ InputScheme::ButtonNameToIndex(const std::string& sButtonName) const
 void
 InputScheme::MenuButtonToGameInputs(GameButton MenuI,
 									PlayerNumber pn,
-									vector<GameInput>& GameIout) const
+									std::vector<GameInput>& GameIout) const
 {
 	ASSERT(MenuI != GameButton_Invalid);
 
-	vector<GameButton> aGameButtons;
+	std::vector<GameButton> aGameButtons;
 	MenuButtonToGameButtons(MenuI, aGameButtons);
 	FOREACH(GameButton, aGameButtons, gb)
 	{
@@ -1212,7 +1222,7 @@ InputScheme::MenuButtonToGameInputs(GameButton MenuI,
 
 void
 InputScheme::MenuButtonToGameButtons(GameButton MenuI,
-									 vector<GameButton>& aGameButtons) const
+									 std::vector<GameButton>& aGameButtons) const
 {
 	ASSERT(MenuI != GameButton_Invalid);
 
@@ -1296,7 +1306,7 @@ InputMappings::Unmap(InputDevice id)
 	{
 		FOREACH_ENUM(GameButton, j)
 		{
-			for (int k = 0; k < NUM_USER_GAME_TO_DEVICE_SLOTS; k++) {
+			for (int k = 0; k < NUM_GAME_TO_DEVICE_SLOTS; k++) {
 				DeviceInput& di = m_GItoDI[i][j][k];
 				if (di.device == id)
 					di.MakeInvalid();
@@ -1314,7 +1324,7 @@ InputMappings::ReadMappings(const InputScheme* pInputScheme,
 
 	IniFile ini;
 	if (!ini.ReadFile(sFilePath))
-		Locator::getLogger()->trace("Couldn't open mapping file \"{}\": {}.",
+		Locator::getLogger()->warn("Couldn't open mapping file \"{}\": {}.",
 				   SpecialFiles::KEYMAPS_PATH.c_str(),
 				   ini.GetError().c_str());
 
@@ -1342,7 +1352,7 @@ InputMappings::ReadMappings(const InputScheme* pInputScheme,
 			if (!GameI.IsValid())
 				continue;
 
-			vector<std::string> sDeviceInputStrings;
+			std::vector<std::string> sDeviceInputStrings;
 			split(value, DEVICE_INPUT_SEPARATOR, sDeviceInputStrings, false);
 
 			for (unsigned j = 0;
@@ -1381,11 +1391,10 @@ InputMappings::WriteMappings(const InputScheme* pInputScheme,
 			GameInput GameI(i, j);
 			std::string sNameString = GameI.ToString(pInputScheme);
 
-			vector<std::string> asValues;
-			asValues.reserve(NUM_USER_GAME_TO_DEVICE_SLOTS);
-			for (int slot = 0; slot < NUM_USER_GAME_TO_DEVICE_SLOTS;
-				 ++slot) // don't save data from the last (keyboard automap)
-						 // slot
+			std::vector<std::string> asValues;
+			asValues.reserve(NUM_GAME_TO_DEVICE_SLOTS);
+			for (int slot = 0; slot < NUM_GAME_TO_DEVICE_SLOTS;
+				 ++slot)
 				asValues.push_back(m_GItoDI[i][j][slot].ToString());
 
 			while (!asValues.empty() && asValues.back().empty())
@@ -1449,3 +1458,127 @@ InputMappings::ClearFromInputMap(const GameInput& GameI, int iSlotIndex)
 
 	return true;
 }
+
+#include "Etterna/Models/Lua/LuaBinding.h"
+
+class LunaInputMapper : public Luna<InputMapper>
+{
+public:
+	static int SetInputMap(T* p, lua_State* L)
+	{
+		// ex: "Key_z"
+		std::string deviceInputString = SArg(1);
+		// ex: "Left"
+		std::string buttonBeingMapped = SArg(2);
+		// 0-4. 2 is the "default" column and we have 2 extras somehow
+		int inputSlot = IArg(3);
+		// 0 is the left main controller, 1 is the other for doubles
+		int playerSlot = IArg(4);
+
+		GameController gc = static_cast<GameController>(playerSlot);
+		GameButton gb =
+		  StringToGameButton(p->GetInputScheme(), buttonBeingMapped);
+		GameInput gameI(gc, gb);
+		DeviceInput deviceI;
+		deviceI.FromString(deviceInputString);
+
+		p->SetInputMap(deviceI, gameI, inputSlot);
+		return 0;
+	}
+	static int GetGameButtonsToMap(T* p, lua_State* L)
+	{
+		// includes only the GAMEPLAY buttons
+		// no menu buttons
+		// I sure hope nobody changes the GameManager defs and InputMapper enum defs...
+		std::vector<std::string> keys;
+		for (GameButton gb = GAME_BUTTON_CUSTOM_01; gb < INPUTMAPPER->GetInputScheme()->m_iButtonsPerController; enum_add<GameButton>(gb, +1)) {
+			keys.push_back(GameButtonToString(INPUTMAPPER->GetInputScheme(), gb));
+		}
+		LuaHelpers::CreateTableFromArray<std::string>(keys, L);
+		return 1;
+	}
+	static int GetMenuButtonsToMap(T* p, lua_State* L)
+	{
+		// includes only the MENU buttons
+		// no gameplay buttons
+		// I sure hope nobody changes the InputMapper enum defs...
+		std::vector<std::string> keys;
+		for (GameButton gb = GAME_BUTTON_START;
+			 gb <= GAME_BUTTON_RESTART;
+			 enum_add<GameButton>(gb, +1)) {
+			keys.push_back(
+			  GameButtonToString(INPUTMAPPER->GetInputScheme(), gb));
+		}
+		LuaHelpers::CreateTableFromArray<std::string>(keys, L);
+		return 1;
+	}
+	static int GetButtonMapping(T* p, lua_State* L)
+	{
+		// returns either null or the name of the button mapped
+		// for the left controller, column 2 (3rd col) is the default column
+		//
+		std::string possiblyMappedGameButton = SArg(1);
+		int playerSlot = IArg(2);
+		CLAMP(playerSlot, 0, 1);
+		int bindingColumn = IArg(3);
+		CLAMP(bindingColumn, 0, 4);
+
+		GameController gc = static_cast<GameController>(playerSlot);
+		GameButton gb =
+		  StringToGameButton(p->GetInputScheme(), possiblyMappedGameButton);
+		GameInput gameI(gc, gb);
+		DeviceInput deviceI;
+
+		if (p->GameToDevice(gameI, bindingColumn, deviceI))
+			lua_pushstring(L, deviceI.ToString().c_str());
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+	static int GetButtonMappingString(T* p, lua_State* L)
+	{
+		// similar to GetButtonMapping except gets the string a user can read
+		std::string possiblyMappedGameButton = SArg(1);
+		int playerSlot = IArg(2);
+		CLAMP(playerSlot, 0, 1);
+		int bindingColumn = IArg(3);
+		CLAMP(bindingColumn, 0, 4);
+
+		GameController gc = static_cast<GameController>(playerSlot);
+		GameButton gb =
+		  StringToGameButton(p->GetInputScheme(), possiblyMappedGameButton);
+		GameInput gameI(gc, gb);
+		DeviceInput deviceI;
+
+		if (p->GameToDevice(gameI, bindingColumn, deviceI))
+			lua_pushstring(
+			  L, INPUTMAN->GetDeviceSpecificInputString(deviceI).c_str());
+		else
+			lua_pushnil(L);
+		return 1;
+	}
+	static int SaveMappingsToDisk(T* p, lua_State* L)
+	{
+		p->SaveMappingsToDisk();
+		return 0;
+	}
+	static int ReadMappingsFromDisk(T* p, lua_State* L)
+	{
+		p->ReadMappingsFromDisk();
+		return 0;
+	}
+
+
+	LunaInputMapper()
+	{
+		ADD_METHOD(SetInputMap);
+		ADD_METHOD(GetGameButtonsToMap);
+		ADD_METHOD(GetMenuButtonsToMap);
+		ADD_METHOD(GetButtonMapping);
+		ADD_METHOD(GetButtonMappingString);
+		ADD_METHOD(SaveMappingsToDisk);
+		ADD_METHOD(ReadMappingsFromDisk);
+	}
+};
+
+LUA_REGISTER_CLASS(InputMapper)

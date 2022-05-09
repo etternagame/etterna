@@ -192,20 +192,20 @@ class MessageManager
 	MessageManager();
 	~MessageManager();
 
-	void Subscribe(IMessageSubscriber* pSubscriber,
+	static void Subscribe(IMessageSubscriber* pSubscriber,
 				   const std::string& sMessage);
-	void Subscribe(IMessageSubscriber* pSubscriber, MessageID m);
-	void Unsubscribe(IMessageSubscriber* pSubscriber,
+	static void Subscribe(IMessageSubscriber* pSubscriber, MessageID m);
+	static void Unsubscribe(IMessageSubscriber* pSubscriber,
 					 const std::string& sMessage);
-	void Unsubscribe(IMessageSubscriber* pSubscriber, MessageID m);
+	static void Unsubscribe(IMessageSubscriber* pSubscriber, MessageID m);
 	void Broadcast(Message& msg) const;
 	void Broadcast(const std::string& sMessage) const;
 	void Broadcast(MessageID m) const;
-	auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-							   const std::string& sMessage) const -> bool;
+	static auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
+							   const std::string& sMessage) -> bool;
 
-	auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
-							   const MessageID message) const -> bool
+	static auto IsSubscribedToMessage(IMessageSubscriber* pSubscriber,
+							   const MessageID message) -> bool
 	{
 		return IsSubscribedToMessage(pSubscriber, MessageIDToString(message));
 	}

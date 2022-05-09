@@ -155,7 +155,7 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_COMMAND:
 			switch (LOWORD(wParam)) {
 				case IDC_BUTTON_VIEW_LOG: {
-					PROCESS_INFORMATION pi;
+					// PROCESS_INFORMATION pi;
 					STARTUPINFO si;
 					ZeroMemory(&si, sizeof(si));
 
@@ -169,6 +169,8 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					FAIL_M("Win32RestartProgram failed?");
 				case IDOK:
 					EndDialog(hWnd, 0);
+					break;
+				default:
 					break;
 			}
 			break;
@@ -184,6 +186,8 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					hbr = (HBRUSH)::GetStockObject(WHITE_BRUSH);
 					SetBkMode(hdc, OPAQUE);
 					SetBkColor(hdc, RGB(255, 255, 255));
+					break;
+				default:
 					break;
 			}
 

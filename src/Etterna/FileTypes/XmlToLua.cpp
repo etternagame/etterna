@@ -50,7 +50,7 @@ unique_name(std::string const& type)
 void
 convert_xmls_in_dir(std::string const& dirname)
 {
-	vector<std::string> listing;
+	std::vector<std::string> listing;
 	FILEMAN->GetDirListing(dirname, listing, false, true);
 	for (auto& curr_file : listing) {
 		switch (ActorUtil::GetFileType(curr_file)) {
@@ -109,7 +109,7 @@ add_extension_to_relative_path_from_found_file(std::string const& relative_path,
 }
 
 bool
-verify_arg_count(std::string cmd, vector<std::string>& args, size_t req)
+verify_arg_count(std::string cmd, std::vector<std::string>& args, size_t req)
 {
 	if (args.size() < req) {
 		LuaHelpers::ReportScriptError("Not enough args to " + cmd +
@@ -119,7 +119,7 @@ verify_arg_count(std::string cmd, vector<std::string>& args, size_t req)
 	return true;
 }
 
-typedef void (*arg_converter_t)(vector<std::string>& args);
+typedef void (*arg_converter_t)(std::vector<std::string>& args);
 
 map<std::string, arg_converter_t> arg_converters;
 map<std::string, size_t> tween_counters;
@@ -130,7 +130,7 @@ map<std::string, std::string> chunks_to_replace;
 	if (!verify_arg_count(args[0], args, count))                               \
 		return;
 void
-x_conv(vector<std::string>& args)
+x_conv(std::vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	float pos;
@@ -139,7 +139,7 @@ x_conv(vector<std::string>& args)
 	}
 }
 void
-y_conv(vector<std::string>& args)
+y_conv(std::vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	float pos;
@@ -148,18 +148,18 @@ y_conv(vector<std::string>& args)
 	}
 }
 void
-string_arg_conv(vector<std::string>& args)
+string_arg_conv(std::vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	args[1] = "\"" + args[1] + "\"";
 }
 void
-lower_string_conv(vector<std::string>& args)
+lower_string_conv(std::vector<std::string>& args)
 {
 	args[0] = make_lower(args[0]);
 }
 void
-hidden_conv(vector<std::string>& args)
+hidden_conv(std::vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	args[0] = "visible";
@@ -170,7 +170,7 @@ hidden_conv(vector<std::string>& args)
 	}
 }
 void
-diffuse_conv(vector<std::string>& args)
+diffuse_conv(std::vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	std::string retarg;
@@ -190,7 +190,7 @@ diffuse_conv(vector<std::string>& args)
 const std::string& BlendModeToString(BlendMode);
 const std::string& CullModeToString(CullMode);
 void
-blend_conv(vector<std::string>& args)
+blend_conv(std::vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	for (auto i = 0; i < NUM_BlendMode; ++i) {
@@ -204,7 +204,7 @@ blend_conv(vector<std::string>& args)
 	}
 }
 void
-cull_conv(vector<std::string>& args)
+cull_conv(std::vector<std::string>& args)
 {
 	COMMON_ARG_VERIFY(2);
 	for (auto i = 0; i < NUM_CullMode; ++i) {
@@ -287,8 +287,8 @@ struct actor_template_t
 	field_cont_t fields;
 	std::string condition;
 	std::string name;
-	vector<frame_t> frames;
-	vector<actor_template_t> children;
+	std::vector<frame_t> frames;
+	std::vector<actor_template_t> children;
 	std::string x;
 	std::string y;
 	void make_space_for_frame(int id);
@@ -333,14 +333,14 @@ actor_template_t::store_cmd(std::string const& cmd_name,
 		fields[cmd_name] = cmd_text;
 		return;
 	}
-	vector<std::string> cmds;
+	std::vector<std::string> cmds;
 	split(full_cmd, ";", cmds, true);
 	size_t queue_size = 0;
 	// If someone has a simfile that uses a playcommand that pushes tween
 	// states onto the queue, queue size counting will have to be made much
 	// more complex to prevent that from causing an overflow.
 	for (auto& cmd : cmds) {
-		vector<std::string> args;
+		std::vector<std::string> args;
 		split(cmd, ",", args, true);
 		if (!args.empty()) {
 			for (auto& arg : args) {
@@ -374,10 +374,10 @@ actor_template_t::store_cmd(std::string const& cmd_name,
 		auto states_per = (queue_size / num_to_make) + 1;
 		size_t states_in_curr = 0;
 		auto this_name = cmd_name;
-		vector<std::string> curr_cmd;
+		std::vector<std::string> curr_cmd;
 		for (auto& cmd : cmds) {
 			curr_cmd.push_back(cmd);
-			vector<std::string> args;
+			std::vector<std::string> args;
 			split(cmd, ",", args, true);
 			if (!args.empty()) {
 				auto counter = tween_counters.find(args[0]);
@@ -555,7 +555,7 @@ actor_template_t::load_node(XNode const& node,
 				set_type("LoadActor");
 				store_field("File", attr->second, false);
 			} else {
-				vector<std::string> files_in_dir;
+				std::vector<std::string> files_in_dir;
 				FILEMAN->GetDirListing(sfname + "*", files_in_dir, false, true);
 				auto handled_level = 0;
 				std::string found_file = "";
@@ -748,7 +748,7 @@ int
 LuaFunc_convert_xml_bgs(lua_State* L)
 {
 	std::string dir = SArg(1);
-	vector<std::string> xml_list;
+	std::vector<std::string> xml_list;
 	convert_xmls_in_dir(dir + "/");
 	return 0;
 }

@@ -62,6 +62,11 @@ NoteField::NoteField()
 	m_sprBoard->PlayCommand("On");
 	this->AddChild(m_sprBoard);
 
+	m_sprCover.Load(THEME->GetPathG("NoteField", "cover"));
+	m_sprCover->SetName("Cover");
+	m_sprCover->PlayCommand("On");
+	this->AddChild(m_sprCover);
+
 	m_fBoardOffsetPixels = 0;
 	m_fCurrentBeatLastUpdate = -1;
 	m_fYPosCurrentBeatLastUpdate = -1;
@@ -107,8 +112,7 @@ NoteField::CacheNoteSkin(const std::string& sNoteSkin_)
 
 	LockNoteSkin l(sNoteSkin_);
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
+	Locator::getLogger()->debug("NoteField::CacheNoteSkin: cache {}", sNoteSkin_.c_str());
 	auto* nd = new NoteDisplayCols(
 	  GAMESTATE->GetCurrentStyle(m_pPlayerState->m_PlayerNumber)
 		->m_iColsPerPlayer);
@@ -141,7 +145,7 @@ NoteField::CacheAllUsedNoteSkins()
 	 * battle
 	 * play, so we don't have to load them later (such as between course songs).
 	 */
-	vector<std::string> asSkinsLower;
+	std::vector<std::string> asSkinsLower;
 	GAMESTATE->GetAllUsedNoteSkins(asSkinsLower);
 	asSkinsLower.push_back(
 	  m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin);
@@ -185,7 +189,7 @@ NoteField::CacheAllUsedNoteSkins()
 }
 
 void
-NoteField::Init(const PlayerState* pPlayerState,
+NoteField::Init(PlayerState* pPlayerState,
 				float fYReverseOffsetPixels,
 				bool use_states_zoom)
 {
@@ -740,7 +744,7 @@ NoteField::DrawPrimitives()
 	}
 
 	const auto* const pTiming = &m_pPlayerState->GetDisplayedTiming();
-	const vector<TimingSegment*>* segs[NUM_TimingSegmentType];
+	const std::vector<TimingSegment*>* segs[NUM_TimingSegmentType];
 
 	FOREACH_TimingSegmentType(tst) segs[tst] =
 	  &(pTiming->GetTimingSegments(tst));
@@ -818,6 +822,19 @@ NoteField::DrawPrimitives()
 
 	cur->m_GhostArrowRow.Draw();
 	cur->m_ReceptorArrowRow.DrawOverlay();
+
+	m_sprCover->Draw();
+
+	// there are always 2 true children of the NoteField
+	// both of those are the Cover and Board
+	// but through ActorFrame methods, more children can be added
+	// draw them here
+	if (m_SubActors.size() > 2) {
+		for (auto& sub : m_SubActors) {
+			if (sub != m_sprCover && sub != m_sprBoard)
+				sub->Draw();
+		}
+	}
 }
 
 void

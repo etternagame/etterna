@@ -70,7 +70,7 @@ ScreenSelect::Init()
 		// Each element in the list is a choice name. This level of indirection
 		// makes it easier to add or remove items without having to change a
 		// bunch of indices.
-		vector<std::string> asChoiceNames;
+		std::vector<std::string> asChoiceNames;
 		split(CHOICE_NAMES, ",", asChoiceNames, true);
 
 		for (unsigned c = 0; c < asChoiceNames.size(); c++) {
@@ -102,8 +102,7 @@ ScreenSelect::BeginScreen()
 
 ScreenSelect::~ScreenSelect()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenSelect::~ScreenSelect()");
+	Locator::getLogger()->debug("ScreenSelect::~ScreenSelect()");
 	for (auto& m_asSubscribedMessage : m_asSubscribedMessages)
 		MESSAGEMAN->Unsubscribe(this, m_asSubscribedMessage);
 }

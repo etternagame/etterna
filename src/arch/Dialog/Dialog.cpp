@@ -16,7 +16,7 @@ DialogDriver*
 MakeDialogDriver()
 {
 	std::string sDrivers = "win32,cocoa,null";
-	vector<std::string> asDriversToTry;
+	std::vector<std::string> asDriversToTry;
 	split(sDrivers, ",", asDriversToTry, true);
 
 	ASSERT(!asDriversToTry.empty());
@@ -88,7 +88,7 @@ static bool
 MessageIsIgnored(const std::string& sID)
 {
 #if !defined(SMPACKAGE)
-	vector<std::string> asList;
+	std::vector<std::string> asList;
 	split(g_sIgnoredDialogs, ",", asList);
 	for (unsigned i = 0; i < asList.size(); ++i)
 		if (!CompareNoCase(sID, asList[i]))
@@ -104,7 +104,9 @@ Dialog::IgnoreMessage(const std::string& sID)
 #if !defined(SMPACKAGE)
 	if (PREFSMAN == nullptr) {
 		if (!sID.empty())
-			Locator::getLogger()->warn("Dialog: message \"{}\" set ID too early for ignorable messages", sID);
+			Locator::getLogger()->warn(
+			  "Dialog: message \"{}\" set ID too early for ignorable messages",
+			  sID);
 		return;
 	}
 
@@ -114,7 +116,7 @@ Dialog::IgnoreMessage(const std::string& sID)
 	if (MessageIsIgnored(sID))
 		return;
 
-	vector<std::string> asList;
+	std::vector<std::string> asList;
 	split(g_sIgnoredDialogs, ",", asList);
 	asList.push_back(sID);
 	g_sIgnoredDialogs.Set(join(",", asList));
@@ -127,7 +129,7 @@ Dialog::Error(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
+    Locator::getLogger()->info("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (!sID.empty() && MessageIsIgnored(sID))
 		return;
@@ -150,7 +152,7 @@ Dialog::OK(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
+    Locator::getLogger()->info("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (!sID.empty() && MessageIsIgnored(sID))
 		return;
@@ -171,7 +173,7 @@ Dialog::OKCancel(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
+    Locator::getLogger()->info("Dialog: \"{}\" [{}]", sMessage, sID);
 
     if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.OKCancel(sMessage, sID);
@@ -195,7 +197,7 @@ Dialog::AbortRetryIgnore(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
+    Locator::getLogger()->info("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.AbortRetryIgnore(sMessage, sID);
@@ -219,7 +221,7 @@ Dialog::AbortRetry(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
+    Locator::getLogger()->info("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.AbortRetry(sMessage, sID);
@@ -243,7 +245,7 @@ Dialog::YesNo(const std::string& sMessage, const std::string& sID)
 {
 	Dialog::Init();
 
-    Locator::getLogger()->trace("Dialog: \"{}\" [{}]", sMessage, sID);
+    Locator::getLogger()->info("Dialog: \"{}\" [{}]", sMessage, sID);
 
 	if (sID != "" && MessageIsIgnored(sID))
 		return g_NullDriver.YesNo(sMessage, sID);

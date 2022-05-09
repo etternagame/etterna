@@ -43,11 +43,23 @@ class StepsDisplayList final : public ActorFrame
 	ActorFrame m_CursorFrames; // contains Cursor so that color can
 							   // fade independent of other tweens
 
-	struct Line
+	struct Lines
 	{
-		StepsDisplay m_Meter;
+		std::vector<std::unique_ptr<StepsDisplay>> lines;
+
+		Lines() = default;
+		Lines(const Lines& other) {
+			for (auto& x : other.lines)
+				this->lines.push_back(std::make_unique<StepsDisplay>(*x));
+		}
+		Lines& operator=(const Lines& other)
+		{
+			for (auto& x : other.lines)
+				this->lines.push_back(std::make_unique<StepsDisplay>(*x));
+			return *this;
+		}
 	};
-	std::vector<Line> m_Lines;
+	Lines m_Lines;
 
 	const Song* m_CurSong;
 	bool m_bShown;

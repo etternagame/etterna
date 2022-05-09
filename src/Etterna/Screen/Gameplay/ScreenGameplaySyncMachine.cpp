@@ -41,7 +41,7 @@ ScreenGameplaySyncMachine::Init()
 
 	GAMESTATE->m_pCurSong.Set(&m_Song);
 	// Needs proper StepsType -freem
-	vector<Steps*> vpSteps;
+	std::vector<Steps*> vpSteps;
 	SongUtil::GetPlayableSteps(&m_Song, vpSteps);
 	ASSERT_M(vpSteps.size() > 0,
 			 "No playable steps for ScreenGameplaySyncMachine");
@@ -113,7 +113,6 @@ ScreenGameplaySyncMachine::HandleScreenMessage(const ScreenMessage& SM)
 
 	if (SM == SM_GoToPrevScreen || SM == SM_GoToNextScreen) {
 		GAMESTATE->m_pCurSteps.Set(nullptr);
-		GAMESTATE->SetCurrentStyle(nullptr, PLAYER_INVALID);
 		GAMESTATE->m_pCurSong.Set(nullptr);
 	}
 }
@@ -149,15 +148,15 @@ ScreenGameplaySyncMachine::RefreshText()
 {
 	float fNew = PREFSMAN->m_fGlobalOffsetSeconds;
 	float fOld = AdjustSync::s_fGlobalOffsetSecondsOriginal;
-	float fStdDev = AdjustSync::s_fStandardDeviation;
+	float fStdDev = AdjustSync::s_fStandardDeviation*1000;
 	std::string s;
-	s += OLD_OFFSET.GetValue() + ssprintf(": %0.3f\n", fOld);
-	s += NEW_OFFSET.GetValue() + ssprintf(": %0.3f\n", fNew);
-	s += STANDARD_DEVIATION.GetValue() + ssprintf(": %0.3f\n", fStdDev);
-	s += COLLECTING_SAMPLE.GetValue() +
-		 ssprintf(": %d / %d",
-				  AdjustSync::s_iAutosyncOffsetSample + 1,
-				  AdjustSync::OFFSET_SAMPLE_COUNT);
+	s += ssprintf("%0.3f | ", fOld) + OLD_OFFSET.GetValue() + "\n";
+	s += ssprintf("%0.3f | ", fNew) + NEW_OFFSET.GetValue() + "\n";
+		s += ssprintf("%04.1fms | ", fStdDev) + STANDARD_DEVIATION.GetValue()
+																+ "\n";
+	s += ssprintf("%02d / %d | ", AdjustSync::s_iAutosyncOffsetSample,
+		AdjustSync::OFFSET_SAMPLE_COUNT) + COLLECTING_SAMPLE.GetValue()
+																+ "\n";
 
 	m_textSyncInfo.SetText(s);
 }

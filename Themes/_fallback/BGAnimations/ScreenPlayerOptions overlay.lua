@@ -1,4 +1,4 @@
-local t = Def.ActorFrame {}
+local t = Def.ActorFrame { }
 
 local NSPreviewSize = 0.5
 local NSPreviewX = 35

@@ -383,7 +383,7 @@ GameCommand::IsPlayable(std::string* why) const
 void
 GameCommand::ApplyToAllPlayers() const
 {
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 
 	vpns.push_back(PLAYER_1);
 
@@ -393,13 +393,13 @@ GameCommand::ApplyToAllPlayers() const
 void
 GameCommand::Apply(PlayerNumber pn) const
 {
-	vector<PlayerNumber> vpns;
+	std::vector<PlayerNumber> vpns;
 	vpns.push_back(pn);
 	Apply(vpns);
 }
 
 void
-GameCommand::Apply(const vector<PlayerNumber>& vpns) const
+GameCommand::Apply(const std::vector<PlayerNumber>& vpns) const
 {
 	if (!m_Commands.v.empty()) {
 		// We were filled using a GameCommand from metrics. Apply the options in
@@ -420,7 +420,7 @@ GameCommand::Apply(const vector<PlayerNumber>& vpns) const
 }
 
 void
-GameCommand::ApplySelf(const vector<PlayerNumber>& vpns) const
+GameCommand::ApplySelf(const std::vector<PlayerNumber>& vpns) const
 {
 	if (m_pStyle != nullptr) {
 		GAMESTATE->SetCurrentStyle(m_pStyle,

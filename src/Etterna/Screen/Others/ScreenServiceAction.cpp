@@ -41,7 +41,7 @@ CopyEdits(const std::string& sFromProfileDir,
 		std::string sFromDir = sFromProfileDir + EDIT_STEPS_SUBDIR;
 		std::string sToDir = sToProfileDir + EDIT_STEPS_SUBDIR;
 
-		vector<std::string> vsFiles;
+		std::vector<std::string> vsFiles;
 		GetDirListing(sFromDir + "*.edit", vsFiles, false, false);
 		for (auto& i : vsFiles) {
 			if (DoesFileExist(sToDir + i))
@@ -84,10 +84,10 @@ void
 ScreenServiceAction::BeginScreen()
 {
 	std::string sActions = THEME->GetMetric(m_sName, "Actions");
-	vector<std::string> vsActions;
+	std::vector<std::string> vsActions;
 	split(sActions, ",", vsActions);
 
-	vector<std::string> vsResults;
+	std::vector<std::string> vsResults;
 	for (auto& s : vsActions) {
 		std::string (*pfn)() = nullptr;
 

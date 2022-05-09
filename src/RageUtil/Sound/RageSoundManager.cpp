@@ -16,6 +16,7 @@
 #include "RageSound.h"
 #include "RageSoundManager.h"
 #include "RageSoundReader_Preload.h"
+#include "RageSoundReader_PostBuffering.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "arch/Sound/RageSoundDriver.h"
@@ -138,8 +139,7 @@ RageSoundManager::Update()
 			next = it;
 			++next;
 			if (it->second->GetReferenceCount() == 1) {
-				if (PREFSMAN->m_verbose_log > 1)
-					Locator::getLogger()->trace("Deleted old sound \"{}\"", it->first.c_str());
+				Locator::getLogger()->trace("Deleted old sound \"{}\"", it->first.c_str());
 				delete it->second;
 				m_mapPreloadedSounds.erase(it);
 			}
@@ -214,9 +214,7 @@ static Preference<float> g_fSoundVolume("SoundVolume", 1.0f);
 void
 RageSoundManager::SetMixVolume()
 {
-	g_SoundManMutex.Lock(); /* lock for access to m_fMixVolume */
-	m_fMixVolume = std::clamp(g_fSoundVolume.Get(), 0.0f, 1.0f);
-	g_SoundManMutex.Unlock(); /* finished with m_fMixVolume */
+	RageSoundReader_PostBuffering::SetMasterVolume(g_fSoundVolume.Get());
 }
 
 void

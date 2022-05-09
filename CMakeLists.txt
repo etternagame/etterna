@@ -19,7 +19,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.71.0
+		VERSION 0.71.2
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
@@ -63,7 +63,7 @@ target_include_directories(Etterna PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)      
 ## Package Includes
 ### OpenSSL is not used directly by our program, but we have to use OpenSSL first
 ### in order to statically link. Once find_package is run once, it's results are cached
-if (WIN32)
+if (WIN32 OR APPLE)
     set(OPENSSL_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 endif()
 set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "" FORCE)
@@ -91,7 +91,7 @@ target_link_libraries(Etterna PRIVATE SQLiteCpp sqlite3)
 target_link_libraries(Etterna PRIVATE zlib)
 target_link_libraries(Etterna PRIVATE rapidjson)
 target_link_libraries(Etterna PRIVATE websocketpp)
-target_link_libraries(Etterna PRIVATE luajit)
+target_link_libraries(Etterna PRIVATE libluajit)
 target_link_libraries(Etterna PRIVATE discord-rpc)
 target_link_libraries(Etterna PRIVATE muFFT)
 target_link_libraries(Etterna PRIVATE glfw)
@@ -132,7 +132,12 @@ add_subdirectory(src/Core)
 
 ## The source_group line creates the full visual studio filter layout
 get_target_property(sources Etterna SOURCES)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX "Etterna" FILES ${sources})
+source_group(TREE ${CMAKE_SOURCE_DIR} PREFIX "Etterna" FILES ${sources})
+
+# Compile Definitions
+if(DEFINED ENV{CI})
+    target_compile_definitions(Etterna PRIVATE ALLOW_CRASH_UPLOAD)
+endif()
 
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)

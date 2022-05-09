@@ -1,7 +1,7 @@
 # TODO: Remove CPU_X86_64, CPU_X86, and CRASH_HANDLER
 #       CRASH_HANDLER is unnecessary as the game should have that as an option component
 #       CPU_X86_64, CPU_X86 already exists as compiler predefined macros. Use those instead.
-list(APPEND cdefs _XOPEN_SOURCE CPU_X86_64)
+list(APPEND cdefs _XOPEN_SOURCE CPU_X86_64 GL_SILENCE_DEPRECATION)
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 set_target_properties(Etterna PROPERTIES MACOSX_BUNDLE TRUE)
 set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")

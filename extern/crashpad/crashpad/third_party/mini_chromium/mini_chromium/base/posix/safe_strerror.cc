@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "base/stl_util.h"
+#include "base/cxx17_backports.h"
 #include "build/build_config.h"
 
 #if defined(OS_ANDROID)

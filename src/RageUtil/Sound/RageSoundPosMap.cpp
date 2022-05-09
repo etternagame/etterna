@@ -29,7 +29,7 @@ struct pos_map_t
 
 struct pos_map_impl
 {
-	vector<pos_map_t> m_Queue;
+	std::vector<pos_map_t> m_Queue;
 	void Cleanup();
 };
 
@@ -195,11 +195,10 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 	static RageTimer last;
 	if (last.PeekDeltaTime() >= 1.0f) {
 		last.GetDeltaTime();
-		if (PREFSMAN->m_verbose_log > 1)
-			Locator::getLogger()->trace("Approximate sound time: driver frame {}, m_pImpl->m_Queue frame {}..{} (dist {}), closest position is {}",
-					   iSourceFrame, pClosestBlock->m_iDestFrame,
-					   pClosestBlock->m_iDestFrame + pClosestBlock->m_iFrames,
-					   iClosestPositionDist, iClosestPosition);
+		Locator::getLogger()->trace("Approximate sound time: driver frame {}, m_pImpl->m_Queue frame {}..{} (dist {}), closest position is {}",
+					iSourceFrame, pClosestBlock->m_iDestFrame,
+					pClosestBlock->m_iDestFrame + pClosestBlock->m_iFrames,
+					iClosestPositionDist, iClosestPosition);
 	}
 
 	if (bApproximate)
