@@ -65,13 +65,15 @@ RageSound::RageSound()
 
 RageSound::~RageSound()
 {
-	{
-		std::lock_guard<std::mutex> guard(recentSamplesMutex);
-		if (fftPlan)
-			mufft_free_plan_1d(fftPlan);
-	}
-	
 	Unload();
+	// Make sure we free fftPlan after Unload()ing
+	// Otherwise, the decode thread could lock recentSamplesMutex in 
+	// RageSound::GetDataToPlay and if we lock it first, we free the 
+	// fftPlan and then it tries to use it.
+	// Unload() removes this RageSound from the arrays the decode thread uses
+	std::lock_guard<std::mutex> guard(recentSamplesMutex);
+	if (fftPlan)
+		mufft_free_plan_1d(fftPlan);
 }
 
 RageSound::RageSound(const RageSound& cpy)
