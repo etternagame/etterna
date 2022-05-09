@@ -644,8 +644,8 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics,
 	 * so make a copy. */
-	const std::string& sThemeName = sThemeName_;
-	const std::string& sMetricsGroup = sMetricsGroup_;
+	const std::string sThemeName = sThemeName_;
+	const std::string sMetricsGroup = sMetricsGroup_;
 	const std::string sElement = sElement_;
 
 	const std::string sThemeDir = GetThemeDirFromName(sThemeName);
@@ -844,8 +844,8 @@ ThemeManager::GetPathInfo(PathInfo& out,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics.
 	 */
-	const std::string& sMetricsGroup = sMetricsGroup_;
-	const std::string& sElement = sElement_;
+	const std::string sMetricsGroup = sMetricsGroup_;
+	const std::string sElement = sElement_;
 
 	std::string sFileName =
 	  MetricsGroupAndElementToFileName(sMetricsGroup, sElement);
@@ -1049,8 +1049,8 @@ ThemeManager::GetMetricRaw(const IniFile& ini,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics.
 	 */
-	const std::string& sMetricsGroup = sMetricsGroup_;
-	const std::string& sValueName = sValueName_;
+	const std::string sMetricsGroup = sMetricsGroup_;
+	const std::string sValueName = sValueName_;
 
 	for (;;) {
 		std::string ret;
