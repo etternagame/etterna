@@ -227,11 +227,8 @@ class RageSound : public RageSoundBase
 	 * play until it becomes positive. */
 	int64_t m_iStreamFrame;
 
-	void ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
-									 unsigned int bufSize);
-	std::atomic<bool> inPlayCallback{ false };
-	std::mutex
-	  recentSamplesMutex; // For all operations related to sound play callbacks
+	// For all operations related to sound play callbacks
+	std::mutex recentSamplesMutex; 
 	unsigned int recentPCMSamplesBufferSize{ 1024 };
 	std::shared_ptr<LuaReference> soundPlayCallback;
 	std::vector<float, MufftAllocator<float>> recentPCMSamples;
