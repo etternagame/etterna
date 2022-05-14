@@ -67,8 +67,12 @@ eventually go away) C4355: 'this' : used in base member initializer list
 
 /* Pull in NT-only definitions. Note that we support Win98 and WinME; you can
  * make NT calls, but be sure to fall back on 9x if they're not supported. */
+#ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0601
+#endif
+#ifndef _WIN32_IE
 #define _WIN32_IE 0x0400
+#endif
 
 // If this isn't defined to 0, VC fails to define things like stat and alloca.
 #define __STDC__ 0

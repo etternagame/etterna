@@ -1731,9 +1731,14 @@ class LunaPlaylist : public Luna<Playlist>
 		return 1;
 	}
 
+	static auto GetNumCharts(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->GetNumCharts());
+		return 1;
+	}
+
 	DEFINE_METHOD(GetAverageRating, GetAverageRating());
 	DEFINE_METHOD(GetName, GetName());
-	DEFINE_METHOD(GetNumCharts, GetNumCharts())
 	LunaPlaylist()
 	{
 		ADD_METHOD(AddChart);

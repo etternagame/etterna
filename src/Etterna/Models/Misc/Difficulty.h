@@ -71,7 +71,7 @@ struct Playlist
 
 	[[nodiscard]] auto CreateNode() const -> XNode*;
 	void LoadFromNode(const XNode* node);
-	auto GetNumCharts() -> int { return chartlist.size(); }
+	auto GetNumCharts() -> size_t { return chartlist.size(); }
 	auto GetKeys() -> std::vector<std::string>;
 	auto GetName() -> std::string { return name; }
 	auto GetAverageRating() -> float;

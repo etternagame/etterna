@@ -793,12 +793,12 @@ ScoreManager::CalcPlayerRating(float& prating,
 		}
 
 		std::vector<float> ssrs = SortTopSSRPtrs(ss, profileID, true);
-		pskillsets[ss] = aggregate_skill(ssrs, 0.1, 1.05, 0.0, 10.24);
+		pskillsets[ss] = aggregate_skill(ssrs, 0.1L, (float)1.05, 0.0, (float)10.24);
 		CLAMP(pskillsets[ss], 0.F, 100.F);
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = aggregate_skill(skillz, 0.1, 1.125, 0.0, 10.24);
+	prating = aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
 	pskillsets[Skill_Overall] = prating;
 }
 
@@ -895,11 +895,11 @@ ScoreManager::GetPlayerRatingOverTime(const std::string& profileID) {
 				  }
 
 				  std::vector<float> ssrs = ssrsInUse[ss];
-				  skillz[ss] = aggregate_skill(ssrs, 0.1, 1.05, 0.0, 10.24);
+				  skillz[ss] = aggregate_skill(ssrs, 0.1L, (float)1.05, 0.0, (float)10.24);
 				  CLAMP(skillz[ss], 0.F, 100.F);
 			  }
 			  skillz[Skill_Overall] =
-				aggregate_skill(skillz, 0.1, 1.125, 0.0, 10.24);
+				aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
 			  ssrsByDate.emplace(date, skillz);
 		  }
 	  };

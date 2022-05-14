@@ -192,7 +192,7 @@ ErrorWndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 
 			// TODO:  Return a different brush if the default is not desired
-			return (BOOL)hbr;
+			return (INT_PTR)hbr;
 		}
 	}
 	return FALSE;
