@@ -83,14 +83,6 @@ ComputerIdentity()
 	string computerName = "";
 	string userName = "";
 #ifdef _WIN32
-
-	int cpuinfo[4] = { 0, 0, 0, 0 };
-	__cpuid(cpuinfo, 0);
-	uint16_t cpuHash = 0;
-	uint16_t* ptr = (uint16_t*)(&cpuinfo[0]);
-	for (uint32_t i = 0; i < 8; i++)
-		cpuHash += ptr[i];
-
 	TCHAR infoBuf[1024];
 	DWORD bufCharCount = 1024;
 	if (GetComputerName(infoBuf, &bufCharCount))
@@ -993,7 +985,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	  curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLPostToURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs, callback, load_from_disk](HTTPRequest& req,
+	auto done = [hs, callback, load_from_disk](HTTPRequest& req,
 													 CURLMsg*) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
@@ -2046,7 +2038,6 @@ DownloadManager::RefreshTop25(Skillset ss)
 	if (!LoggedIn())
 		return;
 	string req = "user/" + DLMAN->sessionUser + "/top/";
-	CURL* curlHandle = initCURLHandle(true);
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
 	auto done = [ss](HTTPRequest& req, CURLMsg*) {

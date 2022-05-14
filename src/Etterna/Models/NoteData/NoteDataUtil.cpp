@@ -127,7 +127,6 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 
 		for (unsigned l = 0; l < aMeasureLines.size(); l++) {
 			const auto* p = aMeasureLines[l].first;
-			const auto* const beginLine = p;
 			const auto* const endLine = aMeasureLines[l].second;
 
 			const auto fPercentIntoMeasure =
@@ -171,7 +170,7 @@ LoadFromSMNoteDataStringWithPlayer(NoteData& out,
 						// This is the end of a hold. Search for the beginning.
 						int iHeadRow;
 						if (!out.IsHoldNoteAtRow(iTrack, iIndex, &iHeadRow)) {
-							int n = intptr_t(endLine) - intptr_t(beginLine);
+							//int n = intptr_t(endLine) - intptr_t(beginLine);
 						} else {
 							out.FindTapNote(iTrack, iHeadRow)
 							  ->second.iDuration = iIndex - iHeadRow;

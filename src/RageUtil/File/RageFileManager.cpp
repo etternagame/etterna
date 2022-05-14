@@ -197,10 +197,10 @@ ExtractDirectory(std::string sPath)
 	return sPath;
 }
 
+#if defined(__unix__) || defined(__APPLE__)
 static std::string
 ReadlinkRecursive(std::string sPath)
 {
-#if defined(__unix__) || defined(__APPLE__)
 	// unices support symbolic links; dereference them
 	std::string dereferenced = sPath;
 	do {
@@ -217,10 +217,10 @@ ReadlinkRecursive(std::string sPath)
 			}
 		}
 	} while (sPath != dereferenced);
-#endif
 
 	return sPath;
 }
+#endif
 
 static std::string
 GetDirOfExecutable(std::string argv0)

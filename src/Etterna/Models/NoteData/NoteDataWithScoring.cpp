@@ -193,7 +193,6 @@ NoteDataWithScoring::GetActualRadarValues(const NoteData& in,
 	// Some of this logic is similar or identical to
 	// NoteDataUtil::CalculateRadarValues because I couldn't figure out a good
 	// way to combine them into one. -Kyz
-	auto pn = pss.m_player_number;
 	garv_state state;
 
 	auto curr_note = in.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW);

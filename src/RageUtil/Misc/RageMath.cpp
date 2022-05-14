@@ -12,7 +12,10 @@
 #include <algorithm>
 
 #ifdef _WIN32
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnew-returns-null"
 #include <d3dx9math.h>
+#pragma clang diagnostic pop
 #endif
 
 void

@@ -53,13 +53,13 @@ struct StepsTagInfo
 	StepsTagInfo(SSCLoader* l, Song* s, const std::string& p, bool fc)
 	  : loader(l)
 	  , song(s)
+	  , steps(nullptr)
+	  , timing(nullptr)
 	  , path(p)
 	  , has_own_timing(false)
 	  , ssc_format(false)
 	  , from_cache(fc)
-	  , steps(nullptr)
 	  , for_load_edit(false)
-	  , timing(nullptr)
 	{
 		params = nullptr;
 	}

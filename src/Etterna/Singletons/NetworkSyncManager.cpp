@@ -524,7 +524,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		n->isSMOnline = true;
 		Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
 	};
-	auto failHandler = [n, this, address, &finished_connecting](
+	auto failHandler = [n, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
 		if (NSMAN == nullptr)
 			return;
@@ -1232,7 +1232,6 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				} break;
 				case ettps_lobbyuserlistupdate: {
 					auto& payload = d["payload"];
-					auto& vec = NSMAN->lobbyuserlist;
 					if (payload.HasMember("on") && payload["on"].IsArray()) {
 						auto& newUsers = payload["on"];
 						for (auto& user : newUsers.GetArray()) {
@@ -2100,7 +2099,6 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	}
 	static int GetMPLeaderboard(T* p, lua_State* L)
 	{
-		auto& lbd = NSMAN->mpleaderboard;
 		NSMAN->PushMPLeaderboard(L);
 		return 1;
 	}

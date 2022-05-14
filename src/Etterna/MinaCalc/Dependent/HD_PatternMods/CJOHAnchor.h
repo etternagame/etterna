@@ -98,7 +98,7 @@ struct CJOHAnchorMod
 		// 11[12]22
 		auto csF = static_cast<float>(max_chain_swaps);
 		// 11[12]11
-		auto cnF = static_cast<float>(max_not_swaps);
+		// auto cnF = static_cast<float>(max_not_swaps);
 		// 111[12]222 = 1[12]2[12]1[12]2
 		auto clF = static_cast<float>(max_total_len);
 		// 1[12]2[12]1[12]2 = small number < 11111111111[12]2222
@@ -112,7 +112,7 @@ struct CJOHAnchorMod
 
 		auto anchor_worth = fastsqrt(anchor_len_worth / tapsF) * len_scaler;
 		auto swap_worth = fastsqrt(csF / tapsF) * swap_scaler;
-		auto not_swap_worth = fastsqrt(cnF / tapsF) * not_swap_scaler;
+		// auto not_swap_worth = fastsqrt(cnF / tapsF) * not_swap_scaler;
 		pmod = std::clamp(base + anchor_worth + swap_worth + not_swap_scaler, min_mod, max_mod);
 	}
 

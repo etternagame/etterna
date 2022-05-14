@@ -867,7 +867,6 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 		}
 
 		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
-		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
 			auto& tn = *iter;
@@ -906,7 +905,6 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 				  iSongRow, fDeltaTime, vHoldNotesToGradeTogether);
 				vHoldNotesToGradeTogether.clear();
 			}
-			iRowOfLastHoldNote = iRow;
 			vHoldNotesToGradeTogether.push_back(trtn);
 		}
 
@@ -2180,8 +2178,8 @@ Player::Step(int col,
 				// TapNoteScore, so that they can logically match up with
 				// the current timing windows. -aj
 				{
-					auto fWindowW1 = GetWindowSeconds(TW_W1);
-					auto fWindowW2 = GetWindowSeconds(TW_W2);
+					// auto fWindowW1 = GetWindowSeconds(TW_W1);
+					// auto fWindowW2 = GetWindowSeconds(TW_W2);
 					auto fWindowW3 = GetWindowSeconds(TW_W3);
 					auto fWindowW4 = GetWindowSeconds(TW_W4);
 					auto fWindowW5 = GetWindowSeconds(TW_W5);
@@ -2325,8 +2323,6 @@ Player::FlashGhostRow(int iRow)
 {
 	const auto lastTNS =
 	  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, iRow).result.tns;
-	const auto bBlind =
-	  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
 	const auto bBright =
 	  ((m_pPlayerStageStats != nullptr) &&
 	   m_pPlayerStageStats->m_iCurCombo >
@@ -3321,9 +3317,6 @@ Player::IncrementComboOrMissCombo(const bool bComboOrMissCombo)
 void
 Player::RenderAllNotesIgnoreScores()
 {
-	auto firstRow = 0;
-	auto lastRow = m_NoteData.GetLastRow() + 1;
-
 	// Go over every single non empty row and their tracks
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(m_NoteData, row)
 	{

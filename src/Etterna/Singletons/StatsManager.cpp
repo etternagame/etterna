@@ -253,14 +253,6 @@ class LunaStatsManager : public Luna<StatsManager>
 		auto top_grade = Grade_Failed;
 		StageStats stats;
 		t->GetFinalEvalStageStats(stats);
-		// If this player failed any stage, then their final grade is an F.
-		auto bPlayerFailedOneStage = false;
-		for (auto& ss : STATSMAN->m_vPlayedStageStats) {
-			if (ss.m_player.m_bFailed) {
-				bPlayerFailedOneStage = true;
-				break;
-			}
-		}
 
 		top_grade = std::min(top_grade, stats.m_player.GetGrade());
 

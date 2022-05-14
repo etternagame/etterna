@@ -326,12 +326,6 @@ static const char* ProfileSlotNames[] = {
 XToString(ProfileSlot);
 LuaXType(ProfileSlot);
 
-static const char* StageAwardNames[] = {
-	"FullComboW3",	 "SingleDigitW3", "OneW3",		 "FullComboW2",
-	"SingleDigitW2", "OneW2",		  "FullComboW1", "80PercentW3",
-	"90PercentW3",	 "100PercentW3",
-};
-
 void
 DisplayBpms::Add(float f)
 {

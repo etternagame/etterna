@@ -562,9 +562,7 @@ HighScoreImpl::WriteInputData() -> bool
 
 		char buf[128];
 		unsigned int num_read = 0;
-		unsigned long total_read = 0;
 		while ((num_read = fread(buf, 1, sizeof(buf), infile)) > 0) {
-			total_read += num_read;
 			gzwrite(outfile, buf, num_read);
 		}
 		fclose(infile);
@@ -692,9 +690,9 @@ HighScore::LoadInputData() -> bool
 
 			auto chartkey = tokens[0];
 			auto scorekey = tokens[1];
-			auto rate = std::stof(tokens[2]);
-			auto songoffset = std::stof(tokens[3]);
-			auto globaloffset = std::stof(tokens[4]);
+			// auto rate = std::stof(tokens[2]);
+			// auto songoffset = std::stof(tokens[3]);
+			// auto globaloffset = std::stof(tokens[4]);
 			// ... for later
 
 			tokens.clear();
@@ -1670,7 +1668,6 @@ Screenshot::LoadFromNode(const XNode* pNode)
 
 	pNode->GetChildValue("FileName", sFileName);
 	pNode->GetChildValue("MD5", sMD5);
-	const auto* pHighScore = pNode->GetChild("HighScore");
 }
 
 auto
@@ -1789,9 +1786,7 @@ HighScore::RescoreToDPJudge(int x) -> float
 	auto good = 0;
 	auto boo = 0;
 	auto miss = 0;
-	auto m2 = 0;
 	for (auto& f : m_Impl->vOffsetVector) {
-		m2 += 2;
 		const auto x = std::abs(f * 1000.F);
 		if (x <= ts * 22.5F) {
 			++marv;

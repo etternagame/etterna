@@ -15,9 +15,11 @@
 using namespace ::std;
 
 // multipliers to each skillset
+/*
 static const std::array<float, NUM_Skillset> basescalars = {
 	0.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F, 1.F
 };
+*/
 
 // global multiplier for baseline standardization
 static constexpr float finalscaler = 2.6f * 1.4f;

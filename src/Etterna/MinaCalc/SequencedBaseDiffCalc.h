@@ -53,8 +53,7 @@ struct nps
 		}
 
 		if (populated_intervals > 0) {
-			const auto empty_intervals =
-			  static_cast<float>(calc.numitv - populated_intervals);
+			// const auto empty_intervals = static_cast<float>(calc.numitv - populated_intervals);
 			avg_notes /= populated_intervals;
 
 			auto failed_intervals = 0;

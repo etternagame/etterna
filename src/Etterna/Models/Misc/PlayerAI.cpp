@@ -1266,6 +1266,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 				  holdIter->first < tapIter->first)) {
 			now = holdIter->first;
 			for (auto& hrr : holdIter->second) {
+				std::ignore = hrr;
 				lifeDelta += LifeMeterBar::MapHNSToDeltaLife(HNS_LetGo);
 			}
 			++holdIter;

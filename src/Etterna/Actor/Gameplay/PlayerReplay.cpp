@@ -642,8 +642,6 @@ PlayerReplay::Step(int col,
 		NOTESKIN->SetLastSeenColor(
 		  NoteTypeToString(GetNoteType(iRowOfOverlappingNoteOrRow)));
 
-		const auto fSecondsFromExact = fabsf(fNoteOffset);
-
 		TapNote* pTN = nullptr;
 		auto iter = m_NoteData.FindTapNote(
 		  col,

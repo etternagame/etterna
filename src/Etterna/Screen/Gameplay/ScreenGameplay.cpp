@@ -778,8 +778,6 @@ ScreenGameplay::UpdateSongPosition()
 		return;
 	}
 
-	const auto rate = GAMESTATE->m_SongOptions.GetSong().m_fMusicRate;
-
 	RageTimer tm = RageZeroTimer;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
 	GAMESTATE->UpdateSongPosition(
@@ -1734,12 +1732,6 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 
 		const auto syncing =
 		  !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
-		auto replaying = false;
-		if (m_vPlayerInfo.GetPlayerState()->m_PlayerController ==
-			PC_REPLAY) // don't duplicate replay saves
-		{
-			replaying = true;
-		}
 
 		if (syncing) {
 			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);

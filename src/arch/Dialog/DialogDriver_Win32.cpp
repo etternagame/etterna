@@ -7,13 +7,13 @@
 #include "Core/Platform/Platform.hpp"
 #include "Core/Misc/AppInfo.hpp"
 
-#include "archutils/win32/AppInstance.h"
-#include "archutils/win32/ErrorStrings.h"
+#include "archutils/Win32/AppInstance.h"
+#include "archutils/Win32/ErrorStrings.h"
 #if !defined(SMPACKAGE)
-#include "archutils/win32/WindowsResources.h"
-#include "archutils/win32/GraphicsWindow.h"
+#include "archutils/Win32/WindowsResources.h"
+#include "archutils/Win32/GraphicsWindow.h"
 #endif
-#include "archutils/win32/DialogUtil.h"
+#include "archutils/Win32/DialogUtil.h"
 
 #if defined(SMPACKAGE)
 int __stdcall AfxMessageBox(LPCTSTR lpszText, UINT nType, UINT nIDHelp);

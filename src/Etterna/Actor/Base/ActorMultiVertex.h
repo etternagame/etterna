@@ -177,7 +177,7 @@ class ActorMultiVertex : public Actor
 		_states = new_states;
 		SetState(0);
 	}
-	void SetState(size_t i);
+	void SetState(int i) override;
 	void SetAllStateDelays(float delay);
 	[[nodiscard]] float GetAnimationLengthSeconds() const override;
 	void SetSecondsIntoAnimation(float seconds) override;

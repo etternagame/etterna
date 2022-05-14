@@ -1472,6 +1472,8 @@ RageDisplay_D3D::SetTextureMode(TextureUnit tu, TextureMode tm)
 			g_pd3dDevice->SetTextureStageState(
 			  tu, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
 			break;
+		default:
+			Locator::getLogger()->warn("RageDisplay_D3D::SetTextureMode called with invalid TextureMode");
 	}
 }
 

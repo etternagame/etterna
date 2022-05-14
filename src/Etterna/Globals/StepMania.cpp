@@ -395,7 +395,6 @@ AdjustForChangedSystemCapabilities()
 	 * Actually, Windows lops off a meg or two; cut off a little lower to treat
 	 * 192-meg systems as high-memory. */
 	const bool HighMemory = (Memory >= 190);
-	const bool LowMemory = (Memory < 100); // 64 and 96-meg systems
 
 	/* Two memory-consuming features that we can disable are texture caching and
 	 * preloaded banners. Texture caching can use a lot of memory; disable it

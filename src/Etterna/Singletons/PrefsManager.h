@@ -116,6 +116,7 @@ class PrefsManager
 
   public:
 	Preference<std::string> m_sTheme;
+	Preference<bool> m_bFullscreenIsBorderlessWindow;
 	Preference<bool> m_bWindowed;
 	Preference<std::string> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
@@ -131,7 +132,6 @@ class PrefsManager
 	Preference<int> m_iRefreshRate;
 	Preference<bool> m_bAllowMultitexture;
 	Preference<float> m_bAllowedLag;
-	Preference<bool> m_bFullscreenIsBorderlessWindow;
 	Preference<bool> m_bShowStats;
 	Preference<bool> m_bShowSkips;
 	Preference<bool> m_bShowMouseCursor;

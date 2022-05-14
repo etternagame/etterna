@@ -70,7 +70,7 @@ class WheelBase : public ActorFrame
 	void RebuildWheelItems(int dist = INT_MAX); // INT_MAX = refresh all
 	// Update the list of songs to match whatever songs are indexed by the song
 	// manager (SONGMAN)
-	virtual void ReloadSongList() {}
+	virtual void ReloadSongList(bool searching, const std::string& findme) {}
 
 	virtual auto GetNumItems() const -> unsigned int
 	{
