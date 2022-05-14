@@ -17,8 +17,18 @@
 #include <map>
 #include <list>
 #include <chrono>
-#include <D3dx9tex.h>
+
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnew-returns-null"
+#pragma clang diagnostic ignored "-Wcomment"
+#endif
+#include <d3dx9tex.h>
 #include <d3d9.h>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 // Static libraries
 // load Windows D3D9 dynamically

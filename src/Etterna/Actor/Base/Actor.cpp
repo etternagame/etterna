@@ -330,8 +330,6 @@ Actor::IsOver(float mx, float my)
 Actor*
 Actor::GetFakeParentOrParent()
 {
-	if (this == nullptr)
-		return nullptr;
 	if (m_FakeParent != nullptr)
 		return m_FakeParent;
 	if (m_pParent != nullptr)
@@ -341,8 +339,6 @@ Actor::GetFakeParentOrParent()
 float
 Actor::GetTrueX()
 {
-	if (this == nullptr)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
@@ -357,8 +353,6 @@ Actor::GetTrueX()
 float
 Actor::GetTrueY()
 {
-	if (this == nullptr)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
@@ -373,8 +367,6 @@ Actor::GetTrueY()
 float
 Actor::GetTrueZ()
 {
-	if (this == nullptr)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZ();
@@ -387,8 +379,6 @@ Actor::GetTrueZ()
 float
 Actor::GetTrueRotationX()
 {
-	if (this == nullptr)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetRotationX();
@@ -398,8 +388,6 @@ Actor::GetTrueRotationX()
 float
 Actor::GetTrueRotationY()
 {
-	if (this == nullptr)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetRotationY();
@@ -409,8 +397,6 @@ Actor::GetTrueRotationY()
 float
 Actor::GetTrueRotationZ()
 {
-	if (this == nullptr)
-		return 0.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetRotationZ();
@@ -420,8 +406,6 @@ Actor::GetTrueRotationZ()
 float
 Actor::GetTrueZoom()
 {
-	if (this == nullptr)
-		return 1.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZoom();
@@ -430,8 +414,6 @@ Actor::GetTrueZoom()
 float
 Actor::GetTrueZoomX()
 {
-	if (this == nullptr)
-		return 1.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZoomX();
@@ -440,8 +422,6 @@ Actor::GetTrueZoomX()
 float
 Actor::GetTrueZoomY()
 {
-	if (this == nullptr)
-		return 1.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZoomY();
@@ -450,8 +430,6 @@ Actor::GetTrueZoomY()
 float
 Actor::GetTrueZoomZ()
 {
-	if (this == nullptr)
-		return 1.f;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetZoomZ();
@@ -460,8 +438,6 @@ Actor::GetTrueZoomZ()
 bool
 Actor::IsVisible()
 {
-	if (this == nullptr)
-		return false;
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetVisible();

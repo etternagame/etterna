@@ -686,7 +686,6 @@ GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 	if (steps_to_match == nullptr) {
 		return;
 	}
-	int num_players = GAMESTATE->GetNumPlayersEnabled();
 	std::string music_to_match = steps_to_match->GetMusicFile();
 	Steps* pn_steps = m_pCurSteps.Get();
 	bool match_failed = pn_steps == nullptr;

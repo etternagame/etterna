@@ -838,7 +838,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 		auto onePercent = pair->first;
-		auto ld = pair->second;
 		auto counter = 0;
 		auto lastUpdate = 0;
 		for (auto it = workload.first; it != workload.second; it++) {
@@ -853,7 +852,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			}
 			auto loaded = 0;
 			SongPointerVector& index_entry = SONGMAN->m_mapSongGroupIndex[sGroupName];
-			const auto& group_base_name = sGroupName;
 			for (auto& sSongDirName : arraySongDirs) {
 				auto hur = make_lower(sSongDirName + "/");
 				if (SONGMAN->m_SongsByDir.count(hur) != 0u) {

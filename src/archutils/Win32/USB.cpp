@@ -9,11 +9,20 @@
 #pragma comment(lib, "hid.lib")
 #endif
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpragma-pack"
+#endif
+
 extern "C" {
 #include "archutils/Win32/ddk/setupapi.h"
 /* Quiet header warning: */
 #include "archutils/Win32/ddk/hidsdi.h"
 }
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 static std::string
 GetUSBDevicePath(int iNum)

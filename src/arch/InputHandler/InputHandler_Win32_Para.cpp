@@ -17,7 +17,7 @@ extern "C" {
 #include "archutils/Win32/ddk/hidsdi.h"
 }
 #if defined(__clang__)
-#pragma clang pop
+#pragma clang diagnostic pop
 #endif
 
 REGISTER_INPUT_HANDLER_CLASS2(Para, Win32_Para);

@@ -174,7 +174,6 @@ PlayerReplay::UpdateHoldsAndRolls(
 		}
 
 		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
-		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
 			auto& tn = *iter;
@@ -207,7 +206,6 @@ PlayerReplay::UpdateHoldsAndRolls(
 				  iSongRow, fDeltaTime, vHoldNotesToGradeTogether);
 				vHoldNotesToGradeTogether.clear();
 			}
-			iRowOfLastHoldNote = iRow;
 			vHoldNotesToGradeTogether.push_back(trtn);
 		}
 
