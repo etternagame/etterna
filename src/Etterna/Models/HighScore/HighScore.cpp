@@ -1,18 +1,18 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "HighScore.h"
 #include "Etterna/Singletons/ProfileManager.h"
-#include "RadarValues.h"
+#include "Etterna/Models/Misc/RadarValues.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/FileTypes/XmlFile.h"
-#include "NoteTypes.h"
+#include "Etterna/Models/Misc/NoteTypes.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "PlayerStageStats.h"
+#include "Etterna/Models/Misc/PlayerStageStats.h"
 
 #include <algorithm>
 #include <cmath>

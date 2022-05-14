@@ -234,7 +234,10 @@ function RateList()
                     break
                 end
             end
-        end
+        end,
+		NotifyOfSelection = function(self, pn, choice)
+			MESSAGEMAN:Broadcast("RateListOptionChanged", {rate = getCurRateValue()})
+		end
     }
     setmetatable(t, t)
     return t

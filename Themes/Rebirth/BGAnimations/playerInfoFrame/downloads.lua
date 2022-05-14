@@ -58,6 +58,31 @@ local hiddenframeX = SCREEN_WIDTH
 local animationSeconds = 0.1
 local focused = false
 
+local translations = {
+    Title = THEME:GetString("PackDownloader", "Title"),
+    Back = THEME:GetString("PackDownloader", "Back"),
+    BundleSelect = THEME:GetString("PackDownloader", "BundleSelect"),
+    CancelAll = THEME:GetString("PackDownloader", "CancelAll"),
+    Expanded = THEME:GetString("PackDownloader", "Expanded"),
+    Novice = THEME:GetString("PackDownloader", "Novice"),
+    Beginner = THEME:GetString("PackDownloader", "Beginner"),
+    Intermediate = THEME:GetString("PackDownloader", "Intermediate"),
+    Advanced = THEME:GetString("PackDownloader", "Advanced"),
+    Expert = THEME:GetString("PackDownloader", "Expert"),
+    Megabytes = THEME:GetString("PackDownloader", "Megabytes"),
+    Cancel = THEME:GetString("PackDownloader", "Cancel"),
+    Queued = THEME:GetString("PackDownloader", "Queued"),
+    HeaderName = THEME:GetString("PackDownloader", "HeaderName"),
+    HeaderAverage = THEME:GetString("PackDownloader", "HeaderAverage"),
+    HeaderSize = THEME:GetString("PackDownloader", "HeaderSize"),
+    DownloadBundle = THEME:GetString("PackDownloader", "DownloadBundle"),
+    DownloadBundleMirrored = THEME:GetString("PackDownloader", "DownloadBundleMirrored"),
+    DownloadPack = THEME:GetString("PackDownloader", "DownloadPack"),
+    DownloadPackMirrored = THEME:GetString("PackDownloader", "DownloadPackMirrored"),
+    AlreadyInstalled = THEME:GetString("PackDownloader", "AlreadyInstalled"),
+    CurrentlyDownloading = THEME:GetString("PackDownloader", "CurrentlyDownloading"),
+}
+
 local t = Def.ActorFrame {
     Name = "DownloadsFile",
     InitCommand = function(self)
@@ -161,7 +186,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
         self:zoom(titleTextSize)
         self:maxwidth(actuals.Width / titleTextSize - textZoomFudge)
-        self:settext("Pack Downloader")
+        self:settext(translations["Title"])
         registerActorToColorConfigElement(self, "main", "PrimaryText")
     end
 }
@@ -237,7 +262,7 @@ local function downloadsList()
             {   -- Enter or Exit from Bundle Select
                 Name = "bundleselect",
                 Type = "Tap",
-                Display = {"Bundle Select", "Back"},
+                Display = {translations["BundleSelect"], translations["Back"]},
                 IndexGetter = function()
                     if inBundles then
                         return 2
@@ -254,7 +279,7 @@ local function downloadsList()
             {   -- Cancel all current downloads
                 Name = "cancelall",
                 Type = "Tap",
-                Display = {"Cancel All Downloads"},
+                Display = {translations["CancelAll"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -442,8 +467,8 @@ local function downloadsList()
                     if pack ~= nil then
                         self:settext(pack:GetName())
                     elseif bundle ~= nil then
-                        local expanded = i % 2 == 0 and " Expanded" or ""
-                        self:settext(bundleTypes[index] .. expanded)
+                        local expanded = i % 2 == 0 and " "..translations["Expanded"] or ""
+                        self:settext(translations[bundleTypes[index]] .. expanded)
                     end
                     self:alphaDeterminingFunction()
                 end,
@@ -494,11 +519,11 @@ local function downloadsList()
                 SetPackCommand = function(self)
                     if pack ~= nil then
                         local sz = pack:GetSize() / 1024 / 1024
-                        self:settextf("%iMB", sz)
+                        self:settextf("%i%s", sz, translations["Megabytes"])
                         self:diffuse(colorByFileSize(sz))
                     elseif bundle ~= nil then
                         local sz = bundle.TotalSize
-                        self:settextf("%iMB", sz)
+                        self:settextf("%i%s", sz, translations["Megabytes"])
                         self:diffuse(colorByFileSize(sz))
                     end
                 end,
@@ -521,7 +546,7 @@ local function downloadsList()
                     elseif bundle ~= nil then
                         self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                         self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
-                        if isOver(self) then toolTipOn("Download Bundle") end
+                        if isOver(self) then toolTipOn(translations["DownloadBundle"]) end
                     else
                         self:diffusealpha(0)
                     end
@@ -533,14 +558,14 @@ local function downloadsList()
                             -- the pack is already installed
                             self:diffuse(COLORS:getDownloaderColor("InstalledIcon"))
                             self:diffusealpha(1)
-                            if isOver(self) then toolTipOn("Already Installed") end
+                            if isOver(self) then toolTipOn(translations["AlreadyInstalled"]) end
                         elseif downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil then
                             -- the pack is downloading or queued
                             self:diffusealpha(0)
                         else
                             self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                             self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
-                            if isOver(self) then toolTipOn("Download Pack") end
+                            if isOver(self) then toolTipOn(translations["DownloadPack"]) end
                         end
                     end
                 end,
@@ -553,7 +578,6 @@ local function downloadsList()
                         end
                         pack:DownloadAndInstall(false)
                     elseif bundle ~= nil then
-                        local expanded = i % 2 == 0 and " Expanded" or ""
                         local name = bundleTypes[index]:lower()..(i%2==0 and "-expanded" or "")
                         DLMAN:DownloadCoreBundle(name)
                         inBundles = false
@@ -566,17 +590,17 @@ local function downloadsList()
                     if pack ~= nil then
                         local name = pack:GetName()
                         if downloadingPacksByName[name] ~= nil then
-                            toolTipOn("Currently Downloading")
+                            toolTipOn(translations["CurrentlyDownloading"])
                         elseif queuedPacksByName[name] ~= nil then
-                            toolTipOn("Queued")
+                            toolTipOn(translations["Queued"])
                         elseif SONGMAN:DoesSongGroupExist(name) then
-                            toolTipOn("Already Installed")
+                            toolTipOn(translations["AlreadyInstalled"])
                         else
-                            toolTipOn("Download Pack")
+                            toolTipOn(translations["DownloadPack"])
                             self:diffusealpha(buttonHoverAlpha)
                         end
                     elseif bundle ~= nil then
-                        toolTipOn("Download Bundle")
+                        toolTipOn(translations["DownloadBundle"])
                         self:diffusealpha(buttonHoverAlpha)
                     end
                 end,
@@ -604,7 +628,7 @@ local function downloadsList()
                     elseif bundle ~= nil then
                         self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                         self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
-                        if isOver(self) then toolTipOn("Download Bundle (Mirror)") end
+                        if isOver(self) then toolTipOn(translations["DownloadBundleMirrored"]) end
                     else
                         self:diffusealpha(0)
                     end
@@ -622,14 +646,14 @@ local function downloadsList()
                             -- the pack is already installed
                             self:diffuse(COLORS:getDownloaderColor("InstalledIcon"))
                             self:diffusealpha(1)
-                            if isOver(self) then toolTipOn("Already Installed") end
+                            if isOver(self) then toolTipOn(translations["AlreadyInstalled"]) end
                         elseif downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil then
                             -- the pack is downloading or queued
                             self:diffusealpha(0)
                         else
                             self:diffuse(COLORS:getDownloaderColor("NotInstalledIcon"))
                             self:diffusealpha(isOver(self) and buttonHoverAlpha or 1)
-                            if isOver(self) then toolTipOn("Download Pack (Mirror)") end
+                            if isOver(self) then toolTipOn(translations["DownloadPackMirrored"]) end
                         end
                     end
                 end,
@@ -655,17 +679,17 @@ local function downloadsList()
                     if pack ~= nil then
                         local name = pack:GetName()
                         if downloadingPacksByName[name] ~= nil then
-                            toolTipOn("Currently Downloading")
+                            toolTipOn(translations["CurrentlyDownloading"])
                         elseif queuedPacksByName[name] ~= nil then
-                            toolTipOn("Queued")
+                            toolTipOn(translations["Queued"])
                         elseif SONGMAN:DoesSongGroupExist(name) then
-                            toolTipOn("Already Installed")
+                            toolTipOn(translations["AlreadyInstalled"])
                         else
-                            toolTipOn("Download Pack (Mirror)")
+                            toolTipOn(translations["DownloadPackMirrored"])
                             self:diffusealpha(buttonHoverAlpha)
                         end
                     elseif bundle ~= nil then
-                        toolTipOn("Download Bundle (Mirror)")
+                        toolTipOn(translations["DownloadBundleMirrored"])
                         self:diffusealpha(buttonHoverAlpha)
                     end
                 end,
@@ -722,13 +746,13 @@ local function downloadsList()
                             -- the pack is downloading
                             self:diffusealpha(isOver(self:GetChild("BG")) and buttonHoverAlpha or 1)
                             if isOver(self) then TOOLTIP:Hide() end
-                            self:GetChild("Text"):settext("Cancel")
+                            self:GetChild("Text"):settext(translations["Cancel"])
                             self:z(5)
                         elseif queuedPacksByName[name] ~= nil then
                             -- the pack is queued
                             self:diffusealpha(isOver(self:GetChild("BG")) and buttonHoverAlpha or 1)
                             if isOver(self) then TOOLTIP:Hide() end
-                            self:GetChild("Text"):settext("Queued")
+                            self:GetChild("Text"):settext(translations["Queued"])
                             self:z(5)
                         else
                             self:diffusealpha(0)
@@ -941,7 +965,7 @@ local function downloadsList()
                 bg:halign(0):valign(0)
                 txt:zoom(nameHeaderSize)
                 txt:maxwidth(width / nameHeaderSize - textZoomFudge)
-                txt:settext("Name")
+                txt:settext(translations["HeaderName"])
                 bg:zoomto(math.max(width/2, txt:GetZoomedWidth()), txt:GetZoomedHeight())
                 registerActorToColorConfigElement(txt, "main", "PrimaryText")
             end,
@@ -972,7 +996,7 @@ local function downloadsList()
                 bg:valign(0)
                 txt:zoom(msdHeaderSize)
                 txt:maxwidth(width / msdHeaderSize - textZoomFudge)
-                txt:settext("Avg")
+                txt:settext(translations["HeaderAverage"])
                 bg:zoomto(width, txt:GetZoomedHeight())
                 registerActorToColorConfigElement(txt, "main", "PrimaryText")
             end,
@@ -1003,7 +1027,7 @@ local function downloadsList()
                 bg:valign(0)
                 txt:zoom(sizeHeaderSize)
                 txt:maxwidth(width / sizeHeaderSize - textZoomFudge)
-                txt:settext("Size")
+                txt:settext(translations["HeaderSize"])
                 bg:zoomto(width, txt:GetZoomedHeight())
                 registerActorToColorConfigElement(txt, "main", "PrimaryText")
             end,

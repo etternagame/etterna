@@ -11,6 +11,17 @@ if extraFeatures == nil then extraFeatures = false end
 -- all elements are placed relative to default valign - 0 halign
 -- this means relatively to center vertically and relative to the left end horizontally
 
+local translations = {
+    StandardDeviation = THEME:GetString("OffsetPlot", "StandardDeviation"),
+    Mean = THEME:GetString("OffsetPlot", "Mean"),
+    Time = THEME:GetString("OffsetPlot", "Time"),
+    Milliseconds = THEME:GetString("OffsetPlot", "Milliseconds"),
+    Late = THEME:GetString("OffsetPlot", "Late"),
+    Early = THEME:GetString("OffsetPlot", "Early"),
+    Instructions = THEME:GetString("OffsetPlot", "Instructions"),
+    CurrentColumnHighlights = THEME:GetString("OffsetPlot", "CurrentColumnHighlights"),
+}
+
 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
 local timingScale = ms.JudgeScalers[judgeSetting]
 
@@ -223,17 +234,17 @@ local t = Def.ActorFrame {
 
                 -- excessively long string format for translation support
                 local txt = string.format(
-                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2fms\n%s: %0.2fms\n%s: %s",
+                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2f%s\n%s: %0.2f%s\n%s: %s",
                     wifescore,
-                    "Marvelous", marvCount,
-                    "Perfect", perfCount,
-                    "Great", greatCount,
-                    "Good", goodCount,
-                    "Bad", badCount,
-                    "Miss", missCount,
-                    "Std. Dev", sd,
-                    "Mean", mean,
-                    "Time", time
+                    getJudgeStrings("TapNoteScore_W1"), marvCount,
+                    getJudgeStrings("TapNoteScore_W2"), perfCount,
+                    getJudgeStrings("TapNoteScore_W3"), greatCount,
+                    getJudgeStrings("TapNoteScore_W4"), goodCount,
+                    getJudgeStrings("TapNoteScore_W5"), badCount,
+                    getJudgeStrings("TapNoteScore_Miss"), missCount,
+                    translations["StandardDeviation"], sd, translations["Milliseconds"],
+                    translations["Mean"], mean, translations["Milliseconds"],
+                    translations["Time"], time
                 )
 
                 local mp = self:GetChild("MousePosition")
@@ -383,7 +394,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:smooth(resizeAnimationSeconds)
         local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
         self:xy(textPadding, textPadding)
-        self:settextf("Late (+%dms)", bound)
+        self:settextf("%s (+%d%s)", translations["Late"], bound, translations["Milliseconds"])
     end
 }
 
@@ -401,7 +412,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:smooth(resizeAnimationSeconds)
         local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
         self:xy(textPadding, sizing.Height - textPadding)
-        self:settextf("Early (-%dms)", bound)
+        self:settextf("%s (-%d%s)", translations["Early"], bound, translations["Milliseconds"])
     end
 }
 
@@ -432,7 +443,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
             end
             cols[#cols] = nil
             cols = table.concat(cols)
-            self:settextf("Up/Down for column highlights (Now: %s)", cols)
+            self:settextf("%s (%s: %s)", translations["Instructions"], translations["CurrentColumnHighlights"], cols)
         end
     end
 }

@@ -8,11 +8,17 @@ local t = Def.ActorFrame {
     Name = "GameplayElementsController",
 
     BeginCommand = function(self)
-        updateDiscordStatusForGameplay()
+        updateDiscordStatus(false)
         updateNowPlaying()
 
         -- queue so it doesnt reach the children
         self:queuecommand("SetUpMovableValues")
+    end,
+    EndCommand = function(self)
+        -- exiting the screen saves customization changes
+        playerConfig:get_data().CurrentWidth = SCREEN_WIDTH
+        playerConfig:get_data().CurrentHeight = SCREEN_HEIGHT
+        playerConfig:save()
     end,
     SetUpMovableValuesMessageCommand = function(self)
         local screen = SCREENMAN:GetTopScreen()

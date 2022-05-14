@@ -1,10 +1,10 @@
 #ifndef HIGH_SCORE_H
 #define HIGH_SCORE_H
 
-#include "DateTime.h"
-#include "GameConstantsAndTypes.h"
-#include "Grade.h"
-#include "NoteTypes.h"
+#include "Etterna/Models/Misc/DateTime.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
+#include "Etterna/Models/Misc/Grade.h"
+#include "Etterna/Models/Misc/NoteTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 class XNode;
@@ -68,7 +68,7 @@ struct HighScore
 	  -> std::vector<TapNoteType>;
 	[[nodiscard]] auto GetCopyOfHoldReplayDataVector() const
 	  -> std::vector<HoldReplayResult>;
-	[[nodisard]] auto GetCopyOfMineReplayDataVector() const
+	[[nodiscard]] auto GetCopyOfMineReplayDataVector() const
 	  -> std::vector<MineReplayResult>;
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector() const
 	  -> std::vector<float>;

@@ -15,9 +15,9 @@ local judgmentsChosen = {
     "TapNoteScore_Miss", -- miss
 }
 
-local judgmentTextZoom = 0.6 * textSizeMultiplier
-local judgmentCountZoom = 0.6 * textSizeMultiplier
-local judgmentPercentZoom = 0.3 * textSizeMultiplier
+local judgmentTextZoom = 0.63 * textSizeMultiplier
+local judgmentCountZoom = 0.63 * textSizeMultiplier
+local judgmentPercentZoom = 0.325 * textSizeMultiplier
 local judgmentCountPercentBump = 1 -- a bump in position added to the Count and Percent for spacing
 
 local textzoomFudge = 5
@@ -98,7 +98,7 @@ local function makeJudgment(i)
                 -- allow 3/4 of the judgment area between the number alignment and the name alignment
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 * 3 / judgmentTextZoom)
                 self:settext(getJudgeStrings(ms.JudgeCount[i]))
-                registerActorToColorConfigElement(self, "main", "PrimaryText")
+                registerActorToColorConfigElement(self, "judgment", "TextOverBars")
             end
         },
         Def.RollingNumbers {
@@ -113,7 +113,7 @@ local function makeJudgment(i)
                 -- allow 1/4 of the judgment area between the number alignment and the name alignment
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 / judgmentTextZoom)
                 self:targetnumber(0)
-                registerActorToColorConfigElement(self, "main", "PrimaryText")
+                registerActorToColorConfigElement(self, "judgment", "TextOverBars")
             end,
             SetCommand = function(self, params)
                 if params.score == nil then
@@ -134,7 +134,7 @@ local function makeJudgment(i)
                 self:maxwidth((sizing.JudgmentCountRightGap - judgmentCountPercentBump) / judgmentPercentZoom - textzoomFudge)
                 self:strokecolor(textEmbossColor)
                 self:targetnumber(0)
-                registerActorToColorConfigElement(self, "main", "PrimaryText")
+                registerActorToColorConfigElement(self, "judgment", "TextOverBars")
             end,
             SetCommand = function(self, params)
                 if params.score == nil then

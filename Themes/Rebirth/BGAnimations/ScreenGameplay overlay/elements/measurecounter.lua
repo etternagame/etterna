@@ -142,11 +142,14 @@ local t = Def.ActorFrame {
         Name = "Background",
         InitCommand = function(self)
             self:diffusealpha(0.6)
-            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryBackground")
         end,
     },
     LoadFont("Common Normal") .. {
         Name = "Text",
+        InitCommand = function(self)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
+        end,
     }
 }
 

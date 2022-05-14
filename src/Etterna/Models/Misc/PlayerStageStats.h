@@ -2,7 +2,7 @@
 #define PlayerStageStats_H
 
 #include "Grade.h"
-#include "HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "PlayerNumber.h"
 #include "RadarValues.h"

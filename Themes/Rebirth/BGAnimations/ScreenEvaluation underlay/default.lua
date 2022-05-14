@@ -1,3 +1,7 @@
+-- reset context manager as early as possible in the evaluation init process
+-- this should be a safe place to do it, between all context manager registrations (if they exist)
+CONTEXTMAN:Reset()
+
 local t = Def.ActorFrame {
     Name = "UnderlayFile",
     OnCommand = function(self)

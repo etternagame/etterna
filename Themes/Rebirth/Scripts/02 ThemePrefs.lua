@@ -1010,7 +1010,7 @@ function MeasureLines()
         ExportOnChange = true,
         Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
         LoadSelections = function(self, list, pn)
-            local pref = themeConfig:get_data().global.MeasureLines
+            local pref = playerConfig:get_data().MeasureLines
             if pref then
                 list[2] = true
             else
@@ -1024,10 +1024,9 @@ function MeasureLines()
             else
                 value = true
             end
-            themeConfig:get_data().global.MeasureLines = value
-            themeConfig:set_dirty()
-            themeConfig:save()
-            THEME:ReloadMetrics()
+            playerConfig:get_data().MeasureLines = value
+            playerConfig:set_dirty()
+            playerConfig:save()
         end
     }
     setmetatable(t, t)

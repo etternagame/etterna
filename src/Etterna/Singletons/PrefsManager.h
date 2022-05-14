@@ -154,6 +154,7 @@ class PrefsManager
 	Preference<float> m_fBGBrightness;
 
 	Preference<bool> m_bDelayedBack;
+	Preference<bool> m_AllowStartToGiveUp;
 	Preference<bool> m_AllowHoldForOptions;
 	Preference<bool> m_bShowInstructions;
 	Preference<bool> m_bShowNativeLanguage;

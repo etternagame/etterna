@@ -45,7 +45,7 @@ return Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:xy(bgMargin/2,-bgMargin/2)
-            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryBackground")
             self:diffusealpha(bgalpha)
         end
     },
@@ -54,7 +54,7 @@ return Def.ActorFrame {
         InitCommand = function(self)
             self:halign(1):valign(0)
             self:zoom(wifepercentTextSize)
-            registerActorToColorConfigElement(self, "main", "PrimaryText")
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
             self:diffusealpha(1)
         end,
     }

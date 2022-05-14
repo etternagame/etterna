@@ -81,6 +81,17 @@ do
     end
 end
 
+local translations = {
+    PlayAsCourse = THEME:GetString("ScreenSelectMusic Playlists", "PlayAsCourse"),
+    DeletePlaylist = THEME:GetString("ScreenSelectMusic Playlists", "DeletePlaylist"),
+    DeleteChart = THEME:GetString("ScreenSelectMusic Playlists", "DeleteChart"),
+    NumberOfCharts = THEME:GetString("ScreenSelectMusic Playlists", "NumberOfCharts"),
+    AverageMSD = THEME:GetString("ScreenSelectMusic Playlists", "AverageMSD"),
+    NewPlaylist = THEME:GetString("ScreenSelectMusic Playlists", "NewPlaylist"),
+    AddCurrentChart = THEME:GetString("ScreenSelectMusic Playlists", "AddCurrentChart"),
+    Back = THEME:GetString("ScreenSelectMusic Playlists", "Back"),
+}
+
 -- playlist list sizing
 local itemLine1TextSize = 0.85
 local itemLine2TextSize = 0.75
@@ -259,7 +270,7 @@ local function playlistList()
                     else
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("Play As Course")
+                            TOOLTIP:SetText(translations["PlayAsCourse"])
                             TOOLTIP:Show()
                         else
                             self:diffusealpha(1)
@@ -274,7 +285,7 @@ local function playlistList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
-                    TOOLTIP:SetText("Play As Course")
+                    TOOLTIP:SetText(translations["PlayAsCourse"])
                     TOOLTIP:Show()
                     self:diffusealpha(buttonHoverAlpha)
                 end,
@@ -303,7 +314,7 @@ local function playlistList()
                     else
                         if isOver(self) then
                             self:diffusealpha(buttonHoverAlpha)
-                            TOOLTIP:SetText("Delete Playlist\n(Triggers a Save!)")
+                            TOOLTIP:SetText(translations["DeletePlaylist"])
                             TOOLTIP:Show()
                         else
                             self:diffusealpha(1)
@@ -326,7 +337,7 @@ local function playlistList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
-                    TOOLTIP:SetText("Delete Playlist\n(Triggers a Save!)")
+                    TOOLTIP:SetText(translations["DeletePlaylist"])
                     TOOLTIP:Show()
                     self:diffusealpha(buttonHoverAlpha)
                 end,
@@ -348,7 +359,7 @@ local function playlistList()
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then return end
-                    self:settextf("Number of charts: %d", playlist:GetNumCharts())
+                    self:settextf("%s: %d", translations["NumberOfCharts"], playlist:GetNumCharts())
                 end
             },
             LoadFont("Common Normal") .. {
@@ -363,7 +374,7 @@ local function playlistList()
                 end,
                 UpdateTextCommand = function(self)
                     if playlist == nil then return end
-                    self:settextf("(Average MSD %5.2f)", playlist:GetAverageRating())
+                    self:settextf("(%s %5.2f)", translations["AverageMSD"], playlist:GetAverageRating())
                 end
             }
         }
@@ -620,7 +631,7 @@ local function playlistList()
                         else
                             if isOver(self) then
                                 self:diffusealpha(buttonHoverAlpha)
-                                TOOLTIP:SetText("Delete Chart\n(Triggers a Save!)")
+                                TOOLTIP:SetText(translations["DeleteChart"])
                                 TOOLTIP:Show()
                             else
                                 self:diffusealpha(1)
@@ -638,7 +649,7 @@ local function playlistList()
                     end,
                     MouseOverCommand = function(self)
                         if self:IsInvisible() then return end
-                        TOOLTIP:SetText("Delete Chart\n(Triggers a Save!)")
+                        TOOLTIP:SetText(translations["DeleteChart"])
                         TOOLTIP:Show()
                         self:diffusealpha(buttonHoverAlpha)
                     end,
@@ -777,7 +788,7 @@ local function playlistList()
             {   -- Make a new playlist or add the current chart to the opened playlist
                 Name = "newentry",
                 Type = "Tap",
-                Display = {"New Playlist", "Add Current Chart"},
+                Display = {translations["NewPlaylist"], translations["AddCurrentChart"]},
                 IndexGetter = function()
                     if inPlaylistDetails then
                         return 2
@@ -822,7 +833,7 @@ local function playlistList()
             {   -- Exit the page that lets you see inside a playlist
                 Name = "back",
                 Type = "Tap",
-                Display = {"Back"},
+                Display = {translations["Back"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return inPlaylistDetails end,
                 TapFunction = function()

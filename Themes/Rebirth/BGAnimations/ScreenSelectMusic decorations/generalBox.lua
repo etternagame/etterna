@@ -32,12 +32,12 @@ local actuals = {
 
 -- the page names in the order they go
 local choiceNames = {
-    "General",
-    "Scores",
-    "Profile",
-    "Goals",
-    "Playlists",
-    "Tags",
+    THEME:GetString("ScreenSelectMusic Tabs", "General"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Scores"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Profile"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Goals"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Playlists"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Tags"),
 }
 SCUFF.generaltabcount = #choiceNames
 SCUFF.generaltab = 1 -- reset generaltab page

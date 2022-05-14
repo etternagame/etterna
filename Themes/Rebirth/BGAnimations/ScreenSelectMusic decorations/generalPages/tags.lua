@@ -68,6 +68,20 @@ do
     end
 end
 
+local translations = {
+    AssignTag = THEME:GetString("ScreenSelectMusic Tags", "AssignTag"),
+    RequireTag = THEME:GetString("ScreenSelectMusic Tags", "RequireTag"),
+    HideTag = THEME:GetString("ScreenSelectMusic Tags", "HideTag"),
+    ModeALL = THEME:GetString("ScreenSelectMusic Tags", "ModeALL"),
+    ModeANY = THEME:GetString("ScreenSelectMusic Tags", "ModeANY"),
+    DeleteTag = THEME:GetString("ScreenSelectMusic Tags", "DeleteTag"),
+    TagDeleteInProgress = THEME:GetString("ScreenSelectMusic Tags", "TagDeleteInProgress"),
+    NewTag = THEME:GetString("ScreenSelectMusic Tags", "NewTag"),
+    NewTagQuestion = THEME:GetString("ScreenSelectMusic Tags", "NewTagQuestion"),
+    ApplyFilter = THEME:GetString("ScreenSelectMusic Tags", "ApplyFilter"),
+    ResetFilter = THEME:GetString("ScreenSelectMusic Tags", "ResetFilter"),
+}
+
 local tagTextSize = 1.2
 local pageTextSize = 0.7
 
@@ -271,7 +285,7 @@ local function tagList()
             {   -- Button to assign tags to charts
                 Name = "assign",
                 Type = "Exclusive",
-                Display = {"Assign"},
+                Display = {translations["AssignTag"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -281,7 +295,7 @@ local function tagList()
             {   -- Button to filter charts by tags (Require charts have these tags)
                 Name = "filter",
                 Type = "Exclusive",
-                Display = {"Require Tag"},
+                Display = {translations["RequireTag"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -291,7 +305,7 @@ local function tagList()
             {   -- Button to filter charts by tags (Hide charts with these tags)
                 Name = "hide",
                 Type = "Exclusive",
-                Display = {"Hide Tag"},
+                Display = {translations["HideTag"]},
                 IndexGetter = function() return 1 end,
                 Condition = function() return true end,
                 TapFunction = function()
@@ -301,7 +315,7 @@ local function tagList()
             {   -- Button to change filter mode AND/OR
                 Name = "filtermode",
                 Type = "Toggle",
-                Display = {"Mode: AND", "Mode: OR"},
+                Display = {translations["ModeALL"], translations["ModeANY"]},
                 IndexGetter = function()
                     if tagListMode == "Require" then
                         return WHEELDATA:GetRequiredTagMode() and 1 or 2
@@ -325,7 +339,7 @@ local function tagList()
             {   -- Button to delete tags
                 Name = "delete",
                 Type = "Exclusive",
-                Display = {"Delete", "Deleting Tag"},
+                Display = {translations["DeleteTag"], translations["TagDeleteInProgress"]},
                 IndexGetter = function()
                     if tagListMode == "Delete" then
                         return 2
@@ -345,7 +359,7 @@ local function tagList()
             {   -- Button to create tags
                 Name = "new",
                 Type = "Tap",
-                Display = {"New"},
+                Display = {translations["NewTag"]},
                 Condition = function() return true end,
                 IndexGetter = function() return 1 end,
                 TapFunction = function()
@@ -363,7 +377,7 @@ local function tagList()
                     off()
                     -- input redirects are controlled here because we want to be careful not to break any prior redirects
                     askForInputStringWithFunction(
-                        "Enter New Tag Name",
+                        translations["NewTagQuestion"],
                         128,
                         false,
                         function(answer)
@@ -384,7 +398,7 @@ local function tagList()
             {   -- Button to apply tag filter changes to music wheel
                 Name = "apply",
                 Type = "Tap",
-                Display = {"Apply"},
+                Display = {translations["ApplyFilter"]},
                 Condition = function() return true end,
                 IndexGetter = function() return 1 end,
                 TapFunction = function()
@@ -401,7 +415,7 @@ local function tagList()
             {   -- Button to reset tag filters
             Name = "reset",
             Type = "Tap",
-            Display = {"Reset"},
+            Display = {translations["ResetFilter"]},
             Condition = function() return true end,
             IndexGetter = function() return 1 end,
             TapFunction = function()

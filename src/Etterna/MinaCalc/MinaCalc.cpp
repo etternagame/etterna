@@ -14,23 +14,20 @@ using std::max;
 using std::min;
 using std::pow;
 
-static const std::array<std::pair<unsigned, std::string_view>, 16>
-  note_mapping = { { { 0U, "----" },
-					 { 1U, "x---" },
-					 { 2U, "-x--" },
-					 { 3U, "xx--" },
-					 { 4U, "--x-" },
-					 { 5U, "x-x-" },
-					 { 6U, "-xx-" },
-					 { 7U, "xxx-" },
-					 { 8U, "---x" },
-					 { 9U, "x--x" },
-					 { 10U, "-x-x" },
-					 { 11U, "xx-x" },
-					 { 12U, "--xx" },
-					 { 13U, "x-xx" },
-					 { 14U, "-xxx" },
-					 { 15U, "xxxx" } } };
+static std::string
+make_note_mapping(unsigned num_cols, unsigned x)
+{
+	// this prints a binary number backwards
+	std::ostringstream ss;
+	for (unsigned i = 0; i < num_cols; i++) {
+		if (x & 1)
+			ss << "x"; // 1
+		else
+			ss << "-"; // 0
+		x >>= 1;
+	}
+	return ss.str();
+}
 
 static auto
 TotalMaxPoints(const Calc& calc) -> float
@@ -905,7 +902,7 @@ make_debug_strings(const Calc& calc, std::vector<std::string>& debugstrings)
 		for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 			const auto& ri = calc.adj_ni.at(itv).at(row);
 
-			itvstring.append(note_mapping.at(ri.row_notes).second);
+			itvstring.append(make_note_mapping(4, ri.row_notes));
 			itvstring.append("\n");
 		}
 

@@ -10,6 +10,11 @@ local INFORMATIONBOXHEIGHT = 50 / 1080 * SCREEN_HEIGHT
 local exitwidth = 70 / 1920 * SCREEN_WIDTH
 local exitheight = 50 / 1080 * SCREEN_HEIGHT
 
+local translations = {
+    Information = THEME:GetString("ScreenTextEntry", "Information"),
+    Exit = THEME:GetString("ScreenTextEntry", "Exit"),
+}
+
 local dimAlpha = 0.6
 local boxAlpha = 0.5
 local hoverAlpha = 0.6
@@ -108,7 +113,7 @@ return Def.ActorFrame {
                 self:xy(-boxWidth/2 + sideMargin, -boxHeight/2 + INFORMATIONupperGap)
                 self:zoom(INFORMATIONtextsize)
                 self:maxwidth(boxWidth / INFORMATIONtextsize)
-                self:settext("Information")
+                self:settext(translations["Information"])
             end
         },
         LoadFont("Common Normal") .. {
@@ -117,7 +122,7 @@ return Def.ActorFrame {
                 self:zoom(exittextsize)
                 self:maxwidth(60 / 1920 * SCREEN_WIDTH / exittextsize)
                 self:xy(boxWidth/2 - sideMargin - exitwidth/2, boxHeight/2 - bottomMargin - exitheight/1.7)
-                self:settext("Exit")
+                self:settext(translations["Exit"])
             end
         }
     }

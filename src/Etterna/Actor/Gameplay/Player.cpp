@@ -94,12 +94,8 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 }
 
 static Preference<float> m_fTimingWindowScale("TimingWindowScale", 1.0F);
-static Preference<float> m_fTimingWindowAdd("TimingWindowAdd", 0);
 static Preference1D<float> m_fTimingWindowSeconds(TimingWindowSecondsInit,
 												  NUM_TimingWindow);
-static Preference<float> m_fTimingWindowJump("TimingWindowJump", 0.25);
-static Preference<float> m_fMaxInputLatencySeconds("MaxInputLatencySeconds",
-												   0.0);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
 
 // moved out of being members of player.h
@@ -202,7 +198,6 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= m_fTimingWindowScale;
-	fSecs += m_fTimingWindowAdd;
 	return fSecs;
 }
 
@@ -215,7 +210,6 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= timingScale;
-	fSecs += m_fTimingWindowAdd;
 	return fSecs;
 }
 
@@ -2903,14 +2897,22 @@ Player::HandleHoldScore(const TapNote& tn) const
 auto
 Player::GetMaxStepDistanceSeconds() -> float
 {
+	// The former behavior of this did not follow capped 180ms window logic.
+	// The result is that on higher judges, the late window was too small.
+	// Setting this hard to .18 x rate brings it back into line.
+	// (On that note, this should only be used in the context of music
+	// timing, because at a 3x rate this would expand by 3x correctly)
+	float fMax = .18F;
+	/*
 	float fMax = 0;
 	fMax = max(fMax, GetWindowSeconds(TW_W5));
 	fMax = max(fMax, GetWindowSeconds(TW_W4));
 	fMax = max(fMax, GetWindowSeconds(TW_W3));
 	fMax = max(fMax, GetWindowSeconds(TW_W2));
 	fMax = max(fMax, GetWindowSeconds(TW_W1));
+	*/
 	const auto f = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * fMax;
-	return f + m_fMaxInputLatencySeconds;
+	return f;
 }
 
 void

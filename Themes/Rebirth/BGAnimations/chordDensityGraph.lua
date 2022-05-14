@@ -13,6 +13,12 @@ if sizing == nil then sizing = {} end
 local stepsinuse = nil
 local lowDensityColor = COLORS:getColor("chartPreview", "GraphLowestDensityBar")
 local highDensityColor = COLORS:getColor("chartPreview", "GraphHighestDensityBar")
+
+local translations = {
+    NPS = THEME:GetString("ChordDensityGraph", "NPS"),
+    BPM = THEME:GetString("ChordDensityGraph", "BPM"),
+}
+
 local t = Def.ActorFrame {
     Name = "ChordDensityGraphFile",
     InitCommand = function(self)
@@ -85,7 +91,7 @@ local t = Def.ActorFrame {
                         local hoveredNPS = self.npsVector[hoveredIndex]
                         local td = stepsinuse:GetTimingData()
                         local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(dist * r)) * r
-                        stro = string.format("%s\n%d NPS\n%d BPM", postext, hoveredNPS, bpm)
+                        stro = string.format("%s\n%d %s\n%d %s", postext, hoveredNPS, translations["NPS"], bpm, translations["BPM"])
                     end
                     TOOLTIP:SetText(stro)
                     TOOLTIP:Show()
@@ -150,7 +156,7 @@ local function updateGraphMultiVertex(parent, self, steps)
             end
         end
 
-        txt:settext(heightScale / 2 * 0.7 .. "NPS")
+        txt:settext(heightScale / 2 * 0.7 .. translations["NPS"])
         heightScale = sizing.Height / heightScale
 
         local verts = {} -- reset the vertices for the graph

@@ -4,7 +4,7 @@
 
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "ScreenManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "curl/curl.h"

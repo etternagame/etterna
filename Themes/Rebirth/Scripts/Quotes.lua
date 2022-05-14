@@ -84,7 +84,6 @@ local Phrases = {
     "rice and noodles erryday",
     "reticulating splines",
     ":^)",
-    "Eating children is part of our lives.",
     "Don't you put it in your mouth.",
     "Like the game you may all know stepmania",
     "Time to enjoy. I guess.",

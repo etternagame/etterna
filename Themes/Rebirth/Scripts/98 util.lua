@@ -64,6 +64,17 @@ function getHWKeepAspectRatio(h, w, ratio)
     return he, we
 end
 
+-- find the multiplier to use when converting old coordinates to new theme resolutions
+function getThemeHeightRatio(new)
+    local old = 480 -- most people are used to 480 which is what we always used until now
+    return new / old
+end
+
+-- bias a magic number (height based) based on the difference between the current theme size and the old one
+function convertForThemeHeight(x)
+    return x * getThemeHeightRatio(SCREEN_HEIGHT)
+end
+
 -- string split, return a list given a string and a separator between items
 function strsplit(given, separator)
     if separator == nil then
@@ -273,8 +284,14 @@ function getRateDisplayString2(x)
 end
 
 -- alias for wifesundries ChangeMusicRate which is really bad
-function changeMusicRate(direction)
-    local now = getCurRateValue() + direction
+function changeMusicRate(direction, useSmallIncrement)
+    local smallinc = 0.05
+    local biginc = 0.1
+
+    local inc = useSmallIncrement and smallinc or biginc
+    if direction == nil then direction = 1 end
+
+    local now = getCurRateValue() + inc * direction
     setMusicRate(now)
 end
 
@@ -424,64 +441,6 @@ end
 -- convert a mini to receptor size because this math is really annoying
 function MiniToReceptorSize(mini)
     return (1 - mini/2)
-end
-
--- read the function name
-function updateDiscordStatusForGameplay()
-    local profile = GetPlayerOrMachineProfile(PLAYER_1)
-    local song = GAMESTATE:GetCurrentSong()
-    local steps = GAMESTATE:GetCurrentSteps()
-    -- Discord thingies
-    local largeImageTooltip = string.format(
-        "%s: %5.2f",
-        profile:GetDisplayName(),
-        profile:GetPlayerRating()
-    )
-    local mode = GAMESTATE:GetGameplayMode()
-    local detail = string.format(
-        "%s: %s [%s]",
-        song:GetDisplayMainTitle(),
-        string.gsub(getCurRateDisplayString(), "Music", ""),
-        song:GetGroupName()
-    )
-    if mode == "GameplayMode_Replay" then
-        detail = "Replaying: "..detail
-    elseif mode == "GameplayMode_Practice" then
-        detail = "Practicing: "..detail
-    end
-    -- truncated to 128 characters(discord hard limit)
-    detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
-    local state = string.format(
-        "MSD: %05.2f",
-        steps:GetMSD(getCurRateValue(), 1)
-    )
-    local endTime = os.time() + GetPlayableTime()
-    GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
-end
-
--- writes to the install directory a nowplaying.txt
--- will be blank if not in gameplay
--- useful for stream overlays
-function updateNowPlaying()
-    local snm = SCREENMAN:GetTopScreen()
-    local steps = GAMESTATE:GetCurrentSteps()
-    local song = GAMESTATE:GetCurrentSong()
-    local fout = ""
-    if snm ~= nil and string.find(snm:GetName(), "Gameplay") ~= nil then
-        local state = string.format(
-            "MSD: %05.2f",
-            steps:GetMSD(getCurRateValue(), 1)
-        )
-        fout = string.format(
-            "Now playing %s by %s in %s %s",
-            song:GetDisplayMainTitle(),
-            song:GetDisplayArtist(),
-            song:GetGroupName(),
-            state
-        )
-    end
-
-    File.Write("nowplaying.txt", fout)
 end
 
 -- convenience to control the rename profile dialogue logic and input redir scope

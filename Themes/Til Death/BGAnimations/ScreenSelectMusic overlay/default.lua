@@ -98,10 +98,7 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 t[#t + 1] = LoadActor("../_cursor")
 t[#t + 1] = LoadActor("../_halppls")
 
-GAMESTATE:UpdateDiscordMenu(
-	GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
-		": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
-)
+updateDiscordStatusForMenus()
+updateNowPlaying()
 
-File.Write("nowplaying.txt", " ")
 return t

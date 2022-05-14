@@ -346,6 +346,8 @@ Actor::GetTrueX()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetX();
+
+	// need to account for 3d rotation
 	RageVector2 p1(GetX(), GetY());
 	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
 
@@ -360,10 +362,48 @@ Actor::GetTrueY()
 	auto* mfp = GetFakeParentOrParent();
 	if (!mfp)
 		return GetY();
+
+	// need to account for 3d rotation
 	RageVector2 p1(GetX(), GetY());
 	RageVec2RotateFromOrigin(&p1, mfp->GetTrueRotationZ());
 
 	return p1.y * mfp->GetTrueZoomY() + mfp->GetTrueY();
+}
+
+float
+Actor::GetTrueZ()
+{
+	if (this == nullptr)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetZ();
+
+	// need to account for 3d rotation
+
+	return mfp->GetTrueZoomZ() + mfp->GetTrueZ();
+}
+
+float
+Actor::GetTrueRotationX()
+{
+	if (this == nullptr)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetRotationX();
+	return GetRotationX() + mfp->GetTrueRotationX();
+}
+
+float
+Actor::GetTrueRotationY()
+{
+	if (this == nullptr)
+		return 0.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetRotationY();
+	return GetRotationY() + mfp->GetTrueRotationY();
 }
 
 float
@@ -406,6 +446,16 @@ Actor::GetTrueZoomY()
 	if (!mfp)
 		return GetZoomY();
 	return GetZoomY() * mfp->GetTrueZoomY();
+}
+float
+Actor::GetTrueZoomZ()
+{
+	if (this == nullptr)
+		return 1.f;
+	auto* mfp = GetFakeParentOrParent();
+	if (!mfp)
+		return GetZoomZ();
+	return GetZoomZ() * mfp->GetTrueZoomZ();
 }
 bool
 Actor::IsVisible()
@@ -2697,9 +2747,13 @@ class LunaActor : public Luna<Actor>
 	}
 	DEFINE_METHOD(GetTrueX, GetTrueX());
 	DEFINE_METHOD(GetTrueY, GetTrueY());
+	DEFINE_METHOD(GetTrueZ, GetTrueZ());
 	DEFINE_METHOD(GetTrueZoom, GetTrueZoom());
 	DEFINE_METHOD(GetTrueZoomX, GetTrueZoomX());
 	DEFINE_METHOD(GetTrueZoomY, GetTrueZoomY());
+	DEFINE_METHOD(GetTrueZoomZ, GetTrueZoomZ());
+	DEFINE_METHOD(GetTrueRotationX, GetTrueRotationX());
+	DEFINE_METHOD(GetTrueRotationY, GetTrueRotationY());
 	DEFINE_METHOD(GetTrueRotationZ, GetTrueRotationZ());
 	DEFINE_METHOD(IsVisible, IsVisible());
 	LunaActor()
@@ -2880,9 +2934,13 @@ class LunaActor : public Luna<Actor>
 
 		ADD_METHOD(GetTrueX);
 		ADD_METHOD(GetTrueY);
+		ADD_METHOD(GetTrueZ);
 		ADD_METHOD(GetTrueZoom);
 		ADD_METHOD(GetTrueZoomX);
 		ADD_METHOD(GetTrueZoomY);
+		ADD_METHOD(GetTrueZoomZ);
+		ADD_METHOD(GetTrueRotationX);
+		ADD_METHOD(GetTrueRotationY);
 		ADD_METHOD(GetTrueRotationZ);
 		ADD_METHOD(IsVisible);
 		ADD_METHOD(IsOver);

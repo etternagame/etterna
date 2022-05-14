@@ -36,8 +36,16 @@ namespace Core::Platform {
     void init(){
         // Load Apple private security API
         void *handle = dlopen("/System/Library/Frameworks/Security.framework/Security", RTLD_LAZY);
+		if(!handle){
+			Locator::getLogger()->info("Unable to load security framework!\nSkipping translocation check");
+			return;
+		}
         mySecTranslocateIsTranslocatedURL = reinterpret_cast<void (*)(CFURLRef, bool *, CFErrorRef *)>(dlsym(handle, "SecTranslocateIsTranslocatedURL"));
         mySecTranslocateCreateOriginalPathForURL = reinterpret_cast<CFURLRef __nullable (*)(CFURLRef, CFErrorRef * __nullable)>(dlsym(handle, "SecTranslocateCreateOriginalPathForURL"));
+		if(!mySecTranslocateIsTranslocatedURL || !mySecTranslocateCreateOriginalPathForURL){
+			Locator::getLogger()->info("Unable to find security framework translocation functions!\nSkipping translocation check");
+			return;
+		}
 
         // Check if we are translocated
         bool isTranslocated = false;

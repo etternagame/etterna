@@ -7,6 +7,10 @@ allowedCustomization = false
 local function loadValuesTable()
     allowedCustomization = playerConfig:get_data().CustomizeGameplay
     usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
+
+    local ratioX = SCREEN_WIDTH / playerConfig:get_data().CurrentWidth
+    local ratioY = SCREEN_HEIGHT / playerConfig:get_data().CurrentHeight
+
     MovableValues.ScreenZoom = playerConfig:get_data().GameplaySizes[keymode].ScreenZoom
     MovableValues.ScreenX = playerConfig:get_data().GameplayXYCoordinates[keymode].ScreenX
     MovableValues.ScreenY = playerConfig:get_data().GameplayXYCoordinates[keymode].ScreenY
@@ -42,6 +46,9 @@ local function loadValuesTable()
     MovableValues.NoteFieldSpacing = playerConfig:get_data().GameplaySizes[keymode].NoteFieldSpacing
     MovableValues.JudgeCounterX = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterX
     MovableValues.JudgeCounterY = playerConfig:get_data().GameplayXYCoordinates[keymode].JudgeCounterY
+    MovableValues.JudgeCounterHeight = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterHeight
+    MovableValues.JudgeCounterWidth = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterWidth
+    MovableValues.JudgeCounterSpacing = playerConfig:get_data().GameplaySizes[keymode].JudgeCounterSpacing
     MovableValues.ReplayButtonsX = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsX
     MovableValues.ReplayButtonsY = playerConfig:get_data().GameplayXYCoordinates[keymode].ReplayButtonsY
     MovableValues.ReplayButtonsSpacing = playerConfig:get_data().GameplaySizes[keymode].ReplayButtonsSpacing
@@ -80,6 +87,22 @@ local function loadValuesTable()
     MovableValues.MeasureCounterX = playerConfig:get_data().GameplayXYCoordinates[keymode].MeasureCounterX
     MovableValues.MeasureCounterY = playerConfig:get_data().GameplayXYCoordinates[keymode].MeasureCounterY
     MovableValues.MeasureCounterZoom = playerConfig:get_data().GameplaySizes[keymode].MeasureCounterZoom
+
+    -- if the aspect ratio changed at all we need to reset all these numbers
+    if ratioX ~= 1 or ratioY ~= 1 then
+        for name, val in pairs(MovableValues) do
+            if name:find("X$") ~= nil or name:find("Y$") ~= nil or name:find("Rotation$") ~= nil then
+                -- coordinates
+                playerConfig:get_data().GameplayXYCoordinates[keymode][name] = val
+            elseif name:find("Zoom$") ~= nil or name:find("Height$") ~= nil or name:find("Width$") ~= nil or name:find("Spacing$") ~= nil then
+                -- sizes
+                playerConfig:get_data().GameplaySizes[keymode][name] = val
+            end
+        end
+        playerConfig:get_data().CurrentWidth = SCREEN_WIDTH
+        playerConfig:get_data().CurrentHeight = SCREEN_HEIGHT
+        playerConfig:save()
+    end
 end
 
 -- registry for elements which are able to be modified in customizegameplay
@@ -91,7 +114,7 @@ local selectedElementActor = nil
     {
         actor = (an actorframe),
         coordInc = {big, small}, increment size for coordinates
-        zoomInc = {big, small}, increment size for zooming (zoom or size bpth work here)
+        zoomInc = {big, small}, increment size for zooming (zoom or size both work here)
         rotationInc = {big, small}, increment size for rotation
         spacingInc = {big, small}, increment size for spacing
     }

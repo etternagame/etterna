@@ -141,7 +141,7 @@ local function setUpOnlineScores()
             onlineScores[i] = scoreUsingMultiScore(i)
         end
     else
-        onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey())
+        onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey()) or {}
     end
 
     -- hard limiting

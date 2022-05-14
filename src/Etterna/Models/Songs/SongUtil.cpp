@@ -385,6 +385,32 @@ CompareSongPointersByTitle(const Song* pSong1, const Song* pSong2)
 }
 
 static bool
+CompareSongPointersByArtist(const Song* pSong1, const Song* pSong2)
+{
+	// Prefer transliterations
+	auto s1 = pSong1->GetTranslitArtist();
+	auto s2 = pSong2->GetTranslitArtist();
+	if (s1 == s2) {
+		s1 = pSong1->GetTranslitMainTitle();
+		s2 = pSong2->GetTranslitMainTitle();
+	}
+
+	SongUtil::MakeSortString(s1);
+	SongUtil::MakeSortString(s2);
+
+	const auto ret = strcmp(s1.c_str(), s2.c_str());
+	if (ret < 0)
+		return true;
+	if (ret > 0)
+		return false;
+
+	/* They are the same.  Ensure we get a consistent ordering
+	 * by comparing the unique SongFilePaths. */
+	return CompareNoCase(pSong1->GetSongFilePath(), pSong2->GetSongFilePath()) <
+		   0;
+}
+
+static bool
 CompareSongPointersByMSD(const Song* pSong1, const Song* pSong2, Skillset ss)
 {
 	// Prefer transliterations to full titles
@@ -1214,10 +1240,21 @@ SongTitleComparator(lua_State* L)
 	return 1;
 }
 
+int
+SongArtistComparator(lua_State* L)
+{
+	auto* p1 = Luna<Song>::check(L, 1, true);
+	auto* p2 = Luna<Song>::check(L, 2, true);
+	const auto b = CompareSongPointersByArtist(p1, p2);
+	LuaHelpers::Push(L, b);
+	return 1;
+}
+
 const luaL_Reg SongUtilTable[] = { LIST_METHOD(GetPlayableSteps),
 								   LIST_METHOD(IsStepsTypePlayable),
 								   LIST_METHOD(IsStepsPlayable),
 								   LIST_METHOD(SongTitleComparator),
+								   LIST_METHOD(SongArtistComparator),
 								   { nullptr, nullptr } };
 }
 

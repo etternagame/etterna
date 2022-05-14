@@ -1,9 +1,7 @@
 -- Various player and stage info
-local profileP1 = GetPlayerOrMachineProfile(PLAYER_1)
-
-local translated_info = {
-    Judge = "Judge",
-    Scoring = "Scoring",
+local translations = {
+    Judge = THEME:GetString("ScreenGameplay", "JudgeDifficulty"),
+    Scoring = THEME:GetString("ScreenGameplay", "ScoringType"),
 }
 
 local modstringTextSize = GAMEPLAY:getItemHeight("playerInfoModsText")
@@ -18,8 +16,8 @@ local diffXOffset = GAMEPLAY:getItemX("playerInfoMeterX")
 local msdXOffset = GAMEPLAY:getItemX("playerInfoMSDX")
 local msdwidth = diffXOffset - msdXOffset
 local modsXOffset = GAMEPLAY:getItemX("playerInfoModsX")
-local judgeXOffset = GAMEPLAY:getItemX("playerInfoJudgeX")
-local scoreTypeXOffset = GAMEPLAY:getItemX("playerInfoScoreTypeX")
+
+local bufferspace = 5
 
 return Def.ActorFrame {
     Name = "PlayerInfo",
@@ -35,13 +33,31 @@ return Def.ActorFrame {
         self:xy(MovableValues.PlayerInfoX, MovableValues.PlayerInfoY)
         self:zoom(MovableValues.PlayerInfoZoom)
     end,
+    OrderedSetCommand = function(self)
+        local diff = self:GetChild("Difficulty")
+        local msd = self:GetChild("MSD")
+        local mods = self:GetChild("ModString")
+
+        msd:playcommand("Set")
+        diff:playcommand("Set")
+        mods:playcommand("Set")
+    end,
+    DoneLoadingNextSongMessageCommand = function(self)
+        self:playcommand("OrderedSet")
+    end,
+    CurrentRateChangedMessageCommand = function(self)
+        self:playcommand("OrderedSet")
+    end,
+    PracticeModeReloadMessageCommand = function(self)
+        self:playcommand("OrderedSet")
+    end,
 
     Def.Quad {
         Name = "BG",
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(modsXOffset + SCREEN_WIDTH/5, avatarSize)
-            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryBackground")
             self:diffusealpha(0.1)
         end,
     },
@@ -60,7 +76,6 @@ return Def.ActorFrame {
         Name = "Difficulty",
         InitCommand = function(self)
             self:halign(0):valign(0)
-            self:xy(diffXOffset, avatarSize/2 - 5)
             self:zoom(difficultyTextSize)
             self:maxwidth(diffwidth)
         end,
@@ -74,16 +89,14 @@ return Def.ActorFrame {
                     )
                 )
             )
+            local xp = self:GetParent():GetChild("MSD"):GetZoomedWidth()
+            self:xy(avatarSize + bufferspace + xp + bufferspace, avatarSize/2 - 5)
         end,
-        DoneLoadingNextSongMessageCommand = function(self)
-            self:queuecommand("Set")
-        end
     },
     LoadFont("Common Large") .. {
         Name = "MSD",
         InitCommand = function(self)
             self:halign(0):valign(1)
-            self:xy(msdXOffset, avatarSize - 2)
             self:zoom(msdTextSize)
             self:maxwidth(msdwidth / msdTextSize)
         end,
@@ -91,49 +104,49 @@ return Def.ActorFrame {
             local meter = GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)
             self:settextf("%05.2f", meter)
             self:diffuse(COLORS:colorByMSD(meter))
+            self:xy(avatarSize + bufferspace, avatarSize - 2)
         end,
-        DoneLoadingNextSongMessageCommand = function(self)
-            self:queuecommand("Set")
-        end,
-        CurrentRateChangedMessageCommand = function(self)
-            self:queuecommand("Set")
-        end,
-        PracticeModeReloadMessageCommand = function(self)
-            self:queuecommand("Set")
-        end,
+        
     },
     LoadFont("Common Normal") .. {
         Name = "ModString",
         InitCommand = function(self)
             self:halign(0):valign(1)
-            self:xy(modsXOffset, avatarSize - 2)
             self:zoom(modstringTextSize)
             self:maxwidth(SCREEN_WIDTH / 5 / modstringTextSize)
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
         end,
-        BeginCommand = function(self)
+        SetCommand = function(self)
+            local xp = self:GetParent():GetChild("MSD"):GetZoomedWidth()
+            self:xy(avatarSize + bufferspace + xp + bufferspace, avatarSize - 2)
             self:settext(getModifierTranslations(GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Current")))
-        end
+        end,
     },
     LoadFont("Common Normal") .. {
         Name = "Judge",
         InitCommand = function(self)
             self:halign(0):valign(0)
-            self:xy(judgeXOffset, avatarSize/24)
             self:zoom(judgeDiffTextSize)
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
         end,
         BeginCommand = function(self)
-            self:settextf("%s: %d", translated_info["Judge"], GetTimingDifficulty())
+            self:xy(avatarSize + bufferspace, avatarSize/24)
+            self:settextf("%s: %d", translations["Judge"], GetTimingDifficulty())
         end
     },
     LoadFont("Common Normal") .. {
         Name = "ScoreType",
         InitCommand = function(self)
             self:halign(0):valign(1)
-            self:xy(scoreTypeXOffset, avatarSize/2 - avatarSize/8)
             self:zoom(scoringTextSize)
+            self:diffusealpha(1)
+            registerActorToColorConfigElement(self, "gameplay", "PrimaryText")
         end,
         BeginCommand = function(self)
-            self:settextf("%s: %s", translated_info["Scoring"], "Wife")
+            self:xy(avatarSize + bufferspace, avatarSize/2 - avatarSize/8)
+            self:settextf("%s: %s", translations["Scoring"], "Wife")
         end
     },
 }
