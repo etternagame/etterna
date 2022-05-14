@@ -177,7 +177,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		/* finished all modifications to skillset values, set overall using
 		 * sigmoidal aggregation, but only let it buff files, don't set anything
 		 * below the highest skillset th */
-		auto agg = aggregate_skill(iteration_skillet_values, 0.25, 1.11, 0.0, 10.24);
+		float agg = aggregate_skill(iteration_skillet_values, 0.25L, (float)1.11, 0.0, (float)10.24);
 		auto highest = max_val(iteration_skillet_values);
 		iteration_skillet_values[Skill_Overall] = agg > highest ? agg : highest;
 

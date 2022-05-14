@@ -2108,10 +2108,11 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	{
 		auto& reqs = p->requests;
 		auto reqPtrToRemove = Luna<ChartRequest>::check(L, 1, true);
-		remove_if(
+		auto new_end = remove_if(
 		  reqs.begin(), reqs.end(), [reqPtrToRemove](ChartRequest* req) {
 			  return req == reqPtrToRemove;
 		  });
+		reqs.erase(new_end, reqs.end());
 		// Keep it in case lua keeps a reference to it
 		p->staleRequests.push_back(reqPtrToRemove);
 		return 0;

@@ -635,7 +635,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 					if (*d == GAMESTATE->m_PreferredDifficulty) {
 						vbSelOut[i] = true;
 						matched = true;
-						ExportOption(p, vbSelectedOut); // current steps changed
+						(void)ExportOption(p, vbSelectedOut); // current steps changed
 						break;
 					}
 				}
