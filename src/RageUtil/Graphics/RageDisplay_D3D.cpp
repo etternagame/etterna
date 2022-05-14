@@ -380,6 +380,12 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 auto
 SetD3DParams(bool& bNewDeviceOut) -> std::string
 {
+	// wipe old render targets
+	for (auto& rt : g_mapRenderTargets) {
+		delete rt.second;
+	}
+	g_mapRenderTargets.clear();
+
 	if (g_pd3dDevice == nullptr)
 	// device is not yet created. We need to create it
 	{
@@ -410,13 +416,6 @@ SetD3DParams(bool& bNewDeviceOut) -> std::string
 	}
 
 	g_pd3dDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
-
-	// wipe old render targets
-	for (auto& rt : g_mapRenderTargets) {
-		delete rt.second;
-	}
-
-	g_mapRenderTargets.clear();
 
 	// Palettes were lost by Reset(), so mark them unloaded.
 	g_TexResourceToPaletteIndex.clear();
