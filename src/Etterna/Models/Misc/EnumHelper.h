@@ -106,7 +106,7 @@ EnumToString(int iVal,
 	}                                                                          \
 	}
 
-/* Disable errors about instantiations of static member variables of the
+/* Disable warnings about instantiations of static member variables of the
  * templated class not being defined. These are all defined in different
  * translation units by LuaXType, a macro that does a whole lot of stuff
  * including initializing them.
