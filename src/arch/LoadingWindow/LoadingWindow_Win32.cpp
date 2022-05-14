@@ -144,7 +144,7 @@ LoadingWindow_Win32::SetIcon(const RageSurface* pIcon)
 	if (m_hIcon != nullptr)
 	// XXX: GCL_HICON isn't available on x86-64 Windows
 #if _WIN64
-		SetClassLongPtr(hwnd, GCLP_HICON, (LONG)m_hIcon);
+		SetClassLongPtr(hwnd, GCLP_HICON, (LONG_PTR)m_hIcon);
 #else
 		SetClassLong(hwnd, GCL_HICON, (LONG)m_hIcon);
 #endif

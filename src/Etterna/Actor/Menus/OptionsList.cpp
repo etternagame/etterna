@@ -547,7 +547,7 @@ OptionsList::ExportRow(const std::string& sRow)
 	std::vector<bool> aSelections;
 	aSelections = m_bSelections[sRow];
 
-	m_Rows[sRow]->ExportOption(m_pn, aSelections);
+	(void)m_Rows[sRow]->ExportOption(m_pn, aSelections);
 }
 
 void
@@ -650,7 +650,7 @@ OptionsList::SelectionsChanged(const std::string& sRowName)
 		m_pLinked->ExportRow(sRowName);
 	}
 
-	ExportRow(sRowName);
+	(void)ExportRow(sRowName);
 }
 
 void
