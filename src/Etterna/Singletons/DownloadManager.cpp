@@ -2158,6 +2158,7 @@ DownloadManager::RefreshUserData()
 void
 DownloadManager::OnLogin()
 {
+	Locator::getLogger()->info("Successful login as {}", DLMAN->sessionUser);
 	DLMAN->RefreshUserRank();
 	DLMAN->RefreshUserData();
 	DLMAN->RefreshCountryCodes();
