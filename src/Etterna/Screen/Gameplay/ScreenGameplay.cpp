@@ -412,7 +412,7 @@ ScreenGameplay::~ScreenGameplay()
 }
 
 void
-ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
+ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row, int maxrow)
 {
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
@@ -424,7 +424,7 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 
 	m_vPlayerInfo.GetPlayerState()->Update(0);
 
-	NoteDataUtil::RemoveAllButRange(ndTransformed, row, MAX_NOTE_ROW);
+	NoteDataUtil::RemoveAllButRange(ndTransformed, row, maxrow);
 
 	// load player
 	{

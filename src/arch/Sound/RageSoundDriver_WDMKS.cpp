@@ -451,6 +451,7 @@ WinWdmFilter::CreatePin(unsigned long iPinId, std::string& sError)
 
 	/* Get DATARANGEs */
 	KSMULTIPLE_ITEM* pDataRangesItem;
+	KSDATARANGE* pDataRanges;
 	if (!WdmGetPinPropertyMulti(m_hHandle,
 								iPinId,
 								&KSPROPSETID_Pin,
@@ -460,8 +461,8 @@ WinWdmFilter::CreatePin(unsigned long iPinId, std::string& sError)
 		sError = "KSPROPERTY_PIN_DATARANGES: " + sError;
 		goto error;
 	}
+	pDataRanges = (KSDATARANGE*)(pDataRangesItem + 1);
 
-	KSDATARANGE* pDataRanges = (KSDATARANGE*)(pDataRangesItem + 1);
 
 	/* Find audio DATARANGEs */
 	{
@@ -617,7 +618,14 @@ WinWdmPin::MakeFormat(const WAVEFORMATEX* pFormat) const
 bool
 WinWdmPin::IsFormatSupported(const WAVEFORMATEX* pFormat) const
 {
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-braces"
+#endif
 	GUID guid = { DEFINE_WAVEFORMATEX_GUID(pFormat->wFormatTag) };
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 	if (pFormat->wFormatTag == WAVE_FORMAT_EXTENSIBLE)
 		guid = ((WAVEFORMATEXTENSIBLE*)pFormat)->SubFormat;
@@ -813,6 +821,10 @@ FillWFEXT(WAVEFORMATEXTENSIBLE* pwfext,
 			break;
 		case DeviceSampleFormat_Int16:
 			pwfext->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+			break;
+		case DeviceSampleFormat_Invalid:
+		case NUM_DeviceSampleFormat:
+			Locator::getLogger()->warn("Invalid sampleFormat in WDMKS FillWFEXT");
 			break;
 	}
 
@@ -1126,6 +1138,7 @@ WinWdmStream::Open(WinWdmFilter* pFilter,
 												   iPreferredSampleRate,
 												   sError);
 
+	int iFrameSize = 1;
 	if (m_pPlaybackPin == nullptr)
 		goto error;
 
@@ -1134,7 +1147,6 @@ WinWdmStream::Open(WinWdmFilter* pFilter,
 	m_iSampleRate = iPreferredSampleRate;
 	m_iBytesPerOutputSample = GetBytesPerSample(m_DeviceSampleFormat);
 
-	int iFrameSize = 1;
 	{
 		KSALLOCATOR_FRAMING ksaf;
 		KSALLOCATOR_FRAMING_EX ksafex;
@@ -1322,6 +1334,12 @@ MapSampleFormatFromInt16(const int16_t* pIn,
 				*pOutBuf++ = 0;
 				*pOutBuf++ = *pIn++;
 			}
+			break;
+		}
+		case DeviceSampleFormat_Invalid:
+		case DeviceSampleFormat_Int16:
+		case NUM_DeviceSampleFormat: {
+			Locator::getLogger()->warn("Invalid DeviceSampleFormat in WDMKS MapSampleFormatFromInt16");
 			break;
 		}
 	}

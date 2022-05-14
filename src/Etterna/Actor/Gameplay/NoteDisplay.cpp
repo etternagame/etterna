@@ -1930,6 +1930,15 @@ NoteColumnRenderer::DrawPrimitives()
 				break;
 		}
 	}
+
+	// Draw holds before taps to make sure taps dont hide behind holds
+	if (!holds.empty())
+		m_displays[PLAYER_1]->DrawHoldsInRange(
+		  *m_field_render_args, m_column_render_args, holds);
+
+	if (!taps.empty())
+		m_displays[PLAYER_1]->DrawTapsInRange(
+		  *m_field_render_args, m_column_render_args, taps);
 }
 
 void

@@ -1711,14 +1711,14 @@ class LunaPlaylist : public Luna<Playlist>
 	{
 		p->AddChart(SArg(1));
 		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	static auto DeleteChart(T* p, lua_State* L) -> int
 	{
 		p->DeleteChart(IArg(1) - 1);
 		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	static auto GetNumCharts(T* p, lua_State* L) -> int

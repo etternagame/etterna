@@ -108,7 +108,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	virtual void RestartGameplay();
 
-	virtual void SetupNoteDataFromRow(Steps* pSteps, int row);
+	virtual void SetupNoteDataFromRow(Steps* pSteps, int minRow = 0,
+							  int maxrow = MAX_NOTE_ROW);
 
 	virtual void InitSongQueues();
 

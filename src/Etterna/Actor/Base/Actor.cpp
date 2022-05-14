@@ -969,10 +969,9 @@ Actor::UpdateInternal(float delta_time)
 			}
 			break;
 		case CLOCK_TIMER_GLOBAL:
-			generic_global_timer_update(
-			  RageTimer::GetTimeSinceStart(),
-			  m_fEffectDelta,
-			  m_fSecsIntoEffect);
+			generic_global_timer_update(RageTimer::GetTimeSinceStart(),
+										m_fEffectDelta,
+										m_fSecsIntoEffect);
 			break;
 		case CLOCK_BGM_BEAT:
 			generic_global_timer_update(
