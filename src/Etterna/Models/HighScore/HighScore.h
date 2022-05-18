@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/DateTime.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/Grade.h"
-#include "Etterna/Models/Misc/NoteTypes.h"
+#include "Etterna/Models/HighScore/ReplayConstantsAndTypes.h"
 #include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 class XNode;
