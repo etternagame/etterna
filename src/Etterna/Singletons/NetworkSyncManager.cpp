@@ -751,11 +751,6 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 		 iterator++) {
 		try {
 			Document& d = **iterator;
-			StringBuffer sb;
-			Writer<StringBuffer> wr(sb);
-			d.Accept(wr);
-			std::cout << sb.GetString() << std::endl;
-
 			if (!d.HasMember("type") || !d["type"].IsString()) {
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
