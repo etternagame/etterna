@@ -270,14 +270,14 @@ To run `cppcheck`, run the target. Running the target will be different dependin
 
 ### C++ Docs
 
-Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
+Etterna uses [Doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
 
 - Debian: `apt install doxygen`
 - Fedora: `dnf install doxygen`
 - Arch: `pacman -S doxygen`
 - Alpine: `apk add doxygen`
 - macOS: `brew install doxygen`
-- Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
+- Windows: An installer is available at the [Doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
 
 Doxygen within CMake is able to use [graphviz](https://www.graphviz.org/download/) to generate better looking relationship/hierarchy graphs. You can see how to download it for your operating system at the [graphgiz download page](https://www.graphviz.org/download/).
 
