@@ -14,7 +14,7 @@ class XNode;
 struct lua_State;
 class LuaClass;
 
-using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
+using apActorCommands = std::shared_ptr<LuaReference>;
 
 /** @brief The background layer. */
 #define DRAW_ORDER_BEFORE_EVERYTHING (-200)

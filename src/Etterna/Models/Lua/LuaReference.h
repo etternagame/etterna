@@ -97,7 +97,7 @@ class LuaReference
 	int m_iReference;
 };
 
-using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
+using apActorCommands = std::shared_ptr<LuaReference>;
 
 class LuaTable : public LuaReference
 {
