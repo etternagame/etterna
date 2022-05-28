@@ -33,7 +33,7 @@ Etterna is a cross-platform rhythm game similar to [Dance Dance Revolution](http
 
 ### Windows and macOS
 
-Head to the [Github Releases](https://github.com/etternagame/etterna/releases) page, and download the relevant file for your operating system. For Windows, run the installer, and you should be ready to go. For macOS, first follow the below instructions. *After* doing them, mount the DMG and copy the Etterna folder to a location of your choice. Run the executable, and you are ready to go.
+Head to the [GitHub Releases](https://github.com/etternagame/etterna/releases) page, and download the relevant file for your operating system. For Windows, run the installer, and you should be ready to go. For macOS, first follow the below instructions. *After* doing them, mount the DMG and copy the Etterna folder to a location of your choice. Run the executable, and you are ready to go.
 
 ### macOS
 
@@ -58,7 +58,7 @@ Etterna uses Doxygen and LuaDoc. Both still need a lot of work before being havi
 
 ## Bug Reporting
 
-We use Github's [issue tracker](https://github.com/etternagame/etterna/issues) for all faults found in the game. If you would like to report a bug, please click the `Issues` tab at the top of this page, and use the `Bug report` template.
+We use GitHub's [issue tracker](https://github.com/etternagame/etterna/issues) for all faults found in the game. If you would like to report a bug, please click the `Issues` tab at the top of this page, and use the `Bug report` template.
 
 ## Contributing
 
@@ -70,7 +70,7 @@ If there is something else you want to work on that we don't have listed here, f
 
 Etterna uses the MIT License, as is required since we are derivative of StepMania 5. See [LICENSE](LICENSE) for more details.
 
-In short, you are free to modify, sell, distribute, and sublicense this project. We ask that you include a reference to this github repository in your derivative, and do not hold us liable when something breaks.
+In short, you are free to modify, sell, distribute, and sublicense this project. We ask that you include a reference to this GitHub repository in your derivative, and do not hold us liable when something breaks.
 
 Etterna uses the [MAD library](http://www.underbit.com/products/mad/) and [FFMPEG codecs](https://www.ffmpeg.org/). Those libraries, when built, use the [GPL license](http://www.gnu.org).
 
