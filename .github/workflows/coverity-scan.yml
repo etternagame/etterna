@@ -17,7 +17,7 @@ jobs:
           path: main
 
       - name: Install apt dependencies
-        run: sudo apt update && sudo apt-get install ninja-build nasm libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev
+        run: sudo apt update && sudo apt-get install ninja-build nasm libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev libcurl4-openssl-dev
 
       - name: Download Coverity Build Tool
         run: |
