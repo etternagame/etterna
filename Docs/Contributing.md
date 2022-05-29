@@ -30,7 +30,7 @@ Noteskins control the way the notes are drawn (Most noteskins have very similar 
 
 You can think of themes as the front end of the game. The way each screen is drawn, how screen branching (Changing) happens, and other things are controlled by the theme. A theme can even create new screens from scratch, catch inputs (Both mouse and keyboard), and other things. They're fairly powerful.
 
-Currently, there's a lack of alternative themes (To the default one, Til Death) for Etterna. [Spawncamping-Wallhack](https://github.com/ca25nada/spawncamping-wallhack) is the only complete theme that supports Etterna as far as I know.
+Currently, there's a lack of alternative themes (To the default one, Rebirth) for Etterna. [Spawncamping-Wallhack](https://github.com/ca25nada/spawncamping-wallhack) is the only complete theme that supports Etterna as far as I know.
 
 ## Documentation
 
@@ -38,7 +38,7 @@ The project is sorely lacking in documentation. The current aim is to document t
 
 ## Translating
 
-The Til Death theme (Default) only has one translation available. In order to make others, simply copy etterna/Themes/Til Death/Languages/en.ini and translate all the right-side words (After the `=`). Also, a list of the words/text/captions/things that aren't translate-able in the theme would be useful to make them(Some of the text is hard-coded so it's not possible to translate it).
+The Rebirth theme (Default) only has one translation available. In order to make others, simply copy `Etterna/Themes/Rebirth/Languages/en.ini` and translate all the right-side words (After the `=`). Also, a list of the words/text/captions/things that aren't translate-able in the theme would be useful to make them (Some of the text is hard-coded so it's not possible to translate it).
 
 A guide on this can be found in [the translations document](Translations.md).
 
