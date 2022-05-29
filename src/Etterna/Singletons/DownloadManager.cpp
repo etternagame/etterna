@@ -585,8 +585,8 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 			 i++) {
 			i->second->Install();
 			finishedDownloads[i->second->m_Url] = i->second;
-			pendingInstallDownloads.erase(i);
 		}
+		pendingInstallDownloads.clear();
 		// Reload
 		auto screen = SCREENMAN->GetScreen(0);
 		if (screen && screen->GetName() == "ScreenSelectMusic")
