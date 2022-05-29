@@ -156,7 +156,7 @@ struct HighScore
 	auto operator>=(HighScore const& other) const -> bool;
 	auto operator==(HighScore const& other) const -> bool;
 	auto operator!=(HighScore const& other) const -> bool;
-	auto HighScore::operator=(const HighScore &) -> HighScore&;
+	auto operator=(const HighScore &) -> HighScore&;
 
 	[[nodiscard]] auto CreateNode() const -> XNode*;
 	[[nodiscard]] auto CreateEttNode() const -> XNode*;

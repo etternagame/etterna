@@ -46,7 +46,7 @@ class Steps
 	/** @brief Destroy the Steps that are no longer needed. */
 	~Steps();
 
-	auto Steps::operator=(const Steps &) -> Steps&;
+	auto operator=(const Steps &) -> Steps&;
 
 	// initializers
 	void CopyFrom(Steps* pSource, StepsType ntTo);
@@ -278,7 +278,7 @@ class Steps
 		UniquePtrNoteData(UniquePtrNoteData& rhs) {
 			p = rhs.p ? std::make_unique<NoteData>(*rhs.p) : nullptr;
 		}
-		UniquePtrNoteData &operator=(UniquePtrNoteData& rhs) {
+		UniquePtrNoteData &operator=(const UniquePtrNoteData& rhs) {
 			p = rhs.p ? std::make_unique<NoteData>(*rhs.p) : nullptr;
 			return *this;
 		}

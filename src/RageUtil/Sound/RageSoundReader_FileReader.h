@@ -27,7 +27,7 @@ class RageSoundReader_FileReader : public RageSoundReader
 		OPEN_UNKNOWN_FILE_FORMAT = 1,
 		OPEN_FATAL_ERROR = 2,
 	};
-	RageSoundReader_FileReader::RageSoundReader_FileReader(const RageSoundReader_FileReader&);
+	RageSoundReader_FileReader(const RageSoundReader_FileReader&);
 	RageSoundReader_FileReader();
 
 	/* Takes ownership of pFile (even on failure). */
