@@ -75,7 +75,7 @@ const NSCommand NSServerOffset = static_cast<NSCommand>(128);
 class EndOfGame_PlayerData
 {
   public:
-	int name;
+	int name{0};
 	std::string nameStr;
 	int grade;
 	int score;
