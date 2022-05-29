@@ -8,7 +8,7 @@ class RageDisplay_D3D : public RageDisplay
   public:
 	RageDisplay_D3D();
 	~RageDisplay_D3D() override;
-	auto Init(const VideoModeParams& p, bool bAllowUnacceleratedRenderer)
+	auto Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
 	  -> std::string override;
 
 	[[nodiscard]] auto GetApiDescription() const -> std::string override

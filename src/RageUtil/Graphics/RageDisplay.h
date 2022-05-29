@@ -282,7 +282,7 @@ class RageDisplay
 	RageDisplay();
 	virtual ~RageDisplay();
 
-	virtual auto Init(const VideoModeParams& p,
+	virtual auto Init(VideoModeParams&& p,
 					  bool bAllowUnacceleratedRenderer) -> std::string = 0;
 
 	[[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
@@ -293,7 +293,7 @@ class RageDisplay
 	// Don't override this.  Override TryVideoMode() instead.
 	// This will set the video mode to be as close as possible to params.
 	// Return true if device was re-created and we need to reload textures.
-	auto SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
+	auto SetVideoMode(VideoModeParams&& p, bool& bNeedReloadTextures)
 	  -> std::string;
 
 	// Call this when the resolution has been changed externally:
