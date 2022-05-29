@@ -20,7 +20,7 @@ class MusicWheel : public WheelBase
 
   public:
 	MusicWheel();
-	~MusicWheel() override;
+	~MusicWheel() override = default;
 	void Load(const string& sType) override;
 	void BeginScreen();
 
@@ -133,14 +133,17 @@ class MusicWheel : public WheelBase
 		NEEDREFILTER,
 		VALID
 	} m_WheelItemDatasStatus[NUM_SortOrder]{};
+	// Stores pointers owned by m__UnFilteredWheelItemDatas
+	// This is fine because whenever m__UnFilteredWheelItemDatas is updated we
+	// then also update m__WheelItemDatas
 	std::vector<MusicWheelItemData*> m__WheelItemDatas[NUM_SortOrder];
-	std::vector<MusicWheelItemData*> m__UnFilteredWheelItemDatas[NUM_SortOrder];
+	std::vector<std::unique_ptr<MusicWheelItemData>> m__UnFilteredWheelItemDatas[NUM_SortOrder];
 
-	void BuildWheelItemDatas(std::vector<MusicWheelItemData*>& arrayWheelItemDatas,
+	void BuildWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>>& arrayWheelItemDatas,
 							 SortOrder so,
 							 bool searching,
 							 const std::string& findme);
-	void FilterWheelItemDatas(std::vector<MusicWheelItemData*>& aUnFilteredDatas,
+	void FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
 							  std::vector<MusicWheelItemData*>& aFilteredData,
 							  SortOrder so) const;
 	std::string prevSongTitle;

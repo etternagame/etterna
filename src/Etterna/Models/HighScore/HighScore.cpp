@@ -1008,17 +1008,26 @@ HighScore::HasReplayData() -> bool
 	return DoesFileExist(basicpath);
 }
 
-REGISTER_CLASS_TRAITS(HighScoreImpl, new HighScoreImpl(*pCopy))
-
 HighScore::HighScore()
 {
-	m_Impl = new HighScoreImpl;
+	m_Impl = std::make_unique<HighScoreImpl>();
+}
+
+HighScore::HSImplUniquePtr::~HSImplUniquePtr() = default;
+HighScore::HSImplUniquePtr::HSImplUniquePtr(std::unique_ptr<HighScoreImpl> ptr) :p(std::move(ptr)) {}
+HighScore::HSImplUniquePtr::HSImplUniquePtr(): p(std::make_unique<HighScoreImpl>()) { }
+HighScore::HSImplUniquePtr::HSImplUniquePtr(const HSImplUniquePtr& rhs) {
+	p = rhs.p ? std::make_unique<HighScoreImpl>(*rhs.p) : nullptr;
+}
+auto HighScore::HSImplUniquePtr::operator=(const HSImplUniquePtr& rhs) -> HSImplUniquePtr& {
+	p = rhs.p ? std::make_unique<HighScoreImpl>(*rhs.p) : nullptr;
+	return *this;
 }
 
 void
 HighScore::Unset()
 {
-	m_Impl = new HighScoreImpl;
+	m_Impl = std::make_unique<HighScoreImpl>();
 }
 
 auto
@@ -1630,6 +1639,8 @@ HighScore::operator!=(const HighScore& other) const -> bool
 {
 	return !operator==(other);
 }
+
+auto HighScore::operator=(const HighScore &) -> HighScore& = default;
 
 auto
 HighScore::CreateEttNode() const -> XNode*

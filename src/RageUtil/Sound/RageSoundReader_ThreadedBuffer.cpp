@@ -60,7 +60,7 @@ RageSoundReader_ThreadedBuffer::RageSoundReader_ThreadedBuffer(
 {
 	bool bWasEnabled = cpy.DisableBuffering();
 
-	m_pSource = cpy.m_pSource->Copy();
+	m_pSource = std::unique_ptr<RageSoundReader>(cpy.m_pSource->Copy());
 	m_iSampleRate = cpy.m_iSampleRate;
 	m_iChannels = cpy.m_iChannels;
 	m_DataBuffer = cpy.m_DataBuffer;

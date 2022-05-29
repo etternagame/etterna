@@ -10,7 +10,6 @@ list(APPEND SMDATA_RAGE_UTILS_SRC
 
 list(APPEND SMDATA_RAGE_UTILS_HPP
      "Utils/RageUtil.h"
-     "Utils/RageUtil_AutoPtr.h" # TODO: Remove the need for this and replace with c++11 smart pointers
      "Utils/RageUtil_CachedObject.h"
      "Utils/RageUtil_CharConversions.h"
      "Utils/RageUtil_CircularBuffer.h"

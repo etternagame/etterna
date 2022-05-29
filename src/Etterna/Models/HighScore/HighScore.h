@@ -5,7 +5,6 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/Grade.h"
 #include "Etterna/Models/HighScore/ReplayConstantsAndTypes.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 class XNode;
 struct RadarValues;
@@ -157,6 +156,7 @@ struct HighScore
 	auto operator>=(HighScore const& other) const -> bool;
 	auto operator==(HighScore const& other) const -> bool;
 	auto operator!=(HighScore const& other) const -> bool;
+	auto HighScore::operator=(const HighScore &) -> HighScore&;
 
 	[[nodiscard]] auto CreateNode() const -> XNode*;
 	[[nodiscard]] auto CreateEttNode() const -> XNode*;
@@ -204,7 +204,21 @@ struct HighScore
 	void PushSelf(lua_State* L);
 
   private:
-	HiddenPtr<HighScoreImpl> m_Impl;
+	struct HSImplUniquePtr {
+		std::unique_ptr<HighScoreImpl> p;
+
+		HSImplUniquePtr();
+		~HSImplUniquePtr();
+		HSImplUniquePtr(const HSImplUniquePtr& rhs);
+		HSImplUniquePtr(std::unique_ptr<HighScoreImpl> ptr);
+		auto operator=(const HSImplUniquePtr& rhs) -> HSImplUniquePtr&;
+
+		HighScoreImpl *operator->() { return &*p; }
+		HighScoreImpl &operator*() { return *p; }
+		HighScoreImpl const *operator->() const { return &*p; }
+		HighScoreImpl const &operator*() const { return *p; }
+	};
+	HSImplUniquePtr m_Impl;
 };
 
 /** @brief the picture taken of the high score. */

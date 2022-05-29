@@ -28,6 +28,7 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 
@@ -54,7 +55,7 @@ LuaXType(DisplayBPM);
 Steps::Steps(Song* song)
   : m_StepsType(StepsType_Invalid)
   , m_pSong(song)
-  , m_pNoteData(new NoteData)
+  , m_pNoteData()
   , m_bNoteDataIsFilled(false)
   , m_sNoteDataCompressed("")
   , m_sFilename("")
@@ -74,6 +75,7 @@ Steps::Steps(Song* song)
 }
 
 Steps::~Steps() = default;
+auto Steps::operator=(const Steps &) -> Steps& = default;
 
 void
 Steps::GetDisplayBpms(DisplayBpms& AddTo) const

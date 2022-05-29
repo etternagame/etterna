@@ -2,7 +2,6 @@
 #define LUA_REFERENCE_H
 
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 struct lua_State;
 using Lua = lua_State;

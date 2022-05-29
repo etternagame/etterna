@@ -1,11 +1,8 @@
 #include "Etterna/Globals/global.h"
 #include "RageFileBasic.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 #include <algorithm>
-
-REGISTER_CLASS_TRAITS(RageFileBasic, pCopy->Copy());
 
 RageFileObj::RageFileObj()
 {
