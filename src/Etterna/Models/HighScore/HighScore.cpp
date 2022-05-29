@@ -555,8 +555,12 @@ HighScoreImpl::WriteInputData() -> bool
 		FILE* infile =
 		  fopen(path.c_str(), "rb");
 		gzFile outfile = gzopen(path_z.c_str(), "wb");
-		if ((infile == nullptr) || (outfile == nullptr)) {
+		if ((infile == nullptr) || (outfile == Z_NULL)) {
 			Locator::getLogger()->warn("Failed to compress new input data.");
+			if (outfile != Z_NULL)
+				gzclose(outfile);
+			if (infile != nullptr)
+				fclose(infile);
 			return false;
 		}
 
@@ -652,9 +656,13 @@ HighScore::LoadInputData() -> bool
 		gzFile infile = gzopen(path_z.c_str(), "rb");
 		// hope nothing already exists here
 		FILE* outfile = fopen(path.c_str(), "wb");
-		if ((infile == nullptr) || (outfile == nullptr)) {
+		if ((infile == Z_NULL) || (outfile == nullptr)) {
 			Locator::getLogger()->warn("Failed to read input data at {}",
 									   path_z.c_str());
+			if (infile != Z_NULL)
+				gzclose(infile);
+			if (outfile != nullptr)
+				fclose(outfile);
 			return false;
 		}
 
