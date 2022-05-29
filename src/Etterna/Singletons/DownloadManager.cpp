@@ -963,6 +963,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			  "(scorekey: \"{}\" chartkey: \"{}\")",
 			  hs->GetScoreKey().c_str(),
 			  hs->GetChartKey().c_str());
+			curl_easy_cleanup(curlHandle);
 			return;
 		}
 		std::vector<float> timestamps =
@@ -2046,7 +2047,6 @@ DownloadManager::RefreshTop25(Skillset ss)
 	if (!LoggedIn())
 		return;
 	string req = "user/" + DLMAN->sessionUser + "/top/";
-	CURL* curlHandle = initCURLHandle(true);
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
 	auto done = [ss](HTTPRequest& req, CURLMsg*) {
@@ -2389,6 +2389,8 @@ Download::~Download()
 	FILEMAN->Remove(m_TempFileName);
 	if (p_Pack)
 		p_Pack->downloading = false;
+	if (handle)
+		curl_easy_cleanup(handle);
 }
 
 void
