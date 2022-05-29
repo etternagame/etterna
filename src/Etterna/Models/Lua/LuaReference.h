@@ -15,6 +15,9 @@ class LuaReference
 
 	/* Copying a reference makes a new reference pointing to the same object. */
 	LuaReference(const LuaReference& cpy);
+	/* Moving a reference does not make a new reference and leaves the 
+	 * moved-from value with LUA_NOREF. */
+	LuaReference(LuaReference&& cpy);
 	auto operator=(const LuaReference& cpy) -> LuaReference&;
 
 	// Convenience constructor.

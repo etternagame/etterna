@@ -26,6 +26,12 @@ LuaReference::LuaReference(const LuaReference& cpy)
 	}
 }
 
+LuaReference::LuaReference(LuaReference&& cpy)
+{
+	m_iReference = cpy.m_iReference;
+	cpy.m_iReference = LUA_NOREF;
+}
+
 LuaReference&
 LuaReference::operator=(const LuaReference& cpy)
 {
