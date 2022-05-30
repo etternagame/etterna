@@ -8,17 +8,18 @@ struct HighScore;
 
 class Replay
 {
+  public:
 	Replay();
 	Replay(HighScore* hs);
 	~Replay();
 
-  public:
 	auto GetOffsetVector() const -> const std::vector<float>& {
 		return vOffsetVector;
 	}
 	auto GetCopyOfOffsetVector() const -> std::vector<float> {
 		return vOffsetVector;
 	}
+	void SetOffsetVector(const std::vector<float>& v) { vOffsetVector = v; }
 
 	auto GetNoteRowVector() const -> const std::vector<int>& {
 		return vNoteRowVector;
@@ -26,6 +27,7 @@ class Replay
 	auto GetCopyOfNoteRowVector() const -> std::vector<int> {
 		return vNoteRowVector;
 	}
+	void SetNoteRowVector(const std::vector<int>& v) { vNoteRowVector = v; }
 
 	auto GetTrackVector() const -> const std::vector<int>& {
 		return vTrackVector;
@@ -33,12 +35,17 @@ class Replay
 	auto GetCopyOfTrackVector() const -> std::vector<int> {
 		return vTrackVector;
 	}
+	void SetTrackVector(const std::vector<int>& v) { vTrackVector = v; }
 
 	auto GetTapNoteTypeVector() const -> const std::vector<TapNoteType>& {
 		return vTapNoteTypeVector;
 	}
 	auto GetCopyOfTapNoteTypeVector() const -> std::vector<TapNoteType> {
 		return vTapNoteTypeVector;
+	}
+	void SetTapNoteTypeVector(const std::vector<TapNoteType>& v)
+	{
+		vTapNoteTypeVector = v;
 	}
 
 	auto GetHoldReplayDataVector() const -> const std::vector<HoldReplayResult>&
@@ -49,6 +56,10 @@ class Replay
 	{
 		return vHoldReplayDataVector;
 	}
+	void SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v)
+	{
+		vHoldReplayDataVector = v;
+	}
 
 	auto GetMineReplayDataVector() const -> const std::vector<MineReplayResult>&
 	{
@@ -58,6 +69,10 @@ class Replay
 	{
 		return vMineReplayDataVector;
 	}
+	void SetMineReplayDataVector(const std::vector<MineReplayResult>& v)
+	{
+		vMineReplayDataVector = v;
+	}
 
 	auto GetOnlineReplayTimestampVector() const -> const std::vector<float>& {
 		return vOnlineReplayTimestampVector;
@@ -66,12 +81,20 @@ class Replay
 	{
 		return vOnlineReplayTimestampVector;
 	}
+	void SetOnlineReplayTimestampVector(const std::vector<float>& v)
+	{
+		vOnlineReplayTimestampVector = v;
+	}
 
 	auto GetInputDataVector() const -> const std::vector<InputDataEvent>& {
 		return InputData;
 	}
 	auto GetCopyOfInputDataVector() const -> std::vector<InputDataEvent> {
 		return InputData;
+	}
+	void SetInputDataVector(const std::vector<InputDataEvent>& v)
+	{
+		InputData = v;
 	}
 
 	auto GetScoreKey() const -> std::string {
@@ -85,6 +108,24 @@ class Replay
 	}
 	void SetChartKey(std::string& key) {
 		chartKey = key;
+	}
+	auto GetMusicRate() const -> float {
+		return fMusicRate;
+	}
+	void SetMusicRate(float f) {
+		fMusicRate = f;
+	}
+	auto GetSongOffset() const -> float {
+		return fSongOffset;
+	}
+	void SetSongOffset(float f) {
+		fSongOffset = f;
+	}
+	auto GetGlobalOffset() const -> float {
+		return fGlobalOffset;
+	}
+	void SetGlobalOffset(float f) {
+		fGlobalOffset = f;
 	}
 
 	ReplayType GetReplayType() const
@@ -139,6 +180,9 @@ class Replay
 
 	std::string scoreKey{};
 	std::string chartKey{};
+	float fMusicRate = 1.F;
+	float fSongOffset = 0.F;
+	float fGlobalOffset = 0.F;
 
 	std::vector<InputDataEvent> InputData;
 	std::vector<float> vOffsetVector;
