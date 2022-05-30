@@ -573,15 +573,6 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
 		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
 		hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
-		// flag this before rescore so it knows we're LEGGIT
-		hs.SetReplayType(2);
-		if (hs.GetTapNoteTypeVector().size() < hs.GetNoteRowVector().size() ||
-			hs.GetTrackVector().size() < hs.GetNoteRowVector().size()) {
-			// what happened here is most likely that the replay type is not 2
-			// (missing column data, missing type data)
-			// it's a replay made before 0.60
-			hs.SetReplayType(1);
-		}
 
 		// ok this is a little jank but there's a few things going on here,
 		// first we can't trust that scores getting here are necessarily either

@@ -1578,11 +1578,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
 				it->hs.SetNoteRowVector(rows);
-
-				if (tracks.empty())
-					it->hs.SetReplayType(1);
-				else
-					it->hs.SetReplayType(2);
 			}
 		}
 
@@ -1598,11 +1593,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 			it->hs.SetTrackVector(tracks);
 			it->hs.SetTapNoteTypeVector(types);
 			it->hs.SetNoteRowVector(rows);
-
-			if (tracks.empty())
-				it->hs.SetReplayType(1);
-			else
-				it->hs.SetReplayType(2);
 		}
 
 		if (!callback.IsNil() && callback.IsSet()) {

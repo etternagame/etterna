@@ -3,9 +3,20 @@
 
 #include "Etterna/Models/Misc/NoteTypes.h"
 
+// contains only tap offset data for rescoring/plots
+const std::string BASIC_REPLAY_DIR = "Save/Replays/";
+
+// contains freeze drops and mine hits as well as tap
+// offsets; fully "rewatchable" -mina
+const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
+
+// contains input data files corresponding to replays
+const std::string INPUT_DATA_DIR = "Save/InputData/";
+
 /// enum values defined by Replay.GetReplayType()
 enum ReplayType
 {
+	ReplayType_V0,	  // ????
 	ReplayType_V1,	  // contains only note info
 	ReplayType_V2,	  // contains column info and type info with note info
 	ReplayType_Input, // contains full input data
