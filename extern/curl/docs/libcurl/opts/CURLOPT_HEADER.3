@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -24,9 +24,11 @@
 .SH NAME
 CURLOPT_HEADER \- pass headers to the data stream
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_setopt(CURL *handle, CURLOPT_HEADER, long onoff);
+.fi
 .SH DESCRIPTION
 Pass the long value \fIonoff\fP set to 1 to ask libcurl to include the headers
 in the write callback (\fICURLOPT_WRITEFUNCTION(3)\fP). This option is
@@ -55,13 +57,15 @@ Most
 .nf
 CURL *curl = curl_easy_init();
 if(curl) {
-  curl_easy_setopt(curl, CURLOPT_URL, "http://example.com");
+  curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
   curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
 
   curl_easy_perform(curl);
 }
 .fi
+.SH AVAILABILITY
+Provided in all libcurl versions.
 .SH RETURN VALUE
 Returns CURLE_OK.
 .SH "SEE ALSO"

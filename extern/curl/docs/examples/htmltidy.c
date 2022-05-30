@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -28,8 +28,8 @@
  */
 
 #include <stdio.h>
-#include <tidy.h>
-#include <tidybuffio.h>
+#include <tidy/tidy.h>
+#include <tidy/tidybuffio.h>
 #include <curl/curl.h>
 
 /* curl write callback, to fill tidy's input buffer...  */
@@ -53,14 +53,14 @@ void dumpNode(TidyDoc doc, TidyNode tnod, int indent)
       printf("%*.*s%s ", indent, indent, "<", name);
       /* walk the attribute list */
       for(attr = tidyAttrFirst(child); attr; attr = tidyAttrNext(attr) ) {
-        printf(tidyAttrName(attr));
+        printf("%s", tidyAttrName(attr));
         tidyAttrValue(attr)?printf("=\"%s\" ",
                                    tidyAttrValue(attr)):printf(" ");
       }
       printf(">\n");
     }
     else {
-      /* if it doesn't have a name, then it's probably text, cdata, etc... */
+      /* if it does not have a name, then it's probably text, cdata, etc... */
       TidyBuffer buf;
       tidyBufInit(&buf);
       tidyNodeGetText(doc, child, &buf);

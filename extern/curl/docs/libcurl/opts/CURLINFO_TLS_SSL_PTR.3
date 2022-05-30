@@ -9,7 +9,7 @@
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -54,7 +54,7 @@ struct curl_tlssessioninfo {
 
 The \fIbackend\fP struct member is one of the defines in the CURLSSLBACKEND_*
 series: CURLSSLBACKEND_NONE (when built without TLS support),
-CURLSSLBACKEND_WOLFSSL, CURLSSLBACKEND_DARWINSSL, CURLSSLBACKEND_GNUTLS,
+CURLSSLBACKEND_WOLFSSL, CURLSSLBACKEND_SECURETRANSPORT, CURLSSLBACKEND_GNUTLS,
 CURLSSLBACKEND_GSKIT, CURLSSLBACKEND_MBEDTLS, CURLSSLBACKEND_NSS,
 CURLSSLBACKEND_OPENSSL, CURLSSLBACKEND_SCHANNEL or
 CURLSSLBACKEND_MESALINK. (Note that the OpenSSL forks are all reported as just
@@ -116,7 +116,7 @@ pointer, with the (possibly) changed certificate information.
 
 If you are using OpenSSL or wolfSSL then \fICURLOPT_SSL_CTX_FUNCTION(3)\fP can
 be used to set a certificate verification callback in the CTX. That is safer
-than using this option to poll for certificate changes and doesn't suffer from
+than using this option to poll for certificate changes and does not suffer from
 any of the problems above. There is currently no way in libcurl to set a
 verification callback for the other SSL backends.
 

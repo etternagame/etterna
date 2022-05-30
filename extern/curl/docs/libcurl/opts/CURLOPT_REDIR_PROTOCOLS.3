@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -22,11 +22,13 @@
 .\"
 .TH CURLOPT_REDIR_PROTOCOLS 3 "19 Jun 2014" "libcurl 7.37.0" "curl_easy_setopt options"
 .SH NAME
-CURLOPT_REDIR_PROTOCOLS \- set protocols allowed to redirect to
+CURLOPT_REDIR_PROTOCOLS \- protocols allowed to redirect to
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_setopt(CURL *handle, CURLOPT_REDIR_PROTOCOLS, long bitmask);
+.fi
 .SH DESCRIPTION
 Pass a long that holds a bitmask of CURLPROTO_* defines. If used, this bitmask
 limits what protocols libcurl may use in a transfer that it follows to in a
@@ -75,7 +77,7 @@ CURLPROTO_TELNET
 CURLPROTO_TFTP
 .fi
 .SH DEFAULT
-HTTP, HTTPS, FTP and FTPS (Since 7.65.2).
+HTTP, HTTPS, FTP and FTPS (Added in 7.65.2).
 
 Older versions defaulted to all protocols except FILE, SCP and since 7.40.0
 SMB and SMBS.
