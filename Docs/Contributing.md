@@ -38,7 +38,7 @@ The project is sorely lacking in documentation. The current aim is to document t
 
 ## Translating
 
-The Rebirth theme (Default) only has one translation available. In order to make others, simply copy `Etterna/Themes/Rebirth/Languages/en.ini` and translate all the right-side words (After the `=`). Also, a list of the words/text/captions/things that aren't translate-able in the theme would be useful to make them (Some of the text is hard-coded so it's not possible to translate it).
+The Rebirth theme (Default) only has one translation available. In order to make others, simply copy `etterna/Themes/Rebirth/Languages/en.ini` and translate all the right-side words (After the `=`). Also, a list of the words/text/captions/things that aren't translate-able in the theme would be useful to make them (Some of the text is hard-coded so it's not possible to translate it).
 
 A guide on this can be found in [the translations document](Translations.md).
 
