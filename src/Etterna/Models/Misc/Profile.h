@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/DateTime.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/Grade.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Models/Songs/SongUtil.h"			 // for SongID
 #include "Etterna/Models/StepsAndStyles/StepsUtil.h" // for StepsID

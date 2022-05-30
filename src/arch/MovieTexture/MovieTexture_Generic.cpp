@@ -519,7 +519,9 @@ MovieTexture_Generic::SetPosition(float fSeconds)
 	 * yet.  I don't think we ever actually seek except to 0 right now,
 	 * anyway. XXX */
 	if (fSeconds != 0) {
-		Locator::getLogger()->warn("MovieTexture_Generic::SetPosition({}): non-0 seeking unsupported; ignored", fSeconds);
+		Locator::getLogger()->warn("MovieTexture_Generic::SetPosition({}): "
+								   "non-0 seeking unsupported; ignored",
+								   fSeconds);
 		return;
 	}
 

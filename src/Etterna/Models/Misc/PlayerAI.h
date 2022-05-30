@@ -2,7 +2,7 @@
 #define PlayerAI_H
 
 #include "GameConstantsAndTypes.h"
-#include "HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "PlayerStageStats.h"
 #include "Etterna/Actor/Gameplay/Player.h"
 

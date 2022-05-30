@@ -17,6 +17,15 @@ list(APPEND FONT_HPP
 	"Fonts/FontCharAliases.h"
 	"Fonts/FontCharmaps.h")
 
+list(APPEND HIGHSCORE_SRC
+	"HighScore/HighScore.cpp"
+	"HighScore/Replay.cpp"
+	"HighScore/ReplayConstantsAndTypes.cpp")
+
+list(APPEND HIGHSCORE_HPP
+	"HighScore/HighScore.h"
+	"HighScore/Replay.h"
+	"HighScore/ReplayConstantsAndTypes.h")
 
 list(APPEND NOTEDATA_SRC
 	"NoteData/NoteData.cpp"
@@ -115,7 +124,6 @@ list(APPEND REST_SRC
 	"Misc/GameplayAssist.cpp"
 	"Misc/GamePreferences.cpp"
 	"Misc/Grade.cpp"
-	"Misc/HighScore.cpp"
 	"Misc/LocalizedString.cpp"
 	"Misc/LyricsLoader.cpp"
 	"Misc/ModsGroup.cpp"
@@ -165,7 +173,6 @@ list(APPEND REST_HPP
 	"Misc/GameplayAssist.h"
 	"Misc/GamePreferences.h"
 	"Misc/Grade.h"
-	"Misc/HighScore.h"
 	"Misc/InputEventPlus.h"
 	"Misc/LocalizedString.h"
 	"Misc/LyricsLoader.h"
@@ -198,6 +205,7 @@ list(APPEND REST_HPP
 list(APPEND ALL_DATA_SRC
   ${FONT_SRC}
   ${LUA_SRC}
+  ${HIGHSCORE_SRC}
   ${NOTEDATA_SRC}
   ${NOTELOAD_SRC}
   ${NOTEWRITE_SRC}
@@ -209,6 +217,7 @@ list(APPEND ALL_DATA_SRC
 list(APPEND ALL_DATA_HPP
   ${FONT_HPP}
   ${LUA_HPP}
+  ${HIGHSCORE_HPP}
   ${NOTEDATA_HPP}
   ${NOTELOAD_HPP}
   ${NOTEWRITE_HPP}

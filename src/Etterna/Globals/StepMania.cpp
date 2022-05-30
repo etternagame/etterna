@@ -47,6 +47,7 @@
 #include "Etterna/Models/Songs/SongCacheIndex.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/ReplayManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Actor/Base/ModelManager.h"
@@ -670,9 +671,8 @@ CheckVideoDefaultSettings()
 	// Video card changed since last run
 	std::string sVideoDriver = GetVideoDriverName();
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Last seen video driver: {}",
-				   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
+	Locator::getLogger()->info("Last seen video driver: {}",
+				PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
 
 	// allow players to opt out of the forced reset when a new video card is
 	// detected - mina
@@ -687,8 +687,7 @@ CheckVideoDefaultSettings()
 		std::string sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
+			Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
 			break;
 		}
 	}
@@ -729,8 +728,7 @@ CheckVideoDefaultSettings()
 				  defaults.sVideoRenderers.c_str(), PREFSMAN->m_sVideoRenderers.Get().c_str());
 	}
 
-	if (PREFSMAN->m_verbose_log > 0)
-		Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
+	Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
 	return bSetDefaultVideoParams;
 }
 
@@ -995,13 +993,6 @@ sm_main(int argc, char* argv[])
 	FILEMAN = new RageFileManager(argv[0]);
 	FILEMAN->Mount("dir", Core::Platform::getAppDirectory(), "/");
 
-#ifdef __unix__
-	/* Mount the root filesystem, so we can read files in /proc, /etc, and so
-	 * on. This is /rootfs, not /root, to avoid confusion with root's home
-	 * directory. */
-	FILEMAN->Mount("dir", "/", "/rootfs");
-#endif
-
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
 
@@ -1039,8 +1030,12 @@ sm_main(int argc, char* argv[])
 
     // Setup options that require preference variables
     // Used to be contents of ApplyLogPreferences
+    Core::Crash::setShouldUpload(PREFSMAN->m_bEnableCrashUpload);
     Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
-    Locator::getLogger()->setLogLevel(static_cast<Core::ILogger::Severity>(PREFSMAN->m_verbose_log.Get()));
+	Locator::getLogger()->info("Logging level {} (0 - TRACE | 5 - FATAL)",
+							   PREFSMAN->m_logging_level.Get());
+	Locator::getLogger()->setLogLevel(
+	  static_cast<Core::ILogger::Severity>(PREFSMAN->m_logging_level.Get()));
 
 	// This needs PREFSMAN.
 	Dialog::Init();
@@ -1128,6 +1123,7 @@ sm_main(int argc, char* argv[])
 	FILTERMAN = new FilterManager;
 
 	DLMAN = std::make_shared<DownloadManager>();
+	REPLAYS = std::make_shared<ReplayManager>();
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */
@@ -1370,7 +1366,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
-		Locator::getLogger()->trace("Screenshot took {} seconds.", timer.GetDeltaTime());
+		Locator::getLogger()->debug("Screenshot took {} seconds.", timer.GetDeltaTime());
 		return true; // handled
 	}
 

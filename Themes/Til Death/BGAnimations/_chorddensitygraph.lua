@@ -122,8 +122,7 @@ local t = Def.ActorFrame {
     }
 }
 
-t[#t+1] =
-	Def.ActorMultiVertex {
+t[#t+1] = Def.ActorMultiVertex {
 		Name = "CDGraphDrawer",
 		GraphUpdateCommand = function(self)
 			if self:IsVisible() then

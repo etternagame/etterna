@@ -201,19 +201,10 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 				type = MusicWheelItemType_SectionCollapsed;
 			}
 
-			auto all_songs_by_group = wheel->allSongsByGroupFiltered.at(GAMESTATE->m_SortOrder);
-			auto songs_in_group = all_songs_by_group.find(pWID->m_sText);
-			if (PREFSMAN->m_bPackProgressInWheel && songs_in_group != all_songs_by_group.end()) {
-				int num_played_songs = 0;
-
-				for (auto song : songs_in_group->second) {
-					for (auto chart : song->GetChartsOfCurrentGameMode()) {
-						if (SCOREMAN->KeyHasScores(chart->GetChartKey())) {
-							num_played_songs++;
-							break;
-						}
-					}
-				}
+			auto plays_by_group = wheel->packProgressByGroup.at(GAMESTATE->m_SortOrder);
+			auto plays_in_group = plays_by_group.find(pWID->m_sText);
+			if (PREFSMAN->m_bPackProgressInWheel && plays_in_group != plays_by_group.end()) {
+				int num_played_songs = plays_in_group->second;
 
 				RageColor color;
 				if (num_played_songs == pWID->m_iSectionCount) {
@@ -323,23 +314,38 @@ MusicWheelItem::RefreshGrades()
 	Difficulty dcBest = Difficulty_Invalid;
 	if (pWID->m_pSong != nullptr) {
 		bool hasCurrentStyleSteps = false;
+		auto allSteps = pWID->m_pSong->GetChartsMatchingFilter();
+		std::unordered_map<Difficulty, std::vector<Steps*>> difficultyToSteps{
+			NUM_Difficulty
+		};
+		for (auto& s : allSteps) {
+			auto d = s->GetDifficulty();
+			if (difficultyToSteps.count(d) == 0u) {
+				std::vector<Steps*> v;
+				difficultyToSteps[d] = v;
+			}
+			difficultyToSteps[d].push_back(s);
+		}
 		FOREACH_ENUM_N(Difficulty, 6, i)
 		{
-			Steps* pSteps =
-			  SongUtil::GetStepsByDifficulty(pWID->m_pSong, st, i);
-			if (pSteps != nullptr) {
-				hasCurrentStyleSteps = true;
-				Grade dcg = SCOREMAN->GetBestGradeFor(pSteps->GetChartKey());
-				if (gradeBest >= dcg) {
-					dcBest = i;
-					gradeBest = dcg;
+			if (difficultyToSteps.count(i) == 0u)
+				continue;
+			auto& stepslist = difficultyToSteps[i];
+			for (auto& s : stepslist) {
+				if (s->m_StepsType == st) {
+					hasCurrentStyleSteps = true;
+					Grade dcg =
+					  SCOREMAN->GetBestGradeFor(s->GetChartKey());
+					if (gradeBest >= dcg) {
+						dcBest = i;
+						gradeBest = dcg;
+					}
 				}
 			}
 		}
 		// If no grade was found for the current style/stepstype
 		if (!hasCurrentStyleSteps) {
 			// Get the best grade among all steps
-			auto& allSteps = pWID->m_pSong->GetAllSteps();
 			for (auto& stepsPtr : allSteps) {
 				if (stepsPtr->m_StepsType ==
 					st) // Skip already checked steps of type st

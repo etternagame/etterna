@@ -36,8 +36,7 @@ WheelBase::~WheelBase()
 void
 WheelBase::Load(const std::string& sType)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("WheelBase::Load('{}')", sType.c_str());
+	Locator::getLogger()->debug("WheelBase::Load('{}')", sType.c_str());
 	ASSERT(this->GetNumChildren() == 0); // only load once
 
 	m_bEmpty = false;

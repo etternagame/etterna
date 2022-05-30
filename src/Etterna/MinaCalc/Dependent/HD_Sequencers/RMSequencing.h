@@ -19,34 +19,37 @@ enum rm_status
 	rm_running,
 };
 
+/// Maintains the information pertaining to a single runningman.
+/// This runningman is for one finger, so there are 4 of them.
+/// The finger this is built for is the anchor finger.
 struct RunningMan
 {
-	// all taps contained in this runningman sequence
+	/// all taps contained in this runningman sequence
 	int ran_taps = 0;
 
-	// total length of the anchor
+	/// total length of the anchor
 	int _len = 0;
 
-	// any off anchor taps
+	/// any off anchor taps
 	int off_taps = 0;
 	int off_len = 0;
 
-	// off anchor taps on the same hand, i.e. the 2s in 1211121
+	/// off anchor taps on the same hand, i.e. the 2s in 1211121
 	int off_taps_sh = 0;
 
-	// one hand trill taps
+	/// one hand trill taps
 	int oht_taps = 0;
-	// current oht sequence length
+	/// current oht sequence length
 	int oht_len = 0;
 
-	// it's not really a runningman if the anchor is on the off column is it
+	/// it's not really a runningman if the anchor is on the off column is it
 	int ot_sh_len = 0;
 
-	// jack taps (like, actual jacks in the runningman)
+	/// jack taps (like, actual jacks in the runningman)
 	int jack_taps = 0;
 	int jack_len = 0;
 
-	// consecutive anchors sequence length, track this to throw out 2h trills
+	/// consecutive anchors sequence length, track this to throw out 2h trills
 	int anch_len = 0;
 
 	void full_reset()
@@ -139,7 +142,7 @@ struct RunningMan
 		anch_len = 0;
 	}
 
-	// any off taps to anchor len
+	/// any off taps to anchor len
 	[[nodiscard]] auto get_off_tap_prop() const -> float
 	{
 		if (off_taps == 0)
@@ -148,7 +151,7 @@ struct RunningMan
 		return (static_cast<float>(_len) / (static_cast<float>(off_taps)));
 	}
 
-	// off hand taps to anchor len
+	/// off hand taps to anchor len
 	[[nodiscard]] auto get_offhand_tap_prop() const -> float
 	{
 		if (off_taps - off_taps_sh <= 0)
@@ -158,7 +161,7 @@ struct RunningMan
 				static_cast<float>(_len));
 	}
 
-	// same hand taps to anchor len
+	/// same hand taps to anchor len
 	[[nodiscard]] auto get_off_tap_same_prop() const -> float
 	{
 		if (off_taps_sh == 0)
@@ -168,8 +171,8 @@ struct RunningMan
 	}
 };
 
-// used by ranmen mod, for ranmen sequencing (doesn't have a sequence struct and
-// probably should?? this should just be logic only)
+/// used by ranmen mod, for ranmen sequencing (doesn't have a sequence struct and
+/// probably should?? this should just be logic only)
 struct RM_Sequencer
 {
 	// params.. loaded by runningman and then set from there

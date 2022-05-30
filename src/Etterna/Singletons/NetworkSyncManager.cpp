@@ -12,7 +12,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
@@ -452,8 +452,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	}
 
 	chat.rawMap.clear();
-	if (PREFSMAN->m_verbose_log > 0)
-		Locator::getLogger()->info("Attempting to connect to: {}, Port: {}", sAddress.c_str(), iPort);
+	Locator::getLogger()->info("Attempting to connect to: {}, Port: {}", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
 
@@ -509,7 +508,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			return;
 		std::unique_ptr<Document> d(new Document);
 		if (d->Parse(message->get_payload().c_str()).HasParseError())
-			Locator::getLogger()->trace("Error while processing ettprotocol json (message: {} )",
+			Locator::getLogger()->error("Error while processing ettprotocol json (message: {} )",
 					   message->get_payload().c_str());
 		else {
 			std::lock_guard<std::mutex> l(this->messageBufferMutex);
@@ -523,7 +522,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		finished_connecting = true;
 		this->hdl = std::make_shared<websocketpp::connection_hdl>(hdl);
 		n->isSMOnline = true;
-		Locator::getLogger()->trace("Connected to ett server: {}", address.c_str());
+		Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
 	};
 	auto failHandler = [n, this, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
@@ -556,7 +555,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 								   .c_str(),
 								 ec);
 		if (ec) {
-			Locator::getLogger()->trace("Could not create ettp connection because: {}",
+			Locator::getLogger()->error("Could not create ettp connection because: {}",
 					   ec.message().c_str());
 		} else {
 			try {
@@ -593,7 +592,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			.c_str(),
 		  ec);
 		if (ec) {
-			Locator::getLogger()->trace("Could not create ettp connection because: {}",
+			Locator::getLogger()->error("Could not create ettp connection because: {}",
 					   ec.message().c_str());
 		} else {
 			try {
@@ -616,7 +615,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		this->thread = std::unique_ptr<std::thread>(
 		  new std::thread([client]() { client->run(); }));
 	} else
-		Locator::getLogger()->trace("Failed to connect to ettp server: {}", address.c_str());
+		Locator::getLogger()->error("Failed to connect to ettp server: {}", address.c_str());
 	return n->isSMOnline;
 }
 RoomData
@@ -733,7 +732,7 @@ void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
 	if (this->client == nullptr) {
-		Locator::getLogger()->trace("Disconnected from ett server {}", serverName.c_str());
+		Locator::getLogger()->info("Disconnected from ett server {}", serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
@@ -756,19 +755,19 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				StringBuffer buffer;
 				Writer<StringBuffer> writer(buffer);
 				d.Accept(writer);
-				Locator::getLogger()->trace(
+				Locator::getLogger()->warn(
 				  "Recieved ETTP message with no type: {}", buffer.GetString());
 				continue;
 			}
 			if (d.HasMember("error") && d["error"].IsString()) {
-				Locator::getLogger()->trace("Error on ETTP message {}: {}",
+				Locator::getLogger()->error("Error on ETTP message {}: {}",
 											d["type"].GetString(),
 											d["error"].GetString());
 				continue;
 			}
 			auto type = ettServerMessageMap.find(d["type"].GetString());
 			if (ettServerMessageMap.end() == type) {
-				Locator::getLogger()->trace("Unknown ETTP message type {}",
+				Locator::getLogger()->warn("Unknown ETTP message type {}",
 											d["type"].GetString());
 				continue;
 			}
@@ -801,7 +800,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						serverVersion = payload["version"].GetInt();
 					else
 						serverVersion = 1;
-					Locator::getLogger()->trace("Ettp server identified: {} (Version: {})",
+					Locator::getLogger()->info("Ettp server identified: {} (Version: {})",
 							   serverName.c_str(),
 							   serverVersion);
 					n->DisplayStartupStatus();
@@ -1161,7 +1160,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 						} catch (std::exception& e) {
-							Locator::getLogger()->trace("Error while parsing ettp json enter "
+							Locator::getLogger()->error("Error while parsing ettp json enter "
 									   "room response: {}",
 									   e.what());
 						}
@@ -1185,7 +1184,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						!payload["room"].IsObject() ||
 						!payload["room"].HasMember("name") ||
 						!payload["room"]["name"].IsString()) {
-						Locator::getLogger()->trace("Invalid ETTP deleteroom room message");
+						Locator::getLogger()->warn("Invalid ETTP deleteroom room message");
 						continue;
 					}
 					string name = payload["room"]["name"].GetString();
@@ -1311,7 +1310,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					break;
 			}
 		} catch (std::exception& e) {
-			Locator::getLogger()->trace("Error while parsing ettp json message: {}", e.what());
+			Locator::getLogger()->error("Error while parsing ettp json message: {}", e.what());
 		}
 	}
 	newMessages.clear();
@@ -1383,7 +1382,10 @@ ETTProtocol::SendChat(const std::string& message, string tab, int type)
 	writer.Key("payload");
 	writer.StartObject();
 	writer.Key("msg");
-	writer.String(message.c_str());
+	if (message.length() > 500)
+		writer.String(message.substr(0, 500).c_str());
+	else
+		writer.String(message.c_str());
 	writer.Key("tab");
 	writer.String(tab.c_str());
 	writer.Key("msgtype");
@@ -2106,10 +2108,11 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	{
 		auto& reqs = p->requests;
 		auto reqPtrToRemove = Luna<ChartRequest>::check(L, 1, true);
-		remove_if(
+		auto new_end = remove_if(
 		  reqs.begin(), reqs.end(), [reqPtrToRemove](ChartRequest* req) {
 			  return req == reqPtrToRemove;
 		  });
+		reqs.erase(new_end, reqs.end());
 		// Keep it in case lua keeps a reference to it
 		p->staleRequests.push_back(reqPtrToRemove);
 		return 0;

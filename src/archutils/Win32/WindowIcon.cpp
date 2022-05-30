@@ -85,7 +85,8 @@ IconFromSurface(const RageSurface* pSrcImg)
 	free(pBitmap);
 
 	if (icon == NULL) {
-		Locator::getLogger()->trace(werr_ssprintf(GetLastError(), "CreateIconFromResourceEx"));
+		Locator::getLogger()->trace(
+		  "{}", werr_ssprintf(GetLastError(), "CreateIconFromResourceEx"));
 		return NULL;
 	}
 
@@ -98,7 +99,8 @@ IconFromFile(const std::string& sIconFile)
 	std::string sError;
 	RageSurface* pImg = RageSurfaceUtils::LoadFile(sIconFile, sError);
 	if (pImg == NULL) {
-		Locator::getLogger()->warn("Couldn't open icon \"{}\": {}", sIconFile.c_str(), sError.c_str());
+		Locator::getLogger()->warn(
+		  "Couldn't open icon \"{}\": {}", sIconFile.c_str(), sError.c_str());
 		return NULL;
 	}
 

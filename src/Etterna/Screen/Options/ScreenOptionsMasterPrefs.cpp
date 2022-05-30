@@ -732,6 +732,7 @@ InitializeConfOptions()
 	ADD(ConfOption("ReplaysUseScoreMods", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("AllowStartToGiveUp", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
 				   MovePref<MusicWheelUsesSections>,
@@ -852,6 +853,7 @@ InitializeConfOptions()
 	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("PackProgressInWheel", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("EnableMinidumpUpload", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",

@@ -202,7 +202,7 @@ ScreenSelectMusic::BeginScreen()
 	}
 
 	if (GAMESTATE->GetCurrentStyle(PLAYER_INVALID) == nullptr) {
-		Locator::getLogger()->trace("The Style has not been set.  A theme must set the Style "
+		Locator::getLogger()->warn("The Style has not been set.  A theme must set the Style "
 				   "before loading ScreenSelectMusic.");
 		// Instead of crashing, set the first compatible style.
 		std::vector<StepsType> vst;
@@ -257,8 +257,7 @@ ScreenSelectMusic::BeginScreen()
 
 ScreenSelectMusic::~ScreenSelectMusic()
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ScreenSelectMusic::~ScreenSelectMusic()");
+	Locator::getLogger()->debug("ScreenSelectMusic::~ScreenSelectMusic()");
 	IMAGECACHE->Undemand("Banner");
 }
 
@@ -469,98 +468,25 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		// Reload currently selected song
 		if (holding_shift && bHoldingCtrl && c == 'R' &&
 			m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			auto* to_reload = m_MusicWheel.GetSelectedSong();
-			if (to_reload != nullptr) {
-				auto stepses = to_reload->GetAllSteps();
-				std::vector<string> oldChartkeys;
-				for (auto* steps : stepses)
-					oldChartkeys.emplace_back(steps->GetChartKey());
-
-				to_reload->ReloadFromSongDir();
-				SONGMAN->ReconcileChartKeysForReloadedSong(to_reload,
-														   oldChartkeys);
-
-				AfterMusicChange();
+			if (ReloadCurrentSong())
 				return true;
-			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			SONGMAN->ForceReloadSongGroup(
-			  GetMusicWheel()->GetSelectedSection());
-			AfterMusicChange();
-			SCREENMAN->SystemMessage("Current pack reloaded");
-			return true;
+			if (ReloadCurrentPack())
+				return true;
 		} else if (bHoldingCtrl && c == 'F' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
-			// Favorite the currently selected song. -Not Kyz
-			auto* fav_me_biatch = m_MusicWheel.GetSelectedSong();
-			if (fav_me_biatch != nullptr) {
-				auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-				if (!fav_me_biatch->IsFavorited()) {
-					fav_me_biatch->SetFavorited(true);
-					pProfile->AddToFavorites(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-					DLMAN->AddFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
-
-					// now update favorites playlist
-					// we have to do this here or it won't work for ??? reasons
-					pProfile->allplaylists.erase("Favorites");
-					SONGMAN->MakePlaylistFromFavorites(
-					  pProfile->FavoritedCharts, pProfile->allplaylists);
-				} else {
-					fav_me_biatch->SetFavorited(false);
-					pProfile->RemoveFromFavorites(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-					DLMAN->RemoveFavorite(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-
-					// we have to do this here or it won't work for ??? reasons
-					pProfile->allplaylists.erase("Favorites");
-					SONGMAN->MakePlaylistFromFavorites(
-					  pProfile->FavoritedCharts, pProfile->allplaylists);
-				}
-				DLMAN->RefreshFavourites();
-				MESSAGEMAN->Broadcast("FavoritesUpdated");
-
-				// update favorites playlist _display_
-				MESSAGEMAN->Broadcast("DisplayAll");
-
-				m_MusicWheel.ChangeMusic(0);
+			if (ToggleCurrentFavorite())
 				return true;
-			}
 		} else if (bHoldingCtrl && c == 'M' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
-			// PermaMirror the currently selected song. -Not Kyz
-			auto* alwaysmirrorsmh = m_MusicWheel.GetSelectedSong();
-			if (alwaysmirrorsmh != nullptr) {
-				auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-
-				if (!alwaysmirrorsmh->IsPermaMirror()) {
-					alwaysmirrorsmh->SetPermaMirror(true);
-					pProfile->AddToPermaMirror(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-				} else {
-					alwaysmirrorsmh->SetPermaMirror(false);
-					pProfile->RemoveFromPermaMirror(
-					  GAMESTATE->m_pCurSteps->GetChartKey());
-				}
-				MESSAGEMAN->Broadcast("FavoritesUpdated");
-				m_MusicWheel.ChangeMusic(0);
+			if (ToggleCurrentPermamirror())
 				return true;
-			}
 		} else if (bHoldingCtrl && c == 'G' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
-			auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-			pProfile->AddGoal(GAMESTATE->m_pCurSteps->GetChartKey());
-			auto* asonglol = m_MusicWheel.GetSelectedSong();
-			if (!asonglol)
+			if (GoalFromCurrentChart())
 				return true;
-			asonglol->SetHasGoal(true);
-			MESSAGEMAN->Broadcast("FavoritesUpdated");
-			m_MusicWheel.ChangeMusic(0);
-			return true;
 		} else if (bHoldingCtrl && c == 'Q' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
 			DifferentialReload();
@@ -593,6 +519,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			return true;
 		} else if (bHoldingCtrl && c == 'P' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS) {
+			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			ScreenTextEntry::TextEntry(
 			  SM_BackFromNamePlaylist, NAME_PLAYLIST, "", 128);
 			MESSAGEMAN->Broadcast("DisplayAll");
@@ -600,17 +527,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
-			if (SONGMAN->GetPlaylists().empty())
+			if (AddCurrentChartToActivePlaylist())
 				return true;
-
-			SONGMAN->GetPlaylists()[SONGMAN->activeplaylist].AddChart(
-			  GAMESTATE->m_pCurSteps->GetChartKey());
-			MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
-			SCREENMAN->SystemMessage(
-			  ssprintf(ADDED_TO_PLAYLIST.GetValue(),
-					   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
-					   SONGMAN->activeplaylist.c_str()));
-			return true;
 		} else if (bHoldingCtrl && c == 'T' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
 				   GAMESTATE->m_pCurSteps != nullptr) {
@@ -956,7 +874,7 @@ ScreenSelectMusic::UpdateSelectButton(PlayerNumber pn, bool bSelectIsDown)
 void
 ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 {
-	Locator::getLogger()->trace("ScreenSelectMusic::ChangeSteps( {}, {} )", pn, dir);
+	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", pn, dir);
 
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 
@@ -986,11 +904,7 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 			return;
 	}
 
-	std::vector<PlayerNumber> vpns;
-	if (pn == PLAYER_1 || GAMESTATE->DifficultiesLocked()) {
-		vpns.push_back(PLAYER_1);
-	}
-	AfterStepsOrTrailChange(vpns);
+	AfterStepsOrTrailChange();
 
 	const auto fBalance = GameSoundManager::GetPlayerBalance(pn);
 	if (dir < 0) {
@@ -1161,22 +1075,24 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 		// restart preview music after finishing or cancelling playlist creation
 		// this is just copypasta'd and should be made a function? or we have
 		// something better? idk
-		GameSoundManager::PlayMusicParams PlayParams;
-		PlayParams.sFile = HandleLuaMusicFile(m_sSampleMusicToPlay);
-		PlayParams.pTiming = m_pSampleMusicTimingData;
-		PlayParams.bForceLoop = SAMPLE_MUSIC_LOOPS;
-		PlayParams.fStartSecond = m_fSampleStartSeconds;
-		PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
-		PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
-		PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
-		PlayParams.bApplyMusicRate = true;
-		PlayParams.bAccurateSync = false;
-		GameSoundManager::PlayMusicParams FallbackMusic;
-		FallbackMusic.sFile = m_sLoopMusicPath;
-		FallbackMusic.fFadeInLengthSeconds =
-		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
-		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
-		SOUND->PlayMusic(PlayParams);
+		if (!m_sSampleMusicToPlay.empty()) {
+			GameSoundManager::PlayMusicParams PlayParams;
+			PlayParams.sFile = HandleLuaMusicFile(m_sSampleMusicToPlay);
+			PlayParams.pTiming = m_pSampleMusicTimingData;
+			PlayParams.bForceLoop = SAMPLE_MUSIC_LOOPS;
+			PlayParams.fStartSecond = m_fSampleStartSeconds;
+			PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
+			PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
+			PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
+			PlayParams.bApplyMusicRate = true;
+			PlayParams.bAccurateSync = false;
+			GameSoundManager::PlayMusicParams FallbackMusic;
+			FallbackMusic.sFile = m_sLoopMusicPath;
+			FallbackMusic.fFadeInLengthSeconds =
+			  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
+			FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
+			SOUND->PlayMusic(PlayParams);
+		}
 		GAMESTATE->SetPaused(false);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
 	}
@@ -1313,8 +1229,9 @@ ScreenSelectMusic::MenuBack(const InputEventPlus& /* input */)
 }
 
 void
-ScreenSelectMusic::AfterStepsOrTrailChange(const std::vector<PlayerNumber>& vpns)
+ScreenSelectMusic::AfterStepsOrTrailChange()
 {
+	// this used to be based on a list of given PlayerNumbers
 	const auto pn = PLAYER_1;
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 
@@ -1506,6 +1423,8 @@ ScreenSelectMusic::AfterMusicChange()
 						  pSong->m_fMusicSampleLengthSeconds;
 					}
 					break;
+				case SampleMusicPreviewMode_Nothing:
+					break;
 				default:
 					FAIL_M(ssprintf("Invalid preview mode: %i", pmode));
 			}
@@ -1527,11 +1446,12 @@ ScreenSelectMusic::AfterMusicChange()
 	// Don't stop music if it's already playing the right file.
 	g_bSampleMusicWaiting = false;
 	if (!m_MusicWheel.IsRouletting() &&
-		SOUND->GetMusicPath() != m_sSampleMusicToPlay) {
+		SOUND->GetMusicPath() != m_sSampleMusicToPlay &&
+		SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_Nothing) {
 		SOUND->StopMusic();
 		// some SampleMusicPreviewModes don't want the sample music immediately.
 		if (SAMPLE_MUSIC_PREVIEW_MODE !=
-			SampleMusicPreviewMode_StartToPreview) {
+			  SampleMusicPreviewMode_StartToPreview) {
 			if (!m_sSampleMusicToPlay.empty())
 				// dont run basic preview if chart preview is running
 				// lua handles that stuff (we need to change that)
@@ -1541,10 +1461,7 @@ ScreenSelectMusic::AfterMusicChange()
 
 	g_StartedLoadingAt.Touch();
 
-	std::vector<PlayerNumber> vpns;
-	vpns.push_back(PLAYER_1);
-
-	AfterStepsOrTrailChange(vpns);
+	AfterStepsOrTrailChange();
 }
 
 void
@@ -1598,6 +1515,143 @@ ScreenSelectMusic::PauseSampleMusic()
 		// us we didnt really pause anything (wow who would have thought)
 		GAMESTATE->SetPaused(success && pMusic->m_bPaused);
 	});
+}
+
+bool
+ScreenSelectMusic::ReloadCurrentSong()
+{
+	auto to_reload = GAMESTATE->m_pCurSong;
+	if (to_reload != nullptr) {
+		auto stepses = to_reload->GetAllSteps();
+		std::vector<string> oldChartkeys;
+		for (auto* steps : stepses)
+			oldChartkeys.emplace_back(steps->GetChartKey());
+
+		to_reload->ReloadFromSongDir();
+		SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
+
+		MESSAGEMAN->Broadcast("ReloadedCurrentSong");
+		m_MusicWheel.RebuildWheelItems(0);
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::ReloadCurrentPack()
+{
+	auto to_reload = GAMESTATE->m_pCurSong;
+	if (to_reload != nullptr) {
+		SONGMAN->ForceReloadSongGroup(to_reload->m_sGroupName);
+
+		m_MusicWheel.RebuildWheelItems(0);
+
+		MESSAGEMAN->Broadcast("ReloadedCurrentPack");
+		SCREENMAN->SystemMessage("Current pack reloaded");
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::ToggleCurrentFavorite()
+{
+	auto fav_me_biatch = GAMESTATE->m_pCurSong;
+	if (fav_me_biatch != nullptr) {
+		auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+		if (!fav_me_biatch->IsFavorited()) {
+			fav_me_biatch->SetFavorited(true);
+			pProfile->AddToFavorites(GAMESTATE->m_pCurSteps->GetChartKey());
+			DLMAN->AddFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
+
+			// now update favorites playlist
+			// we have to do this here or it won't work for ??? reasons
+			pProfile->allplaylists.erase("Favorites");
+			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
+											   pProfile->allplaylists);
+		} else {
+			fav_me_biatch->SetFavorited(false);
+			pProfile->RemoveFromFavorites(
+			  GAMESTATE->m_pCurSteps->GetChartKey());
+			DLMAN->RemoveFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
+
+			// we have to do this here or it won't work for ??? reasons
+			pProfile->allplaylists.erase("Favorites");
+			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
+											   pProfile->allplaylists);
+		}
+		DLMAN->RefreshFavorites();
+		MESSAGEMAN->Broadcast("FavoritesUpdated");
+
+		// update favorites playlist _display_
+		MESSAGEMAN->Broadcast("DisplayAll");
+
+		m_MusicWheel.RebuildWheelItems(0);
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::ToggleCurrentPermamirror()
+{
+	auto alwaysmirrorsmh = GAMESTATE->m_pCurSong;
+	if (alwaysmirrorsmh != nullptr) {
+		auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+
+		if (!alwaysmirrorsmh->IsPermaMirror()) {
+			alwaysmirrorsmh->SetPermaMirror(true);
+			pProfile->AddToPermaMirror(GAMESTATE->m_pCurSteps->GetChartKey());
+		} else {
+			alwaysmirrorsmh->SetPermaMirror(false);
+			pProfile->RemoveFromPermaMirror(
+			  GAMESTATE->m_pCurSteps->GetChartKey());
+		}
+
+		// legacy compat TEMP
+		MESSAGEMAN->Broadcast("FavoritesUpdated");
+
+		MESSAGEMAN->Broadcast("PermamirrorUpdated");
+		m_MusicWheel.RebuildWheelItems(0);
+		return true;
+	}
+	return false;
+}
+
+bool
+ScreenSelectMusic::GoalFromCurrentChart()
+{
+	auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
+	pProfile->AddGoal(GAMESTATE->m_pCurSteps->GetChartKey());
+	auto asonglol = GAMESTATE->m_pCurSong;
+	if (!asonglol)
+		return false;
+
+	asonglol->SetHasGoal(true);
+
+	// legacy compat TEMP
+	MESSAGEMAN->Broadcast("FavoritesUpdated");
+
+	MESSAGEMAN->Broadcast("GoalsUpdated");
+	m_MusicWheel.RebuildWheelItems(0);
+	return true;
+}
+
+bool
+ScreenSelectMusic::AddCurrentChartToActivePlaylist()
+{
+	if (SONGMAN->GetPlaylists().empty())
+		return false;
+
+	SONGMAN->GetPlaylists()[SONGMAN->activeplaylist].AddChart(
+	  GAMESTATE->m_pCurSteps->GetChartKey());
+	MESSAGEMAN->Broadcast("DisplaySinglePlaylist");
+	SCREENMAN->SystemMessage(
+	  ssprintf(ADDED_TO_PLAYLIST.GetValue(),
+			   GAMESTATE->m_pCurSong->GetDisplayMainTitle().c_str(),
+			   SONGMAN->activeplaylist.c_str()));
+	return true;
 }
 
 // lua start
@@ -1788,7 +1842,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		PlayerAI::oldFailType = ft;
 
 		// lock the game into replay mode and GO
-		Locator::getLogger()->trace("Viewing replay for score key {}",
+		Locator::getLogger()->info("Viewing replay for score key {}",
 				   hs->GetScoreKey().c_str());
 		GamePreferences::m_AutoPlay.Set(PC_REPLAY);
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_REPLAY;
@@ -1880,11 +1934,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		MESSAGEMAN->Broadcast("RateChanged");
 
 		// go
-		Locator::getLogger()->trace("Viewing evaluation screen for score key {}",
+		Locator::getLogger()->info("Viewing evaluation screen for score key {}",
 				   score->GetScoreKey().c_str());
 		p->SetNextScreenName("ScreenEvaluationNormal");
 		p->StartTransitioningScreen(SM_BeginFadingOut);
-		
+
 		// set rate back to what it was before
 		GAMEMAN->m_bResetModifiers = true;
 		GAMEMAN->m_fPreviousRate = oldRate;
@@ -1932,6 +1986,36 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->PlayCurrentSongSampleMusic(true, BArg(1), BArg(2));
 		return 0;
 	}
+	static int ReloadCurrentSong(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ReloadCurrentSong());
+		return 1;
+	}
+	static int ReloadCurrentPack(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ReloadCurrentPack());
+		return 1;
+	}
+	static int ToggleCurrentFavorite(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ToggleCurrentFavorite());
+		return 1;
+	}
+	static int ToggleCurrentPermamirror(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->ToggleCurrentPermamirror());
+		return 1;
+	}
+	static int GoalFromCurrentChart(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->GoalFromCurrentChart());
+		return 1;
+	}
+	static int AddCurrentChartToActivePlaylist(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->AddCurrentChartToActivePlaylist());
+		return 1;
+	}
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(OpenOptions);
@@ -1950,6 +2034,12 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(IsSampleMusicPaused);
 		ADD_METHOD(ChangeSteps);
 		ADD_METHOD(PlayCurrentSongSampleMusic);
+		ADD_METHOD(ReloadCurrentSong);
+		ADD_METHOD(ReloadCurrentPack);
+		ADD_METHOD(ToggleCurrentFavorite);
+		ADD_METHOD(ToggleCurrentPermamirror);
+		ADD_METHOD(GoalFromCurrentChart);
+		ADD_METHOD(AddCurrentChartToActivePlaylist);
 	}
 };
 

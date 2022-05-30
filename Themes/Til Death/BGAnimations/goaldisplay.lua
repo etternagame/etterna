@@ -39,19 +39,7 @@ local function input(event)
 	return false
 end
 
-local function highlight(self)
-	if cheese:IsVisible() then
-		self:queuecommand("Highlight")
-	end
-end
-
-local function highlightIfOver(self)
-	if isOver(self) then
-		self:diffusealpha(0.6)
-	else
-		self:diffusealpha(1)
-	end
-end
+local hoverAlpha = 0.6
 
 local function byAchieved(scoregoal, nocolor, yescolor)
 	if not scoregoal or scoregoal:IsAchieved() then
@@ -84,7 +72,6 @@ local o = Def.ActorFrame {
 	InitCommand = function(self)
 		cheese = self
 		self:xy(0, 0)
-		self:SetUpdateFunction(highlight)
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(input)
@@ -132,7 +119,7 @@ local o = Def.ActorFrame {
 			self:xy(offx, headeroff):zoomto(dwidth, pdh):halign(0):diffuse(getMainColor("frames"))
 		end
 	},
-	LoadFont("Common normal") .. {
+	UIElements.TextToolTip(1, 1, "Common normal") .. {
 		--priority header
 		InitCommand = function(self)
 			self:xy(c0x, headeroff):zoom(tzoom):halign(0.5)
@@ -141,50 +128,57 @@ local o = Def.ActorFrame {
 		UpdateCommand = function(self)
 			self:settext(translated_info["PriorityShort"])
 		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:settext(translated_info["PriorityLong"]):diffusealpha(0.6):x(c0x+9)
-				self:GetParent():GetChild("RateHeader"):settext(translated_info["RateShort"]):x(c1x+12):zoom(tzoom/1.5)
-			else
-				self:settext(translated_info["PriorityShort"]):diffusealpha(1):x(c0x)
-				self:GetParent():GetChild("RateHeader"):settext(translated_info["RateLong"]):x(c1x):zoom(tzoom)
-			end
-		end, MouseLeftClickMessageCommand = function(self) if isOver(self) then
+		MouseOverCommand = function(self)
+			self:settext(translated_info["PriorityLong"]):diffusealpha(0.6):x(c0x+9)
+			self:GetParent():GetChild("RateHeader"):settext(translated_info["RateShort"]):x(c1x+12):zoom(tzoom/1.5)
+		end,
+		MouseOutCommand = function(self)
+			self:settext(translated_info["PriorityShort"]):diffusealpha(1):x(c0x)
+			self:GetParent():GetChild("RateHeader"):settext(translated_info["RateLong"]):x(c1x):zoom(tzoom)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				GetPlayerOrMachineProfile(PLAYER_1):SortByPriority()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end
 	},
-	LoadFont("Common normal") .. {
+	UIElements.TextToolTip(1, 1, "Common normal") .. {
 		--rate header
 		Name = "RateHeader",
 		InitCommand = function(self)
 			self:xy(c1x, headeroff):zoom(tzoom):halign(0.5):settext(translated_info["RateLong"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				GetPlayerOrMachineProfile(PLAYER_1):SortByRate()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end
 	},
-	LoadFont("Common normal") .. {
+	UIElements.TextToolTip(1, 1, "Common normal") .. {
 		--song header
 		InitCommand = function(self)
 			self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext(translated_info["Song"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				GetPlayerOrMachineProfile(PLAYER_1):SortByName()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
@@ -200,17 +194,20 @@ local o = Def.ActorFrame {
 			self:settextf("%i-%i (%i)", ind + 1, ind + numgoals, #goaltable)
 		end
 	},
-	LoadFont("Common normal") .. {
+	UIElements.TextToolTip(1, 1, "Common normal") .. {
 		--completed toggle // filter header
 		InitCommand = function(self)
 			self:xy(width/2 + capWideScale(37, 45), headeroff):zoom(tzoom):halign(0):settext(filts[1])
 			self:diffuse(getMainColor("positive"))
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter()
 				ind = 0
 				self:settext(filts[GetPlayerOrMachineProfile(PLAYER_1):GetFilterMode()])
@@ -218,34 +215,40 @@ local o = Def.ActorFrame {
 			end
 		end
 	},
-	LoadFont("Common normal") .. {
+	UIElements.TextToolTip(1, 1, "Common normal") .. {
 		--date header
 		InitCommand = function(self)
 			self:xy(c4x - capWideScale(5, 35), headeroff):zoom(tzoom):halign(1):settext(translated_info["Date"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				GetPlayerOrMachineProfile(PLAYER_1):SortByDate()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
 			end
 		end
 	},
-	LoadFont("Common normal") .. {
+	UIElements.TextToolTip(1, 1, "Common normal") .. {
 		--diff header
 		InitCommand = function(self)
 			self:xy(c5x, headeroff):zoom(tzoom):halign(1):settext(translated_info["Difficulty"])
 			self:diffuse(getMainColor("positive"))
 		end,
-		HighlightCommand = function(self)
-			highlightIfOver(self)
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				GetPlayerOrMachineProfile(PLAYER_1):SortByDiff()
 				ind = 0
 				self:GetParent():queuecommand("GoalTableRefresh")
@@ -284,7 +287,7 @@ local function makeGoalDisplay(i)
 				self:diffuse(color("#111111D9"))
 			end
 		},
-		LoadFont("Common normal") .. {
+		UIElements.TextToolTip(1, 1, "Common normal") .. {
 			--priority
 			InitCommand = function(self)
 				self:x(c0x):zoom(tzoom):halign(0.5):valign(1)
@@ -293,42 +296,56 @@ local function makeGoalDisplay(i)
 				self:settext(sg:GetPriority())
 				self:diffuse(byAchieved(sg, getMainColor("positive"),Color.White))
 			end,
-			HighlightCommand = function(self)
+			MouseOverCommand = function(self)
 				if sg and not sg:IsAchieved() then
-					highlightIfOver(self)
+					self:diffusealpha(hoverAlpha)
 				end
 			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and sg then
+			MouseOutCommand = function(self)
+				if sg and not sg:IsAchieved() then
+					self:diffusealpha(1)
+				end
+			end,
+			MouseOverCommand = function(self)
+				if sg and not sg:IsAchieved() then
+					self:diffusealpha(hoverAlpha)
+				end
+			end,
+			MouseOutCommand = function(self)
+				if sg and not sg:IsAchieved() then
+					self:diffusealpha(1)
+				end
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" and sg then
 					sg:SetPriority(sg:GetPriority() + 1)
 					self:GetParent():queuecommand("Update")
-				end
-			end,
-			MouseRightClickMessageCommand = function(self)
-				if isOver(self) and sg then
+				elseif params.event == "DeviceButton_right mouse button" and sg then
 					sg:SetPriority(sg:GetPriority() - 1)
 					self:GetParent():queuecommand("Update")
 				end
-			end
+			end,
 		},
-		Def.Sprite {
+		UIElements.SpriteButton(1, 1, THEME:GetPathG("", "X.png")) .. {
 			-- delete button
-			Texture = THEME:GetPathG("","X.png"),
 			InitCommand = function(self)
 				self:xy(c0x - 13,pdh/2.3):zoom(0.3):halign(0):valign(1):diffuse(Color.Red)
 			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
+			MouseOverCommand = function(self)
+				self:diffusealpha(hoverAlpha)
 			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) then
+			MouseOutCommand = function(self)
+				self:diffusealpha(1)
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
 					sg:Delete()
 					GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
 					self:GetParent():GetParent():queuecommand("GoalTableRefresh")
 				end
 			end
 		},
-		LoadFont("Common normal") .. {
+		UIElements.TextToolTip(1, 1, "Common normal") .. {
 			--rate
 			InitCommand = function(self)
 				self:x(c1x):zoom(tzoom):halign(0.5):valign(1)
@@ -338,25 +355,27 @@ local function makeGoalDisplay(i)
 				self:settext(ratestring)
 				self:diffuse(byAchieved(sg, getMainColor("positive")))
 			end,
-			HighlightCommand = function(self)
+			MouseOverCommand = function(self)
 				if sg and not sg:IsAchieved() then
-					highlightIfOver(self)
+					self:diffusealpha(hoverAlpha)
 				end
 			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and sg then
+			MouseOutCommand = function(self)
+				if sg and not sg:IsAchieved() then
+					self:diffusealpha(1)
+				end
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" and sg then
 					sg:SetRate(sg:GetRate() + 0.1)
 					self:GetParent():queuecommand("Update")
-				end
-			end,
-			MouseRightClickMessageCommand = function(self)
-				if isOver(self) and sg then
+				elseif params.event == "DeviceButton_right mouse button" and sg then
 					sg:SetRate(sg:GetRate() - 0.1)
 					self:GetParent():queuecommand("Update")
 				end
-			end
+			end,
 		},
-		LoadFont("Common normal") .. {
+		UIElements.TextToolTip(1, 1, "Common normal") .. {
 			--percent
 			InitCommand = function(self)
 				self:x(c1x):zoom(tzoom):halign(0.5):valign(0):maxwidth((50 - capWideScale(10, 10)) / tzoom)
@@ -372,25 +391,27 @@ local function makeGoalDisplay(i)
 				end
 				self:diffuse(byAchieved(sg, getMainColor("positive")))
 			end,
-			HighlightCommand = function(self)
+			MouseOverCommand = function(self)
 				if sg and not sg:IsAchieved() then
-					highlightIfOver(self)
+					self:diffusealpha(hoverAlpha)
 				end
 			end,
-			MouseLeftClickMessageCommand = function(self)
-				if isOver(self) and sg then
+			MouseOutCommand = function(self)
+				if sg and not sg:IsAchieved() then
+					self:diffusealpha(1)
+				end
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" and sg then
 					sg:SetPercent(sg:GetPercent() + 0.01)
 					self:GetParent():queuecommand("Update")
-				end
-			end,
-			MouseRightClickMessageCommand = function(self)
-				if isOver(self) and sg then
+				elseif params.event == "DeviceButton_right mouse button" and sg then
 					sg:SetPercent(sg:GetPercent() - 0.01)
 					self:GetParent():queuecommand("Update")
 				end
-			end
+			end,
 		},
-		LoadFont("Common normal") .. {
+		UIElements.TextToolTip(1, 1, "Common normal") .. {
 			--song name
 			InitCommand = function(self)
 				self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(32, 62)) / tzoom):halign(0):valign(1):draworder(1)
@@ -402,19 +423,20 @@ local function makeGoalDisplay(i)
 					self:settext(sg:GetChartKey()):diffuse(getMainColor("negative"))
 				end
 			end,
-			HighlightCommand = function(self)
-				highlightIfOver(self)
+			MouseOverCommand = function(self)
+				self:diffusealpha(hoverAlpha)
 			end,
-			MouseLeftClickMessageCommand = function(self)
-				if sg then
-					if isOver(self) and sg and goalsong and goalsteps then
-						local success = SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
-						if success then
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(sg:GetRate())
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(sg:GetRate())
-							GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(sg:GetRate())
-							MESSAGEMAN:Broadcast("GoalSelected")
-						end
+			MouseOutCommand = function(self)
+				self:diffusealpha(1)
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" and sg ~= nil and goalsong and goalsteps then
+					local success = SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(goalsong)
+					if success then
+						GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(sg:GetRate())
+						GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(sg:GetRate())
+						GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(sg:GetRate())
+						MESSAGEMAN:Broadcast("GoalSelected")
 					end
 				end
 			end
@@ -427,11 +449,18 @@ local function makeGoalDisplay(i)
 			DisplayCommand = function(self)
 				local pb = sg:GetPBUpTo()
 				if pb then
+					local pbwife = pb:GetWifeScore() * 100
+					local pbstr = ""
+					if pbwife > 99.65 then
+						pbstr = string.format("%05.4f%%", notShit.floor(pbwife, 4))
+					else
+						pbstr = string.format("%05.2f%%", notShit.floor(pbwife, 2))
+					end
 					if pb:GetMusicRate() < sg:GetRate() then
 						local ratestring = string.format("%.2f", pb:GetMusicRate()):gsub("%.?0$", "") .. "x"
-						self:settextf("%s: %5.2f%% (%s)", translated_info["Best"], pb:GetWifeScore() * 100, ratestring)
+						self:settextf("%s: %s (%s)", translated_info["Best"], pbstr, ratestring)
 					else
-						self:settextf("%s: %5.2f%%", translated_info["Best"], pb:GetWifeScore() * 100)
+						self:settextf("%s: %s", translated_info["Best"], pbstr)
 					end
 					self:diffuse(getGradeColor(pb:GetWifeGrade()))
 					self:visible(true)

@@ -386,8 +386,8 @@ std::string LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool&
 
 		dispatch_async(dispatch_get_main_queue(), ^{
             [m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+			[m_Context update];
 		});
-		[m_Context update];
 		[m_Context makeCurrentContext];
 		m_CurrentParams.windowed = true;
 		SetActualParamsFromMode( CGDisplayCurrentMode(kCGDirectMainDisplay) );

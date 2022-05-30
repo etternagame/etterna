@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
@@ -100,8 +100,10 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 auto
 ScoresAtRate::GetSortedKeys() const -> const std::vector<string>
 {
-	std::map<float, string, std::greater<>> tmp;
-	std::vector<string> o;
+	// it is technically possible for 2 scores to have the same percent
+	// use a multimap to support this
+	std::multimap<float, std::string, std::greater<>> tmp{};
+	std::vector<std::string> o{};
 	if (PREFSMAN->m_bSortBySSRNorm) {
 		for (const auto& i : scores) {
 			tmp.emplace(i.second.GetSSRNormPercent(), i.first);
@@ -791,12 +793,12 @@ ScoreManager::CalcPlayerRating(float& prating,
 		}
 
 		std::vector<float> ssrs = SortTopSSRPtrs(ss, profileID, true);
-		pskillsets[ss] = aggregate_skill(ssrs, 0.1, 1.05, 0.0, 10.24);
+		pskillsets[ss] = aggregate_skill(ssrs, 0.1L, (float)1.05, 0.0, (float)10.24);
 		CLAMP(pskillsets[ss], 0.F, 100.F);
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = aggregate_skill(skillz, 0.1, 1.125, 0.0, 10.24);
+	prating = aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
 	pskillsets[Skill_Overall] = prating;
 }
 
@@ -837,6 +839,72 @@ ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID, bool getSSRs)
 	if (getSSRs)
 		sort(o.begin(), o.end());
 	return o;
+}
+
+std::map<DateTime, std::vector<float>>
+ScoreManager::GetPlayerRatingOverTime(const std::string& profileID) {
+	// returns DateTimes mapped to skillset ratings
+	std::map<DateTime, std::vector<float>> ssrsByDate;
+
+	SortTopSSRPtrsForGame(Skill_Overall, profileID);
+	std::vector<HighScore*> scoresByDate = TopSSRsForGame;
+	auto datecomp = [](HighScore* a, HighScore* b) {
+		return a->GetDateTime() > b->GetDateTime();
+	};
+	sort(scoresByDate.begin(), scoresByDate.end(), datecomp);
+	std::vector<DateTime> dates;
+	std::set<DateTime> dates_used;
+	for (auto& s : scoresByDate) {
+		auto d = s->GetDateTime();
+		d.StripTime();
+		if (dates_used.count(d) == 0u) {
+			dates_used.insert(d);
+			dates.push_back(d);
+		}
+	}
+	auto sortdates = [](DateTime a, DateTime b) { return a < b; };
+	sort(dates.begin(), dates.end(), sortdates);
+
+	const std::function<void(std::pair<vectorIt<DateTime>, vectorIt<DateTime>>,
+							 ThreadData*)>
+	  callback = [&ssrsByDate, &scoresByDate](
+				   std::pair<vectorIt<DateTime>, vectorIt<DateTime>> workload,
+				   ThreadData* data) {
+		  for (auto it = workload.first; it != workload.second; it++) {
+			  auto date = *it;
+
+			  // ssrsInUse[x] = <all ssrs for this skillset>
+			  std::vector<std::vector<float>> ssrsInUse;
+			  ssrsInUse.resize(NUM_Skillset);
+			  for (auto& s : scoresByDate) {
+				  if (s->GetDateTime() <= date) {
+					  FOREACH_ENUM(Skillset, ss)
+					  {
+						  ssrsInUse[ss].push_back(s->GetSkillsetSSR(ss));
+					  }
+				  }
+			  }
+
+			  std::vector<float> skillz;
+			  skillz.resize(NUM_Skillset);
+			  FOREACH_ENUM(Skillset, ss)
+			  {
+				  // skip overall ss
+				  if (ss == Skill_Overall) {
+					  continue;
+				  }
+
+				  std::vector<float> ssrs = ssrsInUse[ss];
+				  skillz[ss] = aggregate_skill(ssrs, 0.1L, (float)1.05, 0.0, (float)10.24);
+				  CLAMP(skillz[ss], 0.F, 100.F);
+			  }
+			  skillz[Skill_Overall] =
+				aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
+			  ssrsByDate.emplace(date, skillz);
+		  }
+	  };
+	parallelExecution<DateTime>(dates, callback);
+	return ssrsByDate;
 }
 
 void
@@ -1391,6 +1459,19 @@ class LunaScoreManager : public Luna<ScoreManager>
 		return 1;
 	}
 
+	static auto GetPlayerRatingOverTime(T* p, lua_State* L) -> int
+	{
+		auto ssrsByDate = p->GetPlayerRatingOverTime();
+		lua_newtable(L);
+		for (auto ssrAtDate : ssrsByDate) {
+			lua_pushstring(L, ssrAtDate.first.GetString().c_str());
+			LuaHelpers::CreateTableFromArray(ssrAtDate.second, L);
+			lua_rawset(L, -3);
+		}
+
+		return 1;
+	}
+
 	DEFINE_METHOD(GetTempReplayScore, tempscoreforonlinereplayviewing);
 	LunaScoreManager()
 	{
@@ -1410,6 +1491,7 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(GetPlaycountPerSkillset);
 		ADD_METHOD(GetScoresThisSession);
 		ADD_METHOD(GetNumScoresThisSession);
+		ADD_METHOD(GetPlayerRatingOverTime);
 	}
 };
 

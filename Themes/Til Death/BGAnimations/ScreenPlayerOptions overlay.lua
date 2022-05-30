@@ -111,16 +111,24 @@ t[#t + 1] =
 				local speed, mode = GetSpeedModeAndValueFromPoptions(PLAYER_1)
 				self:playcommand("SpeedChoiceChanged", {pn = PLAYER_1, mode = mode, speed = speed})
 			end,
+			RateListOptionChangedMessageCommand = function(self, params)
+				self:finishtweening():sleep(0.01):queuecommand("DelayedThing")
+			end,
+			DelayedThingCommand = function(self)
+				self:playcommand("SpeedChoiceChanged", {pn = PLAYER_1, mode = self.mode, speed = self.speed})
+			end,
 			SpeedChoiceChangedMessageCommand = function(self, param)
+				self.mode = param.mode
+				self.speed = param.speed
 				if param.pn == PLAYER_1 then
 					local text = ""
 					if param.mode == "x" then
 						if not bpms[1] then
 							text = "??? - ???"
 						elseif bpms[1] == bpms[2] then
-							text = math.round(bpms[1] * param.speed / 100)
+							text = math.round(bpms[1] * getCurRateValue() * param.speed / 100)
 						else
-							text = string.format("%d - %d", math.round(bpms[1] * param.speed / 100), math.round(bpms[2] * param.speed / 100))
+							text = string.format("%d - %d", math.round(bpms[1] * getCurRateValue() * param.speed / 100), math.round(bpms[2] * getCurRateValue() * param.speed / 100))
 						end
 					elseif param.mode == "C" then
 						text = param.speed

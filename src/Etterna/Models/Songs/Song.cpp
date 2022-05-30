@@ -336,7 +336,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	// There was no entry in the cache for this song, or it was out of date.
 	// Let's load it from a file, then write a cache entry.
 	if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages)) {
-		Locator::getLogger()->info(
+		Locator::getLogger()->debug(
 		  "Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
 
 		std::vector<std::string> vs;
@@ -347,7 +347,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 
 		if (!bHasMusic) {
 			Locator::getLogger()->info(
-			  "Song {} has no music file either. Ignoring this song directory.",
+			  "Song {} has no usable files detected. Ignoring this song directory.",
 			  sDir);
 			return false;
 		}
@@ -369,7 +369,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	FinalizeLoading();
 
 	if (!m_bHasMusic) {
-		Locator::getLogger()->info("Song {} has no music; ignored.", sDir);
+		Locator::getLogger()->warn("Song {} has metadata but no music; ignored.", sDir);
 		return false; // don't load this song
 	}
 	return true; // do load this song
@@ -1195,9 +1195,11 @@ Song::GetStepsToSave(bool bSavingCache, const std::string& path)
 		}
 		vpStepsToSave.push_back(s);
 	}
+	/* // Dont save unknown styles. We can't deal with them
 	for (auto& s : m_UnknownStyleSteps) {
 		vpStepsToSave.push_back(s);
 	}
+	*/
 	return vpStepsToSave;
 }
 
@@ -2313,6 +2315,11 @@ class LunaSong : public Luna<Song>
 		lua_pushboolean(L, p->IsFavorited());
 		return 1;
 	}
+	static int IsPermaMirror(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->IsPermaMirror());
+		return 1;
+	}
 	// has functions
 	static int HasMusic(T* p, lua_State* L)
 	{
@@ -2522,6 +2529,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(HasSignificantBPMChangesOrStops);
 		ADD_METHOD(HasEdits);
 		ADD_METHOD(IsFavorited);
+		ADD_METHOD(IsPermaMirror);
 		ADD_METHOD(GetStepsSeconds);
 		ADD_METHOD(GetFirstBeat);
 		ADD_METHOD(GetFirstSecond);

@@ -112,7 +112,7 @@ PlayerAI::ResetScoreData()
 void
 PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData, TimingData* pTimingData)
 {
-	Locator::getLogger()->trace("Setting PlayerAI Score Data");
+	Locator::getLogger()->info("Setting PlayerAI Score Data");
 	auto successful = false;
 	if (pHighScore != nullptr)
 		successful = pHighScore->LoadReplayData();
@@ -128,7 +128,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		m_ReplaySnapshotMap.clear();
 
 	if (!successful || pHighScore == nullptr) {
-		Locator::getLogger()->trace("Exiting Score Data setup - missing HS or ReplayData");
+		Locator::getLogger()->warn("Exiting Score Data setup - missing HS or ReplayData");
 		return;
 	}
 
@@ -244,14 +244,14 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 	// We require the NoteData to validate the Judge count.
 	// If we don't have it, don't care.
 	if (pNoteData == nullptr) {
-		Locator::getLogger()->trace("Exiting Score Data setup - missing NoteData");
+		Locator::getLogger()->warn("Exiting Score Data setup - missing NoteData");
 		return;
 	}
 
 	// Set up a mapping of every noterow to a snapshot of what has happened up
 	// to that point
 	SetUpSnapshotMap(pNoteData, validNoterows);
-	Locator::getLogger()->trace("Finished Score Data setup");
+	Locator::getLogger()->info("Finished Score Data setup");
 }
 
 void
@@ -427,6 +427,20 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			FOREACH_ENUM(TapNoteScore, tns)
 			rs.judgments[tns] = tempJudgments[tns];
 			m_ReplaySnapshotMap[validNoterow] = rs;
+		}
+	}
+
+	// transform the notedata by style if necessary
+	if (pNoteData != nullptr) {
+		auto* pstate = GAMESTATE->m_pPlayerState;
+		if (pstate != nullptr) {
+			auto* style = GAMESTATE->GetCurrentStyle(pstate->m_PlayerNumber);
+			if (style != nullptr) {
+				NoteData ndo;
+				style->GetTransformedNoteDataForStyle(
+				  PLAYER_1, *pNoteData, ndo);
+				*pNoteData = ndo;
+			}
 		}
 	}
 
@@ -763,6 +777,10 @@ PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
 std::shared_ptr<ReplaySnapshot>
 PlayerAI::GetReplaySnapshotForNoterow(int row)
 {
+	if (m_ReplaySnapshotMap.empty()) {
+		return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
+	}
+
 	// The row doesn't necessarily have to exist in the Snapshot map.
 	// Because after a Snapshot, we can try this again for a later row
 	// And if there are no new snapshots (no events) nothing changes
@@ -1036,7 +1054,7 @@ void
 PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 										RadarValues& possibleRV)
 {
-	Locator::getLogger()->trace("Calculating Radar Values from ReplayData");
+	Locator::getLogger()->info("Calculating Radar Values from ReplayData");
 	// We will do this thoroughly just in case someone decides to use the
 	// other categories we don't currently use
 	auto tapsHit = 0;
@@ -1109,13 +1127,13 @@ PlayerAI::CalculateRadarValuesForReplay(RadarValues& rv,
 	rv[RadarCategory_Lifts] = liftsHit;
 	rv[RadarCategory_Fakes] = fakes;
 	rv[RadarCategory_Notes] = totalNotesHit;
-	Locator::getLogger()->trace("Finished Calculating Radar Values from ReplayData");
+	Locator::getLogger()->info("Finished Calculating Radar Values from ReplayData");
 }
 
 void
 PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss, float ts)
 {
-	Locator::getLogger()->trace("Entered PSSFromReplayData function");
+	Locator::getLogger()->info("Entered PSSFromReplayData function");
 	// Radar values.
 	// The possible radar values have already been handled, so we just do
 	// the real values.
@@ -1149,7 +1167,7 @@ PlayerAI::SetPlayerStageStatsForReplay(PlayerStageStats* pss, float ts)
 	pss->m_fLifeRecord = GenerateLifeRecordForReplay(ts);
 	pss->m_ComboList.clear();
 	pss->m_ComboList = GenerateComboListForReplay(ts);
-	Locator::getLogger()->trace("Finished PSSFromReplayData function");
+	Locator::getLogger()->info("Finished PSSFromReplayData function");
 }
 
 std::pair<float, float>
@@ -1184,7 +1202,7 @@ PlayerAI::GetWifeScoreForRow(int row, float ts)
 map<float, float>
 PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 {
-	Locator::getLogger()->trace("Generating LifeRecord from ReplayData");
+	Locator::getLogger()->info("Generating LifeRecord from ReplayData");
 	// Without a Snapshot Map, I assume we didn't calculate
 	// the other necessary stuff and this is going to turn out bad
 	if (m_ReplaySnapshotMap.empty())
@@ -1252,7 +1270,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			}
 			++holdIter;
 		} else {
-			Locator::getLogger()->trace("Somehow while calculating the life graph, something "
+			Locator::getLogger()->warn("Somehow while calculating the life graph, something "
 					   "went wrong.");
 			++holdIter;
 			++tapIter;
@@ -1263,14 +1281,14 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 		lifeRecord[(now - allOffset) / rateUsed] = lifeLevel;
 	}
 
-	Locator::getLogger()->trace("Finished Generating LifeRecord from ReplayData");
+	Locator::getLogger()->info("Finished Generating LifeRecord from ReplayData");
 	return lifeRecord;
 }
 
 std::vector<PlayerStageStats::Combo_t>
 PlayerAI::GenerateComboListForReplay(float timingScale)
 {
-	Locator::getLogger()->trace("Generating ComboList from ReplayData");
+	Locator::getLogger()->info("Generating ComboList from ReplayData");
 	std::vector<PlayerStageStats::Combo_t> combos;
 	const PlayerStageStats::Combo_t firstCombo;
 	const auto rateUsed = pScoreData->GetMusicRate();
@@ -1338,6 +1356,6 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 	  (rowOfComboStart->first - allOffset) / rateUsed;
 	curCombo->m_fStartSecond = (rowOfComboStart->first - allOffset) / rateUsed;
 
-	Locator::getLogger()->trace("Finished Generating ComboList from ReplayData");
+	Locator::getLogger()->info("Finished Generating ComboList from ReplayData");
 	return combos;
 }

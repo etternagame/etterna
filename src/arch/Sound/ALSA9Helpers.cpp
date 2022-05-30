@@ -5,6 +5,8 @@
 #include "ALSA9Dynamic.h"
 #include "Etterna/Singletons/PrefsManager.h"
 
+#include <fstream>
+#include <string>
 #include <algorithm>
 
 /* int err; must be defined before using this macro */
@@ -160,10 +162,11 @@ Alsa9Buf::GetSoundCardDebugInfo()
 		return;
 	done = true;
 
-	if (DoesFileExist("/rootfs/proc/asound/version")) {
-		std::string sVersion;
-		GetFileContents("/rootfs/proc/asound/version", sVersion, true);
-		Locator::getLogger()->info("ALSA: {}", sVersion.c_str());
+	std::ifstream f("/proc/asound/version");
+	if (f.good()) {
+		std::string version;
+		std::getline(f, version);
+		Locator::getLogger()->info("ALSA: {}", version.c_str());
 	}
 
 	InitializeErrorHandler();

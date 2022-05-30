@@ -1,11 +1,31 @@
 # Crashpad needs google's depot_tools to be in the system path.
 # "gclient" is a binary known to be apart of depot_tools.
 find_program(DEPOT_TOOLS_EXIST gclient)
-if(NOT DEPOT_TOOLS_EXIST AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
-	message(WARNING " depot_tools were not found. Crashpad will be disabled. If you would like to build crashpad,"
-					" please ensure depot_tools have been added to your system path. Install instructions are at: "
+if(DEPOT_TOOLS_EXIST AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
+	message(WARNING " depot_tools were not found. Crashpad will be disabled. If you would like to build crashpad,\n"
+					" please ensure depot_tools have been added to your system path. Install instructions are at:\n"
 					" https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up")
 	return()
+endif()
+
+# Check linux to ensure necessary tools exist to build crashpad
+if(UNIX AND NOT APPLE)
+	# clang++ must be detected on linux only.
+	find_program(CLANG_EXISTS clang++)
+	if(NOT CLANG_EXISTS AND NOT $ENV{CI})
+		message(WARNING " clang++ was not found. Crashpad will be disabled. If you would like to build crashpad,\n"
+						" please ensure you have clang installed via your package manager. clang++ is a requiremnt\n"
+						" setup by crashpad.")
+		return()
+	endif()
+	# Python2 must be detected on linux only. depot_tools provides a python2 interpreter on windows,
+	# and python2 comes standards on mac.
+	find_package(Python2 COMPONENTS Interpreter)
+	if(NOT Python2_FOUND AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
+		message(WARNING " python2 was not found. Crashpad will be disabled. If you would like to build crashpad,\n"
+						" please ensure you have python2 installed via your package manager.")
+		return()
+	endif()
 endif()
 
 # Google uses depot_tools to download and build crashpad. We will do the same.
@@ -26,6 +46,7 @@ include(FetchContent)
 # git repository *during project generation*.
 FetchContent_Declare(depot_tools
 	GIT_REPOSITORY https://chromium.googlesource.com/chromium/tools/depot_tools.git
+	GIT_TAG	main
 	GIT_PROGRESS TRUE
 	GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(depot_tools)
@@ -49,11 +70,13 @@ endif()
 if(WIN32)
 	list(APPEND OUTPUT_LIBS
 		${BINARY_DIR}/obj/client/client.lib
+		${BINARY_DIR}/obj/client/common.lib
 		${BINARY_DIR}/obj/util/util.lib
 		${BINARY_DIR}/obj/third_party/mini_chromium/mini_chromium/base/base.lib)
 elseif(UNIX)
 	list(APPEND OUTPUT_LIBS
 		${BINARY_DIR}/obj/client/libclient.a
+		${BINARY_DIR}/obj/client/libcommon.a
 		${BINARY_DIR}/obj/util/libutil.a
 		${BINARY_DIR}/obj/third_party/mini_chromium/mini_chromium/base/libbase.a)
 endif()

@@ -30,21 +30,6 @@ local setnewdisplayname = function(answer)
 	end
 end
 
-local function highlight(self)
-	self:GetChild("refreshbutton"):queuecommand("Highlight")
-	self:GetChild("Name"):queuecommand("Highlight")
-	self:GetChild("Version"):queuecommand("Highlight")
-	self:GetChild("LoggedInAs"):queuecommand("Highlight")
-end
-
-local function highlight2(self)
-	self:GetChild("refreshbutton"):queuecommand("Highlight")
-	self:GetChild("Name"):queuecommand("Highlight")
-	self:GetChild("loginlogout"):queuecommand("Highlight")
-	self:GetChild("Version"):queuecommand("Highlight")
-	self:GetChild("LoggedInAs"):queuecommand("Highlight")
-end
-
 local function highlightIfOver(self)
 	if isOver(self) then
 		local topname = SCREENMAN:GetTopScreen():GetName()
@@ -190,8 +175,6 @@ t[#t + 1] = Def.ActorFrame {
 	Name = "Avatar" .. PLAYER_1,
 	BeginCommand = function(self)
 		self:queuecommand("Set")
-		self:SetUpdateFunction(highlight)
-		self:SetUpdateFunctionInterval(0.05)
 	end,
 	SetCommand = function(self)
 		if profile == nil then
@@ -200,7 +183,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:visible(true)
 		end
 	end,
-	Def.Sprite {
+	UIElements.SpriteButton(1, 1, nil) .. {
 		Name = "Image",
 		InitCommand = function(self)
 			self:visible(true):halign(0):valign(0):xy(AvatarX, AvatarY)
@@ -213,14 +196,14 @@ t[#t + 1] = Def.ActorFrame {
 			self:Load(getAvatarPath(PLAYER_1))
 			self:zoomto(50, 50)
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				local top = SCREENMAN:GetTopScreen()
 				SCREENMAN:SetNewScreen("ScreenAssetSettings")
 			end
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "Name",
 		InitCommand = function(self)
 			self:halign(0)
@@ -241,19 +224,22 @@ t[#t + 1] = Def.ActorFrame {
 				)
 			end
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				easyInputStringWithFunction(translated_info["NameChange"], 64, false, setnewdisplayname)
 			end
 		end,
 		ProfileRenamedMessageCommand = function(self, params)
 			self:settextf("%s: %5.2f", params.doot, playerRating)
 		end,
-		HighlightCommand=function(self)
+		MouseOverCommand = function(self)
 			highlightIfOver(self)
-		end
+		end,
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+		end,
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "loginlogout",
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, AvatarY + 8):halign(0.5):zoom(0.45):diffuse(ButtonColor)
@@ -297,8 +283,8 @@ t[#t + 1] = Def.ActorFrame {
 				self:settext("")
 			end
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and not SCREENMAN:get_input_redirected(PLAYER_1) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and not SCREENMAN:get_input_redirected(PLAYER_1) then
 				if DLMAN:IsLoggedIn() then
 					self:queuecommand("LogOut")
 				else
@@ -309,7 +295,10 @@ t[#t + 1] = Def.ActorFrame {
 		OnlineUpdateMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		HighlightCommand=function(self)
+		MouseOverCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseOutCommand = function(self)
 			highlightIfOver(self)
 		end,
 		LoginFailedMessageCommand = function(self)
@@ -326,7 +315,7 @@ t[#t + 1] = Def.ActorFrame {
 			loginStep2()
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "LoggedInAs",
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, AvatarY + 23.5):halign(0.5):zoom(0.45):diffuse(ButtonColor)
@@ -342,52 +331,36 @@ t[#t + 1] = Def.ActorFrame {
 			end
 		end,
 		LogOutMessageCommand = function(self)
-			local top = SCREENMAN:GetTopScreen():GetName()
-			if top == "ScreenSelectMusic" or top == "ScreenTextEntry" then
-				self:settext("")
-				self:GetParent():SetUpdateFunction(highlight2)
-			else
-				self:settext("")
-				self:GetParent():SetUpdateFunction(highlight)
-			end
+			self:settext("")
 		end,
 		LoginMessageCommand = function(self) --this seems a little clunky -mina
 			if not DLMAN:IsLoggedIn() then
 				self:halign(0.5)
 				return
 			end
-			if SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenSelectMusic" then
-				self:settextf(
-					"%s %s (%5.2f: #%i)",
-					translated_info["LoggedInAs"],
-					DLMAN:GetUsername(),
-					DLMAN:GetSkillsetRating("Overall"),
-					DLMAN:GetSkillsetRank(ms.SkillSets[1])
-				)
-				self:GetParent():SetUpdateFunction(highlight2)
-			else
-				self:settextf(
-					"%s %s (%5.2f: #%i)",
-					translated_info["LoggedInAs"],
-					DLMAN:GetUsername(),
-					DLMAN:GetSkillsetRating("Overall"),
-					DLMAN:GetSkillsetRank(ms.SkillSets[1])
-				)
-				self:GetParent():SetUpdateFunction(highlight)
-			end
+			self:settextf(
+				"%s %s (%5.2f: #%i)",
+				translated_info["LoggedInAs"],
+				DLMAN:GetUsername(),
+				DLMAN:GetSkillsetRating("Overall"),
+				DLMAN:GetSkillsetRank(ms.SkillSets[1])
+			)
 		end,
-		MouseLeftClickMessageCommand=function(self)
-			local userpage = "urlnoexit,https://etternaonline.com/user/" .. DLMAN:GetUsername()
-			if isOver(self) then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				local userpage = "urlnoexit,https://etternaonline.com/user/" .. DLMAN:GetUsername()
 				GAMESTATE:ApplyGameCommand(userpage)
 			end
 		end,
 		OnlineUpdateMessageCommand = function(self)
 			self:queuecommand("Set")
 		end,
-		HighlightCommand=function(self)
+		MouseOverCommand = function(self)
 			highlightIfOver(self)
-		end
+		end,
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
@@ -439,7 +412,7 @@ t[#t + 1] = Def.ActorFrame {
 			self:settextf("%s: %s", translated_info["Judge"], GetTimingDifficulty())
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "Version",
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 3, AvatarY + 8):halign(1):zoom(0.42):diffuse(ButtonColor)
@@ -450,21 +423,23 @@ t[#t + 1] = Def.ActorFrame {
 		SetCommand = function(self)
 			self:settext(GAMESTATE:GetEtternaVersion())
 		end,
-		HighlightCommand=function(self)
+		MouseOverCommand = function(self)
 			highlightIfOver(self)
 		end,
-		MouseLeftClickMessageCommand=function(self)
-			local tag = "urlnoexit,https://github.com/etternagame/etterna/releases/tag/v" .. GAMESTATE:GetEtternaVersion()
-			if isOver(self) then
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				local tag = "urlnoexit,https://github.com/etternagame/etterna/releases/tag/v" .. GAMESTATE:GetEtternaVersion()
 				GAMESTATE:ApplyGameCommand(tag)
 			end
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "refreshbutton",
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 3, AvatarY + 19):halign(1):zoom(0.35):diffuse(ButtonColor)
-
 		end,
 		BeginCommand = function(self)
 			self:queuecommand("Set")
@@ -472,11 +447,14 @@ t[#t + 1] = Def.ActorFrame {
 		SetCommand = function(self)
 			self:settextf(translated_info["RefreshSongs"])
 		end,
-		HighlightCommand=function(self)
+		MouseOverCommand = function(self)
 			highlightIfOver(self)
 		end,
-		MouseLeftClickMessageCommand=function(self)
-			if isOver(self) then
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
 				SONGMAN:DifferentialReload()
 			end
 		end

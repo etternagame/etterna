@@ -45,8 +45,7 @@ class GameStateMessageHandler : public MessageSubscriber
 		if (msg.GetName() == "RefreshCreditText") {
 			std::string sJoined("P1");
 
-			if (PREFSMAN->m_verbose_log > 0)
-				Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
+			Locator::getLogger()->trace("Players joined: {}", sJoined.c_str());
 		}
 	}
 };
@@ -758,26 +757,6 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 							  const TimingData& timing,
 							  const RageTimer& timestamp)
 {
-	/* It's not uncommon to get a lot of duplicated positions from the sound
-	 * driver, like so: 13.120953,13.130975,13.130975,13.130975,13.140998,...
-	 * This causes visual stuttering of the arrows. To compensate, keep a
-	 * RageTimer since the last change and multiply the delta by the current
-	 * rate when applied. */
-	if (fPositionSeconds == m_LastPositionSeconds && !m_paused) {
-		// LOG->Info("Time unchanged, adding: %+f",
-		//	m_LastPositionTimer.Ago()*m_SongOptions.GetSong().m_fMusicRate
-		//);
-		fPositionSeconds +=
-		  m_LastPositionTimer.Ago() * m_SongOptions.GetSong().m_fMusicRate;
-	} else {
-		// LOG->Info("Time difference: %+f",
-		//	m_LastPositionTimer.Ago() - (fPositionSeconds -
-		// m_LastPositionSeconds)
-		//);
-		m_LastPositionTimer.Touch();
-		m_LastPositionSeconds = fPositionSeconds;
-	}
-
 	if (m_pCurSteps) {
 		m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
@@ -791,8 +770,6 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 					  GAMESTATE->m_Position.m_fSongBeatVisible,
 					  fPositionSeconds,
 					  GAMESTATE->m_Position.m_fSongBeatNoOffset);
-	//	LOG->Trace( "m_fMusicSeconds = %f, m_fSongBeat = %f, m_fCurBPS = %f,
-	// m_bFreeze = %f", m_fMusicSeconds, m_fSongBeat, m_fCurBPS, m_bFreeze );
 }
 
 float
@@ -1135,24 +1112,12 @@ GameState::GetNumCols(int pn)
 }
 
 bool
-GameState::DifficultiesLocked() const
-{
-	if (GetCurrentStyle(PLAYER_INVALID)->m_bLockDifficulties)
-		return true;
-	return false;
-}
-
-bool
 GameState::ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 												 Difficulty dc,
 												 StepsType st)
 {
 	m_PreferredDifficulty.Set(dc);
 	m_PreferredStepsType.Set(st);
-	if (DifficultiesLocked())
-		if (PLAYER_1 != pn)
-			m_PreferredDifficulty.Set(m_PreferredDifficulty);
-
 	return true;
 }
 

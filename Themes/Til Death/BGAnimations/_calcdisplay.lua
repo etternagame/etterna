@@ -23,6 +23,7 @@ local steplength = 0
 local graphVecs = {}
 local jackdiffs = {}
 local ssrs = {}
+local grindscaler = 0
 local activeModGroup = 1
 local activeDiffGroup = 1
 local debugstrings
@@ -311,7 +312,7 @@ local debugGroups = {
         TotalPatternMod = true,
     },
     {   -- Group 10
-
+        CJOHAnchor = true,
     },
     {   -- Group 11
         Chaos = true,
@@ -392,6 +393,8 @@ local function updateCoolStuff()
         jackLossSumRight = 0
         local bap = steps:GetCalcDebugOutput()
         debugstrings = steps:GetDebugStrings()
+
+        grindscaler = bap["Grindscaler"]
 
         -- Jack debug output got hyper convoluted so im trying to make it as sane as possible
         -- basically jackdiffs[hand][index] = {row time, diff, stam, loss}
@@ -686,7 +689,7 @@ o[#o + 1] = Def.Quad {
 }
 
 -- graph bg
-o[#o + 1] = Def.Quad {
+o[#o + 1] = UIElements.QuadButton(1, 1) .. {
     InitCommand = function(self)
         self:zoomto(plotWidth, plotHeight):diffuse(color("#232323")):diffusealpha(
             bgalpha
@@ -694,7 +697,9 @@ o[#o + 1] = Def.Quad {
         topgraph = self
     end,
     DoTheThingCommand = function(self)
-        self:visible(song ~= nil)
+        local visible = song ~= nil
+        self:visible(visible)
+        self:z(visible and 5 or -5) -- higher button z has priority (to block musicwheel button clicking)
     end,
     HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("GraphSeekBar")
@@ -746,7 +751,7 @@ o[#o+1] = LoadFont("Common Normal") .. {
 }
 
 -- second bg
-o[#o + 1] = Def.Quad {
+o[#o + 1] = UIElements.QuadButton(1, 1) .. {
     Name = "G2BG",
     InitCommand = function(self)
         self:y(plotHeight + 5)
@@ -756,7 +761,9 @@ o[#o + 1] = Def.Quad {
         bottomgraph = self
     end,
     DoTheThingCommand = function(self)
-        self:visible(song ~= nil)
+        local visible = song ~= nil
+        self:visible(visible)
+        self:z(visible and 5 or -5) -- higher button z has priority (to block musicwheel button clicking)
     end,
     HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("Seek2")
@@ -793,11 +800,13 @@ o[#o + 1] = Def.Quad {
                     local jklosstxt = ""
                     for h = 1,2 do
                         local hnd = h == 1 and "Left" or "Right"
-                        local hand = h == 1 and "L" or "R"
-                        local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
-                        jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
-                        jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3])
-                        jklosstxt = jklosstxt .. string.format("%s: %5.4f\n", "Jack Loss"..hand, jackdiffs[hnd][index][4])
+                        if jackdiffs[hnd] ~= nil and #jackdiffs[hnd] > 0 then
+                            local hand = h == 1 and "L" or "R"
+                            local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, jackdiffs[hnd])
+                            jktxt = jktxt .. string.format("%s: %5.4f\n", "Jack"..hand, jackdiffs[hnd][index][2])
+                            jkstmtxt = jkstmtxt .. string.format("%s: %5.4f\n", "Jack Stam"..hand, jackdiffs[hnd][index][3])
+                            jklosstxt = jklosstxt .. string.format("%s: %5.4f\n", "Jack Loss"..hand, jackdiffs[hnd][index][4])
+                        end
                     end
                     modText = modText .. jktxt .. jkstmtxt .. jklosstxt
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
@@ -881,6 +890,7 @@ local modnames = {
     --"cjj",
     "cjd",
     "hsd",
+    "cjohanch",
     "ohj",
     --"ohjbp",
     --"ohjpc",
@@ -939,7 +949,8 @@ local modColors = {
 	--color("0,1,1"),			-- cyan			= chordjack stream
 	--color("1,0,0"),			-- red			= chordjack jack
 	color("1,1,0"),			-- yellow		= cjdensity
-    color("1,1,0"),
+    color("1,1,0"),         -- yello        = hsdensity
+    color(".1,.3,.9"),      -- something    = CJOHAnchor
     color("1,0.4,0"),       -- orange2		= ohjump
 	--color("1,1,1"),			-- ohjbp
 	--color("1,1,1"),			-- ohjpc
@@ -1130,7 +1141,7 @@ o[#o + 1] = LoadFont("Common Normal") .. {
                 local reqpoints = tappoints * 0.93
                 self:settextf("Upper Bound: %.2f  |  Loss Sum L: %5.2f  |  Loss Sum R: %5.2f  |  Pt AfterLoss/Req/Max: %5.2f/%5.2f/%5.2f", lowerGraphMaxJack*0.9, jackLossSumLeft, jackLossSumRight, afterloss, reqpoints, maxpoints)
             else
-                self:settextf("Upper Bound: %.4f", lowerGraphMax)
+                self:settextf("Upper Bound: %.4f  |  Grindscaler: %5.2f", lowerGraphMax, grindscaler)
             end
         end
     end,

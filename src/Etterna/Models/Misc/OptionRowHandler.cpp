@@ -323,7 +323,7 @@ class OptionRowHandlerList : public OptionRowHandler
 				  ssprintf("No options in row \"list,%s\" were selected, "
 						   "and no fallback row found; selected entry 0",
 						   m_Def.m_sName.c_str());
-				Locator::getLogger()->warn(s.c_str());
+				Locator::getLogger()->warn("{}", s.c_str());
 				iFallbackOption = 0;
 			}
 
@@ -635,7 +635,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 					if (*d == GAMESTATE->m_PreferredDifficulty) {
 						vbSelOut[i] = true;
 						matched = true;
-						ExportOption(p, vbSelectedOut); // current steps changed
+						(void)ExportOption(p, vbSelectedOut); // current steps changed
 						break;
 					}
 				}

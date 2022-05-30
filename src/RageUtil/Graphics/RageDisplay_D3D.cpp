@@ -27,9 +27,106 @@
 #pragma comment(lib, "d3dx9.lib")
 #endif
 
-auto GetErrorString(HRESULT /*hr*/) -> std::string
+
+// The DXGetErrorStringW function comes from the DirectX Error Library  (See https://walbourn.github.io/wheres-dxerr-lib/ )
+//--------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+//--------------------------------------------------------------------------------------
+const WCHAR* WINAPI DXGetErrorStringW( _In_ HRESULT hr )
 {
-	return ""; // DXGetErrorString(hr);
+#define  CHK_ERRA(hrchk) \
+        case hrchk: \
+             return L## #hrchk;
+
+#define HRESULT_FROM_WIN32b(x) ((HRESULT)(x) <= 0 ? ((HRESULT)(x)) : ((HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000)))
+
+#define  CHK_ERR_WIN32A(hrchk) \
+        case HRESULT_FROM_WIN32b(hrchk): \
+        case hrchk: \
+             return L## #hrchk;
+
+   switch(hr)
+   {
+// Common Win32 error codes
+        CHK_ERRA(S_OK)
+        CHK_ERRA(S_FALSE)
+
+// d3d9.h error codes
+//      CHK_ERRA(D3D_OK)
+        CHK_ERRA(D3DERR_WRONGTEXTUREFORMAT)
+        CHK_ERRA(D3DERR_UNSUPPORTEDCOLOROPERATION)
+        CHK_ERRA(D3DERR_UNSUPPORTEDCOLORARG)
+        CHK_ERRA(D3DERR_UNSUPPORTEDALPHAOPERATION)
+        CHK_ERRA(D3DERR_UNSUPPORTEDALPHAARG)
+        CHK_ERRA(D3DERR_TOOMANYOPERATIONS)
+        CHK_ERRA(D3DERR_CONFLICTINGTEXTUREFILTER)
+        CHK_ERRA(D3DERR_UNSUPPORTEDFACTORVALUE)
+        CHK_ERRA(D3DERR_CONFLICTINGRENDERSTATE)
+        CHK_ERRA(D3DERR_UNSUPPORTEDTEXTUREFILTER)
+        CHK_ERRA(D3DERR_CONFLICTINGTEXTUREPALETTE)
+        CHK_ERRA(D3DERR_DRIVERINTERNALERROR)
+        CHK_ERRA(D3DERR_NOTFOUND)
+        CHK_ERRA(D3DERR_MOREDATA)
+        CHK_ERRA(D3DERR_DEVICELOST)
+        CHK_ERRA(D3DERR_DEVICENOTRESET)
+        CHK_ERRA(D3DERR_NOTAVAILABLE)
+        CHK_ERRA(D3DERR_OUTOFVIDEOMEMORY)
+        CHK_ERRA(D3DERR_INVALIDDEVICE)
+        CHK_ERRA(D3DERR_INVALIDCALL)
+        CHK_ERRA(D3DERR_DRIVERINVALIDCALL)
+        //CHK_ERRA(D3DERR_WASSTILLDRAWING)
+        CHK_ERRA(D3DOK_NOAUTOGEN)
+
+	    // Extended for Windows Vista
+	    CHK_ERRA(D3DERR_DEVICEREMOVED)
+	    CHK_ERRA(S_NOT_RESIDENT)
+	    CHK_ERRA(S_RESIDENT_IN_SHARED_MEMORY)
+	    CHK_ERRA(S_PRESENT_MODE_CHANGED)
+	    CHK_ERRA(S_PRESENT_OCCLUDED)
+	    CHK_ERRA(D3DERR_DEVICEHUNG)
+
+        // Extended for Windows 7
+        CHK_ERRA(D3DERR_UNSUPPORTEDOVERLAY)
+        CHK_ERRA(D3DERR_UNSUPPORTEDOVERLAYFORMAT)
+        CHK_ERRA(D3DERR_CANNOTPROTECTCONTENT)
+        CHK_ERRA(D3DERR_UNSUPPORTEDCRYPTO)
+        CHK_ERRA(D3DERR_PRESENT_STATISTICS_DISJOINT)
+
+// dxgi.h error codes
+        CHK_ERRA(DXGI_STATUS_OCCLUDED)
+        CHK_ERRA(DXGI_STATUS_CLIPPED)
+        CHK_ERRA(DXGI_STATUS_NO_REDIRECTION)
+        CHK_ERRA(DXGI_STATUS_NO_DESKTOP_ACCESS)
+        CHK_ERRA(DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE)
+        CHK_ERRA(DXGI_STATUS_MODE_CHANGED)
+        CHK_ERRA(DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
+        CHK_ERRA(DXGI_ERROR_INVALID_CALL)
+        CHK_ERRA(DXGI_ERROR_NOT_FOUND)
+        CHK_ERRA(DXGI_ERROR_MORE_DATA)
+        CHK_ERRA(DXGI_ERROR_UNSUPPORTED)
+        CHK_ERRA(DXGI_ERROR_DEVICE_REMOVED)
+        CHK_ERRA(DXGI_ERROR_DEVICE_HUNG)
+        CHK_ERRA(DXGI_ERROR_DEVICE_RESET)
+        CHK_ERRA(DXGI_ERROR_WAS_STILL_DRAWING)
+        CHK_ERRA(DXGI_ERROR_FRAME_STATISTICS_DISJOINT)
+        CHK_ERRA(DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE)
+        CHK_ERRA(DXGI_ERROR_DRIVER_INTERNAL_ERROR)
+        CHK_ERRA(DXGI_ERROR_NONEXCLUSIVE)
+        CHK_ERRA(DXGI_ERROR_NOT_CURRENTLY_AVAILABLE)
+        CHK_ERRA(DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED)
+        CHK_ERRA(DXGI_ERROR_REMOTE_OUTOFMEMORY)
+
+        default: return L"Unknown error.";
+    }
+}
+
+auto GetErrorString(HRESULT hr) -> std::string
+{
+    const wchar_t* msg = DXGetErrorStringW(hr);
+    if (msg)
+        return WStringToString(std::wstring(msg));
+    return "";
 }
 
 // Globals
@@ -202,12 +299,12 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 {
 	GraphicsWindow::Initialize(true);
 
-	Locator::getLogger()->trace("RageDisplay_D3D::RageDisplay_D3D()");
-	Locator::getLogger()->trace("Current renderer: Direct3D");
+	Locator::getLogger()->info("RageDisplay_D3D::RageDisplay_D3D()");
+	Locator::getLogger()->info("Current renderer: Direct3D");
 
 	g_pd3d = Direct3DCreate9(D3D_SDK_VERSION);
 	if (g_pd3d == nullptr) {
-		Locator::getLogger()->trace("Direct3DCreate9 failed");
+		Locator::getLogger()->fatal("Direct3DCreate9 failed");
 		return D3D_NOT_INSTALLED.GetValue();
 	}
 
@@ -219,7 +316,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	D3DADAPTER_IDENTIFIER9 identifier;
 	g_pd3d->GetAdapterIdentifier(D3DADAPTER_DEFAULT, 0, &identifier);
 
-	Locator::getLogger()->trace(
+	Locator::getLogger()->info(
 	  "Driver: {}\n"
 	  "Description: {}\n"
 	  "Max texture size: {}\n"
@@ -229,7 +326,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	  g_DeviceCaps.MaxTextureWidth,
 	  (g_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) ? "yes" : "no");
 
-	Locator::getLogger()->trace("This display adaptor supports the following modes:");
+	Locator::getLogger()->info("This display adaptor supports the following modes:");
 	D3DDISPLAYMODE mode;
 
 	const auto modeCount =
@@ -237,7 +334,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 
 	for (UINT u = 0; u < modeCount; u++) {
 		if (SUCCEEDED(g_pd3d->EnumAdapterModes(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, u, &mode))) {
-			Locator::getLogger()->trace("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
+			Locator::getLogger()->info("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
 		}
 	}
 
@@ -259,7 +356,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 
 RageDisplay_D3D::~RageDisplay_D3D()
 {
-	Locator::getLogger()->trace("RageDisplay_D3D::~RageDisplay()");
+	Locator::getLogger()->info("RageDisplay_D3D::~RageDisplay()");
 
 	GraphicsWindow::Shutdown();
 
@@ -353,7 +450,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 			fmtDisplay = vBackBufferFormat;
 		}
 
-		Locator::getLogger()->trace("Testing format: display {}, back buffer {}, windowed {}...",
+		Locator::getLogger()->debug("Testing format: display {}, back buffer {}, windowed {}...",
 				   fmtDisplay,
 				   fmtBackBuffer,
 				   static_cast<int>(bWindowed));
@@ -373,13 +470,19 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 		return fmtBackBuffer;
 	}
 
-	Locator::getLogger()->trace("Couldn't find an appropriate back buffer format.");
+	Locator::getLogger()->warn("Couldn't find an appropriate back buffer format.");
 	return D3DFMT_UNKNOWN;
 }
 
 auto
 SetD3DParams(bool& bNewDeviceOut) -> std::string
 {
+	// wipe old render targets
+	for (auto& rt : g_mapRenderTargets) {
+		delete rt.second;
+	}
+	g_mapRenderTargets.clear();
+
 	if (g_pd3dDevice == nullptr)
 	// device is not yet created. We need to create it
 	{
@@ -411,13 +514,6 @@ SetD3DParams(bool& bNewDeviceOut) -> std::string
 
 	g_pd3dDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 
-	// wipe old render targets
-	for (auto& rt : g_mapRenderTargets) {
-		delete rt.second;
-	}
-
-	g_mapRenderTargets.clear();
-
 	// Palettes were lost by Reset(), so mark them unloaded.
 	g_TexResourceToPaletteIndex.clear();
 
@@ -438,7 +534,7 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 	  g_pd3d->GetAdapterModeCount(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat);
 	auto iBest = -1;
 	auto iBestScore = 0;
-	Locator::getLogger()->trace("cur: {}x{} {}Hz, format {}",
+	Locator::getLogger()->debug("cur: {}x{} {}Hz, format {}",
 			   current.Width, current.Height,
 			   current.RefreshRate, current.Format);
 	for (auto i = 0; i < iCnt; ++i) {
@@ -551,7 +647,7 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 
 	pD3Dpp->Flags = 0;
 
-	Locator::getLogger()->trace(
+	Locator::getLogger()->info(
 	  "Present Parameters: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
 	  pD3Dpp->BackBufferWidth,
 	  pD3Dpp->BackBufferHeight,

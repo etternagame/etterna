@@ -8,10 +8,10 @@
 
 // perhaps this should contain no timing information, only pattern information?
 
-// potentially outdated comment below
+/// potentially outdated comment below
 /// this should contain most everything needed for the generic pattern mods,
 /// extremely specific sequencing will take place in separate areas like with
-/// rm_seuqencing, and widerange scalers should track their own interval queues
+/// rm_sequencing, and widerange scalers should track their own interval queues
 /// metanoteinfo is generated per row, from current noteinfo and the previous
 /// metanoteinfo object, each metanoteinfo stores some basic information from
 /// the last object, allowing us to look back 3-4 rows into the past without
@@ -22,32 +22,31 @@
 /// timestamp arrays for each column, so it is unnecessary to generate
 /// information per note, even though in some ways it might be more convenient
 /// or clearer
-
 struct metaHandInfo
 {
-	// col
+	/// col
 	col_type _ct = col_init;
 	col_type _last_ct = col_init;
 
-	// type of cross column hit
+	/// type of cross column hit
 	base_type _bt = base_type_init;
 	base_type _last_bt = base_type_init;
 
-	// needed for the BIGGEST BRAIN PLAYS
+	/// needed for the BIGGEST BRAIN PLAYS
 	base_type last_last_bt = base_type_init;
 
 	// whomst've
 	meta_type _mt = meta_type_init;
 	meta_type _last_mt = meta_type_init;
 
-	// number of offhand taps before this row
+	/// number of offhand taps before this row
 	int offhand_taps = 0;
 	int offhand_ohjumps = 0;
 
-	// we need to reset everything between hands or the trailing values from the
-	// end of one will carry over into the start of the other, not a huge
-	// practical deal but it could theoretically be abused and it's good
-	// practice to reset anyway
+	/// we need to reset everything between hands or the trailing values from the
+	/// end of one will carry over into the start of the other, not a huge
+	/// practical deal but it could theoretically be abused and it's good
+	/// practice to reset anyway
 	void full_reset()
 	{
 		_ct = col_init;

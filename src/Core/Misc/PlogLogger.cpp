@@ -79,6 +79,7 @@ PlogLogger::PlogLogger() {
 
     // File Appender
     static plog::RollingFileAppender<EtternaFormatter, plog::UTF8Converter> rollingFileAppender{logFilePath.c_str()};
+	currentLogFile = absolute(logFilePath);
     plog::init(plog::Severity::info, &rollingFileAppender);
 }
 
@@ -88,6 +89,10 @@ void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view me
 
 void PlogLogger::setLogLevel(Core::ILogger::Severity logLevel) {
     plog::get()->setMaxSeverity(convertSeverity(logLevel));
+}
+
+std::string PlogLogger::getLogFile(){
+	return currentLogFile;
 }
 
 plog::Severity PlogLogger::convertSeverity(ILogger::Severity logLevel) {

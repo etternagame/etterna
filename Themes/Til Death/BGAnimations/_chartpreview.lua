@@ -11,11 +11,12 @@ local calcinfo
 local yPos = Var("yPos")
 local yPosReverse = Var("yPosReverse")
 if not yPos then yPos = 55 end
-if not yPosReverse then yPosReverse = 208 end
+if not yPosReverse then yPosReverse = 60 end
 
 local translated_info = {
 	Paused = THEME:GetString("ChartPreview", "Paused"),
 	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
+	BPM = THEME:GetString("ChordDensityGraph", "BPM"),
 }
 
 local function UpdatePreviewPos(self)
@@ -62,16 +63,7 @@ local t = Def.ActorFrame {
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if GAMESTATE:GetCurrentSong() then
-            musicratio = (GAMESTATE:GetCurrentSong():GetFirstSecond() / getCurRateValue() + GAMESTATE:GetCurrentSteps():GetLengthSeconds()) / wodth * getCurRateValue()
-		end
-	end,
-	MouseRightClickMessageCommand=function(self)
-		local tab = getTabIndex()
-		-- the Score and Profile tabs have right click functionality
-		-- so ignore right clicks if on those
-		if tab ~= 2 and tab ~= 4 then
-			SCREENMAN:GetTopScreen():PauseSampleMusic()
-			self:GetChild("pausetext"):playcommand("Set")
+            musicratio = (GAMESTATE:GetCurrentSteps():GetFirstSecond() / getCurRateValue() + GAMESTATE:GetCurrentSteps():GetLengthSeconds()) / wodth * getCurRateValue()
 		end
 	end,
     SetupNoteFieldCommand=function(self)
@@ -167,7 +159,10 @@ local t = Def.ActorFrame {
 			else
 				self:settext("")
 			end
-		end
+		end,
+		MusicPauseToggledMessageCommand = function(self)
+			self:playcommand("Set")
+		end,
 	},
 	Def.Quad {
 		Name = "PosBG",
@@ -188,9 +183,12 @@ local t = Def.ActorFrame {
 				seektext:y(INPUTFILTER:GetMouseY() - self:GetParent():GetY())
 				if cdg.npsVector ~= nil and #cdg.npsVector > 0 then
 					local percent = clamp((INPUTFILTER:GetMouseX() - self:GetParent():GetX()) / wodth, 0, 1)
+					local xtime = seek:GetX() * musicratio / getCurRateValue()
 					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
 					local hoverednps = cdg.npsVector[hoveredindex]
-					seektext:settextf("%0.2f - %d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"])
+					local td = GAMESTATE:GetCurrentSteps():GetTimingData()
+					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio)) * getCurRateValue()
+					seektext:settextf("%0.2f\n%d %s\n%d %s", xtime, hoverednps, translated_info["NPS"], bpm, translated_info["BPM"])
 				else
 					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())
 				end
@@ -219,17 +217,17 @@ t[#t + 1] = LoadActor("_calcdisplay.lua")
 t[#t + 1] = LoadFont("Common Normal") .. {
 	Name = "Seektext",
 	InitCommand = function(self)
-		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+		self:y(8):valign(0):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
 	end
 }
 
-t[#t + 1] = Def.Quad {
+t[#t + 1] = UIElements.QuadButton(1, 1) .. {
 	Name = "Seek",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
 	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) then
+	MouseDownCommand = function(self, params)
+		if params.event == "DeviceButton_left mouse button" then
 			SCREENMAN:GetTopScreen():SetSampleMusicPosition( self:GetX() * musicratio )
 		end
 	end

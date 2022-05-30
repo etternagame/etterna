@@ -14,12 +14,7 @@
 
 import("../build/crashpad_buildconfig.gni")
 
-if (crashpad_is_in_chromium) {
-  # Prevent Chromium source assignment filters from being inherited.
-  set_sources_assignment_filter([])
-}
-
-static_library("minidump") {
+crashpad_static_library("minidump") {
   sources = [
     "minidump_annotation_writer.cc",
     "minidump_annotation_writer.h",
@@ -80,7 +75,7 @@ static_library("minidump") {
 
   deps = [
     "../snapshot",
-    "../third_party/mini_chromium:base",
+    "$mini_chromium_source_parent:base",
     "../util",
   ]
 
@@ -106,7 +101,7 @@ static_library("format") {
 
   deps = [
     "../snapshot:context",
-    "../third_party/mini_chromium:base",
+    "$mini_chromium_source_parent:base",
     "../util",
   ]
 }
@@ -141,7 +136,7 @@ static_library("test_support") {
     "../snapshot:test_support",
     "../test",
     "../third_party/googletest:googletest",
-    "../third_party/mini_chromium:base",
+    "$mini_chromium_source_parent:base",
     "../util",
   ]
 
@@ -184,13 +179,11 @@ source_set("minidump_test") {
     "../snapshot:test_support",
     "../test",
     "../third_party/googletest:googletest",
-    "../third_party/mini_chromium:base",
+    "$mini_chromium_source_parent:base",
     "../util",
   ]
 
   if (crashpad_is_win) {
     cflags = [ "/wd4201" ]  # nonstandard extension used : nameless struct/union
   }
-
-  configs += [ "..:disable_ubsan" ]
 }

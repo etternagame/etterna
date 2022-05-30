@@ -13,7 +13,7 @@ list(APPEND CORE_CPP
 
 add_subdirectory(Platform)
 
-if(WITH_CRASHPAD)
+if(TARGET crashpad)
 	list(APPEND CORE_CPP Crash/CrashpadHandler.cpp)
 else()
 	list(APPEND CORE_CPP Crash/CrashpadHandlerNull.cpp)

@@ -182,6 +182,7 @@ chat[#chat + 1] = Def.Quad {
 			and not (params.msg:find("System:") and not params.msg:find("The room is now")
 			and not params.msg:find("Can't start") and not params.msg:find("room operator")
 			and not params.msg:find("You're not in a room") and not params.msg:find("Starting in")) then
+			self:hurrytweening(0.2)
 			self:linear(tweentime)
 			self:glowshift()
 			self:effectcolor1(Colors.chatSent)

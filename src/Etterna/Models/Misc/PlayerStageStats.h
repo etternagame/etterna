@@ -2,7 +2,7 @@
 #define PlayerStageStats_H
 
 #include "Grade.h"
-#include "HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "PlayerNumber.h"
 #include "RadarValues.h"
@@ -52,6 +52,8 @@ class PlayerStageStats
 	[[nodiscard]] auto GetTapNoteTypeVector() const -> std::vector<TapNoteType>;
 	[[nodiscard]] auto GetHoldReplayDataVector() const
 	  -> std::vector<HoldReplayResult>;
+	[[nodiscard]] auto GetMineReplayDataVector() const
+	  -> std::vector<MineReplayResult>;
 	[[nodiscard]] auto GetCurMaxPercentDancePoints() const -> float;
 
 	[[nodiscard]] auto GetLessonScoreActual() const -> int;
@@ -86,6 +88,7 @@ class PlayerStageStats
 	float CurWifeScore{};
 	float MaxWifeScore{};
 	float m_fTimingScale{};
+	std::vector<MineReplayResult> m_vMineReplayData;
 	std::vector<HoldReplayResult> m_vHoldReplayData;
 	std::vector<float> m_vOffsetVector;
 	std::vector<int> m_vNoteRowVector;
@@ -137,6 +140,7 @@ class PlayerStageStats
 	bool gaveuplikeadumbass{}; // flag 'giving up' status so i can flag it as
 							   // failing so i dont have to remove the feature
 							   // entirely -mina
+	bool usedDoubleSetup{};
 
 	std::map<float, float> m_fLifeRecord;
 	void SetLifeRecordAt(float fLife, float fStepsSecond);

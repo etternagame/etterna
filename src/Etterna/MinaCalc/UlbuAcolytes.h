@@ -10,13 +10,16 @@
  * patterns have lower enps than streams, streams default to 1 and chordstreams
  * start lower, stam is a special case and may use normalizers again */
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.93F, 0.885F, 0.84F, 0.93F, 0.8833277F, 0.8F, 0.83F
+	0.F, 0.93F, 0.885F, 0.84F, 0.93F, 1.02F, 0.785F, 0.9F
 };
 
 static const std::string calc_params_xml = "Save/calc params.xml";
 static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 constexpr float interval_span = 0.5F;
 
+/// smoothing function to reduce spikes and holes in a given vector
+/// biases vector beginning towards neutral
+/// uses an average of 3 continuous elements
 inline void
 Smooth(std::vector<float>& input,
 	   const float neutral,
@@ -33,6 +36,9 @@ Smooth(std::vector<float>& input,
 	}
 }
 
+/// smoothing function to reduce spikes and holes in a given vector.
+/// biases vector beginning towards neutral
+/// uses an average of 2 continuous elements
 inline void
 MSSmooth(std::vector<float>& input,
 		 const float neutral,
@@ -104,16 +110,22 @@ struct PatternMods
 	}
 };
 
-// converts time to interval index, if there's an offset to add or a rate to
-// scale by, it should be done prior
+/// converts time to interval index, if there's an offset to add or a rate to
+/// scale by, it should be done prior
 inline auto
 time_to_itv_idx(const float& time) -> int
 {
 	return static_cast<int>(time / interval_span);
 }
 
-// checks to see if the noteinfo will fit in our static arrays, if it won't it's
-// some garbage joke file and we can throw it out, setting values to 0
+inline auto
+itv_idx_to_time(const int& idx) -> float
+{
+	return static_cast<float>(idx) * interval_span;
+}
+
+/// checks to see if the noteinfo will fit in our static arrays, if it won't it's
+/// some garbage joke file and we can throw it out, setting values to 0
 inline auto
 fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 const float& rate,

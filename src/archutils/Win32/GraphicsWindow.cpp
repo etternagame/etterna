@@ -70,8 +70,8 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			const bool bMinimized = (HIWORD(wParam) != 0);
 			const bool bHadFocus = g_bHasFocus;
 			g_bHasFocus = !bInactive && !bMinimized;
-			if (PREFSMAN != nullptr && PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("WM_ACTIVATE ({}, {}): {}",
+			if (PREFSMAN != nullptr)
+				Locator::getLogger()->debug("WM_ACTIVATE ({}, {}): {}",
 						   bInactive,
 						   bMinimized,
 						   g_bHasFocus ? "has focus" : "doesn't have focus");
@@ -86,8 +86,8 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					 ++it)
 					sStr += (!sStr.empty() ? ", " : "") + *it;
 
-				if (PREFSMAN != nullptr && PREFSMAN->m_verbose_log > 1)
-                    Locator::getLogger()->trace("Lost focus to: %s", sStr);
+				if (PREFSMAN != nullptr)
+                    Locator::getLogger()->debug("Lost focus to: {}", sStr);
 			}
 
 			if (!g_bD3D && !g_CurrentParams.windowed &&
@@ -148,7 +148,7 @@ GraphicsWindow_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			return 0;
 
 		case WM_CLOSE:
-			Locator::getLogger()->trace("WM_CLOSE: shutting down");
+			Locator::getLogger()->info("WM_CLOSE: shutting down");
 			GameLoop::setUserQuit();
 			return 0;
 
@@ -350,7 +350,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 	if (g_hIcon != nullptr) {
 #if _WIN64
 		SetClassLongPtr(
-		  g_hWndMain, GCLP_HICON, (LONG)LoadIcon(nullptr, IDI_APPLICATION));
+		  g_hWndMain, GCLP_HICON, (LONG_PTR)LoadIcon(nullptr, IDI_APPLICATION));
 #else
 		SetClassLong(
 		  g_hWndMain, GCL_HICON, (LONG)LoadIcon(NULL, IDI_APPLICATION));
@@ -361,7 +361,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 	g_hIcon = IconFromFile(p.sIconFile);
 	if (g_hIcon != nullptr)
 #if _WIN64
-		SetClassLongPtr(g_hWndMain, GCLP_HICON, (LONG)g_hIcon);
+		SetClassLongPtr(g_hWndMain, GCLP_HICON, (LONG_PTR)g_hIcon);
 #else
 		SetClassLong(g_hWndMain, GCL_HICON, (LONG)g_hIcon);
 #endif

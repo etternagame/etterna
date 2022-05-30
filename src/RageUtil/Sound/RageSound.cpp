@@ -28,6 +28,7 @@
 #include "RageSoundUtil.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "RageSoundReader_Extend.h"
 #include "RageSoundReader_FileReader.h"
 #include "RageSoundReader_Pan.h"
@@ -39,6 +40,7 @@
 #include "fft.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iterator>
 
 #define samplerate() m_pSource->GetSampleRate()
@@ -63,10 +65,15 @@ RageSound::RageSound()
 
 RageSound::~RageSound()
 {
+	Unload();
+	// Make sure we free fftPlan after Unload()ing
+	// Otherwise, the decode thread could lock recentSamplesMutex in 
+	// RageSound::GetDataToPlay and if we lock it first, we free the 
+	// fftPlan and then it tries to use it.
+	// Unload() removes this RageSound from the arrays the decode thread uses
+	std::lock_guard<std::mutex> guard(recentSamplesMutex);
 	if (fftPlan)
 		mufft_free_plan_1d(fftPlan);
-	
-	Unload();
 }
 
 RageSound::RageSound(const RageSound& cpy)
@@ -183,10 +190,9 @@ RageSound::Load(const std::string& sSoundFilePath,
 				bool bPrecache,
 				const RageSoundLoadParams* pParams)
 {
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("RageSound: Load \"{}\" (precache: {})",
-				   sSoundFilePath.c_str(),
-				   bPrecache);
+	Locator::getLogger()->debug("RageSound: Load \"{}\" (precache: {})",
+		sSoundFilePath.c_str(),
+		bPrecache);
 
 	if (pParams == nullptr) {
 		static const RageSoundLoadParams Defaults;
@@ -340,7 +346,16 @@ RageSound::GetDataToPlay(float* pBuffer,
 		RageSoundUtil::ConvertMonoToStereoInPlace(pBuffer, iFramesStored);
 	if (soundPlayCallback != nullptr) {
 		std::lock_guard<std::mutex> guard(recentSamplesMutex);
-		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet()) {
+		// checking to see that the lua function exists
+		// also check to see that the source exists
+		// if the source exists, the sound is still valid
+		// why check to see that the source exists?
+		// the above lock has a chance to race:
+		//  lock is grabbed at ~RageSound, and source is nulled
+		//  lock is released, and then this code is executed
+		//  so if the source disappears before the lock is released, bad.
+		if (!soundPlayCallback->IsNil() && soundPlayCallback->IsSet() &&
+			  m_pSource != nullptr) {
 			unsigned int currentSamples = recentPCMSamples.size();
 			auto samplesToCopy =
 			  std::min(iFramesStored * m_pSource->GetNumChannels(),
@@ -348,9 +363,12 @@ RageSound::GetDataToPlay(float* pBuffer,
 			auto until = pBuffer + samplesToCopy;
 			copy(pBuffer, until, back_inserter(recentPCMSamples));
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
-				mufft_execute_plan_1d(fftPlan, fftBuffer.data(), recentPCMSamples.data());
-				recentPCMSamples.clear();
-				pendingPlayBackCall = true;
+				if (fftPlan != nullptr) {
+					mufft_execute_plan_1d(
+					  fftPlan, fftBuffer.data(), recentPCMSamples.data());
+					recentPCMSamples.clear();
+					pendingPlayBackCall = true;
+				}
 			}
 		}
 	}
@@ -362,26 +380,45 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 {
 	if (soundPlayCallback == nullptr || !pendingPlayBackCall)
 		return;
-	std::lock_guard<std::mutex> guard(recentSamplesMutex);
-	std::string error;
-	soundPlayCallback->PushSelf(L);
-	lua_newtable(L);
-	for (size_t i = 0; i < fftBuffer.size(); ++i) {
-		auto r = fftBuffer[i].real;
-		auto im = fftBuffer[i].imag;
-		lua_pushnumber(L,
-					   (r * r + im * im) / (0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
-						 (0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) / 15.f);
-		lua_rawseti(L, -2, i + 1);
+	{
+		// Make sure we're not holding this mutex when we run the lua callback/script
+		// Otherwise it can deadlock if it calls ClearPlayBackCallback which locks g_mutex
+		// and GameSoundManager tries to delete the RageSound which will lock this one after
+		// g_mutex (In the opposite order)
+		// This *should* be fine since even if soundPlayCallback is set to nil by another thread while
+		// we are running it, since the `soundPlayCallback->PushSelf` call which we do while holding
+		// the mutex does a lua_rawgeti which pushes a reference to the callback to the lua stack
+		// which is owned by the lua VM and garbage collected, so it should *not* get freed.
+		std::lock_guard<std::mutex> guard(recentSamplesMutex);
+		// Recheck in case it changed inbetween the earlier check and the mutex lock
+		if (soundPlayCallback == nullptr)
+			return;
+		soundPlayCallback->PushSelf(L);
+		lua_newtable(L);
+		for (size_t i = 0; i < fftBuffer.size(); ++i) {
+			auto r = fftBuffer[i].real;
+			auto im = fftBuffer[i].imag;
+			lua_pushnumber(
+			  L,
+			  (r * r + im * im) /
+				(0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
+				(0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
+				15.f);
+			lua_rawseti(L, -2, i + 1);
+		}
+		pendingPlayBackCall = false;
 	}
+	// TODO: Change this parameter from RageSound to the sampling rate
+	//       by removing this PushSelf.
+	//       We're not holding the g_Mutex from GameSoundManager when we call
+	//       the callback for it's global g_playing, which I think might cause
+	//       issues depending on what the lua callback does with it.
 	PushSelf(L);
-	inPlayCallback = true;
-	LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 1 arg, 0 returns
-	inPlayCallback = false;
+	std::string error;
+	LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 2 args, 0 returns
 	if (error != "") // hack for now because we're bad and didn't deal with
 					 // clearing this -mina
 		soundPlayCallback->Unset();
-	pendingPlayBackCall = false;
 }
 
 /* Indicate that a block of audio data has been written to the device. */
@@ -410,9 +447,8 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 	/* If m_StartTime is in the past, then we probably set a start time but took
 	 * too long loading.  We don't want that; log it, since it can be unobvious.
 	 */
-	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0 &&
-		PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("Sound \"{}\" has a start time {} seconds in the past",
+	if (!m_Param.m_StartTime.IsZero() && m_Param.m_StartTime.Ago() > 0)
+		Locator::getLogger()->debug("Sound \"{}\" has a start time {} seconds in the past",
 				   GetLoadedFilePath().c_str(),
 				   m_Param.m_StartTime.Ago());
 
@@ -606,7 +642,7 @@ RageSound::GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
  * grabbing it, when releasing SOUNDMAN.
  */
 float
-RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp) const
+RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 {
 	/* Get our current hardware position. */
 	auto iCurrentHardwareFrame = SOUNDMAN->GetPosition(pTimestamp);
@@ -625,15 +661,107 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp) const
 	/* If we don't yet have any position data, CommitPlayingPosition hasn't yet
 	 * been called at all, so guess what we think the real time is. */
 	if (m_HardwareToStreamMap.IsEmpty() || m_StreamToSourceMap.IsEmpty()) {
-		// LOG->Trace( "no data yet; %i", m_iStoppedSourceFrame );
 		if (bApproximate != nullptr)
 			*bApproximate = true;
 		return m_iStoppedSourceFrame / static_cast<float>(samplerate());
 	}
 
-	auto iSourceFrame =
-	  GetSourceFrameFromHardwareFrame(iCurrentHardwareFrame, bApproximate);
-	return iSourceFrame / static_cast<float>(samplerate());
+	const auto iSourceFrame =
+		GetSourceFrameFromHardwareFrame(iCurrentHardwareFrame, bApproximate);
+
+	const auto fSeconds = iSourceFrame / static_cast<float>(samplerate());
+
+	if (m_bPaused || pTimestamp == nullptr) {
+		return fSeconds;
+	}
+
+	// GetPosition is untrustworthy, so use a high resolution clock to
+	// clean it up. Mostly, jitter. This can be bad enough to cause visible
+	// jittering of the rendered notes, and, even when not visible, can add
+	// milliseconds of jitter to a players' hit judgments.
+
+	// The last time we called into GetPosition.
+	auto tm = m_Pasteurizer.tm;
+
+	// Used to do linear extrapolation in time when GetPosition returns the same
+	// value multiple times.
+	auto hwTime = m_Pasteurizer.hwTime;
+	auto hwPosition = m_Pasteurizer.hwPosition;
+
+	// An abitrary point in the past where both the wall-time and music-time are
+	// known. We can't use hwTime as it updates too often.
+	auto syncTime = m_Pasteurizer.syncTime;
+	auto syncPosition = m_Pasteurizer.syncPosition;
+
+	// The accumulated error from what we think the sync actually is, as opposed
+	// to what GetPosition + extrapolation is telling us. To follow clock drift,
+	// it is exponentially decayed towards the time according to GetPosition. We
+	// expect drift to be linear (<<< exponential) so if the time from
+	// GetPosition is good then we follow it very closely. If GetPosition is
+	// noisy then this acts like a low-pass filter. If acc exceeds 50ms, we
+	// reset.
+	//
+	// At 1.0x rate and high fps, it should never exceed 1-2 ms even when
+	// GetPosition is noisy, unless it skips, in which case it will gradually
+	// correct the sync over ~3 seconds. The assumption here is that, if there
+	// is a skip, we are already out of sync, and it is better to not cause a
+	// visual skip or instantaneously move the note out from under the player.
+	// Plus, skips tend to be matched by a skip in the opposite direction
+	// shortly after (with wall-time as a reference frame, not absolutely). We
+	// will never correct more 50ms out, which is 3 frames at 60fps.
+	//
+	// Between frames acc is stored as (acc - last_frame_err) and you get the
+	// true acc from (acc + this_frame_err).
+	auto acc = m_Pasteurizer.acc;
+
+	RageTimer z1 = tm;
+	tm = *pTimestamp;
+
+	if (hwPosition != fSeconds) {
+		hwTime = tm;
+		hwPosition = fSeconds;
+	}
+
+	const auto rate = m_Param.m_fSpeed;
+	const auto extrapolatedPosition = fSeconds + (tm - hwTime) * rate;
+	const auto syncTimeDelta = (tm - syncTime) * rate;
+	const auto syncPositionDelta = extrapolatedPosition - syncPosition;
+	const auto err = syncTimeDelta - syncPositionDelta;
+
+	// For values we expect, exp(-(tm - z1)) ≈ 1 - (tm - z1)
+	acc += err;
+	acc *= expf(-(tm - z1));
+	auto correction = acc;
+	acc -= err;
+
+	if (fabsf(correction) > 0.05f) {
+		acc = 0;
+		correction = 0;
+		syncTime = hwTime;
+		syncPosition = hwPosition;
+	}
+
+	const auto correctedPosition = extrapolatedPosition + correction;
+	const auto vsyncAdjust = DISPLAY->GetFrameTimingAdjustment(tm.tm);
+
+#if defined(TRACY_ENABLE) && defined(TRACE_BUTTER)
+	TracyPlot("acc ms", 1000.0f * (correction));
+	if (syncTime.tm == tm.tm) TracyMessageL("sync reset");
+	TracyPlot("extrapolatedPosition error from rdtsc ms", 1000.0f * err);
+	TracyPlot("correctedPosition error from rdtsc ms", 1000.0f *
+		((tm - syncTime) * rate - (correctedPosition - syncPosition)));
+	TracyPlot("vsyncAdjust ms", 1000.0f * vsyncAdjust);
+#endif
+
+	m_Pasteurizer.tm = tm;
+	m_Pasteurizer.hwTime = hwTime;
+	m_Pasteurizer.hwPosition = hwPosition;
+	m_Pasteurizer.syncTime = syncTime;
+	m_Pasteurizer.syncPosition = syncPosition;
+	m_Pasteurizer.acc = acc;
+
+	*pTimestamp += vsyncAdjust;
+	return correctedPosition + vsyncAdjust * rate;
 }
 
 bool
@@ -752,30 +880,22 @@ RageSound::SetStopModeFromString(const std::string& sStopMode)
 }
 
 void
-RageSound::ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
-									   unsigned int bufSize)
+RageSound::SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
+							   unsigned int bufSize)
 {
+	std::lock_guard<std::mutex> guard(recentSamplesMutex);
+
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
 	fftBuffer.resize(recentPCMSamplesBufferSize / 2 + 1, {});
-	if (fftPlan) mufft_free_plan_1d(fftPlan);
-	fftPlan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
-}
-
-void
-RageSound::SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
-							   unsigned int bufSize)
-{
-	// If we're in play callback it's safe to call this from lua, since we've
-	// locked LUA->Get() But not from C++ in another thread Invariant: The only
-	// calls to SetPlayBackCallback in C++ should be in the music thread
-	if (!inPlayCallback) {
-		std::lock_guard<std::mutex> guard(recentSamplesMutex);
-		ActuallySetPlayBackCallback(f, bufSize);
-		return;
-	}
-	ActuallySetPlayBackCallback(f, bufSize);
+	if (fftPlan)
+		mufft_free_plan_1d(fftPlan);
+	fftPlan =
+	  mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
+	if (!fftPlan)
+		Locator::getLogger()->warn(
+		  "Failed to set playback callback in mufft...");
 }
 
 // lua start

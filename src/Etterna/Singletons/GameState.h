@@ -98,7 +98,6 @@ class GameState
 
 	bool m_bPlayingMulti = false;
 	int m_iNumMultiplayerNoteFields;
-	[[nodiscard]] auto DifficultiesLocked() const -> bool;
 	auto ChangePreferredDifficultyAndStepsType(PlayerNumber pn,
 											   Difficulty dc,
 											   StepsType st) -> bool;
@@ -204,7 +203,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static auto GetEtternaVersion() -> std::string { return "0.71.0"; }
+	static auto GetEtternaVersion() -> std::string { return "0.71.2"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4

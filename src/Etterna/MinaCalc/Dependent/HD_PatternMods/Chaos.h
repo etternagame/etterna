@@ -1,9 +1,9 @@
 #pragma once
 #include "../IntervalHandInfo.h"
 
-// slightly different implementation of the old chaos mod, basically picks up
-// polyishness and tries to detect awkward transitions
-
+/// slightly different implementation of the old chaos mod, basically picks up
+/// polyishness and tries to detect awkward transitions
+/// In other words, detects chaotic timing between continuous notes.
 struct ChaosMod
 {
 	const CalcPatternMod _pmod = Chaos;

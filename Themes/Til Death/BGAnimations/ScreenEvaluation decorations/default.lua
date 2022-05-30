@@ -244,6 +244,8 @@ local function scoreBoard(pn, position)
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
 				clampJudge()
 				judge2 = judge
+				MESSAGEMAN:Broadcast("ForceWindow", {judge=judge})
+				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
 			end
 		end,
 		ChangeScoreCommand = function(self, params)
@@ -394,10 +396,11 @@ local function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 				local wv = score:GetWifeVers()
-				local ws = "Wife" .. wv .. " J"
 				local js = judge ~= 9 and judge or "ustice"
 				local rescoretable = getRescoreElements(score)
 				local rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
+				wv = 3 -- this should really only be applicable if we can convert the score
+				local ws = "Wife" .. wv .. " J"
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
 				self:settextf(
 					"%05.2f%% (%s)",
@@ -410,7 +413,6 @@ local function scoreBoard(pn, position)
 			CodeMessageCommand = function(self, params)
 				local rescoretable = getRescoreElements(score)
 				local rescorepercent = 0
-				local wv = score:GetWifeVers()
 				local ws = "Wife3" .. " J"
 				if params.Name == "PrevJudge" and judge > 4 then
 					judge = judge - 1
@@ -448,10 +450,11 @@ local function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 				local wv = score:GetWifeVers()
-				local ws = "Wife" .. wv .. " J"
 				local js = judge ~= 9 and judge or "ustice"
 				local rescoretable = getRescoreElements(score)
 				local rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
+				wv = 3 -- this should really only be applicable if we can convert the score
+				local ws = "Wife" .. wv .. " J"
 				self:diffuse(getGradeColor(score:GetWifeGrade()))
 				self:settextf(
 					"%05.5f%% (%s)",
@@ -947,29 +950,6 @@ if GAMESTATE:IsPlayerEnabled() then
 end
 
 t[#t + 1] = LoadActor("../offsetplot")
-
-local score = SCOREMAN:GetMostRecentScore()
-if not score then
-	score = SCOREMAN:GetTempReplayScore()
-end
--- Discord thingies
-local largeImageTooltip =
-	GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
-	": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
-local detail =
-	GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
-	" " .. string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
-if not STATSMAN:GetCurStageStats():GetLivePlay() then
-	detail = "Replayed: "..detail
-end
--- truncated to 128 characters(discord hard limit)
-detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
-local state =
-	"MSD: " ..
-	string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1)) ..
-		" - " ..
-			string.format("%05.2f%%", notShit.floor(score:GetWifeScore() * 10000) / 100) ..
-				" " .. THEME:GetString("Grade", ToEnumShortString(score:GetWifeGrade()))
-GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, 0)
+updateDiscordStatus(true)
 
 return t

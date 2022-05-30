@@ -4,6 +4,10 @@ set(FFMPEG_ROOT "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg-4.4-src")
 set(FFMPEG_BIN  "${PROJECT_BINARY_DIR}/ffmpeg_dl/ffmpeg_dl-build")
 
 list(APPEND FFMPEG_CONFIGURE
+  "rm"
+  "-f"
+  "${FFMPEG_ROOT}/VERSION"
+  "&&"  
   "${FFMPEG_ROOT}/configure"
   "--disable-programs"
   "--disable-doc"
@@ -29,7 +33,7 @@ endif()
 if(APPLE)
   list(APPEND FFMPEG_CONFIGURE
     "--arch=x86_64"
-    "--cc=clang -m64"
+    "--cc=clang -arch x86_64"
     "--enable-sse")
 endif()
 list(APPEND FFMPEG_CONFIGURE "--enable-gpl")

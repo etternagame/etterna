@@ -4,7 +4,7 @@
 
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "ScreenManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "curl/curl.h"
@@ -44,7 +44,11 @@ class Download
 	void Failed();
 	std::string StartMessage()
 	{
-		return "Downloading file " + m_TempFileName + " from " + m_Url;
+		auto str = "Downloading: " + m_TempFileName;
+		if (str.length() > 64) {
+			str = str.substr(0, 60) + "...";
+		}
+		return str;
 	};
 	std::string Status()
 	{
@@ -205,7 +209,7 @@ class DownloadManager
 
 	void AddFavorite(const std::string& chartkey);
 	void RemoveFavorite(const std::string& chartkey);
-	void RefreshFavourites();
+	void RefreshFavorites();
 	std::vector<std::string> favorites;
 
 	void AddGoal(const std::string& chartkey,

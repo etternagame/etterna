@@ -8,6 +8,7 @@
 #include "base/strings/string_util.h"
 
 #include <stdio.h>
+#include <string.h>
 
 namespace base {
 

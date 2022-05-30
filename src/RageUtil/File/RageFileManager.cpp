@@ -313,7 +313,7 @@ ChangeToDirOfExecutable(const std::string& argv0)
 
 RageFileManager::RageFileManager(const std::string& argv0)
 {
-	Locator::getLogger()->trace(argv0.c_str());
+	Locator::getLogger()->trace("{}", argv0.c_str());
 	ChangeToDirOfExecutable(argv0);
 
 	g_Mutex = new RageEvent("RageFileManager");
@@ -583,7 +583,7 @@ RageFileManager::CreateDir(const std::string& sDir)
 	std::string sTempFile = sDir + "newdir.temp.newdir";
 	RageFile f;
 	if (!f.Open(sTempFile, RageFile::WRITE))
-		Locator::getLogger()->trace("Creating temporary file '{}' failed: {}",
+		Locator::getLogger()->warn("Creating temporary file '{}' failed: {}",
 				   sTempFile.c_str(),
 				   f.GetError().c_str());
 	f.Close();
@@ -634,7 +634,7 @@ RageFileManager::Mount(const std::string& sType,
 										 sType.c_str(),
 										 sRoot.c_str(),
 										 sMountPoint.c_str());
-	Locator::getLogger()->trace(sPaths.c_str());
+	Locator::getLogger()->debug("Driver MOUNT: {}", sPaths.c_str());
 #if defined(DEBUG)
 	puts(sPaths);
 #endif
@@ -654,7 +654,7 @@ RageFileManager::Mount(const std::string& sType,
 		return false;
 	}
 
-	Locator::getLogger()->trace("Driver %s successfully made.");
+	Locator::getLogger()->debug("Driver %s successfully made.");
 
 	auto* pLoadedDriver = new LoadedDriver;
 	pLoadedDriver->m_pDriver = pDriver;

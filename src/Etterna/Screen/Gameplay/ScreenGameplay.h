@@ -100,7 +100,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	void PlayTicks();
 	// Used to update some pointers
-	void UpdateSongPosition(float fDeltaTime);
+	void UpdateSongPosition();
 	void SongFinished();
 	virtual void SaveStats();
 	virtual void StageFinished(bool bBackedOut);

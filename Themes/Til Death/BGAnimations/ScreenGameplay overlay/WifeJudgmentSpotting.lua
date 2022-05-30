@@ -105,6 +105,7 @@ local translated_info = {
 	ErrorLate = THEME:GetString("ScreenGameplay", "ErrorBarLate"),
 	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly"),
 	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
+	BPM = THEME:GetString("ChordDensityGraph", "BPM"),
 }
 
 -- Screenwide params
@@ -179,33 +180,10 @@ local t =
 			GAMESTATE:SetAutoplay(false)
 		end
 		-- Discord thingies
-		local largeImageTooltip =
-			GetPlayerOrMachineProfile(PLAYER_1):GetDisplayName() ..
-			": " .. string.format("%5.2f", GetPlayerOrMachineProfile(PLAYER_1):GetPlayerRating())
-		local mode = GAMESTATE:GetGameplayMode()
-		local detail =
-			GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
-			" " ..
-				string.gsub(getCurRateDisplayString(), "Music", "") .. " [" .. GAMESTATE:GetCurrentSong():GetGroupName() .. "]"
-		if mode == "GameplayMode_Replay" then
-			detail = "Replaying: "..detail
-		elseif mode == "GameplayMode_Practice" then
-			detail = "Practicing: "..detail
-		end
-		-- truncated to 128 characters(discord hard limit)
-		detail = #detail < 128 and detail or string.sub(detail, 1, 124) .. "..."
-		local state = "MSD: " .. string.format("%05.2f", GAMESTATE:GetCurrentSteps():GetMSD(getCurRateValue(), 1))
-		local endTime = os.time() + GetPlayableTime()
-		GAMESTATE:UpdateDiscordPresence(largeImageTooltip, detail, state, endTime)
+		updateDiscordStatus(false)
 
 		-- now playing thing for streamers
-		local streamerstuff =
-			"Now playing " ..
-			GAMESTATE:GetCurrentSong():GetDisplayMainTitle() ..
-				" by " ..
-					GAMESTATE:GetCurrentSong():GetDisplayArtist() ..
-						" in " .. GAMESTATE:GetCurrentSong():GetGroupName() .. " " .. state
-		File.Write("nowplaying.txt", streamerstuff)
+		updateNowPlaying()
 
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
@@ -1092,9 +1070,7 @@ end
 
 local function duminput(event)
 	if event.type == "InputEventType_Release" then
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+		if event.DeviceInput.button == "DeviceButton_right mouse button" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
 		end
 	elseif event.type == "InputEventType_FirstPress" then
@@ -1140,8 +1116,7 @@ local function UpdatePreviewPos(self)
 	self:queuecommand("Highlight")
 end
 
-local pm =
-	Def.ActorFrame {
+local pm = Def.ActorFrame {
 	Name = "ChartPreview",
 	InitCommand = function(self)
 		self:xy(MovableValues.PracticeCDGraphX, MovableValues.PracticeCDGraphY)
@@ -1150,12 +1125,7 @@ local pm =
 		if (allowedCustomization) then
 			Movable.DeviceButton_z.element = self
 			Movable.DeviceButton_z.condition = practiceMode
-		--Movable.DeviceButton_z.Border = self:GetChild("Border")
-		--Movable.DeviceButton_x.element = self
-		--Movable.DeviceButton_x.condition = practiceMode
-		--Movable.DeviceButton_x.Border = self:GetChild("Border")
 		end
-		--self:zoomto(MovableValues.PracticeCDGraphWidth, MovableValues.PracticeCDGraphHeight)
 	end,
 	BeginCommand = function(self)
 		musicratio = GAMESTATE:GetCurrentSteps():GetLastSecond() / (wodth)
@@ -1194,7 +1164,9 @@ local pm =
 					local percent = clamp((INPUTFILTER:GetMouseX() - self:GetParent():GetX()) / wodth, 0, 1)
 					local hoveredindex = clamp(math.ceil(cdg.finalNPSVectorIndex * percent), math.min(1, cdg.finalNPSVectorIndex), cdg.finalNPSVectorIndex)
 					local hoverednps = cdg.npsVector[hoveredindex]
-					seektext:settextf("%0.2f - %d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"])
+					local td = GAMESTATE:GetCurrentSteps():GetTimingData()
+					local bpm = td:GetBPMAtBeat(td:GetBeatFromElapsedTime(seek:GetX() * musicratio)) * getCurRateValue()
+					seektext:settextf("%0.2f\n%d %s\n%d %s", seek:GetX() * musicratio / getCurRateValue(), hoverednps, translated_info["NPS"], bpm, translated_info["BPM"])
 				else
 					seektext:settextf("%0.2f", seek:GetX() * musicratio / getCurRateValue())
 				end
@@ -1217,44 +1189,34 @@ local pm =
 pm[#pm + 1] = LoadActorWithParams("../_chorddensitygraph.lua", {width = wodth})
 
 -- more draw order shenanigans
-pm[#pm + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "Seektext",
-		InitCommand = function(self)
-			self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
-		end
-	}
+pm[#pm + 1] = LoadFont("Common Normal") .. {
+	Name = "Seektext",
+	InitCommand = function(self)
+		self:y(8):valign(1):halign(1):draworder(1100):diffuse(color("0.8,0,0")):zoom(0.4)
+	end
+}
 
-pm[#pm + 1] =
-	Def.Quad {
+pm[#pm + 1] = UIElements.QuadButton(1, 1) .. {
 	Name = "Seek",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color("1,.2,.5,1")):halign(0.5):draworder(1100)
+		self:z(2)
 	end,
-	MouseLeftClickMessageCommand = function(self)
-		if isOver(self) then
+	MouseDownCommand = function(self, params)
+		if params.event == "DeviceButton_left mouse button" then
 			local withCtrl = INPUTFILTER:IsControlPressed()
 			if withCtrl then
 				handleRegionSetting(self:GetX() * musicratio)
 			else
 				SCREENMAN:GetTopScreen():SetSongPosition(self:GetX() * musicratio, 0, false)
 			end
+		elseif params.event == "DeviceButton_right mouse button" then
+			handleRegionSetting(self:GetX() * musicratio)
 		end
 	end,
-	MouseRightClickMessageCommand = function(self)
-		if isOver(self) then
-			handleRegionSetting(self:GetX() * musicratio)
-		else
-			if not (allowedCustomization) then
-				SCREENMAN:GetTopScreen():TogglePause()
-			end
-		end
-	end
 }
 
-pm[#pm + 1] =
-	Def.Quad {
+pm[#pm + 1] = Def.Quad {
 	Name = "BookmarkPos",
 	InitCommand = function(self)
 		self:zoomto(2, hidth):diffuse(color(".2,.5,1,1")):halign(0.5):draworder(1100)
@@ -1288,6 +1250,26 @@ pm[#pm + 1] =
 
 if practiceMode and not isReplay then
 	t[#t + 1] = pm
+	if not allowedCustomization then
+		-- enable pausing
+		t[#t+1] = UIElements.QuadButton(1, 1) .. {
+			Name = "PauseArea",
+			InitCommand = function(self)
+				self:halign(0):valign(0)
+				self:z(1)
+				self:diffusealpha(0)
+				self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_right mouse button" then
+					local top = SCREENMAN:GetTopScreen()
+					if top then
+						top:TogglePause()
+					end
+				end
+			end,
+		}
+	end
 end
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

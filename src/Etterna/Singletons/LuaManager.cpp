@@ -458,29 +458,30 @@ LuaHelpers::rec_print_table(lua_State* L,
 {
 	switch (lua_type(L, -1)) {
 		case LUA_TNIL:
-			Locator::getLogger()->trace("{}{}: nil", indent.c_str(), name.c_str());
+			Locator::getLogger()->info("{}{}: nil", indent.c_str(), name.c_str());
 			break;
 		case LUA_TNUMBER:
-			Locator::getLogger()->trace("{}{} number: {}",
+			Locator::getLogger()->info("{}{} number: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tonumber(L, -1));
 			break;
 		case LUA_TBOOLEAN:
-			Locator::getLogger()->trace("{}{} bool: {}",
+			Locator::getLogger()->info("{}{} bool: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_toboolean(L, -1));
 			break;
 		case LUA_TSTRING:
-			Locator::getLogger()->trace("{}{} string: {}",
+			Locator::getLogger()->info("{}{} string: {}",
 					   indent.c_str(),
 					   name.c_str(),
 					   lua_tostring(L, -1));
 			break;
 		case LUA_TTABLE: {
 			size_t tablen = lua_objlen(L, -1);
-			Locator::getLogger()->trace("{}{} table: {}", indent.c_str(), name.c_str(), tablen);
+			Locator::getLogger()->info(
+			  "{}{} table: {}", indent.c_str(), name.c_str(), tablen);
 			std::string subindent = indent + "  ";
 			lua_pushnil(L);
 			while (lua_next(L, -2) != 0) {
@@ -492,16 +493,20 @@ LuaHelpers::rec_print_table(lua_State* L,
 			}
 		} break;
 		case LUA_TFUNCTION:
-			Locator::getLogger()->trace("{}{} function:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} function:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TUSERDATA:
-			Locator::getLogger()->trace("{}{} userdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} userdata:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TTHREAD:
-			Locator::getLogger()->trace("{}{} thread:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} thread:", indent.c_str(), name.c_str());
 			break;
 		case LUA_TLIGHTUSERDATA:
-			Locator::getLogger()->trace("{}{} lightuserdata:", indent.c_str(), name.c_str());
+			Locator::getLogger()->info(
+			  "{}{} lightuserdata:", indent.c_str(), name.c_str());
 			break;
 		default:
 			break;
@@ -1493,7 +1498,8 @@ static int
 Trace(lua_State* L)
 {
 	std::string sString = SArg(1);
-	Locator::getLogger()->trace("{}", sString.c_str());
+	// i know
+	Locator::getLogger()->info("{}", sString.c_str());
 	return 0;
 }
 static int

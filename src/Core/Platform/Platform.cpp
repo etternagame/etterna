@@ -68,11 +68,18 @@ int setCursorVisible(lua_State* L){
     return 0;
 }
 
+int
+requestUserAttention(lua_State* L) {
+	lua_pushboolean(L, Core::Platform::requestUserAttention());
+	return 1;
+}
+
 const luaL_Reg ArchTable[] = {
         LIST_METHOD(isGameFocused),
         LIST_METHOD(getSystem),
         LIST_METHOD(getClipboard),
         LIST_METHOD(setCursorVisible),
+		LIST_METHOD(requestUserAttention),
         { nullptr, nullptr }
 };
 

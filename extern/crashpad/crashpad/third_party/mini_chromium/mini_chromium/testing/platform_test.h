@@ -5,7 +5,6 @@
 #ifndef MINI_CHROMIUM_TESTING_PLATFORM_TEST_H_
 #define MINI_CHROMIUM_TESTING_PLATFORM_TEST_H_
 
-#include "base/macros.h"
 #include "build/build_config.h"
 #include "gtest/gtest.h"
 
@@ -17,6 +16,9 @@
 // depend on googletest.
 class PlatformTest : public testing::Test {
  public:
+  PlatformTest(const PlatformTest&) = delete;
+  PlatformTest& operator=(const PlatformTest&) = delete;
+
   ~PlatformTest() override { [pool_ release]; }
 
  protected:
@@ -29,8 +31,6 @@ class PlatformTest : public testing::Test {
   using PoolType = id;
 #endif
   PoolType pool_;
-
-  DISALLOW_COPY_AND_ASSIGN(PlatformTest);
 };
 #else
 using PlatformTest = testing::Test;

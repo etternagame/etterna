@@ -198,7 +198,6 @@ static const Style g_Style_Dance_Single = {
 	  1,
 	  2,
 	  3 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Dance_Double = {
@@ -236,7 +235,6 @@ static const Style g_Style_Dance_Double = {
 	  5,
 	  6,
 	  7 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Solo_Single = {
@@ -270,7 +268,6 @@ static const Style g_Style_Solo_Single = {
 	  3,
 	  4,
 	  5 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Dance_ThreePanel = {
@@ -299,7 +296,6 @@ static const Style g_Style_Dance_ThreePanel = {
 	  0,
 	  1,
 	  2 },
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Dance_Styles[] = { &g_Style_Dance_Single,
@@ -429,7 +425,6 @@ static const Style g_Style_Pump_Single = {
 	  2,
 	  3,
 	  4 },
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Pump_HalfDouble = {
@@ -463,8 +458,6 @@ static const Style g_Style_Pump_HalfDouble = {
 	  3,
 	  4,
 	  5 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Pump_Double = {
@@ -509,7 +502,6 @@ static const Style g_Style_Pump_Double = {
 	  3 + 5,
 	  4 + 5 },
 
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Pump_Styles[] = { &g_Style_Pump_Single,
@@ -603,7 +595,6 @@ static const Style g_Style_KB7_Single = {
 	  6 // doesn't work?
 	},
 
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_KB7_Styles[] = { &g_Style_KB7_Single, nullptr };
@@ -683,8 +674,6 @@ static const Style g_Style_Ez2_Single = {
 	  3 // This should be from back to front: Down, UpLeft, UpRight, Upper Left
 		// Hand, Upper Right Hand
 	},
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Ez2_Real = {
@@ -725,8 +714,6 @@ static const Style g_Style_Ez2_Real = {
 	  4 // This should be from back to front: Down, UpLeft, UpRight, Lower Left
 		// Hand, Lower Right Hand, Upper Left Hand, Upper Right Hand
 	},
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Ez2_Double = {
@@ -773,8 +760,6 @@ static const Style g_Style_Ez2_Double = {
 	  8 // This should be from back to front: Down, UpLeft, UpRight, Upper Left
 		// Hand, Upper Right Hand
 	},
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Ez2_Styles[] = { &g_Style_Ez2_Single,
@@ -871,8 +856,6 @@ static const Style g_Style_DS3DDX_Single = {
 	  5,
 	  6,
 	  7 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_DS3DDX_Styles[] = { &g_Style_DS3DDX_Single,
@@ -973,8 +956,6 @@ static const Style g_Style_Beat_Single5 = {
 	  3,
 	  4,
 	  5 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Beat_Double5 = {
@@ -1038,8 +1019,6 @@ static const Style g_Style_Beat_Double5 = {
 	  9,
 	  10,
 	  11 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Beat_Single7 = {
@@ -1079,8 +1058,6 @@ static const Style g_Style_Beat_Single7 = {
 	  5,
 	  6,
 	  7 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Beat_Double7 = {
@@ -1136,8 +1113,6 @@ static const Style g_Style_Beat_Double7 = {
 	  13,
 	  14,
 	  15 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Beat_Styles[] = { &g_Style_Beat_Single5,
@@ -1232,8 +1207,6 @@ static const Style g_Style_Maniax_Single = {
 	  1,
 	  2,
 	  3 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Maniax_Double = {
@@ -1273,8 +1246,6 @@ static const Style g_Style_Maniax_Double = {
 	  5,
 	  6,
 	  7 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Maniax_Styles[] = { &g_Style_Maniax_Single,
@@ -1363,8 +1334,6 @@ static const Style g_Style_Popn_Five = {
 	  2,
 	  3,
 	  4 },
-
-	false, // m_bLockDifficulties
 };
 
 static const Style g_Style_Popn_Nine = {
@@ -1407,7 +1376,6 @@ static const Style g_Style_Popn_Nine = {
 	  7,
 	  8 },
 
-	false, // m_bLockDifficulties
 };
 
 static const Style* g_apGame_Popn_Styles[] = { &g_Style_Popn_Five,

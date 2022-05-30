@@ -1,6 +1,8 @@
 #pragma once
 #include "../../PatternModHelpers.h"
 
+/// Hand-Agnostic PatternMod detecting Chordjacks.
+/// Looks for continuous chords which form jacks
 struct CJMod
 {
 	const CalcPatternMod _pmod = CJ;
@@ -62,6 +64,11 @@ struct CJMod
 	float pmod = min_mod;
 	float t_taps = 0.F;
 	float last_mod = 0.F;
+
+	void full_reset()
+	{
+		last_mod = min_mod;
+	}
 
 	void decay_mod()
 	{

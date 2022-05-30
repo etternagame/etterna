@@ -2,8 +2,15 @@
 #include "../../PatternModHelpers.h"
 #include "../HA_Sequencers/FlamSequencing.h"
 
-// MAKE FLAM WIDE RANGE?
-// ^ YES DO THIS
+/// Hand-Agnostic PatternMod detecting continuous flams.
+/// Flams are n taps which are close enough to be hit as a chord.
+/// Intended to downscale patterns which take advantage of
+/// flams as being misinterpreted as stream instead of something like
+/// chordjacks or jumpstream.
+///
+/// note for improvement:
+/// MAKE FLAM WIDE RANGE?
+/// ^ YES DO THIS
 struct FlamJamMod
 {
 	const CalcPatternMod _pmod = FlamJam;

@@ -438,6 +438,8 @@ function getRescoredJudge(offsetVector, judgeScale, judge)
 	local upperBound = judge == 5 and math.max(windows[judge] * ts, 180.0) or windows[judge] * ts
 	local judgeCount = 0
 
+	if offsetVector == nil then return judgeCount end
+
 	if judge > 5 then
 		lowerBound = math.max(lowerBound, 180.0)
 		for i = 1, #offsetVector do
@@ -581,12 +583,12 @@ function GetDisplayScore()	-- wrapper for above that prioritizes current rate's 
 end
 
 -- erf constants
-a1 =  0.254829592
-a2 = -0.284496736
-a3 =  1.421413741
-a4 = -1.453152027
-a5 =  1.061405429
-p  =  0.3275911
+local a1 =  0.254829592
+local a2 = -0.284496736
+local a3 =  1.421413741
+local a4 = -1.453152027
+local a5 =  1.061405429
+local p  =  0.3275911
 
 
 function erf(x)
@@ -631,8 +633,11 @@ function getRescoredWife3Judge(version, judgeScale, rst)
 	local tso = ms.JudgeScalers
 	local ts = tso[judgeScale]
 	local p = 0.0
-	for i = 1, #rst["dvt"] do							-- wife2 does not require abs due to ^2 but this does
-		p = p + wife3(math.abs(rst["dvt"][i]), ts, version)
+	local dvt = rst["dvt"]
+	if dvt == nil then return p end
+
+	for i = 1, #dvt do							-- wife2 does not require abs due to ^2 but this does
+		p = p + wife3(math.abs(dvt[i]), ts, version)
 	end
 	p = p + (rst["holdsMissed"] * -4.5)
 	p = p + (rst["minesHit"] * -7)
@@ -671,5 +676,11 @@ end
 -- returns true if A is worth more than B
 -- (based on gradeTiers, A would have a smaller value)
 function compareGrades(a, b)
+	if a == nil then -- covers both (a == nil and b == nil) and (a == nil and b ~= nil)
+		return false
+	elseif b == nil then -- covers (a ~= nil and b == nil)
+		return true
+	end
+	-- covers (a ~= nil and b ~= nil)
 	return gradeTiers[a] < gradeTiers[b]
 end

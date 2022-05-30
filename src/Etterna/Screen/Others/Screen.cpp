@@ -35,7 +35,19 @@ Screen::InitScreen(Screen* pScreen)
 	pScreen->Init();
 }
 
-Screen::~Screen() = default;
+Screen::~Screen()
+{
+	// unregister the periodic functions
+	auto* L = LUA->Get();
+	for (auto& dfunc : delayedPeriodicFunctions) {
+		auto id = std::get<3>(dfunc);
+		luaL_unref(L, LUA_REGISTRYINDEX, id);
+	}
+	delayedFunctions.clear();
+	delayedPeriodicFunctions.clear();
+	delayedPeriodicFunctionIdsToDelete.clear();
+	LUA->Release(L);
+};
 
 bool
 Screen::SortMessagesByDelayRemaining(const Screen::QueuedScreenMessage& m1,
@@ -73,7 +85,7 @@ Screen::Init()
 	std::vector<std::string> asList;
 	split(PREPARE_SCREENS, ",", asList);
 	for (auto& i : asList) {
-		Locator::getLogger()->trace(
+		Locator::getLogger()->info(
 		  "Screen \"{}\" preparing \"{}\"", m_sName.c_str(), i.c_str());
 		SCREENMAN->PrepareScreen(i);
 	}
@@ -425,6 +437,10 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	wctomb(s, INPUTMAN->DeviceInputToChar(input.DeviceI, true));
 	LuaHelpers::Push(L, std::string(1, s[0]));
 	lua_setfield(L, -2, "char");
+	char snm[MB_LEN_MAX];
+	wctomb(snm, INPUTMAN->DeviceInputToChar(input.DeviceI, false));
+	LuaHelpers::Push(L, std::string(1, snm[0]));
+	lua_setfield(L, -2, "charNoModifiers");
 	LuaHelpers::Push(
 	  L, GameButtonToString(INPUTMAPPER->GetInputScheme(), input.MenuI));
 	lua_setfield(L, -2, "GameButton");

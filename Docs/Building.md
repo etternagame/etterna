@@ -8,6 +8,7 @@ Interested in contributing to Etterna? This guide is the place to start!
 - [Quick Start](#Quick-Start)
 - [Universal Dependencies](#Universal-Dependencies)
   - [Linux Dependencies](#Linux-Dependencies)
+  - [Pop_OS! Notes](#Pop_OS-Notes)
   - [Windows Dependencies](#Windows-Dependencies)
   - [macOS Dependencies](#macOS-Dependencies)
 - [Project Generation](#Project-Generation)
@@ -47,6 +48,7 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
   - Debian: `apt install libssl-dev`
   - Fedora: `dnf install openssl-devel`
   - Arch: `pacman -S openssl`
+  - Alpine: `apk add openssl-dev`
   - macOS: `brew install openssl`
   - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1i.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1i.exe)
 - [depot_tools](https://dev.chromium.org/developers/how-tos/install-depot-tools) - Installation is platform specific. To skip installing this, follow the relevant instructions in [CLI Project Generation](CLI-Project-Generation).
@@ -55,9 +57,35 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
 
 While most dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
 
+For Pop_OS!, install the `Debian` dependencies, then refer to the [Pop_OS! Notes](#Pop_OS-Notes) section below.
+
 - Debian: `apt install build-essential libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
 - Fedora: `dnf install openssl-static libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
 - Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack`
+- Alpine: `apk add build-base openssl-dev libx11-dev libxrandr-dev curl-dev mesa-dev glu-dev pulseaudio-dev libogg-dev alsa-lib-dev jack-dev`
+
+### Pop_OS! Notes
+
+More recent builds of Pop_OS! are missing some required dependencies.
+
+#### Python 2.7
+
+The build requires Python 2.7 be installed and symlinked as `python`.
+
+Run `python --version`. If it's ok, skip this section. If `python --version` says `command not found`, run the following:
+
+```
+sudo apt install -y python2.7
+sudo ln -s /usr/bin/python2.7 /usr/local/bin/python
+```
+
+#### clang
+
+`clang` is required for Crashpad. If you don't want to include Crashpad, add `-DWITH_CRASHPAD=OFF` when running `cmake`. Otherwise, install `clang`:
+
+```
+sudo apt install -y clang
+```
 
 ### Windows Dependencies
 
@@ -73,7 +101,7 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 ## Project Generation
 
-First, ensure you have forked Etterna, cloned to your system, and checked out `develop`. 
+First, ensure you have forked Etterna, cloned to your system, and checked out `develop`.
 
 There are two stages apart of CMake projects.
 
@@ -127,6 +155,8 @@ Users of Linux be aware that the game builds on the `Debug` target by default. H
 
 #### Sample CMake Commands
 
+**⚠️ Note**: You likely want to include `-DCMAKE_BUILD_TYPE=Release` when running `cmake`. This results in a smaller build that will often perform much better.
+
 ```bash
 cmake -G "Ninja" ..                                                             # Linux Ninja
 cmake -G "Unix Makefiles" ..                                                    # Linux Makefiles
@@ -173,6 +203,7 @@ To install ninja, use one of the following commands
 - Debian: `apt install ninja-build`
 - Fedora: `dnf install ninja-build`
 - Arch: `pacman -S ninja`
+- Alpine: `apk add samurai #As of 2021-11-10 ninja is not available in alpine main so use samurai instead`
 - macOS: `brew install ninja`
 
 To start compiling, run the cmake command with the Ninja generator, then run `ninja`.
@@ -222,29 +253,31 @@ To build a distribution file for the operating system you are using, run `cpack`
 
 ### cppcheck
 
-cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system. 
+cppcheck is a cross-platform static analysis tool which CMake supports by adding a target for it in your desired generator. The target named `cppcheck` will only be created if CMake can find the cppcheck command on your system.
 
 - Debian: `apt install cppcheck`
 - Fedora: `dnf install cppcheck`
 - Arch: `pacman -S cppcheck`
+- Alpine: `apk add cppcheck`
 - macOS: `brew install cppcheck`
 - Windows: An installer is available at the [cppcheck website](http://cppcheck.sourceforge.net/). Make sure that `cppcheck` runs when you enter the command in your CLI. If it doesn't, [check your system/user path](https://www.computerhope.com/issues/ch000549.htm) to ensure that the bin folder of where you installed cppcheck is listed there.
 
 When cppcheck is run, it will generate a file in the build directory called `cppcheck.txt` which will have the output of the command. The output is saved to a file as the command produces significant output, and can take some time to run.
 
-To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen. 
+To run `cppcheck`, run the target. Running the target will be different depending on the generator you have chosen.
 
 ## Documentation
 
 ### C++ Docs
 
-Etterna uses [doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
+Etterna uses [Doxygen](http://www.doxygen.nl/) to build it's C++ documentation. Documentation is generated in a `doxygen` directory, inside the build directory. CMake is setup to make a target called `doxygen` if the executable found in the path.
 
 - Debian: `apt install doxygen`
 - Fedora: `dnf install doxygen`
 - Arch: `pacman -S doxygen`
+- Alpine: `apk add doxygen`
 - macOS: `brew install doxygen`
-- Windows: An installer is available at the [doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
+- Windows: An installer is available at the [Doxygen website](http://www.doxygen.nl/download.html). As with [cppcheck](#cppcheck), make sure the executable binary directory is added to your path.
 
 Doxygen within CMake is able to use [graphviz](https://www.graphviz.org/download/) to generate better looking relationship/hierarchy graphs. You can see how to download it for your operating system at the [graphgiz download page](https://www.graphviz.org/download/).
 

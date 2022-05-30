@@ -324,6 +324,24 @@ namespace Core::Platform {
 	}
 
 	bool isOtherInstanceRunning(int argc, char** argv){
+		// We create a system-wide mutex with a unique name. If it does not exist, we know
+		// there are no other instances. This is a fix for an issue where some windows had
+		// a title of "Etterna" and it generated false positives (Notably explorer on an Etterna folder)
+		//
+		// SHA256 of ETTERNA in the middle
+		CreateMutex(NULL, TRUE, TEXT(" ETTERNA2aced23fdf1270d6a97c9425f957829fce5ad666fec0c6fdfcdae5561f8b905dETTERNA "));
+		switch (GetLastError()) {
+			case ERROR_SUCCESS:
+				// Process was not running already
+				// We leak the mutex, it is released when our process dies. If another instance
+				// attempts to start it will now fail here.
+				return false;
+			case ERROR_ALREADY_EXISTS:
+				// Process is running already
+			default:
+				// Error occured, not sure whether process is running already.
+				break;
+		}
         /* Search for the existing window.  Prefer to use the class name, which is
          * less likely to have a false match, and will match the gameplay window.
          * If that fails, try the window name, which should match the loading
@@ -379,5 +397,33 @@ namespace Core::Platform {
     {
 		return SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS) != 0;
     }
+
+	bool requestUserAttention()
+	{
+		/* Search for the existing window.  Prefer to use the class name, which
+		 * is less likely to have a false match, and will match the gameplay
+		 * window. If that fails, try the window name, which should match the
+		 * loading window. */
+		HWND hWnd = FindWindow(Core::AppInfo::APP_TITLE, nullptr);
+		if (hWnd == nullptr)
+			hWnd = FindWindow(nullptr, Core::AppInfo::APP_TITLE);
+
+		// If after two find window attempts, the pointer is still null,
+		// then no other game instance was found.
+		if (hWnd == nullptr)
+			return false;
+
+		FLASHWINFO flwnfo;
+		flwnfo.cbSize = sizeof(flwnfo); // why
+		flwnfo.hwnd = hWnd;
+		// tray icon continuously until app is foregrounded
+		flwnfo.dwFlags = FLASHW_TRAY | FLASHW_TIMERNOFG;
+		flwnfo.dwTimeout = 0;
+		flwnfo.uCount = 5u;
+
+		// this is always successful, basically
+		// nonzero return means it was already focused or similar
+		return FlashWindowEx(&flwnfo) >= 0;
+	}
 
 }

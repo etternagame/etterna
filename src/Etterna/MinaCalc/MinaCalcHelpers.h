@@ -15,16 +15,16 @@ static const std::vector<float> dimples_the_all_zero_output{
 	min_rating, min_rating, min_rating, min_rating
 };
 
-// unused atm but would be used for easily identifying scores on joke files
+/// unused atm but would be used for easily identifying scores on joke files
 static const std::vector<float> gertrude_the_all_max_output{
 	max_rating, max_rating, max_rating, max_rating,
 	max_rating, max_rating, max_rating, max_rating
 };
 
-// 4k calc only
+/// 4k calc only
 static const int num_chart_cols = 4;
 
-// convenience loop
+/// convenience loop
 static const std::array<int, num_chart_cols> zto3 = { 0, 1, 2, 3 };
 
 inline auto

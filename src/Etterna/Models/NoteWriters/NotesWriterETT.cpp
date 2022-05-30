@@ -488,13 +488,14 @@ NotesWriterETT::Write(std::string& sPath,
 	FOREACH_CONST(Steps*, vpStepsToSave, s)
 	{
 		auto pSteps = *s;
-		if (!pSteps->GetChartKey().empty()) { // Avoid writing cache tags for
+		if (!pSteps->GetChartKey().empty()) {
+			// Avoid writing cache tags for
 			// invalid chartkey files(empty
 			// steps) -Mina
 			auto sTag = GetETTNoteData(out, *pSteps);
 			f.PutLine(sTag);
 		} else {
-            //Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
+            Locator::getLogger()->info("Not caching empty difficulty in file {}", sPath.c_str());
 		}
 	}
 	if (f.Flush() == -1)

@@ -261,7 +261,7 @@ InputHandler::Create(const std::string& drivers_, std::vector<InputHandler*>& Ad
 	{
 		RageDriver* pDriver = InputHandler::m_pDriverList.Create(*s);
 		if (pDriver == NULL) {
-			Locator::getLogger()->trace("Unknown Input Handler name: {}",
+			Locator::getLogger()->warn("Unknown Input Handler name: {}",
 										s->c_str());
 			continue;
 		}

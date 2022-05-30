@@ -176,6 +176,9 @@ class ScoreManager
 	  const std::string& profileID =
 		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID,
 	  bool getSSRs = false);
+	std::map<DateTime, std::vector<float>> GetPlayerRatingOverTime(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void SortTopSSRPtrsForGame(
 	  Skillset ss,
 	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);

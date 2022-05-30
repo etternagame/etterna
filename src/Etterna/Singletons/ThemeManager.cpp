@@ -386,10 +386,8 @@ ThemeManager::LoadThemeMetrics(const std::string& sThemeName_,
 		g_pLoadedThemeData->iniMetrics.SetValue(sBits[0], sBits[1], sBits[2]);
 	}
 
-	if (PREFSMAN->m_verbose_log > 1) {
-        Locator::getLogger()->trace("Theme: {}", m_sCurThemeName.c_str());
-        Locator::getLogger()->trace("Language: {}", m_sCurLanguage.c_str());
-	}
+	Locator::getLogger()->info("Theme: {}", m_sCurThemeName.c_str());
+	Locator::getLogger()->info("Language: {}", m_sCurLanguage.c_str());
 }
 
 std::string
@@ -447,10 +445,9 @@ ThemeManager::SwitchThemeAndLanguage(const std::string& sThemeName_,
 	if (sLanguage.empty())
 		sLanguage = GetDefaultLanguage();
 
-	if (PREFSMAN->m_verbose_log > 1)
-		Locator::getLogger()->trace("ThemeManager::SwitchThemeAndLanguage: \"{}\", \"{}\"",
-				   sThemeName.c_str(),
-				   sLanguage.c_str());
+	Locator::getLogger()->info("ThemeManager::SwitchThemeAndLanguage: \"{}\", \"{}\"",
+				sThemeName.c_str(),
+				sLanguage.c_str());
 
 	bool bNothingChanging = sThemeName == m_sCurThemeName &&
 							sLanguage == m_sCurLanguage &&
@@ -556,8 +553,7 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 
 		// load Lua files
 		for (auto& sPath : asElementPaths) {
-			if (PREFSMAN->m_verbose_log > 1)
-				Locator::getLogger()->trace("Loading \"{}\" ...", sPath.c_str());
+			Locator::getLogger()->info("Loading \"{}\" ...", sPath.c_str());
 			LuaHelpers::RunScriptFile(sPath);
 		}
 	} while (iter != g_vThemes.begin());
@@ -648,8 +644,8 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics,
 	 * so make a copy. */
-	const std::string& sThemeName = sThemeName_;
-	const std::string& sMetricsGroup = sMetricsGroup_;
+	const std::string sThemeName = sThemeName_;
+	const std::string sMetricsGroup = sMetricsGroup_;
 	const std::string sElement = sElement_;
 
 	const std::string sThemeDir = GetThemeDirFromName(sThemeName);
@@ -848,8 +844,8 @@ ThemeManager::GetPathInfo(PathInfo& out,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics.
 	 */
-	const std::string& sMetricsGroup = sMetricsGroup_;
-	const std::string& sElement = sElement_;
+	const std::string sMetricsGroup = sMetricsGroup_;
+	const std::string sElement = sElement_;
 
 	std::string sFileName =
 	  MetricsGroupAndElementToFileName(sMetricsGroup, sElement);
@@ -1053,8 +1049,8 @@ ThemeManager::GetMetricRaw(const IniFile& ini,
 	/* Ugly: the parameters to this function may be a reference into g_vThemes,
 	 * or something else that might suddenly go away when we call ReloadMetrics.
 	 */
-	const std::string& sMetricsGroup = sMetricsGroup_;
-	const std::string& sValueName = sValueName_;
+	const std::string sMetricsGroup = sMetricsGroup_;
+	const std::string sValueName = sValueName_;
 
 	for (;;) {
 		std::string ret;
@@ -1605,6 +1601,17 @@ class LunaThemeManager : public Luna<ThemeManager>
 		GameLoop::ChangeTheme(theme_name);
 		return 0;
 	}
+	static int SwitchThemeAndLanguage(T* p, lua_State* L)
+	{
+		std::string theme_name = SArg(1);
+		if (!p->IsThemeSelectable(theme_name)) {
+			luaL_error(L, "SetTheme: Invalid Theme: '%s'", theme_name.c_str());
+		}
+		std::string lang_name = SArg(2);
+
+		p->SwitchThemeAndLanguage(theme_name, lang_name, PREFSMAN->m_bPseudoLocalize);
+		return 0;
+	}
 
 	LunaThemeManager()
 	{
@@ -1636,6 +1643,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 		ADD_METHOD(GetMetricNamesInGroup);
 		ADD_METHOD(GetStringNamesInGroup);
 		ADD_METHOD(SetTheme);
+		ADD_METHOD(SwitchThemeAndLanguage);
 	}
 };
 

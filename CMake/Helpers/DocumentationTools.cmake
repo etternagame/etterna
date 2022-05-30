@@ -2,7 +2,7 @@
 # doxygen
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 if(NOT DOXYGEN_FOUND)
-    message(WARNING "Doxygen not found. Documentation target will not be created.")
+    message(STATUS "Doxygen not found. Documentation target will not be created.")
 else()
     # set input and output files
     set(DOXYGEN_IN ${PROJECT_SOURCE_DIR}/Docs/Doxyfile.in)
@@ -22,7 +22,7 @@ endif()
 # LDoc
 find_program(LDOC_EXE "ldoc")
 if(NOT LDOC_EXE)
-    message(WARNING "LDoc not found. Documentation target will not be created.")
+    message(STATUS "LDoc not found. Documentation target will not be created.")
 else()
     # set input and output files
     set(LDOC_IN ${PROJECT_SOURCE_DIR}/Docs/LDoc.in)

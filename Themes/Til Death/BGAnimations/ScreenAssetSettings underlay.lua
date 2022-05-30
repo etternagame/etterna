@@ -235,49 +235,50 @@ function TAB.new(self, choices)
 end
 
 function TAB.makeTabActors(tab)
-	local t = Def.ActorFrame{}
-
-	for i,v in pairs(tab.choices) do
-
-		t[#t+1] = Def.Quad {
-		InitCommand = function(self)
-			self:halign(0)
-			self:zoomto(tab.width, tab.height)
-			self:x(tab.width*(i-1))
-			self:diffuse(getMainColor("positive"))
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				MESSAGEMAN:Broadcast("TabPressed",{name = v, index=i})
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(0.7)
-				loadAssetType(i)
-			end
-		end,
+	local t = Def.ActorFrame{
 		MouseRightClickMessageCommand = function(self)
 			SCREENMAN:GetTopScreen():Cancel()
 		end,
-		TabPressedMessageCommand = function(self, params)
-			if params.name ~= v then
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(1)
-			end
-		end,
-		UpdatingAssetsMessageCommand = function(self)
-			if curType == i then
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(0.7)
-			else
-				self:finishtweening()
-				self:smooth(0.1)
-				self:diffusealpha(1)
-			end
-		end
-
 	}
+
+	for i,v in pairs(tab.choices) do
+
+		t[#t+1] = UIElements.QuadButton(1, 1) .. {
+			InitCommand = function(self)
+				self:halign(0)
+				self:zoomto(tab.width, tab.height)
+				self:x(tab.width*(i-1))
+				self:diffuse(getMainColor("positive"))
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" then
+					MESSAGEMAN:Broadcast("TabPressed",{name = v, index=i})
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(0.7)
+					loadAssetType(i)
+				end
+			end,
+			
+			TabPressedMessageCommand = function(self, params)
+				if params.name ~= v then
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(1)
+				end
+			end,
+			UpdatingAssetsMessageCommand = function(self)
+				if curType == i then
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(0.7)
+				else
+					self:finishtweening()
+					self:smooth(0.1)
+					self:diffusealpha(1)
+				end
+			end
+		}
 
 		t[#t+1] = LoadFont("Common Large") .. {
 			InitCommand = function(self)
@@ -389,7 +390,7 @@ local function assetBox(i)
 		end
 	}
 
-	t[#t+1] = Def.Quad {
+	t[#t+1] = UIElements.QuadButton(1, 1) .. {
 		Name = "Border",
 		InitCommand = function(self)
 			self:zoomto(assetWidth+4, assetHeight+4)
@@ -421,8 +422,8 @@ local function assetBox(i)
 				self:playcommand("Deselect")
 			end
 		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) and assetTable[i+((curPage-1)*maxColumns*maxRows)] ~= nil then
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and assetTable[i+((curPage-1)*maxColumns*maxRows)] ~= nil then
 				if lastClickedIndex == i then
 					confirmPick()
 				end
@@ -489,12 +490,6 @@ local function assetBox(i)
 	return t
 end
 
-
-
-local function highlight(self)
-	self:queuecommand("Highlight")
-end
-
 local function mainContainer()
 	local fontScale = 0.5
 	local smallFontScale = 0.35
@@ -502,11 +497,7 @@ local function mainContainer()
 	local fontRow1 = -frameHeight/2+20
 	local fontSpacing = 15
 
-	local t = Def.ActorFrame {
-		InitCommand = function(self)
-			self:SetUpdateFunction(highlight)
-		end
-	}
+	local t = Def.ActorFrame {}
 
 	t[#t+1] = Def.Quad {
 		InitCommand = function(self)
@@ -617,46 +608,6 @@ local function mainContainer()
 			self:queuecommand("Set")
 		end
 	}
---[[
-	t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:zoom(smallFontScale)
-			self:xy(-100, frameHeight/2 - 18)
-			self:settext("Prev")
-		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(1)
-			else
-				self:diffusealpha(0.6)
-			end
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				loadAssetType(-1)
-			end
-		end
-	}
-
-	t[#t+1] = LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:zoom(smallFontScale)
-			self:xy(100, frameHeight/2 - 18)
-			self:settext("Next")
-		end,
-		HighlightCommand = function(self)
-			if isOver(self) then
-				self:diffusealpha(1)
-			else
-				self:diffusealpha(0.6)
-			end
-		end,
-		MouseLeftClickMessageCommand = function(self)
-			if isOver(self) then
-				loadAssetType(1)
-			end
-		end
-	}]]
 
 	return t
 end
@@ -697,11 +648,8 @@ local function input(event)
 		end
 	end
 	if event.type == "InputEventType_FirstPress" then
-		if event.DeviceInput.button == "DeviceButton_left mouse button" then
-			MESSAGEMAN:Broadcast("MouseLeftClick")
-		elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
+		if event.DeviceInput.button == "DeviceButton_right mouse button" then
 			MESSAGEMAN:Broadcast("MouseRightClick")
-
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel up" and event.type == "InputEventType_FirstPress" then
 			movePage(-1)
 		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" and event.type == "InputEventType_FirstPress" then
