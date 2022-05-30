@@ -10,6 +10,7 @@
 class XNode;
 struct RadarValues;
 struct lua_State;
+class Replay;
 
 struct HighScoreImpl;
 /** @brief The high score that is earned by a player.
@@ -46,36 +47,36 @@ struct HighScore
 	[[nodiscard]] auto GetWifePoints() const -> float;
 	[[nodiscard]] auto GetSSRNormPercent() const -> float;
 	[[nodiscard]] auto GetMusicRate() const -> float;
+	[[nodiscard]] auto GetSongOffset() const -> float;
 	[[nodiscard]] auto GetJudgeScale() const -> float;
 	[[nodiscard]] auto GetChordCohesion() const -> bool;
 	[[nodiscard]] auto GetEtternaValid() const -> bool;
 	[[nodiscard]] auto GetDSFlag() const -> bool;
 	[[nodiscard]] auto IsUploadedToServer(const std::string& s) const -> bool;
 	std::vector<float> timeStamps;
-	[[nodiscard]] auto GetOffsetVector() const -> const std::vector<float>&;
-	[[nodiscard]] auto GetNoteRowVector() const -> const std::vector<int>&;
-	[[nodiscard]] auto GetTrackVector() const -> const std::vector<int>&;
-	[[nodiscard]] auto GetTapNoteTypeVector() const
+	[[nodiscard]] auto GetOffsetVector() -> const std::vector<float>&;
+	[[nodiscard]] auto GetNoteRowVector() -> const std::vector<int>&;
+	[[nodiscard]] auto GetTrackVector() -> const std::vector<int>&;
+	[[nodiscard]] auto GetTapNoteTypeVector()
 	  -> const std::vector<TapNoteType>&;
-	[[nodiscard]] auto GetHoldReplayDataVector() const
+	[[nodiscard]] auto GetHoldReplayDataVector()
 	  -> const std::vector<HoldReplayResult>&;
-	[[nodiscard]] auto GetMineReplayDataVector() const
+	[[nodiscard]] auto GetMineReplayDataVector()
 	  -> const std::vector<MineReplayResult>&;
-	[[nodiscard]] auto GetCopyOfOffsetVector() const -> std::vector<float>;
-	[[nodiscard]] auto GetCopyOfNoteRowVector() const -> std::vector<int>;
-	[[nodiscard]] auto GetCopyOfTrackVector() const -> std::vector<int>;
-	[[nodiscard]] auto GetCopyOfTapNoteTypeVector() const
-	  -> std::vector<TapNoteType>;
-	[[nodiscard]] auto GetCopyOfHoldReplayDataVector() const
+	[[nodiscard]] auto GetCopyOfOffsetVector() -> std::vector<float>;
+	[[nodiscard]] auto GetCopyOfNoteRowVector() -> std::vector<int>;
+	[[nodiscard]] auto GetCopyOfTrackVector() -> std::vector<int>;
+	[[nodiscard]] auto GetCopyOfTapNoteTypeVector() -> std::vector<TapNoteType>;
+	[[nodiscard]] auto GetCopyOfHoldReplayDataVector()
 	  -> std::vector<HoldReplayResult>;
-	[[nodiscard]] auto GetCopyOfMineReplayDataVector() const
+	[[nodiscard]] auto GetCopyOfMineReplayDataVector()
 	  -> std::vector<MineReplayResult>;
-	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector() const
+	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector()
 	  -> std::vector<float>;
-	[[nodiscard]] auto GetInputDataVector() const -> const std::vector<InputDataEvent>&;
+	[[nodiscard]] auto GetInputDataVector() -> const std::vector<InputDataEvent>&;
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
-	[[nodiscard]] auto GetReplayType() const -> int;
+	[[nodiscard]] auto GetReplayType() -> ReplayType;
 	[[nodiscard]] auto GetPlayedSeconds() const -> float;
 	[[nodiscard]] auto GetMaxCombo() const -> unsigned int;
 	/**
@@ -139,7 +140,6 @@ struct HighScore
 	void SetRadarValues(const RadarValues& rv);
 	void SetLifeRemainingSeconds(float f);
 	void SetDisqualified(bool b);
-	void SetReplayType(int i);
 
 	auto GetNameMutable() -> std::string*;
 
@@ -170,6 +170,7 @@ struct HighScore
 	auto LoadReplayDataBasic(const std::string& dir) -> bool;
 	auto LoadReplayDataFull(const std::string& dir) -> bool;
 	virtual auto HasReplayData() -> bool;
+	void InitReplay();
 	void UnloadReplayData();
 	void ResetSkillsets();
 
@@ -204,7 +205,9 @@ struct HighScore
 	void PushSelf(lua_State* L);
 
   private:
+	void CheckReplayIsInit();
 	HiddenPtr<HighScoreImpl> m_Impl;
+	std::shared_ptr<Replay> replay = nullptr;
 };
 
 /** @brief the picture taken of the high score. */
