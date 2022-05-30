@@ -7,6 +7,14 @@
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Graphics/RageSurface.h"
 
+#if defined(_WIN64) || defined(_WIN32)
+#pragma comment(lib, "strmiids.lib")
+#pragma comment(lib, "mfplat.lib")
+#pragma comment(lib, "mfuuid.lib")
+#pragma comment(lib, "Bcrypt.lib")
+#pragma comment(lib, "Secur32.lib")
+#endif
+
 static void
 FixLilEndian()
 {
