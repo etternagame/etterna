@@ -5,6 +5,8 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/HighScore/Replay.h"
 
+#include <unordered_map>
+
 struct HighScore;
 class ReplayManager
 {
