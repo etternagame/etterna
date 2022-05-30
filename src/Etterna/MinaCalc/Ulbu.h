@@ -138,6 +138,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void advance_agnostic_sequencing()
 	{
+		_s.advance_sequencing(_mri->ms_now, _mri->notes);
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
@@ -148,6 +149,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		/* these pattern mods operate on all columns, only need basic meta
 		 * interval data, and do not need any more advanced pattern
 		 * sequencing */
+		_s.setup();
 		_fj.setup();
 		_tt.setup();
 		_tt2.setup();
@@ -155,6 +157,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void full_agnostic_reset()
 	{
+		_s.full_reset();
 		_js.full_reset();
 		_hs.full_reset();
 		_cj.full_reset();
