@@ -1,0 +1,1495 @@
+=encoding utf8
+
+=head1 NAME
+
+ffprobe - ffprobe media prober
+
+=head1 SYNOPSIS
+
+
+ffprobe [I<options>] [F<input_url>]
+
+
+=head1 DESCRIPTION
+
+
+ffprobe gathers information from multimedia streams and prints it in
+human- and machine-readable fashion.
+
+For example it can be used to check the format of the container used
+by a multimedia stream and the format and type of each media stream
+contained in it.
+
+If a url is specified in input, ffprobe will try to open and
+probe the url content. If the url cannot be opened or recognized as
+a multimedia file, a positive exit code is returned.
+
+ffprobe may be employed both as a standalone application or in
+combination with a textual filter, which may perform more
+sophisticated processing, e.g. statistical processing or plotting.
+
+Options are used to list some of the formats supported by ffprobe or
+for specifying which information to display, and for setting how
+ffprobe will show it.
+
+ffprobe output is designed to be easily parsable by a textual filter,
+and consists of one or more sections of a form defined by the selected
+writer, which is specified by the B<print_format> option.
+
+Sections may contain other nested sections, and are identified by a
+name (which may be shared by other sections), and an unique
+name. See the output of B<sections>.
+
+Metadata tags stored in the container or in the streams are recognized
+and printed in the corresponding "FORMAT", "STREAM" or "PROGRAM_STREAM"
+section.
+
+
+
+=head1 OPTIONS
+
+
+All the numerical options, if not specified otherwise, accept a string
+representing a number as input, which may be followed by one of the SI
+unit prefixes, for example: 'K', 'M', or 'G'.
+
+If 'i' is appended to the SI unit prefix, the complete prefix will be
+interpreted as a unit prefix for binary multiples, which are based on
+powers of 1024 instead of powers of 1000. Appending 'B' to the SI unit
+prefix multiplies the value by 8. This allows using, for example:
+'KB', 'MiB', 'G' and 'B' as number suffixes.
+
+Options which do not take arguments are boolean options, and set the
+corresponding value to true. They can be set to false by prefixing
+the option name with "no". For example using "-nofoo"
+will set the boolean option with name "foo" to false.
+
+
+
+=head2 Stream specifiers
+
+Some options are applied per-stream, e.g. bitrate or codec. Stream specifiers
+are used to precisely specify which stream(s) a given option belongs to.
+
+A stream specifier is a string generally appended to the option name and
+separated from it by a colon. E.g. C<-codec:a:1 ac3> contains the
+C<a:1> stream specifier, which matches the second audio stream. Therefore, it
+would select the ac3 codec for the second audio stream.
+
+A stream specifier can match several streams, so that the option is applied to all
+of them. E.g. the stream specifier in C<-b:a 128k> matches all audio
+streams.
+
+An empty stream specifier matches all streams. For example, C<-codec copy>
+or C<-codec: copy> would copy all the streams without reencoding.
+
+Possible forms of stream specifiers are:
+
+=over 4
+
+
+=item I<stream_index>
+
+Matches the stream with this index. E.g. C<-threads:1 4> would set the
+thread count for the second stream to 4. If I<stream_index> is used as an
+additional stream specifier (see below), then it selects stream number
+I<stream_index> from the matching streams. Stream numbering is based on the
+order of the streams as detected by libavformat except when a program ID is
+also specified. In this case it is based on the ordering of the streams in the
+program.
+
+=item I<stream_type>B<[:>I<additional_stream_specifier>B<]>
+
+I<stream_type> is one of following: 'v' or 'V' for video, 'a' for audio, 's'
+for subtitle, 'd' for data, and 't' for attachments. 'v' matches all video
+streams, 'V' only matches video streams which are not attached pictures, video
+thumbnails or cover arts. If I<additional_stream_specifier> is used, then
+it matches streams which both have this type and match the
+I<additional_stream_specifier>. Otherwise, it matches all streams of the
+specified type.
+
+=item B<p:>I<program_id>B<[:>I<additional_stream_specifier>B<]>
+
+Matches streams which are in the program with the id I<program_id>. If
+I<additional_stream_specifier> is used, then it matches streams which both
+are part of the program and match the I<additional_stream_specifier>.
+
+
+=item B<#>I<stream_id> B<or i:>I<stream_id>
+
+Match the stream by stream id (e.g. PID in MPEG-TS container).
+
+=item B<m:>I<key>B<[:>I<value>B<]>
+
+Matches streams with the metadata tag I<key> having the specified value. If
+I<value> is not given, matches streams that contain the given tag with any
+value.
+
+=item B<u>
+
+Matches streams with usable configuration, the codec must be defined and the
+essential information such as video dimension or audio sample rate must be present.
+
+Note that in B<ffmpeg>, matching by metadata will only work properly for
+input files.
+
+=back
+
+
+
+=head2 Generic options
+
+
+These options are shared amongst the ff* tools.
+
+
+=over 4
+
+
+
+=item B<-L>
+
+Show license.
+
+
+=item B<-h, -?, -help, --help [>I<arg>B<]>
+
+Show help. An optional parameter may be specified to print help about a specific
+item. If no argument is specified, only basic (non advanced) tool
+options are shown.
+
+Possible values of I<arg> are:
+
+=over 4
+
+
+=item B<long>
+
+Print advanced tool options in addition to the basic tool options.
+
+
+=item B<full>
+
+Print complete list of options, including shared and private options
+for encoders, decoders, demuxers, muxers, filters, etc.
+
+
+=item B<decoder=>I<decoder_name>
+
+Print detailed information about the decoder named I<decoder_name>. Use the
+B<-decoders> option to get a list of all decoders.
+
+
+=item B<encoder=>I<encoder_name>
+
+Print detailed information about the encoder named I<encoder_name>. Use the
+B<-encoders> option to get a list of all encoders.
+
+
+=item B<demuxer=>I<demuxer_name>
+
+Print detailed information about the demuxer named I<demuxer_name>. Use the
+B<-formats> option to get a list of all demuxers and muxers.
+
+
+=item B<muxer=>I<muxer_name>
+
+Print detailed information about the muxer named I<muxer_name>. Use the
+B<-formats> option to get a list of all muxers and demuxers.
+
+
+=item B<filter=>I<filter_name>
+
+Print detailed information about the filter named I<filter_name>. Use the
+B<-filters> option to get a list of all filters.
+
+
+=item B<bsf=>I<bitstream_filter_name>
+
+Print detailed information about the bitstream filter named I<bitstream_filter_name>.
+Use the B<-bsfs> option to get a list of all bitstream filters.
+
+
+=item B<protocol=>I<protocol_name>
+
+Print detailed information about the protocol named I<protocol_name>.
+Use the B<-protocols> option to get a list of all protocols.
+
+=back
+
+
+
+=item B<-version>
+
+Show version.
+
+
+=item B<-buildconf>
+
+Show the build configuration, one option per line.
+
+
+=item B<-formats>
+
+Show available formats (including devices).
+
+
+=item B<-demuxers>
+
+Show available demuxers.
+
+
+=item B<-muxers>
+
+Show available muxers.
+
+
+=item B<-devices>
+
+Show available devices.
+
+
+=item B<-codecs>
+
+Show all codecs known to libavcodec.
+
+Note that the term 'codec' is used throughout this documentation as a shortcut
+for what is more correctly called a media bitstream format.
+
+
+=item B<-decoders>
+
+Show available decoders.
+
+
+=item B<-encoders>
+
+Show all available encoders.
+
+
+=item B<-bsfs>
+
+Show available bitstream filters.
+
+
+=item B<-protocols>
+
+Show available protocols.
+
+
+=item B<-filters>
+
+Show available libavfilter filters.
+
+
+=item B<-pix_fmts>
+
+Show available pixel formats.
+
+
+=item B<-sample_fmts>
+
+Show available sample formats.
+
+
+=item B<-layouts>
+
+Show channel names and standard channel layouts.
+
+
+=item B<-colors>
+
+Show recognized color names.
+
+
+=item B<-sources> I<device>B<[,>I<opt1>B<=>I<val1>B<[,>I<opt2>B<=>I<val2>B<]...]>
+
+Show autodetected sources of the input device.
+Some devices may provide system-dependent source names that cannot be autodetected.
+The returned list cannot be assumed to be always complete.
+	
+	ffmpeg -sources pulse,server=192.168.0.4
+
+
+
+=item B<-sinks> I<device>B<[,>I<opt1>B<=>I<val1>B<[,>I<opt2>B<=>I<val2>B<]...]>
+
+Show autodetected sinks of the output device.
+Some devices may provide system-dependent sink names that cannot be autodetected.
+The returned list cannot be assumed to be always complete.
+	
+	ffmpeg -sinks pulse,server=192.168.0.4
+
+
+
+=item B<-loglevel [>I<flags>B<+]>I<loglevel> B<| -v [>I<flags>B<+]>I<loglevel>
+
+Set logging level and flags used by the library.
+
+The optional I<flags> prefix can consist of the following values:
+
+=over 4
+
+
+=item B<repeat>
+
+Indicates that repeated log output should not be compressed to the first line
+and the "Last message repeated n times" line will be omitted.
+
+=item B<level>
+
+Indicates that log output should add a C<[level]> prefix to each message
+line. This can be used as an alternative to log coloring, e.g. when dumping the
+log to file.
+
+=back
+
+Flags can also be used alone by adding a '+'/'-' prefix to set/reset a single
+flag without affecting other I<flags> or changing I<loglevel>. When
+setting both I<flags> and I<loglevel>, a '+' separator is expected
+between the last I<flags> value and before I<loglevel>.
+
+I<loglevel> is a string or a number containing one of the following values:
+
+=over 4
+
+
+=item B<quiet, -8>
+
+Show nothing at all; be silent.
+
+=item B<panic, 0>
+
+Only show fatal errors which could lead the process to crash, such as
+an assertion failure. This is not currently used for anything.
+
+=item B<fatal, 8>
+
+Only show fatal errors. These are errors after which the process absolutely
+cannot continue.
+
+=item B<error, 16>
+
+Show all errors, including ones which can be recovered from.
+
+=item B<warning, 24>
+
+Show all warnings and errors. Any message related to possibly
+incorrect or unexpected events will be shown.
+
+=item B<info, 32>
+
+Show informative messages during processing. This is in addition to
+warnings and errors. This is the default value.
+
+=item B<verbose, 40>
+
+Same as C<info>, except more verbose.
+
+=item B<debug, 48>
+
+Show everything, including debugging information.
+
+=item B<trace, 56>
+
+
+=back
+
+
+For example to enable repeated log output, add the C<level> prefix, and set
+I<loglevel> to C<verbose>:
+	
+	ffmpeg -loglevel repeat+level+verbose -i input output
+
+Another example that enables repeated log output without affecting current
+state of C<level> prefix flag or I<loglevel>:
+	
+	ffmpeg [...] -loglevel +repeat
+
+
+By default the program logs to stderr. If coloring is supported by the
+terminal, colors are used to mark errors and warnings. Log coloring
+can be disabled setting the environment variable
+B<AV_LOG_FORCE_NOCOLOR>, or can be forced setting
+the environment variable B<AV_LOG_FORCE_COLOR>.
+
+
+=item B<-report>
+
+Dump full command line and log output to a file named
+C<I<program>-I<YYYYMMDD>-I<HHMMSS>.log> in the current
+directory.
+This file can be useful for bug reports.
+It also implies C<-loglevel debug>.
+
+Setting the environment variable B<FFREPORT> to any value has the
+same effect. If the value is a ':'-separated key=value sequence, these
+options will affect the report; option values must be escaped if they
+contain special characters or the options delimiter ':' (see the
+``Quoting and escaping'' section in the ffmpeg-utils manual).
+
+The following options are recognized:
+
+=over 4
+
+
+=item B<file>
+
+set the file name to use for the report; C<%p> is expanded to the name
+of the program, C<%t> is expanded to a timestamp, C<%%> is expanded
+to a plain C<%>
+
+=item B<level>
+
+set the log verbosity level using a numerical value (see C<-loglevel>).
+
+=back
+
+
+For example, to output a report to a file named F<ffreport.log>
+using a log level of C<32> (alias for log level C<info>):
+
+	
+	FFREPORT=file=ffreport.log:level=32 ffmpeg -i input output
+
+
+Errors in parsing the environment variable are not fatal, and will not
+appear in the report.
+
+
+=item B<-hide_banner>
+
+Suppress printing banner.
+
+All FFmpeg tools will normally show a copyright notice, build options
+and library versions. This option can be used to suppress printing
+this information.
+
+
+=item B<-cpuflags flags (>I<global>B<)>
+
+Allows setting and clearing cpu flags. This option is intended
+for testing. Do not use it unless you know what you're doing.
+	
+	ffmpeg -cpuflags -sse+mmx ...
+	ffmpeg -cpuflags mmx ...
+	ffmpeg -cpuflags 0 ...
+
+Possible flags for this option are:
+
+=over 4
+
+
+=item B<x86>
+
+
+=over 4
+
+
+=item B<mmx>
+
+
+=item B<mmxext>
+
+
+=item B<sse>
+
+
+=item B<sse2>
+
+
+=item B<sse2slow>
+
+
+=item B<sse3>
+
+
+=item B<sse3slow>
+
+
+=item B<ssse3>
+
+
+=item B<atom>
+
+
+=item B<sse4.1>
+
+
+=item B<sse4.2>
+
+
+=item B<avx>
+
+
+=item B<avx2>
+
+
+=item B<xop>
+
+
+=item B<fma3>
+
+
+=item B<fma4>
+
+
+=item B<3dnow>
+
+
+=item B<3dnowext>
+
+
+=item B<bmi1>
+
+
+=item B<bmi2>
+
+
+=item B<cmov>
+
+
+=back
+
+
+=item B<ARM>
+
+
+=over 4
+
+
+=item B<armv5te>
+
+
+=item B<armv6>
+
+
+=item B<armv6t2>
+
+
+=item B<vfp>
+
+
+=item B<vfpv3>
+
+
+=item B<neon>
+
+
+=item B<setend>
+
+
+=back
+
+
+=item B<AArch64>
+
+
+=over 4
+
+
+=item B<armv8>
+
+
+=item B<vfp>
+
+
+=item B<neon>
+
+
+=back
+
+
+=item B<PowerPC>
+
+
+=over 4
+
+
+=item B<altivec>
+
+
+=back
+
+
+=item B<Specific Processors>
+
+
+=over 4
+
+
+=item B<pentium2>
+
+
+=item B<pentium3>
+
+
+=item B<pentium4>
+
+
+=item B<k6>
+
+
+=item B<k62>
+
+
+=item B<athlon>
+
+
+=item B<athlonxp>
+
+
+=item B<k8>
+
+
+=back
+
+
+=back
+
+
+
+=item B<-max_alloc> I<bytes>
+
+Set the maximum size limit for allocating a block on the heap by ffmpeg's
+family of malloc functions. Exercise B<extreme caution> when using
+this option. Don't use if you do not understand the full consequence of doing so.
+Default is INT_MAX.
+
+=back
+
+
+
+=head2 AVOptions
+
+
+These options are provided directly by the libavformat, libavdevice and
+libavcodec libraries. To see the list of available AVOptions, use the
+B<-help> option. They are separated into two categories:
+
+=over 4
+
+
+=item B<generic>
+
+These options can be set for any container, codec or device. Generic options
+are listed under AVFormatContext options for containers/devices and under
+AVCodecContext options for codecs.
+
+=item B<private>
+
+These options are specific to the given container, device or codec. Private
+options are listed under their corresponding containers/devices/codecs.
+
+=back
+
+
+For example to write an ID3v2.3 header instead of a default ID3v2.4 to
+an MP3 file, use the B<id3v2_version> private option of the MP3
+muxer:
+	
+	ffmpeg -i input.flac -id3v2_version 3 out.mp3
+
+
+All codec AVOptions are per-stream, and thus a stream specifier
+should be attached to them:
+	
+	ffmpeg -i multichannel.mxf -map 0:v:0 -map 0:a:0 -map 0:a:0 -c:a:0 ac3 -b:a:0 640k -ac:a:1 2 -c:a:1 aac -b:2 128k out.mp4
+
+
+In the above example, a multichannel audio stream is mapped twice for output.
+The first instance is encoded with codec ac3 and bitrate 640k.
+The second instance is downmixed to 2 channels and encoded with codec aac. A bitrate of 128k is specified for it using
+absolute index of the output stream.
+
+Note: the B<-nooption> syntax cannot be used for boolean
+AVOptions, use B<-option 0>/B<-option 1>.
+
+Note: the old undocumented way of specifying per-stream AVOptions by
+prepending v/a/s to the options name is now obsolete and will be
+removed soon.
+
+
+=head2 Main options
+
+
+
+=over 4
+
+
+
+=item B<-f> I<format>
+
+Force format to use.
+
+
+=item B<-unit>
+
+Show the unit of the displayed values.
+
+
+=item B<-prefix>
+
+Use SI prefixes for the displayed values.
+Unless the "-byte_binary_prefix" option is used all the prefixes
+are decimal.
+
+
+=item B<-byte_binary_prefix>
+
+Force the use of binary prefixes for byte values.
+
+
+=item B<-sexagesimal>
+
+Use sexagesimal format HH:MM:SS.MICROSECONDS for time values.
+
+
+=item B<-pretty>
+
+Prettify the format of the displayed values, it corresponds to the
+options "-unit -prefix -byte_binary_prefix -sexagesimal".
+
+
+=item B<-of, -print_format> I<writer_name>B<[=>I<writer_options>B<]>
+
+Set the output printing format.
+
+I<writer_name> specifies the name of the writer, and
+I<writer_options> specifies the options to be passed to the writer.
+
+For example for printing the output in JSON format, specify:
+	
+	-print_format json
+
+
+For more details on the available output printing formats, see the
+Writers section below.
+
+
+=item B<-sections>
+
+Print sections structure and section information, and exit. The output
+is not meant to be parsed by a machine.
+
+
+=item B<-select_streams> I<stream_specifier>
+
+Select only the streams specified by I<stream_specifier>. This
+option affects only the options related to streams
+(e.g. C<show_streams>, C<show_packets>, etc.).
+
+For example to show only audio streams, you can use the command:
+	
+	ffprobe -show_streams -select_streams a INPUT
+
+
+To show only video packets belonging to the video stream with index 1:
+	
+	ffprobe -show_packets -select_streams v:1 INPUT
+
+
+
+=item B<-show_data>
+
+Show payload data, as a hexadecimal and ASCII dump. Coupled with
+B<-show_packets>, it will dump the packets' data. Coupled with
+B<-show_streams>, it will dump the codec extradata.
+
+The dump is printed as the "data" field. It may contain newlines.
+
+
+=item B<-show_data_hash> I<algorithm>
+
+Show a hash of payload data, for packets with B<-show_packets> and for
+codec extradata with B<-show_streams>.
+
+
+=item B<-show_error>
+
+Show information about the error found when trying to probe the input.
+
+The error information is printed within a section with name "ERROR".
+
+
+=item B<-show_format>
+
+Show information about the container format of the input multimedia
+stream.
+
+All the container format information is printed within a section with
+name "FORMAT".
+
+
+=item B<-show_format_entry> I<name>
+
+Like B<-show_format>, but only prints the specified entry of the
+container format information, rather than all. This option may be given more
+than once, then all specified entries will be shown.
+
+This option is deprecated, use C<show_entries> instead.
+
+
+=item B<-show_entries> I<section_entries>
+
+Set list of entries to show.
+
+Entries are specified according to the following
+syntax. I<section_entries> contains a list of section entries
+separated by C<:>. Each section entry is composed by a section
+name (or unique name), optionally followed by a list of entries local
+to that section, separated by C<,>.
+
+If section name is specified but is followed by no C<=>, all
+entries are printed to output, together with all the contained
+sections. Otherwise only the entries specified in the local section
+entries list are printed. In particular, if C<=> is specified but
+the list of local entries is empty, then no entries will be shown for
+that section.
+
+Note that the order of specification of the local section entries is
+not honored in the output, and the usual display order will be
+retained.
+
+The formal syntax is given by:
+	
+	<LOCAL_SECTION_ENTRIES> ::= <SECTION_ENTRY_NAME>[,<LOCAL_SECTION_ENTRIES>]
+	<SECTION_ENTRY>         ::= <SECTION_NAME>[=[<LOCAL_SECTION_ENTRIES>]]
+	<SECTION_ENTRIES>       ::= <SECTION_ENTRY>[:<SECTION_ENTRIES>]
+
+
+For example, to show only the index and type of each stream, and the PTS
+time, duration time, and stream index of the packets, you can specify
+the argument:
+	
+	packet=pts_time,duration_time,stream_index : stream=index,codec_type
+
+
+To show all the entries in the section "format", but only the codec
+type in the section "stream", specify the argument:
+	
+	format : stream=codec_type
+
+
+To show all the tags in the stream and format sections:
+	
+	stream_tags : format_tags
+
+
+To show only the C<title> tag (if available) in the stream
+sections:
+	
+	stream_tags=title
+
+
+
+=item B<-show_packets>
+
+Show information about each packet contained in the input multimedia
+stream.
+
+The information for each single packet is printed within a dedicated
+section with name "PACKET".
+
+
+=item B<-show_frames>
+
+Show information about each frame and subtitle contained in the input
+multimedia stream.
+
+The information for each single frame is printed within a dedicated
+section with name "FRAME" or "SUBTITLE".
+
+
+=item B<-show_log> I<loglevel>
+
+Show logging information from the decoder about each frame according to
+the value set in I<loglevel>, (see C<-loglevel>). This option requires C<-show_frames>.
+
+The information for each log message is printed within a dedicated
+section with name "LOG".
+
+
+=item B<-show_streams>
+
+Show information about each media stream contained in the input
+multimedia stream.
+
+Each media stream information is printed within a dedicated section
+with name "STREAM".
+
+
+=item B<-show_programs>
+
+Show information about programs and their streams contained in the input
+multimedia stream.
+
+Each media stream information is printed within a dedicated section
+with name "PROGRAM_STREAM".
+
+
+=item B<-show_chapters>
+
+Show information about chapters stored in the format.
+
+Each chapter is printed within a dedicated section with name "CHAPTER".
+
+
+=item B<-count_frames>
+
+Count the number of frames per stream and report it in the
+corresponding stream section.
+
+
+=item B<-count_packets>
+
+Count the number of packets per stream and report it in the
+corresponding stream section.
+
+
+=item B<-read_intervals> I<read_intervals>
+
+
+Read only the specified intervals. I<read_intervals> must be a
+sequence of interval specifications separated by ",".
+B<ffprobe> will seek to the interval starting point, and will
+continue reading from that.
+
+Each interval is specified by two optional parts, separated by "%".
+
+The first part specifies the interval start position. It is
+interpreted as an absolute position, or as a relative offset from the
+current position if it is preceded by the "+" character. If this first
+part is not specified, no seeking will be performed when reading this
+interval.
+
+The second part specifies the interval end position. It is interpreted
+as an absolute position, or as a relative offset from the current
+position if it is preceded by the "+" character. If the offset
+specification starts with "#", it is interpreted as the number of
+packets to read (not including the flushing packets) from the interval
+start. If no second part is specified, the program will read until the
+end of the input.
+
+Note that seeking is not accurate, thus the actual interval start
+point may be different from the specified position. Also, when an
+interval duration is specified, the absolute end time will be computed
+by adding the duration to the interval start point found by seeking
+the file, rather than to the specified start value.
+
+The formal syntax is given by:
+	
+	<INTERVAL>  ::= [<START>|+<START_OFFSET>][%[<END>|+<END_OFFSET>]]
+	<INTERVALS> ::= <INTERVAL>[,<INTERVALS>]
+
+
+A few examples follow.
+
+=over 4
+
+
+=item *
+
+Seek to time 10, read packets until 20 seconds after the found seek
+point, then seek to position C<01:30> (1 minute and thirty
+seconds) and read packets until position C<01:45>.
+	
+	10%+20,01:30%01:45
+
+
+
+=item *
+
+Read only 42 packets after seeking to position C<01:23>:
+	
+	01:23%+#42
+
+
+
+=item *
+
+Read only the first 20 seconds from the start:
+	
+	%+20
+
+
+
+=item *
+
+Read from the start until position C<02:30>:
+	
+	%02:30
+
+
+=back
+
+
+
+=item B<-show_private_data, -private>
+
+Show private data, that is data depending on the format of the
+particular shown element.
+This option is enabled by default, but you may need to disable it
+for specific uses, for example when creating XSD-compliant XML output.
+
+
+=item B<-show_program_version>
+
+Show information related to program version.
+
+Version information is printed within a section with name
+"PROGRAM_VERSION".
+
+
+=item B<-show_library_versions>
+
+Show information related to library versions.
+
+Version information for each library is printed within a section with
+name "LIBRARY_VERSION".
+
+
+=item B<-show_versions>
+
+Show information related to program and library versions. This is the
+equivalent of setting both B<-show_program_version> and
+B<-show_library_versions> options.
+
+
+=item B<-show_pixel_formats>
+
+Show information about all pixel formats supported by FFmpeg.
+
+Pixel format information for each format is printed within a section
+with name "PIXEL_FORMAT".
+
+
+=item B<-bitexact>
+
+Force bitexact output, useful to produce output which is not dependent
+on the specific build.
+
+
+=item B<-i> I<input_url>
+
+Read I<input_url>.
+
+
+=back
+
+
+
+=head1 WRITERS
+
+
+A writer defines the output format adopted by B<ffprobe>, and will be
+used for printing all the parts of the output.
+
+A writer may accept one or more arguments, which specify the options
+to adopt. The options are specified as a list of I<key>=I<value>
+pairs, separated by ":".
+
+All writers support the following options:
+
+
+=over 4
+
+
+=item B<string_validation, sv>
+
+Set string validation mode.
+
+The following values are accepted.
+
+=over 4
+
+
+=item B<fail>
+
+The writer will fail immediately in case an invalid string (UTF-8)
+sequence or code point is found in the input. This is especially
+useful to validate input metadata.
+
+
+=item B<ignore>
+
+Any validation error will be ignored. This will result in possibly
+broken output, especially with the json or xml writer.
+
+
+=item B<replace>
+
+The writer will substitute invalid UTF-8 sequences or code points with
+the string specified with the B<string_validation_replacement>.
+
+=back
+
+
+Default value is B<replace>.
+
+
+=item B<string_validation_replacement, svr>
+
+Set replacement string to use in case B<string_validation> is
+set to B<replace>.
+
+In case the option is not specified, the writer will assume the empty
+string, that is it will remove the invalid sequences from the input
+strings.
+
+=back
+
+
+A description of the currently available writers follows.
+
+
+=head2 default
+
+Default format.
+
+Print each section in the form:
+	
+	[SECTION]
+	key1=val1
+	...
+	keyN=valN
+	[/SECTION]
+
+
+Metadata tags are printed as a line in the corresponding FORMAT, STREAM or
+PROGRAM_STREAM section, and are prefixed by the string "TAG:".
+
+A description of the accepted options follows.
+
+
+=over 4
+
+
+
+=item B<nokey, nk>
+
+If set to 1 specify not to print the key of each field. Default value
+is 0.
+
+
+=item B<noprint_wrappers, nw>
+
+If set to 1 specify not to print the section header and footer.
+Default value is 0.
+
+=back
+
+
+
+=head2 compact, csv
+
+Compact and CSV format.
+
+The C<csv> writer is equivalent to C<compact>, but supports
+different defaults.
+
+Each section is printed on a single line.
+If no option is specified, the output has the form:
+	
+	section|key1=val1| ... |keyN=valN
+
+
+Metadata tags are printed in the corresponding "format" or "stream"
+section. A metadata tag key, if printed, is prefixed by the string
+"tag:".
+
+The description of the accepted options follows.
+
+
+=over 4
+
+
+
+=item B<item_sep, s>
+
+Specify the character to use for separating fields in the output line.
+It must be a single printable character, it is "|" by default ("," for
+the C<csv> writer).
+
+
+=item B<nokey, nk>
+
+If set to 1 specify not to print the key of each field. Its default
+value is 0 (1 for the C<csv> writer).
+
+
+=item B<escape, e>
+
+Set the escape mode to use, default to "c" ("csv" for the C<csv>
+writer).
+
+It can assume one of the following values:
+
+=over 4
+
+
+=item B<c>
+
+Perform C-like escaping. Strings containing a newline (B<\n>), carriage
+return (B<\r>), a tab (B<\t>), a form feed (B<\f>), the escaping
+character (B<\>) or the item separator character I<SEP> are escaped
+using C-like fashioned escaping, so that a newline is converted to the
+sequence B<\n>, a carriage return to B<\r>, B<\> to B<\\> and
+the separator I<SEP> is converted to B<\>I<SEP>.
+
+
+=item B<csv>
+
+Perform CSV-like escaping, as described in RFC4180.  Strings
+containing a newline (B<\n>), a carriage return (B<\r>), a double quote
+(B<">), or I<SEP> are enclosed in double-quotes.
+
+
+=item B<none>
+
+Perform no escaping.
+
+=back
+
+
+
+=item B<print_section, p>
+
+Print the section name at the beginning of each line if the value is
+C<1>, disable it with value set to C<0>. Default value is
+C<1>.
+
+
+=back
+
+
+
+=head2 flat
+
+Flat format.
+
+A free-form output where each line contains an explicit key=value, such as
+"streams.stream.3.tags.foo=bar". The output is shell escaped, so it can be
+directly embedded in sh scripts as long as the separator character is an
+alphanumeric character or an underscore (see I<sep_char> option).
+
+The description of the accepted options follows.
+
+
+=over 4
+
+
+=item B<sep_char, s>
+
+Separator character used to separate the chapter, the section name, IDs and
+potential tags in the printed field key.
+
+Default value is B<.>.
+
+
+=item B<hierarchical, h>
+
+Specify if the section name specification should be hierarchical. If
+set to 1, and if there is more than one section in the current
+chapter, the section name will be prefixed by the name of the
+chapter. A value of 0 will disable this behavior.
+
+Default value is 1.
+
+=back
+
+
+
+=head2 ini
+
+INI format output.
+
+Print output in an INI based format.
+
+The following conventions are adopted:
+
+
+=over 4
+
+
+=item *
+
+all key and values are UTF-8
+
+=item *
+
+B<.> is the subgroup separator
+
+=item *
+
+newline, B<\t>, B<\f>, B<\b> and the following characters are
+escaped
+
+=item *
+
+B<\> is the escape character
+
+=item *
+
+B<#> is the comment indicator
+
+=item *
+
+B<=> is the key/value separator
+
+=item *
+
+B<:> is not used but usually parsed as key/value separator
+
+=back
+
+
+This writer accepts options as a list of I<key>=I<value> pairs,
+separated by B<:>.
+
+The description of the accepted options follows.
+
+
+=over 4
+
+
+=item B<hierarchical, h>
+
+Specify if the section name specification should be hierarchical. If
+set to 1, and if there is more than one section in the current
+chapter, the section name will be prefixed by the name of the
+chapter. A value of 0 will disable this behavior.
+
+Default value is 1.
+
+=back
+
+
+
+=head2 json
+
+JSON based format.
+
+Each section is printed using JSON notation.
+
+The description of the accepted options follows.
+
+
+=over 4
+
+
+
+=item B<compact, c>
+
+If set to 1 enable compact output, that is each section will be
+printed on a single line. Default value is 0.
+
+=back
+
+
+For more information about JSON, see E<lt>B<http://www.json.org/>E<gt>.
+
+
+=head2 xml
+
+XML based format.
+
+The XML output is described in the XML schema description file
+F<ffprobe.xsd> installed in the FFmpeg datadir.
+
+An updated version of the schema can be retrieved at the url
+E<lt>B<http://www.ffmpeg.org/schema/ffprobe.xsd>E<gt>, which redirects to the
+latest schema committed into the FFmpeg development source code tree.
+
+Note that the output issued will be compliant to the
+F<ffprobe.xsd> schema only when no special global output options
+(B<unit>, B<prefix>, B<byte_binary_prefix>,
+B<sexagesimal> etc.) are specified.
+
+The description of the accepted options follows.
+
+
+=over 4
+
+
+
+=item B<fully_qualified, q>
+
+If set to 1 specify if the output should be fully qualified. Default
+value is 0.
+This is required for generating an XML file which can be validated
+through an XSD file.
+
+
+=item B<xsd_strict, x>
+
+If set to 1 perform more checks for ensuring that the output is XSD
+compliant. Default value is 0.
+This option automatically sets B<fully_qualified> to 1.
+
+=back
+
+
+For more information about the XML format, see
+E<lt>B<https://www.w3.org/XML/>E<gt>.
+
+
+=head1 TIMECODE
+
+
+B<ffprobe> supports Timecode extraction:
+
+
+=over 4
+
+
+
+=item *
+
+MPEG1/2 timecode is extracted from the GOP, and is available in the video
+stream details (B<-show_streams>, see I<timecode>).
+
+
+=item *
+
+MOV timecode is extracted from tmcd track, so is available in the tmcd
+stream metadata (B<-show_streams>, see I<TAG:timecode>).
+
+
+=item *
+
+DV, GXF and AVI timecodes are available in format metadata
+(B<-show_format>, see I<TAG:timecode>).
+
+
+=back
+
+
+
+
+=head1 SEE ALSO
+
+
+
+ffprobe-all(1),
+ffmpeg(1), ffplay(1),
+ffmpeg-utils(1), ffmpeg-scaler(1), ffmpeg-resampler(1),
+ffmpeg-codecs(1), ffmpeg-bitstream-filters(1), ffmpeg-formats(1),
+ffmpeg-devices(1), ffmpeg-protocols(1), ffmpeg-filters(1)
+
+
+=head1 AUTHORS
+
+
+The FFmpeg developers.
+
+For details about the authorship, see the Git history of the project
+(git://source.ffmpeg.org/ffmpeg), e.g. by typing the command
+B<git log> in the FFmpeg source directory, or browsing the
+online repository at E<lt>B<http://source.ffmpeg.org>E<gt>.
+
+Maintainers for the specific components are listed in the file
+F<MAINTAINERS> in the source code tree.
+
+
+
