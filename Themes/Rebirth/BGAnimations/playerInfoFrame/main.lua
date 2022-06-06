@@ -94,6 +94,7 @@ local ratios = {
     IconDownloadsHeight = 36 / 1080,
     IconDownloadsRightGap = 278 / 1920,
     IconDownloadsProgressBar1UpperGap = 51 / 1080, -- top of icon to top of bar
+    IconDownloadsProgressBar2UpperGap = 62.5 / 1080,
     IconDownloadsProgressBarHeight = 9 / 1080,
     IconDownloadsProgressBarWidth = 88 / 1920,
     IconRandomWidth = 41 / 1920,
@@ -138,6 +139,7 @@ local actuals = {
     IconDownloadsHeight = ratios.IconDownloadsHeight * SCREEN_HEIGHT,
     IconDownloadsRightGap = ratios.IconDownloadsRightGap * SCREEN_WIDTH,
     IconDownloadsProgressBar1UpperGap = ratios.IconDownloadsProgressBar1UpperGap * SCREEN_HEIGHT,
+    IconDownloadsProgressBar2UpperGap = ratios.IconDownloadsProgressBar2UpperGap * SCREEN_HEIGHT,
     IconDownloadsProgressBarHeight = ratios.IconDownloadsProgressBarHeight * SCREEN_HEIGHT,
     IconDownloadsProgressBarWidth = ratios.IconDownloadsProgressBarWidth * SCREEN_WIDTH,
     IconRandomWidth = ratios.IconRandomWidth * SCREEN_WIDTH,
@@ -166,6 +168,7 @@ local translations = {
     Search = THEME:GetString("Header", "Search"),
     DownloadingPacks = THEME:GetString("Header", "DownloadingPacks"),
     QueuedPacks = THEME:GetString("Header", "QueuedPacks"),
+    UploadPercent = THEME:GetString("Header", "UploadPercent"),
 }
 
 -- the list of buttons and the lists of screens those buttons are allowed on
@@ -948,6 +951,71 @@ t[#t+1] = Def.ActorFrame {
             AllDownloadsCompletedMessageCommand = function(self)
                 self:diffusealpha(0)
             end
+        },
+        UIElements.QuadButton(1, 1) .. {
+            Name = "Progress2BG",
+            InitCommand = function(self)
+                self:valign(0)
+                self:x(-actuals.IconDownloadsWidth/2)
+                self:y(actuals.IconDownloadsProgressBar2UpperGap)
+                self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
+                self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "downloader", "ProgressBarBackground")
+            end,
+            UploadProgressMessageCommand = function(self, params)
+                self.percent = params.percent
+                if isOver(self) then
+                    self:playcommand("ToolTip")
+                end
+
+                -- weird check here to throw out nan
+                if self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
+                    self:diffusealpha(downloadsProgress2BGAlpha)
+                else
+                    self:diffusealpha(0)
+                end
+            end,
+            ToolTipCommand = function(self)
+                -- weird check here to throw out nan
+                if isOver(self) and self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
+                    local st = string.format("%s: %5.2f%%", translations["UploadPercent"], self.percent * 100)
+                    TOOLTIP:SetText(st)
+                    TOOLTIP:Show()
+                else
+                    TOOLTIP:Hide()
+                end
+            end,
+            MouseOverCommand = function(self)
+                self:playcommand("ToolTip")
+            end,
+            MouseOutCommand = function(self)
+                self:playcommand("ToolTip")
+            end,
+        },
+        Def.Quad {
+            Name = "Progress2Progress",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:x(-actuals.IconDownloadsWidth/2 - actuals.IconDownloadsProgressBarWidth/2)
+                self:y(actuals.IconDownloadsProgressBar2UpperGap)
+                self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
+                self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "downloader", "ProgressBarFill")
+            end,
+            UploadProgressMessageCommand = function(self, params)
+                self.percent = params.percent
+                if isOver(self) then
+                    self:playcommand("ToolTip")
+                end
+
+                -- weird check here to throw out nan
+                if self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
+                    self:diffusealpha(downloadsProgress2Alpha)
+                    self:zoomx(actuals.IconDownloadsProgressBarWidth * self.percent)
+                else
+                    self:diffusealpha(0)
+                end
+            end,
         }
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "random")) .. {
