@@ -766,8 +766,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 	  // chordjack
 	  {
 		CJ,
-		CJDensity,
-		// CJOHJump // SQRTD BELOW
+		// CJDensity,
+		CJOHJump, // SQRTD BELOW
 		CJOHAnchor,
 		VOHTrill,
 		// WideRangeAnchor,
@@ -872,8 +872,6 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 				case Skill_JackSpeed:
 					break;
 				case Skill_Chordjack:
-					*adj_diff *=
-					  fastsqrt(calc.pmod_vals.at(hand).at(CJOHJump).at(i));
 					break;
 				case Skill_Technical:
 					*adj_diff =
@@ -987,7 +985,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 476;
+int mina_calc_version = 477;
 auto
 GetCalcVersion() -> int
 {
