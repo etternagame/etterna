@@ -35,6 +35,9 @@ struct twohandtrill
 	// trill ms cv greater than this is rejected
 	float cv_threshold = 0.5F;
 
+	unsigned last_notes = 0b0000;
+	unsigned last_last_notes = 0b0000;
+
 	// true if is a hand or two hand jump
 	bool two_hand_jump(const unsigned& notes) {
 		return ((notes & 0b1100) != 0U) && ((notes & 0b0011) != 0U);
@@ -45,11 +48,63 @@ struct twohandtrill
 
 		hands notes_hand;
 		col_type notes_coltype;
+		const unsigned prev_notes = last_notes;
+		const unsigned prev_prev_notes = last_last_notes;
+		last_last_notes = last_notes;
+		last_notes = notes;
 
 		if (two_hand_jump(notes)) {
-			// no thanks
-			dead_trill();
-			return;
+			if (two_hand_jump(prev_notes)) {
+				// absolutely not
+				dead_trill();
+				return;
+			}
+			if (two_hand_jump(prev_prev_notes)) {
+				// basically not a two hand trill
+				dead_trill();
+				return;
+			}
+
+			if ((notes & 0b1111) == 0b1111) {
+				// quad
+				dead_trill();
+				return;
+			} else if ((notes & 0b1100) == 0b1100) {
+				// jump on left
+				//notes_coltype = determine_col_type(notes, 0b0011);
+				notes_hand = left_hand;
+				notes_coltype = col_ohjump;
+			} else if ((notes & 0b0011) == 0b0011) {
+				// jump on right
+				//notes_coltype = determine_col_type(notes, 0b1100);
+				notes_hand = right_hand;
+				notes_coltype = col_ohjump;
+			} else {
+				// actual two hand jump
+				if (((notes & prev_prev_notes) != 0U) && ((notes & prev_notes) == 0U)) {
+					// a jack separated by a note
+					// current row doesnt form a jack with previous row
+					// (23[24])
+					// find the jack column and hand
+					const unsigned ppn = notes & prev_prev_notes;
+					if ((ppn & 0b1100) != 0U) {
+						notes_hand = left_hand;
+						notes_coltype = determine_col_type(notes, 0b1100);
+					} else if ((ppn & 0b0011) != 0U) {
+						notes_hand = right_hand;
+						notes_coltype = determine_col_type(notes, 0b0011);
+					} else {
+						// preposterous
+						dead_trill();
+						return;
+					}
+				} else {
+					// what (232[24])
+					dead_trill();
+					return;
+				}
+			}
+
 		} else if ((notes & 0b1100) != 0) {
 			notes_hand = left_hand;
 			notes_coltype = determine_col_type(notes, 0b1100);
@@ -83,7 +138,7 @@ struct twohandtrill
 						if (right_hand_state == col_init ||
 							right_hand_state == notes_coltype) {
 							right_hand_state = notes_coltype;
-							trill_ms(ms_now);
+							calc_trill(ms_now);
 							cur_length++;
 							total_taps++;
 						} else {
@@ -96,7 +151,7 @@ struct twohandtrill
 						if (left_hand_state == col_init ||
 							left_hand_state == notes_coltype) {
 							left_hand_state = notes_coltype;
-							trill_ms(ms_now);
+							calc_trill(ms_now);
 							cur_length++;
 							total_taps++;
 						} else {
@@ -123,17 +178,14 @@ struct twohandtrill
 		}
 	}
 
-	void calc_trill()
+	bool calc_trill(const float& ms_now)
 	{
 		const int window = std::min(cur_length, max_moving_window_size);
+		trill_ms(ms_now);
 		float cv = trill_ms.get_cv_of_window(window);
-		if (cv > cv_threshold) {
-			// if this occurs, it is possible that the trills are ohj flams
-			// just dont bother
-			return;
-		}
-
-		trills_in_interval++;
+		// for high cv, this may be a flam
+		return true;
+		//return cv < cv_threshold;
 	}
 
 	void reset() {
@@ -144,15 +196,18 @@ struct twohandtrill
 		current_scenario = the_lack_thereof;
 		left_hand_state = col_init;
 		right_hand_state = col_init;
+		last_notes = 0b0000;
+		last_last_notes = 0b0000;
 	}
 
 	void dead_trill() {
-		calc_trill();
 		cur_length = 0;
 		trill_ms.zero();
 		current_scenario = the_lack_thereof;
 		left_hand_state = col_init;
 		right_hand_state = col_init;
+		last_notes = 0b0000;
+		last_last_notes = 0b0000;
 	}
 };
 
@@ -203,16 +258,15 @@ struct THT_Sequencing
 		trill.reset();
 	}
 
-	/// numerical output
+	/// numerical output (kind of like a proportion. 1 is "all trills")
 	float get(const metaItvInfo& mitvi) {
-		const auto trills = trill.trills_in_interval;
 		const float trill_taps = static_cast<float>(trill.total_taps);
 		const float trill_jumps = static_cast<float>(trill.jump_count);
 		const auto& itvi = mitvi._itvi;
 		const float taps = static_cast<float>(itvi.total_taps);
 
-		if (trills == 0 || taps == 0.F) {
-			return neutral;
+		if (taps == 0.F) {
+			return 0.F;
 		}
 
 		const float jumps = static_cast<float>(itvi.taps_by_size.at(_jump_size));

@@ -16,6 +16,7 @@ struct StreamMod
 	const int _tap_size = single;
 
 #pragma region params
+	float base = 0.F;
 	float min_mod = 0.6F;
 	float max_mod = 1.0F;
 	float prop_buffer = 1.F;
@@ -27,17 +28,18 @@ struct StreamMod
 
 	float vibro_flag = 1.F;
 
-	float tht_scaler = 1.F;
+	float tht_scaler = .5F;
 	float tht_cv_threshold = 0.5F;
-	float tht_trill_buffer = 1.F;
-	float tht_trill_scaler = 0.5F;
+	float tht_trill_buffer = 1.4F;
+	float tht_trill_scaler = 1.F;
 	float tht_jump_buffer = 1.F;
 	float tht_jump_scaler = 0.5F;
-	float tht_jump_weight = 0.5F;
-	float tht_min_prop = 0.8F;
+	float tht_jump_weight = 0.0F;
+	float tht_min_prop = 0.0F;
 	float tht_max_prop = 1.F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
+		{ "base", &base },
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
 		{ "prop_buffer", &prop_buffer },
@@ -119,10 +121,11 @@ struct StreamMod
 		pmod = fastsqrt(prop_component * jack_component);
 
 		// water downing based on two hand trills
-		const auto tht_comp = trillsequencer.get(mitvi);
-		pmod *= (tht_comp / tht_scaler);
+		const auto tht_prop = trillsequencer.get(mitvi);
+		pmod *= (1 - (tht_prop * tht_scaler));
+		trillsequencer.reset();
 
-		pmod = std::clamp(pmod, min_mod, max_mod);
+		pmod = std::clamp(base + pmod, min_mod, max_mod);
 
 		if (mitvi.basically_vibro) {
 			if (mitvi.num_var == 1) {
