@@ -6875,7 +6875,6 @@ local function rightFrame()
                         elseif categoryDef ~= nil then
                             local newx = actuals.OptionBigTriangleWidth + actuals.OptionTextBuffer / 2
                             self:x(newx)
-                            ms.ok(categoryDef.Name)
                             txt:settext(translations["Category"..categoryDef.Name])
                             txt:maxwidth((actuals.OptionTextWidth - newx) / optionTitleTextSize - textZoomFudge)
                         else
@@ -7436,7 +7435,6 @@ local function rightFrame()
                                     local choiceIndex = n + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice
                                     local choice = optionDef.Choices[choiceIndex]
                                     if choice ~= nil then
-                                        ms.ok(choice)
                                         txt:settext(choice.DisplayName)
                                     else
                                         txt:settext("")
