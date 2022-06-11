@@ -252,6 +252,9 @@ class Calc
 	*/
 	std::array<std::vector<std::vector<std::vector<float>>>, num_hands>
 	  debugValues{};
+	std::array<std::array<std::vector<float>, NUM_Skillset>, num_hands> debugMSD{};
+	std::array<std::array<std::vector<float>, NUM_Skillset>, num_hands> debugPtLoss{};
+	std::array<std::array<std::vector<float>, NUM_Skillset>, num_hands> debugTotalPatternMod{};
 
 	/** Grow every interval-dependent vector we use.
 	* The size could be reduced but there isn't a big need for it.

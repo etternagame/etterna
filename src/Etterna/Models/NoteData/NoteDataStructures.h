@@ -90,9 +90,8 @@ enum CalcDiffValue
 };
 enum CalcDebugMisc
 {
-	Pts,
+	Pts, // points per interval is constant, but slightly multiplied for each skillset
 	PtLoss, // expected points loss (not really a diff thing but w.e)
-	// JackPtLoss,
 	StamMod, // stam adjust (values between 1- ~1.15)
 	// JackStamMod,
 	NUM_CalcDebugMisc,

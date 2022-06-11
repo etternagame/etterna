@@ -149,12 +149,14 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
 		// values this is the only time debugoutput arg should be set to true
 		if (debugmode) {
-			Chisel(iteration_skillet_values[highest_stam_adjusted_skillset] - 0.16F,
-				   0.32F,
-				   score_goal,
-				   highest_stam_adjusted_skillset,
-				   true,
-				   true);
+			for (auto ss = 0; ss < NUM_Skillset; ss++) {
+				Chisel(iteration_skillet_values.at(ss) - 0.16F,
+					   0.32F,
+					   score_goal,
+					   static_cast<Skillset>(ss),
+					   true,
+					   true);
+			}
 		}
 
 		/* the final push down, cap ssrs (score specific ratings) to stop vibro
@@ -432,7 +434,7 @@ CalcInternal(float& gotpoints,
 		// final debug output should always be with stam activated
 		StamAdjust(x, ss, calc, hand, true);
 		for (auto i = 0; i < calc.numitv; ++i) {
-			calc.debugValues.at(hand)[1][MSD].at(i) = (*v).at(i);
+			calc.debugMSD.at(hand).at(ss).at(i) = (*v).at(i);
 		}
 
 		for (auto i = 0; i < calc.numitv; ++i) {
@@ -442,7 +444,7 @@ CalcInternal(float& gotpoints,
 				const auto lostpoints =
 				  (pts - (pts * fastpow(x / (*v).at(i), pointloss_pow_val)));
 				gotpoints -= lostpoints;
-				calc.debugValues.at(hand)[2][PtLoss].at(i) = abs(lostpoints);
+				calc.debugPtLoss.at(hand).at(ss).at(i) = abs(lostpoints);
 			}
 		}
 	} else {
@@ -643,6 +645,12 @@ Calc::Chisel(const float player_skill,
 			debugValues.at(hand)[2][PtLoss].assign(numitv, 0.F);
 			debugValues.at(hand)[1][MSD].resize(numitv);
 			debugValues.at(hand)[1][MSD].assign(numitv, 0.F);
+			debugMSD.at(hand).at(ss).resize(numitv);
+			debugMSD.at(hand).at(ss).assign(numitv, 0.F);
+			debugPtLoss.at(hand).at(ss).resize(numitv);
+			debugPtLoss.at(hand).at(ss).assign(numitv, 0.F);
+			debugTotalPatternMod.at(hand).at(ss).resize(numitv);
+			debugTotalPatternMod.at(hand).at(ss).assign(numitv, 0.F);
 
 			// fills MSD, Pts, PtLoss debugValues
 			CalcInternal(gotpoints,
@@ -665,16 +673,16 @@ Calc::Chisel(const float player_skill,
 			// techbase
 			if (ss == Skill_Technical) {
 				for (auto i = 0; i < numitv; ++i) {
-					debugValues.at(hand)[0][TotalPatternMod].at(i) =
+					debugTotalPatternMod.at(hand).at(ss).at(i) =
 					  base_adj_diff.at(hand)[TechBase].at(i) /
 					  init_base_diff_vals.at(hand)[TechBase].at(i);
 				}
 			} else if (ss == Skill_JackSpeed) {
-				// no pattern mods atm, do nothing
+				// no pattern mods atm
 			} else {
 				// everything else uses nps base
 				for (auto i = 0; i < numitv; ++i) {
-					debugValues.at(hand)[0][TotalPatternMod].at(i) =
+					debugTotalPatternMod.at(hand).at(ss).at(i) =
 					  base_adj_diff.at(hand).at(ss).at(i) /
 					  init_base_diff_vals.at(hand)[NPSBase].at(i);
 				}
