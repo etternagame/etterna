@@ -182,7 +182,7 @@ struct twohandtrill
 	{
 		const int window = std::min(cur_length, max_moving_window_size);
 		trill_ms(ms_now);
-		float cv = trill_ms.get_cv_of_window(window);
+		// float cv = trill_ms.get_cv_of_window(window);
 		// for high cv, this may be a flam
 		return true;
 		//return cv < cv_threshold;
