@@ -80,6 +80,7 @@ enum CalcPatternMod
 enum CalcDiffValue
 {
 	NPSBase,
+	MSBase,
 	// JackBase,
 	// CJBase,
 	TechBase,

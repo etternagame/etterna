@@ -396,6 +396,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			// maybe we _don't_ want this smoothed before the tech pass? and so
 			// it could be constructed parallel? NEEDS TEST
 			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase), 0.F, _calc.numitv);
+			MSSmooth(
+			  _calc.init_base_diff_vals.at(hand).at(MSBase), 0.F, _calc.numitv);
 
 			for (auto itv = 0; itv < _calc.numitv; ++itv) {
 				auto jack_counter = 0;

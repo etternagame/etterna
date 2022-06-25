@@ -679,6 +679,12 @@ Calc::Chisel(const float player_skill,
 				}
 			} else if (ss == Skill_JackSpeed) {
 				// no pattern mods atm
+			} else if (ss == Skill_Chordjack) {
+				for (auto i = 0; i < numitv; ++i) {
+					debugTotalPatternMod.at(hand).at(ss).at(i) =
+					  base_adj_diff.at(hand).at(ss).at(i) /
+					  init_base_diff_vals.at(hand)[MSBase].at(i);
+				}
 			} else {
 				// everything else uses nps base
 				for (auto i = 0; i < numitv; ++i) {
@@ -880,6 +886,11 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 				case Skill_JackSpeed:
 					break;
 				case Skill_Chordjack:
+					*adj_diff =
+					  calc.init_base_diff_vals.at(hand).at(MSBase).at(i) *
+					  basescalers.at(Skill_Chordjack) *
+					  pmod_product_cur_interval[Skill_Chordjack];
+					// we leave stam_base alone here, still based on nps
 					break;
 				case Skill_Technical:
 					*adj_diff =
@@ -993,7 +1004,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 477;
+int mina_calc_version = 478;
 auto
 GetCalcVersion() -> int
 {

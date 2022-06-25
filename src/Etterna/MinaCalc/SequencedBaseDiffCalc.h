@@ -12,23 +12,151 @@
 constexpr float min_threshold = 0.65F;
 static const float downscale_logbase = std::log(6.2F);
 
+constexpr float scaler_for_ms_base = 1.175F;
+// i do not know a proper name for these
+constexpr float ms_base_finger_weighter_2 = 9.F;
+constexpr float ms_base_finger_weighter = 5.5F;
+
+static auto
+CalcMSEstimate(std::vector<float>& input, const int& burp) -> float
+{
+	// how many ms values we use from here, if there are fewer than this
+	// number we'll mock up some values to water down intervals with a
+	// single extremely fast minijack, if there are more, we will truncate
+	unsigned int num_used = burp;
+
+	if (input.empty()) {
+		return 0.F;
+	}
+
+	// avoiding this for now because of smoothing
+	// single ms value, dunno if we want to do this? technically the tail
+	// end of an insanely hard burst that gets lopped off at the last note
+	// is still hard? if (input.size() < 2) return 1.f;
+
+	// sort before truncating/filling
+	std::sort(input.begin(), input.end());
+
+	// truncate if we have more values than what we care to sample, we're
+	// looking for a good estimate of the hardest part of this interval
+	// if above 1 and below used_ms_vals, fill up the stuff with dummies
+	// my god i was literally an idiot for doing what i was doing before
+	static const float ms_dummy = 360.F;
+
+	// mostly try to push down stuff like jumpjacks, not necessarily to push
+	// up "complex" stuff (this will push up intervals with few fast ms
+	// values kinda hard but it shouldn't matter as their base ms diff
+	// should be extremely low
+	float cv_yo = cv_trunc_fill(input, burp, ms_dummy) + 0.5F;
+	cv_yo = std::clamp(cv_yo, 0.5F, 1.25F);
+
+	// basically doing a jank average, bigger m = lower difficulty
+	float m = sum_trunc_fill(input, burp, ms_dummy);
+
+	// add 1 to num_used because some meme about sampling
+	// same thing as jack stuff, convert to bpm and then nps
+	float bpm_est = ms_to_bpm(m / (num_used + 1));
+	float nps_est = bpm_est / 15.F;
+	float fdiff = nps_est * cv_yo;
+	return fdiff;
+}
+
 struct nps
 {
-	/// determine NPSBase, itv_points for this hand
+	/// determine NPSBase, itv_points, CJBase for this hand
 	static void actual_cancer(Calc& calc, const int& hand)
 	{
-		for (auto itv = 0; itv < calc.numitv; ++itv) {
+		// finger row times
+		auto last_left_row_time = s_init;
+		auto last_right_row_time = s_init;
 
+		auto scaly_ms_estimate = [](std::vector<float>& input,
+								const float& scaler) {
+			float o = CalcMSEstimate(input, 3);
+			if (input.size() > 3) {
+				o = std::max(o, CalcMSEstimate(input, 4) * scaler);
+			}
+			if (input.size() > 4) {
+				o = std::max(o, CalcMSEstimate(input, 5) * scaler * scaler);
+			}
+			return o;
+		};
+
+		for (auto itv = 0; itv < calc.numitv; ++itv) {
 			auto notes = 0;
+
+			// times between rows for this interval for each finger
+			std::vector<float> left_finger_ms{};
+			std::vector<float> right_finger_ms{};
 
 			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 				const auto& cur = calc.adj_ni.at(itv).at(row);
 				notes += cur.hand_counts.at(hand);
+
+				const auto& crt = cur.row_time;
+				switch (determine_col_type(cur.row_notes, hand_col_ids[hand])) {
+					case col_left:
+						if (last_left_row_time != s_init) {
+							const auto left_ms =
+							  ms_from(crt, last_left_row_time);
+							left_finger_ms.push_back(left_ms);
+						}
+						last_left_row_time = crt;
+						break;
+					case col_right:
+						if (last_right_row_time != s_init) {
+							const auto right_ms =
+							  ms_from(crt, last_right_row_time);
+							right_finger_ms.push_back(right_ms);
+						}
+						last_right_row_time = crt;
+						break;
+					case col_ohjump:
+						if (last_right_row_time != s_init) {
+							const auto right_ms =
+							  ms_from(crt, last_right_row_time);
+							right_finger_ms.push_back(right_ms);
+						}
+						if (last_left_row_time != s_init) {
+							const auto left_ms =
+							  ms_from(crt, last_left_row_time);
+							left_finger_ms.push_back(left_ms);
+						}
+						last_left_row_time = crt;
+						last_right_row_time = crt;
+						break;
+					case col_empty:
+					case col_init:
+					default:
+						// none
+						break;
+				}
 			}
 
 			// nps for this interval
-			calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) =
-			  static_cast<float>(notes) * finalscaler * 1.6F;
+			const auto nps = static_cast<float>(notes) * finalscaler * 1.6F;
+			calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) = nps;
+
+			// ms base for this interval
+			const auto left =
+			  scaly_ms_estimate(left_finger_ms, scaler_for_ms_base);
+			const auto right =
+			  scaly_ms_estimate(right_finger_ms, scaler_for_ms_base);
+			float msdiff = 0.F;
+			if (left > right) {
+				msdiff = weighted_average(left,
+										  right,
+										  ms_base_finger_weighter,
+										  ms_base_finger_weighter_2);
+			} else {
+				msdiff = weighted_average(right,
+										  left,
+										  ms_base_finger_weighter,
+										  ms_base_finger_weighter_2);
+			}
+			const auto msbase = finalscaler * msdiff;
+			calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) = msbase;
+			/////
 
 			// set points for this interval
 			calc.itv_points.at(hand).at(itv) = notes * 2;
