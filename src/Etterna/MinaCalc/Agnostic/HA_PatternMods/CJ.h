@@ -18,17 +18,17 @@ struct CJMod
 
 	float total_prop_min = min_mod;
 	float total_prop_max = max_mod;
-	float total_prop_scaler = 1.5F;
+	float total_prop_scaler = 5.428F;
 
-	float jack_base = 1.F;
+	float jack_base = 2.F;
 	float jack_min = 0.625F;
 	float jack_max = 1.F;
 	float jack_scaler = 1.F;
 
-	float not_jack_pool = 1.15F;
-	float not_jack_min = 0.9F;
+	float not_jack_pool = 1.2F;
+	float not_jack_min = 0.4F;
 	float not_jack_max = 1.F;
-	float not_jack_scaler = 1.75F;
+	float not_jack_scaler = 1.F;
 
 	float vibro_flag = 1.F;
 	float decay_factor = 0.1F;

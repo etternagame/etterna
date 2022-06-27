@@ -339,7 +339,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
 									 const int& jack_counter,
-									 const float& row_time)
+									 const float& row_time,
+									 const float& any_ms)
 	{
 		auto thing =
 		  std::pair{ row_time,
@@ -352,6 +353,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		// _between either column_ for _this row_
 		_calc.jack_diff.at(hand).push_back(thing);
 
+		// chordjack updates
+		_diffz._cj.advance_base(any_ms, _calc);
+
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
 		_diffz._tc.advance_rm_comp(_rm.get_highest_anchor_difficulty());
@@ -362,6 +366,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		// this is no longer done for intervals, but per row, in the row
 		// loop _calc->soap.at(hand)[JackBase].at(itv) =
 		// _diffz._jk.get_itv_diff();
+
+		_calc.init_base_diff_vals.at(hand)[CJBase].at(itv) =
+		  _diffz._cj.get_itv_diff(_calc);
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
@@ -417,6 +424,9 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					ct = determine_col_type(row_notes, ids);
 
+					// cj must always update
+					_diffz._cj.update_flags(row_notes, row_count);
+
 					// handle any special cases that need to be executed on
 					// empty rows for this hand here before moving on, aside
 					// from whatever is in this block _nothing_ else should
@@ -450,7 +460,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					 * (jack might not be for the moment actually) nps base
 					 * is still calculated in the old way */
 					update_sequenced_base_diffs(
-					  ct, itv, jack_counter, row_time);
+					  ct, itv, jack_counter, row_time, any_ms);
 					++jack_counter;
 
 					// only ohj uses this atm (and probably into the future)

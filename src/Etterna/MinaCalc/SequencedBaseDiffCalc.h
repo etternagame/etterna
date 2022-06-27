@@ -215,6 +215,133 @@ struct nps
 	}
 };
 
+struct ceejay
+{
+	void update_flags(const unsigned& row_notes, const int& row_count)
+	{
+		is_cj = last_row_count > 1 && row_count > 1;
+		was_cj = last_row_count > 1 && last_last_row_count > 1;
+
+		is_scj = (row_count == 1 && last_row_count > 1) &&
+				 ((row_notes & last_row_notes) != 0u);
+
+		is_at_least_3_note_anch =
+		  ((row_notes & last_row_notes) & last_last_row_notes) != 0u;
+
+		last_last_row_count = last_row_count;
+		last_row_count = row_count;
+
+		last_last_row_notes = last_row_notes;
+		last_row_notes = row_notes;
+
+		last_was_3_note_anch = is_at_least_3_note_anch;
+	}
+
+	void advance_base(const float& any_ms, Calc& calc)
+	{
+		if (row_counter >= max_rows_for_single_interval) {
+			{
+				{
+					return;
+				}
+			}
+		}
+
+		// pushing back ms values, so multiply to nerf
+		float pewpew = 3.F;
+
+		if (is_at_least_3_note_anch && last_was_3_note_anch) {
+			// biggy boy anchors and beyond
+			pewpew = 1.F;
+		} else if (is_at_least_3_note_anch) {
+			// big boy anchors
+			pewpew = 1.F;
+		} else {
+			// single note
+			if (!is_cj) {
+				if (is_scj) {
+					// was cj a little bit ago..
+					if (was_cj) {
+						// single note jack with 2 chords behind it
+						pewpew = 1.25F;
+					} else {
+						// single note, not a jack, 2 chords behind
+						// it
+						pewpew = 1.5F;
+					}
+				}
+			} else {
+				// actual cj
+				if (was_cj) {
+					// cj now and was cj before, but not necessarily
+					// with strong anchors
+					pewpew = 1.15F;
+				} else {
+					// cj now but wasn't even cj before
+					pewpew = 1.25F;
+				}
+			}
+		}
+
+		// single note streams / regular jacks should retain the 3x
+		// multiplier
+
+		calc.cj_static.at(row_counter) = std::max(75.F, any_ms * pewpew);
+		++row_counter;
+	}
+
+	// final output difficulty for this interval
+	auto get_itv_diff(Calc& calc) const -> float
+	{
+		if (row_counter == 0) {
+			return 0.F;
+		}
+
+		float ms_total = 0.F;
+		for (int i = 0; i < row_counter; ++i) {
+			{
+				{
+					ms_total += calc.cj_static.at(i);
+				}
+			}
+		}
+
+		float ms_mean = ms_total / static_cast<float>(row_counter);
+		return ms_to_scaled_nps(ms_mean);
+	}
+
+	void interval_end() { row_counter = 0; }
+	void full_reset()
+	{
+		is_cj = false;
+		was_cj = false;
+		is_scj = false;
+		is_at_least_3_note_anch = false;
+		last_was_3_note_anch = false;
+
+		last_row_count = 0;
+		last_last_row_count = 0;
+
+		last_row_notes = 0U;
+		last_last_row_notes = 0U;
+	}
+
+  private:
+	int row_counter = 0;
+
+	bool is_cj = false;
+	bool was_cj = false;
+	bool is_scj = false;
+	bool is_at_least_3_note_anch = false;
+	bool last_was_3_note_anch = false;
+
+	int last_row_count = 0;
+	int last_last_row_count = 0;
+
+	unsigned last_row_notes = 0U;
+	unsigned last_last_row_notes = 0U;
+};
+
 struct techyo
 {
 	// if this looks ridiculous, that's because it is
@@ -342,8 +469,17 @@ struct diffz
 {
 	nps _nps;
 	techyo _tc;
+	ceejay _cj;
 
-	void interval_end() { _tc.interval_end(); }
+	void interval_end()
+	{
+		_tc.interval_end();
+		_cj.interval_end();
+	}
 
-	void full_reset() { interval_end(); }
+	void full_reset()
+	{
+		interval_end();
+		_cj.full_reset();
+	}
 };
