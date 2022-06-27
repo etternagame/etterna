@@ -416,7 +416,7 @@ local diffGroups = {
         MSDHandstream = true,
     },
     {   -- Group 4
-        MSBase = true,
+        CJBase = true,
         MSDChordjack = true,
     },
     {   -- Group 5
@@ -455,6 +455,7 @@ local diffGroups = {
     {   -- Group 14
         MSBase = true,
         NPSBase = true,
+        CJBase = true,
     },
     {   -- Group 14
         SSRS = true,
@@ -1160,6 +1161,7 @@ local jackdiffColors = {
 local calcDiffValueColors = {
     color("#7d6b91"),   -- NPSBase
     color("#7d6b51"),   -- MSBase
+    color("#1d6b91"),   -- CJBase
     --color("#7d6b91"),
     --color("#8481db"),   -- JackBase
     --color("#8481db"),
