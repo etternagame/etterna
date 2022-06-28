@@ -14,6 +14,7 @@
 #include <numeric>
 #include <algorithm>
 #include <set>
+#include <unordered_map>
 
 using std::pair;
 using std::set;
