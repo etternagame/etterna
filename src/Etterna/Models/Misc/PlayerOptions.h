@@ -169,6 +169,7 @@ class PlayerOptions
 		TURN_SOFT_SHUFFLE,	/**< Only shuffle arrow columns on an axis of
 							   symmetry. */
 		TURN_SUPER_SHUFFLE, /**< Every arrow is placed on a random column. */
+		TURN_HRAN_SHUFFLE, // super shuffle but always avoid jacks when possible
 		NUM_TURNS
 	};
 	enum Transform

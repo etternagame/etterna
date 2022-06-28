@@ -161,6 +161,7 @@ local translations = {
     Shuffle = THEME:GetString("Settings", "Shuffle"),
     SoftShuffle = THEME:GetString("Settings", "SoftShuffle"),
     SuperShuffle = THEME:GetString("Settings", "SuperShuffle"),
+    HRanShuffle = THEME:GetString("Settings", "HRanShuffle"),
     Echo = THEME:GetString("Settings", "Echo"),
     Stomp = THEME:GetString("Settings", "Stomp"),
     JackJS = THEME:GetString("Settings", "JackJS"),
@@ -4523,6 +4524,7 @@ local function rightFrame()
                     booleanSettingChoice("Shuffle", "Shuffle"),
                     booleanSettingChoice("Soft Shuffle", "SoftShuffle"),
                     booleanSettingChoice("Super Shuffle", "SuperShuffle"),
+                    booleanSettingChoice("H-Ran Shuffle", "HRanShuffle"),
                 },
                 ChoiceIndexGetter = function()
                     local po = getPlayerOptions()
@@ -4533,6 +4535,7 @@ local function rightFrame()
                     if po:Shuffle() then o[4] = true end
                     if po:SoftShuffle() then o[5] = true end
                     if po:SuperShuffle() then o[6] = true end
+                    if po:HRanShuffle() then o[7] = true end
                     return o
                 end,
             },
