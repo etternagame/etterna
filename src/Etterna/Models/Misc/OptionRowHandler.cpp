@@ -471,7 +471,11 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 			  pSong,
 			  vpSteps,
 			  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-				->m_StepsType);
+				->m_StepsType,
+			  Difficulty_Invalid,
+			  -1,
+			  -1,
+			  true);
 			StepsUtil::SortNotesArrayByDifficulty(vpSteps);
 			for (auto* pSteps : vpSteps) {
 				std::string s;
@@ -574,8 +578,13 @@ class OptionRowHandlerSteps : public OptionRowHandler
 				  GAMESTATE->m_pCurSong, *m_pst, dc);
 				m_vSteps.push_back(pSteps);
 			}
-			SongUtil::GetSteps(
-			  GAMESTATE->m_pCurSong, m_vSteps, *m_pst, Difficulty_Edit);
+			SongUtil::GetSteps(GAMESTATE->m_pCurSong,
+							   m_vSteps,
+							   *m_pst,
+							   Difficulty_Edit,
+							   -1,
+							   -1,
+							   true);
 			m_vDifficulties.resize(m_vSteps.size(), Difficulty_Edit);
 
 			if (sParam == "EditSteps") {
