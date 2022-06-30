@@ -481,6 +481,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				handle_dependent_interval_end(itv);
 			}
 			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
+			Smooth(_calc.init_base_diff_vals.at(hand).at(CJBase), 0.F, _calc.numitv);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
