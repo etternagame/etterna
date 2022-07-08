@@ -1,6 +1,8 @@
 #pragma once
 #include "SequencingHelpers.h"
 #include <array>
+#include <unordered_map>
+
 
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
@@ -217,6 +219,36 @@ struct nps
 
 struct ceejay
 {
+	const std::string name = "CJ_Static";
+
+#pragma region params
+
+	float static_ms_weight = .65F;
+	float min_ms = 75.F;
+
+	float base_tap_scaler = 3.F;
+	float huge_anchor_scaler = 1.15F;
+	float small_anchor_scaler = 1.15F;
+	float ccj_scaler = 1.25F;
+	float cct_scaler = 1.5F;
+	float ccn_scaler = 1.15F;
+	float ccb_scaler = 1.25F;
+
+	const std::vector<std::pair<std::string, float*>> _params{
+		{ "static_ms_weight", &static_ms_weight },
+		{ "min_ms", &min_ms },
+		{ "base_tap_scaler", &base_tap_scaler },
+		{ "huge_anchor_scaler", &huge_anchor_scaler },
+		{ "small_anchor_scaler", &small_anchor_scaler },
+		{ "chord-chord-jack_scaler", &ccj_scaler },
+		{ "chord-chord-tap_scaler", &cct_scaler },
+		{ "chord-chord-no-anchors_scaler", &ccn_scaler },
+		{ "chordjacks_beginning_scaler", &ccb_scaler },
+	};
+
+#pragma endregion params and param map
+
+
 	void update_flags(const unsigned& row_notes, const int& row_count)
 	{
 		is_cj = last_row_count > 1 && row_count > 1;
@@ -240,22 +272,18 @@ struct ceejay
 	void advance_base(const float& any_ms, Calc& calc)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
-			{
-				{
-					return;
-				}
-			}
+			return;
 		}
 
 		// pushing back ms values, so multiply to nerf
-		float pewpew = 3.F;
+		float pewpew = base_tap_scaler;
 
 		if (is_at_least_3_note_anch && last_was_3_note_anch) {
 			// biggy boy anchors and beyond
-			pewpew = 1.15F;
+			pewpew = huge_anchor_scaler;
 		} else if (is_at_least_3_note_anch) {
 			// big boy anchors
-			pewpew = 1.15F;
+			pewpew = small_anchor_scaler;
 		} else {
 			// single note
 			if (!is_cj) {
@@ -263,11 +291,12 @@ struct ceejay
 					// was cj a little bit ago..
 					if (was_cj) {
 						// single note jack with 2 chords behind it
-						pewpew = 1.25F;
+						// ccj (chord chord jack)
+						pewpew = ccj_scaler;
 					} else {
 						// single note, not a jack, 2 chords behind
-						// it
-						pewpew = 1.5F;
+						// cct (chord chord tap)
+						pewpew = cct_scaler;
 					}
 				}
 			} else {
@@ -275,18 +304,21 @@ struct ceejay
 				if (was_cj) {
 					// cj now and was cj before, but not necessarily
 					// with strong anchors
-					pewpew = 1.15F;
+					// ccn (chord chord no anchor)
+					pewpew = ccn_scaler;
 				} else {
 					// cj now but wasn't even cj before
-					pewpew = 1.25F;
+					// ccb (chordjack beginning)
+					pewpew = ccb_scaler;
 				}
 			}
 		}
 
-		// single note streams / regular jacks should retain the 3x
+		// single note streams / regular jacks should retain the base
 		// multiplier
 
-		calc.cj_static.at(row_counter) = std::max(75.F, any_ms * pewpew);
+		const auto ms = std::max(min_ms, any_ms * pewpew);
+		calc.cj_static.at(row_counter) = ms;
 		++row_counter;
 	}
 
@@ -297,16 +329,30 @@ struct ceejay
 			return 0.F;
 		}
 
-		float ms_total = 0.F;
+		// ms vals to counts
+		std::unordered_map<int, int> mode;
+		std::vector<float> static_ms;
 		for (int i = 0; i < row_counter; ++i) {
-			{
-				{
-					ms_total += calc.cj_static.at(i);
-				}
+			const auto v = static_cast<int>(calc.cj_static.at(i));
+			static_ms.push_back(calc.cj_static.at(i));
+			mode[v]++; // this is safe
+		}
+		auto modev = 0;
+		auto modefreq = 0;
+		for (auto it = mode.begin(); it != mode.end(); it++) {
+			if (it->second > modefreq) {
+				modev = it->first;
+				modefreq = it->second;
 			}
 		}
+		for (auto i = 0; i < static_ms.size(); i++) {
+			// weight = 0 means all values become modev
+			static_ms.at(i) =
+			  weighted_average(static_ms.at(i), modev, static_ms_weight, 1.F);
+		}
 
-		float ms_mean = ms_total / static_cast<float>(row_counter);
+		const auto ms_total = sum(static_ms);
+		const auto ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps(ms_mean);
 	}
 
@@ -434,6 +480,13 @@ struct techyo
 		rm_itv_max_diff = 0.F;
 	}
 
+	void full_reset()
+	{
+		row_counter = 0;
+		rm_itv_max_diff = 0.F;
+		teehee.zero();
+	}
+
   private:
 	// how many non-empty rows have we seen
 	int row_counter = 0;
@@ -481,5 +534,6 @@ struct diffz
 	{
 		interval_end();
 		_cj.full_reset();
+		_tc.full_reset();
 	}
 };

@@ -13,7 +13,7 @@ struct CJDensityMod
 #pragma region params
 
 	float min_mod = 0.98F;
-	float max_mod = 1.08F;
+	float max_mod = 1.F;
 	float base = 0.F;
 
 	float single_scaler = 1.F;

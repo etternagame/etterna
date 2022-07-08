@@ -12,7 +12,7 @@ struct CJMod
 #pragma region params
 
 	float min_mod = 0.6F;
-	float max_mod = 1.1F;
+	float max_mod = 1.F;
 	float mod_base = 0.4F;
 	float prop_buffer = 1.F;
 

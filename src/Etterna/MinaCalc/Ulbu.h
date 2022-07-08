@@ -481,7 +481,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				handle_dependent_interval_end(itv);
 			}
 			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
-			Smooth(_calc.init_base_diff_vals.at(hand).at(CJBase), 0.F, _calc.numitv);
+			//Smooth(_calc.init_base_diff_vals.at(hand).at(CJBase), 0.F, _calc.numitv);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
@@ -566,6 +566,10 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 		paramsLoaded = true;
 
+		// cj base
+		load_params_for_mod(&params, _diffz._cj._params, _diffz._cj.name);
+
+		// pmods
 		load_params_for_mod(&params, _s._params, _s.name);
 		load_params_for_mod(&params, _js._params, _js.name);
 		load_params_for_mod(&params, _hs._params, _hs.name);
@@ -594,6 +598,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		auto* calcparams = new XNode("CalcParams");
 		calcparams->AppendAttr("vers", GetCalcVersion());
 
+		// cj base
+		calcparams->AppendChild(
+		  make_mod_param_node(_diffz._cj._params, _diffz._cj.name));
+
+		// pmods
 		calcparams->AppendChild(make_mod_param_node(_s._params, _s.name));
 		calcparams->AppendChild(make_mod_param_node(_js._params, _js.name));
 		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));
