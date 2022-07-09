@@ -34,11 +34,15 @@ Currently, there's a lack of alternative themes (To the default one, Til Death) 
 
 ## Documentation
 
-The project is sorely lacking in documentation. The current aim is to document the Lua stuff in https://etternagame.github.io/Lua-For-Etterna/API/Lua.xml (This is forked from http://dguzek.github.io/Lua-For-SM5/API/Lua.xml, a community-made reference for SM5 Lua). We intend to get the C++ documentation done in https://etternagame.github.io/wiki/ (At first we wanted to make this page have 3 "sections": General, Lua and C++, but gave up). Then there is a general wiki with information that can be useful to end users (https://wiki.etternaonline.com/).
+The project is sorely lacking in documentation.
+
+The current aim is to document the Lua stuff in https://etternagame.github.io/Lua-For-Etterna/API/Lua.xml (This is forked from https://quietly-turning.github.io/Lua-For-SM5/Luadoc/Lua.xml, a community-made reference for SM5 Lua).
+
+We intend to get the C++ documentation done in https://etternagame.github.io/wiki/
+
+There is a general wiki with information that can be useful to end users (https://wiki.etternaonline.com/).
 
 ## Translating
-
-The Til Death theme (Default) only has one translation available. In order to make others, simply copy etterna/Themes/Til Death/Languages/en.ini and translate all the right-side words (After the `=`). Also, a list of the words/text/captions/things that aren't translate-able in the theme would be useful to make them(Some of the text is hard-coded so it's not possible to translate it).
 
 A guide on this can be found in [the translations document](Translations.md).
 
