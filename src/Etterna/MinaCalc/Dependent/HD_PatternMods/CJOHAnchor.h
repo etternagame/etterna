@@ -13,8 +13,8 @@ struct CJOHAnchorMod
 
 #pragma region params
 
-	float min_mod = .9F;
-	float max_mod = 1.1F;
+	float min_mod = 1.F;
+	float max_mod = 1.F;
 
 	float anchor_len_weight = 1.F;
 	float len_scaler = 0.175F;

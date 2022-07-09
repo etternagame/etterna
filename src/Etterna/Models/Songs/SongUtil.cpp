@@ -64,7 +64,7 @@ SongUtil::GetSteps(const Song* pSong,
 		if (uHash != 0 && uHash != pSteps->GetHash())
 			continue;
 
-		if (FILTERMAN != nullptr && FILTERMAN->AnyActiveFilter()) {
+		if (filteringSteps && FILTERMAN != nullptr && FILTERMAN->AnyActiveFilter()) {
 			// iterating over all rates until it just works
 			// explanation in MusicWheel::FilterBySkillsets
 			auto success = false;

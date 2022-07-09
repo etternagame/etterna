@@ -138,6 +138,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void advance_agnostic_sequencing()
 	{
+		_s.advance_sequencing(_mri->ms_now, _mri->notes);
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
@@ -148,6 +149,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		/* these pattern mods operate on all columns, only need basic meta
 		 * interval data, and do not need any more advanced pattern
 		 * sequencing */
+		_s.setup();
 		_fj.setup();
 		_tt.setup();
 		_tt2.setup();
@@ -155,6 +157,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	void full_agnostic_reset()
 	{
+		_s.full_reset();
 		_js.full_reset();
 		_hs.full_reset();
 		_cj.full_reset();
@@ -336,7 +339,8 @@ struct TheGreatBazoinkazoinkInTheSky
 	void update_sequenced_base_diffs(const col_type& ct,
 									 const int& itv,
 									 const int& jack_counter,
-									 const float& row_time)
+									 const float& row_time,
+									 const float& any_ms)
 	{
 		auto thing =
 		  std::pair{ row_time,
@@ -349,6 +353,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		// _between either column_ for _this row_
 		_calc.jack_diff.at(hand).push_back(thing);
 
+		// chordjack updates
+		_diffz._cj.advance_base(any_ms, _calc);
+
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
 		_diffz._tc.advance_rm_comp(_rm.get_highest_anchor_difficulty());
@@ -359,6 +366,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		// this is no longer done for intervals, but per row, in the row
 		// loop _calc->soap.at(hand)[JackBase].at(itv) =
 		// _diffz._jk.get_itv_diff();
+
+		_calc.init_base_diff_vals.at(hand)[CJBase].at(itv) =
+		  _diffz._cj.get_itv_diff(_calc);
 
 		// kinda jank but includes a weighted average vs nps base to prevent
 		// really silly stuff from becoming outliers
@@ -393,6 +403,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			// maybe we _don't_ want this smoothed before the tech pass? and so
 			// it could be constructed parallel? NEEDS TEST
 			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase), 0.F, _calc.numitv);
+			MSSmooth(
+			  _calc.init_base_diff_vals.at(hand).at(MSBase), 0.F, _calc.numitv);
 
 			for (auto itv = 0; itv < _calc.numitv; ++itv) {
 				auto jack_counter = 0;
@@ -411,6 +423,9 @@ struct TheGreatBazoinkazoinkInTheSky
 					// assert(any_ms > 0.F);
 
 					ct = determine_col_type(row_notes, ids);
+
+					// cj must always update
+					_diffz._cj.update_flags(row_notes, row_count);
 
 					// handle any special cases that need to be executed on
 					// empty rows for this hand here before moving on, aside
@@ -445,7 +460,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					 * (jack might not be for the moment actually) nps base
 					 * is still calculated in the old way */
 					update_sequenced_base_diffs(
-					  ct, itv, jack_counter, row_time);
+					  ct, itv, jack_counter, row_time, any_ms);
 					++jack_counter;
 
 					// only ohj uses this atm (and probably into the future)
@@ -466,6 +481,7 @@ struct TheGreatBazoinkazoinkInTheSky
 				handle_dependent_interval_end(itv);
 			}
 			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
+			//Smooth(_calc.init_base_diff_vals.at(hand).at(CJBase), 0.F, _calc.numitv);
 
 			// ok this is pretty jank LOL, just increment the hand index
 			// when we finish left hand
@@ -550,6 +566,10 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 		paramsLoaded = true;
 
+		// cj base
+		load_params_for_mod(&params, _diffz._cj._params, _diffz._cj.name);
+
+		// pmods
 		load_params_for_mod(&params, _s._params, _s.name);
 		load_params_for_mod(&params, _js._params, _js.name);
 		load_params_for_mod(&params, _hs._params, _hs.name);
@@ -578,6 +598,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		auto* calcparams = new XNode("CalcParams");
 		calcparams->AppendAttr("vers", GetCalcVersion());
 
+		// cj base
+		calcparams->AppendChild(
+		  make_mod_param_node(_diffz._cj._params, _diffz._cj.name));
+
+		// pmods
 		calcparams->AppendChild(make_mod_param_node(_s._params, _s.name));
 		calcparams->AppendChild(make_mod_param_node(_js._params, _js.name));
 		calcparams->AppendChild(make_mod_param_node(_hs._params, _hs.name));

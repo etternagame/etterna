@@ -47,6 +47,7 @@
 #include "Etterna/Models/Songs/SongCacheIndex.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/ReplayManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Actor/Base/ModelManager.h"
@@ -1121,6 +1122,7 @@ sm_main(int argc, char* argv[])
 	FILTERMAN = new FilterManager;
 
 	DLMAN = std::make_shared<DownloadManager>();
+	REPLAYS = std::make_shared<ReplayManager>();
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */

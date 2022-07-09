@@ -812,7 +812,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	for (const auto& folder : songFolders) {
 		auto burp = sDir + folder;
 		if (IsSongDir(burp)) {
-			unknownGroup.songs.emplace_back(burp);
+			unknownGroup.songs.emplace_back("/" + burp);
 		} else {
 			auto group = Group(folder);
 			GetDirListing(sDir + folder + "/*", group.songs, true, true);

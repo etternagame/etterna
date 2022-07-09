@@ -964,7 +964,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
 			replayString += to_string(1000.f * offsets[i]) + ",";
-			if (hs->GetReplayType() == 2) {
+			if (hs->HasColumnData()) {
 				replayString += to_string(columns[i]) + ",";
 				replayString += to_string(types[i]) + ",";
 			}
@@ -1570,11 +1570,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 				it->hs.SetTrackVector(tracks);
 				it->hs.SetTapNoteTypeVector(types);
 				it->hs.SetNoteRowVector(rows);
-
-				if (tracks.empty())
-					it->hs.SetReplayType(1);
-				else
-					it->hs.SetReplayType(2);
 			}
 		}
 
@@ -1590,11 +1585,6 @@ DownloadManager::RequestReplayData(const string& scoreid,
 			it->hs.SetTrackVector(tracks);
 			it->hs.SetTapNoteTypeVector(types);
 			it->hs.SetNoteRowVector(rows);
-
-			if (tracks.empty())
-				it->hs.SetReplayType(1);
-			else
-				it->hs.SetReplayType(2);
 		}
 
 		if (!callback.IsNil() && callback.IsSet()) {

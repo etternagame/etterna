@@ -19,11 +19,13 @@ list(APPEND FONT_HPP
 
 list(APPEND HIGHSCORE_SRC
 	"HighScore/HighScore.cpp"
-	)
+	"HighScore/Replay.cpp"
+	"HighScore/ReplayConstantsAndTypes.cpp")
 
 list(APPEND HIGHSCORE_HPP
 	"HighScore/HighScore.h"
-	)
+	"HighScore/Replay.h"
+	"HighScore/ReplayConstantsAndTypes.h")
 
 list(APPEND NOTEDATA_SRC
 	"NoteData/NoteData.cpp"

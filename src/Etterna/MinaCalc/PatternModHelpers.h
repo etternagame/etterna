@@ -62,6 +62,75 @@ cv(const std::vector<float>& input) -> float
 	return fastsqrt(sd / static_cast<float>(input.size())) / average;
 }
 
+// cv of a vector truncated to a set number of values, or if below, filled with
+// dummy values to reach the desired num_vals
+inline auto
+cv_trunc_fill(const std::vector<float>& input,
+			  const int& num_vals,
+			  const float& ms_dummy) -> float
+{
+	int input_sz = static_cast<int>(input.size());
+	float sd = 0.F;
+	float average = 0.F;
+	if (input_sz >= num_vals) {
+		for (int i = 0; i < std::min(input_sz, num_vals); ++i) {
+			average += input[i];
+		}
+		average /= static_cast<float>(num_vals);
+
+		for (int i = 0; i < std::min(input_sz, num_vals); ++i) {
+			sd += (input[i] - average) * (input[i] - average);
+		}
+
+		return fastsqrt(sd / static_cast<float>(num_vals)) / average;
+	}
+
+	for (int i = 0; i < std::min(input_sz, num_vals); ++i) {
+		average += input[i];
+	}
+
+	// fill with dummies if input is below desired number of values
+	for (int i = 0; i < num_vals - input_sz; ++i) {
+		average += ms_dummy;
+	}
+	average /= static_cast<float>(num_vals);
+
+	for (int i = 0; i < std::min(input_sz, num_vals); ++i) {
+		sd += (input[i] - average) * (input[i] - average);
+	}
+
+	for (int i = 0; i < num_vals - input_sz; ++i) {
+		sd += (ms_dummy - average) * (ms_dummy - average);
+	}
+
+	return fastsqrt(sd / static_cast<float>(num_vals)) / average;
+}
+
+inline auto
+sum_trunc_fill(const std::vector<float>& input,
+			   const int& num_vals,
+			   const float& ms_dummy) -> float
+{
+	int input_sz = static_cast<int>(input.size());
+	float sum = 0.F;
+	// use up to num_vals
+	for (int i = 0; i < std::min(input_sz, num_vals); ++i) {
+		sum += input[i];
+	}
+
+	// got enough
+	if (input_sz >= num_vals) {
+		return sum;
+	}
+
+	// fill with dummies if input is below desired number of values
+	for (int i = 0; i < num_vals - static_cast<int>(input_sz); ++i) {
+		sum += ms_dummy;
+	}
+
+	return sum;
+}
+
 inline auto
 div_high_by_low(float a, float b) -> float
 {

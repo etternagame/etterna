@@ -14,6 +14,7 @@
 #include <numeric>
 #include <algorithm>
 #include <set>
+#include <unordered_map>
 
 using std::pair;
 using std::set;
@@ -1523,6 +1524,7 @@ GetTrackMapping(StepsType st,
 				iTakeFromTrack[t] = NumTracks - t - 1;
 			break;
 		}
+		case NoteDataUtil::hran_shuffle:
 		case NoteDataUtil::shuffle:
 		case NoteDataUtil::super_shuffle: // use shuffle code to mix up
 										  // HoldNotes without creating
@@ -1752,6 +1754,119 @@ GetTrackMapping(StepsType st,
 }
 
 static void
+HRanShuffleTaps(NoteData& input, int startIndex, int endIndex)
+{
+	// shuffle like supershuffle but do it in a way that doesnt create new jacks
+	// - still allow jacks if forced to
+	const auto columns = input.GetNumTracks();
+
+	auto shfl = [](std::vector<int>& stuff) {
+		std::shuffle(stuff.begin(),
+					 stuff.end(),
+					 g_RandomNumberGenerator);
+	};
+
+	std::set<int> last_row_cols;
+	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE_REVERSE(input, row, startIndex, endIndex) {
+
+		std::set<int> garbage_columns;
+		std::set<int> note_columns;
+
+		for (auto c = 0; c < columns; c++) {
+			const auto& t = input.GetTapNote(c, row);
+			switch (t.type) {
+				case TapNoteType_Empty:
+					// nothing is here
+					break;
+				case TapNoteType_HoldHead:
+				case TapNoteType_HoldTail:
+				case TapNoteType_AutoKeysound:
+					// garbage
+					garbage_columns.insert(c);
+					break;
+				case TapNoteType_Tap:
+				case TapNoteType_Mine:
+				case TapNoteType_Lift:
+				case TapNoteType_Fake:
+					// something is here
+					note_columns.insert(c);
+					break;
+				default:
+					FAIL_M(
+					  "Unexpected TapNoteType when processing HRanShuffleTaps");
+					break;
+			}
+
+			if (input.IsHoldNoteAtRow(c, row))
+				garbage_columns.insert(c);
+		}
+
+		// the step before running this function already applied a soft shuffle
+		// the columns are already shuffled, so we can stop here
+		// there is no way to avoid a jack if every row has a note
+		if (note_columns.size() == columns) {
+			last_row_cols.clear();
+			for (auto i = 0; i < columns; i++) {
+				last_row_cols.insert(i);
+			}
+			continue;
+		}
+
+		std::vector<int> column_choices;
+		// if this row has a valid permutation that fits against the previous row
+		// (also cant be first row)
+		if ((last_row_cols.size() > 0) &&
+			static_cast<int>(note_columns.size()) <=
+			  static_cast<int>(
+				columns - (last_row_cols.size() + garbage_columns.size()))) {
+			// then we can avoid forming a jack. do that
+			for (int i = 0; i < columns; i++) {
+				if (last_row_cols.find(i) == last_row_cols.end() &&
+					garbage_columns.find(i) == garbage_columns.end()) {
+					column_choices.push_back(i);
+				}
+			}
+		} else {
+			// otherwise a jack is forced to form. dont care
+			// just shuffle randomly
+			for (int i = 0; i < columns; i++) {
+				if (garbage_columns.find(i) == garbage_columns.end()) {
+					column_choices.push_back(i);
+				}
+			}
+		}
+
+		ASSERT(column_choices.size() >= note_columns.size());
+
+		std::unordered_map<int, TapNote> rownotes;
+		for (auto c : note_columns) {
+			rownotes.emplace(c, input.GetTapNote(c, row));
+
+			auto iter = input.FindTapNote(c, row);
+			if (iter != input.end(c))
+				input.RemoveTapNote(c, iter);
+		}
+
+		shfl(column_choices);
+		std::set<int> new_columns;
+		for (auto c : note_columns) {
+			auto c2 = column_choices.back();
+			column_choices.pop_back();
+			new_columns.insert(c2);
+			const auto& tn1 = rownotes.at(c);
+
+			const auto tmp = tn1;
+			input.SetTapNote(c2, row, tn1);
+		}
+		for (auto c : garbage_columns) {
+			new_columns.insert(c);
+		}
+		last_row_cols = new_columns;
+	}
+
+}
+
+static void
 SuperShuffleTaps(NoteData& inout, int iStartIndex, int iEndIndex)
 {
 	/*
@@ -1849,8 +1964,16 @@ NoteDataUtil::Turn(NoteData& inout,
 	NoteData tempNoteData;
 	tempNoteData.LoadTransformed(inout, inout.GetNumTracks(), iTakeFromTrack);
 
-	if (tt == super_shuffle)
-		SuperShuffleTaps(tempNoteData, iStartIndex, iEndIndex);
+	switch (tt) {
+		case super_shuffle:
+			SuperShuffleTaps(tempNoteData, iStartIndex, iEndIndex);
+			break;
+		case hran_shuffle:
+			HRanShuffleTaps(tempNoteData, iStartIndex, iEndIndex);
+			break;
+		default:
+			break;
+	}
 
 	inout.CopyAll(tempNoteData);
 	inout.RevalidateATIs(std::vector<int>(), false);
@@ -2998,6 +3121,8 @@ NoteDataUtil::TransformNoteData(NoteData& nd,
 		Turn(nd, st, soft_shuffle, iStartIndex, iEndIndex);
 	if (po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE])
 		Turn(nd, st, super_shuffle, iStartIndex, iEndIndex);
+	if (po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE])
+		Turn(nd, st, hran_shuffle, iStartIndex, iEndIndex);
 
 	nd.RevalidateATIs(std::vector<int>(), false);
 }
