@@ -77,6 +77,7 @@ struct HighScore
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
 	[[nodiscard]] auto GetReplayType() -> ReplayType;
+	[[nodiscard]] auto HasColumnData() -> bool;
 	[[nodiscard]] auto GetPlayedSeconds() const -> float;
 	[[nodiscard]] auto GetMaxCombo() const -> unsigned int;
 	/**

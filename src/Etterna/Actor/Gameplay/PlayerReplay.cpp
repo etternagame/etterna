@@ -242,7 +242,7 @@ PlayerReplay::Update(float fDeltaTime)
 		return;
 
 	// Step with offsets if we have column data.
-	if (PlayerAI::pScoreData->GetReplayType() == 2) {
+	if (PlayerAI::pScoreData->HasColumnData()) {
 		if (PlayerAI::TapExistsAtOrBeforeThisRow(iSongRow)) {
 			auto trrVector = PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
 			for (auto& trr : trrVector) {

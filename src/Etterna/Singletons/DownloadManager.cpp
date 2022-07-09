@@ -972,7 +972,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
 			replayString += to_string(1000.f * offsets[i]) + ",";
-			if (hs->GetReplayType() == 2) {
+			if (hs->HasColumnData()) {
 				replayString += to_string(columns[i]) + ",";
 				replayString += to_string(types[i]) + ",";
 			}

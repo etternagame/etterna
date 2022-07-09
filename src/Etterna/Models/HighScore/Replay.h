@@ -145,6 +145,12 @@ class Replay
 		}
 	}
 
+	// true for V2 and InputData
+	auto HasColumnData() const -> bool {
+		const auto t = GetReplayType();
+		return t >= ReplayType_V2 && t < NUM_ReplayType;
+	}
+
 	auto WriteReplayData() -> bool;
 	auto WriteInputData() -> bool;
 	auto LoadInputData() -> bool;

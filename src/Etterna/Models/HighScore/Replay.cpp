@@ -32,6 +32,22 @@
 #include <zlib.h>
 #endif
 
+static void
+MaintainReplayDirectory()
+{
+	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR)) {
+		FILEMAN->CreateDir(FULL_REPLAY_DIR);
+	}
+}
+
+static void
+MaintainInputDirectory()
+{
+	if (!FILEMAN->IsADirectory(INPUT_DATA_DIR)) {
+		FILEMAN->CreateDir(INPUT_DATA_DIR);
+	}
+}
+
 Replay::Replay() {
 
 }
@@ -54,45 +70,62 @@ Replay::WriteReplayData() -> bool
 {
 	Locator::getLogger()->info("Writing out replay data to disk");
 	std::string append;
-	std::string profiledir;
-	// These two lines should probably be somewhere else
-	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR)) {
-		FILEMAN->CreateDir(FULL_REPLAY_DIR);
+	MaintainReplayDirectory();
+
+	if (vNoteRowVector.empty()) {
+		Locator::getLogger()->warn(
+		  "Failed to write replay for {} - No data to write", scoreKey);
+		return false;
 	}
+
 	const auto path = FULL_REPLAY_DIR + scoreKey;
+
 	std::ofstream fileStream(path, std::ios::binary);
-	// check file
-
-	ASSERT(!vNoteRowVector.empty());
-
 	if (!fileStream) {
 		Locator::getLogger()->warn("Failed to create replay file at {}",
 								   path.c_str());
 		return false;
 	}
 
-	const unsigned int idx = vNoteRowVector.size() - 1;
-	// loop for writing both vectors side by side
-	for (unsigned int i = 0; i <= idx; i++) {
-		append = std::to_string(vNoteRowVector[i]) + " " +
-				 std::to_string(vOffsetVector[i]) + " " +
-				 std::to_string(vTrackVector[i]) +
-				 (vTapNoteTypeVector[i] != TapNoteType_Tap
-					? " " + std::to_string(vTapNoteTypeVector[i])
-					: "") +
-				 "\n";
-		fileStream.write(append.c_str(), append.size());
+	try {
+		// output:
+		// n n n	- noterow, offset, column
+		// or
+		// n n n n	- noterow, offset, column, special tap type
+		const unsigned int sz = vNoteRowVector.size() - 1;
+		for (unsigned int i = 0; i <= sz; i++) {
+			append = std::to_string(vNoteRowVector[i]) + " " +
+					 std::to_string(vOffsetVector[i]) + " " +
+					 std::to_string(vTrackVector[i]) +
+					 (vTapNoteTypeVector[i] != TapNoteType_Tap
+						? " " + std::to_string(vTapNoteTypeVector[i])
+						: "") +
+					 "\n";
+			fileStream.write(append.c_str(), append.size());
+		}
+		// output:
+		// H n n	- noterow, column
+		// or
+		// H n n n	- noterow, column, hold type (roll)
+		for (auto& hold : vHoldReplayDataVector) {
+			append = "H " + std::to_string(hold.row) + " " +
+					 std::to_string(hold.track) +
+					 (hold.subType != TapNoteSubType_Hold
+						? " " + std::to_string(hold.subType)
+						: "") +
+					 "\n";
+			fileStream.write(append.c_str(), append.size());
+		}
+		fileStream.close();
+	} catch (std::runtime_error& e) {
+		Locator::getLogger()->warn(
+		  "Failed to write replay data at {} due to runtime exception: {}",
+		  path.c_str(),
+		  e.what());
+		fileStream.close();
+		return false;
 	}
-	for (auto& hold : vHoldReplayDataVector) {
-		append = "H " + std::to_string(hold.row) + " " +
-				 std::to_string(hold.track) +
-				 (hold.subType != TapNoteSubType_Hold
-					? " " + std::to_string(hold.subType)
-					: "") +
-				 "\n";
-		fileStream.write(append.c_str(), append.size());
-	}
-	fileStream.close();
+
 	Locator::getLogger()->info("Created replay file at {}", path.c_str());
 	return true;
 }
@@ -100,22 +133,19 @@ Replay::WriteReplayData() -> bool
 auto
 Replay::WriteInputData() -> bool
 {
+	Locator::getLogger()->info("Writing out input data to disk");
 	std::string append;
-	Locator::getLogger()->info("Writing out Input Data to disk");
-	// These two lines should probably be somewhere else
-	if (!FILEMAN->IsADirectory(INPUT_DATA_DIR)) {
-		FILEMAN->CreateDir(INPUT_DATA_DIR);
+	MaintainInputDirectory();
+
+	if (InputData.empty()) {
+		Locator::getLogger()->warn(
+		  "Failed to write input data for {} - No data to write", scoreKey);
+		return false;
 	}
 
 	const auto path = INPUT_DATA_DIR + scoreKey;
 	const auto path_z = path + "z";
-	if (InputData.empty()) {
-		Locator::getLogger()->warn(
-		  "Attempted to write input data for {} but there was nothing to write",
-		  path.c_str());
-	}
 
-	// check file
 	std::ofstream fileStream(path, std::ios::binary);
 	if (!fileStream) {
 		Locator::getLogger()->warn("Failed to create input data file at {}",
@@ -125,17 +155,20 @@ Replay::WriteInputData() -> bool
 
 	// for writing human readable text
 	try {
+		// it's bad to get this now, but it isn't saved anywhere else
 		float fGlobalOffset = PREFSMAN->m_fGlobalOffsetSeconds.Get();
-		// header
+		// header:
+		// chartkey scorekey rate offset globaloffset
 		auto headerLine1 = chartKey + " " + scoreKey + " " +
 						   std::to_string(fMusicRate) + " " +
 						   std::to_string(fSongOffset) + " " +
 						   std::to_string(fGlobalOffset) + "\n";
 		fileStream.write(headerLine1.c_str(), headerLine1.size());
 
-		// input data
-		const unsigned int idx = InputData.size() - 1;
-		for (unsigned int i = 0; i <= idx; i++) {
+		// input data:
+		// column press/lift time nearest_tap tap_offset
+		const unsigned int sz = InputData.size() - 1;
+		for (unsigned int i = 0; i <= sz; i++) {
 			append = std::to_string(InputData[i].column) + " " +
 					 (InputData[i].is_press ? "1" : "0") + " " +
 					 std::to_string(InputData[i].songPositionSeconds) + " " +
@@ -144,7 +177,10 @@ Replay::WriteInputData() -> bool
 			fileStream.write(append.c_str(), append.size());
 		}
 
-		// dropped hold data
+		// dropped hold data:
+		// H n n	- noterow, column
+		// or
+		// H n n n	- noterow, column, hold type (roll)
 		for (auto& hold : vHoldReplayDataVector) {
 			append = "H " + std::to_string(hold.row) + " " +
 					 std::to_string(hold.track) +
@@ -155,7 +191,8 @@ Replay::WriteInputData() -> bool
 			fileStream.write(append.c_str(), append.size());
 		}
 
-		// hit mine data
+		// hit mine data:
+		// M n n	- noterow, column
 		for (auto& mine : vMineReplayDataVector) {
 			append = "M " + std::to_string(mine.row) + " " +
 					 std::to_string(mine.track) + "\n";
@@ -164,6 +201,7 @@ Replay::WriteInputData() -> bool
 
 		fileStream.close();
 
+		/// compression
 		FILE* infile = fopen(path.c_str(), "rb");
 		gzFile outfile = gzopen(path_z.c_str(), "wb");
 		if ((infile == nullptr) || (outfile == nullptr)) {
@@ -180,6 +218,7 @@ Replay::WriteInputData() -> bool
 		}
 		fclose(infile);
 		gzclose(outfile);
+		/////
 
 		Locator::getLogger()->info("Created compressed input data file at {}",
 								   path_z.c_str());
@@ -744,6 +783,33 @@ class LunaReplay : public Luna<Replay>
 		return 1;
 	}
 
+	static auto GetMineHitVector(T* p, lua_State* L) -> int
+	{
+		auto v = p->GetMineReplayDataVector();
+		const auto loaded = !v.empty();
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded) {
+				v = p->GetMineReplayDataVector();
+			}
+			// make containing table
+			lua_newtable(L);
+			for (size_t i = 0; i < v.size(); i++) {
+				// make table for each item
+				lua_createtable(L, 0, 3);
+
+				lua_pushnumber(L, v[i].row);
+				lua_setfield(L, -2, "row");
+				lua_pushnumber(L, v[i].track);
+				lua_setfield(L, -2, "track");
+
+				lua_rawseti(L, -2, i + 1);
+			}
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	}
+
 	DEFINE_METHOD(HasReplayData, HasReplayData())
 	DEFINE_METHOD(GetChartKey, GetChartKey())
 	DEFINE_METHOD(GetScoreKey, GetScoreKey())
@@ -760,6 +826,7 @@ class LunaReplay : public Luna<Replay>
 		ADD_METHOD(GetTrackVector);
 		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD(GetHoldNoteVector);
+		ADD_METHOD(GetMineHitVector);
 	}
 };
 

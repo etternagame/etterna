@@ -155,7 +155,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		// ReplayData recording allows for multiple taps in 1 row
 		// This should only occur for mines that were hit by tapping them
 		// Check specifically for this happening
-		if (pScoreData->GetReplayType() == 2) {
+		if (pScoreData->HasColumnData()) {
 			// skip out of bounds indices...
 			// this happens in some very far edge cases
 			// replays can be type 2 without tapnotetype vectors
@@ -197,8 +197,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
 		trr.offsetAdjustedRow = replayNoteRowVector[i];
-		if (pScoreData->GetReplayType() == 2) {
-			// 2 means that this is a Full Replay
+		if (pScoreData->HasColumnData()) {
 			trr.track = replayTrackVector[i];
 
 			// bad bandaid, the correct type could be resolved from notedata
@@ -265,7 +264,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 
 	// Don't continue if the replay doesn't have column data.
 	// We can't be accurate without it.
-	if (pScoreData->GetReplayType() != 2)
+	if (!pScoreData->HasColumnData())
 		return;
 
 	// For every row in the replay data...
@@ -534,7 +533,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 
 				// If this tap is missing from the replay data, we count it as a
 				// miss.
-				if (pScoreData->GetReplayType() == 2) {
+				if (pScoreData->HasColumnData()) {
 					if (m_ReplayTapMap.count(row) != 0) {
 						auto found = false;
 						for (auto& trr : m_ReplayTapMap[row]) {
@@ -555,7 +554,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 
 		// Count how many misses there are per row instead since we dont have
 		// column data in type 1 replays
-		if (pScoreData->GetReplayType() != 2) {
+		if (!pScoreData->HasColumnData()) {
 			unsigned notesOnRow = 0;
 			unsigned notesInReplayData = 0;
 			if (m_ReplayTapMap.count(row) != 0)
@@ -843,8 +842,7 @@ PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 int
 PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
 {
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
+	if (pScoreData->HasColumnData()) {
 		// Go over all holds in Replay Data
 		for (auto hiter = m_ReplayHoldMap.lower_bound(firstRow);
 			 hiter != m_ReplayHoldMap.end();
@@ -872,8 +870,7 @@ PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
 bool
 PlayerAI::TapExistsAtThisRow(int noteRow)
 {
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
+	if (pScoreData->HasColumnData()) {
 		return m_ReplayExactTapMap.count(noteRow) != 0;
 	} else {
 		return m_ReplayTapMap.count(noteRow) != 0;
@@ -883,8 +880,7 @@ PlayerAI::TapExistsAtThisRow(int noteRow)
 bool
 PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
 {
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
+	if (pScoreData->HasColumnData()) {
 		return m_ReplayExactTapMap.lower_bound(-20000)->first <= noteRow;
 	} else {
 		return m_ReplayTapMap.lower_bound(-20000)->first <= noteRow;
@@ -908,8 +904,7 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 {
 	std::vector<TapReplayResult> output;
 
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
+	if (pScoreData->HasColumnData()) {
 		const auto rowIt = m_ReplayExactTapMap.lower_bound(-20000);
 		auto row = rowIt->first;
 		for (; row <= noteRow && row != -20000;) {
@@ -934,8 +929,7 @@ PlayerAI::GetTapsToTapForRow(int noteRow)
 {
 	std::vector<TapReplayResult> output;
 
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
+	if (pScoreData->HasColumnData()) {
 		if (m_ReplayExactTapMap.count(noteRow) != 0) {
 			for (auto& trr : m_ReplayExactTapMap[noteRow]) {
 				output.push_back(trr);
@@ -960,7 +954,7 @@ PlayerAI::GetReplayType()
 int
 PlayerAI::GetNextRowNoOffsets(int currentRow)
 {
-	if (pScoreData->GetReplayType() == 2) {
+	if (pScoreData->HasColumnData()) {
 		const auto thing = m_ReplayExactTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayExactTapMap.end()) {
@@ -996,7 +990,7 @@ PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 
 	// This replay has no column data or is considered Basic. (Pre-v0.60
 	// Replays do this.)
-	if (pScoreData->GetReplayType() == 1) {
+	if (!pScoreData->HasColumnData()) {
 		// mines are not preset in the old replay data, we just skip them
 		// this gets caught by Player after it finds that the offset wasnt
 		// -2.f (We check for an impossible offset of -2.f in Player to blow
