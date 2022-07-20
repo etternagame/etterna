@@ -4841,7 +4841,7 @@ local function rightFrame()
                         o[#o+1] = cf(i + 50)
                     end
                     -- extra choices to fit grades
-                    o[#o+1] = cf(96.65) -- AA.
+                    o[#o+1] = cf(96.5) -- AA.
                     o[#o+1] = cf(97)
                     o[#o+1] = cf(98)
                     o[#o+1] = cf(99) -- AA:
@@ -4864,7 +4864,7 @@ local function rightFrame()
                         return v - 50 + 1
                     elseif v > 96 then
                         local extra = {
-                            96.65,
+                            96.5,
                             97,
                             98,
                             99,
