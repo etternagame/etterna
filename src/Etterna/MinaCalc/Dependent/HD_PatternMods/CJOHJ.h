@@ -13,11 +13,11 @@ struct CJOHJumpMod
 
 #pragma region params
 
-	float min_mod = 1.F;
+	float min_mod = 0.1F;
 	float max_mod = 1.F;
 
-	float prop_pool = 1.4F;
-	float prop_scaler = 1.F;
+	float prop_pool = 1.F;
+	float prop_scaler = 0.5F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -92,8 +92,14 @@ struct CJOHJumpMod
 			return;
 		}
 
-		base_jump_prop =
-		  itvhi.get_col_taps_nowf(col_ohjump) / itvhi.get_taps_nowf();
+		// floats for less casting
+		// these should always be whole numbers
+		const auto ohjcount = itvhi.get_col_taps_nowf(col_ohjump) / 2.f;
+		const auto tapcount = (itvhi.get_col_taps_nowf(col_left) - ohjcount) +
+							  (itvhi.get_col_taps_nowf(col_right) - ohjcount);
+		const auto rows = ohjcount + tapcount;
+
+		base_jump_prop = ohjcount / rows;
 		set_prop_comp();
 		prop_component = std::clamp(prop_component, 0.1F, max_mod);
 

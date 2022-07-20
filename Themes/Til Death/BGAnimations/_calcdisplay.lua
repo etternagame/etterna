@@ -416,7 +416,7 @@ local diffGroups = {
         MSDHandstream = true,
     },
     {   -- Group 4
-        CJBase = true,
+        NPSBase = true,
         MSDChordjack = true,
     },
     {   -- Group 5
