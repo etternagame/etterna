@@ -2,7 +2,7 @@
 #include "../HD_MetaSequencing.h"
 #include "../../UlbuAcolytes.h"
 
-static const float rma_diff_scaler = 1.52F * basescalers[Skill_Technical];
+static const float rma_diff_scaler = 2.1F * basescalers[Skill_Technical];
 
 enum rm_behavior
 {

@@ -781,11 +781,11 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 	  // chordjack
 	  {
 		CJ,
-		CJDensity,
+		// CJDensity,
 		CJOHJump,
 		CJOHAnchor,
 		VOHTrill,
-		// WideRangeAnchor,
+		WideRangeAnchor,
 	  	FlamJam, // you may say, why? why not?
 	  },
 
@@ -1007,7 +1007,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 482;
+int mina_calc_version = 483;
 auto
 GetCalcVersion() -> int
 {
