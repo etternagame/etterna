@@ -1071,7 +1071,9 @@ class LunaSteps : public Luna<Steps>
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
 			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
 			auto loss_vals = SONGMAN->calc->jack_loss.at(hand);
-			for (size_t i = 0; i < vals.size(); i++) {
+			for (size_t i = 0; i < vals.size() && i < stam_vals.size() &&
+							   i < loss_vals.size();
+				 i++) {
 				auto v1 = vals[i].first;
 				auto v2 = vals[i].second;
 				auto v3 = 0.F;
