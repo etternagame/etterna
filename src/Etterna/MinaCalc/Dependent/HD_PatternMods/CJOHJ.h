@@ -13,11 +13,11 @@ struct CJOHJumpMod
 
 #pragma region params
 
-	float min_mod = 0.6F;
+	float min_mod = 0.57F;
 	float max_mod = 1.F;
 
 	float prop_pool = 1.F;
-	float prop_scaler = 0.5F;
+	float prop_scaler = 0.63F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
