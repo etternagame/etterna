@@ -381,13 +381,6 @@ HighScore::CheckReplayIsInit()
 }
 
 auto
-HighScore::LoadInputData() -> bool
-{
-	CheckReplayIsInit();
-	return replay->LoadInputData();
-}
-
-auto
 HighScore::LoadReplayData() -> bool
 {
 	CheckReplayIsInit();
@@ -411,24 +404,13 @@ HighScore::WriteInputData() -> bool
 auto
 HighScore::HasReplayData() -> bool
 {
-	const auto fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	const auto basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
-	if (DoesFileExist(fullpath)) { // check for full replays first then default
-								   // to basic replays -mina
-		return true;
-	}
-	return DoesFileExist(basicpath);
+	CheckReplayIsInit();
+	return replay->HasReplayData();
 }
 
 REGISTER_CLASS_TRAITS(HighScoreImpl, new HighScoreImpl(*pCopy))
 
 HighScore::HighScore()
-{
-	m_Impl = new HighScoreImpl;
-}
-
-void
-HighScore::Unset()
 {
 	m_Impl = new HighScoreImpl;
 }

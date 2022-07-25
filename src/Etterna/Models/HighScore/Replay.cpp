@@ -203,10 +203,17 @@ Replay::WriteInputData() -> bool
 
 		/// compression
 		FILE* infile = fopen(path.c_str(), "rb");
-		gzFile outfile = gzopen(path_z.c_str(), "wb");
-		if ((infile == nullptr) || (outfile == nullptr)) {
-			Locator::getLogger()->warn("Failed to compress new input data.");
+		if (infile == nullptr) {
+			Locator::getLogger()->warn("Failed to compress new input data "
+									   "because {} could not be opened",
+									   path.c_str());
 			return false;
+		}
+		gzFile outfile = gzopen(path_z.c_str(), "wb");
+		if (outfile == nullptr) {
+			Locator::getLogger()->warn("Failed to compress new input data "
+									   "because {} could not be opened",
+									   path_z.c_str());
 		}
 
 		char buf[128];
@@ -262,13 +269,13 @@ Replay::WriteInputData() -> bool
 }
 
 auto
-Replay::LoadInputData() -> bool
+Replay::LoadInputData(const std::string& replayDir) -> bool
 {
 	if (!InputData.empty())
 		return true;
 
-	auto path = INPUT_DATA_DIR + scoreKey;
-	auto path_z = path + "z";
+	const auto path = replayDir + scoreKey;
+	const auto path_z = path + "z";
 	std::vector<InputDataEvent> readInputs;
 	std::vector<HoldReplayResult> vHoldReplayDataVector;
 	std::vector<MineReplayResult> vMineReplayDataVector;
@@ -298,11 +305,18 @@ Replay::LoadInputData() -> bool
 	// human readable compression read-in
 	try {
 		gzFile infile = gzopen(path_z.c_str(), "rb");
-		// hope nothing already exists here
-		FILE* outfile = fopen(path.c_str(), "wb");
-		if ((infile == nullptr) || (outfile == nullptr)) {
+		if (infile == nullptr) {
 			Locator::getLogger()->warn("Failed to read input data at {}",
 									   path_z.c_str());
+			return false;
+		}
+
+		// hope nothing already exists here
+		FILE* outfile = fopen(path.c_str(), "wb");
+		if (outfile == nullptr) {
+			Locator::getLogger()->warn(
+			  "Failed to create tmp output file for input data at {}",
+			  path.c_str());
 			return false;
 		}
 
@@ -338,13 +352,12 @@ Replay::LoadInputData() -> bool
 				return false;
 			}
 
-			auto chartkey = tokens[0];
-			auto scorekey = tokens[1];
-			auto rate = std::stof(tokens[2]);
-			auto songoffset = std::stof(tokens[3]);
-			auto globaloffset = std::stof(tokens[4]);
-			// ... for later
-
+			this->chartKey = tokens[0];
+			this->scoreKey = tokens[1];
+			this->fMusicRate = std::stof(tokens[2]);
+			this->fSongOffset = std::stof(tokens[3]);
+			this->fGlobalOffset = std::stof(tokens[4]);
+			
 			tokens.clear();
 		}
 
@@ -399,13 +412,14 @@ Replay::LoadInputData() -> bool
 			ev.songPositionSeconds = std::stof(tokens[2]);
 			ev.nearestTapNoterow = std::stoi(tokens[3]);
 			ev.offsetFromNearest = std::stof(tokens[4]);
-			InputData.push_back(ev);
+			readInputs.push_back(ev);
 
 			tokens.clear();
 		}
 
 		SetMineReplayDataVector(vMineReplayDataVector);
 		SetHoldReplayDataVector(vHoldReplayDataVector);
+		SetInputDataVector(readInputs);
 
 		Locator::getLogger()->info("Loaded input data at {}", path.c_str());
 
@@ -427,20 +441,18 @@ Replay::LoadInputData() -> bool
 auto
 Replay::LoadReplayData() -> bool
 {
-	if (LoadReplayDataFull(FULL_REPLAY_DIR)) {
-		return true;
-	}
-	return LoadReplayDataBasic(BASIC_REPLAY_DIR);
+	return LoadReplayDataFull() || LoadReplayDataBasic();
 }
 
 auto
 Replay::HasReplayData() -> bool
 {
-	return false;
+	return DoesFileExist(GetFullPath()) ||
+		   DoesFileExist(GetBasicPath());
 }
 
 auto
-Replay::LoadReplayDataBasic(const std::string& dir) -> bool
+Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 {
 	// already exists
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4) {
@@ -450,7 +462,7 @@ Replay::LoadReplayDataBasic(const std::string& dir) -> bool
 	std::string profiledir;
 	std::vector<int> vNoteRowVector;
 	std::vector<float> vOffsetVector;
-	auto path = dir + scoreKey;
+	const auto path = replayDir + scoreKey;
 
 	std::ifstream fileStream(path, std::ios::binary);
 	std::string line;
@@ -517,7 +529,7 @@ Replay::LoadReplayDataBasic(const std::string& dir) -> bool
 }
 
 auto
-Replay::LoadReplayDataFull(const std::string& dir) -> bool
+Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 {
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
 		vTrackVector.size() > 4) {
@@ -530,7 +542,7 @@ Replay::LoadReplayDataFull(const std::string& dir) -> bool
 	std::vector<int> vTrackVector;
 	std::vector<TapNoteType> vTapNoteTypeVector;
 	std::vector<HoldReplayResult> vHoldReplayDataVector;
-	auto path = dir + scoreKey;
+	const auto path = replayDir + scoreKey;
 
 	std::ifstream fileStream(path, std::ios::binary);
 	std::string line;
@@ -561,7 +573,7 @@ Replay::LoadReplayDataFull(const std::string& dir) -> bool
 		// properly split up their replays back into the respective folders
 		// so...
 		if (tokens.size() < 3) {
-			return LoadReplayDataBasic(dir);
+			return LoadReplayDataBasic(replayDir);
 		}
 
 		if (tokens[0] == "H") {

@@ -11,6 +11,9 @@ struct HighScore;
 class ReplayManager
 {
   public:
+	ReplayManager();
+	~ReplayManager();
+
 	std::shared_ptr<Replay> GetReplay(HighScore* hs);
 
 	void PushSelf(lua_State* L);

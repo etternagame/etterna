@@ -13,6 +13,18 @@ class Replay
 	Replay(HighScore* hs);
 	~Replay();
 
+	inline auto GetBasicPath() const -> const std::string {
+		return BASIC_REPLAY_DIR + scoreKey;
+	}
+
+	inline auto GetFullPath() const -> const std::string {
+		return FULL_REPLAY_DIR + scoreKey;
+	}
+
+	inline auto GetInputPath() const -> const std::string {
+		return INPUT_DATA_DIR + scoreKey;
+	}
+
 	auto GetOffsetVector() const -> const std::vector<float>& {
 		return vOffsetVector;
 	}
@@ -153,36 +165,38 @@ class Replay
 
 	auto WriteReplayData() -> bool;
 	auto WriteInputData() -> bool;
-	auto LoadInputData() -> bool;
 	auto LoadReplayData() -> bool;
 	auto HasReplayData() -> bool;
 
 	void Unload() {
-		vNoteRowVector.clear();
+		InputData.clear();
 		vOffsetVector.clear();
+		vNoteRowVector.clear();
 		vTrackVector.clear();
 		vTapNoteTypeVector.clear();
 		vHoldReplayDataVector.clear();
 		vMineReplayDataVector.clear();
 		vOnlineReplayTimestampVector.clear();
-		InputData.clear();
 
-		vNoteRowVector.shrink_to_fit();
+		InputData.shrink_to_fit();
 		vOffsetVector.shrink_to_fit();
+		vNoteRowVector.shrink_to_fit();
 		vTrackVector.shrink_to_fit();
 		vTapNoteTypeVector.shrink_to_fit();
 		vHoldReplayDataVector.shrink_to_fit();
 		vMineReplayDataVector.shrink_to_fit();
 		vOnlineReplayTimestampVector.shrink_to_fit();
-		InputData.shrink_to_fit();
 	}
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   private:
-	auto LoadReplayDataBasic(const std::string& dir) -> bool;
-	auto LoadReplayDataFull(const std::string& dir) -> bool;
+	auto LoadReplayDataBasic(const std::string& replayDir = BASIC_REPLAY_DIR)
+	  -> bool;
+	auto LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR)
+	  -> bool;
+	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
 
 	std::string scoreKey{};
 	std::string chartKey{};
