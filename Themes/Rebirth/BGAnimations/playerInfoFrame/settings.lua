@@ -4327,7 +4327,7 @@ local function rightFrame()
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = notShit.round(optionData["screenFilter"].get(), 1)
+                    local v = notShit.round(optionData["screenFilter"].get(), 2)
                     local ind = notShit.round(v * 10, 0) + 1
                     if ind > 0 and ind < 11 then -- this 11 should match the number of choices above
                         return ind
@@ -4360,7 +4360,7 @@ local function rightFrame()
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = notShit.round(PREFSMAN:GetPreference("BGBrightness"))
+                    local v = notShit.round(PREFSMAN:GetPreference("BGBrightness"), 2)
                     local ind = notShit.round(v * 10, 0) + 1
                     if ind > 0 and ind < 11 then -- this 11 should match the nubmer of choices above
                         return ind
