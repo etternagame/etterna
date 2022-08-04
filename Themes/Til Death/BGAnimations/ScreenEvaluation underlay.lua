@@ -26,7 +26,10 @@ t[#t + 1] = Def.Sprite {
 		self:x(SCREEN_CENTER_X):y(38):valign(0)
 		self:scaletoclipped(capWideScale(get43size(336), 336), capWideScale(get43size(105), 105))
 		local bnpath = GAMESTATE:GetCurrentSong():GetBannerPath()
-		if not bnpath then
+		self:visible(true)
+		if not BannersEnabled() then
+			self:visible(false)
+		elseif not bnpath then
 			bnpath = THEME:GetPathG("Common", "fallback banner")
 		end
 		self:LoadBackground(bnpath)

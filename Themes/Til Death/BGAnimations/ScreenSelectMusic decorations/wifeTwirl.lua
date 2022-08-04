@@ -820,13 +820,19 @@ t[#t + 1] = Def.Sprite {
 		self:finishtweening()
 		if song then
 			local bnpath = GAMESTATE:GetCurrentSong():GetBannerPath()
-			if not bnpath then
+			self:visible(true)
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
 		else
 			local bnpath = SONGMAN:GetSongGroupBannerPath(SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection())
-			if not bnpath or bnpath == "" then
+			self:visible(true)
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath or bnpath == "" then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)

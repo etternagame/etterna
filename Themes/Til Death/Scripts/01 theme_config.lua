@@ -16,6 +16,7 @@ local defaultConfig = {
 		CenteredCombo = false,
 		FadeNoteFieldInSyncMachine = true,
 		ShowPlayerOptionsHint = true,
+		ShowBanners = true, -- false to turn off banners everywhere
 	},
 	NPSDisplay = {
 		DynamicWindow = false,
@@ -45,4 +46,7 @@ function ComboTweensEnabled()
 end
 function CenteredComboEnabled()
 	return themeConfig:get_data().global.CenteredCombo
+end
+function BannersEnabled()
+	return themeConfig:get_data().global.ShowBanners
 end
