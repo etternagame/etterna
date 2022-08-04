@@ -2,7 +2,6 @@ local defaultConfig = {
     global = {
         TipType = 1, -- 1 = tips, 2 = quotes ...
         ShowVisualizer = true,
-        ShowBackgrounds = true, -- wheel and gameplay bg
         FallbackToAverageColorBG = true, -- wheel bg only
         StaticBackgrounds = false,
         VideoBanners = true,

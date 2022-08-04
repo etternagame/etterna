@@ -802,6 +802,7 @@ InitializeConfOptions()
 				   "FitInside",
 				   "FitInsideAvoidLetter",
 				   "FitInsideAvoidPillar"));
+	ADD(ConfOption("ShowBackgrounds", MovePref<bool>, "Off", "On"));
 
 	ADD(ConfOption("ShowDanger", MovePref<bool>, "Hide", "Show"));
 	ADD(ConfOption(

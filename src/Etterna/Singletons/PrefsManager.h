@@ -152,6 +152,7 @@ class PrefsManager
 
 	Preference<float> m_fLifeDifficultyScale;
 	Preference<float> m_fBGBrightness;
+	Preference<bool> m_bShowBackgrounds;
 
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowStartToGiveUp;
