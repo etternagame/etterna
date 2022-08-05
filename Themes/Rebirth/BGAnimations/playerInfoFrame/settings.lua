@@ -297,6 +297,10 @@ local translations = {
     PercentDisplayExplanation = THEME:GetString("Settings", "PercentDisplayExplanation"),
     MeanDisplay = THEME:GetString("Settings", "MeanDisplay"),
     MeanDisplayExplanation = THEME:GetString("Settings", "MeanDisplayExplanation"),
+    EWMADisplay = THEME:GetString("Settings", "EWMADisplay"),
+    EWMADisplayExplanation = THEME:GetString("Settings", "EWMADisplayExplanation"),
+    StdDevDisplay = THEME:GetString("Settings", "StdDevDisplay"),
+    StdDevDisplayExplanation = THEME:GetString("Settings", "StdDevDisplayExplanation"),
     ErrorBar = THEME:GetString("Settings", "ErrorBar"),
     ErrorBarExplanation = THEME:GetString("Settings", "ErrorBarExplanation"),
     ErrorBarCount = THEME:GetString("Settings", "ErrorBarCount"),
@@ -3251,6 +3255,8 @@ local function rightFrame()
         judgeCounter = playeroption("JudgeCounter"),
         leaderboard = playeroption("leaderboardEnabled"),
         displayMean = playeroption("DisplayMean"),
+        displayEWMA = playeroption("DisplayEWMA"),
+        displayStdDev = playeroption("DisplayStdDev"),
         measureCounter = playeroption("MeasureCounter"),
         measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
@@ -4683,6 +4689,24 @@ local function rightFrame()
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayMean", true),
             },
             {
+                Name = "EWMA Display",
+                DisplayName = translations["EWMADisplay"],
+                Type = "SingleChoice",
+                Explanation = translations["EWMADisplayExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayEWMA", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayEWMA", true),
+            },
+            {
+                Name = "StdDev Display",
+                DisplayName = translations["StdDevDisplay"],
+                Type = "SingleChoice",
+                Explanation = translations["StdDevDisplayExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayStdDev", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayStdDev", true),
+            },
+            {
                 Name = "Error Bar",
                 DisplayName = translations["ErrorBar"],
                 Type = "SingleChoice",
@@ -4786,6 +4810,12 @@ local function rightFrame()
                 Directions = optionDataToggleDirectionsFUNC("playerInfo", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("playerInfo", true),
             },
+        },
+        --
+        -----
+        -- GAMEPLAY ELEMENTS P2
+        ["Gameplay Elements 2"] = {
+            customizeGameplayButton(),
             {
                 Name = "Target Tracker",
                 DisplayName = translations["TargetTracker"],
@@ -4929,12 +4959,6 @@ local function rightFrame()
                     end
                 end,
             },
-        },
-        --
-        -----
-        -- GAMEPLAY ELEMENTS P2
-        ["Gameplay Elements 2"] = {
-            customizeGameplayButton(),
             {
                 Name = "Judge Counter",
                 DisplayName = translations["JudgeCounter"],
