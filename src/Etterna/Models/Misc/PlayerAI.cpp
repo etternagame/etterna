@@ -881,9 +881,11 @@ bool
 PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
 {
 	if (pScoreData->HasColumnData()) {
-		return m_ReplayExactTapMap.lower_bound(-20000)->first <= noteRow;
+		return m_ReplayExactTapMap.lower_bound(ARBITRARY_MIN_GAMEPLAY_NUMBER)
+				 ->first <= noteRow;
 	} else {
-		return m_ReplayTapMap.lower_bound(-20000)->first <= noteRow;
+		return m_ReplayTapMap.lower_bound(ARBITRARY_MIN_GAMEPLAY_NUMBER)
+				 ->first <= noteRow;
 	}
 }
 
@@ -905,17 +907,19 @@ PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
 	std::vector<TapReplayResult> output;
 
 	if (pScoreData->HasColumnData()) {
-		const auto rowIt = m_ReplayExactTapMap.lower_bound(-20000);
+		const auto rowIt =
+		  m_ReplayExactTapMap.lower_bound(ARBITRARY_MIN_GAMEPLAY_NUMBER);
 		auto row = rowIt->first;
-		for (; row <= noteRow && row != -20000;) {
+		for (; row <= noteRow && row != ARBITRARY_MIN_GAMEPLAY_NUMBER;) {
 			auto toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
 		}
 	} else {
-		const auto rowIt = m_ReplayTapMap.lower_bound(-20000);
+		const auto rowIt =
+		  m_ReplayTapMap.lower_bound(ARBITRARY_MIN_GAMEPLAY_NUMBER);
 		auto row = rowIt->first;
-		for (; row <= noteRow && row != -20000;) {
+		for (; row <= noteRow && row != ARBITRARY_MIN_GAMEPLAY_NUMBER;) {
 			auto toMerge = GetTapsToTapForRow(row);
 			output.insert(output.end(), toMerge.begin(), toMerge.end());
 			row = GetNextRowNoOffsets(row);
@@ -958,7 +962,7 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 		const auto thing = m_ReplayExactTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayExactTapMap.end()) {
-			return -20000;
+			return ARBITRARY_MIN_GAMEPLAY_NUMBER;
 		} else {
 			return thing->first;
 		}
@@ -966,7 +970,7 @@ PlayerAI::GetNextRowNoOffsets(int currentRow)
 		const auto thing = m_ReplayTapMap.lower_bound(currentRow + 1);
 
 		if (thing == m_ReplayTapMap.end()) {
-			return -20000;
+			return ARBITRARY_MIN_GAMEPLAY_NUMBER;
 		} else {
 			return thing->first;
 		}

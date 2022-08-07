@@ -19,6 +19,12 @@ const int MIN_METER = 1;
  */
 const int MAX_METER = 35;
 
+// some components of the game care about some negative number
+// and break if you pass it
+// so this defines the point at which behavior is undefined
+// usually you only reach this if you have a huge starting bpm
+const int ARBITRARY_MIN_GAMEPLAY_NUMBER = -200000;
+
 enum GameplayMode
 {
 	GameplayMode_Normal,

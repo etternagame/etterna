@@ -510,8 +510,8 @@ void
 ScreenGameplayPractice::ResetLoopRegion()
 {
 	// magic number defaults for loop region bounds
-	loopStart = -2000.F;
-	loopEnd = -2000.F;
+	loopStart = ARBITRARY_MIN_GAMEPLAY_NUMBER;
+	loopEnd = ARBITRARY_MIN_GAMEPLAY_NUMBER;
 
 	// Reload notedata for the entire file starting at current row
 	RageTimer tm;
