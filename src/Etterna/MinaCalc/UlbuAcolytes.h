@@ -58,10 +58,11 @@ static const std::vector<CalcPatternMod> agnostic_mods = {
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
-	OHJumpMod,		  Balance,		 Roll,
-	OHTrill,		  VOHTrill,		 Chaos,
-	WideRangeBalance, WideRangeRoll, WideRangeJumptrill,
-	WideRangeAnchor,  RanMan,		 CJOHJump
+	OHJumpMod,		  Balance,		   Roll,
+	OHTrill,		  VOHTrill,		   Chaos,
+	WideRangeBalance, WideRangeRoll,   WideRangeJumptrill,
+	WideRangeJJ,	  WideRangeAnchor, RanMan,
+	CJOHJump
 };
 
 struct PatternMods

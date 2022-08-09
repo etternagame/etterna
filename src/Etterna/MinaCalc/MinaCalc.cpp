@@ -730,6 +730,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		Chaos,
 		WideRangeRoll,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		FlamJam,
 		OHJumpMod,
 		Balance,
@@ -747,6 +748,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		TheThing2,
 		WideRangeBalance,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		// WideRangeRoll,
 		// OHTrill,
 		VOHTrill,
@@ -764,6 +766,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		WideRangeAnchor,
 		WideRangeRoll,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		OHTrill,
 		VOHTrill,
 		// Roll
@@ -787,6 +790,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		VOHTrill,
 		// WideRangeAnchor,
 	  	FlamJam, // you may say, why? why not?
+		WideRangeJJ,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -798,6 +802,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		OHJumpMod,
 		//Chaos,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		WideRangeBalance,
 		WideRangeRoll,
 		FlamJam,
@@ -1007,7 +1012,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 484;
+int mina_calc_version = 485;
 auto
 GetCalcVersion() -> int
 {

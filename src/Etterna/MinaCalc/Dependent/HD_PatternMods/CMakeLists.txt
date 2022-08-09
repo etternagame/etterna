@@ -11,6 +11,7 @@ list(APPEND HD_PATTERN_MODS
     "WideRangeAnchor.h"
     "WideRangeBalance.h"
     "WideRangeJumptrill.h"
+    "WideRangeJJ.h"
     "WideRangeRoll.h")
 
 target_sources(Etterna PUBLIC ${HD_PATTERN_MODS})

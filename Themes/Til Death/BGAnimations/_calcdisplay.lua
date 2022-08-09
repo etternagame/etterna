@@ -354,6 +354,7 @@ local debugGroups = {
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
+        WideRangeJJ = true,
 	},
     {   -- Group 6
         Chaos = true,
@@ -1040,6 +1041,7 @@ local modnames = {
     "flam",
     "wrr",
     "wrjt",
+    "wrjj",
     "wrb",
     "wra",
     "thing",
@@ -1107,6 +1109,7 @@ local modColors = {
     color(".4,0.5,0.59"),   -- teal			= flamjam
     color("1,0.2,0"),		-- red			= wrr
     color("1,0.5,0"),		-- orange		= wrjt
+    color("1,0.2,1"),		-- purpley		= wrjj
     color("0.7,1,0.2"),		-- leme			= wrb
     color("0.7,1,0.1"),		-- leme			= wra
     color("0,0.8,1"),		-- light blue	= thething
