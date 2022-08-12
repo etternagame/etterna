@@ -9,14 +9,14 @@ struct WideRangeJJMod
 
 #pragma region params
 
-	float window_param = 3.F;
+	float window_param = 6.F;
 	// how many jumpjacks are required for the pmod to not be neutral
 	// it considers the entire combined moving window set by window_param
-	float jj_required = 4.F;
+	float jj_required = 26.F;
 
 	float min_mod = 0.25F;
 	float max_mod = 1.F;
-	float total_scaler = 1.2F;
+	float total_scaler = 2.F;
 
 	// ms apart for 2 taps to be considered a jumpjack
 	float ms_threshold = 0.017F;
