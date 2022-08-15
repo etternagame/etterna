@@ -32,10 +32,10 @@ struct RunningManMod
 	float offhand_tap_prop_max = 1.F;
 	float offhand_tap_prop_base = 1.7F;
 
-	float offhand_tap_prop_anch_diff_base = 1.27F;
-	float offhand_tap_prop_anch_diff_scaler = 1.42F;
-	float offhand_tap_prop_anch_diff_min = 0.49F;
-	float offhand_tap_prop_anch_diff_max = 0.55F;
+	float offhand_tap_prop_anch_diff_base = 1.7F;
+	float offhand_tap_prop_anch_diff_scaler = 1.2F;
+	float offhand_tap_prop_anch_diff_min = 0.75F;
+	float offhand_tap_prop_anch_diff_max = 1.F;
 
 	float off_tap_same_prop_scaler = 1.F;
 	float off_tap_same_prop_min = 0.F;
