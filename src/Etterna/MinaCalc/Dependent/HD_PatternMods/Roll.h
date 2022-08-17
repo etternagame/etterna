@@ -9,10 +9,10 @@ struct RollMod
 
 #pragma region params
 
-	float min_mod = 0.9F;
+	float min_mod = 0.6F;
 	float max_mod = 1.F;
-	float base = 0.1F;
-	float jj_scaler = .5F;
+	float base = 0.F;
+	float jj_scaler = 1.4F;
 
 	// ms apart for 2 taps to be considered a jumpjack
 	// 0.075 is 200 bpm 16th trills
@@ -25,7 +25,9 @@ struct RollMod
 	// as the jumpjack width is between 0 and ms_threshold
 	// a higher number here makes numbers closer to ms_threshold
 	// worth more -- the falloff occurs late
-	float diff_falloff_power = 1.F;
+	float diff_falloff_power = 6.F;
+
+	float required_notes_before_nerf = 6.F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -35,6 +37,7 @@ struct RollMod
 		{ "jj_scaler", &jj_scaler },
 		{ "ms_threshold", &ms_threshold },
 		{ "diff_falloff_power", &diff_falloff_power },
+		{ "required_notes_before_nerf", &required_notes_before_nerf },
 	};
 #pragma endregion params and param map
 
@@ -151,8 +154,12 @@ struct RollMod
 			return;
 		}
 
-		pmod =
-		  1 - (((current_problems * 2.F) * jj_scaler) / itvhi.get_taps_nowf());
+		if (itvhi.get_taps_nowf() < required_notes_before_nerf) {
+			pmod = neutral;
+			return;
+		}
+
+		pmod = itvhi.get_taps_nowf() / ((current_problems * 2.F) * jj_scaler);
 		pmod = std::clamp(base + pmod, min_mod, max_mod);
 	}
 
