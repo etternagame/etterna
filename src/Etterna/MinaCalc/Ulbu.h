@@ -225,7 +225,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	/// an example, actually all sequencing should be done in objects
 	/// following rm_sequencing's template and be stored in mhi, and then
 	/// passed to whichever mods need them, but that's for later
-	void handle_row_dependent_pattern_advancement()
+	void handle_row_dependent_pattern_advancement(const float& row_time)
 	{
 		_ohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
 		_cjohj.advance_sequencing(_mhi->_ct, _mhi->_bt);
@@ -241,9 +241,9 @@ struct TheGreatBazoinkazoinkInTheSky
 								_seq.get_sc_ms_now(_mhi->_ct));
 		_wrjt.advance_sequencing(
 		  _mhi->_bt, _mhi->_mt, _mhi->_last_mt, _seq._mw_any_ms);
-		_wrjj.advance_sequencing(_mhi->_ct, _mri->time);
+		_wrjj.advance_sequencing(_mhi->_ct, row_time);
 		_ch.advance_sequencing(_seq._mw_any_ms);
-		_roll.advance_sequencing(_mhi->_mt, _seq);
+		_roll.advance_sequencing(_mhi->_ct, row_time);
 	}
 
 	void setup_dependent_mods()
@@ -273,7 +273,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		PatternMods::set_dependent(
 		  hand, _bal._pmod, _bal(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
-		  hand, _roll._pmod, _roll(_mitvhi._itvhi, _seq), itv, _calc);
+		  hand, _roll._pmod, _roll(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv, _calc);
 		PatternMods::set_dependent(
@@ -459,7 +459,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					_mitvhi._itvhi.set_col_taps(ct);
 
 					// advance sequencing for all hand dependent mods
-					handle_row_dependent_pattern_advancement();
+					handle_row_dependent_pattern_advancement(row_time);
 
 					/* jackspeed, and tech use various adjust ms bases that
 					 * are sequenced here, meaning they are order dependent
@@ -590,6 +590,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _voht._params, _voht.name);
 		load_params_for_mod(&params, _ch._params, _ch.name);
 		load_params_for_mod(&params, _rm._params, _rm.name);
+		load_params_for_mod(&params, _roll._params, _roll.name);
 		load_params_for_mod(&params, _wrb._params, _wrb.name);
 		load_params_for_mod(&params, _wrr._params, _wrr.name);
 		load_params_for_mod(&params, _wrjt._params, _wrjt.name);
@@ -626,6 +627,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_voht._params, _voht.name));
 		calcparams->AppendChild(make_mod_param_node(_ch._params, _ch.name));
 		calcparams->AppendChild(make_mod_param_node(_rm._params, _rm.name));
+		calcparams->AppendChild(make_mod_param_node(_roll._params, _roll.name));
 		calcparams->AppendChild(make_mod_param_node(_wrb._params, _wrb.name));
 		calcparams->AppendChild(make_mod_param_node(_wrr._params, _wrr.name));
 		calcparams->AppendChild(make_mod_param_node(_wrjt._params, _wrjt.name));

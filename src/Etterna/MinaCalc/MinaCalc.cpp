@@ -726,7 +726,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		Stream,
 		OHTrill,
 		VOHTrill,
-		// Roll,
+		Roll,
 		Chaos,
 		WideRangeRoll,
 		WideRangeJumptrill,
@@ -752,9 +752,9 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		// WideRangeRoll,
 		// OHTrill,
 		VOHTrill,
+		Roll,
 		RanMan,
 		FlamJam,
-		// Roll,
 		// WideRangeAnchor,
 	  },
 
@@ -769,7 +769,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		WideRangeJJ,
 		OHTrill,
 		VOHTrill,
-		// Roll
+		Roll,
 		// RanMan,
 		FlamJam,
 	  	HSDensity,
@@ -798,7 +798,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		OHTrill,
 		VOHTrill,
 		Balance,
-		// Roll,
+		Roll,
 		OHJumpMod,
 		//Chaos,
 		WideRangeJumptrill,
@@ -904,9 +904,9 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 					*adj_diff =
 					  calc.init_base_diff_vals.at(hand).at(TechBase).at(i) *
 					  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
-					  //max<float>(
-					  //fastpow(calc.pmod_vals.at(hand).at(CJ).at(i), 2.F),
-					  //1.F) /
+					  max<float>(
+						fastpow(calc.pmod_vals.at(hand).at(CJ).at(i), 2.F),
+						1.F) /
 					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i));
 					break;
 				default:
@@ -1012,7 +1012,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 487;
+int mina_calc_version = 488;
 auto
 GetCalcVersion() -> int
 {
