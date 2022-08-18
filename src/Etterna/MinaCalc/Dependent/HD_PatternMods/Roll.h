@@ -9,23 +9,23 @@ struct RollMod
 
 #pragma region params
 
-	float min_mod = 0.6F;
+	float min_mod = 0.85F;
 	float max_mod = 1.F;
-	float base = 0.F;
-	float jj_scaler = 1.4F;
+	float base = 0.1F;
+	float jj_scaler = 2.5F;
 
 	// ms apart for 2 taps to be considered a jumpjack
 	// 0.075 is 200 bpm 16th trills
 	// 0.050 is 300 bpm
 	// 0.037 is 400 bpm
 	// 0.020 is 750 bpm (375 bpm 64th)
-	float ms_threshold = 0.0501F;
+	float ms_threshold = 0.0701F;
 
 	// changes the direction and sharpness of the result curve
 	// as the jumpjack width is between 0 and ms_threshold
 	// a higher number here makes numbers closer to ms_threshold
 	// worth more -- the falloff occurs late
-	float diff_falloff_power = 6.F;
+	float diff_falloff_power = 1.F;
 
 	float required_notes_before_nerf = 6.F;
 
