@@ -1576,7 +1576,8 @@ Player::GetClosestNoteDirectional(int col,
 			}
 			// unsure if autoKeysounds should be excluded. -Wolfman2000
 			if (tn.type == TapNoteType_Empty ||
-				tn.type == TapNoteType_AutoKeysound) {
+				  tn.type == TapNoteType_AutoKeysound ||
+				  tn.type == TapNoteType_Fake) {
 				break;
 			}
 			if (!bAllowGraded && tn.result.tns != TNS_None) {
