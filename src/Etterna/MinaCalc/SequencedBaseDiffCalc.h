@@ -3,7 +3,6 @@
 #include <array>
 #include <unordered_map>
 
-
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
  * allocated arrays to built difficulty for each interval, and the output will
@@ -388,9 +387,42 @@ struct ceejay
 	unsigned last_last_row_notes = 0U;
 };
 
+/// if this looks ridiculous, that's because it is
 struct techyo
 {
-	// if this looks ridiculous, that's because it is
+
+	const std::string name = "TC_Static";
+
+#pragma region params
+
+	float tc_base_weight = 1.F;
+	float nps_base_weight = 1.F;
+	float rm_diff_percent = 0.F;
+
+	float balance_comp_window = 36.F;
+	float chaos_comp_window = 2.F;
+	float tc_static_base_window = 3.F;
+
+	// determines steepness of non-1/2 balance ratios
+	float balance_power = 2.F;
+	float min_balance_ratio = 0.2F;
+	float balance_ratio_scaler = 1.F;
+
+	const std::vector<std::pair<std::string, float*>> _params{
+		{ "tc_base_weight", &tc_base_weight },
+		{ "nps_base_weight", &nps_base_weight },
+		{ "rm_diff_percent", &rm_diff_percent },
+
+		{ "balance_comp_window", &balance_comp_window },
+		{ "chaos_comp_window", &chaos_comp_window },
+		{ "tc_static_base_window", &tc_static_base_window },
+		{ "balance_power", &balance_power },
+		{ "min_balance_ratio", &min_balance_ratio },
+		{ "balance_ratio_scaler", &balance_ratio_scaler },
+	};
+
+#pragma endregion params and param map
+
 	void advance_base(const SequencerGeneral& seq,
 					  const col_type& ct,
 					  Calc& calc)
@@ -398,45 +430,15 @@ struct techyo
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
 		}
+		increment_column_counters(ct);
 
-		const auto a = seq.get_sc_ms_now(ct);
-		float b;
-		if (ct == col_ohjump) {
-			b = seq.get_sc_ms_now(ct, false);
-		} else {
-			b = seq.get_cc_ms_now();
-		}
+		auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
+		auto chaos_comp = calc_chaos_comp(seq, ct, calc);
 
-		const auto c = fastsqrt(a) * fastsqrt(b);
+		insert(balance_ratios, balance_comp);
+		teehee(chaos_comp);
 
-		auto pineapple = seq._mw_any_ms.get_cv_of_window(4);
-		auto porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
-		auto sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
-		const auto oioi = 0.5F;
-		pineapple = std::clamp(pineapple + oioi, oioi, 1.F + oioi);
-		porcupine = std::clamp(porcupine + oioi, oioi, 1.F + oioi);
-		sequins = std::clamp(sequins + oioi, oioi, 1.F + oioi);
-
-		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
-		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
-		float obliosis;
-
-		if (ct == col_left) {
-			obliosis = poliosis / scoliosis;
-		} else {
-			obliosis = scoliosis / poliosis;
-		}
-
-		obliosis = std::clamp(obliosis, 1.F, 10.F);
-		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
-
-		pewp /= obliosis;
-		const auto vertebrae = std::clamp(
-		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
-
-		teehee(c / vertebrae);
-
-		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(2);
+		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(tc_static_base_window);
 		++row_counter;
 	}
 
@@ -461,23 +463,39 @@ struct techyo
 		// we definitely don't want to pure average here because we don't want tech
 		// to only be files with strong runningman pattern detection, but we
 		// could probably do something more robust at some point
-		auto tc = weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F);
+		auto tc = weighted_average(
+		  get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
 		auto rm = rm_itv_max_diff;
 		if (rm >= tc) {
 			// for rm dominant intervals, use tc to drag diff down
 			// weight should be [0,1]
 			// 1 -> all rm
 			// 0 -> all tc
-			constexpr float weight = 0.9F;
-			rm = weighted_average(rm, tc, weight, 1.F);
+			rm = weighted_average(rm, tc, rm_diff_percent, 1.F);
 		}
-		return std::max(tc, rm);
+
+		
+		float avg_balance_ratio = 0.F;
+		const auto window = std::min(static_cast<float>(row_counter), balance_comp_window);
+		auto i = max_rows_for_single_interval;
+		while (i > max_rows_for_single_interval - window) {
+			i--;
+			avg_balance_ratio += balance_ratios.at(i);
+		}
+		avg_balance_ratio /= window;
+		
+		//auto avg_balance_ratio = calc_balance_comp();
+
+		return std::max(tc, rm) * avg_balance_ratio;
 	}
 
 	void interval_end()
 	{
 		row_counter = 0;
 		rm_itv_max_diff = 0.F;
+		balance_ratios.fill(0);
+		//count_left.fill(0);
+		//count_right.fill(0);
 	}
 
 	void full_reset()
@@ -485,6 +503,8 @@ struct techyo
 		row_counter = 0;
 		rm_itv_max_diff = 0.F;
 		teehee.zero();
+		count_left.fill(0);
+		count_right.fill(0);
 	}
 
   private:
@@ -493,6 +513,13 @@ struct techyo
 
 	// jank stuff.. keep a small moving average of the base diff
 	CalcMovingWindow<float> teehee;
+
+	// 1 or 0 continuously
+	std::array<int, max_rows_for_single_interval> count_left{};
+	std::array<int, max_rows_for_single_interval> count_right{};
+
+	// balance ratio values for an interval
+	std::array<float, max_rows_for_single_interval> balance_ratios{};
 
 	// max value of rm diff for this interval, this will be an exception to the
 	// only storing ms rule, rm diff will be stored as a pre-converted diff
@@ -515,6 +542,142 @@ struct techyo
 
 		const auto ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps(ms_mean);
+	}
+
+	/// find the balance between columns in a hand
+	/// max value is found when note count is exactly half the other
+	/// min value is at 0/max and max/max
+	/// returns [0,1]
+	float calc_balance_comp() const {
+
+		const auto left =
+		  get_total_for_windowf(count_left, balance_comp_window);
+		const auto right = 
+		  get_total_for_windowf(count_right, balance_comp_window);
+
+		// for this application of balance, dont care about half empty hands
+		// or fully balanced hands
+		if (left == 0.F || right == 0.F) {
+			return 1.F;
+		}
+		if (left == right) {
+			return 1.F;
+		}
+
+		// make sure power is at least 2 and divisible by 2
+		// but it cant be greater than 30 due to int overflow
+		const auto bal_power =
+		  std::clamp(static_cast<int>(std::max(balance_power, 2.F)) % 2 == 0
+					   ? balance_power
+					   : balance_power - 1.F,
+					 2.F,
+					 30.F);
+		const auto bal_factor = std::pow(2.F, bal_power);
+
+		const auto high = left > right ? left : right;
+		const auto low = left > right ? right : left;
+
+		const auto x = low / high;
+		const auto y = (-bal_factor * std::pow(x - 0.5F, bal_power)) + 1;
+		return y;
+	}
+
+	/// in some wildly confusing fashion, find a degree of chaoticness
+	/// but using MS->NPS
+	/// considers a window of N+1 rows (N ms times)
+	float calc_chaos_comp(const SequencerGeneral& seq,
+						  const col_type& ct,
+						  Calc& calc)
+	{
+		const auto a = seq.get_sc_ms_now(ct);
+		float b;
+		if (ct == col_ohjump) {
+			b = seq.get_sc_ms_now(ct, false);
+		} else {
+			b = seq.get_cc_ms_now();
+		}
+
+		const auto c = fastsqrt(a) * fastsqrt(b);
+
+		auto pineapple = seq._mw_any_ms.get_cv_of_window(chaos_comp_window);
+		auto porcupine =
+		  seq._mw_sc_ms[col_left].get_cv_of_window(chaos_comp_window);
+		auto sequins =
+		  seq._mw_sc_ms[col_right].get_cv_of_window(chaos_comp_window);
+		const auto oioi = 0.5F;
+		pineapple = std::clamp(pineapple + oioi, oioi, 1.F + oioi);
+		porcupine = std::clamp(porcupine + oioi, oioi, 1.F + oioi);
+		sequins = std::clamp(sequins + oioi, oioi, 1.F + oioi);
+
+		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
+		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
+		float obliosis;
+
+		if (ct == col_left) {
+			obliosis = poliosis / scoliosis;
+		} else {
+			obliosis = scoliosis / poliosis;
+		}
+
+		obliosis = std::clamp(obliosis, 1.F, 10.F);
+		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
+
+		pewp /= obliosis;
+		const auto vertebrae = std::clamp(
+		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
+
+		return c / vertebrae;
+	}
+
+
+	//////////////////////////////////////////////////////////////
+	// util
+	void increment_column_counters(const col_type& ct)
+	{
+		switch (ct) {
+			case col_left: {
+				insert(count_left, 1);
+				insert(count_right, 0);
+				break;
+			}
+			case col_right: {
+				insert(count_left, 0);
+				insert(count_right, 1);
+				break;
+			}
+			case col_ohjump: {
+				insert(count_left, 1);
+				insert(count_right, 1);
+				break;
+			}
+			default: {
+				insert(count_left, 0);
+				insert(count_right, 0);
+				break;
+			}
+		}
+	}
+
+	float get_total_for_windowf(
+	  const std::array<int, max_rows_for_single_interval>& arr, const unsigned window) const
+	{
+		float o = 0.F;
+		auto i = max_rows_for_single_interval;
+		while (i > max_rows_for_single_interval - window) {
+			i--;
+			o += arr.at(i);
+		}
+		return o;
+	}
+
+	template <typename T>
+	void insert(std::array<T, max_rows_for_single_interval>& arr,
+				 const T value)
+	{
+		for (auto i = 1; i < max_rows_for_single_interval; i++) {
+			arr.at(i - 1) = arr.at(i);
+		}
+		arr.at(max_rows_for_single_interval - 1) = value;
 	}
 };
 

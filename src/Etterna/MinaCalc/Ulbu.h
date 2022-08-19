@@ -572,8 +572,9 @@ struct TheGreatBazoinkazoinkInTheSky
 		}
 		paramsLoaded = true;
 
-		// cj base
+		// diff params
 		load_params_for_mod(&params, _diffz._cj._params, _diffz._cj.name);
+		load_params_for_mod(&params, _diffz._tc._params, _diffz._tc.name);
 
 		// pmods
 		load_params_for_mod(&params, _s._params, _s.name);
@@ -606,9 +607,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		auto* calcparams = new XNode("CalcParams");
 		calcparams->AppendAttr("vers", GetCalcVersion());
 
-		// cj base
+		// diff params
 		calcparams->AppendChild(
 		  make_mod_param_node(_diffz._cj._params, _diffz._cj.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_diffz._tc._params, _diffz._tc.name));
 
 		// pmods
 		calcparams->AppendChild(make_mod_param_node(_s._params, _s.name));

@@ -448,6 +448,7 @@ local diffGroups = {
         Jack = true,
     },
     {   -- Group 12
+        NPSBase = true,
         TechBase = true,
     },
     {   -- Group 13
@@ -569,7 +570,7 @@ local function updateCoolStuff()
                     graphVecs[name..ss][h] = {}
                     for j = 1, #arr[hand][i] do
                         local val = arr[hand][i][j]
-                        if val ~= val or val == nil then val = fallbackValue end -- get rid of nan and nil
+                        if val ~= val or val == nil or val == math.huge or val == -math.huge then val = fallbackValue end -- get rid of nan and nil
                         if val > lowerGraphMax then lowerGraphMax = val end
                         graphVecs[name..ss][h][j] = val
                     end
@@ -1168,7 +1169,7 @@ local calcDiffValueColors = {
     --color("#7d6b91"),
     --color("#8481db"),   -- JackBase
     --color("#8481db"),
-    color("#995fa3"),   -- TechBase
+    color("#cc4fa3"),   -- TechBase
     --color("#995fa3"),
     color("#f2b5fa"),   -- RMABase
     --color("#f2b5fa"),
