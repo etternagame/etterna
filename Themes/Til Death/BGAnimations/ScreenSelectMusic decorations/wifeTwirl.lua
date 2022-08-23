@@ -818,7 +818,7 @@ t[#t + 1] = Def.Sprite {
 	end,
 	ModifyBannerCommand = function(self)
 		self:finishtweening()
-		if song then
+		if song and GAMESTATE:GetCurrentSong() ~= nil then
 			local bnpath = GAMESTATE:GetCurrentSong():GetBannerPath()
 			if not BannersEnabled() then
 				self:visible(false)
