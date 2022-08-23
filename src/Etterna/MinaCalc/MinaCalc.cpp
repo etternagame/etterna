@@ -252,7 +252,7 @@ StamAdjust(const float x,
 	float avs1;
 	auto avs2 = 0.F;
 	float local_ceil;
-	const auto super_stam_ceil = 1.11F;
+	const auto super_stam_ceil = 1.09F;
 
 	// use this to calculate the mod growth
 	const std::vector<float>* base_diff =
@@ -763,7 +763,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		HS,
 		OHJumpMod,
 		TheThing,
-		WideRangeAnchor,
+		// WideRangeAnchor,
 		WideRangeRoll,
 		WideRangeJumptrill,
 		WideRangeJJ,
@@ -1013,7 +1013,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 491;
+int mina_calc_version = 492;
 auto
 GetCalcVersion() -> int
 {

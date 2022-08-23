@@ -455,6 +455,7 @@ struct techyo
 
 	// final output difficulty for this interval, merges base diff, runningman
 	// anchor diff
+	// the output of this is officially TechBase for an interval
 	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
 	  -> float
 	{
@@ -476,7 +477,8 @@ struct techyo
 
 		
 		float avg_balance_ratio = 0.F;
-		const auto window = std::min(static_cast<float>(row_counter), balance_comp_window);
+		const auto window = std::max(
+		  1.F, std::min(static_cast<float>(row_counter), balance_comp_window));
 		auto i = max_rows_for_single_interval;
 		while (i > max_rows_for_single_interval - window) {
 			i--;
