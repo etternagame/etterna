@@ -562,7 +562,7 @@ local function updateCoolStuff()
         end
 
         -- even more debug output
-        local function fc(arr, name, fallbackValue)
+        local function fc(arr, name, fallbackValue, top)
             for i, ss in ipairs(ms.SkillSets) do
                 graphVecs[name..ss] = {}
                 for h = 1,2 do
@@ -571,15 +571,19 @@ local function updateCoolStuff()
                     for j = 1, #arr[hand][i] do
                         local val = arr[hand][i][j]
                         if val ~= val or val == nil or val == math.huge or val == -math.huge then val = fallbackValue end -- get rid of nan and nil
-                        if val > lowerGraphMax then lowerGraphMax = val end
+                        if top then
+                            if val > upperGraphMax then upperGraphMax = val end
+                        else
+                            if val > lowerGraphMax then lowerGraphMax = val end
+                        end
                         graphVecs[name..ss][h][j] = val
                     end
                 end
             end 
         end
-        fc(pap["DebugTotalPatternMod"], "TotalPatternMod", 1)
-        fc(pap["DebugPtLoss"], "PtLoss", 0)
-        fc(pap["DebugMSD"], "MSD", 0)
+        fc(pap["DebugTotalPatternMod"], "TotalPatternMod", 1, true)
+        fc(pap["DebugPtLoss"], "PtLoss", 0, false)
+        fc(pap["DebugMSD"], "MSD", 0, false)
 
         upperGraphMin = 0.3
         upperGraphMax = 1.25
