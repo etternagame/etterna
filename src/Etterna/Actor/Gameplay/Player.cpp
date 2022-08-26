@@ -193,15 +193,15 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 		case TW_Mine:
 			return 0.075F;
 		case TW_Hold:
-			return 0.25F * m_fTimingWindowScale;
+			return 0.25F * GetTimingWindowScale();
 		case TW_Roll:
-			return 0.5F * m_fTimingWindowScale;
+			return 0.5F * GetTimingWindowScale();
 		default:
 			break;
 	}
 
 	float fSecs = m_fTimingWindowSeconds[tw];
-	fSecs *= m_fTimingWindowScale;
+	fSecs *= GetTimingWindowScale();
 	fSecs = std::clamp(fSecs, 0.F, 0.18F);
 	return fSecs;
 }
@@ -216,9 +216,9 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 		case TW_Mine:
 			return 0.075F;
 		case TW_Hold:
-			return 0.25F * m_fTimingWindowScale;
+			return 0.25F * timingScale;
 		case TW_Roll:
-			return 0.5F * m_fTimingWindowScale;
+			return 0.5F * timingScale;
 		default:
 			break;
 	}
@@ -232,7 +232,7 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 auto
 Player::GetTimingWindowScale() -> float
 {
-	return m_fTimingWindowScale;
+	return std::clamp(m_fTimingWindowScale.Get(), 0.001F, 1.F);
 }
 
 Player::Player(NoteData& nd, bool bVisibleParts)
@@ -578,7 +578,7 @@ Player::Load()
 	}
 
 	if (m_pPlayerStageStats != nullptr) {
-		m_pPlayerStageStats->m_fTimingScale = m_fTimingWindowScale;
+		m_pPlayerStageStats->m_fTimingScale = GetTimingWindowScale();
 	}
 
 	/* Apply transforms. */
@@ -3072,7 +3072,7 @@ Player::SetJudgment(int iRow,
 				curwifescore += wife3_miss_weight;
 			} else {
 				curwifescore +=
-				  wife3(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+				  wife3(tn.result.fTapNoteOffset, GetTimingWindowScale());
 			}
 			maxwifescore += 2;
 
