@@ -112,8 +112,6 @@ static ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 static ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
 static ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 
-/** @brief How much life is in a hold note when you start on it? */
-ThemeMetric<float> INITIAL_HOLD_LIFE("Player", "InitialHoldLife");
 ThemeMetric<bool> PENALIZE_TAP_SCORE_NONE("Player", "PenalizeTapScoreNone");
 ThemeMetric<bool> CHECKPOINTS_FLASH_ON_HOLD(
   "Player",
@@ -188,28 +186,46 @@ JudgedRows::Resize(size_t iMin)
 auto
 Player::GetWindowSeconds(TimingWindow tw) -> float
 {
-	// mines should have a static hit window across all judges to be
-	// logically consistent with the idea that increasing judge should
-	// not make any elementof the game easier, so now they do
-	if (tw == TW_Mine) {
-		return 0.075F; // explicit return until i remove this stuff from
+	switch (tw) {
+		// mines should have a static hit window across all judges to be
+		// logically consistent with the idea that increasing judge should
+		// not make any elementof the game easier, so now they do
+		case TW_Mine:
+			return 0.075F;
+		case TW_Hold:
+			return 0.25F * m_fTimingWindowScale;
+		case TW_Roll:
+			return 0.5F * m_fTimingWindowScale;
+		default:
+			break;
 	}
-	// prefs.ini
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= m_fTimingWindowScale;
+	fSecs = std::clamp(fSecs, 0.F, 0.18F);
 	return fSecs;
 }
 
 auto
 Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 {
-	if (tw == TW_Mine) {
-		return 0.075F;
+	switch (tw) {
+		// mines should have a static hit window across all judges to be
+		// logically consistent with the idea that increasing judge should
+		// not make any elementof the game easier, so now they do
+		case TW_Mine:
+			return 0.075F;
+		case TW_Hold:
+			return 0.25F * m_fTimingWindowScale;
+		case TW_Roll:
+			return 0.5F * m_fTimingWindowScale;
+		default:
+			break;
 	}
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= timingScale;
+	fSecs = std::clamp(fSecs, 0.F, 0.18F);
 	return fSecs;
 }
 
@@ -2366,7 +2382,7 @@ Player::CrossedRows(int iLastRowCrossed,
 		const auto iTrack = iter.Track();
 		switch (tn.type) {
 			case TapNoteType_HoldHead: {
-				tn.HoldResult.fLife = INITIAL_HOLD_LIFE;
+				tn.HoldResult.fLife = initialHoldLife;
 				if (!REQUIRE_STEP_ON_HOLD_HEADS) {
 					const auto pn = m_pPlayerState->m_PlayerNumber;
 					std::vector<GameInput> GameI;

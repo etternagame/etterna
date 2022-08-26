@@ -2069,7 +2069,6 @@ HoldCheckpoints=false
 ImmediateHoldLetGo=true
 RequireStepOnHoldHeads=true
 CheckpointsUseTimeSignatures=false
-InitialHoldLife=1
 RollBodyIncrementsCombo=true
 CheckpointsTapsSeparateJudgment=true
 

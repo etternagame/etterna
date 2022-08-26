@@ -33,6 +33,8 @@ AutoScreenMessage(SM_1000Combo);
 AutoScreenMessage(SM_ComboStopped);
 AutoScreenMessage(SM_ComboContinuing);
 
+constexpr float initialHoldLife = 1.F;
+
 /** @brief Accepts input, knocks down TapNotes that were stepped on, and keeps
  * score for the player. */
 class Player : public ActorFrame

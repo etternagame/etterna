@@ -281,7 +281,7 @@ PlayerReplay::CrossedRows(int iLastRowCrossed,
 		const auto iTrack = iter.Track();
 		switch (tn.type) {
 			case TapNoteType_HoldHead: {
-				tn.HoldResult.fLife = 1;
+				tn.HoldResult.fLife = initialHoldLife;
 				break;
 			}
 			default:
