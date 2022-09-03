@@ -2,7 +2,6 @@
 #include "SequencingHelpers.h"
 #include <array>
 #include <unordered_map>
-#include <cmath>
 
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
@@ -735,7 +734,7 @@ struct techyo
 				auto ratio = div_low_by_high(
 				  std::max(flam_of_the_trill - flam_ms_depressor, 0.F),
 				  third_tap);
-				flamentation = std::clamp(std::powf(ratio, 0.125F), 0.F, 1.F);
+				flamentation = std::clamp(std::pow(ratio, 0.125F), 0.F, 1.F);
 				trill_ms_value = (flam_of_the_trill + third_tap) / 2.F;
 			}
 		}
