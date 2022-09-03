@@ -2,6 +2,7 @@
 #include "SequencingHelpers.h"
 #include <array>
 #include <unordered_map>
+#include <cmath>
 
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
