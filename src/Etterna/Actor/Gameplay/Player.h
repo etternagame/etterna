@@ -166,7 +166,7 @@ class Player : public ActorFrame
 	void UpdateVisibleParts();
 	// Updates the pressed flags depending on input
 	// Tells the NoteField to do stuff basically
-	void UpdatePressedFlags();
+	virtual void UpdatePressedFlags();
 	// Updates Holds and Rolls
 	// For Rolls, just tells Autoplay to restep them
 	// For Holds, tells their life to decay
@@ -227,6 +227,7 @@ class Player : public ActorFrame
 						int iMaxRowsAhead,
 						int iMaxRowsBehind,
 						bool bAllowGraded,
+						bool bUseSongTiming = true,
 						bool bAllowOldMines = true) const -> int;
 	auto GetClosestNonEmptyRowDirectional(int iStartRow,
 										  int iEndRow,

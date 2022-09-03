@@ -81,7 +81,6 @@ class PlayerAI
 	static auto GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
 	  -> float;
 	static auto GetTapNoteScoreForReplay(
-	  const PlayerState* pPlayerState,
 	  float fNoteOffset,
 	  float timingScale = Player::GetTimingWindowScale()) -> TapNoteScore;
 	// Locate the earliest value in Seconds that is counted as a miss

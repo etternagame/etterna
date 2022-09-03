@@ -47,8 +47,7 @@ PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
 }
 
 TapNoteScore
-PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
-								   float fNoteOffset,
+PlayerAI::GetTapNoteScoreForReplay(float fNoteOffset,
 								   float timingScale)
 {
 	// This code is basically a copy paste from somewhere in Player for grabbing
@@ -388,8 +387,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				if (trr.type == TapNoteType_Mine) {
 					tempJudgments[TNS_HitMine]++;
 				} else {
-					auto tns = GetTapNoteScoreForReplay(
-					  nullptr, trr.offset, timingScale);
+					auto tns =
+					  GetTapNoteScoreForReplay(trr.offset, timingScale);
 					tempJudgments[tns]++;
 				}
 			}
@@ -413,8 +412,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 					if (trr.type == TapNoteType_Mine) {
 						tempJudgments[TNS_HitMine]++;
 					} else {
-						auto tns = GetTapNoteScoreForReplay(
-						  nullptr, trr.offset, timingScale);
+						auto tns =
+						  GetTapNoteScoreForReplay(trr.offset, timingScale);
 						tempJudgments[tns]++;
 					}
 				}
@@ -672,8 +671,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				mws += 2.f;
 
 				// do mean/sd for all non miss taps
-				auto tns =
-				  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
+				auto tns = GetTapNoteScoreForReplay(trr.offset, timingScale);
 				if (tns != TNS_Miss && tns != TNS_None) {
 					taps++;
 
@@ -1247,8 +1245,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			for (auto& trr : tapIter->second) {
 				TapNoteScore tns;
 				if (trr.type != TapNoteType_Mine)
-					tns = GetTapNoteScoreForReplay(
-					  nullptr, trr.offset, timingScale);
+					tns = GetTapNoteScoreForReplay(trr.offset, timingScale);
 				else
 					tns = TNS_HitMine;
 				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
@@ -1330,8 +1327,7 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 
 			// If CB, make a new combo
 			// If not CB, increment combo
-			const auto tns =
-			  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
+			const auto tns = GetTapNoteScoreForReplay(trr.offset, timingScale);
 			if (tns == TNS_Miss || tns == TNS_W5 || tns == TNS_W4) {
 				const auto start =
 				  (rowOfComboStart->first - allOffset) / rateUsed;

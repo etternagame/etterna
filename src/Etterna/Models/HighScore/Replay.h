@@ -168,6 +168,9 @@ class Replay
 	auto LoadReplayData() -> bool;
 	auto HasReplayData() -> bool;
 
+	auto GenerateInputData() -> bool;
+	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
+
 	void Unload() {
 		InputData.clear();
 		vOffsetVector.clear();

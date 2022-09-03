@@ -1611,13 +1611,14 @@ Player::GetClosestNoteDirectional(int col,
 	return -1;
 }
 
-// Find the closest note to fBeat.
+// Find the closest note to a row or the song position.
 auto
 Player::GetClosestNote(int col,
 					   int iNoteRow,
 					   int iMaxRowsAhead,
 					   int iMaxRowsBehind,
 					   bool bAllowGraded,
+					   bool bUseSongTiming,
 					   bool bAllowOldMines) const -> int
 {
 	// Start at iIndexStartLookingAt and search outward.
@@ -1637,7 +1638,9 @@ Player::GetClosestNote(int col,
 	}
 
 	// Get the current time, previous time, and next time.
-	const auto fNoteTime = GAMESTATE->m_Position.m_fMusicSeconds;
+	const auto fNoteTime = bUseSongTiming
+							 ? GAMESTATE->m_Position.m_fMusicSeconds
+							 : m_Timing->WhereUAtBro(iNoteRow);
 	const auto fNextTime = m_Timing->WhereUAtBro(iNextIndex);
 	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
 
@@ -2035,7 +2038,7 @@ Player::Step(int col,
 	auto iRowOfOverlappingNoteOrRow = row;
 	if (row == -1 && col != -1) {
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
-		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
+		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, true, false);
 	}
 
 	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
