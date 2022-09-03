@@ -423,6 +423,11 @@ struct techyo
 
 #pragma endregion params and param map
 
+	// moving window of the last 3 {column, time} that showed up
+	// we transform col_type ohj into 2 entries with the same time on insertion
+	static const unsigned trill_window = 3;
+	std::array<std::pair<col_type, float>, techyo::trill_window> mw_dt{};
+
 	void advance_base(const SequencerGeneral& seq,
 					  const col_type& ct,
 					  Calc& calc)
@@ -430,15 +435,19 @@ struct techyo
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
 		}
-		increment_column_counters(ct);
 
+		process_mw_dt(ct, seq.get_any_ms_now());
+		advance_trill_base(calc);
+
+		/*
+		increment_column_counters(ct);
 		auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
 		auto chaos_comp = calc_chaos_comp(seq, ct, calc);
-
 		insert(balance_ratios, balance_comp);
 		teehee(chaos_comp);
-
 		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(tc_static_base_window);
+		*/
+
 		++row_counter;
 	}
 
@@ -447,54 +456,42 @@ struct techyo
 		rm_itv_max_diff = std::max(rm_itv_max_diff, rm_diff);
 	}
 
+	void advance_jack_comp(const float& hardest_itv_jack_ms) {
+		jack_itv_diff =
+		  ms_to_scaled_nps(hardest_itv_jack_ms) * basescalers[Skill_JackSpeed];
+	}
+
 	// for debug
 	[[nodiscard]] auto get_itv_rma_diff() const -> float
 	{
 		return rm_itv_max_diff;
 	}
 
-	// final output difficulty for this interval, merges base diff, runningman
-	// anchor diff
+	// final output difficulty for this interval
 	// the output of this is officially TechBase for an interval
 	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
 	  -> float
 	{
-		// for now do simple thing, for this interval either use the higher
-		// between weighted adjusted ms/nps base and runningman diff
-		// we definitely don't want to pure average here because we don't want tech
-		// to only be files with strong runningman pattern detection, but we
-		// could probably do something more robust at some point
-		auto tc = weighted_average(
-		  get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
-		auto rm = rm_itv_max_diff;
-		if (rm >= tc) {
-			// for rm dominant intervals, use tc to drag diff down
-			// weight should be [0,1]
-			// 1 -> all rm
-			// 0 -> all tc
-			rm = weighted_average(rm, tc, rm_diff_percent, 1.F);
-		}
+		const auto rmbase = rm_itv_max_diff;
+		const auto trillbase = get_tb_base(calc);
+		const auto jackbase = jack_itv_diff;
 
-		
-		float avg_balance_ratio = 0.F;
-		const auto window = std::max(
-		  1.F, std::min(static_cast<float>(row_counter), balance_comp_window));
-		auto i = max_rows_for_single_interval;
-		while (i > max_rows_for_single_interval - window) {
-			i--;
-			avg_balance_ratio += balance_ratios.at(i);
-		}
-		avg_balance_ratio /= window;
-		
-		//auto avg_balance_ratio = calc_balance_comp();
+		// [0,1]
+		// 0 = all jack/flam
+		// 1 = all trill
+		const auto how_flammy = get_itv_flam_factor();
 
-		return std::max(tc, rm) * avg_balance_ratio;
+		const auto combinedbase =
+		  weighted_average(trillbase, jackbase, how_flammy, 1.F);
+
+		return std::max(rmbase, combinedbase);
 	}
 
 	void interval_end()
 	{
 		row_counter = 0;
 		rm_itv_max_diff = 0.F;
+		jack_itv_diff = 0.F;
 		balance_ratios.fill(0);
 		//count_left.fill(0);
 		//count_right.fill(0);
@@ -504,9 +501,14 @@ struct techyo
 	{
 		row_counter = 0;
 		rm_itv_max_diff = 0.F;
+		jack_itv_diff = 0.F;
 		teehee.zero();
 		count_left.fill(0);
 		count_right.fill(0);
+
+		mw_dt.fill({ col_empty, ms_init });
+		tb_static.fill(ms_init);
+		flammity.fill(0.F);
 	}
 
   private:
@@ -523,11 +525,16 @@ struct techyo
 	// balance ratio values for an interval
 	std::array<float, max_rows_for_single_interval> balance_ratios{};
 
+	// trill base values
+	std::array<float, max_rows_for_single_interval> tb_static{};
+	std::array<float, max_rows_for_single_interval> flammity{};
+
 	// max value of rm diff for this interval, this will be an exception to the
 	// only storing ms rule, rm diff will be stored as a pre-converted diff
 	// value because rm_sequencing may adjust the scaled diff using the rm
 	// components in ways we can't emulate here (nor should we try)
 	float rm_itv_max_diff = 0.F;
+	float jack_itv_diff = 0.F;
 
 	// get the interval base diff, which will then be merged via weighted
 	// average with npsbase, and then compared to max_rm diff
@@ -544,6 +551,41 @@ struct techyo
 
 		const auto ms_mean = ms_total / static_cast<float>(row_counter);
 		return ms_to_scaled_nps(ms_mean);
+	}
+
+	// produces the average value of the trill ms value for the interval
+	// converted to nps
+	auto get_tb_base(Calc& calc) const -> float
+	{
+		if (row_counter < 3) {
+			return 0.F;
+		}
+
+		auto ms_total = 0.F;
+		for (auto i = 0; i < row_counter; ++i) {
+			ms_total += tb_static.at(i);
+		}
+		const auto ms_mean = ms_total / static_cast<float>(row_counter);
+		return ms_to_scaled_nps(ms_mean);
+	}
+
+	// produces the average value of the flam value for the interval
+	// [0,1]
+	// 0 = all jacks or all flams
+	// 1 = all perfect trills
+	auto get_itv_flam_factor() const -> float
+	{
+		if (row_counter == 0) {
+			return 0.F;
+		}
+
+		auto total = 0.F;
+		for (auto i = 0; i < row_counter; ++i) {
+			total += flammity.at(i);
+		}
+
+		const auto mean = total / static_cast<float>(row_counter);
+		return mean;
 	}
 
 	/// find the balance between columns in a hand
@@ -631,6 +673,76 @@ struct techyo
 		return c / vertebrae;
 	}
 
+	void advance_trill_base(Calc& calc)
+	{
+		auto flamentation = .5F;
+		auto trill_ms_value = ms_init;
+
+		auto& a = mw_dt.at(0);
+		if (a.first == col_init) {
+			// do nothing special, not a complete trill
+		} else {
+			auto& b = mw_dt.at(1);
+			auto& c = mw_dt.at(2);
+
+			auto flam_of_the_trill = ms_init;
+			auto third_tap = ms_init;
+
+			if (b.second == 0.F && a.first != b.first) {
+				// first 2 notes form a jump
+				flam_of_the_trill = 0.F;
+				third_tap = c.second * 2.F;
+			} else if (c.second == 0.F && b.first != c.first) {
+				// last 2 notes form a jump
+				flam_of_the_trill = 0.F;
+				third_tap = b.second * 2.F;
+			} else {
+				// determine ... trillflamjackyness
+
+				if (a.first == c.first && a.first != b.first) {
+					// it's a trill (121 or 212)
+					flam_of_the_trill = std::min(b.second, c.second);
+					third_tap = std::max(b.second, c.second);
+				} else if (a.first == c.first) {
+					// it's 111
+					// the intended behavior is to treat it like a flam
+					// thus treating it like a jack
+					flam_of_the_trill = 0.F;
+					third_tap = c.second;
+				} else {
+					if (a.first != b.first) {
+						// it's 211
+						flam_of_the_trill = b.second;
+						third_tap = c.second;
+					} else {
+						// it's 112
+						flam_of_the_trill = c.second;
+						third_tap = b.second;
+					}
+				}
+			}
+
+			if (flam_of_the_trill == 0.F && third_tap == 0.F) {
+				// effectively a forced dropped note
+				flamentation = 0.F;
+				trill_ms_value = 0.1F;
+			} else {
+				// ratio = [0,1]
+				// 0 = flam involved
+				// 1 = straight trill
+				const auto flam_ms_depressor = 0.F;
+				auto ratio = div_low_by_high(
+				  std::max(flam_of_the_trill - flam_ms_depressor, 0.F),
+				  third_tap);
+				flamentation = std::clamp(std::powf(ratio, 0.125F), 0.F, 1.F);
+				trill_ms_value = (flam_of_the_trill + third_tap) / 2.F;
+			}
+		}
+
+		flammity.at(row_counter) = flamentation;
+		tb_static.at(row_counter) = trill_ms_value;
+	}
+
 
 	//////////////////////////////////////////////////////////////
 	// util
@@ -680,6 +792,27 @@ struct techyo
 			arr.at(i - 1) = arr.at(i);
 		}
 		arr.at(max_rows_for_single_interval - 1) = value;
+	}
+
+	void process_mw_dt(const col_type& ct, const float ms_now)
+	{
+		auto& arr = mw_dt;
+		if (ct == col_ohjump) {
+			for (auto i = 1; i < trill_window; i++) {
+				arr.at(i - 1) = arr.at(i);
+			}
+			arr.at(trill_window - 1) = { col_left, ms_now };
+
+			for (auto i = 1; i < trill_window; i++) {
+				arr.at(i - 1) = arr.at(i);
+			}
+			arr.at(trill_window - 1) = { col_right, 0.F };
+		} else {
+			for (auto i = 1; i < trill_window; i++) {
+				arr.at(i - 1) = arr.at(i);
+			}
+			arr.at(trill_window - 1) = { ct, ms_now };
+		}
 	}
 };
 

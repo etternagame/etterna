@@ -365,6 +365,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		// tech updates with a convoluted mess of garbage
 		_diffz._tc.advance_base(_seq, ct, _calc);
 		_diffz._tc.advance_rm_comp(_rm.get_highest_anchor_difficulty());
+		_diffz._tc.advance_jack_comp(_seq._as.get_lowest_jack_ms());
 	}
 
 	void set_sequenced_base_diffs(const int& itv) const
