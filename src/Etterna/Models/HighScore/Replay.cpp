@@ -664,9 +664,117 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 }
 
 auto
+Replay::GenerateNoterowsFromTimestamps() -> bool
+{
+	if (!vNoteRowVector.empty()) {
+		return true;
+	}
+
+	if (vOnlineReplayTimestampVector.empty()) {
+		Locator::getLogger()->warn(
+		  "Failed to generate noterows from timestamps because timestamps for "
+		  "score {} were not present",
+		  scoreKey);
+		return false;
+	}
+
+	if (chartKey.empty() || SONGMAN->GetStepsByChartkey(chartKey) == nullptr) {
+		Locator::getLogger()->warn(
+		  "Failed to generate noterows from timestamps because chart {} is not "
+		  "loaded for score {}",
+		  chartKey,
+		  scoreKey);
+		return false;
+	}
+
+	auto* chart = SONGMAN->GetStepsByChartkey(chartKey);
+	auto* td = chart->GetTimingData();
+
+	// bad
+	GAMESTATE->SetProcessedTimingData(td);
+
+	auto nd = chart->GetNoteData();
+	// non empty noterows
+	auto nerv = nd.BuildAndGetNerv(td);
+	// estimated time all non empty noterows
+	auto etaner = td->BuildAndGetEtaner(nerv);
+
+	if (nerv.empty() || etaner.empty()) {
+		Locator::getLogger()->warn(
+		  "Failed to generate noterows from timestamps because failed to "
+		  "generate nerv or etaner for chart {}, score {}",
+		  chartKey,
+		  scoreKey);
+		GAMESTATE->SetProcessedTimingData(nullptr);
+		return false;
+	}
+
+	const auto fileOffsetError =
+	  etaner.at(0) - (vOnlineReplayTimestampVector.at(0) * fMusicRate);
+	std::vector<int> noterows;
+	for (auto& t : vOnlineReplayTimestampVector) {
+		const auto beat = td->GetBeatFromElapsedTime(t * fMusicRate) + fileOffsetError;
+		const auto noterow = BeatToNoteRow(beat);
+		noterows.emplace_back(noterow);
+	}
+	const auto amountToNormalizeNoterows = nerv.at(0) - noterows.at(0);
+	for (auto& noterow : noterows) {
+		noterow += amountToNormalizeNoterows;
+	}
+	SetNoteRowVector(noterows);
+	ValidateOffsets();
+
+	// bad 2
+	GAMESTATE->SetProcessedTimingData(nullptr);
+
+	return true;
+}
+
+void
+Replay::ValidateOffsets()
+{
+	auto offsetIt = vOffsetVector.begin();
+	auto noterowIt = vNoteRowVector.begin();
+	auto trackIt = vTrackVector.begin();
+	auto tntIt = vTapNoteTypeVector.begin();
+
+	auto moveIts = [this, &offsetIt, &noterowIt, &trackIt, &tntIt]() {
+		if (offsetIt != vOffsetVector.end())
+			offsetIt++;
+		if (noterowIt != vNoteRowVector.end())
+			noterowIt++;
+		if (trackIt != vTrackVector.end())
+			trackIt++;
+		if (tntIt != vTapNoteTypeVector.end())
+			tntIt++;
+	};
+	auto removeIts = [this, &offsetIt, &noterowIt, &trackIt, &tntIt](){
+		if (offsetIt != vOffsetVector.end())
+			vOffsetVector.erase(offsetIt);
+		if (noterowIt != vNoteRowVector.end())
+			vNoteRowVector.erase(noterowIt);
+		if (trackIt != vTrackVector.end())
+			vTrackVector.erase(trackIt);
+		if (tntIt != vTapNoteTypeVector.end())
+			vTapNoteTypeVector.erase(tntIt);
+	};
+
+	// the point here is to erase offsets and the associated data
+	// in parallel ... but sometimes the vectors are empty
+	// they should NEVER be different length, but CAN be empty instead
+	while (offsetIt != vOffsetVector.end()) {
+		if (fabs(*offsetIt) >= 0.18F) {
+			removeIts();
+		} else {
+			moveIts();
+		}
+	}
+}
+
+auto
 Replay::GenerateInputData() -> bool
 {
-	if (!LoadReplayData() && !LoadInputData()) {
+	if (!LoadReplayData() && !LoadInputData() && !GenerateNoterowsFromTimestamps()) {
 		Locator::getLogger()->warn("Failed to generate input data because "
 								   "replay for score {} could not be loaded",
 								   scoreKey);

@@ -950,7 +950,8 @@ void
 HighScore::UnloadReplayData()
 {
 	if (replay != nullptr) {
-		replay.reset();
+		REPLAYS->ReleaseReplay(replay);
+		replay = nullptr;
 	}
 }
 

@@ -203,7 +203,7 @@ struct HighScore
   private:
 	void CheckReplayIsInit();
 	HiddenPtr<HighScoreImpl> m_Impl;
-	std::shared_ptr<Replay> replay = nullptr;
+	Replay* replay = nullptr;
 };
 
 /** @brief the picture taken of the high score. */

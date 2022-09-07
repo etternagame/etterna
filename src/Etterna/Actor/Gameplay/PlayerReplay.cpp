@@ -85,6 +85,10 @@ PlayerReplay::Load()
 
 	if (replay != nullptr) {
 		SetPlaybackEvents(replay->GeneratePlaybackEvents());
+
+		// the above replay pointer is temporary
+		// drop the refcount
+		REPLAYS->ReleaseReplay(replay);
 	}
 }
 

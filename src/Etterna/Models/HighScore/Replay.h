@@ -168,8 +168,12 @@ class Replay
 	auto LoadReplayData() -> bool;
 	auto HasReplayData() -> bool;
 
+	auto GenerateNoterowsFromTimestamps() -> bool;
 	auto GenerateInputData() -> bool;
 	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
+
+	// Offsets can be really weird - Remove all impossible offsets
+	inline void ValidateOffsets();
 
 	void Unload() {
 		InputData.clear();

@@ -14,12 +14,15 @@ class ReplayManager
 	ReplayManager();
 	~ReplayManager();
 
-	std::shared_ptr<Replay> GetReplay(HighScore* hs);
+	Replay* GetReplay(HighScore* hs);
+	void ReleaseReplay(Replay* replay);
 
 	void PushSelf(lua_State* L);
 
   private:
-	std::unordered_map<std::string, std::shared_ptr<Replay>> scoresToReplays;
+	// scorekey to {refcount, pointer}
+	std::unordered_map<std::string, std::pair<unsigned, Replay*>>
+	  scoresToReplays{};
 };
 
 extern std::shared_ptr<ReplayManager> REPLAYS;
