@@ -196,7 +196,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
 		trr.offsetAdjustedRow = replayNoteRowVector[i];
-		if (pScoreData->HasColumnData()) {
+		if (!replayTrackVector.empty()) {
 			trr.track = replayTrackVector[i];
 
 			// bad bandaid, the correct type could be resolved from notedata
