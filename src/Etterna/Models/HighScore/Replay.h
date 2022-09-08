@@ -3,6 +3,7 @@
 
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "ReplayConstantsAndTypes.h"
+#include <set>
 
 struct HighScore;
 
@@ -171,6 +172,15 @@ class Replay
 	auto GenerateNoterowsFromTimestamps() -> bool;
 	auto GenerateInputData() -> bool;
 	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
+
+	// Instead of making some complex iterator...
+	// Just offer both solutions
+	/// Returns map of columns to a set of rows which are dropped
+	/// See which columns have drops using this
+	auto GenerateDroppedHoldColumnsToRowsMap() -> std::map<int, std::set<int>>;
+	/// Returns a map of rows to a set of columns which are dropped
+	/// See which rows have drops using this
+	auto GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>;
 
 	// Offsets can be really weird - Remove all impossible offsets
 	inline void ValidateOffsets();

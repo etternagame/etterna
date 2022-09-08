@@ -85,6 +85,7 @@ PlayerReplay::Load()
 
 	if (replay != nullptr) {
 		SetPlaybackEvents(replay->GeneratePlaybackEvents());
+		SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap());
 
 		// the above replay pointer is temporary
 		// drop the refcount
@@ -120,31 +121,47 @@ PlayerReplay::UpdateHoldNotes(int iSongRow,
 
 	ASSERT(iFirstTrackWithMaxEndRow != -1);
 
+	// drop holds which should be dropped
 	for (auto& trtn : vTN) {
-		// check from now until the head of the hold to see if it should die
-		// possibly really bad, but we dont REALLY care that much about fps
-		// in replays, right?
-		auto holdDropped = false;
-		for (auto yeet = vTN[0].iRow; yeet <= iSongRow && !holdDropped;
-			 yeet++) {
-			if (PlayerAI::DetermineIfHoldDropped(yeet, trtn.iTrack)) {
-				holdDropped = true;
+
+		// find dropped holds in this column
+		if (droppedHolds.count(trtn.iTrack) != 0) {
+
+			// start no earlier than the top of the current hold
+			// stop when the current row is reached or end of drops is reached
+			// this loop behavior implies you CAN drop a single hold more than once.
+			// that would be incorrect behavior because you cant score a note twice
+			// but ... account for impossible scenarios anyways
+			for (auto it = droppedHolds.at(trtn.iTrack).lower_bound(trtn.iRow);
+				 it != droppedHolds.at(trtn.iTrack).end() && *it <= iSongRow;
+				 it = droppedHolds.at(trtn.iTrack).lower_bound(*it + 1)) {
+
+				// allow the game to treat a missed hold head
+				// on its own and not force an extra drop
+				// (check for None is for miniholds)
+				if (trtn.pTN->result.tns != TNS_Miss &&
+					trtn.pTN->result.tns != TNS_None) {
+					trtn.pTN->HoldResult.bHeld = false;
+					trtn.pTN->HoldResult.bActive = false;
+					trtn.pTN->HoldResult.fLife = 0.f;
+					trtn.pTN->HoldResult.hns = HNS_LetGo;
+
+					// score the dead hold
+					if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO) {
+						IncrementMissCombo();
+					}
+					SetHoldJudgment(
+					  *trtn.pTN, iFirstTrackWithMaxEndRow, iSongRow);
+					HandleHoldScore(*trtn.pTN);
+				}
+
+				droppedHolds.at(trtn.iTrack).erase(*it);
 			}
-		}
 
-		if (holdDropped) // it should be dead
-		{
-			trtn.pTN->HoldResult.bHeld = false;
-			trtn.pTN->HoldResult.bActive = false;
-			trtn.pTN->HoldResult.fLife = 0.f;
-			trtn.pTN->HoldResult.hns = HNS_LetGo;
-
-			// score the dead hold
-			if (COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO)
-				IncrementMissCombo();
-			SetHoldJudgment(*trtn.pTN, iFirstTrackWithMaxEndRow, iSongRow);
-			HandleHoldScore(*trtn.pTN);
-			return;
+			// remove the empty column to optimize this on next iteration
+			if (droppedHolds.at(trtn.iTrack).size() == 0) {
+				droppedHolds.erase(trtn.iTrack);
+			}
 		}
 	}
 }

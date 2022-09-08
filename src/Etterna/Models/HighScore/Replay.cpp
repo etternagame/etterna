@@ -774,6 +774,10 @@ Replay::ValidateOffsets()
 auto
 Replay::GenerateInputData() -> bool
 {
+	if (!InputData.empty()) {
+		return true;
+	}
+
 	if (!LoadReplayData() && !LoadInputData() && !GenerateNoterowsFromTimestamps()) {
 		Locator::getLogger()->warn("Failed to generate input data because "
 								   "replay for score {} could not be loaded",
@@ -954,6 +958,36 @@ Replay::GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>
 	}
 
 	return out;
+}
+
+auto
+Replay::GenerateDroppedHoldColumnsToRowsMap() -> std::map<int, std::set<int>>
+{
+	std::map<int, std::set<int>> mapping;
+
+	for (auto& h : vHoldReplayDataVector) {
+		if (mapping.count(h.track) == 0) {
+			mapping.emplace(h.track, std::set<int>());
+		}
+		mapping.at(h.track).insert(h.row);
+	}
+
+	return mapping;
+}
+
+auto
+Replay::GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>
+{
+	std::map<int, std::set<int>> mapping;
+
+	for (auto& h : vHoldReplayDataVector) {
+		if (mapping.count(h.row) == 0) {
+			mapping.emplace(h.row, std::set<int>());
+		}
+		mapping.at(h.row).insert(h.track);
+	}
+
+	return mapping;
 }
 
 // Lua

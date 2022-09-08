@@ -37,6 +37,12 @@ class PlayerReplay : public Player
 	void SetPlaybackEvents(const std::map<int, std::vector<PlaybackEvent>>& v) {
 		playbackEvents = v;
 	}
+	std::map<int, std::set<int>>& GetDroppedHolds() {
+		return droppedHolds;
+	}
+	void SetDroppedHolds(const std::map<int, std::set<int>>& v) {
+		droppedHolds = v;
+	}
 
   protected:
 	void UpdateHoldsAndRolls(
@@ -48,6 +54,7 @@ class PlayerReplay : public Player
 	void CheckForSteps(const std::chrono::steady_clock::time_point& tm);
 
 	std::map<int, std::vector<PlaybackEvent>> playbackEvents{};
+	std::map<int, std::set<int>> droppedHolds{};
 	std::set<int> holdingColumns{};
 };
 
