@@ -254,17 +254,7 @@ PlayerReplay::Update(float fDeltaTime)
 	if (GAMESTATE->GetPaused())
 		return;
 
-	
-	/*
-	if (PlayerAI::pScoreData->HasColumnData()) {
-		if (PlayerAI::TapExistsAtOrBeforeThisRow(iSongRow)) {
-			auto trrVector = PlayerAI::GetTapsAtOrBeforeRow(iSongRow);
-			for (auto& trr : trrVector) {
-				Step(trr.track, trr.row, now, false, false, 0.f, trr.row);
-			}
-		}
-	}
-	*/
+	// Do replay playback updating
 	CheckForSteps(now);
 
 	// Update visual press state
@@ -521,9 +511,6 @@ PlayerReplay::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 			if (m_pPrimaryScoreKeeper)
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
 		} else {
-			if ((PlayerAI::IsTapAtRowAndColumn(iter.Row(), iter.Track())))
-				continue;
-
 			tn.result.tns = TNS_Miss;
 
 			if (GAMESTATE->CountNotesSeparately()) {
@@ -700,12 +687,9 @@ PlayerReplay::Step(int col,
 			score = TNS_None;
 			fNoteOffset = -1.f;
 		} else {
-			if (fNoteOffset == -2.f) {
+			if (pTN->type == TapNoteType_Mine && pTN->result.tns == TNS_None) {
 				// we hit a mine
 				score = TNS_HitMine;
-			} else if (pTN->type == TapNoteType_Mine) {
-				// we are looking at a mine but missed it
-				return;
 			} else {
 				// every other case
 				if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
