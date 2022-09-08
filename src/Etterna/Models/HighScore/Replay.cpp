@@ -763,7 +763,7 @@ Replay::ValidateOffsets()
 	// in parallel ... but sometimes the vectors are empty
 	// they should NEVER be different length, but CAN be empty instead
 	while (offsetIt != vOffsetVector.end()) {
-		if (fabs(*offsetIt) >= 0.18F) {
+		if (fabs(*offsetIt) >= MISS_WINDOW_BEGIN_SEC) {
 			removeIts();
 		} else {
 			moveIts();
@@ -809,7 +809,7 @@ Replay::GenerateInputData() -> bool
 		for (int i = 0; i < sz; i++) {
 			const auto& noterow = vNoteRowVector.at(i);
 			const auto& offset = vOffsetVector.at(i);
-			if (offset > 0.180F) {
+			if (offset > MISS_WINDOW_BEGIN_SEC) {
 				// nah
 				continue;
 			}
@@ -857,7 +857,7 @@ Replay::GenerateInputData() -> bool
 			TapNoteType tnt = TapNoteType_Invalid;
 			auto columnToUse = -1;
 
-			if (offset > 0.180F) {
+			if (offset > MISS_WINDOW_BEGIN_SEC) {
 				// nah
 				continue;
 			}

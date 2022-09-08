@@ -25,6 +25,10 @@ const int MAX_METER = 35;
 // usually you only reach this if you have a huge starting bpm
 const int ARBITRARY_MIN_GAMEPLAY_NUMBER = -200000;
 
+// the hard end of the boo window and start of the miss window
+// dont let anyone hit a note outside of this
+const float MISS_WINDOW_BEGIN_SEC = 0.18F;
+
 enum GameplayMode
 {
 	GameplayMode_Normal,

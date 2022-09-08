@@ -202,7 +202,7 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= GetTimingWindowScale();
-	fSecs = std::clamp(fSecs, 0.F, 0.18F);
+	fSecs = std::clamp(fSecs, 0.F, MISS_WINDOW_BEGIN_SEC);
 	return fSecs;
 }
 
@@ -225,7 +225,7 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= timingScale;
-	fSecs = std::clamp(fSecs, 0.F, 0.18F);
+	fSecs = std::clamp(fSecs, 0.F, MISS_WINDOW_BEGIN_SEC);
 	return fSecs;
 }
 
@@ -2124,7 +2124,8 @@ Player::Step(int col,
 									   GetWindowSeconds(TW_W4)) {
 								score = TNS_W4;
 							} else if (fSecondsFromExact <=
-									   max(GetWindowSeconds(TW_W5), 0.18F)) {
+									   max(GetWindowSeconds(TW_W5),
+										   MISS_WINDOW_BEGIN_SEC)) {
 								score = TNS_W5;
 							}
 						}
@@ -2922,7 +2923,7 @@ Player::GetMaxStepDistanceSeconds() -> float
 	// Setting this hard to .18 x rate brings it back into line.
 	// (On that note, this should only be used in the context of music
 	// timing, because at a 3x rate this would expand by 3x correctly)
-	float fMax = .18F;
+	float fMax = MISS_WINDOW_BEGIN_SEC;
 	/*
 	float fMax = 0;
 	fMax = max(fMax, GetWindowSeconds(TW_W5));

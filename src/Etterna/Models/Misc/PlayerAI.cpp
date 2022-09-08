@@ -75,7 +75,7 @@ PlayerAI::GetTapNoteScoreForReplay(float fNoteOffset,
 		return TNS_W4;
 	else if (fSecondsFromExact <=
 			 std::max(Player::GetWindowSecondsCustomScale(TW_W5, timingScale),
-					  0.18f))
+					  MISS_WINDOW_BEGIN_SEC))
 		return TNS_W5;
 	return TNS_None;
 }
@@ -84,7 +84,7 @@ float
 PlayerAI::FindMissWindowBegin()
 {
 	// when this becomes useful, this will be finished
-	return 0.18f;
+	return MISS_WINDOW_BEGIN_SEC;
 }
 
 void
@@ -144,7 +144,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
 	for (size_t i = 0; i < replayNoteRowVector.size(); i++) {
-		if (fabsf(replayOffsetVector[i]) > 0.18f)
+		if (fabsf(replayOffsetVector[i]) > MISS_WINDOW_BEGIN_SEC)
 			continue;
 		if (replayNoteRowVector[i] < firstRow)
 			continue;
@@ -332,7 +332,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 				// the game should usually count something as a miss. we dont
 				// use this time for anything other than chronologically parsing
 				// replay data for combo/life stuff so this is okay (i hope)
-				auto tapTime = timing->WhereUAtBro(row) + .18f;
+				auto tapTime = timing->WhereUAtBro(row) + MISS_WINDOW_BEGIN_SEC;
 				for (auto i = 0; i < missDiff; i++) {
 					// we dont really care about anything other than the offset
 					// because we have the estimate time at the row in the map
