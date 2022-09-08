@@ -820,6 +820,7 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 bool
 PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 {
+	bool o = false;
 	// LOG->Trace("Checking for hold.");
 	// Is the given row/column in our dropped hold map?
 	if (m_ReplayHoldMap.count(noteRow) != 0) {
@@ -830,11 +831,21 @@ PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
 			// We found the column we are looking for
 			if (hrr.track == col) {
 				// LOG->Trace("KILL IT NOW");
-				return true;
+				o = true;
+				break;
 			}
 		}
 	}
-	return false;
+
+	if (o) {
+		auto it = m_ReplayHoldMap.at(noteRow).begin();
+		while (it != m_ReplayHoldMap.at(noteRow).end() && it->track != col) {
+			it++;
+		}
+		m_ReplayHoldMap.at(noteRow).erase(it);
+	}
+
+	return o;
 }
 
 int
