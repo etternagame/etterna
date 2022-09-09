@@ -1510,7 +1510,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	}
 
 	STATSMAN->m_CurStageStats.m_player.usedDoubleSetup = usedDoubleSetup;
-	STATSMAN->m_CurStageStats.FinalizeScores(false);
+	STATSMAN->m_CurStageStats.FinalizeScores();
 
 	// If we didn't cheat and aren't in Practice
 	// (Replay does its own thing somewhere else here)

@@ -301,7 +301,7 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 	// Makes sure all PlayerStageStats discrepancies are corrected forcibly.
 	PlayerAI::SetPlayerStageStatsForReplay(pss);
 
-	STATSMAN->m_CurStageStats.FinalizeScores(false);
+	STATSMAN->m_CurStageStats.FinalizeScores();
 
 	STATSMAN->m_vPlayedStageStats.push_back(STATSMAN->m_CurStageStats);
 
