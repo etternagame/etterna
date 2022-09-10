@@ -5,6 +5,7 @@
 #include "Core/Services/Locator.hpp"
 #include "Core/Platform/Platform.hpp"
 #include "RageUtil/File/RageFile.h"
+#include "RageUtil/Utils/RageUtil.h"
 #include "DownloadManager.h"
 #include "GameState.h"
 #include "ScoreManager.h"
@@ -156,15 +157,6 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 
 	SCREENMAN->SystemMessage(sResult);
 	return true;
-}
-
-// A couple utility inline string functions
-inline bool
-ends_with(std::string const& value, std::string const& ending)
-{
-	if (ending.size() > value.size())
-		return false;
-	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
 inline CURL*
