@@ -187,6 +187,7 @@ initCURLHandle(bool withBearer)
 	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
 	return curlHandle;
 }
+// Configurees a CURL handle so it writes it's output to a std::string
 inline void
 SetCURLResultsString(CURL* curlHandle, string* str)
 {
@@ -198,14 +199,7 @@ DownloadManager::SetCURLURL(CURL* curlHandle, string url)
 {
 	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
 		url = string("https://").append(url);
-	//EncodeSpaces(url);
 	curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
-}
-inline void
-DownloadManager::SetCURLPostToURL(CURL* curlHandle, string url)
-{
-	SetCURLURL(curlHandle, url);
-	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
 }
 void
 CURLFormPostField(CURL* curlHandle,
@@ -293,22 +287,15 @@ DownloadManager::~DownloadManager()
 		curl_multi_cleanup(mHTTPHandle);
 	mHTTPHandle = nullptr;
 	EmptyTempDLFileDir();
-	for (auto& dl : downloads) {
-		if (dl.second->handle != nullptr) {
-			curl_easy_cleanup(dl.second->handle);
-			dl.second->handle = nullptr;
-		}
-		delete dl.second;
-	}
 	if (LoggedIn())
 		EndSession();
 	curl_global_cleanup();
 }
 
-Download*
+std::shared_ptr<Download>
 DownloadManager::DownloadAndInstallPack(const string& url, string filename)
 {
-	Download* dl = new Download(url, filename);
+	auto dl = std::make_shared<Download>(url, filename);
 
 	if (mPackHandle == nullptr)
 		mPackHandle = curl_multi_init();
@@ -370,7 +357,7 @@ Download::Update(float fDeltaSeconds)
 		downloadedAtLastUpdate = progress.downloaded / 1024;
 	}
 }
-Download*
+std::shared_ptr<Download>
 DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 {
 	std::vector<std::string> packs;
@@ -386,7 +373,7 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 		return nullptr;
 	}
-	Download* dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
+	auto dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
 										  pack->name + ".zip");
 	dl->p_Pack = pack;
 	return dl;
@@ -506,7 +493,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		auto it = DownloadQueue.begin();
 		DownloadQueue.pop_front();
 		auto pack = *it;
-		auto* dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
+		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
 		if (dl)
 			dl->p_Pack->downloading = true;
 	}
@@ -570,12 +557,11 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 					if (msg->data.result != CURLE_PARTIAL_FILE &&
 						i->second->progress.total <=
 						  i->second->progress.downloaded) {
-						timeSinceLastDownload = 0;
-						i->second->Done(i->second);
-						if (!gameplay) {
+							timeSinceLastDownload = 0;
 							installedPacks = true;
 							i->second->Install();
 							finishedDownloads[i->second->m_Url] = i->second;
+						if (!gameplay) {
 						} else {
 							pendingInstallDownloads[i->second->m_Url] =
 							  i->second;
@@ -897,7 +883,8 @@ DownloadManager::UploadScore(HighScore* hs,
 	}
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "replay_data", replayString);
-	SetCURLPostToURL(curlHandle, url);
+	SetCURLURL(curlHandle, url);
+	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 	auto done = [this, hs, callback, load_from_disk](HTTPRequest& req,
 													 CURLMsg*) {
@@ -1942,7 +1929,6 @@ DownloadManager::RefreshTop25(Skillset ss)
 	if (!LoggedIn())
 		return;
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/top/";
-	CURL* curlHandle = initCURLHandle(true);
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
 	auto done = [ss](HTTPRequest& req, CURLMsg*) {
@@ -2097,7 +2083,8 @@ DownloadManager::StartSession(
 	DLMAN->loggingIn = true;
 	EndSessionIfExists();
 	CURL* curlHandle = initCURLHandle(false);
-	SetCURLPostToURL(curlHandle, url);
+	SetCURLURL(curlHandle, url);
+	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt(
 	  curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
 
@@ -2260,7 +2247,7 @@ DownloadManager::RefreshPackList(const string& url)
 	SendRequestToURL(url, {}, done, false, false, true, false);
 }
 
-Download::Download(std::string url, std::string filename, function<void(Download*)> done)
+Download::Download(std::string url, std::string filename)
 {
 	// remove characters we cant accept
 	std::regex remover("[^\\w\\s\\d.]");
@@ -2268,14 +2255,12 @@ Download::Download(std::string url, std::string filename, function<void(Download
 	auto tmpFilename =
 	  DL_DIR + (!cleanname.empty() ? cleanname : MakeTempFileName(url));
 	auto opened = p_RFWrapper.file.Open(tmpFilename, 2);
-	Done = done;
 	m_Url = url;
 	handle = initBasicCURLHandle();
 	m_TempFileName = tmpFilename;
 
 	// horrible force crash if somehow things still dont work
 	ASSERT_M(opened, p_RFWrapper.file.GetError());
-	//DLMAN->EncodeSpaces(m_Url);
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
 	curl_easy_setopt(handle,
@@ -2315,6 +2300,10 @@ Download::Download(std::string url, std::string filename, function<void(Download
 
 Download::~Download()
 {
+	if (handle != nullptr) {
+		curl_easy_cleanup(handle);
+		handle = nullptr;
+	}
 	FILEMAN->Remove(m_TempFileName);
 	if (p_Pack)
 		p_Pack->downloading = false;
@@ -2424,7 +2413,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetDownloads(T* p, lua_State* L)
 	{
-		map<string, Download*>& dls = DLMAN->downloads;
+		map<string, std::shared_ptr<Download>>& dls = DLMAN->downloads;
 		lua_createtable(L, dls.size(), 0);
 		int j = 0;
 		for (auto& dl : dls) {
@@ -2865,7 +2854,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 			p->PushSelf(L);
 			return 1;
 		}
-		Download* dl = DLMAN->DownloadAndInstallPack(p, mirror);
+		std::shared_ptr<Download> dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
 			p->downloading = true;

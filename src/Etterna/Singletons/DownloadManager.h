@@ -33,11 +33,9 @@ class RageFileWrapper
 class Download
 {
   public:
-	std::function<void(Download*)> Done;
 	Download(
 	  std::string url,
-	  std::string filename = "",
-	  std::function<void(Download*)> done = [](Download*) {});
+	  std::string filename = "");
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -171,12 +169,12 @@ class DownloadManager
 	static LuaReference EMPTY_REFERENCE;
 	DownloadManager();
 	~DownloadManager();
-	std::map<std::string, Download*> downloads; // Active downloads
+	std::map<std::string, std::shared_ptr<Download>> downloads; // Active downloads
 	std::vector<HTTPRequest*>
 	  HTTPRequests; // Active HTTP requests (async, curlMulti)
 
-	std::map<std::string, Download*> finishedDownloads;
-	std::map<std::string, Download*> pendingInstallDownloads;
+	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
+	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
 	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
 	CURLMcode ret = CURLM_CALL_MULTI_PERFORM;
@@ -242,9 +240,9 @@ class DownloadManager
 	void RefreshPackList(const std::string& url);
 
 	void init();
-	Download* DownloadAndInstallPack(const std::string& url,
+	std::shared_ptr<Download> DownloadAndInstallPack(const std::string& url,
 									 std::string filename = "");
-	Download* DownloadAndInstallPack(DownloadablePack* pack,
+	std::shared_ptr<Download> DownloadAndInstallPack(DownloadablePack* pack,
 									 bool mirror = false);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
