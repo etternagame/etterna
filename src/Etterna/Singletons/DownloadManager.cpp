@@ -638,10 +638,7 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 	if (it != DLMAN->favorites.end())
 		DLMAN->favorites.erase(it);
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites/" + UrlEncode(chartkey);
-	auto done = [](HTTPRequest& req, CURLMsg*) {
-
-	};
-	auto r = SendRequest(req, {}, done);
+	auto r = SendRequest(req, {}, {});
 	if (r)
 		curl_easy_setopt(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 }
@@ -652,10 +649,7 @@ DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 {
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/" + UrlEncode(chartkey )+ "/" +
 				 to_string(wife) + "/" + to_string(rate);
-	auto done = [](HTTPRequest& req, CURLMsg*) {
-
-	};
-	auto r = SendRequest(req, {}, done);
+	auto r = SendRequest(req, {}, {});
 	if (r)
 		curl_easy_setopt(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 }
@@ -667,16 +661,13 @@ DownloadManager::AddGoal(const string& chartkey,
 						 DateTime& timeAssigned)
 {
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals";
-	auto done = [](HTTPRequest& req, CURLMsg*) {
-
-	};
 	std::vector<pair<string, string>> postParams = {
 		make_pair("chartkey", UrlEncode(chartkey)),
 		make_pair("rate", to_string(rate)),
 		make_pair("wife", to_string(wife)),
 		make_pair("timeAssigned", timeAssigned.GetString())
 	};
-	SendRequest(req, postParams, done, true, true);
+	SendRequest(req, postParams, {}, true, true);
 }
 
 void
@@ -692,9 +683,6 @@ DownloadManager::UpdateGoal(const string& chartkey,
 		timeAchievedString = timeAchieved.GetString();
 
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/update";
-	auto done = [](HTTPRequest& req, CURLMsg*) {
-
-	};
 	std::vector<pair<string, string>> postParams = {
 		make_pair("chartkey", UrlEncode(chartkey)),
 		make_pair("rate", to_string(rate)),
@@ -703,7 +691,7 @@ DownloadManager::UpdateGoal(const string& chartkey,
 		make_pair("timeAssigned", timeAssigned.GetString()),
 		make_pair("timeAchieved", timeAchievedString)
 	};
-	SendRequest(req, postParams, done, true, true);
+	SendRequest(req, postParams, {}, true, true);
 }
 
 void
@@ -1196,17 +1184,6 @@ DownloadManager::EndSession()
 		MESSAGEMAN->Broadcast("LogOut");
 }
 
-std::vector<std::string>
-split(const std::string& s, char delimiter)
-{
-	std::vector<std::string> tokens;
-	std::string token;
-	std::istringstream tokenStream(s);
-	while (std::getline(tokenStream, token, delimiter)) {
-		tokens.push_back(token);
-	}
-	return tokens;
-}
 // User rank
 void
 DownloadManager::RefreshUserRank()
@@ -2330,18 +2307,6 @@ Download::Failed()
 	msg.SetParam("pack", LuaReference::CreateFromPush(*p_Pack));
 	MESSAGEMAN->Broadcast(msg);
 }
-/// Try to find in the Haystack the Needle - ignore case
-bool
-findStringIC(const std::string& strHaystack, const std::string& strNeedle)
-{
-	auto it = std::search(
-	  strHaystack.begin(),
-	  strHaystack.end(),
-	  strNeedle.begin(),
-	  strNeedle.end(),
-	  [](char ch1, char ch2) { return toupper(ch1) == toupper(ch2); });
-	return (it != strHaystack.end());
-}
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -2823,10 +2788,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestOnlineScoreReplayData);
 		ADD_METHOD(GetChartLeaderBoard);
-		// This does not actually request the leaderboard from online.
-		// It gets the already retrieved data from DLMAN
-		// Why does this alias exist?
-		AddMethod("GetChartLeaderboard", GetChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
