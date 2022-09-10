@@ -187,32 +187,6 @@ initCURLHandle(bool withBearer)
 	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
 	return curlHandle;
 }
-inline bool
-addFileToForm(curl_httppost*& form,
-			  curl_httppost*& lastPtr,
-			  string field,
-			  string fileName,
-			  string filePath,
-			  std::string& contents)
-{
-	RageFile rFile;
-	if (!rFile.Open(filePath))
-		return false;
-	rFile.Read(contents, rFile.GetFileSize());
-	rFile.Close();
-	curl_formadd(&form,
-				 &lastPtr,
-				 CURLFORM_COPYNAME,
-				 field.c_str(),
-				 CURLFORM_BUFFER,
-				 fileName.c_str(),
-				 CURLFORM_BUFFERPTR,
-				 contents.c_str(),
-				 CURLFORM_BUFFERLENGTH,
-				 0,
-				 CURLFORM_END);
-	return true;
-}
 inline void
 SetCURLResultsString(CURL* curlHandle, string* str)
 {
