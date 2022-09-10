@@ -224,6 +224,7 @@ class PrefsManager
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
 	Preference<bool> m_bAlwaysLoadCalcParams;
+	Preference<int> m_UnfocusedSleepMillisecs;
 
 	// logging level 0 - 5
 	// 0 = TRACE (all the logging)
