@@ -256,7 +256,6 @@ class DownloadManager
 
 	std::string GetError() { return error; }
 	bool Error() { return error.empty(); }
-	bool EncodeSpaces(std::string& str);
 
 	void UploadScore(HighScore* hs,
 					 std::function<void()> callback,

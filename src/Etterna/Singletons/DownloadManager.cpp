@@ -72,25 +72,12 @@ write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 	return realsize;
 }
 
-class ReadThis
-{
-  public:
-	RageFile file;
-};
-
 string
 ComputerIdentity()
 {
 	string computerName = "";
 	string userName = "";
 #ifdef _WIN32
-
-	int cpuinfo[4] = { 0, 0, 0, 0 };
-	__cpuid(cpuinfo, 0);
-	uint16_t cpuHash = 0;
-	uint16_t* ptr = (uint16_t*)(&cpuinfo[0]);
-	for (uint32_t i = 0; i < 8; i++)
-		cpuHash += ptr[i];
 
 	TCHAR infoBuf[1024];
 	DWORD bufCharCount = 1024;
@@ -107,21 +94,6 @@ ComputerIdentity()
 	userName = username;
 #endif
 	return computerName + ":_:" + userName;
-}
-size_t
-ReadThisReadCallback(void* dest, size_t size, size_t nmemb, void* userp)
-{
-	auto rt = static_cast<ReadThis*>(userp);
-	size_t buffer_size = size * nmemb;
-
-	return rt->file.Read(dest, buffer_size);
-}
-
-int
-ReadThisSeekCallback(void* arg, curl_off_t offset, int origin)
-{
-	return static_cast<ReadThis*>(arg)->file.Seek(static_cast<int>(offset),
-												  origin);
 }
 
 bool
@@ -186,27 +158,6 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	return true;
 }
 
-// Functions used to read/write data
-int
-progressfunc(void* clientp,
-			 curl_off_t dltotal,
-			 curl_off_t dlnow,
-			 curl_off_t ultotal,
-			 curl_off_t ulnow)
-{
-	auto ptr = static_cast<ProgressData*>(clientp);
-	ptr->total = dltotal;
-	ptr->downloaded = dlnow;
-	return 0;
-}
-size_t
-write_data(void* dlBuffer, size_t size, size_t nmemb, void* pnf)
-{
-	auto RFW = static_cast<RageFileWrapper*>(pnf);
-	size_t b = RFW->stop ? 0 : RFW->file.Write(dlBuffer, size * nmemb);
-	RFW->bytes += b;
-	return b;
-}
 // A couple utility inline string functions
 inline bool
 ends_with(std::string const& value, std::string const& ending)
@@ -216,12 +167,6 @@ ends_with(std::string const& value, std::string const& ending)
 	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-inline void
-checkProtocol(string& url)
-{
-	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
-		url = string("http://").append(url);
-}
 inline CURL*
 initBasicCURLHandle()
 {
@@ -285,8 +230,9 @@ SetCURLResultsString(CURL* curlHandle, string* str)
 inline void
 DownloadManager::SetCURLURL(CURL* curlHandle, string url)
 {
-	checkProtocol(url);
-	EncodeSpaces(url);
+	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
+		url = string("https://").append(url);
+	//EncodeSpaces(url);
 	curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
 }
 inline void
@@ -439,21 +385,13 @@ DownloadManager::UpdateDLSpeed(bool gameplay)
 	UpdateDLSpeed();
 }
 
-bool
-DownloadManager::EncodeSpaces(string& str)
+string
+UrlEncode(const string& str)
 {
-
-	// Parse spaces (curl doesnt parse them properly)
-	bool foundSpaces = false;
-	size_t index = str.find(' ', 0);
-	while (index != string::npos) {
-
-		str.erase(index, 1);
-		str.insert(index, "%20");
-		index = str.find(' ', index);
-		foundSpaces = true;
-	}
-	return foundSpaces;
+	char* escaped = curl_easy_escape(nullptr, str.data(), str.length());
+	string ret(escaped);
+	curl_free(escaped);
+	return ret;
 }
 
 void
@@ -730,13 +668,14 @@ DownloadManager::LoggedIn()
 void
 DownloadManager::AddFavorite(const string& chartkey)
 {
-	string req = "user/" + DLMAN->sessionUser + "/favorites";
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites";
 	DLMAN->favorites.push_back(chartkey);
 	auto done = [req](HTTPRequest& requ, CURLMsg*) {
 		Locator::getLogger()->warn(
 		  "Favorited: {}{}{}", requ.result, req, DLMAN->sessionUser);
 	};
-	SendRequest(req, { make_pair("chartkey", chartkey) }, done, true, true);
+	SendRequest(
+	  req, { make_pair("chartkey", UrlEncode(chartkey)) }, done, true, true);
 }
 
 void
@@ -746,7 +685,7 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
 	if (it != DLMAN->favorites.end())
 		DLMAN->favorites.erase(it);
-	string req = "user/" + DLMAN->sessionUser + "/favorites/" + chartkey;
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites/" + UrlEncode(chartkey);
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
@@ -759,7 +698,7 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 void
 DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 {
-	string req = "user/" + DLMAN->sessionUser + "/goals/" + chartkey + "/" +
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/" + UrlEncode(chartkey )+ "/" +
 				 to_string(wife) + "/" + to_string(rate);
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
@@ -775,12 +714,12 @@ DownloadManager::AddGoal(const string& chartkey,
 						 float rate,
 						 DateTime& timeAssigned)
 {
-	string req = "user/" + DLMAN->sessionUser + "/goals";
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
 	std::vector<pair<string, string>> postParams = {
-		make_pair("chartkey", chartkey),
+		make_pair("chartkey", UrlEncode(chartkey)),
 		make_pair("rate", to_string(rate)),
 		make_pair("wife", to_string(wife)),
 		make_pair("timeAssigned", timeAssigned.GetString())
@@ -796,21 +735,21 @@ DownloadManager::UpdateGoal(const string& chartkey,
 							DateTime& timeAssigned,
 							DateTime& timeAchieved)
 {
-	string doot = "0000:00:00 00:00:00";
+	string timeAchievedString = "0000:00:00 00:00:00";
 	if (achieved)
-		doot = timeAchieved.GetString();
+		timeAchievedString = timeAchieved.GetString();
 
-	string req = "user/" + DLMAN->sessionUser + "/goals/update";
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/update";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 
 	};
 	std::vector<pair<string, string>> postParams = {
-		make_pair("chartkey", chartkey),
+		make_pair("chartkey", UrlEncode(chartkey)),
 		make_pair("rate", to_string(rate)),
 		make_pair("wife", to_string(wife)),
 		make_pair("achieved", to_string(achieved)),
 		make_pair("timeAssigned", timeAssigned.GetString()),
-		make_pair("timeAchieved", doot)
+		make_pair("timeAchieved", timeAchievedString)
 	};
 	SendRequest(req, postParams, done, true, true);
 }
@@ -818,7 +757,7 @@ DownloadManager::UpdateGoal(const string& chartkey,
 void
 DownloadManager::RefreshFavorites()
 {
-	string req = "user/" + DLMAN->sessionUser + "/favorites";
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites";
 	auto done = [](HTTPRequest& req, CURLMsg*) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
@@ -1349,7 +1288,7 @@ DownloadManager::RefreshUserRank()
 		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
-	SendRequest("user/" + sessionUser + "/ranks", {}, done, true, false, true);
+	SendRequest("user/" + UrlEncode(sessionUser) + "/ranks", {}, done, true, false, true);
 }
 OnlineTopScore
 DownloadManager::GetTopSkillsetScore(unsigned int rank,
@@ -1902,7 +1841,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 			LUA->Release(L);
 		}
 	};
-	SendRequest("/charts/" + chartkey + "/leaderboards",
+	SendRequest("/charts/" + UrlEncode(chartkey) + "/leaderboards",
 				std::vector<pair<string, string>>(),
 				done,
 				true);
@@ -2036,7 +1975,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 	DLMAN->topScores[ss].clear();
 	if (!LoggedIn())
 		return;
-	string req = "user/" + DLMAN->sessionUser + "/top/";
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/top/";
 	CURL* curlHandle = initCURLHandle(true);
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
@@ -2152,7 +2091,7 @@ DownloadManager::RefreshUserData()
 
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
-	SendRequest("user/" + sessionUser, {}, done);
+	SendRequest("user/" + UrlEncode(sessionUser), {}, done);
 }
 
 void
@@ -2370,13 +2309,40 @@ Download::Download(std::string url, std::string filename, function<void(Download
 
 	// horrible force crash if somehow things still dont work
 	ASSERT_M(opened, p_RFWrapper.file.GetError());
-	DLMAN->EncodeSpaces(m_Url);
+	//DLMAN->EncodeSpaces(m_Url);
 
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
-	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
+	curl_easy_setopt(handle,
+					 CURLOPT_WRITEFUNCTION,
+	  static_cast<size_t(*)(
+		char*, size_t, size_t, void*)>(
+		[](char* dlBuffer, size_t size, size_t nmemb, void* pnf)
+		->size_t {
+						 auto RFW = static_cast<RageFileWrapper*>(pnf);
+						 size_t b = RFW->stop
+									  ? 0
+									  : RFW->file.Write(dlBuffer, size * nmemb);
+						 RFW->bytes += b;
+						 return b;
+					 }));
 	curl_easy_setopt(handle, CURLOPT_URL, m_Url.c_str());
 	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
-	curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progressfunc);
+	curl_easy_setopt(handle,
+					 CURLOPT_XFERINFOFUNCTION,
+					 static_cast<int (*)(void *,
+                      curl_off_t,
+                      curl_off_t,
+                      curl_off_t,
+                      curl_off_t)>([](void* clientp,
+										 curl_off_t dltotal,
+										 curl_off_t dlnow,
+										 curl_off_t ultotal,
+						curl_off_t ulnow) -> int {
+						 auto ptr = static_cast<ProgressData*>(clientp);
+						 ptr->total = dltotal;
+						 ptr->downloaded = dlnow;
+						 return 0;
+					 }));
 	curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
 	curl_easy_setopt(handle, CURLOPT_HTTPGET, 1L);
 }
