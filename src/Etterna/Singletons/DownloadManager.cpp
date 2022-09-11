@@ -73,6 +73,9 @@ write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 	return realsize;
 }
 
+std::atomic<bool> QUIT_OTHER_THREADS_FLAG = false;
+RageSemaphore THREAD_EXIT_COUNT("DLMAN thread exit semaphore", 0);
+
 string
 ComputerIdentity()
 {
@@ -280,62 +283,25 @@ DownloadManager::DownloadManager()
 
 DownloadManager::~DownloadManager()
 {
-	if (mPackHandle != nullptr)
-		curl_multi_cleanup(mPackHandle);
-	mPackHandle = nullptr;
-	if (mHTTPHandle != nullptr)
-		curl_multi_cleanup(mHTTPHandle);
-	mHTTPHandle = nullptr;
+	QUIT_OTHER_THREADS_FLAG.store(true);
+	THREAD_EXIT_COUNT.Wait();
+	THREAD_EXIT_COUNT.Wait();
 	EmptyTempDLFileDir();
 	if (LoggedIn())
 		EndSession();
 	curl_global_cleanup();
 }
 
-std::shared_ptr<Download>
-DownloadManager::DownloadAndInstallPack(const string& url, string filename)
-{
-	auto dl = std::make_shared<Download>(url, filename);
-
-	if (mPackHandle == nullptr)
-		mPackHandle = curl_multi_init();
-	curl_multi_add_handle(mPackHandle, dl->handle);
-	downloads[url] = dl;
-
-	UpdateDLSpeed();
-
-	ret = curl_multi_perform(mPackHandle, &downloadingPacks);
-	SCREENMAN->SystemMessage(dl->StartMessage());
-
-	return dl;
-}
-
 void
-DownloadManager::UpdateDLSpeed()
+DownloadManager::UpdateGameplayState(bool gameplay)
 {
-	size_t maxDLSpeed;
-	if (this->gameplay) {
-		maxDLSpeed = maxDLPerSecondGameplay;
-	} else {
-		maxDLSpeed = maxDLPerSecond;
+	if (this->gameplay != gameplay) {
+		if (gameplay)
+			MESSAGEMAN->Broadcast("PausingDownloads");
+		else
+			MESSAGEMAN->Broadcast("ResumingDownloads");
 	}
-	for (auto& x : downloads)
-		curl_easy_setopt(
-		  x.second->handle,
-		  CURLOPT_MAX_RECV_SPEED_LARGE,
-		  static_cast<curl_off_t>(maxDLSpeed / downloads.size()));
-}
-
-void
-DownloadManager::UpdateDLSpeed(bool gameplay)
-{
 	this->gameplay = gameplay;
-	if (gameplay)
-		MESSAGEMAN->Broadcast("PausingDownloads");
-	else
-		MESSAGEMAN->Broadcast("ResumingDownloads");
-
-	UpdateDLSpeed();
 }
 
 string
@@ -352,9 +318,10 @@ Download::Update(float fDeltaSeconds)
 {
 	progress.time += fDeltaSeconds;
 	if (progress.time > 1.0) {
-		speed = to_string(progress.downloaded / 1024 - downloadedAtLastUpdate);
+		curl_off_t downloaded = progress.downloaded; 
+		speed = to_string(downloaded / 1024 - downloadedAtLastUpdate);
 		progress.time = 0;
-		downloadedAtLastUpdate = progress.downloaded / 1024;
+		downloadedAtLastUpdate = downloaded / 1024;
 	}
 }
 std::shared_ptr<Download>
@@ -369,13 +336,14 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 			return nullptr;
 		}
 	}
-	if (downloadingPacks >= maxPacksToDownloadAtOnce) {
+	if (downloads.size() >= maxPacksToDownloadAtOnce) {
 		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 		return nullptr;
 	}
 	auto dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
 										  pack->name + ".zip");
 	dl->p_Pack = pack;
+	dl->p_Pack->downloading = true;
 	return dl;
 }
 enum class RequestResultStatus
@@ -391,6 +359,16 @@ void AddHttpRequestHandle(CURL* handle) {
 	const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
 	G_HTTP_REQS.push_back(handle);
 }
+std::mutex G_MTX_PACK_REQS;
+std::vector<CURL*> G_PACK_REQS;
+std::mutex G_MTX_PACK_RESULT_HANDLES;
+std::vector<std::pair<CURL*, RequestResultStatus>> G_PACK_RESULT_HANDLES;
+void
+AddPackDlRequestHandle(CURL* handle)
+{
+	const std::lock_guard<std::mutex> lock(G_MTX_PACK_REQS);
+	G_PACK_REQS.push_back(handle);
+}
 void
 DownloadManager::init()
 {
@@ -399,11 +377,76 @@ DownloadManager::init()
 	RefreshRegisterPage();
 	initialized = true;
 	std::thread([]() {
-		return;
+		size_t maxDLSpeed = maxDLPerSecond;
+		CURLM* CurlMHandle = curl_multi_init();
+		int HandlesRunning = 0;
+		std::vector<CURL*> local_http_reqs_tmp;
+		std::vector<CURL*> local_http_reqs;
+		std::vector<std::pair<CURL*, RequestResultStatus>> result_handles;
+		bool handle_count_changed = false;
 		while (true) {
-			// TODO
-			//UpdatePacks(fDeltaSeconds);
+			if (QUIT_OTHER_THREADS_FLAG.load()) break;
+			{
+				const std::lock_guard<std::mutex> lock(G_MTX_PACK_REQS);
+				G_PACK_REQS.swap(local_http_reqs_tmp);
+			}
+			handle_count_changed =
+			  handle_count_changed ||
+			  !local_http_reqs_tmp.empty();
+			for (auto& curl_handle : local_http_reqs_tmp) {
+				curl_multi_add_handle(CurlMHandle, curl_handle);
+			}
+			// Add all elements from local_http_reqs_tmp to local_http_reqs
+			local_http_reqs.insert(
+			  local_http_reqs.end(),
+					  std::make_move_iterator(local_http_reqs_tmp.begin()),
+					  std::make_move_iterator(local_http_reqs_tmp.end()));
+			local_http_reqs_tmp.clear();
+			if (handle_count_changed && maxDLSpeed != 0) {
+				for (auto& handle : local_http_reqs)
+					curl_easy_setopt(
+					  handle,
+					  CURLOPT_MAX_RECV_SPEED_LARGE,
+									 static_cast<curl_off_t>(
+									   maxDLSpeed / local_http_reqs.size()));
+			}
+			handle_count_changed = false;
+
+			CURLMcode mc = curl_multi_perform(CurlMHandle, &HandlesRunning);
+			if (HandlesRunning == 0)
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			else if (!mc)
+				mc = curl_multi_poll(CurlMHandle, NULL, 0, 10, NULL);
+
+			// Check for finished downloads
+			CURLMsg* msg;
+			int msgs_left;
+			while ((msg = curl_multi_info_read(CurlMHandle, &msgs_left))) {
+				RequestResultStatus rescode =
+				  msg->data.result != CURLE_PARTIAL_FILE &&
+					  msg->msg == CURLMSG_DONE
+					? RequestResultStatus::Done
+					: RequestResultStatus::Failed;
+				result_handles.push_back(
+				  std::make_pair(msg->easy_handle, rescode));
+				curl_multi_remove_handle(CurlMHandle, msg->easy_handle);
+				curl_easy_cleanup(msg->easy_handle);
+			}
+			if (!result_handles.empty()) {
+				handle_count_changed = true;
+				{
+					const std::lock_guard<std::mutex> lock(
+						G_MTX_PACK_RESULT_HANDLES);
+					G_PACK_RESULT_HANDLES.insert(
+					  G_PACK_RESULT_HANDLES.end(),
+						std::make_move_iterator(result_handles.begin()),
+						std::make_move_iterator(result_handles.end()));
+				}
+				result_handles.clear();
+			}
 		}
+		curl_multi_cleanup(CurlMHandle);
+		THREAD_EXIT_COUNT.Post();
 	}).detach();
 	std::thread([]() {
 		CURLM* CurlMHandle = curl_multi_init();
@@ -411,6 +454,8 @@ DownloadManager::init()
 		std::vector<CURL*> local_http_reqs;
 		std::vector<std::pair<CURL*, RequestResultStatus>> result_handles;
 		while (true) {
+			if (QUIT_OTHER_THREADS_FLAG.load())
+				break;
 			{
 				const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
 				G_HTTP_REQS.swap(local_http_reqs);
@@ -442,18 +487,19 @@ DownloadManager::init()
 				curl_easy_cleanup(msg->easy_handle);
 			}
 			if (!result_handles.empty()) {
-				const std::lock_guard<std::mutex> lock(
-					G_MTX_HTTP_RESULT_HANDLES);
-				G_HTTP_RESULT_HANDLES.swap(result_handles);
-				// There is a small chance that by just blindly swapping we
-				// are *removing* pending results. However, since we don't
-				// clear them, they should just remain here for another
-				// iteration. I don't think this matters in practice and I
-				// don't feel like adding the condition to handle it right
-				// now
+				{
+					const std::lock_guard<std::mutex> lock(
+					  G_MTX_HTTP_RESULT_HANDLES);
+					G_HTTP_RESULT_HANDLES.insert(
+					  G_HTTP_RESULT_HANDLES.end(),
+					  std::make_move_iterator(result_handles.begin()),
+					  std::make_move_iterator(result_handles.end()));
+				}
+				result_handles.clear();
 			}
 		}
 		curl_multi_cleanup(CurlMHandle);
+		THREAD_EXIT_COUNT.Post();
 	}).detach();
 }
 void
@@ -537,122 +583,78 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
-	if (downloadingPacks < maxPacksToDownloadAtOnce && !DownloadQueue.empty() &&
+	if (downloads.size() < maxPacksToDownloadAtOnce &&
+		!DownloadQueue.empty() &&
 		timeSinceLastDownload > DownloadCooldownTime) {
-		auto it = DownloadQueue.begin();
+		std::pair<DownloadablePack*, bool> pack = DownloadQueue.front();
 		DownloadQueue.pop_front();
-		auto pack = *it;
-		auto dl = DLMAN->DownloadAndInstallPack(pack.first, pack.second);
-		if (dl)
-			dl->p_Pack->downloading = true;
+		DLMAN->DownloadAndInstallPack(pack.first, pack.second);
 	}
-	if (!downloadingPacks)
+	if (downloads.empty())
 		return;
-	timeval timeout;
-	int rc, maxfd = -1;
-	CURLMcode mc;
-	fd_set fdread, fdwrite, fdexcep;
-	long curl_timeo = -1;
-	FD_ZERO(&fdread);
-	FD_ZERO(&fdwrite);
-	FD_ZERO(&fdexcep);
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 1;
-	curl_multi_timeout(mPackHandle, &curl_timeo);
 
-	mc = curl_multi_fdset(mPackHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
-	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + to_string(mc);
-		return;
+	static std::vector<std::pair<CURL*, RequestResultStatus>> result_handles;
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_PACK_RESULT_HANDLES);
+		G_PACK_RESULT_HANDLES.swap(result_handles);
 	}
-	if (maxfd == -1) {
-		rc = 0;
-	} else {
-		rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
-	}
-	switch (rc) {
-		case -1:
-			error = "select error" + to_string(mc);
-			break;
-		case 0:	 /* timeout */
-		default: /* action */
-			curl_multi_perform(mPackHandle, &downloadingPacks);
-			for (auto& dl : downloads) {
-				if (dl.second == nullptr) {
-					Locator::getLogger()->warn(
-					  "Pack download was null? URL: {}", dl.first);
-					continue;
-				}
-				dl.second->Update(fDeltaSeconds);
-			}
-
-			break;
-	}
-
-	// Check for finished downloads
-	CURLMsg* msg;
-	int msgs_left;
-	bool installedPacks = false;
 	bool finishedADownload = false;
-	while ((msg = curl_multi_info_read(mPackHandle, &msgs_left))) {
+	for (auto& pair : result_handles) {
+		CURL* handle = pair.first;
+		RequestResultStatus res = pair.second;
+
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
-			if (msg->easy_handle == i->second->handle) {
-				if (msg->msg == CURLMSG_DONE) {
-					finishedADownload = true;
-					i->second->p_RFWrapper.file.Flush();
-					if (i->second->p_RFWrapper.file.IsOpen())
-						i->second->p_RFWrapper.file.Close();
-					if (msg->data.result != CURLE_PARTIAL_FILE &&
-						i->second->progress.total <=
-						  i->second->progress.downloaded) {
-							timeSinceLastDownload = 0;
-							installedPacks = true;
-							i->second->Install();
-							finishedDownloads[i->second->m_Url] = i->second;
-						if (!gameplay) {
-						} else {
-							pendingInstallDownloads[i->second->m_Url] =
-							  i->second;
-						}
-					} else {
-						i->second->Failed();
-						finishedDownloads[i->second->m_Url] = i->second;
-					}
-					if (i->second->handle != nullptr)
-						curl_easy_cleanup(i->second->handle);
-					i->second->handle = nullptr;
-					if (i->second->p_Pack != nullptr)
-						i->second->p_Pack->downloading = false;
-					downloads.erase(i);
-					break;
-				} else if (i->second->p_RFWrapper.stop) {
+			auto& dl = i->second;
+			if (handle == dl-> handle) {
+				if (dl->p_RFWrapper.stop) {
+					dl->Failed();
+					finishedDownloads[dl->m_Url] = dl;
+				} else if (res == RequestResultStatus::Done) {
+					timeSinceLastDownload = 0;
+					pendingInstallDownloads[dl->m_Url] = dl;
+				} else if (res == RequestResultStatus::Failed) {
 					i->second->Failed();
-					finishedDownloads[i->second->m_Url] = i->second;
-					if (i->second->handle != nullptr)
-						curl_easy_cleanup(i->second->handle);
-					i->second->handle = nullptr;
-					if (i->second->p_Pack != nullptr)
-						i->second->p_Pack->downloading = false;
-					downloads.erase(i);
+					finishedDownloads[dl->m_Url] = dl;
 				}
+				finishedADownload = true;
+				dl->p_RFWrapper.file.Flush();
+				if (dl->p_RFWrapper.file.IsOpen())
+					dl->p_RFWrapper.file.Close();
+				dl->handle = nullptr;
+				if (dl->p_Pack != nullptr)
+					dl->p_Pack->downloading = false;
+				downloads.erase(i);
+				break;
 			}
 		}
 	}
-	if (finishedADownload) {
-		UpdateDLSpeed();
-		if (downloads.empty())
+	result_handles.clear();
+
+	if (finishedADownload && downloads.empty()) {
 			MESSAGEMAN->Broadcast("AllDownloadsCompleted");
 	}
-	if (installedPacks) {
-		auto screen = SCREENMAN->GetScreen(0);
-		if (screen && screen->GetName() == "ScreenSelectMusic")
-			static_cast<ScreenSelectMusic*>(screen)->DifferentialReload();
-		else if (screen && screen->GetName() == "ScreenNetSelectMusic")
-			static_cast<ScreenNetSelectMusic*>(screen)->DifferentialReload();
-		else
-			SONGMAN->DifferentialReload();
+	for (auto& x : downloads) {
+		/*if (x.second == nullptr) {
+			Locator::getLogger()->warn("Pack download was null? URL: {}",
+									   dl.first);
+			continue;
+		}*/
+		x.second->Update(fDeltaSeconds);
 	}
+}
+
+std::shared_ptr<Download>
+DownloadManager::DownloadAndInstallPack(const string& url, string filename)
+{
+	auto dl = std::make_shared<Download>(url, filename);
+
+	AddPackDlRequestHandle(dl->handle);
+	downloads[url] = dl;
+
+	SCREENMAN->SystemMessage(dl->StartMessage());
+
+	return dl;
 }
 
 string
@@ -1039,7 +1041,6 @@ DownloadManager::UploadScore(HighScore* hs,
 		  callback();
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
-	//curl_multi_add_handle(mHTTPHandle, req->handle);
 	AddHttpRequestHandle(req->handle);
 	HTTPRequests.push_back(req);
 	Locator::getLogger()->info("Finished creating UploadScore request");
@@ -1377,9 +1378,6 @@ DownloadManager::SendRequestToURL(
 	}
 	SetCURLResultsString(curlHandle, &(req->result));
 	if (async) {
-		if (mHTTPHandle == nullptr)
-			mHTTPHandle = curl_multi_init();
-		//curl_multi_add_handle(mHTTPHandle, req->handle);
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	} else {
@@ -2165,9 +2163,6 @@ DownloadManager::StartSession(
 		DLMAN->loggingIn = false;
 	};
 	SetCURLResultsString(curlHandle, &(req->result));
-	if (mHTTPHandle == nullptr)
-		mHTTPHandle = curl_multi_init();
-	//curl_multi_add_handle(mHTTPHandle, req->handle);
 	AddHttpRequestHandle(req->handle);
 	HTTPRequests.push_back(req);
 }
@@ -2332,8 +2327,6 @@ Download::~Download()
 		handle = nullptr;
 	}
 	FILEMAN->Remove(m_TempFileName);
-	if (p_Pack)
-		p_Pack->downloading = false;
 }
 
 void
@@ -2872,7 +2865,6 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		std::shared_ptr<Download> dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
-			p->downloading = true;
 		} else
 			lua_pushnil(L);
 		IsQueued(p, L);
