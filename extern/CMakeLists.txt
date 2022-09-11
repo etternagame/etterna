@@ -16,7 +16,7 @@ set(BUILD_SHARED_LIBS OFF) # Tell CMake to prefer static libs
 set(CMAKE_USE_LIBSSH2 OFF CACHE BOOL "" FORCE) # Disable curl libssh2
 set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)    # Tell curl not to build standalone binary
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)     # Disable curl testing
-set(CMAKE_USE_OPENSSL ON CACHE BOOL "" FORCE)  # Require OpenSSL
+set(CURL_USE_OPENSSL ON CACHE BOOL "" FORCE)  # Require OpenSSL
 set(HTTP_ONLY ON CACHE BOOL "" FORCE)          # Disable all protocols except HTTP/S
 add_subdirectory(curl)
 

@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -24,14 +24,16 @@
 .SH NAME
 CURLINFO_CONTENT_TYPE \- get Content-Type
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_getinfo(CURL *handle, CURLINFO_CONTENT_TYPE, char **ct);
+.fi
 .SH DESCRIPTION
 Pass a pointer to a char pointer to receive the content-type of the downloaded
 object. This is the value read from the Content-Type: field. If you get NULL,
-it means that the server didn't send a valid Content-Type header or that the
-protocol used doesn't support this.
+it means that the server did not send a valid Content-Type header or that the
+protocol used does not support this.
 
 The \fBct\fP pointer will be NULL or pointing to private memory you MUST NOT
 free it - it gets freed when you call \fIcurl_easy_cleanup(3)\fP on the
@@ -42,7 +44,7 @@ HTTP(S)
 .nf
 CURL *curl = curl_easy_init();
 if(curl) {
-  curl_easy_setopt(curl, CURLOPT_URL, "http://example.com");
+  curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
   res = curl_easy_perform(curl);
 
@@ -63,3 +65,4 @@ Added in 7.9.4
 Returns CURLE_OK if the option is supported, and CURLE_UNKNOWN_OPTION if not.
 .SH "SEE ALSO"
 .BR curl_easy_getinfo "(3), " curl_easy_setopt "(3), "
+.BR CURLOPT_HEADERFUNCTION "(3), " curl_easy_header "(3) "

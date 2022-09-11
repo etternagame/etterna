@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -24,7 +24,8 @@
 #ifdef HAVE_FSETXATTR
 #  include <sys/xattr.h> /* header from libc, not from libattr */
 #  define USE_XATTR
-#elif defined(__FreeBSD_version) && (__FreeBSD_version > 500000)
+#elif (defined(__FreeBSD_version) && (__FreeBSD_version > 500000)) || \
+      defined(__MidnightBSD_version)
 #  include <sys/types.h>
 #  include <sys/extattr.h>
 #  define USE_XATTR
@@ -44,9 +45,10 @@ static const struct xattr_mapping {
   /* mappings proposed by
    * https://freedesktop.org/wiki/CommonExtendedAttributes/
    */
-  { "user.xdg.origin.url", CURLINFO_EFFECTIVE_URL },
-  { "user.mime_type",      CURLINFO_CONTENT_TYPE },
-  { NULL,                  CURLINFO_NONE } /* last element, abort loop here */
+  { "user.xdg.referrer.url", CURLINFO_REFERER },
+  { "user.xdg.origin.url",   CURLINFO_EFFECTIVE_URL },
+  { "user.mime_type",        CURLINFO_CONTENT_TYPE },
+  { NULL,                    CURLINFO_NONE } /* last element, abort here */
 };
 
 /* returns TRUE if a new URL is returned, that then needs to be freed */
@@ -98,7 +100,7 @@ int fwrite_xattr(CURL *curl, int fd)
   int err = 0;
 
   /* loop through all xattr-curlinfo pairs and abort on a set error */
-  while(err == 0 && mappings[i].attr != NULL) {
+  while(err == 0 && mappings[i].attr) {
     char *value = NULL;
     CURLcode result = curl_easy_getinfo(curl, mappings[i].info, &value);
     if(!result && value) {
@@ -110,7 +112,7 @@ int fwrite_xattr(CURL *curl, int fd)
         err = fsetxattr(fd, mappings[i].attr, value, strlen(value), 0, 0);
 #elif defined(HAVE_FSETXATTR_5)
         err = fsetxattr(fd, mappings[i].attr, value, strlen(value), 0);
-#elif defined(__FreeBSD_version)
+#elif defined(__FreeBSD_version) || defined(__MidnightBSD_version)
         {
           ssize_t rc = extattr_set_fd(fd, EXTATTR_NAMESPACE_USER,
                                       mappings[i].attr, value, strlen(value));

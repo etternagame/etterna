@@ -2,7 +2,7 @@
 #
 # xc-lt-iface.m4
 #
-# Copyright (c) 2013 Daniel Stenberg <daniel@haxx.se>
+# Copyright (c) 2013 - 2021, Daniel Stenberg <daniel@haxx.se>
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -119,7 +119,7 @@ if test "x$xc_lt_want_with_pic" = 'xdefault'; then
   case $host_cpu in @%:@ (
     x86_64 | amd64 | ia64)
       case $host_os in @%:@ (
-        linux* | freebsd*)
+        linux* | freebsd* | midnightbsd*)
           xc_lt_want_with_pic='yes'
           ;;
       esac
