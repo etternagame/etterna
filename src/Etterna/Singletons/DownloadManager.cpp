@@ -290,6 +290,13 @@ DownloadManager::~DownloadManager()
 	if (LoggedIn())
 		EndSession();
 	curl_global_cleanup();
+
+	// for completeness, unregister with LUA
+	// this is usually triggered at shutdown
+	// technically both a leak and not a leak
+	if (LUA != nullptr) {
+		LUA->UnsetGlobal("DLMAN");
+	}
 }
 
 void
