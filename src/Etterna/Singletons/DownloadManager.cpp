@@ -378,6 +378,19 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 	dl->p_Pack = pack;
 	return dl;
 }
+enum class RequestResultStatus
+{
+	Done = 0,
+	Failed = 1,
+};
+std::mutex G_MTX_HTTP_REQS;
+std::vector<CURL*> G_HTTP_REQS;
+std::mutex G_MTX_HTTP_RESULT_HANDLES;
+std::vector<std::pair<CURL*, RequestResultStatus>> G_HTTP_RESULT_HANDLES;
+void AddHttpRequestHandle(CURL* handle) {
+	const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+	G_HTTP_REQS.push_back(handle);
+}
 void
 DownloadManager::init()
 {
@@ -385,6 +398,63 @@ DownloadManager::init()
 	RefreshLastVersion();
 	RefreshRegisterPage();
 	initialized = true;
+	std::thread([]() {
+		return;
+		while (true) {
+			// TODO
+			//UpdatePacks(fDeltaSeconds);
+		}
+	}).detach();
+	std::thread([]() {
+		CURLM* CurlMHandle = curl_multi_init();
+		int HandlesRunning = 0;
+		std::vector<CURL*> local_http_reqs;
+		std::vector<std::pair<CURL*, RequestResultStatus>> result_handles;
+		while (true) {
+			{
+				const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+				G_HTTP_REQS.swap(local_http_reqs);
+			}
+			for (auto& curl_handle : local_http_reqs) {
+				curl_multi_add_handle(CurlMHandle, curl_handle);
+			}
+			local_http_reqs.clear();
+
+			CURLMcode mc = curl_multi_perform(CurlMHandle, &HandlesRunning);
+			if (HandlesRunning == 0)
+				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			else if (!mc)
+				mc = curl_multi_poll(CurlMHandle, NULL, 0, 10, NULL);
+
+			// Check for finished http requests
+			CURLMsg* msg;
+			int msgs_left;
+			while ((msg = curl_multi_info_read(CurlMHandle, &msgs_left))) {
+				RequestResultStatus rescode =
+				  msg->data.result != CURLE_UNSUPPORTED_PROTOCOL &&
+					  msg->msg == CURLMSG_DONE
+					? RequestResultStatus::Done
+					: RequestResultStatus::Failed;
+				result_handles.push_back(std::make_pair(
+					msg->easy_handle,
+					rescode));
+				curl_multi_remove_handle(CurlMHandle, msg->easy_handle);
+				curl_easy_cleanup(msg->easy_handle);
+			}
+			if (!result_handles.empty()) {
+				const std::lock_guard<std::mutex> lock(
+					G_MTX_HTTP_RESULT_HANDLES);
+				G_HTTP_RESULT_HANDLES.swap(result_handles);
+				// There is a small chance that by just blindly swapping we
+				// are *removing* pending results. However, since we don't
+				// clear them, they should just remain here for another
+				// iteration. I don't think this matters in practice and I
+				// don't feel like adding the condition to handle it right
+				// now
+			}
+		}
+		curl_multi_cleanup(CurlMHandle);
+	}).detach();
 }
 void
 DownloadManager::Update(float fDeltaSeconds)
@@ -401,56 +471,33 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
 	if (HTTPRequests.empty() || gameplay)
 		return;
-	timeval timeout;
-	int rc, maxfd = -1;
-	CURLMcode mc;
-	fd_set fdread, fdwrite, fdexcep;
-	long curl_timeo = -1;
-	FD_ZERO(&fdread);
-	FD_ZERO(&fdwrite);
-	FD_ZERO(&fdexcep);
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 1;
-	curl_multi_timeout(mHTTPHandle, &curl_timeo);
 
-	mc = curl_multi_fdset(mHTTPHandle, &fdread, &fdwrite, &fdexcep, &maxfd);
-	if (mc != CURLM_OK) {
-		error = "curl_multi_fdset() failed, code " + to_string(mc);
-		return;
+	static std::vector<std::pair<CURL*, RequestResultStatus>> result_handles;
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_RESULT_HANDLES);
+		G_HTTP_RESULT_HANDLES.swap(result_handles);
 	}
-	if (maxfd == -1) {
-		rc = 0;
-	} else {
-		rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
-	}
-	switch (rc) {
-		case -1:
-			error = "select error" + to_string(mc);
-			break;
-		case 0:	 /* timeout */
-		default: /* action */
-			curl_multi_perform(mHTTPHandle, &HTTPRunning);
-			break;
-	}
+	for (auto& pair : result_handles) {
+		CURL* handle = pair.first;
+		RequestResultStatus res = pair.second;
 
-	// Check for finished http requests
-	CURLMsg* msg;
-	int msgs_left;
-	while ((msg = curl_multi_info_read(mHTTPHandle, &msgs_left))) {
 		/* Find out which handle this message is about */
 		int idx_to_delete = -1;
 		for (size_t i = 0; i < HTTPRequests.size(); ++i) {
-			if (msg->easy_handle == HTTPRequests[i]->handle) {
-				if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
-					HTTPRequests[i]->Failed(*(HTTPRequests[i]));
-					Locator::getLogger()->warn(
-					  "CURL UNSUPPORTED PROTOCOL (Probably https)");
-				} else if (msg->msg == CURLMSG_DONE) {
-					HTTPRequests[i]->Done(*(HTTPRequests[i]));
-				} else
-					HTTPRequests[i]->Failed(*(HTTPRequests[i]));
-				if (HTTPRequests[i]->handle != nullptr)
-					curl_easy_cleanup(HTTPRequests[i]->handle);
+			if (handle == HTTPRequests[i]->handle) {
+				switch (res) {
+					case RequestResultStatus::Done:
+						HTTPRequests[i]->Done(*(HTTPRequests[i]));
+						break;
+					case RequestResultStatus::Failed:
+						HTTPRequests[i]->Failed(*(HTTPRequests[i]));
+						break;
+
+					default:
+						Locator::getLogger()->warn(
+						  "Unknown RequestResultStatus (This indicates a bug)");
+				}
+
 				HTTPRequests[i]->handle = nullptr;
 				if (HTTPRequests[i]->form != nullptr)
 					curl_formfree(HTTPRequests[i]->form);
@@ -459,12 +506,14 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 				idx_to_delete = i;
 				break;
 			}
+
 		}
 		// Delete this here instead of within the loop to avoid iterator
 		// invalidation
 		if (idx_to_delete != -1)
 			HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
 	}
+	result_handles.clear();
 }
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
@@ -990,7 +1039,8 @@ DownloadManager::UploadScore(HighScore* hs,
 		  callback();
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
-	curl_multi_add_handle(mHTTPHandle, req->handle);
+	//curl_multi_add_handle(mHTTPHandle, req->handle);
+	AddHttpRequestHandle(req->handle);
 	HTTPRequests.push_back(req);
 	Locator::getLogger()->info("Finished creating UploadScore request");
 }
@@ -1329,7 +1379,8 @@ DownloadManager::SendRequestToURL(
 	if (async) {
 		if (mHTTPHandle == nullptr)
 			mHTTPHandle = curl_multi_init();
-		curl_multi_add_handle(mHTTPHandle, req->handle);
+		//curl_multi_add_handle(mHTTPHandle, req->handle);
+		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	} else {
 		CURLcode res = curl_easy_perform(req->handle);
@@ -2116,7 +2167,8 @@ DownloadManager::StartSession(
 	SetCURLResultsString(curlHandle, &(req->result));
 	if (mHTTPHandle == nullptr)
 		mHTTPHandle = curl_multi_init();
-	curl_multi_add_handle(mHTTPHandle, req->handle);
+	//curl_multi_add_handle(mHTTPHandle, req->handle);
+	AddHttpRequestHandle(req->handle);
 	HTTPRequests.push_back(req);
 }
 int
@@ -2786,6 +2838,10 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestOnlineScoreReplayData);
 		ADD_METHOD(GetChartLeaderBoard);
+		// This does not actually request the leaderboard from online.
+		// It gets the already retrieved data from DLMAN
+		// Why does this alias exist? - Note: lowercase `b`oard
+		AddMethod("GetChartLeaderboard", GetChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
