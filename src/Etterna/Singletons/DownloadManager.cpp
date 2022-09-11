@@ -340,7 +340,19 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
 		return nullptr;
 	}
-	auto dl = DownloadAndInstallPack(mirror ? pack->mirror : pack->url,
+	string& url = mirror ? pack->mirror
+						: pack->url;
+	auto last_slash = url.find_last_of('/');
+	auto base_url = url.substr(0, last_slash + 1);
+	auto filename = url.substr(last_slash + 1);
+	int outlength = 0;
+	char* unescaped_c_char_filename = curl_easy_unescape(
+	  nullptr, filename.c_str(), filename.length(), &outlength);
+	std::string unescaped_filename(unescaped_c_char_filename, outlength);
+	curl_free(unescaped_c_char_filename);
+	string encoded_url = base_url + UrlEncode(unescaped_filename);
+
+	auto dl = DownloadAndInstallPack(encoded_url,
 										  pack->name + ".zip");
 	dl->p_Pack = pack;
 	dl->p_Pack->downloading = true;
@@ -433,6 +445,16 @@ DownloadManager::init()
 				curl_easy_cleanup(msg->easy_handle);
 			}
 			if (!result_handles.empty()) {
+				std::remove_if(local_http_reqs.begin(),
+							   local_http_reqs.end(),
+							   [result_handles](CURL* x) {
+								   return std::find_if(
+											result_handles.begin(),
+											result_handles.end(),
+											[x](auto pair) {
+												return pair.first == x;
+											}) != result_handles.end();
+							   });
 				handle_count_changed = true;
 				{
 					const std::lock_guard<std::mutex> lock(
@@ -565,6 +587,14 @@ void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
 	timeSinceLastDownload += fDeltaSeconds;
+	for (auto& x : downloads) {
+		/*if (x.second == nullptr) {
+			Locator::getLogger()->warn("Pack download was null? URL: {}",
+									   dl.first);
+			continue;
+		}*/
+		x.second->Update(fDeltaSeconds);
+	}
 	if (!pendingInstallDownloads.empty() && !gameplay) {
 		// Install all pending packs
 		for (auto i = pendingInstallDownloads.begin();
@@ -633,14 +663,6 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 
 	if (finishedADownload && downloads.empty()) {
 			MESSAGEMAN->Broadcast("AllDownloadsCompleted");
-	}
-	for (auto& x : downloads) {
-		/*if (x.second == nullptr) {
-			Locator::getLogger()->warn("Pack download was null? URL: {}",
-									   dl.first);
-			continue;
-		}*/
-		x.second->Update(fDeltaSeconds);
 	}
 }
 
@@ -2259,7 +2281,6 @@ DownloadManager::RefreshPackList(const string& url)
 				tmp.size = pack["size"].GetInt();
 			else
 				tmp.size = 0;
-
 			packlist.push_back(tmp);
 		}
 		if (MESSAGEMAN != nullptr)
@@ -2299,6 +2320,7 @@ Download::Download(std::string url, std::string filename)
 						 return b;
 					 }));
 	curl_easy_setopt(handle, CURLOPT_URL, m_Url.c_str());
+
 	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
 	curl_easy_setopt(handle,
 					 CURLOPT_XFERINFOFUNCTION,
@@ -2322,10 +2344,6 @@ Download::Download(std::string url, std::string filename)
 
 Download::~Download()
 {
-	if (handle != nullptr) {
-		curl_easy_cleanup(handle);
-		handle = nullptr;
-	}
 	FILEMAN->Remove(m_TempFileName);
 }
 
