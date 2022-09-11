@@ -94,11 +94,9 @@ class HTTPRequest
   public:
 	HTTPRequest(
 	  CURL* h,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done = [](HTTPRequest& req,
-															CURLMsg*) {},
+	  std::function<void(HTTPRequest&)> done = [](HTTPRequest& req) {},
 	  curl_httppost* postform = nullptr,
-	  std::function<void(HTTPRequest&, CURLMsg*)> fail = [](HTTPRequest& req,
-															CURLMsg*) {})
+	  std::function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {})
 	  : handle(h)
 	  , form(postform)
 	  , Done(done)
@@ -106,8 +104,8 @@ class HTTPRequest
 	CURL* handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	std::string result;
-	std::function<void(HTTPRequest&, CURLMsg*)> Done;
-	std::function<void(HTTPRequest&, CURLMsg*)> Failed;
+	std::function<void(HTTPRequest&)> Done;
+	std::function<void(HTTPRequest&)> Failed;
 };
 class OnlineTopScore
 {
@@ -272,7 +270,7 @@ class DownloadManager
 	HTTPRequest* SendRequest(
 	  std::string requestName,
 	  std::vector<std::pair<std::string, std::string>> params,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done,
+	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin = true,
 	  bool post = false,
 	  bool async = true,
@@ -280,7 +278,7 @@ class DownloadManager
 	HTTPRequest* SendRequestToURL(
 	  std::string url,
 	  std::vector<std::pair<std::string, std::string>> params,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done,
+	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin,
 	  bool post,
 	  bool async,

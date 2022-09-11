@@ -442,13 +442,13 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 		for (size_t i = 0; i < HTTPRequests.size(); ++i) {
 			if (msg->easy_handle == HTTPRequests[i]->handle) {
 				if (msg->data.result == CURLE_UNSUPPORTED_PROTOCOL) {
-					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+					HTTPRequests[i]->Failed(*(HTTPRequests[i]));
 					Locator::getLogger()->warn(
 					  "CURL UNSUPPORTED PROTOCOL (Probably https)");
 				} else if (msg->msg == CURLMSG_DONE) {
-					HTTPRequests[i]->Done(*(HTTPRequests[i]), msg);
+					HTTPRequests[i]->Done(*(HTTPRequests[i]));
 				} else
-					HTTPRequests[i]->Failed(*(HTTPRequests[i]), msg);
+					HTTPRequests[i]->Failed(*(HTTPRequests[i]));
 				if (HTTPRequests[i]->handle != nullptr)
 					curl_easy_cleanup(HTTPRequests[i]->handle);
 				HTTPRequests[i]->handle = nullptr;
@@ -622,7 +622,7 @@ DownloadManager::AddFavorite(const string& chartkey)
 {
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites";
 	DLMAN->favorites.push_back(chartkey);
-	auto done = [req](HTTPRequest& requ, CURLMsg*) {
+	auto done = [req](HTTPRequest& requ) {
 		Locator::getLogger()->warn(
 		  "Favorited: {}{}{}", requ.result, req, DLMAN->sessionUser);
 	};
@@ -698,7 +698,7 @@ void
 DownloadManager::RefreshFavorites()
 {
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites";
-	auto done = [](HTTPRequest& req, CURLMsg*) {
+	auto done = [](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			!d.HasMember("data") || !d["data"].IsArray())
@@ -874,8 +874,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	SetCURLURL(curlHandle, url);
 	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs, callback, load_from_disk](HTTPRequest& req,
-													 CURLMsg*) {
+	auto done = [this, hs, callback, load_from_disk](HTTPRequest& req) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Document d;
@@ -987,7 +986,7 @@ DownloadManager::UploadScore(HighScore* hs,
 		callback();
 	};
 	HTTPRequest* req = new HTTPRequest(
-	  curlHandle, done, nullptr, [callback](HTTPRequest& req, CURLMsg*) {
+	  curlHandle, done, nullptr, [callback](HTTPRequest& req) {
 		  callback();
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -1190,7 +1189,7 @@ DownloadManager::RefreshUserRank()
 {
 	if (!LoggedIn())
 		return;
-	auto done = [](HTTPRequest& req, CURLMsg*) {
+	auto done = [](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1237,7 +1236,7 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 HTTPRequest*
 DownloadManager::SendRequest(string requestName,
 							 std::vector<pair<string, string>> params,
-							 function<void(HTTPRequest&, CURLMsg*)> done,
+							 function<void(HTTPRequest&)> done,
 							 bool requireLogin,
 							 bool post,
 							 bool async,
@@ -1256,7 +1255,7 @@ HTTPRequest*
 DownloadManager::SendRequestToURL(
   string url,
   std::vector<pair<string, string>> params,
-  function<void(HTTPRequest&, CURLMsg*)> afterDone,
+  function<void(HTTPRequest&)> afterDone,
   bool requireLogin,
   bool post,
   bool async,
@@ -1270,9 +1269,8 @@ DownloadManager::SendRequestToURL(
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
-	function<void(HTTPRequest&, CURLMsg*)> done = [afterDone,
-												   url](HTTPRequest& req,
-														CURLMsg* msg) {
+	function<void(HTTPRequest&)> done = [afterDone,
+												   url](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1280,13 +1278,13 @@ DownloadManager::SendRequestToURL(
 			return;
 		}
 		if (d.HasMember("errors")) {
-			auto on22 = [req, msg, afterDone]() {
+			auto on22 = [req, afterDone]() {
 				DLMAN->StartSession(DLMAN->sessionUser,
 									DLMAN->sessionPass,
-									[req, msg, afterDone](bool logged) {
+									[req, afterDone](bool logged) {
 										if (logged) {
 											auto r = req;
-											afterDone(r, msg);
+											afterDone(r);
 										}
 									});
 			};
@@ -1307,7 +1305,7 @@ DownloadManager::SendRequestToURL(
 				}
 			}
 		}
-		afterDone(req, msg);
+		afterDone(req);
 	};
 	CURL* curlHandle = initCURLHandle(withBearer);
 	SetCURLURL(curlHandle, url);
@@ -1336,7 +1334,7 @@ DownloadManager::SendRequestToURL(
 	} else {
 		CURLcode res = curl_easy_perform(req->handle);
 		curl_easy_cleanup(req->handle);
-		done(*req, nullptr);
+		done(*req);
 		delete req;
 		return nullptr;
 	}
@@ -1345,7 +1343,7 @@ DownloadManager::SendRequestToURL(
 void
 DownloadManager::RefreshCountryCodes()
 {
-	auto done = [](HTTPRequest& req, CURLMsg*) {
+	auto done = [](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1376,7 +1374,7 @@ DownloadManager::RequestReplayData(const string& scoreid,
 								   LuaReference& callback)
 {
 	auto done = [scoreid, callback, userid, username, chartkey](
-				  HTTPRequest& req, CURLMsg*) {
+				  HTTPRequest& req) {
 		std::vector<pair<float, float>> replayData;
 		std::vector<float> timestamps;
 		std::vector<float> offsets;
@@ -1497,7 +1495,7 @@ void
 DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 										 LuaReference& ref)
 {
-	auto done = [chartkey, ref](HTTPRequest& req, CURLMsg*) {
+	auto done = [chartkey, ref](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1780,7 +1778,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 void
 DownloadManager::RefreshCoreBundles()
 {
-	auto done = [](HTTPRequest& req, CURLMsg*) {
+	auto done = [](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1846,7 +1844,7 @@ DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
 void
 DownloadManager::RefreshLastVersion()
 {
-	auto done = [this](HTTPRequest& req, CURLMsg*) {
+	auto done = [this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1874,7 +1872,7 @@ DownloadManager::RefreshLastVersion()
 void
 DownloadManager::RefreshRegisterPage()
 {
-	auto done = [this](HTTPRequest& req, CURLMsg*) {
+	auto done = [this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1908,7 +1906,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/top/";
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
-	auto done = [ss](HTTPRequest& req, CURLMsg*) {
+	auto done = [ss](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			(d.HasMember("errors") && d["errors"].IsArray() &&
@@ -1979,7 +1977,7 @@ DownloadManager::RefreshUserData()
 {
 	if (!LoggedIn())
 		return;
-	auto done = [](HTTPRequest& req, CURLMsg*) {
+	auto done = [](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -2073,7 +2071,7 @@ DownloadManager::StartSession(
 	  curlHandle, form, lastPtr, "clientData", CLIENT_DATA_KEY.c_str());
 	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
 
-	auto done = [user, pass, callback](HTTPRequest& req, CURLMsg*) {
+	auto done = [user, pass, callback](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -2110,7 +2108,7 @@ DownloadManager::StartSession(
 		callback(DLMAN->LoggedIn());
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
-	req->Failed = [](HTTPRequest& req, CURLMsg*) {
+	req->Failed = [](HTTPRequest& req) {
 		DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
 		MESSAGEMAN->Broadcast("LoginFailed");
 		DLMAN->loggingIn = false;
@@ -2141,7 +2139,7 @@ DownloadManager::RefreshPackList(const string& url)
 {
 	if (url.empty())
 		return;
-	auto done = [](HTTPRequest& req, CURLMsg*) {
+	auto done = [](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			!(d.IsArray() || (d.HasMember("data") && d["data"].IsArray()))) {
