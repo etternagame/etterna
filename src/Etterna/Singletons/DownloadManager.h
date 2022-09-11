@@ -33,11 +33,9 @@ class RageFileWrapper
 class Download
 {
   public:
-	std::function<void(Download*)> Done;
 	Download(
 	  std::string url,
-	  std::string filename = "",
-	  std::function<void(Download*)> done = [](Download*) {});
+	  std::string filename = "");
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -96,11 +94,9 @@ class HTTPRequest
   public:
 	HTTPRequest(
 	  CURL* h,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done = [](HTTPRequest& req,
-															CURLMsg*) {},
+	  std::function<void(HTTPRequest&)> done = [](HTTPRequest& req) {},
 	  curl_httppost* postform = nullptr,
-	  std::function<void(HTTPRequest&, CURLMsg*)> fail = [](HTTPRequest& req,
-															CURLMsg*) {})
+	  std::function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {})
 	  : handle(h)
 	  , form(postform)
 	  , Done(done)
@@ -108,8 +104,8 @@ class HTTPRequest
 	CURL* handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	std::string result;
-	std::function<void(HTTPRequest&, CURLMsg*)> Done;
-	std::function<void(HTTPRequest&, CURLMsg*)> Failed;
+	std::function<void(HTTPRequest&)> Done;
+	std::function<void(HTTPRequest&)> Failed;
 };
 class OnlineTopScore
 {
@@ -171,12 +167,12 @@ class DownloadManager
 	static LuaReference EMPTY_REFERENCE;
 	DownloadManager();
 	~DownloadManager();
-	std::map<std::string, Download*> downloads; // Active downloads
+	std::map<std::string, std::shared_ptr<Download>> downloads; // Active downloads
 	std::vector<HTTPRequest*>
 	  HTTPRequests; // Active HTTP requests (async, curlMulti)
 
-	std::map<std::string, Download*> finishedDownloads;
-	std::map<std::string, Download*> pendingInstallDownloads;
+	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
+	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
 	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
 	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
 	CURLMcode ret = CURLM_CALL_MULTI_PERFORM;
@@ -242,9 +238,9 @@ class DownloadManager
 	void RefreshPackList(const std::string& url);
 
 	void init();
-	Download* DownloadAndInstallPack(const std::string& url,
+	std::shared_ptr<Download> DownloadAndInstallPack(const std::string& url,
 									 std::string filename = "");
-	Download* DownloadAndInstallPack(DownloadablePack* pack,
+	std::shared_ptr<Download> DownloadAndInstallPack(DownloadablePack* pack,
 									 bool mirror = false);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
@@ -256,7 +252,6 @@ class DownloadManager
 
 	std::string GetError() { return error; }
 	bool Error() { return error.empty(); }
-	bool EncodeSpaces(std::string& str);
 
 	void UploadScore(HighScore* hs,
 					 std::function<void()> callback,
@@ -275,7 +270,7 @@ class DownloadManager
 	HTTPRequest* SendRequest(
 	  std::string requestName,
 	  std::vector<std::pair<std::string, std::string>> params,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done,
+	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin = true,
 	  bool post = false,
 	  bool async = true,
@@ -283,7 +278,7 @@ class DownloadManager
 	HTTPRequest* SendRequestToURL(
 	  std::string url,
 	  std::vector<std::pair<std::string, std::string>> params,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done,
+	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin,
 	  bool post,
 	  bool async,
