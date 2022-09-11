@@ -2856,10 +2856,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestOnlineScoreReplayData);
 		ADD_METHOD(GetChartLeaderBoard);
-		// This does not actually request the leaderboard from online.
-		// It gets the already retrieved data from DLMAN
-		// Why does this alias exist? - Note: lowercase `b`oard
-		AddMethod("GetChartLeaderboard", GetChartLeaderBoard);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
