@@ -17,8 +17,8 @@ class DownloadablePack;
 class ProgressData
 {
   public:
-	curl_off_t total{ 0 };		// total bytes
-	curl_off_t downloaded{ 0 }; // bytes downloaded
+	std::atomic<curl_off_t> total{ 0 }; // total bytes
+	std::atomic<curl_off_t> downloaded{ 0 }; // bytes downloaded
 	float time{ 0 };			// seconds passed
 };
 
@@ -26,8 +26,8 @@ class RageFileWrapper
 {
   public:
 	RageFile file;
-	size_t bytes{ 0 };
-	bool stop{ false };
+	std::atomic<size_t> bytes{ 0 };
+	std::atomic<bool> stop{ false };
 };
 
 class Download
@@ -51,11 +51,12 @@ class Download
 	std::string Status()
 	{
 		return m_TempFileName + "\n" + speed + " KB/s\n" + "Downloaded " +
-			   std::to_string((progress.downloaded > 0 ? progress.downloaded
-													   : p_RFWrapper.bytes) /
+			   std::to_string((progress.downloaded.load() > 0
+								 ? progress.downloaded.load()
+								 : p_RFWrapper.bytes.load()) /
 							  1024) +
-			   (progress.total > 0
-				  ? "/" + std::to_string(progress.total / 1024) + " (KB)"
+			   (progress.total.load() > 0
+				  ? "/" + std::to_string(progress.total.load() / 1024) + " (KB)"
 				  : "");
 	}
 	CURL* handle{ nullptr };
@@ -173,10 +174,7 @@ class DownloadManager
 
 	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
 	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
-	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
-	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
 	CURLMcode ret = CURLM_CALL_MULTI_PERFORM;
-	int downloadingPacks{ 0 };
 	int HTTPRunning{ 0 };
 	bool loggingIn{
 		false
@@ -247,8 +245,7 @@ class DownloadManager
 	void UpdateHTTP(float fDeltaSeconds);
 	bool InstallSmzip(const std::string& sZipFile);
 
-	void UpdateDLSpeed();
-	void UpdateDLSpeed(bool gameplay);
+	void UpdateGameplayState(bool gameplay);
 
 	std::string GetError() { return error; }
 	bool Error() { return error.empty(); }
@@ -263,8 +260,6 @@ class DownloadManager
 
 	bool ShouldUploadScores();
 
-	inline void AddSessionCookieToCURL(CURL* curlHandle);
-	inline void SetCURLPostToURL(CURL* curlHandle, std::string url);
 	inline void SetCURLURL(CURL* curlHandle, std::string url);
 
 	HTTPRequest* SendRequest(

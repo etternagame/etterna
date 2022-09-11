@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -140,16 +140,15 @@ int test(char *URL)
   mime = curl_mime_init(pooh.easy);
   part = curl_mime_addpart(mime);
   result = curl_mime_name(part, name);
-  if(!result)
-    res = curl_mime_data_cb(part, (curl_off_t) 2, read_callback,
-                            NULL, NULL, &pooh);
-
   if(result) {
     fprintf(stderr,
             "Something went wrong when building the mime structure: %d\n",
             (int) result);
     goto test_cleanup;
   }
+
+  res = curl_mime_data_cb(part, (curl_off_t) 2, read_callback,
+                          NULL, NULL, &pooh);
 
   /* Bind mime data to its easy handle. */
   if(!res)
@@ -210,7 +209,7 @@ int test(char *URL)
     mres = curl_multi_fdset(multi, &fdread, &fdwrite, &fdexcept, &maxfd);
     if(mres)
       break;
-#ifdef _WIN32
+#if defined(WIN32) || defined(_WIN32)
     if(maxfd == -1)
       Sleep(100);
     else

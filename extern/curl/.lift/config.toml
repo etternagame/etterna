@@ -1,0 +1,3 @@
+ignoreRules = [ "DEAD_STORE" ]
+build = "make"
+setup = ".lift/setup.sh"

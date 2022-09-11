@@ -32,8 +32,8 @@ nothing
 # Verify data after the test has been "shot"
 <verify>
 <file name="log/memdump">
-MEM unit1330.c: malloc()
-MEM unit1330.c: free()
+MEM unit%TESTNUMBER.c: malloc()
+MEM unit%TESTNUMBER.c: free()
 </file>
 <stripfile>
 s/ =.*//
@@ -41,6 +41,8 @@ s/\(.*\)/()/
 s/:\d+/:/
 s:^(MEM )(.*/)(.*):$1$3:
 s/\r\n/\n/
+s/^MEM getenv.c: realloc\(\)[\n]$//
+s/^MEM getenv.c: free\(\)[\n]$//
 </stripfile>
 </verify>
 </testcase>

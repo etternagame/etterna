@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -24,12 +24,19 @@
 .SH NAME
 CURLINFO_PRIMARY_PORT \- get the latest destination port number
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_getinfo(CURL *handle, CURLINFO_PRIMARY_PORT, long *portp);
+.fi
 .SH DESCRIPTION
 Pass a pointer to a long to receive the destination port of the most recent
 connection done with this \fBcurl\fP handle.
+
+This is the destination port of the actual TCP or UDP connection libcurl used.
+If a proxy was used for the most recent transfer, this is the port number of
+the proxy, if no proxy was used it is the port number of the most recently
+accessed URL.
 .SH PROTOCOLS
 All
 .SH EXAMPLE
@@ -37,7 +44,7 @@ All
 CURL *curl = curl_easy_init();
 if(curl) {
   CURLcode res;
-  curl_easy_setopt(curl, CURLOPT_URL, "http://example.com");
+  curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
   res = curl_easy_perform(curl);
   if(res == CURLE_OK) {
     long port;
