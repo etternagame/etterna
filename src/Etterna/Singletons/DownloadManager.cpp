@@ -1114,6 +1114,9 @@ uploadSequentially()
 		auto hs = DLMAN->ScoreUploadSequentialQueue.front();
 		DLMAN->ScoreUploadSequentialQueue.pop_front();
 		DLMAN->UploadScoreWithReplayDataFromDisk(hs, uploadSequentially);
+	} else {
+		Locator::getLogger()->info(
+		  "Sequential upload queue empty - uploads finished");
 	}
 }
 
@@ -1180,6 +1183,10 @@ void
 DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 {
 	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
+
+	Locator::getLogger()->info(
+	  "Trying ForceUploadScoresForChart - {} - startnow {}", ck, startnow);
+
 	auto cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) {
 		auto& test = cs->GetAllScores();
@@ -1198,6 +1205,9 @@ DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
 					this->sequentialScoreUploadTotalWorkload += 1;
 				}
 			}
+	} else {
+		Locator::getLogger()->debug(
+		  "ForceUploadScoresForChart found no scores for chart {}", ck);
 	}
 
 	if (startnow) {
@@ -1214,6 +1224,10 @@ DownloadManager::ForceUploadScoresForPack(const std::string& pack,
 										  bool startnow)
 {
 	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
+
+	Locator::getLogger()->info(
+	  "Trying ForceUploadScoresForPack - {} - startnow {}", pack, startnow);
+
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
@@ -1231,6 +1245,10 @@ void
 DownloadManager::ForceUploadAllScores()
 {
 	bool not_already_uploading = this->ScoreUploadSequentialQueue.empty();
+
+	Locator::getLogger()->info(
+	  "Trying ForceUploadAllScores - is queue previously empty? {}",
+	  not_already_uploading);
 
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
