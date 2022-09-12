@@ -774,11 +774,11 @@ Replay::ValidateOffsets()
 auto
 Replay::GenerateInputData() -> bool
 {
-	if (!InputData.empty()) {
+	if (LoadInputData()) {
 		return true;
 	}
 
-	if (!LoadReplayData() && !LoadInputData() && !GenerateNoterowsFromTimestamps()) {
+	if (!LoadReplayData() && !GenerateNoterowsFromTimestamps()) {
 		Locator::getLogger()->warn("Failed to generate input data because "
 								   "replay for score {} could not be loaded",
 								   scoreKey);
