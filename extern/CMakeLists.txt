@@ -40,6 +40,7 @@ add_subdirectory(plog)
 
 
 ## Header Only
+set(RAPIDJSON_BUILD_EXAMPLES OFF)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
