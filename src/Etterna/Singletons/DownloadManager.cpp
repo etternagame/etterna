@@ -267,6 +267,14 @@ EmptyTempDLFileDir()
 			FILEMAN->Remove(file);
 	}
 }
+inline std::string
+jsonObjectToString(Value& doc)
+{
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	doc.Accept(w);
+	return buffer.GetString();
+}
 DownloadManager::DownloadManager()
 {
 	EmptyTempDLFileDir();
@@ -1485,13 +1493,10 @@ DownloadManager::RequestReplayData(const string& scoreid,
 			return;
 		}
 		if (d.HasMember("errors")) {
-			StringBuffer buffer;
-			Writer<StringBuffer> writer(buffer);
-			d.Accept(writer);
 			Locator::getLogger()->error(
 			  "Replay data request failed for {} (Response: {})",
 			  scoreid,
-			  buffer.GetString());
+			  jsonObjectToString(d));
 			return;
 		}
 
@@ -1625,13 +1630,10 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 					!score_obj["attributes"]["judgements"].IsObject() ||
 					!score_obj["attributes"].HasMember("skillsets") ||
 					!score_obj["attributes"]["skillsets"].IsObject()) {
-					StringBuffer buffer;
-					Writer<StringBuffer> writer(buffer);
-					score_obj.Accept(writer);
 					Locator::getLogger()->warn(
 					  "Malformed score in chart leaderboard (chart: {}): {}",
 					  chartkey,
-					  buffer.GetString());
+					  jsonObjectToString(score_obj));
 					continue;
 				}
 				auto& score = score_obj["attributes"];
@@ -2024,12 +2026,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 		auto& scores = d["data"];
 		for (auto& score_obj : scores.GetArray()) {
 			if (!score_obj.HasMember("attributes")) {
-				StringBuffer buffer;
-				Writer<StringBuffer> writer(buffer);
-				score_obj.Accept(writer);
 				Locator::getLogger()->warn(
 				  "Malformed single score in top25 scores request response: {}",
-				  buffer.GetString());
+				  jsonObjectToString(score_obj));
 				continue;
 			}
 			auto& score = score_obj["attributes"];
@@ -2046,12 +2045,9 @@ DownloadManager::RefreshTop25(Skillset ss)
 				 (!score["skillsets"].HasMember(SkillsetToString(ss).c_str()) ||
 				  !score["skillsets"][SkillsetToString(ss).c_str()]
 					 .IsNumber()))) {
-				StringBuffer buffer;
-				Writer<StringBuffer> writer(buffer);
-				score_obj.Accept(writer);
 				Locator::getLogger()->warn(
 				  "Malformed single score in top25 scores request response: {}",
-				  buffer.GetString());
+				  jsonObjectToString(score_obj));
 				continue;
 			}
 			OnlineTopScore tmp;
@@ -2271,12 +2267,9 @@ DownloadManager::RefreshPackList(const string& url)
 			else if (pack.HasMember("name") && pack["name"].IsString())
 				tmp.name = pack["name"].GetString();
 			else {
-				StringBuffer buffer;
-				Writer<StringBuffer> writer(buffer);
-				pack_obj.Accept(writer);
 				Locator::getLogger()->warn(
 				  "Missing pack name in packlist element: {}",
-				  buffer.GetString());
+				  jsonObjectToString(pack_obj));
 				continue;
 			}
 
@@ -2291,12 +2284,9 @@ DownloadManager::RefreshPackList(const string& url)
 			else
 				tmp.mirror = "";
 			if (tmp.url.empty() && tmp.mirror.empty()) {
-				StringBuffer buffer;
-				Writer<StringBuffer> writer(buffer);
-				pack_obj.Accept(writer);
 				Locator::getLogger()->warn(
 				  "Missing download link in packlist element: {}",
-				  buffer.GetString());
+				  jsonObjectToString(pack_obj));
 				continue;
 			}
 			if (tmp.url.empty())
