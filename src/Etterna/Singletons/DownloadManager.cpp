@@ -72,6 +72,17 @@ write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 	static_cast<string*>(userp)->append(tmp);
 	return realsize;
 }
+template<typename T>
+inline void
+curl_easy_setopt_log_err(CURL *handle, CURLoption option, T param)
+{
+	// TODO: Once we update curl replace "" with curl_easy_option_by_id(option)->name
+	CURLcode ret = curl_easy_setopt(handle, option, param);
+	if (ret != CURLE_OK)
+		Locator::getLogger()->warn(//"Error setting curl option %d(%s): %s(%d)", option, curl_easy_option_by_id(option)->name, curl_easy_strerror(ret), ret);
+		  "Error setting curl option {}({}): {}({})",
+		  option, "", curl_easy_strerror(ret), ret);
+}
 
 std::atomic<bool> QUIT_OTHER_THREADS_FLAG = false;
 RageSemaphore THREAD_EXIT_COUNT("DLMAN thread exit semaphore", 0);
