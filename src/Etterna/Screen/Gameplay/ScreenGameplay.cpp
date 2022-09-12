@@ -435,7 +435,7 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 		m_vPlayerInfo.m_NoteData = ndTransformed;
 		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
 										  TapNoteType_AutoKeysound);
-		m_vPlayerInfo.m_pPlayer->Reload();
+		ReloadPlayer();
 	}
 
 	// load auto keysounds
@@ -467,6 +467,18 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 }
 
 void
+ScreenGameplay::ReloadPlayer()
+{
+	m_vPlayerInfo.m_pPlayer->Reload();
+}
+
+void
+ScreenGameplay::LoadPlayer()
+{
+	m_vPlayerInfo.m_pPlayer->Load();
+}
+
+void
 ScreenGameplay::SetupSong(int iSongIndex)
 {
 	/* This is the first beat that can be changed without it being visible.
@@ -491,7 +503,7 @@ ScreenGameplay::SetupSong(int iSongIndex)
 		m_vPlayerInfo.m_NoteData = ndTransformed;
 		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
 										  TapNoteType_AutoKeysound);
-		m_vPlayerInfo.m_pPlayer->Load();
+		LoadPlayer();
 	}
 
 	// load auto keysounds
@@ -1506,7 +1518,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	}
 
 	STATSMAN->m_CurStageStats.m_player.usedDoubleSetup = usedDoubleSetup;
-	STATSMAN->m_CurStageStats.FinalizeScores(false);
+	STATSMAN->m_CurStageStats.FinalizeScores();
 
 	// If we didn't cheat and aren't in Practice
 	// (Replay does its own thing somewhere else here)

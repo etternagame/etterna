@@ -1,6 +1,6 @@
 # Translations
 
-Translation support has always been a part of Stepmania to some extent. With Etterna 0.67.0+ we have opened up the doors to translating most of Til Death and some more of the base game's strings.
+Translation support has always been a part of Stepmania to some extent. With Etterna 0.67.0+ we have opened up the doors to translating most of Til Death, and Etterna 0.71.3+ adds support for translation of Rebirth, as well as some more of the base game's strings.
 
 * [Supported Languages](#Languages)
 * [The Process](#Process)
@@ -22,7 +22,7 @@ Figuring out if your language is supported at the moment is mostly trial and err
 ## Process
 
 * Determine your 2 letter language combo from the lists found above.
-* Locate `/Themes/_fallback/Languages/en.ini` and `/Themes/Til Death/Languages/en.ini`
+* Locate `/Themes/_fallback/Languages/en.ini` and `/Themes/Til Death/Languages/en.ini` or `/Themes/Rebirth/Languages/en.ini`
 * Make a copy of both files and leave them in the same respective `Languages` folders. Rename the copies to use your 2 letter language combination. For example, Norwegian would be `no.ini`
 * Begin translating line by line in the new files.
 
@@ -45,7 +45,7 @@ If you run into any lines to translate that you would like more context to in or
 
 Spawncamping-wallhack does not feature this full translation support, but could in the future. 
 
-For your own theme, these translations can be done the exact same way. The Language files accessible from your theme are only those in `_fallback/Languages` and `yourtheme/Languages`. This means that the Til Death strings are not available, but that does not stop you from taking them at your own leisure.
+For your own theme, these translations can be done the exact same way. The Language files accessible from your theme are only those in `_fallback/Languages` and `yourtheme/Languages`. This means that the Til Death or Rebirth strings are not available, but that does not stop you from taking them at your own leisure.
 
 Adding additional strings to Til Death or any theme involves creating a new line in a designated section and then calling it with `THEME:GetString("section", "string name")`. We try to reduce calls to this by storing them in a table instead of loading them multiple times per Actor. This `GetString` function will look for the current language in the theme and fallback. Then it will look in the `en.ini` in the same order. If it finds nothing in all cases, then you get a missing string error.
 

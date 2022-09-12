@@ -834,7 +834,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	for (const auto& folder : songFolders) {
 		auto burp = sDir + folder;
 		if (IsSongDir(burp)) {
-			unknownGroup.songs.emplace_back(burp);
+			unknownGroup.songs.emplace_back("/" + burp);
 		} else {
 			auto group = Group(folder);
 			GetDirListing(sDir + folder + "/*", group.songs, true, true);
@@ -1754,9 +1754,14 @@ class LunaPlaylist : public Luna<Playlist>
 		return 1;
 	}
 
+	static auto GetNumCharts(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->GetNumCharts());
+		return 1;
+	}
+
 	DEFINE_METHOD(GetAverageRating, GetAverageRating());
 	DEFINE_METHOD(GetName, GetName());
-	DEFINE_METHOD(GetNumCharts, GetNumCharts())
 	LunaPlaylist()
 	{
 		ADD_METHOD(AddChart);

@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "Etterna/Models/HighScore/HighScore.h"
 #include <queue>
-#include "rapidjson/document.h"
+#include "rapidjson/fwd.h"
 #define ASIO_STANDALONE
 #define _WEBSOCKETPP_CPP11_INTERNAL_
 #include <websocketpp/client.hpp>

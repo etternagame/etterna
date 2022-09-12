@@ -801,70 +801,6 @@ function TipType()
     return t
 end
 
-function SongBGEnabled()
-    local t = {
-        Name = "SongBGEnabled",
-        LayoutType = "ShowAllInRow",
-        SelectType = "SelectOne",
-        OneChoiceForAllPlayers = true,
-        ExportOnChange = true,
-        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
-        LoadSelections = function(self, list, pn)
-            local pref = themeConfig:get_data().global.SongBGEnabled
-            if pref then
-                list[2] = true
-            else
-                list[1] = true
-            end
-        end,
-        SaveSelections = function(self, list, pn)
-            local value
-            if list[1] then
-                value = false
-            else
-                value = true
-            end
-            themeConfig:get_data().global.SongBGEnabled = value
-            themeConfig:set_dirty()
-            themeConfig:save()
-        end
-    }
-    setmetatable(t, t)
-    return t
-end
-
-function SongBGMouseEnabled()
-    local t = {
-        Name = "SongBGMouseEnabled",
-        LayoutType = "ShowAllInRow",
-        SelectType = "SelectOne",
-        OneChoiceForAllPlayers = true,
-        ExportOnChange = true,
-        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
-        LoadSelections = function(self, list, pn)
-            local pref = themeConfig:get_data().global.SongBGMouseEnabled
-            if pref then
-                list[2] = true
-            else
-                list[1] = true
-            end
-        end,
-        SaveSelections = function(self, list, pn)
-            local value
-            if list[1] then
-                value = false
-            else
-                value = true
-            end
-            themeConfig:get_data().global.SongBGMouseEnabled = value
-            themeConfig:set_dirty()
-            themeConfig:save()
-        end
-    }
-    setmetatable(t, t)
-    return t
-end
-
 function EvalBGType()
     local t = {
         Name = "EvalBGType",
@@ -929,6 +865,38 @@ function Particles()
                 value = true
             end
             themeConfig:get_data().global.Particles = value
+            themeConfig:set_dirty()
+            themeConfig:save()
+        end
+    }
+    setmetatable(t, t)
+    return t
+end
+
+function ShowBanners()
+    local t = {
+        Name = "ShowBanners",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = true,
+        ExportOnChange = true,
+        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+        LoadSelections = function(self, list, pn)
+            local pref = themeConfig:get_data().global.ShowBanners
+            if pref then
+                list[2] = true
+            else
+                list[1] = true
+            end
+        end,
+        SaveSelections = function(self, list, pn)
+            local value
+            if list[1] then
+                value = false
+            else
+                value = true
+            end
+            themeConfig:get_data().global.ShowBanners = value
             themeConfig:set_dirty()
             themeConfig:save()
         end

@@ -33,6 +33,8 @@ AutoScreenMessage(SM_1000Combo);
 AutoScreenMessage(SM_ComboStopped);
 AutoScreenMessage(SM_ComboContinuing);
 
+constexpr float initialHoldLife = 1.F;
+
 /** @brief Accepts input, knocks down TapNotes that were stepped on, and keeps
  * score for the player. */
 class Player : public ActorFrame
@@ -164,7 +166,7 @@ class Player : public ActorFrame
 	void UpdateVisibleParts();
 	// Updates the pressed flags depending on input
 	// Tells the NoteField to do stuff basically
-	void UpdatePressedFlags();
+	virtual void UpdatePressedFlags();
 	// Updates Holds and Rolls
 	// For Rolls, just tells Autoplay to restep them
 	// For Holds, tells their life to decay
@@ -225,6 +227,7 @@ class Player : public ActorFrame
 						int iMaxRowsAhead,
 						int iMaxRowsBehind,
 						bool bAllowGraded,
+						bool bUseSongTiming = true,
 						bool bAllowOldMines = true) const -> int;
 	auto GetClosestNonEmptyRowDirectional(int iStartRow,
 										  int iEndRow,

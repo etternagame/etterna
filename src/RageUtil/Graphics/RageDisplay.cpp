@@ -1234,9 +1234,6 @@ RageDisplay::FrameLimitBeforeVsync()
 		// Ignore frame limit preferences if v-sync is enabled without
 		// predictive frame limit.
 	}
-
-	if (!GameLoop::isGameFocused())
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 // Frame pacing code

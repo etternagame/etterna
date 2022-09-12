@@ -47,6 +47,7 @@
 #include "Etterna/Models/Songs/SongCacheIndex.h"
 #include "Etterna/Models/Misc/ImageCache.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/ReplayManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Actor/Base/ModelManager.h"
@@ -1122,6 +1123,7 @@ sm_main(int argc, char* argv[])
 	SONGINDEX->FinishTransaction();
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	SCOREMAN = new ScoreManager;
+	REPLAYS = std::make_shared<ReplayManager>();
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
 	SONGMAN->CalcTestStuff();		  // must be after profileman init

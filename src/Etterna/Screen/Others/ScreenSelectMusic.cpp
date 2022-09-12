@@ -1773,48 +1773,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_gameplayMode.Set(GameplayMode_Replay);
 		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
 
-		// we get timestamps not noterows when getting online replays from the
-		// site, since order is deterministic we'll just auto set the noterows
-		// from the existing, if the score was cc off then we need to fill in
-		// extra rows for each tap in the chord -mina
-		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
-		auto noterows = hs->GetNoteRowVector();
-
-		// Construct noterows from given timestamps if timestamps are given
-		// alone
-		if (!timestamps.empty() && noterows.empty()) {
-			GAMESTATE->SetProcessedTimingData(
-			  GAMESTATE->m_pCurSteps->GetTimingData());
-			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			auto nerv = nd.BuildAndGetNerv(td);
-			auto sdifs = td->BuildAndGetEtaner(nerv);
-			std::vector<int> noterows;
-			for (auto t : timestamps) {
-				auto timestamptobeat =
-				  td->GetBeatFromElapsedTime(t * hs->GetMusicRate());
-				auto somenumberscaledbyoffsets =
-				  sdifs[0] - (timestamps[0] * hs->GetMusicRate());
-				timestamptobeat += somenumberscaledbyoffsets;
-				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
-				noterows.emplace_back(noterowfrombeat);
-			}
-			auto noterowoffsetter = nerv[0] - noterows[0];
-			for (auto& noterowwithoffset : noterows)
-				noterowwithoffset += noterowoffsetter;
-			GAMESTATE->SetProcessedTimingData(nullptr);
-			hs->SetNoteRowVector(noterows);
-		}
-
-		// Since we keep misses on EO as 180ms, need to convert them back.
-		if (!timestamps.empty()) {
-			auto offsets = hs->GetCopyOfOffsetVector();
-			for (auto& offset : offsets) {
-				if (fabs(offset) >= .18f)
-					offset = -1.1f; // This is a miss to the replay reader.
-			}
-			hs->SetOffsetVector(offsets);
-		}
-
 		// Player AI Setup.
 		PlayerAI::ResetScoreData();
 		PlayerAI::SetScoreData(
