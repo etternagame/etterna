@@ -218,7 +218,6 @@ struct HighScore
 	HSImplUniquePtr m_Impl;
 	void CheckReplayIsInit();
 	std::shared_ptr<Replay> replay = nullptr;
-	Replay* replay = nullptr;
 };
 
 /** @brief the picture taken of the high score. */
