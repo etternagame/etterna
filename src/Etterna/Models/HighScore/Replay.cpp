@@ -226,6 +226,8 @@ Replay::WriteInputData() -> bool
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
 									   path_z.c_str());
+			fclose(infile);
+			return false;
 		}
 
 		char buf[128];
@@ -775,11 +777,11 @@ Replay::ValidateOffsets()
 auto
 Replay::GenerateInputData() -> bool
 {
-	if (!InputData.empty()) {
+	if (LoadInputData()) {
 		return true;
 	}
 
-	if (!LoadReplayData() && !LoadInputData() && !GenerateNoterowsFromTimestamps()) {
+	if (!LoadReplayData() && !GenerateNoterowsFromTimestamps()) {
 		Locator::getLogger()->warn("Failed to generate input data because "
 								   "replay for score {} could not be loaded",
 								   scoreKey);

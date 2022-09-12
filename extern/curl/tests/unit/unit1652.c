@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -63,8 +63,10 @@ unit_setup(void)
 
   global_init(CURL_GLOBAL_ALL);
   data = curl_easy_init();
-  if(!data)
+  if(!data) {
+    curl_global_cleanup();
     return CURLE_OUT_OF_MEMORY;
+  }
   curl_easy_setopt(data, CURLOPT_DEBUGFUNCTION, debugf_cb);
   curl_easy_setopt(data, CURLOPT_VERBOSE, 1L);
   return CURLE_OK;
@@ -77,30 +79,39 @@ unit_stop(void)
   curl_global_cleanup();
 }
 
+static int verify(const char *info, const char *two)
+{
+  /* the 'info' one has a newline appended */
+  char *nl = strchr(info, '\n');
+  if(!nl)
+    return 1; /* nope */
+  return strncmp(info, two, nl - info);
+}
+
 UNITTEST_START
 
 /* Injecting a simple short string via a format */
 msnprintf(input, sizeof(input), "Simple Test");
 Curl_infof(data, "%s", input);
-fail_unless(strcmp(result, input) == 0, "Simple string test");
+fail_unless(verify(result, input) == 0, "Simple string test");
 
 /* Injecting a few different variables with a format */
-Curl_infof(data, "%s %u testing %lu\n", input, 42, 43L);
-fail_unless(strcmp(result, "Simple Test 42 testing 43\n") == 0,
+Curl_infof(data, "%s %u testing %lu", input, 42, 43L);
+fail_unless(verify(result, "Simple Test 42 testing 43\n") == 0,
             "Format string");
 
 /* Variations of empty strings */
 Curl_infof(data, "");
-fail_unless(strlen(result) == 0, "Empty string");
+fail_unless(strlen(result) == 1, "Empty string");
 Curl_infof(data, "%s", NULL);
-fail_unless(strcmp(result, "(nil)") == 0, "Passing NULL as string");
+fail_unless(verify(result, "(nil)") == 0, "Passing NULL as string");
 
 /* A string just long enough to not be truncated */
 memset(input, '\0', sizeof(input));
-memset(input, 'A', 2048);
+memset(input, 'A', 2047);
 Curl_infof(data, "%s", input);
 fail_unless(strlen(result) == 2048, "No truncation of infof input");
-fail_unless(strcmp(result, input) == 0, "No truncation of infof input");
+fail_unless(verify(result, input) == 0, "No truncation of infof input");
 fail_unless(result[sizeof(result) - 1] == '\0',
             "No truncation of infof input");
 
@@ -109,25 +120,20 @@ memset(input + 2047, 'A', 4);
 Curl_infof(data, "%s", input);
 fail_unless(strlen(result) == 2048, "Truncation of infof input 1");
 fail_unless(result[sizeof(result) - 1] == '\0', "Truncation of infof input 1");
-fail_unless(strncmp(result + 2045, "...", 3) == 0,
-            "Truncation of infof input 1");
 
 /* Just over the limit for truncation with newline */
 memset(input + 2047, 'A', 4);
 memset(input + 2047 + 4, '\n', 1);
-Curl_infof(data, "%s\n", input);
+Curl_infof(data, "%s", input);
 fail_unless(strlen(result) == 2048, "Truncation of infof input 2");
 fail_unless(result[sizeof(result) - 1] == '\0', "Truncation of infof input 2");
-fail_unless(strncmp(result + 2044, "...", 3) == 0,
-            "Truncation of infof input 2");
 
 /* Way over the limit for truncation with newline */
 memset(input, '\0', sizeof(input));
 memset(input, 'A', sizeof(input) - 1);
-Curl_infof(data, "%s\n", input);
+Curl_infof(data, "%s", input);
 fail_unless(strlen(result) == 2048, "Truncation of infof input 3");
 fail_unless(result[sizeof(result) - 1] == '\0', "Truncation of infof input 3");
-fail_unless(strncmp(result + 2044, "...", 3) == 0,
-            "Truncation of infof input 3");
+
 
 UNITTEST_STOP

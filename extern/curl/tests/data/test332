@@ -26,7 +26,7 @@ tftp
 TFTP retrieve with blksize 400
  </name>
  <command>
-tftp://%HOSTIP:%TFTPPORT//332 --tftp-blksize 400
+tftp://%HOSTIP:%TFTPPORT//%TESTNUMBER --tftp-blksize 400
 </command>
 </client>
 
@@ -34,12 +34,12 @@ tftp://%HOSTIP:%TFTPPORT//332 --tftp-blksize 400
 # Verify pseudo protocol after the test has been "shot"
 <verify>
 <protocol>
-opcode: 1
-mode: octet
-tsize: 0
-blksize: 400
-timeout: 6
-filename: /332
+opcode = 1
+mode = octet
+tsize = 0
+blksize = 400
+timeout = 6
+filename = /%TESTNUMBER
 </protocol>
 </verify>
 </testcase>

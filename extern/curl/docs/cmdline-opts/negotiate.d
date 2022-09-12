@@ -2,6 +2,9 @@ Long: negotiate
 Help: Use HTTP Negotiate (SPNEGO) authentication
 Protocols: HTTP
 See-also: basic ntlm anyauth proxy-negotiate
+Category: auth http
+Example: --negotiate -u : $URL
+Added: 7.10.6
 ---
 Enables Negotiate (SPNEGO) authentication.
 
@@ -10,6 +13,6 @@ This option requires a library built with GSS-API or SSPI support. Use
 
 When using this option, you must also provide a fake --user option to activate
 the authentication code properly. Sending a '-u :' is enough as the user name
-and password from the --user option aren't actually used.
+and password from the --user option are not actually used.
 
 If this option is used several times, only the first one is used.

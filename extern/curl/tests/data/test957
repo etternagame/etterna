@@ -31,19 +31,19 @@ perl -MI18N::Langinfo=langinfo,CODESET -e 'die "Needs a UTF-8 locale" if (lc(lan
 SMTP VRFY without SMTPUTF8 support - UTF-8 based recipient (local part only)
  </name>
 <command>
-smtp://%HOSTIP:%SMTPPORT/957 --mail-rcpt Användaren
+smtp://%HOSTIP:%SMTPPORT/%TESTNUMBER --mail-rcpt Användaren
 </command>
 </client>
 
 #
 # Verify data after the test has been "shot"
 <verify>
-# 56 - CURLE_RECV_ERROR
+# 8 - CURLE_WEIRD_SERVER_REPLY
 <errorcode>
-56
+8
 </errorcode>
 <protocol>
-EHLO 957
+EHLO %TESTNUMBER
 VRFY Användaren
 QUIT
 </protocol>

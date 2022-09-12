@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -146,7 +146,7 @@ static int multi_timer_cb(CURLM *multi, long timeout_ms, GlobalInfo *g)
   fprintf(MSG_OUT, "multi_timer_cb: Setting timeout to %ld ms\n", timeout_ms);
 
   if(timeout_ms > 0) {
-    its.it_interval.tv_sec = 1;
+    its.it_interval.tv_sec = 0;
     its.it_interval.tv_nsec = 0;
     its.it_value.tv_sec = timeout_ms / 1000;
     its.it_value.tv_nsec = (timeout_ms % 1000) * 1000 * 1000;
@@ -155,7 +155,7 @@ static int multi_timer_cb(CURLM *multi, long timeout_ms, GlobalInfo *g)
     /* libcurl wants us to timeout now, however setting both fields of
      * new_value.it_value to zero disarms the timer. The closest we can
      * do is to schedule the timer to fire in 1 ns. */
-    its.it_interval.tv_sec = 1;
+    its.it_interval.tv_sec = 0;
     its.it_interval.tv_nsec = 0;
     its.it_value.tv_sec = 0;
     its.it_value.tv_nsec = 1;
@@ -224,7 +224,7 @@ static void timer_cb(GlobalInfo* g, int revents)
 
   err = read(g->tfd, &count, sizeof(uint64_t));
   if(err == -1) {
-    /* Note that we may call the timer callback even if the timerfd isn't
+    /* Note that we may call the timer callback even if the timerfd is not
      * readable. It's possible that there are multiple events stored in the
      * epoll buffer (i.e. the timer may have fired multiple times). The
      * event count is cleared after the first call so future events in the
@@ -292,7 +292,7 @@ static void setsock(SockInfo *f, curl_socket_t s, CURL *e, int act,
 /* Initialize a new SockInfo structure */
 static void addsock(curl_socket_t s, CURL *easy, int action, GlobalInfo *g)
 {
-  SockInfo *fdp = (SockInfo*)calloc(sizeof(SockInfo), 1);
+  SockInfo *fdp = (SockInfo*)calloc(1, sizeof(SockInfo));
 
   fdp->global = g;
   setsock(fdp, s, easy, action, g);
@@ -455,11 +455,9 @@ static void clean_fifo(GlobalInfo *g)
 
 int g_should_exit_ = 0;
 
-void SignalHandler(int signo)
+void sigint_handler(int signo)
 {
-  if(signo == SIGINT) {
-    g_should_exit_ = 1;
-  }
+  g_should_exit_ = 1;
 }
 
 int main(int argc, char **argv)
@@ -472,7 +470,7 @@ int main(int argc, char **argv)
   (void)argv;
 
   g_should_exit_ = 0;
-  signal(SIGINT, SignalHandler);
+  signal(SIGINT, sigint_handler);
 
   memset(&g, 0, sizeof(GlobalInfo));
   g.epfd = epoll_create1(EPOLL_CLOEXEC);
@@ -488,7 +486,7 @@ int main(int argc, char **argv)
   }
 
   memset(&its, 0, sizeof(struct itimerspec));
-  its.it_interval.tv_sec = 1;
+  its.it_interval.tv_sec = 0;
   its.it_value.tv_sec = 1;
   timerfd_settime(g.tfd, 0, &its, NULL);
 
@@ -505,7 +503,7 @@ int main(int argc, char **argv)
   curl_multi_setopt(g.multi, CURLMOPT_TIMERFUNCTION, multi_timer_cb);
   curl_multi_setopt(g.multi, CURLMOPT_TIMERDATA, &g);
 
-  /* we don't call any curl_multi_socket*() function yet as we have no handles
+  /* we do not call any curl_multi_socket*() function yet as we have no handles
      added! */
 
   fprintf(MSG_OUT, "Entering wait loop\n");

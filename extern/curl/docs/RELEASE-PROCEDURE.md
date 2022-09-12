@@ -4,6 +4,8 @@ curl release procedure - how to do a release
 in the source code repo
 -----------------------
 
+- run `./scripts/copyright.pl` and correct possible omissions
+
 - edit `RELEASE-NOTES` to be accurate
 
 - update `docs/THANKS`
@@ -40,9 +42,9 @@ in the curl-www repo
 
 - make sure all relevant changes are committed and pushed on the master branch
 
-  (the web site then updates its contents automatically)
+  (the website then updates its contents automatically)
 
-on github
+on GitHub
 ---------
 
 - edit the newly made release tag so that it is listed as the latest release
@@ -93,14 +95,12 @@ Coming dates
 Based on the description above, here are some planned release dates (at the
 time of this writing):
 
-- March 4, 2020 (7.69.0)
-- April 29, 2020
-- June 24, 2020
-- August 19, 2020
-- October 14, 2020
-- December 9, 2020
-- February 3, 2021
-
-The above (and more) curl-related dates are published in
-[iCalendar format](https://calendar.google.com/calendar/ical/c9u5d64odop9js55oltfarjk6g%40group.calendar.google.com/public/basic.ics)
-as well.
+- May 11, 2022 (7.83.1)
+- July 6, 2022
+- August 31, 2022
+- October 25, 2022
+- December 21, 2022
+- February 15, 2023 (last version 7 release, no feature window after)
+- March 20, 2023 (8.0.0 - curl 25 years)
+- April 17, 2023
+- July 12, 2023

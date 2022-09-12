@@ -3,7 +3,7 @@
 
   This is a little program to demonstrate the usage of
 
-  - an ssl initialisation callback setting a user key and trustbases
+  - an SSL initialization callback setting a user key and trustbases
   coming from a pkcs12 file
   - using an ssl application callback to find a URI in the
   certificate presented during ssl session establishment.
@@ -15,7 +15,7 @@
  */
 
 /*
- * Copyright (c) 2003 - 2019 The OpenEvidence Project.  All rights reserved.
+ * Copyright (c) 2003 - 2022 The OpenEvidence Project.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -191,24 +191,29 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 {
   sslctxparm * p = (sslctxparm *) arg;
   int ok;
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fL
+  X509 *cert = X509_STORE_CTX_get0_cert(ctx);
+#else
+  X509 *cert = ctx->cert;
+#endif
 
   if(p->verbose > 2)
     BIO_printf(p->errorbio, "entering ssl_app_verify_callback\n");
 
   ok = X509_verify_cert(ctx);
-  if(ok && ctx->cert) {
+  if(ok && cert) {
     unsigned char *accessinfo;
     if(p->verbose > 1)
-      X509_print_ex(p->errorbio, ctx->cert, 0, 0);
+      X509_print_ex(p->errorbio, cert, 0, 0);
 
-    accessinfo = my_get_ext(ctx->cert, p->accesstype, NID_sinfo_access);
+    accessinfo = my_get_ext(cert, p->accesstype, NID_sinfo_access);
     if(accessinfo) {
       if(p->verbose)
         BIO_printf(p->errorbio, "Setting URL from SIA to: %s\n", accessinfo);
 
       curl_easy_setopt(p->curl, CURLOPT_URL, accessinfo);
     }
-    else if(accessinfo = my_get_ext(ctx->cert, p->accesstype,
+    else if(accessinfo = my_get_ext(cert, p->accesstype,
                                     NID_info_access)) {
       if(p->verbose)
         BIO_printf(p->errorbio, "Setting URL from AIA to: %s\n", accessinfo);
@@ -223,7 +228,7 @@ static int ssl_app_verify_callback(X509_STORE_CTX *ctx, void *arg)
 }
 
 
-/* The SSL initialisation callback. The callback sets:
+/* The SSL initialization callback. The callback sets:
    - a private key and certificate
    - a trusted ca certificate
    - a preferred cipherlist
@@ -372,7 +377,7 @@ int main(int argc, char **argv)
     args++;
   }
 
-  if(mimetype == NULL || mimetypeaccept == NULL || p.p12file == NULL)
+  if(!mimetype || !mimetypeaccept || !p.p12file)
     badarg = 1;
 
   if(badarg) {
@@ -385,11 +390,11 @@ int main(int argc, char **argv)
   /* set input */
 
   in = BIO_new(BIO_s_file());
-  if(in == NULL) {
+  if(!in) {
     BIO_printf(p.errorbio, "Error setting input bio\n");
     goto err;
   }
-  else if(infile == NULL)
+  else if(!infile)
     BIO_set_fp(in, stdin, BIO_NOCLOSE|BIO_FP_TEXT);
   else if(BIO_read_filename(in, infile) <= 0) {
     BIO_printf(p.errorbio, "Error opening input file %s\n", infile);
@@ -400,11 +405,11 @@ int main(int argc, char **argv)
   /* set output  */
 
   out = BIO_new(BIO_s_file());
-  if(out == NULL) {
+  if(!out) {
     BIO_printf(p.errorbio, "Error setting output bio.\n");
     goto err;
   }
-  else if(outfile == NULL)
+  else if(!outfile)
     BIO_set_fp(out, stdout, BIO_NOCLOSE|BIO_FP_TEXT);
   else if(BIO_write_filename(out, outfile) <= 0) {
     BIO_printf(p.errorbio, "Error opening output file %s\n", outfile);
@@ -453,13 +458,13 @@ int main(int argc, char **argv)
     serverurl = malloc(len);
     snprintf(serverurl, len, "https://%s", hostporturl);
   }
-  else if(p.accesstype != 0) { /* see whether we can find an AIA or SIA for a
-                                  given access type */
+  else if(p.accesstype) { /* see whether we can find an AIA or SIA for a
+                             given access type */
     serverurl = my_get_ext(p.usercert, p.accesstype, NID_info_access);
     if(!serverurl) {
       int j = 0;
       BIO_printf(p.errorbio, "no service URL in user cert "
-                 "cherching in others certificats\n");
+                 "searching in others certificates\n");
       for(j = 0; j<sk_X509_num(p.ca); j++) {
         serverurl = my_get_ext(sk_X509_value(p.ca, j), p.accesstype,
                                NID_info_access);
@@ -474,7 +479,7 @@ int main(int argc, char **argv)
   }
 
   if(!serverurl) {
-    BIO_printf(p.errorbio, "no service URL in certificats,"
+    BIO_printf(p.errorbio, "no service URL in certificates,"
                " check '-accesstype (AD_DVCS | ad_timestamping)'"
                " or use '-connect'\n");
     goto err;

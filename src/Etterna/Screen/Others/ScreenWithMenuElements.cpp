@@ -39,7 +39,7 @@ ScreenWithMenuElements::Init()
 
 	ASSERT(this->m_SubActors.empty()); // don't call Init twice!
 
-	if (TIMER_SECONDS != -1) {
+	if (TIMER_SECONDS != -1.0f) {
 		ASSERT(m_MenuTimer == NULL); // don't load twice
 		m_MenuTimer = new MenuTimer;
 		m_MenuTimer->Load(TIMER_METRICS_GROUP.GetValue());

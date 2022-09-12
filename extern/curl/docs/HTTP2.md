@@ -7,7 +7,7 @@ HTTP/2 with curl
 Build prerequisites
 -------------------
   - nghttp2
-  - OpenSSL, libressl, BoringSSL, NSS, GnutTLS, mbedTLS, wolfSSL or Schannel
+  - OpenSSL, libressl, BoringSSL, NSS, GnuTLS, mbedTLS, wolfSSL or Schannel
     with a new enough version.
 
 [nghttp2](https://nghttp2.org/)
@@ -18,7 +18,7 @@ parts. The reason for this is that HTTP/2 is much more complex at that layer
 than HTTP/1.1 (which we implement on our own) and that nghttp2 is an already
 existing and well functional library.
 
-We require at least version 1.0.0.
+We require at least version 1.12.0.
 
 Over an http:// URL
 -------------------
@@ -77,8 +77,8 @@ To take advantage of multiplexing, you need to use the multi interface and set
 attempt to re-use existing HTTP/2 connections and just add a new stream over
 that when doing subsequent parallel requests.
 
-While libcurl sets up a connection to a HTTP server there is a period during
-which it doesn't know if it can pipeline or do multiplexing and if you add new
+While libcurl sets up a connection to an HTTP server there is a period during
+which it does not know if it can pipeline or do multiplexing and if you add new
 transfers in that period, libcurl will default to start new connections for
 those transfers. With the new option `CURLOPT_PIPEWAIT` (added in 7.43.0), you
 can ask that a transfer should rather wait and see in case there's a
@@ -105,14 +105,8 @@ Since 7.47.0, the curl tool enables HTTP/2 by default for HTTPS connections.
 curl tool limitations
 ---------------------
 
-The command line tool won't do any HTTP/2 multiplexing even though libcurl
-supports it, simply because the curl tool is not written to take advantage of
-the libcurl API that's necessary for this (the multi interface). We have an
-outstanding TODO item for this and **you** can help us make it happen.
-
-The command line tool also doesn't support HTTP/2 server push for the same
-reason it doesn't do multiplexing: it needs to use the multi interface for
-that so that multiplexing is supported.
+The command line tool does not support HTTP/2 server push. It supports
+multiplexing when the parallel transfer option is used.
 
 HTTP Alternative Services
 -------------------------
@@ -120,8 +114,8 @@ HTTP Alternative Services
 Alt-Svc is an extension with a corresponding frame (ALTSVC) in HTTP/2 that
 tells the client about an alternative "route" to the same content for the same
 origin server that you get the response from. A browser or long-living client
-can use that hint to create a new connection asynchronously.  For libcurl, we
+can use that hint to create a new connection asynchronously. For libcurl, we
 may introduce a way to bring such clues to the application and/or let a
 subsequent request use the alternate route automatically.
 
-[Detailed in RFC 7838](https://tools.ietf.org/html/rfc7838)
+[Detailed in RFC 7838](https://datatracker.ietf.org/doc/html/rfc7838)

@@ -357,8 +357,7 @@ PlayerReplay::UpdatePressedFlags()
 		ASSERT(m_pPlayerState != nullptr);
 
 		const auto bIsHoldingButton = holdingColumns.count(col) != 0;
-		if (bIsHoldingButton &&
-			m_pPlayerState->m_PlayerController == PC_HUMAN) {
+		if (bIsHoldingButton) {
 			if (m_pNoteField != nullptr) {
 				m_pNoteField->SetPressed(col);
 			}
@@ -380,6 +379,11 @@ PlayerReplay::CrossedRows(int iLastRowCrossed,
 		switch (tn.type) {
 			case TapNoteType_HoldHead: {
 				tn.HoldResult.fLife = initialHoldLife;
+				break;
+			}
+			case TapNoteType_Mine: {
+				if (holdingColumns.count(iTrack))
+					Step(iTrack, iRow, now, true, false, 0.F, iRow);
 				break;
 			}
 			default:
@@ -698,15 +702,19 @@ PlayerReplay::Step(int col,
 			return;
 
 		// Score the Tap
-		if (bHeld) {
+		if (bHeld && pTN->type != TapNoteType_Mine) {
 			// a hack to make Rolls not do weird things like
 			// count as 0ms marvs.
 			score = TNS_None;
 			fNoteOffset = -1.f;
 		} else {
 			if (pTN->type == TapNoteType_Mine && pTN->result.tns == TNS_None) {
-				// we hit a mine
-				score = TNS_HitMine;
+				if (!bRelease &&
+					fabsf(fNoteOffset) <= GetWindowSeconds(TW_Mine) &&
+					m_Timing->IsJudgableAtRow(closestNR)) {
+					// we hit a mine
+					score = TNS_HitMine;
+				}
 			} else {
 				// every other case
 				if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
