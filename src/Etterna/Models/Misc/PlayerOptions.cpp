@@ -282,6 +282,8 @@ PlayerOptions::GetMods(std::vector<std::string>& AddTo, bool bForceNoteSkin) con
 		AddTo.push_back("SoftShuffle");
 	if (m_bTurns[TURN_SUPER_SHUFFLE])
 		AddTo.push_back("SuperShuffle");
+	if (m_bTurns[TURN_HRAN_SHUFFLE])
+		AddTo.push_back("HRanShuffle");
 
 	if (m_bTransforms[TRANSFORM_NOHOLDS])
 		AddTo.push_back("NoHolds");
@@ -396,6 +398,8 @@ PlayerOptions::GetTurnMods(std::vector<std::string>& AddTo)
 		AddTo.push_back("SoftShuffle");
 	if (m_bTurns[TURN_SUPER_SHUFFLE])
 		AddTo.push_back("SuperShuffle");
+	if (m_bTurns[TURN_HRAN_SHUFFLE])
+		AddTo.push_back("HRanShuffle");
 }
 
 // At the moment this only supports turns.
@@ -616,6 +620,8 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_bTurns[TURN_SOFT_SHUFFLE] = on;
 	else if (sBit == "supershuffle")
 		m_bTurns[TURN_SUPER_SHUFFLE] = on;
+	else if (sBit == "hranshuffle")
+		m_bTurns[TURN_HRAN_SHUFFLE] = on;
 	else if (sBit == "little")
 		m_bTransforms[TRANSFORM_LITTLE] = on;
 	else if (sBit == "wide")
@@ -1210,6 +1216,8 @@ PlayerOptions::GetInvalidatingModifiers() const
 		AddTo.push_back("SoftShuffle");
 	if (m_bTurns[TURN_SUPER_SHUFFLE])
 		AddTo.push_back("SuperShuffle");
+	if (m_bTurns[TURN_HRAN_SHUFFLE])
+		AddTo.push_back("HRanShuffle");
 
 	if (m_bTransforms[TRANSFORM_NOHOLDS])
 		AddTo.push_back("NoHolds");
@@ -1447,6 +1455,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	BOOL_INTERFACE(Shuffle, Turns[PlayerOptions::TURN_SHUFFLE]);
 	BOOL_INTERFACE(SoftShuffle, Turns[PlayerOptions::TURN_SOFT_SHUFFLE]);
 	BOOL_INTERFACE(SuperShuffle, Turns[PlayerOptions::TURN_SUPER_SHUFFLE]);
+	BOOL_INTERFACE(HRanShuffle, Turns[PlayerOptions::TURN_HRAN_SHUFFLE]);
 	BOOL_INTERFACE(NoHolds, Transforms[PlayerOptions::TRANSFORM_NOHOLDS]);
 	BOOL_INTERFACE(NoRolls, Transforms[PlayerOptions::TRANSFORM_NOROLLS]);
 	BOOL_INTERFACE(NoMines, Transforms[PlayerOptions::TRANSFORM_NOMINES]);
@@ -1807,6 +1816,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(Shuffle);
 		ADD_METHOD(SoftShuffle);
 		ADD_METHOD(SuperShuffle);
+		ADD_METHOD(HRanShuffle);
 		ADD_METHOD(NoHolds);
 		ADD_METHOD(NoRolls);
 		ADD_METHOD(NoMines);

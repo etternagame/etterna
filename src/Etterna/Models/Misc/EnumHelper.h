@@ -106,6 +106,28 @@ EnumToString(int iVal,
 	}                                                                          \
 	}
 
+/* Disable warnings about instantiations of static member variables of the
+ * templated class not being defined. These are all defined in different
+ * translation units by LuaXType, a macro that does a whole lot of stuff
+ * including initializing them.
+ *
+ * Because it happens in a different translation unit, there's not really a
+ * great way to do this better. You could state that external instantiations
+ * happen elsewhere with a `extern template struct EnumTraits<T>;` for every T,
+ * but the issue is that this header file doesn't know about the existence of
+ * those classes.
+ */
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundefined-var-template"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wundefined-var-template"
+#elif defined(_MSC_VER)
+// TODO: Does anything need to be here?
+#endif
+
 namespace Enum {
 template<typename T>
 static auto
@@ -122,6 +144,14 @@ Check(lua_State* L,
 									bAllowInvalid,
 									bAllowAnything));
 }
+#if defined(__clang__)
+#pragma clang pop
+#elif defined(__GNUC__)
+#pragma GCC pop
+#elif defined(_MSC_VER)
+
+#endif
+
 template<typename T>
 static void
 Push(lua_State* L, T iVal)

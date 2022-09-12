@@ -23,6 +23,7 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
+#include <regex>
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -984,7 +985,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			replayString += "[";
 			replayString += to_string(timestamps[i]) + ",";
 			replayString += to_string(1000.f * offsets[i]) + ",";
-			if (hs->GetReplayType() == 2) {
+			if (hs->HasColumnData()) {
 				replayString += to_string(columns[i]) + ",";
 				replayString += to_string(types[i]) + ",";
 			}
@@ -2365,14 +2366,20 @@ DownloadManager::RefreshPackList(const string& url)
 	SendRequestToURL(url, {}, done, false, false, true, false);
 }
 
-Download::Download(string url, string filename, function<void(Download*)> done)
+Download::Download(std::string url, std::string filename, function<void(Download*)> done)
 {
+	// remove characters we cant accept
+	std::regex remover("[^\\w\\s\\d.]");
+	std::string cleanname = std::regex_replace(filename, remover, "_");
+	auto tmpFilename =
+	  DL_DIR + (!cleanname.empty() ? cleanname : MakeTempFileName(url));
+	auto opened = p_RFWrapper.file.Open(tmpFilename, 2);
 	Done = done;
 	m_Url = url;
 	handle = initBasicCURLHandle();
-	m_TempFileName =
-	  DL_DIR + (!filename.empty() ? filename : MakeTempFileName(url));
-	auto opened = p_RFWrapper.file.Open(m_TempFileName, 2);
+	m_TempFileName = tmpFilename;
+
+	// horrible force crash if somehow things still dont work
 	ASSERT_M(opened, p_RFWrapper.file.GetError());
 	DLMAN->EncodeSpaces(m_Url);
 

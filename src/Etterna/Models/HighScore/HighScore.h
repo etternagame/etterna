@@ -77,6 +77,7 @@ struct HighScore
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
 	[[nodiscard]] auto GetReplayType() -> ReplayType;
+	[[nodiscard]] auto HasColumnData() -> bool;
 	[[nodiscard]] auto GetPlayedSeconds() const -> float;
 	[[nodiscard]] auto GetMaxCombo() const -> unsigned int;
 	/**
@@ -149,8 +150,6 @@ struct HighScore
 		  const_cast<HighScore*>(this)->GetNameMutable());
 	}
 
-	void Unset();
-
 	auto operator<(HighScore const& other) const -> bool;
 	auto operator>(HighScore const& other) const -> bool;
 	auto operator<=(HighScore const& other) const -> bool;
@@ -158,14 +157,11 @@ struct HighScore
 	auto operator==(HighScore const& other) const -> bool;
 	auto operator!=(HighScore const& other) const -> bool;
 
-	[[nodiscard]] auto CreateNode() const -> XNode*;
 	[[nodiscard]] auto CreateEttNode() const -> XNode*;
-	void LoadFromNode(const XNode* pNode);
 	void LoadFromEttNode(const XNode* pNode);
 
 	auto WriteReplayData() -> bool;
 	auto WriteInputData() -> bool;
-	auto LoadInputData() -> bool;
 	auto LoadReplayData() -> bool;
 	auto LoadReplayDataBasic(const std::string& dir) -> bool;
 	auto LoadReplayDataFull(const std::string& dir) -> bool;
@@ -207,7 +203,7 @@ struct HighScore
   private:
 	void CheckReplayIsInit();
 	HiddenPtr<HighScoreImpl> m_Impl;
-	std::shared_ptr<Replay> replay = nullptr;
+	Replay* replay = nullptr;
 };
 
 /** @brief the picture taken of the high score. */

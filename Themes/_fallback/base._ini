@@ -2069,7 +2069,6 @@ HoldCheckpoints=false
 ImmediateHoldLetGo=true
 RequireStepOnHoldHeads=true
 CheckpointsUseTimeSignatures=false
-InitialHoldLife=1
 RollBodyIncrementsCombo=true
 CheckpointsTapsSeparateJudgment=true
 
@@ -2471,7 +2470,6 @@ Line11="conf,DelayedTextureDeletion"
 Line12="conf,RefreshRate"
 Line13="conf,Vsync"
 Line14="conf,ShowStats"
-Line15="conf,ShowBanners"
 Line16="conf,AttractSoundFrequency"
 Line17="conf,SoundVolume"
 Line18="conf,EnableAttackSounds"
@@ -2479,12 +2477,11 @@ Line19="conf,EnableMineHitSound"
 
 [ScreenAppearanceOptions]
 Fallback="ScreenOptionsServiceChild"
-LineNames="1,2,3,4,5,6,8,9,10,11,12,13,14,15,16,17,18,19"
+LineNames="1,2,3,4,6,8,9,10,11,12,13,14,15,16,17,18,19"
 Line1="conf,Language"
 Line2="conf,Announcer"
 Line3="conf,Theme"
 Line4="conf,DefaultNoteSkin"
-Line5="conf,ShowInstructions"
 Line6="conf,ShowCaution"
 Line8="conf,ShowSelectGroup"
 Line9="conf,MusicWheelUsesSections"

@@ -818,15 +818,19 @@ t[#t + 1] = Def.Sprite {
 	end,
 	ModifyBannerCommand = function(self)
 		self:finishtweening()
-		if song then
+		if song and GAMESTATE:GetCurrentSong() ~= nil then
 			local bnpath = GAMESTATE:GetCurrentSong():GetBannerPath()
-			if not bnpath then
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
 		else
 			local bnpath = SONGMAN:GetSongGroupBannerPath(SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection())
-			if not bnpath or bnpath == "" then
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath or bnpath == "" then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
@@ -837,7 +841,7 @@ t[#t + 1] = Def.Sprite {
 		self:visible(false)
 	end,
 	ChartPreviewOffMessageCommand = function(self)
-		self:visible(true)
+		self:visible(BannersEnabled())
 	end
 }
 local enabledC = "#099948"

@@ -271,7 +271,7 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 		m_vPlayerInfo.m_NoteData = ndTransformed;
 		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
 										  TapNoteType_AutoKeysound);
-		m_vPlayerInfo.m_pPlayer->Reload();
+		ReloadPlayer();
 	}
 
 	// load auto keysounds
@@ -514,8 +514,8 @@ void
 ScreenGameplayPractice::ResetLoopRegion()
 {
 	// magic number defaults for loop region bounds
-	loopStart = -2000.F;
-	loopEnd = -2000.F;
+	loopStart = ARBITRARY_MIN_GAMEPLAY_NUMBER;
+	loopEnd = ARBITRARY_MIN_GAMEPLAY_NUMBER;
 
 	// Reload notedata for the entire file starting at current row
 	RageTimer tm;

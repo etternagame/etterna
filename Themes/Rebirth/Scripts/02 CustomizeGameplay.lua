@@ -33,6 +33,12 @@ local function loadValuesTable()
     MovableValues.FullProgressBarHeight = playerConfig:get_data().GameplaySizes[keymode].FullProgressBarHeight
     MovableValues.MiniProgressBarX = playerConfig:get_data().GameplayXYCoordinates[keymode].MiniProgressBarX
     MovableValues.MiniProgressBarY = playerConfig:get_data().GameplayXYCoordinates[keymode].MiniProgressBarY
+    MovableValues.DisplayStdDevX = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayStdDevX
+    MovableValues.DisplayStdDevY = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayStdDevY
+    MovableValues.DisplayStdDevZoom = playerConfig:get_data().GameplaySizes[keymode].DisplayStdDevZoom
+    MovableValues.DisplayEWMAX = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayEWMAX
+    MovableValues.DisplayEWMAY = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayEWMAY
+    MovableValues.DisplayEWMAZoom = playerConfig:get_data().GameplaySizes[keymode].DisplayEWMAZoom
     MovableValues.DisplayPercentX = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayPercentX
     MovableValues.DisplayPercentY = playerConfig:get_data().GameplayXYCoordinates[keymode].DisplayPercentY
     MovableValues.DisplayPercentZoom = playerConfig:get_data().GameplaySizes[keymode].DisplayPercentZoom

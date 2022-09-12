@@ -7,7 +7,7 @@
 const std::string BASIC_REPLAY_DIR = "Save/Replays/";
 
 // contains freeze drops and mine hits as well as tap
-// offsets; fully "rewatchable" -mina
+// offsets; fully "rewatchable"
 const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
 
 // contains input data files corresponding to replays
@@ -34,6 +34,11 @@ struct InputDataEvent
 {
 	bool is_press;
 	int column;
+	// input data saves song seconds here
+	// instead of beats
+	// the reason is that we want it to be able to be parsed by a human
+	// and analyzed externally
+	// beats cant easily be analyzed without song bpm info
 	float songPositionSeconds;
 	int nearestTapNoterow;
 	float offsetFromNearest;
@@ -48,12 +53,20 @@ struct InputDataEvent
 	}
 
 	InputDataEvent(bool press, int col, float songPos, int row, float offset)
+	  : is_press(press)
+	  , column(col)
+	  , songPositionSeconds(songPos)
+	  , nearestTapNoterow(row)
+	  , offsetFromNearest(offset)
 	{
-		is_press = press;
-		column = col;
-		songPositionSeconds = songPos;
-		nearestTapNoterow = row;
-		offsetFromNearest = offset;
+	}
+
+	InputDataEvent(const InputDataEvent& other) {
+		is_press = other.is_press;
+		column = other.column;
+		songPositionSeconds = other.songPositionSeconds;
+		nearestTapNoterow = other.nearestTapNoterow;
+		offsetFromNearest = other.offsetFromNearest;
 	}
 };
 
@@ -99,6 +112,36 @@ struct TapReplayResult
 		type = TapNoteType_Invalid;
 		offsetAdjustedRow = 0;
 	}
+};
+
+struct PlaybackEvent
+{
+	int noterow;
+	float songPositionSeconds;
+	int track;		// column
+	bool isPress;	// tap or release
+
+	// only applies if the event judges a note
+	// to prevent events triggering wrong judgments
+	int noterowJudged = -1;
+
+	PlaybackEvent()
+	{
+		noterow = 0;
+		songPositionSeconds = 0.F;
+		track = 0;
+		isPress = true;
+	}
+
+	PlaybackEvent(int noterow, float songPositionSeconds, int track, bool isPress)
+	  : noterow(noterow)
+	  , songPositionSeconds(songPositionSeconds)
+	  , track(track)
+	  , isPress(isPress)
+	{
+	}
+
+	bool isJudgeEvent() const { return noterowJudged != -1; }
 };
 
 #endif

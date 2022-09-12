@@ -381,13 +381,6 @@ HighScore::CheckReplayIsInit()
 }
 
 auto
-HighScore::LoadInputData() -> bool
-{
-	CheckReplayIsInit();
-	return replay->LoadInputData();
-}
-
-auto
 HighScore::LoadReplayData() -> bool
 {
 	CheckReplayIsInit();
@@ -411,24 +404,13 @@ HighScore::WriteInputData() -> bool
 auto
 HighScore::HasReplayData() -> bool
 {
-	const auto fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	const auto basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
-	if (DoesFileExist(fullpath)) { // check for full replays first then default
-								   // to basic replays -mina
-		return true;
-	}
-	return DoesFileExist(basicpath);
+	CheckReplayIsInit();
+	return replay->HasReplayData();
 }
 
 REGISTER_CLASS_TRAITS(HighScoreImpl, new HighScoreImpl(*pCopy))
 
 HighScore::HighScore()
-{
-	m_Impl = new HighScoreImpl;
-}
-
-void
-HighScore::Unset()
 {
 	m_Impl = new HighScoreImpl;
 }
@@ -729,6 +711,13 @@ HighScore::GetReplayType() -> ReplayType
 	return replay->GetReplayType();
 }
 
+auto
+HighScore::HasColumnData() -> bool
+{
+	CheckReplayIsInit();
+	return replay->HasColumnData();
+}
+
 void
 HighScore::SetName(const std::string& sName)
 {
@@ -961,7 +950,8 @@ void
 HighScore::UnloadReplayData()
 {
 	if (replay != nullptr) {
-		replay.reset();
+		REPLAYS->ReleaseReplay(replay);
+		replay = nullptr;
 	}
 }
 
@@ -1124,7 +1114,7 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
 
 	// the typevector is only available for full replays
-	if (GetReplayType() >= ReplayType_V2 && GetReplayType() < NUM_ReplayType) {
+	if (HasColumnData()) {
 		for (size_t i = 0; i < vOffsetVector.size(); i++) {
 			// by the powers of god invested in me i declare these vectors the
 			// same size so this works all the time no matter what
@@ -1148,11 +1138,11 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	// this is a bad assumption but im leaving it here
 	auto pmax = static_cast<float>(vOffsetVector.size() * 2);
 
-	/* we don't want to have to access notedata when loading or rescording
+	/* we don't want to have to access notedata when loading or rescoring
 	scores so we use the vector length of offset replay data to determine point
 	denominators however full replays store mine hits as offsets, meaning
 	we have to screen them out when calculating the max points*/
-	if (GetReplayType() >= ReplayType_V2 && GetReplayType() < NUM_ReplayType) {
+	if (HasColumnData()) {
 		pmax += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -2);
 
 		// we screened out extra offsets due to mines in the replay from the
@@ -1181,7 +1171,7 @@ HighScore::RescoreToWife3(float pmax) -> bool
 	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
 
 	// the typevector is only available for full replays
-	if (GetReplayType() >= ReplayType_V2 && GetReplayType() < NUM_ReplayType) {
+	if (HasColumnData()) {
 		for (size_t i = 0; i < vOffsetVector.size(); i++) {
 			// by the powers of god invested in me i declare these vectors the
 			// same size so this works all the time no matter what
@@ -1324,7 +1314,7 @@ HighScore::NormalizeJudgments() -> bool
 	auto vOffsetVector = replay->GetOffsetVector();
 
 	// New replays, check for only certain types
-	if (GetReplayType() >= ReplayType_V2 && GetReplayType() < NUM_ReplayType) {
+	if (HasColumnData()) {
 		for (size_t i = 0; i < vOffsetVector.size(); i++) {
 			// assumption of equal size, no crashy
 			auto& type = vTapNoteTypeVector[i];
@@ -1374,10 +1364,13 @@ HighScore::NormalizeJudgments() -> bool
 	// extreme edge cases: misses dont show up in replays (not confirmed)
 	// so if this happens, add them in
 	if (m_Impl->iTapNoteScoresNormalized[TNS_Miss] < m_Impl->iTapNoteScores[TNS_Miss]) {
+		Locator::getLogger()->warn("While converting score key {} a Miss "
+								   "mismatch was found - Norm {} - Count {}",
+								   GetScoreKey(),
+								   m_Impl->iTapNoteScoresNormalized[TNS_Miss],
+								   m_Impl->iTapNoteScores[TNS_Miss]);
 		m_Impl->iTapNoteScoresNormalized[TNS_Miss] +=
 		  m_Impl->iTapNoteScores[TNS_Miss];
-		Locator::getLogger()->warn(
-		  "While converting score key {} a Miss mismatch was found.", GetScoreKey());
 	}
 
 	return true;

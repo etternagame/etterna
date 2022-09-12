@@ -231,13 +231,34 @@ local CalcDebugTypes = {
 -- it is assumed these are members of CalcDebugMisc
 local miscToUpperMods = {
     StamMod = true,
+
+    -- these mods are not really in the CalcDebugMisc enum. they are not real.
+    -- if this gets messed up things do not work
+    TotalPatternModStream = true,
+    TotalPatternModJumpstream = true,
+    TotalPatternModHandstream = true,
+    TotalPatternModChordjack = true,
+    TotalPatternModTechnical = true,
 }
 
 -- list of all additional enums to include in the lower graph
--- it is assumed these are members of CalcDebugMisc
+-- it is assumed these are members of CalcDebugMisc (they arent)
 local miscToLowerMods = {
     Pts = true,
     PtLoss = true,
+
+    -- these mods are not really in the CalcDebugMisc enum. they are not real.
+    -- if this gets messed up things do not work
+    PtLossStream = true,
+    PtLossJumpstream = true,
+    PtLossHandstream = true,
+    PtLossChordjack = true,
+    PtLossTechnical = true,
+    MSDStream = true,
+    MSDJumpstream = true,
+    MSDHandstream = true,
+    MSDChordjack = true,
+    MSDTechnical = true,
 }
 
 -- this list is used for functional purposes to keep the order of the lists generated in a certain order
@@ -259,6 +280,46 @@ for i, mod in pairs(CalcDebugMisc) do
         orderedExtraLowerMods[#orderedExtraLowerMods+1] = mod
     end
 end
+
+-- convolution
+local upperExtraExtraMods = {
+    TotalPatternModStream = true,
+    TotalPatternModJumpstream = true,
+    TotalPatternModHandstream = true,
+    TotalPatternModChordjack = true,
+    TotalPatternModTechnical = true,
+}
+local orderedExtraExtraUpperMods = {
+    "TotalPatternModStream",
+    "TotalPatternModJumpstream",
+    "TotalPatternModHandstream",
+    "TotalPatternModChordjack",
+    "TotalPatternModTechnical",
+}
+local lowerExtraExtraMods = {
+    PtLossStream = true,
+    PtLossJumpstream = true,
+    PtLossHandstream = true,
+    PtLossChordjack = true,
+    PtLossTechnical = true,
+    MSDStream = true,
+    MSDJumpstream = true,
+    MSDHandstream = true,
+    MSDChordjack = true,
+    MSDTechnical = true,
+}
+local orderedExtraExtraLowerMods = {
+    "PtLossStream",
+    "PtLossJumpstream",
+    "PtLossHandstream",
+    "PtLossChordjack",
+    "PtLossTechnical",
+    "MSDStream",
+    "MSDJumpstream",
+    "MSDHandstream",
+    "MSDChordjack",
+    "MSDTechnical",
+}
 
 -- specify enum names as tables here
 -- any number allowed
@@ -293,6 +354,7 @@ local debugGroups = {
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
+        WideRangeJJ = true,
 	},
     {   -- Group 6
         Chaos = true,
@@ -309,16 +371,28 @@ local debugGroups = {
         OHJumpMod = true,
 	},
     {   -- Group 9
-        TotalPatternMod = true,
-    },
-    {   -- Group 10
         CJOHAnchor = true,
     },
-    {   -- Group 11
+    {   -- Group 10
         Chaos = true,
         Roll = true,
     },
-    [12] = { -- Group 12
+    {   -- Group 11
+        TotalPatternModStream = true,
+    },
+    {   -- Group 12
+        TotalPatternModJumpstream = true,
+    },
+    {   -- Group 13
+        TotalPatternModHandstream = true,
+    },
+    {   -- Group 14
+        TotalPatternModChordjack = true,
+    },
+    {   -- Group 15
+        TotalPatternModTechnical = true,
+    },
+    {   -- Group 16
         TheThing = true,
         TheThing2 = true,
     },
@@ -332,24 +406,62 @@ local debugGroups = {
 local diffGroups = {
     {   -- Group 1
         NPSBase = true,
-        MSD = true,
+        MSDStream = true,
     },
     {   -- Group 2
-        Jack = true,
+        NPSBase = true,
+        MSDJumpstream = true,
     },
     {   -- Group 3
-        TechBase = true,
+        NPSBase = true,
+        MSDHandstream = true,
     },
     {   -- Group 4
-        RMABase = true,
+        NPSBase = true,
+        MSDChordjack = true,
     },
     {   -- Group 5
-        Pts = true,
-        PtLoss = true,
+        NPSBase = true,
+        MSDTechnical = true,
     },
-    [6] = { -- Group 6
+    {   -- Group 6
+        Pts = true,
+        PtLossStream = true
+    },
+    {   -- Group 7
+        Pts = true,
+        PtLossJumpstream = true
+    },
+    {   -- Group 8
+        Pts = true,
+        PtLossHandstream = true
+    },
+    {   -- Group 9
+        Pts = true,
+        PtLossChordjack = true
+    },
+    {   -- Group 10
+        Pts = true,
+        PtLossTechnical = true
+    },
+    {   -- Group 11
+        Jack = true,
+    },
+    {   -- Group 12
+        NPSBase = true,
+        TechBase = true,
+    },
+    {   -- Group 13
+        RMABase = true,
+    },
+    {   -- Group 14
+        MSBase = true,
+        NPSBase = true,
+        CJBase = true,
+    },
+    {   -- Group 14
         SSRS = true,
-    }
+    },
 }
 
 -- get a list of the mods that are active
@@ -391,7 +503,8 @@ local function updateCoolStuff()
         lowerGraphMaxJack = 0
         jackLossSumLeft = 0
         jackLossSumRight = 0
-        local bap = steps:GetCalcDebugOutput()
+        local bap = steps:GetCalcDebugOutput() -- this must be called first before GetCalcDebugExt and GetCalcDebugJack
+        local pap = steps:GetCalcDebugExt()
         debugstrings = steps:GetDebugStrings()
 
         grindscaler = bap["Grindscaler"]
@@ -447,6 +560,30 @@ local function updateCoolStuff()
                 end
             end
         end
+
+        -- even more debug output
+        local function fc(arr, name, fallbackValue, top)
+            for i, ss in ipairs(ms.SkillSets) do
+                graphVecs[name..ss] = {}
+                for h = 1,2 do
+                    local hand = h == 1 and "Left" or "Right"
+                    graphVecs[name..ss][h] = {}
+                    for j = 1, #arr[hand][i] do
+                        local val = arr[hand][i][j]
+                        if val ~= val or val == nil or val == math.huge or val == -math.huge then val = fallbackValue end -- get rid of nan and nil
+                        if top then
+                            if val > upperGraphMax then upperGraphMax = val end
+                        else
+                            if val > lowerGraphMax then lowerGraphMax = val end
+                        end
+                        graphVecs[name..ss][h][j] = val
+                    end
+                end
+            end 
+        end
+        fc(pap["DebugTotalPatternMod"], "TotalPatternMod", 1, true)
+        fc(pap["DebugPtLoss"], "PtLoss", 0, false)
+        fc(pap["DebugMSD"], "MSD", 0, false)
 
         upperGraphMin = 0.3
         upperGraphMax = 1.25
@@ -909,6 +1046,7 @@ local modnames = {
     "flam",
     "wrr",
     "wrjt",
+    "wrjj",
     "wrb",
     "wra",
     "thing",
@@ -932,6 +1070,13 @@ local modnames = {
     -- CalcDebugMisc mods meant for only the top graph:
     -- (this list should match the miscToUpperMods list)
     "stam",
+
+    -- everything from here below is in the orderedExtraExtraUpperMods table. dont mess it up
+    "tpmstr",
+    "tpmjs",
+    "tpmhs",
+    "tpmcj",
+    "tpmtech",
 }
 
 -- this list has order
@@ -969,6 +1114,7 @@ local modColors = {
     color(".4,0.5,0.59"),   -- teal			= flamjam
     color("1,0.2,0"),		-- red			= wrr
     color("1,0.5,0"),		-- orange		= wrjt
+    color("1,0.2,1"),		-- purpley		= wrjj
     color("0.7,1,0.2"),		-- leme			= wrb
     color("0.7,1,0.1"),		-- leme			= wra
     color("0,0.8,1"),		-- light blue	= thething
@@ -991,6 +1137,13 @@ local modColors = {
     -- place CalcPatternMod Colors above this line
     -- MISC MODS START HERE (same order as miscToUpperMods)
     color("0.7,1,0"),		-- lime			= stam
+
+    -- everything starting from here downwards are only mods in the orderedExtraExtraUpperMods table
+    color("0.7,1,0"),		-- lime			= totalpatternmodstream
+    color("0.7,1,0"),		-- lime			= totalpatternmodjs
+    color("0.7,1,0"),		-- lime			= totalpatternmodhs
+    color("0.7,1,0"),		-- lime			= totalpatternmodcj
+    color("0.7,1,0"),		-- lime			= totalpatternmodtech
 }
 
 local skillsetColors = {
@@ -1015,10 +1168,12 @@ local jackdiffColors = {
 -- in the same order
 local calcDiffValueColors = {
     color("#7d6b91"),   -- NPSBase
+    color("#7d6b51"),   -- MSBase
+    color("#1d6b91"),   -- CJBase
     --color("#7d6b91"),
     --color("#8481db"),   -- JackBase
     --color("#8481db"),
-    color("#995fa3"),   -- TechBase
+    color("#cc4fa3"),   -- TechBase
     --color("#995fa3"),
     color("#f2b5fa"),   -- RMABase
     --color("#f2b5fa"),
@@ -1031,6 +1186,18 @@ local miscColors = {
     color("0,1,1"),     -- pts
     color("1,0,0"),     -- ptloss
     --color("1,0.4,0"),   -- jackptloss
+
+    -- everything starting from here downwards are only mods in the orderedExtraExtraLowerMods table
+    color("1,0,0"),     -- ptlossStream
+    color("1,0,0"),     -- ptlossJumpstream
+    color("1,0,0"),     -- ptlossHandstream
+    color("1,0,0"),     -- ptlossChordjack
+    color("1,0,0"),     -- ptlossTechnical
+    color("#6c969d"),     -- msdStream
+    color("#6c969d"),     -- msdJumpstream
+    color("#6c969d"),     -- msdHandstream
+    color("#6c969d"),     -- msdChordjack
+    color("#6c969d"),     -- msdTechnical
 }
 
 -- a remapping of modnames to colors (any mod really please dont make 2 enums the same name)
@@ -1054,8 +1221,17 @@ do -- scope hahaha
         modToShortname[mod] = modnames[#CalcPatternMod + i]
         i = i + 1
     end
+    for _, mod in pairs(orderedExtraExtraUpperMods) do
+        modToColor[mod] = modColors[#CalcPatternMod + i]
+        modToShortname[mod] = modnames[#CalcPatternMod + i]
+        i = i + 1
+    end
     i = 1
     for _, mod in pairs(orderedExtraLowerMods) do
+        modToColor[mod] = miscColors[i]
+        i = i + 1
+    end
+    for _, mod in pairs(orderedExtraExtraLowerMods) do
         modToColor[mod] = miscColors[i]
         i = i + 1
     end

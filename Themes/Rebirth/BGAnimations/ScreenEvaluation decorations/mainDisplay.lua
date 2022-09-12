@@ -933,7 +933,9 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(1)
             if params.song then
                 local bnpath = params.song:GetBannerPath()
-                if not bnpath then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath  then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else

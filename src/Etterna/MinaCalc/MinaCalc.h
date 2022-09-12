@@ -235,6 +235,11 @@ class Calc
 	*/
 	std::array<float, max_rows_for_single_interval> tc_static{};
 
+	/** Base Chordjack difficulty per row of current interval being scanned.
+	* See struct ceejay for the intense details ...
+	*/
+	std::array<float, max_rows_for_single_interval> cj_static{};
+
 	/// Total number of intervals for the current file/rate (one per half second)
 	int numitv = 0;
 
@@ -252,6 +257,9 @@ class Calc
 	*/
 	std::array<std::vector<std::vector<std::vector<float>>>, num_hands>
 	  debugValues{};
+	std::array<std::array<std::vector<float>, NUM_Skillset>, num_hands> debugMSD{};
+	std::array<std::array<std::vector<float>, NUM_Skillset>, num_hands> debugPtLoss{};
+	std::array<std::array<std::vector<float>, NUM_Skillset>, num_hands> debugTotalPatternMod{};
 
 	/** Grow every interval-dependent vector we use.
 	* The size could be reduced but there isn't a big need for it.
