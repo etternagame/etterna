@@ -140,6 +140,7 @@ PrefsManager::PrefsManager()
 
   , m_fLifeDifficultyScale("LifeDifficultyScale", 1.0f)
   , m_fBGBrightness("BGBrightness", 0.2f)
+  , m_bShowBackgrounds("ShowBackgrounds", true)
 
   , m_bDelayedBack("DelayedBack", false)
   , m_AllowStartToGiveUp("AllowStartToGiveUp", true)
