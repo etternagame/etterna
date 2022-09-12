@@ -7,7 +7,7 @@ on:
 
 jobs:
   linux-x64:
-    name: Linux x64 (${{matrix.cfg.cpp-version}})
+    name: Linux x64 (${{matrix.cfg.cxx}})
     runs-on: ${{matrix.cfg.os}}
     strategy:
       fail-fast: false
