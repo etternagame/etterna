@@ -1730,6 +1730,12 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 						tmp.letgo = judgements["letGoHold"].GetInt();
 					else
 						tmp.letgo = 0;
+					if (judgements.HasMember("missedHold") &&
+						judgements["missedHold"].IsInt())
+						tmp.holdmiss = judgements["missedHold"].GetInt();
+					else
+						tmp.holdmiss = 0;
+
 				}
 				if (score.HasMember("datetime") && score["datetime"].IsString())
 					tmp.datetime.FromString(score["datetime"].GetString());
@@ -1821,6 +1827,7 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 
 				hs.SetHoldNoteScore(HNS_Held, tmp.held);
 				hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
+				hs.SetHoldNoteScore(HNS_Missed, tmp.holdmiss);
 
 				FOREACH_ENUM(Skillset, ss)
 				hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);

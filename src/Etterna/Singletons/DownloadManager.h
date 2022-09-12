@@ -143,6 +143,7 @@ class OnlineScore
 	int marvelous{ 0 };
 	int minehits{ 0 };
 	int held{ 0 };
+	int holdmiss{ 0 };
 	std::string songId;
 	int letgo{ 0 };
 	bool valid{ false };
