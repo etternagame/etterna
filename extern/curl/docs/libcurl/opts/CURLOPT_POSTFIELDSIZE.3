@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2014, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -24,9 +24,11 @@
 .SH NAME
 CURLOPT_POSTFIELDSIZE \- size of POST data pointed to
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_setopt(CURL *handle, CURLOPT_POSTFIELDSIZE, long size);
+.fi
 .SH DESCRIPTION
 If you want to post data to the server without having libcurl do a strlen() to
 measure the data size, this option must be used. When this option is used you
@@ -44,7 +46,7 @@ CURL *curl = curl_easy_init();
 if(curl) {
   const char *data = "data to send";
 
-  curl_easy_setopt(curl, CURLOPT_URL, "http://example.com");
+  curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
   /* size of the POST data */
   curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long) strlen(data));

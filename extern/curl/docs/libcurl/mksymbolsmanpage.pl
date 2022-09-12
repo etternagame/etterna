@@ -6,11 +6,11 @@
 # *                            | (__| |_| |  _ <| |___
 # *                             \___|\___/|_| \_\_____|
 # *
-# * Copyright (C) 2015, Daniel Stenberg, <daniel@haxx.se>, et al.
+# * Copyright (C) 2015 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 # *
 # * This software is licensed as described in the file COPYING, which
 # * you should have received as part of this distribution. The terms
-# * are also available at https://curl.haxx.se/docs/copyright.html.
+# * are also available at https://curl.se/docs/copyright.html.
 # *
 # * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 # * copies of the Software, and permit persons to whom the Software is
@@ -39,7 +39,7 @@ print <<HEADER
 .\\" *
 .\\" * This software is licensed as described in the file COPYING, which
 .\\" * you should have received as part of this distribution. The terms
-.\\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\\" * are also available at https://curl.se/docs/copyright.html.
 .\\" *
 .\\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\\" * copies of the Software, and permit persons to whom the Software is
@@ -69,7 +69,7 @@ HEADER
     ;
 
 while(<STDIN>) {
-    if($_ =~ /^(CURL[A-Z0-9_.]*) *(.*)/) {
+    if($_ =~ /^(CURL[A-Z0-9_.]*) *(.*)/i) {
         my ($symbol, $rest)=($1,$2);
         my ($intro, $dep, $rem);
         if($rest =~ s/^([0-9.]*) *//) {
@@ -86,7 +86,7 @@ while(<STDIN>) {
           print "Deprecated since $dep\n";
         }
         if($rem) {
-          print "Last used in $dep\n";
+          print "Last used in $rem\n";
         }
     }
 

@@ -24,7 +24,7 @@ ReceptorArrow::Load(const PlayerState* pPlayerState,
 
 	const auto pn = m_pPlayerState->m_PlayerNumber;
 	std::vector<GameInput> GameI;
-	GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(iColNo, pn, GameI);
+	GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(iColNo, GameI);
 	NOTESKIN->SetPlayerNumber(pn);
 	// FIXME?  Does this cause a problem when game inputs on different
 	// controllers are mapped to the same column?  Such a thing could be set

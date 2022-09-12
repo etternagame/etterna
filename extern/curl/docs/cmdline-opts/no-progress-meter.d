@@ -2,6 +2,8 @@ Long: no-progress-meter
 Help: Do not show the progress meter
 See-also: verbose silent
 Added: 7.67.0
+Category: verbose
+Example: --no-progress-meter -o store $URL
 ---
 Option to switch off the progress meter output without muting or otherwise
 affecting warning and informational messages like --silent does.

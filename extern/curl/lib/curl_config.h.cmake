@@ -1,3 +1,24 @@
+/***************************************************************************
+ *                                  _   _ ____  _
+ *  Project                     ___| | | |  _ \| |
+ *                             / __| | | | |_) | |
+ *                            | (__| |_| |  _ <| |___
+ *                             \___|\___/|_| \_\_____|
+ *
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ *
+ * This software is licensed as described in the file COPYING, which
+ * you should have received as part of this distribution. The terms
+ * are also available at https://curl.se/docs/copyright.html.
+ *
+ * You may opt to use, copy, modify, merge, publish, distribute and/or sell
+ * copies of the Software, and permit persons to whom the Software is
+ * furnished to do so, under the terms of the COPYING file.
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+ * KIND, either express or implied.
+ *
+ ***************************************************************************/
 /* lib/curl_config.h.in.  Generated somehow by cmake.  */
 
 /* when building libcurl itself */
@@ -12,58 +33,91 @@
 /* Location of default ca path */
 #cmakedefine CURL_CA_PATH "${CURL_CA_PATH}"
 
-/* to disable cookies support */
+/* disables alt-svc */
+#cmakedefine CURL_DISABLE_ALTSVC 1
+
+/* disables cookies support */
 #cmakedefine CURL_DISABLE_COOKIES 1
 
-/* to disable cryptographic authentication */
+/* disables cryptographic authentication */
 #cmakedefine CURL_DISABLE_CRYPTO_AUTH 1
 
-/* to disable DICT */
+/* disables DICT */
 #cmakedefine CURL_DISABLE_DICT 1
 
-/* to disable FILE */
+/* disables DNS-over-HTTPS */
+#cmakedefine CURL_DISABLE_DOH 1
+
+/* disables FILE */
 #cmakedefine CURL_DISABLE_FILE 1
 
-/* to disable FTP */
+/* disables FTP */
 #cmakedefine CURL_DISABLE_FTP 1
 
-/* to disable GOPHER */
+/* disables GOPHER */
 #cmakedefine CURL_DISABLE_GOPHER 1
 
-/* to disable IMAP */
-#cmakedefine CURL_DISABLE_IMAP 1
+/* disables HSTS support */
+#cmakedefine CURL_DISABLE_HSTS 1
 
-/* to disable HTTP */
+/* disables HTTP */
 #cmakedefine CURL_DISABLE_HTTP 1
 
-/* to disable LDAP */
+/* disables IMAP */
+#cmakedefine CURL_DISABLE_IMAP 1
+
+/* disables LDAP */
 #cmakedefine CURL_DISABLE_LDAP 1
 
-/* to disable LDAPS */
+/* disables LDAPS */
 #cmakedefine CURL_DISABLE_LDAPS 1
 
-/* to disable POP3 */
+/* disables --libcurl option from the curl tool */
+#cmakedefine CURL_DISABLE_LIBCURL_OPTION 1
+
+/* disables MIME support */
+#cmakedefine CURL_DISABLE_MIME 1
+
+/* disables MQTT */
+#cmakedefine CURL_DISABLE_MQTT 1
+
+/* disables netrc parser */
+#cmakedefine CURL_DISABLE_NETRC 1
+
+/* disables NTLM support */
+#cmakedefine CURL_DISABLE_NTLM 1
+
+/* disables date parsing */
+#cmakedefine CURL_DISABLE_PARSEDATE 1
+
+/* disables POP3 */
 #cmakedefine CURL_DISABLE_POP3 1
 
-/* to disable proxies */
+/* disables built-in progress meter */
+#cmakedefine CURL_DISABLE_PROGRESS_METER 1
+
+/* disables proxies */
 #cmakedefine CURL_DISABLE_PROXY 1
 
-/* to disable RTSP */
+/* disables RTSP */
 #cmakedefine CURL_DISABLE_RTSP 1
 
-/* to disable SMB */
+/* disables SMB */
 #cmakedefine CURL_DISABLE_SMB 1
 
-/* to disable SMTP */
+/* disables SMTP */
 #cmakedefine CURL_DISABLE_SMTP 1
 
-/* to disable TELNET */
+/* disables use of socketpair for curl_multi_poll */
+#cmakedefine CURL_DISABLE_SOCKETPAIR 1
+
+/* disables TELNET */
 #cmakedefine CURL_DISABLE_TELNET 1
 
-/* to disable TFTP */
+/* disables TFTP */
 #cmakedefine CURL_DISABLE_TFTP 1
 
-/* to disable verbose strings */
+/* disables verbose strings */
 #cmakedefine CURL_DISABLE_VERBOSE_STRINGS 1
 
 /* to make a symbol visible */
@@ -74,7 +128,7 @@
 #endif
 
 /* Allow SMB to work on Windows */
-#cmakedefine USE_WIN32_CRYPTO
+#cmakedefine USE_WIN32_CRYPTO 1
 
 /* Use Windows LDAP implementation */
 #cmakedefine USE_WIN32_LDAP 1
@@ -87,27 +141,6 @@
 
 /* Define if you want to enable IPv6 support */
 #cmakedefine ENABLE_IPV6 1
-
-/* Define to the type qualifier of arg 1 for getnameinfo. */
-#cmakedefine GETNAMEINFO_QUAL_ARG1 ${GETNAMEINFO_QUAL_ARG1}
-
-/* Define to the type of arg 1 for getnameinfo. */
-#cmakedefine GETNAMEINFO_TYPE_ARG1 ${GETNAMEINFO_TYPE_ARG1}
-
-/* Define to the type of arg 2 for getnameinfo. */
-#cmakedefine GETNAMEINFO_TYPE_ARG2 ${GETNAMEINFO_TYPE_ARG2}
-
-/* Define to the type of args 4 and 6 for getnameinfo. */
-#cmakedefine GETNAMEINFO_TYPE_ARG46 ${GETNAMEINFO_TYPE_ARG46}
-
-/* Define to the type of arg 7 for getnameinfo. */
-#cmakedefine GETNAMEINFO_TYPE_ARG7 ${GETNAMEINFO_TYPE_ARG7}
-
-/* Specifies the number of arguments to getservbyport_r */
-#cmakedefine GETSERVBYPORT_R_ARGS ${GETSERVBYPORT_R_ARGS}
-
-/* Specifies the size of the buffer to pass to getservbyport_r */
-#cmakedefine GETSERVBYPORT_R_BUFSIZE ${GETSERVBYPORT_R_BUFSIZE}
 
 /* Define to 1 if you have the alarm function. */
 #cmakedefine HAVE_ALARM 1
@@ -142,20 +175,11 @@
 /* Define to 1 if you have the `CRYPTO_cleanup_all_ex_data' function. */
 #cmakedefine HAVE_CRYPTO_CLEANUP_ALL_EX_DATA 1
 
-/* Define to 1 if you have the <crypto.h> header file. */
-#cmakedefine HAVE_CRYPTO_H 1
-
-/* Define to 1 if you have the <des.h> header file. */
-#cmakedefine HAVE_DES_H 1
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #cmakedefine HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the <errno.h> header file. */
 #cmakedefine HAVE_ERRNO_H 1
-
-/* Define to 1 if you have the <err.h> header file. */
-#cmakedefine HAVE_ERR_H 1
 
 /* Define to 1 if you have the fcntl function. */
 #cmakedefine HAVE_FCNTL 1
@@ -166,17 +190,8 @@
 /* Define to 1 if you have a working fcntl O_NONBLOCK function. */
 #cmakedefine HAVE_FCNTL_O_NONBLOCK 1
 
-/* Define to 1 if you have the fdopen function. */
-#cmakedefine HAVE_FDOPEN 1
-
-/* Define to 1 if you have the `fork' function. */
-#cmakedefine HAVE_FORK 1
-
 /* Define to 1 if you have the freeaddrinfo function. */
 #cmakedefine HAVE_FREEADDRINFO 1
-
-/* Define to 1 if you have the freeifaddrs function. */
-#cmakedefine HAVE_FREEIFADDRS 1
 
 /* Define to 1 if you have the ftruncate function. */
 #cmakedefine HAVE_FTRUNCATE 1
@@ -187,20 +202,8 @@
 /* Define to 1 if you have the `geteuid' function. */
 #cmakedefine HAVE_GETEUID 1
 
-/* Define to 1 if you have the gethostbyaddr function. */
-#cmakedefine HAVE_GETHOSTBYADDR 1
-
-/* Define to 1 if you have the gethostbyaddr_r function. */
-#cmakedefine HAVE_GETHOSTBYADDR_R 1
-
-/* gethostbyaddr_r() takes 5 args */
-#cmakedefine HAVE_GETHOSTBYADDR_R_5 1
-
-/* gethostbyaddr_r() takes 7 args */
-#cmakedefine HAVE_GETHOSTBYADDR_R_7 1
-
-/* gethostbyaddr_r() takes 8 args */
-#cmakedefine HAVE_GETHOSTBYADDR_R_8 1
+/* Define to 1 if you have the `getppid' function. */
+#cmakedefine HAVE_GETPPID 1
 
 /* Define to 1 if you have the gethostbyname function. */
 #cmakedefine HAVE_GETHOSTBYNAME 1
@@ -222,9 +225,6 @@
 
 /* Define to 1 if you have a working getifaddrs function. */
 #cmakedefine HAVE_GETIFADDRS 1
-
-/* Define to 1 if you have the getnameinfo function. */
-#cmakedefine HAVE_GETNAMEINFO 1
 
 /* Define to 1 if you have the `getpass_r' function. */
 #cmakedefine HAVE_GETPASS_R 1
@@ -252,9 +252,6 @@
 
 /* Define to 1 if you have the `getrlimit' function. */
 #cmakedefine HAVE_GETRLIMIT 1
-
-/* Define to 1 if you have the getservbyport_r function. */
-#cmakedefine HAVE_GETSERVBYPORT_R 1
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #cmakedefine HAVE_GETTIMEOFDAY 1
@@ -301,20 +298,17 @@
 /* Define to 1 if you have the `inet_addr' function. */
 #cmakedefine HAVE_INET_ADDR 1
 
-/* Define to 1 if you have the inet_ntoa_r function. */
-#cmakedefine HAVE_INET_NTOA_R 1
-
-/* inet_ntoa_r() takes 2 args */
-#cmakedefine HAVE_INET_NTOA_R_2 1
-
-/* inet_ntoa_r() takes 3 args */
-#cmakedefine HAVE_INET_NTOA_R_3 1
-
 /* Define to 1 if you have a IPv6 capable working inet_ntop function. */
 #cmakedefine HAVE_INET_NTOP 1
 
 /* Define to 1 if you have a IPv6 capable working inet_pton function. */
 #cmakedefine HAVE_INET_PTON 1
+
+/* Define to 1 if symbol `sa_family_t' exists */
+#cmakedefine HAVE_SA_FAMILY_T 1
+
+/* Define to 1 if symbol `ADDRESS_FAMILY' exists */
+#cmakedefine HAVE_ADDRESS_FAMILY 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #cmakedefine HAVE_INTTYPES_H 1
@@ -374,8 +368,11 @@
 /* Define to 1 if you have the <libgen.h> header file. */
 #cmakedefine HAVE_LIBGEN_H 1
 
-/* Define to 1 if you have the `idn' library (-lidn). */
-#cmakedefine HAVE_LIBIDN 1
+/* Define to 1 if you have the `idn2' library (-lidn2). */
+#cmakedefine HAVE_LIBIDN2 1
+
+/* Define to 1 if you have the idn2.h header file. */
+#cmakedefine HAVE_IDN2_H 1
 
 /* Define to 1 if you have the `resolv' library (-lresolv). */
 #cmakedefine HAVE_LIBRESOLV 1
@@ -389,29 +386,20 @@
 /* Define to 1 if you have the `ssh2' library (-lssh2). */
 #cmakedefine HAVE_LIBSSH2 1
 
-/* Define to 1 if libssh2 provides `libssh2_version'. */
-#cmakedefine HAVE_LIBSSH2_VERSION 1
-
-/* Define to 1 if libssh2 provides `libssh2_init'. */
-#cmakedefine HAVE_LIBSSH2_INIT 1
-
-/* Define to 1 if libssh2 provides `libssh2_exit'. */
-#cmakedefine HAVE_LIBSSH2_EXIT 1
-
-/* Define to 1 if libssh2 provides `libssh2_scp_send64'. */
-#cmakedefine HAVE_LIBSSH2_SCP_SEND64 1
-
-/* Define to 1 if libssh2 provides `libssh2_session_handshake'. */
-#cmakedefine HAVE_LIBSSH2_SESSION_HANDSHAKE 1
-
 /* Define to 1 if you have the <libssh2.h> header file. */
 #cmakedefine HAVE_LIBSSH2_H 1
+
+/* Define to 1 if you have the <libssh/libssh.h> header file. */
+#cmakedefine HAVE_LIBSSH_LIBSSH_H 1
 
 /* if zlib is available */
 #cmakedefine HAVE_LIBZ 1
 
 /* if brotli is available */
 #cmakedefine HAVE_BROTLI 1
+
+/* if zstd is available */
+#cmakedefine HAVE_ZSTD 1
 
 /* if your compiler supports LL */
 #cmakedefine HAVE_LL 1
@@ -442,6 +430,9 @@
 
 /* Define to 1 if you have the <netinet/tcp.h> header file. */
 #cmakedefine HAVE_NETINET_TCP_H 1
+
+/* Define to 1 if you have the <linux/tcp.h> header file. */
+#cmakedefine HAVE_LINUX_TCP_H 1
 
 /* Define to 1 if you have the <net/if.h> header file. */
 #cmakedefine HAVE_NET_IF_H 1
@@ -475,9 +466,6 @@
 
 /* Define to 1 if you have the <pem.h> header file. */
 #cmakedefine HAVE_PEM_H 1
-
-/* Define to 1 if you have the `perror' function. */
-#cmakedefine HAVE_PERROR 1
 
 /* Define to 1 if you have the `pipe' function. */
 #cmakedefine HAVE_PIPE 1
@@ -515,9 +503,6 @@
 /* Define to 1 if you have the recvfrom function. */
 #cmakedefine HAVE_RECVFROM 1
 
-/* Define to 1 if you have the <rsa.h> header file. */
-#cmakedefine HAVE_RSA_H 1
-
 /* Define to 1 if you have the select function. */
 #cmakedefine HAVE_SELECT 1
 
@@ -551,9 +536,6 @@
 /* Define to 1 if you have a working setsockopt SO_NONBLOCK function. */
 #cmakedefine HAVE_SETSOCKOPT_SO_NONBLOCK 1
 
-/* Define to 1 if you have the <sgtty.h> header file. */
-#cmakedefine HAVE_SGTTY_H 1
-
 /* Define to 1 if you have the sigaction function. */
 #cmakedefine HAVE_SIGACTION 1
 
@@ -568,12 +550,6 @@
 
 /* Define to 1 if you have the sigsetjmp function or macro. */
 #cmakedefine HAVE_SIGSETJMP 1
-
-/* Define to 1 if sig_atomic_t is an available typedef. */
-#cmakedefine HAVE_SIG_ATOMIC_T 1
-
-/* Define to 1 if sig_atomic_t is already defined as volatile. */
-#cmakedefine HAVE_SIG_ATOMIC_T_VOLATILE 1
 
 /* Define to 1 if struct sockaddr_in6 has the sin6_scope_id member */
 #cmakedefine HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID 1
@@ -619,15 +595,6 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #cmakedefine HAVE_STRING_H 1
-
-/* Define to 1 if you have the strlcat function. */
-#cmakedefine HAVE_STRLCAT 1
-
-/* Define to 1 if you have the `strlcpy' function. */
-#cmakedefine HAVE_STRLCPY 1
-
-/* Define to 1 if you have the strncasecmp function. */
-#cmakedefine HAVE_STRNCASECMP 1
 
 /* Define to 1 if you have the strncmpi function. */
 #cmakedefine HAVE_STRNCMPI 1
@@ -719,6 +686,9 @@
 /* Define to 1 if you have the `utime' function. */
 #cmakedefine HAVE_UTIME 1
 
+/* Define to 1 if you have the `utimes' function. */
+#cmakedefine HAVE_UTIMES 1
+
 /* Define to 1 if you have the <utime.h> header file. */
 #cmakedefine HAVE_UTIME_H 1
 
@@ -739,9 +709,6 @@
 
 /* Define to 1 if you have the winsock2.h header file. */
 #cmakedefine HAVE_WINSOCK2_H 1
-
-/* Define to 1 if you have the winsock.h header file. */
-#cmakedefine HAVE_WINSOCK_H 1
 
 /* Define this symbol if your OS supports changing the contents of argv */
 #cmakedefine HAVE_WRITABLE_ARGV 1
@@ -846,9 +813,6 @@
 /* Define to the function return type for recv. */
 #cmakedefine RECV_TYPE_RETV ${RECV_TYPE_RETV}
 
-/* Define as the return type of signal handlers (`int' or `void'). */
-#cmakedefine RETSIGTYPE ${RETSIGTYPE}
-
 /* Define to the type qualifier of arg 5 for select. */
 #cmakedefine SELECT_QUAL_ARG5 ${SELECT_QUAL_ARG5}
 
@@ -930,9 +894,6 @@ ${SIZEOF_TIME_T_CODE}
 /* Define if you want to enable WIN32 threaded DNS lookup */
 #cmakedefine USE_THREADS_WIN32 1
 
-/* Define to disable non-blocking sockets. */
-#cmakedefine USE_BLOCKING_SOCKETS 1
-
 /* if GnuTLS is enabled */
 #cmakedefine USE_GNUTLS 1
 
@@ -944,6 +905,12 @@ ${SIZEOF_TIME_T_CODE}
 
 /* if BearSSL is enabled */
 #cmakedefine USE_BEARSSL 1
+
+/* if WolfSSL is enabled */
+#cmakedefine USE_WOLFSSL 1
+
+/* if libSSH is in use */
+#cmakedefine USE_LIBSSH 1
 
 /* if libSSH2 is in use */
 #cmakedefine USE_LIBSSH2 1
@@ -963,8 +930,27 @@ ${SIZEOF_TIME_T_CODE}
 /* if OpenSSL is in use */
 #cmakedefine USE_OPENSSL 1
 
+/* Define to 1 if you don't want the OpenSSL configuration to be loaded
+   automatically */
+#cmakedefine CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG 1
+
 /* to enable NGHTTP2  */
 #cmakedefine USE_NGHTTP2 1
+
+/* to enable NGTCP2 */
+#cmakedefine USE_NGTCP2 1
+
+/* to enable NGHTTP3  */
+#cmakedefine USE_NGHTTP3 1
+
+/* to enable quiche */
+#cmakedefine USE_QUICHE 1
+
+/* Define to 1 if you have the quiche_conn_set_qlog_fd function. */
+#cmakedefine HAVE_QUICHE_CONN_SET_QLOG_FD 1
+
+/* to enable msh3 */
+#cmakedefine USE_MSH3 1
 
 /* if Unix domain sockets are enabled  */
 #cmakedefine USE_UNIX_SOCKETS
@@ -1021,3 +1007,9 @@ ${SIZEOF_TIME_T_CODE}
 
 /* Define to 1 if you have the mach_absolute_time function. */
 #cmakedefine HAVE_MACH_ABSOLUTE_TIME 1
+
+/* to enable Windows IDN */
+#cmakedefine USE_WIN32_IDN 1
+
+/* to make the compiler know the prototypes of Windows IDN APIs */
+#cmakedefine WANT_IDN_PROTOTYPES 1

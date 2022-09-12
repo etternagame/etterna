@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -24,15 +24,17 @@
 .SH NAME
 CURLINFO_REDIRECT_URL \- get the URL a redirect would go to
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_getinfo(CURL *handle, CURLINFO_REDIRECT_URL, char **urlp);
+.fi
 .SH DESCRIPTION
 Pass a pointer to a char pointer to receive the URL a redirect \fIwould\fP
 take you to if you would enable \fICURLOPT_FOLLOWLOCATION(3)\fP. This can come
-very handy if you think using the built-in libcurl redirect logic isn't good
-enough for you but you would still prefer to avoid implementing all the magic
-of figuring out the new URL.
+handy if you think using the built-in libcurl redirect logic is not good enough
+for you but you would still prefer to avoid implementing all the magic of
+figuring out the new URL.
 
 This URL is also set if the \fICURLOPT_MAXREDIRS(3)\fP limit prevented a
 redirect to happen (since 7.54.1).
@@ -43,7 +45,7 @@ HTTP(S)
 CURL *curl = curl_easy_init();
 if(curl) {
   CURLcode res;
-  curl_easy_setopt(curl, CURLOPT_URL, "http://example.com");
+  curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
   res = curl_easy_perform(curl);
   if(res == CURLE_OK) {
     char *url = NULL;

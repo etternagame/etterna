@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -1537,6 +1537,18 @@ static int test_weird_arguments(void)
 
   errors += string_check(buf, "");
 
+  /* Do not skip sanity checks with parameters! */
+  buf[0] = 0;
+  rc = curl_msnprintf(buf, sizeof(buf), "%d, %.*1$d", 500, 1);
+
+  if(rc != sizeof(buf) - 1) {
+    printf("curl_mprintf() returned %d and not %d!\n", rc,
+           sizeof(buf) - 1);
+    errors++;
+  }
+
+  errors += strlen_check(buf, 255);
+
   if(errors)
     printf("Some curl_mprintf() weird arguments tests failed!\n");
 
@@ -1544,7 +1556,6 @@ static int test_weird_arguments(void)
 }
 
 /* DBL_MAX value from Linux */
-/* !checksrc! disable PLUSNOSPACE 1 */
 #define MAXIMIZE -1.7976931348623157081452E+308
 
 static int test_float_formatting(void)
@@ -1658,6 +1669,36 @@ static int test_float_formatting(void)
 }
 /* !checksrc! enable LONGLINE */
 
+static int test_return_codes(void)
+{
+  char buf[128];
+  int rc;
+
+  rc = curl_msnprintf(buf, 100, "%d", 9999);
+  if(rc != 4)
+    return 1;
+
+  rc = curl_msnprintf(buf, 100, "%d", 99999);
+  if(rc != 5)
+    return 1;
+
+  /* returns the length excluding the nul byte */
+  rc = curl_msnprintf(buf, 5, "%d", 99999);
+  if(rc != 4)
+    return 1;
+
+  /* returns the length excluding the nul byte */
+  rc = curl_msnprintf(buf, 5, "%s", "helloooooooo");
+  if(rc != 4)
+    return 1;
+
+  /* returns the length excluding the nul byte */
+  rc = curl_msnprintf(buf, 6, "%s", "helloooooooo");
+  if(rc != 5)
+    return 1;
+
+  return 0;
+}
 int test(char *URL)
 {
   int errors = 0;
@@ -1690,6 +1731,8 @@ int test(char *URL)
   errors += test_string_formatting();
 
   errors += test_float_formatting();
+
+  errors += test_return_codes();
 
   if(errors)
     return TEST_ERR_MAJOR_BAD;
