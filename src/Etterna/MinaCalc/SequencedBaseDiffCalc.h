@@ -3,7 +3,6 @@
 #include <array>
 #include <unordered_map>
 
-
 /* MS difficulty bases are going to be sequence constructed row by row here, the
  * nps base may be moved here later but not right now. we'll use statically
  * allocated arrays to built difficulty for each interval, and the output will
@@ -387,9 +386,47 @@ struct ceejay
 	unsigned last_last_row_notes = 0U;
 };
 
+/// if this looks ridiculous, that's because it is
 struct techyo
 {
-	// if this looks ridiculous, that's because it is
+
+	const std::string name = "TC_Static";
+
+#pragma region params
+
+	float tc_base_weight = 1.F;
+	float nps_base_weight = 1.F;
+	float rm_diff_percent = 0.F;
+
+	float balance_comp_window = 36.F;
+	float chaos_comp_window = 2.F;
+	float tc_static_base_window = 3.F;
+
+	// determines steepness of non-1/2 balance ratios
+	float balance_power = 2.F;
+	float min_balance_ratio = 0.2F;
+	float balance_ratio_scaler = 1.F;
+
+	const std::vector<std::pair<std::string, float*>> _params{
+		{ "tc_base_weight", &tc_base_weight },
+		{ "nps_base_weight", &nps_base_weight },
+		{ "rm_diff_percent", &rm_diff_percent },
+
+		{ "balance_comp_window", &balance_comp_window },
+		{ "chaos_comp_window", &chaos_comp_window },
+		{ "tc_static_base_window", &tc_static_base_window },
+		{ "balance_power", &balance_power },
+		{ "min_balance_ratio", &min_balance_ratio },
+		{ "balance_ratio_scaler", &balance_ratio_scaler },
+	};
+
+#pragma endregion params and param map
+
+	// moving window of the last 3 {column, time} that showed up
+	// we transform col_type ohj into 2 entries with the same time on insertion
+	static const unsigned trill_window = 3;
+	std::array<std::pair<col_type, float>, techyo::trill_window> mw_dt{};
+
 	void advance_base(const SequencerGeneral& seq,
 					  const col_type& ct,
 					  Calc& calc)
@@ -398,6 +435,203 @@ struct techyo
 			return;
 		}
 
+		process_mw_dt(ct, seq.get_any_ms_now());
+		advance_trill_base(calc);
+
+		/*
+		increment_column_counters(ct);
+		auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
+		auto chaos_comp = calc_chaos_comp(seq, ct, calc);
+		insert(balance_ratios, balance_comp);
+		teehee(chaos_comp);
+		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(tc_static_base_window);
+		*/
+
+		++row_counter;
+	}
+
+	void advance_rm_comp(const float& rm_diff)
+	{
+		rm_itv_max_diff = std::max(rm_itv_max_diff, rm_diff);
+	}
+
+	void advance_jack_comp(const float& hardest_itv_jack_ms) {
+		jack_itv_diff =
+		  ms_to_scaled_nps(hardest_itv_jack_ms) * basescalers[Skill_JackSpeed];
+	}
+
+	// for debug
+	[[nodiscard]] auto get_itv_rma_diff() const -> float
+	{
+		return rm_itv_max_diff;
+	}
+
+	// final output difficulty for this interval
+	// the output of this is officially TechBase for an interval
+	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
+	  -> float
+	{
+		const auto rmbase = rm_itv_max_diff;
+		const auto trillbase = get_tb_base(calc);
+		const auto jackbase = jack_itv_diff;
+
+		// [0,1]
+		// 0 = all jack/flam
+		// 1 = all trill
+		const auto how_flammy = get_itv_flam_factor();
+
+		const auto combinedbase =
+		  weighted_average(trillbase, jackbase, how_flammy, 1.F);
+
+		return std::max(rmbase, combinedbase);
+	}
+
+	void interval_end()
+	{
+		row_counter = 0;
+		rm_itv_max_diff = 0.F;
+		jack_itv_diff = 0.F;
+		balance_ratios.fill(0);
+		//count_left.fill(0);
+		//count_right.fill(0);
+	}
+
+	void full_reset()
+	{
+		row_counter = 0;
+		rm_itv_max_diff = 0.F;
+		jack_itv_diff = 0.F;
+		teehee.zero();
+		count_left.fill(0);
+		count_right.fill(0);
+
+		mw_dt.fill({ col_empty, ms_init });
+		tb_static.fill(ms_init);
+		flammity.fill(0.F);
+	}
+
+  private:
+	// how many non-empty rows have we seen
+	int row_counter = 0;
+
+	// jank stuff.. keep a small moving average of the base diff
+	CalcMovingWindow<float> teehee;
+
+	// 1 or 0 continuously
+	std::array<int, max_rows_for_single_interval> count_left{};
+	std::array<int, max_rows_for_single_interval> count_right{};
+
+	// balance ratio values for an interval
+	std::array<float, max_rows_for_single_interval> balance_ratios{};
+
+	// trill base values
+	std::array<float, max_rows_for_single_interval> tb_static{};
+	std::array<float, max_rows_for_single_interval> flammity{};
+
+	// max value of rm diff for this interval, this will be an exception to the
+	// only storing ms rule, rm diff will be stored as a pre-converted diff
+	// value because rm_sequencing may adjust the scaled diff using the rm
+	// components in ways we can't emulate here (nor should we try)
+	float rm_itv_max_diff = 0.F;
+	float jack_itv_diff = 0.F;
+
+	// get the interval base diff, which will then be merged via weighted
+	// average with npsbase, and then compared to max_rm diff
+	[[nodiscard]] auto get_tc_base(Calc& calc) const -> float
+	{
+		if (row_counter == 0) {
+			return 0.F;
+		}
+
+		auto ms_total = 0.F;
+		for (auto i = 0; i < row_counter; ++i) {
+			ms_total += calc.tc_static.at(i);
+		}
+
+		const auto ms_mean = ms_total / static_cast<float>(row_counter);
+		return ms_to_scaled_nps(ms_mean);
+	}
+
+	// produces the average value of the trill ms value for the interval
+	// converted to nps
+	auto get_tb_base(Calc& calc) const -> float
+	{
+		if (row_counter < 3) {
+			return 0.F;
+		}
+
+		auto ms_total = 0.F;
+		for (auto i = 0; i < row_counter; ++i) {
+			ms_total += tb_static.at(i);
+		}
+		const auto ms_mean = ms_total / static_cast<float>(row_counter);
+		return ms_to_scaled_nps(ms_mean);
+	}
+
+	// produces the average value of the flam value for the interval
+	// [0,1]
+	// 0 = all jacks or all flams
+	// 1 = all perfect trills
+	auto get_itv_flam_factor() const -> float
+	{
+		if (row_counter == 0) {
+			return 0.F;
+		}
+
+		auto total = 0.F;
+		for (auto i = 0; i < row_counter; ++i) {
+			total += flammity.at(i);
+		}
+
+		const auto mean = total / static_cast<float>(row_counter);
+		return mean;
+	}
+
+	/// find the balance between columns in a hand
+	/// max value is found when note count is exactly half the other
+	/// min value is at 0/max and max/max
+	/// returns [0,1]
+	float calc_balance_comp() const {
+
+		const auto left =
+		  get_total_for_windowf(count_left, balance_comp_window);
+		const auto right = 
+		  get_total_for_windowf(count_right, balance_comp_window);
+
+		// for this application of balance, dont care about half empty hands
+		// or fully balanced hands
+		if (left == 0.F || right == 0.F) {
+			return 1.F;
+		}
+		if (left == right) {
+			return 1.F;
+		}
+
+		// make sure power is at least 2 and divisible by 2
+		// but it cant be greater than 30 due to int overflow
+		const auto bal_power =
+		  std::clamp(static_cast<int>(std::max(balance_power, 2.F)) % 2 == 0
+					   ? balance_power
+					   : balance_power - 1.F,
+					 2.F,
+					 30.F);
+		const auto bal_factor = std::pow(2.F, bal_power);
+
+		const auto high = left > right ? left : right;
+		const auto low = left > right ? right : left;
+
+		const auto x = low / high;
+		const auto y = (-bal_factor * std::pow(x - 0.5F, bal_power)) + 1;
+		return y;
+	}
+
+	/// in some wildly confusing fashion, find a degree of chaoticness
+	/// but using MS->NPS
+	/// considers a window of N+1 rows (N ms times)
+	float calc_chaos_comp(const SequencerGeneral& seq,
+						  const col_type& ct,
+						  Calc& calc)
+	{
 		const auto a = seq.get_sc_ms_now(ct);
 		float b;
 		if (ct == col_ohjump) {
@@ -408,9 +642,11 @@ struct techyo
 
 		const auto c = fastsqrt(a) * fastsqrt(b);
 
-		auto pineapple = seq._mw_any_ms.get_cv_of_window(4);
-		auto porcupine = seq._mw_sc_ms[col_left].get_cv_of_window(4);
-		auto sequins = seq._mw_sc_ms[col_right].get_cv_of_window(4);
+		auto pineapple = seq._mw_any_ms.get_cv_of_window(chaos_comp_window);
+		auto porcupine =
+		  seq._mw_sc_ms[col_left].get_cv_of_window(chaos_comp_window);
+		auto sequins =
+		  seq._mw_sc_ms[col_right].get_cv_of_window(chaos_comp_window);
 		const auto oioi = 0.5F;
 		pineapple = std::clamp(pineapple + oioi, oioi, 1.F + oioi);
 		porcupine = std::clamp(porcupine + oioi, oioi, 1.F + oioi);
@@ -433,87 +669,149 @@ struct techyo
 		const auto vertebrae = std::clamp(
 		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
 
-		teehee(c / vertebrae);
-
-		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(2);
-		++row_counter;
+		return c / vertebrae;
 	}
 
-	void advance_rm_comp(const float& rm_diff)
+	void advance_trill_base(Calc& calc)
 	{
-		rm_itv_max_diff = std::max(rm_itv_max_diff, rm_diff);
-	}
+		auto flamentation = .5F;
+		auto trill_ms_value = ms_init;
 
-	// for debug
-	[[nodiscard]] auto get_itv_rma_diff() const -> float
-	{
-		return rm_itv_max_diff;
-	}
+		auto& a = mw_dt.at(0);
+		if (a.first == col_init) {
+			// do nothing special, not a complete trill
+		} else {
+			auto& b = mw_dt.at(1);
+			auto& c = mw_dt.at(2);
 
-	// final output difficulty for this interval, merges base diff, runningman
-	// anchor diff
-	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
-	  -> float
-	{
-		// for now do simple thing, for this interval either use the higher
-		// between weighted adjusted ms/nps base and runningman diff
-		// we definitely don't want to pure average here because we don't want tech
-		// to only be files with strong runningman pattern detection, but we
-		// could probably do something more robust at some point
-		auto tc = weighted_average(get_tc_base(calc), nps_base, 4.F, 9.F);
-		auto rm = rm_itv_max_diff;
-		if (rm >= tc) {
-			// for rm dominant intervals, use tc to drag diff down
-			// weight should be [0,1]
-			// 1 -> all rm
-			// 0 -> all tc
-			constexpr float weight = 0.9F;
-			rm = weighted_average(rm, tc, weight, 1.F);
-		}
-		return std::max(tc, rm);
-	}
+			auto flam_of_the_trill = ms_init;
+			auto third_tap = ms_init;
 
-	void interval_end()
-	{
-		row_counter = 0;
-		rm_itv_max_diff = 0.F;
-	}
+			if (b.second == 0.F && a.first != b.first) {
+				// first 2 notes form a jump
+				flam_of_the_trill = 0.F;
+				third_tap = c.second * 2.F;
+			} else if (c.second == 0.F && b.first != c.first) {
+				// last 2 notes form a jump
+				flam_of_the_trill = 0.F;
+				third_tap = b.second * 2.F;
+			} else {
+				// determine ... trillflamjackyness
 
-	void full_reset()
-	{
-		row_counter = 0;
-		rm_itv_max_diff = 0.F;
-		teehee.zero();
-	}
+				if (a.first == c.first && a.first != b.first) {
+					// it's a trill (121 or 212)
+					flam_of_the_trill = std::min(b.second, c.second);
+					third_tap = std::max(b.second, c.second);
+				} else if (a.first == c.first) {
+					// it's 111
+					// the intended behavior is to treat it like a flam
+					// thus treating it like a jack
+					flam_of_the_trill = 0.F;
+					third_tap = c.second;
+				} else {
+					if (a.first != b.first) {
+						// it's 211
+						flam_of_the_trill = b.second;
+						third_tap = c.second;
+					} else {
+						// it's 112
+						flam_of_the_trill = c.second;
+						third_tap = b.second;
+					}
+				}
+			}
 
-  private:
-	// how many non-empty rows have we seen
-	int row_counter = 0;
-
-	// jank stuff.. keep a small moving average of the base diff
-	CalcMovingWindow<float> teehee;
-
-	// max value of rm diff for this interval, this will be an exception to the
-	// only storing ms rule, rm diff will be stored as a pre-converted diff
-	// value because rm_sequencing may adjust the scaled diff using the rm
-	// components in ways we can't emulate here (nor should we try)
-	float rm_itv_max_diff = 0.F;
-
-	// get the interval base diff, which will then be merged via weighted
-	// average with npsbase, and then compared to max_rm diff
-	[[nodiscard]] auto get_tc_base(Calc& calc) const -> float
-	{
-		if (row_counter == 0) {
-			return 0.F;
+			if (flam_of_the_trill == 0.F && third_tap == 0.F) {
+				// effectively a forced dropped note
+				flamentation = 0.F;
+				trill_ms_value = 0.1F;
+			} else {
+				// ratio = [0,1]
+				// 0 = flam involved
+				// 1 = straight trill
+				const auto flam_ms_depressor = 0.F;
+				auto ratio = div_low_by_high(
+				  std::max(flam_of_the_trill - flam_ms_depressor, 0.F),
+				  third_tap);
+				flamentation = std::clamp(std::pow(ratio, 0.125F), 0.F, 1.F);
+				trill_ms_value = (flam_of_the_trill + third_tap) / 2.F;
+			}
 		}
 
-		auto ms_total = 0.F;
-		for (auto i = 0; i < row_counter; ++i) {
-			ms_total += calc.tc_static.at(i);
-		}
+		flammity.at(row_counter) = flamentation;
+		tb_static.at(row_counter) = trill_ms_value;
+	}
 
-		const auto ms_mean = ms_total / static_cast<float>(row_counter);
-		return ms_to_scaled_nps(ms_mean);
+
+	//////////////////////////////////////////////////////////////
+	// util
+	void increment_column_counters(const col_type& ct)
+	{
+		switch (ct) {
+			case col_left: {
+				insert(count_left, 1);
+				insert(count_right, 0);
+				break;
+			}
+			case col_right: {
+				insert(count_left, 0);
+				insert(count_right, 1);
+				break;
+			}
+			case col_ohjump: {
+				insert(count_left, 1);
+				insert(count_right, 1);
+				break;
+			}
+			default: {
+				insert(count_left, 0);
+				insert(count_right, 0);
+				break;
+			}
+		}
+	}
+
+	float get_total_for_windowf(
+	  const std::array<int, max_rows_for_single_interval>& arr, const unsigned window) const
+	{
+		float o = 0.F;
+		auto i = max_rows_for_single_interval;
+		while (i > max_rows_for_single_interval - window) {
+			i--;
+			o += arr.at(i);
+		}
+		return o;
+	}
+
+	template <typename T>
+	void insert(std::array<T, max_rows_for_single_interval>& arr,
+				 const T value)
+	{
+		for (auto i = 1; i < max_rows_for_single_interval; i++) {
+			arr.at(i - 1) = arr.at(i);
+		}
+		arr.at(max_rows_for_single_interval - 1) = value;
+	}
+
+	void process_mw_dt(const col_type& ct, const float ms_now)
+	{
+		auto& arr = mw_dt;
+		if (ct == col_ohjump) {
+			for (auto i = 1; i < trill_window; i++) {
+				arr.at(i - 1) = arr.at(i);
+			}
+			arr.at(trill_window - 1) = { col_left, ms_now };
+
+			for (auto i = 1; i < trill_window; i++) {
+				arr.at(i - 1) = arr.at(i);
+			}
+			arr.at(trill_window - 1) = { col_right, 0.F };
+		} else {
+			for (auto i = 1; i < trill_window; i++) {
+				arr.at(i - 1) = arr.at(i);
+			}
+			arr.at(trill_window - 1) = { ct, ms_now };
+		}
 	}
 };
 

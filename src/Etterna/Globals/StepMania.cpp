@@ -1112,6 +1112,7 @@ sm_main(int argc, char* argv[])
 	SONGINDEX->FinishTransaction();
 	CRYPTMAN = new CryptManager; // need to do this before ProfileMan
 	SCOREMAN = new ScoreManager;
+	REPLAYS = std::make_shared<ReplayManager>();
 	PROFILEMAN = new ProfileManager;
 	PROFILEMAN->Init(pLoadingWindow); // must load after SONGMAN
 	SONGMAN->CalcTestStuff();		  // must be after profileman init
@@ -1122,7 +1123,6 @@ sm_main(int argc, char* argv[])
 	FILTERMAN = new FilterManager;
 
 	DLMAN = std::make_shared<DownloadManager>();
-	REPLAYS = std::make_shared<ReplayManager>();
 
 	/* If the user has tried to quit during the loading, do it before creating
 	 * the main window. This prevents going to full screen just to quit. */

@@ -238,6 +238,7 @@ static const char* CalcPatternModNames[] = {
 	"FlamJam",
 	"WideRangeRoll",
 	"WideRangeJumptrill",
+	"WideRangeJJ",
 	"WideRangeBalance",
 	"WideRangeAnchor",
 	"TheThing",

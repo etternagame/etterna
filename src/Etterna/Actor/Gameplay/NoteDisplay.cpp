@@ -606,7 +606,7 @@ NoteDisplay::DrawHoldsInRange(
 			field_args.ghost_row->SetHoldShowing(column_args.column, tn);
 		}
 
-		ASSERT_M(NoteRowToBeat(start_row) > -2000,
+		ASSERT_M(NoteRowToBeat(start_row) > ARBITRARY_MIN_GAMEPLAY_NUMBER,
 				 ssprintf("%i %i %i", start_row, end_row, column_args.column));
 
 		auto in_selection_range = false;
@@ -655,7 +655,7 @@ NoteDisplay::DrawTapsInRange(
 		// was in NoteField, but those aren't available here.
 		// Well, anyone who has to investigate hitting it can use a debugger to
 		// discover the values, hopefully. -Kyz
-		ASSERT_M(NoteRowToBeat(tap_row) > -2000,
+		ASSERT_M(NoteRowToBeat(tap_row) > ARBITRARY_MIN_GAMEPLAY_NUMBER,
 				 ssprintf("Invalid tap_row: %i, %f %f",
 						  tap_row,
 						  GAMESTATE->m_Position.m_fSongBeat,

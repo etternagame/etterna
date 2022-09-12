@@ -297,6 +297,10 @@ local translations = {
     PercentDisplayExplanation = THEME:GetString("Settings", "PercentDisplayExplanation"),
     MeanDisplay = THEME:GetString("Settings", "MeanDisplay"),
     MeanDisplayExplanation = THEME:GetString("Settings", "MeanDisplayExplanation"),
+    EWMADisplay = THEME:GetString("Settings", "EWMADisplay"),
+    EWMADisplayExplanation = THEME:GetString("Settings", "EWMADisplayExplanation"),
+    StdDevDisplay = THEME:GetString("Settings", "StdDevDisplay"),
+    StdDevDisplayExplanation = THEME:GetString("Settings", "StdDevDisplayExplanation"),
     ErrorBar = THEME:GetString("Settings", "ErrorBar"),
     ErrorBarExplanation = THEME:GetString("Settings", "ErrorBarExplanation"),
     ErrorBarCount = THEME:GetString("Settings", "ErrorBarCount"),
@@ -373,6 +377,8 @@ local translations = {
     VideoBannersExplanation = THEME:GetString("Settings", "VideoBannersExplanation"),
     ShowBGs = THEME:GetString("Settings", "ShowBGs"),
     ShowBGsExplanation = THEME:GetString("Settings", "ShowBGsExplanation"),
+    ShowBanners = THEME:GetString("Settings", "ShowBanners"),
+    ShowBannersExplanation = THEME:GetString("Settings", "ShowBannersExplanation"),
     BGBannerColor = THEME:GetString("Settings", "BGBannerColor"),
     BGBannerColorExplanation = THEME:GetString("Settings", "BGBannerColorExplanation"),
     AllowBGChanges = THEME:GetString("Settings", "AllowBGChanges"),
@@ -3231,7 +3237,8 @@ local function rightFrame()
         },
         wheelPosition = themeoption("global", "WheelPosition"),
         wheelBanners = themeoption("global", "WheelBanners"),
-        showBackgrounds = themeoption("global", "ShowBackgrounds"),
+        showBackgrounds = PREFSMAN:GetPreference("ShowBackgrounds"),
+        showBanners = themeoption("global", "ShowBanners"),
         useSingleColorBG = themeoption("global", "FallbackToAverageColorBG"),
         showVisualizer = themeoption("global", "ShowVisualizer"),
         tipType = themeoption("global", "TipType"),
@@ -3248,6 +3255,8 @@ local function rightFrame()
         judgeCounter = playeroption("JudgeCounter"),
         leaderboard = playeroption("leaderboardEnabled"),
         displayMean = playeroption("DisplayMean"),
+        displayEWMA = playeroption("DisplayEWMA"),
+        displayStdDev = playeroption("DisplayStdDev"),
         measureCounter = playeroption("MeasureCounter"),
         measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
@@ -4327,7 +4336,7 @@ local function rightFrame()
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = notShit.round(optionData["screenFilter"].get(), 1)
+                    local v = notShit.round(optionData["screenFilter"].get(), 2)
                     local ind = notShit.round(v * 10, 0) + 1
                     if ind > 0 and ind < 11 then -- this 11 should match the number of choices above
                         return ind
@@ -4360,7 +4369,7 @@ local function rightFrame()
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = notShit.round(PREFSMAN:GetPreference("BGBrightness"))
+                    local v = notShit.round(PREFSMAN:GetPreference("BGBrightness"), 2)
                     local ind = notShit.round(v * 10, 0) + 1
                     if ind > 0 and ind < 11 then -- this 11 should match the nubmer of choices above
                         return ind
@@ -4680,6 +4689,24 @@ local function rightFrame()
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayMean", true),
             },
             {
+                Name = "EWMA Display",
+                DisplayName = translations["EWMADisplay"],
+                Type = "SingleChoice",
+                Explanation = translations["EWMADisplayExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayEWMA", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayEWMA", true),
+            },
+            {
+                Name = "StdDev Display",
+                DisplayName = translations["StdDevDisplay"],
+                Type = "SingleChoice",
+                Explanation = translations["StdDevDisplayExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayStdDev", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayStdDev", true),
+            },
+            {
                 Name = "Error Bar",
                 DisplayName = translations["ErrorBar"],
                 Type = "SingleChoice",
@@ -4783,6 +4810,12 @@ local function rightFrame()
                 Directions = optionDataToggleDirectionsFUNC("playerInfo", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("playerInfo", true),
             },
+        },
+        --
+        -----
+        -- GAMEPLAY ELEMENTS P2
+        ["Gameplay Elements 2"] = {
+            customizeGameplayButton(),
             {
                 Name = "Target Tracker",
                 DisplayName = translations["TargetTracker"],
@@ -4841,7 +4874,7 @@ local function rightFrame()
                         o[#o+1] = cf(i + 50)
                     end
                     -- extra choices to fit grades
-                    o[#o+1] = cf(96.65) -- AA.
+                    o[#o+1] = cf(96.5) -- AA.
                     o[#o+1] = cf(97)
                     o[#o+1] = cf(98)
                     o[#o+1] = cf(99) -- AA:
@@ -4864,7 +4897,7 @@ local function rightFrame()
                         return v - 50 + 1
                     elseif v > 96 then
                         local extra = {
-                            96.65,
+                            96.5,
                             97,
                             98,
                             99,
@@ -4926,12 +4959,6 @@ local function rightFrame()
                     end
                 end,
             },
-        },
-        --
-        -----
-        -- GAMEPLAY ELEMENTS P2
-        ["Gameplay Elements 2"] = {
-            customizeGameplayButton(),
             {
                 Name = "Judge Counter",
                 DisplayName = translations["JudgeCounter"],
@@ -5615,7 +5642,25 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("NoGlow", false, true),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("NoGlow", false),
-            }
+            },
+            {
+                Name = "Show Backgrounds",
+                DisplayName = translations["ShowBGs"],
+                Type = "SingleChoice",
+                Explanation = translations["ShowBGsExplanation"],
+                Choices = choiceSkeleton("Yes", "No"),
+                Directions = preferenceToggleDirections("ShowBackgrounds", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowBackgrounds", true),
+            },
+            {
+                Name = "Show Banners",
+                DisplayName = translations["ShowBanners"],
+                Type = "SingleChoice",
+                Explanation = translations["ShowBannersExplanation"],
+                Choices = choiceSkeleton("Yes", "No"),
+                Directions = optionDataToggleDirectionsFUNC("showBanners", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBanners", true),
+            },
         },
         --
         -----
@@ -5647,15 +5692,6 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("videoBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("videoBanners", true),
-            },
-            {
-                Name = "Show Backgrounds",
-                DisplayName = translations["ShowBGs"],
-                Type = "SingleChoice",
-                Explanation = translations["ShowBGsExplanation"],
-                Choices = choiceSkeleton("Yes", "No"),
-                Directions = optionDataToggleDirectionsFUNC("showBackgrounds", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBackgrounds", true),
             },
             {
                 Name = "BG Fallback to Banner Color",

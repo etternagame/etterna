@@ -28,7 +28,7 @@ struct StreamMod
 
 	float vibro_flag = 1.F;
 
-	float tht_scaler = .5F;
+	float tht_scaler = .0F;
 	float tht_cv_threshold = 0.5F;
 	float tht_trill_buffer = 1.4F;
 	float tht_trill_scaler = 1.F;

@@ -24,7 +24,6 @@ struct ReplaySnapshot
 	float mean = 0.F;
 };
 
-// also known as ReplayManager
 class PlayerAI
 {
   public:
@@ -78,28 +77,16 @@ class PlayerAI
 							 TimingData* = nullptr);
 	static void ResetScoreData();
 
-	static auto GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
-	  -> float;
 	static auto GetTapNoteScoreForReplay(
-	  const PlayerState* pPlayerState,
 	  float fNoteOffset,
 	  float timingScale = Player::GetTimingWindowScale()) -> TapNoteScore;
 	// Locate the earliest value in Seconds that is counted as a miss
 	static auto FindMissWindowBegin() -> float;
-	static auto DetermineIfHoldDropped(int noteRow, int col) -> bool;
 	// Returns the row of the dropped hold if the given range contains a dropped
 	// hold on the track Returns -1 if no dropped hold is in range.
 	static auto IsHoldDroppedInRowRangeForTrack(int firstRow,
 												int endRow,
 												int track) -> int;
-	// Returns the column that needs to be tapped.
-	// Returns -1 if no column needs to be tapped.
-	static auto DetermineNextTapColumn(int noteRow,
-									   int searchRowDistance,
-									   TimingData* timing) -> int;
-	// Literally get the next row in the replay data. Disregard offset
-	// calculations.
-	static auto GetNextRowNoOffsets(int currentRow) -> int;
 	// Reset and populate the ReplayExactTapMap.
 	// This is meant to be run once Gameplay begins.
 	static void SetUpExactTapMap(TimingData* timing);
@@ -109,29 +96,13 @@ class PlayerAI
 	  NoteData* pNotedata,
 	  std::set<int> validNoterows = std::set<int>(),
 	  float timingScale = Player::GetTimingWindowScale());
-	// Check the Tap Replay Data to see if a tap is on this row
-	static auto TapExistsAtThisRow(int noteRow) -> bool;
-	static auto TapExistsAtOrBeforeThisRow(int noteRow) -> bool;
-	// Build a list of columns/tracks to tap based on the given noterow.
-	static auto GetTapsToTapForRow(int noteRow) -> std::vector<TapReplayResult>;
-	static auto GetReplayType() -> int;
-	// Build a list of columns/tracks that happened at or before the given
-	// noterow. (if we lag and somehow skip rows)
-	static auto GetTapsAtOrBeforeRow(int noteRow) -> std::vector<TapReplayResult>;
-	// Given a column and row, retrieve the adjusted row.
-	static auto GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
-	  -> int;
 	// Given a row, retrieve the Snapshot for that row.
 	static auto GetReplaySnapshotForNoterow(int row)
 	  -> std::shared_ptr<ReplaySnapshot>;
-	// Remove a given Tap from the fallback and Full replay data vectors
-	static void RemoveTapFromVectors(int row, int col);
 	// Go through the replay data to fill out the radar values for the eval
 	// screen
 	static void CalculateRadarValuesForReplay(RadarValues& rv,
 											  RadarValues& possibleRV);
-	// Find a tap at the given row and column
-	static auto IsTapAtRowAndColumn(int noteRow, int col) -> bool;
 
 	// Fake the player stage stats using the current replay data
 	static void SetPlayerStageStatsForReplay(PlayerStageStats* pss,

@@ -17,7 +17,7 @@
 /****** Relevant to anchors ******/
 constexpr float anchor_spacing_buffer_ms = 10.F;
 constexpr float anchor_speed_increase_cutoff_factor = 2.34F;
-static const int anchor_len_cap = 5;
+static const int anchor_len_cap = 50;
 
 /****** Relevant to jacks ******/
 constexpr float jack_spacing_buffer_ms = 10.F;
@@ -251,6 +251,7 @@ struct Anchor_Sequencing : public Finger_Sequencing
 	}
 
 	/// returns an adjusted MS average value, not converted to nps
+	/// (((currently unused)))
 	inline float get_ms() override
 	{
 		assert(_sc_ms > 0.F);
@@ -261,9 +262,9 @@ struct Anchor_Sequencing : public Finger_Sequencing
 			return _len_cap_ms;
 		}
 
-		static const auto avg_ms_mult = 1.075F;
-		static const auto anchor_time_buffer_ms = 25.F;
-		static const auto min_ms = 82.5F;
+		static const auto avg_ms_mult = 1.F;
+		static const auto anchor_time_buffer_ms = 0.F;
+		static const auto min_ms = 0.F;
 
 		// get total ms
 		const auto total_ms = ms_from(_last, _start);

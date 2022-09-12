@@ -35,6 +35,8 @@ local defaultConfig = {
         GoalAchieved = "#9654fd",
         GoalDefault = "#ff9999",
         InvalidScore = "#ff9999",
+        ChordCohesionOnScore = "#ff9999",
+        Wife2Score = "#ff9999", -- unused
     },
     chartPreview = {
         Background = "#000000",
@@ -70,6 +72,9 @@ local defaultConfig = {
         ComboGraphBackground = "#111111",
         MaxComboText = "#999999",
         NormalComboText = "#ffffff",
+        InvalidScore = "#ff9999",
+        ChordCohesionOnScore = "#ff9999",
+        Wife2Score = "#ff9999", -- unused
     },
     assetSettings = {
         HoveredItem = "#ffffff",

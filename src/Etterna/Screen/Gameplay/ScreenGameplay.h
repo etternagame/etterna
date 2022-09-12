@@ -66,6 +66,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 	  MultiPlayer /* mp */){}; // overridden for multiplayer
 
 	virtual bool UseSongBackgroundAndForeground() const { return true; }
+	virtual void LoadPlayer();
+	virtual void ReloadPlayer();
 
 	ThemeMetric<std::string> PLAYER_TYPE;
 	ThemeMetric<std::string> SCORE_DISPLAY_TYPE;

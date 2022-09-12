@@ -60,6 +60,14 @@ struct InputDataEvent
 	  , offsetFromNearest(offset)
 	{
 	}
+
+	InputDataEvent(const InputDataEvent& other) {
+		is_press = other.is_press;
+		column = other.column;
+		songPositionSeconds = other.songPositionSeconds;
+		nearestTapNoterow = other.nearestTapNoterow;
+		offsetFromNearest = other.offsetFromNearest;
+	}
 };
 
 struct MineReplayResult
@@ -108,23 +116,32 @@ struct TapReplayResult
 
 struct PlaybackEvent
 {
-	float beat;
-	int track;	// column
-	bool isTap;	// tap or release
+	int noterow;
+	float songPositionSeconds;
+	int track;		// column
+	bool isPress;	// tap or release
+
+	// only applies if the event judges a note
+	// to prevent events triggering wrong judgments
+	int noterowJudged = -1;
 
 	PlaybackEvent()
 	{
-		beat = 0.F;
+		noterow = 0;
+		songPositionSeconds = 0.F;
 		track = 0;
-		isTap = true;
+		isPress = true;
 	}
 
-	PlaybackEvent(float beat, int track, bool isTap)
-	  : beat(beat)
+	PlaybackEvent(int noterow, float songPositionSeconds, int track, bool isPress)
+	  : noterow(noterow)
+	  , songPositionSeconds(songPositionSeconds)
 	  , track(track)
-	  , isTap(isTap)
+	  , isPress(isPress)
 	{
 	}
+
+	bool isJudgeEvent() const { return noterowJudged != -1; }
 };
 
 #endif

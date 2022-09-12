@@ -52,7 +52,7 @@ class StageStats
 	PlayerStageStats m_player;
 	PlayerStageStats m_multiPlayer[NUM_MultiPlayer];
 
-	void FinalizeScores(bool bSummary);
+	void FinalizeScores();
 	std::string mostrecentscorekey;
 
 	// Show that this StageStats was a live play or is merely a reproduction

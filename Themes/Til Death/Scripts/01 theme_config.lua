@@ -3,9 +3,6 @@ local defaultConfig = {
 		DefaultScoreType = 4, -- refer to scripts/wife.lua for whatever scoring types are available
 		fallbackscoreType = 1,
 		TipType = 1, -- 1 = Hide,2=tips 3= random quotes phrases,
-		SongBGEnabled = true,
-		SongBGMouseEnabled = false, -- removing soon
-		Particles = false, -- removing soon
 		RateSort = true,
 		HelpMenu = false,
 		ScoreBoardNag = false,
@@ -19,6 +16,7 @@ local defaultConfig = {
 		CenteredCombo = false,
 		FadeNoteFieldInSyncMachine = true,
 		ShowPlayerOptionsHint = true,
+		ShowBanners = true, -- false to turn off banners everywhere
 	},
 	NPSDisplay = {
 		DynamicWindow = false,
@@ -48,4 +46,7 @@ function ComboTweensEnabled()
 end
 function CenteredComboEnabled()
 	return themeConfig:get_data().global.CenteredCombo
+end
+function BannersEnabled()
+	return themeConfig:get_data().global.ShowBanners
 end

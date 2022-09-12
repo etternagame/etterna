@@ -112,8 +112,6 @@ static ThemeMetric<int> DRAW_DISTANCE_BEFORE_TARGET_PIXELS;
 static ThemeMetric<bool> ROLL_BODY_INCREMENTS_COMBO;
 static ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 
-/** @brief How much life is in a hold note when you start on it? */
-ThemeMetric<float> INITIAL_HOLD_LIFE("Player", "InitialHoldLife");
 ThemeMetric<bool> PENALIZE_TAP_SCORE_NONE("Player", "PenalizeTapScoreNone");
 ThemeMetric<bool> CHECKPOINTS_FLASH_ON_HOLD(
   "Player",
@@ -188,35 +186,53 @@ JudgedRows::Resize(size_t iMin)
 auto
 Player::GetWindowSeconds(TimingWindow tw) -> float
 {
-	// mines should have a static hit window across all judges to be
-	// logically consistent with the idea that increasing judge should
-	// not make any elementof the game easier, so now they do
-	if (tw == TW_Mine) {
-		return 0.075F; // explicit return until i remove this stuff from
+	switch (tw) {
+		// mines should have a static hit window across all judges to be
+		// logically consistent with the idea that increasing judge should
+		// not make any elementof the game easier, so now they do
+		case TW_Mine:
+			return 0.075F;
+		case TW_Hold:
+			return 0.25F * GetTimingWindowScale();
+		case TW_Roll:
+			return 0.5F * GetTimingWindowScale();
+		default:
+			break;
 	}
-	// prefs.ini
 
 	float fSecs = m_fTimingWindowSeconds[tw];
-	fSecs *= m_fTimingWindowScale;
+	fSecs *= GetTimingWindowScale();
+	fSecs = std::clamp(fSecs, 0.F, MISS_WINDOW_BEGIN_SEC);
 	return fSecs;
 }
 
 auto
 Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 {
-	if (tw == TW_Mine) {
-		return 0.075F;
+	switch (tw) {
+		// mines should have a static hit window across all judges to be
+		// logically consistent with the idea that increasing judge should
+		// not make any elementof the game easier, so now they do
+		case TW_Mine:
+			return 0.075F;
+		case TW_Hold:
+			return 0.25F * timingScale;
+		case TW_Roll:
+			return 0.5F * timingScale;
+		default:
+			break;
 	}
 
 	float fSecs = m_fTimingWindowSeconds[tw];
 	fSecs *= timingScale;
+	fSecs = std::clamp(fSecs, 0.F, MISS_WINDOW_BEGIN_SEC);
 	return fSecs;
 }
 
 auto
 Player::GetTimingWindowScale() -> float
 {
-	return m_fTimingWindowScale;
+	return std::clamp(m_fTimingWindowScale.Get(), 0.001F, 1.F);
 }
 
 Player::Player(NoteData& nd, bool bVisibleParts)
@@ -562,7 +578,7 @@ Player::Load()
 	}
 
 	if (m_pPlayerStageStats != nullptr) {
-		m_pPlayerStageStats->m_fTimingScale = m_fTimingWindowScale;
+		m_pPlayerStageStats->m_fTimingScale = GetTimingWindowScale();
 	}
 
 	/* Apply transforms. */
@@ -1574,7 +1590,8 @@ Player::GetClosestNoteDirectional(int col,
 			}
 			// unsure if autoKeysounds should be excluded. -Wolfman2000
 			if (tn.type == TapNoteType_Empty ||
-				tn.type == TapNoteType_AutoKeysound) {
+				  tn.type == TapNoteType_AutoKeysound ||
+				  tn.type == TapNoteType_Fake) {
 				break;
 			}
 			if (!bAllowGraded && tn.result.tns != TNS_None) {
@@ -1592,13 +1609,14 @@ Player::GetClosestNoteDirectional(int col,
 	return -1;
 }
 
-// Find the closest note to fBeat.
+// Find the closest note to a row or the song position.
 auto
 Player::GetClosestNote(int col,
 					   int iNoteRow,
 					   int iMaxRowsAhead,
 					   int iMaxRowsBehind,
 					   bool bAllowGraded,
+					   bool bUseSongTiming,
 					   bool bAllowOldMines) const -> int
 {
 	// Start at iIndexStartLookingAt and search outward.
@@ -1618,7 +1636,9 @@ Player::GetClosestNote(int col,
 	}
 
 	// Get the current time, previous time, and next time.
-	const auto fNoteTime = GAMESTATE->m_Position.m_fMusicSeconds;
+	const auto fNoteTime = bUseSongTiming
+							 ? GAMESTATE->m_Position.m_fMusicSeconds
+							 : m_Timing->WhereUAtBro(iNoteRow);
 	const auto fNextTime = m_Timing->WhereUAtBro(iNextIndex);
 	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
 
@@ -2016,7 +2036,7 @@ Player::Step(int col,
 	auto iRowOfOverlappingNoteOrRow = row;
 	if (row == -1 && col != -1) {
 		iRowOfOverlappingNoteOrRow = GetClosestNote(
-		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, false);
+		  col, iSongRow, iStepSearchRows, iStepSearchRows, false, true, false);
 	}
 
 	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
@@ -2102,7 +2122,8 @@ Player::Step(int col,
 									   GetWindowSeconds(TW_W4)) {
 								score = TNS_W4;
 							} else if (fSecondsFromExact <=
-									   max(GetWindowSeconds(TW_W5), 0.18F)) {
+									   max(GetWindowSeconds(TW_W5),
+										   MISS_WINDOW_BEGIN_SEC)) {
 								score = TNS_W5;
 							}
 						}
@@ -2361,7 +2382,7 @@ Player::CrossedRows(int iLastRowCrossed,
 		const auto iTrack = iter.Track();
 		switch (tn.type) {
 			case TapNoteType_HoldHead: {
-				tn.HoldResult.fLife = INITIAL_HOLD_LIFE;
+				tn.HoldResult.fLife = initialHoldLife;
 				if (!REQUIRE_STEP_ON_HOLD_HEADS) {
 					const auto pn = m_pPlayerState->m_PlayerNumber;
 					std::vector<GameInput> GameI;
@@ -2898,7 +2919,7 @@ Player::GetMaxStepDistanceSeconds() -> float
 	// Setting this hard to .18 x rate brings it back into line.
 	// (On that note, this should only be used in the context of music
 	// timing, because at a 3x rate this would expand by 3x correctly)
-	float fMax = .18F;
+	float fMax = MISS_WINDOW_BEGIN_SEC;
 	/*
 	float fMax = 0;
 	fMax = max(fMax, GetWindowSeconds(TW_W5));
@@ -3051,7 +3072,7 @@ Player::SetJudgment(int iRow,
 				curwifescore += wife3_miss_weight;
 			} else {
 				curwifescore +=
-				  wife3(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+				  wife3(tn.result.fTapNoteOffset, GetTimingWindowScale());
 			}
 			maxwifescore += 2;
 

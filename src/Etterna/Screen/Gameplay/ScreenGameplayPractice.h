@@ -45,9 +45,9 @@ class ScreenGameplayPractice : public ScreenGameplay
 							  int maxrow = MAX_NOTE_ROW) override;
 
   private:
-	float loopStart = -2000.f;
-	float loopEnd = -2000.f;
-	float lastReportedSeconds = -2000.f;
+	float loopStart = ARBITRARY_MIN_GAMEPLAY_NUMBER;
+	float loopEnd = ARBITRARY_MIN_GAMEPLAY_NUMBER;
+	float lastReportedSeconds = ARBITRARY_MIN_GAMEPLAY_NUMBER;
 };
 
 #endif

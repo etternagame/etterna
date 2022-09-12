@@ -354,6 +354,7 @@ local debugGroups = {
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
+        WideRangeJJ = true,
 	},
     {   -- Group 6
         Chaos = true,
@@ -416,7 +417,7 @@ local diffGroups = {
         MSDHandstream = true,
     },
     {   -- Group 4
-        CJBase = true,
+        NPSBase = true,
         MSDChordjack = true,
     },
     {   -- Group 5
@@ -447,6 +448,7 @@ local diffGroups = {
         Jack = true,
     },
     {   -- Group 12
+        NPSBase = true,
         TechBase = true,
     },
     {   -- Group 13
@@ -560,7 +562,7 @@ local function updateCoolStuff()
         end
 
         -- even more debug output
-        local function fc(arr, name, fallbackValue)
+        local function fc(arr, name, fallbackValue, top)
             for i, ss in ipairs(ms.SkillSets) do
                 graphVecs[name..ss] = {}
                 for h = 1,2 do
@@ -568,16 +570,20 @@ local function updateCoolStuff()
                     graphVecs[name..ss][h] = {}
                     for j = 1, #arr[hand][i] do
                         local val = arr[hand][i][j]
-                        if val ~= val or val == nil then val = fallbackValue end -- get rid of nan and nil
-                        if val > lowerGraphMax then lowerGraphMax = val end
+                        if val ~= val or val == nil or val == math.huge or val == -math.huge then val = fallbackValue end -- get rid of nan and nil
+                        if top then
+                            if val > upperGraphMax then upperGraphMax = val end
+                        else
+                            if val > lowerGraphMax then lowerGraphMax = val end
+                        end
                         graphVecs[name..ss][h][j] = val
                     end
                 end
             end 
         end
-        fc(pap["DebugTotalPatternMod"], "TotalPatternMod", 1)
-        fc(pap["DebugPtLoss"], "PtLoss", 0)
-        fc(pap["DebugMSD"], "MSD", 0)
+        fc(pap["DebugTotalPatternMod"], "TotalPatternMod", 1, true)
+        fc(pap["DebugPtLoss"], "PtLoss", 0, false)
+        fc(pap["DebugMSD"], "MSD", 0, false)
 
         upperGraphMin = 0.3
         upperGraphMax = 1.25
@@ -1040,6 +1046,7 @@ local modnames = {
     "flam",
     "wrr",
     "wrjt",
+    "wrjj",
     "wrb",
     "wra",
     "thing",
@@ -1107,6 +1114,7 @@ local modColors = {
     color(".4,0.5,0.59"),   -- teal			= flamjam
     color("1,0.2,0"),		-- red			= wrr
     color("1,0.5,0"),		-- orange		= wrjt
+    color("1,0.2,1"),		-- purpley		= wrjj
     color("0.7,1,0.2"),		-- leme			= wrb
     color("0.7,1,0.1"),		-- leme			= wra
     color("0,0.8,1"),		-- light blue	= thething
@@ -1165,7 +1173,7 @@ local calcDiffValueColors = {
     --color("#7d6b91"),
     --color("#8481db"),   -- JackBase
     --color("#8481db"),
-    color("#995fa3"),   -- TechBase
+    color("#cc4fa3"),   -- TechBase
     --color("#995fa3"),
     color("#f2b5fa"),   -- RMABase
     --color("#f2b5fa"),

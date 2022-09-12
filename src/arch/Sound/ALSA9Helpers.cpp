@@ -137,7 +137,7 @@ Alsa9Buf::ErrorHandler(const char* file,
 	/* Annoying: these happen both normally (eg. "out of memory" when allocating
 	 * too many PCM slots) and abnormally, and there's no way to tell which is
 	 * which.  I don't want to pollute the warning output. */
-	Locator::getLogger()->trace("ALSA error: {}:{} {}: {}", file, line, function, str.c_str());
+	Locator::getLogger()->warn("ALSA error: {}:{} {}: {}", file, line, function, str.c_str());
 }
 
 void
@@ -309,7 +309,7 @@ Alsa9Buf::GetNumFramesToFill()
 	if (avail_frames > total_frames) {
 		/* underrun */
 		const int size = avail_frames - total_frames;
-		Locator::getLogger()->trace("underrun ({} frames)", size);
+		Locator::getLogger()->debug("underrun ({} frames)", size);
 		int large_skip_threshold = 2 * samplerate;
 
 		/* For small underruns, ignore them.  We'll return the maximum
@@ -378,7 +378,7 @@ Alsa9Buf::Write(const int16_t* buffer, int frames)
 	} while (wrote == -EAGAIN);
 
 	if (wrote < 0) {
-		Locator::getLogger()->trace(
+		Locator::getLogger()->error(
 		  "RageSoundDriver_ALSA9::GetData: dsnd_pcm_mmap_writei: {} ({})",
 		  dsnd_strerror(wrote),
 		  wrote);
@@ -387,7 +387,7 @@ Alsa9Buf::Write(const int16_t* buffer, int frames)
 
 	last_cursor_pos += wrote;
 	if (wrote < frames)
-		Locator::getLogger()->trace("Couldn't write whole buffer? ({} < {})", wrote, frames);
+		Locator::getLogger()->warn("Couldn't write whole buffer? ({} < {})", wrote, frames);
 }
 
 /*
@@ -459,7 +459,7 @@ Alsa9Buf::GetHardwareID(std::string name)
 	int err;
 	err = dsnd_ctl_open(&handle, name.c_str(), 0);
 	if (err < 0) {
-		Locator::getLogger()->info("Couldn't open card \"{}\" to get ID: {}",
+		Locator::getLogger()->error("Couldn't open card \"{}\" to get ID: {}",
 				  name.c_str(),
 				  dsnd_strerror(err));
 		return "???";
