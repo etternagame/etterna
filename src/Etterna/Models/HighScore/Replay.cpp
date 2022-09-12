@@ -222,10 +222,12 @@ Replay::WriteInputData() -> bool
 			return false;
 		}
 		gzFile outfile = gzopen(path_z.c_str(), "wb");
-		if (outfile == nullptr) {
+		if (outfile == Z_NULL) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
 									   path_z.c_str());
+			fclose(infile);
+			return false;
 		}
 
 		char buf[128];
@@ -317,7 +319,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 	// human readable compression read-in
 	try {
 		gzFile infile = gzopen(path_z.c_str(), "rb");
-		if (infile == nullptr) {
+		if (infile == Z_NULL) {
 			Locator::getLogger()->warn("Failed to read input data at {}",
 									   path_z.c_str());
 			return false;
