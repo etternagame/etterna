@@ -3,6 +3,7 @@
 
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "ReplayConstantsAndTypes.h"
+#include <set>
 
 struct HighScore;
 
@@ -12,6 +13,18 @@ class Replay
 	Replay();
 	Replay(HighScore* hs);
 	~Replay();
+
+	inline auto GetBasicPath() const -> const std::string {
+		return BASIC_REPLAY_DIR + scoreKey;
+	}
+
+	inline auto GetFullPath() const -> const std::string {
+		return FULL_REPLAY_DIR + scoreKey;
+	}
+
+	inline auto GetInputPath() const -> const std::string {
+		return INPUT_DATA_DIR + scoreKey;
+	}
 
 	auto GetOffsetVector() const -> const std::vector<float>& {
 		return vOffsetVector;
@@ -145,38 +158,62 @@ class Replay
 		}
 	}
 
+	// true for V2 and InputData
+	auto HasColumnData() const -> bool {
+		const auto t = GetReplayType();
+		return t >= ReplayType_V2 && t < NUM_ReplayType;
+	}
+
 	auto WriteReplayData() -> bool;
 	auto WriteInputData() -> bool;
-	auto LoadInputData() -> bool;
 	auto LoadReplayData() -> bool;
 	auto HasReplayData() -> bool;
 
+	auto GenerateNoterowsFromTimestamps() -> bool;
+	auto GenerateInputData() -> bool;
+	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
+
+	// Instead of making some complex iterator...
+	// Just offer both solutions
+	/// Returns map of columns to a set of rows which are dropped
+	/// See which columns have drops using this
+	auto GenerateDroppedHoldColumnsToRowsMap() -> std::map<int, std::set<int>>;
+	/// Returns a map of rows to a set of columns which are dropped
+	/// See which rows have drops using this
+	auto GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>;
+
+	// Offsets can be really weird - Remove all impossible offsets
+	inline void ValidateOffsets();
+
 	void Unload() {
-		vNoteRowVector.clear();
+		InputData.clear();
 		vOffsetVector.clear();
+		vNoteRowVector.clear();
 		vTrackVector.clear();
 		vTapNoteTypeVector.clear();
 		vHoldReplayDataVector.clear();
 		vMineReplayDataVector.clear();
 		vOnlineReplayTimestampVector.clear();
-		InputData.clear();
 
-		vNoteRowVector.shrink_to_fit();
+		InputData.shrink_to_fit();
 		vOffsetVector.shrink_to_fit();
+		vNoteRowVector.shrink_to_fit();
 		vTrackVector.shrink_to_fit();
 		vTapNoteTypeVector.shrink_to_fit();
 		vHoldReplayDataVector.shrink_to_fit();
 		vMineReplayDataVector.shrink_to_fit();
 		vOnlineReplayTimestampVector.shrink_to_fit();
-		InputData.shrink_to_fit();
 	}
 
 	// Lua
 	void PushSelf(lua_State* L);
 
   private:
-	auto LoadReplayDataBasic(const std::string& dir) -> bool;
-	auto LoadReplayDataFull(const std::string& dir) -> bool;
+	auto LoadReplayDataBasic(const std::string& replayDir = BASIC_REPLAY_DIR)
+	  -> bool;
+	auto LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR)
+	  -> bool;
+	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
 
 	std::string scoreKey{};
 	std::string chartKey{};

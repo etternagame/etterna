@@ -152,11 +152,11 @@ class PrefsManager
 
 	Preference<float> m_fLifeDifficultyScale;
 	Preference<float> m_fBGBrightness;
+	Preference<bool> m_bShowBackgrounds;
 
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowStartToGiveUp;
 	Preference<bool> m_AllowHoldForOptions;
-	Preference<bool> m_bShowInstructions;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
 	Preference<bool> m_bNoGlow;
@@ -224,6 +224,7 @@ class PrefsManager
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
 	Preference<bool> m_bAlwaysLoadCalcParams;
+	Preference<int> m_UnfocusedSleepMillisecs;
 
 	// logging level 0 - 5
 	// 0 = TRACE (all the logging)

@@ -33,19 +33,4 @@ else
 	songoptions:RandomBGOnly(false)
 end
 
-local showbgs = themeConfig:get_data().global.ShowBackgrounds
-if not showbgs then
-	return Def.ActorFrame {
-		Def.Quad {
-			Name = "SCUFFEDBACKGROUND",
-			InitCommand = function(self)
-				self:valign(0):halign(0)
-				self:zoomto(SCREEN_WIDTH, SCREEN_HEIGHT)
-				self:diffuse(color("#000000"))
-				self:diffusealpha(1)
-			end,
-		},
-	}
-end
-
 return Def.ActorFrame {}

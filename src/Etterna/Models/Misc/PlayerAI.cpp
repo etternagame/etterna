@@ -47,8 +47,7 @@ PlayerAI::GetTapNoteScore(const PlayerState* pPlayerState)
 }
 
 TapNoteScore
-PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
-								   float fNoteOffset,
+PlayerAI::GetTapNoteScoreForReplay(float fNoteOffset,
 								   float timingScale)
 {
 	// This code is basically a copy paste from somewhere in Player for grabbing
@@ -76,7 +75,7 @@ PlayerAI::GetTapNoteScoreForReplay(const PlayerState* pPlayerState,
 		return TNS_W4;
 	else if (fSecondsFromExact <=
 			 std::max(Player::GetWindowSecondsCustomScale(TW_W5, timingScale),
-					  0.18f))
+					  MISS_WINDOW_BEGIN_SEC))
 		return TNS_W5;
 	return TNS_None;
 }
@@ -85,7 +84,7 @@ float
 PlayerAI::FindMissWindowBegin()
 {
 	// when this becomes useful, this will be finished
-	return 0.18f;
+	return MISS_WINDOW_BEGIN_SEC;
 }
 
 void
@@ -145,7 +144,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
 	for (size_t i = 0; i < replayNoteRowVector.size(); i++) {
-		if (fabsf(replayOffsetVector[i]) > 0.18f)
+		if (fabsf(replayOffsetVector[i]) > MISS_WINDOW_BEGIN_SEC)
 			continue;
 		if (replayNoteRowVector[i] < firstRow)
 			continue;
@@ -155,7 +154,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		// ReplayData recording allows for multiple taps in 1 row
 		// This should only occur for mines that were hit by tapping them
 		// Check specifically for this happening
-		if (pScoreData->GetReplayType() == 2) {
+		if (pScoreData->HasColumnData()) {
 			// skip out of bounds indices...
 			// this happens in some very far edge cases
 			// replays can be type 2 without tapnotetype vectors
@@ -197,8 +196,7 @@ PlayerAI::SetScoreData(HighScore* pHighScore, int firstRow, NoteData* pNoteData,
 		trr.row = replayNoteRowVector[i];
 		trr.offset = replayOffsetVector[i];
 		trr.offsetAdjustedRow = replayNoteRowVector[i];
-		if (pScoreData->GetReplayType() == 2) {
-			// 2 means that this is a Full Replay
+		if (!replayTrackVector.empty()) {
 			trr.track = replayTrackVector[i];
 
 			// bad bandaid, the correct type could be resolved from notedata
@@ -265,7 +263,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 
 	// Don't continue if the replay doesn't have column data.
 	// We can't be accurate without it.
-	if (pScoreData->GetReplayType() != 2)
+	if (!pScoreData->HasColumnData())
 		return;
 
 	// For every row in the replay data...
@@ -334,7 +332,7 @@ PlayerAI::SetUpExactTapMap(TimingData* timing)
 				// the game should usually count something as a miss. we dont
 				// use this time for anything other than chronologically parsing
 				// replay data for combo/life stuff so this is okay (i hope)
-				auto tapTime = timing->WhereUAtBro(row) + .18f;
+				auto tapTime = timing->WhereUAtBro(row) + MISS_WINDOW_BEGIN_SEC;
 				for (auto i = 0; i < missDiff; i++) {
 					// we dont really care about anything other than the offset
 					// because we have the estimate time at the row in the map
@@ -389,8 +387,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				if (trr.type == TapNoteType_Mine) {
 					tempJudgments[TNS_HitMine]++;
 				} else {
-					auto tns = GetTapNoteScoreForReplay(
-					  nullptr, trr.offset, timingScale);
+					auto tns =
+					  GetTapNoteScoreForReplay(trr.offset, timingScale);
 					tempJudgments[tns]++;
 				}
 			}
@@ -414,8 +412,8 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 					if (trr.type == TapNoteType_Mine) {
 						tempJudgments[TNS_HitMine]++;
 					} else {
-						auto tns = GetTapNoteScoreForReplay(
-						  nullptr, trr.offset, timingScale);
+						auto tns =
+						  GetTapNoteScoreForReplay(trr.offset, timingScale);
 						tempJudgments[tns]++;
 					}
 				}
@@ -534,7 +532,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 
 				// If this tap is missing from the replay data, we count it as a
 				// miss.
-				if (pScoreData->GetReplayType() == 2) {
+				if (pScoreData->HasColumnData()) {
 					if (m_ReplayTapMap.count(row) != 0) {
 						auto found = false;
 						for (auto& trr : m_ReplayTapMap[row]) {
@@ -555,7 +553,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 
 		// Count how many misses there are per row instead since we dont have
 		// column data in type 1 replays
-		if (pScoreData->GetReplayType() != 2) {
+		if (!pScoreData->HasColumnData()) {
 			unsigned notesOnRow = 0;
 			unsigned notesInReplayData = 0;
 			if (m_ReplayTapMap.count(row) != 0)
@@ -673,8 +671,7 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 				mws += 2.f;
 
 				// do mean/sd for all non miss taps
-				auto tns =
-				  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
+				auto tns = GetTapNoteScoreForReplay(trr.offset, timingScale);
 				if (tns != TNS_Miss && tns != TNS_None) {
 					taps++;
 
@@ -715,63 +712,6 @@ PlayerAI::SetUpSnapshotMap(NoteData* pNoteData,
 			rs->standardDeviation = prevrs->standardDeviation;
 		}
 	}
-}
-
-void
-PlayerAI::RemoveTapFromVectors(int row, int col)
-{
-	// the ExactTapMap is indexed by its offset adjusted rows
-	// take the offset adjusted row value from the TapMap
-	auto exactTapRowToErase = 0;
-
-	// if the row is in the replay data:
-	if (m_ReplayTapMap.count(row) != 0) {
-		for (auto i = 0; i < (int)m_ReplayTapMap[row].size(); i++) {
-			// if the column is in the row data
-			auto& trr = m_ReplayTapMap[row][i];
-			if (trr.track == col) {
-				exactTapRowToErase = trr.offsetAdjustedRow;
-				break;
-			}
-		}
-		auto& v = m_ReplayTapMap[row];
-		v.erase(std::remove_if(
-				  v.begin(),
-				  v.end(),
-				  [col](const TapReplayResult& trr) { return trr.track == col; }),
-		  v.end());
-		if (v.empty()) {
-			m_ReplayTapMap.erase(row);
-		}
-	}
-
-	// if the row is in the replay data:
-	if (m_ReplayExactTapMap.count(exactTapRowToErase) != 0) {
-		auto& v = m_ReplayExactTapMap[exactTapRowToErase];
-		v.erase(std::remove_if(v.begin(),
-							   v.end(),
-							   [col](const TapReplayResult& trr) {
-								   return trr.track == col;
-							   }),
-				v.end());
-		if (v.empty()) {
-			m_ReplayExactTapMap.erase(exactTapRowToErase);
-		}
-	}
-}
-
-int
-PlayerAI::GetAdjustedRowFromUnadjustedCoordinates(int row, int col)
-{
-	auto output = -1;
-
-	if (m_ReplayTapMap.count(row) != 0) {
-		for (auto& trr : m_ReplayTapMap[row]) {
-			if (trr.track == col)
-				output = trr.offsetAdjustedRow;
-		}
-	}
-	return output;
 }
 
 std::shared_ptr<ReplaySnapshot>
@@ -820,31 +760,10 @@ PlayerAI::GetReplaySnapshotForNoterow(int row)
 											[](ReplaySnapshot*) {} };
 }
 
-bool
-PlayerAI::DetermineIfHoldDropped(int noteRow, int col)
-{
-	// LOG->Trace("Checking for hold.");
-	// Is the given row/column in our dropped hold map?
-	if (m_ReplayHoldMap.count(noteRow) != 0) {
-		// LOG->Trace("Hold row exists in the data");
-		// It is, so let's go over each column, assuming we may have dropped
-		// more than one hold at once.
-		for (auto& hrr : m_ReplayHoldMap[noteRow]) {
-			// We found the column we are looking for
-			if (hrr.track == col) {
-				// LOG->Trace("KILL IT NOW");
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 int
 PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
 {
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
+	if (pScoreData->HasColumnData()) {
 		// Go over all holds in Replay Data
 		for (auto hiter = m_ReplayHoldMap.lower_bound(firstRow);
 			 hiter != m_ReplayHoldMap.end();
@@ -867,187 +786,6 @@ PlayerAI::IsHoldDroppedInRowRangeForTrack(int firstRow, int endRow, int track)
 		// Replay Data doesn't contain hold data.
 		return -1;
 	}
-}
-
-bool
-PlayerAI::TapExistsAtThisRow(int noteRow)
-{
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
-		return m_ReplayExactTapMap.count(noteRow) != 0;
-	} else {
-		return m_ReplayTapMap.count(noteRow) != 0;
-	}
-}
-
-bool
-PlayerAI::TapExistsAtOrBeforeThisRow(int noteRow)
-{
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
-		return m_ReplayExactTapMap.lower_bound(-20000)->first <= noteRow;
-	} else {
-		return m_ReplayTapMap.lower_bound(-20000)->first <= noteRow;
-	}
-}
-
-bool
-PlayerAI::IsTapAtRowAndColumn(int noteRow, int col)
-{
-	if (m_ReplayTapMap.count(noteRow) == 0)
-		return false;
-	for (auto& tap : m_ReplayTapMap[noteRow]) {
-		if (tap.track == col)
-			return true;
-	}
-	return false;
-}
-
-std::vector<TapReplayResult>
-PlayerAI::GetTapsAtOrBeforeRow(int noteRow)
-{
-	std::vector<TapReplayResult> output;
-
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
-		const auto rowIt = m_ReplayExactTapMap.lower_bound(-20000);
-		auto row = rowIt->first;
-		for (; row <= noteRow && row != -20000;) {
-			auto toMerge = GetTapsToTapForRow(row);
-			output.insert(output.end(), toMerge.begin(), toMerge.end());
-			row = GetNextRowNoOffsets(row);
-		}
-	} else {
-		const auto rowIt = m_ReplayTapMap.lower_bound(-20000);
-		auto row = rowIt->first;
-		for (; row <= noteRow && row != -20000;) {
-			auto toMerge = GetTapsToTapForRow(row);
-			output.insert(output.end(), toMerge.begin(), toMerge.end());
-			row = GetNextRowNoOffsets(row);
-		}
-	}
-	return output;
-}
-
-std::vector<TapReplayResult>
-PlayerAI::GetTapsToTapForRow(int noteRow)
-{
-	std::vector<TapReplayResult> output;
-
-	// 2 is a replay with column data
-	if (pScoreData->GetReplayType() == 2) {
-		if (m_ReplayExactTapMap.count(noteRow) != 0) {
-			for (auto& trr : m_ReplayExactTapMap[noteRow]) {
-				output.push_back(trr);
-			}
-		}
-	} else {
-		if (m_ReplayTapMap.count(noteRow) != 0) {
-			for (auto& trr : m_ReplayTapMap[noteRow]) {
-				output.push_back(trr);
-			}
-		}
-	}
-	return output;
-}
-
-int
-PlayerAI::GetReplayType()
-{
-	return pScoreData->GetReplayType();
-}
-
-int
-PlayerAI::GetNextRowNoOffsets(int currentRow)
-{
-	if (pScoreData->GetReplayType() == 2) {
-		const auto thing = m_ReplayExactTapMap.lower_bound(currentRow + 1);
-
-		if (thing == m_ReplayExactTapMap.end()) {
-			return -20000;
-		} else {
-			return thing->first;
-		}
-	} else {
-		const auto thing = m_ReplayTapMap.lower_bound(currentRow + 1);
-
-		if (thing == m_ReplayTapMap.end()) {
-			return -20000;
-		} else {
-			return thing->first;
-		}
-	}
-}
-
-float
-PlayerAI::GetTapNoteOffsetForReplay(TapNote* pTN, int noteRow, int col)
-{
-	/* Given the pTN coming from gameplay, we search for the matching note
-	in the replay data. If it is not found, it is a miss. (1.f)
-	*/
-	if (pScoreData == nullptr) // possible cheat prevention
-		return -1.f;
-
-	// Current v0.60 Replay Data format:
-	//	[noterow] [offset] [track] [optional: tap note type]
-	// Current v0.60 Replay Data format (H section):
-	//	H [noterow] [track] [optional: tap note subtype]
-	// LOG->Trace("Note row %d", noteRow);
-
-	// This replay has no column data or is considered Basic. (Pre-v0.60
-	// Replays do this.)
-	if (pScoreData->GetReplayType() == 1) {
-		// mines are not preset in the old replay data, we just skip them
-		// this gets caught by Player after it finds that the offset wasnt
-		// -2.f (We check for an impossible offset of -2.f in Player to blow
-		// up a mine)
-		if (pTN->type == TapNoteType_Mine || m_ReplayTapMap.count(noteRow) == 0)
-			return -1.f;
-
-		const auto offset = m_ReplayTapMap[noteRow].back().offset;
-
-		// this is done to be able to judge simultaneous taps differently
-		// due to CC Off this results in possibly incorrect precise per tap
-		// judges, but the correct judgement ends up being made overall.
-
-		if (!pScoreData->GetChordCohesion()) {
-			m_ReplayTapMap[noteRow].pop_back();
-			if (m_ReplayTapMap[noteRow].empty()) {
-				m_ReplayTapMap.erase(noteRow);
-			}
-		}
-
-		return -offset;
-	} else {
-
-		// This is only reached if we have column data.
-		noteRow = GetAdjustedRowFromUnadjustedCoordinates(noteRow, col);
-		if (m_ReplayExactTapMap.count(noteRow) != 0) {
-			for (auto i = 0; i < (int)m_ReplayExactTapMap[noteRow].size();
-				 i++) // go over all elements in the row
-			{
-				const auto& trr = m_ReplayExactTapMap[noteRow][i];
-				if (trr.track == col) // if the column expected is the
-									  // actual note, use it
-				{
-					if (trr.type == TapNoteType_Mine) // hack for mines
-						return -2.f;
-					if (pTN->type == TapNoteType_Lift) {
-						if (trr.type != TapNoteType_Lift)
-							continue;
-					}
-					return -trr.offset;
-				}
-			}
-		}
-	}
-
-	Locator::getLogger()->warn(
-	  "Replay Data playback error - could not find offset ROW {} COL {} TYPE {}",
-	  noteRow,
-	  col,
-	  pTN->type);
-	return -1.f; // data missing or invalid, give them a miss
 }
 
 void
@@ -1249,8 +987,7 @@ PlayerAI::GenerateLifeRecordForReplay(float timingScale)
 			for (auto& trr : tapIter->second) {
 				TapNoteScore tns;
 				if (trr.type != TapNoteType_Mine)
-					tns = GetTapNoteScoreForReplay(
-					  nullptr, trr.offset, timingScale);
+					tns = GetTapNoteScoreForReplay(trr.offset, timingScale);
 				else
 					tns = TNS_HitMine;
 				lifeDelta += LifeMeterBar::MapTNSToDeltaLife(tns);
@@ -1332,8 +1069,7 @@ PlayerAI::GenerateComboListForReplay(float timingScale)
 
 			// If CB, make a new combo
 			// If not CB, increment combo
-			const auto tns =
-			  GetTapNoteScoreForReplay(nullptr, trr.offset, timingScale);
+			const auto tns = GetTapNoteScoreForReplay(trr.offset, timingScale);
 			if (tns == TNS_Miss || tns == TNS_W5 || tns == TNS_W4) {
 				const auto start =
 				  (rowOfComboStart->first - allOffset) / rateUsed;

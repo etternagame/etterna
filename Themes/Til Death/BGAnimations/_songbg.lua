@@ -1,4 +1,4 @@
-local enabled = themeConfig:get_data().global.SongBGEnabled
+local enabled = PREFSMAN:GetPreference("ShowBackgrounds")
 local brightness = 0.3
 
 local t = Def.ActorFrame {}

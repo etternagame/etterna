@@ -19,6 +19,11 @@ local t = Def.ActorFrame {
     ChangedStepsMessageCommand = function(self, params)
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})
     end,
+    OptionUpdatedMessageCommand = function(self, params)
+        if params and params.name == "Show Banners" then
+            self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps()})
+        end
+    end,
     GeneralTabSetMessageCommand = function(self)
         focused = true
     end,
@@ -229,7 +234,9 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(1)
             if params.song then
                 local bnpath = params.song:GetBannerPath()
-                if not bnpath then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else
@@ -238,7 +245,9 @@ t[#t+1] = Def.ActorFrame {
                 self:LoadBackground(bnpath)
             else
                 local bnpath = WHEELDATA:GetFolderBanner(params.hovered)
-                if not bnpath or bnpath == "" then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath or bnpath == "" then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else

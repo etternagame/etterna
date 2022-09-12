@@ -27,8 +27,8 @@ SongPosition::UpdateSongPosition(float fPositionSeconds,
 
 	// "Crash reason : -243478.890625 -48695.773438"
 	// The question is why is -2000 used as the limit? -aj
-	ASSERT_M(m_fSongBeat > -2000,
-			 ssprintf("Song beat %f at %f seconds is less than -2000!",
+	ASSERT_M(m_fSongBeat > ARBITRARY_MIN_GAMEPLAY_NUMBER,
+			 ssprintf("Song beat %f at %f seconds is less than -200000!",
 					  m_fSongBeat,
 					  fPositionSeconds));
 
@@ -52,7 +52,6 @@ SongPosition::Reset()
 	m_fSongBeatVisible = 0;
 
 	m_fMusicSeconds = 0; // MUSIC_SECONDS_INVALID;
-	// todo: move me to FOREACH_EnabledPlayer( p ) after [NUM_PLAYERS]ing
 	m_fSongBeat = 0;
 	m_fSongBeatNoOffset = 0;
 	m_fCurBPS = 10;

@@ -34,6 +34,10 @@ class TimingData;
 	for (int(row) = (start)-1;                                                 \
 		 (nd).GetNextTapNoteRowForAllTracks(row) && (row) < (last);)
 
+#define FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE_REVERSE(nd, row, start, last)    \
+	for (int(row) = last;													   \
+		(nd).GetPrevTapNoteRowForAllTracks(row) && (row) >= (start);)
+
 /** @brief Holds data about the notes that the player is supposed to hit. */
 class NoteData
 {

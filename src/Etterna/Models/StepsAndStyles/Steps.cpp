@@ -1073,7 +1073,9 @@ class LunaSteps : public Luna<Steps>
 			auto vals = SONGMAN->calc->jack_diff.at(hand);
 			auto stam_vals = SONGMAN->calc->jack_stam_stuff.at(hand);
 			auto loss_vals = SONGMAN->calc->jack_loss.at(hand);
-			for (size_t i = 0; i < vals.size(); i++) {
+			for (size_t i = 0; i < vals.size() && i < stam_vals.size() &&
+							   i < loss_vals.size();
+				 i++) {
 				auto v1 = vals[i].first;
 				auto v2 = vals[i].second;
 				auto v3 = 0.F;
@@ -1089,6 +1091,47 @@ class LunaSteps : public Luna<Steps>
 			lua_rawset(L, -3);
 		}
 		lua_rawset(L, -3);
+		return 1;
+	}
+	static auto GetCalcDebugExt(T* p, lua_State* L) -> int {
+		lua_newtable(L);
+		lua_pushstring(L, "DebugValues");
+		if (p->calcdebugoutput.empty()) {
+			for (auto hand = 0; hand < 2; hand++) {
+				lua_pushstring(L, hand != 0 ? "Right" : "Left");
+				std::vector<float> nothing;
+				LuaHelpers::CreateTableFromArray(nothing, L);
+				lua_rawset(L, -3);
+			}
+			return 1;
+		}
+
+		auto ff = [&](std::array<std::array<std::vector<float>, NUM_Skillset>,
+								 num_hands>& debugArr) {
+			lua_createtable(L, 0, 2);
+			for (auto hand = 0; hand < 2; hand++) {
+				lua_pushstring(L, hand != 0 ? "Right" : "Left");
+				lua_createtable(L, 0, NUM_Skillset);
+				FOREACH_ENUM(Skillset, ss)
+				{
+					auto vals = debugArr.at(hand).at(ss);
+					LuaHelpers::CreateTableFromArray(vals, L);
+					lua_rawseti(L, -2, ss + 1);
+				}
+				lua_rawset(L, -3);
+			}
+			lua_rawset(L, -3);
+		};
+
+		// debugMSD, debugPtLoss, debugTotalPatternMod
+		lua_createtable(L, 0, 3);
+		lua_pushstring(L, "DebugMSD");
+		ff(SONGMAN->calc->debugMSD);
+		lua_pushstring(L, "DebugPtLoss");
+		ff(SONGMAN->calc->debugPtLoss);
+		lua_pushstring(L, "DebugTotalPatternMod");
+		ff(SONGMAN->calc->debugTotalPatternMod);
+
 		return 1;
 	}
 	static auto GetCalcDebugOutput(T* p, lua_State* L) -> int
@@ -1234,6 +1277,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
 		ADD_METHOD(GetCalcDebugJack);
+		ADD_METHOD(GetCalcDebugExt);
 		ADD_METHOD(GetCalcDebugOutput);
 		ADD_METHOD(GetDebugStrings);
 		ADD_METHOD(GetLengthSeconds);
