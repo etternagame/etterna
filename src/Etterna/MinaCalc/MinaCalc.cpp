@@ -797,20 +797,20 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 	  // tech, duNNO wat im DOIN
 	  {
 		//OHTrill,
-		VOHTrill,
+		//VOHTrill,
 		//Balance,
 		//Roll,
 		//OHJumpMod,
 		//Chaos,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		WideRangeBalance,
-		WideRangeRoll,
-		FlamJam,
+		//WideRangeJumptrill,
+		//WideRangeJJ,
+		//WideRangeBalance,
+		//WideRangeRoll,
+		//FlamJam,
 		//RanMan,
 		// WideRangeAnchor,
-		TheThing,
-		TheThing2,
+		//TheThing,
+		//TheThing2,
 	  },
 	} };
 
@@ -1013,7 +1013,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 493;
+int mina_calc_version = 494;
 auto
 GetCalcVersion() -> int
 {
