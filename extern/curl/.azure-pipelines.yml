@@ -1,11 +1,39 @@
+#***************************************************************************
+#                                  _   _ ____  _
+#  Project                     ___| | | |  _ \| |
+#                             / __| | | | |_) | |
+#                            | (__| |_| |  _ <| |___
+#                             \___|\___/|_| \_\_____|
+#
+# Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution. The terms
+# are also available at https://curl.se/docs/copyright.html.
+#
+# You may opt to use, copy, modify, merge, publish, distribute and/or sell
+# copies of the Software, and permit persons to whom the Software is
+# furnished to do so, under the terms of the COPYING file.
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+# KIND, either express or implied.
+#
+###########################################################################
 # Starter pipeline
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
 trigger:
-- 'master'
-- '*/ci'
+  branches:
+    include:
+    - 'master'
+    - '*/ci'
+
+pr:
+  branches:
+    include:
+    - 'master'
 
 stages:
 
@@ -16,191 +44,145 @@ stages:
 - stage: linux
   dependsOn: []
   jobs:
-  - job: vanilla
-    displayName: ubuntu default
-    timeoutInMinutes: 20
+  - job: ubuntu
+    # define defaults to make sure variables are always expanded/replaced
+    variables:
+      install: ''
+      configure: ''
+      tests: '!433'
+    timeoutInMinutes: 60
     pool:
       vmImage: 'ubuntu-latest'
+    strategy:
+      matrix:
+        default:
+          name: default
+          install: jsonlint
+          configure: --enable-debug --with-openssl
+        disable_ipv6:
+          name: w/o IPv6
+          configure: --disable-ipv6 --with-openssl
+        disable_http_smtp_imap:
+          name: w/o HTTP/SMTP/IMAP
+          configure: --disable-http --disable-smtp --disable-imap --without-ssl
+        disable_thredres:
+          name: sync resolver
+          configure: --disable-threaded-resolver --with-openssl
+        https_only:
+          name: HTTPS only
+          configure: --disable-dict --disable-file --disable-ftp --disable-gopher --disable-imap --disable-ldap --disable-pop3 --disable-rtmp --disable-rtsp --disable-scp --disable-sftp --disable-smb --disable-smtp --disable-telnet --disable-tftp --with-openssl
+        torture:
+          name: torture
+          install: libnghttp2-dev
+          configure: --enable-debug --disable-shared --disable-threaded-resolver --with-openssl
+          tests: -n -t --shallow=40 !FTP
     steps:
-    - script: ./buildconf && ./configure --enable-debug --enable-werror
-      displayName: 'configure debug'
-
-    - script: make
-      displayName: 'make'
-
-    - script: make test-nonflaky
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: disable_ipv6
-    displayName: ubuntu w/o IPv6
-    timeoutInMinutes: 20
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - script: ./buildconf && ./configure --disable-ipv6
-      displayName: 'configure disable ipv6'
-
-    - script: make
-      displayName: 'make'
-
-    - script: make test-nonflaky
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: disable_http_smtp_imap
-    displayName: ubuntu w/o HTTP/SMTP/IMAP
-    timeoutInMinutes: 20
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - script: ./buildconf && ./configure --disable-http --disable-smtp --disable-imap
-      displayName: 'configure disable http/smtp/imap'
-
-    - script: make
-      displayName: 'make'
-
-    - script: make test-nonflaky
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: disable_thredres
-    displayName: ubuntu sync resolver
-    timeoutInMinutes: 20
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - script: ./buildconf && ./configure --disable-threaded-resolver
-      displayName: 'configure disable threaded-resolver'
-
-    - script: make
-      displayName: 'make'
-
-    - script: make test-nonflaky
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: http_only
-    displayName: ubuntu HTTP only
-    timeoutInMinutes: 20
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - script: ./buildconf && ./configure --disable-dict --disable-file --disable-ftp --disable-gopher --disable-imap --disable-ldap --disable-pop3 --disable-rtmp --disable-rtsp --disable-scp --disable-sftp --disable-smb --disable-smtp --disable-telnet --disable-tftp
-      displayName: 'configure disable non-http'
-
-    - script: make
-      displayName: 'make'
-
-    - script: make test-nonflaky
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-- stage: linux_torture
-  dependsOn: linux
-  jobs:
-  - job: torture
-    displayName: ubuntu torture tests
-    timeoutInMinutes: 50
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-    - script: sudo apt install libnghttp2-dev
+    - script: sudo apt-get update && sudo apt-get install -y stunnel4 python3-impacket libzstd-dev libbrotli-dev $(install)
       displayName: 'apt install'
 
-    - script: ./buildconf && ./configure --enable-debug --disable-shared --disable-threaded-resolver --enable-alt-svc
-      displayName: 'configure torture'
+    - script: autoreconf -fi && ./configure --enable-warnings --enable-werror $(configure)
+      displayName: 'configure $(name)'
 
-    - script: make
-      displayName: 'make'
+    - script: make V=1 && make V=1 examples && cd tests && make V=1
+      displayName: 'compile'
+      env:
+        MAKEFLAGS: "-j 2"
 
-    - script: make "TFLAGS=-n -t --shallow=40 '!FTP'" test-nonflaky
-      displayName: 'torture test'
+    - script: make V=1 test-ci
+      displayName: 'test'
+      env:
+        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
+        TFLAGS: "-r $(tests)"
 
-##########################################
-### macOS jobs below
-##########################################
-
-- stage: macos
+- stage: distcheck
   dependsOn: []
   jobs:
-  - job: macos_vanilla
-    displayName: macos default
-    timeoutInMinutes: 30
-    pool:
-      vmImage: 'macOS-latest'
-    steps:
-    - script: brew update && brew install libtool autoconf automake nghttp2 pkg-config
-      displayName: 'brew install'
-
-    - script: ./buildconf && ./configure --enable-debug --enable-werror --without-brotli
-      displayName: 'configure debug without brotli'
-
-    - script: make
-      displayName: 'make'
-
-    - script: make test-nonflaky
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: macos_libssh2
-    displayName: macos libssh2
-    timeoutInMinutes: 30
-    pool:
-      vmImage: 'macOS-latest'
-    steps:
-    - script: brew update && brew install libtool autoconf automake nghttp2 pkg-config libssh2
-      displayName: 'brew install'
-
-    - script: ./buildconf && ./configure --enable-debug --with-libssh2
-      displayName: 'configure debug with libssh2'
-
-    - script: make
-      displayName: 'make'
-
-    - script: make test-nonflaky
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: macos_cmake
-    displayName: macos cmake openssl
+  - job: ubuntu
     timeoutInMinutes: 20
     pool:
-      vmImage: 'macOS-latest'
+      vmImage: 'ubuntu-latest'
+    strategy:
+      matrix:
+        default:
+          name: default
+          install:
     steps:
-    - script: brew update && brew install libtool autoconf automake nghttp2 pkg-config openssl
-      displayName: 'brew install'
+    - script: autoreconf -fi && ./configure --without-ssl
+      displayName: 'configure $(name)'
 
-    - script: cmake -H. -Bbuild -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCURL_DISABLE_LDAP=ON -DCURL_DISABLE_LDAPS=ON && cmake --build build
-      displayName: 'cmake build'
+    - script: make && ./maketgz 99.98.97
+      displayName: 'make tarball'
 
-- stage: macos_torture
-  dependsOn: macos
+    - script: |
+        tar xf curl-99.98.97.tar.gz
+        cd curl-99.98.97
+        ./configure --prefix=$HOME/temp --without-ssl
+        make
+        make TFLAGS=1 test
+        make install
+        # basic check of the installed files
+        cd ..
+        bash scripts/installcheck.sh $HOME/temp
+        rm -rf curl-99.98.97
+
+      displayName: 'verify in-tree configure build'
+
+    - script: |
+        # verify out-of-tree build
+        tar xf curl-99.98.97.tar.gz
+        touch curl-99.98.97/docs/{cmdline-opts,libcurl}/Makefile.inc
+        mkdir build
+        cd build
+        ../curl-99.98.97/configure --without-ssl
+        make
+        make TFLAGS='-p 1 1139' test
+        # verify cmake build
+        cd ..
+        rm -rf curl-99.98.97
+
+      displayName: 'verify out-of-tree configure build'
+
+    - script: |
+        tar xf curl-99.98.97.tar.gz
+        cd curl-99.98.97
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+      displayName: 'verify out-of-tree cmake build'
+
+- stage: scanbuild
+  dependsOn: []
   jobs:
-  - job: macos_torture
-    displayName: macos torture
-    timeoutInMinutes: 50
+  - job: ubuntu
+    timeoutInMinutes: 20
     pool:
-      vmImage: 'macOS-latest'
+      vmImage: 'ubuntu-latest'
+    strategy:
+      matrix:
+        default:
+          name: default
+          install:
+
     steps:
-    - script: brew update && brew install libtool autoconf automake nghttp2 pkg-config
-      displayName: 'brew install'
+    - script: sudo apt-get update && sudo apt-get install -y clang-tools-10 clang-9 libssl-dev libssh2-1-dev libpsl-dev libbrotli-dev libzstd-dev
+      displayName: 'apt install'
 
-    - script: ./buildconf && ./configure --enable-debug --disable-shared --disable-threaded-resolver --enable-alt-svc
-      displayName: 'configure torture'
+    - script: autoreconf -fi
+      displayName: 'autoreconf'
 
-    - script: make
+    - script: scan-build-10 ./configure --enable-debug --enable-werror --with-openssl --with-libssh2
+      displayName: 'configure'
+      env:
+        CC: "clang-9"
+        CCX: "clang++-9"
+
+    - script: scan-build-10 --status-bugs make
       displayName: 'make'
 
-    - script: make "TFLAGS=-n -t --shallow=25 '!FTP'" test-nonflaky
-      displayName: 'torture test'
+    - script: scan-build-10 --status-bugs make examples
+      displayName: 'make examples'
 
 ##########################################
 ### Windows jobs below
@@ -208,221 +190,114 @@ stages:
 
 - stage: windows
   dependsOn: []
+  variables:
+    agent.preferPowerShellOnContainers: true
   jobs:
-  - job: windows_msys2_mingw32_debug_openssl
-    displayName: msys2 mingw32 debug openssl
-    timeoutInMinutes: 70
+  - job: windows
+    # define defaults to make sure variables are always expanded/replaced
+    variables:
+      container_img: ''
+      container_cmd: ''
+      configure: ''
+      tests: ''
+    timeoutInMinutes: 120
     pool:
       vmImage: 'windows-2019'
+    strategy:
+      matrix:
+        msys2_mingw32_debug_openssl:
+          name: 32-bit OpenSSL/libssh2
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw32:ltsc2019
+          container_cmd: C:\msys64\usr\bin\sh
+          prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-i686-libssh2 mingw-w64-i686-python-pip mingw-w64-i686-python-wheel mingw-w64-i686-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+          configure: --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-debug --enable-werror --with-libssh2 --with-openssl
+          tests: "~571"
+        msys2_mingw64_debug_openssl:
+          name: 64-bit OpenSSL/libssh2
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw64:ltsc2019
+          container_cmd: C:\msys64\usr\bin\sh
+          prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-x86_64-libssh2 mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-wheel mingw-w64-x86_64-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+          configure: --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64 --enable-debug --enable-werror --with-libssh2 --with-openssl
+          tests: "~571"
+        msys2_mingw64_debug_libssh:
+          name: 64-bit OpenSSL/libssh
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw64:ltsc2019
+          container_cmd: C:\msys64\usr\bin\sh
+          prepare: pacman -S --needed --noconfirm --noprogressbar libssh-devel mingw-w64-x86_64-libssh
+          configure: --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64 --enable-debug --enable-werror --with-libssh --with-openssl
+          tests: "~571 ~614"
+        msys1_mingw_debug:
+          name: 32-bit (legacy)
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys1-mingw:ltsc2019
+          container_cmd: C:\MinGW\msys\1.0\bin\sh
+          configure: --host=i686-pc-mingw32 --build=i686-pc-mingw32 --prefix=/mingw --enable-debug --without-ssl
+          tests: "!203 !1143"
+        msys1_mingw32_debug:
+          name: 32-bit w/o zlib
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys1-mingw32:ltsc2019
+          container_cmd: C:\MinGW\msys\1.0\bin\sh
+          configure: --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-debug --enable-werror --without-zlib --without-ssl
+          tests: "!203 !1143"
+        msys1_mingw64_debug:
+          name: 64-bit w/o zlib
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys1-mingw64:ltsc2019
+          container_cmd: C:\MinGW\msys\1.0\bin\sh
+          configure: --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64 --enable-debug --enable-werror --without-zlib --without-ssl
+          tests: "!203 !1143"
+        msys2_mingw32_debug_schannel:
+          name: 32-bit Schannel/SSPI/WinIDN/libssh2
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw32:ltsc2019
+          container_cmd: C:\msys64\usr\bin\sh
+          prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-i686-libssh2 mingw-w64-i686-python-pip mingw-w64-i686-python-wheel mingw-w64-i686-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+          configure: --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-debug --enable-werror --enable-sspi --with-schannel --with-winidn --with-libssh2
+          tests: "~571"
+        msys2_mingw64_debug_schannel:
+          name: 64-bit Schannel/SSPI/WinIDN/libssh2
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw64:ltsc2019
+          container_cmd: C:\msys64\usr\bin\sh
+          prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-x86_64-libssh2 mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-wheel mingw-w64-x86_64-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+          configure: --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64 --enable-debug --enable-werror --enable-sspi --with-schannel --with-winidn --with-libssh2
+          tests: "~571"
+        msys1_mingw_debug_schannel:
+          name: 32-bit Schannel/SSPI/WinIDN (legacy)
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys1-mingw:ltsc2019
+          container_cmd: C:\MinGW\msys\1.0\bin\sh
+          configure: --host=i686-pc-mingw32 --build=i686-pc-mingw32 --prefix=/mingw --enable-debug --enable-sspi --with-schannel --with-winidn
+          tests: "!203 !305 !311 !312 !313 !404 !1143 !2033 !2035 !2038 !2041 !2042 !2048 !2070 !2079 !2087 !3023 !3024"
+        msys1_mingw32_debug_schannel:
+          name: 32-bit Schannel/SSPI/WinIDN w/o zlib
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys1-mingw32:ltsc2019
+          container_cmd: C:\MinGW\msys\1.0\bin\sh
+          configure: --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-debug --enable-werror --enable-sspi --with-schannel --with-winidn --without-zlib
+          tests: "!203 !1143"
+        msys1_mingw64_debug_schannel:
+          name: 64-bit Schannel/SSPI/WinIDN w/o zlib
+          container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys1-mingw64:ltsc2019
+          container_cmd: C:\MinGW\msys\1.0\bin\sh
+          configure: --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64  --enable-debug --enable-werror --enable-sspi --with-schannel --with-winidn --without-zlib
+          tests: "!203 !1143"
     container:
-      image: mback2k/curl-docker-winbuildenv-msys2-mingw32:ltsc2019
+      image: $(container_img)
       env:
-        MSYSTEM: MINGW32
         MSYS2_PATH_TYPE: inherit
-        TFLAGS: "~323 ~1056 ~1299"
     steps:
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=i686-w64-mingw32 --build=i686-w64-mingw32 --enable-debug --enable-werror"
-      displayName: 'configure debug'
+    - script: $(container_cmd) -l -c "cd $(echo '%cd%') && $(prepare)"
+      displayName: 'prepare'
+      condition: variables.prepare
 
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
+    - script: $(container_cmd) -l -c "cd $(echo '%cd%') && autoreconf -fi && ./configure $(configure)"
+      displayName: 'configure $(name)'
 
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
+    - script: $(container_cmd) -l -c "cd $(echo '%cd%') && make V=1 && make V=1 examples && cd tests && make V=1"
+      displayName: 'compile'
+      env:
+        MAKEFLAGS: "-j 2"
+
+    - script: $(container_cmd) -l -c "cd $(echo '%cd%') && make V=1 install && PATH=/usr/bin:/bin find . -type f -path '*/.libs/*.exe' -print -execdir mv -t .. {} \;"
+      displayName: 'install'
+
+    - script: $(container_cmd) -l -c "cd $(echo '%cd%') && make V=1 test-ci"
       displayName: 'test'
       env:
         AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys2_mingw64_debug_openssl
-    displayName: msys2 mingw64 debug openssl
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys2-mingw64:ltsc2019
-      env:
-        MSYSTEM: MINGW64
-        MSYS2_PATH_TYPE: inherit
-        TFLAGS: "~323 ~1056 ~1299"
-    steps:
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --enable-debug --enable-werror"
-      displayName: 'configure debug'
-
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys1_mingw_debug_openssl
-    displayName: msys1 mingw debug openssl
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys1-mingw:ltsc2019
-      env:
-        TFLAGS: "~203 ~1056 ~1143"
-    steps:
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=i686-pc-mingw32 --build=i686-pc-mingw32 --prefix=/mingw --enable-debug"
-      displayName: 'configure debug'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys1_mingw32_debug_openssl
-    displayName: msys1 mingw32 debug openssl
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys1-mingw32:ltsc2019
-      env:
-        TFLAGS: "~203 ~1056 ~1143 ~1299"
-    steps:
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-debug --enable-werror --without-zlib"
-      displayName: 'configure debug without zlib'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys1_mingw64_debug_openssl
-    displayName: msys1 mingw64 debug openssl
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys1-mingw64:ltsc2019
-      env:
-        TFLAGS: "~203 ~1056 ~1143 ~1299"
-    steps:
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64 --enable-debug --enable-werror --without-zlib"
-      displayName: 'configure debug without zlib'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys2_mingw32_debug_schannel
-    displayName: msys2 mingw32 debug schannel
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys2-mingw32:ltsc2019
-      env:
-        MSYSTEM: MINGW32
-        MSYS2_PATH_TYPE: inherit
-        TFLAGS: "~165 ~310 ~1013 ~1056 ~1299 ~1448 ~2034 ~2037 ~2041 ~2046 ~2047 ~3000 ~3001"
-    steps:
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=i686-w64-mingw32 --build=i686-w64-mingw32 --enable-debug --enable-werror --enable-sspi --without-ssl --with-schannel --with-winidn"
-      displayName: 'configure debug with sspi/schannel/winidn'
-
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys2_mingw64_debug_schannel
-    displayName: msys2 mingw64 debug schannel
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys2-mingw64:ltsc2019
-      env:
-        MSYSTEM: MINGW64
-        MSYS2_PATH_TYPE: inherit
-        TFLAGS: "~165 ~310 ~1013 ~1056 ~1299 ~1448 ~2034 ~2037 ~2041 ~2046 ~2047 ~3000 ~3001"
-    steps:
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --enable-debug --enable-werror --enable-sspi --without-ssl --with-schannel --with-winidn"
-      displayName: 'configure debug with sspi/schannel/winidn'
-
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\msys64\usr\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys1_mingw_debug_schannel
-    displayName: msys1 mingw debug schannel
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys1-mingw:ltsc2019
-      env:
-        TFLAGS: "~203 ~305 ~310 ~311 ~312 ~313 ~404 ~1013 ~1056 ~1143 ~2034 ~2035 ~2037 ~2038 ~2041 ~2042 ~2048 ~3000 ~3001"
-    steps:
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=i686-pc-mingw32 --build=i686-pc-mingw32 --prefix=/mingw --enable-debug --enable-sspi --without-ssl --with-schannel --with-winidn"
-      displayName: 'configure debug with sspi/schannel/winidn'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys1_mingw32_debug_schannel
-    displayName: msys1 mingw32 debug schannel
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys1-mingw32:ltsc2019
-      env:
-        TFLAGS: "~203 ~310 ~1013 ~1056 ~1143 ~1299 ~2034 ~2037 ~2041 ~3000 ~3001"
-    steps:
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-debug --enable-werror --enable-sspi --without-ssl --with-schannel --with-winidn --without-zlib"
-      displayName: 'configure debug with sspi/schannel/winidn without zlib'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
-
-  - job: windows_msys1_mingw64_debug_schannel
-    displayName: msys1 mingw64 debug schannel
-    timeoutInMinutes: 70
-    pool:
-      vmImage: 'windows-2019'
-    container:
-      image: mback2k/curl-docker-winbuildenv-msys1-mingw64:ltsc2019
-      env:
-        TFLAGS: "~203 ~310 ~1013 ~1056 ~1143 ~1299 ~2034 ~2037 ~2041 ~3000 ~3001"
-    steps:
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && ./buildconf && ./configure --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64  --enable-debug --enable-werror --enable-sspi --without-ssl --with-schannel --with-winidn --without-zlib"
-      displayName: 'configure debug with sspi/schannel/winidn without zlib'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make"
-      displayName: 'make'
-
-    - script: C:\MinGW\msys\1.0\bin\sh -l -c "cd $(echo '%cd%') && make test-nonflaky"
-      displayName: 'test'
-      env:
-        AZURE_ACCESS_TOKEN: "$(System.AccessToken)"
+        TFLAGS: "!IDN !SCP ~612 ~1056 $(tests)"

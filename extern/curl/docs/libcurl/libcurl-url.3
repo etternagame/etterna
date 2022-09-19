@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -19,14 +19,13 @@
 .\" * KIND, either express or implied.
 .\" *
 .\" **************************************************************************
-.TH libcurl 3 "10 Sep 2018" "libcurl" "libcurl url interface"
+.TH libcurl 3 "10 Sep 2018" "libcurl" "libcurl URL interface"
 .SH NAME
 libcurl-url \- URL interface overview
 .SH DESCRIPTION
-The URL interface provides a set of functions for parsing and generating URLs.
+The URL interface provides functions for parsing and generating URLs.
 .SH INCLUDE
-You still only include <curl/curl.h> in your code. Note that the URL API was
-introduced in 7.62.0.
+You still only include <curl/curl.h> in your code.
 .SH CREATE
 Create a handle that holds URL info and resources with \fIcurl_url(3)\fP:
 
@@ -84,7 +83,7 @@ pieces from the handle at any time.
 Extracted parts are not URL decoded unless the user also asks for it with the
 CURLU_URLDECODE flag set in the fourth bitmask argument.
 
-Remember to free the returned string with \fIcurl_free(3)\fP when you're done
+Remember to free the returned string with \fIcurl_free(3)\fP when you are done
 with it!
 .SH "SET PARTS"
 A user set individual URL parts, either after having parsed a full URL or
@@ -132,6 +131,9 @@ Now the URL looks like
 .nf
   https://example.com/?shoes=2&hat=1&candy=N%26N`
 .fi
+.SH AVALABILITY
+The URL API was introduced in libcurl 7.62.0.
 .SH "SEE ALSO"
 .BR curl_url "(3), " curl_url_cleanup "(3), " curl_url_get "(3), "
-.BR curl_url_dup "(3), " curl_url_set "(3), " CURLOPT_URL "(3), "
+.BR curl_url_dup "(3), " curl_url_set "(3), " curl_url_strerror "(3), "
+.BR CURLOPT_URL "(3)"

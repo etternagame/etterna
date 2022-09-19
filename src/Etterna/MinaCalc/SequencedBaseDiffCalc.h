@@ -395,13 +395,13 @@ struct techyo
 
 #pragma region params
 
-	float tc_base_weight = 1.F;
-	float nps_base_weight = 1.F;
-	float rm_diff_percent = 0.F;
+	float tc_base_weight = 4.F;
+	float nps_base_weight = 9.F;
+	float rm_base_weight = 0.9F;
 
 	float balance_comp_window = 36.F;
-	float chaos_comp_window = 2.F;
-	float tc_static_base_window = 3.F;
+	float chaos_comp_window = 4.F;
+	float tc_static_base_window = 2.F;
 
 	// determines steepness of non-1/2 balance ratios
 	float balance_power = 2.F;
@@ -411,7 +411,7 @@ struct techyo
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "tc_base_weight", &tc_base_weight },
 		{ "nps_base_weight", &nps_base_weight },
-		{ "rm_diff_percent", &rm_diff_percent },
+		{ "rm_base_weight", &rm_base_weight },
 
 		{ "balance_comp_window", &balance_comp_window },
 		{ "chaos_comp_window", &chaos_comp_window },
@@ -436,18 +436,14 @@ struct techyo
 			return;
 		}
 
-		process_mw_dt(ct, seq.get_any_ms_now());
-		advance_trill_base(calc);
-
-		/*
-		increment_column_counters(ct);
-		auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
+		//process_mw_dt(ct, seq.get_any_ms_now());
+		//advance_trill_base(calc);
+		//increment_column_counters(ct);
+		//auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
 		auto chaos_comp = calc_chaos_comp(seq, ct, calc);
-		insert(balance_ratios, balance_comp);
+		//insert(balance_ratios, balance_comp);
 		teehee(chaos_comp);
 		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(tc_static_base_window);
-		*/
-
 		++row_counter;
 	}
 
@@ -472,7 +468,20 @@ struct techyo
 	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
 	  -> float
 	{
-		const auto rmbase = rm_itv_max_diff;
+		auto rmbase = rm_itv_max_diff;
+		const auto nps_biased_chaos_base = weighted_average(
+		  get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
+		if (rmbase >= nps_biased_chaos_base) {
+			// for rm dominant intervals, use tc to drag diff down
+			// weight should be [0,1]
+			// 1 -> all rm
+			// 0 -> all tc
+			rmbase = weighted_average(
+			  rmbase, nps_biased_chaos_base, rm_base_weight, 1.F);
+		}
+		return std::max(nps_biased_chaos_base, rmbase);
+
+		/*
 		const auto trillbase = get_tb_base(calc);
 		const auto jackbase = jack_itv_diff;
 
@@ -483,8 +492,8 @@ struct techyo
 
 		const auto combinedbase =
 		  weighted_average(trillbase, jackbase, how_flammy, 1.F);
-
 		return std::max(rmbase, combinedbase);
+		*/
 	}
 
 	void interval_end()

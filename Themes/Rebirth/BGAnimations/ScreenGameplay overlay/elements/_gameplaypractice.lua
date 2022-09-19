@@ -159,8 +159,10 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
     NPSThickness = 1.5,
     TextSize = 0.45,
 }}) .. {
-    Name = "PracticeCDGraph",
     BeginCommand = function(self)
+        -- properly rename this actor to overrite the default name coming from chorddensitygraph.lua
+        self:name("PracticeCDGraph")
+
         self:playcommand("SetUpMovableValues")
         self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
         -- doing this in a really awkward way to inject the desired behavior into the existing SeekBar

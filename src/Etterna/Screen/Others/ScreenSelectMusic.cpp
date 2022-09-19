@@ -974,7 +974,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 	{
 		this->PlayCommand("SortChange");
 	} else if (SM == SM_GainFocus) {
-		DLMAN->UpdateDLSpeed(false);
+		DLMAN->UpdateGameplayState(false);
 		CodeDetector::RefreshCacheItems(CODES);
 	} else if (SM == SM_LoseFocus) {
 		CodeDetector::RefreshCacheItems(); // reset for other screens
@@ -1170,7 +1170,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 	m_soundStart.Play(true);
 
 	if (m_SelectionState == SelectionState_Finalized) {
-		DLMAN->UpdateDLSpeed(true);
+		DLMAN->UpdateGameplayState(true);
 
 		if (!m_bStepsChosen) {
 			m_bStepsChosen = true;

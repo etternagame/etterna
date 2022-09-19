@@ -776,7 +776,7 @@ join(R1<R2<T, A2...>, A1...> const& outer)
 	joined.reserve(std::accumulate(outer.begin(),
 								   outer.end(),
 								   std::size_t{},
-								   [](size_t size, R2<T, A2...> const& inner) {
+								   [](auto size, auto const& inner) {
 									   return size + inner.size();
 								   }));
 	for (R2<T, A2...> const& inner : outer)

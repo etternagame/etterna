@@ -488,7 +488,7 @@ NoteDisplay::Load(int iColNum,
 	const auto pn = m_pPlayerState->m_PlayerNumber;
 	std::vector<GameInput> GameI;
 	GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
-	  ->StyleInputToGameInput(iColNum, pn, GameI);
+	  ->StyleInputToGameInput(iColNum, GameI);
 
 	const auto& sButton =
 	  GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)

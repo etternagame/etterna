@@ -77,16 +77,7 @@ class Style
 	int m_iInputColumn[NUM_GameController][NUM_GameButton];
 	int m_iColumnDrawOrder[MAX_COLS_PER_PLAYER];
 
-	/** @brief Does this style need to be zoomed out with two players due to too
-	 * many columns? */
-	// Design change:  Instead of having a flag in the style that toggles a
-	// fixed zoom that is only applied to the columns, ScreenGameplay now
-	// calculates a zoom factor to apply to the notefield and puts it in the
-	// PlayerState. -Kyz
-	// bool		m_bNeedsZoomOutWith2Players;
-
 	void StyleInputToGameInput(int iCol,
-							   PlayerNumber pn,
 							   std::vector<GameInput>& ret) const;
 	/**
 	 * @brief Retrieve the column based on the game input.

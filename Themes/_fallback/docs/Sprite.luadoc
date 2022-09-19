@@ -159,7 +159,7 @@ end
 function Sprite:SetTexture(RageTexture, texture)
 end
 
---[[-- 		<!-- XXX: how does this work? -->
+--[[-- 		XXX: how does this work?
 	  @return void
 --]]
 function Sprite:addimagecoords(float, fX, float, fY)
@@ -213,7 +213,7 @@ end
 function Sprite:set_use_effect_clock_for_texcoords(bool, use)
 end
 
---[[-- 		<!-- XXX: What does this do? -->
+--[[-- 		XXX: What does this do?
 	  @return void
 --]]
 function Sprite:stretchtexcoords(float, fX, float, fY)

@@ -7,17 +7,19 @@ on:
 
 jobs:
   linux-x64:
-    name: Linux x64 (${{matrix.cfg.cpp-version}})
+    name: Linux x64 (${{matrix.cfg.cxx}})
     runs-on: ${{matrix.cfg.os}}
     strategy:
       fail-fast: false
       matrix:
         cfg:
-          - { os: ubuntu-18.04, cpp-version: g++-8,      dist: false}
-          - { os: ubuntu-18.04, cpp-version: g++-9,      dist: false}
-          - { os: ubuntu-18.04, cpp-version: clang++-7,  dist: false}
-          - { os: ubuntu-18.04, cpp-version: clang++-8,  dist: false}
-          - { os: ubuntu-18.04, cpp-version: clang++-9,  dist: true}
+          - { os: ubuntu-20.04, apt: g++-8,    cxx: g++-8,      cc: gcc-8,    dist: false}
+          - { os: ubuntu-20.04, apt: g++-9,    cxx: g++-9,      cc: gcc-9,    dist: false}
+          - { os: ubuntu-20.04, apt: g++-10,   cxx: g++-10,     cc: gcc-10,   dist: false}
+          - { os: ubuntu-20.04, apt: clang-9,  cxx: clang++-9,  cc: clang-9,  dist: false}
+          - { os: ubuntu-20.04, apt: clang-10, cxx: clang++-10, cc: clang-10, dist: false}
+          - { os: ubuntu-20.04, apt: clang-11, cxx: clang++-11, cc: clang-11, dist: false}
+          - { os: ubuntu-20.04, apt: clang-12, cxx: clang++-12, cc: clang-12, dist: true}
 
     steps:
       - name: Checkout Etterna

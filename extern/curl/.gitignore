@@ -18,8 +18,10 @@
 .project
 .settings
 /.vs
+/bld/
 /build/
 /builds/
+/stats/
 __pycache__
 CHANGES.dist
 Debug
@@ -57,4 +59,4 @@ scripts/curl.fish
 curl_fuzzer
 curl_fuzzer_seed_corpus.zip
 libstandaloneengine.a
-.checksrc
+tests/string

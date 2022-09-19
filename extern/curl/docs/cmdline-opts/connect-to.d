@@ -3,6 +3,8 @@ Arg: <HOST1:PORT1:HOST2:PORT2>
 Help: Connect to host
 Added: 7.49.0
 See-also: resolve header
+Category: connection
+Example: --connect-to example.com:443:example.net:8443 $URL
 ---
 
 For a request to the given HOST1:PORT1 pair, connect to HOST2:PORT2 instead.

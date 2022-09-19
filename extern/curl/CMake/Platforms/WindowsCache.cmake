@@ -1,3 +1,24 @@
+#***************************************************************************
+#                                  _   _ ____  _
+#  Project                     ___| | | |  _ \| |
+#                             / __| | | | |_) | |
+#                            | (__| |_| |  _ <| |___
+#                             \___|\___/|_| \_\_____|
+#
+# Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution. The terms
+# are also available at https://curl.se/docs/copyright.html.
+#
+# You may opt to use, copy, modify, merge, publish, distribute and/or sell
+# copies of the Software, and permit persons to whom the Software is
+# furnished to do so, under the terms of the COPYING file.
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+# KIND, either express or implied.
+#
+###########################################################################
 if(NOT UNIX)
   if(WIN32)
     set(HAVE_LIBDL 0)
@@ -25,7 +46,6 @@ if(NOT UNIX)
     set(HAVE_PROCESS_H 1)
     set(HAVE_PWD_H 0)
     set(HAVE_SETJMP_H 1)
-    set(HAVE_SGTTY_H 0)
     set(HAVE_SIGNAL_H 1)
     set(HAVE_SOCKIO_H 0)
     set(HAVE_STDINT_H 0)
@@ -63,14 +83,8 @@ if(NOT UNIX)
     set(HAVE_STRCASECMP 0)
     set(HAVE_STRICMP 1)
     set(HAVE_STRCMPI 1)
-    set(HAVE_GETHOSTBYADDR 1)
     set(HAVE_GETTIMEOFDAY 0)
     set(HAVE_INET_ADDR 1)
-    set(HAVE_INET_NTOA 1)
-    set(HAVE_INET_NTOA_R 0)
-    set(HAVE_TCGETATTR 0)
-    set(HAVE_TCSETATTR 0)
-    set(HAVE_PERROR 1)
     set(HAVE_CLOSESOCKET 1)
     set(HAVE_SETVBUF 0)
     set(HAVE_SIGSETJMP 0)
@@ -84,17 +98,10 @@ if(NOT UNIX)
     set(HAVE_RAND_STATUS 0)
     set(HAVE_GMTIME_R 0)
     set(HAVE_LOCALTIME_R 0)
-    set(HAVE_GETHOSTBYADDR_R 0)
     set(HAVE_GETHOSTBYNAME_R 0)
     set(HAVE_SIGNAL_FUNC 1)
     set(HAVE_SIGNAL_MACRO 0)
 
-    set(HAVE_GETHOSTBYADDR_R_5 0)
-    set(HAVE_GETHOSTBYADDR_R_5_REENTRANT 0)
-    set(HAVE_GETHOSTBYADDR_R_7 0)
-    set(HAVE_GETHOSTBYADDR_R_7_REENTRANT 0)
-    set(HAVE_GETHOSTBYADDR_R_8 0)
-    set(HAVE_GETHOSTBYADDR_R_8_REENTRANT 0)
     set(HAVE_GETHOSTBYNAME_R_3 0)
     set(HAVE_GETHOSTBYNAME_R_3_REENTRANT 0)
     set(HAVE_GETHOSTBYNAME_R_5 0)
@@ -105,15 +112,12 @@ if(NOT UNIX)
     set(TIME_WITH_SYS_TIME 0)
     set(HAVE_O_NONBLOCK 0)
     set(HAVE_IN_ADDR_T 0)
-    set(HAVE_INET_NTOA_R_DECL 0)
-    set(HAVE_INET_NTOA_R_DECL_REENTRANT 0)
     if(ENABLE_IPV6)
       set(HAVE_GETADDRINFO 1)
     else()
       set(HAVE_GETADDRINFO 0)
     endif()
     set(STDC_HEADERS 1)
-    set(RETSIGTYPE_TEST 1)
 
     set(HAVE_SIGACTION 0)
     set(HAVE_MACRO_SIGSETJMP 0)
