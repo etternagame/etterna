@@ -468,6 +468,10 @@ struct techyo
 	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
 	  -> float
 	{
+
+		return weighted_average(
+				 get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
+
 		auto rmbase = rm_itv_max_diff;
 		const auto nps_biased_chaos_base = weighted_average(
 		  get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
@@ -650,35 +654,64 @@ struct techyo
 			b = seq.get_cc_ms_now();
 		}
 
+		// geometric mean of ms times since (last note in this column) and (last note in the other column)
 		const auto c = fastsqrt(a) * fastsqrt(b);
 
+		// coeff var. of last N ms times on either column
 		auto pineapple = seq._mw_any_ms.get_cv_of_window(chaos_comp_window);
+		// coeff var. of last N ms times on left column
 		auto porcupine =
 		  seq._mw_sc_ms[col_left].get_cv_of_window(chaos_comp_window);
+		// coeff var. of last N ms times on right column
 		auto sequins =
 		  seq._mw_sc_ms[col_right].get_cv_of_window(chaos_comp_window);
-		const auto oioi = 0.5F;
-		pineapple = std::clamp(pineapple + oioi, oioi, 1.F + oioi);
-		porcupine = std::clamp(porcupine + oioi, oioi, 1.F + oioi);
-		sequins = std::clamp(sequins + oioi, oioi, 1.F + oioi);
 
+		// coeff var. is sd divided by mean
+		// cv of 0 is 0 sd
+
+		// all of those numbers are clamped to [0.5, 1.5] (or [oioi, ioio])
+		const auto oioi = 0.2F;
+		const auto ioio = 2.F;
+		pineapple = std::clamp(pineapple + oioi, oioi, ioio + oioi);
+		porcupine = std::clamp(porcupine + oioi, oioi, ioio + oioi);
+		sequins = std::clamp(sequins + oioi, oioi, ioio + oioi);
+
+		// get most recent ms time in left column
 		const auto scoliosis = seq._mw_sc_ms[col_left].get_now();
+		// get most recent ms time in right column
 		const auto poliosis = seq._mw_sc_ms[col_right].get_now();
-		float obliosis;
 
+		float obliosis;
 		if (ct == col_left) {
 			obliosis = poliosis / scoliosis;
 		} else {
 			obliosis = scoliosis / poliosis;
 		}
 
+		// the ratio of most recent ms times between left and right column must be [1,10]
+		// 1 = perfect trill or slowing down trill
+		// 10 = quickly speeding up trill (flams)
 		obliosis = std::clamp(obliosis, 1.F, 10.F);
+
+		// sqrt of ( [1,inf] - 1 ) (NOTE: fastsqrt IS NOT ACCURATE)
+		// result = [0,sqrt(inf)]
+		// 0 = perfect trill
+		// >0 = uneven trill
+		// huge = one column is hitting notes faster than the other (maybe minijack in pattern)
 		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
 
+		// [0,inf] divided by [1,10]
 		pewp /= obliosis;
-		const auto vertebrae = std::clamp(
-		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, 1.F + oioi);
 
+		// average of (cv left, cv right, cv both) + [0,inf]
+		// note cv clamped to [0.5,1.5]
+		// simplifies to [0.5,1.5] + [0,inf]
+		// output: [0.5, 1.5]
+		const auto vertebrae = std::clamp(
+		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, ioio + oioi);
+
+		// result is ms divided by fudgy cv number
+		// [0,5000] / [0.5,1.5]
 		return c / vertebrae;
 	}
 

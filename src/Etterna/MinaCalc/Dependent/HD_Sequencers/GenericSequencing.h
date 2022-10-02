@@ -515,7 +515,6 @@ struct SequencerGeneral
 									 const bool lower = true) const -> float
 	{
 		if (ct == col_init) {
-
 			return ms_init;
 		}
 
