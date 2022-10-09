@@ -182,7 +182,7 @@ struct CalcMovingWindow
 		// we can basically just branch to ccacc or acca checks depending on
 		// which value is higher
 		bool o;
-		if (_itv_vals[4] > _itv_vals[5]) {
+		if (any_ms_is_greater(_itv_vals[4], _itv_vals[5])) {
 			// if middle is higher, run the ccacc check that will divide it
 			o = ccacc_timing_check(factor, threshold);
 		} else {
