@@ -155,7 +155,7 @@ struct WideRangeRollMod
 
 	void handle_roll_timing_check()
 	{
-		if (seq_ms[1] > seq_ms[0]) {
+		if (any_ms_is_greater(seq_ms[1], seq_ms[0])) {
 			zoop_the_woop(1, 2.5F);
 		} else {
 			seq_ms[0] /= 2.5F;
