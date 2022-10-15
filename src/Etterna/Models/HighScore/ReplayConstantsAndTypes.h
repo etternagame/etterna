@@ -42,6 +42,10 @@ struct InputDataEvent
 	float songPositionSeconds;
 	int nearestTapNoterow;
 	float offsetFromNearest;
+	TapNoteType nearestTapNoteType = TapNoteType_Invalid;
+	// really only applies for holds and rolls
+	TapNoteSubType nearestTapNoteSubType = TapNoteSubType_Invalid;
+
 
 	InputDataEvent()
 	{
@@ -52,12 +56,14 @@ struct InputDataEvent
 		offsetFromNearest = 0.F;
 	}
 
-	InputDataEvent(bool press, int col, float songPos, int row, float offset)
+	InputDataEvent(bool press, int col, float songPos, int row, float offset, TapNoteType tapnotetype, TapNoteSubType tapnotesubtype)
 	  : is_press(press)
 	  , column(col)
 	  , songPositionSeconds(songPos)
 	  , nearestTapNoterow(row)
 	  , offsetFromNearest(offset)
+	  , nearestTapNoteType(tapnotetype)
+	  , nearestTapNoteSubType(tapnotesubtype)
 	{
 	}
 
@@ -67,6 +73,8 @@ struct InputDataEvent
 		songPositionSeconds = other.songPositionSeconds;
 		nearestTapNoterow = other.nearestTapNoterow;
 		offsetFromNearest = other.offsetFromNearest;
+		nearestTapNoteType = other.nearestTapNoteType;
+		nearestTapNoteSubType = other.nearestTapNoteSubType;
 	}
 };
 
@@ -102,7 +110,6 @@ struct TapReplayResult
 	int track;			   // column
 	float offset;		   // 0
 	TapNoteType type;	   // typically mines, holds, rolls, etc
-	int offsetAdjustedRow; // row assigned later on for full replays
 
 	TapReplayResult()
 	{
@@ -110,7 +117,13 @@ struct TapReplayResult
 		track = 0;
 		offset = 0.F;
 		type = TapNoteType_Invalid;
-		offsetAdjustedRow = 0;
+	}
+
+	TapReplayResult(const TapReplayResult& other) {
+		row = other.row;
+		track = other.track;
+		offset = other.offset;
+		type = other.type;
 	}
 };
 
@@ -142,6 +155,30 @@ struct PlaybackEvent
 	}
 
 	bool isJudgeEvent() const { return noterowJudged != -1; }
+};
+
+// Basically contains a record for any given noterow of the essential info about
+// the Player But only the info we can simply derive from the given ReplayData
+struct ReplaySnapshot
+{
+	// Contains Marv->Miss and Mines Hit
+	int judgments[NUM_TapNoteScore] = { 0 };
+	// Hold note scores
+	int hns[NUM_HoldNoteScore] = { 0 };
+	float curwifescore = 0.F;
+	float maxwifescore = 0.F;
+	float standardDeviation = 0.F;
+	float mean = 0.F;
+};
+
+struct JudgeInfo
+{
+	std::map<int, std::vector<TapReplayResult>> trrMap{};
+	std::map<int, std::vector<HoldReplayResult>> hrrMap{};
+
+	// horrible inefficiency :think:
+	std::map<float, std::vector<TapReplayResult>> trrMapByElapsedTime{};
+	std::map<float, std::vector<HoldReplayResult>> hrrMapByElapsedTime{};
 };
 
 #endif

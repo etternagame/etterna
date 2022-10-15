@@ -3,9 +3,12 @@
 
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "ReplayConstantsAndTypes.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 #include <set>
 
 struct HighScore;
+class TimingData;
+class Steps;
 
 class Replay
 {
@@ -110,6 +113,27 @@ class Replay
 		InputData = v;
 	}
 
+	auto GetReplaySnapshotMap() const -> const std::map<int, ReplaySnapshot>& {
+		return m_ReplaySnapshotMap;
+	}
+	auto GetCopyOfReplaySnapshotMap() const -> std::map<int, ReplaySnapshot> {
+		return m_ReplaySnapshotMap;
+	}
+	void SetReplaySnapshotMap(const std::map<int, ReplaySnapshot>& m)
+	{
+		m_ReplaySnapshotMap = m;
+	}
+
+	auto GetJudgeInfo() -> JudgeInfo& {
+		return judgeInfo;
+	}
+	auto GetCopyOfJudgeInfo() const -> JudgeInfo {
+		return judgeInfo;
+	}
+	void SetJudgeInfo(const JudgeInfo& ji) {
+		judgeInfo = ji;
+	}
+
 	auto GetScoreKey() const -> std::string {
 		return scoreKey;
 	}
@@ -169,9 +193,20 @@ class Replay
 	auto LoadReplayData() -> bool;
 	auto HasReplayData() -> bool;
 
+	/// Corrects missing fields for InputData.
+	/// Will only work for InputData backed by loaded NoteData
+	auto FillInBlanksForInputData() -> bool;
+
+	auto GeneratePrimitiveVectors() -> bool;
 	auto GenerateNoterowsFromTimestamps() -> bool;
 	auto GenerateInputData() -> bool;
 	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
+
+	// For Stats and ReplaySnapshots
+	auto GenerateJudgeInfoAndReplaySnapshots(int startingRow = 0,
+											 float timingScale = 1.F) -> bool;
+	auto GetWifeScoreForRow(int row, float timeScale = 1.F)
+	  -> std::pair<float, float>;
 
 	// Instead of making some complex iterator...
 	// Just offer both solutions
@@ -181,11 +216,24 @@ class Replay
 	/// Returns a map of rows to a set of columns which are dropped
 	/// See which rows have drops using this
 	auto GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>;
-
-	// Offsets can be really weird - Remove all impossible offsets
+	
+	/// Offsets can be really weird - Remove all impossible offsets
 	inline void ValidateOffsets();
 
+	inline auto GetHighScore() -> HighScore*;
+	inline auto GetSteps() -> Steps*;
+	inline auto GetNoteData(Steps* pSteps = nullptr, bool bTransform = true)
+	  -> NoteData;
+	inline auto GetTimingData() -> TimingData*;
+
+	inline auto GetReplaySnapshotForNoterow(int row)
+	  -> std::shared_ptr<ReplaySnapshot>;
+
 	void Unload() {
+		// stats
+		m_ReplaySnapshotMap.clear();
+
+		// replay data
 		InputData.clear();
 		vOffsetVector.clear();
 		vNoteRowVector.clear();
@@ -214,6 +262,18 @@ class Replay
 	auto LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR)
 	  -> bool;
 	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
+
+	/// For V1 or earlier replays lacking column data, we need to assume information.
+	/// Make it all up. This fills in the column data using NoteData.
+	/// This also provides TapNoteTypes
+	auto GenerateReplayV2DataPresumptively() -> bool;
+
+	std::map<int, ReplaySnapshot> m_ReplaySnapshotMap{};
+	JudgeInfo judgeInfo{};
+
+	// optimization for ReplaySnapshot generation
+	// filled out by RegenerateJudgmentInfo
+	std::set<int> significantNoterows{};
 
 	std::string scoreKey{};
 	std::string chartKey{};

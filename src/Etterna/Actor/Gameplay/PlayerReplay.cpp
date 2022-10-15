@@ -78,19 +78,11 @@ PlayerReplay::Load()
 {
 	Player::Load();
 
-	// this is not good.
-	// need a better way to load a replay into a player
-	auto replay = REPLAYS->GetReplay(PlayerAI::pScoreData);
-	//
-
-	if (replay != nullptr) {
-		SetPlaybackEvents(replay->GeneratePlaybackEvents());
-		SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap());
-
-		// the above replay pointer is temporary
-		// drop the refcount
-		REPLAYS->ReleaseReplay(replay);
-	}
+	// this replay will always be real or a dummy replay
+	auto replay =
+	  REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
+	SetPlaybackEvents(replay->GeneratePlaybackEvents());
+	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap());
 }
 
 void
@@ -670,7 +662,7 @@ PlayerReplay::Step(int col,
 
 		// The offset from the actual step in seconds:
 		fNoteOffset = (fStepSeconds - fPositionSeconds) /
-					  PlayerAI::pScoreData->GetMusicRate();
+					  REPLAYS->GetActiveReplay()->GetMusicRate();
 
 		NOTESKIN->SetLastSeenColor(
 		  NoteTypeToString(GetNoteType(rowBeingJudged)));
@@ -685,7 +677,7 @@ PlayerReplay::Step(int col,
 			Locator::getLogger()->warn(
 			  "Please report an issue with this replay: {} - col {} steppedrow "
 			  "{} rowtojudge {}",
-			  PlayerAI::pScoreData->GetScoreKey(),
+			  REPLAYS->GetActiveReplay()->GetScoreKey(),
 			  col,
 			  steppedRow,
 			  rowToJudge);
@@ -718,7 +710,8 @@ PlayerReplay::Step(int col,
 			} else {
 				// every other case
 				if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
-					score = PlayerAI::GetTapNoteScoreForReplay(fNoteOffset);
+					score =
+					  ReplayManager::GetTapNoteScoreForReplay(fNoteOffset);
 			}
 		}
 

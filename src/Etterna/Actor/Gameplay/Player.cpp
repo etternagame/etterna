@@ -496,6 +496,18 @@ Player::NeedsHoldJudging(const TapNote& tn) -> bool
 	}
 }
 
+static TapNoteScore
+GetAutoplayTapNoteScore(const PlayerState* pPlayerState)
+{
+	if (pPlayerState->m_PlayerController == PC_REPLAY)
+		return TNS_Miss;
+	if (pPlayerState->m_PlayerController == PC_AUTOPLAY ||
+		pPlayerState->m_PlayerController == PC_CPU)
+		return TNS_W1;
+
+	return TNS_Miss;
+}
+
 void
 Player::Load()
 {
@@ -2048,6 +2060,11 @@ Player::Step(int col,
 		const auto fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
 		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
+		TapNote* pTN = nullptr;
+		auto iter = m_NoteData.FindTapNote(col, iRowOfOverlappingNoteOrRow);
+		DEBUG_ASSERT(iter != m_NoteData.end(col));
+		pTN = &iter->second;
+
 		if (row == -1) {
 			fNoteOffset = (fStepSeconds - fMusicSeconds) / fMusicRate;
 			// input data (a real tap mapped to a note any distance away)
@@ -2057,18 +2074,15 @@ Player::Step(int col,
 			  col,
 			  fMusicSeconds,
 			  iRowOfOverlappingNoteOrRow,
-			  fNoteOffset);
+			  fNoteOffset,
+			  pTN->type,
+			  pTN->subType);
 		}
 
 		NOTESKIN->SetLastSeenColor(
 		  NoteTypeToString(GetNoteType(iRowOfOverlappingNoteOrRow)));
 
 		const auto fSecondsFromExact = fabsf(fNoteOffset);
-
-		TapNote* pTN = nullptr;
-		auto iter = m_NoteData.FindTapNote(col, iRowOfOverlappingNoteOrRow);
-		DEBUG_ASSERT(iter != m_NoteData.end(col));
-		pTN = &iter->second;
 
 		// We don't really have to care if we are releasing on a non-lift,
 		// right? This fixes a weird noteskin bug with tap explosions.
@@ -2135,7 +2149,7 @@ Player::Step(int col,
 
 			case PC_CPU:
 			case PC_AUTOPLAY:
-				score = PlayerAI::GetTapNoteScore(m_pPlayerState);
+				score = GetAutoplayTapNoteScore(m_pPlayerState);
 
 				/* XXX: This doesn't make sense.
 				 * Step should only be called in autoplay for hit notes. */
@@ -2283,11 +2297,24 @@ Player::Step(int col,
 	} else {
 		// input data
 		// (autoplay, forced step, or step REALLY far away)
+
+		TapNoteType tnt = TapNoteType_Invalid;
+		TapNoteSubType tnst = TapNoteSubType_Invalid;
+
+		if (col != -1 && iRowOfOverlappingNoteOrRow != -1) {
+			const auto& tn =
+			  m_NoteData.GetTapNote(col, iRowOfOverlappingNoteOrRow);
+			tnt = tn.type;
+			tnst = tn.subType;
+		}
+
 		m_pPlayerStageStats->InputData.emplace_back(!bRelease,
 													col,
 													fMusicSeconds,
 													iRowOfOverlappingNoteOrRow,
-													0.F);
+													0.F,
+													tnt,
+													tnst);
 	}
 
 	if (score == TNS_None) {
