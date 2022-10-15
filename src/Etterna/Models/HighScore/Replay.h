@@ -218,15 +218,15 @@ class Replay
 	auto GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>;
 	
 	/// Offsets can be really weird - Remove all impossible offsets
-	inline void ValidateOffsets();
+	void ValidateOffsets();
 
-	inline auto GetHighScore() -> HighScore*;
-	inline auto GetSteps() -> Steps*;
-	inline auto GetNoteData(Steps* pSteps = nullptr, bool bTransform = true)
+	auto GetHighScore() -> HighScore*;
+	auto GetSteps() -> Steps*;
+	auto GetNoteData(Steps* pSteps = nullptr, bool bTransform = true)
 	  -> NoteData;
-	inline auto GetTimingData() -> TimingData*;
+	auto GetTimingData() -> TimingData*;
 
-	inline auto GetReplaySnapshotForNoterow(int row)
+	auto GetReplaySnapshotForNoterow(int row)
 	  -> std::shared_ptr<ReplaySnapshot>;
 
 	void Unload() {
