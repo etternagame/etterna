@@ -290,6 +290,9 @@ local function helpMenu()
                 Name = "AboutKeymodes",
             },
             {
+                Name = "AboutCleartypes",
+            },
+            {
                 Name = "LegacyKeyConfig",
             },
             {
