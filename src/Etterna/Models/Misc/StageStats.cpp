@@ -8,7 +8,6 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "StageStats.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "PlayerAI.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "AdjustSync.h"
 #include "Etterna/Singletons/ScoreManager.h"

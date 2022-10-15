@@ -23,9 +23,9 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Globals/rngthing.h"
 
 #define CHEER_DELAY_SECONDS THEME->GetMetricF(m_sName, "CheerDelaySeconds")

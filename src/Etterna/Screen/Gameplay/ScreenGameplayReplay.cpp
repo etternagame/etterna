@@ -10,7 +10,6 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/NoteData/NoteData.h"
