@@ -78,7 +78,7 @@ Replay::HasReplayData() -> bool
 	return DoesFileExist(GetFullPath()) || DoesFileExist(GetBasicPath());
 }
 
-inline auto
+auto
 Replay::GetHighScore() -> HighScore*
 {
 	HighScore* o = nullptr;
@@ -109,13 +109,13 @@ Replay::GetHighScore() -> HighScore*
 	return o;
 }
 
-inline auto
+auto
 Replay::GetSteps() -> Steps*
 {
 	return SONGMAN->GetStepsByChartkey(chartKey);
 }
 
-inline auto
+auto
 Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
 {
 	if (pSteps == nullptr) {
@@ -130,7 +130,7 @@ Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
 	return tmp;
 }
 
-inline auto
+auto
 Replay::GetTimingData() -> TimingData*
 {
 	auto* steps = GetSteps();
@@ -140,8 +140,8 @@ Replay::GetTimingData() -> TimingData*
 	return steps->GetTimingData();
 }
 
-std::shared_ptr<ReplaySnapshot>
-Replay::GetReplaySnapshotForNoterow(int row)
+auto
+Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
 {
 	if (m_ReplaySnapshotMap.empty()) {
 		return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
