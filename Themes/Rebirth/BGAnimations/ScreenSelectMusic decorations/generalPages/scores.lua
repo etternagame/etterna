@@ -330,7 +330,6 @@ local function createList()
             if isLocal then
                 scores = {}
                 localrtTable = getRateTable()
-                local sng = GAMESTATE:GetCurrentSong()
                 if localrtTable ~= nil then
                     localrates, localrateIndex = getUsedRates(localrtTable)
                     localscoreIndex = 1

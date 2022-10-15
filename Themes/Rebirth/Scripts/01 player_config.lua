@@ -166,7 +166,7 @@ local defaultConfig = {
     DisplayMean = true,
     DisplayEWMA = false,
     DisplayStdDev = false,
-    leaderboardEnabled = false,
+    Leaderboard = 0, -- 0=off, 1=online, 2=local (current rate)
     MeasureCounter = false,
     MeasureLines = false,
     MiniProgressBar = true,
