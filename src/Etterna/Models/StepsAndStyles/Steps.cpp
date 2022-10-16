@@ -931,7 +931,7 @@ class LunaSteps : public Luna<Steps>
 
 	static auto GetSSRs(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 2.F);
+		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
 		const auto goal = FArg(2);
 		auto nd = p->GetNoteData();
 		const auto loot = nd.BuildAndGetNerv(p->GetTimingData());
