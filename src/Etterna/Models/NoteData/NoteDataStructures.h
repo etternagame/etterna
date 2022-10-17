@@ -63,6 +63,7 @@ enum CalcPatternMod
 	TheThing,
 	TheThing2,
 	RanMan,
+	Minijack,
 	// RanLen,
 	// RanAnchLen,
 	// RanAnchLenMod,

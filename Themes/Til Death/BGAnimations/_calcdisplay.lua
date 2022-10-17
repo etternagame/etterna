@@ -396,6 +396,9 @@ local debugGroups = {
         TheThing = true,
         TheThing2 = true,
     },
+    {   -- Group 17
+        Minijack = true,
+    },
 }
 
 -- specify enum names here
@@ -1052,6 +1055,7 @@ local modnames = {
     "thing",
     "thing2",
     "rm",
+    "minij",
     --"rl",
     --"ral",
     --"ralm",
@@ -1120,6 +1124,7 @@ local modColors = {
     color("0,0.8,1"),		-- light blue	= thething
     color("0,0.6,1"),       -- darkish blue = thething2
 	color("0.2,1,1"),		-- light blue	= ranman
+    color(".8,1.3,1"),      -- whiteblue	= minijack
 	--color("1,1,1"),			-- rl
 	--color("1,1,1"),			-- ral
 	--color("1,1,1"),			-- ralm

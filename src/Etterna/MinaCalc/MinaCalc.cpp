@@ -808,6 +808,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		WideRangeRoll,
 		FlamJam,
 		RanMan,
+		Minijack,
 		// WideRangeAnchor,
 		TheThing,
 		TheThing2,
@@ -1013,7 +1014,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 496;
+int mina_calc_version = 497;
 auto
 GetCalcVersion() -> int
 {

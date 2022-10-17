@@ -68,6 +68,19 @@ struct CalcMovingWindow
 		return o;
 	}
 
+	/// get the min for the moving window up to a given size
+	[[nodiscard]] auto get_min_for_window(const int& window) const -> T
+	{
+		T o = get_now();
+		auto i = max_moving_window_size;
+		while (i > max_moving_window_size - window) {
+			--i;
+			o = _itv_vals.at(i) < o ? _itv_vals.at(i) : o;
+		}
+
+		return o;
+	}
+
 	/// get the mean for the moving window up to a given size
 	[[nodiscard]] auto get_mean_of_window(const int& window) const -> float
 	{
