@@ -1095,19 +1095,14 @@ class LunaSteps : public Luna<Steps>
 		lua_newtable(L);
 		lua_pushstring(L, "DebugValues");
 		if (p->calcdebugoutput.empty()) {
-			for (auto hand = 0; hand < 2; hand++) {
-				lua_pushstring(L, hand != 0 ? "Right" : "Left");
-				std::vector<float> nothing;
-				LuaHelpers::CreateTableFromArray(nothing, L);
-				lua_rawset(L, -3);
-			}
+			lua_pushnil(L);
 			return 1;
 		}
 
 		auto ff = [&](std::array<std::array<std::vector<float>, NUM_Skillset>,
 								 num_hands>& debugArr) {
 			lua_createtable(L, 0, 2);
-			for (auto hand = 0; hand < 2; hand++) {
+			for (auto hand = 0; hand < num_hands; hand++) {
 				lua_pushstring(L, hand != 0 ? "Right" : "Left");
 				lua_createtable(L, 0, NUM_Skillset);
 				FOREACH_ENUM(Skillset, ss)
@@ -1121,14 +1116,41 @@ class LunaSteps : public Luna<Steps>
 			lua_rawset(L, -3);
 		};
 
+		auto ff2 =
+		  [&](std::array<std::array<std::vector<std::pair<float, float>>, 2>,
+						 num_hands>& debugArr) {
+			  lua_createtable(L, 0, 2);
+			  for (auto hand = 0; hand < num_hands; hand++) {
+				  lua_pushstring(L, hand != 0 ? "Right" : "Left");
+				  lua_createtable(L, 0, 2);
+				  for (auto col = 0; col < 2; col++) {
+					  lua_pushstring(L, col != 0 ? "Right" : "Left");
+					  lua_createtable(L, 0, debugArr.at(hand).at(col).size());
+					  int i = 1;
+					  for (auto& x : debugArr.at(hand).at(col)) {
+						  std::vector<float> stuff{ x.first, x.second };
+						  LuaHelpers::CreateTableFromArray(stuff, L);
+						  lua_rawseti(L, -2, i++);
+					  }
+					  lua_rawset(L, -3);
+				  }
+				  lua_rawset(L, -3);
+			  }
+			  lua_rawset(L, -3);
+		  };
+
 		// debugMSD, debugPtLoss, debugTotalPatternMod
-		lua_createtable(L, 0, 3);
+		lua_createtable(L, 0, 4);
 		lua_pushstring(L, "DebugMSD");
 		ff(SONGMAN->calc->debugMSD);
 		lua_pushstring(L, "DebugPtLoss");
 		ff(SONGMAN->calc->debugPtLoss);
 		lua_pushstring(L, "DebugTotalPatternMod");
 		ff(SONGMAN->calc->debugTotalPatternMod);
+
+		// debugMovingWindowCV
+		lua_pushstring(L, "DebugMovingWindowCV");
+		ff2(SONGMAN->calc->debugMovingWindowCV);
 
 		return 1;
 	}

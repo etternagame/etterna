@@ -538,6 +538,14 @@ struct SequencerGeneral
 		return _mw_sc_ms.at(ct).get_now();
 	}
 
+	auto get_mw_sc_ms(const col_type& ct)
+	{
+		if (ct == col_left || ct == col_ohjump) {
+			return _mw_sc_ms[col_left];
+		}
+		return _mw_sc_ms[col_right];
+	}
+
 	[[nodiscard]] auto get_any_ms_now() const -> float
 	{
 		return _mw_any_ms.get_now();

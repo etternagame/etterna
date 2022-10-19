@@ -366,6 +366,37 @@ struct TheGreatBazoinkazoinkInTheSky
 		// _between either column_ for _this row_
 		_calc.jack_diff.at(hand).push_back(thing);
 
+		// debug cv stuff
+		if (_calc.debugmode) {
+			switch (ct) {
+				case col_left:
+					_calc.debugMovingWindowCV.at(hand).at(0).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					break;
+				case col_right:
+					_calc.debugMovingWindowCV.at(hand).at(1).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					break;
+				case col_ohjump: {
+					_calc.debugMovingWindowCV.at(hand).at(0).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					_calc.debugMovingWindowCV.at(hand).at(1).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					break;
+				}
+				default:
+					break;
+			}
+		}
+
 		// chordjack updates
 		_diffz._cj.advance_base(any_ms, _calc);
 
@@ -411,6 +442,11 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			// arrays are super bug prone with jacks so try vectors for now
 			_calc.jack_diff.at(hand).clear();
+
+			if (_calc.debugmode) {
+				_calc.debugMovingWindowCV.at(hand).fill(
+				  std::vector<std::pair<float, float>>());
+			}
 
 			nps::actual_cancer(_calc, hand);
 
