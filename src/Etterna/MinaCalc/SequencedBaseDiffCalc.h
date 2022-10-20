@@ -669,7 +669,7 @@ struct techyo
 		// coeff var. is sd divided by mean
 		// cv of 0 is 0 sd
 
-		// all of those numbers are clamped to [0.5, 1.5] (or [oioi, ioio])
+		// all of those numbers are clamped to [0.5, 1.5] (or [oioi, ioio+oioi])
 		const auto oioi = 0.2F;
 		const auto ioio = 2.F;
 		pineapple = std::clamp(pineapple + oioi, oioi, ioio + oioi);
@@ -695,7 +695,7 @@ struct techyo
 
 		// sqrt of ( [1,inf] - 1 ) (NOTE: fastsqrt IS NOT ACCURATE)
 		// result = [0,sqrt(inf)]
-		// 0 = perfect trill
+		// 0 = perfect trill or perfect jumpjack
 		// >0 = uneven trill
 		// huge = one column is hitting notes faster than the other (maybe minijack in pattern)
 		auto pewp = fastsqrt(div_high_by_low(scoliosis, poliosis) - 1.F);
