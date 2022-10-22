@@ -13,6 +13,8 @@ const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
 // contains input data files corresponding to replays
 const std::string INPUT_DATA_DIR = "Save/InputData/";
 
+const std::string NO_MODS = "none";
+
 /// enum values defined by Replay.GetReplayType()
 enum ReplayType
 {

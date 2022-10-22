@@ -65,7 +65,9 @@ Replay::Replay(HighScore* hs)
   , fMusicRate(hs->GetMusicRate())
   , fSongOffset(hs->GetSongOffset())
 {
-
+	rngSeed = 0;
+	// dont set mods here because it is slow.
+	// load from disk or when highscore is saving
 }
 
 Replay::~Replay() {
@@ -138,6 +140,23 @@ Replay::GetTimingData() -> TimingData*
 		return nullptr;
 	}
 	return steps->GetTimingData();
+}
+
+auto
+Replay::SetHighScoreMods() -> void
+{
+	auto* hs = GetHighScore();
+	if (hs != nullptr) {
+		auto ms = hs->GetModifiers();
+		ms.erase(
+		  std::remove_if(ms.begin(),
+						 ms.end(),
+						 [](unsigned char x) { return std::isspace(x); }),
+		  ms.end());
+		mods = ms;
+	} else {
+		mods = NO_MODS;
+	}
 }
 
 auto
@@ -270,6 +289,10 @@ Replay::WriteInputData() -> bool
 		return false;
 	}
 
+	if (mods.empty()) {
+		SetHighScoreMods();
+	}
+
 	const auto path = INPUT_DATA_DIR + scoreKey;
 	const auto path_z = path + "z";
 
@@ -285,22 +308,35 @@ Replay::WriteInputData() -> bool
 		// it's bad to get this now, but it isn't saved anywhere else
 		float fGlobalOffset = PREFSMAN->m_fGlobalOffsetSeconds.Get();
 		// header:
-		// chartkey scorekey rate offset globaloffset
-		auto headerLine1 = chartKey + " " + scoreKey + " " +
-						   std::to_string(fMusicRate) + " " +
-						   std::to_string(fSongOffset) + " " +
-						   std::to_string(fGlobalOffset) + "\n";
+		// chartkey scorekey rate offset globaloffset modstring rngseed
+		auto modStr = mods.empty() ? NO_MODS : mods;
+		auto headerLine1 =
+		  chartKey + " " + scoreKey + " " + std::to_string(fMusicRate) + " " +
+		  std::to_string(fSongOffset) + " " + std::to_string(fGlobalOffset) +
+		  " " + modStr + " " + std::to_string(rngSeed) + "\n";
 		fileStream.write(headerLine1.c_str(), headerLine1.size());
 
 		// input data:
 		// column press/lift time nearest_tap tap_offset
 		const unsigned int sz = InputData.size() - 1;
-		for (unsigned int i = 0; i <= sz; i++) {
-			append = std::to_string(InputData.at(i).column) + " " +
-					 (InputData.at(i).is_press ? "1" : "0") + " " +
-					 std::to_string(InputData.at(i).songPositionSeconds) + " " +
-					 std::to_string(InputData.at(i).nearestTapNoterow) + " " +
-					 std::to_string(InputData.at(i).offsetFromNearest) + "\n";
+		for (auto& data : InputData) {
+			auto typestr =
+			  data.nearestTapNoteType != TapNoteType_Tap
+				? " " + std::to_string(data.nearestTapNoteType) + " "
+				: "";
+			// it would be unusual if typestr was blank and this wasnt.
+			// it can only happen for TapNoteType_HoldHead
+			auto subtypestr =
+			  data.nearestTapNoteSubType != TapNoteSubType_Invalid
+				? std::to_string(data.nearestTapNoteSubType)
+				: "";
+
+			append = std::to_string(data.column) + " " +
+					 (data.is_press ? "1" : "0") + " " +
+					 std::to_string(data.songPositionSeconds) + " " +
+					 std::to_string(data.nearestTapNoterow) + " " +
+					 std::to_string(data.offsetFromNearest) + typestr +
+					 subtypestr + "\n";
 			fileStream.write(append.c_str(), append.size());
 		}
 
@@ -475,7 +511,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			while (ss >> buffer) {
 				tokens.emplace_back(buffer);
 			}
-			if (tokens.size() != 5) {
+			if (tokens.size() != 5 && tokens.size() != 7) {
 				Locator::getLogger()->warn("Bad input data header detected: {}",
 										   path_z.c_str());
 				return false;
@@ -486,7 +522,12 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			this->fMusicRate = std::stof(tokens[2]);
 			this->fSongOffset = std::stof(tokens[3]);
 			this->fGlobalOffset = std::stof(tokens[4]);
-			
+
+			if (tokens.size() == 7) {
+				this->mods = tokens[5];
+				this->rngSeed = std::stol(tokens[6]);
+			}
+
 			tokens.clear();
 		}
 
@@ -541,6 +582,17 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			ev.songPositionSeconds = std::stof(tokens[2]);
 			ev.nearestTapNoterow = std::stoi(tokens[3]);
 			ev.offsetFromNearest = std::stof(tokens[4]);
+
+			// type data is present
+			if (tokens.size() >= 6) {
+				ev.nearestTapNoteType =
+				  static_cast<TapNoteType>(std::stoi(tokens[5]));
+			}
+			if (tokens.size() >= 7) {
+				ev.nearestTapNoteSubType =
+				  static_cast<TapNoteSubType>(std::stoi(tokens[6]));
+			}
+
 			readInputs.push_back(ev);
 
 			tokens.clear();
@@ -822,23 +874,29 @@ Replay::FillInBlanksForInputData() -> bool
 		return false;
 	}
 
+	if (mods.empty()) {
+		SetHighScoreMods();
+	}
+
 	for (auto& d : InputData) {
 		auto& row = d.nearestTapNoterow;
 		auto& col = d.column;
 
 		const auto& tn = notedata.GetTapNote(col, row);
 		if (tn == TAP_EMPTY) {
-			Locator::getLogger()->warn(
+			// usually row -1 produces this
+			// row -1 is the result of tap really far away
+			// or a tap nearest to a note that is already judged
+			// (releases near to already judged notes also)
+			Locator::getLogger()->debug(
 			  "WHAT??? row {} col {} time {}", row, col, d.songPositionSeconds);
 		}
 		d.nearestTapNoteType = tn.type;
 		d.nearestTapNoteSubType = tn.subType;
 	}
 
-	// should save input data here
-	// !!!!!!
-	// TODO:
-	// TODO:
+	// save changes
+	WriteInputData();
 
 	return true;
 }
@@ -934,7 +992,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 		// we have replay data but not column data
 		return GenerateReplayV2DataPresumptively();
 	}
-
+	
 	if (!LoadInputData()) {
 		Locator::getLogger()->warn("Failed to generate primitive vectors for "
 								   "score {} because input data is not present",

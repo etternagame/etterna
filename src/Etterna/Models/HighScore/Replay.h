@@ -17,46 +17,57 @@ class Replay
 	Replay(HighScore* hs);
 	~Replay();
 
-	inline auto GetBasicPath() const -> const std::string {
+	inline auto GetBasicPath() const -> const std::string
+	{
 		return BASIC_REPLAY_DIR + scoreKey;
 	}
 
-	inline auto GetFullPath() const -> const std::string {
+	inline auto GetFullPath() const -> const std::string
+	{
 		return FULL_REPLAY_DIR + scoreKey;
 	}
 
-	inline auto GetInputPath() const -> const std::string {
+	inline auto GetInputPath() const -> const std::string
+	{
 		return INPUT_DATA_DIR + scoreKey;
 	}
 
-	auto GetOffsetVector() const -> const std::vector<float>& {
+	auto GetOffsetVector() const -> const std::vector<float>&
+	{
 		return vOffsetVector;
 	}
-	auto GetCopyOfOffsetVector() const -> std::vector<float> {
+	auto GetCopyOfOffsetVector() const -> std::vector<float>
+	{
 		return vOffsetVector;
 	}
 	void SetOffsetVector(const std::vector<float>& v) { vOffsetVector = v; }
 
-	auto GetNoteRowVector() const -> const std::vector<int>& {
+	auto GetNoteRowVector() const -> const std::vector<int>&
+	{
 		return vNoteRowVector;
 	}
-	auto GetCopyOfNoteRowVector() const -> std::vector<int> {
+	auto GetCopyOfNoteRowVector() const -> std::vector<int>
+	{
 		return vNoteRowVector;
 	}
 	void SetNoteRowVector(const std::vector<int>& v) { vNoteRowVector = v; }
 
-	auto GetTrackVector() const -> const std::vector<int>& {
+	auto GetTrackVector() const -> const std::vector<int>&
+	{
 		return vTrackVector;
 	}
-	auto GetCopyOfTrackVector() const -> std::vector<int> {
+	auto GetCopyOfTrackVector() const -> std::vector<int>
+	{
 		return vTrackVector;
 	}
 	void SetTrackVector(const std::vector<int>& v) { vTrackVector = v; }
 
-	auto GetTapNoteTypeVector() const -> const std::vector<TapNoteType>& {
+	auto GetTapNoteTypeVector() const -> const std::vector<TapNoteType>&
+	{
 		return vTapNoteTypeVector;
 	}
-	auto GetCopyOfTapNoteTypeVector() const -> std::vector<TapNoteType> {
+	auto GetCopyOfTapNoteTypeVector() const -> std::vector<TapNoteType>
+	{
 		return vTapNoteTypeVector;
 	}
 	void SetTapNoteTypeVector(const std::vector<TapNoteType>& v)
@@ -90,7 +101,8 @@ class Replay
 		vMineReplayDataVector = v;
 	}
 
-	auto GetOnlineReplayTimestampVector() const -> const std::vector<float>& {
+	auto GetOnlineReplayTimestampVector() const -> const std::vector<float>&
+	{
 		return vOnlineReplayTimestampVector;
 	}
 	auto GetCopyOfOnlineReplayTimestampVector() const -> std::vector<float>
@@ -102,10 +114,12 @@ class Replay
 		vOnlineReplayTimestampVector = v;
 	}
 
-	auto GetInputDataVector() const -> const std::vector<InputDataEvent>& {
+	auto GetInputDataVector() const -> const std::vector<InputDataEvent>&
+	{
 		return InputData;
 	}
-	auto GetCopyOfInputDataVector() const -> std::vector<InputDataEvent> {
+	auto GetCopyOfInputDataVector() const -> std::vector<InputDataEvent>
+	{
 		return InputData;
 	}
 	void SetInputDataVector(const std::vector<InputDataEvent>& v)
@@ -113,10 +127,12 @@ class Replay
 		InputData = v;
 	}
 
-	auto GetReplaySnapshotMap() const -> const std::map<int, ReplaySnapshot>& {
+	auto GetReplaySnapshotMap() const -> const std::map<int, ReplaySnapshot>&
+	{
 		return m_ReplaySnapshotMap;
 	}
-	auto GetCopyOfReplaySnapshotMap() const -> std::map<int, ReplaySnapshot> {
+	auto GetCopyOfReplaySnapshotMap() const -> std::map<int, ReplaySnapshot>
+	{
 		return m_ReplaySnapshotMap;
 	}
 	void SetReplaySnapshotMap(const std::map<int, ReplaySnapshot>& m)
@@ -124,46 +140,20 @@ class Replay
 		m_ReplaySnapshotMap = m;
 	}
 
-	auto GetJudgeInfo() -> JudgeInfo& {
-		return judgeInfo;
-	}
-	auto GetCopyOfJudgeInfo() const -> JudgeInfo {
-		return judgeInfo;
-	}
-	void SetJudgeInfo(const JudgeInfo& ji) {
-		judgeInfo = ji;
-	}
+	auto GetJudgeInfo() -> JudgeInfo& { return judgeInfo; }
+	auto GetCopyOfJudgeInfo() const -> JudgeInfo { return judgeInfo; }
+	void SetJudgeInfo(const JudgeInfo& ji) { judgeInfo = ji; }
 
-	auto GetScoreKey() const -> std::string {
-		return scoreKey;
-	}
-	void SetScoreKey(std::string& key) {
-		scoreKey = key;
-	}
-	auto GetChartKey() const -> std::string {
-		return chartKey;
-	}
-	void SetChartKey(std::string& key) {
-		chartKey = key;
-	}
-	auto GetMusicRate() const -> float {
-		return fMusicRate;
-	}
-	void SetMusicRate(float f) {
-		fMusicRate = f;
-	}
-	auto GetSongOffset() const -> float {
-		return fSongOffset;
-	}
-	void SetSongOffset(float f) {
-		fSongOffset = f;
-	}
-	auto GetGlobalOffset() const -> float {
-		return fGlobalOffset;
-	}
-	void SetGlobalOffset(float f) {
-		fGlobalOffset = f;
-	}
+	auto GetScoreKey() const -> std::string { return scoreKey; }
+	void SetScoreKey(std::string& key) { scoreKey = key; }
+	auto GetChartKey() const -> std::string { return chartKey; }
+	void SetChartKey(std::string& key) { chartKey = key; }
+	auto GetMusicRate() const -> float { return fMusicRate; }
+	void SetMusicRate(float f) { fMusicRate = f; }
+	auto GetSongOffset() const -> float { return fSongOffset; }
+	void SetSongOffset(float f) { fSongOffset = f; }
+	auto GetGlobalOffset() const -> float { return fGlobalOffset; }
+	void SetGlobalOffset(float f) { fGlobalOffset = f; }
 
 	ReplayType GetReplayType() const
 	{
@@ -182,8 +172,9 @@ class Replay
 		}
 	}
 
-	// true for V2 and InputData
-	auto HasColumnData() const -> bool {
+	/// true for V2 and InputData
+	auto HasColumnData() const -> bool
+	{
 		const auto t = GetReplayType();
 		return t >= ReplayType_V2 && t < NUM_ReplayType;
 	}
@@ -216,7 +207,7 @@ class Replay
 	/// Returns a map of rows to a set of columns which are dropped
 	/// See which rows have drops using this
 	auto GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>;
-	
+
 	/// Offsets can be really weird - Remove all impossible offsets
 	void ValidateOffsets();
 
@@ -229,7 +220,8 @@ class Replay
 	auto GetReplaySnapshotForNoterow(int row)
 	  -> std::shared_ptr<ReplaySnapshot>;
 
-	void Unload() {
+	void Unload()
+	{
 		// stats
 		m_ReplaySnapshotMap.clear();
 
@@ -253,7 +245,7 @@ class Replay
 		vOnlineReplayTimestampVector.shrink_to_fit();
 	}
 
-	// Lua
+	/// Lua
 	void PushSelf(lua_State* L);
 
   private:
@@ -263,10 +255,14 @@ class Replay
 	  -> bool;
 	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
 
-	/// For V1 or earlier replays lacking column data, we need to assume information.
-	/// Make it all up. This fills in the column data using NoteData.
-	/// This also provides TapNoteTypes
+	/// For V1 or earlier replays lacking column data, we need to assume
+	/// information. Make it all up. This fills in the column data using
+	/// NoteData. This also provides TapNoteTypes
 	auto GenerateReplayV2DataPresumptively() -> bool;
+
+	/// Setting the mod string is handled separately.
+	/// Use this to set mods, as long as a scorekey is given.
+	auto SetHighScoreMods() -> void;
 
 	std::map<int, ReplaySnapshot> m_ReplaySnapshotMap{};
 	JudgeInfo judgeInfo{};
@@ -280,6 +276,8 @@ class Replay
 	float fMusicRate = 1.F;
 	float fSongOffset = 0.F;
 	float fGlobalOffset = 0.F;
+	std::string mods{};
+	unsigned int rngSeed = 0u;
 
 	std::vector<InputDataEvent> InputData;
 	std::vector<float> vOffsetVector;

@@ -84,10 +84,11 @@ class ReplayManager
 	auto GenerateComboListForReplay(Replay& replay, float timingScale = 1.F)
 	  -> std::vector<PlayerStageStats::Combo_t>;
 
+	/// Lua
 	void PushSelf(lua_State* L);
 
   private:
-	// scorekey to {refcount, pointer}
+	/// scorekey to {refcount, pointer}
 	std::unordered_map<std::string, std::pair<unsigned, Replay*>>
 	  scoresToReplays{};
 };

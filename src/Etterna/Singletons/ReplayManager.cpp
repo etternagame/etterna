@@ -39,7 +39,7 @@ ReplayManager::ReleaseReplay(Replay* replay) {
 	const auto key = replay->GetScoreKey();
 	auto it = scoresToReplays.find(key);
 	if (it == scoresToReplays.end()) {
-		Locator::getLogger()->fatal(
+		Locator::getLogger()->warn(
 		  "Tried to free replay {} with no existing refs! Programming error!",
 		  key);
 	} else {
@@ -118,7 +118,7 @@ ReplayManager::InitReplayPlaybackForScore(HighScore* hs)
 void
 ReplayManager::UnsetActiveReplay()
 {
-	if (activeReplay != nullptr) {
+	if (activeReplay != nullptr && activeReplay != dummyReplay) {
 		ReleaseReplay(activeReplay);
 	}
 	activeReplayScore = nullptr;
