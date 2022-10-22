@@ -93,7 +93,7 @@ class RageTextureManager
 	RageTextureID GetDefaultTextureID();
 	RageTextureID GetScreenTextureID();
 	RageSurface* GetScreenSurface();
-
+	RageTextureManagerPrefs m_Prefs;
   private:
 	void DeleteTexture(RageTexture* t);
 	enum GCType
@@ -104,7 +104,6 @@ class RageTextureManager
 	void GarbageCollect(GCType type);
 	RageTexture* LoadTextureInternal(RageTextureID ID);
 
-	RageTextureManagerPrefs m_Prefs;
 	int m_iNoWarnAboutOddDimensions{ 0 };
 	RageTextureID::TexPolicy m_TexturePolicy{ RageTextureID::TEX_DEFAULT };
 };
