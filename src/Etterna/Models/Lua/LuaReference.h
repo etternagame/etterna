@@ -2,7 +2,6 @@
 #define LUA_REFERENCE_H
 
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 struct lua_State;
 using Lua = lua_State;
@@ -100,7 +99,7 @@ class LuaReference
 	int m_iReference;
 };
 
-using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
+using apActorCommands = std::shared_ptr<LuaReference>;
 
 class LuaTable : public LuaReference
 {

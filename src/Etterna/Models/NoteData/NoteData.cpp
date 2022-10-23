@@ -2,7 +2,6 @@
 #include "Etterna/Singletons/GameState.h" // blame radar calculations.
 #include "NoteData.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
 #include <unordered_map>
@@ -10,8 +9,6 @@
 
 using std::map;
 using std::vector;
-
-REGISTER_CLASS_TRAITS(NoteData, new NoteData(*pCopy))
 
 void
 NoteData::Init()
