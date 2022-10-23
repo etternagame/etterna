@@ -1,9 +1,6 @@
 ﻿#include "Etterna/Globals/global.h"
 #include "Core/Services/Locator.hpp"
 #include "RageSoundReader.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
-
-REGISTER_CLASS_TRAITS(RageSoundReader, pCopy->Copy());
 
 /* Read(), handling the STREAM_LOOPED and empty return cases. */
 int

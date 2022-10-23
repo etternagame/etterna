@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -81,8 +81,7 @@ static bool use_gopher = FALSE;
 static int serverlogslocked = 0;
 static bool is_proxy = FALSE;
 
-#define REQBUFSIZ 150000
-#define REQBUFSIZ_TXT "149999"
+#define REQBUFSIZ (2*1024*1024)
 
 static long prevtestno = -1;    /* previous test number we served */
 static long prevpartno = -1;    /* previous part number we served */
@@ -154,6 +153,10 @@ const char *serverlogfile = DEFAULT_LOGFILE;
 #define REQUEST_PROXY_DUMP  "log/proxy.input"
 #define RESPONSE_PROXY_DUMP "log/proxy.response"
 
+/* file in which additional instructions may be found */
+#define DEFAULT_CMDFILE "log/ftpserver.cmd"
+const char *cmdfile = DEFAULT_CMDFILE;
+
 /* very-big-path support */
 #define MAXDOCNAMELEN 140000
 #define MAXDOCNAMELEN_TXT "139999"
@@ -213,140 +216,8 @@ static const char *doc404 = "HTTP/1.1 404 Not Found\r\n"
     "The requested URL was not found on this server.\n"
     "<P><HR><ADDRESS>" SWSVERSION "</ADDRESS>\n" "</BODY></HTML>\n";
 
-/* do-nothing macro replacement for systems which lack siginterrupt() */
-
-#ifndef HAVE_SIGINTERRUPT
-#define siginterrupt(x,y) do {} while(0)
-#endif
-
-/* vars used to keep around previous signal handlers */
-
-typedef RETSIGTYPE (*SIGHANDLER_T)(int);
-
-#ifdef SIGHUP
-static SIGHANDLER_T old_sighup_handler  = SIG_ERR;
-#endif
-
-#ifdef SIGPIPE
-static SIGHANDLER_T old_sigpipe_handler = SIG_ERR;
-#endif
-
-#ifdef SIGALRM
-static SIGHANDLER_T old_sigalrm_handler = SIG_ERR;
-#endif
-
-#ifdef SIGINT
-static SIGHANDLER_T old_sigint_handler  = SIG_ERR;
-#endif
-
-#ifdef SIGTERM
-static SIGHANDLER_T old_sigterm_handler = SIG_ERR;
-#endif
-
-#if defined(SIGBREAK) && defined(WIN32)
-static SIGHANDLER_T old_sigbreak_handler = SIG_ERR;
-#endif
-
-/* var which if set indicates that the program should finish execution */
-
-SIG_ATOMIC_T got_exit_signal = 0;
-
-/* if next is set indicates the first signal handled in exit_signal_handler */
-
-static volatile int exit_signal = 0;
-
 /* work around for handling trailing headers */
 static int already_recv_zeroed_chunk = FALSE;
-
-/* signal handler that will be triggered to indicate that the program
-  should finish its execution in a controlled manner as soon as possible.
-  The first time this is called it will set got_exit_signal to one and
-  store in exit_signal the signal that triggered its execution. */
-
-static RETSIGTYPE exit_signal_handler(int signum)
-{
-  int old_errno = errno;
-  if(got_exit_signal == 0) {
-    got_exit_signal = 1;
-    exit_signal = signum;
-  }
-  (void)signal(signum, exit_signal_handler);
-  errno = old_errno;
-}
-
-static void install_signal_handlers(void)
-{
-#ifdef SIGHUP
-  /* ignore SIGHUP signal */
-  old_sighup_handler = signal(SIGHUP, SIG_IGN);
-  if(old_sighup_handler == SIG_ERR)
-    logmsg("cannot install SIGHUP handler: %s", strerror(errno));
-#endif
-#ifdef SIGPIPE
-  /* ignore SIGPIPE signal */
-  old_sigpipe_handler = signal(SIGPIPE, SIG_IGN);
-  if(old_sigpipe_handler == SIG_ERR)
-    logmsg("cannot install SIGPIPE handler: %s", strerror(errno));
-#endif
-#ifdef SIGALRM
-  /* ignore SIGALRM signal */
-  old_sigalrm_handler = signal(SIGALRM, SIG_IGN);
-  if(old_sigalrm_handler == SIG_ERR)
-    logmsg("cannot install SIGALRM handler: %s", strerror(errno));
-#endif
-#ifdef SIGINT
-  /* handle SIGINT signal with our exit_signal_handler */
-  old_sigint_handler = signal(SIGINT, exit_signal_handler);
-  if(old_sigint_handler == SIG_ERR)
-    logmsg("cannot install SIGINT handler: %s", strerror(errno));
-  else
-    siginterrupt(SIGINT, 1);
-#endif
-#ifdef SIGTERM
-  /* handle SIGTERM signal with our exit_signal_handler */
-  old_sigterm_handler = signal(SIGTERM, exit_signal_handler);
-  if(old_sigterm_handler == SIG_ERR)
-    logmsg("cannot install SIGTERM handler: %s", strerror(errno));
-  else
-    siginterrupt(SIGTERM, 1);
-#endif
-#if defined(SIGBREAK) && defined(WIN32)
-  /* handle SIGBREAK signal with our exit_signal_handler */
-  old_sigbreak_handler = signal(SIGBREAK, exit_signal_handler);
-  if(old_sigbreak_handler == SIG_ERR)
-    logmsg("cannot install SIGBREAK handler: %s", strerror(errno));
-  else
-    siginterrupt(SIGBREAK, 1);
-#endif
-}
-
-static void restore_signal_handlers(void)
-{
-#ifdef SIGHUP
-  if(SIG_ERR != old_sighup_handler)
-    (void)signal(SIGHUP, old_sighup_handler);
-#endif
-#ifdef SIGPIPE
-  if(SIG_ERR != old_sigpipe_handler)
-    (void)signal(SIGPIPE, old_sigpipe_handler);
-#endif
-#ifdef SIGALRM
-  if(SIG_ERR != old_sigalrm_handler)
-    (void)signal(SIGALRM, old_sigalrm_handler);
-#endif
-#ifdef SIGINT
-  if(SIG_ERR != old_sigint_handler)
-    (void)signal(SIGINT, old_sigint_handler);
-#endif
-#ifdef SIGTERM
-  if(SIG_ERR != old_sigterm_handler)
-    (void)signal(SIGTERM, old_sigterm_handler);
-#endif
-#if defined(SIGBREAK) && defined(WIN32)
-  if(SIG_ERR != old_sigbreak_handler)
-    (void)signal(SIGBREAK, old_sigbreak_handler);
-#endif
-}
 
 /* returns true if the current socket is an IP one */
 static bool socket_domain_is_ip(void)
@@ -363,22 +234,37 @@ static bool socket_domain_is_ip(void)
   }
 }
 
+/* parse the file on disk that might have a test number for us */
+static int parse_cmdfile(struct httprequest *req)
+{
+  FILE *f = fopen(cmdfile, FOPEN_READTEXT);
+  if(f) {
+    int testnum = DOCNUMBER_NOTHING;
+    char buf[256];
+    while(fgets(buf, sizeof(buf), f)) {
+      if(1 == sscanf(buf, "Testnum %d", &testnum)) {
+        logmsg("[%s] cmdfile says testnum %d", cmdfile, testnum);
+        req->testno = testnum;
+      }
+    }
+    fclose(f);
+  }
+  return 0;
+}
+
 /* based on the testno, parse the correct server commands */
 static int parse_servercmd(struct httprequest *req)
 {
   FILE *stream;
-  char *filename;
   int error;
 
-  filename = test2file(req->testno);
+  stream = test2fopen(req->testno);
   req->close = FALSE;
   req->connmon = FALSE;
 
-  stream = fopen(filename, "rb");
   if(!stream) {
     error = errno;
     logmsg("fopen() failed with error: %d %s", error, strerror(error));
-    logmsg("  [1] Error opening file: %s", filename);
     logmsg("  Couldn't open test file %ld", req->testno);
     req->open = FALSE; /* closes connection */
     return 1; /* done */
@@ -623,34 +509,41 @@ static int ProcessRequest(struct httprequest *req)
 
       /* get the number after it */
       if(ptr) {
+        long num;
         ptr++; /* skip the dot */
 
-        req->testno = strtol(ptr, &ptr, 10);
+        num = strtol(ptr, &ptr, 10);
 
-        if(req->testno > 10000) {
-          req->partno = req->testno % 10000;
-          req->testno /= 10000;
+        if(num) {
+          req->testno = num;
+          if(req->testno > 10000) {
+            req->partno = req->testno % 10000;
+            req->testno /= 10000;
 
-          logmsg("found test %d in requested host name", req->testno);
+            logmsg("found test %d in requested host name", req->testno);
 
+          }
+          else
+            req->partno = 0;
         }
-        else
-          req->partno = 0;
 
-        msnprintf(logbuf, sizeof(logbuf),
-                  "Requested test number %ld part %ld (from host name)",
-                  req->testno, req->partno);
-        logmsg("%s", logbuf);
-
+        if(req->testno != DOCNUMBER_NOTHING) {
+          logmsg("Requested test number %ld part %ld (from host name)",
+                 req->testno, req->partno);
+        }
       }
-
-      if(!req->testno) {
-        logmsg("Did not find test number in PATH");
-        req->testno = DOCNUMBER_404;
-      }
-      else
-        parse_servercmd(req);
     }
+
+    if(req->testno == DOCNUMBER_NOTHING)
+      /* might get the test number */
+      parse_cmdfile(req);
+
+    if(req->testno == DOCNUMBER_NOTHING) {
+      logmsg("Did not find test number in PATH");
+      req->testno = DOCNUMBER_404;
+    }
+    else
+      parse_servercmd(req);
   }
   else if((req->offset >= 3) && (req->testno == DOCNUMBER_NOTHING)) {
     logmsg("** Unusual request. Starts with %02x %02x %02x (%c%c%c)",
@@ -854,7 +747,6 @@ static int ProcessRequest(struct httprequest *req)
 
   if(req->open &&
      req->prot_version >= 11 &&
-     end &&
      req->reqbuf + req->offset > end + strlen(end_of_headers) &&
      !req->cl &&
      (!strncmp(req->reqbuf, "GET", strlen("GET")) ||
@@ -899,15 +791,15 @@ static void storerequest(const char *reqbuf, size_t totalsize)
   FILE *dump;
   const char *dumpfile = is_proxy?REQUEST_PROXY_DUMP:REQUEST_DUMP;
 
-  if(reqbuf == NULL)
+  if(!reqbuf)
     return;
   if(totalsize == 0)
     return;
 
   do {
     dump = fopen(dumpfile, "ab");
-  } while((dump == NULL) && ((error = errno) == EINTR));
-  if(dump == NULL) {
+  } while(!dump && ((error = errno) == EINTR));
+  if(!dump) {
     logmsg("[2] Error opening file %s error: %d %s",
            dumpfile, error, strerror(error));
     logmsg("Failed to write request input ");
@@ -1102,7 +994,8 @@ static int send_doc(curl_socket_t sock, struct httprequest *req)
     case DOCNUMBER_WERULEZ:
       /* we got a "friends?" question, reply back that we sure are */
       logmsg("Identifying ourselves as friends");
-      msnprintf(msgbuf, sizeof(msgbuf), "WE ROOLZ: %ld\r\n", (long)getpid());
+      msnprintf(msgbuf, sizeof(msgbuf), "WE ROOLZ: %"
+                CURL_FORMAT_CURL_OFF_T "\r\n", our_getpid());
       msglen = strlen(msgbuf);
       if(use_gopher)
         msnprintf(weare, sizeof(weare), "%s", msgbuf);
@@ -1123,7 +1016,6 @@ static int send_doc(curl_socket_t sock, struct httprequest *req)
   }
   else {
     char partbuf[80];
-    char *filename = test2file(req->testno);
 
     /* select the <data> tag for "normal" requests and the <connect> one
        for CONNECT requests (within the <reply> section) */
@@ -1136,11 +1028,10 @@ static int send_doc(curl_socket_t sock, struct httprequest *req)
 
     logmsg("Send response test%ld section <%s>", req->testno, partbuf);
 
-    stream = fopen(filename, "rb");
+    stream = test2fopen(req->testno);
     if(!stream) {
       error = errno;
       logmsg("fopen() failed with error: %d %s", error, strerror(error));
-      logmsg("  [3] Error opening file: %s", filename);
       return 0;
     }
     else {
@@ -1159,11 +1050,10 @@ static int send_doc(curl_socket_t sock, struct httprequest *req)
     }
 
     /* re-open the same file again */
-    stream = fopen(filename, "rb");
+    stream = test2fopen(req->testno);
     if(!stream) {
       error = errno;
       logmsg("fopen() failed with error: %d %s", error, strerror(error));
-      logmsg("  [4] Error opening file: %s", filename);
       free(ptr);
       return 0;
     }
@@ -1552,9 +1442,14 @@ static void http_connect(curl_socket_t *infdp,
         /* a new connection on listener socket (most likely from client) */
         curl_socket_t datafd = accept(rootfd, NULL, NULL);
         if(datafd != CURL_SOCKET_BAD) {
-          struct httprequest req2;
+          static struct httprequest *req2;
           int err = 0;
-          memset(&req2, 0, sizeof(req2));
+          if(!req2) {
+            req2 = malloc(sizeof(*req2));
+            if(!req2)
+              exit(1);
+          }
+          memset(req2, 0, sizeof(*req2));
           logmsg("====> Client connect DATA");
 #ifdef TCP_NODELAY
           if(socket_domain_is_ip()) {
@@ -1565,9 +1460,9 @@ static void http_connect(curl_socket_t *infdp,
               logmsg("====> TCP_NODELAY for client DATA connection failed");
           }
 #endif
-          init_httprequest(&req2);
-          while(!req2.done_processing) {
-            err = get_request(datafd, &req2);
+          init_httprequest(req2);
+          while(!req2->done_processing) {
+            err = get_request(datafd, req2);
             if(err < 0) {
               /* this socket must be closed, done or not */
               break;
@@ -1576,14 +1471,14 @@ static void http_connect(curl_socket_t *infdp,
 
           /* skip this and close the socket if err < 0 */
           if(err >= 0) {
-            err = send_doc(datafd, &req2);
-            if(!err && req2.connect_request) {
+            err = send_doc(datafd, req2);
+            if(!err && req2->connect_request) {
               /* sleep to prevent triggering libcurl known bug #39. */
               for(loop = 2; (loop > 0) && !got_exit_signal; loop--)
                 wait_ms(250);
               if(!got_exit_signal) {
                 /* connect to the server */
-                serverfd[DATA] = connect_to(ipaddr, req2.connect_port);
+                serverfd[DATA] = connect_to(ipaddr, req2->connect_port);
                 if(serverfd[DATA] != CURL_SOCKET_BAD) {
                   /* secondary tunnel established, now we have two
                      connections */
@@ -1974,6 +1869,7 @@ int main(int argc, char *argv[])
   srvr_sockaddr_union_t me;
   curl_socket_t sock = CURL_SOCKET_BAD;
   int wrotepidfile = 0;
+  int wroteportfile = 0;
   int flag;
   unsigned short port = DEFAULT_PORT;
 #ifdef USE_UNIX_SOCKETS
@@ -1981,11 +1877,11 @@ int main(int argc, char *argv[])
   bool unlink_socket = false;
 #endif
   const char *pidname = ".http.pid";
-  struct httprequest req;
+  const char *portname = ".http.port";
+  struct httprequest *req = NULL;
   int rc = 0;
   int error;
   int arg = 1;
-  long pid;
   const char *connecthost = "127.0.0.1";
   const char *socket_type = "IPv4";
   char port_str[11];
@@ -1993,8 +1889,6 @@ int main(int argc, char *argv[])
 
   /* a default CONNECT port is basically pointless but still ... */
   size_t socket_idx;
-
-  memset(&req, 0, sizeof(req));
 
   while(argc>arg) {
     if(!strcmp("--version", argv[arg])) {
@@ -2013,10 +1907,20 @@ int main(int argc, char *argv[])
       if(argc>arg)
         pidname = argv[arg++];
     }
+    else if(!strcmp("--portfile", argv[arg])) {
+      arg++;
+      if(argc>arg)
+        portname = argv[arg++];
+    }
     else if(!strcmp("--logfile", argv[arg])) {
       arg++;
       if(argc>arg)
         serverlogfile = argv[arg++];
+    }
+    else if(!strcmp("--cmdfile", argv[arg])) {
+      arg++;
+      if(argc>arg)
+        cmdfile = argv[arg++];
     }
     else if(!strcmp("--gopher", argv[arg])) {
       arg++;
@@ -2060,7 +1964,7 @@ int main(int argc, char *argv[])
         char *endptr;
         unsigned long ulnum = strtoul(argv[arg], &endptr, 10);
         if((endptr != argv[arg] + strlen(argv[arg])) ||
-           (ulnum < 1025UL) || (ulnum > 65535UL)) {
+           (ulnum && ((ulnum < 1025UL) || (ulnum > 65535UL)))) {
           fprintf(stderr, "sws: invalid --port argument (%s)\n",
                   argv[arg]);
           return 0;
@@ -2093,6 +1997,7 @@ int main(int argc, char *argv[])
            " --version\n"
            " --logfile [file]\n"
            " --pidfile [file]\n"
+           " --portfile [file]\n"
            " --ipv4\n"
            " --ipv6\n"
            " --unix-socket [file]\n"
@@ -2104,16 +2009,16 @@ int main(int argc, char *argv[])
     }
   }
 
-  msnprintf(port_str, sizeof(port_str), "port %hu", port);
-
 #ifdef WIN32
   win32_init();
   atexit(win32_cleanup);
 #endif
 
-  install_signal_handlers();
+  install_signal_handlers(false);
 
-  pid = (long)getpid();
+  req = calloc(1, sizeof(*req));
+  if(!req)
+    goto sws_cleanup;
 
   sock = socket(socket_domain, SOCK_STREAM, 0);
 
@@ -2161,61 +2066,62 @@ int main(int argc, char *argv[])
 #endif /* ENABLE_IPV6 */
 #ifdef USE_UNIX_SOCKETS
   case AF_UNIX:
-    memset(&me.sau, 0, sizeof(me.sau));
-    me.sau.sun_family = AF_UNIX;
-    strncpy(me.sau.sun_path, unix_socket, sizeof(me.sau.sun_path) - 1);
-    rc = bind(sock, &me.sa, sizeof(me.sau));
-    if(0 != rc && errno == EADDRINUSE) {
-      struct stat statbuf;
-      /* socket already exists. Perhaps it is stale? */
-      int unixfd = socket(AF_UNIX, SOCK_STREAM, 0);
-      if(CURL_SOCKET_BAD == unixfd) {
-        error = SOCKERRNO;
-        logmsg("Error binding socket, failed to create socket at %s: (%d) %s",
-               unix_socket, error, strerror(error));
-        goto sws_cleanup;
-      }
-      /* check whether the server is alive */
-      rc = connect(unixfd, &me.sa, sizeof(me.sau));
-      error = errno;
-      close(unixfd);
-      if(ECONNREFUSED != error) {
-        logmsg("Error binding socket, failed to connect to %s: (%d) %s",
-               unix_socket, error, strerror(error));
-        goto sws_cleanup;
-      }
-      /* socket server is not alive, now check if it was actually a socket.
-       * Systems which have Unix sockets will also have lstat */
-      rc = lstat(unix_socket, &statbuf);
-      if(0 != rc) {
-        logmsg("Error binding socket, failed to stat %s: (%d) %s",
-               unix_socket, errno, strerror(errno));
-        goto sws_cleanup;
-      }
-      if((statbuf.st_mode & S_IFSOCK) != S_IFSOCK) {
-        logmsg("Error binding socket, failed to stat %s: (%d) %s",
-               unix_socket, error, strerror(error));
-        goto sws_cleanup;
-      }
-      /* dead socket, cleanup and retry bind */
-      rc = unlink(unix_socket);
-      if(0 != rc) {
-        logmsg("Error binding socket, failed to unlink %s: (%d) %s",
-               unix_socket, errno, strerror(errno));
-        goto sws_cleanup;
-      }
-      /* stale socket is gone, retry bind */
-      rc = bind(sock, &me.sa, sizeof(me.sau));
-    }
-    break;
+    rc = bind_unix_socket(sock, unix_socket, &me.sau);
 #endif /* USE_UNIX_SOCKETS */
   }
   if(0 != rc) {
     error = SOCKERRNO;
-    logmsg("Error binding socket on %s: (%d) %s",
-           location_str, error, strerror(error));
+    logmsg("Error binding socket: (%d) %s", error, strerror(error));
     goto sws_cleanup;
   }
+
+  if(!port) {
+    /* The system was supposed to choose a port number, figure out which
+       port we actually got and update the listener port value with it. */
+    curl_socklen_t la_size;
+    srvr_sockaddr_union_t localaddr;
+#ifdef ENABLE_IPV6
+    if(socket_domain != AF_INET6)
+#endif
+      la_size = sizeof(localaddr.sa4);
+#ifdef ENABLE_IPV6
+    else
+      la_size = sizeof(localaddr.sa6);
+#endif
+    memset(&localaddr.sa, 0, (size_t)la_size);
+    if(getsockname(sock, &localaddr.sa, &la_size) < 0) {
+      error = SOCKERRNO;
+      logmsg("getsockname() failed with error: (%d) %s",
+             error, strerror(error));
+      sclose(sock);
+      goto sws_cleanup;
+    }
+    switch(localaddr.sa.sa_family) {
+    case AF_INET:
+      port = ntohs(localaddr.sa4.sin_port);
+      break;
+#ifdef ENABLE_IPV6
+    case AF_INET6:
+      port = ntohs(localaddr.sa6.sin6_port);
+      break;
+#endif
+    default:
+      break;
+    }
+    if(!port) {
+      /* Real failure, listener port shall not be zero beyond this point. */
+      logmsg("Apparently getsockname() succeeded, with listener port zero.");
+      logmsg("A valid reason for this failure is a binary built without");
+      logmsg("proper network library linkage. This might not be the only");
+      logmsg("reason, but double check it before anything else.");
+      sclose(sock);
+      goto sws_cleanup;
+    }
+  }
+#ifdef USE_UNIX_SOCKETS
+  if(socket_domain != AF_UNIX)
+#endif
+    msnprintf(port_str, sizeof(port_str), "port %hu", port);
 
   logmsg("Running %s %s version on %s",
          use_gopher?"GOPHER":"HTTP", socket_type, location_str);
@@ -2243,17 +2149,22 @@ int main(int argc, char *argv[])
   if(!wrotepidfile)
     goto sws_cleanup;
 
+  wroteportfile = write_portfile(portname, port);
+  if(!wroteportfile)
+    goto sws_cleanup;
+
   /* initialization of httprequest struct is done before get_request(), but
      the pipelining struct field must be initialized previously to FALSE
      every time a new connection arrives. */
 
-  init_httprequest(&req);
+  init_httprequest(req);
 
   for(;;) {
     fd_set input;
     fd_set output;
     struct timeval timeout = {0, 250000L}; /* 250 ms */
     curl_socket_t maxfd = (curl_socket_t)-1;
+    int active;
 
     /* Clear out closed sockets */
     for(socket_idx = num_sockets - 1; socket_idx >= 1; --socket_idx) {
@@ -2301,6 +2212,7 @@ int main(int argc, char *argv[])
       /* Timed out - try again */
       continue;
     }
+    active = rc; /* a positive number */
 
     /* Check if the listening socket is ready to accept */
     if(FD_ISSET(all_sockets[0], &input)) {
@@ -2312,30 +2224,32 @@ int main(int argc, char *argv[])
         if(CURL_SOCKET_BAD == msgsock)
           goto sws_cleanup;
       } while(msgsock > 0);
+      active--;
     }
 
     /* Service all connections that are ready */
-    for(socket_idx = 1; socket_idx < num_sockets; ++socket_idx) {
+    for(socket_idx = 1; (socket_idx < num_sockets) && active; ++socket_idx) {
       if(FD_ISSET(all_sockets[socket_idx], &input)) {
+        active--;
         if(got_exit_signal)
           goto sws_cleanup;
 
         /* Service this connection until it has nothing available */
         do {
-          rc = service_connection(all_sockets[socket_idx], &req, sock,
+          rc = service_connection(all_sockets[socket_idx], req, sock,
                                   connecthost);
           if(got_exit_signal)
             goto sws_cleanup;
 
           if(rc < 0) {
-            logmsg("====> Client disconnect %d", req.connmon);
+            logmsg("====> Client disconnect %d", req->connmon);
 
-            if(req.connmon) {
+            if(req->connmon) {
               const char *keepopen = "[DISCONNECT]\n";
               storerequest(keepopen, strlen(keepopen));
             }
 
-            if(!req.open)
+            if(!req->open)
               /* When instructed to close connection after server-reply we
                  wait a very small amount of time before doing so. If this
                  is not done client might get an ECONNRESET before reading
@@ -2351,13 +2265,13 @@ int main(int argc, char *argv[])
             if(!serverlogslocked)
               clear_advisor_read_lock(SERVERLOGS_LOCK);
 
-            if(req.testno == DOCNUMBER_QUIT)
+            if(req->testno == DOCNUMBER_QUIT)
               goto sws_cleanup;
           }
 
           /* Reset the request, unless we're still in the middle of reading */
-          if(rc != 0)
-            init_httprequest(&req);
+          if(rc)
+            init_httprequest(req);
         } while(rc > 0);
       }
     }
@@ -2383,22 +2297,26 @@ sws_cleanup:
   }
 #endif
 
+  free(req);
+
   if(got_exit_signal)
     logmsg("signalled to die");
 
   if(wrotepidfile)
     unlink(pidname);
+  if(wroteportfile)
+    unlink(portname);
 
   if(serverlogslocked) {
     serverlogslocked = 0;
     clear_advisor_read_lock(SERVERLOGS_LOCK);
   }
 
-  restore_signal_handlers();
+  restore_signal_handlers(false);
 
   if(got_exit_signal) {
     logmsg("========> %s sws (%s pid: %ld) exits with signal (%d)",
-           socket_type, location_str, pid, exit_signal);
+           socket_type, location_str, (long)getpid(), exit_signal);
     /*
      * To properly set the return status of the process we
      * must raise the same signal SIGINT or SIGTERM that we

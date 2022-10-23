@@ -12,23 +12,23 @@ struct CJMod
 #pragma region params
 
 	float min_mod = 0.6F;
-	float max_mod = 1.1F;
+	float max_mod = 1.F;
 	float mod_base = 0.4F;
 	float prop_buffer = 1.F;
 
 	float total_prop_min = min_mod;
 	float total_prop_max = max_mod;
-	float total_prop_scaler = 5.428F; // ~38/7
+	float total_prop_scaler = 5.428F;
 
-	float jack_base = 1.F;
+	float jack_base = 2.F;
 	float jack_min = 0.625F;
 	float jack_max = 1.F;
 	float jack_scaler = 1.F;
 
-	float not_jack_pool = 1.15F;
+	float not_jack_pool = 1.2F;
 	float not_jack_min = 0.4F;
 	float not_jack_max = 1.F;
-	float not_jack_scaler = 1.75F;
+	float not_jack_scaler = 1.F;
 
 	float vibro_flag = 1.F;
 	float decay_factor = 0.1F;

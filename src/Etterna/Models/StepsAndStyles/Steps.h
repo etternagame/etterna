@@ -5,12 +5,11 @@
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/Grade.h"
 #include "Etterna/Models/Misc/RadarValues.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Models/NoteData/NoteData.h"
 
 class Profile;
-class NoteData;
 struct lua_State;
 class Song;
 class Calc;
@@ -46,6 +45,8 @@ class Steps
 	Steps(Song* song);
 	/** @brief Destroy the Steps that are no longer needed. */
 	~Steps();
+
+	auto operator=(const Steps &) -> Steps&;
 
 	// initializers
 	void CopyFrom(Steps* pSource, StepsType ntTo);
@@ -271,10 +272,23 @@ class Steps
 
   private:
 	std::string ChartKey = "";
+	struct UniquePtrNoteData {
+		std::unique_ptr<NoteData> p;
+		UniquePtrNoteData(): p(std::make_unique<NoteData>()) { }
+		UniquePtrNoteData(UniquePtrNoteData& rhs) {
+			p = rhs.p ? std::make_unique<NoteData>(*rhs.p) : nullptr;
+		}
+		UniquePtrNoteData &operator=(const UniquePtrNoteData& rhs) {
+			p = rhs.p ? std::make_unique<NoteData>(*rhs.p) : nullptr;
+			return *this;
+		}
+		NoteData *operator->() { return &*p; }
+		NoteData &operator*() { return *p; }
+	};
 	/* We can have one or both of these; if we have both, they're always
 	 * identical. Call Compress() to force us to only have
 	 * m_sNoteDataCompressed; otherwise, creation of these is transparent. */
-	mutable HiddenPtr<NoteData> m_pNoteData;
+	mutable UniquePtrNoteData m_pNoteData;
 	mutable bool m_bNoteDataIsFilled;
 	mutable std::string m_sNoteDataCompressed;
 

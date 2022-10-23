@@ -50,12 +50,11 @@ Style::GetTransformedNoteDataForStyle(PlayerNumber pn,
 
 void
 Style::StyleInputToGameInput(int iCol,
-							 PlayerNumber pn,
 							 std::vector<GameInput>& ret) const
 {
-	ASSERT_M(pn < NUM_PLAYERS && iCol < MAX_COLS_PER_PLAYER,
-			 ssprintf("P%i C%i", pn, iCol));
-	auto bUsingOneSide = true;
+	ASSERT_M(iCol < MAX_COLS_PER_PLAYER,
+			 ssprintf("C%i", iCol));
+	// auto bUsingOneSide = true;
 
 	FOREACH_ENUM(GameController, gc)
 	{
@@ -88,9 +87,8 @@ Style::StyleInputToGameInput(int iCol,
 	}
 	if (unlikely(ret.empty())) {
 		FAIL_M(
-		  ssprintf("Invalid column number %i for player %i in the style %s",
+		  ssprintf("Invalid column number %i in the style %s",
 				   iCol,
-				   pn,
 				   m_szName));
 	}
 };
@@ -145,7 +143,7 @@ Style::ColToButtonName(int iCol) const
 		return pzColumnName;
 
 	std::vector<GameInput> GI;
-	StyleInputToGameInput(iCol, PLAYER_1, GI);
+	StyleInputToGameInput(iCol, GI);
 	return INPUTMAPPER->GetInputScheme()->GetGameButtonName(GI[0].button);
 }
 
@@ -174,13 +172,11 @@ class LunaStyle : public Luna<Style>
 	}
 	static int GetWidth(T* p, lua_State* L)
 	{
-		auto pn = PLAYER_1;
-		lua_pushnumber(L, p->GetWidth(pn));
+		lua_pushnumber(L, p->GetWidth(PLAYER_1));
 		return 1;
 	}
 	static int GetColumnInfo(T* p, lua_State* L)
 	{
-		auto pn = PLAYER_1;
 		auto iCol = IArg(2) - 1;
 		if (iCol < 0 || iCol >= p->m_iColsPerPlayer) {
 			LuaHelpers::ReportScriptErrorFmt(

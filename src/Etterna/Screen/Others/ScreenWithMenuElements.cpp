@@ -39,7 +39,7 @@ ScreenWithMenuElements::Init()
 
 	ASSERT(this->m_SubActors.empty()); // don't call Init twice!
 
-	if (TIMER_SECONDS != -1) {
+	if (TIMER_SECONDS != -1.0f) {
 		ASSERT(m_MenuTimer == NULL); // don't load twice
 		m_MenuTimer = new MenuTimer;
 		m_MenuTimer->Load(TIMER_METRICS_GROUP.GetValue());
@@ -237,13 +237,6 @@ ScreenWithMenuElements::StartTransitioningScreen(ScreenMessage smSendWhenDone)
 	TweenOffScreen();
 
 	m_Out.StartTransitioning(std::move(smSendWhenDone));
-	if (WAIT_FOR_CHILDREN_BEFORE_TWEENING_OUT) {
-		// Time the transition so that it finishes exactly when all actors have
-		// finished tweening.
-		float fSecondsUntilFinished = GetTweenTimeLeft();
-		float fSecondsUntilBeginOff =
-		  std::max(fSecondsUntilFinished - m_Out.GetTweenTimeLeft(), 0.F);
-	}
 }
 
 void

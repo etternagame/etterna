@@ -330,7 +330,6 @@ local function createList()
             if isLocal then
                 scores = {}
                 localrtTable = getRateTable()
-                local sng = GAMESTATE:GetCurrentSong()
                 if localrtTable ~= nil then
                     localrates, localrateIndex = getUsedRates(localrtTable)
                     localscoreIndex = 1
@@ -459,6 +458,20 @@ local function createList()
         local score = nil
         local scoreIndex = i
 
+        -- expecting self to be UIElements.TextButton or a Def.BitmapText
+        -- the purpose is to color based on CC On
+        local function diffuseScore(self, category, element)
+            local txt = self
+            if self.GetChild ~= nil then
+                txt = self:GetChild("Text") or self
+            end
+            if score ~= nil and score:GetChordCohesion() then
+                EGGMAN.gegagoogoo(txt, score:GetChartKey()):diffuse(COLORS:getColor("generalBox", "ChordCohesionOnScore"))
+            else
+                txt:stopeffect():diffuse(COLORS:getColor(category, element))
+            end
+        end
+
         return Def.ActorFrame {
             Name = "ScoreItem_"..i,
             InitCommand = function(self)
@@ -522,7 +535,10 @@ local function createList()
                     txt:zoom(rateTextSize)
                     txt:maxwidth(actuals.SSRRateWidth / rateTextSize - textzoomFudge)
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
-                    registerActorToColorConfigElement(txt, "main", "SecondaryText")
+                    diffuseScore(self, "main", "SecondaryText")
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    diffuseScore(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -531,6 +547,7 @@ local function createList()
                         local rt = score:GetMusicRate()
                         txt:settext(getRateString(rt))
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                        diffuseScore(self, "main", "SecondaryText")
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
@@ -559,7 +576,10 @@ local function createList()
                     self:x(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance)
                     txt:zoom(nameTextSize)
                     txt:maxwidth(actuals.NameJudgmentWidth / nameTextSize - textzoomFudge)
-                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
+                    diffuseScore(self, "main", "PrimaryText")
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    diffuseScore(self, "main", "PrimaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -577,6 +597,7 @@ local function createList()
                         end
                         txt:settext(n)
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                        diffuseScore(self, "main", "PrimaryText")
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
@@ -608,7 +629,10 @@ local function createList()
                     self:xy(actuals.LeftCenteredAlignmentLineLeftGap + actuals.LeftCenteredAlignmentDistance, actuals.ItemHeight)
                     txt:zoom(judgmentTextSize)
                     txt:maxwidth(actuals.NameJudgmentWidth / judgmentTextSize - textzoomFudge)
-                    registerActorToColorConfigElement(txt, "main", "SecondaryText")
+                    diffuseScore(self, "main", "SecondaryText")
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    diffuseScore(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
@@ -625,6 +649,7 @@ local function createList()
                         local comboStr = tostring(score:GetMaxCombo())
                         txt:settextf("%s  |  %s  |  %s  |  %s  |  %s  |  %s  x%s", jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr, comboStr)
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                        diffuseScore(self, "main", "SecondaryText")
                     end
                 end,
                 RolloverUpdateCommand = function(self, params)
@@ -716,11 +741,15 @@ local function createList()
                     self:xy(actuals.ItemWidth - actuals.RightInfoRightAlignRightGap, actuals.ItemHeight)
                     self:zoom(dateTextSize)
                     self:maxwidth((actuals.ItemWidth - actuals.RightInfoLeftAlignLeftGap - actuals.RightInfoRightAlignRightGap) / dateTextSize - textzoomFudge)
-                    registerActorToColorConfigElement(self, "main", "SecondaryText")
+                    diffuseScore(self, "main", "SecondaryText")
+                end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    diffuseScore(self, "main", "SecondaryText")
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
                         self:settext(score:GetDate())
+                        diffuseScore(self, "main", "SecondaryText")
                     end
                 end
             },

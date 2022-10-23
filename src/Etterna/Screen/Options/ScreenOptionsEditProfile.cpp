@@ -60,12 +60,6 @@ ScreenOptionsEditProfile::ImportOptions(int iRow, const PlayerNumber& vpns)
 	Profile* pProfile =
 	  PROFILEMAN->GetLocalProfile(GAMESTATE->m_sEditLocalProfileID);
 	ASSERT(pProfile != NULL);
-	OptionRow& row = *m_pRows[iRow];
-
-	switch (iRow) {
-		case ROW_NOTHING:
-			break;
-	}
 }
 
 void

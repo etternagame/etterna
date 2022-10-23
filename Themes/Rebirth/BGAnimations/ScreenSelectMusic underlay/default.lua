@@ -1,4 +1,4 @@
-local showbg = function() return themeConfig:get_data().global.ShowBackgrounds end
+local showbg = function() return PREFSMAN:GetPreference("ShowBackgrounds") end
 local avgcolorbg = function() return themeConfig:get_data().global.FallbackToAverageColorBG end
 local t = Def.ActorFrame {
     Name = "UnderlayFile",

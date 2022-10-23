@@ -32,11 +32,11 @@
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/FilterManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include <algorithm>
 
@@ -181,8 +181,7 @@ ScreenSelectMusic::Init()
 	m_soundOptionsChange.Load(THEME->GetPathS(m_sName, "options"));
 	m_soundLocked.Load(THEME->GetPathS(m_sName, "locked"));
 
-	// Replay Data Manager Reset.
-	PlayerAI::ResetScoreData();
+	REPLAYS->UnsetActiveReplay();
 
 	this->SortByDrawOrder();
 }
@@ -447,7 +446,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 	// the only time this would not be null is if replay is being started
 	// it is nulled at the start of this screen
 	// if input breaks, this is why (it shouldnt break)
-	if (PlayerAI::pScoreData != nullptr) {
+	if (REPLAYS->GetActiveReplayScore() != nullptr) {
 		return false;
 	}
 
@@ -971,7 +970,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 	{
 		this->PlayCommand("SortChange");
 	} else if (SM == SM_GainFocus) {
-		DLMAN->UpdateDLSpeed(false);
+		DLMAN->UpdateGameplayState(false);
 		CodeDetector::RefreshCacheItems(CODES);
 	} else if (SM == SM_LoseFocus) {
 		CodeDetector::RefreshCacheItems(); // reset for other screens
@@ -1167,7 +1166,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 	m_soundStart.Play(true);
 
 	if (m_SelectionState == SelectionState_Finalized) {
-		DLMAN->UpdateDLSpeed(true);
+		DLMAN->UpdateGameplayState(true);
 
 		if (!m_bStepsChosen) {
 			m_bStepsChosen = true;
@@ -1770,76 +1769,25 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		GAMESTATE->m_gameplayMode.Set(GameplayMode_Replay);
 		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
 
-		// we get timestamps not noterows when getting online replays from the
-		// site, since order is deterministic we'll just auto set the noterows
-		// from the existing, if the score was cc off then we need to fill in
-		// extra rows for each tap in the chord -mina
-		auto timestamps = hs->GetCopyOfSetOnlineReplayTimestampVector();
-		auto noterows = hs->GetNoteRowVector();
-
-		// Construct noterows from given timestamps if timestamps are given
-		// alone
-		if (!timestamps.empty() && noterows.empty()) {
-			GAMESTATE->SetProcessedTimingData(
-			  GAMESTATE->m_pCurSteps->GetTimingData());
-			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			auto nerv = nd.BuildAndGetNerv(td);
-			auto sdifs = td->BuildAndGetEtaner(nerv);
-			std::vector<int> noterows;
-			for (auto t : timestamps) {
-				auto timestamptobeat =
-				  td->GetBeatFromElapsedTime(t * hs->GetMusicRate());
-				auto somenumberscaledbyoffsets =
-				  sdifs[0] - (timestamps[0] * hs->GetMusicRate());
-				timestamptobeat += somenumberscaledbyoffsets;
-				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
-				noterows.emplace_back(noterowfrombeat);
-			}
-			auto noterowoffsetter = nerv[0] - noterows[0];
-			for (auto& noterowwithoffset : noterows)
-				noterowwithoffset += noterowoffsetter;
-			GAMESTATE->SetProcessedTimingData(nullptr);
-			hs->SetNoteRowVector(noterows);
-		}
-
-		// Since we keep misses on EO as 180ms, need to convert them back.
-		if (!timestamps.empty()) {
-			auto offsets = hs->GetCopyOfOffsetVector();
-			for (auto& offset : offsets) {
-				if (fabs(offset) >= .18f)
-					offset = -1.1f; // This is a miss to the replay reader.
-			}
-			hs->SetOffsetVector(offsets);
-		}
-
-		// Player AI Setup.
-		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(
-		  hs, 0, &nd, GAMESTATE->m_pCurSteps->GetTimingData());
-
-		// prepare old mods to return to
-		const auto oldMods =
-		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(
-			true);
+		// Replay Management Setup
+		REPLAYS->InitReplayPlaybackForScore(hs);
 
 		// Set Replay mods and rate to let it handle stuff
+		auto oldMods =
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(
+			true);
 		auto scoreRate = hs->GetMusicRate();
 		auto oldRate = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
-		PlayerAI::replayRate = scoreRate;
-		PlayerAI::oldModifiers = oldMods;
-		PlayerAI::oldRate = oldRate;
 		auto ns =
 		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin;
 		auto ft =
 		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType;
 		if (ns.empty())
 			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
-		PlayerAI::oldNoteskin = ns;
 		auto usesMirror = potmp.m_bTurns[PlayerOptions::TURN_MIRROR];
 		auto hsMods = hs->GetModifiers();
-		PlayerAI::replayModifiers = hsMods;
-		PlayerAI::replayUsedMirror = usesMirror;
-		PlayerAI::oldFailType = ft;
+		REPLAYS->StoreActiveReplaySettings(
+		  scoreRate, hsMods, usesMirror, oldRate, oldMods, ft, ns);
 
 		// lock the game into replay mode and GO
 		Locator::getLogger()->info("Viewing replay for score key {}",
@@ -1880,9 +1828,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		}
 
 		auto* td = steps->GetTimingData();
-		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(score, 0, &nd, td);
-		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
+		REPLAYS->InitReplayPlaybackForScore(score);
+		auto* replay = REPLAYS->GetActiveReplay();
 
 		auto& pss = ss.m_player;
 		pss.m_HighScore = *score;
@@ -1900,7 +1847,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		NoteDataUtil::CalculateRadarValues(nd, rv);
 		pss.m_radarPossible += rv;
 		RadarValues realRV;
-		PlayerAI::CalculateRadarValuesForReplay(realRV, rv);
+		REPLAYS->CalculateRadarValuesForReplay(*replay, realRV, rv);
 		score->SetRadarValues(realRV);
 		pss.m_radarActual += realRV;
 		GAMESTATE->SetProcessedTimingData(nullptr);
@@ -1916,8 +1863,8 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
 		if (!hs->GetChordCohesion() && !potmp.ContainsTransformOrTurn()) {
-			pss.m_fLifeRecord = PlayerAI::GenerateLifeRecordForReplay();
-			pss.m_ComboList = PlayerAI::GenerateComboListForReplay();
+			pss.m_fLifeRecord = REPLAYS->GenerateLifeRecordForReplay(*replay);
+			pss.m_ComboList = REPLAYS->GenerateComboListForReplay(*replay);
 		}
 		ss.m_vpPlayedSongs.emplace_back(GAMESTATE->m_pCurSong);
 		ss.m_vpPossibleSongs.emplace_back(GAMESTATE->m_pCurSong);

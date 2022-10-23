@@ -13,23 +13,15 @@ struct CJOHJumpMod
 
 #pragma region params
 
-	float min_mod = 0.5F;
+	float min_mod = 0.57F;
 	float max_mod = 1.F;
 
-	float max_seq_weight = 0.65F;
-	float max_seq_pool = 1.2F;
-	float max_seq_scaler = 0.8F;
-
-	float prop_pool = 1.4F;
-	float prop_scaler = 1.F;
+	float prop_pool = 1.F;
+	float prop_scaler = 0.63F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
-
-		{ "max_seq_weight", &max_seq_weight },
-		{ "max_seq_pool", &max_seq_pool },
-		{ "max_seq_scaler", &max_seq_scaler },
 
 		{ "prop_pool", &prop_pool },
 		{ "prop_scaler", &prop_scaler },
@@ -38,15 +30,12 @@ struct CJOHJumpMod
 
 	OHJ_Sequencer ohj;
 	int max_ohjump_seq_taps = 0;
-	int cc_taps = 0;
 
-	float floatymcfloatface = 0.F;
 	// number of jumps scaled to total taps in hand
 	float base_seq_prop = 0.F;
 	// size of sequence scaled to total taps in hand
 	float base_jump_prop = 0.F;
 
-	float max_seq_component = neutral;
 	float prop_component = neutral;
 	float pmod = neutral;
 
@@ -57,13 +46,10 @@ struct CJOHJumpMod
 		ohj.zero();
 
 		max_ohjump_seq_taps = 0;
-		cc_taps = 0;
 
-		floatymcfloatface = 0.F;
 		base_seq_prop = 0.F;
 		base_jump_prop = 0.F;
 
-		max_seq_component = neutral;
 		prop_component = neutral;
 		pmod = neutral;
 	}
@@ -75,30 +61,16 @@ struct CJOHJumpMod
 		ohj(ct, bt);
 	}
 
-	// build component based on max sequence relative to hand taps
-	void set_max_seq_comp()
-	{
-		max_seq_component = max_seq_pool - (base_seq_prop * max_seq_scaler);
-		max_seq_component = max_seq_component < 0.1F ? 0.1F : max_seq_component;
-		max_seq_component = fastsqrt(max_seq_component);
-	}
-
 	// build component based on number of jumps relative to hand taps
 	void set_prop_comp()
 	{
 		prop_component = prop_pool - (base_jump_prop * prop_scaler);
 		prop_component = prop_component < 0.1F ? 0.1F : prop_component;
-		prop_component = fastsqrt(prop_component);
 	}
 
 	void set_pmod(const metaItvHandInfo& mitvhi)
 	{
 		const auto& itvhi = mitvhi._itvhi;
-
-		cc_taps = mitvhi._base_types[base_left_right] +
-				  mitvhi._base_types[base_right_left];
-
-		assert(cc_taps >= 0);
 
 		// if cur_seq > max when we ended the interval, grab it
 		max_ohjump_seq_taps = ohj.cur_seq_taps > ohj.max_seq_taps
@@ -120,45 +92,18 @@ struct CJOHJumpMod
 			return;
 		}
 
-		/* prop scaling only case */
+		// floats for less casting
+		// these should always be whole numbers
+		const auto ohjcount = itvhi.get_col_taps_nowf(col_ohjump) / 2.f;
+		const auto tapcount = (itvhi.get_col_taps_nowf(col_left) - ohjcount) +
+							  (itvhi.get_col_taps_nowf(col_right) - ohjcount);
+		const auto rows = ohjcount + tapcount;
 
-		if (max_ohjump_seq_taps < 3) {
-
-			// need to set now
-			base_jump_prop =
-			  itvhi.get_col_taps_nowf(col_ohjump) / itvhi.get_taps_nowf();
-			set_prop_comp();
-
-			pmod = std::clamp(prop_component, min_mod, max_mod);
-			return;
-		}
-
-		/* seq scaling only case */
-
-		if (cc_taps == 0) {
-
-			floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
-			base_seq_prop = floatymcfloatface / itvhi.get_taps_nowf();
-			set_max_seq_comp();
-
-			pmod = std::clamp(max_seq_component, min_mod, max_mod);
-			return;
-		}
-
-		/* case optimization end */
-
-		floatymcfloatface = static_cast<float>(max_ohjump_seq_taps);
-		base_seq_prop = floatymcfloatface / mitvhi._itvhi.get_taps_nowf();
-		set_max_seq_comp();
-		max_seq_component = std::clamp(max_seq_component, 0.1F, max_mod);
-
-		base_jump_prop =
-		  itvhi.get_col_taps_nowf(col_ohjump) / itvhi.get_taps_nowf();
+		base_jump_prop = ohjcount / rows;
 		set_prop_comp();
 		prop_component = std::clamp(prop_component, 0.1F, max_mod);
 
-		pmod = weighted_average(
-		  max_seq_component, prop_component, max_seq_weight, 1.F);
+		pmod = prop_component;
 		pmod = std::clamp(pmod, min_mod, max_mod);
 	}
 
@@ -173,7 +118,6 @@ struct CJOHJumpMod
 	void interval_end()
 	{
 		// reset any interval stuff here
-		cc_taps = 0;
 		ohj.max_seq_taps = 0;
 		max_ohjump_seq_taps = 0;
 	}

@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -48,7 +48,7 @@
  *                        0 - no auth
  *                        1 - GSSAPI (not supported)
  *                        2 - user + password
- * "response [number]" - the decimal number to repsond to a connect
+ * "response [number]" - the decimal number to respond to a connect
  *                       SOCKS5: 0 is OK, SOCKS4: 90 is ok
  *
  */
@@ -101,6 +101,10 @@
 #define DEFAULT_LOGFILE "log/socksd.log"
 #endif
 
+#ifndef DEFAULT_REQFILE
+#define DEFAULT_REQFILE "log/socksd-request.log"
+#endif
+
 #ifndef DEFAULT_CONFIG
 #define DEFAULT_CONFIG "socksd.config"
 #endif
@@ -136,12 +140,10 @@ struct configurable {
 static struct configurable config;
 
 const char *serverlogfile = DEFAULT_LOGFILE;
+static const char *reqlogfile = DEFAULT_REQFILE;
 static const char *configfile = DEFAULT_CONFIG;
 
-#ifdef ENABLE_IPV6
-static bool use_ipv6 = FALSE;
-#endif
-static const char *ipv_inuse = "IPv4";
+static const char *socket_type = "IPv4";
 static unsigned short port = DEFAULT_PORT;
 
 static void resetdefaults(void)
@@ -171,6 +173,16 @@ static unsigned short shortval(char *value)
   unsigned long num = strtoul(value, NULL, 10);
   return num & 0xffff;
 }
+
+static enum {
+  socket_domain_inet = AF_INET
+#ifdef ENABLE_IPV6
+  , socket_domain_inet6 = AF_INET6
+#endif
+#ifdef USE_UNIX_SOCKETS
+  , socket_domain_unix = AF_UNIX
+#endif
+} socket_domain = AF_INET;
 
 static void getconfig(void)
 {
@@ -228,123 +240,6 @@ static void getconfig(void)
     }
     fclose(fp);
   }
-}
-
-
-/* do-nothing macro replacement for systems which lack siginterrupt() */
-
-#ifndef HAVE_SIGINTERRUPT
-#define siginterrupt(x,y) do {} while(0)
-#endif
-
-/* vars used to keep around previous signal handlers */
-
-typedef RETSIGTYPE (*SIGHANDLER_T)(int);
-
-#ifdef SIGHUP
-static SIGHANDLER_T old_sighup_handler  = SIG_ERR;
-#endif
-
-#ifdef SIGPIPE
-static SIGHANDLER_T old_sigpipe_handler = SIG_ERR;
-#endif
-
-#ifdef SIGALRM
-static SIGHANDLER_T old_sigalrm_handler = SIG_ERR;
-#endif
-
-#ifdef SIGINT
-static SIGHANDLER_T old_sigint_handler  = SIG_ERR;
-#endif
-
-#if defined(SIGBREAK) && defined(WIN32)
-static SIGHANDLER_T old_sigbreak_handler = SIG_ERR;
-#endif
-
-/* var which if set indicates that the program should finish execution */
-
-SIG_ATOMIC_T got_exit_signal = 0;
-
-/* if next is set indicates the first signal handled in exit_signal_handler */
-
-static volatile int exit_signal = 0;
-
-/* signal handler that will be triggered to indicate that the program
-  should finish its execution in a controlled manner as soon as possible.
-  The first time this is called it will set got_exit_signal to one and
-  store in exit_signal the signal that triggered its execution. */
-
-static RETSIGTYPE exit_signal_handler(int signum)
-{
-  int old_errno = errno;
-  if(got_exit_signal == 0) {
-    got_exit_signal = 1;
-    exit_signal = signum;
-  }
-  (void)signal(signum, exit_signal_handler);
-  errno = old_errno;
-}
-
-static void install_signal_handlers(void)
-{
-#ifdef SIGHUP
-  /* ignore SIGHUP signal */
-  old_sighup_handler = signal(SIGHUP, SIG_IGN);
-  if(old_sighup_handler == SIG_ERR)
-    logmsg("cannot install SIGHUP handler: %s", strerror(errno));
-#endif
-#ifdef SIGPIPE
-  /* ignore SIGPIPE signal */
-  old_sigpipe_handler = signal(SIGPIPE, SIG_IGN);
-  if(old_sigpipe_handler == SIG_ERR)
-    logmsg("cannot install SIGPIPE handler: %s", strerror(errno));
-#endif
-#ifdef SIGALRM
-  /* ignore SIGALRM signal */
-  old_sigalrm_handler = signal(SIGALRM, SIG_IGN);
-  if(old_sigalrm_handler == SIG_ERR)
-    logmsg("cannot install SIGALRM handler: %s", strerror(errno));
-#endif
-#ifdef SIGINT
-  /* handle SIGINT signal with our exit_signal_handler */
-  old_sigint_handler = signal(SIGINT, exit_signal_handler);
-  if(old_sigint_handler == SIG_ERR)
-    logmsg("cannot install SIGINT handler: %s", strerror(errno));
-  else
-    siginterrupt(SIGINT, 1);
-#endif
-#if defined(SIGBREAK) && defined(WIN32)
-  /* handle SIGBREAK signal with our exit_signal_handler */
-  old_sigbreak_handler = signal(SIGBREAK, exit_signal_handler);
-  if(old_sigbreak_handler == SIG_ERR)
-    logmsg("cannot install SIGBREAK handler: %s", strerror(errno));
-  else
-    siginterrupt(SIGBREAK, 1);
-#endif
-}
-
-static void restore_signal_handlers(void)
-{
-#ifdef SIGHUP
-  if(SIG_ERR != old_sighup_handler)
-    (void)signal(SIGHUP, old_sighup_handler);
-#endif
-#ifdef SIGPIPE
-  if(SIG_ERR != old_sigpipe_handler)
-    (void)signal(SIGPIPE, old_sigpipe_handler);
-#endif
-#ifdef SIGALRM
-  if(SIG_ERR != old_sigalrm_handler)
-    (void)signal(SIGALRM, old_sigalrm_handler);
-#endif
-#ifdef SIGINT
-  if(SIG_ERR != old_sigint_handler)
-    (void)signal(SIGINT, old_sigint_handler);
-#endif
-#if defined(SIGBREAK) && defined(WIN32)
-  if(SIG_ERR != old_sigbreak_handler)
-    (void)signal(SIGBREAK, old_sigbreak_handler);
-#endif
 }
 
 static void loghex(unsigned char *buffer, ssize_t len)
@@ -596,7 +491,7 @@ static curl_socket_t sockit(curl_socket_t fd)
     return CURL_SOCKET_BAD;
   }
   /* reserved, should be zero */
-  if(buffer[SOCKS5_RESERVED] != 0) {
+  if(buffer[SOCKS5_RESERVED]) {
     logmsg("Request COMMAND byte not %d", config.reqcmd);
     return CURL_SOCKET_BAD;
   }
@@ -629,6 +524,36 @@ static curl_socket_t sockit(curl_socket_t fd)
   if(rc < (4 + len + 2)) {
     logmsg("Request too short: %d, expected %d", rc, 4 + len + 2);
     return CURL_SOCKET_BAD;
+  }
+  logmsg("Received ATYP %d", type);
+
+  {
+    FILE *dump;
+    dump = fopen(reqlogfile, "ab");
+    if(dump) {
+      int i;
+      fprintf(dump, "atyp %u =>", type);
+      switch(type) {
+      case 1:
+        /* 4 bytes IPv4 address */
+        fprintf(dump, " %u.%u.%u.%u\n",
+                address[0], address[1], address[2], address[3]);
+        break;
+      case 3:
+        /* The first octet of the address field contains the number of octets
+           of name that follow */
+        fprintf(dump, " %.*s\n", len-1, &address[1]);
+        break;
+      case 4:
+        /* 16 bytes IPv6 address */
+        for(i = 0; i < 16; i++) {
+          fprintf(dump, " %02x", address[i]);
+        }
+        fprintf(dump, "\n");
+        break;
+      }
+      fclose(dump);
+    }
   }
 
   if(!config.port) {
@@ -859,7 +784,11 @@ static bool incoming(curl_socket_t listenfd)
 }
 
 static curl_socket_t sockdaemon(curl_socket_t sock,
-                                unsigned short *listenport)
+                                unsigned short *listenport
+#ifdef USE_UNIX_SOCKETS
+        , const char *unix_socket
+#endif
+        )
 {
   /* passive daemon style */
   srvr_sockaddr_union_t listener;
@@ -910,24 +839,29 @@ static curl_socket_t sockdaemon(curl_socket_t sock,
   /* When the specified listener port is zero, it is actually a
      request to let the system choose a non-zero available port. */
 
+  switch(socket_domain) {
+    case AF_INET:
+      memset(&listener.sa4, 0, sizeof(listener.sa4));
+      listener.sa4.sin_family = AF_INET;
+      listener.sa4.sin_addr.s_addr = INADDR_ANY;
+      listener.sa4.sin_port = htons(*listenport);
+      rc = bind(sock, &listener.sa, sizeof(listener.sa4));
+      break;
 #ifdef ENABLE_IPV6
-  if(!use_ipv6) {
-#endif
-    memset(&listener.sa4, 0, sizeof(listener.sa4));
-    listener.sa4.sin_family = AF_INET;
-    listener.sa4.sin_addr.s_addr = INADDR_ANY;
-    listener.sa4.sin_port = htons(*listenport);
-    rc = bind(sock, &listener.sa, sizeof(listener.sa4));
-#ifdef ENABLE_IPV6
-  }
-  else {
-    memset(&listener.sa6, 0, sizeof(listener.sa6));
-    listener.sa6.sin6_family = AF_INET6;
-    listener.sa6.sin6_addr = in6addr_any;
-    listener.sa6.sin6_port = htons(*listenport);
-    rc = bind(sock, &listener.sa, sizeof(listener.sa6));
-  }
+    case AF_INET6:
+      memset(&listener.sa6, 0, sizeof(listener.sa6));
+      listener.sa6.sin6_family = AF_INET6;
+      listener.sa6.sin6_addr = in6addr_any;
+      listener.sa6.sin6_port = htons(*listenport);
+      rc = bind(sock, &listener.sa, sizeof(listener.sa6));
+      break;
 #endif /* ENABLE_IPV6 */
+#ifdef USE_UNIX_SOCKETS
+    case AF_UNIX:
+    rc = bind_unix_socket(sock, unix_socket, &listener.sau);
+#endif
+  }
+
   if(rc) {
     error = SOCKERRNO;
     logmsg("Error binding socket on port %hu: (%d) %s",
@@ -936,19 +870,21 @@ static curl_socket_t sockdaemon(curl_socket_t sock,
     return CURL_SOCKET_BAD;
   }
 
-  if(!*listenport) {
+  if(!*listenport
+#ifdef USE_UNIX_SOCKETS
+          && !unix_socket
+#endif
+    ) {
     /* The system was supposed to choose a port number, figure out which
        port we actually got and update the listener port value with it. */
     curl_socklen_t la_size;
     srvr_sockaddr_union_t localaddr;
 #ifdef ENABLE_IPV6
-    if(!use_ipv6)
+    if(socket_domain == AF_INET6)
+      la_size = sizeof(localaddr.sa6);
+    else
 #endif
       la_size = sizeof(localaddr.sa4);
-#ifdef ENABLE_IPV6
-    else
-      la_size = sizeof(localaddr.sa6);
-#endif
     memset(&localaddr.sa, 0, (size_t)la_size);
     if(getsockname(sock, &localaddr.sa, &la_size) < 0) {
       error = SOCKERRNO;
@@ -999,10 +935,17 @@ int main(int argc, char *argv[])
   curl_socket_t sock = CURL_SOCKET_BAD;
   curl_socket_t msgsock = CURL_SOCKET_BAD;
   int wrotepidfile = 0;
+  int wroteportfile = 0;
   const char *pidname = ".socksd.pid";
+  const char *portname = NULL; /* none by default */
   bool juggle_again;
   int error;
   int arg = 1;
+
+#ifdef USE_UNIX_SOCKETS
+  const char *unix_socket = NULL;
+  bool unlink_socket = false;
+#endif
 
   while(argc>arg) {
     if(!strcmp("--version", argv[arg])) {
@@ -1019,6 +962,11 @@ int main(int argc, char *argv[])
       arg++;
       if(argc>arg)
         pidname = argv[arg++];
+    }
+    else if(!strcmp("--portfile", argv[arg])) {
+      arg++;
+      if(argc>arg)
+        portname = argv[arg++];
     }
     else if(!strcmp("--config", argv[arg])) {
       arg++;
@@ -1040,32 +988,48 @@ int main(int argc, char *argv[])
       if(argc>arg)
         serverlogfile = argv[arg++];
     }
+    else if(!strcmp("--reqfile", argv[arg])) {
+      arg++;
+      if(argc>arg)
+        reqlogfile = argv[arg++];
+    }
     else if(!strcmp("--ipv6", argv[arg])) {
 #ifdef ENABLE_IPV6
-      ipv_inuse = "IPv6";
-      use_ipv6 = TRUE;
+      socket_domain = AF_INET6;
+      socket_type = "IPv6";
 #endif
       arg++;
     }
     else if(!strcmp("--ipv4", argv[arg])) {
       /* for completeness, we support this option as well */
 #ifdef ENABLE_IPV6
-      ipv_inuse = "IPv4";
-      use_ipv6 = FALSE;
+      socket_type = "IPv4";
 #endif
       arg++;
+    }
+    else if(!strcmp("--unix-socket", argv[arg])) {
+      arg++;
+      if(argc>arg) {
+#ifdef USE_UNIX_SOCKETS
+        struct sockaddr_un sau;
+        unix_socket = argv[arg];
+        if(strlen(unix_socket) >= sizeof(sau.sun_path)) {
+          fprintf(stderr,
+                  "socksd: socket path must be shorter than %zu chars\n",
+              sizeof(sau.sun_path));
+          return 0;
+        }
+        socket_domain = AF_UNIX;
+        socket_type = "unix";
+#endif
+        arg++;
+      }
     }
     else if(!strcmp("--port", argv[arg])) {
       arg++;
       if(argc>arg) {
         char *endptr;
         unsigned long ulnum = strtoul(argv[arg], &endptr, 10);
-        if((endptr != argv[arg] + strlen(argv[arg])) ||
-           ((ulnum != 0UL) && ((ulnum < 1025UL) || (ulnum > 65535UL)))) {
-          fprintf(stderr, "socksd: invalid --port argument (%s)\n",
-                  argv[arg]);
-          return 0;
-        }
         port = curlx_ultous(ulnum);
         arg++;
       }
@@ -1078,8 +1042,11 @@ int main(int argc, char *argv[])
            " --version\n"
            " --logfile [file]\n"
            " --pidfile [file]\n"
+           " --portfile [file]\n"
+           " --reqfile [file]\n"
            " --ipv4\n"
            " --ipv6\n"
+           " --unix-socket [file]\n"
            " --bindonly\n"
            " --port [port]\n");
       return 0;
@@ -1095,16 +1062,9 @@ int main(int argc, char *argv[])
   setmode(fileno(stderr), O_BINARY);
 #endif
 
-  install_signal_handlers();
+  install_signal_handlers(false);
 
-#ifdef ENABLE_IPV6
-  if(!use_ipv6)
-#endif
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-#ifdef ENABLE_IPV6
-  else
-    sock = socket(AF_INET6, SOCK_STREAM, 0);
-#endif
+  sock = socket(socket_domain, SOCK_STREAM, 0);
 
   if(CURL_SOCKET_BAD == sock) {
     error = SOCKERRNO;
@@ -1115,19 +1075,39 @@ int main(int argc, char *argv[])
 
   {
     /* passive daemon style */
-    sock = sockdaemon(sock, &port);
+    sock = sockdaemon(sock, &port
+#ifdef USE_UNIX_SOCKETS
+            , unix_socket
+#endif
+            );
     if(CURL_SOCKET_BAD == sock) {
       goto socks5_cleanup;
     }
+#ifdef USE_UNIX_SOCKETS
+    unlink_socket = true;
+#endif
     msgsock = CURL_SOCKET_BAD; /* no stream socket yet */
   }
 
-  logmsg("Running %s version", ipv_inuse);
+  logmsg("Running %s version", socket_type);
+
+#ifdef USE_UNIX_SOCKETS
+  if(socket_domain == AF_UNIX)
+      logmsg("Listening on unix socket %s", unix_socket);
+  else
+#endif
   logmsg("Listening on port %hu", port);
 
   wrotepidfile = write_pidfile(pidname);
   if(!wrotepidfile) {
     goto socks5_cleanup;
+  }
+
+  if(portname) {
+    wroteportfile = write_portfile(portname, port);
+    if(!wroteportfile) {
+      goto socks5_cleanup;
+    }
   }
 
   do {
@@ -1142,10 +1122,19 @@ socks5_cleanup:
   if(sock != CURL_SOCKET_BAD)
     sclose(sock);
 
+#ifdef USE_UNIX_SOCKETS
+  if(unlink_socket && socket_domain == AF_UNIX) {
+    error = unlink(unix_socket);
+    logmsg("unlink(%s) = %d (%s)", unix_socket, error, strerror(error));
+  }
+#endif
+
   if(wrotepidfile)
     unlink(pidname);
+  if(wroteportfile)
+    unlink(portname);
 
-  restore_signal_handlers();
+  restore_signal_handlers(false);
 
   if(got_exit_signal) {
     logmsg("============> socksd exits with signal (%d)", exit_signal);

@@ -5,11 +5,11 @@
 #                            | (__| |_| |  _ <| |___
 #                             \___|\___/|_| \_\_____|
 #
-# Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+# Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution. The terms
-# are also available at https://curl.haxx.se/docs/copyright.html.
+# are also available at https://curl.se/docs/copyright.html.
 #
 # You may opt to use, copy, modify, merge, publish, distribute and/or sell
 # copies of the Software, and permit persons to whom the Software is
@@ -29,26 +29,14 @@ AUTOMAKE_OPTIONS = foreign nostdinc
 # $(top_srcdir)/include is for libcurl's external include files
 # $(top_builddir)/lib is for libcurl's generated lib/curl_config.h file
 # $(top_srcdir)/lib for libcurl's lib/curl_setup.h and other "borrowed" files
-# $(top_builddir)/ares is for in-tree c-ares's generated ares_build.h file
-# $(top_srcdir)/ares is for in-tree c-ares's external include files
 
-if USE_EMBEDDED_ARES
-AM_CPPFLAGS = -I$(top_srcdir)/include        \
-              -I$(top_builddir)/lib          \
-              -I$(top_srcdir)/lib            \
-              -I$(top_srcdir)/src            \
-              -I$(top_srcdir)/tests/libtest  \
-              -I$(top_builddir)/ares         \
-              -I$(top_srcdir)/ares
-else
 AM_CPPFLAGS = -I$(top_srcdir)/include        \
               -I$(top_builddir)/lib          \
               -I$(top_srcdir)/lib            \
               -I$(top_srcdir)/src            \
               -I$(top_srcdir)/tests/libtest
-endif
 
-EXTRA_DIST = Makefile.inc CMakeLists.txt
+EXTRA_DIST = Makefile.inc CMakeLists.txt README.md
 
 CFLAGS += @CURL_CFLAG_EXTRAS@
 
@@ -57,7 +45,7 @@ LIBS = $(BLANK_AT_MAKETIME)
 
 LDADD = $(top_builddir)/src/libcurltool.la   \
         $(top_builddir)/lib/libcurlu.la      \
-        @LDFLAGS@ @LIBCURL_LIBS@
+        @LDFLAGS@ @LIBCURL_LIBS@ @NSS_LIBS@
 
 AM_CPPFLAGS += -DCURL_STATICLIB -DUNITTESTS
 
@@ -70,7 +58,7 @@ CS_1 =
 CS_ = $(CS_0)
 
 checksrc:
-	$(CHECKSRC)@PERL@ $(top_srcdir)/lib/checksrc.pl $(srcdir)/*.[ch]
+	$(CHECKSRC)@PERL@ $(top_srcdir)/scripts/checksrc.pl $(srcdir)/*.[ch]
 
 if BUILD_UNITTESTS
 noinst_PROGRAMS = $(UNITPROGS)

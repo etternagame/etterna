@@ -13,8 +13,8 @@ Native SSL
 If libcurl was built with Schannel or Secure Transport support (the native SSL
 libraries included in Windows and Mac OS X), then this does not apply to
 you. Scroll down for details on how the OS-native engines handle SSL
-certificates. If you're not sure, then run "curl -V" and read the results. If
-the version string says "WinSSL" in it, then it was built with Schannel
+certificates. If you are not sure, then run "curl -V" and read the results. If
+the version string says `Schannel` in it, then it was built with Schannel
 support.
 
 It is about trust
@@ -22,19 +22,19 @@ It is about trust
 
 This system is about trust. In your local CA certificate store you have certs
 from *trusted* Certificate Authorities that you then can use to verify that the
-server certificates you see are valid. They're signed by one of the CAs you
+server certificates you see are valid. they are signed by one of the CAs you
 trust.
 
 Which CAs do you trust? You can decide to trust the same set of companies your
-operating system trusts, or the set one of the known browsers trust. That's
+operating system trusts, or the set one of the known browsers trust. That is
 basically trust via someone else you trust. You should just be aware that
 modern operating systems and browsers are setup to trust *hundreds* of
-companies and recent years several such CAs have been found untrustworthy.
+companies and in recent years several such CAs have been found untrustworthy.
 
 Certificate Verification
 ------------------------
 
-libcurl performs peer SSL certificate verification by default.  This is done
+libcurl performs peer SSL certificate verification by default. This is done
 by using a CA certificate store that the SSL library can use to make sure the
 peer's server certificate is valid.
 
@@ -42,8 +42,8 @@ If you communicate with HTTPS, FTPS or other TLS-using servers using
 certificates that are signed by CAs present in the store, you can be sure
 that the remote server really is the one it claims to be.
 
-If the remote server uses a self-signed certificate, if you don't install a CA
-cert store, if the server uses a certificate signed by a CA that isn't
+If the remote server uses a self-signed certificate, if you do not install a CA
+cert store, if the server uses a certificate signed by a CA that is not
 included in the store you use or if the remote host is an impostor
 impersonating your favorite site, and you want to transfer files from this
 server, do one of the following:
@@ -55,16 +55,16 @@ server, do one of the following:
 
  2. Get a CA certificate that can verify the remote server and use the proper
     option to point out this CA cert for verification when connecting. For
-    libcurl hackers: `curl_easy_setopt(curl, CURLOPT_CAPATH, capath);`
+    libcurl hackers: `curl_easy_setopt(curl, CURLOPT_CAINFO, cacert);`
 
     With the curl command line tool: --cacert [file]
 
  3. Add the CA cert for your server to the existing default CA certificate
-    store. The default CA certificate store can changed at compile time with the
-    following configure options:
+    store. The default CA certificate store can be changed at compile time with
+    the following configure options:
 
-    --with-ca-bundle=FILE: use the specified file as CA certificate store. CA
-    certificates need to be concatenated in PEM format into this file.
+    --with-ca-bundle=FILE: use the specified file as the CA certificate store.
+    CA certificates need to be concatenated in PEM format into this file.
 
     --with-ca-path=PATH: use the specified path as CA certificate store. CA
     certificates need to be stored as individual PEM files in this directory.
@@ -103,11 +103,11 @@ server, do one of the following:
        certificate store or use it stand-alone as described. Just remember that
        the security is no better than the way you obtained the certificate.
 
- 4. If you're using the curl command line tool, you can specify your own CA
-    cert path by setting the environment variable `CURL_CA_BUNDLE` to the path
+ 4. If you are using the curl command line tool, you can specify your own CA
+    cert file by setting the environment variable `CURL_CA_BUNDLE` to the path
     of your choice.
 
-    If you're using the curl command line tool on Windows, curl will search
+    If you are using the curl command line tool on Windows, curl will search
     for a CA cert file named "curl-ca-bundle.crt" in these directories and in
     this order:
       1. application's directory
@@ -119,10 +119,10 @@ server, do one of the following:
  5. Get a better/different/newer CA cert bundle! One option is to extract the
     one a recent Firefox browser uses by running 'make ca-bundle' in the curl
     build tree root, or possibly download a version that was generated this
-    way for you: [CA Extract](https://curl.haxx.se/docs/caextract.html)
+    way for you: [CA Extract](https://curl.se/docs/caextract.html)
 
 Neglecting to use one of the above methods when dealing with a server using a
-certificate that isn't signed by one of the certificates in the installed CA
+certificate that is not signed by one of the certificates in the installed CA
 certificate store, will cause SSL to report an error ("certificate verify
 failed") during the handshake and SSL will then refuse further communication
 with that server.

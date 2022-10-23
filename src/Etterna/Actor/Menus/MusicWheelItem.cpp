@@ -179,6 +179,8 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	MusicWheelItemType type = MusicWheelItemType_Invalid;
 
 	auto wheel = dynamic_cast<const MusicWheel*>(GetParent());
+	ASSERT_M(wheel != nullptr,
+			 "Parent(Wheel) dynamic cast to load wheel item datas failed at runtime.");
 
 	switch (pWID->m_Type) {
 		DEFAULT_FAIL(pWID->m_Type);
@@ -292,15 +294,6 @@ MusicWheelItem::RefreshGrades()
 
 	if (pWID->m_pSong == nullptr)
 		return;
-
-	Difficulty dc;
-	if (GAMESTATE->m_pCurSteps)
-		dc = GAMESTATE->m_pCurSteps->GetDifficulty();
-	else
-		dc = GAMESTATE->m_PreferredDifficulty;
-
-	ProfileSlot ps;
-	ps = static_cast<ProfileSlot>(PLAYER_1);
 
 	StepsType st;
 	if (GAMESTATE->m_pCurSteps)

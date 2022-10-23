@@ -176,18 +176,6 @@ MusicWheel::MusicWheel()
 	FOREACH_ENUM(SortOrder, so) { m_WheelItemDatasStatus[so] = INVALID; }
 }
 
-MusicWheel::~MusicWheel()
-{
-	FOREACH_ENUM(SortOrder, so)
-	{
-		auto i = m__UnFilteredWheelItemDatas[so].begin();
-		auto iEnd = m__UnFilteredWheelItemDatas[so].end();
-		for (; i != iEnd; ++i) {
-			delete *i;
-		}
-	}
-}
-
 // this is a trainwreck and i made it worse -mina
 void
 MusicWheel::ReloadSongList(bool searching, const std::string& findme)
@@ -695,7 +683,7 @@ MusicWheel::FilterByAndAgainstStepKeys(std::vector<Song*>& inv)
 {
 	std::vector<Song*> tmp;
 	const std::function<bool(Song*, std::vector<string>&)> check =
-	  [this](Song* x, std::vector<string>& hl) {
+	  [](Song* x, std::vector<string>& hl) {
 		  for (auto& ck : hl) {
 			  if (x->HasChartByHash(ck)) {
 				  return true;
@@ -770,7 +758,7 @@ MusicWheel::FilterBySkillsets(std::vector<Song*>& inv)
 
 void
 MusicWheel::BuildWheelItemDatas(
-  std::vector<MusicWheelItemData*>& arrayWheelItemDatas,
+  std::vector<std::unique_ptr<MusicWheelItemData>>& arrayWheelItemDatas,
   SortOrder so,
   bool searching,
   const std::string& findme)
@@ -782,18 +770,18 @@ MusicWheel::BuildWheelItemDatas(
 		std::vector<std::string> vsNames;
 		split(MODE_MENU_CHOICE_NAMES, ",", vsNames);
 		for (auto i = 0; i < static_cast<int>(vsNames.size()); ++i) {
-			MusicWheelItemData wid(
+			auto wid = std::make_unique<MusicWheelItemData>(
 			  WheelItemDataType_Sort, nullptr, "", SORT_MENU_COLOR, 0);
-			wid.m_pAction = HiddenPtr<GameCommand>(new GameCommand);
-			wid.m_pAction->m_sName = vsNames[i];
-			wid.m_pAction->Load(i, ParseCommands(CHOICE.GetValue(vsNames[i])));
-			wid.m_sLabel = WHEEL_TEXT(vsNames[i]);
+			wid->m_pAction = std::make_unique<GameCommand>();
+			wid->m_pAction->m_sName = vsNames[i];
+			wid->m_pAction->Load(i, ParseCommands(CHOICE.GetValue(vsNames[i])));
+			wid->m_sLabel = WHEEL_TEXT(vsNames[i]);
 
-			if (!wid.m_pAction->IsPlayable()) {
+			if (!wid->m_pAction->IsPlayable()) {
 				continue;
 			}
 
-			arrayWheelItemDatas.emplace_back(new MusicWheelItemData(wid));
+			arrayWheelItemDatas.emplace_back(std::move(wid));
 		}
 	} else {
 		// Make an array of Song*, then sort them
@@ -982,8 +970,7 @@ MusicWheel::BuildWheelItemDatas(
 							: SECTION_COLORS.GetValue(iSectionColorIndex);
 						iSectionColorIndex =
 						  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
-						arrayWheelItemDatas.emplace_back(
-						  new MusicWheelItemData(WheelItemDataType_Section,
+						arrayWheelItemDatas.push_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Section,
 												 nullptr,
 												 sThisSection,
 												 colorSection,
@@ -991,8 +978,7 @@ MusicWheel::BuildWheelItemDatas(
 						sLastSection = sThisSection;
 					}
 				}
-				arrayWheelItemDatas.emplace_back(
-				  new MusicWheelItemData(WheelItemDataType_Song,
+				arrayWheelItemDatas.emplace_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Song,
 										 pSong,
 										 sLastSection,
 										 SONGMAN->GetSongColor(pSong),
@@ -1031,8 +1017,7 @@ MusicWheel::BuildWheelItemDatas(
 				auto colorSection = SONGMAN->GetSongGroupColor(gname);
 				iSectionColorIndex =
 				  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
-				arrayWheelItemDatas.emplace_back(
-				  new MusicWheelItemData(WheelItemDataType_Section,
+				arrayWheelItemDatas.emplace_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Section,
 										 nullptr,
 										 gname,
 										 colorSection,
@@ -1042,8 +1027,7 @@ MusicWheel::BuildWheelItemDatas(
 				// the song is in the arraysongs set defined above -mina
 				for (auto& s : gsongs) {
 					if (hurp.count(s) != 0u) {
-						arrayWheelItemDatas.emplace_back(
-						  new MusicWheelItemData(WheelItemDataType_Song,
+						arrayWheelItemDatas.emplace_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Song,
 												 s,
 												 gname,
 												 SONGMAN->GetSongColor(s),
@@ -1108,7 +1092,7 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 }
 
 void
-MusicWheel::FilterWheelItemDatas(std::vector<MusicWheelItemData*>& aUnFilteredDatas,
+MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
 								 std::vector<MusicWheelItemData*>& aFilteredData,
 								 SortOrder /*so*/) const
 {
@@ -1169,7 +1153,7 @@ MusicWheel::FilterWheelItemDatas(std::vector<MusicWheelItemData*>& aUnFilteredDa
 		if (aiRemove[i]) {
 			continue;
 		}
-		aFilteredData.emplace_back(aUnFilteredDatas[i]);
+		aFilteredData.emplace_back(aUnFilteredDatas[i].get());
 	}
 
 	// Update the song count in each section header.
@@ -1206,10 +1190,11 @@ MusicWheel::FilterWheelItemDatas(std::vector<MusicWheelItemData*>& aUnFilteredDa
 		--filteredSize;
 	}
 
-	// If we've filtered all items, insert a dummy.
+	// If we've filtered all items, insert a static dummy.
 	if (aFilteredData.empty()) {
-		aFilteredData.emplace_back(new MusicWheelItemData(
-		  WheelItemDataType_Section, nullptr, EMPTY_STRING, EMPTY_COLOR, 0));
+		static MusicWheelItemData EmptyDummy(
+		  WheelItemDataType_Section, nullptr, EMPTY_STRING, EMPTY_COLOR, 0);
+		aFilteredData.emplace_back(&EmptyDummy);
 	}
 }
 
@@ -1242,7 +1227,7 @@ MusicWheel::UpdateSwitch()
 			// Change difficulty for sorts by meter
 			// XXX: do this with GameCommand?
 			StepsType st;
-			Difficulty dc;
+			Difficulty dc = Difficulty_Invalid;
 			if (SongUtil::GetStepsTypeAndDifficultyFromSortOrder(
 				  GAMESTATE->m_SortOrder, st, dc)) {
 				ASSERT(dc != Difficulty_Invalid);

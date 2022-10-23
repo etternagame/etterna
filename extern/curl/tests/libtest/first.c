@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -42,6 +42,8 @@
 #  include "memdebug.h"
 #endif
 
+#include "timediff.h"
+
 int select_wrapper(int nfds, fd_set *rd, fd_set *wr, fd_set *exc,
                    struct timeval *tv)
 {
@@ -56,7 +58,7 @@ int select_wrapper(int nfds, fd_set *rd, fd_set *wr, fd_set *exc,
    * select() can not be used to sleep without a single fd_set.
    */
   if(!nfds) {
-    Sleep((1000*tv->tv_sec) + (DWORD)(((double)tv->tv_usec)/1000.0));
+    Sleep((DWORD)curlx_tvtoms(tv));
     return 0;
   }
 #endif
@@ -65,11 +67,13 @@ int select_wrapper(int nfds, fd_set *rd, fd_set *wr, fd_set *exc,
 
 void wait_ms(int ms)
 {
+#ifdef USE_WINSOCK
+  Sleep(ms);
+#else
   struct timeval t;
-  t.tv_sec = ms/1000;
-  ms -= (int)t.tv_sec * 1000;
-  t.tv_usec = ms * 1000;
+  curlx_mstotv(&t, ms);
   select_wrapper(0, NULL, NULL, NULL, &t);
+#endif
 }
 
 char *libtest_arg2 = NULL;
@@ -146,7 +150,7 @@ int main(int argc, char **argv)
 
   /*
    * Setup proper locale from environment. This is needed to enable locale-
-   * specific behaviour by the C library in order to test for undesired side
+   * specific behavior by the C library in order to test for undesired side
    * effects that could cause in libcurl.
    */
 #ifdef HAVE_SETLOCALE
@@ -177,6 +181,11 @@ int main(int argc, char **argv)
   if(PR_Initialized())
     /* prevent valgrind from reporting possibly lost memory (fd cache, ...) */
     PR_Cleanup();
+#endif
+
+#ifdef WIN32
+  /* flush buffers of all streams regardless of mode */
+  _flushall();
 #endif
 
   return result;

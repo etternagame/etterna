@@ -245,6 +245,25 @@ local translations = {
     Justice = THEME:GetString("ScreenEvaluation", "Justice"),
 }
 
+-- require that the banner ratio is 3.2 for consistency
+local nonstandardBannerSizing = false
+do
+    local rat = actuals.BannerWidth / actuals.BannerHeight
+    if rat ~= 3.2 then
+        local possibleHeight = actuals.BannerWidth / 3.2
+        if possibleHeight > actuals.BannerHeight then
+            -- height stays, width moves
+            actuals.BannerWidth = actuals.BannerHeight * 3.2
+        else
+            -- width stays, height moves
+            actuals.BannerHeight = actuals.BannerWidth / 3.2
+        end
+        -- this will produce a visible gap but the ratio will stay the same
+        nonstandardBannerSizing = true
+    end
+    actuals.BannerAreaHeight = ratios.BannerHeight * SCREEN_HEIGHT
+end
+
 -- constant list of judgments for rescoring purposes
 -- for the most part this list is the same as the one below but remains separate just "in case"
 local tapJudgments = {
@@ -926,6 +945,11 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.BannerLeftGap, actuals.BannerUpperGap)
             self:valign(0):halign(0)
             self:scaletoclipped(actuals.BannerWidth, actuals.BannerHeight)
+            if nonstandardBannerSizing then
+                -- when the banner has been resized to an unexpected size, to fit the 3.2 ratio, reposition it
+                -- this movement centers it in the area provided
+                self:addy((actuals.BannerAreaHeight - actuals.BannerHeight) / 2)
+            end
         end,
         SetCommand = function(self, params)
             self:finishtweening()
@@ -933,7 +957,9 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(1)
             if params.song then
                 local bnpath = params.song:GetBannerPath()
-                if not bnpath then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath  then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else
@@ -950,6 +976,12 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:valign(0):halign(0)
             self:xy(actuals.GraphLeftGap, actuals.BannerUpperGap + actuals.GraphBannerGap + actuals.BannerHeight)
+            if nonstandardBannerSizing then
+                -- when the banner has been resized to an unexpected size, to fit the 3.2 ratio, reposition it
+                -- this movement centers it in the area provided
+                self:addy((actuals.BannerAreaHeight - actuals.BannerHeight) / 2)
+            end
+
             -- due to reasons, the sizing for this is in metrics [GraphDisplay]
             -- we override them with the following zoomto
             -- so the ones in metrics can be anything....
@@ -972,6 +1004,12 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:valign(0):halign(0)
             self:xy(actuals.GraphLeftGap, actuals.BannerUpperGap + actuals.GraphBannerGap + actuals.BannerHeight + actuals.LifeGraphHeight)
+            if nonstandardBannerSizing then
+                -- when the banner has been resized to an unexpected size, to fit the 3.2 ratio, reposition it
+                -- this movement centers it in the area provided
+                self:addy((actuals.BannerAreaHeight - actuals.BannerHeight) / 2)
+            end
+
             -- due to reasons, the sizing for this is in metrics [ComboGraph]
             -- we dont override them here because the combo text is broken by the zoom
             -- self:zoomto(actuals.GraphWidth, actuals.ComboGraphHeight)

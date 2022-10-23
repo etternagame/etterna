@@ -19,6 +19,16 @@ const int MIN_METER = 1;
  */
 const int MAX_METER = 35;
 
+// some components of the game care about some negative number
+// and break if you pass it
+// so this defines the point at which behavior is undefined
+// usually you only reach this if you have a huge starting bpm
+const int ARBITRARY_MIN_GAMEPLAY_NUMBER = -200000;
+
+// the hard end of the boo window and start of the miss window
+// dont let anyone hit a note outside of this
+const float MISS_WINDOW_BEGIN_SEC = 0.18F;
+
 enum GameplayMode
 {
 	GameplayMode_Normal,

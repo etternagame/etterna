@@ -10,7 +10,6 @@
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/NoteData/NoteData.h"
@@ -18,6 +17,7 @@
 #include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Core/Services/Locator.hpp"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -38,38 +38,40 @@ ScreenGameplayReplay::FillPlayerInfo(PlayerInfo* playerInfoOut)
 
 ScreenGameplayReplay::ScreenGameplayReplay()
 {
-	ASSERT_M(PlayerAI::pScoreData != nullptr,
+	ASSERT_M(REPLAYS->GetActiveReplayScore() != nullptr,
 			 "Replay Highscore Info was empty.");
 
 	m_fReplayBookmarkSeconds = 0.F;
 
+	auto settings = REPLAYS->GetActiveReplaySettings();
+
 	// Set up rate
-	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = PlayerAI::replayRate;
-	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::replayRate;
-	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = PlayerAI::replayRate;
-	GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = PlayerAI::replayRate;
+	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = settings.replayRate;
+	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = settings.replayRate;
+	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = settings.replayRate;
+	GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = settings.replayRate;
 
 	if (PREFSMAN->m_bReplaysUseScoreMods) {
 		// Set up mods
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
-		  PlayerAI::replayModifiers);
+		  settings.replayModifiers);
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
-		  PlayerAI::replayModifiers);
+		  settings.replayModifiers);
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
-		  PlayerAI::replayModifiers);
+		  settings.replayModifiers);
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
-		  PlayerAI::replayModifiers);
+		  settings.replayModifiers);
 
 		// Undo noteskin change
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
+		  settings.oldNoteskin;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
+		  settings.oldNoteskin;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
+		  settings.oldNoteskin;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
+		  settings.oldNoteskin;
 	}
 
 	// Set up mirror
@@ -79,7 +81,7 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 						  lvl,
 						  m_bTurns,
 						  PlayerOptions::TURN_MIRROR,
-						  PlayerAI::replayUsedMirror);
+						  settings.replayUsedMirror);
 	}
 	// We don't have to ever turn off mirror actually, due to the
 	// reinitialization of PlayerOptions in the deconstructor.
@@ -93,44 +95,53 @@ ScreenGameplayReplay::Init()
 	m_fReplayBookmarkSeconds = 0.F;
 }
 
+void
+ScreenGameplayReplay::LoadPlayer()
+{
+	m_vPlayerInfo.m_pPlayer->Load();
+}
+
 ScreenGameplayReplay::~ScreenGameplayReplay()
 {
 	Locator::getLogger()->debug("ScreenGameplayReplay::~ScreenGameplayReplay()");
 
 	if (!GAMESTATE->m_bRestartedGameplay) {
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
-		  PlayerAI::oldModifiers);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
-		  PlayerAI::oldModifiers);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
-		  PlayerAI::oldModifiers);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
-		  PlayerAI::oldModifiers);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
-		  PlayerAI::oldNoteskin;
+		auto settings = REPLAYS->GetActiveReplaySettings();
+
+		if (PREFSMAN->m_bReplaysUseScoreMods) {
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+			  .FromString(settings.oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
+			  settings.oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
+			  settings.oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
+			  settings.oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
+			  .m_sNoteSkin = settings.oldNoteskin;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+			  .m_sNoteSkin = settings.oldNoteskin;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_sNoteSkin =
+			  settings.oldNoteskin;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
+			  settings.oldNoteskin;
+		}
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
-		  PlayerAI::oldFailType;
+		  settings.oldFailType;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =
-		  PlayerAI::oldFailType;
+		  settings.oldFailType;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().m_FailType =
-		  PlayerAI::oldFailType;
+		  settings.oldFailType;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_FailType =
-		  PlayerAI::oldFailType;
+		  settings.oldFailType;
 		GAMESTATE->m_SongOptions.Init();
-		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate =
-		  PlayerAI::oldRate;
-		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = PlayerAI::oldRate;
-		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = PlayerAI::oldRate;
-		GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = PlayerAI::oldRate;
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = settings.oldRate;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = settings.oldRate;
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = settings.oldRate;
+		GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = settings.oldRate;
 	} else {
-		PlayerAI::SetScoreData(PlayerAI::pScoreData, 0, nullptr, PlayerAI::pReplayTiming);
+		REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
 	}
 }
 
@@ -271,11 +282,7 @@ ScreenGameplayReplay::SaveStats()
 	// Reload the notedata after finishing in case we truncated it
 	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, -1);
 	// Reload the replay data to make sure it is clean for calculations
-	PlayerAI::SetScoreData(PlayerAI::pScoreData,
-						   0,
-						   nullptr,
-						   GAMESTATE->m_pCurSteps->GetTimingData());
-	PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
+	REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
 
 	ScreenGameplay::SaveStats();
 }
@@ -291,9 +298,9 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 
 	auto* const pss = m_vPlayerInfo.GetPlayerStageStats();
 	// Makes sure all PlayerStageStats discrepancies are corrected forcibly.
-	PlayerAI::SetPlayerStageStatsForReplay(pss);
+	REPLAYS->SetPlayerStageStatsForReplay(*REPLAYS->GetActiveReplay(), pss);
 
-	STATSMAN->m_CurStageStats.FinalizeScores(false);
+	STATSMAN->m_CurStageStats.FinalizeScores();
 
 	STATSMAN->m_vPlayedStageStats.push_back(STATSMAN->m_CurStageStats);
 
@@ -389,7 +396,7 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	const auto rowNow = BeatToNoteRow(fSongBeat);
 	// This breaks some oop standard in some book
 	auto* pss = m_vPlayerInfo.GetPlayerStageStats();
-	auto rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+	auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(rowNow);
 	FOREACH_ENUM(TapNoteScore, tns)
 	{
 		pss->m_iTapNoteScores[tns] = rs->judgments[tns];
@@ -423,12 +430,10 @@ ScreenGameplayReplay::TogglePause()
 		// Restarts the basic replay data in case something went weird
 		SetupNoteDataFromRow(pSteps, rowNow);
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
-		PlayerAI::SetScoreData(
-		  PlayerAI::pScoreData, rowNow, nullptr, PlayerAI::pReplayTiming);
-		PlayerAI::SetUpExactTapMap(PlayerAI::pReplayTiming);
+		REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
 
 		auto* pss = m_vPlayerInfo.GetPlayerStageStats();
-		auto rs = PlayerAI::GetReplaySnapshotForNoterow(rowNow);
+		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(rowNow);
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
 			pss->m_iTapNoteScores[tns] = rs->judgments[tns];

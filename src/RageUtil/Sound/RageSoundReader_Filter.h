@@ -3,8 +3,8 @@
 #ifndef RAGE_SOUND_READER_FILTER_H
 #define RAGE_SOUND_READER_FILTER_H
 
+#include <memory>
 #include "RageSoundReader.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 class RageSoundReader_Filter : public RageSoundReader
 {
@@ -12,6 +12,9 @@ class RageSoundReader_Filter : public RageSoundReader
 	RageSoundReader_Filter(RageSoundReader* pSource)
 	  : m_pSource(pSource)
 	{
+	}
+	RageSoundReader_Filter(const RageSoundReader_Filter& rhs) {
+		m_pSource = std::unique_ptr<RageSoundReader>(rhs.m_pSource->Copy());
 	}
 
 	int GetLength() const override { return m_pSource->GetLength(); }
@@ -45,7 +48,7 @@ class RageSoundReader_Filter : public RageSoundReader
 	std::string GetError() const override { return m_pSource->GetError(); }
 
   protected:
-	HiddenPtr<RageSoundReader> m_pSource;
+	std::unique_ptr<RageSoundReader> m_pSource;
 };
 
 #endif

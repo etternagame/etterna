@@ -156,11 +156,9 @@ SongManager::DifferentialReloadDir(string dir) -> int
 
 	std::vector<Group> groups;
 	Group unknownGroup("Unknown Group");
-	int groupIndex;
 	int songCount;
 	int songIndex;
 
-	groupIndex = 0;
 	songCount = 0;
 	for (const auto& folder : folders) {
 		if (IsSongDir(dir + folder)) {
@@ -187,7 +185,6 @@ SongManager::DifferentialReloadDir(string dir) -> int
 		return 0;
 	}
 
-	groupIndex = 0;
 	songIndex = 0;
 
 	for (auto& group : groups) {
@@ -328,7 +325,6 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;
-			auto ld = pair->second;
 			auto cacheIndex = 0;
 			auto lastUpdate = 0;
 			for (auto it = workload.first; it != workload.second; it++) {
@@ -805,7 +801,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	Locator::getLogger()->info("LoadStepmaniaSongDir Starting: {}", sDir);
 	std::vector<std::string> songFolders;
 	GetDirListing(sDir + "*", songFolders, true);
-	auto songCount = 0;
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(songFolders.size());
@@ -813,16 +808,14 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	}
 	std::vector<Group> groups;
 	auto unknownGroup = Group(std::string("Unknown Group"));
-	auto foldersChecked = 0;
 	auto onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
 	for (const auto& folder : songFolders) {
 		auto burp = sDir + folder;
 		if (IsSongDir(burp)) {
-			unknownGroup.songs.emplace_back(burp);
+			unknownGroup.songs.emplace_back("/" + burp);
 		} else {
 			auto group = Group(folder);
 			GetDirListing(sDir + folder + "/*", group.songs, true, true);
-			songCount += group.songs.size();
 			groups.emplace_back(group);
 		}
 	}
@@ -836,7 +829,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 		ld->SetText("Loading Songs From Disk\n");
 		ld->SetProgress(0);
 	}
-	auto groupIndex = 0;
 	onePercent = std::max(static_cast<int>(groups.size() / 100), 1);
 
 	auto callback = [&sDir](
@@ -846,7 +838,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 		auto onePercent = pair->first;
-		auto ld = pair->second;
 		auto counter = 0;
 		auto lastUpdate = 0;
 		for (auto it = workload.first; it != workload.second; it++) {
@@ -861,7 +852,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			}
 			auto loaded = 0;
 			SongPointerVector& index_entry = SONGMAN->m_mapSongGroupIndex[sGroupName];
-			const auto& group_base_name = sGroupName;
 			for (auto& sSongDirName : arraySongDirs) {
 				auto hur = make_lower(sSongDirName + "/");
 				if (SONGMAN->m_SongsByDir.count(hur) != 0u) {
@@ -1721,14 +1711,14 @@ class LunaPlaylist : public Luna<Playlist>
 	{
 		p->AddChart(SArg(1));
 		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	static auto DeleteChart(T* p, lua_State* L) -> int
 	{
 		p->DeleteChart(IArg(1) - 1);
 		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	static auto GetNumCharts(T* p, lua_State* L) -> int

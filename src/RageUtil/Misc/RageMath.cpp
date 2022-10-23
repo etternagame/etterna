@@ -12,7 +12,19 @@
 #include <algorithm>
 
 #ifdef _WIN32
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnew-returns-null"
+#pragma clang diagnostic ignored "-Wcomment"
+#endif
+
 #include <d3dx9math.h>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 #endif
 
 void

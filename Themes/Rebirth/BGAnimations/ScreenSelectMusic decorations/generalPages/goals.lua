@@ -544,6 +544,18 @@ local function goalList()
                     self:diffusealpha(1)
                 end
             end,
+            GoalsUpdatedMessageCommand = function(self)
+                -- ONLY TRIGGERED BY CTRL+G
+                -- MAKE SURE THIS MIMICS THE NEW GOAL BUTTON
+
+                -- this will load the new goal into the list and keep the page where it already was
+                local pagebefore = page
+                profile:SetFromAll()
+                resortGoals()
+                page = clamp(pagebefore, 1, maxPage)
+                self:playcommand("UpdateGoalList")
+                self:playcommand("UpdateText")
+            end,
 
             Def.Quad {
                 Name = "BG",

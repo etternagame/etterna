@@ -11,7 +11,7 @@
 /// potentially outdated comment below
 /// this should contain most everything needed for the generic pattern mods,
 /// extremely specific sequencing will take place in separate areas like with
-/// rm_seuqencing, and widerange scalers should track their own interval queues
+/// rm_sequencing, and widerange scalers should track their own interval queues
 /// metanoteinfo is generated per row, from current noteinfo and the previous
 /// metanoteinfo object, each metanoteinfo stores some basic information from
 /// the last object, allowing us to look back 3-4 rows into the past without

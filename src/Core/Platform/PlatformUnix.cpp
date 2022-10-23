@@ -249,7 +249,7 @@ namespace Core::Platform {
     }
 
     ghc::filesystem::path getExecutableDirectory(){
-        char locationBuffer[FILENAME_MAX];
+        char locationBuffer[FILENAME_MAX] = {0};
         int maxSize = sizeof(locationBuffer);
         int bytesRead = std::min<int>(readlink("/proc/self/exe", locationBuffer, maxSize), maxSize - 1);
 

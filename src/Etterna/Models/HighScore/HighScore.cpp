@@ -2,6 +2,7 @@
 #include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "HighScore.h"
+#include "Replay.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Models/Misc/RadarValues.h"
 #include "Core/Services/Locator.hpp"
@@ -13,6 +14,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include <algorithm>
 #include <cmath>
@@ -21,30 +23,6 @@
 #include <utility>
 
 #include "Etterna/Singletons/ScoreManager.h"
-
-// why does this have to be complicated
-#ifdef _WIN32
-#include "zlib.h"
-#if defined(_MSC_VER)
-#if defined(BINARY_ZDL)
-#pragma comment(lib, "zdll.lib")
-#endif
-#endif
-#elif defined(__APPLE__)
-#include "zlib.h"
-#else
-#include <zlib.h>
-#endif
-
-// contains only tap offset data for rescoring/plots -mina
-const std::string BASIC_REPLAY_DIR = "Save/Replays/";
-
-// contains freeze drops and mine hits as well as tap
-// offsets; fully "rewatchable" -mina
-const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
-
-// contains input data files corresponding to replays
-const std::string INPUT_DATA_DIR = "Save/InputData/";
 
 struct HighScoreImpl
 {
@@ -71,14 +49,6 @@ struct HighScoreImpl
 	bool bEtternaValid;
 	bool bUsedDS;
 	std::vector<std::string> uploaded;
-	std::vector<InputDataEvent> InputData;
-	std::vector<float> vOffsetVector;
-	std::vector<int> vNoteRowVector;
-	std::vector<int> vTrackVector;
-	std::vector<TapNoteType> vTapNoteTypeVector;
-	std::vector<HoldReplayResult> vHoldReplayDataVector;
-	std::vector<MineReplayResult> vMineReplayDataVector;
-	std::vector<float> vOnlineReplayTimestampVector;
 	std::vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo; // maximum combo obtained [SM5 alpha 1a+]
 	std::string sModifiers;
@@ -106,14 +76,7 @@ struct HighScoreImpl
 	[[nodiscard]] auto CreateEttNode() const -> XNode*;
 	void LoadFromEttNode(const XNode* pNode);
 	[[nodiscard]] auto GetWifeGrade() const -> Grade;
-	void UnloadReplayData();
 	void ResetSkillsets();
-
-	auto WriteReplayData() -> bool;
-	auto WriteInputData() -> bool;
-	int ReplayType; // 0 = no loaded replay, 1 = basic, 2 = full; currently
-					// unused but here for when we need it (not to be confused
-					// with hasreplay()) -mina
 
 	bool is39import = false;
 	int WifeVersion = 0;
@@ -124,26 +87,6 @@ struct HighScoreImpl
 		return !(*this == other);
 	}
 };
-
-void
-HighScoreImpl::UnloadReplayData()
-{
-	vNoteRowVector.clear();
-	vOffsetVector.clear();
-	vTrackVector.clear();
-	vTapNoteTypeVector.clear();
-	vMineReplayDataVector.clear();
-	InputData.clear();
-
-	vNoteRowVector.shrink_to_fit();
-	vOffsetVector.shrink_to_fit();
-	vTrackVector.shrink_to_fit();
-	vTapNoteTypeVector.shrink_to_fit();
-	vMineReplayDataVector.shrink_to_fit();
-	InputData.shrink_to_fit();
-
-	ReplayType = 0;
-}
 
 auto
 HighScoreImpl::GetWifeGrade() const -> Grade
@@ -184,11 +127,6 @@ HighScoreImpl::HighScoreImpl()
 	fSongOffset = 0.F; // not for saving, only for replays
 	fJudgeScale = 0.F;
 	bEtternaValid = true;
-	vOffsetVector.clear();
-	vNoteRowVector.clear();
-	vRescoreJudgeVector.clear();
-	vMineReplayDataVector.clear();
-	InputData.clear();
 	played_seconds = 0.F;
 	iMaxCombo = 0;
 	sModifiers = "";
@@ -203,7 +141,6 @@ HighScoreImpl::HighScoreImpl()
 	fLifeRemainingSeconds = 0;
 	std::string ValidationKey;
 	TopScore = 0;
-	ReplayType = 2;
 	bNoChordCohesion = false;
 	bDisqualified = false;
 	bUsedDS = false;
@@ -429,596 +366,62 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	grade = std::clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
-auto
-HighScoreImpl::WriteReplayData() -> bool
+void
+HighScore::InitReplay()
 {
-	Locator::getLogger()->info("Writing out replay data to disk");
-	std::string append;
-	std::string profiledir;
-	// These two lines should probably be somewhere else
-	if (!FILEMAN->IsADirectory(FULL_REPLAY_DIR)) {
-		FILEMAN->CreateDir(FULL_REPLAY_DIR);
-	}
-	const auto path = FULL_REPLAY_DIR + ScoreKey;
-	std::ofstream fileStream(path, std::ios::binary);
-	// check file
-
-	ASSERT(!vNoteRowVector.empty());
-
-	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to create replay file at {}", path.c_str());
-		return false;
-	}
-
-	const unsigned int idx = vNoteRowVector.size() - 1;
-	// loop for writing both vectors side by side
-	for (unsigned int i = 0; i <= idx; i++) {
-		append = std::to_string(vNoteRowVector[i]) + " " +
-				 std::to_string(vOffsetVector[i]) + " " +
-				 std::to_string(vTrackVector[i]) +
-				 (vTapNoteTypeVector[i] != TapNoteType_Tap
-					? " " + std::to_string(vTapNoteTypeVector[i])
-					: "") +
-				 "\n";
-		fileStream.write(append.c_str(), append.size());
-	}
-	for (auto& hold : vHoldReplayDataVector) {
-		append = "H " + std::to_string(hold.row) + " " +
-				 std::to_string(hold.track) +
-				 (hold.subType != TapNoteSubType_Hold
-					? " " + std::to_string(hold.subType)
-					: "") +
-				 "\n";
-		fileStream.write(append.c_str(), append.size());
-	}
-	fileStream.close();
-	Locator::getLogger()->info("Created replay file at {}", path.c_str());
-	return true;
+	replay = REPLAYS->GetReplay(this);
 }
 
-unsigned long
-fsize(char* path)
+void
+HighScore::CheckReplayIsInit()
 {
-	FILE *pfile = fopen(path, "rb");
-	fseek(pfile, 0, SEEK_END);
-	unsigned long sz = ftell(pfile);
-	fclose(pfile);
-	return sz;
+	if (replay == nullptr) {
+		InitReplay();
+	}
 }
 
-auto
-HighScoreImpl::WriteInputData() -> bool
-{
-	std::string append;
-	Locator::getLogger()->info("Writing out Input Data to disk");
-	// These two lines should probably be somewhere else
-	if (!FILEMAN->IsADirectory(INPUT_DATA_DIR)) {
-		FILEMAN->CreateDir(INPUT_DATA_DIR);
-	}
-
-	const auto path = INPUT_DATA_DIR + ScoreKey;
-	const auto path_z = path + "z";
-	if (InputData.empty()) {
-		Locator::getLogger()->warn(
-		  "Attempted to write input data for {} but there was nothing to write",
-		  path.c_str());
-	}
-
-	// check file
-	std::ofstream fileStream(path, std::ios::binary);
-	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to create input data file at {}", path.c_str());
-		return false;
-	}
-
-	// for writing human readable text
-	try {
-		float fGlobalOffset = PREFSMAN->m_fGlobalOffsetSeconds.Get();
-		// header
-		auto headerLine1 = ChartKey + " " + ScoreKey + " " +
-						   std::to_string(fMusicRate) + " " +
-						   std::to_string(fSongOffset) + " " +
-						   std::to_string(fGlobalOffset) + "\n";
-		fileStream.write(headerLine1.c_str(), headerLine1.size());
-
-		// input data
-		const unsigned int idx = InputData.size() - 1;
-		for (unsigned int i = 0; i <= idx; i++) {
-			append = std::to_string(InputData[i].column) + " " +
-					 (InputData[i].is_press ? "1" : "0") + " " +
-					 std::to_string(InputData[i].songPositionSeconds) + " " +
-					 std::to_string(InputData[i].nearestTapNoterow) + " " +
-					 std::to_string(InputData[i].offsetFromNearest) + "\n";
-			fileStream.write(append.c_str(), append.size());
-		}
-
-		// dropped hold data
-		for (auto& hold : vHoldReplayDataVector) {
-			append = "H " + std::to_string(hold.row) + " " +
-					 std::to_string(hold.track) +
-					 (hold.subType != TapNoteSubType_Hold
-						? " " + std::to_string(hold.subType)
-						: "") +
-					 "\n";
-			fileStream.write(append.c_str(), append.size());
-		}
-
-		// hit mine data
-		for (auto& mine : vMineReplayDataVector) {
-			append = "M " + std::to_string(mine.row) + " " +
-					 std::to_string(mine.track) + "\n";
-			fileStream.write(append.c_str(), append.size());
-		}
-
-		fileStream.close();
-
-		FILE* infile =
-		  fopen(path.c_str(), "rb");
-		gzFile outfile = gzopen(path_z.c_str(), "wb");
-		if ((infile == nullptr) || (outfile == nullptr)) {
-			Locator::getLogger()->warn("Failed to compress new input data.");
-			return false;
-		}
-
-		char buf[128];
-		unsigned int num_read = 0;
-		unsigned long total_read = 0;
-		while ((num_read = fread(buf, 1, sizeof(buf), infile)) > 0) {
-			total_read += num_read;
-			gzwrite(outfile, buf, num_read);
-		}
-		fclose(infile);
-		gzclose(outfile);
-
-		Locator::getLogger()->info("Created compressed input data file at {}",
-									path_z.c_str());
-
-		if (FILEMAN->Remove(path))
-			Locator::getLogger()->debug("Deleted uncompressed input data");
-		else
-			Locator::getLogger()->warn(
-			  "Failed to delete uncompressed input data");
-		return true;
-	}
-	catch (std::runtime_error& e) {
-		Locator::getLogger()->warn(
-		  "Failed to write input data at {} due to runtime exception: {}",
-		  path.c_str(),
-		  e.what());
-		fileStream.close();
-		return false;
-	}
-
-
-	// for writing binary output for "compression"
-	// write vector size, then dump vector data
-	/*
-	try {
-		size_t size = InputData.size();
-		fileStream.write(reinterpret_cast<char*>(&size), sizeof size);
-		fileStream.write(reinterpret_cast<char*>(&InputData[0]),
-						 size * sizeof InputDataEvent);
-		fileStream.close();
-		Locator::getLogger()->trace("Created input data file at {}",
-									path.c_str());
-		return true;
-	} catch (std::runtime_error& e) {
-		Locator::getLogger()->warn(
-		  "Failed to write input data at {} due to runtime exception: {}",
-		  path.c_str(),
-		  e.what());
-		fileStream.close();
-		return false;
-	}
-	*/
-}
-
-auto
-HighScore::LoadInputData() -> bool
-{
-	if (!m_Impl->InputData.empty())
-		return true;
-
-	auto path = INPUT_DATA_DIR + m_Impl->ScoreKey;
-	auto path_z = path + "z";
-	std::vector<InputDataEvent> readInputs;
-	std::vector<HoldReplayResult> vHoldReplayDataVector;
-	std::vector<MineReplayResult> vMineReplayDataVector;
-
-	/*
-	std::ifstream inputStream(path, std::ios::binary);
-	if (!inputStream) {
-		Locator::getLogger()->trace("Failed to load input data at {}",
-									path.c_str());
-		return false;
-	}
-	*/
-
-	// read vector size, then read vector data
-	/*
-	try {
-		size_t size;
-		inputStream.read(reinterpret_cast<char*>(&size), sizeof size);
-		m_Impl->InputData.resize(size);
-		inputStream.read(reinterpret_cast<char*>(&m_Impl->InputData[0]),
-						 size * sizeof InputDataEvent);
-		inputStream.close();
-		Locator::getLogger()->trace("Loaded input data at {}", path.c_str());
-		return true;
-	}
-	*/
-	// human readable compression read-in
-	try {
-		gzFile infile = gzopen(path_z.c_str(), "rb");
-		// hope nothing already exists here
-		FILE* outfile = fopen(path.c_str(), "wb");
-		if ((infile == nullptr) || (outfile == nullptr)) {
-			Locator::getLogger()->warn("Failed to read input data at {}",
-									   path_z.c_str());
-			return false;
-		}
-
-		char buf[128];
-		int num_read = 0;
-		while ((num_read = gzread(infile, buf, sizeof(buf))) > 0) {
-			fwrite(buf, 1, num_read, outfile);
-		}
-		gzclose(infile);
-		fclose(outfile);
-
-		std::ifstream inputStream(path, std::ios::binary);
-		if (!inputStream) {
-			Locator::getLogger()->debug("Failed to load input data at {}",
-										path.c_str());
-			return false;
-		}
-
-		std::string line;
-		std::string buffer;
-		std::vector<std::string> tokens;
-
-		{
-			// get the header line
-			getline(inputStream, line);
-			std::stringstream ss(line);
-			while (ss >> buffer) {
-				tokens.emplace_back(buffer);
-			}
-			if (tokens.size() != 3) {
-				Locator::getLogger()->warn("Bad input data header detected: {}",
-										   GetScoreKey().c_str());
-				return false;
-			}
-
-			auto chartkey = tokens[0];
-			auto scorekey = tokens[1];
-			auto rate = std::stof(tokens[2]);
-			auto songoffset = std::stof(tokens[3]);
-			auto globaloffset = std::stof(tokens[4]);
-			// ... for later
-
-			tokens.clear();
-		}
-
-		while (getline(inputStream, line)) {
-			InputDataEvent ev;
-			std::stringstream ss(line);
-			// split line into tokens
-			while (ss >> buffer) {
-				tokens.emplace_back(buffer);
-			}
-
-			// hold data
-			if (tokens[0] == "H") {
-				HoldReplayResult hrr;
-				hrr.row = std::stoi(tokens[1]);
-				hrr.track = std::stoi(tokens[2]);
-				auto tmp = 0;
-				tmp = tokens.size() > 3 ? std::stoi(tokens[3])
-										: TapNoteSubType_Hold;
-				if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
-					!(typeid(tmp) == typeid(int))) {
-					Locator::getLogger()->warn(
-					  "Failed to load replay data at {} (\"Tapnotesubtype "
-					  "value is not of type TapNoteSubType\")",
-					  path.c_str());
-				}
-				hrr.subType = static_cast<TapNoteSubType>(tmp);
-				vHoldReplayDataVector.emplace_back(hrr);
-				tokens.clear();
-				continue;
-			}
-
-			// mine data
-			if (tokens[0] == "M") {
-				MineReplayResult mrr;
-				mrr.row = std::stoi(tokens[1]);
-				mrr.track = std::stoi(tokens[2]);
-				vMineReplayDataVector.emplace_back(mrr);
-				tokens.clear();
-				continue;
-			}
-
-			// everything else is input data
-			if (tokens.size() != 5) {
-				Locator::getLogger()->warn("Bad input data detected: {}",
-										   GetScoreKey().c_str());
-				return false;
-			}
-
-			ev.column = std::stoi(tokens[0]);
-			ev.is_press = (std::stoi(tokens[1]) != 0);
-			ev.songPositionSeconds = std::stof(tokens[2]);
-			ev.nearestTapNoterow = std::stoi(tokens[3]);
-			ev.offsetFromNearest = std::stof(tokens[4]);
-			m_Impl->InputData.push_back(ev);
-
-			tokens.clear();
-		}
-
-		SetMineReplayDataVector(vMineReplayDataVector);
-		SetHoldReplayDataVector(vHoldReplayDataVector);
-
-		Locator::getLogger()->info("Loaded input data at {}", path.c_str());
-
-		if (FILEMAN->Remove(path))
-			Locator::getLogger()->trace("Deleted uncompressed input data");
-		else
-			Locator::getLogger()->warn(
-			  "Failed to delete uncompressed input data");
-	}
-	catch (std::runtime_error& e) {
-		Locator::getLogger()->warn(
-		  "Failed to read input data at {} due to runtime exception: {}",
-		  path.c_str(),
-		  e.what());
-		return false;
-	}
-	return true;
-}
-
-// should just get rid of impl -mina
 auto
 HighScore::LoadReplayData() -> bool
-{ // see dir definition comments at the top -mina
-	if (LoadReplayDataFull(FULL_REPLAY_DIR)) {
-		return true;
-	}
-	return LoadReplayDataBasic(BASIC_REPLAY_DIR);
+{
+	CheckReplayIsInit();
+	return replay->LoadReplayData();
 }
 
 auto
-HighScore::LoadReplayDataBasic(const std::string& dir) -> bool
+HighScore::WriteReplayData() -> bool
 {
-	// already exists
-	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4) {
-		return true;
-	}
-
-	std::string profiledir;
-	std::vector<int> vNoteRowVector;
-	std::vector<float> vOffsetVector;
-	auto path = dir + m_Impl->ScoreKey;
-
-	std::ifstream fileStream(path, std::ios::binary);
-	std::string line;
-	std::string buffer;
-	std::vector<string> tokens;
-	int noteRow = 0;
-	float offset = 0.f;
-
-	// check file
-	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to load replay data at {}", path.c_str());
-		return false;
-	}
-
-	// loop until eof
-	try {
-
-		while (getline(fileStream, line)) {
-			std::stringstream ss(line);
-			// split line into tokens
-			while (ss >> buffer) {
-				tokens.emplace_back(buffer);
-			}
-
-			if (tokens.size() > 2) {
-				Locator::getLogger()->warn(
-				  "looks like u got v2 replays in the v1 folder, move them "
-				  "into Save/ReplaysV2 folder if you want them to load. If {} "
-				  "is not a v2 replay that you placed into the Save/Replays "
-				  "folder by accident, then it is probably corrupted and you "
-				  "should delete it or move it out",
-				  GetScoreKey().c_str());
-				ASSERT(tokens.size() < 2);
-			}
-
-			noteRow = std::stoi(tokens[0]);
-			if (!(typeid(noteRow) == typeid(int))) {
-				throw std::runtime_error("NoteRow value is not of type: int");
-			}
-			vNoteRowVector.emplace_back(noteRow);
-
-			offset = std::stof(tokens[1]);
-			if (!(typeid(offset) == typeid(float))) {
-				throw std::runtime_error("Offset value is not of type: float");
-			}
-			vOffsetVector.emplace_back(offset);
-			tokens.clear();
-		}
-	} catch (std::runtime_error& e) {
-		Locator::getLogger()->warn("Failed to load replay data at {} due to runtime exception: {}",
-		  path.c_str(),
-		  e.what());
-		fileStream.close();
-		return false;
-	}
-	fileStream.close();
-	SetNoteRowVector(vNoteRowVector);
-	SetOffsetVector(vOffsetVector);
-
-	m_Impl->ReplayType = 1;
-	Locator::getLogger()->info("Loaded replay data type 1 at {}", path.c_str());
-	return true;
+	CheckReplayIsInit();
+	return replay->WriteReplayData();
 }
 
 auto
-HighScore::LoadReplayDataFull(const std::string& dir) -> bool
+HighScore::WriteInputData() -> bool
 {
-	if (m_Impl->vNoteRowVector.size() > 4 && m_Impl->vOffsetVector.size() > 4 &&
-		m_Impl->vTrackVector.size() > 4) {
-		m_Impl->ReplayType = 2;
-		return true;
-	}
-
-	std::string profiledir;
-	std::vector<int> vNoteRowVector;
-	std::vector<float> vOffsetVector;
-	std::vector<int> vTrackVector;
-	std::vector<TapNoteType> vTapNoteTypeVector;
-	std::vector<HoldReplayResult> vHoldReplayDataVector;
-	auto path = dir + m_Impl->ScoreKey;
-
-	std::ifstream fileStream(path, std::ios::binary);
-	std::string line;
-	std::string buffer;
-	std::vector<std::string> tokens;
-	int noteRow = 0;
-	float offset = 0.f;
-	int track = 0;
-	TapNoteType tnt = TapNoteType_Invalid;
-	int tmp = 0;
-
-	// check file
-	if (!fileStream) {
-		return false;
-	}
-
-	// loop until eof
-	while (getline(fileStream, line)) {
-		std::stringstream ss(line);
-		// split line into tokens
-		while (ss >> buffer) {
-			tokens.emplace_back(buffer);
-		}
-
-		// probably replaydatav1 in the wrong folder, we could throw a trace or
-		// a warn but i feel like nobody will care or do anything about it and
-		// it will just pollute the log, nobody is going to parse the log and
-		// properly split up their replays back into the respective folders
-		// so...
-		if (tokens.size() < 3) {
-			return LoadReplayDataBasic(dir);
-		}
-
-		if (tokens[0] == "H") {
-			HoldReplayResult hrr;
-			hrr.row = std::stoi(tokens[1]);
-			hrr.track = std::stoi(tokens[2]);
-			tmp =
-			  tokens.size() > 3 ? std::stoi(tokens[3]) : TapNoteSubType_Hold;
-			if (tmp < 0 || tmp >= NUM_TapNoteSubType ||
-				!(typeid(tmp) == typeid(int))) {
-				Locator::getLogger()->warn(
-				  "Failed to load replay data at {} (\"Tapnotesubtype value is "
-				  "not of type TapNoteSubType\")",
-				  path.c_str());
-			}
-			hrr.subType = static_cast<TapNoteSubType>(tmp);
-			vHoldReplayDataVector.emplace_back(hrr);
-			tokens.clear();
-			continue;
-		}
-
-		auto a = buffer == "1";
-		a = buffer == "2" || a;
-		a = buffer == "3" || a;
-		a = buffer == "4" || a;
-		a = buffer == "5" || a;
-		a = buffer == "6" || a;
-		a = buffer == "7" || a;
-		a = buffer == "8" || a;
-		a = buffer == "9" || a;
-		a = buffer == "0" || a;
-		if (!a) {
-			Locator::getLogger()->warn(
-			  "Replay data at {} appears to be HOT BROKEN GARBAGE WTF",
-			  path.c_str());
-			return false;
-		}
-
-		noteRow = std::stoi(tokens[0]);
-		if (!(typeid(noteRow) == typeid(int))) {
-			Locator::getLogger()->warn("Failed to load replay data at {} (\"NoteRow value is "
-					  "not of type: int\")",
-					  path.c_str());
-		}
-		vNoteRowVector.emplace_back(noteRow);
-
-		offset = std::stof(tokens[1]);
-		if (!(typeid(offset) == typeid(float))) {
-			Locator::getLogger()->warn("Failed to load replay data at {} (\"Offset value is not "
-					  "of type: float\")",
-					  path.c_str());
-		}
-		vOffsetVector.emplace_back(offset);
-
-		track = std::stoi(tokens[2]);
-		if (!(typeid(track) == typeid(int))) {
-			Locator::getLogger()->warn("Failed to load replay data at {} (\"Track/Column value "
-					  "is not of type: int\")",
-					  path.c_str());
-		}
-		vTrackVector.emplace_back(track);
-
-		tmp = tokens.size() >= 4 ? std::stoi(tokens[3]) : TapNoteType_Tap;
-		if (tmp < 0 || tmp >= TapNoteType_Invalid ||
-			!(typeid(tmp) == typeid(int))) {
-			Locator::getLogger()->warn("Failed to load replay data at {} (\"Tapnotetype value "
-					  "is not of type TapNoteType\")",
-					  path.c_str());
-		}
-		tnt = static_cast<TapNoteType>(tmp);
-		vTapNoteTypeVector.emplace_back(tnt);
-
-		tokens.clear();
-	}
-	fileStream.close();
-	SetNoteRowVector(vNoteRowVector);
-	SetOffsetVector(vOffsetVector);
-	SetTrackVector(vTrackVector);
-	SetTapNoteTypeVector(vTapNoteTypeVector);
-	SetHoldReplayDataVector(vHoldReplayDataVector);
-
-	m_Impl->ReplayType = 2;
-	Locator::getLogger()->info("Loaded replay data type 2 at {}", path.c_str());
-	return true;
+	CheckReplayIsInit();
+	return replay->WriteInputData();
 }
 
 auto
 HighScore::HasReplayData() -> bool
 {
-	const auto fullpath = FULL_REPLAY_DIR + m_Impl->ScoreKey;
-	const auto basicpath = BASIC_REPLAY_DIR + m_Impl->ScoreKey;
-	if (DoesFileExist(fullpath)) { // check for full replays first then default
-								   // to basic replays -mina
-		return true;
-	}
-	return DoesFileExist(basicpath);
+	CheckReplayIsInit();
+	return replay->HasReplayData();
 }
-
-REGISTER_CLASS_TRAITS(HighScoreImpl, new HighScoreImpl(*pCopy))
 
 HighScore::HighScore()
 {
-	m_Impl = new HighScoreImpl;
+	m_Impl = std::make_unique<HighScoreImpl>();
 }
 
-void
-HighScore::Unset()
-{
-	m_Impl = new HighScoreImpl;
+HighScore::HSImplUniquePtr::~HSImplUniquePtr() = default;
+HighScore::HSImplUniquePtr::HSImplUniquePtr(std::unique_ptr<HighScoreImpl> ptr) :p(std::move(ptr)) {}
+HighScore::HSImplUniquePtr::HSImplUniquePtr(): p(std::make_unique<HighScoreImpl>()) { }
+HighScore::HSImplUniquePtr::HSImplUniquePtr(const HSImplUniquePtr& rhs) {
+	p = rhs.p ? std::make_unique<HighScoreImpl>(*rhs.p) : nullptr;
+}
+auto HighScore::HSImplUniquePtr::operator=(const HSImplUniquePtr& rhs) -> HSImplUniquePtr& {
+	p = rhs.p ? std::make_unique<HighScoreImpl>(*rhs.p) : nullptr;
+	return *this;
 }
 
 auto
@@ -1102,6 +505,11 @@ HighScore::GetSSRNormPercent() const -> float
 	return m_Impl->fSSRNormPercent;
 }
 auto
+HighScore::GetSongOffset() const -> float
+{
+	return m_Impl->fSongOffset;
+}
+auto
 HighScore::GetMusicRate() const -> float
 {
 	return m_Impl->fMusicRate;
@@ -1133,78 +541,92 @@ HighScore::IsUploadedToServer(const std::string& s) const -> bool
 		   m_Impl->uploaded.end();
 }
 auto
-HighScore::GetCopyOfOffsetVector() const -> std::vector<float>
+HighScore::GetCopyOfOffsetVector() -> std::vector<float>
 {
-	return m_Impl->vOffsetVector;
+	CheckReplayIsInit();
+	return replay->GetCopyOfOffsetVector();
 }
 auto
-HighScore::GetCopyOfNoteRowVector() const -> std::vector<int>
+HighScore::GetCopyOfNoteRowVector() -> std::vector<int>
 {
-	return m_Impl->vNoteRowVector;
+	CheckReplayIsInit();
+	return replay->GetCopyOfNoteRowVector();
 }
 auto
-HighScore::GetCopyOfTrackVector() const -> std::vector<int>
+HighScore::GetCopyOfTrackVector() -> std::vector<int>
 {
-	return m_Impl->vTrackVector;
+	CheckReplayIsInit();
+	return replay->GetCopyOfTrackVector();
 }
 auto
-HighScore::GetCopyOfTapNoteTypeVector() const -> std::vector<TapNoteType>
+HighScore::GetCopyOfTapNoteTypeVector() -> std::vector<TapNoteType>
 {
-	return m_Impl->vTapNoteTypeVector;
+	CheckReplayIsInit();
+	return replay->GetCopyOfTapNoteTypeVector();
 }
 auto
-HighScore::GetCopyOfHoldReplayDataVector() const
+HighScore::GetCopyOfHoldReplayDataVector()
   -> std::vector<HoldReplayResult>
 {
-	return m_Impl->vHoldReplayDataVector;
+	CheckReplayIsInit();
+	return replay->GetCopyOfHoldReplayDataVector();
 }
 auto
-HighScore::GetCopyOfMineReplayDataVector() const
+HighScore::GetCopyOfMineReplayDataVector()
 -> std::vector<MineReplayResult>
 {
-	return m_Impl->vMineReplayDataVector;
+	CheckReplayIsInit();
+	return replay->GetCopyOfMineReplayDataVector();
 }
 auto
-HighScore::GetCopyOfSetOnlineReplayTimestampVector() const -> std::vector<float>
+HighScore::GetCopyOfSetOnlineReplayTimestampVector() -> std::vector<float>
 {
-	return m_Impl->vOnlineReplayTimestampVector;
+	CheckReplayIsInit();
+	return replay->GetCopyOfOnlineReplayTimestampVector();
 }
 auto
-HighScore::GetInputDataVector() const -> const std::vector<InputDataEvent>&
+HighScore::GetInputDataVector() -> const std::vector<InputDataEvent>&
 {
-	return m_Impl->InputData;
+	CheckReplayIsInit();
+	return replay->GetInputDataVector();
 }
 auto
-HighScore::GetOffsetVector() const -> const std::vector<float>&
+HighScore::GetOffsetVector() -> const std::vector<float>&
 {
-	return m_Impl->vOffsetVector;
+	CheckReplayIsInit();
+	return replay->GetOffsetVector();
 }
 auto
-HighScore::GetNoteRowVector() const -> const std::vector<int>&
+HighScore::GetNoteRowVector() -> const std::vector<int>&
 {
-	return m_Impl->vNoteRowVector;
+	CheckReplayIsInit();
+	return replay->GetNoteRowVector();
 }
 auto
-HighScore::GetTrackVector() const -> const std::vector<int>&
+HighScore::GetTrackVector() -> const std::vector<int>&
 {
-	return m_Impl->vTrackVector;
+	CheckReplayIsInit();
+	return replay->GetTrackVector();
 }
 auto
-HighScore::GetTapNoteTypeVector() const -> const std::vector<TapNoteType>&
+HighScore::GetTapNoteTypeVector() -> const std::vector<TapNoteType>&
 {
-	return m_Impl->vTapNoteTypeVector;
+	CheckReplayIsInit();
+	return replay->GetTapNoteTypeVector();
 }
 auto
-HighScore::GetHoldReplayDataVector() const
+HighScore::GetHoldReplayDataVector()
   -> const std::vector<HoldReplayResult>&
 {
-	return m_Impl->vHoldReplayDataVector;
+	CheckReplayIsInit();
+	return replay->GetHoldReplayDataVector();
 }
 auto
-HighScore::GetMineReplayDataVector() const
+HighScore::GetMineReplayDataVector()
 -> const std::vector<MineReplayResult>&
 {
-	return m_Impl->vMineReplayDataVector;
+	CheckReplayIsInit();
+	return replay->GetMineReplayDataVector();
 }
 auto
 HighScore::GetScoreKey() const -> const std::string&
@@ -1292,9 +714,17 @@ HighScore::GetTopScore() const -> int
 	return m_Impl->TopScore;
 }
 auto
-HighScore::GetReplayType() const -> int
+HighScore::GetReplayType() -> ReplayType
 {
-	return m_Impl->ReplayType;
+	CheckReplayIsInit();
+	return replay->GetReplayType();
+}
+
+auto
+HighScore::HasColumnData() -> bool
+{
+	CheckReplayIsInit();
+	return replay->HasColumnData();
 }
 
 void
@@ -1394,42 +824,50 @@ HighScore::AddUploadedServer(const std::string& s)
 void
 HighScore::SetInputDataVector(const std::vector<InputDataEvent>& v)
 {
-	m_Impl->InputData = v;
+	CheckReplayIsInit();
+	replay->SetInputDataVector(v);
 }
 void
 HighScore::SetOffsetVector(const std::vector<float>& v)
 {
-	m_Impl->vOffsetVector = v;
+	CheckReplayIsInit();
+	replay->SetOffsetVector(v);
 }
 void
 HighScore::SetNoteRowVector(const std::vector<int>& v)
 {
-	m_Impl->vNoteRowVector = v;
+	CheckReplayIsInit();
+	replay->SetNoteRowVector(v);
 }
 void
 HighScore::SetTrackVector(const std::vector<int>& v)
 {
-	m_Impl->vTrackVector = v;
+	CheckReplayIsInit();
+	replay->SetTrackVector(v);
 }
 void
 HighScore::SetTapNoteTypeVector(const std::vector<TapNoteType>& v)
 {
-	m_Impl->vTapNoteTypeVector = v;
+	CheckReplayIsInit();
+	replay->SetTapNoteTypeVector(v);
 }
 void
 HighScore::SetHoldReplayDataVector(const std::vector<HoldReplayResult>& v)
 {
-	m_Impl->vHoldReplayDataVector = v;
+	CheckReplayIsInit();
+	replay->SetHoldReplayDataVector(v);
 }
 void
 HighScore::SetMineReplayDataVector(const std::vector<MineReplayResult>& v)
 {
-	m_Impl->vMineReplayDataVector = v;
+	CheckReplayIsInit();
+	replay->SetMineReplayDataVector(v);
 }
 void
 HighScore::SetOnlineReplayTimestampVector(const std::vector<float>& v)
 {
-	m_Impl->vOnlineReplayTimestampVector = v;
+	CheckReplayIsInit();
+	replay->SetOnlineReplayTimestampVector(v);
 }
 void
 HighScore::SetScoreKey(const std::string& sk)
@@ -1516,16 +954,14 @@ HighScore::SetDisqualified(bool b)
 {
 	m_Impl->bDisqualified = b;
 }
-void
-HighScore::SetReplayType(int i)
-{
-	m_Impl->ReplayType = i;
-}
 
 void
 HighScore::UnloadReplayData()
 {
-	m_Impl->UnloadReplayData();
+	if (replay != nullptr) {
+		REPLAYS->ReleaseReplay(replay);
+		replay = nullptr;
+	}
 }
 
 void
@@ -1631,6 +1067,8 @@ HighScore::operator!=(const HighScore& other) const -> bool
 	return !operator==(other);
 }
 
+auto HighScore::operator=(const HighScore &) -> HighScore& = default;
+
 auto
 HighScore::CreateEttNode() const -> XNode*
 {
@@ -1642,8 +1080,6 @@ void
 HighScore::LoadFromEttNode(const XNode* pNode)
 {
 	m_Impl->LoadFromEttNode(pNode);
-	m_Impl->vNoteRowVector.clear();
-	m_Impl->vOffsetVector.clear();
 }
 
 auto
@@ -1670,7 +1106,6 @@ Screenshot::LoadFromNode(const XNode* pNode)
 
 	pNode->GetChildValue("FileName", sFileName);
 	pNode->GetChildValue("MD5", sMD5);
-	const auto* pHighScore = pNode->GetChild("HighScore");
 }
 
 auto
@@ -1685,20 +1120,23 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	const auto ts = tso[x - 1];
 	float p = 0;
 
+	auto vOffsetVector = replay->GetOffsetVector();
+	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+
 	// the typevector is only available for full replays
-	if (m_Impl->ReplayType == 2) {
-		for (size_t i = 0; i < m_Impl->vOffsetVector.size(); i++) {
+	if (HasColumnData()) {
+		for (size_t i = 0; i < vOffsetVector.size(); i++) {
 			// by the powers of god invested in me i declare these vectors the
 			// same size so this works all the time no matter what
-			auto& type = m_Impl->vTapNoteTypeVector[i];
+			auto& type = vTapNoteTypeVector[i];
 			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
 				type == TapNoteType_Lift) {
-				p += wife2(m_Impl->vOffsetVector[i], ts);
+				p += wife2(vOffsetVector[i], ts);
 			}
 		}
 	} else {
 		// blindly assume the offset vector is correct for old replays
-		for (auto& n : m_Impl->vOffsetVector) {
+		for (auto& n : vOffsetVector) {
 			p += wife2(n, ts);
 		}
 	}
@@ -1708,13 +1146,13 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	p += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -8);
 
 	// this is a bad assumption but im leaving it here
-	auto pmax = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+	auto pmax = static_cast<float>(vOffsetVector.size() * 2);
 
-	/* we don't want to have to access notedata when loading or rescording
+	/* we don't want to have to access notedata when loading or rescoring
 	scores so we use the vector length of offset replay data to determine point
 	denominators however full replays store mine hits as offsets, meaning
 	we have to screen them out when calculating the max points*/
-	if (m_Impl->ReplayType == 2) {
+	if (HasColumnData()) {
 		pmax += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -2);
 
 		// we screened out extra offsets due to mines in the replay from the
@@ -1739,21 +1177,24 @@ HighScore::RescoreToWife3(float pmax) -> bool
 	// WifeScore for HighScore Judge
 	auto pj = 0.F;
 
+	auto vOffsetVector = replay->GetOffsetVector();
+	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+
 	// the typevector is only available for full replays
-	if (m_Impl->ReplayType == 2) {
-		for (size_t i = 0; i < m_Impl->vOffsetVector.size(); i++) {
+	if (HasColumnData()) {
+		for (size_t i = 0; i < vOffsetVector.size(); i++) {
 			// by the powers of god invested in me i declare these vectors the
 			// same size so this works all the time no matter what
-			auto& type = m_Impl->vTapNoteTypeVector[i];
+			auto& type = vTapNoteTypeVector[i];
 			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
 				type == TapNoteType_Lift) {
-				p4 += wife3(m_Impl->vOffsetVector[i], 1);
-				pj += wife3(m_Impl->vOffsetVector[i], m_Impl->fJudgeScale);
+				p4 += wife3(vOffsetVector[i], 1);
+				pj += wife3(vOffsetVector[i], m_Impl->fJudgeScale);
 			}
 		}
 	} else {
 		// blindly assume the offset vector is correct for old replays
-		for (auto& n : m_Impl->vOffsetVector) {
+		for (auto& n : vOffsetVector) {
 			p4 += wife3(n, 1);
 			pj += wife3(n, m_Impl->fJudgeScale);
 		}
@@ -1790,7 +1231,8 @@ HighScore::RescoreToDPJudge(int x) -> float
 	auto boo = 0;
 	auto miss = 0;
 	auto m2 = 0;
-	for (auto& f : m_Impl->vOffsetVector) {
+	auto vOffsetVector = replay->GetOffsetVector();
+	for (auto& f : vOffsetVector) {
 		m2 += 2;
 		const auto x = std::abs(f * 1000.F);
 		if (x <= ts * 22.5F) {
@@ -1829,7 +1271,7 @@ HighScore::RescoreToDPJudge(int x) -> float
 		  m_Impl->iHoldNoteScores[HNS_Missed]) *
 		 -6;
 
-	auto m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
+	auto m = static_cast<float>(vOffsetVector.size() * 2);
 	m += static_cast<float>(m_Impl->radarValues[RadarCategory_Holds] +
 		  m_Impl->radarValues[RadarCategory_Rolls]) *
 		 6;
@@ -1858,15 +1300,17 @@ HighScore::NormalizeJudgments() -> bool
 	}
 	// otherwise ....
 
-
 	// exit early if no replay data to convert
 	// this will work if replay doesn't physically exist
 	// that case occurs if coming via FillInHighScore with PSS data
 	// replaydata loading "fails" if size isnt more than 4
 	// we don't really want that to happen
 	// this is because replays dont save for the same reason
-	if (!LoadReplayData() && m_Impl->vOffsetVector.empty()) {
-		return false;
+	if (!LoadReplayData()) {
+		auto vOffsetVector = replay->GetOffsetVector();
+		if (vOffsetVector.empty()) {
+			return false;
+		}
 	}
 
 	// need to actually normalize here using replay data
@@ -1876,14 +1320,17 @@ HighScore::NormalizeJudgments() -> bool
 	m_Impl->iTapNoteScoresNormalized[TNS_HitMine] =
 	  m_Impl->iTapNoteScores[TNS_HitMine];
 
+	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+	auto vOffsetVector = replay->GetOffsetVector();
+
 	// New replays, check for only certain types
-	if (m_Impl->ReplayType == 2) {
-		for (size_t i = 0; i < m_Impl->vOffsetVector.size(); i++) {
+	if (HasColumnData()) {
+		for (size_t i = 0; i < vOffsetVector.size(); i++) {
 			// assumption of equal size, no crashy
-			auto& type = m_Impl->vTapNoteTypeVector[i];
+			auto& type = vTapNoteTypeVector[i];
 			if (type == TapNoteType_Tap || type == TapNoteType_HoldHead ||
 				type == TapNoteType_Lift) {
-				const auto x = std::abs(m_Impl->vOffsetVector[i] * 1000.F);
+				const auto x = std::abs(vOffsetVector[i] * 1000.F);
 				if (x <= 22.5F) {
 					m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
 				} else if (x <= 45.F) {
@@ -1904,7 +1351,7 @@ HighScore::NormalizeJudgments() -> bool
 	}
 	else {
 		// or just blindly convert, nobody cares too much about old replays...
-		for (auto& n : m_Impl->vOffsetVector) {
+		for (auto& n : vOffsetVector) {
 			const auto x = std::abs(n * 1000.F);
 			if (x <= 22.5F) {
 				m_Impl->iTapNoteScoresNormalized[TNS_W1]++;
@@ -1927,10 +1374,13 @@ HighScore::NormalizeJudgments() -> bool
 	// extreme edge cases: misses dont show up in replays (not confirmed)
 	// so if this happens, add them in
 	if (m_Impl->iTapNoteScoresNormalized[TNS_Miss] < m_Impl->iTapNoteScores[TNS_Miss]) {
+		Locator::getLogger()->warn("While converting score key {} a Miss "
+								   "mismatch was found - Norm {} - Count {}",
+								   GetScoreKey(),
+								   m_Impl->iTapNoteScoresNormalized[TNS_Miss],
+								   m_Impl->iTapNoteScores[TNS_Miss]);
 		m_Impl->iTapNoteScoresNormalized[TNS_Miss] +=
 		  m_Impl->iTapNoteScores[TNS_Miss];
-		Locator::getLogger()->warn(
-		  "While converting score key {} a Miss mismatch was found.", GetScoreKey());
 	}
 
 	return true;
@@ -1940,19 +1390,6 @@ auto
 HighScore::GetWifeGrade() const -> Grade
 {
 	return m_Impl->GetWifeGrade();
-}
-
-auto
-HighScore::WriteReplayData() -> bool
-{
-	// return DBProfile::WriteReplayData(this);
-	return m_Impl->WriteReplayData();
-}
-
-auto
-HighScore::WriteInputData() -> bool
-{
-	return m_Impl->WriteInputData();
 }
 
 // TO BE REMOVED SOON

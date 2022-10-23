@@ -336,7 +336,7 @@ local t = Def.ActorFrame {
 	end,
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(110, 94):halign(0):valign(0):diffuse(getMainColor("tabs"))
+			self:xy(frameX, frameY - 146):zoomto(110, 164):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end
 	},
 	Def.Quad {
@@ -346,7 +346,7 @@ local t = Def.ActorFrame {
 	},
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(8, 144):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.6)
+			self:xy(frameX, frameY - 146):zoomto(8, 214):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.6)
 		end
 	},
 }
@@ -818,15 +818,19 @@ t[#t + 1] = Def.Sprite {
 	end,
 	ModifyBannerCommand = function(self)
 		self:finishtweening()
-		if song then
+		if song and GAMESTATE:GetCurrentSong() ~= nil then
 			local bnpath = GAMESTATE:GetCurrentSong():GetBannerPath()
-			if not bnpath then
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
 		else
 			local bnpath = SONGMAN:GetSongGroupBannerPath(SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection())
-			if not bnpath or bnpath == "" then
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath or bnpath == "" then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
@@ -837,7 +841,7 @@ t[#t + 1] = Def.Sprite {
 		self:visible(false)
 	end,
 	ChartPreviewOffMessageCommand = function(self)
-		self:visible(true)
+		self:visible(BannersEnabled())
 	end
 }
 local enabledC = "#099948"

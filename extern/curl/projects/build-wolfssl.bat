@@ -6,12 +6,12 @@ rem *                             / __| | | | |_) | |
 rem *                            | (__| |_| |  _ <| |___
 rem *                             \___|\___/|_| \_\_____|
 rem *
-rem * Copyright (C) 2012 - 2018, Steve Holme, <steve_holme@hotmail.com>.
-rem * Copyright (C) 2015, Jay Satiro, <raysatiro@yahoo.com>.
+rem * Copyright (C) 2012 - 2020, Steve Holme, <steve_holme@hotmail.com>.
+rem * Copyright (C) 2015 - 2022, Jay Satiro, <raysatiro@yahoo.com>.
 rem *
 rem * This software is licensed as described in the file COPYING, which
 rem * you should have received as part of this distribution. The terms
-rem * are also available at https://curl.haxx.se/docs/copyright.html.
+rem * are also available at https://curl.se/docs/copyright.html.
 rem *
 rem * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 rem * copies of the Software, and permit persons to whom the Software is
@@ -31,9 +31,7 @@ rem ***************************************************************************
   set SUCCESSFUL_BUILDS=
   set VC_VER=
   set BUILD_PLATFORM=
-
-  rem Ensure we have the required arguments
-  if /i "%~1" == "" goto syntax
+  set DEFAULT_START_DIR=..\..\wolfssl
 
   rem Calculate the program files directory
   if defined PROGRAMFILES (
@@ -41,9 +39,17 @@ rem ***************************************************************************
     set OS_PLATFORM=x86
   )
   if defined PROGRAMFILES(x86) (
-    set "PF=%PROGRAMFILES(x86)%"
+    rem Visual Studio was x86-only prior to 14.3
+    if /i "%~1" == "vc14.3" (
+      set "PF=%PROGRAMFILES%"
+    ) else (
+      set "PF=%PROGRAMFILES(x86)%"
+    )
     set OS_PLATFORM=x64
   )
+
+  rem Ensure we have the required arguments
+  if /i "%~1" == "" goto syntax
 
 :parseArgs
   if "%~1" == "" goto prerequisites
@@ -82,6 +88,34 @@ rem ***************************************************************************
     ) else (
       set "VC_PATH=Microsoft Visual Studio\2017\Community\VC"
     )
+  ) else if /i "%~1" == "vc14.2" (
+    set VC_VER=14.2
+    set VC_DESC=VC14.2
+    set VC_TOOLSET=v142
+
+    rem Determine the VC14.2 path based on the installed edition in descending
+    rem order (Enterprise, then Professional and finally Community)
+    if exist "%PF%\Microsoft Visual Studio\2019\Enterprise\VC" (
+      set "VC_PATH=Microsoft Visual Studio\2019\Enterprise\VC"
+    ) else if exist "%PF%\Microsoft Visual Studio\2019\Professional\VC" (
+      set "VC_PATH=Microsoft Visual Studio\2019\Professional\VC"
+    ) else (
+      set "VC_PATH=Microsoft Visual Studio\2019\Community\VC"
+    )
+  ) else if /i "%~1" == "vc14.3" (
+    set VC_VER=14.3
+    set VC_DESC=VC14.3
+    set VC_TOOLSET=v143
+
+    rem Determine the VC14.3 path based on the installed edition in descending
+    rem order (Enterprise, then Professional and finally Community)
+    if exist "%PF%\Microsoft Visual Studio\2022\Enterprise\VC" (
+      set "VC_PATH=Microsoft Visual Studio\2022\Enterprise\VC"
+    ) else if exist "%PF%\Microsoft Visual Studio\2022\Professional\VC" (
+      set "VC_PATH=Microsoft Visual Studio\2022\Professional\VC"
+    ) else (
+      set "VC_PATH=Microsoft Visual Studio\2022\Community\VC"
+    )
   ) else if /i "%~1" == "x86" (
     set BUILD_PLATFORM=x86
   ) else if /i "%~1" == "x64" (
@@ -111,7 +145,7 @@ rem ***************************************************************************
   if not defined VC_VER goto syntax
 
   rem Default the start directory if one isn't specified
-  if not defined START_DIR set START_DIR=..\..\wolfssl
+  if not defined START_DIR set "START_DIR=%DEFAULT_START_DIR%"
 
   rem Check we have a program files directory
   if not defined PF goto nopf
@@ -133,6 +167,8 @@ rem ***************************************************************************
     if "%VC_VER%" == "12.0" set VCVARS_PLATFORM=amd64
     if "%VC_VER%" == "14.0" set VCVARS_PLATFORM=amd64
     if "%VC_VER%" == "14.1" set VCVARS_PLATFORM=amd64
+    if "%VC_VER%" == "14.2" set VCVARS_PLATFORM=amd64
+    if "%VC_VER%" == "14.3" set VCVARS_PLATFORM=amd64
   )
 
 :start
@@ -140,6 +176,10 @@ rem ***************************************************************************
   set SAVED_PATH=%CD%
 
   if "%VC_VER%" == "14.1" (
+    call "%PF%\%VC_PATH%\Auxiliary\Build\vcvarsall" %VCVARS_PLATFORM%
+  ) else if "%VC_VER%" == "14.2" (
+    call "%PF%\%VC_PATH%\Auxiliary\Build\vcvarsall" %VCVARS_PLATFORM%
+  ) else if "%VC_VER%" == "14.3" (
     call "%PF%\%VC_PATH%\Auxiliary\Build\vcvarsall" %VCVARS_PLATFORM%
   ) else (
     call "%PF%\%VC_PATH%\vcvarsall" %VCVARS_PLATFORM%
@@ -301,6 +341,7 @@ rem ***************************************************************************
   echo.
   echo Usage: build-wolfssl ^<compiler^> [platform] [configuration] [directory]
   echo.
+  echo.
   echo Compiler:
   echo.
   echo vc10      - Use Visual Studio 2010
@@ -308,20 +349,32 @@ rem ***************************************************************************
   echo vc12      - Use Visual Studio 2013
   echo vc14      - Use Visual Studio 2015
   echo vc14.1    - Use Visual Studio 2017
+  echo vc14.2    - Use Visual Studio 2019
+  echo vc14.3    - Use Visual Studio 2022
+  echo.
   echo.
   echo Platform:
   echo.
   echo x86       - Perform a 32-bit build
   echo x64       - Perform a 64-bit build
   echo.
+  echo If this parameter is unset the OS platform is used ^(%OS_PLATFORM%^).
+  echo.
+  echo.
   echo Configuration:
   echo.
   echo debug     - Perform a debug build
   echo release   - Perform a release build
   echo.
+  echo If this parameter is unset both configurations are built.
+  echo.
+  echo.
   echo Other:
   echo.
   echo directory - Specifies the wolfSSL source directory
+  echo.
+  echo If this parameter is unset the directory used is "%DEFAULT_START_DIR%".
+  echo.
   goto error
 
 :unknown

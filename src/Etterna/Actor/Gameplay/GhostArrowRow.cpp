@@ -23,7 +23,7 @@ GhostArrowRow::Load(const PlayerState* pPlayerState, float fYReverseOffset)
 		  GAMESTATE->GetCurrentStyle(pn)->ColToButtonName(c);
 
 		std::vector<GameInput> GameI;
-		GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(c, pn, GameI);
+		GAMESTATE->GetCurrentStyle(pn)->StyleInputToGameInput(c, GameI);
 		NOTESKIN->SetGameController(GameI[0].controller);
 
 		m_bHoldShowing.push_back(TapNoteSubType_Invalid);

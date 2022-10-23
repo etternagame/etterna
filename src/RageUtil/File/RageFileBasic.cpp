@@ -1,11 +1,8 @@
 #include "Etterna/Globals/global.h"
 #include "RageFileBasic.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 #include <algorithm>
-
-REGISTER_CLASS_TRAITS(RageFileBasic, pCopy->Copy());
 
 RageFileObj::RageFileObj()
 {
@@ -41,7 +38,7 @@ RageFileObj::RageFileObj(const RageFileObj& cpy)
 
 	if (cpy.m_pWriteBuffer != NULL) {
 		m_pWriteBuffer = new char[cpy.m_iWriteBufferSize];
-		memcpy(m_pWriteBuffer, cpy.m_pWriteBuffer, m_iWriteBufferUsed);
+		memcpy(m_pWriteBuffer, cpy.m_pWriteBuffer, cpy.m_iWriteBufferUsed);
 	} else {
 		m_pWriteBuffer = NULL;
 	}

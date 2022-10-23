@@ -149,12 +149,14 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
 		// values this is the only time debugoutput arg should be set to true
 		if (debugmode) {
-			Chisel(iteration_skillet_values[highest_stam_adjusted_skillset] - 0.16F,
-				   0.32F,
-				   score_goal,
-				   highest_stam_adjusted_skillset,
-				   true,
-				   true);
+			for (auto ss = 0; ss < NUM_Skillset; ss++) {
+				Chisel(iteration_skillet_values.at(ss) - 0.16F,
+					   0.32F,
+					   score_goal,
+					   static_cast<Skillset>(ss),
+					   true,
+					   true);
+			}
 		}
 
 		/* the final push down, cap ssrs (score specific ratings) to stop vibro
@@ -250,7 +252,7 @@ StamAdjust(const float x,
 	float avs1;
 	auto avs2 = 0.F;
 	float local_ceil;
-	const auto super_stam_ceil = 1.11F;
+	const auto super_stam_ceil = 1.09F;
 
 	// use this to calculate the mod growth
 	const std::vector<float>* base_diff =
@@ -432,7 +434,7 @@ CalcInternal(float& gotpoints,
 		// final debug output should always be with stam activated
 		StamAdjust(x, ss, calc, hand, true);
 		for (auto i = 0; i < calc.numitv; ++i) {
-			calc.debugValues.at(hand)[1][MSD].at(i) = (*v).at(i);
+			calc.debugMSD.at(hand).at(ss).at(i) = (*v).at(i);
 		}
 
 		for (auto i = 0; i < calc.numitv; ++i) {
@@ -442,7 +444,7 @@ CalcInternal(float& gotpoints,
 				const auto lostpoints =
 				  (pts - (pts * fastpow(x / (*v).at(i), pointloss_pow_val)));
 				gotpoints -= lostpoints;
-				calc.debugValues.at(hand)[2][PtLoss].at(i) = abs(lostpoints);
+				calc.debugPtLoss.at(hand).at(ss).at(i) = abs(lostpoints);
 			}
 		}
 	} else {
@@ -643,6 +645,12 @@ Calc::Chisel(const float player_skill,
 			debugValues.at(hand)[2][PtLoss].assign(numitv, 0.F);
 			debugValues.at(hand)[1][MSD].resize(numitv);
 			debugValues.at(hand)[1][MSD].assign(numitv, 0.F);
+			debugMSD.at(hand).at(ss).resize(numitv);
+			debugMSD.at(hand).at(ss).assign(numitv, 0.F);
+			debugPtLoss.at(hand).at(ss).resize(numitv);
+			debugPtLoss.at(hand).at(ss).assign(numitv, 0.F);
+			debugTotalPatternMod.at(hand).at(ss).resize(numitv);
+			debugTotalPatternMod.at(hand).at(ss).assign(numitv, 0.F);
 
 			// fills MSD, Pts, PtLoss debugValues
 			CalcInternal(gotpoints,
@@ -665,16 +673,23 @@ Calc::Chisel(const float player_skill,
 			// techbase
 			if (ss == Skill_Technical) {
 				for (auto i = 0; i < numitv; ++i) {
-					debugValues.at(hand)[0][TotalPatternMod].at(i) =
+					debugTotalPatternMod.at(hand).at(ss).at(i) =
 					  base_adj_diff.at(hand)[TechBase].at(i) /
 					  init_base_diff_vals.at(hand)[TechBase].at(i);
 				}
 			} else if (ss == Skill_JackSpeed) {
-				// no pattern mods atm, do nothing
+				// no pattern mods atm
+			} else if (ss == Skill_Chordjack) {
+				for (auto i = 0; i < numitv; ++i) {
+					debugTotalPatternMod.at(hand).at(ss).at(i) =
+					  base_adj_diff.at(hand).at(ss).at(i) /
+					  //init_base_diff_vals.at(hand)[CJBase].at(i);
+					  init_base_diff_vals.at(hand)[NPSBase].at(i);
+				}
 			} else {
 				// everything else uses nps base
 				for (auto i = 0; i < numitv; ++i) {
-					debugValues.at(hand)[0][TotalPatternMod].at(i) =
+					debugTotalPatternMod.at(hand).at(ss).at(i) =
 					  base_adj_diff.at(hand).at(ss).at(i) /
 					  init_base_diff_vals.at(hand)[NPSBase].at(i);
 				}
@@ -711,15 +726,16 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		Stream,
 		OHTrill,
 		VOHTrill,
-		// Roll,
+		Roll,
 		Chaos,
 		WideRangeRoll,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		FlamJam,
-		OHJumpMod,
-		Balance,
+		// OHJumpMod,
+		// Balance,
 		// RanMan,
-		WideRangeBalance,
+		// WideRangeBalance,
 	  },
 
 	  // js
@@ -732,12 +748,13 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		TheThing2,
 		WideRangeBalance,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		// WideRangeRoll,
 		// OHTrill,
 		VOHTrill,
+		// Roll,
 		RanMan,
 		FlamJam,
-		// Roll,
 		// WideRangeAnchor,
 	  },
 
@@ -746,12 +763,13 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		HS,
 		OHJumpMod,
 		TheThing,
-		WideRangeAnchor,
+		// WideRangeAnchor,
 		WideRangeRoll,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		OHTrill,
 		VOHTrill,
-		// Roll
+		// Roll,
 		// RanMan,
 		FlamJam,
 	  	HSDensity,
@@ -766,12 +784,14 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 	  // chordjack
 	  {
 		CJ,
-		CJDensity,
-		// CJOHJump // SQRTD BELOW
+		// CJDensity,
+		CJOHJump,
 		CJOHAnchor,
 		VOHTrill,
 		// WideRangeAnchor,
 	  	FlamJam, // you may say, why? why not?
+		// WideRangeJJ,
+		WideRangeJumptrill,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -779,14 +799,16 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		OHTrill,
 		VOHTrill,
 		Balance,
-		// Roll,
+		Roll,
 		OHJumpMod,
-		//Chaos,
+		Chaos,
 		WideRangeJumptrill,
+		WideRangeJJ,
 		WideRangeBalance,
 		WideRangeRoll,
 		FlamJam,
-		//RanMan,
+		RanMan,
+		Minijack,
 		// WideRangeAnchor,
 		TheThing,
 		TheThing2,
@@ -872,16 +894,21 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 				case Skill_JackSpeed:
 					break;
 				case Skill_Chordjack:
-					*adj_diff *=
-					  fastsqrt(calc.pmod_vals.at(hand).at(CJOHJump).at(i));
+					/*
+					*adj_diff =
+					  calc.init_base_diff_vals.at(hand).at(CJBase).at(i) *
+					  basescalers.at(Skill_Chordjack) *
+					  pmod_product_cur_interval[Skill_Chordjack];
+					// we leave stam_base alone here, still based on nps
+					*/
 					break;
 				case Skill_Technical:
 					*adj_diff =
 					  calc.init_base_diff_vals.at(hand).at(TechBase).at(i) *
 					  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
-					  //max<float>(
-					  //fastpow(calc.pmod_vals.at(hand).at(CJ).at(i), 2.F),
-					  //1.F) /
+					  max<float>(
+						fastpow(calc.pmod_vals.at(hand).at(CJ).at(i), 2.F),
+						1.F) /
 					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i));
 					break;
 				default:
@@ -987,7 +1014,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 474;
+int mina_calc_version = 497;
 auto
 GetCalcVersion() -> int
 {

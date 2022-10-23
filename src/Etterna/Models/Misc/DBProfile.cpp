@@ -978,8 +978,6 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 						if (mode == WriteOnlyWebExport)
 							break;
 						if (mode == LocalWithReplayData) {
-							auto scoreID = static_cast<int>(
-							  sqlite3_last_insert_rowid(db->getHandle()));
 							try {
 								// Save Replay Data
 								if (hs->LoadReplayData()) {
@@ -1118,6 +1116,9 @@ DBProfile::FindOrCreateScoreKey(SQLite::Database* db, const string& key)
 bool
 DBProfile::WriteReplayData(const HighScore* hs)
 {
+	// we should not be writing replay data to the database.
+	return false;
+	/*
 	const auto profiledir =
 	  PROFILEMAN->GetProfileDir(ProfileSlot_Player1).substr(1);
 	const auto filename = profiledir + PROFILE_DB;
@@ -1153,4 +1154,5 @@ DBProfile::WriteReplayData(const HighScore* hs)
 	}
 	delete db;
 	return true;
+	*/
 }

@@ -255,7 +255,6 @@ LoadFromKSFFile(const std::string& sPath,
 	for (t = 0; t < 13; t++)
 		iHoldStartRow[t] = -1;
 
-	auto newTick = -1;
 	auto fCurBeat = 0.0f;
 	auto prevBeat = 0.0f; // Used for hold tails.
 
@@ -601,7 +600,6 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 			HandleBunki(out.m_SongTiming, BPM2, BPM3, SMGap2, BPMPos3);
 		}
 	} else {
-		auto fCurBeat = 0.0f;
 		auto bDMRequired = false;
 
 		for (auto& NoteRowString : vNoteRows) {
@@ -627,8 +625,6 @@ LoadGlobalData(const std::string& sPath, Song& out, bool& bKIUCompliant)
 				// ignore whatever else...
 				// continue;
 			}
-
-			fCurBeat += 1.0f / iTickCount;
 		}
 	}
 

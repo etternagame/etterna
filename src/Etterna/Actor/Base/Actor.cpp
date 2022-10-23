@@ -144,7 +144,7 @@ GetMessageNameFromCommandName(const std::string& sCommandName,
 
 Actor::Actor()
 {
-	m_pLuaInstance = new LuaClass;
+	m_pLuaInstance = std::make_unique<LuaClass>();
 	auto* L = LUA->Get();
 	m_pLuaInstance->PushSelf(L);
 	lua_newtable(L);
@@ -176,17 +176,21 @@ Actor::Actor(const Actor& cpy)
 {
 	/* Don't copy an Actor in the middle of rendering. */
 	ASSERT(cpy.m_pTempState == nullptr);
-	m_pTempState = nullptr;
 
-#define CPY(x) x = cpy.x
+	*this = cpy;
+}
+Actor& Actor::operator=(const Actor& x)
+{
+#define CPY(membername) this->membername = x.membername
+	CPY(m_pTempState);
 	CPY(m_sName);
 	CPY(m_pParent);
 	CPY(m_FakeParent);
-	CPY(m_pLuaInstance);
+	m_pLuaInstance = std::make_unique<LuaClass>(*x.m_pLuaInstance);
 
-	m_WrapperStates.resize(cpy.m_WrapperStates.size());
+	m_WrapperStates.resize(x.m_WrapperStates.size());
 	for (size_t i = 0; i < m_WrapperStates.size(); ++i) {
-		auto* const cp = dynamic_cast<ActorFrame*>(cpy.m_WrapperStates[i]);
+		auto* const cp = dynamic_cast<ActorFrame*>(x.m_WrapperStates[i]);
 		ASSERT_M(cp != nullptr,
 				 "Dynamic cast to ActorFrame copy failed at runtime.");
 		m_WrapperStates[i] = new ActorFrame(*cp);
@@ -201,15 +205,15 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_size);
 	CPY(m_current);
 	CPY(m_start);
-	for (auto* m_Tween : cpy.m_Tweens)
+	for (auto* m_Tween : x.m_Tweens)
 		m_Tweens.push_back(new TweenStateAndInfo(*m_Tween));
 
 	CPY(m_fHorizAlign);
 	CPY(m_fVertAlign);
 #if defined(SSC_FUTURES)
 	// I'm a bit worried about this -aj
-	for (unsigned i = 0; i < cpy.m_Effects.size(); ++i)
-		m_Effects.push_back((*cpy.m_Effects[i]));
+	for (unsigned i = 0; i < x.m_Effects.size(); ++i)
+		m_Effects.push_back((*x.m_Effects[i]));
 #else
 	CPY(m_Effect);
 #endif
@@ -247,6 +251,7 @@ Actor::Actor(const Actor& cpy)
 	CPY(m_mapNameToCommands);
 	CPY(m_tween_uses_effect_delta);
 #undef CPY
+	return *this;
 }
 
 /* XXX: This calls InitCommand, which must happen after all other
@@ -969,10 +974,9 @@ Actor::UpdateInternal(float delta_time)
 			}
 			break;
 		case CLOCK_TIMER_GLOBAL:
-			generic_global_timer_update(
-			  RageTimer::GetTimeSinceStart(),
-			  m_fEffectDelta,
-			  m_fSecsIntoEffect);
+			generic_global_timer_update(RageTimer::GetTimeSinceStart(),
+										m_fEffectDelta,
+										m_fSecsIntoEffect);
 			break;
 		case CLOCK_BGM_BEAT:
 			generic_global_timer_update(

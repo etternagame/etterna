@@ -5,11 +5,11 @@
 #                            | (__| |_| |  _ <| |___
 #                             \___|\___/|_| \_\_____|
 #
-# Copyright (C) 1999 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+# Copyright (C) 1999 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution. The terms
-# are also available at https://curl.haxx.se/docs/copyright.html.
+# are also available at https://curl.se/docs/copyright.html.
 #
 # You may opt to use, copy, modify, merge, publish, distribute and/or sell
 # copies of the Software, and permit persons to whom the Software is
@@ -22,24 +22,9 @@
 
 ###########################################################################
 #
-# Makefile for building libcurl with MSVC 6 through to 15
+# Makefile for building libcurl with MSVC
 #
-# Usage: see usage message below
-#        Should be invoked from winbuild directory
-#        Edit the paths and desired library name
-#        SSL path is only required if you intend compiling
-#        with SSL.
-#
-# This make file leaves the result either a .lib or .dll file
-# in the \lib directory. It should be called from the \lib
-# directory.
-#
-# An option would have been to allow the source directory to
-# be specified, but I saw no requirement.
-#
-# Another option would have been to leave the .lib and .dll
-# files in the "cfg" directory, but then the make file
-# in \src would need to be changed.
+# Usage: see README.md
 #
 ##############################################################
 
@@ -72,7 +57,7 @@ LFLAGS     = /nologo /machine:$(MACHINE)
 LNKDLL     = link.exe /DLL
 # Use lib.exe instead of link.exe as link.exe /lib has the following bad habits:
 # - optimizing options like /opt:ref raises warnings (at least in Visual Studio 2015)
-# - all (including Windows) dependencies are aggregated (as static parts) 
+# - all (including Windows) dependencies are aggregated (as static parts)
 # - link.exe /lib is not documented (anymore) at MSDN
 # Instead of id: just create an archive, that contains all objects
 LNKLIB     = lib.exe
@@ -172,9 +157,33 @@ NGHTTP2_CFLAGS   = /DUSE_NGHTTP2 /I"$(NGHTTP2_INC_DIR)"
 NGHTTP2_LIBS     = nghttp2.lib
 !ELSEIF "$(WITH_NGHTTP2)"=="static"
 NGHTTP2_CFLAGS   = /DUSE_NGHTTP2 /DNGHTTP2_STATICLIB /I"$(NGHTTP2_INC_DIR)"
+!IF EXISTS("$(NGHTTP2_LIB_DIR)\nghttp2_static.lib")
 NGHTTP2_LIBS     = nghttp2_static.lib
+!ELSE
+NGHTTP2_LIBS     = nghttp2.lib
+!ENDIF
 !ENDIF
 
+!IFDEF MSH3_PATH
+MSH3_INC_DIR     = $(MSH3_PATH)\include
+MSH3_LIB_DIR     = $(MSH3_PATH)\lib
+MSH3_LFLAGS      = $(MSH3_LFLAGS) "/LIBPATH:$(MSH3_LIB_DIR)"
+!ELSE
+MSH3_INC_DIR     = $(DEVEL_INCLUDE)
+MSH3_LIB_DIR     = $(DEVEL_LIB)
+!ENDIF
+
+!IF "$(WITH_MSH3)"=="dll"
+MSH3_CFLAGS      = /DUSE_MSH3 /I"$(MSH3_INC_DIR)"
+MSH3_LIBS        = msh3.lib
+!ELSEIF "$(WITH_MSH3)"=="static"
+MSH3_CFLAGS      = /DUSE_MSH3 /DMSH3_STATICLIB /I"$(MSH3_INC_DIR)"
+!IF EXISTS("$(NGHTTP2_LIB_DIR)\msh3_static.lib")
+MSH3_LIBS        = msh3_static.lib
+!ELSE
+MSH3_LIBS        = msh3.lib
+!ENDIF
+!ENDIF
 
 !IFDEF MBEDTLS_PATH
 MBEDTLS_INC_DIR  = $(MBEDTLS_PATH)\include
@@ -237,8 +246,8 @@ ZLIB_INC_DIR = $(DEVEL_INCLUDE)
 ZLIB_LIB_DIR = $(DEVEL_LIB)
 !ENDIF
 
-# Depending on how zlib is built the libraries have different names, we 
-# try to handle them all. 
+# Depending on how zlib is built the libraries have different names, we
+# try to handle them all.
 !IF "$(WITH_ZLIB)"=="dll"
 !IF EXISTS("$(ZLIB_LIB_DIR)\zlibwapi.lib")
 ZLIB_LIBS = zlibwapi.lib
@@ -299,6 +308,27 @@ SSH2_CFLAGS = $(SSH2_CFLAGS) /I$(SSH2_INC_DIR)
 !ENDIF
 
 
+!IFDEF SSH_PATH
+SSH_INC_DIR= $(SSH_PATH)\include
+SSH_LIB_DIR= $(SSH_PATH)\lib
+SSH_LFLAGS = $(SSH_LFLAGS) "/LIBPATH:$(SSH_LIB_DIR)"
+!ELSE
+SSH_LIB_DIR= $(DEVEL_LIB)
+SSH_INC_DIR= $(DEVEL_INCLUDE)
+!ENDIF
+
+!IF "$(WITH_SSH)"=="dll" || "$(WITH_SSH)"=="static"
+SSH_LIBS   = ssh.lib
+USE_SSH    = true
+SSH        = $(WITH_SSH)
+!ENDIF
+
+!IFDEF USE_SSH
+SSH_CFLAGS = /DHAVE_LIBSSH /DHAVE_LIBSSH_LIBSSH_H /DLIBSSH_WIN32 /DLIBSSH_LIBRARY /DUSE_LIBSSH /DCURL_USE_LIBSSH
+SSH_CFLAGS = $(SSH_CFLAGS) /I$(SSH_INC_DIR)
+!ENDIF
+
+
 !IFNDEF USE_IDN
 USE_IDN   = true
 !ELSEIF "$(USE_IDN)"=="yes"
@@ -333,20 +363,20 @@ SSPI_CFLAGS = $(SSPI_CFLAGS) /DUSE_WINDOWS_SSPI
 !ENDIF
 
 
-!IFNDEF USE_WINSSL
+!IFNDEF USE_SCHANNEL
 !IF "$(USE_SSL)"=="true"
-USE_WINSSL  = false
+USE_SCHANNEL  = false
 !ELSE
-USE_WINSSL  = $(USE_SSPI)
+USE_SCHANNEL  = $(USE_SSPI)
 !ENDIF
-!ELSEIF "$(USE_WINSSL)"=="yes"
-USE_WINSSL  = true
+!ELSEIF "$(USE_SCHANNEL)"=="yes"
+USE_SCHANNEL  = true
 !ENDIF
 
 
-!IF "$(USE_WINSSL)"=="true"
+!IF "$(USE_SCHANNEL)"=="true"
 !IF "$(USE_SSPI)"!="true"
-!ERROR cannot build with WinSSL without SSPI
+!ERROR cannot build with Schannel without SSPI
 !ENDIF
 SSPI_CFLAGS = $(SSPI_CFLAGS) /DUSE_SCHANNEL
 WIN_LIBS    = $(WIN_LIBS) Crypt32.lib
@@ -460,6 +490,11 @@ CFLAGS = $(CFLAGS) $(SSH2_CFLAGS)
 LFLAGS = $(LFLAGS) $(SSH2_LFLAGS) $(SSH2_LIBS)
 !ENDIF
 
+!IF "$(USE_SSH)"=="true"
+CFLAGS = $(CFLAGS) $(SSH_CFLAGS)
+LFLAGS = $(LFLAGS) $(SSH_LFLAGS) $(SSH_LIBS)
+!ENDIF
+
 !IF "$(USE_IDN)"=="true"
 CFLAGS = $(CFLAGS) $(IDN_CFLAGS)
 !ENDIF
@@ -477,14 +512,19 @@ CFLAGS = $(CFLAGS) $(NGHTTP2_CFLAGS)
 LFLAGS = $(LFLAGS) $(NGHTTP2_LFLAGS) $(NGHTTP2_LIBS)
 !ENDIF
 
+!IF "$(USE_MSH3)"=="true"
+CFLAGS = $(CFLAGS) $(MSH3_CFLAGS)
+LFLAGS = $(LFLAGS) $(MSH3_LFLAGS) $(MSH3_LIBS)
+!ENDIF
+
 !IF "$(GEN_PDB)"=="true"
 CFLAGS = $(CFLAGS) $(CFLAGS_PDB) /Fd"$(LIB_DIROBJ)\$(PDB)"
 LFLAGS = $(LFLAGS) $(LFLAGS_PDB)
 !ENDIF
 
-!IF ( "$(USE_SSL)"=="true" && "$(USE_WINSSL)"=="true" ) \
+!IF ( "$(USE_SSL)"=="true" && "$(USE_SCHANNEL)"=="true" ) \
  || ( "$(USE_SSL)"=="true" && "$(USE_MBEDTLS)"=="true" ) \
- || ( "$(USE_MBEDTLS)"=="true" && "$(USE_WINSSL)"=="true" )
+ || ( "$(USE_MBEDTLS)"=="true" && "$(USE_SCHANNEL)"=="true" )
 CFLAGS = $(CFLAGS) /DCURL_WITH_MULTI_SSL
 !ENDIF
 
@@ -530,13 +570,15 @@ package: $(TARGET)
 $(TARGET): $(LIB_OBJS) $(LIB_DIROBJ) $(DIRDIST)
 	@echo Using SSL: $(USE_SSL)
 	@echo Using NGHTTP2: $(USE_NGHTTP2)
+	@echo Using MSH3: $(USE_MSH3)
 	@echo Using c-ares: $(USE_CARES)
 	@echo Using SSH2: $(USE_SSH2)
+	@echo Using SSH: $(USE_SSH)
 	@echo Using ZLIB: $(USE_ZLIB)
 	@echo Using IDN:  $(USE_IDN)
 	@echo Using IPv6: $(USE_IPV6)
 	@echo Using SSPI: $(USE_SSPI)
-	@echo Using WinSSL: $(USE_WINSSL)
+	@echo Using Schannel: $(USE_SCHANNEL)
 	@echo CFLAGS:     $(CFLAGS)
 	@echo LFLAGS:     $(LFLAGS)
 	@echo GenPDB:     $(GEN_PDB)
@@ -618,8 +660,11 @@ CURL_FROM_LIBCURL=$(CURL_DIROBJ)\tool_hugehelp.obj \
  $(CURL_DIROBJ)\nonblock.obj \
  $(CURL_DIROBJ)\strtoofft.obj \
  $(CURL_DIROBJ)\warnless.obj \
- $(CURL_DIROBJ)\curl_ctype.obj
- 
+ $(CURL_DIROBJ)\curl_ctype.obj \
+ $(CURL_DIROBJ)\curl_multibyte.obj \
+ $(CURL_DIROBJ)\version_win32.obj \
+ $(CURL_DIROBJ)\dynbuf.obj
+
 $(PROGRAM_NAME): $(CURL_DIROBJ) $(CURL_FROM_LIBCURL) $(EXE_OBJS)
 	$(CURL_LINK) $(CURL_LFLAGS) $(CURL_LIBCURL_LIBNAME) $(WIN_LIBS) $(CURL_FROM_LIBCURL) $(EXE_OBJS)
 	$(MANIFESTTOOL)
@@ -637,6 +682,12 @@ $(CURL_DIROBJ)\warnless.obj: ../lib/warnless.c
 	$(CURL_CC) $(CURL_CFLAGS) /Fo"$@" ../lib/warnless.c
 $(CURL_DIROBJ)\curl_ctype.obj: ../lib/curl_ctype.c
 	$(CURL_CC) $(CURL_CFLAGS) /Fo"$@" ../lib/curl_ctype.c
+$(CURL_DIROBJ)\curl_multibyte.obj: ../lib/curl_multibyte.c
+	$(CURL_CC) $(CURL_CFLAGS) /Fo"$@" ../lib/curl_multibyte.c
+$(CURL_DIROBJ)\version_win32.obj: ../lib/version_win32.c
+	$(CURL_CC) $(CURL_CFLAGS) /Fo"$@" ../lib/version_win32.c
+$(CURL_DIROBJ)\dynbuf.obj: ../lib/dynbuf.c
+	$(CURL_CC) $(CURL_CFLAGS) /Fo"$@" ../lib/dynbuf.c
 $(CURL_DIROBJ)\curl.res: $(CURL_SRC_DIR)\curl.rc
 	rc $(CURL_RC_FLAGS)
 

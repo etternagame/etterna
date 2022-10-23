@@ -21,7 +21,8 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_SRC
 	"SongManager.cpp"
 	"StatsManager.cpp"
 	"ThemeManager.cpp"
-	"DownloadManager.cpp")
+	"DownloadManager.cpp"
+	"ReplayManager.cpp")
 
 list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
 	"AnnouncerManager.h"
@@ -46,6 +47,7 @@ list(APPEND SMDATA_GLOBAL_SINGLETON_HPP
 	"SongManager.h"
 	"StatsManager.h"
 	"ThemeManager.h"
-	"DownloadManager.h")
+	"DownloadManager.h"
+	"ReplayManager.h")
 
 target_sources(Etterna PUBLIC ${SMDATA_GLOBAL_SINGLETON_SRC} ${SMDATA_GLOBAL_SINGLETON_HPP})

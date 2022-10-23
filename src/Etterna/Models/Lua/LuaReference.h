@@ -2,7 +2,6 @@
 #define LUA_REFERENCE_H
 
 #include "Etterna/Singletons/LuaManager.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 struct lua_State;
 using Lua = lua_State;
@@ -15,6 +14,9 @@ class LuaReference
 
 	/* Copying a reference makes a new reference pointing to the same object. */
 	LuaReference(const LuaReference& cpy);
+	/* Moving a reference does not make a new reference and leaves the 
+	 * moved-from value with LUA_NOREF. */
+	LuaReference(LuaReference&& cpy);
 	auto operator=(const LuaReference& cpy) -> LuaReference&;
 
 	// Convenience constructor.
@@ -97,7 +99,7 @@ class LuaReference
 	int m_iReference;
 };
 
-using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
+using apActorCommands = std::shared_ptr<LuaReference>;
 
 class LuaTable : public LuaReference
 {

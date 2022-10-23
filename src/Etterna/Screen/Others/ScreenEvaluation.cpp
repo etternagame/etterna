@@ -23,8 +23,9 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Models/Misc/GamePreferences.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/NoteData/NoteData.h"
+#include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Globals/rngthing.h"
 
 #define CHEER_DELAY_SECONDS THEME->GetMetricF(m_sName, "CheerDelaySeconds")
@@ -137,7 +138,6 @@ ScreenEvaluation::Input(const InputEventPlus& input)
 
 		// technically this is correct
 		GAMESTATE->m_bRestartedGameplay = false;
-		PlayerAI::ResetScoreData();
 
 		// go
 		SetPrevScreenName("ScreenStageInformation");
@@ -288,17 +288,16 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			lua_pushboolean(L, false);
 			return 1;
 		}
-		PlayerAI::SetScoreData(hs, 0, nullptr, PlayerAI::pReplayTiming);
-		PlayerAI::SetUpSnapshotMap(&nd, std::set<int>(), ts);
-		PlayerAI::SetUpExactTapMap(GAMESTATE->m_pCurSteps->GetTimingData());
-		PlayerAI::SetPlayerStageStatsForReplay(pPSS, ts);
+		REPLAYS->InitReplayPlaybackForScore(hs);
+		REPLAYS->SetPlayerStageStatsForReplay(
+		  *REPLAYS->GetActiveReplay(), pPSS, ts);
 		lua_pushboolean(L, true);
 		return 1;
 	}
 	static int GetReplaySnapshotJudgmentsForNoterow(T* p, lua_State* L)
 	{
 		int row = IArg(1);
-		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
 		std::vector<int> toPush;
 
 		FOREACH_ENUM(TapNoteScore, tns)
@@ -310,21 +309,21 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	static int GetReplaySnapshotWifePercentForNoterow(T* p, lua_State* L)
 	{
 		int row = IArg(1);
-		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
 
 		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
 		return 1;
 	}
 	static int GetReplaySnapshotSDForNoterow(T* p, lua_State* L) {
 		int row = IArg(1);
-		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
 
 		lua_pushnumber(L, rs->standardDeviation);
 		return 1;
 	}
 	static int GetReplaySnapshotMeanForNoterow(T* p, lua_State* L) {
 		int row = IArg(1);
-		auto rs = PlayerAI::GetReplaySnapshotForNoterow(row);
+		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
 
 		lua_pushnumber(L, rs->mean);
 		return 1;
@@ -333,8 +332,8 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	{
 		Locator::getLogger()->info("Getting replay rate");
 		// if we have a replay, give the data
-		if (PlayerAI::pScoreData != nullptr) {
-			lua_pushnumber(L, PlayerAI::pScoreData->GetMusicRate());
+		if (REPLAYS->GetActiveReplayScore() != nullptr) {
+			lua_pushnumber(L, REPLAYS->GetActiveReplayScore()->GetMusicRate());
 			return 1;
 		} else {
 			// otherwise give nothing
@@ -345,8 +344,8 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	static int GetReplayJudge(T* p, lua_State* L)
 	{
 		Locator::getLogger()->info("Getting replay judge");
-		if (PlayerAI::pScoreData != nullptr) {
-			lua_pushnumber(L, PlayerAI::pScoreData->GetJudgeScale());
+		if (REPLAYS->GetActiveReplayScore() != nullptr) {
+			lua_pushnumber(L, REPLAYS->GetActiveReplayScore()->GetJudgeScale());
 		} else {
 			lua_pushnumber(L, Player::GetTimingWindowScale());
 		}
@@ -356,8 +355,9 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	static int GetReplayModifiers(T* p, lua_State* L)
 	{
 		Locator::getLogger()->info("Getting replay modifiers");
-		if (PlayerAI::pScoreData != nullptr) {
-			LuaHelpers::Push(L, PlayerAI::pScoreData->GetModifiers());
+		if (REPLAYS->GetActiveReplayScore() != nullptr) {
+			LuaHelpers::Push(L,
+							 REPLAYS->GetActiveReplayScore()->GetModifiers());
 		} else {
 			lua_pushnil(L);
 		}

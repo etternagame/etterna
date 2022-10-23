@@ -1,35 +1,63 @@
+#***************************************************************************
+#                                  _   _ ____  _
+#  Project                     ___| | | |  _ \| |
+#                             / __| | | | |_) | |
+#                            | (__| |_| |  _ <| |___
+#                             \___|\___/|_| \_\_____|
+#
+# Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution. The terms
+# are also available at https://curl.se/docs/copyright.html.
+#
+# You may opt to use, copy, modify, merge, publish, distribute and/or sell
+# copies of the Software, and permit persons to whom the Software is
+# furnished to do so, under the terms of the COPYING file.
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+# KIND, either express or implied.
+#
+###########################################################################
 # Cirrus CI configuration
 # https://cirrus-ci.com/github/curl/curl
 
-task:
+freebsd_task:
   name: FreeBSD
-  freebsd_instance:
-    matrix:
-      # A stable 13.0 image likely won't be available before early 2021
-      # image_family: freebsd-13-0-snap
-      image_family: freebsd-12-1
-      # The stable 11.3 image causes "Agent is not responding" so use a snapshot
-      image_family: freebsd-11-3-snap
+
+  matrix:
+    - name: FreeBSD 13.0
+      freebsd_instance:
+        image_family: freebsd-13-0
+    - name: FreeBSD 12.3
+      freebsd_instance:
+        image_family: freebsd-12-3
 
   env:
     CIRRUS_CLONE_DEPTH: 10
+    CRYPTOGRAPHY_DONT_BUILD_RUST: 1
     MAKE_FLAGS: -j 2
 
   pkginstall_script:
-    - pkg install -y autoconf automake libtool pkgconf brotli openldap-client heimdal libpsl libmetalink libssh2 openssh-portable libidn2 librtmp libnghttp2 nghttp2 stunnel
+    - pkg update -f
+    - pkg install -y autoconf automake libtool pkgconf brotli openldap24-client heimdal libpsl libssh2 openssh-portable libidn2 librtmp libnghttp2 nghttp2 stunnel py38-pip
     - pkg delete -y curl
+    - pip install "cryptography<3.2"
+    - pip install "pyOpenSSL<20.0"
+    - pip install "impacket"
   configure_script:
-    - ./buildconf
-    - case `uname -r` in
-        13.0*)
-        export CC=clang;
-        export CFLAGS="-fsanitize=address,undefined,signed-integer-overflow -fno-sanitize-recover=undefined,integer -Wformat -Werror=format-security -Werror=array-bounds -g";
-        export CXXFLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined,integer -Wformat -Werror=format-security -Werror=array-bounds -g";
-        export LDFLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined,integer" ;;
-      esac
-    - ./configure --prefix="${HOME}"/install --enable-debug --with-libssh2 --with-brotli --with-gssapi --with-libidn2 --enable-manual --enable-ldap --enable-ldaps --with-librtmp --with-libmetalink --with-libpsl --with-nghttp2 || { tail -300 config.log; false; }
+    - autoreconf -fi
+    # Building with the address sanitizer is causing unexplainable test issues due to timeouts
+    #- case `uname -r` in
+    #    12.2*)
+    #    export CC=clang;
+    #    export CFLAGS="-fsanitize=address,undefined,signed-integer-overflow -fno-sanitize-recover=undefined,integer -Wformat -Werror=format-security -Werror=array-bounds -g";
+    #    export CXXFLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined,integer -Wformat -Werror=format-security -Werror=array-bounds -g";
+    #    export LDFLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined,integer" ;;
+    #  esac
+    - ./configure --prefix="${HOME}"/install --enable-debug --with-openssl --with-libssh2 --with-brotli --with-gssapi --with-libidn2 --enable-manual --enable-ldap --enable-ldaps --with-librtmp --with-libpsl --with-nghttp2 || { tail -300 config.log; false; }
   compile_script:
-    - make V=1
+    - make V=1 && make V=1 examples && cd tests && make V=1
   test_script:
     # blackhole?
     - sysctl net.inet.tcp.blackhole
@@ -38,16 +66,64 @@ task:
     # Some tests won't run if run as root so run them as another user.
     # Make directories world writable so the test step can write wherever it needs.
     - find . -type d -exec chmod 777 {} \;
-    # TODO: A number of tests are failing on different FreeBSD versions and so
-    # are disabled.  This should be investigated.
-    - SKIP_TESTS=''
-    - uname -r
-    - case `uname -r` in
-        13.0*) SKIP_TESTS='!323 !1242 !1243 !2002 !2003';;
-        12.1*) SKIP_TESTS='!323 !1242 !1243 !2002 !2003';;
-        11.3*) SKIP_TESTS='!504 !1242 !1243 !2002 !2003';;
-        10.4*) SKIP_TESTS='!310 !311 !312 !313 !1082 !1242 !1243 !2002 !2003 !2034 !2035 !2037 !2038 !2041 !2042 !2048 !3000 !3001';;
-      esac
-    - sudo -u nobody make V=1 TFLAGS="-n -a -p !flaky ${SKIP_TESTS}" test-nonflaky
+    # The OpenSSH server instance for the testsuite cannot be started on FreeBSD,
+    # therefore the SFTP and SCP tests are disabled right away from the beginning.
+    - sudo -u nobody make V=1 TFLAGS="-n !SFTP !SCP" test-ci
   install_script:
     - make V=1 install
+
+windows_task:
+  name: Windows
+  timeout_in: 90m
+  windows_container:
+    image: ${container_img}
+
+  matrix:
+    - name: Windows 32-bit shared/release Schannel/SSPI/WinIDN/libssh2
+      env:
+        container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw32:ltsc2019
+        container_cmd: C:\msys64\usr\bin\sh
+        prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-i686-libssh2 mingw-w64-i686-python-pip mingw-w64-i686-python-wheel mingw-w64-i686-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+        configure: --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-werror --enable-sspi --with-schannel --with-winidn --with-libssh2 --enable-headers-api
+        tests: "~571"
+    - name: Windows 32-bit static/release Schannel/SSPI/WinIDN/libssh2
+      env:
+        container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw32:ltsc2019
+        container_cmd: C:\msys64\usr\bin\sh
+        prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-i686-libssh2 mingw-w64-i686-python-pip mingw-w64-i686-python-wheel mingw-w64-i686-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+        configure: --host=i686-w64-mingw32 --build=i686-w64-mingw32 --prefix=/mingw32 --enable-werror --enable-sspi --with-schannel --with-winidn --with-libssh2 --disable-shared --enable-static  --enable-headers-api
+        tests: "~571"
+        curl_LDFLAGS: -all-static
+        PKG_CONFIG: pkg-config --static
+    - name: Windows 64-bit shared/release Schannel/SSPI/WinIDN/libssh2
+      env:
+        container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw64:ltsc2019
+        container_cmd: C:\msys64\usr\bin\sh
+        prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-x86_64-libssh2 mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-wheel mingw-w64-x86_64-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+        configure: --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64 --enable-werror --enable-sspi --with-schannel --with-winidn --with-libssh2  --enable-headers-api
+        tests: "~571"
+    - name: Windows 64-bit static/release Schannel/SSPI/WinIDN/libssh2
+      env:
+        container_img: ghcr.io/mback2k/curl-docker-winbuildenv/msys2-mingw64:ltsc2019
+        container_cmd: C:\msys64\usr\bin\sh
+        prepare: pacman -S --needed --noconfirm --noprogressbar libssh2-devel mingw-w64-x86_64-libssh2 mingw-w64-x86_64-python-pip mingw-w64-x86_64-python-wheel mingw-w64-x86_64-python-pyopenssl && python3 -m pip install --prefer-binary impacket
+        configure: --host=x86_64-w64-mingw32 --build=x86_64-w64-mingw32 --prefix=/mingw64 --enable-werror --enable-sspi --with-schannel --with-winidn --with-libssh2 --disable-shared --enable-static  --enable-headers-api
+        tests: "~571"
+        curl_LDFLAGS: -all-static
+        PKG_CONFIG: pkg-config --static
+
+  env:
+    CIRRUS_CLONE_DEPTH: 10
+    MSYS2_PATH_TYPE: inherit
+    MAKEFLAGS: -j 2
+
+  prepare_script: |
+    %container_cmd% -l -c "cd $(echo '%cd%') && %prepare%"
+  configure_script: |
+    %container_cmd% -l -c "cd $(echo '%cd%') && autoreconf -fi && ./configure %configure%"
+  compile_script: |
+    %container_cmd% -l -c "cd $(echo '%cd%') && make V=1 && make V=1 examples && cd tests && make V=1"
+  install_script: |
+    %container_cmd% -l -c "cd $(echo '%cd%') && make V=1 install && PATH=/usr/bin:/bin find . -type f -path '*/.libs/*.exe' -print -execdir mv -t .. {} \;"
+  test_script: |
+    %container_cmd% -l -c "cd $(echo '%cd%') && make V=1 TFLAGS='!IDN !SCP ~612 ~1056 %tests%' test-ci"

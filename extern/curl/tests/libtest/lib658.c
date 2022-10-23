@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2011, 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -48,7 +48,8 @@ int test(char *URL)
 
   uc = curl_url_set(urlp, CURLUPART_URL, URL, 0);
   if(uc) {
-    fprintf(stderr, "problem setting CURLUPART_URL.");
+    fprintf(stderr, "problem setting CURLUPART_URL: %s.",
+            curl_url_strerror(uc));
     goto test_cleanup;
   }
 

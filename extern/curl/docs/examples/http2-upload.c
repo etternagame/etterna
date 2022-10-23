@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -28,6 +28,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 /* somewhat unix-specific */
 #include <sys/time.h>
@@ -35,9 +36,10 @@
 
 /* curl stuff */
 #include <curl/curl.h>
+#include <curl/mprintf.h>
 
 #ifndef CURLPIPE_MULTIPLEX
-/* This little trick will just make sure that we don't enable pipelining for
+/* This little trick will just make sure that we do not enable pipelining for
    libcurls old enough to not have this symbol. It is _not_ defined to zero in
    a recent libcurl header. */
 #define CURLPIPE_MULTIPLEX 0
@@ -122,9 +124,9 @@ int my_trace(CURL *handle, curl_infotype type,
     known_offset = 1;
   }
   secs = epoch_offset + tv.tv_sec;
-  now = localtime(&secs);  /* not thread safe but we don't care */
-  snprintf(timebuf, sizeof(timebuf), "%02d:%02d:%02d.%06ld",
-           now->tm_hour, now->tm_min, now->tm_sec, (long)tv.tv_usec);
+  now = localtime(&secs);  /* not thread safe but we do not care */
+  curl_msnprintf(timebuf, sizeof(timebuf), "%02d:%02d:%02d.%06ld",
+                 now->tm_hour, now->tm_min, now->tm_sec, (long)tv.tv_usec);
 
   switch(type) {
   case CURLINFO_TEXT:
@@ -157,7 +159,7 @@ int my_trace(CURL *handle, curl_infotype type,
   return 0;
 }
 
-static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *userp)
+static size_t read_callback(char *ptr, size_t size, size_t nmemb, void *userp)
 {
   struct input *i = userp;
   size_t retcode = fread(ptr, size, nmemb, i->in);
@@ -176,16 +178,31 @@ static void setup(struct input *i, int num, const char *upload)
 
   hnd = i->hnd = curl_easy_init();
   i->num = num;
-  snprintf(filename, 128, "dl-%d", num);
+  curl_msnprintf(filename, 128, "dl-%d", num);
   out = fopen(filename, "wb");
+  if(!out) {
+    fprintf(stderr, "error: could not open file %s for writing: %s\n", upload,
+            strerror(errno));
+    exit(1);
+  }
 
-  snprintf(url, 256, "https://localhost:8443/upload-%d", num);
+  curl_msnprintf(url, 256, "https://localhost:8443/upload-%d", num);
 
   /* get the file size of the local file */
-  stat(upload, &file_info);
+  if(stat(upload, &file_info)) {
+    fprintf(stderr, "error: could not stat file %s: %s\n", upload,
+            strerror(errno));
+    exit(1);
+  }
+
   uploadsize = file_info.st_size;
 
   i->in = fopen(upload, "rb");
+  if(!i->in) {
+    fprintf(stderr, "error: could not open file %s for reading: %s\n", upload,
+            strerror(errno));
+    exit(1);
+  }
 
   /* write to this file */
   curl_easy_setopt(hnd, CURLOPT_WRITEDATA, out);
@@ -262,79 +279,17 @@ int main(int argc, char **argv)
   /* We do HTTP/2 so let's stick to one connection per host */
   curl_multi_setopt(multi_handle, CURLMOPT_MAX_HOST_CONNECTIONS, 1L);
 
-  /* we start some action by calling perform right away */
-  curl_multi_perform(multi_handle, &still_running);
+  do {
+    CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
 
-  while(still_running) {
-    struct timeval timeout;
-    int rc; /* select() return code */
-    CURLMcode mc; /* curl_multi_fdset() return code */
+    if(still_running)
+      /* wait for activity, timeout or "nothing" */
+      mc = curl_multi_poll(multi_handle, NULL, 0, 1000, NULL);
 
-    fd_set fdread;
-    fd_set fdwrite;
-    fd_set fdexcep;
-    int maxfd = -1;
-
-    long curl_timeo = -1;
-
-    FD_ZERO(&fdread);
-    FD_ZERO(&fdwrite);
-    FD_ZERO(&fdexcep);
-
-    /* set a suitable timeout to play around with */
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
-
-    curl_multi_timeout(multi_handle, &curl_timeo);
-    if(curl_timeo >= 0) {
-      timeout.tv_sec = curl_timeo / 1000;
-      if(timeout.tv_sec > 1)
-        timeout.tv_sec = 1;
-      else
-        timeout.tv_usec = (curl_timeo % 1000) * 1000;
-    }
-
-    /* get file descriptors from the transfers */
-    mc = curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
-
-    if(mc != CURLM_OK) {
-      fprintf(stderr, "curl_multi_fdset() failed, code %d.\n", mc);
+    if(mc)
       break;
-    }
 
-    /* On success the value of maxfd is guaranteed to be >= -1. We call
-       select(maxfd + 1, ...); specially in case of (maxfd == -1) there are
-       no fds ready yet so we call select(0, ...) --or Sleep() on Windows--
-       to sleep 100ms, which is the minimum suggested value in the
-       curl_multi_fdset() doc. */
-
-    if(maxfd == -1) {
-#ifdef _WIN32
-      Sleep(100);
-      rc = 0;
-#else
-      /* Portable sleep for platforms other than Windows. */
-      struct timeval wait = { 0, 100 * 1000 }; /* 100ms */
-      rc = select(0, NULL, NULL, NULL, &wait);
-#endif
-    }
-    else {
-      /* Note that on some platforms 'timeout' may be modified by select().
-         If you need access to the original value save a copy beforehand. */
-      rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
-    }
-
-    switch(rc) {
-    case -1:
-      /* select error */
-      break;
-    case 0:
-    default:
-      /* timeout or readable/writable sockets */
-      curl_multi_perform(multi_handle, &still_running);
-      break;
-    }
-  }
+  } while(still_running);
 
   curl_multi_cleanup(multi_handle);
 

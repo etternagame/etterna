@@ -49,7 +49,7 @@ struct ChaosMod
 		// previous value
 		const float b = ms_any.get_last();
 
-		if (a == 0.F || b == 0.F || a == b) {
+		if (any_ms_is_zero(a) || any_ms_is_zero(b) || any_ms_is_close(a, b)) {
 			_u(1.F);
 			_wot(_u.get_mean_of_window(window));
 			return;

@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -68,6 +68,12 @@ const char *param2text(int res)
     return "too large number";
   case PARAM_NO_NOT_BOOLEAN:
     return "used '--no-' for option that isn't a boolean";
+  case PARAM_CONTDISP_SHOW_HEADER:
+    return "showing headers and --remote-header-name cannot be combined";
+  case PARAM_CONTDISP_RESUME_FROM:
+    return "--continue-at and --remote-header-name cannot be combined";
+  case PARAM_READ_ERROR:
+    return "error encountered when reading a file";
   default:
     return "unknown error";
   }
@@ -81,7 +87,8 @@ int SetHTTPrequest(struct OperationConfig *config, HttpReq req, HttpReq *store)
     "GET (-G, --get)",
     "HEAD (-I, --head)",
     "multipart formpost (-F, --form)",
-    "POST (-d, --data)"
+    "POST (-d, --data)",
+    "PUT (-T, --upload-file)"
   };
 
   if((*store == HTTPREQ_UNSPEC) ||
@@ -105,7 +112,8 @@ void customrequest_helper(struct OperationConfig *config, HttpReq req,
     "GET",
     "HEAD",
     "POST",
-    "POST"
+    "POST",
+    "PUT"
   };
 
   if(!method)

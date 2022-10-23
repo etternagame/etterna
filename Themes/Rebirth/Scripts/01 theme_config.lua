@@ -2,9 +2,9 @@ local defaultConfig = {
     global = {
         TipType = 1, -- 1 = tips, 2 = quotes ...
         ShowVisualizer = true,
-        ShowBackgrounds = true, -- wheel and gameplay bg
         FallbackToAverageColorBG = true, -- wheel bg only
         StaticBackgrounds = false,
+        ShowBanners = true, -- globally disable banners from displaying if false
         VideoBanners = true,
         WheelPosition = true, -- true = left, false = right
         WheelBanners = true, -- true = on, false = off
@@ -23,4 +23,7 @@ function useWheelBanners()
 end
 function useVideoBanners()
     return themeConfig:get_data().global.VideoBanners
+end
+function showBanners()
+    return themeConfig:get_data().global.ShowBanners
 end

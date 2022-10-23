@@ -286,7 +286,7 @@ local t = Def.ActorFrame {
         end
     end,
     OptionUpdatedMessageCommand = function(self, params)
-        if params and params.name == "Music Wheel Banners" then
+        if params and params.name == "Music Wheel Banners" or params.name == "Show Banners" then
             self:playcommand("UpdateWheelBanners")
         end
     end,
@@ -458,7 +458,9 @@ local function songBannerSetter(self, song, isCurrentItem)
     if song then
         local bnpath = song:GetBannerPath()
         -- we load the fallback banner but for aesthetic purpose at the moment, invisible
-        if not bnpath then
+        if not showBanners() then
+            self:visible(false)
+        elseif not bnpath then
             bnpath = THEME:GetPathG("Common", "fallback banner")
             self:visible(false)
         else
@@ -486,7 +488,9 @@ local function groupBannerSetter(self, group, isCurrentItem)
 
     local bnpath = WHEELDATA:GetFolderBanner(group)
     -- we load the fallback banner but for aesthetic purpose at the moment, invisible
-    if not bnpath or bnpath == "" then
+    if not showBanners() then
+        self:visible(false)
+    elseif not bnpath or bnpath == "" then
         bnpath = THEME:GetPathG("Common", "fallback banner")
         self:visible(false)
     else
@@ -1493,7 +1497,9 @@ t[#t+1] = Def.ActorFrame {
             end,
             SetCommand = function(self)
                 local bnpath = WHEELDATA:GetFolderBanner(openedGroup)
-                if not bnpath or bnpath == "" then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath or bnpath == "" then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else
@@ -1504,6 +1510,8 @@ t[#t+1] = Def.ActorFrame {
             OptionUpdatedMessageCommand = function(self, params)
                 if params and params.name == "Video Banners" then
                     self:SetDecodeMovie(useVideoBanners())
+                elseif params and params.name == "Show Banners" then
+                    self:playcommand("Set")
                 end
             end,
         },

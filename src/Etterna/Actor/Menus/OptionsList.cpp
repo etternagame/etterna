@@ -478,7 +478,7 @@ OptionsList::Input(const InputEventPlus& input)
 	if (input.MenuI == GAME_BUTTON_SELECT) {
 		if (input.type != IET_FIRST_PRESS)
 			return false;
-		//if( input.type == IET_RELEASE )
+		// if( input.type == IET_RELEASE )
 		{
 			Close();
 			return true;
@@ -641,7 +641,8 @@ OptionsList::SelectionsChanged(const std::string& sRowName)
 	std::vector<bool>& bSelections = m_bSelections[sRowName];
 
 	if (pHandler->m_Def.m_bOneChoiceForAllPlayers && m_pLinked != nullptr) {
-		std::vector<bool>& bLinkedSelections = m_pLinked->m_bSelections[sRowName];
+		std::vector<bool>& bLinkedSelections =
+		  m_pLinked->m_bSelections[sRowName];
 		bLinkedSelections = bSelections;
 
 		if (m_pLinked->IsOpened())

@@ -101,7 +101,7 @@ XToString(RagePixelFormat);
 static LocalizedString SETVIDEOMODE_FAILED("RageDisplay",
 										   "SetVideoMode failed:");
 std::string
-RageDisplay::SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
+RageDisplay::SetVideoMode(VideoModeParams&& p, bool& bNeedReloadTextures)
 {
 	std::string err;
 	std::vector<std::string> vs;
@@ -1223,9 +1223,6 @@ RageDisplay::FrameLimitBeforeVsync()
 		// Ignore frame limit preferences if v-sync is enabled without
 		// predictive frame limit.
 	}
-
-	if (!GameLoop::isGameFocused())
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 // Frame pacing code

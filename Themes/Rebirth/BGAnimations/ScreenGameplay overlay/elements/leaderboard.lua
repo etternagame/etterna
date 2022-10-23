@@ -1,14 +1,16 @@
 local leaderboardEnabled =
     (NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName() == "ScreenNetStageInformation") or
-    (playerConfig:get_data().leaderboardEnabled and DLMAN:IsLoggedIn())
+    ((playerConfig:get_data().Leaderboard or 0) ~= 0 and DLMAN:IsLoggedIn())
 if not leaderboardEnabled then
     return Def.ActorFrame {}
 end
 local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil or false
+local leaderboardIsLocal = not isMulti and (playerConfig:get_data().Leaderboard or 0) == 2
 
--- bad idea
+local toggledRateFilter = false
 if not DLMAN:GetCurrentRateFilter() then
     DLMAN:ToggleRateFilter()
+    toggledRateFilter = true
 end
 
 local jdgs = {
@@ -77,6 +79,12 @@ local t = Def.ActorFrame {
             spacingInc = {5,1},
         })
     end,
+    EndCommand = function(self)
+        if toggledRateFilter then
+            -- undo the toggle from above
+            DLMAN:ToggleRateFilter()
+        end
+    end,
     OnCommand = function(self)
         self:playcommand("SetUpMovableValues")
         for i, entry in ipairs(entryActors) do
@@ -135,12 +143,34 @@ local function scoreUsingMultiScore(idx)
 end
 
 local function setUpOnlineScores()
-    if isMulti then
+    if leaderboardIsLocal then
+        onlineScores = {}
+        -- get your own scores
+        local localrtTable = getRateTable()
+        if localrtTable ~= nil then
+            -- only display if scores on this rate are found
+            local found = false
+            local eps = 0.01
+            localrates, localrateIndex = getUsedRates(localrtTable)
+            for i,r in ipairs(localrates) do
+                local raten = tonumber(r:gsub("x", ""), 10)
+                if math.abs(raten - getCurRateValue()) < eps then
+                    localrateIndex = i
+                    found = true
+                end
+            end
+            if found then
+                onlineScores = localrtTable[localrates[localrateIndex]]
+            end
+        end
+    elseif isMulti then
+        -- get scores from multi
         multiScores = NSMAN:GetMPLeaderboard()
         for i = 1, NUM_ENTRIES do
             onlineScores[i] = scoreUsingMultiScore(i)
         end
     else
+        -- get scores from chart leaderboards
         onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey()) or {}
     end
 

@@ -22,6 +22,10 @@ local steplength = 0
 
 local graphVecs = {}
 local jackdiffs = {}
+local cvvals = {}
+local cva = {}
+local cvmax = 1
+local cvmin = 0
 local ssrs = {}
 local grindscaler = 0
 local activeModGroup = 1
@@ -31,6 +35,28 @@ local debugstrings
 -- bg actors for mouse hover stuff
 local topgraph = nil
 local bottomgraph = nil
+
+local function calcCVA()
+    cva = {0,0,0,0}
+    cvmax = -1
+    cvmin = 999
+    if #cvvals["Left"]["Left"] == 0 and #cvvals["Left"]["Right"] == 0 and #cvvals["Right"]["Left"] == 0 and #cvvals["Right"]["Right"] == 0 then
+        return
+    end
+    local i = 1
+    for h, hand in pairs(cvvals) do
+        for c, col in pairs(hand) do
+            local sum = 0
+            for _, v in ipairs(col) do
+                if v[2] < cvmin then cvmin = v[2] end
+                if v[2] > cvmax then cvmax = v[2] end
+                sum = sum + v[2]
+            end
+            cva[i] = sum / #col
+            i = i + 1
+        end
+    end
+end
 
 local function fitX(x, lastX) -- Scale time values to fit within plot width.
 	if lastX == 0 then
@@ -231,13 +257,34 @@ local CalcDebugTypes = {
 -- it is assumed these are members of CalcDebugMisc
 local miscToUpperMods = {
     StamMod = true,
+
+    -- these mods are not really in the CalcDebugMisc enum. they are not real.
+    -- if this gets messed up things do not work
+    TotalPatternModStream = true,
+    TotalPatternModJumpstream = true,
+    TotalPatternModHandstream = true,
+    TotalPatternModChordjack = true,
+    TotalPatternModTechnical = true,
 }
 
 -- list of all additional enums to include in the lower graph
--- it is assumed these are members of CalcDebugMisc
+-- it is assumed these are members of CalcDebugMisc (they arent)
 local miscToLowerMods = {
     Pts = true,
     PtLoss = true,
+
+    -- these mods are not really in the CalcDebugMisc enum. they are not real.
+    -- if this gets messed up things do not work
+    PtLossStream = true,
+    PtLossJumpstream = true,
+    PtLossHandstream = true,
+    PtLossChordjack = true,
+    PtLossTechnical = true,
+    MSDStream = true,
+    MSDJumpstream = true,
+    MSDHandstream = true,
+    MSDChordjack = true,
+    MSDTechnical = true,
 }
 
 -- this list is used for functional purposes to keep the order of the lists generated in a certain order
@@ -259,6 +306,46 @@ for i, mod in pairs(CalcDebugMisc) do
         orderedExtraLowerMods[#orderedExtraLowerMods+1] = mod
     end
 end
+
+-- convolution
+local upperExtraExtraMods = {
+    TotalPatternModStream = true,
+    TotalPatternModJumpstream = true,
+    TotalPatternModHandstream = true,
+    TotalPatternModChordjack = true,
+    TotalPatternModTechnical = true,
+}
+local orderedExtraExtraUpperMods = {
+    "TotalPatternModStream",
+    "TotalPatternModJumpstream",
+    "TotalPatternModHandstream",
+    "TotalPatternModChordjack",
+    "TotalPatternModTechnical",
+}
+local lowerExtraExtraMods = {
+    PtLossStream = true,
+    PtLossJumpstream = true,
+    PtLossHandstream = true,
+    PtLossChordjack = true,
+    PtLossTechnical = true,
+    MSDStream = true,
+    MSDJumpstream = true,
+    MSDHandstream = true,
+    MSDChordjack = true,
+    MSDTechnical = true,
+}
+local orderedExtraExtraLowerMods = {
+    "PtLossStream",
+    "PtLossJumpstream",
+    "PtLossHandstream",
+    "PtLossChordjack",
+    "PtLossTechnical",
+    "MSDStream",
+    "MSDJumpstream",
+    "MSDHandstream",
+    "MSDChordjack",
+    "MSDTechnical",
+}
 
 -- specify enum names as tables here
 -- any number allowed
@@ -293,6 +380,7 @@ local debugGroups = {
 		Roll = true,
 		WideRangeRoll = true,
 		WideRangeJumptrill = true,
+        WideRangeJJ = true,
 	},
     {   -- Group 6
         Chaos = true,
@@ -309,18 +397,33 @@ local debugGroups = {
         OHJumpMod = true,
 	},
     {   -- Group 9
-        TotalPatternMod = true,
-    },
-    {   -- Group 10
         CJOHAnchor = true,
     },
-    {   -- Group 11
+    {   -- Group 10
         Chaos = true,
         Roll = true,
     },
-    [12] = { -- Group 12
+    {   -- Group 11
+        TotalPatternModStream = true,
+    },
+    {   -- Group 12
+        TotalPatternModJumpstream = true,
+    },
+    {   -- Group 13
+        TotalPatternModHandstream = true,
+    },
+    {   -- Group 14
+        TotalPatternModChordjack = true,
+    },
+    {   -- Group 15
+        TotalPatternModTechnical = true,
+    },
+    {   -- Group 16
         TheThing = true,
         TheThing2 = true,
+    },
+    {   -- Group 17
+        Minijack = true,
     },
 }
 
@@ -332,24 +435,65 @@ local debugGroups = {
 local diffGroups = {
     {   -- Group 1
         NPSBase = true,
-        MSD = true,
+        MSDStream = true,
     },
     {   -- Group 2
-        Jack = true,
+        NPSBase = true,
+        MSDJumpstream = true,
     },
     {   -- Group 3
-        TechBase = true,
+        NPSBase = true,
+        MSDHandstream = true,
     },
     {   -- Group 4
-        RMABase = true,
+        NPSBase = true,
+        MSDChordjack = true,
     },
     {   -- Group 5
-        Pts = true,
-        PtLoss = true,
+        NPSBase = true,
+        MSDTechnical = true,
     },
-    [6] = { -- Group 6
+    {   -- Group 6
+        Pts = true,
+        PtLossStream = true
+    },
+    {   -- Group 7
+        Pts = true,
+        PtLossJumpstream = true
+    },
+    {   -- Group 8
+        Pts = true,
+        PtLossHandstream = true
+    },
+    {   -- Group 9
+        Pts = true,
+        PtLossChordjack = true
+    },
+    {   -- Group 10
+        Pts = true,
+        PtLossTechnical = true
+    },
+    {   -- Group 11
+        Jack = true,
+    },
+    {   -- Group 12
+        NPSBase = true,
+        TechBase = true,
+    },
+    {   -- Group 13
+        RMABase = true,
+    },
+    {   -- Group 14
+        MSBase = true,
+        NPSBase = true,
+        CJBase = true,
+    },
+    {   -- Group 15
+        CV = true,
+    },
+    {   -- Group 16
         SSRS = true,
-    }
+    },
 }
 
 -- get a list of the mods that are active
@@ -380,6 +524,7 @@ local function updateCoolStuff()
         steplength = (finalSecond - firstSecond) -- this is "doubled" here
     end
     jackdiffs = {Left = {}, Right = {}}
+    cvvals = {Left = {Left = {}, Right = {}}, Right = {Left = {}, Right = {}}}
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
         if diffGroups[activeDiffGroup]["SSRS"] then
@@ -391,7 +536,8 @@ local function updateCoolStuff()
         lowerGraphMaxJack = 0
         jackLossSumLeft = 0
         jackLossSumRight = 0
-        local bap = steps:GetCalcDebugOutput()
+        local bap = steps:GetCalcDebugOutput() -- this must be called first before GetCalcDebugExt and GetCalcDebugJack
+        local pap = steps:GetCalcDebugExt()
         debugstrings = steps:GetDebugStrings()
 
         grindscaler = bap["Grindscaler"]
@@ -447,6 +593,43 @@ local function updateCoolStuff()
                 end
             end
         end
+
+        -- even more debug output
+        local function fc(arr, name, fallbackValue, top)
+            for i, ss in ipairs(ms.SkillSets) do
+                graphVecs[name..ss] = {}
+                for h = 1,2 do
+                    local hand = h == 1 and "Left" or "Right"
+                    graphVecs[name..ss][h] = {}
+                    if arr ~= nil then
+                        for j = 1, #arr[hand][i] do
+                            local val = arr[hand][i][j]
+                            if val ~= val or val == nil or val == math.huge or val == -math.huge then val = fallbackValue end -- get rid of nan and nil
+                            if top then
+                                if val > upperGraphMax then upperGraphMax = val end
+                            else
+                                if val > lowerGraphMax then lowerGraphMax = val end
+                            end
+                            graphVecs[name..ss][h][j] = val
+                        end
+                    end
+                end
+            end 
+        end
+
+        if pap ~= nil then
+            fc(pap["DebugTotalPatternMod"], "TotalPatternMod", 1, true)
+            fc(pap["DebugPtLoss"], "PtLoss", 0, false)
+            fc(pap["DebugMSD"], "MSD", 0, false)
+            for hand, handvals in pairs(pap["DebugMovingWindowCV"]) do
+                for col, colvals in pairs(handvals) do
+                    for i, vv in ipairs(colvals) do
+                        cvvals[hand][col][i] = {vv[1] + firstSecond/2/getCurRateValue(), vv[2]}
+                    end
+                end
+            end
+        end
+        calcCVA()
 
         upperGraphMin = 0.3
         upperGraphMax = 1.25
@@ -812,6 +995,23 @@ o[#o + 1] = UIElements.QuadButton(1, 1) .. {
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
                 end
 
+                if diffGroups[activeDiffGroup]["CV"] then
+                    modText = modText .. "\n"
+                    for h = 1,2 do
+                        for c = 1,2 do
+                            local hnd = h == 1 and "Left" or "Right"
+                            local cl = c == 1 and "Left" or "Right"
+                            local hand = h == 1 and "L" or "R"
+                            local col = c == 1 and "L" or "R"
+                            if cvvals[hnd][cl] ~= nil and #cvvals[hnd][cl] > 0 then
+                                local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, cvvals[hnd][cl])
+                                modText = modText .. string.format("%s : %5.4f\n", "CV-"..hand..col, cvvals[hnd][cl][index][2])
+                            end
+                        end
+                    end
+                    modText = modText:sub(1, #modText-1) -- remove the end whitespace
+                end
+
                 txt:settext(modText)
             elseif diffGroups[activeDiffGroup]["SSRS"] then
                 local ssrindex = convertPercentToIndex(perc)
@@ -909,11 +1109,13 @@ local modnames = {
     "flam",
     "wrr",
     "wrjt",
+    "wrjj",
     "wrb",
     "wra",
     "thing",
     "thing2",
     "rm",
+    "minij",
     --"rl",
     --"ral",
     --"ralm",
@@ -932,6 +1134,13 @@ local modnames = {
     -- CalcDebugMisc mods meant for only the top graph:
     -- (this list should match the miscToUpperMods list)
     "stam",
+
+    -- everything from here below is in the orderedExtraExtraUpperMods table. dont mess it up
+    "tpmstr",
+    "tpmjs",
+    "tpmhs",
+    "tpmcj",
+    "tpmtech",
 }
 
 -- this list has order
@@ -969,11 +1178,13 @@ local modColors = {
     color(".4,0.5,0.59"),   -- teal			= flamjam
     color("1,0.2,0"),		-- red			= wrr
     color("1,0.5,0"),		-- orange		= wrjt
+    color("1,0.2,1"),		-- purpley		= wrjj
     color("0.7,1,0.2"),		-- leme			= wrb
     color("0.7,1,0.1"),		-- leme			= wra
     color("0,0.8,1"),		-- light blue	= thething
     color("0,0.6,1"),       -- darkish blue = thething2
 	color("0.2,1,1"),		-- light blue	= ranman
+    color(".8,1.3,1"),      -- whiteblue	= minijack
 	--color("1,1,1"),			-- rl
 	--color("1,1,1"),			-- ral
 	--color("1,1,1"),			-- ralm
@@ -991,6 +1202,13 @@ local modColors = {
     -- place CalcPatternMod Colors above this line
     -- MISC MODS START HERE (same order as miscToUpperMods)
     color("0.7,1,0"),		-- lime			= stam
+
+    -- everything starting from here downwards are only mods in the orderedExtraExtraUpperMods table
+    color("0.7,1,0"),		-- lime			= totalpatternmodstream
+    color("0.7,1,0"),		-- lime			= totalpatternmodjs
+    color("0.7,1,0"),		-- lime			= totalpatternmodhs
+    color("0.7,1,0"),		-- lime			= totalpatternmodcj
+    color("0.7,1,0"),		-- lime			= totalpatternmodtech
 }
 
 local skillsetColors = {
@@ -1011,14 +1229,23 @@ local jackdiffColors = {
     color("1,0,0,1"), -- jack loss right
 }
 
+local cvColors = {
+    color("1,1,0"), -- cv left hand left finger
+    color("1,1,0"), -- cv left hand right finger
+    color("1,0,0"), -- cv right hand left finger
+    color("1,0,0"), -- cv right hand right finger
+}
+
 -- these are all CalcDiffValue mods only
 -- in the same order
 local calcDiffValueColors = {
     color("#7d6b91"),   -- NPSBase
+    color("#7d6b51"),   -- MSBase
+    color("#1d6b91"),   -- CJBase
     --color("#7d6b91"),
     --color("#8481db"),   -- JackBase
     --color("#8481db"),
-    color("#995fa3"),   -- TechBase
+    color("#cc4fa3"),   -- TechBase
     --color("#995fa3"),
     color("#f2b5fa"),   -- RMABase
     --color("#f2b5fa"),
@@ -1031,6 +1258,18 @@ local miscColors = {
     color("0,1,1"),     -- pts
     color("1,0,0"),     -- ptloss
     --color("1,0.4,0"),   -- jackptloss
+
+    -- everything starting from here downwards are only mods in the orderedExtraExtraLowerMods table
+    color("1,0,0"),     -- ptlossStream
+    color("1,0,0"),     -- ptlossJumpstream
+    color("1,0,0"),     -- ptlossHandstream
+    color("1,0,0"),     -- ptlossChordjack
+    color("1,0,0"),     -- ptlossTechnical
+    color("#6c969d"),     -- msdStream
+    color("#6c969d"),     -- msdJumpstream
+    color("#6c969d"),     -- msdHandstream
+    color("#6c969d"),     -- msdChordjack
+    color("#6c969d"),     -- msdTechnical
 }
 
 -- a remapping of modnames to colors (any mod really please dont make 2 enums the same name)
@@ -1054,8 +1293,17 @@ do -- scope hahaha
         modToShortname[mod] = modnames[#CalcPatternMod + i]
         i = i + 1
     end
+    for _, mod in pairs(orderedExtraExtraUpperMods) do
+        modToColor[mod] = modColors[#CalcPatternMod + i]
+        modToShortname[mod] = modnames[#CalcPatternMod + i]
+        i = i + 1
+    end
     i = 1
     for _, mod in pairs(orderedExtraLowerMods) do
+        modToColor[mod] = miscColors[i]
+        i = i + 1
+    end
+    for _, mod in pairs(orderedExtraExtraLowerMods) do
         modToColor[mod] = miscColors[i]
         i = i + 1
     end
@@ -1140,6 +1388,8 @@ o[#o + 1] = LoadFont("Common Normal") .. {
                 local afterloss = maxpoints - jackLossSumRight - jackLossSumLeft
                 local reqpoints = tappoints * 0.93
                 self:settextf("Upper Bound: %.2f  |  Loss Sum L: %5.2f  |  Loss Sum R: %5.2f  |  Pt AfterLoss/Req/Max: %5.2f/%5.2f/%5.2f", lowerGraphMaxJack*0.9, jackLossSumLeft, jackLossSumRight, afterloss, reqpoints, maxpoints)
+            elseif diffGroups[activeDiffGroup]["CV"] and steps then
+                self:settextf("Upper Bound: %.2f  |  Lower Bound: %.2f  |  Average CVs -  LL = %5.2f | LR = %5.2f | RL = %5.2f | RR = %5.2f", cvmax, cvmin, cva[1], cva[2], cva[3], cva[4])
             else
                 self:settextf("Upper Bound: %.4f  |  Grindscaler: %5.2f", lowerGraphMax, grindscaler)
             end
@@ -1431,6 +1681,59 @@ local function bottomGraphLineJackloss(colorToUse, hand)
     }
 end
 
+local function bottomGraphLineCoeffVariance(colorToUse, hand, col)
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+                
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["CV"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+
+                local hand = hand == 1 and "Left" or "Right"
+                local col = col == 1 and "Left" or "Right"
+                local verts = {}
+                local values = cvvals[hand][col]
+                if not values or not values[1] then return end
+
+                for i = 1, #values do
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    -- if used, final/firstsecond must be halved
+                    -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
+                    local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
+                    local y = fitY2(values[i][2], cvmin - 0.1, cvmax + 0.25)
+
+                    setOffsetVerts(verts, x, y, colorToUse)
+                end
+                
+                if #verts <= 1 then
+                    verts = {}
+                end
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
+            end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["CV"]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+            end
+        end
+    }
+end
+
 local function bottomGraphLineSSR(lineNum, colorToUse)
     return Def.ActorMultiVertex {
         InitCommand = function(self)
@@ -1557,6 +1860,18 @@ end
 for h = 1,2 do
     local colr = jackdiffColors[h+2]
     o[#o+1] = bottomGraphLineJackloss(colr, h)
+end
+
+-- cv vals
+do
+    local i = 1
+    for h = 1,2 do
+        for c = 1,2 do
+            local colr = cvColors[i]
+            i = i + 1
+            o[#o+1] = bottomGraphLineCoeffVariance(colr, h, c)
+        end
+    end
 end
 
 -- a bunch of things for stuff and things

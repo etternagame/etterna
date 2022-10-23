@@ -57,11 +57,13 @@ enum CalcPatternMod
 	FlamJam,
 	WideRangeRoll,
 	WideRangeJumptrill,
+	WideRangeJJ, // wrjumpjack
 	WideRangeBalance,
 	WideRangeAnchor,
 	TheThing,
 	TheThing2,
 	RanMan,
+	Minijack,
 	// RanLen,
 	// RanAnchLen,
 	// RanAnchLenMod,
@@ -80,8 +82,9 @@ enum CalcPatternMod
 enum CalcDiffValue
 {
 	NPSBase,
+	MSBase,
 	// JackBase,
-	// CJBase,
+	CJBase,
 	TechBase,
 	RMABase,
 	MSD,
@@ -90,9 +93,8 @@ enum CalcDiffValue
 };
 enum CalcDebugMisc
 {
-	Pts,
+	Pts, // points per interval is constant, but slightly multiplied for each skillset
 	PtLoss, // expected points loss (not really a diff thing but w.e)
-	// JackPtLoss,
 	StamMod, // stam adjust (values between 1- ~1.15)
 	// JackStamMod,
 	NUM_CalcDebugMisc,

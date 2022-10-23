@@ -478,8 +478,12 @@ local function scoreList()
                         local jgGoStr = tostring(score:GetTapNoteScore("TapNoteScore_W4"))
                         local jgBStr = tostring(score:GetTapNoteScore("TapNoteScore_W5"))
                         local jgMiStr = tostring(score:GetTapNoteScore("TapNoteScore_Miss"))
+                        local diff_use = COLORS:getMainColor("SecondaryText")
+                        if score:GetChordCohesion() then
+                            diff_use = COLORS:getColor("evaluation", "ChordCohesionOnScore")
+                        end
                         self:ClearAttributes()
-                        self:diffuse(COLORS:getMainColor("SecondaryText"))
+                        self:diffuse(diff_use)
                         self:diffusealpha(1)
                         self:settextf("%s | %s - %s - %s - %s - %s - %s", wifeStr, jgMaStr, jgPStr, jgGrStr, jgGoStr, jgBStr, jgMiStr)
                         -- could have probably used a loop to do this
@@ -507,8 +511,12 @@ local function scoreList()
                         local dstr = string.format("%s %s, %s", m, d, y)
                         local ssr = score:GetSkillsetSSR("Overall")
                         local ssrStr = string.format("%05.2f", ssr)
+                        local diff_use = COLORS:getMainColor("SecondaryText")
+                        if score:GetChordCohesion() then
+                            diff_use = COLORS:getColor("evaluation", "ChordCohesionOnScore")
+                        end
                         self:ClearAttributes()
-                        self:diffuse(COLORS:getMainColor("SecondaryText"))
+                        self:diffuse(diff_use)
                         self:diffusealpha(1)
                         self:settextf("%s | %s", ssrStr, dstr)
                         self:AddAttribute(0, {Length = #ssrStr, Zoom = dateSSRSize, Diffuse = colorByMSD(ssr)})
@@ -538,6 +546,11 @@ local function scoreList()
                             end
                         end
                         self:settext(n)
+                        if score:GetChordCohesion() then
+                            self:diffuse(COLORS:getColor("evaluation", "ChordCohesionOnScore"))
+                        else
+                            self:diffuse(COLORS:getColor("main", "SecondaryText"))
+                        end
                     end
                 end
             },
@@ -553,6 +566,11 @@ local function scoreList()
                     if score ~= nil then
                         local rt = score:GetMusicRate()
                         self:settext(getRateString(rt))
+                        if score:GetChordCohesion() then
+                            self:diffuse(COLORS:getColor("evaluation", "ChordCohesionOnScore"))
+                        else
+                            self:diffuse(COLORS:getColor("main", "SecondaryText"))
+                        end
                     end
                 end
             }
