@@ -54,7 +54,7 @@ Style::StyleInputToGameInput(int iCol,
 {
 	ASSERT_M(iCol < MAX_COLS_PER_PLAYER,
 			 ssprintf("C%i", iCol));
-	auto bUsingOneSide = true;
+	// auto bUsingOneSide = true;
 
 	FOREACH_ENUM(GameController, gc)
 	{
@@ -172,13 +172,11 @@ class LunaStyle : public Luna<Style>
 	}
 	static int GetWidth(T* p, lua_State* L)
 	{
-		auto pn = PLAYER_1;
-		lua_pushnumber(L, p->GetWidth(pn));
+		lua_pushnumber(L, p->GetWidth(PLAYER_1));
 		return 1;
 	}
 	static int GetColumnInfo(T* p, lua_State* L)
 	{
-		auto pn = PLAYER_1;
 		auto iCol = IArg(2) - 1;
 		if (iCol < 0 || iCol >= p->m_iColsPerPlayer) {
 			LuaHelpers::ReportScriptErrorFmt(

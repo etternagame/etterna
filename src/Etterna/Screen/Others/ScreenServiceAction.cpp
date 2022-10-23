@@ -24,37 +24,6 @@ static LocalizedString PROFILE_CORRUPT(
   "ScreenServiceAction",
   "The profile on P%d card contains corrupt or tampered data.");
 
-static void
-CopyEdits(const std::string& sFromProfileDir,
-		  const std::string& sToProfileDir,
-		  int& iNumSucceeded,
-		  int& iNumOverwritten,
-		  int& iNumIgnored,
-		  int& iNumErrored)
-{
-	iNumSucceeded = 0;
-	iNumOverwritten = 0;
-	iNumIgnored = 0;
-	iNumErrored = 0;
-
-	{
-		std::string sFromDir = sFromProfileDir + EDIT_STEPS_SUBDIR;
-		std::string sToDir = sToProfileDir + EDIT_STEPS_SUBDIR;
-
-		std::vector<std::string> vsFiles;
-		GetDirListing(sFromDir + "*.edit", vsFiles, false, false);
-		for (auto& i : vsFiles) {
-			if (DoesFileExist(sToDir + i))
-				iNumOverwritten++;
-			bool bSuccess = FileCopy(sFromDir + i, sToDir + i);
-			if (bSuccess)
-				iNumSucceeded++;
-			else
-				iNumErrored++;
-		}
-	}
-}
-
 static LocalizedString EDITS_NOT_COPIED(
   "ScreenServiceAction",
   "Edits not copied - No memory cards ready.");

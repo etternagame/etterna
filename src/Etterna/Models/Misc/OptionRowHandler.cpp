@@ -1346,7 +1346,6 @@ class OptionRowHandlerConfig : public OptionRowHandler
 					  const PlayerNumber& vpns,
 					  std::vector<bool>& vbSelectedOut) const override
 	{
-		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
 
 		const auto iSelection = m_pOpt->Get();
@@ -1359,7 +1358,6 @@ class OptionRowHandlerConfig : public OptionRowHandler
 	{
 		auto bChanged = false;
 
-		auto p = vpns;
 		const auto& vbSel = vbSelected;
 
 		const auto iSel = OptionRowHandlerUtil::GetOneSelection(vbSel);
@@ -1443,7 +1441,6 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 					  const PlayerNumber& vpns,
 					  std::vector<bool>& vbSelectedOut) const override
 	{
-		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
 
 		if (GAMESTATE->m_pCurSteps != nullptr) {
@@ -1463,7 +1460,6 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
-		auto p = vpns;
 		const auto& vbSel = vbSelected;
 
 		const auto index = OptionRowHandlerUtil::GetOneSelection(vbSel);

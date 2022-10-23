@@ -421,6 +421,8 @@ InputHandler_DInput::UpdatePolled(
 						}
 
 						break;
+
+					case input_t::KEY: break;
 				}
 			}
 		} break;
@@ -496,6 +498,9 @@ InputHandler_DInput::UpdatePolled(
 										device.m_sName.c_str(), in.ofs);
 						break;
 					}
+					case input_t::KEY:
+					case input_t::HAT:
+						break;
 				}
 			}
 			break;
@@ -924,6 +929,7 @@ InputHandler_DInput::DeviceButtonToChar(DeviceButton button,
 		case KEY_ENTER:
 		case KEY_BACK:
 			return '\0';
+		default: break;
 	}
 
 	for (auto& d : Devices) {

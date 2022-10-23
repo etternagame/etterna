@@ -168,7 +168,6 @@ class LunaFilterManager : public Luna<FilterManager>
 	}
 	static int GetMinFilterRate(T* p, lua_State* L)
 	{
-		auto loot = p->m_pPlayerState;
 		lua_pushnumber(L, p->MinFilterRate);
 		return 1;
 	}

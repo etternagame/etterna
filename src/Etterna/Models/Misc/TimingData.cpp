@@ -1063,16 +1063,6 @@ TimingData::DeleteRows(int iStartRow, int iRowsToDelete)
 float
 TimingData::GetDisplayedSpeedPercent(float fBeat, float fMusicSeconds) const
 {
-	/* HACK: Somehow we get called into this function when there is no
-	 * TimingData to work with. This seems to happen the most upon
-	 * leaving the editor. Still, cover our butts in case this instance
-	 * isn't existing. */
-	/* ...but force a crash, so debuggers will catch it and stop here.
-	 * That'll make us keep this bug in mind. -- vyhd */
-	if (this == nullptr) {
-		DEBUG_ASSERT(this);
-		return 1.0f;
-	}
 
 	const auto& speeds = GetTimingSegments(SEGMENT_SPEED);
 	if (speeds.empty()) {

@@ -295,15 +295,6 @@ MusicWheelItem::RefreshGrades()
 	if (pWID->m_pSong == nullptr)
 		return;
 
-	Difficulty dc;
-	if (GAMESTATE->m_pCurSteps)
-		dc = GAMESTATE->m_pCurSteps->GetDifficulty();
-	else
-		dc = GAMESTATE->m_PreferredDifficulty;
-
-	ProfileSlot ps;
-	ps = static_cast<ProfileSlot>(PLAYER_1);
-
 	StepsType st;
 	if (GAMESTATE->m_pCurSteps)
 		st = GAMESTATE->m_pCurSteps->m_StepsType;

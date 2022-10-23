@@ -256,6 +256,8 @@ DIJoystick_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data)
 			case input_t::HAT:
 				++device->hats;
 				break;
+
+			case input_t::KEY: break;
 		}
 	}
 

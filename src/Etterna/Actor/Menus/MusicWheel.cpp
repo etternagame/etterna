@@ -683,7 +683,7 @@ MusicWheel::FilterByAndAgainstStepKeys(std::vector<Song*>& inv)
 {
 	std::vector<Song*> tmp;
 	const std::function<bool(Song*, std::vector<string>&)> check =
-	  [this](Song* x, std::vector<string>& hl) {
+	  [](Song* x, std::vector<string>& hl) {
 		  for (auto& ck : hl) {
 			  if (x->HasChartByHash(ck)) {
 				  return true;

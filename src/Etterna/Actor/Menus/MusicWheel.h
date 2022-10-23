@@ -58,7 +58,7 @@ class MusicWheel : public WheelBase
 		return dynamic_cast<const MusicWheelItemData*>(m_CurWheelItemData[i]);
 	}
 
-	virtual void ReloadSongList(bool searching, const std::string& findme);
+	void ReloadSongList(bool searching, const std::string& findme) override;
 	void SetHashList(const std::vector<string>& newHashList);
 	void SetOutHashList(const std::vector<string>& newOutHashList);
 

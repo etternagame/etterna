@@ -208,18 +208,6 @@ GetThreadSlotFromID(uint64_t iID)
 	return NULL;
 }
 
-static ThreadSlot*
-GetCurThreadSlot()
-{
-	return GetThreadSlotFromID(RageThread::GetCurrentThreadID());
-}
-
-static ThreadSlot*
-GetUnknownThreadSlot()
-{
-	return g_pUnknownThreadSlot;
-}
-
 RageThread::RageThread()
   : m_pSlot(NULL)
   , m_sName("unnamed")

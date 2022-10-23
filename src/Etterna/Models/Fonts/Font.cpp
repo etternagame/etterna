@@ -382,9 +382,16 @@ Font::GetGlyph(wchar_t c) const
 	 * shooting a blank really...DarkLink kept running into the stupid assert
 	 * with non-roman song titles, and looking at it, I'm gonna guess that
 	 * this is how ITG2 prevented crashing with them --infamouspat */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#endif
 	// ASSERT(c >= 0 && c <= 0xFFFFFF);
 	if (c < 0 || c > 0xFFFFFF)
 		c = 1;
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 	// Fast path:
 	if (c < static_cast<int>(ARRAYLEN(m_iCharToGlyphCache)) &&

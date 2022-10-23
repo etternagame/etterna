@@ -412,7 +412,7 @@ ScreenGameplay::~ScreenGameplay()
 }
 
 void
-ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
+ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row, int maxrow)
 {
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
@@ -424,7 +424,7 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 
 	m_vPlayerInfo.GetPlayerState()->Update(0);
 
-	NoteDataUtil::RemoveAllButRange(ndTransformed, row, MAX_NOTE_ROW);
+	NoteDataUtil::RemoveAllButRange(ndTransformed, row, maxrow);
 
 	// load player
 	{
@@ -789,8 +789,6 @@ ScreenGameplay::UpdateSongPosition()
 	if (!m_pSoundMusic->IsPlaying()) {
 		return;
 	}
-
-	const auto rate = GAMESTATE->m_SongOptions.GetSong().m_fMusicRate;
 
 	RageTimer tm = RageZeroTimer;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
@@ -1743,12 +1741,6 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 
 		const auto syncing =
 		  !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
-		auto replaying = false;
-		if (m_vPlayerInfo.GetPlayerState()->m_PlayerController ==
-			PC_REPLAY) // don't duplicate replay saves
-		{
-			replaying = true;
-		}
 
 		if (syncing) {
 			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);

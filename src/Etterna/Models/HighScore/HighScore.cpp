@@ -1106,7 +1106,6 @@ Screenshot::LoadFromNode(const XNode* pNode)
 
 	pNode->GetChildValue("FileName", sFileName);
 	pNode->GetChildValue("MD5", sMD5);
-	const auto* pHighScore = pNode->GetChild("HighScore");
 }
 
 auto

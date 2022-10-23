@@ -128,6 +128,7 @@ struct Finger_Sequencing
 	/// returns an adjusted MS average value, not converted to nps
 	inline virtual float get_ms() = 0;
 
+	virtual ~Finger_Sequencing() = default;
 };
 
 /// Individual jacks, rather than anchors, with more nuance.

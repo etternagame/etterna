@@ -42,7 +42,7 @@ class ScreenGameplayPractice : public ScreenGameplay
   protected:
 	void SetupNoteDataFromRow(Steps* pSteps,
 							  int minRow = 0,
-							  int maxrow = MAX_NOTE_ROW);
+							  int maxrow = MAX_NOTE_ROW) override;
 
   private:
 	float loopStart = ARBITRARY_MIN_GAMEPLAY_NUMBER;

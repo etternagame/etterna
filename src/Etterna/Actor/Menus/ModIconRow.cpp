@@ -135,8 +135,6 @@ OptionToPreferredColumn(std::string sOptionText)
 void
 ModIconRow::SetFromGameState()
 {
-	PlayerNumber pn = m_pn;
-
 	std::string sOptions =
 	  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().GetString();
 	std::vector<std::string> vsOptions;

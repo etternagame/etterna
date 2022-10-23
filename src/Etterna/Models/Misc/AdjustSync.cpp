@@ -239,7 +239,6 @@ void
 AdjustSync::GetSyncChangeTextSong(std::vector<std::string>& vsAddTo)
 {
 	if (!GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get()) {
-		unsigned int iOriginalSize = vsAddTo.size();
 		auto& original = s_vpTimingDataOriginal[0];
 		auto& testing = GAMESTATE->m_pCurSong->m_SongTiming;
 

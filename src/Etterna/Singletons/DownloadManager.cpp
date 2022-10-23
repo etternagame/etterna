@@ -974,7 +974,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	SetCURLURL(curlHandle, url);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs, callback, load_from_disk](HTTPRequest& req) {
+	auto done = [hs, callback, load_from_disk](HTTPRequest& req) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Document d;

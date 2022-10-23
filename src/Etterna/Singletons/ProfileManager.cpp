@@ -366,6 +366,7 @@ InsertProfileIntoList(DirAndProfile& derp)
 	bool inserted = false;
 	derp.profile.m_ListPriority = 0;
 	for (auto& curr : g_vLocalProfile) {
+		std::ignore = curr;
 		++derp.profile.m_ListPriority;
 	}
 
