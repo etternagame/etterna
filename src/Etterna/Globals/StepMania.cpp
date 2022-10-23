@@ -230,7 +230,7 @@ StepMania::ApplyGraphicOptions()
 
 	VideoModeParams params;
 	GetPreferredVideoModeParams(params);
-	std::string sError = DISPLAY->SetVideoMode(params, bNeedReload);
+	std::string sError = DISPLAY->SetVideoMode(std::move(params), bNeedReload);
 	if (!sError.empty())
 		RageException::Throw("%s", sError.c_str());
 
@@ -826,7 +826,7 @@ CreateDisplay()
 				continue;
 
 			std::string sError =
-			  pRet->Init(params, PREFSMAN->m_bAllowUnacceleratedRenderer);
+			  pRet->Init(std::move(params), PREFSMAN->m_bAllowUnacceleratedRenderer);
 			if (!sError.empty()) {
 				error +=
 				  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +

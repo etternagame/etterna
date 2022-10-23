@@ -22,12 +22,20 @@ const int HOURS_IN_DAY = 24;
 /**
  * @brief The number of days that are in a week. */
 const int DAYS_IN_WEEK = 7;
-/** @brief Which month are we focusing on?
- *
- * Is there any reason why the actual months aren't defined
- * in here? -Wolfman2000 */
 enum Month
 {
+	Month_January,
+	Month_February,
+	Month_March,
+	Month_April,
+	Month_May,
+	Month_June,
+	Month_July,
+	Month_August,
+	Month_September,
+	Month_October,
+	Month_November,
+	Month_December,
 	NUM_Month = 12, /**< The number of months in the year. */
 	Month_Invalid	/**< There should be no month at this point. */
 };

@@ -374,7 +374,8 @@ NoteData::GetTapFirstEmptyTrack(int row, int& iEmptyTrackOut) const -> bool
 auto
 NoteData::GetTapLastEmptyTrack(int row, int& iEmptyTrackOut) const -> bool
 {
-	for (size_t t = GetNumTracks() - 1; t >= 0; t--) {
+	auto num_tracks = GetNumTracks();
+	for (size_t t = num_tracks - 1; t < num_tracks; t--) {
 		if (GetTapNote(t, row).type == TapNoteType_Empty) {
 			iEmptyTrackOut = t;
 			return true;

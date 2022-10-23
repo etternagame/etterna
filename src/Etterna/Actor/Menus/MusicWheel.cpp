@@ -1242,7 +1242,7 @@ MusicWheel::UpdateSwitch()
 			// Change difficulty for sorts by meter
 			// XXX: do this with GameCommand?
 			StepsType st;
-			Difficulty dc;
+			Difficulty dc = Difficulty_Invalid;
 			if (SongUtil::GetStepsTypeAndDifficultyFromSortOrder(
 				  GAMESTATE->m_SortOrder, st, dc)) {
 				ASSERT(dc != Difficulty_Invalid);

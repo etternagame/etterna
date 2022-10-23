@@ -482,6 +482,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to create tmp output file for input data at {}",
 			  path.c_str());
+			gzclose(infile);
 			return false;
 		}
 

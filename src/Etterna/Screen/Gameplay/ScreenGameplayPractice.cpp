@@ -212,6 +212,8 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 
 		// Reset the wife/judge counter related visible stuff
 		auto* pl = dynamic_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+		ASSERT_M(pl != nullptr,
+				 "Dynamic cast in ScreenGameplayPractice::Update failed.");
 		pl->PositionReset();
 	}
 	lastReportedSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
@@ -415,6 +417,8 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 
 	// Reset the wife/judge counter related visible stuff
 	auto* pl = dynamic_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+	ASSERT_M(pl != nullptr,
+			 "Dynamic cast in ScreenGameplayPractice::SetSongPosition failed.");
 	pl->RenderAllNotesIgnoreScores();
 	pl->PositionReset();
 
