@@ -39,6 +39,9 @@ line 1
 #
 # Client-side
 <client>
+<features>
+!hyper
+</features>
 <server>
 http
 </server>
@@ -46,19 +49,17 @@ http
 HTTP GET chunked data in raw mode
  </name>
  <command option="no-include">
-http://%HOSTIP:%HTTPPORT/326 --raw
+http://%HOSTIP:%HTTPPORT/%TESTNUMBER --raw
  </command>
 </client>
 
 #
 # Verify data after the test has been "shot"
 <verify>
-<strip>
-^User-Agent:.*
-</strip>
 <protocol>
-GET /326 HTTP/1.1
+GET /%TESTNUMBER HTTP/1.1
 Host: %HOSTIP:%HTTPPORT
+User-Agent: curl/%VERSION
 Accept: */*
 
 </protocol>

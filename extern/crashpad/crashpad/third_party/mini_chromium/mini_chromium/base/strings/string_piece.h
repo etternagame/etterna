@@ -87,7 +87,7 @@ class BasicStringPiece {
   int compare(const BasicStringPiece<StringType>& that) const {
     int result = traits_type::compare(pointer_,
                                       that.pointer_,
-                                      std::min(length_, that.length_));
+                                      (std::min)(length_, that.length_));
     if (result == 0) {
       if (length_ < that.length_) {
         result = -1;
@@ -100,15 +100,15 @@ class BasicStringPiece {
 
   BasicStringPiece<StringType> substr(size_type position = 0,
                                       size_type count = npos) const {
-    position = std::min(position, size());
-    count = std::min(count, size() - position);
+    position = (std::min)(position, size());
+    count = (std::min)(count, size() - position);
     return BasicStringPiece<StringType>(data() + position, count);
   }
 
   size_type copy(value_type* dest,
                  size_type count,
                  size_type position = 0) const {
-    size_type ret = std::min(size() - position, count);
+    size_type ret = (std::min)(size() - position, count);
     traits_type::copy(dest, data() + position, ret);
     return ret;
   }

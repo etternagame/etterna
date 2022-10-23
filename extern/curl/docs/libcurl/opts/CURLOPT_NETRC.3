@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -22,11 +22,13 @@
 .\"
 .TH CURLOPT_NETRC 3 "17 Jun 2014" "libcurl 7.37.0" "curl_easy_setopt options"
 .SH NAME
-CURLOPT_NETRC \- request that .netrc is used
+CURLOPT_NETRC \- enable use of .netrc
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_setopt(CURL *handle, CURLOPT_NETRC, long level);
+.fi
 .SH DESCRIPTION
 This parameter controls the preference \fIlevel\fP of libcurl between using
 user names and passwords from your \fI~/.netrc\fP file, relative to user names
@@ -39,29 +41,25 @@ libcurl uses a user name (and supplied or prompted password) supplied with
 the options controlled by this parameter.
 
 Only machine name, user name and password are taken into account (init macros
-and similar things aren't supported).
+and similar things are not supported).
 
 libcurl does not verify that the file has the correct properties set (as the
 standard Unix ftp client does). It should only be readable by user.
 
-\fIlevel\fP should be set to one of the values described below.
-
-.IP CURL_NETRC_OPTIONAL
-The use of the \fI~/.netrc\fP file is optional, and information in the URL is
-to be preferred.  The file will be scanned for the host and user name (to find
+\fIlevel\fP is a long that should be set to one of the values described below.
+.IP "CURL_NETRC_IGNORED (0)"
+The library will ignore the \fI.netrc\fP file. This is the default.
+.IP "CURL_NETRC_OPTIONAL (1)"
+The use of the \fI.netrc\fP file is optional, and information in the URL is to
+be preferred.  The file will be scanned for the host and user name (to find
 the password only) or for the host only, to find the first user name and
 password after that \fImachine\fP, which ever information is not specified.
-
-Undefined values of the option will have this effect.
-.IP CURL_NETRC_IGNORED
-The library will ignore the \fI~/.netrc\fP file.
-
-This is the default.
-.IP CURL_NETRC_REQUIRED
-The use of the \fI~/.netrc\fP file is required, and information in the URL is
-to be ignored.  The file will be scanned for the host and user name (to find
-the password only) or for the host only, to find the first user name and
-password after that \fImachine\fP, which ever information is not specified.
+.IP "CURL_NETRC_REQUIRED (2)"
+The use of the \fI.netrc\fP file is required, and any credential information
+present in the URL is ignored.  The file will be scanned for the host and user
+name (to find the password only) or for the host only, to find the first user
+name and password after that \fImachine\fP, which ever information is not
+specified.
 .SH DEFAULT
 CURL_NETRC_IGNORED
 .SH PROTOCOLS

@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #***************************************************************************
 #                                  _   _ ____  _
 #  Project                     ___| | | |  _ \| |
@@ -6,11 +6,11 @@
 #                            | (__| |_| |  _ <| |___
 #                             \___|\___/|_| \_\_____|
 #
-# Copyright (C) 2018-2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+# Copyright (C) 2018-2022, Daniel Stenberg, <daniel@haxx.se>, et al.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution. The terms
-# are also available at https://curl.haxx.se/docs/copyright.html.
+# are also available at https://curl.se/docs/copyright.html.
 #
 # You may opt to use, copy, modify, merge, publish, distribute and/or sell
 # copies of the Software, and permit persons to whom the Software is
@@ -35,7 +35,7 @@ if($start eq "-h") {
     exit;
 }
 elsif($start eq "") {
-    $start = `git tag --sort=taggerdate | tail -1`;
+    $start = `git tag --sort=taggerdate | grep "^curl-" | tail -1`;
     chomp $start;
 }
 
@@ -62,14 +62,17 @@ $bsetopts=`git show $start:include/curl/curl.h | grep '^  CURLOPT(' | grep -cv O
 $nsetopts = $asetopts - $bsetopts;
 
 # Number of command line options:
-$aoptions=`grep -c '{"....--' src/tool_help.c`;
-$boptions=`git show $start:src/tool_help.c | grep -c '{"....--'`;
+$aoptions=`grep -c '{"....--' src/tool_listhelp.c`;
+$boptions=`git show $start:src/tool_listhelp.c 2>/dev/null | grep -c '{"....--'`;
 $noptions=$aoptions - $boptions;
 
+# current local branch
+$branch=`git rev-parse --abbrev-ref HEAD 2>/dev/null`;
+chomp $branch;
 # Number of files in git
 $afiles=`git ls-files | wc -l`;
-$deletes=`git diff-tree --diff-filter=A -r --summary origin/master $start | wc -l`;
-$creates=`git diff-tree --diff-filter=D -r --summary origin/master $start | wc -l`;
+$deletes=`git diff-tree --diff-filter=A -r --summary origin/$branch $start | wc -l`;
+$creates=`git diff-tree --diff-filter=D -r --summary origin/$branch $start | wc -l`;
 
 # Time since that tag
 $tagged=`git for-each-ref --format="%(refname:short) | %(taggerdate:unix)" refs/tags/* | grep ^$start | cut "-d|" -f2`; # unix timestamp
@@ -77,11 +80,18 @@ $taggednice=`git for-each-ref --format="%(refname:short) | %(creatordate)" refs/
 chomp $taggednice;
 $now=`date +%s`;
 $elapsed=$now - $tagged; # number of seconds since tag
+$total=$now - `date -d 19980320 +%s`;
 
 # Number of public functions in libcurl
 $apublic=`git grep ^CURL_EXTERN -- include/curl | wc -l`;
 $bpublic=`git grep ^CURL_EXTERN $start -- include/curl | wc -l`;
 $public = $apublic - $bpublic;
+
+# diffstat
+$diffstat=`git diff --stat $start.. | tail -1`;
+if($diffstat =~ /^ *(\d+) files changed, (\d+) insertions\(\+\), (\d+)/) {
+    ($fileschanged, $insertions, $deletions)=($1, $2, $3);
+}
 
 # Changes/bug-fixes currently logged
 open(F, "<RELEASE-NOTES");
@@ -115,27 +125,30 @@ close(F);
 ########################################################################
 # Produce the summary
 
-print "== Since $start ==\n";
-printf "Commits: %d (out of %d)\n",
+print "== Since $start $taggednice ==\n";
+printf "Elapsed time:                   %.1f days (total %d)\n",
+    $elapsed / 3600 / 24,
+    $total / 3600 / 24;
+printf "Commits:                        %d (total %d)\n",
     $commits, $acommits;
-printf "Commit authors: %d out of which %d are new (out of %d)\n",
+printf "Commit authors:                 %d, %d new (total %d)\n",
     $committers, $ncommitters, $acommitters;
-printf "Contributors in RELEASE-NOTES: %d\n",
-    $numcontributors;
-printf "New contributors: %d (out of %d)\n",
-    $contribs, $acontribs;
-printf "New curl_easy_setopt() options: %d (out of %d)\n",
-    $nsetopts, $asetopts;
-printf "New command line options: %d (out of %d)\n",
-    $noptions, $aoptions;
-
-printf "Deleted %d files, added %d files (total %d)\n",
-    $deletes, $creates, $afiles;
-
-printf "Elapsed time: %.1f days (since$taggednice)\n",
-    $elapsed / 3600 / 24;
-printf "Changes logged: %d\n", $numchanges;
-printf "Bugfixes logged: %d\n", $numbugfixes;
-
-printf "New public functions: %d (out of %d)\n",
+printf "Contributors:                   %d, %d new (total %d)\n",
+    $numcontributors, $contribs, $acontribs;
+printf "New public functions:           %d (total %d)\n",
     $public, $apublic;
+printf "New curl_easy_setopt() options: %d (total %d)\n",
+    $nsetopts, $asetopts;
+printf "New command line options:       %d (total %d)\n",
+    $noptions, $aoptions;
+printf "Changes logged:                 %d\n", $numchanges;
+printf "Bugfixes logged:                %d\n", $numbugfixes;
+printf "Added files:                    %d (total %d)\n",
+    $creates, $afiles;
+printf "Deleted files:                  %d (delta: %d)\n", $deletes,
+    $creates - $deletes;
+print "Diffstat:$diffstat" if(!$fileschanged);
+printf "Files changed:                  %d\n", $fileschanged;
+printf "Lines inserted:                 %d\n", $insertions;
+printf "Lines deleted:                  %d (delta: %d)\n", $deletions,
+    $insertions - $deletions;

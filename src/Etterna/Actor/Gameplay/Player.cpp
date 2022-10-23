@@ -816,7 +816,7 @@ Player::UpdatePressedFlags()
 		// TODO(Sam): Remove use of PlayerNumber.
 		std::vector<GameInput> GameI;
 		GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-		  ->StyleInputToGameInput(col, m_pPlayerState->m_PlayerNumber, GameI);
+		  ->StyleInputToGameInput(col, GameI);
 
 		const auto bIsHoldingButton = INPUTMAPPER->IsBeingPressed(GameI);
 
@@ -1139,7 +1139,7 @@ Player::UpdateHoldNotes(int iSongRow,
 			} else {
 				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-				  ->StyleInputToGameInput(iTrack, PLAYER_1, GameI);
+				  ->StyleInputToGameInput(iTrack, GameI);
 
 				bIsHoldingButton &=
 				  INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp);
@@ -2384,10 +2384,9 @@ Player::CrossedRows(int iLastRowCrossed,
 			case TapNoteType_HoldHead: {
 				tn.HoldResult.fLife = initialHoldLife;
 				if (!REQUIRE_STEP_ON_HOLD_HEADS) {
-					const auto pn = m_pPlayerState->m_PlayerNumber;
 					std::vector<GameInput> GameI;
 					GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-					  ->StyleInputToGameInput(iTrack, pn, GameI);
+					  ->StyleInputToGameInput(iTrack, GameI);
 					if (PREFSMAN->m_fPadStickSeconds > 0.F) {
 						for (auto& i : GameI) {
 							const auto fSecsHeld =
@@ -2411,13 +2410,12 @@ Player::CrossedRows(int iLastRowCrossed,
 				break;
 			}
 			case TapNoteType_Mine: {
-				// Hold the panel while crossing a mine will cause the mine
+				// Holding the button crossing a mine will cause the mine
 				// to explode
-				// TODO(Sam): Remove use of PlayerNumber.
-				const auto pn = m_pPlayerState->m_PlayerNumber;
+				// This action also adds an input event for the mine hit
 				std::vector<GameInput> GameI;
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-				  ->StyleInputToGameInput(iTrack, pn, GameI);
+				  ->StyleInputToGameInput(iTrack, GameI);
 				if (PREFSMAN->m_fPadStickSeconds > 0.0F) {
 					for (auto& i : GameI) {
 						const auto fSecsHeld =

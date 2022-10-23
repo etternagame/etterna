@@ -24,17 +24,16 @@ Current flaws in the curl CMake build
    Missing features in the cmake build:
 
    - Builds libcurl without large file support
-   - Does not support all SSL libraries (only OpenSSL, WinSSL, DarwinSSL, and
-     mbed TLS)
-   - Doesn't build with SCP and SFTP support (libssh2) (see issue #1155)
-   - Doesn't allow different resolver backends (no c-ares build support)
+   - Does not support all SSL libraries (only OpenSSL, Schannel,
+     Secure Transport, and mbed TLS, NSS, WolfSSL)
+   - Does not allow different resolver backends (no c-ares build support)
    - No RTMP support built
-   - Doesn't allow build curl and libcurl debug enabled
-   - Doesn't allow a custom CA bundle path
-   - Doesn't allow you to disable specific protocols from the build
-   - Doesn't find or use krb4 or GSS
-   - Rebuilds test files too eagerly, but still can't run the tests
-   - Doesn't detect the correct strerror_r flavor when cross-compiling (issue #1123)
+   - Does not allow build curl and libcurl debug enabled
+   - Does not allow a custom CA bundle path
+   - Does not allow you to disable specific protocols from the build
+   - Does not find or use krb4 or GSS
+   - Rebuilds test files too eagerly, but still cannot run the tests
+   - Does not detect the correct strerror_r flavor when cross-compiling (issue #1123)
 
 
 Command Line CMake

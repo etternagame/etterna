@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -50,7 +50,7 @@ static void *run_thread(void *ptr)
   (void)ptr;
 
   for(i = 0; i < CONN_NUM; i++) {
-    sleep(TIME_BETWEEN_START_SECS);
+    wait_ms(TIME_BETWEEN_START_SECS * 1000);
 
     easy_init(easy);
 
@@ -70,7 +70,7 @@ static void *run_thread(void *ptr)
 
     pthread_mutex_unlock(&lock);
 
-    multi_wakeup(multi);
+    res_multi_wakeup(multi);
   }
 
 test_cleanup:
@@ -96,7 +96,8 @@ int test(char *URL)
   CURL *started_handles[CONN_NUM];
   int started_num = 0;
   int finished_num = 0;
-  pthread_t tid = 0;
+  pthread_t tid;
+  bool tid_valid = false;
   struct CURLMsg *message;
 
   start_test_timing();
@@ -108,7 +109,9 @@ int test(char *URL)
   url = URL;
 
   res = pthread_create(&tid, NULL, run_thread, NULL);
-  if(0 != res) {
+  if(!res)
+    tid_valid = true;
+  else {
     fprintf(stderr, "%s:%d Couldn't create thread, errno %d\n",
             __FILE__, __LINE__, res);
     goto test_cleanup;
@@ -119,7 +122,7 @@ int test(char *URL)
 
     abort_on_test_timeout();
 
-    while((message = curl_multi_info_read(multi, &num)) != NULL) {
+    while((message = curl_multi_info_read(multi, &num))) {
       if(message->msg == CURLMSG_DONE) {
         res = message->data.result;
         if(res)
@@ -182,7 +185,7 @@ test_cleanup:
     test_failure = res;
   pthread_mutex_unlock(&lock);
 
-  if(0 != tid)
+  if(tid_valid)
     pthread_join(tid, NULL);
 
   curl_multi_cleanup(multi);

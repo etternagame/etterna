@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -28,19 +28,19 @@
 #if defined(WIN32) && !defined(MSDOS)
 
 /* set in win32_init() */
-extern LARGE_INTEGER Curl_freq;
-extern bool Curl_isVistaOrGreater;
+extern LARGE_INTEGER tool_freq;
+extern bool tool_isVistaOrGreater;
 
 /* In case of bug fix this function has a counterpart in timeval.c */
 struct timeval tvnow(void)
 {
   struct timeval now;
-  if(Curl_isVistaOrGreater) { /* QPC timer might have issues pre-Vista */
+  if(tool_isVistaOrGreater) { /* QPC timer might have issues pre-Vista */
     LARGE_INTEGER count;
     QueryPerformanceCounter(&count);
-    now.tv_sec = (long)(count.QuadPart / Curl_freq.QuadPart);
-    now.tv_usec = (long)((count.QuadPart % Curl_freq.QuadPart) * 1000000 /
-                         Curl_freq.QuadPart);
+    now.tv_sec = (long)(count.QuadPart / tool_freq.QuadPart);
+    now.tv_usec = (long)((count.QuadPart % tool_freq.QuadPart) * 1000000 /
+                         tool_freq.QuadPart);
   }
   else {
     /* Disable /analyze warning that GetTickCount64 is preferred  */
@@ -74,7 +74,7 @@ struct timeval tvnow(void)
   struct timespec tsnow;
   if(0 == clock_gettime(CLOCK_MONOTONIC, &tsnow)) {
     now.tv_sec = tsnow.tv_sec;
-    now.tv_usec = tsnow.tv_nsec / 1000;
+    now.tv_usec = (int)(tsnow.tv_nsec / 1000);
   }
   /*
   ** Even when the configure process has truly detected monotonic clock
@@ -86,7 +86,7 @@ struct timeval tvnow(void)
     (void)gettimeofday(&now, NULL);
 #else
   else {
-    now.tv_sec = (long)time(NULL);
+    now.tv_sec = time(NULL);
     now.tv_usec = 0;
   }
 #endif
@@ -115,7 +115,7 @@ struct timeval tvnow(void)
   ** time() returns the value of time in seconds since the Epoch.
   */
   struct timeval now;
-  now.tv_sec = (long)time(NULL);
+  now.tv_sec = time(NULL);
   now.tv_usec = 0;
   return now;
 }

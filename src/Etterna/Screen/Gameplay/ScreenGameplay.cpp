@@ -83,7 +83,7 @@ ScreenGameplay::ScreenGameplay()
 	g_buttonsByColumnPressed.clear();
 
 	// Tell DownloadManager we are in Gameplay
-	DLMAN->UpdateDLSpeed(true);
+	DLMAN->UpdateGameplayState(true);
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
@@ -401,7 +401,7 @@ ScreenGameplay::~ScreenGameplay()
 		}
 
 		// Tell DownloadManager we aren't in Gameplay
-		DLMAN->UpdateDLSpeed(false);
+		DLMAN->UpdateGameplayState(false);
 
 		GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 		GAMESTATE->TogglePracticeMode(false);
