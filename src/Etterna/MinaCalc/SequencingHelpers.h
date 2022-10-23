@@ -83,3 +83,45 @@ max_index(const std::vector<float>& v) -> int
 	return static_cast<int>(
 	  std::distance(v.begin(), std::max_element(v.begin(), v.end())));
 }
+
+/// functions for comparing row deltas (see "any_ms" comment in
+/// GenerecSequencing.h)
+
+// it's expected that successive row deltas will often be equal,
+// but this is not reliable in floating point. so any time you
+// want to branch on a comparison you need to assume that very
+// close values are supposed to be equal
+
+// floats are good to around 1e-5, milliseconds scale that up by 1e3,
+// if we stick to small-brain base 10 then 0.1f is all we have left
+
+/// tolerance for comparisons of row time deltas
+constexpr float any_ms_epsilon = 0.1F;
+
+/// a > b
+inline auto
+any_ms_is_greater(float a, float b) -> bool
+{
+	return (a - b) > any_ms_epsilon;
+}
+
+/// a < b
+inline auto
+any_ms_is_lesser(float a, float b) -> bool
+{
+	return (b - a) > any_ms_epsilon;
+}
+
+/// a == b
+inline auto
+any_ms_is_close(float a, float b) -> bool
+{
+	return fabsf(a - b) <= any_ms_epsilon;
+}
+
+/// a == 0
+inline auto
+any_ms_is_zero(float a) -> bool
+{
+	return any_ms_is_close(a, 0.F);
+}

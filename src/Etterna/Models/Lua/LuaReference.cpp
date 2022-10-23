@@ -1,8 +1,6 @@
 ﻿#include "Etterna/Globals/global.h"
 #include "LuaReference.h"
 
-REGISTER_CLASS_TRAITS(LuaReference, new LuaReference(*pCopy))
-
 LuaReference::LuaReference()
 {
 	m_iReference = LUA_NOREF;
@@ -24,6 +22,12 @@ LuaReference::LuaReference(const LuaReference& cpy)
 		m_iReference = luaL_ref(L, LUA_REGISTRYINDEX);
 		LUA->Release(L);
 	}
+}
+
+LuaReference::LuaReference(LuaReference&& cpy)
+{
+	m_iReference = cpy.m_iReference;
+	cpy.m_iReference = LUA_NOREF;
 }
 
 LuaReference&

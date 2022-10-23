@@ -219,6 +219,8 @@ local translations = {
     Automatic = THEME:GetString("Settings", "Automatic"),
     ForceOn = THEME:GetString("Settings", "ForceOn"),
     ForceOff = THEME:GetString("Settings", "ForceOff"),
+    Online = THEME:GetString("Settings", "Online"),
+    Local = THEME:GetString("Settings", "Local"),
     CustomizeGameplay = THEME:GetString("Settings", "CustomizeGameplay"),
     CustomizeGameplayExplanation = THEME:GetString("Settings", "CustomizeGameplayExplanation"),
     ScrollType = THEME:GetString("Settings", "ScrollType"),
@@ -3253,7 +3255,7 @@ local function rightFrame()
         fullProgressBar = playeroption("FullProgressBar"),
         miniProgressBar = playeroption("MiniProgressBar"),
         judgeCounter = playeroption("JudgeCounter"),
-        leaderboard = playeroption("leaderboardEnabled"),
+        leaderboard = playeroption("Leaderboard"), -- off, online, local currentrate, local allrates
         displayMean = playeroption("DisplayMean"),
         displayEWMA = playeroption("DisplayEWMA"),
         displayStdDev = playeroption("DisplayStdDev"),
@@ -4796,9 +4798,33 @@ local function rightFrame()
                 DisplayName = translations["Leaderboard"],
                 Type = "SingleChoice",
                 Explanation = translations["LeaderboardExplanation"],
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirectionsFUNC("leaderboard", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("leaderboard", true),
+                Choices = {
+                    {
+                        Name = "Off",
+                        DisplayName = translations["Off"],
+                        ChosenFunction = function()
+                            optionData["leaderboard"].set(0)
+                        end,
+                    },
+                    {
+                        Name = "Online",
+                        DisplayName = translations["Online"],
+                        ChosenFunction = function()
+                            optionData["leaderboard"].set(1)
+                        end,
+                    },
+                    {
+                        Name = "Local",
+                        DisplayName = translations["Local"],
+                        ChosenFunction = function()
+                            optionData["leaderboard"].set(2)
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = optionData["leaderboard"].get()
+                    return v+1
+                end,
             },
 
             {

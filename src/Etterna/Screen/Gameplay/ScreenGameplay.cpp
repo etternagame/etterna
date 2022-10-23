@@ -18,7 +18,6 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Actor/Gameplay/Player.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
@@ -43,6 +42,7 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include <algorithm>
 
@@ -1515,13 +1515,10 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
 		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		auto* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
-		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
-		auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 
 		// Load the replay data for the current score so some cool functionality
 		// works immediately
-		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(pHS, 0, &nd, td);
+		REPLAYS->InitReplayPlaybackForScore(pHS);
 		GAMESTATE->CommitStageStats();
 	}
 

@@ -479,13 +479,13 @@ static LocalizedString GLDIRECT_IS_NOT_COMPATIBLE("RageDisplay_Legacy",
 												  "with this game and should "
 												  "be disabled.");
 std::string
-RageDisplay_Legacy::Init(const VideoModeParams& p,
+RageDisplay_Legacy::Init(VideoModeParams&& p,
 						 bool bAllowUnacceleratedRenderer)
 {
 	g_pWind = LowLevelWindow::Create();
 
 	auto bIgnore = false;
-	auto sError = SetVideoMode(p, bIgnore);
+	auto sError = SetVideoMode(std::move(p), bIgnore);
 	if (!sError.empty())
 		return sError;
 

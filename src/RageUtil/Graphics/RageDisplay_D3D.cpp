@@ -304,7 +304,7 @@ static LocalizedString HARDWARE_ACCELERATION_NOT_AVAILABLE(
   "manufacturer.");
 
 auto
-RageDisplay_D3D::Init(const VideoModeParams& p,
+RageDisplay_D3D::Init(VideoModeParams&& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
 	GraphicsWindow::Initialize(true);
@@ -361,7 +361,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	 * possible, because if we have to shut it down again we'll flash a window
 	 * briefly. */
 	auto bIgnore = false;
-	return SetVideoMode(p, bIgnore);
+	return SetVideoMode(std::move(p), bIgnore);
 }
 
 RageDisplay_D3D::~RageDisplay_D3D()

@@ -38,6 +38,7 @@
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
 #include "Dependent/HD_PatternMods/WideRangeJJ.h"
 #include "Dependent/HD_PatternMods/WideRangeAnchor.h"
+#include "Dependent/HD_PatternMods/Minijack.h"
 #include "Dependent/HD_PatternMods/RunningMan.h"
 
 // they're useful sometimes
@@ -98,6 +99,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	ChaosMod _ch;
 	CJOHAnchorMod _chain;
 	RunningManMod _rm;
+	MinijackMod _mj;
 	WideRangeBalanceMod _wrb;
 	WideRangeRollMod _wrr;
 	WideRangeJumptrillMod _wrjt;
@@ -115,7 +117,7 @@ struct TheGreatBazoinkazoinkInTheSky
 
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : _calc(calc)
-	{		
+	{
 		// setup our data pointers
 		_last_mri = std::make_unique<metaRowInfo>();
 		_mri = std::make_unique<metaRowInfo>();
@@ -244,6 +246,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjj.advance_sequencing(_mhi->_ct, row_time);
 		_ch.advance_sequencing(_seq._mw_any_ms);
 		_roll.advance_sequencing(_mhi->_ct, row_time);
+		_mj.advance_sequencing(_mhi->_ct, _seq.get_sc_ms_now(_mhi->_ct));
 	}
 
 	void setup_dependent_mods()
@@ -257,6 +260,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjj.setup();
 		_wrb.setup();
 		_wra.setup();
+		_mj.setup();
 	}
 
 	void set_dependent_pmods(const int& itv)
@@ -288,6 +292,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		  hand, _wrjj._pmod, _wrjj(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _mj._pmod, _mj(_mitvhi._itvhi), itv, _calc);
 	}
 
 	/// reset any moving windows or values when starting the other hand, this
@@ -309,6 +315,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjj.full_reset();
 		_wrb.full_reset();
 		_wra.full_reset();
+		_mj.full_reset();
 
 		_seq.full_reset();
 		_mitvhi.zero();
@@ -359,6 +366,37 @@ struct TheGreatBazoinkazoinkInTheSky
 		// _between either column_ for _this row_
 		_calc.jack_diff.at(hand).push_back(thing);
 
+		// debug cv stuff
+		if (_calc.debugmode) {
+			switch (ct) {
+				case col_left:
+					_calc.debugMovingWindowCV.at(hand).at(0).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					break;
+				case col_right:
+					_calc.debugMovingWindowCV.at(hand).at(1).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					break;
+				case col_ohjump: {
+					_calc.debugMovingWindowCV.at(hand).at(0).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					_calc.debugMovingWindowCV.at(hand).at(1).emplace_back(
+					  row_time,
+					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
+						max_moving_window_size));
+					break;
+				}
+				default:
+					break;
+			}
+		}
+
 		// chordjack updates
 		_diffz._cj.advance_base(any_ms, _calc);
 
@@ -404,6 +442,11 @@ struct TheGreatBazoinkazoinkInTheSky
 
 			// arrays are super bug prone with jacks so try vectors for now
 			_calc.jack_diff.at(hand).clear();
+
+			if (_calc.debugmode) {
+				_calc.debugMovingWindowCV.at(hand).fill(
+				  std::vector<std::pair<float, float>>());
+			}
 
 			nps::actual_cancer(_calc, hand);
 
@@ -598,6 +641,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _wrjt._params, _wrjt.name);
 		load_params_for_mod(&params, _wrjj._params, _wrjj.name);
 		load_params_for_mod(&params, _wra._params, _wra.name);
+		load_params_for_mod(&params, _mj._params, _mj.name);
 		load_params_for_mod(&params, _fj._params, _fj.name);
 		load_params_for_mod(&params, _tt._params, _tt.name);
 		load_params_for_mod(&params, _tt2._params, _tt2.name);
@@ -637,6 +681,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_wrjt._params, _wrjt.name));
 		calcparams->AppendChild(make_mod_param_node(_wrjj._params, _wrjj.name));
 		calcparams->AppendChild(make_mod_param_node(_wra._params, _wra.name));
+		calcparams->AppendChild(make_mod_param_node(_mj._params, _mj.name));
 		calcparams->AppendChild(make_mod_param_node(_fj._params, _fj.name));
 		calcparams->AppendChild(make_mod_param_node(_tt._params, _tt.name));
 		calcparams->AppendChild(make_mod_param_node(_tt2._params, _tt2.name));

@@ -179,6 +179,8 @@ MusicWheelItem::LoadFromWheelItemData(const WheelItemBaseData* pData,
 	MusicWheelItemType type = MusicWheelItemType_Invalid;
 
 	auto wheel = dynamic_cast<const MusicWheel*>(GetParent());
+	ASSERT_M(wheel != nullptr,
+			 "Parent(Wheel) dynamic cast to load wheel item datas failed at runtime.");
 
 	switch (pWID->m_Type) {
 		DEFAULT_FAIL(pWID->m_Type);

@@ -14,6 +14,7 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
 
 #include <utility>
 #include <algorithm>
@@ -232,9 +233,14 @@ MakeNoteResource(const std::string& sButton,
 		NOTESKIN->SetPlayerNumber(pn);
 		NOTESKIN->SetGameController(gc);
 
+		auto tmp = TEXTUREMAN->m_Prefs.m_iMaxTextureResolution;
+		TEXTUREMAN->m_Prefs.m_iMaxTextureResolution = 1048576;
+
 		pRes->m_pActor =
 		  NOTESKIN->LoadActor(sButton, sElement, nullptr, bSpriteOnly, Color);
 		ASSERT(pRes->m_pActor != NULL);
+
+		TEXTUREMAN->m_Prefs.m_iMaxTextureResolution = tmp;
 
 		g_NoteResource[Color][nsap] = pRes;
 		it = g_NoteResource[Color].find(nsap);

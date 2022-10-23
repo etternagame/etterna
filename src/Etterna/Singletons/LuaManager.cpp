@@ -1415,7 +1415,7 @@ LuaHelpers::TypeError(Lua* L, int iArgNo, std::string const& szName)
 {
 	std::string sType;
 	if (!luaL_callmeta(L, iArgNo, "__type"))
-		lua_pushstring(L, luaL_typename(L, iArgNo));
+		lua_pushstring(L, lua_typename(L, lua_type(L, iArgNo)));
 	LuaHelpers::Pop(L, sType);
 
 	lua_Debug debug;

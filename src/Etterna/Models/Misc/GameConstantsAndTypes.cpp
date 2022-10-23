@@ -244,6 +244,7 @@ static const char* CalcPatternModNames[] = {
 	"TheThing",
 	"TheThing2",
 	"RanMan",
+	"Minijack",
 	// "RanLen",
 	// "RanAnchLen",
 	// "RanAnchLenMod",

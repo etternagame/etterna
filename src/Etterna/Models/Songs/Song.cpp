@@ -63,9 +63,9 @@ StringToX(InstrumentTrack);
 Song::Song()
 {
 	FOREACH_BackgroundLayer(i) m_BackgroundChanges[i] =
-	  AutoPtrCopyOnWrite<VBackgroundChange>(new VBackgroundChange);
+	  std::make_shared<VBackgroundChange>();
 	m_ForegroundChanges =
-	  AutoPtrCopyOnWrite<VBackgroundChange>(new VBackgroundChange);
+	  std::make_shared<VBackgroundChange>();
 
 	m_LoadedFromProfile = ProfileSlot_Invalid;
 	m_fVersion = STEPFILE_VERSION_NUMBER;
@@ -1521,12 +1521,15 @@ Song::HasPreviewVid() const
 const std::vector<BackgroundChange>&
 Song::GetBackgroundChanges(BackgroundLayer bl) const
 {
-	return *(m_BackgroundChanges[bl]);
+	return *m_BackgroundChanges[bl];
 }
 std::vector<BackgroundChange>&
 Song::GetBackgroundChanges(BackgroundLayer bl)
 {
-	return *(m_BackgroundChanges[bl].Get());
+	std::shared_ptr<VBackgroundChange>& p = m_BackgroundChanges[bl];
+	if (p.use_count() != 1)
+		p = std::make_shared<VBackgroundChange>(*p);
+	return *p;
 }
 
 const std::vector<BackgroundChange>&
@@ -1537,7 +1540,9 @@ Song::GetForegroundChanges() const
 std::vector<BackgroundChange>&
 Song::GetForegroundChanges()
 {
-	return *m_ForegroundChanges.Get();
+	if (m_ForegroundChanges.use_count() != 1)
+		m_ForegroundChanges = std::make_shared<VBackgroundChange>(*m_ForegroundChanges);
+	return *m_ForegroundChanges;
 }
 
 std::vector<std::string>

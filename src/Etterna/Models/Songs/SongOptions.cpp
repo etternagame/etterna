@@ -3,6 +3,7 @@
 #include "Etterna/Singletons/GameState.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongOptions.h"
+#include "Etterna/Singletons/DownloadManager.h"
 
 #include "Etterna/Models/Misc/Foreach.h"
 
@@ -232,13 +233,19 @@ class LunaSongOptions : public Luna<SongOptions>
 	BOOL_INTERFACE(AssistMetronome, AssistMetronome);
 	BOOL_INTERFACE(StaticBackground, StaticBackground);
 	BOOL_INTERFACE(RandomBGOnly, RandomBGOnly);
-	BOOL_INTERFACE(SaveScore, SaveScore);
+	SECBOOL_INTERFACE(SaveScore, SaveScore);
 	static int MusicRate(T* p, lua_State* L)
 	{
 		const auto original_top = lua_gettop(L);
 		lua_pushnumber(L, p->m_fMusicRate);
 		lua_pushnumber(L, p->m_SpeedfMusicRate);
 		if (lua_isnumber(L, 1) && original_top >= 1) {
+			if (DLMAN->gameplay) {
+				Locator::getLogger()->warn(
+				  "Attempted to set mod illegally - MusicRate");
+				OPTIONAL_RETURN_SELF(original_top);
+				return 1;
+			}
 			const auto v = FArg(1);
 			if (!(v > 0.0f && v <= 3.0f)) {
 				luaL_error(L, "Invalid value %f", v);
@@ -248,6 +255,12 @@ class LunaSongOptions : public Luna<SongOptions>
 			}
 		}
 		if (original_top >= 2 && lua_isnumber(L, 2)) {
+			if (DLMAN->gameplay) {
+				Locator::getLogger()->warn(
+				  "Attempted to set mod illegally - MusicRate");
+				OPTIONAL_RETURN_SELF(original_top);
+				return 1;
+			}
 			p->m_SpeedfMusicRate = FArgGTEZero(L, 2);
 		}
 		OPTIONAL_RETURN_SELF(original_top);

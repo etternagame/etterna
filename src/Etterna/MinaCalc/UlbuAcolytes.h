@@ -62,7 +62,7 @@ static const std::vector<CalcPatternMod> dependent_mods = {
 	OHTrill,		  VOHTrill,		   Chaos,
 	WideRangeBalance, WideRangeRoll,   WideRangeJumptrill,
 	WideRangeJJ,	  WideRangeAnchor, RanMan,
-	CJOHJump
+	Minijack,		  CJOHJump
 };
 
 struct PatternMods
@@ -116,7 +116,14 @@ struct PatternMods
 inline auto
 time_to_itv_idx(const float& time) -> int
 {
-	return static_cast<int>(time / interval_span);
+	// Offset time by half a millisecond to consistently break ties when a row
+	// lies on an interval boundary. This is worst on files at bpms like 180
+	// where the milliseconds between 16ths cannot be represented exactly by a
+	// float but in exact arithemetic regularly align with the interval
+	// boundaries. Offsetting here makes the calc more robust to bpm
+	// fluctuations, mines at the start of the file, etc, which could move notes
+	// into different intervals
+	return static_cast<int>((time + 0.0005f) / interval_span);
 }
 
 inline auto

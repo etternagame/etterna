@@ -8,7 +8,7 @@ class RageDisplay_GLES2 : public RageDisplay
   public:
 	RageDisplay_GLES2();
 	~RageDisplay_GLES2() override;
-	std::string Init(const VideoModeParams& p,
+	std::string Init(VideoModeParams&& p,
 				 bool bAllowUnacceleratedRenderer) override;
 
 	std::string GetApiDescription() const override;

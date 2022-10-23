@@ -534,28 +534,35 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
         self:finishtweening()
         self.song = params.song
         if params.song then
-            if params.song:HasCDTitle() then
-                self:diffusealpha(1)
-                self:Load(params.song:GetCDTitlePath())
+            self:diffusealpha(1)
 
-                local h = self:GetHeight()
-                local w = self:GetWidth()
-                local allowedWidth = actuals.VerticalDividerLeftGap - actuals.CDTitleRightGap - actuals.CDTitleLeftGap
-                if h >= actuals.CDTitleAllowedHeight and w >= allowedWidth then
-                    if h * (allowedWidth / actuals.CDTitleAllowedHeight) >= w then
-                        self:zoom(actuals.CDTitleAllowedHeight / h)
-                    else
-                        self:zoom(allowedWidth / w)
-                    end
-                elseif h >= actuals.CDTitleAllowedHeight then
-                    self:zoom(actuals.CDTitleAllowedHeight / h)
-                elseif w >= allowedWidth then
-                    self:zoom(allowedWidth / w)
-                else
-                    self:zoom(1)
-                end
+            -- load the cdtitle if it is present
+            if params.song:HasCDTitle() then
+                self:Load(params.song:GetCDTitlePath())
             else
-                self:diffusealpha(0)
+                -- otherwise, load the invisible (blank) image and stretch it so you can still hover it
+                self:Load(THEME:GetPathG("", "_blank"))
+
+                local allowedWidth = actuals.VerticalDividerLeftGap - actuals.CDTitleRightGap - actuals.CDTitleLeftGap
+                self:zoomto(allowedWidth, actuals.CDTitleAllowedHeight)
+                return
+            end
+
+            local h = self:GetHeight()
+            local w = self:GetWidth()
+            local allowedWidth = actuals.VerticalDividerLeftGap - actuals.CDTitleRightGap - actuals.CDTitleLeftGap
+            if h >= actuals.CDTitleAllowedHeight and w >= allowedWidth then
+                if h * (allowedWidth / actuals.CDTitleAllowedHeight) >= w then
+                    self:zoom(actuals.CDTitleAllowedHeight / h)
+                else
+                    self:zoom(allowedWidth / w)
+                end
+            elseif h >= actuals.CDTitleAllowedHeight then
+                self:zoom(actuals.CDTitleAllowedHeight / h)
+            elseif w >= allowedWidth then
+                self:zoom(allowedWidth / w)
+            else
+                self:zoom(1)
             end
         else
             self:diffusealpha(0)

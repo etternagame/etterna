@@ -8,7 +8,6 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "StageStats.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "PlayerAI.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "AdjustSync.h"
 #include "Etterna/Singletons/ScoreManager.h"
@@ -16,6 +15,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Core/Services/Locator.hpp"
 #include "GamePreferences.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #ifndef _WIN32
 #include <cpuid.h>
@@ -665,14 +665,15 @@ StageStats::FinalizeScores()
 
 	// cope with autoplay and replays
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
-		if (PlayerAI::pScoreData != nullptr) {
-			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
+		if (REPLAYS->GetActiveReplayScore() != nullptr) {
+			if (!REPLAYS->GetActiveReplayScore()
+				   ->GetCopyOfSetOnlineReplayTimestampVector()
 				   .empty()) {
 				// it's an online replay
 				Locator::getLogger()->info(
 				  "Online Replay detected - saved nothing");
 				SCOREMAN->tempscoreforonlinereplayviewing =
-				  PlayerAI::pScoreData;
+				  REPLAYS->GetActiveReplayScore();
 				SCOREMAN->tempscoreforonlinereplayviewing->SetRadarValues(
 				  hs.GetRadarValues());
 				SCOREMAN->camefromreplay = true;
@@ -680,7 +681,7 @@ StageStats::FinalizeScores()
 				// it's a local replay
 				Locator::getLogger()->info(
 				  "Local Replay detected - saved nothing");
-				mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
+				mostrecentscorekey = REPLAYS->GetActiveReplay()->GetScoreKey();
 				SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
 				if (SCOREMAN->GetMostRecentScore() == nullptr)
 					Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");

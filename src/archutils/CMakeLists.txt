@@ -43,7 +43,8 @@ if(WIN32)
 		"Win32/VideoDriverInfo.cpp"
 		"Win32/WindowIcon.cpp"
 		"Win32/WindowsDialogBox.cpp"
-		"Win32/WindowsResources.rc")
+		"Win32/WindowsResources.rc"
+		"Win32/Etterna.manifest")
 
 	list(APPEND OS_HPP
 		"Win32/AppInstance.h"

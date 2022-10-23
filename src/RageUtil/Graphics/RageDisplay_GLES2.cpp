@@ -204,13 +204,13 @@ RageDisplay_GLES2::RageDisplay_GLES2()
 }
 
 std::string
-RageDisplay_GLES2::Init(const VideoModeParams& p,
+RageDisplay_GLES2::Init(VideoModeParams&& p,
 						bool bAllowUnacceleratedRenderer)
 {
 	g_pWind = LowLevelWindow::Create();
 
 	bool bIgnore = false;
-	std::string sError = SetVideoMode(p, bIgnore);
+	std::string sError = SetVideoMode(std::move(p), bIgnore);
 	if (sError != "")
 		return sError;
 

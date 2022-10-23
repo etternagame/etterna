@@ -336,7 +336,7 @@ local t = Def.ActorFrame {
 	end,
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(110, 94):halign(0):valign(0):diffuse(getMainColor("tabs"))
+			self:xy(frameX, frameY - 146):zoomto(110, 164):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end
 	},
 	Def.Quad {
@@ -346,7 +346,7 @@ local t = Def.ActorFrame {
 	},
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(8, 144):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.6)
+			self:xy(frameX, frameY - 146):zoomto(8, 214):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.6)
 		end
 	},
 }
