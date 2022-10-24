@@ -35,7 +35,7 @@ class RageDisplay_Legacy : public RageDisplay
   public:
 	RageDisplay_Legacy();
 	~RageDisplay_Legacy() override;
-	std::string Init(const VideoModeParams& p,
+	std::string Init(VideoModeParams&& p,
 					 bool bAllowUnacceleratedRenderer) override;
 
 	std::string GetApiDescription() const override { return "OpenGL"; }

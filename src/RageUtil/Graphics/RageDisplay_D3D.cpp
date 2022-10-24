@@ -17,8 +17,18 @@
 #include <map>
 #include <list>
 #include <chrono>
-#include <D3dx9tex.h>
+
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnew-returns-null"
+#pragma clang diagnostic ignored "-Wcomment"
+#endif
+#include <d3dx9tex.h>
 #include <d3d9.h>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 #include <Tracy.hpp>
 // Static libraries
@@ -295,7 +305,7 @@ static LocalizedString HARDWARE_ACCELERATION_NOT_AVAILABLE(
   "manufacturer.");
 
 auto
-RageDisplay_D3D::Init(const VideoModeParams& p,
+RageDisplay_D3D::Init(VideoModeParams&& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
 	GraphicsWindow::Initialize(true);
@@ -352,7 +362,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	 * possible, because if we have to shut it down again we'll flash a window
 	 * briefly. */
 	auto bIgnore = false;
-	return SetVideoMode(p, bIgnore);
+	return SetVideoMode(std::move(p), bIgnore);
 }
 
 RageDisplay_D3D::~RageDisplay_D3D()
@@ -1491,6 +1501,8 @@ RageDisplay_D3D::SetTextureMode(TextureUnit tu, TextureMode tm)
 			g_pd3dDevice->SetTextureStageState(
 			  tu, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
 			break;
+		default:
+			Locator::getLogger()->warn("RageDisplay_D3D::SetTextureMode called with invalid TextureMode");
 	}
 }
 

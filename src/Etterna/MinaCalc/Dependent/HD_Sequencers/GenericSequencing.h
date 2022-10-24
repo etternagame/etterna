@@ -128,6 +128,7 @@ struct Finger_Sequencing
 	/// returns an adjusted MS average value, not converted to nps
 	inline virtual float get_ms() = 0;
 
+	virtual ~Finger_Sequencing() = default;
 };
 
 /// Individual jacks, rather than anchors, with more nuance.
@@ -515,7 +516,6 @@ struct SequencerGeneral
 									 const bool lower = true) const -> float
 	{
 		if (ct == col_init) {
-
 			return ms_init;
 		}
 
@@ -537,6 +537,14 @@ struct SequencerGeneral
 
 		// simple
 		return _mw_sc_ms.at(ct).get_now();
+	}
+
+	auto get_mw_sc_ms(const col_type& ct)
+	{
+		if (ct == col_left || ct == col_ohjump) {
+			return _mw_sc_ms[col_left];
+		}
+		return _mw_sc_ms[col_right];
 	}
 
 	[[nodiscard]] auto get_any_ms_now() const -> float

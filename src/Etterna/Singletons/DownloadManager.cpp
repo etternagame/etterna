@@ -19,8 +19,8 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include <Tracy.hpp>
-#include "curl/curl.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "curl/curl.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
@@ -72,6 +72,17 @@ write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 	string tmp(static_cast<char*>(contents), realsize);
 	static_cast<string*>(userp)->append(tmp);
 	return realsize;
+}
+template<typename T>
+inline void
+curl_easy_setopt_log_err(CURL *handle, CURLoption option, T param)
+{
+	// TODO: Once we update curl replace "" with curl_easy_option_by_id(option)->name
+	CURLcode ret = curl_easy_setopt(handle, option, param);
+	if (ret != CURLE_OK)
+		Locator::getLogger()->warn(//"Error setting curl option %d(%s): %s(%d)", option, curl_easy_option_by_id(option)->name, curl_easy_strerror(ret), ret);
+		  "Error setting curl option {}({}): {}({})",
+		  option, "", curl_easy_strerror(ret), ret);
 }
 
 std::atomic<bool> QUIT_OTHER_THREADS_FLAG = false;
@@ -167,15 +178,15 @@ inline CURL*
 initBasicCURLHandle()
 {
 	CURL* curlHandle = curl_easy_init();
-	curl_easy_setopt(curlHandle,
+	curl_easy_setopt_log_err(curlHandle,
 					 CURLOPT_USERAGENT,
 					 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
 					 "AppleWebKit/537.36 (KHTML, like Gecko) "
 					 "Chrome/60.0.3112.113 Safari/537.36");
-	curl_easy_setopt(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
-	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
-	curl_easy_setopt(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
 	return curlHandle;
 }
 // Utility inline functions to deal with CURL
@@ -187,23 +198,23 @@ initCURLHandle(bool withBearer)
 	if (withBearer)
 		list = curl_slist_append(
 		  list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPHEADER, list);
-	curl_easy_setopt(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPHEADER, list);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
 	return curlHandle;
 }
 // Configurees a CURL handle so it writes it's output to a std::string
 inline void
 SetCURLResultsString(CURL* curlHandle, string* str)
 {
-	curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, str);
-	curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_WRITEDATA, str);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 }
 inline void
 DownloadManager::SetCURLURL(CURL* curlHandle, string url)
 {
 	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
 		url = string("https://").append(url);
-	curl_easy_setopt(curlHandle, CURLOPT_URL, url.c_str());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_URL, url.c_str());
 }
 void
 CURLFormPostField(CURL* curlHandle,
@@ -434,7 +445,7 @@ DownloadManager::init()
 			local_http_reqs_tmp.clear();
 			if (handle_count_changed && maxDLSpeed != 0) {
 				for (auto& handle : local_http_reqs)
-					curl_easy_setopt(
+					curl_easy_setopt_log_err(
 					  handle,
 					  CURLOPT_MAX_RECV_SPEED_LARGE,
 									 static_cast<curl_off_t>(
@@ -621,8 +632,8 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 			 i++) {
 			i->second->Install();
 			finishedDownloads[i->second->m_Url] = i->second;
-			pendingInstallDownloads.erase(i);
 		}
+		pendingInstallDownloads.clear();
 		// Reload
 		auto screen = SCREENMAN->GetScreen(0);
 		if (screen && screen->GetName() == "ScreenSelectMusic")
@@ -732,7 +743,7 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites/" + UrlEncode(chartkey);
 	auto r = SendRequest(req, {}, {});
 	if (r)
-		curl_easy_setopt(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+		curl_easy_setopt_log_err(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 }
 
 // we could pass scoregoal objects instead..? -mina
@@ -743,7 +754,7 @@ DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 				 to_string(wife) + "/" + to_string(rate);
 	auto r = SendRequest(req, {}, {});
 	if (r)
-		curl_easy_setopt(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+		curl_easy_setopt_log_err(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 }
 
 void
@@ -935,6 +946,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			  "(scorekey: \"{}\" chartkey: \"{}\")",
 			  hs->GetScoreKey().c_str(),
 			  hs->GetChartKey().c_str());
+			curl_easy_cleanup(curlHandle);
 			return;
 		}
 		std::vector<float> timestamps =
@@ -964,9 +976,9 @@ DownloadManager::UploadScore(HighScore* hs,
 	SetCURLFormPostField(
 	  curlHandle, form, lastPtr, "replay_data", replayString);
 	SetCURLURL(curlHandle, url);
-	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [this, hs, callback, load_from_disk](HTTPRequest& req) {
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
+	auto done = [hs, callback, load_from_disk](HTTPRequest& req) {
 		long response_code;
 		curl_easy_getinfo(req.handle, CURLINFO_RESPONSE_CODE, &response_code);
 		Document d;
@@ -1429,11 +1441,11 @@ DownloadManager::SendRequestToURL(
 							  lastPtr,
 							  param.first.c_str(),
 							  param.second.c_str());
-		curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 		req = new HTTPRequest(curlHandle, done, form);
 	} else {
 		req = new HTTPRequest(curlHandle, done);
-		curl_easy_setopt(curlHandle, CURLOPT_HTTPGET, 1L);
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPGET, 1L);
 	}
 	SetCURLResultsString(curlHandle, &(req->result));
 	if (async) {
@@ -2162,8 +2174,8 @@ DownloadManager::StartSession(
 	EndSessionIfExists();
 	CURL* curlHandle = initCURLHandle(false);
 	SetCURLURL(curlHandle, url);
-	curl_easy_setopt(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt(
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(
 	  curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
 
 	curl_httppost* form = nullptr;
@@ -2172,7 +2184,7 @@ DownloadManager::StartSession(
 	CURLFormPostField(curlHandle, form, lastPtr, "password", pass.c_str());
 	CURLFormPostField(
 	  curlHandle, form, lastPtr, "clientData", CLIENT_DATA_KEY.c_str());
-	curl_easy_setopt(curlHandle, CURLOPT_HTTPPOST, form);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback](HTTPRequest& req) {
 		Document d;
@@ -2331,8 +2343,8 @@ Download::Download(std::string url, std::string filename)
 	// horrible force crash if somehow things still dont work
 	ASSERT_M(opened, p_RFWrapper.file.GetError());
 
-	curl_easy_setopt(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
-	curl_easy_setopt(handle,
+	curl_easy_setopt_log_err(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
+	curl_easy_setopt_log_err(handle,
 					 CURLOPT_WRITEFUNCTION,
 	  static_cast<size_t(*)(
 		char*, size_t, size_t, void*)>(
@@ -2345,10 +2357,10 @@ Download::Download(std::string url, std::string filename)
 						 RFW->bytes += b;
 						 return b;
 					 }));
-	curl_easy_setopt(handle, CURLOPT_URL, m_Url.c_str());
+	curl_easy_setopt_log_err(handle, CURLOPT_URL, m_Url.c_str());
 
-	curl_easy_setopt(handle, CURLOPT_XFERINFODATA, &progress);
-	curl_easy_setopt(handle,
+	curl_easy_setopt_log_err(handle, CURLOPT_XFERINFODATA, &progress);
+	curl_easy_setopt_log_err(handle,
 					 CURLOPT_XFERINFOFUNCTION,
 					 static_cast<int (*)(void *,
                       curl_off_t,
@@ -2364,8 +2376,8 @@ Download::Download(std::string url, std::string filename)
 						 ptr->downloaded = dlnow;
 						 return 0;
 					 }));
-	curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
-	curl_easy_setopt(handle, CURLOPT_HTTPGET, 1L);
+	curl_easy_setopt_log_err(handle, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt_log_err(handle, CURLOPT_HTTPGET, 1L);
 }
 
 Download::~Download()

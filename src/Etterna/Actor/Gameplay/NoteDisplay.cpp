@@ -14,13 +14,13 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
 
 #include <utility>
 #include <algorithm>
 
 using std::map;
 
-static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;
 
 const std::string&
@@ -233,9 +233,14 @@ MakeNoteResource(const std::string& sButton,
 		NOTESKIN->SetPlayerNumber(pn);
 		NOTESKIN->SetGameController(gc);
 
+		auto tmp = TEXTUREMAN->m_Prefs.m_iMaxTextureResolution;
+		TEXTUREMAN->m_Prefs.m_iMaxTextureResolution = 1048576;
+
 		pRes->m_pActor =
 		  NOTESKIN->LoadActor(sButton, sElement, nullptr, bSpriteOnly, Color);
 		ASSERT(pRes->m_pActor != NULL);
+
+		TEXTUREMAN->m_Prefs.m_iMaxTextureResolution = tmp;
 
 		g_NoteResource[Color][nsap] = pRes;
 		it = g_NoteResource[Color].find(nsap);
@@ -1894,7 +1899,6 @@ NoteColumnRenderer::DrawPrimitives()
 	m_column_render_args.zoom_handler = &NCR_current.m_zoom_handler;
 	m_column_render_args.diffuse = m_pTempState->diffuse[0];
 	m_column_render_args.glow = m_pTempState->glow;
-	auto any_upcoming = false;
 	// Build lists of holds and taps for each player number, then pass those
 	// lists to the displays to draw.
 	// The vector in the NUM_PlayerNumber slot should stay empty, not worth
@@ -1935,11 +1939,11 @@ NoteColumnRenderer::DrawPrimitives()
 
 	// Draw holds before taps to make sure taps dont hide behind holds
 	if (!holds.empty())
-		any_upcoming |= m_displays[PLAYER_1]->DrawHoldsInRange(
+		m_displays[PLAYER_1]->DrawHoldsInRange(
 		  *m_field_render_args, m_column_render_args, holds);
 
 	if (!taps.empty())
-		any_upcoming |= m_displays[PLAYER_1]->DrawTapsInRange(
+		m_displays[PLAYER_1]->DrawTapsInRange(
 		  *m_field_render_args, m_column_render_args, taps);
 }
 

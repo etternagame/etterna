@@ -24,7 +24,6 @@ class MeterDisplay : public ActorFrame
 
   private:
 	float m_fStreamWidth = 0.f;
-	float m_fPercent = 0.5f;
 	AutoActor m_sprStream;
 	AutoActor m_sprTip;
 };

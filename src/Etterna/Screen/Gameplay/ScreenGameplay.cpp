@@ -18,7 +18,6 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Actor/Gameplay/Player.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
@@ -43,6 +42,7 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include <algorithm>
 #include <Tracy.hpp>
@@ -416,7 +416,7 @@ ScreenGameplay::~ScreenGameplay()
 }
 
 void
-ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
+ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row, int maxrow)
 {
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
@@ -428,7 +428,7 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 
 	m_vPlayerInfo.GetPlayerState()->Update(0);
 
-	NoteDataUtil::RemoveAllButRange(ndTransformed, row, MAX_NOTE_ROW);
+	NoteDataUtil::RemoveAllButRange(ndTransformed, row, maxrow);
 
 	// load player
 	{
@@ -795,8 +795,6 @@ ScreenGameplay::UpdateSongPosition()
 	if (!m_pSoundMusic->IsPlaying()) {
 		return;
 	}
-
-	const auto rate = GAMESTATE->m_SongOptions.GetSong().m_fMusicRate;
 
 	RageTimer tm = RageZeroTimer;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
@@ -1525,13 +1523,10 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
 		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		auto* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
-		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
-		auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 
 		// Load the replay data for the current score so some cool functionality
 		// works immediately
-		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(pHS, 0, &nd, td);
+		REPLAYS->InitReplayPlaybackForScore(pHS);
 		GAMESTATE->CommitStageStats();
 	}
 
@@ -1754,12 +1749,6 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 
 		const auto syncing =
 		  !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
-		auto replaying = false;
-		if (m_vPlayerInfo.GetPlayerState()->m_PlayerController ==
-			PC_REPLAY) // don't duplicate replay saves
-		{
-			replaying = true;
-		}
 
 		if (syncing) {
 			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);

@@ -50,9 +50,6 @@ static Preference<RandomBackgroundMode> g_RandomBackgroundMode(
 static Preference<int> g_iNumBackgrounds("NumBackgrounds", 10);
 static Preference<bool> g_bSongBackgrounds("SongBackgrounds", true);
 
-// Width of the region separating the left and right brightness areas:
-static float g_fBackgroundCenterWidth = 40;
-
 class BrightnessOverlay : public ActorFrame
 {
   public:

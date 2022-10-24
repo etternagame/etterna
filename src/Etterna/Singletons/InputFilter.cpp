@@ -272,8 +272,6 @@ InputFilter::CheckButtonChange(ButtonState& bs,
 	if (bs.m_BeingHeld == bs.m_bLastReportedHeld)
 		return;
 
-	GameInput gi;
-
 	// Possibly apply debounce
 	std::chrono::duration<float> timeDelta = now - bs.m_LastReportTime;
 	float delta = timeDelta.count();

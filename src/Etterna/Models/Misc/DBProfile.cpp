@@ -978,8 +978,6 @@ DBProfile::SavePlayerScores(SQLite::Database* db,
 						if (mode == WriteOnlyWebExport)
 							break;
 						if (mode == LocalWithReplayData) {
-							auto scoreID = static_cast<int>(
-							  sqlite3_last_insert_rowid(db->getHandle()));
 							try {
 								// Save Replay Data
 								if (hs->LoadReplayData()) {

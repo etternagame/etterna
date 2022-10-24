@@ -71,9 +71,9 @@ EnumToString(int iVal,
 	const std::string& X##ToLocalizedString(X x)                               \
                                                                                \
 	{                                                                          \
-		static std::unique_ptr<LocalizedString> g_##X##Name[NUM_##X];          \
+		static std::unique_ptr<LocalizedString> g_##X##Name[NUM_##X + 2];      \
 		if (g_##X##Name[0].get() == nullptr) {                                 \
-			for (unsigned i = 0; i < NUM_##X; ++i) {                           \
+			for (unsigned i = 0; i < NUM_##X + 2; ++i) {                       \
 				std::unique_ptr<LocalizedString> ap(                           \
 				  new LocalizedString(#X, X##ToString((X)i)));                 \
 				g_##X##Name[i] = std::move(ap);                                \

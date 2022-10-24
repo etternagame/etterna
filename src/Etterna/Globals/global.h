@@ -109,7 +109,6 @@ ShowWarningOrTrace(const char* file,
 				   const char* message,
 				   bool bWarning); // don't pull in LOG here
 
-
 #ifdef DEBUG
 // No reason to kill the program. A lot of these don't produce a crash in NDEBUG
 // so why stop?
@@ -141,8 +140,21 @@ template<int>
 struct CompileAssertDecl
 {
 };
+
+// Ignore "unused-local-typedef" warnings for COMPILE_ASSERT
+#if defined(__clang__)
+#define COMPILE_ASSERT_PRE                                                     \
+	_Pragma("clang diagnostic push")                                           \
+	  _Pragma("clang diagnostic ignored \"-Wunused-local-typedef\"")
+#define COMPILE_ASSERT_POST _Pragma("clang diagnostic pop")
+#else
+#define COMPILE_ASSERT_PRE
+#define COMPILE_ASSERT_POST
+#endif
 #define COMPILE_ASSERT(COND)                                                   \
-	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)> CompileAssertInst
+	COMPILE_ASSERT_PRE                                                         \
+	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)>                 \
+	  CompileAssertInst COMPILE_ASSERT_POST
 
 #include "RageUtil/Misc/RageException.h"
 /* Don't include our own headers here, since they tend to change often. */

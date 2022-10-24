@@ -235,7 +235,7 @@ StepMania::ApplyGraphicOptions()
 
 	VideoModeParams params;
 	GetPreferredVideoModeParams(params);
-	std::string sError = DISPLAY->SetVideoMode(params, bNeedReload);
+	std::string sError = DISPLAY->SetVideoMode(std::move(params), bNeedReload);
 	if (!sError.empty())
 		RageException::Throw("%s", sError.c_str());
 
@@ -403,7 +403,6 @@ AdjustForChangedSystemCapabilities()
 	 * Actually, Windows lops off a meg or two; cut off a little lower to treat
 	 * 192-meg systems as high-memory. */
 	const bool HighMemory = (Memory >= 190);
-	const bool LowMemory = (Memory < 100); // 64 and 96-meg systems
 
 	/* Two memory-consuming features that we can disable are texture caching and
 	 * preloaded banners. Texture caching can use a lot of memory; disable it
@@ -833,7 +832,7 @@ CreateDisplay()
 				continue;
 
 			std::string sError =
-			  pRet->Init(params, PREFSMAN->m_bAllowUnacceleratedRenderer);
+			  pRet->Init(std::move(params), PREFSMAN->m_bAllowUnacceleratedRenderer);
 			if (!sError.empty()) {
 				error +=
 				  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +

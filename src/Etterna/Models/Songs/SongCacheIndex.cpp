@@ -568,7 +568,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 						  dir.c_str());
 				continue;
 			}
-			auto stepsID = InsertSteps(steps, songID);
+			InsertSteps(steps, songID);
 		}
 		return true;
 	} catch (std::exception& e) {
@@ -1168,7 +1168,7 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 			auto stepsIndex = 0;
 
 			pNewNotes = song->CreateSteps();
-			int stepsID = qSteps.getColumn(stepsIndex++);
+			qSteps.getColumn(stepsIndex++);// stepsID
 			std::string chartName =
 			  static_cast<const char*>(qSteps.getColumn(stepsIndex++));
 			pNewNotes->SetChartName(chartName);

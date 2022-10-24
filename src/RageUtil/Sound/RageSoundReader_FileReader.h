@@ -3,8 +3,8 @@
 #ifndef RAGE_SOUND_READER_FILE_READER_H
 #define RAGE_SOUND_READER_FILE_READER_H
 
+#include <memory>
 #include "RageSoundReader.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 class RageFileBasic;
 
@@ -27,6 +27,8 @@ class RageSoundReader_FileReader : public RageSoundReader
 		OPEN_UNKNOWN_FILE_FORMAT = 1,
 		OPEN_FATAL_ERROR = 2,
 	};
+	RageSoundReader_FileReader(const RageSoundReader_FileReader&);
+	RageSoundReader_FileReader();
 
 	/* Takes ownership of pFile (even on failure). */
 	virtual OpenResult Open(RageFileBasic* pFile) = 0;
@@ -42,7 +44,7 @@ class RageSoundReader_FileReader : public RageSoundReader
 
   protected:
 	void SetError(const std::string& sError) const { m_sError = sError; }
-	HiddenPtr<RageFileBasic> m_pFile;
+	std::unique_ptr<RageFileBasic> m_pFile;
 
   private:
 	static RageSoundReader_FileReader* TryOpenFile(RageFileBasic* pFile,

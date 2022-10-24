@@ -158,6 +158,10 @@ Rage::wchar_to_utf8(wchar_t ch, std::string& out)
 		return;
 	}
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#endif
 	int cbytes = 0;
 	if (ch < 0x800)
 		cbytes = 1;
@@ -180,6 +184,9 @@ Rage::wchar_to_utf8(wchar_t ch, std::string& out)
 		const int shift = (cbytes - i - 1) * 6;
 		out.append(1, static_cast<char>(0x80 | ((ch >> shift) & 0x3F)));
 	}
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 }
 
 wchar_t

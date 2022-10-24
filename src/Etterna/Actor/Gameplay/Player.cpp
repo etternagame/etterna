@@ -15,7 +15,6 @@
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "NoteField.h"
 #include "Player.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
@@ -498,6 +497,18 @@ Player::NeedsHoldJudging(const TapNote& tn) -> bool
 	}
 }
 
+static TapNoteScore
+GetAutoplayTapNoteScore(const PlayerState* pPlayerState)
+{
+	if (pPlayerState->m_PlayerController == PC_REPLAY)
+		return TNS_Miss;
+	if (pPlayerState->m_PlayerController == PC_AUTOPLAY ||
+		pPlayerState->m_PlayerController == PC_CPU)
+		return TNS_W1;
+
+	return TNS_Miss;
+}
+
 void
 Player::Load()
 {
@@ -885,7 +896,6 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 		}
 
 		std::vector<TrackRowTapNote> vHoldNotesToGradeTogether;
-		auto iRowOfLastHoldNote = -1;
 		auto iter = *m_pIterNeedsHoldJudging; // copy
 		for (; !iter.IsAtEnd() && iter.Row() <= iSongRow; ++iter) {
 			auto& tn = *iter;
@@ -924,7 +934,6 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 				  iSongRow, fDeltaTime, vHoldNotesToGradeTogether);
 				vHoldNotesToGradeTogether.clear();
 			}
-			iRowOfLastHoldNote = iRow;
 			vHoldNotesToGradeTogether.push_back(trtn);
 		}
 
@@ -2052,6 +2061,11 @@ Player::Step(int col,
 		const auto fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
 		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
 
+		TapNote* pTN = nullptr;
+		auto iter = m_NoteData.FindTapNote(col, iRowOfOverlappingNoteOrRow);
+		DEBUG_ASSERT(iter != m_NoteData.end(col));
+		pTN = &iter->second;
+
 		if (row == -1) {
 			fNoteOffset = (fStepSeconds - fMusicSeconds) / fMusicRate;
 			// input data (a real tap mapped to a note any distance away)
@@ -2061,18 +2075,15 @@ Player::Step(int col,
 			  col,
 			  fMusicSeconds,
 			  iRowOfOverlappingNoteOrRow,
-			  fNoteOffset);
+			  fNoteOffset,
+			  pTN->type,
+			  pTN->subType);
 		}
 
 		NOTESKIN->SetLastSeenColor(
 		  NoteTypeToString(GetNoteType(iRowOfOverlappingNoteOrRow)));
 
 		const auto fSecondsFromExact = fabsf(fNoteOffset);
-
-		TapNote* pTN = nullptr;
-		auto iter = m_NoteData.FindTapNote(col, iRowOfOverlappingNoteOrRow);
-		DEBUG_ASSERT(iter != m_NoteData.end(col));
-		pTN = &iter->second;
 
 		// We don't really have to care if we are releasing on a non-lift,
 		// right? This fixes a weird noteskin bug with tap explosions.
@@ -2139,7 +2150,7 @@ Player::Step(int col,
 
 			case PC_CPU:
 			case PC_AUTOPLAY:
-				score = PlayerAI::GetTapNoteScore(m_pPlayerState);
+				score = GetAutoplayTapNoteScore(m_pPlayerState);
 
 				/* XXX: This doesn't make sense.
 				 * Step should only be called in autoplay for hit notes. */
@@ -2205,8 +2216,8 @@ Player::Step(int col,
 				// TapNoteScore, so that they can logically match up with
 				// the current timing windows. -aj
 				{
-					auto fWindowW1 = GetWindowSeconds(TW_W1);
-					auto fWindowW2 = GetWindowSeconds(TW_W2);
+					// auto fWindowW1 = GetWindowSeconds(TW_W1);
+					// auto fWindowW2 = GetWindowSeconds(TW_W2);
 					auto fWindowW3 = GetWindowSeconds(TW_W3);
 					auto fWindowW4 = GetWindowSeconds(TW_W4);
 					auto fWindowW5 = GetWindowSeconds(TW_W5);
@@ -2287,11 +2298,24 @@ Player::Step(int col,
 	} else {
 		// input data
 		// (autoplay, forced step, or step REALLY far away)
+
+		TapNoteType tnt = TapNoteType_Invalid;
+		TapNoteSubType tnst = TapNoteSubType_Invalid;
+
+		if (col != -1 && iRowOfOverlappingNoteOrRow != -1) {
+			const auto& tn =
+			  m_NoteData.GetTapNote(col, iRowOfOverlappingNoteOrRow);
+			tnt = tn.type;
+			tnst = tn.subType;
+		}
+
 		m_pPlayerStageStats->InputData.emplace_back(!bRelease,
 													col,
 													fMusicSeconds,
 													iRowOfOverlappingNoteOrRow,
-													0.F);
+													0.F,
+													tnt,
+													tnst);
 	}
 
 	if (score == TNS_None) {
@@ -2350,8 +2374,6 @@ Player::FlashGhostRow(int iRow)
 {
 	const auto lastTNS =
 	  NoteDataWithScoring::LastTapNoteWithResult(m_NoteData, iRow).result.tns;
-	const auto bBlind =
-	  (m_pPlayerState->m_PlayerOptions.GetCurrent().m_fBlind != 0);
 	const auto bBright =
 	  ((m_pPlayerStageStats != nullptr) &&
 	   m_pPlayerStageStats->m_iCurCombo >
@@ -3344,9 +3366,6 @@ Player::IncrementComboOrMissCombo(const bool bComboOrMissCombo)
 void
 Player::RenderAllNotesIgnoreScores()
 {
-	auto firstRow = 0;
-	auto lastRow = m_NoteData.GetLastRow() + 1;
-
 	// Go over every single non empty row and their tracks
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(m_NoteData, row)
 	{

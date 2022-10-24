@@ -442,7 +442,6 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 					" scores");
 	}
 	auto onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
-	auto scoreindex = 0;
 
 	TracyLockable(mutex, songVectorPtrMutex);
 	std::vector<std::uintptr_t> currentlyLockedSongs;
@@ -455,11 +454,9 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		std::vector<std::uintptr_t>&
 		  currentlyLockedSongs; // Vector of currently locked songs
 		std::uintptr_t song;	// The song for this lock
-		SongLock(vector<std::uintptr_t>& vec,
-				 TracyTypeLockable(mutex) & mut,
-				 std::uintptr_t k)
-		  : currentlyLockedSongs(vec)
-		  , songVectorPtrMutex(mut)
+		SongLock(std::vector<std::uintptr_t>& vec, TracyTypeLockable(mutex)& mut, std::uintptr_t k)
+		  : songVectorPtrMutex(mut)
+		  , currentlyLockedSongs(vec)
 		  , song(k)
 		{
 			ZoneScoped;
@@ -688,8 +685,8 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 		  currentlyLockedSongs; // Vector of currently locked songs
 		std::uintptr_t song;	// The song for this lock
 		SongLock(std::vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
-		  : currentlyLockedSongs(vec)
-		  , songVectorPtrMutex(mut)
+		  : songVectorPtrMutex(mut)
+		  , currentlyLockedSongs(vec)
 		  , song(k)
 		{
 			auto active = true;

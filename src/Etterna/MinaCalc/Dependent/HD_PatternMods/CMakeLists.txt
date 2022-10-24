@@ -6,6 +6,7 @@ list(APPEND HD_PATTERN_MODS
     "CJOHJ.h"
     "OHT.h"
     "VOHT.h"
+    "Minijack.h"
     "Roll.h"
     "RunningMan.h"
     "WideRangeAnchor.h"

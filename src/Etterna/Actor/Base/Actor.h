@@ -4,7 +4,6 @@
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageTypes.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Tween.h"
 
@@ -14,7 +13,7 @@ class XNode;
 struct lua_State;
 class LuaClass;
 
-using apActorCommands = AutoPtrCopyOnWrite<LuaReference>;
+using apActorCommands = std::shared_ptr<LuaReference>;
 
 /** @brief The background layer. */
 #define DRAW_ORDER_BEFORE_EVERYTHING (-200)
@@ -84,6 +83,7 @@ class Actor : public MessageSubscriber
 	 * @param cpy the new Actor to use in place of this one. */
 	Actor(const Actor& cpy);
 	~Actor() override;
+	Actor& operator=(const Actor& x);
 	[[nodiscard]] virtual auto Copy() const -> Actor*;
 	virtual void InitState();
 	virtual void LoadFromNode(const XNode* pNode);
@@ -808,7 +808,7 @@ class Actor : public MessageSubscriber
 	virtual void SetUpdateRate(float /*unused*/) {}
 	virtual auto GetUpdateRate() -> float { return 1.0F; }
 
-	HiddenPtr<LuaClass> m_pLuaInstance;
+	std::unique_ptr<LuaClass> m_pLuaInstance;
 
   protected:
 	/** @brief the name of the Actor. */

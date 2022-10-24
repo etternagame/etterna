@@ -6,7 +6,7 @@
 #if defined(USE_DXERR9)
 #include <dxerr9.h>
 #else
-#include <dxerr.h>
+#include <DxErr.h>
 #endif
 #if defined(_MSC_VER)
 #pragma comment(lib, "dxerr.lib")

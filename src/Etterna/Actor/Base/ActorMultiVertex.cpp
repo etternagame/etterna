@@ -387,7 +387,7 @@ ActorMultiVertex::GetSpline(size_t i)
 }
 
 void
-ActorMultiVertex::SetState(size_t i)
+ActorMultiVertex::SetState(int i)
 {
 	ASSERT(i < _states.size());
 	_cur_state = i;

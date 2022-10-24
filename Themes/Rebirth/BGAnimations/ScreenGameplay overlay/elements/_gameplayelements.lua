@@ -150,7 +150,7 @@ end
 -- lane cover is in Graphics/NoteField cover.lua
 
 if (NSMAN:IsETTP() and Var("LoadingScreen"):find("Net") ~= nil) or
-(playerConfig:get_data().leaderboardEnabled and DLMAN:IsLoggedIn()) then
+(playerConfig:get_data().Leaderboard == 1 and DLMAN:IsLoggedIn()) or (playerConfig:get_data().Leaderboard == 2) then
     t[#t+1] = LoadActor("leaderboard")
 end
 

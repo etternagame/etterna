@@ -23,7 +23,6 @@ ScreenSongOptions::Init()
 void
 ScreenSongOptions::ExportOptions(int iRow, const PlayerNumber& vpns)
 {
-	PlayerNumber pn = GAMESTATE->GetMasterPlayerNumber();
 	PlayerState* pPS = GAMESTATE->m_pPlayerState;
 	const FailType ft = pPS->m_PlayerOptions.GetPreferred().m_FailType;
 

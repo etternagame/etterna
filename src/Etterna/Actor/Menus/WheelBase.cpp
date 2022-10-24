@@ -433,15 +433,12 @@ WheelBase::RebuildWheelItems(int iDist)
 	// iIndex is now the index of the lowest WheelItem to draw
 
 	int iFirst = 0;
-	int iLast = NUM_WHEEL_ITEMS - 1;
 
 	if (iDist != INT_MAX) {
 		// Shift items and refresh only those that have changed.
 		CircularShift(items, iDist);
 		if (iDist > 0)
 			iFirst = NUM_WHEEL_ITEMS - iDist;
-		else if (iDist < 0)
-			iLast = -iDist - 1;
 	}
 
 	for (size_t i = iFirst; i < items.size(); i++) {
