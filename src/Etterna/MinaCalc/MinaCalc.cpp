@@ -426,6 +426,8 @@ CalcInternal(float& gotpoints,
 	auto pointloss_pow_val = 1.7F;
 	if (ss == Skill_Chordjack) {
 		pointloss_pow_val = 1.7F;
+	} else if (ss == Skill_Technical) {
+		pointloss_pow_val = 2.F;
 	}
 
 	// i don't like the copypasta either but the boolchecks where
@@ -1014,7 +1016,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 497;
+int mina_calc_version = 498;
 auto
 GetCalcVersion() -> int
 {

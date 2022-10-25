@@ -15,8 +15,8 @@ struct MinijackMod
 	float max_mod = 1.2F;
 	float base = 0.5F;
 
-	float mj_scaler = 2.5F;
-	float mj_buffer = 4.5F;
+	float mj_scaler = 2.6F;
+	float mj_buffer = 0.3F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -50,6 +50,11 @@ struct MinijackMod
 	const int window = 3;
 	int minijacks = 0;
 	float pmod = min_mod;
+
+	int left_since_last_right = 0;
+	int right_since_last_left = 0;
+	CalcMovingWindow<int> left_notes{};
+	CalcMovingWindow<int> right_notes{};
 
 #pragma region generic functions
 
@@ -88,7 +93,7 @@ struct MinijackMod
 
 #pragma endregion
 
-	void minijack_check(const CalcMovingWindow<float>& mv) {
+	void minijack_check(const CalcMovingWindow<float>& mv, const CalcMovingWindow<int>& mwOffTapCounts) {
 		// make sure the window is filled out
 		const auto max = mv.get_max_for_window(window);
 		if (max != ms_init) {
@@ -111,7 +116,11 @@ struct MinijackMod
 			if (last_ms == min &&
 				recent_ms > last_ms * minijack_confirmation_factor &&
 				last_last_ms > last_ms * minijack_speed_increase_factor) {
-				minijacks++;
+				// require that the taps which fit the minijack speed condition
+				// have no off tap between. this would make it a trill instead.
+				if (mwOffTapCounts[max_moving_window_size - 2] == 0) {
+					minijacks++;
+				}
 			}
 		}
 	}
@@ -129,20 +138,40 @@ struct MinijackMod
 
 		switch (ct) {
 			case col_left: {
+				// if we see a left note after having seen right notes
+				// we just went through a trill
+				if (right_since_last_left > 0 || left_since_last_right > 0) {
+					right_notes(right_since_last_left);
+				}
+				left_since_last_right++;
+				right_since_last_left = 0;
 				left_ms(ms_now);
-				minijack_check(left_ms);
+				minijack_check(left_ms, right_notes);
 				break;
 			}
 			case col_right: {
+				// if we see a right note after x lefts...
+				// trill happen
+				if (left_since_last_right > 0 || right_since_last_left > 0) {
+					left_notes(left_since_last_right);
+				}
+				right_since_last_left++;
+				left_since_last_right = 0;
 				right_ms(ms_now);
-				minijack_check(right_ms);
+				minijack_check(right_ms, left_notes);
 				break;
 			}
 			case col_ohjump: {
+				// jumps reset trill conditions
+				// 1[12] and [12]1 considered minijacks
+				left_notes(left_since_last_right);
+				right_notes(right_since_last_left);
+				left_since_last_right = 0;
+				right_since_last_left = 0;
 				left_ms(ms_now);
 				right_ms(ms_now);
-				minijack_check(left_ms);
-				minijack_check(right_ms);
+				minijack_check(left_ms, right_notes);
+				minijack_check(right_ms, left_notes);
 				break;
 			}
 			default:
@@ -161,7 +190,6 @@ struct MinijackMod
 		const auto taps = itvhi.get_taps_nowf() - mj_buffer;
 
 		pmod = base + mj / taps;
-
 
 		pmod = std::clamp(pmod, min_mod, max_mod);
 	}

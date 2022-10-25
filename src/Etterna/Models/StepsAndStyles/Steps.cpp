@@ -1141,6 +1141,23 @@ class LunaSteps : public Luna<Steps>
 			  lua_rawset(L, -3);
 		  };
 
+		auto ff3 = [&](std::array<std::vector<std::array<float, 4>>, num_hands>&
+						 debugArr) {
+			lua_createtable(L, 0, 2);
+			for (auto hand = 0; hand < num_hands; hand++) {
+				lua_pushstring(L, hand != 0 ? "Right" : "Left");
+				lua_createtable(L, 0, 2);
+				int i = 1;
+				for (auto& x : debugArr.at(hand)) {
+					std::vector<float> stuff{ x[0], x[1], x[2], x[3] };
+					LuaHelpers::CreateTableFromArray(stuff, L);
+					lua_rawseti(L, -2, i++);
+				}
+				lua_rawset(L, -3);
+			}
+			lua_rawset(L, -3);
+		};
+
 		// debugMSD, debugPtLoss, debugTotalPatternMod
 		lua_createtable(L, 0, 4);
 		lua_pushstring(L, "DebugMSD");
@@ -1153,6 +1170,10 @@ class LunaSteps : public Luna<Steps>
 		// debugMovingWindowCV
 		lua_pushstring(L, "DebugMovingWindowCV");
 		ff2(SONGMAN->calc->debugMovingWindowCV);
+
+		// debugTechVals
+		lua_pushstring(L, "DebugTechVals");
+		ff3(SONGMAN->calc->debugTechVals);
 
 		return 1;
 	}

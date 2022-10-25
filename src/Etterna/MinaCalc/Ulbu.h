@@ -371,25 +371,17 @@ struct TheGreatBazoinkazoinkInTheSky
 			switch (ct) {
 				case col_left:
 					_calc.debugMovingWindowCV.at(hand).at(0).emplace_back(
-					  row_time,
-					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
-						max_moving_window_size));
+					  row_time, _seq.get_mw_sc_ms(ct).get_cv_of_window(4));
 					break;
 				case col_right:
 					_calc.debugMovingWindowCV.at(hand).at(1).emplace_back(
-					  row_time,
-					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
-						max_moving_window_size));
+					  row_time, _seq.get_mw_sc_ms(ct).get_cv_of_window(4));
 					break;
 				case col_ohjump: {
 					_calc.debugMovingWindowCV.at(hand).at(0).emplace_back(
-					  row_time,
-					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
-						max_moving_window_size));
+					  row_time, _seq.get_mw_sc_ms(ct).get_cv_of_window(4));
 					_calc.debugMovingWindowCV.at(hand).at(1).emplace_back(
-					  row_time,
-					  _seq.get_mw_sc_ms(ct).get_cv_of_window(
-						max_moving_window_size));
+					  row_time, _seq.get_mw_sc_ms(ct).get_cv_of_window(4));
 					break;
 				}
 				default:
@@ -401,7 +393,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz._cj.advance_base(any_ms, _calc);
 
 		// tech updates with a convoluted mess of garbage
-		_diffz._tc.advance_base(_seq, ct, _calc);
+		_diffz._tc.advance_base(_seq, ct, _calc, hand, row_time);
 		_diffz._tc.advance_rm_comp(_rm.get_highest_anchor_difficulty());
 		_diffz._tc.advance_jack_comp(_seq._as.get_lowest_jack_ms());
 	}
@@ -446,6 +438,8 @@ struct TheGreatBazoinkazoinkInTheSky
 			if (_calc.debugmode) {
 				_calc.debugMovingWindowCV.at(hand).fill(
 				  std::vector<std::pair<float, float>>());
+				_calc.debugTechVals.at(hand).clear();
+				_calc.debugTechVals.at(hand).shrink_to_fit();
 			}
 
 			nps::actual_cancer(_calc, hand);

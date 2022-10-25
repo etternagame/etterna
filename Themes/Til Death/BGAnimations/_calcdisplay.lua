@@ -31,6 +31,8 @@ local grindscaler = 0
 local activeModGroup = 1
 local activeDiffGroup = 1
 local debugstrings
+local techvals = {}
+local techminmaxavg = {}
 
 -- bg actors for mouse hover stuff
 local topgraph = nil
@@ -55,6 +57,30 @@ local function calcCVA()
             cva[i] = sum / #col
             i = i + 1
         end
+    end
+end
+
+local function calcTVA()
+    techminmaxavg = {Left = {{999,0,0},{999,0,0},{999,0,0}}, Right = {{999,0,0},{999,0,0},{999,0,0}}}
+    if #techvals["Left"] == 0 and #techvals["Right"] == 0 then
+        return
+    end
+    for h, hand in pairs(techvals) do
+        local sum = {0,0,0}
+        for _, v in ipairs(hand) do
+            if v[2] < techminmaxavg[h][1][1] then techminmaxavg[h][1][1] = v[2] end
+            if v[2] > techminmaxavg[h][1][2] then techminmaxavg[h][1][2] = v[2] end
+            if v[3] < techminmaxavg[h][2][1] then techminmaxavg[h][2][1] = v[3] end
+            if v[3] > techminmaxavg[h][2][2] then techminmaxavg[h][2][2] = v[3] end
+            if v[4] < techminmaxavg[h][3][1] then techminmaxavg[h][3][1] = v[4] end
+            if v[4] > techminmaxavg[h][3][2] then techminmaxavg[h][3][2] = v[4] end
+            sum[1] = sum[1] + v[2]
+            sum[2] = sum[2] + v[3]
+            sum[3] = sum[3] + v[4]
+        end
+        techminmaxavg[h][1][3] = sum[1] / #hand
+        techminmaxavg[h][2][3] = sum[2] / #hand
+        techminmaxavg[h][3][3] = sum[3] / #hand
     end
 end
 
@@ -492,6 +518,15 @@ local diffGroups = {
         CV = true,
     },
     {   -- Group 16
+        Tech1 = true, -- "pewp" values
+    },
+    {   -- Group 17
+        Tech2 = true, -- "obliosis" values
+    },
+    {   -- Group 18
+        Tech3 = true, -- "c" values
+    },
+    {   -- Group 19
         SSRS = true,
     },
 }
@@ -525,6 +560,7 @@ local function updateCoolStuff()
     end
     jackdiffs = {Left = {}, Right = {}}
     cvvals = {Left = {Left = {}, Right = {}}, Right = {Left = {}, Right = {}}}
+    techvals = {Left = {}, Right = {}}
     if steps then
         -- Only load SSRs if currently displaying them; this is a major slowdown
         if diffGroups[activeDiffGroup]["SSRS"] then
@@ -628,8 +664,16 @@ local function updateCoolStuff()
                     end
                 end
             end
+            for hand, handvals in pairs(pap["DebugTechVals"]) do
+                for i, vv in ipairs(handvals) do
+                    if (vv[2] > 10) then vv[2] = 0 end
+
+                    techvals[hand][i] = {vv[1] + firstSecond/2/getCurRateValue(), vv[2], vv[3], 1 / vv[4]}
+                end
+            end
         end
         calcCVA()
+        calcTVA()
 
         upperGraphMin = 0.3
         upperGraphMax = 1.25
@@ -1012,6 +1056,21 @@ o[#o + 1] = UIElements.QuadButton(1, 1) .. {
                     modText = modText:sub(1, #modText-1) -- remove the end whitespace
                 end
 
+                for t = 1,3 do
+                    local strs = {"Pewp", "Obliosis", "c"}
+                    if diffGroups[activeDiffGroup]["Tech" .. t] then
+                        modText = modText .. "\n"
+                        for h = 1,2 do
+                            local hnd = h == 1 and "Left" or "Right"
+                            local hand = h == 1 and "L" or "R"
+                            if techvals[hnd] ~= nil and #techvals[hnd] > 0 then
+                                local index = convertPercentToIndexForJack(mx - leftEnd, rightEnd - leftEnd, techvals[hnd])
+                                modText = modText .. string.format("%s : %5.4f\n", strs[t]..hand, techvals[hnd][index][t+1])
+                            end
+                        end
+                    end
+                end
+
                 txt:settext(modText)
             elseif diffGroups[activeDiffGroup]["SSRS"] then
                 local ssrindex = convertPercentToIndex(perc)
@@ -1236,6 +1295,16 @@ local cvColors = {
     color("1,0,0"), -- cv right hand right finger
 }
 
+local techColors = {
+    color("1,1,0"),		-- = pewp left hand
+    color("0.7,1,0"),	-- = obliosis left hand
+    color("0,1,1"),		-- = c left hand
+
+    color("1,1,0"),		-- = pewp right hand
+    color("0.7,1,0"),	-- = obliosis right hand
+    color("0,1,1"),		-- = c right hand
+}
+
 -- these are all CalcDiffValue mods only
 -- in the same order
 local calcDiffValueColors = {
@@ -1390,6 +1459,14 @@ o[#o + 1] = LoadFont("Common Normal") .. {
                 self:settextf("Upper Bound: %.2f  |  Loss Sum L: %5.2f  |  Loss Sum R: %5.2f  |  Pt AfterLoss/Req/Max: %5.2f/%5.2f/%5.2f", lowerGraphMaxJack*0.9, jackLossSumLeft, jackLossSumRight, afterloss, reqpoints, maxpoints)
             elseif diffGroups[activeDiffGroup]["CV"] and steps then
                 self:settextf("Upper Bound: %.2f  |  Lower Bound: %.2f  |  Average CVs -  LL = %5.2f | LR = %5.2f | RL = %5.2f | RR = %5.2f", cvmax, cvmin, cva[1], cva[2], cva[3], cva[4])
+            elseif (diffGroups[activeDiffGroup]["Tech1"] or diffGroups[activeDiffGroup]["Tech2"] or diffGroups[activeDiffGroup]["Tech3"]) and steps then
+                self:settextf("Upper Bound: %.2f  |  Lower Bound: %.2f  |  Avg pewpL = %5.2f pewpR = %5.2f  |  Avg oblioL = %5.2f oblioR = %5.2f  | Avg cL = %5.2f cR = %5.2f", 
+                    math.max(techminmaxavg["Left"][1][2], techminmaxavg["Left"][2][2], techminmaxavg["Right"][1][2], techminmaxavg["Right"][2][2]),
+                    math.min(techminmaxavg["Left"][1][1], techminmaxavg["Left"][2][1], techminmaxavg["Left"][3][1], techminmaxavg["Right"][1][1], techminmaxavg["Right"][2][1], techminmaxavg["Right"][3][1]),
+                    techminmaxavg["Left"][1][3], techminmaxavg["Right"][1][3],
+                    techminmaxavg["Left"][2][3], techminmaxavg["Right"][2][3],
+                    techminmaxavg["Left"][3][3], techminmaxavg["Right"][3][3]
+            )
             else
                 self:settextf("Upper Bound: %.4f  |  Grindscaler: %5.2f", lowerGraphMax, grindscaler)
             end
@@ -1734,6 +1811,58 @@ local function bottomGraphLineCoeffVariance(colorToUse, hand, col)
     }
 end
 
+local function bottomGraphLineTechVal(colorToUse, hand, techValIndex)
+    return Def.ActorMultiVertex {
+        InitCommand = function(self)
+            self:y(plotHeight+5)
+        end,
+        DoTheThingCommand = function(self)
+            if song and enabled then
+                self:SetVertices({})
+                self:SetDrawState {Mode = "DrawMode_Quads", First = 1, Num = 0}
+                
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Tech" .. techValIndex]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+
+                local hand = hand == 1 and "Left" or "Right"
+                local verts = {}
+                local values = techvals[hand]
+                if not values or not values[1] then return end
+
+                for i = 1, #values do
+                    --local x = fitX(i, #values) -- vector length based positioning
+                    -- if used, final/firstsecond must be halved
+                    -- they need to be halved because the numbers we use here are not half second interval based, but row time instead
+                    local x = fitX(values[i][1], finalSecond / 2 / getCurRateValue()) -- song length based positioning
+                    local y = fitY2(values[i][1+techValIndex], techminmaxavg[hand][techValIndex][1], techminmaxavg[hand][techValIndex][2] * 1.20)
+
+                    setOffsetVerts(verts, x, y, colorToUse)
+                end
+                
+                if #verts <= 1 then
+                    verts = {}
+                end
+                self:SetVertices(verts)
+                self:SetDrawState {Mode = "DrawMode_LineStrip", First = 1, Num = #verts}
+            else
+                self:visible(false)
+            end
+        end,
+        UpdateActiveLowerGraphMessageCommand = function(self)
+            if song and enabled then
+                if activeDiffGroup == -1 or (diffGroups[activeDiffGroup] and diffGroups[activeDiffGroup]["Tech" .. techValIndex]) then
+                    self:visible(true)
+                else
+                    self:visible(false)
+                end
+            end
+        end
+    }
+end
+
 local function bottomGraphLineSSR(lineNum, colorToUse)
     return Def.ActorMultiVertex {
         InitCommand = function(self)
@@ -1870,6 +1999,18 @@ do
             local colr = cvColors[i]
             i = i + 1
             o[#o+1] = bottomGraphLineCoeffVariance(colr, h, c)
+        end
+    end
+end
+
+-- tech vals
+do
+    local i = 1
+    for h = 1,2 do
+        for techvalindex = 1,3 do
+            local colr = techColors[i]
+            i = i + 1
+            o[#o+1] = bottomGraphLineTechVal(colr, h, techvalindex)
         end
     end
 end

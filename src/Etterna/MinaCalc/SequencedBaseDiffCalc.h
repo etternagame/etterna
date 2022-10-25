@@ -429,7 +429,7 @@ struct techyo
 
 	void advance_base(const SequencerGeneral& seq,
 					  const col_type& ct,
-					  Calc& calc)
+					  Calc& calc, const int& hand, const float& row_time)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
@@ -439,7 +439,7 @@ struct techyo
 		//advance_trill_base(calc);
 		//increment_column_counters(ct);
 		//auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
-		auto chaos_comp = calc_chaos_comp(seq, ct, calc);
+		auto chaos_comp = calc_chaos_comp(seq, ct, calc, hand, row_time);
 		//insert(balance_ratios, balance_comp);
 		teehee(chaos_comp);
 		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(tc_static_base_window);
@@ -643,7 +643,7 @@ struct techyo
 	/// considers a window of N+1 rows (N ms times)
 	float calc_chaos_comp(const SequencerGeneral& seq,
 						  const col_type& ct,
-						  Calc& calc)
+						  Calc& calc, const int& hand, const float& row_time)
 	{
 		const auto a = seq.get_sc_ms_now(ct);
 		float b;
@@ -654,7 +654,10 @@ struct techyo
 		}
 
 		// geometric mean of ms times since (last note in this column) and (last note in the other column)
-		const auto c = fastsqrt(a) * fastsqrt(b);
+		//const auto c = fastsqrt(a) * fastsqrt(b);
+
+		// arithmetic mean instead
+		const auto c = (a + b) / 2;
 
 		// coeff var. of last N ms times on either column
 		auto pineapple = seq._mw_any_ms.get_cv_of_window(chaos_comp_window);
@@ -701,6 +704,15 @@ struct techyo
 
 		// [0,inf] divided by [1,10]
 		pewp /= obliosis;
+
+		if (calc.debugmode) {
+			std::array<float, 4> a;
+			a[0] = row_time;
+			a[1] = pewp;
+			a[2] = obliosis;
+			a[3] = c;
+			calc.debugTechVals.at(hand).emplace_back(a);
+		}
 
 		// average of (cv left, cv right, cv both) + [0,inf]
 		// note cv clamped to [0.5,1.5]
