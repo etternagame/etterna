@@ -64,6 +64,10 @@ struct MinijackMod
 		minijacks = 0;
 		left_ms.fill(ms_init);
 		right_ms.fill(ms_init);
+		left_notes.fill(0);
+		right_notes.fill(0);
+		left_since_last_right = 0;
+		right_since_last_left = 0;
 	}
 
 	void reset_mw_for_ct(const col_type& ct) {
@@ -84,11 +88,6 @@ struct MinijackMod
 			default:
 				break;
 		}
-	}
-
-	void setup()
-	{
-		
 	}
 
 #pragma endregion

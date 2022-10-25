@@ -260,7 +260,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjj.setup();
 		_wrb.setup();
 		_wra.setup();
-		_mj.setup();
 	}
 
 	void set_dependent_pmods(const int& itv)
