@@ -232,6 +232,7 @@ static const char* CalcPatternModNames[] = {
 	// "CJOHJSeqComp",
 	"Balance",
 	"Roll",
+	"RollJS",
 	"OHTrill",
 	"VOHTrill",
 	"Chaos",

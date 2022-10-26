@@ -8,6 +8,7 @@ list(APPEND HD_PATTERN_MODS
     "VOHT.h"
     "Minijack.h"
     "Roll.h"
+    "RollJS.h"
     "RunningMan.h"
     "WideRangeAnchor.h"
     "WideRangeBalance.h"

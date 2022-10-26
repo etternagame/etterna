@@ -51,6 +51,7 @@ enum CalcPatternMod
 	// CJOHJSeqComp,
 	Balance, // pattern mod (values between 0.9 - ~ 1.1)
 	Roll,	 // pattern mod (values between 0-1)
+	RollJS,
 	OHTrill,
 	VOHTrill,
 	Chaos,

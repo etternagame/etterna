@@ -29,6 +29,7 @@
 #include "Dependent/HD_PatternMods/CJOHJ.h"
 #include "Dependent/HD_PatternMods/Balance.h"
 #include "Dependent/HD_PatternMods/Roll.h"
+#include "Dependent/HD_PatternMods/RollJS.h"
 #include "Dependent/HD_PatternMods/OHT.h"
 #include "Dependent/HD_PatternMods/VOHT.h"
 #include "Dependent/HD_PatternMods/Chaos.h"
@@ -93,6 +94,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	OHJumpModGuyThing _ohj;
 	CJOHJumpMod _cjohj;
 	RollMod _roll;
+	RollJSMod _rolljs;
 	BalanceMod _bal;
 	OHTrillMod _oht;
 	VOHTrillMod _voht;
@@ -246,6 +248,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wrjj.advance_sequencing(_mhi->_ct, row_time);
 		_ch.advance_sequencing(_seq._mw_any_ms);
 		_roll.advance_sequencing(_mhi->_ct, row_time);
+		_rolljs.advance_sequencing(_mhi->_ct, row_time);
 		_mj.advance_sequencing(_mhi->_ct, _seq.get_sc_ms_now(_mhi->_ct));
 	}
 
@@ -254,6 +257,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_oht.setup();
 		_voht.setup();
 		_roll.setup();
+		_rolljs.setup();
 		_rm.setup();
 		_wrr.setup();
 		_wrjt.setup();
@@ -277,6 +281,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		  hand, _bal._pmod, _bal(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _roll._pmod, _roll(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _rolljs._pmod, _rolljs(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _ch._pmod, _ch(_mitvhi._itvhi.get_taps_nowi()), itv, _calc);
 		PatternMods::set_dependent(
@@ -305,6 +311,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_cjohj.full_reset();
 		_bal.full_reset();
 		_roll.full_reset();
+		_rolljs.full_reset();
 		_oht.full_reset();
 		_voht.full_reset();
 		_ch.full_reset();
@@ -629,6 +636,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _ch._params, _ch.name);
 		load_params_for_mod(&params, _rm._params, _rm.name);
 		load_params_for_mod(&params, _roll._params, _roll.name);
+		load_params_for_mod(&params, _rolljs._params, _rolljs.name);
 		load_params_for_mod(&params, _wrb._params, _wrb.name);
 		load_params_for_mod(&params, _wrr._params, _wrr.name);
 		load_params_for_mod(&params, _wrjt._params, _wrjt.name);
@@ -669,6 +677,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		calcparams->AppendChild(make_mod_param_node(_ch._params, _ch.name));
 		calcparams->AppendChild(make_mod_param_node(_rm._params, _rm.name));
 		calcparams->AppendChild(make_mod_param_node(_roll._params, _roll.name));
+		calcparams->AppendChild(make_mod_param_node(_rolljs._params, _rolljs.name));
 		calcparams->AppendChild(make_mod_param_node(_wrb._params, _wrb.name));
 		calcparams->AppendChild(make_mod_param_node(_wrr._params, _wrr.name));
 		calcparams->AppendChild(make_mod_param_node(_wrjt._params, _wrjt.name));

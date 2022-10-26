@@ -389,12 +389,14 @@ local debugGroups = {
         JS = true,
         StamMod = true,
         OHJumpMod = true,
+        RollJS = true,
     },
 	{   -- Group 3
         HS = true,
         StamMod = true,
         OHJumpMod = true,
         HSDensity = true,
+        RollJS = true,
 	},
     {   -- Group 4
         CJ = true,
@@ -426,8 +428,8 @@ local debugGroups = {
         CJOHAnchor = true,
     },
     {   -- Group 10
-        Chaos = true,
         Roll = true,
+        RollJS = true,
     },
     {   -- Group 11
         TotalPatternModStream = true,
@@ -1162,6 +1164,7 @@ local modnames = {
     --"cjohjsc",
     "balnc",
     "roll",
+    "rolljs",
     "oht",
     "voht",
     "chaos",
@@ -1231,6 +1234,7 @@ local modColors = {
 	--color("1,1,1"),			-- cjohjsc
     color("0.2,0.2,1"),     -- blue         = balance
     color("0,1,0"),         -- green        = roll
+    color("0,1,0"),         -- green        = rolljs
     color(".8,1.3,1"),      -- whiteblue	= oht
     color("1,0,1"),         -- purple       = voht
     color(".4,0.9,0.3"),    -- green		= chaos
