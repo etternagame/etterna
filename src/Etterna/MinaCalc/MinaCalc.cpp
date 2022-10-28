@@ -212,10 +212,13 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			highest_final_ssv = output[i];
 		}
 	}
-	if (highest_final_ss == Skill_JackSpeed || highest_final_ss == Skill_Chordjack)
-		grindscaler = fastsqrt(grindscaler);
-	for (auto& ssv : output)
-		ssv *= grindscaler;
+	if (ssr) {
+		if (highest_final_ss == Skill_JackSpeed ||
+			highest_final_ss == Skill_Chordjack)
+			grindscaler = fastsqrt(grindscaler);
+		for (auto& ssv : output)
+			ssv *= grindscaler;
+	}
 	return output;
 }
 
