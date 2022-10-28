@@ -1224,17 +1224,7 @@ MusicWheel::UpdateSwitch()
 					break;
 			}
 
-			// Change difficulty for sorts by meter
-			// XXX: do this with GameCommand?
-			StepsType st;
-			Difficulty dc = Difficulty_Invalid;
-			if (SongUtil::GetStepsTypeAndDifficultyFromSortOrder(
-				  GAMESTATE->m_SortOrder, st, dc)) {
-				ASSERT(dc != Difficulty_Invalid);
-				if (GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
-					GAMESTATE->m_PreferredDifficulty.Set(dc);
-				}
-			}
+			// should reset preferred difficulty here if possible
 
 			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
 			RebuildWheelItems();
