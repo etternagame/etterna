@@ -1126,7 +1126,7 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 		m_nearestCompatibleWheelItemData = ptrSelectedWheelItemData;
 
 		auto now = std::chrono::steady_clock::now();
-		Locator::getLogger()->debug(
+		Locator::getLogger()->info(
 		  "MusicWheel sorting took: {}ms",
 		  std::chrono::duration<float, std::milli>(now - before).count());
 	}
