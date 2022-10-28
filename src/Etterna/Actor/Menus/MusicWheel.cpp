@@ -187,6 +187,12 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 		return;
 	}
 
+	auto matchesBefore = m__WheelItemDatas[GAMESTATE->m_SortOrder].size();
+	Song* firstItemBefore = nullptr;
+	if (matchesBefore > 1) {
+		firstItemBefore = m__WheelItemDatas[GAMESTATE->m_SortOrder].at(1)->m_pSong;
+	}
+
 	// when cancelling a search stay in the pack of your match... this should be
 	// more intuitive and relevant behavior -mina
 	if (findme.empty() && !lastvalidsearch.empty()) {
@@ -216,29 +222,43 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 	// refresh the song preview
 	SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
 
+	auto matchesAfter = m__WheelItemDatas[GAMESTATE->m_SortOrder].size();
+
 	// when searching, automatically land on the first search result available
 	// -mina & dadbearcop
 	if (!findme.empty() || !hashList.empty()) {
 		if (!groupnamesearchmatch.empty()) {
+			// matched on group name
 			SelectSection(groupnamesearchmatch);
 			SetOpenSection(groupnamesearchmatch);
 			ChangeMusic(1);
 			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35F);
 			return;
 		}
-		Song* pSong = GAMESTATE->m_pCurSong;
-		if (pSong != nullptr) {
-			const auto& curSongTitle = pSong->GetDisplayMainTitle();
-			if (!GetSelectedSection().empty() &&
-				curSongTitle != prevSongTitle) {
-				prevSongTitle = curSongTitle;
-				SelectSongAfterSearch();
+
+		if (matchesAfter == matchesBefore) {
+			// results didnt change, probably double enter
+			// or multiple searches with no results
+			// dont move selection
+			if (matchesAfter > 1 && firstItemBefore != nullptr) {
+				auto* song =
+				  m__WheelItemDatas[GAMESTATE->m_SortOrder].at(1)->m_pSong;
+				if (song == firstItemBefore) {
+					// same song, dont move selection
+				} else {
+					SelectSongAfterSearch();
+				}
 			}
 		} else {
 			SelectSongAfterSearch();
 		}
 	} else {
-		SetOpenSection("");
+
+		if (matchesBefore == matchesAfter) {
+			// no results, stay on selection
+		} else {
+			SetOpenSection("");
+		}
 	}
 }
 
@@ -970,11 +990,13 @@ MusicWheel::BuildWheelItemDatas(
 							: SECTION_COLORS.GetValue(iSectionColorIndex);
 						iSectionColorIndex =
 						  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
-						arrayWheelItemDatas.push_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Section,
-												 nullptr,
-												 sThisSection,
-												 colorSection,
-												 iSectionCount));
+						arrayWheelItemDatas.emplace_back(
+						  std::make_unique<MusicWheelItemData>(
+							WheelItemDataType_Section,
+							nullptr,
+							sThisSection,
+							colorSection,
+							iSectionCount));
 						sLastSection = sThisSection;
 					}
 				}
@@ -1078,27 +1100,51 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 								const std::string& findme)
 {
 	if (m_WheelItemDatasStatus[so] != VALID) {
+		auto before = std::chrono::steady_clock::now();
+
 		auto& aUnFilteredDatas = m__UnFilteredWheelItemDatas[so];
+
+		// this is about to be invalidated, so save the information
+		Song* cursong = nullptr;
+		std::string curtxt{};
+		WheelItemDataType curtype = WheelItemDataType_Invalid;
+		if (!m_CurWheelItemData.empty()) {
+			auto cur = GetCurWheelItemData(m_iSelection);
+			cursong = cur->m_pSong;
+			curtxt = cur->m_sText;
+			curtype = cur->m_Type;
+		}
 
 		if (m_WheelItemDatasStatus[so] == INVALID) {
 			BuildWheelItemDatas(aUnFilteredDatas, so, searching, findme);
 		}
-		FilterWheelItemDatas(aUnFilteredDatas, m__WheelItemDatas[so], so);
+		auto ptrSelectedWheelItemData = FilterWheelItemDatas(
+		  aUnFilteredDatas, m__WheelItemDatas[so], cursong, curtxt, curtype);
 		m_WheelItemDatasStatus[so] = VALID;
 
-		Locator::getLogger()->debug("MusicWheel sorting took: {}",
-									RageTimer::GetTimeSinceStart());
+		m_CurWheelItemData.clear();
+		m_nearestCompatibleWheelItemData = ptrSelectedWheelItemData;
+
+		auto now = std::chrono::steady_clock::now();
+		Locator::getLogger()->debug(
+		  "MusicWheel sorting took: {}ms",
+		  std::chrono::duration<float, std::milli>(now - before).count());
 	}
 }
 
-void
-MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
-								 std::vector<MusicWheelItemData*>& aFilteredData,
-								 SortOrder /*so*/) const
+MusicWheelItemData*
+MusicWheel::FilterWheelItemDatas(
+  std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
+  std::vector<MusicWheelItemData*>& aFilteredData,
+  const Song* currentSong,
+  const std::string& currentText,
+  const WheelItemDataType& currentType) const
 {
 	aFilteredData.clear();
 
 	const unsigned unfilteredSize = aUnFilteredDatas.size();
+
+	MusicWheelItemData* nearestCompatibleWheelItemData = nullptr;
 
 	/* Only add WheelItemDataType_Portal if there's at least one song on the
 	 * list. */
@@ -1156,6 +1202,33 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 		aFilteredData.emplace_back(aUnFilteredDatas[i].get());
 	}
 
+	std::function<void(MusicWheelItemData&)> catchSections;
+	if (currentType != WheelItemDataType_Invalid &&
+		currentType != WheelItemDataType_Song) {
+		catchSections = [&nearestCompatibleWheelItemData,
+						 &currentType,
+						 &currentText](MusicWheelItemData& WID) {
+			if (WID.m_Type == currentType && WID.m_sText == currentText) {
+				nearestCompatibleWheelItemData == &WID;
+			}
+		};
+	} else {
+		catchSections = [](MusicWheelItemData& WID) {};
+	}
+
+	std::function<void(MusicWheelItemData&)> catchSongs;
+	if (currentType == WheelItemDataType_Song && currentSong != nullptr) {
+		catchSongs = [&nearestCompatibleWheelItemData,
+					  &currentSong](MusicWheelItemData& WID) {
+			if (WID.m_pSong == currentSong) {
+				nearestCompatibleWheelItemData = &WID;
+			}
+			++WID.m_iSectionCount;
+		};
+	} else {
+		catchSongs = [](MusicWheelItemData& WID) { ++WID.m_iSectionCount; };
+	}
+
 	// Update the song count in each section header.
 	unsigned filteredSize = aFilteredData.size();
 	for (unsigned i = 0; i < filteredSize;) {
@@ -1169,7 +1242,7 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 		WID.m_iSectionCount = 0;
 		for (; i < filteredSize && aFilteredData[i]->m_sText == WID.m_sText;
 			 ++i) {
-			++WID.m_iSectionCount;
+			catchSongs(WID);
 		}
 	}
 
@@ -1178,6 +1251,7 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 	// since this is a rare case.
 	for (unsigned i = 0; i < filteredSize; ++i) {
 		auto& WID = *aFilteredData[i];
+		catchSections(WID);
 		if (WID.m_Type != WheelItemDataType_Section) {
 			continue;
 		}
@@ -1196,6 +1270,8 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 		  WheelItemDataType_Section, nullptr, EMPTY_STRING, EMPTY_COLOR, 0);
 		aFilteredData.emplace_back(&EmptyDummy);
 	}
+
+	return nearestCompatibleWheelItemData;
 }
 
 void
@@ -1447,17 +1523,12 @@ MusicWheel::SetOpenSection(const std::string& group)
 	if (REMIND_WHEEL_POSITIONS && HIDE_INACTIVE_SECTIONS) {
 		m_viWheelPositions.resize(SONGMAN->GetNumSongGroups());
 	}
-
+	
 	const WheelItemBaseData* old = nullptr;
 	if (!m_CurWheelItemData.empty()) {
 		old = GetCurWheelItemData(m_iSelection);
-	}
-
-	std::vector<const Style*> vpPossibleStyles;
-	if (CommonMetrics::AUTO_SET_STYLE) {
-		GAMEMAN->GetCompatibleStyles(GAMESTATE->m_pCurGame,
-									 GAMESTATE->GetNumPlayersEnabled(),
-									 vpPossibleStyles);
+	} else {
+		old = m_nearestCompatibleWheelItemData;
 	}
 
 	m_CurWheelItemData.clear();
@@ -1498,7 +1569,7 @@ MusicWheel::SetOpenSection(const std::string& group)
 	} else {
 		// Try to select the item that was selected before changing groups
 		m_iSelection = 0;
-
+		
 		for (auto i = 0; i < static_cast<int>(m_CurWheelItemData.size()); ++i) {
 			if (m_CurWheelItemData[i] == old) {
 				m_iSelection = i;

@@ -139,14 +139,24 @@ class MusicWheel : public WheelBase
 	std::vector<MusicWheelItemData*> m__WheelItemDatas[NUM_SortOrder];
 	std::vector<std::unique_ptr<MusicWheelItemData>> m__UnFilteredWheelItemDatas[NUM_SortOrder];
 
-	void BuildWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>>& arrayWheelItemDatas,
-							 SortOrder so,
-							 bool searching,
-							 const std::string& findme);
-	void FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
-							  std::vector<MusicWheelItemData*>& aFilteredData,
-							  SortOrder so) const;
-	std::string prevSongTitle;
+	// this should be freed automatically because it is owned by m__UnFilteredWheelItemDatas
+	MusicWheelItemData* m_nearestCompatibleWheelItemData = nullptr;
+
+	void BuildWheelItemDatas(
+	  std::vector<std::unique_ptr<MusicWheelItemData>>& arrayWheelItemDatas,
+	  SortOrder so,
+	  bool searching,
+	  const std::string& findme);
+
+	// filter the wheel item data
+	// returns the new pointer to the previously selected wheel item data
+	// if the previously selected one doesnt exist, dont care
+	MusicWheelItemData* FilterWheelItemDatas(
+	  std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
+	  std::vector<MusicWheelItemData*>& aFilteredData,
+	  const Song* currentSong,
+	  const std::string& currentText,
+	  const WheelItemDataType& currentType) const;
 };
 
 #endif
