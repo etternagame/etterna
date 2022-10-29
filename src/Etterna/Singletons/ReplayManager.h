@@ -48,7 +48,7 @@ class ReplayManager
 	/// The use of this is for scores which are about to viewed
 	/// via eval or ingame replay.
 	/// It runs all processing on the replay.
-	Replay* InitReplayPlaybackForScore(HighScore* hs);
+	Replay* InitReplayPlaybackForScore(HighScore* hs, float timingScale = 1.F);
 
 	void UnsetActiveReplay();
 

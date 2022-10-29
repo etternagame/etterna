@@ -288,7 +288,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			lua_pushboolean(L, false);
 			return 1;
 		}
-		REPLAYS->InitReplayPlaybackForScore(hs);
+		REPLAYS->InitReplayPlaybackForScore(hs, ts);
 		REPLAYS->SetPlayerStageStatsForReplay(
 		  *REPLAYS->GetActiveReplay(), pPSS, ts);
 		lua_pushboolean(L, true);

@@ -1418,6 +1418,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 		// force regenerate...
 		JudgeInfo tmp;
 		SetJudgeInfo(tmp);
+		m_ReplaySnapshotMap.clear();
 	}
 
 	if (!GeneratePrimitiveVectors()) {
