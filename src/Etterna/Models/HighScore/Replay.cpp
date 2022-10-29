@@ -6,12 +6,12 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/Misc/PlayerOptions.h"
-#include "Etterna/Models/Misc/PlayerState.h"
 
 // Singletons
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Singletons/DownloadManager.h"
+#include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/ReplayManager.h"
 #include "Etterna/Singletons/ScoreManager.h"
@@ -115,6 +115,17 @@ auto
 Replay::GetSteps() -> Steps*
 {
 	return SONGMAN->GetStepsByChartkey(chartKey);
+}
+
+auto
+Replay::GetStyle() -> const Style*
+{
+	auto* steps = GetSteps();
+	if (steps == nullptr) {
+		return nullptr;
+	}
+	auto st = steps->m_StepsType;
+	return GAMEMAN->GetStyleForStepsType(st);
 }
 
 auto
@@ -1623,33 +1634,24 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	}
 
 	// transform the notedata by style if necessary
-	// TODO: this sucks dont rely on GAMESTATE
-	// TODO: please dont, please stop
-	auto* pstate = GAMESTATE->m_pPlayerState;
-	if (pstate != nullptr) {
-		auto* style = GAMESTATE->GetCurrentStyle(pstate->m_PlayerNumber);
-		if (style != nullptr) {
-			NoteData ndo;
-			style->GetTransformedNoteDataForStyle(PLAYER_1, noteData, ndo);
-			noteData = ndo;
-		}
+	auto* style = GetStyle();
+	if (style != nullptr) {
+		NoteData ndo;
+		style->GetTransformedNoteDataForStyle(PLAYER_1, noteData, ndo);
+		noteData = ndo;
 	}
 
 	// Have to account for mirror being in the highscore options
 	// please dont change styles in the middle of calculation and break this
 	// thanks
-	if (pScoreData != nullptr &&
+	if (pScoreData != nullptr && style != nullptr &&
 		(pScoreData->GetModifiers().find("mirror") != std::string::npos ||
 		 pScoreData->GetModifiers().find("Mirror") != std::string::npos)) {
 		PlayerOptions po;
 		po.Init();
 		po.m_bTurns[PlayerOptions::TURN_MIRROR] = true;
 		NoteDataUtil::TransformNoteData(
-		  noteData,
-		  *pReplayTiming,
-		  po,
-		  GAMESTATE->GetCurrentStyle(GAMESTATE->m_pPlayerState->m_PlayerNumber)
-			->m_StepsType);
+		  noteData, *pReplayTiming, po, style->m_StepsType);
 	}
 
 	// Now handle misses and holds.

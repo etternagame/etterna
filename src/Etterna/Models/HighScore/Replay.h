@@ -216,6 +216,7 @@ class Replay
 	auto GetNoteData(Steps* pSteps = nullptr, bool bTransform = true)
 	  -> NoteData;
 	auto GetTimingData() -> TimingData*;
+	auto GetStyle() -> const Style*;
 
 	auto GetReplaySnapshotForNoterow(int row)
 	  -> std::shared_ptr<ReplaySnapshot>;
