@@ -1209,7 +1209,7 @@ MusicWheel::FilterWheelItemDatas(
 						 &currentType,
 						 &currentText](MusicWheelItemData& WID) {
 			if (WID.m_Type == currentType && WID.m_sText == currentText) {
-				nearestCompatibleWheelItemData == &WID;
+				nearestCompatibleWheelItemData = &WID;
 			}
 		};
 	} else {
