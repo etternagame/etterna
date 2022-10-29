@@ -197,8 +197,6 @@ class Replay
 	// For Stats and ReplaySnapshots
 	auto GenerateJudgeInfoAndReplaySnapshots(int startingRow = 0,
 											 float timingScale = 1.F) -> bool;
-	auto GetWifeScoreForRow(int row, float timeScale = 1.F)
-	  -> std::pair<float, float>;
 
 	// Instead of making some complex iterator...
 	// Just offer both solutions

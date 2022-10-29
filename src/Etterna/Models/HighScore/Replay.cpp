@@ -1593,7 +1593,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 				if (trr.type == TapNoteType_Mine) {
 					tempJudgments[TNS_HitMine]++;
 				} else {
-					auto tns = ReplayManager::GetTapNoteScoreForReplay(
+					auto tns = REPLAYS->CustomOffsetJudgingFunction(
 					  trr.offset, timingScale);
 					tempJudgments[tns]++;
 				}
@@ -1618,7 +1618,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 					if (trr.type == TapNoteType_Mine) {
 						tempJudgments[TNS_HitMine]++;
 					} else {
-						auto tns = ReplayManager::GetTapNoteScoreForReplay(
+						auto tns = REPLAYS->CustomOffsetJudgingFunction(
 						  trr.offset, timingScale);
 						tempJudgments[tns]++;
 					}
@@ -1840,11 +1840,20 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 			// if we somehow skipped a snapshot, the only difference should be
 			// in misses and non taps
 			auto rs = &m_ReplaySnapshotMap[snapShotsUnused.front()];
-			rs->curwifescore = cws +
-							   (rs->judgments[TNS_Miss] * wife3_miss_weight) +
-							   ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) *
-								wife3_hold_drop_weight);
-			rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
+			rs->curwifescore =
+			  cws +
+			  (rs->judgments[TNS_Miss] *
+			   REPLAYS->CustomTapScoringFunction(1.F, TNS_Miss, timingScale)) +
+			  (rs->hns[HNS_Missed] *
+			   REPLAYS->CustomHoldNoteScoreScoringFunction(HNS_Missed)) +
+			  (rs->hns[HNS_LetGo] *
+			   REPLAYS->CustomHoldNoteScoreScoringFunction(HNS_LetGo)) +
+			  (rs->hns[HNS_Held] *
+			   REPLAYS->CustomHoldNoteScoreScoringFunction(HNS_Held));
+			rs->maxwifescore =
+			  mws +
+			  (rs->judgments[TNS_Miss] *
+			   REPLAYS->CustomTotalWifePointsCalculation(TapNoteType_Tap));
 			rs->mean = runningmean;
 			rs->standardDeviation =
 			  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
@@ -1859,15 +1868,17 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 		  taps > 1 ? std::sqrt(runningvariance / (taps - 1.0)) : 0.0;
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
-				cws += wife3_mine_hit_weight;
+				cws += REPLAYS->CustomMineScoringFunction();
 			} else {
-				auto tapscore = wife3(trr.offset, timingScale);
+				auto tns =
+				  REPLAYS->CustomOffsetJudgingFunction(trr.offset, timingScale);
+				auto tapscore = REPLAYS->CustomTapScoringFunction(
+				  trr.offset, tns, timingScale);
 				cws += tapscore;
-				mws += 2.f;
+				mws +=
+				  REPLAYS->CustomTotalWifePointsCalculation(trr.type);
 
 				// do mean/sd for all non miss taps
-				auto tns = ReplayManager::GetTapNoteScoreForReplay(trr.offset,
-																   timingScale);
 				if (tns != TNS_Miss && tns != TNS_None) {
 					taps++;
 
@@ -1885,9 +1896,18 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 			}
 		}
 		rs->curwifescore =
-		  cws + (rs->judgments[TNS_Miss] * wife3_miss_weight) +
-		  ((rs->hns[HNS_Missed] + rs->hns[HNS_LetGo]) * wife3_hold_drop_weight);
-		rs->maxwifescore = mws + (rs->judgments[TNS_Miss] * 2.f);
+		  cws +
+		  (rs->judgments[TNS_Miss] *
+		   REPLAYS->CustomTapScoringFunction(1.F, TNS_Miss, timingScale)) +
+		  (rs->hns[HNS_Missed] *
+		   REPLAYS->CustomHoldNoteScoreScoringFunction(HNS_Missed)) +
+		  (rs->hns[HNS_LetGo] *
+		   REPLAYS->CustomHoldNoteScoreScoringFunction(HNS_LetGo)) +
+		  (rs->hns[HNS_Held] *
+		   REPLAYS->CustomHoldNoteScoreScoringFunction(HNS_Held));
+		rs->maxwifescore =
+		  mws + (rs->judgments[TNS_Miss] *
+				 REPLAYS->CustomTotalWifePointsCalculation(TapNoteType_Tap));
 
 		snapShotsUnused.erase(snapShotsUnused.begin());
 		++it;
@@ -1997,38 +2017,6 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	}
 
 	return true;
-}
-
-std::pair<float, float>
-Replay::GetWifeScoreForRow(int row, float ts)
-{
-	// curwifescore, maxwifescore
-	std::pair<float, float> out = { 0.f, 0.f };
-
-	auto& ji = GetJudgeInfo();
-	auto& m_ReplayTapMap = ji.trrMap;
-
-	// Handle basic offset calculating and mines
-	for (auto it = m_ReplayTapMap.begin();
-		 it != m_ReplayTapMap.end() && it->first <= row;
-		 ++it) {
-		for (auto& trr : it->second) {
-			if (trr.type == TapNoteType_Mine) {
-				out.first += wife3_mine_hit_weight;
-			} else {
-				out.first += wife3(trr.offset, ts);
-				out.second += 2.f;
-			}
-		}
-	}
-
-	// Take into account dropped holds and full misses
-	auto rs = GetReplaySnapshotForNoterow(row);
-	out.first += rs->judgments[TNS_Miss] * wife3_miss_weight;
-	out.first += rs->hns[HNS_LetGo] * wife3_hold_drop_weight;
-	out.second += rs->judgments[TNS_Miss] * 2.f;
-
-	return out;
 }
 
 // Lua
@@ -2198,7 +2186,20 @@ class LunaReplay : public Luna<Replay>
 
 	static auto GetInputData(T* p, lua_State* L) -> int
 	{
-		LuaHelpers::CreateTableFromArray(p->GetInputDataVector(), L);
+		if (!p->LoadReplayData() && p->GetReplayType() != ReplayType_Input) {
+			lua_pushnil(L);
+			return 1;
+		}
+
+		auto idv = p->GetCopyOfInputDataVector();
+
+		lua_createtable(L, 0, idv.size());
+		int i = 0;
+		for (auto& id : idv) {
+			id.PushSelf(L);
+			lua_rawseti(L, -2, ++i);
+		}
+
 		return 1;
 	}
 
