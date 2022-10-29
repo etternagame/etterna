@@ -516,10 +516,20 @@ class LunaReplayManager : public Luna<ReplayManager>
 		p->GetReplay(hs)->PushSelf(L);
 		return 1;
 	}
+	static int GetActiveReplay(T* p, lua_State* L) {
+		auto* r = p->GetActiveReplay();
+		if (r == nullptr) {
+			lua_pushnil(L);
+		} else {
+			r->PushSelf(L);
+		}
+		return 1;
+	}
 
 	LunaReplayManager()
 	{
 		ADD_METHOD(GetReplay);
+		ADD_METHOD(GetActiveReplay);
 	}
 };
 LUA_REGISTER_CLASS(ReplayManager)

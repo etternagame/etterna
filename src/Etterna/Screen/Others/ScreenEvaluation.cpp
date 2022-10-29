@@ -294,40 +294,6 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		lua_pushboolean(L, true);
 		return 1;
 	}
-	static int GetReplaySnapshotJudgmentsForNoterow(T* p, lua_State* L)
-	{
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-		std::vector<int> toPush;
-
-		FOREACH_ENUM(TapNoteScore, tns)
-		toPush.emplace_back(rs->judgments[tns]);
-
-		LuaHelpers::CreateTableFromArray(toPush, L);
-		return 1;
-	}
-	static int GetReplaySnapshotWifePercentForNoterow(T* p, lua_State* L)
-	{
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-
-		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
-		return 1;
-	}
-	static int GetReplaySnapshotSDForNoterow(T* p, lua_State* L) {
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-
-		lua_pushnumber(L, rs->standardDeviation);
-		return 1;
-	}
-	static int GetReplaySnapshotMeanForNoterow(T* p, lua_State* L) {
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-
-		lua_pushnumber(L, rs->mean);
-		return 1;
-	}
 	static int GetReplayRate(T* p, lua_State* L)
 	{
 		Locator::getLogger()->info("Getting replay rate");
@@ -386,10 +352,6 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	{
 		ADD_METHOD(GetStageStats);
 		ADD_METHOD(SetPlayerStageStatsFromReplayData);
-		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
-		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
-		ADD_METHOD(GetReplaySnapshotSDForNoterow);
-		ADD_METHOD(GetReplaySnapshotMeanForNoterow);
 		ADD_METHOD(GetReplayRate);
 		ADD_METHOD(GetReplayJudge);
 		ADD_METHOD(ScoreUsedInvalidModifier);

@@ -9,6 +9,7 @@
 struct HighScore;
 class TimingData;
 class Steps;
+class Style;
 
 class Replay
 {

@@ -261,17 +261,20 @@ o[#o + 1] =
 			bg:x(xpos)
 			bg:zoomto(txt:GetZoomedWidth() + 4, txt:GetZoomedHeight() + 4)
 			local row = convertXToRow(xpos)
-			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
-			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
-			local mean = SCREENMAN:GetTopScreen():GetReplaySnapshotMeanForNoterow(row)
-			local sd = SCREENMAN:GetTopScreen():GetReplaySnapshotSDForNoterow(row)
+			local replay = REPLAYS:GetActiveReplay()
+			local snapshot = replay:GetReplaySnapshotForNoterow(row)
+			local judgments = snapshot:GetJudgments()
+			local wifescore = snapshot:GetWifePercent() * 100
+			local mean = snapshot:GetMean()
+			local sd = snapshot:GetStandardDeviation()
 			local timebro = td:GetElapsedTimeFromNoteRow(row) / getCurRateValue()
-			local marvCount = judgments[10]
-			local perfCount = judgments[9]
-			local greatCount = judgments[8]
-			local goodCount = judgments[7]
-			local badCount = judgments[6]
-			local missCount = judgments[5]
+
+			local marvCount = judgments["W1"]
+			local perfCount = judgments["W2"]
+			local greatCount = judgments["W3"]
+			local goodCount = judgments["W4"]
+			local badCount = judgments["W5"]
+			local missCount = judgments["Miss"]
 
 			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
 			-- The odd formatting here is in case we want to add translation support.

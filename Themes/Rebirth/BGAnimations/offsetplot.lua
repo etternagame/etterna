@@ -206,7 +206,7 @@ local t = Def.ActorFrame {
             if isOver(bg) then
                 local top = SCREENMAN:GetTopScreen()
                 -- dont break if it will break (we can only do this from the eval screen)
-                if not top.GetReplaySnapshotJudgmentsForNoterow or not top.GetReplaySnapshotWifePercentForNoterow then
+                if not top.SetPlayerStageStatsFromReplayData then
                     return
                 end
 
@@ -219,18 +219,20 @@ local t = Def.ActorFrame {
                 local lastsec = GAMESTATE:GetCurrentSteps():GetLastSecond()
                 local row = td:GetBeatFromElapsedTime(percent * lastsec) * 48
 
-                local judgments = top:GetReplaySnapshotJudgmentsForNoterow(row)
-                local wifescore = top:GetReplaySnapshotWifePercentForNoterow(row) * 100
+                local replay = REPLAYS:GetActiveReplay()
+                local snapshot = replay:GetReplaySnapshotForNoterow(row)
+                local judgments = snapshot:GetJudgments()
+                local wifescore = snapshot:GetWifePercent() * 100
                 local time = SecondsToHHMMSS(td:GetElapsedTimeFromNoteRow(row))
-                local mean = top:GetReplaySnapshotMeanForNoterow(row)
-                local sd = top:GetReplaySnapshotSDForNoterow(row)
+                local mean = snapshot:GetMean()
+                local sd = snapshot:GetStandardDeviation()
 
-                local marvCount = judgments[10]
-                local perfCount = judgments[9]
-                local greatCount = judgments[8]
-                local goodCount = judgments[7]
-                local badCount = judgments[6]
-                local missCount = judgments[5]
+                local marvCount = judgments["W1"]
+                local perfCount = judgments["W2"]
+                local greatCount = judgments["W3"]
+                local goodCount = judgments["W4"]
+                local badCount = judgments["W5"]
+                local missCount = judgments["Miss"]
 
                 -- excessively long string format for translation support
                 local txt = string.format(

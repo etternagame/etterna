@@ -2213,6 +2213,7 @@ class LunaReplay : public Luna<Replay>
 		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetMineHitVector);
+		ADD_METHOD(GetReplaySnapshotForNoterow);
 	}
 };
 
