@@ -1166,8 +1166,6 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 	m_soundStart.Play(true);
 
 	if (m_SelectionState == SelectionState_Finalized) {
-		DLMAN->UpdateGameplayState(true);
-
 		if (!m_bStepsChosen) {
 			m_bStepsChosen = true;
 			// Don't play start sound. We play it again below on finalized
