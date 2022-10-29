@@ -36,6 +36,7 @@ class GameManager
 	void GetStepsTypesForGame(const Game* pGame,
 							  std::vector<StepsType>& aStepsTypeAddTo);
 	auto GetEditorStyleForStepsType(StepsType st) -> const Style*;
+	auto GetStyleForStepsType(StepsType st) -> const Style*;
 	void GetDemonstrationStylesForGame(const Game* pGame,
 									   std::vector<const Style*>& vpStylesOut);
 	auto GetHowToPlayStyleForGame(const Game* pGame) -> const Style*;
