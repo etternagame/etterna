@@ -508,7 +508,18 @@ ReplayManager::GenerateComboListForReplay(Replay& replay, float timingScale)
 class LunaReplayManager : public Luna<ReplayManager>
 {
   public:
-	LunaReplayManager() {
+
+	static int GetReplay(T* p, lua_State* L)
+	{
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		// TODO: THIS LEAKS REPLAY REFS!!!!!!!!!!!!
+		p->GetReplay(hs)->PushSelf(L);
+		return 1;
+	}
+
+	LunaReplayManager()
+	{
+		ADD_METHOD(GetReplay);
 	}
 };
 LUA_REGISTER_CLASS(ReplayManager)

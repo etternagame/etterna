@@ -171,6 +171,9 @@ struct ReplaySnapshot
 	float maxwifescore = 0.F;
 	float standardDeviation = 0.F;
 	float mean = 0.F;
+
+	/// Lua
+	void PushSelf(lua_State* L);
 };
 
 struct JudgeInfo

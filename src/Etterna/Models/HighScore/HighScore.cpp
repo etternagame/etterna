@@ -1719,6 +1719,11 @@ class LunaHighScore : public Luna<HighScore>
 		lua_pushnumber(L, p->GetSSRCalcVersion());
 		return 1;
 	}
+	static auto GetReplay(T* p, lua_State* L) -> int
+	{
+		p->PushReplay(L);
+		return 1;
+	}
 
 	DEFINE_METHOD(GetGrade, GetGrade())
 	DEFINE_METHOD(GetWifeGrade, GetWifeGrade())
@@ -1765,6 +1770,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetReplayType);
+		ADD_METHOD(GetReplay);
 		ADD_METHOD(GetJudgmentString);
 		ADD_METHOD(GetDisplayName);
 		ADD_METHOD(GetUserid);

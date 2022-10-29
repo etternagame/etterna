@@ -199,6 +199,11 @@ struct HighScore
 	int judges = 0;
 	// Lua
 	void PushSelf(lua_State* L);
+	void PushReplay(lua_State* L)
+	{
+		CheckReplayIsInit();
+		replay->PushSelf(L);
+	}
 
   private:
 	struct HSImplUniquePtr {

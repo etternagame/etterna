@@ -2189,6 +2189,13 @@ class LunaReplay : public Luna<Replay>
 		return 1;
 	}
 
+	static auto GetReplaySnapshotForNoterow(T* p, lua_State* L) -> int
+	{
+		auto row = IArg(1);
+		p->GetReplaySnapshotForNoterow(row)->PushSelf(L);
+		return 1;
+	}
+
 	DEFINE_METHOD(HasReplayData, HasReplayData())
 	DEFINE_METHOD(GetChartKey, GetChartKey())
 	DEFINE_METHOD(GetScoreKey, GetScoreKey())
@@ -2210,3 +2217,56 @@ class LunaReplay : public Luna<Replay>
 };
 
 LUA_REGISTER_CLASS(Replay)
+
+class LunaReplaySnapshot : public Luna<ReplaySnapshot>
+{
+  public:
+
+	static int GetJudgments(T* p, lua_State* L)
+	{
+		lua_createtable(L, 0, NUM_TapNoteScore);
+		FOREACH_ENUM(TapNoteScore, tns) {
+			auto str = TapNoteScoreToString(tns);
+			lua_pushnumber(L, p->judgments[tns]);
+			lua_setfield(L, -2, str.c_str());
+		}
+
+		return 1;
+	}
+	static int GetHoldNoteScores(T* p, lua_State* L)
+	{
+		lua_createtable(L, 0, NUM_HoldNoteScore);
+		FOREACH_ENUM(HoldNoteScore, hns) {
+			auto str = HoldNoteScoreToString(hns);
+			lua_pushnumber(L, p->hns[hns]);
+			lua_setfield(L, -2, str.c_str());
+		}
+
+		return 1;
+	}
+	static int GetWifePercent(T* p, lua_State* L)
+	{
+		auto& c = p->curwifescore;
+		auto& m = p->maxwifescore;
+
+		lua_pushnumber(L, c / m);
+		return 1;
+	}
+
+	DEFINE_METHOD(GetCurWifeScore, curwifescore);
+	DEFINE_METHOD(GetMaxWifeScore, maxwifescore);
+	DEFINE_METHOD(GetStandardDeviation, standardDeviation);
+	DEFINE_METHOD(GetMean, mean);
+
+	LunaReplaySnapshot() {
+		ADD_METHOD(GetJudgments);
+		ADD_METHOD(GetHoldNoteScores);
+		ADD_METHOD(GetCurWifeScore);
+		ADD_METHOD(GetMaxWifeScore);
+		ADD_METHOD(GetStandardDeviation);
+		ADD_METHOD(GetMean);
+		ADD_METHOD(GetWifePercent);
+	}
+};
+
+LUA_REGISTER_CLASS(ReplaySnapshot)
