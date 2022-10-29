@@ -2196,6 +2196,12 @@ class LunaReplay : public Luna<Replay>
 		return 1;
 	}
 
+	static auto GetInputData(T* p, lua_State* L) -> int
+	{
+		LuaHelpers::CreateTableFromArray(p->GetInputDataVector(), L);
+		return 1;
+	}
+
 	DEFINE_METHOD(HasReplayData, HasReplayData())
 	DEFINE_METHOD(GetChartKey, GetChartKey())
 	DEFINE_METHOD(GetScoreKey, GetScoreKey())
@@ -2213,10 +2219,10 @@ class LunaReplay : public Luna<Replay>
 		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetMineHitVector);
+		ADD_METHOD(GetInputData);
 		ADD_METHOD(GetReplaySnapshotForNoterow);
 	}
 };
-
 LUA_REGISTER_CLASS(Replay)
 
 class LunaReplaySnapshot : public Luna<ReplaySnapshot>
@@ -2269,5 +2275,28 @@ class LunaReplaySnapshot : public Luna<ReplaySnapshot>
 		ADD_METHOD(GetWifePercent);
 	}
 };
-
 LUA_REGISTER_CLASS(ReplaySnapshot)
+
+class LunaInputDataEvent : public Luna<InputDataEvent>
+{
+  public:
+
+	DEFINE_METHOD(IsPress, is_press);
+	DEFINE_METHOD(GetColumn, column);
+	DEFINE_METHOD(GetSongPositionSeconds, songPositionSeconds);
+	DEFINE_METHOD(GetNearestTapNoterow, nearestTapNoterow);
+	DEFINE_METHOD(GetOffsetFromNearest, offsetFromNearest);
+	DEFINE_METHOD(GetNearestTapNoteType, nearestTapNoteType);
+	DEFINE_METHOD(GetNearestTapNoteSubType, nearestTapNoteSubType);
+
+	LunaInputDataEvent() {
+		ADD_METHOD(IsPress);
+		ADD_METHOD(GetColumn);
+		ADD_METHOD(GetSongPositionSeconds);
+		ADD_METHOD(GetNearestTapNoterow);
+		ADD_METHOD(GetOffsetFromNearest);
+		ADD_METHOD(GetNearestTapNoteType);
+		ADD_METHOD(GetNearestTapNoteSubType);
+	}
+};
+LUA_REGISTER_CLASS(InputDataEvent)

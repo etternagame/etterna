@@ -78,6 +78,9 @@ struct InputDataEvent
 		nearestTapNoteType = other.nearestTapNoteType;
 		nearestTapNoteSubType = other.nearestTapNoteSubType;
 	}
+
+	/// Lua
+	void PushSelf(lua_State* L);
 };
 
 struct MineReplayResult
