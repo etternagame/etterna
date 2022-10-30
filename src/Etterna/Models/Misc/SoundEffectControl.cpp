@@ -7,6 +7,8 @@
 #include "RageUtil/Sound/RageSoundReader.h"
 #include "SoundEffectControl.h"
 
+#include <Tracy.hpp>
+
 SoundEffectControl::SoundEffectControl()
 {
 	m_bLocked = false;
@@ -41,6 +43,7 @@ SoundEffectControl::SetSoundReader(RageSoundReader* pPlayer)
 void
 SoundEffectControl::Update(float fDeltaTime)
 {
+	ZoneScoped;
 	if (SOUND_PROPERTY == "")
 		return;
 

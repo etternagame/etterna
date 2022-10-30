@@ -10,6 +10,7 @@
 #include "RageUtil/Misc/RageInput.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <Tracy.hpp>
 #include <tuple>
 #include <algorithm>
 #include <functional>
@@ -177,6 +178,8 @@ Screen::UpdateTimedFunctions(float fDeltaTime)
 void
 Screen::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	// Do this here so even with 0 time it runs on the next frame
 	UpdateTimedFunctions(fDeltaTime);
 

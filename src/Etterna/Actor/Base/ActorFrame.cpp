@@ -6,6 +6,7 @@
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
+#include <Tracy.hpp>
 #include <algorithm>
 
 /* Tricky: We need ActorFrames created in Lua to auto delete their children.
@@ -221,6 +222,8 @@ ActorFrame::MoveToHead(Actor* pActor)
 void
 ActorFrame::BeginDraw()
 {
+	ZoneScoped;
+
 	Actor::BeginDraw();
 	if (m_fFOV != -1) {
 		DISPLAY->CameraPushMatrix();
@@ -242,6 +245,8 @@ ActorFrame::BeginDraw()
 void
 ActorFrame::DrawPrimitives()
 {
+	ZoneScoped;
+
 	if (m_bClearZBuffer) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "ClearZBuffer not supported on ActorFrames");
@@ -298,6 +303,8 @@ ActorFrame::DrawPrimitives()
 void
 ActorFrame::EndDraw()
 {
+	ZoneScoped;
+
 	if (m_bOverrideLighting) {
 		// TODO: pop state instead of turning lighting off
 		DISPLAY->SetLightOff(0);

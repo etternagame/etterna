@@ -17,6 +17,7 @@
 #include "ScreenManager.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Globals/rngthing.h"
+#include <Tracy.hpp>
 class SongOptions;
 
 #include "arch/Sound/RageSoundDriver.h"
@@ -524,6 +525,8 @@ GameSoundManager::~GameSoundManager()
 void
 GameSoundManager::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	{
 		g_Mutex->Lock();
 		if (g_Playing->m_bApplyMusicRate) {

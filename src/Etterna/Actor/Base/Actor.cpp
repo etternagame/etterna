@@ -14,6 +14,7 @@
 #include "Etterna/Globals/rngthing.h"
 #include "Etterna/Singletons/FilterManager.h"
 
+#include <Tracy.hpp>
 #include <typeinfo>
 #include <tuple>
 #include <algorithm>
@@ -44,6 +45,7 @@ std::vector<float> Actor::g_vfCurrentBGMBeatPlayerNoOffset(NUM_PlayerNumber, 0);
 Actor*
 Actor::Copy() const
 {
+
 	return new Actor(*this);
 }
 
@@ -163,6 +165,7 @@ Actor::Actor()
 
 Actor::~Actor()
 {
+
 	StopTweening();
 	UnsubscribeAll();
 	for (auto& w : m_WrapperStates) {
@@ -475,6 +478,8 @@ Actor::IsVisible()
 void
 Actor::Draw()
 {
+	ZoneScoped;
+
 	if (!m_bVisible || this->EarlyAbortDraw()) {
 		return; // early abort
 	}
@@ -885,6 +890,7 @@ Actor::CalcPercentThroughTween()
 void
 Actor::UpdateTweening(float fDeltaTime)
 {
+	ZoneScoped;
 	if (fDeltaTime < 0.0 && !m_Tweens.empty()) {
 		m_Tweens[0]->info.m_fTimeLeftInTween -= fDeltaTime;
 		CalcPercentThroughTween();
@@ -942,6 +948,9 @@ Actor::UpdateTweening(float fDeltaTime)
 void
 Actor::Update(float fDeltaTime)
 {
+	ZoneScoped;
+	ZoneName(this->GetName().c_str(), 12);
+
 	//	LOG->Trace( "Actor::Update( %f )", fDeltaTime );
 	ASSERT_M(fDeltaTime >= 0, ssprintf("DeltaTime: %f", fDeltaTime));
 	if (!m_WrapperStates.empty())
@@ -963,6 +972,7 @@ generic_global_timer_update(float new_time,
 void
 Actor::UpdateInternal(float delta_time)
 {
+	ZoneScoped;
 	switch (m_EffectClock) {
 		case CLOCK_TIMER:
 			m_fSecsIntoEffect += delta_time;
@@ -1447,6 +1457,8 @@ Actor::AddRotationR(float rot)
 void
 Actor::RunCommands(const LuaReference& cmds, const LuaReference* pParamTable)
 {
+	ZoneScoped;
+
 	if (!cmds.IsSet() || cmds.IsNil()) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "RunCommands: commands for %s are unset or nil",

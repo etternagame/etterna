@@ -7,6 +7,7 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <Tracy.hpp>
 #include "openssl/rand.h"
 #include "openssl/sha.h"
 #include "openssl/md5.h"
@@ -49,6 +50,8 @@ HashFile(std::string fn,
 
 CryptManager::CryptManager()
 {
+	ZoneScoped;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -57,6 +60,7 @@ CryptManager::CryptManager()
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
+
 }
 
 CryptManager::~CryptManager()

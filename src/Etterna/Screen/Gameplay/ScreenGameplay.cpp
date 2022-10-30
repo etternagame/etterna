@@ -45,6 +45,7 @@
 #include "Etterna/Singletons/ReplayManager.h"
 
 #include <algorithm>
+#include <Tracy.hpp>
 
 #include "Core/Platform/Platform.hpp"
 
@@ -77,6 +78,9 @@ static std::map<int, std::set<DeviceButton>> g_buttonsByColumnPressed{};
 
 ScreenGameplay::ScreenGameplay()
 {
+	TracyMessageC(GAMESTATE->m_pCurSong->GetMainTitle().c_str(),
+				  GAMESTATE->m_pCurSong->GetMainTitle().length(),
+				  0xAF0000);
 	m_pSongBackground = nullptr;
 	m_pSongForeground = nullptr;
 	m_delaying_ready_announce = false;
@@ -749,6 +753,7 @@ ScreenGameplay::StartPlayingSong(float fMinTimeToNotes, float fMinTimeToMusic)
 void
 ScreenGameplay::PlayTicks()
 {
+	ZoneScoped;
 	/* TODO: Allow all players to have ticks. Not as simple as it looks.
 	 * If a loop takes place, it could make one player's ticks come later
 	 * than intended. Any help here would be appreciated. -Wolfman2000 */
@@ -786,6 +791,7 @@ ScreenGameplay::PlayAnnouncer(const std::string& type,
 void
 ScreenGameplay::UpdateSongPosition()
 {
+	ZoneScoped;
 	if (!m_pSoundMusic->IsPlaying()) {
 		return;
 	}
@@ -890,6 +896,7 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 void
 ScreenGameplay::Update(float fDeltaTime)
 {
+	ZoneScoped;
 	if (GAMESTATE->m_pCurSong == nullptr) {
 		/* ScreenDemonstration will move us to the next screen.  We just need to
 		 * survive for one update without crashing.  We need to call
@@ -1144,6 +1151,7 @@ ScreenGameplay::FailFadeRemovePlayer(PlayerInfo* pi)
 void
 ScreenGameplay::SendCrossedMessages()
 {
+	ZoneScoped;
 	// hmmm...
 	if (GAMESTATE->m_pCurSong == nullptr) {
 		return;

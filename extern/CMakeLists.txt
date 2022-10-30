@@ -34,6 +34,9 @@ set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
 add_subdirectory(discord-rpc)
 
+## Tracy Profiler
+set(ENABLE_TRACY_PROFILER OFF CACHE BOOL "")
+add_subdirectory(tracy)
 ## plog
 set(PLOG_BUILD_SAMPLES OFF)
 add_subdirectory(plog)
@@ -75,7 +78,7 @@ list(APPEND EXT_TARGETS
     discord-rpc muFFT
     zlib libmad pcre
     ogg vorbis glfw
-    libcurl fmt)
+    libcurl fmt tracy)
 
 list(APPEND LUA_TARGETS luajit libluajit minilua buildvm)
 

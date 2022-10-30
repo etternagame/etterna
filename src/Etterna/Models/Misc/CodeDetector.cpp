@@ -10,6 +10,8 @@
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <Tracy.hpp>
+
 const char* CodeNames[] = {
 	"PrevSteps1",
 	"PrevSteps2",
@@ -54,6 +56,8 @@ CodeDetector::EnteredCode(GameController controller, Code code)
 void
 CodeDetector::RefreshCacheItems(std::string sClass)
 {
+	ZoneScoped;
+
 	if (sClass == "")
 		sClass = "CodeDetector";
 	FOREACH_ENUM(Code, c)

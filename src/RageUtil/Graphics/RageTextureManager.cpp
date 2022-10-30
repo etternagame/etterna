@@ -32,6 +32,7 @@
 #include "arch/MovieTexture/MovieTexture.h"
 #include "Etterna/Singletons/ScoreManager.h"
 
+#include <Tracy.hpp>
 #include <map>
 #include <algorithm>
 
@@ -63,6 +64,8 @@ RageTextureManager::~RageTextureManager()
 void
 RageTextureManager::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	static RageTimer garbageCollector;
 	if (garbageCollector.PeekDeltaTime() >= 30.0f) {
 		if ((SCREENMAN != nullptr) && (SCREENMAN->GetTopScreen() != nullptr) &&

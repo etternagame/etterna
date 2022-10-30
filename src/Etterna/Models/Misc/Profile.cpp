@@ -23,9 +23,10 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/DownloadManager.h"
 
+#include <Tracy.hpp>
+
 #include <algorithm>
 #include <map>
-
 /** @brief The filename for where one can edit their personal profile
  * information. */
 const std::string EDITABLE_INI = "Editable.ini";
@@ -316,6 +317,7 @@ Profile::HandleStatsPrefixChange(std::string dir)
 ProfileLoadResult
 Profile::LoadAllFromDir(const std::string& sDir, LoadingWindow* ld)
 {
+	ZoneScoped;
 	Locator::getLogger()->trace("Profile::LoadAllFromDir({})", sDir.c_str());
 	ASSERT(sDir.back() == '/');
 

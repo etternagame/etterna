@@ -1,4 +1,5 @@
 #include "Etterna/Globals/global.h"
+#include <Tracy.hpp>
 #include "ActorUtil.h"
 #include "Etterna/Singletons/InputFilter.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -528,6 +529,8 @@ TexCoordArrayFromRect(float fImageCoords[8], const RectF& rect)
 void
 Sprite::DrawTexture(const TweenState* state)
 {
+	ZoneScoped;
+
 	Actor::SetGlobalRenderStates(); // set Actor-specified render states
 
 	auto crop = state->crop;
@@ -691,6 +694,8 @@ Sprite::EarlyAbortDraw() const
 void
 Sprite::DrawPrimitives()
 {
+	ZoneScoped;
+
 	if (m_pTempState->fade.top > 0 || m_pTempState->fade.bottom > 0 ||
 		m_pTempState->fade.left > 0 || m_pTempState->fade.right > 0) {
 		// We're fading the edges.

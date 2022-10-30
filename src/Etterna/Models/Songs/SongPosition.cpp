@@ -2,6 +2,8 @@
 #include "Etterna/Singletons/GameState.h"
 #include "SongPosition.h"
 
+#include <Tracy.hpp>
+
 static Preference<float> g_fVisualDelaySeconds("VisualDelaySeconds", 0.0f);
 
 void
@@ -9,7 +11,7 @@ SongPosition::UpdateSongPosition(float fPositionSeconds,
 								 const TimingData& timing,
 								 const RageTimer& timestamp)
 {
-
+	ZoneScoped;
 	if (!timestamp.IsZero())
 		m_LastBeatUpdate = timestamp;
 	else

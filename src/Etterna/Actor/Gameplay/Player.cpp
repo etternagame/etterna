@@ -42,6 +42,8 @@
 using std::max;
 using std::min;
 
+#include <Tracy.hpp>
+
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 						std::string& sNameOut,
@@ -1887,6 +1889,8 @@ Player::Step(int col,
 			 bool bRelease,
 			 float padStickSeconds)
 {
+	ZoneScoped;
+  
 	const auto fMusicRate =
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	const auto fHitUpdateDelta =

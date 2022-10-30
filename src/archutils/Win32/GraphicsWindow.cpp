@@ -18,6 +18,8 @@
 #include "Etterna/Singletons/ScreenManager.h"
 #include "RageUtil/Misc/RageInput.h"
 
+#include <Tracy.hpp>
+
 #include <set>
 #include <dbt.h>
 
@@ -521,6 +523,8 @@ GraphicsWindow::GetParams()
 void
 GraphicsWindow::Update()
 {
+	ZoneScoped;
+
 	MSG msg;
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) {
 		GetMessage(&msg, nullptr, 0, 0);

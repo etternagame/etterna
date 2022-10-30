@@ -18,6 +18,7 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
+#include <Tracy.hpp>
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "curl/curl.h"
 #include "rapidjson/document.h"
@@ -288,6 +289,8 @@ jsonObjectToString(Value& doc)
 }
 DownloadManager::DownloadManager()
 {
+	ZoneScoped;
+
 	EmptyTempDLFileDir();
 	curl_global_init(CURL_GLOBAL_ALL);
 	// Register with Lua.
@@ -553,6 +556,8 @@ DownloadManager::init()
 void
 DownloadManager::Update(float fDeltaSeconds)
 {
+	ZoneScoped;
+
 	if (!initialized)
 		init();
 	if (gameplay)
@@ -563,6 +568,7 @@ DownloadManager::Update(float fDeltaSeconds)
 void
 DownloadManager::UpdateHTTP(float fDeltaSeconds)
 {
+	ZoneScoped;
 	if (HTTPRequests.empty() || gameplay)
 		return;
 
@@ -602,16 +608,14 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 			}
 
 		}
-		// Delete this here instead of within the loop to avoid iterator
-		// invalidation
-		if (idx_to_delete != -1)
-			HTTPRequests.erase(HTTPRequests.begin() + idx_to_delete);
 	}
 	result_handles.clear();
 }
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
+	ZoneScoped;
+
 	timeSinceLastDownload += fDeltaSeconds;
 	for (auto& x : downloads) {
 		/*if (x.second == nullptr) {

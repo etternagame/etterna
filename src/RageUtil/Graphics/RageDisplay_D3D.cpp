@@ -30,6 +30,7 @@
 #pragma clang diagnostic pop
 #endif
 
+#include <Tracy.hpp>
 // Static libraries
 // load Windows D3D9 dynamically
 #if defined(_MSC_VER)
@@ -769,6 +770,8 @@ RageDisplay_D3D::GetMaxTextureSize() const -> int
 auto
 RageDisplay_D3D::BeginFrame() -> bool
 {
+	ZoneScoped;
+
 	GraphicsWindow::Update();
 
 	switch (g_pd3dDevice->TestCooperativeLevel()) {
@@ -801,6 +804,8 @@ RageDisplay_D3D::BeginFrame() -> bool
 void
 RageDisplay_D3D::EndFrame()
 {
+	ZoneScoped;
+
 	g_pd3dDevice->EndScene();
 
 	FrameLimitBeforeVsync();
@@ -1135,6 +1140,8 @@ RageDisplay_D3D::DeleteCompiledGeometry(RageCompiledGeometry* p)
 void
 RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	ZoneScoped;
+
 	// there isn't a quad primitive in D3D, so we have to fake it with indexed
 	// triangles
 	const auto iNumQuads = iNumVerts / 4;
@@ -1184,6 +1191,8 @@ void
 RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteVertex v[],
 									   int iNumVerts)
 {
+	ZoneScoped;
+
 	// there isn't a quad strip primitive in D3D, so we have to fake it with
 	// indexed triangles
 	const auto iNumQuads = (iNumVerts - 2) / 2;
@@ -1286,6 +1295,8 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 void
 RageDisplay_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	ZoneScoped;
+
 	if (g_lastFVF != D3DFVF_RageSpriteVertex) {
 		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF(D3DFVF_RageSpriteVertex);
@@ -1304,6 +1315,8 @@ RageDisplay_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 void
 RageDisplay_D3D::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	ZoneScoped;
+
 	if (g_lastFVF != D3DFVF_RageSpriteVertex) {
 		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF(D3DFVF_RageSpriteVertex);
@@ -1323,6 +1336,8 @@ void
 RageDisplay_D3D::DrawTrianglesInternal(const RageSpriteVertex v[],
 									   int iNumVerts)
 {
+	ZoneScoped;
+
 	if (g_lastFVF != D3DFVF_RageSpriteVertex) {
 		g_lastFVF = D3DFVF_RageSpriteVertex;
 		g_pd3dDevice->SetFVF(D3DFVF_RageSpriteVertex);
@@ -1342,6 +1357,8 @@ void
 RageDisplay_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 											  int iMeshIndex)
 {
+	ZoneScoped;
+
 	SendCurrentMatrices();
 
 	/* If lighting is off, then the current material will have no effect. We
@@ -1387,6 +1404,8 @@ D3DFVF_RageSpriteVertex ); SendCurrentMatrices(); g_pd3dDevice->DrawPrimitiveUP(
 void
 RageDisplay_D3D::ClearAllTextures()
 {
+	ZoneScoped;
+
 	FOREACH_ENUM(TextureUnit, i)
 	SetTexture(i, 0);
 }
@@ -1787,6 +1806,8 @@ RageDisplay_D3D::CreateTexture(RagePixelFormat pixfmt,
 							   RageSurface* img,
 							   bool /*bGenerateMipMaps*/) -> intptr_t
 {
+	ZoneScoped;
+
 	HRESULT hr;
 	IDirect3DTexture9* pTex;
 	hr = g_pd3dDevice->CreateTexture(power_of_two(img->w),
@@ -1838,6 +1859,8 @@ RageDisplay_D3D::UpdateTexture(intptr_t uTexHandle,
 							   int width,
 							   int height)
 {
+	ZoneScoped;
+  
 	auto* pTex = reinterpret_cast<IDirect3DTexture9*>(uTexHandle);
 	ASSERT(pTex != nullptr);
 
@@ -1995,6 +2018,8 @@ D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 void
 D3DRenderTarget_FramebufferObject::StartRenderingTo()
 {
+	ZoneScoped;
+
 	// Save default color and depth buffer
 	if (!SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &defaultColorBuffer)))
 		Locator::getLogger()->warn("Failed to get default color buffer");
@@ -2014,6 +2039,8 @@ D3DRenderTarget_FramebufferObject::StartRenderingTo()
 void
 D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 {
+	ZoneScoped;
+
 	// Restore the original color and depth buffers
 	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, defaultColorBuffer)))
 		Locator::getLogger()->warn("Failed to set target to BackBuffer");
@@ -2053,6 +2080,8 @@ RageDisplay_D3D::GetRenderTarget() -> intptr_t
 void
 RageDisplay_D3D::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
 {
+	ZoneScoped;
+
 	if (uTexHandle == 0) {
 		g_pd3dDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 

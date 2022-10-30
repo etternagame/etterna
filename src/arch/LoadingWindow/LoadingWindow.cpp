@@ -4,9 +4,13 @@
 #include "Core/Services/Locator.hpp"
 #include "arch/arch_default.h"
 
+#include <Tracy.hpp>
+
 LoadingWindow*
 LoadingWindow::Create()
 {
+	ZoneScoped;
+
 	if (!PREFSMAN->m_bShowLoadingWindow)
 		return new LoadingWindow_Null;
 #if defined(__unix__) && !defined(HAVE_GTK)

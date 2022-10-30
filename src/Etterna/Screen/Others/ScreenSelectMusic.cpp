@@ -38,6 +38,7 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Singletons/ReplayManager.h"
 
+#include <Tracy.hpp>
 #include <algorithm>
 
 static const char* SelectionStateNames[] = { "SelectingSong",
@@ -365,6 +366,8 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 void
 ScreenSelectMusic::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (!IsTransitioning()) {
 		if (IDLE_COMMENT_SECONDS > 0 &&
 			m_timerIdleComment.PeekDeltaTime() >= IDLE_COMMENT_SECONDS) {

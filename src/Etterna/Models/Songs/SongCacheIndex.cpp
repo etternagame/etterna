@@ -13,6 +13,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderSSC.h"
 #include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
+#include <Tracy.hpp>
 #include <SQLiteCpp/SQLiteCpp.h>
 #include <SQLiteCpp/Column.h>
 #include "sqlite3.h"
@@ -20,7 +21,6 @@
 #include <algorithm>
 #include <atomic>
 #include <thread>
-#include <algorithm>
 #include <numeric>
 
 /*
@@ -789,6 +789,7 @@ SongCacheIndex::LoadCache(
   LoadingWindow* ld,
   std::vector<std::pair<std::pair<std::string, unsigned int>, Song*>*>& cache) const
 {
+	ZoneScoped;
 	Locator::getLogger()->info("Beginning LoadCache");
 	auto count = 0;
 	try {
@@ -817,6 +818,7 @@ SongCacheIndex::LoadCache(
 		int offset,
 		std::vector<std::pair<std::pair<std::string, unsigned int>, Song*>*>* cachePart,
 		int index) {
+		  ZoneNamedN(PerThread, "LoadCacheThread", true);
 		  auto counter = 0;
 		  auto lastUpdate = 0;
 		  try {
@@ -1375,6 +1377,8 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 bool
 SongCacheIndex::LoadSongFromCache(Song* song, const std::string& dir)
 {
+	ZoneScoped;
+
 	try {
 		SQLite::Statement query(
 		  *db, "SELECT * FROM songs WHERE DIR=? AND DIRHASH=?");

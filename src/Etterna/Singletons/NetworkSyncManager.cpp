@@ -25,6 +25,8 @@
 using namespace rapidjson;
 #include "asio.hpp"
 
+#include <Tracy.hpp>
+
 NetworkSyncManager* NSMAN;
 
 #include <cerrno>
@@ -199,6 +201,8 @@ static LocalizedString INITIALIZING_CLIENT_NETWORK(
   "Initializing Client Network...");
 NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	NSMAN = this;
 	LANserver = nullptr; // So we know if it has been created yet
 	useSMserver = false;
@@ -731,6 +735,8 @@ NetworkSyncManager::IsETTP()
 void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (this->client == nullptr) {
 		Locator::getLogger()->info("Disconnected from ett server {}", serverName.c_str());
 		n->isSMOnline = false;

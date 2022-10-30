@@ -4,6 +4,8 @@
 #include "RageUtil/Graphics/RageTextureManager.h"
 #include "RageUtil/Graphics/RageTextureRenderTarget.h"
 
+#include <Tracy.hpp>
+
 REGISTER_ACTOR_CLASS_WITH_NAME(ActorFrameTextureAutoDeleteChildren,
 							   ActorFrameTexture);
 ActorFrameTexture*
@@ -78,6 +80,8 @@ ActorFrameTexture::Create()
 void
 ActorFrameTexture::DrawPrimitives()
 {
+	ZoneScoped;
+
 	if (m_pRenderTarget == nullptr)
 		return;
 

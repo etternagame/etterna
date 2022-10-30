@@ -79,6 +79,8 @@
 #include <set>
 #include <map>
 
+#include <Tracy.hpp>
+
 ScreenManager* SCREENMAN =
   nullptr; // global and accessible from anywhere in our program
 
@@ -245,6 +247,8 @@ RegisterScreenClass::RegisterScreenClass(const std::string& sClassName,
 
 ScreenManager::ScreenManager()
 {
+	ZoneScoped;
+
 	// Register with Lua.
 	{
 		Lua* L = LUA->Get();
@@ -285,6 +289,8 @@ ScreenManager::~ScreenManager()
 void
 ScreenManager::ThemeChanged()
 {
+	ZoneScoped;
+
 	Locator::getLogger()->info("ScreenManager::ThemeChanged");
 
 	// reload common sounds
@@ -438,6 +444,8 @@ ScreenManager::PopTopScreenInternal(bool bSendLoseFocus)
 void
 ScreenManager::Update(float fDeltaTime)
 {
+	ZoneScoped;
+
 	// Pop the top screen, if PopTopScreen was called.
 	if (m_PopTopScreen != SM_Invalid) {
 		ScreenMessage SM = m_PopTopScreen;
@@ -508,6 +516,8 @@ ScreenManager::Update(float fDeltaTime)
 void
 ScreenManager::Draw()
 {
+	ZoneScoped;
+
 	/* If it hasn't been updated yet, skip the render. We can't call Update(0),
 	 * since that'll confuse the "zero out the next update after loading a
 	 * screen logic. If we don't render, don't call BeginFrame or EndFrame. That
@@ -797,6 +807,8 @@ ScreenManager::LoadDelayedScreen()
 	MESSAGEMAN->Broadcast(Message_ScreenChanged);
 
 	SendMessageToTopScreen(SM);
+
+	TracyMessageC(sScreenName.c_str(), sScreenName.length(), 0x0000AF);
 }
 
 void

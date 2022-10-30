@@ -65,6 +65,8 @@
 int(WINAPIV* __vsnprintf)(char*, size_t, const char*, va_list) = _vsnprintf;
 #endif
 
+#include <Tracy.hpp>
+
 bool noWindow;
 
 void
@@ -146,6 +148,8 @@ GetActualGraphicOptionsString()
 static void
 StoreActualGraphicOptions()
 {
+	ZoneScoped;
+
 	/* Store the settings that RageDisplay was actually able to use so that
 	 * we don't go through the process of auto-detecting a usable video mode
 	 * every time. */
@@ -203,6 +207,7 @@ update_centering()
 static void
 StartDisplay()
 {
+	ZoneScoped;
 	if (DISPLAY != nullptr)
 		return; // already started
 
@@ -332,6 +337,8 @@ HandleException(const std::string& sError)
 void
 StepMania::ResetGame()
 {
+	ZoneScoped;
+
 	GAMESTATE->Reset();
 
 	// if somehow the current theme loaded does not exist anymore
@@ -951,9 +958,10 @@ static LocalizedString COULDNT_OPEN_LOADING_WINDOW(
 int
 sm_main(int argc, char* argv[])
 {
-	g_RandomNumberGenerator.seed(static_cast<unsigned int>(time(nullptr)));
-	seed_lua_prng();
-
+	{
+		ZoneScopedN("Startup");
+		g_RandomNumberGenerator.seed(static_cast<unsigned int>(time(nullptr)));
+		seed_lua_prng();
 	// Initialize Logging
     Locator::provide(std::make_unique<PlogLogger>());
 
@@ -978,15 +986,15 @@ sm_main(int argc, char* argv[])
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
 
-	SetCommandlineArguments(argc, argv);
+		SetCommandlineArguments(argc, argv);
 
 	LUA = new LuaManager;
 
-	MESSAGEMAN = new MessageManager;
+		MESSAGEMAN = new MessageManager;
 
-	// Initialize the file extension type lists so everything can ask ActorUtil
-	// what the type of a file is.
-	ActorUtil::InitFileTypeLists();
+		// Initialize the file extension type lists so everything can ask
+		// ActorUtil what the type of a file is.
+		ActorUtil::InitFileTypeLists();
 
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
@@ -1036,17 +1044,18 @@ sm_main(int argc, char* argv[])
 	Locator::getLogger()->setLogLevel(
 	  static_cast<Core::ILogger::Severity>(PREFSMAN->m_logging_level.Get()));
 
-	// This needs PREFSMAN.
-	Dialog::Init();
+		// This needs PREFSMAN.
+		Dialog::Init();
 
-	// Create game objects
+		// Create game objects
 
-	GAMESTATE = new GameState;
+		GAMESTATE = new GameState;
 
-	std::vector<std::string> arguments(argv + 1, argv + argc);
-	noWindow = std::any_of(arguments.begin(), arguments.end(), [](string str) {
-		return str == "notedataCache";
-	});
+		std::vector<std::string> arguments(argv + 1, argv + argc);
+		noWindow =
+		  std::any_of(arguments.begin(), arguments.end(), [](string str) {
+			  return str == "notedataCache";
+		  });
 
 	// This requires PREFSMAN, for PREFSMAN->m_bShowLoadingWindow.
 	LoadingWindow* pLoadingWindow = nullptr;
@@ -1061,17 +1070,18 @@ sm_main(int argc, char* argv[])
 	Locator::getLogger()->info("TLS is {}available", RageThread::GetSupportsTLS() ? "" : "not ");
 #endif
 
-	AdjustForChangedSystemCapabilities();
+		AdjustForChangedSystemCapabilities();
 
-	GAMEMAN = new GameManager;
-	THEME = new ThemeManager;
-	ANNOUNCER = new AnnouncerManager;
-	NOTESKIN = new NoteSkinManager;
+		GAMEMAN = new GameManager;
+		THEME = new ThemeManager;
+		ANNOUNCER = new AnnouncerManager;
+		NOTESKIN = new NoteSkinManager;
 
-	// Switch to the last used game type, and set up the theme and announcer.
-	SwitchToLastPlayedGame();
+		// Switch to the last used game type, and set up the theme and
+		// announcer.
+		SwitchToLastPlayedGame();
 
-	CommandLineActions::Handle(pLoadingWindow);
+		CommandLineActions::Handle(pLoadingWindow);
 
 	if (!noWindow) {
 		/* Now that THEME is loaded, load the icon and splash for the current
@@ -1137,32 +1147,32 @@ sm_main(int argc, char* argv[])
 	StoreActualGraphicOptions();
 	Locator::getLogger()->info(GetActualGraphicOptionsString().c_str());
 
-	/* Input handlers can have dependences on the video system so
-	 * INPUTMAN must be initialized after DISPLAY. */
-	INPUTMAN = new RageInput;
+		/* Input handlers can have dependences on the video system so
+		 * INPUTMAN must be initialized after DISPLAY. */
+		INPUTMAN = new RageInput;
 
-	// These things depend on the TextureManager, so do them after!
-	FONT = new FontManager;
-	SCREENMAN = new ScreenManager;
+		// These things depend on the TextureManager, so do them after!
+		FONT = new FontManager;
+		SCREENMAN = new ScreenManager;
 
-	StepMania::ResetGame();
+		StepMania::ResetGame();
 
-	/* Now that GAMESTATE is reset, tell SCREENMAN to update the theme (load
-	 * overlay screens and global sounds), and load the initial screen. */
-	SCREENMAN->ThemeChanged();
-	SCREENMAN->SetNewScreen(StepMania::GetInitialScreen());
+		/* Now that GAMESTATE is reset, tell SCREENMAN to update the theme (load
+		 * overlay screens and global sounds), and load the initial screen. */
+		SCREENMAN->ThemeChanged();
+		SCREENMAN->SetNewScreen(StepMania::GetInitialScreen());
 
 	// Do this after ThemeChanged so that we can show a system message
 	std::string sMessage;
 	if (INPUTMAPPER->CheckForChangedInputDevicesAndRemap(sMessage))
 		SCREENMAN->SystemMessage(sMessage);
 
-	CodeDetector::RefreshCacheItems();
+		CodeDetector::RefreshCacheItems();
 
-	if (GetCommandlineArgument("netip"))
-		NSMAN->DisplayStartupStatus(); // If we're using networking show what
-									   // happened
-
+		if (GetCommandlineArgument("netip"))
+			NSMAN->DisplayStartupStatus(); // If we're using networking show
+										   // what happened
+	}
 	// Run the main loop.
 	GameLoop::RunGameLoop();
 

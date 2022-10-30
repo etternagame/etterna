@@ -19,6 +19,8 @@
 #include <chrono>
 #include <mutex>
 
+#include <Tracy.hpp>
+
 #include "Core/Platform/Platform.hpp"
 
 // Static Variables
@@ -38,6 +40,7 @@ static Preference<float> g_fConstantUpdateDeltaSeconds("ConstantUpdateDeltaSecon
 
 // Static Functions
 static void CheckGameLoopTimerSkips(float fDeltaTime) {
+	ZoneScoped;
 	if (!PREFSMAN->m_bLogSkips)
 		return;
 
@@ -255,6 +258,8 @@ namespace GameLoop {
 		Core::Platform::boostPriority();
     	
         while (!GameLoop::hasUserQuit()) {
+			ZoneScopedN("Frame");
+
             if (!g_NewGame.empty()) {
                 DoChangeGame();
             }

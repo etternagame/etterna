@@ -159,4 +159,11 @@ struct CompileAssertDecl
 #include "RageUtil/Misc/RageException.h"
 /* Don't include our own headers here, since they tend to change often. */
 
+
+#ifdef TRACY_ENABLE
+#if defined(_MSC_VER)
+#pragma comment(lib, "dbghelp.lib")
+#endif
+#endif
+
 #endif

@@ -9,6 +9,7 @@
 #include "ScreenWithMenuElements.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
+#include <Tracy.hpp>
 #include <algorithm>
 #include <utility>
 
@@ -155,6 +156,8 @@ ScreenWithMenuElements::SetHelpText(const std::string& s)
 std::string
 ScreenWithMenuElements::HandleLuaMusicFile(std::string const& path)
 {
+	ZoneScoped;
+
 	FileType ft = ActorUtil::GetFileType(path);
 	std::string ret = path;
 	if (ft == FT_Lua) {
@@ -196,6 +199,8 @@ ScreenWithMenuElements::HandleLuaMusicFile(std::string const& path)
 void
 ScreenWithMenuElements::StartPlayingMusic()
 {
+	ZoneScoped;
+
 	/* Some screens should leave the music alone (eg. ScreenPlayerOptions music
 	 * sample left over from ScreenSelectMusic). */
 	if (PLAY_MUSIC) {
@@ -330,6 +335,8 @@ ScreenWithMenuElementsSimple::MenuBack(const InputEventPlus& input)
 void
 ScreenWithMenuElements::UpdateTimedFunctions(float fDeltaTime)
 {
+	ZoneScoped;
+
 	if (IsTransitioning())
 		return;
 	Screen::UpdateTimedFunctions(fDeltaTime);

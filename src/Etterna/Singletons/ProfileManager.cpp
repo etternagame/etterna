@@ -10,6 +10,7 @@
 #include "DownloadManager.h"
 
 #include <algorithm>
+#include <Tracy.hpp>
 
 ProfileManager* PROFILEMAN =
   nullptr; // global and accessible from anywhere in our program
@@ -67,6 +68,8 @@ static ThemeMetric<int> NUM_FIXED_PROFILES("ProfileManager",
 ProfileManager::ProfileManager()
   : m_stats_prefix("")
 {
+	ZoneScoped;
+
 	dummy = nullptr;
 	m_bLastLoadWasFromLastGood = false;
 	m_bLastLoadWasTamperedOrCorrupt = false;
@@ -92,6 +95,8 @@ ProfileManager::~ProfileManager()
 void
 ProfileManager::Init(LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	m_bLastLoadWasTamperedOrCorrupt = false;
 	m_bLastLoadWasFromLastGood = false;
 	m_bNeedToBackUpLastLoad = false;

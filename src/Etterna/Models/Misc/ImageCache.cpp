@@ -22,6 +22,7 @@
 
 using std::max;
 using std::min;
+#include <Tracy.hpp>
 
 //#include "Banner.h"
 
@@ -177,6 +178,8 @@ ImageCache::UnloadAllImages()
 
 ImageCache::ImageCache()
 {
+	ZoneScoped;
+
 	ReadFromDisk();
 }
 

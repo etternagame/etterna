@@ -12,6 +12,14 @@
 #include "RageUtil/Misc/RageThreads.h"
 #include "Etterna/Globals/SoloCalc.h"
 
+
+#include <Tracy.hpp>
+#ifdef TRACY_ENABLE
+#define TracyTypeLockable(x) tracy::Lockable<x>
+#else
+#define TracyTypeLockable(x) x
+#endif
+
 #include <cstdint>
 #include <numeric>
 #include <algorithm>
@@ -26,6 +34,8 @@ ScoreManager* SCOREMAN = nullptr;
 
 ScoreManager::ScoreManager()
 {
+	ZoneScoped;
+
 	tempscoreforonlinereplayviewing = nullptr;
 
 	// Register with Lua.
@@ -418,6 +428,8 @@ ScoresAtRate::HandleNoCCPB(HighScore& hs) -> bool
 void
 ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	RageTimer ld_timer;
 	auto& scores = SCOREMAN->scorestorecalc;
 
@@ -431,24 +443,26 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 	}
 	auto onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
 
-	mutex songVectorPtrMutex;
+	TracyLockable(mutex, songVectorPtrMutex);
 	std::vector<std::uintptr_t> currentlyLockedSongs;
 	// This is meant to ensure mutual exclusion for a song
 	class SongLock
 	{
 	  public:
-		mutex& songVectorPtrMutex; // This mutex guards the vector
+		TracyTypeLockable(mutex) &
+		  songVectorPtrMutex; // This mutex guards the vector
 		std::vector<std::uintptr_t>&
 		  currentlyLockedSongs; // Vector of currently locked songs
 		std::uintptr_t song;	// The song for this lock
-		SongLock(std::vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
+		SongLock(std::vector<std::uintptr_t>& vec, TracyTypeLockable(mutex)& mut, std::uintptr_t k)
 		  : songVectorPtrMutex(mut)
 		  , currentlyLockedSongs(vec)
 		  , song(k)
 		{
+			ZoneScoped;
 			auto active = true;
 			{
-				lock_guard<mutex> lk(songVectorPtrMutex);
+				lock_guard<LockableBase(mutex)> lk(songVectorPtrMutex);
 				active = find(currentlyLockedSongs.begin(),
 							  currentlyLockedSongs.end(),
 							  song) != currentlyLockedSongs.end();
@@ -461,7 +475,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				// (CondVar's maybe)
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				{
-					lock_guard<mutex> lk(songVectorPtrMutex);
+					lock_guard<LockableBase(mutex)> lk(songVectorPtrMutex);
 					active = find(currentlyLockedSongs.begin(),
 								  currentlyLockedSongs.end(),
 								  song) != currentlyLockedSongs.end();
@@ -473,7 +487,9 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		}
 		~SongLock()
 		{
-			lock_guard<mutex> lk(songVectorPtrMutex);
+			ZoneScoped;
+
+			lock_guard<LockableBase(mutex)> lk(songVectorPtrMutex);
 			currentlyLockedSongs.erase(find(
 			  currentlyLockedSongs.begin(), currentlyLockedSongs.end(), song));
 		}
@@ -485,6 +501,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		[&songVectorPtrMutex, &currentlyLockedSongs](
 		  std::pair<vectorIt<HighScore*>, vectorIt<HighScore*>> workload,
 		  ThreadData* data) {
+			ZoneNamedN(PerThread, "RecalculateSSRsThread", true);
 			const auto per_thread_calc = std::make_unique<Calc>();
 			per_thread_calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
 
@@ -496,13 +513,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 			auto lastUpdate = 0;
 			for (auto it = workload.first; it != workload.second; ++it) {
 				auto* hs = *it;
-				if ((ld != nullptr) && scoreIndex % onePercent == 0) {
-					data->_progress += scoreIndex - lastUpdate;
-					lastUpdate = scoreIndex;
-					data->setUpdated(true);
-				}
-				++scoreIndex;
-
+				{
+					ZoneNamedN(PerThread, "Update", true);
+  					if ((ld != nullptr) && scoreIndex % onePercent == 0) {
+						data->_progress += scoreIndex - lastUpdate;
+						  lastUpdate = scoreIndex;
+			  			data->setUpdated(true);
+		  			}
+	  				++scoreIndex;
+  				}
 				auto ck = hs->GetChartKey();
 				auto* steps = SONGMAN->GetStepsByChartkey(ck);
 
@@ -529,15 +548,18 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				hs->NormalizeJudgments();
 
 				auto remarried = false;
-				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
-					hs->HasReplayData()) {
-					steps->GetNoteData(nd);
-					const auto maxpoints = nd.WifeTotalScoreCalc(td);
-					if (maxpoints <= 0) {
-						continue;
+				{
+					ZoneNamedN(PerThread, "RecalcWife", true);
+					if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
+						hs->HasReplayData()) {
+						steps->GetNoteData(nd);
+						const auto maxpoints = nd.WifeTotalScoreCalc(td);
+						if (maxpoints <= 0) {
+							continue;
+						}
+						remarried =
+							hs->RescoreToWife3(static_cast<float>(maxpoints));
 					}
-					remarried =
-					  hs->RescoreToWife3(static_cast<float>(maxpoints));
 				}
 
 				// don't waste time on <= 0%s
@@ -598,32 +620,37 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 					// SCOREMAN->rescores.emplace(hs);
 				}
 
-				td->UnsetEtaner();
-				nd.UnsetNerv();
-				nd.UnsetSerializedNoteData();
-				steps->Compress();
-
-				/* Some scores were being incorrectly marked as ccon despite
-				 * chord cohesion being disabled. Re-determine chord cohesion
-				 * status from notecount, this should be robust as every score
-				 * up to this point should be a fully completed pass. This will
-				 * also allow us to mark files with 0 chords as being nocc
-				 * (since it doesn't apply to them). */
-				const auto totalstepsnotes =
-				  steps->GetRadarValues()[RadarCategory_Notes];
-				auto totalscorenotes = 0;
-				totalscorenotes += hs->GetTapNoteScore(TNS_W1);
-				totalscorenotes += hs->GetTapNoteScore(TNS_W2);
-				totalscorenotes += hs->GetTapNoteScore(TNS_W3);
-				totalscorenotes += hs->GetTapNoteScore(TNS_W4);
-				totalscorenotes += hs->GetTapNoteScore(TNS_W5);
-				totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
-
-				if (totalstepsnotes == totalscorenotes) {
-					hs->SetChordCohesion(1); // the set function isn't inverted
+				{
+					ZoneNamedN(PerThread, "Unload", true);
+					td->UnsetEtaner();
+					nd.UnsetNerv();
+					nd.UnsetSerializedNoteData();
+					steps->Compress();
 				}
-				// but the get function is, this
-				// sets bnochordcohesion to 1
+
+				{
+					ZoneNamedN(PerThread, "CheckCC", true);
+					/* Some scores were being incorrectly marked as ccon despite
+					 * chord cohesion being disabled. Re-determine chord
+					 * cohesion status from notecount, this should be robust as
+					 * every score up to this point should be a fully completed
+					 * pass. This will also allow us to mark files with 0 chords
+					 * as being nocc (since it doesn't apply to them). */
+					const auto totalstepsnotes =
+					  steps->GetRadarValues()[RadarCategory_Notes];
+					auto totalscorenotes = 0;
+					totalscorenotes += hs->GetTapNoteScore(TNS_W1);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W2);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W3);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W4);
+					totalscorenotes += hs->GetTapNoteScore(TNS_W5);
+					totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
+
+					if (totalstepsnotes == totalscorenotes) {
+						hs->SetChordCohesion(
+						  1); // the set function isn't inverted
+					}
+				}
 			}
 		};
 	auto onUpdate = [ld](int progress) {

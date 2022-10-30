@@ -28,6 +28,7 @@
 #include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
 
+#include <Tracy.hpp>
 #include <numeric>
 #include <algorithm>
 #include <mutex>
@@ -108,6 +109,7 @@ SongManager::~SongManager()
 void
 SongManager::InitAll(LoadingWindow* ld)
 {
+	ZoneScoped;
 	std::vector<std::string> never_cache;
 	split(PREFSMAN->m_NeverCacheList, ",", never_cache);
 	for (auto& group : never_cache) {
@@ -126,6 +128,9 @@ static LocalizedString SANITY_CHECKING_GROUPS("SongManager",
 auto
 SongManager::DifferentialReload() -> int
 {
+	TracyMessageLC("DifferentialReload", 0x00AF00);
+	ZoneScoped;
+
 	MESSAGEMAN->Broadcast("DFRStarted");
 	FILEMAN->FlushDirCache(SpecialFiles::SONGS_DIR);
 	FILEMAN->FlushDirCache(ADDITIONAL_SONGS_DIR);
@@ -145,6 +150,8 @@ SongManager::DifferentialReload() -> int
 auto
 SongManager::DifferentialReloadDir(string dir) -> int
 {
+	ZoneScoped;
+  
 	if (dir.back() != '/') {
 		dir += "/";
 	}
@@ -276,6 +283,8 @@ split(std::vector<T>& v, size_t elementsPerThread) -> std::vector<p<T>>
 void
 SongManager::FinalizeSong(Song* pNewSong, const std::string& dir)
 {
+	ZoneScoped;
+
 	// never load stray songs from the cache -mina
 	if (pNewSong->m_sGroupName == "Songs" ||
 		pNewSong->m_sGroupName == "AdditionalSongs") {
@@ -291,10 +300,12 @@ SongManager::FinalizeSong(Song* pNewSong, const std::string& dir)
 	}
 }
 
-std::mutex songLoadingSONGMANMutex;
+TracyLockable(std::mutex, songLoadingSONGMANMutex);
 void
 SongManager::InitSongsFromDisk(LoadingWindow* ld)
 {
+	ZoneScoped;
+
 	Locator::getLogger()->info("Beginning InitSongsFromDisk");
 	RageTimer tm;
 	// Tell SONGINDEX to not write the cache index file every time a song adds
@@ -322,6 +333,8 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 			 vectorIt<std::pair<std::pair<std::string, unsigned int>, Song*>*>>
 			 workload,
 		   ThreadData* data) {
+			ZoneNamedN(PerThread, "InitSongsFromDiskThread", true);
+
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;
@@ -348,7 +361,8 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 				}
 				pNewSong->FinalizeLoading();
 				{
-					std::lock_guard<std::mutex> lock(songLoadingSONGMANMutex);
+					std::lock_guard<LockableBase(std::mutex)> lock(
+					  songLoadingSONGMANMutex);
 					SONGMAN->FinalizeSong(pNewSong, dir);
 				}
 			}
@@ -575,6 +589,7 @@ SongManager::MakeSongGroupsFromPlaylists(map<string, Playlist>& playlists)
 	if (!PlaylistsAreSongGroups) {
 		return;
 	}
+	ZoneScoped;
 
 	for (auto& plName : playlistGroups) {
 		groupderps.erase(plName);
@@ -792,12 +807,13 @@ SongManager::AddGroup(const std::string& sDir, const std::string& sGroupDirName)
 	return true;
 }
 
-std::mutex diskLoadSongMutex;
-std::mutex diskLoadGroupMutex;
+TracyLockable(std::mutex, diskLoadSongMutex);
+TracyLockable(std::mutex, diskLoadGroupMutex);
 static LocalizedString LOADING_SONGS("SongManager", "Loading songs...");
 void
 SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 {
+	ZoneScoped;
 	Locator::getLogger()->info("LoadStepmaniaSongDir Starting: {}", sDir);
 	std::vector<std::string> songFolders;
 	GetDirListing(sDir + "*", songFolders, true);
@@ -834,6 +850,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	auto callback = [&sDir](
 					  std::pair<vectorIt<Group>, vectorIt<Group>> workload,
 					  ThreadData* data) {
+		ZoneNamedN(PerThread, "LoadStepManiaSongDirThread", true);
 		auto per_thread_calc = std::make_unique<Calc>();
 
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
@@ -841,6 +858,8 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 		auto counter = 0;
 		auto lastUpdate = 0;
 		for (auto it = workload.first; it != workload.second; it++) {
+			ZoneNamedN(PerThread, "Iteration", true);
+
 			auto pair = *it;
 			auto& sGroupName = it->name;
 			counter++;
@@ -867,7 +886,8 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 					pNewSong->m_sGroupName = "Ungrouped Songs";
 				}
 				{
-					std::lock_guard<std::mutex> lk(diskLoadSongMutex);
+					std::lock_guard<LockableBase(std::mutex)> lk(
+					  diskLoadSongMutex);
 					SONGMAN->AddSongToList(pNewSong);
 					SONGMAN->AddKeyedPointers(pNewSong);
 				}
@@ -881,7 +901,8 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 										loaded,
 										(sDir + sGroupName).c_str());
 			{
-				std::lock_guard<std::mutex> lk(diskLoadGroupMutex);
+				std::lock_guard<LockableBase(std::mutex)> lk(
+				  diskLoadGroupMutex);
 				SONGMAN->AddGroup(sDir, sGroupName);
 				IMAGECACHE->CacheImage(
 				  "Banner", SONGMAN->GetSongGroupBannerPath(sDir + sGroupName));
@@ -1108,6 +1129,8 @@ SongManager::GetSongs(const std::string& sGroupName) const
 void
 SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 {
+	ZoneScoped;
+
 	auto songs = GetSongs(sGroupName);
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();

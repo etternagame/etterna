@@ -16,6 +16,7 @@
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Globals/GameLoop.h"
+#include <Tracy.hpp>
 
 #include <chrono>
 #include <thread>
@@ -229,6 +230,8 @@ RageDisplay::BeginFrame()
 void
 RageDisplay::EndFrame()
 {
+	ZoneScoped;
+
 	ProcessStatsOnFlip();
 }
 
@@ -694,6 +697,8 @@ RageDisplay::LoadMenuPerspective(float fovDegrees,
 								 float fVanishPointX,
 								 float fVanishPointY)
 {
+	ZoneScoped;
+
 	// fovDegrees == 0 gives ortho projection.
 	if (fovDegrees == 0) {
 		const float left = 0, right = fWidth, bottom = fHeight, top = 0;
@@ -736,6 +741,8 @@ RageDisplay::LoadMenuPerspective(float fovDegrees,
 void
 RageDisplay::CameraPushMatrix()
 {
+	ZoneScoped;
+
 	g_ProjectionStack.Push();
 	g_ViewStack.Push();
 }
@@ -743,6 +750,8 @@ RageDisplay::CameraPushMatrix()
 void
 RageDisplay::CameraPopMatrix()
 {
+	ZoneScoped;
+
 	g_ProjectionStack.Pop();
 	g_ViewStack.Pop();
 }
@@ -1184,6 +1193,8 @@ targetFrameTime() -> double
 void
 RageDisplay::FrameLimitBeforeVsync()
 {
+	ZoneScoped;
+
 	auto waitTime = targetFrameTime();
 	if (g_fPredictiveFrameLimit.Get()) {
 		const auto afterRender = std::chrono::steady_clock::now();
@@ -1237,6 +1248,7 @@ RageDisplay::FrameLimitBeforeVsync()
 void
 RageDisplay::FrameLimitAfterVsync(int iFPS)
 {
+	ZoneScoped;
 	const auto frameEndedAt = std::chrono::steady_clock::now();
 	g_LastFrameDuration = frameEndedAt - g_LastFrameEndedAt;
 	g_LastFrameEndedAt = frameEndedAt;
@@ -1296,6 +1308,7 @@ RageDisplay::FrameLimitAfterVsync(int iFPS)
 void
 RageDisplay::SetPresentTime(std::chrono::nanoseconds presentTime)
 {
+	ZoneScoped;
 	g_LastFramePresentTime = presentTime;
 }
 

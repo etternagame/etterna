@@ -8,6 +8,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_FileDB.h"
 
+#include <Tracy.hpp>
 #include <cerrno>
 #include <algorithm>
 
@@ -313,6 +314,7 @@ ChangeToDirOfExecutable(const std::string& argv0)
 
 RageFileManager::RageFileManager(const std::string& argv0)
 {
+	ZoneScoped;
 	Locator::getLogger()->trace("{}", argv0.c_str());
 	ChangeToDirOfExecutable(argv0);
 

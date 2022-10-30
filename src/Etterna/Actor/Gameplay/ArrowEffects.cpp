@@ -15,6 +15,7 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 
 #include <algorithm>
+#include <Tracy.hpp>
 
 static ThemeMetric<float> ARROW_SPACING("ArrowEffects", "ArrowSpacing");
 static ThemeMetric<bool> QUANTIZE_ARROW_Y("ArrowEffects",
@@ -137,6 +138,7 @@ PerPlayerData g_EffectData;
 void
 ArrowEffects::Update()
 {
+	ZoneScoped;
 	static float fLastTime = 0;
 	const auto fTime = RageTimer::GetTimeSinceStart();
 

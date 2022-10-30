@@ -35,6 +35,8 @@
 
 #include <algorithm>
 
+#include <Tracy.hpp>
+
 GameState* GAMESTATE =
   nullptr; // global and accessible from anywhere in our program
 
@@ -702,6 +704,8 @@ GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 void
 GameState::Update(float fDelta)
 {
+	ZoneScoped;
+
 	m_SongOptions.Update(fDelta);
 
 	m_pPlayerState->Update(fDelta);
@@ -746,6 +750,7 @@ GameState::UpdateSongPosition(float fPositionSeconds,
 							  const TimingData& timing,
 							  const RageTimer& timestamp)
 {
+	ZoneScoped;
 	if (m_pCurSteps) {
 		m_Position.UpdateSongPosition(
 		  fPositionSeconds, *m_pCurSteps->GetTimingData(), timestamp);
