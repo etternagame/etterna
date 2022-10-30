@@ -776,7 +776,6 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 		OHTrill,
 		VOHTrill,
 		// Roll,
-		RollJS,
 		// RanMan,
 		FlamJam,
 	  	HSDensity,
@@ -1021,7 +1020,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 499;
+int mina_calc_version = 500;
 auto
 GetCalcVersion() -> int
 {

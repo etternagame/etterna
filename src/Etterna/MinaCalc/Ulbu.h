@@ -407,8 +407,9 @@ struct TheGreatBazoinkazoinkInTheSky
 	void set_sequenced_base_diffs(const int& itv) const
 	{
 		// this is no longer done for intervals, but per row, in the row
-		// loop _calc->soap.at(hand)[JackBase].at(itv) =
-		// _diffz._jk.get_itv_diff();
+		// (calc base anyways)
+		_calc.init_base_diff_vals.at(hand)[JackBase].at(itv) =
+		  _diffz._tc.get_itv_jack_diff();
 
 		_calc.init_base_diff_vals.at(hand)[CJBase].at(itv) =
 		  _diffz._cj.get_itv_diff(_calc);

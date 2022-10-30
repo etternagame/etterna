@@ -505,30 +505,33 @@ local diffGroups = {
         Jack = true,
     },
     {   -- Group 12
+        JackBase = true,
+    },
+    {   -- Group 13
         NPSBase = true,
         TechBase = true,
     },
-    {   -- Group 13
+    {   -- Group 14
         RMABase = true,
     },
-    {   -- Group 14
+    {   -- Group 15
         MSBase = true,
         NPSBase = true,
         CJBase = true,
     },
-    {   -- Group 15
+    {   -- Group 16
         CV = true,
     },
-    {   -- Group 16
+    {   -- Group 17
         Tech1 = true, -- "pewp" values
     },
-    {   -- Group 17
+    {   -- Group 18
         Tech2 = true, -- "obliosis" values
     },
-    {   -- Group 18
+    {   -- Group 19
         Tech3 = true, -- "c" values
     },
-    {   -- Group 19
+    {   -- Group 20
         SSRS = true,
     },
 }
@@ -1314,9 +1317,9 @@ local techColors = {
 local calcDiffValueColors = {
     color("#7d6b91"),   -- NPSBase
     color("#7d6b51"),   -- MSBase
+    color("#8481db"),   -- JackBase
     color("#1d6b91"),   -- CJBase
     --color("#7d6b91"),
-    --color("#8481db"),   -- JackBase
     --color("#8481db"),
     color("#cc4fa3"),   -- TechBase
     --color("#995fa3"),

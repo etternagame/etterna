@@ -462,6 +462,12 @@ struct techyo
 		return rm_itv_max_diff;
 	}
 
+	// not for debug
+	[[nodiscard]] auto get_itv_jack_diff() const -> float
+	{
+		return jack_itv_diff;
+	}
+
 	// final output difficulty for this interval
 	// the output of this is officially TechBase for an interval
 	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
@@ -672,8 +678,8 @@ struct techyo
 		// cv of 0 is 0 sd
 
 		// all of those numbers are clamped to [0.5, 1.5] (or [oioi, ioio+oioi])
-		const auto oioi = 0.2F;
-		const auto ioio = 2.F;
+		const auto oioi = 0.5F;
+		const auto ioio = 1.F;
 		pineapple = std::clamp(pineapple + oioi, oioi, ioio + oioi);
 		porcupine = std::clamp(porcupine + oioi, oioi, ioio + oioi);
 		sequins = std::clamp(sequins + oioi, oioi, ioio + oioi);

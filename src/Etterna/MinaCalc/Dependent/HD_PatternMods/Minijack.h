@@ -12,8 +12,8 @@ struct MinijackMod
 #pragma region params
 
 	float min_mod = 1.F;
-	float max_mod = 1.2F;
-	float base = 0.5F;
+	float max_mod = 1.25F;
+	float base = 0.4F;
 
 	float mj_scaler = 2.6F;
 	float mj_buffer = 0.3F;

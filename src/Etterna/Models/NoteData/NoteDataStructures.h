@@ -84,7 +84,7 @@ enum CalcDiffValue
 {
 	NPSBase,
 	MSBase,
-	// JackBase,
+	JackBase,
 	CJBase,
 	TechBase,
 	RMABase,
