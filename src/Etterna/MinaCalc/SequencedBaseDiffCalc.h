@@ -396,7 +396,7 @@ struct techyo
 
 	float tc_base_weight = 4.F;
 	float nps_base_weight = 9.F;
-	float rm_base_weight = 0.9F;
+	float rm_base_weight = 1.F;
 
 	float balance_comp_window = 36.F;
 	float chaos_comp_window = 4.F;
@@ -473,10 +473,6 @@ struct techyo
 	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
 	  -> float
 	{
-
-		return weighted_average(
-				 get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
-
 		auto rmbase = rm_itv_max_diff;
 		const auto nps_biased_chaos_base = weighted_average(
 		  get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
@@ -679,7 +675,7 @@ struct techyo
 
 		// all of those numbers are clamped to [0.5, 1.5] (or [oioi, ioio+oioi])
 		const auto oioi = 0.5F;
-		const auto ioio = 1.F;
+		const auto ioio = 0.5F;
 		pineapple = std::clamp(pineapple + oioi, oioi, ioio + oioi);
 		porcupine = std::clamp(porcupine + oioi, oioi, ioio + oioi);
 		sequins = std::clamp(sequins + oioi, oioi, ioio + oioi);
@@ -720,12 +716,12 @@ struct techyo
 			calc.debugTechVals.at(hand).emplace_back(a);
 		}
 
-		// average of (cv left, cv right, cv both) + [0,inf]
+		// average of (cv left, cv right, cv both)
 		// note cv clamped to [0.5,1.5]
-		// simplifies to [0.5,1.5] + [0,inf]
+		// simplifies to [0.5,1.5]
 		// output: [0.5, 1.5]
 		const auto vertebrae = std::clamp(
-		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, ioio + oioi);
+		  ((pineapple + porcupine + sequins) / 3.F), oioi, ioio + oioi);
 
 		// result is ms divided by fudgy cv number
 		// [0,5000] / [0.5,1.5]

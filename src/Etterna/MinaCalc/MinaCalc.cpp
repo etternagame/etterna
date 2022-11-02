@@ -804,16 +804,16 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 	  {
 		OHTrill,
 		VOHTrill,
-		Balance,
+		// Balance,
 		Roll,
-		OHJumpMod,
-		Chaos,
+		// OHJumpMod,
+		// Chaos,
 		WideRangeJumptrill,
 		WideRangeJJ,
 		WideRangeBalance,
 		WideRangeRoll,
 		FlamJam,
-		RanMan,
+		// RanMan,
 		Minijack,
 		// WideRangeAnchor,
 		TheThing,
@@ -909,7 +909,8 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 					  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
 					  max<float>(
 						fastpow(calc.pmod_vals.at(hand).at(CJ).at(i), 2.F),
-						1.F) /
+						1.F);
+					*adj_diff *=
 					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i));
 					break;
 				default:
@@ -1015,7 +1016,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 501;
+int mina_calc_version = 502;
 auto
 GetCalcVersion() -> int
 {
