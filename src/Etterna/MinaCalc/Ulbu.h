@@ -484,6 +484,7 @@ struct TheGreatBazoinkazoinkInTheSky
 					// update unless there is a note to update with
 					if (ct == col_empty) {
 						_rm.advance_off_hand_sequencing();
+						_mj.advance_off_hand_sequencing();
 						if (row_count == 2) {
 							_rm.advance_off_hand_sequencing();
 						}

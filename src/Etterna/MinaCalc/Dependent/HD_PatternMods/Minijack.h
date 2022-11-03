@@ -56,6 +56,10 @@ struct MinijackMod
 	CalcMovingWindow<int> left_notes{};
 	CalcMovingWindow<int> right_notes{};
 
+	// tracking taps that occur on the opposite hand
+	int off_since_last_on = 0;
+	CalcMovingWindow<int> off_hand_notes{};
+
 #pragma region generic functions
 
 	void full_reset()
@@ -66,8 +70,10 @@ struct MinijackMod
 		right_ms.fill(ms_init);
 		left_notes.fill(0);
 		right_notes.fill(0);
+		off_hand_notes.fill(0);
 		left_since_last_right = 0;
 		right_since_last_left = 0;
+		off_since_last_on = 0;
 	}
 
 	void reset_mw_for_ct(const col_type& ct) {
@@ -118,7 +124,11 @@ struct MinijackMod
 				// require that the taps which fit the minijack speed condition
 				// have no off tap between. this would make it a trill instead.
 				if (mwOffTapCounts[max_moving_window_size - 2] == 0) {
-					minijacks++;
+					// nerf case:
+					// require that the minijack is not part of a two hand trill
+					if (off_hand_notes[max_moving_window_size - 2] == 0) {
+						minijacks++;
+					}
 				}
 			}
 		}
@@ -145,6 +155,7 @@ struct MinijackMod
 				left_since_last_right++;
 				right_since_last_left = 0;
 				left_ms(ms_now);
+				commit_off_hand_taps();
 				minijack_check(left_ms, right_notes);
 				break;
 			}
@@ -157,6 +168,7 @@ struct MinijackMod
 				right_since_last_left++;
 				left_since_last_right = 0;
 				right_ms(ms_now);
+				commit_off_hand_taps();
 				minijack_check(right_ms, left_notes);
 				break;
 			}
@@ -169,6 +181,7 @@ struct MinijackMod
 				right_since_last_left = 0;
 				left_ms(ms_now);
 				right_ms(ms_now);
+				commit_off_hand_taps();
 				minijack_check(left_ms, right_notes);
 				minijack_check(right_ms, left_notes);
 				break;
@@ -176,6 +189,15 @@ struct MinijackMod
 			default:
 				break;
 		}
+	}
+
+	void advance_off_hand_sequencing() {
+		off_since_last_on++;
+	}
+
+	void commit_off_hand_taps() {
+		off_hand_notes(off_since_last_on);
+		off_since_last_on = 0;
 	}
 
 	void set_pmod(const ItvHandInfo& itvhi)
