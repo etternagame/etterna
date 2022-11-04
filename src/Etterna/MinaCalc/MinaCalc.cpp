@@ -804,17 +804,17 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 	  {
 		OHTrill,
 		VOHTrill,
-		// Balance,
+		Balance,
 		Roll,
 		// OHJumpMod,
-		// Chaos,
+		Chaos,
 		WideRangeJumptrill,
 		WideRangeJJ,
 		WideRangeBalance,
 		WideRangeRoll,
 		FlamJam,
 		// RanMan,
-		// Minijack,
+		Minijack,
 		// WideRangeAnchor,
 		TheThing,
 		TheThing2,
@@ -908,7 +908,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 					  calc.init_base_diff_vals.at(hand).at(TechBase).at(i) *
 					  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
 					  max<float>(
-						fastpow(calc.pmod_vals.at(hand).at(CJ).at(i), 2.F),
+						fastpow(calc.pmod_vals.at(hand).at(CJ).at(i)+0.05F, 2.F),
 						1.F);
 					*adj_diff *=
 					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i));
@@ -1016,7 +1016,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 504;
+int mina_calc_version = 505;
 auto
 GetCalcVersion() -> int
 {
