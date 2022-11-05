@@ -2209,12 +2209,16 @@ class LunaReplay : public Luna<Replay>
 	DEFINE_METHOD(GetChartKey, GetChartKey())
 	DEFINE_METHOD(GetScoreKey, GetScoreKey())
 	DEFINE_METHOD(GetReplayType, GetReplayType())
+	DEFINE_METHOD(GetRngSeed, GetRngSeed())
+	DEFINE_METHOD(GetModifiers, GetModifiers());
 
 	LunaReplay() {
 		ADD_METHOD(HasReplayData);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetScoreKey);
 		ADD_METHOD(GetReplayType);
+		ADD_METHOD(GetRngSeed);
+		ADD_METHOD(GetModifiers);
 
 		ADD_METHOD(GetOffsetVector);
 		ADD_METHOD(GetNoteRowVector);
