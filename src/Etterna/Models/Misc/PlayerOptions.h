@@ -86,6 +86,8 @@ class PlayerOptions
 	void ResetToggleableMods();
 	void GetLocalizedMods(std::vector<std::string>& AddTo) const;
 	void FromString(const std::string& sMultipleMods);
+	void SetForReplay(bool b) { forReplay = b; }
+	bool GetForReplay() const { return forReplay; }
 	auto FromOneModString(const std::string& sOneMod,
 						  std::string& sErrorDetailOut)
 	  -> bool; // On error, return
@@ -271,6 +273,7 @@ class PlayerOptions
 	 *
 	 * If an empty string, it means to not change from the default. */
 	std::string m_sNoteSkin;
+	bool forReplay = false;
 
 	void NextAccel();
 	void NextEffect();

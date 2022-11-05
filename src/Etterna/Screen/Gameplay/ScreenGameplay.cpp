@@ -329,10 +329,7 @@ ScreenGameplay::Init()
 	if (m_vPlayerInfo.GetPlayerStageStats() != nullptr) {
 		m_vPlayerInfo.GetPlayerStageStats()->m_bJoined = true;
 	}
-	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
-		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
-												  m_vPlayerInfo.m_vpStepsQueue);
-	}
+	LoadScoreKeeper();
 
 	GAMESTATE->m_bGameplayLeadIn.Set(true);
 
@@ -472,6 +469,15 @@ void
 ScreenGameplay::LoadPlayer()
 {
 	m_vPlayerInfo.m_pPlayer->Load();
+}
+
+void
+ScreenGameplay::LoadScoreKeeper()
+{
+	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
+		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
+												  m_vPlayerInfo.m_vpStepsQueue);
+	}
 }
 
 void

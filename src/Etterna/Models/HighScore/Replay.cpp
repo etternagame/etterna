@@ -135,7 +135,43 @@ Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
 		pSteps = GetSteps();	
 	}
 	if (pSteps != nullptr) {
-		return pSteps->GetNoteData();
+		auto noteData = pSteps->GetNoteData();
+
+		if (bTransform) {
+			auto* style = GetStyle();
+			auto* td = GetTimingData();
+
+			// transform the notedata by style if necessary
+			if (style != nullptr) {
+				NoteData ndo;
+				style->GetTransformedNoteDataForStyle(PLAYER_1, noteData, ndo);
+				noteData = ndo;
+			}
+
+			// Have to account for mirror and shuffle
+			if (style != nullptr && td != nullptr) {
+				PlayerOptions po;
+				po.Init();
+				po.FromString(mods);
+				auto tmpSeed = GAMESTATE->m_iStageSeed;
+
+				// if rng was not saved, only apply non shuffle mods
+				if (rngSeed == 0) {
+					po.m_bTurns[PlayerOptions::TURN_SHUFFLE] = false;
+					po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] = false;
+					po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] = false;
+					po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE] = false;
+				} else {
+					GAMESTATE->m_iStageSeed = rngSeed;
+				}
+
+				NoteDataUtil::TransformNoteData(
+				  noteData, *td, po, style->m_StepsType);
+				GAMESTATE->m_iStageSeed = tmpSeed;
+			}
+		}
+
+		return noteData;
 	}
 
 	// empty notedata
@@ -1438,7 +1474,6 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	// map of rows to vectors of tapreplayresults
 	auto& m_ReplayTapMap = ji.trrMap;
 
-	auto* pScoreData = GetHighScore();
 	NoteData noteData = GetNoteData();
 	auto* pReplayTiming = GetTimingData();
 
@@ -1569,12 +1604,12 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 		  }
 	  };
 
-	// Don't continue if the scoredata used invalidating mods
+	// Don't continue if the replay used invalidating mods
 	// (Particularly mods that make it difficult to match NoteData)
-	if (pScoreData != nullptr) {
+	{
 		PlayerOptions potmp;
-		potmp.FromString(pScoreData->GetModifiers());
-		if (potmp.ContainsTransformOrTurn())
+		potmp.FromString(mods);
+		if (potmp.ContainsTransformOrTurn() && rngSeed == 0)
 			return false;
 	}
 
@@ -1634,27 +1669,6 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 			rs.judgments[tns] = tempJudgments[tns];
 			m_ReplaySnapshotMap[validNoterow] = rs;
 		}
-	}
-
-	// transform the notedata by style if necessary
-	auto* style = GetStyle();
-	if (style != nullptr) {
-		NoteData ndo;
-		style->GetTransformedNoteDataForStyle(PLAYER_1, noteData, ndo);
-		noteData = ndo;
-	}
-
-	// Have to account for mirror being in the highscore options
-	// please dont change styles in the middle of calculation and break this
-	// thanks
-	if (pScoreData != nullptr && style != nullptr &&
-		(pScoreData->GetModifiers().find("mirror") != std::string::npos ||
-		 pScoreData->GetModifiers().find("Mirror") != std::string::npos)) {
-		PlayerOptions po;
-		po.Init();
-		po.m_bTurns[PlayerOptions::TURN_MIRROR] = true;
-		NoteDataUtil::TransformNoteData(
-		  noteData, *pReplayTiming, po, style->m_StepsType);
 	}
 
 	// Now handle misses and holds.

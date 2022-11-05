@@ -21,16 +21,20 @@ struct TemporaryReplaySettings
 	float oldRate = 1.F;
 	std::string oldNoteskin{};
 	FailType oldFailType = FailType_Immediate;
+	int replayRngSeed = 0;
+	int oldRngSeed = 0;
 
 	void reset()
 	{
 		replayRate = 1.F;
 		replayModifiers = std::string();
 		replayUsedMirror = false;
+		replayRngSeed = 0;
 		oldModifiers = std::string();
 		oldRate = 1.F;
 		oldNoteskin = std::string();
 		oldFailType = FailType_Immediate;
+		oldRngSeed = 0;
 	}
 };
 
@@ -60,10 +64,13 @@ class ReplayManager
 	void StoreActiveReplaySettings(float replayRate,
 								   std::string& replayModifiers,
 								   bool replayUsedMirror,
-								   float oldRate,
-								   std::string& oldModifiers,
-								   FailType oldFailType,
-								   std::string& oldNoteskin);
+								   int replayRngSeed);
+
+	void StoreOldSettings(float oldRate,
+						  std::string& oldModifiers,
+						  FailType oldFailType,
+						  std::string& oldNoteskin,
+						  int oldRngSeed);
 
 	TemporaryReplaySettings GetActiveReplaySettings();
 

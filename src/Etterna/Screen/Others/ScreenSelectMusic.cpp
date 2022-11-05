@@ -1783,9 +1783,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		if (ns.empty())
 			ns = CommonMetrics::DEFAULT_NOTESKIN_NAME;
 		auto usesMirror = potmp.m_bTurns[PlayerOptions::TURN_MIRROR];
+		auto replayRng = hs->GetStageSeed();
 		auto hsMods = hs->GetModifiers();
-		REPLAYS->StoreActiveReplaySettings(
-		  scoreRate, hsMods, usesMirror, oldRate, oldMods, ft, ns);
+		REPLAYS->StoreActiveReplaySettings(scoreRate,
+										   hsMods,
+										   usesMirror,
+										   replayRng);
+		REPLAYS->StoreOldSettings(
+		  oldRate, oldMods, ft, ns, GAMESTATE->m_iStageSeed);
 
 		// lock the game into replay mode and GO
 		Locator::getLogger()->info("Viewing replay for score key {}",

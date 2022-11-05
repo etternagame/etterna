@@ -154,18 +154,26 @@ void
 ReplayManager::StoreActiveReplaySettings(float replayRate,
 										 std::string& replayModifiers,
 										 bool replayUsedMirror,
-										 float oldRate,
-										 std::string& oldModifiers,
-										 FailType oldFailType,
-										 std::string& oldNoteskin)
+										 int replayRngSeed)
 {
 	activeReplaySettings.replayRate = replayRate;
 	activeReplaySettings.replayModifiers = replayModifiers;
 	activeReplaySettings.replayUsedMirror = replayUsedMirror;
+	activeReplaySettings.replayRngSeed = replayRngSeed;
+}
+
+void
+ReplayManager::StoreOldSettings(float oldRate,
+								std::string& oldModifiers,
+								FailType oldFailType,
+								std::string& oldNoteskin,
+								int oldRngSeed)
+{
 	activeReplaySettings.oldRate = oldRate;
 	activeReplaySettings.oldModifiers = oldModifiers;
 	activeReplaySettings.oldFailType = oldFailType;
 	activeReplaySettings.oldNoteskin = oldNoteskin;
+	activeReplaySettings.oldRngSeed = oldRngSeed;
 }
 
 TemporaryReplaySettings

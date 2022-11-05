@@ -18,6 +18,7 @@
 #include "Etterna/Singletons/GameSoundManager.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Singletons/LuaManager.h"
@@ -51,17 +52,19 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = settings.replayRate;
 	GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = settings.replayRate;
 
+	PlayerOptions po;
+	po.Init();
+	po.SetForReplay(true);
+	po.FromString(settings.replayModifiers);
+
+	// For all non transforming mods
 	if (PREFSMAN->m_bReplaysUseScoreMods) {
 		// Set up mods
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().FromString(
-		  settings.replayModifiers);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
-		  settings.replayModifiers);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
-		  settings.replayModifiers);
-		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
-		  settings.replayModifiers);
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred() = po;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent() = po;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong() = po;
+		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage() = po;
 
 		// Undo noteskin change
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_sNoteSkin =
@@ -74,7 +77,26 @@ ScreenGameplayReplay::ScreenGameplayReplay()
 		  settings.oldNoteskin;
 	}
 
-	// Set up mirror
+	// Set up transforming mods
+	{
+		auto f = [&po, &settings](PlayerOptions& playerOptions) {
+			std::copy(std::begin(po.m_bTurns),
+					  std::end(po.m_bTurns),
+					  std::begin(playerOptions.m_bTurns));
+			if (settings.replayRngSeed == 0) {
+				po.m_bTurns[PlayerOptions::TURN_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE] = false;
+			}
+		};
+		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred());
+		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent());
+		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong());
+		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage());
+	}
+
+	// Set up mirror (this is redundant)
 	FOREACH_ENUM(ModsLevel, lvl)
 	{
 		PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
@@ -98,7 +120,34 @@ ScreenGameplayReplay::Init()
 void
 ScreenGameplayReplay::LoadPlayer()
 {
+	auto settings = REPLAYS->GetActiveReplaySettings();
+	if (settings.replayRngSeed != 0) {
+		GAMESTATE->m_iStageSeed = settings.replayRngSeed;
+	}
 	m_vPlayerInfo.m_pPlayer->Load();
+}
+
+void
+ScreenGameplayReplay::ReloadPlayer()
+{
+	auto settings = REPLAYS->GetActiveReplaySettings();
+	if (settings.replayRngSeed != 0) {
+		GAMESTATE->m_iStageSeed = settings.replayRngSeed;
+	}
+	m_vPlayerInfo.m_pPlayer->Reload();
+}
+
+void
+ScreenGameplayReplay::LoadScoreKeeper()
+{
+	auto settings = REPLAYS->GetActiveReplaySettings();
+	if (settings.replayRngSeed != 0) {
+		GAMESTATE->m_iStageSeed = settings.replayRngSeed;
+	}
+	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
+		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
+												  m_vPlayerInfo.m_vpStepsQueue);
+	}
 }
 
 ScreenGameplayReplay::~ScreenGameplayReplay()
@@ -108,16 +157,22 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 	if (!GAMESTATE->m_bRestartedGameplay) {
 		auto settings = REPLAYS->GetActiveReplaySettings();
 
+		if (settings.replayRngSeed != 0) {
+			GAMESTATE->m_iStageSeed = settings.oldRngSeed;
+		}
+
+		PlayerOptions po;
+		po.Init();
+		po.SetForReplay(true);
+		po.FromString(settings.oldModifiers);
+
+		// For all non transforming mods
 		if (PREFSMAN->m_bReplaysUseScoreMods) {
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.Init();
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
-			  .FromString(settings.oldModifiers);
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().FromString(
-			  settings.oldModifiers);
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong().FromString(
-			  settings.oldModifiers);
-			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().FromString(
-			  settings.oldModifiers);
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred() = po;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent() = po;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong() = po;
+			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage() = po;
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred()
 			  .m_sNoteSkin = settings.oldNoteskin;
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
@@ -127,6 +182,20 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 			GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin =
 			  settings.oldNoteskin;
 		}
+
+		// Fix transforming mods
+		{
+			auto f = [&po, &settings](PlayerOptions& playerOptions) {
+				std::copy(std::begin(po.m_bTurns),
+						  std::end(po.m_bTurns),
+						  std::begin(playerOptions.m_bTurns));
+			};
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred());
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent());
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong());
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage());
+		}
+
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().m_FailType =
 		  settings.oldFailType;
 		GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_FailType =

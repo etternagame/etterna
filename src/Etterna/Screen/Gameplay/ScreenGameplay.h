@@ -68,6 +68,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	virtual bool UseSongBackgroundAndForeground() const { return true; }
 	virtual void LoadPlayer();
 	virtual void ReloadPlayer();
+	virtual void LoadScoreKeeper();
 
 	ThemeMetric<std::string> PLAYER_TYPE;
 	ThemeMetric<std::string> SCORE_DISPLAY_TYPE;
