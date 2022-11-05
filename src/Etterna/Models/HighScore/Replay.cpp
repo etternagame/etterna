@@ -152,6 +152,7 @@ Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
 			if (style != nullptr && td != nullptr) {
 				PlayerOptions po;
 				po.Init();
+				po.SetForReplay(true);
 				po.FromString(mods);
 				auto tmpSeed = GAMESTATE->m_iStageSeed;
 
@@ -1465,6 +1466,10 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 		  "vectors could not be generated",
 		  scoreKey);
 		return false;
+	}
+
+	if (mods.empty()) {
+		SetHighScoreMods();
 	}
 
 	JudgeInfo& ji = judgeInfo;
