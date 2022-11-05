@@ -52,6 +52,12 @@ RandomInt(int n) -> int
 	return random_up_to(g_RandomNumberGenerator, n);
 }
 
+inline auto
+RandomInt(RandomGen& rng, int n) -> int
+{
+	return random_up_to(rng, n);
+}
+
 
 inline auto
 randomf(const float low = -1.F, const float high = 1.F) -> float

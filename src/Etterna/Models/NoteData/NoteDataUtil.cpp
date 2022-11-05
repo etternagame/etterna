@@ -1535,9 +1535,8 @@ GetTrackMapping(StepsType st,
 			int iOrig[MAX_NOTE_TRACKS];
 			memcpy(iOrig, iTakeFromTrack, sizeof iOrig);
 
-			auto iShuffleSeed = GAMESTATE->m_iStageSeed;
-			do {
-				RandomGen rnd(iShuffleSeed);
+			auto f = [&iTakeFromTrack, &st, &NumTracks]() {
+				RandomGen rnd(GAMESTATE->m_iStageSeed);
 				// ignore turntable in beat mode
 				switch (st) {
 					case StepsType_beat_single5: {
@@ -1560,16 +1559,18 @@ GetTrackMapping(StepsType st,
 						break;
 					}
 				}
-				iShuffleSeed++;
-			} while (
-			  !memcmp(iOrig,
-					  iTakeFromTrack,
-					  sizeof iOrig)); // shuffle again if shuffle managed to
-									  // shuffle them in the same order
+			};
+
+			f();
+			// shuffle again if shuffle managed to
+			// shuffle them in the same order
+			while (!memcmp(iOrig, iTakeFromTrack, sizeof iOrig)) {
+				GAMESTATE->SetNewStageSeed();
+				f();
+			}
+
 		} break;
 		case NoteDataUtil::soft_shuffle: {
-			// XXX: this is still pretty much a stub.
-
 			// soft shuffle, as described at
 			// http://www.stepmania.com/forums/showthread.php?t=19469
 
@@ -1589,11 +1590,7 @@ GetTrackMapping(StepsType st,
 			 * diagonally bottom left to top right.
 			 * (above text from forums) */
 
-			// TRICKY: Shuffle so that both player get the same shuffle mapping
-			// in the same round.
-
-			const auto iShuffleSeed = GAMESTATE->m_iStageSeed;
-			RandomGen rnd(iShuffleSeed);
+			RandomGen rnd(GAMESTATE->m_iStageSeed);
 			const int iRandChoice = rnd() % 4;
 
 			// XXX: cases 1 and 2 only implemented for dance_*
@@ -1760,10 +1757,10 @@ HRanShuffleTaps(NoteData& input, int startIndex, int endIndex)
 	// - still allow jacks if forced to
 	const auto columns = input.GetNumTracks();
 
-	auto shfl = [](std::vector<int>& stuff) {
-		std::shuffle(stuff.begin(),
-					 stuff.end(),
-					 g_RandomNumberGenerator);
+	RandomGen rnd(GAMESTATE->m_iStageSeed);
+
+	auto shfl = [&rnd](std::vector<int>& stuff) {
+		std::shuffle(stuff.begin(), stuff.end(), rnd);
 	};
 
 	std::set<int> last_row_cols;
@@ -1877,12 +1874,14 @@ SuperShuffleTaps(NoteData& inout, int iStartIndex, int iEndIndex)
 	 * This is only called by NoteDataUtil::Turn.
 	 */
 
+	RandomGen rnd(GAMESTATE->m_iStageSeed);
+
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS_RANGE(inout, r, iStartIndex, iEndIndex)
 	{
 		std::vector<int> doot(inout.GetNumTracks());
 		iota(std::begin(doot), std::end(doot), 0);
 
-		std::shuffle(doot.begin(), doot.end(), g_RandomNumberGenerator);
+		std::shuffle(doot.begin(), doot.end(), rnd);
 		for (auto tdoot = 0; tdoot < inout.GetNumTracks(); tdoot++) {
 			const auto t1 = doot[tdoot];
 			const auto& tn1 = inout.GetTapNote(t1, r);
@@ -1910,7 +1909,7 @@ SuperShuffleTaps(NoteData& inout, int iStartIndex, int iEndIndex)
 			set<int> vTriedTracks;
 			for (auto i = 0; i < 4; i++) // probe max 4 times
 			{
-				auto t2 = RandomInt(inout.GetNumTracks());
+				auto t2 = RandomInt(rnd, inout.GetNumTracks());
 				if (vTriedTracks.find(t2) !=
 					vTriedTracks.end()) // already tried this track
 					continue;			// skip

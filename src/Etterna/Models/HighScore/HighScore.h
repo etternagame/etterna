@@ -51,6 +51,7 @@ struct HighScore
 	[[nodiscard]] auto GetChordCohesion() const -> bool;
 	[[nodiscard]] auto GetEtternaValid() const -> bool;
 	[[nodiscard]] auto GetDSFlag() const -> bool;
+	[[nodiscard]] auto GetStageSeed() const -> int;
 	[[nodiscard]] auto IsUploadedToServer(const std::string& s) const -> bool;
 	std::vector<float> timeStamps;
 	[[nodiscard]] auto GetOffsetVector() -> const std::vector<float>&;
@@ -118,6 +119,7 @@ struct HighScore
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
 	void SetDSFlag(bool b);
+	void SetStageSeed(int i);
 	void AddUploadedServer(const std::string& s);
 	void SetInputDataVector(const std::vector<InputDataEvent>& v);
 	void SetOffsetVector(const std::vector<float>& v);

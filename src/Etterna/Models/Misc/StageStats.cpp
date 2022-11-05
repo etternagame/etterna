@@ -543,6 +543,7 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetLifeRemainingSeconds(pss.m_fLifeRemainingSeconds);
 	hs.SetDisqualified(pss.IsDisqualified());
 	hs.SetDSFlag(pss.usedDoubleSetup);
+	hs.SetStageSeed(GAMESTATE->m_iStageSeed);
 	hs.SetSongOffset(ps.GetDisplayedTiming().m_fBeat0OffsetInSeconds);
 
 	// Etterna validity check, used for ssr/eo eligibility -mina

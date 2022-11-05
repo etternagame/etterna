@@ -48,6 +48,7 @@ struct HighScoreImpl
 	bool bNoChordCohesion;
 	bool bEtternaValid;
 	bool bUsedDS;
+	int stage_seed;
 	std::vector<std::string> uploaded;
 	std::vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo; // maximum combo obtained [SM5 alpha 1a+]
@@ -144,6 +145,7 @@ HighScoreImpl::HighScoreImpl()
 	bNoChordCohesion = false;
 	bDisqualified = false;
 	bUsedDS = false;
+	stage_seed = 0;
 	WifeVersion = 0;
 }
 
@@ -174,6 +176,9 @@ HighScoreImpl::CreateEttNode() const -> XNode*
 	pNode->AppendChild("EtternaValid", bEtternaValid);
 	if (bUsedDS) {
 		pNode->AppendChild("DSFlag", bUsedDS);
+	}
+	if (stage_seed != 0) {
+		pNode->AppendChild("StageSeed", stage_seed);
 	}
 	pNode->AppendChild("PlayedSeconds", played_seconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
@@ -248,6 +253,10 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	auto dsSuccess = pNode->GetChildValue("DSFlag", bUsedDS);
 	if (!dsSuccess) {
 		bUsedDS = false;
+	}
+	auto ssSuccess = pNode->GetChildValue("StageSeed", stage_seed);
+	if (!ssSuccess) {
+		stage_seed = 0;
 	}
 	const auto* pUploadedServers = pNode->GetChild("Servs");
 	if (pUploadedServers != nullptr) {
@@ -535,6 +544,11 @@ HighScore::GetDSFlag() const -> bool
 	return m_Impl->bUsedDS;
 }
 auto
+HighScore::GetStageSeed() const -> int
+{
+	return m_Impl->stage_seed;
+}
+auto
 HighScore::IsUploadedToServer(const std::string& s) const -> bool
 {
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
@@ -813,6 +827,12 @@ HighScore::SetDSFlag(bool b)
 {
 	m_Impl->bUsedDS = b;
 }
+void
+HighScore::SetStageSeed(int i)
+{
+	m_Impl->stage_seed = i;
+}
+
 void
 HighScore::AddUploadedServer(const std::string& s)
 {

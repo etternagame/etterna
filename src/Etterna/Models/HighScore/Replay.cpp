@@ -64,8 +64,8 @@ Replay::Replay(HighScore* hs)
   , chartKey(hs->GetChartKey())
   , fMusicRate(hs->GetMusicRate())
   , fSongOffset(hs->GetSongOffset())
+  , rngSeed(hs->GetStageSeed())
 {
-	rngSeed = 0;
 	// dont set mods here because it is slow.
 	// load from disk or when highscore is saving
 }
@@ -583,7 +583,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			}
 
 			// everything else is input data
-			if (tokens.size() != 5) {
+			if (tokens.size() != 5 && tokens.size() != 7) {
 				Locator::getLogger()->warn("Bad input data detected: {}",
 										   GetScoreKey().c_str());
 				return false;

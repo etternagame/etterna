@@ -277,7 +277,7 @@ class Replay
 	float fSongOffset = 0.F;
 	float fGlobalOffset = 0.F;
 	std::string mods{};
-	unsigned int rngSeed = 0u;
+	int rngSeed = 0;
 
 	std::vector<InputDataEvent> InputData;
 	std::vector<float> vOffsetVector;

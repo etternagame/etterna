@@ -283,7 +283,7 @@ GameState::Reset()
 	NOTESKIN->RefreshNoteSkinData(m_pCurGame);
 
 	m_iGameSeed = g_RandomNumberGenerator();
-	m_iStageSeed = g_RandomNumberGenerator();
+	SetNewStageSeed();
 
 	m_pCurSong.Set(GetDefaultSong());
 	m_pPreferredSong = nullptr;
@@ -738,7 +738,7 @@ GameState::ResetStageStatistics()
 
 	// Reset the round seed. Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
-	m_iStageSeed = g_RandomNumberGenerator();
+	SetNewStageSeed();
 }
 
 void
