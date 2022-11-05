@@ -583,9 +583,11 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			}
 
 			// everything else is input data
-			if (tokens.size() != 5 && tokens.size() != 7) {
-				Locator::getLogger()->warn("Bad input data detected: {}",
-										   GetScoreKey().c_str());
+			if (tokens.size() < 5 || tokens.size() > 7) {
+				Locator::getLogger()->warn(
+				  "Bad input data detected: {} - Tokens size {}",
+				  GetScoreKey().c_str(),
+				  tokens.size());
 				return false;
 			}
 
