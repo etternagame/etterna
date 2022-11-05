@@ -16,6 +16,8 @@
 #include "Core/Services/Locator.hpp"
 #include "GamePreferences.h"
 #include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Models/NoteData/NoteDataUtil.h"
 
 #ifndef _WIN32
 #include <cpuid.h>
@@ -531,7 +533,8 @@ FillInHighScore(const PlayerStageStats& pss,
 			asModifiers.push_back(sSongOptions);
 		}
 	}
-	hs.SetModifiers(join(", ", asModifiers));
+	const auto modstr = join(", ", asModifiers);
+	hs.SetModifiers(modstr);
 
 	hs.SetDateTime(DateTime::GetNowDateTime());
 	hs.SetPlayerGuid(sPlayerGuid);
@@ -589,8 +592,39 @@ FillInHighScore(const PlayerStageStats& pss,
 
 		// for this we need the actual totalpoints values, so we need steps data
 		auto steps = GAMESTATE->m_pCurSteps;
+		auto st = steps->m_StepsType;
+		auto* style = GAMEMAN->GetStyleForStepsType(st);
 		auto nd = steps->GetNoteData();
 		auto* td = steps->GetTimingData();
+
+		// transform the notedata by style if necessary
+		if (style != nullptr) {
+			NoteData ndo;
+			style->GetTransformedNoteDataForStyle(PLAYER_1, nd, ndo);
+			nd = ndo;
+		}
+
+		// Have to account for mirror and shuffle
+		if (style != nullptr && td != nullptr) {
+			PlayerOptions po;
+			po.Init();
+			po.SetForReplay(true);
+			po.FromString(modstr);
+			auto tmpSeed = GAMESTATE->m_iStageSeed;
+
+			// if rng was not saved, only apply non shuffle mods
+			if (hs.GetStageSeed() == 0) {
+				po.m_bTurns[PlayerOptions::TURN_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE] = false;
+			} else {
+				GAMESTATE->m_iStageSeed = hs.GetStageSeed();
+			}
+
+			NoteDataUtil::TransformNoteData(nd, *td, po, style->m_StepsType);
+			GAMESTATE->m_iStageSeed = tmpSeed;
+		}
 		auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
 
 		// i _think_ an assert is ok here.. if this can happen we probably want

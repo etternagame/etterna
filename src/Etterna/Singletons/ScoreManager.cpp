@@ -528,6 +528,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				// this function handles skip logic if not necessary
 				hs->NormalizeJudgments();
 
+				// rescore wife2 to wife3 for eligible scores
 				auto remarried = false;
 				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
 					hs->HasReplayData()) {
@@ -540,8 +541,13 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 					  hs->RescoreToWife3(static_cast<float>(maxpoints));
 				}
 
-				// don't waste time on <= 0%s
-				if (ssrpercent <= 0.f || !steps->IsRecalcValid()) {
+				// don't waste time on <= 0%s or > 100%s
+				if (ssrpercent <= 0.f || ssrpercent > 1.f || !steps->IsRecalcValid()) {
+					if (ssrpercent > 1.f) {
+						hs->SetSSRNormPercent(0.f);
+						hs->SetWifeScore(0.f);
+						hs->SetGrade(Grade_Failed);
+					}
 					hs->ResetSkillsets();
 					continue;
 				}
@@ -1197,6 +1203,10 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		  scores[sk].IsEmptyNormalized() &&
 		  (scores[sk].HasReplayData() || scores[sk].GetJudgeScale() == 1.F);
 
+		// oops (adding this to the recalc list will reset the score to 0)
+		const auto broke = scores[sk].GetSSRNormPercent() > 1.F ||
+						   scores[sk].GetWifeScore() > 1.F;
+
 		/* technically we don't need to have charts loaded to rescore to
 		 * wife3, however trying to do this might be quite a bit of work (it
 		 * would require making a new lambda loop) and while it would be
@@ -1204,7 +1214,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * and while it sort of makes sense from a user convenience aspect
 		 * to allow this, it definitely does not make sense from a clarity
 		 * or consistency perspective */
-		if ((oldcalc || getremarried || notnormalized) && SONGMAN->IsChartLoaded(ck)) {
+		if ((oldcalc || getremarried || notnormalized || broke) && SONGMAN->IsChartLoaded(ck)) {
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 		}
 	}
