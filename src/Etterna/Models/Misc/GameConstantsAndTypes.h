@@ -29,6 +29,9 @@ const int ARBITRARY_MIN_GAMEPLAY_NUMBER = -200000;
 // dont let anyone hit a note outside of this
 const float MISS_WINDOW_BEGIN_SEC = 0.18F;
 
+// 75ms in both directions, around a j5 great
+const float MINE_WINDOW_SEC = 0.075F;
+
 enum GameplayMode
 {
 	GameplayMode_Normal,

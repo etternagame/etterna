@@ -74,7 +74,7 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 			// ~same as j5 great, the explanation for this is quite long but
 			// the general idea is that mines are more punishing now so we
 			// can give a little back
-			defaultValueOut = 0.075F;
+			defaultValueOut = MINE_WINDOW_SEC;
 			break;
 		case TW_Hold:
 			// allow enough time to take foot off and put back on
@@ -190,7 +190,7 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 		// logically consistent with the idea that increasing judge should
 		// not make any elementof the game easier, so now they do
 		case TW_Mine:
-			return 0.075F;
+			return MINE_WINDOW_SEC;
 		case TW_Hold:
 			return 0.25F * GetTimingWindowScale();
 		case TW_Roll:
@@ -213,7 +213,7 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 		// logically consistent with the idea that increasing judge should
 		// not make any elementof the game easier, so now they do
 		case TW_Mine:
-			return 0.075F;
+			return MINE_WINDOW_SEC;
 		case TW_Hold:
 			return 0.25F * timingScale;
 		case TW_Roll:
@@ -817,8 +817,7 @@ void
 Player::UpdatePressedFlags()
 {
 	const auto iNumCols =
-	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-		->m_iColsPerPlayer;
+	  GAMESTATE->GetCurrentStyle(PLAYER_1)->m_iColsPerPlayer;
 	ASSERT_M(iNumCols <= MAX_COLS_PER_PLAYER,
 			 ssprintf("%i > %i", iNumCols, MAX_COLS_PER_PLAYER));
 	for (auto col = 0; col < iNumCols; ++col) {
@@ -826,8 +825,7 @@ Player::UpdatePressedFlags()
 
 		// TODO(Sam): Remove use of PlayerNumber.
 		std::vector<GameInput> GameI;
-		GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
-		  ->StyleInputToGameInput(col, GameI);
+		GAMESTATE->GetCurrentStyle(PLAYER_1)->StyleInputToGameInput(col, GameI);
 
 		const auto bIsHoldingButton = INPUTMAPPER->IsBeingPressed(GameI);
 
@@ -850,7 +848,6 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 	// handle Autoplay for rolls
 	if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
 		for (auto iTrack = 0; iTrack < m_NoteData.GetNumTracks(); ++iTrack) {
-			// TODO(Sam): Make the CPU miss sometimes.
 			int iHeadRow;
 			if (!m_NoteData.IsHoldNoteAtRow(iTrack, iSongRow, &iHeadRow)) {
 				iHeadRow = iSongRow;
@@ -3065,6 +3062,15 @@ Player::SetJudgment(int iRow,
 	if (tns == TNS_Miss && m_pPlayerStageStats != nullptr) {
 		AddNoteToReplayData(
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1, &tn, iRow);
+
+		// add miss to input data
+		// the fmusicseconds is when the judgment occurs
+		// but the row is the row of the actual note
+		m_pPlayerStageStats->m_vNoteMissVector.emplace_back(
+		  GAMESTATE->CountNotesSeparately() ? iTrack : -1,
+		  iRow,
+		  tn.type,
+		  tn.subType);
 	}
 
 	if (m_bSendJudgmentAndComboMessages) {
