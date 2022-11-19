@@ -523,7 +523,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_fTimeSpacing = 0;
 	}
 
-	else if (sBit == "clearall" && (!DLMAN->gameplay || forReplay)) {
+	else if (sBit == "clearall" && (forReplay || !DLMAN->gameplay)) {
 		Init();
 		m_sNoteSkin = NOTESKIN->GetDefaultNoteSkinName();
 	} else if (sBit == "resetspeed") {
@@ -537,22 +537,22 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fScrollSpeed);
 		level = CMOD_DEFAULT;
 		SET_FLOAT(fScrollBPM)
-	} else if (sBit == "life" || sBit == "lives" && (!DLMAN->gameplay || forReplay)) {
+	} else if (sBit == "life" || sBit == "lives" && (forReplay || !DLMAN->gameplay)) {
 		// level is a percentage for every other option, so multiply by 100.
 		// -Kyz
 		m_BatteryLives = static_cast<int>(level * 100.0f);
-	} else if (sBit == "bar" && (!DLMAN->gameplay || forReplay)) {
+	} else if (sBit == "bar" && (forReplay || !DLMAN->gameplay)) {
 		m_LifeType = LifeType_Bar;
-	} else if (sBit == "battery" && (!DLMAN->gameplay || forReplay)) {
+	} else if (sBit == "battery" && (forReplay || !DLMAN->gameplay)) {
 		m_LifeType = LifeType_Battery;
-	} else if (sBit == "lifetime" && (!DLMAN->gameplay || forReplay)) {
+	} else if (sBit == "lifetime" && (forReplay || !DLMAN->gameplay)) {
 		m_LifeType = LifeType_Time;
 	} else if (sBit == "norecover" ||
-			   sBit == "power-drop" && (!DLMAN->gameplay || forReplay)) {
+			   sBit == "power-drop" && (forReplay || !DLMAN->gameplay)) {
 		m_DrainType = DrainType_NoRecover;
-	} else if (sBit == "suddendeath" || sBit == "death" && (!DLMAN->gameplay || forReplay)) {
+	} else if (sBit == "suddendeath" || sBit == "death" && (forReplay || !DLMAN->gameplay)) {
 		m_DrainType = DrainType_SuddenDeath;
-	} else if (sBit == "normal-drain" && (!DLMAN->gameplay || forReplay)) {
+	} else if (sBit == "normal-drain" && (forReplay || !DLMAN->gameplay)) {
 		m_DrainType = DrainType_Normal;
 	} else if (sBit == "boost")
 		SET_FLOAT(fAccels[ACCEL_BOOST])
@@ -608,61 +608,61 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fAppearances[APPEARANCE_RANDOMVANISH])
 	else if (sBit == "turn" && !on)
 		ZERO(m_bTurns); /* "no turn" */
-	else if (sBit == "mirror" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "mirror" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_MIRROR] = on;
-	else if (sBit == "backwards" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "backwards" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_BACKWARDS] = on;
-	else if (sBit == "left" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "left" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_LEFT] = on;
-	else if (sBit == "right" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "right" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_RIGHT] = on;
-	else if (sBit == "shuffle" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "shuffle" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_SHUFFLE] = on;
-	else if (sBit == "softshuffle" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "softshuffle" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_SOFT_SHUFFLE] = on;
-	else if (sBit == "supershuffle" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "supershuffle" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_SUPER_SHUFFLE] = on;
-	else if (sBit == "hranshuffle" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "hranshuffle" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_HRAN_SHUFFLE] = on;
-	else if (sBit == "little" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "little" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_LITTLE] = on;
-	else if (sBit == "wide" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "wide" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_WIDE] = on;
-	else if (sBit == "big" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "big" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_BIG] = on;
-	else if (sBit == "quick" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "quick" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_QUICK] = on;
-	else if (sBit == "bmrize" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "bmrize" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_BMRIZE] = on;
-	else if (sBit == "skippy" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "skippy" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_SKIPPY] = on;
-	else if (sBit == "mines" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "mines" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_MINES] = on;
-	else if (sBit == "attackmines" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "attackmines" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ATTACKMINES] = on;
-	else if (sBit == "echo" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "echo" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ECHO] = on;
-	else if (sBit == "stomp" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "stomp" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_STOMP] = on;
-	else if (sBit == "jackjs" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "jackjs" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_JACKJS] = on;
-	else if (sBit == "anchorjs" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "anchorjs" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ANCHORJS] = on;
-	else if (sBit == "icyworld" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "icyworld" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ICYWORLD] = on;
-	else if (sBit == "planted" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "planted" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_PLANTED] = on;
-	else if (sBit == "floored" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "floored" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_FLOORED] = on;
-	else if (sBit == "twister" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "twister" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_TWISTER] = on;
-	else if (sBit == "holdrolls" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "holdrolls" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_HOLDROLLS] = on;
-	else if (sBit == "nojumps" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "nojumps" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOJUMPS] = on;
-	else if (sBit == "nohands" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "nohands" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOHANDS] = on;
-	else if (sBit == "noquads" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "noquads" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOQUADS] = on;
 	else if (sBit == "reverse")
 		SET_FLOAT(fScrolls[SCROLL_REVERSE])
@@ -674,17 +674,17 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fScrolls[SCROLL_CROSS])
 	else if (sBit == "centered")
 		SET_FLOAT(fScrolls[SCROLL_CENTERED])
-	else if (sBit == "noholds" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "noholds" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOHOLDS] = on;
-	else if (sBit == "norolls" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "norolls" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOROLLS] = on;
-	else if (sBit == "nomines" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "nomines" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOMINES] = on;
-	else if (sBit == "nostretch" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "nostretch" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOSTRETCH] = on;
-	else if (sBit == "nolifts" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "nolifts" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOLIFTS] = on;
-	else if (sBit == "nofakes" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "nofakes" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOFAKES] = on;
 	else if (sBit == "dark")
 		SET_FLOAT(fDark)
@@ -698,7 +698,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fNoAttack)
 	else if (sBit == "playerautoplay")
 		SET_FLOAT(fPlayerAutoPlay)
-	else if (sBit == "passmark" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "passmark" && (forReplay || !DLMAN->gameplay))
 		SET_FLOAT(fPassmark)
 	else if (sBit == "overhead") {
 		m_fSkew = 0;
@@ -734,9 +734,9 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 	else if (sBit == "failarcade" || sBit == "failimmediate")
 		m_FailType = FailType_Immediate;
 	else if ((sBit == "failendofsong" || sBit == "failimmediatecontinue" ||
-			 sBit == "failatend") && (!DLMAN->gameplay || forReplay))
+			 sBit == "failatend") && (forReplay || !DLMAN->gameplay))
 		m_FailType = FailType_ImmediateContinue;
-	else if (sBit == "failoff" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "failoff" && (forReplay || !DLMAN->gameplay))
 		m_FailType = FailType_Off;
 	else if (sBit == "faildefault") {
 		PlayerOptions po;
@@ -746,7 +746,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_bMuteOnError = on;
 	else if (sBit == "random")
 		ChooseRandomModifiers();
-	else if (sBit == "practicemode" && (!DLMAN->gameplay || forReplay))
+	else if (sBit == "practicemode" && (forReplay || !DLMAN->gameplay))
 		m_bPractice = on;
 	// deprecated mods/left in for compatibility
 	else if (sBit == "converge")

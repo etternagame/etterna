@@ -273,7 +273,7 @@ class PlayerOptions
 	 *
 	 * If an empty string, it means to not change from the default. */
 	std::string m_sNoteSkin;
-	bool forReplay = false;
+	bool forReplay{ false };
 
 	void NextAccel();
 	void NextEffect();
