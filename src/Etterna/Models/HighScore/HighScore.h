@@ -74,6 +74,8 @@ struct HighScore
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector()
 	  -> std::vector<float>;
 	[[nodiscard]] auto GetInputDataVector() -> const std::vector<InputDataEvent>&;
+	[[nodiscard]] auto GetMissDataVector()
+	  -> const std::vector<MissReplayResult>&;
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
 	[[nodiscard]] auto GetReplayType() -> ReplayType;
@@ -122,6 +124,7 @@ struct HighScore
 	void SetStageSeed(int i);
 	void AddUploadedServer(const std::string& s);
 	void SetInputDataVector(const std::vector<InputDataEvent>& v);
+	void SetMissDataVector(const std::vector<MissReplayResult>& v);
 	void SetOffsetVector(const std::vector<float>& v);
 	void SetNoteRowVector(const std::vector<int>& v);
 	void SetTrackVector(const std::vector<int>& v);
@@ -206,6 +209,7 @@ struct HighScore
 		CheckReplayIsInit();
 		replay->PushSelf(L);
 	}
+	Replay* replay = nullptr;
 
   private:
 	struct HSImplUniquePtr {
@@ -224,7 +228,6 @@ struct HighScore
 	};
 	HSImplUniquePtr m_Impl;
 	void CheckReplayIsInit();
-	Replay* replay = nullptr;
 };
 
 /** @brief the picture taken of the high score. */

@@ -651,6 +651,7 @@ FillInHighScore(const PlayerStageStats& pss,
 
 	// Input data
 	hs.SetInputDataVector(pss.GetInputDataVector());
+	hs.SetMissDataVector(pss.GetMissDataVector());
 
 	// Normalize Judgments to J4 (regardless of wifepercent)
 	// If it fails, reset the replay data from pss and try one more time

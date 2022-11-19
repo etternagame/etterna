@@ -95,6 +95,31 @@ struct MineReplayResult
 	}
 };
 
+struct MissReplayResult
+{
+	int row;
+	int track; // column
+	TapNoteType tapNoteType = TapNoteType_Invalid;
+	TapNoteSubType tapNoteSubType = TapNoteSubType_Invalid;
+
+	MissReplayResult()
+	{
+		row = 0;
+		track = 0;
+	}
+
+	MissReplayResult(int row,
+					 int col,
+					 TapNoteType tapnotetype,
+					 TapNoteSubType tapnotesubtype)
+	  : row(row)
+	  , track(col)
+	  , tapNoteType(tapnotetype)
+	  , tapNoteSubType(tapnotesubtype)
+	{
+	}
+};
+
 struct HoldReplayResult
 {
 	int row;

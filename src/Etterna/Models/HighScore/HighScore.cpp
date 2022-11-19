@@ -848,6 +848,12 @@ HighScore::SetInputDataVector(const std::vector<InputDataEvent>& v)
 	replay->SetInputDataVector(v);
 }
 void
+HighScore::SetMissDataVector(const std::vector <MissReplayResult>& v)
+{
+	CheckReplayIsInit();
+	replay->SetMissReplayDataVector(v);
+}
+void
 HighScore::SetOffsetVector(const std::vector<float>& v)
 {
 	CheckReplayIsInit();
