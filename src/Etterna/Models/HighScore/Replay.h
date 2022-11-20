@@ -128,6 +128,19 @@ class Replay
 		InputData = v;
 	}
 
+	auto GetMissReplayDataVector() const -> const std::vector<MissReplayResult>&
+	{
+		return vMissReplayDataVector;
+	}
+	auto GetCopyOfMissReplayDataVector() const -> std::vector<MissReplayResult>
+	{
+		return vMissReplayDataVector;
+	}
+	void SetMissReplayDataVector(const std::vector<MissReplayResult>& v)
+	{
+		vMissReplayDataVector = v;
+	}
+
 	auto GetReplaySnapshotMap() const -> const std::map<int, ReplaySnapshot>&
 	{
 		return m_ReplaySnapshotMap;
@@ -193,12 +206,18 @@ class Replay
 	/// Will only work for InputData backed by loaded NoteData
 	auto FillInBlanksForInputData() -> bool;
 
+	/// Generate ReplayV2 Data from InputData.
+	/// The main use of this is for rescoring the classic way
 	auto GeneratePrimitiveVectors() -> bool;
+	/// Generate Noterow vector using online timestamp replay format
 	auto GenerateNoterowsFromTimestamps() -> bool;
+	/// Generate InputData using any ReplayData
 	auto GenerateInputData() -> bool;
+
+	/// Generate events used for playing back replay in gameplay
 	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
 
-	// For Stats and ReplaySnapshots
+	/// For Stats and ReplaySnapshots
 	auto GenerateJudgeInfoAndReplaySnapshots(int startingRow = 0,
 											 float timingScale = 1.F) -> bool;
 
@@ -213,6 +232,11 @@ class Replay
 
 	/// Offsets can be really weird - Remove all impossible offsets
 	void ValidateOffsets();
+
+	/// Used to validate that converting input data to replay data
+	/// produces correct and equal output vs replay data alone.
+	/// This is not meant to ever be used outside of debug.
+	void VerifyInputDataAndReplayData();
 
 	auto GetHighScore() -> HighScore*;
 	auto GetSteps() -> Steps*;
@@ -231,6 +255,7 @@ class Replay
 
 		// replay data
 		InputData.clear();
+		vMissReplayDataVector.clear();
 		vOffsetVector.clear();
 		vNoteRowVector.clear();
 		vTrackVector.clear();
@@ -240,6 +265,7 @@ class Replay
 		vOnlineReplayTimestampVector.clear();
 
 		InputData.shrink_to_fit();
+		vMissReplayDataVector.shrink_to_fit();
 		vOffsetVector.shrink_to_fit();
 		vNoteRowVector.shrink_to_fit();
 		vTrackVector.shrink_to_fit();
@@ -268,6 +294,9 @@ class Replay
 	/// Use this to set mods, as long as a scorekey is given.
 	auto SetHighScoreMods() -> void;
 
+	/// A check to see if the Replay has an RNG seed, if it uses shuffle.
+	auto CanSafelyTransformNoteData() -> bool;
+
 	std::map<int, ReplaySnapshot> m_ReplaySnapshotMap{};
 	JudgeInfo judgeInfo{};
 
@@ -283,14 +312,15 @@ class Replay
 	std::string mods{};
 	int rngSeed = 0;
 
-	std::vector<InputDataEvent> InputData;
-	std::vector<float> vOffsetVector;
-	std::vector<int> vNoteRowVector;
-	std::vector<int> vTrackVector;
-	std::vector<TapNoteType> vTapNoteTypeVector;
-	std::vector<HoldReplayResult> vHoldReplayDataVector;
-	std::vector<MineReplayResult> vMineReplayDataVector;
-	std::vector<float> vOnlineReplayTimestampVector;
+	std::vector<InputDataEvent> InputData{};
+	std::vector<MissReplayResult> vMissReplayDataVector{};
+	std::vector<float> vOffsetVector{};
+	std::vector<int> vNoteRowVector{};
+	std::vector<int> vTrackVector{};
+	std::vector<TapNoteType> vTapNoteTypeVector{};
+	std::vector<HoldReplayResult> vHoldReplayDataVector{};
+	std::vector<MineReplayResult> vMineReplayDataVector{};
+	std::vector<float> vOnlineReplayTimestampVector{};
 
 };
 
