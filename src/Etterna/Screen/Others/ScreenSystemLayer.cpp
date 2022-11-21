@@ -10,19 +10,6 @@
 #include "Etterna/Models/Misc/ThemeMetric.h"
 
 namespace {
-LocalizedString CREDITS_PRESS_START("ScreenSystemLayer", "CreditsPressStart");
-LocalizedString CREDITS_INSERT_CARD("ScreenSystemLayer", "CreditsInsertCard");
-LocalizedString CREDITS_CARD_TOO_LATE("ScreenSystemLayer",
-									  "CreditsCardTooLate");
-LocalizedString CREDITS_CARD_NO_NAME("ScreenSystemLayer", "CreditsCardNoName");
-LocalizedString CREDITS_CARD_READY("ScreenSystemLayer", "CreditsCardReady");
-LocalizedString CREDITS_CARD_CHECKING("ScreenSystemLayer",
-									  "CreditsCardChecking");
-LocalizedString CREDITS_CARD_REMOVED("ScreenSystemLayer", "CreditsCardRemoved");
-LocalizedString CREDITS_FREE_PLAY("ScreenSystemLayer", "CreditsFreePlay");
-LocalizedString CREDITS_CREDITS("ScreenSystemLayer", "CreditsCredits");
-LocalizedString CREDITS_MAX("ScreenSystemLayer", "CreditsMax");
-LocalizedString CREDITS_NOT_PRESENT("ScreenSystemLayer", "CreditsNotPresent");
 LocalizedString CREDITS_LOAD_FAILED("ScreenSystemLayer", "CreditsLoadFailed");
 LocalizedString CREDITS_LOADED_FROM_LAST_GOOD_APPEND(
   "ScreenSystemLayer",

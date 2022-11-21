@@ -9,35 +9,12 @@
 #include "Etterna/Globals/StepMania.h"
 #include "Etterna/Singletons/ThemeManager.h"
 
-static LocalizedString EDITS_CLEARED("ScreenServiceAction",
-									 "%d edits cleared, %d errors.");
-static LocalizedString STATS_NOT_SAVED(
-  "ScreenServiceAction",
-  "Stats not saved - No memory cards ready.");
-static LocalizedString STATS_NOT_LOADED(
-  "ScreenServiceAction",
-  "Stats not loaded - No memory cards ready.");
-static LocalizedString THERE_IS_NO_PROFILE(
-  "ScreenServiceAction",
-  "There is no machine profile on P%d card.");
-static LocalizedString PROFILE_CORRUPT(
-  "ScreenServiceAction",
-  "The profile on P%d card contains corrupt or tampered data.");
-
-static LocalizedString EDITS_NOT_COPIED(
-  "ScreenServiceAction",
-  "Edits not copied - No memory cards ready.");
-static LocalizedString COPIED_TO_CARD("ScreenServiceAction",
-									  "Copied to P%d card:");
 static LocalizedString COPIED("ScreenServiceAction", "%d copied");
 static LocalizedString OVERWRITTEN("ScreenServiceAction", "%d overwritten");
 static LocalizedString ADDED("ScreenServiceAction", "%d added");
 static LocalizedString IGNORED("ScreenServiceAction", "%d ignored");
 static LocalizedString FAILED("ScreenServiceAction", "%d failed");
 static LocalizedString DELETED("ScreenServiceAction", "%d deleted");
-
-static LocalizedString COPIED_FROM_CARD("ScreenServiceAction",
-										"Copied from P%d card:");
 
 static LocalizedString PREFERENCES_RESET("ScreenServiceAction",
 										 "Preferences reset.");
