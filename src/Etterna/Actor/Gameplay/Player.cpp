@@ -2115,7 +2115,7 @@ Player::Step(int col,
 					default:
 						if (pTN->type != TapNoteType_HoldHead &&
 							lastHoldHeadsSeconds[col] > fMusicSeconds) {
-							if (fSecondsFromExact > GetWindowSeconds(TW_W4)) {
+							if (fSecondsFromExact > TAP_IN_HOLD_REQ_SEC) {
 								break;
 							}
 						}
@@ -3194,6 +3194,11 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 		m_vpHoldJudgment[iTrack]->SetHoldJudgment(tn.HoldResult.hns);
 	}
 
+	// IMPORTANT:
+	// for drops: this row is the row which the drop occurs
+	// for misses: this row is the row at the end of the hold
+	// for anything on miniholds: this row is the row of the song position.
+	// that means for miniholds, row can be later than the actual hold end
 	AddHoldToReplayData(iTrack, &tn, iRow);
 
 	if (m_bSendJudgmentAndComboMessages) {
