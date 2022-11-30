@@ -401,7 +401,7 @@ local l = Def.ActorFrame {
 	},
 	-- Wife display
 	LoadFont("Common Normal") .. {
-		Name = "Wife",
+		Name = "OSU",
 		InitCommand = function(self)
 			self:xy(65, 15):zoom(0.6):halign(0):settext("")
 		end,
@@ -410,7 +410,7 @@ local l = Def.ActorFrame {
 				self:settextf("NA")
 			else
 				local wv = score:GetWifeVers()
-				local ws = "Wife" .. wv .. " J"
+				local ws = "OSU" .. " OD"
 				local judge = 4
 				if PREFSMAN:GetPreference("SortBySSRNormPercent") == false then
 					judge = table.find(ms.JudgeScalers, notShit.round(score:GetJudgeScale(), 2))

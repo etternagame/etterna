@@ -547,7 +547,7 @@ t[#t + 1] = Def.ActorFrame {
 		MintyFreshCommand = function(self)
 			if song and score then
 				local wv = score:GetWifeVers()
-				local ws = " W" .. wv
+				local ws = "OSU"
 				self:settext(ws):diffuse(byGrade(score:GetWifeGrade()))
 			else
 				self:settext("")
