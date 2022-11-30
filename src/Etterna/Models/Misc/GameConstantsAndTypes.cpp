@@ -112,6 +112,7 @@ struct tns_conversion_helper
 			conversion_map[TapNoteScoreNames[tns]] = tns;
 		}
 		// for backward compatibility
+		conversion_map["Miss"] = TNS_Miss;
 		conversion_map["Boo"] = TNS_W5;
 		conversion_map["Good"] = TNS_W4;
 		conversion_map["Great"] = TNS_W3;

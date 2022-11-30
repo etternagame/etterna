@@ -150,6 +150,8 @@ class Player : public ActorFrame
 	// Mina perma-temp stuff
 	std::vector<int> nerv;	// the non empty row vector where we are somehwere in
 	size_t nervpos = 0; // where we are in the non-empty row vector
+	float iActual = 0;
+	float iPossible = 0;
 	float maxwifescore = 0.F;
 	float curwifescore = 0.F;
 	float wifescorepersonalbest = 0.F;

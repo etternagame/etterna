@@ -43,10 +43,10 @@
 using std::max;
 using std::min;
 
-void
-TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
-						std::string& sNameOut,
-						float& defaultValueOut);
+//void
+//TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
+//						std::string& sNameOut,
+//						float& defaultValueOut);
 
 void
 TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
@@ -101,6 +101,8 @@ static Preference<float> m_fTimingWindowAdd("TimingWindowAdd", 0);
 static Preference1D<float> m_fTimingWindowSeconds(TimingWindowSecondsInit,
 												  NUM_TimingWindow);
 static Preference<float> m_fTimingWindowJump("TimingWindowJump", 0.25);
+static Preference<float> m_fMaxInputLatencySeconds("MaxInputLatencySeconds",
+												   0.0);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
 
 // moved out of being members of player.h
@@ -1643,11 +1645,6 @@ Player::GetClosestNote(int col,
 		}
 	}
 
-	/* Figure out which row is closer. */
-	if (fabsf(fNoteTime - fNextTime) > fabsf(fNoteTime - fPrevTime)) {
-		return iPrevIndex;
-	}
-
 	return iPrevIndex;
 }
 
@@ -2111,8 +2108,11 @@ Player::Step(int col,
 									   GetWindowSeconds(TW_W4)) {
 								score = TNS_W4;
 							} else if (fSecondsFromExact <=
-									   max(GetWindowSeconds(TW_W5), 0.18F)) {
+									   GetWindowSeconds(TW_W5)) {
 								score = TNS_W5;
+							} else if (fSecondsFromExact <=
+								       GetWindowSeconds(TW_Miss)) {
+									score = TNS_Miss;
 							}
 						}
 						break;
@@ -2904,22 +2904,14 @@ Player::HandleHoldScore(const TapNote& tn) const
 auto
 Player::GetMaxStepDistanceSeconds() -> float
 {
-	// The former behavior of this did not follow capped 180ms window logic.
-	// The result is that on higher judges, the late window was too small.
-	// Setting this hard to .18 x rate brings it back into line.
-	// (On that note, this should only be used in the context of music
-	// timing, because at a 3x rate this would expand by 3x correctly)
-	float fMax = .18F;
-	/*
 	float fMax = 0;
 	fMax = max(fMax, GetWindowSeconds(TW_W5));
 	fMax = max(fMax, GetWindowSeconds(TW_W4));
 	fMax = max(fMax, GetWindowSeconds(TW_W3));
 	fMax = max(fMax, GetWindowSeconds(TW_W2));
 	fMax = max(fMax, GetWindowSeconds(TW_W1));
-	*/
 	const auto f = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * fMax;
-	return f;
+	return f + m_fMaxInputLatencySeconds;
 }
 
 void
@@ -2972,14 +2964,14 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack, int iRow)
 
 		// Ms scoring implemenation - Mina
 		if (tns == TNS_HitMine) {
-			curwifescore += wife3_mine_hit_weight;
+			iActual += 0.f;
 		}
 
 		if (m_pPlayerStageStats != nullptr) {
-			if (maxwifescore == 0.F) {
-				msg.SetParam("WifePercent", 0);
+			if (iPossible == 0.F) {
+				//msg.SetParam("WifePercent", 0);
 			} else {
-				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+				//msg.SetParam("WifePercent", 100 * iActual / iPossible);
 			}
 
 			msg.SetParam("CurWifeScore", curwifescore);
@@ -3058,13 +3050,13 @@ Player::SetJudgment(int iRow,
 		// convenience - Mina
 
 		if (m_pPlayerStageStats != nullptr) {
-			if (tns == TNS_Miss) {
-				curwifescore += wife3_miss_weight;
-			} else {
+			if (tns != TNS_Miss) {
 				curwifescore +=
-				  wife3(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+				  //wife3(tn.result.fTapNoteOffset, m_fTimingWindowScale);
+				  osuOD8(tns);
 			}
-			maxwifescore += 2;
+			if (tns != TNS_HitMine && tns != TNS_AvoidMine && tns != TNS_CheckpointHit && tns != TNS_CheckpointMiss)
+				maxwifescore += 300;
 
 			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
 			msg.SetParam("CurWifeScore", curwifescore);
@@ -3089,11 +3081,15 @@ Player::SetJudgment(int iRow,
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
 				m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				m_pPlayerStageStats->m_fWifeScore =
-				  curwifescore / totalwifescore;
+				  curwifescore / totalwifescore * 150;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 			} else {
-				curwifescore -= 666.F; // hail satan
+				//curwifescore -= 666.F; // hail satan
+				m_pPlayerStageStats->m_fWifeScore =
+				  curwifescore / totalwifescore * 150;
+				m_pPlayerStageStats->CurWifeScore = curwifescore;
+				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 			}
 
 #endif

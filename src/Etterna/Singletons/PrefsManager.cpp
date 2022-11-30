@@ -1,5 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/FileTypes/IniFile.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "LuaManager.h"
 #include "Etterna/Models/Misc/Preference.h"
 #include "PrefsManager.h"

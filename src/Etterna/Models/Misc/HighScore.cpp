@@ -60,6 +60,7 @@ struct HighScoreImpl
 	Grade grade;
 	unsigned int iScore;
 	float fPercentDP;
+	float fPercentDP1;
 	float fWifeScore;
 	float fWifePoints;
 	float fSSRNormPercent;
@@ -177,6 +178,7 @@ HighScoreImpl::HighScoreImpl()
 	grade = Grade_Invalid;
 	iScore = 0;
 	fPercentDP = 0.F;
+	fPercentDP1 = 0.F;
 	fWifeScore = 0.F;
 	fWifePoints = 0.F;
 	fSSRNormPercent = 0.F;
@@ -225,6 +227,8 @@ HighScoreImpl::CreateEttNode() const -> XNode*
 
 	pNode->AppendChild("SSRCalcVersion", SSRCalcVersion);
 	pNode->AppendChild("Grade", GradeToString(GetWifeGrade()));
+	pNode->AppendChild("PercentDP", fPercentDP);
+	pNode->AppendChild("PercentDP", fPercentDP1);
 	pNode->AppendChild("WifeScore", fWifeScore);
 
 	if (fWifePoints > 0.F) {
@@ -302,6 +306,8 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 		grade = StringToGrade(s);
 	}
 	pNode->GetChildValue("WifeScore", fWifeScore);
+	pNode->GetChildValue("PercentDP", fPercentDP);
+	pNode->GetChildValue("PercentDP", fPercentDP1);
 	pNode->GetChildValue("WifePoints", fWifePoints);
 	pNode->GetChildValue("SSRNormPercent", fSSRNormPercent);
 	pNode->GetChildValue("Rate", fMusicRate);
@@ -1089,7 +1095,7 @@ HighScore::GetPercentDP() const -> float
 auto
 HighScore::GetWifeScore() const -> float
 {
-	return m_Impl->fWifeScore;
+	return m_Impl->fPercentDP;
 }
 auto
 HighScore::GetWifePoints() const -> float
@@ -1759,11 +1765,13 @@ HighScore::RescoreToWife3(float pmax) -> bool
 		}
 	}
 
-	const auto holdpoints = static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
-							 m_Impl->iHoldNoteScores[HNS_Missed]) *
-							wife3_hold_drop_weight;
+	const auto holdpoints =
+	  static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
+						 m_Impl->iHoldNoteScores[HNS_Missed]) *
+	  wife3_hold_drop_weight;
 	const auto minepoints =
-	  static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine]) * wife3_mine_hit_weight;
+	  static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine]) *
+	  wife3_mine_hit_weight;
 
 	p4 += holdpoints + minepoints;
 	pj += holdpoints + minepoints;
@@ -1793,17 +1801,17 @@ HighScore::RescoreToDPJudge(int x) -> float
 	for (auto& f : m_Impl->vOffsetVector) {
 		m2 += 2;
 		const auto x = std::abs(f * 1000.F);
-		if (x <= ts * 22.5F) {
+		if (x <= ts * 16.5F) {
 			++marv;
-		} else if (x <= ts * 45.F) {
+		} else if (x <= ts * 40.5F) {
 			++perf;
-		} else if (x <= ts * 90.F) {
+		} else if (x <= ts * 73.5F) {
 			++great;
-		} else if (x <= ts * 135.F) {
+		} else if (x <= ts * 103.5F) {
 			++good;
-		} else if (x <= ts * 180.F) {
+		} else if (x <= ts * 127.5F) {
 			++boo;
-		} else {
+		} else if (x <= ts * 164.5F) {
 			++miss;
 		}
 	}
@@ -1819,21 +1827,10 @@ HighScore::RescoreToDPJudge(int x) -> float
 	SetRescoreJudgeVector(vRescoreJudgeVector);
 
 	auto p = 0;
-	p += (marv + perf) * 2;
-	p += great * 1;
-	p += boo * -4;
-	p += miss * -8;
-	p += m_Impl->iHoldNoteScores[HNS_Held] * 6;
-	p += m_Impl->iTapNoteScores[TNS_HitMine] * -8;
-	p += (m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed]) *
-		 -6;
+	p = (50 * boo + 100 * good + 200 * great + 300 * (marv + perf)) / (300 * (miss + boo + good + great + perf + marv));
 
-	auto m = static_cast<float>(m_Impl->vOffsetVector.size() * 2);
-	m += static_cast<float>(m_Impl->radarValues[RadarCategory_Holds] +
-		  m_Impl->radarValues[RadarCategory_Rolls]) *
-		 6;
-	return static_cast<float>(p) / m;
+	return p;
+	m_Impl->fPercentDP = p;
 }
 
 auto
@@ -1961,31 +1958,7 @@ HighScore::WriteInputData() -> bool
 auto
 HighScore::ConvertDpToWife() -> float
 {
-	if (m_Impl->fWifeScore > 0.F) {
-		if (PREFSMAN->m_bSortBySSRNorm) {
-			return m_Impl->fSSRNormPercent;
-		}
-		return m_Impl->fWifeScore;
-	}
-
-	if (m_Impl->grade == Grade_Failed) {
-		return 0.F;
-	}
-
-	const auto ts = 1.F;
-	auto estpoints = 0.F;
-	auto maxpoints = 0.F;
-	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W1]) * wife3(.01125F, ts);
-	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W2]) * wife3(.03375F, ts);
-	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W3]) * wife3(.0675F, ts);
-	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W4]) * wife3(.1125F, ts);
-	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_W5]) * wife3(.1575F, ts);
-	estpoints += static_cast<float>(m_Impl->iTapNoteScores[TNS_Miss]) * wife3_miss_weight;
-
-	FOREACH_ENUM(TapNoteScore, tns)
-	maxpoints += static_cast<float>(2 * m_Impl->iTapNoteScores[tns]);
-
-	return estpoints / maxpoints;
+	return m_Impl->fPercentDP;
 }
 
 // lua start
