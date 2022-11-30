@@ -1119,7 +1119,7 @@ ScoresForChart::CreateNode(const string& ck) const -> XNode*
 auto
 ScoreManager::CreateNode(const string& profileID) const -> XNode*
 {
-	auto* o = new XNode("PlayerScores");
+	auto* o = new XNode("OsuOD8Scores");
 	for (const auto& ch : pscores.find(profileID)->second) {
 		auto* const node = ch.second.CreateNode(ch.first);
 		if (!node->ChildrenEmpty()) {

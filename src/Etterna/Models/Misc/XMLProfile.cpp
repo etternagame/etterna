@@ -491,7 +491,7 @@ XMLProfile::LoadEttXmlFromNode(const XNode* xml)
 	if (play)
 		LoadPlaylistsFromNode(play);
 
-	auto scores = xml->GetChild("PlayerScores");
+	auto scores = xml->GetChild("OsuOD8Scores");
 	if (scores)
 		LoadEttScoresFromNode(scores);
 
