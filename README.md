@@ -1,4 +1,6 @@
-osu scoring system and gameplay in etterna
+osu scoring system and gameplay in etterna (only supports judge4 for now)
+
+judge 4 = od8
 
 do not use your old save file!
 
