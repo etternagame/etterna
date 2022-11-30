@@ -839,7 +839,7 @@ bool
 DownloadManager::ShouldUploadScores()
 {
 	return LoggedIn() && automaticSync &&
-		   GamePreferences::m_AutoPlay == PC_HUMAN;
+		   GamePreferences::m_AutoPlay != PC_HUMAN;
 }
 inline void
 SetCURLPOSTScore(CURL*& curlHandle,

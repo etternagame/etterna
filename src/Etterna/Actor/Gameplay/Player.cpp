@@ -57,19 +57,22 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 			   TimingWindowToString(static_cast<TimingWindow>(i));
 	switch (i) {
 		case TW_W1:
-			defaultValueOut = 0.0225F;
+			defaultValueOut = 0.0165F;
 			break;
 		case TW_W2:
-			defaultValueOut = 0.045F;
+			defaultValueOut = 0.0405F;
 			break;
 		case TW_W3:
-			defaultValueOut = 0.090F;
+			defaultValueOut = 0.0735F;
 			break;
 		case TW_W4:
-			defaultValueOut = 0.135F;
+			defaultValueOut = 0.1035F;
 			break;
 		case TW_W5:
-			defaultValueOut = 0.180F;
+			defaultValueOut = 0.1275F;
+			break;
+		case TW_Miss:
+			defaultValueOut = 0.1645F;
 			break;
 		case TW_Mine:
 			// ~same as j5 great, the explanation for this is quite long but
@@ -1645,7 +1648,7 @@ Player::GetClosestNote(int col,
 		return iPrevIndex;
 	}
 
-	return iNextIndex;
+	return iPrevIndex;
 }
 
 auto

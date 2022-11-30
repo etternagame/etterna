@@ -22,9 +22,9 @@ static HBITMAP g_hBitmap = nullptr;
 
 std::string text[3];
 const float FONT_HEIGHT = 12;
-const std::string FONT_FILE = "Data/Roboto-Light.ttf";
-const std::string FONT_NAME = "Roboto Light";
-const auto FONT_COLOR = RGB(240, 240, 240);
+const std::string FONT_FILE = "tekton-pro-bold-extended.otf";
+const std::string FONT_NAME = "tekton-pro-bold-extended";
+const auto FONT_COLOR = RGB(0, 0, 0);
 const int FONT_Y = 98;
 const int FONT_X = 20;
 LoadingWindow_Win32* w;

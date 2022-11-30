@@ -195,12 +195,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Etterna Team \n http://etternaonline.com/"
-            VALUE "FileDescription", "Etterna"
+            VALUE "FileDescription", "ShanghaiMoon"
             VALUE "FileVersion", "0, 0, 6, 0"
-            VALUE "InternalName", "Etterna"
+            VALUE "InternalName", "ShanghaiMoon"
             VALUE "LegalCopyright", "Copyright ? 2016-2018"
-            VALUE "OriginalFilename", "Etterna.exe"
-            VALUE "ProductName", "Etterna"
+            VALUE "OriginalFilename", "ShanghaiMoon.exe"
+            VALUE "ProductName", "ShanghaiMoon"
             VALUE "ProductVersion", "0, 0, 6, 0"
         END
     END

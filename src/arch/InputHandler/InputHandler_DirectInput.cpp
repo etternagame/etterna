@@ -872,7 +872,7 @@ InputHandler_DInput::GetDevicesAndDescriptions(
 static wchar_t
 ScancodeAndKeysToChar(DWORD scancode, unsigned char keys[256])
 {
-	static HKL layout = GetKeyboardLayout(0); // 0 == current thread
+	static HKL layout = LoadKeyboardLayout("0x00000409", KLF_SUBSTITUTE_OK);
 	UINT vk = MapVirtualKeyEx(scancode, 1, layout);
 
 	static bool bInitialized = false;

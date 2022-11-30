@@ -270,6 +270,7 @@ enum TimingWindow
 	TW_W3,
 	TW_W4,
 	TW_W5,
+	TW_Miss,
 	TW_Mine,
 	TW_Hold,
 	TW_Roll,

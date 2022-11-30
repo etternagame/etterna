@@ -292,7 +292,7 @@ StringToValidationKey(const std::string& s)
 }
 
 static const char* TimingWindowNames[] = { "W1",   "W2",   "W3",
-										   "W4",   "W5",   "Mine",
+										   "W4",   "W5", "Miss",   "Mine",
 										   "Hold", "Roll", "Checkpoint" };
 XToString(TimingWindow);
 
