@@ -1,2 +1,0 @@
-_theFont 24px - microsoft yi baiti Bold 24px numbers & darker grotesque Bold 24px text & bokutachinogothic 24px symbols2+3
-_theFont 48px - microsoft yi baiti Bold 48px numbers & darker grotesque Bold 48px text & bokutachinogothic 48px symbols2+3

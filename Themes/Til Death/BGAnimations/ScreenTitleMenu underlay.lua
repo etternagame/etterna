@@ -45,7 +45,7 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 		self:diffusebottomedge(Saturation(getMainColor("positive"), 0.8))
 	end,
 	OnCommand=function(self)
-		self:settext("Etterna")
+		self:settext("shnghmn")
 	end,
 	MouseOverCommand = function(self)
 		self:diffusealpha(0.6)
@@ -142,7 +142,7 @@ t[#t + 1] = Def.ActorFrame {
 			local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
 			local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
 			if latest and latest > current then
-				gameneedsupdating = true
+				gameneedsupdating = false
 			end
 		end,
 		OnCommand = function(self)

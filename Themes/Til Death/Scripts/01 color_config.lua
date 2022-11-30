@@ -2,17 +2,17 @@ local defaultConfig = {
 	title = {
 		BG_Left = "#161515",
 		BG_Right = "#222222",
-		Line_Left = "#b87cf0",
-		Line_Right = "#59307f"
+		Line_Left = "#8E8E8E",
+		Line_Right = "#8E8E8E"
 	},
 	main = {
-		highlight = "#614080",
+		highlight = "#8E8E8E",
 		frames = "#000111",
 		tabs = "#2E2E2E99",
 		enabled = "#4CBB17",
 		disabled = "#666666",
 		negative = "#FF9999",
-		positive = "#9654FD"
+		positive = "##8E8E8E"
 	},
 	leaderboard = {
 		background = "#111111CC",
