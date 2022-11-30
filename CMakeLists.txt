@@ -46,7 +46,7 @@ set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires depot_to
 if(NOT DEFINED ENV{CI})
     set_target_properties(Etterna PROPERTIES
             RUNTIME_OUTPUT_NAME_DEBUG "Etterna-debug"
-            RUNTIME_OUTPUT_NAME_RELEASE "Etterna"
+            RUNTIME_OUTPUT_NAME_RELEASE "ShanghaiMoon"
             RUNTIME_OUTPUT_NAME_MINSIZEREL "Etterna-MinSizeRelease"
             RUNTIME_OUTPUT_NAME_RELWITHDEBINFO "Etterna-RelWithDebInfo")
 endif()

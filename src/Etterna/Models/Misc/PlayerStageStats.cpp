@@ -322,7 +322,7 @@ PlayerStageStats::FormatPercentScore(float fPercentDancePoints)
 float
 PlayerStageStats::GetPercentDancePoints() const
 {
-	return MakePercentScore(m_iActualDancePoints, m_iPossibleDancePoints);
+	return MakePercentScore(CurWifeScore, MaxWifeScore);
 }
 float
 PlayerStageStats::GetWifeScore() const
