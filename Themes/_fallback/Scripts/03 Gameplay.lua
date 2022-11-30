@@ -114,22 +114,22 @@ end
 -- [en]
 function ComboContinue()
 	local Continue = {
-		dance = "TapNoteScore_W3",
-		pump = "TapNoteScore_W3",
-		beat = "TapNoteScore_W3",
-		kb7 = "TapNoteScore_W3",
+		dance = "TapNoteScore_W5",
+		pump = "TapNoteScore_W5",
+		beat = "TapNoteScore_W5",
+		kb7 = "TapNoteScore_W5",
 	}
-	return Continue[CurGameName()] or "TapNoteScore_W3"
+	return Continue[CurGameName()] or "TapNoteScore_W5"
 end
 
 function ComboMaintain()
 	local Maintain = {
-		dance = "TapNoteScore_W3",
-		pump = "TapNoteScore_W3",
-		beat = "TapNoteScore_W3",
-		kb7 = "TapNoteScore_W3",
+		dance = "TapNoteScore_W5",
+		pump = "TapNoteScore_W5",
+		beat = "TapNoteScore_W5",
+		kb7 = "TapNoteScore_W5",
 	}
-	return Maintain[CurGameName()] or "TapNoteScore_W3"
+	return Maintain[CurGameName()] or "TapNoteScore_W5"
 end
 
 local ComboThresholds = {
