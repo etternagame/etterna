@@ -3,6 +3,7 @@
 .vscode
 .vs
 .idea
+.cache
 /[Bb]uild
 
 # Ignore executables (Linux, macOS, Windows)
