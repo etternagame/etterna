@@ -72,11 +72,11 @@ public:
     }
 
     /// Destructor
-    ~server<config>() {}
+    ~server() {}
 
 #ifdef _WEBSOCKETPP_DEFAULT_DELETE_FUNCTIONS_
     // no copy constructor because endpoints are not copyable
-    server<config>(server<config> &) = delete;
+    server(server<config> &) = delete;
 
     // no copy assignment operator because endpoints are not copyable
     server<config> & operator=(server<config> const &) = delete;
