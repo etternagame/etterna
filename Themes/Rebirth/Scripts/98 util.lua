@@ -47,9 +47,9 @@ function nameAllChildren(actorFrame)
             local space = spaces(buffer)
 
             if self:GetName() == nil or self:GetName() == "" then
-                s = s .. "\n" .. space .. "[no name]"
+                s = space .. "[no name]" .. "\n" .. s
             else
-                s = s .. "\n" .. space .. self:GetName()
+                s = space .. self:GetName() .. "\n" .. s
             end
         end
     )
