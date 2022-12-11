@@ -2068,7 +2068,7 @@ Player::Step(int col,
 			  col,
 			  fMusicSeconds,
 			  iRowOfOverlappingNoteOrRow,
-			  fNoteOffset,
+			  -fNoteOffset,
 			  pTN->type,
 			  pTN->subType);
 		}
