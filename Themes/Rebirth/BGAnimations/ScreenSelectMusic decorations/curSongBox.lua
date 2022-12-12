@@ -418,12 +418,9 @@ t[#t+1] = Def.ActorFrame {
             self:maxwidth(actuals.BPMWidth / textsize - textzoomFudge)
         end,
         SetCommand = function(self, params)
-            -- it appears that SetFromSteps is broken...
-            -- note to self.
-            -- wow i forgot about this. time to forget about it again -11 months later
             if params.steps then
                 self:visible(true)
-                self:SetFromSong(params.song)
+                self:SetFromSteps(params.steps)
             else
                 self:visible(false)
             end
