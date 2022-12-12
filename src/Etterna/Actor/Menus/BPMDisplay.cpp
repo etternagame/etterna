@@ -204,6 +204,7 @@ BPMDisplay::SetBpmFromSteps(const Steps* pSteps)
 	pSteps->GetTimingData()->GetActualBPM(fMinBPM, fMaxBPM);
 	bpms.Add(fMinBPM);
 	bpms.Add(fMaxBPM);
+	SetBPMRange(bpms);
 	m_fCycleTime = 1.0f;
 }
 
