@@ -181,6 +181,7 @@ local defaultConfig = {
     ComboText = true,
     ComboGlow = true,
     ComboLabel = true,
+    ComboTweens = false,
     CBHighlight = false,
 
     ConvertedAspectRatio = false, -- defaults false so that we can load and convert element positions, then set true

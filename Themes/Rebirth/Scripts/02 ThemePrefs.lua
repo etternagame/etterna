@@ -177,6 +177,34 @@ function JudgmentAnimations()
     return t
 end
 
+function ComboTweens()
+    local t = {
+        Name = "ComboTweens",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+        LoadSelections = function(self, list, pn)
+            local pref = playerConfig:get_data().ComboTweens
+            if pref then
+                list[2] = true
+            else
+                list[1] = true
+            end
+        end,
+        SaveSelections = function(self, list, pn)
+            local value
+            value = list[2]
+            playerConfig:get_data().ComboTweens = value
+            playerConfig:set_dirty()
+            playerConfig:save()
+        end
+    }
+    setmetatable(t, t)
+    return t
+end
+
 function ComboText()
     local t = {
         Name = "ComboText",
