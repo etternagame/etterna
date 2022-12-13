@@ -65,12 +65,24 @@ class NoteSkinManager
 
 	auto GetMetric(const std::string& sButtonName, const std::string& sValue)
 	  -> std::string;
+	auto GetMetric(const std::string& sButtonName,
+				   const std::string& sValue,
+				   const std::string& sFallbackValue) -> std::string;
 	auto GetMetricI(const std::string& sButtonName,
 					const std::string& sValueName) -> int;
+	auto GetMetricI(const std::string& sButtonName,
+				   const std::string& sValueName,
+				   const std::string& sDefaultValue) -> int;
 	auto GetMetricF(const std::string& sButtonName,
 					const std::string& sValueName) -> float;
+	auto GetMetricF(const std::string& sButtonName,
+					 const std::string& sValueName,
+					 const std::string& sDefaultValue) -> float;
 	auto GetMetricB(const std::string& sButtonName,
 					const std::string& sValueName) -> bool;
+	auto GetMetricB(const std::string& sButtonName,
+					const std::string& sValueName,
+					const std::string& sDefaultValue) -> bool;
 	auto GetMetricA(const std::string& sButtonName,
 					const std::string& sValueName) -> apActorCommands;
 
