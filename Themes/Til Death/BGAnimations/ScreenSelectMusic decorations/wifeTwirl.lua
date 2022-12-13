@@ -650,10 +650,10 @@ t[#t + 1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(capWideScale(get43size(384), 400) + 62, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50):maxwidth(50)
 		end,
-		MortyFartsCommand = function(self)
+		MintyFreshCommand = function(self)
 			if song then
 				self:visible(true)
-				self:SetFromSong(song)
+				self:SetFromSteps(steps)
 			else
 				self:visible(false)
 			end
