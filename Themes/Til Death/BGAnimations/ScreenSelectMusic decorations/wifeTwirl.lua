@@ -753,15 +753,17 @@ t[#t + 1] =LoadFont("Common Normal") .. {
 }
 
 -- cdtitle
-t[#t + 1] = Def.Sprite {
+t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	InitCommand = function(self)
-		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255)):halign(0.5):valign(1)
+		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255))
+		self:halign(0.5):valign(1)
 	end,
 	CurrentStyleChangedMessageCommand = function(self)
 		self:playcommand("MortyFarts")
 	end,
 	MortyFartsCommand = function(self)
 		self:finishtweening()
+		self.song = song
 		if song then
 			if song:HasCDTitle() then
 				self:visible(true)
@@ -788,19 +790,45 @@ t[#t + 1] = Def.Sprite {
 		else
 			self:zoom(1)
 		end
+		if isOver(self) then
+			self:playcommand("ToolTip")
+		end
+	end,
+	ToolTipCommand = function(self)
+		if isOver(self) then
+			if self.song and song:HasCDTitle() and self:GetVisible() then
+				local auth = self.song:GetOrTryAtLeastToGetSimfileAuthor()
+				if auth and #auth > 0 and auth ~= "Author Unknown" then
+					TOOLTIP:SetText(auth)
+					TOOLTIP:Show()
+				else
+					TOOLTIP:Hide()
+				end
+			else
+				TOOLTIP:Hide()
+			end
+		end
 	end,
 	ChartPreviewOnMessageCommand = function(self)
 		if not itsOn then
 			self:addx(capWideScale(34, 0))
 			itsOn = true
 		end
+		self:playcommand("ToolTip")
 	end,
 	ChartPreviewOffMessageCommand = function(self)
 		if itsOn then
 			self:addx(capWideScale(-34, 0))
 			itsOn = false
 		end
-	end
+		self:playcommand("ToolTip")
+	end,
+	MouseOverCommand = function(self)
+		self:playcommand("ToolTip")
+	end,
+	MouseOutCommand = function(self)
+		TOOLTIP:Hide()
+	end,
 }
 
 t[#t + 1] = Def.Sprite {
