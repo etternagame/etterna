@@ -1,7 +1,8 @@
 local mods = {}
 
 local translated_info = {
-	InvalidMods = THEME:GetString("ScreenGameplay", "InvalidMods")
+	InvalidMods = THEME:GetString("ScreenGameplay", "InvalidMods"),
+	By = THEME:GetString("ScreenGameplay", "CreatedBy")
 }
 
 -- splashy thing when you first start a song
@@ -73,7 +74,7 @@ local t = Def.ActorFrame {
 		end,
 		BeginCommand = function(self)
 			local auth = GAMESTATE:GetCurrentSong():GetOrTryAtLeastToGetSimfileAuthor()
-			self:settextf("By: %s", auth)
+			self:settextf("%s: %s", translated_info["By"], auth)
 		end,
 		OnCommand = function(self)
 			self:smooth(0.5):diffusealpha(1):sleep(1):smooth(0.3):smooth(0.4):diffusealpha(0)
