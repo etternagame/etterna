@@ -272,7 +272,7 @@ class PlayerOptions
 	 * @brief The Noteskin to use.
 	 *
 	 * If an empty string, it means to not change from the default. */
-	std::string m_sNoteSkin;
+	std::string m_sNoteSkin{};
 	bool forReplay{ false };
 
 	void NextAccel();
