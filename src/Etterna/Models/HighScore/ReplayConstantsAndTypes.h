@@ -48,6 +48,11 @@ struct InputDataEvent
 	// really only applies for holds and rolls
 	TapNoteSubType nearestTapNoteSubType = TapNoteSubType_Invalid;
 
+	// for inputdata remappings only
+	int reprioritizedNearestNoterow = -1;
+	float reprioritizedOffsetFromNearest = 1.F;
+	TapNoteType reprioritizedNearestTapNoteType = TapNoteType_Invalid;
+	TapNoteSubType reprioritizedNearestTapNoteSubType = TapNoteSubType_Invalid;
 
 	InputDataEvent()
 	{
@@ -58,7 +63,13 @@ struct InputDataEvent
 		offsetFromNearest = 0.F;
 	}
 
-	InputDataEvent(bool press, int col, float songPos, int row, float offset, TapNoteType tapnotetype, TapNoteSubType tapnotesubtype)
+	InputDataEvent(bool press,
+				   int col,
+				   float songPos,
+				   int row,
+				   float offset,
+				   TapNoteType tapnotetype,
+				   TapNoteSubType tapnotesubtype)
 	  : is_press(press)
 	  , column(col)
 	  , songPositionSeconds(songPos)
@@ -77,6 +88,11 @@ struct InputDataEvent
 		offsetFromNearest = other.offsetFromNearest;
 		nearestTapNoteType = other.nearestTapNoteType;
 		nearestTapNoteSubType = other.nearestTapNoteSubType;
+		reprioritizedNearestNoterow = other.reprioritizedNearestNoterow;
+		reprioritizedOffsetFromNearest = other.reprioritizedOffsetFromNearest;
+		reprioritizedNearestTapNoteType = other.reprioritizedNearestTapNoteType;
+		reprioritizedNearestTapNoteSubType =
+		  other.reprioritizedNearestTapNoteSubType;
 	}
 
 	/// Lua

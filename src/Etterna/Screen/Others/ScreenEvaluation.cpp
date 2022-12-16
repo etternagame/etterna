@@ -276,21 +276,31 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 
 		// allow either a highscore or nothing, which defaults to most recent
 		HighScore* hs;
-		if (lua_isnil(L, 3))
+		if (lua_isnoneornil(L, 3))
 			hs = SCOREMAN->GetMostRecentScore();
 		else
 			hs = Luna<HighScore>::check(L, 3);
 		
 		float ts = FArg(2);
+		auto replay = REPLAYS->GetActiveReplay();
+
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
-		if (hs->GetChordCohesion() || potmp.ContainsTransformOrTurn()) {
+		if (hs->GetChordCohesion() || !replay->CanSafelyTransformNoteData()) {
+			Locator::getLogger()->info(
+			  "The replay could not be rescored because of RNG mods or CC on");
 			lua_pushboolean(L, false);
 			return 1;
 		}
+
+		bool useReprioritizedNoterows = false;
+		if (!lua_isnoneornil(L, 4)) {
+			useReprioritizedNoterows = BArg(4);
+		}
+
+		replay->SetUseReprioritizedNoteRows(useReprioritizedNoterows);
 		REPLAYS->InitReplayPlaybackForScore(hs, ts);
-		REPLAYS->SetPlayerStageStatsForReplay(
-		  *REPLAYS->GetActiveReplay(), pPSS, ts);
+		REPLAYS->SetPlayerStageStatsForReplay(*replay, pPSS, ts);
 		lua_pushboolean(L, true);
 		return 1;
 	}
@@ -315,7 +325,6 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		} else {
 			lua_pushnumber(L, Player::GetTimingWindowScale());
 		}
-		Locator::getLogger()->info("Got replay judge");
 		return 1;
 	}
 	static int GetReplayModifiers(T* p, lua_State* L)
@@ -327,7 +336,6 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		} else {
 			lua_pushnil(L);
 		}
-		Locator::getLogger()->info("Got replay modifiers");
 		return 1;
 	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)

@@ -1033,7 +1033,7 @@ Replay::FillInBlanksForInputData() -> bool
 	if (modsWillBreakNotedataComparison) {
 		// attempt to use old replay data...
 		// (not going to try to make this work with ReplayV1)
-		if (LoadReplayDataFull()) {
+		if (!useReprioritizedNoterows && LoadReplayDataFull()) {
 			for (auto i = 0; i < vOffsetVector.size(); i++) {
 				// misses are actually 1000ms, but use 180 instead
 				// to retroactively punish j1 players
@@ -1218,14 +1218,17 @@ Replay::GenerateReplayV2DataPresumptively() -> bool
 auto
 Replay::GeneratePrimitiveVectors() -> bool
 {
-	if (LoadReplayDataFull()) {
-		// already done
-		return true;
-	}
+	// when reprioritizing noterows, temporarily overwrite the saved data
+	if (!useReprioritizedNoterows) {
+		if (LoadReplayDataFull()) {
+			// already done
+			return true;
+		}
 
-	if (LoadReplayDataBasic()) {
-		// we have replay data but not column data
-		return GenerateReplayV2DataPresumptively();
+		if (LoadReplayDataBasic()) {
+			// we have replay data but not column data
+			return GenerateReplayV2DataPresumptively();
+		}
 	}
 	
 	if (!LoadInputData()) {
@@ -1241,6 +1244,16 @@ Replay::GeneratePrimitiveVectors() -> bool
 		  "data is missing info that could not be recovered",
 		  scoreKey);
 		return false;
+	}
+
+	if (useReprioritizedNoterows) {
+		if (!ReprioritizeInputData()) {
+			Locator::getLogger()->warn(
+			  "Failed to generate primitive vectors for score {} because could "
+			  "not reprioritize input data noterows",
+			  scoreKey);
+			return false;
+		}
 	}
 
 	auto* td = GetTimingData();
@@ -1265,7 +1278,11 @@ Replay::GeneratePrimitiveVectors() -> bool
 	// column numbers to row numbers
 	// for hold replay data
 	std::unordered_map<int, std::set<int>> holdDroppedMap{};
-	for (auto& hrr : vHoldReplayDataVector) {
+	auto& holdReplayData =
+	  useReprioritizedNoterows ? vReprioritizedHoldData : vHoldReplayDataVector;
+	auto& missReplayData =
+	  useReprioritizedNoterows ? vReprioritizedMissData : vMissReplayDataVector;
+	for (auto& hrr : holdReplayData) {
 		auto& row = hrr.row;
 		auto& track = hrr.track;
 
@@ -1281,13 +1298,23 @@ Replay::GeneratePrimitiveVectors() -> bool
 	std::vector<TapNoteType> vTapNoteTypeVector{};
 
 	for (auto& d : InputData) {
-		if (d.nearestTapNoterow < 0) {
+		if ((useReprioritizedNoterows && d.reprioritizedNearestNoterow < 0) ||
+			(!useReprioritizedNoterows && d.nearestTapNoterow < 0)) {
 			// notes cannot be before row 0 ever in any condition
 			continue;
 		}
 
-		auto noterow = d.nearestTapNoterow;
-		auto time = d.songPositionSeconds + (d.offsetFromNearest * fMusicRate);
+		auto noterow = useReprioritizedNoterows ? d.reprioritizedNearestNoterow
+												: d.nearestTapNoterow;
+		auto nearestNoterow = noterow;
+		auto offset = useReprioritizedNoterows
+						? d.reprioritizedOffsetFromNearest
+						: d.offsetFromNearest;
+		auto track = d.column;
+		auto tnt = useReprioritizedNoterows ? d.reprioritizedNearestTapNoteType
+											: d.nearestTapNoteType;
+
+		auto time = d.songPositionSeconds + (offset * fMusicRate);
 
 		if (noterow == -1) {
 			// this shouldnt be necessary ... but what if?
@@ -1296,19 +1323,16 @@ Replay::GeneratePrimitiveVectors() -> bool
 		} else {
 			// galaxy brain (only used for holds anyways)
 			time = td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(noterow)) +
-				   (d.offsetFromNearest * fMusicRate);
+				   (offset * fMusicRate);
 		}
 
 
-		auto track = d.column;
-		auto tnt = d.nearestTapNoteType;
-		auto offset = d.offsetFromNearest;
 
 		// dont judge a lift if it isnt a lift
-		if (!d.is_press && d.nearestTapNoteType != TapNoteType_Lift) {
+		if (!d.is_press && tnt != TapNoteType_Lift) {
 			continue;
-		} else if (d.nearestTapNoteType == TapNoteType_Empty ||
-				   d.nearestTapNoteType == TapNoteType_Invalid) {
+		} else if (tnt == TapNoteType_Empty ||
+				   tnt == TapNoteType_Invalid) {
 			continue;
 		}
 
@@ -1318,7 +1342,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 		}
 
 		// mines have a different timing window
-		if (d.nearestTapNoteType == TapNoteType_Mine &&
+		if (tnt == TapNoteType_Mine &&
 			fabsf(offset) > MINE_WINDOW_SEC) {
 			continue;
 		}
@@ -1330,7 +1354,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 		// check to see if hold is dead
 
 		/*
-		Locator::getLogger()->info("check hold? {} {} {} {}",
+		Locator::getLogger()->debug("check hold? {} {} {} {}",
 								   d.songPositionSeconds,
 								   noterow,
 								   thisNoterow,
@@ -1342,11 +1366,13 @@ Replay::GeneratePrimitiveVectors() -> bool
 			// the tap occurs within a hold.
 			bool holdDead = false;
 
-			Locator::getLogger()->info("Hold here - {} {} head {} ntnr {}",
+			/*
+			Locator::getLogger()->debug("Hold here - {} {} head {} ntnr {}",
 									   noterow,
 									   track,
 									   headRow,
 									   d.nearestTapNoterow);
+			*/
 
 			// is the hold alive?
 			// note: for the general case
@@ -1363,16 +1389,22 @@ Replay::GeneratePrimitiveVectors() -> bool
 				if (*it > headRow && *it < noterow && *it <= headRow + dur) {
 					// the hold should have died a while ago
 					holdDead = true;
-					Locator::getLogger()->info(
+
+					/*
+					Locator::getLogger()->debug(
 					  "Hold is dead because it was dropped");
+					*/
 				} else {
 					if (holdDroppedMap.at(track).count(
 						  headRow + dur)) {
 						// this means the hold was dropped at the end
 						// likely due to the hold head being missed
 						holdDead = true;
-						Locator::getLogger()->info(
+
+						/*
+						Locator::getLogger()->debug(
 						  "Hold is dead because it was missed");
+						*/
 					}
 				}
 			} else {
@@ -1397,14 +1429,14 @@ Replay::GeneratePrimitiveVectors() -> bool
 			// only early hits to matter)
 			// check that the headrow is greater because it is possible
 			// to judge twice backwards by hitting extremely fast and late
-			if (d.nearestTapNoterow > headRow && !holdDead &&
+			if (nearestNoterow > headRow && !holdDead &&
 				offsetFromNextNote > TAP_IN_HOLD_REQ_SEC) {
-				Locator::getLogger()->info(
+				Locator::getLogger()->debug(
 				  "Tap ignored because hold alive and "
 				  "in window? {} {} | {} {} | {}",
-				  d.offsetFromNearest,
+				  offset,
 				  offsetFromNextNote,
-				  d.nearestTapNoterow,
+				  nearestNoterow,
 				  nextRow,
 				  noterow);
 				continue;
@@ -1430,7 +1462,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 		vTapNoteTypeVector.emplace_back(tnt);
 	}
 
-	for (auto& d : vMissReplayDataVector) {
+	for (auto& d : missReplayData) {
 		auto offset = 1.F;
 		auto noterow = d.row;
 		auto track = d.track;
@@ -1507,7 +1539,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 		}
 
 		mustResaveReplaydata = true;
-		vMissReplayDataVector.emplace_back(row, track, it->type, it->subType);
+		missReplayData.emplace_back(row, track, it->type, it->subType);
 		vOffsetVector.emplace_back(1.F);
 		vNoteRowVector.emplace_back(row);
 		vTrackVector.emplace_back(track);
@@ -2377,6 +2409,212 @@ Replay::VerifyInputDataAndReplayData()
 }
 
 auto
+Replay::ReprioritizeInputData() -> bool
+{
+	if (!LoadInputData()) {
+		Locator::getLogger()->warn(
+		  "Failed to reprioritize input data because input data for score {} "
+		  "could not be loaded",
+		  scoreKey);
+		return false;
+	}
+
+	// early exit
+	// for now until better reprioritization is important
+	{
+		auto fart = 0;
+		for (auto& d : InputData) {
+			if (d.nearestTapNoterow != -1) {
+				fart++;
+			}
+			if (d.reprioritizedNearestNoterow != -1) {
+				return true;
+			}
+			if (fart > 10) {
+				// after a lot of notes that havent been
+				// reprioritized have been seen, just forget about early exit
+				break;
+			}
+		}
+	}
+
+	if (!ValidateInputDataNoterows()) {
+		Locator::getLogger()->warn(
+		  "Failed to reprioritize input data because input data noterows did "
+		  "not match notedata for score {} chart {}",
+		  scoreKey,
+		  chartKey);
+		return false;
+	}
+
+	// so basically, iterate all of the inputdata no matter what
+	// redo the prioritization of nearestnoterows using the song time positions
+	// and find the oldest unjudged note in the hit window.
+	std::map<int, std::set<int>> judgedNotes{};
+	auto nd = GetNoteData();
+	auto td = GetTimingData();
+
+	auto getClosestNote = [&nd, &td, &judgedNotes, this](const int column,
+												   const float songPosition) {
+		const auto maxSec = MISS_WINDOW_BEGIN_SEC * fMusicRate;
+		const auto iStartRow =
+		  BeatToNoteRow(td->GetBeatFromElapsedTime(songPosition - maxSec));
+		const auto iEndRow =
+		  BeatToNoteRow(td->GetBeatFromElapsedTime(songPosition + maxSec));
+
+		NoteData::const_iterator begin;
+		NoteData::const_iterator end;
+		nd.GetTapNoteRange(column, iStartRow, iEndRow, begin, end);
+
+		while (begin != end) {
+			// Is this the row we want?
+			do {
+				const auto& tn = begin->second;
+				// hittable?
+				if (!td->IsJudgableAtRow(begin->first)) {
+					break;
+				}
+
+				// is a real note?
+				if (tn.type == TapNoteType_Empty ||
+					tn.type == TapNoteType_AutoKeysound ||
+					tn.type == TapNoteType_Fake) {
+					break;
+				}
+
+				// not already hit?
+				if (judgedNotes.count(begin->first) != 0u &&
+					judgedNotes.at(begin->first).contains(column)) {
+					break;
+				}
+
+				return begin->first;
+			} while (0);
+			++begin;
+		}
+		return -1;
+	};
+
+	// tracking mines if reprioritization caused you to hit a new one
+	std::map<int, std::set<int>> minesAccounted{};
+	for (auto& mrr : vMineReplayDataVector) {
+		if (minesAccounted.count(mrr.row) == 0u) {
+			minesAccounted.emplace(mrr.row, std::set<int>());
+		}
+		minesAccounted.at(mrr.row).insert(mrr.track);
+		vReprioritizedMineData.push_back(mrr);
+	}
+
+	for (auto& d : InputData) {
+		const auto foundRow = getClosestNote(d.column, d.songPositionSeconds);
+		if (foundRow != -1) {
+			auto& tn = nd.GetTapNote(d.column, foundRow);
+			if (!d.is_press &&
+				tn.type != TapNoteType_Lift) {
+				// a lift when the note isnt a lift means nothing.
+				continue;
+			}
+			// are mines necessary to care about here?
+			// anyways, the remaining case handles lifting on lifts
+			// and tapping on everything else
+
+			if (judgedNotes.count(foundRow) == 0u) {
+				judgedNotes.emplace(foundRow, std::set<int>());
+			}
+			if (judgedNotes.at(foundRow).contains(d.column)) {
+				// this should never happen because of the getClosestNote code...
+				Locator::getLogger()->warn(
+				  "Tried to judge a note twice? row {} col {} time {} score {}",
+				  foundRow,
+				  d.column,
+				  d.songPositionSeconds,
+				  scoreKey);
+			} else {
+				judgedNotes.at(foundRow).insert(d.column);
+
+				const auto offset =
+				  (d.songPositionSeconds -
+				   td->GetElapsedTimeFromBeat(NoteRowToBeat(foundRow))) /
+				  fMusicRate;
+
+				d.reprioritizedNearestNoterow = foundRow;
+				d.reprioritizedOffsetFromNearest = offset;
+				d.reprioritizedNearestTapNoteType = tn.type;
+				d.reprioritizedNearestTapNoteSubType = tn.subType;
+
+				// controversial: reprioritizing minedodge files will cause
+				// huge amounts of mine hits probably
+				if (tn.type == TapNoteType_Mine && d.is_press &&
+					fabsf(offset) < MINE_WINDOW_SEC) {
+					if (minesAccounted.count(foundRow) == 0u) {
+						minesAccounted.emplace(foundRow, std::set<int>());
+					}
+					if (!minesAccounted.at(foundRow).contains(d.column)) {
+						minesAccounted.at(foundRow).insert(d.column);
+						MineReplayResult mrr;
+						mrr.row = foundRow;
+						mrr.track = d.column;
+						vReprioritizedMineData.emplace_back(mrr);
+					}
+				}
+
+			}
+		}
+	}
+
+	// recalculate previously existing dropped holds
+	// basically, if a hold was missed due to missing the head
+	// count it here and make sure not to recount it in the miss loop
+	// also forward all dropped holds to the resulting hold data
+	std::map<int, std::set<int>> holdsMadeEvenMoreDead{};
+	for (auto& hrr : vHoldReplayDataVector) {
+		int holdHeadRow;
+		if (nd.IsHoldNoteAtRow(hrr.track, hrr.row, &holdHeadRow)) {
+			if (judgedNotes.count(holdHeadRow) == 0u ||
+				!judgedNotes.at(holdHeadRow).contains(hrr.track)) {
+				// this hold head was missed
+				if (holdsMadeEvenMoreDead.count(hrr.row) == 0u) {
+					holdsMadeEvenMoreDead.emplace(hrr.row, std::set<int>());
+				}
+				holdsMadeEvenMoreDead.at(hrr.row).insert(hrr.track);
+			}
+			vReprioritizedHoldData.push_back(hrr);
+		} else {
+			// this was probably a dropped hold resulting from missed minihold
+			// the below logic will handle it
+		}
+	}
+
+	// count new misses
+	nd.RevalidateATIs(std::vector<int>(), false);
+	auto it = nd.GetTapNoteRangeAllTracks(0, MAX_NOTE_ROW);
+	while (!it.IsAtEnd()) {
+		if (it->type == TapNoteType_HoldHead || it->type == TapNoteType_Lift ||
+			 it->type == TapNoteType_Tap) {
+			const auto row = it.Row();
+			const auto column = it.Track();
+			if (judgedNotes.count(row) == 0u || !judgedNotes.at(row).contains(column)) {
+				vReprioritizedMissData.emplace_back(
+				  row, column, it->type, it->subType);
+				if (it->type == TapNoteType_HoldHead) {
+					if (holdsMadeEvenMoreDead.count(row) == 0u ||
+						!holdsMadeEvenMoreDead.at(row).contains(column)) {
+						HoldReplayResult hrr;
+						hrr.row = it.Row() + 1;
+						hrr.subType = it->subType;
+						hrr.track = it.Track();
+						vReprioritizedHoldData.emplace_back(hrr);
+					}
+				}
+			}
+		}
+		it++;
+	}
+
+	return true;
+}
+
+auto
 Replay::GenerateInputData() -> bool
 {
 	if (LoadInputData()) {
@@ -2631,6 +2869,8 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	}
 	auto& validNoterows = significantNoterows;
 
+	auto& holdReplayDataVector = GetRelevantHoldData();
+
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
 	for (size_t i = 0; i < vNoteRowVector.size(); i++) {
@@ -2710,7 +2950,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	// Generate vectors made of pregenerated HoldReplayResults referenced by the
 	// song row in a map
 	// Only present in replays with column data.
-	for (auto& i : vHoldReplayDataVector) {
+	for (auto& i : holdReplayDataVector) {
 		if (i.row < startingRow)
 			continue;
 
@@ -3285,11 +3525,11 @@ class LunaReplay : public Luna<Replay>
 
 	static auto GetHoldNoteVector(T* p, lua_State* L) -> int
 	{
-		auto v = p->GetHoldReplayDataVector();
+		auto v = p->GetRelevantHoldData();
 		const auto loaded = !v.empty();
 		if (loaded || p->LoadReplayData()) {
 			if (!loaded) {
-				v = p->GetHoldReplayDataVector();
+				v = p->GetRelevantHoldData();
 			}
 			// make containing table
 			lua_newtable(L);
@@ -3314,12 +3554,13 @@ class LunaReplay : public Luna<Replay>
 
 	static auto GetMineHitVector(T* p, lua_State* L) -> int
 	{
-		auto v = p->GetMineReplayDataVector();
+		auto v = p->GetRelevantMineData();
 		const auto loaded = !v.empty();
 		if (loaded || p->LoadReplayData()) {
 			if (!loaded) {
-				v = p->GetMineReplayDataVector();
+				v = p->GetRelevantMineData();
 			}
+
 			// make containing table
 			lua_newtable(L);
 			for (size_t i = 0; i < v.size(); i++) {
@@ -3365,12 +3606,18 @@ class LunaReplay : public Luna<Replay>
 		return 1;
 	}
 
+	static auto SetUseReprioritizedNoteRows(T* p, lua_State* L) -> int {
+		p->SetUseReprioritizedNoteRows(BArg(1));
+		COMMON_RETURN_SELF;
+	}
+
 	DEFINE_METHOD(HasReplayData, HasReplayData())
 	DEFINE_METHOD(GetChartKey, GetChartKey())
 	DEFINE_METHOD(GetScoreKey, GetScoreKey())
 	DEFINE_METHOD(GetReplayType, GetReplayType())
 	DEFINE_METHOD(GetRngSeed, GetRngSeed())
-	DEFINE_METHOD(GetModifiers, GetModifiers());
+	DEFINE_METHOD(GetModifiers, GetModifiers())
+	DEFINE_METHOD(UsingReprioritizedNoteRows, UsingReprioritizedNoteRows())
 
 	LunaReplay() {
 		ADD_METHOD(HasReplayData);
@@ -3388,6 +3635,8 @@ class LunaReplay : public Luna<Replay>
 		ADD_METHOD(GetMineHitVector);
 		ADD_METHOD(GetInputData);
 		ADD_METHOD(GetReplaySnapshotForNoterow);
+		ADD_METHOD(UsingReprioritizedNoteRows);
+		ADD_METHOD(SetUseReprioritizedNoteRows);
 	}
 };
 LUA_REGISTER_CLASS(Replay)
@@ -3455,6 +3704,13 @@ class LunaInputDataEvent : public Luna<InputDataEvent>
 	DEFINE_METHOD(GetOffsetFromNearest, offsetFromNearest);
 	DEFINE_METHOD(GetNearestTapNoteType, nearestTapNoteType);
 	DEFINE_METHOD(GetNearestTapNoteSubType, nearestTapNoteSubType);
+	DEFINE_METHOD(GetReprioritizedNearestNoterow, reprioritizedNearestNoterow);
+	DEFINE_METHOD(GetReprioritizedOffsetFromNearest,
+				  reprioritizedOffsetFromNearest);
+	DEFINE_METHOD(GetReprioritizedNearestTapNoteType,
+				  reprioritizedNearestTapNoteType);
+	DEFINE_METHOD(GetReprioritizedNearestTapNoteSubType,
+				  reprioritizedNearestTapNoteSubType);
 
 	LunaInputDataEvent() {
 		ADD_METHOD(IsPress);
@@ -3464,6 +3720,10 @@ class LunaInputDataEvent : public Luna<InputDataEvent>
 		ADD_METHOD(GetOffsetFromNearest);
 		ADD_METHOD(GetNearestTapNoteType);
 		ADD_METHOD(GetNearestTapNoteSubType);
+		ADD_METHOD(GetReprioritizedNearestNoterow);
+		ADD_METHOD(GetReprioritizedOffsetFromNearest);
+		ADD_METHOD(GetReprioritizedNearestTapNoteType);
+		ADD_METHOD(GetReprioritizedNearestTapNoteSubType);
 	}
 };
 LUA_REGISTER_CLASS(InputDataEvent)

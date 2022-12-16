@@ -173,6 +173,79 @@ class Replay
 	auto GetModifiers() const -> std::string { return mods; }
 	void SetModifiers(std::string& modstr) { mods = modstr; }
 
+	void SetUseReprioritizedNoteRows(bool b) {
+		if (b != useReprioritizedNoterows) {
+			ClearPrimitiveVectors();
+		}
+		useReprioritizedNoterows = b;
+	}
+	auto UsingReprioritizedNoteRows() -> bool
+	{
+		return useReprioritizedNoterows;
+	}
+	auto GetReprioritizedMissData() const
+	  -> const std::vector<MissReplayResult>&
+	{
+		return vReprioritizedMissData;
+	}
+	auto GetCopyOfReprioritizedMissData() const -> std::vector<MissReplayResult>
+	{
+		return vReprioritizedMissData;
+	}
+	void SetReprioritizedMissData(const std::vector<MissReplayResult>& v) {
+		vReprioritizedMissData = v;
+	}
+	auto GetReprioritizedHoldData() const
+	  -> const std::vector<HoldReplayResult>&
+	{
+		return vReprioritizedHoldData;
+	}
+	auto GetCopyOfReprioritizedHoldData() const -> std::vector<HoldReplayResult>
+	{
+		return vReprioritizedHoldData;
+	}
+	void SetReprioritizedHoldData(const std::vector<HoldReplayResult>& v)
+	{
+		vReprioritizedHoldData = v;
+	}
+	auto GetReprioritizedMineData() const
+	  -> const std::vector<MineReplayResult>&
+	{
+		return vReprioritizedMineData;
+	}
+	auto GetCopyOfReprioritizedMineData() const -> std::vector<MineReplayResult>
+	{
+		return vReprioritizedMineData;
+	}
+	void SetReprioritizedMineData(const std::vector<MineReplayResult>& v)
+	{
+		vReprioritizedMineData = v;
+	}
+
+	auto GetRelevantMissData() const -> const std::vector<MissReplayResult>&
+	{
+		if (useReprioritizedNoterows) {
+			return vReprioritizedMissData;
+		} else {
+			return vMissReplayDataVector;
+		}
+	}
+	auto GetRelevantHoldData() const -> const std::vector<HoldReplayResult>& {
+		if (useReprioritizedNoterows) {
+			return vReprioritizedHoldData;
+		} else {
+			return vHoldReplayDataVector;
+		}
+	}
+	auto GetRelevantMineData() const -> const std::vector<MineReplayResult>& {
+		if (useReprioritizedNoterows) {
+			return vReprioritizedMineData;
+		} else {
+			return vMineReplayDataVector;
+		}
+	}
+
+
 	ReplayType GetReplayType() const
 	{
 		if (!InputData.empty()) {
@@ -214,6 +287,10 @@ class Replay
 	auto GenerateNoterowsFromTimestamps() -> bool;
 	/// Generate InputData using any ReplayData
 	auto GenerateInputData() -> bool;
+
+	/// Used for recalculating notedata nearest noterows.
+	/// Uses a different algorithm than "closest note" to rejudge the data.
+	auto ReprioritizeInputData() -> bool;
 
 	/// Generate events used for playing back replay in gameplay
 	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
@@ -262,10 +339,22 @@ class Replay
 	auto GetReplaySnapshotForNoterow(int row)
 	  -> std::shared_ptr<ReplaySnapshot>;
 
+	/// A check to see if the Replay has an RNG seed, if it uses shuffle.
+	auto CanSafelyTransformNoteData() -> bool;
+
 	void Unload()
 	{
+		useReprioritizedNoterows = false;
+
 		// stats
 		m_ReplaySnapshotMap.clear();
+
+		vReprioritizedMissData.clear();
+		vReprioritizedHoldData.clear();
+		vReprioritizedMineData.clear();
+		vReprioritizedMissData.shrink_to_fit();
+		vReprioritizedHoldData.shrink_to_fit();
+		vReprioritizedMineData.shrink_to_fit();
 
 		// replay data
 		ClearPrimitiveVectors();
@@ -300,9 +389,6 @@ class Replay
 	/// Use this to set mods, as long as a scorekey is given.
 	auto SetHighScoreMods() -> void;
 
-	/// A check to see if the Replay has an RNG seed, if it uses shuffle.
-	auto CanSafelyTransformNoteData() -> bool;
-
 	void ClearPrimitiveVectors() {
 		vOffsetVector.clear();
 		vNoteRowVector.clear();
@@ -323,6 +409,13 @@ class Replay
 	// optimization for ReplaySnapshot generation
 	// filled out by RegenerateJudgmentInfo
 	std::set<int> significantNoterows{};
+
+	// for snapshot stuff and rescoring
+	// set by Lua, data filled by ReprioritizeInputData
+	bool useReprioritizedNoterows = false;
+	std::vector<MissReplayResult> vReprioritizedMissData{};
+	std::vector<MineReplayResult> vReprioritizedMineData{};
+	std::vector<HoldReplayResult> vReprioritizedHoldData{};
 
 	std::string scoreKey{};
 	std::string chartKey{};
