@@ -233,10 +233,23 @@ class Replay
 	/// Offsets can be really weird - Remove all impossible offsets
 	void ValidateOffsets();
 
+	/// Noterows for Replay/Input Data can just ... shift...
+	/// This is only a bit uncommon. It can happen if you simply shift
+	/// an entire chart forward or backwards in noterows only.
+	/// So this function tries to correct data by shifting it
+	/// to match the existing notedata.
+	/// If this function returns false, reloading InputData is recommended.
+	auto ValidateInputDataNoterows() -> bool;
+
 	/// Used to validate that converting input data to replay data
 	/// produces correct and equal output vs replay data alone.
 	/// This is not meant to ever be used outside of debug.
 	void VerifyInputDataAndReplayData();
+
+	/// Used to validate that converting replay data to input data
+	/// produces correct and equal output vs replay data alone.
+	/// This is not meant to ever be used outside of debug.
+	void VerifyGeneratedInputDataMatchesReplayData();
 
 	auto GetHighScore() -> HighScore*;
 	auto GetSteps() -> Steps*;
@@ -254,25 +267,17 @@ class Replay
 		m_ReplaySnapshotMap.clear();
 
 		// replay data
+		ClearPrimitiveVectors();
+
 		InputData.clear();
 		vMissReplayDataVector.clear();
-		vOffsetVector.clear();
-		vNoteRowVector.clear();
-		vTrackVector.clear();
-		vTapNoteTypeVector.clear();
 		vHoldReplayDataVector.clear();
 		vMineReplayDataVector.clear();
-		vOnlineReplayTimestampVector.clear();
 
 		InputData.shrink_to_fit();
 		vMissReplayDataVector.shrink_to_fit();
-		vOffsetVector.shrink_to_fit();
-		vNoteRowVector.shrink_to_fit();
-		vTrackVector.shrink_to_fit();
-		vTapNoteTypeVector.shrink_to_fit();
 		vHoldReplayDataVector.shrink_to_fit();
 		vMineReplayDataVector.shrink_to_fit();
-		vOnlineReplayTimestampVector.shrink_to_fit();
 	}
 
 	/// Lua
@@ -296,6 +301,20 @@ class Replay
 
 	/// A check to see if the Replay has an RNG seed, if it uses shuffle.
 	auto CanSafelyTransformNoteData() -> bool;
+
+	void ClearPrimitiveVectors() {
+		vOffsetVector.clear();
+		vNoteRowVector.clear();
+		vTrackVector.clear();
+		vTapNoteTypeVector.clear();
+		vOnlineReplayTimestampVector.clear();
+
+		vOffsetVector.shrink_to_fit();
+		vNoteRowVector.shrink_to_fit();
+		vTrackVector.shrink_to_fit();
+		vTapNoteTypeVector.shrink_to_fit();
+		vOnlineReplayTimestampVector.shrink_to_fit();
+	}
 
 	std::map<int, ReplaySnapshot> m_ReplaySnapshotMap{};
 	JudgeInfo judgeInfo{};

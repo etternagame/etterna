@@ -626,10 +626,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
 
 				if (totalstepsnotes == totalscorenotes) {
-					hs->SetChordCohesion(1); // the set function isn't inverted
+					// the set function isn't inverted
+					// but the get function is, this
+					// sets bnochordcohesion to 1
+					hs->SetChordCohesion(1);
 				}
-				// but the get function is, this
-				// sets bnochordcohesion to 1
 			}
 		};
 	auto onUpdate = [ld](int progress) {
@@ -1206,6 +1207,16 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		// oops (adding this to the recalc list will reset the score to 0)
 		const auto broke = scores[sk].GetSSRNormPercent() > 1.F ||
 						   scores[sk].GetWifeScore() > 1.F;
+
+		// for debugging replay stuff. probably never uncomment this.
+		/*
+		if (SONGMAN->IsChartLoaded(ck) && scores[sk].HasReplayData()) {
+			if (scores[sk].GetWifeGrade() != Grade_Failed) {
+				scores[sk].replay->VerifyInputDataAndReplayData();
+				scores[sk].replay->VerifyGeneratedInputDataMatchesReplayData();
+			}
+		}
+		*/
 
 		/* technically we don't need to have charts loaded to rescore to
 		 * wife3, however trying to do this might be quite a bit of work (it
