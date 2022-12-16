@@ -201,6 +201,7 @@ class Replay
 	auto WriteInputData() -> bool;
 	auto LoadReplayData() -> bool;
 	auto HasReplayData() -> bool;
+	auto HasWrittenReplayData() -> bool;
 
 	/// Corrects missing fields for InputData.
 	/// Will only work for InputData backed by loaded NoteData

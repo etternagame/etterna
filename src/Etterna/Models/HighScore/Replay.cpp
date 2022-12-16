@@ -91,6 +91,12 @@ Replay::~Replay() {
 auto
 Replay::HasReplayData() -> bool
 {
+	return HasWrittenReplayData() || GetReplayType() != ReplayType_Invalid;
+}
+
+auto
+Replay::HasWrittenReplayData() -> bool
+{
 	return DoesFileExist(GetInputPath()) || DoesFileExist(GetFullPath()) ||
 		   DoesFileExist(GetBasicPath());
 }
