@@ -206,7 +206,7 @@ local t = Def.ActorFrame {
             if isOver(bg) then
                 local top = SCREENMAN:GetTopScreen()
                 -- dont break if it will break (we can only do this from the eval screen)
-                if not top.SetPlayerStageStatsFromReplayData then
+                if not top.RescoreReplay then
                     return
                 end
 

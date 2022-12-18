@@ -268,11 +268,10 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		LuaHelpers::Push(L, p->GetStageStats());
 		return 1;
 	}
-	static int SetPlayerStageStatsFromReplayData(T* p, lua_State* L)
+	static int RescoreReplay(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Setting PSS from ReplayData via Lua");
+		Locator::getLogger()->info("Rescoring ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
-		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 
 		// allow either a highscore or nothing, which defaults to most recent
 		HighScore* hs;
@@ -359,7 +358,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	LunaScreenEvaluation()
 	{
 		ADD_METHOD(GetStageStats);
-		ADD_METHOD(SetPlayerStageStatsFromReplayData);
+		ADD_METHOD(RescoreReplay);
 		ADD_METHOD(GetReplayRate);
 		ADD_METHOD(GetReplayJudge);
 		ADD_METHOD(ScoreUsedInvalidModifier);

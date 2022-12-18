@@ -41,7 +41,7 @@ local t = Def.ActorFrame {
         if PREFSMAN:GetPreference("SortBySSRNormPercent") then
             forcedScreenEntryJudgeWindow = 4
             -- update replaysnapshots and pss for current score being rejudged to j4
-            screen:SetPlayerStageStatsFromReplayData(pss, ms.JudgeScalers[forcedScreenEntryJudgeWindow], score)
+            screen:RescoreReplay(pss, ms.JudgeScalers[forcedScreenEntryJudgeWindow], score)
         end
 
         --- propagate set command through children with the song
@@ -62,7 +62,7 @@ local t = Def.ActorFrame {
 
         -- we assume the score has a replay
         -- recalculate playerstagestats using the replay
-        screen:SetPlayerStageStatsFromReplayData(pss, ms.JudgeScalers[judgeSetting], params.score)
+        screen:RescoreReplay(pss, ms.JudgeScalers[judgeSetting], params.score)
 
         chosenScore = params.score
 
