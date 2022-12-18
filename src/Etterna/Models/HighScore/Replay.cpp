@@ -3271,6 +3271,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 		for (auto& trr : it->second) {
 			if (trr.type == TapNoteType_Mine) {
 				cws += REPLAYS->CustomMineScoringFunction();
+				mws += REPLAYS->CustomTotalWifePointsCalculation(trr.type);
 			} else {
 				auto tns =
 				  REPLAYS->CustomOffsetJudgingFunction(trr.offset, timingScale);
