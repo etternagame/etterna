@@ -300,7 +300,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		replay->SetUseReprioritizedNoteRows(useReprioritizedNoterows);
 		REPLAYS->EnableCustomScoringFunctions();
 		REPLAYS->InitReplayPlaybackForScore(hs, ts);
-		REPLAYS->SetPlayerStageStatsForReplay(*replay, pPSS, ts);
+		REPLAYS->RescoreReplay(*replay, pPSS, ts);
 		REPLAYS->ReleaseReplay(replay); // remove extra reference
 		REPLAYS->DisableCustomScoringFunctions();
 		lua_pushboolean(L, true);

@@ -272,7 +272,7 @@ ReplayManager::CalculateRadarValuesForReplay(Replay& replay, RadarValues& rv, Ra
 }
 
 auto
-ReplayManager::SetPlayerStageStatsForReplay(Replay& replay, PlayerStageStats* pss, float ts)
+ReplayManager::RescoreReplay(Replay& replay, PlayerStageStats* pss, float ts)
   -> bool
 {
 	Locator::getLogger()->info("Entered PSSFromReplayData function");

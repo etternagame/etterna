@@ -81,7 +81,7 @@ class ReplayManager
 									   RadarValues& rv,
 									   RadarValues& possibleRV) -> bool;
 
-	auto SetPlayerStageStatsForReplay(Replay& replay,
+	auto RescoreReplay(Replay& replay,
 									  PlayerStageStats* pss,
 									  float timingScale = 1.F) -> bool;
 

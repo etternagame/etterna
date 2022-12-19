@@ -367,7 +367,7 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 
 	auto* const pss = m_vPlayerInfo.GetPlayerStageStats();
 	// Makes sure all PlayerStageStats discrepancies are corrected forcibly.
-	REPLAYS->SetPlayerStageStatsForReplay(*REPLAYS->GetActiveReplay(), pss);
+	REPLAYS->RescoreReplay(*REPLAYS->GetActiveReplay(), pss);
 
 	STATSMAN->m_CurStageStats.FinalizeScores();
 
