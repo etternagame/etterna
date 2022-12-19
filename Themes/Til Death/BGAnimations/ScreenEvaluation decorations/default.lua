@@ -8,6 +8,12 @@ if GAMESTATE:GetNumPlayersEnabled() == 1 then
 	end
 end
 
+--[[
+	This needs a rewrite so that there is a single point of entry for choosing the displayed score, rescoring it, and changing its judge.
+	We "accidentally" started using inconsistent methods of communicating between actors and files due to lack of code design.
+	The primary rescore function is hiding in the function responsible for displaying the graphs, which may or may not be called by random code everywhere.
+]]
+
 local translated_info = {
 	CCOn = THEME:GetString("ScreenEvaluation", "ChordCohesionOn"),
 	MAPARatio = THEME:GetString("ScreenEvaluation", "MAPARatio")
