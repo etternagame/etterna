@@ -3072,6 +3072,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 
 	// Now handle misses and holds.
 	// For every row in notedata...
+	tempJudgments[TNS_Miss] = 0; // reset misses :woozy:
 	FOREACH_NONEMPTY_ROW_ALL_TRACKS(noteData, row)
 	{
 		auto tapsMissedInRow = 0;
@@ -3187,7 +3188,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 		// This unfortunately takes more time.
 		// If current row is recorded in the snapshots, update the counts
 		if (m_ReplaySnapshotMap.count(row) != 0) {
-			m_ReplaySnapshotMap[row].judgments[TNS_Miss] =
+			m_ReplaySnapshotMap[row].judgments[TNS_Miss] +=
 			  tempJudgments[TNS_Miss];
 			FOREACH_ENUM(HoldNoteScore, hns)
 			m_ReplaySnapshotMap[row].hns[hns] = tempHNS[hns];
