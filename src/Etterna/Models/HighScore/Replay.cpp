@@ -1037,7 +1037,7 @@ Replay::FillInBlanksForInputData() -> bool
 			for (auto i = 0; i < vOffsetVector.size(); i++) {
 				// misses are actually 1000ms, but use 180 instead
 				// to retroactively punish j1 players
-				if (fabsf(vOffsetVector.at(i)) > MISS_WINDOW_BEGIN_SEC) {
+				if (fabsf(vOffsetVector.at(i)) > REPLAYS->CustomMissWindowFunction()) {
 					const auto row = vNoteRowVector.at(i);
 					const auto col = vTrackVector.at(i);
 					const auto tnt = vTapNoteTypeVector.at(i);
@@ -1106,7 +1106,7 @@ Replay::FillInBlanksForInputData() -> bool
 				if ((!d.is_press && tn.type == TapNoteType_Lift) ||
 					(d.is_press && (tn.type == TapNoteType_Tap ||
 									tn.type == TapNoteType_HoldHead))) {
-					if (fabsf(d.offsetFromNearest) <= MISS_WINDOW_BEGIN_SEC) {
+					if (fabsf(d.offsetFromNearest) <= REPLAYS->CustomMissWindowFunction()) {
 						tn.result.fTapNoteOffset = d.offsetFromNearest;
 						tn.result.bHidden = true;
 					}
@@ -1131,7 +1131,8 @@ Replay::FillInBlanksForInputData() -> bool
 	}
 
 	// save changes
-	WriteInputData();
+	// (for now probably dont. we are messing with the miss window)
+	// WriteInputData();
 
 	return true;
 }
@@ -1350,7 +1351,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 		}
 
 		// ghost taps cant be judged
-		if (fabsf(offset) > MISS_WINDOW_BEGIN_SEC) {
+		if (fabsf(offset) > REPLAYS->CustomMissWindowFunction()) {
 			continue;
 		}
 
@@ -2023,10 +2024,11 @@ Replay::ValidateInputDataNoterows() -> bool {
 
 		Locator::getLogger()->info(
 		  "Replay Validation discovered InputData Noterows were mismatched for "
-		  "score {} on chartkey {}. Fixed data and writing to disk.",
+		  "score {} on chartkey {}. Temporarily fixed data.",
 		  scoreKey,
 		  chartKey);
-		WriteInputData();
+		// not writing for now. some data could be accidentally changed.
+		// WriteInputData();
 		return true;
 	}
 
@@ -2039,11 +2041,12 @@ Replay::ValidateInputDataNoterows() -> bool {
 			Locator::getLogger()->info(
 			  "Replay Validation discovered InputData "
 			  "Noterows were off by {} for score {} on chartkey {}. "
-			  "Fixed data and writing to disk.",
+			  "Temporarily fixed data.",
 			  confirmedOffset,
 			  scoreKey,
 			  chartKey);
-			WriteInputData();
+			// not writing for now. some other data could be accidentally changed
+			//WriteInputData();
 		} else {
 			// something very bad happened.
 			// will need to do recovery outside this function.
@@ -2469,7 +2472,7 @@ Replay::ReprioritizeInputData() -> bool
 
 	auto getClosestNote = [&nd, &td, &judgedNotes, this](const int column,
 												   const float songPosition) {
-		const auto maxSec = MISS_WINDOW_BEGIN_SEC * fMusicRate;
+		const auto maxSec = REPLAYS->CustomMissWindowFunction() * fMusicRate;
 		const auto iStartRow =
 		  BeatToNoteRow(td->GetBeatFromElapsedTime(songPosition - maxSec));
 		const auto iEndRow =
@@ -2665,7 +2668,7 @@ Replay::GenerateInputData() -> bool
 		for (int i = 0; i < sz; i++) {
 			const auto& noterow = vNoteRowVector.at(i);
 			const auto& offset = vOffsetVector.at(i);
-			if (offset > MISS_WINDOW_BEGIN_SEC) {
+			if (offset > REPLAYS->CustomMissWindowFunction()) {
 				// nah
 				continue;
 			}
@@ -2713,7 +2716,7 @@ Replay::GenerateInputData() -> bool
 			TapNoteType tnt = TapNoteType_Invalid;
 			auto columnToUse = -1;
 
-			if (offset > MISS_WINDOW_BEGIN_SEC) {
+			if (offset > REPLAYS->CustomMissWindowFunction()) {
 				// nah
 				continue;
 			}
@@ -2888,7 +2891,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	// Generate TapReplayResults to put into a vector referenced by the song row
 	// in a map
 	for (size_t i = 0; i < vNoteRowVector.size(); i++) {
-		if (fabsf(vOffsetVector.at(i)) > MISS_WINDOW_BEGIN_SEC)
+		if (fabsf(vOffsetVector.at(i)) > REPLAYS->CustomMissWindowFunction())
 			continue;
 		if (vNoteRowVector.at(i) < startingRow)
 			continue;
@@ -3412,8 +3415,8 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 				// the game should usually count something as a miss. we dont
 				// use this time for anything other than chronologically parsing
 				// replay data for combo/life stuff so this is okay (i hope)
-				auto tapTime =
-				  pReplayTiming->WhereUAtBro(row) + MISS_WINDOW_BEGIN_SEC;
+				auto tapTime = pReplayTiming->WhereUAtBro(row) +
+							   REPLAYS->CustomMissWindowFunction();
 				for (auto i = 0; i < missDiff; i++) {
 					// we dont really care about anything other than the offset
 					// because we have the estimate time at the row in the map
