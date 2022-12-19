@@ -201,7 +201,18 @@ local function scoreBoard(pn, position)
 		ChangeScoreCommand = function(self, params)
 			if params.score then
 				score = params.score
-				setupNewScoreData(score)
+				if usingCustomWindows then
+					-- this is done very carefully to rescore a newly selected score once for wife3 and once for custom rescoring
+					unloadCustomWindowConfig()
+					usingCustomWindows = false
+					setupNewScoreData(score)
+					MESSAGEMAN:Broadcast("ScoreChanged")
+					usingCustomWindows = true
+					loadCurrentCustomWindowConfig()
+					setupNewScoreData(score)
+				else
+					setupNewScoreData(score)
+				end
 			end
 
 			if usingCustomWindows then
@@ -282,10 +293,10 @@ local function scoreBoard(pn, position)
 				if not usingCustomWindows then
 					unloadCustomWindowConfig()
 					MESSAGEMAN:Broadcast("UnloadedCustomWindow")
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
 					self:GetParent():playcommand("ChangeScore", {score = score})
 					MESSAGEMAN:Broadcast("SetFromDisplay", {score = score})
 					MESSAGEMAN:Broadcast("ForceWindow", {judge=judge})
-					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
 				else
 					loadCurrentCustomWindowConfig()
 					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
