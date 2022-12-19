@@ -305,7 +305,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayRate(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Getting replay rate");
+		Locator::getLogger()->debug("Getting replay rate");
 		// if we have a replay, give the data
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
 			lua_pushnumber(L, REPLAYS->GetActiveReplayScore()->GetMusicRate());
@@ -318,7 +318,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayJudge(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Getting replay judge");
+		Locator::getLogger()->debug("Getting replay judge");
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
 			lua_pushnumber(L, REPLAYS->GetActiveReplayScore()->GetJudgeScale());
 		} else {
@@ -328,7 +328,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayModifiers(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Getting replay modifiers");
+		Locator::getLogger()->debug("Getting replay modifiers");
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
 			LuaHelpers::Push(L,
 							 REPLAYS->GetActiveReplayScore()->GetModifiers());
@@ -339,19 +339,19 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Checking for invalid modifiers on Highscore via Lua");
+		Locator::getLogger()->debug("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
 		if (hs == nullptr) {
 			Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
 			lua_pushboolean(L, true);
 			return 1;
 		}
-		Locator::getLogger()->info("Getting Player Options from HighScore...");
+		Locator::getLogger()->debug("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
-		Locator::getLogger()->info("Checking modifiers...");
+		Locator::getLogger()->debug("Checking modifiers...");
 		lua_pushboolean(L, potmp.ContainsTransformOrTurn());
-		Locator::getLogger()->info("Done checking.");
+		Locator::getLogger()->debug("Done checking.");
 		return 1;
 	}
 
