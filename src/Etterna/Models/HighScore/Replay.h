@@ -177,6 +177,11 @@ class Replay
 	{
 		if (b != useReprioritizedNoterows) {
 			ClearPrimitiveVectors();
+			if (b) {
+				vReprioritizedMissData.clear();
+				vReprioritizedHoldData.clear();
+				vReprioritizedMineData.clear();
+			}
 		}
 		if (generatedInputData) {
 			InputData.clear();
