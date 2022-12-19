@@ -1,6 +1,6 @@
 local t = Def.ActorFrame {}
 
-if GAMESTATE:GetNumPlayersEnabled() == 1 and themeConfig:get_data().eval.ScoreBoardEnabled then
+if GAMESTATE:GetNumPlayersEnabled() == 1 then
 	if Var("LoadingScreen") == "ScreenNetEvaluation" then
 		t[#t + 1] = LoadActor("MPscoreboard")
 	else

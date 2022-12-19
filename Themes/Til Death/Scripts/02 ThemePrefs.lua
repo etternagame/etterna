@@ -732,46 +732,6 @@ function ShowBanners()
     return t
 end
 
-function EvalBGType()
-	local t = {
-		Name = "EvalBGType",
-		LayoutType = "ShowAllInRow",
-		SelectType = "SelectOne",
-		OneChoiceForAllPlayers = true,
-		ExportOnChange = true,
-		Choices = {
-			THEME:GetString("OptionNames", "SongBackground"),
-			THEME:GetString("OptionNames", "ClearGradeBackground"),
-			THEME:GetString("OptionNames", "GradeBackground")
-		},
-		LoadSelections = function(self, list, pn)
-			local pref = themeConfig:get_data().eval.SongBGType
-			if pref == 1 then
-				list[1] = true
-			elseif pref == 2 then
-				list[2] = true
-			else
-				list[3] = true
-			end
-		end,
-		SaveSelections = function(self, list, pn)
-			local value
-			if list[1] == true then
-				value = 1
-			elseif list[2] == true then
-				value = 2
-			else
-				value = 3
-			end
-			themeConfig:get_data().eval.SongBGType = value
-			themeConfig:set_dirty()
-			themeConfig:save()
-		end
-	}
-	setmetatable(t, t)
-	return t
-end
-
 function Particles()
 	local t = {
 		Name = "Particles",
