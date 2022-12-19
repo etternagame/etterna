@@ -91,6 +91,13 @@ class ReplayManager
 	auto GenerateComboListForReplay(Replay& replay, float timingScale = 1.F)
 	  -> std::vector<PlayerStageStats::Combo_t>;
 
+	void EnableCustomScoringFunctions() {
+		customScoringFunctionsEnabled = true;
+	}
+	void DisableCustomScoringFunctions() {
+		customScoringFunctionsEnabled = false;
+	}
+
 	////////
 	// custom scoring functions
 	// these will default to base game behavior if the custom functions arent set
@@ -118,6 +125,10 @@ class ReplayManager
 	/// return: tapnotescore (str)
 	auto CustomOffsetJudgingFunction(float fOffsetSeconds, float timingScale)
 	  -> TapNoteScore;
+	/// The time in seconds at which a note is not judged.
+	/// If a note is further than this distance from a tap, it is not judged.
+	/// If for some reason an assigned offset is outside this window, it is a miss.
+	auto CustomMissWindowFunction() -> float;
 
 	void SetTotalWifePointsCalcFunction(const LuaReference& ref) {
 		m_totalWifePointsCalcFunc = ref;
@@ -133,6 +144,9 @@ class ReplayManager
 	}
 	void SetOffsetJudgingFunction(const LuaReference& ref) {
 		m_offsetJudgingFunc = ref;
+	}
+	void SetMissWindowFunction(const LuaReference& ref) {
+		m_missWindowFunc = ref;
 	}
 	//
 	/////////
@@ -150,6 +164,9 @@ class ReplayManager
 	LuaReference m_holdNoteScoreScoringFunc;
 	LuaReference m_tapScoringFunc;
 	LuaReference m_offsetJudgingFunc;
+	LuaReference m_missWindowFunc;
+
+	bool customScoringFunctionsEnabled = false;
 
 };
 

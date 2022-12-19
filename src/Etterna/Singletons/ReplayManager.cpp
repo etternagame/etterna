@@ -66,6 +66,7 @@ ReplayManager::ReplayManager() {
 	m_offsetJudgingFunc = ref;
 	m_tapScoringFunc = ref;
 	m_totalWifePointsCalcFunc = ref;
+	m_missWindowFunc = ref;
 
 	LUA->Release(L);
 }
@@ -530,7 +531,7 @@ ReplayManager::CustomTapScoringFunction(float fOffsetSeconds,
 		return wife3(fOffsetSeconds, timingScale);
 	};
 
-	if (m_tapScoringFunc.IsNil()) {
+	if (m_tapScoringFunc.IsNil() || !customScoringFunctionsEnabled) {
 		return defaultscoring(fOffsetSeconds, timingScale);
 	} else {
 		auto output = 0.F;
@@ -578,7 +579,7 @@ ReplayManager::CustomHoldNoteScoreScoringFunction(HoldNoteScore hns) -> float
 		}
 	};
 
-	if (m_holdNoteScoreScoringFunc.IsNil()) {
+	if (m_holdNoteScoreScoringFunc.IsNil() || !customScoringFunctionsEnabled) {
 		return defaultscoring(hns);
 	} else {
 		auto output = 0.F;
@@ -612,7 +613,7 @@ ReplayManager::CustomMineScoringFunction() -> float
 {
 	static auto defaultscoring = []() { return wife3_mine_hit_weight; };
 
-	if (m_mineScoringFunc.IsNil()) {
+	if (m_mineScoringFunc.IsNil() || !customScoringFunctionsEnabled) {
 		return defaultscoring();
 	} else {
 		auto output = 0.F;
@@ -654,7 +655,7 @@ ReplayManager::CustomTotalWifePointsCalculation(TapNoteType tnt) -> float
 		}
 	};
 
-	if (m_totalWifePointsCalcFunc.IsNil()) {
+	if (m_totalWifePointsCalcFunc.IsNil() || !customScoringFunctionsEnabled) {
 		return defaultscoring(tnt);
 	} else {
 		auto output = 0.F;
@@ -691,7 +692,7 @@ ReplayManager::CustomOffsetJudgingFunction(float fOffsetSeconds, float timingSca
 		return GetTapNoteScoreForReplay(fOffsetSeconds, timingScale);
 	};
 
-	if (m_offsetJudgingFunc.IsNil()) {
+	if (m_offsetJudgingFunc.IsNil() || !customScoringFunctionsEnabled) {
 		return defaultscoring(fOffsetSeconds, timingScale);
 	} else {
 		auto output = TNS_None;
@@ -707,6 +708,40 @@ ReplayManager::CustomOffsetJudgingFunction(float fOffsetSeconds, float timingSca
 			Locator::getLogger()->warn("Failed to run script on stack for "
 									   "custom offset judging function. "
 									   "Defaulted to regular windows.");
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+		return output;
+	}
+}
+
+auto
+ReplayManager::CustomMissWindowFunction() -> float
+{
+	static auto defaultscoring = []() { return MISS_WINDOW_BEGIN_SEC; };
+
+	if (m_missWindowFunc.IsNil() || !customScoringFunctionsEnabled) {
+		return defaultscoring();
+	} else {
+		auto output = 0.F;
+		auto L = LUA->Get();
+		m_missWindowFunc.PushSelf(L);
+		static std::string err = "Error running custom miss window function";
+		if (LuaHelpers::RunScriptOnStack(L, err, 0, 1, true)) {
+			if (lua_isnumber(L, -1)) {
+				output = std::clamp(static_cast<float>(lua_tonumber(L, -1)),
+									0.F,
+									MISS_WINDOW_BEGIN_SEC);
+			} else {
+				LuaHelpers::ReportScriptError("You must return a number in the "
+											  "Custom Miss Window Function.");
+				output = defaultscoring();
+			}
+		} else {
+			output = defaultscoring();
+			Locator::getLogger()->warn("Failed to run script on stack for "
+									   "custom miss window function. "
+									   "Defaulted to 180ms.");
 		}
 		lua_settop(L, 0);
 		LUA->Release(L);
@@ -748,6 +783,7 @@ class LunaReplayManager : public Luna<ReplayManager>
 		p->SetHoldNoteScoringFunction(ref);
 		p->SetTapScoringFunction(ref);
 		p->SetOffsetJudgingFunction(ref);
+		p->SetMissWindowFunction(ref);
 
 		COMMON_RETURN_SELF;
 	}
@@ -868,6 +904,31 @@ class LunaReplayManager : public Luna<ReplayManager>
 		COMMON_RETURN_SELF;
 	}
 
+	static int SetMissWindowFunction(T* p, lua_State* L) {
+		// pass a lua function
+		// that lua function takes no input and returns a number
+		// the number is usually [0,1]
+		// 0.180 is the default
+
+		// reset if empty
+		if (lua_isnil(L, 1)) {
+			LuaReference ref;
+			lua_pushnil(L);
+			ref.SetFromStack(L);
+			// reset
+			p->SetMissWindowFunction(ref);
+		} else {
+			luaL_checktype(L, 1, LUA_TFUNCTION);
+			LuaReference ref;
+			lua_pushvalue(L, 1);
+			ref.SetFromStack(L);
+			// set
+			p->SetMissWindowFunction(ref);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+
 	static int RunOffsetJudgingFunction(T* p, lua_State* L) {
 
 		// this offset should be [-1,1] rather than [-1000,1000]
@@ -892,6 +953,7 @@ class LunaReplayManager : public Luna<ReplayManager>
 		ADD_METHOD(SetHoldNoteScoreScoringFunction);
 		ADD_METHOD(SetTapScoringFunction);
 		ADD_METHOD(SetOffsetJudgingFunction);
+		ADD_METHOD(SetMissWindowFunction);
 
 		ADD_METHOD(RunOffsetJudgingFunction);
 	}
