@@ -146,8 +146,9 @@ local function scoreBoard(pn, position)
 	totalTaps = 0
 
 	local function setupNewScoreData(score)
-		local dvtTmp = score:GetOffsetVector()
-		local tvt = score:GetTapNoteTypeVector()
+		local replay = REPLAYS:GetActiveReplay()
+		local dvtTmp = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector()
+		local tvt = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetTapNoteTypeVector()
 		-- if available, filter out non taps from the deviation list
 		-- (hitting mines directly without filtering would make them appear here)
 		if tvt ~= nil and #tvt > 0 then
@@ -200,11 +201,15 @@ local function scoreBoard(pn, position)
 		ChangeScoreCommand = function(self, params)
 			if params.score then
 				score = params.score
-
 				setupNewScoreData(score)
 			end
 
-			MESSAGEMAN:Broadcast("ScoreChanged")
+			if usingCustomWindows then
+				lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+				self:playcommand("MoveCustomWindowIndex", {direction = 0})
+			else
+				MESSAGEMAN:Broadcast("ScoreChanged")
+			end
 		end,
 		UpdateNetEvalStatsMessageCommand = function(self)
 			local s = SCREENMAN:GetTopScreen():GetHighScore()
@@ -715,7 +720,11 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settext(getJudgeStrings(judgmentName))
+					if usingCustomWindows then
+						self:queuecommand("LoadedCustomWindow")
+					else
+						self:settext(getJudgeStrings(judgmentName))
+					end
 				end,
 				ForceWindowMessageCommand = function(self, params)
 					self:playcommand("Set")
@@ -748,7 +757,11 @@ local function scoreBoard(pn, position)
 					self:settext(score:GetTapNoteScore(judgmentName))
 				end,
 				ScoreChangedMessageCommand = function(self)
-					self:queuecommand("Set")
+					if not usingCustomWindows then
+						self:queuecommand("Set")
+					else
+						self:queuecommand("LoadedCustomWindow")
+					end
 				end,
 				ForceWindowMessageCommand = function(self, params)
 					self:settext(getRescoredJudge(dvt, judge, judgmentIndex))
@@ -785,7 +798,11 @@ local function scoreBoard(pn, position)
 					self:settextf("(%03.2f%%)", score:GetTapNoteScore(judgmentName) / totalTaps * 100)
 				end,
 				ScoreChangedMessageCommand = function(self)
-					self:queuecommand("Set")
+					if not usingCustomWindows then
+						self:queuecommand("Set")
+					else
+						self:queuecommand("LoadedCustomWindow")
+					end
 				end,
 				ForceWindowMessageCommand = function(self, params)
 					local rescoredJudge = getRescoredJudge(dvt, params.judge, judgmentIndex)
