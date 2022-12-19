@@ -173,9 +173,18 @@ class Replay
 	auto GetModifiers() const -> std::string { return mods; }
 	void SetModifiers(std::string& modstr) { mods = modstr; }
 
-	void SetUseReprioritizedNoteRows(bool b) {
+	void SetUseReprioritizedNoteRows(bool b,
+									 bool forceReload = false)
+	{
 		if (b != useReprioritizedNoterows) {
 			ClearPrimitiveVectors();
+		}
+		if (generatedInputData) {
+			InputData.clear();
+			vMissReplayDataVector.clear();
+			vHoldReplayDataVector.clear();
+			vMineReplayDataVector.clear();
+			generatedInputData = false;
 		}
 		useReprioritizedNoterows = b;
 	}
@@ -345,6 +354,7 @@ class Replay
 	void Unload()
 	{
 		useReprioritizedNoterows = false;
+		generatedInputData = false;
 
 		// stats
 		m_ReplaySnapshotMap.clear();
@@ -435,6 +445,13 @@ class Replay
 	std::vector<MineReplayResult> vMineReplayDataVector{};
 	std::vector<float> vOnlineReplayTimestampVector{};
 
+	// mainly useful for the noterow reprioritization stuff
+	// because if we switch that and it is generated, force generate
+	// the reason is that given only v2, we generate inputdata
+	// that input data outputs a separate set of v2 data
+	// and reloading that v2 data generates wrong input data
+	// so this just refreshes the whole process
+	bool generatedInputData = false;
 };
 
 #endif

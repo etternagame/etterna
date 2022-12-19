@@ -2771,6 +2771,7 @@ Replay::GenerateInputData() -> bool
 		return false;
 	}
 
+	generatedInputData = true;
 	return true;
 }
 
