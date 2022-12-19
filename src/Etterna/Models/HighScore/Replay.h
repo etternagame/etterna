@@ -173,8 +173,7 @@ class Replay
 	auto GetModifiers() const -> std::string { return mods; }
 	void SetModifiers(std::string& modstr) { mods = modstr; }
 
-	void SetUseReprioritizedNoteRows(bool b,
-									 bool forceReload = false)
+	void SetUseReprioritizedNoteRows(bool b)
 	{
 		if (b != useReprioritizedNoterows) {
 			ClearPrimitiveVectors();

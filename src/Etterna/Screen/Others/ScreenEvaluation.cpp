@@ -297,7 +297,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			useReprioritizedNoterows = BArg(4);
 		}
 
-		replay->SetUseReprioritizedNoteRows(useReprioritizedNoterows, true);
+		replay->SetUseReprioritizedNoteRows(useReprioritizedNoterows);
 		REPLAYS->InitReplayPlaybackForScore(hs, ts);
 		REPLAYS->SetPlayerStageStatsForReplay(*replay, pPSS, ts);
 		REPLAYS->ReleaseReplay(replay); // remove extra reference
