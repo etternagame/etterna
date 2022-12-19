@@ -23,6 +23,7 @@
 #include <fstream>
 #include <sstream>
 #include <utility>
+#include <limits>
 
 // for replay compression
 // why does this have to be complicated
@@ -3620,7 +3621,8 @@ class LunaReplay : public Luna<Replay>
 
 	static auto GetLastReplaySnapshot(T* p, lua_State* L) -> int
 	{
-		p->GetReplaySnapshotForNoterow((1 << 31) - 1)->PushSelf(L);
+		p->GetReplaySnapshotForNoterow(std::numeric_limits<int>::max() - 1)
+		  ->PushSelf(L);
 		return 1;
 	}
 
