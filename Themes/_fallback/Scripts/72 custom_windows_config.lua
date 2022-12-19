@@ -309,6 +309,11 @@ function loadCustomWindowConfig(config)
 				end
 			end
 		)
+
+		if config.customWindowWindows["W5"] ~= nil then
+			local w5 = config.customWindowWindows["W5"] / 1000
+			REPLAYS:SetMissWindowFunction(function() return w5 end)
+		end
 	end
 
 	if loadedAFunctionalCustomConfig then
@@ -325,6 +330,10 @@ end
 
 function loadCurrentCustomWindowConfig()
 	loadCustomWindowConfigByIndex(currentCustomWindowConfigIndex)
+end
+
+function unloadCustomWindowConfig()
+	REPLAYS:ResetCustomScoringFunctions()
 end
 
 function getCustomWindowConfigJudgmentName(judgmentName)
