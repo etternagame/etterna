@@ -186,7 +186,7 @@ auto
 ReplayManager::CalculateRadarValuesForReplay(Replay& replay, RadarValues& rv, RadarValues& possibleRV)
   -> bool
 {
-	Locator::getLogger()->info("Calculating Radar Values from ReplayData");
+	Locator::getLogger()->debug("Calculating Radar Values from ReplayData");
 
 	// We will do this thoroughly just in case someone decides to use the
 	// other categories we don't currently use
@@ -265,7 +265,7 @@ ReplayManager::CalculateRadarValuesForReplay(Replay& replay, RadarValues& rv, Ra
 	rv[RadarCategory_Fakes] = fakes;
 	rv[RadarCategory_Notes] = totalNotesHit;
 
-	Locator::getLogger()->info(
+	Locator::getLogger()->debug(
 	  "Finished Calculating Radar Values from ReplayData");
 	return true;
 }
@@ -327,7 +327,7 @@ ReplayManager::SetPlayerStageStatsForReplay(Replay& replay, PlayerStageStats* ps
 std::map<float, float>
 ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 {
-	Locator::getLogger()->info("Generating LifeRecord from ReplayData");
+	Locator::getLogger()->debug("Generating LifeRecord from ReplayData");
 
 	// Without a Snapshot Map, I assume we didn't calculate
 	// the other necessary stuff and this is going to turn out bad
@@ -424,7 +424,7 @@ ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 		lifeRecord[(now - allOffset) / rateUsed] = lifeLevel;
 	}
 
-	Locator::getLogger()->info(
+	Locator::getLogger()->debug(
 	  "Finished Generating LifeRecord from ReplayData");
 	return lifeRecord;
 }
@@ -432,7 +432,7 @@ ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 std::vector<PlayerStageStats::Combo_t>
 ReplayManager::GenerateComboListForReplay(Replay& replay, float timingScale)
 {
-	Locator::getLogger()->info("Generating ComboList from ReplayData");
+	Locator::getLogger()->debug("Generating ComboList from ReplayData");
 
 	std::vector<PlayerStageStats::Combo_t> combos;
 	const PlayerStageStats::Combo_t firstCombo;
@@ -517,7 +517,7 @@ ReplayManager::GenerateComboListForReplay(Replay& replay, float timingScale)
 	  (rowOfComboStart->first - allOffset) / rateUsed;
 	curCombo->m_fStartSecond = (rowOfComboStart->first - allOffset) / rateUsed;
 
-	Locator::getLogger()->info("Finished Generating ComboList from ReplayData");
+	Locator::getLogger()->debug("Finished Generating ComboList from ReplayData");
 	return combos;
 }
 
