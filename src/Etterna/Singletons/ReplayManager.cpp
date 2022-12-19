@@ -869,6 +869,19 @@ class LunaReplayManager : public Luna<ReplayManager>
 		COMMON_RETURN_SELF;
 	}
 
+	static int RunOffsetJudgingFunction(T* p, lua_State* L) {
+
+		// this offset should be [-1,1] rather than [-1000,1000]
+		auto offset = FArg(1);
+		// the scalar is the judge window multiplier. j4 means 1.0.
+		auto scalar = FArg(2);
+
+		LuaHelpers::Push<TapNoteScore>(
+		  L, p->CustomOffsetJudgingFunction(offset, scalar));
+
+		return 1;
+	}
+
 	LunaReplayManager()
 	{
 		ADD_METHOD(GetReplay);
@@ -880,6 +893,8 @@ class LunaReplayManager : public Luna<ReplayManager>
 		ADD_METHOD(SetHoldNoteScoreScoringFunction);
 		ADD_METHOD(SetTapScoringFunction);
 		ADD_METHOD(SetOffsetJudgingFunction);
+
+		ADD_METHOD(RunOffsetJudgingFunction);
 	}
 };
 LUA_REGISTER_CLASS(ReplayManager)
