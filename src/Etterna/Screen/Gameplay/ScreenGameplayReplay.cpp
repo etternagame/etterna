@@ -210,7 +210,8 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = settings.oldRate;
 		GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = settings.oldRate;
 	} else {
-		REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
+		REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore(),
+											Player::GetTimingWindowScale());
 	}
 }
 
@@ -351,7 +352,8 @@ ScreenGameplayReplay::SaveStats()
 	// Reload the notedata after finishing in case we truncated it
 	SetupNoteDataFromRow(GAMESTATE->m_pCurSteps, -1);
 	// Reload the replay data to make sure it is clean for calculations
-	REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
+	REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore(),
+										Player::GetTimingWindowScale());
 
 	ScreenGameplay::SaveStats();
 }
@@ -497,9 +499,10 @@ ScreenGameplayReplay::TogglePause()
 
 		// Basically reinitialize all stage data from precalculated things
 		// Restarts the basic replay data in case something went weird
+		REPLAYS->InitReplayPlaybackForScore(
+		  REPLAYS->GetActiveReplayScore(), Player::GetTimingWindowScale(), rowNow);
 		SetupNoteDataFromRow(pSteps, rowNow);
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
-		REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
 
 		auto* pss = m_vPlayerInfo.GetPlayerStageStats();
 		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(rowNow);

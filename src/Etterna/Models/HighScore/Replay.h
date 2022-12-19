@@ -306,7 +306,8 @@ class Replay
 	auto ReprioritizeInputData() -> bool;
 
 	/// Generate events used for playing back replay in gameplay
-	auto GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>;
+	auto GeneratePlaybackEvents(int startRow = 0)
+	  -> std::map<int, std::vector<PlaybackEvent>>;
 
 	/// For Stats and ReplaySnapshots
 	auto GenerateJudgeInfoAndReplaySnapshots(int startingRow = 0,
@@ -316,10 +317,12 @@ class Replay
 	// Just offer both solutions
 	/// Returns map of columns to a set of rows which are dropped
 	/// See which columns have drops using this
-	auto GenerateDroppedHoldColumnsToRowsMap() -> std::map<int, std::set<int>>;
+	auto GenerateDroppedHoldColumnsToRowsMap(int startRow = 0)
+	  -> std::map<int, std::set<int>>;
 	/// Returns a map of rows to a set of columns which are dropped
 	/// See which rows have drops using this
-	auto GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>;
+	auto GenerateDroppedHoldRowsToColumnsMap(int startRow = 0)
+	  -> std::map<int, std::set<int>>;
 
 	/// Offsets can be really weird - Remove all impossible offsets
 	void ValidateOffsets();

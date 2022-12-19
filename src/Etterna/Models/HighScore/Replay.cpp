@@ -2779,7 +2779,7 @@ Replay::GenerateInputData() -> bool
 }
 
 auto
-Replay::GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>
+Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<PlaybackEvent>>
 {
 	std::map<int, std::vector<PlaybackEvent>> out;
 
@@ -2809,6 +2809,10 @@ Replay::GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>
 
 		const auto noterow =
 		  BeatToNoteRow(td->GetBeatFromElapsedTimeNoOffset(positionSeconds));
+		if (noterow < startRow) {
+			continue;
+		}
+
 		PlaybackEvent playback(noterow, positionSeconds, column, isPress);
 		playback.noterowJudged = evt.nearestTapNoterow;
 		if (!out.count(noterow)) {
@@ -2821,11 +2825,15 @@ Replay::GeneratePlaybackEvents() -> std::map<int, std::vector<PlaybackEvent>>
 }
 
 auto
-Replay::GenerateDroppedHoldColumnsToRowsMap() -> std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow) -> std::map<int, std::set<int>>
 {
 	std::map<int, std::set<int>> mapping;
 
 	for (auto& h : vHoldReplayDataVector) {
+		if (h.row < startRow) {
+			continue;
+		}
+
 		if (mapping.count(h.track) == 0) {
 			mapping.emplace(h.track, std::set<int>());
 		}
@@ -2836,11 +2844,15 @@ Replay::GenerateDroppedHoldColumnsToRowsMap() -> std::map<int, std::set<int>>
 }
 
 auto
-Replay::GenerateDroppedHoldRowsToColumnsMap() -> std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldRowsToColumnsMap(int startRow) -> std::map<int, std::set<int>>
 {
 	std::map<int, std::set<int>> mapping;
 
 	for (auto& h : vHoldReplayDataVector) {
+		if (h.row < startRow) {
+			continue;
+		}
+
 		if (mapping.count(h.row) == 0) {
 			mapping.emplace(h.row, std::set<int>());
 		}

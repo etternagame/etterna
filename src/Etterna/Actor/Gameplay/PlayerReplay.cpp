@@ -77,11 +77,35 @@ PlayerReplay::Load()
 {
 	Player::Load();
 
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto iSongRow = BeatToNoteRow(fSongBeat);
 	// this replay will always be real or a dummy replay
-	auto replay =
-	  REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
-	SetPlaybackEvents(replay->GeneratePlaybackEvents());
-	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap());
+	auto replay = REPLAYS->InitReplayPlaybackForScore(
+	  REPLAYS->GetActiveReplayScore(), GetTimingWindowScale());
+	SetPlaybackEvents(replay->GeneratePlaybackEvents(iSongRow));
+	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(iSongRow));
+}
+
+void
+PlayerReplay::Reload()
+{
+	Player::Reload();
+
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto iSongRow = BeatToNoteRow(fSongBeat);
+	// this replay will always be real or a dummy replay
+	auto replay = REPLAYS->InitReplayPlaybackForScore(
+	  REPLAYS->GetActiveReplayScore(), GetTimingWindowScale());
+	SetPlaybackEvents(replay->GeneratePlaybackEvents(iSongRow));
+	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(iSongRow));
+}
+
+void
+PlayerReplay::UpdateLoadedReplay(int startRow)
+{
+	auto replay = REPLAYS->GetActiveReplay();
+	SetPlaybackEvents(replay->GeneratePlaybackEvents(startRow));
+	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(startRow));
 }
 
 void
@@ -707,8 +731,8 @@ PlayerReplay::Step(int col,
 			} else {
 				// every other case
 				if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
-					score =
-					  ReplayManager::GetTapNoteScoreForReplay(fNoteOffset);
+					score = ReplayManager::GetTapNoteScoreForReplay(
+					  fNoteOffset, GetTimingWindowScale());
 			}
 		}
 

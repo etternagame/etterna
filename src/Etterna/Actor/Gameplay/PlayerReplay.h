@@ -19,6 +19,7 @@ class PlayerReplay : public Player
 			  LifeMeter* pLM,
 			  ScoreKeeper* pPrimaryScoreKeeper) override;
 	void Load() override;
+	void Reload() override;
 	void Update(float fDeltaTime) override;
 	void CrossedRows(int iLastrowCrossed,
 					 const std::chrono::steady_clock::time_point& now) override;
@@ -30,6 +31,8 @@ class PlayerReplay : public Player
 			  float padStickSeconds = 0.0F,
 			  int rowToJudge = -1,
 			  float forcedSongPositionSeconds = 0.0F);
+
+	void UpdateLoadedReplay(int startRow = 0);
 
 	std::map<int, std::vector<PlaybackEvent>>& GetPlaybackEvents() {
 		return playbackEvents;

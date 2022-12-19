@@ -112,7 +112,9 @@ ReplayManager::GetTapNoteScoreForReplay(float fNoteOffset, float timingScale)
 }
 
 Replay*
-ReplayManager::InitReplayPlaybackForScore(HighScore* hs, float timingScale)
+ReplayManager::InitReplayPlaybackForScore(HighScore* hs,
+										  float timingScale,
+										  int startRow)
 {
 	UnsetActiveReplay();
 
@@ -120,7 +122,7 @@ ReplayManager::InitReplayPlaybackForScore(HighScore* hs, float timingScale)
 	activeReplay = GetReplay(hs);
 	activeReplaySettings.reset();
 
-	activeReplay->GenerateJudgeInfoAndReplaySnapshots(0, timingScale);
+	activeReplay->GenerateJudgeInfoAndReplaySnapshots(startRow, timingScale);
 
 	return activeReplay;
 }
