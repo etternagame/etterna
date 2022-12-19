@@ -1232,10 +1232,23 @@ Replay::GeneratePrimitiveVectors() -> bool
 	}
 	
 	if (!LoadInputData()) {
-		Locator::getLogger()->warn("Failed to generate primitive vectors for "
-								   "score {} because input data is not present",
-								   scoreKey);
-		return false;
+		if (useReprioritizedNoterows) {
+			if (!GenerateInputData()) {
+				Locator::getLogger()->warn("Failed to generate primitive "
+										   "vectors for score {} because no "
+										   "old replay data could be loaded "
+										   "to recreate input data",
+										   scoreKey);
+				return false;
+			}
+			ClearPrimitiveVectors();
+		} else {
+			Locator::getLogger()->warn(
+			  "Failed to generate primitive vectors for "
+			  "score {} because input data is not present",
+			  scoreKey);
+			return false;
+		}
 	}
 
 	if (!FillInBlanksForInputData()) {
