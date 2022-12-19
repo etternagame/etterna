@@ -229,7 +229,7 @@ function customOffsetToJudgeColor(offset, windows)
 		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
 	elseif offset <= windows.TapNoteScore_W4 then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
-	elseif offset <= math.max(windows.TapNoteScore_W5, 180) then
+	elseif offset <= windows.TapNoteScore_W5 then
 		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
 	else
 		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
