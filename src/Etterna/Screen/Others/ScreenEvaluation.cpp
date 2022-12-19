@@ -281,7 +281,7 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			hs = Luna<HighScore>::check(L, 3);
 		
 		float ts = FArg(2);
-		auto replay = REPLAYS->GetActiveReplay();
+		auto replay = REPLAYS->GetReplay(hs);
 
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
@@ -297,9 +297,10 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 			useReprioritizedNoterows = BArg(4);
 		}
 
-		replay->SetUseReprioritizedNoteRows(useReprioritizedNoterows);
+		replay->SetUseReprioritizedNoteRows(useReprioritizedNoterows, true);
 		REPLAYS->InitReplayPlaybackForScore(hs, ts);
 		REPLAYS->SetPlayerStageStatsForReplay(*replay, pPSS, ts);
+		REPLAYS->ReleaseReplay(replay); // remove extra reference
 		lua_pushboolean(L, true);
 		return 1;
 	}
