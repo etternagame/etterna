@@ -100,8 +100,7 @@ local function convertXToRow(x)
 	return row
 end
 
-local o =
-	Def.ActorFrame {
+local o = Def.ActorFrame {
 	Name = "OffsetPlot",
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
@@ -239,8 +238,7 @@ local o =
 	end
 }
 -- Background
-o[#o + 1] =
-	Def.Quad {
+o[#o + 1] = Def.Quad {
 	Name = "BGQuad",
 	JudgeDisplayChangedMessageCommand = function(self)
 		self:zoomto(plotWidth + plotMargin, plotHeight + plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(
@@ -298,8 +296,7 @@ o[#o + 1] =
 	end
 }
 -- Center Bar
-o[#o + 1] =
-	Def.Quad {
+o[#o + 1] = Def.Quad {
 	JudgeDisplayChangedMessageCommand = function(self)
 		self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment("TapNoteScore_W1")):diffusealpha(baralpha)
 	end
@@ -307,8 +304,7 @@ o[#o + 1] =
 local fantabars = {22.5, 45, 90, 135}
 local bantafars = {"TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4", "TapNoteScore_W5"}
 for i = 1, #fantabars do
-	o[#o + 1] =
-		Def.Quad {
+	o[#o + 1] = Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
@@ -317,8 +313,7 @@ for i = 1, #fantabars do
 			self:y(fitY(fit))
 		end
 	}
-	o[#o + 1] =
-		Def.Quad {
+	o[#o + 1] = Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
@@ -348,8 +343,7 @@ local function setOffsetVerts(vt, x, y, c)
 	vt[#vt + 1] = {{x + dotWidth, y - dotWidth, 0}, c}
 	vt[#vt + 1] = {{x - dotWidth, y - dotWidth, 0}, c}
 end
-o[#o + 1] =
-	Def.ActorMultiVertex {
+o[#o + 1] = Def.ActorMultiVertex {
 	JudgeDisplayChangedMessageCommand = function(self)
 		local verts = {}
 		for i = 1, #dvt do
@@ -412,46 +406,40 @@ o[#o + 1] =
 }
 
 -- filter
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(0, plotHeight / 2 - 2):zoom(textzoom):halign(0.5):valign(1)
-			if #ntt > 0 then
-				if handspecific then
-					if left then
-						self:settext("left")
-					elseif down then
-						self:settext("down")
-					elseif up then
-						self:settext("up")
-					elseif right then
-						self:settext("right")
-					end
-				else
-					self:settext(translated_info["Down"])
+o[#o + 1] = LoadFont("Common Normal") .. {
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:xy(0, plotHeight / 2 - 2):zoom(textzoom):halign(0.5):valign(1)
+		if #ntt > 0 then
+			if handspecific then
+				if left then
+					self:settext("left")
+				elseif down then
+					self:settext("down")
+				elseif up then
+					self:settext("up")
+				elseif right then
+					self:settext("right")
 				end
 			else
-				self:settext("")
+				self:settext(translated_info["Down"])
 			end
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 -- Early/Late markers
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(-plotWidth / 2, -plotHeight / 2 + 2):zoom(textzoom):halign(0):valign(0):settextf("%s (+%ims)", translated_info["Late"], maxOffset)
-		end
-	}
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(-plotWidth / 2, plotHeight / 2 - 2):zoom(textzoom):halign(0):valign(1):settextf("%s (-%ims)", translated_info["Early"], maxOffset)
-		end
-	}
+o[#o + 1] = LoadFont("Common Normal") .. {
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:xy(-plotWidth / 2, -plotHeight / 2 + 2):zoom(textzoom):halign(0):valign(0):settextf("%s (+%ims)", translated_info["Late"], maxOffset)
+	end
+}
+o[#o + 1] = LoadFont("Common Normal") .. {
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:xy(-plotWidth / 2, plotHeight / 2 - 2):zoom(textzoom):halign(0):valign(1):settextf("%s (-%ims)", translated_info["Early"], maxOffset)
+	end
+}
 
 -- Background for judgments at mouse position
 o[#o + 1] = Def.Quad {
@@ -463,40 +451,36 @@ o[#o + 1] = Def.Quad {
 }
 
 -- Text for judgments at mouse position
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "PosText",
-		InitCommand = function(self)
-			self:x(8):valign(1):halign(1):zoom(0.4):y(-plotHeight / 2 - plotMargin - 2)
-		end
-	}
+o[#o + 1] = LoadFont("Common Normal") .. {
+	Name = "PosText",
+	InitCommand = function(self)
+		self:x(8):valign(1):halign(1):zoom(0.4):y(-plotHeight / 2 - plotMargin - 2)
+	end
+}
 
 -- Text for current judge window
 -- Only for SelectMusic (not Eval)
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "JudgeText",
-		InitCommand = function(self)
-			self:valign(0):halign(0):zoom(0.4)
-			self:xy(-plotWidth/2, -plotHeight/2)
-			self:settext("")
-		end,
-		OnCommand = function(self)
-			local name = SCREENMAN:GetTopScreen():GetName()
-			if name ~= "ScreenScoreTabOffsetPlot" then
-				self:visible(false)
-			end
-		end,
-		SetCommand = function(self)
-			local jdgname = "J" .. judge
-			self:settextf("%s", jdgname)
-		end,
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:playcommand("Set")
-			self:xy(-plotWidth / 2 + 5, -plotHeight / 2 + 15):zoom(textzoom):halign(0):valign(0)
+o[#o + 1] = LoadFont("Common Normal") .. {
+	Name = "JudgeText",
+	InitCommand = function(self)
+		self:valign(0):halign(0):zoom(0.4)
+		self:xy(-plotWidth/2, -plotHeight/2)
+		self:settext("")
+	end,
+	OnCommand = function(self)
+		local name = SCREENMAN:GetTopScreen():GetName()
+		if name ~= "ScreenScoreTabOffsetPlot" then
+			self:visible(false)
 		end
-	}
+	end,
+	SetCommand = function(self)
+		local jdgname = "J" .. judge
+		self:settextf("%s", jdgname)
+	end,
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:playcommand("Set")
+		self:xy(-plotWidth / 2 + 5, -plotHeight / 2 + 15):zoom(textzoom):halign(0):valign(0)
+	end
+}
 
 return o
