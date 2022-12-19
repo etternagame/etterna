@@ -1,6 +1,5 @@
 local defaultConfig = {
 	global = {
-		DefaultScoreType = 4, -- refer to scripts/wife.lua for whatever scoring types are available
 		fallbackscoreType = 1,
 		TipType = 1, -- 1 = Hide,2=tips 3= random quotes phrases,
 		RateSort = true,

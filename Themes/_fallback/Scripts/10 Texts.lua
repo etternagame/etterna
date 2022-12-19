@@ -119,7 +119,7 @@ end;
 
 function scoringToText(st)
 	if st == 0 then
-		return scoreTypeText[themeConfig:get_data().global.DefaultScoreType]
+		return scoreTypeText[4]
 	else
 		return scoreTypeText[st]
 	end
