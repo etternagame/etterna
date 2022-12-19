@@ -10,6 +10,7 @@ local defaultConfig = {
 	},
 
 	--[[
+		Please note that if your game hard freezes when trying to rescore something, it is probably your fault from modifying this table.
 		Each entry in this below table looks similar to this:
 
 		customWindow1 = { -- change "customWindow1" to your internal custom window name. this will be the name written in the above table for ordering purposes
@@ -60,7 +61,7 @@ local defaultConfig = {
 
 			customWindowTapNoteTypeWorths = { -- OPTIONAL: if left out, defaults to wife3 value (the list below)
 				Tap = 2,
-				HoldHead = 2,
+				HoldHead = 2, -- this tends to be the worth of a Held hold as well as a Tap, so add both of them.
 				Lift = 2,
 				Mine = 0, -- only counted for mine hits, not mine "misses". 0 is the normal behavior. probably dont change this.
 			},
@@ -98,7 +99,7 @@ local defaultConfig = {
 			customWindowMineHitWorth = -8,
 			customWindowTapNoteTypeWorths = {
 				Tap = 2,
-				HoldHead = 2,
+				HoldHead = 8,
 				Lift = 2,
 				Mine = 0,
 			},
@@ -166,7 +167,7 @@ local defaultConfig = {
 			customWindowMineHitWorth = 0,
 			customWindowTapNoteTypeWorths = {
 				Tap = 3,
-				HoldHead = 3,
+				HoldHead = 3.5,
 				Lift = 3,
 				Mine = 0,
 			},
@@ -186,6 +187,19 @@ function getCurrentCustomWindowConfigIndex()
 	return currentCustomWindowConfigIndex
 end
 
+function moveCustomWindowConfigIndex(direction)
+	currentCustomWindowConfigIndex = currentCustomWindowConfigIndex + direction
+	if currentCustomWindowConfigIndex > getTotalCustomWindowConfigs() then
+		currentCustomWindowConfigIndex = 1
+	elseif currentCustomWindowConfigIndex < 1 then
+		currentCustomWindowConfigIndex = getTotalCustomWindowConfigs()
+	end
+end
+
+local function getcurrentrealconfig()
+	return customWindowsConfig:get_data().customWindowConfigs[getCurrentCustomWindowConfig()]
+end
+
 function getCurrentCustomWindowConfig()
 	return customWindowsConfig:get_data().customWindowOrder[currentCustomWindowConfigIndex]
 end
@@ -195,11 +209,11 @@ function getTotalCustomWindowConfigs()
 end
 
 function getCurrentCustomWindowConfigName()
-	return customWindowsConfig:get_data().customWindowConfigs[getCurrentCustomWindowConfig()].displayName or "NAME MISSING"
+	return getcurrentrealconfig().displayName or "NAME MISSING"
 end
 
 function currentCustomWindowConfigUsesOldestNoteFirst()
-	return customWindowsConfig:get_data().customWindowConfigs[getCurrentCustomWindowConfig()].judgeByOldestNote or false
+	return getcurrentrealconfig().judgeByOldestNote or false
 end
 
 -- the parameter to this is a config entry from the table above
@@ -249,9 +263,9 @@ function loadCustomWindowConfig(config)
 	if config.customWindowHoldWorths ~= nil then
 		loadedAFunctionalCustomConfig = true
 		local fallbackTable = {
-			HoldNoteScore_Held = config.customWindowWorths["Held"] or 0,
-			HoldNoteScore_LetGo = config.customWindowWorths["LetGo"] or -4.5,
-			HoldNoteScore_Missed = config.customWindowWorths["Missed"] or -4.5,
+			HoldNoteScore_Held = config.customWindowHoldWorths and config.customWindowHoldWorths["Held"] or 0,
+			HoldNoteScore_LetGo = config.customWindowHoldWorths and config.customWindowHoldWorths["LetGo"] or -4.5,
+			HoldNoteScore_Missed = config.customWindowHoldWorths and config.customWindowHoldWorths["Missed"] or -4.5,
 		}
 		REPLAYS:SetHoldNoteScoreScoringFunction(
 			function(holdNoteScore)
@@ -263,10 +277,10 @@ function loadCustomWindowConfig(config)
 	if config.customWindowTapNoteTypeWorths ~= nil then
 		loadedAFunctionalCustomConfig = true
 		local fallbackTable = {
-			TapNoteType_Tap = config.customWindowTapNoteTypeWorths["Tap"] or 2,
-			TapNoteType_HoldHead = config.customWindowTapNoteTypeWorths["HoldHead"] or 2,
-			TapNoteType_Lift = config.customWindowTapNoteTypeWorths["Lift"] or 2,
-			TapNoteType_Mine = config.customWindowTapNoteTypeWorths["Mine"] or 0,
+			TapNoteType_Tap = config.customWindowTapNoteTypeWorths and config.customWindowTapNoteTypeWorths["Tap"] or 2,
+			TapNoteType_HoldHead = config.customWindowTapNoteTypeWorths and config.customWindowTapNoteTypeWorths["HoldHead"] or 2,
+			TapNoteType_Lift = config.customWindowTapNoteTypeWorths and config.customWindowTapNoteTypeWorths["Lift"] or 2,
+			TapNoteType_Mine = config.customWindowTapNoteTypeWorths and config.customWindowTapNoteTypeWorths["Mine"] or 0,
 		}
 		REPLAYS:SetTotalWifePointsCalcFunction(
 			function(tapNoteType)
@@ -284,7 +298,7 @@ function loadCustomWindowConfig(config)
 					return "TapNoteScore_W1"
 				elseif tapOffset <= (config.customWindowWindows["W2"] or 45) then
 					return "TapNoteScore_W2"
-				elseif tapOffset <= (config.customWindowMineHitWorth["W3"] or 90) then
+				elseif tapOffset <= (config.customWindowWindows["W3"] or 90) then
 					return "TapNoteScore_W3"
 				elseif tapOffset <= (config.customWindowWindows["W4"] or 135) then
 					return "TapNoteScore_W4"
@@ -311,6 +325,43 @@ end
 
 function loadCurrentCustomWindowConfig()
 	loadCustomWindowConfigByIndex(currentCustomWindowConfigIndex)
+end
+
+function getCustomWindowConfigJudgmentName(judgmentName)
+	local baseNames = {
+		W1 = THEME:GetString("TapNoteScore", "W1"),
+		W2 = THEME:GetString("TapNoteScore", "W2"),
+		W3 = THEME:GetString("TapNoteScore", "W3"),
+		W4 = THEME:GetString("TapNoteScore", "W4"),
+		W5 = THEME:GetString("TapNoteScore", "W5"),
+		Miss = THEME:GetString("TapNoteScore", "Miss"),
+	}
+	local nm = judgmentName:gsub("TapNoteScore_", "")
+	return getcurrentrealconfig().customWindowNames and getcurrentrealconfig().customWindowNames[nm] or baseNames[nm]
+end
+
+-- this returns in whole milliseconds
+function getCustomWindowConfigJudgmentWindow(judgmentName)
+	local baseWindows = {
+		W1 = 22.5,
+		W2 = 45,
+		W3 = 90,
+		W4 = 135,
+		W5 = 180,
+	}
+	local nm = judgmentName:gsub("TapNoteScore_", "")
+	return getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows[nm] or baseWindows[nm] or 0
+end
+
+function getCurrentCustomWindowConfigJudgmentWindowTable()
+	local baseWindows = {
+		TapNoteScore_W1 = getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows["W1"] or 22.5,
+		TapNoteScore_W2 = getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows["W2"] or 45,
+		TapNoteScore_W3 = getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows["W3"] or 90,
+		TapNoteScore_W4 = getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows["W4"] or 135,
+		TapNoteScore_W5 = getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows["W5"] or 180,
+	}
+	return baseWindows
 end
 
 --[[ REPLAYS (ReplayManager) documentation
@@ -383,7 +434,7 @@ end
 	function(tapNoteType)
 		local worths = {
 			TapNoteType_Tap = 2,
-			TapNoteType_HoldHead = 2,
+			TapNoteType_HoldHead = 2, -- this tends to be the worth of a hold including the head, so the tap plus the completion.
 			TapNoteType_Lift = 2,
 			TapNoteType_Mine = 0,
 		}

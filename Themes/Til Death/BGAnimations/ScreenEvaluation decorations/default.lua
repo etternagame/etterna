@@ -137,6 +137,7 @@ local function getRescoreElements(score)
 	o["totalTaps"] = totalTaps
 	return o
 end
+local lastSnapshot = nil
 
 local function scoreBoard(pn, position)
 	local dvtTmp = {}
@@ -261,6 +262,108 @@ local function scoreBoard(pn, position)
 				self:diffusealpha(0.5)
 			end,
 		},
+		Def.ActorFrame {
+			Name = "CustomScoringDisplay",
+			InitCommand = function(self)
+				self:xy(frameX - 5, frameY + 5)
+				self:visible(usingCustomWindows)
+			end,
+			ToggleCustomWindowsMessageCommand = function(self)
+				usingCustomWindows = not usingCustomWindows
+
+				self:visible(usingCustomWindows)
+				self:GetParent():GetChild("GraphDisplayP1"):visible(not usingCustomWindows)
+				self:GetParent():GetChild("ComboGraphP1"):visible(not usingCustomWindows)
+				if not usingCustomWindows then
+					self:GetParent():playcommand("ChangeScore", {score = score})
+					MESSAGEMAN:Broadcast("UnloadedCustomWindow")
+					MESSAGEMAN:Broadcast("SetFromDisplay", {score = score})
+					MESSAGEMAN:Broadcast("ForceWindow", {judge=judge})
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
+				else
+					loadCurrentCustomWindowConfig()
+					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
+					lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+					self:playcommand("Set")
+					MESSAGEMAN:Broadcast("LoadedCustomWindow")
+				end
+			end,
+			MoveCustomWindowIndexMessageCommand = function(self, params)
+				if not usingCustomWindows then return end
+				moveCustomWindowConfigIndex(params.direction)
+				loadCurrentCustomWindowConfig()
+				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
+				lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+				self:playcommand("Set")
+				MESSAGEMAN:Broadcast("LoadedCustomWindow")
+			end,
+			CodeMessageCommand = function(self, params)
+				if not usingCustomWindows then return end
+				if params.Name == "PrevJudge" then
+					MESSAGEMAN:Broadcast("MoveCustomWindowIndex", {direction=-1})
+				elseif params.Name == "NextJudge" then
+					MESSAGEMAN:Broadcast("MoveCustomWindowIndex", {direction=1})
+				end
+			end,
+
+			UIElements.QuadButton(1, 1) .. {
+				Name = "BG",
+				InitCommand = function(self)
+					self:zoomto(capWideScale(get43size(235),235), 25)
+					self:halign(0):valign(1)
+					self:diffuse(getMainColor("tabs"))
+				end,
+				MouseClickCommand = function(self, params)
+					if self:IsVisible() and usingCustomWindows then
+						if params.event ~= "DeviceButton_left mouse button" then
+							moveCustomWindowConfigIndex(1)
+						else
+							moveCustomWindowConfigIndex(-1)
+						end
+						loadCurrentCustomWindowConfig()
+						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
+						lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+						self:GetParent():playcommand("Set")
+						MESSAGEMAN:Broadcast("LoadedCustomWindow")
+					end
+				end,
+			},
+			Def.Quad {
+				Name = "SmallHorizontalLine",
+				InitCommand = function(self)
+					self:xy(0, 0)
+					self:zoomto(capWideScale(get43size(235),235), 2)
+					self:halign(0)
+					self:diffuse(getMainColor("highlight"))
+					self:diffusealpha(0.5)
+				end,
+			},
+			LoadFont("Common Large") .. {
+				Name = "CustomPercent",
+				InitCommand = function(self)
+					self:xy(8, -4)
+					self:zoom(0.45)
+					self:halign(0):valign(1)
+					self:maxwidth(capWideScale(320, 500))
+				end,
+				SetCommand = function(self)
+					self:diffuse(getGradeColor(score:GetWifeGrade()))
+					-- 2 billion should be the last noterow always. just interested in the final score.
+					local wife = lastSnapshot:GetWifePercent() * 100
+					if wife > 99 then
+						self:settextf(
+							"%05.4f%% (%s)",
+							notShit.floor(wife, 4), getCurrentCustomWindowConfigName()
+						)
+					else
+						self:settextf(
+							"%05.2f%% (%s)",
+							notShit.floor(wife, 2), getCurrentCustomWindowConfigName()
+						)
+					end
+				end,
+			},
+		},
 		LoadFont("Common Large") .. {
 			Name = "MSDDisplay",
 			InitCommand = function(self)
@@ -334,15 +437,10 @@ local function scoreBoard(pn, position)
 		},
 		Def.ActorFrame {
 			Name = "WifeDisplay",
-			InitCommand = function(self)
-				self:SetUpdateFunction(function(self)
-					self:queuecommand("PercentMouseover")
-				end)
-			end,
 			ForceWindowMessageCommand = function(self, params)
 				self:playcommand("Set")
 			end,
-			Def.Quad {
+			UIElements.QuadButton(1, 1) .. {
 				Name = "MouseHoverBG",
 				InitCommand = function(self)
 					self:xy(frameX + 3, frameY + 9)
@@ -350,13 +448,21 @@ local function scoreBoard(pn, position)
 					self:halign(0):valign(0)
 					self:diffusealpha(0)
 				end,
-				PercentMouseoverCommand = function(self)
-					if isOver(self) and self:IsVisible() then
+				MouseOverCommand = function(self)
+					if self:IsVisible() then
 						self:GetParent():GetChild("NormalText"):visible(false)
 						self:GetParent():GetChild("LongerText"):visible(true)
-					else
+					end
+				end,
+				MouseOutCommand = function(self)
+					if self:IsVisible() then
 						self:GetParent():GetChild("NormalText"):visible(true)
 						self:GetParent():GetChild("LongerText"):visible(false)
+					end
+				end,
+				MouseClickCommand = function(self)
+					if self:IsVisible() then
+						MESSAGEMAN:Broadcast("ToggleCustomWindows")
 					end
 				end,
 			},
@@ -367,6 +473,7 @@ local function scoreBoard(pn, position)
 					self:zoom(0.45)
 					self:halign(0):valign(0)
 					self:maxwidth(capWideScale(320, 500))
+					self:visible(true)
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("Set")
@@ -388,6 +495,10 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
+					if usingCustomWindows then
+						return
+					end
+
 					local rescoretable = getRescoreElements(score)
 					local rescorepercent = 0
 					local ws = "Wife3" .. " J"
@@ -424,6 +535,7 @@ local function scoreBoard(pn, position)
 					self:zoom(0.45)
 					self:halign(0):valign(0)
 					self:maxwidth(capWideScale(320, 500))
+					self:visible(false)
 				end,
 				BeginCommand = function(self)
 					self:queuecommand("Set")
@@ -437,14 +549,18 @@ local function scoreBoard(pn, position)
 					local ws = "Wife" .. wv .. " J"
 					self:diffuse(getGradeColor(score:GetWifeGrade()))
 					self:settextf(
-						"%05.5f%% (%s)",
-						notShit.floor(rescorepercent, 5), ws .. js
+						"%05.4f%% (%s)",
+						notShit.floor(rescorepercent, 4), ws .. js
 					)
 				end,
 				ScoreChangedMessageCommand = function(self)
 					self:queuecommand("Set")
 				end,
 				CodeMessageCommand = function(self, params)
+					if usingCustomWindows then
+						return
+					end
+
 					local rescoretable = getRescoreElements(score)
 					local rescorepercent = 0
 					local wv = score:GetWifeVers()
@@ -453,14 +569,14 @@ local function scoreBoard(pn, position)
 						judge2 = judge2 - 1
 						rescorepercent = getRescoredWife3Judge(3, judge2, rescoretable)
 						self:settextf(
-							"%05.5f%% (%s)", notShit.floor(rescorepercent, 5), ws .. judge2
+							"%05.4f%% (%s)", notShit.floor(rescorepercent, 4), ws .. judge2
 						)
 					elseif params.Name == "NextJudge" and judge2 < 9 then
 						judge2 = judge2 + 1
 						rescorepercent = getRescoredWife3Judge(3, judge2, rescoretable)
 						local js = judge2 ~= 9 and judge2 or "ustice"
 						self:settextf(
-						"%05.5f%% (%s)", notShit.floor(rescorepercent, 5), ws .. js
+						"%05.4f%% (%s)", notShit.floor(rescorepercent, 4), ws .. js
 					)
 					end
 					if params.Name == "ResetJudge" then
@@ -559,10 +675,21 @@ local function scoreBoard(pn, position)
 					self:smooth(0.2)
 					self:zoomx(frameWidth * rescoreJudges / totalTaps)
 				end,
+				LoadedCustomWindowMessageCommand = function(self)
+					local newjudgecount = lastSnapshot:GetJudgments()[judgmentName:gsub("TapNoteScore_", "")]
+					self:finishtweening()
+					self:smooth(0.2)
+					self:zoomx(frameWidth * newjudgecount / totalTaps)
+				end,
 				ScoreChangedMessageCommand = function(self)
 					self:zoomx(frameWidth * score:GetTapNoteScore(judgmentName) / totalTaps)
 				end,
+				
 				CodeMessageCommand = function(self, params)
+					if usingCustomWindows then
+						return
+					end
+
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 						local rescoreJudges = getRescoredJudge(dvt, judge, judgmentIndex)
 						self:finishtweening()
@@ -593,7 +720,14 @@ local function scoreBoard(pn, position)
 				ForceWindowMessageCommand = function(self, params)
 					self:playcommand("Set")
 				end,
+				LoadedCustomWindowMessageCommand = function(self)
+					self:settext(getCustomWindowConfigJudgmentName(judgmentName))
+				end,
 				CodeMessageCommand = function(self, params)
+					if usingCustomWindows then
+						return
+					end
+
 					if params.Name == "ResetJudge" then
 						self:playcommand("Set")
 					end
@@ -619,7 +753,15 @@ local function scoreBoard(pn, position)
 				ForceWindowMessageCommand = function(self, params)
 					self:settext(getRescoredJudge(dvt, judge, judgmentIndex))
 				end,
+				LoadedCustomWindowMessageCommand = function(self)
+					local newjudgecount = lastSnapshot:GetJudgments()[judgmentName:gsub("TapNoteScore_", "")]
+					self:settext(newjudgecount)
+				end,
 				CodeMessageCommand = function(self, params)
+					if usingCustomWindows then
+						return
+					end
+
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 						self:settext(getRescoredJudge(dvt, judge, judgmentIndex))
 					end
@@ -649,7 +791,15 @@ local function scoreBoard(pn, position)
 					local rescoredJudge = getRescoredJudge(dvt, params.judge, judgmentIndex)
 					self:settextf("(%03.2f%%)", rescoredJudge / totalTaps * 100)
 				end,
+				LoadedCustomWindowMessageCommand = function(self)
+					local newjudgecount = lastSnapshot:GetJudgments()[judgmentName:gsub("TapNoteScore_", "")]
+					self:settextf("(%03.2f%%)", newjudgecount / totalTaps * 100)
+				end,
 				CodeMessageCommand = function(self, params)
+					if usingCustomWindows then
+						return
+					end
+
 					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 
 						local rescoredJudge = getRescoredJudge(dvt, judge, judgmentIndex)
@@ -728,6 +878,10 @@ local function scoreBoard(pn, position)
 				end
 			end,
 			CodeMessageCommand = function(self, params)
+				if usingCustomWindows then
+					return
+				end
+
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 						marvelousTaps = getRescoredJudge(dvt, judge, 1)
 						perfectTaps = getRescoredJudge(dvt, judge, 2)
@@ -812,8 +966,9 @@ local function scoreBoard(pn, position)
 	t[#t+1] = rb
 
 	local function scoreStatistics(score)
-		local tracks = score:GetTrackVector()
-		local devianceTable = score:GetOffsetVector() or {}
+		local replay = REPLAYS:GetActiveReplay()
+		local tracks = usingCustomWindows and replay:GetTrackVector() or score:GetTrackVector()
+		local devianceTable = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector() or {}
 
 		local cbl = 0
 		local cbr = 0
@@ -940,7 +1095,25 @@ local function scoreBoard(pn, position)
 							self:settext(statValues[i])
 						end
 					end,
+					LoadedCustomWindowMessageCommand = function(self)
+						local statValues = scoreStatistics(score)
+						if i < 4 then
+							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
+							self:zoom(tzoom)
+							self:halign(1)
+							self:settextf("%5.2fms", statValues[i])
+						else
+							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
+							self:zoom(tzoom)
+							self:halign(1)
+							self:settext(statValues[i])
+						end
+					end,
 					CodeMessageCommand = function(self, params)
+						if usingCustomWindows then
+							return
+						end
+
 						local j = tonumber(self:GetName())
 						if j > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
 							if j == 4 then
@@ -1036,7 +1209,7 @@ local function scoreBoard(pn, position)
 				RecalculateGraphsMessageCommand = function(self, params)
 					-- called by the end of a codemessagecommand somewhere else
 					if not ms.JudgeScalers[params.judge] then return end
-					local success = SCREENMAN:GetTopScreen():RescoreReplay(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), ms.JudgeScalers[params.judge], score, usingCustomWindows)
+					local success = SCREENMAN:GetTopScreen():RescoreReplay(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), ms.JudgeScalers[params.judge], score, usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
 					if not success then ms.ok("Failed to recalculate score for some reason...") return end
 					self:playcommand("Begin")
 					MESSAGEMAN:Broadcast("SetComboGraph")

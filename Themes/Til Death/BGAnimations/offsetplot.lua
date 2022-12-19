@@ -48,6 +48,7 @@ local down = false
 local up = false
 local right = false
 local middle = false
+local usingCustomWindows = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
 	if finalSecond == 0 then
@@ -154,11 +155,17 @@ local o = Def.ActorFrame {
 		middleColumn = (GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()-1) / 2.0
 
 		-- Convert noterows to timestamps and plot dots (this is important it determines plot x values!!!)
+		wuab = {}
 		for i = 1, #nrt do
 			wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 		end
 
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
+	end,
+	SetFromDisplayMessageCommand = function(self, params)
+		if params.score then
+			self:playcommand("SetFromScore", params)
+		end
 	end,
 	SetFromScoreCommand = function(self, params)
 		if params.score then
@@ -171,6 +178,7 @@ local o = Def.ActorFrame {
 				ntt = score:GetTapNoteTypeVector()
 			end
 
+			wuab = {}
 			for i = 1, #nrt do
 				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 			end
@@ -178,7 +186,26 @@ local o = Def.ActorFrame {
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 	end,
+	LoadedCustomWindowMessageCommand = function(self)
+		usingCustomWindows = true
+		local replay = REPLAYS:GetActiveReplay()
+		wuab = {}
+		dvt = replay:GetOffsetVector()
+		nrt = replay:GetNoteRowVector()
+		ctt = replay:GetTrackVector()
+		ntt = replay:GetTapNoteTypeVector()
+		for i = 1, #nrt do
+			wuab [i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+		end
+
+		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+	end,
+	UnloadedCustomWindowMessageCommand = function(self)
+		usingCustomWindows = false
+	end,
 	CodeMessageCommand = function(self, params)
+		if usingCustomWindows then return end
+
 		if params.Name == "PrevJudge" and judge > 1 then
 			judge = judge - 1
 			clampJudge()
@@ -230,6 +257,7 @@ local o = Def.ActorFrame {
 			dvt = score:GetOffsetVector()
 			nrt = score:GetNoteRowVector()
 			ctt = score:GetTrackVector()
+			wuab = {}
 			for i = 1, #nrt do
 				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 			end
@@ -303,11 +331,15 @@ o[#o + 1] = Def.Quad {
 }
 local fantabars = {22.5, 45, 90, 135}
 local bantafars = {"TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4", "TapNoteScore_W5"}
+local santabarf = {"TapNoteScore_W1", "TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4"} -- ugh
 for i = 1, #fantabars do
 	o[#o + 1] = Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			if usingCustomWindows then
+				fit = getCustomWindowConfigJudgmentWindow(santabarf[i])
+			end
 			self:finishtweening()
 			self:smooth(0.1)
 			self:y(fitY(fit))
@@ -317,6 +349,9 @@ for i = 1, #fantabars do
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			if usingCustomWindows then
+				fit = getCustomWindowConfigJudgmentWindow(santabarf[i])
+			end
 			self:finishtweening()
 			self:smooth(0.1)
 			self:y(fitY(-fit))
@@ -353,6 +388,9 @@ o[#o + 1] = Def.ActorMultiVertex {
 
 			-- get the color for the tap
 			local cullur = offsetToJudgeColor(dvt[i], tst[judge])
+			if usingCustomWindows then
+				cullur = customOffsetToJudgeColor(dvt[i], getCurrentCustomWindowConfigJudgmentWindowTable())
+			end
 			cullur[4] = 1
 			local cullurFaded = {}
 
