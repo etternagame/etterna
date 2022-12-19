@@ -209,9 +209,8 @@ ScreenGameplayReplay::~ScreenGameplayReplay()
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = settings.oldRate;
 		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = settings.oldRate;
 		GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = settings.oldRate;
-	} else {
-		REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore(),
-											Player::GetTimingWindowScale());
+
+		REPLAYS->ResetActiveReplaySettings();
 	}
 }
 

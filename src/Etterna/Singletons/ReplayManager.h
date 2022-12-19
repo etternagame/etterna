@@ -75,6 +75,7 @@ class ReplayManager
 						  int oldRngSeed);
 
 	TemporaryReplaySettings GetActiveReplaySettings();
+	void ResetActiveReplaySettings();
 
 	static TapNoteScore GetTapNoteScoreForReplay(float fNoteOffset,
 												 float timingScale = 1.F);

@@ -120,7 +120,6 @@ ReplayManager::InitReplayPlaybackForScore(HighScore* hs,
 
 	activeReplayScore = hs;
 	activeReplay = GetReplay(hs);
-	activeReplaySettings.reset();
 
 	activeReplay->GenerateJudgeInfoAndReplaySnapshots(startRow, timingScale);
 
@@ -135,7 +134,6 @@ ReplayManager::UnsetActiveReplay()
 	}
 	activeReplayScore = nullptr;
 	activeReplay = GetReplay(nullptr);
-	activeReplaySettings.reset();
 }
 
 Replay*
@@ -183,6 +181,12 @@ TemporaryReplaySettings
 ReplayManager::GetActiveReplaySettings()
 {
 	return activeReplaySettings;
+}
+
+void
+ReplayManager::ResetActiveReplaySettings()
+{
+	activeReplaySettings.reset();
 }
 
 auto

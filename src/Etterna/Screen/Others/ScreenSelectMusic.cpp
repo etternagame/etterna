@@ -1785,6 +1785,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		auto usesMirror = potmp.m_bTurns[PlayerOptions::TURN_MIRROR];
 		auto replayRng = hs->GetStageSeed();
 		auto hsMods = hs->GetModifiers();
+		REPLAYS->ResetActiveReplaySettings();
 		REPLAYS->StoreActiveReplaySettings(scoreRate,
 										   hsMods,
 										   usesMirror,
