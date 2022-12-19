@@ -23,6 +23,7 @@ local translated_info = {
 	Late = THEME:GetString("OffsetPlot", "Late"),
 	SD = THEME:GetString("ScreenEvaluation", "StandardDev"),
 	Mean = THEME:GetString("ScreenEvaluation", "Mean"),
+	UsingReprioritized = THEME:GetString("OffsetPlot", "UsingReprioritized"),
 	TapNoteScore_W1 = getJudgeStrings("TapNoteScore_W1"),
 	TapNoteScore_W2 = getJudgeStrings("TapNoteScore_W2"),
 	TapNoteScore_W3 = getJudgeStrings("TapNoteScore_W3"),
@@ -269,9 +270,9 @@ local o = Def.ActorFrame {
 o[#o + 1] = Def.Quad {
 	Name = "BGQuad",
 	JudgeDisplayChangedMessageCommand = function(self)
-		self:zoomto(plotWidth + plotMargin, plotHeight + plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(
-			bgalpha
-		)
+		self:zoomto(plotWidth + plotMargin, plotHeight + plotMargin)
+		self:diffuse(color("0.05,0.05,0.05,0.05"))
+		self:diffusealpha(bgalpha)
 	end,
 	HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("PosBar")
@@ -322,6 +323,30 @@ o[#o + 1] = Def.Quad {
 			bg:visible(false)
 		end
 	end
+}
+o[#o+1] = Def.ActorFrame {
+	InitCommand = function(self)
+		self:visible(false)
+	end,
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:visible(usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
+	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(plotWidth/2,15)
+			self:xy(-plotWidth/2 - plotMargin/2, -plotHeight/2 - plotMargin/2)
+			self:halign(0):valign(1)
+			self:diffuse(color("0.05,0.05,0.05,0.05"))
+			self:diffusealpha(bgalpha)
+		end,
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(-plotWidth/4 - plotMargin/2, -plotHeight/2 - plotMargin/2 - 15/2)
+			self:zoom(0.4)
+			self:settext(translated_info["UsingReprioritized"])
+		end,
+	},
 }
 -- Center Bar
 o[#o + 1] = Def.Quad {
