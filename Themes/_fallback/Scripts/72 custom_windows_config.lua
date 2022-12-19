@@ -100,7 +100,7 @@ local defaultConfig = {
 				Mine = 0,
 			},
 		},
-		
+
 		wife2J4 = {
 			displayName = "Wife2 J4",
 			customWindowNames = nil,
@@ -172,6 +172,21 @@ local defaultConfig = {
 
 customWindowsConfig = create_setting("customWindowsConfig", "customWindowsConfig.lua", defaultConfig, -1)
 customWindowsConfig:load()
+
+-- this is restricted to the bounds of table customWindowsConfig:get_data().customWindowOrder
+currentCustomWindowConfigIndex = 1
+
+function getCurrentCustomWindowConfigIndex()
+	return currentCustomWindowConfigIndex
+end
+
+function getCurrentCustomWindowConfig()
+	return customWindowsConfig:get_data().customWindowOrder[currentCustomWindowConfigIndex]
+end
+
+function getTotalCustomWindowConfigs()
+	return #customWindowsConfig:get_data().customWindowOrder
+end
 
 -- the parameter to this is a config entry from the table above
 function loadCustomWindowConfig(config)
@@ -273,7 +288,15 @@ function loadCustomWindowConfig(config)
 	else
 		print("Reset custom window config to game defaults.")
 	end
+end
 
+function loadCustomWindowConfigByIndex(index)
+	local name = customWindowsConfig:get_data().customWindowOrder[index]
+	loadCustomWindowConfig(customWindowsConfig:get_data().customWindowConfigs[name])
+end
+
+function loadCurrentCustomWindowConfig()
+	loadCustomWindowConfigByIndex(currentCustomWindowConfigIndex)
 end
 
 --[[ REPLAYS (ReplayManager) documentation
