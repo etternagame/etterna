@@ -280,6 +280,7 @@ local function scoreBoard(pn, position)
 				self:GetParent():GetChild("GraphDisplayP1"):visible(not usingCustomWindows)
 				self:GetParent():GetChild("ComboGraphP1"):visible(not usingCustomWindows)
 				if not usingCustomWindows then
+					unloadCustomWindowConfig()
 					self:GetParent():playcommand("ChangeScore", {score = score})
 					MESSAGEMAN:Broadcast("UnloadedCustomWindow")
 					MESSAGEMAN:Broadcast("SetFromDisplay", {score = score})
@@ -292,6 +293,9 @@ local function scoreBoard(pn, position)
 					self:playcommand("Set")
 					MESSAGEMAN:Broadcast("LoadedCustomWindow")
 				end
+			end,
+			EndCommand = function(self)
+				unloadCustomWindowConfig()
 			end,
 			MoveCustomWindowIndexMessageCommand = function(self, params)
 				if not usingCustomWindows then return end
