@@ -13,8 +13,6 @@ local translated_info = {
 	MAPARatio = THEME:GetString("ScreenEvaluation", "MAPARatio")
 }
 
-local tso = ms.JudgeScalers
-
 -- im going to cry
 local aboutToForceWindowSettings = false
 
@@ -43,6 +41,10 @@ local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 local frameX = 20
 local frameY = 140
 local frameWidth = SCREEN_CENTER_X - 120
+
+-- dont default to using custom windows and dont persist that state
+-- custom windows are meant to be used as a thing you occasionally check, not the primary way to play the game
+local usingCustomWindows = false
 
 --ScoreBoard
 local judges = {
@@ -115,62 +117,6 @@ t[#t+1] = Def.ActorFrame {
 		end,
 	},
 }
-
--- life graph
-local function GraphDisplay()
-	local t = Def.ActorFrame {
-		Def.GraphDisplay {
-			InitCommand = function(self)
-				self:Load("GraphDisplay")
-			end,
-			BeginCommand = function(self)
-				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats())
-				self:diffusealpha(0.7)
-				self:GetChild("Line"):diffusealpha(0)
-				self:zoom(0.8)
-				self:xy(-22, 8)
-			end,
-			ScoreChangedMessageCommand = function(self)
-				if score and judge then
-					self:playcommand("RecalculateGraphs", {judge=judge})
-				end
-			end,
-			RecalculateGraphsMessageCommand = function(self, params)
-				-- called by the end of a codemessagecommand somewhere else
-				if not tso[params.judge] then return end
-				local success = SCREENMAN:GetTopScreen():RescoreReplay(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), tso[params.judge], score)
-				if not success then return end
-				self:playcommand("Begin")
-				MESSAGEMAN:Broadcast("SetComboGraph")
-			end
-		}
-	}
-	return t
-end
-
--- combo graph
-local function ComboGraph()
-	local t = Def.ActorFrame {
-		Def.ComboGraph {
-			InitCommand = function(self)
-				self:Load("ComboGraph")
-			end,
-			BeginCommand = function(self)
-				local ss = SCREENMAN:GetTopScreen():GetStageStats()
-				self:Set(ss, ss:GetPlayerStageStats())
-				self:zoom(0.8)
-				self:xy(-22, -2)
-			end,
-			SetComboGraphMessageCommand = function(self)
-				self:Clear()
-				self:Load("ComboGraph")
-				self:playcommand("Begin")
-			end
-		}
-	}
-	return t
-end
 
 -- a helper to get the radar value for a score and fall back to playerstagestats if that fails
 local function gatherRadarValue(radar, score)
@@ -1066,13 +1012,69 @@ local function scoreBoard(pn, position)
 		t[#t+1] = sl
 	end
 
+	
+	-- life graph
+	local function GraphDisplay()
+		return Def.ActorFrame {
+			Def.GraphDisplay {
+				InitCommand = function(self)
+					self:Load("GraphDisplay")
+				end,
+				BeginCommand = function(self)
+					local ss = SCREENMAN:GetTopScreen():GetStageStats()
+					self:Set(ss, ss:GetPlayerStageStats())
+					self:diffusealpha(0.7)
+					self:GetChild("Line"):diffusealpha(0)
+					self:zoom(0.8)
+					self:xy(-22, 8)
+				end,
+				ScoreChangedMessageCommand = function(self)
+					if score and judge then
+						self:playcommand("RecalculateGraphs", {judge=judge})
+					end
+				end,
+				RecalculateGraphsMessageCommand = function(self, params)
+					-- called by the end of a codemessagecommand somewhere else
+					if not ms.JudgeScalers[params.judge] then return end
+					local success = SCREENMAN:GetTopScreen():RescoreReplay(SCREENMAN:GetTopScreen():GetStageStats():GetPlayerStageStats(), ms.JudgeScalers[params.judge], score, usingCustomWindows)
+					if not success then ms.ok("Failed to recalculate score for some reason...") return end
+					self:playcommand("Begin")
+					MESSAGEMAN:Broadcast("SetComboGraph")
+				end,
+			},
+		}
+	end
+
+	-- combo graph
+	local function ComboGraph()
+		return Def.ActorFrame {
+			Def.ComboGraph {
+				InitCommand = function(self)
+					self:Load("ComboGraph")
+				end,
+				BeginCommand = function(self)
+					local ss = SCREENMAN:GetTopScreen():GetStageStats()
+					self:Set(ss, ss:GetPlayerStageStats())
+					self:zoom(0.8)
+					self:xy(-22, -2)
+				end,
+				SetComboGraphMessageCommand = function(self)
+					self:Clear()
+					self:Load("ComboGraph")
+					self:playcommand("Begin")
+				end,
+			},
+		}
+	end
+
+	t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay())
+	t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph())
+
 	return t
 end
 
 if GAMESTATE:IsPlayerEnabled() then
 	t[#t + 1] = scoreBoard(PLAYER_1, 0)
-	t[#t + 1] = StandardDecorationFromTable("GraphDisplay" .. ToEnumShortString(PLAYER_1), GraphDisplay())
-	t[#t + 1] = StandardDecorationFromTable("ComboGraph" .. ToEnumShortString(PLAYER_1), ComboGraph())
 end
 
 t[#t + 1] = LoadActor("../offsetplot")
