@@ -64,6 +64,9 @@ local defaultConfig = {
 				Lift = 2,
 				Mine = 0, -- only counted for mine hits, not mine "misses". 0 is the normal behavior. probably dont change this.
 			},
+
+			judgeByOldestNote = false -- OPTIONAL: defaults to false. true means that the oldest note in the hit window counts first. use true for osu, basically
+
 		}
 	]]
 	customWindowConfigs = {
@@ -99,6 +102,7 @@ local defaultConfig = {
 				Lift = 2,
 				Mine = 0,
 			},
+			judgeByOldestNote = false,
 		},
 
 		wife2J4 = {
@@ -125,6 +129,7 @@ local defaultConfig = {
 				Lift = 2,
 				Mine = 0,
 			},
+			judgeByOldestNote = false,
 		},
 
 		osumaniaOD10 = {
@@ -164,7 +169,8 @@ local defaultConfig = {
 				HoldHead = 3,
 				Lift = 3,
 				Mine = 0,
-			}
+			},
+			judgeByOldestNote = true,
 		}
 
 	},
@@ -186,6 +192,14 @@ end
 
 function getTotalCustomWindowConfigs()
 	return #customWindowsConfig:get_data().customWindowOrder
+end
+
+function getCurrentCustomWindowConfigName()
+	return customWindowsConfig:get_data().customWindowConfigs[getCurrentCustomWindowConfig()].displayName or "NAME MISSING"
+end
+
+function currentCustomWindowConfigUsesOldestNoteFirst()
+	return customWindowsConfig:get_data().customWindowConfigs[getCurrentCustomWindowConfig()].judgeByOldestNote or false
 end
 
 -- the parameter to this is a config entry from the table above
@@ -284,7 +298,7 @@ function loadCustomWindowConfig(config)
 	end
 
 	if loadedAFunctionalCustomConfig then
-		print("Set custom window config to window config: "+ (config.displayName or "NAME MISSING"))
+		print("Set custom window config to window config: ".. (config.displayName or "NAME MISSING"))
 	else
 		print("Reset custom window config to game defaults.")
 	end

@@ -698,7 +698,6 @@ ReplayManager::CustomOffsetJudgingFunction(float fOffsetSeconds, float timingSca
 		auto L = LUA->Get();
 		m_offsetJudgingFunc.PushSelf(L);
 		lua_pushnumber(L, fOffsetSeconds);
-		lua_pushnumber(L, timingScale);
 		static std::string err =
 		  "Error running custom offset judging function";
 		if (LuaHelpers::RunScriptOnStack(L, err, 1, 1, true)) {
