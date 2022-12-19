@@ -333,6 +333,7 @@ function loadCurrentCustomWindowConfig()
 end
 
 function unloadCustomWindowConfig()
+	print("Unloading Custom Window Config")
 	REPLAYS:ResetCustomScoringFunctions()
 end
 
