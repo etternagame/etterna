@@ -205,7 +205,7 @@ local function scoreBoard(pn, position)
 			end
 
 			if usingCustomWindows then
-				lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+				lastSnapshot = REPLAYS:GetActiveReplay():GetLastReplaySnapshot()
 				self:playcommand("MoveCustomWindowIndex", {direction = 0})
 			else
 				MESSAGEMAN:Broadcast("ScoreChanged")
@@ -281,15 +281,15 @@ local function scoreBoard(pn, position)
 				self:GetParent():GetChild("ComboGraphP1"):visible(not usingCustomWindows)
 				if not usingCustomWindows then
 					unloadCustomWindowConfig()
-					self:GetParent():playcommand("ChangeScore", {score = score})
 					MESSAGEMAN:Broadcast("UnloadedCustomWindow")
+					self:GetParent():playcommand("ChangeScore", {score = score})
 					MESSAGEMAN:Broadcast("SetFromDisplay", {score = score})
 					MESSAGEMAN:Broadcast("ForceWindow", {judge=judge})
 					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
 				else
 					loadCurrentCustomWindowConfig()
 					MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
-					lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+					lastSnapshot = REPLAYS:GetActiveReplay():GetLastReplaySnapshot()
 					self:playcommand("Set")
 					MESSAGEMAN:Broadcast("LoadedCustomWindow")
 				end
@@ -302,7 +302,7 @@ local function scoreBoard(pn, position)
 				moveCustomWindowConfigIndex(params.direction)
 				loadCurrentCustomWindowConfig()
 				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
-				lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+				lastSnapshot = REPLAYS:GetActiveReplay():GetLastReplaySnapshot()
 				self:playcommand("Set")
 				MESSAGEMAN:Broadcast("LoadedCustomWindow")
 			end,
@@ -331,7 +331,7 @@ local function scoreBoard(pn, position)
 						end
 						loadCurrentCustomWindowConfig()
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
-						lastSnapshot = REPLAYS:GetActiveReplay():GetReplaySnapshotForNoterow(2000000000)
+						lastSnapshot = REPLAYS:GetActiveReplay():GetLastReplaySnapshot()
 						self:GetParent():playcommand("Set")
 						MESSAGEMAN:Broadcast("LoadedCustomWindow")
 					end

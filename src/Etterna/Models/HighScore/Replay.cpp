@@ -3606,6 +3606,12 @@ class LunaReplay : public Luna<Replay>
 		return 1;
 	}
 
+	static auto GetLastReplaySnapshot(T* p, lua_State* L) -> int
+	{
+		p->GetReplaySnapshotForNoterow((1 << 31) - 1)->PushSelf(L);
+		return 1;
+	}
+
 	static auto GetInputData(T* p, lua_State* L) -> int
 	{
 		if (!p->LoadReplayData() && p->GetReplayType() != ReplayType_Input) {
@@ -3654,6 +3660,7 @@ class LunaReplay : public Luna<Replay>
 		ADD_METHOD(GetMineHitVector);
 		ADD_METHOD(GetInputData);
 		ADD_METHOD(GetReplaySnapshotForNoterow);
+		ADD_METHOD(GetLastReplaySnapshot);
 		ADD_METHOD(UsingReprioritizedNoteRows);
 		ADD_METHOD(SetUseReprioritizedNoteRows);
 	}
