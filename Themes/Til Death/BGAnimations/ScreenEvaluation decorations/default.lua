@@ -324,6 +324,9 @@ local function scoreBoard(pn, position)
 				MESSAGEMAN:Broadcast("LoadedCustomWindow")
 			end,
 			CodeMessageCommand = function(self, params)
+				if params.Name == "Coin" then
+					self:playcommand("ToggleCustomWindows")
+				end
 				if not usingCustomWindows then return end
 				if params.Name == "PrevJudge" then
 					MESSAGEMAN:Broadcast("MoveCustomWindowIndex", {direction=-1})

@@ -29,6 +29,10 @@ local t = Def.ActorFrame {
                     elseif dir ~= 0 and usingCustomWindows then
                         self:playcommand("MoveCustomWindowIndex", {direction = dir})
                     end
+
+                    if btn == "Coin" then
+                        self:playcommand("ToggleCustomWindows")
+                    end
                 end
             end
         end)
