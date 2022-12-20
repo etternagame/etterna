@@ -277,7 +277,7 @@ class LunaBPMDisplay : public Luna<BPMDisplay>
 	}
 	static int SetFromSong(T* p, lua_State* L)
 	{
-		if (lua_isnil(L, 1)) {
+		if (lua_isnoneornil(L, 1)) {
 			p->NoBPM();
 		} else {
 			const Song* pSong = Luna<Song>::check(L, 1, true);
@@ -287,7 +287,7 @@ class LunaBPMDisplay : public Luna<BPMDisplay>
 	}
 	static int SetFromSteps(T* p, lua_State* L)
 	{
-		if (lua_isnil(L, 1)) {
+		if (lua_isnoneornil(L, 1)) {
 			p->NoBPM();
 		} else {
 			const Steps* pSteps = Luna<Steps>::check(L, 1, true);
