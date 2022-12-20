@@ -176,6 +176,16 @@ class Replay
 	void SetUseReprioritizedNoteRows(bool b)
 	{
 		if (b != useReprioritizedNoterows) {
+			if (isOnlineScore()) {
+				if (vOnlineNoteRowVector.empty() &&
+					GenerateNoterowsFromTimestamps()) {
+					// initial backup
+					vOnlineOffsetVector = GetCopyOfOffsetVector();
+					vOnlineNoteRowVector = GetCopyOfNoteRowVector();
+					vOnlineTrackVector = GetCopyOfTrackVector();
+					vOnlineTapNoteTypeVector = GetCopyOfTapNoteTypeVector();
+				}
+			}
 			ClearPrimitiveVectors();
 			if (b) {
 				vReprioritizedMissData.clear();
@@ -385,6 +395,16 @@ class Replay
 		vMissReplayDataVector.shrink_to_fit();
 		vHoldReplayDataVector.shrink_to_fit();
 		vMineReplayDataVector.shrink_to_fit();
+
+		// extra online data "backups"
+		vOnlineOffsetVector.clear();
+		vOnlineNoteRowVector.clear();
+		vOnlineTrackVector.clear();
+		vOnlineTapNoteTypeVector.clear();
+		vOnlineOffsetVector.shrink_to_fit();
+		vOnlineNoteRowVector.shrink_to_fit();
+		vOnlineTrackVector.shrink_to_fit();
+		vOnlineTapNoteTypeVector.shrink_to_fit();
 	}
 
 	/// Lua
@@ -396,6 +416,8 @@ class Replay
 	auto LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR)
 	  -> bool;
 	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
+
+	auto LoadStoredOnlineData() -> bool;
 
 	/// For V1 or earlier replays lacking column data, we need to assume
 	/// information. Make it all up. This fills in the column data using
@@ -418,6 +440,10 @@ class Replay
 		vTrackVector.shrink_to_fit();
 		vTapNoteTypeVector.shrink_to_fit();
 		vOnlineReplayTimestampVector.shrink_to_fit();
+	}
+
+	bool isOnlineScore() const {
+		return scoreKey.find("Online_") != std::string::npos;
 	}
 
 	std::map<int, ReplaySnapshot> m_ReplaySnapshotMap{};
@@ -459,6 +485,14 @@ class Replay
 	// and reloading that v2 data generates wrong input data
 	// so this just refreshes the whole process
 	bool generatedInputData = false;
+
+	/////
+	// storage of vectors temporarily for online scores only
+	std::vector<float> vOnlineOffsetVector{};
+	std::vector<int> vOnlineNoteRowVector{};
+	std::vector<int> vOnlineTrackVector{};
+	std::vector<TapNoteType> vOnlineTapNoteTypeVector{};
+	/////
 };
 
 #endif

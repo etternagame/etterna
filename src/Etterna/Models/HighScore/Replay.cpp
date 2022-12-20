@@ -305,7 +305,22 @@ Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
 auto
 Replay::LoadReplayData() -> bool
 {
-	return LoadReplayDataFull() || LoadReplayDataBasic();
+	return LoadReplayDataFull() || LoadReplayDataBasic() ||
+		   LoadStoredOnlineData();
+}
+
+auto
+Replay::LoadStoredOnlineData() -> bool
+{
+	if (vOnlineNoteRowVector.empty() || vOnlineOffsetVector.empty() ||
+		vOnlineTapNoteTypeVector.empty() || vOnlineTrackVector.empty()) {
+		return false;
+	}
+	vNoteRowVector = vOnlineNoteRowVector;
+	vOffsetVector = vOnlineOffsetVector;
+	vTapNoteTypeVector = vOnlineTapNoteTypeVector;
+	vTrackVector = vOnlineTrackVector;
+	return true;
 }
 
 auto
@@ -1230,6 +1245,11 @@ Replay::GeneratePrimitiveVectors() -> bool
 		if (LoadReplayDataBasic()) {
 			// we have replay data but not column data
 			return GenerateReplayV2DataPresumptively();
+		}
+
+		if (LoadStoredOnlineData()) {
+			// we had the data hiding away
+			return true;
 		}
 	}
 	
