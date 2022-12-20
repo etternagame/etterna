@@ -363,6 +363,22 @@ function getCustomWindowConfigJudgmentWindow(judgmentName)
 	return getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows[nm] or baseWindows[nm] or 0
 end
 
+function getCustomWindowConfigJudgmentWindowLowerBound(judgmentName)
+	local baseWindows = {
+		W0 = 0,
+		W1 = 22.5,
+		W2 = 45,
+		W3 = 90,
+		W4 = 135,
+		W5 = 180,
+	}
+	if judgmentName:gsub("TapNoteScore_", "") == "Miss" then return 180 end
+	local nm = judgmentName:gsub("TapNoteScore_W", "")
+	-- nm here should be a number, we need to subtract 1 from it.
+	nm = "W" .. tostring(tonumber(nm) - 1)
+	return getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows[nm] or baseWindows[nm] or 0
+end
+
 function getCurrentCustomWindowConfigJudgmentWindowTable()
 	local baseWindows = {
 		TapNoteScore_W1 = getcurrentrealconfig().customWindowWindows and getcurrentrealconfig().customWindowWindows["W1"] or 22.5,

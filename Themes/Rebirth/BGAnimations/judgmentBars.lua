@@ -49,6 +49,12 @@ local function makeJudgment(i)
             self:y((((i-1) * sizing.JudgmentBarHeight + (i-1) * sizing.JudgmentBarSpacing) / sizing.JudgmentBarAllottedSpace) * sizing.JudgmentBarAllottedSpace)
         end,
         SetCommand = function(self, params)
+            if params.usingCustomWindows then
+                local lastSnapshot = REPLAYS:GetActiveReplay():GetLastReplaySnapshot()
+                count = lastSnapshot:GetJudgments()[jdg:gsub("TapNoteScore_", "")]
+                return
+            end
+
             if params.score ~= nil then
                 if params.judgeSetting ~= nil and params.score:HasReplayData() then
                     count = getRescoredJudge(params.score:GetOffsetVector(), params.judgeSetting, i)

@@ -24,6 +24,7 @@ local translations = {
 
 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
 local timingScale = ms.JudgeScalers[judgeSetting]
+local usingCustomWindows = false
 
 -- cap the graph to this
 local maxOffset = 180
@@ -359,6 +360,7 @@ for i, j in ipairs(barJudgments) do
             self:finishtweening()
             self:smooth(resizeAnimationSeconds)
             local window = ms.getLowerWindowForJudgment(j, timingScale)
+            if usingCustomWindows then window = getCustomWindowConfigJudgmentWindowLowerBound(j) end
             self:y(fitY(window, maxOffset))
             self:zoomto(sizing.Width, lineThickness)
         end
@@ -376,6 +378,7 @@ for i, j in ipairs(barJudgments) do
             self:finishtweening()
             self:smooth(resizeAnimationSeconds)
             local window = ms.getLowerWindowForJudgment(j, timingScale)
+            if usingCustomWindows then window = getCustomWindowConfigJudgmentWindowLowerBound(j) end
             self:y(fitY(-window, maxOffset))
             self:zoomto(sizing.Width, lineThickness)
         end
@@ -475,6 +478,8 @@ t[#t+1] = Def.ActorMultiVertex {
         self:queuecommand("DrawOffsets")
     end,
     LoadOffsetsCommand = function(self, params)
+        usingCustomWindows = params.usingCustomWindows
+
         -- makes sure all sizes are updated
         self:GetParent():playcommand("UpdateSizing", params)
 
@@ -533,6 +538,9 @@ t[#t+1] = Def.ActorMultiVertex {
             if types[i] ~= "TapNoteType_Mine" then
                 -- handle highlighting logic
                 local dotColor = colorByTapOffset(offset, timingScale)
+                if usingCustomWindows then
+                    dotColor = colorByTapOffsetCustomWindow(offset, getCurrentCustomWindowConfigJudgmentWindowTable())
+                end
                 if not columnIsHighlighted(column) then
                     dotColor[4] = unHighlightedAlpha
                 end
