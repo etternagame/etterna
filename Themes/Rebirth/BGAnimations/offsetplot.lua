@@ -20,6 +20,7 @@ local translations = {
     Early = THEME:GetString("OffsetPlot", "Early"),
     Instructions = THEME:GetString("OffsetPlot", "Instructions"),
     CurrentColumnHighlights = THEME:GetString("OffsetPlot", "CurrentColumnHighlights"),
+    OffsetWarning = THEME:GetString("OffsetPlot", "UsingReprioritized"),
 }
 
 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
@@ -451,6 +452,26 @@ t[#t+1] = LoadFont("Common Normal") .. {
             self:settextf("%s (%s: %s)", translations["Instructions"], translations["CurrentColumnHighlights"], cols)
         end
     end
+}
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "OffsetWarningText",
+    InitCommand = function(self)
+        self:valign(0)
+        self:zoom(instructionTextSize)
+        self:settext(translations["OffsetWarning"])
+        registerActorToColorConfigElement(self, "offsetPlot", "Text")
+        self:playcommand("UpdateSizing")
+        self:finishtweening()
+    end,
+    UpdateSizingCommand = function(self)
+        self:visible(usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
+
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
+        self:xy(sizing.Width / 2, textPadding)
+        self:maxwidth((sizing.Width - self:GetParent():GetChild("LateText"):GetZoomedWidth() * 2) / instructionTextSize - textPadding)
+    end,
 }
 
 -- keeping track of stuff for persistence dont look at this
