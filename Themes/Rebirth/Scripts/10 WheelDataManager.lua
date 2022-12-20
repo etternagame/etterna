@@ -600,7 +600,7 @@ end
 -- gets the bpm range for the file, for foldername purposes
 local function getBPMSortFoldernameForSong(song)
     local bpmdivision = 20
-    local bpms = song:GetDisplayBpms()
+    local bpms = song:GetDisplayBpms(true)
     local maxbpm = bpms[2]
     maxbpm = maxbpm + bpmdivision - (maxbpm % bpmdivision) - 1
     return string.format("%03d-%03d", maxbpm - (bpmdivision - 1), maxbpm)

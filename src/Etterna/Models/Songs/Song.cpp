@@ -270,10 +270,11 @@ Song::GetOrTryAtLeastToGetSimfileAuthor()
 }
 
 void
-Song::GetDisplayBpms(DisplayBpms& AddTo) const
+Song::GetDisplayBpms(DisplayBpms& AddTo, bool bIgnoreCurrentRate) const
 {
 	const auto demratesboiz =
-	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	  bIgnoreCurrentRate ? 1.F
+						 : GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (m_DisplayBPMType == DISPLAY_BPM_SPECIFIED) {
 		AddTo.Add(m_fSpecifiedBPMMin * demratesboiz);
 		AddTo.Add(m_fSpecifiedBPMMax * demratesboiz);
@@ -2416,7 +2417,11 @@ class LunaSong : public Luna<Song>
 	static int GetDisplayBpms(T* p, lua_State* L)
 	{
 		DisplayBpms temp;
-		p->GetDisplayBpms(temp);
+		bool bIgnore = false;
+		if (!lua_isnoneornil(L, 1)) {
+			bIgnore = BArg(1);
+		}
+		p->GetDisplayBpms(temp, bIgnore);
 		const auto fMin = temp.GetMin();
 		const auto fMax = temp.GetMax();
 		std::vector<float> fBPMs;

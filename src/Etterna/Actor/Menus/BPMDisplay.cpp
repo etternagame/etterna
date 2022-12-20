@@ -175,14 +175,14 @@ BPMDisplay::NoBPM()
 }
 
 void
-BPMDisplay::SetBpmFromSong(const Song* pSong)
+BPMDisplay::SetBpmFromSong(const Song* pSong, bool bIgnoreCurrentRate)
 {
 	ASSERT(pSong != nullptr);
 	switch (pSong->m_DisplayBPMType) {
 		case DISPLAY_BPM_ACTUAL:
 		case DISPLAY_BPM_SPECIFIED: {
 			DisplayBpms bpms;
-			pSong->GetDisplayBpms(bpms);
+			pSong->GetDisplayBpms(bpms, bIgnoreCurrentRate);
 			SetBPMRange(bpms);
 			m_fCycleTime = 1.0f;
 		} break;
@@ -196,14 +196,11 @@ BPMDisplay::SetBpmFromSong(const Song* pSong)
 }
 
 void
-BPMDisplay::SetBpmFromSteps(const Steps* pSteps)
+BPMDisplay::SetBpmFromSteps(const Steps* pSteps, bool bIgnoreCurrentRate)
 {
 	ASSERT(pSteps != nullptr);
 	DisplayBpms bpms;
-	float fMinBPM, fMaxBPM;
-	pSteps->GetTimingData()->GetActualBPM(fMinBPM, fMaxBPM);
-	bpms.Add(fMinBPM);
-	bpms.Add(fMaxBPM);
+	pSteps->GetDisplayBpms(bpms, bIgnoreCurrentRate);
 	SetBPMRange(bpms);
 	m_fCycleTime = 1.0f;
 }
@@ -281,7 +278,11 @@ class LunaBPMDisplay : public Luna<BPMDisplay>
 			p->NoBPM();
 		} else {
 			const Song* pSong = Luna<Song>::check(L, 1, true);
-			p->SetBpmFromSong(pSong);
+			bool bIgnoreCurrentRate = false;
+			if (!lua_isnoneornil(L, 2)) {
+				bIgnoreCurrentRate = BArg(2);
+			}
+			p->SetBpmFromSong(pSong, bIgnoreCurrentRate);
 		}
 		COMMON_RETURN_SELF;
 	}
@@ -291,7 +292,11 @@ class LunaBPMDisplay : public Luna<BPMDisplay>
 			p->NoBPM();
 		} else {
 			const Steps* pSteps = Luna<Steps>::check(L, 1, true);
-			p->SetBpmFromSteps(pSteps);
+			bool bIgnoreCurrentRate = false;
+			if (!lua_isnoneornil(L, 2)) {
+				bIgnoreCurrentRate = BArg(2);
+			}
+			p->SetBpmFromSteps(pSteps, bIgnoreCurrentRate);
 		}
 		COMMON_RETURN_SELF;
 	}

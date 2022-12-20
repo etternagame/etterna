@@ -50,7 +50,7 @@ local function getMaxDisplayBPM()
 	local song = GAMESTATE:GetCurrentSong()
 	local steps = GAMESTATE:GetCurrentSteps()
 	if steps:GetDisplayBPMType() ~= "DisplayBPM_Random" then
-		return steps:GetDisplayBpms()[2]
+		return steps:GetDisplayBpms(false)[2]
 	else
 		return steps:GetTimingData():GetActualBPM()[2]
 	end

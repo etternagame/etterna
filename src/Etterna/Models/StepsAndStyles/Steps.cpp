@@ -78,17 +78,20 @@ Steps::~Steps() = default;
 auto Steps::operator=(const Steps &) -> Steps& = default;
 
 void
-Steps::GetDisplayBpms(DisplayBpms& AddTo) const
+Steps::GetDisplayBpms(DisplayBpms& AddTo, bool bIgnoreCurrentRate) const
 {
+	const auto demratesboiz =
+	  bIgnoreCurrentRate ? 1.F
+						 : GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (this->GetDisplayBPM() == DISPLAY_BPM_SPECIFIED) {
-		AddTo.Add(this->GetMinBPM());
-		AddTo.Add(this->GetMaxBPM());
+		AddTo.Add(this->GetMinBPM() * demratesboiz);
+		AddTo.Add(this->GetMaxBPM() * demratesboiz);
 	} else {
 		float fMinBPM;
 		float fMaxBPM;
 		this->GetTimingData()->GetActualBPM(fMinBPM, fMaxBPM);
-		AddTo.Add(fMinBPM);
-		AddTo.Add(fMaxBPM);
+		AddTo.Add(fMinBPM * demratesboiz);
+		AddTo.Add(fMaxBPM * demratesboiz);
 	}
 }
 
@@ -881,7 +884,11 @@ class LunaSteps : public Luna<Steps>
 	static auto GetDisplayBpms(T* p, lua_State* L) -> int
 	{
 		DisplayBpms temp;
-		p->GetDisplayBpms(temp);
+		bool bIgnore = false;
+		if (!lua_isnoneornil(L, 1)) {
+			bIgnore = BArg(1);
+		}
+		p->GetDisplayBpms(temp, bIgnore);
 		const auto fMin = temp.GetMin();
 		const auto fMax = temp.GetMax();
 		std::vector<float> fBPMs;

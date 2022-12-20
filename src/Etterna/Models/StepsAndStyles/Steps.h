@@ -256,7 +256,8 @@ class Steps
 	void SetFirstSecond(const float f) { this->firstsecond = f; }
 	void SetLastSecond(const float f) { this->lastsecond = f; }
 	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
-	void GetDisplayBpms(DisplayBpms& addTo) const;
+	void GetDisplayBpms(DisplayBpms& addTo,
+						bool bIgnoreCurrentRate = false) const;
 	/** @brief Returns length of step in seconds. If a rate is supplied, the
 	 * returned length is scaled by it.*/
 	auto GetLengthSeconds(float rate = 1) const -> float

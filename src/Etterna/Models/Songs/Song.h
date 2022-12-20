@@ -445,7 +445,8 @@ class Song
 	void AddForegroundChange(const BackgroundChange& seg);
 	void AddLyricSegment(const LyricSegment& seg);
 
-	void GetDisplayBpms(DisplayBpms& AddTo) const;
+	void GetDisplayBpms(DisplayBpms& AddTo,
+						bool bIgnoreCurrentRate = false) const;
 	[[nodiscard]] auto GetBackgroundAtBeat(BackgroundLayer iLayer,
 										   float fBeat) const
 	  -> const BackgroundChange&;
