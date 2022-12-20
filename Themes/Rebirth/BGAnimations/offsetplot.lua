@@ -499,7 +499,7 @@ t[#t+1] = Def.ActorMultiVertex {
         self:queuecommand("DrawOffsets")
     end,
     LoadOffsetsCommand = function(self, params)
-        usingCustomWindows = params.usingCustomWindows
+        usingCustomWindows = params.usingCustomWindows or false
 
         -- makes sure all sizes are updated
         self:GetParent():playcommand("UpdateSizing", params)
