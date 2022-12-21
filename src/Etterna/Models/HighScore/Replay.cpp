@@ -581,6 +581,18 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		return true;
 	}
 	*/
+
+	// delete the decompressed inputdata file to not waste space
+	// the original compressed file should still be there
+	auto deleteDecompressedData = [this, &path]() {
+		if (RetriedRemove(path)) {
+			Locator::getLogger()->trace("Deleted uncompressed input data");
+		} else {
+			Locator::getLogger()->warn(
+			  "Failed to delete uncompressed input data");
+		}
+	};
+
 	// human readable compression read-in
 	try {
 		gzFile infile = gzopen(path_z.c_str(), "rb");
@@ -612,6 +624,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		if (!inputStream) {
 			Locator::getLogger()->debug("Failed to load input data at {}",
 										path.c_str());
+			deleteDecompressedData();
 			return false;
 		}
 
@@ -631,6 +644,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 				  "Bad input data header detected: {} - Header: {}",
 				  path_z.c_str(),
 				  line);
+				deleteDecompressedData();
 				return false;
 			}
 
@@ -653,6 +667,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 				  path_z.c_str(),
 				  INPUT_DATA_VERSION,
 				  std::stoi(tokens[7]));
+				deleteDecompressedData();
 				return false;
 			}
 
@@ -719,6 +734,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 				  GetScoreKey().c_str(),
 				  tokens.size(),
 				  line);
+				deleteDecompressedData();
 				return false;
 			}
 
@@ -754,17 +770,13 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 
 		inputStream.close();
 
-		if (RetriedRemove(path)) {
-			Locator::getLogger()->trace("Deleted uncompressed input data");
-		} else {
-			Locator::getLogger()->warn(
-			  "Failed to delete uncompressed input data");
-		}
+		deleteDecompressedData();
 	} catch (std::runtime_error& e) {
 		Locator::getLogger()->warn(
 		  "Failed to load input data at {} due to runtime exception: {}",
 		  path.c_str(),
 		  e.what());
+		deleteDecompressedData();
 		return false;
 	}
 	return true;
