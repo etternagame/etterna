@@ -2484,6 +2484,10 @@ Replay::ReprioritizeInputData() -> bool
 		return false;
 	}
 
+	vReprioritizedHoldData.clear();
+	vReprioritizedMineData.clear();
+	vReprioritizedMissData.clear();
+
 	// so basically, iterate all of the inputdata no matter what
 	// redo the prioritization of nearestnoterows using the song time positions
 	// and find the oldest unjudged note in the hit window.
@@ -2646,6 +2650,42 @@ Replay::ReprioritizeInputData() -> bool
 			}
 		}
 		it++;
+	}
+
+	// just make sure that we dont have duplicates in this data
+	std::set<int> rowsAccounted{};
+	{
+		rowsAccounted.clear();
+		std::vector<HoldReplayResult> hrrtmp{};
+		for (auto& hrr : vReprioritizedHoldData) {
+			if (!rowsAccounted.contains(hrr.row)) {
+				rowsAccounted.insert(hrr.row);
+				hrrtmp.push_back(hrr);
+			}
+		}
+		SetReprioritizedHoldData(hrrtmp);
+	}
+	{
+		rowsAccounted.clear();
+		std::vector<MineReplayResult> mrrtmp{};
+		for (auto& mrr : vReprioritizedMineData) {
+			if (!rowsAccounted.contains(mrr.row)) {
+				rowsAccounted.insert(mrr.row);
+				mrrtmp.push_back(mrr);
+			}
+		}
+		SetReprioritizedMineData(mrrtmp);
+	}
+	{
+		rowsAccounted.clear();
+		std::vector<MissReplayResult> mrrtmp{};
+		for (auto& mrr : vReprioritizedMissData) {
+			if (!rowsAccounted.contains(mrr.row)) {
+				rowsAccounted.insert(mrr.row);
+				mrrtmp.push_back(mrr);
+			}
+		}
+		SetReprioritizedMissData(mrrtmp);
 	}
 
 	return true;
