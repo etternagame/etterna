@@ -187,11 +187,7 @@ class Replay
 				}
 			}
 			ClearPrimitiveVectors();
-			if (b) {
-				vReprioritizedMissData.clear();
-				vReprioritizedHoldData.clear();
-				vReprioritizedMineData.clear();
-			}
+			ClearReprioritizedVectors();
 		}
 		if (generatedInputData) {
 			InputData.clear();
@@ -376,12 +372,7 @@ class Replay
 		// stats
 		m_ReplaySnapshotMap.clear();
 
-		vReprioritizedMissData.clear();
-		vReprioritizedHoldData.clear();
-		vReprioritizedMineData.clear();
-		vReprioritizedMissData.shrink_to_fit();
-		vReprioritizedHoldData.shrink_to_fit();
-		vReprioritizedMineData.shrink_to_fit();
+		ClearReprioritizedVectors();
 
 		// replay data
 		ClearPrimitiveVectors();
@@ -440,6 +431,15 @@ class Replay
 		vTrackVector.shrink_to_fit();
 		vTapNoteTypeVector.shrink_to_fit();
 		vOnlineReplayTimestampVector.shrink_to_fit();
+	}
+
+	void ClearReprioritizedVectors() {
+		vReprioritizedMissData.clear();
+		vReprioritizedHoldData.clear();
+		vReprioritizedMineData.clear();
+		vReprioritizedMissData.shrink_to_fit();
+		vReprioritizedHoldData.shrink_to_fit();
+		vReprioritizedMineData.shrink_to_fit();
 	}
 
 	bool isOnlineScore() const {

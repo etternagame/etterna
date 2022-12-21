@@ -2484,9 +2484,7 @@ Replay::ReprioritizeInputData() -> bool
 		return false;
 	}
 
-	vReprioritizedHoldData.clear();
-	vReprioritizedMineData.clear();
-	vReprioritizedMissData.clear();
+	ClearReprioritizedVectors();
 
 	// so basically, iterate all of the inputdata no matter what
 	// redo the prioritization of nearestnoterows using the song time positions
