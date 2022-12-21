@@ -30,6 +30,7 @@
 #include <intrin.h>
 #endif
 
+#include <tuple>
 #include <unordered_set>
 #include <algorithm>
 
@@ -471,16 +472,16 @@ DownloadManager::init()
 				curl_easy_cleanup(msg->easy_handle);
 			}
 			if (!result_handles.empty()) {
-				std::remove_if(local_http_reqs.begin(),
-							   local_http_reqs.end(),
-							   [result_handles](CURL* x) {
-								   return std::find_if(
-											result_handles.begin(),
-											result_handles.end(),
-											[x](auto pair) {
-												return pair.first == x;
-											}) != result_handles.end();
-							   });
+				std::ignore = std::remove_if(
+				  local_http_reqs.begin(),
+				  local_http_reqs.end(),
+				  [result_handles](CURL* x) {
+					  return std::find_if(result_handles.begin(),
+										  result_handles.end(),
+										  [x](auto pair) {
+											  return pair.first == x;
+										  }) != result_handles.end();
+				  });
 				handle_count_changed = true;
 				{
 					const std::lock_guard<std::mutex> lock(
