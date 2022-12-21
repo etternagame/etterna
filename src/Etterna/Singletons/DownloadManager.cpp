@@ -736,7 +736,8 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
 	if (it != DLMAN->favorites.end())
 		DLMAN->favorites.erase(it);
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites/" + UrlEncode(chartkey);
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites/" +
+				 UrlEncode(chartkey);
 	auto r = SendRequest(req, {}, {});
 	if (r)
 		curl_easy_setopt_log_err(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
@@ -746,7 +747,8 @@ DownloadManager::RemoveFavorite(const string& chartkey)
 void
 DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
 {
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/" + UrlEncode(chartkey )+ "/" +
+	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/" +
+				 UrlEncode(chartkey) + "/" +
 				 to_string(wife) + "/" + to_string(rate);
 	auto r = SendRequest(req, {}, {});
 	if (r)
@@ -916,7 +918,8 @@ DownloadManager::UploadScore(HighScore* hs,
 		Locator::getLogger()->warn(
 		  "Attempted to upload score when not logged in (scorekey: \"{}\")",
 		  hs->GetScoreKey().c_str());
-		callback();
+		if (callback)
+			callback();
 		return;
 	}
 
@@ -984,7 +987,8 @@ DownloadManager::UploadScore(HighScore* hs,
 			  "response body: \"{}\")",
 			  rapidjson::GetParseError_En(d.GetParseError()),
 			  req.result.c_str());
-			callback();
+			if (callback)
+				callback();
 			return;
 		}
 		if (d.HasMember("errors")) {
@@ -1047,7 +1051,8 @@ DownloadManager::UploadScore(HighScore* hs,
 				  response_code,
 				  req.result.c_str());
 			}
-			callback();
+			if (callback)
+				callback();
 			return;
 		}
 		if (d.HasMember("data") && d["data"].IsObject() &&
@@ -1083,11 +1088,13 @@ DownloadManager::UploadScore(HighScore* hs,
 			  response_code,
 			  req.result.c_str());
 		}
-		callback();
+		if (callback)
+			callback();
 	};
 	HTTPRequest* req = new HTTPRequest(
 	  curlHandle, done, nullptr, [callback](HTTPRequest& req) {
-		  callback();
+			if (callback)
+			  callback();
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	AddHttpRequestHandle(req->handle);
@@ -1402,7 +1409,8 @@ DownloadManager::SendRequestToURL(
 									[req, afterDone](bool logged) {
 										if (logged) {
 											auto r = req;
-											afterDone(r);
+											if (afterDone)
+												afterDone(r);
 										}
 									});
 			};
@@ -1423,7 +1431,8 @@ DownloadManager::SendRequestToURL(
 				}
 			}
 		}
-		afterDone(req);
+		if (afterDone)
+			afterDone(req);
 	};
 	CURL* curlHandle = initCURLHandle(withBearer);
 	SetCURLURL(curlHandle, url);
