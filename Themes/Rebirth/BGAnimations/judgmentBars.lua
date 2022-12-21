@@ -105,6 +105,13 @@ local function makeJudgment(i)
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 * 3 / judgmentTextZoom)
                 self:settext(getJudgeStrings(ms.JudgeCount[i]))
                 registerActorToColorConfigElement(self, "judgment", "TextOverBars")
+            end,
+            SetCommand = function(self, params)
+                if params and params.usingCustomWindows then
+                    self:settext(getCustomWindowConfigJudgmentName(jdg))
+                else
+                    self:settext(getJudgeStrings(ms.JudgeCount[i]))
+                end
             end
         },
         Def.RollingNumbers {
