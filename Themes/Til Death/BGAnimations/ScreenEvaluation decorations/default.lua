@@ -1,7 +1,8 @@
 local t = Def.ActorFrame {}
+local inMulti = Var("LoadingScreen") == "ScreenNetEvaluation"
 
 if GAMESTATE:GetNumPlayersEnabled() == 1 then
-	if Var("LoadingScreen") == "ScreenNetEvaluation" then
+	if inMulti then
 		t[#t + 1] = LoadActor("MPscoreboard")
 	else
 		t[#t + 1] = LoadActor("scoreboard")
@@ -291,6 +292,7 @@ local function scoreBoard(pn, position)
 				self:visible(usingCustomWindows)
 			end,
 			ToggleCustomWindowsMessageCommand = function(self)
+				if inMulti then return end
 				usingCustomWindows = not usingCustomWindows
 
 				self:visible(usingCustomWindows)
@@ -324,6 +326,7 @@ local function scoreBoard(pn, position)
 				MESSAGEMAN:Broadcast("LoadedCustomWindow")
 			end,
 			CodeMessageCommand = function(self, params)
+				if inMulti then return end
 				if params.Name == "Coin" then
 					self:playcommand("ToggleCustomWindows")
 				end
@@ -490,6 +493,7 @@ local function scoreBoard(pn, position)
 					end
 				end,
 				MouseClickCommand = function(self)
+					if inMulti then return end
 					if self:IsVisible() then
 						MESSAGEMAN:Broadcast("ToggleCustomWindows")
 					end
