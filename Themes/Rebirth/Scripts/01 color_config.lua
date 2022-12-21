@@ -420,6 +420,10 @@ function newColorPreset(name) return COLORS:newColorPreset(name) end
 -- uses the currently selected preset in COLORS
 function COLORS.getColor(self, category, element)
     local preset = getColorPreset()
+    if element == nil then
+        print("The element given to COLORS:getColor was nil, so #FFFFFF was returned.")
+        return color("1,1,1,1")
+    end
     if preset ~= nil then
         local presetconfig = self.presets[preset]
         if presetconfig ~= nil then
