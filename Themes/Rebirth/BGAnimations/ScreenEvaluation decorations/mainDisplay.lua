@@ -1239,6 +1239,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.RightHalfLeftGap, actuals.LipHeight / 2)
             self:halign(0)
             self:zoom(titleTextSize)
+            self:maxwidth(actuals.OffsetPlotWidth / titleTextSize - textzoomFudge)
             registerActorToColorConfigElement(self, "main", "PrimaryText")
             if GAMESTATE:GetCurrentSteps() ~= nil then
                 local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(GAMESTATE:GetCurrentSteps():GetStepsType()))
@@ -1284,7 +1285,14 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 * 3 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
                 registerActorToColorConfigElement(self, "main", "PrimaryText")
-            end
+            end,
+            SetCommand = function(self)
+                if usingCustomWindows then
+                    self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
+                else
+                    self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 * 3 / songInfoTextSize - textzoomFudge)
+                end
+            end,
         },
         LoadFont("Common Large") .. {
             Name = "SongArtist",
