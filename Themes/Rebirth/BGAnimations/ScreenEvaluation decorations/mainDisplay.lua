@@ -69,6 +69,23 @@ local t = Def.ActorFrame {
             judgeSetting = params.judgeSetting
         end
 
+        -- for custom windows we have to recalculate everything once to update normal values and then recalculate again for custom windows itself
+        if usingCustomWindows and params.score ~= nil and chosenScore ~= nil and params.score ~= chosenScore then
+            usingCustomWindows = false
+            screen:RescoreReplay(pss, ms.JudgeScalers[judgeSetting], params.score, false)
+            --- update all relevant information according to the given score
+            -- should work with offset plot as well as all regular information on this screen
+            -- this is intended for use only with replays but may partially work without it
+            self:playcommand("Set", {
+                song = GAMESTATE:GetCurrentSong(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                score = params.score,
+                judgeSetting = params.judgeSetting,
+                rejudged = params.rejudged, -- optional param to know if need to reload offset plot
+            })
+            usingCustomWindows = true
+        end
+
         -- we assume the score has a replay
         -- recalculate all stats using the replay
         screen:RescoreReplay(pss, ms.JudgeScalers[judgeSetting], params.score, usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
@@ -902,6 +919,7 @@ local function wifePercentDisplay()
         end,
         SetCommand = function(self, params)
             if params.score ~= nil then
+                if usingCustomWindows then return end
                 local ver = params.score:GetWifeVers()
                 local percent = params.score:GetWifeScore() * 100
                 decimals = 2
