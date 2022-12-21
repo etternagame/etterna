@@ -527,6 +527,9 @@ local t = Def.ActorFrame {
             focused = false
         end
     end,
+    ChartPreviewToggleMessageCommand = function(self)
+        self:playcommand("GeneralTabSet")
+    end,
     FinishFocusingCommand = function(self)
         focused = true
         CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Settings")
@@ -1520,21 +1523,18 @@ local function leftFrame()
                 InitCommand = function(self)
                     -- centered horizontally and vertically
                     self:x(actuals.LeftWidth / 2)
-                    self:y(actuals.Height / 4)
+                    self:y(0)
                 end,
                 BeginCommand = function(self)
                     -- take the long road to find the actual chart preview actor
                     local realnotefieldpreview = SCREENMAN:GetTopScreen():safeGetChild(
-                        "RightFrame",
-                        "GeneralBoxFile",
-                        "Container",
-                        "GeneralPageFile",
                         "ChartPreviewFile",
                         "NoteField"
                     )
                     if realnotefieldpreview ~= nil then
                         self:SetTarget(realnotefieldpreview)
                         self:addx(-realnotefieldpreview:GetX())
+                        self:zoom(0.9)
                     else
                         print("It appears that chart preview is not where it should be ....")
                     end

@@ -49,6 +49,13 @@ t[#t+1] = Def.ActorFrame {
         self:x(hiddenX)
         TOOLTIP:Hide()
     end,
+    ChartPreviewToggleMessageCommand = function(self)
+        rightFrameVisible = false
+        self:finishtweening()
+        self:smooth(0.1)
+        self:x(hiddenX)
+        TOOLTIP:Hide()
+    end,
     UpdateWheelPositionCommand = function(self)
         self:playcommand("SetThePositionForThisFrameNothingElse")
     end,
@@ -65,5 +72,7 @@ t[#t+1] = Def.ActorFrame {
         widthRatio = widthRatio,
     }),
 }
+
+t[#t+1] = LoadActor("_chartPreview.lua")
 
 return t

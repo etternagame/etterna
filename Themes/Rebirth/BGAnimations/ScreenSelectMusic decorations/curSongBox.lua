@@ -29,7 +29,10 @@ local t = Def.ActorFrame {
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self)
         focused = false
-    end
+    end,
+    ChartPreviewToggleMessageCommand = function(self)
+        focused = false
+    end,
 }
 
 local ratios = {
@@ -188,7 +191,7 @@ t[#t+1] = Def.ActorFrame {
             -- if it fails, probably nothing was there to receive the message or the tree is bad
             if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
                 SCUFF.preview.active = not SCUFF.preview.active
-                self:GetParent():GetParent():GetParent():playcommand("ToggleChartPreview")
+                MESSAGEMAN:Broadcast("ChartPreviewToggle")
             elseif params.event == "DeviceButton_right mouse button" then
                 local top = SCREENMAN:GetTopScreen()
                 if top.PauseSampleMusic then

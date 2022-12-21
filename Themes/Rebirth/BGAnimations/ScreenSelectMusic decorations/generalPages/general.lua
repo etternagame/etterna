@@ -428,9 +428,6 @@ t[#t+1] = Def.Quad {
         self:halign(0):valign(0)
         registerActorToColorConfigElement(self, "main", "SeparationDivider")
     end,
-    ToggleChartPreviewCommand = function(self)
-        self:visible(not SCUFF.preview.active)
-    end,
 }
 
 t[#t+1] = Def.RollingNumbers {
@@ -598,6 +595,5 @@ t[#t+1] = createStatLines()
 t[#t+1] = createTopSkillsetLines()
 t[#t+1] = createMSDLines()
 t[#t+1] = createTagDisplays()
-t[#t+1] = LoadActorWithParams("_chartPreview.lua", {ratios = ratios, actuals = actuals})
 
 return t
