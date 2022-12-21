@@ -206,13 +206,18 @@ t[#t+1] = Def.Quad {
     InitCommand = function(self)
         -- trickery
         self:SetFakeParent(self:GetParent():GetChild("PracticeCDGraph"))
-
+        self:playcommand("SetUpMovableValues")
         self:valign(0)
         self:zoomto(bookmarkWidth, height)
         self:diffuse(bookmarkColor)
         self:diffusealpha(bookmarkAlpha)
         self:draworder(1100)
         self:visible(false)
+    end,
+    SetUpMovableValuesMessageCommand = function(self)
+        self:y(MovableValues.PracticeCDGraphY)
+        local height = MovableValues.PracticeCDGraphHeight * (53 / 555 * SCREEN_HEIGHT)
+        self:zoomy(height)
     end,
     SetCommand = function(self)
         self:visible(true)
