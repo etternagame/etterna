@@ -1621,6 +1621,12 @@ class LunaSongManager : public Luna<SongManager>
 		auto idx = 1;
 		lua_newtable(L);
 		for (auto& pl : p->GetPlaylists()) {
+			if (pl.second.name == "") {
+				// the default "tmp" playlist has an empty name
+				// so ignore it. it should be empty
+				// if someone figures out how to add to it, that sucks
+				continue;
+			}
 			pl.second.PushSelf(L);
 			lua_rawseti(L, -2, idx);
 			++idx;
