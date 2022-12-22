@@ -287,6 +287,28 @@ jsonObjectToString(Value& doc)
 	doc.Accept(w);
 	return buffer.GetString();
 }
+string
+UrlEncode(const string& str)
+{
+	char* escaped = curl_easy_escape(nullptr, str.data(), str.length());
+	string ret(escaped);
+	curl_free(escaped);
+	return ret;
+}
+inline std::string
+encodeDownloadUrl(const std::string& url)
+{
+	auto last_slash = url.find_last_of('/');
+	auto base_url = url.substr(0, last_slash + 1);
+	auto filename = url.substr(last_slash + 1);
+	int outlength = 0;
+	char* unescaped_c_char_filename = curl_easy_unescape(
+	  nullptr, filename.c_str(), filename.length(), &outlength);
+	std::string unescaped_filename(unescaped_c_char_filename, outlength);
+	curl_free(unescaped_c_char_filename);
+	return base_url + UrlEncode(unescaped_filename);
+}
+
 DownloadManager::DownloadManager()
 {
 	EmptyTempDLFileDir();
@@ -331,15 +353,6 @@ DownloadManager::UpdateGameplayState(bool gameplay)
 	this->gameplay = gameplay;
 }
 
-string
-UrlEncode(const string& str)
-{
-	char* escaped = curl_easy_escape(nullptr, str.data(), str.length());
-	string ret(escaped);
-	curl_free(escaped);
-	return ret;
-}
-
 void
 Download::Update(float fDeltaSeconds)
 {
@@ -369,15 +382,7 @@ DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
 	}
 	string& url = mirror ? pack->mirror
 						: pack->url;
-	auto last_slash = url.find_last_of('/');
-	auto base_url = url.substr(0, last_slash + 1);
-	auto filename = url.substr(last_slash + 1);
-	int outlength = 0;
-	char* unescaped_c_char_filename = curl_easy_unescape(
-	  nullptr, filename.c_str(), filename.length(), &outlength);
-	std::string unescaped_filename(unescaped_c_char_filename, outlength);
-	curl_free(unescaped_c_char_filename);
-	string encoded_url = base_url + UrlEncode(unescaped_filename);
+	auto encoded_url = encodeDownloadUrl(url);
 
 	auto dl = DownloadAndInstallPack(encoded_url,
 										  pack->name + ".zip");
@@ -2978,8 +2983,8 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		if (p->downloading) {
 			// using GetDownload on a download started by a Mirror isn't keyed
 			// by the Mirror url have to check both
-			auto u = p->url;
-			auto m = p->mirror;
+			auto u = encodeDownloadUrl(p->url);
+			auto m = encodeDownloadUrl(p->mirror);
 			if (DLMAN->downloads.count(u))
 				DLMAN->downloads[u]->PushSelf(L);
 			else if (DLMAN->downloads.count(m))
