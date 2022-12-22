@@ -669,15 +669,48 @@ SongManager::MakePlaylistFromFavorites(
 
 void
 SongManager::ReconcileChartKeysForReloadedSong(
-  const Song* reloadedSong,
+  Song* reloadedSong,
   const std::vector<std::string>& oldChartkeys)
 {
+	std::set<std::string> ckToRepoint{};
 	for (const auto& ck : oldChartkeys) {
 		SONGMAN->StepsByKey.erase(ck);
+		ckToRepoint.insert(ck);
 	}
 	auto stepses = reloadedSong->GetAllSteps();
 	for (auto steps : stepses) {
-		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
+		const auto& ck = steps->GetChartKey();
+		SONGMAN->StepsByKey[ck] = steps;
+		SONGMAN->SongsByKey[ck] = reloadedSong;
+		ckToRepoint.erase(ck);
+	}
+
+	// reconcile the SongsByKey as well
+	// simply, we can remove/replace the entry
+	// but multiple songs may possess the same chartkeys
+	// so if the chartkey we removed is present somewhere else,
+	// change the pointer to that one instead of deleting it
+	for (auto& song : SONGMAN->m_pSongs) {
+		if (ckToRepoint.empty()) {
+			return;
+		}
+
+		// multiple songs can still contain the same stepses
+		// so sometimes this can end up repointing when they both
+		// still exist in a valid situation.
+		// that shouldnt cause any problems ... maybe
+		for (auto& steps : song->GetAllSteps()) {
+			if (ckToRepoint.contains(steps->GetChartKey())) {
+				ckToRepoint.erase(steps->GetChartKey());
+				SONGMAN->SongsByKey[steps->GetChartKey()] = song;
+			}
+		}
+	}
+
+	// remaining chartkeys are orphaned
+	// meaning SongsByKey keys for them should be deleted
+	for (auto& ck : ckToRepoint) {
+		SONGMAN->SongsByKey.erase(ck);
 	}
 }
 

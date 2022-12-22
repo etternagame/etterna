@@ -91,7 +91,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			}
 
 			const auto success = cursong->ReloadFromSongDir();
-			SongManager::ReconcileChartKeysForReloadedSong(cursong, oldKeys);
+			SONGMAN->ReconcileChartKeysForReloadedSong(cursong, oldKeys);
 
 			if (!success || GAMESTATE->m_pCurSteps->GetNoteData().IsEmpty()) {
 				Locator::getLogger()->error("The Player attempted something resulting in an "
