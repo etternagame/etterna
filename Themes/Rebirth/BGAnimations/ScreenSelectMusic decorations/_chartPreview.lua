@@ -244,7 +244,7 @@ t[#t+1] = UIElements.TextButton(2, 2, "Common Normal") .. {
         else
             self.bg:halign(1)
             self.txt:halign(1)
-            self:x(actuals.Width + actuals.EdgePadding)
+            self:x(-actuals.EdgePadding)
         end
     end,
     RolloverUpdateCommand = function(self, params)
