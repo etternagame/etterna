@@ -95,7 +95,8 @@ return Def.ActorFrame {
             end,
             PressyMyMouseButtonCommand = function(self)
                 if isOver(self) then
-                    SCREENMAN:GetTopScreen():Cancel()
+                    -- true means cancelled, so the input is rejected
+                    SCREENMAN:GetTopScreen():End(true)
                 end
             end,
             HighlightyMyMouseHoveringCommand = function(self)

@@ -495,11 +495,45 @@ local function generateItems()
             end)
         end,
         FirstUpdateCommand = function(self)
+            -- waiting for the crashdump upload dialog to go away
+            if renameNewProfile then
+                if PREFSMAN:GetPreference("ShowMinidumpUploadDialogue") then
+                    self:sleep(0.2):queuecommand("Keepwastingtimestart")
+                else
+                    self:playcommand("Finishwastingtime")
+                end
+            end
+        end,
+        KeepwastingtimestartCommand = function(self)
+            -- looping to wait for the dialog to go away
+            if renameNewProfile then
+                if PREFSMAN:GetPreference("ShowMinidumpUploadDialogue") then
+                    self:sleep(0.2):queuecommand("Keepwastingtimestart")
+                else
+                    self:playcommand("Finishwastingtime")
+                end
+            end
+        end,
+        FinishwastingtimeCommand = function(self)
             if renameNewProfile then
                 local profile = PROFILEMAN:GetLocalProfile(profileIDs[1])
+                local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+                local function off()
+                    if redir then
+                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    end
+                end
+                local function on()
+                    if redir then
+                        SCREENMAN:set_input_redirected(PLAYER_1, true)
+                    end
+                end
+                off()
+                
                 local function f(answer)
                     profile:RenameProfile(answer)
                     self:playcommand("ProfileRenamed")
+                    on()
                 end
                 local question = translations["MakeFirstProfileQuestion"]
                 askForInputStringWithFunction(
@@ -518,6 +552,7 @@ local function generateItems()
                         -- do nothing
                         -- the profile name is Default Profile
                         -- cringe name tbh
+                        on()
                     end
                 )
             end
