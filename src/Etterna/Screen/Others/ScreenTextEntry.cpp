@@ -727,8 +727,21 @@ class LunaScreenTextEntry : public Luna<ScreenTextEntry>
 		p->LoadFromTextEntrySettings(settings);
 		return 0;
 	}
+	static int End(T* p, lua_State* L)
+	{
+		bool bCancelled = false;
+		if (!lua_isnoneornil(L, 1)) {
+			bCancelled = BArg(1);
+		}
 
-	LunaScreenTextEntry() { ADD_METHOD(Load); }
+		p->End(bCancelled);
+		return 0;
+	}
+
+	LunaScreenTextEntry() {
+		ADD_METHOD(Load);
+		ADD_METHOD(End);
+	}
 };
 LUA_REGISTER_DERIVED_CLASS(ScreenTextEntry, ScreenWithMenuElements)
 // lua end
