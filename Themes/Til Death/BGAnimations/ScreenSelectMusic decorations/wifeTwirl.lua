@@ -829,6 +829,13 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	MouseOutCommand = function(self)
 		TOOLTIP:Hide()
 	end,
+	MouseDownCommand = function(self, params)
+		-- because this button covers the background
+		if params.event == "DeviceButton_right mouse button" then
+			SCREENMAN:GetTopScreen():PauseSampleMusic()
+			MESSAGEMAN:Broadcast("MusicPauseToggled")
+		end
+	end,
 }
 
 t[#t + 1] = Def.Sprite {
