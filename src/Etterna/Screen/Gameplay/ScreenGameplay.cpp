@@ -575,6 +575,21 @@ ScreenGameplay::LoadNextSong()
 
 	STATSMAN->m_CurStageStats.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
 
+	// apply permamirror
+	if (GamePreferences::m_AutoPlay != PC_REPLAY &&
+		GAMESTATE->m_pPlayerState->m_PlayerController != PC_REPLAY) {
+		auto& pmc = PROFILEMAN->GetProfile(PLAYER_1)->PermaMirrorCharts;
+		auto* pSteps = m_vPlayerInfo.m_vpStepsQueue[iPlaySongIndex];
+		if (pSteps != nullptr && pmc.count(pSteps->GetChartKey())) {
+			// apply mirror to only stage so it turns on temporarily
+			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
+							  ModsLevel_Stage,
+							  m_bTurns,
+							  PlayerOptions::TURN_MIRROR,
+							  true);
+		}
+	}
+
 	SetupSong(iPlaySongIndex);
 
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
