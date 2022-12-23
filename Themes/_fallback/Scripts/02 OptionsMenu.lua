@@ -135,7 +135,7 @@ end
 
 function getPlayerOptionsList(itemSet)
 	local Items = {
-		["Main"] = "Speed,RateList,NoteSk,PRAC,ScrollDir,Center,Persp,Background,Judge,Life,Fail,Score",
+		["Main"] = "Speed,RateList,NoteSk,PRAC,ScrollDir,Center,Persp,Background,Judge,Life,Fail,Assist,Score",
 		["Theme"] = "RowTest",
 		["Effect"] = "Persp,App,GHO,SHO,Acc,Hide,Effect1,Effect2,Scroll,Turn,Insert,R1,R2,Holds,Mines"
 	}
