@@ -2878,7 +2878,7 @@ local function rightFrame()
         end
         if setGraphics and not setGame and not setTheme then
             THEME:SetTheme(THEME:GetCurThemeName())
-        elseif setGame or setTheme then
+        elseif setGame or setTheme or setLanguage then
             local gameToUse = setGame or GAMESTATE:GetCurrentGame():GetName()
             GAMEMAN:SetGame(gameToUse, themeToUse)
         end
