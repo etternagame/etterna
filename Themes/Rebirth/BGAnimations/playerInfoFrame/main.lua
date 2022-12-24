@@ -210,6 +210,10 @@ local visualizerBins = 126
 local leftTextBigSize = 0.7
 local leftTextSmallSize = 0.65
 local rightTextSize = 0.7
+
+local versionTextSize = 0.45
+local versionPadding = 2
+
 local textzoomFudge = 5 -- for gaps in maxwidth
 -- a controllable hack to give more girth to the rating text (RightText) on smaller aspect ratios
 -- should push the visualizer further right and make less problems
@@ -1120,6 +1124,21 @@ t[#t+1] = Def.ActorFrame {
             self:playcommand("Invoke")
         end
     }
+}
+
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "GameVersion",
+    InitCommand = function(self)
+        self:x(actuals.Width - versionPadding)
+        self:y(versionPadding)
+        self:halign(1):valign(0)
+        self:zoom(versionTextSize)
+        self:maxwidth((SCREEN_WIDTH/2) / versionTextSize - textzoomFudge)
+        self:settextf("%s", GAMESTATE:GetEtternaVersion())
+        registerActorToColorConfigElement(self, "main", "SecondaryText")
+        self:diffusealpha(0.6)
+    end
 }
 
 -- if off at first, cannot toggle at runtime
