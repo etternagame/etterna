@@ -26,8 +26,8 @@
 - ScreenTextEntry can be closed correctly from Lua - [4f97888](../../../commit/4f97888bdbb80b0138a5ba01c779d940d3e1024c)
 - Successful logins are recorded in the log - [ed034d7](../../../commit/ed034d737f8e40d43b78f16caac31929965bed15)
 - Theme option ShowBanners added to Til Death and Rebirth - [52884a8](../../../commit/52884a8aa63c1e52c3c8d9c98eeff8bbc183f6f6) [23cf20e](../../../commit/23cf20e0799c6a3fc5f7b363b3d173632c030e75)
-- Translation to Japanese (work in progress) added for Til Death - [296ff53](../../../commit/296ff53edb837121f2ec9b112507d9fd906820d7)
-- Translation support added to Rebirth, but no new translation is finished - [c3984aa](../../../commit/c3984aae6bb8c8266e1cf436a6648de401ce8949) [f2cb239](../../../commit/f2cb2391facd7a02048e29e15af0b04fdf206ea2) [492e038](../../../commit/492e0380f3c62c4135030a3aeace24b6061bcf6d)
+- Translation to Japanese (work in progress) added for Til Death - [296ff53](../../../commit/296ff53edb837121f2ec9b112507d9fd906820d7) [6038d77](../../../commit/6038d7702d8fd5e8dafd2ad999187d153439454a)
+- Translation support added to Rebirth, with partial Japanese translation - [c3984aa](../../../commit/c3984aae6bb8c8266e1cf436a6648de401ce8949) [f2cb239](../../../commit/f2cb2391facd7a02048e29e15af0b04fdf206ea2) [492e038](../../../commit/492e0380f3c62c4135030a3aeace24b6061bcf6d) [358c626](../../../commit/358c626fce8b3a155faf7498460798fa2ac2a916)
 - Translation support for crashpad upload opt in dialogue - [4879d05](../../../commit/4879d0545f5c96a04d3756067f797df01dd2d26f)
 
 ### Changed
@@ -62,6 +62,7 @@
 - Scores over 100% and scores which have invalidating mods should be force invalidated - [18b4c3f](../../../commit/18b4c3f62b10baf199aa6f29d8f6df25309b00d6)
 - Til Death musicwheel should no longer send you to the first alphabetical song in your library for an invalid search - [6c44340](../../../commit/6c443405964ffa4a46724f5f0086a21d25788054) [d061a14](../../../commit/d061a1467638e9630decea1e941edafe13af34e2) [86a2d6c](../../../commit/86a2d6c6955fe99dd6fc1b83e93bc7ccf82a36be)
 - Til Death SelectMusic leftmost buttons (you know the ones) are more meshed into the UI - [71df567](../../../commit/71df567990f65c40a782a7580981a5300c31237a)
+- Translation for fallback/core game in Japanese updated - [2f67e7f](../../../commit/2f67e7f8f37c9af626b31bc5c85c0c764cc39b1e)
 - ShowBackgrounds moved to Preferences and properly respected in Til Death and Rebirth - [3297f86](../../../commit/3297f86a1931cc7ea4e754da696187f49023576e)
 - Unused Actor tree print thing changed - [53f71dc](../../../commit/53f71dcef8ca537f16f34b6065772bf0174ac125)
 - Updated libcurl to 7_83_1 - [f1dd6fe](../../../commit/f1dd6fecc8fdf41a59aa00bd3e7d5609b906d04c) [32c3826](../../../commit/32c382682a081c35f16aa7a1382af3451ed973bb) [d92363d](../../../commit/d92363dbcb3571d093a73f9b3027f82e39d2b702)
