@@ -942,8 +942,15 @@ class LunaReplayManager : public Luna<ReplayManager>
 		// the scalar is the judge window multiplier. j4 means 1.0.
 		auto scalar = FArg(2);
 
-		LuaHelpers::Push<TapNoteScore>(
-		  L, p->CustomOffsetJudgingFunction(offset, scalar));
+		if (!p->isCustomScoringFunctionsEnabled()) {
+			p->EnableCustomScoringFunctions();
+			LuaHelpers::Push<TapNoteScore>(
+			  L, p->CustomOffsetJudgingFunction(offset, scalar));
+			p->DisableCustomScoringFunctions();
+		} else {
+			LuaHelpers::Push<TapNoteScore>(
+			  L, p->CustomOffsetJudgingFunction(offset, scalar));
+		}
 
 		return 1;
 	}

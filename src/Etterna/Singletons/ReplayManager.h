@@ -100,6 +100,9 @@ class ReplayManager
 	void DisableCustomScoringFunctions() {
 		customScoringFunctionsEnabled = false;
 	}
+	bool isCustomScoringFunctionsEnabled() {
+		return customScoringFunctionsEnabled;
+	}
 
 	////////
 	// custom scoring functions
