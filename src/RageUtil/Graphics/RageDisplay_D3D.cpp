@@ -17,8 +17,18 @@
 #include <map>
 #include <list>
 #include <chrono>
-#include <D3dx9tex.h>
+
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnew-returns-null"
+#pragma clang diagnostic ignored "-Wcomment"
+#endif
+#include <d3dx9tex.h>
 #include <d3d9.h>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 // Static libraries
 // load Windows D3D9 dynamically
@@ -27,9 +37,106 @@
 #pragma comment(lib, "d3dx9.lib")
 #endif
 
-auto GetErrorString(HRESULT /*hr*/) -> std::string
+
+// The DXGetErrorStringW function comes from the DirectX Error Library  (See https://walbourn.github.io/wheres-dxerr-lib/ )
+//--------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+//--------------------------------------------------------------------------------------
+const WCHAR* WINAPI DXGetErrorStringW( _In_ HRESULT hr )
 {
-	return ""; // DXGetErrorString(hr);
+#define  CHK_ERRA(hrchk) \
+        case hrchk: \
+             return L## #hrchk;
+
+#define HRESULT_FROM_WIN32b(x) ((HRESULT)(x) <= 0 ? ((HRESULT)(x)) : ((HRESULT) (((x) & 0x0000FFFF) | (FACILITY_WIN32 << 16) | 0x80000000)))
+
+#define  CHK_ERR_WIN32A(hrchk) \
+        case HRESULT_FROM_WIN32b(hrchk): \
+        case hrchk: \
+             return L## #hrchk;
+
+   switch(hr)
+   {
+// Common Win32 error codes
+        CHK_ERRA(S_OK)
+        CHK_ERRA(S_FALSE)
+
+// d3d9.h error codes
+//      CHK_ERRA(D3D_OK)
+        CHK_ERRA(D3DERR_WRONGTEXTUREFORMAT)
+        CHK_ERRA(D3DERR_UNSUPPORTEDCOLOROPERATION)
+        CHK_ERRA(D3DERR_UNSUPPORTEDCOLORARG)
+        CHK_ERRA(D3DERR_UNSUPPORTEDALPHAOPERATION)
+        CHK_ERRA(D3DERR_UNSUPPORTEDALPHAARG)
+        CHK_ERRA(D3DERR_TOOMANYOPERATIONS)
+        CHK_ERRA(D3DERR_CONFLICTINGTEXTUREFILTER)
+        CHK_ERRA(D3DERR_UNSUPPORTEDFACTORVALUE)
+        CHK_ERRA(D3DERR_CONFLICTINGRENDERSTATE)
+        CHK_ERRA(D3DERR_UNSUPPORTEDTEXTUREFILTER)
+        CHK_ERRA(D3DERR_CONFLICTINGTEXTUREPALETTE)
+        CHK_ERRA(D3DERR_DRIVERINTERNALERROR)
+        CHK_ERRA(D3DERR_NOTFOUND)
+        CHK_ERRA(D3DERR_MOREDATA)
+        CHK_ERRA(D3DERR_DEVICELOST)
+        CHK_ERRA(D3DERR_DEVICENOTRESET)
+        CHK_ERRA(D3DERR_NOTAVAILABLE)
+        CHK_ERRA(D3DERR_OUTOFVIDEOMEMORY)
+        CHK_ERRA(D3DERR_INVALIDDEVICE)
+        CHK_ERRA(D3DERR_INVALIDCALL)
+        CHK_ERRA(D3DERR_DRIVERINVALIDCALL)
+        //CHK_ERRA(D3DERR_WASSTILLDRAWING)
+        CHK_ERRA(D3DOK_NOAUTOGEN)
+
+	    // Extended for Windows Vista
+	    CHK_ERRA(D3DERR_DEVICEREMOVED)
+	    CHK_ERRA(S_NOT_RESIDENT)
+	    CHK_ERRA(S_RESIDENT_IN_SHARED_MEMORY)
+	    CHK_ERRA(S_PRESENT_MODE_CHANGED)
+	    CHK_ERRA(S_PRESENT_OCCLUDED)
+	    CHK_ERRA(D3DERR_DEVICEHUNG)
+
+        // Extended for Windows 7
+        CHK_ERRA(D3DERR_UNSUPPORTEDOVERLAY)
+        CHK_ERRA(D3DERR_UNSUPPORTEDOVERLAYFORMAT)
+        CHK_ERRA(D3DERR_CANNOTPROTECTCONTENT)
+        CHK_ERRA(D3DERR_UNSUPPORTEDCRYPTO)
+        CHK_ERRA(D3DERR_PRESENT_STATISTICS_DISJOINT)
+
+// dxgi.h error codes
+        CHK_ERRA(DXGI_STATUS_OCCLUDED)
+        CHK_ERRA(DXGI_STATUS_CLIPPED)
+        CHK_ERRA(DXGI_STATUS_NO_REDIRECTION)
+        CHK_ERRA(DXGI_STATUS_NO_DESKTOP_ACCESS)
+        CHK_ERRA(DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE)
+        CHK_ERRA(DXGI_STATUS_MODE_CHANGED)
+        CHK_ERRA(DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
+        CHK_ERRA(DXGI_ERROR_INVALID_CALL)
+        CHK_ERRA(DXGI_ERROR_NOT_FOUND)
+        CHK_ERRA(DXGI_ERROR_MORE_DATA)
+        CHK_ERRA(DXGI_ERROR_UNSUPPORTED)
+        CHK_ERRA(DXGI_ERROR_DEVICE_REMOVED)
+        CHK_ERRA(DXGI_ERROR_DEVICE_HUNG)
+        CHK_ERRA(DXGI_ERROR_DEVICE_RESET)
+        CHK_ERRA(DXGI_ERROR_WAS_STILL_DRAWING)
+        CHK_ERRA(DXGI_ERROR_FRAME_STATISTICS_DISJOINT)
+        CHK_ERRA(DXGI_ERROR_GRAPHICS_VIDPN_SOURCE_IN_USE)
+        CHK_ERRA(DXGI_ERROR_DRIVER_INTERNAL_ERROR)
+        CHK_ERRA(DXGI_ERROR_NONEXCLUSIVE)
+        CHK_ERRA(DXGI_ERROR_NOT_CURRENTLY_AVAILABLE)
+        CHK_ERRA(DXGI_ERROR_REMOTE_CLIENT_DISCONNECTED)
+        CHK_ERRA(DXGI_ERROR_REMOTE_OUTOFMEMORY)
+
+        default: return L"Unknown error.";
+    }
+}
+
+auto GetErrorString(HRESULT hr) -> std::string
+{
+    const wchar_t* msg = DXGetErrorStringW(hr);
+    if (msg)
+        return WStringToString(std::wstring(msg));
+    return "";
 }
 
 // Globals
@@ -197,7 +304,7 @@ static LocalizedString HARDWARE_ACCELERATION_NOT_AVAILABLE(
   "manufacturer.");
 
 auto
-RageDisplay_D3D::Init(const VideoModeParams& p,
+RageDisplay_D3D::Init(VideoModeParams&& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
 	GraphicsWindow::Initialize(true);
@@ -254,7 +361,7 @@ RageDisplay_D3D::Init(const VideoModeParams& p,
 	 * possible, because if we have to shut it down again we'll flash a window
 	 * briefly. */
 	auto bIgnore = false;
-	return SetVideoMode(p, bIgnore);
+	return SetVideoMode(std::move(p), bIgnore);
 }
 
 RageDisplay_D3D::~RageDisplay_D3D()
@@ -380,6 +487,12 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 auto
 SetD3DParams(bool& bNewDeviceOut) -> std::string
 {
+	// wipe old render targets
+	for (auto& rt : g_mapRenderTargets) {
+		delete rt.second;
+	}
+	g_mapRenderTargets.clear();
+
 	if (g_pd3dDevice == nullptr)
 	// device is not yet created. We need to create it
 	{
@@ -410,13 +523,6 @@ SetD3DParams(bool& bNewDeviceOut) -> std::string
 	}
 
 	g_pd3dDevice->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
-
-	// wipe old render targets
-	for (auto& rt : g_mapRenderTargets) {
-		delete rt.second;
-	}
-
-	g_mapRenderTargets.clear();
 
 	// Palettes were lost by Reset(), so mark them unloaded.
 	g_TexResourceToPaletteIndex.clear();
@@ -1376,6 +1482,8 @@ RageDisplay_D3D::SetTextureMode(TextureUnit tu, TextureMode tm)
 			g_pd3dDevice->SetTextureStageState(
 			  tu, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
 			break;
+		default:
+			Locator::getLogger()->warn("RageDisplay_D3D::SetTextureMode called with invalid TextureMode");
 	}
 }
 

@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -23,10 +23,11 @@
 .SH NAME
 curl_multi_remove_handle - remove an easy handle from a multi session
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLMcode curl_multi_remove_handle(CURLM *multi_handle, CURL *easy_handle);
-.ad
+.fi
 .SH DESCRIPTION
 Removes a given \fIeasy_handle\fP from the \fImulti_handle\fP. This will make
 the specified easy handle be removed from this multi handle's control.
@@ -40,6 +41,20 @@ other easy handles and transfers will remain unaffected.
 
 It is fine to remove a handle at any time during a transfer, just not from
 within any libcurl callback function.
+.SH EXAMPLE
+.nf
+/* when an easy handle has completed, remove it */
+msg = curl_multi_info_read(multi_handle, &queued);
+if(msg) {
+  if(msg->msg == CURLMSG_DONE) {
+    /* a transfer ended */
+    fprintf(stderr, "Transfer completed\\n");
+    curl_multi_remove_handle(multi_handle, msg->easy_handle);
+  }
+}
+.fi
+.SH AVAILABILITY
+Added in 7.9.6
 .SH RETURN VALUE
 CURLMcode type, general libcurl multi interface error code.
 .SH "SEE ALSO"

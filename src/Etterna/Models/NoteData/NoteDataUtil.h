@@ -155,6 +155,7 @@ enum TrackMapping
 	super_shuffle,
 	stomp,
 	swap_up_down,
+	hran_shuffle, // bms h-random (supershuffle without creating new jacks)
 	NUM_TRACK_MAPPINGS
 };
 void

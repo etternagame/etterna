@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -28,6 +28,7 @@
 #endif
 
 #ifdef WIN32
+#  include <stdlib.h>
 #  include <tlhelp32.h>
 #  include "tool_cfgable.h"
 #  include "tool_libinfo.h"
@@ -36,6 +37,7 @@
 #include "tool_bname.h"
 #include "tool_doswin.h"
 
+#include "curlx.h"
 #include "memdebug.h" /* keep this as LAST include */
 
 #ifdef WIN32
@@ -612,7 +614,7 @@ char **__crt0_glob_function(char *arg)
 
 CURLcode FindWin32CACert(struct OperationConfig *config,
                          curl_sslbackend backend,
-                         const char *bundle_file)
+                         const TCHAR *bundle_file)
 {
   CURLcode result = CURLE_OK;
 
@@ -626,15 +628,18 @@ CURLcode FindWin32CACert(struct OperationConfig *config,
      backend != CURLSSLBACKEND_SCHANNEL) {
 
     DWORD res_len;
-    char buf[PATH_MAX];
-    char *ptr = NULL;
+    TCHAR buf[PATH_MAX];
+    TCHAR *ptr = NULL;
 
-    buf[0] = '\0';
+    buf[0] = TEXT('\0');
 
-    res_len = SearchPathA(NULL, bundle_file, NULL, PATH_MAX, buf, &ptr);
+    res_len = SearchPath(NULL, bundle_file, NULL, PATH_MAX, buf, &ptr);
     if(res_len > 0) {
+      char *mstr = curlx_convert_tchar_to_UTF8(buf);
       Curl_safefree(config->cacert);
-      config->cacert = strdup(buf);
+      if(mstr)
+        config->cacert = strdup(mstr);
+      curlx_unicodefree(mstr);
       if(!config->cacert)
         result = CURLE_OUT_OF_MEMORY;
     }
@@ -697,29 +702,81 @@ cleanup:
   return slist;
 }
 
-LARGE_INTEGER Curl_freq;
-bool Curl_isVistaOrGreater;
+/* The terminal settings to restore on exit */
+static struct TerminalSettings {
+  HANDLE hStdOut;
+  DWORD dwOutputMode;
+  LONG valid;
+} TerminalSettings;
+
+#ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
+#define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+#endif
+
+static void restore_terminal(void)
+{
+  if(InterlockedExchange(&TerminalSettings.valid, (LONG)FALSE))
+    SetConsoleMode(TerminalSettings.hStdOut, TerminalSettings.dwOutputMode);
+}
+
+/* This is the console signal handler.
+ * The system calls it in a separate thread.
+ */
+static BOOL WINAPI signal_handler(DWORD type)
+{
+  if(type == CTRL_C_EVENT || type == CTRL_BREAK_EVENT)
+    restore_terminal();
+  return FALSE;
+}
+
+static void init_terminal(void)
+{
+  TerminalSettings.hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  /*
+   * Enable VT (Virtual Terminal) output.
+   * Note: VT mode flag can be set on any version of Windows, but VT
+   * processing only performed on Win10 >= Creators Update)
+   */
+  if((TerminalSettings.hStdOut != INVALID_HANDLE_VALUE) &&
+     GetConsoleMode(TerminalSettings.hStdOut,
+                    &TerminalSettings.dwOutputMode) &&
+     !(TerminalSettings.dwOutputMode &
+       ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
+    /* The signal handler is set before attempting to change the console mode
+       because otherwise a signal would not be caught after the change but
+       before the handler was installed. */
+    (void)InterlockedExchange(&TerminalSettings.valid, (LONG)TRUE);
+    if(SetConsoleCtrlHandler(signal_handler, TRUE)) {
+      if(SetConsoleMode(TerminalSettings.hStdOut,
+                        (TerminalSettings.dwOutputMode |
+                         ENABLE_VIRTUAL_TERMINAL_PROCESSING))) {
+        atexit(restore_terminal);
+      }
+      else {
+        SetConsoleCtrlHandler(signal_handler, FALSE);
+        (void)InterlockedExchange(&TerminalSettings.valid, (LONG)FALSE);
+      }
+    }
+  }
+}
+
+LARGE_INTEGER tool_freq;
+bool tool_isVistaOrGreater;
 
 CURLcode win32_init(void)
 {
-  OSVERSIONINFOEXA osvi;
-  unsigned __int64 mask = 0;
-  unsigned char op = VER_GREATER_EQUAL;
-
-  memset(&osvi, 0, sizeof(osvi));
-  osvi.dwOSVersionInfoSize = sizeof(osvi);
-  osvi.dwMajorVersion = 6;
-  VER_SET_CONDITION(mask, VER_MAJORVERSION, op);
-  VER_SET_CONDITION(mask, VER_MINORVERSION, op);
-
-  if(VerifyVersionInfoA(&osvi, (VER_MAJORVERSION | VER_MINORVERSION), mask))
-    Curl_isVistaOrGreater = true;
-  else if(GetLastError() == ERROR_OLD_WIN_VERSION)
-    Curl_isVistaOrGreater = false;
+  /* curlx_verify_windows_version must be called during init at least once
+     because it has its own initialization routine. */
+  if(curlx_verify_windows_version(6, 0, 0, PLATFORM_WINNT,
+                                  VERSION_GREATER_THAN_EQUAL))
+    tool_isVistaOrGreater = true;
   else
-    return CURLE_FAILED_INIT;
+    tool_isVistaOrGreater = false;
 
-  QueryPerformanceFrequency(&Curl_freq);
+  QueryPerformanceFrequency(&tool_freq);
+
+  init_terminal();
+
   return CURLE_OK;
 }
 

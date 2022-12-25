@@ -76,6 +76,367 @@ local actuals = {
     GeneralBoxLeftGap = ratios.GeneralBoxLeftGap * SCREEN_WIDTH,
 }
 
+-- there must be a better way to generate this table........
+local translations = {
+    NothingBound = THEME:GetString("Settings", "NothingBound"),
+    CurrentlyBinding = THEME:GetString("Settings", "CurrentlyBinding"),
+    Controller = THEME:GetString("Settings", "Controller"),
+    KeyBindingInstructions = THEME:GetString("Settings", "KeyBindingInstructions"),
+    StartBindingAll = THEME:GetString("Settings", "StartBindingAll"),
+    ShowGameplayBindings = THEME:GetString("Settings", "ShowGameplayBindings"),
+    ShowMenuBindings = THEME:GetString("Settings", "ShowMenuBindings"),
+    NewColorConfigPresetQuestion = THEME:GetString("Settings", "NewColorConfigPresetQuestion"),
+    NewColorConfigPresetUnknownError = THEME:GetString("Settings", "NewColorConfigPresetUnknownError"),
+    NewColorConfigPresetInputError = THEME:GetString("Settings", "NewColorConfigPresetInputError"),
+    CurrentPreset = THEME:GetString("Settings", "CurrentPreset"),
+    CurrentElement = THEME:GetString("Settings", "CurrentElement"),
+    CurrentColor = THEME:GetString("Settings", "CurrentColor"),
+    Undo = THEME:GetString("Settings", "Undo"),
+    UndoShortcut = THEME:GetString("Settings", "UndoShortcut"),
+    ResetToDefault = THEME:GetString("Settings", "ResetToDefault"),
+    Reset = THEME:GetString("Settings", "Reset"),
+    ResetShortcut = THEME:GetString("Settings", "ResetShortcut"),
+    SaveInstruction = THEME:GetString("Settings", "SaveInstruction"),
+    SaveChangesUnsaved = THEME:GetString("Settings", "SaveChangesUnsaved"),
+    SaveChanges = THEME:GetString("Settings", "SaveChanges"),
+    NewColorConfigPreset = THEME:GetString("Settings", "NewColorConfigPreset"),
+    NewColorConfigPresetInstruction = THEME:GetString("Settings", "NewColorConfigPresetInstruction"),
+    BrowsingColorCategories = THEME:GetString("Settings", "BrowsingColorCategories"),
+    BrowsingColorConfigPresets = THEME:GetString("Settings", "BrowsingColorConfigPresets"),
+    BrowsingElements = THEME:GetString("Settings", "BrowsingElements"),
+    CurrentlyEditing = THEME:GetString("Settings", "CurrentlyEditing"),
+    BackToPresets = THEME:GetString("Settings", "BackToPresets"),
+    BackToCategories = THEME:GetString("Settings", "BackToCategories"),
+    OptionsHeader = THEME:GetString("Settings", "OptionsHeader"),
+    ToggleChartPreview = THEME:GetString("Settings", "ToggleChartPreview"),
+    PageNamePlayer = THEME:GetString("Settings", "PageNamePlayer"),
+    PageNameGameplay = THEME:GetString("Settings", "PageNameGameplay"),
+    PageNameGraphics = THEME:GetString("Settings", "PageNameGraphics"),
+    PageNameSound = THEME:GetString("Settings", "PageNameSound"),
+    PageNameInput = THEME:GetString("Settings", "PageNameInput"),
+    PageNameProfiles = THEME:GetString("Settings", "PageNameProfiles"),
+    ["CategoryEssential Options"] = THEME:GetString("Settings", "CategoryEssential Options"),
+    ["CategoryAppearance Options"] = THEME:GetString("Settings", "CategoryAppearance Options"),
+    ["CategoryInvalidating Options"] = THEME:GetString("Settings", "CategoryInvalidating Options"),
+    ["CategoryGameplay Elements 1"] = THEME:GetString("Settings", "CategoryGameplay Elements 1"),
+    ["CategoryGameplay Elements 2"] = THEME:GetString("Settings", "CategoryGameplay Elements 2"),
+    ["CategoryGlobal Options"] = THEME:GetString("Settings", "CategoryGlobal Options"),
+    ["CategoryTheme Options"] = THEME:GetString("Settings", "CategoryTheme Options"),
+    ["CategorySound Options"] = THEME:GetString("Settings", "CategorySound Options"),
+    ["CategoryInput Options"] = THEME:GetString("Settings", "CategoryInput Options"),
+    ["CategoryProfile Options"] = THEME:GetString("Settings", "CategoryProfile Options"),
+    ["Color Config"] = THEME:GetString("Settings", "Color Config"),
+    Preview = THEME:GetString("Settings", "Preview"),
+    ["Customize Keybinds"] = THEME:GetString("Settings", "Customize Keybinds"),
+    Noteskin = THEME:GetString("Settings", "Noteskin"),
+    Hidden = THEME:GetString("Settings", "Hidden"),
+    Sudden = THEME:GetString("Settings", "Sudden"),
+    Stealth = THEME:GetString("Settings", "Stealth"),
+    Blink = THEME:GetString("Settings", "Blink"),
+    Dark = THEME:GetString("Settings", "Dark"),
+    Blind = THEME:GetString("Settings", "Blind"),
+    Split = THEME:GetString("Settings", "Split"),
+    Alternate = THEME:GetString("Settings", "Alternate"),
+    Cross = THEME:GetString("Settings", "Cross"),
+    Centered = THEME:GetString("Settings", "Centered"),
+    Drunk = THEME:GetString("Settings", "Drunk"),
+    Confusion = THEME:GetString("Settings", "Confusion"),
+    Tiny = THEME:GetString("Settings", "Tiny"),
+    Flip = THEME:GetString("Settings", "Flip"),
+    Invert = THEME:GetString("Settings", "Invert"),
+    Tornado = THEME:GetString("Settings", "Tornado"),
+    Tipsy = THEME:GetString("Settings", "Tipsy"),
+    Bumpy = THEME:GetString("Settings", "Bumpy"),
+    Beat = THEME:GetString("Settings", "Beat"),
+    Twirl = THEME:GetString("Settings", "Twirl"),
+    Roll = THEME:GetString("Settings", "Roll"),
+    Boost = THEME:GetString("Settings", "Boost"),
+    Brake = THEME:GetString("Settings", "Brake"),
+    Wave = THEME:GetString("Settings", "Wave"),
+    Expand = THEME:GetString("Settings", "Expand"),
+    Boomerang = THEME:GetString("Settings", "Boomerang"),
+    Backwards = THEME:GetString("Settings", "Backwards"),
+    Left = THEME:GetString("Settings", "Left"),
+    Right = THEME:GetString("Settings", "Right"),
+    Shuffle = THEME:GetString("Settings", "Shuffle"),
+    SoftShuffle = THEME:GetString("Settings", "SoftShuffle"),
+    SuperShuffle = THEME:GetString("Settings", "SuperShuffle"),
+    HRanShuffle = THEME:GetString("Settings", "HRanShuffle"),
+    Echo = THEME:GetString("Settings", "Echo"),
+    Stomp = THEME:GetString("Settings", "Stomp"),
+    JackJS = THEME:GetString("Settings", "JackJS"),
+    AnchorJS = THEME:GetString("Settings", "AnchorJS"),
+    IcyWorld = THEME:GetString("Settings", "IcyWorld"),
+    Planted = THEME:GetString("Settings", "Planted"),
+    Floored = THEME:GetString("Settings", "Floored"),
+    Twister = THEME:GetString("Settings", "Twister"),
+    HoldRolls = THEME:GetString("Settings", "HoldRolls"),
+    NoHolds = THEME:GetString("Settings", "NoHolds"),
+    NoRolls = THEME:GetString("Settings", "NoRolls"),
+    NoJumps = THEME:GetString("Settings", "NoJumps"),
+    NoHands = THEME:GetString("Settings", "NoHands"),
+    NoLifts = THEME:GetString("Settings", "NoLifts"),
+    NoFakes = THEME:GetString("Settings", "NoFakes"),
+    NoQuads = THEME:GetString("Settings", "NoQuads"),
+    NoStretch = THEME:GetString("Settings", "NoStretch"),
+    Little = THEME:GetString("Settings", "Little"),
+    Wide = THEME:GetString("Settings", "Wide"),
+    Big = THEME:GetString("Settings", "Big"),
+    Quick = THEME:GetString("Settings", "Quick"),
+    BMRize = THEME:GetString("Settings", "BMRize"),
+    Skippy = THEME:GetString("Settings", "Skippy"),
+    ["16bit"] = THEME:GetString("Settings", "16bit"),
+    ["32bit"] = THEME:GetString("Settings", "32bit"),
+    XMod = THEME:GetString("Settings", "XMod"),
+    CMod = THEME:GetString("Settings", "CMod"),
+    MMod = THEME:GetString("Settings", "MMod"),
+    Upscroll = THEME:GetString("Settings", "Upscroll"),
+    Downscroll = THEME:GetString("Settings", "Downscroll"),
+    On = THEME:GetString("Settings", "On"),
+    Off = THEME:GetString("Settings", "Off"),
+    Yes = THEME:GetString("Settings", "Yes"),
+    No = THEME:GetString("Settings", "No"),
+    Left = THEME:GetString("Settings", "Left"),
+    Right = THEME:GetString("Settings", "Right"),
+    Tips = THEME:GetString("Settings", "Tips"),
+    Quotes = THEME:GetString("Settings", "Quotes"),
+    Hold = THEME:GetString("Settings", "Hold"),
+    Instant = THEME:GetString("Settings", "Instant"),
+    Justice = THEME:GetString("Settings", "Justice"),
+    Overhead = THEME:GetString("Settings", "Overhead"),
+    Incoming = THEME:GetString("Settings", "Incoming"),
+    Space = THEME:GetString("Settings", "Space"),
+    Hallway = THEME:GetString("Settings", "Hallway"),
+    Distant = THEME:GetString("Settings", "Distant"),
+    ExtraMines = THEME:GetString("Settings", "ExtraMines"),
+    Regular = THEME:GetString("Settings", "Regular"),
+    EWMA = THEME:GetString("Settings", "EWMA"),
+    PersonalBest = THEME:GetString("Settings", "PersonalBest"),
+    GoalPercent = THEME:GetString("Settings", "GoalPercent"),
+    Windowed = THEME:GetString("Settings", "Windowed"),
+    Fullscreen = THEME:GetString("Settings", "Fullscreen"),
+    Borderless = THEME:GetString("Settings", "Borderless"),
+    Automatic = THEME:GetString("Settings", "Automatic"),
+    ForceOn = THEME:GetString("Settings", "ForceOn"),
+    ForceOff = THEME:GetString("Settings", "ForceOff"),
+    Online = THEME:GetString("Settings", "Online"),
+    Local = THEME:GetString("Settings", "Local"),
+    CustomizeGameplay = THEME:GetString("Settings", "CustomizeGameplay"),
+    CustomizeGameplayExplanation = THEME:GetString("Settings", "CustomizeGameplayExplanation"),
+    ScrollType = THEME:GetString("Settings", "ScrollType"),
+    ScrollTypeExplanation = THEME:GetString("Settings", "ScrollTypeExplanation"),
+    ScrollSpeed = THEME:GetString("Settings", "ScrollSpeed"),
+    ScrollSpeedExplanation = THEME:GetString("Settings", "ScrollSpeedExplanation"),
+    ScrollDirection = THEME:GetString("Settings", "ScrollDirection"),
+    ScrollDirectionExplanation = THEME:GetString("Settings", "ScrollDirectionExplanation"),
+    OptionNoteskin = THEME:GetString("Settings", "OptionNoteskin"),
+    OptionNoteskinExplanation = THEME:GetString("Settings", "OptionNoteskinExplanation"),
+    ReceptorSize = THEME:GetString("Settings", "ReceptorSize"),
+    ReceptorSizeExplanation = THEME:GetString("Settings", "ReceptorSizeExplanation"),
+    JudgeDifficulty = THEME:GetString("Settings", "JudgeDifficulty"),
+    JudgeDifficultyExplanation = THEME:GetString("Settings", "JudgeDifficultyExplanation"),
+    Mirror = THEME:GetString("Settings", "Mirror"),
+    MirrorExplanation = THEME:GetString("Settings", "MirrorExplanation"),
+    GlobalOffset = THEME:GetString("Settings", "GlobalOffset"),
+    GlobalOffsetExplanation = THEME:GetString("Settings", "GlobalOffsetExplanation"),
+    VisualDelay = THEME:GetString("Settings", "VisualDelay"),
+    VisualDelayExplanation = THEME:GetString("Settings", "VisualDelayExplanation"),
+    GameMode = THEME:GetString("Settings", "GameMode"),
+    GameModeExplanation = THEME:GetString("Settings", "GameModeExplanation"),
+    FailType = THEME:GetString("Settings", "FailType"),
+    FailTypeExplanation = THEME:GetString("Settings", "FailTypeExplanation"),
+    CustomizeKeybinds = THEME:GetString("Settings", "CustomizeKeybinds"),
+    CustomizeKeybindsExplanation = THEME:GetString("Settings", "CustomizeKeybindsExplanation"),
+    CustomizeKeybindsButton = THEME:GetString("Settings", "CustomizeKeybindsButton"),
+    PracticeMode = THEME:GetString("Settings", "PracticeMode"),
+    PracticeModeExplanation = THEME:GetString("Settings", "PracticeModeExplanation"),
+    PracticeModeButton = THEME:GetString("Settings", "PracticeModeButton"),
+    Appearance = THEME:GetString("Settings", "Appearance"),
+    AppearanceExplanation = THEME:GetString("Settings", "AppearanceExplanation"),
+    HiddenOffset = THEME:GetString("Settings", "HiddenOffset"),
+    HiddenOffsetExplanation = THEME:GetString("Settings", "HiddenOffsetExplanation"),
+    SuddenOffset = THEME:GetString("Settings", "SuddenOffset"),
+    SuddenOffsetExplanation = THEME:GetString("Settings", "SuddenOffsetExplanation"),
+    Perspective = THEME:GetString("Settings", "Perspective"),
+    PerspectiveExplanation = THEME:GetString("Settings", "PerspectiveExplanation"),
+    PerspectiveIntensity = THEME:GetString("Settings", "PerspectiveIntensity"),
+    PerspectiveIntensityExplanation = THEME:GetString("Settings", "PerspectiveIntensityExplanation"),
+    HidingModifiers = THEME:GetString("Settings", "HidingModifiers"),
+    HidingModifierExplanation = THEME:GetString("Settings", "HidingModifierExplanation"),
+    Hidenote = THEME:GetString("Settings", "Hidenote"),
+    HidenoteExplanation = THEME:GetString("Settings", "HidenoteExplanation"),
+    CenterPlayer1 = THEME:GetString("Settings", "CenterPlayer1"),
+    CenterPlayer1Explanation = THEME:GetString("Settings", "CenterPlayer1Explanation"),
+    NoteFieldFilter = THEME:GetString("Settings", "NoteFieldFilter"),
+    NoteFieldFilterExplanation = THEME:GetString("Settings", "NoteFieldFilterExplanation"),
+    BGBrightness = THEME:GetString("Settings", "BGBrightness"),
+    BGBrightnessExplanation = THEME:GetString("Settings", "BGBrightnessExplanation"),
+    ReplayModEmulation = THEME:GetString("Settings", "ReplayModEmulation"),
+    ReplayModEmulationExplanation = THEME:GetString("Settings", "ReplayModEmulationExplanation"),
+    ExtraScrollMods = THEME:GetString("Settings", "ExtraScrollMods"),
+    ExtraScrollModsExplanation = THEME:GetString("Settings", "ExtraScrollModsExplanation"),
+    FunEffects = THEME:GetString("Settings", "FunEffects"),
+    FunEffectsExplanation = THEME:GetString("Settings", "FunEffectsExplanation"),
+    Acceleration = THEME:GetString("Settings", "Acceleration"),
+    AccelerationExplanation = THEME:GetString("Settings", "AccelerationExplanation"),
+    Mines = THEME:GetString("Settings", "Mines"),
+    MinesExplanation = THEME:GetString("Settings", "MinesExplanation"),
+    Turn = THEME:GetString("Settings", "Turn"),
+    TurnExplanation = THEME:GetString("Settings", "TurnExplanation"),
+    PatternTransform = THEME:GetString("Settings", "PatternTransform"),
+    PatternTransformExplanation = THEME:GetString("Settings", "PatternTransformExplanation"),
+    HoldTransform = THEME:GetString("Settings", "HoldTransform"),
+    HoldTransformExplanation = THEME:GetString("Settings", "HoldTransformExplanation"),
+    RemoveMods = THEME:GetString("Settings", "RemoveMods"),
+    RemoveModsExplanation = THEME:GetString("Settings", "RemoveModsExplanation"),
+    InsertMods = THEME:GetString("Settings", "InsertMods"),
+    InsertModsExplanation = THEME:GetString("Settings", "InsertModsExplanation"),
+    BPMDisplay = THEME:GetString("Settings", "BPMDisplay"),
+    BPMDisplayExplanation = THEME:GetString("Settings", "BPMDisplayExplanation"),
+    RateDisplay = THEME:GetString("Settings", "RateDisplay"),
+    RateDisplayExplanation = THEME:GetString("Settings", "RateDisplayExplanation"),
+    PercentDisplay = THEME:GetString("Settings", "PercentDisplay"),
+    PercentDisplayExplanation = THEME:GetString("Settings", "PercentDisplayExplanation"),
+    MeanDisplay = THEME:GetString("Settings", "MeanDisplay"),
+    MeanDisplayExplanation = THEME:GetString("Settings", "MeanDisplayExplanation"),
+    EWMADisplay = THEME:GetString("Settings", "EWMADisplay"),
+    EWMADisplayExplanation = THEME:GetString("Settings", "EWMADisplayExplanation"),
+    StdDevDisplay = THEME:GetString("Settings", "StdDevDisplay"),
+    StdDevDisplayExplanation = THEME:GetString("Settings", "StdDevDisplayExplanation"),
+    ErrorBar = THEME:GetString("Settings", "ErrorBar"),
+    ErrorBarExplanation = THEME:GetString("Settings", "ErrorBarExplanation"),
+    ErrorBarCount = THEME:GetString("Settings", "ErrorBarCount"),
+    ErrorBarCountExplanation = THEME:GetString("Settings", "ErrorBarCountExplanation"),
+    FullProgressBar = THEME:GetString("Settings", "FullProgressBar"),
+    FullProgressBarExplanation = THEME:GetString("Settings", "FullProgressBarExplanation"),
+    MiniProgressBar = THEME:GetString("Settings", "MiniProgressBar"),
+    MiniProgressBarExplanation = THEME:GetString("Settings", "MiniProgressBarExplanation"),
+    Leaderboard = THEME:GetString("Settings", "Leaderboard"),
+    LeaderboardExplanation = THEME:GetString("Settings", "LeaderboardExplanation"),
+    PlayerInfo = THEME:GetString("Settings", "PlayerInfo"),
+    PlayerInfoExplanation = THEME:GetString("Settings", "PlayerInfoExplanation"),
+    TargetTracker = THEME:GetString("Settings", "TargetTracker"),
+    TargetTrackerExplanation = THEME:GetString("Settings", "TargetTrackerExplanation"),
+    TargetTrackerMode = THEME:GetString("Settings", "TargetTrackerMode"),
+    TargetTrackerModeExplanation = THEME:GetString("Settings", "TargetTrackerModeExplanation"),
+    TargetTrackerGoal = THEME:GetString("Settings", "TargetTrackerGoal"),
+    TargetTrackerGoalExplanation = THEME:GetString("Settings", "TargetTrackerGoalExplanation"),
+    LaneCover = THEME:GetString("Settings", "LaneCover"),
+    LaneCoverExplanation = THEME:GetString("Settings", "LaneCoverExplanation"),
+    JudgeCounter = THEME:GetString("Settings", "JudgeCounter"),
+    JudgeCounterExplanation = THEME:GetString("Settings", "JudgeCounterExplanation"),
+    JudgmentText = THEME:GetString("Settings", "JudgmentText"),
+    JudgmentTextExplanation = THEME:GetString("Settings", "JudgmentTextExplanation"),
+    JudgmentAnimations = THEME:GetString("Settings", "JudgmentAnimations"),
+    JudgmentAnimationsExplanation = THEME:GetString("Settings", "JudgmentAnimationsExplanation"),
+    ComboTweens = THEME:GetString("Settings", "ComboTweens"),
+    ComboTweensExplanation = THEME:GetString("Settings", "ComboTweensExplanation"),
+    ComboText = THEME:GetString("Settings", "ComboText"),
+    ComboTextExplanation = THEME:GetString("Settings", "ComboTextExplanation"),
+    ComboGlow = THEME:GetString("Settings", "ComboGlow"),
+    ComboGlowExplanation = THEME:GetString("Settings", "ComboGlowExplanation"),
+    ComboLabel = THEME:GetString("Settings", "ComboLabel"),
+    ComboLabelExplanation = THEME:GetString("Settings", "ComboLabelExplanation"),
+    CBHighlights = THEME:GetString("Settings", "CBHighlights"),
+    CBHighlightsExplanation = THEME:GetString("Settings", "CBHighlightsExplanation"),
+    MeasureCounter = THEME:GetString("Settings", "MeasureCounter"),
+    MeasureCounterExplanation = THEME:GetString("Settings", "MeasureCounterExplanation"),
+    MeasureLines = THEME:GetString("Settings", "MeasureLines"),
+    MeasureLinesExplaantion = THEME:GetString("Settings", "MeasureLinesExplaantion"),
+    NPSDisplay = THEME:GetString("Settings", "NPSDisplay"),
+    NPSDisplayExplanation = THEME:GetString("Settings", "NPSDisplayExplanation"),
+    NPSGraph = THEME:GetString("Settings", "NPSGraph"),
+    NPSGraphExplanation = THEME:GetString("Settings", "NPSGraphExplanation"),
+    Language = THEME:GetString("Settings", "Language"),
+    LanguageExplanation = THEME:GetString("Settings", "LanguageExplanation"),
+    Theme = THEME:GetString("Settings", "Theme"),
+    ThemeExplanation = THEME:GetString("Settings", "ThemeExplanation"),
+    DisplayMode = THEME:GetString("Settings", "DisplayMode"),
+    DisplayModeExplanation = THEME:GetString("Settings", "DisplayModeExplanation"),
+    AspectRatio = THEME:GetString("Settings", "AspectRatio"),
+    AspectRatioExplanation = THEME:GetString("Settings", "AspectRatioExplanation"),
+    DisplayResolution = THEME:GetString("Settings", "DisplayResolution"),
+    DisplayResolutionExplanation = THEME:GetString("Settings", "DisplayResolutionExplanation"),
+    RefreshRate = THEME:GetString("Settings", "RefreshRate"),
+    RefreshRateExplanation = THEME:GetString("Settings", "RefreshRateExplanation"),
+    ColorDepth = THEME:GetString("Settings", "ColorDepth"),
+    ColorDepthExplanation = THEME:GetString("Settings", "ColorDepthExplanation"),
+    HighResTextures = THEME:GetString("Settings", "HighResTextures"),
+    HighResTexturesExplanation = THEME:GetString("Settings", "HighResTexturesExplanation"),
+    TextureResolution = THEME:GetString("Settings", "TextureResolution"),
+    TextureResolutionExplanation = THEME:GetString("Settings", "TextureResolutionExplanation"),
+    VSync = THEME:GetString("Settings", "VSync"),
+    VSyncExplanation = THEME:GetString("Settings", "VSyncExplanation"),
+    FastNoteRendering = THEME:GetString("Settings", "FastNoteRendering"),
+    FastNoteRenderingExplanation = THEME:GetString("Settings", "FastNoteRenderingExplanation"),
+    ShowStats = THEME:GetString("Settings", "ShowStats"),
+    ShowStatsExplanation = THEME:GetString("Settings", "ShowStatsExplanation"),
+    TapGlow = THEME:GetString("Settings", "TapGlow"),
+    TapGlowExplanation = THEME:GetString("Settings", "TapGlowExplanation"),
+    MusicWheelPosition = THEME:GetString("Settings", "MusicWheelPosition"),
+    MusicWheelPositionExplanation = THEME:GetString("Settings", "MusicWheelPositionExplanation"),
+    MusicWheelBanners = THEME:GetString("Settings", "MusicWheelBanners"),
+    MusicWheelBannersExplanation = THEME:GetString("Settings", "MusicWheelBannersExplanation"),
+    VideoBanners = THEME:GetString("Settings", "VideoBanners"),
+    VideoBannersExplanation = THEME:GetString("Settings", "VideoBannersExplanation"),
+    ShowBGs = THEME:GetString("Settings", "ShowBGs"),
+    ShowBGsExplanation = THEME:GetString("Settings", "ShowBGsExplanation"),
+    ShowBanners = THEME:GetString("Settings", "ShowBanners"),
+    ShowBannersExplanation = THEME:GetString("Settings", "ShowBannersExplanation"),
+    BGBannerColor = THEME:GetString("Settings", "BGBannerColor"),
+    BGBannerColorExplanation = THEME:GetString("Settings", "BGBannerColorExplanation"),
+    AllowBGChanges = THEME:GetString("Settings", "AllowBGChanges"),
+    AllowBGChangesExplanation = THEME:GetString("Settings", "AllowBGChangesExplanation"),
+    EasterEggs = THEME:GetString("Settings", "EasterEggs"),
+    EasterEggsExplanation = THEME:GetString("Settings", "EasterEggsExplanation"),
+    Visualizer = THEME:GetString("Settings", "Visualizer"),
+    VisualizerExplanation = THEME:GetString("Settings", "VisualizerExplanation"),
+    MidGrades = THEME:GetString("Settings", "MidGrades"),
+    MidGradesExplanation = THEME:GetString("Settings", "MidGradesExplanation"),
+    SSRNorm = THEME:GetString("Settings", "SSRNorm"),
+    SSRNormExplanation = THEME:GetString("Settings", "SSRNormExplanation"),
+    ShowLyrics = THEME:GetString("Settings", "ShowLyrics"),
+    ShowLyricsExplanation = THEME:GetString("Settings", "ShowLyricsExplanation"),
+    Transliteration = THEME:GetString("Settings", "Transliteration"),
+    TransliterationExplanation = THEME:GetString("Settings", "TransliterationExplanation"),
+    TipType = THEME:GetString("Settings", "TipType"),
+    TipTypeExplanation = THEME:GetString("Settings", "TipTypeExplanation"),
+    BGFit = THEME:GetString("Settings", "BGFit"),
+    BGFitExplanation = THEME:GetString("Settings", "BGFitExplanation"),
+    ColorConfig = THEME:GetString("Settings", "ColorConfig"),
+    ColorConfigExplanation = THEME:GetString("Settings", "ColorConfigExplanation"),
+    ColorConfigButton = THEME:GetString("Settings", "ColorConfigButton"),
+    AssetSettings = THEME:GetString("Settings", "AssetSettings"),
+    AssetSettingsExplanation = THEME:GetString("Settings", "AssetSettingsExplanation"),
+    AssetSettingsButton = THEME:GetString("Settings", "AssetSettingsButton"),
+    Volume = THEME:GetString("Settings", "Volume"),
+    VolumeExplanation = THEME:GetString("Settings", "VolumeExplanation"),
+    MenuSounds = THEME:GetString("Settings", "MenuSounds"),
+    MenuSoundsExplanation = THEME:GetString("Settings", "MenuSoundsExplanation"),
+    MineSounds = THEME:GetString("Settings", "MineSounds"),
+    MineSoundsExplanation = THEME:GetString("Settings", "MineSoundsExplanation"),
+    PitchRates = THEME:GetString("Settings", "PitchRates"),
+    PitchRatesExplanation = THEME:GetString("Settings", "PitchRatesExplanation"),
+    CalibrateAudioSync = THEME:GetString("Settings", "CalibrateAudioSync"),
+    CalibrateAudioSyncExplanation = THEME:GetString("Settings", "CalibrateAudioSyncExplanation"),
+    CalibrateAudioSyncButton = THEME:GetString("Settings", "CalibrateAudioSyncButton"),
+    BackDelayed = THEME:GetString("Settings", "BackDelayed"),
+    BackDelayedExplanation = THEME:GetString("Settings", "BackDelayedExplanation"),
+    StartGiveUp = THEME:GetString("Settings", "StartGiveUp"),
+    StartGiveUpExplanation = THEME:GetString("Settings", "StartGiveUpExplanation"),
+    Debounce = THEME:GetString("Settings", "Debounce"),
+    DebounceExplanation = THEME:GetString("Settings", "DebounceExplanation"),
+    TestInput = THEME:GetString("Settings", "TestInput"),
+    TestInputExplanation = THEME:GetString("Settings", "TestInputExplanation"),
+    TestInputButton = THEME:GetString("Settings", "TestInputButton"),
+    CreateProfile = THEME:GetString("Settings", "CreateProfile"),
+    CreateProfileExplanation = THEME:GetString("Settings", "CreateProfileExplanation"),
+    CreateProfileButton = THEME:GetString("Settings", "CreateProfileButton"),
+    RenameProfile = THEME:GetString("Settings", "RenameProfile"),
+    RenameProfileExplanation = THEME:GetString("Settings", "RenameProfileExplanation"),
+    RenameProfileButton = THEME:GetString("Settings", "RenameProfileButton"),
+}
+
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
 local animationSeconds = 0.1
 local focused = false
@@ -165,6 +526,9 @@ local t = Def.ActorFrame {
             MESSAGEMAN:Broadcast("ShowWheel")
             focused = false
         end
+    end,
+    ChartPreviewToggleMessageCommand = function(self)
+        self:playcommand("GeneralTabSet")
     end,
     FinishFocusingCommand = function(self)
         focused = true
@@ -273,7 +637,7 @@ local function leftFrame()
             end,
             ShowLeftCommand = function(self, params)
                 if params and params.name then
-                    self:settext(params.name)
+                    self:settext(translations[params.name])
                 end
             end,
 
@@ -861,7 +1225,7 @@ local function leftFrame()
                             if buttonmapped then
                                 self:settext(buttonmapped:gsub("Key ", ""))
                             else
-                                self:settext("none")
+                                self:settext(translations["NothingBound"])
                             end
                         end,
                     }
@@ -942,7 +1306,7 @@ local function leftFrame()
                             if buttonmapped then
                                 self:settext(buttonmapped:gsub("Key ", ""))
                             else
-                                self:settext("none")
+                                self:settext(translations["NothingBound"])
                             end
                         end,
                     },
@@ -986,11 +1350,11 @@ local function leftFrame()
                     end
 
                     if currentlyBinding and not inMenuPage then
-                        self:settextf("Currently Binding: %s (Controller %s)", currentKey, currentController)
+                        self:settextf("%s: %s (%s %s)", translations["CurrentlyBinding"], currentKey, translations["Controller"], currentController)
                     elseif currentlyBinding and inMenuPage then
-                        self:settextf("Currently Binding: %s", currentKey)
+                        self:settextf("%s: %s", translations["CurrentlyBinding"], currentKey)
                     else
-                        self:settext("Currently Binding: ")
+                        self:settextf("%s: ", translations["CurrentlyBinding"])
                     end
                 end,
                 StartedBindingMessageCommand = function(self)
@@ -1011,7 +1375,7 @@ local function leftFrame()
                     self:zoom(keyinstructionsTextSize)
                     self:wrapwidthpixels(actuals.LeftWidth - 10)
                     self:maxheight((actuals.Height / 4 - actuals.TopLipHeight * 1.5) / keyinstructionsTextSize)
-                    self:settext("Select a button to rebind with mouse or keyboard.\nPress Escape or click to cancel binding.")
+                    self:settext(translations["KeyBindingInstructions"])
                     registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
             },
@@ -1025,7 +1389,7 @@ local function leftFrame()
                     self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4)
                     txt:zoom(bindingChoicesTextSize)
                     txt:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
-                    txt:settext("Start Binding All")
+                    txt:settext(translations["StartBindingAll"])
                     registerActorToColorConfigElement(txt, "main", "PrimaryText")
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                     bg:diffusealpha(0.2)
@@ -1079,9 +1443,9 @@ local function leftFrame()
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
                     if inMenuPage then
-                        txt:settext("View Gameplay Keybindings")
+                        txt:settext(translations["ShowGameplayBindings"])
                     else
-                        txt:settext("View Menu Keybindings")
+                        txt:settext(translations["ShowMenuBindings"])
                     end
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 end,
@@ -1159,21 +1523,18 @@ local function leftFrame()
                 InitCommand = function(self)
                     -- centered horizontally and vertically
                     self:x(actuals.LeftWidth / 2)
-                    self:y(actuals.Height / 4)
+                    self:y(0)
                 end,
                 BeginCommand = function(self)
                     -- take the long road to find the actual chart preview actor
                     local realnotefieldpreview = SCREENMAN:GetTopScreen():safeGetChild(
-                        "RightFrame",
-                        "GeneralBoxFile",
-                        "Container",
-                        "GeneralPageFile",
                         "ChartPreviewFile",
                         "NoteField"
                     )
                     if realnotefieldpreview ~= nil then
                         self:SetTarget(realnotefieldpreview)
                         self:addx(-realnotefieldpreview:GetX())
+                        self:zoom(0.9)
                     else
                         print("It appears that chart preview is not where it should be ....")
                     end
@@ -1592,7 +1953,7 @@ local function leftFrame()
                 end
                 on()
             end
-            local question = "NEW COLOR CONFIG PRESET\nPlease enter a new preset name."
+            local question = translations["NewColorConfigPresetQuestion"]
             askForInputStringWithFunction(
                 question,
                 128,
@@ -1612,13 +1973,13 @@ local function leftFrame()
                     if result then
                         result = COLORS:newColorPreset(answer:lower())
                         if not result then
-                            SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nThere was an issue creating the new color config preset. You may try again.\nTo exit, press Esc.")
+                            SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\n" .. translations["NewColorConfigPresetUnknownError"])
                             return false, "Response invalid."
                         else
                             return true, "Response invalid." -- the 2nd param doesnt matter here
                         end
                     else
-                        SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use illegal characters.\nTo exit, press Esc.")
+                        SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\n" .. translations["NewColorConfigPresetInputError"])
                         return false, "Response invalid."
                     end
                 end,
@@ -1907,11 +2268,11 @@ local function leftFrame()
                             self:y(textLineSeparation * 1)
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
-                            self:settext("Current preset:")
+                            self:settextf("%s:", translations["CurrentPreset"])
                             registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end,
                         SetCommand = function(self)
-                            self:settextf("Current preset: %s", selectedpreset)
+                            self:settextf("%s: %s", translations["CurrentPreset"], selectedpreset)
                         end,
                         ColorConfigSelectionStateChangedMessageCommand = function(self)
                             self:playcommand("Set")
@@ -1924,11 +2285,11 @@ local function leftFrame()
                             self:y(textLineSeparation * 2)
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
-                            self:settext("Current element:")
+                            self:settextf("%s:", translations["CurrentElement"])
                             registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end,
                         SetCommand = function(self)
-                            self:settextf("Current element: %s", selectedelement)
+                            self:settextf("%s: %s", translations["CurrentElement"], selectedelement)
                         end,
                         ColorConfigSelectionStateChangedMessageCommand = function(self)
                             self:playcommand("Set")
@@ -1941,7 +2302,7 @@ local function leftFrame()
                             self:y(textLineSeparation * 3)
                             self:zoom(colorConfigTextSize)
                             self:maxwidth(widthOfTheRightSide/2 / colorConfigChoiceTextSize - textZoomFudge)
-                            self:settext("Current color")
+                            self:settext(translations["CurrentColor"])
                             registerActorToColorConfigElement(self, "main", "PrimaryText")
                         end
                     },
@@ -2038,7 +2399,7 @@ local function leftFrame()
                             txt:maxwidth(widthOfTheRightSide / 2 / colorConfigTextSize)
                             self:y(textLineSeparation * 6)
                             bg:y(1)
-                            txt:settext("Undo")
+                            txt:settext(translations["Undo"])
                             registerActorToColorConfigElement(txt, "main", "PrimaryText")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
@@ -2046,7 +2407,7 @@ local function leftFrame()
                                 local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
                                 self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
                                 if isOver(bg) then
-                                    TOOLTIP:SetText("Undo: Alt-Delete")
+                                    TOOLTIP:SetText(translations["Undo"] .. ": " .. translations["UndoShortcut"])
                                     TOOLTIP:Show()
                                 else
                                     TOOLTIP:Hide()
@@ -2083,7 +2444,7 @@ local function leftFrame()
                             self:x(widthOfTheRightSide)
                             self:y(textLineSeparation * 6)
                             bg:y(1)
-                            txt:settext("Reset to Default")
+                            txt:settext(translations["ResetToDefault"])
                             registerActorToColorConfigElement(txt, "main", "PrimaryText")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
@@ -2091,7 +2452,7 @@ local function leftFrame()
                                 local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
                                 self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
                                 if isOver(bg) then
-                                    TOOLTIP:SetText("Reset: Ctrl-Delete")
+                                    TOOLTIP:SetText(translations["Reset"] .. ": " .. translations["ResetShortcut"])
                                     TOOLTIP:Show()
                                 else
                                     TOOLTIP:Hide()
@@ -2134,7 +2495,7 @@ local function leftFrame()
                                 local disabledmultiplier = selectionstate ~= "editing" and 0.3 or 1
                                 self:diffusealpha(1 * hovermultiplier * disabledmultiplier)
                                 if isOver(bg) then
-                                    TOOLTIP:SetText("Save (or press Enter)")
+                                    TOOLTIP:SetText(translations["SaveInstruction"])
                                     TOOLTIP:Show()
                                 else
                                     TOOLTIP:Hide()
@@ -2145,9 +2506,9 @@ local function leftFrame()
                             local txt = self:GetChild("Text")
                             local bg = self:GetChild("BG")
                             if aboutToSave then
-                                txt:settext("Save Changes (Not Saved!)")
+                                txt:settext(translations["SaveChangesUnsaved"])
                             else
-                                txt:settext("Save Changes")
+                                txt:settext(translations["SaveChanges"])
                             end
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         end,
@@ -2180,14 +2541,14 @@ local function leftFrame()
                             bg:y(1)
                             txt:zoom(colorConfigTextSize)
                             txt:maxwidth(widthOfTheRightSide / colorConfigChoiceTextSize - textZoomFudge)
-                            txt:settext("New Color Config Preset")
+                            txt:settext(translations["NewColorConfigPreset"])
                             registerActorToColorConfigElement(txt, "main", "PrimaryText")
                             bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                             self.alphaDeterminingFunction = function(self)
                                 local hovermultiplier = isOver(bg) and buttonHoverAlpha or 1
                                 self:diffusealpha(1 * hovermultiplier)
                                 if isOver(bg) then
-                                    TOOLTIP:SetText("New Preset: Ctrl-N")
+                                    TOOLTIP:SetText(translations["NewColorConfigPresetInstruction"])
                                     TOOLTIP:Show()
                                 else
                                     TOOLTIP:Hide()
@@ -2232,13 +2593,13 @@ local function leftFrame()
                     end,
                     UpdateColorConfigDisplayCommand = function(self)
                         if selectionstate == "category" then
-                            self:settext("Browsing Color Categories")
+                            self:settext(translations["BrowsingColorCategories"])
                         elseif selectionstate == "preset" then
-                            self:settext("Browsing Color Config Presets")
+                            self:settext(translations["BrowsingColorConfigPresets"])
                         elseif selectionstate == "element" then
-                            self:settext("Browsing Elements in '"..selectedcategory.."'")
+                            self:settextf("%s '%s'", translations["BrowsingElements"], selectedcategory)
                         elseif selectionstate == "editing" then
-                            self:settext("Browsing Elements in '"..selectedcategory.."' (editing)")
+                            self:settextf("%s '%s' %s", translations["BrowsingElements"], selectedcategory, translations["CurrentlyEditing"])
                         end
                     end,
                     ColorConfigSelectionStateChangedMessageCommand = function(self)
@@ -2306,13 +2667,13 @@ local function leftFrame()
                         local txt = self:GetChild("Text")
                         local bg = self:GetChild("BG")
                         if selectionstate == "category" then
-                            txt:settext("Back to Presets")
+                            txt:settext(translations["BackToPresets"])
                         elseif selectionstate == "preset" then
                             txt:settext(" ")
                         elseif selectionstate == "element" then
-                            txt:settext("Back to Categories")
+                            txt:settext(translations["BackToCategories"])
                         elseif selectionstate == "editing" then
-                            txt:settext("Back to Categories")
+                            txt:settext(translations["BackToCategories"])
                         end
                         bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                         self:alphaDeterminingFunction()
@@ -2517,7 +2878,7 @@ local function rightFrame()
         end
         if setGraphics and not setGame and not setTheme then
             THEME:SetTheme(THEME:GetCurThemeName())
-        elseif setGame or setTheme then
+        elseif setGame or setTheme or setLanguage then
             local gameToUse = setGame or GAMESTATE:GetCurrentGame():GetName()
             GAMEMAN:SetGame(gameToUse, themeToUse)
         end
@@ -2597,7 +2958,7 @@ local function rightFrame()
                 self:xy(actuals.EdgePadding, actuals.TopLipHeight / 2)
                 self:zoom(titleTextSize)
                 self:maxwidth((actuals.RightWidth - actuals.EdgePadding*2) / titleTextSize - textZoomFudge)
-                self:settext("Options")
+                self:settext(translations["OptionsHeader"])
                 registerActorToColorConfigElement(self, "main", "PrimaryText")
             end
         },
@@ -2648,7 +3009,7 @@ local function rightFrame()
                 txt:halign(0)
                 txt:zoom(previewButtonTextSize)
                 txt:maxwidth(actuals.RightWidth / 2 / previewButtonTextSize - textZoomFudge)
-                txt:settext("Toggle Chart Preview")
+                txt:settext(translations["ToggleChartPreview"])
                 registerActorToColorConfigElement(txt, "main", "SecondaryText")
 
                 bg:halign(0)
@@ -2741,9 +3102,10 @@ local function rightFrame()
     end
 
     -- for convenience to generate a choice table for a float interface setting
-    local function floatSettingChoice(visibleName, funcName, enabledValue, offValue)
+    local function floatSettingChoice(name, funcName, enabledValue, offValue)
         return {
-            Name = visibleName,
+            Name = name,
+            DisplayName = translations[funcName],
             ChosenFunction = function()
                 local po = getPlayerOptions()
                 if po[funcName](po) ~= offValue then
@@ -2756,9 +3118,10 @@ local function rightFrame()
     end
 
     -- for convenience to generate a choice table for a boolean interface setting
-    local function booleanSettingChoice(visibleName, funcName)
+    local function booleanSettingChoice(name, funcName)
         return {
-            Name = visibleName,
+            Name = name,
+            DisplayName = translations[funcName],
             ChosenFunction = function()
                 local po = getPlayerOptions()
                 if po[funcName](po) == true then
@@ -2789,9 +3152,10 @@ local function rightFrame()
         }
     end
 
-    local function basicNamedPreferenceChoice(preferenceName, displayName, chosenValue)
+    local function basicNamedPreferenceChoice(preferenceName, name, chosenValue)
         return {
-            Name = displayName,
+            Name = name,
+            DisplayName = translations[name],
             ChosenFunction = function()
                 PREFSMAN:SetPreference(preferenceName, chosenValue)
             end,
@@ -2824,6 +3188,7 @@ local function rightFrame()
         for _, name in ipairs({...}) do
             o[#o+1] = {
                 Name = name,
+                DisplayName = translations[name],
             }
         end
         return o
@@ -2876,7 +3241,8 @@ local function rightFrame()
         },
         wheelPosition = themeoption("global", "WheelPosition"),
         wheelBanners = themeoption("global", "WheelBanners"),
-        showBackgrounds = themeoption("global", "ShowBackgrounds"),
+        showBackgrounds = PREFSMAN:GetPreference("ShowBackgrounds"),
+        showBanners = themeoption("global", "ShowBanners"),
         useSingleColorBG = themeoption("global", "FallbackToAverageColorBG"),
         showVisualizer = themeoption("global", "ShowVisualizer"),
         tipType = themeoption("global", "TipType"),
@@ -2891,8 +3257,10 @@ local function rightFrame()
         fullProgressBar = playeroption("FullProgressBar"),
         miniProgressBar = playeroption("MiniProgressBar"),
         judgeCounter = playeroption("JudgeCounter"),
-        leaderboard = playeroption("leaderboardEnabled"),
+        leaderboard = playeroption("Leaderboard"), -- off, online, local currentrate, local allrates
         displayMean = playeroption("DisplayMean"),
+        displayEWMA = playeroption("DisplayEWMA"),
+        displayStdDev = playeroption("DisplayStdDev"),
         measureCounter = playeroption("MeasureCounter"),
         measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
@@ -2905,6 +3273,7 @@ local function rightFrame()
         laneCover = playeroption("LaneCover"), -- 0 off, 1 sudden, 2 hidden
         judgmentText = playeroption("JudgmentText"),
         judgmentTweens = playeroption("JudgmentTweens"),
+        comboTweens = playeroption("ComboTweens"),
         comboText = playeroption("ComboText"),
         comboGlow = playeroption("ComboGlow"),
         comboLabel = playeroption("ComboLabel"),
@@ -3071,14 +3440,6 @@ local function rightFrame()
             setPlayerOptionsModValueAllLevels("MMod", speed)
         end
     end
-    local function basicNamedOptionDataChoice(optionDataPropertyName, displayName, chosenValue)
-        return {
-            Name = displayName,
-            ChosenFunction = function()
-                optionData[optionDataPropertyName] = chosenValue
-            end,
-        }
-    end
     local function optionDataToggleDirections(optionDataPropertyName, trueValue, falseValue)
         return {
             Toggle = function()
@@ -3124,8 +3485,9 @@ local function rightFrame()
     local function customizeGameplayButton()
         return {
             Name = "Customize Playfield",
+            DisplayName = translations["CustomizeGameplay"],
             Type = "Button",
-            Explanation = "Customize Gameplay elements.",
+            Explanation = translations["CustomizeGameplayExplanation"],
             Choices = {
                 {
                     Name = "Customize Playfield",
@@ -3158,6 +3520,7 @@ local function rightFrame()
 
     -- the names and order of the option pages
     -- these values must correspond to the keys of optionPageCategoryLists
+    -- translated by transforming the name to "PageNamePlayer" etc
     local pageNames = {
         "Player",
         "Gameplay",
@@ -3172,6 +3535,7 @@ local function rightFrame()
     -- the values are tables -- the categories of each page in that order
     -- each category corresponds to a key in optionDefs (must be unique keys -- values of these tables have to be globally unique)
     -- the options of each category are in the order of the value tables in optionDefs
+    -- translated by transforming the name to "CategoryEssential Options" etc
     local optionPageCategoryLists = {
         Player = {
             "Essential Options",
@@ -3211,12 +3575,14 @@ local function rightFrame()
     -- OPTION DEFINITION EXAMPLE:
     --[[
         {
-            Name = "option name" -- display name for the option
+            Name = "option name" -- internal name for the option
+            DisplayName = "option name" -- display name for the option
             Type = "type name" -- determines how to generate the actor to display the choices
             AssociatedOptions = {"other option name"} -- runs the index getter for these options when a choice is selected
             Choices = { -- option choice definitions -- each entry is another table -- if no choices are defined, visible choice comes from ChoiceIndexGetter
                 {
-                    Name = "choice1" -- display name for the choice
+                    Name = "choice1" -- internal name for the choice
+                    DisplayName = "choice1" -- display name for the choice
                     ChosenFunction = function() end -- what happens when choice is PICKED (not hovered)
                 },
                 {
@@ -3247,8 +3613,9 @@ local function rightFrame()
         ["Essential Options"] = {
             {
                 Name = "Scroll Type",
+                DisplayName = translations["ScrollType"],
                 Type = "SingleChoice",
-                Explanation = "XMod - BPM multiplier based scrolling. CMod - Constant scrolling. MMod - BPM based with a max speed.",
+                Explanation = translations["ScrollTypeExplanation"],
                 AssociatedOptions = {
                     "Scroll Speed",
                 },
@@ -3294,8 +3661,9 @@ local function rightFrame()
             },
             {
                 Name = "Scroll Speed",
+                DisplayName = translations["ScrollSpeed"],
                 Type = "SingleChoiceModifier",
-                Explanation = "Change scroll speed value/modifier in increments of 1 or 50.",
+                Explanation = translations["ScrollSpeedExplanation"],
                 Directions = {
                     Left = function(multiplier)
                         local increment = -1
@@ -3324,8 +3692,9 @@ local function rightFrame()
             },
             {
                 Name = "Scroll Direction",
+                DisplayName = translations["ScrollDirection"],
                 Type = "SingleChoice",
-                Explanation = "Direction of note scrolling: up or down.",
+                Explanation = translations["ScrollDirectionExplanation"],
                 Choices = choiceSkeleton("Upscroll", "Downscroll"),
                 Directions = {
                     Toggle = function()
@@ -3349,8 +3718,9 @@ local function rightFrame()
             },
             {
                 Name = "Noteskin",
+                DisplayName = translations["OptionNoteskin"],
                 Type = "SingleChoice",
-                Explanation = "Skin of the notes.",
+                Explanation = translations["OptionNoteskinExplanation"],
                 ChoiceIndexGetter = function()
                     local currentSkinName = getPlayerOptions():NoteSkin()
                     for i, name in ipairs(optionData.noteSkins.names) do
@@ -3374,6 +3744,7 @@ local function rightFrame()
                     for i, name in ipairs(skinNames) do
                         o[#o+1] = {
                             Name = name:upper(),
+                            DisplayName = name:upper(),
                             ChosenFunction = function()
                                 setPlayerOptionsModValueAllLevels("NoteSkin", name)
                                 MESSAGEMAN:Broadcast("UpdateVisibleSkin", {name = name})
@@ -3391,8 +3762,9 @@ local function rightFrame()
             },
             {
                 Name = "Receptor Size",
+                DisplayName = translations["ReceptorSize"],
                 Type = "SingleChoice",
-                Explanation = "Size of receptors and notes. 50% Receptor Size may be called 100% Mini.",
+                Explanation = translations["ReceptorSizeExplanation"],
                 Directions = {
                     Left = function()
                         local sz = optionData["receptorSize"].get()
@@ -3413,8 +3785,9 @@ local function rightFrame()
             },
             {
                 Name = "Judge Difficulty",
+                DisplayName = translations["JudgeDifficulty"],
                 Type = "SingleChoice",
-                Explanation = "Timing Window Difficulty. Higher is harder. All scores are converted to Judge 4 later.",
+                Explanation = translations["JudgeDifficultyExplanation"],
                 ChoiceIndexGetter = function()
                     local lowestJudgeDifficulty = 4
                     return GetTimingDifficulty() - (lowestJudgeDifficulty-1)
@@ -3424,6 +3797,7 @@ local function rightFrame()
                     for i = 4, 8 do
                         o[#o+1] = {
                             Name = tostring(i),
+                            DisplayName = tostring(i),
                             ChosenFunction = function()
                                 -- set judge
                                 local scale = ms.JudgeScalers[i]
@@ -3434,6 +3808,7 @@ local function rightFrame()
                     end
                     o[#o+1] = {
                         Name = "Justice",
+                        DisplayName = translations["Justice"],
                         ChosenFunction = function()
                             -- sets j9
                             local scale = ms.JudgeScalers[9]
@@ -3446,8 +3821,9 @@ local function rightFrame()
             },
             {
                 Name = "Mirror",
+                DisplayName = translations["Mirror"],
                 Type = "SingleChoice",
-                Explanation = "Horizontally flip Notedata.",
+                Explanation = translations["MirrorExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
@@ -3469,8 +3845,9 @@ local function rightFrame()
             },
             {
                 Name = "Global Offset",
+                DisplayName = translations["GlobalOffset"],
                 Type = "SingleChoice",
-                Explanation = "Global Audio Offset in seconds. Negative numbers are early.",
+                Explanation = translations["GlobalOffsetExplanation"],
                 Directions = preferenceIncrementDecrementDirections("GlobalOffsetSeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("GlobalOffsetSeconds"), 3) .. "s"
@@ -3478,8 +3855,9 @@ local function rightFrame()
             },
             {
                 Name = "Visual Delay",
+                DisplayName = translations["VisualDelay"],
                 Type = "SingleChoice",
-                Explanation = "Visual Note Delay in seconds. May be referred to as Judge Offset. Negative numbers are early.",
+                Explanation = translations["VisualDelayExplanation"],
                 Directions = preferenceIncrementDecrementDirections("VisualDelaySeconds", -5, 5, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3) .. "s"
@@ -3487,8 +3865,9 @@ local function rightFrame()
             },
             {
                 Name = "Game Mode",
+                DisplayName = translations["GameMode"],
                 Type = "SingleChoice",
-                Explanation = "Dance - 3k/4k/8k | Solo - 6k | Pump - 5k/6k/10k | Beat - 5k+1/7k+1/10k+2/14k+2 | Kb7 - 7k | Popn - 5k/9k",
+                Explanation = translations["GameModeExplanation"],
                 ChoiceIndexGetter = function()
                     for i = 1, #optionData.gameMode.modes do
                         if optionData.gameMode.modes[i] == optionData.gameMode.current then
@@ -3502,6 +3881,7 @@ local function rightFrame()
                     for i, name in ipairs(optionData.gameMode.modes) do
                         o[#o+1] = {
                             Name = strCapitalize(name),
+                            DisplayName = strCapitalize(name),
                             ChosenFunction = function()
                                 if name == GAMESTATE:GetCurrentGame():GetName() then
                                     modsToApplyAtExit["GameMode"] = nil
@@ -3521,8 +3901,9 @@ local function rightFrame()
             },
             {
                 Name = "Fail Type",
+                DisplayName = translations["FailType"],
                 Type = "SingleChoice",
-                Explanation = "Toggle failure in Gameplay. Setting Fail Off invalidates scores if a fail would have actually occurred.",
+                Explanation = translations["FailTypeExplanation"],
                 ChoiceIndexGetter = function()
                     local failtypes = FailType
                     local failtype = getPlayerOptions():FailSetting()
@@ -3538,6 +3919,7 @@ local function rightFrame()
                     for i, name in ipairs(failtypes) do
                         o[#o+1] = {
                             Name = THEME:GetString("OptionNames", ToEnumShortString(name)),
+                            DisplayName = THEME:GetString("OptionNames", ToEnumShortString(name)),
                             ChosenFunction = function()
                                 setPlayerOptionsModValueAllLevels("FailSetting", name)
                             end,
@@ -3549,11 +3931,13 @@ local function rightFrame()
             customizeGameplayButton(),
             {
                 Name = "Customize Keybinds",
+                DisplayName = translations["CustomizeKeybinds"],
                 Type = "Button",
-                Explanation = "Customize Keybinds.",
+                Explanation = translations["CustomizeKeybindsExplanation"],
                 Choices = {
                     {
                         Name = "Customize Keybinds",
+                        DisplayName = translations["CustomizeKeybindsButton"],
                         ChosenFunction = function()
                             -- activate keybind screen
                             MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Customize Keybinds"})
@@ -3563,11 +3947,13 @@ local function rightFrame()
             },
             {
                 Name = "Enter Practice Mode",
+                DisplayName = translations["PracticeMode"],
                 Type = "Button",
-                Explanation = "Enter Practice Mode",
+                Explanation = translations["PracticeModeExplanation"],
                 Choices = {
                     {
                         Name = "Enter Practice Mode",
+                        DisplayName = translations["PracticeModeButton"],
                         ChosenFunction = function()
                             -- activate practice mode
                             -- go into gameplay
@@ -3596,8 +3982,9 @@ local function rightFrame()
         ["Appearance Options"] = {
             {
                 Name = "Appearance",
+                DisplayName = translations["Appearance"],
                 Type = "MultiChoice",
-                Explanation = "Hidden - Notes disappear before receptor. Sudden - Notes appear later than usual. Stealth - Invisible notes. Blink - Notes flash.",
+                Explanation = translations["AppearanceExplanation"],
                 AssociatedOptions = {
                     "Hidden Offset",
                     "Sudden Offset",
@@ -3621,8 +4008,9 @@ local function rightFrame()
             },
             {
                 Name = "Hidden Offset",
+                DisplayName = translations["HiddenOffset"],
                 Type = "SingleChoiceModifier",
-                Explanation = "Offset the Hidden position. Hidden hides notes just before they reach the receptors.",
+                Explanation = translations["HiddenOffsetExplanation"],
                 AssociatedOptions = {
                     "Appearance",
                 },
@@ -3664,8 +4052,9 @@ local function rightFrame()
             },
             {
                 Name = "Sudden Offset",
+                DisplayName = translations["SuddenOffset"],
                 Type = "SingleChoiceModifier",
-                Explanation = "Offset the Sudden position. Sudden hides notes until they pass a certain distance across the screen.",
+                Explanation = translations["SuddenOffsetExplanation"],
                 AssociatedOptions = {
                     "Appearance",
                 },
@@ -3707,8 +4096,9 @@ local function rightFrame()
             },
             {
                 Name = "Perspective",
+                DisplayName = translations["Perspective"],
                 Type = "SingleChoice",
-                Explanation = "Controls tilt/skew of the NoteField.",
+                Explanation = translations["PerspectiveExplanation"],
                 AssociatedOptions = {
                     "Perspective Intensity",
                 },
@@ -3722,30 +4112,35 @@ local function rightFrame()
                     -- setPlayerOptionsModValueAllLevels("Tilt", x)
                     {
                         Name = "Overhead",
+                        DisplayName = translations["Overhead"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("Overhead", true)
                         end,
                     },
                     {
                         Name = "Incoming",
+                        DisplayName = translations["Incoming"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("Incoming", 1)
                         end,
                     },
                     {
                         Name = "Space",
+                        DisplayName = translations["Space"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("Space", 1)
                         end,
                     },
                     {
                         Name = "Hallway",
+                        DisplayName = translations["Hallway"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("Hallway", 1)
                         end,
                     },
                     {
                         Name = "Distant",
+                        DisplayName = translations["Distant"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("Distant", 1)
                         end,
@@ -3767,8 +4162,9 @@ local function rightFrame()
             },
             {
                 Name = "Perspective Intensity",
+                DisplayName = translations["PerspectiveIntensity"],
                 Type = "SingleChoiceModifier",
-                Explanation = "Controls the intensity of the tilt/skew of the NoteField.",
+                Explanation = translations["PerspectiveIntensityExplanation"],
                 Directions = {
                     Left = function(multiplier)
                         local po = getPlayerOptions()
@@ -3833,8 +4229,9 @@ local function rightFrame()
             },
             {
                 Name = "Hide Player UI",
+                DisplayName = translations["HidingModifiers"],
                 Type = "MultiChoice",
-                Explanation = "Hide certain sets of elements from the Gameplay UI.",
+                Explanation = translations["HidingModifiersExplanation"],
                 Choices = {
                     floatSettingChoice("Hide Receptors", "Dark", 1, 0),
                     floatSettingChoice("Hide Judgment & Combo", "Blind", 1, 0),
@@ -3849,11 +4246,13 @@ local function rightFrame()
             },
             {
                 Name = "Hidenote Judgment",
+                DisplayName = translations["Hidenote"],
                 Type = "SingleChoice",
-                Explanation = "Notes must be hit with this judgment or better to disappear.",
+                Explanation = translations["HidenoteExplanation"],
                 Choices = {
                     {
                         Name = "Miss",
+                        DisplayName = getJudgeStrings("TapNoteScore_Miss"),
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("MinTNSToHideNotes", "Miss")
                             setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "Miss")
@@ -3861,6 +4260,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Bad",
+                        DisplayName = getJudgeStrings("TapNoteScore_W5"),
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("MinTNSToHideNotes", "W5")
                             setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W5")
@@ -3868,6 +4268,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Good",
+                        DisplayName = getJudgeStrings("TapNoteScore_W4"),
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("MinTNSToHideNotes", "W4")
                             setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W4")
@@ -3875,6 +4276,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Great",
+                        DisplayName = getJudgeStrings("TapNoteScore_W3"),
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("MinTNSToHideNotes", "W3")
                             setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W3")
@@ -3882,6 +4284,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Perfect",
+                        DisplayName = getJudgeStrings("TapNoteScore_W2"),
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("MinTNSToHideNotes", "W2")
                             setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W2")
@@ -3889,6 +4292,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Marvelous",
+                        DisplayName = getJudgeStrings("TapNoteScore_W1"),
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("MinTNSToHideNotes", "W1")
                             setPlayerOptionsModValueAllLevels("MinTNSToHideNotes", "W1")
@@ -3910,21 +4314,25 @@ local function rightFrame()
             },
             {
                 Name = "Default Centered NoteField",
+                DisplayName = translations["CenterPlayer1"],
                 Type = "SingleChoice",
-                Explanation = "Horizontally center the NoteField in Gameplay (Legacy Shortcut).",
+                Explanation = translations["CenterPlayer1Explanation"],
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = preferenceToggleDirections("Center1Player", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("Center1Player", true),
             },
             {
                 Name = "NoteField BG Opacity",
+                DisplayName = translations["NoteFieldFilter"],
                 Type = "SingleChoice",
-                Explanation = "Set the opacity of the board behind the NoteField in Gameplay.",
+                Explanation = translations["NoteFieldFilterExplanation"],
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 0, 10 do -- 11 choices
+                        local nm = notShit.round(i*10,0).."%"
                         o[#o+1] = {
-                            Name = notShit.round(i*10,0).."%",
+                            Name = nm,
+                            DisplayName = nm,
                             ChosenFunction = function()
                                 optionData["screenFilter"].set(notShit.round(i / 10, 1))
                             end,
@@ -3933,7 +4341,7 @@ local function rightFrame()
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = notShit.round(optionData["screenFilter"].get(), 1)
+                    local v = notShit.round(optionData["screenFilter"].get(), 2)
                     local ind = notShit.round(v * 10, 0) + 1
                     if ind > 0 and ind < 11 then -- this 11 should match the number of choices above
                         return ind
@@ -3948,13 +4356,16 @@ local function rightFrame()
             },
             {
                 Name = "Background Brightness",
+                DisplayName = translations["BGBrightness"],
                 Type = "SingleChoice",
-                Explanation = "Set the brightness of the background in Gameplay. 0% will disable background loading.",
+                Explanation = translations["BGBrightnessExplanation"],
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 0, 10 do -- 11 choices
+                        local nm = notShit.round(i*10,0).."%"
                         o[#o+1] = {
-                            Name = notShit.round(i*10,0).."%",
+                            Name = nm,
+                            DisplayName = nm,
                             ChosenFunction = function()
                                 PREFSMAN:SetPreference("BGBrightness", notShit.round(i / 10, 1))
                             end,
@@ -3963,9 +4374,9 @@ local function rightFrame()
                     return o
                 end,
                 ChoiceIndexGetter = function()
-                    local v = notShit.round(PREFSMAN:GetPreference("BGBrightness"))
+                    local v = notShit.round(PREFSMAN:GetPreference("BGBrightness"), 2)
                     local ind = notShit.round(v * 10, 0) + 1
-                    if ind > 0 and ind < 11 then -- this 11 should match the nubmer of choices above
+                    if ind > 0 and ind < 11 then -- this 11 should match the number of choices above
                         return ind
                     else
                         if ind <= 0 then
@@ -3978,16 +4389,18 @@ local function rightFrame()
             },
             {
                 Name = "Replay Mod Emulation",
+                DisplayName = translations["ReplayModEmulation"],
                 Type = "SingleChoice",
-                Explanation = "Toggle temporarily using compatible mods that replays used when watching them.",
+                Explanation = translations["ReplayModEmulationExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ReplaysUseScoreMods", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ReplaysUseScoreMods", true),
             },
             {
                 Name = "Extra Scroll Mods",
+                DisplayName = translations["ExtraScrollMods"],
                 Type = "MultiChoice",
-                Explanation = "Change scroll direction in more interesting ways.",
+                Explanation = translations["ExtraScrollModsExplanation"],
                 Choices = {
                     floatSettingChoice("Split", "Split", 1, 0),
                     floatSettingChoice("Alternate", "Alternate", 1, 0),
@@ -4006,8 +4419,9 @@ local function rightFrame()
             },
             {
                 Name = "Fun Effects",
+                DisplayName = translations["FunEffects"],
                 Type = "MultiChoice",
-                Explanation = "Visual scroll mods that are not for practical use.",
+                Explanation = translations["FunEffectsExplanation"],
                 Choices = {
                     floatSettingChoice("Drunk", "Drunk", 1, 0),
                     floatSettingChoice("Confusion", "Confusion", 1, 0),
@@ -4041,8 +4455,9 @@ local function rightFrame()
             },
             {
                 Name = "Acceleration",
+                DisplayName = translations["Acceleration"],
                 Type = "MultiChoice",
-                Explanation = "Scroll speed mods usually not for practical use.",
+                Explanation = translations["AccelerationExplanation"],
                 Choices = {
                     floatSettingChoice("Boost", "Boost", 1, 0),
                     floatSettingChoice("Brake", "Brake", 1, 0),
@@ -4068,11 +4483,13 @@ local function rightFrame()
         ["Invalidating Options"] = {
             {
                 Name = "Mines",
+                DisplayName = translations["Mines"],
                 Type = "SingleChoice",
-                Explanation = "Toggle Mines. Extra Mines will replace entire rows of notes with mines.",
+                Explanation = translations["MinesExplanation"],
                 Choices = {
                     {
                         Name = "On",
+                        DisplayName = translations["On"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("NoMines", false)
                             setPlayerOptionsModValueAllLevels("Mines", false)
@@ -4080,6 +4497,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Off",
+                        DisplayName = translations["Off"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("NoMines", true)
                             setPlayerOptionsModValueAllLevels("Mines", false)
@@ -4087,6 +4505,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Extra Mines",
+                        DisplayName = translations["ExtraMines"],
                         ChosenFunction = function()
                             setPlayerOptionsModValueAllLevels("NoMines", false)
                             setPlayerOptionsModValueAllLevels("Mines", true)
@@ -4109,8 +4528,9 @@ local function rightFrame()
             },
             {
                 Name = "Turn",
+                DisplayName = translations["Turn"],
                 Type = "MultiChoice",
-                Explanation = "Modify Notedata by either shifting all notes or randomizing them.",
+                Explanation = translations["TurnExplanation"],
                 Choices = {
                     booleanSettingChoice("Backwards", "Backwards"),
                     booleanSettingChoice("Left", "Left"),
@@ -4118,6 +4538,7 @@ local function rightFrame()
                     booleanSettingChoice("Shuffle", "Shuffle"),
                     booleanSettingChoice("Soft Shuffle", "SoftShuffle"),
                     booleanSettingChoice("Super Shuffle", "SuperShuffle"),
+                    booleanSettingChoice("H-Ran Shuffle", "HRanShuffle"),
                 },
                 ChoiceIndexGetter = function()
                     local po = getPlayerOptions()
@@ -4128,13 +4549,15 @@ local function rightFrame()
                     if po:Shuffle() then o[4] = true end
                     if po:SoftShuffle() then o[5] = true end
                     if po:SuperShuffle() then o[6] = true end
+                    if po:HRanShuffle() then o[7] = true end
                     return o
                 end,
             },
             {
                 Name = "Pattern Transform",
+                DisplayName = translations["PatternTransform"],
                 Type = "MultiChoice",
-                Explanation = "Modify Notedata by inserting extra notes to create certain patterns.",
+                Explanation = translations["PatternTransformExplanation"],
                 Choices = {
                     booleanSettingChoice("Echo", "Echo"),
                     booleanSettingChoice("Stomp", "Stomp"),
@@ -4155,8 +4578,9 @@ local function rightFrame()
             },
             {
                 Name = "Hold Transform",
+                DisplayName = translations["HoldTransform"],
                 Type = "MultiChoice",
-                Explanation = "Modify holds in Notedata.",
+                Explanation = translations["HoldTransformExplanation"],
                 Choices = {
                     booleanSettingChoice("Planted", "Planted"),
                     booleanSettingChoice("Floored", "Floored"),
@@ -4175,8 +4599,9 @@ local function rightFrame()
             },
             {
                 Name = "Remove",
+                DisplayName = translations["RemoveMods"],
                 Type = "MultiChoice",
-                Explanation = "Remove certain notes, patterns, or types of notes.",
+                Explanation = translations["RemoveModsExplanation"],
                 Choices = {
                     booleanSettingChoice("No Holds", "NoHolds"),
                     booleanSettingChoice("No Rolls", "NoRolls"),
@@ -4205,8 +4630,9 @@ local function rightFrame()
             },
             {
                 Name = "Insert",
+                DisplayName = translations["InsertMods"],
                 Type = "MultiChoice",
-                Explanation = "Modify Notedata by inserting extra notes to provide a certain feeling.",
+                Explanation = translations["InsertModsExplanation"],
                 Choices = {
                     booleanSettingChoice("Wide", "Wide"),
                     booleanSettingChoice("Big", "Big"),
@@ -4233,55 +4659,81 @@ local function rightFrame()
             customizeGameplayButton(),
             {
                 Name = "BPM Display",
+                DisplayName = translations["BPMDisplay"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the BPM display.",
+                Explanation = translations["BPMDisplayExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("bpmDisplay", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("bpmDisplay", true),
             },
             {
                 Name = "Rate Display",
+                DisplayName = translations["RateDisplay"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the music rate display.",
+                Explanation = translations["RateDisplayExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("rateDisplay", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("rateDisplay", true),
             },
             {
                 Name = "Percent Display",
+                DisplayName = translations["PercentDisplay"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the wife percent display.",
+                Explanation = translations["PercentDisplayExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("displayPercent", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayPercent", true),
             },
             {
                 Name = "Mean Display",
+                DisplayName = translations["MeanDisplay"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the tap mean display.",
+                Explanation = translations["MeanDisplayExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("displayMean", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayMean", true),
             },
             {
-                Name = "Error Bar",
+                Name = "EWMA Display",
+                DisplayName = translations["EWMADisplay"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the error bar. Regular displays your recent tap offsets. EWMA displays the exponential mean weighted average of recent taps.",
+                Explanation = translations["EWMADisplayExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayEWMA", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayEWMA", true),
+            },
+            {
+                Name = "StdDev Display",
+                DisplayName = translations["StdDevDisplay"],
+                Type = "SingleChoice",
+                Explanation = translations["StdDevDisplayExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("displayStdDev", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("displayStdDev", true),
+            },
+            {
+                Name = "Error Bar",
+                DisplayName = translations["ErrorBar"],
+                Type = "SingleChoice",
+                Explanation = translations["ErrorBarExplanation"],
                 Choices = {
                     {
                         Name = "Regular",
+                        DisplayName = translations["Regular"],
                         ChosenFunction = function()
                             optionData["errorBar"].set(1)
                         end,
                     },
                     {
                         Name = "EWMA",
+                        DisplayName = translations["EWMA"],
                         ChosenFunction = function()
                             optionData["errorBar"].set(2)
                         end,
                     },
                     {
                         Name = "Off",
+                        DisplayName = translations["Off"],
                         ChosenFunction = function()
                             optionData["errorBar"].set(0)
                         end,
@@ -4300,13 +4752,15 @@ local function rightFrame()
             },
             {
                 Name = "Error Bar Count",
+                DisplayName = translations["ErrorBarCount"],
                 Type = "SingleChoice",
-                Explanation = "Choose either how many taps are allowed to show for the Regular error bar, or how many taps are considered for the EWMA error bar.",
+                Explanation = translations["ErrorBarCountExplanation"],
                 ChoiceGenerator = function()
                     local o = {}
                     for i = 1, 200 do
                         o[#o+1] = {
                             Name = i,
+                            DisplayName = i,
                             ChosenFunction = function()
                                 optionData["errorBarCount"].set(i)
                             end,
@@ -4325,16 +4779,18 @@ local function rightFrame()
             },
             {
                 Name = "Full Progress Bar",
+                DisplayName = translations["FullProgressBar"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the large progress bar.",
+                Explanation = translations["FullProgressBarExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("fullProgressBar", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("fullProgressBar", true),
             },
             {
                 Name = "Mini Progress Bar",
+                DisplayName = translations["MiniProgressBar"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the small progress bar.",
+                Explanation = translations["MiniProgressBarExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("miniProgressBar", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("miniProgressBar", true),
@@ -4342,42 +4798,96 @@ local function rightFrame()
 
             {
                 Name = "Leaderboard",
+                DisplayName = translations["Leaderboard"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the gameplay leaderboard.",
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirectionsFUNC("leaderboard", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("leaderboard", true),
+                Explanation = translations["LeaderboardExplanation"],
+                Choices = {
+                    {
+                        Name = "Off",
+                        DisplayName = translations["Off"],
+                        ChosenFunction = function()
+                            optionData["leaderboard"].set(0)
+                        end,
+                    },
+                    {
+                        Name = "Online",
+                        DisplayName = translations["Online"],
+                        ChosenFunction = function()
+                            optionData["leaderboard"].set(1)
+                        end,
+                    },
+                    {
+                        Name = "Local",
+                        DisplayName = translations["Local"],
+                        ChosenFunction = function()
+                            optionData["leaderboard"].set(2)
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = optionData["leaderboard"].get()
+                    return v+1
+                end,
             },
 
             {
                 Name = "Player Info",
+                DisplayName = translations["PlayerInfo"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the miscellaneous player info display.",
+                Explanation = translations["PlayerInfoExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("playerInfo", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("playerInfo", true),
             },
             {
-                Name = "Target Tracker",
+                Name = "Measure Counter",
+                DisplayName = translations["MeasureCounter"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the target tracker. This displays your score and points relative to a target.",
+                Explanation = translations["MeasureCounterExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("measureCounter", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureCounter", true),
+            },
+            {
+                Name = "Measure Lines",
+                DisplayName = translations["MeasureLines"],
+                Type = "SingleChoice",
+                Explanation = translations["MeasureLinesExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("measureLines", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureLines", true),
+            },
+        },
+        --
+        -----
+        -- GAMEPLAY ELEMENTS P2
+        ["Gameplay Elements 2"] = {
+            customizeGameplayButton(),
+            {
+                Name = "Target Tracker",
+                DisplayName = translations["TargetTracker"],
+                Type = "SingleChoice",
+                Explanation = translations["TargetTrackerExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("targetTracker", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("targetTracker", true),
             },
             {
                 Name = "Target Tracker Mode",
+                DisplayName = translations["TargetTrackerMode"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the target tracker mode. PB uses your PB unless it is does not exist. Then it falls back to Goal Percent.",
+                Explanation = translations["TargetTrackerModeExplanation"],
                 Choices = {
                     {
                         Name = "Personal Best",
+                        DisplayName = translations["PersonalBest"],
                         ChosenFunction = function()
                             optionData["targetTrackerMode"].set(1)
                         end,
                     },
                     {
                         Name = "Goal Percent",
+                        DisplayName = translations["GoalPercent"],
                         ChosenFunction = function()
                             optionData["targetTrackerMode"].set(0)
                         end,
@@ -4394,13 +4904,16 @@ local function rightFrame()
             },
             {
                 Name = "Target Tracker Goal",
+                DisplayName = translations["TargetTrackerGoal"],
                 Type = "SingleChoice",
-                Explanation = "Pick a goal percent for the target tracker.",
+                Explanation = translations["TargetTrackerGoalExplanation"],
                 ChoiceGenerator = function()
                     local o = {}
                     local function cf(i)
+                        local nm = tostring(notShit.round(i, 4))
                         return {
-                            Name = tostring(notShit.round(i, 4)),
+                            Name = nm,
+                            DisplayName = nm,
                             ChosenFunction = function() optionData["targetTrackerGoal"].set(notShit.round(i, 4)) end
                         }
                     end
@@ -4408,7 +4921,7 @@ local function rightFrame()
                         o[#o+1] = cf(i + 50)
                     end
                     -- extra choices to fit grades
-                    o[#o+1] = cf(96.65) -- AA.
+                    o[#o+1] = cf(96.5) -- AA.
                     o[#o+1] = cf(97)
                     o[#o+1] = cf(98)
                     o[#o+1] = cf(99) -- AA:
@@ -4431,7 +4944,7 @@ local function rightFrame()
                         return v - 50 + 1
                     elseif v > 96 then
                         local extra = {
-                            96.65,
+                            96.5,
                             97,
                             98,
                             99,
@@ -4456,23 +4969,27 @@ local function rightFrame()
             },
             {
                 Name = "Lane Cover",
+                DisplayName = translations["LaneCover"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the lane cover. Hidden is on top of the receptors. Sudden is away from the receptors.",
+                Explanation = translations["LaneCoverExplanation"],
                 Choices = {
                     {
                         Name = "Hidden",
+                        DisplayName = translations["Hidden"],
                         ChosenFunction = function()
                             optionData["laneCover"].set(2)
                         end,
                     },
                     {
                         Name = "Sudden",
+                        DisplayName = translations["Sudden"],
                         ChosenFunction = function()
                             optionData["laneCover"].set(1)
                         end,
                     },
                     {
                         Name = "Off",
+                        DisplayName = translations["Off"],
                         ChosenFunction = function()
                             optionData["laneCover"].set(0)
                         end,
@@ -4489,96 +5006,92 @@ local function rightFrame()
                     end
                 end,
             },
-        },
-        --
-        -----
-        -- GAMEPLAY ELEMENTS P2
-        ["Gameplay Elements 2"] = {
-            customizeGameplayButton(),
             {
                 Name = "Judge Counter",
+                DisplayName = translations["JudgeCounter"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the judgment counter.",
+                Explanation = translations["JudgeCounterExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("judgeCounter", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("judgeCounter", true),
             },
             {
                 Name = "Judgment Text",
+                DisplayName = translations["JudgmentText"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the judgment text.",
+                Explanation = translations["JudgmentTextExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("judgmentText", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("judgmentText", true),
             },
             {
                 Name = "Judgment Animations",
+                DisplayName = translations["JudgmentAnimations"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the judgment text animations.",
+                Explanation = translations["JudgmentAnimationsExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("judgmentTweens", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("judgmentTweens", true),
             },
             {
                 Name = "Combo Text",
+                DisplayName = translations["ComboText"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the combo text.",
+                Explanation = translations["ComboTextExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("comboText", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboText", true),
             },
             {
                 Name = "Combo Glow",
+                DisplayName = translations["ComboGlow"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the extra white glow on the Combo numbers during MFCs and PFCs.",
+                Explanation = translations["ComboGlowExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("comboGlow", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboGlow", true),
             },
             {
                 Name = "Combo Label",
+                DisplayName = translations["ComboLabel"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the word 'Combo' as part of the combo text.",
+                Explanation = translations["ComboLabelExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("comboLabel", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboLabel", true),
             },
             {
-                Name = "Combo-Breaker Highlights",
+                Name = "Combo Animations",
+                DisplayName = translations["ComboTweens"],
                 Type = "SingleChoice",
-                Explanation = "Toggle showing which column a combo breaker occurs.",
+                Explanation = translations["ComboTweensExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("comboTweens", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("comboTweens", true),
+            },
+            {
+                Name = "Combo-Breaker Highlights",
+                DisplayName = translations["CBHighlights"],
+                Type = "SingleChoice",
+                Explanation = translations["CBHighlightsExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("cbHighlight", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("cbHighlight", true),
             },
             {
-                Name = "Measure Counter",
-                Type = "SingleChoice",
-                Explanation = "Toggle the measure counter. This shows up for longer runs of relatively high NPS.",
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirectionsFUNC("measureCounter", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureCounter", true),
-            },
-            {
-                Name = "Measure Lines",
-                Type = "SingleChoice",
-                Explanation = "Toggle showing a line on the NoteField for every measure.",
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = optionDataToggleDirectionsFUNC("measureLines", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("measureLines", true),
-            },
-            {
                 Name = "NPS Display",
+                DisplayName = translations["NPSDisplay"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the notes per second display. Displays just NPS and max NPS.",
+                Explanation = translations["NPSDisplayExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("npsDisplay", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("npsDisplay", true),
             },
             {
                 Name = "NPS Graph",
+                DisplayName = translations["NPSGraph"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the notes per second graph. Displays the NPS over time.",
+                Explanation = translations["NPSGraphExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("npsGraph", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("npsGraph", true),
@@ -4590,8 +5103,9 @@ local function rightFrame()
         ["Global Options"] = {
             {
                 Name = "Language",
+                DisplayName = translations["Language"],
                 Type = "SingleChoice",
-                Explanation = "Modify the game language.",
+                Explanation = translations["LanguageExplanation"],
                 ChoiceIndexGetter = function()
                     for i, l in ipairs(optionData.language.list) do
                         if l == optionData.language.current then
@@ -4605,6 +5119,7 @@ local function rightFrame()
                     for i, l in ipairs(optionData.language.list) do
                         o[#o+1] = {
                             Name = l:upper(),
+                            DisplayName = l:upper(),
                             ChosenFunction = function()
                                 if l == THEME:GetCurLanguage() then
                                     modsToApplyAtExit["Language"] = nil
@@ -4624,8 +5139,9 @@ local function rightFrame()
             },
             {
                 Name = "Theme",
+                DisplayName = translations["Theme"],
                 Type = "SingleChoice",
-                Explanation = "Change the overall skin of the game.",
+                Explanation = translations["ThemeExplanation"],
                 ChoiceIndexGetter = function()
                     local cur = optionData.pickedTheme
                     for i, name in ipairs(THEME:GetSelectableThemeNames()) do
@@ -4638,6 +5154,7 @@ local function rightFrame()
                     for _, name in ipairs(THEME:GetSelectableThemeNames()) do
                         o[#o+1] = {
                             Name = name,
+                            DisplayName = name,
                             ChosenFunction = function()
                                 if name == THEME:GetCurThemeName() then
                                     modsToApplyAtExit["Theme"] = nil
@@ -4657,8 +5174,9 @@ local function rightFrame()
             },
             {
                 Name = "Display Mode",
+                DisplayName = translations["DisplayMode"],
                 Type = "SingleChoice",
-                Explanation = "Change the game display mode. Borderless requires that you select your native fullscreen resolution.",
+                Explanation = translations["DisplayModeExplanation"],
                 AssociatedOptions = {
                     "Aspect Ratio",
                     "Display Resolution",
@@ -4671,6 +5189,7 @@ local function rightFrame()
                 Choices = {
                     {
                         Name = "Windowed",
+                        DisplayName = translations["Windowed"],
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("Windowed", true)
                             PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", false)
@@ -4694,6 +5213,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Fullscreen",
+                        DisplayName = translations["Fullscreen"],
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("Windowed", false)
                             PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", false)
@@ -4719,6 +5239,7 @@ local function rightFrame()
                         -- funny thing about this preference is that it doesnt force fullscreen
                         -- so you have to pick the right resolution for it to work
                         Name = "Borderless",
+                        DisplayName = translations["Borderless"],
                         ChosenFunction = function()
                             PREFSMAN:SetPreference("Windowed", false)
                             PREFSMAN:SetPreference("FullscreenIsBorderlessWindow", true)
@@ -4755,8 +5276,9 @@ local function rightFrame()
             },
             {
                 Name = "Aspect Ratio",
+                DisplayName = translations["AspectRatio"],
                 Type = "SingleChoice",
-                Explanation = "Change the game aspect ratio.",
+                Explanation = translations["AspectRatioExplanation"],
                 AssociatedOptions = {
                     "Display Resolution",
                     "Refresh Rate",
@@ -4794,8 +5316,9 @@ local function rightFrame()
             },
             {
                 Name = "Display Resolution",
+                DisplayName = translations["DisplayResolution"],
                 Type = "SingleChoice",
-                Explanation = "Change the game display resolution.",
+                Explanation = translations["DisplayResolutionExplanation"],
                 AssociatedOptions = {
                     "Aspect Ratio",
                     "Refresh Rate",
@@ -4838,8 +5361,9 @@ local function rightFrame()
             },
             {
                 Name = "Refresh Rate",
+                DisplayName = translations["RefreshRate"],
                 Type = "SingleChoice",
-                Explanation = "Change the game refresh rate. Set to default in most cases. Changes the refresh rate, but not the FPS cap. Only applies in exclusive fullscreen.",
+                Explanation = translations["RefreshRateExplanation"],
                 AssociatedOptions = {
                     "Aspect Ratio",
                     "Display Resolution",
@@ -4874,8 +5398,9 @@ local function rightFrame()
             },
             {
                 Name = "Display Color Depth",
+                DisplayName = translations["ColorDepth"],
                 Type = "SingleChoice",
-                Explanation = "Change the color depth of the game according to your display. Usually not worth changing.",
+                Explanation = translations["ColorDepthExplanation"],
                 Choices = {
                     basicNamedPreferenceChoice("DisplayColorDepth", "16bit", 16),
                     basicNamedPreferenceChoice("DisplayColorDepth", "32bit", 32),
@@ -4899,11 +5424,13 @@ local function rightFrame()
             },
             {
                 Name = "Force High Resolution Textures",
+                DisplayName = translations["HighResTextures"],
                 Type = "SingleChoice",
-                Explanation = "Force high resolution textures. Turning this off disables the (doubleres) image tag.",
+                Explanation = translations["HighResTexturesExplanation"],
                 Choices = {
                     {
                         Name = "Auto",
+                        DisplayName = translations["Automatic"],
                         ChosenFunction = function()
                             local v = "HighResolutionTextures_Auto"
                             PREFSMAN:SetPreference("HighResolutionTextures", v)
@@ -4920,6 +5447,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Force On",
+                        DisplayName = translations["ForceOn"],
                         ChosenFunction = function()
                             local v = "HighResolutionTextures_ForceOn"
                             PREFSMAN:SetPreference("HighResolutionTextures", v)
@@ -4936,6 +5464,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Force Off",
+                        DisplayName = translations["ForceOff"],
                         ChosenFunction = function()
                             local v = "HighResolutionTextures_ForceOff"
                             PREFSMAN:SetPreference("HighResolutionTextures", v)
@@ -4960,13 +5489,15 @@ local function rightFrame()
             },
             {
                 Name = "Texture Resolution",
+                DisplayName = translations["TextureResolution"],
                 Type = "SingleChoice",
-                Explanation = "Modify general texture resolution. Lower number will lower quality but may increase FPS.",
+                Explanation = translations["TextureResolutionExplanation"],
                 -- FUN FACT YOU CAN PUT ANY NUMBER IN FOR THESE
                 -- AS LONG AS IT ISNT INSANE OR 0 IT SHOULD WORK
                 Choices = {
                     {
                         Name = "256",
+                        DisplayName = "256",
                         ChosenFunction = function()
                             local v = 256
                             PREFSMAN:SetPreference("MaxTextureResolution", v)
@@ -4983,6 +5514,7 @@ local function rightFrame()
                     },
                     {
                         Name = "512",
+                        DisplayName = "512",
                         ChosenFunction = function()
                             local v = 512
                             PREFSMAN:SetPreference("MaxTextureResolution", v)
@@ -4999,6 +5531,7 @@ local function rightFrame()
                     },
                     {
                         Name = "1024",
+                        DisplayName = "1024",
                         ChosenFunction = function()
                             local v = 1024
                             PREFSMAN:SetPreference("MaxTextureResolution", v)
@@ -5015,6 +5548,7 @@ local function rightFrame()
                     },
                     {
                         Name = "2048",
+                        DisplayName = "2048",
                         ChosenFunction = function()
                             local v = 2048
                             PREFSMAN:SetPreference("MaxTextureResolution", v)
@@ -5076,11 +5610,13 @@ local function rightFrame()
             ]]
             {
                 Name = "VSync",
+                DisplayName = translations["VSync"],
                 Type = "SingleChoice",
-                Explanation = "Restrict the game refresh rate and FPS to the refresh rate you have set.",
+                Explanation = translations["VSyncExplanation"],
                 Choices = {
                     {
                         Name = "On",
+                        DisplayName = translations["On"],
                         ChosenFunction = function()
                             local v = true
                             PREFSMAN:SetPreference("Vsync", v)
@@ -5097,6 +5633,7 @@ local function rightFrame()
                     },
                     {
                         Name = "Off",
+                        DisplayName = translations["Off"],
                         ChosenFunction = function()
                             local v = false
                             PREFSMAN:SetPreference("Vsync", v)
@@ -5119,28 +5656,49 @@ local function rightFrame()
             },
             {
                 Name = "Fast Note Rendering",
+                DisplayName = translations["FastNoteRendering"],
                 Type = "SingleChoice",
-                Explanation = "Optimize gameplay note rendering. Disable snap based noteskin features (not snaps themselves). Major boost to FPS.",
+                Explanation = translations["FastNoteRenderingExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("FastNoteRendering", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("FastNoteRendering", true),
             },
             {
                 Name = "Show Stats",
+                DisplayName = translations["ShowStats"],
                 Type = "SingleChoice",
-                Explanation = "Show FPS display on screen.",
+                Explanation = translations["ShowStatsExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowStats", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
             },
             {
                 Name = "Tap Glow",
+                DisplayName = translations["TapGlow"],
                 Type = "SingleChoice",
-                Explanation = "Show a white flash before notes disappear when using Hidden or Sudden.",
+                Explanation = translations["TapGlowExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("NoGlow", false, true),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("NoGlow", false),
-            }
+            },
+            {
+                Name = "Show Backgrounds",
+                DisplayName = translations["ShowBGs"],
+                Type = "SingleChoice",
+                Explanation = translations["ShowBGsExplanation"],
+                Choices = choiceSkeleton("Yes", "No"),
+                Directions = preferenceToggleDirections("ShowBackgrounds", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowBackgrounds", true),
+            },
+            {
+                Name = "Show Banners",
+                DisplayName = translations["ShowBanners"],
+                Type = "SingleChoice",
+                Explanation = translations["ShowBannersExplanation"],
+                Choices = choiceSkeleton("Yes", "No"),
+                Directions = optionDataToggleDirectionsFUNC("showBanners", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBanners", true),
+            },
         },
         --
         -----
@@ -5148,96 +5706,99 @@ local function rightFrame()
         ["Theme Options"] = {
             {
                 Name = "Music Wheel Position",
+                DisplayName = translations["MusicWheelPosition"],
                 Type = "SingleChoice",
-                Explanation = "Set the side of the screen for the music wheel.",
+                Explanation = translations["MusicWheelPositionExplanation"],
                 Choices = choiceSkeleton("Left", "Right"),
                 Directions = optionDataToggleDirectionsFUNC("wheelPosition", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("wheelPosition", true),
             },
             {
                 Name = "Music Wheel Banners",
+                DisplayName = translations["MusicWheelBanners"],
                 Type = "SingleChoice",
-                Explanation = "Toggle the banners on the music wheel.",
+                Explanation = translations["MusicWheelBannersExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("wheelBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("wheelBanners", true),
             },
             {
                 Name = "Video Banners",
+                DisplayName = translations["VideoBanners"],
                 Type = "SingleChoice",
-                Explanation = "Toggle allowing video banners to play at all on the wheel and other locations in music select.",
+                Explanation = translations["VideoBannersExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("videoBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("videoBanners", true),
             },
             {
-                Name = "Show Backgrounds",
-                Type = "SingleChoice",
-                Explanation = "Toggle showing backgrounds everywhere.",
-                Choices = choiceSkeleton("Yes", "No"),
-                Directions = optionDataToggleDirectionsFUNC("showBackgrounds", true, false),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBackgrounds", true),
-            },
-            {
                 Name = "BG Fallback to Banner Color",
+                DisplayName = translations["BGBannerColor"],
                 Type = "SingleChoice",
-                Explanation = "Toggle using the average color of the pack or song banner when the background is not available. Only applies to music select.",
+                Explanation = translations["BGBannerColorExplanation"],
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = optionDataToggleDirectionsFUNC("useSingleColorBG", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("useSingleColorBG", true),
             },
             {
                 Name = "Allow Background Changes",
+                DisplayName = translations["AllowBGChanges"],
                 Type = "SingleChoice",
-                Explanation = "Toggle gameplay backgrounds changing.",
+                Explanation = translations["AllowBGChangesExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("allowBGChanges", false, true),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("allowBGChanges", false),
             },
             {
                 Name = "Easter Eggs & Toasties",
+                DisplayName = translations["EasterEggs"],
                 Type = "SingleChoice",
-                Explanation = "Toggle showing secret jokes and toasties.",
+                Explanation = translations["EasterEggsExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EasterEggs", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EasterEggs", true),
             },
             {
                 Name = "Music Visualizer",
+                DisplayName = translations["Visualizer"],
                 Type = "SingleChoice",
-                Explanation = "Toggle showing the visualizer in the song select screen.",
+                Explanation = translations["VisualizerExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("showVisualizer", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showVisualizer", true),
             },
             {
                 Name = "Mid Grades",
+                DisplayName = translations["MidGrades"],
                 Type = "SingleChoice",
-                Explanation = "Toggle showing the grades in between the major grades. Requires game restart.",
+                Explanation = translations["MidGradesExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("UseMidGrades", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("UseMidGrades", true),
             },
             {
                 Name = "SSRNorm Sort",
+                DisplayName = translations["SSRNorm"],
                 Type = "SingleChoice",
-                Explanation = "Toggle automatically sorting by and defaulting to the SSRNorm globally. The SSRNorm is the Judge 4 value of a highscore. Requires game restart.",
+                Explanation = translations["SSRNormExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("SortBySSRNormPercent", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("SortBySSRNormPercent", true),
             },
             {
                 Name = "Show Lyrics",
+                DisplayName = translations["ShowLyrics"],
                 Type = "SingleChoice",
-                Explanation = "Toggle showing lyrics for songs which contain compatible .lrc files.",
+                Explanation = translations["ShowLyricsExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("ShowLyrics", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ShowLyrics", true),
             },
             {
                 Name = "Transliteration",
+                DisplayName = translations["Transliteration"],
                 Type = "SingleChoice",
-                Explanation = "Toggle showing author-defined translations on song metadata fields.",
+                Explanation = translations["TransliterationExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = {
                     Toggle = function()
@@ -5253,21 +5814,25 @@ local function rightFrame()
             },
             {
                 Name = "Tip Type",
+                DisplayName = translations["TipType"],
                 Type = "SingleChoice",
-                Explanation = "Change the quips shown at the bottom of the evaluation screen.",
+                Explanation = translations["TipTypeExplanation"],
                 Choices = choiceSkeleton("Tips", "Quotes"),
                 Directions = optionDataToggleDirectionsFUNC("tipType", 1, 2),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("tipType", 1),
             },
             {
                 Name = "Set BG Fit Mode",
+                DisplayName = translations["BGFit"],
                 Type = "SingleChoice",
-                Explanation = "Change the cropping strategy of background images.",
+                Explanation = translations["BGFitExplanation"],
                 ChoiceGenerator = function()
                     local o = {}
                     for _, fit in ipairs(BackgroundFitMode) do
+                        local nm = THEME:GetString("ScreenSetBGFit", ToEnumShortString(fit))
                         o[#o+1] = {
-                            Name = THEME:GetString("ScreenSetBGFit", ToEnumShortString(fit)),
+                            Name = nm,
+                            DisplayName = nm,
                             ChosenFunction = function()
                                 PREFSMAN:SetPreference("BackgroundFitMode", ToEnumShortString(fit))
                             end,
@@ -5287,11 +5852,13 @@ local function rightFrame()
             },
             {
                 Name = "Color Config",
+                DisplayName = translations["ColorConfig"],
                 Type = "Button",
-                Explanation = "Modify the colors of this theme.",
+                Explanation = translations["ColorConfigExplanation"],
                 Choices = {
                     {
                         Name = "Color Config",
+                        DisplayName = translations["ColorConfigButton"],
                         ChosenFunction = function()
                             -- activate color config screen
                             MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Color Config"})
@@ -5301,11 +5868,13 @@ local function rightFrame()
             },
             {
                 Name = "Asset Settings",
+                DisplayName = translations["AssetSettings"],
                 Type = "Button",
-                Explanation = "Set your avatar, judgments, and toasty.",
+                Explanation = translations["AssetSettingsExplanation"],
                 Choices = {
                     {
                         Name = "Asset Settings",
+                        DisplayName = translations["AssetSettingsButton"],
                         ChosenFunction = function()
                             -- activate asset settings screen
                             MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "Settings"})
@@ -5320,8 +5889,9 @@ local function rightFrame()
         ["Sound Options"] = {
             {
                 Name = "Volume",
+                DisplayName = translations["Volume"],
                 Type = "SingleChoice",
-                Explanation = "All sound volume.",
+                Explanation = translations["VolumeExplanation"],
                 Directions = {
                     Left = function()
                         local x = PREFSMAN:GetPreference("SoundVolume")
@@ -5342,35 +5912,40 @@ local function rightFrame()
             },
             {
                 Name = "Menu Sounds",
+                DisplayName = translations["MenuSounds"],
                 Type = "SingleChoice",
-                Explanation = "Toggle sounds on menu items.",
+                Explanation = translations["MenuSoundsExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("MuteActions", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("MuteActions", false),
             },
             {
                 Name = "Mine Sounds",
+                DisplayName = translations["MineSounds"],
                 Type = "SingleChoice",
-                Explanation = "Toggle sounds for mine explosions.",
+                Explanation = translations["MineSoundsExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnableMineHitSound", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnableMineHitSound", true),
             },
             {
                 Name = "Pitch on Rates",
+                DisplayName = translations["PitchRates"],
                 Type = "SingleChoice",
-                Explanation = "Toggle pitch changes for songs when using rates.",
+                Explanation = translations["PitchRatesExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnablePitchRates", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnablePitchRates", true),
             },
             {
                 Name = "Calibrate Audio Sync",
+                DisplayName = translations["CalibrateAudioSync"],
                 Type = "Button",
-                Explanation = "Calibrate the audio sync for the entire game.",
+                Explanation = translations["CalibrateAudioSyncExplanation"],
                 Choices = {
                     {
                         Name = "Calibrate Audio Sync",
+                        DisplayName = translations["CalibrateAudioSyncButton"],
                         ChosenFunction = function()
                             -- go to machine sync screen
                             SCUFF.screenAfterSyncMachine = SCREENMAN:GetTopScreen():GetName()
@@ -5388,24 +5963,27 @@ local function rightFrame()
         ["Input Options"] = {
             {
                 Name = "Back Delayed",
+                DisplayName = translations["BackDelayed"],
                 Type = "SingleChoice",
-                Explanation = "Modify the behavior of the back button in gameplay.",
+                Explanation = translations["BackDelayedExplanation"],
                 Choices = choiceSkeleton("Hold", "Instant"),
                 Directions = preferenceToggleDirections("DelayedBack", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("DelayedBack", true),
             },
             {
                 Name = "Hold Start to Give Up",
+                DisplayName = translations["StartGiveUp"],
                 Type = "SingleChoice",
-                Explanation = "In Gameplay, allow holding Start to fail after holding it for a few seconds.",
+                Explanation = translations["StartGiveUpExplanation"],
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("AllowStartToGiveUp", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("AllowStartToGiveUp", true),
             },
             {
                 Name = "Input Debounce Time",
+                DisplayName = translations["Debounce"],
                 Type = "SingleChoice",
-                Explanation = "Set the amount of time required between each repeated input.",
+                Explanation = translations["DebounceExplanation"],
                 Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 0.2, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 3) .. "s"
@@ -5413,11 +5991,13 @@ local function rightFrame()
             },
             {
                 Name = "Test Input",
+                DisplayName = translations["TestInput"],
                 Type = "Button",
-                Explanation = "Enter a screen to test all input devices.",
+                Explanation = translations["TestInputExplanation"],
                 Choices = {
                     {
                         Name = "Test Input",
+                        DisplayName = translations["TestInputButton"],
                         ChosenFunction = function()
                             -- go to test input screen
                             SCUFF.screenAfterSyncMachine = SCREENMAN:GetTopScreen():GetName()
@@ -5434,11 +6014,13 @@ local function rightFrame()
         ["Profile Options"] = {
             {
                 Name = "Create Profile",
+                DisplayName = translations["CreateProfile"],
                 Type = "Button",
-                Explanation = "Create a new profile.",
+                Explanation = translations["CreateProfileExplanation"],
                 Choices = {
                     {
                         Name = "Create Profile",
+                        DisplayName = translations["CreateProfileButton"],
                         ChosenFunction = function()
                             -- make a profile
                             -- make profile, rename new profile
@@ -5450,11 +6032,13 @@ local function rightFrame()
             },
             {
                 Name = "Rename Profile",
+                DisplayName = translations["RenameProfile"],
                 Type = "Button",
-                Explanation = "Rename an existing profile.",
+                Explanation = translations["RenameProfileExplanation"],
                 Choices = {
                     {
                         Name = "Rename Profile",
+                        DisplayName = translations["RenameProfileButton"],
                         ChosenFunction = function()
                             -- rename a profile
                             renameProfileDialogue(GetPlayerOrMachineProfile(PLAYER_1))
@@ -6363,12 +6947,12 @@ local function rightFrame()
 
                         if optionDef ~= nil then
                             self:x(0)
-                            txt:settext(optionDef.Name)
+                            txt:settext(optionDef.DisplayName)
                             txt:maxwidth(actuals.OptionTextWidth / optionTitleTextSize - textZoomFudge)
                         elseif categoryDef ~= nil then
                             local newx = actuals.OptionBigTriangleWidth + actuals.OptionTextBuffer / 2
                             self:x(newx)
-                            txt:settext(categoryDef.Name)
+                            txt:settext(translations["Category"..categoryDef.Name])
                             txt:maxwidth((actuals.OptionTextWidth - newx) / optionTitleTextSize - textZoomFudge)
                         else
                             txt:settext("")
@@ -6928,7 +7512,7 @@ local function rightFrame()
                                     local choiceIndex = n + (rowHandle.choicePage-1) * maxChoicesVisibleMultiChoice
                                     local choice = optionDef.Choices[choiceIndex]
                                     if choice ~= nil then
-                                        txt:settext(choice.Name)
+                                        txt:settext(choice.DisplayName)
                                     else
                                         txt:settext("")
                                     end
@@ -6942,7 +7526,7 @@ local function rightFrame()
                                             txt:settext(currentChoiceSelection)
                                         elseif optionDef.Choices ~= nil then
                                             -- choices present means the getter supplies the choice index that contains the information
-                                            txt:settext(optionDef.Choices[currentChoiceSelection].Name)
+                                            txt:settext(optionDef.Choices[currentChoiceSelection].DisplayName)
                                         else
                                             txt:settext("INVALID CONTACT DEVELOPER")
                                         end
@@ -7152,7 +7736,7 @@ local function rightFrame()
                     self:x((actuals.RightWidth / #pageNames) * (i-1) + (actuals.RightWidth / #pageNames / 2))
                     txt:zoom(choiceTextSize)
                     txt:maxwidth(actuals.RightWidth / #pageNames / choiceTextSize - textZoomFudge)
-                    txt:settext(pageNames[i])
+                    txt:settext(translations["PageName"..pageNames[i]])
                     self:playcommand("ColorConfigUpdated")
                     bg:zoomto(actuals.RightWidth / #pageNames, actuals.TopLipHeight)
                 end,

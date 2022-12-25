@@ -12,7 +12,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Screen/Others/ScreenMessage.h"
@@ -524,7 +524,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 		n->isSMOnline = true;
 		Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
 	};
-	auto failHandler = [n, this, address, &finished_connecting](
+	auto failHandler = [n, address, &finished_connecting](
 						 websocketpp::connection_hdl hdl) {
 		if (NSMAN == nullptr)
 			return;
@@ -1232,7 +1232,6 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				} break;
 				case ettps_lobbyuserlistupdate: {
 					auto& payload = d["payload"];
-					auto& vec = NSMAN->lobbyuserlist;
 					if (payload.HasMember("on") && payload["on"].IsArray()) {
 						auto& newUsers = payload["on"];
 						for (auto& user : newUsers.GetArray()) {
@@ -2100,7 +2099,6 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	}
 	static int GetMPLeaderboard(T* p, lua_State* L)
 	{
-		auto& lbd = NSMAN->mpleaderboard;
 		NSMAN->PushMPLeaderboard(L);
 		return 1;
 	}
@@ -2108,10 +2106,11 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	{
 		auto& reqs = p->requests;
 		auto reqPtrToRemove = Luna<ChartRequest>::check(L, 1, true);
-		remove_if(
+		auto new_end = remove_if(
 		  reqs.begin(), reqs.end(), [reqPtrToRemove](ChartRequest* req) {
 			  return req == reqPtrToRemove;
 		  });
+		reqs.erase(new_end, reqs.end());
 		// Keep it in case lua keeps a reference to it
 		p->staleRequests.push_back(reqPtrToRemove);
 		return 0;

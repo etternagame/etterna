@@ -350,7 +350,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 	if (g_hIcon != nullptr) {
 #if _WIN64
 		SetClassLongPtr(
-		  g_hWndMain, GCLP_HICON, (LONG)LoadIcon(nullptr, IDI_APPLICATION));
+		  g_hWndMain, GCLP_HICON, (LONG_PTR)LoadIcon(nullptr, IDI_APPLICATION));
 #else
 		SetClassLong(
 		  g_hWndMain, GCL_HICON, (LONG)LoadIcon(NULL, IDI_APPLICATION));
@@ -361,7 +361,7 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 	g_hIcon = IconFromFile(p.sIconFile);
 	if (g_hIcon != nullptr)
 #if _WIN64
-		SetClassLongPtr(g_hWndMain, GCLP_HICON, (LONG)g_hIcon);
+		SetClassLongPtr(g_hWndMain, GCLP_HICON, (LONG_PTR)g_hIcon);
 #else
 		SetClassLong(g_hWndMain, GCL_HICON, (LONG)g_hIcon);
 #endif

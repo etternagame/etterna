@@ -86,6 +86,8 @@ class PlayerOptions
 	void ResetToggleableMods();
 	void GetLocalizedMods(std::vector<std::string>& AddTo) const;
 	void FromString(const std::string& sMultipleMods);
+	void SetForReplay(bool b) { forReplay = b; }
+	bool GetForReplay() const { return forReplay; }
 	auto FromOneModString(const std::string& sOneMod,
 						  std::string& sErrorDetailOut)
 	  -> bool; // On error, return
@@ -169,6 +171,7 @@ class PlayerOptions
 		TURN_SOFT_SHUFFLE,	/**< Only shuffle arrow columns on an axis of
 							   symmetry. */
 		TURN_SUPER_SHUFFLE, /**< Every arrow is placed on a random column. */
+		TURN_HRAN_SHUFFLE, // super shuffle but always avoid jacks when possible
 		NUM_TURNS
 	};
 	enum Transform
@@ -269,7 +272,8 @@ class PlayerOptions
 	 * @brief The Noteskin to use.
 	 *
 	 * If an empty string, it means to not change from the default. */
-	std::string m_sNoteSkin;
+	std::string m_sNoteSkin{};
+	bool forReplay{ false };
 
 	void NextAccel();
 	void NextEffect();

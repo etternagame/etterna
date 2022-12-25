@@ -18,7 +18,6 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Actor/Gameplay/Player.h"
-#include "Etterna/Models/Misc/PlayerAI.h"
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
@@ -43,6 +42,7 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include <algorithm>
 
@@ -83,7 +83,7 @@ ScreenGameplay::ScreenGameplay()
 	g_buttonsByColumnPressed.clear();
 
 	// Tell DownloadManager we are in Gameplay
-	DLMAN->UpdateDLSpeed(true);
+	DLMAN->UpdateGameplayState(true);
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
@@ -329,10 +329,7 @@ ScreenGameplay::Init()
 	if (m_vPlayerInfo.GetPlayerStageStats() != nullptr) {
 		m_vPlayerInfo.GetPlayerStageStats()->m_bJoined = true;
 	}
-	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
-		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
-												  m_vPlayerInfo.m_vpStepsQueue);
-	}
+	LoadScoreKeeper();
 
 	GAMESTATE->m_bGameplayLeadIn.Set(true);
 
@@ -401,7 +398,7 @@ ScreenGameplay::~ScreenGameplay()
 		}
 
 		// Tell DownloadManager we aren't in Gameplay
-		DLMAN->UpdateDLSpeed(false);
+		DLMAN->UpdateGameplayState(false);
 
 		GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 		GAMESTATE->TogglePracticeMode(false);
@@ -412,7 +409,7 @@ ScreenGameplay::~ScreenGameplay()
 }
 
 void
-ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
+ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row, int maxrow)
 {
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
@@ -424,14 +421,14 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 
 	m_vPlayerInfo.GetPlayerState()->Update(0);
 
-	NoteDataUtil::RemoveAllButRange(ndTransformed, row, MAX_NOTE_ROW);
+	NoteDataUtil::RemoveAllButRange(ndTransformed, row, maxrow);
 
 	// load player
 	{
 		m_vPlayerInfo.m_NoteData = ndTransformed;
 		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
 										  TapNoteType_AutoKeysound);
-		m_vPlayerInfo.m_pPlayer->Reload();
+		ReloadPlayer();
 	}
 
 	// load auto keysounds
@@ -463,6 +460,27 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row)
 }
 
 void
+ScreenGameplay::ReloadPlayer()
+{
+	m_vPlayerInfo.m_pPlayer->Reload();
+}
+
+void
+ScreenGameplay::LoadPlayer()
+{
+	m_vPlayerInfo.m_pPlayer->Load();
+}
+
+void
+ScreenGameplay::LoadScoreKeeper()
+{
+	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
+		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
+												  m_vPlayerInfo.m_vpStepsQueue);
+	}
+}
+
+void
 ScreenGameplay::SetupSong(int iSongIndex)
 {
 	/* This is the first beat that can be changed without it being visible.
@@ -487,7 +505,7 @@ ScreenGameplay::SetupSong(int iSongIndex)
 		m_vPlayerInfo.m_NoteData = ndTransformed;
 		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
 										  TapNoteType_AutoKeysound);
-		m_vPlayerInfo.m_pPlayer->Load();
+		LoadPlayer();
 	}
 
 	// load auto keysounds
@@ -556,6 +574,21 @@ ScreenGameplay::LoadNextSong()
 	GAMESTATE->m_pCurSong.Get()->ReloadIfNoMusic();
 
 	STATSMAN->m_CurStageStats.m_vpPlayedSongs.push_back(GAMESTATE->m_pCurSong);
+
+	// apply permamirror
+	if (GamePreferences::m_AutoPlay != PC_REPLAY &&
+		GAMESTATE->m_pPlayerState->m_PlayerController != PC_REPLAY) {
+		auto& pmc = PROFILEMAN->GetProfile(PLAYER_1)->PermaMirrorCharts;
+		auto* pSteps = m_vPlayerInfo.m_vpStepsQueue[iPlaySongIndex];
+		if (pSteps != nullptr && pmc.count(pSteps->GetChartKey())) {
+			// apply mirror to only stage so it turns on temporarily
+			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
+							  ModsLevel_Stage,
+							  m_bTurns,
+							  PlayerOptions::TURN_MIRROR,
+							  true);
+		}
+	}
 
 	SetupSong(iPlaySongIndex);
 
@@ -777,8 +810,6 @@ ScreenGameplay::UpdateSongPosition()
 	if (!m_pSoundMusic->IsPlaying()) {
 		return;
 	}
-
-	const auto rate = GAMESTATE->m_SongOptions.GetSong().m_fMusicRate;
 
 	RageTimer tm = RageZeroTimer;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);
@@ -1498,20 +1529,17 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 	}
 
 	STATSMAN->m_CurStageStats.m_player.usedDoubleSetup = usedDoubleSetup;
-	STATSMAN->m_CurStageStats.FinalizeScores(false);
+	STATSMAN->m_CurStageStats.FinalizeScores();
 
 	// If we didn't cheat and aren't in Practice
 	// (Replay does its own thing somewhere else here)
 	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
 		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		auto* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
-		auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
-		auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
 
 		// Load the replay data for the current score so some cool functionality
 		// works immediately
-		PlayerAI::ResetScoreData();
-		PlayerAI::SetScoreData(pHS, 0, &nd, td);
+		REPLAYS->InitReplayPlaybackForScore(pHS);
 		GAMESTATE->CommitStageStats();
 	}
 
@@ -1734,12 +1762,6 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 
 		const auto syncing =
 		  !GAMESTATE->IsPlaylistCourse() && AdjustSync::IsSyncDataChanged();
-		auto replaying = false;
-		if (m_vPlayerInfo.GetPlayerState()->m_PlayerController ==
-			PC_REPLAY) // don't duplicate replay saves
-		{
-			replaying = true;
-		}
 
 		if (syncing) {
 			ScreenSaveSync::PromptSaveSync(SM_GoToPrevScreen);

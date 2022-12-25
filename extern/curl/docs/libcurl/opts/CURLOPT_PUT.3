@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -24,9 +24,11 @@
 .SH NAME
 CURLOPT_PUT \- make an HTTP PUT request
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_setopt(CURL *handle, CURLOPT_PUT, long put);
+.fi
 .SH DESCRIPTION
 A parameter set to 1 tells the library to use HTTP PUT to transfer data. The
 data should be set with \fICURLOPT_READDATA(3)\fP and
@@ -38,6 +40,29 @@ This option is \fBdeprecated\fP since version 7.12.1. Use
 0, disabled
 .SH PROTOCOLS
 HTTP
+.SH EXAMPLE
+.nf
+CURL *curl = curl_easy_init();
+if(curl) {
+  /* we want to use our own read function */
+  curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+
+  /* enable PUT */
+  curl_easy_setopt(curl, CURLOPT_PUT, 1L);
+
+  /* specify target */
+  curl_easy_setopt(curl, CURLOPT_URL, "ftp://example.com/dir/to/newfile");
+
+  /* now specify which pointer to pass to our callback */
+  curl_easy_setopt(curl, CURLOPT_READDATA, hd_src);
+
+  /* Set the size of the file to upload */
+  curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)fsize);
+
+  /* Now run off and do what you have been told! */
+  curl_easy_perform(curl);
+}
+.fi
 .SH AVAILABILITY
 Deprecated since 7.12.1. Do not use.
 .SH RETURN VALUE

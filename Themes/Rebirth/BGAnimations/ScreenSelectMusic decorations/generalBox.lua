@@ -32,12 +32,12 @@ local actuals = {
 
 -- the page names in the order they go
 local choiceNames = {
-    "General",
-    "Scores",
-    "Profile",
-    "Goals",
-    "Playlists",
-    "Tags",
+    THEME:GetString("ScreenSelectMusic Tabs", "General"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Scores"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Profile"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Goals"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Playlists"),
+    THEME:GetString("ScreenSelectMusic Tabs", "Tags"),
 }
 SCUFF.generaltabcount = #choiceNames
 SCUFF.generaltab = 1 -- reset generaltab page
@@ -128,11 +128,12 @@ local function createChoices()
                             selectedIndex = n
                             MESSAGEMAN:Broadcast("GeneralTabSet", {tab = n})
                         end
-                    elseif event.DeviceInput.button == "DeviceButton_space" and focused and SCUFF.generaltab == SCUFF.generaltabindex then
+                    elseif event.DeviceInput.button == "DeviceButton_space" and
+                        ((focused and SCUFF.generaltab == SCUFF.generaltabindex) or SCUFF.preview.active) then
                         -- toggle chart preview if the general tab is the current tab visible
                         SCUFF.preview.active = not SCUFF.preview.active
                         -- this should propagate off to the right places
-                        self:GetParent():playcommand("ToggleChartPreview")
+                        MESSAGEMAN:Broadcast("ChartPreviewToggle")
                     end
                 end
             end)
@@ -160,6 +161,11 @@ t[#t+1] = Def.ActorFrame {
         focused = true
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self)
+        focused = false
+    end,
+    ChartPreviewToggleMessageCommand = function(self)
+        -- although not focused, ChartPreview activates Main1 input context so that we can go to any tab from it
+        -- or also press space to come back to the general tab
         focused = false
     end,
 

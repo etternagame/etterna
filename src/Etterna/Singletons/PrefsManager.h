@@ -116,6 +116,7 @@ class PrefsManager
 
   public:
 	Preference<std::string> m_sTheme;
+	Preference<bool> m_bFullscreenIsBorderlessWindow;
 	Preference<bool> m_bWindowed;
 	Preference<std::string> m_sDisplayId;
 	Preference<int> m_iDisplayWidth;
@@ -131,7 +132,6 @@ class PrefsManager
 	Preference<int> m_iRefreshRate;
 	Preference<bool> m_bAllowMultitexture;
 	Preference<float> m_bAllowedLag;
-	Preference<bool> m_bFullscreenIsBorderlessWindow;
 	Preference<bool> m_bShowStats;
 	Preference<bool> m_bShowSkips;
 	Preference<bool> m_bShowMouseCursor;
@@ -152,11 +152,11 @@ class PrefsManager
 
 	Preference<float> m_fLifeDifficultyScale;
 	Preference<float> m_fBGBrightness;
+	Preference<bool> m_bShowBackgrounds;
 
 	Preference<bool> m_bDelayedBack;
 	Preference<bool> m_AllowStartToGiveUp;
 	Preference<bool> m_AllowHoldForOptions;
-	Preference<bool> m_bShowInstructions;
 	Preference<bool> m_bShowNativeLanguage;
 	Preference<bool> m_bFullTapExplosions;
 	Preference<bool> m_bNoGlow;
@@ -224,6 +224,7 @@ class PrefsManager
 	Preference<bool> m_bPseudoLocalize;
 	Preference<bool> m_show_theme_errors;
 	Preference<bool> m_bAlwaysLoadCalcParams;
+	Preference<int> m_UnfocusedSleepMillisecs;
 
 	// logging level 0 - 5
 	// 0 = TRACE (all the logging)

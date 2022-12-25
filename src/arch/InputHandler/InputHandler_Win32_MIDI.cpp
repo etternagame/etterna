@@ -14,8 +14,8 @@ static HMIDIIN g_device;
 static void CALLBACK
 midiCallback(HMIDIIN g_device,
 			 UINT status,
-			 DWORD instancePtr,
-			 DWORD data,
+			 DWORD_PTR instancePtr,
+			 DWORD_PTR data,
 			 DWORD timestamp);
 
 static std::string
@@ -40,17 +40,19 @@ InputHandler_Win32_MIDI::InputHandler_Win32_MIDI()
 
 	MMRESULT result = midiInOpen(&g_device,
 								 device_id,
-								 (DWORD)&midiCallback,
-								 (DWORD)this,
+								 (DWORD_PTR)&midiCallback,
+								 (DWORD_PTR)this,
 								 CALLBACK_FUNCTION);
 	if (result != MMSYSERR_NOERROR) {
-		Locator::getLogger()->warn("Error opening MIDI device: {}", GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error opening MIDI device: {}",
+								   GetMidiError(result).c_str());
 		return;
 	}
 
 	result = midiInStart(g_device);
 	if (result != MMSYSERR_NOERROR) {
-		Locator::getLogger()->warn("Error starting MIDI device: {}", GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error starting MIDI device: {}",
+								   GetMidiError(result).c_str());
 		return;
 	}
 }
@@ -61,13 +63,15 @@ InputHandler_Win32_MIDI::~InputHandler_Win32_MIDI()
 
 	result = midiInReset(g_device);
 	if (result != MMSYSERR_NOERROR) {
-		Locator::getLogger()->warn("Error resetting MIDI device: {}", GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error resetting MIDI device: {}",
+								   GetMidiError(result).c_str());
 		return;
 	}
 
 	result = midiInClose(g_device);
 	if (result != MMSYSERR_NOERROR) {
-		Locator::getLogger()->warn("Error closing MIDI device: {}", GetMidiError(result).c_str());
+		Locator::getLogger()->warn("Error closing MIDI device: {}",
+								   GetMidiError(result).c_str());
 		return;
 	}
 }
@@ -84,8 +88,8 @@ InputHandler_Win32_MIDI::GetDevicesAndDescriptions(
 static void CALLBACK
 midiCallback(HMIDIIN device,
 			 UINT status,
-			 DWORD instancePtr,
-			 DWORD data,
+			 DWORD_PTR instancePtr,
+			 DWORD_PTR data,
 			 DWORD timestamp)
 {
 	if (status == MIM_DATA) {

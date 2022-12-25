@@ -14,13 +14,13 @@
 #include "RageUtil/Graphics/RageTexture.h"
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
 
 #include <utility>
 #include <algorithm>
 
 using std::map;
 
-static const double PI_180 = PI / 180.0;
 static const double PI_180R = 180.0 / PI;
 
 const std::string&
@@ -71,6 +71,7 @@ struct NoteMetricCache_t
 
 	int m_iNoteColorCount[NUM_NotePart];
 	NoteColorType m_NoteColorType[NUM_NotePart];
+	float m_fNoteOpacityMultiplier[NUM_NotePart];
 
 	// For animation based on beats or seconds -DaisuMaster
 	bool m_bAnimationBasedOnBeats;
@@ -118,6 +119,17 @@ NoteMetricCache_t::Load(const std::string& sButton)
 
 		auto ct = NOTESKIN->GetMetric(sButton, s + "NoteColorType");
 		m_NoteColorType[p] = StringToNoteColorType(ct);
+
+		// make fakes faded by default
+		switch (p) {
+			case NotePart_Fake:
+				m_fNoteOpacityMultiplier[p] = NOTESKIN->GetMetricF(
+				  sButton, s + "NoteOpacityMultiplier", "0.25");
+				break;
+			default:
+				m_fNoteOpacityMultiplier[p] = NOTESKIN->GetMetricF(
+				  sButton, s + "NoteOpacityMultiplier", "1.0");
+		}
 	}
 	// I was here -DaisuMaster
 	m_bAnimationBasedOnBeats =
@@ -233,9 +245,14 @@ MakeNoteResource(const std::string& sButton,
 		NOTESKIN->SetPlayerNumber(pn);
 		NOTESKIN->SetGameController(gc);
 
+		auto tmp = TEXTUREMAN->m_Prefs.m_iMaxTextureResolution;
+		TEXTUREMAN->m_Prefs.m_iMaxTextureResolution = 1048576;
+
 		pRes->m_pActor =
 		  NOTESKIN->LoadActor(sButton, sElement, nullptr, bSpriteOnly, Color);
 		ASSERT(pRes->m_pActor != NULL);
+
+		TEXTUREMAN->m_Prefs.m_iMaxTextureResolution = tmp;
 
 		g_NoteResource[Color][nsap] = pRes;
 		it = g_NoteResource[Color].find(nsap);
@@ -488,7 +505,7 @@ NoteDisplay::Load(int iColNum,
 	const auto pn = m_pPlayerState->m_PlayerNumber;
 	std::vector<GameInput> GameI;
 	GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
-	  ->StyleInputToGameInput(iColNum, pn, GameI);
+	  ->StyleInputToGameInput(iColNum, GameI);
 
 	const auto& sButton =
 	  GAMESTATE->GetCurrentStyle(pPlayerState->m_PlayerNumber)
@@ -607,7 +624,7 @@ NoteDisplay::DrawHoldsInRange(
 			field_args.ghost_row->SetHoldShowing(column_args.column, tn);
 		}
 
-		ASSERT_M(NoteRowToBeat(start_row) > -2000,
+		ASSERT_M(NoteRowToBeat(start_row) > ARBITRARY_MIN_GAMEPLAY_NUMBER,
 				 ssprintf("%i %i %i", start_row, end_row, column_args.column));
 
 		auto in_selection_range = false;
@@ -656,7 +673,7 @@ NoteDisplay::DrawTapsInRange(
 		// was in NoteField, but those aren't available here.
 		// Well, anyone who has to investigate hitting it can use a debugger to
 		// discover the values, hopefully. -Kyz
-		ASSERT_M(NoteRowToBeat(tap_row) > -2000,
+		ASSERT_M(NoteRowToBeat(tap_row) > ARBITRARY_MIN_GAMEPLAY_NUMBER,
 				 ssprintf("Invalid tap_row: %i, %f %f",
 						  tap_row,
 						  GAMESTATE->m_Position.m_fSongBeat,
@@ -1145,6 +1162,12 @@ NoteDisplay::DrawHoldPart(std::vector<Sprite*>& vpSpr,
 		  SCALE(fDistFromTop, 0, unzoomed_frame_height, rect.top, rect.bottom);
 		fTexCoordTop += add_to_tex_coord;
 
+		// why is this necessary? dude
+		const auto real_part = part_type == hpt_body ? NotePart_HoldBody
+							   : part_type == hpt_bottom
+								 ? NotePart_HoldBottomCap
+								 : NotePart_HoldTopCap;
+
 		const auto fAlpha =
 		  ArrowGetAlphaOrGlow(glow,
 							  m_pPlayerState,
@@ -1153,7 +1176,8 @@ NoteDisplay::DrawHoldPart(std::vector<Sprite*>& vpSpr,
 							  part_args.percent_fade_to_fail,
 							  m_fYReverseOffsetPixels,
 							  field_args.draw_pixels_before_targets,
-							  field_args.fade_before_targets);
+							  field_args.fade_before_targets) *
+		  cache->m_fNoteOpacityMultiplier[real_part];
 		const auto color = RageColor(column_args.diffuse.r * color_scale,
 									 column_args.diffuse.g * color_scale,
 									 column_args.diffuse.b * color_scale,
@@ -1589,14 +1613,16 @@ NoteDisplay::DrawActor(const TapNote& tn,
 							 fPercentFadeToFail,
 							 m_fYReverseOffsetPixels,
 							 field_args.draw_pixels_before_targets,
-							 field_args.fade_before_targets);
+							 field_args.fade_before_targets) *
+	  cache->m_fNoteOpacityMultiplier[part];
 	const auto fGlow =
 	  ArrowEffects::GetGlow(column_args.column,
 							fYOffset,
 							fPercentFadeToFail,
 							m_fYReverseOffsetPixels,
 							field_args.draw_pixels_before_targets,
-							field_args.fade_before_targets);
+							field_args.fade_before_targets) *
+	  cache->m_fNoteOpacityMultiplier[part];
 	const auto diffuse = RageColor(column_args.diffuse.r * fColorScale,
 								   column_args.diffuse.g * fColorScale,
 								   column_args.diffuse.b * fColorScale,
@@ -1894,7 +1920,6 @@ NoteColumnRenderer::DrawPrimitives()
 	m_column_render_args.zoom_handler = &NCR_current.m_zoom_handler;
 	m_column_render_args.diffuse = m_pTempState->diffuse[0];
 	m_column_render_args.glow = m_pTempState->glow;
-	auto any_upcoming = false;
 	// Build lists of holds and taps for each player number, then pass those
 	// lists to the displays to draw.
 	// The vector in the NUM_PlayerNumber slot should stay empty, not worth
@@ -1935,11 +1960,11 @@ NoteColumnRenderer::DrawPrimitives()
 
 	// Draw holds before taps to make sure taps dont hide behind holds
 	if (!holds.empty())
-		any_upcoming |= m_displays[PLAYER_1]->DrawHoldsInRange(
+		m_displays[PLAYER_1]->DrawHoldsInRange(
 		  *m_field_render_args, m_column_render_args, holds);
 
 	if (!taps.empty())
-		any_upcoming |= m_displays[PLAYER_1]->DrawTapsInRange(
+		m_displays[PLAYER_1]->DrawTapsInRange(
 		  *m_field_render_args, m_column_render_args, taps);
 }
 

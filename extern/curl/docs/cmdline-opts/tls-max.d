@@ -6,9 +6,15 @@ Added: 7.54.0
 Requires: TLS
 See-also: tlsv1.0 tlsv1.1 tlsv1.2 tlsv1.3
 Help: Set maximum allowed TLS version
+Category: tls
+Example: --tls-max 1.2 $URL
+Example: --tls-max 1.3 --tlsv1.2 $URL
 ---
 VERSION defines maximum supported TLS version. The minimum acceptable version
 is set by tlsv1.0, tlsv1.1, tlsv1.2 or tlsv1.3.
+
+If the connection is done without TLS, this option has no effect. This
+includes QUIC-using (HTTP/3) transfers.
 
 .RS
 .IP "default"

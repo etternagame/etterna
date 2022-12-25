@@ -27,12 +27,12 @@ class BPMDisplay : public BitmapText
 	 * @brief Use the BPM[s] from a song.
 	 * @param pSong the song in question.
 	 */
-	void SetBpmFromSong(const Song* pSong);
+	void SetBpmFromSong(const Song* pSong, bool bIgnoreCurrentRate = false);
 	/**
 	 * @brief Use the BPM[s] from a steps.
 	 * @param pSteps the steps in question.
 	 */
-	void SetBpmFromSteps(const Steps* pSteps);
+	void SetBpmFromSteps(const Steps* pSteps, bool bIgnoreCurrentRate = false);
 	/**
 	 * @brief Use a specified, constant BPM.
 	 * @param fBPM the constant BPM.

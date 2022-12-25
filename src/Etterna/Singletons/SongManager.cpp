@@ -156,11 +156,9 @@ SongManager::DifferentialReloadDir(string dir) -> int
 
 	std::vector<Group> groups;
 	Group unknownGroup("Unknown Group");
-	int groupIndex;
 	int songCount;
 	int songIndex;
 
-	groupIndex = 0;
 	songCount = 0;
 	for (const auto& folder : folders) {
 		if (IsSongDir(dir + folder)) {
@@ -187,7 +185,6 @@ SongManager::DifferentialReloadDir(string dir) -> int
 		return 0;
 	}
 
-	groupIndex = 0;
 	songIndex = 0;
 
 	for (auto& group : groups) {
@@ -328,7 +325,6 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 			auto pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 			auto onePercent = pair->first;
-			auto ld = pair->second;
 			auto cacheIndex = 0;
 			auto lastUpdate = 0;
 			for (auto it = workload.first; it != workload.second; it++) {
@@ -673,15 +669,48 @@ SongManager::MakePlaylistFromFavorites(
 
 void
 SongManager::ReconcileChartKeysForReloadedSong(
-  const Song* reloadedSong,
+  Song* reloadedSong,
   const std::vector<std::string>& oldChartkeys)
 {
+	std::set<std::string> ckToRepoint{};
 	for (const auto& ck : oldChartkeys) {
 		SONGMAN->StepsByKey.erase(ck);
+		ckToRepoint.insert(ck);
 	}
 	auto stepses = reloadedSong->GetAllSteps();
 	for (auto steps : stepses) {
-		SONGMAN->StepsByKey[steps->GetChartKey()] = steps;
+		const auto& ck = steps->GetChartKey();
+		SONGMAN->StepsByKey[ck] = steps;
+		SONGMAN->SongsByKey[ck] = reloadedSong;
+		ckToRepoint.erase(ck);
+	}
+
+	// reconcile the SongsByKey as well
+	// simply, we can remove/replace the entry
+	// but multiple songs may possess the same chartkeys
+	// so if the chartkey we removed is present somewhere else,
+	// change the pointer to that one instead of deleting it
+	for (auto& song : SONGMAN->m_pSongs) {
+		if (ckToRepoint.empty()) {
+			return;
+		}
+
+		// multiple songs can still contain the same stepses
+		// so sometimes this can end up repointing when they both
+		// still exist in a valid situation.
+		// that shouldnt cause any problems ... maybe
+		for (auto& steps : song->GetAllSteps()) {
+			if (ckToRepoint.contains(steps->GetChartKey())) {
+				ckToRepoint.erase(steps->GetChartKey());
+				SONGMAN->SongsByKey[steps->GetChartKey()] = song;
+			}
+		}
+	}
+
+	// remaining chartkeys are orphaned
+	// meaning SongsByKey keys for them should be deleted
+	for (auto& ck : ckToRepoint) {
+		SONGMAN->SongsByKey.erase(ck);
 	}
 }
 
@@ -805,7 +834,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	Locator::getLogger()->info("LoadStepmaniaSongDir Starting: {}", sDir);
 	std::vector<std::string> songFolders;
 	GetDirListing(sDir + "*", songFolders, true);
-	auto songCount = 0;
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(songFolders.size());
@@ -813,16 +841,14 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	}
 	std::vector<Group> groups;
 	auto unknownGroup = Group(std::string("Unknown Group"));
-	auto foldersChecked = 0;
 	auto onePercent = std::max(static_cast<int>(songFolders.size() / 100), 1);
 	for (const auto& folder : songFolders) {
 		auto burp = sDir + folder;
 		if (IsSongDir(burp)) {
-			unknownGroup.songs.emplace_back(burp);
+			unknownGroup.songs.emplace_back("/" + burp);
 		} else {
 			auto group = Group(folder);
 			GetDirListing(sDir + folder + "/*", group.songs, true, true);
-			songCount += group.songs.size();
 			groups.emplace_back(group);
 		}
 	}
@@ -836,7 +862,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 		ld->SetText("Loading Songs From Disk\n");
 		ld->SetProgress(0);
 	}
-	auto groupIndex = 0;
 	onePercent = std::max(static_cast<int>(groups.size() / 100), 1);
 
 	auto callback = [&sDir](
@@ -846,7 +871,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 
 		auto pair = static_cast<std::pair<int, LoadingWindow*>*>(data->data);
 		auto onePercent = pair->first;
-		auto ld = pair->second;
 		auto counter = 0;
 		auto lastUpdate = 0;
 		for (auto it = workload.first; it != workload.second; it++) {
@@ -861,7 +885,6 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			}
 			auto loaded = 0;
 			SongPointerVector& index_entry = SONGMAN->m_mapSongGroupIndex[sGroupName];
-			const auto& group_base_name = sGroupName;
 			for (auto& sSongDirName : arraySongDirs) {
 				auto hur = make_lower(sSongDirName + "/");
 				if (SONGMAN->m_SongsByDir.count(hur) != 0u) {
@@ -1631,6 +1654,12 @@ class LunaSongManager : public Luna<SongManager>
 		auto idx = 1;
 		lua_newtable(L);
 		for (auto& pl : p->GetPlaylists()) {
+			if (pl.second.name == "") {
+				// the default "tmp" playlist has an empty name
+				// so ignore it. it should be empty
+				// if someone figures out how to add to it, that sucks
+				continue;
+			}
 			pl.second.PushSelf(L);
 			lua_rawseti(L, -2, idx);
 			++idx;
@@ -1721,19 +1750,24 @@ class LunaPlaylist : public Luna<Playlist>
 	{
 		p->AddChart(SArg(1));
 		PROFILEMAN->SaveProfile(PLAYER_1);
-		return 1;
+		return 0;
 	}
 
 	static auto DeleteChart(T* p, lua_State* L) -> int
 	{
 		p->DeleteChart(IArg(1) - 1);
 		PROFILEMAN->SaveProfile(PLAYER_1);
+		return 0;
+	}
+
+	static auto GetNumCharts(T* p, lua_State* L) -> int
+	{
+		lua_pushnumber(L, p->GetNumCharts());
 		return 1;
 	}
 
 	DEFINE_METHOD(GetAverageRating, GetAverageRating());
 	DEFINE_METHOD(GetName, GetName());
-	DEFINE_METHOD(GetNumCharts, GetNumCharts())
 	LunaPlaylist()
 	{
 		ADD_METHOD(AddChart);

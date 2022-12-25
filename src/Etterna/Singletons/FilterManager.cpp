@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "FilterManager.h"
-#include "Etterna/Models/Misc/PlayerState.h"
 
 FilterManager* FILTERMAN = nullptr;
 
@@ -9,8 +8,6 @@ FilterManager::FilterManager()
 	// filter stuff - mina
 	FilterUpperBounds.fill(0);
 	FilterLowerBounds.fill(0);
-	m_pPlayerState = new PlayerState;
-	m_pPlayerState->SetPlayerNumber(PLAYER_1);
 
 	// Register with Lua.
 	{
@@ -24,8 +21,6 @@ FilterManager::FilterManager()
 
 FilterManager::~FilterManager()
 {
-	SAFE_DELETE(m_pPlayerState);
-
 	// Unregister with Lua.
 	LUA->UnsetGlobal("FILTERMAN");
 }
@@ -168,7 +163,6 @@ class LunaFilterManager : public Luna<FilterManager>
 	}
 	static int GetMinFilterRate(T* p, lua_State* L)
 	{
-		auto loot = p->m_pPlayerState;
 		lua_pushnumber(L, p->MinFilterRate);
 		return 1;
 	}

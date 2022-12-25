@@ -70,7 +70,7 @@ if isMulti then
 		onlineScores[i] = scoreUsingMultiScore(i)
 	end
 else
-	onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey())
+	onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey()) or {}
 end
 local sortFunction = function(h1, h2)
 	return h1[CRITERIA](h1) > h2[CRITERIA](h2)

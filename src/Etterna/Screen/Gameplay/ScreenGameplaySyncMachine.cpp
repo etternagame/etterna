@@ -42,7 +42,7 @@ ScreenGameplaySyncMachine::Init()
 	GAMESTATE->m_pCurSong.Set(&m_Song);
 	// Needs proper StepsType -freem
 	std::vector<Steps*> vpSteps;
-	SongUtil::GetPlayableSteps(&m_Song, vpSteps);
+	SongUtil::GetPlayableSteps(&m_Song, vpSteps, false);
 	ASSERT_M(vpSteps.size() > 0,
 			 "No playable steps for ScreenGameplaySyncMachine");
 	Steps* pSteps = vpSteps[0];

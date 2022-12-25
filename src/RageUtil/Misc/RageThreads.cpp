@@ -33,13 +33,15 @@ bool RageThread::s_bIsShowingDialog = false;
 // static std::vector<RageMutex*> *g_MutexList = NULL; /* watch out for static
 // initialization order problems */
 
+constexpr size_t MAX_THREAD_NAME_LEN = 1024;
+
 struct ThreadSlot
 {
-	mutable char m_szName[1024]; /* mutable so we can force nul-termination */
+	mutable char m_szName[MAX_THREAD_NAME_LEN]; /* mutable so we can force nul-termination */
 
 	/* Format this beforehand, since it's easier to do that than to do it under
 	 * crash conditions. */
-	char m_szThreadFormattedOutput[1024];
+	char m_szThreadFormattedOutput[MAX_THREAD_NAME_LEN];
 
 	bool m_bUsed{ false };
 	uint64_t m_iID;
@@ -206,18 +208,6 @@ GetThreadSlotFromID(uint64_t iID)
 	return NULL;
 }
 
-static ThreadSlot*
-GetCurThreadSlot()
-{
-	return GetThreadSlotFromID(RageThread::GetCurrentThreadID());
-}
-
-static ThreadSlot*
-GetUnknownThreadSlot()
-{
-	return g_pUnknownThreadSlot;
-}
-
 RageThread::RageThread()
   : m_pSlot(NULL)
   , m_sName("unnamed")
@@ -262,10 +252,12 @@ RageThread::Create(int (*fn)(void*), void* data)
 	const int slotno = FindEmptyThreadSlot();
 	m_pSlot = &g_ThreadSlots[slotno];
 
-	strcpy(m_pSlot->m_szName, m_sName.c_str());
+	strncpy(m_pSlot->m_szName, m_sName.c_str(), MAX_THREAD_NAME_LEN - 1);
+	m_pSlot->m_szName[MAX_THREAD_NAME_LEN - 1] = '\0';
 
 	Locator::getLogger()->info("Starting thread: {}", m_sName.c_str());
-	sprintf(m_pSlot->m_szThreadFormattedOutput, "Thread: %s", m_sName.c_str());
+	snprintf(m_pSlot->m_szThreadFormattedOutput, MAX_THREAD_NAME_LEN - 1, "Thread: %s", m_sName.c_str());
+	m_pSlot->m_szThreadFormattedOutput[MAX_THREAD_NAME_LEN - 1] = '\0';
 
 	/* Start a thread using our own startup function.  We pass the id to fill
 	 * in, to make sure it's set before the thread actually starts.  (Otherwise,
@@ -454,11 +446,6 @@ RageMutex::Lock()
 			OtherSlotName = ssprintf("%s (%i)",
 									 OtherSlot->GetThreadName(),
 									 static_cast<int>(OtherSlot->m_iID));
-		const std::string sReason =
-		  ssprintf("Thread deadlock on mutex %s between %s and %s",
-				   GetName().c_str(),
-				   ThisSlotName.c_str(),
-				   OtherSlotName.c_str());
 
 		/* Don't leave GetThreadSlotsLock() locked when we call
 		 * ForceCrashHandlerDeadlock. */
@@ -466,9 +453,14 @@ RageMutex::Lock()
 		const uint64_t CrashHandle = OtherSlot ? OtherSlot->m_iID : 0;
 		GetThreadSlotsLock().Unlock();
 
-		/* Pass the crash handle of the other thread, so it can backtrace that
-		 * thread. */
-//		CrashHandler::ForceDeadlock(sReason, CrashHandle);
+		const std::string sReason =
+		  ssprintf("Thread deadlock on mutex %s between %s and %s CrashHandle %d",
+				   GetName().c_str(),
+				   ThisSlotName.c_str(),
+				   OtherSlotName.c_str(),
+				   CrashHandle);
+
+		sm_crash(sReason.c_str());
 	}
 
 	m_LockedBy = iThisThreadId;

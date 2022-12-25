@@ -2,10 +2,14 @@ local c
 local enabledCombo = playerConfig:get_data().ComboText
 local enabledLabel = playerConfig:get_data().ComboLabel
 local enableGlow = playerConfig:get_data().ComboGlow
+local animateCombo = playerConfig:get_data().ComboTweens
 
-local function arbitraryComboZoom(value)
-    c.Label:zoom(value)
-    c.Number:zoom(value - 0.1)
+local function numberZoom()
+    return math.max((MovableValues.ComboZoom * 1.25) - 0.1, 0)
+end
+
+local function labelZoom()
+    return math.max(MovableValues.ComboZoom * 1.25, 0)
 end
 
 local ShowComboAt = THEME:GetMetric("Combo", "ShowComboAt")
@@ -14,6 +18,20 @@ local mfcNumbers = getComboColor("MarvFullCombo")
 local pfcNumbers = getComboColor("PerfFullCombo")
 local fcNumbers = getComboColor("FullCombo")
 local regNumbers = getComboColor("RegularCombo")
+
+local Pulse = function(self, param)
+	self:stoptweening()
+	self:zoom(1.125 * param.Zoom * numberZoom())
+	self:linear(0.05)
+	self:zoom(param.Zoom * numberZoom())
+end
+
+local PulseLabel = function(self, param)
+	self:stoptweening()
+	self:zoom(1.125 * param.LabelZoom * labelZoom())
+	self:linear(0.05)
+	self:zoom(param.LabelZoom * labelZoom())
+end
 
 local translated_combo = "Combo"--THEME:GetString("ScreenGameplay", "ComboText")
 
@@ -39,7 +57,8 @@ local t = Def.ActorFrame {
     end,
     SetUpMovableValuesMessageCommand = function(self)
         self:xy(MovableValues.ComboX, MovableValues.ComboY)
-        arbitraryComboZoom(MovableValues.ComboZoom * 1.25)
+        c.Label:zoom(labelZoom())
+        c.Number:zoom(numberZoom())
     end,
     ComboCommand = function(self, param)
         local iCombo = param.Combo
@@ -87,6 +106,18 @@ local t = Def.ActorFrame {
             c.Label:diffuse(Color("Red"))
             c.Label:diffusebottomedge(color("0.5,0,0,1"))
         end
+
+		if animateCombo then
+            local lb = 0.9
+            local ub = 1.1
+            local maxcombo = 100
+            param.LabelZoom = scale( iCombo, 0, maxcombo, lb, ub )
+            param.LabelZoom = clamp( param.LabelZoom, lb, ub )
+            param.Zoom = scale( iCombo, 0, maxcombo, lb, ub )
+            param.Zoom = clamp( param.Zoom, lb, ub )
+			Pulse(c.Number, param)
+            PulseLabel(c.Label, param)
+		end
     end,
 
     Def.Quad { -- not normally visible but acts as a way for customize gameplay to hook into the combo size

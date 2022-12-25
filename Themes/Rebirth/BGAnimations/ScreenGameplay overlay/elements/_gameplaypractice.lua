@@ -159,8 +159,10 @@ t[#t + 1] = LoadActorWithParams("../../chorddensitygraph.lua", {sizing = {
     NPSThickness = 1.5,
     TextSize = 0.45,
 }}) .. {
-    Name = "PracticeCDGraph",
     BeginCommand = function(self)
+        -- properly rename this actor to overrite the default name coming from chorddensitygraph.lua
+        self:name("PracticeCDGraph")
+
         self:playcommand("SetUpMovableValues")
         self:playcommand("LoadDensityGraph", {steps = GAMESTATE:GetCurrentSteps(), song = GAMESTATE:GetCurrentSong()})
         -- doing this in a really awkward way to inject the desired behavior into the existing SeekBar
@@ -203,14 +205,16 @@ t[#t+1] = Def.Quad {
     Name = "BookmarkPos",
     InitCommand = function(self)
         -- trickery
-        self:SetFakeParent(self:GetParent():GetChild("PracticeCDGraph"))
-
         self:valign(0)
         self:zoomto(bookmarkWidth, height)
         self:diffuse(bookmarkColor)
         self:diffusealpha(bookmarkAlpha)
         self:draworder(1100)
         self:visible(false)
+    end,
+    FirstUpdateCommand = function(self)
+        -- have to call this late because the graph is named late (in BeginCommand)
+        self:SetFakeParent(self:GetParent():GetChild("PracticeCDGraph"))
     end,
     SetCommand = function(self)
         self:visible(true)

@@ -22,7 +22,7 @@ local AvatarYP1 = 44
 
 local bpms = {}
 if GAMESTATE:GetCurrentSong() then
-	bpms = GAMESTATE:GetCurrentSong():GetDisplayBpms()
+	bpms = GAMESTATE:GetCurrentSong():GetDisplayBpms(false)
 	bpms[1] = math.round(bpms[1])
 	bpms[2] = math.round(bpms[2])
 end

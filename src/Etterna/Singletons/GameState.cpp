@@ -283,7 +283,7 @@ GameState::Reset()
 	NOTESKIN->RefreshNoteSkinData(m_pCurGame);
 
 	m_iGameSeed = g_RandomNumberGenerator();
-	m_iStageSeed = g_RandomNumberGenerator();
+	SetNewStageSeed();
 
 	m_pCurSong.Set(GetDefaultSong());
 	m_pPreferredSong = nullptr;
@@ -686,21 +686,10 @@ GameState::ForceOtherPlayersToCompatibleSteps(PlayerNumber main)
 	if (steps_to_match == nullptr) {
 		return;
 	}
-	int num_players = GAMESTATE->GetNumPlayersEnabled();
-	StyleType styletype_to_match =
-	  GAMEMAN
-		->GetFirstCompatibleStyle(
-		  GAMESTATE->GetCurrentGame(), num_players, steps_to_match->m_StepsType)
-		->m_StyleType;
 	std::string music_to_match = steps_to_match->GetMusicFile();
 	Steps* pn_steps = m_pCurSteps.Get();
 	bool match_failed = pn_steps == nullptr;
 	if (steps_to_match != pn_steps && pn_steps != nullptr) {
-		StyleType pn_styletype =
-		  GAMEMAN
-			->GetFirstCompatibleStyle(
-			  GAMESTATE->GetCurrentGame(), num_players, pn_steps->m_StepsType)
-			->m_StyleType;
 		if (music_to_match != pn_steps->GetMusicFile()) {
 			match_failed = true;
 		}
@@ -749,7 +738,7 @@ GameState::ResetStageStatistics()
 
 	// Reset the round seed. Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
-	m_iStageSeed = g_RandomNumberGenerator();
+	SetNewStageSeed();
 }
 
 void
@@ -1084,7 +1073,6 @@ setmax(T& a, const T& b)
 FailType
 GameState::GetPlayerFailType(const PlayerState* pPlayerState) const
 {
-	PlayerNumber pn = pPlayerState->m_PlayerNumber;
 	FailType ft = pPlayerState->m_PlayerOptions.GetCurrent().m_FailType;
 	return ft;
 }

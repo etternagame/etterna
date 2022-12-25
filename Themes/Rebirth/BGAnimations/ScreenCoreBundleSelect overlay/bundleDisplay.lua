@@ -52,6 +52,27 @@ local actuals = {
     IconExitHeight = ratios.IconExitHeight * SCREEN_HEIGHT,
 }
 
+local translations = {
+    Bundle = THEME:GetString("BundleDownloader", "Bundle"),
+    Exit = THEME:GetString("BundleDownloader", "Exit"),
+    Megabytes = THEME:GetString("BundleDownloader", "Megabytes"),
+    KilobytesPerSecond = THEME:GetString("BundleDownloader", "KilobytesPerSecond"),
+    Downloading = THEME:GetString("BundleDownloader", "Downloading"),
+    PacksRemaining = THEME:GetString("BundleDownloader", "PacksRemaining"),
+    WelcomeInstruction = THEME:GetString("BundleDownloader", "WelcomeInstruction"),
+    DisconnectedAlert = THEME:GetString("BundleDownloader", "DisconnectedAlert"),
+    Novice = THEME:GetString("BundleDownloader", "Novice"),
+    NoviceDescription = THEME:GetString("BundleDownloader", "NoviceDescription"),
+    Beginner = THEME:GetString("BundleDownloader", "Beginner"),
+    BeginnerDescription = THEME:GetString("BundleDownloader", "BeginnerDescription"),
+    Intermediate = THEME:GetString("BundleDownloader", "Intermediate"),
+    IntermediateDescription = THEME:GetString("BundleDownloader", "IntermediateDescription"),
+    Advanced = THEME:GetString("BundleDownloader", "Advanced"),
+    AdvancedDescription = THEME:GetString("BundleDownloader", "AdvancedDescription"),
+    Expert = THEME:GetString("BundleDownloader", "Expert"),
+    ExpertDescription = THEME:GetString("BundleDownloader", "ExpertDescription"),
+}
+
 local infoTextSize = 0.37
 local progressTextSize = 0.35
 local bundleNameTextSize = 0.4
@@ -65,27 +86,27 @@ local function bundleList()
         {
             Name = "Novice",
             Color = COLORS:getColor("downloader", "Bundle1Easiest"),
-            Description = "A bundle aimed at people who are entirely new to rhythm games.\nMostly single notes throughout the song and very little pattern complexity.",
+            Description = translations["NoviceDescription"],
         },
         {
             Name = "Beginner",
             Color = COLORS:getColor("downloader", "Bundle2Easy"),
-            Description = "A bundle for those who have formed some muscle memory.\nJumps (2 note chords) are introduced; some technical patterns start to appear.",
+            Description = translations["BeginnerDescription"],
         },
         {
             Name = "Intermediate",
             Color = COLORS:getColor("downloader", "Bundle3Medium"),
-            Description = "A bundle for players who can confidently play complex patterns.\nJumpstream/handstream, very technical patterns, and jacks are common.",
+            Description = translations["IntermediateDescription"],
         },
         {
             Name = "Advanced",
             Color = COLORS:getColor("downloader", "Bundle4Hard"),
-            Description = "A bundle for advanced players.\nDumps are introduced. Very fast patterns in stamina intensive and complex files.",
+            Description = translations["AdvancedDescription"],
         },
         {
             Name = "Expert",
             Color = COLORS:getColor("downloader", "Bundle5Hardest"),
-            Description = "A bundle for veterans.\nSome of the hardest songs the game has to offer. Nothing is off-limits.",
+            Description = translations["ExpertDescription"],
         },
     }
 
@@ -147,9 +168,9 @@ local function bundleList()
                 SetCommand = function(self)
                     if bundleUserdata.TotalSize == 0 then
                         -- odd situation. maybe the api is down? no connection?
-                        self:settextf("%s Bundle", bundle.Name)
+                        self:settextf("%s %s", translations[bundle.Name], translations["Bundle"])
                     else
-                        self:settextf("%s Bundle (%dMB)", bundle.Name, bundleUserdata.TotalSize)
+                        self:settextf("%s %s (%d%s)", translations[bundle.Name], translations["Bundle"], bundleUserdata.TotalSize, translations["Megabytes"])
                     end
                 end,
                 CoreBundlesRefreshedMessageCommand = function(self)
@@ -233,7 +254,7 @@ local t = Def.ActorFrame {
                 self:zoom(infoTextSize)
                 self:maxheight((actuals.InfoHeight - (actuals.InfoVerticalBuffer*2)) / infoTextSize)
                 self:wrapwidthpixels((actuals.InfoWidth - (actuals.InfoHorizontalBuffer*2)) / infoTextSize)
-                self:settext("Welcome to Etterna!\nLet's start by installing some songs. Click the button that corresponds to your skill level and the installation will proceed automatically.")
+                self:settext(translations["WelcomeInstruction"])
             end,
         },
     },
@@ -256,7 +277,7 @@ local t = Def.ActorFrame {
             Name = "DisconnectedAlert",
             InitCommand = function(self)
                 self:visible(false)
-                self:settext("Server pack listing is empty.\nIs the API down?\nIs your network connection down?\nYou may have to install songs manually.")
+                self:settext(translations["DisconnectedAlert"])
                 self:xy(actuals.MainDisplayWidth/2, actuals.MainDisplayHeight/2)
                 self:maxheight(actuals.MainDisplayHeight / disconnectedTextSize)
                 self:maxwidth(actuals.MainDisplayWidth / disconnectedTextSize)
@@ -296,7 +317,7 @@ local t = Def.ActorFrame {
             end,
             MouseOverCommand = function(self, params)
                 self:diffusealpha(buttonHoverAlpha)
-                TOOLTIP:SetText("Exit")
+                TOOLTIP:SetText(translations["Exit"])
                 TOOLTIP:Show()
             end,
             MouseOutCommand = function(self, params)
@@ -347,9 +368,23 @@ local t = Def.ActorFrame {
             end,
             UpdateProgressCommand = function(self, params)
                 if params.filesRemaining > 0 then
-                    self:settextf("Downloading ... (%5.2f%% %dKB/s %d packs remaining)", params.progress / params.size * 100, params.kbsec, params.filesRemaining)
+                    self:settextf(
+                        "%s ... (%5.2f%% %d%s %d %s)",
+                        translations["Downloading"],
+                        params.progress / params.size * 100,
+                        params.kbsec,
+                        translations["KilobytesPerSecond"],
+                        params.filesRemaining,
+                        translations["PacksRemaining"]
+                    )
                 else
-                    self:settextf("Downloading ... (%5.2f%% %dKB/s)", params.progress / params.size * 100, params.kbsec)
+                    self:settextf(
+                        "%s ... (%5.2f%% %d%s)",
+                        translations["Downloading"],
+                        params.progress / params.size * 100,
+                        params.kbsec,
+                        translations["KilobytesPerSecond"]
+                    )
                 end
             end,
         },

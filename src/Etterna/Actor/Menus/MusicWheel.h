@@ -20,7 +20,7 @@ class MusicWheel : public WheelBase
 
   public:
 	MusicWheel();
-	~MusicWheel() override;
+	~MusicWheel() override = default;
 	void Load(const string& sType) override;
 	void BeginScreen();
 
@@ -58,7 +58,7 @@ class MusicWheel : public WheelBase
 		return dynamic_cast<const MusicWheelItemData*>(m_CurWheelItemData[i]);
 	}
 
-	virtual void ReloadSongList(bool searching, const std::string& findme);
+	void ReloadSongList(bool searching, const std::string& findme) override;
 	void SetHashList(const std::vector<string>& newHashList);
 	void SetOutHashList(const std::vector<string>& newOutHashList);
 
@@ -133,17 +133,30 @@ class MusicWheel : public WheelBase
 		NEEDREFILTER,
 		VALID
 	} m_WheelItemDatasStatus[NUM_SortOrder]{};
+	// Stores pointers owned by m__UnFilteredWheelItemDatas
+	// This is fine because whenever m__UnFilteredWheelItemDatas is updated we
+	// then also update m__WheelItemDatas
 	std::vector<MusicWheelItemData*> m__WheelItemDatas[NUM_SortOrder];
-	std::vector<MusicWheelItemData*> m__UnFilteredWheelItemDatas[NUM_SortOrder];
+	std::vector<std::unique_ptr<MusicWheelItemData>> m__UnFilteredWheelItemDatas[NUM_SortOrder];
 
-	void BuildWheelItemDatas(std::vector<MusicWheelItemData*>& arrayWheelItemDatas,
-							 SortOrder so,
-							 bool searching,
-							 const std::string& findme);
-	void FilterWheelItemDatas(std::vector<MusicWheelItemData*>& aUnFilteredDatas,
-							  std::vector<MusicWheelItemData*>& aFilteredData,
-							  SortOrder so) const;
-	std::string prevSongTitle;
+	// this should be freed automatically because it is owned by m__UnFilteredWheelItemDatas
+	MusicWheelItemData* m_nearestCompatibleWheelItemData = nullptr;
+
+	void BuildWheelItemDatas(
+	  std::vector<std::unique_ptr<MusicWheelItemData>>& arrayWheelItemDatas,
+	  SortOrder so,
+	  bool searching,
+	  const std::string& findme);
+
+	// filter the wheel item data
+	// returns the new pointer to the previously selected wheel item data
+	// if the previously selected one doesnt exist, dont care
+	MusicWheelItemData* FilterWheelItemDatas(
+	  std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
+	  std::vector<MusicWheelItemData*>& aFilteredData,
+	  const Song* currentSong,
+	  const std::string& currentText,
+	  const WheelItemDataType& currentType) const;
 };
 
 #endif

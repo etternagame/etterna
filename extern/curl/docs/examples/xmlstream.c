@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2018, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -98,7 +98,7 @@ static size_t parseStreamCallback(void *contents, size_t length, size_t nmemb,
   size_t real_size = length * nmemb;
   struct ParserStruct *state = (struct ParserStruct *) XML_GetUserData(parser);
 
-  /* Only parse if we're not already in a failure state. */
+  /* Only parse if we are not already in a failure state. */
   if(state->ok && XML_Parse(parser, contents, real_size, 0) == 0) {
     int error_code = XML_GetErrorCode(parser);
     fprintf(stderr, "Parsing response buffer of length %lu failed"

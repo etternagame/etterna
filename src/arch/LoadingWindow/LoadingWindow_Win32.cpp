@@ -2,9 +2,9 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "LoadingWindow_Win32.h"
 #include "RageUtil/File/RageFileManager.h"
-#include "archutils/win32/WindowsResources.h"
-#include "archutils/win32/WindowIcon.h"
-#include "archutils/win32/ErrorStrings.h"
+#include "archutils/Win32/WindowsResources.h"
+#include "archutils/Win32/WindowIcon.h"
+#include "archutils/Win32/ErrorStrings.h"
 #include <windows.h>
 #include <wchar.h>
 #include <Commdlg.h>
@@ -144,7 +144,7 @@ LoadingWindow_Win32::SetIcon(const RageSurface* pIcon)
 	if (m_hIcon != nullptr)
 	// XXX: GCL_HICON isn't available on x86-64 Windows
 #if _WIN64
-		SetClassLongPtr(hwnd, GCLP_HICON, (LONG)m_hIcon);
+		SetClassLongPtr(hwnd, GCLP_HICON, (LONG_PTR)m_hIcon);
 #else
 		SetClassLong(hwnd, GCL_HICON, (LONG)m_hIcon);
 #endif
@@ -181,7 +181,7 @@ LoadingWindow_Win32::LoadingWindow_Win32()
 	  RageFileManagerUtil::sDirOfExecutable.substr(
 		0, RageFileManagerUtil::sDirOfExecutable.length() - 7) +
 	  FONT_FILE;
-	int nResults = AddFontResourceEx(szFontFile.c_str(), // font file name
+	AddFontResourceEx(szFontFile.c_str(), // font file name
 									 FR_PRIVATE,		 // font flags
 									 nullptr);
 
@@ -242,8 +242,8 @@ LoadingWindow_Win32::InternalPaint()
 	RECT textRect;
 	GetClientRect(hwnd, &textRect);
 	textRect.left = FONT_X;
-	auto oldColor = SetTextColor(hDCMem, FONT_COLOR);
-	auto oldMode = SetBkMode(hDCMem, TRANSPARENT);
+	SetTextColor(hDCMem, FONT_COLOR);
+	SetBkMode(hDCMem, TRANSPARENT);
 	auto oldF = SelectObject(hDCMem, f);
 	for (unsigned i = 0; i < 3; ++i) {
 		textRect.top = static_cast<long>(FONT_Y + (FONT_HEIGHT + 3) * i);
@@ -299,9 +299,6 @@ LoadingWindow_Win32::SetTextInternal()
 	while (asMessageLines.size() < 3)
 		asMessageLines.push_back("");
 
-	const int msgid[] = { IDC_STATIC_MESSAGE1,
-						  IDC_STATIC_MESSAGE2,
-						  IDC_STATIC_MESSAGE3 };
 	for (unsigned i = 0; i < 3; ++i) {
 		if (text[i] == asMessageLines[i])
 			continue;

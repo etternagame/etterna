@@ -7,8 +7,14 @@ local textsize = 0.7
 local boxw = SCREEN_WIDTH/1.5
 local boxh = SCREEN_HEIGHT/3.3
 local bufferspace = 5
-local txt = "NOTICE\nWith your permission, Etterna will upload crash dumps and logs to our server at crash.etterna.dev.\nTo opt in, click the button below or press Y and then restart the game.\nOtherwise, press Escape or click outside the box."
 local redirb4 = false
+
+local translations = {
+    Prompt = THEME:GetString("CrashpadDialogue", "Prompt"),
+    OptedIn = THEME:GetString("CrashpadDialogue", "OptedIn"),
+    OptedOut = THEME:GetString("CrashpadDialogue", "OptedOut"),
+    Accept = THEME:GetString("CrashpadDialogue", "Accept"),
+}
 
 local t = Def.ActorFrame {
     Name = "CrashUploadOptInDialogue",
@@ -35,7 +41,7 @@ local t = Def.ActorFrame {
                 -- "press Y"
                 self:visible(false)
                 enabled = false
-                ms.ok("CRASH DUMP UPLOADING OPTED IN. RESTART TO TAKE EFFECT.")
+                ms.ok(translations["OptedIn"])
                 SCREENMAN:set_input_redirected(PLAYER_1, redirb4)
                 PREFSMAN:SetPreference("EnableMinidumpUpload", true)
                 PREFSMAN:SetPreference("ShowMinidumpUploadDialogue", false)
@@ -43,7 +49,7 @@ local t = Def.ActorFrame {
                 -- "press Escape"
                 self:visible(false)
                 enabled = false
-                ms.ok("CRASH DUMP UPLOADING OPTED OUT")
+                ms.ok(translations["OptedOut"])
                 SCREENMAN:set_input_redirected(PLAYER_1, redirb4)
                 PREFSMAN:SetPreference("ShowMinidumpUploadDialogue", false)
             elseif event.DeviceInput.button == "DeviceButton_left mouse button" then
@@ -51,7 +57,7 @@ local t = Def.ActorFrame {
                     -- "click button"
                     self:visible(false)
                     enabled = false
-                    ms.ok("CRASH DUMP UPLOADING OPTED IN")
+                    ms.ok(translations["OptedIn"])
                     SCREENMAN:set_input_redirected(PLAYER_1, redirb4)
                     PREFSMAN:SetPreference("EnableMinidumpUpload", true)
                     PREFSMAN:SetPreference("ShowMinidumpUploadDialogue", false)
@@ -59,7 +65,7 @@ local t = Def.ActorFrame {
                     -- "click away"
                     self:visible(false)
                     enabled = false
-                    ms.ok("CRASH DUMP UPLOADING OPTED OUT")
+                    ms.ok(translations["OptedOut"])
                     SCREENMAN:set_input_redirected(PLAYER_1, redirb4)
                     PREFSMAN:SetPreference("ShowMinidumpUploadDialogue", false)
                 end
@@ -97,7 +103,7 @@ local t = Def.ActorFrame {
             self:valign(0)
             self:maxwidth(boxw * 0.95 / textsize)
             self:maxheight((boxh - boxh/5) * 0.95 / textsize)
-            self:settext(txt)
+            self:settext(translations["Prompt"])
         end,
     },
     Def.Quad {
@@ -115,7 +121,7 @@ local t = Def.ActorFrame {
             self:y(boxh/2 - (boxh/10) - bufferspace)
             self:zoom(textsize)
             self:maxwidth(boxw/5 / textsize)
-            self:settext("ACCEPT")
+            self:settext(translations["Accept"])
         end,
     },
 }

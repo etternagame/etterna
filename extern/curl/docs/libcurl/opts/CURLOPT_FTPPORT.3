@@ -5,11 +5,11 @@
 .\" *                            | (__| |_| |  _ <| |___
 .\" *                             \___|\___/|_| \_\_____|
 .\" *
-.\" * Copyright (C) 1998 - 2017, Daniel Stenberg, <daniel@haxx.se>, et al.
+.\" * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
 .\" *
 .\" * This software is licensed as described in the file COPYING, which
 .\" * you should have received as part of this distribution. The terms
-.\" * are also available at https://curl.haxx.se/docs/copyright.html.
+.\" * are also available at https://curl.se/docs/copyright.html.
 .\" *
 .\" * You may opt to use, copy, modify, merge, publish, distribute and/or sell
 .\" * copies of the Software, and permit persons to whom the Software is
@@ -24,11 +24,13 @@
 .SH NAME
 CURLOPT_FTPPORT \- make FTP transfer active
 .SH SYNOPSIS
+.nf
 #include <curl/curl.h>
 
 CURLcode curl_easy_setopt(CURL *handle, CURLOPT_FTPPORT, char *spec);
+.fi
 .SH DESCRIPTION
-Pass a pointer to a zero terminated string as parameter. It specifies that the
+Pass a pointer to a null-terminated string as parameter. It specifies that the
 FTP transfer will be made actively and the given string will be used to get
 the IP address to use for the FTP PORT instruction.
 
@@ -36,7 +38,7 @@ The PORT instruction tells the remote server to connect to our specified IP
 address. The string may be a plain IP address, a host name, a network
 interface name (under Unix) or just a '-' symbol to let the library use your
 system's default IP address. Default FTP operations are passive, and thus
-won't use PORT.
+will not use PORT.
 
 The address can be followed by a ':' to specify a port, optionally followed by
 a '-' to specify a port range.  If the port specified is 0, the operating

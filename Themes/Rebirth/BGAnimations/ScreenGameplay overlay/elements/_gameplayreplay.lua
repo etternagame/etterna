@@ -111,13 +111,14 @@ local width = 60
 local height = 30
 local uiBGAlpha = 0.6
 
-local translated_info = {
+local translations = {
     Pause = THEME:GetString("ScreenGameplay", "ButtonPause"),
     FastForward = THEME:GetString("ScreenGameplay", "ButtonFastForward"),
     Rewind = THEME:GetString("ScreenGameplay", "ButtonRewind"),
     Play = THEME:GetString("ScreenGameplay", "ButtonPlay"),
-    Results = "Results",
-    Exit = "Exit",
+    Results = THEME:GetString("ScreenGameplay", "Results"),
+    Exit = THEME:GetString("ScreenGameplay", "Exit"),
+    MustBePaused = THEME:GetString("ScreenGameplay", "MustBePaused"),
 }
 
 local function button(i, txt, click, mustBePaused)
@@ -148,7 +149,7 @@ local function button(i, txt, click, mustBePaused)
                 self:diffusealpha(hoverAlpha)
                 if mustBePaused then
                     if not GAMESTATE:IsPaused() then
-                        TOOLTIP:SetText("Must be paused")
+                        TOOLTIP:SetText(translations["MustBePaused"])
                         TOOLTIP:Show()
                     end
                 end
@@ -208,35 +209,35 @@ scroller[#scroller + 1] = Def.ActorFrame {
     },
     
     button(1,
-        translated_info["Pause"],
+        translations["Pause"],
         function(self)
             SCREENMAN:GetTopScreen():TogglePause()
             local paused = GAMESTATE:IsPaused()
-            self:GetParent():GetChild("Text"):settext(paused and translated_info["Play"] or translated_info["Pause"])
+            self:GetParent():GetChild("Text"):settext(paused and translations["Play"] or translations["Pause"])
         end
     ),
     button(2,
-        translated_info["FastForward"],
+        translations["FastForward"],
         function(self)
             SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() + 5)
         end,
         true
     ),
     button(3,
-        translated_info["Rewind"],
+        translations["Rewind"],
         function(self)
             SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
         end,
         true
     ),
     button(4,
-        translated_info["Results"],
+        translations["Results"],
         function(self)
             SCREENMAN:GetTopScreen():PostScreenMessage("SM_NotesEnded", 0)
         end
     ),
     button(5,
-        translated_info["Exit"],
+        translations["Exit"],
         function(self)
             SCREENMAN:GetTopScreen():Cancel()
         end

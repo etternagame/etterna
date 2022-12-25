@@ -156,7 +156,28 @@ class VideoModeParams
 	  , fDisplayAspectRatio(other.fDisplayAspectRatio)
 	{
 	}
+
+	VideoModeParams(VideoModeParams&& other)
+	  : windowed(other.windowed)
+	  , sDisplayId(std::move(other.sDisplayId))
+	  , width(other.width)
+	  , height(other.height)
+	  , bpp(other.bpp)
+	  , rate(other.rate)
+	  , vsync(other.vsync)
+	  , interlaced(other.interlaced)
+	  , bSmoothLines(other.bSmoothLines)
+	  , bTrilinearFiltering(other.bTrilinearFiltering)
+	  , bAnisotropicFiltering(other.bAnisotropicFiltering)
+	  , bWindowIsFullscreenBorderless(other.bWindowIsFullscreenBorderless)
+	  , sWindowTitle(std::move(other.sWindowTitle))
+	  , sIconFile(std::move(other.sIconFile))
+	  , PAL(other.PAL)
+	  , fDisplayAspectRatio(other.fDisplayAspectRatio)
+	{
+	}
 	VideoModeParams() = default;
+	VideoModeParams& operator=(const VideoModeParams&) = default;
 	virtual ~VideoModeParams() {}
 
 	bool windowed{ false };
@@ -191,6 +212,12 @@ class ActualVideoModeParams : public VideoModeParams
 	  , windowHeight(params.height)
 	{
 	}
+	ActualVideoModeParams(VideoModeParams&& params)
+	  : VideoModeParams(params)
+	  , windowWidth(params.width)
+	  , windowHeight(params.height)
+	{
+	}
 	ActualVideoModeParams(const VideoModeParams& params,
 						  int windowWidth,
 						  int windowHeight,
@@ -203,6 +230,7 @@ class ActualVideoModeParams : public VideoModeParams
 	}
 
 	ActualVideoModeParams() = default;
+	ActualVideoModeParams& operator=(const ActualVideoModeParams&) = default;
 
 	// If bWindowIsFullscreenBorderless is true,
 	// then these properties will differ from width/height (which describe the
@@ -254,7 +282,7 @@ class RageDisplay
 	RageDisplay();
 	virtual ~RageDisplay();
 
-	virtual auto Init(const VideoModeParams& p,
+	virtual auto Init(VideoModeParams&& p,
 					  bool bAllowUnacceleratedRenderer) -> std::string = 0;
 
 	[[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
@@ -265,7 +293,7 @@ class RageDisplay
 	// Don't override this.  Override TryVideoMode() instead.
 	// This will set the video mode to be as close as possible to params.
 	// Return true if device was re-created and we need to reload textures.
-	auto SetVideoMode(VideoModeParams p, bool& bNeedReloadTextures)
+	auto SetVideoMode(VideoModeParams&& p, bool& bNeedReloadTextures)
 	  -> std::string;
 
 	// Call this when the resolution has been changed externally:

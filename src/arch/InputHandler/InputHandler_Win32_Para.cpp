@@ -7,11 +7,18 @@
 #include "archutils/Win32/USB.h"
 
 // TODO: Abstract this windows-specific stuff into USBDevice.
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpragma-pack"
+#endif
 extern "C" {
 #include "archutils/Win32/ddk/setupapi.h"
 /* Quiet header warning: */
 #include "archutils/Win32/ddk/hidsdi.h"
 }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 REGISTER_INPUT_HANDLER_CLASS2(Para, Win32_Para);
 

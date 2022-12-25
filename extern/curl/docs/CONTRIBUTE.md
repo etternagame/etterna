@@ -8,19 +8,19 @@ flaws or bugs.
 
 ### Join the Community
 
-Skip over to [https://curl.haxx.se/mail/](https://curl.haxx.se/mail/) and join
-the appropriate mailing list(s).  Read up on details before you post
-questions. Read this file before you start sending patches! We prefer
+Skip over to [https://curl.se/mail/](https://curl.se/mail/) and join
+the appropriate mailing list(s). Read up on details before you post
+questions. Read this file before you start sending patches. We prefer
 questions sent to and discussions being held on the mailing list(s), not sent
 to individuals.
 
 Before posting to one of the curl mailing lists, please read up on the
-[mailing list etiquette](https://curl.haxx.se/mail/etiquette.html).
+[mailing list etiquette](https://curl.se/mail/etiquette.html).
 
-We also hang out on IRC in #curl on irc.freenode.net
+We also hang out on IRC in #curl on libera.chat
 
-If you're at all interested in the code side of things, consider clicking
-'watch' on the [curl repo on github](https://github.com/curl/curl) to be
+If you are at all interested in the code side of things, consider clicking
+'watch' on the [curl repo on GitHub](https://github.com/curl/curl) to be
 notified of pull requests and new issues posted there.
 
 ### License and copyright
@@ -30,9 +30,9 @@ the same license curl and libcurl is already using unless stated and agreed
 otherwise.
 
 If you add a larger piece of code, you can opt to make that file or set of
-files to use a different license as long as they don't enforce any changes to
+files to use a different license as long as they do not enforce any changes to
 the rest of the package and they make sense. Such "separate parts" can not be
-GPL licensed (as we don't want copyleft to affect users of libcurl) but they
+GPL licensed (as we do not want copyleft to affect users of libcurl) but they
 must use "GPL compatible" licenses (as we want to allow users to use libcurl
 properly in GPL licensed environments).
 
@@ -44,17 +44,17 @@ By submitting a patch to the curl project, you are assumed to have the right
 to the code and to be allowed by your employer or whatever to hand over that
 patch/code to us. We will credit you for your changes as far as possible, to
 give credit but also to keep a trace back to who made what changes. Please
-always provide us with your full real name when contributing!
+always provide us with your full real name when contributing,
 
 ### What To Read
 
 Source code, the man pages, the [INTERNALS
-document](https://curl.haxx.se/dev/internals.html),
-[TODO](https://curl.haxx.se/docs/todo.html),
-[KNOWN_BUGS](https://curl.haxx.se/docs/knownbugs.html) and the [most recent
-changes](https://curl.haxx.se/dev/sourceactivity.html) in git. Just lurking on
+document](https://curl.se/dev/internals.html),
+[TODO](https://curl.se/docs/todo.html),
+[KNOWN_BUGS](https://curl.se/docs/knownbugs.html) and the [most recent
+changes](https://curl.se/dev/sourceactivity.html) in git. Just lurking on
 the [curl-library mailing
-list](https://curl.haxx.se/mail/list.cgi?list=curl-library) will give you a
+list](https://curl.se/mail/list.cgi?list=curl-library) will give you a
 lot of insights on what's going on right now. Asking there is a good idea too.
 
 ## Write a good patch
@@ -62,15 +62,15 @@ lot of insights on what's going on right now. Asking there is a good idea too.
 ### Follow code style
 
 When writing C code, follow the
-[CODE_STYLE](https://curl.haxx.se/dev/code-style.html) already established in
+[CODE_STYLE](https://curl.se/dev/code-style.html) already established in
 the project. Consistent style makes code easier to read and mistakes less
 likely to happen. Run `make checksrc` before you submit anything, to make sure
-you follow the basic style. That script doesn't verify everything, but if it
+you follow the basic style. That script does not verify everything, but if it
 complains you know you have work to do.
 
 ### Non-clobbering All Over
 
-When you write new functionality or fix bugs, it is important that you don't
+When you write new functionality or fix bugs, it is important that you do not
 fiddle all over the source files and functions. Remember that it is likely
 that other people have done changes in the same source files as you have and
 possibly even in the same functions. If you bring completely new
@@ -80,7 +80,7 @@ fix one bug at a time and send them as separate patches.
 ### Write Separate Changes
 
 It is annoying when you get a huge patch from someone that is said to fix 511
-odd problems, but discussions and opinions don't agree with 510 of them - or
+odd problems, but discussions and opinions do not agree with 510 of them - or
 509 of them were already fixed in a different way. Then the person merging
 this change needs to extract the single interesting patch from somewhere
 within the huge pile of source, and that creates a lot of extra work.
@@ -96,32 +96,32 @@ and regression in the future.
 ### Patch Against Recent Sources
 
 Please try to get the latest available sources to make your patches against.
-It makes the lives of the developers so much easier. The very best is if you
-get the most up-to-date sources from the git repository, but the latest
-release archive is quite OK as well!
+It makes the lives of the developers so much easier. The best is if you get
+the most up-to-date sources from the git repository, but the latest release
+archive is quite OK as well.
 
 ### Documentation
 
 Writing docs is dead boring and one of the big problems with many open source
-projects. But someone's gotta do it! It makes things a lot easier if you
+projects. But someone's gotta do it. It makes things a lot easier if you
 submit a small description of your fix or your new features with every
 contribution so that it can be swiftly added to the package documentation.
 
 The documentation is always made in man pages (nroff formatted) or plain
-ASCII files. All HTML files on the web site and in the release archives are
+ASCII files. All HTML files on the website and in the release archives are
 generated from the nroff/ASCII versions.
 
 ### Test Cases
 
 Since the introduction of the test suite, we can quickly verify that the main
-features are working as they're supposed to. To maintain this situation and
+features are working as they are supposed to. To maintain this situation and
 improve it, all new features and functions that are added need to be tested
 in the test suite. Every feature that is added should get at least one valid
 test case that verifies that it works as documented. If every submitter also
-posts a few test cases, it won't end up as a heavy burden on a single person!
+posts a few test cases, it will not end up as a heavy burden on a single person!
 
-If you don't have test cases or perhaps you have done something that is very
-hard to write tests for, do explain exactly how you have otherwise tested and
+If you do not have test cases or perhaps you have done something that is hard
+to write tests for, do explain exactly how you have otherwise tested and
 verified your changes.
 
 ## Sharing Your Changes
@@ -129,9 +129,9 @@ verified your changes.
 ### How to get your changes into the main sources
 
 Ideally you file a [pull request on
-github](https://github.com/curl/curl/pulls), but you can also send your plain
+GitHub](https://github.com/curl/curl/pulls), but you can also send your plain
 patch to [the curl-library mailing
-list](https://curl.haxx.se/mail/list.cgi?list=curl-library).
+list](https://curl.se/mail/list.cgi?list=curl-library).
 
 Either way, your change will be reviewed and discussed there and you will be
 expected to correct flaws pointed out and update accordingly, or the change
@@ -139,9 +139,9 @@ risks stalling and eventually just getting deleted without action. As a
 submitter of a change, you are the owner of that change until it has been merged.
 
 Respond on the list or on github about the change and answer questions and/or
-fix nits/flaws. This is very important. We will take lack of replies as a
-sign that you're not very anxious to get your patch accepted and we tend to
-simply drop such changes.
+fix nits/flaws. This is important. We will take lack of replies as a sign that
+you are not anxious to get your patch accepted and we tend to simply drop such
+changes.
 
 ### About pull requests
 
@@ -151,26 +151,20 @@ changes merged.
 
 We strongly prefer pull requests to mailed patches, as it makes it a proper
 git commit that is easy to merge and they are easy to track and not that easy
-to loose in the flood of many emails, like they sometimes do on the mailing
+to lose in the flood of many emails, like they sometimes do on the mailing
 lists.
 
-Every pull request submitted will automatically be tested in several different
-ways. Every pull request is verified for each of the following:
+Every pull request submitted will automatically be
+tested in several different ways. [See CI.md for more
+information](https://github.com/curl/curl/blob/master/tests/CI.md).
 
- - ... it still builds, warning-free, on Linux and macOS, with both
-   clang and gcc
- - ... it still builds fine on Windows with several MSVC versions
- - ... it still builds with cmake on Linux, with gcc and clang
- - ... it follows rudimentary code style rules
- - ... the test suite still runs 100% fine
- - ... the release tarball (the "dist") still works
- - ... it builds fine in-tree as well as out-of-tree
- - ... code coverage doesn't shrink drastically
+Sometimes the tests fail due to a dependency service temporarily being offline
+or otherwise unavailable, eg. package downloads. In this case you can just
+try to update your pull requests to rerun the tests later as described below.
 
-If the pull-request fails one of these tests, it will show up as a red X and
-you are expected to fix the problem. If you don't understand when the issue is
-or have other problems to fix the complaint, just ask and other project
-members will likely be able to help out.
+You can update your pull requests by pushing new commits or force-pushing
+changes to existing commits. Force-pushing an amended commit without any
+actual content changed also allows you to retrigger the tests for that commit.
 
 When you adjust your pull requests after review, consider squashing the
 commits so that we can review the full updated version more easily.
@@ -179,7 +173,7 @@ commits so that we can review the full updated version more easily.
 
 Make the patch against as recent source versions as possible.
 
-If you've followed the tips in this document and your patch still hasn't been
+If you have followed the tips in this document and your patch still has not been
 incorporated or responded to after some weeks, consider resubmitting it to the
 list or better yet: change it to a pull request.
 
@@ -200,17 +194,27 @@ A short guide to how to write commit messages in the curl project.
     [whatever-else-by: credit all helpers, finders, doers]
     ---- stop ----
 
-Don't forget to use commit --author="" if you commit someone else's work, and
+The first line is a succinct description of the change:
+
+ - use the imperative, present tense: "change" not "changed" nor "changes"
+ - do not capitalize first letter
+ - no dot (.) at the end
+
+The `[area]` in the first line can be `http2`, `cookies`, `openssl` or
+similar. There's no fixed list to select from but using the same "area" as
+other related changes could make sense.
+
+Do not forget to use commit --author="" if you commit someone else's work, and
 make sure that you have your own user and email setup correctly in git before
 you commit
 
 ### Write Access to git Repository
 
-If you are a very frequent contributor, you may be given push access to the
-git repository and then you'll be able to push your changes straight into the
-git repo instead of sending changes as pull requests or by mail as patches.
+If you are a frequent contributor, you may be given push access to the git
+repository and then you will be able to push your changes straight into the git
+repo instead of sending changes as pull requests or by mail as patches.
 
-Just ask if this is what you'd want. You will be required to have posted
+Just ask if this is what you would want. You will be required to have posted
 several high quality patches first, before you can be granted push access.
 
 ### How To Make a Patch with git
@@ -227,7 +231,7 @@ local repository:
 As usual, group your commits so that you commit all changes at once that
 constitute a logical change.
 
-Once you have done all your commits and you're happy with what you see, you
+Once you have done all your commits and you are happy with what you see, you
 can make patches out of your changes that are suitable for mailing:
 
     git format-patch remotes/origin/master
@@ -265,3 +269,6 @@ For Windows:
 
  - [https://gnuwin32.sourceforge.io/packages/patch.htm](https://gnuwin32.sourceforge.io/packages/patch.htm)
  - [https://gnuwin32.sourceforge.io/packages/diffutils.htm](https://gnuwin32.sourceforge.io/packages/diffutils.htm)
+
+### Useful resources
+ - [Webinar on getting code into cURL](https://www.youtube.com/watch?v=QmZ3W1d6LQI)

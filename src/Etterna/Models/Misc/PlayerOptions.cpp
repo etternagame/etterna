@@ -7,6 +7,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
+#include "Etterna/Singletons/DownloadManager.h"
 #include "Etterna/Globals/rngthing.h"
 #include "Core/Services/Locator.hpp"
 
@@ -282,6 +283,8 @@ PlayerOptions::GetMods(std::vector<std::string>& AddTo, bool bForceNoteSkin) con
 		AddTo.push_back("SoftShuffle");
 	if (m_bTurns[TURN_SUPER_SHUFFLE])
 		AddTo.push_back("SuperShuffle");
+	if (m_bTurns[TURN_HRAN_SHUFFLE])
+		AddTo.push_back("HRanShuffle");
 
 	if (m_bTransforms[TRANSFORM_NOHOLDS])
 		AddTo.push_back("NoHolds");
@@ -396,6 +399,8 @@ PlayerOptions::GetTurnMods(std::vector<std::string>& AddTo)
 		AddTo.push_back("SoftShuffle");
 	if (m_bTurns[TURN_SUPER_SHUFFLE])
 		AddTo.push_back("SuperShuffle");
+	if (m_bTurns[TURN_HRAN_SHUFFLE])
+		AddTo.push_back("HRanShuffle");
 }
 
 // At the moment this only supports turns.
@@ -518,7 +523,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_fTimeSpacing = 0;
 	}
 
-	else if (sBit == "clearall") {
+	else if (sBit == "clearall" && (forReplay || !DLMAN->gameplay)) {
 		Init();
 		m_sNoteSkin = NOTESKIN->GetDefaultNoteSkinName();
 	} else if (sBit == "resetspeed") {
@@ -532,21 +537,22 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fScrollSpeed);
 		level = CMOD_DEFAULT;
 		SET_FLOAT(fScrollBPM)
-	} else if (sBit == "life" || sBit == "lives") {
+	} else if (sBit == "life" || sBit == "lives" && (forReplay || !DLMAN->gameplay)) {
 		// level is a percentage for every other option, so multiply by 100.
 		// -Kyz
 		m_BatteryLives = static_cast<int>(level * 100.0f);
-	} else if (sBit == "bar") {
+	} else if (sBit == "bar" && (forReplay || !DLMAN->gameplay)) {
 		m_LifeType = LifeType_Bar;
-	} else if (sBit == "battery") {
+	} else if (sBit == "battery" && (forReplay || !DLMAN->gameplay)) {
 		m_LifeType = LifeType_Battery;
-	} else if (sBit == "lifetime") {
+	} else if (sBit == "lifetime" && (forReplay || !DLMAN->gameplay)) {
 		m_LifeType = LifeType_Time;
-	} else if (sBit == "norecover" || sBit == "power-drop") {
+	} else if (sBit == "norecover" ||
+			   sBit == "power-drop" && (forReplay || !DLMAN->gameplay)) {
 		m_DrainType = DrainType_NoRecover;
-	} else if (sBit == "suddendeath" || sBit == "death") {
+	} else if (sBit == "suddendeath" || sBit == "death" && (forReplay || !DLMAN->gameplay)) {
 		m_DrainType = DrainType_SuddenDeath;
-	} else if (sBit == "normal-drain") {
+	} else if (sBit == "normal-drain" && (forReplay || !DLMAN->gameplay)) {
 		m_DrainType = DrainType_Normal;
 	} else if (sBit == "boost")
 		SET_FLOAT(fAccels[ACCEL_BOOST])
@@ -602,59 +608,61 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fAppearances[APPEARANCE_RANDOMVANISH])
 	else if (sBit == "turn" && !on)
 		ZERO(m_bTurns); /* "no turn" */
-	else if (sBit == "mirror")
+	else if (sBit == "mirror" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_MIRROR] = on;
-	else if (sBit == "backwards")
+	else if (sBit == "backwards" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_BACKWARDS] = on;
-	else if (sBit == "left")
+	else if (sBit == "left" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_LEFT] = on;
-	else if (sBit == "right")
+	else if (sBit == "right" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_RIGHT] = on;
-	else if (sBit == "shuffle")
+	else if (sBit == "shuffle" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_SHUFFLE] = on;
-	else if (sBit == "softshuffle")
+	else if (sBit == "softshuffle" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_SOFT_SHUFFLE] = on;
-	else if (sBit == "supershuffle")
+	else if (sBit == "supershuffle" && (forReplay || !DLMAN->gameplay))
 		m_bTurns[TURN_SUPER_SHUFFLE] = on;
-	else if (sBit == "little")
+	else if (sBit == "hranshuffle" && (forReplay || !DLMAN->gameplay))
+		m_bTurns[TURN_HRAN_SHUFFLE] = on;
+	else if (sBit == "little" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_LITTLE] = on;
-	else if (sBit == "wide")
+	else if (sBit == "wide" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_WIDE] = on;
-	else if (sBit == "big")
+	else if (sBit == "big" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_BIG] = on;
-	else if (sBit == "quick")
+	else if (sBit == "quick" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_QUICK] = on;
-	else if (sBit == "bmrize")
+	else if (sBit == "bmrize" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_BMRIZE] = on;
-	else if (sBit == "skippy")
+	else if (sBit == "skippy" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_SKIPPY] = on;
-	else if (sBit == "mines")
+	else if (sBit == "mines" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_MINES] = on;
-	else if (sBit == "attackmines")
+	else if (sBit == "attackmines" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ATTACKMINES] = on;
-	else if (sBit == "echo")
+	else if (sBit == "echo" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ECHO] = on;
-	else if (sBit == "stomp")
+	else if (sBit == "stomp" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_STOMP] = on;
-	else if (sBit == "jackjs")
+	else if (sBit == "jackjs" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_JACKJS] = on;
-	else if (sBit == "anchorjs")
+	else if (sBit == "anchorjs" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ANCHORJS] = on;
-	else if (sBit == "icyworld")
+	else if (sBit == "icyworld" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_ICYWORLD] = on;
-	else if (sBit == "planted")
+	else if (sBit == "planted" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_PLANTED] = on;
-	else if (sBit == "floored")
+	else if (sBit == "floored" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_FLOORED] = on;
-	else if (sBit == "twister")
+	else if (sBit == "twister" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_TWISTER] = on;
-	else if (sBit == "holdrolls")
+	else if (sBit == "holdrolls" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_HOLDROLLS] = on;
-	else if (sBit == "nojumps")
+	else if (sBit == "nojumps" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOJUMPS] = on;
-	else if (sBit == "nohands")
+	else if (sBit == "nohands" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOHANDS] = on;
-	else if (sBit == "noquads")
+	else if (sBit == "noquads" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOQUADS] = on;
 	else if (sBit == "reverse")
 		SET_FLOAT(fScrolls[SCROLL_REVERSE])
@@ -666,17 +674,17 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fScrolls[SCROLL_CROSS])
 	else if (sBit == "centered")
 		SET_FLOAT(fScrolls[SCROLL_CENTERED])
-	else if (sBit == "noholds")
+	else if (sBit == "noholds" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOHOLDS] = on;
-	else if (sBit == "norolls")
+	else if (sBit == "norolls" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOROLLS] = on;
-	else if (sBit == "nomines")
+	else if (sBit == "nomines" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOMINES] = on;
-	else if (sBit == "nostretch")
+	else if (sBit == "nostretch" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOSTRETCH] = on;
-	else if (sBit == "nolifts")
+	else if (sBit == "nolifts" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOLIFTS] = on;
-	else if (sBit == "nofakes")
+	else if (sBit == "nofakes" && (forReplay || !DLMAN->gameplay))
 		m_bTransforms[TRANSFORM_NOFAKES] = on;
 	else if (sBit == "dark")
 		SET_FLOAT(fDark)
@@ -690,7 +698,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fNoAttack)
 	else if (sBit == "playerautoplay")
 		SET_FLOAT(fPlayerAutoPlay)
-	else if (sBit == "passmark")
+	else if (sBit == "passmark" && (forReplay || !DLMAN->gameplay))
 		SET_FLOAT(fPassmark)
 	else if (sBit == "overhead") {
 		m_fSkew = 0;
@@ -725,10 +733,10 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fRandomSpeed)
 	else if (sBit == "failarcade" || sBit == "failimmediate")
 		m_FailType = FailType_Immediate;
-	else if (sBit == "failendofsong" || sBit == "failimmediatecontinue" ||
-			 sBit == "failatend")
+	else if ((sBit == "failendofsong" || sBit == "failimmediatecontinue" ||
+			 sBit == "failatend") && (forReplay || !DLMAN->gameplay))
 		m_FailType = FailType_ImmediateContinue;
-	else if (sBit == "failoff")
+	else if (sBit == "failoff" && (forReplay || !DLMAN->gameplay))
 		m_FailType = FailType_Off;
 	else if (sBit == "faildefault") {
 		PlayerOptions po;
@@ -738,7 +746,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_bMuteOnError = on;
 	else if (sBit == "random")
 		ChooseRandomModifiers();
-	else if (sBit == "practicemode")
+	else if (sBit == "practicemode" && (forReplay || !DLMAN->gameplay))
 		m_bPractice = on;
 	// deprecated mods/left in for compatibility
 	else if (sBit == "converge")
@@ -1210,6 +1218,8 @@ PlayerOptions::GetInvalidatingModifiers() const
 		AddTo.push_back("SoftShuffle");
 	if (m_bTurns[TURN_SUPER_SHUFFLE])
 		AddTo.push_back("SuperShuffle");
+	if (m_bTurns[TURN_HRAN_SHUFFLE])
+		AddTo.push_back("HRanShuffle");
 
 	if (m_bTransforms[TRANSFORM_NOHOLDS])
 		AddTo.push_back("NoHolds");
@@ -1371,8 +1381,8 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	}
 	// Direct control functions, for themes that can handle it.
 
-	ENUM_INTERFACE(LifeSetting, LifeType, LifeType);
-	ENUM_INTERFACE(DrainSetting, DrainType, DrainType);
+	SECENUM_INTERFACE(LifeSetting, LifeType, LifeType);
+	SECENUM_INTERFACE(DrainSetting, DrainType, DrainType);
 	INT_INTERFACE(BatteryLives, BatteryLives);
 	FLOAT_INTERFACE(TimeSpacing, TimeSpacing, true);
 	FLOAT_INTERFACE(MaxScrollBPM, MaxScrollBPM, true);
@@ -1429,7 +1439,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	FLOAT_INTERFACE(PlayerAutoPlay, PlayerAutoPlay, true);
 	FLOAT_INTERFACE(Skew, Skew, true);
 	FLOAT_INTERFACE(Tilt, PerspectiveTilt, true);
-	FLOAT_INTERFACE(Passmark, Passmark, true); // Passmark is not sanity checked
+	SECFLOAT_INTERFACE(Passmark, Passmark, true); // Passmark is not sanity checked
 											   // to the [0, 1] range because
 											   // LifeMeterBar::IsFailing is the
 											   // only thing that uses it, and
@@ -1439,44 +1449,46 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 											   // expects the result they get.
 											   // -Kyz
 	FLOAT_INTERFACE(RandomSpeed, RandomSpeed, true);
-	BOOL_INTERFACE(TurnNone, Turns[PlayerOptions::TURN_NONE]);
-	BOOL_INTERFACE(Mirror, Turns[PlayerOptions::TURN_MIRROR]);
-	BOOL_INTERFACE(Backwards, Turns[PlayerOptions::TURN_BACKWARDS]);
-	BOOL_INTERFACE(Left, Turns[PlayerOptions::TURN_LEFT]);
-	BOOL_INTERFACE(Right, Turns[PlayerOptions::TURN_RIGHT]);
-	BOOL_INTERFACE(Shuffle, Turns[PlayerOptions::TURN_SHUFFLE]);
-	BOOL_INTERFACE(SoftShuffle, Turns[PlayerOptions::TURN_SOFT_SHUFFLE]);
-	BOOL_INTERFACE(SuperShuffle, Turns[PlayerOptions::TURN_SUPER_SHUFFLE]);
-	BOOL_INTERFACE(NoHolds, Transforms[PlayerOptions::TRANSFORM_NOHOLDS]);
-	BOOL_INTERFACE(NoRolls, Transforms[PlayerOptions::TRANSFORM_NOROLLS]);
-	BOOL_INTERFACE(NoMines, Transforms[PlayerOptions::TRANSFORM_NOMINES]);
-	BOOL_INTERFACE(Little, Transforms[PlayerOptions::TRANSFORM_LITTLE]);
-	BOOL_INTERFACE(Wide, Transforms[PlayerOptions::TRANSFORM_WIDE]);
-	BOOL_INTERFACE(Big, Transforms[PlayerOptions::TRANSFORM_BIG]);
-	BOOL_INTERFACE(Quick, Transforms[PlayerOptions::TRANSFORM_QUICK]);
-	BOOL_INTERFACE(BMRize, Transforms[PlayerOptions::TRANSFORM_BMRIZE]);
-	BOOL_INTERFACE(Skippy, Transforms[PlayerOptions::TRANSFORM_SKIPPY]);
-	BOOL_INTERFACE(Mines, Transforms[PlayerOptions::TRANSFORM_MINES]);
+	SECBOOL_INTERFACE(TurnNone, Turns[PlayerOptions::TURN_NONE]);
+	SECBOOL_INTERFACE(Mirror, Turns[PlayerOptions::TURN_MIRROR]);
+	SECBOOL_INTERFACE(Backwards, Turns[PlayerOptions::TURN_BACKWARDS]);
+	SECBOOL_INTERFACE(Left, Turns[PlayerOptions::TURN_LEFT]);
+	SECBOOL_INTERFACE(Right, Turns[PlayerOptions::TURN_RIGHT]);
+	SECBOOL_INTERFACE(Shuffle, Turns[PlayerOptions::TURN_SHUFFLE]);
+	SECBOOL_INTERFACE(SoftShuffle, Turns[PlayerOptions::TURN_SOFT_SHUFFLE]);
+	SECBOOL_INTERFACE(SuperShuffle, Turns[PlayerOptions::TURN_SUPER_SHUFFLE]);
+	SECBOOL_INTERFACE(HRanShuffle, Turns[PlayerOptions::TURN_HRAN_SHUFFLE]);
+	SECBOOL_INTERFACE(NoHolds, Transforms[PlayerOptions::TRANSFORM_NOHOLDS]);
+	SECBOOL_INTERFACE(NoRolls, Transforms[PlayerOptions::TRANSFORM_NOROLLS]);
+	SECBOOL_INTERFACE(NoMines, Transforms[PlayerOptions::TRANSFORM_NOMINES]);
+	SECBOOL_INTERFACE(Little, Transforms[PlayerOptions::TRANSFORM_LITTLE]);
+	SECBOOL_INTERFACE(Wide, Transforms[PlayerOptions::TRANSFORM_WIDE]);
+	SECBOOL_INTERFACE(Big, Transforms[PlayerOptions::TRANSFORM_BIG]);
+	SECBOOL_INTERFACE(Quick, Transforms[PlayerOptions::TRANSFORM_QUICK]);
+	SECBOOL_INTERFACE(BMRize, Transforms[PlayerOptions::TRANSFORM_BMRIZE]);
+	SECBOOL_INTERFACE(Skippy, Transforms[PlayerOptions::TRANSFORM_SKIPPY]);
+	SECBOOL_INTERFACE(Mines, Transforms[PlayerOptions::TRANSFORM_MINES]);
 	BOOL_INTERFACE(AttackMines,
 				   Transforms[PlayerOptions::TRANSFORM_ATTACKMINES]);
-	BOOL_INTERFACE(Echo, Transforms[PlayerOptions::TRANSFORM_ECHO]);
-	BOOL_INTERFACE(Stomp, Transforms[PlayerOptions::TRANSFORM_STOMP]);
-	BOOL_INTERFACE(JackJS, Transforms[PlayerOptions::TRANSFORM_JACKJS]);
-	BOOL_INTERFACE(AnchorJS, Transforms[PlayerOptions::TRANSFORM_ANCHORJS]);
-	BOOL_INTERFACE(IcyWorld, Transforms[PlayerOptions::TRANSFORM_ICYWORLD]);
-	BOOL_INTERFACE(Planted, Transforms[PlayerOptions::TRANSFORM_PLANTED]);
-	BOOL_INTERFACE(Floored, Transforms[PlayerOptions::TRANSFORM_FLOORED]);
-	BOOL_INTERFACE(Twister, Transforms[PlayerOptions::TRANSFORM_TWISTER]);
-	BOOL_INTERFACE(HoldRolls, Transforms[PlayerOptions::TRANSFORM_HOLDROLLS]);
-	BOOL_INTERFACE(NoJumps, Transforms[PlayerOptions::TRANSFORM_NOJUMPS]);
-	BOOL_INTERFACE(NoHands, Transforms[PlayerOptions::TRANSFORM_NOHANDS]);
-	BOOL_INTERFACE(NoLifts, Transforms[PlayerOptions::TRANSFORM_NOLIFTS]);
-	BOOL_INTERFACE(NoFakes, Transforms[PlayerOptions::TRANSFORM_NOFAKES]);
-	BOOL_INTERFACE(NoQuads, Transforms[PlayerOptions::TRANSFORM_NOQUADS]);
-	BOOL_INTERFACE(NoStretch, Transforms[PlayerOptions::TRANSFORM_NOSTRETCH]);
+	SECBOOL_INTERFACE(Echo, Transforms[PlayerOptions::TRANSFORM_ECHO]);
+	SECBOOL_INTERFACE(Stomp, Transforms[PlayerOptions::TRANSFORM_STOMP]);
+	SECBOOL_INTERFACE(JackJS, Transforms[PlayerOptions::TRANSFORM_JACKJS]);
+	SECBOOL_INTERFACE(AnchorJS, Transforms[PlayerOptions::TRANSFORM_ANCHORJS]);
+	SECBOOL_INTERFACE(IcyWorld, Transforms[PlayerOptions::TRANSFORM_ICYWORLD]);
+	SECBOOL_INTERFACE(Planted, Transforms[PlayerOptions::TRANSFORM_PLANTED]);
+	SECBOOL_INTERFACE(Floored, Transforms[PlayerOptions::TRANSFORM_FLOORED]);
+	SECBOOL_INTERFACE(Twister, Transforms[PlayerOptions::TRANSFORM_TWISTER]);
+	SECBOOL_INTERFACE(HoldRolls,
+					  Transforms[PlayerOptions::TRANSFORM_HOLDROLLS]);
+	SECBOOL_INTERFACE(NoJumps, Transforms[PlayerOptions::TRANSFORM_NOJUMPS]);
+	SECBOOL_INTERFACE(NoHands, Transforms[PlayerOptions::TRANSFORM_NOHANDS]);
+	SECBOOL_INTERFACE(NoLifts, Transforms[PlayerOptions::TRANSFORM_NOLIFTS]);
+	SECBOOL_INTERFACE(NoFakes, Transforms[PlayerOptions::TRANSFORM_NOFAKES]);
+	SECBOOL_INTERFACE(NoQuads, Transforms[PlayerOptions::TRANSFORM_NOQUADS]);
+	SECBOOL_INTERFACE(NoStretch,
+					  Transforms[PlayerOptions::TRANSFORM_NOSTRETCH]);
 	BOOL_INTERFACE(MuteOnError, MuteOnError);
-	BOOL_INTERFACE(PracticeMode, Practice)
-	ENUM_INTERFACE(FailSetting, FailType, FailType);
+	SECENUM_INTERFACE(FailSetting, FailType, FailType);
 	ENUM_INTERFACE(MinTNSToHideNotes, MinTNSToHideNotes, TapNoteScore);
 
 	// NoteSkins
@@ -1807,6 +1819,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(Shuffle);
 		ADD_METHOD(SoftShuffle);
 		ADD_METHOD(SuperShuffle);
+		ADD_METHOD(HRanShuffle);
 		ADD_METHOD(NoHolds);
 		ADD_METHOD(NoRolls);
 		ADD_METHOD(NoMines);

@@ -490,7 +490,7 @@ ReadString(RageFileBasic& f, int iSize, std::string& sError)
 RageSoundReader_FileReader::OpenResult
 RageSoundReader_WAV::Open(RageFileBasic* pFile)
 {
-	m_pFile = pFile;
+	m_pFile = std::unique_ptr<RageFileBasic>(pFile);
 
 	std::string sError;
 

@@ -10,6 +10,12 @@
 
 #include <set>
 
+RageSoundReader_FileReader::RageSoundReader_FileReader(const RageSoundReader_FileReader& rhs):
+  m_pFile(rhs.m_pFile->Copy()),
+  m_sError(rhs.m_sError) {
+}
+RageSoundReader_FileReader::RageSoundReader_FileReader() : m_sError(), m_pFile(nullptr) {}
+
 RageSoundReader_FileReader*
 RageSoundReader_FileReader::TryOpenFile(RageFileBasic* pFile,
 										std::string& error,
@@ -93,27 +99,22 @@ RageSoundReader_FileReader::OpenFile(const std::string& filename,
 									 std::string& error,
 									 bool* pPrebuffer)
 {
-	HiddenPtr<RageFileBasic> pFile;
-	{
-		auto* pFileOpen = new RageFile;
-		if (!pFileOpen->Open(filename)) {
-			error = pFileOpen->GetError();
-			delete pFileOpen;
-			return nullptr;
-		}
-		pFile = pFileOpen;
+	std::unique_ptr<RageFile> pFileOpen = std::make_unique<RageFile>();
+	if (!pFileOpen->Open(filename)) {
+		error = pFileOpen->GetError();
+		return nullptr;
 	}
+	std::unique_ptr<RageFileBasic> pFile = std::move(pFileOpen);
 
 	if (pPrebuffer) {
 		if (pFile->GetFileSize() < 1024 * 50) {
-			auto* pMem = new RageFileObjMem;
+			auto pMem = std::make_unique<RageFileObjMem>();
 			bool bRet = FileCopy(*pFile, *pMem, error, nullptr);
 			if (!bRet) {
-				delete pMem;
 				return nullptr;
 			}
 
-			pFile = pMem;
+			pFile = std::move(pMem);
 			pFile->Seek(0);
 			*pPrebuffer = true;
 		} else {

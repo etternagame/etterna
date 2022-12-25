@@ -78,11 +78,12 @@ RageSoundDriver_WaveOut::GetData()
 
 	MMRESULT ret =
 	  waveOutWrite(m_hWaveOut, &m_aBuffers[b], sizeof(m_aBuffers[b]));
-	if (ret != MMSYSERR_NOERROR)
+	if (ret != MMSYSERR_NOERROR) {
 		if (ret == WAVERR_STILLPLAYING)
 			return false;
 		else
 			FAIL_M(wo_ssprintf(ret, "waveOutWrite failed"));
+	}
 
 	/* Increment m_iLastCursorPos. */
 	m_iLastCursorPos += chunksize_frames;

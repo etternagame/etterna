@@ -4,7 +4,6 @@
 #define RAGE_SOUND_READER_PRELOAD
 
 #include "RageSoundReader.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 
 class RageSoundReader_Preload : public RageSoundReader
 {
@@ -34,7 +33,7 @@ class RageSoundReader_Preload : public RageSoundReader
 	static bool PreloadSound(RageSoundReader*& pSound);
 
   private:
-	AutoPtrCopyOnWrite<std::string> m_Buffer;
+	std::shared_ptr<std::string> m_Buffer;
 	bool m_bBufferIs16Bit{ false };
 
 	/* Bytes: */

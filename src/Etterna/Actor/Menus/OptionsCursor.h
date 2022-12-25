@@ -18,7 +18,7 @@ class OptionsCursor : public ActorFrame
 	void Load(const std::string& sMetricsGroup, bool bLoadCanGos);
 
 	void StopTweening() override;
-	void BeginTweening(float fSecs, TweenType tt = TWEEN_DECELERATE);
+	void BeginTweening(float fSecs, TweenType tt = TWEEN_DECELERATE) override;
 	void SetBarWidth(int iWidth);
 	int GetBarWidth() const;
 	void SetCanGo(bool bCanGoLeft, bool bCanGoRight);

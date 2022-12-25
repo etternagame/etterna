@@ -2,7 +2,7 @@
 #include "../HD_MetaSequencing.h"
 #include "../../UlbuAcolytes.h"
 
-static const float rma_diff_scaler = 1.52F * basescalers[Skill_Technical];
+static const float rma_diff_scaler = 1.06F * basescalers[Skill_Technical];
 
 enum rm_behavior
 {
@@ -588,7 +588,10 @@ struct RM_Sequencer
 
 		const auto flool = ms_from(last_anchor_time, _start);
 
-		const auto pule = (flool) / static_cast<float>(_rm._len - 1);
+		const auto len = static_cast<float>(_rm._len);
+		const auto len_1 = static_cast<float>(_rm._len - 1);
+
+		const auto pule = (flool / len_1) * (len / len_1);
 		const auto drool = ms_to_scaled_nps(pule) * rma_diff_scaler;
 		return drool;
 	}

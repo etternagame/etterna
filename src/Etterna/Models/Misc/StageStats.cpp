@@ -8,7 +8,6 @@
 #include "Etterna/Singletons/ProfileManager.h"
 #include "StageStats.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
-#include "PlayerAI.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "AdjustSync.h"
 #include "Etterna/Singletons/ScoreManager.h"
@@ -16,6 +15,9 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Core/Services/Locator.hpp"
 #include "GamePreferences.h"
+#include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Models/NoteData/NoteDataUtil.h"
 
 #ifndef _WIN32
 #include <cpuid.h>
@@ -531,7 +533,8 @@ FillInHighScore(const PlayerStageStats& pss,
 			asModifiers.push_back(sSongOptions);
 		}
 	}
-	hs.SetModifiers(join(", ", asModifiers));
+	const auto modstr = join(", ", asModifiers);
+	hs.SetModifiers(modstr);
 
 	hs.SetDateTime(DateTime::GetNowDateTime());
 	hs.SetPlayerGuid(sPlayerGuid);
@@ -543,6 +546,8 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetLifeRemainingSeconds(pss.m_fLifeRemainingSeconds);
 	hs.SetDisqualified(pss.IsDisqualified());
 	hs.SetDSFlag(pss.usedDoubleSetup);
+	hs.SetStageSeed(GAMESTATE->m_iStageSeed);
+	hs.SetSongOffset(ps.GetDisplayedTiming().m_fBeat0OffsetInSeconds);
 
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
@@ -573,15 +578,6 @@ FillInHighScore(const PlayerStageStats& pss,
 		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
 		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
 		hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
-		// flag this before rescore so it knows we're LEGGIT
-		hs.SetReplayType(2);
-		if (hs.GetTapNoteTypeVector().size() < hs.GetNoteRowVector().size() ||
-			hs.GetTrackVector().size() < hs.GetNoteRowVector().size()) {
-			// what happened here is most likely that the replay type is not 2
-			// (missing column data, missing type data)
-			// it's a replay made before 0.60
-			hs.SetReplayType(1);
-		}
 
 		// ok this is a little jank but there's a few things going on here,
 		// first we can't trust that scores getting here are necessarily either
@@ -596,8 +592,39 @@ FillInHighScore(const PlayerStageStats& pss,
 
 		// for this we need the actual totalpoints values, so we need steps data
 		auto steps = GAMESTATE->m_pCurSteps;
+		auto st = steps->m_StepsType;
+		auto* style = GAMEMAN->GetStyleForStepsType(st);
 		auto nd = steps->GetNoteData();
 		auto* td = steps->GetTimingData();
+
+		// transform the notedata by style if necessary
+		if (style != nullptr) {
+			NoteData ndo;
+			style->GetTransformedNoteDataForStyle(PLAYER_1, nd, ndo);
+			nd = ndo;
+		}
+
+		// Have to account for mirror and shuffle
+		if (style != nullptr && td != nullptr) {
+			PlayerOptions po;
+			po.Init();
+			po.SetForReplay(true);
+			po.FromString(modstr);
+			auto tmpSeed = GAMESTATE->m_iStageSeed;
+
+			// if rng was not saved, only apply non shuffle mods
+			if (hs.GetStageSeed() == 0) {
+				po.m_bTurns[PlayerOptions::TURN_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] = false;
+				po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE] = false;
+			} else {
+				GAMESTATE->m_iStageSeed = hs.GetStageSeed();
+			}
+
+			NoteDataUtil::TransformNoteData(nd, *td, po, style->m_StepsType);
+			GAMESTATE->m_iStageSeed = tmpSeed;
+		}
 		auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
 
 		// i _think_ an assert is ok here.. if this can happen we probably want
@@ -624,7 +651,7 @@ FillInHighScore(const PlayerStageStats& pss,
 
 	// Input data
 	hs.SetInputDataVector(pss.GetInputDataVector());
-	hs.SetSongOffset(ps.GetDisplayedTiming().m_fBeat0OffsetInSeconds);
+	hs.SetMissDataVector(pss.GetMissDataVector());
 
 	// Normalize Judgments to J4 (regardless of wifepercent)
 	// If it fails, reset the replay data from pss and try one more time
@@ -647,7 +674,7 @@ FillInHighScore(const PlayerStageStats& pss,
 }
 
 void
-StageStats::FinalizeScores(bool /*bSummary*/)
+StageStats::FinalizeScores()
 {
 	Locator::getLogger()->info("Finalizing Score");
 	// if we're viewing an online replay this gets set to true -mina
@@ -655,40 +682,42 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 
 	// don't save scores if the player chose not to
 	if (!GAMESTATE->m_SongOptions.GetCurrent().m_bSaveScore) {
+		Locator::getLogger()->info("nevermind");
 		return;
 	}
 
-	Locator::getLogger()->info("Saving stats and high scores");
+	auto* const profile = PROFILEMAN->GetProfile(PLAYER_1);
+	const auto sPlayerGuid = profile->m_sGuid;
 
-	// generate a HighScore for each player
-
-	// whether or not to save scores when the stage was failed depends on if
-	// this is a course or not... it's handled below in the switch.
-	const auto sPlayerGuid = PROFILEMAN->GetProfile(PLAYER_1)->m_sGuid;
+	// make the highscore
 	m_player.m_HighScore = FillInHighScore(m_player,
 										   *GAMESTATE->m_pPlayerState,
 										   RANKING_TO_FILL_IN_MARKER,
 										   sPlayerGuid);
 
 	auto& hs = m_player.m_HighScore;
-
-	const Steps* pSteps = GAMESTATE->m_pCurSteps;
-
+	auto* pSteps = GAMESTATE->m_pCurSteps.Get();
 	assert(pSteps != nullptr);
-	auto* const zzz = PROFILEMAN->GetProfile(PLAYER_1);
+
+	// cope with autoplay and replays
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
-		if (PlayerAI::pScoreData != nullptr) {
-			Locator::getLogger()->debug("Determined a Replay is loaded");
-			if (!PlayerAI::pScoreData->GetCopyOfSetOnlineReplayTimestampVector()
+		if (REPLAYS->GetActiveReplayScore() != nullptr) {
+			if (!REPLAYS->GetActiveReplayScore()
+				   ->GetCopyOfSetOnlineReplayTimestampVector()
 				   .empty()) {
+				// it's an online replay
+				Locator::getLogger()->info(
+				  "Online Replay detected - saved nothing");
 				SCOREMAN->tempscoreforonlinereplayviewing =
-				  PlayerAI::pScoreData;
+				  REPLAYS->GetActiveReplayScore();
 				SCOREMAN->tempscoreforonlinereplayviewing->SetRadarValues(
 				  hs.GetRadarValues());
 				SCOREMAN->camefromreplay = true;
-			} else { // dont do this if the replay was from online or bad stuff
-					 // happens -mina
-				mostrecentscorekey = PlayerAI::pScoreData->GetScoreKey();
+			} else {
+				// it's a local replay
+				Locator::getLogger()->info(
+				  "Local Replay detected - saved nothing");
+				mostrecentscorekey = REPLAYS->GetActiveReplay()->GetScoreKey();
 				SCOREMAN->PutScoreAtTheTop(mostrecentscorekey);
 				if (SCOREMAN->GetMostRecentScore() == nullptr)
 					Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
@@ -696,24 +725,35 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 					SCOREMAN->GetMostRecentScore()->SetRadarValues(
 					  hs.GetRadarValues());
 			}
+		} else {
+			// autoplay
+			Locator::getLogger()->info("Autoplay detected - saved nothing");
 		}
-		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+		profile->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 		return;
 	}
 
+	// practice mode
 	if (GAMESTATE->IsPracticeMode()) {
+		Locator::getLogger()->info("Practice detected - saved nothing");
 		SCOREMAN->camefromreplay = true;
 		SCOREMAN->tempscoreforonlinereplayviewing = &hs;
-		zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+		profile->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
 		return;
 	}
-	// new score structure -mina
-	const auto istop2 = SCOREMAN->AddScore(hs);
+
+	// determine topscore flag, add score to profile
+	const auto topScore = SCOREMAN->AddScore(hs);
+
+	// upload score
 	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
 		Locator::getLogger()->info("Uploading score with replaydata");
-		hs.SetTopScore(istop2); // ayy i did it --lurker
-		auto* steps = SONGMAN->GetStepsByChartkey(hs.GetChartKey());
-		auto* td = steps->GetTimingData();
+
+		// topscore is only set for a score eligible to be uploaded
+		hs.SetTopScore(topScore);
+
+		// initial score upload
+		auto* td = pSteps->GetTimingData();
 		hs.timeStamps = td->ConvertReplayNoteRowsToTimestamps(
 		  m_player.GetNoteRowVector(), hs.GetMusicRate());
 		DLMAN->UploadScoreWithReplayData(&hs);
@@ -730,15 +770,21 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 
 		// this _should_ be sound since addscore handles all re-evaluation of
 		// top score flags and the setting of pbptrs
-		DLMAN->UploadScoreWithReplayDataFromDisk(SCOREMAN->GetChartPBAt(
+		auto* pbhs = SCOREMAN->GetChartPBAt(
 		  pSteps->GetChartKey(),
-		  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate));
+		  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+		if (pbhs->GetScoreKey() != hs.GetScoreKey()) {
+			DLMAN->UploadScoreWithReplayDataFromDisk(pbhs);
+		}
 	}
+
+	// tell multiplayer a score was set
 	if (NSMAN->loggedIn) {
 		NSMAN->ReportHighScore(&hs, m_player);
 	}
 
-	if (m_player.m_fWifeScore > 0.F) {
+	// write replays
+	{
 		// replay data (deprecated)
 		hs.WriteReplayData();
 
@@ -746,11 +792,13 @@ StageStats::FinalizeScores(bool /*bSummary*/)
 		hs.WriteInputData();
 	}
 
-	zzz->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
+	profile->SetAnyAchievedGoals(GAMESTATE->m_pCurSteps->GetChartKey(),
 							 GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate,
 							 hs);
 	mostrecentscorekey = hs.GetScoreKey();
-	zzz->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+	profile->m_lastSong.FromSong(GAMESTATE->m_pCurSong);
+
+	// save for real
 	if (m_bLivePlay) {
 		GAMESTATE->SavePlayerProfile();
 	}

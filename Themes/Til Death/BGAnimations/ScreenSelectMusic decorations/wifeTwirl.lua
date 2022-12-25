@@ -336,7 +336,7 @@ local t = Def.ActorFrame {
 	end,
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(110, 94):halign(0):valign(0):diffuse(getMainColor("tabs"))
+			self:xy(frameX, frameY - 146):zoomto(110, 164):halign(0):valign(0):diffuse(getMainColor("tabs"))
 		end
 	},
 	Def.Quad {
@@ -346,7 +346,7 @@ local t = Def.ActorFrame {
 	},
 	Def.Quad {
 		InitCommand = function(self)
-			self:xy(frameX, frameY - 76):zoomto(8, 144):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.6)
+			self:xy(frameX, frameY - 146):zoomto(8, 214):halign(0):valign(0):diffuse(getMainColor("highlight")):diffusealpha(0.6)
 		end
 	},
 }
@@ -650,10 +650,10 @@ t[#t + 1] = Def.ActorFrame {
 		InitCommand = function(self)
 			self:xy(capWideScale(get43size(384), 400) + 62, SCREEN_BOTTOM - 110.5):halign(1):zoom(0.50):maxwidth(50)
 		end,
-		MortyFartsCommand = function(self)
+		MintyFreshCommand = function(self)
 			if song then
 				self:visible(true)
-				self:SetFromSong(song)
+				self:SetFromSteps(steps)
 			else
 				self:visible(false)
 			end
@@ -753,15 +753,17 @@ t[#t + 1] =LoadFont("Common Normal") .. {
 }
 
 -- cdtitle
-t[#t + 1] = Def.Sprite {
+t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	InitCommand = function(self)
-		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255)):halign(0.5):valign(1)
+		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255))
+		self:halign(0.5):valign(1)
 	end,
 	CurrentStyleChangedMessageCommand = function(self)
 		self:playcommand("MortyFarts")
 	end,
 	MortyFartsCommand = function(self)
 		self:finishtweening()
+		self.song = song
 		if song then
 			if song:HasCDTitle() then
 				self:visible(true)
@@ -788,19 +790,52 @@ t[#t + 1] = Def.Sprite {
 		else
 			self:zoom(1)
 		end
+		if isOver(self) then
+			self:playcommand("ToolTip")
+		end
+	end,
+	ToolTipCommand = function(self)
+		if isOver(self) then
+			if self.song and song:HasCDTitle() and self:GetVisible() then
+				local auth = self.song:GetOrTryAtLeastToGetSimfileAuthor()
+				if auth and #auth > 0 and auth ~= "Author Unknown" then
+					TOOLTIP:SetText(auth)
+					TOOLTIP:Show()
+				else
+					TOOLTIP:Hide()
+				end
+			else
+				TOOLTIP:Hide()
+			end
+		end
 	end,
 	ChartPreviewOnMessageCommand = function(self)
 		if not itsOn then
 			self:addx(capWideScale(34, 0))
 			itsOn = true
 		end
+		self:playcommand("ToolTip")
 	end,
 	ChartPreviewOffMessageCommand = function(self)
 		if itsOn then
 			self:addx(capWideScale(-34, 0))
 			itsOn = false
 		end
-	end
+		self:playcommand("ToolTip")
+	end,
+	MouseOverCommand = function(self)
+		self:playcommand("ToolTip")
+	end,
+	MouseOutCommand = function(self)
+		TOOLTIP:Hide()
+	end,
+	MouseDownCommand = function(self, params)
+		-- because this button covers the background
+		if params.event == "DeviceButton_right mouse button" then
+			SCREENMAN:GetTopScreen():PauseSampleMusic()
+			MESSAGEMAN:Broadcast("MusicPauseToggled")
+		end
+	end,
 }
 
 t[#t + 1] = Def.Sprite {
@@ -818,15 +853,19 @@ t[#t + 1] = Def.Sprite {
 	end,
 	ModifyBannerCommand = function(self)
 		self:finishtweening()
-		if song then
+		if song and GAMESTATE:GetCurrentSong() ~= nil then
 			local bnpath = GAMESTATE:GetCurrentSong():GetBannerPath()
-			if not bnpath then
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
 		else
 			local bnpath = SONGMAN:GetSongGroupBannerPath(SCREENMAN:GetTopScreen():GetMusicWheel():GetSelectedSection())
-			if not bnpath or bnpath == "" then
+			if not BannersEnabled() then
+				self:visible(false)
+			elseif not bnpath or bnpath == "" then
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
@@ -837,7 +876,7 @@ t[#t + 1] = Def.Sprite {
 		self:visible(false)
 	end,
 	ChartPreviewOffMessageCommand = function(self)
-		self:visible(true)
+		self:visible(BannersEnabled())
 	end
 }
 local enabledC = "#099948"

@@ -85,6 +85,16 @@ local actuals = {
     ScrollBarHeight = ratios.ScrollBarHeight * SCREEN_HEIGHT,
 }
 
+local translations = {
+    NumberOfSongs = THEME:GetString("ScreenSelectMusic Wheel", "NumberOfSongs"),
+    AverageMSDShort = THEME:GetString("ScreenSelectMusic Wheel", "AverageMSDShort"),
+    AverageMSDLong = THEME:GetString("ScreenSelectMusic Wheel", "AverageMSDLong"),
+    PackClearedUsingDownrates = THEME:GetString("ScreenSelectMusic Wheel", "PackClearedUsingDownrates"),
+    SessionTime = THEME:GetString("ScreenSelectMusic Wheel", "SessionTime"),
+    SessionPlays = THEME:GetString("ScreenSelectMusic Wheel", "SessionPlays"),
+    AverageAccuracy = THEME:GetString("ScreenSelectMusic Wheel", "AverageAccuracy"),
+}
+
 local wheelItemTextSize = 0.62
 local wheelItemGradeTextSize = 1
 local wheelItemTitleTextSize = 0.82
@@ -276,7 +286,7 @@ local t = Def.ActorFrame {
         end
     end,
     OptionUpdatedMessageCommand = function(self, params)
-        if params and params.name == "Music Wheel Banners" then
+        if params and params.name == "Music Wheel Banners" or params.name == "Show Banners" then
             self:playcommand("UpdateWheelBanners")
         end
     end,
@@ -448,7 +458,9 @@ local function songBannerSetter(self, song, isCurrentItem)
     if song then
         local bnpath = song:GetBannerPath()
         -- we load the fallback banner but for aesthetic purpose at the moment, invisible
-        if not bnpath then
+        if not showBanners() then
+            self:visible(false)
+        elseif not bnpath then
             bnpath = THEME:GetPathG("Common", "fallback banner")
             self:visible(false)
         else
@@ -476,7 +488,9 @@ local function groupBannerSetter(self, group, isCurrentItem)
 
     local bnpath = WHEELDATA:GetFolderBanner(group)
     -- we load the fallback banner but for aesthetic purpose at the moment, invisible
-    if not bnpath or bnpath == "" then
+    if not showBanners() then
+        self:visible(false)
+    elseif not bnpath or bnpath == "" then
         bnpath = THEME:GetPathG("Common", "fallback banner")
         self:visible(false)
     else
@@ -1003,7 +1017,7 @@ local function groupActorBuilder()
             end,
             UpdateTextCommand = function(self)
                 self:visible(not WHEELDATA:inSortModeMenu())
-                self:settextf("%d Songs (Avg %5.2f)", self.count, self.avg)
+                self:settextf("%d %s (%s %5.2f)", self.count, translations["NumberOfSongs"], translations["AverageMSDShort"], self.avg)
             end,
             SetPositionCommand = function(self)
                 if getWheelPosition() then
@@ -1057,7 +1071,7 @@ local function groupActorBuilder()
                         lstr = THEME:GetString("Grade", self.lamp:sub(#"Grade_T"))
                         self:diffuse(colorByGrade(self.lamp))
                     else
-                        lstr = "Clear"
+                        lstr = translations["PackClearedUsingDownrates"]
                         -- color for a clear
                         self:diffuse(colorByClearType("Clear"))
                     end
@@ -1483,7 +1497,9 @@ t[#t+1] = Def.ActorFrame {
             end,
             SetCommand = function(self)
                 local bnpath = WHEELDATA:GetFolderBanner(openedGroup)
-                if not bnpath or bnpath == "" then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath or bnpath == "" then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else
@@ -1494,6 +1510,8 @@ t[#t+1] = Def.ActorFrame {
             OptionUpdatedMessageCommand = function(self, params)
                 if params and params.name == "Video Banners" then
                     self:SetDecodeMovie(useVideoBanners())
+                elseif params and params.name == "Show Banners" then
+                    self:playcommand("Set")
                 end
             end,
         },
@@ -1524,7 +1542,7 @@ t[#t+1] = Def.ActorFrame {
             SetCommand = function(self)
                 local files = WHEELDATA:GetFolderCount(openedGroup)
                 local avg = WHEELDATA:GetFolderAverageDifficulty(openedGroup)[1]
-                self:settextf("%d Songs (Average MSD: %5.2f)", files, avg)
+                self:settextf("%d %s (%s: %5.2f)", files, translations["NumberOfSongs"], translations["AverageMSDLong"], avg)
             end
         }
     },
@@ -1563,7 +1581,7 @@ t[#t+1] = Def.ActorFrame {
             end,
             SetCommand = function(self)
                 local sesstime = GAMESTATE:GetSessionTime()
-                self:settextf("Session Time: %s", SecondsToHHMMSS(sesstime))
+                self:settextf("%s: %s", translations["SessionTime"], SecondsToHHMMSS(sesstime))
             end
         },
         LoadFont("Common Normal") .. {
@@ -1577,7 +1595,7 @@ t[#t+1] = Def.ActorFrame {
                 registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             SetCommand = function(self)
-                self:settextf("Session Plays: %d", playsThisSession)
+                self:settextf("%s: %d", translations["SessionPlays"], playsThisSession)
             end
         },
         LoadFont("Common Normal") .. {
@@ -1591,7 +1609,7 @@ t[#t+1] = Def.ActorFrame {
                 registerActorToColorConfigElement(self, "main", "PrimaryText")
             end,
             SetCommand = function(self)
-                self:settextf("Average Accuracy: %5.2f%%", accThisSession)
+                self:settextf("%s: %5.2f%%", translations["AverageAccuracy"], accThisSession)
             end
         },
         Def.ActorFrame {

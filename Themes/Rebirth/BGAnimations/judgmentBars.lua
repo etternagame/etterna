@@ -49,6 +49,12 @@ local function makeJudgment(i)
             self:y((((i-1) * sizing.JudgmentBarHeight + (i-1) * sizing.JudgmentBarSpacing) / sizing.JudgmentBarAllottedSpace) * sizing.JudgmentBarAllottedSpace)
         end,
         SetCommand = function(self, params)
+            if params.usingCustomWindows then
+                local lastSnapshot = REPLAYS:GetActiveReplay():GetLastReplaySnapshot()
+                count = lastSnapshot:GetJudgments()[jdg:gsub("TapNoteScore_", "")]
+                return
+            end
+
             if params.score ~= nil then
                 if params.judgeSetting ~= nil and params.score:HasReplayData() then
                     count = getRescoredJudge(params.score:GetOffsetVector(), params.judgeSetting, i)
@@ -99,6 +105,13 @@ local function makeJudgment(i)
                 self:maxwidth((sizing.JudgmentBarLength - sizing.JudgmentNameLeftGap - sizing.JudgmentCountRightGap - judgmentCountPercentBump) / 4 * 3 / judgmentTextZoom)
                 self:settext(getJudgeStrings(ms.JudgeCount[i]))
                 registerActorToColorConfigElement(self, "judgment", "TextOverBars")
+            end,
+            SetCommand = function(self, params)
+                if params and params.usingCustomWindows then
+                    self:settext(getCustomWindowConfigJudgmentName(jdg))
+                else
+                    self:settext(getJudgeStrings(ms.JudgeCount[i]))
+                end
             end
         },
         Def.RollingNumbers {

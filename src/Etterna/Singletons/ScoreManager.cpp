@@ -1,6 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
@@ -430,7 +430,6 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 					" scores");
 	}
 	auto onePercent = std::max(static_cast<int>(scores.size() / 100 * 5), 1);
-	auto scoreindex = 0;
 
 	mutex songVectorPtrMutex;
 	std::vector<std::uintptr_t> currentlyLockedSongs;
@@ -443,8 +442,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		  currentlyLockedSongs; // Vector of currently locked songs
 		std::uintptr_t song;	// The song for this lock
 		SongLock(std::vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
-		  : currentlyLockedSongs(vec)
-		  , songVectorPtrMutex(mut)
+		  : songVectorPtrMutex(mut)
+		  , currentlyLockedSongs(vec)
 		  , song(k)
 		{
 			auto active = true;
@@ -529,6 +528,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				// this function handles skip logic if not necessary
 				hs->NormalizeJudgments();
 
+				// rescore wife2 to wife3 for eligible scores
 				auto remarried = false;
 				if (hs->GetWifeVersion() != 3 && !hs->GetChordCohesion() &&
 					hs->HasReplayData()) {
@@ -541,8 +541,13 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 					  hs->RescoreToWife3(static_cast<float>(maxpoints));
 				}
 
-				// don't waste time on <= 0%s
-				if (ssrpercent <= 0.f || !steps->IsRecalcValid()) {
+				// don't waste time on <= 0%s or > 100%s
+				if (ssrpercent <= 0.f || ssrpercent > 1.f || !steps->IsRecalcValid()) {
+					if (ssrpercent > 1.f) {
+						hs->SetSSRNormPercent(0.f);
+						hs->SetWifeScore(0.f);
+						hs->SetGrade(Grade_Failed);
+					}
 					hs->ResetSkillsets();
 					continue;
 				}
@@ -621,10 +626,11 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				totalscorenotes += hs->GetTapNoteScore(TNS_Miss);
 
 				if (totalstepsnotes == totalscorenotes) {
-					hs->SetChordCohesion(1); // the set function isn't inverted
+					// the set function isn't inverted
+					// but the get function is, this
+					// sets bnochordcohesion to 1
+					hs->SetChordCohesion(1);
 				}
-				// but the get function is, this
-				// sets bnochordcohesion to 1
 			}
 		};
 	auto onUpdate = [ld](int progress) {
@@ -659,8 +665,8 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 		  currentlyLockedSongs; // Vector of currently locked songs
 		std::uintptr_t song;	// The song for this lock
 		SongLock(std::vector<std::uintptr_t>& vec, mutex& mut, std::uintptr_t k)
-		  : currentlyLockedSongs(vec)
-		  , songVectorPtrMutex(mut)
+		  : songVectorPtrMutex(mut)
+		  , currentlyLockedSongs(vec)
 		  , song(k)
 		{
 			auto active = true;
@@ -793,12 +799,12 @@ ScoreManager::CalcPlayerRating(float& prating,
 		}
 
 		std::vector<float> ssrs = SortTopSSRPtrs(ss, profileID, true);
-		pskillsets[ss] = aggregate_skill(ssrs, 0.1, 1.05, 0.0, 10.24);
+		pskillsets[ss] = aggregate_skill(ssrs, 0.1L, (float)1.05, 0.0, (float)10.24);
 		CLAMP(pskillsets[ss], 0.F, 100.F);
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = aggregate_skill(skillz, 0.1, 1.125, 0.0, 10.24);
+	prating = aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
 	pskillsets[Skill_Overall] = prating;
 }
 
@@ -895,11 +901,11 @@ ScoreManager::GetPlayerRatingOverTime(const std::string& profileID) {
 				  }
 
 				  std::vector<float> ssrs = ssrsInUse[ss];
-				  skillz[ss] = aggregate_skill(ssrs, 0.1, 1.05, 0.0, 10.24);
+				  skillz[ss] = aggregate_skill(ssrs, 0.1L, (float)1.05, 0.0, (float)10.24);
 				  CLAMP(skillz[ss], 0.F, 100.F);
 			  }
 			  skillz[Skill_Overall] =
-				aggregate_skill(skillz, 0.1, 1.125, 0.0, 10.24);
+				aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
 			  ssrsByDate.emplace(date, skillz);
 		  }
 	  };
@@ -1198,6 +1204,20 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		  scores[sk].IsEmptyNormalized() &&
 		  (scores[sk].HasReplayData() || scores[sk].GetJudgeScale() == 1.F);
 
+		// oops (adding this to the recalc list will reset the score to 0)
+		const auto broke = scores[sk].GetSSRNormPercent() > 1.F ||
+						   scores[sk].GetWifeScore() > 1.F;
+
+		// for debugging replay stuff. probably never uncomment this.
+		/*
+		if (SONGMAN->IsChartLoaded(ck) && scores[sk].HasReplayData()) {
+			if (scores[sk].GetWifeGrade() != Grade_Failed) {
+				scores[sk].replay->VerifyInputDataAndReplayData();
+				scores[sk].replay->VerifyGeneratedInputDataMatchesReplayData();
+			}
+		}
+		*/
+
 		/* technically we don't need to have charts loaded to rescore to
 		 * wife3, however trying to do this might be quite a bit of work (it
 		 * would require making a new lambda loop) and while it would be
@@ -1205,7 +1225,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * and while it sort of makes sense from a user convenience aspect
 		 * to allow this, it definitely does not make sense from a clarity
 		 * or consistency perspective */
-		if ((oldcalc || getremarried || notnormalized) && SONGMAN->IsChartLoaded(ck)) {
+		if ((oldcalc || getremarried || notnormalized || broke) && SONGMAN->IsChartLoaded(ck)) {
 			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
 		}
 	}

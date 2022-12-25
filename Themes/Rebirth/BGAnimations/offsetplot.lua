@@ -11,8 +11,21 @@ if extraFeatures == nil then extraFeatures = false end
 -- all elements are placed relative to default valign - 0 halign
 -- this means relatively to center vertically and relative to the left end horizontally
 
+local translations = {
+    StandardDeviation = THEME:GetString("OffsetPlot", "StandardDeviation"),
+    Mean = THEME:GetString("OffsetPlot", "Mean"),
+    Time = THEME:GetString("OffsetPlot", "Time"),
+    Milliseconds = THEME:GetString("OffsetPlot", "Milliseconds"),
+    Late = THEME:GetString("OffsetPlot", "Late"),
+    Early = THEME:GetString("OffsetPlot", "Early"),
+    Instructions = THEME:GetString("OffsetPlot", "Instructions"),
+    CurrentColumnHighlights = THEME:GetString("OffsetPlot", "CurrentColumnHighlights"),
+    OffsetWarning = THEME:GetString("OffsetPlot", "UsingReprioritized"),
+}
+
 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or GetTimingDifficulty())
 local timingScale = ms.JudgeScalers[judgeSetting]
+local usingCustomWindows = false
 
 -- cap the graph to this
 local maxOffset = 180
@@ -195,7 +208,7 @@ local t = Def.ActorFrame {
             if isOver(bg) then
                 local top = SCREENMAN:GetTopScreen()
                 -- dont break if it will break (we can only do this from the eval screen)
-                if not top.GetReplaySnapshotJudgmentsForNoterow or not top.GetReplaySnapshotWifePercentForNoterow then
+                if not top.RescoreReplay then
                     return
                 end
 
@@ -208,32 +221,34 @@ local t = Def.ActorFrame {
                 local lastsec = GAMESTATE:GetCurrentSteps():GetLastSecond()
                 local row = td:GetBeatFromElapsedTime(percent * lastsec) * 48
 
-                local judgments = top:GetReplaySnapshotJudgmentsForNoterow(row)
-                local wifescore = top:GetReplaySnapshotWifePercentForNoterow(row) * 100
+                local replay = REPLAYS:GetActiveReplay()
+                local snapshot = replay:GetReplaySnapshotForNoterow(row)
+                local judgments = snapshot:GetJudgments()
+                local wifescore = snapshot:GetWifePercent() * 100
                 local time = SecondsToHHMMSS(td:GetElapsedTimeFromNoteRow(row))
-                local mean = top:GetReplaySnapshotMeanForNoterow(row)
-                local sd = top:GetReplaySnapshotSDForNoterow(row)
+                local mean = snapshot:GetMean()
+                local sd = snapshot:GetStandardDeviation()
 
-                local marvCount = judgments[10]
-                local perfCount = judgments[9]
-                local greatCount = judgments[8]
-                local goodCount = judgments[7]
-                local badCount = judgments[6]
-                local missCount = judgments[5]
+                local marvCount = judgments["W1"]
+                local perfCount = judgments["W2"]
+                local greatCount = judgments["W3"]
+                local goodCount = judgments["W4"]
+                local badCount = judgments["W5"]
+                local missCount = judgments["Miss"]
 
                 -- excessively long string format for translation support
                 local txt = string.format(
-                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2fms\n%s: %0.2fms\n%s: %s",
+                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2f%s\n%s: %0.2f%s\n%s: %s",
                     wifescore,
-                    "Marvelous", marvCount,
-                    "Perfect", perfCount,
-                    "Great", greatCount,
-                    "Good", goodCount,
-                    "Bad", badCount,
-                    "Miss", missCount,
-                    "Std. Dev", sd,
-                    "Mean", mean,
-                    "Time", time
+                    getJudgeStrings("TapNoteScore_W1"), marvCount,
+                    getJudgeStrings("TapNoteScore_W2"), perfCount,
+                    getJudgeStrings("TapNoteScore_W3"), greatCount,
+                    getJudgeStrings("TapNoteScore_W4"), goodCount,
+                    getJudgeStrings("TapNoteScore_W5"), badCount,
+                    getJudgeStrings("TapNoteScore_Miss"), missCount,
+                    translations["StandardDeviation"], sd, translations["Milliseconds"],
+                    translations["Mean"], mean, translations["Milliseconds"],
+                    translations["Time"], time
                 )
 
                 local mp = self:GetChild("MousePosition")
@@ -346,6 +361,7 @@ for i, j in ipairs(barJudgments) do
             self:finishtweening()
             self:smooth(resizeAnimationSeconds)
             local window = ms.getLowerWindowForJudgment(j, timingScale)
+            if usingCustomWindows then window = getCustomWindowConfigJudgmentWindowLowerBound(j) end
             self:y(fitY(window, maxOffset))
             self:zoomto(sizing.Width, lineThickness)
         end
@@ -363,6 +379,7 @@ for i, j in ipairs(barJudgments) do
             self:finishtweening()
             self:smooth(resizeAnimationSeconds)
             local window = ms.getLowerWindowForJudgment(j, timingScale)
+            if usingCustomWindows then window = getCustomWindowConfigJudgmentWindowLowerBound(j) end
             self:y(fitY(-window, maxOffset))
             self:zoomto(sizing.Width, lineThickness)
         end
@@ -383,7 +400,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:smooth(resizeAnimationSeconds)
         local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
         self:xy(textPadding, textPadding)
-        self:settextf("Late (+%dms)", bound)
+        self:settextf("%s (+%d%s)", translations["Late"], bound, translations["Milliseconds"])
     end
 }
 
@@ -401,7 +418,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
         self:smooth(resizeAnimationSeconds)
         local bound = ms.getUpperWindowForJudgment(barJudgments[#barJudgments], timingScale)
         self:xy(textPadding, sizing.Height - textPadding)
-        self:settextf("Early (-%dms)", bound)
+        self:settextf("%s (-%d%s)", translations["Early"], bound, translations["Milliseconds"])
     end
 }
 
@@ -432,9 +449,29 @@ t[#t+1] = LoadFont("Common Normal") .. {
             end
             cols[#cols] = nil
             cols = table.concat(cols)
-            self:settextf("Up/Down for column highlights (Now: %s)", cols)
+            self:settextf("%s (%s: %s)", translations["Instructions"], translations["CurrentColumnHighlights"], cols)
         end
     end
+}
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "OffsetWarningText",
+    InitCommand = function(self)
+        self:valign(0)
+        self:zoom(instructionTextSize)
+        self:settext(translations["OffsetWarning"])
+        registerActorToColorConfigElement(self, "offsetPlot", "Text")
+        self:playcommand("UpdateSizing")
+        self:finishtweening()
+    end,
+    UpdateSizingCommand = function(self)
+        self:visible(usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
+
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
+        self:xy(sizing.Width / 2, textPadding)
+        self:maxwidth((sizing.Width - self:GetParent():GetChild("LateText"):GetZoomedWidth() * 2) / instructionTextSize - textPadding)
+    end,
 }
 
 -- keeping track of stuff for persistence dont look at this
@@ -462,6 +499,8 @@ t[#t+1] = Def.ActorMultiVertex {
         self:queuecommand("DrawOffsets")
     end,
     LoadOffsetsCommand = function(self, params)
+        usingCustomWindows = params.usingCustomWindows or false
+
         -- makes sure all sizes are updated
         self:GetParent():playcommand("UpdateSizing", params)
 
@@ -520,6 +559,9 @@ t[#t+1] = Def.ActorMultiVertex {
             if types[i] ~= "TapNoteType_Mine" then
                 -- handle highlighting logic
                 local dotColor = colorByTapOffset(offset, timingScale)
+                if usingCustomWindows then
+                    dotColor = colorByTapOffsetCustomWindow(offset, getCurrentCustomWindowConfigJudgmentWindowTable())
+                end
                 if not columnIsHighlighted(column) then
                     dotColor[4] = unHighlightedAlpha
                 end

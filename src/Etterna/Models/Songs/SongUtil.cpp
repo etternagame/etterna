@@ -64,7 +64,7 @@ SongUtil::GetSteps(const Song* pSong,
 		if (uHash != 0 && uHash != pSteps->GetHash())
 			continue;
 
-		if (FILTERMAN != nullptr && FILTERMAN->AnyActiveFilter()) {
+		if (filteringSteps && FILTERMAN != nullptr && FILTERMAN->AnyActiveFilter()) {
 			// iterating over all rates until it just works
 			// explanation in MusicWheel::FilterBySkillsets
 			auto success = false;
@@ -439,8 +439,8 @@ static bool
 CompareSongPointersByBPM(const Song* pSong1, const Song* pSong2)
 {
 	DisplayBpms bpms1, bpms2;
-	pSong1->GetDisplayBpms(bpms1);
-	pSong2->GetDisplayBpms(bpms2);
+	pSong1->GetDisplayBpms(bpms1, true);
+	pSong2->GetDisplayBpms(bpms2, true);
 
 	if (bpms1.GetMax() < bpms2.GetMax())
 		return true;
@@ -715,7 +715,7 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			if (SHOW_SECTIONS_IN_BPM_SORT) {
 				const int iBPMGroupSize = SORT_BPM_DIVISION;
 				DisplayBpms bpms;
-				pSong->GetDisplayBpms(bpms);
+				pSong->GetDisplayBpms(bpms, true);
 				auto iMaxBPM = static_cast<int>(bpms.GetMax());
 				iMaxBPM += iBPMGroupSize - (iMaxBPM % iBPMGroupSize) - 1;
 				return ssprintf(

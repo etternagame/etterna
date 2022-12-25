@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -26,12 +26,14 @@
 
 #if !defined(CURL_DISABLE_HTTP_AUTH) || defined(USE_SSH) || \
   !defined(CURL_DISABLE_LDAP) || \
+  !defined(CURL_DISABLE_SMTP) || \
+  !defined(CURL_DISABLE_POP3) || \
+  !defined(CURL_DISABLE_IMAP) || \
   !defined(CURL_DISABLE_DOH) || defined(USE_SSL)
 
 #include "urldata.h" /* for the Curl_easy definition */
 #include "warnless.h"
 #include "curl_base64.h"
-#include "non-ascii.h"
 
 /* The last 3 #include files should be in this order */
 #include "curl_printf.h"
@@ -173,19 +175,15 @@ CURLcode Curl_base64_decode(const char *src,
 }
 
 static CURLcode base64_encode(const char *table64,
-                              struct Curl_easy *data,
                               const char *inputbuff, size_t insize,
                               char **outptr, size_t *outlen)
 {
-  CURLcode result;
   unsigned char ibuf[3];
   unsigned char obuf[4];
   int i;
   int inputparts;
   char *output;
   char *base64data;
-  char *convbuf = NULL;
-
   const char *indata = inputbuff;
 
   *outptr = NULL;
@@ -202,20 +200,6 @@ static CURLcode base64_encode(const char *table64,
   base64data = output = malloc(insize * 4 / 3 + 4);
   if(!output)
     return CURLE_OUT_OF_MEMORY;
-
-  /*
-   * The base64 data needs to be created using the network encoding
-   * not the host encoding.  And we can't change the actual input
-   * so we copy it to a buffer, translate it, and use that instead.
-   */
-  result = Curl_convert_clone(data, indata, insize, &convbuf);
-  if(result) {
-    free(output);
-    return result;
-  }
-
-  if(convbuf)
-    indata = (char *)convbuf;
 
   while(insize > 0) {
     for(i = inputparts = 0; i < 3; i++) {
@@ -267,10 +251,8 @@ static CURLcode base64_encode(const char *table64,
   /* Return the pointer to the new data (allocated memory) */
   *outptr = base64data;
 
-  free(convbuf);
-
   /* Return the length of the new data */
-  *outlen = strlen(base64data);
+  *outlen = output - base64data;
 
   return CURLE_OK;
 }
@@ -292,11 +274,10 @@ static CURLcode base64_encode(const char *table64,
  *
  * @unittest: 1302
  */
-CURLcode Curl_base64_encode(struct Curl_easy *data,
-                            const char *inputbuff, size_t insize,
+CURLcode Curl_base64_encode(const char *inputbuff, size_t insize,
                             char **outptr, size_t *outlen)
 {
-  return base64_encode(base64, data, inputbuff, insize, outptr, outlen);
+  return base64_encode(base64, inputbuff, insize, outptr, outlen);
 }
 
 /*
@@ -316,11 +297,10 @@ CURLcode Curl_base64_encode(struct Curl_easy *data,
  *
  * @unittest: 1302
  */
-CURLcode Curl_base64url_encode(struct Curl_easy *data,
-                               const char *inputbuff, size_t insize,
+CURLcode Curl_base64url_encode(const char *inputbuff, size_t insize,
                                char **outptr, size_t *outlen)
 {
-  return base64_encode(base64url, data, inputbuff, insize, outptr, outlen);
+  return base64_encode(base64url, inputbuff, insize, outptr, outlen);
 }
 
 #endif /* no users so disabled */

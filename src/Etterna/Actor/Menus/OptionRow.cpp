@@ -215,7 +215,7 @@ OptionRow::GetRowTitle() const
 			DisplayBpms bpms;
 			if (GAMESTATE->m_pCurSong) {
 				const Song* pSong = GAMESTATE->m_pCurSong;
-				pSong->GetDisplayBpms(bpms);
+				pSong->GetDisplayBpms(bpms, false);
 			}
 
 			if (bpms.IsSecret())
@@ -400,15 +400,6 @@ OptionRow::AfterImportOptions(PlayerNumber pn)
 		for (auto& c : m_Underline)
 			c->SetVisible(false);
 
-	// Make all selections the same if bOneChoiceForAllPlayers.
-	// Hack: we only import active players, so if only player 2 is imported,
-	// we need to copy p2 to p1, not p1 to p2.
-	if (m_pHand->m_Def.m_bOneChoiceForAllPlayers) {
-		PlayerNumber pnCopyFrom = GAMESTATE->GetMasterPlayerNumber();
-		if (GAMESTATE->GetMasterPlayerNumber() == PLAYER_INVALID)
-			pnCopyFrom = PLAYER_1;
-	}
-
 	switch (m_pHand->m_Def.m_selectType) {
 		case SELECT_ONE: {
 			// Make sure the row actually has a selection.
@@ -433,9 +424,6 @@ OptionRow::PositionUnderlines(PlayerNumber pn)
 	std::vector<OptionsCursor*>& vpUnderlines = m_Underline;
 	if (vpUnderlines.empty())
 		return;
-
-	PlayerNumber pnTakeSelectedFrom =
-	  m_pHand->m_Def.m_bOneChoiceForAllPlayers ? PLAYER_1 : pn;
 
 	for (int i = 0; i < static_cast<int>(vpUnderlines.size()); i++) {
 		OptionsCursor& ul = *vpUnderlines[i];
@@ -532,7 +520,7 @@ OptionRow::SetDestination(Actor::TweenState& ts, bool bTween)
 {
 	if (m_Frame.DestTweenState() != ts) {
 		m_Frame.StopTweening();
-		if (bTween && m_pParentType->TWEEN_SECONDS != 0)
+		if (bTween && m_pParentType->TWEEN_SECONDS != 0.0f)
 			m_Frame.BeginTweening(m_pParentType->TWEEN_SECONDS);
 		m_Frame.DestTweenState() = ts;
 	}
@@ -543,9 +531,6 @@ OptionRow::UpdateEnabledDisabled()
 {
 	bool bThisRowHasFocusByAny = false;
 	bThisRowHasFocusByAny |= static_cast<int>(m_bRowHasFocus);
-
-	bool bThisRowHasFocusByAll = true;
-	bThisRowHasFocusByAll &= static_cast<int>(m_bRowHasFocus);
 
 	bool bRowEnabled = !m_pHand->m_Def.m_vEnabledForPlayers.empty();
 
@@ -570,18 +555,6 @@ OptionRow::UpdateEnabledDisabled()
 	m_textTitle->PlayCommand(sCmdName);
 
 	for (unsigned j = 0; j < m_textItems.size(); j++) {
-		bool bThisItemHasFocusByAny = false;
-		if (m_bRowHasFocus) {
-			if (static_cast<int>(j) == GetChoiceInRowWithFocus()) {
-				bThisItemHasFocusByAny = true;
-				break;
-			}
-		}
-
-		// Logically dead code
-		// if (bThisItemHasFocusByAny)
-		//	m_textItems[j]->PlayCommand("GainFocus");
-		// else
 		m_textItems[j]->PlayCommand("LoseFocus");
 	}
 
@@ -905,8 +878,6 @@ OptionRow::ImportOptions(const PlayerNumber& vpns)
 {
 	ASSERT(!m_pHand->m_Def.m_vsChoices.empty());
 
-	PlayerNumber p = PLAYER_1;
-
 	FOREACH(bool, m_vbSelected, b)
 	*b = false;
 
@@ -926,8 +897,6 @@ OptionRow::ExportOptions(const PlayerNumber& vpns, bool bRowHasFocus)
 	ASSERT(!m_pHand->m_Def.m_vsChoices.empty());
 
 	int iChangeMask = 0;
-
-	PlayerNumber p = PLAYER_1;
 	const bool bFocus = bRowHasFocus;
 
 	VerifySelected(

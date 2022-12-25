@@ -1,4 +1,4 @@
-﻿/* OptionsBinding - little helpers so that SongOptions and PlayerOptions can
+/* OptionsBinding - little helpers so that SongOptions and PlayerOptions can
  * more easily have similar interfaces. */
 
 // No .cpp file because it's just some #defines, and not in a makefile because
@@ -32,6 +32,37 @@
 			p->m_f##member = v;                                                \
 		}                                                                      \
 		if (original_top >= 2 && lua_isnumber(L, 2)) {                         \
+			p->m_Speedf##member = FArgGTEZero(L, 2);                           \
+		}                                                                      \
+		OPTIONAL_RETURN_SELF(original_top);                                    \
+		return 2;                                                              \
+	}
+#define SECFLOAT_INTERFACE(func_name, member, valid)                           \
+	static int func_name(T* p, lua_State* L)                                   \
+	{                                                                          \
+		int original_top = lua_gettop(L);                                      \
+		lua_pushnumber(L, p->m_f##member);                                     \
+		lua_pushnumber(L, p->m_Speedf##member);                                \
+		if (lua_isnumber(L, 1) && original_top >= 1) {                         \
+			if (DLMAN->gameplay) {                                             \
+				Locator::getLogger()->warn(                                    \
+				  "Attempted to set mod illegally - {}", #member);             \
+				OPTIONAL_RETURN_SELF(original_top);                            \
+				return 1;                                                      \
+			}																   \
+			float v = FArg(1);                                                 \
+			if (!valid) {                                                      \
+				luaL_error(L, "Invalid value %f", v);                          \
+			}                                                                  \
+			p->m_f##member = v;                                                \
+		}                                                                      \
+		if (original_top >= 2 && lua_isnumber(L, 2)) {                         \
+			if (DLMAN->gameplay) {                                             \
+				Locator::getLogger()->warn(                                    \
+				  "Attempted to set mod illegally - {}", #member);             \
+				OPTIONAL_RETURN_SELF(original_top);                            \
+				return 1;                                                      \
+			}																   \
 			p->m_Speedf##member = FArgGTEZero(L, 2);                           \
 		}                                                                      \
 		OPTIONAL_RETURN_SELF(original_top);                                    \
@@ -79,12 +110,49 @@
 		}                                                                      \
 		return 1;                                                              \
 	}
+#define SECBOOL_INTERFACE(func_name, member)                                   \
+	static int func_name(T* p, lua_State* L)                                   \
+	{                                                                          \
+		int original_top = lua_gettop(L);                                      \
+		lua_pushboolean(L, p->m_b##member);									   \
+		if (lua_isboolean(L, 1) && original_top >= 1) {                        \
+			if (DLMAN->gameplay) {                                             \
+				Locator::getLogger()->warn(                                    \
+				  "Attempted to set mod illegally - {}", #member);             \
+				p->PushSelf(L);                                                \
+				return 1;                                                      \
+			}																   \
+			p->m_b##member = BArg(1);                                          \
+		}                                                                      \
+		if (original_top >= 2 && lua_isboolean(L, 2)) {                        \
+			p->PushSelf(L);                                                    \
+			return 1;                                                          \
+		}                                                                      \
+		return 1;                                                              \
+	}
 #define ENUM_INTERFACE(func_name, member, enum_name)                           \
 	static int func_name(T* p, lua_State* L)                                   \
 	{                                                                          \
 		int original_top = lua_gettop(L);                                      \
 		Enum::Push(L, p->m_##member);                                          \
 		if (!lua_isnil(L, 1) && original_top >= 1) {                           \
+			p->m_##member = Enum::Check<enum_name>(L, 1);                      \
+		}                                                                      \
+		OPTIONAL_RETURN_SELF(original_top);                                    \
+		return 1;                                                              \
+	}
+#define SECENUM_INTERFACE(func_name, member, enum_name)                        \
+	static int func_name(T* p, lua_State* L)                                   \
+	{                                                                          \
+		int original_top = lua_gettop(L);                                      \
+		Enum::Push(L, p->m_##member);                                          \
+		if (!lua_isnil(L, 1) && original_top >= 1) {                           \
+			if (DLMAN->gameplay) {                                             \
+				Locator::getLogger()->warn(                                    \
+				  "Attempted to set mod illegally - {}", #enum_name);          \
+				p->PushSelf(L);                                                \
+				return 1;                                                      \
+			}																   \
 			p->m_##member = Enum::Check<enum_name>(L, 1);                      \
 		}                                                                      \
 		OPTIONAL_RETURN_SELF(original_top);                                    \

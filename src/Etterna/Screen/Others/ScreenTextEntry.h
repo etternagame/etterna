@@ -173,6 +173,7 @@ class ScreenTextEntry : public ScreenWithMenuElements
 
 	static bool s_bMustResetInputRedirAtClose;
 	static bool s_bResetInputRedirTo;
+	virtual void End(bool bCancelled);
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -182,7 +183,6 @@ class ScreenTextEntry : public ScreenWithMenuElements
 	void BackspaceInAnswer();
 	virtual void TextEnteredDirectly() {}
 
-	virtual void End(bool bCancelled);
 
   private:
 	bool MenuStart(const InputEventPlus& input) override;

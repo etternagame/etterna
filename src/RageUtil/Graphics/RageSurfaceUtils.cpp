@@ -251,7 +251,7 @@ RageSurfaceUtils::GetAverageRGB(const RageSurface* img, unsigned pixelIncrement)
 	if (pixelCount <= 0)
 		return RageColor(0,0,0,1.F);
 	
-	return RageColor(rt / pixelCount / 255.F, gt / pixelCount / 255.F, gt / pixelCount / 255.F, 1.F);
+	return RageColor(rt / pixelCount / 255.F, gt / pixelCount / 255.F, bt / pixelCount / 255.F, 1.F);
 }
 
 // Local helper for FixHiddenAlpha.

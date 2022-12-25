@@ -119,8 +119,20 @@ if playerConfig:get_data().BPMDisplay then
     t[#t+1] = LoadActor("bpmdisplay")
 end
 
+if playerConfig:get_data().DisplayEWMA then
+    t[#t+1] = LoadActor("displayewma")
+end
+
+if playerConfig:get_data().DisplayMean then
+    t[#t+1] = LoadActor("displaymean")
+end
+
 if playerConfig:get_data().DisplayPercent then
     t[#t+1] = LoadActor("displaypercent")
+end
+
+if playerConfig:get_data().DisplayStdDev then
+    t[#t+1] = LoadActor("displaystddev")
 end
 
 if playerConfig:get_data().ErrorBar ~= 0 then
@@ -138,12 +150,8 @@ end
 -- lane cover is in Graphics/NoteField cover.lua
 
 if (NSMAN:IsETTP() and Var("LoadingScreen"):find("Net") ~= nil) or
-(playerConfig:get_data().leaderboardEnabled and DLMAN:IsLoggedIn()) then
+(playerConfig:get_data().Leaderboard == 1 and DLMAN:IsLoggedIn()) or (playerConfig:get_data().Leaderboard == 2) then
     t[#t+1] = LoadActor("leaderboard")
-end
-
-if playerConfig:get_data().DisplayMean then
-    t[#t+1] = LoadActor("meandisplay")
 end
 
 if playerConfig:get_data().MeasureCounter then

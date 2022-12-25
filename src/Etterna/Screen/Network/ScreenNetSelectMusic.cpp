@@ -199,8 +199,6 @@ ScreenNetSelectMusic::~ScreenNetSelectMusic()
 bool
 ScreenNetSelectMusic::MenuLeft(const InputEventPlus& input)
 {
-	PlayerNumber pn = input.pn;
-
 	m_MusicWheel.Move(-1);
 	return true;
 }
@@ -208,8 +206,6 @@ ScreenNetSelectMusic::MenuLeft(const InputEventPlus& input)
 bool
 ScreenNetSelectMusic::MenuRight(const InputEventPlus& input)
 {
-	PlayerNumber pn = input.pn;
-
 	m_MusicWheel.Move(+1);
 	return true;
 }

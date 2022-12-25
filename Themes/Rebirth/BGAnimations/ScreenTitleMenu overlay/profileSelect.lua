@@ -59,6 +59,18 @@ local actuals = {
     OfflineUpperGap = ratios.OfflineUpperGap * SCREEN_HEIGHT,
 }
 
+local translations = {
+    Plays = THEME:GetString("ScreenTitleMenu", "Plays"),
+    ArrowsSmashed = THEME:GetString("ScreenTitleMenu", "ArrowsSmashed"),
+    Playtime = THEME:GetString("ScreenTitleMenu", "Playtime"),
+    PlayerRatings = THEME:GetString("ScreenTitleMenu", "PlayerRatings"),
+    OnlineRating = THEME:GetString("ScreenTitleMenu", "OnlineRating"),
+    OfflineRating = THEME:GetString("ScreenTitleMenu", "OfflineRating"),
+    MakeFirstProfileQuestion = THEME:GetString("ScreenTitleMenu", "MakeFirstProfileQuestion"),
+    MakeProfileError = THEME:GetString("ScreenTitleMenu", "MakeProfileError"),
+    SelectProfile = THEME:GetString("ScreenTitleMenu", "SelectProfile"),
+}
+
 local profileIDs = PROFILEMAN:GetLocalProfileIDs()
 local renameNewProfile = false
 local focused = false
@@ -355,7 +367,7 @@ local function generateItems()
                     SetCommand = function(self)
                         if profile then
                             local scores = profile:GetTotalNumSongsPlayed()
-                            self:settextf("%d plays", scores)
+                            self:settextf("%d %s", scores, translations["Plays"])
                         end
                     end
                 },
@@ -373,7 +385,7 @@ local function generateItems()
                     SetCommand = function(self)
                         if profile then
                             local taps = profile:GetTotalTapsAndHolds()
-                            self:settextf("%d arrows smashed", taps)
+                            self:settextf("%d %s", taps, translations["ArrowsSmashed"])
                         end
                     end
                 },
@@ -391,7 +403,7 @@ local function generateItems()
                     SetCommand = function(self)
                         if profile then
                             local secs = profile:GetTotalSessionSeconds()
-                            self:settextf("%s playtime", SecondsToHHMMSS(secs))
+                            self:settextf("%s %s", SecondsToHHMMSS(secs), translations["Playtime"])
                         end
                     end
                 }
@@ -409,7 +421,7 @@ local function generateItems()
                         self:valign(0):halign(0)
                         self:zoom(playerRatingsTextSize)
                         self:maxwidth((actuals.Width - actuals.RatingLeftGap) / playerRatingsTextSize - textzoomFudge)
-                        self:settext("Player Ratings:")
+                        self:settextf("%s:", translations["PlayerRatings"])
                         self:diffuse(primaryTextColor)
                         self:diffusealpha(1)
                     end
@@ -426,7 +438,7 @@ local function generateItems()
                         self:diffusealpha(1)
                     end,
                     SetCommand = function(self)
-                        self:settext("Online - 00.00")
+                        self:settextf("%s - 00.00", translations["OnlineRating"])
                     end
                 },]]
                 LoadFont("Common Normal") .. {
@@ -442,7 +454,7 @@ local function generateItems()
                     SetCommand = function(self)
                         if profile then
                             local rating = profile:GetPlayerRating()
-                            self:settextf("Offline - %5.2f", rating)
+                            self:settextf("%s - %5.2f", translations["OfflineRating"], rating)
                         end
                     end
                 }
@@ -483,13 +495,47 @@ local function generateItems()
             end)
         end,
         FirstUpdateCommand = function(self)
+            -- waiting for the crashdump upload dialog to go away
+            if renameNewProfile then
+                if PREFSMAN:GetPreference("ShowMinidumpUploadDialogue") then
+                    self:sleep(0.2):queuecommand("Keepwastingtimestart")
+                else
+                    self:playcommand("Finishwastingtime")
+                end
+            end
+        end,
+        KeepwastingtimestartCommand = function(self)
+            -- looping to wait for the dialog to go away
+            if renameNewProfile then
+                if PREFSMAN:GetPreference("ShowMinidumpUploadDialogue") then
+                    self:sleep(0.2):queuecommand("Keepwastingtimestart")
+                else
+                    self:playcommand("Finishwastingtime")
+                end
+            end
+        end,
+        FinishwastingtimeCommand = function(self)
             if renameNewProfile then
                 local profile = PROFILEMAN:GetLocalProfile(profileIDs[1])
+                local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+                local function off()
+                    if redir then
+                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    end
+                end
+                local function on()
+                    if redir then
+                        SCREENMAN:set_input_redirected(PLAYER_1, true)
+                    end
+                end
+                off()
+                
                 local function f(answer)
                     profile:RenameProfile(answer)
                     self:playcommand("ProfileRenamed")
+                    on()
                 end
-                local question = "No Profiles detected! A new one was made for you.\nPlease enter a new profile name."
+                local question = translations["MakeFirstProfileQuestion"]
                 askForInputStringWithFunction(
                     question,
                     64,
@@ -498,7 +544,7 @@ local function generateItems()
                     function(answer)
                         local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
                         if not result then
-                            SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'")
+                            SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\n" .. translations["MakeProfileError"])
                         end
                         return result, "Response invalid."
                     end,
@@ -506,6 +552,7 @@ local function generateItems()
                         -- do nothing
                         -- the profile name is Default Profile
                         -- cringe name tbh
+                        on()
                     end
                 )
             end
@@ -580,7 +627,7 @@ local function generateItems()
                 self:halign(1)
                 self:xy(actuals.Width, -actuals.FrameUpperGap/2)
                 self:zoom(0.5)
-                self:settext("Select a Profile")
+                self:settext(translations["SelectProfile"])
                 self:diffusealpha(0)
             end,
             FocusChangeCommand = function(self)

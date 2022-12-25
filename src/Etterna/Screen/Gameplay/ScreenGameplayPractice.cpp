@@ -91,7 +91,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			}
 
 			const auto success = cursong->ReloadFromSongDir();
-			SongManager::ReconcileChartKeysForReloadedSong(cursong, oldKeys);
+			SONGMAN->ReconcileChartKeysForReloadedSong(cursong, oldKeys);
 
 			if (!success || GAMESTATE->m_pCurSteps->GetNoteData().IsEmpty()) {
 				Locator::getLogger()->error("The Player attempted something resulting in an "
@@ -212,6 +212,8 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 
 		// Reset the wife/judge counter related visible stuff
 		auto* pl = dynamic_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+		ASSERT_M(pl != nullptr,
+				 "Dynamic cast in ScreenGameplayPractice::Update failed.");
 		pl->PositionReset();
 	}
 	lastReportedSeconds = GAMESTATE->m_Position.m_fMusicSeconds;
@@ -269,7 +271,7 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 		m_vPlayerInfo.m_NoteData = ndTransformed;
 		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
 										  TapNoteType_AutoKeysound);
-		m_vPlayerInfo.m_pPlayer->Reload();
+		ReloadPlayer();
 	}
 
 	// load auto keysounds
@@ -415,6 +417,8 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 
 	// Reset the wife/judge counter related visible stuff
 	auto* pl = dynamic_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+	ASSERT_M(pl != nullptr,
+			 "Dynamic cast in ScreenGameplayPractice::SetSongPosition failed.");
 	pl->RenderAllNotesIgnoreScores();
 	pl->PositionReset();
 
@@ -510,8 +514,8 @@ void
 ScreenGameplayPractice::ResetLoopRegion()
 {
 	// magic number defaults for loop region bounds
-	loopStart = -2000.F;
-	loopEnd = -2000.F;
+	loopStart = ARBITRARY_MIN_GAMEPLAY_NUMBER;
+	loopEnd = ARBITRARY_MIN_GAMEPLAY_NUMBER;
 
 	// Reload notedata for the entire file starting at current row
 	RageTimer tm;

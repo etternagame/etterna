@@ -125,7 +125,6 @@ class LunaScreenNetEvaluation : public Luna<ScreenNetEvaluation>
 	}
 	static int SetCurrentPlayerByName(T* p, lua_State* L)
 	{
-		int theNumber = 0;
 		std::string given = make_lower(SArg(1));
 		for (size_t i = 0; i < NSMAN->m_EvalPlayerData.size(); i++) {
 			EndOfGame_PlayerData& pd = NSMAN->m_EvalPlayerData[i];

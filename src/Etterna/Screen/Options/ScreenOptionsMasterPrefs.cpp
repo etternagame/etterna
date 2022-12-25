@@ -476,7 +476,6 @@ LuaFunction(GetTimingDifficulty, GetTimingDifficulty());
 static int
 SetTimingDifficulty(float judge)
 {
-	int iTimingDifficulty = static_cast<int>(judge);
 	auto opt = ConfOption::Find("TimingWindowScale");
 	IPreference* pPref = IPreference::GetPreferenceByName(opt->m_sPrefName);
 	pPref->FromString(ToString(judge));
@@ -659,14 +658,6 @@ SoundVolume(int& sel, bool ToSel, const ConfOption* pConfOption)
 }
 
 static void
-SoundVolumeAttract(int& sel, bool ToSel, const ConfOption* pConfOption)
-{
-	const float mapping[] = { 0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f,
-							  0.6f, 0.7f, 0.8f, 0.9f, 1.0f };
-	MoveMap(sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping));
-}
-
-static void
 VisualDelaySeconds(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
 	const float mapping[] = { -0.125f, -0.1f, -0.075f, -0.05f, -0.025f, 0.0f,
@@ -682,16 +673,6 @@ GlobalOffsetSeconds(int& sel, bool ToSel, const ConfOption* pConfOption)
 		mapping[i] = SCALE(i, 0.0f, 40.0f, -0.1f, +0.1f);
 
 	MoveMap(sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping));
-}
-
-static void
-EditRecordModeLeadIn(int& sel, bool to_sel, const ConfOption* conf_option)
-{
-	float mapping[32];
-	for (int i = 0; i < 32; ++i) {
-		mapping[i] = static_cast<float>(i);
-	}
-	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
 }
 
 static std::vector<ConfOption> g_ConfOptions;
@@ -733,7 +714,6 @@ InitializeConfOptions()
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("AllowStartToGiveUp", MovePref<bool>, "Off", "On"));
-	ADD(ConfOption("ShowInstructions", MovePref<bool>, "Skip", "Show"));
 	ADD(ConfOption("MusicWheelUsesSections",
 				   MovePref<MusicWheelUsesSections>,
 				   "Never",
@@ -745,13 +725,6 @@ InitializeConfOptions()
 
 	// Misc options
 	ADD(ConfOption("FastLoad", MovePref<bool>, "Off", "On"));
-	{
-		ConfOption c("EditRecordModeLeadIn", EditRecordModeLeadIn);
-		for (int i = 0; i < 32; ++i) {
-			c.AddOption(ssprintf("%+i s", i));
-		}
-		ADD(c);
-	}
 
 	// Background options
 	ADD(ConfOption("RandomBackgroundMode",
@@ -802,6 +775,7 @@ InitializeConfOptions()
 				   "FitInside",
 				   "FitInsideAvoidLetter",
 				   "FitInsideAvoidPillar"));
+	ADD(ConfOption("ShowBackgrounds", MovePref<bool>, "Off", "On"));
 
 	ADD(ConfOption("ShowDanger", MovePref<bool>, "Hide", "Show"));
 	ADD(ConfOption(
@@ -846,10 +820,8 @@ InitializeConfOptions()
 				   "100ms"));
 	ADD(ConfOption("AxisFix", MovePref<bool>, "Off", "On"));
 
-	// Gameplay options
 	ADD(ConfOption("Center1Player", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EasterEggs", MovePref<bool>, "Off", "On"));
-	// W1 is Fantastic Timing
 	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("PackProgressInWheel", MovePref<bool>, "Off", "On"));
@@ -915,12 +887,6 @@ InitializeConfOptions()
 												   // because if windowed the
 												   // width may change to make
 												   // square pixels
-	ADD(ConfOption("WideScreen16_10", WideScreen16_10, "Off", "On"));
-	g_ConfOptions.back().m_sPrefName = "DisplayAspectRatio";
-	g_ConfOptions.back().m_iEffects = OPT_APPLY_ASPECT_RATIO;
-	ADD(ConfOption("WideScreen16_9", WideScreen16_9, "Off", "On"));
-	g_ConfOptions.back().m_sPrefName = "DisplayAspectRatio";
-	g_ConfOptions.back().m_iEffects = OPT_APPLY_ASPECT_RATIO;
 	ADD(ConfOption("DisplayColorDepth", DisplayColorDepth, "16bit", "32bit"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("HighResolutionTextures",
@@ -984,19 +950,6 @@ InitializeConfOptions()
 				   "|90%",
 				   "|100%"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_SOUND;
-	ADD(ConfOption("SoundVolumeAttract",
-				   SoundVolumeAttract,
-				   "Silent",
-				   "|10%",
-				   "|20%",
-				   "|30%",
-				   "|40%",
-				   "|50%",
-				   "|60%",
-				   "|70%",
-				   "|80%",
-				   "|90%",
-				   "|100%"));
 	ADD(ConfOption("VisualDelaySeconds",
 				   VisualDelaySeconds,
 				   "|-5",

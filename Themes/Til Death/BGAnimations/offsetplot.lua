@@ -23,6 +23,7 @@ local translated_info = {
 	Late = THEME:GetString("OffsetPlot", "Late"),
 	SD = THEME:GetString("ScreenEvaluation", "StandardDev"),
 	Mean = THEME:GetString("ScreenEvaluation", "Mean"),
+	UsingReprioritized = THEME:GetString("OffsetPlot", "UsingReprioritized"),
 	TapNoteScore_W1 = getJudgeStrings("TapNoteScore_W1"),
 	TapNoteScore_W2 = getJudgeStrings("TapNoteScore_W2"),
 	TapNoteScore_W3 = getJudgeStrings("TapNoteScore_W3"),
@@ -48,6 +49,7 @@ local down = false
 local up = false
 local right = false
 local middle = false
+local usingCustomWindows = false
 
 local function fitX(x) -- Scale time values to fit within plot width.
 	if finalSecond == 0 then
@@ -100,8 +102,7 @@ local function convertXToRow(x)
 	return row
 end
 
-local o =
-	Def.ActorFrame {
+local o = Def.ActorFrame {
 	Name = "OffsetPlot",
 	OnCommand = function(self)
 		self:xy(plotX, plotY)
@@ -155,11 +156,17 @@ local o =
 		middleColumn = (GAMESTATE:GetCurrentStyle():ColumnsPerPlayer()-1) / 2.0
 
 		-- Convert noterows to timestamps and plot dots (this is important it determines plot x values!!!)
+		wuab = {}
 		for i = 1, #nrt do
 			wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 		end
 
 		MESSAGEMAN:Broadcast("JudgeDisplayChanged") -- prim really handled all this much more elegantly
+	end,
+	SetFromDisplayMessageCommand = function(self, params)
+		if params.score then
+			self:playcommand("SetFromScore", params)
+		end
 	end,
 	SetFromScoreCommand = function(self, params)
 		if params.score then
@@ -172,6 +179,7 @@ local o =
 				ntt = score:GetTapNoteTypeVector()
 			end
 
+			wuab = {}
 			for i = 1, #nrt do
 				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 			end
@@ -179,7 +187,26 @@ local o =
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 	end,
+	LoadedCustomWindowMessageCommand = function(self)
+		usingCustomWindows = true
+		local replay = REPLAYS:GetActiveReplay()
+		wuab = {}
+		dvt = replay:GetOffsetVector()
+		nrt = replay:GetNoteRowVector()
+		ctt = replay:GetTrackVector()
+		ntt = replay:GetTapNoteTypeVector()
+		for i = 1, #nrt do
+			wuab [i] = td:GetElapsedTimeFromNoteRow(nrt[i])
+		end
+
+		MESSAGEMAN:Broadcast("JudgeDisplayChanged")
+	end,
+	UnloadedCustomWindowMessageCommand = function(self)
+		usingCustomWindows = false
+	end,
 	CodeMessageCommand = function(self, params)
+		if usingCustomWindows then return end
+
 		if params.Name == "PrevJudge" and judge > 1 then
 			judge = judge - 1
 			clampJudge()
@@ -231,6 +258,7 @@ local o =
 			dvt = score:GetOffsetVector()
 			nrt = score:GetNoteRowVector()
 			ctt = score:GetTrackVector()
+			wuab = {}
 			for i = 1, #nrt do
 				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])
 			end
@@ -239,13 +267,12 @@ local o =
 	end
 }
 -- Background
-o[#o + 1] =
-	Def.Quad {
+o[#o + 1] = Def.Quad {
 	Name = "BGQuad",
 	JudgeDisplayChangedMessageCommand = function(self)
-		self:zoomto(plotWidth + plotMargin, plotHeight + plotMargin):diffuse(color("0.05,0.05,0.05,0.05")):diffusealpha(
-			bgalpha
-		)
+		self:zoomto(plotWidth + plotMargin, plotHeight + plotMargin)
+		self:diffuse(color("0.05,0.05,0.05,0.05"))
+		self:diffusealpha(bgalpha)
 	end,
 	HighlightCommand = function(self)
 		local bar = self:GetParent():GetChild("PosBar")
@@ -261,17 +288,20 @@ o[#o + 1] =
 			bg:x(xpos)
 			bg:zoomto(txt:GetZoomedWidth() + 4, txt:GetZoomedHeight() + 4)
 			local row = convertXToRow(xpos)
-			local judgments = SCREENMAN:GetTopScreen():GetReplaySnapshotJudgmentsForNoterow(row)
-			local wifescore = SCREENMAN:GetTopScreen():GetReplaySnapshotWifePercentForNoterow(row) * 100
-			local mean = SCREENMAN:GetTopScreen():GetReplaySnapshotMeanForNoterow(row)
-			local sd = SCREENMAN:GetTopScreen():GetReplaySnapshotSDForNoterow(row)
+			local replay = REPLAYS:GetActiveReplay()
+			local snapshot = replay:GetReplaySnapshotForNoterow(row)
+			local judgments = snapshot:GetJudgments()
+			local wifescore = snapshot:GetWifePercent() * 100
+			local mean = snapshot:GetMean()
+			local sd = snapshot:GetStandardDeviation()
 			local timebro = td:GetElapsedTimeFromNoteRow(row) / getCurRateValue()
-			local marvCount = judgments[10]
-			local perfCount = judgments[9]
-			local greatCount = judgments[8]
-			local goodCount = judgments[7]
-			local badCount = judgments[6]
-			local missCount = judgments[5]
+
+			local marvCount = judgments["W1"]
+			local perfCount = judgments["W2"]
+			local greatCount = judgments["W3"]
+			local goodCount = judgments["W4"]
+			local badCount = judgments["W5"]
+			local missCount = judgments["Miss"]
 
 			--txt:settextf("x %f\nrow %f\nbeat %f\nfinalsecond %f", xpos, row, row/48, finalSecond)
 			-- The odd formatting here is in case we want to add translation support.
@@ -294,31 +324,59 @@ o[#o + 1] =
 		end
 	end
 }
--- Center Bar
-o[#o + 1] =
+o[#o+1] = Def.ActorFrame {
+	InitCommand = function(self)
+		self:visible(false)
+	end,
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:visible(usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
+	end,
 	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(plotWidth/2,15)
+			self:xy(-plotWidth/2 - plotMargin/2, -plotHeight/2 - plotMargin/2)
+			self:halign(0):valign(1)
+			self:diffuse(color("0.05,0.05,0.05,0.05"))
+			self:diffusealpha(bgalpha)
+		end,
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(-plotWidth/4 - plotMargin/2, -plotHeight/2 - plotMargin/2 - 15/2)
+			self:zoom(0.4)
+			self:settext(translated_info["UsingReprioritized"])
+		end,
+	},
+}
+-- Center Bar
+o[#o + 1] = Def.Quad {
 	JudgeDisplayChangedMessageCommand = function(self)
 		self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment("TapNoteScore_W1")):diffusealpha(baralpha)
 	end
 }
 local fantabars = {22.5, 45, 90, 135}
 local bantafars = {"TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4", "TapNoteScore_W5"}
+local santabarf = {"TapNoteScore_W1", "TapNoteScore_W2", "TapNoteScore_W3", "TapNoteScore_W4"} -- ugh
 for i = 1, #fantabars do
-	o[#o + 1] =
-		Def.Quad {
+	o[#o + 1] = Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			if usingCustomWindows then
+				fit = getCustomWindowConfigJudgmentWindow(santabarf[i])
+			end
 			self:finishtweening()
 			self:smooth(0.1)
 			self:y(fitY(fit))
 		end
 	}
-	o[#o + 1] =
-		Def.Quad {
+	o[#o + 1] = Def.Quad {
 		JudgeDisplayChangedMessageCommand = function(self)
 			self:zoomto(plotWidth + plotMargin, 1):diffuse(byJudgment(bantafars[i])):diffusealpha(baralpha)
 			local fit = tso * fantabars[i]
+			if usingCustomWindows then
+				fit = getCustomWindowConfigJudgmentWindow(santabarf[i])
+			end
 			self:finishtweening()
 			self:smooth(0.1)
 			self:y(fitY(-fit))
@@ -345,8 +403,7 @@ local function setOffsetVerts(vt, x, y, c)
 	vt[#vt + 1] = {{x + dotWidth, y - dotWidth, 0}, c}
 	vt[#vt + 1] = {{x - dotWidth, y - dotWidth, 0}, c}
 end
-o[#o + 1] =
-	Def.ActorMultiVertex {
+o[#o + 1] = Def.ActorMultiVertex {
 	JudgeDisplayChangedMessageCommand = function(self)
 		local verts = {}
 		for i = 1, #dvt do
@@ -356,6 +413,9 @@ o[#o + 1] =
 
 			-- get the color for the tap
 			local cullur = offsetToJudgeColor(dvt[i], tst[judge])
+			if usingCustomWindows then
+				cullur = customOffsetToJudgeColor(dvt[i], getCurrentCustomWindowConfigJudgmentWindowTable())
+			end
 			cullur[4] = 1
 			local cullurFaded = {}
 
@@ -409,46 +469,40 @@ o[#o + 1] =
 }
 
 -- filter
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(0, plotHeight / 2 - 2):zoom(textzoom):halign(0.5):valign(1)
-			if #ntt > 0 then
-				if handspecific then
-					if left then
-						self:settext("left")
-					elseif down then
-						self:settext("down")
-					elseif up then
-						self:settext("up")
-					elseif right then
-						self:settext("right")
-					end
-				else
-					self:settext(translated_info["Down"])
+o[#o + 1] = LoadFont("Common Normal") .. {
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:xy(0, plotHeight / 2 - 2):zoom(textzoom):halign(0.5):valign(1)
+		if #ntt > 0 then
+			if handspecific then
+				if left then
+					self:settext("left")
+				elseif down then
+					self:settext("down")
+				elseif up then
+					self:settext("up")
+				elseif right then
+					self:settext("right")
 				end
 			else
-				self:settext("")
+				self:settext(translated_info["Down"])
 			end
+		else
+			self:settext("")
 		end
-	}
+	end
+}
 
 -- Early/Late markers
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(-plotWidth / 2, -plotHeight / 2 + 2):zoom(textzoom):halign(0):valign(0):settextf("%s (+%ims)", translated_info["Late"], maxOffset)
-		end
-	}
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:xy(-plotWidth / 2, plotHeight / 2 - 2):zoom(textzoom):halign(0):valign(1):settextf("%s (-%ims)", translated_info["Early"], maxOffset)
-		end
-	}
+o[#o + 1] = LoadFont("Common Normal") .. {
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:xy(-plotWidth / 2, -plotHeight / 2 + 2):zoom(textzoom):halign(0):valign(0):settextf("%s (+%ims)", translated_info["Late"], maxOffset)
+	end
+}
+o[#o + 1] = LoadFont("Common Normal") .. {
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:xy(-plotWidth / 2, plotHeight / 2 - 2):zoom(textzoom):halign(0):valign(1):settextf("%s (-%ims)", translated_info["Early"], maxOffset)
+	end
+}
 
 -- Background for judgments at mouse position
 o[#o + 1] = Def.Quad {
@@ -460,40 +514,36 @@ o[#o + 1] = Def.Quad {
 }
 
 -- Text for judgments at mouse position
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "PosText",
-		InitCommand = function(self)
-			self:x(8):valign(1):halign(1):zoom(0.4):y(-plotHeight / 2 - plotMargin - 2)
-		end
-	}
+o[#o + 1] = LoadFont("Common Normal") .. {
+	Name = "PosText",
+	InitCommand = function(self)
+		self:x(8):valign(1):halign(1):zoom(0.4):y(-plotHeight / 2 - plotMargin - 2)
+	end
+}
 
 -- Text for current judge window
 -- Only for SelectMusic (not Eval)
-o[#o + 1] =
-	LoadFont("Common Normal") ..
-	{
-		Name = "JudgeText",
-		InitCommand = function(self)
-			self:valign(0):halign(0):zoom(0.4)
-			self:xy(-plotWidth/2, -plotHeight/2)
-			self:settext("")
-		end,
-		OnCommand = function(self)
-			local name = SCREENMAN:GetTopScreen():GetName()
-			if name ~= "ScreenScoreTabOffsetPlot" then
-				self:visible(false)
-			end
-		end,
-		SetCommand = function(self)
-			local jdgname = "J" .. judge
-			self:settextf("%s", jdgname)
-		end,
-		JudgeDisplayChangedMessageCommand = function(self)
-			self:playcommand("Set")
-			self:xy(-plotWidth / 2 + 5, -plotHeight / 2 + 15):zoom(textzoom):halign(0):valign(0)
+o[#o + 1] = LoadFont("Common Normal") .. {
+	Name = "JudgeText",
+	InitCommand = function(self)
+		self:valign(0):halign(0):zoom(0.4)
+		self:xy(-plotWidth/2, -plotHeight/2)
+		self:settext("")
+	end,
+	OnCommand = function(self)
+		local name = SCREENMAN:GetTopScreen():GetName()
+		if name ~= "ScreenScoreTabOffsetPlot" then
+			self:visible(false)
 		end
-	}
+	end,
+	SetCommand = function(self)
+		local jdgname = "J" .. judge
+		self:settextf("%s", jdgname)
+	end,
+	JudgeDisplayChangedMessageCommand = function(self)
+		self:playcommand("Set")
+		self:xy(-plotWidth / 2 + 5, -plotHeight / 2 + 15):zoom(textzoom):halign(0):valign(0)
+	end
+}
 
 return o

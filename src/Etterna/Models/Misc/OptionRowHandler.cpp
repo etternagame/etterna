@@ -471,7 +471,11 @@ class OptionRowHandlerListSteps : public OptionRowHandlerList
 			  pSong,
 			  vpSteps,
 			  GAMESTATE->GetCurrentStyle(GAMESTATE->GetMasterPlayerNumber())
-				->m_StepsType);
+				->m_StepsType,
+			  Difficulty_Invalid,
+			  -1,
+			  -1,
+			  true);
 			StepsUtil::SortNotesArrayByDifficulty(vpSteps);
 			for (auto* pSteps : vpSteps) {
 				std::string s;
@@ -574,8 +578,13 @@ class OptionRowHandlerSteps : public OptionRowHandler
 				  GAMESTATE->m_pCurSong, *m_pst, dc);
 				m_vSteps.push_back(pSteps);
 			}
-			SongUtil::GetSteps(
-			  GAMESTATE->m_pCurSong, m_vSteps, *m_pst, Difficulty_Edit);
+			SongUtil::GetSteps(GAMESTATE->m_pCurSong,
+							   m_vSteps,
+							   *m_pst,
+							   Difficulty_Edit,
+							   -1,
+							   -1,
+							   true);
 			m_vDifficulties.resize(m_vSteps.size(), Difficulty_Edit);
 
 			if (sParam == "EditSteps") {
@@ -635,7 +644,7 @@ class OptionRowHandlerSteps : public OptionRowHandler
 					if (*d == GAMESTATE->m_PreferredDifficulty) {
 						vbSelOut[i] = true;
 						matched = true;
-						ExportOption(p, vbSelectedOut); // current steps changed
+						(void)ExportOption(p, vbSelectedOut); // current steps changed
 						break;
 					}
 				}
@@ -1337,7 +1346,6 @@ class OptionRowHandlerConfig : public OptionRowHandler
 					  const PlayerNumber& vpns,
 					  std::vector<bool>& vbSelectedOut) const override
 	{
-		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
 
 		const auto iSelection = m_pOpt->Get();
@@ -1350,7 +1358,6 @@ class OptionRowHandlerConfig : public OptionRowHandler
 	{
 		auto bChanged = false;
 
-		auto p = vpns;
 		const auto& vbSel = vbSelected;
 
 		const auto iSel = OptionRowHandlerUtil::GetOneSelection(vbSel);
@@ -1434,7 +1441,6 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 					  const PlayerNumber& vpns,
 					  std::vector<bool>& vbSelectedOut) const override
 	{
-		auto p = vpns;
 		auto& vbSelOut = vbSelectedOut;
 
 		if (GAMESTATE->m_pCurSteps != nullptr) {
@@ -1454,7 +1460,6 @@ class OptionRowHandlerStepsType : public OptionRowHandler
 									const std::vector<bool>& vbSelected) const
 	  -> int override
 	{
-		auto p = vpns;
 		const auto& vbSel = vbSelected;
 
 		const auto index = OptionRowHandlerUtil::GetOneSelection(vbSel);

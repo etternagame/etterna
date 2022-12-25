@@ -4,7 +4,7 @@
 
 #include "Etterna/Globals/global.h"
 #include "RageUtil/File/RageFile.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "ScreenManager.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "curl/curl.h"
@@ -17,8 +17,8 @@ class DownloadablePack;
 class ProgressData
 {
   public:
-	curl_off_t total{ 0 };		// total bytes
-	curl_off_t downloaded{ 0 }; // bytes downloaded
+	std::atomic<curl_off_t> total{ 0 }; // total bytes
+	std::atomic<curl_off_t> downloaded{ 0 }; // bytes downloaded
 	float time{ 0 };			// seconds passed
 };
 
@@ -26,18 +26,16 @@ class RageFileWrapper
 {
   public:
 	RageFile file;
-	size_t bytes{ 0 };
-	bool stop{ false };
+	std::atomic<size_t> bytes{ 0 };
+	std::atomic<bool> stop{ false };
 };
 
 class Download
 {
   public:
-	std::function<void(Download*)> Done;
 	Download(
 	  std::string url,
-	  std::string filename = "",
-	  std::function<void(Download*)> done = [](Download*) {});
+	  std::string filename = "");
 	~Download();
 	void Install();
 	void Update(float fDeltaSeconds);
@@ -53,11 +51,12 @@ class Download
 	std::string Status()
 	{
 		return m_TempFileName + "\n" + speed + " KB/s\n" + "Downloaded " +
-			   std::to_string((progress.downloaded > 0 ? progress.downloaded
-													   : p_RFWrapper.bytes) /
+			   std::to_string((progress.downloaded.load() > 0
+								 ? progress.downloaded.load()
+								 : p_RFWrapper.bytes.load()) /
 							  1024) +
-			   (progress.total > 0
-				  ? "/" + std::to_string(progress.total / 1024) + " (KB)"
+			   (progress.total.load() > 0
+				  ? "/" + std::to_string(progress.total.load() / 1024) + " (KB)"
 				  : "");
 	}
 	CURL* handle{ nullptr };
@@ -96,11 +95,9 @@ class HTTPRequest
   public:
 	HTTPRequest(
 	  CURL* h,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done = [](HTTPRequest& req,
-															CURLMsg*) {},
+	  std::function<void(HTTPRequest&)> done = [](HTTPRequest& req) {},
 	  curl_httppost* postform = nullptr,
-	  std::function<void(HTTPRequest&, CURLMsg*)> fail = [](HTTPRequest& req,
-															CURLMsg*) {})
+	  std::function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {})
 	  : handle(h)
 	  , form(postform)
 	  , Done(done)
@@ -108,8 +105,8 @@ class HTTPRequest
 	CURL* handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	std::string result;
-	std::function<void(HTTPRequest&, CURLMsg*)> Done;
-	std::function<void(HTTPRequest&, CURLMsg*)> Failed;
+	std::function<void(HTTPRequest&)> Done;
+	std::function<void(HTTPRequest&)> Failed;
 };
 class OnlineTopScore
 {
@@ -146,6 +143,7 @@ class OnlineScore
 	int marvelous{ 0 };
 	int minehits{ 0 };
 	int held{ 0 };
+	int holdmiss{ 0 };
 	std::string songId;
 	int letgo{ 0 };
 	bool valid{ false };
@@ -171,16 +169,13 @@ class DownloadManager
 	static LuaReference EMPTY_REFERENCE;
 	DownloadManager();
 	~DownloadManager();
-	std::map<std::string, Download*> downloads; // Active downloads
+	std::map<std::string, std::shared_ptr<Download>> downloads; // Active downloads
 	std::vector<HTTPRequest*>
 	  HTTPRequests; // Active HTTP requests (async, curlMulti)
 
-	std::map<std::string, Download*> finishedDownloads;
-	std::map<std::string, Download*> pendingInstallDownloads;
-	CURLM* mPackHandle{ nullptr }; // Curl multi handle for packs downloads
-	CURLM* mHTTPHandle{ nullptr }; // Curl multi handle for httpRequests
+	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
+	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
 	CURLMcode ret = CURLM_CALL_MULTI_PERFORM;
-	int downloadingPacks{ 0 };
 	int HTTPRunning{ 0 };
 	bool loggingIn{
 		false
@@ -242,21 +237,19 @@ class DownloadManager
 	void RefreshPackList(const std::string& url);
 
 	void init();
-	Download* DownloadAndInstallPack(const std::string& url,
+	std::shared_ptr<Download> DownloadAndInstallPack(const std::string& url,
 									 std::string filename = "");
-	Download* DownloadAndInstallPack(DownloadablePack* pack,
+	std::shared_ptr<Download> DownloadAndInstallPack(DownloadablePack* pack,
 									 bool mirror = false);
 	void Update(float fDeltaSeconds);
 	void UpdatePacks(float fDeltaSeconds);
 	void UpdateHTTP(float fDeltaSeconds);
 	bool InstallSmzip(const std::string& sZipFile);
 
-	void UpdateDLSpeed();
-	void UpdateDLSpeed(bool gameplay);
+	void UpdateGameplayState(bool gameplay);
 
 	std::string GetError() { return error; }
 	bool Error() { return error.empty(); }
-	bool EncodeSpaces(std::string& str);
 
 	void UploadScore(HighScore* hs,
 					 std::function<void()> callback,
@@ -268,14 +261,12 @@ class DownloadManager
 
 	bool ShouldUploadScores();
 
-	inline void AddSessionCookieToCURL(CURL* curlHandle);
-	inline void SetCURLPostToURL(CURL* curlHandle, std::string url);
 	inline void SetCURLURL(CURL* curlHandle, std::string url);
 
 	HTTPRequest* SendRequest(
 	  std::string requestName,
 	  std::vector<std::pair<std::string, std::string>> params,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done,
+	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin = true,
 	  bool post = false,
 	  bool async = true,
@@ -283,7 +274,7 @@ class DownloadManager
 	HTTPRequest* SendRequestToURL(
 	  std::string url,
 	  std::vector<std::pair<std::string, std::string>> params,
-	  std::function<void(HTTPRequest&, CURLMsg*)> done,
+	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin,
 	  bool post,
 	  bool async,

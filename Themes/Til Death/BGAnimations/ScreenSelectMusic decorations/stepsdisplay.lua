@@ -1,6 +1,6 @@
 local itsOn = false -- chart preview state
 local stepsdisplayx = SCREEN_WIDTH * 0.56 - 54
-local thesteps = nil
+local thesteps = {}
 
 local rowwidth = 60
 local rowheight = 17

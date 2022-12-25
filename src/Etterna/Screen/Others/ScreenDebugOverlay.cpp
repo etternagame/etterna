@@ -62,6 +62,9 @@ static const ThemeMetric<float> PAGE_START_X("ScreenDebugOverlay",
 static const ThemeMetric<float> PAGE_SPACING_X("ScreenDebugOverlay",
 											   "PageSpacingX");
 
+static Preference<bool> g_debugMenuButtonToggles("DebugMenuButtonToggles",
+												 false);
+
 // self-registering debug lines
 // We don't use SubscriptionManager, because we want to keep the line order.
 static LocalizedString ON("ScreenDebugOverlay", "on");
@@ -479,10 +482,21 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 		if (bHoldingNeither)
 			m_bForcedHidden = false;
 
-		if (bHoldingBoth)
-			g_bIsDisplayed = true;
-		else
-			g_bIsDisplayed = false;
+		if (bHoldingBoth) {
+			if (g_debugMenuButtonToggles && input.type != IET_REPEAT) {
+				// if the button should toggle, when pressing
+				// just flip the state
+				g_bIsDisplayed = !g_bIsDisplayed;
+			} else {
+				// if it doesnt toggle, hold it on
+				g_bIsDisplayed = true;
+			}
+		} else {
+			if (!g_debugMenuButtonToggles) {
+				// if it shouldnt toggle, hide on release
+				g_bIsDisplayed = false;
+			}
+		}
 	}
 	if (input.DeviceI == g_Mappings.toggleMute) {
 		PREFSMAN->m_MuteActions.Set(!PREFSMAN->m_MuteActions);

@@ -2,7 +2,6 @@
 #include "Etterna/Singletons/GameState.h" // blame radar calculations.
 #include "NoteData.h"
 #include "RageUtil/Utils/RageUtil.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "Etterna/FileTypes/XmlFile.h"
 
 #include <unordered_map>
@@ -10,8 +9,6 @@
 
 using std::map;
 using std::vector;
-
-REGISTER_CLASS_TRAITS(NoteData, new NoteData(*pCopy))
 
 void
 NoteData::Init()
@@ -374,7 +371,8 @@ NoteData::GetTapFirstEmptyTrack(int row, int& iEmptyTrackOut) const -> bool
 auto
 NoteData::GetTapLastEmptyTrack(int row, int& iEmptyTrackOut) const -> bool
 {
-	for (size_t t = GetNumTracks() - 1; t >= 0; t--) {
+	auto num_tracks = GetNumTracks();
+	for (size_t t = num_tracks - 1; t < num_tracks; t--) {
 		if (GetTapNote(t, row).type == TapNoteType_Empty) {
 			iEmptyTrackOut = t;
 			return true;

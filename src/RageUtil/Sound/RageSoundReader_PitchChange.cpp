@@ -21,7 +21,7 @@ RageSoundReader_PitchChange::RageSoundReader_PitchChange(
 	m_pSpeedChange = new RageSoundReader_SpeedChange(pSource);
 	m_pResample = new RageSoundReader_Resample_Good(
 	  m_pSpeedChange, m_pSpeedChange->GetSampleRate());
-	m_pSource = m_pResample;
+	m_pSource = std::unique_ptr<RageSoundReader_Resample_Good>(m_pResample);
 	m_fSpeedRatio = 1.0f;
 	m_fPitchRatio = 1.0f;
 	m_fLastSetSpeedRatio = m_fSpeedRatio;

@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2016, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -34,8 +34,10 @@ static CURLcode unit_setup(void)
 
   global_init(CURL_GLOBAL_ALL);
   data = curl_easy_init();
-  if(!data)
+  if(!data) {
+    curl_global_cleanup();
     return CURLE_OUT_OF_MEMORY;
+  }
   return res;
 }
 
@@ -53,50 +55,50 @@ size_t size = 0;
 unsigned char anychar = 'x';
 CURLcode rc;
 
-rc = Curl_base64_encode(data, "i", 1, &output, &size);
+rc = Curl_base64_encode("i", 1, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 4, "size should be 4");
 verify_memory(output, "aQ==", 4);
 Curl_safefree(output);
 
-rc = Curl_base64_encode(data, "ii", 2, &output, &size);
+rc = Curl_base64_encode("ii", 2, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 4, "size should be 4");
 verify_memory(output, "aWk=", 4);
 Curl_safefree(output);
 
-rc = Curl_base64_encode(data, "iii", 3, &output, &size);
+rc = Curl_base64_encode("iii", 3, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 4, "size should be 4");
 verify_memory(output, "aWlp", 4);
 Curl_safefree(output);
 
-rc = Curl_base64_encode(data, "iiii", 4, &output, &size);
+rc = Curl_base64_encode("iiii", 4, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 8, "size should be 8");
 verify_memory(output, "aWlpaQ==", 8);
 Curl_safefree(output);
 
-rc = Curl_base64_encode(data, "\xff\x01\xfe\x02", 4, &output, &size);
+rc = Curl_base64_encode("\xff\x01\xfe\x02", 4, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 8, "size should be 8");
 verify_memory(output, "/wH+Ag==", 8);
 Curl_safefree(output);
 
-rc = Curl_base64url_encode(data, "\xff\x01\xfe\x02", 4, &output, &size);
+rc = Curl_base64url_encode("\xff\x01\xfe\x02", 4, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 8, "size should be 8");
 verify_memory(output, "_wH-Ag==", 8);
 Curl_safefree(output);
 
-rc = Curl_base64url_encode(data, "iiii", 4, &output, &size);
+rc = Curl_base64url_encode("iiii", 4, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 8, "size should be 8");
 verify_memory(output, "aWlpaQ==", 8);
 Curl_safefree(output);
 
 /* 0 length makes it do strlen() */
-rc = Curl_base64_encode(data, "iiii", 0, &output, &size);
+rc = Curl_base64_encode("iiii", 0, &output, &size);
 fail_unless(rc == CURLE_OK, "return code should be CURLE_OK");
 fail_unless(size == 8, "size should be 8");
 verify_memory(output, "aWlpaQ==", 8);

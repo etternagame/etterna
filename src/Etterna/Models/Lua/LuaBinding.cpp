@@ -297,9 +297,6 @@ LuaBinding::ApplyDerivedType(Lua* L, const std::string& sClassName, void* pSelf)
 	lua_setmetatable(L, iTable);
 }
 
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
-REGISTER_CLASS_TRAITS(LuaClass, new LuaClass(*pCopy))
-
 void*
 LuaBinding::GetPointerFromStack(Lua* L, const std::string& sType, int iArg)
 {

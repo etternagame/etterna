@@ -59,6 +59,9 @@ RageSoundReader_Preload::Open(RageSoundReader* pSource)
 
 	int iMaxSamples = g_iSoundPreloadMaxSamples.Get();
 
+	if (m_Buffer.use_count() != 1)
+		m_Buffer = std::make_shared<std::string>(*m_Buffer);
+
 	/* Check the length, and see if we think it'll fit in the buffer. */
 	int iLen = pSource->GetLength_Fast();
 	if (iLen != -1) {
@@ -70,7 +73,7 @@ RageSoundReader_Preload::Open(RageSoundReader* pSource)
 			return false; /* Don't bother trying to preload it. */
 
 		int iBytes = unsigned(iSamples * samplesize); /* samples -> bytes */
-		m_Buffer.Get()->reserve(iBytes);
+		m_Buffer->reserve(iBytes);
 	}
 
 	for (;;) {
@@ -92,14 +95,14 @@ RageSoundReader_Preload::Open(RageSoundReader* pSource)
 			int16_t buffer16[1024];
 			RageSoundUtil::ConvertFloatToNativeInt16(
 			  buffer, buffer16, iCnt * m_iChannels);
-			m_Buffer.Get()->append((char*)buffer16,
+			m_Buffer->append((char*)buffer16,
 								   (char*)(buffer16 + iCnt * m_iChannels));
 		} else {
-			m_Buffer.Get()->append((char*)buffer,
+			m_Buffer->append((char*)buffer,
 								   (char*)(buffer + iCnt * m_iChannels));
 		}
 
-		if (m_Buffer.Get()->size() > iMaxSamples * samplesize) {
+		if (m_Buffer->size() > iMaxSamples * samplesize) {
 			return false; /* too big */
 		}
 	}
@@ -174,5 +177,5 @@ RageSoundReader_Preload::Copy() const
 int
 RageSoundReader_Preload::GetReferenceCount() const
 {
-	return m_Buffer.GetReferenceCount();
+	return m_Buffer.use_count();
 }

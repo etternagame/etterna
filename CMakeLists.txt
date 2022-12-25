@@ -19,12 +19,12 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.71.2
+		VERSION 0.72.0
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
 ## CMake and Compiler Setup
-set(CMAKE_CXX_STANDARD 17)                                      # Minimum C++ Version
+set(CMAKE_CXX_STANDARD 20)                                      # Minimum C++ Version
 set(CMAKE_CXX_EXTENSIONS OFF)                                   # True if compiler extensions are necessary. (Changes -std flag)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                             # True to require minimum C++ version to compile
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                          # Tell xcodebuild to target an older osx platform

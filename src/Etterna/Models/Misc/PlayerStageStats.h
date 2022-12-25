@@ -2,7 +2,7 @@
 #define PlayerStageStats_H
 
 #include "Grade.h"
-#include "HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
 #include "PlayerNumber.h"
 #include "RadarValues.h"
@@ -46,6 +46,8 @@ class PlayerStageStats
 	[[nodiscard]] auto GetMaxWifeScore() const -> float;
 	[[nodiscard]] auto GetTimingScale() const -> float;
 	[[nodiscard]] auto GetInputDataVector() const -> std::vector<InputDataEvent>;
+	[[nodiscard]] auto GetMissDataVector() const
+	  -> std::vector<MissReplayResult>;
 	[[nodiscard]] auto GetOffsetVector() const -> std::vector<float>;
 	[[nodiscard]] auto GetNoteRowVector() const -> std::vector<int>;
 	[[nodiscard]] auto GetTrackVector() const -> std::vector<int>;
@@ -95,6 +97,7 @@ class PlayerStageStats
 	std::vector<TapNoteType> m_vTapNoteTypeVector;
 	std::vector<int> m_vTrackVector;
 	std::vector<InputDataEvent> InputData;
+	std::vector<MissReplayResult> m_vNoteMissVector;
 	int m_iTapNoteScores[NUM_TapNoteScore]{};
 	int m_iHoldNoteScores[NUM_HoldNoteScore]{};
 	/** @brief The Player's current combo. */

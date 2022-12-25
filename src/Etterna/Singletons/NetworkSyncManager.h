@@ -2,9 +2,9 @@
 #define NetworkSyncManager_H
 
 #include "Etterna/Models/Misc/Difficulty.h"
-#include "Etterna/Models/Misc/HighScore.h"
+#include "Etterna/Models/HighScore/HighScore.h"
 #include <queue>
-#include "rapidjson/document.h"
+#include "rapidjson/fwd.h"
 #define ASIO_STANDALONE
 #define _WEBSOCKETPP_CPP11_INTERNAL_
 #include <websocketpp/client.hpp>
@@ -75,7 +75,7 @@ const NSCommand NSServerOffset = static_cast<NSCommand>(128);
 class EndOfGame_PlayerData
 {
   public:
-	int name;
+	int name{0};
 	std::string nameStr;
 	int grade;
 	int score;

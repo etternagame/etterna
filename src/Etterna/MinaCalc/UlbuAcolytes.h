@@ -10,7 +10,7 @@
  * patterns have lower enps than streams, streams default to 1 and chordstreams
  * start lower, stam is a special case and may use normalizers again */
 static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.93F, 0.885F, 0.84F, 0.93F, 1.02F, 0.785F, 0.83F
+	0.F, 0.91F, 0.75F, 0.77F, 0.93F, 1.01F, 1.02F, 1.06F
 };
 
 static const std::string calc_params_xml = "Save/calc params.xml";
@@ -58,10 +58,14 @@ static const std::vector<CalcPatternMod> agnostic_mods = {
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
-	OHJumpMod,		  Balance,		 Roll,
-	OHTrill,		  VOHTrill,		 Chaos,
-	WideRangeBalance, WideRangeRoll, WideRangeJumptrill,
-	WideRangeAnchor,  RanMan,		 CJOHJump
+	OHJumpMod,	   Balance,
+	Roll,		   RollJS,
+	OHTrill,	   VOHTrill,
+	Chaos,		   WideRangeBalance,
+	WideRangeRoll, WideRangeJumptrill,
+	WideRangeJJ,   WideRangeAnchor,
+	RanMan,		   Minijack,
+	CJOHJump
 };
 
 struct PatternMods
@@ -115,7 +119,14 @@ struct PatternMods
 inline auto
 time_to_itv_idx(const float& time) -> int
 {
-	return static_cast<int>(time / interval_span);
+	// Offset time by half a millisecond to consistently break ties when a row
+	// lies on an interval boundary. This is worst on files at bpms like 180
+	// where the milliseconds between 16ths cannot be represented exactly by a
+	// float but in exact arithemetic regularly align with the interval
+	// boundaries. Offsetting here makes the calc more robust to bpm
+	// fluctuations, mines at the start of the file, etc, which could move notes
+	// into different intervals
+	return static_cast<int>((time + 0.0005f) / interval_span);
 }
 
 inline auto

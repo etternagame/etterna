@@ -16,6 +16,34 @@ local actuals = {
     EdgePadding = ratios.EdgePadding * SCREEN_WIDTH,
 }
 
+local translations = {
+    CustomizeGameplayInstruction = THEME:GetString("ScreenGameplay", "CustomizeGameplayInstruction"),
+    Spacing = THEME:GetString("ScreenGameplay", "Spacing"),
+    Height = THEME:GetString("ScreenGameplay", "Height"),
+    Width = THEME:GetString("ScreenGameplay", "Width"),
+    Zoom = THEME:GetString("ScreenGameplay", "Zoom"),
+    Rotation = THEME:GetString("ScreenGameplay", "Rotation"),
+    BPMText = THEME:GetString("ScreenGameplay", "BPMText"),
+    Combo = THEME:GetString("ScreenGameplay", "Combo"),
+    Cover = THEME:GetString("ScreenGameplay", "Cover"),
+    DisplayMean = THEME:GetString("ScreenGameplay", "DisplayMean"),
+    DisplayPercent = THEME:GetString("ScreenGameplay", "DisplayPercent"),
+    DisplayEWMA = THEME:GetString("ScreenGameplay", "DisplayEWMA"),
+    DisplayStdDev = THEME:GetString("ScreenGameplay", "DisplayStdDev"),
+    ErrorBar = THEME:GetString("ScreenGameplay", "ErrorBar"),
+    FullProgressBar = THEME:GetString("ScreenGameplay", "FullProgressBar"),
+    JudgeCounter = THEME:GetString("ScreenGameplay", "JudgeCounter"),
+    Judgment = THEME:GetString("ScreenGameplay", "Judgment"),
+    LifeP1 = THEME:GetString("ScreenGameplay", "LifeP1"),
+    MusicRate = THEME:GetString("ScreenGameplay", "MusicRate"),
+    NoteField = THEME:GetString("ScreenGameplay", "NoteField"),
+    NPSDisplay = THEME:GetString("ScreenGameplay", "NPSDisplay"),
+    NPSGraph = THEME:GetString("ScreenGameplay", "NPSGraph"),
+    PlayerInfo = THEME:GetString("ScreenGameplay", "PlayerInfo"),
+    Screen = THEME:GetString("ScreenGameplay", "Screen"),
+    TargetTracker = THEME:GetString("ScreenGameplay", "TargetTracker"),
+}
+
 local uiBGAlpha = 0.6
 local textButtonHeightFudgeScalarMultiplier = 1.4
 local buttonHoverAlpha = 0.6
@@ -284,7 +312,7 @@ local function makeUI()
                 element = elements[index]
                 if element ~= nil then
                     self:diffusealpha(1)
-                    txt:settext(element:GetName())
+                    txt:settext(translations[element:GetName()] or element:GetName())
                     bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
                 else
                     self:diffusealpha(0)
@@ -344,7 +372,9 @@ local function makeUI()
             table.sort(
                 elements,
                 function(a, b)
-                    return a:GetName():lower() < b:GetName():lower()
+                    local aname = translations[a:GetName()] or a:GetName()
+                    local bname = translations[b:GetName()] or b:GetName()
+                    return aname:lower() < bname:lower()
                 end
             )
             maxPage = math.ceil(#elements / itemsPerPage)
@@ -601,7 +631,7 @@ local function makeUI()
                     self:maxwidth(actuals.MenuWidth / elementNameTextSize)
                 end,
                 UpdateItemInfoCommand = function(self)
-                    self:settextf("%s", selectedElement)
+                    self:settextf("%s", translations[selectedElement] or selectedElement)
                 end,
             },
             LoadFont("Common Normal") .. {
@@ -624,8 +654,8 @@ local function makeUI()
                         outstr[#outstr+1] = string.format(fstr, selectedElementCoords["y"])
                     end
                     if selectedElementCoords["rotation"] ~= nil then
-                        local fstr = selectedElementMovementType == "Rotation" and "[Rotation: %5.2f]" or "Rotation: %5.2f"
-                        outstr[#outstr+1] = string.format(fstr, selectedElementCoords["rotation"])
+                        local fstr = selectedElementMovementType == "Rotation" and "[%s: %5.2f]" or "%s: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, translations["Rotation"], selectedElementCoords["rotation"])
                     end
                     self:settextf(table.concat(outstr, "\n"))
                 end,
@@ -644,20 +674,20 @@ local function makeUI()
                     self:y(coordactor:GetY() + coordactor:GetZoomedHeight() + (allowedSpace / itemsPerPage)/2)
 
                     if selectedElementSizes["zoom"] ~= nil then
-                        local fstr = selectedElementMovementType == "Zoom" and "[Zoom: %5.2f]" or "Zoom: %5.2f"
-                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["zoom"])
+                        local fstr = selectedElementMovementType == "Zoom" and "[%s: %5.2f]" or "%s: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, translations["Zoom"], selectedElementSizes["zoom"])
                     end
                     if selectedElementSizes["width"] ~= nil then
-                        local fstr = selectedElementMovementType == "Size" and "[Width: %5.2f]" or "Width: %5.2f"
-                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["width"])
+                        local fstr = selectedElementMovementType == "Size" and "[%s: %5.2f]" or "%s: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, translations["Width"], selectedElementSizes["width"])
                     end
                     if selectedElementSizes["height"] ~= nil then
-                        local fstr = selectedElementMovementType == "Size" and "[Height: %5.2f]" or "Height: %5.2f"
-                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["height"])
+                        local fstr = selectedElementMovementType == "Size" and "[%s: %5.2f]" or "%s: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, translations["Height"], selectedElementSizes["height"])
                     end
                     if selectedElementSizes["spacing"] ~= nil then
-                        local fstr = selectedElementMovementType == "Spacing" and "[Spacing: %5.2f]" or "Spacing: %5.2f"
-                        outstr[#outstr+1] = string.format(fstr, selectedElementSizes["spacing"])
+                        local fstr = selectedElementMovementType == "Spacing" and "[%s: %5.2f]" or "%s: %5.2f"
+                        outstr[#outstr+1] = string.format(fstr, translations["Spacing"], selectedElementSizes["spacing"])
                     end
                     self:settextf(table.concat(outstr, "\n"))
                 end
@@ -670,7 +700,7 @@ local function makeUI()
                     self:addy(actuals.MenuHeight - actuals.EdgePadding)
                     self:zoom(uiInstructionTextSize)
                     self:maxwidth(actuals.MenuWidth / uiInstructionTextSize)
-                    self:settext("Space to scroll movement types")
+                    self:settext(translations["CustomizeGameplayInstruction"])
                 end,
             }
         }

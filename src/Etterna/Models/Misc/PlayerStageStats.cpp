@@ -64,6 +64,7 @@ PlayerStageStats::InternalInit()
 	m_vTapNoteTypeVector.clear();
 	m_vHoldReplayData.clear();
 	InputData.clear();
+	m_vNoteMissVector.clear();
 	m_iPossibleGradePoints = 0;
 	m_iCurCombo = 0;
 	m_iMaxCombo = 0;
@@ -371,6 +372,11 @@ std::vector<InputDataEvent>
 PlayerStageStats::GetInputDataVector() const
 {
 	return InputData;
+}
+std::vector<MissReplayResult>
+PlayerStageStats::GetMissDataVector() const
+{
+	return m_vNoteMissVector;
 }
 std::vector<float>
 PlayerStageStats::GetOffsetVector() const

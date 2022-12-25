@@ -349,11 +349,45 @@ NoteSkinManager::GetMetric(const std::string& sButtonName,
 	return sReturn;
 }
 
+std::string
+NoteSkinManager::GetMetric(const std::string& sButtonName,
+						   const std::string& sValue, const std::string& sFallbackValue)
+{
+	if (m_sCurrentNoteSkin.empty()) {
+		LuaHelpers::ReportScriptError(
+		  "NOTESKIN:GetMetric: No noteskin currently set.", "NOTESKIN_ERROR");
+		return "";
+	}
+	auto sNoteSkinName = make_lower(m_sCurrentNoteSkin);
+	map<std::string, NoteSkinData>::const_iterator it =
+	  g_mapNameToData.find(sNoteSkinName);
+	ASSERT_M(it != g_mapNameToData.end(),
+			 sNoteSkinName); // this NoteSkin doesn't exist!
+	const auto& data = it->second;
+
+	std::string sReturn;
+	if (data.metrics.GetValue(sButtonName, sValue, sReturn))
+		return sReturn;
+	if (!data.metrics.GetValue("NoteDisplay", sValue, sReturn)) {
+		// dont report an error
+		return sFallbackValue;
+	}
+	return sReturn;
+}
+
 int
 NoteSkinManager::GetMetricI(const std::string& sButtonName,
 							const std::string& sValueName)
 {
 	return StringToInt(GetMetric(sButtonName, sValueName));
+}
+
+int
+NoteSkinManager::GetMetricI(const std::string& sButtonName,
+							const std::string& sValueName,
+							const std::string& sDefaultValue)
+{
+	return StringToInt(GetMetric(sButtonName, sValueName, sDefaultValue));
 }
 
 float
@@ -363,12 +397,29 @@ NoteSkinManager::GetMetricF(const std::string& sButtonName,
 	return StringToFloat(GetMetric(sButtonName, sValueName));
 }
 
+float
+NoteSkinManager::GetMetricF(const std::string& sButtonName,
+							const std::string& sValueName,
+							const std::string& sDefaultValue)
+{
+	return StringToFloat(GetMetric(sButtonName, sValueName, sDefaultValue));
+}
+
 bool
 NoteSkinManager::GetMetricB(const std::string& sButtonName,
 							const std::string& sValueName)
 {
 	// Could also call GetMetricI here...hmm.
 	return StringToInt(GetMetric(sButtonName, sValueName)) != 0;
+}
+
+bool
+NoteSkinManager::GetMetricB(const std::string& sButtonName,
+							const std::string& sValueName,
+							const std::string& sDefaultValue)
+{
+	// Could also call GetMetricI here...hmm.
+	return StringToInt(GetMetric(sButtonName, sValueName, sDefaultValue)) != 0;
 }
 
 apActorCommands

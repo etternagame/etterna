@@ -232,17 +232,20 @@ static const char* CalcPatternModNames[] = {
 	// "CJOHJSeqComp",
 	"Balance",
 	"Roll",
+	"RollJS",
 	"OHTrill",
 	"VOHTrill",
 	"Chaos",
 	"FlamJam",
 	"WideRangeRoll",
 	"WideRangeJumptrill",
+	"WideRangeJJ",
 	"WideRangeBalance",
 	"WideRangeAnchor",
 	"TheThing",
 	"TheThing2",
 	"RanMan",
+	"Minijack",
 	// "RanLen",
 	// "RanAnchLen",
 	// "RanAnchLenMod",
@@ -260,8 +263,9 @@ XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
 
 static const char* CalcDiffValueNames[] = { "NPSBase",
-											// "JackBase",
-											// "CJBase",
+											"MSBase",
+											"JackBase",
+											"CJBase",
 											"TechBase",
 											"RMABase",
 											"MSD" };
@@ -325,12 +329,6 @@ static const char* ProfileSlotNames[] = {
 };
 XToString(ProfileSlot);
 LuaXType(ProfileSlot);
-
-static const char* StageAwardNames[] = {
-	"FullComboW3",	 "SingleDigitW3", "OneW3",		 "FullComboW2",
-	"SingleDigitW2", "OneW2",		  "FullComboW1", "80PercentW3",
-	"90PercentW3",	 "100PercentW3",
-};
 
 void
 DisplayBpms::Add(float f)

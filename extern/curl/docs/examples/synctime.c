@@ -5,11 +5,11 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2019, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -39,7 +39,7 @@
  *
  * Synchronising your computer clock via Internet time server usually relies
  * on DAYTIME, TIME, or NTP protocols. These protocols provide good accurate
- * time synchronisation but it does not work very well through a
+ * time synchronization but it does not work very well through a
  * firewall/proxy. Some adjustment has to be made to the firewall/proxy for
  * these protocols to work properly.
  *
@@ -155,7 +155,7 @@ size_t SyncTime_CURL_WriteHeader(void *ptr, size_t size, size_t nmemb,
                                          TmpStr1 & 2? */
         AutoSyncTime = 0;
       else {
-        int RetVal = sscanf((char *)(ptr), "Date: %s %hu %s %hu %hu:%hu:%hu",
+        int RetVal = sscanf((char *)(ptr), "Date: %25s %hu %s %hu %hu:%hu:%hu",
                             TmpStr1, &SYSTime.wDay, TmpStr2, &SYSTime.wYear,
                             &SYSTime.wHour, &SYSTime.wMinute,
                             &SYSTime.wSecond);
@@ -198,8 +198,8 @@ void SyncTime_CURL_Init(CURL *curl, char *proxy_port,
 #ifdef SYNCTIME_UA
   curl_easy_setopt(curl, CURLOPT_USERAGENT, SYNCTIME_UA);
 #endif
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, *SyncTime_CURL_WriteOutput);
-  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, *SyncTime_CURL_WriteHeader);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, SyncTime_CURL_WriteOutput);
+  curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, SyncTime_CURL_WriteHeader);
 }
 
 int SyncTime_CURL_Fetch(CURL *curl, char *URL_Str, char *OutFileName,
@@ -218,7 +218,7 @@ int SyncTime_CURL_Fetch(CURL *curl, char *URL_Str, char *OutFileName,
 
   curl_easy_setopt(curl, CURLOPT_URL, URL_Str);
   res = curl_easy_perform(curl);
-  if(outfile != NULL)
+  if(outfile)
     fclose(outfile);
   return res;  /* (CURLE_OK) */
 }

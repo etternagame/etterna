@@ -104,6 +104,7 @@ InputHandler_Win32_Pump::GetDeviceSpecificInputString(const DeviceInput& di)
 			return "P2 DL";
 		case JOY_BUTTON_11:
 			return "P2 DR";
+		default: break;
 	}
 
 	return InputHandler::GetDeviceSpecificInputString(di);

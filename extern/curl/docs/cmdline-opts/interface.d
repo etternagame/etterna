@@ -2,8 +2,10 @@ Long: interface
 Arg: <name>
 Help: Use network INTERFACE (or address)
 See-also: dns-interface
+Category: connection
+Example: --interface eth0 $URL
+Added: 7.3
 ---
-
 Perform an operation using a specified interface. You can enter interface
 name, IP address or host name. An example could look like:
 

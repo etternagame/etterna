@@ -71,7 +71,7 @@ bool
 InputHandler_Linux_Joystick::TryDevice(std::string dev)
 {
 	struct stat st;
-	if (stat(dev, &st) == -1) {
+	if (stat(dev.c_str(), &st) == -1) {
 		Locator::getLogger()->warn(
 		  "LinuxJoystick: Couldn't stat {}: {}", dev.c_str(), strerror(errno));
 		return false;
@@ -91,7 +91,7 @@ InputHandler_Linux_Joystick::TryDevice(std::string dev)
 	}
 	/* Thread is stopped! DO NOT RETURN */
 	{
-		fds[m_iLastFd] = open(dev, O_RDONLY);
+		fds[m_iLastFd] = open(dev.c_str(), O_RDONLY);
 
 		if (fds[m_iLastFd] != -1) {
 			char szName[1024];
@@ -188,8 +188,8 @@ InputHandler_Linux_Joystick::InputThread()
 					DeviceButton neg = enum_add2(JOY_LEFT, 2 * event.number);
 					DeviceButton pos = enum_add2(JOY_RIGHT, 2 * event.number);
 					float l = SCALE(int(event.value), 0.0f, 32767, 0.0f, 1.0f);
-					ButtonPressed(DeviceInput(id, neg, max(-l, 0), now));
-					ButtonPressed(DeviceInput(id, pos, max(+l, 0), now));
+					ButtonPressed(DeviceInput(id, neg, max(-l, 0.F), now));
+					ButtonPressed(DeviceInput(id, pos, max(+l, 0.F), now));
 					break;
 				}
 

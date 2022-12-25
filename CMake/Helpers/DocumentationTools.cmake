@@ -20,7 +20,7 @@ else()
 endif()
 
 # LDoc
-find_program(LDOC_EXE "ldoc")
+find_program(LDOC_EXE NAMES "ldoc" "ldoc.bat")
 if(NOT LDOC_EXE)
     message(STATUS "LDoc not found. Documentation target will not be created.")
 else()

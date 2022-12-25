@@ -42,12 +42,12 @@ class ScreenGameplayPractice : public ScreenGameplay
   protected:
 	void SetupNoteDataFromRow(Steps* pSteps,
 							  int minRow = 0,
-							  int maxrow = MAX_NOTE_ROW);
+							  int maxrow = MAX_NOTE_ROW) override;
 
   private:
-	float loopStart = -2000.f;
-	float loopEnd = -2000.f;
-	float lastReportedSeconds = -2000.f;
+	float loopStart = ARBITRARY_MIN_GAMEPLAY_NUMBER;
+	float loopEnd = ARBITRARY_MIN_GAMEPLAY_NUMBER;
+	float lastReportedSeconds = ARBITRARY_MIN_GAMEPLAY_NUMBER;
 };
 
 #endif

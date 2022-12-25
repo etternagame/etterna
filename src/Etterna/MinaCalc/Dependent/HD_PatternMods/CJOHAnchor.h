@@ -13,15 +13,14 @@ struct CJOHAnchorMod
 
 #pragma region params
 
-	float min_mod = .9F;
+	float min_mod = 1.F;
 	float max_mod = 1.1F;
+	float base = .5F;
 
+	float len_scaler = 0.2F;
 	float anchor_len_weight = 1.F;
-	float len_scaler = 0.175F;
 	float swap_scaler = 0.10775F;
 	float not_swap_scaler = 0.019F;
-
-	float base = .5F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -92,13 +91,13 @@ struct CJOHAnchorMod
 												 base_types[base_single_jump] +
 												 base_types[base_jump_single],
 											   1,
-											   max_total_len);
+											   std::max(1, max_total_len));
 		auto tapsF = static_cast<float>(taps_in_any_sequence);
 
 		// 11[12]22
 		auto csF = static_cast<float>(max_chain_swaps);
 		// 11[12]11
-		auto cnF = static_cast<float>(max_not_swaps);
+		// auto cnF = static_cast<float>(max_not_swaps);
 		// 111[12]222 = 1[12]2[12]1[12]2
 		auto clF = static_cast<float>(max_total_len);
 		// 1[12]2[12]1[12]2 = small number < 11111111111[12]2222
@@ -112,7 +111,7 @@ struct CJOHAnchorMod
 
 		auto anchor_worth = fastsqrt(anchor_len_worth / tapsF) * len_scaler;
 		auto swap_worth = fastsqrt(csF / tapsF) * swap_scaler;
-		auto not_swap_worth = fastsqrt(cnF / tapsF) * not_swap_scaler;
+		// auto not_swap_worth = fastsqrt(cnF / tapsF) * not_swap_scaler;
 		pmod = std::clamp(base + anchor_worth + swap_worth + not_swap_scaler, min_mod, max_mod);
 	}
 

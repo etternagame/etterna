@@ -39,7 +39,7 @@ enum Grade
  * @param g the grade to convert.
  * @return the string reprsentation.
  */
-static auto
+inline auto
 GradeToString(Grade g) -> std::string
 {
 	ASSERT_M((g >= 0 && g < NUM_Grade) || g == Grade_Invalid,

@@ -3,7 +3,6 @@
 
 #include "Etterna/Models/Misc/Difficulty.h"
 #include "RageUtil/Misc/RageTypes.h"
-#include "RageUtil/Utils/RageUtil_AutoPtr.h"
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/TimingData.h"
@@ -401,17 +400,17 @@ class Song
 	float specifiedLastSecond;
 	/**
 	 * @brief The background changes (sorted by layer) that are for this Song.
-	 * This uses an AutoPtr instead of a raw pointer so that the
+	 * This uses a shared_ptr instead of a raw pointer so that the
 	 * auto gen'd copy constructor works correctly.
 	 * This must be sorted before gameplay. */
-	AutoPtrCopyOnWrite<VBackgroundChange>
+	std::shared_ptr<VBackgroundChange>
 	  m_BackgroundChanges[NUM_BackgroundLayer];
 	/**
 	 * @brief The foreground changes that are for this Song.
-	 * This uses an AutoPtr instead of a raw pointer so that the
+	 * This uses a shared_ptr instead of a raw pointer so that the
 	 * auto gen'd copy constructor works correctly.
 	 * This must be sorted before gameplay. */
-	AutoPtrCopyOnWrite<VBackgroundChange> m_ForegroundChanges;
+	std::shared_ptr<VBackgroundChange> m_ForegroundChanges;
 
 	[[nodiscard]] auto GetChangesToVectorString(
 	  const std::vector<BackgroundChange>& changes) const
@@ -446,7 +445,8 @@ class Song
 	void AddForegroundChange(const BackgroundChange& seg);
 	void AddLyricSegment(const LyricSegment& seg);
 
-	void GetDisplayBpms(DisplayBpms& AddTo) const;
+	void GetDisplayBpms(DisplayBpms& AddTo,
+						bool bIgnoreCurrentRate = false) const;
 	[[nodiscard]] auto GetBackgroundAtBeat(BackgroundLayer iLayer,
 										   float fBeat) const
 	  -> const BackgroundChange&;

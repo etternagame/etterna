@@ -63,9 +63,9 @@ StringToX(InstrumentTrack);
 Song::Song()
 {
 	FOREACH_BackgroundLayer(i) m_BackgroundChanges[i] =
-	  AutoPtrCopyOnWrite<VBackgroundChange>(new VBackgroundChange);
+	  std::make_shared<VBackgroundChange>();
 	m_ForegroundChanges =
-	  AutoPtrCopyOnWrite<VBackgroundChange>(new VBackgroundChange);
+	  std::make_shared<VBackgroundChange>();
 
 	m_LoadedFromProfile = ProfileSlot_Invalid;
 	m_fVersion = STEPFILE_VERSION_NUMBER;
@@ -270,10 +270,11 @@ Song::GetOrTryAtLeastToGetSimfileAuthor()
 }
 
 void
-Song::GetDisplayBpms(DisplayBpms& AddTo) const
+Song::GetDisplayBpms(DisplayBpms& AddTo, bool bIgnoreCurrentRate) const
 {
 	const auto demratesboiz =
-	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	  bIgnoreCurrentRate ? 1.F
+						 : GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (m_DisplayBPMType == DISPLAY_BPM_SPECIFIED) {
 		AddTo.Add(m_fSpecifiedBPMMin * demratesboiz);
 		AddTo.Add(m_fSpecifiedBPMMax * demratesboiz);
@@ -1521,12 +1522,15 @@ Song::HasPreviewVid() const
 const std::vector<BackgroundChange>&
 Song::GetBackgroundChanges(BackgroundLayer bl) const
 {
-	return *(m_BackgroundChanges[bl]);
+	return *m_BackgroundChanges[bl];
 }
 std::vector<BackgroundChange>&
 Song::GetBackgroundChanges(BackgroundLayer bl)
 {
-	return *(m_BackgroundChanges[bl].Get());
+	std::shared_ptr<VBackgroundChange>& p = m_BackgroundChanges[bl];
+	if (p.use_count() != 1)
+		p = std::make_shared<VBackgroundChange>(*p);
+	return *p;
 }
 
 const std::vector<BackgroundChange>&
@@ -1537,7 +1541,9 @@ Song::GetForegroundChanges() const
 std::vector<BackgroundChange>&
 Song::GetForegroundChanges()
 {
-	return *m_ForegroundChanges.Get();
+	if (m_ForegroundChanges.use_count() != 1)
+		m_ForegroundChanges = std::make_shared<VBackgroundChange>(*m_ForegroundChanges);
+	return *m_ForegroundChanges;
 }
 
 std::vector<std::string>
@@ -2411,7 +2417,11 @@ class LunaSong : public Luna<Song>
 	static int GetDisplayBpms(T* p, lua_State* L)
 	{
 		DisplayBpms temp;
-		p->GetDisplayBpms(temp);
+		bool bIgnore = false;
+		if (!lua_isnoneornil(L, 1)) {
+			bIgnore = BArg(1);
+		}
+		p->GetDisplayBpms(temp, bIgnore);
 		const auto fMin = temp.GetMin();
 		const auto fMax = temp.GetMax();
 		std::vector<float> fBPMs;

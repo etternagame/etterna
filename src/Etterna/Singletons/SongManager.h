@@ -133,8 +133,8 @@ class SongManager
 
 	std::string activeplaylist = "";
 	std::string playlistcourse = "";
-	static void ReconcileChartKeysForReloadedSong(
-	  const Song* reloadedSong,
+	void ReconcileChartKeysForReloadedSong(
+	  Song* reloadedSong,
 	  const std::vector<std::string>& oldChartkeys);
 	void MakeSongGroupsFromPlaylists(
 	  std::map<std::string, Playlist>& playlists = GetPlaylists());

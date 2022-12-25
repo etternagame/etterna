@@ -94,6 +94,7 @@ local ratios = {
     IconDownloadsHeight = 36 / 1080,
     IconDownloadsRightGap = 278 / 1920,
     IconDownloadsProgressBar1UpperGap = 51 / 1080, -- top of icon to top of bar
+    IconDownloadsProgressBar2UpperGap = 62.5 / 1080,
     IconDownloadsProgressBarHeight = 9 / 1080,
     IconDownloadsProgressBarWidth = 88 / 1920,
     IconRandomWidth = 41 / 1920,
@@ -138,6 +139,7 @@ local actuals = {
     IconDownloadsHeight = ratios.IconDownloadsHeight * SCREEN_HEIGHT,
     IconDownloadsRightGap = ratios.IconDownloadsRightGap * SCREEN_WIDTH,
     IconDownloadsProgressBar1UpperGap = ratios.IconDownloadsProgressBar1UpperGap * SCREEN_HEIGHT,
+    IconDownloadsProgressBar2UpperGap = ratios.IconDownloadsProgressBar2UpperGap * SCREEN_HEIGHT,
     IconDownloadsProgressBarHeight = ratios.IconDownloadsProgressBarHeight * SCREEN_HEIGHT,
     IconDownloadsProgressBarWidth = ratios.IconDownloadsProgressBarWidth * SCREEN_WIDTH,
     IconRandomWidth = ratios.IconRandomWidth * SCREEN_WIDTH,
@@ -146,6 +148,27 @@ local actuals = {
     IconSearchWidth = ratios.IconSearchWidth * SCREEN_WIDTH,
     IconSearchHeight = ratios.IconSearchHeight * SCREEN_HEIGHT,
     IconSearchRightGap = ratios.IconSearchRightGap * SCREEN_WIDTH,
+}
+
+local translations = {
+    LogOut = THEME:GetString("Header", "LogOut"),
+    LogIn = THEME:GetString("Header", "LogIn"),
+    Plays = THEME:GetString("Header", "Plays"),
+    ArrowsSmashed = THEME:GetString("Header", "ArrowsSmashed"),
+    PlayTime = THEME:GetString("Header", "PlayTime"),
+    PlayerRating = THEME:GetString("Header", "PlayerRating"),
+    PlayerRatings = THEME:GetString("Header", "PlayerRatings"),
+    OfflineRating = THEME:GetString("Header", "OfflineRating"),
+    OnlineRating = THEME:GetString("Header", "OnlineRating"),
+    Exit = THEME:GetString("Header", "Exit"),
+    Settings = THEME:GetString("Header", "Settings"),
+    Help = THEME:GetString("Header", "Help"),
+    Downloads = THEME:GetString("Header", "Downloads"),
+    Random = THEME:GetString("Header", "Random"),
+    Search = THEME:GetString("Header", "Search"),
+    DownloadingPacks = THEME:GetString("Header", "DownloadingPacks"),
+    QueuedPacks = THEME:GetString("Header", "QueuedPacks"),
+    UploadPercent = THEME:GetString("Header", "UploadPercent"),
 }
 
 -- the list of buttons and the lists of screens those buttons are allowed on
@@ -187,6 +210,10 @@ local visualizerBins = 126
 local leftTextBigSize = 0.7
 local leftTextSmallSize = 0.65
 local rightTextSize = 0.7
+
+local versionTextSize = 0.45
+local versionPadding = 2
+
 local textzoomFudge = 5 -- for gaps in maxwidth
 -- a controllable hack to give more girth to the rating text (RightText) on smaller aspect ratios
 -- should push the visualizer further right and make less problems
@@ -360,9 +387,9 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     MouseOverCommand = function(self)
         self:diffusealpha(hoverAlpha)
         if DLMAN:IsLoggedIn() then
-            TOOLTIP:SetText("Log out")
+            TOOLTIP:SetText(translations["LogOut"])
         else
-            TOOLTIP:SetText("Log in")
+            TOOLTIP:SetText(translations["LogIn"])
         end
         TOOLTIP:Show()
     end,
@@ -431,7 +458,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
-            self:settextf("%d plays", pcount)
+            self:settextf("%d %s", pcount, translations["Plays"])
             registerActorToColorConfigElement(self, "main", "SecondaryText")
         end
     },
@@ -442,7 +469,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
-            self:settextf("%s arrows smashed", strparrows)
+            self:settextf("%s %s", strparrows, translations["ArrowsSmashed"])
             registerActorToColorConfigElement(self, "main", "SecondaryText")
         end,
         MouseOverCommand = function(self)
@@ -456,13 +483,13 @@ t[#t+1] = Def.ActorFrame {
         end,
     },
     LoadFont("Common Normal") .. {
-        Name = "Playtime",
+        Name = "PlayTime",
         InitCommand = function(self)
             self:y(actuals.LeftTextTopGap4)
             self:halign(0)
             self:zoom(leftTextSmallSize)
             self:maxwidth((actuals.RightTextLeftGap - actuals.LeftTextLeftGap) / leftTextSmallSize - textzoomFudge)
-            self:settextf("%s playtime", SecondsToHHMMSS(ptime))
+            self:settextf("%s %s", SecondsToHHMMSS(ptime), translations["PlayTime"])
             registerActorToColorConfigElement(self, "main", "SecondaryText")
         end
     }
@@ -491,9 +518,9 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                self:settext("Player Ratings:")
+                self:settextf("%s:", translations["PlayerRatings"])
             else
-                self:settext("Player Rating:")
+                self:settextf("%s:", translations["PlayerRating"])
             end
         end
     },
@@ -510,7 +537,7 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self)
             local offlinerating = profile:GetPlayerRating()
             if DLMAN:IsLoggedIn() then
-                self:settextf("Offline - %5.2f", offlinerating)
+                self:settextf("%s - %5.2f", translations["OfflineRating"], offlinerating)
             else
                 self:settextf("%5.2f", offlinerating)
             end
@@ -542,7 +569,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         SetCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                self:settextf("Online - %5.2f", DLMAN:GetSkillsetRating("Overall"))
+                self:settextf("%s - %5.2f", translations["OnlineRating"], DLMAN:GetSkillsetRating("Overall"))
             else
                 self:settext("")
             end
@@ -700,7 +727,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -738,7 +765,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -780,7 +807,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -823,7 +850,7 @@ t[#t+1] = Def.ActorFrame {
             MouseOverCommand = function(self)
                 if selectable(self:GetName()) then
                     self:diffusealpha(hoverAlpha)
-                    TOOLTIP:SetText(self:GetName())
+                    TOOLTIP:SetText(translations[self:GetName()])
                     TOOLTIP:Show()
                 end
             end,
@@ -865,10 +892,10 @@ t[#t+1] = Def.ActorFrame {
 
                     local result = {}
                     for i,p in ipairs(dlpacks) do
-                        result[#result+1] = "Downloading: " .. p:GetName()
+                        result[#result+1] = translations["DownloadingPacks"] .. ": " .. p:GetName()
                     end
                     for i,p in ipairs(qpacks) do
-                        result[#result+1] = "Queued: " .. p:GetName()
+                        result[#result+1] = translations["QueuedPacks"] .. ": " .. p:GetName()
                     end
                     if #result > 0 then
                         local ttstr = table.concat(result, "\n")
@@ -928,6 +955,71 @@ t[#t+1] = Def.ActorFrame {
             AllDownloadsCompletedMessageCommand = function(self)
                 self:diffusealpha(0)
             end
+        },
+        UIElements.QuadButton(1, 1) .. {
+            Name = "Progress2BG",
+            InitCommand = function(self)
+                self:valign(0)
+                self:x(-actuals.IconDownloadsWidth/2)
+                self:y(actuals.IconDownloadsProgressBar2UpperGap)
+                self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
+                self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "downloader", "ProgressBarBackground")
+            end,
+            UploadProgressMessageCommand = function(self, params)
+                self.percent = params.percent
+                if isOver(self) then
+                    self:playcommand("ToolTip")
+                end
+
+                -- weird check here to throw out nan
+                if self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
+                    self:diffusealpha(downloadsProgress2BGAlpha)
+                else
+                    self:diffusealpha(0)
+                end
+            end,
+            ToolTipCommand = function(self)
+                -- weird check here to throw out nan
+                if isOver(self) and self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
+                    local st = string.format("%s: %5.2f%%", translations["UploadPercent"], self.percent * 100)
+                    TOOLTIP:SetText(st)
+                    TOOLTIP:Show()
+                else
+                    TOOLTIP:Hide()
+                end
+            end,
+            MouseOverCommand = function(self)
+                self:playcommand("ToolTip")
+            end,
+            MouseOutCommand = function(self)
+                self:playcommand("ToolTip")
+            end,
+        },
+        Def.Quad {
+            Name = "Progress2Progress",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:x(-actuals.IconDownloadsWidth/2 - actuals.IconDownloadsProgressBarWidth/2)
+                self:y(actuals.IconDownloadsProgressBar2UpperGap)
+                self:zoomto(actuals.IconDownloadsProgressBarWidth, actuals.IconDownloadsProgressBarHeight)
+                self:diffusealpha(0)
+                registerActorToColorConfigElement(self, "downloader", "ProgressBarFill")
+            end,
+            UploadProgressMessageCommand = function(self, params)
+                self.percent = params.percent
+                if isOver(self) then
+                    self:playcommand("ToolTip")
+                end
+
+                -- weird check here to throw out nan
+                if self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
+                    self:diffusealpha(downloadsProgress2Alpha)
+                    self:zoomx(actuals.IconDownloadsProgressBarWidth * self.percent)
+                else
+                    self:diffusealpha(0)
+                end
+            end,
         }
     },
     UIElements.SpriteButton(1, 1, THEME:GetPathG("", "random")) .. {
@@ -947,7 +1039,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -1007,7 +1099,7 @@ t[#t+1] = Def.ActorFrame {
         MouseOverCommand = function(self)
             if selectable(self:GetName()) then
                 self:diffusealpha(hoverAlpha)
-                TOOLTIP:SetText(self:GetName())
+                TOOLTIP:SetText(translations[self:GetName()])
                 TOOLTIP:Show()
             end
         end,
@@ -1032,6 +1124,21 @@ t[#t+1] = Def.ActorFrame {
             self:playcommand("Invoke")
         end
     }
+}
+
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "GameVersion",
+    InitCommand = function(self)
+        self:x(actuals.Width - versionPadding)
+        self:y(versionPadding)
+        self:halign(1):valign(0)
+        self:zoom(versionTextSize)
+        self:maxwidth((SCREEN_WIDTH/2) / versionTextSize - textzoomFudge)
+        self:settextf("%s", GAMESTATE:GetEtternaVersion())
+        registerActorToColorConfigElement(self, "main", "SecondaryText")
+        self:diffusealpha(0.6)
+    end
 }
 
 -- if off at first, cannot toggle at runtime

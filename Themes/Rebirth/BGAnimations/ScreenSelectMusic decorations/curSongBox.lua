@@ -19,12 +19,20 @@ local t = Def.ActorFrame {
     ChangedStepsMessageCommand = function(self, params)
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})
     end,
+    OptionUpdatedMessageCommand = function(self, params)
+        if params and params.name == "Show Banners" then
+            self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps()})
+        end
+    end,
     GeneralTabSetMessageCommand = function(self)
         focused = true
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self)
         focused = false
-    end
+    end,
+    ChartPreviewToggleMessageCommand = function(self)
+        focused = false
+    end,
 }
 
 local ratios = {
@@ -99,6 +107,11 @@ do
     end
     actuals.BannerAreaHeight = ratios.BannerHeight * SCREEN_HEIGHT
 end
+
+local translations = {
+    Length = THEME:GetString("ScreenSelectMusic CurSongBox", "Length"),
+    BPM = THEME:GetString("ScreenSelectMusic CurSongBox", "BPM"),
+}
 
 local textsize = 0.8
 local textzoomFudge = 5
@@ -178,7 +191,7 @@ t[#t+1] = Def.ActorFrame {
             -- if it fails, probably nothing was there to receive the message or the tree is bad
             if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
                 SCUFF.preview.active = not SCUFF.preview.active
-                self:GetParent():GetParent():GetParent():playcommand("ToggleChartPreview")
+                MESSAGEMAN:Broadcast("ChartPreviewToggle")
             elseif params.event == "DeviceButton_right mouse button" then
                 local top = SCREENMAN:GetTopScreen()
                 if top.PauseSampleMusic then
@@ -224,7 +237,9 @@ t[#t+1] = Def.ActorFrame {
             self:diffusealpha(1)
             if params.song then
                 local bnpath = params.song:GetBannerPath()
-                if not bnpath then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else
@@ -233,7 +248,9 @@ t[#t+1] = Def.ActorFrame {
                 self:LoadBackground(bnpath)
             else
                 local bnpath = WHEELDATA:GetFolderBanner(params.hovered)
-                if not bnpath or bnpath == "" then
+                if not showBanners() then
+                    self:visible(false)
+                elseif not bnpath or bnpath == "" then
                     bnpath = THEME:GetPathG("Common", "fallback banner")
                     self:visible(false)
                 else
@@ -358,7 +375,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.LengthTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
             self:maxwidth((actuals.LengthNumberLeftGap - actuals.LeftTextLeftGap) / textsize - textzoomFudge)
-            self:settext("LENGTH")
+            self:settext(translations["Length"])
             registerActorToColorConfigElement(self, "main", "PrimaryText")
         end
     },
@@ -390,7 +407,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.BPMTextLeftGap, actuals.Height - actuals.TextLowerGap1)
             self:zoom(textsize)
             self:maxwidth((actuals.BPMNumberLeftGap - actuals.BPMTextLeftGap) / textsize - textzoomFudge)
-            self:settext("BPM")
+            self:settext(translations["BPM"])
             registerActorToColorConfigElement(self, "main", "PrimaryText")
         end
     },
@@ -404,12 +421,9 @@ t[#t+1] = Def.ActorFrame {
             self:maxwidth(actuals.BPMWidth / textsize - textzoomFudge)
         end,
         SetCommand = function(self, params)
-            -- it appears that SetFromSteps is broken...
-            -- note to self.
-            -- wow i forgot about this. time to forget about it again -11 months later
             if params.steps then
                 self:visible(true)
-                self:SetFromSong(params.song)
+                self:SetFromSteps(params.steps)
             else
                 self:visible(false)
             end

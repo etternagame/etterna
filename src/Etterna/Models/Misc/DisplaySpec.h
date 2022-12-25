@@ -107,9 +107,9 @@ class DisplaySpec
 	DisplaySpec(std::string id, std::string name, DisplayMode mode)
 	  : m_sId(std::move(std::move(id)))
 	  , m_sName(std::move(std::move(name)))
-	  , m_bIsVirtual(false)
 	  , m_bCurModeActive(true)
 	  , m_CurMode(mode)
+	  , m_bIsVirtual(false)
 	{
 		m_sModes.insert(mode);
 		m_rectBounds = RectI(0, 0, mode.width, mode.height);

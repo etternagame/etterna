@@ -35,6 +35,8 @@ local defaultConfig = {
         GoalAchieved = "#9654fd",
         GoalDefault = "#ff9999",
         InvalidScore = "#ff9999",
+        ChordCohesionOnScore = "#ff9999",
+        Wife2Score = "#ff9999", -- unused
     },
     chartPreview = {
         Background = "#000000",
@@ -70,6 +72,9 @@ local defaultConfig = {
         ComboGraphBackground = "#111111",
         MaxComboText = "#999999",
         NormalComboText = "#ffffff",
+        InvalidScore = "#ff9999",
+        ChordCohesionOnScore = "#ff9999",
+        Wife2Score = "#ff9999", -- unused
     },
     assetSettings = {
         HoveredItem = "#ffffff",
@@ -415,6 +420,10 @@ function newColorPreset(name) return COLORS:newColorPreset(name) end
 -- uses the currently selected preset in COLORS
 function COLORS.getColor(self, category, element)
     local preset = getColorPreset()
+    if element == nil then
+        print("The element given to COLORS:getColor was nil, so #FFFFFF was returned.")
+        return color("1,1,1,1")
+    end
     if preset ~= nil then
         local presetconfig = self.presets[preset]
         if presetconfig ~= nil then
@@ -510,6 +519,23 @@ function COLORS.colorByTapOffset(self, offset, scale)
     end
 end
 
+function COLORS.colorByTapOffsetCustomWindow(self, offset, windows)
+	local offset = math.abs(offset)
+	if offset <= windows.TapNoteScore_W1 then
+		return self:colorByJudgment("TapNoteScore_W1")
+	elseif offset <= windows.TapNoteScore_W2 then
+		return self:colorByJudgment("TapNoteScore_W2")
+	elseif offset <= windows.TapNoteScore_W3 then
+		return self:colorByJudgment("TapNoteScore_W3")
+	elseif offset <= windows.TapNoteScore_W4 then
+		return self:colorByJudgment("TapNoteScore_W4")
+	elseif offset <= windows.TapNoteScore_W5 then
+		return self:colorByJudgment("TapNoteScore_W5")
+	else
+		return self:colorByJudgment("TapNoteScore_Miss")
+	end
+end
+
 function colorByMSD(x)
     if x then
         return HSV(math.max(95 - (x / 40) * 150, -50), 0.9, 0.9)
@@ -560,6 +586,7 @@ function colorByJudgment(x) return COLORS:colorByJudgment(x) end
 function colorByDifficulty(x) return COLORS:colorByDifficulty(x) end
 function colorByGrade(x) return COLORS:colorByGrade(x) end
 function colorByTapOffset(x, ts) return COLORS:colorByTapOffset(x, ts) end
+function colorByTapOffsetCustomWindow(x, windows) return COLORS:colorByTapOffsetCustomWindow(x, windows) end
 
 ---=======- UTIL
 -- convert a given color = {r,g,b,a} to the 4 HSV+alpha values

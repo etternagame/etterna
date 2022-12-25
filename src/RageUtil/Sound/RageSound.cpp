@@ -65,13 +65,15 @@ RageSound::RageSound()
 
 RageSound::~RageSound()
 {
-	{
-		std::lock_guard<std::mutex> guard(recentSamplesMutex);
-		if (fftPlan)
-			mufft_free_plan_1d(fftPlan);
-	}
-	
 	Unload();
+	// Make sure we free fftPlan after Unload()ing
+	// Otherwise, the decode thread could lock recentSamplesMutex in 
+	// RageSound::GetDataToPlay and if we lock it first, we free the 
+	// fftPlan and then it tries to use it.
+	// Unload() removes this RageSound from the arrays the decode thread uses
+	std::lock_guard<std::mutex> guard(recentSamplesMutex);
+	if (fftPlan)
+		mufft_free_plan_1d(fftPlan);
 }
 
 RageSound::RageSound(const RageSound& cpy)
@@ -378,26 +380,45 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 {
 	if (soundPlayCallback == nullptr || !pendingPlayBackCall)
 		return;
-	std::lock_guard<std::mutex> guard(recentSamplesMutex);
-	std::string error;
-	soundPlayCallback->PushSelf(L);
-	lua_newtable(L);
-	for (size_t i = 0; i < fftBuffer.size(); ++i) {
-		auto r = fftBuffer[i].real;
-		auto im = fftBuffer[i].imag;
-		lua_pushnumber(L,
-					   (r * r + im * im) / (0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
-						 (0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) / 15.f);
-		lua_rawseti(L, -2, i + 1);
+	{
+		// Make sure we're not holding this mutex when we run the lua callback/script
+		// Otherwise it can deadlock if it calls ClearPlayBackCallback which locks g_mutex
+		// and GameSoundManager tries to delete the RageSound which will lock this one after
+		// g_mutex (In the opposite order)
+		// This *should* be fine since even if soundPlayCallback is set to nil by another thread while
+		// we are running it, since the `soundPlayCallback->PushSelf` call which we do while holding
+		// the mutex does a lua_rawgeti which pushes a reference to the callback to the lua stack
+		// which is owned by the lua VM and garbage collected, so it should *not* get freed.
+		std::lock_guard<std::mutex> guard(recentSamplesMutex);
+		// Recheck in case it changed inbetween the earlier check and the mutex lock
+		if (soundPlayCallback == nullptr)
+			return;
+		soundPlayCallback->PushSelf(L);
+		lua_newtable(L);
+		for (size_t i = 0; i < fftBuffer.size(); ++i) {
+			auto r = fftBuffer[i].real;
+			auto im = fftBuffer[i].imag;
+			lua_pushnumber(
+			  L,
+			  (r * r + im * im) /
+				(0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
+				(0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
+				15.f);
+			lua_rawseti(L, -2, i + 1);
+		}
+		pendingPlayBackCall = false;
 	}
+	// TODO: Change this parameter from RageSound to the sampling rate
+	//       by removing this PushSelf.
+	//       We're not holding the g_Mutex from GameSoundManager when we call
+	//       the callback for it's global g_playing, which I think might cause
+	//       issues depending on what the lua callback does with it.
 	PushSelf(L);
-	inPlayCallback = true;
-	LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 1 arg, 0 returns
-	inPlayCallback = false;
+	std::string error;
+	LuaHelpers::RunScriptOnStack(L, error, 2, 0, false); // 2 args, 0 returns
 	if (error != "") // hack for now because we're bad and didn't deal with
 					 // clearing this -mina
 		soundPlayCallback->Unset();
-	pendingPlayBackCall = false;
 }
 
 /* Indicate that a block of audio data has been written to the device. */
@@ -859,33 +880,22 @@ RageSound::SetStopModeFromString(const std::string& sStopMode)
 }
 
 void
-RageSound::ActuallySetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
-									   unsigned int bufSize)
+RageSound::SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
+							   unsigned int bufSize)
 {
+	std::lock_guard<std::mutex> guard(recentSamplesMutex);
+
 	soundPlayCallback = f;
 	recentPCMSamplesBufferSize = std::max(bufSize, 1024u);
 	recentPCMSamples.reserve(recentPCMSamplesBufferSize + 2);
 	fftBuffer.resize(recentPCMSamplesBufferSize / 2 + 1, {});
-	if (fftPlan) mufft_free_plan_1d(fftPlan);
-	fftPlan = mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
+	if (fftPlan)
+		mufft_free_plan_1d(fftPlan);
+	fftPlan =
+	  mufft_create_plan_1d_r2c(recentPCMSamplesBufferSize, MUFFT_FLAG_CPU_ANY);
 	if (!fftPlan)
 		Locator::getLogger()->warn(
 		  "Failed to set playback callback in mufft...");
-}
-
-void
-RageSound::SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
-							   unsigned int bufSize)
-{
-	// If we're in play callback it's safe to call this from lua, since we've
-	// locked LUA->Get() But not from C++ in another thread Invariant: The only
-	// calls to SetPlayBackCallback in C++ should be in the music thread
-	if (!inPlayCallback) {
-		std::lock_guard<std::mutex> guard(recentSamplesMutex);
-		ActuallySetPlayBackCallback(f, bufSize);
-		return;
-	}
-	ActuallySetPlayBackCallback(f, bufSize);
 }
 
 // lua start

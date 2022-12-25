@@ -1,12 +1,14 @@
 local mods = {}
 
-local translated_info = {
-	InvalidMods = THEME:GetString("ScreenGameplay", "InvalidMods")
+local translations = {
+	InvalidMods = THEME:GetString("ScreenGameplay", "InvalidMods"),
+	By = THEME:GetString("ScreenGameplay", "CreatedBy"),
 }
 
 local textSize = 0.8
 local subtextSize = 0.75
 local bigTextSize = 1.2
+local authorSize = 0.60
 
 local width = SCREEN_WIDTH / 3
 local linesize = 75 / 1080 * SCREEN_HEIGHT
@@ -78,7 +80,7 @@ local t = Def.ActorFrame {
 	LoadFont("Common Normal") .. {
 		Name = "DestroyMe4",
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - linesize)
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - linesize * 1.2)
 			self:zoom(subtextSize)
 			self:diffuse(getGameplayColor("SplashText"))
 			self:diffusealpha(0)
@@ -105,6 +107,27 @@ local t = Def.ActorFrame {
 		end
 	},
 	LoadFont("Common Normal") .. {
+		Name = "DestroyMe6",
+		InitCommand = function(self)
+			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y - linesize * 0.9)
+			self:zoom(authorSize)
+			self:diffuse(getGameplayColor("SplashText"))
+			self:diffusealpha(0)
+			self:maxwidth(width / subtextSize)
+		end,
+		BeginCommand = function(self)
+			local auth = GAMESTATE:GetCurrentSong():GetOrTryAtLeastToGetSimfileAuthor()
+			self:settextf("%s: %s", translations["By"], auth)
+		end,
+		OnCommand = function(self)
+			self:smooth(0.5)
+			self:diffusealpha(1)
+			self:sleep(1)
+			self:smooth(0.7)
+			self:diffusealpha(0)
+		end
+	},
+	LoadFont("Common Normal") .. {
 		Name = "DestroyMe5",
 		InitCommand = function(self)
 			self:xy(SCREEN_CENTER_X, SCREEN_CENTER_Y + linesize)
@@ -120,7 +143,7 @@ local t = Def.ActorFrame {
 				for _,mod in ipairs(mods) do
 					table.insert(translated, THEME:HasString("OptionNames", mod) and THEME:GetString("OptionNames", mod) or mod)
 				end
-				self:settextf("%s\n%s", translated_info["InvalidMods"], table.concat(translated, "\n"))
+				self:settextf("%s\n%s", translations["InvalidMods"], table.concat(translated, "\n"))
 			end
 		end,
 		OnCommand = function(self)

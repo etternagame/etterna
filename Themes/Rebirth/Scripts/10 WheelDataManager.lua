@@ -337,7 +337,7 @@ function WHEELDATA.FilterCheck(self, g)
         -- instead, we have to let C++ take over and give us a list of a Song's charts that pass the filter
         -- ... of course I could implement this myself in C++ to make it a lot quicker but alas, today is not the day to do that
         local ck = g:GetChartKey()
-        local s = SONGMAN:GetSongByChartkey(ck)
+        local s = SONGMAN:GetSongByChartKey(ck)
         if s ~= nil then
             local tmpbool = false
             local charts = self:GetChartsMatchingFilter(s)
@@ -600,7 +600,7 @@ end
 -- gets the bpm range for the file, for foldername purposes
 local function getBPMSortFoldernameForSong(song)
     local bpmdivision = 20
-    local bpms = song:GetDisplayBpms()
+    local bpms = song:GetDisplayBpms(true)
     local maxbpm = bpms[2]
     maxbpm = maxbpm + bpmdivision - (maxbpm % bpmdivision) - 1
     return string.format("%03d-%03d", maxbpm - (bpmdivision - 1), maxbpm)
