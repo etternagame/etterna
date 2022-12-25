@@ -76,12 +76,14 @@ local t = Def.ActorFrame {
             --- update all relevant information according to the given score
             -- should work with offset plot as well as all regular information on this screen
             -- this is intended for use only with replays but may partially work without it
+            chosenScore = params.score
             self:playcommand("Set", {
                 song = GAMESTATE:GetCurrentSong(),
                 steps = GAMESTATE:GetCurrentSteps(),
                 score = params.score,
                 judgeSetting = params.judgeSetting,
                 rejudged = params.rejudged, -- optional param to know if need to reload offset plot
+                usingCustomWindows = false,
             })
             usingCustomWindows = true
         end
@@ -101,6 +103,7 @@ local t = Def.ActorFrame {
             score = params.score,
             judgeSetting = params.judgeSetting,
             rejudged = params.rejudged, -- optional param to know if need to reload offset plot
+            usingCustomWindows = usingCustomWindows,
         })
     end,
     JudgeWindowChangedMessageCommand = function(self)
