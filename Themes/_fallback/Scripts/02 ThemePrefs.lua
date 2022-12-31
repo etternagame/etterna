@@ -212,7 +212,6 @@ function JudgeDifficulty()
 				if not found then
 					if list[i] == true then
 						value = notShit.round(GAMESTATE:GetTimingScales()[i+3], 2)
-						ms.ok("set value "..value)
 						found = true
 					end
 				end
