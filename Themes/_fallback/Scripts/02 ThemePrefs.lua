@@ -192,6 +192,39 @@ function PracticeMode()
 	return t
 end
 
+function JudgeDifficulty()
+	local t = {
+		Name = "TimingWindowScale",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = {"4", "5", "6", "7", "8", THEME:GetString("OptionNames", "Justice")},
+		LoadSelections = function(self, list, pn)
+			local td = math.max(GetTimingDifficulty() - 3, 1)
+			-- value is a judge number rather than a timing scale
+			list[td] = true
+		end,
+		SaveSelections = function(self, list, pn)
+			local val = 1.0
+			local found = false
+			for i = 1, #list do
+				if not found then
+					if list[i] == true then
+						value = notShit.round(GAMESTATE:GetTimingScales()[i+3], 2)
+						ms.ok("set value "..value)
+						found = true
+					end
+				end
+			end
+			-- value is a timing scale rather than a judge number
+			SetTimingDifficulty(value)
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 function RateList()
     local ratelist = {}
     do
