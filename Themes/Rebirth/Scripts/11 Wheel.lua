@@ -265,7 +265,15 @@ Wheel.mt = {
             return nil
         end
     end,
-    findSongHelper = function(w, params)
+    findSongHelper = function(w, params, bIsShiftAllowed)
+        bIsShiftAllowed = bIsShiftAllowed or false -- nil replacement
+
+        if bIsShiftAllowed and INPUTFILTER:IsShiftPressed() and w.lastlastrandomkey ~= nil then
+            params.chartkey = w.lastlastrandomkey
+            params.group = w.lastlastgroup
+            params.song = nil
+        end
+
         -- internalized function which takes a parameter table, usually from a Command
         if params.chartkey ~= nil then
             local group = w:findSong(params.chartkey, params.group)
@@ -296,6 +304,14 @@ Wheel.mt = {
                     maxIndex = #w.items,
                 })
                 w.settled = true
+
+                if bIsShiftAllowed and not INPUTFILTER:IsShiftPressed() then
+                    w.lastlastgroup = w.lastgroup
+                    w.lastlastrandomkey = w.lastrandomkey
+                    w.lastrandomkey = params.chartkey
+                    w.lastgroup = w.group
+                end
+
                 return true
             end
         elseif params.song ~= nil then
@@ -326,6 +342,14 @@ Wheel.mt = {
                         maxIndex = #w.items,
                     })
                     w.settled = true
+
+                    if bIsShiftAllowed and not INPUTFILTER:IsShiftPressed() then
+                        w.lastlastgroup = w.lastgroup
+                        w.lastlastrandomkey = w.lastrandomkey
+                        w.lastrandomkey = GAMESTATE:GetCurrentSteps():GetChartKey()
+                        w.lastgroup = w.group
+                    end
+
                     return true
                 end
             end
@@ -1141,7 +1165,7 @@ function MusicWheel:new(params)
     end
 
     w.FindSongCommand = function(self, params)
-        w:findSongHelper(params)
+        w:findSongHelper(params, true)
     end
 
     w.FindGroupCommand = function(self, params)
