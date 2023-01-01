@@ -3,13 +3,66 @@ local c
 local enabledJudgment = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgmentText
 local JTEnabled = JudgementTweensEnabled()
 
+--[[
+-- old commands from metrics [Judgment]:
+JudgmentW1Command=shadowlength,0;diffusealpha,1;zoom,1.3;linear,0.05;zoom,1;sleep,0.8;smooth,0.1;zoomy,0.5;zoomx,2;diffusealpha,0;glowblink;effectperiod,0.05;effectcolor1,color("1,1,1,0");effectcolor2,color("1,1,1,0.25")
+JudgmentW2Command=shadowlength,0;diffusealpha,1;zoom,1.2;linear,0.05;zoom,1;sleep,0.8;smooth,0.1;zoomy,0.5;zoomx,2;diffusealpha,0
+JudgmentW3Command=shadowlength,0;diffusealpha,1;zoom,1.2;linear,0.05;zoom,1;sleep,0.8;smooth,0.1;zoomy,0.5;zoomx,2;diffusealpha,0;
+JudgmentW4Command=shadowlength,0;diffusealpha,1;zoom,1.1;linear,0.05;zoom,1;sleep,0.8;smooth,0.1;zoomy,0.5;zoomx,2;diffusealpha,0;
+JudgmentW5Command=shadowlength,0;diffusealpha,1;zoom,1.05;linear,0.05;zoom,1;sleep,0.8;smooth,0.1;zoomy,0.5;zoomx,2;diffusealpha,0;
+JudgmentMissCommand=shadowlength,0;diffusealpha,1;zoom,1.05;linear,0.05;zoom,1;sleep,0.8;smooth,0.1;zoomy,0.5;zoomx,2;diffusealpha,0;
+]]
+
 local JudgeCmds = {
-	TapNoteScore_W1 = THEME:GetMetric("Judgment", "JudgmentW1Command"),
-	TapNoteScore_W2 = THEME:GetMetric("Judgment", "JudgmentW2Command"),
-	TapNoteScore_W3 = THEME:GetMetric("Judgment", "JudgmentW3Command"),
-	TapNoteScore_W4 = THEME:GetMetric("Judgment", "JudgmentW4Command"),
-	TapNoteScore_W5 = THEME:GetMetric("Judgment", "JudgmentW5Command"),
-	TapNoteScore_Miss = THEME:GetMetric("Judgment", "JudgmentMissCommand"),
+	TapNoteScore_W1 = function(self)
+		local jz = MovableValues.JudgeZoom
+		self:shadowlength(0):diffusealpha(1):zoom(1.3 * jz)
+		self:linear(0.05)
+		self:zoom(1 * jz)
+		self:sleep(0.8):smooth(0.1)
+		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
+		self:glowblink():effectperiod(0.05):effectcolor(color("1,1,1,0")):effectcolor2(color("1,1,1,0.25"))
+	end,
+	TapNoteScore_W2 = function(self)
+		local jz = MovableValues.JudgeZoom
+		self:shadowlength(0):diffusealpha(1):zoom(1.2 * jz)
+		self:linear(0.05)
+		self:zoom(1 * jz)
+		self:sleep(0.8):smooth(0.1)
+		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
+	end,
+	TapNoteScore_W3 = function(self)
+		local jz = MovableValues.JudgeZoom
+		self:shadowlength(0):diffusealpha(1):zoom(1.2 * jz)
+		self:linear(0.05)
+		self:zoom(1 * jz)
+		self:sleep(0.8):smooth(0.1)
+		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
+	end,
+	TapNoteScore_W4 = function(self)
+		local jz = MovableValues.JudgeZoom
+		self:shadowlength(0):diffusealpha(1):zoom(1.1 * jz)
+		self:linear(0.05)
+		self:zoom(1 * jz)
+		self:sleep(0.8):smooth(0.1)
+		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
+	end,
+	TapNoteScore_W5 = function(self)
+		local jz = MovableValues.JudgeZoom
+		self:shadowlength(0):diffusealpha(1):zoom(1.05 * jz)
+		self:linear(0.05)
+		self:zoom(1 * jz)
+		self:sleep(0.8):smooth(0.1)
+		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
+	end,
+	TapNoteScore_Miss = function(self)
+		local jz = MovableValues.JudgeZoom
+		self:shadowlength(0):diffusealpha(1):zoom(1.05 * jz)
+		self:linear(0.05)
+		self:zoom(1 * jz)
+		self:sleep(0.8):smooth(0.1)
+		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
+	end,
 }
 
 local TNSFrames = {
