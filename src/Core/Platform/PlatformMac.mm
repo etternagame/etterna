@@ -112,7 +112,7 @@ namespace Core::Platform {
     }
 
     std::string getLanguage(){
-        return NSLocale.currentLocale.languageCode.UTF8String;
+		return [[NSLocale.currentLocale objectForKey:NSLocaleLanguageCode] UTF8String];
     }
 
     bool openWebsite(const std::string& url){
