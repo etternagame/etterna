@@ -1,0 +1,26 @@
+# Doxyfile 1.8.11
+
+# TODO: Generate the project number and existence/nonexistence of dot automatically
+# (Probably by leveraging CMake/Helpers/DocumentationTools.cmake ?)
+
+# General
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = Etterna
+OUTPUT_LANGUAGE        = English
+PROJECT_NUMBER         = 0.72.0
+OUTPUT_DIRECTORY       = ../doxygen
+INPUT                  = ../src
+INPUT_ENCODING         = UTF-8
+RECURSIVE              = YES
+
+# HTML
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+
+# DOT
+HAVE_DOT               = NO
+CLASS_DIAGRAMS         = YES
+DOT_NUM_THREADS        = 0
+
+# LATEX
+GENERATE_LATEX         = NO
