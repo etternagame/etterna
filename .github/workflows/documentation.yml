@@ -28,6 +28,11 @@ jobs:
       # Setup
       - name: Checkout
         uses: actions/checkout@v3
+      # LDoc build
+      - name: Install Ldoc
+        run: "bash ./.ci/install_ldoc.sh"
+      - name: Run Ldoc
+        run: "bash ./.ci/run_ldoc.sh"
       # Doxygen build
       - name: Generate Doxygen output folder
         run: "mkdir doxygen"
