@@ -37,7 +37,10 @@ jobs:
         run: "bash ./.ci/run_ldoc.sh"
       #Doxygen build
       - name: Run Doxygen
-        run: "bash ./.ci/run_doxygen.sh"
+        run: |
+          cd build
+          make doxygen
+          mv doxygen ../Docs
       #Jekyll build
       - name: Setup Pages
         uses: actions/configure-pages@v2
