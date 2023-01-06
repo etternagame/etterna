@@ -2,13 +2,13 @@
 
 Anyone is welcome to contribute! These are the areas where help is needed the most.
 
-* [C++](#C++)
-* [Lua](#Lua)
-* [Documentation](#Documentation)
-* [Translating](#Translating)
-* [Packaging](#Packaging)
-* [Graphic Design](#Graphic-Design)
-* [Chart Making](#Chart-Making)
+* [C++](#c)
+* [Lua](#lua)
+* [Documentation](#documentation)
+* [Translating](#translating)
+* [Packaging](#packaging)
+* [Graphic Design](#graphic-design)
+* [Chart Making](#chart-making)
 
 ## C++
 
@@ -48,7 +48,7 @@ A guide on this can be found in [the translations document](Translations.md).
 
 ## Packaging
 
-A few people have complained about the lack of packages for Linux in general. If you'd like to, you can try working on a package for your favorite distro. 
+A few people have complained about the lack of packages for Linux in general. If you'd like to, you can try working on a package for your favorite distro.
 
 ## Graphic Design
 
