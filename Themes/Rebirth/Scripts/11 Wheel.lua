@@ -1,3 +1,5 @@
+--- Rebirth Wheel
+-- @module Rebirth_11_Wheel
 local Wheel = {}
 local function fillNilTableFieldsFrom(table1, defaultTable)
     for key, value in pairs(defaultTable) do

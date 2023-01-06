@@ -1,3 +1,5 @@
+--- Rebirth Branches
+-- @module Rebirth_Branches
 Branch.AfterSelectStyle = function()
     return "ScreenSelectMusic"
 end

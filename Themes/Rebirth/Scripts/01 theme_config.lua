@@ -1,3 +1,5 @@
+--- Rebirth Theme Config
+-- @module Rebirth_01_theme_config
 local defaultConfig = {
     global = {
         TipType = 1, -- 1 = tips, 2 = quotes ...

@@ -1,4 +1,5 @@
--- eggman
+--- eggman
+-- @module Rebirth_69_EggManager
 EGGMAN = {}
 local seif, salf = Actor.rainbow, Actor.rainbow
 local solf = Actor.stopeffect

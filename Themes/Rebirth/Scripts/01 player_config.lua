@@ -1,3 +1,5 @@
+--- Rebirth Player Config
+-- @module Rebirth_01_player_config
 local defaultGameplaySizeRatios = {
     HEIGHTBASED = {
         -- instances of 480 are based on til death

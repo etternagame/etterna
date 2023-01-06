@@ -1,8 +1,9 @@
+--- Rebirth Title Menu Manager
 -- this is a kind of manager for the functionality on the title menu
 -- initially, we are focused on the scroller options
 -- we want to be able to handle the transition between the options and the profile choices
 -- this is the simplest way to do it without remaking the entire screen in lua
-
+-- @module Rebirth_97_TitleMenuManager
 TITLE = {
     scrollerFocused = true, -- focused on the main choices
     nextScreen = "ScreenTitleMenu",

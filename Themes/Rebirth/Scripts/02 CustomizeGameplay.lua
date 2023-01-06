@@ -1,3 +1,5 @@
+--- Rebirth Customize Gameplay
+-- @module Rebirth_02_CustomizeGameplay
 local keymode
 local usingReverse
 

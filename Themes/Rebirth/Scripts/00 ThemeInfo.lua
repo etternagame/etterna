@@ -1,3 +1,5 @@
+--- Rebirth Theme Info
+-- @module Rebirth_00_ThemeInfo
 THEMEINFO = {
     Name = "Rebirth",
     Version = "3",

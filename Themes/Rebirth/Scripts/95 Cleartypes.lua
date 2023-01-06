@@ -1,6 +1,8 @@
+--- Rebirth Clear Types
 --------------------------------------------
 -- Methods for generating ClearType texts --
 --------------------------------------------
+-- @module Rebirth_95_ClearTypes
 
 local stypetable = {
     -- Shorthand Versions of ClearType

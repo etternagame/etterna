@@ -3,6 +3,8 @@
 --mainly from stepmania & Etterna
 
 -- Also (hopefully helpful) tips regarding the game/theme,etc.
+--- Rebirth Quotes
+-- @module Rebirth_Quotes
 -----------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------
 local Tips = {

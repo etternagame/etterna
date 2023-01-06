@@ -1,3 +1,5 @@
+--- Rebirth Options Menu
+-- @module Rebirth_02_OptionsMenu
 function getPlayerOptionsList(itemSet)
 	local Items = {
 		["Main"] = "Speed,RateList,NoteSk,RS,PRAC,CG,ScrollDir,Center,Persp,LC,BG,SF,Background,Judge,Life,Fail,Assist,Score",

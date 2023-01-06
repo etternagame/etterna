@@ -1,5 +1,6 @@
+--- Rebirth Input Binding Manager
 -- this provides various lua-based utility and state related to key binding
-
+-- @module Rebirth_10_InputBindingManager
 INPUTBINDING = {
     -- these values are indexed at 0, not 1
     maxColumn = 4, -- the 5th column (yes there are actually many more columns to bind to)
