@@ -32,18 +32,6 @@ jobs:
         run: "bash ./.ci/install_ldoc.sh"
       - name: Generate LDoc/Doxygen configs
         run: "bash ./.ci/generate_doc_configs.sh"
-      #Ldoc build
-      - name: Run LDoc
-        run: |
-          cd build
-          make ldoc
-          mv ldoc_output ../Docs/ldoc
-      #Doxygen build
-      - name: Run Doxygen
-        run: |
-          cd build
-          make doxygen
-          mv doxygen ../Docs
       #Jekyll build
       - name: Setup Pages
         uses: actions/configure-pages@v2
@@ -52,6 +40,18 @@ jobs:
         with:
           source: ./Docs/
           destination: ./_site
+      #Ldoc build
+      - name: Run LDoc
+        run: |
+          cd build
+          make ldoc
+          sudo mv ldoc_output ../_site/ldoc
+      #Doxygen build
+      - name: Run Doxygen
+        run: |
+          cd build
+          make doxygen
+          sudo mv doxygen ../_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
 
