@@ -1,3 +1,8 @@
+---
+# Exclude this from sidebar of Etterna documentation site
+nav_exclude: true
+---
+
 # Purpose
 
 The pause menu controller actor encapsulates the logic for when to activate
