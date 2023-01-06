@@ -1,4 +1,3 @@
---- Rebirth Scuff Manager
 -- this is like a singleton
 -- i have no regrets making this
 -- its just for global state dependent stuff that i didnt want to write into the game c++ or for some other reason related to being lazy
@@ -6,7 +5,6 @@
 -- this is all of those bools but in one place instead
 -- ok now that i wrote out that explanation that sounds really bad
 -- who asked you anyways
--- @module Rebirth_10_ScuffManager
 
 SCUFF = {}
 

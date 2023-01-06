@@ -1,5 +1,3 @@
---- Rebirth Audio Visualizer
--- @module Rebirth_10_AudioVisualizer
 local log = math.log
 local concat = function(...)
     local arg = {...}

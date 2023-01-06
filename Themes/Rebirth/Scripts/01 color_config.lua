@@ -1,5 +1,3 @@
---- Rebirth Color Config
--- @module Rebirth_01_color_config
 local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 local ETTERNA_PURPLE = "#614080" -- originally "Main Highlight" color
 local defaultConfig = {

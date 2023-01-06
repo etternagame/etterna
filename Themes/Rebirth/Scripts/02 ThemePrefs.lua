@@ -1,5 +1,3 @@
---- Rebirth Theme Prefs
--- @module Rebirth_02_ThemePrefs
 --- OptionRow handlers for options defined in
 -- metrics.ini under [ScreenPlayerOptions]
 local function OptionNameString(str)

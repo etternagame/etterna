@@ -1,5 +1,3 @@
---- Rebirth Tag Manager
--- @module Rebirth_01_TagManager
 local defaultConfig = {
     playerTags = {}
 }

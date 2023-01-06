@@ -1,8 +1,8 @@
---- Rebirth Util
 -- additional utility functions that could be used in places but not overshadowing other util functions
+
+
 -- return the width of the widest child
 -- works recursively: considers all children in the tree
--- @module Rebirth_98_util
 function getLargestChildWidth(actorFrame)
     local largest = 0
     if actorFrame == nil then

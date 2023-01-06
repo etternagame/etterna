@@ -1,2 +1,2 @@
---- custom tweens :sunglasses:
--- @module Rebirth_98_tweeny
+-- custom tweens :sunglasses:
+
