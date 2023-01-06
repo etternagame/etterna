@@ -1,3 +1,7 @@
+---
+# Exclude this from sidebar of Etterna documentation site
+nav_exclude: true
+---
 # Overview
 
 The Keymaps.ini file tells StepMania how the keys on the keyboard or other
