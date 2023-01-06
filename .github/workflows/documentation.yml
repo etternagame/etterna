@@ -28,21 +28,16 @@ jobs:
       # Setup
       - name: Checkout
         uses: actions/checkout@v3
-      # LDoc build
       - name: Install Ldoc
         run: "bash ./.ci/install_ldoc.sh"
-      - name: Run Ldoc
+      - name: Generate LDoc/Doxygen configs
+        run: "bash ./.ci/generate_doc_configs.sh"
+      #Ldoc build
+      - name: Run LDoc
         run: "bash ./.ci/run_ldoc.sh"
-      # Doxygen build
-      - name: Generate Doxygen output folder
-        run: "mkdir doxygen"
-      - name: Build Doxygen
-        uses: mattnotmitt/doxygen-action@v1.9.5
-        with:
-            working-directory: "doxygen"
-            doxyfile-path: ../Docs/Doxyfile
-      - name: Copy doxygen generated html to Docs
-        run: "cp -r ./doxygen ./Docs/"
+      #Doxygen build
+      - name: Run Doxygen
+        run: "bash ./.ci/run_doxygen.sh"
       #Jekyll build
       - name: Setup Pages
         uses: actions/configure-pages@v2
