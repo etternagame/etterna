@@ -34,7 +34,10 @@ jobs:
         run: "bash ./.ci/generate_doc_configs.sh"
       #Ldoc build
       - name: Run LDoc
-        run: "bash ./.ci/run_ldoc.sh"
+        run: |
+          cd build
+          make ldoc
+          mv ldoc_output ../Docs/ldoc
       #Doxygen build
       - name: Run Doxygen
         run: |
