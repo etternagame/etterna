@@ -275,7 +275,7 @@ function RateList()
     return t
 end
 
-function VisualDelaySeconds()
+function InputDebounceTime()
     local delaylist = {}
     do
 		-- in milliseconds, 100 is pretty egregious
@@ -290,7 +290,7 @@ function VisualDelaySeconds()
     end
 
     local t = {
-        Name = "VisualDelaySeconds",
+        Name = "InputDebounceTime",
         LayoutType = "ShowAllInRow",
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
@@ -298,7 +298,7 @@ function VisualDelaySeconds()
         Choices = delaylist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
-            local rate = notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 4)
+            local rate = notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 4)
             local acceptable_delta = 0.0005
             for i = 1, #delaylist do
                 local r = tonumber(delaylist[i]:sub(1, -3)) / 1000
@@ -313,13 +313,13 @@ function VisualDelaySeconds()
             for i, v in ipairs(list) do
                 if v == true then
                     local r = notShit.round(tonumber(delaylist[i]:sub(1, -3)) / 1000, 3)
-					PREFSMAN:SetPreference("VisualDelaySeconds", r)
+					PREFSMAN:SetPreference("InputDebounceTime", r)
                     break
                 end
             end
         end,
 		NotifyOfSelection = function(self, pn, choice)
-			MESSAGEMAN:Broadcast("VisualDelayOptionChanged", {value = PREFSMAN:GetPreference("VisualDelaySeconds")})
+			MESSAGEMAN:Broadcast("InputDebounceOptionChanged", {value = PREFSMAN:GetPreference("InputDebounceTime")})
 		end
     }
     setmetatable(t, t)
