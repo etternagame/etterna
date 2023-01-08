@@ -300,8 +300,11 @@ OsuLoader::LoadNoteDataFromParsedData(
   Steps* out,
   map<std::string, map<std::string, std::string>> parsedData)
 {
+	const auto keymode = stoi(parsedData["Difficulty"]["CircleSize"]);
+	auto lane = [&keymode](int lane) { return lane / (512 / keymode); };
+
 	NoteData newNoteData;
-	newNoteData.SetNumTracks(stoi(parsedData["Difficulty"]["CircleSize"]));
+	newNoteData.SetNumTracks(keymode);
 
 	std::vector<OsuNote> taps;
 	std::vector<OsuHold> holds;
@@ -334,10 +337,9 @@ OsuLoader::LoadNoteDataFromParsedData(
 	}
 
 	for (auto& tap : taps) {
-		newNoteData.SetTapNote(
-		  tap.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-		  MsToNoteRow(tap.ms - firstTap, out->m_pSong),
-		  TAP_ORIGINAL_TAP);
+		newNoteData.SetTapNote(lane(tap.lane),
+							   MsToNoteRow(tap.ms - firstTap, out->m_pSong),
+							   TAP_ORIGINAL_TAP);
 	}
 	for (auto& hold : holds) {
 		int start = MsToNoteRow(hold.msStart - firstTap, out->m_pSong);
@@ -345,16 +347,15 @@ OsuLoader::LoadNoteDataFromParsedData(
 		if (end - start > 0 && useLifts) {
 			end = end - 1;
 		}
+		if (end <= start) {
+			// if the hold is a 0 or negative length hold, it is a tap
+			newNoteData.SetTapNote(lane(hold.lane), start, TAP_ORIGINAL_TAP);
+			continue;
+		}
 		newNoteData.AddHoldNote(
-		  hold.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-		  start,
-		  end,
-		  TAP_ORIGINAL_HOLD_HEAD);
+		  lane(hold.lane), start, end, TAP_ORIGINAL_HOLD_HEAD);
 		if (useLifts)
-			newNoteData.SetTapNote(
-			  hold.lane / (512 / stoi(parsedData["Difficulty"]["CircleSize"])),
-			  end + 1,
-			  TAP_ORIGINAL_LIFT);
+			newNoteData.SetTapNote(lane(hold.lane), end + 1, TAP_ORIGINAL_LIFT);
 	}
 
 	out->m_pSong->m_SongTiming.m_fBeat0OffsetInSeconds = -firstTap / 1000.0f;
@@ -367,9 +368,6 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 {
 	RageFile f;
 	if (!f.Open(path)) {
-		//		LOG->UserLog(
-		//		  "Song file", path, "couldn't be opened: %s",
-		// f.GetError().c_str());
 		return false;
 	}
 
@@ -389,10 +387,6 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 {
 	std::vector<std::string> aFileNames;
 	GetApplicableFiles(sPath_, aFileNames);
-
-	// const std::string sPath = sPath_ + aFileNames[0];
-
-	// LOG->Trace("Song::LoadFromDWIFile(%s)", sPath.c_str()); //osu
 
 	RageFile f;
 	map<std::string, map<std::string, std::string>> parsedData;
@@ -428,6 +422,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 	if (!out.m_sSongFileName.empty())
 		out.m_sSongFileName = sPath_ + out.m_sSongFileName;
 
+	// this would force the game to auto convert all .osu to .ssc
 	// out.Save(false);
 
 	return true;
