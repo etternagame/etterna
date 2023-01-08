@@ -1,4 +1,5 @@
 #Jekyll config file for Etterna documentation CI
 remote_theme: just-the-docs/just-the-docs
+color_scheme: etterna
 
 include: Contributing.md # No clue why this is needed explicitly
