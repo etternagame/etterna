@@ -2879,9 +2879,17 @@ Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<Playba
 		const auto positionSeconds = evt.songPositionSeconds;
 
 		const auto noterow =
-		  BeatToNoteRow(td->GetBeatFromElapsedTimeNoOffset(positionSeconds));
-		if (noterow < startRow) {
-			continue;
+		  BeatToNoteRow(td->GetBeatFromElapsedTime(positionSeconds));
+		if (evt.nearestTapNoterow < startRow) {
+			if (evt.nearestTapNoterow == -1) {
+				// for ghost taps, only remove them if they are truly too early
+				if (noterow < startRow) {
+					continue;
+				}
+			} else {
+				// these are taps which judge a note earlier than we care
+				continue;
+			}
 		}
 
 		PlaybackEvent playback(noterow, positionSeconds, column, isPress);
