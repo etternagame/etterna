@@ -12,16 +12,13 @@
 #include <map>
 #include <algorithm>
 
-using std::map;
-using std::string;
-
-std::vector<string>
-split(string str, const string& token)
+std::vector<std::string>
+split(std::string str, const std::string& token)
 {
-	std::vector<string> result;
+	std::vector<std::string> result;
 	while (!str.empty()) {
 		auto index = str.find(token);
-		if (index != string::npos) {
+		if (index != std::string::npos) {
 			result.push_back(str.substr(0, index));
 			str = str.substr(index + token.size());
 			if (str.empty())
@@ -34,15 +31,15 @@ split(string str, const string& token)
 	return result;
 }
 
-map<string, map<string, string>>
-OsuLoader::ParseFileString(const string& fileContents)
+std::map<std::string, std::map<std::string, std::string>>
+OsuLoader::ParseFileString(const std::string& fileContents)
 {
-	std::vector<string> sections;
-	std::vector<std::vector<string>> contents;
+	std::vector<std::string> sections;
+	std::vector<std::vector<std::string>> contents;
 
 	SeparateTagsAndContents(fileContents, sections, contents);
 
-	map<string, map<string, string>> parsedData;
+	std::map<std::string, std::map<std::string, std::string>> parsedData;
 	bool colurz = (sections.size() == 8 &&
 				   std::count(sections.begin(), sections.end(), "Colours"));
 	if (sections.size() == 7 || colurz) {
@@ -50,8 +47,8 @@ OsuLoader::ParseFileString(const string& fileContents)
 			for (auto& content : contents[i]) {
 				auto& str = content;
 				int pos = str.find_first_of(':');
-				string value = str.substr(pos + 1);
-				string tag = str.substr(0, pos);
+				std::string value = str.substr(pos + 1);
+				std::string tag = str.substr(0, pos);
 				parsedData[sections[i]][tag] = value;
 			}
 		}
@@ -60,16 +57,17 @@ OsuLoader::ParseFileString(const string& fileContents)
 }
 
 void
-OsuLoader::SeparateTagsAndContents(string fileContents,
-								   std::vector<string>& tagsOut,
-								   std::vector<std::vector<string>>& contentsOut)
+OsuLoader::SeparateTagsAndContents(
+  std::string fileContents,
+  std::vector<std::string>& tagsOut,
+  std::vector<std::vector<std::string>>& contentsOut)
 {
 	char lastByte = '\0';
 	bool isComment = false;
 	bool isTag = false;
 	bool isContent = false;
-	string tag;
-	string content;
+	std::string tag;
+	std::string content;
 
 	int tagIndex = 0;
 
@@ -91,7 +89,7 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 				tagsOut.emplace_back(tag);
 				isTag = false;
 				content = "";
-				contentsOut.emplace_back(std::vector<string>());
+				contentsOut.emplace_back(std::vector<std::string>());
 				isContent = true;
 			} else {
 				tag = tag + currentByte;
@@ -123,7 +121,9 @@ OsuLoader::SeparateTagsAndContents(string fileContents,
 }
 
 void
-OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
+OsuLoader::SetMetadata(
+  std::map<std::string, std::map<std::string, std::string>> parsedData,
+  Song& out)
 {
 	// set metadata values
 	auto& metadata = parsedData["Metadata"];
@@ -142,7 +142,9 @@ OsuLoader::SetMetadata(map<string, map<string, string>> parsedData, Song& out)
 }
 
 void
-OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
+OsuLoader::SetTimingData(
+  std::map<std::string, std::map<std::string, std::string>> parsedData,
+  Song& out)
 {
 	std::vector<std::pair<int, float>> tp;
 
@@ -210,9 +212,10 @@ OsuLoader::SetTimingData(map<string, map<string, string>> parsedData, Song& out)
 }
 
 bool
-OsuLoader::LoadChartData(Song* song,
-						 Steps* chart,
-						 map<string, map<string, string>> parsedData)
+OsuLoader::LoadChartData(
+  Song* song,
+  Steps* chart,
+  std::map<std::string, std::map<std::string, std::string>> parsedData)
 {
 	if (stoi(parsedData["General"]["Mode"]) != 3 ||
 		parsedData.find("HitObjects") ==
@@ -298,7 +301,7 @@ OsuLoader::MsToNoteRow(int ms, Song* song)
 void
 OsuLoader::LoadNoteDataFromParsedData(
   Steps* out,
-  map<std::string, map<std::string, std::string>> parsedData)
+  std::map<std::string, std::map<std::string, std::string>> parsedData)
 {
 	const auto keymode = stoi(parsedData["Difficulty"]["CircleSize"]);
 	auto lane = [&keymode](int lane) { return lane / (512 / keymode); };
@@ -375,7 +378,7 @@ OsuLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 	fileRStr.reserve(f.GetFileSize());
 	f.Read(fileRStr, -1);
 
-	string fileStr = fileRStr;
+	std::string fileStr = fileRStr;
 	auto parsedData = ParseFileString(fileStr);
 	LoadNoteDataFromParsedData(&out, parsedData);
 
@@ -389,7 +392,7 @@ OsuLoader::LoadFromDir(const std::string& sPath_, Song& out)
 	GetApplicableFiles(sPath_, aFileNames);
 
 	RageFile f;
-	map<std::string, map<std::string, std::string>> parsedData;
+	std::map<std::string, std::map<std::string, std::string>> parsedData;
 
 	for (auto& filename : aFileNames) {
 		auto p = sPath_ + filename;
