@@ -2876,10 +2876,9 @@ Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<Playba
 		const auto& evtPositionSeconds = evt.songPositionSeconds;
 		const auto& column = evt.column;
 		const auto& isPress = evt.is_press;
-		const auto positionSeconds = evt.songPositionSeconds;
 
 		const auto noterow =
-		  BeatToNoteRow(td->GetBeatFromElapsedTime(positionSeconds));
+		  BeatToNoteRow(td->GetBeatFromElapsedTime(evtPositionSeconds));
 		if (evt.nearestTapNoterow < startRow) {
 			if (evt.nearestTapNoterow == -1) {
 				// for ghost taps, only remove them if they are truly too early
@@ -2892,8 +2891,9 @@ Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<Playba
 			}
 		}
 
-		PlaybackEvent playback(noterow, positionSeconds, column, isPress);
+		PlaybackEvent playback(noterow, evtPositionSeconds, column, isPress);
 		playback.noterowJudged = evt.nearestTapNoterow;
+		playback.offset = evt.offsetFromNearest;
 		if (!out.count(noterow)) {
 			out.emplace(noterow, std::vector<PlaybackEvent>());
 		}
