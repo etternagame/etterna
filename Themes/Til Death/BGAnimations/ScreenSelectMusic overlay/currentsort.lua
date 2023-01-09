@@ -64,10 +64,23 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 	MouseDownCommand = function(self, params)
 		if group_rand ~= "" and params.event == "DeviceButton_left mouse button" then
 			local w = SCREENMAN:GetTopScreen():GetMusicWheel()
+
+			if INPUTFILTER:IsShiftPressed() and self.lastlastrandom ~= nil then
+
+				-- if the last random song wasnt filtered out, we can select it
+				-- so end early after jumping to it
+				if w:SelectSong(self.lastlastrandom) then
+					return
+				end
+				-- otherwise, just pick a new random song
+			end
+
 			local t = w:GetSongsInGroup(group_rand)
 			if #t == 0 then return end
 			local random_song = t[math.random(#t)]
 			w:SelectSong(random_song)
+			self.lastlastrandom = self.lastrandom
+			self.lastrandom = random_song
 		end
 	end,
 	MouseOverCommand = function(self)

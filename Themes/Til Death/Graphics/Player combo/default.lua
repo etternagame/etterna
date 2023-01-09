@@ -4,10 +4,31 @@ local enabledCombo = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ComboTe
 local CenterCombo = CenteredComboEnabled()
 local CTEnabled = ComboTweensEnabled()
 
-local Pulse = THEME:GetMetric("Combo", "PulseCommand")
-local NumberMinZoom = THEME:GetMetric("Combo", "NumberMinZoom")
-local NumberMaxZoom = THEME:GetMetric("Combo", "NumberMaxZoom")
-local NumberMaxZoomAt = THEME:GetMetric("Combo", "NumberMaxZoomAt")
+
+local function numberZoom()
+    return math.max((MovableValues.ComboZoom) - 0.1, 0)
+end
+
+local function labelZoom()
+    return math.max(MovableValues.ComboZoom, 0)
+end
+
+--[[
+	-- old Pulse function from [Combo]:
+	%function(self,param) self:stoptweening(); self:zoom(1.1*param.Zoom); self:linear(0.05); self:zoom(param.Zoom); end
+]]
+local Pulse = function(self, param)
+	self:stoptweening()
+	self:zoom(1.125 * param.Zoom * numberZoom())
+	self:linear(0.05)
+	self:zoom(param.Zoom * numberZoom())
+end
+local PulseLabel = function(self, param)
+	self:stoptweening()
+	self:zoom(1.125 * param.LabelZoom * labelZoom())
+	self:linear(0.05)
+	self:zoom(param.LabelZoom * labelZoom())
+end
 
 local function arbitraryComboX(value)
 	c.Label:x(value)
@@ -129,10 +150,16 @@ local t = Def.ActorFrame {
 		end
 
 		--Animations
-		param.Zoom = scale(iCombo, 0, NumberMaxZoomAt, NumberMinZoom, NumberMaxZoom)
-		param.Zoom = clamp(param.Zoom, NumberMinZoom, NumberMaxZoom)
 		if CTEnabled then
+			local lb = 0.9
+			local ub = 1.1
+			local maxcombo = 100
+			param.LabelZoom = scale( iCombo, 0, maxcombo, lb, ub )
+			param.LabelZoom = clamp( param.LabelZoom, lb, ub )
+			param.Zoom = scale( iCombo, 0, maxcombo, lb, ub )
+			param.Zoom = clamp( param.Zoom, lb, ub )
 			Pulse(c.Number, param)
+			PulseLabel(c.Label, param)
 		end
 	end,
 	MovableBorder(0, 0, 1, MovableValues.ComboX, MovableValues.ComboY),

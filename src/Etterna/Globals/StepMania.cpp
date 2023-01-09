@@ -1250,11 +1250,9 @@ HandleGlobalInputs(const InputEventPlus& input)
 					GAMESTATE->Reset();
 					SCREENMAN->SetNewScreen(
 					  CommonMetrics::OPERATOR_MENU_SCREEN);
+					return true;
 				}
 			}
-			return true;
-			return false; // Attract needs to know because it goes to TitleMenu
-						  // on > 1 credit
 		default:
 			break;
 	}

@@ -1,5 +1,6 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Actor/Base/ActorUtil.h"
+#include "Etterna/Actor/Base/ActorFrame.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
 #include "Etterna/Models/Misc/GameInput.h"
@@ -703,6 +704,33 @@ class LunaNoteSkinManager : public Luna<NoteSkinManager>
 	FOR_NOTESKIN(GetMetricA, 2);
 	FOR_NOTESKIN(LoadActor, 2);
 #undef FOR_NOTESKIN
+	static int AddChildActorForNoteSkin(T* p, lua_State* L) {
+		const std::string sOldNoteSkin = p->GetCurrentNoteSkin();
+		std::string nsname = SArg(3);
+		if (!p->DoesNoteSkinExist(nsname)) {
+			luaL_error(L, "Noteskin \"%s\" does not exist.", nsname.c_str());
+		}
+
+		auto actor = Luna<ActorFrame>::check(L, 4);
+
+		p->SetCurrentNoteSkin(nsname);
+		LoadActor(p, L);
+		p->SetCurrentNoteSkin(sOldNoteSkin);
+
+		auto xnode = XmlFileUtil::XNodeFromTable(L);
+		if (xnode == nullptr) {
+			// XNode will warn about the error
+			lua_pushnil(L);
+			return 1;
+		}
+
+		auto* result = ActorUtil::LoadFromNode(xnode, actor);
+		if (result != nullptr) {
+			actor->AddChild(result);
+		}
+		return 1;
+	}
+
 	static int GetNoteSkinNames(T* p, lua_State* L)
 	{
 		std::vector<std::string> vNoteskins;
@@ -742,6 +770,7 @@ class LunaNoteSkinManager : public Luna<NoteSkinManager>
 		ADD_METHOD(GetMetricBForNoteSkin);
 		ADD_METHOD(GetMetricAForNoteSkin);
 		ADD_METHOD(LoadActorForNoteSkin);
+		ADD_METHOD(AddChildActorForNoteSkin);
 		ADD_METHOD(GetNoteSkinNames);
 		ADD_METHOD(DoesNoteSkinExist); // for the current game
 	}

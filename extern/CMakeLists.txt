@@ -13,7 +13,7 @@ set(BUILD_SHARED_LIBS OFF) # Tell CMake to prefer static libs
 
 # External Libraries
 ## Curl Specific Options
-set(CMAKE_USE_LIBSSH2 OFF CACHE BOOL "" FORCE) # Disable curl libssh2
+set(CURL_USE_LIBSSH2 OFF CACHE BOOL "" FORCE) # Disable curl libssh2
 set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)    # Tell curl not to build standalone binary
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)     # Disable curl testing
 set(CURL_USE_OPENSSL ON CACHE BOOL "" FORCE)  # Require OpenSSL
@@ -28,6 +28,9 @@ add_subdirectory(SQLiteCpp)
 ## websocketpp
 add_subdirectory(asio-1.12.2) # Only required for websocketpp
 add_subdirectory(websocketpp)
+add_library(websocketpp INTERFACE)
+target_include_directories(websocketpp INTERFACE websocketpp)
+target_link_libraries(websocketpp INTERFACE asio)
 
 ## discord-rpc
 set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format

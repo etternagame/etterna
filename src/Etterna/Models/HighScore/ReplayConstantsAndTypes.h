@@ -183,6 +183,7 @@ struct PlaybackEvent
 	// only applies if the event judges a note
 	// to prevent events triggering wrong judgments
 	int noterowJudged = -1;
+	float offset = 0.F;
 
 	PlaybackEvent()
 	{

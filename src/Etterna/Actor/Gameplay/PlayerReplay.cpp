@@ -303,6 +303,61 @@ PlayerReplay::Update(float fDeltaTime)
 }
 
 void
+PlayerReplay::SetPlaybackEvents(
+  const std::map<int, std::vector<PlaybackEvent>>& v)
+{
+	playbackEvents.clear();
+
+	std::vector<PlaybackEvent> ghostTaps{};
+	auto gapError = 0.F;
+
+	auto musicRate = REPLAYS->GetActiveReplay()->GetMusicRate();
+
+	for (auto& p : v) {
+		auto noterow = p.first;
+		auto& evts = p.second;
+
+		auto rowpos = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(noterow));
+		for (auto& evt : evts) {
+			auto supposedTime = evt.songPositionSeconds;
+
+			if (evt.noterowJudged == -1) {
+				ghostTaps.push_back(evt);
+				continue;
+			}
+
+			// discrepancy in notedata/timing from actual replay
+			// must update row and time to match current chart
+			if (fabsf(rowpos - supposedTime) > 0.01F) {
+				// haha oh my god
+				noterow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
+				  m_Timing->GetElapsedTimeFromBeat(
+					NoteRowToBeat(evt.noterowJudged)) +
+				  (evt.offset * musicRate)));
+				gapError = rowpos - supposedTime;
+			}
+
+			if (playbackEvents.count(noterow) == 0u) {
+				playbackEvents.emplace(noterow, std::vector<PlaybackEvent>());
+			}
+			playbackEvents.at(noterow).push_back(evt);
+		}
+	}
+
+	// handle ghost taps last because we didnt have enough data to fix gaps
+	for (auto& evt : ghostTaps) {
+		auto time =
+		  m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(evt.noterow));
+		auto newrow =
+		  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(time - gapError));
+		if (playbackEvents.count(newrow) == 0u) {
+			playbackEvents.emplace(newrow, std::vector<PlaybackEvent>());
+		}
+		playbackEvents.at(newrow).push_back(evt);
+	}
+}
+
+void
 PlayerReplay::CheckForSteps(const std::chrono::steady_clock::time_point& tm)
 {
 	if (playbackEvents.empty()) {
@@ -332,10 +387,36 @@ PlayerReplay::CheckForSteps(const std::chrono::steady_clock::time_point& tm)
 	}
 
 	// execute all the events
-	for (PlaybackEvent evt : evts) {
+	for (const auto& evt : evts) {
 		if (evt.isPress) {
+			if (holdingColumns.contains(evt.track)) {
+				// it wont break the game, but we should track dupe presses
+				Locator::getLogger()->warn(
+				  "Please report an issue with this replay: {} - press {}, row "
+				  "{}, judgerow {}, time {}, col {}",
+				  REPLAYS->GetActiveReplay()->GetScoreKey(),
+				  evt.isPress,
+				  evt.noterow,
+				  evt.noterowJudged,
+				  evt.songPositionSeconds,
+				  evt.track);
+			}
+
 			holdingColumns.insert(evt.track);
 		} else {
+			if (!holdingColumns.contains(evt.track)) {
+				// it wont break the game, but we should track dupe releases
+				Locator::getLogger()->warn(
+				  "Please report an issue with this replay: {} - press {}, row "
+				  "{}, judgerow {}, time {}, col {}",
+				  REPLAYS->GetActiveReplay()->GetScoreKey(),
+				  evt.isPress,
+				  evt.noterow,
+				  evt.noterowJudged,
+				  evt.songPositionSeconds,
+				  evt.track);
+			}
+
 			holdingColumns.erase(evt.track);
 		}
 		Step(evt.track,

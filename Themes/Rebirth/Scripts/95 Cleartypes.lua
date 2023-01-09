@@ -130,28 +130,39 @@ local function clearTypes(grade, playCount, perfcount, greatcount, misscount, re
     else
         if grade == "Grade_Failed" then -- failed
             clearlevel = 11
-        elseif perfcount < 10 and perfcount > 1 then -- SDP
-            clearlevel = 3
-        elseif greatcount < 10 and greatcount > 1 then -- SDG
-            clearlevel = 6
-        elseif perfcount == 1 and greatcount + misscount == 0 then -- whiteflag
-            clearlevel = 2
-        elseif greatcount == 1 and misscount == 0 then -- blackflag
-            clearlevel = 5
-        elseif perfcount + greatcount + misscount == 0 then -- MFC
-            clearlevel = 1
-        elseif greatcount + misscount == 0 then -- PFC
-            clearlevel = 4
-        elseif misscount == 0 then -- FC
-            clearlevel = 7
-        else
-            if misscount == 1 then -- missflag
-                clearlevel = 8
-            elseif misscount < 10 and misscount > 0 then -- SDCB
-                clearlevel = 9
+        elseif misscount > 0 then
+            -- getting a cb forces one of these cleartypes
+            if misscount == 1 then
+                clearlevel = 8 -- missflag
+            elseif misscount > 1 and misscount < 10 then
+                clearlevel = 9 -- SDCB
             else
                 clearlevel = 10 -- Clear
             end
+        elseif misscount == 0 then
+            -- it is at least an FC, but what type of FC?
+            if greatcount > 0 then
+                if greatcount < 10 and greatcount > 1 then
+                    clearlevel = 6 -- SDG
+                elseif greatcount == 1 then
+                    clearlevel = 5 -- BlackFlag
+                else
+                    clearlevel = 7 -- FC
+                end
+            else
+                if perfcount < 10 and perfcount > 1 then
+                    clearlevel = 3 -- SDP
+                elseif perfcount == 1 then
+                    clearlevel = 2 -- WhiteFlag
+                elseif perfcount == 0 then
+                    clearlevel = 1 -- MFC
+                else
+                    clearlevel = 4 -- PFC
+                end
+            end
+        else
+            -- negative misses?
+            clearlevel = 12
         end
     end
     return getClearTypeItem(clearlevel, returntype)
