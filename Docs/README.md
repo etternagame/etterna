@@ -7,6 +7,7 @@
 ## For Developers
 
 [Contributing](Contributing.md) -- A brief overview of how to contribute to Etterna :)<br>
+[Documentation Overview](documentation/README.md) -- An overview of how Etterna's documentation works and how to contribute to it.<br>
 [Building](Building.md) -- How to build the game from source<br>
 [Crashpad](Crashpad.md) -- An explanation of the crashdump system Etterna uses<br>
 [Doxygen](doxygen/html/index.html) -- Etterna C++ function and class documentation<br>
