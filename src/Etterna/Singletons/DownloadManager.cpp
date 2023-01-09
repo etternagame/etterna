@@ -122,10 +122,10 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 
 	string doot = TEMP_ZIP_MOUNT_POINT;
 	if (v_packs.size() > 1) {
-		doot += sZipFile.substr(sZipFile.find_last_of('/') +
-								1); // attempt to whitelist pack name, this
-									// should be pretty simple/safe solution for
-									// a lot of pad packs -mina
+		// attempt to whitelist pack name, this
+		// should be pretty simple/safe solution for
+		// a lot of pad packs -mina
+		doot += sZipFile.substr(sZipFile.find_last_of('/') + 1);
 		doot = doot.substr(0, doot.length() - 4) + "/";
 	}
 
@@ -158,6 +158,25 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		string sDestFile = sSrcFile;
 		sDestFile = tail(std::string(sDestFile.c_str()),
 						 sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
+
+		// forcibly convert the path string to ASCII/ANSI/whatever
+		// basically remove everything that isnt normal
+		// and dont care about locales
+		std::vector<unsigned char> bytes(sDestFile.begin(), sDestFile.end());
+		bytes.push_back('\0');
+		std::string res{};
+		for (auto i = 0; i < bytes.size(); i++) {
+			auto c = bytes.at(i);
+			if (c > 122) {
+				res.append(std::to_string(c - 122));
+			} else {
+				res.push_back(c);
+			}
+		}
+		if (res.length() > 256) {
+			res = res.substr(0, 255);
+		}
+		sDestFile = res;
 
 		std::string sDir, sThrowAway;
 		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
