@@ -644,6 +644,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 				  "Bad input data header detected: {} - Header: {}",
 				  path_z.c_str(),
 				  line);
+				inputStream.close();
 				deleteDecompressedData();
 				return false;
 			}
@@ -667,6 +668,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 				  path_z.c_str(),
 				  INPUT_DATA_VERSION,
 				  std::stoi(tokens[7]));
+				inputStream.close();
 				deleteDecompressedData();
 				return false;
 			}
@@ -734,6 +736,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 				  GetScoreKey().c_str(),
 				  tokens.size(),
 				  line);
+				inputStream.close();
 				deleteDecompressedData();
 				return false;
 			}
