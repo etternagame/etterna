@@ -1064,8 +1064,10 @@ local function leftFrame()
                                     local c = self:GetChild("N"..i)
                                     if i == ind then
                                         c:diffusealpha(1)
+                                        c:playcommand("Activate")
                                     else
                                         c:diffusealpha(0)
+                                        c:playcommand("Deactivate")
                                     end
                                 end
                             end
@@ -1097,8 +1099,10 @@ local function leftFrame()
                                     local c = self:GetChild("N"..i)
                                     if i == ind then
                                         c:diffusealpha(1)
+                                        c:playcommand("Activate")
                                     else
                                         c:diffusealpha(0)
+                                        c:playcommand("Deactivate")
                                     end
                                 end
                             end

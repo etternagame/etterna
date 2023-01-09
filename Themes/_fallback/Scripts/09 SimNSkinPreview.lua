@@ -5,13 +5,13 @@
 local function NSkinPreviewChange(Container, Player)
 	return function(event)
 		for i, n in pairs(NOTESKIN:GetNoteSkinNames()) do
-			Container:GetChild("N" .. i):visible(false)
+			Container:GetChild("N" .. i):playcommand("Deactivate")
 		end
 		for i = 1, SCREENMAN:GetTopScreen():GetNumRows() - 1 do
 			if SCREENMAN:GetTopScreen():GetOptionRow(i):GetName() == "NoteSkins" then
 				local nSkin =
 					Container:GetChild("N" .. SCREENMAN:GetTopScreen():GetOptionRow(i):GetChoiceInRowWithFocus(Player) + 1)
-				nSkin:visible(true)
+				nSkin:playcommand("Activate")
 			end
 		end
 	end
@@ -159,7 +159,16 @@ function LoadNSkinPreview(Noteskin, Button, Element, UseInputCallback)
 						end
 					end
 				end,
-				NOTESKIN:LoadActorForNoteSkin(Button, Element, n)
+				DeactivateCommand = function(self)
+					self:visible(false)
+				end,
+				ActivateCommand = function(self)
+					self:visible(true)
+					if self.activated then return end
+					self.activated = true
+
+					NOTESKIN:AddChildActorForNoteSkin(Button, Element, n, self)
+				end,
 			}
 		end
 		return t
