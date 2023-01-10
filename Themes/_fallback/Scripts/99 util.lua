@@ -1,4 +1,6 @@
+--- Utilities again
 -- like the 8th utility file
+-- @module 99_util
 
 -- update discord rpc for eval and gameplay
 function updateDiscordStatus(inEvaluation)

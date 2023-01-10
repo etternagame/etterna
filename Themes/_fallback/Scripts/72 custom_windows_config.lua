@@ -1,3 +1,7 @@
+--- Custom Rescoring Window Config
+-- Allows rescoring a score with a replay any way you want
+-- @moduile 72_custom_windows_config
+
 local defaultConfig = {
 
 	-- each entry here corresponds to a key in the customWindowConfigs table below

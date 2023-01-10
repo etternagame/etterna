@@ -1,3 +1,7 @@
+--- Pack download list sugar
+-- Basically this extends the existing DownloadManager functionality
+-- @module 09_PackList
+
 PackList = {}
 
 local getSizePropName = "GetSize"

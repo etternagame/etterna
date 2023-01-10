@@ -1,3 +1,4 @@
+--- Log Display for Lua Errors
 -- This is a little fake actor class meant for displaying lines of a log.
 -- It's placed inside Def, but it's actually just an ActorFrame with some
 --   children and special commands.
@@ -94,6 +95,7 @@
 -- Reasonable defaults are provided for everything except Name.  If Name is
 --   blank, you get nothing.  Defaults assume the LogDisplay should fill the
 --   screen when in use.
+-- @module 04_LogDisplay
 
 -- Below is the implementation of the above features.
 

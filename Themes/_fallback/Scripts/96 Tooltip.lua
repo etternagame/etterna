@@ -1,5 +1,7 @@
+--- Mouse Tooltips
 -- originally created by ca25nada/Prim
 -- minor modifications by poco0317
+-- @module 96_Tooltip
 
 -- Singleton for accessing the tooltip actor.
 local textScale = 0.5

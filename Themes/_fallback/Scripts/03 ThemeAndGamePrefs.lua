@@ -1,3 +1,6 @@
+--- Theme and Game Preferences (more of them)
+-- @module 03_ThemeAndGamePrefs
+
 -- sm-ssc Default Theme Preferences Handler
 function InitGamePrefs()
 	local Prefs = {}

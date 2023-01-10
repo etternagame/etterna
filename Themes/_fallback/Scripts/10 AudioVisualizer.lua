@@ -1,3 +1,6 @@
+--- Audio Visualizer. Displays like an equalizer the current audio frames at certain customizable hz intervals.
+-- @module 10_AudioVisualizer
+
 local log = math.log
 local concat = function(...)
     local arg = {...}

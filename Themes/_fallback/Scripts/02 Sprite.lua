@@ -1,3 +1,6 @@
+--- Sprite class sugar and utilities
+-- @module 02_Sprite
+
 function Sprite:LoadFromSongBanner(song)
 	if song then
 		local Path = song:GetBannerPath()

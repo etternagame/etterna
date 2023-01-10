@@ -1,6 +1,6 @@
+--- UI Elements. Buttons. All the fun stuff.
 -- originally created by ca25nada/Prim
 -- minor modifications by poco0317
-
 --[[ 
 USAGE:
 ___________________________________________________
@@ -101,6 +101,7 @@ Any other transformations applied on the actor or any of its parent/ancestors wi
 	e.g. Skew, rotations on X/Y axis, zoom on parent actors.
 
 --]]
+-- @module 97_UIElements
 
 function Actor.PlayCommandsOnChildren(self, cmd, params)
     return self:RunCommandsOnChildren(function(self) self:playcommand(cmd, params) end)

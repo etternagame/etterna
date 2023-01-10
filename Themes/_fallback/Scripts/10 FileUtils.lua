@@ -1,3 +1,7 @@
+--- File Utilities
+-- Allows very quick creation and readback of simple files at arbitrary paths
+-- @module 10_FileUtils
+
 -- fileutils: quick and dirty, not user prefs oriented file io
 File = {
 	Write = function(path, buf)

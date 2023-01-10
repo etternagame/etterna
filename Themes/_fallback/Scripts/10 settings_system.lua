@@ -1,3 +1,6 @@
+--- Lua based reloadable configurations
+-- @module 10_settings_system
+
 local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 global_cur_game = GAMESTATE:GetCurrentGame():GetName():lower()
 

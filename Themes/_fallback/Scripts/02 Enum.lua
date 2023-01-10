@@ -1,3 +1,10 @@
+--- C++ Enum utilities
+-- @module 02_Enum
+
+--- Compare two enums and return a numerical value describing the similarity
+-- @param e1 Enum value 1
+-- @param e2 Enum value 2
+-- @treturn number The difference between the enum values
 function Enum:Compare(e1, e2)
 	local Reverse = self:Reverse()
 	local Value1 = Reverse[e1]
@@ -19,6 +26,11 @@ function Enum:Compare(e1, e2)
 	return Value1 - Value2
 end
 
+--- Convert an enum value into its short form
+-- This is based on the game enum convention that they are all named ENUM_value
+-- This will return "value" instead of "ENUM_value"
+-- @param e Enum value
+-- @treturn string A substring made up of only the last part of the enum value string after the '_'
 function ToEnumShortString(e)
 	local pos = string.find(e, "_")
 	assert(pos, "'" .. e .. "' is not an enum value")

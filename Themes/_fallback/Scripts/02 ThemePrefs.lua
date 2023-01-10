@@ -1,3 +1,5 @@
+--- Theme Preferences
+-- @module 02_ThemePrefs
 --[[
 ThemePrefs: handles the underlying structure for ThemePrefs, so any themes
 built off of this can simply declare their prefs and default values, and

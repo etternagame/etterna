@@ -1,3 +1,6 @@
+--- Display Specifications - The Lua interface for the C++ DisplaySpecs
+-- @module 03_DisplaySpecs
+
 -- A shim to make an honest-to-goodness lua table (array) out of the
 -- userdata DisplaySpecs we get from c++
 local cachedSpecs = nil

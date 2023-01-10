@@ -1,3 +1,6 @@
+--- Options Screen utilities
+-- @module 02_OptionsMenu
+
 -- Sample options menu item.
 function OptionsRowTest()
 	local function Set(self, list, pn)

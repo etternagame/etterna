@@ -1,3 +1,6 @@
+--- Utilities for the Assets system (Judgments, Toasties, Avatars)
+-- @module 12_AssetUtils
+
 local update = {
 	PLAYER_1 = false
 }

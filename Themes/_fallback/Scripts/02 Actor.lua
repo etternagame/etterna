@@ -1,3 +1,6 @@
+--- Actor class sugar and helpers
+-- @module 02_Actor
+
 -- Convenience aliases:
 left = "HorizAlign_Left"
 center = "HorizAlign_Center"

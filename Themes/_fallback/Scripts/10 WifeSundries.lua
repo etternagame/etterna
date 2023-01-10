@@ -1,5 +1,7 @@
--- **Big thing that contains all sorts of fun stuff related to ms based scoring and adapting existing systems to it**
+--- Big thing that contains all sorts of fun stuff related to ms based scoring and adapting existing systems to it
 -- probably need to reorganize large parts of this
+-- @module 10_WifeSundries
+
 -- global here
 ms = {}
 

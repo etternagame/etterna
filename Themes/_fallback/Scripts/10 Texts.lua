@@ -1,3 +1,6 @@
+--- Judgment and Grade text getters
+-- @module 10_Texts
+
 local judges = { "marv", "perf", "great", "good", "boo", "miss" }
 local defaultJudges = {'TapNoteScore_W1','TapNoteScore_W2','TapNoteScore_W3','TapNoteScore_W4','TapNoteScore_W5','TapNoteScore_Miss'}
 

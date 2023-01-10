@@ -1,3 +1,4 @@
+--- Numpad Entry utility for profile customization.
 -- This is an actor class that implements functionality for having a numpad
 -- that is used to enter a number.
 -- The parameters for customizing its appearance will be discussed here.  For
@@ -222,6 +223,7 @@
 --     SetCommand= function(self, param) self:settext(param[1]) end
 --   },
 -- }
+-- @module 04_NumPadEntry
 
 local function noop()
 end

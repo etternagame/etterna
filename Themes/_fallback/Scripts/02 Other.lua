@@ -1,3 +1,6 @@
+--- Miscellaneous helpers
+-- @module 02_Other
+
 local g_metrics_group = nil
 local g_element = nil
 
