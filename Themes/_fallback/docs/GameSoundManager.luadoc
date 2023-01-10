@@ -1,0 +1,3 @@
+--- Game Sound managing singleton class
+-- @classmod GameSoundManager
+-- @alias SOUND

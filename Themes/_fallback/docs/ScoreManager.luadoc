@@ -1,0 +1,3 @@
+--- Score management singleton class
+-- @classmod ScoreManager
+-- @alias SCOREMAN

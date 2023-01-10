@@ -1,0 +1,3 @@
+--- Song Filtering singleton class
+-- @classmod FilterManager
+-- @alias FILTERMAN

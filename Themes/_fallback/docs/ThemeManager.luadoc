@@ -1,0 +1,3 @@
+--- Theme management singleton class
+-- @classmod ThemeManager
+-- @alias THEME

@@ -1,0 +1,3 @@
+--- User profile management singleton class
+-- @classmod ProfileManager
+-- @alias PROFILEMAN
