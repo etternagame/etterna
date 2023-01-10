@@ -1,6 +1,6 @@
 --- Custom Rescoring Window Config
 -- Allows rescoring a score with a replay any way you want
--- @moduile 72_custom_windows_config
+-- @module 72_custom_windows_config
 
 local defaultConfig = {
 

@@ -3,7 +3,7 @@
 -- that is used to enter a number.
 -- The parameters for customizing its appearance will be discussed here.  For
 -- an example, see Docs/ThemerDocs/Examples/Example_Actors/NumPadEntry.lua
-
+--
 -- This actor handles input, so it has to be used a bit differently from
 -- normal actors.  Instead of just putting it inside an ActorFrame like
 -- normal, you must follow these steps:
@@ -29,7 +29,7 @@
 --     if entry_done then
 --       Trace("Player entered value: " .. entry_pad.value)
 --     end
-
+--
 -- Params explanation:
 --
 -- "params" is a table containing the parameters used to customize
