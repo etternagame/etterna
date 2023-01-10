@@ -1,4 +1,5 @@
 --- Log Display for Lua Errors
+-- @module 04_LogDisplay
 -- This is a little fake actor class meant for displaying lines of a log.
 -- It's placed inside Def, but it's actually just an ActorFrame with some
 --   children and special commands.
@@ -40,7 +41,7 @@
 --   Clear:  params= {messages}
 --     Clears the messages in the log.  If messages is a number, only clears
 --     that many messages, oldest first.
-
+--
 -- params to Def.LogDisplay():
 -- {
 --   Name= string
@@ -92,7 +93,6 @@
 -- Reasonable defaults are provided for everything except Name.  If Name is
 --   blank, you get nothing.  Defaults assume the LogDisplay should fill the
 --   screen when in use.
--- @module 04_LogDisplay
 
 -- Below is the implementation of the above features.
 
