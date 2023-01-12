@@ -1,9 +1,21 @@
+include(FetchContent)
+
+set(DOCS_OUTPUT_DIR ${PROJECT_BINARY_DIR}/_DOCS)
 
 # doxygen
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 if(NOT DOXYGEN_FOUND)
-    message(STATUS "Doxygen not found. Documentation target will not be created.")
+    message(STATUS "Doxygen not found. Doxygen target will not be created. Please ensure doxygen is accessibe within your path.")
 else()
+    # Download Doxygen Theme
+    FetchContent_Declare(doxygen_theme
+        GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+        GIT_TAG	main
+        GIT_PROGRESS TRUE
+        GIT_SHALLOW TRUE)
+    FetchContent_MakeAvailable(doxygen_theme)
+    FetchContent_GetProperties(doxygen_theme SOURCE_DIR DOXY_THEME_DIR)
+
     # set input and output files
     set(DOXYGEN_IN ${PROJECT_SOURCE_DIR}/Docs/Doxyfile.in)
     set(DOXYGEN_OUT ${PROJECT_BINARY_DIR}/Doxyfile)
@@ -22,7 +34,7 @@ endif()
 # LDoc
 find_program(LDOC_EXE NAMES "ldoc" "ldoc.bat")
 if(NOT LDOC_EXE)
-    message(STATUS "LDoc not found. Documentation target will not be created.")
+    message(STATUS "LDoc not found. LDoc target will not be created. Please ensure ldoc is accessible within your path.")
 else()
     # set input and output files
     set(LDOC_IN ${PROJECT_SOURCE_DIR}/Docs/LDoc.in)

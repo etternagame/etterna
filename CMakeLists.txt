@@ -32,11 +32,20 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                           # Export compile
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDEs
 
-# Project Build Targets
-add_executable(Etterna)
-
 # Project Compile Options
 set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires depot_tools installed)")
+set(DOCS_ONLY TRUE CACHE BOOL "Only prepare CMake for documentation. Do not prepare for game compilation.")
+
+## Documentation Preparation
+include(CMake/Helpers/DocumentationTools.cmake)
+
+## Do not continue processing if user only wants to build documentation.
+if(DOCS_ONLY)
+    return()
+endif()
+
+# Project Build Targets
+add_executable(Etterna)
 
 ## Setting Target Properties
 ### Set a different name for each output binary depending on what build configuration is.
@@ -140,9 +149,6 @@ endif()
 
 # Static Analysis
 include(CMake/Helpers/StaticAnalysis.cmake)
-
-# Documentation
-include(CMake/Helpers/DocumentationTools.cmake)
 
 # CPack Initialization
 include(CMake/Helpers/CPackSetup.cmake)
