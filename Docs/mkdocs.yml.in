@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: Etterna
+site_description: Advanced cross-platform rhythm game focused on keyboard play
+site_url: https://docs.etterna.dev
+repo_url: https://github.com/etternagame/etterna
+repo_name: Etterna
+docs_dir: @PROJECT_SOURCE_DIR@/Docs

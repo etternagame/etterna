@@ -51,3 +51,30 @@ else()
         COMMAND ${LDOC_EXE} .)
         
 endif()
+
+# mkdocs
+find_program(MKDOCS_EXE NAMES "mkdocs")
+if(NOT MKDOCS_EXE)
+    message(STATUS "mkdocs not found. Please ensure mkdocs is accessible within your path.")
+else()
+    # set input and output files
+    set(MKDOCS_IN ${PROJECT_SOURCE_DIR}/Docs/mkdocs.yml.in)
+    set(MKDOCS_OUT ${PROJECT_BINARY_DIR}/mkdocs.yml)
+
+    # configure the file
+    configure_file(${MKDOCS_IN} ${MKDOCS_OUT} @ONLY)
+
+    add_custom_target(mkdocs 
+        COMMENT "Generating mkdocs website"
+        VERBATIM
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMAND ${MKDOCS_EXE} build
+    )
+
+    add_custom_target(build_docs_website
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMAND cmake --build ${PROJECT_BINARY_DIR} --target mkdocs
+        COMMAND cmake --build ${PROJECT_BINARY_DIR} --target doxygen
+        COMMAND cmake --build ${PROJECT_BINARY_DIR} --target ldoc
+    )
+endif()
