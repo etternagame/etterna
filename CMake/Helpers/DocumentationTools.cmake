@@ -1,6 +1,6 @@
 include(FetchContent)
 
-set(DOCS_OUTPUT_DIR ${PROJECT_BINARY_DIR}/_DOCS)
+set(DOCS_OUTPUT_DIR ${PROJECT_BINARY_DIR}/docs_site)
 
 # doxygen
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
@@ -68,10 +68,10 @@ else()
         COMMENT "Generating mkdocs website"
         VERBATIM
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-        COMMAND ${MKDOCS_EXE} build
+        COMMAND ${MKDOCS_EXE} build --site-dir ${DOCS_OUTPUT_DIR}
     )
 
-    add_custom_target(build_docs_website
+    add_custom_target(build-docs-website
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND cmake --build ${PROJECT_BINARY_DIR} --target mkdocs
         COMMAND cmake --build ${PROJECT_BINARY_DIR} --target doxygen
