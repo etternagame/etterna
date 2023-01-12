@@ -1,0 +1,15 @@
+:root {
+    --side-nav-background: #614080;
+}
+
+#nav-tree {
+    background: #614080;
+}
+
+html {
+    --side-nav-foreground: #fff; 
+}
+
+html.dark-mode {
+    --side-nav-background: #614080;
+}

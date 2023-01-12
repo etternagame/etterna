@@ -22,3 +22,16 @@ DOT_NUM_THREADS        = 0
 
 # LATEX
 GENERATE_LATEX         = NO
+
+# THEME AWESOME DOXYGEN
+WARN_IF_UNDOCUMENTED   = NO
+GENERATE_TREEVIEW      = YES # required!
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_COLORSTYLE        = LIGHT
+HTML_HEADER            = @PROJECT_SOURCE_DIR@/Docs/customization/doxygen/header.html
+HTML_EXTRA_FILES       = @DOXY_THEME_DIR@/doxygen-awesome-darkmode-toggle.js
+HTML_EXTRA_STYLESHEET  = @DOXY_THEME_DIR@/doxygen-awesome.css \
+                         @PROJECT_SOURCE_DIR@/Docs/customization/doxygen/style.css \
+                         @DOXY_THEME_DIR@/doxygen-awesome-sidebar-only.css \
+                         @DOXY_THEME_DIR@/doxygen-awesome-sidebar-only-darkmode-toggle.css
