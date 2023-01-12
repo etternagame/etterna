@@ -9,6 +9,7 @@ OUTPUT_DIRECTORY       = @DOCS_OUTPUT_DIR@/doxygen
 INPUT                  = @PROJECT_SOURCE_DIR@/src
 INPUT_ENCODING         = UTF-8
 RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */InputHandler/*.md
 
 # HTML
 GENERATE_HTML          = YES
