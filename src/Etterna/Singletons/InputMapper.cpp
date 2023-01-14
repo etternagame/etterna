@@ -51,7 +51,7 @@ InputMapper::InputMapper()
 InputMapper::~InputMapper()
 {
 	// Unregister with Lua.
-	LUA->UnsetGlobal("SONGMAN");
+	LUA->UnsetGlobal("INPUTMAPPER");
 
 	SaveMappingsToDisk();
 	g_tempDItoGI.clear();
