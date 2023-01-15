@@ -1,5 +1,5 @@
 html {
-    --primary-color: #fff;
+    --primary-color: #0ce3ac;
     --primary-dark-color: #7929d2;
     
     --side-nav-background: #614080;
@@ -14,7 +14,7 @@ html {
     html:not(.light-mode) {
         color-scheme: dark;
 
-        --primary-color: #262626;
+        --primary-color: #0ce3ac;
         --side-nav-background: #614080;
         --page-background-color: #262626;
     }
@@ -24,7 +24,7 @@ html {
 html.dark-mode {
     color-scheme: dark;
 
-    --primary-color: #262626;
+    --primary-color: #0ce3ac;
     --side-nav-background: #614080;
     --page-background-color: #262626;
 }
@@ -40,6 +40,10 @@ a:link, a:visited, a:hover, a:focus, a:active {
 
 dl.section dd, dl.bug dd, dl.deprecated dd {
     margin-inline-start: revert;
+}
+
+.icon {
+    color: black;
 }
 
 #top {
