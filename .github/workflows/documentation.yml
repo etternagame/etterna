@@ -24,9 +24,9 @@ jobs:
           path: main
 
       - name: Install apt packages
-        run: sudo apt-get update && sudo apt-get install -y build-essential cmake ninja-build doxygen
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake ninja-build
 
-      - name: Install luver # Lua Version Manager 
+      - name: Install luver # Lua Version Manager
         uses: MunifTanjim/luver-action@v1
 
       - name: Install Lua and LuaRocks
@@ -34,6 +34,12 @@ jobs:
           luver install lua 5.4.3
           luver use 5.4.3
           luver install luarocks 3.8.0
+
+      - name: Download doxygen binary and add to path
+        run: |
+          curl -RO https://www.doxygen.nl/files/doxygen-1.9.6.linux.bin.tar.gz
+          tar -zxf doxygen-1.9.6.linux.bin.tar.gz
+          echo "$PWD/doxygen-1.9.6/bin" >> $GITHUB_PATH
 
       - name: Install Python3
         uses: actions/setup-python@v4
