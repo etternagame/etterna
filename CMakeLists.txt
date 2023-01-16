@@ -34,7 +34,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders
 
 # Project Compile Options
 set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires depot_tools installed)")
-set(DOCS_ONLY TRUE CACHE BOOL "Only prepare CMake for documentation. Do not prepare for game compilation.")
+set(DOCS_ONLY FALSE CACHE BOOL "Only prepare CMake for documentation. Do not prepare for game compilation.")
 
 ## Documentation Preparation
 include(CMake/Helpers/DocumentationTools.cmake)
