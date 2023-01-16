@@ -34,10 +34,6 @@ a:link, a:visited, a:hover, a:focus, a:active {
     color: var(--link-color) !important;
 }
 
-.paramname {
-    color: var(--param-color);
-}
-
 dl.section dd, dl.bug dd, dl.deprecated dd {
     margin-inline-start: revert;
 }
@@ -60,7 +56,6 @@ dl.section dd, dl.bug dd, dl.deprecated dd {
 
 #projectlogo img {
     width: 200px;
-    height: 150px;
     max-height: none !important;
 }
 
