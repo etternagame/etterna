@@ -63,7 +63,6 @@ jobs:
         with:
           name: github-pages
           path: main/build/docs_site
-          if-no-files-found: error
 
   deploy:
     name: Upload to Github Pages
