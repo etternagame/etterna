@@ -509,13 +509,13 @@ const char *mz_error(int err);
 
 // ------------------- Types and macros
 
-typedef unsigned char mz_uint8;
-typedef signed short mz_int16;
-typedef unsigned short mz_uint16;
-typedef unsigned int mz_uint32;
+typedef uint8_t mz_uint8;
+typedef int16_t mz_int16;
+typedef uint16_t mz_uint16;
+typedef uint32_t mz_uint32;
 typedef unsigned int mz_uint;
-typedef long long mz_int64;
-typedef unsigned long long mz_uint64;
+typedef int64_t mz_int64;
+typedef uint64_t mz_uint64;
 typedef int mz_bool;
 
 #define MZ_FALSE (0)
@@ -4981,7 +4981,7 @@ char alt_directory_separator = '\\';
 std::string join_path(const std::vector<std::string> &parts)
 {
     std::string joined;
-    std::size_t i = 0;
+    size_t i = 0;
     for(auto part : parts)
     {
         joined.append(part);
@@ -5029,7 +5029,7 @@ std::vector<std::string> split_path(const std::string &path, char delim = direct
     return split;
 }
     
-uint32_t crc32buf(const char *buf, std::size_t len)
+uint32_t crc32buf(const char *buf, size_t len)
 {
     uint32_t oldcrc32 = 0xFFFFFFFF;
     
@@ -5103,7 +5103,7 @@ tm safe_localtime(const time_t &t)
 #endif
 }
 
-std::size_t write_callback(void *opaque, std::uint64_t file_ofs, const void *pBuf, std::size_t n)
+size_t write_callback(void *opaque, std::uint64_t file_ofs, const void *pBuf, size_t n)
 {
     auto buffer = static_cast<std::vector<char> *>(opaque);
     
@@ -5113,9 +5113,9 @@ std::size_t write_callback(void *opaque, std::uint64_t file_ofs, const void *pBu
         buffer->resize(new_size);
     }
 
-    for(std::size_t i = 0; i < n; i++)
+    for(size_t i = 0; i < n; i++)
     {
-        (*buffer)[static_cast<std::size_t>(file_ofs + i)] = (static_cast<const char *>(pBuf))[i];
+        (*buffer)[static_cast<size_t>(file_ofs + i)] = (static_cast<const char *>(pBuf))[i];
     }
 
     return n;
@@ -5143,13 +5143,13 @@ struct zip_info
     uint16_t create_version = 0;
     uint16_t extract_version = 0;
     uint16_t flag_bits = 0;
-    std::size_t volume = 0;
+    size_t volume = 0;
     uint32_t internal_attr = 0;
     uint32_t external_attr = 0;
-    std::size_t header_offset = 0;
+    size_t header_offset = 0;
     uint32_t crc = 0;
-    std::size_t compress_size = 0;
-    std::size_t file_size = 0;
+    size_t compress_size = 0;
+    size_t file_size = 0;
 };
 
 class zip_file
@@ -5326,7 +5326,7 @@ public:
 
         std::vector<zip_info> info;
 
-        for(std::size_t i = 0; i < mz_zip_reader_get_num_files(archive_.get()); i++)
+        for(size_t i = 0; i < mz_zip_reader_get_num_files(archive_.get()); i++)
         {
             info.push_back(getinfo(static_cast<int>(i)));
         }
@@ -5402,8 +5402,8 @@ public:
         stream << "  Length " << "  " << "   " << "Date" << "   " << " " << "Time " << "   " << "Name" << std::endl;
         stream << "---------  ---------- -----   ----" << std::endl;
         
-        std::size_t sum_length = 0;
-        std::size_t file_count = 0;
+        size_t sum_length = 0;
+        size_t file_count = 0;
 
         for(auto &member : infolist())
         {
@@ -5445,7 +5445,7 @@ public:
 
     std::string read(const zip_info &info)
     {
-        std::size_t size;
+        size_t size;
         char *data = static_cast<char *>(mz_zip_reader_extract_file_to_heap(archive_.get(), info.filename.c_str(), &size, 0));
         if(data == nullptr)
         {
@@ -5570,7 +5570,7 @@ private:
             case MZ_ZIP_MODE_READING:
             {
                 mz_zip_archive archive_copy;
-            std::memset(&archive_copy, 0, sizeof(mz_zip_archive));
+				memset(&archive_copy, 0, sizeof(mz_zip_archive));
                 std::vector<char> buffer_copy(buffer_.begin(), buffer_.end());
                 
                 if(!mz_zip_reader_init_mem(&archive_copy, buffer_copy.data(), buffer_copy.size(), 0))
@@ -5632,7 +5632,7 @@ private:
     {
         if(buffer_.empty()) return;
         
-        std::size_t position = buffer_.size() - 1;
+        size_t position = buffer_.size() - 1;
         
         for(; position >= 3; position--)
         {
@@ -5676,11 +5676,11 @@ private:
 
         zip_info result;
 
-        result.filename = std::string(stat.m_filename, stat.m_filename + std::strlen(stat.m_filename));
+        result.filename = std::string(stat.m_filename, stat.m_filename + strlen(stat.m_filename));
         result.comment = std::string(stat.m_comment, stat.m_comment + stat.m_comment_size);
-        result.compress_size = static_cast<std::size_t>(stat.m_comp_size);
-        result.file_size = static_cast<std::size_t>(stat.m_uncomp_size);
-        result.header_offset = static_cast<std::size_t>(stat.m_local_header_ofs);
+        result.compress_size = static_cast<size_t>(stat.m_comp_size);
+        result.file_size = static_cast<size_t>(stat.m_uncomp_size);
+        result.header_offset = static_cast<size_t>(stat.m_local_header_ofs);
         result.crc = stat.m_crc32;
         auto time = detail::safe_localtime(stat.m_time);
         result.date_time.year = 1900 + time.tm_year;
