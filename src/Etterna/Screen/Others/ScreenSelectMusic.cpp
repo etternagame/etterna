@@ -469,6 +469,10 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			if (ReloadCurrentSong())
 				return true;
+		} else if (holding_shift && bHoldingCtrl && c == 'O' &&
+				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
+			if (CacheCurrentPackForRanking())
+				return true;
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			if (ReloadCurrentPack())
@@ -1651,6 +1655,14 @@ ScreenSelectMusic::AddCurrentChartToActivePlaylist()
 	return true;
 }
 
+bool
+ScreenSelectMusic::CacheCurrentPackForRanking()
+{
+	SONGMAN->GenerateCachefilesForGroup(GetMusicWheel()->GetSelectedSection());
+	AfterMusicChange();
+	return true;
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -1967,6 +1979,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		lua_pushboolean(L, p->AddCurrentChartToActivePlaylist());
 		return 1;
 	}
+	static int CacheCurrentPackForRanking(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->CacheCurrentPackForRanking());
+		return 1;
+	}
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(OpenOptions);
@@ -1991,6 +2008,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(ToggleCurrentPermamirror);
 		ADD_METHOD(GoalFromCurrentChart);
 		ADD_METHOD(AddCurrentChartToActivePlaylist);
+		ADD_METHOD(CacheCurrentPackForRanking);
 	}
 };
 

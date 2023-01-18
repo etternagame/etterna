@@ -69,6 +69,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	bool ToggleCurrentPermamirror();
 	bool GoalFromCurrentChart();
 	bool AddCurrentChartToActivePlaylist();
+	bool CacheCurrentPackForRanking();
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
 									bool bForceAccurate = false,
 									bool bExtended = false);

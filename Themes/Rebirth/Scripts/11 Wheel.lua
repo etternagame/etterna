@@ -677,6 +677,10 @@ function Wheel:new(params)
                             -- Reload current song from disk (ctrl shift R)
                             ssm:ReloadCurrentSong()
                             return true
+                        elseif ctrl and shift and char == "O" then
+                            -- Cache current pack for ranking (ctrl shift O)
+                            ssm:CacheCurrentPackForRanking()
+                            return true
                         elseif ctrl and shift and char == "P" then
                             -- Reload current pack from disk (ctrl shift P)
                             ssm:ReloadCurrentPack()
