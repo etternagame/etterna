@@ -244,6 +244,11 @@ namespace Core::Platform {
         return res;
     }
 
+    bool setClipboardText(std::string text){
+        Locator::getLogger()->warn("Core::Platform::setClipboardText not implemented");
+        return false;
+    }
+
     void setCursorVisible(bool value){
         Locator::getLogger()->warn("Core::Platform::setCursorVisible not implemented");
     }
