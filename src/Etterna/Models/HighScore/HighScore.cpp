@@ -946,7 +946,7 @@ HighScore::SetSkillsetSSR(Skillset ss, float ssr)
 	m_Impl->fSkillsetSSRs[ss] = ssr;
 }
 void
-HighScore::SetValidationKey(ValidationKey vk, string k)
+HighScore::SetValidationKey(ValidationKey vk, std::string k)
 {
 	m_Impl->ValidationKeys[vk] = std::move(k);
 }

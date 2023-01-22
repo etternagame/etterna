@@ -140,7 +140,7 @@ FileNameToMetricsGroupAndElement(const std::string& sFileName,
 {
 	// split into class name and file name
 	std::string::size_type iIndexOfFirstSpace = sFileName.find(' ');
-	if (iIndexOfFirstSpace == string::npos) // no space
+	if (iIndexOfFirstSpace == std::string::npos) // no space
 	{
 		sMetricsGroupOut = "";
 		sElementOut = sFileName;

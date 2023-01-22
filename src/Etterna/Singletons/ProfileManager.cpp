@@ -288,9 +288,9 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 const Profile*
 ProfileManager::GetLocalProfile(const std::string& sProfileID) const
 {
-	string sDir = LocalProfileIDToDir(sProfileID);
+	std::string sDir = LocalProfileIDToDir(sProfileID);
 	for (auto& p : g_vLocalProfile) {
-		const string& sOther = p.sDir;
+		const std::string& sOther = p.sDir;
 		if (sOther == sDir)
 			return &p.profile;
 	}

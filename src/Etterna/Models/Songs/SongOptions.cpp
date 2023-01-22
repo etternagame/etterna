@@ -240,7 +240,7 @@ class LunaSongOptions : public Luna<SongOptions>
 		lua_pushnumber(L, p->m_fMusicRate);
 		lua_pushnumber(L, p->m_SpeedfMusicRate);
 		if (lua_isnumber(L, 1) && original_top >= 1) {
-			if (DLMAN->gameplay) {
+			if (DLMAN->InGameplay()) {
 				Locator::getLogger()->warn(
 				  "Attempted to set mod illegally - MusicRate");
 				OPTIONAL_RETURN_SELF(original_top);
@@ -255,7 +255,7 @@ class LunaSongOptions : public Luna<SongOptions>
 			}
 		}
 		if (original_top >= 2 && lua_isnumber(L, 2)) {
-			if (DLMAN->gameplay) {
+			if (DLMAN->InGameplay()) {
 				Locator::getLogger()->warn(
 				  "Attempted to set mod illegally - MusicRate");
 				OPTIONAL_RETURN_SELF(original_top);

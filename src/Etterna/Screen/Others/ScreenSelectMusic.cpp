@@ -1524,7 +1524,7 @@ ScreenSelectMusic::ReloadCurrentSong()
 	auto to_reload = GAMESTATE->m_pCurSong;
 	if (to_reload != nullptr) {
 		auto stepses = to_reload->GetAllSteps();
-		std::vector<string> oldChartkeys;
+		std::vector<std::string> oldChartkeys;
 		for (auto* steps : stepses)
 			oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -1708,7 +1708,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 	static int StartPlaylistAsCourse(T* p, lua_State* L)
 	{
-		const string name = SArg(1);
+		const std::string name = SArg(1);
 		auto& pl = SONGMAN->GetPlaylists()[name];
 
 		// don't allow empty playlists to be started as a course

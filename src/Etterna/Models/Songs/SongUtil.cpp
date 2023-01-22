@@ -347,7 +347,7 @@ SongUtil::MakeSortString(std::string& s)
 }
 
 std::string
-SongUtil::MakeSortString(const string& in)
+SongUtil::MakeSortString(const std::string& in)
 {
 	auto s = make_upper(in);
 

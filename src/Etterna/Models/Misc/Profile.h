@@ -17,7 +17,6 @@
 #include <set>
 
 #include <unordered_map>
-using std::string;
 
 class XNode;
 struct lua_State;

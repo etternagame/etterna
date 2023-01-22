@@ -44,7 +44,7 @@
 		lua_pushnumber(L, p->m_f##member);                                     \
 		lua_pushnumber(L, p->m_Speedf##member);                                \
 		if (lua_isnumber(L, 1) && original_top >= 1) {                         \
-			if (DLMAN->gameplay) {                                             \
+			if (DLMAN->InGameplay()) {                                         \
 				Locator::getLogger()->warn(                                    \
 				  "Attempted to set mod illegally - {}", #member);             \
 				OPTIONAL_RETURN_SELF(original_top);                            \
@@ -57,7 +57,7 @@
 			p->m_f##member = v;                                                \
 		}                                                                      \
 		if (original_top >= 2 && lua_isnumber(L, 2)) {                         \
-			if (DLMAN->gameplay) {                                             \
+			if (DLMAN->InGameplay()) {                                         \
 				Locator::getLogger()->warn(                                    \
 				  "Attempted to set mod illegally - {}", #member);             \
 				OPTIONAL_RETURN_SELF(original_top);                            \
@@ -116,7 +116,7 @@
 		int original_top = lua_gettop(L);                                      \
 		lua_pushboolean(L, p->m_b##member);									   \
 		if (lua_isboolean(L, 1) && original_top >= 1) {                        \
-			if (DLMAN->gameplay) {                                             \
+			if (DLMAN->InGameplay()) {                                         \
 				Locator::getLogger()->warn(                                    \
 				  "Attempted to set mod illegally - {}", #member);             \
 				p->PushSelf(L);                                                \
@@ -147,7 +147,7 @@
 		int original_top = lua_gettop(L);                                      \
 		Enum::Push(L, p->m_##member);                                          \
 		if (!lua_isnil(L, 1) && original_top >= 1) {                           \
-			if (DLMAN->gameplay) {                                             \
+			if (DLMAN->InGameplay()) {                                         \
 				Locator::getLogger()->warn(                                    \
 				  "Attempted to set mod illegally - {}", #enum_name);          \
 				p->PushSelf(L);                                                \
