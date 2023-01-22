@@ -92,6 +92,14 @@ DateTime::GetNowDate()
 	return tNow;
 }
 
+DateTime
+DateTime::GetFromString(const std::string& str)
+{
+	auto dt = DateTime();
+	dt.FromString(str);
+	return dt;
+}
+
 void
 DateTime::StripTime()
 {
