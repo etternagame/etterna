@@ -71,7 +71,7 @@ static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static const std::string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 static const std::string wife3_rescore_upload_flag = "rescoredw3";
-static const unsigned UPLOAD_SCORE_BULK_CHUNK_SIZE = 100;
+static const unsigned UPLOAD_SCORE_BULK_CHUNK_SIZE = 1;
 
 // endpoint construction constants
 // all paths should begin with / and end without /
@@ -1489,6 +1489,8 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 	auto body = ScoreVectorToJSON(hsList, true);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, body);
 
+	Locator::getLogger()->warn("{}", body);
+
 	auto done = [callback, hsList, this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
@@ -1609,7 +1611,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	if (load_from_disk)
 		hs->LoadReplayData();
 
-	CURL* curlHandle = initCURLHandle(true);
+	CURL* curlHandle = initCURLHandle(true, true);
 	curl_httppost* form = nullptr;
 	curl_httppost* lastPtr = nullptr;
 	SetCURLPOSTScore(form, lastPtr, hs);
@@ -1708,6 +1710,10 @@ DownloadManager::UploadScore(HighScore* hs,
 			Locator::getLogger()->warn(
 				"UploadScore failed due to 404. Chart may be unranked - Content: {}",
 				jsonObjectToString(d));
+		} else {
+			Locator::getLogger()->warn("Unexpected status {} - Content: {}",
+									   response,
+									   jsonObjectToString(d));
 		}
 
 		if (callback)
@@ -1764,6 +1770,14 @@ uploadSequentially()
 	MESSAGEMAN->Broadcast(msg);
 
 	if (!DLMAN->ScoreUploadSequentialQueue.empty()) {
+		
+		runningSequentialUpload = true;
+		auto hs = DLMAN->ScoreUploadSequentialQueue.front();
+		DLMAN->ScoreUploadSequentialQueue.pop_front();
+		DLMAN->UploadScoreWithReplayDataFromDisk(hs, uploadSequentially);
+		
+
+		/*
 		std::vector<HighScore*> hsToUpload{};
 		for (auto i = 0; i < UPLOAD_SCORE_BULK_CHUNK_SIZE; i++) {
 			hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());
@@ -1775,6 +1789,8 @@ uploadSequentially()
 		}
 		runningSequentialUpload = true;
 		DLMAN->UploadBulkScores(hsToUpload, uploadSequentially);
+		*/
+		
 	} else {
 		Locator::getLogger()->info(
 		  "Sequential upload queue empty - uploads finished");
