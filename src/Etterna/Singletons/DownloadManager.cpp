@@ -651,7 +651,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
-	timeSinceLastDownload += fDeltaSeconds;
+	timeSinceLastDownload.fetch_add(fDeltaSeconds);
 	for (auto& x : downloads) {
 		/*if (x.second == nullptr) {
 			Locator::getLogger()->warn("Pack download was null? URL: {}",
@@ -680,7 +680,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	}
 	if (downloads.size() < maxPacksToDownloadAtOnce &&
 		!DownloadQueue.empty() &&
-		timeSinceLastDownload > DownloadCooldownTime) {
+		timeSinceLastDownload.load() > DownloadCooldownTime.Get()) {
 		std::pair<DownloadablePack*, bool> pack = DownloadQueue.front();
 		DownloadQueue.pop_front();
 		DownloadAndInstallPack(pack.first, pack.second);
@@ -706,7 +706,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 					dl->Failed();
 					finishedDownloads[dl->m_Url] = dl;
 				} else if (res == RequestResultStatus::Done) {
-					timeSinceLastDownload = 0;
+					timeSinceLastDownload.store(0);
 					pendingInstallDownloads[dl->m_Url] = dl;
 				} else if (res == RequestResultStatus::Failed) {
 					i->second->Failed();
@@ -1332,140 +1332,6 @@ ScoreVectorToJSON(std::vector<HighScore*>& v, bool includeReplayData) {
 	return buffer.GetString();
 }
 
-inline void
-SetCURLPOSTScore(curl_httppost*& form,
-				 curl_httppost*& lastPtr,
-				 HighScore*& hs)
-{
-	SetCURLFormPostField(
-	  form, lastPtr, "key", hs->GetScoreKey());
-	hs->GenerateValidationKeys();
-	SetCURLFormPostField(form, lastPtr, "wife", hs->norms);
-	SetCURLFormPostField(
-	  form, lastPtr, "max_combo", hs->GetMaxCombo());
-	/*
-	SetCURLFormPostField(curlHandle,
-						 form,
-						 lastPtr,
-						 "valid",
-						 static_cast<int>(hs->GetEtternaValid()));
-						 */
-	SetCURLFormPostField(form, lastPtr, "modifiers", hs->GetModifiers());
-	SetCURLFormPostField(
-	  form, lastPtr, "miss", hs->GetTapNoteScore(TNS_Miss));
-	SetCURLFormPostField(
-	  form, lastPtr, "bad", hs->GetTapNoteScore(TNS_W5));
-	SetCURLFormPostField(
-	  form, lastPtr, "good", hs->GetTapNoteScore(TNS_W4));
-	SetCURLFormPostField(
-	  form, lastPtr, "great", hs->GetTapNoteScore(TNS_W3));
-	SetCURLFormPostField(
-	  form, lastPtr, "perfect", hs->GetTapNoteScore(TNS_W2));
-	SetCURLFormPostField(
-	  form, lastPtr, "marvelous", hs->GetTapNoteScore(TNS_W1));
-	SetCURLFormPostField(form,
-						 lastPtr,
-						 "datetime",
-						 std::string(hs->GetDateTime().GetString().c_str()));
-	SetCURLFormPostField(
-	  form, lastPtr, "hit_mine", hs->GetTapNoteScore(TNS_HitMine));
-	SetCURLFormPostField(
-	  form, lastPtr, "held", hs->GetHoldNoteScore(HNS_Held));
-	SetCURLFormPostField(
-	  form, lastPtr, "let_go", hs->GetHoldNoteScore(HNS_LetGo));
-	SetCURLFormPostField(
-	  form, lastPtr, "missed_hold", hs->GetHoldNoteScore(HNS_Missed));
-	SetCURLFormPostField(
-	  form, lastPtr, "chart_key", hs->GetChartKey());
-	SetCURLFormPostField(form, lastPtr, "rate", hs->musics);
-	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-	if (chart == nullptr)
-		return;
-	/*
-	SetCURLFormPostField(form,
-						 lastPtr,
-						 "negsolo",
-						 chart->GetTimingData()->HasWarps() ||
-						   chart->m_StepsType != StepsType_dance_single);
-						   */
-	SetCURLFormPostField(form,
-						 lastPtr,
-						 "chord_cohesion",
-						 static_cast<int>(hs->GetChordCohesion()));
-	SetCURLFormPostField(
-	  form, lastPtr, "calculator_version", hs->GetSSRCalcVersion());
-	SetCURLFormPostField(
-	  form, lastPtr, "wife_version", hs->GetWifeVersion());
-	SetCURLFormPostField(
-	  form, lastPtr, "top_score", hs->GetTopScore());
-	SetCURLFormPostField(form,
-						 lastPtr,
-						 "validation_key",
-						 hs->GetValidationKey(ValidationKey_Brittle));
-	/*
-	SetCURLFormPostField(form, lastPtr, "wife", hs->GetWifeScore());
-	SetCURLFormPostField(
-	  form, lastPtr, "wifePoints", hs->GetWifePoints());
-	  */
-	SetCURLFormPostField(form, lastPtr, "judge", hs->judges);
-	SetCURLFormPostField(
-	  form, lastPtr, "machine_guid", hs->GetMachineGuid());
-	// SetCURLFormPostField(form, lastPtr, "grade", hs->GetGrade());
-	SetCURLFormPostField(
-	  form, lastPtr, "grade", GradeToOldString(hs->GetWifeGrade()));
-}
-
-inline void
-SetCURLPOSTScoreReplayData(CURL*& curlHandle,
-				  curl_httppost*& form,
-				  curl_httppost*& lastPtr,
-				  HighScore*& hs,
-				  bool load_from_disk)
-{
-	std::string replayString;
-	const auto& offsets = hs->GetOffsetVector();
-	const auto& columns = hs->GetTrackVector();
-	const auto& types = hs->GetTapNoteTypeVector();
-	const auto& rows = hs->GetNoteRowVector();
-	if (!offsets.empty()) {
-		replayString = "[";
-		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-		if (steps == nullptr) {
-			Locator::getLogger()->warn(
-			  "Attempted to upload score with no loaded steps "
-			  "(scorekey: \"{}\" chartkey: \"{}\")",
-			  hs->GetScoreKey().c_str(),
-			  hs->GetChartKey().c_str());
-			curl_easy_cleanup(curlHandle);
-			return;
-		}
-		std::vector<float> timestamps =
-		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
-			rows, hs->GetMusicRate());
-		for (size_t i = 0; i < offsets.size(); i++) {
-			replayString += "[";
-			replayString += std::to_string(timestamps[i]) + ",";
-			replayString += std::to_string(1000.f * offsets[i]) + ",";
-			if (hs->HasColumnData()) {
-				replayString += std::to_string(columns[i]) + ",";
-				replayString += std::to_string(types[i]) + ",";
-			}
-			replayString += std::to_string(rows[i]);
-			replayString += "],";
-		}
-		replayString =
-		  replayString.substr(0, replayString.size() - 1); // remove ","
-		replayString += "]";
-		if (load_from_disk)
-			hs->UnloadReplayData();
-	} else {
-		// this should never be true unless we are using the manual forceupload
-		// functions
-		replayString = "[]";
-	}
-	SetCURLFormPostField(form, lastPtr, "replay_data", replayString);
-}
-
 void
 DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 								  std::function<void()> callback)
@@ -1483,11 +1349,10 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 	CURL* curlHandle = initCURLHandle(true, true);
 	CURLAPIURL(curlHandle, API_UPLOAD_SCORE_BULK);
 
-	// redundant
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "POST");
-
 	auto body = ScoreVectorToJSON(hsList, true);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, body);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, body.c_str());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 
 	Locator::getLogger()->warn("{}", body);
 
@@ -1528,13 +1393,13 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 				auto stamina = get("stamina");
 				auto tech = get("technical");
 
-				sessionRatings.at(Skill_Stream) = stream;
-				sessionRatings.at(Skill_Jumpstream) = jumpstream;
-				sessionRatings.at(Skill_Handstream) = handstream;
-				sessionRatings.at(Skill_JackSpeed) = jacks;
-				sessionRatings.at(Skill_Chordjack) = chordjacks;
-				sessionRatings.at(Skill_Stamina) = stamina;
-				sessionRatings.at(Skill_Technical) = tech;
+				sessionRatings[Skill_Stream] = stream;
+				sessionRatings[Skill_Jumpstream] = jumpstream;
+				sessionRatings[Skill_Handstream] = handstream;
+				sessionRatings[Skill_JackSpeed] = jacks;
+				sessionRatings[Skill_Chordjack] = chordjacks;
+				sessionRatings[Skill_Stamina] = stamina;
+				sessionRatings[Skill_Technical] = tech;
 
 				Locator::getLogger()->info(
 				  "BulkScoreUpload for {} scores completed - \n\tStream "
@@ -1578,6 +1443,8 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 			  response,
 			  jsonObjectToString(d));
 		}
+		if (callback)
+			callback();
 	};
 
 	HTTPRequest* req =
@@ -1612,13 +1479,14 @@ DownloadManager::UploadScore(HighScore* hs,
 		hs->LoadReplayData();
 
 	CURL* curlHandle = initCURLHandle(true, true);
-	curl_httppost* form = nullptr;
-	curl_httppost* lastPtr = nullptr;
-	SetCURLPOSTScore(form, lastPtr, hs);
-	SetCURLPOSTScoreReplayData(curlHandle, form, lastPtr, hs, load_from_disk);
 	CURLAPIURL(curlHandle, API_UPLOAD_SCORE);
+
+	Document jsonDoc;
+	auto scoreDoc = ScoreToJSON(hs, true, jsonDoc.GetAllocator());
+	auto json = jsonObjectToString(scoreDoc);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, json.c_str());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
 
 	auto done = [hs, callback, this](HTTPRequest& req) {
 		Document d;
@@ -1654,13 +1522,13 @@ DownloadManager::UploadScore(HighScore* hs,
 				auto stamina = get("stamina");
 				auto tech = get("technical");
 
-				sessionRatings.at(Skill_Stream) = stream;
-				sessionRatings.at(Skill_Jumpstream) = jumpstream;
-				sessionRatings.at(Skill_Handstream) = handstream;
-				sessionRatings.at(Skill_JackSpeed) = jacks;
-				sessionRatings.at(Skill_Chordjack) = chordjacks;
-				sessionRatings.at(Skill_Stamina) = stamina;
-				sessionRatings.at(Skill_Technical) = tech;
+				sessionRatings[Skill_Stream] = stream;
+				sessionRatings[Skill_Jumpstream] = jumpstream;
+				sessionRatings[Skill_Handstream] = handstream;
+				sessionRatings[Skill_JackSpeed] = jacks;
+				sessionRatings[Skill_Chordjack] = chordjacks;
+				sessionRatings[Skill_Stamina] = stamina;
+				sessionRatings[Skill_Technical] = tech;
 
 				Locator::getLogger()->info(
 				  "UploadScore completed for score {} - \n\tStream {}\n\tJS "
@@ -1771,15 +1639,10 @@ uploadSequentially()
 
 	if (!DLMAN->ScoreUploadSequentialQueue.empty()) {
 		
-		runningSequentialUpload = true;
-		auto hs = DLMAN->ScoreUploadSequentialQueue.front();
-		DLMAN->ScoreUploadSequentialQueue.pop_front();
-		DLMAN->UploadScoreWithReplayDataFromDisk(hs, uploadSequentially);
-		
-
-		/*
 		std::vector<HighScore*> hsToUpload{};
-		for (auto i = 0; i < UPLOAD_SCORE_BULK_CHUNK_SIZE; i++) {
+		for (auto i = 0; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
+						 !DLMAN->ScoreUploadSequentialQueue.empty();
+			 i++) {
 			hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());
 			DLMAN->ScoreUploadSequentialQueue.pop_front();
 
@@ -1789,7 +1652,6 @@ uploadSequentially()
 		}
 		runningSequentialUpload = true;
 		DLMAN->UploadBulkScores(hsToUpload, uploadSequentially);
-		*/
 		
 	} else {
 		Locator::getLogger()->info(
@@ -1816,6 +1678,13 @@ startSequentialUpload()
 								   UPLOAD_SCORE_BULK_CHUNK_SIZE);
 		uploadSequentially();
 	}
+}
+
+void
+cancelSequentialUpload() {
+	DLMAN->ScoreUploadSequentialQueue.clear();
+	DLMAN->sequentialScoreUploadTotalWorkload = 0;
+	runningSequentialUpload = false;
 }
 
 bool
@@ -1939,6 +1808,7 @@ DownloadManager::LogoutIfLoggedIn()
 void
 DownloadManager::Logout()
 {
+	cancelSequentialUpload();
 	sessionUser = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
