@@ -651,7 +651,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
-	timeSinceLastDownload.fetch_add(fDeltaSeconds);
+	timeSinceLastDownload.store(timeSinceLastDownload.load() + fDeltaSeconds);
 	for (auto& x : downloads) {
 		/*if (x.second == nullptr) {
 			Locator::getLogger()->warn("Pack download was null? URL: {}",
