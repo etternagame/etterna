@@ -111,6 +111,7 @@ class HTTPRequest
 	CURL* handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	std::string result;
+	std::string headers;
 	std::function<void(HTTPRequest&)> Done;
 	std::function<void(HTTPRequest&)> Failed;
 };
@@ -218,7 +219,11 @@ class DownloadManager
 	  const std::string& sessionToken,
 	  std::function<void(bool)> done = [](bool loggedIn) {});
 	void Logout();
-	void LogoutIfLoggedIn();
+	void LogoutIfLoggedIn()
+	{
+		if (LoggedIn())
+			Logout();
+	}
 
 	void GetRankedChartkeys(
 	  bool uploadAfterResponse = false,
@@ -270,6 +275,16 @@ class DownloadManager
 	// Events
 	void OnLogin();
 
+	// Checks for generic response codes where we have consistent behavior
+	// status 401 - log out the user, cancel uploads
+	bool HandleAuthErrorResponse(const std::string& endpoint, HTTPRequest& req);
+	// status 429 - requeue the request, wait a while
+	bool HandleRatelimitResponse(const std::string& endpoint, HTTPRequest& req);
+	bool QueueRequestIfRatelimited(const std::string& endpiont,
+								   HTTPRequest& req);
+	void QueueRatelimitedRequest(const std::string& endpoint, HTTPRequest& req);
+
+
 	// Specialized API Requests
 	void LoginRequest(const std::string& username,
 					  const std::string& password,
@@ -308,6 +323,11 @@ class DownloadManager
 	// Currently in gameplay y/n
 	bool gameplay{ false };
 	bool initialized{ false };
+
+	std::unordered_map<std::string, std::chrono::steady_clock::time_point>
+	  endpointRatelimitTimestamps{};
+	std::unordered_map<std::string, std::vector<HTTPRequest*>>
+	  ratelimitedRequestQueue{};
 
   // old
   public:

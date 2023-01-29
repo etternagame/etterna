@@ -21,6 +21,7 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 
 #include "curl/curl.h"
+#include "curl/header.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
@@ -41,6 +42,7 @@ using namespace rapidjson;
 std::shared_ptr<DownloadManager> DLMAN = nullptr;
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 static std::atomic<float> timeSinceLastDownload = 0.F;
+static bool runningSequentialUpload = false;
 
 // Pack API Preferences
 static Preference<unsigned int> maxDLPerSecond(
@@ -277,6 +279,14 @@ SetCURLResultsString(CURL* curlHandle, std::string* str)
 {
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_WRITEDATA, str);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
+}
+
+inline void
+SetCURLHeadersString(CURL* curlHandle, std::string* str)
+{
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_HEADERDATA, str);
+	curl_easy_setopt_log_err(
+	  curlHandle, CURLOPT_HEADERFUNCTION, write_memory_buffer);
 }
 
 inline void
@@ -916,8 +926,45 @@ DownloadManager::LoginRequest(const std::string& user,
 		loggingIn = false;
 	};
 	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
 	AddHttpRequestHandle(req->handle);
 	HTTPRequests.push_back(req);
+}
+
+void
+DownloadManager::Logout()
+{
+	// cancel sequential upload
+	DLMAN->ScoreUploadSequentialQueue.clear();
+	DLMAN->sequentialScoreUploadTotalWorkload = 0;
+	runningSequentialUpload = false;
+
+	// logout
+	sessionUser = authToken = "";
+	topScores.clear();
+	sessionRatings.clear();
+	// This is called on a shutdown, after MessageManager is gone
+	if (MESSAGEMAN != nullptr)
+		MESSAGEMAN->Broadcast("LogOut");
+}
+
+bool
+DownloadManager::HandleAuthErrorResponse(const std::string& endpoint, HTTPRequest& req)
+{
+	auto& status = req.response_code;
+	if (status != 401) {
+		return false;
+	}
+
+	Locator::getLogger()->warn(
+	  "{} {} - Auth Error. Logging out automatically",
+	  endpoint,
+	  status);
+
+	LogoutIfLoggedIn();
+
+
+	return true;
 }
 
 void
@@ -1453,6 +1500,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 			  callback();
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
 	AddHttpRequestHandle(req->handle);
 	HTTPRequests.push_back(req);
 	Locator::getLogger()->info(
@@ -1593,6 +1641,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			  callback();
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
 	AddHttpRequestHandle(req->handle);
 	HTTPRequests.push_back(req);
 	Locator::getLogger()->info("Finished creating UploadScore request for {}",
@@ -1619,7 +1668,6 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(
 	UploadScore(hs, callback, true);
 }
 
-static bool runningSequentialUpload = false;
 // This function begins uploading the given list (deque) of scores
 // It does so one score at a time, sequentially (But without blocking)
 // So as to not spam the server with possibly hundreds or thousands of scores
@@ -1678,13 +1726,6 @@ startSequentialUpload()
 								   UPLOAD_SCORE_BULK_CHUNK_SIZE);
 		uploadSequentially();
 	}
-}
-
-void
-cancelSequentialUpload() {
-	DLMAN->ScoreUploadSequentialQueue.clear();
-	DLMAN->sequentialScoreUploadTotalWorkload = 0;
-	runningSequentialUpload = false;
 }
 
 bool
@@ -1797,24 +1838,6 @@ DownloadManager::ForceUploadAllPBs()
 		for (auto c : so->GetAllSteps())
 			successful |= ForceUploadPBsForPack(c->GetChartKey());
 	return successful;
-}
-void
-DownloadManager::LogoutIfLoggedIn()
-{
-	if (!LoggedIn())
-		return;
-	Logout();
-}
-void
-DownloadManager::Logout()
-{
-	cancelSequentialUpload();
-	sessionUser = authToken = "";
-	topScores.clear();
-	sessionRatings.clear();
-	// This is called on a shutdown, after MessageManager is gone
-	if (MESSAGEMAN != nullptr)
-		MESSAGEMAN->Broadcast("LogOut");
 }
 
 void
@@ -1955,18 +1978,94 @@ DownloadManager::SendRequestToURL(
 		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPGET, 1L);
 	}
 	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (async) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	} else {
+		Locator::getLogger()->debug("Waiting on synchronous curl call");
 		CURLcode res = curl_easy_perform(req->handle);
 		curl_easy_cleanup(req->handle);
 		done(*req);
+		Locator::getLogger()->debug("Synchronous curl call completed");
 		delete req;
 		return nullptr;
 	}
 	return req;
 }
+
+bool
+DownloadManager::HandleRatelimitResponse(const std::string& endpoint, HTTPRequest& req)
+{
+	auto& status = req.response_code;
+	if (status != 429) {
+		return false;
+	}
+
+	Locator::getLogger()->warn(
+	  "{} {} - Rate Limited. Requeueing request to this endpoint",
+	  endpoint,
+	  status);
+
+	const auto ratelimitHeader = "Retry-After";
+	curl_header *data = nullptr;
+	auto ret =
+	  curl_easy_header(req.handle, ratelimitHeader, 0, CURLH_HEADER, -1, &data);
+	switch (ret) {
+		case CURLHE_BADINDEX:
+		case CURLHE_MISSING:
+		case CURLHE_NOHEADERS:
+		case CURLHE_NOREQUEST:
+		case CURLHE_OUT_OF_MEMORY:
+		case CURLHE_BAD_ARGUMENT:
+		case CURLHE_NOT_BUILT_IN: {
+			Locator::getLogger()->error(
+			  "{} {} failed to retrieve Retry-After header. Error code {}",
+			  endpoint,
+			  status,
+			  ret);
+			return true;
+		};
+		case CURLHE_OK:
+			break;
+	}
+
+	
+
+	return true;
+}
+
+bool
+DownloadManager::QueueRequestIfRatelimited(const std::string& endpoint, HTTPRequest& req) {
+	if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
+		return false;
+	}
+
+	auto ratelimitInstance = endpointRatelimitTimestamps.at(endpoint);
+	std::chrono::duration<float> expireTime(30.F);
+	if (std::chrono::steady_clock::now() - ratelimitInstance > expireTime) {
+		return false;
+	}
+
+	QueueRatelimitedRequest(endpoint, req);
+
+	return true;
+}
+
+void
+DownloadManager::QueueRatelimitedRequest(const std::string& endpoint, HTTPRequest& req) {
+	if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
+		endpointRatelimitTimestamps.emplace(endpoint,
+											std::chrono::steady_clock::now());
+	}
+	if (ratelimitedRequestQueue.count(endpoint) == 0u) {
+		ratelimitedRequestQueue.emplace(endpoint, std::vector<HTTPRequest*>());
+	}
+
+	ratelimitedRequestQueue.at(endpoint).push_back(&req);
+}
+
+
 void
 DownloadManager::RefreshCountryCodes()
 {
