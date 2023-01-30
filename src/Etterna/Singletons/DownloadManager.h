@@ -13,6 +13,7 @@
 
 #include <deque>
 #include <unordered_set>
+#include <unordered_map>
 
 class ScoreGoal;
 class DownloadablePack;
