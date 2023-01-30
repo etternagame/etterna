@@ -72,7 +72,10 @@ static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static const std::string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 static const std::string wife3_rescore_upload_flag = "rescoredw3";
-static const unsigned UPLOAD_SCORE_BULK_CHUNK_SIZE = 1;
+
+static Preference<unsigned int> UPLOAD_SCORE_BULK_CHUNK_SIZE(
+  "bulkScoreUploadChunkSize",
+  100);
 
 // endpoint construction constants
 // all paths should begin with / and end without /
@@ -1319,9 +1322,9 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	// to put a string into a json object
 	// we have to put it in a Value instead
 	// thats kinda cringe but theres some good technical reason why
-	auto val = [&d](const std::string& str) {
+	auto val = [&allocator](const std::string& str) {
 		Value v;
-		v.SetString(str.c_str(), d.GetAllocator());
+		v.SetString(str.c_str(), allocator);
 		return v;
 	};
 
@@ -1339,7 +1342,8 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("held", hs->GetHoldNoteScore(HNS_Held), allocator);
 	d.AddMember("let_go", hs->GetHoldNoteScore(HNS_LetGo), allocator);
 	d.AddMember("missed_hold", hs->GetHoldNoteScore(HNS_Missed), allocator);
-	d.AddMember("rate", hs->GetMusicRate(), allocator);
+	d.AddMember(
+	  "rate", std::round(hs->GetMusicRate() * 1000.0) / 1000.0, allocator);
 	d.AddMember("datetime", val(hs->GetDateTime().GetString()), allocator);
 	d.AddMember(
 	  "chord_cohesion", static_cast<int>(hs->GetChordCohesion()), allocator);
@@ -1350,7 +1354,8 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	  "validation_key", val(hs->GetValidationKey(ValidationKey_Brittle)), allocator);
 	d.AddMember("machine_guid", val(hs->GetMachineGuid()), allocator);
 	d.AddMember("chart_key", val(hs->GetChartKey()), allocator);
-	d.AddMember("judge", hs->judges, allocator);
+	d.AddMember(
+	  "judge", std::round(hs->GetJudgeScale() * 1000.0) / 1000.0, allocator);
 	d.AddMember("grade", val(GradeToOldString(hs->GetWifeGrade())), allocator);
 
 	Document replayVector;
@@ -1361,6 +1366,19 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			v.SetFloat(f);
 			return v;
 		};
+
+		bool hadToLoadReplayData = false;
+
+		// load replay data if we need it
+		// basically, in one case we care about the fact that we loaded or not
+		if (hs->GetOffsetVector().empty()) {
+			// this handles loading from disk and then generating needed information
+			// would return false if impossible to work with
+			hadToLoadReplayData = hs->GetReplay()->GeneratePrimitiveVectors();
+		} else {
+			// this handles loading from disk if necessary and generating if necessary
+			hs->GetReplay()->GeneratePrimitiveVectors();
+		}
 
 		const auto& offsets = hs->GetOffsetVector();
 		const auto& columns = hs->GetTrackVector();
@@ -1392,6 +1410,10 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 					replayVector.PushBack(thisData, allocator);
 				}
 			}
+		}
+
+		if (hadToLoadReplayData) {
+			hs->UnloadReplayData();
 		}
 	}
 	d.AddMember("replay_data", replayVector, allocator);
@@ -1438,8 +1460,8 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 
 	auto body = ScoreVectorToJSON(hsList, true);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, body.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
 	// body json
 	// Locator::getLogger()->warn("{}", body);
@@ -1577,8 +1599,8 @@ DownloadManager::UploadScore(HighScore* hs,
 	auto scoreDoc = ScoreToJSON(hs, true, jsonDoc.GetAllocator());
 	auto json = jsonObjectToString(scoreDoc);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, json.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, json.c_str());
 
 	auto done = [hs, callback, load_from_disk, this](HTTPRequest& req) {
 		Document d;
@@ -1737,7 +1759,7 @@ uploadSequentially()
 	if (!DLMAN->ScoreUploadSequentialQueue.empty()) {
 		
 		std::vector<HighScore*> hsToUpload{};
-		for (auto i = 0; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
+		for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
 						 !DLMAN->ScoreUploadSequentialQueue.empty();
 			 i++) {
 			hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());

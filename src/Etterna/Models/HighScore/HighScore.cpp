@@ -390,6 +390,13 @@ HighScore::CheckReplayIsInit()
 }
 
 auto
+HighScore::GetReplay() -> Replay*
+{
+	CheckReplayIsInit();
+	return replay;
+}
+
+auto
 HighScore::LoadReplayData() -> bool
 {
 	CheckReplayIsInit();

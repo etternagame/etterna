@@ -174,6 +174,7 @@ struct HighScore
 	void InitReplay();
 	void UnloadReplayData();
 	void ResetSkillsets();
+	auto GetReplay() -> Replay*;
 
 	[[nodiscard]] auto GetDisplayName() const -> const std::string&;
 
