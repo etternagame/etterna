@@ -13,6 +13,7 @@
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "ProfileManager.h"
 #include "SongManager.h"
+#include "ScoreManager.h"
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
@@ -1329,7 +1330,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	};
 
 	d.AddMember("key", val(hs->GetScoreKey()), allocator);
-	d.AddMember("wife", hs->norms, allocator);
+	d.AddMember("wife", hs->GetSSRNormPercent(), allocator);
 	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
 	d.AddMember("modifiers", val(hs->GetModifiers()), allocator);
 	d.AddMember("marvelous", hs->GetTapNoteScore(TNS_W1), allocator);
@@ -1491,9 +1492,63 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 			// kind of good.
 			// we can have successes and failures.
 
+			std::unordered_set<std::string> failedUploadKeys{};
+			if (d.IsObject() && d.HasMember("failedUploads")) {
+				auto& fails = d["failedUploads"];
+				/*// Verbose output
+				Locator::getLogger()->warn(
+				  "BulkScoreUpload had failed uploads but continued: {}",
+				  jsonObjectToString(fails));
+				*/
+				Locator::getLogger()->warn(
+				  "BulkScoreUpload had failed uploads but continued working");
+
+				// collect the scorekeys for the failed uploads
+				// the return data is in this format:
+				/*
+				[
+					{ "Sabcdef1234567890" : ["Reason for failure1",] },
+					{ "S1234567890abcdef" : ["Reason for failure1",] },
+				]
+				*/
+				if (fails.IsArray()) {
+					for (auto it = fails.Begin();
+						it != fails.End(); it++) {
+						for (auto objIt = it->MemberBegin();
+							 objIt != it->MemberEnd();
+							 objIt++) {
+							failedUploadKeys.insert(objIt->name.GetString());
+							Locator::getLogger()->warn(
+							  "Score {} was rejected by server for: {}",
+							  objIt->name.GetString(),
+							  jsonObjectToString(objIt->value));
+						}
+					}
+				}
+			}
+
+			if (!d.HasMember("failedUploads") && !d.HasMember("playerRating")) {
+				Locator::getLogger()->info(
+				  "BulkScoreUpload received no useful response? Content: {}",
+				  jsonObjectToString(d));
+			}
+
+			// record the scores that successfully uploaded
+			for (auto& hs : hsList) {
+				if (failedUploadKeys.contains(hs->GetScoreKey())) {
+					continue;
+				}
+
+				if (hs->GetWifeVersion() == 3)
+					hs->AddUploadedServer(wife3_rescore_upload_flag);
+				hs->AddUploadedServer(serverURL.Get());
+				hs->forceuploadedthissession = true;
+			}
+
 			if (d.IsObject() && d.HasMember("playerRating") &&
 				d["playerRating"].IsObject()) {
-				// we know the new player rating details and had a successful upload
+				// we know the new player rating details and had a successful
+				// upload
 				auto get = [&d](const char* name) {
 					auto& pr = d["playerRating"];
 					if (pr.HasMember(name) && pr[name].IsDouble()) {
@@ -1520,10 +1575,12 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 				sessionRatings[Skill_Technical] = tech;
 
 				Locator::getLogger()->info(
-				  "BulkScoreUpload for {} scores completed - \n\tStream "
+				  "BulkScoreUpload for {} scores completed, and {} of those "
+				  "were rejected - \n\tStream "
 				  "{}\n\tJS "
 				  "{}\n\tHS {}\n\tJacks {}\n\tCJ {}\n\tStamina {}\n\tTech {}",
 				  hsList.size(),
+				  failedUploadKeys.size(),
 				  stream,
 				  jumpstream,
 				  handstream,
@@ -1531,19 +1588,6 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 				  chordjacks,
 				  stamina,
 				  tech);
-			}
-
-			if (d.IsObject() && d.HasMember("failedUploads")) {
-				auto& fails = d["failedUploads"];
-				Locator::getLogger()->warn(
-				  "BulkScoreUpload had failed uploads but continued: {}",
-				  jsonObjectToString(fails));
-			}
-
-			if (!d.HasMember("failedUploads") && !d.HasMember("playerRating")) {
-				Locator::getLogger()->info(
-				  "BulkScoreUpload received no useful response? Content: {}",
-				  jsonObjectToString(d));
 			}
 
 		} else {
