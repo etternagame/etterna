@@ -901,6 +901,11 @@ DownloadManager::LoginRequest(const std::string& user,
 			loggingIn = false;
 		};
 
+		if (HandleRatelimitResponse(API_LOGIN, req)) {
+			LoginRequest(user, pass, callback);
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1014,18 +1019,19 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 	favorites.push_back(chartkey);
 	auto done = [chartkey, this](HTTPRequest& req) {
 
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "AddFavoriteRequest Error: Malformed request response: {}", req.result);
-			return;
-		}
-
 		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
 			return;
 		}
 		if (HandleRatelimitResponse(API_FAVORITES, req)) {
 			AddFavoriteRequest(chartkey);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "AddFavoriteRequest Error: Malformed request response: {}",
+			  req.result);
 			return;
 		}
 
@@ -1073,18 +1079,20 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 		favorites.erase(it);
 
 	auto done = [chartkey, this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RemoveFavorite Error: Malformed request response: {}", req.result);
-			return;
-		}
 
 		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
 			return;
 		}
 		if (HandleRatelimitResponse(API_FAVORITES, req)) {
 			RemoveFavoriteRequest(chartkey);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RemoveFavorite Error: Malformed request response: {}",
+			  req.result);
 			return;
 		}
 
@@ -1118,19 +1126,20 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 	auto req = API_GOALS;
 
 	auto done = [goal, this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RemoveFavorite Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
 
 		if (HandleAuthErrorResponse(API_GOALS, req)) {
 			return;
 		}
 		if (HandleRatelimitResponse(API_GOALS, req)) {
 			AddGoalRequest(goal);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RemoveFavorite Error: Malformed request response: {}",
+			  req.result);
 			return;
 		}
 
@@ -1176,19 +1185,19 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 					  std::to_string(goal->percent);
 
 	auto done = [goal, this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RemoveGoal Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
 
 		if (HandleAuthErrorResponse(API_GOALS, req)) {
 			return;
 		}
 		if (HandleRatelimitResponse(API_GOALS, req)) {
 			RemoveGoalRequest(goal);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RemoveGoal Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1239,18 +1248,19 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	};
 
 	auto done = [ goal, this ](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "UpdateGoal Error: Malformed request response: {}", req.result);
-			return;
-		}
 
 		if (HandleAuthErrorResponse(API_GOALS, req)) {
 			return;
 		}
 		if (HandleRatelimitResponse(API_GOALS, req)) {
 			UpdateGoalRequest(goal);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "UpdateGoal Error: Malformed request response: {}", req.result);
 			return;
 		}
 
@@ -1305,6 +1315,88 @@ DownloadManager::RefreshFavorites()
 	};
 	SendRequest(req, {}, done);
 	*/
+}
+
+void
+DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
+										   const DateTime start,
+										   const DateTime end)
+{
+	std::string startstr =
+	  fmt::format("{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
+	std::string endstr =
+	  fmt::format("{}-{}-{}", end.tm_year + 1900, end.tm_mon + 1, end.tm_mday);
+	Locator::getLogger()->info(
+	  "Generating ranked chartkeys request {} to {}", startstr, endstr);
+
+	std::vector<std::pair<std::string, std::string>> params = {
+		std::make_pair("start", startstr),
+		std::make_pair("end", endstr),
+	};
+
+	auto done = [callback, start, end, this, startstr, endstr](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_RANKED_CHARTKEYS, req)) {
+			if (callback)
+				callback();
+			return;
+		}
+		if (HandleRatelimitResponse(API_RANKED_CHARTKEYS, req)) {
+			GetRankedChartkeysRequest(callback, start, end);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "GetRankedChartkeysRequest Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+
+			if (d.HasMember("data") && d["data"].IsArray()) {
+
+				/* expected data:
+				{ "data" : [ "Xabc123", "Xabc124", .... ] }
+				*/
+
+
+				std::unordered_set<std::string> newKeys{};
+				auto& data = d["data"];
+				for (auto it = data.Begin(); it != data.End(); it++) {
+					newKeys.insert(it->GetString());
+				}
+				newlyRankedChartkeys.insert(newKeys.begin(), newKeys.end());
+
+				Locator::getLogger()->info(
+				  "GetRankedChartkeys succeeded - {} "
+				  "keys found for range {} - {} | {} total keys",
+				  newKeys.size(),
+				  startstr,
+				  endstr,
+				  newlyRankedChartkeys.size());
+
+			} else {
+				Locator::getLogger()->warn("GetRankedChartkeys got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
+			}
+		} else {
+			Locator::getLogger()->warn(
+			  "GetRankedChartkeys unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+		if (callback)
+			callback();
+	};
+
+	SendRequest(API_RANKED_CHARTKEYS, params, done, true);
 }
 
 bool
@@ -1468,6 +1560,17 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 	// Locator::getLogger()->warn("{}", body);
 
 	auto done = [callback, hsList, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_UPLOAD_SCORE_BULK, req)) {
+			if (callback)
+				callback();
+			return;
+		}
+		if (HandleRatelimitResponse(API_UPLOAD_SCORE_BULK, req)) {
+			UploadBulkScores(hsList, callback);
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1475,14 +1578,6 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 			  req.result.c_str());
 			if (callback)
 				callback();
-			return;
-		}
-
-		if (HandleAuthErrorResponse(API_UPLOAD_SCORE_BULK, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(API_UPLOAD_SCORE_BULK, req)) {
-			UploadBulkScores(hsList, callback);
 			return;
 		}
 
@@ -1647,6 +1742,17 @@ DownloadManager::UploadScore(HighScore* hs,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, json.c_str());
 
 	auto done = [hs, callback, load_from_disk, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_UPLOAD_SCORE, req)) {
+			if (callback)
+				callback();
+			return;
+		}
+		if (HandleRatelimitResponse(API_UPLOAD_SCORE, req)) {
+			UploadScore(hs, callback, load_from_disk);
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1654,14 +1760,6 @@ DownloadManager::UploadScore(HighScore* hs,
 			  req.result.c_str());
 			if (callback)
 				callback();
-			return;
-		}
-
-		if (HandleAuthErrorResponse(API_UPLOAD_SCORE, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(API_UPLOAD_SCORE, req)) {
-			UploadScore(hs, callback, load_from_disk);
 			return;
 		}
 
@@ -1849,48 +1947,80 @@ DownloadManager::InitialScoreSync()
 	if (!LoggedIn())
 		return false;
 
-	// First we accumulate scores that have not been uploaded and have
-	// replay data. There is no reason to upload updated calc versions to the
-	// site anymore - the site uses its own calc and afaik ignores the provided
-	// values, we only need to upload scores that have not been uploaded, and
-	// scores that have been rescored from wife2 to wife3
-	auto scores = SCOREMAN->GetAllPBPtrs();
-	auto& newly_rescored = SCOREMAN->rescores;
-	std::vector<HighScore*> toUpload;
-	for (auto& vec : scores) {
-		for (auto& s : vec) {
-			// probably not worth uploading fails, they get rescored now
-			if (s->GetGrade() == Grade_Failed)
-				continue;
-			// handle rescores, ignore upload check
-			if (newly_rescored.count(s))
-				toUpload.push_back(s);
-			// ok so i think we probably do need an upload flag for wife3
-			// resyncs, and to actively check it, since if people rescore
-			// everything, play 1 song and close their game or whatever,
-			// rescore list won't be built again and scores won't auto
-			// sync
-			else if (s->GetWifeVersion() == 3 &&
-					 !s->IsUploadedToServer(wife3_rescore_upload_flag))
-				toUpload.push_back(s);
-			// normal behavior, upload scores that haven't been uploaded and
-			// have replays
-			else if (!s->IsUploadedToServer(serverURL.Get()) &&
-					 s->HasReplayData())
-				toUpload.push_back(s);
-		}
+	auto* profile =
+	  PROFILEMAN->GetProfile(PLAYER_1);
+	if (profile == nullptr) {
+		return false;
 	}
 
-	if (!toUpload.empty())
-		Locator::getLogger()->info(
-		  "Updating online scores. (Uploading {} scores)", toUpload.size());
-	else
-		return false;
+	auto lastCheckDT = profile->m_lastRankedChartkeyCheck;
+	auto year0 = DateTime();
+	if (lastCheckDT.tm_year == year0.tm_year &&
+		lastCheckDT.tm_mon == year0.tm_mon &&
+		lastCheckDT.tm_mday == year0.tm_mday) {
+		// if the check never happened at all, set to a valid date
 
-	ScoreUploadSequentialQueue.insert(
-	  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
-	sequentialScoreUploadTotalWorkload += toUpload.size();
-	startSequentialUpload();
+		// sets to 1900-01-01
+		lastCheckDT.tm_year = 0;
+		lastCheckDT.tm_mon = 0;
+		lastCheckDT.tm_mday = 1;
+	}
+
+	// this runs after the GetRankedChartkeys request
+	auto callback = [this, lastCheckDT, profile]() {
+		// First we accumulate scores that have not been uploaded and have
+		// replay data. There is no reason to upload updated calc versions to
+		// the site anymore - the site uses its own calc and afaik ignores the
+		// provided values, we only need to upload scores that have not been
+		// uploaded, and scores that have been rescored from wife2 to wife3
+		auto scores = SCOREMAN->GetAllPBPtrs();
+		auto& newly_rescored = SCOREMAN->rescores;
+		std::vector<HighScore*> toUpload;
+		for (auto& vec : scores) {
+			for (auto& s : vec) {
+				// probably not worth uploading fails, they get rescored now
+				if (s->GetGrade() == Grade_Failed)
+					continue;
+
+				// the chart must be ranked to be uploaded
+				if (!newlyRankedChartkeys.contains(s->GetChartKey()))
+					continue;
+
+				// handle rescores, ignore upload check
+				if (newly_rescored.count(s))
+					toUpload.push_back(s);
+				// ok so i think we probably do need an upload flag for wife3
+				// resyncs, and to actively check it, since if people rescore
+				// everything, play 1 song and close their game or whatever,
+				// rescore list won't be built again and scores won't auto
+				// sync
+				else if (s->GetWifeVersion() == 3 &&
+						 !s->IsUploadedToServer(wife3_rescore_upload_flag))
+					toUpload.push_back(s);
+				// normal behavior, upload scores that haven't been uploaded and
+				// have replays
+				else if (!s->IsUploadedToServer(serverURL.Get()) &&
+						 s->HasReplayData())
+					toUpload.push_back(s);
+			}
+		}
+
+		if (!toUpload.empty())
+			Locator::getLogger()->info(
+			  "Updating online scores. (Uploading {} scores)", toUpload.size());
+		else
+			return false;
+
+		ScoreUploadSequentialQueue.insert(
+		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
+		sequentialScoreUploadTotalWorkload += toUpload.size();
+		startSequentialUpload();
+		profile->m_lastRankedChartkeyCheck = lastCheckDT;
+	};
+
+	// this will search the date range [start, inf]
+	GetRankedChartkeys(callback, lastCheckDT);
+
 	return true;
 }
 
@@ -2047,8 +2177,31 @@ DownloadManager::SendRequestToURL(
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
-	std::function<void(HTTPRequest&)> done = [afterDone,
-											  url](HTTPRequest& req) {
+	auto done = [url,
+				 params,
+				 afterDone,
+				 requireLogin,
+				 httpMethod,
+				 async,
+				 withBearer,
+				 this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(url, req)) {
+			if (afterDone)
+				afterDone(req);
+			return;
+		}
+		if (HandleRatelimitResponse(url, req)) {
+			SendRequestToURL(url,
+							 params,
+							 afterDone,
+							 requireLogin,
+							 httpMethod,
+							 async,
+							 withBearer);
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(

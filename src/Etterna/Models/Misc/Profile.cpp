@@ -91,6 +91,7 @@ Profile::InitGeneralData()
 	m_iNumToasties = 0;
 	m_sLastPlayedMachineGuid = "";
 	m_LastPlayedDate.Init();
+	m_lastRankedChartkeyCheck.Init();
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalJumps = 0;
 	m_iTotalHolds = 0;
@@ -233,6 +234,7 @@ Profile::swap(Profile& other)
 	SWAP_GENERAL(m_bNewProfile);
 	SWAP_STR_MEMBER(m_sLastPlayedMachineGuid);
 	SWAP_GENERAL(m_LastPlayedDate);
+	SWAP_GENERAL(m_lastRankedChartkeyCheck);
 	SWAP_STR_MEMBER(m_iNumSongsPlayedByStyle);
 	SWAP_ARRAY(m_iNumSongsPlayedByDifficulty, NUM_Difficulty);
 	SWAP_ARRAY(m_iNumSongsPlayedByMeter, MAX_METER + 1);

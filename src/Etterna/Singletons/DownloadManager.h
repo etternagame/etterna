@@ -12,6 +12,7 @@
 #include "curl/curl.h"
 
 #include <deque>
+#include <unordered_set>
 
 class ScoreGoal;
 class DownloadablePack;
@@ -226,11 +227,11 @@ class DownloadManager
 	}
 
 	void GetRankedChartkeys(
-	  bool uploadAfterResponse = false,
+	  std::function<void(void)> callback = []() {},
 	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
 	  const DateTime end = DateTime::GetFromString("2100-01-01 12:00:00"))
 	{
-		GetRankedChartkeysRequest(uploadAfterResponse, start, end);
+		GetRankedChartkeysRequest(callback, start, end);
 	}
 	void AddFavorite(const std::string& chartKey)
 	{
@@ -289,7 +290,7 @@ class DownloadManager
 	void LoginRequest(const std::string& username,
 					  const std::string& password,
 					  std::function<void(bool)> done);
-	void GetRankedChartkeysRequest(bool uploadAfterResponse,
+	void GetRankedChartkeysRequest(std::function<void(void)> callback,
 								   const DateTime start,
 								   const DateTime end);
 	void UploadSingleScoreRequest(HighScore* hs);
@@ -328,6 +329,7 @@ class DownloadManager
 	  endpointRatelimitTimestamps{};
 	std::unordered_map<std::string, std::vector<HTTPRequest*>>
 	  ratelimitedRequestQueue{};
+	std::unordered_set<std::string> newlyRankedChartkeys{};
 
   // old
   public:
