@@ -21,7 +21,6 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 
 #include "curl/curl.h"
-#include "curl/header.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
@@ -390,6 +389,26 @@ encodeDownloadUrl(const std::string& url)
 	return base_url + UrlEncode(unescaped_filename);
 }
 
+inline std::unordered_map<std::string, std::string>
+extractHeaderMap(const std::string& headersStr) {
+	std::vector<std::string> lines{};
+	split(headersStr, "\r\n", lines);
+	std::unordered_map<std::string, std::string> o{};
+	for (auto& x : lines) {
+		std::vector<std::string> leftright{};
+		split(x, ": ", leftright);
+		if (leftright.size() >= 2) {
+			o.emplace(leftright.at(0), leftright.at(1));
+		}
+		if (leftright.size() != 2) {
+			Locator::getLogger()->debug(
+			  "Header String line in unexpected form: {}", x);
+		}
+	}
+	return o;
+	
+}
+
 DownloadManager::DownloadManager()
 {
 	EmptyTempDLFileDir();
@@ -542,7 +561,7 @@ DownloadManager::Init()
 		curl_multi_cleanup(CurlMHandle);
 		THREAD_EXIT_COUNT.Post();
 	}).detach();
-	std::thread([]() {
+	std::thread([this]() {
 		CURLM* CurlMHandle = curl_multi_init();
 		int HandlesRunning = 0;
 		std::vector<CURL*> local_http_reqs;
@@ -553,6 +572,20 @@ DownloadManager::Init()
 			{
 				const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
 				G_HTTP_REQS.swap(local_http_reqs);
+
+				auto now = std::chrono::steady_clock::now();
+				for (auto& pair : endpointRatelimitTimestamps) {
+					if (now > pair.second &&
+						ratelimitedRequestQueue.count(pair.first) != 0u) {
+						// no longer ratelimited, handle the queue
+						auto& reqs = ratelimitedRequestQueue.at(pair.first);
+						for (auto& req : reqs) {
+							G_HTTP_REQS.push_back(req->handle);
+							HTTPRequests.push_back(req);
+						}
+						ratelimitedRequestQueue.erase(pair.first);
+					}
+				}
 			}
 			for (auto& curl_handle : local_http_reqs) {
 				curl_multi_add_handle(CurlMHandle, curl_handle);
@@ -927,8 +960,10 @@ DownloadManager::LoginRequest(const std::string& user,
 	};
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	AddHttpRequestHandle(req->handle);
-	HTTPRequests.push_back(req);
+	if (!QueueRequestIfRatelimited(API_LOGIN, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
 }
 
 void
@@ -982,6 +1017,14 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 			return;
 		}
 
+		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_FAVORITES, req)) {
+			AddFavoriteRequest(chartkey);
+			return;
+		}
+
 		auto response = req.response_code;
 
 		if (response == 200) {
@@ -989,13 +1032,6 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 			Locator::getLogger()->info(
 			  "AddFavorite successfully added favorite {} from online profile",
 			  chartkey);
-
-		} else if (response == 401) {
-			// bad token/no token
-			Locator::getLogger()->warn(
-			  "AddFavorite failed due to auth error. Automatically logging out. Content: {}",
-			  jsonObjectToString(d));
-			Logout();
 
 		} else if (response == 422) {
 			// missing info
@@ -1040,6 +1076,14 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 			return;
 		}
 
+		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_FAVORITES, req)) {
+			RemoveFavoriteRequest(chartkey);
+			return;
+		}
+
 		auto response = req.response_code;
 
 		if (response == 200) {
@@ -1047,13 +1091,6 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 			Locator::getLogger()->info("RemoveFavorite successfully removed "
 									   "favorite {} from online profile",
 									   chartkey);
-
-		} else if (response == 401) {
-			// bad token/no token
-			Locator::getLogger()->warn("RemoveFavorite failed due to auth error. "
-									   "Automatically logging out. Content: {}",
-									   jsonObjectToString(d));
-			Logout();
 
 		} else if (response == 404) {
 			Locator::getLogger()->warn(
@@ -1085,6 +1122,14 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 			return;
 		}
 
+		if (HandleAuthErrorResponse(API_GOALS, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS, req)) {
+			AddGoalRequest(goal);
+			return;
+		}
+
 		auto response = req.response_code;
 
 		if (response == 200) {
@@ -1092,13 +1137,6 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 			Locator::getLogger()->info(
 			  "AddGoal successfull added goal for {} to online profile",
 			  goal->chartkey);
-
-		} else if (response == 401) {
-			// bad token/no token
-			Locator::getLogger()->warn("AddGoal failed due to auth error. "
-									   "Automatically logging out. Content: {}",
-									   jsonObjectToString(d));
-			Logout();
 
 		} else if (response == 422) {
 			// some validation issue with the request
@@ -1142,6 +1180,14 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 			return;
 		}
 
+		if (HandleAuthErrorResponse(API_GOALS, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS, req)) {
+			RemoveGoalRequest(goal);
+			return;
+		}
+
 		auto response = req.response_code;
 
 		if (response == 200) {
@@ -1149,13 +1195,6 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 			Locator::getLogger()->info(
 			  "RemoveGoal successfully removed goal for {} from online profile",
 			  goal->chartkey);
-
-		} else if (response == 401) {
-			// bad token/no token
-			Locator::getLogger()->warn("RemoveGoal failed due to auth error. "
-									   "Automatically logging out. Content: {}",
-									   jsonObjectToString(d));
-			Logout();
 
 		} else if (response == 422) {
 			// some validation issue with the request
@@ -1203,6 +1242,14 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 			return;
 		}
 
+		if (HandleAuthErrorResponse(API_GOALS, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS, req)) {
+			UpdateGoalRequest(goal);
+			return;
+		}
+
 		auto response = req.response_code;
 
 		if (response == 200) {
@@ -1210,13 +1257,6 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 			Locator::getLogger()->info(
 			  "UpdateGoal successfully updated goal for {} on online profile",
 			  goal->chartkey);
-
-		} else if (response == 401) {
-			// bad token/no token
-			Locator::getLogger()->warn("UpdateGoal failed due to auth error. "
-									   "Automatically logging out. Content: {}",
-									   jsonObjectToString(d));
-			Logout();
 
 		} else if (response == 422) {
 			// some validation issue with the request
@@ -1380,7 +1420,7 @@ ScoreVectorToJSON(std::vector<HighScore*>& v, bool includeReplayData) {
 }
 
 void
-DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
+DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 								  std::function<void()> callback)
 {
 	Locator::getLogger()->info("Creating BulkUploadScore request for {} scores",
@@ -1401,7 +1441,8 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, body.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 
-	Locator::getLogger()->warn("{}", body);
+	// body json
+	// Locator::getLogger()->warn("{}", body);
 
 	auto done = [callback, hsList, this](HTTPRequest& req) {
 		Document d;
@@ -1411,6 +1452,14 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 			  req.result.c_str());
 			if (callback)
 				callback();
+			return;
+		}
+
+		if (HandleAuthErrorResponse(API_UPLOAD_SCORE_BULK, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_UPLOAD_SCORE_BULK, req)) {
+			UploadBulkScores(hsList, callback);
 			return;
 		}
 
@@ -1475,20 +1524,13 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 				  jsonObjectToString(d));
 			}
 
-		} else if (response == 401) {
-			// bad token/no token
-			Locator::getLogger()->warn(
-			  "BulkUploadScore failed due to auth error. "
-			  "Automatically logging out. Content: {}",
-			  jsonObjectToString(d));
-			Logout();
-
 		} else {
 			// ???
 			Locator::getLogger()->warn(
 			  "BulkUploadScore got unexpected response {} - Content: {}",
 			  response,
 			  jsonObjectToString(d));
+
 		}
 		if (callback)
 			callback();
@@ -1501,8 +1543,10 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*>& hsList,
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	AddHttpRequestHandle(req->handle);
-	HTTPRequests.push_back(req);
+	if (!QueueRequestIfRatelimited(API_UPLOAD_SCORE_BULK, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
 	Locator::getLogger()->info(
 	  "Finished creating BulkUploadScore request for {} scores", hsList.size());
 }
@@ -1536,7 +1580,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDS, json.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
 
-	auto done = [hs, callback, this](HTTPRequest& req) {
+	auto done = [hs, callback, load_from_disk, this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1544,6 +1588,14 @@ DownloadManager::UploadScore(HighScore* hs,
 			  req.result.c_str());
 			if (callback)
 				callback();
+			return;
+		}
+
+		if (HandleAuthErrorResponse(API_UPLOAD_SCORE, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_UPLOAD_SCORE, req)) {
+			UploadScore(hs, callback, load_from_disk);
 			return;
 		}
 
@@ -1600,12 +1652,7 @@ DownloadManager::UploadScore(HighScore* hs,
 				  "Score upload response missing data field. Content: {}",
 				  jsonObjectToString(d));
 			}
-		} else if (response == 401) {
-			// bad token/no token
-			Locator::getLogger()->warn("UploadScore failed due to auth error. "
-									   "Automatically logging out. Content: {}",
-									   jsonObjectToString(d));
-			Logout();
+
 		} else if (response == 422) {
 			// missing info
 
@@ -1642,8 +1689,10 @@ DownloadManager::UploadScore(HighScore* hs,
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	AddHttpRequestHandle(req->handle);
-	HTTPRequests.push_back(req);
+	if (!QueueRequestIfRatelimited(API_UPLOAD_SCORE, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
 	Locator::getLogger()->info("Finished creating UploadScore request for {}",
 							   hs->GetScoreKey());
 }
@@ -1980,8 +2029,10 @@ DownloadManager::SendRequestToURL(
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (async) {
-		AddHttpRequestHandle(req->handle);
-		HTTPRequests.push_back(req);
+		if (!QueueRequestIfRatelimited(url, *req)) {
+			AddHttpRequestHandle(req->handle);
+			HTTPRequests.push_back(req);
+		}
 	} else {
 		Locator::getLogger()->debug("Waiting on synchronous curl call");
 		CURLcode res = curl_easy_perform(req->handle);
@@ -2002,49 +2053,53 @@ DownloadManager::HandleRatelimitResponse(const std::string& endpoint, HTTPReques
 		return false;
 	}
 
-	Locator::getLogger()->warn(
-	  "{} {} - Rate Limited. Requeueing request to this endpoint",
-	  endpoint,
-	  status);
-
 	const auto ratelimitHeader = "Retry-After";
-	curl_header *data = nullptr;
-	auto ret =
-	  curl_easy_header(req.handle, ratelimitHeader, 0, CURLH_HEADER, -1, &data);
-	switch (ret) {
-		case CURLHE_BADINDEX:
-		case CURLHE_MISSING:
-		case CURLHE_NOHEADERS:
-		case CURLHE_NOREQUEST:
-		case CURLHE_OUT_OF_MEMORY:
-		case CURLHE_BAD_ARGUMENT:
-		case CURLHE_NOT_BUILT_IN: {
-			Locator::getLogger()->error(
-			  "{} {} failed to retrieve Retry-After header. Error code {}",
-			  endpoint,
-			  status,
-			  ret);
-			return true;
-		};
-		case CURLHE_OK:
-			break;
+	auto headers = extractHeaderMap(req.headers);
+
+	auto waitSeconds = 60;
+	if (headers.count(ratelimitHeader) != 0u) {
+		try {
+			waitSeconds = std::stoi(headers.at(ratelimitHeader));
+		} catch (...) {
+			Locator::getLogger()->warn("Failed to turn Retry-After from string "
+									   "to number, defaulted to 60 - Value: {}",
+									   headers.at(ratelimitHeader));
+		}
 	}
 
-	
+	Locator::getLogger()->warn("{} {} - Rate Limited. Requeueing request to "
+							   "the endpoint after {} seconds",
+							   endpoint,
+							   status,
+							   waitSeconds);
+
+	auto newTimestamp =
+	  std::chrono::steady_clock::now() + std::chrono::seconds(waitSeconds);
+
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		endpointRatelimitTimestamps[endpoint] = newTimestamp;
+	}
+
+	// the calling function needs to call QueueRatelimitedRequest next
+	// but with a new copy of the request
 
 	return true;
 }
 
 bool
 DownloadManager::QueueRequestIfRatelimited(const std::string& endpoint, HTTPRequest& req) {
-	if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
-		return false;
-	}
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
+			return false;
+		}
 
-	auto ratelimitInstance = endpointRatelimitTimestamps.at(endpoint);
-	std::chrono::duration<float> expireTime(30.F);
-	if (std::chrono::steady_clock::now() - ratelimitInstance > expireTime) {
-		return false;
+		auto ratelimitTimestamp = endpointRatelimitTimestamps.at(endpoint);
+		if (std::chrono::steady_clock::now() > ratelimitTimestamp) {
+			endpointRatelimitTimestamps.erase(endpoint);
+			return false;
+		}
 	}
 
 	QueueRatelimitedRequest(endpoint, req);
@@ -2054,15 +2109,14 @@ DownloadManager::QueueRequestIfRatelimited(const std::string& endpoint, HTTPRequ
 
 void
 DownloadManager::QueueRatelimitedRequest(const std::string& endpoint, HTTPRequest& req) {
-	if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
-		endpointRatelimitTimestamps.emplace(endpoint,
-											std::chrono::steady_clock::now());
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		if (ratelimitedRequestQueue.count(endpoint) == 0u) {
+			ratelimitedRequestQueue.emplace(endpoint,
+											std::vector<HTTPRequest*>());
+		}
+		ratelimitedRequestQueue.at(endpoint).push_back(&req);
 	}
-	if (ratelimitedRequestQueue.count(endpoint) == 0u) {
-		ratelimitedRequestQueue.emplace(endpoint, std::vector<HTTPRequest*>());
-	}
-
-	ratelimitedRequestQueue.at(endpoint).push_back(&req);
 }
 
 

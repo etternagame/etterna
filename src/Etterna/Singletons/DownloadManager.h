@@ -259,7 +259,7 @@ class DownloadManager
 	  HighScore* hs,
 	  std::function<void()> callback = []() {});
 	void UploadBulkScores(
-	  std::vector<HighScore*>& hsList,
+	  std::vector<HighScore*> hsList,
 	  std::function<void()> callback = []() {});
 
 	// Mass score upload functions
