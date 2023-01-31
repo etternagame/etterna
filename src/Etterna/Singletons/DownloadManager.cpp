@@ -864,9 +864,15 @@ DownloadManager::LoginWithToken(const std::string& sessionToken,
 								std::function<void(bool)> done)
 {
 	authToken = sessionToken;
-	auto jwt = jwt::decode(authToken);
-	auto name = jwt.get_payload_claim("client");
-	sessionUser = name.as_string();
+	try {
+		auto jwt = jwt::decode(authToken);
+		auto name = jwt.get_payload_claim("username");
+		sessionUser = name.as_string();
+	} catch (...) {
+		Locator::getLogger()->error(
+		  "Failed to get username from JWT. Set username to 'error'");
+		sessionUser = "error";
+	}
 	OnLogin();
 }
 
@@ -939,9 +945,15 @@ DownloadManager::LoginRequest(const std::string& user,
 				// JWT acquired
 				authToken = d["access_token"].GetString();
 
-				auto jwt = jwt::decode(authToken);
-				auto username = jwt.get_payload_claim("client");
-				sessionUser = username.as_string();
+				try {
+					auto jwt = jwt::decode(authToken);
+					auto username = jwt.get_payload_claim("username");
+					sessionUser = username.as_string();
+				} catch (...) {
+					Locator::getLogger()->error("Failed to get username from "
+												"JWT. Set username to 'error'");
+					sessionUser = "error";
+				}
 				OnLogin();
 				callback(LoggedIn());
 
@@ -1660,7 +1672,9 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 				auto chordjacks = get("chordjacks");
 				auto stamina = get("stamina");
 				auto tech = get("technical");
+				auto overall = get("overall");
 
+				sessionRatings[Skill_Overall] = overall;
 				sessionRatings[Skill_Stream] = stream;
 				sessionRatings[Skill_Jumpstream] = jumpstream;
 				sessionRatings[Skill_Handstream] = handstream;
@@ -1671,11 +1685,12 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 
 				Locator::getLogger()->info(
 				  "BulkScoreUpload for {} scores completed, and {} of those "
-				  "were rejected - \n\tStream "
+				  "were rejected - \n\tOverall {}\n\tStream "
 				  "{}\n\tJS "
 				  "{}\n\tHS {}\n\tJacks {}\n\tCJ {}\n\tStamina {}\n\tTech {}",
 				  hsList.size(),
 				  failedUploadKeys.size(),
+				  overall,
 				  stream,
 				  jumpstream,
 				  handstream,
@@ -1785,7 +1800,9 @@ DownloadManager::UploadScore(HighScore* hs,
 				auto chordjacks = get("chordjacks");
 				auto stamina = get("stamina");
 				auto tech = get("technical");
+				auto overall = get("overall");
 
+				sessionRatings[Skill_Overall] = overall;
 				sessionRatings[Skill_Stream] = stream;
 				sessionRatings[Skill_Jumpstream] = jumpstream;
 				sessionRatings[Skill_Handstream] = handstream;
@@ -1795,9 +1812,11 @@ DownloadManager::UploadScore(HighScore* hs,
 				sessionRatings[Skill_Technical] = tech;
 
 				Locator::getLogger()->info(
-				  "UploadScore completed for score {} - \n\tStream {}\n\tJS "
+				  "UploadScore completed for score {} - \n\tOverall "
+				  "{}\n\tStream {}\n\tJS "
 				  "{}\n\tHS {}\n\tJacks {}\n\tCJ {}\n\tStamina {}\n\tTech {}",
 				  hs->GetScoreKey(),
+				  overall,
 				  stream,
 				  jumpstream,
 				  handstream,
