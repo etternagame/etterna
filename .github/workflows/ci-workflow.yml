@@ -23,12 +23,12 @@ jobs:
 
     steps:
       - name: Checkout Etterna
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: main
 
       - name: Checkout CrashpadTools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: etternagame/CrashpadTools
           path: tools
@@ -110,12 +110,12 @@ jobs:
     steps:
 
       - name: Checkout Etterna
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: main
 
       - name: Checkout CrashpadTools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: etternagame/CrashpadTools
           path: tools
@@ -195,18 +195,18 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Checkout Etterna
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: main
 
       - name: Checkout CrashpadTools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: etternagame/CrashpadTools
           path: tools
 
       - name: Checkout DirectX SDK
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: nico-abram/dxsdk
           path: dxsdk
