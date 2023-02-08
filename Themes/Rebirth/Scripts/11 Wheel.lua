@@ -1165,7 +1165,44 @@ function MusicWheel:new(params)
     end
 
     w.FindSongCommand = function(self, params)
-        w:findSongHelper(params, true)
+        if not w:findSongHelper(params, true) and WHEELDATA:FindTheOnlySearchResult() ~= nil then
+            -- sometimes the Song returned via searching by first found chartkey can be from a dupe key
+            -- and the Song metadata doesnt fit the Filter
+            -- in that case we know theres probably a valid result
+            -- so given that there is a valid result, set the position to 1
+            w:setNewState(
+                1,
+                1,
+                function() return WHEELDATA:GetWheelItems() end,
+                newItems,
+                nil
+            )
+            crossedGroupBorder = true
+            forceGroupCheck = true
+            GAMESTATE:SetCurrentSong(nil)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            
+            MESSAGEMAN:Broadcast("ClosedGroup", {
+                group = w.group,
+            })
+            w:rebuildFrames()
+            MESSAGEMAN:Broadcast("ModifiedGroups", {
+                group = w.group,
+                index = w.index,
+                maxIndex = #w.items,
+            })
+            w:updateGlobalsFromCurrentItem()
+            w:updateMusicFromCurrentItem()
+            MESSAGEMAN:Broadcast("WheelSettled", {
+                song = GAMESTATE:GetCurrentSong(),
+                group = w.group,
+                hovered = w:getCurrentItem(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                index = w.index,
+                maxIndex = #w.items
+            })
+            w.settled = true
+        end
     end
 
     w.FindGroupCommand = function(self, params)
