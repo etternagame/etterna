@@ -34,9 +34,9 @@ DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
 HTML_COLORSTYLE        = LIGHT
 PROJECT_LOGO           = @PROJECT_SOURCE_DIR@/Docs/docs/images/etterna-logo-light-transparent.svg
-HTML_HEADER            = @PROJECT_SOURCE_DIR@/Docs/customization/doxygen/header.html
+HTML_HEADER            = @PROJECT_SOURCE_DIR@/Docs/style/doxygen/header.html
 HTML_EXTRA_FILES       = @DOXY_THEME_DIR@/doxygen-awesome-darkmode-toggle.js
 HTML_EXTRA_STYLESHEET  = @DOXY_THEME_DIR@/doxygen-awesome.css \
                          @DOXY_THEME_DIR@/doxygen-awesome-sidebar-only.css \
                          @DOXY_THEME_DIR@/doxygen-awesome-sidebar-only-darkmode-toggle.css \
-                         @PROJECT_SOURCE_DIR@/Docs/customization/doxygen/style.css
+                         @PROJECT_SOURCE_DIR@/Docs/style/doxygen/style.css
