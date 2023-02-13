@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
+site_name: Etterna
+site_description: Advanced cross-platform rhythm game focused on keyboard play
+site_url: https://docs.etterna.dev
+repo_url: https://github.com/etternagame/etterna
+repo_name: Etterna
+docs_dir: @PROJECT_SOURCE_DIR@/Docs/docs
+
+extra_css:
+  - stylesheets/mkdocs.css
+
+theme:
+  name: material
+  favicon: @PROJECT_SOURCE_DIR@/Docs/docs/favicon.ico
+  font: false
+  features:
+    - navigation.tabs
+  icon:
+    repo: fontawesome/brands/github-alt
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-5
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-2
+        name: Switch to light mode
+
+extra:
+  # Hide "Made with Material" in footer
+  generator: false
+
+  # Bottom right footer icons
+  social:
+    - icon: simple/discord
+      link: https://discord.com/invite/etternaonline
+      name: Etterna Online
+    - icon: simple/discord
+      link: https://discord.gg/ZqpUjsJ
+      name: Etterna Dev Group
+
+nav:
+  - Welcome: 'README.md'
+  - Etterna Wiki: ''
+  - Developer Wiki:
+      - Building Etterna: 'Building.md'
+      - Crashpad: 'Crashpad.md'
+      - Bug Reporting: 'Bugreporting.md'
+  - Doxygen: 'doxygen/html/index.html'
+  - LDoc: 'ldoc/index.html'

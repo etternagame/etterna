@@ -1,0 +1,70 @@
+html {
+    --primary-color: #0ce3ac;
+    --primary-dark-color: #7929d2;
+    
+    --side-nav-background: #614080;
+    --side-nav-foreground: #ffffffe6;
+    --side-nav-fixed-width: 250px;
+
+    --top-height: 250px; 
+}
+
+
+@media (prefers-color-scheme: dark) {
+    html:not(.light-mode) {
+        color-scheme: dark;
+
+        --primary-color: #0ce3ac;
+        --side-nav-background: #614080;
+        --page-background-color: #262626;
+    }
+}
+
+
+html.dark-mode {
+    color-scheme: dark;
+
+    --primary-color: #0ce3ac;
+    --side-nav-background: #614080;
+    --page-background-color: #262626;
+}
+
+
+a:link, a:visited, a:hover, a:focus, a:active {
+    color: var(--link-color) !important;
+}
+
+dl.section dd, dl.bug dd, dl.deprecated dd {
+    margin-inline-start: revert;
+}
+
+.icon {
+    color: black;
+}
+
+#top {
+    background: var(--side-nav-background);
+}
+
+#titlearea {
+    padding-bottom: 0;
+}
+
+#titlearea table {
+    width: 100%;
+}
+
+#projectlogo img {
+    width: 200px;
+    max-height: none !important;
+}
+
+#projectalign {
+    display: none;
+}
+
+@media screen and (min-width: 768px) {
+    #doc-content {
+        padding-top: calc(var(--top-height) - 180px);
+    }
+}

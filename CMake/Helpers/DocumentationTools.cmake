@@ -1,9 +1,21 @@
+include(FetchContent)
+
+set(DOCS_OUTPUT_DIR ${PROJECT_BINARY_DIR}/docs_site)
 
 # doxygen
 find_package(Doxygen OPTIONAL_COMPONENTS dot)
 if(NOT DOXYGEN_FOUND)
-    message(STATUS "Doxygen not found. Documentation target will not be created.")
+    message(STATUS "Doxygen not found. Doxygen target will not be created. Please ensure doxygen is accessibe within your path.")
 else()
+    # Download Doxygen Theme
+    FetchContent_Declare(doxygen_theme
+        GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
+        GIT_TAG	main
+        GIT_PROGRESS TRUE
+        GIT_SHALLOW TRUE)
+    FetchContent_MakeAvailable(doxygen_theme)
+    FetchContent_GetProperties(doxygen_theme SOURCE_DIR DOXY_THEME_DIR)
+
     # set input and output files
     set(DOXYGEN_IN ${PROJECT_SOURCE_DIR}/Docs/Doxyfile.in)
     set(DOXYGEN_OUT ${PROJECT_BINARY_DIR}/Doxyfile)
@@ -22,7 +34,7 @@ endif()
 # LDoc
 find_program(LDOC_EXE NAMES "ldoc" "ldoc.bat")
 if(NOT LDOC_EXE)
-    message(STATUS "LDoc not found. Documentation target will not be created.")
+    message(STATUS "LDoc not found. LDoc target will not be created. Please ensure ldoc is accessible within your path.")
 else()
     # set input and output files
     set(LDOC_IN ${PROJECT_SOURCE_DIR}/Docs/LDoc.in)
@@ -38,4 +50,31 @@ else()
         WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
         COMMAND ${LDOC_EXE} .)
         
+endif()
+
+# mkdocs
+find_program(MKDOCS_EXE NAMES "mkdocs")
+if(NOT MKDOCS_EXE)
+    message(STATUS "mkdocs not found. Please ensure mkdocs is accessible within your path.")
+else()
+    # set input and output files
+    set(MKDOCS_IN ${PROJECT_SOURCE_DIR}/Docs/mkdocs.yml.in)
+    set(MKDOCS_OUT ${PROJECT_BINARY_DIR}/mkdocs.yml)
+
+    # configure the file
+    configure_file(${MKDOCS_IN} ${MKDOCS_OUT} @ONLY)
+
+    add_custom_target(mkdocs 
+        COMMENT "Generating mkdocs website"
+        VERBATIM
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMAND ${MKDOCS_EXE} build --site-dir ${DOCS_OUTPUT_DIR}
+    )
+
+    add_custom_target(build-docs-website
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMAND cmake --build ${PROJECT_BINARY_DIR} --target mkdocs
+        COMMAND cmake --build ${PROJECT_BINARY_DIR} --target doxygen
+        COMMAND cmake --build ${PROJECT_BINARY_DIR} --target ldoc
+    )
 endif()

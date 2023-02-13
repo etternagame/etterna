@@ -3,7 +3,7 @@ title = "Etterna Lua Documentation"
 description = "A cross-platform rhythm game"
 
 -- Output directory
-dir = "@PROJECT_BINARY_DIR@/ldoc_output"
+dir = "@DOCS_OUTPUT_DIR@/ldoc"
 
 -- Source files
 file = {"@PROJECT_SOURCE_DIR@/Themes/_fallback/Scripts/", "@PROJECT_SOURCE_DIR@/Themes/_fallback/docs/"}

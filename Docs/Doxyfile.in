@@ -5,13 +5,18 @@ DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = Etterna
 OUTPUT_LANGUAGE        = English
 PROJECT_NUMBER         = @PROJECT_VERSION@
-OUTPUT_DIRECTORY       = @PROJECT_BINARY_DIR@/doxygen
+OUTPUT_DIRECTORY       = @DOCS_OUTPUT_DIR@/doxygen
 INPUT                  = @PROJECT_SOURCE_DIR@/src
 INPUT_ENCODING         = UTF-8
 RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */InputHandler/*.md
 
 # HTML
 GENERATE_HTML          = YES
+GENERATE_TREEVIEW      = YES
+HTML_TIMESTAMP         = YES
+HTML_DYNAMIC_MENUS     = YES
+HTML_DYNAMIC_SECTIONS  = YES
 HTML_OUTPUT            = html
 
 # DOT
@@ -21,3 +26,17 @@ DOT_NUM_THREADS        = 0
 
 # LATEX
 GENERATE_LATEX         = NO
+
+# THEME AWESOME DOXYGEN
+WARN_IF_UNDOCUMENTED   = NO
+GENERATE_TREEVIEW      = YES # required!
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_COLORSTYLE        = LIGHT
+PROJECT_LOGO           = @PROJECT_SOURCE_DIR@/Docs/docs/images/etterna-logo-light-transparent.svg
+HTML_HEADER            = @PROJECT_SOURCE_DIR@/Docs/style/doxygen/header.html
+HTML_EXTRA_FILES       = @DOXY_THEME_DIR@/doxygen-awesome-darkmode-toggle.js
+HTML_EXTRA_STYLESHEET  = @DOXY_THEME_DIR@/doxygen-awesome.css \
+                         @DOXY_THEME_DIR@/doxygen-awesome-sidebar-only.css \
+                         @DOXY_THEME_DIR@/doxygen-awesome-sidebar-only-darkmode-toggle.css \
+                         @PROJECT_SOURCE_DIR@/Docs/style/doxygen/style.css
