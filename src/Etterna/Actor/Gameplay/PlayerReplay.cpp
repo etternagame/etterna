@@ -811,9 +811,17 @@ PlayerReplay::Step(int col,
 				}
 			} else {
 				// every other case
-				if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
+				if (pTN->IsNote() || pTN->type == TapNoteType_Lift) {
 					score = ReplayManager::GetTapNoteScoreForReplay(
 					  fNoteOffset, GetTimingWindowScale());
+
+					// taps assigned to notes really far away
+					// are counted as misses
+					// but to stop it breaking things, do nothing
+					if (score == TNS_Miss) {
+						score = TNS_None;
+					}
+				}
 			}
 		}
 
