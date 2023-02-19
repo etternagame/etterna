@@ -257,11 +257,35 @@ local convertXPosRatio = 1
 local convertYPosRatio = 1
 local tmp2 = playerConfig.load
 playerConfig.load = function(self, slot)
+    -- redefinition of force_table_elements_to_match_type to let settings_system
+	-- completely ignore the format of the table if it changed dramatically between versions
+	-- this lets us introduce backwards/forwards compatibility
     local tmp = force_table_elements_to_match_type
     force_table_elements_to_match_type = function()
     end
+
+    if slot == nil then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+
+    -- load whatever was provided in /Save/
+    local globalConfig = create_setting("playerConfig", "playerConfig.lua", {}, -1)
+    local globalSettings = globalConfig:load(nil)
+
+    -- load whatever was provided in /Save/LocalProfiles/
     local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
     x = x:load(slot)
+
+    -- if settings were not present in /Save/LocalProfiles/ but are present in /Save/ then copy them over
+    if next(x) == nil and next(globalSettings) ~= nil then
+        -- should be safe to do this
+        -- this doesnt create a copy, but globalSettings should never be accessed anywhere anyways
+        ms.ok("Loaded PlayerConfig settings from global PlayerConfig")
+        globalConfig:set_data(slot, globalSettings)
+        globalConfig:set_dirty(slot)
+        globalConfig:save(slot)
+        return self:load(slot)
+    end
 
     -- aspect ratio is not the same. we must account for this
     if x.GameplayXYCoordinates ~= nil and (not x.ConvertedAspectRatio or x.CurrentHeight ~= defaultConfig.CurrentHeight or x.CurrentWidth ~= defaultConfig.CurrentWidth) then
@@ -368,6 +392,32 @@ playerConfig.load = function(self, slot)
     return tmp2(self, slot)
 end
 playerConfig:load()
+
+-- shadow settings_mt.save to force save() to save in the player's slot instead of the global slot
+local tmpsave = playerConfig.save
+playerConfig.save = function(self, slot)
+    print("Saving PlayerConfig")
+	if slot == nil then
+		slot = pn_to_profile_slot(PLAYER_1)
+	end
+	return tmpsave(self, slot)
+end
+-- shadow set_dirty to do the same thing again because set_dirty is required to save
+local tmpdirty = playerConfig.set_dirty
+playerConfig.set_dirty = function(self, slot)
+    if slot == nil then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+    return tmpdirty(self, slot)
+end
+-- shadow get_data to do the same thing again because this is how we load anything into the tables
+local tmpget = playerConfig.get_data
+playerConfig.get_data = function(self, slot)
+    if slot == nil then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+    return tmpget(self, slot)
+end
 
 -- converting coordinates if aspect ratio changes across loads
 local coords = playerConfig:get_data().GameplayXYCoordinates
