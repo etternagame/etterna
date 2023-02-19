@@ -30,6 +30,7 @@ local t = Def.ActorFrame{
         self:SetUpdateFunctionInterval(1 / DISPLAY:GetDisplayRefreshRate())
         topScreen = SCREENMAN:GetTopScreen()
         topScreen:AddInputCallback(BUTTON.InputCallback)
+        TOOLTIP:SetTextSize(0.35)
         cursorCheck()
     end,
     OffCommand = function(self)
