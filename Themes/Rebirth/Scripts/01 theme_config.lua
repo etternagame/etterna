@@ -9,6 +9,7 @@ local defaultConfig = {
         WheelPosition = true, -- true = left, false = right
         WheelBanners = true, -- true = on, false = off
         WheelSpeed = 15,
+        MeasureLines = false,
     },
 }
 
