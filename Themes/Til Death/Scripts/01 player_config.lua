@@ -180,32 +180,6 @@ playerConfig.load = function(self, slot)
 end
 playerConfig:load()
 
--- shadow settings_mt.save to force save() to save in the player's slot instead of the global slot
-local tmpsave = playerConfig.save
-playerConfig.save = function(self, slot)
-    print("Saving PlayerConfig")
-	if slot == nil then
-		slot = pn_to_profile_slot(PLAYER_1)
-	end
-	return tmpsave(self, slot)
-end
--- shadow set_dirty to do the same thing again because set_dirty is required to save
-local tmpdirty = playerConfig.set_dirty
-playerConfig.set_dirty = function(self, slot)
-    if slot == nil then
-        slot = pn_to_profile_slot(PLAYER_1)
-    end
-    return tmpdirty(self, slot)
-end
--- shadow get_data to do the same thing again because this is how we load anything into the tables
-local tmpget = playerConfig.get_data
-playerConfig.get_data = function(self, slot)
-    if slot == nil then
-        slot = pn_to_profile_slot(PLAYER_1)
-    end
-    return tmpget(self, slot)
-end
-
 function LoadProfileCustom(profile, dir)
 	local players = GAMESTATE:GetEnabledPlayers()
 	local playerProfile
