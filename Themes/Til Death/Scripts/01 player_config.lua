@@ -130,12 +130,22 @@ function getDefaultGameplayCoordinate(obj)
 	return defaultGameplayCoordinates[obj]
 end
 
+-- create the playerConfig global
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
+
+-- shadow settings_mt.load to do several things:
+--	load missing values from default
+--	load missing values for the current keymode from the 4k config
+--	load missing values for the current slot from the global slot
 local tmp2 = playerConfig.load
 playerConfig.load = function(self, slot)
+	-- redefinition of force_table_elements_to_match_type to let settings_system
+	-- completely ignore the format of the table if it changed dramatically between versions
+	-- this lets us introduce backwards/forwards compatibility
 	local tmp = force_table_elements_to_match_type
 	force_table_elements_to_match_type = function()
 	end
+
 	local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
 	x = x:load(slot)
 	local coords = x.GameplayXYCoordinates
@@ -169,6 +179,32 @@ playerConfig.load = function(self, slot)
 	return tmp2(self, slot)
 end
 playerConfig:load()
+
+-- shadow settings_mt.save to force save() to save in the player's slot instead of the global slot
+local tmpsave = playerConfig.save
+playerConfig.save = function(self, slot)
+    print("Saving PlayerConfig")
+	if slot == nil then
+		slot = pn_to_profile_slot(PLAYER_1)
+	end
+	return tmpsave(self, slot)
+end
+-- shadow set_dirty to do the same thing again because set_dirty is required to save
+local tmpdirty = playerConfig.set_dirty
+playerConfig.set_dirty = function(self, slot)
+    if slot == nil then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+    return tmpdirty(self, slot)
+end
+-- shadow get_data to do the same thing again because this is how we load anything into the tables
+local tmpget = playerConfig.get_data
+playerConfig.get_data = function(self, slot)
+    if slot == nil then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+    return tmpget(self, slot)
+end
 
 function LoadProfileCustom(profile, dir)
 	local players = GAMESTATE:GetEnabledPlayers()
