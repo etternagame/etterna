@@ -525,7 +525,7 @@ Wheel.mt = {
         end
 
         -- the wheel has settled
-        if whee.positionOffsetFromSelection == 0 and not whee.settled then
+        if whee.positionOffsetFromSelection == 0 and not whee.settled and whee.moving == 0 then
             whee:updateGlobalsFromCurrentItem()
             whee:updateMusicFromCurrentItem()
             -- settled brings along the Song, Group, Steps, and HoveredItem
@@ -854,7 +854,7 @@ function Wheel:new(params)
 
                 else
                     -- the wheel should rotate toward selection but isnt "moving"
-                    local sping = 0.2 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
+                    local sping = 1 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
                     if whee.positionOffsetFromSelection > 0 then
                         whee.positionOffsetFromSelection = math.max(whee.positionOffsetFromSelection - (sping * delta), 0)
                     elseif whee.positionOffsetFromSelection < 0 then

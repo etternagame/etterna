@@ -5751,10 +5751,10 @@ local function rightFrame()
                 end,
                 ChoiceIndexGetter = function()
                     local v = optionData["wheelSpeed"].get()
-                    if v < 1 or v > 50 then
+                    if v < 5 or v > 50 then
                         return 1
                     else
-                        return v
+                        return v - 4
                     end
                 end,
             },
