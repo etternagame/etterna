@@ -102,28 +102,35 @@ function TOOLTIP.New(self)
 end
 
 function TOOLTIP.SetText(self, text)
+    if self == nil or self.Actor == nil then return end
     self.Actor:GetChild("Text"):settext(text)
     self.Actor:playcommand("Resize")
 end
 
 function TOOLTIP.Show(self)
+    if self == nil or self.Actor == nil then return end
     self.Actor:visible(true)
 end
 
 function TOOLTIP.Hide(self)
+    if self == nil or self.Actor == nil then return end
     self.Actor:visible(false)
 end
 
 function TOOLTIP.ShowPointer(self)
+    if self == nil or self.Pointer == nil then return end
     self.Pointer:visible(true)
 end
 
 function TOOLTIP.HidePointer(self)
+    if self == nil or self.Pointer == nil then return end
     self.Pointer:visible(false)
 end
 
 function TOOLTIP.SetTextSize(self, zoom)
     textScale = zoom
+
+    if self == nil or self.Actor == nil then return end
     self.Actor:playcommand("Resize")
 end
 
@@ -132,6 +139,8 @@ function TOOLTIP.GetTextSize(self)
 end
 
 function TOOLTIP.SetPosition(self, x, y)
+    if self == nil or self.Actor == nil then return end
+
     local height = (self.Actor:GetChild("Text"):GetHeight() * textScale) + boxBorder * 2
     local width = (self.Actor:GetChild("Text"):GetWidth() * textScale) + boxBorder * 2
 
