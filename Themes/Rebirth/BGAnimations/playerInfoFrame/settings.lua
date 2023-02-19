@@ -3270,7 +3270,7 @@ local function rightFrame()
         displayEWMA = playeroption("DisplayEWMA"),
         displayStdDev = playeroption("DisplayStdDev"),
         measureCounter = playeroption("MeasureCounter"),
-        measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
+        measureLines = {get = getdataTHEME("global", "MeasureLines"), set = function(x) setdataTHEME("global", "MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
         npsGraph = playeroption("NPSGraph"),
         playerInfo = playeroption("PlayerInfo"),
