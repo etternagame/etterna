@@ -7087,10 +7087,9 @@ local function rightFrame()
                     MouseOverCommand = function(self)
                         if not focused or optionDef == nil then return end
                         updateExplainText(rowHandle)
-                        -- uncomment to update cursor position when hovering the invisible area
-                        -- seems like an annoying and buggy looking behavior
-                        -- although it is correct, it is just weird
-                        --setCursorVerticalHorizontalPos(rowHandle, nil)
+                        -- this updates cursor position when hovering the invisible area
+                        -- seems like an annoying and buggy looking behavior for some people
+                        setCursorVerticalHorizontalPos(rowHandle, nil)
                     end,
                 }
             }
