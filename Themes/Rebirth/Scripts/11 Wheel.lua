@@ -32,7 +32,18 @@ local SOUND_SELECT = nil
 
 -- timer stuff
 local last_wheel_move_timestamp = GetTimeSinceStart()
-local MAX_WHEEL_SOUND_SPEED = 15
+local spinSpeed = function()
+    if themeConfig and getWheelSpeed then
+        local sp = getWheelSpeed()
+        if sp > 0 then
+            return sp
+        else
+            return 15
+        end
+    else
+        return 15
+    end
+end
 
 Wheel.mt = {
     updateMusicFromCurrentItem = function(whee)
@@ -167,7 +178,7 @@ Wheel.mt = {
         end
 
         whee.timeBeforeMovingBegins = 1 / 8 -- this was hardcoded and there is no justification for it
-        whee.spinSpeed = 15 -- preference based (CHANGE THIS)
+        whee.spinSpeed = spinSpeed() -- preference based (CHANGE THIS)
         whee.moving = num
 
         if whee.moving ~= 0 then
@@ -815,10 +826,11 @@ function Wheel:new(params)
                     whee.keepupdating = false
                     whee:update()
                 end
+                local MAX_WHEEL_SOUND_SPEED = spinSpeed()
 
                 -- handle wheel movement moving moves
                 if whee.moving ~= 0 and whee.timeBeforeMovingBegins == 0 then
-                    local sping = whee.spinSpeed * whee.moving
+                    local sping = whee.spinSpeed * whee.moving * 1.25
                     whee.positionOffsetFromSelection = clamp(whee.positionOffsetFromSelection - (sping * delta), -1, 1)
                     if (whee.moving == -1 and whee.positionOffsetFromSelection >= 0) or
                         (whee.moving == 1 and whee.positionOffsetFromSelection <= 0) then

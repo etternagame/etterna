@@ -8,6 +8,7 @@ local defaultConfig = {
         VideoBanners = true,
         WheelPosition = true, -- true = left, false = right
         WheelBanners = true, -- true = on, false = off
+        WheelSpeed = 15,
     },
 }
 
@@ -20,6 +21,9 @@ function getWheelPosition()
 end
 function useWheelBanners()
     return themeConfig:get_data().global.WheelBanners
+end
+function getWheelSpeed()
+    return themeConfig:get_data().global.WheelSpeed
 end
 function useVideoBanners()
     return themeConfig:get_data().global.VideoBanners
