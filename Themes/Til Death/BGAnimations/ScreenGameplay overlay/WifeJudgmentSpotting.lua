@@ -27,6 +27,8 @@ local dvCur
 local jdgCur  -- Note: only for judgments with OFFSETS, might reorganize a bit later
 local tDiff
 local wifey
+local curMeanSum = 0
+local curMeanCount = 0
 local judgect
 local pbtarget
 local positive = getMainColor("positive")
@@ -146,6 +148,7 @@ local enabledMiniBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).MiniP
 local enabledFullBar = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).FullProgressBar
 local enabledTargetTracker = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetTracker
 local enabledDisplayPercent = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).DisplayPercent
+local enabledDisplayMean = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).DisplayMean
 local enabledJudgeCounter = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).JudgeCounter
 local leaderboardEnabled = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).leaderboardEnabled and DLMAN:IsLoggedIn()
 local isReplay = GAMESTATE:GetPlayerState():GetPlayerController() == "PlayerController_Replay"
@@ -247,6 +250,10 @@ local t =
 		jdgct = msg.Val
 		if msg.Offset ~= nil then
 			dvCur = msg.Offset
+			if not msg.HoldNoteScore and msg.Offset < 1000 then
+				curMeanSum = curMeanSum + msg.Offset
+				curMeanCount = curMeanCount + 1
+			end
 		else
 			dvCur = nil
 		end
@@ -263,6 +270,8 @@ local t =
 		jdgct = 0
 		dvCur = nil
 		jdgCur = nil
+		curMeanSum = 0
+		curMeanCount = 0
 		self:playcommand("SpottedOffset")
 	end
 }
@@ -424,6 +433,58 @@ local cp =
 
 if enabledDisplayPercent then
 	t[#t + 1] = cp
+end
+
+--[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 					    									**Display Mean**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Displays the current mean for the score.
+]]
+local dpm = Def.ActorFrame {
+	Name = "DisplayMean",
+	InitCommand = function(self)
+		if (allowedCustomization) then
+			Movable.DeviceButton_comma.element = self
+			Movable.DeviceButton_m.element = self
+			Movable.DeviceButton_comma.condition = enabledDisplayMean
+			Movable.DeviceButton_m.condition = enabledDisplayMean
+			Movable.DeviceButton_comma.Border = self:GetChild("Border")
+			Movable.DeviceButton_m.Border = self:GetChild("Border")
+		end
+		self:zoom(MovableValues.DisplayMeanZoom):x(MovableValues.DisplayMeanX):y(MovableValues.DisplayMeanY)
+	end,
+	Def.Quad {
+		InitCommand = function(self)
+			self:zoomto(60, 13):diffuse(color("0,0,0,0.4")):halign(1):valign(0)
+		end
+	},
+	-- Displays your current mean score
+	LoadFont("Common Large") .. {
+		Name = "DisplayPercent",
+		InitCommand = function(self)
+			self:zoom(0.3):halign(1):valign(0)
+		end,
+		OnCommand = function(self)
+			if allowedCustomization then
+				self:settextf("%5.2fms", -10000)
+				setBorderAlignment(self:GetParent():GetChild("Border"), 1, 0)
+				setBorderToText(self:GetParent():GetChild("Border"), self)
+			end
+			self:settextf("%5.2fms", 0)
+		end,
+		SpottedOffsetCommand = function(self)
+			local mean = curMeanSum / curMeanCount
+			if curMeanCount == 0 then
+				mean = 0
+			end
+			self:settextf("%5.2fms", mean)
+		end
+	},
+	MovableBorder(100, 13, 1, 0, 0)
+}
+
+if enabledDisplayMean then
+	t[#t + 1] = dpm
 end
 
 --[[~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
