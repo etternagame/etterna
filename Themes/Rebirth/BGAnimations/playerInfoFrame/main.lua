@@ -169,6 +169,7 @@ local translations = {
     DownloadingPacks = THEME:GetString("Header", "DownloadingPacks"),
     QueuedPacks = THEME:GetString("Header", "QueuedPacks"),
     UploadPercent = THEME:GetString("Header", "UploadPercent"),
+    SetPlayerName = THEME:GetString("Header", "SetPlayerName"),
 }
 
 -- the list of buttons and the lists of screens those buttons are allowed on
@@ -435,18 +436,28 @@ t[#t+1] = Def.ActorFrame {
             else
                 self:settext(profile:GetDisplayName())
             end
+            if self:IsInvisible() then return end
+            if isOver(self) then
+                TOOLTIP:SetText(translations["SetPlayerName"])
+                TOOLTIP:Show()
+            end
         end,
         ProfileRenamedMessageCommand = function(self)
             self:playcommand("Set")
         end,
         MouseOverCommand = function(self)
             self:diffusealpha(hoverAlpha)
+            if self:IsInvisible() then return end
+            TOOLTIP:SetText(translations["SetPlayerName"])
+            TOOLTIP:Show()
         end,
         MouseOutCommand = function(self)
             self:diffusealpha(1)
+            TOOLTIP:Hide()
         end,
         MouseDownCommand = function(self, params)
             if params.event == "DeviceButton_left mouse button" then
+                TOOLTIP:Hide()
                 renameProfileDialogue(profile)
             end
         end,
