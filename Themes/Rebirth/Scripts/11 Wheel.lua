@@ -1251,6 +1251,9 @@ function MusicWheel:new(params)
     end
 
     w.ReloadFilteredSongsCommand = function(self, params)
+        -- this stops things like the diff reload from killing the game
+        if enteringSong then return end
+
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
