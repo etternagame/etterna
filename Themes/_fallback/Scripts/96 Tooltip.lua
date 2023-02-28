@@ -26,6 +26,9 @@ function TOOLTIP.New(self)
             self:visible(false)
             TOOLTIP.Actor = self
         end,
+        ReloadedScriptsMessageCommand = function(self)
+            TOOLTIP.Actor = self
+        end,
         OnCommand = function(self)
         end,
         ScreenChangedMessageCommand = function(self)
@@ -70,6 +73,9 @@ function TOOLTIP.New(self)
             self:visible(false)
             TOOLTIP.Pointer = self
         end,
+        ReloadedScriptsMessageCommand = function(self)
+            TOOLTIP.Pointer = self
+        end,
         OnCommand = function(self)
         end,
         BeginCommand = function(self)
@@ -81,6 +87,9 @@ function TOOLTIP.New(self)
         Name = "CursorClick",
         InitCommand = function(self)
             self:diffusealpha(0)
+            TOOLTIP.ClickWave = self
+        end,
+        ReloadedScriptsMessageCommand = function(self)
             TOOLTIP.ClickWave = self
         end,
         OnCommand = function(self)

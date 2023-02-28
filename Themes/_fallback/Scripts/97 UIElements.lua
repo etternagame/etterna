@@ -466,6 +466,13 @@ function UIElements.QuadButton(z, depth)
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
 		end,
+		ReloadedScriptsMessageCommand = function(self)
+			-- dont playcommand the OnCommand because that could cause cascading issues
+			local screen = SCREENMAN:GetTopScreen()
+			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
 		MouseOverCommand = function(self) end,
 		MouseOutCommand = function(self) end,
 		MouseUpCommand = function(self, params) end,
@@ -487,6 +494,13 @@ function UIElements.SpriteButton(z, depth, tex)
 			self:z(z)
 		end,
 		OnCommand = function(self)
+			local screen = SCREENMAN:GetTopScreen()
+			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
+		ReloadedScriptsMessageCommand = function(self)
+			-- dont playcommand the OnCommand because that could cause cascading issues
 			local screen = SCREENMAN:GetTopScreen()
 			if screen ~= nil then
 				BUTTON:AddButton(self, screen:GetName(), depth)
@@ -517,6 +531,13 @@ function UIElements.TextButton(z, depth, font)
 				self:z(z)
 			end,
 			OnCommand = function(self)
+				local screen = SCREENMAN:GetTopScreen()
+				if screen ~= nil then
+					BUTTON:AddButton(self, screen:GetName(), depth)
+				end
+			end,
+			ReloadedScriptsMessageCommand = function(self)
+				-- dont playcommand the OnCommand because that could cause cascading issues
 				local screen = SCREENMAN:GetTopScreen()
 				if screen ~= nil then
 					BUTTON:AddButton(self, screen:GetName(), depth)
@@ -556,7 +577,14 @@ function UIElements.TextToolTip(z, depth, font)
 			if screen ~= nil then
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
-		end
+		end,
+		ReloadedScriptsMessageCommand = function(self)
+			-- dont playcommand the OnCommand because that could cause cascading issues
+			local screen = SCREENMAN:GetTopScreen()
+			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
 	}
 end
 
@@ -684,7 +712,7 @@ end
 function UIElements.Slider(z, width)
 	local zoom = 0.15
 
-	local t = Def.ActorFrame{
+	local t = Def.ActorFrame {
 		SliderMovedCommand = function(self, params)
 			self:GetChild("ValueText"):settext(params.Value)
 		end,

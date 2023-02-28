@@ -42,7 +42,10 @@ local t = Def.ActorFrame{
     end,
     WindowedChangedMessageCommand = function(self)
         cursorCheck()
-    end
+    end,
+    ReloadedScriptsMessageCommand = function(self)
+        cursorCheck()
+    end,
 }
 
 local tooltip, pointer, clickwave = TOOLTIP:New()
