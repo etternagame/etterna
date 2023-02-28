@@ -6,6 +6,7 @@
 #include "FontCharmaps.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "arch/Dialog/Dialog.h"
@@ -466,7 +467,7 @@ Font::GetFontPaths(const std::string& sFontIniPath,
 {
 	std::string sPrefix = SetExtension(sFontIniPath, "");
 	std::vector<std::string> asFiles;
-	GetDirListing(sPrefix + "*", asFiles, false, true);
+	FILEMAN->GetDirListing(sPrefix + "*", asFiles, false, true);
 
 	for (auto& asFile : asFiles) {
 		if (!EqualsNoCase(tail(asFile, 4), ".ini"))

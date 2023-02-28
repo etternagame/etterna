@@ -1220,7 +1220,8 @@ SMLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 void
 SMLoader::GetApplicableFiles(const std::string& sPath, std::vector<std::string>& out)
 {
-	GetDirListing(sPath + std::string("*" + this->GetFileExtension()), out);
+	FILEMAN->GetDirListing(
+	  sPath + std::string("*" + this->GetFileExtension()), out, ONLY_FILE);
 }
 
 void

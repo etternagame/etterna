@@ -4,6 +4,7 @@
 #include "BGAnimationLayer.h"
 #include "Etterna/FileTypes/IniFile.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <algorithm>
@@ -105,14 +106,22 @@ BGAnimation::LoadFromAniDir(const std::string& _sAniDir)
 		std::vector<std::string> asImagePaths;
 		ASSERT(sAniDir != "");
 
-		GetDirListing(sAniDir + "*.png", asImagePaths, false, true);
-		GetDirListing(sAniDir + "*.jpg", asImagePaths, false, true);
-		GetDirListing(sAniDir + "*.jpeg", asImagePaths, false, true);
-		GetDirListing(sAniDir + "*.gif", asImagePaths, false, true);
-		GetDirListing(sAniDir + "*.ogv", asImagePaths, false, true);
-		GetDirListing(sAniDir + "*.avi", asImagePaths, false, true);
-		GetDirListing(sAniDir + "*.mpg", asImagePaths, false, true);
-		GetDirListing(sAniDir + "*.mpeg", asImagePaths, false, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.png", asImagePaths, ONLY_FILE, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.jpg", asImagePaths, ONLY_FILE, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.jpeg", asImagePaths, ONLY_FILE, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.gif", asImagePaths, ONLY_FILE, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.ogv", asImagePaths, ONLY_FILE, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.avi", asImagePaths, ONLY_FILE, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.mpg", asImagePaths, ONLY_FILE, true);
+		FILEMAN->GetDirListing(
+		  sAniDir + "*.mpeg", asImagePaths, ONLY_FILE, true);
 
 		SortStringArray(asImagePaths);
 

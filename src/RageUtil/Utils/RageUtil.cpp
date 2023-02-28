@@ -1199,7 +1199,7 @@ DirectoryIsEmpty(const std::string& sDir)
 		return true;
 
 	std::vector<std::string> asFileNames;
-	GetDirListing(sDir, asFileNames);
+	GetDirListing(sDir, asFileNames, false, false);
 	return asFileNames.empty();
 }
 

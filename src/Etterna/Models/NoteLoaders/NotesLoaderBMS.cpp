@@ -131,10 +131,10 @@ void
 BMSLoader::GetApplicableFiles(const std::string& sPath,
 							  std::vector<std::string>& out)
 {
-	GetDirListing(sPath + std::string("*.bms"), out);
-	GetDirListing(sPath + std::string("*.bme"), out);
-	GetDirListing(sPath + std::string("*.bml"), out);
-	GetDirListing(sPath + std::string("*.pms"), out);
+	FILEMAN->GetDirListing(sPath + std::string("*.bms"), out, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + std::string("*.bme"), out, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + std::string("*.bml"), out, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + std::string("*.pms"), out, ONLY_FILE);
 }
 
 /*===========================================================================*/
@@ -774,7 +774,7 @@ BMSSong::PrecacheBackgrounds(const std::string& dir)
 	ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
 	ActorUtil::AddTypeExtensionsToList(FT_Bitmap, exts);
 	FILEMAN->GetDirListingWithMultipleExtensions(
-	  dir + std::string("*."), exts, arrayPossibleFiles);
+	  dir + std::string("*."), exts, arrayPossibleFiles, ONLY_FILE);
 
 	for (auto& arrayPossibleFile : arrayPossibleFiles) {
 		for (auto& ext : exts) {

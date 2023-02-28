@@ -154,8 +154,8 @@ BackgroundUtil::GetBackgroundEffects(const std::string& _sName,
 		sName = "*";
 
 	vsPathsOut.clear();
-	GetDirListing(
-	  BACKGROUND_EFFECTS_DIR + sName + ".lua", vsPathsOut, false, true);
+	FILEMAN->GetDirListing(
+	  BACKGROUND_EFFECTS_DIR + sName + ".lua", vsPathsOut, ONLY_FILE, true);
 
 	vsNamesOut.clear();
 	for (auto& s : vsPathsOut)
@@ -172,10 +172,10 @@ BackgroundUtil::GetBackgroundTransitions(const std::string& _sName,
 		sName = "*";
 
 	vsPathsOut.clear();
-	GetDirListing(
-	  BACKGROUND_TRANSITIONS_DIR + sName + ".xml", vsPathsOut, false, true);
-	GetDirListing(
-	  BACKGROUND_TRANSITIONS_DIR + sName + ".lua", vsPathsOut, false, true);
+	FILEMAN->GetDirListing(
+	  BACKGROUND_TRANSITIONS_DIR + sName + ".xml", vsPathsOut, ONLY_FILE, true);
+	FILEMAN->GetDirListing(
+	  BACKGROUND_TRANSITIONS_DIR + sName + ".lua", vsPathsOut, ONLY_FILE, true);
 
 	vsNamesOut.clear();
 	for (auto& s : vsPathsOut)
@@ -190,9 +190,9 @@ BackgroundUtil::GetSongBGAnimations(const Song* pSong,
 {
 	vsPathsOut.clear();
 	if (sMatch.empty()) {
-		GetDirListing(pSong->GetSongDir() + "*", vsPathsOut, true, true);
+		FILEMAN->GetDirListing(pSong->GetSongDir() + "*", vsPathsOut, true, true);
 	} else {
-		GetDirListing(pSong->GetSongDir() + sMatch, vsPathsOut, true, true);
+		FILEMAN->GetDirListing(pSong->GetSongDir() + sMatch, vsPathsOut, true, true);
 	}
 
 	vsNamesOut.clear();
@@ -212,10 +212,11 @@ BackgroundUtil::GetSongMovies(const Song* pSong,
 		  pSong->GetSongDir() + sMatch,
 		  ActorUtil::GetTypeExtensionList(FT_Movie),
 		  vsPathsOut,
-		  false,
+		  ONLY_FILE,
 		  true);
 	} else {
-		GetDirListing(pSong->GetSongDir() + sMatch, vsPathsOut, false, true);
+		FILEMAN->GetDirListing(
+		  pSong->GetSongDir() + sMatch, vsPathsOut, ONLY_FILE, true);
 	}
 
 	vsNamesOut.clear();
@@ -235,10 +236,11 @@ BackgroundUtil::GetSongBitmaps(const Song* pSong,
 		  pSong->GetSongDir() + sMatch,
 		  ActorUtil::GetTypeExtensionList(FT_Bitmap),
 		  vsPathsOut,
-		  false,
+		  ONLY_FILE,
 		  true);
 	} else {
-		GetDirListing(pSong->GetSongDir() + sMatch, vsPathsOut, false, true);
+		FILEMAN->GetDirListing(
+		  pSong->GetSongDir() + sMatch, vsPathsOut, ONLY_FILE, true);
 	}
 
 	vsNamesOut.clear();
@@ -253,8 +255,8 @@ BackgroundUtil::GetGlobalBGAnimations(const Song* pSong,
 									  std::vector<std::string>& vsNamesOut)
 {
 	vsPathsOut.clear();
-	GetDirListing(BG_ANIMS_DIR + sMatch + "*", vsPathsOut, true, true);
-	GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, false, true);
+	FILEMAN->GetDirListing(BG_ANIMS_DIR + sMatch + "*", vsPathsOut, true, true);
+	FILEMAN->GetDirListing(BG_ANIMS_DIR + sMatch + "*.xml", vsPathsOut, ONLY_FILE, true);
 
 	vsNamesOut.clear();
 	for (auto& s : vsPathsOut)
