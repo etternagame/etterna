@@ -189,6 +189,8 @@ namespace {
         THEME->ReloadMetrics();
         g_NewGame = std::string();
         g_NewTheme = std::string();
+        MESSAGEMAN->Broadcast("ReloadedScripts");
+        MESSAGEMAN->Broadcast("GameChanged");
     }
 } // namespace
 
