@@ -303,8 +303,7 @@ PlayerReplay::Update(float fDeltaTime)
 }
 
 void
-PlayerReplay::SetPlaybackEvents(
-  const std::map<int, std::vector<PlaybackEvent>>& v)
+PlayerReplay::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v)
 {
 	playbackEvents.clear();
 
@@ -330,10 +329,12 @@ PlayerReplay::SetPlaybackEvents(
 			// must update row and time to match current chart
 			if (fabsf(rowpos - supposedTime) > 0.01F) {
 				// haha oh my god
-				noterow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-				  m_Timing->GetElapsedTimeFromBeat(
-					NoteRowToBeat(evt.noterowJudged)) +
-				  (evt.offset * musicRate)));
+				auto tapPosition = m_Timing->GetElapsedTimeFromBeat(
+									 NoteRowToBeat(evt.noterowJudged)) +
+								   (evt.offset * musicRate);
+				noterow =
+				  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(tapPosition));
+				evt.songPositionSeconds = tapPosition;
 				gapError = rowpos - supposedTime;
 			}
 
