@@ -41,7 +41,7 @@ return Def.ActorFrame {
 		Name = "Instructions",
 		Font = "Common Normal",
 		InitCommand = function(self)
-			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.4):visible(true)
+			self:horizalign(left):vertalign(top):xy(SCREEN_WIDTH - 240, 20):zoom(.375):visible(true)
 		end,
 		HighlightCommand = function(self)
 			highlightIfOver(self)
@@ -84,7 +84,9 @@ return Def.ActorFrame {
 				"c: "..transStr("BPMSize"),
 				"v: "..transStr("RatePosition"),
 				"b: "..transStr("RateSize"),
-				"n: "..transStr("NotefieldSpacing")
+				"n: "..transStr("NotefieldSpacing"),
+				"m: "..transStr("MeanPosition"),
+				",: "..transStr("MeanSize"),
 			}
 			if playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).LaneCover ~= 0 then
 				local selectStr = THEME:GetString("GameButton", "Select")
