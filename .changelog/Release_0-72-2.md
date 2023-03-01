@@ -25,6 +25,7 @@
 - Crashes by abusing Rebirth ColorConfig and CustomizeGameplay functionality - [603c0bc](../../../commit/603c0bc15405939bda5106656028310f6c331330)
 - Crashes by placing random audio file in a pack folder, or by naming a folder with an audio, image, or Stepmania extension - [71991a7](../../../commit/71991a707c6037485873bb6c79cc04182239bee5) [209837b](../../../commit/209837b22abdb5cf418cb3bfce60ac0a18752f3a)
 - Crashes by finishing a download between the moment when you select a song and before entering gameplay - [40f0550](../../../commit/40f055016caf839363073b7d48ae7a8aebb066ab)
+- MacOS support for getLanguage slightly fixed for older versions. This may reduce rare crashing - [0ddd71a](../../../commit/0ddd71ad22f3276468611938b3fdac670492219a)
 - Mouse cursor froze when reloading scripts or otherwise breaking mouse overlays - [77ee5a6](../../../commit/77ee5a694c5fecf0f3698ea71ed3b3d37febaec1)
 - Rebirth Music Wheel should no longer randomly stop on files for 1 frame, causing a huge stutter - [232be6d](../../../commit/232be6dd2552ab1a93a50cb1cfd8a7ac19d401d1)
 - Rebirth Song Search would appear to do nothing if a search returned a chart that appears on multiple songs, but one of the song results was filtered out - [5fb7850](../../../commit/5fb7850c0facc856a3e07687ddec2055aa31a47f)
