@@ -97,7 +97,7 @@ struct FileSet
 						  DirListingReturnFilter returnFilter) const;
 	void GetFilesEqualTo(const std::string& pat,
 						 std::vector<std::string>& out,
-						 bool bOnlyDirs) const;
+						 DirListingReturnFilter returnFilter) const;
 
 	RageFileManager::FileType GetFileType(const std::string& sPath) const;
 	int GetFileSize(const std::string& sPath) const;

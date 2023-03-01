@@ -71,13 +71,15 @@ FileSet::GetFilesMatching(const std::string& sBeginning_,
 void
 FileSet::GetFilesEqualTo(const std::string& sStr,
 						 std::vector<std::string>& asOut,
-						 bool bOnlyDirs) const
+						 DirListingReturnFilter returnFilter) const
 {
 	set<File>::const_iterator i = files.find(File(sStr));
 	if (i == files.end())
 		return;
 
-	if (bOnlyDirs && !i->dir)
+	if (returnFilter == ONLY_DIR && !i->dir)
+		return;
+	if (returnFilter == ONLY_FILE && i->dir)
 		return;
 
 	asOut.push_back(i->name);
