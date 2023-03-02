@@ -6,9 +6,10 @@
 ### Added
 - Custom Window Config file has had some short instructions added for recommended use. No plans to move the config to a Save file, because of the nature of saving a Lua function in text - [9e92f37](../../../commit/9e92f37884f8114f9d0801fa7d5b19ab287cf7f0)
 - Lua can take advantage of new Message Broadcasts that occur when certain F2 related events occur, ReloadedScripts, ReloadedMetrics, ReloadedOverlayScreens, ReloadedTextures - [c7b68fa](../../../commit/c7b68fa2c5006e4751f424d264702ca887b9fb20)
+- Rebirth color config allows changing the title screen logo, gradient, and triangle - [5f67bb7](../../../commit/5f67bb70ab2087254e2b275afd427c4922796c6a)
 - Rebirth has a new option for Wheel Spin Speed - [f0eb69a](../../../commit/f0eb69a1b85c10e74d7ec1be8c2d1fbdf74419af)
 - Rebirth hovering your local player name has a new tooltip saying that clicking will rename your profile - [b0be391](../../../commit/b0be3912a944b5e035626ab3d11c1bf91c1b8e9e)
-- Til Death has a new Mean display added to gameplay. It defaults off. Its customization keys are `M` and `,`. You can turn it on with an option next to the Percent display - [e1e78dd](../../../commit/e1e78dd0c77d65964b95ca4ddf285baf6d9eb58c)
+- Til Death has a new Mean display added to gameplay. It defaults off. Its customization keys are `M` and `,`. You can turn it on with an option next to the Percent display - [e1e78dd](../../../commit/e1e78dd0c77d65964b95ca4ddf285baf6d9eb58c) [02ce2d8](../../../commit/02ce2d8a25126c80e578e40700b5e355e8a1feec)
 - Tooltips can have their text size changed from Lua - [4533e70](../../../commit/4533e70352e25d94486793a2eef29ce04fa44f55)
 
 ### Changes
