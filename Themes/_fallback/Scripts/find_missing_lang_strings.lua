@@ -1,8 +1,10 @@
+--- Missing language string finder
 -- All other languages are compared to the master language to determine what is
 -- missing and what is unused.
 -- The list of missing strings for a language is saved to lang_missing.ini,
 -- where lang is the name of the language.
 -- The list of unused strings is saved to lang_unused.ini.
+-- @module find_missing_lang_strings
 
 function find_missing_strings_in_theme_translations(theme_name, master_name)
 	local lang_folder = "Themes/" .. theme_name .. "/Languages/"

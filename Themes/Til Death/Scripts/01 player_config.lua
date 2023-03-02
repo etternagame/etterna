@@ -15,6 +15,8 @@ local defaultGameplayCoordinates = {
 	JudgeCounterY = SCREEN_CENTER_Y,
 	DisplayPercentX = SCREEN_CENTER_X - 170,
 	DisplayPercentY = SCREEN_CENTER_Y - 60,
+	DisplayMeanX = SCREEN_CENTER_X - 170,
+	DisplayMeanY = SCREEN_CENTER_Y - 75,
 	NPSDisplayX = 5,
 	NPSDisplayY = SCREEN_BOTTOM - 175,
 	NPSGraphX = 0,
@@ -46,6 +48,7 @@ local defaultGameplaySizes = {
 	FullProgressBarWidth = 1.0,
 	FullProgressBarHeight = 1.0,
 	DisplayPercentZoom = 1,
+	DisplayMeanZoom = 1,
 	NPSDisplayZoom = 0.4,
 	NPSGraphWidth = 1.0,
 	NPSGraphHeight = 1.0,
@@ -71,6 +74,7 @@ local defaultConfig = {
 	AvgScoreType = 0,
 	GhostScoreType = 1,
 	DisplayPercent = true,
+	DisplayMean = false,
 	TargetTracker = true,
 	TargetGoal = 93,
 	TargetTrackerMode = 0,
@@ -130,12 +134,22 @@ function getDefaultGameplayCoordinate(obj)
 	return defaultGameplayCoordinates[obj]
 end
 
+-- create the playerConfig global
 playerConfig = create_setting("playerConfig", "playerConfig.lua", defaultConfig, -1)
+
+-- shadow settings_mt.load to do several things:
+--	load missing values from default
+--	load missing values for the current keymode from the 4k config
+--	load missing values for the current slot from the global slot
 local tmp2 = playerConfig.load
 playerConfig.load = function(self, slot)
+	-- redefinition of force_table_elements_to_match_type to let settings_system
+	-- completely ignore the format of the table if it changed dramatically between versions
+	-- this lets us introduce backwards/forwards compatibility
 	local tmp = force_table_elements_to_match_type
 	force_table_elements_to_match_type = function()
 	end
+
 	local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
 	x = x:load(slot)
 	local coords = x.GameplayXYCoordinates

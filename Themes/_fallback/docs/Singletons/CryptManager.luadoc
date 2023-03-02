@@ -1,0 +1,3 @@
+--- Cryptography singleton class
+-- @classmod CryptManager
+-- @alias CRYPTMAN

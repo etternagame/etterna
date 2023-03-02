@@ -1,3 +1,6 @@
+--- Settings system for Assets (Judgments, Toasties, Avatars)
+-- @module 11_AssetsConfig
+
 local defaultConfig = {
 	avatar = {
 		default = "Assets/Avatars/_fallback.png"

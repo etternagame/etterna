@@ -1,3 +1,6 @@
+--- Score and Scoring Utilities
+-- @module 10_Scores
+
 local judges = {"marv", "perf", "great", "good", "boo", "miss"}
 
 local gradeTiers = {

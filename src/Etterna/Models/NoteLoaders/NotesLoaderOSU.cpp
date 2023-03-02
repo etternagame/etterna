@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "NotesLoaderOSU.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -278,7 +279,7 @@ void
 OsuLoader::GetApplicableFiles(const std::string& sPath,
 							  std::vector<std::string>& out)
 {
-	GetDirListing(sPath + std::string("*.osu"), out);
+	FILEMAN->GetDirListing(sPath + std::string("*.osu"), out, ONLY_FILE);
 }
 
 int

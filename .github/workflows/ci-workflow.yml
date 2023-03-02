@@ -23,12 +23,12 @@ jobs:
 
     steps:
       - name: Checkout Etterna
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: main
 
       - name: Checkout CrashpadTools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: etternagame/CrashpadTools
           path: tools
@@ -50,7 +50,7 @@ jobs:
       
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "Etterna - Linux x64"
           path: '${{github.workspace}}/main/build/*.tar.gz'
@@ -76,7 +76,7 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
@@ -110,12 +110,12 @@ jobs:
     steps:
 
       - name: Checkout Etterna
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: main
 
       - name: Checkout CrashpadTools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: etternagame/CrashpadTools
           path: tools
@@ -135,7 +135,7 @@ jobs:
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "Etterna - macOS x64"
           path: '${{github.workspace}}/main/build/*.dmg'
@@ -162,7 +162,7 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
@@ -195,18 +195,18 @@ jobs:
     runs-on: windows-2019
     steps:
       - name: Checkout Etterna
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: main
 
       - name: Checkout CrashpadTools
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: etternagame/CrashpadTools
           path: tools
 
       - name: Checkout DirectX SDK
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: nico-abram/dxsdk
           path: dxsdk
@@ -217,7 +217,7 @@ jobs:
           echo "ETTERNA_ARCH=${{matrix.cfg.name}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup Python 2.7
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '2.7'
 
@@ -246,13 +246,13 @@ jobs:
         run: cd main/build && cpack
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "Etterna - Windows ${{matrix.cfg.name}}"
           path: '${{github.workspace}}/main/build/*.exe'
 
       - name: Setup Python 3
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
@@ -265,7 +265,7 @@ jobs:
         run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py
 
       - name: Upload Symbols to action artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'

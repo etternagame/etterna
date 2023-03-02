@@ -1,0 +1,3 @@
+--- Network Sync and Multiplayer Management singleton class
+-- @classmod NetworkSyncManager
+-- @alias NSMAN

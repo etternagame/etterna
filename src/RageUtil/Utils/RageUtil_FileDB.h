@@ -94,10 +94,10 @@ struct FileSet
 						  const std::string& sContaining,
 						  const std::string& sEnding,
 						  std::vector<std::string>& asOut,
-						  bool bOnlyDirs) const;
+						  DirListingReturnFilter returnFilter) const;
 	void GetFilesEqualTo(const std::string& pat,
 						 std::vector<std::string>& out,
-						 bool bOnlyDirs) const;
+						 DirListingReturnFilter returnFilter) const;
 
 	RageFileManager::FileType GetFileType(const std::string& sPath) const;
 	int GetFileSize(const std::string& sPath) const;
@@ -125,7 +125,7 @@ class FilenameDB
 	void GetFilesSimpleMatch(const std::string& sDir,
 							 const std::string& sFile,
 							 std::vector<std::string>& asOut,
-							 bool bOnlyDirs);
+							 DirListingReturnFilter returnFilter);
 
 	/* Search for "path" case-insensitively and replace it with the correct
 	 * case.  If only a portion of the path exists, resolve as much as possible.
@@ -137,7 +137,7 @@ class FilenameDB
 	int GetFileHash(const std::string& sFilePath);
 	void GetDirListing(const std::string& sPath,
 					   std::vector<std::string>& asAddTo,
-					   bool bOnlyDirs,
+					   DirListingReturnFilter returnFilter,
 					   bool bReturnPathToo);
 
 	void FlushDirCache(const std::string& sDir = std::string());
@@ -160,14 +160,14 @@ class FilenameDB
 	void GetFilesEqualTo(const std::string& sDir,
 						 const std::string& sName,
 						 std::vector<std::string>& asOut,
-						 bool bOnlyDirs);
+						 DirListingReturnFilter returnFilter);
 
 	void GetFilesMatching(const std::string& sDir,
 						  const std::string& sBeginning,
 						  const std::string& sContaining,
 						  const std::string& sEnding,
 						  std::vector<std::string>& asOut,
-						  bool bOnlyDirs);
+						  DirListingReturnFilter returnFilter);
 
 	void DelFileSet(std::map<std::string, FileSet*>::iterator dir);
 

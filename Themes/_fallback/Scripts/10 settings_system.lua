@@ -1,3 +1,6 @@
+--- Lua based reloadable configurations
+-- @module 10_settings_system
+
 local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 global_cur_game = GAMESTATE:GetCurrentGame():GetName():lower()
 
@@ -156,6 +159,7 @@ function string_needs_escape(str)
 end
 
 function lua_table_to_string(t, indent, line_pos)
+	if t == nil then return "{}" end
 	indent = indent or ""
 	line_pos = (line_pos or #indent) + 1
 	local internal_indent = indent .. "  "

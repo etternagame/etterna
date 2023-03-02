@@ -613,6 +613,49 @@ blit_same_type(const RageSurface* src_surf,
 	return true;
 }
 
+/* A8B8G8R8 to A8R8G8B8 */
+
+static bool
+blit_rgba_to_bgra(const RageSurface* src_surf,
+				  const RageSurface* dst_surf,
+				  int width,
+				  int height)
+{
+	if (src_surf->fmt.BytesPerPixel != 4 ||
+		dst_surf->fmt.BytesPerPixel != 4)
+		return false;
+	if (src_surf->fmt.Rmask != 0x000000ff ||
+		src_surf->fmt.Gmask != 0x0000ff00 ||
+		src_surf->fmt.Bmask != 0x00ff0000 ||
+		src_surf->fmt.Amask != 0xff000000)
+		return false;
+	if (dst_surf->fmt.Rmask != 0x00ff0000 ||
+		dst_surf->fmt.Gmask != 0x0000ff00 ||
+		dst_surf->fmt.Bmask != 0x000000ff ||
+		dst_surf->fmt.Amask != 0xff000000)
+		return false;
+
+	const uint8_t *src = src_surf->pixels;
+	uint8_t *dst = dst_surf->pixels;
+	int src_pitch = src_surf->pitch;
+	int dst_pitch = dst_surf->pitch;
+
+	// Need to do row-wise nonsense to get MSVC to vectorize
+	while ((height--) != 0) {
+		for (int i = 0; i < width; i++) {
+			uint32_t s = ((const uint32_t *)src)[i];
+			uint32_t s_swap = (s & 0x00ff00ff);
+			uint32_t s_keep = (s & 0xff00ff00);
+			((uint32_t *)dst)[i] = s_keep + (s_swap >> 16) + (s_swap << 16);
+		}
+
+		src += src_pitch;
+		dst += dst_pitch;
+	}
+
+	return true;
+}
+
 /* Rescaling blit with no ckey. This is used to update movies in
  * D3D, so optimization is very important. */
 static bool
@@ -689,65 +732,31 @@ blit_rgba_to_rgba(const RageSurface* src_surf,
 		}
 	}
 
-	// Use multiple threads to do in-place pixel conversion
-	auto numThreads = max(std::thread::hardware_concurrency(), 2u);
-	size_t segmentSize = height / numThreads;
-	std::vector<std::thread> threads;
-	threads.reserve(numThreads);
+	while (height-- != 0) {
+		auto x = 0;
+		while (x++ < width) {
+			const auto pixel = RageSurfaceUtils::decodepixel(
+				src, src_surf->fmt.BytesPerPixel);
 
-	for (unsigned int curThread = 0; curThread < numThreads; ++curThread) {
-		threads.push_back(std::thread([&, curThread] {
-			const int startingPoint = segmentSize * curThread;
-			int localHeight = segmentSize + segmentSize * curThread;
-			const int localEnd = localHeight - segmentSize;
-
-			// Ensure no pixels are missed when the height isn't divisible by
-			// thread count
-			if (curThread == numThreads - 1)
-				localHeight = height;
-
-			auto localSrc = src;
-			auto localDst = dst;
-
-			// Skip pixels until we arrive at this thread's starting point
-			// -
-			// handle width
-			localSrc += src_surf->fmt.BytesPerPixel * width * startingPoint;
-			localDst += dst_surf->fmt.BytesPerPixel * width * startingPoint;
-			// handle height
-			localSrc += srcskip * startingPoint;
-			localDst += dstskip * startingPoint;
-
-			while (localHeight-- > localEnd) {
-				auto x = 0;
-				while (x++ < width) {
-					const auto pixel = RageSurfaceUtils::decodepixel(
-					  localSrc, src_surf->fmt.BytesPerPixel);
-
-					// Convert pixel to the destination format.
-					unsigned int opixel = 0;
-					for (auto c = 0; c < 4; ++c) {
-						const int lSrc =
-						  (pixel & src_masks[c]) >> src_shifts[c];
-						opixel |= lookup[c][lSrc] << dst_shifts[c];
-					}
-
-					// Store it.
-					RageSurfaceUtils::encodepixel(
-					  localDst, dst_surf->fmt.BytesPerPixel, opixel);
-
-					localSrc += src_surf->fmt.BytesPerPixel;
-					localDst += dst_surf->fmt.BytesPerPixel;
-				}
-
-				localSrc += srcskip;
-				localDst += dstskip;
+			// Convert pixel to the destination format.
+			unsigned int opixel = 0;
+			for (auto c = 0; c < 4; ++c) {
+				const int lSrc =
+					(pixel & src_masks[c]) >> src_shifts[c];
+				opixel |= lookup[c][lSrc] << dst_shifts[c];
 			}
-		}));
-	}
 
-	for (auto& t : threads)
-		t.join();
+			// Store it.
+			RageSurfaceUtils::encodepixel(
+				dst, dst_surf->fmt.BytesPerPixel, opixel);
+
+			src += src_surf->fmt.BytesPerPixel;
+			dst += dst_surf->fmt.BytesPerPixel;
+		}
+
+		src += srcskip;
+		dst += dstskip;
+	}
 
 	return true;
 }
@@ -812,6 +821,10 @@ RageSurfaceUtils::Blit(const RageSurface* src,
 	do {
 		// RGBA->RGBA with the same format, or PAL->PAL. Simple copy.
 		if (blit_same_type(src, dst, width, height))
+			break;
+
+		// RGBA8->BGRA8, for D3D9 (date of comment: 28th January 2023)
+		if (blit_rgba_to_bgra(src, dst, width, height))
 			break;
 
 		// RGBA->RGBA with different formats.

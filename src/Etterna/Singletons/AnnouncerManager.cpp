@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "AnnouncerManager.h"
 #include "Core/Services/Locator.hpp"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include <cstring>
 
@@ -31,7 +32,7 @@ AnnouncerManager::~AnnouncerManager()
 void
 AnnouncerManager::GetAnnouncerNames(std::vector<std::string>& AddTo)
 {
-	GetDirListing(ANNOUNCERS_DIR + "*", AddTo, true);
+	FILEMAN->GetDirListing(ANNOUNCERS_DIR + "*", AddTo, ONLY_DIR);
 
 	// strip out the empty announcer folder
 	for (int i = AddTo.size() - 1; i >= 0; i--)

@@ -168,7 +168,6 @@ local defaultConfig = {
     DisplayStdDev = false,
     Leaderboard = 0, -- 0=off, 1=online, 2=local (current rate)
     MeasureCounter = false,
-    MeasureLines = false,
     MiniProgressBar = true,
     NPSDisplay = true,
     NPSGraph = true,
@@ -257,11 +256,35 @@ local convertXPosRatio = 1
 local convertYPosRatio = 1
 local tmp2 = playerConfig.load
 playerConfig.load = function(self, slot)
+    -- redefinition of force_table_elements_to_match_type to let settings_system
+	-- completely ignore the format of the table if it changed dramatically between versions
+	-- this lets us introduce backwards/forwards compatibility
     local tmp = force_table_elements_to_match_type
     force_table_elements_to_match_type = function()
     end
+
+    if slot == nil and PROFILEMAN then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+
+    -- load whatever was provided in /Save/
+    local globalConfig = create_setting("playerConfig", "playerConfig.lua", {}, -1)
+    local globalSettings = globalConfig:load(nil)
+
+    -- load whatever was provided in /Save/LocalProfiles/
     local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
     x = x:load(slot)
+
+    -- if settings were not present in /Save/LocalProfiles/ but are present in /Save/ then copy them over
+    if next(x) == nil and next(globalSettings) ~= nil then
+        -- should be safe to do this
+        -- this doesnt create a copy, but globalSettings should never be accessed anywhere anyways
+        print("Loaded PlayerConfig settings from global PlayerConfig")
+        globalConfig:set_data(slot, globalSettings)
+        globalConfig:set_dirty(slot)
+        globalConfig:save(slot)
+        return self:load(slot)
+    end
 
     -- aspect ratio is not the same. we must account for this
     if x.GameplayXYCoordinates ~= nil and (not x.ConvertedAspectRatio or x.CurrentHeight ~= defaultConfig.CurrentHeight or x.CurrentWidth ~= defaultConfig.CurrentWidth) then
@@ -362,43 +385,71 @@ playerConfig.load = function(self, slot)
         defaultConfig.GameplayXYCoordinates["12K"] = coords
         defaultConfig.GameplayXYCoordinates["16K"] = coords
     end
+
     --
     --------
     force_table_elements_to_match_type = tmp
-    return tmp2(self, slot)
-end
-playerConfig:load()
+    local loaded = tmp2(self, slot)
 
--- converting coordinates if aspect ratio changes across loads
-local coords = playerConfig:get_data().GameplayXYCoordinates
-if coords and coords["4K"] then
-    -- converting all categories individually
-    for cat, t in pairs(playerConfig:get_data().GameplayXYCoordinates) do
-        for e, v in pairs(t) do
-            -- dont scale defaulted coordinates
-            if defaultGameplayCoordinates[e] ~= nil and v ~= defaultGameplayCoordinates[e] then
-                if e:sub(-1) == "Y" then
-                    -- convert y pos
-                    t[e] = v / convertYPosRatio
-                elseif e:sub(-1) == "X" then
-                    -- convert x pos
-                    t[e] = v / convertXPosRatio
+    -- converting coordinates if aspect ratio changes across loads
+    local coords = self:get_data(slot).GameplayXYCoordinates
+    if coords and coords["4K"] then
+        -- converting all categories individually
+        for cat, t in pairs(self:get_data(slot).GameplayXYCoordinates) do
+            for e, v in pairs(t) do
+                -- dont scale defaulted coordinates
+                if defaultGameplayCoordinates[e] ~= nil and v ~= defaultGameplayCoordinates[e] then
+                    if e:sub(-1) == "Y" then
+                        -- convert y pos
+                        t[e] = v / convertYPosRatio
+                    elseif e:sub(-1) == "X" then
+                        -- convert x pos
+                        t[e] = v / convertXPosRatio
+                    end
                 end
             end
         end
-    end
 
-    -- hacks for specifically the error bar this is really bad
-    local sz = playerConfig:get_data().GameplaySizes
-    if sz and sz["4K"] then
-        for cat, t in pairs(sz) do
-            if t["ErrorBarWidth"] ~= defaultGameplaySizes["ErrorBarWidth"] then
-                sz[cat]["ErrorBarWidth"] = t["ErrorBarWidth"] / convertXPosRatio
-            end
-            if t["ErrorBarHeight"] ~= defaultGameplaySizes["ErrorBarHeight"] then
-                sz[cat]["ErrorBarHeight"] = t["ErrorBarHeight"] / convertYPosRatio
+        -- hacks for specifically the error bar this is really bad
+        local sz = self:get_data(slot).GameplaySizes
+        if sz and sz["4K"] then
+            for cat, t in pairs(sz) do
+                if t["ErrorBarWidth"] ~= defaultGameplaySizes["ErrorBarWidth"] then
+                    sz[cat]["ErrorBarWidth"] = t["ErrorBarWidth"] / convertXPosRatio
+                end
+                if t["ErrorBarHeight"] ~= defaultGameplaySizes["ErrorBarHeight"] then
+                    sz[cat]["ErrorBarHeight"] = t["ErrorBarHeight"] / convertYPosRatio
+                end
             end
         end
+        self:get_data(slot).ConvertedAspectRatio = true
     end
-    playerConfig:get_data().ConvertedAspectRatio = true
+
+    return loaded
+end
+
+-- shadow settings_mt.save to force save() to save in the player's slot instead of the global slot
+local tmpsave = playerConfig.save
+playerConfig.save = function(self, slot)
+    print("Saving PlayerConfig")
+	if slot == nil and PROFILEMAN then
+		slot = pn_to_profile_slot(PLAYER_1)
+	end
+	return tmpsave(self, slot)
+end
+-- shadow set_dirty to do the same thing again because set_dirty is required to save
+local tmpdirty = playerConfig.set_dirty
+playerConfig.set_dirty = function(self, slot)
+    if slot == nil and PROFILEMAN then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+    return tmpdirty(self, slot)
+end
+-- shadow get_data to do the same thing again because this is how we load anything into the tables
+local tmpget = playerConfig.get_data
+playerConfig.get_data = function(self, slot)
+    if slot == nil and PROFILEMAN then
+        slot = pn_to_profile_slot(PLAYER_1)
+    end
+    return tmpget(self, slot)
 end

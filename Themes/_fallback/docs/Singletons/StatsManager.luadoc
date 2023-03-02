@@ -1,0 +1,3 @@
+--- Stat management singleton class
+-- @classmod StatsManager
+-- @alias STATSMAN

@@ -1,3 +1,11 @@
+--- Custom Rescoring Window Config
+-- Allows rescoring a score with a replay any way you want
+-- @module 72_custom_windows_config
+
+-- If you choose to modify this file, the best practice would be to make a copy of it and put that in the Scripts folder
+-- for the Theme which you are using. Use the exact same file name and do not modify anything outside of the defaultConfig.
+-- If done correctly, the file which you pasted into your Theme will override this one from _fallback/Scripts/.
+
 local defaultConfig = {
 
 	-- each entry here corresponds to a key in the customWindowConfigs table below
@@ -67,6 +75,9 @@ local defaultConfig = {
 			},
 
 			judgeByOldestNote = false -- OPTIONAL: defaults to false. true means that the oldest note in the hit window counts first. use true for osu, basically
+			-- Please also keep in mind that this feature literally accounts for your taps. It reassigns them all.
+			-- With certain judgments in dense patterning, it makes sense that dropping a miss or "overstreaming" outputs judgments which you might consider to be incorrect.
+			-- If you want the true experience of a game which judges by the oldest note first instead of closest note first, try playing those games instead.
 
 		}
 	]]

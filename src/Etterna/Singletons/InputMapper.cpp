@@ -8,6 +8,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageUtil/Misc/RageInput.h"
 #include "Core/Services/Locator.hpp"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "arch/Dialog/Dialog.h"
@@ -51,7 +52,7 @@ InputMapper::InputMapper()
 InputMapper::~InputMapper()
 {
 	// Unregister with Lua.
-	LUA->UnsetGlobal("SONGMAN");
+	LUA->UnsetGlobal("INPUTMAPPER");
 
 	SaveMappingsToDisk();
 	g_tempDItoGI.clear();
@@ -656,7 +657,7 @@ InputMapper::AutoMapJoysticksForCurrentGame()
 		// file automaps - Add these first so that they can match before the
 		// hard-coded mappings
 		std::vector<std::string> vs;
-		GetDirListing(AUTOMAPPINGS_DIR "*.ini", vs, false, true);
+		FILEMAN->GetDirListing(AUTOMAPPINGS_DIR "*.ini", vs, ONLY_FILE, true);
 		FOREACH_CONST(std::string, vs, sFilePath)
 		{
 			InputMappings km;

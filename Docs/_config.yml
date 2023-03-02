@@ -1,4 +1,12 @@
 #Jekyll config file for Etterna documentation CI
 remote_theme: just-the-docs/just-the-docs
+color_scheme: etterna
+nav_external_links:
+  - title: Etterna C++ Documentation
+    url: doxygen/html/index.html
+    hide_icon: false
+  - title: Etterna Lua Documentation
+    url: ldoc/index.html
+    hide_icon: false
 
 include: Contributing.md # No clue why this is needed explicitly

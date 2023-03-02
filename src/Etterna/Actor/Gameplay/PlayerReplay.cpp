@@ -303,8 +303,7 @@ PlayerReplay::Update(float fDeltaTime)
 }
 
 void
-PlayerReplay::SetPlaybackEvents(
-  const std::map<int, std::vector<PlaybackEvent>>& v)
+PlayerReplay::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v)
 {
 	playbackEvents.clear();
 
@@ -330,10 +329,12 @@ PlayerReplay::SetPlaybackEvents(
 			// must update row and time to match current chart
 			if (fabsf(rowpos - supposedTime) > 0.01F) {
 				// haha oh my god
-				noterow = BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(
-				  m_Timing->GetElapsedTimeFromBeat(
-					NoteRowToBeat(evt.noterowJudged)) +
-				  (evt.offset * musicRate)));
+				auto tapPosition = m_Timing->GetElapsedTimeFromBeat(
+									 NoteRowToBeat(evt.noterowJudged)) +
+								   (evt.offset * musicRate);
+				noterow =
+				  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(tapPosition));
+				evt.songPositionSeconds = tapPosition;
 				gapError = rowpos - supposedTime;
 			}
 
@@ -811,9 +812,17 @@ PlayerReplay::Step(int col,
 				}
 			} else {
 				// every other case
-				if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
+				if (pTN->IsNote() || pTN->type == TapNoteType_Lift) {
 					score = ReplayManager::GetTapNoteScoreForReplay(
 					  fNoteOffset, GetTimingWindowScale());
+
+					// taps assigned to notes really far away
+					// are counted as misses
+					// but to stop it breaking things, do nothing
+					if (score == TNS_Miss) {
+						score = TNS_None;
+					}
+				}
 			}
 		}
 

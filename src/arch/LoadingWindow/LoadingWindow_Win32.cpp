@@ -110,7 +110,7 @@ LoadingWindow_Win32::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg) {
 		case WM_INITDIALOG: {
 			std::vector<std::string> vs;
-			GetDirListing("Data/splash*.png", vs, false, true);
+			FILEMAN->GetDirListing("Data/splash*.png", vs, ONLY_FILE, true);
 			if (!vs.empty())
 				g_hBitmap = LoadWin32Surface(vs[0], hWnd);
 		}

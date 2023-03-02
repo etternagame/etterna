@@ -1,0 +1,3 @@
+--- Replay management singleton class
+-- @classmod ReplayManager
+-- @alias REPLAYS

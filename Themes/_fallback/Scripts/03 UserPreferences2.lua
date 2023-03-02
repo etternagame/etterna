@@ -1,4 +1,5 @@
--- UserPreferences: User Preferences "Module"
+--- UserPreferences: User Preferences "Module"
+-- @module 03_UserPreferences2
 -- Written by AJ Kelly of KKI Labs / Version 2.11-ssc
 -- (modified slightly for Cerulean Skies 2's disregard of the name of the
 -- themeinfo variable lol :p)

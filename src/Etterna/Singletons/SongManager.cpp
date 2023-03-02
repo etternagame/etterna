@@ -152,7 +152,7 @@ SongManager::DifferentialReloadDir(string dir) -> int
 	auto newsongs = 0;
 
 	std::vector<std::string> folders;
-	GetDirListing(dir + "*", folders, true);
+	FILEMAN->GetDirListing(dir + "*", folders, ONLY_DIR);
 
 	std::vector<Group> groups;
 	Group unknownGroup("Unknown Group");
@@ -166,7 +166,7 @@ SongManager::DifferentialReloadDir(string dir) -> int
 			unknownGroup.songs.emplace_back(SongDir(folder));
 		} else {
 			std::vector<std::string> songdirs;
-			GetDirListing(dir + folder + "/*", songdirs, true, true);
+			FILEMAN->GetDirListing(dir + folder + "/*", songdirs, ONLY_DIR, true);
 			Group group(folder);
 			for (auto& song : songdirs) {
 				group.songs.emplace_back(SongDir(song));
@@ -771,7 +771,7 @@ SongManager::IsSongDir(const std::string& sDir) -> bool
 {
 	// Check to see if they put a song directly inside the group folder.
 	std::vector<std::string> arrayFiles;
-	GetDirListing(sDir + "/*", arrayFiles);
+	FILEMAN->GetDirListing(sDir + "/*", arrayFiles, ONLY_FILE);
 	const auto& audio_exts = ActorUtil::GetTypeExtensionList(FT_Sound);
 	for (auto& fname : arrayFiles) {
 		const std::string ext = GetExtension(fname);
@@ -806,7 +806,7 @@ SongManager::AddGroup(const std::string& sDir, const std::string& sGroupDirName)
 	ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
 	
 	FILEMAN->GetDirListingWithMultipleExtensions(
-	  sDir + sGroupDirName + "/", exts, arrayGroupBanners);
+	  sDir + sGroupDirName + "/", exts, arrayGroupBanners, ONLY_FILE);
 
 	std::string sBannerPath;
 	if (!arrayGroupBanners.empty()) {
@@ -814,7 +814,7 @@ SongManager::AddGroup(const std::string& sDir, const std::string& sGroupDirName)
 	} else {
 		// Look for a group banner in the parent folder
 		FILEMAN->GetDirListingWithMultipleExtensions(
-		  sDir + sGroupDirName, exts, arrayGroupBanners);
+		  sDir + sGroupDirName, exts, arrayGroupBanners, ONLY_FILE);
 		if (!arrayGroupBanners.empty()) {
 			sBannerPath = sDir + arrayGroupBanners[0];
 		}
@@ -833,7 +833,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 {
 	Locator::getLogger()->info("LoadStepmaniaSongDir Starting: {}", sDir);
 	std::vector<std::string> songFolders;
-	GetDirListing(sDir + "*", songFolders, true);
+	FILEMAN->GetDirListing(sDir + "*", songFolders, ONLY_DIR);
 	if (ld != nullptr) {
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(songFolders.size());
@@ -848,11 +848,15 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 			unknownGroup.songs.emplace_back("/" + burp);
 		} else {
 			auto group = Group(folder);
-			GetDirListing(sDir + folder + "/*", group.songs, true, true);
+			FILEMAN->GetDirListing(sDir + folder + "/*", group.songs, ONLY_DIR, true);
 			groups.emplace_back(group);
 		}
 	}
 	if (!unknownGroup.songs.empty()) {
+		Locator::getLogger()->warn("Creating Ungrouped Songs group with {} "
+								   "songs... This means you may have a Song "
+								   "folder that isn't inside a pack.",
+								   unknownGroup.songs.size());
 		groups.emplace_back(unknownGroup);
 	}
 

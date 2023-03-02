@@ -5,6 +5,7 @@
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
 #include "Core/Services/Locator.hpp"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "SongManager.h"
 #include "DownloadManager.h"
@@ -269,7 +270,8 @@ ProfileManager::RefreshLocalProfilesFromDisk(LoadingWindow* ld)
 	UnloadAllLocalProfiles();
 
 	std::vector<std::string> profile_ids;
-	GetDirListing(USER_PROFILES_DIR + "*", profile_ids, true, true);
+	FILEMAN->GetDirListing(
+	  USER_PROFILES_DIR + "*", profile_ids, ONLY_DIR, true);
 
 	for (auto& id : profile_ids) {
 		DirAndProfile derp;

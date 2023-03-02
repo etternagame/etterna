@@ -1,3 +1,6 @@
+--- Game Preferences
+-- @module 03_GamePreferences
+
 -- GamePreferences: Clone of AJ's User Preferences "Module"
 -- Written by AJ Kelly of KKI Labs / Version 2.11-ssc
 -- (modified slightly for Cerulean Skies 2's disregard of the name of the

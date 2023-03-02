@@ -1,3 +1,5 @@
+--- Custom Speed Mods
+-- @module 03_CustomSpeedMods
 --[[
 Custom Speed Mods v3 (for StepMania 5)
 

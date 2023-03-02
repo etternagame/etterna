@@ -45,10 +45,10 @@ RageFileDriver::GetPathValue(const std::string& sPath)
 void
 RageFileDriver::GetDirListing(const std::string& sPath,
 							  std::vector<std::string>& asAddTo,
-							  bool bOnlyDirs,
+							  DirListingReturnFilter returnFilter,
 							  bool bReturnPathToo)
 {
-	FDB->GetDirListing(sPath, asAddTo, bOnlyDirs, bReturnPathToo);
+	FDB->GetDirListing(sPath, asAddTo, returnFilter, bReturnPathToo);
 }
 
 RageFileManager::FileType

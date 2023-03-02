@@ -121,7 +121,8 @@ local translations = {
     ["CategoryGameplay Elements 1"] = THEME:GetString("Settings", "CategoryGameplay Elements 1"),
     ["CategoryGameplay Elements 2"] = THEME:GetString("Settings", "CategoryGameplay Elements 2"),
     ["CategoryGlobal Options"] = THEME:GetString("Settings", "CategoryGlobal Options"),
-    ["CategoryTheme Options"] = THEME:GetString("Settings", "CategoryTheme Options"),
+    ["CategoryTheme Options 1"] = THEME:GetString("Settings", "CategoryTheme Options 1"),
+    ["CategoryTheme Options 2"] = THEME:GetString("Settings", "CategoryTheme Options 2"),
     ["CategorySound Options"] = THEME:GetString("Settings", "CategorySound Options"),
     ["CategoryInput Options"] = THEME:GetString("Settings", "CategoryInput Options"),
     ["CategoryProfile Options"] = THEME:GetString("Settings", "CategoryProfile Options"),
@@ -377,6 +378,8 @@ local translations = {
     MusicWheelPositionExplanation = THEME:GetString("Settings", "MusicWheelPositionExplanation"),
     MusicWheelBanners = THEME:GetString("Settings", "MusicWheelBanners"),
     MusicWheelBannersExplanation = THEME:GetString("Settings", "MusicWheelBannersExplanation"),
+    MusicWheelSpeed = THEME:GetString("Settings", "MusicWheelSpeed"),
+    MusicWheelSpeedExplanation = THEME:GetString("Settings", "MusicWheelSpeedExplanation"),
     VideoBanners = THEME:GetString("Settings", "VideoBanners"),
     VideoBannersExplanation = THEME:GetString("Settings", "VideoBannersExplanation"),
     ShowBGs = THEME:GetString("Settings", "ShowBGs"),
@@ -3245,6 +3248,7 @@ local function rightFrame()
         },
         wheelPosition = themeoption("global", "WheelPosition"),
         wheelBanners = themeoption("global", "WheelBanners"),
+        wheelSpeed = themeoption("global", "WheelSpeed"),
         showBackgrounds = PREFSMAN:GetPreference("ShowBackgrounds"),
         showBanners = themeoption("global", "ShowBanners"),
         useSingleColorBG = themeoption("global", "FallbackToAverageColorBG"),
@@ -3266,7 +3270,7 @@ local function rightFrame()
         displayEWMA = playeroption("DisplayEWMA"),
         displayStdDev = playeroption("DisplayStdDev"),
         measureCounter = playeroption("MeasureCounter"),
-        measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
+        measureLines = {get = getdataTHEME("global", "MeasureLines"), set = function(x) setdataTHEME("global", "MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
         npsGraph = playeroption("NPSGraph"),
         playerInfo = playeroption("PlayerInfo"),
@@ -3552,7 +3556,8 @@ local function rightFrame()
         },
         Graphics = {
             "Global Options",
-            "Theme Options",
+            "Theme Options 1",
+            "Theme Options 2",
         },
         Sound = {
             "Sound Options",
@@ -5707,7 +5712,7 @@ local function rightFrame()
         --
         -----
         -- THEME OPTIONS
-        ["Theme Options"] = {
+        ["Theme Options 1"] = {
             {
                 Name = "Music Wheel Position",
                 DisplayName = translations["MusicWheelPosition"],
@@ -5725,6 +5730,33 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("wheelBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("wheelBanners", true),
+            },
+            {
+                Name = "Music Wheel Speed",
+                DisplayName = translations["MusicWheelSpeed"],
+                Type = "SingleChoice",
+                Explanation = translations["MusicWheelSpeedExplanation"],
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = 5, 50 do
+                        o[#o+1] = {
+                            Name = i,
+                            DisplayName = i,
+                            ChosenFunction = function()
+                                optionData["wheelSpeed"].set(i)
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local v = optionData["wheelSpeed"].get()
+                    if v < 5 or v > 50 then
+                        return 1
+                    else
+                        return v - 4
+                    end
+                end,
             },
             {
                 Name = "Video Banners",
@@ -5789,6 +5821,40 @@ local function rightFrame()
                 Directions = preferenceToggleDirections("SortBySSRNormPercent", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("SortBySSRNormPercent", true),
             },
+            {
+                Name = "Color Config",
+                DisplayName = translations["ColorConfig"],
+                Type = "Button",
+                Explanation = translations["ColorConfigExplanation"],
+                Choices = {
+                    {
+                        Name = "Color Config",
+                        DisplayName = translations["ColorConfigButton"],
+                        ChosenFunction = function()
+                            -- activate color config screen
+                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Color Config"})
+                        end,
+                    },
+                }
+            },
+            {
+                Name = "Asset Settings",
+                DisplayName = translations["AssetSettings"],
+                Type = "Button",
+                Explanation = translations["AssetSettingsExplanation"],
+                Choices = {
+                    {
+                        Name = "Asset Settings",
+                        DisplayName = translations["AssetSettingsButton"],
+                        ChosenFunction = function()
+                            -- activate asset settings screen
+                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "Settings"})
+                        end,
+                    },
+                }
+            },
+        },
+        ["Theme Options 2"] = {
             {
                 Name = "Show Lyrics",
                 DisplayName = translations["ShowLyrics"],
@@ -7021,10 +7087,9 @@ local function rightFrame()
                     MouseOverCommand = function(self)
                         if not focused or optionDef == nil then return end
                         updateExplainText(rowHandle)
-                        -- uncomment to update cursor position when hovering the invisible area
-                        -- seems like an annoying and buggy looking behavior
-                        -- although it is correct, it is just weird
-                        --setCursorVerticalHorizontalPos(rowHandle, nil)
+                        -- this updates cursor position when hovering the invisible area
+                        -- seems like an annoying and buggy looking behavior for some people
+                        setCursorVerticalHorizontalPos(rowHandle, nil)
                     end,
                 }
             }

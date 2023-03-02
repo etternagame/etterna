@@ -441,7 +441,7 @@ StripMacResourceForks(std::vector<std::string>& vs)
 void
 RageFileManager::GetDirListing(const std::string& sPath_,
 							   std::vector<std::string>& AddTo,
-							   bool bOnlyDirs,
+							   DirListingReturnFilter dirListingReturnFilter,
 							   bool bReturnPathToo)
 {
 	std::string sPath = sPath_;
@@ -466,7 +466,8 @@ RageFileManager::GetDirListing(const std::string& sPath_,
 		const unsigned OldStart = AddTo.size();
 
 		pLoadedDriver->m_pDriver->GetDirListing(
-		  p, AddTo, bOnlyDirs, bReturnPathToo);
+		  p, AddTo, dirListingReturnFilter, bReturnPathToo);
+
 		if (AddTo.size() != OldStart)
 			++iDriversThatReturnedFiles;
 
@@ -503,11 +504,11 @@ RageFileManager::GetDirListingWithMultipleExtensions(
   const std::string& sPath,
   std::vector<std::string> const& ExtensionList,
   std::vector<std::string>& AddTo,
-  bool bOnlyDirs,
+  DirListingReturnFilter dirListingReturnFilter,
   bool bReturnPathToo)
 {
 	std::vector<std::string> ret;
-	GetDirListing(sPath + "*", ret, bOnlyDirs, bReturnPathToo);
+	GetDirListing(sPath + "*", ret, dirListingReturnFilter, bReturnPathToo);
 	for (auto&& item : ret) {
 		std::string item_ext = GetExtension(item);
 		for (auto&& check_ext : ExtensionList) {
@@ -1180,10 +1181,20 @@ GetFileSizeInBytes(const std::string& sPath)
 void
 GetDirListing(const std::string& sPath,
 			  std::vector<std::string>& AddTo,
-			  bool bOnlyDirs,
+			  DirListingReturnFilter dirListingReturnFilter,
 			  bool bReturnPathToo)
 {
-	FILEMAN->GetDirListing(sPath, AddTo, bOnlyDirs, bReturnPathToo);
+	FILEMAN->GetDirListing(
+	  sPath, AddTo, dirListingReturnFilter, bReturnPathToo);
+}
+
+void
+GetDirListing(const std::string& sPath,
+			  std::vector<std::string>& addTo,
+			  bool onlydir,
+			  bool returnPathToo)
+{
+	FILEMAN->GetDirListing(sPath, addTo, onlydir ? ONLY_DIR : ANY_TYPE);
 }
 
 void
@@ -1193,12 +1204,12 @@ GetDirListingRecursive(const std::string& sDir,
 {
 	ASSERT(sDir.back() == '/');
 	std::vector<std::string> vsFiles;
-	GetDirListing(sDir + sMatch, vsFiles, false, true);
+	GetDirListing(sDir + sMatch, vsFiles, ANY_TYPE, true);
 	std::vector<std::string> vsDirs;
-	GetDirListing(sDir + "*", vsDirs, true, true);
+	GetDirListing(sDir + "*", vsDirs, ONLY_DIR, true);
 	for (int i = 0; i < static_cast<int>(vsDirs.size()); i++) {
-		GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, false, true);
-		GetDirListing(vsDirs[i] + "/*", vsDirs, true, true);
+		GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, ANY_TYPE, true);
+		GetDirListing(vsDirs[i] + "/*", vsDirs, ONLY_DIR, true);
 		vsDirs.erase(vsDirs.begin() + i);
 		i--;
 	}
@@ -1216,12 +1227,12 @@ GetDirListingRecursive(RageFileDriver* prfd,
 {
 	ASSERT(sDir.back() == '/');
 	std::vector<std::string> vsFiles;
-	prfd->GetDirListing(sDir + sMatch, vsFiles, false, true);
+	prfd->GetDirListing(sDir + sMatch, vsFiles, ANY_TYPE, true);
 	std::vector<std::string> vsDirs;
-	prfd->GetDirListing(sDir + "*", vsDirs, true, true);
+	prfd->GetDirListing(sDir + "*", vsDirs, ONLY_DIR, true);
 	for (int i = 0; i < static_cast<int>(vsDirs.size()); i++) {
-		prfd->GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, false, true);
-		prfd->GetDirListing(vsDirs[i] + "/*", vsDirs, true, true);
+		prfd->GetDirListing(vsDirs[i] + "/" + sMatch, vsFiles, ANY_TYPE, true);
+		prfd->GetDirListing(vsDirs[i] + "/*", vsDirs, ONLY_DIR, true);
 		vsDirs.erase(vsDirs.begin() + i);
 		i--;
 	}
@@ -1245,7 +1256,7 @@ GetHashForDirectory(const std::string& sDir)
 	hash += GetHashForString(sDir);
 
 	std::vector<std::string> arrayFiles;
-	GetDirListing(sDir + "*", arrayFiles, false);
+	GetDirListing(sDir + "*", arrayFiles, ANY_TYPE, false);
 	for (auto& arrayFile : arrayFiles) {
 		const std::string sFilePath = sDir + arrayFile;
 		hash += GetHashForFile(sFilePath);
@@ -1279,19 +1290,63 @@ class LunaRageFileManager : public Luna<RageFileManager>
 	static int GetDirListing(T* p, lua_State* L)
 	{
 		std::vector<std::string> vDirs;
-		bool bOnlyDirs = false;
 		bool bReturnPathToo = false;
+		DirListingReturnFilter filterType = ANY_TYPE;
 
 		// the last two arguments of GetDirListing are optional;
-		// let's reflect that in the Lua too. -aj
+		// let's reflect that in the Lua too.
 		if (lua_gettop(L) >= 2 && !lua_isnil(L, 2)) {
-			bOnlyDirs = BArg(2);
+			if (lua_isboolean(L, 2)) {
+				auto b = BArg(2);
+				if (b) {
+					filterType = ONLY_DIR;
+				}
+			} else if (lua_isnumber(L, 2)) {
+				// assume the exact enum values
+				auto i = IArg(2);
+				if (i < 0 || i > 2) {
+					i = 0;
+				}
+				switch (i) {
+					case 0:
+					default:
+						filterType = ANY_TYPE;
+						break;
+					case 1:
+						filterType = ONLY_DIR;
+						break;
+					case 2:
+						filterType = ONLY_FILE;
+						break;
+				}
+			} else if (lua_isstring(L, 2)) {
+				// extremely lazy comparison
+				std::string givenstr = SArg(2);
+				if (CompareNoCase(givenstr, "any_type")) {
+					filterType = ANY_TYPE;
+				} else if (CompareNoCase(givenstr, "only_dir")) {
+					filterType = ONLY_DIR;
+				} else if (CompareNoCase(givenstr, "only_file")) {
+					filterType = ONLY_FILE;
+				}
+			} else {
+				Locator::getLogger()->fatal(
+				  "ATTEMPTED TO CALL Lua GetDirListing with invalid Lua type "
+				  "in parameter 3");
+			}
+
 			if (!lua_isnil(L, 3)) {
 				bReturnPathToo = BArg(3);
 			}
 		}
+
+		// old interface
 		//( Path, addTo, OnlyDirs=false, ReturnPathToo=false );
-		p->GetDirListing(SArg(1), vDirs, bOnlyDirs, bReturnPathToo);
+
+		// new interface
+		//( Path, addTo, filterType=ANY_TYPE, ReturnPathToo=false );
+
+		p->GetDirListing(SArg(1), vDirs, filterType, bReturnPathToo);
 		LuaHelpers::CreateTableFromArray(vDirs, L);
 		return 1;
 	}

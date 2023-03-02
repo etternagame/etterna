@@ -191,7 +191,7 @@ EmptyDir(std::string dir)
 	ASSERT(dir[dir.size() - 1] == '/');
 
 	std::vector<std::string> asCacheFileNames;
-	GetDirListing(dir, asCacheFileNames);
+	FILEMAN->GetDirListing(dir, asCacheFileNames);
 	for (auto& asCacheFileName : asCacheFileNames) {
 		if (!IsADirectory(dir + asCacheFileName))
 			FILEMAN->Remove(dir + asCacheFileName);

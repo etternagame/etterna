@@ -6,6 +6,7 @@
 #include "NotesLoader.h"
 #include "NotesLoaderDWI.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Utils/RageUtil_CharConversions.h"
 #include "Etterna/Models/Songs/Song.h"
@@ -568,7 +569,7 @@ void
 DWILoader::GetApplicableFiles(const std::string& sPath,
 							  std::vector<std::string>& out)
 {
-	GetDirListing(sPath + std::string("*.dwi"), out);
+	FILEMAN->GetDirListing(sPath + std::string("*.dwi"), out, ONLY_FILE);
 }
 
 bool

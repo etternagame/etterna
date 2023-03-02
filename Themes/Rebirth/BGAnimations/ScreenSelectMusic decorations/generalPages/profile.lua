@@ -127,6 +127,7 @@ local translations = {
     ViewRecentScores = THEME:GetString("ScreenSelectMusic Profile", "ViewRecentScores"),
     ShowingLocalScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingLocalScores"),
     ShowingOnlineScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingOnlineScores"),
+    SetPlayerName = THEME:GetString("ScreenSelectMusic Profile", "SetPlayerName"),
 }
 
 -- the page names in the order they go
@@ -1064,6 +1065,11 @@ local function createList()
                     else
                         self:settext(pname)
                     end
+                    if self:IsInvisible() then return end
+                    if isOver(self) then
+                        TOOLTIP:SetText(translations["SetPlayerName"])
+                        TOOLTIP:Show()
+                    end
                 end,
                 ProfileRenamedMessageCommand = function(self)
                     pname = profile:GetDisplayName()
@@ -1071,13 +1077,18 @@ local function createList()
                 end,
                 MouseOverCommand = function(self)
                     self:diffusealpha(buttonHoverAlpha)
+                    if self:IsInvisible() then return end
+                    TOOLTIP:SetText(translations["SetPlayerName"])
+                    TOOLTIP:Show()
                 end,
                 MouseOutCommand = function(self)
                     self:diffusealpha(1)
+                    TOOLTIP:Hide()
                 end,
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
+                        TOOLTIP:Hide()
                         renameProfileDialogue(profile)
                     end
                 end,

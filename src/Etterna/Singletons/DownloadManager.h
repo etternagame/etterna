@@ -102,6 +102,7 @@ class HTTPRequest
 	  , form(postform)
 	  , Done(done)
 	  , Failed(fail){};
+	long response_code{ 0 };
 	CURL* handle{ nullptr };
 	curl_httppost* form{ nullptr };
 	std::string result;
