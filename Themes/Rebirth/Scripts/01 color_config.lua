@@ -95,6 +95,11 @@ local defaultConfig = {
         ProfileBackground = "#000000",
         Separator = "#ffffff",
         UnderlayBackground = "#333333",
+        LogoE = "#ffffff",
+        LogoTriangle = "#805faf",
+        ItemTriangle = "#805faf",
+        GradientColor1 = "#59307f",
+        GradientColor2 = "#b87cf0",
     },
     gameplay = {
         ErrorBarCenter = ETTERNA_PURPLE,
