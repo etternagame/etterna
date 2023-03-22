@@ -328,6 +328,132 @@ function InputDebounceTime()
     return t
 end
 
+function FrameLimitGlobal()
+    local delaylist = {"0","30","40","50","60","70","80","90"}
+    do
+        local start = 100
+        local upper = 1000
+        local increment = 50
+        while start <= upper do
+            delaylist[#delaylist+1] = tostring(start)
+            start = start + increment
+        end
+		start = 2000
+        upper = 5000
+        increment = 1000
+        while start <= upper do
+            delaylist[#delaylist+1] = tostring(start)
+            start = start + increment
+        end
+    end
+
+    local t = {
+        Name = "FrameLimitGlobal",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = delaylist,
+        LoadSelections = function(self, list, pn)
+            local rateindex = 1
+			local diff = 999999999
+            local rate = notShit.round(PREFSMAN:GetPreference("FrameLimit"), 0)
+            for i = 1, #delaylist do
+                local r = tonumber(delaylist[i])
+                if r == rate then
+                    rateindex = i
+                    break
+                end
+				if math.abs(r - rate) < diff then
+					diff = math.abs(r-rate)
+					rateindex = i
+				else
+					-- assuming sorted/sequential, exit early
+					break
+				end
+            end
+            list[rateindex] = true
+        end,
+        SaveSelections = function(self, list, pn)
+            for i, v in ipairs(list) do
+                if v == true then
+                    local r = notShit.round(tonumber(delaylist[i]), 0)
+					PREFSMAN:SetPreference("FrameLimit", r)
+                    break
+                end
+            end
+        end,
+		NotifyOfSelection = function(self, pn, choice)
+			MESSAGEMAN:Broadcast("FrameLimitGlobalOptionChanged", {value = PREFSMAN:GetPreference("FrameLimit")})
+		end
+    }
+    setmetatable(t, t)
+    return t
+end
+
+function FrameLimitGameplay()
+    local delaylist = {"0","30","40","50","60","70","80","90"}
+    do
+        local start = 100
+        local upper = 1000
+        local increment = 50
+        while start <= upper do
+            delaylist[#delaylist+1] = tostring(start)
+            start = start + increment
+        end
+		start = 2000
+        upper = 5000
+        increment = 1000
+        while start <= upper do
+            delaylist[#delaylist+1] = tostring(start)
+            start = start + increment
+        end
+    end
+
+    local t = {
+        Name = "FrameLimitGameplay",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        Choices = delaylist,
+        LoadSelections = function(self, list, pn)
+            local rateindex = 1
+			local diff = 999999999
+            local rate = notShit.round(PREFSMAN:GetPreference("FrameLimitGameplay"), 0)
+            for i = 1, #delaylist do
+                local r = tonumber(delaylist[i])
+                if r == rate then
+                    rateindex = i
+                    break
+                end
+				if math.abs(r - rate) < diff then
+					diff = math.abs(r-rate)
+					rateindex = i
+				else
+					-- assuming sorted/sequential, exit early
+					break
+				end
+            end
+            list[rateindex] = true
+        end,
+        SaveSelections = function(self, list, pn)
+            for i, v in ipairs(list) do
+                if v == true then
+                    local r = notShit.round(tonumber(delaylist[i]), 0)
+					PREFSMAN:SetPreference("FrameLimitGameplay", r)
+                    break
+                end
+            end
+        end,
+		NotifyOfSelection = function(self, pn, choice)
+			MESSAGEMAN:Broadcast("FrameLimitGameplayOptionChanged", {value = PREFSMAN:GetPreference("FrameLimitGameplay")})
+		end
+    }
+    setmetatable(t, t)
+    return t
+end
+
 function VisualDelaySeconds()
     local delaylist = {}
     do
