@@ -949,6 +949,12 @@ local function scoreBoard(pn, position)
 			ScoreChangedMessageCommand = function(self)
 				self:playcommand("ForceWindow")
 			end,
+			LoadedCustomWindowMessageCommand = function(self)
+				marvelousTaps = lastSnapshot:GetJudgments()["W1"]
+				perfectTaps = lastSnapshot:GetJudgments()["W2"]
+				greatTaps = lastSnapshot:GetJudgments()["W3"]
+				self:playcommand("Set")
+			end,
 		},
 	}
 
