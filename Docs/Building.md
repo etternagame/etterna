@@ -50,7 +50,7 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
   - Arch: `pacman -S openssl`
   - Alpine: `apk add openssl-dev`
   - macOS: `brew install openssl`
-  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's recommended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1s.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1s.exe). If these links are dead, look for the OpenSSL v1.1.1 install links (EXE or MSI) on the Shining Light Productions site. Typically we use the full versions rather than the Light versions.
+  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's recommended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1t.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1t.exe). If these links are dead, look for the OpenSSL v1.1.1 install links (EXE or MSI) on the Shining Light Productions site. Typically we use the full versions rather than the Light versions.
 - [depot_tools](https://dev.chromium.org/developers/how-tos/install-depot-tools) - Installation is platform specific. To skip installing this, follow the relevant instructions in [CLI Project Generation](CLI-Project-Generation).
 
 ### Linux Dependencies

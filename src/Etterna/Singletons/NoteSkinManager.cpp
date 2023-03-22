@@ -717,6 +717,11 @@ class LunaNoteSkinManager : public Luna<NoteSkinManager>
 		LoadActor(p, L);
 		p->SetCurrentNoteSkin(sOldNoteSkin);
 
+		if (lua_isnil(L, -1)) {
+			lua_pushnil(L);
+			return 1;
+		}
+
 		auto xnode = XmlFileUtil::XNodeFromTable(L);
 		if (xnode == nullptr) {
 			// XNode will warn about the error

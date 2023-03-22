@@ -767,12 +767,20 @@ PlayerReplay::Step(int col,
 		fNoteOffset = (fStepSeconds - fPositionSeconds) /
 					  REPLAYS->GetActiveReplay()->GetMusicRate();
 
-		NOTESKIN->SetLastSeenColor(
-		  NoteTypeToString(GetNoteType(rowBeingJudged)));
-
-		TapNote* pTN = nullptr;
 		auto closestNR = GetClosestNote(
 		  col, rowBeingJudged, MAX_NOTE_ROW, MAX_NOTE_ROW, false, false);
+
+		if (closestNR != rowBeingJudged) {
+			// BANDAID BANDAID BANDAID
+			// BANDAID BANDAID BANDAID
+			Locator::getLogger()->trace(
+			  "Dumped PlayerReplay input because it might break something: closestnr {} "
+			  "- beingjudged {} - rowtojudge {}",
+			  closestNR,
+			  rowBeingJudged,
+			  rowToJudge);
+			return;
+		}
 
 		if (closestNR == -1 && !bRelease) {
 			// the last notes of the file will trigger this due to releases
@@ -786,9 +794,12 @@ PlayerReplay::Step(int col,
 			  rowToJudge);
 			return;
 		}
-		auto iter = m_NoteData.FindTapNote(col, closestNR);
 
-		pTN = &iter->second;
+		NOTESKIN->SetLastSeenColor(
+		  NoteTypeToString(GetNoteType(rowBeingJudged)));
+
+		auto iter = m_NoteData.FindTapNote(col, closestNR);
+		TapNote* pTN = &iter->second;
 
 		// We don't really have to care if we are releasing on a non-lift,
 		// right? This fixes a weird noteskin bug with tap explosions.
@@ -813,14 +824,17 @@ PlayerReplay::Step(int col,
 			} else {
 				// every other case
 				if (pTN->IsNote() || pTN->type == TapNoteType_Lift) {
-					score = ReplayManager::GetTapNoteScoreForReplay(
-					  fNoteOffset, GetTimingWindowScale());
+					// make sure lifts are on lifts and taps are on taps...
+					if ((pTN->type == TapNoteType_Lift) == bRelease) {
+						score = ReplayManager::GetTapNoteScoreForReplay(
+						  fNoteOffset, GetTimingWindowScale());
 
-					// taps assigned to notes really far away
-					// are counted as misses
-					// but to stop it breaking things, do nothing
-					if (score == TNS_Miss) {
-						score = TNS_None;
+						// taps assigned to notes really far away
+						// are counted as misses
+						// but to stop it breaking things, do nothing
+						if (score == TNS_Miss) {
+							score = TNS_None;
+						}
 					}
 				}
 			}

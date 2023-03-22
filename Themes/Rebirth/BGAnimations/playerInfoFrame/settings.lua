@@ -120,7 +120,8 @@ local translations = {
     ["CategoryInvalidating Options"] = THEME:GetString("Settings", "CategoryInvalidating Options"),
     ["CategoryGameplay Elements 1"] = THEME:GetString("Settings", "CategoryGameplay Elements 1"),
     ["CategoryGameplay Elements 2"] = THEME:GetString("Settings", "CategoryGameplay Elements 2"),
-    ["CategoryGlobal Options"] = THEME:GetString("Settings", "CategoryGlobal Options"),
+    ["CategoryGlobal Options 1"] = THEME:GetString("Settings", "CategoryGlobal Options 1"),
+    ["CategoryGlobal Options 2"] = THEME:GetString("Settings", "CategoryGlobal Options 2"),
     ["CategoryTheme Options 1"] = THEME:GetString("Settings", "CategoryTheme Options 1"),
     ["CategoryTheme Options 2"] = THEME:GetString("Settings", "CategoryTheme Options 2"),
     ["CategorySound Options"] = THEME:GetString("Settings", "CategorySound Options"),
@@ -368,6 +369,10 @@ local translations = {
     TextureResolutionExplanation = THEME:GetString("Settings", "TextureResolutionExplanation"),
     VSync = THEME:GetString("Settings", "VSync"),
     VSyncExplanation = THEME:GetString("Settings", "VSyncExplanation"),
+    FrameLimit = THEME:GetString("Settings", "FrameLimit"),
+    FrameLimitExplanation = THEME:GetString("Settings", "FrameLimitExplanation"),
+    FrameLimitGameplay = THEME:GetString("Settings", "FrameLimitGameplay"),
+    FrameLimitGameplayExplanation = THEME:GetString("Settings", "FrameLimitGameplayExplanation"),
     FastNoteRendering = THEME:GetString("Settings", "FastNoteRendering"),
     FastNoteRenderingExplanation = THEME:GetString("Settings", "FastNoteRenderingExplanation"),
     ShowStats = THEME:GetString("Settings", "ShowStats"),
@@ -3555,7 +3560,8 @@ local function rightFrame()
             "Gameplay Elements 2",
         },
         Graphics = {
-            "Global Options",
+            "Global Options 1",
+            "Global Options 2",
             "Theme Options 1",
             "Theme Options 2",
         },
@@ -5109,7 +5115,7 @@ local function rightFrame()
         --
         -----
         -- GLOBAL GRAPHICS OPTIONS
-        ["Global Options"] = {
+        ["Global Options 1"] = {
             {
                 Name = "Language",
                 DisplayName = translations["Language"],
@@ -5406,6 +5412,52 @@ local function rightFrame()
                 end,
             },
             {
+                Name = "VSync",
+                DisplayName = translations["VSync"],
+                Type = "SingleChoice",
+                Explanation = translations["VSyncExplanation"],
+                Choices = {
+                    {
+                        Name = "On",
+                        DisplayName = translations["On"],
+                        ChosenFunction = function()
+                            local v = true
+                            PREFSMAN:SetPreference("Vsync", v)
+                            if v == optionData.vsyncBefore then
+                                modsToApplyAtExit["Vsync"] = nil
+                            else
+                                modsToApplyAtExit["Vsync"] = {
+                                    Name = "Vsync",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        DisplayName = translations["Off"],
+                        ChosenFunction = function()
+                            local v = false
+                            PREFSMAN:SetPreference("Vsync", v)
+                            if v == optionData.vsyncBefore then
+                                modsToApplyAtExit["Vsync"] = nil
+                            else
+                                modsToApplyAtExit["Vsync"] = {
+                                    Name = "Vsync",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("Vsync")
+                    if v then return 1 else return 2 end
+                end,
+            },
+            {
                 Name = "Display Color Depth",
                 DisplayName = translations["ColorDepth"],
                 Type = "SingleChoice",
@@ -5617,52 +5669,8 @@ local function rightFrame()
                 end,
             },
             ]]
-            {
-                Name = "VSync",
-                DisplayName = translations["VSync"],
-                Type = "SingleChoice",
-                Explanation = translations["VSyncExplanation"],
-                Choices = {
-                    {
-                        Name = "On",
-                        DisplayName = translations["On"],
-                        ChosenFunction = function()
-                            local v = true
-                            PREFSMAN:SetPreference("Vsync", v)
-                            if v == optionData.vsyncBefore then
-                                modsToApplyAtExit["Vsync"] = nil
-                            else
-                                modsToApplyAtExit["Vsync"] = {
-                                    Name = "Vsync",
-                                    Value = v,
-                                    SetGraphics = true,
-                                }
-                            end
-                        end,
-                    },
-                    {
-                        Name = "Off",
-                        DisplayName = translations["Off"],
-                        ChosenFunction = function()
-                            local v = false
-                            PREFSMAN:SetPreference("Vsync", v)
-                            if v == optionData.vsyncBefore then
-                                modsToApplyAtExit["Vsync"] = nil
-                            else
-                                modsToApplyAtExit["Vsync"] = {
-                                    Name = "Vsync",
-                                    Value = v,
-                                    SetGraphics = true,
-                                }
-                            end
-                        end,
-                    },
-                },
-                ChoiceIndexGetter = function()
-                    local v = PREFSMAN:GetPreference("Vsync")
-                    if v then return 1 else return 2 end
-                end,
-            },
+        },
+        ["Global Options 2"] = {
             {
                 Name = "Fast Note Rendering",
                 DisplayName = translations["FastNoteRendering"],
@@ -5671,15 +5679,6 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("FastNoteRendering", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("FastNoteRendering", true),
-            },
-            {
-                Name = "Show Stats",
-                DisplayName = translations["ShowStats"],
-                Type = "SingleChoice",
-                Explanation = translations["ShowStatsExplanation"],
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = preferenceToggleDirections("ShowStats", true, false),
-                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
             },
             {
                 Name = "Tap Glow",
@@ -5707,6 +5706,93 @@ local function rightFrame()
                 Choices = choiceSkeleton("Yes", "No"),
                 Directions = optionDataToggleDirectionsFUNC("showBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBanners", true),
+            },
+            {
+                Name = "Show Stats",
+                DisplayName = translations["ShowStats"],
+                Type = "SingleChoice",
+                Explanation = translations["ShowStatsExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("ShowStats", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
+            },
+            {
+                Name = "Framelimit",
+                DisplayName = translations["FrameLimit"],
+                Type = "SingleChoiceModifier",
+                Explanation = translations["FrameLimitExplanation"],
+                Directions = {
+                    Left = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimit")
+                        if x < 30 then
+                            x = 1000
+                        else
+                            if multiplier then
+                                x = x - 50
+                            else
+                                x = x - 1
+                            end
+                        end
+                        if x < 30 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimit", x)
+                    end,
+                    Right = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimit")
+                        if x < 30 then
+                            x = 30
+                        else
+                            if multiplier then
+                                x = x + 50
+                            else
+                                x = x + 1
+                            end
+                        end
+                        if x > 1000 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimit", x)
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return PREFSMAN:GetPreference("FrameLimit") .. ""
+                end,
+            },
+            {
+                Name = "FramelimitGameplay",
+                DisplayName = translations["FrameLimitGameplay"],
+                Type = "SingleChoiceModifier",
+                Explanation = translations["FrameLimitGameplayExplanation"],
+                Directions = {
+                    Left = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimitGameplay")
+                        if x < 30 then
+                            x = 1000
+                        else
+                            if multiplier then
+                                x = x - 50
+                            else
+                                x = x - 1
+                            end
+                        end
+                        if x < 30 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimitGameplay", x)
+                    end,
+                    Right = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimitGameplay")
+                        if x < 30 then
+                            x = 30
+                        else
+                            if multiplier then
+                                x = x + 50
+                            else
+                                x = x + 1
+                            end
+                        end
+                        if x > 1000 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimitGameplay", x)
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return PREFSMAN:GetPreference("FrameLimitGameplay") .. ""
+                end,
             },
         },
         --
