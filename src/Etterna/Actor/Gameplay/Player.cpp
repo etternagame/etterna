@@ -3085,7 +3085,15 @@ Player::SetJudgment(int iRow,
 		msg.SetParam("Type", std::string("Tap"));
 		msg.SetParam("TapNoteOffset", tn.result.fTapNoteOffset);
 		if (m_pPlayerStageStats != nullptr) {
-			msg.SetParam("Val", m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+			if (tns >= NUM_TapNoteScore || tns < 0) {
+				Locator::getLogger()->fatal(
+				  "Invalid TNS {} sent to SetJudgment. Ignored 'Val' param in "
+				  "JudgmentMessage",
+				  tns);
+			} else {
+				msg.SetParam("Val",
+							 m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
+			}
 		}
 
 		if (tns != TNS_Miss) {
