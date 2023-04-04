@@ -95,6 +95,11 @@ local defaultConfig = {
         ProfileBackground = "#000000",
         Separator = "#ffffff",
         UnderlayBackground = "#333333",
+        LogoE = "#ffffff",
+        LogoTriangle = "#805faf",
+        ItemTriangle = "#805faf",
+        GradientColor1 = "#59307f",
+        GradientColor2 = "#b87cf0",
     },
     gameplay = {
         ErrorBarCenter = ETTERNA_PURPLE,
@@ -647,7 +652,11 @@ function registerActorToColorConfigElement(self, category, element, stroke)
         end
     end
     cmd(self)
-    self:addcommand("ColorConfigUpdatedMessage", cmd)
+    if self:GetCommand("ColorConfigUpdated") == nil then
+        self:addcommand("ColorConfigUpdatedMessage", cmd)
+    else
+        print("Found duplicate ColorConfigUpdatedMessageCommand in element "..(self:GetName() or "UNNAMED"))
+    end
 end
 
 -- same as the above but instead its for elements that use diffuseramp
@@ -661,7 +670,11 @@ function registerActorToColorConfigElementForDiffuseRamp(self, category, element
         self:effectcolor2(hiColor)
     end
     cmd(self)
-    self:addcommand("ColorConfigUpdatedMessage", cmd)
+    if self:GetCommand("ColorConfigUpdated") == nil then
+        self:addcommand("ColorConfigUpdatedMessage", cmd)
+    else
+        print("Found duplicate ColorConfigUpdatedMessageCommand in element "..(self:GetName() or "UNNAMED"))
+    end
 end
 
 -- run this stuff at init/load

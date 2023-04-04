@@ -103,12 +103,15 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 			ExportOptions(r, PLAYER_1);
 
 		if ((m_iChangeMask & OPT_APPLY_ASPECT_RATIO) != 0) {
-			THEME->UpdateLuaGlobals(); // This needs to be done before resetting
-									   // the projection matrix below
-			THEME->ReloadSubscribers(); // SCREEN_* has changed, so re-read all
-										// subscribing ThemeMetrics
-			SCREENMAN
-			  ->ThemeChanged(); // recreate ScreenSystemLayer and SharedBGA
+			// This needs to be done before resetting
+			// the projection matrix below
+			THEME->UpdateLuaGlobals(); 
+			// SCREEN_* has changed, so re-read all
+			// subscribing ThemeMetrics
+			THEME->ReloadSubscribers();
+			// recreate ScreenSystemLayer and SharedBGA
+			SCREENMAN->ThemeChanged();
+			MESSAGEMAN->Broadcast("ReloadedScripts");
 		}
 
 		/* If the theme changes, we need to reset RageDisplay to apply the new

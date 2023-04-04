@@ -91,9 +91,9 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 	auto sThemeSkinFolder =
 	  THEME->GetCurThemeDir() + "/NoteSkins/" + gameName + "/";
 	std::vector<std::string> asNoteSkinNames;
-	GetDirListing(sBaseSkinFolder + "*", asNoteSkinNames, true);
-	GetDirListing(sGlobalSkinFolder + "*", asNoteSkinNames, true);
-	GetDirListing(sThemeSkinFolder + "*", asNoteSkinNames, true);
+	FILEMAN->GetDirListing(sBaseSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
+	FILEMAN->GetDirListing(sGlobalSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
+	FILEMAN->GetDirListing(sThemeSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
 
 	g_mapNameToData.clear();
 	for (unsigned j = 0; j < asNoteSkinNames.size(); j++) {
@@ -316,7 +316,7 @@ NoteSkinManager::GetAllNoteSkinNamesForGame(const Game* pGame,
 		if (name == "solo")
 			name = "dance";
 		auto sBaseSkinFolder = SpecialFiles::NOTESKINS_DIR + name + "/";
-		GetDirListing(sBaseSkinFolder + "*", AddTo, true);
+		FILEMAN->GetDirListing(sBaseSkinFolder + "*", AddTo, ONLY_DIR);
 	}
 }
 
@@ -642,7 +642,7 @@ NoteSkinManager::GetPathFromDirAndFile(const std::string& sDir,
 {
 	std::vector<std::string> matches; // fill this with the possible files
 
-	GetDirListing(sDir + sFileName + "*", matches, false, true);
+	FILEMAN->GetDirListing(sDir + sFileName + "*", matches, false, true);
 
 	if (matches.empty())
 		return std::string();
@@ -716,6 +716,11 @@ class LunaNoteSkinManager : public Luna<NoteSkinManager>
 		p->SetCurrentNoteSkin(nsname);
 		LoadActor(p, L);
 		p->SetCurrentNoteSkin(sOldNoteSkin);
+
+		if (lua_isnil(L, -1)) {
+			lua_pushnil(L);
+			return 1;
+		}
 
 		auto xnode = XmlFileUtil::XNodeFromTable(L);
 		if (xnode == nullptr) {

@@ -37,7 +37,7 @@ class PlayerReplay : public Player
 	std::map<int, std::vector<PlaybackEvent>>& GetPlaybackEvents() {
 		return playbackEvents;
 	}
-	void SetPlaybackEvents(const std::map<int, std::vector<PlaybackEvent>>& v);
+	void SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v);
 
 	std::map<int, std::set<int>>& GetDroppedHolds() {
 		return droppedHolds;

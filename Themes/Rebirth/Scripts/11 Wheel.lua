@@ -32,7 +32,18 @@ local SOUND_SELECT = nil
 
 -- timer stuff
 local last_wheel_move_timestamp = GetTimeSinceStart()
-local MAX_WHEEL_SOUND_SPEED = 15
+local spinSpeed = function()
+    if themeConfig and getWheelSpeed then
+        local sp = getWheelSpeed()
+        if sp > 0 then
+            return sp
+        else
+            return 15
+        end
+    else
+        return 15
+    end
+end
 
 Wheel.mt = {
     updateMusicFromCurrentItem = function(whee)
@@ -167,7 +178,7 @@ Wheel.mt = {
         end
 
         whee.timeBeforeMovingBegins = 1 / 8 -- this was hardcoded and there is no justification for it
-        whee.spinSpeed = 15 -- preference based (CHANGE THIS)
+        whee.spinSpeed = spinSpeed() -- preference based (CHANGE THIS)
         whee.moving = num
 
         if whee.moving ~= 0 then
@@ -514,7 +525,7 @@ Wheel.mt = {
         end
 
         -- the wheel has settled
-        if whee.positionOffsetFromSelection == 0 and not whee.settled then
+        if whee.positionOffsetFromSelection == 0 and not whee.settled and whee.moving == 0 then
             whee:updateGlobalsFromCurrentItem()
             whee:updateMusicFromCurrentItem()
             -- settled brings along the Song, Group, Steps, and HoveredItem
@@ -819,10 +830,11 @@ function Wheel:new(params)
                     whee.keepupdating = false
                     whee:update()
                 end
+                local MAX_WHEEL_SOUND_SPEED = spinSpeed()
 
                 -- handle wheel movement moving moves
                 if whee.moving ~= 0 and whee.timeBeforeMovingBegins == 0 then
-                    local sping = whee.spinSpeed * whee.moving
+                    local sping = whee.spinSpeed * whee.moving * 1.25
                     whee.positionOffsetFromSelection = clamp(whee.positionOffsetFromSelection - (sping * delta), -1, 1)
                     if (whee.moving == -1 and whee.positionOffsetFromSelection >= 0) or
                         (whee.moving == 1 and whee.positionOffsetFromSelection <= 0) then
@@ -846,7 +858,7 @@ function Wheel:new(params)
 
                 else
                     -- the wheel should rotate toward selection but isnt "moving"
-                    local sping = 0.2 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
+                    local sping = 1 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
                     if whee.positionOffsetFromSelection > 0 then
                         whee.positionOffsetFromSelection = math.max(whee.positionOffsetFromSelection - (sping * delta), 0)
                     elseif whee.positionOffsetFromSelection < 0 then
@@ -1169,7 +1181,44 @@ function MusicWheel:new(params)
     end
 
     w.FindSongCommand = function(self, params)
-        w:findSongHelper(params, true)
+        if not w:findSongHelper(params, true) and WHEELDATA:FindTheOnlySearchResult() ~= nil then
+            -- sometimes the Song returned via searching by first found chartkey can be from a dupe key
+            -- and the Song metadata doesnt fit the Filter
+            -- in that case we know theres probably a valid result
+            -- so given that there is a valid result, set the position to 1
+            w:setNewState(
+                1,
+                1,
+                function() return WHEELDATA:GetWheelItems() end,
+                newItems,
+                nil
+            )
+            crossedGroupBorder = true
+            forceGroupCheck = true
+            GAMESTATE:SetCurrentSong(nil)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            
+            MESSAGEMAN:Broadcast("ClosedGroup", {
+                group = w.group,
+            })
+            w:rebuildFrames()
+            MESSAGEMAN:Broadcast("ModifiedGroups", {
+                group = w.group,
+                index = w.index,
+                maxIndex = #w.items,
+            })
+            w:updateGlobalsFromCurrentItem()
+            w:updateMusicFromCurrentItem()
+            MESSAGEMAN:Broadcast("WheelSettled", {
+                song = GAMESTATE:GetCurrentSong(),
+                group = w.group,
+                hovered = w:getCurrentItem(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                index = w.index,
+                maxIndex = #w.items
+            })
+            w.settled = true
+        end
     end
 
     w.FindGroupCommand = function(self, params)
@@ -1206,6 +1255,9 @@ function MusicWheel:new(params)
     end
 
     w.ReloadFilteredSongsCommand = function(self, params)
+        -- this stops things like the diff reload from killing the game
+        if enteringSong then return end
+
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 

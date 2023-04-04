@@ -19,6 +19,13 @@ ilt(const std::string& a, const std::string& b) -> bool;
 auto
 ieq(const std::string& a, const std::string& b) -> bool;
 
+enum DirListingReturnFilter
+{
+	ANY_TYPE = 0,
+	ONLY_DIR = 1,
+	ONLY_FILE = 2,
+};
+
 /** @brief File utilities and high-level manager for RageFile objects. */
 class RageFileManager
 {
@@ -28,15 +35,40 @@ class RageFileManager
 
 	void GetDirListing(const std::string& sPath,
 					   std::vector<std::string>& AddTo,
-					   bool bOnlyDirs,
-					   bool bReturnPathToo);
+					   DirListingReturnFilter dirListingFilter = ANY_TYPE,
+					   bool bReturnPathToo = false);
 
 	void GetDirListingWithMultipleExtensions(
 	  const std::string& sPath,
 	  std::vector<std::string> const& ExtensionList,
 	  std::vector<std::string>& AddTo,
-	  bool bOnlyDirs = false,
+	  DirListingReturnFilter dirListingFilter = ANY_TYPE,
 	  bool bReturnPathToo = false);
+
+	// compatibility ....
+	void GetDirListing(const std::string& sPath,
+					   std::vector<std::string>& AddTo,
+					   bool dirOnly,
+					   bool bReturnPathToo)
+	{
+		GetDirListing(
+		  sPath, AddTo, dirOnly ? ONLY_DIR : ANY_TYPE, bReturnPathToo);
+	}
+
+	// compatibility ....
+	void GetDirListingWithMultipleExtensions(
+	  const std::string& sPath,
+	  std::vector<std::string> const& ExtensionList,
+	  std::vector<std::string>& AddTo,
+	  bool dirOnly,
+	  bool bReturnPathToo)
+	{
+		GetDirListingWithMultipleExtensions(sPath,
+											ExtensionList,
+											AddTo,
+											dirOnly ? ONLY_DIR : ANY_TYPE,
+											bReturnPathToo);
+	}
 
 	auto Move(const std::string& sOldPath, const std::string& sNewPath) -> bool;
 	auto Remove(const std::string& sPath) -> bool;

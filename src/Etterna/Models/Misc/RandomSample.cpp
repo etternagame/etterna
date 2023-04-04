@@ -1,6 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RandomSample.h"
 #include "Etterna/Globals/rngthing.h"
@@ -43,10 +44,10 @@ RandomSample::LoadSoundDir(std::string sDir, int iMaxToLoad)
 	ensure_slash_at_end(sDir);
 
 	std::vector<std::string> arraySoundFiles;
-	GetDirListing(sDir + "*.mp3", arraySoundFiles);
-	GetDirListing(sDir + "*.oga", arraySoundFiles);
-	GetDirListing(sDir + "*.ogg", arraySoundFiles);
-	GetDirListing(sDir + "*.wav", arraySoundFiles);
+	FILEMAN->GetDirListing(sDir + "*.mp3", arraySoundFiles, ONLY_FILE);
+	FILEMAN->GetDirListing(sDir + "*.oga", arraySoundFiles, ONLY_FILE);
+	FILEMAN->GetDirListing(sDir + "*.ogg", arraySoundFiles, ONLY_FILE);
+	FILEMAN->GetDirListing(sDir + "*.wav", arraySoundFiles, ONLY_FILE);
 
 	std::shuffle(
 	  arraySoundFiles.begin(), arraySoundFiles.end(), g_RandomNumberGenerator);

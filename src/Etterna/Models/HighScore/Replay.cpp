@@ -2874,14 +2874,20 @@ Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<Playba
 		return out;
 	}
 
+	const auto globalOffset = fGlobalOffset * fMusicRate;
+	const auto songOffset = fSongOffset * fMusicRate;
 	const auto* td = SONGMAN->GetStepsByChartkey(chartKey)->GetTimingData();
 	for (const InputDataEvent& evt : InputData) {
 		const auto& evtPositionSeconds = evt.songPositionSeconds;
 		const auto& column = evt.column;
 		const auto& isPress = evt.is_press;
 
-		const auto noterow =
-		  BeatToNoteRow(td->GetBeatFromElapsedTime(evtPositionSeconds));
+		// this is technically (???) correct but causes the PlayerReplay
+		// to correct the noterow later on every single time.
+		// thats probably a bad thing
+		// but it does force every replay to be correct ......
+		const auto noterow = BeatToNoteRow(td->GetBeatFromElapsedTime(
+		  evtPositionSeconds - globalOffset - songOffset));
 		if (evt.nearestTapNoterow < startRow) {
 			if (evt.nearestTapNoterow == -1) {
 				// for ghost taps, only remove them if they are truly too early

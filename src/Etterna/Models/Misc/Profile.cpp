@@ -673,7 +673,8 @@ Profile::MakeUniqueFileNameNoExtension(const std::string& sDir,
 	FILEMAN->FlushDirCache(sDir);
 	// Find a file name for the screenshot
 	std::vector<std::string> files;
-	GetDirListing(sDir + sFileNameBeginning + "*", files, false, false);
+	FILEMAN->GetDirListing(
+	  sDir + sFileNameBeginning + "*", files, false, false);
 	sort(files.begin(), files.end());
 
 	auto iIndex = 0;

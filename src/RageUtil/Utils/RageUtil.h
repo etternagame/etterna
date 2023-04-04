@@ -954,9 +954,10 @@ using istring = std::basic_string<char, char_traits_char_nocase>;
  */
 void
 GetDirListing(const std::string& sPath,
-			  std::vector<std::string>& AddTo,
-			  bool bOnlyDirs = false,
-			  bool bReturnPathToo = false);
+			  std::vector<std::string>& addTo,
+			  bool onlydir,
+			  bool returnPathToo);
+
 void
 GetDirListingRecursive(const std::string& sDir,
 					   const std::string& sMatch,

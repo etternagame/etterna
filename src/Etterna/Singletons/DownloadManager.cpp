@@ -154,7 +154,7 @@ DownloadManager::InstallSmzip(const std::string& sZipFile)
 	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
 		FAIL_M(static_cast<std::string>("Failed to mount " + sZipFile).c_str());
 	std::vector<std::string> v_packs;
-	GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, true, true);
+	FILEMAN->GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, ONLY_DIR, true);
 
 	std::string doot = TEMP_ZIP_MOUNT_POINT;
 	if (v_packs.size() > 1) {

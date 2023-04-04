@@ -949,6 +949,12 @@ local function scoreBoard(pn, position)
 			ScoreChangedMessageCommand = function(self)
 				self:playcommand("ForceWindow")
 			end,
+			LoadedCustomWindowMessageCommand = function(self)
+				marvelousTaps = lastSnapshot:GetJudgments()["W1"]
+				perfectTaps = lastSnapshot:GetJudgments()["W2"]
+				greatTaps = lastSnapshot:GetJudgments()["W3"]
+				self:playcommand("Set")
+			end,
 		},
 	}
 
@@ -1013,7 +1019,9 @@ local function scoreBoard(pn, position)
 	local function scoreStatistics(score)
 		local replay = REPLAYS:GetActiveReplay()
 		local tracks = usingCustomWindows and replay:GetTrackVector() or score:GetTrackVector()
-		local devianceTable = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector() or {}
+		local dvtTmp = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector() or {}
+		local devianceTable = {}
+		local types = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetTapNoteTypeVector()
 
 		local cbl = 0
 		local cbr = 0
@@ -1022,6 +1030,20 @@ local function scoreBoard(pn, position)
 		local tso = tst[judge]
 		local ncol = GAMESTATE:GetCurrentSteps():GetNumColumns() - 1
 		local middleCol = ncol/2
+
+		-- if available, filter out non taps from the deviation list
+		-- (hitting mines directly without filtering would make them appear here)
+		if types ~= nil and #types > 0 then
+			devianceTable = {}
+			for i, d in ipairs(dvtTmp) do
+				local ty = types[i]
+				if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
+					devianceTable[#devianceTable+1] = d
+				end
+			end
+		else
+			devianceTable = dvtTmp
+		end
 
 		for i = 1, #devianceTable do
 			if tracks[i] then
@@ -1051,7 +1073,9 @@ local function scoreBoard(pn, position)
 
 	-- stats stuff
 	local tracks = score:GetTrackVector()
-	local devianceTable = score:GetOffsetVector()
+	local dvtTmp = score:GetOffsetVector()
+	local devianceTable = {}
+	local types = score:GetTapNoteTypeVector() or {}
 	local cbl = 0
 	local cbr = 0
 	local cbm = 0
@@ -1061,6 +1085,20 @@ local function scoreBoard(pn, position)
 	local tso = tst[judge]
 	local ncol = GAMESTATE:GetCurrentSteps():GetNumColumns() - 1 -- cpp indexing -mina
 	local middleCol = ncol/2
+
+	-- if available, filter out non taps from the deviation list
+	-- (hitting mines directly without filtering would make them appear here)
+	if types ~= nil and #types > 0 then
+		devianceTable = {}
+		for i, d in ipairs(dvtTmp) do
+			local ty = types[i]
+			if ty == "TapNoteType_Tap" or ty == "TapNoteType_HoldHead" or ty == "TapNoteType_Lift" then
+				devianceTable[#devianceTable+1] = d
+			end
+		end
+	else
+		devianceTable = dvtTmp
+	end
 
 	if devianceTable ~= nil then
 		for i = 1, #devianceTable do

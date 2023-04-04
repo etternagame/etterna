@@ -389,6 +389,10 @@ ScreenSelectMusic::DifferentialReload()
 	// reload songs
 	SONGMAN->DifferentialReload();
 
+	if (IsTransitioning() || m_SelectionState == SelectionState_Finalized) {
+		return;
+	}
+
 	const auto selSong = GAMESTATE->m_pCurSong;
 	const auto currentHoveredGroup = m_MusicWheel.GetCurrentGroup();
 

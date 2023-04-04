@@ -4,6 +4,7 @@
 #include "Etterna/FileTypes/IniFile.h"
 #include "LuaManager.h"
 #include "RageUtil/File/RageFile.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "Etterna/FileTypes/XmlFile.h"
@@ -30,7 +31,8 @@ Nsis()
 		RageException::Throw("Error opening file for write.");
 
 	std::vector<std::string> vs;
-	GetDirListing(INSTALLER_LANGUAGES_DIR + "*.ini", vs, false, false);
+	FILEMAN->GetDirListing(
+	  INSTALLER_LANGUAGES_DIR + "*.ini", vs, ONLY_FILE, false);
 	for (auto& s : vs) {
 		std::string sThrowAway, sLangCode;
 		splitpath(s, sThrowAway, sLangCode, sThrowAway);

@@ -120,8 +120,10 @@ local translations = {
     ["CategoryInvalidating Options"] = THEME:GetString("Settings", "CategoryInvalidating Options"),
     ["CategoryGameplay Elements 1"] = THEME:GetString("Settings", "CategoryGameplay Elements 1"),
     ["CategoryGameplay Elements 2"] = THEME:GetString("Settings", "CategoryGameplay Elements 2"),
-    ["CategoryGlobal Options"] = THEME:GetString("Settings", "CategoryGlobal Options"),
-    ["CategoryTheme Options"] = THEME:GetString("Settings", "CategoryTheme Options"),
+    ["CategoryGlobal Options 1"] = THEME:GetString("Settings", "CategoryGlobal Options 1"),
+    ["CategoryGlobal Options 2"] = THEME:GetString("Settings", "CategoryGlobal Options 2"),
+    ["CategoryTheme Options 1"] = THEME:GetString("Settings", "CategoryTheme Options 1"),
+    ["CategoryTheme Options 2"] = THEME:GetString("Settings", "CategoryTheme Options 2"),
     ["CategorySound Options"] = THEME:GetString("Settings", "CategorySound Options"),
     ["CategoryInput Options"] = THEME:GetString("Settings", "CategoryInput Options"),
     ["CategoryProfile Options"] = THEME:GetString("Settings", "CategoryProfile Options"),
@@ -367,6 +369,10 @@ local translations = {
     TextureResolutionExplanation = THEME:GetString("Settings", "TextureResolutionExplanation"),
     VSync = THEME:GetString("Settings", "VSync"),
     VSyncExplanation = THEME:GetString("Settings", "VSyncExplanation"),
+    FrameLimit = THEME:GetString("Settings", "FrameLimit"),
+    FrameLimitExplanation = THEME:GetString("Settings", "FrameLimitExplanation"),
+    FrameLimitGameplay = THEME:GetString("Settings", "FrameLimitGameplay"),
+    FrameLimitGameplayExplanation = THEME:GetString("Settings", "FrameLimitGameplayExplanation"),
     FastNoteRendering = THEME:GetString("Settings", "FastNoteRendering"),
     FastNoteRenderingExplanation = THEME:GetString("Settings", "FastNoteRenderingExplanation"),
     ShowStats = THEME:GetString("Settings", "ShowStats"),
@@ -377,6 +383,8 @@ local translations = {
     MusicWheelPositionExplanation = THEME:GetString("Settings", "MusicWheelPositionExplanation"),
     MusicWheelBanners = THEME:GetString("Settings", "MusicWheelBanners"),
     MusicWheelBannersExplanation = THEME:GetString("Settings", "MusicWheelBannersExplanation"),
+    MusicWheelSpeed = THEME:GetString("Settings", "MusicWheelSpeed"),
+    MusicWheelSpeedExplanation = THEME:GetString("Settings", "MusicWheelSpeedExplanation"),
     VideoBanners = THEME:GetString("Settings", "VideoBanners"),
     VideoBannersExplanation = THEME:GetString("Settings", "VideoBannersExplanation"),
     ShowBGs = THEME:GetString("Settings", "ShowBGs"),
@@ -3245,6 +3253,7 @@ local function rightFrame()
         },
         wheelPosition = themeoption("global", "WheelPosition"),
         wheelBanners = themeoption("global", "WheelBanners"),
+        wheelSpeed = themeoption("global", "WheelSpeed"),
         showBackgrounds = PREFSMAN:GetPreference("ShowBackgrounds"),
         showBanners = themeoption("global", "ShowBanners"),
         useSingleColorBG = themeoption("global", "FallbackToAverageColorBG"),
@@ -3266,7 +3275,7 @@ local function rightFrame()
         displayEWMA = playeroption("DisplayEWMA"),
         displayStdDev = playeroption("DisplayStdDev"),
         measureCounter = playeroption("MeasureCounter"),
-        measureLines = {get = getdataPLAYER("MeasureLines"), set = function(x) setdataPLAYER("MeasureLines", x) THEME:ReloadMetrics() end},
+        measureLines = {get = getdataTHEME("global", "MeasureLines"), set = function(x) setdataTHEME("global", "MeasureLines", x) THEME:ReloadMetrics() end},
         npsDisplay = playeroption("NPSDisplay"),
         npsGraph = playeroption("NPSGraph"),
         playerInfo = playeroption("PlayerInfo"),
@@ -3551,8 +3560,10 @@ local function rightFrame()
             "Gameplay Elements 2",
         },
         Graphics = {
-            "Global Options",
-            "Theme Options",
+            "Global Options 1",
+            "Global Options 2",
+            "Theme Options 1",
+            "Theme Options 2",
         },
         Sound = {
             "Sound Options",
@@ -5104,7 +5115,7 @@ local function rightFrame()
         --
         -----
         -- GLOBAL GRAPHICS OPTIONS
-        ["Global Options"] = {
+        ["Global Options 1"] = {
             {
                 Name = "Language",
                 DisplayName = translations["Language"],
@@ -5401,6 +5412,52 @@ local function rightFrame()
                 end,
             },
             {
+                Name = "VSync",
+                DisplayName = translations["VSync"],
+                Type = "SingleChoice",
+                Explanation = translations["VSyncExplanation"],
+                Choices = {
+                    {
+                        Name = "On",
+                        DisplayName = translations["On"],
+                        ChosenFunction = function()
+                            local v = true
+                            PREFSMAN:SetPreference("Vsync", v)
+                            if v == optionData.vsyncBefore then
+                                modsToApplyAtExit["Vsync"] = nil
+                            else
+                                modsToApplyAtExit["Vsync"] = {
+                                    Name = "Vsync",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        DisplayName = translations["Off"],
+                        ChosenFunction = function()
+                            local v = false
+                            PREFSMAN:SetPreference("Vsync", v)
+                            if v == optionData.vsyncBefore then
+                                modsToApplyAtExit["Vsync"] = nil
+                            else
+                                modsToApplyAtExit["Vsync"] = {
+                                    Name = "Vsync",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local v = PREFSMAN:GetPreference("Vsync")
+                    if v then return 1 else return 2 end
+                end,
+            },
+            {
                 Name = "Display Color Depth",
                 DisplayName = translations["ColorDepth"],
                 Type = "SingleChoice",
@@ -5612,52 +5669,8 @@ local function rightFrame()
                 end,
             },
             ]]
-            {
-                Name = "VSync",
-                DisplayName = translations["VSync"],
-                Type = "SingleChoice",
-                Explanation = translations["VSyncExplanation"],
-                Choices = {
-                    {
-                        Name = "On",
-                        DisplayName = translations["On"],
-                        ChosenFunction = function()
-                            local v = true
-                            PREFSMAN:SetPreference("Vsync", v)
-                            if v == optionData.vsyncBefore then
-                                modsToApplyAtExit["Vsync"] = nil
-                            else
-                                modsToApplyAtExit["Vsync"] = {
-                                    Name = "Vsync",
-                                    Value = v,
-                                    SetGraphics = true,
-                                }
-                            end
-                        end,
-                    },
-                    {
-                        Name = "Off",
-                        DisplayName = translations["Off"],
-                        ChosenFunction = function()
-                            local v = false
-                            PREFSMAN:SetPreference("Vsync", v)
-                            if v == optionData.vsyncBefore then
-                                modsToApplyAtExit["Vsync"] = nil
-                            else
-                                modsToApplyAtExit["Vsync"] = {
-                                    Name = "Vsync",
-                                    Value = v,
-                                    SetGraphics = true,
-                                }
-                            end
-                        end,
-                    },
-                },
-                ChoiceIndexGetter = function()
-                    local v = PREFSMAN:GetPreference("Vsync")
-                    if v then return 1 else return 2 end
-                end,
-            },
+        },
+        ["Global Options 2"] = {
             {
                 Name = "Fast Note Rendering",
                 DisplayName = translations["FastNoteRendering"],
@@ -5666,15 +5679,6 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("FastNoteRendering", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("FastNoteRendering", true),
-            },
-            {
-                Name = "Show Stats",
-                DisplayName = translations["ShowStats"],
-                Type = "SingleChoice",
-                Explanation = translations["ShowStatsExplanation"],
-                Choices = choiceSkeleton("On", "Off"),
-                Directions = preferenceToggleDirections("ShowStats", true, false),
-                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
             },
             {
                 Name = "Tap Glow",
@@ -5703,11 +5707,98 @@ local function rightFrame()
                 Directions = optionDataToggleDirectionsFUNC("showBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("showBanners", true),
             },
+            {
+                Name = "Show Stats",
+                DisplayName = translations["ShowStats"],
+                Type = "SingleChoice",
+                Explanation = translations["ShowStatsExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("ShowStats", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ShowStats", true),
+            },
+            {
+                Name = "Framelimit",
+                DisplayName = translations["FrameLimit"],
+                Type = "SingleChoiceModifier",
+                Explanation = translations["FrameLimitExplanation"],
+                Directions = {
+                    Left = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimit")
+                        if x < 30 then
+                            x = 1000
+                        else
+                            if multiplier then
+                                x = x - 50
+                            else
+                                x = x - 1
+                            end
+                        end
+                        if x < 30 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimit", x)
+                    end,
+                    Right = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimit")
+                        if x < 30 then
+                            x = 30
+                        else
+                            if multiplier then
+                                x = x + 50
+                            else
+                                x = x + 1
+                            end
+                        end
+                        if x > 1000 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimit", x)
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return PREFSMAN:GetPreference("FrameLimit") .. ""
+                end,
+            },
+            {
+                Name = "FramelimitGameplay",
+                DisplayName = translations["FrameLimitGameplay"],
+                Type = "SingleChoiceModifier",
+                Explanation = translations["FrameLimitGameplayExplanation"],
+                Directions = {
+                    Left = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimitGameplay")
+                        if x < 30 then
+                            x = 1000
+                        else
+                            if multiplier then
+                                x = x - 50
+                            else
+                                x = x - 1
+                            end
+                        end
+                        if x < 30 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimitGameplay", x)
+                    end,
+                    Right = function(multiplier)
+                        local x = PREFSMAN:GetPreference("FrameLimitGameplay")
+                        if x < 30 then
+                            x = 30
+                        else
+                            if multiplier then
+                                x = x + 50
+                            else
+                                x = x + 1
+                            end
+                        end
+                        if x > 1000 then x = 0 end
+                        PREFSMAN:SetPreference("FrameLimitGameplay", x)
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return PREFSMAN:GetPreference("FrameLimitGameplay") .. ""
+                end,
+            },
         },
         --
         -----
         -- THEME OPTIONS
-        ["Theme Options"] = {
+        ["Theme Options 1"] = {
             {
                 Name = "Music Wheel Position",
                 DisplayName = translations["MusicWheelPosition"],
@@ -5725,6 +5816,33 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = optionDataToggleDirectionsFUNC("wheelBanners", true, false),
                 ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("wheelBanners", true),
+            },
+            {
+                Name = "Music Wheel Speed",
+                DisplayName = translations["MusicWheelSpeed"],
+                Type = "SingleChoice",
+                Explanation = translations["MusicWheelSpeedExplanation"],
+                ChoiceGenerator = function()
+                    local o = {}
+                    for i = 5, 50 do
+                        o[#o+1] = {
+                            Name = i,
+                            DisplayName = i,
+                            ChosenFunction = function()
+                                optionData["wheelSpeed"].set(i)
+                            end,
+                        }
+                    end
+                    return o
+                end,
+                ChoiceIndexGetter = function()
+                    local v = optionData["wheelSpeed"].get()
+                    if v < 5 or v > 50 then
+                        return 1
+                    else
+                        return v - 4
+                    end
+                end,
             },
             {
                 Name = "Video Banners",
@@ -5789,6 +5907,40 @@ local function rightFrame()
                 Directions = preferenceToggleDirections("SortBySSRNormPercent", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("SortBySSRNormPercent", true),
             },
+            {
+                Name = "Color Config",
+                DisplayName = translations["ColorConfig"],
+                Type = "Button",
+                Explanation = translations["ColorConfigExplanation"],
+                Choices = {
+                    {
+                        Name = "Color Config",
+                        DisplayName = translations["ColorConfigButton"],
+                        ChosenFunction = function()
+                            -- activate color config screen
+                            MESSAGEMAN:Broadcast("ShowSettingsAlt", {name = "Color Config"})
+                        end,
+                    },
+                }
+            },
+            {
+                Name = "Asset Settings",
+                DisplayName = translations["AssetSettings"],
+                Type = "Button",
+                Explanation = translations["AssetSettingsExplanation"],
+                Choices = {
+                    {
+                        Name = "Asset Settings",
+                        DisplayName = translations["AssetSettingsButton"],
+                        ChosenFunction = function()
+                            -- activate asset settings screen
+                            MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "Settings"})
+                        end,
+                    },
+                }
+            },
+        },
+        ["Theme Options 2"] = {
             {
                 Name = "Show Lyrics",
                 DisplayName = translations["ShowLyrics"],
@@ -7021,10 +7173,9 @@ local function rightFrame()
                     MouseOverCommand = function(self)
                         if not focused or optionDef == nil then return end
                         updateExplainText(rowHandle)
-                        -- uncomment to update cursor position when hovering the invisible area
-                        -- seems like an annoying and buggy looking behavior
-                        -- although it is correct, it is just weird
-                        --setCursorVerticalHorizontalPos(rowHandle, nil)
+                        -- this updates cursor position when hovering the invisible area
+                        -- seems like an annoying and buggy looking behavior for some people
+                        setCursorVerticalHorizontalPos(rowHandle, nil)
                     end,
                 }
             }

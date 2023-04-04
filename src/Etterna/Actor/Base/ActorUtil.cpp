@@ -55,7 +55,7 @@ ActorUtil::ResolvePath(std::string& sPath,
 	const auto ft = FILEMAN->GetFileType(sPath);
 	if (ft != RageFileManager::TYPE_FILE && ft != RageFileManager::TYPE_DIR) {
 		std::vector<std::string> asPaths;
-		GetDirListing(sPath + "*", asPaths, false, true); // return path too
+		FILEMAN->GetDirListing(sPath + "*", asPaths, false, true); // return path too
 
 		if (asPaths.empty()) {
 			if (optional) {

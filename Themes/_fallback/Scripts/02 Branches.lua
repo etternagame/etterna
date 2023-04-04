@@ -42,11 +42,7 @@ Branch = {
 		return "ScreenInit"
 	end,
 	AfterInit = function()
-		if GAMESTATE:GetCoinMode() == "CoinMode_Home" then
-			return Branch.TitleMenu()
-		else
-			return "ScreenLogo"
-		end
+		return Branch.TitleMenu()
 	end,
 	TitleMenu = function()
 		return "ScreenTitleMenu"

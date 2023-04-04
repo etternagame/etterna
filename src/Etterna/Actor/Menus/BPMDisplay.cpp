@@ -199,10 +199,21 @@ void
 BPMDisplay::SetBpmFromSteps(const Steps* pSteps, bool bIgnoreCurrentRate)
 {
 	ASSERT(pSteps != nullptr);
-	DisplayBpms bpms;
-	pSteps->GetDisplayBpms(bpms, bIgnoreCurrentRate);
-	SetBPMRange(bpms);
-	m_fCycleTime = 1.0f;
+	switch (pSteps->GetDisplayBPM()) {
+		case DISPLAY_BPM_ACTUAL:
+		case DISPLAY_BPM_SPECIFIED: {
+			DisplayBpms bpms;
+			pSteps->GetDisplayBpms(bpms, bIgnoreCurrentRate);
+			SetBPMRange(bpms);
+			m_fCycleTime = 1.0f;
+		} break;
+		case DISPLAY_BPM_RANDOM:
+			CycleRandomly();
+			break;
+		default:
+			FAIL_M(ssprintf("Invalid display BPM type: %i",
+							pSteps->GetDisplayBPM()));
+	}
 }
 
 void
