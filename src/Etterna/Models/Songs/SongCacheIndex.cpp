@@ -43,7 +43,7 @@
  * the directory hash) in order to find the cache file.
  */
 const std::string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 245;
+const unsigned int CACHE_DB_VERSION = 246;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -373,7 +373,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 									 "?, ?, ?, ?, ?, ?, "
 									 "?, ?, ?, ?, "
 									 "?, ?, ?, ?, "
-									 "?, ?)");
+									 "?, ?, ?)");
 		int index = 1;
 		insertSong.bind(index++, STEPFILE_VERSION_NUMBER);
 		insertSong.bind(index++, song.m_sMainTitle);
@@ -551,6 +551,7 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 		insertSong.bind(index++, song.m_sBackgroundPath);
 		insertSong.bind(index++, song.m_sCDTitlePath);
 		insertSong.bind(index++, song.m_sPreviewVidPath);
+		insertSong.bind(index++, song.GetDateAdded().GetString());
 
 		insertSong.exec();
 		auto songID = sqlite3_last_insert_rowid(db->getHandle());
@@ -635,7 +636,7 @@ SongCacheIndex::CreateDBTables() const
 		  "MUSICLENGTH FLOAT, DIRHASH INTEGER, DIR TEXT, "
 		  "MUSICPATH TEXT, PREVIEWPATH TEXT, BANNERPATH TEXT, JACKETPATH TEXT, "
 		  "CDPATH TEXT, DISCPATH TEXT, LYRICSPATH TEXT, BACKGROUNDPATH TEXT, "
-		  "CDTITLEPATH TEXT, PREVIEWVIDPATH TEXT)");
+		  "CDTITLEPATH TEXT, PREVIEWVIDPATH TEXT, DATEADDED TEXT)");
 		db->exec(
 		  "CREATE TABLE IF NOT EXISTS steps (id INTEGER PRIMARY KEY, "
 		  "CHARTNAME TEXT, STEPSTYPE TEXT, DESCRIPTION TEXT, CHARTSTYLE "
@@ -1353,6 +1354,13 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 		  static_cast<const char*>(query.getColumn(index++));
 		song->m_sPreviewVidPath =
 		  static_cast<const char*>(query.getColumn(index++));
+
+		// DateTime::FromString returns false if it fails, the default is Today
+		DateTime d = DateTime();
+		auto success = d.FromString(query.getColumn(index++));
+		if (success)
+			song->dateAdded = d;
+
 	} catch (std::exception& e) {
 		Locator::getLogger()->warn("Exception occurred while loading file from cache: {}", e.what());
 	}

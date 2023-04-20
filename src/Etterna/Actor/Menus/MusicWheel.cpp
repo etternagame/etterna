@@ -913,6 +913,9 @@ MusicWheel::BuildWheelItemDatas(
 			case SORT_LENGTH:
 				SongUtil::SortSongPointerArrayByLength(arraySongs);
 				break;
+			case SORT_DATE_ADDED:
+				SongUtil::SortSongPointerArrayByDateAdded(arraySongs);
+				break;
 			default:
 				FAIL_M("Unhandled sort order! Aborting...");
 		}

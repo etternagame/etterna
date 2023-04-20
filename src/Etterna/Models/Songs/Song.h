@@ -6,6 +6,7 @@
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Models/Misc/DateTime.h"
 
 #include <set>
 
@@ -95,6 +96,9 @@ class Song
 
 	std::string m_sFileHash;
 	auto GetFileHash() -> std::string;
+
+	DateTime dateAdded = DateTime::GetNowDateTime();
+	auto GetDateAdded() const -> DateTime { return dateAdded; };
 
 	/**
 	 * @brief Call this after loading a song to clean up invalid data.

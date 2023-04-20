@@ -495,6 +495,7 @@ local sortmodes = {
     "Chordjack MSD", -- group by highest chordjack MSD
     "Technical MSD", -- group by highest tech MSD
     "Length", -- group by length range
+    "Date Added", -- group by date of song load (until cache reset)
     "Pack Clear Percent", -- group by pack, order packs by percentage of grades, then sort by grade; songs ordered by grade
     "Last Score Date", -- group by month, order packs chronlogically, songs ordered alphabetically
     "PB Date (Percent)", -- same as above, but picks the highest percent
@@ -620,6 +621,13 @@ local function getLengthSortFoldernameForSong(song)
     maxlen = maxlen + (lengthdivision - (maxlen % lengthdivision) - 1)
     local minlen = maxlen - (lengthdivision - 1)
     return string.format("%s-%s", SecondsToMMSS(minlen), SecondsToMMSS(maxlen))
+end
+
+-- this function sits here for scoping reasons
+-- gets the date added for the file for foldername purposes
+local function getDateAddedSortFoldernameForSong(song)
+    local date = song:GetDateAdded()
+    return date
 end
 
 -- this function sits here for scoping reasons
@@ -1431,6 +1439,47 @@ local sortmodeImplementations = {
         end,
         function(song)
             return getLengthSortFoldernameForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
+    {   -- Date Added sort -- alphabetical order, folders of dates
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = getDateAddedSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(
+                WHEELDATA.AllFolders,
+                function(a,b)
+                    local af = a:gsub("-", ""):gsub(":", ""):gsub(" ", "")
+                    local bf = b:gsub("-", ""):gsub(":", ""):gsub(" ", "")
+                    return tonumber(af) < tonumber(bf)
+                end
+            )
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getDateAddedSortFoldernameForSong(song)
         end,
         function(packName)
             return ""
