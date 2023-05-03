@@ -165,6 +165,7 @@ enum SortOrder
 	SORT_Chordjack,
 	SORT_Technical,
 	SORT_LENGTH,
+	SORT_DATE_ADDED,
 	SORT_Ungrouped, /**< Sort by the song title, putting all songs into single
 					   group. */
 	NUM_SortOrder,

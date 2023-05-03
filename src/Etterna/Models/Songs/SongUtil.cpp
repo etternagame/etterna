@@ -499,6 +499,27 @@ SongUtil::SortSongPointerArrayByLength(std::vector<Song*>& vpSongsInOut)
 	sort(vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByLength);
 }
 
+static bool
+CompareSongPointersByDateAdded(const Song* a, const Song* b)
+{
+	auto ad = a->dateAdded;
+	auto bd = b->dateAdded;
+	ad.StripTime();
+	bd.StripTime();
+
+	if (ad == bd) {
+		return CompareSongPointersByTitle(a, b);
+	}
+	return ad < bd;
+}
+
+void
+SongUtil::SortSongPointerArrayByDateAdded(std::vector<Song*>& vpSongsInOut)
+{
+	sort(
+	  vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByDateAdded);
+}
+
 void
 AppendOctal(int n, int digits, std::string& out)
 {
@@ -760,6 +781,11 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			return GradeToLocalizedString(
 			  PROFILEMAN->GetProfile(PLAYER_1)->GetBestGrade(pSong,
 															 s->m_StepsType));
+		}
+		case SORT_DATE_ADDED: {
+			auto dt = pSong->GetDateAdded();
+			dt.StripTime();
+			return dt.GetString();
 		}
 		case SORT_MODE_MENU:
 			return std::string();

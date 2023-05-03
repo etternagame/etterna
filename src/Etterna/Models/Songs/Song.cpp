@@ -2504,6 +2504,19 @@ class LunaSong : public Luna<Song>
 		LuaHelpers::Push(L, best);
 		return 1;
 	}
+	static int GetDateTimeAdded(T* p, lua_State* L)
+	{
+		auto dt = p->GetDateAdded();
+		lua_pushstring(L, dt.GetString().c_str());
+		return 1;
+	}
+	static int GetDateAdded(T* p, lua_State* L)
+	{
+		auto d = p->GetDateAdded();
+		d.StripTime();
+		lua_pushstring(L, d.GetString().c_str());
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2573,6 +2586,8 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetChartsOfCurrentGameMode);
 		ADD_METHOD(GetChartsMatchingFilter);
 		ADD_METHOD(GetHighestGrade);
+		ADD_METHOD(GetDateTimeAdded);
+		ADD_METHOD(GetDateAdded);
 	}
 };
 

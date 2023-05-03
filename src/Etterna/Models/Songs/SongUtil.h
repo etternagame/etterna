@@ -108,6 +108,8 @@ void
 SortSongPointerArrayBySectionName(std::vector<Song*>& vpSongsInOut, SortOrder so);
 void
 SortSongPointerArrayByLength(std::vector<Song*>& vpSongsInOut);
+void
+SortSongPointerArrayByDateAdded(std::vector<Song*>& vpSongsInOut);
 
 auto
 CompareSongPointersByGroup(const Song* pSong1, const Song* pSong2) -> int;
