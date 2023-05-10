@@ -730,8 +730,8 @@ SongCacheIndex::LoadHyperCache(LoadingWindow* ld,
 {
 	const int count = db->execAndGet("SELECT COUNT(*) FROM songs");
 	if ((ld != nullptr) && count > 0) {
-		ld->SetIndeterminate(false);
 		ld->SetProgress(0);
+		ld->SetIndeterminate(false);
 		ld->SetTotalWork(count);
 	}
 	std::string lastDir;
@@ -795,9 +795,9 @@ SongCacheIndex::LoadCache(
 	try {
 		count = db->execAndGet("SELECT COUNT(*) FROM songs");
 		if (ld != nullptr && count > 0) {
+			ld->SetProgress(0);
 			ld->SetIndeterminate(false);
 			ld->SetText("Loading Cache\n");
-			ld->SetProgress(0);
 			ld->SetTotalWork(count);
 		}
 	} catch (std::exception& e) {
