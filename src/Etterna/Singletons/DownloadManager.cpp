@@ -2046,7 +2046,7 @@ DownloadManager::InitialScoreSync()
 // manual upload function that will upload all scores for a chart
 // that skips some of the constraints of the auto uploaders
 bool
-DownloadManager::ForceUploadPBsForChart(const std::string& ck)
+DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 {
 	Locator::getLogger()->info(
 	  "Trying ForceUploadPBsForChart - {}", ck);
@@ -2057,7 +2057,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck)
 		auto& scores = cs->GetAllScores();
 		for (auto& s : scores) {
 			if (!s->forceuploadedthissession) {
-				if (s->GetGrade() != Grade_Failed) {
+				if (s->GetGrade() != Grade_Failed && s->HasReplayData()) {
 					// don't add stuff we're already uploading
 					auto res = std::find(ScoreUploadSequentialQueue.begin(),
 										 ScoreUploadSequentialQueue.end(),
@@ -2069,17 +2069,30 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck)
 					sequentialScoreUploadTotalWorkload += 1;
 					successful = true;
 				}
+				else if (s->GetGrade() != Grade_Failed && !s->HasReplayData()) {
+					Locator::getLogger()->info("Scorekey {} in chart {} has no "
+											   "replay - ForceUpload skipped",
+											   s->GetScoreKey(),
+											   ck);
+				}
 			}
+		}
+		if (!successful) {
+			Locator::getLogger()->info(
+			  "ForceUploadPBsForChart did not queue any scores for chart {}",
+			  ck);
+		} else if (startNow) {
+			startSequentialUpload();
 		}
 		return successful;
 	} else {
-		Locator::getLogger()->debug(
+		Locator::getLogger()->info(
 		  "ForceUploadPBsForChart found no scores for chart {}", ck);
 		return false;
 	}
 }
 bool
-DownloadManager::ForceUploadPBsForPack(const std::string& pack)
+DownloadManager::ForceUploadPBsForPack(const std::string& pack, bool startNow)
 {
 	Locator::getLogger()->info(
 	  "Trying ForceUploadPBsForPack - {}", pack);
@@ -2088,7 +2101,13 @@ DownloadManager::ForceUploadPBsForPack(const std::string& pack)
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
-			successful |= ForceUploadPBsForChart(c->GetChartKey());
+			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+	if (!successful) {
+		Locator::getLogger()->info(
+		  "ForceUploadPBsForPack did not queue any scores for pack {}", pack);
+	} else if (startNow) {
+		startSequentialUpload();
+	}
 	return successful;
 }
 bool
@@ -2100,7 +2119,13 @@ DownloadManager::ForceUploadAllPBs()
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
-			successful |= ForceUploadPBsForPack(c->GetChartKey());
+			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+	if (!successful) {
+		Locator::getLogger()->info(
+		  "ForceUploadAllPBs did not queue any scores");
+	} else {
+		startSequentialUpload();
+	}
 	return successful;
 }
 
@@ -3706,12 +3731,12 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int UploadScoresForChart(T* p, lua_State* L)
 	{
-		p->ForceUploadPBsForChart(SArg(1));
+		p->ForceUploadPBsForChart(SArg(1), true);
 		return 0;
 	}
 	static int UploadScoresForPack(T* p, lua_State* L)
 	{
-		p->ForceUploadPBsForPack(SArg(1));
+		p->ForceUploadPBsForPack(SArg(1), true);
 		return 0;
 	}
 	static int UploadAllScores(T* p, lua_State* L)

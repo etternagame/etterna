@@ -265,8 +265,8 @@ class DownloadManager
 	  std::function<void()> callback = []() {});
 
 	// Mass score upload functions
-	bool ForceUploadPBsForChart(const std::string& ck);
-	bool ForceUploadPBsForPack(const std::string& pack);
+	bool ForceUploadPBsForChart(const std::string& ck, bool startNow = false);
+	bool ForceUploadPBsForPack(const std::string& pack, bool startNow = false);
 	bool ForceUploadAllPBs();
 	bool InitialScoreSync();
 
