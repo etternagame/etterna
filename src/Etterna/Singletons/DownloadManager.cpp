@@ -1427,9 +1427,15 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	// to put a string into a json object
 	// we have to put it in a Value instead
 	// thats kinda cringe but theres some good technical reason why
-	auto val = [&allocator](const std::string& str) {
+	auto val = [&allocator](const std::string& str,
+							std::string defaultVal = "") {
 		Value v;
-		v.SetString(str.c_str(), allocator);
+		if (str.empty()) {
+			v.SetString(defaultVal.c_str(), allocator);
+		} else {
+			v.SetString(str.c_str(), allocator);
+		}
+		
 		return v;
 	};
 
@@ -1457,7 +1463,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("wife_version", hs->GetWifeVersion(), allocator);
 	d.AddMember(
 	  "validation_key", val(hs->GetValidationKey(ValidationKey_Brittle)), allocator);
-	d.AddMember("machine_guid", val(hs->GetMachineGuid()), allocator);
+	d.AddMember("machine_guid", val(hs->GetMachineGuid(), "MISSING_GUID"), allocator);
 	d.AddMember("chart_key", val(hs->GetChartKey()), allocator);
 	d.AddMember(
 	  "judge", std::round(hs->GetJudgeScale() * 1000.0) / 1000.0, allocator);
