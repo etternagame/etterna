@@ -715,7 +715,7 @@ local function scoreBoard(pn, position)
 					self:zoomx(frameWidth * newjudgecount / totalTaps)
 				end,
 				ScoreChangedMessageCommand = function(self)
-					self:zoomx(frameWidth * score:GetTapNoteScore(judgmentName) / totalTaps)
+					self:zoomx(frameWidth * getRescoredJudge(dvt, judge, judgmentIndex) / totalTaps)
 				end,
 				
 				CodeMessageCommand = function(self, params)
@@ -782,7 +782,7 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settext(score:GetTapNoteScore(judgmentName))
+					self:settext(getRescoredJudge(dvt, judge, judgmentIndex))
 				end,
 				ScoreChangedMessageCommand = function(self)
 					if not usingCustomWindows then
@@ -823,7 +823,7 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settextf("(%03.2f%%)", score:GetTapNoteScore(judgmentName) / totalTaps * 100)
+					self:settextf("(%03.2f%%)", getRescoredJudge(dvt, judge, judgmentIndex) / totalTaps * 100)
 				end,
 				ScoreChangedMessageCommand = function(self)
 					if not usingCustomWindows then
