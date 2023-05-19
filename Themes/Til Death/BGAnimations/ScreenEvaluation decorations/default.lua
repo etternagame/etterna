@@ -715,7 +715,7 @@ local function scoreBoard(pn, position)
 					self:zoomx(frameWidth * newjudgecount / totalTaps)
 				end,
 				ScoreChangedMessageCommand = function(self)
-					self:zoomx(frameWidth * score:GetTapNoteScore(judgmentName) / totalTaps)
+					self:zoomx(frameWidth * getRescoredJudge(dvt, judge, judgmentIndex) / totalTaps)
 				end,
 				
 				CodeMessageCommand = function(self, params)
@@ -782,7 +782,7 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settext(score:GetTapNoteScore(judgmentName))
+					self:settext(getRescoredJudge(dvt, judge, judgmentIndex))
 				end,
 				ScoreChangedMessageCommand = function(self)
 					if not usingCustomWindows then
@@ -823,7 +823,7 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settextf("(%03.2f%%)", score:GetTapNoteScore(judgmentName) / totalTaps * 100)
+					self:settextf("(%03.2f%%)", getRescoredJudge(dvt, judge, judgmentIndex) / totalTaps * 100)
 				end,
 				ScoreChangedMessageCommand = function(self)
 					if not usingCustomWindows then
@@ -1139,7 +1139,6 @@ local function scoreBoard(pn, position)
 		local function statsLine(i)
 			return Def.ActorFrame {
 				Name = "StatLine"..statNames[i],
-
 				LoadFont("Common Normal") .. {
 					Name = "StatText",
 					InitCommand = function(self)
@@ -1152,6 +1151,10 @@ local function scoreBoard(pn, position)
 				LoadFont("Common Normal") .. {
 					Name=i,
 					InitCommand = function(self)
+						self:queuecommand("Set")
+					end,
+					SetCommand = function(self, params)
+						local statValues = scoreStatistics(params ~= nil and params.score or score)
 						if i < 4 then
 							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
 							self:zoom(tzoom)
@@ -1165,86 +1168,22 @@ local function scoreBoard(pn, position)
 						end
 					end,
 					ChangeScoreCommand = function(self, params)
-						local statValues = scoreStatistics(params.score)
-						if i < 4 then
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settextf("%5.2fms", statValues[i])
-						else
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settext(statValues[i])
-						end
+						self:queuecommand("Set", {score=params.score})
 					end,
 					LoadedCustomWindowMessageCommand = function(self)
-						local statValues = scoreStatistics(score)
-						if i < 4 then
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settextf("%5.2fms", statValues[i])
-						else
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settext(statValues[i])
-						end
+						self:queuecommand("Set")
 					end,
 					CodeMessageCommand = function(self, params)
 						if usingCustomWindows then
 							return
 						end
 
-						local j = tonumber(self:GetName())
-						if j > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
-							if j == 4 then
-								local tso = tst[judge]
-								statValues[j] = 0
-								statValues[j+1] = 0
-								for i = 1, #devianceTable do
-									if tracks[i] then	-- it would probably make sense to move all this to c++
-										if math.abs(devianceTable[i]) > tso * 90 then
-											if tracks[i] <= math.floor(ncol/2) then
-												statValues[j] = statValues[j] + 1
-											else
-												statValues[j+1] = statValues[j+1] + 1
-											end
-										end
-									end
-								end
-							end
-							self:xy(frameWidth + 20, frameY + 224 + 10 * j)
-							self:zoom(0.4)
-							self:halign(1)
-							self:settext(statValues[j])
+						if i > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
+							self:queuecommand("Set")
 						end
 					end,
 					ForceWindowMessageCommand = function(self)
-						local j = tonumber(self:GetName())
-						if j > 3 then
-							if j == 4 then
-								local tso = tst[judge]
-								statValues[j] = 0
-								statValues[j+1] = 0
-								for i = 1, #devianceTable do
-									if tracks[i] then	-- it would probably make sense to move all this to c++
-										if math.abs(devianceTable[i]) > tso * 90 then
-											if tracks[i] <= math.floor(ncol/2) then
-												statValues[j] = statValues[j] + 1
-											else
-												statValues[j+1] = statValues[j+1] + 1
-											end
-										end
-									end
-								end
-							end
-							self:xy(frameWidth + 20, frameY + 224 + 10 * j)
-							self:zoom(0.4)
-							self:halign(1)
-							self:settext(statValues[j])
-						end
+						self:queuecommand("Set")
 					end,
 				},
 			}
