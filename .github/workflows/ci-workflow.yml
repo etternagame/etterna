@@ -106,8 +106,8 @@ jobs:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
           - { os: macos-13,     name: "Ventura", dist: false}
-          - { os: macos-12,     name: "Monterey", dist: false}
-          - { os: macos-11,     name: "Big Sur",  dist: true}
+          - { os: macos-12,     name: "Monterey", dist: true}
+          #- { os: macos-11,     name: "Big Sur",  dist: true}
 
     steps:
 
