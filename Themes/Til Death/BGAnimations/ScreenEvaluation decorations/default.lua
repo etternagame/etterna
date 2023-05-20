@@ -691,7 +691,7 @@ local function scoreBoard(pn, position)
 				self.jcount = getRescoredJudge(dvt, judge, judgmentIndex)
 				self:playcommand("Set")
 			end,
-			CodeMessageCommand = function(self)
+			CodeMessageCommand = function(self, params)
 				if usingCustomWindows then return end
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
 					self.jcount = getRescoredJudge(dvt, judge, judgmentIndex)
