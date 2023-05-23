@@ -331,6 +331,10 @@ class Song
 	{
 		return m_PreviewPath;
 	}
+	[[nodiscard]] auto GetCredits() const -> const std::string&
+	{
+		return m_sCredit;
+	}
 	[[nodiscard]] auto GetPreviewStartSeconds() const -> float;
 	auto GetCacheFile(const std::string& sType) -> std::string;
 
@@ -454,7 +458,13 @@ class Song
 	auto CreateSteps() -> Steps*;
 	void InitSteps(Steps* pSteps);
 
-	auto GetOrTryAtLeastToGetSimfileAuthor() -> std::string;
+	[[nodiscard]] auto GetOrTryAtLeastToGetSimfileAuthor() const -> const std::string&
+	{
+		return !m_sCredit.empty() && m_sCredit != "cdtitle"
+				 ? m_sCredit
+				 : TrytoFindCredits();
+	}
+	auto TrytoFindCredits() const -> const std::string&;
 
 	[[nodiscard]] auto HasSignificantBpmChangesOrStops() const -> bool;
 	[[nodiscard]] auto GetStepsSeconds() const -> float;

@@ -495,6 +495,7 @@ local sortmodes = {
     "Chordjack MSD", -- group by highest chordjack MSD
     "Technical MSD", -- group by highest tech MSD
     "Length", -- group by length range
+    "Step Author", -- group by Step Author
     "Pack Clear Percent", -- group by pack, order packs by percentage of grades, then sort by grade; songs ordered by grade
     "Last Score Date", -- group by month, order packs chronlogically, songs ordered alphabetically
     "PB Date (Percent)", -- same as above, but picks the highest percent

@@ -57,6 +57,8 @@ static const char* InstrumentTrackNames[] = {
 	"Rhythm",
 	"Bass",
 };
+const std::string errstr = "Author Unknown";
+std::string returnstr = "Author Unknown";
 XToString(InstrumentTrack);
 StringToX(InstrumentTrack);
 
@@ -239,34 +241,34 @@ Song::InitSteps(Steps* pSteps)
 	pSteps->SetMaxBPM(this->m_fSpecifiedBPMMax);
 }
 
-std::string
-Song::GetOrTryAtLeastToGetSimfileAuthor()
+const std::string&
+Song::TrytoFindCredits() const
 {
-	if (!m_sCredit.empty() && m_sCredit != "cdtitle")
-		return m_sCredit;
+	
 
 	size_t begin = 0;
 	size_t end = 0;
-
-	auto o = GetSongDir();
-	o = o.substr(0, o.size() - 1);
-	o = o.substr(o.find_last_of('/') + 1);
+    
+	auto tempstr = GetSongDir();
+	tempstr = tempstr.substr(0, tempstr.size() - 1);
+	tempstr = tempstr.substr(tempstr.find_last_of('/') + 1);
 
 	/*	Conform to current standard credit placement in songs folders,
 	for those of you who don't follow convention - too bad. - mina */
-	end = o.find_last_of(')');
+	end = tempstr.find_last_of(')');
 	if (end != std::basic_string<char,
 								 std::char_traits<char>,
 								 std::allocator<char>>::npos) {
-		begin = o.find_last_of('(');
+		begin = tempstr.find_last_of('(');
 		if (begin != std::basic_string<char,
 									   std::char_traits<char>,
 									   std::allocator<char>>::npos) {
-			o = o.substr(begin + 1, end - begin - 1);
-			return o;
+			tempstr = tempstr.substr(begin + 1, end - begin - 1);
+			returnstr = tempstr;
+			return returnstr;
 		}
 	}
-	return "Author Unknown";
+	return errstr;
 }
 
 void
@@ -2504,6 +2506,19 @@ class LunaSong : public Luna<Song>
 		LuaHelpers::Push(L, best);
 		return 1;
 	}
+	static int GetDateTimeAdded(T* p, lua_State* L)
+	{
+		auto dt = p->GetDateAdded();
+		lua_pushstring(L, dt.GetString().c_str());
+		return 1;
+	}
+	static int GetDateAdded(T* p, lua_State* L)
+	{
+		auto d = p->GetDateAdded();
+		d.StripTime();
+		lua_pushstring(L, d.GetString().c_str());
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2573,6 +2588,8 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetChartsOfCurrentGameMode);
 		ADD_METHOD(GetChartsMatchingFilter);
 		ADD_METHOD(GetHighestGrade);
+		ADD_METHOD(GetDateTimeAdded);
+		ADD_METHOD(GetDateAdded);
 	}
 };
 
