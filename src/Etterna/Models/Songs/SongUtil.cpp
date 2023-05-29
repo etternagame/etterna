@@ -521,7 +521,7 @@ SongUtil::SortSongPointerArrayByDateAdded(std::vector<Song*>& vpSongsInOut)
 }
 
 static bool
-CompareSongPointersByStepAuthor(const Song* pSong1, const Song* pSong2)
+CompareSongPointersByAuthor(const Song* pSong1, const Song* pSong2)
 {
 	
 	auto s1 = pSong1->GetOrTryAtLeastToGetSimfileAuthor();
@@ -547,10 +547,10 @@ CompareSongPointersByStepAuthor(const Song* pSong1, const Song* pSong2)
 }
 
 void
-SongUtil::SortSongPointerArrayByStepAuthor(std::vector<Song*>& vpSongsInOut)
+SongUtil::SortSongPointerArrayByAuthor(std::vector<Song*>& vpSongsInOut)
 {
 	sort(
-	  vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByStepAuthor);
+	  vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByAuthor);
 }
 void
 AppendOctal(int n, int digits, std::string& out)

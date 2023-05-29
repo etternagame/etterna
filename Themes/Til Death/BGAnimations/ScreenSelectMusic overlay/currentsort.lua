@@ -27,7 +27,7 @@ local sortTable = {
 	SortOrder_JackSpeed = THEME:GetString("SortOrder", "JackSpeed"),
 	SortOrder_Chordjack = THEME:GetString("SortOrder", "Chordjack"),
 	SortOrder_Technical = THEME:GetString("SortOrder", "Technical"),
-	SortOrder_StepAuthor = THEME:GetString("SortOrder", "StepAuthor"),
+	SortOrder_Author = THEME:GetString("SortOrder", "Author"),
 	SortOrder_Ungrouped = THEME:GetString("SortOrder", "Ungrouped")
 }
 

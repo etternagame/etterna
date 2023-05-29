@@ -462,13 +462,7 @@ class Song
 	auto CreateSteps() -> Steps*;
 	void InitSteps(Steps* pSteps);
 
-	[[nodiscard]] auto GetOrTryAtLeastToGetSimfileAuthor() const -> const std::string&
-	{
-		return !m_sCredit.empty() && m_sCredit != "cdtitle"
-				 ? m_sCredit
-				 : TrytoFindCredits();
-	}
-	auto TrytoFindCredits() const -> const std::string&;
+	auto GetOrTryAtLeastToGetSimfileAuthor() const -> const std::string;
 
 	[[nodiscard]] auto HasSignificantBpmChangesOrStops() const -> bool;
 	[[nodiscard]] auto GetStepsSeconds() const -> float;
