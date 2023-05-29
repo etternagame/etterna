@@ -520,6 +520,38 @@ SongUtil::SortSongPointerArrayByDateAdded(std::vector<Song*>& vpSongsInOut)
 	  vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByDateAdded);
 }
 
+static bool
+CompareSongPointersByStepAuthor(const Song* pSong1, const Song* pSong2)
+{
+	
+	auto s1 = pSong1->GetOrTryAtLeastToGetSimfileAuthor();
+	auto s2 = pSong2->GetOrTryAtLeastToGetSimfileAuthor();
+	if (s1 == s2) {
+		s1 = pSong1->GetTranslitMainTitle();
+		s2 = pSong2->GetTranslitMainTitle();
+	}
+
+	SongUtil::MakeSortString(s1);
+	SongUtil::MakeSortString(s2);
+
+	const auto ret = strcmp(s1.c_str(), s2.c_str());
+	if (ret < 0)
+		return true;
+	if (ret > 0)
+		return false;
+
+	/* They are the same.  Ensure we get a consistent ordering
+	 * by comparing the unique SongFilePaths. */
+	return CompareNoCase(pSong1->GetSongFilePath(), pSong2->GetSongFilePath()) <
+		   0;
+}
+
+void
+SongUtil::SortSongPointerArrayByStepAuthor(std::vector<Song*>& vpSongsInOut)
+{
+	sort(
+	  vpSongsInOut.begin(), vpSongsInOut.end(), CompareSongPointersByStepAuthor);
+}
 void
 AppendOctal(int n, int digits, std::string& out)
 {
@@ -706,7 +738,8 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 			// guaranteed not empty
 			return pSong->m_sGroupName;
 		case SORT_TITLE:
-		case SORT_ARTIST: {
+		case SORT_ARTIST: 
+		case SORT_CHART_AUTHOR:{
 			std::string s;
 			switch (so) {
 				case SORT_TITLE:
@@ -714,6 +747,9 @@ SongUtil::GetSectionNameFromSongAndSort(const Song* pSong, SortOrder so)
 					break;
 				case SORT_ARTIST:
 					s = pSong->GetTranslitArtist();
+					break;
+				case SORT_CHART_AUTHOR:
+					s = pSong->GetOrTryAtLeastToGetSimfileAuthor();
 					break;
 				default:
 					FAIL_M(ssprintf("Unexpected SortOrder: %i", so));
