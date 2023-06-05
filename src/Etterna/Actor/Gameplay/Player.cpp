@@ -78,10 +78,10 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 			break;
 		case TW_Hold:
 			// allow enough time to take foot off and put back on
-			defaultValueOut = 0.250F;
+			defaultValueOut = HOLD_DROP_SEC;
 			break;
 		case TW_Roll:
-			defaultValueOut = 0.500F;
+			defaultValueOut = ROLL_DROP_SEC;
 			break;
 		case TW_Checkpoint:
 		 	// similar to TW_Hold, but a little more strict
@@ -192,9 +192,9 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 		case TW_Mine:
 			return MINE_WINDOW_SEC;
 		case TW_Hold:
-			return 0.25F * GetTimingWindowScale();
+			return HOLD_DROP_SEC;
 		case TW_Roll:
-			return 0.5F * GetTimingWindowScale();
+			return ROLL_DROP_SEC;
 		default:
 			break;
 	}
@@ -215,9 +215,9 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 		case TW_Mine:
 			return MINE_WINDOW_SEC;
 		case TW_Hold:
-			return 0.25F * timingScale;
+			return HOLD_DROP_SEC;
 		case TW_Roll:
-			return 0.5F * timingScale;
+			return ROLL_DROP_SEC;
 		default:
 			break;
 	}
