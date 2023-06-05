@@ -1194,9 +1194,7 @@ Player::UpdateHoldNotes(int iSongRow,
 				}
 
 				// Decrease life
-				// Also clamp the roll decay window to the accepted "Judge
-				// 7" value for it. -poco
-				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25F);
+				fLife -= fDeltaTime / GetWindowSeconds(TW_Roll);
 				fLife = max(fLife, 0.F); // clamp life
 				break;
 			/*
