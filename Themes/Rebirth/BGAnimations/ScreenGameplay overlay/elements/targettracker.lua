@@ -1,6 +1,7 @@
 local target = playerConfig:get_data().TargetGoal
 GAMESTATE:GetPlayerState():SetTargetGoal(target / 100)
 local targetTrackerMode = playerConfig:get_data().TargetTrackerMode
+GAMESTATE:GetPlayerState():SetGoalTrackerUsesReplay(targetTrackerMode == 2)
 
 -- describes the difference between 480p and current resolution (theme elements are resized based on theme height)
 -- for the purpose of scaling some hardcoded values for element sizing purposes

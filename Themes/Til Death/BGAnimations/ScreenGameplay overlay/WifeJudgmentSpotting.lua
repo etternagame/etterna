@@ -302,6 +302,7 @@ end
 -- Mostly clientside now. We set our desired target goal and listen to the results rather than calculating ourselves.
 local target = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetGoal
 GAMESTATE:GetPlayerState():SetTargetGoal(target / 100)
+GAMESTATE:GetPlayerState():SetGoalTrackerUsesReplay(targetTrackerMode == 2)
 
 -- We can save space by wrapping the personal best and set percent trackers into one function, however
 -- this would make the actor needlessly cumbersome and unnecessarily punish those who don't use the

@@ -189,7 +189,7 @@ local defaultConfig = {
 
     ScreenFilter = 1,
     TargetGoal = 93,
-    TargetTrackerMode = 0,
+    TargetTrackerMode = 0, -- 0=goal, 1=pb, 1=pb/replay
     ReceptorSize = 100,
     ErrorBarCount = 30,
     UserName = "",

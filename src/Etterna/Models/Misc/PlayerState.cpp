@@ -173,6 +173,17 @@ class LunaPlayerState : public Luna<PlayerState>
 		p->playertargetgoal = FArg(1);
 		return 1;
 	}
+	static int GetGoalTrackerUsesReplay(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->m_bGoalTrackerUsesReplay);
+		return 1;
+	}
+	static int SetGoalTrackerUsesReplay(T* p, lua_State* L)
+	{
+		auto b = BArg(1);
+		p->m_bGoalTrackerUsesReplay = b;
+		COMMON_RETURN_SELF
+	}
 
 	LunaPlayerState()
 	{
@@ -189,6 +200,8 @@ class LunaPlayerState : public Luna<PlayerState>
 		ADD_METHOD(GetHealthState);
 		ADD_METHOD(GetSuperMeterLevel);
 		ADD_METHOD(SetTargetGoal);
+		ADD_METHOD(GetGoalTrackerUsesReplay);
+		ADD_METHOD(SetGoalTrackerUsesReplay);
 	}
 };
 

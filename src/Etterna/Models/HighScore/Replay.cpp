@@ -74,7 +74,7 @@ Replay::Replay() {
 
 }
 
-Replay::Replay(HighScore* hs)
+Replay::Replay(const HighScore* hs)
   : scoreKey(hs->GetScoreKey())
   , chartKey(hs->GetChartKey())
   , fMusicRate(hs->GetMusicRate())

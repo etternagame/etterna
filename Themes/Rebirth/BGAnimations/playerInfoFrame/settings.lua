@@ -214,6 +214,7 @@ local translations = {
     Regular = THEME:GetString("Settings", "Regular"),
     EWMA = THEME:GetString("Settings", "EWMA"),
     PersonalBest = THEME:GetString("Settings", "PersonalBest"),
+    PersonalBestReplay = THEME:GetString("Settings", "PersonalBestReplay"),
     GoalPercent = THEME:GetString("Settings", "GoalPercent"),
     Windowed = THEME:GetString("Settings", "Windowed"),
     Fullscreen = THEME:GetString("Settings", "Fullscreen"),
@@ -3281,7 +3282,7 @@ local function rightFrame()
         playerInfo = playeroption("PlayerInfo"),
         rateDisplay = playeroption("RateDisplay"),
         targetTracker = playeroption("TargetTracker"),
-        targetTrackerMode = playeroption("TargetTrackerMode"), -- 0 is goal, anything else is pb
+        targetTrackerMode = playeroption("TargetTrackerMode"), -- 0 is goal, 1 is pb, 2 is pb with replay
         targetTrackerGoal = playeroption("TargetGoal"), -- only valid for TargetTrackerMode 0 unless no pb
         laneCover = playeroption("LaneCover"), -- 0 off, 1 sudden, 2 hidden
         judgmentText = playeroption("JudgmentText"),
@@ -4901,6 +4902,13 @@ local function rightFrame()
                         end,
                     },
                     {
+                        Name = "PB (Replay)",
+                        DisplayName = translations["PersonalBestReplay"],
+                        ChosenFunction = function()
+                            optionData["targetTrackerMode"].set(2)
+                        end,
+                    },
+                    {
                         Name = "Goal Percent",
                         DisplayName = translations["GoalPercent"],
                         ChosenFunction = function()
@@ -4911,9 +4919,11 @@ local function rightFrame()
                 ChoiceIndexGetter = function()
                     local v = optionData["targetTrackerMode"].get()
                     if v == 0 then
-                        return 2 -- goal
-                    else
+                        return 3 -- goal
+                    elseif v == 1 then
                         return 1 -- pb
+                    else
+                        return 2 -- pb replay
                     end
                 end,
             },
