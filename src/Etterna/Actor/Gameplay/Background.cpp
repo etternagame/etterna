@@ -302,7 +302,6 @@ BackgroundImpl::Layer::CreateBackground(const Song* pSong,
 
 		/* Look for vsFileToResolve[i] in:
 		 * song's dir
-		 * RandomMovies dir
 		 * BGAnimations dir.
 		 */
 		std::vector<std::string> vsPaths, vsThrowAway;
