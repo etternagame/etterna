@@ -121,6 +121,10 @@ local function createChoices()
                 if event.type == "InputEventType_FirstPress" then
                     -- must be a number and control not held down
                     if event.char and tonumber(event.char) and not INPUTFILTER:IsControlPressed() then
+                        -- ignore numpad numbers
+                        local numpad = event.DeviceInput.button == "DeviceButton_KP "..event.char
+                        if numpad then return end
+
                         local n = tonumber(event.char)
                         if n == 0 then n = 10 end
                         -- n must be a valid option or we must not have focus on the general box (not in search for example)
