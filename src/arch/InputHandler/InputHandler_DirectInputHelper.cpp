@@ -16,12 +16,15 @@
 #endif
 LPDIRECTINPUT8 g_dinput = nullptr;
 
+
 static int
 ConvertScancodeToKey(int scancode);
 static BOOL CALLBACK
 DIJoystick_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data);
 static BOOL CALLBACK
 DIMouse_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data);
+
+static Preference<bool> g_DisableWindowsKey("DisableWindowsKey", true);
 
 DIDevice::DIDevice()
 {
@@ -65,6 +68,10 @@ DIDevice::Open()
 	int coop = DISCL_NONEXCLUSIVE | DISCL_BACKGROUND;
 	if (type == KEYBOARD)
 		coop = DISCL_NONEXCLUSIVE | DISCL_FOREGROUND;
+
+	if (g_DisableWindowsKey.Get()) {
+		coop |= DISCL_NOWINKEY;
+	}
 
 	hr = Device->SetCooperativeLevel(GraphicsWindow::GetHwnd(), coop);
 	if (hr != DI_OK) {
