@@ -15,7 +15,7 @@ JudgmentMissCommand=shadowlength,0;diffusealpha,1;zoom,1.05;linear,0.05;zoom,1;s
 
 local JudgeCmds = {
 	TapNoteScore_W1 = function(self)
-		local jz = MovableValues.JudgeZoom
+		local jz = MovableValues.JudgeZoom or 1
 		self:shadowlength(0):diffusealpha(1):zoom(1.3 * jz)
 		self:linear(0.05)
 		self:zoom(1 * jz)
@@ -24,7 +24,7 @@ local JudgeCmds = {
 		self:glowblink():effectperiod(0.05):effectcolor(color("1,1,1,0")):effectcolor2(color("1,1,1,0.25"))
 	end,
 	TapNoteScore_W2 = function(self)
-		local jz = MovableValues.JudgeZoom
+		local jz = MovableValues.JudgeZoom or 1
 		self:shadowlength(0):diffusealpha(1):zoom(1.2 * jz)
 		self:linear(0.05)
 		self:zoom(1 * jz)
@@ -32,7 +32,7 @@ local JudgeCmds = {
 		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
 	end,
 	TapNoteScore_W3 = function(self)
-		local jz = MovableValues.JudgeZoom
+		local jz = MovableValues.JudgeZoom or 1
 		self:shadowlength(0):diffusealpha(1):zoom(1.2 * jz)
 		self:linear(0.05)
 		self:zoom(1 * jz)
@@ -40,7 +40,7 @@ local JudgeCmds = {
 		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
 	end,
 	TapNoteScore_W4 = function(self)
-		local jz = MovableValues.JudgeZoom
+		local jz = MovableValues.JudgeZoom or 1
 		self:shadowlength(0):diffusealpha(1):zoom(1.1 * jz)
 		self:linear(0.05)
 		self:zoom(1 * jz)
@@ -48,7 +48,7 @@ local JudgeCmds = {
 		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
 	end,
 	TapNoteScore_W5 = function(self)
-		local jz = MovableValues.JudgeZoom
+		local jz = MovableValues.JudgeZoom or 1
 		self:shadowlength(0):diffusealpha(1):zoom(1.05 * jz)
 		self:linear(0.05)
 		self:zoom(1 * jz)
@@ -56,7 +56,7 @@ local JudgeCmds = {
 		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
 	end,
 	TapNoteScore_Miss = function(self)
-		local jz = MovableValues.JudgeZoom
+		local jz = MovableValues.JudgeZoom or 1
 		self:shadowlength(0):diffusealpha(1):zoom(1.05 * jz)
 		self:linear(0.05)
 		self:zoom(1 * jz)
