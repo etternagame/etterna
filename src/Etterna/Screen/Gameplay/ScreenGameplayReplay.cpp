@@ -523,8 +523,11 @@ ScreenGameplayReplay::TogglePause()
 			auto msg = Message("Judgment");
 			msg.SetParam("FromReplay", true);
 			msg.SetParam("Judgment", tns);
-			msg.SetParam("WifePercent",
-						 100 * rs->curwifescore / rs->maxwifescore);
+			if (rs->maxwifescore == 0.F) {
+				msg.SetParam("WifePercent", 0);
+			} else {
+				msg.SetParam("WifePercent", 100 * rs->curwifescore / rs->maxwifescore);
+			}
 			msg.SetParam("Player", 0);
 			msg.SetParam("TapNoteScore", tns);
 			msg.SetParam("FirstTrack", 0);
@@ -548,8 +551,11 @@ ScreenGameplayReplay::TogglePause()
 			msg.SetParam("FromReplay", true);
 			msg.SetParam("Player", 0);
 			msg.SetParam("MultiPlayer", 0);
-			msg.SetParam("WifePercent",
-						 100 * rs->curwifescore / rs->maxwifescore);
+			if (rs->maxwifescore == 0.F) {
+				msg.SetParam("WifePercent", 0);
+			} else {
+				msg.SetParam("WifePercent", 100 * rs->curwifescore / rs->maxwifescore);
+			}
 			msg.SetParam("FirstTrack", 0);
 			msg.SetParam("CurWifeScore", rs->curwifescore);
 			msg.SetParam("MaxWifeScore", rs->maxwifescore);

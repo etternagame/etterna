@@ -3131,7 +3131,11 @@ Player::SetJudgment(int iRow,
 			}
 			maxwifescore += 2;
 
-			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			if (maxwifescore == 0.F) {
+				msg.SetParam("WifePercent", 0);
+			} else {
+				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			}
 			msg.SetParam("CurWifeScore", curwifescore);
 			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential",
@@ -3248,7 +3252,11 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 				curwifescore += wife3_hold_drop_weight;
 			}
 
-			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			if (maxwifescore == 0.F) {
+				msg.SetParam("WifePercent", 0);
+			} else {
+				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			}
 			msg.SetParam("CurWifeScore", curwifescore);
 			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential",
