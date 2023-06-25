@@ -66,7 +66,7 @@ static Preference<float> DownloadCooldownTime(
 
 // Score API Preferences
 static Preference<std::string> serverURL("BaseAPIURL",
-										 "http://api.beta.etternaonline.com");
+										 "https://api.beta.etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
@@ -90,6 +90,7 @@ static const std::string API_UPLOAD_SCORE = "/scores";
 static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
 static const std::string API_FAVORITES = "/favorites";
 static const std::string API_GOALS = "/goals";
+static const std::string API_CHART_LEADERBOARD = "/charts/{}/scores";
 
 inline std::string
 APIROOT()
@@ -1160,7 +1161,7 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 		if (response == 200) {
 			// all good
 			Locator::getLogger()->info(
-			  "AddGoal successfull added goal for {} to online profile",
+			  "AddGoal successfully added goal for {} to online profile",
 			  goal->chartkey);
 
 		} else if (response == 422) {
@@ -1416,6 +1417,199 @@ DownloadManager::ShouldUploadScores()
 {
 	return LoggedIn() && automaticSync &&
 		   GamePreferences::m_AutoPlay == PC_HUMAN;
+}
+
+inline OnlineScore
+jsonToOnlineScore(Value& score, const std::string& chartkey)
+{
+	OnlineScore tmp;
+
+	auto& user = score["user"];
+	tmp.songId = "";
+	if (user.HasMember("username") && user["username"].IsString())
+		tmp.username = user["username"].GetString();
+	else
+		tmp.username = "";
+	if (user.HasMember("avatar_path") && user["avatar_path"].IsString())
+		tmp.avatar = user["avatar_path"].GetString();
+	else
+		tmp.avatar = "";
+	tmp.userid = 0;
+	if (user.HasMember("country") && user["country"].IsString())
+		tmp.countryCode = user["country"].GetString();
+	else
+		tmp.countryCode = "";
+	if (user.HasMember("overall") && user["overall"].IsNumber())
+		tmp.playerRating = user["overall"].GetFloat();
+	else
+		tmp.playerRating = 0.f;
+	if (score.HasMember("wife") && score["wife"].IsNumber())
+		tmp.wife = static_cast<float>(score["wife"].GetFloat()) / 100.f;
+	else
+		tmp.wife = 0.f;
+	if (score.HasMember("modifiers") && score["modifiers"].IsString())
+		tmp.modifiers = score["modifiers"].GetString();
+	else
+		tmp.modifiers = "";
+	if (score.HasMember("combo") && score["combo"].IsInt())
+		tmp.maxcombo = score["combo"].GetInt();
+	else
+		tmp.maxcombo = 0;
+	if (score.HasMember("marvelous") &&
+		score["marvelous"].IsInt())
+		tmp.marvelous = score["marvelous"].GetInt();
+	else
+		tmp.marvelous = 0;
+	if (score.HasMember("perfect") && score["perfect"].IsInt())
+		tmp.perfect = score["perfect"].GetInt();
+	else
+		tmp.perfect = 0;
+	if (score.HasMember("great") && score["great"].IsInt())
+		tmp.great = score["great"].GetInt();
+	else
+		tmp.great = 0;
+	if (score.HasMember("good") && score["good"].IsInt())
+		tmp.good = score["good"].GetInt();
+	else
+		tmp.good = 0;
+	if (score.HasMember("bad") && score["bad"].IsInt())
+		tmp.bad = score["bad"].GetInt();
+	else
+		tmp.bad = 0;
+	if (score.HasMember("miss") && score["miss"].IsInt())
+		tmp.miss = score["miss"].GetInt();
+	else
+		tmp.miss = 0;
+	if (score.HasMember("hit_mine") && score["hit_mine"].IsInt())
+		tmp.minehits = score["hit_mine"].GetInt();
+	else
+		tmp.minehits = 0;
+	if (score.HasMember("held") && score["held"].IsInt())
+		tmp.held = score["held"].GetInt();
+	else
+		tmp.held = 0;
+	if (score.HasMember("let_go") &&
+		score["let_go"].IsInt())
+		tmp.letgo = score["let_go"].GetInt();
+	else
+		tmp.letgo = 0;
+	if (score.HasMember("missed_hold") &&
+		score["missed_hold"].IsInt())
+		tmp.holdmiss = score["missed_hold"].GetInt();
+	else
+		tmp.holdmiss = 0;
+	if (score.HasMember("datetime") && score["datetime"].IsString())
+		tmp.datetime.FromString(score["datetime"].GetString());
+	else
+		tmp.datetime.FromString("0");
+	if (score.HasMember("id") && score["id"].IsInt())
+		tmp.scoreid = std::to_string(score["id"].GetInt());
+	else
+		tmp.scoreid = "";
+
+	// filter scores not on the current rate out if enabled...
+	// dunno if we need this precision -mina
+	if (score.HasMember("rate") && score["rate"].IsString())
+		tmp.rate = std::stof(score["rate"].GetString());
+	else
+		tmp.rate = 0.0;
+	if (score.HasMember("chord_cohesion") && score["chord_cohesion"].IsInt())
+		tmp.nocc = score["chord_cohesion"].GetInt() == 0;
+	else
+		tmp.nocc = false;
+	if (score.HasMember("valid") && score["valid"].IsInt())
+		tmp.valid = score["valid"].GetInt() == 1;
+	else
+		tmp.valid = false;
+	if (score.HasMember("wife_version") && score["wife_version"].IsInt()) {
+		auto v = score["wife_version"].GetInt();
+		if (v == 3)
+			tmp.wifeversion = 3;
+		else
+			tmp.wifeversion = 2;
+	} else
+		tmp.wifeversion = 2;
+
+	if (score.HasMember("overall") && score["overall"].IsNumber())
+		tmp.SSRs[Skill_Overall] = score["overall"].GetFloat();
+	else
+		tmp.SSRs[Skill_Overall] = 0.0;
+	if (score.HasMember("stream") && score["stream"].IsNumber())
+		tmp.SSRs[Skill_Stream] = score["stream"].GetFloat();
+	else
+		tmp.SSRs[Skill_Stream] = 0.0;
+	if (score.HasMember("jumpstream") && score["jumpstream"].IsNumber())
+		tmp.SSRs[Skill_Jumpstream] = score["jumpstream"].GetFloat();
+	else
+		tmp.SSRs[Skill_Jumpstream] = 0.0;
+	if (score.HasMember("handstream") && score["handstream"].IsNumber())
+		tmp.SSRs[Skill_Handstream] = score["handstream"].GetFloat();
+	else
+		tmp.SSRs[Skill_Handstream] = 0.0;
+	if (score.HasMember("stamina") && score["stamina"].IsNumber())
+		tmp.SSRs[Skill_Stamina] = score["stamina"].GetFloat();
+	else
+		tmp.SSRs[Skill_Stamina] = 0.0;
+	if (score.HasMember("jacks") && score["jacks"].IsNumber())
+		tmp.SSRs[Skill_JackSpeed] = score["jacks"].GetFloat();
+	else
+		tmp.SSRs[Skill_JackSpeed] = 0.0;
+	if (score.HasMember("chordjacks") && score["chordjacks"].IsNumber())
+		tmp.SSRs[Skill_Chordjack] = score["chordjacks"].GetFloat();
+	else
+		tmp.SSRs[Skill_Chordjack] = 0.0;
+	if (score.HasMember("technical") && score["technical"].IsNumber())
+		tmp.SSRs[Skill_Technical] = score["technical"].GetFloat();
+	else
+		tmp.SSRs[Skill_Technical] = 0.0;
+
+	// not sure yet
+	tmp.hasReplay = false;
+
+	if (score.HasMember("calculator_version") &&
+		score["calculator_version"].IsInt())
+		tmp.hs.SetSSRCalcVersion(score["calculator_version"].GetInt());
+
+	std::string scorekey = "";
+	if (score.HasMember("key") && score["key"].IsString())
+		scorekey = score["key"].GetString();
+
+	auto& hs = tmp.hs;
+	hs.SetDateTime(tmp.datetime);
+	hs.SetMaxCombo(tmp.maxcombo);
+	hs.SetName(tmp.username);
+	hs.SetModifiers(tmp.modifiers);
+	hs.SetChordCohesion(tmp.nocc);
+	hs.SetWifeScore(tmp.wife);
+	hs.SetWifeVersion(tmp.wifeversion);
+	hs.SetSSRNormPercent(tmp.wife);
+	hs.SetMusicRate(tmp.rate);
+	hs.SetChartKey(chartkey);
+	hs.SetScoreKey("Online_" + scorekey);
+	hs.SetGrade(hs.GetWifeGrade());
+
+	hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
+	hs.SetTapNoteScore(TNS_W2, tmp.perfect);
+	hs.SetTapNoteScore(TNS_W3, tmp.great);
+	hs.SetTapNoteScore(TNS_W4, tmp.good);
+	hs.SetTapNoteScore(TNS_W5, tmp.bad);
+	hs.SetTapNoteScore(TNS_Miss, tmp.miss);
+	hs.SetTapNoteScore(TNS_HitMine, tmp.minehits);
+
+	hs.SetHoldNoteScore(HNS_Held, tmp.held);
+	hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
+	hs.SetHoldNoteScore(HNS_Missed, tmp.holdmiss);
+
+	FOREACH_ENUM(Skillset, ss)
+	hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
+
+	hs.userid = tmp.userid;
+	hs.scoreid = tmp.scoreid;
+	hs.avatar = tmp.avatar;
+	hs.countryCode = tmp.countryCode;
+	hs.hasReplay = tmp.hasReplay;
+
+	return tmp;
 }
 
 inline Document
@@ -2252,8 +2446,10 @@ DownloadManager::SendRequestToURL(
 			return;
 		}
 
+		// for non 404s, check to see if it is malformed
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
+		if (req.response_code != 404 &&
+			d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
 			  "SendRequestToURL ({}) Parse Error: {}", url, req.result);
 			return;
@@ -2555,265 +2751,32 @@ void
 DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 										 LuaReference& ref)
 {
-	Locator::getLogger()->warn("REFRESH CHART LEADERBOARD NOT IMPLEMENTED");
-	return;
+	auto queryPath = fmt::format(API_CHART_LEADERBOARD, chartkey);
+	Locator::getLogger()->info("Generating chart leaderboard request for {}",
+							   chartkey);
 
-	/*
-	auto done = [chartkey, ref, this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RequestChartLeaderBoard Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-		std::vector<OnlineScore>& vec = chartLeaderboards[chartkey];
-		vec.clear();
+	std::vector<std::pair<std::string, std::string>> params = {
+		//std::make_pair("sort", ""),
+		std::make_pair("limit", "999999"),
+		//std::make_pair("page", "")
+	};
 
-		// keep track of unranked charts
-		if (req.response_code == 404)
-			unrankedCharts.emplace(chartkey);
-		else if (req.response_code == 200)
-			unrankedCharts.erase(chartkey);
+	std::vector<OnlineScore>& vec = chartLeaderboards[chartkey];
+	vec.clear();
 
-		if (!d.HasMember("errors") && d.HasMember("data") &&
-			d["data"].IsArray()) {
-			auto& scores = d["data"];
-			for (auto& score_obj : scores.GetArray()) {
-				if (!score_obj.HasMember("attributes") ||
-					!score_obj["attributes"].IsObject() ||
-					!score_obj["attributes"].HasMember("hasReplay") ||
-					!score_obj["attributes"]["hasReplay"].IsBool() ||
-					!score_obj["attributes"].HasMember("user") ||
-					!score_obj["attributes"]["user"].IsObject() ||
-					!score_obj["attributes"].HasMember("judgements") ||
-					!score_obj["attributes"]["judgements"].IsObject() ||
-					!score_obj["attributes"].HasMember("skillsets") ||
-					!score_obj["attributes"]["skillsets"].IsObject()) {
-					Locator::getLogger()->warn(
-					  "Malformed score in chart leaderboard (chart: {}): {}",
-					  chartkey,
-					  jsonObjectToString(score_obj));
-					continue;
-				}
-				auto& score = score_obj["attributes"];
-
-				OnlineScore tmp;
-				// tmp.songId = score.value("songId", 0);
-				auto& user = score["user"];
-				if (score.HasMember("songId") && score["songId"].IsString())
-					tmp.songId = score["songId"].GetString();
-				else
-					tmp.songId = "";
-				if (user.HasMember("userName") && user["userName"].IsString())
-					tmp.username = user["userName"].GetString();
-				else
-					tmp.username = "";
-				if (user.HasMember("avatar") && user["avatar"].IsString())
-					tmp.avatar = user["avatar"].GetString();
-				else
-					tmp.avatar = "";
-				if (user.HasMember("userId") && user["userId"].IsInt())
-					tmp.userid = user["userId"].GetInt();
-				else
-					tmp.userid = 0;
-				if (user.HasMember("countryCode") &&
-					user["countryCode"].IsString())
-					tmp.countryCode = user["countryCode"].GetString();
-				else
-					tmp.countryCode = "";
-				if (user.HasMember("countryCode") &&
-					user["countryCode"].IsString())
-					tmp.countryCode = user["countryCode"].GetString();
-				else
-					tmp.countryCode = "";
-				if (user.HasMember("playerRating") &&
-					user["playerRating"].IsNumber())
-					tmp.playerRating = user["playerRating"].GetFloat();
-				else
-					tmp.playerRating = 0.f;
-				if (score.HasMember("wife") && score["wife"].IsNumber())
-					tmp.wife = score["wife"].GetFloat() / 100.f;
-				else
-					tmp.wife = 0.f;
-				if (score.HasMember("modifiers") &&
-					score["modifiers"].IsString())
-					tmp.modifiers = score["modifiers"].GetString();
-				else
-					tmp.modifiers = "";
-				if (score.HasMember("maxCombo") && score["maxCombo"].IsInt())
-					tmp.maxcombo = score["maxCombo"].GetInt();
-				else
-					tmp.maxcombo = 0;
-				{
-					auto& judgements = score["judgements"];
-					if (judgements.HasMember("marvelous") &&
-						judgements["marvelous"].IsInt())
-						tmp.marvelous = judgements["marvelous"].GetInt();
-					else
-						tmp.marvelous = 0;
-					if (judgements.HasMember("perfect") &&
-						judgements["perfect"].IsInt())
-						tmp.perfect = judgements["perfect"].GetInt();
-					else
-						tmp.perfect = 0;
-					if (judgements.HasMember("great") &&
-						judgements["great"].IsInt())
-						tmp.great = judgements["great"].GetInt();
-					else
-						tmp.great = 0;
-					if (judgements.HasMember("good") &&
-						judgements["good"].IsInt())
-						tmp.good = judgements["good"].GetInt();
-					else
-						tmp.good = 0;
-					if (judgements.HasMember("bad") &&
-						judgements["bad"].IsInt())
-						tmp.bad = judgements["bad"].GetInt();
-					else
-						tmp.bad = 0;
-					if (judgements.HasMember("miss") &&
-						judgements["miss"].IsInt())
-						tmp.miss = judgements["miss"].GetInt();
-					else
-						tmp.miss = 0;
-					if (judgements.HasMember("hitMines") &&
-						judgements["hitMines"].IsInt())
-						tmp.minehits = judgements["hitMines"].GetInt();
-					else
-						tmp.minehits = 0;
-					if (judgements.HasMember("heldHold") &&
-						judgements["heldHold"].IsInt())
-						tmp.held = judgements["heldHold"].GetInt();
-					else
-						tmp.held = 0;
-					if (judgements.HasMember("letGoHold") &&
-						judgements["letGoHold"].IsInt())
-						tmp.letgo = judgements["letGoHold"].GetInt();
-					else
-						tmp.letgo = 0;
-					if (judgements.HasMember("missedHold") &&
-						judgements["missedHold"].IsInt())
-						tmp.holdmiss = judgements["missedHold"].GetInt();
-					else
-						tmp.holdmiss = 0;
-
-				}
-				if (score.HasMember("datetime") && score["datetime"].IsString())
-					tmp.datetime.FromString(score["datetime"].GetString());
-				else
-					tmp.datetime.FromString("0");
-				if (score_obj.HasMember("id") && score_obj["id"].IsString())
-					tmp.scoreid = score_obj["id"].GetString();
-				else
-					tmp.scoreid = "";
-
-				// filter scores not on the current rate out if enabled...
-				// dunno if we need this precision -mina
-				if (score.HasMember("rate") && score["rate"].IsNumber())
-					tmp.rate = score["rate"].GetFloat();
-				else
-					tmp.rate = 0.0;
-				if (score.HasMember("noCC") && score["noCC"].IsBool())
-					tmp.nocc = score["noCC"].GetBool();
-				else
-					tmp.nocc = false;
-				if (score.HasMember("valid") && score["valid"].IsBool())
-					tmp.valid = score["valid"].GetBool();
-				else
-					tmp.valid = false;
-				if (score.HasMember("wifeVersion") &&
-					score["wifeVersion"].IsInt()) {
-					auto v = score["wifeVersion"].GetInt();
-					if (v == 3)
-						tmp.wifeversion = 3;
-					else
-						tmp.wifeversion = 2;
-				} else
-					tmp.wifeversion = 2;
-
-				auto& ssrs = score["skillsets"];
-				FOREACH_ENUM(Skillset, ss)
-				{
-					auto str = SkillsetToString(ss);
-					if (ssrs.HasMember(str.c_str()) &&
-						ssrs[str.c_str()].IsNumber())
-						tmp.SSRs[ss] = ssrs[str.c_str()].GetFloat();
-					else
-						tmp.SSRs[ss] = 0.0;
-				}
-				if (score.HasMember("hasReplay") && score["hasReplay"].IsBool())
-					tmp.hasReplay = score["hasReplay"].GetBool();
-				else
-					tmp.hasReplay = false;
-
-				// eo still has some old profiles with various edge issues
-				// that unfortunately need to be handled here screen out old
-				// 11111 flags (my greatest mistake) and it's probably a
-				// safe bet to throw out below 25% scores -mina
-				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
-					continue;
-
-				// it seems prudent to maintain the eo functionality in this
-				// way and screen out multiple scores from the same user
-				// even more prudent would be to put this last where it
-				// belongs, we don't want to screen out scores for players
-				// who wouldn't have had them registered in the first place
-				// -mina Moved this filtering to the Lua call. -poco if
-				// (userswithscores.count(tmp.username) == 1)
-				//	continue;
-
-				// userswithscores.emplace(tmp.username);
-
-				auto& hs = tmp.hs;
-				hs.SetDateTime(tmp.datetime);
-				hs.SetMaxCombo(tmp.maxcombo);
-				hs.SetName(tmp.username);
-				hs.SetModifiers(tmp.modifiers);
-				hs.SetChordCohesion(tmp.nocc);
-				hs.SetWifeScore(tmp.wife);
-				hs.SetWifeVersion(tmp.wifeversion);
-				hs.SetSSRNormPercent(tmp.wife);
-				hs.SetMusicRate(tmp.rate);
-				hs.SetChartKey(chartkey);
-				hs.SetScoreKey("Online_" + tmp.scoreid);
-				hs.SetGrade(hs.GetWifeGrade());
-
-				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
-				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
-				hs.SetTapNoteScore(TNS_W3, tmp.great);
-				hs.SetTapNoteScore(TNS_W4, tmp.good);
-				hs.SetTapNoteScore(TNS_W5, tmp.bad);
-				hs.SetTapNoteScore(TNS_Miss, tmp.miss);
-				hs.SetTapNoteScore(TNS_HitMine, tmp.minehits);
-
-				hs.SetHoldNoteScore(HNS_Held, tmp.held);
-				hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
-				hs.SetHoldNoteScore(HNS_Missed, tmp.holdmiss);
-
-				FOREACH_ENUM(Skillset, ss)
-				hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
-
-				hs.userid = tmp.userid;
-				hs.scoreid = tmp.scoreid;
-				hs.avatar = tmp.avatar;
-				hs.countryCode = tmp.countryCode;
-				hs.hasReplay = tmp.hasReplay;
-
-				vec.push_back(tmp);
-			}
-		}
-
+	auto runLuaFunc = [ref](HTTPRequest& req, std::vector<OnlineScore>& vec) {
 		if (!ref.IsNil() && ref.IsSet()) {
 			Lua* L = LUA->Get();
 			ref.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
 				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
+				auto response = req.response_code;
 
 				// 404: Chart not ranked
 				// 401: Invalid login token
-				if (req.response_code == 404 || req.response_code == 401) {
+				// 429: Rate Limited
+				if (response == 404 || response == 401) {
 					lua_pushnil(L);
 					// nil output means unranked to Lua
 				} else {
@@ -2834,11 +2797,71 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 			LUA->Release(L);
 		}
 	};
-	SendRequest("/charts/" + UrlEncode(chartkey) + "/leaderboards",
-				std::vector<std::pair<std::string, std::string>>(),
-				done,
-				true);
-				*/
+
+	auto done = [&ref, chartkey, runLuaFunc, &vec, this](HTTPRequest& req) {
+		if (HandleAuthErrorResponse(API_CHART_LEADERBOARD, req)) {
+			runLuaFunc(req, vec);
+			return;
+		}
+		if (HandleRatelimitResponse(API_CHART_LEADERBOARD, req)) {
+			RequestChartLeaderBoard(chartkey, ref);
+			return;
+		}
+
+		auto response = req.response_code;
+		if (response == 404) {
+			// chart is unranked
+			unrankedCharts.emplace(chartkey);
+			runLuaFunc(req, vec);
+
+			Locator::getLogger()->warn("RequestChartLeaderboard 404'd because "
+									   "this chart is unranked: {}",
+									   chartkey);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RequestChartLeaderboard Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+
+		if (response == 200) {
+			// chart is ranked. leaderboard has [0,inf] scores
+
+			if (d.HasMember("data") && d["data"].IsArray()) {
+
+				auto count = 0;
+				auto& data = d["data"];
+				for (auto it = data.Begin(); it != data.End(); it++) {
+					count++;
+					vec.push_back(jsonToOnlineScore(*it, chartkey));
+				}
+				unrankedCharts.erase(chartkey);
+				runLuaFunc(req, vec);
+
+				Locator::getLogger()->info(
+				  "RequestChartLeaderboard for {} succeeded - {} scores found",
+				  chartkey,
+				  count);
+			} else {
+				Locator::getLogger()->warn(
+				  "RequestChartLeaderboard got unexpected response body - "
+				  "Content: {}",
+				  jsonObjectToString(d));
+			}
+		} else {
+			Locator::getLogger()->warn(
+			  "RequestChartLeaderboard unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(queryPath, params, done, true);
 }
 
 void
