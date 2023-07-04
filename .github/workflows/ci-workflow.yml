@@ -154,7 +154,7 @@ jobs:
           echo "Running dsymutil..."
           dsymutil -o ${{github.workspace}}/main/Etterna.dsym main/Etterna.app/Contents/MacOS/Etterna > /dev/null
           echo "Dumping Symbols..."
-          dump_syms -g ${{github.workspace}}/main/Etterna.dsym main/Etterna.app/Contents/MacOS/Etterna > ${{github.workspace}}/main/Etterna.sym
+          dump_syms ${{github.workspace}}/main/Etterna.dsym main/Etterna.app/Contents/MacOS/Etterna > ${{github.workspace}}/main/Etterna.sym
           echo "Stripping debug symbols from binary..."
           strip main/Etterna.app/Contents/MacOS/Etterna
 
