@@ -86,12 +86,13 @@ static const std::string API_KEY = "testkey";
 
 static const std::string API_LOGIN = "/login";
 static const std::string API_RANKED_CHARTKEYS = "/charts/ranked";
+static const std::string API_CHART_LEADERBOARD = "/charts/{}/scores";
 static const std::string API_UPLOAD_SCORE = "/scores";
 static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
 static const std::string API_FAVORITES = "/favorites";
 static const std::string API_GOALS = "/goals";
-static const std::string API_CHART_LEADERBOARD = "/charts/{}/scores";
 static const std::string API_USER = "/users/{}";
+static const std::string API_GAME_VERSION = "/settings/version";
 
 inline std::string
 APIROOT()
@@ -2925,10 +2926,15 @@ DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
 void
 DownloadManager::RefreshLastVersion()
 {
-	Locator::getLogger()->warn("REFRESH LAST VERSION NOT IMPLEMENTED");
-	return;
-	/*
+
+	std::vector<std::pair<std::string, std::string>> params = {};
+
 	auto done = [this](HTTPRequest& req) {
+		if (HandleRatelimitResponse(API_USER, req)) {
+			RefreshUserData();
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -2937,23 +2943,26 @@ DownloadManager::RefreshLastVersion()
 			return;
 		}
 
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("version") &&
-			d["data"]["attributes"]["version"].IsString())
-			lastVersion = d["data"]["attributes"]["version"].GetString();
-		else
-			lastVersion = GAMESTATE->GetEtternaVersion();
+		auto response = req.response_code;
+		if (response == 200) {
+
+			lastVersion = getJsonString(d, "game_version");
+
+			Locator::getLogger()->info(
+			  "RefreshLastVersion successful - Last Version is {}",
+			  lastVersion);
+		} else {
+			Locator::getLogger()->error(
+			  "RefreshLastVersion Error: Unexpected status {} - content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
 	};
-	SendRequest("client/version",
-				std::vector<std::pair<std::string, std::string>>(),
-				done,
-				false,
-				false,
-				true);
-				*/
+
+	SendRequest(
+	  API_GAME_VERSION, params, done, false, RequestMethod::GET, true, false);
 }
+
 void
 DownloadManager::RefreshRegisterPage()
 {
