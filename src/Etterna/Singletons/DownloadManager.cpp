@@ -91,6 +91,7 @@ static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
 static const std::string API_FAVORITES = "/favorites";
 static const std::string API_GOALS = "/goals";
 static const std::string API_CHART_LEADERBOARD = "/charts/{}/scores";
+static const std::string API_USER = "/users/{}";
 
 inline std::string
 APIROOT()
@@ -369,6 +370,33 @@ jsonObjectToString(Value& doc)
 	Writer<StringBuffer> w(buffer);
 	doc.Accept(w);
 	return buffer.GetString();
+}
+
+inline float
+getJsonFloat(Value& doc, const char* name)
+{
+	if (doc.HasMember(name) && doc[name].IsFloat()) {
+		return doc[name].GetFloat();
+	}
+	return 0.F;
+}
+
+inline std::string
+getJsonString(Value& doc, const char* name)
+{
+	if (doc.HasMember(name) && doc[name].IsString()) {
+		return doc[name].GetString();
+	}
+	return "";
+}
+
+inline int
+getJsonInt(Value& doc, const char* name)
+{
+	if (doc.HasMember(name) && doc[name].IsInt()) {
+		return doc[name].GetInt();
+	}
+	return 0;
 }
 
 std::string
@@ -2329,47 +2357,6 @@ DownloadManager::ForceUploadAllPBs()
 	return successful;
 }
 
-void
-DownloadManager::RefreshUserRank()
-{
-	Locator::getLogger()->warn("REFRESH USER RANK NOT IMPLEMENTED");
-	return;
-
-	/*
-
-	if (!LoggedIn())
-		return;
-	auto done = [this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshUserRank Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-		if (d.HasMember("errors") && d["errors"].IsObject() &&
-			d["errors"].HasMember("status") && d["errors"]["status"].IsInt() &&
-			d["errors"]["status"].GetInt() == 404)
-			return;
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject()) {
-			auto& skillsets = d["data"]["attributes"];
-			FOREACH_ENUM(Skillset, ss)
-			{
-				auto str = SkillsetToString(ss);
-				if (skillsets.HasMember(str.c_str()) &&
-					skillsets[str.c_str()].IsInt())
-					(sessionRanks)[ss] = skillsets[str.c_str()].GetInt();
-				else
-					(sessionRanks)[ss] = 0;
-			}
-		}
-		MESSAGEMAN->Broadcast("OnlineUpdate");
-	};
-	SendRequest("user/" + UrlEncode(sessionUser) + "/ranks", {}, done, true, false, true);
-	*/
-}
 OnlineTopScore
 DownloadManager::GetTopSkillsetScore(unsigned int rank,
 									 Skillset ss,
@@ -3073,18 +3060,36 @@ DownloadManager::RefreshTop25(Skillset ss)
 	SendRequest(req, {}, done);
 	*/
 }
-// Skillset ratings (we dont care about mod lvl, username, about, etc)
+
 void
 DownloadManager::RefreshUserData()
 {
 	if (!LoggedIn())
 		return;
 
-	Locator::getLogger()->warn("REFRESH USER DATA NOT IMPLEMENTED");
-	return;
-	/*
+	auto queryPath = fmt::format(API_USER, sessionUser);
+	Locator::getLogger()->info("Refreshing UserData for {}", sessionUser);
+
+	std::vector<std::pair<std::string, std::string>> params = {};
 
 	auto done = [this](HTTPRequest& req) {
+		if (HandleAuthErrorResponse(API_USER, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_USER, req)) {
+			RefreshUserData();
+			return;
+		}
+
+		auto response = req.response_code;
+		if (response == 404) {
+			// user doesnt exist :eyebrow_raise:
+			Locator::getLogger()->warn(
+			  "RefreshUserData 404'd because user does not exist: {}",
+			  sessionUser);
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -3093,40 +3098,54 @@ DownloadManager::RefreshUserData()
 			return;
 		}
 
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("skillsets") &&
-			d["data"]["attributes"]["skillsets"].IsObject()) {
-			auto& attr = d["data"]["attributes"];
-			auto& skillsets = attr["skillsets"];
-			FOREACH_ENUM(Skillset, ss)
-			{
-				auto str = SkillsetToString(ss);
-				if (skillsets.HasMember(str.c_str()) &&
-					skillsets[str.c_str()].IsNumber())
-					(sessionRatings)[ss] =
-					  skillsets[str.c_str()].GetDouble();
-				else
-					(sessionRatings)[ss] = 0.0f;
-			}
-			if (attr.HasMember("playerRating") &&
-				attr["playerRating"].IsNumber())
-				sessionRatings[Skill_Overall] =
-				  attr["playerRating"].GetDouble();
-			if (skillsets.HasMember("countryCode") &&
-				skillsets["countryCode"].IsString())
-				countryCode = attr["countryCode"].GetString();
-			else
-				countryCode = "";
-		} else
-			FOREACH_ENUM(Skillset, ss)
-		(sessionRatings)[ss] = 0.0f;
+		if (response == 200) {
+			// it probably worked
 
-		MESSAGEMAN->Broadcast("OnlineUpdate");
+			if (d.HasMember("data") && d["data"].IsObject()) {
+
+				auto count = 0;
+				auto& data = d["data"];
+
+				sessionRatings[Skill_Overall] = getJsonFloat(data, "overall");
+				sessionRatings[Skill_Stream] = getJsonFloat(data, "stream");
+				sessionRatings[Skill_Jumpstream] =
+				  getJsonFloat(data, "jumpstream");
+				sessionRatings[Skill_Handstream] =
+				  getJsonFloat(data, "handstream");
+				sessionRatings[Skill_Stamina] =
+				  getJsonFloat(data, "stamina");
+				sessionRatings[Skill_JackSpeed] = getJsonFloat(data, "jacks");
+				sessionRatings[Skill_Chordjack] =
+				  getJsonFloat(data, "chordjacks");
+				sessionRatings[Skill_Technical] =
+				  getJsonFloat(data, "technical");
+
+				countryCode = getJsonString(data, "country");
+
+				sessionRanks[Skill_Overall] = getJsonInt(data, "rank");
+
+				Locator::getLogger()->info(
+				  "RefreshUserData for {} succeeded - Rank {} - Overall {}",
+				  sessionUser,
+				  sessionRanks[Skill_Overall],
+				  sessionRatings[Skill_Overall]);
+
+				MESSAGEMAN->Broadcast("OnlineUpdate");
+			} else {
+				Locator::getLogger()->warn(
+				  "RefreshUserData got unexpected response body - "
+				  "Content: {}",
+				  jsonObjectToString(d));
+			}
+		} else {
+			Locator::getLogger()->warn(
+			  "RefreshUserData unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
 	};
-	SendRequest("user/" + UrlEncode(sessionUser), {}, done);
-	*/
+
+	SendRequest(queryPath, params, done, true);
 }
 
 int

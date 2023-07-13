@@ -342,7 +342,6 @@ class DownloadManager
 	void RefreshCountryCodes();
 	void RefreshCoreBundles();
 	void RefreshUserData();
-	void RefreshUserRank();
 	void RefreshTop25(Skillset ss);
 
 	std::shared_ptr<Download> DownloadAndInstallPack(const std::string& url,
