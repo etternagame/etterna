@@ -37,6 +37,13 @@ const float MINE_WINDOW_SEC = 0.075F;
 // this prevents unwanted cbs from roll tapping
 const float TAP_IN_HOLD_REQ_SEC = 0.135F;
 
+// how long between each subsequent release on a hold a
+// repress must take place before the hold dies
+const float HOLD_DROP_SEC = 0.250F;
+
+// how long between each subsequent tap on a roll before death
+const float ROLL_DROP_SEC = 0.500F;
+
 enum GameplayMode
 {
 	GameplayMode_Normal,
@@ -166,6 +173,7 @@ enum SortOrder
 	SORT_Technical,
 	SORT_LENGTH,
 	SORT_DATE_ADDED,
+	SORT_CHART_AUTHOR,
 	SORT_Ungrouped, /**< Sort by the song title, putting all songs into single
 					   group. */
 	NUM_SortOrder,

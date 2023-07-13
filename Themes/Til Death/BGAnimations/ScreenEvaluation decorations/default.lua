@@ -672,6 +672,35 @@ local function scoreBoard(pn, position)
 	local function judgmentBar(judgmentIndex, judgmentName)
 		local t = Def.ActorFrame {
 			Name = "JudgmentBar"..judgmentName,
+			BeginCommand = function(self)
+				if aboutToForceWindowSettings then
+					self.jcount = 0
+				else
+					self.jcount = score:GetTapNoteScore(judgmentName)
+				end
+			end,
+			ForceWindowMessageCommand = function(self, params)
+				self.jcount = getRescoredJudge(dvt, judge, judgmentIndex)
+				self:playcommand("Set")
+			end,
+			LoadedCustomWindowMessageCommand = function(self)
+				self.jcount = lastSnapshot:GetJudgments()[judgmentName:gsub("TapNoteScore_", "")]
+				self:playcommand("Set")
+			end,
+			ScoreChangedMessageCommand = function(self)
+				self.jcount = getRescoredJudge(dvt, judge, judgmentIndex)
+				self:playcommand("Set")
+			end,
+			CodeMessageCommand = function(self, params)
+				if usingCustomWindows then return end
+				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
+					self.jcount = getRescoredJudge(dvt, judge, judgmentIndex)
+				elseif params.Name == "ResetJudge" then
+					self.jcount = score:GetTapNoteScore(judgmentName)
+				end
+				self:playcommand("Set")
+			end,
+
 			Def.Quad {
 				Name = "BG",
 				InitCommand = function(self)
@@ -700,41 +729,13 @@ local function scoreBoard(pn, position)
 
 					self:sleep(0.2)
 					self:smooth(1.5)
-					self:zoomx(frameWidth * score:GetTapNoteScore(judgmentName) / totalTaps)
+					self:playcommand("Set")
 				end,
-				ForceWindowMessageCommand = function(self, params)
-					local rescoreJudges = getRescoredJudge(dvt, judge, judgmentIndex)
+				SetCommand = function(self)
 					self:finishtweening()
-					self:smooth(0.2)
-					self:zoomx(frameWidth * rescoreJudges / totalTaps)
+					self:bounceend(0.2)
+					self:zoomx(frameWidth * self:GetParent().jcount / totalTaps)
 				end,
-				LoadedCustomWindowMessageCommand = function(self)
-					local newjudgecount = lastSnapshot:GetJudgments()[judgmentName:gsub("TapNoteScore_", "")]
-					self:finishtweening()
-					self:smooth(0.2)
-					self:zoomx(frameWidth * newjudgecount / totalTaps)
-				end,
-				ScoreChangedMessageCommand = function(self)
-					self:zoomx(frameWidth * score:GetTapNoteScore(judgmentName) / totalTaps)
-				end,
-				
-				CodeMessageCommand = function(self, params)
-					if usingCustomWindows then
-						return
-					end
-
-					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-						local rescoreJudges = getRescoredJudge(dvt, judge, judgmentIndex)
-						self:finishtweening()
-						self:bounceend(0.2)
-						self:zoomx(frameWidth * rescoreJudges / totalTaps)
-					end
-					if params.Name == "ResetJudge" then
-						self:finishtweening()
-						self:bounceend(0.2)
-						self:zoomx(frameWidth * score:GetTapNoteScore(judgmentName) / totalTaps)
-					end
-				end
 			},
 			LoadFont("Common Large") .. {
 				Name = "Name",
@@ -749,26 +750,11 @@ local function scoreBoard(pn, position)
 				end,
 				SetCommand = function(self)
 					if usingCustomWindows then
-						self:queuecommand("LoadedCustomWindow")
+						self:settext(getCustomWindowConfigJudgmentName(judgmentName))
 					else
 						self:settext(getJudgeStrings(judgmentName))
 					end
 				end,
-				ForceWindowMessageCommand = function(self, params)
-					self:playcommand("Set")
-				end,
-				LoadedCustomWindowMessageCommand = function(self)
-					self:settext(getCustomWindowConfigJudgmentName(judgmentName))
-				end,
-				CodeMessageCommand = function(self, params)
-					if usingCustomWindows then
-						return
-					end
-
-					if params.Name == "ResetJudge" then
-						self:playcommand("Set")
-					end
-				end
 			},
 			LoadFont("Common Large") .. {
 				Name = "Count",
@@ -782,34 +768,8 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settext(score:GetTapNoteScore(judgmentName))
+					self:settext(self:GetParent().jcount)
 				end,
-				ScoreChangedMessageCommand = function(self)
-					if not usingCustomWindows then
-						self:queuecommand("Set")
-					else
-						self:queuecommand("LoadedCustomWindow")
-					end
-				end,
-				ForceWindowMessageCommand = function(self, params)
-					self:settext(getRescoredJudge(dvt, judge, judgmentIndex))
-				end,
-				LoadedCustomWindowMessageCommand = function(self)
-					local newjudgecount = lastSnapshot:GetJudgments()[judgmentName:gsub("TapNoteScore_", "")]
-					self:settext(newjudgecount)
-				end,
-				CodeMessageCommand = function(self, params)
-					if usingCustomWindows then
-						return
-					end
-
-					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-						self:settext(getRescoredJudge(dvt, judge, judgmentIndex))
-					end
-					if params.Name == "ResetJudge" then
-						self:playcommand("Set")
-					end
-				end
 			},
 			LoadFont("Common Normal") .. {
 				Name = "Percentage",
@@ -823,37 +783,8 @@ local function scoreBoard(pn, position)
 					self:queuecommand("Set")
 				end,
 				SetCommand = function(self)
-					self:settextf("(%03.2f%%)", score:GetTapNoteScore(judgmentName) / totalTaps * 100)
+					self:settextf("(%03.2f%%)", self:GetParent().jcount / totalTaps * 100)
 				end,
-				ScoreChangedMessageCommand = function(self)
-					if not usingCustomWindows then
-						self:queuecommand("Set")
-					else
-						self:queuecommand("LoadedCustomWindow")
-					end
-				end,
-				ForceWindowMessageCommand = function(self, params)
-					local rescoredJudge = getRescoredJudge(dvt, params.judge, judgmentIndex)
-					self:settextf("(%03.2f%%)", rescoredJudge / totalTaps * 100)
-				end,
-				LoadedCustomWindowMessageCommand = function(self)
-					local newjudgecount = lastSnapshot:GetJudgments()[judgmentName:gsub("TapNoteScore_", "")]
-					self:settextf("(%03.2f%%)", newjudgecount / totalTaps * 100)
-				end,
-				CodeMessageCommand = function(self, params)
-					if usingCustomWindows then
-						return
-					end
-
-					if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-
-						local rescoredJudge = getRescoredJudge(dvt, judge, judgmentIndex)
-						self:settextf("(%03.2f%%)", rescoredJudge / totalTaps * 100)
-					end
-					if params.Name == "ResetJudge" then
-						self:playcommand("Set")
-					end
-				end
 			}
 		}
 		return t
@@ -1139,7 +1070,6 @@ local function scoreBoard(pn, position)
 		local function statsLine(i)
 			return Def.ActorFrame {
 				Name = "StatLine"..statNames[i],
-
 				LoadFont("Common Normal") .. {
 					Name = "StatText",
 					InitCommand = function(self)
@@ -1152,6 +1082,10 @@ local function scoreBoard(pn, position)
 				LoadFont("Common Normal") .. {
 					Name=i,
 					InitCommand = function(self)
+						self:queuecommand("Set")
+					end,
+					SetCommand = function(self, params)
+						local statValues = scoreStatistics(params ~= nil and params.score or score)
 						if i < 4 then
 							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
 							self:zoom(tzoom)
@@ -1165,86 +1099,22 @@ local function scoreBoard(pn, position)
 						end
 					end,
 					ChangeScoreCommand = function(self, params)
-						local statValues = scoreStatistics(params.score)
-						if i < 4 then
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settextf("%5.2fms", statValues[i])
-						else
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settext(statValues[i])
-						end
+						self:queuecommand("Set", {score=params.score})
 					end,
 					LoadedCustomWindowMessageCommand = function(self)
-						local statValues = scoreStatistics(score)
-						if i < 4 then
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settextf("%5.2fms", statValues[i])
-						else
-							self:xy(frameWidth + 20, frameY + 224 + ySpacing * i)
-							self:zoom(tzoom)
-							self:halign(1)
-							self:settext(statValues[i])
-						end
+						self:queuecommand("Set")
 					end,
 					CodeMessageCommand = function(self, params)
 						if usingCustomWindows then
 							return
 						end
 
-						local j = tonumber(self:GetName())
-						if j > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
-							if j == 4 then
-								local tso = tst[judge]
-								statValues[j] = 0
-								statValues[j+1] = 0
-								for i = 1, #devianceTable do
-									if tracks[i] then	-- it would probably make sense to move all this to c++
-										if math.abs(devianceTable[i]) > tso * 90 then
-											if tracks[i] <= math.floor(ncol/2) then
-												statValues[j] = statValues[j] + 1
-											else
-												statValues[j+1] = statValues[j+1] + 1
-											end
-										end
-									end
-								end
-							end
-							self:xy(frameWidth + 20, frameY + 224 + 10 * j)
-							self:zoom(0.4)
-							self:halign(1)
-							self:settext(statValues[j])
+						if i > 3 and (params.Name == "PrevJudge" or params.Name == "NextJudge") then
+							self:queuecommand("Set")
 						end
 					end,
 					ForceWindowMessageCommand = function(self)
-						local j = tonumber(self:GetName())
-						if j > 3 then
-							if j == 4 then
-								local tso = tst[judge]
-								statValues[j] = 0
-								statValues[j+1] = 0
-								for i = 1, #devianceTable do
-									if tracks[i] then	-- it would probably make sense to move all this to c++
-										if math.abs(devianceTable[i]) > tso * 90 then
-											if tracks[i] <= math.floor(ncol/2) then
-												statValues[j] = statValues[j] + 1
-											else
-												statValues[j+1] = statValues[j+1] + 1
-											end
-										end
-									end
-								end
-							end
-							self:xy(frameWidth + 20, frameY + 224 + 10 * j)
-							self:zoom(0.4)
-							self:halign(1)
-							self:settext(statValues[j])
-						end
+						self:queuecommand("Set")
 					end,
 				},
 			}

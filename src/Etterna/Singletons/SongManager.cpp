@@ -310,10 +310,10 @@ SongManager::InitSongsFromDisk(LoadingWindow* ld)
 		SONGINDEX->LoadCache(ld, cache);
 	}
 	if (ld != nullptr) {
+		ld->SetProgress(0);
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(cache.size());
 		ld->SetText("Loading songs from cache");
-		ld->SetProgress(0);
 	}
 	auto onePercent = std::max(static_cast<int>(cache.size() / 100), 1);
 
@@ -841,6 +841,7 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	std::vector<std::string> songFolders;
 	FILEMAN->GetDirListing(sDir + "*", songFolders, ONLY_DIR);
 	if (ld != nullptr) {
+		ld->SetProgress(0);
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(songFolders.size());
 		ld->SetText("Checking song folders...");
@@ -867,10 +868,10 @@ SongManager::LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld)
 	}
 
 	if (ld != nullptr) {
+		ld->SetProgress(0);
 		ld->SetIndeterminate(false);
 		ld->SetTotalWork(groups.size());
 		ld->SetText("Loading Songs From Disk\n");
-		ld->SetProgress(0);
 	}
 	onePercent = std::max(static_cast<int>(groups.size() / 100), 1);
 

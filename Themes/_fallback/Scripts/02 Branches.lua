@@ -66,7 +66,7 @@ Branch = {
 			if not IsSMOnlineLoggedIn() then
 				return "ScreenNetSelectProfile"
 			else
-				return "ScreenNetRoom"
+				return "ScreenNetSelectProfile"
 			end
 		else
 			return "ScreenNetworkOptions"

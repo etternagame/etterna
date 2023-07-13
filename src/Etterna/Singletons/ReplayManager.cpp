@@ -14,7 +14,7 @@ static Replay* activeReplay = nullptr;
 static TemporaryReplaySettings activeReplaySettings{};
 
 Replay*
-ReplayManager::GetReplay(HighScore* hs) {
+ReplayManager::GetReplay(const HighScore* hs) {
 	if (hs == nullptr) {
 		return dummyReplay;
 	}

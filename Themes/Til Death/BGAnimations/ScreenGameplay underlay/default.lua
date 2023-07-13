@@ -18,7 +18,7 @@ elseif bgtype == 3 then
 end
 
 local t = Def.ActorFrame {
-	OffCommand = function(self)
+	EndCommand = function(self)
 		unsetMovableKeymode()
 	end
 }

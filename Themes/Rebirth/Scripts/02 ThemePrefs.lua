@@ -376,18 +376,20 @@ function TargetTrackerMode()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
         ExportOnChange = true,
-        Choices = {THEME:GetString("OptionNames", "SetPercent"), THEME:GetString("OptionNames", "PersonalBest")},
+		Choices = {THEME:GetString("OptionNames", "SetPercent"), THEME:GetString("OptionNames", "PersonalBest"), THEME:GetString("OptionNames", "PersonalBestReplay")},
         LoadSelections = function(self, list, pn)
             local pref = playerConfig:get_data().TargetTrackerMode
             list[pref + 1] = true
         end,
         SaveSelections = function(self, list, pn)
             local value
-            if list[2] then
-                value = 1
-            else
-                value = 0
-            end
+			if list[2] then
+				value = 1
+			elseif list[3] then
+				value = 2
+			else
+				value = 0
+			end
             playerConfig:get_data().TargetTrackerMode = value
             playerConfig:set_dirty()
             playerConfig:save()

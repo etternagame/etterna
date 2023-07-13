@@ -18,6 +18,7 @@ class PlayerStageStats;
 class JudgedRows;
 class PlayerState;
 class HoldJudgment;
+class Replay;
 
 // todo: replace these with a Message and MESSAGEMAN? -aj
 AutoScreenMessage(SM_100Combo);
@@ -262,6 +263,7 @@ class Player : public ActorFrame
 
 	NoteData& m_NoteData;
 	NoteField* m_pNoteField;
+	Replay* pbReplay = nullptr;
 
 	std::vector<HoldJudgment*> m_vpHoldJudgment;
 

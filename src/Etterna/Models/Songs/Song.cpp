@@ -239,8 +239,8 @@ Song::InitSteps(Steps* pSteps)
 	pSteps->SetMaxBPM(this->m_fSpecifiedBPMMax);
 }
 
-std::string
-Song::GetOrTryAtLeastToGetSimfileAuthor()
+const std::string
+Song::GetOrTryAtLeastToGetSimfileAuthor() const
 {
 	if (!m_sCredit.empty() && m_sCredit != "cdtitle")
 		return m_sCredit;

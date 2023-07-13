@@ -89,7 +89,7 @@ static const char* SortOrderNames[] = {
 	"Group",	  "Title",		"BPM",		 "TopGrades", "Artist",
 	"Genre",	  "ModeMenu",	"Favorites", "Overall",	  "Stream",
 	"Jumpstream", "Handstream", "Stamina",	 "JackSpeed", "Chordjack",
-	"Technical",  "Length",		"DateAdded", "Ungrouped"
+	"Technical",  "Length",		"DateAdded", "Author", "Ungrouped"
 };
 XToString(SortOrder);
 StringToX(SortOrder);

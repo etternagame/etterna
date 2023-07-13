@@ -15,7 +15,7 @@ class Replay
 {
   public:
 	Replay();
-	Replay(HighScore* hs);
+	Replay(const HighScore* hs);
 	~Replay();
 
 	inline auto GetBasicPath() const -> const std::string

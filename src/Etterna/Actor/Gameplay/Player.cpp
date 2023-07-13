@@ -37,6 +37,7 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Globals/rngthing.h"
 #include "Etterna/Globals/GameLoop.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include <algorithm>
 using std::max;
@@ -78,10 +79,10 @@ TimingWindowSecondsInit(size_t /*TimingWindow*/ i,
 			break;
 		case TW_Hold:
 			// allow enough time to take foot off and put back on
-			defaultValueOut = 0.250F;
+			defaultValueOut = HOLD_DROP_SEC;
 			break;
 		case TW_Roll:
-			defaultValueOut = 0.500F;
+			defaultValueOut = ROLL_DROP_SEC;
 			break;
 		case TW_Checkpoint:
 		 	// similar to TW_Hold, but a little more strict
@@ -192,9 +193,9 @@ Player::GetWindowSeconds(TimingWindow tw) -> float
 		case TW_Mine:
 			return MINE_WINDOW_SEC;
 		case TW_Hold:
-			return 0.25F * GetTimingWindowScale();
+			return HOLD_DROP_SEC;
 		case TW_Roll:
-			return 0.5F * GetTimingWindowScale();
+			return ROLL_DROP_SEC;
 		default:
 			break;
 	}
@@ -215,9 +216,9 @@ Player::GetWindowSecondsCustomScale(TimingWindow tw, float timingScale) -> float
 		case TW_Mine:
 			return MINE_WINDOW_SEC;
 		case TW_Hold:
-			return 0.25F * timingScale;
+			return HOLD_DROP_SEC;
 		case TW_Roll:
-			return 0.5F * timingScale;
+			return ROLL_DROP_SEC;
 		default:
 			break;
 	}
@@ -276,6 +277,8 @@ Player::Player(NoteData& nd, bool bVisibleParts)
 
 Player::~Player()
 {
+	REPLAYS->ReleaseReplay(pbReplay);
+
 	SAFE_DELETE(m_pNoteField);
 	for (unsigned i = 0; i < m_vpHoldJudgment.size(); ++i) {
 		SAFE_DELETE(m_vpHoldJudgment[i]);
@@ -586,6 +589,18 @@ Player::Load()
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
 	} else {
 		wifescorepersonalbest = pb->GetWifeScore();
+	}
+
+	REPLAYS->ReleaseReplay(pbReplay);
+	if (pb != nullptr && m_pPlayerState->m_bGoalTrackerUsesReplay) {
+		pbReplay = REPLAYS->GetReplay(pb);
+
+		if (pbReplay != nullptr) {
+			if (pbReplay->GetReplaySnapshotMap().empty()) {
+				pbReplay->GenerateJudgeInfoAndReplaySnapshots(
+				  0, GetTimingWindowScale());
+			}
+		}
 	}
 
 	if (m_pPlayerStageStats != nullptr) {
@@ -1194,9 +1209,7 @@ Player::UpdateHoldNotes(int iSongRow,
 				}
 
 				// Decrease life
-				// Also clamp the roll decay window to the accepted "Judge
-				// 7" value for it. -poco
-				fLife -= fDeltaTime / max(GetWindowSeconds(TW_Roll), 0.25F);
+				fLife -= fDeltaTime / GetWindowSeconds(TW_Roll);
 				fLife = max(fLife, 0.F); // clamp life
 				break;
 			/*
@@ -3020,16 +3033,21 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack, int iRow)
 						   maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
-				msg.SetParam("WifePBDifferential",
-							 curwifescore -
-							   maxwifescore * wifescorepersonalbest);
-				msg.SetParam("WifePBGoal", wifescorepersonalbest);
+				if (pbReplay != nullptr &&
+					m_pPlayerState->m_bGoalTrackerUsesReplay &&
+					!pbReplay->GetReplaySnapshotMap().empty()) {
+					auto rs = pbReplay->GetReplaySnapshotForNoterow(iRow);
+					msg.SetParam("WifePBDifferential",
+								 curwifescore - rs->curwifescore);
+					msg.SetParam("WifePBGoal",
+								 rs->curwifescore / rs->maxwifescore);
+				} else {
+					msg.SetParam("WifePBDifferential",
+								 curwifescore -
+								   maxwifescore * wifescorepersonalbest);
+					msg.SetParam("WifePBGoal", wifescorepersonalbest);
+				}
 			}
-#ifdef autoplayISHUMAN
-			ChangeWifeRecord();
-			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
-
-#else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
 				m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				m_pPlayerStageStats->m_fWifeScore =
@@ -3039,7 +3057,6 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack, int iRow)
 			} else {
 				curwifescore -= 6666666.F; // sail hatan
 			}
-#endif
 		}
 
 		MESSAGEMAN->Broadcast(msg);
@@ -3114,7 +3131,11 @@ Player::SetJudgment(int iRow,
 			}
 			maxwifescore += 2;
 
-			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			if (maxwifescore == 0.F) {
+				msg.SetParam("WifePercent", 0);
+			} else {
+				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			}
 			msg.SetParam("CurWifeScore", curwifescore);
 			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential",
@@ -3122,18 +3143,21 @@ Player::SetJudgment(int iRow,
 						   maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
-				msg.SetParam("WifePBDifferential",
-							 curwifescore -
-							   maxwifescore * wifescorepersonalbest);
-				msg.SetParam("WifePBGoal", wifescorepersonalbest);
+				if (pbReplay != nullptr &&
+					m_pPlayerState->m_bGoalTrackerUsesReplay &&
+					!pbReplay->GetReplaySnapshotMap().empty()) {
+					auto rs = pbReplay->GetReplaySnapshotForNoterow(iRow);
+					msg.SetParam("WifePBDifferential",
+								 curwifescore - rs->curwifescore);
+					msg.SetParam("WifePBGoal",
+								 rs->curwifescore / rs->maxwifescore);
+				} else {
+					msg.SetParam("WifePBDifferential",
+								 curwifescore -
+								   maxwifescore * wifescorepersonalbest);
+					msg.SetParam("WifePBGoal", wifescorepersonalbest);
+				}
 			}
-#ifdef autoplayISHUMAN
-			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
-			m_pPlayerStageStats->m_vOffsetVector.emplace_back(
-			  tn.result.fTapNoteOffset);
-			m_pPlayerStageStats->m_vNoteRowVector.emplace_back(iRow);
-			ChangeWifeRecord();
-#else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
 				m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				m_pPlayerStageStats->m_fWifeScore =
@@ -3143,8 +3167,6 @@ Player::SetJudgment(int iRow,
 			} else {
 				curwifescore -= 666.F; // hail satan
 			}
-
-#endif
 		}
 
 		auto* L = LUA->Get();
@@ -3230,7 +3252,11 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 				curwifescore += wife3_hold_drop_weight;
 			}
 
-			msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			if (maxwifescore == 0.F) {
+				msg.SetParam("WifePercent", 0);
+			} else {
+				msg.SetParam("WifePercent", 100 * curwifescore / maxwifescore);
+			}
 			msg.SetParam("CurWifeScore", curwifescore);
 			msg.SetParam("MaxWifeScore", maxwifescore);
 			msg.SetParam("WifeDifferential",
@@ -3238,15 +3264,21 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 						   maxwifescore * m_pPlayerState->playertargetgoal);
 			msg.SetParam("TotalPercent", 100 * curwifescore / totalwifescore);
 			if (wifescorepersonalbest != m_pPlayerState->playertargetgoal) {
-				msg.SetParam("WifePBDifferential",
-							 curwifescore -
-							   maxwifescore * wifescorepersonalbest);
-				msg.SetParam("WifePBGoal", wifescorepersonalbest);
+				if (pbReplay != nullptr &&
+					m_pPlayerState->m_bGoalTrackerUsesReplay &&
+					!pbReplay->GetReplaySnapshotMap().empty()) {
+					auto rs = pbReplay->GetReplaySnapshotForNoterow(iRow);
+					msg.SetParam("WifePBDifferential",
+								 curwifescore - rs->curwifescore);
+					msg.SetParam("WifePBGoal",
+								 rs->curwifescore / rs->maxwifescore);
+				} else {
+					msg.SetParam("WifePBDifferential",
+								 curwifescore -
+								   maxwifescore * wifescorepersonalbest);
+					msg.SetParam("WifePBGoal", wifescorepersonalbest);
+				}
 			}
-#ifdef autoplayISHUMAN
-			m_pPlayerStageStats->m_fWifeScore = curwifescore / totalwifescore;
-			ChangeWifeRecord();
-#else
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
 				m_pPlayerState->m_PlayerController == PC_REPLAY) {
 				m_pPlayerStageStats->m_fWifeScore =
@@ -3254,8 +3286,6 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
 				m_pPlayerStageStats->MaxWifeScore = maxwifescore;
 			}
-
-#endif
 		}
 
 		auto* L = LUA->Get();
