@@ -376,8 +376,14 @@ jsonObjectToString(Value& doc)
 inline float
 getJsonFloat(Value& doc, const char* name)
 {
-	if (doc.HasMember(name) && doc[name].IsFloat()) {
-		return doc[name].GetFloat();
+	if (doc.HasMember(name)) {
+		if (doc[name].IsFloat()) {
+			return doc[name].GetFloat();
+		} else if (doc[name].IsString()) {
+			try {
+				return std::stof(doc[name].GetString());
+			} catch (...) {}
+		}
 	}
 	return 0.F;
 }
@@ -385,8 +391,14 @@ getJsonFloat(Value& doc, const char* name)
 inline std::string
 getJsonString(Value& doc, const char* name)
 {
-	if (doc.HasMember(name) && doc[name].IsString()) {
-		return doc[name].GetString();
+	if (doc.HasMember(name)) {
+		if (doc[name].IsString()) {
+			return doc[name].GetString();
+		} else if (doc[name].IsFloat()) {
+			return std::to_string(doc[name].GetFloat());
+		} else if (doc[name].IsInt()) {
+			return std::to_string(doc[name].GetInt());
+		}
 	}
 	return "";
 }
@@ -394,8 +406,14 @@ getJsonString(Value& doc, const char* name)
 inline int
 getJsonInt(Value& doc, const char* name)
 {
-	if (doc.HasMember(name) && doc[name].IsInt()) {
-		return doc[name].GetInt();
+	if (doc.HasMember(name)) {
+		if (doc[name].IsInt()) {
+			return doc[name].GetInt();
+		} else if (doc[name].IsString()) {
+			try {
+				return std::stoi(doc[name].GetString());
+			} catch (...) {}
+		}
 	}
 	return 0;
 }
@@ -1814,7 +1832,9 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "Bulk score upload response parse error. Response body: {}",
+			  "Bulk score upload status {} & response parse error. Response "
+			  "body: {}",
+			  req.response_code,
 			  req.result.c_str());
 			if (callback)
 				callback();
@@ -1998,9 +2018,10 @@ DownloadManager::UploadScore(HighScore* hs,
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "Score upload response parse error. Response body: {}",
-			  req.result.c_str());
+			Locator::getLogger()->error("Score upload status {} & response "
+										"parse error. Response body: {}",
+										req.response_code,
+										req.result.c_str());
 			if (callback)
 				callback();
 			return;
@@ -2438,7 +2459,10 @@ DownloadManager::SendRequestToURL(
 		if (req.response_code != 404 &&
 			d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "SendRequestToURL ({}) Parse Error: {}", url, req.result);
+			  "SendRequestToURL ({}) status {} & Parse Error: {}",
+			  url,
+			  req.response_code,
+			  req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
@@ -3180,9 +3204,10 @@ DownloadManager::RefreshPackList(const std::string& url)
 	auto done = [this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshPackList Error: response parse error - content: {}",
-			  req.result);
+			Locator::getLogger()->error("RefreshPackList Error: status {} & "
+										"response parse error - content: {}",
+										req.response_code,
+										req.result);
 			return;
 		}
 
@@ -3201,38 +3226,47 @@ DownloadManager::RefreshPackList(const std::string& url)
 			packlist.clear();
 
 			for (auto& pack : data.GetArray()) {
-				DownloadablePack packDl;
+				try {
+					DownloadablePack packDl;
 
-				packDl.id = getJsonInt(pack, "id");
-				packDl.name = getJsonString(pack, "name");
-				packDl.url = getJsonString(pack, "download");
-				packDl.mirror = getJsonString(pack, "mirror");
-				if (packDl.url.empty()) {
-					packDl.url = packDl.mirror;
-				}
-				if (packDl.mirror.empty()) {
-					packDl.mirror = packDl.url;
-				}
-				packDl.avgDifficulty = getJsonFloat(pack, "overall");
-				packDl.size = getJsonInt(pack, "size");
-				packDl.plays = getJsonInt(pack, "play_count");
-				packDl.songs = getJsonInt(pack, "song_count");
-				packDl.bannerUrl = getJsonString(pack, "banner_path");
+					packDl.id = getJsonInt(pack, "id");
+					packDl.name = getJsonString(pack, "name");
+					packDl.url = getJsonString(pack, "download");
+					packDl.mirror = getJsonString(pack, "mirror");
+					if (packDl.url.empty()) {
+						packDl.url = packDl.mirror;
+					}
+					if (packDl.mirror.empty()) {
+						packDl.mirror = packDl.url;
+					}
+					packDl.avgDifficulty =
+					  std::stof(getJsonString(pack, "overall"));
+					packDl.size = getJsonInt(pack, "size");
+					packDl.plays = getJsonInt(pack, "play_count");
+					packDl.songs = getJsonInt(pack, "song_count");
+					packDl.bannerUrl = getJsonString(pack, "banner_path");
 
-				if (packDl.name.empty()) {
-					Locator::getLogger()->warn(
-					  "RefreshPackList missing pack name: {}",
+					if (packDl.name.empty()) {
+						Locator::getLogger()->warn(
+						  "RefreshPackList missing pack name: {}",
+						  jsonObjectToString(pack));
+						continue;
+					}
+					if (packDl.url.empty()) {
+						Locator::getLogger()->warn(
+						  "RefreshPackList missing pack download: {}",
+						  jsonObjectToString(pack));
+						continue;
+					}
+
+					packlist.push_back(packDl);
+				}
+				catch (std::exception& e) {
+					Locator::getLogger()->error(
+					  "RefreshPackList parse exception - {} - pack content: {}",
+					  e.what(),
 					  jsonObjectToString(pack));
-					continue;
 				}
-				if (packDl.url.empty()) {
-					Locator::getLogger()->warn(
-					  "RefreshPackList missing pack download: {}",
-					  jsonObjectToString(pack));
-					continue;
-				}
-
-				packlist.push_back(packDl);
 			}
 			if (MESSAGEMAN != nullptr) {
 				MESSAGEMAN->Broadcast("PackListRefreshed");
