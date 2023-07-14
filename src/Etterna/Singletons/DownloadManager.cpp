@@ -51,9 +51,6 @@ static Preference<unsigned int> maxDLPerSecond(
 static Preference<unsigned int> maxDLPerSecondGameplay(
   "maximumBytesDownloadedPerSecondDuringGameplay",
   1000000);
-static Preference<std::string> packListURL(
-  "PackListURL",
-  "https://api.etternaonline.com/v2/packs");
 static Preference<unsigned int> downloadPacksToAdditionalSongs(
   "downloadPacksToAdditionalSongs",
   0);
@@ -65,8 +62,11 @@ static Preference<float> DownloadCooldownTime(
   5.F);
 
 // Score API Preferences
-static Preference<std::string> serverURL("BaseAPIURL",
+static Preference<std::string> serverURL("BaseAPIUrl",
 										 "https://api.beta.etternaonline.com");
+static Preference<std::string> packListURL(
+  "PackListUrl",
+  "https://api.beta.etternaonline.com/api/client/packs");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
@@ -869,7 +869,6 @@ void
 DownloadManager::OnLogin()
 {
 	Locator::getLogger()->info("Successful login as {}", sessionUser);
-	RefreshUserRank();
 	RefreshUserData();
 	RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
@@ -3177,78 +3176,74 @@ DownloadManager::RefreshPackList(const std::string& url)
 {
 	if (url.empty())
 		return;
+
 	auto done = [this](HTTPRequest& req) {
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError() ||
-			!(d.IsArray() || (d.HasMember("data") && d["data"].IsArray()))) {
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RefreshPackList Error: response parse error - content: {}",
+			  req.result);
 			return;
 		}
-		auto& packlist = downloadablePacks;
-		downloadablePacks.clear();
-		Value* packs;
-		if (d.IsArray())
-			packs = &d;
-		else
-			packs = &(d["data"]);
-		for (auto& pack_obj : packs->GetArray()) {
-			DownloadablePack tmp;
-			if (pack_obj.HasMember("id") && pack_obj["id"].IsString())
-				tmp.id = std::stoi(pack_obj["id"].GetString());
-			else
-				tmp.id = 0;
 
-			auto& pack = pack_obj.HasMember("attributes")
-						   ? pack_obj["attributes"]
-						   : pack_obj;
-
-			if (pack.HasMember("pack") && pack["pack"].IsString())
-				tmp.name = pack["pack"].GetString();
-			else if (pack.HasMember("packname") && pack["packname"].IsString())
-				tmp.name = pack["packname"].GetString();
-			else if (pack.HasMember("name") && pack["name"].IsString())
-				tmp.name = pack["name"].GetString();
-			else {
-				Locator::getLogger()->warn(
-				  "Missing pack name in packlist element: {}",
-				  jsonObjectToString(pack_obj));
-				continue;
+		auto response = req.response_code;
+		if (response == 200) {
+			if (!d.HasMember("data") || !d["data"].IsArray()) {
+				Locator::getLogger()->error(
+				  "RefreshPackList Error: response data was missing or not an "
+				  "array - content: {}",
+				  jsonObjectToString(d));
+				return;
 			}
 
-			if (pack.HasMember("download") && pack["download"].IsString())
-				tmp.url = pack["download"].GetString();
-			else if (pack.HasMember("url") && pack["url"].IsString()) {
-				tmp.url = pack["url"].GetString();
-			} else
-				tmp.url = "";
-			if (pack.HasMember("mirror") && pack["mirror"].IsString())
-				tmp.mirror = pack["mirror"].GetString();
-			else
-				tmp.mirror = "";
-			if (tmp.url.empty() && tmp.mirror.empty()) {
-				Locator::getLogger()->warn(
-				  "Missing download link in packlist element: {}",
-				  jsonObjectToString(pack_obj));
-				continue;
+			auto& data = d["data"];
+			auto& packlist = downloadablePacks;
+			packlist.clear();
+
+			for (auto& pack : data.GetArray()) {
+				DownloadablePack packDl;
+
+				packDl.id = getJsonInt(pack, "id");
+				packDl.name = getJsonString(pack, "name");
+				packDl.url = getJsonString(pack, "download");
+				packDl.mirror = getJsonString(pack, "mirror");
+				if (packDl.url.empty()) {
+					packDl.url = packDl.mirror;
+				}
+				if (packDl.mirror.empty()) {
+					packDl.mirror = packDl.url;
+				}
+				packDl.avgDifficulty = getJsonFloat(pack, "overall");
+				packDl.size = getJsonInt(pack, "size");
+				packDl.plays = getJsonInt(pack, "play_count");
+				packDl.songs = getJsonInt(pack, "song_count");
+				packDl.bannerUrl = getJsonString(pack, "banner_path");
+
+				if (packDl.name.empty()) {
+					Locator::getLogger()->warn(
+					  "RefreshPackList missing pack name: {}",
+					  jsonObjectToString(pack));
+					continue;
+				}
+				if (packDl.url.empty()) {
+					Locator::getLogger()->warn(
+					  "RefreshPackList missing pack download: {}",
+					  jsonObjectToString(pack));
+					continue;
+				}
+
+				packlist.push_back(packDl);
 			}
-			if (tmp.url.empty())
-				tmp.url = tmp.mirror;
-			else if (tmp.mirror.empty())
-				tmp.mirror = tmp.url;
-
-			if (pack.HasMember("average") && pack["average"].IsNumber())
-				tmp.avgDifficulty = pack["average"].GetFloat();
-			else
-				tmp.avgDifficulty = 0.f;
-
-			if (pack.HasMember("size") && pack["size"].IsNumber())
-				tmp.size = pack["size"].GetInt();
-			else
-				tmp.size = 0;
-			packlist.push_back(tmp);
+			if (MESSAGEMAN != nullptr) {
+				MESSAGEMAN->Broadcast("PackListRefreshed");
+			}
+			RefreshCoreBundles();
+		} else {
+			Locator::getLogger()->error(
+			  "RefreshPackList unexpected response code {} - content: {}",
+			  response,
+			  jsonObjectToString(d));
 		}
-		if (MESSAGEMAN != nullptr)
-			MESSAGEMAN->Broadcast("PackListRefreshed");
-		RefreshCoreBundles();
 	};
 	SendRequestToURL(url, {}, done, false, RequestMethod::GET, true, false);
 }
@@ -3876,6 +3871,16 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushnumber(L, p->avgDifficulty);
 		return 1;
 	}
+	static int GetPlayCount(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->plays);
+		return 1;
+	}
+	static int GetSongCount(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->songs);
+		return 1;
+	}
 	static int IsQueued(T* p, lua_State* L)
 	{
 		auto it = std::find_if(
@@ -3949,6 +3954,8 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(IsQueued);
 		ADD_METHOD(RemoveFromQueue);
 		ADD_METHOD(GetAvgDifficulty);
+		ADD_METHOD(GetPlayCount);
+		ADD_METHOD(GetSongCount);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
 		ADD_METHOD(GetDownload);

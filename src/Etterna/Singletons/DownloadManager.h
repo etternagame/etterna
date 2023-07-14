@@ -90,8 +90,11 @@ class DownloadablePack
 	size_t size{ 0 };
 	int id{ 0 };
 	float avgDifficulty{ 0 };
+	int plays{ 0 };
+	int songs{ 0 };
 	std::string url{ "" };
 	std::string mirror{ "" };
+	std::string bannerUrl{ "" };
 	bool downloading{ false };
 	// Lua
 	void PushSelf(lua_State* L);
