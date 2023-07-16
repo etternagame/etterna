@@ -32,6 +32,7 @@ static ThemeMetric<bool> SHOW_BEAT_BARS("NoteField", "ShowBeatBars");
 static ThemeMetric<float> FADE_BEFORE_TARGETS_PERCENT(
   "NoteField",
   "FadeBeforeTargetsPercent");
+static ThemeMetric<float> CALC_BAR_ALPHA("NoteField", "CalcBarAlpha");
 static ThemeMetric<float> BAR_MEASURE_ALPHA("NoteField", "BarMeasureAlpha");
 static ThemeMetric<float> BAR_4TH_ALPHA("NoteField", "Bar4thAlpha");
 static ThemeMetric<float> BAR_8TH_ALPHA("NoteField", "Bar8thAlpha");
@@ -451,6 +452,32 @@ NoteField::DrawBeatBar(const float fBeat, BeatBarType type, int iMeasureIndex)
 }
 
 void
+NoteField::DrawCalcIntervalBar(const float fBeat)
+{
+	const auto fYOffset = ArrowEffects::GetYOffset(m_pPlayerState, 0, fBeat);
+	const auto fYPos =
+	  ArrowEffects::GetYPos(0, fYOffset, m_fYReverseOffsetPixels);
+
+	const float fAlpha = CALC_BAR_ALPHA;
+	const int iState = 0;
+
+	const auto fWidth = GetWidth();
+	const auto fFrameWidth = m_sprBeatBars.GetUnzoomedWidth();
+
+	m_sprBeatBars.SetX(0);
+	m_sprBeatBars.SetY(fYPos);
+	m_sprBeatBars.SetDiffuse(RageColor(1, 1, 1, fAlpha));
+	m_sprBeatBars.SetState(iState);
+	m_sprBeatBars.SetCustomTextureRect(
+	  RectF(0,
+			SCALE(iState, 0.f, 4.f, 0.f, 1.f),
+			fWidth / fFrameWidth,
+			SCALE(iState + 1, 0.f, 4.f, 0.f, 1.f)));
+	m_sprBeatBars.SetZoomX(fWidth / m_sprBeatBars.GetUnzoomedWidth());
+	m_sprBeatBars.Draw();
+}
+
+void
 NoteField::DrawBoard(int iDrawDistanceAfterTargetsPixels,
 					 int iDrawDistanceBeforeTargetsPixels)
 {
@@ -751,7 +778,7 @@ NoteField::DrawPrimitives()
 
 	unsigned i = 0;
 	// Draw beat bars
-	if (SHOW_BEAT_BARS && pTiming != nullptr) {
+	if ((SHOW_BEAT_BARS || showBeatBars) && pTiming != nullptr) {
 		const auto& tSigs = *segs[SEGMENT_TIME_SIG];
 		auto iMeasureIndex = 0;
 		for (i = 0; i < tSigs.size(); i++) {
@@ -789,6 +816,26 @@ NoteField::DrawPrimitives()
 				if (bMeasureBar)
 					iMeasureIndex++;
 			}
+		}
+	}
+	if (showCalcBars && pTiming != nullptr) {
+		const auto intervalSize =
+		  0.5F * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+
+		const auto firstIntervalStart =
+		  pTiming->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
+		const auto visibleSecondStart =
+		  GAMESTATE->m_Position.m_fMusicSecondsVisible;
+		const auto visibleSecondEnd =
+		  pTiming->GetElapsedTimeFromBeat(m_FieldRenderArgs.last_beat);
+
+		const auto distanceThroughInterval =
+		  fmodf(visibleSecondStart - firstIntervalStart, intervalSize);
+		const auto realStart = visibleSecondStart - distanceThroughInterval;
+		for (auto timePos = realStart; timePos <= visibleSecondEnd;
+			 timePos += intervalSize) {
+			const auto fBeat = pTiming->GetBeatFromElapsedTime(timePos);
+			DrawCalcIntervalBar(fBeat);
 		}
 	}
 
@@ -1076,6 +1123,18 @@ class LunaNoteField : public Luna<NoteField>
 		return 1;
 	}
 
+	static int show_beat_bars(T* p, lua_State* L)
+	{
+		p->SetShowBeatBars(BArg(1));
+		COMMON_RETURN_SELF;
+	}
+
+	static int show_interval_bars(T* p, lua_State* L)
+	{
+		p->SetShowIntervalBars(BArg(1));
+		COMMON_RETURN_SELF;
+	}
+
 	LunaNoteField()
 	{
 		ADD_METHOD(set_step_callback);
@@ -1087,6 +1146,8 @@ class LunaNoteField : public Luna<NoteField>
 		ADD_METHOD(did_tap_note);
 		ADD_METHOD(did_hold_note);
 		ADD_METHOD(get_column_actors);
+		ADD_METHOD(show_beat_bars);
+		ADD_METHOD(show_interval_bars);
 	}
 };
 
