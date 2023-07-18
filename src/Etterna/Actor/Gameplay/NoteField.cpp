@@ -834,6 +834,8 @@ NoteField::DrawPrimitives()
 		const auto realStart = visibleSecondStart - distanceThroughInterval;
 		for (auto timePos = realStart; timePos <= visibleSecondEnd;
 			 timePos += intervalSize) {
+			if (timePos < visibleSecondStart)
+				continue;
 			const auto fBeat = pTiming->GetBeatFromElapsedTime(timePos);
 			DrawCalcIntervalBar(fBeat);
 		}
