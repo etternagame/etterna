@@ -117,7 +117,7 @@ local function createChoices()
             -- enable the possibility to press the keyboard to switch tabs
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 -- if locked out, dont allow
-                if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
+                if not CONTEXTMAN:CheckContextSet(snm, "Main1", "CalcDebug") then return end
                 if event.type == "InputEventType_FirstPress" then
                     -- must be a number and control not held down
                     if event.char and tonumber(event.char) and not INPUTFILTER:IsControlPressed() then
@@ -170,6 +170,9 @@ t[#t+1] = Def.ActorFrame {
     ChartPreviewToggleMessageCommand = function(self)
         -- although not focused, ChartPreview activates Main1 input context so that we can go to any tab from it
         -- or also press space to come back to the general tab
+        focused = false
+    end,
+    OpenCalcDebugMessageCommand = function(self)
         focused = false
     end,
 
