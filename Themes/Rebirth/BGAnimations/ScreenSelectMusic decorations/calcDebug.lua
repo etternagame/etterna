@@ -59,11 +59,25 @@ local tt = Def.ActorFrame {
 local ratios = {
     TopGap = 109 / 1080, -- height of the upper lip of the screen
     PreviewGraphHeight = 37 / 555,
+    BPMTextLeftGap = 1400 / 1920,
+    BPMNumberLeftGap = 1450 / 1920,
+    BPMWidth = 300 / 1920,
+    LengthTextLeftGap = 1200 / 1920,
+    LengthNumberLeftGap = 1280 / 1920,
+    LeftTextLeftGap = 1000 / 1920,
+    RateTextLeftGap = 1527 / 1920,
 }
 
 local actuals = {
     TopGap = ratios.TopGap * SCREEN_HEIGHT,
     PreviewGraphHeight = ratios.PreviewGraphHeight * SCREEN_HEIGHT,
+    BPMTextLeftGap = ratios.BPMTextLeftGap * SCREEN_WIDTH,
+    BPMNumberLeftGap = ratios.BPMNumberLeftGap * SCREEN_WIDTH,
+    BPMWidth = ratios.BPMWidth * SCREEN_WIDTH,
+    LengthTextLeftGap = ratios.LengthTextLeftGap * SCREEN_WIDTH,
+    LeftTextLeftGap = ratios.LeftTextLeftGap * SCREEN_WIDTH,
+    LengthNumberLeftGap = ratios.LengthNumberLeftGap * SCREEN_WIDTH,
+    RateTextLeftGap = ratios.RateTextLeftGap * SCREEN_WIDTH,
 }
 
 local showPosition = actuals.TopGap
@@ -75,8 +89,13 @@ local titleTextSize = 0.85
 local authorTextSize = 0.75
 local creditTextSize = 0.65
 local packTextSize = 0.65
+local bpmTextSize = 0.75
+local lengthTextSize = 0.75
+local rateTextSize = 0.75
 local textGap = 5
 local edgeGap = 10
+local textzoomFudge = 5
+local buttonHoverAlpha = 0.6
 
 local notefieldZoom = 0.5
 local previewGraphWidth = 64 * 4 * notefieldZoom * 1.2
@@ -85,11 +104,16 @@ local previewX = SCREEN_WIDTH - previewGraphWidth/2 - edgeGap
 local previewY = previewGraphHeight / 2 + edgeGap
 
 local msdBoxX = edgeGap
-local msdBoxY = actuals.TopGap * 1.5
 local msdBoxWidth = SCREEN_WIDTH * 0.075
 local msdBoxSize = 25
 local msdTextSize = 0.5
 
+local upperLineGraphX = msdBoxX + msdBoxWidth + edgeGap
+local upperLineGraphY = SCREEN_HEIGHT * 0.3
+local lowerLineGraphX = msdBoxX + msdBoxWidth + edgeGap
+local lowerLineGraphY = SCREEN_HEIGHT * 0.7
+local lineGraphWidth = SCREEN_WIDTH * 0.75
+local lineGraphHeight = 250
 
 local t = Def.ActorFrame {
     Name = "Frame",
@@ -176,6 +200,18 @@ t[#t+1] = Def.ActorFrame {
         credit:y(artist:GetY() + artist:GetZoomedHeight() + textGap)
         pack:y(credit:GetY() + credit:GetZoomedHeight() + textGap)
         self:GetParent():GetChild("MSDFrame"):y(pack:GetY() + pack:GetZoomedHeight() + textGap * 3)
+
+        local bpm1 = self:GetChild("BPMText")
+        local bpm2 = self:GetChild("BPMDisplay")
+        local length1 = self:GetChild("LengthText")
+        local length2 = self:GetChild("LengthNumbers")
+        local rate = self:GetChild("Rate")
+        local ypos = pack:GetY()
+        bpm1:y(ypos)
+        bpm2:y(ypos)
+        length1:y(ypos)
+        length2:y(ypos)
+        rate:y(ypos)
     end,
     DisplayLanguageChangedMessageCommand = function(self)
         if not focused then return end
@@ -254,8 +290,121 @@ t[#t+1] = Def.ActorFrame {
         LeftTextLeftGap = 0 * SCREEN_WIDTH,
         DiffFrameUpperGap = edgeGap/2,
     }}) .. {
+        -- hmm
+    },
+    LoadFont("Common Normal") .. {
+        Name = "BPMText",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:x(actuals.BPMTextLeftGap)
+            self:zoom(bpmTextSize)
+            self:maxwidth(math.abs(actuals.BPMNumberLeftGap - actuals.BPMTextLeftGap) / bpmTextSize - textzoomFudge)
+            self:settext("BPM")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
+        end
+    },
+    Def.BPMDisplay {
+        File = THEME:GetPathF("Common", "Normal"),
+        Name = "BPMDisplay",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:x(actuals.BPMNumberLeftGap)
+            self:zoom(bpmTextSize)
+            self:maxwidth(actuals.BPMWidth / bpmTextSize - textzoomFudge)
+        end,
+        SetCommand = function(self, params)
+            if params.steps then
+                self:visible(true)
+                self:SetFromSteps(params.steps)
+            else
+                self:visible(false)
+            end
+        end
+    },
+    LoadFont("Common Normal") .. {
+        Name = "LengthText",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:x(actuals.LengthTextLeftGap)
+            self:zoom(lengthTextSize)
+            self:maxwidth(math.abs(actuals.LengthNumberLeftGap - actuals.LeftTextLeftGap) / lengthTextSize - textzoomFudge)
+            self:settext("Length")
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
+        end
+    },
+    LoadFont("Common Normal") .. {
+        Name = "LengthNumbers",
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:x(actuals.LengthNumberLeftGap)
+            self:zoom(lengthTextSize)
+            self:maxwidth(math.abs(actuals.BPMTextLeftGap - actuals.LengthNumberLeftGap) / lengthTextSize - textzoomFudge)
+            self:settext("55:55")
+        end,
+        SetCommand = function(self, params)
+            if params.steps then
+                local len = GetPlayableTime()
+                self:settext(SecondsToMMSS(len))
+                self:diffuse(colorByMusicLength(len))
+            else
+                self:settext("--:--")
+                self:diffuse(color("1,1,1,1"))
+            end
+        end
+    },
+    UIElements.TextButton(1, 1, "Common Normal") .. {
+        Name = "Rate",
+        InitCommand = function(self)
+            self:x(actuals.RateTextLeftGap)
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
 
-    }
+            txt:halign(0):valign(0)
+            txt:zoom(rateTextSize)
+            txt:maxwidth(math.abs(SCREEN_WIDTH - actuals.RateTextLeftGap) / rateTextSize - textzoomFudge)
+            registerActorToColorConfigElement(txt, "main", "PrimaryText")
+            bg:halign(0):valign(0)
+            bg:diffusealpha(0.7)
+            txt:settext(" ")
+            bg:zoomy(txt:GetZoomedHeight() * 1.2)
+            bg:y(-txt:GetZoomedHeight() * 0.1)
+        end,
+        SetCommand = function(self, params)
+            local txt = self:GetChild("Text")
+            local bg = self:GetChild("BG")
+            local str = string.format("%.2f", getCurRateValue()) .. "x"
+            txt:settext(str)
+            bg:zoomx(txt:GetZoomedWidth())
+        end,
+        ClickCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == "OnMouseDown" then
+                if params.event == "DeviceButton_left mouse button" then
+                    changeMusicRate(1, true)
+                elseif params.event == "DeviceButton_right mouse button" then
+                    changeMusicRate(-1, true)
+                end
+            end
+        end,
+        RolloverUpdateCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == 'in' then
+                self:diffusealpha(buttonHoverAlpha)
+            else
+                self:diffusealpha(1)
+            end
+        end,
+        MouseScrollMessageCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if isOver(self:GetChild("BG")) then
+                if params.direction == "Up" then
+                    changeMusicRate(1, true)
+                elseif params.direction == "Down" then
+                    changeMusicRate(-1, true)
+                end
+            end
+        end
+    },
 }
 
 local function msditem(i)
@@ -393,6 +542,40 @@ t[#t+1] = Def.ActorFrame {
             self:playcommand("LoadDensityGraph", {steps = steps, song = params.song})
         end,
     }
+}
+
+t[#t+1] = Def.ActorFrame {
+    Name = "UpperGraphHolder",
+    InitCommand = function(self)
+        self:xy(upperLineGraphX, upperLineGraphY)
+        self.graphs = {}
+    end,
+    Def.Quad {
+        Name = "BG",
+        InitCommand = function(self)
+            self:halign(0)
+            self:zoomto(lineGraphWidth, lineGraphHeight)
+            self:diffusealpha(0.6)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+        end,
+    },
+}
+
+t[#t+1] = Def.ActorFrame {
+    Name = "LowerGraphHolder",
+    InitCommand = function(self)
+        self:xy(lowerLineGraphX, lowerLineGraphY)
+        self.graphs = {}
+    end,
+    Def.Quad {
+        Name = "BG",
+        InitCommand = function(self)
+            self:halign(0)
+            self:zoomto(lineGraphWidth, lineGraphHeight)
+            self:diffusealpha(0.6)
+            registerActorToColorConfigElement(self, "main", "PrimaryBackground")
+        end,
+    },
 }
 
 
