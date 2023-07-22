@@ -21,6 +21,10 @@
 
 #include "Core/Platform/Platform.hpp"
 
+#ifdef _WIN32
+#include <WinUser.h>
+#endif
+
 // Static Variables
 //// On the next update, change themes, and load sNewScreen.
 static std::mutex archMutex;
@@ -35,6 +39,37 @@ static float g_fUpdateRate = 1;
 static Preference<bool> g_bNeverBoostAppPriority("NeverBoostAppPriority",false);
 /* experimental: force a specific update rate. This prevents big  animation jumps on frame skips. 0 to disable. */
 static Preference<float> g_fConstantUpdateDeltaSeconds("ConstantUpdateDeltaSeconds",0);
+static std::string g_previousLayoutName;
+
+static void
+setEnglishLayout()
+{
+	#ifdef _WIN32
+	char buffer2[KL_NAMELENGTH];
+	GetKeyboardLayoutName(buffer2);
+	std::string layout2(buffer2);
+	g_previousLayoutName = layout2;
+	Locator::getLogger()->info(
+	  "Keyboard layout is switching from {} to english 00000409", layout2);
+
+	// 00000409 is US standard
+	LoadKeyboardLayoutA("00000409", KLF_ACTIVATE | KLF_SETFORPROCESS);
+	#endif
+}
+
+static void
+loadPreviousLayout()
+{
+	#ifdef _WIN32
+	LoadKeyboardLayoutA(g_previousLayoutName.c_str(),
+						KLF_ACTIVATE | KLF_SETFORPROCESS);
+
+	char buffer1[KL_NAMELENGTH];
+	GetKeyboardLayoutName(buffer1);
+	std::string layout1(buffer1);
+	Locator::getLogger()->info("Loaded external keyboard layout {}", layout1);
+	#endif
+}
 
 // Static Functions
 static void CheckGameLoopTimerSkips(float fDeltaTime) {
@@ -65,6 +100,12 @@ static void CheckFocus() {
 		return;
 	// If we lose focus, we may lose input events, especially key releases.
 	INPUTFILTER->Reset();
+
+	if (hasFocus) {
+		setEnglishLayout();
+	} else {
+		loadPreviousLayout();
+	}
 
 	// Maintain the Application priority at Above-Normal
 	// This helps to mitigate game stutter caused by CPU scheduling between frames
@@ -203,6 +244,11 @@ namespace GameLoop {
         userQuit = true;
     }
 
+	void loadSavedLayout()
+	{
+		loadPreviousLayout();
+	}
+
     void setGameFocused(bool isFocused){
         if(isFocused == hasFocus)
             return;
@@ -255,7 +301,16 @@ namespace GameLoop {
 
     void RunGameLoop() {
 		Core::Platform::boostPriority();
-    	
+
+		if (hasFocus) {
+			Locator::getLogger()->info(
+			  "Game already focused, setting to english layout");
+			setEnglishLayout();
+		} else {
+			Locator::getLogger()->info(
+			  "Game not yet focused, not switching layout");
+		}
+
         while (!GameLoop::hasUserQuit()) {
             if (!g_NewGame.empty()) {
                 DoChangeGame();
