@@ -15,7 +15,7 @@ function WHEELDATA.Reset(self)
     -- library of all Songs for this Game (all Styles)
     self.AllSongs = {}
     self.AllSongsByGroup = {}
-    self.AllGroups = {} 
+    self.AllGroups = {}
 
     -- for the current sort, filtering and organization purposes
     self.AllFilteredSongs = {} -- equivalent of self.AllSongs but after the filter
