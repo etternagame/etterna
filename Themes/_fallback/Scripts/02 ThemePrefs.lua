@@ -159,12 +159,24 @@ ThemePrefs = {
 GetThemePref = ThemePrefs.Get
 SetThemePref = ThemePrefs.Set
 
+local OE = OptEffect:Reverse()
+
 -- bring in SpecialScoring from default.
 
 function InitUserPrefs()
 	if GetUserPref("UserPrefScoringMode") == nil then
 		SetUserPref("UserPrefScoringMode", "DDR Extreme")
 	end
+end
+
+function getScreenOptionsAdvancedLines()
+    if HOOKS.GetArchName():upper():find("^WINDOWS") ~= nil then
+        -- windows
+        return "3,4,SI,SM,HN,SSR,14,30,OsuLifts,ReplayMods,PR,PackProgress,WindowsKey,MinidumpUpload"
+    else
+        -- mac and linux
+        return "3,4,SI,SM,HN,SSR,14,30,OsuLifts,ReplayMods,PR,PackProgress,MinidumpUpload"
+    end
 end
 
 -- Practice Mode Lua version because I don't know what else to do
@@ -649,3 +661,35 @@ function GranularSuddenOffset()
     setmetatable(t, t)
 	return t
 end
+
+function DisableWindowsKeyInGameplay()
+	local effectsMask = 2^OE["OptEffect_SavePreferences"]
+	effectsMask = effectsMask + 2^OE["OptEffect_ApplyGraphics"]
+
+    local t = {
+		Name = "DisableWindowsKey",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = PREFSMAN:GetPreference("DisableWindowsKey")
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			value = list[2]
+			PREFSMAN:SetPreference("DisableWindowsKey", value)
+
+            return 0
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
