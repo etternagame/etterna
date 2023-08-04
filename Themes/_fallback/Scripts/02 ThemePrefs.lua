@@ -169,13 +169,13 @@ function InitUserPrefs()
 	end
 end
 
-function getScreenOptionsAdvancedLines()
+function getScreenOptionsInputLines()
     if HOOKS.GetArchName():upper():find("^WINDOWS") ~= nil then
         -- windows
-        return "3,4,SI,SM,HN,SSR,14,30,OsuLifts,ReplayMods,PR,PackProgress,WindowsKey,MinidumpUpload"
+        return "1,2,3,AH,AS,5,6,8,7,WindowsKey"
     else
         -- mac and linux
-        return "3,4,SI,SM,HN,SSR,14,30,OsuLifts,ReplayMods,PR,PackProgress,MinidumpUpload"
+        return "1,2,3,AH,AS,5,6,8,7"
     end
 end
 
