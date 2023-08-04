@@ -177,6 +177,7 @@ local function upperSection()
             local titlepos = input:find("title=", 1, true)
             local subtitlepos = input:find("subtitle=", 1, true)
             local grouppos = input:find("group=", 1, true)
+            local packpos = input:find("pack=", 1, true)
 
             -- because title is a substring of subtitle we have to check to see if the match is incorrect
             if titlepos ~= nil and subtitlepos ~= nil and titlepos == subtitlepos + 3 then
@@ -189,7 +190,12 @@ local function upperSection()
             local foundsubtitle = ""
             local foundgroup = ""
             
-            if artistpos ~= nil or authorpos ~= nil or titlepos ~= nil or subtitlepos ~= nil or mapperpos ~= nil or charterpos ~= nil or stepperpos ~= nil or grouppos~= nil then
+            if artistpos ~= nil or authorpos ~= nil or
+                titlepos ~= nil or subtitlepos ~= nil or
+                mapperpos ~= nil or charterpos ~= nil or
+                stepperpos ~= nil or grouppos ~= nil or
+                packpos ~= nil then
+                
                 if artistpos ~= nil then
                     local strend = input:find("[;]", artistpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
@@ -226,6 +232,10 @@ local function upperSection()
                     local strend = input:find("[;]", grouppos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
                     foundgroup = input:sub(grouppos + 6, strend)
+                elseif packpos ~= nil then
+                    local strend = input:find("[;]", packpos+1)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundgroup = input:sub(packpos + 5, strend)
                 end
                 searchentry.Title = foundtitle
                 searchentry.Subtitle = foundsubtitle

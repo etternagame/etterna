@@ -469,6 +469,19 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		title = findme.find("title=", title + 1);
 	}
 
+	// alternatives...
+	auto charter = std::string::npos;
+	if (author == std::string::npos) {
+		charter = findme.find("charter=");
+		if (charter == std::string::npos) {
+			charter = findme.find("stepper=");
+		}
+	}
+	auto pack = std::string::npos;
+	if (group == std::string::npos) {
+		pack = findme.find("pack=");
+	}
+
 	std::string findartist;
 	std::string findauthor;
 	std::string findtitle;
@@ -477,7 +490,8 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 
 	if (artist != std::string::npos || author != std::string::npos ||
 		title != std::string::npos || subtitle != std::string::npos || 
-		group != std::string::npos) {
+		group != std::string::npos || charter != std::string::npos ||
+		pack != std::string::npos) {
 		super_search = true;
 		if (artist != std::string::npos) {
 			findartist = findme.substr(
@@ -486,6 +500,10 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		if (author != std::string::npos) {
 			findauthor = findme.substr(
 			  author + 7, findme.find(static_cast<char>(author), ';') - author);
+		} else if (charter != std::string::npos) {
+			findauthor = findme.substr(
+			  charter + 8,
+			  findme.find(static_cast<char>(charter), ';') - charter);
 		}
 		if (title != std::string::npos) {
 			findtitle = findme.substr(
@@ -499,20 +517,18 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		if (group != std::string::npos) {			findgroup = findme.substr(
 			  group + 6,
 			  findme.find(static_cast<char>(group), ';') - group);
+		} else if (pack != std::string::npos) {
+			findgroup = findme.substr(
+			  pack + 5, findme.find(static_cast<char>(pack), ';') - pack);
 		}
 	}
 
-	// The giant block of code below is for optimization purposes.
-	// Basically, we don't want to give a single fat lambda to the filter that
-	// checks and short circuits. Instead, we want to just not check at all.
-	// It's a baby sized optimization but adds up over time. The binary comments
-	// help verify which things are being checked.
 	std::vector<Song*> tmp;
 	std::function<bool(Song*)> check;
 	std::function<bool(Song*)> artistcheck; 
 	std::function<bool(Song*)> titlecheck;
 	std::function<bool(Song*)> subtitlecheck;
-	std::function<bool(Song*)> authorcheck;		
+	std::function<bool(Song*)> authorcheck;
 	std::function<bool(Song*)> groupcheck;
 
 	if (!super_search) {
