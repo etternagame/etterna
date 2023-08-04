@@ -172,7 +172,7 @@ end
 function getScreenOptionsInputLines()
     if HOOKS.GetArchName():upper():find("^WINDOWS") ~= nil then
         -- windows
-        return "1,2,3,AH,AS,5,6,8,7,WindowsKey"
+        return "1,2,3,AH,AS,5,6,8,7,WindowsKey,KeyboardLayout"
     else
         -- mac and linux
         return "1,2,3,AH,AS,5,6,8,7"
@@ -685,6 +685,35 @@ function DisableWindowsKeyInGameplay()
 			local value
 			value = list[2]
 			PREFSMAN:SetPreference("DisableWindowsKey", value)
+
+            return 0
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
+function FixKeyboardLayout()
+
+    local t = {
+		Name = "FixKeyboardLayout",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = PREFSMAN:GetPreference("FixKeyboardLayout")
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			value = list[2]
+			PREFSMAN:SetPreference("FixKeyboardLayout", value)
 
             return 0
 		end

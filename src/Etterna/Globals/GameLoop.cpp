@@ -39,28 +39,43 @@ static float g_fUpdateRate = 1;
 static Preference<bool> g_bNeverBoostAppPriority("NeverBoostAppPriority",false);
 /* experimental: force a specific update rate. This prevents big  animation jumps on frame skips. 0 to disable. */
 static Preference<float> g_fConstantUpdateDeltaSeconds("ConstantUpdateDeltaSeconds",0);
+static Preference<bool> g_prefFixKeyboardLayout("FixKeyboardLayout", false);
 static std::string g_previousLayoutName;
+static bool g_bNeverFixKeyboardLayout = false;
 
 static void
 setEnglishLayout()
 {
-	#ifdef _WIN32
+#ifdef _WIN32
 	char buffer2[KL_NAMELENGTH];
 	GetKeyboardLayoutName(buffer2);
 	std::string layout2(buffer2);
 	g_previousLayoutName = layout2;
+
+	// to require a game restart if it is turned on midgame
+	if (!g_prefFixKeyboardLayout.Get()) {
+		g_bNeverFixKeyboardLayout = true;
+	}
+	if (g_bNeverFixKeyboardLayout) {
+		return;
+	}
+
 	Locator::getLogger()->info(
-	  "Keyboard layout is switching from {} to english 00000409", layout2);
+	  "Keyboard layout is switching from {} to English 00000409", layout2);
 
 	// 00000409 is US standard
 	LoadKeyboardLayoutA("00000409", KLF_ACTIVATE | KLF_SETFORPROCESS);
-	#endif
+#endif
 }
 
 static void
 loadPreviousLayout()
 {
-	#ifdef _WIN32
+
+	// this is unguarded because it should Just Work
+	// but if peoples layouts start breaking, this is why
+
+#ifdef _WIN32
 	LoadKeyboardLayoutA(g_previousLayoutName.c_str(),
 						KLF_ACTIVATE | KLF_SETFORPROCESS);
 
@@ -68,7 +83,7 @@ loadPreviousLayout()
 	GetKeyboardLayoutName(buffer1);
 	std::string layout1(buffer1);
 	Locator::getLogger()->info("Loaded external keyboard layout {}", layout1);
-	#endif
+#endif
 }
 
 // Static Functions
@@ -302,14 +317,9 @@ namespace GameLoop {
     void RunGameLoop() {
 		Core::Platform::boostPriority();
 
-		if (hasFocus) {
-			Locator::getLogger()->info(
-			  "Game already focused, setting to english layout");
-			setEnglishLayout();
-		} else {
-			Locator::getLogger()->info(
-			  "Game not yet focused, not switching layout");
-		}
+		// set to the english layout if applicable
+		// this saves the system layout for the first time
+		setEnglishLayout();
 
         while (!GameLoop::hasUserQuit()) {
             if (!g_NewGame.empty()) {
