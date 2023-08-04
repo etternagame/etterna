@@ -24,7 +24,7 @@ DIJoystick_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data);
 static BOOL CALLBACK
 DIMouse_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data);
 
-static Preference<bool> g_DisableWindowsKey("DisableWindowsKey", true);
+static Preference<bool> g_DisableWindowsKey("DisableWindowsKey", false);
 
 DIDevice::DIDevice()
 {
