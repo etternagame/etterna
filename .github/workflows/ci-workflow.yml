@@ -225,11 +225,19 @@ jobs:
 
       - name: Install chocolatey packages (i386)
         if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install ninja nsis openssl curl -y --x86
+        run: choco install ninja nsis curl -y --x86
+      
+      - name: Install openSSL (i386)
+        if: ${{ matrix.cfg.arch == 'x86' }}
+        run: choco install openssl --version=1.1.1.2100 -y --x86
 
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
-        run: choco install ninja nsis openssl curl -y
+        run: choco install ninja nsis curl -y
+
+      - name: Install openSSL (x64)
+        if: ${{ matrix.cfg.arch == 'x64' }}
+        run: choco install openssl --version=1.1.1.2100 -y
 
       - name: Configure MSBuild
         uses: ilammy/msvc-dev-cmd@v1
