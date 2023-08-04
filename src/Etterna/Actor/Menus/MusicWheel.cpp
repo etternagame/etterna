@@ -514,9 +514,9 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 			  subtitle + 9,
 			  findme.find(static_cast<char>(subtitle), ';') - subtitle);
 		}
-		if (group != std::string::npos) {			findgroup = findme.substr(
-			  group + 6,
-			  findme.find(static_cast<char>(group), ';') - group);
+		if (group != std::string::npos) {
+			findgroup = findme.substr(
+			  group + 6, findme.find(static_cast<char>(group), ';') - group);
 		} else if (pack != std::string::npos) {
 			findgroup = findme.substr(
 			  pack + 5, findme.find(static_cast<char>(pack), ';') - pack);
@@ -536,70 +536,65 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 			return contains(x->GetDisplayMainTitle(), findme);
 		};
 	} else {
-		if(!findartist.empty())
-		artistcheck=
-			  [&findartist](Song* x) {
-				  return contains(x->GetDisplayArtist(), findartist);
-			  };
-		if(!findtitle.empty())
-		titlecheck=
-			  [&findtitle](Song* x) {
-				  return contains(x->GetDisplayMainTitle(), findtitle);
-			  };
-		if(!findsubtitle.empty())
-		subtitlecheck=
-			  [&findsubtitle](Song* x) {
-				  return contains(x->GetDisplaySubTitle(), findsubtitle);
-			  };
-		if(!findauthor.empty())
-		authorcheck=
-			  [&findauthor](Song* x) {
-				  return contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
-			  };
+		if (!findartist.empty())
+			artistcheck = [&findartist](Song* x) {
+				return contains(x->GetDisplayArtist(), findartist);
+			};
+		if (!findtitle.empty())
+			titlecheck = [&findtitle](Song* x) {
+				return contains(x->GetDisplayMainTitle(), findtitle);
+			};
+		if (!findsubtitle.empty())
+			subtitlecheck = [&findsubtitle](Song* x) {
+				return contains(x->GetDisplaySubTitle(), findsubtitle);
+			};
+		if (!findauthor.empty())
+			authorcheck = [&findauthor](Song* x) {
+				return contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
+								findauthor);
+			};
 		if (!findgroup.empty())
-		groupcheck= [&findgroup](Song* x) {
+			groupcheck = [&findgroup](Song* x) {
 				return contains(x->m_sGroupName, findgroup);
-			  };
+			};
 	}
 
 	for (auto& x : inv) {
 		if (!super_search) {
-		if (check(x)) {
-			tmp.push_back(x);
-			continue;
+			if (check(x)) {
+				tmp.push_back(x);
+				continue;
 			}
-		} 
-		else {
-
-		if(!findartist.empty())
-			if (artistcheck(x)) {
-			tmp.push_back(x);
-			continue;
-			}
+		} else {
+			if (!findartist.empty())
+				if (artistcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
 		
-		if(!findtitle.empty())
-			if (titlecheck(x)) {
-			tmp.push_back(x);
-			continue;
-			}
+			if (!findtitle.empty())
+				if (titlecheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
 		
-		if(!findsubtitle.empty())
-			if (subtitlecheck(x)) {
-			tmp.push_back(x);
-			continue;
-			}
+			if (!findsubtitle.empty())
+				if (subtitlecheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
 		
-		if(!findauthor.empty())
-			if (authorcheck(x)) {
-			tmp.push_back(x);
-			continue;
-			}
+			if (!findauthor.empty())
+				if (authorcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
 		
-		if (!findgroup.empty())
-			if (groupcheck(x)) {
-			tmp.push_back(x);
-			continue;
-			}	 
+			if (!findgroup.empty())
+				if (groupcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
 		}
 		
 	}
