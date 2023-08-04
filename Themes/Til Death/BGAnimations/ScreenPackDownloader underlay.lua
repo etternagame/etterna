@@ -296,6 +296,11 @@ local function numFilter(i, x, y)
 			end,
 			SetCommand = function(self)
 				diffuseIfActiveButton(self, inputting == i)
+				if isOver(self) then
+					self:diffusealpha(highlightalpha)
+				else
+					self:diffusealpha(inactivealpha)
+				end
 			end,
 			MouseOverCommand = function(self)
 				self:diffusealpha(highlightalpha)
@@ -349,6 +354,11 @@ o[#o + 1] = Def.ActorFrame {
 		end,
 		SetCommand = function(self)
 			diffuseIfActiveButton(self, inputting == 1)
+			if isOver(self) then
+				self:diffusealpha(highlightalpha)
+			else
+				self:diffusealpha(inactivealpha)
+			end
 		end,
 		MouseOverCommand = function(self)
 			self:diffusealpha(highlightalpha)
