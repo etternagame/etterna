@@ -283,6 +283,7 @@ local function numFilter(i, x, y)
 		UIElements.QuadButton(1, 1) .. {
 			InitCommand = function(self)
 				self:zoomto(fdot, fdot):halign(0):valign(0)
+				self:diffusealpha(inactivealpha)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
@@ -335,6 +336,7 @@ o[#o + 1] = Def.ActorFrame {
 	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:zoomto(nwidth, nhite):halign(0):valign(0)
+			self:diffusealpha(inactivealpha)
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
