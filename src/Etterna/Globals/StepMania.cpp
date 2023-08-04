@@ -276,6 +276,8 @@ StepMania::ResetPreferences()
 void
 ShutdownGame()
 {
+	GameLoop::loadSavedLayout();
+
 	/* First, tell SOUNDMAN that we're shutting down. This signals sound drivers
 	 * to stop sounds, which we want to do before any threads that may have
 	 * started sounds are closed; this prevents annoying DirectSound glitches
