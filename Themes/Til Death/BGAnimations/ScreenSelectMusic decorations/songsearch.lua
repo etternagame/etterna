@@ -155,19 +155,19 @@ local t = Def.ActorFrame {
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
-			self:xy(frameX + 20, frameY + 10):zoom(0.5):halign(0)
+			self:xy(frameX + 20, frameY):zoom(0.5):halign(0)
 			self:settext(translated_info["ExplainLimit"])
 		end
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
-			self:xy(frameX + 20, frameY + 30):zoom(0.5):align(0,0)
+			self:xy(frameX + 20, frameY + 15):zoom(0.5):align(0,0)
 			self:settext(translated_info["ExplainNumInput"])
 		end
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
-			self:xy(frameX + 20, frameY + 70):zoom(0.5):align(0,0)
+			self:xy(frameX + 20, frameY + 50):zoom(0.5):align(0,0)
 			self:settext(translated_info["ExplainSuperSearch"])
 		end
 	}
