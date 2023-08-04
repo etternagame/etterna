@@ -449,6 +449,7 @@ contains(std::string container, const std::string& findme) -> bool
 	  begin(container), end(container), begin(container), ::tolower);
 	return container.find(findme) != std::string::npos;
 }
+
 void
 MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 {
@@ -461,7 +462,7 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 	auto author = findme.find("author=");
 	auto title = findme.find("title=");
 	auto subtitle = findme.find("subtitle=");
-
+	auto group = findme.find("group=");
 	// title is a substring of title
 	// so if found that way, check again
 	if (title == subtitle + 3) {
@@ -472,9 +473,11 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 	std::string findauthor;
 	std::string findtitle;
 	std::string findsubtitle;
+	std::string findgroup;
 
 	if (artist != std::string::npos || author != std::string::npos ||
-		title != std::string::npos || subtitle != std::string::npos) {
+		title != std::string::npos || subtitle != std::string::npos || 
+		group != std::string::npos) {
 		super_search = true;
 		if (artist != std::string::npos) {
 			findartist = findme.substr(
@@ -493,6 +496,10 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 			  subtitle + 9,
 			  findme.find(static_cast<char>(subtitle), ';') - subtitle);
 		}
+		if (group != std::string::npos) {			findgroup = findme.substr(
+			  group + 6,
+			  findme.find(static_cast<char>(group), ';') - group);
+		}
 	}
 
 	// The giant block of code below is for optimization purposes.
@@ -502,178 +509,83 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 	// help verify which things are being checked.
 	std::vector<Song*> tmp;
 	std::function<bool(Song*)> check;
+	std::function<bool(Song*)> artistcheck; 
+	std::function<bool(Song*)> titlecheck;
+	std::function<bool(Song*)> subtitlecheck;
+	std::function<bool(Song*)> authorcheck;		
+	std::function<bool(Song*)> groupcheck;
+
 	if (!super_search) {
-		// 0000
 		check = [&findme](Song* x) {
 			return contains(x->GetDisplayMainTitle(), findme);
 		};
 	} else {
-		if (!findartist.empty() && !findtitle.empty() && !findauthor.empty() &&
-			!findsubtitle.empty()) {
-			// 1111
-			check =
-			  [&findauthor, &findartist, &findtitle, &findsubtitle](Song* x) {
-				  return contains(x->GetDisplayArtist(), findartist) ||
-						 contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-								  findauthor) ||
-						 contains(x->GetDisplayMainTitle(), findtitle) ||
-						 contains(x->GetDisplaySubTitle(), findsubtitle);
+		if(!findartist.empty())
+		artistcheck=
+			  [&findartist](Song* x) {
+				  return contains(x->GetDisplayArtist(), findartist);
 			  };
-		} else {
-			if (!findsubtitle.empty()) {
-				if (findauthor.empty() && findtitle.empty() &&
-					findartist.empty()) {
-					// 1000
-					check = [&findsubtitle](Song* x) {
-						return contains(x->GetDisplaySubTitle(), findsubtitle);
-					};
-				} else {
-					if (findauthor.empty()) {
-						if (findtitle.empty()) {
-							// 1001
-							check = [&findsubtitle, &findartist](Song* x) {
-								return contains(x->GetDisplayArtist(),
-												findartist) ||
-									   contains(x->GetDisplaySubTitle(),
-												findsubtitle);
-							};
-						} else {
-							if (findartist.empty()) {
-								// 1010
-								check = [&findsubtitle, &findtitle](Song* x) {
-									return contains(x->GetDisplayMainTitle(),
-													findtitle) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							} else {
-								// 1011
-								check = [&findsubtitle,
-										 &findartist,
-										 &findtitle](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(x->GetDisplayMainTitle(),
-													findtitle) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							};
-						}
-					} else {
-						if (findtitle.empty()) {
-							if (findartist.empty()) {
-								// 1100
-								check = [&findsubtitle, &findauthor](Song* x) {
-									return contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							} else {
-								// 1101
-								check = [&findsubtitle,
-										 &findauthor,
-										 &findartist](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							};
-						} else {
-							// 1110
-							check = [&findsubtitle, &findauthor, &findtitle](
-									  Song* x) {
-								return contains(x->GetDisplayMainTitle(),
-												findtitle) ||
-									   contains(
-										 x->GetOrTryAtLeastToGetSimfileAuthor(),
-										 findauthor) ||
-									   contains(x->GetDisplaySubTitle(),
-												findsubtitle);
-							};
-						}
-					}
-				}
-			} else {
-				if (!findartist.empty() && !findtitle.empty() &&
-					!findauthor.empty()) {
-					// 0111
-					check = [&findauthor, &findartist, &findtitle](Song* x) {
-						return contains(x->GetDisplayArtist(), findartist) ||
-							   contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-										findauthor) ||
-							   contains(x->GetDisplayMainTitle(), findtitle);
-					};
-				} else {
-					if (findauthor.empty()) {
-						if (findtitle.empty()) {
-							// 0001
-							check = [&findartist](Song* x) {
-								return contains(x->GetDisplayArtist(),
-												findartist);
-							};
-						} else {
-							if (findartist.empty()) {
-								// 0010
-								check = [&findtitle](Song* x) {
-									return contains(x->GetDisplayMainTitle(),
-													findtitle);
-								};
-							} else {
-								// 0011
-								check = [&findartist, &findtitle](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(x->GetDisplayMainTitle(),
-													findtitle);
-								};
-							};
-						}
-					} else {
-						if (findtitle.empty()) {
-							if (findartist.empty()) {
-								// 0100
-								check = [&findauthor](Song* x) {
-									return contains(
-									  x->GetOrTryAtLeastToGetSimfileAuthor(),
-									  findauthor);
-								};
-							} else {
-								// 0101
-								check = [&findauthor, &findartist](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor);
-								};
-							};
-						} else {
-							// 0110
-							check = [&findauthor, &findtitle](Song* x) {
-								return contains(x->GetDisplayMainTitle(),
-												findtitle) ||
-									   contains(
-										 x->GetOrTryAtLeastToGetSimfileAuthor(),
-										 findauthor);
-							};
-						}
-					}
-				}
-			}
-		}
+		if(!findtitle.empty())
+		titlecheck=
+			  [&findtitle](Song* x) {
+				  return contains(x->GetDisplayMainTitle(), findtitle);
+			  };
+		if(!findsubtitle.empty())
+		subtitlecheck=
+			  [&findsubtitle](Song* x) {
+				  return contains(x->GetDisplaySubTitle(), findsubtitle);
+			  };
+		if(!findauthor.empty())
+		authorcheck=
+			  [&findauthor](Song* x) {
+				  return contains(x->GetOrTryAtLeastToGetSimfileAuthor(), findauthor);
+			  };
+		if (!findgroup.empty())
+		groupcheck= [&findgroup](Song* x) {
+				return contains(x->m_sGroupName, findgroup);
+			  };
 	}
 
 	for (auto& x : inv) {
+		if (!super_search) {
 		if (check(x)) {
 			tmp.push_back(x);
+			continue;
+			}
+		} 
+		else {
+
+		if(!findartist.empty())
+			if (artistcheck(x)) {
+			tmp.push_back(x);
+			continue;
+			}
+		
+		if(!findtitle.empty())
+			if (titlecheck(x)) {
+			tmp.push_back(x);
+			continue;
+			}
+		
+		if(!findsubtitle.empty())
+			if (subtitlecheck(x)) {
+			tmp.push_back(x);
+			continue;
+			}
+		
+		if(!findauthor.empty())
+			if (authorcheck(x)) {
+			tmp.push_back(x);
+			continue;
+			}
+		
+		if (!findgroup.empty())
+			if (groupcheck(x)) {
+			tmp.push_back(x);
+			continue;
+			}	 
 		}
+		
 	}
 	if (!tmp.empty()) {
 		lastvalidsearch = findme;

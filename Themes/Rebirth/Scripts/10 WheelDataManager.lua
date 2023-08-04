@@ -15,7 +15,7 @@ function WHEELDATA.Reset(self)
     -- library of all Songs for this Game (all Styles)
     self.AllSongs = {}
     self.AllSongsByGroup = {}
-    self.AllGroups = {}
+    self.AllGroups = {} 
 
     -- for the current sort, filtering and organization purposes
     self.AllFilteredSongs = {} -- equivalent of self.AllSongs but after the filter
@@ -31,6 +31,7 @@ function WHEELDATA.Reset(self)
             Subtitle = "",
             Artist = "",
             Author = "",
+            Group = "",
         },
         valid = nil, -- function expecting chart or song that returns true if it passes (this is left empty as free space for you, reader)
         requireTags = { -- require that a chart has tags
@@ -55,6 +56,7 @@ function getEmptyActiveFilterMetadata()
         Subtitle = "",
         Artist = "",
         Author = "",
+        Group = "",
     }
     return metadata
 end
@@ -77,7 +79,7 @@ end
 
 -- check if the search is empty
 function WHEELDATA.IsSearchFilterEmpty(self)
-    return not (self.ActiveFilter.metadata.Title ~= "" or self.ActiveFilter.metadata.Subtitle ~= "" or self.ActiveFilter.metadata.Artist ~= "" or self.ActiveFilter.metadata.Author ~= "")
+    return not (self.ActiveFilter.metadata.Title ~= "" or self.ActiveFilter.metadata.Subtitle ~= "" or self.ActiveFilter.metadata.Artist ~= "" or self.ActiveFilter.metadata.Author ~= "" or self.ActiveFilter.metadata.Group ~= "")
 end
 
 -- check if both tag filters are empty
@@ -126,6 +128,11 @@ function WHEELDATA.SetSearch(self, t)
         self.ActiveFilter.metadata.Author = t.Author:lower()
     else
         self.ActiveFilter.metadata.Author = ""
+    end
+    if t.Group ~= nil then
+        self.ActiveFilter.metadata.Group = t.Group:lower()
+    else
+        self.ActiveFilter.metadata.Group = ""
     end
     -- end
 end
@@ -285,6 +292,7 @@ function WHEELDATA.FilterCheck(self, g)
         local author = g:GetOrTryAtLeastToGetSimfileAuthor():lower()
         local artist = g:GetDisplayArtist():lower()
         local subtitle = g:GetDisplaySubTitle():lower()
+        local group = g:GetGroupName():lower()
         if not self:IsSearchFilterEmpty() then
             local startIndex = 1
             local dontUsePatternMatching = true
@@ -299,6 +307,9 @@ function WHEELDATA.FilterCheck(self, g)
             end
             if self.ActiveFilter.metadata.Artist ~= "" then
                 if artist:find(self.ActiveFilter.metadata.Artist, startIndex, dontUsePatternMatching) == nil then return false end
+            end
+            if self.ActiveFilter.metadata.Group ~= "" then
+                if group:find(self.ActiveFilter.metadata.Group, startIndex, dontUsePatternMatching) == nil then return false end
             end
         end
 
@@ -365,6 +376,7 @@ local function isExactMetadataMatch(song)
         local author = song:GetOrTryAtLeastToGetSimfileAuthor():lower()
         local artist = song:GetDisplayArtist():lower()
         local subtitle = song:GetDisplaySubTitle():lower()
+        local group = song:GetGroupName():lower()
         if WHEELDATA.ActiveFilter.metadata.Title ~= "" then
            if title ~= WHEELDATA.ActiveFilter.metadata.Title then return false end
         end
@@ -376,6 +388,9 @@ local function isExactMetadataMatch(song)
         end
         if WHEELDATA.ActiveFilter.metadata.Artist ~= "" then
             if artist ~= WHEELDATA.ActiveFilter.metadata.Artist then return false end
+        end
+        if WHEELDATA.ActiveFilter.metadata.Group ~= "" then
+            if group ~= WHEELDATA.ActiveFilter.metadata.Group then return false end
         end
         return true
     end
