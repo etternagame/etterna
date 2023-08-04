@@ -655,26 +655,28 @@ FindDisplayedBeats(const PlayerState* pPlayerState,
 		fSearchDistance /= 2;
 	}
 
-	fSearchDistance = 10;
-	// the imaginary line to start drawing "after" the receptor
-	for (auto i = 0; i < NUM_ITERATIONS; i++) {
-		bool bIsPastPeakYOffset;
-		float fPeakYOffset;
-		const auto fYOffset = ArrowEffects::GetYOffset(pPlayerState,
-													   0,
-													   fFirstBeatToDraw,
-													   fPeakYOffset,
-													   bIsPastPeakYOffset,
-													   true);
+	if (fFirstBeatToDraw > 0.F) {
+		fSearchDistance = 10;
+		// the imaginary line to start drawing "after" the receptor
+		for (auto i = 0; i < NUM_ITERATIONS; i++) {
+			bool bIsPastPeakYOffset;
+			float fPeakYOffset;
+			const auto fYOffset = ArrowEffects::GetYOffset(pPlayerState,
+														   0,
+														   fFirstBeatToDraw,
+														   fPeakYOffset,
+														   bIsPastPeakYOffset,
+														   true);
 
-		if (bBoomerang && !bIsPastPeakYOffset)
-			fFirstBeatToDraw -= fSearchDistance;
-		else if (fYOffset < iDrawDistanceAfterTargetsPixels) // off screen
-			fFirstBeatToDraw += fSearchDistance;
-		else // on screen
-			fFirstBeatToDraw -= fSearchDistance;
+			if (bBoomerang && !bIsPastPeakYOffset)
+				fFirstBeatToDraw -= fSearchDistance;
+			else if (fYOffset < iDrawDistanceAfterTargetsPixels) // off screen
+				fFirstBeatToDraw += fSearchDistance;
+			else // on screen
+				fFirstBeatToDraw -= fSearchDistance;
 
-		fSearchDistance /= 2;
+			fSearchDistance /= 2;
+		}
 	}
 
 	if (fSpeedMultiplier < 0.75f) {
