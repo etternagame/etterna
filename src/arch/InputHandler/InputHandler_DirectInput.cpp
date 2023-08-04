@@ -178,7 +178,7 @@ InputHandler_DInput::InputHandler_DInput()
 			.c_str());
 
 	for (unsigned i = 0; i < Devices.size(); ++i) {
-		if (Devices[i].Open())
+		if (Devices[i].Open(false))
 			continue;
 
 		Devices.erase(Devices.begin() + i);
@@ -249,13 +249,29 @@ InputHandler_DInput::WindowReset()
 		// We lose buffered inputs here, so we need to clear all pressed keys.
 		INPUTFILTER->ResetDevice(Devices[i].dev);
 
-		bool ret = Devices[i].Open();
+		bool ret = Devices[i].Open(m_bTemporarySettingsApplied);
 
 		// Reopening it should succeed.
 		ASSERT(ret);
 	}
 
 	StartThread();
+}
+
+void
+InputHandler_DInput::ApplyTemporaryInputSettings()
+{
+	m_bTemporarySettingsApplied = true;
+	WindowReset();
+	Locator::getLogger()->info("Applied temporary input settings");
+}
+
+void
+InputHandler_DInput::RemoveTemporaryInputSettings()
+{
+	m_bTemporarySettingsApplied = false;
+	WindowReset();
+	Locator::getLogger()->info("Removed temporary input settings");
 }
 
 #define HAT_UP_MASK 1

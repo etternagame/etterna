@@ -36,7 +36,7 @@ DIDevice::DIDevice()
 }
 
 bool
-DIDevice::Open()
+DIDevice::Open(bool checkPreference)
 {
 	m_sName = ConvertACPToUTF8(JoystickInst.tszProductName);
 
@@ -69,7 +69,7 @@ DIDevice::Open()
 	if (type == KEYBOARD)
 		coop = DISCL_NONEXCLUSIVE | DISCL_FOREGROUND;
 
-	if (g_DisableWindowsKey.Get()) {
+	if (checkPreference && g_DisableWindowsKey.Get()) {
 		coop |= DISCL_NOWINKEY;
 	}
 

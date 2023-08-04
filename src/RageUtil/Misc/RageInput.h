@@ -20,6 +20,8 @@ class RageInput
 	bool DevicesChanged();
 	void GetDevicesAndDescriptions(std::vector<InputDeviceInfo>& vOut) const;
 	void WindowReset();
+	void ApplyTemporaryInputSettings();
+	void RemoveTemporaryInputSettings();
 	void AddHandler(InputHandler* pHandler);
 	InputHandler* GetHandlerForDevice(InputDevice id);
 	std::string GetDeviceSpecificInputString(const DeviceInput& di);
