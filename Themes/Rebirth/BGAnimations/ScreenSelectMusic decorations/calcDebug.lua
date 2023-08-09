@@ -85,6 +85,7 @@ local hidePosition = SCREEN_HEIGHT
 local beginPosition = hidePosition
 local animationSeconds = 0.1
 
+------ text size
 local titleTextSize = 0.85
 local authorTextSize = 0.75
 local creditTextSize = 0.65
@@ -97,6 +98,7 @@ local edgeGap = 10
 local textzoomFudge = 5
 local buttonHoverAlpha = 0.6
 
+------ other sizing
 local notefieldZoom = 0.5
 local previewGraphWidth = 64 * 4 * notefieldZoom * 1.2
 local previewGraphHeight = actuals.PreviewGraphHeight * notefieldZoom * 1.5
@@ -114,6 +116,9 @@ local lowerLineGraphX = msdBoxX + msdBoxWidth + edgeGap
 local lowerLineGraphY = SCREEN_HEIGHT * 0.7
 local lineGraphWidth = SCREEN_WIDTH * 0.75
 local lineGraphHeight = 250
+
+
+
 
 local t = Def.ActorFrame {
     Name = "Frame",
@@ -555,10 +560,24 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0)
             self:zoomto(lineGraphWidth, lineGraphHeight)
-            self:diffusealpha(0.6)
+            self:diffusealpha(0.7)
             registerActorToColorConfigElement(self, "main", "PrimaryBackground")
         end,
     },
+    ShowGraphCommand = function(self, params)
+        local graphname = params.name
+        if self.graphs[graphname] == nil then
+            self:AddChildFromPath(THEME:GetPathG("", "lineGraph"))
+            self:playcommand("RegisterToGraphOwner", {name = params.name})
+        end
+        self.graphs[graphname]:playcommand("DisplayGraph", {
+            data = params.data,
+            xmin = params.xmin,
+            xmax = params.xmax,
+            ymin = params.ymin,
+            ymax = params.ymax,
+        })
+    end
 }
 
 t[#t+1] = Def.ActorFrame {
@@ -572,12 +591,47 @@ t[#t+1] = Def.ActorFrame {
         InitCommand = function(self)
             self:halign(0)
             self:zoomto(lineGraphWidth, lineGraphHeight)
-            self:diffusealpha(0.6)
+            self:diffusealpha(0.7)
             registerActorToColorConfigElement(self, "main", "PrimaryBackground")
         end,
     },
+    ShowGraphCommand = function(self, params)
+        local graphname = params.name
+        if self.graphs[graphname] == nil then
+            self:AddChildFromPath(THEME:GetPathG("", "lineGraph"))
+            self:playcommand("RegisterToGraphOwner", {name = params.name})
+        end
+        self.graphs[graphname]:playcommand("DisplayGraph", {
+            data = params.data,
+            xmin = params.xmin,
+            xmax = params.xmax,
+            ymin = params.ymin,
+            ymax = params.ymax,
+        })
+    end
 }
 
+t[#t+1] = Def.Actor {
+    OnCommand = function(self)
+        local data = {
+            {0,0},
+            {1,1},
+            {2,2},
+            {3,3},
+            {3.5,10},
+            {3.6,0},
+            {4,4},
+            {5,5},
+            --{10,10},
+        }
+        self:GetParent():GetChild("LowerGraphHolder"):playcommand("ShowGraph", {
+            name = "test", data = data, ymin = 0, ymax = 10
+        })
+        self:GetParent():GetChild("UpperGraphHolder"):playcommand("ShowGraph", {
+            name = "test", data = data, ymin = 0, ymax = 10
+        })
+    end,
+}
 
 
 tt[#tt+1] = t
