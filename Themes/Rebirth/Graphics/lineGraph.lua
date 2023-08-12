@@ -26,7 +26,7 @@ end
 
 local fitX = FUNC_NOOP
 local fitY = FUNC_NOOP
-local colorToUse = color("#FF0000")
+local colorToUse = color("#FFFFFF")
 
 return Def.ActorFrame {
     Name = "LineGraph",
@@ -62,6 +62,7 @@ return Def.ActorFrame {
             return -1 * scale(yval, ymin, ymax, 0, 1) * fullHeight + fullHeight/2
         end
 
+        colorToUse = params.color or color("#FFFFFF")
         self:playcommand("ActuallyDisplay", params)
     end,
 
