@@ -74,6 +74,13 @@ PlayerState::ResetCacheInfo(/*const NoteData& notes*/)
 	const auto vScrolls =
 	  GetDisplayedTiming().GetTimingSegments(SEGMENT_SCROLL);
 
+	if (!vScrolls.empty()) {
+		if (ToScroll(vScrolls.at(0))->GetBeat() > 0.F) {
+			CacheDisplayedBeat c = { 0.F, 0.F, 1.F };
+			m_CacheDisplayedBeat.push_back(c);
+		}
+	}
+
 	auto displayedBeat = 0.0F;
 	auto lastRealBeat = 0.0F;
 	auto lastRatio = 1.0F;
