@@ -21,7 +21,7 @@ local JudgeCmds = {
 		self:zoom(1 * jz)
 		self:sleep(0.8):smooth(0.1)
 		self:zoomy(0.5 * jz):zoomx(2 * jz):diffusealpha(0)
-		self:glowblink():effectperiod(0.05):effectcolor(color("1,1,1,0")):effectcolor2(color("1,1,1,0.25"))
+		self:glowblink():effectperiod(0.05):effectcolor1(color("1,1,1,0")):effectcolor2(color("1,1,1,0.25"))
 	end,
 	TapNoteScore_W2 = function(self)
 		local jz = MovableValues.JudgeZoom or 1
