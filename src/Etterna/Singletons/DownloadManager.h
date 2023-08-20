@@ -86,6 +86,7 @@ class DownloadablePack
 	std::string url{ "" };
 	std::string mirror{ "" };
 	bool downloading{ false };
+	bool isQueued();
 	// Lua
 	void PushSelf(lua_State* L);
 };

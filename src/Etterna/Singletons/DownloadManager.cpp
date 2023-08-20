@@ -2476,6 +2476,16 @@ Download::Failed()
 	MESSAGEMAN->Broadcast(msg);
 }
 
+bool
+DownloadablePack::isQueued() {
+	auto it = std::find_if(DLMAN->DownloadQueue.begin(),
+						   DLMAN->DownloadQueue.end(),
+						   [this](pair<DownloadablePack*, bool> pair) {
+							   return pair.first == this;
+						   });
+	return it != DLMAN->DownloadQueue.end();
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "LuaManager.h"
@@ -2983,12 +2993,16 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 			p->PushSelf(L);
 			return 1;
 		}
+		if (p->isQueued()) {
+			p->PushSelf(L);
+			return 1;
+		}
+
 		std::shared_ptr<Download> dl = DLMAN->DownloadAndInstallPack(p, mirror);
 		if (dl) {
 			dl->PushSelf(L);
 		} else
 			lua_pushnil(L);
-		IsQueued(p, L);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
@@ -3008,11 +3022,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int IsQueued(T* p, lua_State* L)
 	{
-		auto it = std::find_if(
-		  DLMAN->DownloadQueue.begin(),
-		  DLMAN->DownloadQueue.end(),
-		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
-		lua_pushboolean(L, it != DLMAN->DownloadQueue.end());
+		lua_pushboolean(L, p->isQueued());
 		return 1;
 	}
 	static int RemoveFromQueue(T* p, lua_State* L)
