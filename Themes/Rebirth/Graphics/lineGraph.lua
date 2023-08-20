@@ -38,6 +38,11 @@ return Def.ActorFrame {
         graphs[params.name] = self
     end,
     DisplayGraphCommand = function(self, params)
+        if params == nil or params.data == nil or #params.data == 0 then
+            self:playcommand("DrawNothing")
+            return
+        end
+
         local fullWidth = self:GetParent():GetChild("BG"):GetZoomedWidth()
         local xmin, xmax = params.xmin, params.xmax
         if xmin == nil or xmax == nil then
@@ -81,6 +86,8 @@ return Def.ActorFrame {
 
             local data = params.data
             local verts = {}
+
+            if #data == 1 then data[#data+1] = data[1] end
 
             for i, pt in ipairs(data) do
                 local x = pt[1]
