@@ -326,6 +326,38 @@ function askForInputStringWithFunction(question, maxInputLength, obfuscate, onOK
     SCREENMAN:GetTopScreen():Load(settings)
 end
 
+-- input redirects are controlled here because we want to be careful not to break any prior redirects
+function askForInputStringMaintainingInputRedirect(question, maxInputLength, bObfuscate, onOkFunc, validateFunc, onCancelFunc)
+    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+    askForInputStringWithFunction(
+        question,
+        maxInputLength,
+        bObfuscate,
+        function(answer)
+            onOkFunc(answer)
+            on()
+        end,
+        function(answer)
+            return validateFunc(answer)
+        end,
+        function()
+            onCancelFunc()
+            on()
+        end
+    )
+end
+
 -- returns xx.xx% for sub 99 scores and xx.xxxx% for 99+ scores
 function checkWifeStr(wife)
     local wifeStr = ""
@@ -445,33 +477,18 @@ end
 
 -- convenience to control the rename profile dialogue logic and input redir scope
 function renameProfileDialogue(profile, isNewProfile)
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-
-    local function f(answer)
-        profile:RenameProfile(answer)
-        MESSAGEMAN:Broadcast("ProfileRenamed")
-        on()
-    end
     local question = "RENAME PROFILE\nPlease enter a new profile name."
     if isNewProfile then
         question = "NEW PROFILE\nPlease enter a profile name."
     end
-    askForInputStringWithFunction(
+    askForInputStringMaintainingInputRedirect(
         question,
         255,
         false,
-        f,
+        function(answer)
+            profile:RenameProfile(answer)
+            MESSAGEMAN:Broadcast("ProfileRenamed")
+        end,
         function(answer)
             local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
             if not result then
@@ -483,37 +500,21 @@ function renameProfileDialogue(profile, isNewProfile)
             -- upon exit, do nothing
             -- profile name is unchanged
             MESSAGEMAN:Broadcast("ProfileRenamed")
-            on()
         end
     )
 end
 
 -- convenience to control the rename dialogue logic and input redir scope
 function renamePlaylistDialogue(oldname)
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-
-    local function f(answer)
-        local success = SONGMAN:RenamePlaylistNoDialog(oldname, answer)
-        MESSAGEMAN:Broadcast("PlaylistRenamed", {success = success})
-        on()
-    end
     local question = "RENAME PLAYLIST\nPlease enter a new playlist name."
-    askForInputStringWithFunction(
+    askForInputStringMaintainingInputRedirect(
         question,
         255,
         false,
-        f,
+        function(answer)
+            local success = SONGMAN:RenamePlaylistNoDialog(oldname, answer)
+            MESSAGEMAN:Broadcast("PlaylistRenamed", {success = success})
+        end,
         function(answer)
             local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
             if not result then
@@ -525,32 +526,17 @@ function renamePlaylistDialogue(oldname)
             -- upon exit, do nothing
             -- playlist name is unchanged
             MESSAGEMAN:Broadcast("PlaylistRenamed", {success = false})
-            on()
         end
     )
 end
 
 function newPlaylistDialogue()
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-    -- input redirects are controlled here because we want to be careful not to break any prior redirects
-    askForInputStringWithFunction(
+    askForInputStringMaintainingInputRedirect(
         "Enter New Playlist Name",
         128,
         false,
         function(answer)
-            -- function ran when pressing ok
-            on()
+            -- dont care
         end,
         function(answer)
             -- answer checking function
@@ -562,33 +548,18 @@ function newPlaylistDialogue()
             return result, "Response invalid."
         end,
         function()
-            -- regular exit/cancel function
-            on()
+            -- dont care
         end
     )
 end
 
 function newTagDialogue(question)
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-    -- input redirects are controlled here because we want to be careful not to break any prior redirects
-    askForInputStringWithFunction(
+    askForInputStringMaintainingInputRedirect(
         question,
         128,
         false,
         function(answer)
-            -- function ran when pressing ok
-            on()
+            -- dont care
         end,
         function(answer)
             -- answer checking function
@@ -600,8 +571,7 @@ function newTagDialogue(question)
             return result, "Response invalid."
         end,
         function()
-            -- regular exit/cancel function
-            on()
+            -- dont care
         end
     )
 end
