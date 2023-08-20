@@ -314,13 +314,14 @@ function askForInputStringWithFunction(question, maxInputLength, obfuscate, onOK
         MaxInputLength = maxInputLength,
         Password = obfuscate,
         OnOK = function(answer)
-            onOK(answer)
+            if onOK ~= nil then onOK(answer) end
         end,
         Validate = function(answer)
-            return validateFunc(answer)
+            if validateFunc ~= nil then return validateFunc(answer) end
+            return true, ""
         end,
         OnCancel = function()
-            onCancel()
+            if onCancel ~= nil then onCancel() end
         end,
     }
     SCREENMAN:GetTopScreen():Load(settings)
@@ -345,14 +346,15 @@ function askForInputStringMaintainingInputRedirect(question, maxInputLength, bOb
         maxInputLength,
         bObfuscate,
         function(answer)
-            onOkFunc(answer)
+            if onOkFunc ~= nil then onOkFunc(answer) end
             on()
         end,
         function(answer)
-            return validateFunc(answer)
+            if validateFunc ~= nil then return validateFunc(answer) end
+            return true, ""
         end,
         function()
-            onCancelFunc()
+            if onCancelFunc ~= nil then onCancelFunc() end
             on()
         end
     )
@@ -535,9 +537,7 @@ function newPlaylistDialogue()
         "Enter New Playlist Name",
         128,
         false,
-        function(answer)
-            -- dont care
-        end,
+        nil,
         function(answer)
             -- answer checking function
             -- success if the answer isnt blank
@@ -547,9 +547,7 @@ function newPlaylistDialogue()
             end
             return result, "Response invalid."
         end,
-        function()
-            -- dont care
-        end
+        nil
     )
 end
 
@@ -558,9 +556,7 @@ function newTagDialogue(question)
         question,
         128,
         false,
-        function(answer)
-            -- dont care
-        end,
+        nil,
         function(answer)
             -- answer checking function
             -- success if the answer isnt blank
@@ -570,8 +566,6 @@ function newTagDialogue(question)
             end
             return result, "Response invalid."
         end,
-        function()
-            -- dont care
-        end
+        nil
     )
 end
