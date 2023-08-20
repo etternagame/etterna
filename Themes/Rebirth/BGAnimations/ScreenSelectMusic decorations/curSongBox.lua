@@ -426,7 +426,7 @@ t[#t+1] = Def.ActorFrame {
             end
         end
     },
-    LoadActorWithParams("stepsdisplay", {ratios = ratios, actuals = actuals})
+    LoadActorWithParams("stepsdisplay", {ratios = ratios, actuals = actuals, hackyMaxWidth = true})
 
 }
 
