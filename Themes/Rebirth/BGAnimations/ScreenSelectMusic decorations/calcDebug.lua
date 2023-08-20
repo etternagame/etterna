@@ -4,7 +4,6 @@
 local lastHovered = nil
 local lastusedsong = nil
 local focused = false
-local updateCoolStuff = nil
 local tt = Def.ActorFrame {
     Name = "CalcDebugFile",
     WheelSettledMessageCommand = function(self, params)
@@ -32,13 +31,11 @@ local tt = Def.ActorFrame {
     end,
     ChangedStepsMessageCommand = function(self, params)
         lastusedsong = GAMESTATE:GetCurrentSong()
-        updateCoolStuff()
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})
     end,
     OpenCalcDebugMessageCommand = function(self)
         if focused then return end
         focused = true
-        updateCoolStuff()
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps()})
         self:playcommand("SlideOn")
     end,
@@ -637,7 +634,7 @@ local function getActiveDebugMods()
 end
 
 -- responsible for updating all relevant values and then triggering the display message(s)
-updateCoolStuff = function()
+local function updateCoolStuff()
     local song = GAMESTATE:GetCurrentSong()
     local steps = GAMESTATE:GetCurrentSteps()
     if song then
@@ -1225,6 +1222,14 @@ local t = Def.ActorFrame {
         end
         local snm = SCREENMAN:GetTopScreen():GetName()
         CONTEXTMAN:ToggleContextSet(snm, "CalcDebug", false)
+    end,
+    SetCommand = function(self, params)
+        if not focused then return end
+        if params.steps ~= nil then
+            updateCoolStuff()
+            self:playcommand("UpdateLowerGraph")
+            self:playcommand("UpdateUpperGraph")
+        end
     end,
 }
 
