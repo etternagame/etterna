@@ -549,15 +549,58 @@ function newPlaylistDialogue()
         128,
         false,
         function(answer)
-            -- success if the answer isnt blank
-            if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
-                SONGMAN:NewPlaylistNoDialog(answer)
-            else
-                on()
-            end
+            -- function ran when pressing ok
+            on()
         end,
-        function() return true, "" end,
+        function(answer)
+            -- answer checking function
+            -- success if the answer isnt blank
+            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= ""
+            if result then
+                SONGMAN:NewPlaylistNoDialog(answer)
+            end
+            return result, "Response invalid."
+        end,
         function()
+            -- regular exit/cancel function
+            on()
+        end
+    )
+end
+
+function newTagDialogue(question)
+    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+    -- input redirects are controlled here because we want to be careful not to break any prior redirects
+    askForInputStringWithFunction(
+        question,
+        128,
+        false,
+        function(answer)
+            -- function ran when pressing ok
+            on()
+        end,
+        function(answer)
+            -- answer checking function
+            -- success if the answer isnt blank
+            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= ""
+            if result then
+                MESSAGEMAN:Broadcast("CreateNewTag", {name = answer})
+            end
+            return result, "Response invalid."
+        end,
+        function()
+            -- regular exit/cancel function
             on()
         end
     )
