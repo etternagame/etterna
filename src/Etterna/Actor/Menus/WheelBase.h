@@ -38,6 +38,8 @@ class WheelBase : public ActorFrame
 	virtual void Load(const std::string& sType);
 	void BeginScreen();
 
+	void HandleMessage(const Message& msg) override;
+
 	void Update(float fDeltaTime) override;
 
 	virtual void Move(int n);
@@ -108,6 +110,7 @@ class WheelBase : public ActorFrame
 	virtual void UpdateSwitch();
 	virtual auto MoveSpecific(int n) -> bool;
 	void SetPositions();
+	void MaintainItemCount();
 
 	auto FirstVisibleIndex() -> int;
 
