@@ -996,7 +996,7 @@ MusicWheel::BuildWheelItemDatas(
 		}
 		// calculate the pack progress numbers for the sortorder
 		if (PREFSMAN->m_bPackProgressInWheel) {
-			auto allsongs = allSongsByGroupFiltered.at(so);
+			auto& allsongs = allSongsByGroupFiltered.at(so);
 			for (auto& groupname_songlist_pair : allsongs) {
 				int num_played_songs = 0;
 				for (auto& s : groupname_songlist_pair.second) {
