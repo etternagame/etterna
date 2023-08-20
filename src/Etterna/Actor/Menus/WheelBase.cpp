@@ -105,7 +105,7 @@ WheelBase::MaintainItemCount()
 {
 	auto beforecount = m_WheelBaseItems.size();
 	auto aftercount = NUM_WHEEL_ITEMS;
-	if (aftercount > beforecount) {
+	if (aftercount > beforecount && aftercount > 0) {
 		WheelItemBase* tmp = MakeItem();
 		ActorUtil::LoadAllCommands(*tmp, m_sName);
 		tmp->PlayCommand("Init");
@@ -119,7 +119,7 @@ WheelBase::MaintainItemCount()
 			this->AddChild(m_WheelBaseItems[i]);
 		}
 		this->SortByDrawOrder();
-	} else if (aftercount < beforecount) {
+	} else if (aftercount < beforecount && beforecount > 0) {
 		for (int i = beforecount - 1; i > 0 && i > aftercount; i--) {
 			this->RemoveChild(m_WheelBaseItems[i]);
 			m_WheelBaseItems.pop_back();
