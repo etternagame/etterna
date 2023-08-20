@@ -77,6 +77,10 @@ enum MessageID
 	Message_MiddleClick,
 	Message_MouseWheelUp,
 	Message_MouseWheelDown,
+	Message_ReloadedMetrics,
+	Message_ReloadedScripts,
+	Message_ReloadedOverlayScreens,
+	Message_ReloadedTextures,
 	NUM_MessageID, // leave this at the end
 	MessageID_Invalid
 };
