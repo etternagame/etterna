@@ -45,7 +45,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 	local steps = GAMESTATE:GetCurrentSteps()
 	if steps then
 		local ncol = steps:GetNumColumns()
-		local rate = math.max(0.05, getCurRateValue())
+		local rate = math.max(MIN_MUSIC_RATE, getCurRateValue())
 		local graphVectors = steps:GetCDGraphVectors(rate)
 		if graphVectors == nil then
 			-- reset everything if theres nothing to show

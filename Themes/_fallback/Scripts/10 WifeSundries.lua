@@ -401,8 +401,8 @@ function GetPlayableTime()
 end
 
 function ChangeMusicRate(rate, params)
-	local min = 0.05 -- going below this is not a good idea (0 crashes)
-	local max = 3 -- going over this tends to crash or whatever
+	local min = MIN_MUSIC_RATE -- going below this is not a good idea (0 crashes)
+	local max = MAX_MUSIC_RATE -- going over this tends to crash or whatever
 	local old = getCurRateValue()
 	local new = getCurRateValue()
 	local largeincrement = 0.1

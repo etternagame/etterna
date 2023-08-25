@@ -1209,7 +1209,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	{
 		if (!p->achieved) {
 			auto newrate = FArg(1);
-			CLAMP(newrate, 0.7f, 3.0f);
+			CLAMP(newrate, MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 			p->rate = newrate;
 			p->CheckVacuity();
 			p->UploadIfNotVacuous();

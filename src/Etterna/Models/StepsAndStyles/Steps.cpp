@@ -402,10 +402,13 @@ Steps::GetMSD(float rate, Skillset ss) const -> float
 }
 
 auto
-Steps::SortSkillsetsAtRate(float x, bool includeoverall)
+Steps::SortSkillsetsAtRate(float rate, bool includeoverall)
   -> std::vector<std::pair<Skillset, float>>
 {
-	const auto idx = static_cast<int>(x * 10) - 7;
+	// for safety
+	CLAMP(rate, .7F, 2.F);
+
+	const auto idx = static_cast<int>(rate * 10) - 7;
 	auto tmp = diffByRate[idx];
 	std::vector<std::pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
@@ -942,7 +945,7 @@ class LunaSteps : public Luna<Steps>
 
 	static auto GetSSRs(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = std::clamp(FArg(1), MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 		const auto goal = FArg(2);
 		auto nd = p->GetNoteData();
 		const auto loot = nd.BuildAndGetNerv(p->GetTimingData());
@@ -967,7 +970,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetRelevantSkillsetsByMSDRank(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 2.F);
+		const auto rate = FArg(1);
 		const auto rank = IArg(2) - 1; // indexing
 		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
 		const auto relevance_cutoff = 0.9F;
@@ -1020,7 +1023,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetCDGraphVectors(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.05F, 3.F);
+		const auto rate = std::clamp(FArg(1), MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty()) {
 			return 0;
@@ -1284,7 +1287,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetNPSPerMeasure(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = std::clamp(FArg(1), MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty()) {

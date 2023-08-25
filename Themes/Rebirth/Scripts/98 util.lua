@@ -299,7 +299,7 @@ end
 function setMusicRate(rate)
     -- the classic clamps are 0.7 and 3
     -- the game wont allow 0 and wont allow over 3
-    rate = clamp(rate, 0.05, 3)
+    rate = clamp(rate, MIN_MUSIC_RATE, MAX_MUSIC_RATE)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate)

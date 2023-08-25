@@ -133,7 +133,7 @@ end
 local function updateGraphMultiVertex(parent, self, steps)
     if steps then
         local ncol = steps:GetNumColumns()
-        local rate = math.max(0.05, getCurRateValue())
+        local rate = math.max(MIN_MUSIC_RATE, getCurRateValue())
         local graphVectors = steps:GetCDGraphVectors(rate)
         local txt = parent:GetChild("NPSText")
         if graphVectors == nil then

@@ -232,23 +232,23 @@ local ret = Def.ActorFrame {
 	CodeMessageCommand = function(self, params) -- this is intentionally bad to remind me to fix other things that are bad -mina
 		if ((getTabIndex() == 2 and nestedTab == 2) and not collapsed) and DLMAN:GetCurrentRateFilter() then
 			local rate = getCurRateValue()
-			if params.Name == "PrevScore" and rate < 2.95 then
+			if params.Name == "PrevScore" and rate < MAX_MUSIC_RATE - 0.05 then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.1)
 				MESSAGEMAN:Broadcast("CurrentRateChanged")
-			elseif params.Name == "NextScore" and rate > 0.75 then
+			elseif params.Name == "NextScore" and rate > MIN_MUSIC_RATE + 0.05 then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.1)
 				MESSAGEMAN:Broadcast("CurrentRateChanged")
 			end
-			if params.Name == "PrevRate" and rate < 3 then
+			if params.Name == "PrevRate" and rate < MAX_MUSIC_RATE then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.05)
 				MESSAGEMAN:Broadcast("CurrentRateChanged")
-			elseif params.Name == "NextRate" and rate > 0.7 then
+			elseif params.Name == "NextRate" and rate > MIN_MUSIC_RATE then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)

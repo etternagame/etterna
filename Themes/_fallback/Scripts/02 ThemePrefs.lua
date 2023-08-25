@@ -241,8 +241,8 @@ end
 function RateList()
     local ratelist = {}
     do
-        local startrate = 0.05
-        local upperrate = 3.00
+        local startrate = MIN_MUSIC_RATE -- 0.05
+        local upperrate = MAX_MUSIC_RATE -- 3.0
         local increment = 0.05
         while startrate <= upperrate do
             ratelist[#ratelist+1] = tostring(startrate) .. "x"

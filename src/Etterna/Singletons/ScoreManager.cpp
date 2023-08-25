@@ -1060,8 +1060,7 @@ ScoreManager::GetPlaycountPerSkillset(const string& profileID)
 		if (c == nullptr)
 			continue;
 
-		auto ss = c->SortSkillsetsAtRate(
-		  std::clamp(s->GetMusicRate(), 0.7F, 2.F), false);
+		auto ss = c->SortSkillsetsAtRate(s->GetMusicRate(), false);
 		counts[ss[0].first]++;
 	}
 	return counts;
