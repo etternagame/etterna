@@ -662,6 +662,57 @@ function GranularSuddenOffset()
 	return t
 end
 
+function SoundVolumeControl()
+    local numlist = {}
+    do
+        local start = 0
+        local upper = 1
+        local increment = 0.05
+        while start <= upper do
+			-- these rounds should force it to be milliseconds only
+            numlist[#numlist+1] = tostring(notShit.round(start * 100)) .. "%"
+            start = notShit.round(start + increment, 3)
+        end
+    end
+
+    local t = {
+        Name = "SoundVolume",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = true,
+        ExportOnChange = true,
+        Choices = numlist,
+        LoadSelections = function(self, list, pn)
+            local rateindex = 1
+            local rate = notShit.round(PREFSMAN:GetPreference("SoundVolume"), 4)
+            local acceptable_delta = 0.0005
+            for i = 1, #numlist do
+                local r = tonumber(numlist[i]:sub(1, -2)) / 100
+                if r == rate or (rate - acceptable_delta <= r and rate + acceptable_delta >= r) then
+                    rateindex = i
+                    break
+                end
+            end
+            list[rateindex] = true
+        end,
+        SaveSelections = function(self, list, pn)
+            for i, v in ipairs(list) do
+                if v == true then
+                    local r = notShit.round(tonumber(numlist[i]:sub(1, -2)) / 100, 3)
+					PREFSMAN:SetPreference("SoundVolume", r)
+					SOUND:SetVolume(r)
+                    break
+                end
+            end
+        end,
+		NotifyOfSelection = function(self, pn, choice)
+			MESSAGEMAN:Broadcast("SoundVolumeOptionChanged", {value = PREFSMAN:GetPreference("SoundVolume")})
+		end
+    }
+    setmetatable(t, t)
+    return t
+end
+
 function DisableWindowsKeyInGameplay()
 	local effectsMask = 2^OE["OptEffect_SavePreferences"]
 	effectsMask = effectsMask + 2^OE["OptEffect_ApplyGraphics"]
