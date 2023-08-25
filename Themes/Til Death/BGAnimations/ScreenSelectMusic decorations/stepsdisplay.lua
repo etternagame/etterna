@@ -114,7 +114,6 @@ local function stepsRows(i)
 				local steps = thesteps[i + displayindexoffset]
 				if steps and params.event == "DeviceButton_left mouse button" then
 					SCREENMAN:GetTopScreen():ChangeSteps(i - currentindex)
-					SCREENMAN:GetTopScreen():ChangeSteps(0)
 				end
 			end
 		},
