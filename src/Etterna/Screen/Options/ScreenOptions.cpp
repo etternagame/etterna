@@ -1151,12 +1151,12 @@ ScreenOptions::ChangeValueInRowRelative(int iRow,
 		}
 	}
 
-	if (bOneChanged)
-		m_SoundChangeCol.Play(true);
-
 	if (row.GetRowDef().m_bExportOnChange) {
 		ExportOptions(iRow, PLAYER_1);
 	}
+
+	if (bOneChanged)
+		m_SoundChangeCol.Play(true);
 
 	this->AfterChangeValueInRow(iRow, pn);
 }
