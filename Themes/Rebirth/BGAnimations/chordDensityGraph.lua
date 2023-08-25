@@ -133,7 +133,7 @@ end
 local function updateGraphMultiVertex(parent, self, steps)
     if steps then
         local ncol = steps:GetNumColumns()
-        local rate = math.max(1, getCurRateValue())
+        local rate = math.max(0.05, getCurRateValue())
         local graphVectors = steps:GetCDGraphVectors(rate)
         local txt = parent:GetChild("NPSText")
         if graphVectors == nil then
@@ -146,7 +146,7 @@ local function updateGraphMultiVertex(parent, self, steps)
 
         local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
         local numberOfColumns = #npsVector
-        local columnWidth = sizing.Width / numberOfColumns * rate
+        local columnWidth = sizing.Width / numberOfColumns
 
         -- set height scale of graph relative to the max nps
         local heightScale = 0

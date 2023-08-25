@@ -726,7 +726,7 @@ Steps::GetNPSVector(const NoteData& nd,
 					const std::vector<int>& nerv,
 					const float rate) -> std::vector<int>
 {
-	std::vector<int> doot(static_cast<int>(etaner.back()));
+	std::vector<int> doot(static_cast<int>(etaner.back() / rate));
 	auto notecounter = 0;
 	auto lastinterval = 0;
 
@@ -797,9 +797,11 @@ Steps::GetCNPSVector(const NoteData& nd,
 					 const int chordsize,
 					 const float rate) -> std::vector<int>
 {
-	std::vector<int> doot(static_cast<int>(etaner.back()));
-	auto chordnotecounter = 0; // number of NOTES inside chords of this size, so
-							   // 5 jumps = 10 notes, 3 hands = 9 notes, etc
+	std::vector<int> doot(static_cast<int>(etaner.back() / rate));
+
+	// number of NOTES inside chords of this size, so
+	// 5 jumps = 10 notes, 3 hands = 9 notes, etc
+	auto chordnotecounter = 0;
 	auto lastinterval = 0;
 
 	for (auto i = 0; i < static_cast<int>(nerv.size()); ++i) {
@@ -1018,7 +1020,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetCDGraphVectors(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = std::clamp(FArg(1), 0.05F, 3.F);
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty()) {
 			return 0;
