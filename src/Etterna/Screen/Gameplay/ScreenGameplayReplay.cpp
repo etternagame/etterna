@@ -385,9 +385,11 @@ ScreenGameplayReplay::SetRate(const float newRate) -> float
 	const auto rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
 	// Rates outside of this range may crash
-	if (newRate < 0.3F || newRate > 5.F) {
-		return rate;
-	}
+	// (weird comparisons because floats)
+	if (0.05F - newRate > 0.001F)
+		return 0.05F;
+	if (newRate - 3.F > 0.001F)
+		return 3.F;
 
 	const auto paused = GAMESTATE->GetPaused();
 
