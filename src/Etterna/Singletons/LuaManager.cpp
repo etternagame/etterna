@@ -176,6 +176,15 @@ LuaManager::SetGlobal(const std::string& sName, const std::string& val)
 }
 
 void
+LuaManager::SetGlobal(const std::string& sName, float val)
+{
+	Lua* L = Get();
+	LuaHelpers::Push(L, val);
+	lua_setglobal(L, sName.c_str());
+	Release(L);
+}
+
+void
 LuaManager::UnsetGlobal(const std::string& sName)
 {
 	Lua* L = Get();
