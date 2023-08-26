@@ -5634,6 +5634,57 @@ local function rightFrame()
                             end
                         end,
                     },
+                    {
+                        Name = "4096",
+                        DisplayName = "4096",
+                        ChosenFunction = function()
+                            local v = 4096
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "8192",
+                        DisplayName = "8192",
+                        ChosenFunction = function()
+                            local v = 8192
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "Unlimited",
+                        DisplayName = "Unlimited",
+                        ChosenFunction = function()
+                            local v = 1048576
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
                 },
                 ChoiceIndexGetter = function()
                     local v = PREFSMAN:GetPreference("MaxTextureResolution")
@@ -5641,6 +5692,9 @@ local function rightFrame()
                     elseif v == 512 then return 2
                     elseif v == 1024 then return 3
                     elseif v == 2048 then return 4
+                    elseif v == 4096 then return 5
+                    elseif v == 8192 then return 6
+                    elseif v == 1048576 then return 7
                     end
                     return 1
                 end,

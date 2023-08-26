@@ -744,6 +744,42 @@ function DisableWindowsKeyInGameplay()
 	return t
 end
 
+function MaxTextureResolutionOption()
+    local effectsMask = 2^OE["OptEffect_SavePreferences"]
+    effectsMask = effectsMask + 2^OE["OptEffect_ApplyGraphics"]
+    local numlist = {"256", "512", "1024", "2048", "4096", "8192", "Unlimited"}
+
+    local t = {
+		Name = "MaxTextureResolution",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+		Choices = numlist,
+		LoadSelections = function(self, list, pn)
+			local pref = PREFSMAN:GetPreference("MaxTextureResolution")
+			for i = 1, #numlist do
+                local res = tonumber(numlist[i])
+                if res == nil then res = 1048576 end
+                if res == pref then list[i] = true break end
+            end
+		end,
+		SaveSelections = function(self, list, pn)
+			for i, v in ipairs(list) do
+                if v == true then
+                    local res = tonumber(numlist[i])
+					if res == nil then res = 1048576 end
+                    PREFSMAN:SetPreference("MaxTextureResolution", res)
+                    break
+                end
+            end
+            return effectsMask
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 function FixKeyboardLayout()
 
     local t = {
