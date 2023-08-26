@@ -4,7 +4,6 @@
 
 /* generic sequencing functions and defs to help either agnostic or dependent
  * sequencers do their stuff */
-static const std::array<unsigned, 4> col_ids = { 1U, 2U, 4U, 8U };
 
 /// default for any field tracking seconds
 constexpr float s_init = -5.F;
@@ -14,26 +13,37 @@ constexpr float ms_init = 5000.F;
 /// global multiplier to standardize baselines
 constexpr float finalscaler = 3.632F * 1.06F;
 
+// outputs 0b1111 for 4, 0b111 for 3, etc
+inline auto
+keycount_to_bin(const unsigned& keycount) -> unsigned
+{
+	if (keycount < 2)
+		return 0b11;
+	return ~(~1 << (keycount - 1));
+}
+
+// outputs 0b1100 for 4, 0b110 for 3, etc
+inline auto
+right_mask(const unsigned& keycount) -> unsigned
+{
+	if (keycount <= 2)
+		return 0b10;
+	return keycount_to_bin(keycount) >> (keycount / 2) << (keycount / 2);
+}
+
+// outputs 0b0011 for 4, 0b001 for 3, etc
+inline auto
+left_mask(const unsigned& keycount) -> unsigned
+{
+	const auto m = right_mask(keycount);
+	return ~m & static_cast<int>(std::exp2(std::ceil(std::log2(m))) - 1);
+}
+
+// count number of 1's in noterow binary
 inline auto
 column_count(const unsigned& notes) -> int
 {
-	// singles
-	if (notes == 1U || notes == 2U || notes == 4U || notes == 8U) {
-		return 1;
-	}
-
-	// hands
-	if (notes == 7U || notes == 11U || notes == 13U || notes == 14U) {
-		return 3;
-	}
-
-	// quad
-	if (notes == 15U) {
-		return 4;
-	}
-
-	// everything else is a jump
-	return 2;
+	return std::popcount(notes);
 }
 
 /// milliseconds between two given timestamps in seconds

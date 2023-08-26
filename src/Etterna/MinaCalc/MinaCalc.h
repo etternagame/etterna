@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <memory>
 
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
@@ -18,6 +19,7 @@
 using MinaSD = std::vector<std::vector<float>>;
 
 class Calc;
+struct Bazoinkazoink;
 
 /** This defines the base size for each interval-based vector in MinaCalc.
 * Each interval is one half second. If any situation arises in which the
@@ -97,6 +99,11 @@ class Calc
 	/// Set true to force calc params to load outside debug mode.
 	bool loadparams = false;
 
+	/// Assigns the keymode specific logic
+	unsigned keycount = 4;
+	std::array<unsigned, num_hands> hand_col_masks = { 0U, 0U };
+	std::vector<unsigned> col_masks{};
+
   private:
 	/** Splits up the chart by each hand and processes them individually to
 	* produce hand specific base difficulty values, which are then passed to
@@ -127,7 +134,9 @@ class Calc
 	* Iterates over each interval, and every skillset for each interval.
 	* Skips iterations of Overall and Stamina (unaffected by patternmods).
 	*/
-	static inline void InitAdjDiff(Calc& calc, const int& hand);
+	static inline void InitAdjDiff(Calc& calc,
+								   std::unique_ptr<Bazoinkazoink>& all_consuming_ulbu,
+								   const int& hand);
 
   public:
 	/** Each Calc instance created sets up the interval related vectors.

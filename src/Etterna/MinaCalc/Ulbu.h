@@ -44,6 +44,7 @@
 
 // they're useful sometimes
 #include "UlbuAcolytes.h"
+#include "UlbuBase.h"
 
 // a new thing
 #include "SequencedBaseDiffCalc.h"
@@ -52,11 +53,10 @@
 
 /** I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
-struct TheGreatBazoinkazoinkInTheSky
+struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 {
 	bool dbg = false;
 
-	Calc& _calc;
 	int hand = 0;
 
 	// to generate these
@@ -118,16 +118,122 @@ struct TheGreatBazoinkazoinkInTheSky
 	diffz _diffz;
 
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
-	  : _calc(calc)
+	  : Bazoinkazoink(calc)
 	{
 		// setup our data pointers
-		_last_mri = std::make_unique<metaRowInfo>();
-		_mri = std::make_unique<metaRowInfo>();
-		_last_mhi = std::make_unique<metaHandInfo>();
-		_mhi = std::make_unique<metaHandInfo>();
+		_last_mri = std::make_unique<metaRowInfo>(calc);
+		_mri = std::make_unique<metaRowInfo>(calc);
+		_last_mhi = std::make_unique<metaHandInfo>(calc);
+		_mhi = std::make_unique<metaHandInfo>(calc);
+	}
+
+  private:
+	const std::array<std::vector<int>, NUM_Skillset> pmods = { {
+	  // overall, nothing, don't handle here
+	  {},
+
+	  // stream
+	  {
+		Stream,
+		OHTrill,
+		VOHTrill,
+		Roll,
+		Chaos,
+		WideRangeRoll,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		FlamJam,
+		// OHJumpMod,
+		// Balance,
+		// RanMan,
+		// WideRangeBalance,
+	  },
+
+	  // js
+	  {
+		JS,
+		// OHJumpMod,
+		// Chaos,
+		// Balance,
+		// TheThing,
+		// TheThing2,
+		WideRangeBalance,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		// WideRangeRoll,
+		// OHTrill,
+		VOHTrill,
+		// Roll,
+		RollJS,
+		// RanMan,
+		FlamJam,
+		// WideRangeAnchor,
+	  },
+
+	  // hs
+	  {
+		HS,
+		OHJumpMod,
+		TheThing,
+		// WideRangeAnchor,
+		WideRangeRoll,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		OHTrill,
+		VOHTrill,
+		// Roll,
+		// RanMan,
+		FlamJam,
+		HSDensity,
+	  },
+
+	  // stam, nothing, don't handle here
+	  {},
+
+	  // jackspeed, doesn't use pmods (atm)
+	  {},
+
+	  // chordjack
+	  {
+		CJ,
+		// CJDensity,
+		CJOHJump,
+		CJOHAnchor,
+		VOHTrill,
+		// WideRangeAnchor,
+		FlamJam, // you may say, why? why not?
+		// WideRangeJJ,
+		WideRangeJumptrill,
+	  },
+
+	  // tech, duNNO wat im DOIN
+	  {
+		OHTrill,
+		VOHTrill,
+		Balance,
+		Roll,
+		// OHJumpMod,
+		Chaos,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		WideRangeBalance,
+		WideRangeRoll,
+		FlamJam,
+		// RanMan,
+		Minijack,
+		// WideRangeAnchor,
+		TheThing,
+		TheThing2,
+	  },
+	} };
+
+  public:
+	const std::array<std::vector<int>, NUM_Skillset> get_pmods() const override
+	{
+		return pmods;
 	}
 	
-	void operator()()
+	void operator()() override
 	{
 		hand = 0;
 
@@ -429,7 +535,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	{
 		setup_dependent_mods();
 
-		for (const auto& ids : hand_col_ids) {
+		for (const auto& ids : _calc.hand_col_masks) {
 			auto row_time = s_init;
 			auto last_row_time = s_init;
 			auto any_ms = ms_init;
@@ -544,40 +650,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 #pragma endregion
 
-	[[nodiscard]] static auto make_mod_param_node(
-	  const std::vector<std::pair<std::string, float*>>& param_map,
-	  const std::string& name) -> XNode*
-	{
-		auto* pmod = new XNode(name);
-		for (const auto& p : param_map) {
-			pmod->AppendChild(p.first, std::to_string(*p.second));
-		}
-
-		return pmod;
-	}
-
-	static void load_params_for_mod(
-	  const XNode* node,
-	  const std::vector<std::pair<std::string, float*>>& param_map,
-	  const std::string& name)
-	{
-		auto boat = 0.F;
-		const auto* pmod = node->GetChild(name);
-		if (pmod == nullptr) {
-			return;
-		}
-		for (const auto& p : param_map) {
-			const auto* ch = pmod->GetChild(p.first);
-			if (ch == nullptr) {
-				continue;
-			}
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-
-	void load_calc_params_from_disk(bool bForce = false) const
+	void load_calc_params_from_disk(bool bForce = false) const override
 	{
 		const auto fn = calc_params_xml;
 		int iError;
@@ -694,7 +767,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 #pragma endregion
 
-	void write_params_to_disk() const
+	void write_params_to_disk() const override
 	{
 		const auto fn = calc_params_xml;
 		const std::unique_ptr<XNode> xml(make_param_node());

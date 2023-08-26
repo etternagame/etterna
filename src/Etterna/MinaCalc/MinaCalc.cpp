@@ -1,5 +1,6 @@
 #include "MinaCalc.h"
 #include "Ulbu.h"
+#include "UlbuSevenKey.h"
 #include "MinaCalcHelpers.h"
 
 #include <cmath>
@@ -475,21 +476,48 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 
 	// ulbu calculates everything needed for the block below
 	// (mostly patternmods)
-	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(
-	  *this);
+	thread_local std::unordered_map<unsigned, std::unique_ptr<Bazoinkazoink>> ulbu_collective{};
+
+	bool keycount_defined = false;
+	if (!ulbu_collective.contains(keycount)) {
+		switch (keycount) {
+			case 4u:
+				ulbu_collective.emplace(
+				  keycount,
+				  std::make_unique<TheGreatBazoinkazoinkInTheSky>(*this));
+				keycount_defined = true;
+				break;
+			case 7u:
+				ulbu_collective.emplace(
+				  keycount,
+				  std::make_unique<TheSevenFootedBazoinkazoink>(*this));
+				keycount_defined = true;
+				break;
+			default:
+				if (!ulbu_collective.contains(0u)) {
+					ulbu_collective.emplace(
+					  0u, std::make_unique<Bazoinkazoink>(*this));
+				}
+				break;
+		}
+	} else {
+		keycount_defined = true;
+	}
+	auto t_keycount = keycount_defined ? keycount : 0u;
+	auto& all_consuming_ulbu = ulbu_collective.at(t_keycount);
 
 	// if debug, force params to load
 	if (debugmode || loadparams)
-		ulbu_that_which_consumes_all.load_calc_params_from_disk(true);
+		all_consuming_ulbu->load_calc_params_from_disk(true);
 
 	// reset ulbu patternmod structs
 	// run agnostic patternmod/sequence loop
 	// run dependent patternmod/sequence loop
-	ulbu_that_which_consumes_all();
+	(*all_consuming_ulbu)();
 
 	// loop over hands to set adjusted difficulties using the patternmods
 	for (const auto& hand : both_hands) {
-		InitAdjDiff(*this, hand);
+		InitAdjDiff(*this, all_consuming_ulbu, hand);
 
 		// post pattern mod smoothing for cj
 		// (Chordjack related tuning done: this is disabled for now)
@@ -720,107 +748,9 @@ Calc::Chisel(const float player_skill,
  * misclassing hard and polluting leaderboards, and good scores on overrated
  * files will simply produce high ratings in every category */
 inline void
-Calc::InitAdjDiff(Calc& calc, const int& hand)
+Calc::InitAdjDiff(Calc& calc, std::unique_ptr<Bazoinkazoink>& all_consuming_ulbu, const int& hand)
 {
-	static const std::array<std::vector<int>, NUM_Skillset> pmods_used = { {
-	  // overall, nothing, don't handle here
-	  {},
-
-	  // stream
-	  {
-		Stream,
-		OHTrill,
-		VOHTrill,
-		Roll,
-		Chaos,
-		WideRangeRoll,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		FlamJam,
-		// OHJumpMod,
-		// Balance,
-		// RanMan,
-		// WideRangeBalance,
-	  },
-
-	  // js
-	  {
-		JS,
-		// OHJumpMod,
-		// Chaos,
-		// Balance,
-		// TheThing,
-		// TheThing2,
-		WideRangeBalance,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		// WideRangeRoll,
-		// OHTrill,
-		VOHTrill,
-		// Roll,
-		RollJS,
-		// RanMan,
-		FlamJam,
-		// WideRangeAnchor,
-	  },
-
-	  // hs
-	  {
-		HS,
-		OHJumpMod,
-		TheThing,
-		// WideRangeAnchor,
-		WideRangeRoll,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		OHTrill,
-		VOHTrill,
-		// Roll,
-		// RanMan,
-		FlamJam,
-	  	HSDensity,
-	  },
-
-	  // stam, nothing, don't handle here
-	  {},
-
-	  // jackspeed, doesn't use pmods (atm)
-	  {},
-
-	  // chordjack
-	  {
-		CJ,
-		// CJDensity,
-		CJOHJump,
-		CJOHAnchor,
-		VOHTrill,
-		// WideRangeAnchor,
-	  	FlamJam, // you may say, why? why not?
-		// WideRangeJJ,
-		WideRangeJumptrill,
-	  },
-
-	  // tech, duNNO wat im DOIN
-	  {
-		OHTrill,
-		VOHTrill,
-		Balance,
-		Roll,
-		// OHJumpMod,
-		Chaos,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		WideRangeBalance,
-		WideRangeRoll,
-		FlamJam,
-		// RanMan,
-		Minijack,
-		// WideRangeAnchor,
-		TheThing,
-		TheThing2,
-	  },
-	} };
-
+	const auto& pmods_used = all_consuming_ulbu->get_pmods();
 	std::array<float, NUM_Skillset> pmod_product_cur_interval = {};
 
 	// ok this loop is pretty wack i know, for each interval
@@ -1016,7 +946,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 505;
+int mina_calc_version = 506;
 auto
 GetCalcVersion() -> int
 {

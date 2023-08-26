@@ -95,7 +95,7 @@ struct nps
 				notes += cur.hand_counts.at(hand);
 
 				const auto& crt = cur.row_time;
-				switch (determine_col_type(cur.row_notes, hand_col_ids[hand])) {
+				switch (determine_col_type(cur.row_notes, calc.hand_col_masks[hand])) {
 					case col_left:
 						if (last_left_row_time != s_init) {
 							const auto left_ms =
