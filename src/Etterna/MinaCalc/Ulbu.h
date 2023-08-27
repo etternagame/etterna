@@ -46,9 +46,6 @@
 #include "UlbuAcolytes.h"
 #include "UlbuBase.h"
 
-// a new thing
-#include "SequencedBaseDiffCalc.h"
-
 #include <cmath>
 
 /** I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
@@ -235,6 +232,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	
 	void operator()() override
 	{
+		reset_base_diffs();
 		hand = 0;
 
 		// should redundant but w.e not sure

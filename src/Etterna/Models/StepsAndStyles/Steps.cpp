@@ -428,17 +428,13 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	const auto& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	if (m_StepsType != StepsType_dance_single) {
-		int columnCount =
-		  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
-		diffByRate = SoloCalc(cereal, columnCount);
-	} else if (m_StepsType == StepsType_dance_single) {
-		if (calc == nullptr) {
-			// reloading at music select
-			diffByRate = MinaSDCalc(cereal, SONGMAN->calc.get());
-		} else {
-			diffByRate = MinaSDCalc(cereal, calc);
-		}
+	const unsigned columnCount =
+	  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
+	if (calc == nullptr) {
+		// reloading at music select
+		diffByRate = MinaSDCalc(cereal, columnCount, SONGMAN->calc.get());
+	} else {
+		diffByRate = MinaSDCalc(cereal, columnCount, calc);
 	}
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
@@ -470,7 +466,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 	const auto& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const auto& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	auto newcalc = MinaSDCalc(cereal, rate, 0.93F, calc);
+	auto newcalc = MinaSDCalc(cereal, rate, 0.93F, 4, calc);
 	auto last_msd = newcalc[ss];
 	const auto prev_vers = GetCalcVersion() - 1;
 	if (vh.count(prev_vers) != 0U) {
@@ -503,17 +499,15 @@ Steps::GetCalcDebugOutput()
 	calcdebugoutput.clear();
 	// function is responsible for producing debug output
 
-	// This is 4k only
-	if (m_StepsType != StepsType_dance_single) {
-		return;
-	}
-
 	Decompress();
 	const auto& cereal = m_pNoteData->SerializeNoteData2(GetTimingData());
+	const unsigned columnCount =
+	  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
 
 	MinaSDCalcDebug(cereal,
 					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 					0.93F,
+					columnCount,
 					calcdebugoutput,
 					debugstrings,
 					*SONGMAN->calc);
@@ -956,13 +950,9 @@ class LunaSteps : public Luna<Steps>
 		}
 		std::vector<float> d;
 
-		if (p->m_StepsType != StepsType_dance_single) {
-			int columnCount =
-			  GAMEMAN->GetStepsTypeInfo(p->m_StepsType).iNumTracks;
-			d = SoloCalc(ni, columnCount, rate, goal);
-		} else {
-			d = MinaSDCalc(ni, rate, goal, SONGMAN->calc.get());
-		}
+		const unsigned columnCount =
+		  GAMEMAN->GetStepsTypeInfo(p->m_StepsType).iNumTracks;
+		d = MinaSDCalc(ni, rate, goal, columnCount, SONGMAN->calc.get());
 
 		const auto ssrs = d;
 		LuaHelpers::CreateTableFromArray(ssrs, L);

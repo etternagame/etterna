@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SequencedBaseDiffCalc.h"
+
 /// base behavior for pmod stuff
 /// defines fallback for undefined keymodes
 struct Bazoinkazoink
@@ -56,8 +58,32 @@ struct Bazoinkazoink
 		return pmods;
 	}
 
+	void reset_base_diffs()
+	{
+		for (auto& hand : both_hands) {
+			for (auto& base : {TechBase}) {
+			// to be thorough: JackBase, CJBase, NPSBase, RMABase
+				auto& v = _calc.init_base_diff_vals.at(hand)[base];
+				std::fill(v.begin(), v.end(), 0.F);
+			}
+			_calc.jack_diff.at(hand).clear();
+		}
+	}
+
 	/// main driver for operations
 	virtual void operator()() {
+		reset_base_diffs();
+
+		// just nps base
+		unsigned hand = 0;
+		for (const auto& ids : _calc.hand_col_masks) {
+			nps::actual_cancer(_calc, hand);
+			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase),
+				   0.F,
+				   _calc.numitv);
+
+			hand++;
+		}
 
 	}
 

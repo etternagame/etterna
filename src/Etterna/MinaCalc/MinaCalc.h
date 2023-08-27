@@ -323,6 +323,7 @@ MINACALC_API auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   float musicrate,
 		   float goal,
+		   const unsigned keycount,
 		   Calc* calc) -> std::vector<float>;
 /// <summary>
 /// Calc driving function used for generating skillset values for caching.
@@ -333,7 +334,9 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 /// <returns>MinaSD, a list of the resulting skillset values,
 /// for every rate.</returns>
 MINACALC_API auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD;
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
+		   const unsigned keycount,
+		   Calc* calc) -> MinaSD;
 /// <summary>
 /// Calc driving function used for generating skillset values for debugging.
 /// Works the same as the score-based MinaSDCalc, but runs debug mode.
@@ -351,6 +354,7 @@ MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
   float musicrate,
   float goal,
+  const unsigned keycount,
   std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
   std::vector<std::string>& debugstrings,
   Calc& calc);

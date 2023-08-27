@@ -53,7 +53,20 @@ struct TheSevenFootedBazoinkazoink : public Bazoinkazoink
 		return pmods;
 	}
 
-	void operator()() override {
+	void operator()() override
+	{
+		reset_base_diffs();
+
+		// just nps base
+		unsigned hand = 0;
+		for (const auto& ids : _calc.hand_col_masks) {
+			nps::actual_cancer(_calc, hand);
+			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase),
+				   0.F,
+				   _calc.numitv);
+
+			hand++;
+		}
 
 	}
 

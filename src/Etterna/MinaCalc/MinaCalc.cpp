@@ -878,6 +878,7 @@ auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   const float musicrate,
 		   const float goal,
+		   const unsigned keycount,
 		   Calc* calc) -> std::vector<float>
 {
 	if (NoteInfo.size() <= 1) {
@@ -885,13 +886,16 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 	}
 	calc->ssr = true;
 	calc->debugmode = false;
+	calc->keycount = keycount;
 
 	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
 
 // Wrap difficulty calculation for all standard rates
 auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
+		   const unsigned keycount,
+		   Calc* calc) -> MinaSD
 {
 	MinaSD allrates;
 	const auto lower_rate = 7; // 0.7x
@@ -900,6 +904,7 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 	if (NoteInfo.size() > 1) {
 		calc->ssr = false;
 		calc->debugmode = false;
+		calc->keycount = keycount;
 		for (auto i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(calc->CalcMain(
 			  NoteInfo, static_cast<float>(i) / 10.F, default_score_goal));
@@ -918,6 +923,7 @@ MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
   const float musicrate,
   const float goal,
+  const unsigned keycount,
   std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
   std::vector<std::string>& debugstrings,
   Calc& calc)
@@ -929,6 +935,7 @@ MinaSDCalcDebug(
 	// debugmode true will cause params to reload
 	calc.debugmode = true;
 	calc.ssr = true;
+	calc.keycount = keycount;
 	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 	make_debug_strings(calc, debugstrings);
 
@@ -946,7 +953,7 @@ MinaSDCalcDebug(
 	}
 }
 
-int mina_calc_version = 506;
+int mina_calc_version = 508;
 auto
 GetCalcVersion() -> int
 {

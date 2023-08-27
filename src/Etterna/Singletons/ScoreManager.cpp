@@ -574,18 +574,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				const auto& serializednd = *serializednd_ptr;
 				std::vector<float> dakine;
 
-				if (steps->m_StepsType == StepsType_dance_single) {
-					// dakine = MinaSDCalc(serializednd, musicrate,
-					// ssrpercent);
-					dakine = MinaSDCalc(serializednd,
-										musicrate,
-										ssrpercent,
-										per_thread_calc.get());
-				} else {
-					int columnCount =
-					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-					dakine = SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
-				}
+				// dakine = MinaSDCalc(serializednd, musicrate,
+				// ssrpercent);
+				const unsigned columnCount =
+				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+				dakine = MinaSDCalc(serializednd,
+									musicrate,
+									ssrpercent,
+									columnCount,
+									per_thread_calc.get());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
@@ -744,17 +741,13 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 				auto serializednd = nd.SerializeNoteData2(td);
 				std::vector<float> dakine;
 
-				if (steps->m_StepsType == StepsType_dance_single) {
-					dakine = MinaSDCalc(serializednd,
-										musicrate,
-										ssrpercent,
-										per_thread_calc.get());
-				} else {
-					int columnCount =
-					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-					dakine = SoloCalc(
-					  serializednd, columnCount, musicrate, ssrpercent);
-				}
+					const unsigned columnCount =
+				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+				dakine = MinaSDCalc(serializednd,
+									musicrate,
+									ssrpercent,
+									columnCount,
+									per_thread_calc.get());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)

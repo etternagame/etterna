@@ -1518,6 +1518,7 @@ local function topGraphLine(mod, colorToUse, hand)
                     return
                 end
 
+                if not graphVecs[mod] then return end
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then return end
                 for i = 1, #values do
@@ -1629,6 +1630,7 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
                 end
 
                 local verts = {}
+                if not graphVecs[mod] then return end
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then return end
 

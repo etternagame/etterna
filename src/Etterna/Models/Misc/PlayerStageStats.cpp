@@ -346,21 +346,10 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	Steps* steps = GAMESTATE->m_pCurSteps;
 	const auto musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
-	// 4k
-	if (steps->m_StepsType == StepsType_dance_single) {
-		return MinaSDCalc(
-		  serializednd, musicrate, ssrpercent, SONGMAN->calc.get());
-	}
-
-	// N-key calc
-	if (steps->m_StepsType != StepsType_dance_single) {
-		int columnCount =
-		  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-		return SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
-	}
-
-	// anything else
-	return { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
+	const unsigned columnCount =
+	  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+	return MinaSDCalc(
+	  serializednd, musicrate, ssrpercent, columnCount, SONGMAN->calc.get());
 }
 
 float
