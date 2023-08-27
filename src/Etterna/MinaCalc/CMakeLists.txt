@@ -12,6 +12,7 @@ list(APPEND GENERAL_CALC_SRC
     "Ulbu.h"
     "UlbuAcolytes.h"
     "UlbuBase.h"
+    "UlbuSixKey.h"
     "UlbuSevenKey.h")
 
 target_sources(Etterna PUBLIC ${GENERAL_CALC_SRC})
