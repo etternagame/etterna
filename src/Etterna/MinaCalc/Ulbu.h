@@ -1,11 +1,13 @@
 #pragma once
 
+#ifndef STANDALONE_CALC
 // stepmania garbage
 #include "../FileTypes/XmlFile.h"
 #include "../FileTypes/XmlFileUtil.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
+#endif
 
 // hand agnostic data structures/functions
 #include "Agnostic/MetaRowInfo.h"
@@ -648,6 +650,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	}
 #pragma endregion
 
+#ifndef STANDALONE_CALC
 	void load_calc_params_from_disk(bool bForce = false) const override
 	{
 		const auto fn = calc_params_xml;
@@ -777,4 +780,5 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		}
 		XmlFileUtil::SaveToFile(xml.get(), f, "", false);
 	}
+#endif
 };

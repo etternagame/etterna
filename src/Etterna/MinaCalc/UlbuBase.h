@@ -97,6 +97,7 @@ struct Bazoinkazoink
 
 	}
 
+#ifndef STANDALONE_CALC
 	static auto make_mod_param_node(
 	  const std::vector<std::pair<std::string, float*>>& param_map,
 	  const std::string& name) -> XNode*
@@ -129,4 +130,5 @@ struct Bazoinkazoink
 			*p.second = boat;
 		}
 	}
+#endif
 };
