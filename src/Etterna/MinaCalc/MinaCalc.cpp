@@ -161,6 +161,15 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			}
 		}
 
+		// scale the output values to values familiar to the 4k calc
+		// for other keymodes
+		if (keycount != 4u) {
+			const auto scale = 4.F / static_cast<float>(keycount);
+			for (auto& v : iteration_skillet_values) {
+				v *= scale;
+			}
+		}
+
 		/* the final push down, cap ssrs (score specific ratings) to stop vibro
 		 * garbage and calc abuse from polluting leaderboards too much, a "true"
 		 * 38 is still unachieved so a cap of 40 [sic] is _extremely_ generous
