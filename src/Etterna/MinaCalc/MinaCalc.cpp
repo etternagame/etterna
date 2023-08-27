@@ -512,9 +512,18 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	auto t_keycount = keycount_defined ? keycount : 0u;
 	auto& all_consuming_ulbu = ulbu_collective.at(t_keycount);
 
-	// if debug, force params to load
-	if (debugmode || loadparams)
+	// if debug, force params to load and reset pmods and base diffs
+	if (debugmode || loadparams) {
 		all_consuming_ulbu->load_calc_params_from_disk(true);
+		for (const auto& hand : both_hands) {
+			for (auto& v : pmod_vals.at(hand)) {
+				std::fill(v.begin(), v.end(), 1.F);
+			}
+			for (auto& v : init_base_diff_vals.at(hand)) {
+				std::fill(v.begin(), v.end(), 0.F);
+			}
+		}
+	}
 
 	// reset ulbu patternmod structs
 	// run agnostic patternmod/sequence loop

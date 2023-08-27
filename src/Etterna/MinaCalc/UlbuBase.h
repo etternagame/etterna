@@ -58,6 +58,8 @@ struct Bazoinkazoink
 		return pmods;
 	}
 
+	/// these are the base diffs which actually must be reset
+	/// between calc runs or else things break
 	void reset_base_diffs()
 	{
 		for (auto& hand : both_hands) {
