@@ -3,7 +3,6 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/MinaCalc/MinaCalc.h"
-#include "Etterna/Globals/SoloCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
 #include "Core/Services/Locator.hpp"

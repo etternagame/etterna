@@ -33,7 +33,6 @@
 #include "Etterna/Singletons/FilterManager.h"
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/SoloCalc.h"
 
 /* register DisplayBPM with StringConversion */
 #include "Etterna/Models/Misc/EnumHelper.h"

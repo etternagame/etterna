@@ -10,7 +10,6 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "Etterna/Globals/SoloCalc.h"
 
 #include <cstdint>
 #include <numeric>
