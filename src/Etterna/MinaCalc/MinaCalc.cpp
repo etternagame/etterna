@@ -1,5 +1,6 @@
 #include "MinaCalc.h"
 #include "Ulbu.h"
+#include "UlbuSixKey.h"
 #include "UlbuSevenKey.h"
 #include "MinaCalcHelpers.h"
 
@@ -485,6 +486,11 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 				ulbu_collective.emplace(
 				  keycount,
 				  std::make_unique<TheGreatBazoinkazoinkInTheSky>(*this));
+				keycount_defined = true;
+				break;
+			case 6u:
+				ulbu_collective.emplace(
+				  keycount, std::make_unique<TheSixEyedBazoinkazoink>(*this));
 				keycount_defined = true;
 				break;
 			case 7u:
