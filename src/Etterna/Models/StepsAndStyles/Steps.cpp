@@ -722,25 +722,29 @@ Steps::GetNPSVector(const NoteData& nd,
 					const std::vector<int>& nerv,
 					const float rate) -> std::vector<int>
 {
-	std::vector<int> doot(static_cast<int>(etaner.back() / rate));
-	auto notecounter = 0;
-	auto lastinterval = 0;
-
-	for (auto i = 0; i < static_cast<int>(nerv.size()); ++i) {
+	std::map<int, int> intervals_to_counts{};
+	for (auto i = 0; i < static_cast<int>(nerv.size()); i++) {
 		const auto curinterval = static_cast<int>(etaner[i] / rate);
-		if (curinterval > lastinterval) {
-			doot[lastinterval] = notecounter;
-			notecounter = 0;
-			lastinterval = static_cast<int>(curinterval);
-		}
-
 		for (auto t = 0; t < nd.GetNumTracks(); ++t) {
 			const auto& tn = nd.GetTapNote(t, nerv[i]);
 			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
-				++notecounter;
+				intervals_to_counts[curinterval]++;
 			}
 		}
 	}
+
+	auto sz = 0;
+	if (intervals_to_counts.size() > 0) {
+		sz = std::max(static_cast<int>(etaner.back() / rate),
+					  intervals_to_counts.rbegin()->first);
+	} else {
+		sz = static_cast<int>(etaner.back() / rate);
+	}
+	std::vector<int> doot(sz + 1);
+	for (const auto& p : intervals_to_counts) {
+		doot[p.first] = p.second;
+	}
+
 	return doot;
 }
 
@@ -793,20 +797,9 @@ Steps::GetCNPSVector(const NoteData& nd,
 					 const int chordsize,
 					 const float rate) -> std::vector<int>
 {
-	std::vector<int> doot(static_cast<int>(etaner.back() / rate));
-
-	// number of NOTES inside chords of this size, so
-	// 5 jumps = 10 notes, 3 hands = 9 notes, etc
-	auto chordnotecounter = 0;
-	auto lastinterval = 0;
-
-	for (auto i = 0; i < static_cast<int>(nerv.size()); ++i) {
+	std::map<int, int> intervals_to_counts{};
+	for (auto i = 0; i < static_cast<int>(nerv.size()); i++) {
 		const auto curinterval = static_cast<int>(etaner[i] / rate);
-		if (curinterval > lastinterval) {
-			doot[lastinterval] = chordnotecounter;
-			chordnotecounter = 0;
-			lastinterval = static_cast<int>(curinterval);
-		}
 		auto notesinchord = 0;
 		for (auto t = 0; t < nd.GetNumTracks(); ++t) {
 			const auto& tn = nd.GetTapNote(t, nerv[i]);
@@ -815,9 +808,23 @@ Steps::GetCNPSVector(const NoteData& nd,
 			}
 		}
 		if (notesinchord == chordsize) {
-			chordnotecounter += notesinchord;
+			intervals_to_counts[curinterval] += notesinchord;
 		}
 	}
+
+	auto sz = 0;
+	if (intervals_to_counts.size() > 0) {
+		sz = std::max(static_cast<int>(etaner.back() / rate),
+					  intervals_to_counts.rbegin()->first);
+	} else {
+		sz = static_cast<int>(etaner.back() / rate);
+	}
+	
+	std::vector<int> doot(sz + 1);
+	for (const auto& p : intervals_to_counts) {
+		doot[p.first] = p.second;
+	}
+	
 	return doot;
 }
 
@@ -1025,25 +1032,18 @@ class LunaSteps : public Luna<Steps>
 
 		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
 		// etaner), L) produced tables full of 0 values for ???? reason -mina
-		auto scroot = p->GetNPSVector(nd, etaner, nerv, rate);
 		lua_newtable(L);
-		LuaHelpers::CreateTableFromArray(scroot, L);
+		LuaHelpers::CreateTableFromArray(
+		  p->GetNPSVector(nd, etaner, nerv, rate), L);
 		lua_rawseti(L, -2, 1);
 
 		for (auto i = 1; i < nd.GetNumTracks(); ++i) {
-			scroot = p->GetCNPSVector(
-			  nd,
-			  nerv,
-			  etaner,
-			  i + 1,
-			  rate); // sort of confusing: the luatable pos/chordsize are i + 1
+			// sort of confusing: the luatable pos/chordsize are i + 1
+			// but we're iterating over tracks which are 0 indexed
+			// so jumps are position 2 and 2 notes each when i = 1 -mina
 			LuaHelpers::CreateTableFromArray(
-			  scroot, L); // but we're iterating over tracks which are 0 indexed
-			lua_rawseti(
-			  L,
-			  -2,
-			  i +
-				1); // so jumps are position 2 and 2 notes each when i = 1 -mina
+			  p->GetCNPSVector(nd, nerv, etaner, i + 1, rate), L);
+			lua_rawseti(L, -2, i + 1);
 		}
 		nd.UnsetNerv();
 		p->GetTimingData()->UnsetEtaner();
