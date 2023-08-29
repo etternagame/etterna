@@ -1030,6 +1030,7 @@ webcalc(Php::Parameters& parameters)
 	if (newVector.size() > 1) {
 
 		try {
+			calc->keycount = parameters[4];
 			ssr = calc->CalcMain(newVector, rate, min(wife, ssr_goal_cap));
 		} catch (std::exception& e) {
 			throw Php::Exception(e.what());
@@ -1077,8 +1078,8 @@ get_module()
 		myExtension.add<webcalc>("testingWebCalc",
 								 { Php::ByVal("a", Php::Type::String),
 								   Php::ByVal("b", Php::Type::Float),
-								   Php::ByVal("c", Php::Type::Float)
-									 .Php::ByVal("d", Php::Type::Numeric) });
+								   Php::ByVal("c", Php::Type::Float),
+								   Php::ByVal("d", Php::Type::Numeric) });
 		myExtension.add<calculator_version>("testingCalcVersion");
 		return myExtension;
 	}
