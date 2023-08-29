@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <array>
 #include <string>
@@ -978,6 +979,7 @@ MinaSDCalcDebug(
 	handInfo.emplace_back(calc.debugValues.at(left_hand));
 	handInfo.emplace_back(calc.debugValues.at(right_hand));
 
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 	/* ok so the problem atm is the multithreading of songload, if we want
 	 * to update the file on disk with new values and not just overwrite it
 	 * we have to write out after loading the values player defined, so the
@@ -987,6 +989,7 @@ MinaSDCalcDebug(
 		const TheGreatBazoinkazoinkInTheSky ublov(calc);
 		ublov.write_params_to_disk();
 	}
+#endif
 }
 
 int mina_calc_version = 509;
@@ -998,7 +1001,6 @@ GetCalcVersion() -> int
 
 #if defined(PHPCALC)
 #include <fstream>
-#include <sstream>
 
 Php::Value
 calculator_version()
@@ -1013,6 +1015,7 @@ webcalc(Php::Parameters& parameters)
 	std::string contents = parameters[0];
 	const double rate = parameters[1];
 	const double wife = parameters[2];
+	const int keycount = parameters[4];
 
 	std::vector<NoteInfo> newVector;
 	std::istringstream stream;
@@ -1030,8 +1033,11 @@ webcalc(Php::Parameters& parameters)
 	if (newVector.size() > 1) {
 
 		try {
-			calc->keycount = parameters[4];
-			ssr = calc->CalcMain(newVector, rate, min(wife, ssr_goal_cap));
+			calc->keycount = keycount;
+			ssr =
+			  calc->CalcMain(newVector,
+							 rate,
+							 std::min(wife, static_cast<double>(ssr_goal_cap)));
 		} catch (std::exception& e) {
 			throw Php::Exception(e.what());
 		}
@@ -1057,9 +1063,9 @@ PHPCPP_EXPORT void*
 get_module()
 {
 
-	bool stable = true
+	bool stable = true;
 
-	  if (stable)
+	if (stable)
 	{
 		static Php::Extension myExtension(
 		  "stable_calc", std::to_string(GetCalcVersion()).c_str());
