@@ -871,6 +871,116 @@ struct techyo
 	}
 };
 
+
+struct jack_col
+{
+	int len = 1;
+	float last_ms = ms_init;
+	float max_ms = ms_init;
+	float len_capped_ms = ms_init;
+	float last_note_sec = s_init;
+	float start_note_sec = s_init;
+	inline void reset()
+	{
+		len = 1;
+		last_ms = ms_init;
+		max_ms = ms_init;
+		len_capped_ms = ms_init;
+		last_note_sec = s_init;
+		start_note_sec = s_init;
+	}
+	inline void operator()(const float& now)
+	{
+		last_ms = ms_from(now, last_note_sec);
+		if (last_ms > max_ms + jack_spacing_buffer_ms ||
+			last_ms * jack_speed_increase_cutoff_factor < max_ms) {
+			// too slow reset, too fast reset
+			start_note_sec = last_note_sec;
+			len = 2;
+		} else {
+			len++;
+		}
+		max_ms = last_ms;
+		last_note_sec = now;
+	}
+	inline float get_ms() {
+		if (len > jack_len_cap) {
+			return len_capped_ms;
+		}
+		static const auto avg_ms_mult = 1.5F;
+		static const auto anchor_time_buffer_ms = 30.F;
+		static const auto min_ms = 95.F;
+		const auto total_ms = ms_from(last_note_sec, start_note_sec);
+		const auto _len = static_cast<float>(len - 1);
+		const auto avg_ms = total_ms / _len;
+		const auto adj_total_ms =
+		  total_ms + anchor_time_buffer_ms + avg_ms * avg_ms_mult;
+		auto ms = adj_total_ms / _len;
+		if (len == 2) {
+			ms *= 1.1F;
+			ms = ms < 180.F ? 180.F : ms;
+		}
+		ms = ms < min_ms ? min_ms : ms;
+		if (std::isnan(ms))
+			ms = max_ms;
+		if (len == jack_len_cap) {
+			len_capped_ms = ms;
+		}
+		return ms;
+	}
+};
+struct oversimplified_jacks
+{
+	std::vector<jack_col> sequencers{};
+
+	std::vector<unsigned> left_hand_mask{};
+	std::vector<unsigned> right_hand_mask{};
+
+	void init(const int& keycount) {
+		sequencers = std::vector<jack_col>(keycount);
+		left_hand_mask.clear();
+		right_hand_mask.clear();
+		for (auto i = 0; i < keycount / 2; i++) {
+			left_hand_mask.push_back(i);
+		}
+		/*
+		if (keycount > 2 && keycount % 2 != 0) {
+			left_hand_mask.push_back(keycount / 2);
+		}
+		*/
+		for (auto i = keycount / 2; i < keycount; i++) {
+			right_hand_mask.push_back(i);
+		}
+		reset();
+	}
+
+	void reset() {
+		for (auto& seq : sequencers) {
+			seq.reset();
+		}
+	}
+
+	void operator()(const int& column,
+					const float& now)
+	{
+		sequencers.at(column)(now);
+	}
+
+	float get_lowest_jack_ms(unsigned hand, Calc& calc) {
+		auto& mask = hand == left_hand ? left_hand_mask : right_hand_mask;
+
+		auto min = ms_init;
+		for (auto& col : mask) {
+			const auto v = sequencers.at(col).get_ms();
+			if (v < min) {
+				min = v;
+			}
+		}
+		return min;
+	}
+
+};
+
 struct diffz
 {
 	nps _nps;

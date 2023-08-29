@@ -20,7 +20,7 @@ keycount_to_bin(const unsigned& keycount) -> unsigned
 {
 	if (keycount < 2)
 		return 0b11;
-	return ~(~1 << (keycount - 1));
+	return ~(~1u << (keycount - 1u));
 }
 
 // outputs 0b1100 for 4, 0b110 for 3, etc
@@ -45,6 +45,20 @@ inline auto
 column_count(const unsigned& notes) -> int
 {
 	return std::popcount(notes);
+}
+
+// return a vector of which columns are not empty
+// 0 is the leftmost column
+inline auto
+find_non_empty_cols(const unsigned& notes) -> std::vector<unsigned>
+{
+	std::vector<unsigned> o{};
+	for (auto i = 0u; 1u << i <= notes; i++) {
+		if (((1u << i) & notes) != 0u) {
+			o.push_back(i);
+		}
+	}
+	return o;
 }
 
 /// milliseconds between two given timestamps in seconds
