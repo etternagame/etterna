@@ -164,7 +164,7 @@ struct Bazoinkazoink
 
 	}
 
-#ifndef STANDALONE_CALC
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 	static auto make_mod_param_node(
 	  const std::vector<std::pair<std::string, float*>>& param_map,
 	  const std::string& name) -> XNode*

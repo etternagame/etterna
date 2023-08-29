@@ -12,6 +12,10 @@
 #include <utility>
 #include <cassert>
 
+#if defined(PHPCALC)
+#include <phpcpp.h>
+#endif
+
 using std::max;
 using std::min;
 using std::pow;
@@ -990,3 +994,93 @@ GetCalcVersion() -> int
 {
 	return mina_calc_version;
 }
+
+#if defined(PHPCALC)
+#include <fstream>
+#include <sstream>
+
+Php::Value
+calculator_version()
+{
+	return GetCalcVersion();
+}
+
+Php::Value
+webcalc(Php::Parameters& parameters)
+{
+
+	std::string contents = parameters[0];
+	const double rate = parameters[1];
+	const double wife = parameters[2];
+
+	std::vector<NoteInfo> newVector;
+	std::istringstream stream;
+	stream.str(std::move(contents));
+
+	stream.seekg(0, std::ios::end);
+	auto n = stream.tellg();
+
+	newVector.resize(n / sizeof(NoteInfo));
+	stream.seekg(0, std::ios::beg);
+	stream.read((char*)&newVector[0], newVector.capacity() * sizeof(NoteInfo));
+
+	thread_local auto calc = std::make_unique<Calc>();
+	std::vector<float> ssr = dimples_the_all_zero_output;
+	if (newVector.size() > 1) {
+
+		try {
+			ssr = calc->CalcMain(newVector, rate, min(wife, ssr_goal_cap));
+		} catch (std::exception& e) {
+			throw Php::Exception(e.what());
+		}
+
+		// ssr = calc->CalcMain(newVector, rate, min(wife, 0.965));
+	}
+
+	Php::Value assoc;
+	assoc["Overall"] = ssr[0];
+	assoc["Stream"] = ssr[1];
+	assoc["Jumpstream"] = ssr[2];
+	assoc["Handstream"] = ssr[3];
+	assoc["Stamina"] = ssr[4];
+	assoc["JackSpeed"] = ssr[5];
+	assoc["Chordjack"] = ssr[6];
+	assoc["Technical"] = ssr[7];
+
+	return assoc;
+}
+
+extern "C" {
+PHPCPP_EXPORT void*
+get_module()
+{
+
+	bool stable = true
+
+	  if (stable)
+	{
+		static Php::Extension myExtension(
+		  "stable_calc", std::to_string(GetCalcVersion()).c_str());
+		myExtension.add<webcalc>("stableWebCalc",
+								 { Php::ByVal("a", Php::Type::String),
+								   Php::ByVal("b", Php::Type::Float),
+								   Php::ByVal("c", Php::Type::Float),
+								   Php::ByVal("d", Php::Type::Numeric) });
+		myExtension.add<calculator_version>("stableCalcVersion");
+		return myExtension;
+	}
+	else
+	{
+		static Php::Extension myExtension(
+		  "testing_calc", std::to_string(GetCalcVersion()).c_str());
+		myExtension.add<webcalc>("testingWebCalc",
+								 { Php::ByVal("a", Php::Type::String),
+								   Php::ByVal("b", Php::Type::Float),
+								   Php::ByVal("c", Php::Type::Float)
+									 .Php::ByVal("d", Php::Type::Numeric) });
+		myExtension.add<calculator_version>("testingCalcVersion");
+		return myExtension;
+	}
+}
+}
+#endif

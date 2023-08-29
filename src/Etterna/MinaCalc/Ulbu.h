@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef STANDALONE_CALC
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 // stepmania garbage
 #include "../FileTypes/XmlFile.h"
 #include "../FileTypes/XmlFileUtil.h"
@@ -665,7 +665,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	}
 #pragma endregion
 
-#ifndef STANDALONE_CALC
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 	void load_calc_params_from_disk(bool bForce = false) const override
 	{
 		const auto fn = calc_params_xml;
