@@ -1015,7 +1015,7 @@ webcalc(Php::Parameters& parameters)
 	std::string contents = parameters[0];
 	const double rate = parameters[1];
 	const double wife = parameters[2];
-	const int keycount = parameters[4];
+	const int keycount = parameters[3];
 
 	std::vector<NoteInfo> newVector;
 	std::istringstream stream;
