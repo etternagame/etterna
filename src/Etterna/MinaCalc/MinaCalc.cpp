@@ -47,6 +47,9 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			   const float music_rate,
 			   const float score_goal) -> std::vector<float>
 {
+
+	InitializeKeycountLogic();
+
 	// for multi offset passes
 	// const int num_offset_passes = ssr ? 3 : 1;
 	const auto num_offset_passes = 1;
@@ -56,9 +59,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 ++cur_iteration) {
 
 		const auto skip = InitializeHands(
-		  NoteInfo,
-		  music_rate,
-		  0.1F * static_cast<float>(cur_iteration));
+		  NoteInfo, music_rate, 0.1F * static_cast<float>(cur_iteration));
 
 		// if we exceed max_rows_for_single_interval during processing
 		if (skip) {
@@ -71,8 +72,11 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 
 		// overall and stam will be left as 0.f by this loop
 		for (auto i = 0; i < NUM_Skillset; ++i) {
-			iteration_skillet_values[i] =
-			  Chisel(0.1F, 10.24F, score_goal, static_cast<Skillset>(i), false);
+			iteration_skillet_values[i] = Chisel(0.1F,
+												 10.24F,
+												 score_goal,
+												 static_cast<Skillset>(i),
+												 false);
 		}
 
 		// stam is based on which calc produced the highest output without it
@@ -89,11 +93,12 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 * files */
 		for (auto i = 0; i < NUM_Skillset; ++i) {
 			if (iteration_skillet_values[i] > base * 0.9f) {
-				iteration_skillet_values[i] = Chisel(iteration_skillet_values[i] * 0.9F,
-									0.32F,
-									score_goal,
-									static_cast<Skillset>(i),
-									true);
+				iteration_skillet_values[i] =
+				  Chisel(iteration_skillet_values[i] * 0.9F,
+						 0.32F,
+						 score_goal,
+						 static_cast<Skillset>(i),
+						 true);
 			}
 		}
 
@@ -476,6 +481,40 @@ CalcInternal(float& gotpoints,
 }
 
 auto
+Calc::InitializeKeycountLogic() -> void
+{
+	bool keycount_defined = false;
+	if (!ulbu_collective.contains(keycount)) {
+		switch (keycount) {
+			case 4u:
+				ulbu_collective.emplace(keycount,
+										TheGreatBazoinkazoinkInTheSky(*this));
+				keycount_defined = true;
+				break;
+			case 6u:
+				ulbu_collective.emplace(keycount,
+										TheSixEyedBazoinkazoink(*this));
+				keycount_defined = true;
+				break;
+			case 7u:
+				ulbu_collective.emplace(keycount,
+										TheSevenFootedBazoinkazoink(*this));
+				keycount_defined = true;
+				break;
+			default:
+				if (!ulbu_collective.contains(0u)) {
+					ulbu_collective.emplace(0u, Bazoinkazoink(*this));
+				}
+				break;
+		}
+	} else {
+		keycount_defined = true;
+	}
+	const auto t_keycount = keycount_defined ? keycount : 0u;
+	ulbu_in_charge = &ulbu_collective.at(t_keycount);
+}
+
+auto
 Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 					  const float music_rate,
 					  const float offset) -> bool
@@ -484,46 +523,9 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset))
 		return true;
 
-	// ulbu calculates everything needed for the block below
-	// (mostly patternmods)
-	thread_local std::unordered_map<unsigned, std::unique_ptr<Bazoinkazoink>> ulbu_collective{};
-
-	bool keycount_defined = false;
-	if (!ulbu_collective.contains(keycount)) {
-		switch (keycount) {
-			case 4u:
-				ulbu_collective.emplace(
-				  keycount,
-				  std::make_unique<TheGreatBazoinkazoinkInTheSky>(*this));
-				keycount_defined = true;
-				break;
-			case 6u:
-				ulbu_collective.emplace(
-				  keycount, std::make_unique<TheSixEyedBazoinkazoink>(*this));
-				keycount_defined = true;
-				break;
-			case 7u:
-				ulbu_collective.emplace(
-				  keycount,
-				  std::make_unique<TheSevenFootedBazoinkazoink>(*this));
-				keycount_defined = true;
-				break;
-			default:
-				if (!ulbu_collective.contains(0u)) {
-					ulbu_collective.emplace(
-					  0u, std::make_unique<Bazoinkazoink>(*this));
-				}
-				break;
-		}
-	} else {
-		keycount_defined = true;
-	}
-	auto t_keycount = keycount_defined ? keycount : 0u;
-	auto& all_consuming_ulbu = ulbu_collective.at(t_keycount);
-
 	// if debug, force params to load and reset pmods and base diffs
 	if (debugmode || loadparams) {
-		all_consuming_ulbu->load_calc_params_from_disk(true);
+		ulbu_in_charge->load_calc_params_from_disk(true);
 		for (const auto& hand : both_hands) {
 			for (auto& v : pmod_vals.at(hand)) {
 				std::fill(v.begin(), v.end(), 1.F);
@@ -537,11 +539,11 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	// reset ulbu patternmod structs
 	// run agnostic patternmod/sequence loop
 	// run dependent patternmod/sequence loop
-	(*all_consuming_ulbu)();
+	(*ulbu_in_charge)();
 
 	// loop over hands to set adjusted difficulties using the patternmods
 	for (const auto& hand : both_hands) {
-		InitAdjDiff(*this, all_consuming_ulbu, hand);
+		InitAdjDiff(*this, hand);
 
 		// post pattern mod smoothing for cj
 		// (Chordjack related tuning done: this is disabled for now)
@@ -772,9 +774,9 @@ Calc::Chisel(const float player_skill,
  * misclassing hard and polluting leaderboards, and good scores on overrated
  * files will simply produce high ratings in every category */
 inline void
-Calc::InitAdjDiff(Calc& calc, std::unique_ptr<Bazoinkazoink>& all_consuming_ulbu, const int& hand)
+Calc::InitAdjDiff(Calc& calc, const int& hand)
 {
-	const auto& pmods_used = all_consuming_ulbu->get_pmods();
+	const auto& pmods_used = calc.ulbu_in_charge->get_pmods();
 	std::array<float, NUM_Skillset> pmod_product_cur_interval = {};
 
 	// ok this loop is pretty wack i know, for each interval
@@ -885,7 +887,7 @@ make_debug_strings(const Calc& calc, std::vector<std::string>& debugstrings)
 		for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 			const auto& ri = calc.adj_ni.at(itv).at(row);
 
-			itvstring.append(make_note_mapping(4, ri.row_notes));
+			itvstring.append(make_note_mapping(calc.keycount, ri.row_notes));
 			itvstring.append("\n");
 		}
 

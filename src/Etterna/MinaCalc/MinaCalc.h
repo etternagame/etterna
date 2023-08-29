@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <memory>
 
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
@@ -105,6 +104,14 @@ class Calc
 	std::vector<unsigned> col_masks{};
 
   private:
+	/** Create the logic for the particular keymode currently being 
+	* run through the calc. The bulk of this logic is for pmods but
+	* also has something to do with quirks for each keymode.
+	*/
+	void InitializeKeycountLogic();
+	Bazoinkazoink* ulbu_in_charge = nullptr;
+	std::unordered_map<unsigned, Bazoinkazoink> ulbu_collective{};
+
 	/** Splits up the chart by each hand and processes them individually to
 	* produce hand specific base difficulty values, which are then passed to
 	* the chisel functions. Hardcode a limit for nps (100) and if we hit it just
@@ -113,9 +120,10 @@ class Calc
 	*
 	* Return value is whether or not we should skip calculation.
 	*/
-	auto InitializeHands(const std::vector<NoteInfo>& NoteInfo,
-						 float music_rate,
-						 float offset) -> bool;
+	auto InitializeHands(
+	  const std::vector<NoteInfo>& NoteInfo,
+	  float music_rate,
+	  float offset) -> bool;
 
 	/** Returns estimate of player skill needed to achieve score goal on chart.
 	* The player_skill parameter gives an initial guess and floor for player
@@ -134,9 +142,9 @@ class Calc
 	* Iterates over each interval, and every skillset for each interval.
 	* Skips iterations of Overall and Stamina (unaffected by patternmods).
 	*/
-	static inline void InitAdjDiff(Calc& calc,
-								   std::unique_ptr<Bazoinkazoink>& all_consuming_ulbu,
-								   const int& hand);
+	static inline void InitAdjDiff(
+	  Calc& calc,
+	  const int& hand);
 
   public:
 	/** Each Calc instance created sets up the interval related vectors.
