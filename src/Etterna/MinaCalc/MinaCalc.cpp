@@ -68,7 +68,8 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 
 		// if we exceed max_rows_for_single_interval during processing
 		if (skip) {
-			std::cout << "skipping junk file" << std::endl;
+			if (debugmode)
+				std::cout << "skipping junk file" << std::endl;
 			return dimples_the_all_zero_output;
 		}
 
