@@ -487,23 +487,26 @@ Calc::InitializeKeycountLogic() -> void
 	if (!ulbu_collective.contains(keycount)) {
 		switch (keycount) {
 			case 4u:
-				ulbu_collective.emplace(keycount,
-										TheGreatBazoinkazoinkInTheSky(*this));
+				ulbu_collective.emplace(
+				  keycount,
+				  std::make_shared<TheGreatBazoinkazoinkInTheSky>(*this));
 				keycount_defined = true;
 				break;
 			case 6u:
-				ulbu_collective.emplace(keycount,
-										TheSixEyedBazoinkazoink(*this));
+				ulbu_collective.emplace(
+				  keycount, std::make_shared<TheSixEyedBazoinkazoink>(*this));
 				keycount_defined = true;
 				break;
 			case 7u:
-				ulbu_collective.emplace(keycount,
-										TheSevenFootedBazoinkazoink(*this));
+				ulbu_collective.emplace(
+				  keycount,
+				  std::make_shared<TheSevenFootedBazoinkazoink>(*this));
 				keycount_defined = true;
 				break;
 			default:
 				if (!ulbu_collective.contains(0u)) {
-					ulbu_collective.emplace(0u, Bazoinkazoink(*this));
+					ulbu_collective.emplace(
+					  0u, std::make_shared<Bazoinkazoink>(*this));
 				}
 				break;
 		}
@@ -511,7 +514,7 @@ Calc::InitializeKeycountLogic() -> void
 		keycount_defined = true;
 	}
 	const auto t_keycount = keycount_defined ? keycount : 0u;
-	ulbu_in_charge = &ulbu_collective.at(t_keycount);
+	ulbu_in_charge = ulbu_collective.at(t_keycount);
 }
 
 auto

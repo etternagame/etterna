@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <memory>
+#include <unordered_map>
 
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
@@ -109,8 +111,8 @@ class Calc
 	* also has something to do with quirks for each keymode.
 	*/
 	void InitializeKeycountLogic();
-	Bazoinkazoink* ulbu_in_charge = nullptr;
-	std::unordered_map<unsigned, Bazoinkazoink> ulbu_collective{};
+	std::shared_ptr<Bazoinkazoink> ulbu_in_charge;
+	std::unordered_map<unsigned, std::shared_ptr<Bazoinkazoink>> ulbu_collective{};
 
 	/** Splits up the chart by each hand and processes them individually to
 	* produce hand specific base difficulty values, which are then passed to
