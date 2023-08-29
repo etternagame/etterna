@@ -1063,10 +1063,9 @@ PHPCPP_EXPORT void*
 get_module()
 {
 
-	bool stable = true;
 
-	if (stable)
-	{
+	#ifndef PHPCALC_TESTING
+	
 		static Php::Extension myExtension(
 		  "stable_calc", std::to_string(GetCalcVersion()).c_str());
 		myExtension.add<webcalc>("stableWebCalc",
@@ -1076,9 +1075,8 @@ get_module()
 								   Php::ByVal("d", Php::Type::Numeric) });
 		myExtension.add<calculator_version>("stableCalcVersion");
 		return myExtension;
-	}
-	else
-	{
+	#else
+	
 		static Php::Extension myExtension(
 		  "testing_calc", std::to_string(GetCalcVersion()).c_str());
 		myExtension.add<webcalc>("testingWebCalc",
@@ -1088,7 +1086,7 @@ get_module()
 								   Php::ByVal("d", Php::Type::Numeric) });
 		myExtension.add<calculator_version>("testingCalcVersion");
 		return myExtension;
-	}
+       #endif
 }
 }
 #endif
