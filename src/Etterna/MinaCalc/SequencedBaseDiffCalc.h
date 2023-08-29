@@ -452,8 +452,8 @@ struct techyo
 	}
 
 	void advance_jack_comp(const float& hardest_itv_jack_ms) {
-		jack_itv_diff =
-		  ms_to_scaled_nps(hardest_itv_jack_ms) * basescalers[Skill_JackSpeed];
+		static const auto jack_base_scale = 1.01F;
+		jack_itv_diff = ms_to_scaled_nps(hardest_itv_jack_ms) * jack_base_scale;
 	}
 
 	// for debug

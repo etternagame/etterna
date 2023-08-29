@@ -48,7 +48,7 @@ struct TheSixEyedBazoinkazoink : public Bazoinkazoink
 	} };
 
   public:
-	const std::array<std::vector<int>, NUM_Skillset> get_pmods() const override
+	const std::array<std::vector<int>, NUM_Skillset>& get_pmods() const override
 	{
 		return pmods;
 	}

@@ -49,6 +49,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 {
 
 	InitializeKeycountLogic();
+	const auto& basescalers = ulbu_in_charge->get_basescalers();
 
 	// for multi offset passes
 	// const int num_offset_passes = ssr ? 3 : 1;
@@ -780,6 +781,7 @@ inline void
 Calc::InitAdjDiff(Calc& calc, const int& hand)
 {
 	const auto& pmods_used = calc.ulbu_in_charge->get_pmods();
+	const auto& basescalers = calc.ulbu_in_charge->get_basescalers();
 	std::array<float, NUM_Skillset> pmod_product_cur_interval = {};
 
 	// ok this loop is pretty wack i know, for each interval

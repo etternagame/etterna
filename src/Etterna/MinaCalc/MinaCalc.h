@@ -104,6 +104,7 @@ class Calc
 	unsigned keycount = 4;
 	std::array<unsigned, num_hands> hand_col_masks = { 0U, 0U };
 	std::vector<unsigned> col_masks{};
+	std::shared_ptr<Bazoinkazoink> ulbu_in_charge;
 
   private:
 	/** Create the logic for the particular keymode currently being 
@@ -111,7 +112,6 @@ class Calc
 	* also has something to do with quirks for each keymode.
 	*/
 	void InitializeKeycountLogic();
-	std::shared_ptr<Bazoinkazoink> ulbu_in_charge;
 	std::unordered_map<unsigned, std::shared_ptr<Bazoinkazoink>> ulbu_collective{};
 
 	/** Splits up the chart by each hand and processes them individually to

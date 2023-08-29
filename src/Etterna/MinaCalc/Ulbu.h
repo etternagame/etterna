@@ -226,11 +226,26 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	  },
 	} };
 
+	/* since we are no longer using the normalizer system we need to lower the
+	 * base difficulty for each skillset and then detect pattern types to push
+	 * down OR up, rather than just down and normalizing to a differential since
+	 * chorded patterns have lower enps than streams, streams default to 1 and
+	 * chordstreams start lower, stam is a special case and may use normalizers
+	 * again */
+	const std::array<float, NUM_Skillset> basescalers = {
+		0.F, 0.91F, 0.75F, 0.77F, 0.93F, 1.01F, 1.02F, 1.06F
+	};
+
   public:
-	const std::array<std::vector<int>, NUM_Skillset> get_pmods() const override
+	const std::array<std::vector<int>, NUM_Skillset>& get_pmods() const override
 	{
 		return pmods;
 	}
+	const std::array<float, NUM_Skillset>& get_basescalers() const override
+	{
+		return basescalers;
+	}
+
 	
 	void operator()() override
 	{

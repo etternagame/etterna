@@ -52,10 +52,18 @@ struct Bazoinkazoink
 		},
 	}};
 
+	const std::array<float, NUM_Skillset> basescalers = {
+		0.F, 1.F, 1.F, 1.F, 0.93F, 1.F, 1.F, 1.F
+	};
+
   public:
-	virtual const std::array<std::vector<int>, NUM_Skillset> get_pmods() const
+	virtual const std::array<std::vector<int>, NUM_Skillset>& get_pmods() const
 	{
 		return pmods;
+	}
+	virtual const std::array<float, NUM_Skillset>& get_basescalers() const
+	{
+		return basescalers;
 	}
 
 	/// these are the base diffs which actually must be reset
