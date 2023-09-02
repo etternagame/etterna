@@ -134,9 +134,11 @@ const WCHAR* WINAPI DXGetErrorStringW( _In_ HRESULT hr )
 auto GetErrorString(HRESULT hr) -> std::string
 {
     const wchar_t* msg = DXGetErrorStringW(hr);
-    if (msg)
+    if (msg) {
         return WStringToString(std::wstring(msg));
-    return "";
+	} else {
+		return fmt::format("Unknown error: HR {}", static_cast<long>(hr));
+	}
 }
 
 // Globals
