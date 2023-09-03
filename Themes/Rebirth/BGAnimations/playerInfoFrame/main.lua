@@ -667,8 +667,9 @@ t[#t+1] = Def.ActorFrame {
 
             local ctrl = INPUTFILTER:IsControlPressed()
             local char = event.charNoModifiers:upper()
+            local char2 = event.char:upper()
             -- login logout shortcut
-            if ctrl and char == "L" then
+            if ctrl and (char == "L" or char2 == "L") then
                 if not DLMAN:IsLoggedIn() then
                     beginLoginProcess(self)
                 else
