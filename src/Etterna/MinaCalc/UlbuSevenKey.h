@@ -60,6 +60,45 @@ struct TheSevenFootedBazoinkazoink : public Bazoinkazoink
 	{
 		return basescalers;
 	}
+	void adj_diff_func(
+	  const size_t& itv,
+	  const int& hand,
+	  float*& adj_diff,
+	  float*& stam_base,
+	  const float& adj_npsbase,
+	  const int& ss,
+	  std::array<float, NUM_Skillset>& pmod_product_cur_interval) override
+	{
+		switch (ss) {
+			case Skill_Stream:
+				break;
+			case Skill_Jumpstream: {
+				auto a = *adj_diff;
+				auto b =
+				  _calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) *
+				  pmod_product_cur_interval[Skill_Handstream];
+				*stam_base = std::max<float>(a, b);
+			} break;
+			case Skill_Handstream: {
+				auto a = adj_npsbase;
+				auto b =
+				  _calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) *
+				  pmod_product_cur_interval[Skill_Jumpstream];
+				*stam_base = std::max<float>(a, b);
+			} break;
+			case Skill_JackSpeed:
+				break;
+			case Skill_Chordjack:
+				break;
+			case Skill_Technical:
+				*adj_diff =
+				  _calc.init_base_diff_vals.at(hand).at(TechBase).at(itv) *
+				  pmod_product_cur_interval.at(ss) * basescalers.at(ss);
+				break;
+			default:
+				break;
+		}
+	}
 
 	void operator()() override
 	{

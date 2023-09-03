@@ -67,6 +67,35 @@ struct Bazoinkazoink
 	{
 		return basescalers;
 	}
+	virtual void adj_diff_func(
+	  const size_t& itv,
+	  const int& hand,
+	  float*& adj_diff,
+	  float*& stam_base,
+	  const float& adj_npsbase,
+	  const int& ss,
+	  std::array<float, NUM_Skillset>& pmod_product_cur_interval)
+	{
+		switch (ss) {
+			case Skill_Stream:
+				break;
+			case Skill_Jumpstream: {
+			} break;
+			case Skill_Handstream: {
+			} break;
+			case Skill_JackSpeed:
+				break;
+			case Skill_Chordjack:
+				break;
+			case Skill_Technical:
+				*adj_diff =
+				  _calc.init_base_diff_vals.at(hand).at(TechBase).at(itv) *
+				  pmod_product_cur_interval.at(ss) * basescalers.at(ss);
+				break;
+			default:
+				break;
+		}
+	}
 
 	/// these are the base diffs which actually must be reset
 	/// between calc runs or else things break
