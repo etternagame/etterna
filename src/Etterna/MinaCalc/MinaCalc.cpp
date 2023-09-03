@@ -177,8 +177,10 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		// for other keymodes
 		if (keycount != 4u) {
 			const auto scale = 4.F / static_cast<float>(keycount);
-			for (auto& v : iteration_skillet_values) {
-				v *= scale;
+			for (auto ss = 0; ss < NUM_Skillset; ss++) {
+				if (ss == Skill_JackSpeed || ss == Skill_Technical)
+					continue;
+				iteration_skillet_values[ss] *= scale;
 			}
 		}
 
@@ -947,7 +949,7 @@ MinaSDCalcDebug(
 #endif
 }
 
-int mina_calc_version = 509;
+int mina_calc_version = 510;
 auto
 GetCalcVersion() -> int
 {
