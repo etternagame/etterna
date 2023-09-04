@@ -85,6 +85,9 @@ enum CalcPatternMod
 	// RanPropOffS,
 	// RanPropJack,
 	TotalPatternMod,
+	GStream,
+	GChordStream,
+	GBracketing,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

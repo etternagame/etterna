@@ -54,24 +54,6 @@
  * ulbu is all. Praise ulbu. */
 struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 {
-	bool dbg = false;
-
-	int hand = 0;
-
-	// to generate these
-
-	// keeps track of occurrences of basic row based sequencing, mostly for
-	// skilset detection, contains itvinfo as well, the very basic metrics used
-	// for detection
-	metaItvInfo _mitvi;
-
-	// meta row info keeps track of basic pattern sequencing as we scan down
-	// the notedata rows, we will recyle two pointers (we want each row to be
-	// able to "look back" at the meta info generated at the last row so the mhi
-	// generation requires the last generated mhi object as an arg
-	std::unique_ptr<metaRowInfo> _last_mri;
-	std::unique_ptr<metaRowInfo> _mri;
-
 	// tracks meta hand info as well as basic interval tracking data for hand
 	// dependent stuff, like metaitvinfo and itvinfo
 	metaItvHandInfo _mitvhi;
@@ -87,7 +69,6 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	StreamMod _s;
 	JSMod _js;
 	HSMod _hs;
-	CJMod _cj;
 	CJDensityMod _cjd;
 	HSDensityMod _hsd;
 	OHJumpModGuyThing _ohj;
@@ -120,8 +101,6 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	  : Bazoinkazoink(calc)
 	{
 		// setup our data pointers
-		_last_mri = std::make_unique<metaRowInfo>(calc);
-		_mri = std::make_unique<metaRowInfo>(calc);
 		_last_mhi = std::make_unique<metaHandInfo>(calc);
 		_mhi = std::make_unique<metaHandInfo>(calc);
 	}
@@ -312,43 +291,9 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		}
 	}
 
-	
-	void operator()() override
-	{
-		reset_base_diffs();
-		hand = 0;
-
-		// should redundant but w.e not sure
-		full_hand_reset();
-		full_agnostic_reset();
-		reset_row_sequencing();
-
-		run_agnostic_pmod_loop();
-		run_dependent_pmod_loop();
-	}
-
 #pragma region hand agnostic pmod loop
 
-	void advance_agnostic_sequencing()
-	{
-		_s.advance_sequencing(_mri->ms_now, _mri->notes);
-		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
-		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
-		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
-	}
-
-	void setup_agnostic_pmods()
-	{
-		/* these pattern mods operate on all columns, only need basic meta
-		 * interval data, and do not need any more advanced pattern
-		 * sequencing */
-		_s.setup();
-		_fj.setup();
-		_tt.setup();
-		_tt2.setup();
-	}
-
-	void full_agnostic_reset()
+	void full_agnostic_reset() override
 	{
 		_s.full_reset();
 		_js.full_reset();
@@ -359,7 +304,26 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_last_mri.get()->reset();
 	}
 
-	void set_agnostic_pmods(const int& itv)
+	void setup_agnostic_pmods() override
+	{
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing */
+		_s.setup();
+		_fj.setup();
+		_tt.setup();
+		_tt2.setup();
+	}
+
+	void advance_agnostic_sequencing() override
+	{
+		_s.advance_sequencing(_mri->ms_now, _mri->notes);
+		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
+		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
+		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
+	}
+
+	void set_agnostic_pmods(const int& itv) override
 	{
 		/* these pattern mods operate on all columns, only need basic meta
 		 * interval data, and do not need any more advanced pattern
@@ -375,38 +339,6 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		PatternMods::set_agnostic(_fj._pmod, _fj(), itv, _calc);
 		PatternMods::set_agnostic(_tt._pmod, _tt(), itv, _calc);
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
-	}
-
-	void run_agnostic_pmod_loop()
-	{
-		setup_agnostic_pmods();
-
-		for (auto itv = 0; itv < _calc.numitv; ++itv) {
-			for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
-
-				const auto& ri = _calc.adj_ni.at(itv).at(row);
-				(*_mri)(
-				  *_last_mri, _mitvi, ri.row_time, ri.row_count, ri.row_notes);
-
-				advance_agnostic_sequencing();
-
-				// we only need to look back 1 metanoterow object, so we can
-				// swap the one we just built into last and recycle the two
-				// pointers instead of keeping track of everything
-				swap(_mri, _last_mri);
-			}
-
-			// run pattern mod generation for hand agnostic mods
-			set_agnostic_pmods(itv);
-
-			// reset any accumulated interval info and set cur index number
-			_mitvi.handle_interval_end();
-		}
-
-		PatternMods::run_agnostic_smoothing_pass(_calc.numitv, _calc);
-
-		// copy left -> right for agnostic mods
-		PatternMods::bruh_they_the_same(_calc.numitv, _calc);
 	}
 
 #pragma endregion
@@ -439,7 +371,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_mj.advance_sequencing(_mhi->_ct, _seq.get_sc_ms_now(_mhi->_ct));
 	}
 
-	void setup_dependent_mods()
+	void setup_dependent_mods() override
 	{
 		_oht.setup();
 		_voht.setup();
@@ -453,7 +385,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_wra.setup();
 	}
 
-	void set_dependent_pmods(const int& itv)
+	void set_dependent_pmods(const int& itv) override
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
@@ -491,7 +423,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	/// reset any moving windows or values when starting the other hand, this
 	/// shouldn't matter too much practically, but we should be disciplined
 	/// enough to do it anyway
-	void full_hand_reset()
+	void full_hand_reset() override
 	{
 		_ohj.full_reset();
 		_chain.full_reset();
@@ -517,12 +449,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_diffz.full_reset();
 	}
 
-	void reset_row_sequencing()
-	{
-		_mitvi.reset();
-	}
-
-	void handle_dependent_interval_end(const int& itv)
+	void handle_dependent_interval_end(const int& itv) override
 	{
 		/* this calls itvhi's interval end, which is what updates the hand
 		 * counts, so this _must_ be called before anything else */
@@ -591,7 +518,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_diffz._tc.advance_jack_comp(_seq._as.get_lowest_jack_ms());
 	}
 
-	void set_sequenced_base_diffs(const int& itv) const
+	void set_sequenced_base_diffs(const int& itv) const override
 	{
 		// this is no longer done for intervals, but per row, in the row
 		// (calc base anyways)
@@ -612,7 +539,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		  _diffz._tc.get_itv_rma_diff();
 	}
 
-	void run_dependent_pmod_loop()
+	void run_dependent_pmod_loop() override
 	{
 		setup_dependent_mods();
 
