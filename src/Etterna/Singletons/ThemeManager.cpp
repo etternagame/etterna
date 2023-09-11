@@ -20,9 +20,11 @@
 #include "Core/Services/Locator.hpp"
 #include "Core/Platform/Platform.hpp"
 
+#include <fmt/format.h>
 #include "PrefsManager.h"
 
 #include <deque>
+#include <regex>
 #include <algorithm>
 #include <set>
 #include <map>
@@ -501,6 +503,59 @@ ThemeManager::ClearSubscribers()
 	if (g_Subscribers.m_pSubscribers) {
 		for (auto& p : *g_Subscribers.m_pSubscribers)
 			p->Clear();
+	}
+}
+
+void
+ThemeManager::AppendToLuaPackagePath(const std::string& path)
+{
+
+	Lua* L = nullptr;
+	std::string packagePath;
+	// Get current package.path value
+	{
+		L = LUA->Get();
+		LuaHelpers::RunExpression(L, "package.path");
+		LuaHelpers::Pop(L, packagePath);
+		LUA->Release(L);
+		L = nullptr;
+	}
+
+	// Verify whether the path already exists in lua package path.
+	// If it does, leave function call early.
+	{
+		const std::regex path_regex(R"([^;]+)");
+		const auto end = std::sregex_iterator();
+		for (auto it = std::sregex_iterator(
+			   packagePath.begin(), packagePath.end(), path_regex);
+			 it != end;
+			 ++it) {
+			// Path already exists. No need to add.
+			if (it->str() == path) {
+				Locator::getLogger()->warn(
+				  "Path \"{}\" already in lua package.path.", path.c_str());
+				return;
+			}
+		}
+	}
+
+	// Append new path to `package.path`
+	{
+		const std::string expression =
+		  fmt::format("package.path = package.path .. ';{}'", path);
+		std::string error =
+		  fmt::format("Lua runtime error parsing \"{}\"", expression);
+
+		L = LUA->Get();
+
+		Locator::getLogger()->info("Appending \"{}\" to lua package.path",
+								   path.c_str());
+		LuaHelpers::RunScript(
+		  L, expression, std::string("in"), error, 0, 1, true, false);
+
+		LuaHelpers::Pop(L, packagePath); // no op to clean up stack
+		LUA->Release(L);
+		L = nullptr;
 	}
 }
 
