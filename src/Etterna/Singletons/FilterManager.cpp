@@ -49,23 +49,19 @@ FilterManager::SetFilter(float v, Skillset ss, int bound)
 void
 FilterManager::ResetSSFilters()
 {
-	for (auto& val : FilterLowerBounds) {
-		val = 0;
-	}
-	for (auto& val : FilterUpperBounds) {
-		val = 0;
-	}
+	FilterLowerBounds.fill(0);
+	FilterUpperBounds.fill(0);
 }
 
 void
 FilterManager::ResetAllFilters()
 {
 	ResetSSFilters();
-	ExclusiveFilter = false;
-	HighestSkillsetsOnly = false;
-	HighestDifficultyOnly = false;
-	MinFilterRate = 1.F;
-	MaxFilterRate = 1.F;
+	ExclusiveFilter = FilterManagerDefault::ExclusiveFilter;
+	HighestSkillsetsOnly = FilterManagerDefault::HighestSkillsetsOnly;
+	HighestDifficultyOnly = FilterManagerDefault::HighestDifficultyOnly;
+	MinFilterRate = FilterManagerDefault::MinFilterRate;
+	MaxFilterRate = FilterManagerDefault::MaxFilterRate;
 }
 
 // tmp filter stuff - mina
