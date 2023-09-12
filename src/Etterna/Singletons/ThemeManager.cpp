@@ -1535,7 +1535,7 @@ class LunaThemeManager : public Luna<ThemeManager>
 		for (auto& s : langs) {
 			result.push_back(s);
 		}
-		
+
 		LuaHelpers::CreateTableFromArray<std::string>(result, L);
 		return 1;
 	}

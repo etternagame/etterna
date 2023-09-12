@@ -191,13 +191,13 @@ local function upperSection()
             local foundsubtitle = ""
             local foundgroup = ""
             local foundck = ""
-            
+
             if artistpos ~= nil or authorpos ~= nil or
                 titlepos ~= nil or subtitlepos ~= nil or
                 mapperpos ~= nil or charterpos ~= nil or
                 stepperpos ~= nil or grouppos ~= nil or
                 packpos ~= nil or ckpos ~= nil then
-                
+
                 if artistpos ~= nil then
                     local strend = input:find("[;]", artistpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
@@ -260,7 +260,7 @@ local function upperSection()
             end
 
             -- you know what im just going to update all the other entry fields based on this one
-            
+
         end,
         -- "Title Search"
         function(input)
@@ -445,7 +445,7 @@ local function upperSection()
                         end
                         if searchentry.Group ~= "" then
                             finalstr = finalstr .. "group="..searchentry.Group..";"
-                        end 
+                        end
                     end
                     self:GetDescendant("RowFrame_1", "RowInput"):settext(finalstr)
                 end
@@ -1075,7 +1075,7 @@ local function lowerSection()
             else
                 return
             end
-            
+
             minrate = clamp(clamp(minrate + increment, 0.7, FILTERMAN:GetMaxFilterRate()), 0.7, 3)
             FILTERMAN:SetMinFilterRate(minrate)
             self:playcommand("UpdateText")
