@@ -46,8 +46,8 @@ if(WIN32)
     set(INSTALL_DIR ".")
 
     # List every DLL etterna needs.
-    list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
-                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll"
+    list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-58.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-58.dll"
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-56.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-5.dll" "${PROJECT_SOURCE_DIR}/Program/swresample-3.dll"
                          ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler.exe)
     install(FILES ${WIN_DLLS}   COMPONENT Etterna DESTINATION Program)
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION Program)

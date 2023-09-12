@@ -7,6 +7,14 @@
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/Graphics/RageSurface.h"
 
+#if defined(_WIN64) || defined(_WIN32)
+#pragma comment(lib, "strmiids.lib")
+#pragma comment(lib, "mfplat.lib")
+#pragma comment(lib, "mfuuid.lib")
+#pragma comment(lib, "Bcrypt.lib")
+#pragma comment(lib, "Secur32.lib")
+#endif
+
 static void
 FixLilEndian()
 {
@@ -96,14 +104,15 @@ RageMovieTextureDriver_FFMpeg::AVCodecCreateCompatibleSurface(
 	iAVTexfmt = pfd->pf;
 	fmtout = pfd->YUV;
 
-	Locator::getLogger()->trace("Texture pixel format: {} {} ({}bpp, {:08x} {:08x} {:08x} {:08x})",
-			   iAVTexfmt,
-			   fmtout,
-			   pfd->bpp,
-			   pfd->masks[0],
-			   pfd->masks[1],
-			   pfd->masks[2],
-			   pfd->masks[3]);
+	Locator::getLogger()->trace(
+	  "Texture pixel format: {} {} ({}bpp, {:08x} {:08x} {:08x} {:08x})",
+	  iAVTexfmt,
+	  fmtout,
+	  pfd->bpp,
+	  pfd->masks[0],
+	  pfd->masks[1],
+	  pfd->masks[2],
+	  pfd->masks[3]);
 
 	if (pfd->YUV == PixelFormatYCbCr_YUYV422)
 		iTextureWidth /= 2;
@@ -317,7 +326,8 @@ MovieDecoder_FFMpeg::DecodePacket(float fTargetTime)
 			const float expect = 0;
 			const float actual = m_fTimestamp;
 			if (actual - expect > 0) {
-				Locator::getLogger()->trace("Expect {}, got {} -> {}", expect, actual, actual - expect);
+				Locator::getLogger()->trace(
+				  "Expect {}, got {} -> {}", expect, actual, actual - expect);
 				m_fTimestampOffset = actual - expect;
 			}
 		}
@@ -355,7 +365,8 @@ MovieDecoder_FFMpeg::GetFrame(RageSurface* pSurface)
 												 NULL,
 												 NULL);
 		if (m_swsctx == NULL) {
-			Locator::getLogger()->warn("Cannot initialize sws conversion context for ({},{}) {}->{}",
+			Locator::getLogger()->warn(
+			  "Cannot initialize sws conversion context for ({},{}) {}->{}",
 			  GetWidth(),
 			  GetHeight(),
 			  m_pStream->codec->pix_fmt,
@@ -419,7 +430,8 @@ AVIORageFile_Seek(void* opaque, int64_t offset, int whence)
 		return f->GetFileSize();
 
 	if (whence != SEEK_SET && whence != SEEK_CUR && whence != SEEK_END) {
-		Locator::getLogger()->trace("Error: unsupported seek whence: {}", whence);
+		Locator::getLogger()->trace("Error: unsupported seek whence: {}",
+									whence);
 		return -1;
 	}
 
@@ -476,7 +488,7 @@ MovieDecoder_FFMpeg::Open(const std::string& sFile)
 		return "Couldn't find any video streams";
 	m_pStream = m_fctx->streams[stream_idx];
 
-	if (m_pStream->codec->codec_id == avcodec::CODEC_ID_NONE)
+	if (m_pStream->codec->codec_id == avcodec::AV_CODEC_ID_NONE)
 		return ssprintf("Unsupported codec %08x", m_pStream->codec->codec_tag);
 
 	std::string sError = OpenCodec();
@@ -484,8 +496,9 @@ MovieDecoder_FFMpeg::Open(const std::string& sFile)
 		return ssprintf("AVCodec (%s): %s", sFile.c_str(), sError.c_str());
 
 	Locator::getLogger()->debug("Bitrate: {}", m_pStream->codec->bit_rate);
-	Locator::getLogger()->debug("Codec pixel format: {}",
-			   avcodec::av_get_pix_fmt_name(m_pStream->codec->pix_fmt));
+	Locator::getLogger()->debug(
+	  "Codec pixel format: {}",
+	  avcodec::av_get_pix_fmt_name(m_pStream->codec->pix_fmt));
 
 	return std::string();
 }
@@ -517,9 +530,6 @@ MovieDecoder_FFMpeg::OpenCodec()
 	m_pStream->codec->workaround_bugs = 1;
 	m_pStream->codec->idct_algo = FF_IDCT_AUTO;
 	m_pStream->codec->error_concealment = 3;
-
-	if (pCodec->capabilities & CODEC_CAP_DR1)
-		m_pStream->codec->flags |= CODEC_FLAG_EMU_EDGE;
 
 	Locator::getLogger()->trace("Opening codec {}", pCodec->name);
 
