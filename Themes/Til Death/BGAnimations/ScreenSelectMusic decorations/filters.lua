@@ -1,3 +1,5 @@
+local filterpreset = require('filterpreset')
+
 local numbershers = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
 local frameX = 10
 local frameY = 45
@@ -99,6 +101,9 @@ local translated_info = {
 	MaxRate = THEME:GetString("TabFilter", "MaxRate"),
 	Title = THEME:GetString("TabFilter", "Title"),
 	MinRate = THEME:GetString("TabFilter", "MinRate"),
+	ExportFilterToFile = THEME:GetString("FilterPreset", "ExportFilterToFile"),
+	SaveFilterPresetPrompt = THEME:GetString("FilterPreset", "SaveFilterPresetPrompt"),
+	SaveToDefaultFilterPreset = THEME:GetString("FilterPreset", "SaveToDefaultFilterPreset"),
 }
 
 local f = Def.ActorFrame {
@@ -433,6 +438,81 @@ local f = Def.ActorFrame {
 		ResetFilterMessageCommand = function(self)
 			self:queuecommand("Set")
 		end
+	},
+	--[[
+	-- FIXME: Hot Reloading does not work (yet). You would need to leave the
+	-- song select menu, then go back in for the filter to apply.
+	UIElements.TextToolTip(1, 1, "Common Large") ..{
+		InitCommand = function(self)
+			self:xy(10, 175 + spacingY * -2)
+			self:zoom(textzoom)
+			self:halign(0)
+			self:diffuse(getMainColor("positive"))
+			self:settext(translated_info["LoadFilterPreset"])
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
+				easyInputStringWithParams(
+					translated_info["LoadFilterPresetPrompt"],
+					32,
+					false,
+					filterpreset.load_preset,
+					true
+				)
+			end
+		end
+	},
+	--]]
+	UIElements.TextToolTip(1, 1, "Common Large") ..{
+		InitCommand = function(self)
+			self:xy(frameX + frameWidth / 2 + 100, 175 + spacingY * 7)
+			self:zoom(textzoom)
+			self:halign(0)
+			self:settext(translated_info["SaveToDefaultFilterPreset"])
+			self:diffuse(getMainColor("positive"))
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
+				filterpreset.save_preset("default", PLAYER_1)
+			end
+		end
+	},
+	UIElements.TextToolTip(1, 1, "Common Large") ..{
+		InitCommand = function(self)
+			self:xy(frameX + frameWidth / 2 + 100, 175 + spacingY * 8)
+			self:zoom(textzoom)
+			self:halign(0)
+			self:diffuse(getMainColor("positive"))
+			self:settext("Export")
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and active then
+				easyInputStringWithFunction(
+					THEME:GetString("FilterPreset", "SaveFilterPresetPrompt"),
+					32,
+					false,
+					filterpreset.save_preset
+				)
+			end
+		end
 	}
 }
 
@@ -648,9 +728,14 @@ f[#f + 1] = UIElements.TextButton(1, 1, "Common Large") .. {
 		end
 	end,
 }
-]]
+--]]
 
 for i = 1, (#ms.SkillSets + 2) do
 	f[#f + 1] = CreateFilterInputBox(i)
 end
+
+-- Load default preset if it exists. We should only be setting the values once
+-- at startup. Subsequent calls should not occur.
+filterpreset.load_preset("default", false, PLAYER_1)
+
 return f

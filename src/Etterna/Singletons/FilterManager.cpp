@@ -167,6 +167,12 @@ class LunaFilterManager : public Luna<FilterManager>
 		p->ExclusiveFilter = !p->ExclusiveFilter;
 		return 0;
 	}
+	static int SetFilterMode(T* p, lua_State* L)
+	{
+		bool ExclusiveFilter = BArg(1);
+		p->ExclusiveFilter = ExclusiveFilter;
+		return 0;
+	}
 	static int GetFilterMode(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->ExclusiveFilter);
@@ -177,6 +183,12 @@ class LunaFilterManager : public Luna<FilterManager>
 		p->HighestSkillsetsOnly = !p->HighestSkillsetsOnly;
 		return 0;
 	}
+	static int SetHighestSkillsetsOnly(T* p, lua_State* L)
+	{
+		bool HighestSkillsetsOnly = BArg(1);
+		p->HighestSkillsetsOnly = HighestSkillsetsOnly;
+		return 0;
+	}
 	static int GetHighestSkillsetsOnly(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->HighestSkillsetsOnly);
@@ -185,6 +197,12 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int ToggleHighestDifficultyOnly(T* p, lua_State* L)
 	{
 		p->HighestDifficultyOnly = !p->HighestDifficultyOnly;
+		return 0;
+	}
+	static int SetHighestDifficultyOnly(T* p, lua_State* L)
+	{
+		bool HighestDifficultyOnly = BArg(1);
+		p->HighestDifficultyOnly = HighestDifficultyOnly;
 		return 0;
 	}
 	static int GetHighestDifficultyOnly(T* p, lua_State* L)
@@ -242,10 +260,13 @@ class LunaFilterManager : public Luna<FilterManager>
 		ADD_METHOD(SetMinFilterRate);
 		ADD_METHOD(GetMinFilterRate);
 		ADD_METHOD(ToggleFilterMode);
+		ADD_METHOD(SetFilterMode);
 		ADD_METHOD(GetFilterMode);
 		ADD_METHOD(ToggleHighestSkillsetsOnly);
+		ADD_METHOD(SetHighestSkillsetsOnly);
 		ADD_METHOD(GetHighestSkillsetsOnly);
 		ADD_METHOD(ToggleHighestDifficultyOnly);
+		ADD_METHOD(SetHighestDifficultyOnly);
 		ADD_METHOD(GetHighestDifficultyOnly);
 		ADD_METHOD(HelpImTrappedInAChineseFortuneCodingFactory);
 		ADD_METHOD(oopsimlazylol);

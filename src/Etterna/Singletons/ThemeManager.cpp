@@ -627,8 +627,15 @@ ThemeManager::UpdateLuaGlobals()
 	// explicitly refresh cached metrics that we use.
 	ScreenDimensions::ReloadScreenDimensions();
 
+	// Include global lua libraries
+	AppendToLuaPackagePath("./lib/lua/5.1/?.lua");
+
 	// run global scripts
 	RunLuaScripts("*.lua");
+
+	// Include fallback theme lua libraries
+	AppendToLuaPackagePath("./Themes/_fallback/lib/lua/5.1/?.lua");
+
 	// run theme scripts
 	RunLuaScripts("*.lua", true);
 #endif

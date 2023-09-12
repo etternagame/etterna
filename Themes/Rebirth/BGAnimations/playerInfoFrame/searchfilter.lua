@@ -1,3 +1,5 @@
+local filterpreset = require('filterpreset')
+
 local ratios = {
     Width = 782 / 1920,
     Height = 971 / 1080,
@@ -55,6 +57,9 @@ local translations = {
     Results = THEME:GetString("SearchFilter", "Results"),
     Reset = THEME:GetString("SearchFilter", "Reset"),
     Apply = THEME:GetString("SearchFilter", "Apply"),
+    SaveToDefaultPreset = THEME:GetString("FilterPreset", "SaveToDefaultPreset"),
+    ExportPresetToFile = THEME:GetString("FilterPreset", "ExportPresetToFile"),
+    SaveFilterPresetPrompt = THEME:GetString("FilterPreset", "SaveFilterPresetPrompt"),
 }
 
 local visibleframeX = SCREEN_WIDTH - actuals.Width
@@ -1179,6 +1184,60 @@ local function lowerSection()
         end
     }
 
+    t[#t+1] = filterMiscLine(9) .. {
+        Name = "SaveLine",
+        InitCommand = function(self)
+            self:settext(translations["SaveToDefaultPreset"])
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self)
+            filterpreset.save_preset("default", PLAYER_1)
+        end
+    }
+
+
+    t[#t+1] = filterMiscLine(10) .. {
+        Name = "ExportLine",
+        InitCommand = function(self)
+            self:settext(translations["ExportPresetToFile"])
+        end,
+        MouseOverCommand = onHover,
+        MouseOutCommand = onUnHover,
+        MouseDownCommand = function(self)
+            local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+            local function off()
+                if redir then
+                    SCREENMAN:set_input_redirected(PLAYER_1, false)
+                end
+            end
+            local function on()
+                if redir then
+                    SCREENMAN:set_input_redirected(PLAYER_1, true)
+                end
+            end
+            off()
+
+            askForInputStringWithFunction(
+                translations["SaveFilterPresetPrompt"],
+                32,
+                false,
+                function(answer)
+                    -- success if the answer isnt blank
+                    if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+                        filterpreset.save_preset(answer)
+                    else
+                        on()
+                    end
+                end,
+                function() return true, "" end,
+                function()
+                    on()
+                end
+            )
+        end
+    }
+
     return t
 end
 
@@ -1226,5 +1285,9 @@ t[#t+1] = Def.Quad {
 
 t[#t+1] = upperSection()
 t[#t+1] = lowerSection()
+
+-- Load default preset if it exists. We should only be setting the values once
+-- at startup. Subsequent calls should not occur.
+filterpreset.load_preset("default", false, PLAYER_1)
 
 return t
