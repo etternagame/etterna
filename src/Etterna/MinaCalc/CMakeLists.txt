@@ -10,6 +10,9 @@ list(APPEND GENERAL_CALC_SRC
     "SequencedBaseDiffCalc.h"
     "SequencingHelpers.h"
     "Ulbu.h"
-    "UlbuAcolytes.h")
+    "UlbuAcolytes.h"
+    "UlbuBase.h"
+    "UlbuSixKey.h"
+    "UlbuSevenKey.h")
 
 target_sources(Etterna PUBLIC ${GENERAL_CALC_SRC})

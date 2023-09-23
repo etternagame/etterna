@@ -145,7 +145,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int SetMaxFilterRate(T* p, lua_State* L)
 	{
 		float mfr = FArg(1);
-		CLAMP(mfr, p->MinFilterRate, 3.f);
+		CLAMP(mfr, p->MinFilterRate, MAX_MUSIC_RATE);
 		p->MaxFilterRate = mfr;
 		return 0;
 	}
@@ -157,7 +157,7 @@ class LunaFilterManager : public Luna<FilterManager>
 	static int SetMinFilterRate(T* p, lua_State* L)
 	{
 		float mfr = FArg(1);
-		CLAMP(mfr, 0.05f, p->MaxFilterRate);
+		CLAMP(mfr, MIN_MUSIC_RATE, p->MaxFilterRate);
 		p->MinFilterRate = mfr;
 		return 0;
 	}

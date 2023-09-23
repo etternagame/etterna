@@ -90,8 +90,11 @@ function IniFile.ReadFile(file_path)
 	local tbl = {}
 	local current = tbl
 
-	while not file:AtEOF() do
-		local str = file:GetLine()
+	-- file:AtEOF() returns true only if we read nothing while we were at EOF....
+	-- this is probably intentional. so deal with that in as little code as possible and in the most
+	-- confusing way possible by doing whatever these 2 lines do
+	local iter = function(f) return function() if f:AtEOF() then return nil end return f:GetLine() end end
+	for str in iter(file) do
 
 		--ignore comments.
 		if not str:find("^%s*#") then

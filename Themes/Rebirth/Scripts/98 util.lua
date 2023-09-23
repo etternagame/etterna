@@ -299,7 +299,7 @@ end
 function setMusicRate(rate)
     -- the classic clamps are 0.7 and 3
     -- the game wont allow 0 and wont allow over 3
-    rate = clamp(rate, 0.05, 3)
+    rate = clamp(rate, MIN_MUSIC_RATE, MAX_MUSIC_RATE)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate)
     GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate)
@@ -314,16 +314,50 @@ function askForInputStringWithFunction(question, maxInputLength, obfuscate, onOK
         MaxInputLength = maxInputLength,
         Password = obfuscate,
         OnOK = function(answer)
-            onOK(answer)
+            if onOK ~= nil then onOK(answer) end
         end,
         Validate = function(answer)
-            return validateFunc(answer)
+            if validateFunc ~= nil then return validateFunc(answer) end
+            return true, ""
         end,
         OnCancel = function()
-            onCancel()
+            if onCancel ~= nil then onCancel() end
         end,
     }
     SCREENMAN:GetTopScreen():Load(settings)
+end
+
+-- input redirects are controlled here because we want to be careful not to break any prior redirects
+function askForInputStringMaintainingInputRedirect(question, maxInputLength, bObfuscate, onOkFunc, validateFunc, onCancelFunc)
+    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+    local function off()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, false)
+        end
+    end
+    local function on()
+        if redir then
+            SCREENMAN:set_input_redirected(PLAYER_1, true)
+        end
+    end
+    off()
+    askForInputStringWithFunction(
+        question,
+        maxInputLength,
+        bObfuscate,
+        function(answer)
+            if onOkFunc ~= nil then onOkFunc(answer) end
+            on()
+        end,
+        function(answer)
+            if validateFunc ~= nil then return validateFunc(answer) end
+            return true, ""
+        end,
+        function()
+            if onCancelFunc ~= nil then onCancelFunc() end
+            on()
+        end
+    )
 end
 
 -- returns xx.xx% for sub 99 scores and xx.xxxx% for 99+ scores
@@ -445,33 +479,18 @@ end
 
 -- convenience to control the rename profile dialogue logic and input redir scope
 function renameProfileDialogue(profile, isNewProfile)
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-
-    local function f(answer)
-        profile:RenameProfile(answer)
-        MESSAGEMAN:Broadcast("ProfileRenamed")
-        on()
-    end
     local question = "RENAME PROFILE\nPlease enter a new profile name."
     if isNewProfile then
         question = "NEW PROFILE\nPlease enter a profile name."
     end
-    askForInputStringWithFunction(
+    askForInputStringMaintainingInputRedirect(
         question,
         255,
         false,
-        f,
+        function(answer)
+            profile:RenameProfile(answer)
+            MESSAGEMAN:Broadcast("ProfileRenamed")
+        end,
         function(answer)
             local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
             if not result then
@@ -483,37 +502,21 @@ function renameProfileDialogue(profile, isNewProfile)
             -- upon exit, do nothing
             -- profile name is unchanged
             MESSAGEMAN:Broadcast("ProfileRenamed")
-            on()
         end
     )
 end
 
 -- convenience to control the rename dialogue logic and input redir scope
 function renamePlaylistDialogue(oldname)
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-
-    local function f(answer)
-        local success = SONGMAN:RenamePlaylistNoDialog(oldname, answer)
-        MESSAGEMAN:Broadcast("PlaylistRenamed", {success = success})
-        on()
-    end
     local question = "RENAME PLAYLIST\nPlease enter a new playlist name."
-    askForInputStringWithFunction(
+    askForInputStringMaintainingInputRedirect(
         question,
         255,
         false,
-        f,
+        function(answer)
+            local success = SONGMAN:RenamePlaylistNoDialog(oldname, answer)
+            MESSAGEMAN:Broadcast("PlaylistRenamed", {success = success})
+        end,
         function(answer)
             local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
             if not result then
@@ -525,40 +528,44 @@ function renamePlaylistDialogue(oldname)
             -- upon exit, do nothing
             -- playlist name is unchanged
             MESSAGEMAN:Broadcast("PlaylistRenamed", {success = false})
-            on()
         end
     )
 end
 
 function newPlaylistDialogue()
-    local redir = SCREENMAN:get_input_redirected(PLAYER_1)
-    local function off()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, false)
-        end
-    end
-    local function on()
-        if redir then
-            SCREENMAN:set_input_redirected(PLAYER_1, true)
-        end
-    end
-    off()
-    -- input redirects are controlled here because we want to be careful not to break any prior redirects
-    askForInputStringWithFunction(
+    askForInputStringMaintainingInputRedirect(
         "Enter New Playlist Name",
         128,
         false,
+        nil,
         function(answer)
+            -- answer checking function
             -- success if the answer isnt blank
-            if answer:gsub("^%s*(.-)%s*$", "%1") ~= "" then
+            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= ""
+            if result then
                 SONGMAN:NewPlaylistNoDialog(answer)
-            else
-                on()
             end
+            return result, "Response invalid."
         end,
-        function() return true, "" end,
-        function()
-            on()
-        end
+        nil
+    )
+end
+
+function newTagDialogue(question)
+    askForInputStringMaintainingInputRedirect(
+        question,
+        128,
+        false,
+        nil,
+        function(answer)
+            -- answer checking function
+            -- success if the answer isnt blank
+            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= ""
+            if result then
+                MESSAGEMAN:Broadcast("CreateNewTag", {name = answer})
+            end
+            return result, "Response invalid."
+        end,
+        nil
     )
 end

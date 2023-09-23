@@ -580,7 +580,7 @@ function ConfFullscreenType()
 	local choiceVals = {FULLSCREEN_EXCLUSIVE}
 	local choices = {"Default"}
 	if fsbwSupported then
-		choices = {"Exclusive", "Borderless Window"}
+		choices = {THEME:GetString("OptionNames", "ExclusiveFullscreen"), THEME:GetString("OptionNames", "BorderlessWindow")}
 		choiceVals = {FULLSCREEN_EXCLUSIVE, FULLSCREEN_BORDERLESS_WIN}
 	end
 	local origFSType = PREFSMAN:GetPreference("FullscreenIsBorderlessWindow") and FULLSCREEN_BORDERLESS_WIN or FULLSCREEN_EXCLUSIVE

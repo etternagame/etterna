@@ -1,20 +1,11 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <bit>
 
 /* PRAISE ULBU FOR IT IS ITS GLORY THAT GIVES OUR LIVES MEANING */
 
-/* since we are no longer using the normalizer system we need to lower the base
- * difficulty for each skillset and then detect pattern types to push down OR
- * up, rather than just down and normalizing to a differential since chorded
- * patterns have lower enps than streams, streams default to 1 and chordstreams
- * start lower, stam is a special case and may use normalizers again */
-static const std::array<float, NUM_Skillset> basescalers = {
-	0.F, 0.91F, 0.75F, 0.77F, 0.93F, 1.01F, 1.02F, 1.06F
-};
-
 static const std::string calc_params_xml = "Save/calc params.xml";
-static const std::array<unsigned, num_hands> hand_col_ids = { 3, 12 };
 constexpr float interval_span = 0.5F;
 
 /// smoothing function to reduce spikes and holes in a given vector
@@ -54,7 +45,8 @@ MSSmooth(std::vector<float>& input,
 }
 
 static const std::vector<CalcPatternMod> agnostic_mods = {
-	Stream, JS, HS, CJ, CJDensity, HSDensity, FlamJam, TheThing, TheThing2,
+	Stream,	 JS,	   HS,		  CJ,	   CJDensity,	 HSDensity,
+	FlamJam, TheThing, TheThing2, GStream, GChordStream, GBracketing,
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
@@ -173,6 +165,19 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 		}
 	}
 
+	// set up extra keycount information
+	const auto max_keycount_notes = keycount_to_bin(calc.keycount);
+	const auto left_hand_mask = left_mask(calc.keycount);
+	const auto right_hand_mask = right_mask(calc.keycount);
+	// left, right
+	calc.hand_col_masks = { left_hand_mask, right_hand_mask };
+	// all columns from left to rightmost
+	calc.col_masks.clear();
+	calc.col_masks.reserve(calc.keycount);
+	for (int i = 0; i < calc.keycount; i++) {
+		calc.col_masks.push_back(1 << i);
+	}
+
 	/* now we can attempt to construct notinfo that includes column count and
 	 * rate adjusted row time, both of which are derived data that both pmod
 	 * loops require */
@@ -190,7 +195,7 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 		const auto& ri = i;
 
 		// either not a 4k file or malformed
-		if (ri.notes < 0 || ri.notes > 0b1111) {
+		if (ri.notes < 0 || ri.notes > max_keycount_notes) {
 			return true;
 		}
 
@@ -228,26 +233,14 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 		nri.row_count = column_count(ri.notes);
 		nri.row_time = scaled_time;
 
-		auto left = 0;
-		auto right = 0;
+		// how many columns have a note on them per hand
+		nri.hand_counts[left_hand] = std::popcount(ri.notes & left_hand_mask);
+		nri.hand_counts[right_hand] = std::popcount(ri.notes & right_hand_mask);
 
-		if ((ri.notes & 1U) != 0U) {
-			++left;
-		}
-		if ((ri.notes & 2U) != 0U) {
-			++left;
-		}
-		if ((ri.notes & 4U) != 0U) {
-			++right;
-		}
-		if ((ri.notes & 8U) != 0U) {
-			++right;
-		}
-
-		assert(left + right == nri.row_count);
-
-		nri.hand_counts[left_hand] = left;
-		nri.hand_counts[right_hand] = right;
+		// make sure row_count adds up...
+		// this validates that the mask is correct
+		assert(nri.hand_counts[left_hand] + nri.hand_counts[right_hand] ==
+			   nri.row_count);
 
 		++row_counter;
 	}

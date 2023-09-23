@@ -254,7 +254,7 @@ local function beginLoginProcess(self)
     off()
 
     username = ""
-    
+
     -- this sets up 2 text entry windows to pull your username and pass
     -- if you press escape or just enter nothing, you are forced out
     -- input redirects are controlled here because we want to be careful not to break any prior redirects
@@ -666,8 +666,10 @@ t[#t+1] = Def.ActorFrame {
             end
 
             local ctrl = INPUTFILTER:IsControlPressed()
+            local char = event.charNoModifiers:upper()
+            local char2 = event.char:upper()
             -- login logout shortcut
-            if ctrl and event.DeviceInput.button == "DeviceButton_l" then
+            if ctrl and (char == "L" or char2 == "L") then
                 if not DLMAN:IsLoggedIn() then
                     beginLoginProcess(self)
                 else

@@ -41,6 +41,7 @@ end
 
 local textSize = 0.75
 local textzoomFudge = 5
+local hackyMaxWidth = Var("hackyMaxWidth") or false
 
 -- this will return an index which is offset depending on certain conditions
 -- basically we want the difficulties to be aligned to the right of the box
@@ -60,6 +61,7 @@ end
 local function setMaxWidthForSongInfo()
     local curSongBox = SCREENMAN:GetTopScreen():safeGetChild("RightFrame", "CurSongBoxFile")
     if not curSongBox then return end
+    if not hackyMaxWidth then return end
 
     local diffSlotsOpen = clamp(numshown - #thesteps, 0, numshown)
     -- exactly the width of <diffSlotsOpen> items including the space between plus an additional 2 gaps worth of space for buffer

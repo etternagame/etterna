@@ -154,6 +154,9 @@ GameState::GameState()
 		this->PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
+
+		LUA->SetGlobal("MIN_MUSIC_RATE", MIN_MUSIC_RATE);
+		LUA->SetGlobal("MAX_MUSIC_RATE", MAX_MUSIC_RATE);
 	}
 }
 

@@ -59,11 +59,11 @@ local translated_info = {
 	ExplainBack = THEME:GetString("TabSearch", "ExplainBack"),
 	ExplainDel = THEME:GetString("TabSearch", "ExplainDelete"),
 	ExplainLimit = THEME:GetString("TabSearch", "ExplainLimitation"),
-	ExplainNumInput = THEME:GetString("TabSearch", "ExplainNumInput")
+	ExplainNumInput = THEME:GetString("TabSearch", "ExplainNumInput"),
+	ExplainSuperSearch = THEME:GetString("TabSearch","ExplainSuperSearch"),
 }
 
-local t =
-	Def.ActorFrame {
+local t = Def.ActorFrame {
 	BeginCommand = function(self)
 		self:visible(false)
 		self:queuecommand("Set")
@@ -99,79 +99,84 @@ local t =
 	TabChangedMessageCommand = function(self)
 		self:queuecommand("Set")
 	end,
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 93):zoom(0.7):halign(0.5):maxwidth(470)
-			end,
-			SetCommand = function(self)
-				if active then
-					self:settextf("%s:", translated_info["Active"])
-					self:diffuse(getGradeColor("Grade_Tier10"))
-				elseif not active and searchstring ~= "" then
-					self:settext(translated_info["Complete"])
-					self:diffuse(getGradeColor("Grade_Tier04"))
-				else
-					self:settext("")
-				end
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 93):zoom(0.7):halign(0.5):maxwidth(470)
+		end,
+		SetCommand = function(self)
+			if active then
+				self:settextf("%s:", translated_info["Active"])
+				self:diffuse(getGradeColor("Grade_Tier10"))
+			elseif not active and searchstring ~= "" then
+				self:settext(translated_info["Complete"])
+				self:diffuse(getGradeColor("Grade_Tier04"))
+			else
+				self:settext("")
 			end
-		},
+		end,
+		UpdateStringMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	},
 	Def.Quad {
 		InitCommand = function(self)
 			self:xy(frameX - capWideScale(3.5,-3.5), frameY - 46):zoomto(capWideScale(362.5,472), 44):align(0,0.5):diffuse(getMainColor("tabs"))
 		end,
 	},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 50):zoom(0.7)
-				self:halign(0.5):maxwidth(capWideScale(500,650))
-			end,
-			SetCommand = function(self)
-				self:settext(searchstring)
-			end,
-			UpdateStringMessageCommand = function(self)
-				self:queuecommand("Set")
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
-				self:settext(translated_info["ExplainStart"])
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY - 175):zoom(0.4):halign(0)
-				self:settext(translated_info["ExplainBack"])
-			end
-		},
-	LoadFont("Common Large") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
-				self:settext(translated_info["ExplainDel"])
-			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY + 50):zoom(0.5):halign(0)
-				self:settext(translated_info["ExplainLimit"])
-			end
-		},
-	LoadFont("Common Normal") ..
-		{
-			InitCommand = function(self)
-				self:xy(frameX + 20, frameY + 70):zoom(0.5):align(0,0)
-				self:settext(translated_info["ExplainNumInput"])
-			end
-		}
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 250 - capWideScale(get43size(95), 10), frameY - 50):zoom(0.7)
+			self:halign(0.5):maxwidth(capWideScale(500,650))
+		end,
+		SetCommand = function(self)
+			self:settext(searchstring)
+		end,
+		UpdateStringMessageCommand = function(self)
+			self:queuecommand("Set")
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY - 200):zoom(0.4):halign(0)
+			self:settext(translated_info["ExplainStart"])
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY - 175):zoom(0.4):halign(0)
+			self:settext(translated_info["ExplainBack"])
+		end
+	},
+	LoadFont("Common Large") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY - 150):zoom(0.4):halign(0)
+			self:settext(translated_info["ExplainDel"])
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY):zoom(0.5):halign(0)
+			local framexoffset = 20 - capWideScale(3.5,-3.5)
+			self:maxwidth((capWideScale(362.5,472) - framexoffset) / 0.5)
+			self:settext(translated_info["ExplainLimit"])
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY + 15):zoom(0.5):align(0,0)
+			local framexoffset = 20 - capWideScale(3.5,-3.5)
+			self:maxwidth((capWideScale(362.5,472) - framexoffset) / 0.5)
+			self:settext(translated_info["ExplainNumInput"])
+		end
+	},
+	LoadFont("Common Normal") .. {
+		InitCommand = function(self)
+			self:xy(frameX + 20, frameY + 50):zoom(0.5):align(0,0)
+			local framexoffset = 20 - capWideScale(3.5,-3.5)
+			self:maxwidth((capWideScale(362.5,472) - framexoffset) / 0.5)
+			self:settext(translated_info["ExplainSuperSearch"])
+		end
+	}
 }
 
 return t

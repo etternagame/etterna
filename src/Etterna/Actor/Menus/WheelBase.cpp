@@ -68,20 +68,28 @@ WheelBase::Load(const std::string& sType)
 	SAFE_DELETE(pTempl);
 
 	// draw outside->inside
-	for (int i = 0; i < NUM_WHEEL_ITEMS / 2; i++)
+	for (int i = 0; i < NUM_WHEEL_ITEMS / 2; i++) {
+		m_WheelBaseItems[i]->SetDrawOrder(i);
 		this->AddChild(m_WheelBaseItems[i]);
-	for (int i = NUM_WHEEL_ITEMS - 1; i >= NUM_WHEEL_ITEMS / 2; i--)
+	}
+	for (int i = NUM_WHEEL_ITEMS - 1; i >= NUM_WHEEL_ITEMS / 2; i--) {
+		m_WheelBaseItems[i]->SetDrawOrder(100 + (NUM_WHEEL_ITEMS - i));
 		this->AddChild(m_WheelBaseItems[i]);
+	}
 
 	m_sprHighlight.Load(THEME->GetPathG(sType, "highlight"));
 	m_sprHighlight->SetName("Highlight");
+	m_sprHighlight->SetDrawOrder(200);
 	this->AddChild(m_sprHighlight);
 	ActorUtil::LoadAllCommands(*m_sprHighlight, m_sName);
 
 	m_ScrollBar.SetName("ScrollBar");
 	m_ScrollBar.SetBarHeight(SCROLL_BAR_HEIGHT);
+	m_ScrollBar.SetDrawOrder(300);
 	this->AddChild(&m_ScrollBar);
 	ActorUtil::LoadAllCommands(m_ScrollBar, m_sName);
+
+	this->SubscribeToMessage("ReloadedMetrics");
 
 	SetPositions();
 }
@@ -90,6 +98,43 @@ void
 WheelBase::BeginScreen()
 {
 	m_WheelState = STATE_SELECTING;
+}
+
+void
+WheelBase::MaintainItemCount()
+{
+	auto beforecount = m_WheelBaseItems.size();
+	auto aftercount = NUM_WHEEL_ITEMS;
+	if (aftercount > beforecount && aftercount > 0) {
+		WheelItemBase* tmp = MakeItem();
+		ActorUtil::LoadAllCommands(*tmp, m_sName);
+		tmp->PlayCommand("Init");
+		for (int i = 0; i < aftercount - beforecount; i++) {
+			WheelItemBase* tmpcopy = tmp->Copy();
+			m_WheelBaseItems.push_back(tmpcopy);
+		}
+		SAFE_DELETE(tmp);
+		for (int i = beforecount; i < aftercount; i++) {
+			m_WheelBaseItems[i]->SetDrawOrder(150);
+			this->AddChild(m_WheelBaseItems[i]);
+		}
+		this->SortByDrawOrder();
+	} else if (aftercount < beforecount && beforecount > 0) {
+		for (int i = beforecount - 1; i > 0 && i > aftercount; i--) {
+			this->RemoveChild(m_WheelBaseItems[i]);
+			m_WheelBaseItems.pop_back();
+		}
+	}
+}
+
+void
+WheelBase::HandleMessage(const Message& msg)
+{
+	if (msg == Message_ReloadedMetrics) {
+		MaintainItemCount();
+	}
+
+	ActorFrame::HandleMessage(msg);
 }
 
 void

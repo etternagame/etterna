@@ -133,10 +133,20 @@ const WCHAR* WINAPI DXGetErrorStringW( _In_ HRESULT hr )
 
 auto GetErrorString(HRESULT hr) -> std::string
 {
+	Locator::getLogger()->warn("RageDisplay_D3D::GetErrorString() - HR {}",
+							   static_cast<long>(hr));
     const wchar_t* msg = DXGetErrorStringW(hr);
-    if (msg)
-        return WStringToString(std::wstring(msg));
-    return "";
+    if (msg) {
+		auto r = WStringToString(std::wstring(msg));
+		if (r.compare("Unknown error.") == 0) {
+			return fmt::format("Unknown error: HR {}", static_cast<long>(hr));
+		} else {
+			return r;
+		}
+	} else {
+		return fmt::format("Failed to read error: HR {}",
+						   static_cast<long>(hr));
+	}
 }
 
 // Globals

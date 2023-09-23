@@ -1908,7 +1908,7 @@ class LunaChart : public Luna<Chart>
 	static auto ChangeRate(T* p, lua_State* L) -> int
 	{
 		p->rate += FArg(1);
-		p->rate = std::clamp(p->rate, 0.7F, 3.F);
+		p->rate = std::clamp(p->rate, MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 		return 1;
 	}
 

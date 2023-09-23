@@ -76,13 +76,16 @@ function CONTEXTMAN.RegisterToContextSet(self, screen, group, name)
     self.ScreenToContext[screen][group][name] = true
 end
 
--- return if a group exists and is enabled
-function CONTEXTMAN.CheckContextSet(self, screen, group)
+-- return if a list of groups exists and is enabled
+function CONTEXTMAN.CheckContextSet(self, screen, ...)
     if self.ContextIgnored then return false end
 
     if self.ScreenToContext[screen] ~= nil then
-        if self.ScreenToContext[screen][group] ~= nil then
-            return self.ScreenToContext[screen][group].enabled
+        local groups = {...}
+        for _, group in ipairs(groups) do
+            if self.ScreenToContext[screen][group] ~= nil then
+                return self.ScreenToContext[screen][group].enabled
+            end
         end
     end
     return false

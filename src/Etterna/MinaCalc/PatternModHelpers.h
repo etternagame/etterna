@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <xmmintrin.h>
 #include <numeric>
+#include <cstring>
 
 /* generic pattern mod functions and defs to help either agnostic or dependent
  * mods do their stuff */

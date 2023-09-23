@@ -44,6 +44,9 @@ const float HOLD_DROP_SEC = 0.250F;
 // how long between each subsequent tap on a roll before death
 const float ROLL_DROP_SEC = 0.500F;
 
+const float MIN_MUSIC_RATE = 0.05F;
+const float MAX_MUSIC_RATE = 3.F;
+
 enum GameplayMode
 {
 	GameplayMode_Normal,

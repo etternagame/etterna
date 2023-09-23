@@ -193,10 +193,7 @@ t[#t+1] = Def.ActorFrame {
                 SCUFF.preview.active = not SCUFF.preview.active
                 MESSAGEMAN:Broadcast("ChartPreviewToggle")
             elseif params.event == "DeviceButton_right mouse button" then
-                local top = SCREENMAN:GetTopScreen()
-                if top.PauseSampleMusic then
-                    top:PauseSampleMusic()
-                end
+                MESSAGEMAN:Broadcast("OpenCalcDebug")
             end
         end,
         MouseOverCommand = function(self)
@@ -429,7 +426,7 @@ t[#t+1] = Def.ActorFrame {
             end
         end
     },
-    LoadActorWithParams("stepsdisplay", {ratios = ratios, actuals = actuals})
+    LoadActorWithParams("stepsdisplay", {ratios = ratios, actuals = actuals, hackyMaxWidth = true})
 
 }
 

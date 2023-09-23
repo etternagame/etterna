@@ -126,7 +126,13 @@ local t = Def.ActorFrame {
 			else
 				self:LoadDummyNoteData()
 			end
-		end
+		end,
+		CalcInfoOnMessageCommand = function(self)
+			self:show_interval_bars(true)
+		end,
+		CalcInfoOffMessageCommand = function(self)
+			self:show_interval_bars(false)
+		end,
 	},
 
 	Def.Quad {

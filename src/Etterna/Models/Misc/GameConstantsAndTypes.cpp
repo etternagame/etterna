@@ -257,6 +257,9 @@ static const char* CalcPatternModNames[] = {
 	// "RanPropOHT",
 	// "RanPropOffS",
 	// "RanPropJack",
+	"GenericStream",
+	"GenericChordstream",
+	"GenericBracketing",
 	"TotalPatternMod",
 };
 XToString(CalcPatternMod);

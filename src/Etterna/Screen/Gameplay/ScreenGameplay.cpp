@@ -43,6 +43,7 @@
 #include "Etterna/Models/Misc/PlayerInfo.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "Etterna/Singletons/ReplayManager.h"
+#include "RageUtil/Misc/RageInput.h"
 
 #include <algorithm>
 
@@ -99,6 +100,7 @@ ScreenGameplay::ScreenGameplay()
 	m_gave_up = false;
 	m_bZeroDeltaOnNextUpdate = false;
 	m_pSoundMusic = nullptr;
+	INPUTMAN->ApplyTemporaryInputSettings();
 }
 
 void
@@ -402,6 +404,7 @@ ScreenGameplay::~ScreenGameplay()
 
 		GAMESTATE->m_gameplayMode.Set(GameplayMode_Normal);
 		GAMESTATE->TogglePracticeMode(false);
+		INPUTMAN->RemoveTemporaryInputSettings();
 	}
 
 	// Always unpause when exiting gameplay (or restarting)

@@ -96,6 +96,7 @@ class DownloadablePack
 	std::string mirror{ "" };
 	std::string bannerUrl{ "" };
 	bool downloading{ false };
+	bool isQueued();
 	// Lua
 	void PushSelf(lua_State* L);
 };
@@ -387,6 +388,11 @@ class DownloadManager
 	// Score uploads
 	std::deque<HighScore*> ScoreUploadSequentialQueue;
 	unsigned int sequentialScoreUploadTotalWorkload{ 0 };
+	const int maxPacksToDownloadAtOnce = 1;
+	const float DownloadCooldownTime = 5.f;
+	float timeSinceLastDownload = 0.f;
+	CURLM* pack_multi_handle = nullptr;
+	CURLM* http_req_handle = nullptr;
 
 	/////
 	// Pack downloads

@@ -583,11 +583,9 @@ local function assetList()
                         self:GetChild("SelectedAssetIndicator"):playcommand("Set")
                         if i == curIndex then
                             self:GetChild("Image"):finishtweening()
-                            self:GetChild("Image"):zoomto(assetHeight+8,assetWidth+8)
                             self:GetChild("Border"):zoomto(assetHeight+12,assetWidth+12)
                             self:GetChild("Border"):diffuse(COLORS:getColor("assetSettings", "HoveredItem")):diffusealpha(0.8)
                         else
-                            self:GetChild("Image"):zoomto(assetHeight,assetWidth)
                             self:GetChild("Border"):zoomto(assetHeight+4,assetWidth+4)
                             self:GetChild("Border"):diffuse(COLORS:getColor("assetSettings", "HoveredItem")):diffusealpha(0)
                         end
@@ -675,6 +673,10 @@ local function assetList()
         
         t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
             Name = "Image",
+            InitCommand = function(self)
+                self:set_use_effect_clock_for_texcoords(true)
+                self:effectclock("timerglobal")
+            end,
             LoadAssetCommand = function(self)
                 local assets = findAssetsForPath(name)
                 if #assets > 1 then
@@ -683,15 +685,34 @@ local function assetList()
                 else
                     self:LoadBackground(name)
                 end
+                self:SetStateProperties(Sprite.LinearFrames(self:GetNumStates(), 1))
+                local w = self:GetWidth() or assetWidth
+                local h = (self:GetHeight() or assetHeight)
+                self.z = 1
+                if w > assetWidth and h > assetHeight then
+                    if h * (assetWidth / assetHeight) > w then
+                        self.z = assetHeight / h
+                    else
+                        self.z = assetWidth / w
+                    end
+                elseif w > assetWidth then
+                    self.z = assetWidth / w
+                elseif h > assetHeight then
+                    self.z = assetHeight / h
+                end
+                self:zoomto(assetWidth, assetHeight)
+                self:zoom(self.z)
             end,
             CursorMovedMessageCommand = function(self, params)
                 self:finishtweening()
                 if params.index == i then
                     self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
                     self:zoomto(assetWidth+8, assetHeight+8)
+                    self:zoom(self.z)
                 else
                     self:smooth(0.2)
                     self:zoomto(assetWidth, assetHeight)
+                    self:zoom(self.z)
                 end
             end,
             PageMovedMessageCommand = function(self, params)
@@ -699,9 +720,11 @@ local function assetList()
                 if params.index == i then
                     self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
                     self:zoomto(assetWidth+8, assetHeight+8)
+                    self:zoom(self.z)
                 else
                     self:smooth(0.2)
                     self:zoomto(assetWidth, assetHeight)
+                    self:zoom(self.z)
                 end
             end,
             MouseDownCommand = function(self)

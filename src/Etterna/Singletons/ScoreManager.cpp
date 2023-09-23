@@ -10,7 +10,6 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "Etterna/Globals/SoloCalc.h"
 
 #include <cstdint>
 #include <numeric>
@@ -575,18 +574,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				const auto& serializednd = *serializednd_ptr;
 				std::vector<float> dakine;
 
-				if (steps->m_StepsType == StepsType_dance_single) {
-					// dakine = MinaSDCalc(serializednd, musicrate,
-					// ssrpercent);
-					dakine = MinaSDCalc(serializednd,
-										musicrate,
-										ssrpercent,
-										per_thread_calc.get());
-				} else {
-					int columnCount =
-					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-					dakine = SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
-				}
+				// dakine = MinaSDCalc(serializednd, musicrate,
+				// ssrpercent);
+				const unsigned columnCount =
+				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+				dakine = MinaSDCalc(serializednd,
+									musicrate,
+									ssrpercent,
+									columnCount,
+									per_thread_calc.get());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
@@ -745,17 +741,13 @@ ScoreManager::RecalculateSSRs(const std::string& profileID)
 				auto serializednd = nd.SerializeNoteData2(td);
 				std::vector<float> dakine;
 
-				if (steps->m_StepsType == StepsType_dance_single) {
-					dakine = MinaSDCalc(serializednd,
-										musicrate,
-										ssrpercent,
-										per_thread_calc.get());
-				} else {
-					int columnCount =
-					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-					dakine = SoloCalc(
-					  serializednd, columnCount, musicrate, ssrpercent);
-				}
+					const unsigned columnCount =
+				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+				dakine = MinaSDCalc(serializednd,
+									musicrate,
+									ssrpercent,
+									columnCount,
+									per_thread_calc.get());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
@@ -1061,8 +1053,7 @@ ScoreManager::GetPlaycountPerSkillset(const std::string& profileID)
 		if (c == nullptr)
 			continue;
 
-		auto ss = c->SortSkillsetsAtRate(
-		  std::clamp(s->GetMusicRate(), 0.7F, 2.F), false);
+		auto ss = c->SortSkillsetsAtRate(s->GetMusicRate(), false);
 		counts[ss[0].first]++;
 	}
 	return counts;

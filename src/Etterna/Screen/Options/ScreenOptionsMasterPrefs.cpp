@@ -577,7 +577,7 @@ DisplayColorDepth(int& sel, bool ToSel, const ConfOption* pConfOption)
 static void
 MaxTextureResolution(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	const int mapping[] = { 256, 512, 1024, 2048 };
+	const int mapping[] = { 256, 512, 1024, 2048, 4096, 8192 };
 	MoveMap(sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping));
 }
 
@@ -900,7 +900,9 @@ InitializeConfOptions()
 				   "|256",
 				   "|512",
 				   "|1024",
-				   "|2048"));
+				   "|2048",
+				   "|4096",
+				   "|8192"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("TextureColorDepth", TextureColorDepth, "16bit", "32bit"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;

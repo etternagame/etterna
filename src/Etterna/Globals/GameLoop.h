@@ -15,6 +15,7 @@ namespace GameLoop {
     void ChangeTheme(const std::string& sNewTheme);
     void ChangeGame(const std::string& new_game, const std::string& new_theme = "");
     void RunGameLoop();
-};
+	void loadSavedLayout();
+	};
 
 #endif

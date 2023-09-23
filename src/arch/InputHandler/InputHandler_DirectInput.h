@@ -21,9 +21,13 @@ class InputHandler_DInput : public InputHandler
 	bool DevicesChanged();
 	void WindowReset();
 
+	void ApplyTemporaryInputSettings() override;
+	void RemoveTemporaryInputSettings() override;
+
   private:
 	RageThread m_InputThread;
 	bool m_bShutdown;
+	bool m_bTemporarySettingsApplied = false;
 
 	int m_iLastSeenNumHidDevices; // This changes first on plug/unplug
 	int m_iNumTimesLeftToPollForJoysticksChanged;

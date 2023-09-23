@@ -99,13 +99,6 @@ t[#t + 1] = Def.Quad {
 --Skillset label function
 local function littlebits(i)
 	local t = Def.ActorFrame {
-		SetCommand = function(self)
-			if GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() ~= 4 and i ~= 1 then
-				self:visible(0)
-			else
-				self:visible(1)
-			end
-		end,
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
 				self:xy(frameX + offsetX, frameY + 100 + txtDist * i):halign(0):valign(0):zoom(0.55):maxwidth(155 / 0.55)
@@ -250,18 +243,6 @@ t[#t + 1] = LoadFont("Common Large") .. {
 			self:settext(translated_text["NegBPM"])
 		else
 			self:settext("")
-		end
-	end
-}
---not 4key warning
-t[#t + 1] = LoadFont("Common Large") .. {
-	InitCommand = function(self)
-		self:xy(frameX + 78, frameY + 250):zoom(0.4):halign(0):diffusealpha(0.4)
-	end,
-	SetCommand = function(self)
-		self:settext("")
-		if steps and GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() ~= 4 then
-			self:settext("Not 4Key")
 		end
 	end
 }

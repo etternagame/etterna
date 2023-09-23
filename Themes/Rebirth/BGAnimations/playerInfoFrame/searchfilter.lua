@@ -32,6 +32,7 @@ local translations = {
     SubtitleSearch = THEME:GetString("SearchFilter", "SubtitleSearch"),
     ArtistSearch = THEME:GetString("SearchFilter", "ArtistSearch"),
     AuthorSearch = THEME:GetString("SearchFilter", "AuthorSearch"),
+    GroupSearch = THEME:GetString("SearchFilter", "GroupSearch"),
     OverallFilter = THEME:GetString("SearchFilter", "OverallFilter"),
     SteamFilter = THEME:GetString("SearchFilter", "SteamFilter"),
     JumpstreamFilter = THEME:GetString("SearchFilter", "JumpstreamFilter"),
@@ -135,6 +136,7 @@ local function upperSection()
         translations["SubtitleSearch"],
         translations["ArtistSearch"],
         translations["AuthorSearch"],
+        translations["GroupSearch"],
     }
 
     -- used to actually search for things in WheelDataManager
@@ -165,7 +167,7 @@ local function upperSection()
         -- "Any Search"
         function(input)
             if input ~= nil then input = input:lower() end
-            -- must parse the input for title, subtitle, artist, author
+            -- must parse the input for title, subtitle, artist, author, group
             -- same formatting as the old search
             local artistpos = input:find("artist=", 1, true)
             local authorpos = input:find("author=", 1, true)
@@ -174,6 +176,8 @@ local function upperSection()
             local stepperpos = input:find("stepper=", 1, true)
             local titlepos = input:find("title=", 1, true)
             local subtitlepos = input:find("subtitle=", 1, true)
+            local grouppos = input:find("group=", 1, true)
+            local packpos = input:find("pack=", 1, true)
 
             -- because title is a substring of subtitle we have to check to see if the match is incorrect
             if titlepos ~= nil and subtitlepos ~= nil and titlepos == subtitlepos + 3 then
@@ -184,8 +188,14 @@ local function upperSection()
             local foundauthor = ""
             local foundtitle = ""
             local foundsubtitle = ""
-
-            if artistpos ~= nil or authorpos ~= nil or titlepos ~= nil or subtitlepos ~= nil or mapperpos ~= nil or charterpos ~= nil or stepperpos ~= nil then
+            local foundgroup = ""
+            
+            if artistpos ~= nil or authorpos ~= nil or
+                titlepos ~= nil or subtitlepos ~= nil or
+                mapperpos ~= nil or charterpos ~= nil or
+                stepperpos ~= nil or grouppos ~= nil or
+                packpos ~= nil then
+                
                 if artistpos ~= nil then
                     local strend = input:find("[;]", artistpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
@@ -218,15 +228,26 @@ local function upperSection()
                     if strend == nil then strend = #input else strend = strend-1 end
                     foundsubtitle = input:sub(subtitlepos + 9, strend)
                 end
+                if grouppos ~= nil then
+                    local strend = input:find("[;]", grouppos+1)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundgroup = input:sub(grouppos + 6, strend)
+                elseif packpos ~= nil then
+                    local strend = input:find("[;]", packpos+1)
+                    if strend == nil then strend = #input else strend = strend-1 end
+                    foundgroup = input:sub(packpos + 5, strend)
+                end
                 searchentry.Title = foundtitle
                 searchentry.Subtitle = foundsubtitle
                 searchentry.Artist = foundartist
                 searchentry.Author = foundauthor
+                searchentry.Group = foundgroup
             else
                 searchentry.Title = input
                 searchentry.Subtitle = ""
                 searchentry.Artist = ""
                 searchentry.Author = ""
+                searchentry.Group = ""
             end
 
             -- you know what im just going to update all the other entry fields based on this one
@@ -247,6 +268,10 @@ local function upperSection()
         -- "Author Search"
         function(input)
             searchentry.Author = input
+        end,
+        -- "Group Search"
+        function(input)
+            searchentry.Group = input
         end,
     }
 
@@ -391,11 +416,12 @@ local function upperSection()
                     self:GetChild("RowFrame_3"):GetChild("RowInput"):settext(searchentry.Subtitle)
                     self:GetChild("RowFrame_4"):GetChild("RowInput"):settext(searchentry.Artist)
                     self:GetChild("RowFrame_5"):GetChild("RowInput"):settext(searchentry.Author)
+                    self:GetChild("RowFrame_6"):GetChild("RowInput"):settext(searchentry.Group)
                 else
                     -- backwards engineering the any search field
                     -- for the kids who have big brains and want bigger brains
                     local finalstr = ""
-                    if searchentry.Title ~= "" or searchentry.Subtitle ~= "" or searchentry.Artist ~= "" or searchentry.Author ~= "" then
+                    if searchentry.Title ~= "" or searchentry.Subtitle ~= "" or searchentry.Artist ~= "" or searchentry.Author ~= "" or searchentry.Group ~= "" then
                         if searchentry.Title ~= "" then
                             finalstr = finalstr .. "title="..searchentry.Title..";"
                         end
@@ -408,6 +434,9 @@ local function upperSection()
                         if searchentry.Author ~= "" then
                             finalstr = finalstr .. "author="..searchentry.Author..";"
                         end
+                        if searchentry.Group ~= "" then
+                            finalstr = finalstr .. "group="..searchentry.Group..";"
+                        end 
                     end
                     self:GetChild("RowFrame_1"):GetChild("RowInput"):settext(finalstr)
                 end
