@@ -88,6 +88,7 @@ static const std::string API_LOGIN = "/login";
 static const std::string API_RANKED_CHARTKEYS = "/charts/ranked";
 static const std::string API_CHART_LEADERBOARD = "/charts/{}/scores";
 static const std::string API_UPLOAD_SCORE = "/scores";
+static const std::string API_GET_SCORE = "/scores/{}";
 static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
 static const std::string API_FAVORITES = "/favorites";
 static const std::string API_GOALS = "/goals";
@@ -1068,8 +1069,8 @@ void
 DownloadManager::Logout()
 {
 	// cancel sequential upload
-	DLMAN->ScoreUploadSequentialQueue.clear();
-	DLMAN->sequentialScoreUploadTotalWorkload = 0;
+	ScoreUploadSequentialQueue.clear();
+	sequentialScoreUploadTotalWorkload = 0;
 	runningSequentialUpload = false;
 
 	// logout
@@ -1638,9 +1639,10 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 		tmp.SSRs[Skill_Technical] = score["technical"].GetFloat();
 	else
 		tmp.SSRs[Skill_Technical] = 0.0;
-
-	// not sure yet
-	tmp.hasReplay = false;
+	if (score.HasMember("replay") && score["replay"].IsBool())
+		tmp.hasReplay = score["replay"].GetBool();
+	else
+		tmp.hasReplay = false;
 
 	if (score.HasMember("calculator_version") &&
 		score["calculator_version"].IsInt())
@@ -2667,125 +2669,174 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 								   const std::string& chartkey,
 								   LuaReference& callback)
 {
-	Locator::getLogger()->warn("REQUEST REPLAY DATA NOT IMPLEMENTED");
-	return;
+	auto queryPath = fmt::format(API_GET_SCORE, scoreid);
+	Locator::getLogger()->info(
+	  "Generating replay data request for scoreid {} - {}", scoreid, chartkey);
 
-	/*
+	auto runLuaFunc =
+	  [callback](std::vector<std::pair<float, float>>& replayData,
+				 const std::vector<OnlineScore>::iterator& it,
+				 const std::vector<OnlineScore>::iterator& itEnd) {
+		  
+		  if (!callback.IsNil() && callback.IsSet()) {
+			  Locator::getLogger()->info(
+				"RequestReplayData finished - running callback function");
+			  auto L = LUA->Get();
+			  callback.PushSelf(L);
+			  std::string Error =
+				"Error running RequestReplayData Finish Function: ";
+			  lua_newtable(L);
+			  for (unsigned i = 0; i < replayData.size(); ++i) {
+				  auto& pair = replayData[i];
+				  lua_newtable(L);
+				  lua_pushnumber(L, pair.first);
+				  lua_rawseti(L, -2, 1);
+				  lua_pushnumber(L, pair.second);
+				  lua_rawseti(L, -2, 2);
+				  lua_rawseti(L, -2, i + 1);
+			  }
+			  if (it != itEnd)
+				  it->hs.PushSelf(L);
+			  // 2 args, 0 results
+			  LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
+			  LUA->Release(L);
+		  } else {
+			  Locator::getLogger()->info(
+				"RequestReplayData finished, but no callback was set");
+		  }
+	  };
 
-	auto done = [scoreid, callback, userid, username, chartkey, this](
-				  HTTPRequest& req) {
-		std::vector<std::pair<float, float>> replayData;
-		std::vector<float> timestamps;
-		std::vector<float> offsets;
-		std::vector<int> tracks;
-		std::vector<int> rows;
-		std::vector<TapNoteType> types;
+	auto done = [runLuaFunc, scoreid, userid, username, chartkey, &callback, this](HTTPRequest& req) {
+		std::vector<std::pair<float, float>> replayData{};
 
+		auto& lbd = chartLeaderboards[chartkey];
+		if (HandleAuthErrorResponse(API_GET_SCORE, req)) {
+			runLuaFunc(replayData, lbd.end(), lbd.end());
+			return;
+		}
+		if (HandleRatelimitResponse(API_GET_SCORE, req)) {
+			RequestReplayData(scoreid, userid, username, chartkey, callback);
+			return;
+		}
+
+		auto response = req.response_code;
+		if (response == 404) {
+			// no score was found
+			Locator::getLogger()->warn(
+			  "RequestReplayData 404'd because there is no score id {} (ck {})",
+			  scoreid, chartkey);
+			runLuaFunc(replayData, lbd.end(), lbd.end());
+			return;
+		}
+
+		
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "Malformed replay data request response: {}", req.result);
-			return;
-		}
-		if (d.HasMember("errors")) {
-			Locator::getLogger()->error(
-			  "Replay data request failed for {} (Response: {})",
-			  scoreid,
-			  jsonObjectToString(d));
-			return;
+			  "RequestReplayData Error: Malformed request response: {}",
+			  req.result);
 		}
 
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("replay") &&
-			d["data"]["attributes"]["replay"].IsArray()) {
-			for (auto& note : d["data"]["attributes"]["replay"].GetArray()) {
-				if (!note.IsArray() || note.Size() < 2 || !note[0].IsNumber() ||
-					!note[1].IsNumber())
-					continue;
-				replayData.push_back(
-				  std::make_pair(note[0].GetFloat(), note[1].GetFloat()));
+		if (response == 200) {
+			// found a score. maybe it has replay data
 
-				timestamps.push_back(note[0].GetFloat());
-				// horrid temp hack --
-				// EO keeps misses as 180ms bads for not a great reason
-				// convert them back to misses here
-				auto offset = note[1].GetFloat() / 1000.F;
-				if (offset == .18F)
-					offset = 1.F;
-				offsets.push_back(offset);
-				if (note.Size() == 3 &&
-					note[2].IsInt()) { // pre-0.6 with noterows
-					rows.push_back(note[2].GetInt());
-				}
-				if (note.Size() > 3 && note[2].IsInt() &&
-					note[3].IsInt()) { // 0.6 without noterows
-					tracks.push_back(note[2].GetInt());
-					types.push_back(static_cast<TapNoteType>(note[3].GetInt()));
-				}
-				if (note.Size() == 5 && note[4].IsInt()) { // 0.6 with noterows
-					rows.push_back(note[4].GetInt());
-				}
-			}
-			auto& lbd = chartLeaderboards[chartkey];
-			auto it = find_if(lbd.begin(),
+			if (d.HasMember("data") && d["data"].IsObject()) {
+
+				auto& data = d["data"];
+				if (data.HasMember("replay_data") &&
+					data["replay_data"].IsArray()) {
+					auto replayArr = data["replay_data"].GetArray();
+
+					auto it =
+					  find_if(lbd.begin(),
 							  lbd.end(),
 							  [userid, username, scoreid](OnlineScore& a) {
 								  return a.userid == userid &&
 										 a.username == username &&
 										 a.scoreid == scoreid;
 							  });
-			if (it != lbd.end()) {
-				it->hs.SetOnlineReplayTimestampVector(timestamps);
-				it->hs.SetOffsetVector(offsets);
-				it->hs.SetTrackVector(tracks);
-				it->hs.SetTapNoteTypeVector(types);
-				it->hs.SetNoteRowVector(rows);
+
+					if (it == lbd.end()) {
+						Locator::getLogger()->warn(
+						  "RequestReplayData could not save replay data "
+						  "because scoreid {} was not found stored in a chart "
+						  "leaderboard for {}",
+						  scoreid,
+						  chartkey);
+					} else {
+
+						auto& score = it->hs;
+						std::vector<float> timestamps;
+						std::vector<float> offsets;
+						std::vector<int> tracks;
+						std::vector<int> rows;
+						std::vector<TapNoteType> types;
+
+						for (auto& note : replayArr) {
+							if (!note.IsArray() || note.Size() < 2 ||
+								!note[0].IsNumber() || !note[1].IsNumber())
+								continue;
+							replayData.push_back(std::make_pair(
+							  note[0].GetFloat(), note[1].GetFloat()));
+
+							timestamps.push_back(note[0].GetFloat());
+							// horrid temp hack --
+							// EO keeps misses as 180ms bads for not a great
+							// reason convert them back to misses here
+							auto offset = note[1].GetFloat() / 1000.F;
+							if (offset == .18F)
+								offset = 1.F;
+							offsets.push_back(offset);
+							if (note.Size() == 3 &&
+								note[2].IsInt()) { // pre-0.6 with noterows
+								rows.push_back(note[2].GetInt());
+							}
+							if (note.Size() > 3 && note[2].IsInt() &&
+								note[3].IsInt()) { // 0.6 without noterows
+								tracks.push_back(note[2].GetInt());
+								types.push_back(
+								  static_cast<TapNoteType>(note[3].GetInt()));
+							}
+							if (note.Size() == 5 &&
+								note[4].IsInt()) { // 0.6 with noterows
+								rows.push_back(note[4].GetInt());
+							}
+						}
+						score.SetOnlineReplayTimestampVector(timestamps);
+						score.SetOffsetVector(offsets);
+						score.SetTrackVector(tracks);
+						score.SetTapNoteTypeVector(types);
+						score.SetNoteRowVector(rows);
+
+						runLuaFunc(replayData, it, lbd.end());
+						return;
+					}
+				} else {
+					Locator::getLogger()->warn(
+					  "RequestReplayData didn't find replay data for score {}  "
+					  "(ck {}) - Object Missing? {}",
+					  scoreid,
+					  chartkey,
+					  data.HasMember("replay_data"));
+				}
+
+			} else {
+				Locator::getLogger()->warn("RequestReplayData got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
 			}
+		} else {
+			Locator::getLogger()->warn(
+			  "RequestReplayData unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
 		}
 
-		auto& lbd = chartLeaderboards[chartkey];
-		auto it = find_if(
-		  lbd.begin(), lbd.end(), [userid, username, scoreid](OnlineScore& a) {
-			  return a.userid == userid && a.username == username &&
-					 a.scoreid == scoreid;
-		  });
-		if (it != lbd.end()) {
-			it->hs.SetOnlineReplayTimestampVector(timestamps);
-			it->hs.SetOffsetVector(offsets);
-			it->hs.SetTrackVector(tracks);
-			it->hs.SetTapNoteTypeVector(types);
-			it->hs.SetNoteRowVector(rows);
-		}
-
-		if (!callback.IsNil() && callback.IsSet()) {
-			auto L = LUA->Get();
-			callback.PushSelf(L);
-			std::string Error =
-			  "Error running RequestChartLeaderBoard Finish Function: ";
-			lua_newtable(L); // dunno whats going on here -mina
-			for (unsigned i = 0; i < replayData.size(); ++i) {
-				auto& pair = replayData[i];
-				lua_newtable(L);
-				lua_pushnumber(L, pair.first);
-				lua_rawseti(L, -2, 1);
-				lua_pushnumber(L, pair.second);
-				lua_rawseti(L, -2, 2);
-				lua_rawseti(L, -2, i + 1);
-			}
-			if (it != lbd.end())
-				it->hs.PushSelf(L);
-			LuaHelpers::RunScriptOnStack(
-			  L, Error, 2, 0, true); // 2 args, 0 results
-			LUA->Release(L);
-		}
+		// anything falling through to here has no replay data
+		runLuaFunc(replayData, lbd.end(), lbd.end());
 	};
-	SendRequest("/replay/" + std::to_string(userid) + "/" + scoreid,
-				std::vector<std::pair<std::string, std::string>>(),
-				done,
-				true);
-				*/
+
+	SendRequest(queryPath, {}, done, true);
 }
 
 void
@@ -2807,7 +2858,9 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 
 	auto runLuaFunc = [ref](HTTPRequest& req, std::vector<OnlineScore>& vec) {
 		if (!ref.IsNil() && ref.IsSet()) {
-			Lua* L = LUA->Get();
+			Locator::getLogger()->info(
+			  "RequestChartLeaderBoard finished - running callback function");
+			auto L = LUA->Get();
 			ref.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
 				std::string Error =
@@ -2836,6 +2889,9 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 				  L, Error, 1, 0, true); // 1 args, 0 results
 			}
 			LUA->Release(L);
+		} else {
+			Locator::getLogger()->info(
+			  "RequestChartLeaderBoard finished, but no callback was set");
 		}
 	};
 
