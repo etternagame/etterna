@@ -752,7 +752,7 @@ DownloadManager::UpdateHTTP(float fDeltaSeconds)
 void
 DownloadManager::UpdatePacks(float fDeltaSeconds)
 {
-	timeSinceLastDownload.store(timeSinceLastDownload.load() + fDeltaSeconds);
+	timeSinceLastDownload += fDeltaSeconds;
 	for (auto& x : downloads) {
 		/*if (x.second == nullptr) {
 			Locator::getLogger()->warn("Pack download was null? URL: {}",
@@ -779,12 +779,11 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
-	if (downloads.size() < maxPacksToDownloadAtOnce &&
-		!DownloadQueue.empty() &&
-		timeSinceLastDownload.load() > DownloadCooldownTime.Get()) {
+	if (downloads.size() < maxPacksToDownloadAtOnce && !DownloadQueue.empty() &&
+		timeSinceLastDownload > DownloadCooldownTime) {
 		std::pair<DownloadablePack*, bool> pack = DownloadQueue.front();
 		DownloadQueue.pop_front();
-		DownloadAndInstallPack(pack.first, pack.second);
+		DLMAN->DownloadAndInstallPack(pack.first, pack.second);
 	}
 	if (downloads.empty())
 		return;
@@ -802,15 +801,15 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
 			auto& dl = i->second;
-			if (handle == dl-> handle) {
+			if (handle == dl->handle) {
 				if (dl->p_RFWrapper.stop) {
 					dl->Failed();
 					finishedDownloads[dl->m_Url] = dl;
 				} else if (res == RequestResultStatus::Done) {
-					timeSinceLastDownload.store(0);
+					timeSinceLastDownload = 0;
 					pendingInstallDownloads[dl->m_Url] = dl;
 				} else if (res == RequestResultStatus::Failed) {
-					dl->Failed();
+					i->second->Failed();
 					finishedDownloads[dl->m_Url] = dl;
 				}
 				finishedADownload = true;
@@ -827,33 +826,8 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	}
 	result_handles.clear();
 
-	// when download speed is so slow, no data is written
-	// when no data is written, the write function is not called
-	// when the write function is not called, the download is never cancelled
-	// so cancel the download here as well
-	for (auto it = downloads.begin(); it != downloads.end(); it++) {
-		auto& dl = (*it).second;
-		if (dl->p_RFWrapper.stop) {
-			if (dl->p_Pack != nullptr && !dl->p_Pack->downloading) {
-				continue;
-			}
-
-			// dont remove the handle here because other thread wants it
-			dl->Failed();
-			finishedDownloads[dl->m_Url] = dl;
-			dl->p_RFWrapper.file.Flush();
-			if (dl->p_RFWrapper.file.IsOpen())
-				dl->p_RFWrapper.file.Close();
-			if (dl->p_Pack != nullptr)
-				dl->p_Pack->downloading = false;
-
-			downloads.erase(it);
-			finishedADownload = true;
-		}
-	}
-
 	if (finishedADownload && downloads.empty()) {
-			MESSAGEMAN->Broadcast("AllDownloadsCompleted");
+		MESSAGEMAN->Broadcast("AllDownloadsCompleted");
 	}
 }
 
@@ -2316,6 +2290,7 @@ DownloadManager::InitialScoreSync()
 		sequentialScoreUploadTotalWorkload += toUpload.size();
 		startSequentialUpload();
 		profile->m_lastRankedChartkeyCheck = lastCheckDT;
+		return true;
 	};
 
 	// this will search the date range [start, inf]
@@ -3472,7 +3447,7 @@ bool
 DownloadablePack::isQueued() {
 	auto it = std::find_if(DLMAN->DownloadQueue.begin(),
 						   DLMAN->DownloadQueue.end(),
-						   [this](pair<DownloadablePack*, bool> pair) {
+						   [this](std::pair<DownloadablePack*, bool> pair) {
 							   return pair.first == this;
 						   });
 	return it != DLMAN->DownloadQueue.end();
