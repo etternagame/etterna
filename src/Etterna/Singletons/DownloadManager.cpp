@@ -1704,6 +1704,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("datetime", val(hs->GetDateTime().GetString()), allocator);
 	d.AddMember(
 	  "chord_cohesion", static_cast<int>(hs->GetChordCohesion()), allocator);
+	d.AddMember("double_setup", static_cast<int>(hs->GetDSFlag()), allocator);
 	d.AddMember("calculator_version", hs->GetSSRCalcVersion(), allocator);
 	d.AddMember("top_score", hs->GetTopScore(), allocator);
 	d.AddMember("wife_version", hs->GetWifeVersion(), allocator);
