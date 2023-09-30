@@ -6,7 +6,8 @@ set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/CMake/CPack/license_instal
 set(CPACK_COMPONENT_ETTERNA_REQUIRED TRUE)  # Require Etterna component to be installed
 
 # Custom Variables
-set(INSTALL_DIR "Etterna")
+set(INSTALL_DIR "Etterna" CACHE STRING "Output directory for built game")
+set(ASSET_DIR "${INSTALL_DIR}" CACHE STRING "Output directory for game assets")
 
 if(UNIX)
     set(CPACK_GENERATOR TGZ)
@@ -14,12 +15,14 @@ if(UNIX)
     set(CPACK_PACKAGE_CONTACT https://github.com/etternagame/etterna)
 
     install(TARGETS Etterna COMPONENT Etterna DESTINATION ${INSTALL_DIR})
-    install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler
-            COMPONENT Etterna
-            DESTINATION ${INSTALL_DIR}
-            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                        GROUP_READ GROUP_EXECUTE
-                        WORLD_READ WORLD_EXECUTE)
+    if(WITH_CRASHPAD AND TARGET crashpad)
+        install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler
+                COMPONENT Etterna
+                DESTINATION ${INSTALL_DIR}
+                PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                            GROUP_READ GROUP_EXECUTE
+                            WORLD_READ WORLD_EXECUTE)
+    endif()
 endif()
 
 # Windows Specific CPack
@@ -47,8 +50,10 @@ if(WIN32)
 
     # List every DLL etterna needs.
     list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
-                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll"
-                         ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler.exe)
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll")
+    if(WITH_CRASHPAD AND TARGET crashpad)
+        list(APPEND WIN_DLLS ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler.exe)
+    endif()
     install(FILES ${WIN_DLLS}   COMPONENT Etterna DESTINATION Program)
     install(TARGETS Etterna     COMPONENT Etterna DESTINATION Program)
     install(FILES CMake/CPack/license_install.txt COMPONENT Etterna DESTINATION Docs)
@@ -60,24 +65,26 @@ elseif(APPLE)
     set(CPACK_DMG_VOLUME_NAME Etterna)
 
     install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
-    install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler
-            COMPONENT Etterna DESTINATION ${INSTALL_DIR}
-            PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                        GROUP_READ GROUP_EXECUTE
-                        WORLD_READ WORLD_EXECUTE)
+    if(WITH_CRASHPAD AND TARGET crashpad)
+        install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler
+                COMPONENT Etterna DESTINATION ${INSTALL_DIR}
+                PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                            GROUP_READ GROUP_EXECUTE
+                            WORLD_READ WORLD_EXECUTE)
+    endif()
 endif()
 
 # Universal Install Directories
 ## Files Only
-install(FILES Songs/instructions.txt        COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Songs")
-install(FILES Announcers/instructions.txt   COMPONENT Etterna DESTINATION "${INSTALL_DIR}/Announcers")
+install(FILES Songs/instructions.txt        COMPONENT Etterna DESTINATION "${ASSET_DIR}/Songs")
+install(FILES Announcers/instructions.txt   COMPONENT Etterna DESTINATION "${ASSET_DIR}/Announcers")
 
 ## Essential Game Files
-install(DIRECTORY Assets                    COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BackgroundEffects         COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BackgroundTransitions     COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY BGAnimations              COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Data                      COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY NoteSkins                 COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Scripts                   COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
-install(DIRECTORY Themes                    COMPONENT Etterna DESTINATION "${INSTALL_DIR}")
+install(DIRECTORY Assets                    COMPONENT Etterna DESTINATION "${ASSET_DIR}")
+install(DIRECTORY BackgroundEffects         COMPONENT Etterna DESTINATION "${ASSET_DIR}")
+install(DIRECTORY BackgroundTransitions     COMPONENT Etterna DESTINATION "${ASSET_DIR}")
+install(DIRECTORY BGAnimations              COMPONENT Etterna DESTINATION "${ASSET_DIR}")
+install(DIRECTORY Data                      COMPONENT Etterna DESTINATION "${ASSET_DIR}")
+install(DIRECTORY NoteSkins                 COMPONENT Etterna DESTINATION "${ASSET_DIR}")
+install(DIRECTORY Scripts                   COMPONENT Etterna DESTINATION "${ASSET_DIR}")
+install(DIRECTORY Themes                    COMPONENT Etterna DESTINATION "${ASSET_DIR}")
