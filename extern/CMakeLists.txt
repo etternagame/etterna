@@ -26,7 +26,7 @@ set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp lintiPng
 add_subdirectory(SQLiteCpp)
 
 ## websocketpp
-add_subdirectory(asio-1.12.2) # Only required for websocketpp
+add_subdirectory(asio) # Only required for websocketpp
 add_subdirectory(websocketpp)
 add_library(websocketpp INTERFACE)
 target_include_directories(websocketpp INTERFACE websocketpp)

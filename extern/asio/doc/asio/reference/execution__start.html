@@ -1,0 +1,75 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>execution::start</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Asio">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="execution__set_value.html" title="execution::set_value">
+<link rel="next" href="execution__submit.html" title="execution::submit">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="asio C++ library" width="250" height="60" src="../../asio.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="execution__set_value.html"><img src="../../prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../home.png" alt="Home"></a><a accesskey="n" href="execution__submit.html"><img src="../../next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="asio.reference.execution__start"></a><a class="link" href="execution__start.html" title="execution::start">execution::start</a>
+</h3></div></div></div>
+<p>
+        <a class="indexterm" name="asio.indexterm.execution__start"></a>
+      </p>
+<p>
+        A customisation point that notifies an operation state object to start its
+        associated operation.
+      </p>
+<pre class="programlisting"><span class="keyword">constexpr</span> <span class="identifier">unspecified</span> <span class="identifier">start</span> <span class="special">=</span> <span class="identifier">unspecified</span><span class="special">;</span>
+</pre>
+<p>
+        The name <code class="computeroutput"><span class="identifier">execution</span><span class="special">::</span><span class="identifier">start</span></code> denotes a customisation point object.
+        The expression <code class="computeroutput"><span class="identifier">execution</span><span class="special">::</span><span class="identifier">start</span><span class="special">(</span><span class="identifier">R</span><span class="special">)</span></code>
+        for some subexpression <code class="computeroutput"><span class="identifier">R</span></code>
+        is expression-equivalent to:
+      </p>
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
+<li class="listitem">
+            <code class="computeroutput"><span class="identifier">R</span><span class="special">.</span><span class="identifier">start</span><span class="special">()</span></code>,
+            if that expression is valid.
+          </li>
+<li class="listitem">
+            Otherwise, <code class="computeroutput"><span class="identifier">start</span><span class="special">(</span><span class="identifier">R</span><span class="special">)</span></code>,
+            if that expression is valid, with overload resolution performed in a
+            context that includes the declaration <code class="computeroutput"><span class="keyword">void</span>
+            <span class="identifier">start</span><span class="special">();</span></code>
+            and that does not include a declaration of <code class="computeroutput"><span class="identifier">execution</span><span class="special">::</span><span class="identifier">start</span></code>.
+          </li>
+<li class="listitem">
+            Otherwise, <code class="computeroutput"><span class="identifier">execution</span><span class="special">::</span><span class="identifier">start</span><span class="special">(</span><span class="identifier">R</span><span class="special">)</span></code> is ill-formed.
+          </li>
+</ul></div>
+<h5>
+<a name="asio.reference.execution__start.h0"></a>
+        <span><a name="asio.reference.execution__start.requirements"></a></span><a class="link" href="execution__start.html#asio.reference.execution__start.requirements">Requirements</a>
+      </h5>
+<p>
+        <span class="emphasis"><em>Header: </em></span><code class="literal">asio/execution/start.hpp</code>
+      </p>
+<p>
+        <span class="emphasis"><em>Convenience header: </em></span><code class="literal">asio/execution.hpp</code>
+      </p>
+</div>
+<div class="copyright-footer">Copyright © 2003-2023 Christopher M. Kohlhoff<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="execution__set_value.html"><img src="../../prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../home.png" alt="Home"></a><a accesskey="n" href="execution__submit.html"><img src="../../next.png" alt="Next"></a>
+</div>
+</body>
+</html>
