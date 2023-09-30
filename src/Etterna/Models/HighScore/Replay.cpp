@@ -1015,14 +1015,6 @@ Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
 	const auto path = replayDir + scoreKey;
 
 	std::ifstream fileStream(path, std::ios::binary);
-	std::string line;
-	std::string buffer;
-	std::vector<std::string> tokens;
-	int noteRow = 0;
-	float offset = 0.f;
-	int track = 0;
-	TapNoteType tnt = TapNoteType_Invalid;
-	int tmp = 0;
 
 	// check file
 	if (!fileStream) {
