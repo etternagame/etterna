@@ -801,6 +801,7 @@ CreateDisplay()
 	} else {
 		for (unsigned i = 0; i < asRenderers.size(); i++) {
 			std::string sRenderer = asRenderers[i];
+			Trim(sRenderer);
 
 			if (CompareNoCase(sRenderer, "opengl") == 0) {
 #if defined(SUPPORT_OPENGL)
