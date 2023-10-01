@@ -33,6 +33,11 @@ class Replay
 		return INPUT_DATA_DIR + scoreKey;
 	}
 
+	inline auto GetOnlinePath() const -> const std::string
+	{
+		return ONLINE_DATA_DIR + scoreKey;
+	}
+
 	auto GetOffsetVector() const -> const std::vector<float>&
 	{
 		return vOffsetVector;
@@ -407,7 +412,8 @@ class Replay
 	auto LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR)
 	  -> bool;
 	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
-
+	auto LoadOnlineDataFromDisk(const std::string& replayDir = ONLINE_DATA_DIR)
+	  -> bool;
 	auto LoadStoredOnlineData() -> bool;
 
 	/// For V1 or earlier replays lacking column data, we need to assume

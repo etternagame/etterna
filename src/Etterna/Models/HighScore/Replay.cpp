@@ -17,6 +17,8 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/SongManager.h"
 
+#include "rapidjson/document.h"
+
 // STL
 #include <algorithm>
 #include <cmath>
@@ -99,7 +101,7 @@ auto
 Replay::HasWrittenReplayData() -> bool
 {
 	return DoesFileExist(GetInputPath()) || DoesFileExist(GetFullPath()) ||
-		   DoesFileExist(GetBasicPath());
+		   DoesFileExist(GetBasicPath()) || DoesFileExist(GetOnlinePath());
 }
 
 auto
@@ -306,7 +308,7 @@ auto
 Replay::LoadReplayData() -> bool
 {
 	return LoadReplayDataFull() || LoadReplayDataBasic() ||
-		   LoadStoredOnlineData();
+		   LoadStoredOnlineData() || LoadOnlineDataFromDisk();
 }
 
 auto
@@ -994,6 +996,108 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	SetHoldReplayDataVector(vHoldReplayDataVector);
 
 	Locator::getLogger()->info("Loaded replay data type 2 at {}", path.c_str());
+	return true;
+}
+
+auto
+Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
+{
+	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
+		vTrackVector.size() > 4) {
+		return true;
+	}
+
+	std::vector<float> timestamps;
+	std::vector<float> offsets;
+	std::vector<int> tracks;
+	std::vector<int> rows;
+	std::vector<TapNoteType> types;
+	const auto path = replayDir + scoreKey;
+
+	std::ifstream fileStream(path, std::ios::binary);
+
+	// check file
+	if (!fileStream) {
+		return false;
+	}
+
+	rapidjson::Document d;
+	try {
+		std::stringstream buffer;
+		buffer << fileStream.rdbuf();
+		fileStream.close();
+
+		if (d.Parse(buffer.str().c_str()).HasParseError()) {
+			Locator::getLogger()->error("Malformed online replay data {}",
+										path);
+			return false;
+		}
+
+		if (!d.IsArray()) {
+			Locator::getLogger()->error(
+			  "Online replay data {} was not an array as expected - skipped",
+			  path);
+			return false;
+		}
+
+		for (auto& note : d.GetArray()) {
+			if (!note.IsArray() || note.Size() < 2 || !note[0].IsNumber() ||
+				!note[1].IsNumber())
+				continue;
+
+			timestamps.push_back(note[0].GetFloat());
+			// horrid temp hack --
+			// EO keeps misses as 180ms bads for not a great reason
+			// convert them back to misses here
+			auto offset = note[1].GetFloat() / 1000.F;
+			if (offset == .18F)
+				offset = 1.F;
+			offsets.push_back(offset);
+			if (note.Size() == 3 && note[2].IsInt()) { // pre-0.6 with noterows
+				rows.push_back(note[2].GetInt());
+			}
+			if (note.Size() > 3 && note[2].IsInt() &&
+				note[3].IsInt()) { // 0.6 without noterows
+				tracks.push_back(note[2].GetInt());
+				types.push_back(static_cast<TapNoteType>(note[3].GetInt()));
+			}
+			if (note.Size() == 5 && note[4].IsInt()) { // 0.6 with noterows
+				rows.push_back(note[4].GetInt());
+			}
+		}
+	}
+	catch (std::exception& e) {
+		Locator::getLogger()->error(
+		  "Caught exception while reading online replay data {}: {}",
+		  path,
+		  e.what());
+		return false;
+	}
+
+	SetNoteRowVector(rows);
+	SetOffsetVector(offsets);
+	SetTrackVector(tracks);
+	SetTapNoteTypeVector(types);
+	SetOnlineReplayTimestampVector(timestamps);
+
+	Locator::getLogger()->info(
+	  "Loaded online replay data {} - attempting to save as local replay",
+	  path);
+	if (!GenerateNoterowsFromTimestamps()) {
+		Locator::getLogger()->warn("Found old online replay data format for "
+								   "score {}, but could not load noterow data",
+								   scoreKey);
+		return false;
+	}
+
+	if (!WriteReplayData()) {
+		Locator::getLogger()->error(
+		  "Failed to save converted online replay data from {}", path);
+		return false;
+	}
+
+	Locator::getLogger()->info("Converted online replay data for score {}",
+							   scoreKey);
 	return true;
 }
 
