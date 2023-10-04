@@ -75,6 +75,7 @@ Wheel.mt = {
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
             GAMESTATE:SetPreferredSong(currentItem)
+            GAMESTATE:SetLastSongGroup(currentItem:GetGroupName())
 
             -- dude how do we even mimic the spaghetti behavior the c++ causes
             local function findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(charts, prefdiff, stepstype)
@@ -163,6 +164,11 @@ Wheel.mt = {
             -- currentItem is a GROUP
             GAMESTATE:SetCurrentSong(nil)
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            if WHEELDATA:GetCurrentSort() == 1 then
+                GAMESTATE:SetLastSongGroup(currentItem)
+            else
+                GAMESTATE:SetLastSongGroup("")
+            end
         end
     end,
     move = function(whee, num)
@@ -691,7 +697,7 @@ function Wheel:new(params)
                         elseif ctrl and shift and char == "O" then
                             -- Cache current pack for ranking (ctrl shift O)
                             local pack = nil
-                            if GAMESTATE:GetCurrentSong() ~= nil then
+                            if GAMESTATE:GetCurrentSong() ~= nil and whee:getCurrentItem().GetAllSteps then
                                 pack = GAMESTATE:GetCurrentSong():GetGroupName()
                             elseif WHEELDATA:GetCurrentSort() == 1 then
                                 -- group sort, hovering a pack

@@ -475,8 +475,18 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				return true;
 		} else if (holding_shift && bHoldingCtrl && c == 'O' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			if (CachePackForRanking(GetMusicWheel()->GetSelectedSection()))
-				return true;
+			if (GAMESTATE->m_pCurSong == nullptr) {
+				// currently hovering a group ... maybe
+				if (GAMESTATE->m_sLastSongGroup != "") {
+					if (CachePackForRanking(GAMESTATE->m_sLastSongGroup))
+						return true;
+				} else {
+					// most likely hovering a non pack section
+				}
+			} else {
+				if (CachePackForRanking(GAMESTATE->m_pCurSong->m_sGroupName))
+					return true;
+			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			if (ReloadCurrentPack())
@@ -1303,6 +1313,10 @@ ScreenSelectMusic::AfterMusicChange()
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong == nullptr) {
 		GAMESTATE->m_pCurSteps.Set(nullptr);
+		if (GAMESTATE->m_SortOrder == SORT_GROUP) {
+			// when hovering groups, set group to the hovered one
+			GAMESTATE->m_sLastSongGroup = m_MusicWheel.GetSelectedSection();
+		}
 		if (b_PreviewNoteFieldIsActive)
 		// if previewnotefield we are moving out of a pack
 		// into the pack list (that's what this block of code is for
@@ -1312,6 +1326,7 @@ ScreenSelectMusic::AfterMusicChange()
 			SONGMAN->Cleanup();
 	} else {
 		GAMESTATE->m_pPreferredSong = pSong;
+		GAMESTATE->m_sLastSongGroup = pSong->m_sGroupName;
 	}
 
 	GAMESTATE->SetPaused(false); // hacky can see this being problematic
