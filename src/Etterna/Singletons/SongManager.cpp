@@ -1171,11 +1171,14 @@ SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
 {
 	SCREENMAN->SystemMessage(
 	  ssprintf("Generating cache files for %s", sGroupName.c_str()));
-	auto songs = GetSongs(sGroupName);
+	auto& songs = GetSongs(sGroupName);
+	const auto additionalSongs =
+	  songs.size() > 0 && SONGMAN->WasLoadedFromAdditionalSongs(songs.at(0));
+	const auto songsPrefix = additionalSongs ? "AdditionalSongs/" : "Songs/";
+	const auto songsPack = songsPrefix + sGroupName + "/";
 	for (auto s : songs) {
-		auto sdir = s->GetSongDir();
-		// the starting '/' implies absolute path which breaks it
-		sdir.erase(0, 1);
+		// absolute, real filesystem path
+		auto sdir = FILEMAN->ResolveSongFolder(s->GetSongDir(), additionalSongs);
 
 		// Save ssc/sm5 cache file
 		{
@@ -1218,9 +1221,11 @@ SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
 			string path = sdir + steps->GetChartKey() + ".cache";
 			std::ofstream FILE(path, std::ios::binary);
 			if (!FILE) {
-				Locator::getLogger()->warn("Failed to cache song {} ({})",
-										   s->GetDisplayMainTitle().c_str(),
-										   steps->GetChartKey().c_str());
+				Locator::getLogger()->warn(
+				  "Failed to cache song {} ({}) to path {}",
+				  s->GetDisplayMainTitle().c_str(),
+				  steps->GetChartKey().c_str(),
+				  path);
 				continue;
 			}
 
@@ -1241,26 +1246,40 @@ SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
 	miniz_cpp::zip_file fi;
 	std::vector<std::string> flist{};
 	std::vector<std::string> cachefilelist{};
-	FILEMAN->FlushDirCache("Songs/" + sGroupName + "/");
+	FILEMAN->FlushDirCache(songsPack);
 	if (CacheZipsContainAllAssets) {
-		GetDirListingRecursive("Songs/" + sGroupName + "/", "*", flist);
+		GetDirListingRecursive(songsPack, "*", flist);
 	} else {
-		GetDirListingRecursive("Songs/" + sGroupName + "/", "*.cache", flist);
+		GetDirListingRecursive(songsPack, "*.cache", flist);
 	}
 	for (auto thing : flist) {
 		if (thing.ends_with(".cache")) {
 			cachefilelist.push_back(thing);
 		}
 
-		thing.erase(0, 1);
-		fi.write(thing);
+		if (additionalSongs) {
+			// additionalsongs makes our life harder
+			thing = FILEMAN->ResolveSongFolder(thing, true);
+		}
+		if (thing.starts_with("/")) {
+			thing.erase(0, 1);
+		}
+
+		if (additionalSongs) {
+			// have to rewrite the big long path to be Pack/song/stuff.sm
+			auto internal_path = thing.substr(thing.find("/" + sGroupName + "/") + 1);
+			fi.write(thing, internal_path);
+		} else {
+			// path given as /pack/song/stuff.sm works fine as is
+			fi.write(thing);
+		}
 	}
 	fi.save("Cache/" + sGroupName + ".zip");
 	SCREENMAN->SystemMessage("Finished zipping to Cache.");
 
 	Locator::getLogger()->info("Removing cache files that were generated...");
-	FILEMAN->FlushDirCache("Songs/" + sGroupName + "/");
-	for (auto x : cachefilelist) {
+	FILEMAN->FlushDirCache(songsPack);
+	for (auto& x : cachefilelist) {
 		Locator::getLogger()->info(" Removing {}", x);
 		FILEMAN->Remove(x);
 	}
