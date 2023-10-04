@@ -475,7 +475,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 				return true;
 		} else if (holding_shift && bHoldingCtrl && c == 'O' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
-			if (CacheCurrentPackForRanking())
+			if (CachePackForRanking(GetMusicWheel()->GetSelectedSection()))
 				return true;
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
@@ -1660,9 +1660,9 @@ ScreenSelectMusic::AddCurrentChartToActivePlaylist()
 }
 
 bool
-ScreenSelectMusic::CacheCurrentPackForRanking()
+ScreenSelectMusic::CachePackForRanking(const std::string& pack)
 {
-	SONGMAN->GenerateCachefilesForGroup(GetMusicWheel()->GetSelectedSection());
+	SONGMAN->GenerateCachefilesForGroup(pack);
 	AfterMusicChange();
 	return true;
 }
@@ -1983,9 +1983,16 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		lua_pushboolean(L, p->AddCurrentChartToActivePlaylist());
 		return 1;
 	}
-	static int CacheCurrentPackForRanking(T* p, lua_State* L)
+	static int CachePackForRanking(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->CacheCurrentPackForRanking());
+		if (lua_isnoneornil(L, 1)) {
+			lua_pushboolean(
+			  L,
+			  p->CachePackForRanking(p->GetMusicWheel()->GetSelectedSection()));
+		} else {
+			lua_pushboolean(L, p->CachePackForRanking(SArg(1)));
+		}
+		
 		return 1;
 	}
 	LunaScreenSelectMusic()
@@ -2012,7 +2019,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(ToggleCurrentPermamirror);
 		ADD_METHOD(GoalFromCurrentChart);
 		ADD_METHOD(AddCurrentChartToActivePlaylist);
-		ADD_METHOD(CacheCurrentPackForRanking);
+		ADD_METHOD(CachePackForRanking);
 	}
 };
 

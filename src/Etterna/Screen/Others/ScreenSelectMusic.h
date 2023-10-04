@@ -69,7 +69,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	bool ToggleCurrentPermamirror();
 	bool GoalFromCurrentChart();
 	bool AddCurrentChartToActivePlaylist();
-	bool CacheCurrentPackForRanking();
+	bool CachePackForRanking(const std::string& pack);
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
 									bool bForceAccurate = false,
 									bool bExtended = false);

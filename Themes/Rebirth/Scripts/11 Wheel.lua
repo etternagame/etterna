@@ -690,7 +690,19 @@ function Wheel:new(params)
                             return true
                         elseif ctrl and shift and char == "O" then
                             -- Cache current pack for ranking (ctrl shift O)
-                            ssm:CacheCurrentPackForRanking()
+                            local pack = nil
+                            if GAMESTATE:GetCurrentSong() ~= nil then
+                                pack = GAMESTATE:GetCurrentSong():GetGroupName()
+                            elseif WHEELDATA:GetCurrentSort() == 1 then
+                                -- group sort, hovering a pack
+                                pack = whee:getCurrentItem()
+                            else
+                                -- some other sort, hovering arbitrary folder
+                                -- do nothing...
+                                ms.ok("Did not cache anything because there was no identifiable pack")
+                                return true
+                            end
+                            ssm:CachePackForRanking(pack)
                             return true
                         elseif ctrl and shift and char == "P" then
                             -- Reload current pack from disk (ctrl shift P)
