@@ -34,6 +34,7 @@
 #include <mutex>
 #include <utility>
 #include <fstream>
+#include <cmath>
 
 #include "Etterna/Globals/zip_file.hpp"
 
@@ -1184,6 +1185,11 @@ SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
 		{
 			std::string tmpOutPutPath = "Cache/tmp.ssc";
 			std::string sscCacheFilePath = sdir + "songdata.cache";
+
+			if (!std::isfinite(s->GetLastSecond())) {
+				Locator::getLogger()->warn("Skipped due to bad bpm {}", sdir);
+				continue;
+			}
 
 			NotesWriterSSC::Write(tmpOutPutPath, *s, s->GetAllSteps(), true);
 
