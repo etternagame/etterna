@@ -259,13 +259,13 @@ jobs:
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 
+      - name: Build Project
+        run: cd main/build && ninja
+
       - name: Setup Python 3
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
-          
-      - name: Build Project
-        run: cd main/build && ninja
 
       - name: Generate binary
         run: cd main/build && cpack
