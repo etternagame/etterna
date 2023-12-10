@@ -233,11 +233,6 @@ jobs:
         with:
           python-version: '2.7'
 
-      - name: Setup Python 3
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-
       - name: Install chocolatey packages (i386)
         if: ${{ matrix.cfg.arch == 'x86' }}
         run: choco install ninja nsis curl -y --x86
@@ -264,6 +259,11 @@ jobs:
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          
       - name: Build Project
         run: cd main/build && ninja
 
