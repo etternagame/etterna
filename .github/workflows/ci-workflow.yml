@@ -228,6 +228,11 @@ jobs:
           echo "${{github.workspace}}/tools/win/" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo "ETTERNA_ARCH=${{matrix.cfg.name}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          
       - name: Setup Python 2.7
         uses: MatteoH2O1999/setup-python@v1.4.1
         with:
@@ -261,11 +266,6 @@ jobs:
 
       - name: Build Project
         run: cd main/build && ninja
-
-      - name: Setup Python 3
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
 
       - name: Generate binary
         run: cd main/build && cpack
