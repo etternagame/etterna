@@ -281,6 +281,11 @@ jobs:
           echo "Dumping Symbols..."
           dump_syms.exe main/Program/Etterna.pdb > ${{github.workspace}}/main/Etterna.sym
 
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
       - name: Prepare symbols for action artifacts
         run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py
 
