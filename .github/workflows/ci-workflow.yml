@@ -125,6 +125,16 @@ jobs:
       - name: Install homebrew packages
         run: brew install cmake nasm ninja openssl
 
+      - name: Setup Python 2.7
+        uses: MatteoH2O1999/setup-python@v1.4.1
+        with:
+          python-version: '2.7'
+
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
@@ -223,6 +233,11 @@ jobs:
         with:
           python-version: '2.7'
 
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
       - name: Install chocolatey packages (i386)
         if: ${{ matrix.cfg.arch == 'x86' }}
         run: choco install ninja nsis curl -y --x86
@@ -260,11 +275,6 @@ jobs:
         with:
           name: "Etterna - Windows ${{matrix.cfg.name}}"
           path: '${{github.workspace}}/main/build/*.exe'
-
-      - name: Setup Python 3
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
 
       - name: Generate Symbols
         run: |
