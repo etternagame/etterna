@@ -1066,7 +1066,7 @@ sm_main(int argc, char* argv[])
 	GAMESTATE = new GameState;
 
 	std::vector<std::string> arguments(argv + 1, argv + argc);
-	noWindow = std::any_of(arguments.begin(), arguments.end(), [](string str) {
+	noWindow = std::any_of(arguments.begin(), arguments.end(), [](std::string str) {
 		return str == "notedataCache";
 	});
 

@@ -47,6 +47,9 @@ set(RAPIDJSON_BUILD_EXAMPLES OFF)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
+set(JWT_SSL_LIBRARY OpenSSL)
+add_subdirectory(jwt-cpp-0.6.0)
+
 ## Remaining Libraries
 add_subdirectory(luajit)
 add_subdirectory(muFFT)

@@ -473,6 +473,20 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			if (ReloadCurrentSong())
 				return true;
+		} else if (holding_shift && bHoldingCtrl && c == 'O' &&
+				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
+			if (GAMESTATE->m_pCurSong == nullptr) {
+				// currently hovering a group ... maybe
+				if (GAMESTATE->m_sLastSongGroup != "") {
+					if (CachePackForRanking(GAMESTATE->m_sLastSongGroup))
+						return true;
+				} else {
+					// most likely hovering a non pack section
+				}
+			} else {
+				if (CachePackForRanking(GAMESTATE->m_pCurSong->m_sGroupName))
+					return true;
+			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			if (ReloadCurrentPack())
@@ -1299,6 +1313,10 @@ ScreenSelectMusic::AfterMusicChange()
 	GAMESTATE->m_pCurSong.Set(pSong);
 	if (pSong == nullptr) {
 		GAMESTATE->m_pCurSteps.Set(nullptr);
+		if (GAMESTATE->m_SortOrder == SORT_GROUP) {
+			// when hovering groups, set group to the hovered one
+			GAMESTATE->m_sLastSongGroup = m_MusicWheel.GetSelectedSection();
+		}
 		if (b_PreviewNoteFieldIsActive)
 		// if previewnotefield we are moving out of a pack
 		// into the pack list (that's what this block of code is for
@@ -1308,6 +1326,7 @@ ScreenSelectMusic::AfterMusicChange()
 			SONGMAN->Cleanup();
 	} else {
 		GAMESTATE->m_pPreferredSong = pSong;
+		GAMESTATE->m_sLastSongGroup = pSong->m_sGroupName;
 	}
 
 	GAMESTATE->SetPaused(false); // hacky can see this being problematic
@@ -1524,7 +1543,7 @@ ScreenSelectMusic::ReloadCurrentSong()
 	auto to_reload = GAMESTATE->m_pCurSong;
 	if (to_reload != nullptr) {
 		auto stepses = to_reload->GetAllSteps();
-		std::vector<string> oldChartkeys;
+		std::vector<std::string> oldChartkeys;
 		for (auto* steps : stepses)
 			oldChartkeys.emplace_back(steps->GetChartKey());
 
@@ -1655,6 +1674,14 @@ ScreenSelectMusic::AddCurrentChartToActivePlaylist()
 	return true;
 }
 
+bool
+ScreenSelectMusic::CachePackForRanking(const std::string& pack)
+{
+	SONGMAN->GenerateCachefilesForGroup(pack);
+	AfterMusicChange();
+	return true;
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -1700,7 +1727,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 
 	static int StartPlaylistAsCourse(T* p, lua_State* L)
 	{
-		const string name = SArg(1);
+		const std::string name = SArg(1);
 		auto& pl = SONGMAN->GetPlaylists()[name];
 
 		// don't allow empty playlists to be started as a course
@@ -1971,6 +1998,18 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		lua_pushboolean(L, p->AddCurrentChartToActivePlaylist());
 		return 1;
 	}
+	static int CachePackForRanking(T* p, lua_State* L)
+	{
+		if (lua_isnoneornil(L, 1)) {
+			lua_pushboolean(
+			  L,
+			  p->CachePackForRanking(p->GetMusicWheel()->GetSelectedSection()));
+		} else {
+			lua_pushboolean(L, p->CachePackForRanking(SArg(1)));
+		}
+		
+		return 1;
+	}
 	LunaScreenSelectMusic()
 	{
 		ADD_METHOD(OpenOptions);
@@ -1995,6 +2034,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(ToggleCurrentPermamirror);
 		ADD_METHOD(GoalFromCurrentChart);
 		ADD_METHOD(AddCurrentChartToActivePlaylist);
+		ADD_METHOD(CachePackForRanking);
 	}
 };
 

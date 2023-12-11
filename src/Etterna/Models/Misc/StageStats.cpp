@@ -86,12 +86,12 @@ getCpuHash() -> uint16_t
 }
 
 auto
-getMachineName() -> string
+getMachineName() -> std::string
 {
 	static char computerName[128];
 	DWORD size = 128;
 	GetComputerName(computerName, &size);
-	return string(computerName);
+	return std::string(computerName);
 }
 
 #else
@@ -250,7 +250,7 @@ getCpuHash()
 }
 #endif // !DARWIN
 
-string
+std::string
 getMachineName()
 {
 	static struct utsname u;
@@ -260,7 +260,7 @@ getMachineName()
 		return "unknown";
 	}
 
-	return string(u.nodename);
+	return std::string(u.nodename);
 }
 #endif
 
@@ -280,7 +280,7 @@ computeSystemUniqueId() -> uint16_t*
 	return id;
 }
 auto
-getSystemUniqueId() -> string
+getSystemUniqueId() -> std::string
 {
 	// get the name of the computer
 	auto str = getMachineName();

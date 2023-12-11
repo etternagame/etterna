@@ -90,6 +90,7 @@ class SongManager
 	auto GetSongs(const std::string& sGroupName) const
 	  -> const std::vector<Song*>&;
 	void ForceReloadSongGroup(const std::string& sGroupName) const;
+	void GenerateCachefilesForGroup(const std::string& sGroupName) const;
 	/**
 	 * @brief Retrieve all of the songs in the game.
 	 * @return all of the songs. */

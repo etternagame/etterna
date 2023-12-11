@@ -181,10 +181,11 @@ class ScoreManager
 		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void SortTopSSRPtrsForGame(
 	  Skillset ss,
-	  const string& profileID = PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	void RecalculateSSRs(LoadingWindow* ld);
 	void RecalculateSSRs(const std::string& profileID);
-	void UnInvalidateAllScores(const string& profileID);
+	void UnInvalidateAllScores(const std::string& profileID);
 	void CalcPlayerRating(float& prating,
 						  float* pskillsets,
 						  const std::string& profileID);

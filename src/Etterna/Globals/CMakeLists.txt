@@ -13,7 +13,8 @@ list(APPEND GLOBAL_FILES_HPP
 	"OptionsBinding.h"
 	"SpecialFiles.h"
 	"rngthing.h"
-	"StepMania.h") # TODO: Refactor into separate main project.
+	"StepMania.h" # TODO: Refactor into separate main project.
+	"zip_file.hpp")
 
 if(NOT APPLE)
 	list(APPEND GLOBAL_FILES_SRC "Main.cpp")

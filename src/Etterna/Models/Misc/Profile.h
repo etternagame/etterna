@@ -17,7 +17,6 @@
 #include <set>
 
 #include <unordered_map>
-using std::string;
 
 class XNode;
 struct lua_State;
@@ -134,6 +133,7 @@ class Profile
 		m_fPlayerSkillsets[ss] = 0.F;
 
 		m_LastPlayedDate.Init();
+		m_lastRankedChartkeyCheck.Init();
 
 		FOREACH_ENUM(Difficulty, i)
 		m_iNumSongsPlayedByDifficulty[i] = 0;
@@ -216,6 +216,7 @@ class Profile
 	 * save chain and keep this mutable. -Chris */
 	mutable std::string m_sLastPlayedMachineGuid;
 	mutable DateTime m_LastPlayedDate;
+	mutable DateTime m_lastRankedChartkeyCheck;
 	/* These stats count twice in the machine profile if two players are
 	 * playing; that's the only approach that makes sense for ByDifficulty and
 	 * ByMeter. */

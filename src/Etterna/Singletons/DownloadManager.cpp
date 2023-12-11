@@ -13,64 +13,100 @@
 #include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
 #include "ProfileManager.h"
 #include "SongManager.h"
+#include "ScoreManager.h"
 #include "Etterna/Screen/Others/ScreenInstallOverlay.h"
 #include "Etterna/Screen/Others/ScreenSelectMusic.h"
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+
 #include "curl/curl.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
-#include <regex>
+#include "jwt-cpp/jwt.h"
 
 #ifdef _WIN32
 #include <intrin.h>
 #endif
 
+#include <regex>
 #include <tuple>
 #include <unordered_set>
 #include <algorithm>
-
-using std::function;
-using std::map;
-using std::pair;
-using std::string;
-using std::to_string;
 
 using namespace rapidjson;
 
 std::shared_ptr<DownloadManager> DLMAN = nullptr;
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
+static std::atomic<float> timeSinceLastDownload = 0.F;
+static bool runningSequentialUpload = false;
 
+// Pack API Preferences
 static Preference<unsigned int> maxDLPerSecond(
   "maximumBytesDownloadedPerSecond",
   0);
 static Preference<unsigned int> maxDLPerSecondGameplay(
   "maximumBytesDownloadedPerSecondDuringGameplay",
   1000000);
-static Preference<std::string> packListURL(
-  "PackListURL",
-  "https://api.etternaonline.com/v2/packs");
-static Preference<std::string> serverURL("BaseAPIURL",
-										 "https://api.etternaonline.com/v2");
-static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 static Preference<unsigned int> downloadPacksToAdditionalSongs(
   "downloadPacksToAdditionalSongs",
   0);
-static const string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
-static const string CLIENT_DATA_KEY =
-  "4406B28A97B326DA5346A9885B0C9DEE8D66F89B562CF5E337AC04C17EB95C40";
-static const string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
-static const string wife3_rescore_upload_flag = "rescoredw3";
+static Preference<unsigned int> maxPacksToDownloadAtOnce(
+  "parallelDownloadsAllowed",
+  1);
+static Preference<float> DownloadCooldownTime(
+  "secondsBetweenConsecutiveDownloads",
+  5.F);
+
+// Score API Preferences
+static Preference<std::string> serverURL("BaseAPIUrl",
+										 "https://api.beta.etternaonline.com");
+static Preference<std::string> packListURL(
+  "PackListUrl",
+  "https://api.beta.etternaonline.com/api/client/packs");
+static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
+
+// 
+static const std::string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
+static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
+static const std::string wife3_rescore_upload_flag = "rescoredw3";
+
+static Preference<unsigned int> UPLOAD_SCORE_BULK_CHUNK_SIZE(
+  "bulkScoreUploadChunkSize",
+  100);
+
+// endpoint construction constants
+// all paths should begin with / and end without /
+/// API root path
+static const std::string API_ROOT = "/api/client";
+static const std::string API_KEY = "testkey";
+
+static const std::string API_LOGIN = "/login";
+static const std::string API_RANKED_CHARTKEYS = "/charts/ranked";
+static const std::string API_CHART_LEADERBOARD = "/charts/{}/scores";
+static const std::string API_UPLOAD_SCORE = "/scores";
+static const std::string API_GET_SCORE = "/scores/{}";
+static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
+static const std::string API_FAVORITES = "/favorites";
+static const std::string API_GOALS = "/goals";
+static const std::string API_USER = "/users/{}";
+static const std::string API_GAME_VERSION = "/settings/version";
+
+inline std::string
+APIROOT()
+{
+	return serverURL.Get() + API_ROOT;
+}
+
 size_t
 write_memory_buffer(void* contents, size_t size, size_t nmemb, void* userp)
 {
 	size_t realsize = size * nmemb;
-	string tmp(static_cast<char*>(contents), realsize);
-	static_cast<string*>(userp)->append(tmp);
+	std::string tmp(static_cast<char*>(contents), realsize);
+	static_cast<std::string*>(userp)->append(tmp);
 	return realsize;
 }
 template<typename T>
@@ -80,19 +116,23 @@ curl_easy_setopt_log_err(CURL *handle, CURLoption option, T param)
 	// TODO: Once we update curl replace "" with curl_easy_option_by_id(option)->name
 	CURLcode ret = curl_easy_setopt(handle, option, param);
 	if (ret != CURLE_OK)
-		Locator::getLogger()->warn(//"Error setting curl option %d(%s): %s(%d)", option, curl_easy_option_by_id(option)->name, curl_easy_strerror(ret), ret);
-		  "Error setting curl option {}({}): {}({})",
-		  option, "", curl_easy_strerror(ret), ret);
+		//"Error setting curl option %d(%s): %s(%d)", option,
+		// curl_easy_option_by_id(option)->name, curl_easy_strerror(ret), ret);
+		Locator::getLogger()->warn("Error setting curl option {}({}): {}({})",
+								   option,
+								   "",
+								   curl_easy_strerror(ret),
+								   ret);
 }
 
 std::atomic<bool> QUIT_OTHER_THREADS_FLAG = false;
 RageSemaphore THREAD_EXIT_COUNT("DLMAN thread exit semaphore", 0);
 
-string
+std::string
 ComputerIdentity()
 {
-	string computerName = "";
-	string userName = "";
+	std::string computerName = "";
+	std::string userName = "";
 #ifdef _WIN32
 
 	TCHAR infoBuf[1024];
@@ -113,14 +153,14 @@ ComputerIdentity()
 }
 
 bool
-DownloadManager::InstallSmzip(const string& sZipFile)
+DownloadManager::InstallSmzip(const std::string& sZipFile)
 {
 	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
-		FAIL_M(static_cast<string>("Failed to mount " + sZipFile).c_str());
+		FAIL_M(static_cast<std::string>("Failed to mount " + sZipFile).c_str());
 	std::vector<std::string> v_packs;
 	FILEMAN->GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, ONLY_DIR, true);
 
-	string doot = TEMP_ZIP_MOUNT_POINT;
+	std::string doot = TEMP_ZIP_MOUNT_POINT;
 	if (v_packs.size() > 1) {
 		// attempt to whitelist pack name, this
 		// should be pretty simple/safe solution for
@@ -129,7 +169,7 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 		doot = doot.substr(0, doot.length() - 4) + "/";
 	}
 
-	std::vector<string> vsFiles;
+	std::vector<std::string> vsFiles;
 	{
 		std::vector<std::string> vsRawFiles;
 		GetDirListingRecursive(doot, "*", vsRawFiles);
@@ -139,23 +179,24 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 			return false;
 		}
 
-		std::vector<string> vsPrettyFiles;
+		std::vector<std::string> vsPrettyFiles;
 		for (auto& s : vsRawFiles) {
 			if (EqualsNoCase(GetExtension(s), "ctl"))
 				continue;
 
 			vsFiles.push_back(s);
 
-			string s2 = tail(s, s.length() - TEMP_ZIP_MOUNT_POINT.length());
+			std::string s2 =
+			  tail(s, s.length() - TEMP_ZIP_MOUNT_POINT.length());
 			vsPrettyFiles.push_back(s2);
 		}
 		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
 	}
-	string sResult = "Success installing " + sZipFile;
-	string extractTo =
+	std::string sResult = "Success installing " + sZipFile;
+	std::string extractTo =
 	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
 	for (auto& sSrcFile : vsFiles) {
-		string sDestFile = sSrcFile;
+		std::string sDestFile = sSrcFile;
 		sDestFile = tail(std::string(sDestFile.c_str()),
 						 sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
 
@@ -193,6 +234,18 @@ DownloadManager::InstallSmzip(const string& sZipFile)
 	return true;
 }
 
+inline void
+EmptyTempDLFileDir()
+{
+	std::vector<std::string> files;
+	FILEMAN->GetDirListing(DL_DIR + "*", files, false, true);
+	for (auto& file : files) {
+		if (FILEMAN->IsAFile(file))
+			FILEMAN->Remove(file);
+	}
+}
+
+#pragma region curl
 inline CURL*
 initBasicCURLHandle()
 {
@@ -208,36 +261,57 @@ initBasicCURLHandle()
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_FOLLOWLOCATION, 1L);
 	return curlHandle;
 }
-// Utility inline functions to deal with CURL
+
 inline CURL*
-initCURLHandle(bool withBearer)
+initCURLHandle(bool withBearer, bool acceptJson = false)
 {
 	CURL* curlHandle = initBasicCURLHandle();
 	struct curl_slist* list = nullptr;
 	if (withBearer)
 		list = curl_slist_append(
 		  list, ("Authorization: Bearer " + DLMAN->authToken).c_str());
+	if (acceptJson) {
+		list = curl_slist_append(list, "Accept: application/json");
+		list = curl_slist_append(list, "Content-Type: application/json");
+		list = curl_slist_append(list, "charset: utf-8");
+	}
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPHEADER, list);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
 	return curlHandle;
 }
+
 // Configurees a CURL handle so it writes it's output to a std::string
 inline void
-SetCURLResultsString(CURL* curlHandle, string* str)
+SetCURLResultsString(CURL* curlHandle, std::string* str)
 {
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_WRITEDATA, str);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_WRITEFUNCTION, write_memory_buffer);
 }
+
 inline void
-DownloadManager::SetCURLURL(CURL* curlHandle, string url)
+SetCURLHeadersString(CURL* curlHandle, std::string* str)
+{
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_HEADERDATA, str);
+	curl_easy_setopt_log_err(
+	  curlHandle, CURLOPT_HEADERFUNCTION, write_memory_buffer);
+}
+
+inline void
+SetCURLURL(CURL* curlHandle, std::string url)
 {
 	if (!(starts_with(url, "https://") || starts_with(url, "http://")))
-		url = string("https://").append(url);
+		url = std::string("https://").append(url);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_URL, url.c_str());
 }
+
+inline void
+CURLAPIURL(CURL* curlHandle, std::string endpoint)
+{
+	SetCURLURL(curlHandle, APIROOT() + endpoint);
+}
+
 void
-CURLFormPostField(CURL* curlHandle,
-				  curl_httppost*& form,
+CURLFormPostField(curl_httppost*& form,
 				  curl_httppost*& lastPtr,
 				  const char* field,
 				  const char* value)
@@ -250,54 +324,47 @@ CURLFormPostField(CURL* curlHandle,
 				 value,
 				 CURLFORM_END);
 }
+
 inline void
-SetCURLFormPostField(CURL* curlHandle,
-					 curl_httppost*& form,
+SetCURLFormPostField(curl_httppost*& form,
 					 curl_httppost*& lastPtr,
 					 char* field,
 					 char* value)
 {
-	CURLFormPostField(curlHandle, form, lastPtr, field, value);
+	CURLFormPostField(form, lastPtr, field, value);
 }
+
 inline void
-SetCURLFormPostField(CURL* curlHandle,
-					 curl_httppost*& form,
+SetCURLFormPostField(curl_httppost*& form,
 					 curl_httppost*& lastPtr,
 					 const char* field,
-					 string value)
+					 std::string value)
 {
-	CURLFormPostField(curlHandle, form, lastPtr, field, value.c_str());
+	CURLFormPostField(form, lastPtr, field, value.c_str());
 }
+
 inline void
-SetCURLFormPostField(CURL* curlHandle,
-					 curl_httppost*& form,
+SetCURLFormPostField(curl_httppost*& form,
 					 curl_httppost*& lastPtr,
-					 string field,
-					 string value)
+					 std::string field,
+					 std::string value)
 {
-	CURLFormPostField(curlHandle, form, lastPtr, field.c_str(), value.c_str());
+	CURLFormPostField(form, lastPtr, field.c_str(), value.c_str());
 }
+
 template<typename T>
 inline void
-SetCURLFormPostField(CURL* curlHandle,
-					 curl_httppost*& form,
+SetCURLFormPostField(curl_httppost*& form,
 					 curl_httppost*& lastPtr,
-					 string field,
+					 std::string field,
 					 T value)
 {
 	CURLFormPostField(
-	  curlHandle, form, lastPtr, field.c_str(), to_string(value).c_str());
+	  form, lastPtr, field.c_str(), std::to_string(value).c_str());
 }
-inline void
-EmptyTempDLFileDir()
-{
-	std::vector<std::string> files;
-	FILEMAN->GetDirListing(DL_DIR + "*", files, false, true);
-	for (auto& file : files) {
-		if (FILEMAN->IsAFile(file))
-			FILEMAN->Remove(file);
-	}
-}
+#pragma endregion curl
+
+
 inline std::string
 jsonObjectToString(Value& doc)
 {
@@ -306,14 +373,61 @@ jsonObjectToString(Value& doc)
 	doc.Accept(w);
 	return buffer.GetString();
 }
-string
-UrlEncode(const string& str)
+
+inline float
+getJsonFloat(Value& doc, const char* name)
+{
+	if (doc.HasMember(name)) {
+		if (doc[name].IsFloat()) {
+			return doc[name].GetFloat();
+		} else if (doc[name].IsString()) {
+			try {
+				return std::stof(doc[name].GetString());
+			} catch (...) {}
+		}
+	}
+	return 0.F;
+}
+
+inline std::string
+getJsonString(Value& doc, const char* name)
+{
+	if (doc.HasMember(name)) {
+		if (doc[name].IsString()) {
+			return doc[name].GetString();
+		} else if (doc[name].IsFloat()) {
+			return std::to_string(doc[name].GetFloat());
+		} else if (doc[name].IsInt()) {
+			return std::to_string(doc[name].GetInt());
+		}
+	}
+	return "";
+}
+
+inline int
+getJsonInt(Value& doc, const char* name)
+{
+	if (doc.HasMember(name)) {
+		if (doc[name].IsInt()) {
+			return doc[name].GetInt();
+		} else if (doc[name].IsString()) {
+			try {
+				return std::stoi(doc[name].GetString());
+			} catch (...) {}
+		}
+	}
+	return 0;
+}
+
+std::string
+UrlEncode(const std::string& str)
 {
 	char* escaped = curl_easy_escape(nullptr, str.data(), str.length());
-	string ret(escaped);
+	std::string ret(escaped);
 	curl_free(escaped);
 	return ret;
 }
+
 inline std::string
 encodeDownloadUrl(const std::string& url)
 {
@@ -328,6 +442,26 @@ encodeDownloadUrl(const std::string& url)
 	return base_url + UrlEncode(unescaped_filename);
 }
 
+inline std::unordered_map<std::string, std::string>
+extractHeaderMap(const std::string& headersStr) {
+	std::vector<std::string> lines{};
+	split(headersStr, "\r\n", lines);
+	std::unordered_map<std::string, std::string> o{};
+	for (auto& x : lines) {
+		std::vector<std::string> leftright{};
+		split(x, ": ", leftright);
+		if (leftright.size() >= 2) {
+			o.emplace(leftright.at(0), leftright.at(1));
+		}
+		if (leftright.size() != 2) {
+			Locator::getLogger()->debug(
+			  "Header String line in unexpected form: {}", x);
+		}
+	}
+	return o;
+	
+}
+
 DownloadManager::DownloadManager()
 {
 	EmptyTempDLFileDir();
@@ -336,7 +470,7 @@ DownloadManager::DownloadManager()
 	{
 		Lua* L = LUA->Get();
 		lua_pushstring(L, "DLMAN");
-		this->PushSelf(L);
+		PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
 	}
@@ -349,7 +483,7 @@ DownloadManager::~DownloadManager()
 	THREAD_EXIT_COUNT.Wait();
 	EmptyTempDLFileDir();
 	if (LoggedIn())
-		EndSession();
+		Logout();
 	curl_global_cleanup();
 
 	// for completeness, unregister with LUA
@@ -360,55 +494,6 @@ DownloadManager::~DownloadManager()
 	}
 }
 
-void
-DownloadManager::UpdateGameplayState(bool gameplay)
-{
-	if (this->gameplay != gameplay) {
-		if (gameplay)
-			MESSAGEMAN->Broadcast("PausingDownloads");
-		else
-			MESSAGEMAN->Broadcast("ResumingDownloads");
-	}
-	this->gameplay = gameplay;
-}
-
-void
-Download::Update(float fDeltaSeconds)
-{
-	progress.time += fDeltaSeconds;
-	if (progress.time > 1.0) {
-		curl_off_t downloaded = progress.downloaded; 
-		speed = to_string(downloaded / 1024 - downloadedAtLastUpdate);
-		progress.time = 0;
-		downloadedAtLastUpdate = downloaded / 1024;
-	}
-}
-std::shared_ptr<Download>
-DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
-{
-	std::vector<std::string> packs;
-	SONGMAN->GetSongGroupNames(packs);
-	for (auto packName : packs) {
-		if (packName == pack->name) {
-			SCREENMAN->SystemMessage("Already have pack " + packName +
-									 ", not downloading");
-			return nullptr;
-		}
-	}
-	if (downloads.size() >= maxPacksToDownloadAtOnce) {
-		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
-		return nullptr;
-	}
-	string& url = mirror ? pack->mirror
-						: pack->url;
-	auto encoded_url = encodeDownloadUrl(url);
-
-	auto dl = DownloadAndInstallPack(encoded_url,
-										  pack->name + ".zip");
-	dl->p_Pack = pack;
-	dl->p_Pack->downloading = true;
-	return dl;
-}
 enum class RequestResultStatus
 {
 	Done = 0,
@@ -438,7 +523,7 @@ AddPackDlRequestHandle(CURL* handle)
 	G_PACK_REQS.push_back(handle);
 }
 void
-DownloadManager::init()
+DownloadManager::Init()
 {
 	RefreshPackList(packListURL);
 	RefreshLastVersion();
@@ -545,6 +630,20 @@ DownloadManager::init()
 			{
 				const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
 				G_HTTP_REQS.swap(local_http_reqs);
+
+				auto now = std::chrono::steady_clock::now();
+				for (auto& pair : endpointRatelimitTimestamps) {
+					if (now > pair.second &&
+						ratelimitedRequestQueue.count(pair.first) != 0u) {
+						// no longer ratelimited, handle the queue
+						auto& reqs = ratelimitedRequestQueue.at(pair.first);
+						for (auto& req : reqs) {
+							G_HTTP_REQS.push_back(req->handle);
+							HTTPRequests.push_back(req);
+						}
+						ratelimitedRequestQueue.erase(pair.first);
+					}
+				}
 			}
 			for (auto& curl_handle : local_http_reqs) {
 				curl_multi_add_handle(http_req_handle, curl_handle);
@@ -592,7 +691,7 @@ void
 DownloadManager::Update(float fDeltaSeconds)
 {
 	if (!initialized)
-		init();
+		Init();
 	if (gameplay)
 		return;
 	UpdatePacks(fDeltaSeconds);
@@ -680,8 +779,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		else
 			SONGMAN->DifferentialReload();
 	}
-	if (downloads.size() < maxPacksToDownloadAtOnce &&
-		!DownloadQueue.empty() &&
+	if (downloads.size() < maxPacksToDownloadAtOnce && !DownloadQueue.empty() &&
 		timeSinceLastDownload > DownloadCooldownTime) {
 		std::pair<DownloadablePack*, bool> pack = DownloadQueue.front();
 		DownloadQueue.pop_front();
@@ -703,7 +801,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 		/* Find out which handle this message is about */
 		for (auto i = downloads.begin(); i != downloads.end(); i++) {
 			auto& dl = i->second;
-			if (handle == dl-> handle) {
+			if (handle == dl->handle) {
 				if (dl->p_RFWrapper.stop) {
 					dl->Failed();
 					finishedDownloads[dl->m_Url] = dl;
@@ -711,7 +809,7 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 					timeSinceLastDownload = 0;
 					pendingInstallDownloads[dl->m_Url] = dl;
 				} else if (res == RequestResultStatus::Failed) {
-					dl->Failed();
+					i->second->Failed();
 					finishedDownloads[dl->m_Url] = dl;
 				}
 				finishedADownload = true;
@@ -728,38 +826,51 @@ DownloadManager::UpdatePacks(float fDeltaSeconds)
 	}
 	result_handles.clear();
 
-	// when download speed is so slow, no data is written
-	// when no data is written, the write function is not called
-	// when the write function is not called, the download is never cancelled
-	// so cancel the download here as well
-	for (auto it = downloads.begin(); it != downloads.end(); it++) {
-		auto& dl = (*it).second;
-		if (dl->p_RFWrapper.stop) {
-			if (dl->p_Pack != nullptr && !dl->p_Pack->downloading) {
-				continue;
-			}
-
-			// dont remove the handle here because other thread wants it
-			dl->Failed();
-			finishedDownloads[dl->m_Url] = dl;
-			dl->p_RFWrapper.file.Flush();
-			if (dl->p_RFWrapper.file.IsOpen())
-				dl->p_RFWrapper.file.Close();
-			if (dl->p_Pack != nullptr)
-				dl->p_Pack->downloading = false;
-
-			downloads.erase(it);
-			finishedADownload = true;
-		}
-	}
-
 	if (finishedADownload && downloads.empty()) {
-			MESSAGEMAN->Broadcast("AllDownloadsCompleted");
+		MESSAGEMAN->Broadcast("AllDownloadsCompleted");
 	}
 }
 
+void
+DownloadManager::UpdateGameplayState(bool bGameplay)
+{
+	if (gameplay != bGameplay) {
+		if (bGameplay)
+			MESSAGEMAN->Broadcast("PausingDownloads");
+		else
+			MESSAGEMAN->Broadcast("ResumingDownloads");
+	}
+	gameplay = bGameplay;
+}
+
 std::shared_ptr<Download>
-DownloadManager::DownloadAndInstallPack(const string& url, string filename)
+DownloadManager::DownloadAndInstallPack(DownloadablePack* pack, bool mirror)
+{
+	std::vector<std::string> packs;
+	SONGMAN->GetSongGroupNames(packs);
+	for (auto packName : packs) {
+		if (packName == pack->name) {
+			SCREENMAN->SystemMessage("Already have pack " + packName +
+									 ", not downloading");
+			return nullptr;
+		}
+	}
+	if (downloads.size() >= maxPacksToDownloadAtOnce) {
+		DownloadQueue.push_back(std::make_pair(pack, mirror));
+		return nullptr;
+	}
+	std::string& url = mirror ? pack->mirror : pack->url;
+	auto encoded_url = encodeDownloadUrl(url);
+
+	auto dl = DownloadAndInstallPack(encoded_url, pack->name + ".zip");
+	dl->p_Pack = pack;
+	dl->p_Pack->downloading = true;
+	return dl;
+}
+
+std::shared_ptr<Download>
+DownloadManager::DownloadAndInstallPack(const std::string& url,
+										std::string filename)
 {
 	auto dl = std::make_shared<Download>(url, filename);
 
@@ -771,11 +882,6 @@ DownloadManager::DownloadAndInstallPack(const string& url, string filename)
 	return dl;
 }
 
-string
-Download::MakeTempFileName(string s)
-{
-	return Basename(s);
-}
 bool
 DownloadManager::LoggedIn()
 {
@@ -783,103 +889,578 @@ DownloadManager::LoggedIn()
 }
 
 void
-DownloadManager::AddFavorite(const string& chartkey)
+DownloadManager::OnLogin()
 {
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites";
-	DLMAN->favorites.push_back(chartkey);
-	auto done = [req](HTTPRequest& requ) {
-		Locator::getLogger()->warn(
-		  "Favorited: {}{}{}", requ.result, req, DLMAN->sessionUser);
-	};
-	SendRequest(
-	  req, { make_pair("chartkey", UrlEncode(chartkey)) }, done, true, true);
+	Locator::getLogger()->info("Successful login as {}", sessionUser);
+	RefreshUserData();
+	RefreshCountryCodes();
+	FOREACH_ENUM(Skillset, ss)
+	RefreshTop25(ss);
+	if (ShouldUploadScores()) {
+		InitialScoreSync();
+
+		// ok we don't actually want to delete this yet since this is
+		// specifically for appending replaydata for a score the site does
+		// not have data for without altering the score entry in any other
+		// way, but keep disabled for now
+		// UpdateOnlineScoreReplayData();
+	}
+	if (GAMESTATE->m_pCurSteps != nullptr)
+		RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
+	MESSAGEMAN->Broadcast("Login");
+	loggingIn = false;
 }
 
 void
-DownloadManager::RemoveFavorite(const string& chartkey)
+DownloadManager::LoginWithToken(const std::string& sessionToken,
+								std::function<void(bool)> done)
 {
+	authToken = sessionToken;
+	try {
+		auto jwt = jwt::decode(authToken);
+		auto name = jwt.get_payload_claim("username");
+		sessionUser = name.as_string();
+	} catch (...) {
+		Locator::getLogger()->error(
+		  "Failed to get username from JWT. Set username to 'error'");
+		sessionUser = "error";
+	}
+	OnLogin();
+}
+
+void
+DownloadManager::LoginRequest(const std::string& user,
+							  const std::string& pass,
+							  std::function<void(bool loggedIn)> callback)
+{
+	if (loggingIn || user.empty()) {
+		return;
+	}
+	loggingIn = true;
+	LogoutIfLoggedIn();
+	CURL* curlHandle = initCURLHandle(false);
+	CURLAPIURL(curlHandle, API_LOGIN);
+
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(
+	  curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
+
+	curl_httppost* form = nullptr;
+	curl_httppost* lastPtr = nullptr;
+	CURLFormPostField(form, lastPtr, "email", user.c_str());
+	CURLFormPostField(form, lastPtr, "password", pass.c_str());
+	CURLFormPostField(form, lastPtr, "key", API_KEY.c_str());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
+
+	auto done = [user, pass, callback, this](HTTPRequest& req) {
+		auto loginFailed = [this]() {
+			authToken = sessionUser = "";
+			MESSAGEMAN->Broadcast("LoginFailed");
+			loggingIn = false;
+		};
+
+		if (HandleRatelimitResponse(API_LOGIN, req)) {
+			LoginRequest(user, pass, callback);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "LoginRequest Error: Malformed request response: {}", req.result);
+			loginFailed();
+			return;
+		}
+
+		auto response = req.response_code;
+		if (response == 422) {
+			// bad input fields
+
+			Locator::getLogger()->error(
+			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
+			loginFailed();
+
+		} else if (response == 401) {
+			// bad password
+
+			Locator::getLogger()->error(
+			  "Status 401 on LoginRequest. Bad password? Errors: {}",
+			  jsonObjectToString(d));
+			loginFailed();
+
+		} else if (response == 200) {
+			// all good
+
+			if (d.HasMember("access_token") &&
+				d["access_token"].IsString()) {
+
+				// JWT acquired
+				authToken = d["access_token"].GetString();
+
+				try {
+					auto jwt = jwt::decode(authToken);
+					auto username = jwt.get_payload_claim("username");
+					sessionUser = username.as_string();
+				} catch (...) {
+					Locator::getLogger()->error("Failed to get username from "
+												"JWT. Set username to 'error'");
+					sessionUser = "error";
+				}
+				OnLogin();
+				callback(LoggedIn());
+
+			} else {
+				Locator::getLogger()->error(
+					"Missing access token in LoginRequest response. Content: "
+					"{}",
+					jsonObjectToString(d));
+				loginFailed();
+			}
+		} else {
+			// ???
+			Locator::getLogger()->warn(
+			  "Unexpected response code {} on LoginRequest. Content: {}",
+			  response,
+			  jsonObjectToString(d));
+			loginFailed();
+		}
+	};
+	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
+	req->Failed = [this](HTTPRequest& req) {
+		authToken = sessionUser = "";
+		MESSAGEMAN->Broadcast("LoginFailed");
+		loggingIn = false;
+	};
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(API_LOGIN, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+}
+
+void
+DownloadManager::Logout()
+{
+	// cancel sequential upload
+	ScoreUploadSequentialQueue.clear();
+	sequentialScoreUploadTotalWorkload = 0;
+	runningSequentialUpload = false;
+
+	// logout
+	sessionUser = authToken = "";
+	topScores.clear();
+	sessionRatings.clear();
+	// This is called on a shutdown, after MessageManager is gone
+	if (MESSAGEMAN != nullptr)
+		MESSAGEMAN->Broadcast("LogOut");
+}
+
+bool
+DownloadManager::HandleAuthErrorResponse(const std::string& endpoint, HTTPRequest& req)
+{
+	auto& status = req.response_code;
+	if (status != 401) {
+		return false;
+	}
+
+	Locator::getLogger()->warn(
+	  "{} {} - Auth Error. Logging out automatically",
+	  endpoint,
+	  status);
+
+	LogoutIfLoggedIn();
+
+
+	return true;
+}
+
+void
+DownloadManager::AddFavoriteRequest(const std::string& chartkey)
+{
+	auto req = API_FAVORITES;
+
+	favorites.push_back(chartkey);
+	auto done = [chartkey, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_FAVORITES, req)) {
+			AddFavoriteRequest(chartkey);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "AddFavoriteRequest Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+			Locator::getLogger()->info(
+			  "AddFavorite successfully added favorite {} from online profile",
+			  chartkey);
+
+		} else if (response == 422) {
+			// missing info
+			Locator::getLogger()->warn(
+			  "AddFavorite failed due to input error. Content: {}",
+			  jsonObjectToString(d));
+		} else if (response == 404) {
+			Locator::getLogger()->warn(
+			  "AddFavorite failed due to 404. Chart may be unranked - Content: {}",
+			  jsonObjectToString(d));
+		} else {
+			// ???
+			Locator::getLogger()->warn(
+			  "AddFavorite unknown response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(req,
+				{ make_pair("key", UrlEncode(chartkey)) },
+				done,
+				true,
+				RequestMethod::POST);
+}
+
+void
+DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
+{
+	auto req = API_FAVORITES + "/" + URLEncode(chartkey);
+
 	auto it =
-	  std::find(DLMAN->favorites.begin(), DLMAN->favorites.end(), chartkey);
-	if (it != DLMAN->favorites.end())
-		DLMAN->favorites.erase(it);
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites/" +
-				 UrlEncode(chartkey);
-	auto r = SendRequest(req, {}, {});
-	if (r)
-		curl_easy_setopt_log_err(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
-}
+	  std::find(favorites.begin(), favorites.end(), chartkey);
+	if (it != favorites.end())
+		favorites.erase(it);
 
-// we could pass scoregoal objects instead..? -mina
-void
-DownloadManager::RemoveGoal(const string& chartkey, float wife, float rate)
-{
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/" +
-				 UrlEncode(chartkey) + "/" +
-				 to_string(wife) + "/" + to_string(rate);
-	auto r = SendRequest(req, {}, {});
-	if (r)
-		curl_easy_setopt_log_err(r->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
-}
+	auto done = [chartkey, this](HTTPRequest& req) {
 
-void
-DownloadManager::AddGoal(const string& chartkey,
-						 float wife,
-						 float rate,
-						 DateTime& timeAssigned)
-{
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals";
-	std::vector<pair<string, string>> postParams = {
-		make_pair("chartkey", UrlEncode(chartkey)),
-		make_pair("rate", to_string(rate)),
-		make_pair("wife", to_string(wife)),
-		make_pair("timeAssigned", timeAssigned.GetString())
+		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_FAVORITES, req)) {
+			RemoveFavoriteRequest(chartkey);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RemoveFavorite Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+			Locator::getLogger()->info("RemoveFavorite successfully removed "
+									   "favorite {} from online profile",
+									   chartkey);
+
+		} else if (response == 404) {
+			Locator::getLogger()->warn(
+			  "RemoveFavorite failed due to 404. Favorite may be missing - Content: {}",
+			  jsonObjectToString(d));
+		} else {
+			// ???
+			Locator::getLogger()->warn(
+			  "RemoveFavorite unknown response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
 	};
-	SendRequest(req, postParams, {}, true, true);
+
+	SendRequest(req, {}, done, true, RequestMethod::DEL);
 }
 
 void
-DownloadManager::UpdateGoal(const string& chartkey,
-							float wife,
-							float rate,
-							bool achieved,
-							DateTime& timeAssigned,
-							DateTime& timeAchieved)
+DownloadManager::AddGoalRequest(ScoreGoal* goal)
 {
-	string timeAchievedString = "0000:00:00 00:00:00";
-	if (achieved)
-		timeAchievedString = timeAchieved.GetString();
+	auto req = API_GOALS;
 
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/goals/update";
-	std::vector<pair<string, string>> postParams = {
-		make_pair("chartkey", UrlEncode(chartkey)),
-		make_pair("rate", to_string(rate)),
-		make_pair("wife", to_string(wife)),
-		make_pair("achieved", to_string(achieved)),
-		make_pair("timeAssigned", timeAssigned.GetString()),
-		make_pair("timeAchieved", timeAchievedString)
+	auto done = [goal, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_GOALS, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS, req)) {
+			AddGoalRequest(goal);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RemoveFavorite Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+			Locator::getLogger()->info(
+			  "AddGoal successfully added goal for {} to online profile",
+			  goal->chartkey);
+
+		} else if (response == 422) {
+			// some validation issue with the request
+			Locator::getLogger()->warn(
+			  "AddGoal failed due to validation error: {}",
+			  jsonObjectToString(d));
+		} else if (response == 404) {
+			Locator::getLogger()->warn(
+			  "AddGoal failed due to 404. Chart may be unranked - Content: {}", jsonObjectToString(d));
+		} else {
+			Locator::getLogger()->warn(
+			  "AddGoal unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
 	};
-	SendRequest(req, postParams, {}, true, true);
+
+	std::vector<std::pair<std::string, std::string>> postParams = {
+		std::make_pair("key", UrlEncode(goal->chartkey)),
+		std::make_pair("rate", std::to_string(goal->rate)),
+		std::make_pair("wife", std::to_string(goal->percent)),
+		std::make_pair("set_date", goal->timeassigned.GetString())
+	};
+
+	SendRequest(req, postParams, done, true, RequestMethod::POST);
+}
+
+void
+DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
+{
+	auto req = API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
+					  std::to_string(goal->rate) + "/" +
+					  std::to_string(goal->percent);
+
+	auto done = [goal, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_GOALS, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS, req)) {
+			RemoveGoalRequest(goal);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RemoveGoal Error: Malformed request response: {}", req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+			Locator::getLogger()->info(
+			  "RemoveGoal successfully removed goal for {} from online profile",
+			  goal->chartkey);
+
+		} else if (response == 422) {
+			// some validation issue with the request
+			Locator::getLogger()->warn(
+			  "RemoveGoal failed due to validation error: {}",
+			  jsonObjectToString(d));
+		} else if (response == 404) {
+			Locator::getLogger()->warn(
+			  "RemoveGoal failed due to 404. Chart may be unranked or Favorite "
+			  "missing - Content: {}",
+			  jsonObjectToString(d));
+		} else {
+			Locator::getLogger()->warn(
+			  "RemoveGoal unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(req, {}, done, true, RequestMethod::DEL);
+}
+
+void
+DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
+{
+	std::string timeAchievedString = "0000:00:00 00:00:00";
+	if (goal->achieved)
+		timeAchievedString = goal->timeachieved.GetString();
+
+	auto req = API_GOALS;
+	std::vector<std::pair<std::string, std::string>> postParams = {
+		std::make_pair("key", UrlEncode(goal->chartkey)),
+		std::make_pair("rate", std::to_string(goal->rate)),
+		std::make_pair("wife", std::to_string(goal->percent)),
+		std::make_pair("achieved", std::to_string(goal->achieved)),
+		std::make_pair("set_date", goal->timeassigned.GetString()),
+		std::make_pair("achieved_date", timeAchievedString)
+	};
+
+	auto done = [ goal, this ](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_GOALS, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS, req)) {
+			UpdateGoalRequest(goal);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "UpdateGoal Error: Malformed request response: {}", req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+			Locator::getLogger()->info(
+			  "UpdateGoal successfully updated goal for {} on online profile",
+			  goal->chartkey);
+
+		} else if (response == 422) {
+			// some validation issue with the request
+			Locator::getLogger()->warn(
+			  "UpdateGoal failed due to validation error: {}",
+			  jsonObjectToString(d));
+		} else if (response == 404) {
+			Locator::getLogger()->warn("UpdateGoal failed due to 404. Goal may "
+									   "be missing online - Content: {}",
+									   jsonObjectToString(d));
+		} else {
+			Locator::getLogger()->warn(
+			  "UpdateGoal unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(req, postParams, done, true, RequestMethod::PATCH);
 }
 
 void
 DownloadManager::RefreshFavorites()
 {
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/favorites";
-	auto done = [](HTTPRequest& req) {
+	Locator::getLogger()->warn("REFRESH FAVORITES UNIMPLEMENTED");
+	return;
+	/*
+	std::string req = "user/" + UrlEncode(sessionUser) + "/favorites";
+	auto done = [this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			!d.HasMember("data") || !d["data"].IsArray())
-			DLMAN->favorites.clear();
+			favorites.clear();
 		else {
 			auto& favs = d["data"];
 			for (auto& fav : favs.GetArray()) {
 				if (fav.HasMember("attributes") && fav["attributes"].IsString())
-					DLMAN->favorites.push_back(fav["attributes"].GetString());
+					favorites.push_back(fav["attributes"].GetString());
 			}
 		}
 		MESSAGEMAN->Broadcast("FavouritesUpdate");
 	};
 	SendRequest(req, {}, done);
+	*/
+}
+
+void
+DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
+										   const DateTime start,
+										   const DateTime end)
+{
+	std::string startstr =
+	  fmt::format("{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
+	std::string endstr =
+	  fmt::format("{}-{}-{}", end.tm_year + 1900, end.tm_mon + 1, end.tm_mday);
+	Locator::getLogger()->info(
+	  "Generating ranked chartkeys request {} to {}", startstr, endstr);
+
+	std::vector<std::pair<std::string, std::string>> params = {
+		std::make_pair("start", startstr),
+		std::make_pair("end", endstr),
+	};
+
+	auto done = [callback, start, end, this, startstr, endstr](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_RANKED_CHARTKEYS, req)) {
+			if (callback)
+				callback();
+			return;
+		}
+		if (HandleRatelimitResponse(API_RANKED_CHARTKEYS, req)) {
+			GetRankedChartkeysRequest(callback, start, end);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "GetRankedChartkeysRequest Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+
+			if (d.HasMember("data") && d["data"].IsArray()) {
+
+				/* expected data:
+				{ "data" : [ "Xabc123", "Xabc124", .... ] }
+				*/
+
+
+				std::unordered_set<std::string> newKeys{};
+				auto& data = d["data"];
+				for (auto it = data.Begin(); it != data.End(); it++) {
+					newKeys.insert(it->GetString());
+				}
+				newlyRankedChartkeys.insert(newKeys.begin(), newKeys.end());
+
+				Locator::getLogger()->info(
+				  "GetRankedChartkeys succeeded - {} "
+				  "keys found for range {} - {} | {} total keys",
+				  newKeys.size(),
+				  startstr,
+				  endstr,
+				  newlyRankedChartkeys.size());
+
+			} else {
+				Locator::getLogger()->warn("GetRankedChartkeys got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
+			}
+		} else {
+			Locator::getLogger()->warn(
+			  "GetRankedChartkeys unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+		if (callback)
+			callback();
+	};
+
+	SendRequest(API_RANKED_CHARTKEYS, params, done, true);
 }
 
 bool
@@ -888,94 +1469,522 @@ DownloadManager::ShouldUploadScores()
 	return LoggedIn() && automaticSync &&
 		   GamePreferences::m_AutoPlay == PC_HUMAN;
 }
-inline void
-SetCURLPOSTScore(CURL*& curlHandle,
-				 curl_httppost*& form,
-				 curl_httppost*& lastPtr,
-				 HighScore*& hs)
+
+inline OnlineScore
+jsonToOnlineScore(Value& score, const std::string& chartkey)
 {
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "scorekey", hs->GetScoreKey());
-	hs->GenerateValidationKeys();
-	SetCURLFormPostField(curlHandle, form, lastPtr, "ssr_norm", hs->norms);
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "max_combo", hs->GetMaxCombo());
-	SetCURLFormPostField(curlHandle,
-						 form,
-						 lastPtr,
-						 "valid",
-						 static_cast<int>(hs->GetEtternaValid()));
-	SetCURLFormPostField(curlHandle, form, lastPtr, "mods", hs->GetModifiers());
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "miss", hs->GetTapNoteScore(TNS_Miss));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "bad", hs->GetTapNoteScore(TNS_W5));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "good", hs->GetTapNoteScore(TNS_W4));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "great", hs->GetTapNoteScore(TNS_W3));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "perfect", hs->GetTapNoteScore(TNS_W2));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "marv", hs->GetTapNoteScore(TNS_W1));
-	SetCURLFormPostField(curlHandle,
-						 form,
-						 lastPtr,
-						 "datetime",
-						 string(hs->GetDateTime().GetString().c_str()));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "hitmine", hs->GetTapNoteScore(TNS_HitMine));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "held", hs->GetHoldNoteScore(HNS_Held));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "letgo", hs->GetHoldNoteScore(HNS_LetGo));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "ng", hs->GetHoldNoteScore(HNS_Missed));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "chartkey", hs->GetChartKey());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "rate", hs->musics);
-	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-	if (chart == nullptr)
+	OnlineScore tmp;
+
+	auto& user = score["user"];
+	tmp.songId = "";
+	if (user.HasMember("username") && user["username"].IsString())
+		tmp.username = user["username"].GetString();
+	else
+		tmp.username = "";
+	if (user.HasMember("avatar_path") && user["avatar_path"].IsString())
+		tmp.avatar = user["avatar_path"].GetString();
+	else
+		tmp.avatar = "";
+	tmp.userid = 0;
+	if (user.HasMember("country") && user["country"].IsString())
+		tmp.countryCode = user["country"].GetString();
+	else
+		tmp.countryCode = "";
+	if (user.HasMember("overall") && user["overall"].IsNumber())
+		tmp.playerRating = user["overall"].GetFloat();
+	else
+		tmp.playerRating = 0.f;
+	if (score.HasMember("wife") && score["wife"].IsNumber())
+		tmp.wife = static_cast<float>(score["wife"].GetFloat()) / 100.f;
+	else
+		tmp.wife = 0.f;
+	if (score.HasMember("modifiers") && score["modifiers"].IsString())
+		tmp.modifiers = score["modifiers"].GetString();
+	else
+		tmp.modifiers = "";
+	if (score.HasMember("combo") && score["combo"].IsInt())
+		tmp.maxcombo = score["combo"].GetInt();
+	else
+		tmp.maxcombo = 0;
+	if (score.HasMember("marvelous") &&
+		score["marvelous"].IsInt())
+		tmp.marvelous = score["marvelous"].GetInt();
+	else
+		tmp.marvelous = 0;
+	if (score.HasMember("perfect") && score["perfect"].IsInt())
+		tmp.perfect = score["perfect"].GetInt();
+	else
+		tmp.perfect = 0;
+	if (score.HasMember("great") && score["great"].IsInt())
+		tmp.great = score["great"].GetInt();
+	else
+		tmp.great = 0;
+	if (score.HasMember("good") && score["good"].IsInt())
+		tmp.good = score["good"].GetInt();
+	else
+		tmp.good = 0;
+	if (score.HasMember("bad") && score["bad"].IsInt())
+		tmp.bad = score["bad"].GetInt();
+	else
+		tmp.bad = 0;
+	if (score.HasMember("miss") && score["miss"].IsInt())
+		tmp.miss = score["miss"].GetInt();
+	else
+		tmp.miss = 0;
+	if (score.HasMember("hit_mine") && score["hit_mine"].IsInt())
+		tmp.minehits = score["hit_mine"].GetInt();
+	else
+		tmp.minehits = 0;
+	if (score.HasMember("held") && score["held"].IsInt())
+		tmp.held = score["held"].GetInt();
+	else
+		tmp.held = 0;
+	if (score.HasMember("let_go") &&
+		score["let_go"].IsInt())
+		tmp.letgo = score["let_go"].GetInt();
+	else
+		tmp.letgo = 0;
+	if (score.HasMember("missed_hold") &&
+		score["missed_hold"].IsInt())
+		tmp.holdmiss = score["missed_hold"].GetInt();
+	else
+		tmp.holdmiss = 0;
+	if (score.HasMember("datetime") && score["datetime"].IsString())
+		tmp.datetime.FromString(score["datetime"].GetString());
+	else
+		tmp.datetime.FromString("0");
+	if (score.HasMember("id") && score["id"].IsInt())
+		tmp.scoreid = std::to_string(score["id"].GetInt());
+	else
+		tmp.scoreid = "";
+
+	// filter scores not on the current rate out if enabled...
+	// dunno if we need this precision -mina
+	if (score.HasMember("rate") && score["rate"].IsString())
+		tmp.rate = std::stof(score["rate"].GetString());
+	else
+		tmp.rate = 0.0;
+	if (score.HasMember("chord_cohesion") && score["chord_cohesion"].IsInt())
+		tmp.nocc = score["chord_cohesion"].GetInt() == 0;
+	else
+		tmp.nocc = false;
+	if (score.HasMember("valid") && score["valid"].IsInt())
+		tmp.valid = score["valid"].GetInt() == 1;
+	else
+		tmp.valid = false;
+	if (score.HasMember("wife_version") && score["wife_version"].IsInt()) {
+		auto v = score["wife_version"].GetInt();
+		if (v == 3)
+			tmp.wifeversion = 3;
+		else
+			tmp.wifeversion = 2;
+	} else
+		tmp.wifeversion = 2;
+
+	if (score.HasMember("overall") && score["overall"].IsNumber())
+		tmp.SSRs[Skill_Overall] = score["overall"].GetFloat();
+	else
+		tmp.SSRs[Skill_Overall] = 0.0;
+	if (score.HasMember("stream") && score["stream"].IsNumber())
+		tmp.SSRs[Skill_Stream] = score["stream"].GetFloat();
+	else
+		tmp.SSRs[Skill_Stream] = 0.0;
+	if (score.HasMember("jumpstream") && score["jumpstream"].IsNumber())
+		tmp.SSRs[Skill_Jumpstream] = score["jumpstream"].GetFloat();
+	else
+		tmp.SSRs[Skill_Jumpstream] = 0.0;
+	if (score.HasMember("handstream") && score["handstream"].IsNumber())
+		tmp.SSRs[Skill_Handstream] = score["handstream"].GetFloat();
+	else
+		tmp.SSRs[Skill_Handstream] = 0.0;
+	if (score.HasMember("stamina") && score["stamina"].IsNumber())
+		tmp.SSRs[Skill_Stamina] = score["stamina"].GetFloat();
+	else
+		tmp.SSRs[Skill_Stamina] = 0.0;
+	if (score.HasMember("jacks") && score["jacks"].IsNumber())
+		tmp.SSRs[Skill_JackSpeed] = score["jacks"].GetFloat();
+	else
+		tmp.SSRs[Skill_JackSpeed] = 0.0;
+	if (score.HasMember("chordjacks") && score["chordjacks"].IsNumber())
+		tmp.SSRs[Skill_Chordjack] = score["chordjacks"].GetFloat();
+	else
+		tmp.SSRs[Skill_Chordjack] = 0.0;
+	if (score.HasMember("technical") && score["technical"].IsNumber())
+		tmp.SSRs[Skill_Technical] = score["technical"].GetFloat();
+	else
+		tmp.SSRs[Skill_Technical] = 0.0;
+	if (score.HasMember("replay") && score["replay"].IsBool())
+		tmp.hasReplay = score["replay"].GetBool();
+	else
+		tmp.hasReplay = false;
+
+	if (score.HasMember("calculator_version") &&
+		score["calculator_version"].IsInt())
+		tmp.hs.SetSSRCalcVersion(score["calculator_version"].GetInt());
+
+	std::string scorekey = "";
+	if (score.HasMember("key") && score["key"].IsString())
+		scorekey = score["key"].GetString();
+
+	auto& hs = tmp.hs;
+	hs.SetDateTime(tmp.datetime);
+	hs.SetMaxCombo(tmp.maxcombo);
+	hs.SetName(tmp.username);
+	hs.SetModifiers(tmp.modifiers);
+	hs.SetChordCohesion(tmp.nocc);
+	hs.SetWifeScore(tmp.wife);
+	hs.SetWifeVersion(tmp.wifeversion);
+	hs.SetSSRNormPercent(tmp.wife);
+	hs.SetMusicRate(tmp.rate);
+	hs.SetChartKey(chartkey);
+	hs.SetScoreKey("Online_" + scorekey);
+	hs.SetGrade(hs.GetWifeGrade());
+
+	hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
+	hs.SetTapNoteScore(TNS_W2, tmp.perfect);
+	hs.SetTapNoteScore(TNS_W3, tmp.great);
+	hs.SetTapNoteScore(TNS_W4, tmp.good);
+	hs.SetTapNoteScore(TNS_W5, tmp.bad);
+	hs.SetTapNoteScore(TNS_Miss, tmp.miss);
+	hs.SetTapNoteScore(TNS_HitMine, tmp.minehits);
+
+	hs.SetHoldNoteScore(HNS_Held, tmp.held);
+	hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
+	hs.SetHoldNoteScore(HNS_Missed, tmp.holdmiss);
+
+	FOREACH_ENUM(Skillset, ss)
+	hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
+
+	hs.userid = tmp.userid;
+	hs.scoreid = tmp.scoreid;
+	hs.avatar = tmp.avatar;
+	hs.countryCode = tmp.countryCode;
+	hs.hasReplay = tmp.hasReplay;
+
+	return tmp;
+}
+
+inline Document
+ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allocator) {
+
+	Document d;
+	d.SetObject();
+
+	// to put a string into a json object
+	// we have to put it in a Value instead
+	// thats kinda cringe but theres some good technical reason why
+	auto val = [&allocator](const std::string& str,
+							std::string defaultVal = "") {
+		Value v;
+		if (str.empty()) {
+			v.SetString(defaultVal.c_str(), allocator);
+		} else {
+			v.SetString(str.c_str(), allocator);
+		}
+		
+		return v;
+	};
+
+	d.AddMember("key", val(hs->GetScoreKey()), allocator);
+	d.AddMember("wife", hs->GetSSRNormPercent(), allocator);
+	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
+	d.AddMember("modifiers", val(hs->GetModifiers()), allocator);
+	d.AddMember("marvelous", hs->GetTapNoteScore(TNS_W1), allocator);
+	d.AddMember("perfect", hs->GetTapNoteScore(TNS_W2), allocator);
+	d.AddMember("great", hs->GetTapNoteScore(TNS_W3), allocator);
+	d.AddMember("good", hs->GetTapNoteScore(TNS_W4), allocator);
+	d.AddMember("bad", hs->GetTapNoteScore(TNS_W5), allocator);
+	d.AddMember("miss", hs->GetTapNoteScore(TNS_Miss), allocator);
+	d.AddMember("hit_mine", hs->GetTapNoteScore(TNS_HitMine), allocator);
+	d.AddMember("held", hs->GetHoldNoteScore(HNS_Held), allocator);
+	d.AddMember("let_go", hs->GetHoldNoteScore(HNS_LetGo), allocator);
+	d.AddMember("missed_hold", hs->GetHoldNoteScore(HNS_Missed), allocator);
+	d.AddMember(
+	  "rate", std::round(hs->GetMusicRate() * 1000.0) / 1000.0, allocator);
+	d.AddMember("datetime", val(hs->GetDateTime().GetString()), allocator);
+	d.AddMember(
+	  "chord_cohesion", static_cast<int>(hs->GetChordCohesion()), allocator);
+	d.AddMember("double_setup", static_cast<int>(hs->GetDSFlag()), allocator);
+	d.AddMember("calculator_version", hs->GetSSRCalcVersion(), allocator);
+	d.AddMember("top_score", hs->GetTopScore(), allocator);
+	d.AddMember("wife_version", hs->GetWifeVersion(), allocator);
+	d.AddMember(
+	  "validation_key", val(hs->GetValidationKey(ValidationKey_Brittle)), allocator);
+	d.AddMember("machine_guid", val(hs->GetMachineGuid(), "MISSING_GUID"), allocator);
+	d.AddMember("chart_key", val(hs->GetChartKey()), allocator);
+	d.AddMember(
+	  "judge", std::round(hs->GetJudgeScale() * 1000.0) / 1000.0, allocator);
+	d.AddMember("grade", val(GradeToOldString(hs->GetWifeGrade())), allocator);
+
+	Document replayVector;
+	replayVector.SetArray();
+	if (includeReplayData) {
+		auto fval = [](const float f) {
+			Value v;
+			v.SetFloat(f);
+			return v;
+		};
+
+		bool hadToLoadReplayData = false;
+
+		// load replay data if we need it
+		// basically, in one case we care about the fact that we loaded or not
+		if (hs->GetOffsetVector().empty()) {
+			// this handles loading from disk and then generating needed information
+			// would return false if impossible to work with
+			hadToLoadReplayData = hs->GetReplay()->GeneratePrimitiveVectors();
+		} else {
+			// this handles loading from disk if necessary and generating if necessary
+			hs->GetReplay()->GeneratePrimitiveVectors();
+		}
+
+		const auto& offsets = hs->GetOffsetVector();
+		const auto& columns = hs->GetTrackVector();
+		const auto& types = hs->GetTapNoteTypeVector();
+		const auto& rows = hs->GetNoteRowVector();
+
+		if (!offsets.empty()) {
+			auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+			if (steps == nullptr) {
+				Locator::getLogger()->warn(
+				  "Attempted to upload score with no loaded steps "
+				  "(scorekey: {} chartkey: {})",
+				  hs->GetScoreKey(),
+				  hs->GetChartKey());
+			} else {
+				std::vector<float> timestamps =
+				  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
+					rows, hs->GetMusicRate());
+				for (size_t i = 0; i < offsets.size(); i++) {
+					Document thisData;
+					thisData.SetArray();
+					thisData.PushBack(fval(timestamps[i]), allocator);
+					thisData.PushBack(fval(1000.f * offsets[i]), allocator);
+					if (hs->HasColumnData()) {
+						thisData.PushBack(fval(columns[i]), allocator);
+						thisData.PushBack(fval(types[i]), allocator);
+					}
+					thisData.PushBack(fval(rows[i]), allocator);
+					replayVector.PushBack(thisData, allocator);
+				}
+			}
+		}
+
+		if (hadToLoadReplayData) {
+			hs->UnloadReplayData();
+		}
+	}
+	d.AddMember("replay_data", replayVector, allocator);
+
+	return d;
+}
+
+inline std::string
+ScoreVectorToJSON(std::vector<HighScore*>& v, bool includeReplayData) {
+
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d.SetObject();
+
+	Value arrDoc(kArrayType);
+	for (auto& hs : v) {
+		arrDoc.PushBack(ScoreToJSON(hs, includeReplayData, allocator), allocator);
+	}
+	d.AddMember("data", arrDoc, allocator);
+
+
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+	return buffer.GetString();
+}
+
+void
+DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
+								  std::function<void()> callback)
+{
+	Locator::getLogger()->info("Creating BulkUploadScore request for {} scores",
+							   hsList.size());
+	if (!LoggedIn()) {
+		Locator::getLogger()->warn(
+		  "Attempted to upload scores while not logged in. Aborting");
+		if (callback)
+			callback();
 		return;
-	SetCURLFormPostField(curlHandle,
-						 form,
-						 lastPtr,
-						 "negsolo",
-						 chart->GetTimingData()->HasWarps() ||
-						   chart->m_StepsType != StepsType_dance_single);
-	SetCURLFormPostField(curlHandle,
-						 form,
-						 lastPtr,
-						 "nocc",
-						 static_cast<int>(!hs->GetChordCohesion()));
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "calc_version", hs->GetSSRCalcVersion());
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "wife_version", hs->GetWifeVersion());
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "topscore", hs->GetTopScore());
-	SetCURLFormPostField(curlHandle,
-						 form,
-						 lastPtr,
-						 "hash",
-						 hs->GetValidationKey(ValidationKey_Brittle));
-	SetCURLFormPostField(curlHandle, form, lastPtr, "wife", hs->GetWifeScore());
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "wifePoints", hs->GetWifePoints());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "judgeScale", hs->judges);
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "machineGuid", hs->GetMachineGuid());
-	SetCURLFormPostField(curlHandle, form, lastPtr, "grade", hs->GetGrade());
-	SetCURLFormPostField(curlHandle,
-						 form,
-						 lastPtr,
-						 "wifeGrade",
-						 string(GradeToString(hs->GetWifeGrade()).c_str()));
+	}
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, API_UPLOAD_SCORE_BULK);
+
+	auto body = ScoreVectorToJSON(hsList, true);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+
+	// body json
+	// Locator::getLogger()->warn("{}", body);
+
+	auto done = [callback, hsList, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_UPLOAD_SCORE_BULK, req)) {
+			if (callback)
+				callback();
+			return;
+		}
+		if (HandleRatelimitResponse(API_UPLOAD_SCORE_BULK, req)) {
+			UploadBulkScores(hsList, callback);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "Bulk score upload status {} & response parse error. Response "
+			  "body: {}",
+			  req.response_code,
+			  req.result.c_str());
+			if (callback)
+				callback();
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// kind of good.
+			// we can have successes and failures.
+
+			std::unordered_set<std::string> failedUploadKeys{};
+			if (d.IsObject() && d.HasMember("failedUploads")) {
+				auto& fails = d["failedUploads"];
+				/*// Verbose output
+				Locator::getLogger()->warn(
+				  "BulkScoreUpload had failed uploads but continued: {}",
+				  jsonObjectToString(fails));
+				*/
+				Locator::getLogger()->warn(
+				  "BulkScoreUpload had failed uploads but continued working");
+
+				// collect the scorekeys for the failed uploads
+				// the return data is in this format:
+				/*
+				[
+					{ "Sabcdef1234567890" : ["Reason for failure1",] },
+					{ "S1234567890abcdef" : ["Reason for failure1",] },
+				]
+				*/
+				if (fails.IsArray()) {
+					for (auto it = fails.Begin();
+						it != fails.End(); it++) {
+						for (auto objIt = it->MemberBegin();
+							 objIt != it->MemberEnd();
+							 objIt++) {
+							failedUploadKeys.insert(objIt->name.GetString());
+							Locator::getLogger()->warn(
+							  "Score {} was rejected by server for: {}",
+							  objIt->name.GetString(),
+							  jsonObjectToString(objIt->value));
+						}
+					}
+				}
+			}
+
+			if (!d.HasMember("failedUploads") && !d.HasMember("playerRating")) {
+				Locator::getLogger()->info(
+				  "BulkScoreUpload received no useful response? Content: {}",
+				  jsonObjectToString(d));
+			}
+
+			// record the scores that successfully uploaded
+			for (auto& hs : hsList) {
+				if (failedUploadKeys.contains(hs->GetScoreKey())) {
+					continue;
+				}
+
+				if (hs->GetWifeVersion() == 3)
+					hs->AddUploadedServer(wife3_rescore_upload_flag);
+				hs->AddUploadedServer(serverURL.Get());
+				hs->forceuploadedthissession = true;
+			}
+
+			if (d.IsObject() && d.HasMember("playerRating") &&
+				d["playerRating"].IsObject()) {
+				// we know the new player rating details and had a successful
+				// upload
+				auto get = [&d](const char* name) {
+					auto& pr = d["playerRating"];
+					if (pr.HasMember(name) && pr[name].IsDouble()) {
+						return pr[name].GetDouble();
+					} else {
+						return 0.0;
+					}
+				};
+
+				auto stream = get("stream");
+				auto jumpstream = get("jumpstream");
+				auto handstream = get("handstream");
+				auto jacks = get("jacks");
+				auto chordjacks = get("chordjacks");
+				auto stamina = get("stamina");
+				auto tech = get("technical");
+				auto overall = get("overall");
+
+				sessionRatings[Skill_Overall] = overall;
+				sessionRatings[Skill_Stream] = stream;
+				sessionRatings[Skill_Jumpstream] = jumpstream;
+				sessionRatings[Skill_Handstream] = handstream;
+				sessionRatings[Skill_JackSpeed] = jacks;
+				sessionRatings[Skill_Chordjack] = chordjacks;
+				sessionRatings[Skill_Stamina] = stamina;
+				sessionRatings[Skill_Technical] = tech;
+
+				Locator::getLogger()->info(
+				  "BulkScoreUpload for {} scores completed, and {} of those "
+				  "were rejected - \n\tOverall {}\n\tStream "
+				  "{}\n\tJS "
+				  "{}\n\tHS {}\n\tJacks {}\n\tCJ {}\n\tStamina {}\n\tTech {}",
+				  hsList.size(),
+				  failedUploadKeys.size(),
+				  overall,
+				  stream,
+				  jumpstream,
+				  handstream,
+				  jacks,
+				  chordjacks,
+				  stamina,
+				  tech);
+			}
+
+		} else {
+			// ???
+			Locator::getLogger()->warn(
+			  "BulkUploadScore got unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+
+		}
+		if (callback)
+			callback();
+	};
+
+	HTTPRequest* req =
+	  new HTTPRequest(curlHandle, done, nullptr, [callback](HTTPRequest& req) {
+		  if (callback)
+			  callback();
+	  });
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(API_UPLOAD_SCORE_BULK, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+	Locator::getLogger()->info(
+	  "Finished creating BulkUploadScore request for {} scores", hsList.size());
 }
 
 void
 DownloadManager::UploadScore(HighScore* hs,
-							 function<void()> callback,
+							 std::function<void()> callback,
 							 bool load_from_disk)
 {
 	Locator::getLogger()->info("Creating UploadScore request for score {}",
@@ -992,166 +2001,123 @@ DownloadManager::UploadScore(HighScore* hs,
 	if (load_from_disk)
 		hs->LoadReplayData();
 
-	CURL* curlHandle = initCURLHandle(true);
-	string url = serverURL.Get() + "/score";
-	curl_httppost* form = nullptr;
-	curl_httppost* lastPtr = nullptr;
-	SetCURLPOSTScore(curlHandle, form, lastPtr, hs);
-	string replayString;
-	const auto& offsets = hs->GetOffsetVector();
-	const auto& columns = hs->GetTrackVector();
-	const auto& types = hs->GetTapNoteTypeVector();
-	const auto& rows = hs->GetNoteRowVector();
-	if (!offsets.empty()) {
-		replayString = "[";
-		auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-		if (steps == nullptr) {
-			Locator::getLogger()->warn(
-			  "Attempted to upload score with no loaded steps "
-			  "(scorekey: \"{}\" chartkey: \"{}\")",
-			  hs->GetScoreKey().c_str(),
-			  hs->GetChartKey().c_str());
-			curl_easy_cleanup(curlHandle);
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, API_UPLOAD_SCORE);
+
+	Document jsonDoc;
+	auto scoreDoc = ScoreToJSON(hs, true, jsonDoc.GetAllocator());
+	auto json = jsonObjectToString(scoreDoc);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, json.c_str());
+
+	auto done = [hs, callback, load_from_disk, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_UPLOAD_SCORE, req)) {
+			if (callback)
+				callback();
 			return;
 		}
-		std::vector<float> timestamps =
-		  steps->GetTimingData()->ConvertReplayNoteRowsToTimestamps(
-			rows, hs->GetMusicRate());
-		for (size_t i = 0; i < offsets.size(); i++) {
-			replayString += "[";
-			replayString += to_string(timestamps[i]) + ",";
-			replayString += to_string(1000.f * offsets[i]) + ",";
-			if (hs->HasColumnData()) {
-				replayString += to_string(columns[i]) + ",";
-				replayString += to_string(types[i]) + ",";
-			}
-			replayString += to_string(rows[i]);
-			replayString += "],";
+		if (HandleRatelimitResponse(API_UPLOAD_SCORE, req)) {
+			UploadScore(hs, callback, load_from_disk);
+			return;
 		}
-		replayString =
-		  replayString.substr(0, replayString.size() - 1); // remove ","
-		replayString += "]";
-		if (load_from_disk)
-			hs->UnloadReplayData();
-	} else {
-		// this should never be true unless we are using the manual forceupload
-		// functions
-		replayString = "[]";
-	}
-	SetCURLFormPostField(
-	  curlHandle, form, lastPtr, "replay_data", replayString);
-	SetCURLURL(curlHandle, url);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
-	auto done = [hs, callback, load_from_disk](HTTPRequest& req) {
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "Score upload response json parse error (error: \"{}\" "
-			  "response body: \"{}\")",
-			  rapidjson::GetParseError_En(d.GetParseError()),
-			  req.result.c_str());
+			Locator::getLogger()->error("Score upload status {} & response "
+										"parse error. Response body: {}",
+										req.response_code,
+										req.result.c_str());
 			if (callback)
 				callback();
 			return;
 		}
-		if (d.HasMember("errors")) {
-			auto onStatus =
-			  [hs, load_from_disk, &callback, &req](int status) {
-				  if (status == 22) {
-					  Locator::getLogger()->error(
-						"Score upload response contains error, retrying "
-						"(http status: {} error status: {} response "
-						"body: \"{}\")",
-						req.response_code,
-						status,
-						req.result.c_str());
-					  DLMAN->StartSession(
-						DLMAN->sessionUser,
-						DLMAN->sessionPass,
-						[hs, callback, load_from_disk](bool logged) {
-							if (logged) {
-								DLMAN->UploadScore(
-								  hs, callback, load_from_disk);
-							}
-						});
-					  return true;
-				  } else if (status == 404 || status == 405 || status == 406) {
-					  if (hs->GetWifeVersion() == 3)
-						  hs->AddUploadedServer(wife3_rescore_upload_flag);
-					  hs->AddUploadedServer(serverURL.Get());
-					  hs->forceuploadedthissession = true;
-				  }
-				  // We don't log 406s because those are "not a a pb"
-				  // Which are normal, unless we're using verbose logging
-				  if (status != 406)
-					  Locator::getLogger()->error(
-						"Score upload response contains error "
-						"(http status: {} error status: {} response body: "
-						"\"{}\" score key: \"{}\")",
-						req.response_code,
-						status,
-						req.result.c_str(),
-						hs->GetScoreKey().c_str());
-				  return false;
-			  };
-			if (d["errors"].IsArray()) {
-				for (auto& error : d["errors"].GetArray()) {
-					if (!error["status"].IsInt())
-						continue;
-					int status = error["status"].GetInt();
-					if (onStatus(status))
-						return;
-				}
-			} else if (d["errors"].HasMember("status") &&
-					   d["errors"]["status"].IsInt()) {
-				if (onStatus(d["errors"]["status"].GetInt()))
-					return;
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+
+			if (d.HasMember("data")) {
+				auto& data = d["data"];
+
+				auto get = [&data](const char* name) {
+					if (data.HasMember(name) && data[name].IsDouble()) {
+						return data[name].GetDouble();
+					} else {
+						return 0.0;
+					}
+				};
+
+				auto stream = get("stream");
+				auto jumpstream = get("jumpstream");
+				auto handstream = get("handstream");
+				auto jacks = get("jacks");
+				auto chordjacks = get("chordjacks");
+				auto stamina = get("stamina");
+				auto tech = get("technical");
+				auto overall = get("overall");
+
+				sessionRatings[Skill_Overall] = overall;
+				sessionRatings[Skill_Stream] = stream;
+				sessionRatings[Skill_Jumpstream] = jumpstream;
+				sessionRatings[Skill_Handstream] = handstream;
+				sessionRatings[Skill_JackSpeed] = jacks;
+				sessionRatings[Skill_Chordjack] = chordjacks;
+				sessionRatings[Skill_Stamina] = stamina;
+				sessionRatings[Skill_Technical] = tech;
+
+				Locator::getLogger()->info(
+				  "UploadScore completed for score {} - \n\tOverall "
+				  "{}\n\tStream {}\n\tJS "
+				  "{}\n\tHS {}\n\tJacks {}\n\tCJ {}\n\tStamina {}\n\tTech {}",
+				  hs->GetScoreKey(),
+				  overall,
+				  stream,
+				  jumpstream,
+				  handstream,
+				  jacks,
+				  chordjacks,
+				  stamina,
+				  tech);
+
+				if (hs->GetWifeVersion() == 3)
+					hs->AddUploadedServer(wife3_rescore_upload_flag);
+				hs->AddUploadedServer(serverURL.Get());
+				hs->forceuploadedthissession = true;
+
 			} else {
+				Locator::getLogger()->warn(
+				  "Score upload response missing data field. Content: {}",
+				  jsonObjectToString(d));
+			}
+
+		} else if (response == 422) {
+			// missing info
+
+			if (d.HasMember("data") && d["data"].HasMember("errors")) {
 				Locator::getLogger()->error(
-				  "Score upload response contains error and we failed "
-				  "to recognize it"
-				  "(http status: {} response body: \"{}\")",
-				  req.response_code,
-				  req.result.c_str());
+				  "UploadScore for {} has errors: {}",
+				  hs->GetScoreKey(),
+				  jsonObjectToString(d["data"]["errors"]));
+				if (callback)
+					callback();
+				return;
 			}
-			if (callback)
-				callback();
-			return;
-		}
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("type") && d["data"]["type"].IsString() &&
-			std::strcmp(d["data"]["type"].GetString(), "ssrResults") == 0 &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("diff") &&
-			d["data"]["attributes"]["diff"].IsObject()) {
-			auto& diffs = d["data"]["attributes"]["diff"];
-			FOREACH_ENUM(Skillset, ss)
-			{
-				auto str = SkillsetToString(ss);
-				if (ss != Skill_Overall && diffs.HasMember(str.c_str()) &&
-					diffs[str.c_str()].IsNumber())
-					(DLMAN->sessionRatings)[ss] +=
-					  diffs[str.c_str()].GetFloat();
-			}
-			if (diffs.HasMember("Rating") && diffs["Rating"].IsNumber())
-				(DLMAN->sessionRatings)[Skill_Overall] +=
-				  diffs["Rating"].GetFloat();
-			if (hs->GetWifeVersion() == 3)
-				hs->AddUploadedServer(wife3_rescore_upload_flag);
-			hs->AddUploadedServer(serverURL.Get());
-			hs->forceuploadedthissession = true;
-			Locator::getLogger()->info("Score upload completed for score {}",
-									   hs->GetScoreKey());
-			// HTTPRunning = response_code;// TODO: Why were we doing this?
+
+			Locator::getLogger()->warn(
+				"UploadScore failed due to input error. Content: {}",
+				jsonObjectToString(d));
+		} else if (response == 404) {
+			Locator::getLogger()->warn(
+				"UploadScore failed due to 404. Chart may be unranked - Content: {}",
+				jsonObjectToString(d));
 		} else {
-			Locator::getLogger()->error(
-			  "Score upload response malformed json "
-			  "(http status: {} response body: \"{}\")",
-			  req.response_code,
-			  req.result.c_str());
+			Locator::getLogger()->warn("Unexpected status {} - Content: {}",
+									   response,
+									   jsonObjectToString(d));
 		}
+
 		if (callback)
 			callback();
 	};
@@ -1161,27 +2127,33 @@ DownloadManager::UploadScore(HighScore* hs,
 			  callback();
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
-	AddHttpRequestHandle(req->handle);
-	HTTPRequests.push_back(req);
-	Locator::getLogger()->info("Finished creating UploadScore request");
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(API_UPLOAD_SCORE, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+	Locator::getLogger()->info("Finished creating UploadScore request for {}",
+							   hs->GetScoreKey());
 }
 
 // this is for new/live played scores that have replaydata in memory
 void
 DownloadManager::UploadScoreWithReplayData(HighScore* hs)
 {
-	this->UploadScore(
-	  hs, []() {}, false /* (Without replay data loading from disk)*/);
+	// (Without replay data loading from disk)
+	UploadScore(
+	  hs, []() {}, false);
 }
 
 // for older scores or newer scores that failed to upload using the above
 // function we should probably do some refactoring of this
 void
-DownloadManager::UploadScoreWithReplayDataFromDisk(HighScore* hs,
-												   function<void()> callback)
+DownloadManager::UploadScoreWithReplayDataFromDisk(
+  HighScore* hs,
+  std::function<void()> callback)
 {
-	this->UploadScore(
-	  hs, callback, true /* (With replay data loading from disk)*/);
+	// (With replay data loading from disk)
+	UploadScore(hs, callback, true);
 }
 
 // This function begins uploading the given list (deque) of scores
@@ -1202,212 +2174,218 @@ uploadSequentially()
 	MESSAGEMAN->Broadcast(msg);
 
 	if (!DLMAN->ScoreUploadSequentialQueue.empty()) {
-		auto hs = DLMAN->ScoreUploadSequentialQueue.front();
-		DLMAN->ScoreUploadSequentialQueue.pop_front();
-		DLMAN->UploadScoreWithReplayDataFromDisk(hs, uploadSequentially);
+		
+		std::vector<HighScore*> hsToUpload{};
+		for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
+						 !DLMAN->ScoreUploadSequentialQueue.empty();
+			 i++) {
+			hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());
+			DLMAN->ScoreUploadSequentialQueue.pop_front();
+
+			if (hsToUpload.size() >= UPLOAD_SCORE_BULK_CHUNK_SIZE) {
+				break;
+			}
+		}
+		runningSequentialUpload = true;
+		DLMAN->UploadBulkScores(hsToUpload, uploadSequentially);
+		
 	} else {
 		Locator::getLogger()->info(
 		  "Sequential upload queue empty - uploads finished");
+		runningSequentialUpload = false;
+		DLMAN->sequentialScoreUploadTotalWorkload = 0;
+	}
+}
+
+// This starts the sequential uploading process if it has not already begun
+void
+startSequentialUpload()
+{
+	if (DLMAN->ScoreUploadSequentialQueue.empty()) {
+		Locator::getLogger()->info(
+		  "Could not start sequential upload process - nothing to upload");
+		return;
+	}
+
+	if (!runningSequentialUpload) {
+		Locator::getLogger()->info("Starting sequential upload process - {} "
+								   "scores split into chunks of {}",
+								   DLMAN->ScoreUploadSequentialQueue.size(),
+								   UPLOAD_SCORE_BULK_CHUNK_SIZE);
+		uploadSequentially();
 	}
 }
 
 bool
-DownloadManager::UploadScores()
+DownloadManager::InitialScoreSync()
 {
 	if (!LoggedIn())
 		return false;
 
-	// First we accumulate scores that have not been uploaded and have
-	// replay data. There is no reason to upload updated calc versions to the
-	// site anymore - the site uses its own calc and afaik ignores the provided
-	// values, we only need to upload scores that have not been uploaded, and
-	// scores that have been rescored from wife2 to wife3
-	auto scores = SCOREMAN->GetAllPBPtrs();
-	auto& newly_rescored = SCOREMAN->rescores;
-	std::vector<HighScore*> toUpload;
-	for (auto& vec : scores) {
-		for (auto& s : vec) {
-			// probably not worth uploading fails, they get rescored now
-			if (s->GetGrade() == Grade_Failed)
-				continue;
-			// handle rescores, ignore upload check
-			if (newly_rescored.count(s))
-				toUpload.push_back(s);
-			// ok so i think we probably do need an upload flag for wife3
-			// resyncs, and to actively check it, since if people rescore
-			// everything, play 1 song and close their game or whatever,
-			// rescore list won't be built again and scores won't auto
-			// sync
-			else if (s->GetWifeVersion() == 3 &&
-					 !s->IsUploadedToServer(wife3_rescore_upload_flag))
-				toUpload.push_back(s);
-			// normal behavior, upload scores that haven't been uploaded and
-			// have replays
-			else if (!s->IsUploadedToServer(serverURL.Get()) &&
-					 s->HasReplayData())
-				toUpload.push_back(s);
-		}
+	auto* profile =
+	  PROFILEMAN->GetProfile(PLAYER_1);
+	if (profile == nullptr) {
+		return false;
 	}
 
-	if (!toUpload.empty())
-		Locator::getLogger()->info(
-		  "Updating online scores. (Uploading {} scores)", toUpload.size());
-	else
-		return false;
+	auto lastCheckDT = profile->m_lastRankedChartkeyCheck;
+	auto year0 = DateTime();
+	if (lastCheckDT.tm_year == year0.tm_year &&
+		lastCheckDT.tm_mon == year0.tm_mon &&
+		lastCheckDT.tm_mday == year0.tm_mday) {
+		// if the check never happened at all, set to a valid date
 
-	bool was_not_uploading_already = this->ScoreUploadSequentialQueue.empty();
-	if (was_not_uploading_already)
-		this->sequentialScoreUploadTotalWorkload = toUpload.size();
-	else
-		this->sequentialScoreUploadTotalWorkload += toUpload.size();
-	this->ScoreUploadSequentialQueue.insert(
-	  this->ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
-	if (was_not_uploading_already)
-		uploadSequentially();
+		// sets to 1900-01-01
+		lastCheckDT.tm_year = 0;
+		lastCheckDT.tm_mon = 0;
+		lastCheckDT.tm_mday = 1;
+	}
+
+	// this runs after the GetRankedChartkeys request
+	auto callback = [this, lastCheckDT, profile]() {
+		// First we accumulate scores that have not been uploaded and have
+		// replay data. There is no reason to upload updated calc versions to
+		// the site anymore - the site uses its own calc and afaik ignores the
+		// provided values, we only need to upload scores that have not been
+		// uploaded, and scores that have been rescored from wife2 to wife3
+		auto scores = SCOREMAN->GetAllPBPtrs();
+		auto& newly_rescored = SCOREMAN->rescores;
+		std::vector<HighScore*> toUpload;
+		for (auto& vec : scores) {
+			for (auto& s : vec) {
+				// probably not worth uploading fails, they get rescored now
+				if (s->GetGrade() == Grade_Failed)
+					continue;
+
+				// the chart must be ranked to be uploaded
+				if (!newlyRankedChartkeys.contains(s->GetChartKey()))
+					continue;
+
+				// handle rescores, ignore upload check
+				if (newly_rescored.count(s))
+					toUpload.push_back(s);
+				// ok so i think we probably do need an upload flag for wife3
+				// resyncs, and to actively check it, since if people rescore
+				// everything, play 1 song and close their game or whatever,
+				// rescore list won't be built again and scores won't auto
+				// sync
+				else if (s->GetWifeVersion() == 3 &&
+						 !s->IsUploadedToServer(wife3_rescore_upload_flag))
+					toUpload.push_back(s);
+				// normal behavior, upload scores that haven't been uploaded and
+				// have replays
+				else if (!s->IsUploadedToServer(serverURL.Get()) &&
+						 s->HasReplayData())
+					toUpload.push_back(s);
+			}
+		}
+
+		if (!toUpload.empty())
+			Locator::getLogger()->info(
+			  "Updating online scores. (Uploading {} scores)", toUpload.size());
+		else
+			return false;
+
+		ScoreUploadSequentialQueue.insert(
+		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
+		sequentialScoreUploadTotalWorkload += toUpload.size();
+		startSequentialUpload();
+		profile->m_lastRankedChartkeyCheck = lastCheckDT;
+		return true;
+	};
+
+	// this will search the date range [start, inf]
+	GetRankedChartkeys(callback, lastCheckDT);
 
 	return true;
 }
 
 // manual upload function that will upload all scores for a chart
 // that skips some of the constraints of the auto uploaders
-void
-DownloadManager::ForceUploadScoresForChart(const std::string& ck, bool startnow)
+bool
+DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 {
-	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
-
 	Locator::getLogger()->info(
-	  "Trying ForceUploadScoresForChart - {} - startnow {}", ck, startnow);
+	  "Trying ForceUploadPBsForChart - {}", ck);
 
 	auto cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) {
-		auto& test = cs->GetAllScores();
-		for (auto& s : test)
+		bool successful = false;
+		auto& scores = cs->GetAllScores();
+		for (auto& s : scores) {
 			if (!s->forceuploadedthissession) {
-				if (s->GetGrade() != Grade_Failed) {
+				if (s->GetGrade() != Grade_Failed && s->HasReplayData()) {
 					// don't add stuff we're already uploading
-					auto res =
-					  std::find(this->ScoreUploadSequentialQueue.begin(),
-								this->ScoreUploadSequentialQueue.end(),
-								s);
-					if (res != this->ScoreUploadSequentialQueue.end())
+					auto res = std::find(ScoreUploadSequentialQueue.begin(),
+										 ScoreUploadSequentialQueue.end(),
+										 s);
+					if (res != ScoreUploadSequentialQueue.end())
 						continue;
 
-					this->ScoreUploadSequentialQueue.push_back(s);
-					this->sequentialScoreUploadTotalWorkload += 1;
+					ScoreUploadSequentialQueue.push_back(s);
+					sequentialScoreUploadTotalWorkload += 1;
+					successful = true;
+				}
+				else if (s->GetGrade() != Grade_Failed && !s->HasReplayData()) {
+					Locator::getLogger()->info("Scorekey {} in chart {} has no "
+											   "replay - ForceUpload skipped",
+											   s->GetScoreKey(),
+											   ck);
 				}
 			}
+		}
+		if (!successful) {
+			Locator::getLogger()->info(
+			  "ForceUploadPBsForChart did not queue any scores for chart {}",
+			  ck);
+		} else if (startNow) {
+			startSequentialUpload();
+		}
+		return successful;
 	} else {
-		Locator::getLogger()->debug(
-		  "ForceUploadScoresForChart found no scores for chart {}", ck);
-	}
-
-	if (startnow) {
-		this->sequentialScoreUploadTotalWorkload =
-		  this->ScoreUploadSequentialQueue.size();
-		Locator::getLogger()->info("Starting sequential upload of {} scores",
-									this->ScoreUploadSequentialQueue.size());
-		uploadSequentially();
+		Locator::getLogger()->info(
+		  "ForceUploadPBsForChart found no scores for chart {}", ck);
+		return false;
 	}
 }
-// wrapper for packs
-void
-DownloadManager::ForceUploadScoresForPack(const std::string& pack,
-										  bool startnow)
+bool
+DownloadManager::ForceUploadPBsForPack(const std::string& pack, bool startNow)
 {
-	startnow = startnow && this->ScoreUploadSequentialQueue.empty();
-
 	Locator::getLogger()->info(
-	  "Trying ForceUploadScoresForPack - {} - startnow {}", pack, startnow);
+	  "Trying ForceUploadPBsForPack - {}", pack);
 
+	bool successful = false;
 	auto songs = SONGMAN->GetSongs(pack);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
-			ForceUploadScoresForChart(c->GetChartKey(), false);
-
-	if (startnow) {
-		this->sequentialScoreUploadTotalWorkload =
-		  this->ScoreUploadSequentialQueue.size();
-		Locator::getLogger()->info("Starting sequential upload of {} scores",
-									this->ScoreUploadSequentialQueue.size());
-		uploadSequentially();
+			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+	if (!successful) {
+		Locator::getLogger()->info(
+		  "ForceUploadPBsForPack did not queue any scores for pack {}", pack);
+	} else if (startNow) {
+		startSequentialUpload();
 	}
+	return successful;
 }
-void
-DownloadManager::ForceUploadAllScores()
+bool
+DownloadManager::ForceUploadAllPBs()
 {
-	bool not_already_uploading = this->ScoreUploadSequentialQueue.empty();
+	Locator::getLogger()->info("Trying ForceUploadAllPBs");
 
-	Locator::getLogger()->info(
-	  "Trying ForceUploadAllScores - is queue previously empty? {}",
-	  not_already_uploading);
-
+	bool successful = false;
 	auto songs = SONGMAN->GetSongs(GROUP_ALL);
 	for (auto so : songs)
 		for (auto c : so->GetAllSteps())
-			ForceUploadScoresForChart(c->GetChartKey(), false);
-
-	if (not_already_uploading) {
-		this->sequentialScoreUploadTotalWorkload =
-		  this->ScoreUploadSequentialQueue.size();
-		Locator::getLogger()->info("Starting sequential upload of {} scores",
-									this->ScoreUploadSequentialQueue.size());
-		uploadSequentially();
+			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+	if (!successful) {
+		Locator::getLogger()->info(
+		  "ForceUploadAllPBs did not queue any scores");
+	} else {
+		startSequentialUpload();
 	}
-}
-void
-DownloadManager::EndSessionIfExists()
-{
-	if (!LoggedIn())
-		return;
-	EndSession();
-}
-void
-DownloadManager::EndSession()
-{
-	sessionUser = sessionPass = authToken = "";
-	topScores.clear();
-	sessionRatings.clear();
-	// This is called on a shutdown, after MessageManager is gone
-	if (MESSAGEMAN != nullptr)
-		MESSAGEMAN->Broadcast("LogOut");
+	return successful;
 }
 
-// User rank
-void
-DownloadManager::RefreshUserRank()
-{
-	if (!LoggedIn())
-		return;
-	auto done = [](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshUserRank Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-		if (d.HasMember("errors") && d["errors"].IsObject() &&
-			d["errors"].HasMember("status") && d["errors"]["status"].IsInt() &&
-			d["errors"]["status"].GetInt() == 404)
-			return;
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject()) {
-			auto& skillsets = d["data"]["attributes"];
-			FOREACH_ENUM(Skillset, ss)
-			{
-				auto str = SkillsetToString(ss);
-				if (skillsets.HasMember(str.c_str()) &&
-					skillsets[str.c_str()].IsInt())
-					(DLMAN->sessionRanks)[ss] = skillsets[str.c_str()].GetInt();
-				else
-					(DLMAN->sessionRanks)[ss] = 0;
-			}
-		}
-		MESSAGEMAN->Broadcast("OnlineUpdate");
-	};
-	SendRequest("user/" + UrlEncode(sessionUser) + "/ranks", {}, done, true, false, true);
-}
 OnlineTopScore
 DownloadManager::GetTopSkillsetScore(unsigned int rank,
 									 Skillset ss,
@@ -1423,77 +2401,80 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 }
 
 HTTPRequest*
-DownloadManager::SendRequest(string requestName,
-							 std::vector<pair<string, string>> params,
-							 function<void(HTTPRequest&)> done,
-							 bool requireLogin,
-							 bool post,
-							 bool async,
-							 bool withBearer)
+DownloadManager::SendRequest(
+  std::string requestName,
+  std::vector<std::pair<std::string, std::string>> params,
+  std::function<void(HTTPRequest&)> done,
+  bool requireLogin,
+  RequestMethod httpMethod,
+  bool async,
+  bool withBearer)
 {
-	return SendRequestToURL(serverURL.Get() + "/" + requestName,
+	return SendRequestToURL(APIROOT() + requestName,
 							params,
 							done,
 							requireLogin,
-							post,
+							httpMethod,
 							async,
 							withBearer);
 }
 
 HTTPRequest*
 DownloadManager::SendRequestToURL(
-  string url,
-  std::vector<pair<string, string>> params,
-  function<void(HTTPRequest&)> afterDone,
+  std::string url,
+  std::vector<std::pair<std::string, std::string>> params,
+  std::function<void(HTTPRequest&)> afterDone,
   bool requireLogin,
-  bool post,
+  RequestMethod httpMethod,
   bool async,
   bool withBearer)
 {
 	if (requireLogin && !LoggedIn())
 		return nullptr;
-	if (!post && !params.empty()) {
+	if (httpMethod == RequestMethod::GET && !params.empty()) {
 		url += "?";
 		for (auto& param : params)
 			url += param.first + "=" + param.second + "&";
 		url = url.substr(0, url.length() - 1);
 	}
-	function<void(HTTPRequest&)> done = [afterDone,
-												   url](HTTPRequest& req) {
+	auto done = [url,
+				 params,
+				 afterDone,
+				 requireLogin,
+				 httpMethod,
+				 async,
+				 withBearer,
+				 this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(url, req)) {
+			if (afterDone)
+				afterDone(req);
+			return;
+		}
+		if (HandleRatelimitResponse(url, req)) {
+			SendRequestToURL(url,
+							 params,
+							 afterDone,
+							 requireLogin,
+							 httpMethod,
+							 async,
+							 withBearer);
+			return;
+		}
+
+		// for non 404s, check to see if it is malformed
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
+		if (req.response_code != 404 &&
+			d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "SendRequestToURL ({}) Parse Error: {}", url, req.result);
+			  "SendRequestToURL ({}) status {} & Parse Error: {}",
+			  url,
+			  req.response_code,
+			  req.result);
 			return;
 		}
 		if (d.HasMember("errors")) {
-			auto on22 = [req, afterDone]() {
-				DLMAN->StartSession(DLMAN->sessionUser,
-									DLMAN->sessionPass,
-									[req, afterDone](bool logged) {
-										if (logged) {
-											auto r = req;
-											if (afterDone)
-												afterDone(r);
-										}
-									});
-			};
-			if (d["errors"].IsArray())
-				for (auto& error : d["errors"].GetArray()) {
-					if (error.HasMember("status") && error["status"].IsInt() &&
-						error["status"].GetInt() == 22) {
-						on22();
-						return;
-					}
-				}
-			else if (d["errors"].IsObject() &&
-					 d["errors"].HasMember("status") &&
-					 d["errors"]["status"].IsInt()) {
-				if (d["errors"]["status"].GetInt() == 22) {
-					on22();
-					return;
-				}
-			}
+			// hmm
 		}
 		if (afterDone)
 			afterDone(req);
@@ -1501,38 +2482,137 @@ DownloadManager::SendRequestToURL(
 	CURL* curlHandle = initCURLHandle(withBearer);
 	SetCURLURL(curlHandle, url);
 	HTTPRequest* req;
-	if (post) {
+	if (httpMethod == RequestMethod::POST) {
 		curl_httppost* form = nullptr;
 		curl_httppost* lastPtr = nullptr;
 		for (auto& param : params)
-			CURLFormPostField(curlHandle,
-							  form,
+			CURLFormPostField(form,
 							  lastPtr,
 							  param.first.c_str(),
 							  param.second.c_str());
 		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 		req = new HTTPRequest(curlHandle, done, form);
+	} else if (httpMethod == RequestMethod::PATCH) {
+		curl_httppost* form = nullptr;
+		curl_httppost* lastPtr = nullptr;
+		for (auto& param : params)
+			CURLFormPostField(form,
+							  lastPtr,
+							  param.first.c_str(),
+							  param.second.c_str());
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
+		req = new HTTPRequest(curlHandle, done, form);
+	} else if (httpMethod == RequestMethod::DEL) {
+		req = new HTTPRequest(curlHandle, done);
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE");
 	} else {
 		req = new HTTPRequest(curlHandle, done);
 		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPGET, 1L);
 	}
 	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (async) {
-		AddHttpRequestHandle(req->handle);
-		HTTPRequests.push_back(req);
+		if (!QueueRequestIfRatelimited(url, *req)) {
+			AddHttpRequestHandle(req->handle);
+			HTTPRequests.push_back(req);
+		}
 	} else {
+		Locator::getLogger()->debug("Waiting on synchronous curl call");
 		CURLcode res = curl_easy_perform(req->handle);
 		curl_easy_cleanup(req->handle);
 		done(*req);
+		Locator::getLogger()->debug("Synchronous curl call completed");
 		delete req;
 		return nullptr;
 	}
 	return req;
 }
+
+bool
+DownloadManager::HandleRatelimitResponse(const std::string& endpoint, HTTPRequest& req)
+{
+	auto& status = req.response_code;
+	if (status != 429) {
+		return false;
+	}
+
+	const auto ratelimitHeader = "Retry-After";
+	auto headers = extractHeaderMap(req.headers);
+
+	auto waitSeconds = 60;
+	if (headers.count(ratelimitHeader) != 0u) {
+		try {
+			waitSeconds = std::stoi(headers.at(ratelimitHeader));
+		} catch (...) {
+			Locator::getLogger()->warn("Failed to turn Retry-After from string "
+									   "to number, defaulted to 60 - Value: {}",
+									   headers.at(ratelimitHeader));
+		}
+	}
+
+	Locator::getLogger()->warn("{} {} - Rate Limited. Requeueing request to "
+							   "the endpoint after {} seconds",
+							   endpoint,
+							   status,
+							   waitSeconds);
+
+	auto newTimestamp =
+	  std::chrono::steady_clock::now() + std::chrono::seconds(waitSeconds);
+
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		endpointRatelimitTimestamps[endpoint] = newTimestamp;
+	}
+
+	// the calling function needs to call QueueRatelimitedRequest next
+	// but with a new copy of the request
+
+	return true;
+}
+
+bool
+DownloadManager::QueueRequestIfRatelimited(const std::string& endpoint, HTTPRequest& req) {
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
+			return false;
+		}
+
+		auto ratelimitTimestamp = endpointRatelimitTimestamps.at(endpoint);
+		if (std::chrono::steady_clock::now() > ratelimitTimestamp) {
+			endpointRatelimitTimestamps.erase(endpoint);
+			return false;
+		}
+	}
+
+	QueueRatelimitedRequest(endpoint, req);
+
+	return true;
+}
+
+void
+DownloadManager::QueueRatelimitedRequest(const std::string& endpoint, HTTPRequest& req) {
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		if (ratelimitedRequestQueue.count(endpoint) == 0u) {
+			ratelimitedRequestQueue.emplace(endpoint,
+											std::vector<HTTPRequest*>());
+		}
+		ratelimitedRequestQueue.at(endpoint).push_back(&req);
+	}
+}
+
+
 void
 DownloadManager::RefreshCountryCodes()
 {
-	auto done = [](HTTPRequest& req) {
+	Locator::getLogger()->warn("REFRESH COUNTRY CODES NOT IMPLEMENTED");
+	return;
+
+	/*
+
+	auto done = [this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1543,399 +2623,230 @@ DownloadManager::RefreshCountryCodes()
 		if (d.HasMember("data") && d["data"].IsArray())
 			for (auto& code_obj : d["data"].GetArray()) {
 				if (code_obj.HasMember("id") && code_obj["id"].IsString())
-					DLMAN->countryCodes.push_back(code_obj["id"].GetString());
+					countryCodes.push_back(code_obj["id"].GetString());
 				else
-					DLMAN->countryCodes.push_back("");
+					countryCodes.push_back("");
 			}
 		// append the list to global/player country code so
 		// we dont have to merge tables in lua -mina
-		DLMAN->countryCodes.push_back(string("Global"));
+		countryCodes.push_back(std::string("Global"));
 	};
-	SendRequest(
-	  "/misc/countrycodes", std::vector<pair<string, string>>(), done, true);
+	SendRequest("/misc/countrycodes",
+				std::vector<std::pair<std::string, std::string>>(),
+				done,
+				true);
+				*/
 }
 
 void
-DownloadManager::RequestReplayData(const string& scoreid,
+DownloadManager::RequestReplayData(const std::string& scoreid,
 								   int userid,
-								   const string& username,
-								   const string& chartkey,
+								   const std::string& username,
+								   const std::string& chartkey,
 								   LuaReference& callback)
 {
-	auto done = [scoreid, callback, userid, username, chartkey](
-				  HTTPRequest& req) {
-		std::vector<pair<float, float>> replayData;
-		std::vector<float> timestamps;
-		std::vector<float> offsets;
-		std::vector<int> tracks;
-		std::vector<int> rows;
-		std::vector<TapNoteType> types;
+	auto queryPath = fmt::format(API_GET_SCORE, scoreid);
+	Locator::getLogger()->info(
+	  "Generating replay data request for scoreid {} - {}", scoreid, chartkey);
 
+	auto runLuaFunc =
+	  [callback](std::vector<std::pair<float, float>>& replayData,
+				 const std::vector<OnlineScore>::iterator& it,
+				 const std::vector<OnlineScore>::iterator& itEnd) {
+		  
+		  if (!callback.IsNil() && callback.IsSet()) {
+			  Locator::getLogger()->info(
+				"RequestReplayData finished - running callback function");
+			  auto L = LUA->Get();
+			  callback.PushSelf(L);
+			  std::string Error =
+				"Error running RequestReplayData Finish Function: ";
+			  lua_newtable(L);
+			  for (unsigned i = 0; i < replayData.size(); ++i) {
+				  auto& pair = replayData[i];
+				  lua_newtable(L);
+				  lua_pushnumber(L, pair.first);
+				  lua_rawseti(L, -2, 1);
+				  lua_pushnumber(L, pair.second);
+				  lua_rawseti(L, -2, 2);
+				  lua_rawseti(L, -2, i + 1);
+			  }
+			  if (it != itEnd)
+				  it->hs.PushSelf(L);
+			  // 2 args, 0 results
+			  LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
+			  LUA->Release(L);
+		  } else {
+			  Locator::getLogger()->info(
+				"RequestReplayData finished, but no callback was set");
+		  }
+	  };
+
+	auto done = [runLuaFunc, scoreid, userid, username, chartkey, &callback, this](HTTPRequest& req) {
+		std::vector<std::pair<float, float>> replayData{};
+
+		auto& lbd = chartLeaderboards[chartkey];
+		if (HandleAuthErrorResponse(API_GET_SCORE, req)) {
+			runLuaFunc(replayData, lbd.end(), lbd.end());
+			return;
+		}
+		if (HandleRatelimitResponse(API_GET_SCORE, req)) {
+			RequestReplayData(scoreid, userid, username, chartkey, callback);
+			return;
+		}
+
+		auto response = req.response_code;
+		if (response == 404) {
+			// no score was found
+			Locator::getLogger()->warn(
+			  "RequestReplayData 404'd because there is no score id {} (ck {})",
+			  scoreid, chartkey);
+			runLuaFunc(replayData, lbd.end(), lbd.end());
+			return;
+		}
+
+		
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "Malformed replay data request response: {}", req.result);
-			return;
-		}
-		if (d.HasMember("errors")) {
-			Locator::getLogger()->error(
-			  "Replay data request failed for {} (Response: {})",
-			  scoreid,
-			  jsonObjectToString(d));
-			return;
+			  "RequestReplayData Error: Malformed request response: {}",
+			  req.result);
 		}
 
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("replay") &&
-			d["data"]["attributes"]["replay"].IsArray()) {
-			for (auto& note : d["data"]["attributes"]["replay"].GetArray()) {
-				if (!note.IsArray() || note.Size() < 2 || !note[0].IsNumber() ||
-					!note[1].IsNumber())
-					continue;
-				replayData.push_back(
-				  std::make_pair(note[0].GetFloat(), note[1].GetFloat()));
+		if (response == 200) {
+			// found a score. maybe it has replay data
 
-				timestamps.push_back(note[0].GetFloat());
-				// horrid temp hack --
-				// EO keeps misses as 180ms bads for not a great reason
-				// convert them back to misses here
-				auto offset = note[1].GetFloat() / 1000.F;
-				if (offset == .18F)
-					offset = 1.F;
-				offsets.push_back(offset);
-				if (note.Size() == 3 &&
-					note[2].IsInt()) { // pre-0.6 with noterows
-					rows.push_back(note[2].GetInt());
-				}
-				if (note.Size() > 3 && note[2].IsInt() &&
-					note[3].IsInt()) { // 0.6 without noterows
-					tracks.push_back(note[2].GetInt());
-					types.push_back(static_cast<TapNoteType>(note[3].GetInt()));
-				}
-				if (note.Size() == 5 && note[4].IsInt()) { // 0.6 with noterows
-					rows.push_back(note[4].GetInt());
-				}
-			}
-			auto& lbd = DLMAN->chartLeaderboards[chartkey];
-			auto it = find_if(lbd.begin(),
+			if (d.HasMember("data") && d["data"].IsObject()) {
+
+				auto& data = d["data"];
+				if (data.HasMember("replay_data") &&
+					data["replay_data"].IsArray()) {
+					auto replayArr = data["replay_data"].GetArray();
+
+					auto it =
+					  find_if(lbd.begin(),
 							  lbd.end(),
 							  [userid, username, scoreid](OnlineScore& a) {
 								  return a.userid == userid &&
 										 a.username == username &&
 										 a.scoreid == scoreid;
 							  });
-			if (it != lbd.end()) {
-				it->hs.SetOnlineReplayTimestampVector(timestamps);
-				it->hs.SetOffsetVector(offsets);
-				it->hs.SetTrackVector(tracks);
-				it->hs.SetTapNoteTypeVector(types);
-				it->hs.SetNoteRowVector(rows);
+
+					if (it == lbd.end()) {
+						Locator::getLogger()->warn(
+						  "RequestReplayData could not save replay data "
+						  "because scoreid {} was not found stored in a chart "
+						  "leaderboard for {}",
+						  scoreid,
+						  chartkey);
+					} else {
+
+						auto& score = it->hs;
+						std::vector<float> timestamps;
+						std::vector<float> offsets;
+						std::vector<int> tracks;
+						std::vector<int> rows;
+						std::vector<TapNoteType> types;
+
+						for (auto& note : replayArr) {
+							if (!note.IsArray() || note.Size() < 2 ||
+								!note[0].IsNumber() || !note[1].IsNumber())
+								continue;
+							replayData.push_back(std::make_pair(
+							  note[0].GetFloat(), note[1].GetFloat()));
+
+							timestamps.push_back(note[0].GetFloat());
+							// horrid temp hack --
+							// EO keeps misses as 180ms bads for not a great
+							// reason convert them back to misses here
+							auto offset = note[1].GetFloat() / 1000.F;
+							if (offset == .18F)
+								offset = 1.F;
+							offsets.push_back(offset);
+							if (note.Size() == 3 &&
+								note[2].IsInt()) { // pre-0.6 with noterows
+								rows.push_back(note[2].GetInt());
+							}
+							if (note.Size() > 3 && note[2].IsInt() &&
+								note[3].IsInt()) { // 0.6 without noterows
+								tracks.push_back(note[2].GetInt());
+								types.push_back(
+								  static_cast<TapNoteType>(note[3].GetInt()));
+							}
+							if (note.Size() == 5 &&
+								note[4].IsInt()) { // 0.6 with noterows
+								rows.push_back(note[4].GetInt());
+							}
+						}
+						score.SetOnlineReplayTimestampVector(timestamps);
+						score.SetOffsetVector(offsets);
+						score.SetTrackVector(tracks);
+						score.SetTapNoteTypeVector(types);
+						score.SetNoteRowVector(rows);
+
+						runLuaFunc(replayData, it, lbd.end());
+						return;
+					}
+				} else {
+					Locator::getLogger()->warn(
+					  "RequestReplayData didn't find replay data for score {}  "
+					  "(ck {}) - Object Missing? {}",
+					  scoreid,
+					  chartkey,
+					  data.HasMember("replay_data"));
+				}
+
+			} else {
+				Locator::getLogger()->warn("RequestReplayData got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
 			}
+		} else {
+			Locator::getLogger()->warn(
+			  "RequestReplayData unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
 		}
 
-		auto& lbd = DLMAN->chartLeaderboards[chartkey];
-		auto it = find_if(
-		  lbd.begin(), lbd.end(), [userid, username, scoreid](OnlineScore& a) {
-			  return a.userid == userid && a.username == username &&
-					 a.scoreid == scoreid;
-		  });
-		if (it != lbd.end()) {
-			it->hs.SetOnlineReplayTimestampVector(timestamps);
-			it->hs.SetOffsetVector(offsets);
-			it->hs.SetTrackVector(tracks);
-			it->hs.SetTapNoteTypeVector(types);
-			it->hs.SetNoteRowVector(rows);
-		}
-
-		if (!callback.IsNil() && callback.IsSet()) {
-			auto L = LUA->Get();
-			callback.PushSelf(L);
-			std::string Error =
-			  "Error running RequestChartLeaderBoard Finish Function: ";
-			lua_newtable(L); // dunno whats going on here -mina
-			for (unsigned i = 0; i < replayData.size(); ++i) {
-				auto& pair = replayData[i];
-				lua_newtable(L);
-				lua_pushnumber(L, pair.first);
-				lua_rawseti(L, -2, 1);
-				lua_pushnumber(L, pair.second);
-				lua_rawseti(L, -2, 2);
-				lua_rawseti(L, -2, i + 1);
-			}
-			if (it != lbd.end())
-				it->hs.PushSelf(L);
-			LuaHelpers::RunScriptOnStack(
-			  L, Error, 2, 0, true); // 2 args, 0 results
-			LUA->Release(L);
-		}
+		// anything falling through to here has no replay data
+		runLuaFunc(replayData, lbd.end(), lbd.end());
 	};
-	SendRequest("/replay/" + to_string(userid) + "/" + scoreid,
-				std::vector<pair<string, string>>(),
-				done,
-				true);
+
+	SendRequest(queryPath, {}, done, true);
 }
 
 void
-DownloadManager::RequestChartLeaderBoard(const string& chartkey,
+DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 										 LuaReference& ref)
 {
-	auto done = [chartkey, ref](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RequestChartLeaderBoard Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-		std::vector<OnlineScore>& vec = DLMAN->chartLeaderboards[chartkey];
-		vec.clear();
+	auto queryPath = fmt::format(API_CHART_LEADERBOARD, chartkey);
+	Locator::getLogger()->info("Generating chart leaderboard request for {}",
+							   chartkey);
 
-		// keep track of unranked charts
-		if (req.response_code == 404)
-			DLMAN->unrankedCharts.emplace(chartkey);
-		else if (req.response_code == 200)
-			DLMAN->unrankedCharts.erase(chartkey);
+	std::vector<std::pair<std::string, std::string>> params = {
+		//std::make_pair("sort", ""),
+		std::make_pair("limit", "999999"),
+		//std::make_pair("page", "")
+	};
 
-		if (!d.HasMember("errors") && d.HasMember("data") &&
-			d["data"].IsArray()) {
-			auto& scores = d["data"];
-			for (auto& score_obj : scores.GetArray()) {
-				if (!score_obj.HasMember("attributes") ||
-					!score_obj["attributes"].IsObject() ||
-					!score_obj["attributes"].HasMember("hasReplay") ||
-					!score_obj["attributes"]["hasReplay"].IsBool() ||
-					!score_obj["attributes"].HasMember("user") ||
-					!score_obj["attributes"]["user"].IsObject() ||
-					!score_obj["attributes"].HasMember("judgements") ||
-					!score_obj["attributes"]["judgements"].IsObject() ||
-					!score_obj["attributes"].HasMember("skillsets") ||
-					!score_obj["attributes"]["skillsets"].IsObject()) {
-					Locator::getLogger()->warn(
-					  "Malformed score in chart leaderboard (chart: {}): {}",
-					  chartkey,
-					  jsonObjectToString(score_obj));
-					continue;
-				}
-				auto& score = score_obj["attributes"];
+	std::vector<OnlineScore>& vec = chartLeaderboards[chartkey];
+	vec.clear();
 
-				OnlineScore tmp;
-				// tmp.songId = score.value("songId", 0);
-				auto& user = score["user"];
-				if (score.HasMember("songId") && score["songId"].IsString())
-					tmp.songId = score["songId"].GetString();
-				else
-					tmp.songId = "";
-				if (user.HasMember("userName") && user["userName"].IsString())
-					tmp.username = user["userName"].GetString();
-				else
-					tmp.username = "";
-				if (user.HasMember("avatar") && user["avatar"].IsString())
-					tmp.avatar = user["avatar"].GetString();
-				else
-					tmp.avatar = "";
-				if (user.HasMember("userId") && user["userId"].IsInt())
-					tmp.userid = user["userId"].GetInt();
-				else
-					tmp.userid = 0;
-				if (user.HasMember("countryCode") &&
-					user["countryCode"].IsString())
-					tmp.countryCode = user["countryCode"].GetString();
-				else
-					tmp.countryCode = "";
-				if (user.HasMember("countryCode") &&
-					user["countryCode"].IsString())
-					tmp.countryCode = user["countryCode"].GetString();
-				else
-					tmp.countryCode = "";
-				if (user.HasMember("playerRating") &&
-					user["playerRating"].IsNumber())
-					tmp.playerRating = user["playerRating"].GetFloat();
-				else
-					tmp.playerRating = 0.f;
-				if (score.HasMember("wife") && score["wife"].IsNumber())
-					tmp.wife = score["wife"].GetFloat() / 100.f;
-				else
-					tmp.wife = 0.f;
-				if (score.HasMember("modifiers") &&
-					score["modifiers"].IsString())
-					tmp.modifiers = score["modifiers"].GetString();
-				else
-					tmp.modifiers = "";
-				if (score.HasMember("maxCombo") && score["maxCombo"].IsInt())
-					tmp.maxcombo = score["maxCombo"].GetInt();
-				else
-					tmp.maxcombo = 0;
-				{
-					auto& judgements = score["judgements"];
-					if (judgements.HasMember("marvelous") &&
-						judgements["marvelous"].IsInt())
-						tmp.marvelous = judgements["marvelous"].GetInt();
-					else
-						tmp.marvelous = 0;
-					if (judgements.HasMember("perfect") &&
-						judgements["perfect"].IsInt())
-						tmp.perfect = judgements["perfect"].GetInt();
-					else
-						tmp.perfect = 0;
-					if (judgements.HasMember("great") &&
-						judgements["great"].IsInt())
-						tmp.great = judgements["great"].GetInt();
-					else
-						tmp.great = 0;
-					if (judgements.HasMember("good") &&
-						judgements["good"].IsInt())
-						tmp.good = judgements["good"].GetInt();
-					else
-						tmp.good = 0;
-					if (judgements.HasMember("bad") &&
-						judgements["bad"].IsInt())
-						tmp.bad = judgements["bad"].GetInt();
-					else
-						tmp.bad = 0;
-					if (judgements.HasMember("miss") &&
-						judgements["miss"].IsInt())
-						tmp.miss = judgements["miss"].GetInt();
-					else
-						tmp.miss = 0;
-					if (judgements.HasMember("hitMines") &&
-						judgements["hitMines"].IsInt())
-						tmp.minehits = judgements["hitMines"].GetInt();
-					else
-						tmp.minehits = 0;
-					if (judgements.HasMember("heldHold") &&
-						judgements["heldHold"].IsInt())
-						tmp.held = judgements["heldHold"].GetInt();
-					else
-						tmp.held = 0;
-					if (judgements.HasMember("letGoHold") &&
-						judgements["letGoHold"].IsInt())
-						tmp.letgo = judgements["letGoHold"].GetInt();
-					else
-						tmp.letgo = 0;
-					if (judgements.HasMember("missedHold") &&
-						judgements["missedHold"].IsInt())
-						tmp.holdmiss = judgements["missedHold"].GetInt();
-					else
-						tmp.holdmiss = 0;
-
-				}
-				if (score.HasMember("datetime") && score["datetime"].IsString())
-					tmp.datetime.FromString(score["datetime"].GetString());
-				else
-					tmp.datetime.FromString("0");
-				if (score_obj.HasMember("id") && score_obj["id"].IsString())
-					tmp.scoreid = score_obj["id"].GetString();
-				else
-					tmp.scoreid = "";
-
-				// filter scores not on the current rate out if enabled...
-				// dunno if we need this precision -mina
-				if (score.HasMember("rate") && score["rate"].IsNumber())
-					tmp.rate = score["rate"].GetFloat();
-				else
-					tmp.rate = 0.0;
-				if (score.HasMember("noCC") && score["noCC"].IsBool())
-					tmp.nocc = score["noCC"].GetBool();
-				else
-					tmp.nocc = false;
-				if (score.HasMember("valid") && score["valid"].IsBool())
-					tmp.valid = score["valid"].GetBool();
-				else
-					tmp.valid = false;
-				if (score.HasMember("wifeVersion") &&
-					score["wifeVersion"].IsInt()) {
-					auto v = score["wifeVersion"].GetInt();
-					if (v == 3)
-						tmp.wifeversion = 3;
-					else
-						tmp.wifeversion = 2;
-				} else
-					tmp.wifeversion = 2;
-
-				auto& ssrs = score["skillsets"];
-				FOREACH_ENUM(Skillset, ss)
-				{
-					auto str = SkillsetToString(ss);
-					if (ssrs.HasMember(str.c_str()) &&
-						ssrs[str.c_str()].IsNumber())
-						tmp.SSRs[ss] = ssrs[str.c_str()].GetFloat();
-					else
-						tmp.SSRs[ss] = 0.0;
-				}
-				if (score.HasMember("hasReplay") && score["hasReplay"].IsBool())
-					tmp.hasReplay = score["hasReplay"].GetBool();
-				else
-					tmp.hasReplay = false;
-
-				// eo still has some old profiles with various edge issues
-				// that unfortunately need to be handled here screen out old
-				// 11111 flags (my greatest mistake) and it's probably a
-				// safe bet to throw out below 25% scores -mina
-				if (tmp.wife > 1.f || tmp.wife < 0.25f || !tmp.valid)
-					continue;
-
-				// it seems prudent to maintain the eo functionality in this
-				// way and screen out multiple scores from the same user
-				// even more prudent would be to put this last where it
-				// belongs, we don't want to screen out scores for players
-				// who wouldn't have had them registered in the first place
-				// -mina Moved this filtering to the Lua call. -poco if
-				// (userswithscores.count(tmp.username) == 1)
-				//	continue;
-
-				// userswithscores.emplace(tmp.username);
-
-				auto& hs = tmp.hs;
-				hs.SetDateTime(tmp.datetime);
-				hs.SetMaxCombo(tmp.maxcombo);
-				hs.SetName(tmp.username);
-				hs.SetModifiers(tmp.modifiers);
-				hs.SetChordCohesion(tmp.nocc);
-				hs.SetWifeScore(tmp.wife);
-				hs.SetWifeVersion(tmp.wifeversion);
-				hs.SetSSRNormPercent(tmp.wife);
-				hs.SetMusicRate(tmp.rate);
-				hs.SetChartKey(chartkey);
-				hs.SetScoreKey("Online_" + tmp.scoreid);
-				hs.SetGrade(hs.GetWifeGrade());
-
-				hs.SetTapNoteScore(TNS_W1, tmp.marvelous);
-				hs.SetTapNoteScore(TNS_W2, tmp.perfect);
-				hs.SetTapNoteScore(TNS_W3, tmp.great);
-				hs.SetTapNoteScore(TNS_W4, tmp.good);
-				hs.SetTapNoteScore(TNS_W5, tmp.bad);
-				hs.SetTapNoteScore(TNS_Miss, tmp.miss);
-				hs.SetTapNoteScore(TNS_HitMine, tmp.minehits);
-
-				hs.SetHoldNoteScore(HNS_Held, tmp.held);
-				hs.SetHoldNoteScore(HNS_LetGo, tmp.letgo);
-				hs.SetHoldNoteScore(HNS_Missed, tmp.holdmiss);
-
-				FOREACH_ENUM(Skillset, ss)
-				hs.SetSkillsetSSR(ss, tmp.SSRs[ss]);
-
-				hs.userid = tmp.userid;
-				hs.scoreid = tmp.scoreid;
-				hs.avatar = tmp.avatar;
-				hs.countryCode = tmp.countryCode;
-				hs.hasReplay = tmp.hasReplay;
-
-				vec.push_back(tmp);
-			}
-		}
-
+	auto runLuaFunc = [ref](HTTPRequest& req, std::vector<OnlineScore>& vec) {
 		if (!ref.IsNil() && ref.IsSet()) {
-			Lua* L = LUA->Get();
+			Locator::getLogger()->info(
+			  "RequestChartLeaderBoard finished - running callback function");
+			auto L = LUA->Get();
 			ref.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
 				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
+				auto response = req.response_code;
 
 				// 404: Chart not ranked
 				// 401: Invalid login token
-				if (req.response_code == 404 || req.response_code == 401) {
+				// 429: Rate Limited
+				if (response == 404 || response == 401) {
 					lua_pushnil(L);
 					// nil output means unranked to Lua
 				} else {
@@ -1954,18 +2865,86 @@ DownloadManager::RequestChartLeaderBoard(const string& chartkey,
 				  L, Error, 1, 0, true); // 1 args, 0 results
 			}
 			LUA->Release(L);
+		} else {
+			Locator::getLogger()->info(
+			  "RequestChartLeaderBoard finished, but no callback was set");
 		}
 	};
-	SendRequest("/charts/" + UrlEncode(chartkey) + "/leaderboards",
-				std::vector<pair<string, string>>(),
-				done,
-				true);
+
+	auto done = [&ref, chartkey, runLuaFunc, &vec, this](HTTPRequest& req) {
+		if (HandleAuthErrorResponse(API_CHART_LEADERBOARD, req)) {
+			runLuaFunc(req, vec);
+			return;
+		}
+		if (HandleRatelimitResponse(API_CHART_LEADERBOARD, req)) {
+			RequestChartLeaderBoard(chartkey, ref);
+			return;
+		}
+
+		auto response = req.response_code;
+		if (response == 404) {
+			// chart is unranked
+			unrankedCharts.emplace(chartkey);
+			runLuaFunc(req, vec);
+
+			Locator::getLogger()->warn("RequestChartLeaderboard 404'd because "
+									   "this chart is unranked: {}",
+									   chartkey);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "RequestChartLeaderboard Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+
+		if (response == 200) {
+			// chart is ranked. leaderboard has [0,inf] scores
+
+			if (d.HasMember("data") && d["data"].IsArray()) {
+
+				auto count = 0;
+				auto& data = d["data"];
+				for (auto it = data.Begin(); it != data.End(); it++) {
+					count++;
+					vec.push_back(jsonToOnlineScore(*it, chartkey));
+				}
+				unrankedCharts.erase(chartkey);
+				runLuaFunc(req, vec);
+
+				Locator::getLogger()->info(
+				  "RequestChartLeaderboard for {} succeeded - {} scores found",
+				  chartkey,
+				  count);
+			} else {
+				Locator::getLogger()->warn(
+				  "RequestChartLeaderboard got unexpected response body - "
+				  "Content: {}",
+				  jsonObjectToString(d));
+			}
+		} else {
+			Locator::getLogger()->warn(
+			  "RequestChartLeaderboard unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(queryPath, params, done, true);
 }
 
 void
 DownloadManager::RefreshCoreBundles()
 {
-	auto done = [](HTTPRequest& req) {
+	Locator::getLogger()->warn("REFRESH CORE BUNDLES NOT IMPLEMENTED");
+	return;
+	/*
+
+	auto done = [this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -1975,7 +2954,7 @@ DownloadManager::RefreshCoreBundles()
 		}
 
 		if (d.HasMember("data") && d["data"].IsArray()) {
-			auto& dlPacks = DLMAN->downloadablePacks;
+			auto& dlPacks = downloadablePacks;
 			for (auto& bundleData : d["data"].GetArray()) {
 				if (!bundleData.HasMember("id") ||
 					!bundleData["id"].IsString() ||
@@ -1985,8 +2964,8 @@ DownloadManager::RefreshCoreBundles()
 					!bundleData["attributes"]["packs"].IsArray())
 					continue;
 				auto bundleName = bundleData["id"].GetString();
-				(DLMAN->bundles)[bundleName] = {};
-				auto& bundle = (DLMAN->bundles)[bundleName];
+				(bundles)[bundleName] = {};
+				auto& bundle = (bundles)[bundleName];
 				for (auto& pack :
 					 bundleData["attributes"]["packs"].GetArray()) {
 					if (!pack.HasMember("packname") ||
@@ -2006,17 +2985,18 @@ DownloadManager::RefreshCoreBundles()
 			MESSAGEMAN->Broadcast("CoreBundlesRefreshed");
 	};
 	SendRequest("packs/collections/", {}, done, false);
+	*/
 }
 
 std::vector<DownloadablePack*>
-DownloadManager::GetCoreBundle(const string& whichoneyo)
+DownloadManager::GetCoreBundle(const std::string& whichoneyo)
 {
 	return bundles.count(whichoneyo) ? bundles[whichoneyo]
 									 : std::vector<DownloadablePack*>();
 }
 
 void
-DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
+DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
 {
 	auto bundle = GetCoreBundle(whichoneyo);
 	sort(bundle.begin(),
@@ -2025,13 +3005,21 @@ DownloadManager::DownloadCoreBundle(const string& whichoneyo, bool mirror)
 			 return x1->size < x2->size;
 		 });
 	for (auto pack : bundle)
-		DLMAN->DownloadQueue.push_back(std::make_pair(pack, mirror));
+		DownloadQueue.push_back(std::make_pair(pack, mirror));
 }
 
 void
 DownloadManager::RefreshLastVersion()
 {
+
+	std::vector<std::pair<std::string, std::string>> params = {};
+
 	auto done = [this](HTTPRequest& req) {
+		if (HandleRatelimitResponse(API_USER, req)) {
+			RefreshUserData();
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -2040,25 +3028,32 @@ DownloadManager::RefreshLastVersion()
 			return;
 		}
 
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("version") &&
-			d["data"]["attributes"]["version"].IsString())
-			this->lastVersion = d["data"]["attributes"]["version"].GetString();
-		else
-			this->lastVersion = GAMESTATE->GetEtternaVersion();
+		auto response = req.response_code;
+		if (response == 200) {
+
+			lastVersion = getJsonString(d, "game_version");
+
+			Locator::getLogger()->info(
+			  "RefreshLastVersion successful - Last Version is {}",
+			  lastVersion);
+		} else {
+			Locator::getLogger()->error(
+			  "RefreshLastVersion Error: Unexpected status {} - content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
 	};
-	SendRequest("client/version",
-				std::vector<pair<string, string>>(),
-				done,
-				false,
-				false,
-				true);
+
+	SendRequest(
+	  API_GAME_VERSION, params, done, false, RequestMethod::GET, true, false);
 }
+
 void
 DownloadManager::RefreshRegisterPage()
 {
+	Locator::getLogger()->warn("REFRESH REGISTER PAGE NOT IMPLEMENTED");
+	return;
+	/*
 	auto done = [this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
@@ -2073,27 +3068,33 @@ DownloadManager::RefreshRegisterPage()
 			d["data"]["attributes"].IsObject() &&
 			d["data"]["attributes"].HasMember("url") &&
 			d["data"]["attributes"]["url"].IsString())
-			this->registerPage = d["data"]["attributes"]["url"].GetString();
+			registerPage = d["data"]["attributes"]["url"].GetString();
 		else
-			this->registerPage = "";
+			registerPage = "";
 	};
 	SendRequest("client/registration",
-				std::vector<pair<string, string>>(),
+				std::vector<std::pair<std::string, std::string>>(),
 				done,
 				false,
 				false,
 				true);
+				*/
 }
 void
 DownloadManager::RefreshTop25(Skillset ss)
 {
-	DLMAN->topScores[ss].clear();
+	topScores[ss].clear();
 	if (!LoggedIn())
 		return;
-	string req = "user/" + UrlEncode(DLMAN->sessionUser) + "/top/";
+
+	Locator::getLogger()->warn("REFRESH TOP 25 NOT IMPLEMENTED");
+	return;
+	/*
+
+	std::string req = "user/" + UrlEncode(sessionUser) + "/top/";
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
-	auto done = [ss](HTTPRequest& req) {
+	auto done = [ss, this](HTTPRequest& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			(d.HasMember("errors") && d["errors"].IsArray() &&
@@ -2104,7 +3105,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 			  "Malformed top25 scores request response: {}", req.result);
 			return;
 		}
-		std::vector<OnlineTopScore>& vec = DLMAN->topScores[ss];
+		std::vector<OnlineTopScore>& vec = topScores[ss];
 		auto& scores = d["data"];
 		for (auto& score_obj : scores.GetArray()) {
 			if (!score_obj.HasMember("attributes")) {
@@ -2151,14 +3152,38 @@ DownloadManager::RefreshTop25(Skillset ss)
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 	SendRequest(req, {}, done);
+	*/
 }
-// Skillset ratings (we dont care about mod lvl, username, about, etc)
+
 void
 DownloadManager::RefreshUserData()
 {
 	if (!LoggedIn())
 		return;
-	auto done = [](HTTPRequest& req) {
+
+	auto queryPath = fmt::format(API_USER, sessionUser);
+	Locator::getLogger()->info("Refreshing UserData for {}", sessionUser);
+
+	std::vector<std::pair<std::string, std::string>> params = {};
+
+	auto done = [this](HTTPRequest& req) {
+		if (HandleAuthErrorResponse(API_USER, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_USER, req)) {
+			RefreshUserData();
+			return;
+		}
+
+		auto response = req.response_code;
+		if (response == 404) {
+			// user doesnt exist :eyebrow_raise:
+			Locator::getLogger()->warn(
+			  "RefreshUserData 404'd because user does not exist: {}",
+			  sessionUser);
+			return;
+		}
+
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
@@ -2167,137 +3192,56 @@ DownloadManager::RefreshUserData()
 			return;
 		}
 
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("skillsets") &&
-			d["data"]["attributes"]["skillsets"].IsObject()) {
-			auto& attr = d["data"]["attributes"];
-			auto& skillsets = attr["skillsets"];
-			FOREACH_ENUM(Skillset, ss)
-			{
-				auto str = SkillsetToString(ss);
-				if (skillsets.HasMember(str.c_str()) &&
-					skillsets[str.c_str()].IsNumber())
-					(DLMAN->sessionRatings)[ss] =
-					  skillsets[str.c_str()].GetDouble();
-				else
-					(DLMAN->sessionRatings)[ss] = 0.0f;
+		if (response == 200) {
+			// it probably worked
+
+			if (d.HasMember("data") && d["data"].IsObject()) {
+
+				auto count = 0;
+				auto& data = d["data"];
+
+				sessionRatings[Skill_Overall] = getJsonFloat(data, "overall");
+				sessionRatings[Skill_Stream] = getJsonFloat(data, "stream");
+				sessionRatings[Skill_Jumpstream] =
+				  getJsonFloat(data, "jumpstream");
+				sessionRatings[Skill_Handstream] =
+				  getJsonFloat(data, "handstream");
+				sessionRatings[Skill_Stamina] =
+				  getJsonFloat(data, "stamina");
+				sessionRatings[Skill_JackSpeed] = getJsonFloat(data, "jacks");
+				sessionRatings[Skill_Chordjack] =
+				  getJsonFloat(data, "chordjacks");
+				sessionRatings[Skill_Technical] =
+				  getJsonFloat(data, "technical");
+
+				countryCode = getJsonString(data, "country");
+
+				sessionRanks[Skill_Overall] = getJsonInt(data, "rank");
+
+				Locator::getLogger()->info(
+				  "RefreshUserData for {} succeeded - Rank {} - Overall {}",
+				  sessionUser,
+				  sessionRanks[Skill_Overall],
+				  sessionRatings[Skill_Overall]);
+
+				MESSAGEMAN->Broadcast("OnlineUpdate");
+			} else {
+				Locator::getLogger()->warn(
+				  "RefreshUserData got unexpected response body - "
+				  "Content: {}",
+				  jsonObjectToString(d));
 			}
-			if (attr.HasMember("playerRating") &&
-				attr["playerRating"].IsNumber())
-				DLMAN->sessionRatings[Skill_Overall] =
-				  attr["playerRating"].GetDouble();
-			if (skillsets.HasMember("countryCode") &&
-				skillsets["countryCode"].IsString())
-				DLMAN->countryCode = attr["countryCode"].GetString();
-			else
-				DLMAN->countryCode = "";
-		} else
-			FOREACH_ENUM(Skillset, ss)
-		(DLMAN->sessionRatings)[ss] = 0.0f;
-
-		MESSAGEMAN->Broadcast("OnlineUpdate");
-	};
-	SendRequest("user/" + UrlEncode(sessionUser), {}, done);
-}
-
-void
-DownloadManager::OnLogin()
-{
-	Locator::getLogger()->info("Successful login as {}", DLMAN->sessionUser);
-	DLMAN->RefreshUserRank();
-	DLMAN->RefreshUserData();
-	DLMAN->RefreshCountryCodes();
-	FOREACH_ENUM(Skillset, ss)
-	DLMAN->RefreshTop25(ss);
-	if (DLMAN->ShouldUploadScores()) {
-		DLMAN->UploadScores();
-
-		// ok we don't actually want to delete this yet since this is
-		// specifically for appending replaydata for a score the site does
-		// not have data for without altering the score entry in any other
-		// way, but keep disabled for now
-		// DLMAN->UpdateOnlineScoreReplayData();
-	}
-	if (GAMESTATE->m_pCurSteps != nullptr)
-		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
-	MESSAGEMAN->Broadcast("Login");
-	DLMAN->loggingIn = false;
-}
-
-void
-DownloadManager::StartSession(
-  string user,
-  string pass,
-  function<void(bool loggedIn)> callback = [](bool) {})
-{
-	string url = serverURL.Get() + "/login";
-	if (loggingIn || user.empty()) {
-		return;
-	}
-	DLMAN->loggingIn = true;
-	EndSessionIfExists();
-	CURL* curlHandle = initCURLHandle(false);
-	SetCURLURL(curlHandle, url);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt_log_err(
-	  curlHandle, CURLOPT_COOKIEFILE, ""); /* start cookie engine */
-
-	curl_httppost* form = nullptr;
-	curl_httppost* lastPtr = nullptr;
-	CURLFormPostField(curlHandle, form, lastPtr, "username", user.c_str());
-	CURLFormPostField(curlHandle, form, lastPtr, "password", pass.c_str());
-	CURLFormPostField(
-	  curlHandle, form, lastPtr, "clientData", CLIENT_DATA_KEY.c_str());
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
-
-	auto done = [user, pass, callback](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "StartSession Error: Malformed request response: {}", req.result);
-			MESSAGEMAN->Broadcast("LoginFailed");
-			DLMAN->loggingIn = false;
-			return;
-		}
-
-		// Site 404s when login fails
-		if (d.HasMember("errors") && d["errors"].IsArray()) {
-			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
-			MESSAGEMAN->Broadcast("LoginFailed");
-			DLMAN->loggingIn = false;
-			return;
-		}
-
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("accessToken") &&
-			d["data"]["attributes"]["accessToken"].IsString()) {
-			DLMAN->authToken =
-			  d["data"]["attributes"]["accessToken"].GetString();
-			DLMAN->sessionUser = user;
-			DLMAN->sessionPass = pass;
 		} else {
-			DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
-			MESSAGEMAN->Broadcast("LoginFailed");
-			DLMAN->loggingIn = false;
-			return;
+			Locator::getLogger()->warn(
+			  "RefreshUserData unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
 		}
-		DLMAN->OnLogin();
-		callback(DLMAN->LoggedIn());
 	};
-	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
-	req->Failed = [](HTTPRequest& req) {
-		DLMAN->authToken = DLMAN->sessionUser = DLMAN->sessionPass = "";
-		MESSAGEMAN->Broadcast("LoginFailed");
-		DLMAN->loggingIn = false;
-	};
-	SetCURLResultsString(curlHandle, &(req->result));
-	AddHttpRequestHandle(req->handle);
-	HTTPRequests.push_back(req);
+
+	SendRequest(queryPath, params, done, true);
 }
+
 int
 DownloadManager::GetSkillsetRank(Skillset ss)
 {
@@ -2314,84 +3258,90 @@ DownloadManager::GetSkillsetRating(Skillset ss)
 	return static_cast<float>(sessionRatings[ss]);
 }
 void
-DownloadManager::RefreshPackList(const string& url)
+DownloadManager::RefreshPackList(const std::string& url)
 {
 	if (url.empty())
 		return;
-	auto done = [](HTTPRequest& req) {
+
+	auto done = [this](HTTPRequest& req) {
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError() ||
-			!(d.IsArray() || (d.HasMember("data") && d["data"].IsArray()))) {
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error("RefreshPackList Error: status {} & "
+										"response parse error - content: {}",
+										req.response_code,
+										req.result);
 			return;
 		}
-		auto& packlist = DLMAN->downloadablePacks;
-		DLMAN->downloadablePacks.clear();
-		Value* packs;
-		if (d.IsArray())
-			packs = &d;
-		else
-			packs = &(d["data"]);
-		for (auto& pack_obj : packs->GetArray()) {
-			DownloadablePack tmp;
-			if (pack_obj.HasMember("id") && pack_obj["id"].IsString())
-				tmp.id = std::stoi(pack_obj["id"].GetString());
-			else
-				tmp.id = 0;
 
-			auto& pack = pack_obj.HasMember("attributes")
-						   ? pack_obj["attributes"]
-						   : pack_obj;
-
-			if (pack.HasMember("pack") && pack["pack"].IsString())
-				tmp.name = pack["pack"].GetString();
-			else if (pack.HasMember("packname") && pack["packname"].IsString())
-				tmp.name = pack["packname"].GetString();
-			else if (pack.HasMember("name") && pack["name"].IsString())
-				tmp.name = pack["name"].GetString();
-			else {
-				Locator::getLogger()->warn(
-				  "Missing pack name in packlist element: {}",
-				  jsonObjectToString(pack_obj));
-				continue;
+		auto response = req.response_code;
+		if (response == 200) {
+			if (!d.HasMember("data") || !d["data"].IsArray()) {
+				Locator::getLogger()->error(
+				  "RefreshPackList Error: response data was missing or not an "
+				  "array - content: {}",
+				  jsonObjectToString(d));
+				return;
 			}
 
-			if (pack.HasMember("download") && pack["download"].IsString())
-				tmp.url = pack["download"].GetString();
-			else if (pack.HasMember("url") && pack["url"].IsString()) {
-				tmp.url = pack["url"].GetString();
-			} else
-				tmp.url = "";
-			if (pack.HasMember("mirror") && pack["mirror"].IsString())
-				tmp.mirror = pack["mirror"].GetString();
-			else
-				tmp.mirror = "";
-			if (tmp.url.empty() && tmp.mirror.empty()) {
-				Locator::getLogger()->warn(
-				  "Missing download link in packlist element: {}",
-				  jsonObjectToString(pack_obj));
-				continue;
+			auto& data = d["data"];
+			auto& packlist = downloadablePacks;
+			packlist.clear();
+
+			for (auto& pack : data.GetArray()) {
+				try {
+					DownloadablePack packDl;
+
+					packDl.id = getJsonInt(pack, "id");
+					packDl.name = getJsonString(pack, "name");
+					packDl.url = getJsonString(pack, "download");
+					packDl.mirror = getJsonString(pack, "mirror");
+					if (packDl.url.empty()) {
+						packDl.url = packDl.mirror;
+					}
+					if (packDl.mirror.empty()) {
+						packDl.mirror = packDl.url;
+					}
+					packDl.avgDifficulty =
+					  std::stof(getJsonString(pack, "overall"));
+					packDl.size = getJsonInt(pack, "size");
+					packDl.plays = getJsonInt(pack, "play_count");
+					packDl.songs = getJsonInt(pack, "song_count");
+					packDl.bannerUrl = getJsonString(pack, "banner_path");
+
+					if (packDl.name.empty()) {
+						Locator::getLogger()->warn(
+						  "RefreshPackList missing pack name: {}",
+						  jsonObjectToString(pack));
+						continue;
+					}
+					if (packDl.url.empty()) {
+						Locator::getLogger()->warn(
+						  "RefreshPackList missing pack download: {}",
+						  jsonObjectToString(pack));
+						continue;
+					}
+
+					packlist.push_back(packDl);
+				}
+				catch (std::exception& e) {
+					Locator::getLogger()->error(
+					  "RefreshPackList parse exception - {} - pack content: {}",
+					  e.what(),
+					  jsonObjectToString(pack));
+				}
 			}
-			if (tmp.url.empty())
-				tmp.url = tmp.mirror;
-			else if (tmp.mirror.empty())
-				tmp.mirror = tmp.url;
-
-			if (pack.HasMember("average") && pack["average"].IsNumber())
-				tmp.avgDifficulty = pack["average"].GetFloat();
-			else
-				tmp.avgDifficulty = 0.f;
-
-			if (pack.HasMember("size") && pack["size"].IsNumber())
-				tmp.size = pack["size"].GetInt();
-			else
-				tmp.size = 0;
-			packlist.push_back(tmp);
+			if (MESSAGEMAN != nullptr) {
+				MESSAGEMAN->Broadcast("PackListRefreshed");
+			}
+			RefreshCoreBundles();
+		} else {
+			Locator::getLogger()->error(
+			  "RefreshPackList unexpected response code {} - content: {}",
+			  response,
+			  jsonObjectToString(d));
 		}
-		if (MESSAGEMAN != nullptr)
-			MESSAGEMAN->Broadcast("PackListRefreshed");
-		DLMAN->RefreshCoreBundles();
 	};
-	SendRequestToURL(url, {}, done, false, false, true, false);
+	SendRequestToURL(url, {}, done, false, RequestMethod::GET, true, false);
 }
 
 Download::Download(std::string url, std::string filename)
@@ -2455,17 +3405,35 @@ Download::~Download()
 }
 
 void
+Download::Update(float fDeltaSeconds)
+{
+	progress.time += fDeltaSeconds;
+	if (progress.time > 1.0) {
+		curl_off_t downloaded = progress.downloaded;
+		speed = std::to_string(downloaded / 1024 - downloadedAtLastUpdate);
+		progress.time = 0;
+		downloadedAtLastUpdate = downloaded / 1024;
+	}
+}
+
+void
 Download::Install()
 {
 	Core::Platform::requestUserAttention();
 	Message* msg;
-	if (!DLMAN->InstallSmzip(m_TempFileName))
+	if (!DownloadManager::InstallSmzip(m_TempFileName))
 		msg = new Message("DownloadFailed");
 	else
 		msg = new Message("PackDownloaded");
 	msg->SetParam("pack", LuaReference::CreateFromPush(*p_Pack));
 	MESSAGEMAN->Broadcast(*msg);
 	delete msg;
+}
+
+std::string
+Download::MakeTempFileName(std::string s)
+{
+	return Basename(s);
 }
 
 void
@@ -2480,7 +3448,7 @@ bool
 DownloadablePack::isQueued() {
 	auto it = std::find_if(DLMAN->DownloadQueue.begin(),
 						   DLMAN->DownloadQueue.end(),
-						   [this](pair<DownloadablePack*, bool> pair) {
+						   [this](std::pair<DownloadablePack*, bool> pair) {
 							   return pair.first == this;
 						   });
 	return it != DLMAN->DownloadQueue.end();
@@ -2495,18 +3463,18 @@ class LunaDownloadManager : public Luna<DownloadManager>
   public:
 	static int GetCountryCodes(T* p, lua_State* L)
 	{
-		auto& codes = DLMAN->countryCodes;
+		auto& codes = p->countryCodes;
 		LuaHelpers::CreateTableFromArray(codes, L);
 		return 1;
 	}
 	static int GetUserCountryCode(T* p, lua_State* L)
 	{
-		lua_pushstring(L, DLMAN->countryCode.c_str());
+		lua_pushstring(L, p->countryCode.c_str());
 		return 1;
 	}
 	static int GetAllPacks(T* p, lua_State* L)
 	{
-		std::vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		std::vector<DownloadablePack>& packs = p->downloadablePacks;
 		lua_createtable(L, packs.size(), 0);
 		for (unsigned i = 0; i < packs.size(); ++i) {
 			packs[i].PushSelf(L);
@@ -2516,7 +3484,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
 	{
-		std::vector<DownloadablePack>& packs = DLMAN->downloadablePacks;
+		std::vector<DownloadablePack>& packs = p->downloadablePacks;
 		std::vector<DownloadablePack*> dling;
 		for (auto& pack : packs) {
 			if (pack.downloading)
@@ -2540,23 +3508,23 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetUsername(T* p, lua_State* L)
 	{
-		lua_pushstring(L, DLMAN->sessionUser.c_str());
+		lua_pushstring(L, p->sessionUser.c_str());
 		return 1;
 	}
 	static int GetSkillsetRank(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, DLMAN->GetSkillsetRank(Enum::Check<Skillset>(L, 1)));
+		lua_pushnumber(L, p->GetSkillsetRank(Enum::Check<Skillset>(L, 1)));
 		return 1;
 	}
 	static int GetSkillsetRating(T* p, lua_State* L)
 	{
 		lua_pushnumber(L,
-					   DLMAN->GetSkillsetRating(Enum::Check<Skillset>(L, 1)));
+					   p->GetSkillsetRating(Enum::Check<Skillset>(L, 1)));
 		return 1;
 	}
 	static int GetDownloads(T* p, lua_State* L)
 	{
-		map<string, std::shared_ptr<Download>>& dls = DLMAN->downloads;
+		std::map<std::string, std::shared_ptr<Download>>& dls = p->downloads;
 		lua_createtable(L, dls.size(), 0);
 		int j = 0;
 		for (auto& dl : dls) {
@@ -2568,40 +3536,37 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int IsLoggedIn(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, DLMAN->LoggedIn());
+		lua_pushboolean(L, p->LoggedIn());
 		return 1;
 	}
 	static int Login(T* p, lua_State* L)
 	{
-		string user = SArg(1);
-		string pass = SArg(2);
-		DLMAN->StartSession(user, pass);
+		std::string user = SArg(1);
+		std::string pass = SArg(2);
+		p->Login(user, pass);
 		return 0;
 	}
 	static int LoginWithToken(T* p, lua_State* L)
 	{
-		string user = SArg(1);
-		string token = SArg(2);
-		DLMAN->EndSessionIfExists();
-		DLMAN->authToken = token;
-		DLMAN->sessionUser = user;
-		DLMAN->sessionPass = "";
-		DLMAN->OnLogin();
+		std::string user = SArg(1);
+		std::string token = SArg(2);
+		p->LogoutIfLoggedIn();
+		p->LoginWithToken(token);
 		return 0;
 	}
 	static int Logout(T* p, lua_State* L)
 	{
-		DLMAN->EndSessionIfExists();
+		p->LogoutIfLoggedIn();
 		return 0;
 	}
 	static int GetLastVersion(T* p, lua_State* L)
 	{
-		lua_pushstring(L, DLMAN->lastVersion.c_str());
+		lua_pushstring(L, p->lastVersion.c_str());
 		return 1;
 	}
 	static int GetRegisterPage(T* p, lua_State* L)
 	{
-		lua_pushstring(L, DLMAN->registerPage.c_str());
+		lua_pushstring(L, p->registerPage.c_str());
 		return 1;
 	}
 	static int GetTopSkillsetScore(T* p, lua_State* L)
@@ -2609,7 +3574,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		int rank = IArg(1);
 		auto ss = Enum::Check<Skillset>(L, 2);
 		bool result;
-		auto onlineScore = DLMAN->GetTopSkillsetScore(rank, ss, result);
+		auto onlineScore = p->GetTopSkillsetScore(rank, ss, result);
 		if (!result) {
 			lua_pushnil(L);
 			return 1;
@@ -2633,25 +3598,25 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetTopChartScoreCount(T* p, lua_State* L)
 	{
-		string ck = SArg(1);
-		if (DLMAN->chartLeaderboards.count(ck))
-			lua_pushnumber(L, DLMAN->chartLeaderboards[ck].size());
+		std::string ck = SArg(1);
+		if (p->chartLeaderboards.count(ck))
+			lua_pushnumber(L, p->chartLeaderboards[ck].size());
 		else
 			lua_pushnumber(L, 0);
 		return 1;
 	}
 	static int GetTopChartScore(T* p, lua_State* L)
 	{
-		string chartkey = SArg(1);
+		std::string chartkey = SArg(1);
 		int rank = IArg(2);
 		int index = rank - 1;
-		if (index < 0 || !DLMAN->chartLeaderboards.count(chartkey) ||
+		if (index < 0 || !p->chartLeaderboards.count(chartkey) ||
 			index >=
-			  static_cast<int>(DLMAN->chartLeaderboards[chartkey].size())) {
+			  static_cast<int>(p->chartLeaderboards[chartkey].size())) {
 			lua_pushnil(L);
 			return 1;
 		}
-		auto& score = DLMAN->chartLeaderboards[chartkey][index];
+		auto& score = p->chartLeaderboards[chartkey][index];
 		lua_createtable(
 		  L, 0, 17 + NUM_Skillset + (score.replayData.empty() ? 0 : 1));
 		FOREACH_ENUM(Skillset, ss)
@@ -2721,7 +3686,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetCoreBundle(T* p, lua_State* L)
 	{
 		// don't remove this yet or at all idk yet -mina
-		auto bundle = DLMAN->GetCoreBundle(SArg(1));
+		auto bundle = p->GetCoreBundle(SArg(1));
 		lua_createtable(L, bundle.size(), 0);
 		for (size_t i = 0; i < bundle.size(); ++i) {
 			bundle[i]->PushSelf(L);
@@ -2754,12 +3719,12 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		if (!lua_isnoneornil(L, 2)) {
 			bMirror = BArg(2);
 		}
-		DLMAN->DownloadCoreBundle(SArg(1), bMirror);
+		p->DownloadCoreBundle(SArg(1), bMirror);
 		return 0;
 	}
 	static int GetToken(T* p, lua_State* L)
 	{
-		lua_pushstring(L, DLMAN->authToken.c_str());
+		lua_pushstring(L, p->authToken.c_str());
 		return 1;
 	}
 
@@ -2768,9 +3733,9 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		OnlineHighScore* hs =
 		  (OnlineHighScore*)GetPointerFromStack(L, "HighScore", 1);
 		int userid = hs->userid;
-		string username = hs->GetDisplayName();
-		string scoreid = hs->scoreid;
-		string ck = hs->GetChartKey();
+		std::string username = hs->GetDisplayName();
+		std::string scoreid = hs->scoreid;
+		std::string ck = hs->GetChartKey();
 
 		bool alreadyHasReplay = false;
 		alreadyHasReplay |= !hs->GetNoteRowVector().empty();
@@ -2795,7 +3760,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			return 0;
 		}
 
-		DLMAN->RequestReplayData(scoreid, userid, username, ck, f);
+		p->RequestReplayData(scoreid, userid, username, ck, f);
 		return 0;
 	}
 
@@ -2809,9 +3774,9 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		// an unranked chart check could be done here
 		// but just in case, don't check
 		// allow another request for those -- if it gets ranked during a session
-		string chart = SArg(1);
+		std::string chart = SArg(1);
 		LuaReference ref;
-		auto& leaderboardScores = DLMAN->chartLeaderboards[chart];
+		auto& leaderboardScores = p->chartLeaderboards[chart];
 		if (lua_isfunction(L, 2)) {
 			lua_pushvalue(L, 2);
 			ref.SetFromStack(L);
@@ -2834,7 +3799,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			}
 			return 0;
 		}
-		DLMAN->RequestChartLeaderBoard(chart, ref);
+		p->RequestChartLeaderBoard(chart, ref);
 
 		return 0;
 	}
@@ -2842,10 +3807,10 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetChartLeaderBoard(T* p, lua_State* L)
 	{
 		std::vector<HighScore*> filteredLeaderboardScores;
-		std::unordered_set<string> userswithscores;
+		std::unordered_set<std::string> userswithscores;
 		auto ck = SArg(1);
-		auto& leaderboardScores = DLMAN->chartLeaderboards[ck];
-		string country = "";
+		auto& leaderboardScores = p->chartLeaderboards[ck];
+		std::string country = "";
 		if (!lua_isnoneornil(L, 2)) {
 			country = SArg(2);
 		}
@@ -2853,7 +3818,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		// empty chart leaderboards return empty lists
 		// unranked charts return NO lists
-		if (DLMAN->unrankedCharts.count(ck)) {
+		if (p->unrankedCharts.count(ck)) {
 			lua_pushnil(L);
 			return 1;
 		}
@@ -2921,24 +3886,23 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
 	{
-		DLMAN->UploadScoreWithReplayDataFromDisk(
+		p->UploadScoreWithReplayDataFromDisk(
 		  SCOREMAN->GetScoresByKey().at(SArg(1)));
-		// DLMAN->UpdateOnlineScoreReplayData(SArg(1));
 		return 0;
 	}
 	static int UploadScoresForChart(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadScoresForChart(SArg(1));
+		p->ForceUploadPBsForChart(SArg(1), true);
 		return 0;
 	}
 	static int UploadScoresForPack(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadScoresForPack(SArg(1));
+		p->ForceUploadPBsForPack(SArg(1), true);
 		return 0;
 	}
 	static int UploadAllScores(T* p, lua_State* L)
 	{
-		DLMAN->ForceUploadAllScores();
+		p->ForceUploadAllPBs();
 		return 0;
 	}
 	LunaDownloadManager()
@@ -3020,6 +3984,16 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushnumber(L, p->avgDifficulty);
 		return 1;
 	}
+	static int GetPlayCount(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->plays);
+		return 1;
+	}
+	static int GetSongCount(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->songs);
+		return 1;
+	}
 	static int IsQueued(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->isQueued());
@@ -3030,7 +4004,9 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		auto it = std::find_if(
 		  DLMAN->DownloadQueue.begin(),
 		  DLMAN->DownloadQueue.end(),
-		  [p](pair<DownloadablePack*, bool> pair) { return pair.first == p; });
+							   [p](std::pair<DownloadablePack*, bool> pair) {
+								   return pair.first == p;
+							   });
 		if (it == DLMAN->DownloadQueue.end())
 			// does not exist
 			lua_pushboolean(L, false);
@@ -3085,6 +4061,8 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(IsQueued);
 		ADD_METHOD(RemoveFromQueue);
 		ADD_METHOD(GetAvgDifficulty);
+		ADD_METHOD(GetPlayCount);
+		ADD_METHOD(GetSongCount);
 		ADD_METHOD(GetName);
 		ADD_METHOD(GetSize);
 		ADD_METHOD(GetDownload);

@@ -8,6 +8,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "NoteSkinManager.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderDWI.h"
+#include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
@@ -32,6 +33,10 @@
 #include <algorithm>
 #include <mutex>
 #include <utility>
+#include <fstream>
+#include <cmath>
+
+#include "Etterna/Globals/zip_file.hpp"
 
 using std::map;
 using std::string;
@@ -66,6 +71,8 @@ static const ThemeMetric<int> EXTRA_STAGE2_DIFFICULTY_MAX(
 
 static Preference<std::string> g_sDisabledSongs("DisabledSongs", "");
 static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
+static Preference<bool> CacheZipsContainAllAssets("CacheZipsContainAllAssets",
+												  true);
 
 auto
 SONG_GROUP_COLOR_NAME(size_t i) -> std::string
@@ -1158,6 +1165,131 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 		s->ReloadFromSongDir();
 		SONGMAN->ReconcileChartKeysForReloadedSong(s, oldChartkeys);
 	}
+}
+
+void
+SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
+{
+	SCREENMAN->SystemMessage(
+	  ssprintf("Generating cache files for %s", sGroupName.c_str()));
+	auto& songs = GetSongs(sGroupName);
+	const auto additionalSongs =
+	  songs.size() > 0 && SONGMAN->WasLoadedFromAdditionalSongs(songs.at(0));
+	const auto songsPrefix = additionalSongs ? "AdditionalSongs/" : "Songs/";
+	const auto songsPack = songsPrefix + sGroupName + "/";
+	for (auto s : songs) {
+		// absolute, real filesystem path
+		auto sdir = FILEMAN->ResolveSongFolder(s->GetSongDir(), additionalSongs);
+
+		// Save ssc/sm5 cache file
+		{
+			std::string tmpOutPutPath = "Cache/tmp.ssc";
+			std::string sscCacheFilePath = sdir + "songdata.cache";
+
+			if (!std::isfinite(s->GetLastSecond())) {
+				Locator::getLogger()->warn("Skipped due to bad bpm {}", sdir);
+				continue;
+			}
+
+			NotesWriterSSC::Write(tmpOutPutPath, *s, s->GetAllSteps(), true);
+
+			RageFile f;
+			if (!f.Open(tmpOutPutPath)) {
+				RageException::Throw("SongManager failed to open \"%s\": %s",
+									 tmpOutPutPath.c_str(),
+									 f.GetError().c_str());
+			}
+			string p = f.GetPath();
+			f.Close();
+			std::ofstream dst(sscCacheFilePath, std::ios::binary);
+			std::ifstream src(p, std::ios::binary);
+			dst << src.rdbuf();
+			dst.close();
+			src.close();
+			FILEMAN->Remove(tmpOutPutPath);
+		}
+
+		FOREACH_CONST(Steps*, s->GetAllSteps(), is)
+		{
+			Steps* steps = (*is);
+			TimingData* td = steps->GetTimingData();
+			NoteData nd;
+			steps->GetNoteData(nd);
+			Locator::getLogger()->info("Writing cache file for chart {} ({})",
+									   s->GetDisplayMainTitle().c_str(),
+									   steps->GetChartKey().c_str());
+
+			nd.LogNonEmptyRows(td);
+			auto& nerv = nd.GetNonEmptyRowVector();
+			auto& etaner = td->BuildAndGetEtaner(nerv);
+			auto& serializednd = nd.SerializeNoteData(etaner);
+
+			string path = sdir + steps->GetChartKey() + ".cache";
+			std::ofstream FILE(path, std::ios::binary);
+			if (!FILE) {
+				Locator::getLogger()->warn(
+				  "Failed to cache song {} ({}) to path {}",
+				  s->GetDisplayMainTitle().c_str(),
+				  steps->GetChartKey().c_str(),
+				  path);
+				continue;
+			}
+
+			FILE.write((char*)&serializednd[0],
+					   serializednd.size() * sizeof(NoteInfo));
+			FILE.close();
+
+			td->UnsetEtaner();
+			nd.UnsetNerv();
+			nd.UnsetSerializedNoteData();
+			steps->Compress();
+		}
+	}
+	Locator::getLogger()->info("Finished generating cache files for {}",
+							   sGroupName.c_str());
+
+	SCREENMAN->SystemMessage("Zipping song directory...");
+	miniz_cpp::zip_file fi;
+	std::vector<std::string> flist{};
+	std::vector<std::string> cachefilelist{};
+	FILEMAN->FlushDirCache(songsPack);
+	if (CacheZipsContainAllAssets) {
+		GetDirListingRecursive(songsPack, "*", flist);
+	} else {
+		GetDirListingRecursive(songsPack, "*.cache", flist);
+	}
+	for (auto thing : flist) {
+		if (thing.ends_with(".cache")) {
+			cachefilelist.push_back(thing);
+		}
+
+		if (additionalSongs) {
+			// additionalsongs makes our life harder
+			thing = FILEMAN->ResolveSongFolder(thing, true);
+		}
+		if (thing.starts_with("/")) {
+			thing.erase(0, 1);
+		}
+
+		if (additionalSongs) {
+			// have to rewrite the big long path to be Pack/song/stuff.sm
+			auto internal_path = thing.substr(thing.find("/" + sGroupName + "/") + 1);
+			fi.write(thing, internal_path);
+		} else {
+			// path given as /pack/song/stuff.sm works fine as is
+			fi.write(thing);
+		}
+	}
+	fi.save("Cache/" + sGroupName + ".zip");
+	SCREENMAN->SystemMessage("Finished zipping to Cache.");
+
+	Locator::getLogger()->info("Removing cache files that were generated...");
+	FILEMAN->FlushDirCache(songsPack);
+	for (auto& x : cachefilelist) {
+		Locator::getLogger()->info(" Removing {}", x);
+		FILEMAN->Remove(x);
+	}
+	Locator::getLogger()->info("Done removing cache files.");
 }
 
 void

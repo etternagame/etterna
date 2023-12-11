@@ -10,7 +10,6 @@
 #include "WheelBase.h"
 
 class Song;
-using std::string;
 
 struct CompareSongPointerArrayBySectionName;
 
@@ -21,7 +20,7 @@ class MusicWheel : public WheelBase
   public:
 	MusicWheel();
 	~MusicWheel() override = default;
-	void Load(const string& sType) override;
+	void Load(const std::string& sType) override;
 	void BeginScreen();
 
 	auto ChangeSort(SortOrder new_so,
@@ -59,8 +58,8 @@ class MusicWheel : public WheelBase
 	}
 
 	void ReloadSongList(bool searching, const std::string& findme) override;
-	void SetHashList(const std::vector<string>& newHashList);
-	void SetOutHashList(const std::vector<string>& newOutHashList);
+	void SetHashList(const std::vector<std::string>& newHashList);
+	void SetOutHashList(const std::vector<std::string>& newOutHashList);
 
 	// multiplayer common pack filtering
 	bool packlistFiltering{ false };
@@ -82,8 +81,8 @@ class MusicWheel : public WheelBase
   protected:
 	auto MakeItem() -> MusicWheelItem* override;
 
-	std::vector<string> hashList;
-	std::vector<string> outHashList;
+	std::vector<std::string> hashList;
+	std::vector<std::string> outHashList;
 
 	void GetSongList(std::vector<Song*>& arraySongs, SortOrder so) const;
 	auto SelectModeMenuItem() -> bool;

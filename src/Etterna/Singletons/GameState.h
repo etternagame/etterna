@@ -187,6 +187,7 @@ class GameState
 	int m_iPlayerStageTokens;
 
 	std::string sExpandedSectionName;
+	std::string m_sLastSongGroup;
 
 	static auto GetNumStagesMultiplierForSong(const Song* pSong) -> int;
 	[[nodiscard]] auto GetNumStagesForCurrentSongAndStepsOrCourse() const

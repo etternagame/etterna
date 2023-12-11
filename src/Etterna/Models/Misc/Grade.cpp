@@ -61,7 +61,7 @@ GradeToOldString(Grade g)
 		case Grade_Tier16:
 			return "D";
 		case Grade_Failed:
-			return "E";
+			return "F";
 		case Grade_Invalid:
 			return "N";
 		default:

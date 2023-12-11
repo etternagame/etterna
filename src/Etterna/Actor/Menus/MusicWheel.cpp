@@ -65,7 +65,7 @@ MusicWheel::MakeItem() -> MusicWheelItem*
 }
 
 void
-MusicWheel::Load(const string& sType)
+MusicWheel::Load(const std::string& sType)
 {
 	ROULETTE_SLOW_DOWN_SWITCHES.Load(sType, "RouletteSlowDownSwitches");
 	NUM_SECTION_COLORS.Load(sType, "NumSectionColors");
@@ -611,12 +611,12 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 }
 
 void
-MusicWheel::SetHashList(const std::vector<string>& newHashList)
+MusicWheel::SetHashList(const std::vector<std::string>& newHashList)
 {
 	hashList = newHashList;
 }
 void
-MusicWheel::SetOutHashList(const std::vector<string>& newOutHashList)
+MusicWheel::SetOutHashList(const std::vector<std::string>& newOutHashList)
 {
 	outHashList = newOutHashList;
 }
@@ -625,8 +625,8 @@ void
 MusicWheel::FilterByAndAgainstStepKeys(std::vector<Song*>& inv)
 {
 	std::vector<Song*> tmp;
-	const std::function<bool(Song*, std::vector<string>&)> check =
-	  [](Song* x, std::vector<string>& hl) {
+	const std::function<bool(Song*, std::vector<std::string>&)> check =
+	  [](Song* x, std::vector<std::string>& hl) {
 		  for (auto& ck : hl) {
 			  if (x->HasChartByHash(ck)) {
 				  return true;
@@ -1778,12 +1778,12 @@ class LunaMusicWheel : public Luna<MusicWheel>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		std::vector<string> newHashList;
+		std::vector<std::string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		p->SetHashList(newHashList);
 
-		std::vector<string> newOutHashList;
+		std::vector<std::string> newOutHashList;
 		p->SetOutHashList(newOutHashList);
 
 		p->ReloadSongList(false, "");
@@ -1794,12 +1794,12 @@ class LunaMusicWheel : public Luna<MusicWheel>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		std::vector<string> newHashList;
+		std::vector<std::string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		luaL_checktype(L, 2, LUA_TTABLE);
 		lua_pushvalue(L, 2);
-		std::vector<string> newOutHashList;
+		std::vector<std::string> newOutHashList;
 		LuaHelpers::ReadArrayFromTable(newOutHashList, L);
 		lua_pop(L, 1);
 
