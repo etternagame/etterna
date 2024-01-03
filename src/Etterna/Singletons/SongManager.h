@@ -36,6 +36,9 @@ class SongManager
 	void FreeSongs();
 	void Cleanup();
 
+	void UnlistSong(Song* song);
+
+
 	void Invalidate(const Song* pStaleSong);
 	static auto GetPlaylists() -> std::map<std::string, Playlist>&;
 	static void SaveEnabledSongsToPref();
@@ -179,6 +182,9 @@ class SongManager
 
 	std::set<std::string> m_GroupsToNeverCache;
 	/** @brief The most popular songs ranked by number of plays. */
+
+	std::vector<Song*> m_pDeletedSongs;
+
 	std::vector<Song*> m_pPopularSongs;
 
 	std::vector<std::string> m_sSongGroupNames;
