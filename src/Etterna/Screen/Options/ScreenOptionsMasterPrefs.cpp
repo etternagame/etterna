@@ -827,6 +827,8 @@ InitializeConfOptions()
 	ADD(ConfOption("PackProgressInWheel", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnableMinidumpUpload", MovePref<bool>, "Off", "On"));
 
+	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));
+
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
 				   TimingWindowScale,
