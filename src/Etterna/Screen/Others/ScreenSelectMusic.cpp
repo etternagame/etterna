@@ -38,10 +38,8 @@
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Singletons/ReplayManager.h"
 #include "Etterna/Screen/Others/ScreenPrompt.h"
+
 #include <filesystem>
-
-#include <Core/Platform/Platform.hpp>
-
 #include <algorithm>
 
 static const char* SelectionStateNames[] = { "SelectingSong",
