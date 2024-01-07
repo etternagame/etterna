@@ -37,6 +37,10 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 #include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Screen/Others/ScreenPrompt.h"
+#include <filesystem>
+
+#include <Core/Platform/Platform.hpp>
 
 #include <algorithm>
 
@@ -56,6 +60,7 @@ AutoScreenMessage(SM_SongChanged);
 AutoScreenMessage(SM_SortOrderChanging);
 AutoScreenMessage(SM_SortOrderChanged);
 AutoScreenMessage(SM_BackFromPlayerOptions);
+AutoScreenMessage(SM_ConfirmDeleteSong);
 AutoScreenMessage(SM_BackFromNamePlaylist);
 AutoScreenMessage(SM_BackFromCalcTestStuff);
 
@@ -486,6 +491,24 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			} else {
 				if (CachePackForRanking(GAMESTATE->m_pCurSong->m_sGroupName))
 					return true;
+			}
+		} else if (bHoldingCtrl &&
+				   input.DeviceI.button == KEY_BACK &&
+				   input.type == IET_FIRST_PRESS && m_MusicWheel.IsSettled()) {
+
+			// Keyboard shortcut to delete a song from disk (ctrl + backspace)
+			Song* songToDelete = m_MusicWheel.GetSelectedSong();
+
+			if (songToDelete && PREFSMAN->m_bAllowSongDeletion.Get()) {
+				m_pSongAwaitingDeletionConfirmation = songToDelete;
+
+				ScreenPrompt::Prompt(
+				  SM_ConfirmDeleteSong,
+				  ssprintf(PERMANENTLY_DELETE.GetValue(),
+						   songToDelete->m_sMainTitle.c_str(),
+						   songToDelete->GetSongDir().c_str()),
+				  PROMPT_YES_NO);
+				return true;
 			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
@@ -992,7 +1015,16 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 		CodeDetector::RefreshCacheItems(CODES);
 	} else if (SM == SM_LoseFocus) {
 		CodeDetector::RefreshCacheItems(); // reset for other screens
-	} else if (SM == SM_BackFromCalcTestStuff) {
+	} else if (SM == SM_ConfirmDeleteSong) {
+		if (ScreenPrompt::s_LastAnswer == ANSWER_YES) {
+			OnConfirmSongDeletion();
+		} else {
+			// need to resume the song preview that was automatically paused
+			m_MusicWheel.ChangeMusic(0);
+		}
+	}
+	else if (SM == SM_BackFromCalcTestStuff)
+	{
 		auto ans = ScreenTextEntry::s_sLastAnswer;
 		std::vector<std::string> words;
 		std::istringstream iss(ans);
@@ -1115,6 +1147,32 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage(SM);
+}
+
+void
+ScreenSelectMusic::OnConfirmSongDeletion()
+{
+	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
+	if (!deletedSong) {
+		//Locator::getLogger()->warn("Attempted to delete a null song (ScreenSelectMusic::OnConfirmSongDeletion)");
+		return;
+	}
+
+	/* TODO: Make this platform independent */
+	const ghc::filesystem::path exeLocation = Core::Platform::getExecutableDirectory();
+	const std::string prefix = exeLocation.parent_path();
+	const std::filesystem::path songDir = std::filesystem::u8path(prefix + deletedSong->GetSongDir());
+
+
+	// flush the deleted song from any caches
+	SONGMAN->UnlistSong(deletedSong);
+	// refresh the song list
+	m_MusicWheel.ReloadSongList(false, "");
+	//Locator::getLogger()->trace("Deleting song: ", songDir.c_str());
+	// delete the song directory from disk
+
+	std::filesystem::remove_all(songDir);
+	m_pSongAwaitingDeletionConfirmation = NULL;
 }
 
 bool

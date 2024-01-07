@@ -241,6 +241,8 @@ class PrefsManager
 	Preference<bool> m_bEnableCrashUpload;
 	Preference<bool> m_bShowMinidumpUploadDialogue;
 
+	Preference<bool> m_bAllowSongDeletion;
+
 	void ReadPrefsFromIni(const IniFile& ini,
 						  const std::string& sSection,
 						  bool bIsStatic);

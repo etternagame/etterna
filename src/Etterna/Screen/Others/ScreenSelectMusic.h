@@ -87,6 +87,9 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	void SwitchToPreferredDifficulty();
 	void AfterMusicChange();
 
+	Song* m_pSongAwaitingDeletionConfirmation;
+	void OnConfirmSongDeletion();
+
 	void CheckBackgroundRequests(bool bForce);
 	bool DetectCodes(const InputEventPlus& input);
 
