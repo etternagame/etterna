@@ -495,21 +495,8 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 		} else if (bHoldingCtrl &&
 				   input.DeviceI.button == KEY_BACK &&
 				   input.type == IET_FIRST_PRESS && m_MusicWheel.IsSettled()) {
-
-			// Keyboard shortcut to delete a song from disk (ctrl + backspace)
-			Song* songToDelete = m_MusicWheel.GetSelectedSong();
-
-			if (songToDelete && PREFSMAN->m_bAllowSongDeletion.Get()) {
-				m_pSongAwaitingDeletionConfirmation = songToDelete;
-
-				ScreenPrompt::Prompt(
-				  SM_ConfirmDeleteSong,
-				  ssprintf(PERMANENTLY_DELETE.GetValue(),
-						   songToDelete->m_sMainTitle.c_str(),
-						   songToDelete->GetSongDir().c_str()),
-				  PROMPT_YES_NO);
+			if (DeleteCurrentSong())
 				return true;
-			}
 		} else if (holding_shift && bHoldingCtrl && c == 'P' &&
 				   m_MusicWheel.IsSettled() && input.type == IET_FIRST_PRESS) {
 			if (ReloadCurrentPack())
@@ -1152,27 +1139,45 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 void
 ScreenSelectMusic::OnConfirmSongDeletion()
 {
-	Song* deletedSong = m_pSongAwaitingDeletionConfirmation;
+	auto* deletedSong = m_pSongAwaitingDeletionConfirmation;
 	if (!deletedSong) {
-		//Locator::getLogger()->warn("Attempted to delete a null song (ScreenSelectMusic::OnConfirmSongDeletion)");
+		Locator::getLogger()->warn("Attempted to delete a null song (ScreenSelectMusic::OnConfirmSongDeletion)");
 		return;
 	}
 
-	/* TODO: Make this platform independent */
-	const ghc::filesystem::path exeLocation = Core::Platform::getExecutableDirectory();
-	const std::string prefix = exeLocation.parent_path();
-	const std::filesystem::path songDir = std::filesystem::u8path(prefix + deletedSong->GetSongDir());
-
+	auto& d = deletedSong->GetSongDir();
+	auto b = SONGMAN->WasLoadedFromAdditionalSongs(deletedSong);
+	auto p = FILEMAN->ResolveSongFolder(d, b);
+	const std::filesystem::path songDir = std::filesystem::u8path(p);
 
 	// flush the deleted song from any caches
 	SONGMAN->UnlistSong(deletedSong);
+
+	// stop the music because this holds a file handle
+	SOUND->StopMusic();
+	SOUND->Flush();
+
 	// refresh the song list
 	m_MusicWheel.ReloadSongList(false, "");
-	//Locator::getLogger()->trace("Deleting song: ", songDir.c_str());
+	
 	// delete the song directory from disk
+	Locator::getLogger()->info("Deleting song directory: {}", songDir.generic_string());
+	try {
+		std::filesystem::remove_all(songDir);
+	} catch (std::filesystem::filesystem_error& e) {
+		Locator::getLogger()->error("There was a filesystem_error while trying "
+									"to remove the song directory {} - {}",
+									songDir.generic_string(),
+									e.what());
+	} catch (std::exception& e) {
+		Locator::getLogger()->error("There was an error while trying to remove "
+									"the song directory {} - {}",
+									songDir.generic_string(),
+									e.what());
+	}
+	m_pSongAwaitingDeletionConfirmation = nullptr;
 
-	std::filesystem::remove_all(songDir);
-	m_pSongAwaitingDeletionConfirmation = NULL;
+	MESSAGEMAN->Broadcast("DeletedCurrentSong");
 }
 
 bool
@@ -1593,6 +1598,25 @@ ScreenSelectMusic::PauseSampleMusic()
 		// us we didnt really pause anything (wow who would have thought)
 		GAMESTATE->SetPaused(success && pMusic->m_bPaused);
 	});
+}
+
+bool
+ScreenSelectMusic::DeleteCurrentSong()
+{
+	Song* songToDelete = GAMESTATE->m_pCurSong;
+
+	if (songToDelete != nullptr && PREFSMAN->m_bAllowSongDeletion.Get()) {
+		m_pSongAwaitingDeletionConfirmation = songToDelete;
+
+		ScreenPrompt::s_bMustResetInputRedirAtClose = true;
+		ScreenPrompt::Prompt(SM_ConfirmDeleteSong,
+							 ssprintf(PERMANENTLY_DELETE.GetValue(),
+									  songToDelete->m_sMainTitle.c_str(),
+									  songToDelete->GetSongDir().c_str()),
+							 PROMPT_YES_NO);
+		return true;
+	}
+	return false;
 }
 
 bool
@@ -2026,6 +2050,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->PlayCurrentSongSampleMusic(true, BArg(1), BArg(2));
 		return 0;
 	}
+	static int DeleteCurrentSong(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->DeleteCurrentSong());
+		return 1;
+	}
 	static int ReloadCurrentSong(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->ReloadCurrentSong());
@@ -2086,6 +2115,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(IsSampleMusicPaused);
 		ADD_METHOD(ChangeSteps);
 		ADD_METHOD(PlayCurrentSongSampleMusic);
+		ADD_METHOD(DeleteCurrentSong);
 		ADD_METHOD(ReloadCurrentSong);
 		ADD_METHOD(ReloadCurrentPack);
 		ADD_METHOD(ToggleCurrentFavorite);

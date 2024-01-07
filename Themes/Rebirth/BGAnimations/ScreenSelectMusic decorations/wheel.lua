@@ -383,6 +383,9 @@ local t = Def.ActorFrame {
             end
         end
     end,
+    DeletedCurrentSongMessageCommand = function(self)
+        self:playcommand("ReloadWheel")
+    end,
     ReloadedCurrentPackMessageCommand = function(self)
         self:playcommand("ReloadWheel")
     end,

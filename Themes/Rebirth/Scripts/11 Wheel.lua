@@ -680,10 +680,10 @@ function Wheel:new(params)
                 -- if any of those buttons happen to overlap with a GameButton, the c++ input wont be called if it is redirected.
                 -- that means some of the functionality will fail.
                 -- To cope, mimic that exact behavior right here instead.
-                if event.type == "InputEventType_FirstPress" and gameButton ~= "" and event.charNoModifiers ~= nil and SCREENMAN:get_input_redirected(PLAYER_1) then
+                if event.type == "InputEventType_FirstPress" and gameButton ~= "" and SCREENMAN:get_input_redirected(PLAYER_1) then
                     local ctrl = INPUTFILTER:IsControlPressed()
                     local shift = INPUTFILTER:IsShiftPressed()
-                    local char = event.charNoModifiers:upper()
+                    local char = (event.charNoModifiers ~= nil and event.charNoModifiers or ""):upper()
                     local ssm = SCREENMAN:GetTopScreen()
 
                     -- if settled and the current screen is [net]selectmusic
@@ -713,6 +713,10 @@ function Wheel:new(params)
                         elseif ctrl and shift and char == "P" then
                             -- Reload current pack from disk (ctrl shift P)
                             ssm:ReloadCurrentPack()
+                            return true
+                        elseif ctrl and event.button == "DeviceButton_backspace" then
+                            -- Delete the currently hovered song (ctrl Backspace)
+                            ssm:DeleteCurrentSong()
                             return true
                         elseif ctrl and char == "F" then
                             -- Toggle favorite on current chart (ctrl F)
