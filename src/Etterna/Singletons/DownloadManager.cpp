@@ -1484,6 +1484,10 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 {
 	OnlineScore tmp;
 
+	std::string scorekey = "";
+	if (score.HasMember("key") && score["key"].IsString())
+		scorekey = score["key"].GetString();
+
 	auto& user = score["user"];
 	tmp.songId = "";
 	if (user.HasMember("username") && user["username"].IsString())
@@ -1571,8 +1575,16 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 	// dunno if we need this precision -mina
 	if (score.HasMember("rate") && score["rate"].IsString())
 		tmp.rate = std::stof(score["rate"].GetString());
-	else
+	else if (score.HasMember("rate") && score["rate"].IsNumber())
+		tmp.rate = score["rate"].GetFloat();
+	else {
+		Locator::getLogger()->warn(
+		  "Bad rate in leaderboard? ck {} sk {} scoreid {}",
+		  chartkey,
+		  scorekey,
+		  tmp.scoreid);
 		tmp.rate = 0.0;
+	}
 	if (score.HasMember("chord_cohesion") && score["chord_cohesion"].IsInt())
 		tmp.nocc = score["chord_cohesion"].GetInt() == 0;
 	else
@@ -1630,10 +1642,6 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 	if (score.HasMember("calculator_version") &&
 		score["calculator_version"].IsInt())
 		tmp.hs.SetSSRCalcVersion(score["calculator_version"].GetInt());
-
-	std::string scorekey = "";
-	if (score.HasMember("key") && score["key"].IsString())
-		scorekey = score["key"].GetString();
 
 	auto& hs = tmp.hs;
 	hs.SetDateTime(tmp.datetime);
