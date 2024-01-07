@@ -987,6 +987,14 @@ DownloadManager::LoginRequest(const std::string& user,
 			  jsonObjectToString(d));
 			loginFailed();
 
+		} else if (response == 403) {
+			// user is banned
+
+			Locator::getLogger()->error(
+			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
+			  jsonObjectToString(d));
+			loginFailed();
+
 		} else if (response == 200) {
 			// all good
 
@@ -1059,17 +1067,19 @@ bool
 DownloadManager::HandleAuthErrorResponse(const std::string& endpoint, HTTPRequest& req)
 {
 	auto& status = req.response_code;
-	if (status != 401) {
+	if (status != 401 && status != 403) {
 		return false;
 	}
 
-	Locator::getLogger()->warn(
-	  "{} {} - Auth Error. Logging out automatically",
-	  endpoint,
-	  status);
+	if (status == 403) {
+		Locator::getLogger()->warn(
+		  "{} {} - Auth Error. You are banned.", endpoint, status);
+	} else {
+		Locator::getLogger()->warn(
+		  "{} {} - Auth Error. Logging out automatically", endpoint, status);
+	}
 
 	LogoutIfLoggedIn();
-
 
 	return true;
 }
@@ -2844,8 +2854,9 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 
 				// 404: Chart not ranked
 				// 401: Invalid login token
+				// 403: User is banned
 				// 429: Rate Limited
-				if (response == 404 || response == 401) {
+				if (response == 404 || response == 401 || response == 403) {
 					lua_pushnil(L);
 					// nil output means unranked to Lua
 				} else {
