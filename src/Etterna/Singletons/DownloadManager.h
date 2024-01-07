@@ -342,7 +342,6 @@ class DownloadManager
 	void RefreshFavorites();
 	void RefreshPackList(const std::string& url);
 	void RefreshLastVersion();
-	void RefreshRegisterPage();
 	void RefreshCountryCodes();
 	void RefreshCoreBundles();
 	void RefreshUserData();
@@ -418,8 +417,6 @@ class DownloadManager
 	// Misc information
 	// Last version according to server (Or current if non was obtained)
 	std::string lastVersion{ "" };
-	// Register page from server (Or empty if non was obtained)
-	std::string registerPage{ "" };
 	std::vector<std::string> countryCodes{};
 	std::string countryCode;
 };

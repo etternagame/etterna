@@ -527,7 +527,6 @@ DownloadManager::Init()
 {
 	RefreshPackList(packListURL);
 	RefreshLastVersion();
-	RefreshRegisterPage();
 	initialized = true;
 	pack_multi_handle = nullptr;
 	std::thread([this]() {
@@ -3049,38 +3048,6 @@ DownloadManager::RefreshLastVersion()
 }
 
 void
-DownloadManager::RefreshRegisterPage()
-{
-	Locator::getLogger()->warn("REFRESH REGISTER PAGE NOT IMPLEMENTED");
-	return;
-	/*
-	auto done = [this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshRegisterPage Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-
-		if (d.HasMember("data") && d["data"].IsObject() &&
-			d["data"].HasMember("attributes") &&
-			d["data"]["attributes"].IsObject() &&
-			d["data"]["attributes"].HasMember("url") &&
-			d["data"]["attributes"]["url"].IsString())
-			registerPage = d["data"]["attributes"]["url"].GetString();
-		else
-			registerPage = "";
-	};
-	SendRequest("client/registration",
-				std::vector<std::pair<std::string, std::string>>(),
-				done,
-				false,
-				false,
-				true);
-				*/
-}
-void
 DownloadManager::RefreshTop25(Skillset ss)
 {
 	topScores[ss].clear();
@@ -3564,11 +3531,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushstring(L, p->lastVersion.c_str());
 		return 1;
 	}
-	static int GetRegisterPage(T* p, lua_State* L)
-	{
-		lua_pushstring(L, p->registerPage.c_str());
-		return 1;
-	}
 	static int GetTopSkillsetScore(T* p, lua_State* L)
 	{
 		int rank = IArg(1);
@@ -3926,7 +3888,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetTopChartScore);
 		ADD_METHOD(GetTopChartScoreCount);
 		ADD_METHOD(GetLastVersion);
-		ADD_METHOD(GetRegisterPage);
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestOnlineScoreReplayData);
 		ADD_METHOD(GetChartLeaderBoard);
