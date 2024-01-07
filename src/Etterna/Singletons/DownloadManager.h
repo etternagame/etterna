@@ -246,6 +246,9 @@ class DownloadManager
 	{
 		RemoveFavoriteRequest(chartKey);
 	}
+	void RefreshFavorites(
+	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
+	  const DateTime end = DateTime::GetFromString("2100-01-01 12:00:00"));
 	void AddGoal(ScoreGoal* goal) {
 		AddGoalRequest(goal);
 	}
@@ -303,6 +306,7 @@ class DownloadManager
 	void UploadBulkScoresRequestInternal(const std::vector<HighScore*>& hsList);
 	void AddFavoriteRequest(const std::string& chartKey);
 	void RemoveFavoriteRequest(const std::string& chartKey);
+	void GetFavoritesRequest(const DateTime start, const DateTime end);
 	void AddGoalRequest(ScoreGoal* goal);
 	void UpdateGoalRequest(ScoreGoal* goal);
 	void RemoveGoalRequest(ScoreGoal* goal);
@@ -339,7 +343,6 @@ class DownloadManager
   // old
   public:
 
-	void RefreshFavorites();
 	void RefreshPackList(const std::string& url);
 	void RefreshLastVersion();
 	void RefreshCountryCodes();

@@ -892,6 +892,7 @@ DownloadManager::OnLogin()
 {
 	Locator::getLogger()->info("Successful login as {}", sessionUser);
 	RefreshUserData();
+	RefreshFavorites();
 	RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
 	RefreshTop25(ss);
@@ -1194,6 +1195,71 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 }
 
 void
+DownloadManager::GetFavoritesRequest(const DateTime start, const DateTime end)
+{
+	std::string startstr = fmt::format(
+	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
+	std::string endstr =
+	  fmt::format("{}-{}-{}", end.tm_year + 1900, end.tm_mon + 1, end.tm_mday);
+	Locator::getLogger()->info(
+	  "Generating GetFavoritesRequest {} to {}", startstr, endstr);
+
+	std::vector<std::pair<std::string, std::string>> params = {
+		std::make_pair("start", startstr),
+		std::make_pair("end", endstr),
+	};
+
+	auto done = [start, end, this, startstr, endstr](
+				  HTTPRequest& req) {
+		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_FAVORITES, req)) {
+			GetFavoritesRequest(start, end);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "GetFavoritesRequest Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+
+			if (d.HasMember("data") && d["data"].IsArray()) {
+				Locator::getLogger()->info("got: {}", jsonObjectToString(d));
+				// ???????????????????
+			} else {
+				Locator::getLogger()->warn("GetRankedChartkeys got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
+			}
+		} else {
+			Locator::getLogger()->warn(
+			  "GetFavoritesRequest unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(API_FAVORITES, params, done, true);
+}
+
+void
+DownloadManager::RefreshFavorites(
+  const DateTime start,
+  const DateTime end)
+{
+	GetFavoritesRequest(start, end);
+}
+
+void
 DownloadManager::AddGoalRequest(ScoreGoal* goal)
 {
 	auto req = API_GOALS;
@@ -1211,7 +1277,7 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "RemoveFavorite Error: Malformed request response: {}",
+			  "AddGoal Error: Malformed request response: {}",
 			  req.result);
 			return;
 		}
@@ -1289,7 +1355,7 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 			  jsonObjectToString(d));
 		} else if (response == 404) {
 			Locator::getLogger()->warn(
-			  "RemoveGoal failed due to 404. Chart may be unranked or Favorite "
+			  "RemoveGoal failed due to 404. Chart may be unranked or Goal "
 			  "missing - Content: {}",
 			  jsonObjectToString(d));
 		} else {
@@ -1363,31 +1429,6 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	};
 
 	SendRequest(req, postParams, done, true, RequestMethod::PATCH);
-}
-
-void
-DownloadManager::RefreshFavorites()
-{
-	Locator::getLogger()->warn("REFRESH FAVORITES UNIMPLEMENTED");
-	return;
-	/*
-	std::string req = "user/" + UrlEncode(sessionUser) + "/favorites";
-	auto done = [this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError() ||
-			!d.HasMember("data") || !d["data"].IsArray())
-			favorites.clear();
-		else {
-			auto& favs = d["data"];
-			for (auto& fav : favs.GetArray()) {
-				if (fav.HasMember("attributes") && fav["attributes"].IsString())
-					favorites.push_back(fav["attributes"].GetString());
-			}
-		}
-		MESSAGEMAN->Broadcast("FavouritesUpdate");
-	};
-	SendRequest(req, {}, done);
-	*/
 }
 
 void

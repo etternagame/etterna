@@ -433,12 +433,6 @@ Broadcast when logging out of the tracker. See DLMAN:Logout(),DLMAN:Login(user, 
 
     params = { }
 
-### FavouritesUpdateMessageCommand
-
-Broadcast when favourites are retrieved/refreshed from the tracker.
-
-    params = { }
-
 ### OnlineUpdateMessageCommand
 
 Broadcast when our top25/rank/ratings/country are updated from the tracker. See DLMAN:GetTopSkillsetScore(n, skillsetString),DLMAN:GetSkillsetRating(), DLMAN:GetUsername(), DLMAN:GetSkillsetRank(skillsetString) in `DownloadManager`
