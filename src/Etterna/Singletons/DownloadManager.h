@@ -258,6 +258,9 @@ class DownloadManager
 	void RemoveGoal(ScoreGoal* goal) {
 		RemoveGoalRequest(goal);
 	}
+	void RefreshGoals(
+	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
+	  const DateTime end = DateTime::GetFromString("2100-01-01 12:00:00"));
 
 	// Score upload functions
 	void UploadScore(HighScore* hs,
@@ -310,6 +313,7 @@ class DownloadManager
 	void AddGoalRequest(ScoreGoal* goal);
 	void UpdateGoalRequest(ScoreGoal* goal);
 	void RemoveGoalRequest(ScoreGoal* goal);
+	void GetGoalsRequest(const DateTime start, const DateTime end);
 
 	HTTPRequest* SendRequest(
 	  std::string requestName,

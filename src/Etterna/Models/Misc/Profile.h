@@ -245,6 +245,7 @@ class Profile
 	// more future goalman stuff -mina
 	bool AddGoal(const std::string& ck);
 	void RemoveGoal(const std::string& ck, DateTime assigned);
+	bool LoadGoalIfNew(ScoreGoal goal);
 	std::unordered_map<std::string, GoalsForChart> goalmap;
 	void FillGoalTable();
 	std::vector<ScoreGoal*> goaltable;

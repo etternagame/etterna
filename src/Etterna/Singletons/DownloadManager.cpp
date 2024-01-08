@@ -419,6 +419,23 @@ getJsonInt(Value& doc, const char* name)
 	return 0;
 }
 
+inline bool
+getJsonBool(Value& doc, const char* name)
+{
+	if (doc.HasMember(name)) {
+		if (doc[name].IsBool()) {
+			return doc[name].GetBool();
+		}
+		else if (doc[name].IsString()) {
+			try {
+				return EqualsNoCase(doc[name].GetString(), "true");
+			} catch (...) {
+			}
+		}
+	}
+	return false;
+}
+
 std::string
 UrlEncode(const std::string& str)
 {
@@ -893,6 +910,7 @@ DownloadManager::OnLogin()
 	Locator::getLogger()->info("Successful login as {}", sessionUser);
 	RefreshUserData();
 	RefreshFavorites();
+	RefreshGoals();
 	RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
 	RefreshTop25(ss);
@@ -1429,6 +1447,97 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	};
 
 	SendRequest(req, postParams, done, true, RequestMethod::PATCH);
+}
+
+void
+DownloadManager::GetGoalsRequest(const DateTime start, const DateTime end)
+{
+	std::string startstr = fmt::format(
+	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
+	std::string endstr =
+	  fmt::format("{}-{}-{}", end.tm_year + 1900, end.tm_mon + 1, end.tm_mday);
+	Locator::getLogger()->info(
+	  "Generating GetGoalsRequest {} to {}", startstr, endstr);
+
+	std::vector<std::pair<std::string, std::string>> params = {
+		std::make_pair("start", startstr),
+		std::make_pair("end", endstr),
+	};
+
+	auto done = [start, end, this, startstr, endstr](HTTPRequest& req) {
+		if (HandleAuthErrorResponse(API_GOALS, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS, req)) {
+			GetGoalsRequest(start, end);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "GetGoalsRequest Error: Malformed request response: {}",
+			  req.result);
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200) {
+			// all good
+
+			if (d.HasMember("goals") && d["goals"].IsArray()) {
+				auto& data = d["goals"];
+				auto* const profile = PROFILEMAN->GetProfile(PLAYER_1);
+
+				auto cnt = 0;
+				auto added = 0;
+				for (auto it = data.Begin(); it != data.End(); it++) {
+					auto obj = it->GetObj();
+					ScoreGoal tmpgoal;
+
+					std::string ck = "";
+					if (obj.HasMember("chart")) {
+						ck = getJsonString(obj["chart"], "key");
+					}
+
+					tmpgoal.achieved = getJsonBool(obj, "achieved");
+					tmpgoal.chartkey = ck;
+					tmpgoal.percent = getJsonFloat(obj, "wife");
+					tmpgoal.rate = getJsonFloat(obj, "rate");
+					tmpgoal.timeachieved =
+					  DateTime::GetFromString(getJsonString(obj, "achieved_date"));
+					tmpgoal.timeassigned =
+					  DateTime::GetFromString(getJsonString(obj, "set_date"));
+
+					if (profile->LoadGoalIfNew(tmpgoal)) {
+						added++;
+					}
+					cnt++;
+				}
+				Locator::getLogger()->info(
+				  "GetGoalsRequest returned successfully. Found {} goals. "
+				  "Added {} new goals to local profile", cnt, added);
+			} else {
+				Locator::getLogger()->warn("GetGoalsRequest got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
+			}
+		} else {
+			Locator::getLogger()->warn(
+			  "GetGoalsRequest unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(API_GOALS, params, done, true);
+}
+
+void
+DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
+{
+	GetGoalsRequest(start, end);
 }
 
 void

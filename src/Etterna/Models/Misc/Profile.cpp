@@ -507,6 +507,42 @@ Profile::AddGoal(const std::string& ck)
 	return true;
 }
 
+bool
+Profile::LoadGoalIfNew(ScoreGoal goal)
+{
+	if (goal.chartkey.empty()) {
+		return false;
+	}
+	if (goal.percent == 0.F) {
+		return false;
+	}
+
+	
+	if (goalmap.count(goal.chartkey)) {
+		for (auto it = goalmap[goal.chartkey].goals.begin();
+			 it != goalmap[goal.chartkey].goals.end();) {
+			if (it->rate == goal.rate && it->percent == goal.percent) {
+				if (goal.achieved && !it->achieved) {
+					// the online goal is newer than the local
+					// delete the local
+					it = goalmap[goal.chartkey].goals.erase(it);
+				} else {
+					// local is newer
+					return false;
+				}
+			} else {
+				it++;
+			}
+		}
+	}
+	goal.CheckVacuity();
+
+	goalmap[goal.chartkey].Add(goal);
+	FillGoalTable();
+	MESSAGEMAN->Broadcast("GoalTableRefresh");
+	return true;
+}
+
 void
 Profile::FillGoalTable()
 {
