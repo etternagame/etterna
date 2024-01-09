@@ -349,7 +349,6 @@ class DownloadManager
 
 	void RefreshPackList(const std::string& url);
 	void RefreshLastVersion();
-	void RefreshCountryCodes();
 	void RefreshCoreBundles();
 	void RefreshUserData();
 	void RefreshTop25(Skillset ss);
@@ -424,7 +423,6 @@ class DownloadManager
 	// Misc information
 	// Last version according to server (Or current if non was obtained)
 	std::string lastVersion{ "" };
-	std::vector<std::string> countryCodes{};
 	std::string countryCode;
 };
 

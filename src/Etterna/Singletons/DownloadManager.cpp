@@ -911,7 +911,6 @@ DownloadManager::OnLogin()
 	RefreshUserData();
 	RefreshFavorites();
 	RefreshGoals();
-	RefreshCountryCodes();
 	FOREACH_ENUM(Skillset, ss)
 	RefreshTop25(ss);
 	if (ShouldUploadScores()) {
@@ -2770,41 +2769,6 @@ DownloadManager::QueueRatelimitedRequest(const std::string& endpoint, HTTPReques
 	}
 }
 
-
-void
-DownloadManager::RefreshCountryCodes()
-{
-	Locator::getLogger()->warn("REFRESH COUNTRY CODES NOT IMPLEMENTED");
-	return;
-
-	/*
-
-	auto done = [this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshCountryCodes Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-		if (d.HasMember("data") && d["data"].IsArray())
-			for (auto& code_obj : d["data"].GetArray()) {
-				if (code_obj.HasMember("id") && code_obj["id"].IsString())
-					countryCodes.push_back(code_obj["id"].GetString());
-				else
-					countryCodes.push_back("");
-			}
-		// append the list to global/player country code so
-		// we dont have to merge tables in lua -mina
-		countryCodes.push_back(std::string("Global"));
-	};
-	SendRequest("/misc/countrycodes",
-				std::vector<std::pair<std::string, std::string>>(),
-				done,
-				true);
-				*/
-}
-
 void
 DownloadManager::RequestReplayData(const std::string& scoreid,
 								   int userid,
@@ -3597,12 +3561,6 @@ DownloadablePack::isQueued() {
 class LunaDownloadManager : public Luna<DownloadManager>
 {
   public:
-	static int GetCountryCodes(T* p, lua_State* L)
-	{
-		auto& codes = p->countryCodes;
-		LuaHelpers::CreateTableFromArray(codes, L);
-		return 1;
-	}
 	static int GetUserCountryCode(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->countryCode.c_str());
@@ -4038,7 +3996,6 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	LunaDownloadManager()
 	{
-		ADD_METHOD(GetCountryCodes);
 		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
