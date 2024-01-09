@@ -1091,7 +1091,7 @@ DownloadManager::HandleAuthErrorResponse(const std::string& endpoint, HTTPReques
 
 	if (status == 403) {
 		Locator::getLogger()->warn(
-		  "{} {} - Auth Error. You are banned.", endpoint, status);
+		  "{} {} - Auth Error. You are banned", endpoint, status);
 	} else {
 		Locator::getLogger()->warn(
 		  "{} {} - Auth Error. Logging out automatically", endpoint, status);
@@ -1514,7 +1514,7 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 
 				Locator::getLogger()->info(
 				  "GetGoalsRequest returned successfully. Found {} online "
-				  "goals.",
+				  "goals",
 				  onlineGoals.size());
 				onSuccess(onlineGoals);
 
@@ -1542,7 +1542,7 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 
 		if (profile == nullptr) {
 			Locator::getLogger()->warn(
-			  "Profile for PLAYER_1 came back null. Goals cannot be synced.");
+			  "Profile for PLAYER_1 came back null. Goals cannot be synced");
 			return;
 		}
 
