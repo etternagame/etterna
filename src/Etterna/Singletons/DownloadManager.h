@@ -313,7 +313,9 @@ class DownloadManager
 	void AddGoalRequest(ScoreGoal* goal);
 	void UpdateGoalRequest(ScoreGoal* goal);
 	void RemoveGoalRequest(ScoreGoal* goal);
-	void GetGoalsRequest(const DateTime start, const DateTime end);
+	void GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onSuccess,
+						 const DateTime start,
+						 const DateTime end);
 
 	HTTPRequest* SendRequest(
 	  std::string requestName,
