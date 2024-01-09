@@ -1509,7 +1509,7 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 					tmpgoal.timeassigned =
 					  DateTime::GetFromString(getJsonString(obj, "set_date"));
 
-					onlineGoals.emplace_back(onlineGoals);
+					onlineGoals.push_back(tmpgoal);
 				}
 
 				Locator::getLogger()->info(
@@ -1561,43 +1561,6 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 			onlineGoalsByChartkey[goal.chartkey].push_back(goal);
 		}
 
-		// find the goals that must be uploaded
-		for (auto& it : goalmap) {
-			const auto& ck = it.first;
-			const auto& goalsForChart = it.second;
-
-			if (onlineGoalsByChartkey.count(ck) == 0) {
-				// these local goals are not online
-				// so upload all of them
-				for (auto& goal : goalsForChart.goals) {
-					goalsToUpload.emplace_back(goal);
-				}
-			} else {
-				// these goals might be online
-				// see if it should be uploaded
-				auto& onlineGoalsForChart = onlineGoalsByChartkey[ck];
-				for (auto& goal : goalsForChart.goals) {
-					auto found = false;
-					for (auto& onlineGoal : onlineGoalsForChart) {
-						// if the goal is found
-						// either upload or do nothing
-						if (goal.rate == onlineGoal.rate &&
-							goal.timeassigned == onlineGoal.timeassigned) {
-							if (goal.achieved && !onlineGoal.achieved) {
-								goalsToUpload.emplace_back(goal);
-							}
-							found = true;
-							break;
-						}
-					}
-					// if the goal is not found, upload it
-					if (!found) {
-						goalsToUpload.emplace_back(goal);
-					}
-				}
-			}
-		}
-
 		// find the goals that must be saved locally
 		for (auto& it : onlineGoalsByChartkey) {
 			const auto& ck = it.first;
@@ -1635,16 +1598,59 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 			}
 		}
 
+		// have to load the goals here because
+		// container reallocation can invalidate pointers
+		// to local goals
+		for (auto& goal : goalsToSave) {
+			profile->LoadGoalIfNew(goal);
+		}
+
+		// find the goals that must be uploaded
+		for (auto& it : goalmap) {
+			const auto& ck = it.first;
+			auto& goalsForChart = it.second;
+
+			if (onlineGoalsByChartkey.count(ck) == 0) {
+				// these local goals are not online
+				// so upload all of them
+				for (auto& goal : goalsForChart.goals) {
+					goalsToUpload.push_back(&goal);
+				}
+			} else {
+				// these goals might be online
+				// see if it should be uploaded
+				auto& onlineGoalsForChart = onlineGoalsByChartkey[ck];
+				for (auto& goal : goalsForChart.goals) {
+					auto found = false;
+					for (auto& onlineGoal : onlineGoalsForChart) {
+						// if the goal is found
+						// either upload or do nothing
+						if (goal.rate == onlineGoal.rate &&
+							goal.timeassigned == onlineGoal.timeassigned) {
+							if (goal.achieved && !onlineGoal.achieved) {
+								goalsToUpload.push_back(&goal);
+							}
+							found = true;
+							break;
+						}
+					}
+					// if the goal is not found, upload it
+					if (!found) {
+						goalsToUpload.push_back(&goal);
+					}
+				}
+			}
+		}
+
+		// upload goals
+		for (auto& goal : goalsToUpload) {
+			AddGoal(goal);
+		}
+
 		Locator::getLogger()->info("Found {} online goals to save locally, and "
 								   "{} local goals to upload",
 								   goalsToSave.size(),
 								   goalsToUpload.size());
-		for (auto& goal : goalsToSave) {
-			profile->LoadGoalIfNew(goal);
-		}
-		for (auto& goal : goalsToUpload) {
-			AddGoal(goal);
-		}
 	};
 	GetGoalsRequest(onSuccess, start, end);
 }
