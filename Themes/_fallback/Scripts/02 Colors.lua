@@ -336,11 +336,11 @@ function ColorToHSV(c)
     else
         s = delta / max
         if r == max then
-            h = (g - b) / delta
+            h = (g - b) / delta -- yellow/magenta
         elseif g == max then
-            h = 2 + (b - r) / delta
+            h = 2 + (b - r) / delta -- cyan/yellow
         else
-            h = 4 + (r - g) / delta
+            h = 4 + (r - g) / delta -- magenta/cyan
         end
 
         h = h * 60 -- Convert to degrees
