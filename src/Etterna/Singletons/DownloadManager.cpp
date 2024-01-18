@@ -1105,7 +1105,8 @@ DownloadManager::HandleAuthErrorResponse(const std::string& endpoint, HTTPReques
 void
 DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 {
-	auto req = API_FAVORITES;
+	Locator::getLogger()->info("Generating AddFavoriteRequest for {}",
+							   chartkey);
 
 	favorites.push_back(chartkey);
 	auto done = [chartkey, this](HTTPRequest& req) {
@@ -1120,9 +1121,10 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "AddFavoriteRequest Error: Malformed request response: {}",
-			  req.result);
+			Locator::getLogger()->error("AddFavoriteRequest Error: Favorite: "
+										"{} - Malformed request response: {}",
+										chartkey,
+										req.result);
 			return;
 		}
 
@@ -1137,22 +1139,25 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 		} else if (response == 422) {
 			// missing info
 			Locator::getLogger()->warn(
-			  "AddFavorite failed due to input error. Content: {}",
+			  "AddFavorite for {} failed due to input error. Content: {}",
+			  chartkey,
 			  jsonObjectToString(d));
 		} else if (response == 404) {
-			Locator::getLogger()->warn(
-			  "AddFavorite failed due to 404. Chart may be unranked - Content: {}",
-			  jsonObjectToString(d));
+			Locator::getLogger()->warn("AddFavorite for {} failed due to 404. "
+									   "Chart may be unranked - Content: {}",
+									   chartkey,
+									   jsonObjectToString(d));
 		} else {
 			// ???
 			Locator::getLogger()->warn(
-			  "AddFavorite unknown response {} - Content: {}",
+			  "AddFavorite for {} - unknown response {} - Content: {}",
+			  chartkey,
 			  response,
 			  jsonObjectToString(d));
 		}
 	};
 
-	SendRequest(req,
+	SendRequest(API_FAVORITES,
 				{ make_pair("key", UrlEncode(chartkey)) },
 				done,
 				true,
@@ -1162,7 +1167,8 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 void
 DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 {
-	auto req = API_FAVORITES + "/" + URLEncode(chartkey);
+	Locator::getLogger()->info("Generating RemoveFavoriteRequest for {}",
+							   chartkey);
 
 	auto it =
 	  std::find(favorites.begin(), favorites.end(), chartkey);
@@ -1181,9 +1187,10 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RemoveFavorite Error: Malformed request response: {}",
-			  req.result);
+			Locator::getLogger()->error("RemoveFavorite Error: Favorite: {} - "
+										"Malformed request response: {}",
+										chartkey,
+										req.result);
 			return;
 		}
 
@@ -1197,18 +1204,25 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 
 		} else if (response == 404) {
 			Locator::getLogger()->warn(
-			  "RemoveFavorite failed due to 404. Favorite may be missing - Content: {}",
+			  "RemoveFavorite for {} failed due to 404. Favorite may be "
+			  "missing - Content: {}",
+			  chartkey,
 			  jsonObjectToString(d));
 		} else {
 			// ???
 			Locator::getLogger()->warn(
-			  "RemoveFavorite unknown response {} - Content: {}",
+			  "RemoveFavorite for {} unknown response {} - Content: {}",
+			  chartkey,
 			  response,
 			  jsonObjectToString(d));
 		}
 	};
 
-	SendRequest(req, {}, done, true, RequestMethod::DEL);
+	SendRequest(API_FAVORITES + "/" + URLEncode(chartkey),
+				{},
+				done,
+				true,
+				RequestMethod::DEL);
 }
 
 void
@@ -1273,13 +1287,23 @@ DownloadManager::RefreshFavorites(
   const DateTime start,
   const DateTime end)
 {
+	Locator::getLogger()->info(
+	  "Refreshing Favorites - {} to {}", start.GetString(), end.GetString());
+
 	GetFavoritesRequest(start, end);
 }
 
 void
 DownloadManager::AddGoalRequest(ScoreGoal* goal)
 {
-	auto req = API_GOALS;
+	if (goal == nullptr) {
+		Locator::getLogger()->warn(
+		  "Null goal passed to AddGoalRequest. Skipped");
+		return;
+	}
+
+	Locator::getLogger()->info("Generating AddGoalRequest for {}",
+							   goal->DebugString());
 
 	auto done = [goal, this](HTTPRequest& req) {
 
@@ -1294,7 +1318,8 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "AddGoal Error: Malformed request response: {}",
+			  "AddGoal Error: Goal: {} - Malformed request response: {}",
+			  goal->DebugString(),
 			  req.result);
 			return;
 		}
@@ -1305,19 +1330,23 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 			// all good
 			Locator::getLogger()->info(
 			  "AddGoal successfully added goal for {} to online profile",
-			  goal->chartkey);
+			  goal->DebugString());
 
 		} else if (response == 422) {
 			// some validation issue with the request
 			Locator::getLogger()->warn(
-			  "AddGoal failed due to validation error: {}",
+			  "AddGoal for {} failed due to validation error: {}",
+			  goal->DebugString(),
 			  jsonObjectToString(d));
 		} else if (response == 404) {
-			Locator::getLogger()->warn(
-			  "AddGoal failed due to 404. Chart may be unranked - Content: {}", jsonObjectToString(d));
+			Locator::getLogger()->warn("AddGoal for {} failed due to 404. "
+									   "Chart may be unranked - Content: {}",
+									   goal->DebugString(),
+									   jsonObjectToString(d));
 		} else {
 			Locator::getLogger()->warn(
-			  "AddGoal unexpected response {} - Content: {}",
+			  "AddGoal for {} unexpected response {} - Content: {}",
+			  goal->DebugString(),
 			  response,
 			  jsonObjectToString(d));
 		}
@@ -1330,15 +1359,19 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 		std::make_pair("set_date", goal->timeassigned.GetString())
 	};
 
-	SendRequest(req, postParams, done, true, RequestMethod::POST);
+	SendRequest(API_GOALS, postParams, done, true, RequestMethod::POST);
 }
 
 void
 DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 {
-	auto req = API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
-					  std::to_string(goal->rate) + "/" +
-					  std::to_string(goal->percent);
+	if (goal == nullptr) {
+		Locator::getLogger()->warn("Null goal passed to RemoveGoalRequest. Skipped");
+		return;
+	}
+
+	Locator::getLogger()->info("Generating RemoveGoalRequest for {}",
+							   goal->DebugString());
 
 	auto done = [goal, this](HTTPRequest& req) {
 
@@ -1353,7 +1386,9 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "RemoveGoal Error: Malformed request response: {}", req.result);
+			  "RemoveGoal Error: Goal: {} - Malformed request response: {}",
+			  goal->DebugString(),
+			  req.result);
 			return;
 		}
 
@@ -1363,37 +1398,49 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 			// all good
 			Locator::getLogger()->info(
 			  "RemoveGoal successfully removed goal for {} from online profile",
-			  goal->chartkey);
+			  goal->DebugString());
 
 		} else if (response == 422) {
 			// some validation issue with the request
 			Locator::getLogger()->warn(
-			  "RemoveGoal failed due to validation error: {}",
+			  "RemoveGoal for {} failed due to validation error: {}",
+			  goal->DebugString(),
 			  jsonObjectToString(d));
 		} else if (response == 404) {
-			Locator::getLogger()->warn(
-			  "RemoveGoal failed due to 404. Chart may be unranked or Goal "
-			  "missing - Content: {}",
-			  jsonObjectToString(d));
+			Locator::getLogger()->warn("RemoveGoal for {} failed due to 404. "
+									   "Chart may be unranked or Goal "
+									   "missing - Content: {}",
+									   goal->DebugString(),
+									   jsonObjectToString(d));
 		} else {
 			Locator::getLogger()->warn(
-			  "RemoveGoal unexpected response {} - Content: {}",
+			  "RemoveGoal for {} unexpected response {} - Content: {}",
+			  goal->DebugString(),
 			  response,
 			  jsonObjectToString(d));
 		}
 	};
 
+	auto req = API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
+			   std::to_string(goal->rate) + "/" + std::to_string(goal->percent);
 	SendRequest(req, {}, done, true, RequestMethod::DEL);
 }
 
 void
 DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 {
+	if (goal == nullptr) {
+		Locator::getLogger()->warn("Null goal passed to UpdateGoalRequest. Skipped");
+		return;
+	}
+
+	Locator::getLogger()->info("Generating UpdateGoalRequest for {}",
+							   goal->DebugString());
+
 	std::string timeAchievedString = "0000:00:00 00:00:00";
 	if (goal->achieved)
 		timeAchievedString = goal->timeachieved.GetString();
 
-	auto req = API_GOALS;
 	std::vector<std::pair<std::string, std::string>> postParams = {
 		std::make_pair("key", UrlEncode(goal->chartkey)),
 		std::make_pair("rate", std::to_string(goal->rate)),
@@ -1403,7 +1450,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 		std::make_pair("achieved_date", timeAchievedString)
 	};
 
-	auto done = [ goal, this ](HTTPRequest& req) {
+	auto done = [goal, this ](HTTPRequest& req) {
 
 		if (HandleAuthErrorResponse(API_GOALS, req)) {
 			return;
@@ -1416,7 +1463,9 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "UpdateGoal Error: Malformed request response: {}", req.result);
+			  "UpdateGoal Error: Goal: {} - Malformed request response: {}",
+			  goal->DebugString(),
+			  req.result);
 			return;
 		}
 
@@ -1426,26 +1475,30 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 			// all good
 			Locator::getLogger()->info(
 			  "UpdateGoal successfully updated goal for {} on online profile",
-			  goal->chartkey);
+			  goal->DebugString());
 
 		} else if (response == 422) {
 			// some validation issue with the request
 			Locator::getLogger()->warn(
-			  "UpdateGoal failed due to validation error: {}",
+			  "UpdateGoal for {} failed due to validation error: {}",
+			  goal->DebugString(),
 			  jsonObjectToString(d));
 		} else if (response == 404) {
-			Locator::getLogger()->warn("UpdateGoal failed due to 404. Goal may "
-									   "be missing online - Content: {}",
-									   jsonObjectToString(d));
+			Locator::getLogger()->warn(
+			  "UpdateGoal for {} failed due to 404. Goal may "
+			  "be missing online - Content: {}",
+			  goal->DebugString(),
+			  jsonObjectToString(d));
 		} else {
 			Locator::getLogger()->warn(
-			  "UpdateGoal unexpected response {} - Content: {}",
+			  "UpdateGoal for {} unexpected response {} - Content: {}",
+			  goal->DebugString(),
 			  response,
 			  jsonObjectToString(d));
 		}
 	};
 
-	SendRequest(req, postParams, done, true, RequestMethod::PATCH);
+	SendRequest(API_GOALS, postParams, done, true, RequestMethod::PATCH);
 }
 
 void
@@ -1537,6 +1590,9 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 void
 DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 {
+	Locator::getLogger()->info(
+	  "Refreshing Goals - {} to {}", start.GetString(), end.GetString());
+
 	auto onSuccess = [this](std::vector<ScoreGoal> onlineGoals) {
 		auto* profile = PROFILEMAN->GetProfile(PLAYER_1);
 
@@ -1551,6 +1607,7 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 		  onlineGoalsByChartkey{};
 		std::vector<ScoreGoal*> goalsToUpload{};
 		std::vector<ScoreGoal> goalsToSave{};
+		std::vector<ScoreGoal*> goalsToUpdate{};
 
 		for (auto& goal : onlineGoals) {
 			if (goal.chartkey.empty())
@@ -1581,9 +1638,19 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					for (auto& localGoal : localGoalsForChart) {
 						// if the goal is found
 						// either save or do nothing
-						if (goal.rate == localGoal.rate &&
-							goal.timeassigned == localGoal.timeassigned) {
-							if (goal.achieved && !localGoal.achieved) {
+						Locator::getLogger()->trace(
+						  "forSave ck {} rate {} assigned {} achieved {} | "
+						  "rate2 {} assigned2 {} achieved2{}",
+						  ck,
+						  goal.rate,
+						  goal.timeassigned.GetString(),
+						  goal.achieved,
+						  localGoal.rate,
+						  localGoal.timeassigned.GetString(),
+						  localGoal.achieved);
+						if (std::fabsf(goal.rate - localGoal.rate) < 0.001) {
+							if (goal.achieved && !localGoal.achieved &&
+								goal.timeassigned >= localGoal.timeassigned) {
 								goalsToSave.push_back(goal);
 							}
 							found = true;
@@ -1592,6 +1659,12 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					}
 					// if the goal is not found, save it
 					if (!found) {
+						Locator::getLogger()->trace(
+						  "forSave ck {} - {} {} {}",
+						  ck,
+						  goal.rate,
+						  goal.timeassigned.GetString(),
+						  goal.achieved);
 						goalsToSave.push_back(goal);
 					}
 				}
@@ -1624,11 +1697,21 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					auto found = false;
 					for (auto& onlineGoal : onlineGoalsForChart) {
 						// if the goal is found
-						// either upload or do nothing
-						if (goal.rate == onlineGoal.rate &&
-							goal.timeassigned == onlineGoal.timeassigned) {
-							if (goal.achieved && !onlineGoal.achieved) {
-								goalsToUpload.push_back(&goal);
+						// either update or do nothing
+						Locator::getLogger()->trace(
+						  "forUpdate ck {} rate {} assigned {} achieved {} | "
+						  "rate2 {} assigned2 {} achieved2{}",
+						  ck,
+						  goal.rate,
+						  goal.timeassigned.GetString(),
+						  goal.achieved,
+						  onlineGoal.rate,
+						  onlineGoal.timeassigned.GetString(),
+						  onlineGoal.achieved);
+						if (std::fabsf(goal.rate - onlineGoal.rate) < 0.001) {
+							if (goal.achieved && !onlineGoal.achieved &&
+								goal.timeassigned >= onlineGoal.timeassigned) {
+								goalsToUpdate.push_back(&goal);
 							}
 							found = true;
 							break;
@@ -1636,6 +1719,12 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					}
 					// if the goal is not found, upload it
 					if (!found) {
+						Locator::getLogger()->trace(
+						  "forUpload ck {} - {} {} {}",
+						  ck,
+						  goal.rate,
+						  goal.timeassigned.GetString(),
+						  goal.achieved);
 						goalsToUpload.push_back(&goal);
 					}
 				}
@@ -1647,9 +1736,16 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 			AddGoal(goal);
 		}
 
-		Locator::getLogger()->info("Found {} online goals to save locally, and "
-								   "{} local goals to upload",
+		// update goals
+		for (auto& goal : goalsToUpdate) {
+			UpdateGoal(goal);
+		}
+
+		Locator::getLogger()->info("Found {} online goals to save locally, {} "
+								   "local goals to update online, and "
+								   "{} local goals to upload as new ones",
 								   goalsToSave.size(),
+								   goalsToUpdate.size(),
 								   goalsToUpload.size());
 	};
 	GetGoalsRequest(onSuccess, start, end);
@@ -1951,6 +2047,11 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 
 	Document d;
 	d.SetObject();
+
+	if (hs == nullptr) {
+		Locator::getLogger()->warn("Null HighScore passed to ScoreToJSON. Skipped");
+		return d;
+	}
 
 	// to put a string into a json object
 	// we have to put it in a Value instead
@@ -2269,6 +2370,11 @@ DownloadManager::UploadScore(HighScore* hs,
 							 std::function<void()> callback,
 							 bool load_from_disk)
 {
+	if (hs == nullptr) {
+		Locator::getLogger()->warn("Null HighScore passed to UploadScore. Skipped");
+		return;
+	}
+
 	Locator::getLogger()->info("Creating UploadScore request for score {}",
 							   hs->GetScoreKey());
 	if (!LoggedIn()) {
@@ -3259,6 +3365,8 @@ DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
 void
 DownloadManager::RefreshLastVersion()
 {
+	Locator::getLogger()->info("RefreshLastVersion beginning to determine "
+							   "latest game version according to API");
 
 	std::vector<std::pair<std::string, std::string>> params = {};
 
