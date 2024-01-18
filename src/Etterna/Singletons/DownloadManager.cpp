@@ -1334,7 +1334,7 @@ DownloadManager::RefreshFavorites(
 			profile->allplaylists.erase("Favorites");
 			SONGMAN->MakePlaylistFromFavorites(profile->FavoritedCharts,
 											   profile->allplaylists);
-
+			MESSAGEMAN->Broadcast(Message_FavoritesUpdated);
 		}
 
 		// logging here to occur before the AddFavorite logs
@@ -1797,6 +1797,9 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 								   goalsToSave.size(),
 								   goalsToUpdate.size(),
 								   goalsToUpload.size());
+		if (goalsToSave.size() > 0) {
+			MESSAGEMAN->Broadcast(Message_GoalsUpdated);
+		}
 
 		// upload goals
 		for (auto& goal : goalsToUpload) {

@@ -1630,7 +1630,7 @@ ScreenSelectMusic::ReloadCurrentSong()
 		to_reload->ReloadFromSongDir();
 		SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
 
-		MESSAGEMAN->Broadcast("ReloadedCurrentSong");
+		MESSAGEMAN->Broadcast(Message_ReloadedCurrentSong);
 		m_MusicWheel.RebuildWheelItems(0);
 		return true;
 	}
@@ -1646,7 +1646,7 @@ ScreenSelectMusic::ReloadCurrentPack()
 
 		m_MusicWheel.RebuildWheelItems(0);
 
-		MESSAGEMAN->Broadcast("ReloadedCurrentPack");
+		MESSAGEMAN->Broadcast(Message_ReloadedCurrentPack);
 		SCREENMAN->SystemMessage("Current pack reloaded");
 		return true;
 	}
@@ -1681,7 +1681,7 @@ ScreenSelectMusic::ToggleCurrentFavorite()
 			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
 											   pProfile->allplaylists);
 		}
-		MESSAGEMAN->Broadcast("FavoritesUpdated");
+		MESSAGEMAN->Broadcast(Message_FavoritesUpdated);
 
 		// update favorites playlist _display_
 		MESSAGEMAN->Broadcast("DisplayAll");
@@ -1708,10 +1708,7 @@ ScreenSelectMusic::ToggleCurrentPermamirror()
 			  GAMESTATE->m_pCurSteps->GetChartKey());
 		}
 
-		// legacy compat TEMP
-		MESSAGEMAN->Broadcast("FavoritesUpdated");
-
-		MESSAGEMAN->Broadcast("PermamirrorUpdated");
+		MESSAGEMAN->Broadcast(Message_PermamirrorUpdated);
 		m_MusicWheel.RebuildWheelItems(0);
 		return true;
 	}
@@ -1729,10 +1726,7 @@ ScreenSelectMusic::GoalFromCurrentChart()
 
 	asonglol->SetHasGoal(true);
 
-	// legacy compat TEMP
-	MESSAGEMAN->Broadcast("FavoritesUpdated");
-
-	MESSAGEMAN->Broadcast("GoalsUpdated");
+	MESSAGEMAN->Broadcast(Message_GoalsUpdated);
 	m_MusicWheel.RebuildWheelItems(0);
 	return true;
 }

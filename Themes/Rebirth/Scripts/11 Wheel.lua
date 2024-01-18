@@ -1347,6 +1347,12 @@ function MusicWheel:new(params)
     w.FavoritesUpdatedMessageCommand = function(self)
         w:update()
     end
+    w.PermamirrorUpdatedMessageCommand = function(self)
+        w:update()
+    end
+    w.GoalsUpdatedMessageCommand = function(self)
+        w:update()
+    end
 
     w.OptionUpdatedMessageCommand = function(self, params)
         local optionNamesToUpdateOn = {
