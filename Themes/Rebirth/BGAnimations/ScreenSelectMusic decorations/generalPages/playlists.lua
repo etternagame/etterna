@@ -825,7 +825,7 @@ local function playlistList()
                     else
                         -- adding new playlist
                         newPlaylistDialogue()
-                        -- this will trigger the DisplayAll Message after success (also a Profile Save)
+                        -- this will trigger the DisplayAllPlaylists Message after success (also a Profile Save)
                         -- this triggers nothing on failure
                     end
                 end,
@@ -983,7 +983,7 @@ local function playlistList()
             itemframe:diffusealpha(1)
             self:GetChild("PageText"):diffusealpha(1)
         end,
-        DisplayAllMessageCommand = function(self)
+        DisplayAllPlaylistsMessageCommand = function(self)
             -- this should only trigger if a new playlist was successfully made
             -- if not ... uhhh..... ???
             updatePlaylists()

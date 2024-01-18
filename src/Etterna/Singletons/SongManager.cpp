@@ -1483,7 +1483,7 @@ makePlaylist(const std::string& answer)
 	if (!pl.name.empty() && pls.count(pl.name) == 0) {
 		SONGMAN->GetPlaylists().emplace(pl.name, pl);
 		SONGMAN->activeplaylist = pl.name;
-		MESSAGEMAN->Broadcast("DisplayAll");
+		MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
 }
@@ -1508,7 +1508,7 @@ renamePlaylist(const std::string& old, const std::string& answer)
 		SONGMAN->activeplaylist = pl.name;
 		SONGMAN->DeletePlaylist(old);
 
-		MESSAGEMAN->Broadcast("DisplayAll");
+		MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 		PROFILEMAN->SaveProfile(PLAYER_1);
 
 		return true;
@@ -1793,7 +1793,7 @@ class LunaSongManager : public Luna<SongManager>
 			p->activeplaylist = pl.name;
 
 			 // message for behavior consistency, not necessary
-			MESSAGEMAN->Broadcast("DisplayAll");
+			MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 
 			lua_pushboolean(L, true);
 		}

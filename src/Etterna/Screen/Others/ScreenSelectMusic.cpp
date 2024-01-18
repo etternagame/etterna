@@ -547,7 +547,7 @@ ScreenSelectMusic::Input(const InputEventPlus& input)
 			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			ScreenTextEntry::TextEntry(
 			  SM_BackFromNamePlaylist, NAME_PLAYLIST, "", 128);
-			MESSAGEMAN->Broadcast("DisplayAll");
+			MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 			return true;
 		} else if (bHoldingCtrl && c == 'A' && m_MusicWheel.IsSettled() &&
 				   input.type == IET_FIRST_PRESS &&
@@ -1109,7 +1109,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 		if (pl.name != "" && pls.count(pl.name) == 0) {
 			SONGMAN->GetPlaylists().emplace(pl.name, pl);
 			SONGMAN->activeplaylist = pl.name;
-			MESSAGEMAN->Broadcast("DisplayAll");
+			MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 		}
 
 		// restart preview music after finishing or cancelling playlist creation
@@ -1690,7 +1690,7 @@ ScreenSelectMusic::ToggleCurrentFavorite()
 		MESSAGEMAN->Broadcast(Message_FavoritesUpdated);
 
 		// update favorites playlist _display_
-		MESSAGEMAN->Broadcast("DisplayAll");
+		MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 		return true;
 	}
 	return false;
