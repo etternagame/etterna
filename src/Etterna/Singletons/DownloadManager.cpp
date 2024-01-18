@@ -1860,7 +1860,6 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 				{ "data" : [ "Xabc123", "Xabc124", .... ] }
 				*/
 
-
 				std::unordered_set<std::string> newKeys{};
 				auto& data = d["data"];
 				for (auto it = data.Begin(); it != data.End(); it++) {
