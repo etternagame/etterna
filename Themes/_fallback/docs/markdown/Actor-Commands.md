@@ -228,10 +228,6 @@ Broadcast after a small delay of not scrolling in the music wheel. Should be use
 
     params = { }
 
-    			Message msg("FavoritesUpdated");
-    			MESSAGEMAN->Broadcast(msg);
-    	MESSAGEMAN->Broadcast("PlayingSampleMusic");
-
 ### RateChangedMessageCommand
 
 Broadcast when the current rate changes (So things like the current chart difficulty and song length can be updated).
