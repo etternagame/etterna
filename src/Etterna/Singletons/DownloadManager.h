@@ -309,7 +309,10 @@ class DownloadManager
 	void UploadBulkScoresRequestInternal(const std::vector<HighScore*>& hsList);
 	void AddFavoriteRequest(const std::string& chartKey);
 	void RemoveFavoriteRequest(const std::string& chartKey);
-	void GetFavoritesRequest(const DateTime start, const DateTime end);
+	void GetFavoritesRequest(
+	  std::function<void(std::set<std::string>)> onSuccess,
+	  const DateTime start,
+	  const DateTime end);
 	void AddGoalRequest(ScoreGoal* goal);
 	void UpdateGoalRequest(ScoreGoal* goal);
 	void RemoveGoalRequest(ScoreGoal* goal);
@@ -389,7 +392,6 @@ class DownloadManager
 	std::map<Skillset, int> sessionRanks{};
 	// Online profile skillset ratings
 	std::map<Skillset, double> sessionRatings{};
-	std::vector<std::string> favorites;
 
 	/////
 	// Score uploads

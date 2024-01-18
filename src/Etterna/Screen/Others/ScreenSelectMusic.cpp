@@ -1681,7 +1681,6 @@ ScreenSelectMusic::ToggleCurrentFavorite()
 			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
 											   pProfile->allplaylists);
 		}
-		DLMAN->RefreshFavorites();
 		MESSAGEMAN->Broadcast("FavoritesUpdated");
 
 		// update favorites playlist _display_

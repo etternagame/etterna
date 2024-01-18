@@ -1108,7 +1108,6 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 	Locator::getLogger()->info("Generating AddFavoriteRequest for {}",
 							   chartkey);
 
-	favorites.push_back(chartkey);
 	auto done = [chartkey, this](HTTPRequest& req) {
 
 		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
@@ -1133,7 +1132,7 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 		if (response == 200) {
 			// all good
 			Locator::getLogger()->info(
-			  "AddFavorite successfully added favorite {} from online profile",
+			  "AddFavorite successfully added favorite {} to online profile",
 			  chartkey);
 
 		} else if (response == 422) {
@@ -1169,11 +1168,6 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 {
 	Locator::getLogger()->info("Generating RemoveFavoriteRequest for {}",
 							   chartkey);
-
-	auto it =
-	  std::find(favorites.begin(), favorites.end(), chartkey);
-	if (it != favorites.end())
-		favorites.erase(it);
 
 	auto done = [chartkey, this](HTTPRequest& req) {
 
@@ -1226,7 +1220,9 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 }
 
 void
-DownloadManager::GetFavoritesRequest(const DateTime start, const DateTime end)
+DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> onSuccess,
+									const DateTime start,
+									const DateTime end)
 {
 	std::string startstr = fmt::format(
 	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
@@ -1240,13 +1236,13 @@ DownloadManager::GetFavoritesRequest(const DateTime start, const DateTime end)
 		std::make_pair("end", endstr),
 	};
 
-	auto done = [start, end, this, startstr, endstr](
+	auto done = [onSuccess, start, end, this, startstr, endstr](
 				  HTTPRequest& req) {
 		if (HandleAuthErrorResponse(API_FAVORITES, req)) {
 			return;
 		}
 		if (HandleRatelimitResponse(API_FAVORITES, req)) {
-			GetFavoritesRequest(start, end);
+			GetFavoritesRequest(onSuccess, start, end);
 			return;
 		}
 
@@ -1264,10 +1260,21 @@ DownloadManager::GetFavoritesRequest(const DateTime start, const DateTime end)
 			// all good
 
 			if (d.HasMember("data") && d["data"].IsArray()) {
-				Locator::getLogger()->info("got: {}", jsonObjectToString(d));
-				// ???????????????????
+				auto& data = d["data"];
+
+				std::set<std::string> onlineFavorites{};
+				for (auto it = data.Begin(); it != data.End(); it++) {
+					onlineFavorites.insert(it->GetString());
+				}
+
+				Locator::getLogger()->info(
+				  "GetFavoritesRequest returned successfully. Found {} online "
+				  "favorites",
+				  onlineFavorites.size());
+				onSuccess(onlineFavorites);
+
 			} else {
-				Locator::getLogger()->warn("GetRankedChartkeys got unexpected "
+				Locator::getLogger()->warn("GetFavoritesRequest got unexpected "
 										   "response body - Content: {}",
 										   jsonObjectToString(d));
 			}
@@ -1290,7 +1297,59 @@ DownloadManager::RefreshFavorites(
 	Locator::getLogger()->info(
 	  "Refreshing Favorites - {} to {}", start.GetString(), end.GetString());
 
-	GetFavoritesRequest(start, end);
+	auto onSuccess = [this](std::set<std::string> onlineFavorites) {
+		auto* profile = PROFILEMAN->GetProfile(PLAYER_1);
+
+		if (profile == nullptr) {
+			Locator::getLogger()->warn("Profile for PLAYER_1 came back null. Favorites cannot be synced");
+			return;
+		}
+
+		auto& localFavorites = profile->FavoritedCharts;
+		std::set<std::string> toUpload{};
+
+		// figure out what is missing online
+		std::set_difference(localFavorites.begin(),
+							localFavorites.end(),
+							onlineFavorites.begin(),
+							onlineFavorites.end(),
+							std::inserter(toUpload, toUpload.begin()));
+
+		// now save everything that was missing locally
+		auto favoriteSavedCount = 0u;
+		for (auto& favorite : onlineFavorites) {
+			if (localFavorites.contains(favorite))
+				continue;
+
+			auto* song = SONGMAN->GetSongByChartkey(favorite);
+			if (song != nullptr) {
+				song->SetFavorited(true);
+			}
+			profile->AddToFavorites(favorite);
+			favoriteSavedCount++;
+		}
+
+		// update favorites in other data...
+		if (favoriteSavedCount >= 1) {
+			profile->allplaylists.erase("Favorites");
+			SONGMAN->MakePlaylistFromFavorites(profile->FavoritedCharts,
+											   profile->allplaylists);
+
+		}
+
+		// logging here to occur before the AddFavorite logs
+		Locator::getLogger()->info("Found {} online favorites to save locally, "
+								   "and {} favorites to upload online",
+								   favoriteSavedCount,
+								   toUpload.size());
+
+		// upload favorites
+		for (auto& favorite : toUpload) {
+			AddFavorite(favorite);
+		}
+
+	};
+	GetFavoritesRequest(onSuccess, start, end);
 }
 
 void
@@ -1731,6 +1790,14 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 			}
 		}
 
+		// logging here to occur before the AddGoal and UpdateGoal logs
+		Locator::getLogger()->info("Found {} online goals to save locally, {} "
+								   "local goals to update online, and "
+								   "{} local goals to upload as new ones",
+								   goalsToSave.size(),
+								   goalsToUpdate.size(),
+								   goalsToUpload.size());
+
 		// upload goals
 		for (auto& goal : goalsToUpload) {
 			AddGoal(goal);
@@ -1741,12 +1808,6 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 			UpdateGoal(goal);
 		}
 
-		Locator::getLogger()->info("Found {} online goals to save locally, {} "
-								   "local goals to update online, and "
-								   "{} local goals to upload as new ones",
-								   goalsToSave.size(),
-								   goalsToUpdate.size(),
-								   goalsToUpload.size());
 	};
 	GetGoalsRequest(onSuccess, start, end);
 }
