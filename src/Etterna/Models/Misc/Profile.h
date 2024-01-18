@@ -84,6 +84,15 @@ class ScoreGoal
 
 	[[nodiscard]] auto GetPBUpTo() const -> HighScore*;
 
+	auto DebugString() const -> std::string
+	{
+		return "(ScoreGoal ck: " + chartkey +
+			   ", rate: " + std::to_string(rate) +
+			   ", percent: " + std::to_string(percent) +
+			   ", achieved: " + std::to_string(achieved) +
+			   ", dtassigned: " + timeassigned.GetString() + ")";
+	}
+
 	// If the scoregoal has already been completed prior to being assigned, flag
 	// it as a vacuous goal
 	void CheckVacuity();
