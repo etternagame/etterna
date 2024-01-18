@@ -950,6 +950,12 @@ ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 void
 ScreenSelectMusic::HandleMessage(const Message& msg)
 {
+	if (msg == Message_FavoritesUpdated) {
+		// this makes the favorite icon appear if the wheel isnt moving
+		if (m_MusicWheel.IsSettled()) {
+			m_MusicWheel.RebuildWheelItems(0);
+		}
+	}
 
 	ScreenWithMenuElements::HandleMessage(msg);
 }
@@ -1685,8 +1691,6 @@ ScreenSelectMusic::ToggleCurrentFavorite()
 
 		// update favorites playlist _display_
 		MESSAGEMAN->Broadcast("DisplayAll");
-
-		m_MusicWheel.RebuildWheelItems(0);
 		return true;
 	}
 	return false;
