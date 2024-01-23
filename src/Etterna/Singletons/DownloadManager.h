@@ -310,7 +310,6 @@ class DownloadManager
 	void GetRankedChartkeysRequest(std::function<void(void)> callback,
 								   const DateTime start,
 								   const DateTime end);
-	void UploadSingleScoreRequest(HighScore* hs);
 	void AddFavoriteRequest(const std::string& chartKey);
 	void RemoveFavoriteRequest(const std::string& chartKey);
 	void GetFavoritesRequest(
