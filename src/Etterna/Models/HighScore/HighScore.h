@@ -180,6 +180,7 @@ struct HighScore
 
 	// Mina stuff - Mina
 	auto RescoreToWife2Judge(int x) -> float;
+	auto RescoreToWife2TimeScale(float ts) -> float;
 	// update wifescore (judge the score was achieved on) and ssrnorm
 	auto RescoreToWife3(float pmax) -> bool;
 	auto RescoreToDPJudge(int x) -> float;
@@ -188,7 +189,9 @@ struct HighScore
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, std::string k);
 	void SetTopScore(int i);
-	auto GenerateValidationKeys() -> std::string;
+	void GenerateValidationKeys();
+	auto GenerateBrittleValidationKey() const -> std::string;
+	auto ValidateBrittleValidationKey() const -> bool;
 	[[nodiscard]] auto GetValidationKey(ValidationKey vk) const
 	  -> const std::string&;
 	void SetWifeVersion(int i);

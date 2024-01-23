@@ -1013,7 +1013,7 @@ HighScore::GetNameMutable() -> std::string*
 }
 
 auto
-HighScore::GenerateValidationKeys() -> std::string
+HighScore::GenerateBrittleValidationKey() const -> std::string
 {
 	std::string key;
 
@@ -1037,9 +1037,9 @@ HighScore::GenerateValidationKeys() -> std::string
 		key.append(std::to_string(GetHoldNoteScore(hns)));
 	}
 
-	norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
-	musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
-	judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));
+	auto norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
+	auto musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
+	auto judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));
 
 	key.append(GetScoreKey());
 	key.append(GetChartKey());
@@ -1055,13 +1055,37 @@ HighScore::GenerateValidationKeys() -> std::string
 	std::string hash_string = CryptManager::GetSHA256ForString(key);
 	std::string hash_hex_str =
 	  BinaryToHex(hash_string.data(), static_cast<int>(hash_string.size()));
+	return hash_hex_str;
+}
 
+auto
+HighScore::ValidateBrittleValidationKey() const -> bool
+{
+	const auto& key = GetValidationKey(ValidationKey_Brittle);
+	const auto newkey = GenerateBrittleValidationKey();
+
+	// it's fine
+	if (key == newkey) {
+		return true;
+	}
+
+	// find out why it isn't fine
+	return false;
+}
+
+void
+HighScore::GenerateValidationKeys()
+{
+	norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
+	musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
+	judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));;
+
+	auto hash_hex_str = GenerateBrittleValidationKey();
 	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
 
 	// just testing stuff
 	// hs.SetValidationKey(ValidationKey_Weak,
 	// GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
-	return key;
 }
 
 auto
@@ -1142,19 +1166,15 @@ Screenshot::LoadFromNode(const XNode* pNode)
 }
 
 auto
-HighScore::RescoreToWife2Judge(int x) -> float
+HighScore::RescoreToWife2TimeScale(float ts) -> float
 {
 	if (!LoadReplayData()) {
 		return m_Impl->fWifeScore;
 	}
 
-	const float tso[] = { 1.50F, 1.33F, 1.16F, 1.00F, 0.84F,
-						  0.66F, 0.50F, 0.33F, 0.20F };
-	const auto ts = tso[x - 1];
-	float p = 0;
-
-	auto vOffsetVector = replay->GetOffsetVector();
-	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+	auto p = 0.F;
+	auto& vOffsetVector = replay->GetOffsetVector();
+	auto& vTapNoteTypeVector = replay->GetTapNoteTypeVector();
 
 	// the typevector is only available for full replays
 	if (HasColumnData()) {
@@ -1175,7 +1195,7 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	}
 
 	p += static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed] * -6);
+							m_Impl->iHoldNoteScores[HNS_Missed] * -6);
 	p += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -8);
 
 	// this is a bad assumption but im leaving it here
@@ -1198,6 +1218,15 @@ HighScore::RescoreToWife2Judge(int x) -> float
 }
 
 auto
+HighScore::RescoreToWife2Judge(int x) -> float
+{
+	const float tso[] = { 1.50F, 1.33F, 1.16F, 1.00F, 0.84F,
+						  0.66F, 0.50F, 0.33F, 0.20F };
+	const auto ts = tso[x - 1];
+	return RescoreToWife2TimeScale(ts);
+}
+
+auto
 HighScore::RescoreToWife3(float pmax) -> bool
 {
 	// HAHAHA WE NEED TO LOAD THE REPLAY DATA EVEN IF WE KNOW WE HAVE IT
@@ -1210,8 +1239,8 @@ HighScore::RescoreToWife3(float pmax) -> bool
 	// WifeScore for HighScore Judge
 	auto pj = 0.F;
 
-	auto vOffsetVector = replay->GetOffsetVector();
-	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+	auto& vOffsetVector = replay->GetOffsetVector();
+	auto& vTapNoteTypeVector = replay->GetTapNoteTypeVector();
 
 	// the typevector is only available for full replays
 	if (HasColumnData()) {
