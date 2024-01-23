@@ -242,6 +242,9 @@ class DownloadManager
 	{
 		AddFavoriteRequest(chartKey);
 	}
+	void BulkAddFavorites(
+	  std::vector<std::string> chartKeys,
+	  std::function<void()> = []() {});
 	void RemoveFavorite(const std::string& chartKey)
 	{
 		RemoveFavoriteRequest(chartKey);
@@ -252,6 +255,9 @@ class DownloadManager
 	void AddGoal(ScoreGoal* goal) {
 		AddGoalRequest(goal);
 	}
+	void BulkAddGoals(
+	  std::vector<ScoreGoal*> goals,
+	  std::function<void()> callback = []() {});
 	void UpdateGoal(ScoreGoal* goal) {
 		UpdateGoalRequest(goal);
 	}
@@ -305,8 +311,6 @@ class DownloadManager
 								   const DateTime start,
 								   const DateTime end);
 	void UploadSingleScoreRequest(HighScore* hs);
-	void UploadBulkScoresRequest(std::vector<HighScore*>& hsList);
-	void UploadBulkScoresRequestInternal(const std::vector<HighScore*>& hsList);
 	void AddFavoriteRequest(const std::string& chartKey);
 	void RemoveFavoriteRequest(const std::string& chartKey);
 	void GetFavoritesRequest(
@@ -382,6 +386,9 @@ class DownloadManager
 	// Active HTTP requests (async, curlMulti)
 	std::vector<HTTPRequest*> HTTPRequests;
 
+	CURLM* pack_multi_handle = nullptr;
+	CURLM* http_req_handle = nullptr;
+
 	/////
 	// User session
 	// Session cookie content
@@ -397,14 +404,23 @@ class DownloadManager
 	// Score uploads
 	std::deque<HighScore*> ScoreUploadSequentialQueue;
 	unsigned int sequentialScoreUploadTotalWorkload{ 0 };
-	const int maxPacksToDownloadAtOnce = 1;
-	const float DownloadCooldownTime = 5.f;
-	float timeSinceLastDownload = 0.f;
-	CURLM* pack_multi_handle = nullptr;
-	CURLM* http_req_handle = nullptr;
+
+	/////
+	// Goal uploads
+	std::deque<ScoreGoal*> GoalUploadSequentialQueue;
+	unsigned int sequentialGoalUploadTotalWorkload{ 0 };
+
+	/////
+	// Favorite uploads
+	std::deque<std::string> FavoriteUploadSequentialQueue;
+	unsigned int sequentialFavoriteUploadTotalWorkload{ 0 };
+	
 
 	/////
 	// Pack downloads
+	const int maxPacksToDownloadAtOnce = 1;
+	const float DownloadCooldownTime = 5.f;
+	float timeSinceLastDownload = 0.f;
 	// Active downloads
 	std::map<std::string, std::shared_ptr<Download>> downloads;
 	// (pack,isMirror)

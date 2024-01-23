@@ -42,7 +42,10 @@ using namespace rapidjson;
 std::shared_ptr<DownloadManager> DLMAN = nullptr;
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 static std::atomic<float> timeSinceLastDownload = 0.F;
-static bool runningSequentialUpload = false;
+
+static bool runningSequentialScoreUpload = false;
+static bool runningSequentialGoalUpload = false;
+static bool runningSequentialFavoriteUpload = false;
 
 // Pack API Preferences
 static Preference<unsigned int> maxDLPerSecond(
@@ -77,6 +80,12 @@ static const std::string wife3_rescore_upload_flag = "rescoredw3";
 static Preference<unsigned int> UPLOAD_SCORE_BULK_CHUNK_SIZE(
   "bulkScoreUploadChunkSize",
   100);
+static Preference<unsigned int> UPLOAD_GOAL_BULK_CHUNK_SIZE(
+  "bulkGoalUploadChunkSize",
+  100);
+static Preference<unsigned int> UPLOAD_FAVORITE_BULK_CHUNK_SIZE(
+  "bulkFavoriteUploadChunkSize",
+  100);
 
 // endpoint construction constants
 // all paths should begin with / and end without /
@@ -91,7 +100,9 @@ static const std::string API_UPLOAD_SCORE = "/scores";
 static const std::string API_GET_SCORE = "/scores/{}";
 static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
 static const std::string API_FAVORITES = "/favorites";
+static const std::string API_FAVORITES_BULK = "/favorites/bulk";
 static const std::string API_GOALS = "/goals";
+static const std::string API_GOALS_BULK = "/goals/bulk";
 static const std::string API_USER = "/users/{}";
 static const std::string API_GAME_VERSION = "/settings/version";
 
@@ -1036,9 +1047,9 @@ DownloadManager::LoginRequest(const std::string& user,
 
 			} else {
 				Locator::getLogger()->error(
-					"Missing access token in LoginRequest response. Content: "
-					"{}",
-					jsonObjectToString(d));
+				  "Missing access token in LoginRequest response. Content: "
+				  "{}",
+				  jsonObjectToString(d));
 				loginFailed();
 			}
 		} else {
@@ -1070,7 +1081,17 @@ DownloadManager::Logout()
 	// cancel sequential upload
 	ScoreUploadSequentialQueue.clear();
 	sequentialScoreUploadTotalWorkload = 0;
-	runningSequentialUpload = false;
+	runningSequentialScoreUpload = false;
+
+	// same for goals
+	GoalUploadSequentialQueue.clear();
+	sequentialGoalUploadTotalWorkload = 0;
+	runningSequentialGoalUpload = false;
+
+	// same for favorites
+	FavoriteUploadSequentialQueue.clear();
+	sequentialFavoriteUploadTotalWorkload = 0;
+	runningSequentialFavoriteUpload = false;
 
 	// logout
 	sessionUser = authToken = "";
@@ -1100,6 +1121,32 @@ DownloadManager::HandleAuthErrorResponse(const std::string& endpoint, HTTPReques
 	LogoutIfLoggedIn();
 
 	return true;
+}
+
+inline std::string
+FavoriteVectorToJSON(std::vector<std::string>& v)
+{
+
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d.SetObject();
+
+	Value arrDoc(kArrayType);
+	for (auto& fave : v) {
+		// lmao
+		Document ckElement;
+		ckElement.SetObject();
+		Value v;
+		v.SetString(fave.c_str(), allocator);
+		ckElement.AddMember("key", v, allocator);
+		arrDoc.PushBack(ckElement, allocator);
+	}
+	d.AddMember("data", arrDoc, allocator);
+
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+	return buffer.GetString();
 }
 
 void
@@ -1161,6 +1208,125 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 				done,
 				true,
 				RequestMethod::POST);
+}
+
+void
+DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
+							  std::function<void()> callback)
+{
+	Locator::getLogger()->info("Creating BulkAddGoals request for {} favorites",
+							   favorites.size());
+
+	if (!LoggedIn()) {
+		Locator::getLogger()->warn(
+		  "Attempted to upload favorites while not logged in. Aborting");
+		if (callback)
+			callback();
+		return;
+	}
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, API_FAVORITES_BULK);
+
+	auto body = FavoriteVectorToJSON(favorites);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+
+	auto done = [callback, favorites, this](HTTPRequest& req) {
+		if (HandleAuthErrorResponse(API_GOALS_BULK, req)) {
+			if (callback)
+				callback();
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS_BULK, req)) {
+			BulkAddFavorites(favorites, callback);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error("BulkAddFavorites status {} & response "
+										"parse error. Response body: {}",
+										req.response_code,
+										req.result.c_str());
+			if (callback)
+				callback();
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200 || response == 207) {
+			// mostly good
+
+			if (d.IsObject() && d.HasMember("failed")) {
+				Locator::getLogger()->warn(
+				  "BulkAddFavorites had failed uploads but continued working");
+
+				if (d.HasMember("success") && d["success"].IsArray()) {
+					auto& successes = d["success"];
+					for (auto it = successes.Begin(); it != successes.End();
+						 it++) {
+						auto obj = it->GetObj();
+						Locator::getLogger()->info(
+						  "Favorite {} was accepted by server",
+						  obj["key"].GetString());
+					}
+				}
+
+				if (d["failed"].IsArray()) {
+					auto& fails = d["failed"];
+					for (auto it = fails.Begin(); it != fails.End(); it++) {
+						auto obj = it->GetObj();
+						Locator::getLogger()->info(
+						  "Favorite {} was rejected by server for: {}",
+						  obj["key"].GetString(),
+						  jsonObjectToString(obj["errors"].GetArray()));
+					}
+				}
+			} else if (d.IsObject() && d.HasMember("message")) {
+				Locator::getLogger()->info(
+				  "BulkAddFavorites added all {} favorites successfully", favorites.size());
+			} else {
+				Locator::getLogger()->warn(
+				  "BulkAddFavorites had a successful response status but an "
+				  "unexpected response body: {}",
+				  jsonObjectToString(d));
+			}
+
+		} else if (response == 422) {
+			// some validation issue with the request
+
+			Locator::getLogger()->warn(
+			  "BulkAddFavorites for {} favorites failed due to validation error: {}",
+			  favorites.size(),
+			  jsonObjectToString(d));
+
+		} else {
+			// ???
+			Locator::getLogger()->warn(
+			  "BulkAddFavorites got unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+		if (callback)
+			callback();
+	};
+
+	HTTPRequest* req =
+	  new HTTPRequest(curlHandle, done, nullptr, [callback](HTTPRequest& req) {
+		  if (callback)
+			  callback();
+	  });
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(API_FAVORITES_BULK, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+	Locator::getLogger()->info(
+	  "Finished creating BulkAddFavorites request for {} favorites", favorites.size());
 }
 
 void
@@ -1290,6 +1456,60 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 }
 
 void
+uploadFavoritesSequentially()
+{
+	Message msg("FavoriteUploadProgress");
+	msg.SetParam(
+	  "percent",
+	  1.f - (static_cast<float>(DLMAN->FavoriteUploadSequentialQueue.size()) /
+			 static_cast<float>(DLMAN->sequentialFavoriteUploadTotalWorkload)));
+	MESSAGEMAN->Broadcast(msg);
+
+	if (!DLMAN->FavoriteUploadSequentialQueue.empty()) {
+
+		std::vector<std::string> favoritesToUpload{};
+		for (auto i = 0u; i < UPLOAD_FAVORITE_BULK_CHUNK_SIZE &&
+						  !DLMAN->FavoriteUploadSequentialQueue.empty();
+			 i++) {
+			favoritesToUpload.push_back(
+			  DLMAN->FavoriteUploadSequentialQueue.front());
+			DLMAN->FavoriteUploadSequentialQueue.pop_front();
+
+			if (favoritesToUpload.size() >= UPLOAD_FAVORITE_BULK_CHUNK_SIZE) {
+				break;
+			}
+		}
+		runningSequentialFavoriteUpload = true;
+		DLMAN->BulkAddFavorites(favoritesToUpload, uploadFavoritesSequentially);
+
+	} else {
+		Locator::getLogger()->info(
+		  "Sequential favorite upload queue empty - uploads finished");
+		runningSequentialFavoriteUpload = false;
+		DLMAN->sequentialFavoriteUploadTotalWorkload = 0;
+	}
+}
+
+void
+startSequentialFavoriteUpload()
+{
+	if (DLMAN->FavoriteUploadSequentialQueue.empty()) {
+		Locator::getLogger()->info("Could not start sequential favorite upload "
+								   "process - nothing to upload");
+		return;
+	}
+
+	if (!runningSequentialFavoriteUpload) {
+		Locator::getLogger()->info(
+		  "Starting sequential favorite upload process - "
+		  "{} goals split into chunks of {}",
+		  DLMAN->FavoriteUploadSequentialQueue.size(),
+		  UPLOAD_FAVORITE_BULK_CHUNK_SIZE);
+		uploadFavoritesSequentially();
+	}
+}
+
+void
 DownloadManager::RefreshFavorites(
   const DateTime start,
   const DateTime end)
@@ -1344,12 +1564,65 @@ DownloadManager::RefreshFavorites(
 								   toUpload.size());
 
 		// upload favorites
-		for (auto& favorite : toUpload) {
-			AddFavorite(favorite);
+		if (toUpload.size() == 1) {
+			AddFavorite(*toUpload.begin());
+		} else if (toUpload.size() > 1) {
+			FavoriteUploadSequentialQueue.insert(
+			  FavoriteUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
+			sequentialFavoriteUploadTotalWorkload += toUpload.size();
+			startSequentialFavoriteUpload();
 		}
-
 	};
 	GetFavoritesRequest(onSuccess, start, end);
+}
+
+inline Document
+GoalToJSON(ScoreGoal* goal, Document::AllocatorType& allocator) {
+
+	Document d;
+	d.SetObject();
+
+	if (goal == nullptr) {
+		Locator::getLogger()->warn("Null ScoreGoal passed to GoalToJSON. Skipped");
+		return d;
+	}
+
+	auto val = [&allocator](const std::string& str,
+							std::string defaultVal = "") {
+		Value v;
+		if (str.empty()) {
+			v.SetString(defaultVal.c_str(), allocator);
+		} else {
+			v.SetString(str.c_str(), allocator);
+		}
+		return v;
+	};
+
+	d.AddMember("key", val(URLEncode(goal->chartkey)), allocator);
+	d.AddMember("rate", val(std::to_string(goal->rate)), allocator);
+	d.AddMember("wife", val(std::to_string(goal->percent)), allocator);
+	d.AddMember("set_date", val(goal->timeassigned.GetString()), allocator);
+
+	return d;
+}
+
+inline std::string
+GoalVectorToJSON(std::vector<ScoreGoal*>& v) {
+
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d.SetObject();
+
+	Value arrDoc(kArrayType);
+	for (auto& g : v) {
+		arrDoc.PushBack(GoalToJSON(g, allocator), allocator);
+	}
+	d.AddMember("data", arrDoc, allocator);
+
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+	return buffer.GetString();
 }
 
 void
@@ -1419,6 +1692,130 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 	};
 
 	SendRequest(API_GOALS, postParams, done, true, RequestMethod::POST);
+}
+
+void
+DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
+							  std::function<void()> callback)
+{
+	Locator::getLogger()->info("Creating BulkAddGoals request for {} goals",
+							   goals.size());
+
+	if (!LoggedIn()) {
+		Locator::getLogger()->warn(
+		  "Attempted to upload goals while not logged in. Aborting");
+		if (callback)
+			callback();
+		return;
+	}
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, API_GOALS_BULK);
+
+	auto body = GoalVectorToJSON(goals);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+
+	auto done = [callback, goals, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(API_GOALS_BULK, req)) {
+			if (callback)
+				callback();
+			return;
+		}
+		if (HandleRatelimitResponse(API_GOALS_BULK, req)) {
+			BulkAddGoals(goals, callback);
+			return;
+		}
+
+		Document d;
+		if (d.Parse(req.result.c_str()).HasParseError()) {
+			Locator::getLogger()->error(
+			  "BulkAddGoals status {} & response parse error. Response body: {}",
+			  req.response_code,
+			  req.result.c_str());
+			if (callback)
+				callback();
+			return;
+		}
+
+		auto response = req.response_code;
+
+		if (response == 200 || response == 207) {
+			// mostly good
+
+			if (d.IsObject() && d.HasMember("failed")) {
+				Locator::getLogger()->warn(
+				  "BulkAddGoals had failed uploads but continued working");
+
+				if (d.HasMember("success") && d["success"].IsArray()) {
+					auto& successes = d["success"];
+					for (auto it = successes.Begin(); it != successes.End(); it++) {
+						auto obj = it->GetObj();
+						Locator::getLogger()->info(
+						  "Goal {} - {}x was accepted by server",
+						  obj["key"].GetString(),
+						  obj["rate"].GetString());
+					}
+				}
+
+				if (d["failed"].IsArray()) {
+					auto& fails = d["failed"];
+					for (auto it = fails.Begin(); it != fails.End();
+						 it++) {
+						auto obj = it->GetObj();
+						Locator::getLogger()->info(
+						  "Goal {} - {}x was rejected by server for: {}",
+						  obj["key"].GetString(),
+						  obj["rate"].GetString(),
+						  jsonObjectToString(obj["errors"].GetArray()));
+					}
+				}
+			}
+			else if (d.IsObject() && d.HasMember("message")) {
+				Locator::getLogger()->info(
+				  "BulkAddGoals added all {} goals successfully", goals.size());
+			}
+			else {
+				Locator::getLogger()->warn(
+				  "BulkAddGoals had a successful response status but an "
+				  "unexpected response body: {}",
+				  jsonObjectToString(d));
+			}
+
+		} else if (response == 422) {
+			// some validation issue with the request
+
+			Locator::getLogger()->warn(
+			  "BulkAddGoals for {} goals failed due to validation error: {}",
+			  goals.size(),
+			  jsonObjectToString(d));
+
+		} else {
+			// ???
+			Locator::getLogger()->warn(
+			  "BulkAddGoals got unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+		if (callback)
+			callback();
+	};
+
+	HTTPRequest* req =
+	  new HTTPRequest(curlHandle, done, nullptr, [callback](HTTPRequest& req) {
+		  if (callback)
+			  callback();
+	  });
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(API_GOALS_BULK, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+	Locator::getLogger()->info(
+	  "Finished creating BulkAddGoals request for {} goals", goals.size());
 }
 
 void
@@ -1647,6 +2044,58 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 }
 
 void
+uploadGoalsSequentially()
+{
+	Message msg("GoalUploadProgress");
+	msg.SetParam(
+	  "percent",
+	  1.f - (static_cast<float>(DLMAN->GoalUploadSequentialQueue.size()) /
+			 static_cast<float>(DLMAN->sequentialGoalUploadTotalWorkload)));
+	MESSAGEMAN->Broadcast(msg);
+
+	if (!DLMAN->GoalUploadSequentialQueue.empty()) {
+
+		std::vector<ScoreGoal*> goalsToUpload{};
+		for (auto i = 0u; i < UPLOAD_GOAL_BULK_CHUNK_SIZE &&
+						  !DLMAN->GoalUploadSequentialQueue.empty();
+			 i++) {
+			goalsToUpload.push_back(DLMAN->GoalUploadSequentialQueue.front());
+			DLMAN->GoalUploadSequentialQueue.pop_front();
+
+			if (goalsToUpload.size() >= UPLOAD_GOAL_BULK_CHUNK_SIZE) {
+				break;
+			}
+		}
+		runningSequentialGoalUpload = true;
+		DLMAN->BulkAddGoals(goalsToUpload, uploadGoalsSequentially);
+
+	} else {
+		Locator::getLogger()->info(
+		  "Sequential goal upload queue empty - uploads finished");
+		runningSequentialGoalUpload = false;
+		DLMAN->sequentialGoalUploadTotalWorkload = 0;
+	}
+}
+
+void
+startSequentialGoalUpload()
+{
+	if (DLMAN->GoalUploadSequentialQueue.empty()) {
+		Locator::getLogger()->info(
+		  "Could not start sequential goal upload process - nothing to upload");
+		return;
+	}
+
+	if (!runningSequentialGoalUpload) {
+		Locator::getLogger()->info("Starting sequential goal upload process - "
+								   "{} goals split into chunks of {}",
+								   DLMAN->GoalUploadSequentialQueue.size(),
+								   UPLOAD_GOAL_BULK_CHUNK_SIZE);
+		uploadGoalsSequentially();
+	}
+}
+
+void
 DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 {
 	Locator::getLogger()->info(
@@ -1664,7 +2113,7 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 		auto& goalmap = profile->goalmap;
 		std::unordered_map<std::string, std::vector<ScoreGoal>>
 		  onlineGoalsByChartkey{};
-		std::vector<ScoreGoal*> goalsToUpload{};
+		std::deque<ScoreGoal*> goalsToUpload{};
 		std::vector<ScoreGoal> goalsToSave{};
 		std::vector<ScoreGoal*> goalsToUpdate{};
 
@@ -1802,8 +2251,14 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 		}
 
 		// upload goals
-		for (auto& goal : goalsToUpload) {
-			AddGoal(goal);
+		if (goalsToUpload.size() == 1) {
+			AddGoal(goalsToUpload.at(0));
+		} else if (goalsToUpload.size() > 1) {
+			GoalUploadSequentialQueue.insert(GoalUploadSequentialQueue.end(),
+											 goalsToUpload.begin(),
+											 goalsToUpload.end());
+			sequentialGoalUploadTotalWorkload += goalsToUpload.size();
+			startSequentialGoalUpload();
 		}
 
 		// update goals
@@ -2615,7 +3070,7 @@ DownloadManager::UploadScoreWithReplayDataFromDisk(
 // (So it is essentially kind of recursive, with the base case of an empty
 // deque)
 void
-uploadSequentially()
+uploadScoresSequentially()
 {
 	Message msg("UploadProgress");
 	msg.SetParam(
@@ -2637,33 +3092,34 @@ uploadSequentially()
 				break;
 			}
 		}
-		runningSequentialUpload = true;
-		DLMAN->UploadBulkScores(hsToUpload, uploadSequentially);
+		runningSequentialScoreUpload = true;
+		DLMAN->UploadBulkScores(hsToUpload, uploadScoresSequentially);
 		
 	} else {
 		Locator::getLogger()->info(
-		  "Sequential upload queue empty - uploads finished");
-		runningSequentialUpload = false;
+		  "Sequential score upload queue empty - uploads finished");
+		runningSequentialScoreUpload = false;
 		DLMAN->sequentialScoreUploadTotalWorkload = 0;
 	}
 }
 
 // This starts the sequential uploading process if it has not already begun
 void
-startSequentialUpload()
+startSequentialScoreUpload()
 {
 	if (DLMAN->ScoreUploadSequentialQueue.empty()) {
-		Locator::getLogger()->info(
-		  "Could not start sequential upload process - nothing to upload");
+		Locator::getLogger()->info("Could not start sequential score upload "
+								   "process - nothing to upload");
 		return;
 	}
 
-	if (!runningSequentialUpload) {
-		Locator::getLogger()->info("Starting sequential upload process - {} "
-								   "scores split into chunks of {}",
-								   DLMAN->ScoreUploadSequentialQueue.size(),
-								   UPLOAD_SCORE_BULK_CHUNK_SIZE);
-		uploadSequentially();
+	if (!runningSequentialScoreUpload) {
+		Locator::getLogger()->info(
+		  "Starting sequential score upload process - {} "
+		  "scores split into chunks of {}",
+		  DLMAN->ScoreUploadSequentialQueue.size(),
+		  UPLOAD_SCORE_BULK_CHUNK_SIZE);
+		uploadScoresSequentially();
 	}
 }
 
@@ -2740,7 +3196,7 @@ DownloadManager::InitialScoreSync()
 		ScoreUploadSequentialQueue.insert(
 		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
 		sequentialScoreUploadTotalWorkload += toUpload.size();
-		startSequentialUpload();
+		startSequentialScoreUpload();
 		profile->m_lastRankedChartkeyCheck = lastCheckDT;
 		return true;
 	};
@@ -2790,7 +3246,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 			  "ForceUploadPBsForChart did not queue any scores for chart {}",
 			  ck);
 		} else if (startNow) {
-			startSequentialUpload();
+			startSequentialScoreUpload();
 		}
 		return successful;
 	} else {
@@ -2814,7 +3270,7 @@ DownloadManager::ForceUploadPBsForPack(const std::string& pack, bool startNow)
 		Locator::getLogger()->info(
 		  "ForceUploadPBsForPack did not queue any scores for pack {}", pack);
 	} else if (startNow) {
-		startSequentialUpload();
+		startSequentialScoreUpload();
 	}
 	return successful;
 }
@@ -2832,7 +3288,7 @@ DownloadManager::ForceUploadAllPBs()
 		Locator::getLogger()->info(
 		  "ForceUploadAllPBs did not queue any scores");
 	} else {
-		startSequentialUpload();
+		startSequentialScoreUpload();
 	}
 	return successful;
 }
