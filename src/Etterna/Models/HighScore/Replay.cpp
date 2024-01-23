@@ -307,7 +307,7 @@ Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
 auto
 Replay::LoadReplayData() -> bool
 {
-	return LoadReplayDataFull() || LoadReplayDataBasic() ||
+	return LoadInputData() || LoadReplayDataFull() || LoadReplayDataBasic() ||
 		   LoadStoredOnlineData() || LoadOnlineDataFromDisk();
 }
 
@@ -772,6 +772,19 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		SetInputDataVector(readInputs);
 
 		Locator::getLogger()->info("Loaded input data at {}", path.c_str());
+
+		auto* hs = GetHighScore();
+		if (hs != nullptr) {
+			const static auto delta = 0.001F;
+			if (std::fabsf(fMusicRate - hs->GetMusicRate()) > delta) {
+				Locator::getLogger()->error(
+				  "There is a discrepancy in the rate of replay {} - HS rate "
+				  "{} - replay rate {}",
+				  chartKey,
+				  hs->GetMusicRate(),
+				  fMusicRate);
+			}
+		}
 
 		inputStream.close();
 
