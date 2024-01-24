@@ -3209,7 +3209,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 		auto& scores = cs->GetTopScoresForUploading();
 		for (auto& s : scores) {
 			if (!s->forceuploadedthissession) {
-				if (s->GetGrade() != Grade_Failed && s->HasReplayData()) {
+				if (s->GetGrade() != Grade_Failed) {
 					// don't add stuff we're already uploading
 					auto res = std::find(ScoreUploadSequentialQueue.begin(),
 										 ScoreUploadSequentialQueue.end(),
