@@ -3206,7 +3206,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 	auto cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) {
 		bool successful = false;
-		auto& scores = cs->GetAllScores();
+		auto& scores = cs->GetTopScoresForUploading();
 		for (auto& s : scores) {
 			if (!s->forceuploadedthissession) {
 				if (s->GetGrade() != Grade_Failed && s->HasReplayData()) {
@@ -3220,12 +3220,6 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 					ScoreUploadSequentialQueue.push_back(s);
 					sequentialScoreUploadTotalWorkload += 1;
 					successful = true;
-				}
-				else if (s->GetGrade() != Grade_Failed && !s->HasReplayData()) {
-					Locator::getLogger()->info("Scorekey {} in chart {} has no "
-											   "replay - ForceUpload skipped",
-											   s->GetScoreKey(),
-											   ck);
 				}
 			}
 		}
