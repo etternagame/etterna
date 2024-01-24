@@ -23,6 +23,7 @@ struct HighScore
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
 	[[nodiscard]] auto GetName() const -> const std::string&;
+	[[nodiscard]] auto DebugString() const -> std::string;
 	[[nodiscard]] auto GetChartKey() const -> const std::string&;
 	[[nodiscard]] auto GetSSRCalcVersion() const -> int;
 	/**

@@ -375,6 +375,21 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	grade = std::clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
+auto
+HighScore::DebugString() const -> std::string {
+	return fmt::format(
+	  "HighScore (ck {}, sk {}, rate {}, overall {}, ssrnorm {}, ccon "
+	  "{}, grade {}, date {})",
+	  GetChartKey(),
+	  GetScoreKey(),
+	  GetMusicRate(),
+	  GetSkillsetSSR(Skill_Overall),
+	  GetSSRNormPercent(),
+	  GetChordCohesion(),
+	  GetGrade(),
+	  GetDateTime().GetString());
+}
+
 void
 HighScore::InitReplay()
 {
