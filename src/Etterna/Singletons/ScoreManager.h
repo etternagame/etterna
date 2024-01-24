@@ -80,6 +80,7 @@ struct ScoresForChart
 	// Sets rate indepdendent topscore tags inside highscores. 1 = best. 2 =
 	// 2nd. 0 = the rest. -mina
 	void SetTopScores();
+	auto GetTopScoresForUploading() -> const std::vector<HighScore*>;
 
 	[[nodiscard]] auto GetNumScores() const -> int
 	{
@@ -111,6 +112,10 @@ class ScoreManager
 	auto GetAllPBPtrs(const std::string& profileID =
 						PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
 	  -> const std::vector<vector<HighScore*>>;
+	auto GetAllPBsPreferringReplays(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID)
+	  -> std::vector<HighScore*>;
 
 	auto GetChartPBAt(const std::string& ck,
 					  float rate,

@@ -320,6 +320,62 @@ ScoresForChart::SetTopScores()
 }
 
 auto
+ScoresForChart::GetTopScoresForUploading()
+  -> const std::vector<HighScore*>
+{
+	std::vector<HighScore*> o {};
+	for (auto& atRate : ScoresByRate) {
+
+		HighScore* withReplay = nullptr;
+		HighScore* withoutReplay = nullptr;
+
+		// first, perfectly good scores
+		// second, scores lacking eligibility
+		// the idea is that at any score at all is provided
+		auto comparison = [](HighScore* a, HighScore* b) {
+			if (a->GetChordCohesion() && !b->GetChordCohesion()) {
+				return false;
+			} else if (!a->GetChordCohesion() && b->GetChordCohesion()) {
+				return true;
+			}
+			if (a->GetGrade() != Grade_Failed && b->GetGrade() == Grade_Failed) {
+				return true;
+			} else if (a->GetGrade() == Grade_Failed &&
+					   b->GetGrade() != Grade_Failed) {
+				return false;
+			}
+
+			return a->GetSSRNormPercent() > b->GetSSRNormPercent();
+		};
+
+		// hhhhhhhhhhhhhhhhh
+		std::vector<HighScore*> sortedScores{};
+		for (auto& hh : atRate.second.scores) {
+			sortedScores.push_back(&hh.second);
+		}
+		std::sort(sortedScores.begin(), sortedScores.end(), comparison);
+
+		// take the "best" with and without a replay
+		// basically the first elements in this list should be the best
+		for (const auto& hs : sortedScores) {
+			if (withReplay == nullptr && hs->GetReplay()->HasReplayData()) {
+				withReplay = hs;
+			} else if (withoutReplay == nullptr &&
+					   !hs->GetReplay()->HasReplayData()) {
+				withoutReplay = hs;
+			}
+		}
+
+		if (withReplay != nullptr) {
+			o.push_back(withReplay);
+		} else if (withoutReplay != nullptr) {
+			o.push_back(withoutReplay);
+		}
+	}
+	return o;
+}
+
+auto
 ScoresForChart::GetAllPBPtrs() -> const std::vector<HighScore*>
 {
 	std::vector<HighScore*> o;
@@ -340,6 +396,27 @@ ScoresForChart::GetAllScores() -> const std::vector<HighScore*>
 		}
 	}
 
+	return o;
+}
+
+auto
+ScoreManager::GetAllPBsPreferringReplays(const std::string& profileID)
+  -> std::vector<HighScore*>
+{
+	// find the PB for every chart on every rate
+	// if multiple scores are on a single rate, pick the best with a replay
+	// if no replay is present, just pick the best
+	// this is mostly just for InitialScoreSync
+	// (this is also super slow)
+	std::vector<HighScore*> o {};
+	for (auto& scoresForChart : pscores.at(profileID)) {
+		if (!SONGMAN->IsChartLoaded(scoresForChart.first)) {
+			continue;
+		}
+
+		auto v = scoresForChart.second.GetTopScoresForUploading();
+		o.insert(o.end(), v.begin(), v.end());
+	}
 	return o;
 }
 
@@ -1204,8 +1281,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		/*
 		if (SONGMAN->IsChartLoaded(ck) && scores[sk].HasReplayData()) {
 			if (scores[sk].GetWifeGrade() != Grade_Failed) {
-				scores[sk].replay->VerifyInputDataAndReplayData();
-				scores[sk].replay->VerifyGeneratedInputDataMatchesReplayData();
+				scores[sk].GetReplay()->VerifyInputDataAndReplayData();
+				scores[sk].GetReplay()->VerifyGeneratedInputDataMatchesReplayData();
 			}
 		}
 		*/

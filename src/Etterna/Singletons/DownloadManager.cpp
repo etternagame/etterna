@@ -3155,36 +3155,24 @@ DownloadManager::InitialScoreSync()
 		// the site anymore - the site uses its own calc and afaik ignores the
 		// provided values, we only need to upload scores that have not been
 		// uploaded, and scores that have been rescored from wife2 to wife3
-		auto scores = SCOREMAN->GetAllPBPtrs();
+		auto scores = SCOREMAN->GetAllPBsPreferringReplays();
 		auto& newly_rescored = SCOREMAN->rescores;
 		std::vector<HighScore*> toUpload;
-		for (auto& vec : scores) {
-			for (auto& s : vec) {
-				// probably not worth uploading fails, they get rescored now
-				if (s->GetGrade() == Grade_Failed)
-					continue;
+		for (auto& s : scores) {
+			// probably not worth uploading fails, they get rescored now
+			if (s->GetGrade() == Grade_Failed)
+				continue;
 
-				// the chart must be ranked to be uploaded
-				if (!newlyRankedChartkeys.contains(s->GetChartKey()))
-					continue;
+			// the chart must be ranked to be uploaded
+			if (!newlyRankedChartkeys.contains(s->GetChartKey()))
+				continue;
 
-				// handle rescores, ignore upload check
-				if (newly_rescored.count(s))
-					toUpload.push_back(s);
-				// ok so i think we probably do need an upload flag for wife3
-				// resyncs, and to actively check it, since if people rescore
-				// everything, play 1 song and close their game or whatever,
-				// rescore list won't be built again and scores won't auto
-				// sync
-				else if (s->GetWifeVersion() == 3 &&
-						 !s->IsUploadedToServer(wife3_rescore_upload_flag))
-					toUpload.push_back(s);
-				// normal behavior, upload scores that haven't been uploaded and
-				// have replays
-				else if (!s->IsUploadedToServer(serverURL.Get()) &&
-						 s->HasReplayData())
-					toUpload.push_back(s);
-			}
+			// handle rescores, ignore upload check
+			if (newly_rescored.count(s))
+				toUpload.push_back(s);
+			// normal behavior, upload scores that haven't been uploaded
+			else if (!s->IsUploadedToServer(serverURL.Get()))
+				toUpload.push_back(s);
 		}
 
 		if (!toUpload.empty())
