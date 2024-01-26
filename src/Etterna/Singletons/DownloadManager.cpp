@@ -3007,6 +3007,12 @@ DownloadManager::UploadScore(HighScore* hs,
 				  "UploadScore for {} has errors: {}",
 				  hs->GetScoreKey(),
 				  jsonObjectToString(d["data"]["errors"]));
+
+				if (hs->GetWifeVersion() == 3)
+					hs->AddUploadedServer(wife3_rescore_upload_flag);
+				hs->AddUploadedServer(serverURL.Get());
+				hs->forceuploadedthissession = true;
+
 				if (callback)
 					callback();
 				return;
