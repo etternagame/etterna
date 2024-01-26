@@ -20,6 +20,7 @@
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
 #include "Etterna/Models/Songs/SongOptions.h"
+#include "RageUtil/Graphics/RageTextureManager.h"
 
 #include "curl/curl.h"
 #include "rapidjson/document.h"
@@ -4164,6 +4165,14 @@ DownloadManager::RefreshPackList(const std::string& url)
 					packDl.songs = getJsonInt(pack, "song_count");
 					packDl.bannerUrl = getJsonString(pack, "banner_path");
 
+					auto thumbnail = getJsonString(pack, "bannerTinyThumb");
+					if (thumbnail.find("base64,") != std::string::npos) {
+						packDl.thumbnail = thumbnail;
+					}
+					else {
+						packDl.thumbnail = "";
+					}
+
 					if (packDl.name.empty()) {
 						Locator::getLogger()->warn(
 						  "RefreshPackList missing pack name: {}",
@@ -4308,6 +4317,18 @@ DownloadablePack::isQueued() {
 							   return pair.first == this;
 						   });
 	return it != DLMAN->DownloadQueue.end();
+}
+
+RageTexture*
+DownloadablePack::GetThumbnailTexture() {
+	if (thumbnail.empty()) {
+		return nullptr;
+	}
+
+	RageTextureID texid = RageTextureID(thumbnail);
+	texid.base64 = true;
+
+	return TEXTUREMAN->LoadTexture(texid);
 }
 
 // lua start
@@ -4897,6 +4918,15 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushstring(L, p->mirror.c_str());
 		return 1;
 	}
+	static int GetThumbnailTexture(T* p, lua_State* L)
+	{
+		auto* pTexture = p->GetThumbnailTexture();
+		if (pTexture != nullptr) {
+			pTexture->PushSelf(L);
+		} else
+			lua_pushnil(L);
+		return 1;
+	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -4912,6 +4942,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(GetID);
 		ADD_METHOD(GetURL);
 		ADD_METHOD(GetMirror);
+		ADD_METHOD(GetThumbnailTexture);
 	}
 };
 

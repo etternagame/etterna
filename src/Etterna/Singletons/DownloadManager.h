@@ -17,6 +17,7 @@
 
 class ScoreGoal;
 class DownloadablePack;
+class RageTexture;
 
 class ProgressData
 {
@@ -95,8 +96,10 @@ class DownloadablePack
 	std::string url{ "" };
 	std::string mirror{ "" };
 	std::string bannerUrl{ "" };
+	std::string thumbnail{ "" };
 	bool downloading{ false };
 	bool isQueued();
+	RageTexture* GetThumbnailTexture();
 	// Lua
 	void PushSelf(lua_State* L);
 };
