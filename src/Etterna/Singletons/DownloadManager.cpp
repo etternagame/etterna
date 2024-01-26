@@ -2763,8 +2763,13 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 				  "BulkScoreUpload had failed uploads but continued: {}",
 				  jsonObjectToString(fails));
 				*/
-				Locator::getLogger()->warn(
-				  "BulkScoreUpload had failed uploads but continued working");
+
+				if (fails.IsArray() && fails.Size() > 0) {
+					Locator::getLogger()->warn("BulkScoreUpload had {} failed "
+											   "uploads out of {}",
+											   fails.Size(),
+											   hsList.size());
+				}
 
 				// collect the scorekeys for the failed uploads
 				// the return data is in this format:
