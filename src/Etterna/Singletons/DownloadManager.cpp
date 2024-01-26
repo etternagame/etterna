@@ -2803,10 +2803,6 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 
 			// record the scores that successfully uploaded
 			for (auto& hs : hsList) {
-				if (failedUploadKeys.contains(hs->GetScoreKey())) {
-					continue;
-				}
-
 				if (hs->GetWifeVersion() == 3)
 					hs->AddUploadedServer(wife3_rescore_upload_flag);
 				hs->AddUploadedServer(serverURL.Get());
