@@ -25,6 +25,7 @@ RageSurface_stb_Load(const std::string& sPath,
 	int x, y, n;
 	const auto doot = stbi_load(f.GetPath().c_str(), &x, &y, &n, 4);
 	if (doot == nullptr) {
+		error = stbi_failure_reason();
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}
 	if (bHeaderOnly) {
@@ -44,12 +45,14 @@ RageSurface_stb_Load(const std::string& sPath,
 	}
 
 	if (ret == nullptr) {
+		error = stbi_failure_reason();
 		stbi_image_free(doot);
 		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT; // XXX
 	}
 	ret->stb_loadpoint = true;
 	return RageSurfaceUtils::OPEN_OK;
 }
+
 static RageSurface*
 TryOpenFile(const std::string& sPath,
 			bool bHeaderOnly,
