@@ -2756,6 +2756,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 			// we can have successes and failures.
 
 			std::unordered_set<std::string> failedUploadKeys{};
+			std::unordered_set<std::string> unrankedUploadKeys{};
 			if (d.IsObject() && d.HasMember("failedUploads")) {
 				auto& fails = d["failedUploads"];
 				/*// Verbose output
@@ -2785,11 +2786,21 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 						for (auto objIt = it->MemberBegin();
 							 objIt != it->MemberEnd();
 							 objIt++) {
-							failedUploadKeys.insert(objIt->name.GetString());
+							auto scorekey = objIt->name.GetString();
+							auto strReasons = jsonObjectToString(objIt->value);
+
+							if (strReasons.find("not ranked") != std::string::npos) {
+								// the chart isnt ranked, so dont say it was uploaded
+								unrankedUploadKeys.insert(scorekey);
+							} else {
+								// behaves like a normally uploaded score
+								failedUploadKeys.insert(scorekey);
+							}
+
 							Locator::getLogger()->warn(
 							  "Score {} was rejected by server for: {}",
 							  objIt->name.GetString(),
-							  jsonObjectToString(objIt->value));
+							  strReasons);
 						}
 					}
 				}
@@ -2801,12 +2812,20 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 				  jsonObjectToString(d));
 			}
 
-			// record the scores that successfully uploaded
+			// set the uploaded server for the scores that were uploaded
+			// except for unranked charts
 			for (auto& hs : hsList) {
+
+				hs->forceuploadedthissession = true;
+				if (unrankedUploadKeys.contains(hs->GetScoreKey())) {
+					// unranked files just cant be force reuploaded
+					continue;
+				}
+				// everything else successfully had an upload attempt
+				// so record it
 				if (hs->GetWifeVersion() == 3)
 					hs->AddUploadedServer(wife3_rescore_upload_flag);
 				hs->AddUploadedServer(serverURL.Get());
-				hs->forceuploadedthissession = true;
 			}
 
 			if (d.IsObject() && d.HasMember("playerRating") &&
@@ -2846,7 +2865,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 				  "{}\n\tJS "
 				  "{}\n\tHS {}\n\tJacks {}\n\tCJ {}\n\tStamina {}\n\tTech {}",
 				  hsList.size(),
-				  failedUploadKeys.size(),
+				  failedUploadKeys.size() + unrankedUploadKeys.size(),
 				  overall,
 				  stream,
 				  jumpstream,
@@ -3003,15 +3022,20 @@ DownloadManager::UploadScore(HighScore* hs,
 			// missing info
 
 			if (d.HasMember("data") && d["data"].HasMember("errors")) {
-				Locator::getLogger()->error(
-				  "UploadScore for {} has errors: {}",
-				  hs->GetScoreKey(),
-				  jsonObjectToString(d["data"]["errors"]));
+				auto strReasons = jsonObjectToString(d["data"]["errors"]);
+				Locator::getLogger()->error("UploadScore for {} has errors: {}",
+											hs->GetScoreKey(),
+											strReasons);
 
-				if (hs->GetWifeVersion() == 3)
-					hs->AddUploadedServer(wife3_rescore_upload_flag);
-				hs->AddUploadedServer(serverURL.Get());
 				hs->forceuploadedthissession = true;
+				if (strReasons.find("not ranked") != std::string::npos) {
+					// unranked. dont say it was uploaded
+				} else {
+					// even if the score was rejected, we tried our best
+					if (hs->GetWifeVersion() == 3)
+						hs->AddUploadedServer(wife3_rescore_upload_flag);
+					hs->AddUploadedServer(serverURL.Get());
+				}
 
 				if (callback)
 					callback();
