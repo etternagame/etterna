@@ -333,6 +333,11 @@ ScoresForChart::GetTopScoresForUploading()
 		// second, scores lacking eligibility
 		// the idea is that at any score at all is provided
 		auto comparison = [](HighScore* a, HighScore* b) {
+			if (a->GetWifeVersion() > b->GetWifeVersion()) {
+				return true;
+			} else if (a->GetWifeVersion() < b->GetWifeVersion()) {
+				return false;
+			}
 			if (a->GetChordCohesion() && !b->GetChordCohesion()) {
 				return false;
 			} else if (!a->GetChordCohesion() && b->GetChordCohesion()) {
