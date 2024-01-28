@@ -1982,7 +1982,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	Locator::getLogger()->info("Generating UpdateGoalRequest for {}",
 							   goal->DebugString());
 
-	std::string timeAchievedString = "0000:00:00 00:00:00";
+	std::string timeAchievedString = "0000-00-00 00:00:00";
 	if (goal->achieved)
 		timeAchievedString = goal->timeachieved.GetString();
 
