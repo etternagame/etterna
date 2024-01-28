@@ -996,7 +996,9 @@ DownloadManager::LoginRequest(const std::string& user,
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError()) {
 			Locator::getLogger()->error(
-			  "LoginRequest Error: Malformed request response: {}", req.result);
+			  "LoginRequest Parse Error: status {} | response: {}",
+			  req.response_code,
+			  req.result);
 			loginFailed();
 			return;
 		}
@@ -1167,13 +1169,19 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error("AddFavoriteRequest Error: Favorite: "
-										"{} - Malformed request response: {}",
-										chartkey,
-										req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req, &chartkey]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "AddFavoriteRequest Parse Error: Favorite: "
+				  "{} - status {} | response: {}",
+				  chartkey,
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
@@ -1185,17 +1193,23 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 
 		} else if (response == 422) {
 			// missing info
+			parse();
+
 			Locator::getLogger()->warn(
 			  "AddFavorite for {} failed due to input error. Content: {}",
 			  chartkey,
 			  jsonObjectToString(d));
 		} else if (response == 404) {
+			parse();
+
 			Locator::getLogger()->warn("AddFavorite for {} failed due to 404. "
 									   "Chart may be unranked - Content: {}",
 									   chartkey,
 									   jsonObjectToString(d));
 		} else {
 			// ???
+			parse();
+
 			Locator::getLogger()->warn(
 			  "AddFavorite for {} - unknown response {} - Content: {}",
 			  chartkey,
@@ -1235,31 +1249,39 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
 	auto done = [callback, favorites, this](HTTPRequest& req) {
-		if (HandleAuthErrorResponse(API_GOALS_BULK, req)) {
+		if (HandleAuthErrorResponse(API_FAVORITES_BULK, req)) {
 			if (callback)
 				callback();
 			return;
 		}
-		if (HandleRatelimitResponse(API_GOALS_BULK, req)) {
+		if (HandleRatelimitResponse(API_FAVORITES_BULK, req)) {
 			BulkAddFavorites(favorites, callback);
 			return;
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error("BulkAddFavorites status {} & response "
-										"parse error. Response body: {}",
-										req.response_code,
-										req.result.c_str());
-			if (callback)
-				callback();
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req, &callback]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "BulkAddFavorites Parse Error: status {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
 		if (response == 200 || response == 207) {
 			// mostly good
+
+			if (parse()) {
+				if (callback)
+					callback();
+				return;
+			}
 
 			if (d.IsObject() && d.HasMember("failed")) {
 				Locator::getLogger()->warn(
@@ -1298,6 +1320,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 
 		} else if (response == 422) {
 			// some validation issue with the request
+			parse();
 
 			Locator::getLogger()->warn(
 			  "BulkAddFavorites for {} favorites failed due to validation error: {}",
@@ -1306,6 +1329,8 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 
 		} else {
 			// ???
+			parse();
+
 			Locator::getLogger()->warn(
 			  "BulkAddFavorites got unexpected response {} - Content: {}",
 			  response,
@@ -1347,13 +1372,19 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error("RemoveFavorite Error: Favorite: {} - "
-										"Malformed request response: {}",
-										chartkey,
-										req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req, &chartkey]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "RemoveFavorite Parse Error: Favorite: {} - "
+				  "status: {} | response: {}",
+				  chartkey,
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
@@ -1364,6 +1395,8 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 									   chartkey);
 
 		} else if (response == 404) {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "RemoveFavorite for {} failed due to 404. Favorite may be "
 			  "missing - Content: {}",
@@ -1371,6 +1404,8 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 			  jsonObjectToString(d));
 		} else {
 			// ???
+			parse();
+
 			Locator::getLogger()->warn(
 			  "RemoveFavorite for {} unknown response {} - Content: {}",
 			  chartkey,
@@ -1414,17 +1449,24 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "GetFavoritesRequest Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "GetFavoritesRequest Parse Error: status: {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
 		if (response == 200) {
 			// all good
+			if (parse())
+				return;
 
 			if (d.HasMember("data") && d["data"].IsArray()) {
 				auto& data = d["data"];
@@ -1441,11 +1483,13 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 				onSuccess(onlineFavorites);
 
 			} else {
-				Locator::getLogger()->warn("GetFavoritesRequest got unexpected "
-										   "response body - Content: {}",
-										   jsonObjectToString(d));
+				Locator::getLogger()->warn(
+				  "GetFavoritesRequest status 200 got unexpected "
+				  "response body - Content: {}",
+				  jsonObjectToString(d));
 			}
 		} else {
+			parse();
 			Locator::getLogger()->warn(
 			  "GetFavoritesRequest unexpected response {} - Content: {}",
 			  response,
@@ -1503,7 +1547,7 @@ startSequentialFavoriteUpload()
 	if (!runningSequentialFavoriteUpload) {
 		Locator::getLogger()->info(
 		  "Starting sequential favorite upload process - "
-		  "{} goals split into chunks of {}",
+		  "{} favorites split into chunks of {}",
 		  DLMAN->FavoriteUploadSequentialQueue.size(),
 		  UPLOAD_FAVORITE_BULK_CHUNK_SIZE);
 		uploadFavoritesSequentially();
@@ -1649,13 +1693,19 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "AddGoal Error: Goal: {} - Malformed request response: {}",
-			  goal->DebugString(),
-			  req.result);
-			return;
-		}
+		// return true if parse failure
+		auto parse = [&d, &req, &goal]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "AddGoal Parse Error: Goal: {} - status: {} | "
+				  "response: {}",
+				  goal->DebugString(),
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
@@ -1667,16 +1717,22 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 
 		} else if (response == 422) {
 			// some validation issue with the request
+			parse();
+
 			Locator::getLogger()->warn(
 			  "AddGoal for {} failed due to validation error: {}",
 			  goal->DebugString(),
 			  jsonObjectToString(d));
 		} else if (response == 404) {
+			parse();
+
 			Locator::getLogger()->warn("AddGoal for {} failed due to 404. "
 									   "Chart may be unranked - Content: {}",
 									   goal->DebugString(),
 									   jsonObjectToString(d));
 		} else {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "AddGoal for {} unexpected response {} - Content: {}",
 			  goal->DebugString(),
@@ -1731,20 +1787,28 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "BulkAddGoals status {} & response parse error. Response body: {}",
-			  req.response_code,
-			  req.result.c_str());
-			if (callback)
-				callback();
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req, &callback]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "BulkAddGoals Parse Error: status {} | content: {}",
+				  req.response_code,
+				  req.result.c_str());
+				if (callback)
+					callback();
+				return true;
+			}
+			return false;
+		};
+
 
 		auto response = req.response_code;
 
 		if (response == 200 || response == 207) {
 			// mostly good
+
+			if (parse())
+				return;
 
 			if (d.IsObject() && d.HasMember("failed")) {
 				Locator::getLogger()->warn(
@@ -1787,14 +1851,16 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 
 		} else if (response == 422) {
 			// some validation issue with the request
+			parse();
 
 			Locator::getLogger()->warn(
 			  "BulkAddGoals for {} goals failed due to validation error: {}",
 			  goals.size(),
 			  jsonObjectToString(d));
-
 		} else {
 			// ???
+			parse();
+
 			Locator::getLogger()->warn(
 			  "BulkAddGoals got unexpected response {} - Content: {}",
 			  response,
@@ -1841,13 +1907,18 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RemoveGoal Error: Goal: {} - Malformed request response: {}",
-			  goal->DebugString(),
-			  req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req, &goal]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "RemoveGoal Parse Error: Goal: {} - status {} | response: {}",
+				  goal->DebugString(),
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
@@ -1859,17 +1930,24 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 
 		} else if (response == 422) {
 			// some validation issue with the request
+			parse();
+
 			Locator::getLogger()->warn(
 			  "RemoveGoal for {} failed due to validation error: {}",
 			  goal->DebugString(),
 			  jsonObjectToString(d));
 		} else if (response == 404) {
+			// chart unranked
+			parse();
+
 			Locator::getLogger()->warn("RemoveGoal for {} failed due to 404. "
 									   "Chart may be unranked or Goal "
 									   "missing - Content: {}",
 									   goal->DebugString(),
 									   jsonObjectToString(d));
 		} else {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "RemoveGoal for {} unexpected response {} - Content: {}",
 			  goal->DebugString(),
@@ -1918,13 +1996,18 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "UpdateGoal Error: Goal: {} - Malformed request response: {}",
-			  goal->DebugString(),
-			  req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req, &goal]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "UpdateGoal Parse Error: Goal: {} - status {} | response: {}",
+				  goal->DebugString(),
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
@@ -1936,17 +2019,23 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 
 		} else if (response == 422) {
 			// some validation issue with the request
+			parse();
+
 			Locator::getLogger()->warn(
 			  "UpdateGoal for {} failed due to validation error: {}",
 			  goal->DebugString(),
 			  jsonObjectToString(d));
 		} else if (response == 404) {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "UpdateGoal for {} failed due to 404. Goal may "
 			  "be missing online - Content: {}",
 			  goal->DebugString(),
 			  jsonObjectToString(d));
 		} else {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "UpdateGoal for {} unexpected response {} - Content: {}",
 			  goal->DebugString(),
@@ -1985,17 +2074,24 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "GetGoalsRequest Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "GetGoalsRequest Parse Error: status: {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
 		if (response == 200) {
 			// all good
+			if (parse())
+				return;
 
 			if (d.HasMember("goals") && d["goals"].IsArray()) {
 				auto& data = d["goals"];
@@ -2034,6 +2130,8 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 										   jsonObjectToString(d));
 			}
 		} else {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "GetGoalsRequest unexpected response {} - Content: {}",
 			  response,
@@ -2301,17 +2399,28 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "GetRankedChartkeysRequest Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "GetRankedChartkeysRequest Parse Error: "
+				  "status: {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
 		if (response == 200) {
 			// all good
+			if (parse()) {
+				if (callback)
+					callback();
+				return;
+			}
 
 			if (d.HasMember("data") && d["data"].IsArray()) {
 
@@ -2340,6 +2449,8 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 										   jsonObjectToString(d));
 			}
 		} else {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "GetRankedChartkeys unexpected response {} - Content: {}",
 			  response,
@@ -2739,22 +2850,29 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "Bulk score upload status {} & response parse error. Response "
-			  "body: {}",
-			  req.response_code,
-			  req.result.c_str());
-			if (callback)
-				callback();
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "BulkUploadScore Parse Error: status {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
 		if (response == 200) {
 			// kind of good.
 			// we can have successes and failures.
+
+			if (parse()) {
+				if (callback)
+					callback();
+				return;
+			}
 
 			std::unordered_set<std::string> failedUploadKeys{};
 			std::unordered_set<std::string> unrankedUploadKeys{};
@@ -2879,6 +2997,8 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 
 		} else {
 			// ???
+			parse();
+
 			Locator::getLogger()->warn(
 			  "BulkUploadScore got unexpected response {} - Content: {}",
 			  response,
@@ -2951,19 +3071,26 @@ DownloadManager::UploadScore(HighScore* hs,
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error("Score upload status {} & response "
-										"parse error. Response body: {}",
-										req.response_code,
-										req.result.c_str());
-			if (callback)
-				callback();
-			return;
-		}
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "UploadScore Parse Error: status {} | response {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 
 		if (response == 200) {
+			// all good
+			if (parse()) {
+				if (callback)
+					callback();
+				return;
+			}
 
 			if (d.HasMember("data")) {
 				auto& data = d["data"];
@@ -3021,6 +3148,7 @@ DownloadManager::UploadScore(HighScore* hs,
 
 		} else if (response == 422) {
 			// missing info
+			parse();
 
 			if (d.HasMember("data") && d["data"].HasMember("errors")) {
 				auto strReasons = jsonObjectToString(d["data"]["errors"]);
@@ -3047,10 +3175,14 @@ DownloadManager::UploadScore(HighScore* hs,
 				"UploadScore failed due to input error. Content: {}",
 				jsonObjectToString(d));
 		} else if (response == 404) {
+			parse();
+
 			Locator::getLogger()->warn(
 				"UploadScore failed due to 404. Chart may be unranked - Content: {}",
 				jsonObjectToString(d));
 		} else {
+			parse();
+
 			Locator::getLogger()->warn("Unexpected status {} - Content: {}",
 									   response,
 									   jsonObjectToString(d));
@@ -3593,11 +3725,20 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 
 		
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RequestReplayData Error: Malformed request response: {}",
-			  req.result);
-		}
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "RequestReplayData Parse Error: status: {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
+		// for some reason this function never exited early on parse error
+		// so dont change that ..?
+		parse();
 
 		if (response == 200) {
 			// found a score. maybe it has replay data
@@ -3781,16 +3922,25 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RequestChartLeaderboard Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "RequestChartLeaderboard Parse Error: "
+				  "status: {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		if (response == 200) {
 			// chart is ranked. leaderboard has [0,inf] scores
+			if (parse()) {
+				runLuaFunc(req, vec);
+				return;
+			}
 
 			if (d.HasMember("data") && d["data"].IsArray()) {
 
@@ -3814,6 +3964,8 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 				  jsonObjectToString(d));
 			}
 		} else {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "RequestChartLeaderboard unexpected response {} - Content: {}",
 			  response,
@@ -3910,14 +4062,23 @@ DownloadManager::RefreshLastVersion()
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshLastVersion Error: Malformed request response: {}",
-			  req.result);
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "RefreshLastVersion Parse Error: status: {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
+		if (parse()) {
 			return;
 		}
 
 		auto response = req.response_code;
+
 		if (response == 200) {
 
 			lastVersion = getJsonString(d, "game_version");
@@ -4042,15 +4203,22 @@ DownloadManager::RefreshUserData()
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshUserData Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "RefreshUserData Parse Error: status: {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		if (response == 200) {
 			// it probably worked
+			if (parse())
+				return;
 
 			if (d.HasMember("data") && d["data"].IsObject()) {
 
@@ -4089,6 +4257,8 @@ DownloadManager::RefreshUserData()
 				  jsonObjectToString(d));
 			}
 		} else {
+			parse();
+
 			Locator::getLogger()->warn(
 			  "RefreshUserData unexpected response {} - Content: {}",
 			  response,
@@ -4121,17 +4291,24 @@ DownloadManager::RefreshPackList(const std::string& url)
 		return;
 
 	auto done = [this](HTTPRequest& req) {
+
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error("RefreshPackList Error: status {} & "
-										"response parse error - content: {}",
-										req.response_code,
-										req.result);
-			return;
-		}
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "RefreshPackList Parse Error: status {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
+
 		if (response == 200) {
+			parse();
 			if (!d.HasMember("data") || !d["data"].IsArray()) {
 				Locator::getLogger()->error(
 				  "RefreshPackList Error: response data was missing or not an "
@@ -4200,6 +4377,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 			}
 			RefreshCoreBundles();
 		} else {
+			parse();
 			Locator::getLogger()->error(
 			  "RefreshPackList unexpected response code {} - content: {}",
 			  response,
