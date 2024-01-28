@@ -173,6 +173,8 @@ struct DateTime
 
 	static auto GetFromString(const std::string& str) -> DateTime;
 
+	static auto GetYesterday() -> DateTime;
+
 	/** @brief Remove the time portion from the date. */
 	void StripTime();
 
