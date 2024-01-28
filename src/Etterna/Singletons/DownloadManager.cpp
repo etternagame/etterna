@@ -994,25 +994,38 @@ DownloadManager::LoginRequest(const std::string& user,
 		}
 
 		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "LoginRequest Parse Error: status {} | response: {}",
-			  req.response_code,
-			  req.result);
-			loginFailed();
-			return;
-		}
+		// return true if parse failed
+		auto parse = [&d, &req]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "LoginRequest Parse Error: status {} | response: {}",
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
 		auto response = req.response_code;
 		if (response == 422) {
 			// bad input fields
+			parse();
 
 			Locator::getLogger()->error(
 			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
 			loginFailed();
+		} else if (response == 404) {
+			// user doesnt exist?
+			parse();
+
+			Locator::getLogger()->error(
+			  "Status 404 on LoginRequest. User may not exist. Errors: {}",
+			  jsonObjectToString(d));
+			loginFailed();
 
 		} else if (response == 401) {
 			// bad password
+			parse();
 
 			Locator::getLogger()->error(
 			  "Status 401 on LoginRequest. Bad password? Errors: {}",
@@ -1021,6 +1034,7 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 403) {
 			// user is banned
+			parse();
 
 			Locator::getLogger()->error(
 			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
@@ -1029,6 +1043,12 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 200) {
 			// all good
+			if (parse()) {
+				Locator::getLogger()->warn(
+				  "Due to LoginRequest parse error, login failed");
+				loginFailed();
+				return;
+			}
 
 			if (d.HasMember("access_token") &&
 				d["access_token"].IsString()) {
@@ -1057,6 +1077,8 @@ DownloadManager::LoginRequest(const std::string& user,
 			}
 		} else {
 			// ???
+			parse();
+
 			Locator::getLogger()->warn(
 			  "Unexpected response code {} on LoginRequest. Content: {}",
 			  response,
