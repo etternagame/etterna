@@ -3526,20 +3526,6 @@ DownloadManager::SendRequestToURL(
 			return;
 		}
 
-		// for non 404s, check to see if it is malformed
-		Document d;
-		if (req.response_code != 404 &&
-			d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "SendRequestToURL ({}) status {} & Parse Error: {}",
-			  url,
-			  req.response_code,
-			  req.result);
-			return;
-		}
-		if (d.HasMember("errors")) {
-			// hmm
-		}
 		if (afterDone)
 			afterDone(req);
 	};
