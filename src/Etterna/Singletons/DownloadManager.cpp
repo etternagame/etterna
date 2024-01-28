@@ -19,6 +19,7 @@
 #include "Etterna/Globals/SpecialFiles.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/PlayerStageStats.h"
+#include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 
@@ -2760,6 +2761,117 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember(
 	  "judge", std::round(hs->GetJudgeScale() * 1000.0) / 1000.0, allocator);
 	d.AddMember("grade", val(GradeToOldString(hs->GetWifeGrade())), allocator);
+
+	// comprehensive checks for forced invalidation
+	auto validity = hs->GetEtternaValid();
+	if (validity) {
+		// if the score is valid, check the mods...
+		PlayerOptions po;
+		po.Init();
+		po.SetForReplay(true);
+		po.FromString(hs->GetModifiers());
+
+		const auto& tfs = po.m_bTransforms;
+		const auto& turns = po.m_bTurns;
+		const auto* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+
+		// if ccon, invalid
+		if (validity) {
+			validity &= hs->GetChordCohesion();
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to CC On",
+				  hs->GetScoreKey());
+		}
+
+		// if No Mines, disqualify if mines should be present
+		if (validity && tfs[PlayerOptions::TRANSFORM_NOMINES]) {
+			validity &= steps != nullptr &&
+						steps->GetRadarValues()[RadarCategory_Mines] > 0;
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to NoMines",
+				  hs->GetScoreKey());
+		}
+
+		// if No Holds, disqualify if holds/rolls should be present
+		if (validity && (tfs[PlayerOptions::TRANSFORM_NOHOLDS] ||
+						 tfs[PlayerOptions::TRANSFORM_NOROLLS])) {
+			auto& radars = steps->GetRadarValues();
+			validity &= steps != nullptr && (radars[RadarCategory_Holds] > 0 ||
+											 radars[RadarCategory_Rolls] > 0);
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to NoHolds or NoRolls",
+				  hs->GetScoreKey());
+		}
+
+		// invalidate if any transforms are on (Insert and Remove mods)
+		// (this starts after nomines/noholds/norolls)
+		for (int tfi = PlayerOptions::TRANSFORM_LITTLE;
+			 validity && tfi < PlayerOptions::NUM_TRANSFORMS;
+			 tfi++) {
+			PlayerOptions::Transform tf =
+			  static_cast<PlayerOptions::Transform>(tfi);
+
+			// if any transform is turned on, validity becomes false
+			validity &= !tfs[tf];
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to Transform {}",
+				  hs->GetScoreKey(),
+				  tf);
+		}
+
+		// invalidate if any turns are on other than Mirror (shuffle)
+		// (this starts after mirror)
+		for (int ti = PlayerOptions::TURN_BACKWARDS;
+			 validity && ti < PlayerOptions::NUM_TURNS;
+			 ti++) {
+			PlayerOptions::Turn t = static_cast<PlayerOptions::Turn>(ti);
+
+			validity &= !turns[t];
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to Turn {}",
+				  hs->GetScoreKey(),
+				  t);
+		}
+
+		// impossible for this to happen but just in case
+		if (validity) {
+			validity &= !po.m_bPractice;
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to Practice Mode",
+				  hs->GetScoreKey());
+		}
+
+		// if the score has less total judgments than the number of notes
+		// by a large margin
+		// this is broken by CC On
+		// but if CC On was used, this would not be reached
+		if (validity) {
+			const auto notes = steps->GetRadarValues()[RadarCategory_Notes];
+			auto total = 0;
+			FOREACH_ENUM(TapNoteScore, tns) {
+				total += hs->GetTapNoteScore(tns);
+			}
+			// would rather be 100% but 90% is reasonable
+			// score becomes auto invalid if judgments are
+			// less than 90% total notes
+			validity &= total >= static_cast<float>(notes) * 0.9F;
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid because the Judgment Total "
+				  "{} is not close enough to the Note Total {}",
+				  hs->GetScoreKey(),
+				  total,
+				  notes);
+		}
+	}
+	d.AddMember("valid", static_cast<int>(validity), allocator);
+
 
 	Document replayVector;
 	replayVector.SetArray();
