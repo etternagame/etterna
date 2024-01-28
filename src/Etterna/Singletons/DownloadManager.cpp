@@ -3359,7 +3359,8 @@ DownloadManager::InitialScoreSync()
 		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
 		sequentialScoreUploadTotalWorkload += toUpload.size();
 		startSequentialScoreUpload();
-		profile->m_lastRankedChartkeyCheck = lastCheckDT;
+		// set to yesterday because timezones and stuff
+		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
 		return true;
 	};
 
