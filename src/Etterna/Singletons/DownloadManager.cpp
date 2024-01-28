@@ -3371,6 +3371,9 @@ DownloadManager::InitialScoreSync()
 				toUpload.push_back(s);
 		}
 
+		// set to yesterday because timezones and stuff
+		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
+
 		if (!toUpload.empty())
 			Locator::getLogger()->info(
 			  "Updating online scores. (Uploading {} scores)", toUpload.size());
@@ -3381,8 +3384,6 @@ DownloadManager::InitialScoreSync()
 		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
 		sequentialScoreUploadTotalWorkload += toUpload.size();
 		startSequentialScoreUpload();
-		// set to yesterday because timezones and stuff
-		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
 		return true;
 	};
 
