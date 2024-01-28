@@ -1284,8 +1284,13 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 			}
 
 			if (d.IsObject() && d.HasMember("failed")) {
-				Locator::getLogger()->warn(
-				  "BulkAddFavorites had failed uploads but continued working");
+
+				if (d["failed"].IsArray() && d["failed"].Size() > 0) {
+					Locator::getLogger()->warn("BulkAddFavorites had {} failed "
+											   "uploads out of {}",
+											   d["failed"].Size(),
+											   favorites.size());
+				}
 
 				if (d.HasMember("success") && d["success"].IsArray()) {
 					auto& successes = d["success"];
@@ -1811,8 +1816,13 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 				return;
 
 			if (d.IsObject() && d.HasMember("failed")) {
-				Locator::getLogger()->warn(
-				  "BulkAddGoals had failed uploads but continued working");
+
+				if (d["failed"].IsArray() && d["failed"].Size() > 0) {
+					Locator::getLogger()->warn(
+					  "BulkAddGoals had {} failed uploads out of {}",
+					  d["failed"].Size(),
+					  goals.size());
+				}
 
 				if (d.HasMember("success") && d["success"].IsArray()) {
 					auto& successes = d["success"];
