@@ -449,6 +449,18 @@ getJsonBool(Value& doc, const char* name)
 	return false;
 }
 
+inline bool
+parseJson(Document& d, HTTPRequest& req, const char* reqName) {
+	if (d.Parse(req.result.c_str()).HasParseError()) {
+		Locator::getLogger()->error("{} Parse Error: status {} | response: {}",
+									reqName,
+									req.response_code,
+									req.result);
+		return true;
+	}
+	return false;
+}
+
 std::string
 UrlEncode(const std::string& str)
 {
@@ -1233,16 +1245,7 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		Document d;
 		// return true if parse failed
-		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "LoginRequest Parse Error: status {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
-		};
+		auto parse = [&d, &req]() { return parseJson(d, req, "LoginRequest"); };
 
 		const auto& response = req.response_code;
 		if (response == 422) {
@@ -1411,18 +1414,7 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 
 		Document d;
 		// return true if parse error
-		auto parse = [&d, &req, &chartkey]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "AddFavoriteRequest Parse Error: Favorite: "
-				  "{} - status {} | response: {}",
-				  chartkey,
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
-		};
+		auto parse = [&d, &req]() { return parseJson(d, req, "AddFavorite"); };
 
 		const auto& response = req.response_code;
 		if (response == 200) {
@@ -1509,15 +1501,8 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 
 		Document d;
 		// return true if parse error
-		auto parse = [&d, &req, &callback]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "BulkAddFavorites Parse Error: status {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "BulkAddFavorites");
 		};
 
 		const auto& response = req.response_code;
@@ -1630,17 +1615,8 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 
 		Document d;
 		// return true if parse error
-		auto parse = [&d, &req, &chartkey]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "RemoveFavorite Parse Error: Favorite: {} - "
-				  "status: {} | response: {}",
-				  chartkey,
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "RemoveFavorite");
 		};
 
 		const auto& response = req.response_code;
@@ -1714,14 +1690,7 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "GetFavoritesRequest Parse Error: status: {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "GetFavoritesRequest");
 		};
 
 		const auto& response = req.response_code;
@@ -1960,18 +1929,7 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 
 		Document d;
 		// return true if parse failure
-		auto parse = [&d, &req, &goal]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "AddGoal Parse Error: Goal: {} - status: {} | "
-				  "response: {}",
-				  goal->DebugString(),
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
-		};
+		auto parse = [&d, &req]() { return parseJson(d, req, "AddGoal"); };
 
 		const auto& response = req.response_code;
 		if (response == 200) {
@@ -2061,11 +2019,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req, &callback]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "BulkAddGoals Parse Error: status {} | content: {}",
-				  req.response_code,
-				  req.result.c_str());
+			if (parseJson(d, req, "BulkAddGoals")) {
 				if (callback)
 					callback();
 				return true;
@@ -2190,17 +2144,7 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 
 		Document d;
 		// return true if parse error
-		auto parse = [&d, &req, &goal]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "RemoveGoal Parse Error: Goal: {} - status {} | response: {}",
-				  goal->DebugString(),
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
-		};
+		auto parse = [&d, &req]() { return parseJson(d, req, "RemoveGoal"); };
 
 		const auto& response = req.response_code;
 		if (response == 200) {
@@ -2280,17 +2224,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 
 		Document d;
 		// return true if parse error
-		auto parse = [&d, &req, &goal]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "UpdateGoal Parse Error: Goal: {} - status {} | response: {}",
-				  goal->DebugString(),
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
-		};
+		auto parse = [&d, &req]() { return parseJson(d, req, "UpdateGoal"); };
 
 		const auto& response = req.response_code;
 		if (response == 200) {
@@ -2365,14 +2299,7 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "GetGoalsRequest Parse Error: status: {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "GetGoalsRequest");
 		};
 
 		const auto& response = req.response_code;
@@ -2695,15 +2622,7 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "GetRankedChartkeysRequest Parse Error: "
-				  "status: {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "GetRankedChartkeysRequest");
 		};
 
 		const auto& response = req.response_code;
@@ -3275,14 +3194,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "BulkUploadScore Parse Error: status {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "BulkScoreUpload");
 		};
 
 		const auto& response = req.response_code;
@@ -3499,16 +3411,7 @@ DownloadManager::UploadScore(HighScore* hs,
 		}
 
 		Document d;
-		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "UploadScore Parse Error: status {} | response {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
-		};
+		auto parse = [&d, &req]() { return parseJson(d, req, "UploadScore"); };
 
 		const auto& response = req.response_code;
 		if (response == 200) {
@@ -3959,14 +3862,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "RequestReplayData Parse Error: status: {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "RequestReplayData");
 		};
 		// for some reason this function never exited early on parse error
 		// so dont change that ..?
@@ -4162,15 +4058,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "RequestChartLeaderboard Parse Error: "
-				  "status: {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "RequestChartLeaderboard");
 		};
 
 		if (response == 200) {
@@ -4302,14 +4190,7 @@ DownloadManager::RefreshLastVersion()
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "RefreshLastVersion Parse Error: status: {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "RefreshLastVersion");
 		};
 		if (parse()) {
 			return;
@@ -4445,14 +4326,7 @@ DownloadManager::RefreshUserData()
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "RefreshUserData Parse Error: status: {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "RefreshUserData");
 		};
 
 		if (response == 200) {
@@ -4549,14 +4423,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "RefreshPackList Parse Error: status {} | response: {}",
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
+			return parseJson(d, req, "RefreshPackList");
 		};
 
 		const auto& response = req.response_code;
