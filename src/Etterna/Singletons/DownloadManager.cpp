@@ -1840,9 +1840,7 @@ DownloadManager::RefreshFavorites(
 								   toUpload.size());
 
 		// upload favorites
-		if (toUpload.size() == 1) {
-			AddFavorite(*toUpload.begin());
-		} else if (toUpload.size() > 1) {
+		if (toUpload.size() > 0) {
 			FavoriteUploadSequentialQueue.insert(
 			  FavoriteUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
 			sequentialFavoriteUploadTotalWorkload += toUpload.size();
@@ -2573,9 +2571,7 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 		}
 
 		// upload goals
-		if (goalsToUpload.size() == 1) {
-			AddGoal(goalsToUpload.at(0));
-		} else if (goalsToUpload.size() > 1) {
+		if (goalsToUpload.size() > 0) {
 			GoalUploadSequentialQueue.insert(GoalUploadSequentialQueue.end(),
 											 goalsToUpload.begin(),
 											 goalsToUpload.end());
