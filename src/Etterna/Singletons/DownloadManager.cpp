@@ -1443,6 +1443,7 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 	};
 
 	SendRequest(API_FAVORITES + "/" + URLEncode(chartkey),
+				API_FAVORITES,
 				{},
 				done,
 				true,
@@ -1991,7 +1992,7 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 
 	auto req = API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
 			   std::to_string(goal->rate) + "/" + std::to_string(goal->percent);
-	SendRequest(req, {}, done, true, RequestMethod::DEL);
+	SendRequest(req, API_GOALS, {}, done, true, RequestMethod::DEL);
 }
 
 void
@@ -3614,7 +3615,28 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 
 HTTPRequest*
 DownloadManager::SendRequest(
+	std::string requestName,
+	std::vector<std::pair<std::string, std::string>> params,
+  std::function<void(HTTPRequest&)> done,
+  bool requireLogin,
+  RequestMethod httpMethod,
+  bool async,
+  bool withBearer)
+{
+	return SendRequest(requestName,
+					   requestName,
+					   params,
+					   done,
+					   requireLogin,
+					   httpMethod,
+					   async,
+					   withBearer);
+}
+
+HTTPRequest*
+DownloadManager::SendRequest(
   std::string requestName,
+  std::string apiPath,
   std::vector<std::pair<std::string, std::string>> params,
   std::function<void(HTTPRequest&)> done,
   bool requireLogin,
@@ -3623,6 +3645,7 @@ DownloadManager::SendRequest(
   bool withBearer)
 {
 	return SendRequestToURL(APIROOT() + requestName,
+							apiPath,
 							params,
 							done,
 							requireLogin,
@@ -3634,6 +3657,7 @@ DownloadManager::SendRequest(
 HTTPRequest*
 DownloadManager::SendRequestToURL(
   std::string url,
+  std::string apiPath,
   std::vector<std::pair<std::string, std::string>> params,
   std::function<void(HTTPRequest&)> afterDone,
   bool requireLogin,
@@ -3657,23 +3681,6 @@ DownloadManager::SendRequestToURL(
 				 async,
 				 withBearer,
 				 this](HTTPRequest& req) {
-
-		if (HandleAuthErrorResponse(url, req)) {
-			if (afterDone)
-				afterDone(req);
-			return;
-		}
-		if (HandleRatelimitResponse(url, req)) {
-			SendRequestToURL(url,
-							 params,
-							 afterDone,
-							 requireLogin,
-							 httpMethod,
-							 async,
-							 withBearer);
-			return;
-		}
-
 		if (afterDone)
 			afterDone(req);
 	};
@@ -3711,7 +3718,7 @@ DownloadManager::SendRequestToURL(
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (async) {
-		if (!QueueRequestIfRatelimited(url, *req)) {
+		if (!QueueRequestIfRatelimited(apiPath, *req)) {
 			AddHttpRequestHandle(req->handle);
 			HTTPRequests.push_back(req);
 		}
@@ -3984,7 +3991,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 		runLuaFunc(replayData, lbd.end(), lbd.end());
 	};
 
-	SendRequest(queryPath, {}, done, true);
+	SendRequest(queryPath, API_GET_SCORE, {}, done, true);
 }
 
 void
@@ -4118,7 +4125,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 		}
 	};
 
-	SendRequest(queryPath, params, done, true);
+	SendRequest(queryPath, API_CHART_LEADERBOARD, params, done, true);
 }
 
 void
@@ -4411,7 +4418,7 @@ DownloadManager::RefreshUserData()
 		}
 	};
 
-	SendRequest(queryPath, params, done, true);
+	SendRequest(queryPath, API_USER, params, done, true);
 }
 
 int
@@ -4435,7 +4442,18 @@ DownloadManager::RefreshPackList(const std::string& url)
 	if (url.empty())
 		return;
 
-	auto done = [this](HTTPRequest& req) {
+	Locator::getLogger()->info("Generating RefreshPackList for Endpoint {}",
+							   url);
+
+	auto done = [url, this](HTTPRequest& req) {
+
+		if (HandleAuthErrorResponse(url, req)) {
+			return;
+		}
+		if (HandleRatelimitResponse(url, req)) {
+			RefreshPackList(url);
+			return;
+		}
 
 		Document d;
 		// return true if parse error
@@ -4529,7 +4547,8 @@ DownloadManager::RefreshPackList(const std::string& url)
 			  jsonObjectToString(d));
 		}
 	};
-	SendRequestToURL(url, {}, done, false, RequestMethod::GET, true, false);
+	SendRequestToURL(
+	  url, url, {}, done, false, RequestMethod::GET, true, false);
 }
 
 Download::Download(std::string url, std::string filename)

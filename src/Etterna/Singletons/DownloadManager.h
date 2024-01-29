@@ -334,8 +334,18 @@ class DownloadManager
 	  RequestMethod httpMethod = RequestMethod::GET,
 	  bool async = true,
 	  bool withBearer = true);
+	HTTPRequest* SendRequest(
+	  std::string requestName,
+	  std::string apiPath,
+	  std::vector<std::pair<std::string, std::string>> params,
+	  std::function<void(HTTPRequest&)> done,
+	  bool requireLogin = true,
+	  RequestMethod httpMethod = RequestMethod::GET,
+	  bool async = true,
+	  bool withBearer = true);
 	HTTPRequest* SendRequestToURL(
 	  std::string url,
+	  std::string apiPath,
 	  std::vector<std::pair<std::string, std::string>> params,
 	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin,
