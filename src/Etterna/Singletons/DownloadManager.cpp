@@ -1032,7 +1032,7 @@ bool
 DownloadManager::HandleRatelimitResponse(const std::string& endpoint,
 										 HTTPRequest& req)
 {
-	auto& status = req.response_code;
+	const auto& status = req.response_code;
 	if (status != 429) {
 		return false;
 	}
@@ -1111,7 +1111,7 @@ bool
 DownloadManager::HandleAuthErrorResponse(const std::string& endpoint,
 										 HTTPRequest& req)
 {
-	auto& status = req.response_code;
+	const auto& status = req.response_code;
 	if (status != 401 && status != 403) {
 		return false;
 	}
@@ -1244,7 +1244,7 @@ DownloadManager::LoginRequest(const std::string& user,
 			return false;
 		};
 
-		auto response = req.response_code;
+		const auto& response = req.response_code;
 		if (response == 422) {
 			// bad input fields
 			parse();
@@ -1401,7 +1401,6 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 							   chartkey);
 
 	auto done = [chartkey, &CALL_ENDPOINT, this](HTTPRequest& req) {
-
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
@@ -1425,8 +1424,7 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			Locator::getLogger()->info(
@@ -1522,8 +1520,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200 || response == 207) {
 			// mostly good
 
@@ -1646,8 +1643,7 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			Locator::getLogger()->info("RemoveFavorite successfully removed "
@@ -1728,8 +1724,7 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			if (parse())
@@ -1978,8 +1973,7 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			Locator::getLogger()->info(
@@ -2080,8 +2074,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 		};
 
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200 || response == 207) {
 			// mostly good
 
@@ -2209,8 +2202,7 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			Locator::getLogger()->info(
@@ -2300,8 +2292,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			Locator::getLogger()->info(
@@ -2384,8 +2375,7 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			if (parse())
@@ -2716,8 +2706,7 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			if (parse()) {
@@ -3296,8 +3285,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// kind of good.
 			// we can have successes and failures.
@@ -3522,8 +3510,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			// all good
 			if (parse()) {
@@ -3958,7 +3945,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 			return;
 		}
 
-		auto response = req.response_code;
+		const auto& response = req.response_code;
 		if (response == 404) {
 			// no score was found
 			Locator::getLogger()->warn(
@@ -4115,7 +4102,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 			if (!lua_isnil(L, -1)) {
 				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
-				auto response = req.response_code;
+				const auto& response = req.response_code;
 
 				// 404: Chart not ranked
 				// 401: Invalid login token
@@ -4160,7 +4147,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 			return;
 		}
 
-		auto response = req.response_code;
+		const auto& response = req.response_code;
 		if (response == 404) {
 			// chart is unranked
 			unrankedCharts.emplace(chartkey);
@@ -4328,8 +4315,7 @@ DownloadManager::RefreshLastVersion()
 			return;
 		}
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 
 			lastVersion = getJsonString(d, "game_version");
@@ -4447,7 +4433,7 @@ DownloadManager::RefreshUserData()
 			return;
 		}
 
-		auto response = req.response_code;
+		const auto& response = req.response_code;
 		if (response == 404) {
 			// user doesnt exist :eyebrow_raise:
 			Locator::getLogger()->warn(
@@ -4573,8 +4559,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 			return false;
 		};
 
-		auto response = req.response_code;
-
+		const auto& response = req.response_code;
 		if (response == 200) {
 			parse();
 			if (!d.HasMember("data") || !d["data"].IsArray()) {
