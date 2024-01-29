@@ -2735,12 +2735,25 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("wife", hs->GetSSRNormPercent(), allocator);
 	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
 	d.AddMember("modifiers", val(hs->GetModifiers()), allocator);
-	d.AddMember("marvelous", hs->GetTapNoteScore(TNS_W1), allocator);
-	d.AddMember("perfect", hs->GetTapNoteScore(TNS_W2), allocator);
-	d.AddMember("great", hs->GetTapNoteScore(TNS_W3), allocator);
-	d.AddMember("good", hs->GetTapNoteScore(TNS_W4), allocator);
-	d.AddMember("bad", hs->GetTapNoteScore(TNS_W5), allocator);
-	d.AddMember("miss", hs->GetTapNoteScore(TNS_Miss), allocator);
+	if (hs->IsEmptyNormalized()) {
+		Locator::getLogger()->debug("Score {} will NOT use Normalized TNS",
+									hs->GetScoreKey());
+		d.AddMember("marvelous", hs->GetTapNoteScore(TNS_W1), allocator);
+		d.AddMember("perfect", hs->GetTapNoteScore(TNS_W2), allocator);
+		d.AddMember("great", hs->GetTapNoteScore(TNS_W3), allocator);
+		d.AddMember("good", hs->GetTapNoteScore(TNS_W4), allocator);
+		d.AddMember("bad", hs->GetTapNoteScore(TNS_W5), allocator);
+		d.AddMember("miss", hs->GetTapNoteScore(TNS_Miss), allocator);
+	} else {
+		Locator::getLogger()->debug("Score {} will use Normalized TNS",
+									hs->GetScoreKey());
+		d.AddMember("marvelous", hs->GetTNSNormalized(TNS_W1), allocator);
+		d.AddMember("perfect", hs->GetTNSNormalized(TNS_W2), allocator);
+		d.AddMember("great", hs->GetTNSNormalized(TNS_W3), allocator);
+		d.AddMember("good", hs->GetTNSNormalized(TNS_W4), allocator);
+		d.AddMember("bad", hs->GetTNSNormalized(TNS_W5), allocator);
+		d.AddMember("miss", hs->GetTNSNormalized(TNS_Miss), allocator);
+	}
 	d.AddMember("hit_mine", hs->GetTapNoteScore(TNS_HitMine), allocator);
 	d.AddMember("held", hs->GetHoldNoteScore(HNS_Held), allocator);
 	d.AddMember("let_go", hs->GetHoldNoteScore(HNS_LetGo), allocator);
