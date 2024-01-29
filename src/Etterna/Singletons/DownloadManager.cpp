@@ -1879,6 +1879,14 @@ GoalToJSON(ScoreGoal* goal, Document::AllocatorType& allocator) {
 	d.AddMember("wife", val(std::to_string(goal->percent)), allocator);
 	d.AddMember("set_date", val(goal->timeassigned.GetString()), allocator);
 
+	if (goal->achieved)
+	if (goal->achieved) {
+		std::string timeAchievedString = "0000-00-00 00:00:00";
+		timeAchievedString = goal->timeachieved.GetString();
+		d.AddMember("achieved", val(std::to_string(goal->achieved)), allocator);
+		d.AddMember("achieved_date", val(timeAchievedString), allocator);
+	}
+
 	return d;
 }
 
