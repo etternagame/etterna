@@ -537,6 +537,7 @@ Profile::LoadGoalIfNew(ScoreGoal goal)
 	}
 	goal.CheckVacuity();
 
+	Locator::getLogger()->info("Saved goal locally: {}", goal.DebugString());
 	goalmap[goal.chartkey].Add(goal);
 	FillGoalTable();
 	MESSAGEMAN->Broadcast("GoalTableRefresh");
