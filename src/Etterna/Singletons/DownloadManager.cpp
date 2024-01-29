@@ -2203,18 +2203,23 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	Locator::getLogger()->info("Generating UpdateGoalRequest for {}",
 							   goal->DebugString());
 
-	std::string timeAchievedString = "0000-00-00 00:00:00";
-	if (goal->achieved)
-		timeAchievedString = goal->timeachieved.GetString();
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, CALL_PATH);
 
-	std::vector<std::pair<std::string, std::string>> postParams = {
-		std::make_pair("key", UrlEncode(goal->chartkey)),
-		std::make_pair("rate", std::to_string(goal->rate)),
-		std::make_pair("wife", std::to_string(goal->percent)),
-		std::make_pair("achieved", std::to_string(goal->achieved)),
-		std::make_pair("set_date", goal->timeassigned.GetString()),
-		std::make_pair("achieved_date", timeAchievedString)
-	};
+	// this seems very illegal
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d = GoalToJSON(goal, allocator);
+
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+	std::string body = buffer.GetString();
+
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
 
 	auto done = [goal, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
@@ -2265,8 +2270,15 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 		}
 	};
 
-	SendRequest(
-	  CALL_PATH, CALL_ENDPOINT, postParams, done, true, RequestMethod::PATCH);
+	HTTPRequest* req =
+	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {
+	  });
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
 }
 
 void
@@ -2465,19 +2477,14 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					for (auto& localGoal : localGoalsForChart) {
 						// if the goal is found
 						// either save or do nothing
-						Locator::getLogger()->trace(
-						  "forSave ck {} rate {} assigned {} achieved {} | "
-						  "rate2 {} assigned2 {} achieved2{}",
-						  ck,
-						  goal.rate,
-						  goal.timeassigned.GetString(),
-						  goal.achieved,
-						  localGoal.rate,
-						  localGoal.timeassigned.GetString(),
-						  localGoal.achieved);
 						if (std::fabsf(goal.rate - localGoal.rate) < 0.001) {
 							if (goal.achieved && !localGoal.achieved &&
 								goal.timeassigned >= localGoal.timeassigned) {
+								Locator::getLogger()->info(
+								  "About to override local goal {} with "
+								  "online goal {}",
+								  localGoal.DebugString(),
+								  goal.DebugString());
 								goalsToSave.push_back(goal);
 							}
 							found = true;
@@ -2486,12 +2493,6 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					}
 					// if the goal is not found, save it
 					if (!found) {
-						Locator::getLogger()->trace(
-						  "forSave ck {} - {} {} {}",
-						  ck,
-						  goal.rate,
-						  goal.timeassigned.GetString(),
-						  goal.achieved);
 						goalsToSave.push_back(goal);
 					}
 				}
@@ -2502,7 +2503,11 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 		// container reallocation can invalidate pointers
 		// to local goals
 		for (auto& goal : goalsToSave) {
-			profile->LoadGoalIfNew(goal);
+			if (!profile->LoadGoalIfNew(goal)) {
+				Locator::getLogger()->info(
+				  "Goal to save locally was a duplicate: {}",
+				  goal.DebugString());
+			}
 		}
 
 		// find the goals that must be uploaded
@@ -2514,6 +2519,8 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 				// these local goals are not online
 				// so upload all of them
 				for (auto& goal : goalsForChart.goals) {
+					Locator::getLogger()->info("ToUpload goal: {}",
+											   goal.DebugString());
 					goalsToUpload.push_back(&goal);
 				}
 			} else {
@@ -2525,19 +2532,14 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					for (auto& onlineGoal : onlineGoalsForChart) {
 						// if the goal is found
 						// either update or do nothing
-						Locator::getLogger()->trace(
-						  "forUpdate ck {} rate {} assigned {} achieved {} | "
-						  "rate2 {} assigned2 {} achieved2{}",
-						  ck,
-						  goal.rate,
-						  goal.timeassigned.GetString(),
-						  goal.achieved,
-						  onlineGoal.rate,
-						  onlineGoal.timeassigned.GetString(),
-						  onlineGoal.achieved);
 						if (std::fabsf(goal.rate - onlineGoal.rate) < 0.001) {
 							if (goal.achieved && !onlineGoal.achieved &&
 								goal.timeassigned >= onlineGoal.timeassigned) {
+								Locator::getLogger()->info(
+								  "ToUpdate goal: {} (to replace online goal: "
+								  "{})",
+								  goal.DebugString(),
+								  onlineGoal.DebugString());
 								goalsToUpdate.push_back(&goal);
 							}
 							found = true;
@@ -2546,12 +2548,8 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					}
 					// if the goal is not found, upload it
 					if (!found) {
-						Locator::getLogger()->trace(
-						  "forUpload ck {} - {} {} {}",
-						  ck,
-						  goal.rate,
-						  goal.timeassigned.GetString(),
-						  goal.achieved);
+						Locator::getLogger()->info("ToUpload goal: {}",
+													goal.DebugString());
 						goalsToUpload.push_back(&goal);
 					}
 				}
