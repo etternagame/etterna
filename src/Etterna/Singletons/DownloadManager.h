@@ -304,6 +304,14 @@ class DownloadManager
 	bool QueueRequestIfRatelimited(const std::string& endpiont,
 								   HTTPRequest& req);
 	void QueueRatelimitedRequest(const std::string& endpoint, HTTPRequest& req);
+	// basically returns HandleAuthErrorResponse || HandleRatelimitResponse
+	// and runs the given lambda for the 401 or the 429. Won't run the 429
+	// if a 401 is given first.
+	bool Handle401And429Response(
+	  const std::string& endpoint,
+	  HTTPRequest& req,
+	  std::function<void()> if401 = []() {},
+	  std::function<void()> if429 = []() {});
 
 
 	// Specialized API Requests

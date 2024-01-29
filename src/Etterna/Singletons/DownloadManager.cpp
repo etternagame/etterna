@@ -911,6 +911,243 @@ DownloadManager::DownloadAndInstallPack(const std::string& url,
 	return dl;
 }
 
+HTTPRequest*
+DownloadManager::SendRequest(
+  std::string requestName,
+  std::vector<std::pair<std::string, std::string>> params,
+  std::function<void(HTTPRequest&)> done,
+  bool requireLogin,
+  RequestMethod httpMethod,
+  bool async,
+  bool withBearer)
+{
+	return SendRequest(requestName,
+					   requestName,
+					   params,
+					   done,
+					   requireLogin,
+					   httpMethod,
+					   async,
+					   withBearer);
+}
+
+HTTPRequest*
+DownloadManager::SendRequest(
+  std::string requestName,
+  std::string apiPath,
+  std::vector<std::pair<std::string, std::string>> params,
+  std::function<void(HTTPRequest&)> done,
+  bool requireLogin,
+  RequestMethod httpMethod,
+  bool async,
+  bool withBearer)
+{
+	return SendRequestToURL(APIROOT() + requestName,
+							apiPath,
+							params,
+							done,
+							requireLogin,
+							httpMethod,
+							async,
+							withBearer);
+}
+
+HTTPRequest*
+DownloadManager::SendRequestToURL(
+  std::string url,
+  std::string apiPath,
+  std::vector<std::pair<std::string, std::string>> params,
+  std::function<void(HTTPRequest&)> afterDone,
+  bool requireLogin,
+  RequestMethod httpMethod,
+  bool async,
+  bool withBearer)
+{
+	if (requireLogin && !LoggedIn())
+		return nullptr;
+	if (httpMethod == RequestMethod::GET && !params.empty()) {
+		url += "?";
+		for (auto& param : params)
+			url += param.first + "=" + param.second + "&";
+		url = url.substr(0, url.length() - 1);
+	}
+	auto done = [url,
+				 params,
+				 afterDone,
+				 requireLogin,
+				 httpMethod,
+				 async,
+				 withBearer,
+				 this](HTTPRequest& req) {
+		if (afterDone)
+			afterDone(req);
+	};
+	CURL* curlHandle = initCURLHandle(withBearer);
+	SetCURLURL(curlHandle, url);
+	HTTPRequest* req;
+	if (httpMethod == RequestMethod::POST) {
+		curl_httppost* form = nullptr;
+		curl_httppost* lastPtr = nullptr;
+		for (auto& param : params)
+			CURLFormPostField(
+			  form, lastPtr, param.first.c_str(), param.second.c_str());
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
+		req = new HTTPRequest(curlHandle, done, form);
+	} else if (httpMethod == RequestMethod::PATCH) {
+		curl_httppost* form = nullptr;
+		curl_httppost* lastPtr = nullptr;
+		for (auto& param : params)
+			CURLFormPostField(
+			  form, lastPtr, param.first.c_str(), param.second.c_str());
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
+		req = new HTTPRequest(curlHandle, done, form);
+	} else if (httpMethod == RequestMethod::DEL) {
+		req = new HTTPRequest(curlHandle, done);
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE");
+	} else {
+		req = new HTTPRequest(curlHandle, done);
+		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPGET, 1L);
+	}
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (async) {
+		if (!QueueRequestIfRatelimited(apiPath, *req)) {
+			AddHttpRequestHandle(req->handle);
+			HTTPRequests.push_back(req);
+		}
+	} else {
+		Locator::getLogger()->debug("Waiting on synchronous curl call");
+		CURLcode res = curl_easy_perform(req->handle);
+		curl_easy_cleanup(req->handle);
+		done(*req);
+		Locator::getLogger()->debug("Synchronous curl call completed");
+		delete req;
+		return nullptr;
+	}
+	return req;
+}
+
+bool
+DownloadManager::HandleRatelimitResponse(const std::string& endpoint,
+										 HTTPRequest& req)
+{
+	auto& status = req.response_code;
+	if (status != 429) {
+		return false;
+	}
+
+	const auto ratelimitHeader = "Retry-After";
+	auto headers = extractHeaderMap(req.headers);
+
+	auto waitSeconds = 60;
+	if (headers.count(ratelimitHeader) != 0u) {
+		try {
+			waitSeconds = std::stoi(headers.at(ratelimitHeader));
+		} catch (...) {
+			Locator::getLogger()->warn("Failed to turn Retry-After from string "
+									   "to number, defaulted to 60 - Value: {}",
+									   headers.at(ratelimitHeader));
+		}
+	}
+
+	Locator::getLogger()->warn("{} {} - Rate Limited. Requeueing request to "
+							   "the endpoint after {} seconds",
+							   endpoint,
+							   status,
+							   waitSeconds);
+
+	auto newTimestamp =
+	  std::chrono::steady_clock::now() + std::chrono::seconds(waitSeconds);
+
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		endpointRatelimitTimestamps[endpoint] = newTimestamp;
+	}
+
+	// the calling function needs to call QueueRatelimitedRequest next
+	// but with a new copy of the request
+
+	return true;
+}
+
+bool
+DownloadManager::QueueRequestIfRatelimited(const std::string& endpoint,
+										   HTTPRequest& req)
+{
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
+			return false;
+		}
+
+		auto ratelimitTimestamp = endpointRatelimitTimestamps.at(endpoint);
+		if (std::chrono::steady_clock::now() > ratelimitTimestamp) {
+			endpointRatelimitTimestamps.erase(endpoint);
+			return false;
+		}
+	}
+
+	QueueRatelimitedRequest(endpoint, req);
+
+	return true;
+}
+
+void
+DownloadManager::QueueRatelimitedRequest(const std::string& endpoint,
+										 HTTPRequest& req)
+{
+	{
+		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
+		if (ratelimitedRequestQueue.count(endpoint) == 0u) {
+			ratelimitedRequestQueue.emplace(endpoint,
+											std::vector<HTTPRequest*>());
+		}
+		ratelimitedRequestQueue.at(endpoint).push_back(&req);
+	}
+}
+
+bool
+DownloadManager::HandleAuthErrorResponse(const std::string& endpoint,
+										 HTTPRequest& req)
+{
+	auto& status = req.response_code;
+	if (status != 401 && status != 403) {
+		return false;
+	}
+
+	if (status == 403) {
+		Locator::getLogger()->warn(
+		  "{} {} - Auth Error. You are banned", endpoint, status);
+	} else {
+		Locator::getLogger()->warn(
+		  "{} {} - Auth Error. Logging out automatically", endpoint, status);
+	}
+
+	LogoutIfLoggedIn();
+
+	return true;
+}
+
+bool
+DownloadManager::Handle401And429Response(const std::string& endpoint,
+										 HTTPRequest& req,
+										 std::function<void()> if401,
+										 std::function<void()> if429)
+{
+	if (HandleAuthErrorResponse(endpoint, req)) {
+		if (if401)
+			if401();
+		return true;
+	}
+	if (HandleRatelimitResponse(endpoint, req)) {
+		if (if429)
+			if429();
+		return true;
+	}
+	return false;
+}
+
 bool
 DownloadManager::LoggedIn()
 {
@@ -1128,27 +1365,6 @@ DownloadManager::Logout()
 		MESSAGEMAN->Broadcast("LogOut");
 }
 
-bool
-DownloadManager::HandleAuthErrorResponse(const std::string& endpoint, HTTPRequest& req)
-{
-	auto& status = req.response_code;
-	if (status != 401 && status != 403) {
-		return false;
-	}
-
-	if (status == 403) {
-		Locator::getLogger()->warn(
-		  "{} {} - Auth Error. You are banned", endpoint, status);
-	} else {
-		Locator::getLogger()->warn(
-		  "{} {} - Auth Error. Logging out automatically", endpoint, status);
-	}
-
-	LogoutIfLoggedIn();
-
-	return true;
-}
-
 inline std::string
 FavoriteVectorToJSON(std::vector<std::string>& v)
 {
@@ -1186,85 +1402,88 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 
 	auto done = [chartkey, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [chartkey, this]() { AddFavoriteRequest(chartkey); })) {
 			return;
 		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			AddFavoriteRequest(chartkey);
-			return;
-		}
 
-		Document d;
-		// return true if parse error
-		auto parse = [&d, &req, &chartkey]() {
-			if (d.Parse(req.result.c_str()).HasParseError()) {
-				Locator::getLogger()->error(
-				  "AddFavoriteRequest Parse Error: Favorite: "
-				  "{} - status {} | response: {}",
-				  chartkey,
-				  req.response_code,
-				  req.result);
-				return true;
-			}
-			return false;
-		};
+Document d;
+// return true if parse error
+auto parse = [&d, &req, &chartkey]() {
+	if (d.Parse(req.result.c_str()).HasParseError()) {
+		Locator::getLogger()->error(
+			"AddFavoriteRequest Parse Error: Favorite: "
+			"{} - status {} | response: {}",
+			chartkey,
+			req.response_code,
+			req.result);
+		return true;
+	}
+	return false;
+};
 
-		auto response = req.response_code;
+auto response = req.response_code;
 
-		if (response == 200) {
-			// all good
-			Locator::getLogger()->info(
-			  "AddFavorite successfully added favorite {} to online profile",
-			  chartkey);
+if (response == 200) {
+	// all good
+	Locator::getLogger()->info(
+		"AddFavorite successfully added favorite {} to online profile",
+		chartkey);
 
-		} else if (response == 422) {
-			// missing info
-			parse();
+}
+else if (response == 422) {
+	// missing info
+	parse();
 
-			Locator::getLogger()->warn(
-			  "AddFavorite for {} failed due to input error. Content: {}",
-			  chartkey,
-			  jsonObjectToString(d));
-		} else if (response == 404) {
-			parse();
+	Locator::getLogger()->warn(
+		"AddFavorite for {} failed due to input error. Content: {}",
+		chartkey,
+		jsonObjectToString(d));
+}
+else if (response == 404) {
+	parse();
 
-			Locator::getLogger()->warn("AddFavorite for {} failed due to 404. "
-									   "Chart may be unranked - Content: {}",
-									   chartkey,
-									   jsonObjectToString(d));
-		} else {
-			// ???
-			parse();
+	Locator::getLogger()->warn("AddFavorite for {} failed due to 404. "
+		"Chart may be unranked - Content: {}",
+		chartkey,
+		jsonObjectToString(d));
+}
+else {
+	// ???
+	parse();
 
-			Locator::getLogger()->warn(
-			  "AddFavorite for {} - unknown response {} - Content: {}",
-			  chartkey,
-			  response,
-			  jsonObjectToString(d));
-		}
+	Locator::getLogger()->warn(
+		"AddFavorite for {} - unknown response {} - Content: {}",
+		chartkey,
+		response,
+		jsonObjectToString(d));
+}
 	};
 
 	SendRequest(CALL_PATH,
-				CALL_ENDPOINT,
-				{ make_pair("key", UrlEncode(chartkey)) },
-				done,
-				true,
-				RequestMethod::POST);
+		CALL_ENDPOINT,
+		{ make_pair("key", UrlEncode(chartkey)) },
+		done,
+		true,
+		RequestMethod::POST);
 }
 
 void
 DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
-							  std::function<void()> callback)
+	std::function<void()> callback)
 {
 	constexpr auto& CALL_ENDPOINT = API_FAVORITES_BULK;
 	constexpr auto& CALL_PATH = API_FAVORITES_BULK;
 
 	Locator::getLogger()->info("Creating BulkAddGoals request for {} favorites",
-							   favorites.size());
+		favorites.size());
 
 	if (!LoggedIn()) {
 		Locator::getLogger()->warn(
-		  "Attempted to upload favorites while not logged in. Aborting");
+			"Attempted to upload favorites while not logged in. Aborting");
 		if (callback)
 			callback();
 		return;
@@ -1279,13 +1498,17 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
 	auto done = [callback, favorites, &CALL_ENDPOINT, this](HTTPRequest& req) {
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			if (callback)
-				callback();
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			BulkAddFavorites(favorites, callback);
+
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  [callback]() {
+				  if (callback)
+					  callback();
+			  },
+			  [favorites, callback, this]() {
+				  BulkAddFavorites(favorites, callback);
+			  })) {
 			return;
 		}
 
@@ -1401,11 +1624,13 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 
 	auto done = [chartkey, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			RemoveFavoriteRequest(chartkey);
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [chartkey, this]() {
+				RemoveFavoriteRequest(chartkey);
+			})) {
 			return;
 		}
 
@@ -1482,11 +1707,14 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 
 	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
 				  HTTPRequest& req) {
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			GetFavoritesRequest(onSuccess, start, end);
+
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [onSuccess, start, end, this]() {
+				  GetFavoritesRequest(onSuccess, start, end);
+			  })) {
 			return;
 		}
 
@@ -1729,11 +1957,12 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 
 	auto done = [goal, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			AddGoalRequest(goal);
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [goal, this]() { AddGoalRequest(goal);
+			})) {
 			return;
 		}
 
@@ -1825,13 +2054,16 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 
 	auto done = [callback, goals, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			if (callback)
-				callback();
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			BulkAddGoals(goals, callback);
+		if (Handle401And429Response(
+			CALL_ENDPOINT,
+			req,
+			[callback]() {
+				if (callback)
+					callback();
+			},
+			[goals, callback, this]() {
+				BulkAddGoals(goals, callback);
+			})) {
 			return;
 		}
 
@@ -1957,11 +2189,12 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 
 	auto done = [goal, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			RemoveGoalRequest(goal);
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [goal, this]() { RemoveGoalRequest(goal);
+			})) {
 			return;
 		}
 
@@ -2047,11 +2280,12 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 
 	auto done = [goal, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			UpdateGoalRequest(goal);
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [goal, this]() { UpdateGoalRequest(goal);
+			})) {
 			return;
 		}
 
@@ -2129,11 +2363,14 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 	};
 
 	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](HTTPRequest& req) {
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			GetGoalsRequest(onSuccess, start, end);
+		
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [onSuccess, start, end, this]() {
+				  GetGoalsRequest(onSuccess, start, end);
+			  })) {
 			return;
 		}
 
@@ -2455,13 +2692,16 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 
 	auto done = [callback, start, end, &CALL_ENDPOINT, this, startstr, endstr](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			if (callback)
-				callback();
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			GetRankedChartkeysRequest(callback, start, end);
+		if (Handle401And429Response(
+			CALL_ENDPOINT,
+			req,
+			[callback]() {
+				if (callback)
+					callback();
+			},
+			[callback, start, end, this]() {
+				GetRankedChartkeysRequest(callback, start, end);
+			})) {
 			return;
 		}
 
@@ -3033,13 +3273,16 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 
 	auto done = [callback, hsList, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			if (callback)
-				callback();
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			UploadBulkScores(hsList, callback);
+		if (Handle401And429Response(
+			CALL_ENDPOINT,
+			req,
+			[callback]() {
+				if (callback)
+					callback();
+			},
+			[hsList, callback, this]() {
+				UploadBulkScores(hsList, callback);
+			})) {
 			return;
 		}
 
@@ -3257,13 +3500,16 @@ DownloadManager::UploadScore(HighScore* hs,
 
 	auto done = [hs, callback, load_from_disk, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			if (callback)
-				callback();
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			UploadScore(hs, callback, load_from_disk);
+		if (Handle401And429Response(
+			CALL_ENDPOINT,
+			req,
+			[callback]() {
+				if (callback)
+					callback();
+			},
+			[hs, callback, load_from_disk, this]() {
+				UploadScore(hs, callback, load_from_disk);
+			})) {
 			return;
 		}
 
@@ -3652,201 +3898,6 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 	return OnlineTopScore();
 }
 
-HTTPRequest*
-DownloadManager::SendRequest(
-	std::string requestName,
-	std::vector<std::pair<std::string, std::string>> params,
-  std::function<void(HTTPRequest&)> done,
-  bool requireLogin,
-  RequestMethod httpMethod,
-  bool async,
-  bool withBearer)
-{
-	return SendRequest(requestName,
-					   requestName,
-					   params,
-					   done,
-					   requireLogin,
-					   httpMethod,
-					   async,
-					   withBearer);
-}
-
-HTTPRequest*
-DownloadManager::SendRequest(
-  std::string requestName,
-  std::string apiPath,
-  std::vector<std::pair<std::string, std::string>> params,
-  std::function<void(HTTPRequest&)> done,
-  bool requireLogin,
-  RequestMethod httpMethod,
-  bool async,
-  bool withBearer)
-{
-	return SendRequestToURL(APIROOT() + requestName,
-							apiPath,
-							params,
-							done,
-							requireLogin,
-							httpMethod,
-							async,
-							withBearer);
-}
-
-HTTPRequest*
-DownloadManager::SendRequestToURL(
-  std::string url,
-  std::string apiPath,
-  std::vector<std::pair<std::string, std::string>> params,
-  std::function<void(HTTPRequest&)> afterDone,
-  bool requireLogin,
-  RequestMethod httpMethod,
-  bool async,
-  bool withBearer)
-{
-	if (requireLogin && !LoggedIn())
-		return nullptr;
-	if (httpMethod == RequestMethod::GET && !params.empty()) {
-		url += "?";
-		for (auto& param : params)
-			url += param.first + "=" + param.second + "&";
-		url = url.substr(0, url.length() - 1);
-	}
-	auto done = [url,
-				 params,
-				 afterDone,
-				 requireLogin,
-				 httpMethod,
-				 async,
-				 withBearer,
-				 this](HTTPRequest& req) {
-		if (afterDone)
-			afterDone(req);
-	};
-	CURL* curlHandle = initCURLHandle(withBearer);
-	SetCURLURL(curlHandle, url);
-	HTTPRequest* req;
-	if (httpMethod == RequestMethod::POST) {
-		curl_httppost* form = nullptr;
-		curl_httppost* lastPtr = nullptr;
-		for (auto& param : params)
-			CURLFormPostField(form,
-							  lastPtr,
-							  param.first.c_str(),
-							  param.second.c_str());
-		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
-		req = new HTTPRequest(curlHandle, done, form);
-	} else if (httpMethod == RequestMethod::PATCH) {
-		curl_httppost* form = nullptr;
-		curl_httppost* lastPtr = nullptr;
-		for (auto& param : params)
-			CURLFormPostField(form,
-							  lastPtr,
-							  param.first.c_str(),
-							  param.second.c_str());
-		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
-		curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
-		req = new HTTPRequest(curlHandle, done, form);
-	} else if (httpMethod == RequestMethod::DEL) {
-		req = new HTTPRequest(curlHandle, done);
-		curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE");
-	} else {
-		req = new HTTPRequest(curlHandle, done);
-		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPGET, 1L);
-	}
-	SetCURLResultsString(curlHandle, &(req->result));
-	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (async) {
-		if (!QueueRequestIfRatelimited(apiPath, *req)) {
-			AddHttpRequestHandle(req->handle);
-			HTTPRequests.push_back(req);
-		}
-	} else {
-		Locator::getLogger()->debug("Waiting on synchronous curl call");
-		CURLcode res = curl_easy_perform(req->handle);
-		curl_easy_cleanup(req->handle);
-		done(*req);
-		Locator::getLogger()->debug("Synchronous curl call completed");
-		delete req;
-		return nullptr;
-	}
-	return req;
-}
-
-bool
-DownloadManager::HandleRatelimitResponse(const std::string& endpoint, HTTPRequest& req)
-{
-	auto& status = req.response_code;
-	if (status != 429) {
-		return false;
-	}
-
-	const auto ratelimitHeader = "Retry-After";
-	auto headers = extractHeaderMap(req.headers);
-
-	auto waitSeconds = 60;
-	if (headers.count(ratelimitHeader) != 0u) {
-		try {
-			waitSeconds = std::stoi(headers.at(ratelimitHeader));
-		} catch (...) {
-			Locator::getLogger()->warn("Failed to turn Retry-After from string "
-									   "to number, defaulted to 60 - Value: {}",
-									   headers.at(ratelimitHeader));
-		}
-	}
-
-	Locator::getLogger()->warn("{} {} - Rate Limited. Requeueing request to "
-							   "the endpoint after {} seconds",
-							   endpoint,
-							   status,
-							   waitSeconds);
-
-	auto newTimestamp =
-	  std::chrono::steady_clock::now() + std::chrono::seconds(waitSeconds);
-
-	{
-		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
-		endpointRatelimitTimestamps[endpoint] = newTimestamp;
-	}
-
-	// the calling function needs to call QueueRatelimitedRequest next
-	// but with a new copy of the request
-
-	return true;
-}
-
-bool
-DownloadManager::QueueRequestIfRatelimited(const std::string& endpoint, HTTPRequest& req) {
-	{
-		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
-		if (endpointRatelimitTimestamps.count(endpoint) == 0u) {
-			return false;
-		}
-
-		auto ratelimitTimestamp = endpointRatelimitTimestamps.at(endpoint);
-		if (std::chrono::steady_clock::now() > ratelimitTimestamp) {
-			endpointRatelimitTimestamps.erase(endpoint);
-			return false;
-		}
-	}
-
-	QueueRatelimitedRequest(endpoint, req);
-
-	return true;
-}
-
-void
-DownloadManager::QueueRatelimitedRequest(const std::string& endpoint, HTTPRequest& req) {
-	{
-		const std::lock_guard<std::mutex> lock(G_MTX_HTTP_REQS);
-		if (ratelimitedRequestQueue.count(endpoint) == 0u) {
-			ratelimitedRequestQueue.emplace(endpoint,
-											std::vector<HTTPRequest*>());
-		}
-		ratelimitedRequestQueue.at(endpoint).push_back(&req);
-	}
-}
-
 void
 DownloadManager::RequestReplayData(const std::string& scoreid,
 								   int userid,
@@ -3895,14 +3946,18 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 
 	auto done = [runLuaFunc, scoreid, userid, username, chartkey, &callback, &CALL_ENDPOINT, this](HTTPRequest& req) {
 		std::vector<std::pair<float, float>> replayData{};
-
 		auto& lbd = chartLeaderboards[chartkey];
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			runLuaFunc(replayData, lbd.end(), lbd.end());
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			RequestReplayData(scoreid, userid, username, chartkey, callback);
+
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  [runLuaFunc, &replayData, &lbd]() {
+				  runLuaFunc(replayData, lbd.end(), lbd.end());
+			  },
+			  [scoreid, userid, username, chartkey, &callback, this]() {
+				RequestReplayData(
+				scoreid, userid, username, chartkey, callback);
+			  })) {
 			return;
 		}
 
@@ -4095,12 +4150,16 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 	};
 
 	auto done = [&ref, chartkey, runLuaFunc, &vec, &CALL_ENDPOINT, this](HTTPRequest& req) {
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			runLuaFunc(req, vec);
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			RequestChartLeaderBoard(chartkey, ref);
+
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  [runLuaFunc, &req, &vec]() {
+				runLuaFunc(req, vec);
+			  },
+			  [chartkey, &ref, this]() {
+				  RequestChartLeaderBoard(chartkey, ref);
+			  })) {
 			return;
 		}
 
@@ -4382,11 +4441,12 @@ DownloadManager::RefreshUserData()
 	std::vector<std::pair<std::string, std::string>> params = {};
 
 	auto done = [&CALL_ENDPOINT, this](HTTPRequest& req) {
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			RefreshUserData();
+
+		if (Handle401And429Response(
+			CALL_ENDPOINT,
+			req,
+			[]() {},
+			[this]() { RefreshUserData(); })) {
 			return;
 		}
 
@@ -4495,11 +4555,11 @@ DownloadManager::RefreshPackList(const std::string& url)
 
 	auto done = [url, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
-		if (HandleAuthErrorResponse(CALL_ENDPOINT, req)) {
-			return;
-		}
-		if (HandleRatelimitResponse(CALL_ENDPOINT, req)) {
-			RefreshPackList(url);
+		if (Handle401And429Response(
+			CALL_ENDPOINT,
+			req,
+			[]() {},
+			[url, this]() { RefreshPackList(url); })) {
 			return;
 		}
 
