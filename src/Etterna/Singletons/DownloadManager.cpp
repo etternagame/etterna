@@ -1410,65 +1410,62 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 			return;
 		}
 
-Document d;
-// return true if parse error
-auto parse = [&d, &req, &chartkey]() {
-	if (d.Parse(req.result.c_str()).HasParseError()) {
-		Locator::getLogger()->error(
-			"AddFavoriteRequest Parse Error: Favorite: "
-			"{} - status {} | response: {}",
-			chartkey,
-			req.response_code,
-			req.result);
-		return true;
-	}
-	return false;
-};
+		Document d;
+		// return true if parse error
+		auto parse = [&d, &req, &chartkey]() {
+			if (d.Parse(req.result.c_str()).HasParseError()) {
+				Locator::getLogger()->error(
+				  "AddFavoriteRequest Parse Error: Favorite: "
+				  "{} - status {} | response: {}",
+				  chartkey,
+				  req.response_code,
+				  req.result);
+				return true;
+			}
+			return false;
+		};
 
-auto response = req.response_code;
+		auto response = req.response_code;
 
-if (response == 200) {
-	// all good
-	Locator::getLogger()->info(
-		"AddFavorite successfully added favorite {} to online profile",
-		chartkey);
+		if (response == 200) {
+			// all good
+			Locator::getLogger()->info(
+			  "AddFavorite successfully added favorite {} to online profile",
+			  chartkey);
 
-}
-else if (response == 422) {
-	// missing info
-	parse();
+		} else if (response == 422) {
+			// missing info
+			parse();
 
-	Locator::getLogger()->warn(
-		"AddFavorite for {} failed due to input error. Content: {}",
-		chartkey,
-		jsonObjectToString(d));
-}
-else if (response == 404) {
-	parse();
+			Locator::getLogger()->warn(
+			  "AddFavorite for {} failed due to input error. Content: {}",
+			  chartkey,
+			  jsonObjectToString(d));
+		} else if (response == 404) {
+			parse();
 
-	Locator::getLogger()->warn("AddFavorite for {} failed due to 404. "
-		"Chart may be unranked - Content: {}",
-		chartkey,
-		jsonObjectToString(d));
-}
-else {
-	// ???
-	parse();
+			Locator::getLogger()->warn("AddFavorite for {} failed due to 404. "
+									   "Chart may be unranked - Content: {}",
+									   chartkey,
+									   jsonObjectToString(d));
+		} else {
+			// ???
+			parse();
 
-	Locator::getLogger()->warn(
-		"AddFavorite for {} - unknown response {} - Content: {}",
-		chartkey,
-		response,
-		jsonObjectToString(d));
-}
+			Locator::getLogger()->warn(
+			  "AddFavorite for {} - unknown response {} - Content: {}",
+			  chartkey,
+			  response,
+			  jsonObjectToString(d));
+		}
 	};
 
 	SendRequest(CALL_PATH,
-		CALL_ENDPOINT,
-		{ make_pair("key", UrlEncode(chartkey)) },
-		done,
-		true,
-		RequestMethod::POST);
+				CALL_ENDPOINT,
+				{ make_pair("key", UrlEncode(chartkey)) },
+				done,
+				true,
+				RequestMethod::POST);
 }
 
 void
