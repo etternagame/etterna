@@ -1308,7 +1308,7 @@ HighScore::RescoreToDPJudge(int x) -> float
 	auto boo = 0;
 	auto miss = 0;
 	auto m2 = 0;
-	auto vOffsetVector = replay->GetOffsetVector();
+	auto& vOffsetVector = replay->GetOffsetVector();
 	for (auto& f : vOffsetVector) {
 		m2 += 2;
 		const auto x = std::abs(f * 1000.F);
@@ -1384,7 +1384,7 @@ HighScore::NormalizeJudgments() -> bool
 	// we don't really want that to happen
 	// this is because replays dont save for the same reason
 	if (!LoadReplayData()) {
-		auto vOffsetVector = replay->GetOffsetVector();
+		auto& vOffsetVector = replay->GetOffsetVector();
 		if (vOffsetVector.empty()) {
 			return false;
 		}
@@ -1397,8 +1397,8 @@ HighScore::NormalizeJudgments() -> bool
 	m_Impl->iTapNoteScoresNormalized[TNS_HitMine] =
 	  m_Impl->iTapNoteScores[TNS_HitMine];
 
-	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
-	auto vOffsetVector = replay->GetOffsetVector();
+	auto& vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+	auto& vOffsetVector = replay->GetOffsetVector();
 
 	// New replays, check for only certain types
 	if (HasColumnData()) {
