@@ -3,7 +3,7 @@
 #include "RageSurfaceUtils_Zoom.h"
 #include "RageUtil/Utils/RageUtil.h"
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <stb/stb_image_resize.h>
+#include <stb/stb_image_resize2.h>
 
 void
 RageSurfaceUtils::Zoom(RageSurface*& src, int dstwidth, int dstheight)
@@ -24,8 +24,15 @@ RageSurfaceUtils::Zoom(RageSurface*& src, int dstwidth, int dstheight)
 						src->fmt.Gmask,
 						src->fmt.Bmask,
 						src->fmt.Amask);
-	stbir_resize_uint8(
-	  src->pixels, src->w, src->h, 0, dst->pixels, dstwidth, dstheight, 0, 4);
+	stbir_resize_uint8_linear(src->pixels,
+							  src->w,
+							  src->h,
+							  0,
+							  dst->pixels,
+							  dstwidth,
+							  dstheight,
+							  0,
+							  static_cast<stbir_pixel_layout>(4));
 	delete src;
 	src = dst;
 }
