@@ -1006,6 +1006,9 @@ DownloadManager::SendRequestToURL(
 		curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 		req = new HTTPRequest(curlHandle, done, form);
 	} else if (httpMethod == RequestMethod::PATCH) {
+		// THIS PROBABLY DOESNT WORK
+		// USE AT YOUR OWN RISK
+		// PROBABLY DO IT ANOTHER WAY
 		curl_httppost* form = nullptr;
 		curl_httppost* lastPtr = nullptr;
 		for (auto& param : params)
