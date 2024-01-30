@@ -462,6 +462,19 @@ parseJson(Document& d, HTTPRequest& req, const char* reqName) {
 	return false;
 }
 
+inline Value
+stringToVal(const std::string& str,
+	Document::AllocatorType& allocator,
+	std::string defaultVal = "") {
+	Value v;
+	if (str.empty()) {
+		v.SetString(defaultVal.c_str(), allocator);
+	} else {
+		v.SetString(str.c_str(), allocator);
+	}
+	return v;
+}
+
 std::string
 UrlEncode(const std::string& str)
 {
@@ -1865,27 +1878,25 @@ GoalToJSON(ScoreGoal* goal, Document::AllocatorType& allocator) {
 		return d;
 	}
 
-	auto val = [&allocator](const std::string& str,
-							std::string defaultVal = "") {
-		Value v;
-		if (str.empty()) {
-			v.SetString(defaultVal.c_str(), allocator);
-		} else {
-			v.SetString(str.c_str(), allocator);
-		}
-		return v;
-	};
-
-	d.AddMember("key", val(URLEncode(goal->chartkey)), allocator);
-	d.AddMember("rate", val(std::to_string(goal->rate)), allocator);
-	d.AddMember("wife", val(std::to_string(goal->percent)), allocator);
-	d.AddMember("set_date", val(goal->timeassigned.GetString()), allocator);
+	d.AddMember(
+	  "key", stringToVal(URLEncode(goal->chartkey), allocator), allocator);
+	d.AddMember(
+	  "rate", stringToVal(std::to_string(goal->rate), allocator), allocator);
+	d.AddMember(
+	  "wife", stringToVal(std::to_string(goal->percent), allocator), allocator);
+	d.AddMember("set_date",
+				stringToVal(goal->timeassigned.GetString(), allocator),
+				allocator);
 
 	if (goal->achieved) {
 		std::string timeAchievedString = "0000-00-00 00:00:00";
 		timeAchievedString = goal->timeachieved.GetString();
-		d.AddMember("achieved", val(std::to_string(goal->achieved)), allocator);
-		d.AddMember("achieved_date", val(timeAchievedString), allocator);
+		d.AddMember("achieved",
+					stringToVal(std::to_string(goal->achieved), allocator),
+					allocator);
+		d.AddMember("achieved_date",
+					stringToVal(timeAchievedString, allocator),
+					allocator);
 	}
 
 	return d;
@@ -2596,27 +2607,19 @@ PlaylistToJSON(const Playlist& playlist) {
 	Document::AllocatorType& allocator = d.GetAllocator();
 	d.SetObject();
 
-	auto val = [&allocator](const std::string& str,
-							std::string defaultVal = "") {
-		Value v;
-		if (str.empty()) {
-			v.SetString(defaultVal.c_str(), allocator);
-		} else {
-			v.SetString(str.c_str(), allocator);
-		}
-		return v;
-	};
-
 	Value arrDoc(kArrayType);
 	for (auto& chart : playlist.chartlist) {
 		Document element;
 		element.SetObject();
-		element.AddMember("chartkey", val(chart.key), allocator);
-		element.AddMember("rate", val(std::to_string(chart.rate)), allocator);
+		element.AddMember(
+		  "chartkey", stringToVal(chart.key, allocator), allocator);
+		element.AddMember("rate",
+						  stringToVal(std::to_string(chart.rate), allocator),
+						  allocator);
 		arrDoc.PushBack(element, allocator);
 	}
 	d.AddMember("charts", arrDoc, allocator);
-	d.AddMember("name", val(playlist.name), allocator);
+	d.AddMember("name", stringToVal(playlist.name, allocator), allocator);
 
 	StringBuffer buffer;
 	Writer<StringBuffer> w(buffer);
@@ -2729,17 +2732,7 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 	Document d;
 	Document::AllocatorType& allocator = d.GetAllocator();
 	d.SetObject();
-	auto val = [&allocator](const std::string& str,
-							std::string defaultVal = "") {
-		Value v;
-		if (str.empty()) {
-			v.SetString(defaultVal.c_str(), allocator);
-		} else {
-			v.SetString(str.c_str(), allocator);
-		}
-		return v;
-	};
-	d.AddMember("name", val(name), allocator);
+	d.AddMember("name", stringToVal(name, allocator), allocator);
 	StringBuffer buffer;
 	Writer<StringBuffer> w(buffer);
 	d.Accept(w);
@@ -3231,25 +3224,11 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 		return d;
 	}
 
-	// to put a string into a json object
-	// we have to put it in a Value instead
-	// thats kinda cringe but theres some good technical reason why
-	auto val = [&allocator](const std::string& str,
-							std::string defaultVal = "") {
-		Value v;
-		if (str.empty()) {
-			v.SetString(defaultVal.c_str(), allocator);
-		} else {
-			v.SetString(str.c_str(), allocator);
-		}
-		
-		return v;
-	};
-
-	d.AddMember("key", val(hs->GetScoreKey()), allocator);
+	d.AddMember("key", stringToVal(hs->GetScoreKey(), allocator), allocator);
 	d.AddMember("wife", hs->GetSSRNormPercent(), allocator);
 	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
-	d.AddMember("modifiers", val(hs->GetModifiers()), allocator);
+	d.AddMember(
+	  "modifiers", stringToVal(hs->GetModifiers(), allocator), allocator);
 	if (hs->IsEmptyNormalized()) {
 		Locator::getLogger()->debug("Score {} will NOT use Normalized TNS",
 									hs->GetScoreKey());
@@ -3275,7 +3254,9 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("missed_hold", hs->GetHoldNoteScore(HNS_Missed), allocator);
 	d.AddMember(
 	  "rate", std::round(hs->GetMusicRate() * 1000.0) / 1000.0, allocator);
-	d.AddMember("datetime", val(hs->GetDateTime().GetString()), allocator);
+	d.AddMember("datetime",
+				stringToVal(hs->GetDateTime().GetString(), allocator),
+				allocator);
 	d.AddMember(
 	  "chord_cohesion", static_cast<int>(hs->GetChordCohesion()), allocator);
 	d.AddMember("double_setup", static_cast<int>(hs->GetDSFlag()), allocator);
@@ -3283,12 +3264,19 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("top_score", hs->GetTopScore(), allocator);
 	d.AddMember("wife_version", hs->GetWifeVersion(), allocator);
 	d.AddMember(
-	  "validation_key", val(hs->GetValidationKey(ValidationKey_Brittle)), allocator);
-	d.AddMember("machine_guid", val(hs->GetMachineGuid(), "MISSING_GUID"), allocator);
-	d.AddMember("chart_key", val(hs->GetChartKey()), allocator);
+	  "validation_key",
+	  stringToVal(hs->GetValidationKey(ValidationKey_Brittle), allocator),
+	  allocator);
+	d.AddMember("machine_guid",
+				stringToVal(hs->GetMachineGuid(), allocator, "MISSING_GUID"),
+				allocator);
+	d.AddMember(
+	  "chart_key", stringToVal(hs->GetChartKey(), allocator), allocator);
 	d.AddMember(
 	  "judge", std::round(hs->GetJudgeScale() * 1000.0) / 1000.0, allocator);
-	d.AddMember("grade", val(GradeToOldString(hs->GetWifeGrade())), allocator);
+	d.AddMember("grade",
+				stringToVal(GradeToOldString(hs->GetWifeGrade()), allocator),
+				allocator);
 
 	// comprehensive checks for forced invalidation
 	auto validity = hs->GetEtternaValid();
