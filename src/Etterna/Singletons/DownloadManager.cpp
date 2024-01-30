@@ -105,6 +105,7 @@ static const std::string API_FAVORITES = "/favorites";
 static const std::string API_FAVORITES_BULK = "/favorites/bulk";
 static const std::string API_GOALS = "/goals";
 static const std::string API_GOALS_BULK = "/goals/bulk";
+static const std::string API_PLAYLISTS = "/playlists";
 static const std::string API_USER = "/users/{}";
 static const std::string API_GAME_VERSION = "/settings/version";
 
@@ -2586,6 +2587,337 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 
 	};
 	GetGoalsRequest(onSuccess, start, end);
+}
+
+inline std::string
+PlaylistToJSON(const Playlist& playlist) {
+
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d.SetObject();
+
+	auto val = [&allocator](const std::string& str,
+							std::string defaultVal = "") {
+		Value v;
+		if (str.empty()) {
+			v.SetString(defaultVal.c_str(), allocator);
+		} else {
+			v.SetString(str.c_str(), allocator);
+		}
+		return v;
+	};
+
+	Value arrDoc(kArrayType);
+	for (auto& chart : playlist.chartlist) {
+		Document element;
+		element.SetObject();
+		element.AddMember("chartkey", val(chart.key), allocator);
+		element.AddMember("rate", val(std::to_string(chart.rate)), allocator);
+		arrDoc.PushBack(element, allocator);
+	}
+	d.AddMember("charts", arrDoc, allocator);
+	d.AddMember("name", val(playlist.name), allocator);
+
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+	return buffer.GetString();
+}
+
+void
+DownloadManager::AddPlaylistRequest(const std::string& name)
+{
+	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
+	constexpr auto& CALL_PATH = API_PLAYLISTS;
+
+	const auto& playlists = SONGMAN->GetPlaylists();
+	if (!playlists.contains(name)) {
+		Locator::getLogger()->warn(
+		  "AddPlaylistRequest couldn't find local Playlist named {}", name);
+		return;
+	}
+
+	const auto& playlist = playlists.at(name);
+
+	Locator::getLogger()->info(
+	  "Generating AddPlaylistRequest for Playlist {} ({} charts)",
+	  name,
+	  playlist.chartlist.size());
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, CALL_PATH);
+
+	auto body = PlaylistToJSON(playlist);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+
+	auto done = [name, playlist, &CALL_ENDPOINT, this](HTTPRequest& req) {
+
+		if (Handle401And429Response(
+			CALL_ENDPOINT,
+			req,
+			[]() {},
+			[name, this]() { AddPlaylistRequest(name); })) {
+			return;
+		}
+
+		Document d;
+		// return true if parse failure
+		auto parse = [&d, &req]() { return parseJson(d, req, "AddPlaylist"); };
+
+		const auto& response = req.response_code;
+		if (response == 200) {
+			// it worked
+			Locator::getLogger()->info(
+			  "AddPlaylist successfully added playlist {} to online profile. "
+			  "This doesn't guarantee that all charts were uploaded, and they "
+			  "may resync later",
+			  name);
+		}
+		else if (response == 422) {
+			// some validation issue with the request
+			parse();
+
+			Locator::getLogger()->warn(
+			  "AddPlaylist for playlist {} failed due to validation error: {}",
+			  name,
+			  jsonObjectToString(d));
+		}
+		else {
+			// ???
+			parse();
+
+			Locator::getLogger()->warn("AddPlaylist for playlist {} unexpected "
+									   "response {} - Content: {}",
+									   name,
+									   response,
+									   jsonObjectToString(d));
+		}
+
+	};
+
+	HTTPRequest* req =
+	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {});
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+}
+
+void
+DownloadManager::RemovePlaylistRequest(const std::string& name)
+{
+	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
+	constexpr auto& CALL_PATH = API_PLAYLISTS;
+
+	const auto& playlists = SONGMAN->GetPlaylists();
+	if (!playlists.contains(name)) {
+		Locator::getLogger()->warn("RemovePlaylistRequest couldn't find local Playlist named {}",
+								   name);
+		return;
+	}
+
+	Locator::getLogger()->info(
+	  "Generating RemovePlaylistRequest for Playlist {}", name);
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, CALL_PATH);
+
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d.SetObject();
+	auto val = [&allocator](const std::string& str,
+							std::string defaultVal = "") {
+		Value v;
+		if (str.empty()) {
+			v.SetString(defaultVal.c_str(), allocator);
+		} else {
+			v.SetString(str.c_str(), allocator);
+		}
+		return v;
+	};
+	d.AddMember("name", val(name), allocator);
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+
+	std::string body = buffer.GetString();
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE");
+
+
+	auto done = [name, &CALL_ENDPOINT, this](HTTPRequest& req) {
+
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [name, this]() { RemovePlaylistRequest(name); })) {
+			return;
+		}
+
+		Document d;
+		// return true if parse failure
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "RemovePlaylist");
+		};
+
+		const auto& response = req.response_code;
+		if (response == 200) {
+			// success
+			Locator::getLogger()->info(
+			  "RemovePlaylist for playlist {} successfully deleted from online "
+			  "profile",
+			  name);
+		}
+		else {
+			// ???
+			parse();
+
+			Locator::getLogger()->warn("RemovePlaylist for playlist {} "
+									   "unexpected response {} - Content: {}",
+									   name,
+									   response,
+									   jsonObjectToString(d));
+		}
+
+	};
+
+	HTTPRequest* req =
+	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {});
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+}
+
+void
+DownloadManager::GetPlaylistsRequest(
+  std::function<void(std::vector<Playlist>)> onSuccess,
+  const DateTime start,
+  const DateTime end)
+{
+	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
+	constexpr auto& CALL_PATH = API_GOALS;
+
+	std::string startstr = fmt::format(
+	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
+	std::string endstr =
+	  fmt::format("{}-{}-{}", end.tm_year + 1900, end.tm_mon + 1, end.tm_mday);
+	Locator::getLogger()->info(
+	  "Generating GetPlaylistsRequest {} to {}", startstr, endstr);
+
+	std::vector<std::pair<std::string, std::string>> params = {
+		std::make_pair("start", startstr),
+		std::make_pair("end", endstr),
+	};
+
+	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
+				  HTTPRequest& req) {
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [onSuccess, start, end, this]() {
+				  GetPlaylistsRequest(onSuccess, start, end);
+			  })) {
+			return;
+		}
+
+		Document d;
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "GetPlaylistsRequest");
+		};
+
+		const auto& response = req.response_code;
+		if (response == 200) {
+			// all good
+			if (parse())
+				return;
+
+			if (d.HasMember("playlists") && d["playlists"].IsArray()) {
+				auto& data = d["playlists"];
+
+				std::vector<Playlist> onlinePlaylists{};
+				for (auto it = data.Begin(); it != data.End(); it++) {
+					auto obj = it->GetObj();
+					Playlist tmpPlaylist;
+
+					tmpPlaylist.name = getJsonString(obj, "name");
+
+					std::vector<Chart> chartlist{};
+					if (obj.HasMember("charts") && obj["charts"].IsArray()) {
+						auto& charts = obj["charts"];
+						for (auto chartIt = charts.Begin();
+							 chartIt != charts.End();
+							 chartIt++) {
+							auto chartObj = chartIt->GetObj();
+							Chart chart;
+
+							chart.key = getJsonString(chartObj, "key");
+
+							// lmao
+							if (chartObj.HasMember("pivot")) {
+								chart.rate =
+								  getJsonFloat(chartObj["pivot"], "rate");
+							}
+
+							chart.FromKey(chart.key);
+
+							chartlist.push_back(chart);
+						}
+					}
+					tmpPlaylist.chartlist = chartlist;
+					onlinePlaylists.push_back(tmpPlaylist);
+
+					Locator::getLogger()->info(
+					  "Found online playlist {} - {} charts",
+					  tmpPlaylist.name,
+					  tmpPlaylist.chartlist.size());
+				}
+
+				Locator::getLogger()->info(
+				  "GetPlaylistsRequest returned successfully. Found {} online "
+				  "playlists",
+				  onlinePlaylists.size());
+				onSuccess(onlinePlaylists);
+
+			} else {
+				Locator::getLogger()->warn("GetPlaylistsRequest got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
+			}
+		} else {
+			parse();
+
+			Locator::getLogger()->warn(
+			  "GetPlaylistsRequest unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+}
+
+void
+DownloadManager::RefreshPlaylists(const DateTime start, const DateTime end)
+{
+	Locator::getLogger()->info(
+	  "Refreshing Playlists - {} to {}", start.GetString(), end.GetString());
+
+	auto onSuccess = [this](std::vector<Playlist> onlinePlaylists) {
+		// ???
+	};
+	GetPlaylistsRequest(onSuccess, start, end);
 }
 
 void

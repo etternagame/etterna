@@ -270,6 +270,16 @@ class DownloadManager
 	void RefreshGoals(
 	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
 	  const DateTime end = DateTime::GetFromString("2100-01-01 12:00:00"));
+	void AddPlaylist(const std::string& name) {
+		AddPlaylistRequest(name);
+	}
+	void RemovePlaylist(const std::string& name)
+	{
+		RemovePlaylistRequest(name);
+	}
+	void RefreshPlaylists(
+	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
+	  const DateTime end = DateTime::GetFromString("2100-01-01 12:00:00"));
 
 	// Score upload functions
 	void UploadScore(HighScore* hs,
@@ -333,7 +343,15 @@ class DownloadManager
 	void GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onSuccess,
 						 const DateTime start,
 						 const DateTime end);
+	void AddPlaylistRequest(const std::string& name);
+	void RemovePlaylistRequest(const std::string& name);
+	void GetPlaylistsRequest(
+	  std::function<void(std::vector<Playlist>)> onSuccess,
+	  const DateTime start,
+	  const DateTime end);
 
+
+	// To send a request to API base URL and ratelimit at that URL
 	HTTPRequest* SendRequest(
 	  std::string requestName,
 	  std::vector<std::pair<std::string, std::string>> params,
@@ -342,6 +360,7 @@ class DownloadManager
 	  RequestMethod httpMethod = RequestMethod::GET,
 	  bool async = true,
 	  bool withBearer = true);
+	// To send a request to API based URL, ratelimit at different path
 	HTTPRequest* SendRequest(
 	  std::string requestName,
 	  std::string apiPath,
@@ -351,6 +370,7 @@ class DownloadManager
 	  RequestMethod httpMethod = RequestMethod::GET,
 	  bool async = true,
 	  bool withBearer = true);
+	// Send a request directly to a given URL, ratelimit at other path
 	HTTPRequest* SendRequestToURL(
 	  std::string url,
 	  std::string apiPath,
