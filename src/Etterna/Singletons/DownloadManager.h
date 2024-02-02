@@ -273,6 +273,10 @@ class DownloadManager
 	void AddPlaylist(const std::string& name) {
 		AddPlaylistRequest(name);
 	}
+	void UpdatePlaylist(const std::string& name)
+	{
+		UpdatePlaylistRequest(name);
+	}
 	void RemovePlaylist(const std::string& name)
 	{
 		RemovePlaylistRequest(name);
@@ -344,6 +348,7 @@ class DownloadManager
 						 const DateTime start,
 						 const DateTime end);
 	void AddPlaylistRequest(const std::string& name);
+	void UpdatePlaylistRequest(const std::string& name);
 	void RemovePlaylistRequest(const std::string& name);
 	void GetPlaylistsRequest(
 	  std::function<void(std::vector<Playlist>)> onSuccess,

@@ -2711,6 +2711,86 @@ DownloadManager::AddPlaylistRequest(const std::string& name)
 }
 
 void
+DownloadManager::UpdatePlaylistRequest(const std::string& name)
+{
+	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
+	constexpr auto& CALL_PATH = API_PLAYLISTS;
+
+	const auto& playlists = SONGMAN->GetPlaylists();
+	if (!playlists.contains(name)) {
+		Locator::getLogger()->warn(
+		  "UpdatePlaylistRequest couldn't find local Playlist named {}", name);
+		return;
+	}
+
+	const auto& playlist = playlists.at(name);
+
+	Locator::getLogger()->info(
+	  "Generating UpdatePlaylistRequest for Playlist {} ({} charts)",
+	  name,
+	  playlist.chartlist.size());
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLAPIURL(curlHandle, CALL_PATH);
+
+	auto body = PlaylistToJSON(playlist);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
+
+	auto done = [name, playlist, &CALL_ENDPOINT, this](HTTPRequest& req) {
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [name, this]() { UpdatePlaylistRequest(name); })) {
+			return;
+		}
+
+		Document d;
+		// return true if parse failure
+		auto parse = [&d, &req]() { return parseJson(d, req, "UpdatePlaylist"); };
+
+		const auto& response = req.response_code;
+		if (response == 200) {
+			// it worked
+			Locator::getLogger()->info(
+			  "UpdatePlaylist successfully updated playlist {} on online profile. "
+			  "This doesn't guarantee that all charts were uploaded, and they "
+			  "may resync later",
+			  name);
+		} else if (response == 422) {
+			// some validation issue with the request
+			parse();
+
+			Locator::getLogger()->warn(
+			  "UpdatePlaylist for playlist {} failed due to validation error: {}",
+			  name,
+			  jsonObjectToString(d));
+		} else {
+			// ???
+			parse();
+
+			Locator::getLogger()->warn("UpdatePlaylist for playlist {} unexpected "
+									   "response {} - Content: {}",
+									   name,
+									   response,
+									   jsonObjectToString(d));
+		}
+	};
+
+	HTTPRequest* req =
+	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {});
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+}
+
+void
 DownloadManager::RemovePlaylistRequest(const std::string& name)
 {
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
