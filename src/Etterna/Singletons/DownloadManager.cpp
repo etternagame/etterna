@@ -413,6 +413,8 @@ getJsonString(Value& doc, const char* name)
 			return std::to_string(doc[name].GetFloat());
 		} else if (doc[name].IsInt()) {
 			return std::to_string(doc[name].GetInt());
+		} else {
+			return jsonObjectToString(doc[name]);
 		}
 	}
 	return "";
