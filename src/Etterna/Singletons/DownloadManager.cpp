@@ -3455,8 +3455,10 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			}
 			// would rather be 100% but 90% is reasonable
 			// score becomes auto invalid if judgments are
-			// less than 90% total notes
-			validity &= total >= static_cast<float>(notes) * 0.9F;
+			// less than 90% total notes (fails/bugs)
+			// or greater than 110% total notes (inserts/bugs)
+			validity &= (total >= static_cast<float>(notes) * 0.9F &&
+						 total <= static_cast<float>(notes) * 1.1F);
 			if (!validity)
 				Locator::getLogger()->info(
 				  "Score {} will upload as invalid because the Judgment Total "
