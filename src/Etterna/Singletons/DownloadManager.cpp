@@ -3304,6 +3304,9 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 		return d;
 	}
 
+	Locator::getLogger()->trace(
+	  "ScoreToJSON :: score {} | ck {}", hs->GetScoreKey(), hs->GetChartKey());
+
 	d.AddMember("key", stringToVal(hs->GetScoreKey(), allocator), allocator);
 	d.AddMember("wife", hs->GetSSRNormPercent(), allocator);
 	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
@@ -3474,6 +3477,8 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	Document replayVector;
 	replayVector.SetArray();
 	if (includeReplayData) {
+		Locator::getLogger()->trace("Adding replay data JSON to score {}",
+									hs->GetScoreKey());
 		auto fval = [](const float f) {
 			Value v;
 			v.SetFloat(f);
