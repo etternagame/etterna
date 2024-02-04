@@ -250,7 +250,7 @@ ScreenSelectMusic::BeginScreen()
 	if (GAMESTATE->m_pCurSteps != nullptr &&
 		DLMAN->chartLeaderboards.count(GAMESTATE->m_pCurSteps->GetChartKey()) !=
 		  0)
-		DLMAN->RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
+		DLMAN->GetChartLeaderboard(GAMESTATE->m_pCurSteps->GetChartKey());
 
 	GAMESTATE->m_bRestartedGameplay = false;
 

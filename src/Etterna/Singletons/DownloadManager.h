@@ -303,6 +303,20 @@ class DownloadManager
 	bool ForceUploadAllPBs();
 	bool InitialScoreSync();
 
+	void GetChartLeaderboard(const std::string& chartkey,
+							 LuaReference& ref = EMPTY_REFERENCE)
+	{
+		GetChartLeaderboardRequest(chartkey, ref);
+	}
+	void GetReplayData(const std::string& scorekey,
+					   int userid,
+					   const std::string& username,
+					   const std::string& chartkey,
+					   LuaReference& callback = EMPTY_REFERENCE)
+	{
+		GetReplayDataRequest(scorekey, userid, username, chartkey, callback);
+	}
+
   private:
 	/// Default empty reference for calls allowing Lua functions to be passed
 	static LuaReference EMPTY_REFERENCE;
@@ -354,6 +368,13 @@ class DownloadManager
 	  std::function<void(std::unordered_map<std::string, Playlist>)> onSuccess,
 	  const DateTime start,
 	  const DateTime end);
+	void GetChartLeaderboardRequest(const std::string& chartkey,
+									LuaReference& ref);
+	void GetReplayDataRequest(const std::string& scorekey,
+							  int userid,
+							  const std::string& username,
+							  const std::string& chartkey,
+							  LuaReference& callback);
 
 
 	// To send a request to API base URL and ratelimit at that URL
@@ -413,14 +434,6 @@ class DownloadManager
 													 bool mirror = false);
 	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = false);
 	std::vector<DownloadablePack*> GetCoreBundle(const std::string& whichoneyo);
-
-	void RequestReplayData(const std::string& scorekey,
-						   int userid,
-						   const std::string& username,
-						   const std::string& chartkey,
-						   LuaReference& callback = EMPTY_REFERENCE);
-	void RequestChartLeaderBoard(const std::string& chartkey,
-								 LuaReference& ref = EMPTY_REFERENCE);
 
 	OnlineTopScore GetTopSkillsetScore(unsigned int rank,
 									   Skillset ss,

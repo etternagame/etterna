@@ -1203,7 +1203,7 @@ DownloadManager::OnLogin()
 		// UpdateOnlineScoreReplayData();
 	}
 	if (GAMESTATE->m_pCurSteps != nullptr)
-		RequestChartLeaderBoard(GAMESTATE->m_pCurSteps->GetChartKey());
+		GetChartLeaderboard(GAMESTATE->m_pCurSteps->GetChartKey());
 	MESSAGEMAN->Broadcast("Login");
 	loggingIn = false;
 }
@@ -1233,6 +1233,9 @@ DownloadManager::LoginRequest(const std::string& user,
 	if (loggingIn || user.empty()) {
 		return;
 	}
+
+	Locator::getLogger()->info("Creating Login request");
+
 	loggingIn = true;
 	LogoutIfLoggedIn();
 	CURL* curlHandle = initCURLHandle(false);
@@ -1357,6 +1360,7 @@ DownloadManager::LoginRequest(const std::string& user,
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
+	Locator::getLogger()->info("Finished creating Login request");
 }
 
 void
@@ -1474,6 +1478,8 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 				done,
 				true,
 				RequestMethod::POST);
+	Locator::getLogger()->info("Finished creating AddFavorite request for {}",
+							   chartkey);
 }
 
 void
@@ -1670,6 +1676,8 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 				done,
 				true,
 				RequestMethod::DEL);
+	Locator::getLogger()->info(
+	  "Finished creating RemoveFavorite request for {}", chartkey);
 }
 
 void
@@ -1747,6 +1755,8 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 	};
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating GetFavorites request for {} - {}", startstr, endstr);
 }
 
 void
@@ -1994,6 +2004,8 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 
 	SendRequest(
 	  CALL_PATH, CALL_ENDPOINT, postParams, done, true, RequestMethod::POST);
+	Locator::getLogger()->info("Finished creating AddGoal request for {}",
+							   goal->DebugString());
 }
 
 void
@@ -2203,6 +2215,8 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 	};
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, {}, done, true, RequestMethod::DEL);
+	Locator::getLogger()->info("Finished creating RemoveGoal request for {}",
+							   goal->DebugString());
 }
 
 void
@@ -2295,6 +2309,8 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
+	Locator::getLogger()->info("Finished creating UpdateGoal request for {}",
+							   goal->DebugString());
 }
 
 void
@@ -2388,6 +2404,8 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 	};
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating GetGoals request for {} - {}", startstr, endstr);
 }
 
 void
@@ -2602,7 +2620,7 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 }
 
 inline std::string
-PlaylistToJSON(const Playlist& playlist) {
+ChartlistToJSON(const Playlist& playlist) {
 
 	Document d;
 	Document::AllocatorType& allocator = d.GetAllocator();
@@ -2618,6 +2636,22 @@ PlaylistToJSON(const Playlist& playlist) {
 		arrDoc.PushBack(element, allocator);
 	}
 	d.AddMember("charts", arrDoc, allocator);
+
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+	return buffer.GetString();
+}
+
+inline std::string
+PlaylistToJSON(const Playlist& playlist) {
+
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d.SetObject();
+
+	d.AddMember(
+	  "charts", stringToVal(ChartlistToJSON(playlist), allocator), allocator);
 	d.AddMember("name", stringToVal(playlist.name, allocator), allocator);
 
 	StringBuffer buffer;
@@ -2646,13 +2680,10 @@ DownloadManager::AddPlaylistRequest(const std::string& name)
 	  name,
 	  playlist.chartlist.size());
 
-	CURL* curlHandle = initCURLHandle(true, true);
-	CURLAPIURL(curlHandle, CALL_PATH);
-
-	auto body = PlaylistToJSON(playlist);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
-	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+	std::vector<std::pair<std::string, std::string>> postParams = {
+		std::make_pair("name", playlist.name),
+		std::make_pair("charts", ChartlistToJSON(playlist))
+	};
 
 	auto done = [name, playlist, &CALL_ENDPOINT, this](HTTPRequest& req) {
 
@@ -2699,14 +2730,11 @@ DownloadManager::AddPlaylistRequest(const std::string& name)
 
 	};
 
-	HTTPRequest* req =
-	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {});
-	SetCURLResultsString(curlHandle, &(req->result));
-	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
-		AddHttpRequestHandle(req->handle);
-		HTTPRequests.push_back(req);
-	}
+	SendRequest(
+	  CALL_PATH, CALL_ENDPOINT, postParams, done, true, RequestMethod::POST);
+
+	Locator::getLogger()->info(
+	  "Finished creating AddPlaylist request for playlist {}", playlist.name);
 }
 
 void
@@ -2731,7 +2759,7 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 
 	CURL* curlHandle = initCURLHandle(true, true);
 	CURLAPIURL(curlHandle, CALL_PATH);
-
+	
 	auto body = PlaylistToJSON(playlist);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
@@ -2787,6 +2815,8 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
+	Locator::getLogger()->info(
+	  "Finished creating UpdatePlaylist request for playlist {}", name);
 }
 
 void
@@ -2868,6 +2898,8 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
+	Locator::getLogger()->info(
+	  "Finished creating RemovePlaylist request for playlist {}", name);
 }
 
 void
@@ -2978,6 +3010,10 @@ DownloadManager::GetPlaylistsRequest(
 	};
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating GetPlaylistRequest request for {} - {}",
+	  startstr,
+	  endstr);
 }
 
 void
@@ -3187,6 +3223,10 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 	};
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating GetRankedChartkeys request for {} - {}",
+	  startstr,
+	  endstr);
 }
 
 bool
@@ -4302,7 +4342,7 @@ DownloadManager::GetTopSkillsetScore(unsigned int rank,
 }
 
 void
-DownloadManager::RequestReplayData(const std::string& scoreid,
+DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 								   int userid,
 								   const std::string& username,
 								   const std::string& chartkey,
@@ -4312,7 +4352,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 	const auto CALL_PATH = fmt::format(API_GET_SCORE, scoreid);
 
 	Locator::getLogger()->info(
-	  "Generating replay data request for scoreid {} - {}", scoreid, chartkey);
+	  "Generating GetReplayData request for scoreid {} - {}", scoreid, chartkey);
 
 	auto runLuaFunc =
 	  [callback](std::vector<std::pair<float, float>>& replayData,
@@ -4321,11 +4361,11 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 		  
 		  if (!callback.IsNil() && callback.IsSet()) {
 			  Locator::getLogger()->info(
-				"RequestReplayData finished - running callback function");
+				"GetReplayData finished - running callback function");
 			  auto L = LUA->Get();
 			  callback.PushSelf(L);
 			  std::string Error =
-				"Error running RequestReplayData Finish Function: ";
+				"Error running GetReplayData Finish Function: ";
 			  lua_newtable(L);
 			  for (unsigned i = 0; i < replayData.size(); ++i) {
 				  auto& pair = replayData[i];
@@ -4343,7 +4383,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 			  LUA->Release(L);
 		  } else {
 			  Locator::getLogger()->info(
-				"RequestReplayData finished, but no callback was set");
+				"GetReplayData finished, but no callback was set");
 		  }
 	  };
 
@@ -4358,7 +4398,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 				  runLuaFunc(replayData, lbd.end(), lbd.end());
 			  },
 			  [scoreid, userid, username, chartkey, &callback, this]() {
-				RequestReplayData(
+				  GetReplayData(
 				scoreid, userid, username, chartkey, callback);
 			  })) {
 			return;
@@ -4368,7 +4408,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 		if (response == 404) {
 			// no score was found
 			Locator::getLogger()->warn(
-			  "RequestReplayData 404'd because there is no score id {} (ck {})",
+			  "GetReplayData 404'd because there is no score id {} (ck {})",
 			  scoreid, chartkey);
 			runLuaFunc(replayData, lbd.end(), lbd.end());
 			return;
@@ -4378,7 +4418,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "RequestReplayData");
+			return parseJson(d, req, "GetReplayData");
 		};
 		// for some reason this function never exited early on parse error
 		// so dont change that ..?
@@ -4405,7 +4445,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 
 					if (it == lbd.end()) {
 						Locator::getLogger()->warn(
-						  "RequestReplayData could not save replay data "
+						  "GetReplayData could not save replay data "
 						  "because scoreid {} was not found stored in a chart "
 						  "leaderboard for {}",
 						  scoreid,
@@ -4460,7 +4500,7 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 					}
 				} else {
 					Locator::getLogger()->warn(
-					  "RequestReplayData didn't find replay data for score {}  "
+					  "GetReplayData didn't find replay data for score {}  "
 					  "(ck {}) - Object Missing? {}",
 					  scoreid,
 					  chartkey,
@@ -4468,13 +4508,13 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 				}
 
 			} else {
-				Locator::getLogger()->warn("RequestReplayData got unexpected "
+				Locator::getLogger()->warn("GetReplayData got unexpected "
 										   "response body - Content: {}",
 										   jsonObjectToString(d));
 			}
 		} else {
 			Locator::getLogger()->warn(
-			  "RequestReplayData unexpected response {} - Content: {}",
+			  "GetReplayData unexpected response {} - Content: {}",
 			  response,
 			  jsonObjectToString(d));
 		}
@@ -4484,16 +4524,20 @@ DownloadManager::RequestReplayData(const std::string& scoreid,
 	};
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, {}, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating GetReplayData request for scoreid {} - {}",
+	  scoreid,
+	  chartkey);
 }
 
 void
-DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
+DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 										 LuaReference& ref)
 {
 	constexpr auto& CALL_ENDPOINT = API_CHART_LEADERBOARD;
 	const auto CALL_PATH = fmt::format(API_CHART_LEADERBOARD, chartkey);
 
-	Locator::getLogger()->info("Generating chart leaderboard request for {}",
+	Locator::getLogger()->info("Generating GetChartLeaderboard request for {}",
 							   chartkey);
 
 	std::vector<std::pair<std::string, std::string>> params = {
@@ -4508,12 +4552,12 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 	auto runLuaFunc = [ref](HTTPRequest& req, std::vector<OnlineScore>& vec) {
 		if (!ref.IsNil() && ref.IsSet()) {
 			Locator::getLogger()->info(
-			  "RequestChartLeaderBoard finished - running callback function");
+			  "GetChartLeaderboard finished - running callback function");
 			auto L = LUA->Get();
 			ref.PushSelf(L);
 			if (!lua_isnil(L, -1)) {
 				std::string Error =
-				  "Error running RequestChartLeaderBoard Finish Function: ";
+				  "Error running GetChartLeaderboard Finish Function: ";
 				const auto& response = req.response_code;
 
 				// 404: Chart not ranked
@@ -4541,7 +4585,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 			LUA->Release(L);
 		} else {
 			Locator::getLogger()->info(
-			  "RequestChartLeaderBoard finished, but no callback was set");
+			  "GetChartLeaderboard finished, but no callback was set");
 		}
 	};
 
@@ -4554,7 +4598,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 				runLuaFunc(req, vec);
 			  },
 			  [chartkey, &ref, this]() {
-				  RequestChartLeaderBoard(chartkey, ref);
+				  GetChartLeaderboardRequest(chartkey, ref);
 			  })) {
 			return;
 		}
@@ -4565,7 +4609,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 			unrankedCharts.emplace(chartkey);
 			runLuaFunc(req, vec);
 
-			Locator::getLogger()->warn("RequestChartLeaderboard 404'd because "
+			Locator::getLogger()->warn("GetChartLeaderboard 404'd because "
 									   "this chart is unranked: {}",
 									   chartkey);
 			return;
@@ -4574,7 +4618,7 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "RequestChartLeaderboard");
+			return parseJson(d, req, "GetChartLeaderboard");
 		};
 
 		if (response == 200) {
@@ -4596,12 +4640,12 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 				runLuaFunc(req, vec);
 
 				Locator::getLogger()->info(
-				  "RequestChartLeaderboard for {} succeeded - {} scores found",
+				  "GetChartLeaderboard for {} succeeded - {} scores found",
 				  chartkey,
 				  count);
 			} else {
 				Locator::getLogger()->warn(
-				  "RequestChartLeaderboard got unexpected response body - "
+				  "GetChartLeaderboard got unexpected response body - "
 				  "Content: {}",
 				  jsonObjectToString(d));
 			}
@@ -4609,13 +4653,15 @@ DownloadManager::RequestChartLeaderBoard(const std::string& chartkey,
 			parse();
 
 			Locator::getLogger()->warn(
-			  "RequestChartLeaderboard unexpected response {} - Content: {}",
+			  "GetChartLeaderboard unexpected response {} - Content: {}",
 			  response,
 			  jsonObjectToString(d));
 		}
 	};
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating GetChartLeaderboard request for {}", chartkey);
 }
 
 void
@@ -5447,7 +5493,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			return 0;
 		}
 
-		p->RequestReplayData(scoreid, userid, username, ck, f);
+		p->GetReplayData(scoreid, userid, username, ck, f);
 		return 0;
 	}
 
@@ -5472,7 +5518,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			if (!ref.IsNil()) {
 				ref.PushSelf(L);
 				if (!lua_isnil(L, -1)) {
-					std::string Error = "Error running RequestChartLeaderBoard "
+					std::string Error = "Error running GetChartLeaderboard "
 										"Finish Function: ";
 					lua_newtable(L);
 					for (unsigned i = 0; i < leaderboardScores.size(); ++i) {
@@ -5486,7 +5532,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 			}
 			return 0;
 		}
-		p->RequestChartLeaderBoard(chart, ref);
+		p->GetChartLeaderboard(chart, ref);
 
 		return 0;
 	}
