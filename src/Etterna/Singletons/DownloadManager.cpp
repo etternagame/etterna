@@ -5629,6 +5629,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushstring(L, p->mirror.c_str());
 		return 1;
 	}
+	/*
 	static int GetThumbnailTexture(T* p, lua_State* L)
 	{
 		auto* pTexture = p->GetThumbnailTexture();
@@ -5638,6 +5639,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 			lua_pushnil(L);
 		return 1;
 	}
+	*/
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -5653,7 +5655,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(GetID);
 		ADD_METHOD(GetURL);
 		ADD_METHOD(GetMirror);
-		ADD_METHOD(GetThumbnailTexture);
+		// ADD_METHOD(GetThumbnailTexture);
 	}
 };
 
