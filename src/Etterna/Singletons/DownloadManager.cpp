@@ -1190,6 +1190,7 @@ DownloadManager::OnLogin()
 	RefreshUserData();
 	RefreshFavorites();
 	RefreshGoals();
+	RefreshPlaylists();
 	FOREACH_ENUM(Skillset, ss)
 	RefreshTop25(ss);
 	if (ShouldUploadScores()) {
@@ -2613,9 +2614,7 @@ PlaylistToJSON(const Playlist& playlist) {
 		element.SetObject();
 		element.AddMember(
 		  "chartkey", stringToVal(chart.key, allocator), allocator);
-		element.AddMember("rate",
-						  stringToVal(std::to_string(chart.rate), allocator),
-						  allocator);
+		element.AddMember("rate", chart.rate, allocator);
 		arrDoc.PushBack(element, allocator);
 	}
 	d.AddMember("charts", arrDoc, allocator);
@@ -2873,12 +2872,12 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 
 void
 DownloadManager::GetPlaylistsRequest(
-  std::function<void(std::vector<Playlist>)> onSuccess,
+  std::function<void(std::unordered_map<std::string, Playlist>)> onSuccess,
   const DateTime start,
   const DateTime end)
 {
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
-	constexpr auto& CALL_PATH = API_GOALS;
+	constexpr auto& CALL_PATH = API_PLAYLISTS;
 
 	std::string startstr = fmt::format(
 	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
@@ -2919,7 +2918,7 @@ DownloadManager::GetPlaylistsRequest(
 			if (d.HasMember("playlists") && d["playlists"].IsArray()) {
 				auto& data = d["playlists"];
 
-				std::vector<Playlist> onlinePlaylists{};
+				std::unordered_map<std::string, Playlist> onlinePlaylists{};
 				for (auto it = data.Begin(); it != data.End(); it++) {
 					auto obj = it->GetObj();
 					Playlist tmpPlaylist;
@@ -2949,7 +2948,7 @@ DownloadManager::GetPlaylistsRequest(
 						}
 					}
 					tmpPlaylist.chartlist = chartlist;
-					onlinePlaylists.push_back(tmpPlaylist);
+					onlinePlaylists[tmpPlaylist.name] = tmpPlaylist;
 
 					Locator::getLogger()->info(
 					  "Found online playlist {} - {} charts",
@@ -2987,8 +2986,114 @@ DownloadManager::RefreshPlaylists(const DateTime start, const DateTime end)
 	Locator::getLogger()->info(
 	  "Refreshing Playlists - {} to {}", start.GetString(), end.GetString());
 
-	auto onSuccess = [this](std::vector<Playlist> onlinePlaylists) {
-		// ???
+	auto onSuccess =
+	  [this](std::unordered_map<std::string, Playlist> onlinePlaylists) {
+		auto& localPlaylists = SONGMAN->GetPlaylists();
+
+		std::vector<Playlist> toSave{};
+		std::vector<Playlist> toUpdate{};
+		std::vector<Playlist> toUpload{};
+
+		for (auto& plit : onlinePlaylists) {
+			const auto& name = plit.first;
+			const auto existsLocally = localPlaylists.contains(name);
+
+			if (name == "Favorites") {
+				// this should be impossible, but just in case
+				// saving this could overwrite local favorites
+				continue;
+			}
+
+			if (existsLocally) {
+				// if local playlist is shorter, note it and do nothing
+				// if online playlist is shorter, attempt upload
+				auto& localPlaylist = localPlaylists[name];
+
+				const auto szLocal = localPlaylist.chartlist.size();
+				const auto szOnline = plit.second.chartlist.size();
+
+				if (szLocal == szOnline) {
+					// playlists same length
+					// check their order
+					// if order is wrong, update online
+					auto& chartsA = localPlaylist.chartlist;
+					auto& chartsB = plit.second.chartlist;
+					auto mismatched = false;
+					for (auto i = 0;
+						 !mismatched && i < localPlaylist.chartlist.size();
+						 i++) {
+						if (chartsA[i].key == chartsB[i].key) {
+							continue;
+						}
+						else {
+							mismatched = true;
+						}
+					}
+					if (mismatched) {
+						Locator::getLogger()->info(
+						  "For playlist '{}' - same length as online but order "
+						  "mismatch. Will reupload",
+						  name);
+						toUpdate.push_back(localPlaylist);
+					}
+				}
+				else {
+					// playlists different length
+
+					// just update online
+					Locator::getLogger()->info(
+					  "For playlist '{}' - lengths do not match: local {} | "
+					  "online {} .. Will reupload",
+					  name,
+					  szLocal,
+					  szOnline);
+					toUpdate.push_back(localPlaylist);
+				}
+			}
+			else {
+				// save the playlist
+				Locator::getLogger()->info(
+				  "Online playlist '{}' does not exist locally - Will save", name);
+				toSave.push_back(plit.second);
+			}
+		}
+
+		for (auto& plit : localPlaylists) {
+			const auto& name  = plit.first;
+			const auto existsOnline = onlinePlaylists.contains(name);
+
+			if (name == "Favorites") {
+				// dont upload the favorites this way
+				continue;
+			}
+
+			// if the playlist does not exist online, upload it
+			if (!existsOnline) {
+				// upload the playlist
+				toUpload.push_back(plit.second);
+			}
+		}
+
+		Locator::getLogger()->info(
+		  "Found {} online playlists to save locally, {} local playlists to "
+		  "update online, and {} to upload as new", toSave.size(), toUpdate.size(), toUpload.size());
+
+		if (toSave.size() > 0) {
+			for (auto& pl : toSave) {
+				localPlaylists.emplace(pl.name, pl);
+			}
+			MESSAGEMAN->Broadcast("DisplayAllPlaylists");
+		}
+
+		for (auto& pl : toUpdate) {
+			UpdatePlaylist(pl.name);
+		}
+
+		for (auto& pl : toUpload) {
+			AddPlaylist(pl.name);
+		}
+
+
 	};
 	GetPlaylistsRequest(onSuccess, start, end);
 }

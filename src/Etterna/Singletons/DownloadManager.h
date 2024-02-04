@@ -351,7 +351,7 @@ class DownloadManager
 	void UpdatePlaylistRequest(const std::string& name);
 	void RemovePlaylistRequest(const std::string& name);
 	void GetPlaylistsRequest(
-	  std::function<void(std::vector<Playlist>)> onSuccess,
+	  std::function<void(std::unordered_map<std::string, Playlist>)> onSuccess,
 	  const DateTime start,
 	  const DateTime end);
 
