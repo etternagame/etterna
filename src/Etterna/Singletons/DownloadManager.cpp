@@ -3359,7 +3359,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				allocator);
 
 	// comprehensive checks for forced invalidation
-	auto validity = hs->GetEtternaValid();
+	auto validity = hs->GetEtternaValid() && hs->HasReplayData();
 	if (validity) {
 		// if the score is valid, check the mods...
 		PlayerOptions po;
