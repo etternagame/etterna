@@ -1190,7 +1190,8 @@ DownloadManager::OnLogin()
 	RefreshUserData();
 	RefreshFavorites();
 	RefreshGoals();
-	RefreshPlaylists();
+	// dont do this in favor of manual sync/upload
+	// RefreshPlaylists();
 	FOREACH_ENUM(Skillset, ss)
 	RefreshTop25(ss);
 	if (ShouldUploadScores()) {
