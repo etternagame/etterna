@@ -3000,8 +3000,8 @@ DownloadManager::GetPlaylistsRequest(
 void
 DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int id)
 {
-	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
-	const auto CALL_PATH = fmt::format(API_PLAYLISTS, id);
+	constexpr auto& CALL_ENDPOINT = API_PLAYLIST;
+	const auto CALL_PATH = fmt::format(API_PLAYLIST, id);
 
 	Locator::getLogger()->info(
 	  "Generating GetPlaylistRequest for playlist id {}", id);
@@ -3029,8 +3029,8 @@ DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int
 			if (parse())
 				return;
 
-			if (d.HasMember("playlists") && d["playlists"].IsArray()) {
-				auto& data = d["playlists"];
+			if (d.HasMember("data") && d["data"].IsArray()) {
+				auto& data = d["data"];
 
 				Playlist tmpPlaylist;
 				tmpPlaylist.name = "YOU_SHOULDNT_SEE_THIS";
