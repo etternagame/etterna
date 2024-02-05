@@ -28,6 +28,7 @@
 #include "NetworkSyncManager.h"
 #include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
+#include "DownloadManager.h"
 
 #include <numeric>
 #include <algorithm>
@@ -512,6 +513,28 @@ Playlist::DeleteChart(int i)
 	}
 
 	chartlist.erase(chartlist.begin() + i);
+}
+
+void
+Playlist::UploadOnline()
+{
+	Locator::getLogger()->info(
+	  "Syncing playlist '{}' (onlineId {}) with online (uploading)...", name, onlineId);
+	if (onlineId == 0) {
+		DLMAN->AddPlaylist(name);
+	}
+	else {
+		DLMAN->UpdatePlaylist(name);
+	}
+}
+
+void
+Playlist::DownloadOnline()
+{
+	Locator::getLogger()->info(
+	  "Syncing playlist '{}' (onlineId {}) with online (downloading)...", name, onlineId);
+	if (onlineId != 0)
+		DLMAN->DownloadPlaylist(name);
 }
 
 auto
@@ -1931,6 +1954,18 @@ class LunaPlaylist : public Luna<Playlist>
 		return 1;
 	}
 
+	static auto UploadOnline(T* p, lua_State* L) -> int
+	{
+		p->UploadOnline();
+		return 0;
+	}
+
+	static auto DownloadOnline(T* p, lua_State* L) -> int
+	{
+		p->DownloadOnline();
+		return 0;
+	}
+
 	DEFINE_METHOD(GetAverageRating, GetAverageRating());
 	DEFINE_METHOD(GetName, GetName());
 	LunaPlaylist()
@@ -1944,6 +1979,8 @@ class LunaPlaylist : public Luna<Playlist>
 		ADD_METHOD(GetStepslist);
 		ADD_METHOD(GetAverageRating);
 		ADD_METHOD(DeleteChart);
+		ADD_METHOD(UploadOnline);
+		ADD_METHOD(DownloadOnline);
 	}
 };
 

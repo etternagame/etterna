@@ -281,9 +281,14 @@ class DownloadManager
 	{
 		RemovePlaylistRequest(name);
 	}
-	void RefreshPlaylists(
+	// the point of this is to maintain the online id of playlists
+	void LoadPlaylists(
 	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
 	  const DateTime end = DateTime::GetFromString("2100-01-01 12:00:00"));
+	void DownloadMissingPlaylists(
+	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
+	  const DateTime end = DateTime::GetFromString("2100-01-01 12:00:00"));
+	void DownloadPlaylist(const std::string& name);
 
 	// Score upload functions
 	void UploadScore(HighScore* hs,
@@ -368,6 +373,7 @@ class DownloadManager
 	  std::function<void(std::unordered_map<std::string, Playlist>)> onSuccess,
 	  const DateTime start,
 	  const DateTime end);
+	void GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int id);
 	void GetChartLeaderboardRequest(const std::string& chartkey,
 									LuaReference& ref);
 	void GetReplayDataRequest(const std::string& scorekey,

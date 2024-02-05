@@ -106,6 +106,7 @@ static const std::string API_FAVORITES_BULK = "/favorites/bulk";
 static const std::string API_GOALS = "/goals";
 static const std::string API_GOALS_BULK = "/goals/bulk";
 static const std::string API_PLAYLISTS = "/playlists";
+static const std::string API_PLAYLIST = "/playlists/{}";
 static const std::string API_USER = "/users/{}";
 static const std::string API_GAME_VERSION = "/settings/version";
 
@@ -1192,8 +1193,7 @@ DownloadManager::OnLogin()
 	RefreshUserData();
 	RefreshFavorites();
 	RefreshGoals();
-	// dont do this in favor of manual sync/upload
-	// RefreshPlaylists();
+	LoadPlaylists();
 	FOREACH_ENUM(Skillset, ss)
 	RefreshTop25(ss);
 	if (ShouldUploadScores()) {
@@ -2959,36 +2959,14 @@ DownloadManager::GetPlaylistsRequest(
 					Playlist tmpPlaylist;
 
 					tmpPlaylist.name = getJsonString(obj, "name");
+					tmpPlaylist.onlineId = getJsonInt(obj, "id");
 
 					std::vector<Chart> chartlist{};
-					if (obj.HasMember("charts") && obj["charts"].IsArray()) {
-						auto& charts = obj["charts"];
-						for (auto chartIt = charts.Begin();
-							 chartIt != charts.End();
-							 chartIt++) {
-							auto chartObj = chartIt->GetObj();
-							Chart chart;
-
-							chart.key = getJsonString(chartObj, "key");
-
-							// lmao
-							if (chartObj.HasMember("pivot")) {
-								chart.rate =
-								  getJsonFloat(chartObj["pivot"], "rate");
-							}
-
-							chart.FromKey(chart.key);
-
-							chartlist.push_back(chart);
-						}
-					}
 					tmpPlaylist.chartlist = chartlist;
 					onlinePlaylists[tmpPlaylist.name] = tmpPlaylist;
 
-					Locator::getLogger()->info(
-					  "Found online playlist {} - {} charts",
-					  tmpPlaylist.name,
-					  tmpPlaylist.chartlist.size());
+					Locator::getLogger()->info("Found online playlist {}",
+											   tmpPlaylist.name);
 				}
 
 				Locator::getLogger()->info(
@@ -3014,125 +2992,230 @@ DownloadManager::GetPlaylistsRequest(
 
 	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
 	Locator::getLogger()->info(
-	  "Finished creating GetPlaylistRequest request for {} - {}",
+	  "Finished creating GetPlaylistsRequest request for {} - {}",
 	  startstr,
 	  endstr);
 }
 
 void
-DownloadManager::RefreshPlaylists(const DateTime start, const DateTime end)
+DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int id)
+{
+	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
+	const auto CALL_PATH = fmt::format(API_PLAYLISTS, id);
+
+	Locator::getLogger()->info(
+	  "Generating GetPlaylistRequest for playlist id {}", id);
+
+	auto done = [onSuccess, id, this](HTTPRequest& req){
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [onSuccess, id, this]() {
+				  GetPlaylistRequest(onSuccess, id);
+			  })) {
+			return;
+		}
+
+		Document d;
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "GetPlaylistRequest");
+		};
+
+		const auto& response = req.response_code;
+		if (response == 200) {
+			// all good
+			if (parse())
+				return;
+
+			if (d.HasMember("playlists") && d["playlists"].IsArray()) {
+				auto& data = d["playlists"];
+
+				Playlist tmpPlaylist;
+				tmpPlaylist.name = "YOU_SHOULDNT_SEE_THIS";
+
+				std::vector<Chart> chartlist{};
+				for (auto chartIt = data.Begin();
+						chartIt != data.End();
+						chartIt++) {
+					auto chartObj = chartIt->GetObj();
+					Chart chart;
+
+					chart.key = getJsonString(chartObj, "key");
+					chart.rate = getJsonFloat(chartObj, "rate");
+					chart.FromKey(chart.key);
+
+					chartlist.push_back(chart);
+				}
+				tmpPlaylist.chartlist = chartlist;
+
+				Locator::getLogger()->info(
+				  "GetPlaylistRequest for id {} returned successfully. Found "
+				  "{} charts in online playlist",
+				  id,
+				  chartlist.size());
+				onSuccess(tmpPlaylist);
+
+			} else {
+				Locator::getLogger()->warn("GetPlaylistRequest got unexpected "
+										   "response body - Content: {}",
+										   jsonObjectToString(d));
+			}
+		} else {
+			parse();
+
+			Locator::getLogger()->warn(
+			  "GetPlaylistRequest unexpected response {} - Content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+
+	SendRequest(CALL_PATH, CALL_ENDPOINT, {}, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating GetPlaylistRequest request for playlist id {}", id);
+}
+
+void
+DownloadManager::DownloadMissingPlaylists(const DateTime start, const DateTime end)
+{
+	Locator::getLogger()->info("Downloading missing playlists");
+
+	auto onSuccess = [this](std::unordered_map<std::string, Playlist> onlinePlaylists) {
+		auto& localPlaylists = SONGMAN->GetPlaylists();
+
+		std::vector<Playlist> toDownload{};
+		for (auto& plit : onlinePlaylists) {
+			const auto& name = plit.first;
+			const auto existsLocally = localPlaylists.contains(name);
+
+			if (!existsLocally) {
+				toDownload.push_back(plit.second);
+			}
+		}
+
+		if (toDownload.size() > 0) {
+			Locator::getLogger()->info(
+			  "Found {} playlists which must be downloaded from online. "
+			  "Queueing requests...",
+			  toDownload.size());
+
+			for (auto pl : toDownload) {
+				auto handlePlaylist = [&localPlaylists, pl](Playlist playlist) {
+					playlist.name = pl.name;
+					localPlaylists.emplace(pl.name, playlist);
+					Locator::getLogger()->info(
+					  "Saved online playlist '{}' with {} charts locally",
+					  pl.name,
+					  playlist.chartlist.size());
+
+					// horrible idea (compatibility)
+					MESSAGEMAN->Broadcast("DisplayAllPlaylists");
+
+					Message msg("DownloadedPlaylist");
+					msg.SetParam("new", true);
+					msg.SetParam("playlist",
+								 LuaReference::CreateFromPush(playlist));
+					MESSAGEMAN->Broadcast(msg);
+				};
+				GetPlaylistRequest(handlePlaylist, pl.onlineId);
+			}
+		}
+		else {
+			Locator::getLogger()->info(
+			  "Found no playlists which needed to be download from online");
+		}
+	};
+
+	GetPlaylistsRequest(onSuccess, start, end);
+}
+
+void
+DownloadManager::DownloadPlaylist(const std::string& name)
+{
+	Locator::getLogger()->info("Downloading playlist data for playlist '{}'", name);
+
+	auto& playlists = SONGMAN->GetPlaylists();
+	if (!playlists.contains(name)) {
+		Locator::getLogger()->warn(
+		  "DownloadPlaylist did not find playlist '{}' locally to sync with",
+		  name);
+		// lazily quit. we could do GetPlaylists and then GetPlaylist
+		// but naahhhh
+		return;
+	}
+
+	auto& localPlaylist = playlists.at(name);
+
+	if (localPlaylist.onlineId == 0) {
+		Locator::getLogger()->warn(
+		  "DownloadPlaylist did not find onlineId for local playlist '{}'",
+		  name);
+		// lazily quit. same as above
+		return;
+	}
+
+	auto onSuccess = [&localPlaylist, name, this](Playlist onlinePlaylist){
+		Locator::getLogger()->info(
+		  "DownloadPlaylist replaced local playlist '{}' chartlist of length "
+		  "{} with chartlist of length {}",
+		  name,
+		  localPlaylist.chartlist.size(),
+		  onlinePlaylist.chartlist.size());
+
+		localPlaylist.chartlist = onlinePlaylist.chartlist;
+
+		// horrible idea (compatibility)
+		MESSAGEMAN->Broadcast("DisplayAllPlaylists");
+
+		Message msg("DownloadedPlaylist");
+		msg.SetParam("new", false);
+		msg.SetParam("playlist", LuaReference::CreateFromPush(localPlaylist));
+		MESSAGEMAN->Broadcast(msg);
+	};
+
+	GetPlaylistRequest(onSuccess, localPlaylist.onlineId);
+}
+
+void
+DownloadManager::LoadPlaylists(const DateTime start, const DateTime end)
 {
 	Locator::getLogger()->info(
-	  "Refreshing Playlists - {} to {}", start.GetString(), end.GetString());
+	  "Loading Playlists - {} to {}", start.GetString(), end.GetString());
 
 	auto onSuccess =
 	  [this](std::unordered_map<std::string, Playlist> onlinePlaylists) {
 		auto& localPlaylists = SONGMAN->GetPlaylists();
 
-		std::vector<Playlist> toSave{};
-		std::vector<Playlist> toUpdate{};
-		std::vector<Playlist> toUpload{};
-
+		auto idUpdatedCount = 0;
+		auto missingCount = 0;
 		for (auto& plit : onlinePlaylists) {
 			const auto& name = plit.first;
 			const auto existsLocally = localPlaylists.contains(name);
 
 			if (name == "Favorites") {
 				// this should be impossible, but just in case
-				// saving this could overwrite local favorites
 				continue;
 			}
 
 			if (existsLocally) {
-				// if local playlist is shorter, note it and do nothing
-				// if online playlist is shorter, attempt upload
 				auto& localPlaylist = localPlaylists[name];
+				localPlaylist.onlineId = plit.second.onlineId;
 
-				const auto szLocal = localPlaylist.chartlist.size();
-				const auto szOnline = plit.second.chartlist.size();
-
-				if (szLocal == szOnline) {
-					// playlists same length
-					// check their order
-					// if order is wrong, update online
-					auto& chartsA = localPlaylist.chartlist;
-					auto& chartsB = plit.second.chartlist;
-					auto mismatched = false;
-					for (auto i = 0;
-						 !mismatched && i < localPlaylist.chartlist.size();
-						 i++) {
-						if (chartsA[i].key == chartsB[i].key) {
-							continue;
-						}
-						else {
-							mismatched = true;
-						}
-					}
-					if (mismatched) {
-						Locator::getLogger()->info(
-						  "For playlist '{}' - same length as online but order "
-						  "mismatch. Will reupload",
-						  name);
-						toUpdate.push_back(localPlaylist);
-					}
-				}
-				else {
-					// playlists different length
-
-					// just update online
-					Locator::getLogger()->info(
-					  "For playlist '{}' - lengths do not match: local {} | "
-					  "online {} .. Will reupload",
-					  name,
-					  szLocal,
-					  szOnline);
-					toUpdate.push_back(localPlaylist);
-				}
+				idUpdatedCount++;
 			}
 			else {
-				// save the playlist
-				Locator::getLogger()->info(
-				  "Online playlist '{}' does not exist locally - Will save", name);
-				toSave.push_back(plit.second);
+				// playlist needs to be saved
+				// do nothing...
+				missingCount++;
 			}
 		}
 
-		for (auto& plit : localPlaylists) {
-			const auto& name  = plit.first;
-			const auto existsOnline = onlinePlaylists.contains(name);
-
-			if (name == "Favorites") {
-				// dont upload the favorites this way
-				continue;
-			}
-
-			// if the playlist does not exist online, upload it
-			if (!existsOnline) {
-				// upload the playlist
-				toUpload.push_back(plit.second);
-			}
-		}
-
-		Locator::getLogger()->info(
-		  "Found {} online playlists to save locally, {} local playlists to "
-		  "update online, and {} to upload as new", toSave.size(), toUpdate.size(), toUpload.size());
-
-		if (toSave.size() > 0) {
-			for (auto& pl : toSave) {
-				localPlaylists.emplace(pl.name, pl);
-			}
-			MESSAGEMAN->Broadcast("DisplayAllPlaylists");
-		}
-
-		for (auto& pl : toUpdate) {
-			UpdatePlaylist(pl.name);
-		}
-
-		for (auto& pl : toUpload) {
-			AddPlaylist(pl.name);
-		}
-
-
+		Locator::getLogger()->info("Found {} online playlists which are "
+									 "saved locally, and {} which are not",
+									 idUpdatedCount,
+									 missingCount);
 	};
 	GetPlaylistsRequest(onSuccess, start, end);
 }
@@ -5589,7 +5672,10 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		LuaHelpers::CreateTableFromArray(filteredLeaderboardScores, L);
 		return 1;
 	}
-
+	static int DownloadMissingPlaylists(T* p, lua_State* L) {
+		p->DownloadMissingPlaylists();
+		return 0;
+	}
 	static int ToggleRateFilter(T* p, lua_State* L)
 	{
 		p->currentrateonly = !p->currentrateonly;
@@ -5664,6 +5750,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(RequestChartLeaderBoardFromOnline);
 		ADD_METHOD(RequestOnlineScoreReplayData);
 		ADD_METHOD(GetChartLeaderBoard);
+		ADD_METHOD(DownloadMissingPlaylists);
 		ADD_METHOD(ToggleRateFilter);
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
