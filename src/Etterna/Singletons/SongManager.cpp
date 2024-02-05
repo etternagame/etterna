@@ -535,6 +535,10 @@ Playlist::DownloadOnline()
 	  "Syncing playlist '{}' (onlineId {}) with online (downloading)...", name, onlineId);
 	if (onlineId != 0)
 		DLMAN->DownloadPlaylist(name);
+	else
+		Locator::getLogger()->warn(
+		  "The onlineId of playlist '{}' is 0, so it can't be downloaded",
+		  name);
 }
 
 auto
