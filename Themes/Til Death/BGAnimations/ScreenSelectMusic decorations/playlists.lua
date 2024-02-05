@@ -83,6 +83,12 @@ local translated_info = {
 	Back = THEME:GetString("TabPlaylists", "Back"),
 	Next = THEME:GetString("TabPlaylists", "Next"),
 	Previous = THEME:GetString("TabPlaylists", "Previous"),
+	UploadOnline = THEME:GetString("TabPlaylists", "UploadOnline"),
+	UploadExplain = THEME:GetString("TabPlaylists", "UploadExplain"),
+	DownloadOnline = THEME:GetString("TabPlaylists", "DownloadOnline"),
+	DownloadOnlineExplain = THEME:GetString("TabPlaylists", "DownloadOnlineExplain"),
+	DownloadMissing = THEME:GetString("TabPlaylists", "DownloadMissing"),
+	DownloadMissingExplain = THEME:GetString("TabPlaylists", "DownloadMissingExplain"),
 }
 
 t[#t + 1] = Def.Quad {
@@ -509,7 +515,7 @@ r[#r + 1] = Def.ActorFrame {
 	end,
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:x(capWideScale(280,300)):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+			self:x(capWideScale(190,200)):halign(0):zoom(0.25):diffuse(getMainColor("positive"))
 			self:settext(translated_info["Next"])
 		end,
 		DisplayAllPlaylistsMessageCommand = function(self)
@@ -534,7 +540,7 @@ r[#r + 1] = Def.ActorFrame {
 	},
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+			self:halign(0):zoom(0.25):diffuse(getMainColor("positive"))
 			self:settext(translated_info["Previous"])
 		end,
 		DisplayAllPlaylistsMessageCommand = function(self)
@@ -557,9 +563,145 @@ r[#r + 1] = Def.ActorFrame {
 			self:diffusealpha(1)
 		end,
 	},
+	UIElements.TextToolTip(1, 1, "Common Large") .. {
+		InitCommand = function(self)
+			self:halign(0):zoom(0.25):diffuse(getMainColor("positive"))
+			self:x(capWideScale(230,245))
+			self.state = "Download"
+			self:queuecommand("MaintainState")
+			self.visibilityFunc = function()
+				return (singleplaylistactive and SONGMAN:GetActivePlaylist() ~= nil and SONGMAN:GetActivePlaylist():GetName() ~= "Favorites")
+					or not singleplaylistactive
+			end
+		end,
+		MaintainStateCommand = function(self)
+			if DLMAN:IsLoggedIn() then
+				self:visible(self.visibilityFunc())
+			else
+				self:visible(false)
+			end
+		end,
+		LoginFailedMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		LoginMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		LogOutMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		OnlineUpdateMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		DisplayAllPlaylistsMessageCommand = function(self)
+			self.state = "Download"
+			self:visible(self.visibilityFunc())
+			self:settext(translated_info["DownloadMissing"])
+			self:x(capWideScale(250,265))
+		end,
+		DisplaySinglePlaylistMessageCommand = function(self)
+			self.state = "Upload"
+			self:visible(self.visibilityFunc())
+			self:settext(translated_info["UploadOnline"])
+			self:x(capWideScale(230,245))
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and singleplaylistactive then
+				self:playcommand("Invoke")
+			elseif params.event == "DeviceButton_left mouse button" and not singleplaylistactive then
+				self:playcommand("Invoke")
+			end
+		end,
+		InvokeCommand = function(self)
+			if self.state == "Upload" then
+				local pl = SONGMAN:GetActivePlaylist()
+				ms.ok("Uploading playlist '" .. pl:GetName() .. "'")
+				pl:UploadOnline()
+			elseif self.state == "Download" then
+				ms.ok("Downloading missing playlists...")
+				DLMAN:DownloadMissingPlaylists()
+			end
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+			if self:IsVisible() then
+				if self.state == "Download" then
+					TOOLTIP:SetText(translated_info["DownloadMissingExplain"])
+					TOOLTIP:Show()
+				elseif self.state == "Upload" then
+					TOOLTIP:SetText(translated_info["UploadExplain"])
+					TOOLTIP:Show()
+				end
+			end
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+			if self:IsVisible() then
+				TOOLTIP:Hide()
+			end
+		end,
+	},
+	UIElements.TextToolTip(1, 1, "Common Large") .. {
+		InitCommand = function(self)
+			self:halign(0):zoom(0.25):diffuse(getMainColor("positive"))
+			self:x(capWideScale(290,300))
+			self:settext(translated_info["DownloadOnline"])
+			self:queuecommand("MaintainState")
+		end,
+		MaintainStateCommand = function(self)
+			if DLMAN:IsLoggedIn() then
+				local b = singleplaylistactive and SONGMAN:GetActivePlaylist() ~= nil and SONGMAN:GetActivePlaylist():GetName() ~= "Favorites"
+				self:visible(b)
+			else
+				self:visible(false)
+			end
+		end,
+		LoginFailedMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		LoginMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		LogOutMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		OnlineUpdateMessageCommand = function(self)
+			self:queuecommand("MaintainState")
+		end,
+		DisplayAllPlaylistsMessageCommand = function(self)
+			self:visible(false)
+		end,
+		DisplaySinglePlaylistMessageCommand = function(self)
+			local b = DLMAN:IsLoggedIn() and SONGMAN:GetActivePlaylist() ~= nil and SONGMAN:GetActivePlaylist():GetName() ~= "Favorites"
+			self:visible(b)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and singleplaylistactive then
+				self:playcommand("Invoke")
+			end
+		end,
+		InvokeCommand = function(self)
+			local pl = SONGMAN:GetActivePlaylist()
+			ms.ok("Downloading playlist '" .. pl:GetName() .. "' from online")
+			pl:DownloadOnline()
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+			if self:IsVisible() then
+				TOOLTIP:SetText(translated_info["DownloadOnlineExplain"])
+				TOOLTIP:Show()
+			end
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+			if self:IsVisible() then
+				TOOLTIP:Hide()
+			end
+		end,
+	},
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)
-			self:x(175):halign(0.5):zoom(0.3)
+			self:x(125):halign(0.5):zoom(0.25)
 		end,
 		SetCommand = function(self)
 			self:settextf(
@@ -780,7 +922,7 @@ r[#r + 1] = Def.ActorFrame {
 	end,
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:x(capWideScale(280,300)):halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+			self:x(capWideScale(190,200)):halign(0):zoom(0.25):diffuse(getMainColor("positive"))
 			self:settext(translated_info["Next"])
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
@@ -808,7 +950,7 @@ r[#r + 1] = Def.ActorFrame {
 	},
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:halign(0):zoom(0.3):diffuse(getMainColor("positive"))
+			self:halign(0):zoom(0.25):diffuse(getMainColor("positive"))
 			self:settext(translated_info["Previous"])
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
@@ -832,7 +974,7 @@ r[#r + 1] = Def.ActorFrame {
 	},
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)
-			self:x(175):halign(0.5):zoom(0.3)
+			self:x(125):halign(0.5):zoom(0.25)
 		end,
 		SetCommand = function(self)
 			self:settextf(
