@@ -491,8 +491,10 @@ class DownloadManager
 	std::deque<std::pair<DownloadablePack*, bool>> DownloadQueue;
 	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
 	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
-	std::vector<DownloadablePack> downloadablePacks;
+	std::map<int, DownloadablePack> downloadablePacks;
 	std::map<std::string, std::vector<DownloadablePack*>> bundles;
+	std::map<std::string, std::vector<std::string>> packTags;
+
 
 	/////
 	// Chart leaderboards

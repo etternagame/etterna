@@ -5087,7 +5087,6 @@ DownloadManager::RefreshPackList(const std::string& url)
 
 			auto& data = d["data"];
 			auto& packlist = downloadablePacks;
-			packlist.clear();
 
 			for (auto& pack : data.GetArray()) {
 				try {
@@ -5131,7 +5130,9 @@ DownloadManager::RefreshPackList(const std::string& url)
 						continue;
 					}
 
-					packlist.push_back(packDl);
+					if (!packlist.contains(packDl.id)) {
+						packlist[packDl.id] = packDl;
+					}
 				}
 				catch (std::exception& e) {
 					Locator::getLogger()->error(
@@ -5298,21 +5299,23 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int GetAllPacks(T* p, lua_State* L)
 	{
-		std::vector<DownloadablePack>& packs = p->downloadablePacks;
+		auto& packs = p->downloadablePacks;
 		lua_createtable(L, packs.size(), 0);
+		auto it = packs.begin();
 		for (unsigned i = 0; i < packs.size(); ++i) {
-			packs[i].PushSelf(L);
+			it->second.PushSelf(L);
+			it++;
 			lua_rawseti(L, -2, i + 1);
 		}
 		return 1;
 	}
 	static int GetDownloadingPacks(T* p, lua_State* L)
 	{
-		std::vector<DownloadablePack>& packs = p->downloadablePacks;
+		auto& packs = p->downloadablePacks;
 		std::vector<DownloadablePack*> dling;
 		for (auto& pack : packs) {
-			if (pack.downloading)
-				dling.push_back(&pack);
+			if (pack.second.downloading)
+				dling.push_back(&pack.second);
 		}
 		lua_createtable(L, dling.size(), 0);
 		for (unsigned i = 0; i < dling.size(); ++i) {
