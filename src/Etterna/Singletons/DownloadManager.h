@@ -104,6 +104,151 @@ class DownloadablePack
 	void PushSelf(lua_State* L);
 };
 
+class DownloadablePackPaginationKey
+{
+  public:
+	DownloadablePackPaginationKey(const std::string& searchString,
+								  std::set<std::string>& tagFilters,
+								  int perPage)
+	  : searchString(searchString)
+	  , tagFilters(tagFilters)
+	  , perPage(perPage)
+	{
+	}
+
+	bool operator==(const DownloadablePackPaginationKey& other)
+	{
+		return (perPage == other.perPage) &&
+			   (searchString == other.searchString) &&
+			   (tagFilters == other.tagFilters);
+	}
+
+	std::string searchString{};
+	std::set<std::string> tagFilters{};
+	int perPage = 0;
+};
+
+class DownloadablePackPagination
+{
+  public:
+	DownloadablePackPagination(const std::string& searchString,
+							   std::set<std::string>& tagFilters,
+							   int perPage)
+	  : key(searchString, tagFilters, perPage)
+	{
+	}
+
+	bool operator==(const DownloadablePackPagination& other)
+	{
+		// under normal circumstances no two paginations
+		// with the same key and different data
+		// should exist
+		return key == other.key;
+	}
+
+	DownloadablePackPaginationKey key;
+
+	int currentPage = 0;
+	int totalEntries = 0;
+	std::vector<DownloadablePack*> results{};
+
+	// if true, page can't move
+	bool pendingRequest = false;
+
+	// get the cached packs on the current page
+	std::vector<DownloadablePack*> get() {
+		auto startIt = results.begin();
+		if (results.size() > currentPageStartIndex())
+			startIt += currentPageStartIndex();
+		auto endIt = startIt;
+		if (results.size() < currentPageStartIndex() + key.perPage - 1)
+			endIt = startIt + key.perPage;
+		else
+			endIt = results.end();
+		if (startIt == results.end() || startIt == endIt) {
+			return std::vector<DownloadablePack*>();
+		} else {
+			return std::vector<DownloadablePack*>(startIt, endIt);
+		}
+	}
+
+	// get all the packs that are cached
+	std::vector<DownloadablePack*> getCache() { return results; }
+
+	// move to next page and send packs to lua function
+	// possibly invoking a search request
+	void nextPage(LuaReference& whenDone = EMPTY_REFERENCE)
+	{
+		setPage(getNextPageNbr(), whenDone);
+	}
+	// move to prev page and send packs to lua function
+	// possibly invoking a search request
+	void prevPage(LuaReference& whenDone = EMPTY_REFERENCE)
+	{
+		setPage(getPrevPageNbr(), whenDone);
+	}
+
+	int getTotalPages() {
+		return static_cast<int>(std::ceilf(static_cast<float>(key.perPage) /
+										   static_cast<float>(totalEntries)));
+	}
+
+	// Lua
+	void PushSelf(lua_State* L);
+
+  private:
+	/// Default empty reference for calls allowing Lua functions to be passed
+	static LuaReference EMPTY_REFERENCE;
+
+	// return inclusive starting index of page
+	int currentPageStartIndex() {
+		return key.perPage * currentPage;
+	}
+
+	int getNextPageNbr() {
+		if (key.perPage >= totalEntries)
+			return 0;
+		if (currentPage == getTotalPages()) {
+			return 0;
+		} else {
+			return currentPage + 1;
+		}
+	}
+	int getPrevPageNbr() {
+		if (key.perPage >= totalEntries)
+			return 0;
+		if (currentPage == 0) {
+			return getTotalPages();
+		} else {
+			return currentPage - 1;
+		}
+	}
+	// move to n page and send packs to lua function
+	// possibly invoking a search request
+	void setPage(int page, LuaReference& whenDone = EMPTY_REFERENCE);
+
+};
+
+// required to actually use the key as a key
+// in unordered containers
+template<>
+struct std::hash<DownloadablePackPaginationKey>
+{
+	std::size_t operator()(const DownloadablePackPaginationKey& k) const {
+		size_t r = 17;
+		r = r * 31 + std::hash<int>()(k.perPage);
+		r = r * 31 + std::hash<std::string>()(k.searchString);
+		size_t s = 0;
+		for (const auto& tag : k.tagFilters) {
+			std::hash<std::string> h;
+			s ^= h(tag) + 0x9e3779b9 + (s << 6) + (s >> 2);
+		}
+		r = r * 31 + s;
+		return r;
+	}
+};
+
+
 class HTTPRequest
 {
   public:
@@ -492,8 +637,11 @@ class DownloadManager
 	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
 	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
 	std::map<int, DownloadablePack> downloadablePacks;
+	std::unordered_map<std::string, std::vector<std::string>> packTags;
+	std::unordered_map<DownloadablePackPaginationKey,
+					   DownloadablePackPagination>
+	  downloadablePackPaginations{};
 	std::map<std::string, std::vector<DownloadablePack*>> bundles;
-	std::map<std::string, std::vector<std::string>> packTags;
 
 
 	/////
