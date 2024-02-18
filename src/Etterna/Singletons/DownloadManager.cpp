@@ -4675,7 +4675,8 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 		}
 	};
 
-	auto done = [&ref, chartkey, runLuaFunc, &vec, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [&ref, chartkey, runLuaFunc, &vec, &CALL_ENDPOINT, this](
+				  HTTPRequest& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
