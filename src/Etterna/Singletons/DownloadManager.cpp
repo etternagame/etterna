@@ -5198,7 +5198,7 @@ DownloadManager::MultiSearchRequest(
 void
 DownloadManager::RefreshPackTags() {
 	Locator::getLogger()->info("Refreshing Pack Tags");
-	if (packTags.empty()) {
+	if (!packTags.empty()) {
 		Locator::getLogger()->info(
 		  "Pack tags are already loaded. No request made");
 		return;
