@@ -32,6 +32,7 @@
 #include <intrin.h>
 #endif
 
+#include <cmath>
 #include <regex>
 #include <tuple>
 #include <unordered_set>
@@ -3022,7 +3023,7 @@ DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int
 	Locator::getLogger()->info(
 	  "Generating GetPlaylistRequest for playlist id {}", id);
 
-	auto done = [onSuccess, id, this](auto& req){
+	auto done = [onSuccess, id, &CALL_ENDPOINT, this](auto& req){
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
