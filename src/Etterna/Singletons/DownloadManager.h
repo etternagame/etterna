@@ -10,6 +10,7 @@
 #include "Etterna/Models/Misc/Difficulty.h"
 
 #include "curl/curl.h"
+#include "rapidjson/document.h"
 
 #include <deque>
 #include <unordered_set>
@@ -155,6 +156,9 @@ class DownloadablePackPagination
 	// if true, page can't move
 	bool pendingRequest = false;
 
+	// if true, a request was made and got no results
+	bool noResults = false;
+
 	// get the cached packs on the current page
 	std::vector<DownloadablePack*> get() {
 		auto startIt = results.begin();
@@ -188,6 +192,7 @@ class DownloadablePackPagination
 		setPage(getPrevPageNbr(), whenDone);
 	}
 
+	// number of pages, so "1" has only a page "0"
 	int getTotalPages() {
 		return static_cast<int>(std::ceilf(static_cast<float>(key.perPage) /
 										   static_cast<float>(totalEntries)));
@@ -199,6 +204,8 @@ class DownloadablePackPagination
   private:
 	/// Default empty reference for calls allowing Lua functions to be passed
 	static LuaReference EMPTY_REFERENCE;
+
+	std::set<int> finishedPageRequests{};
 
 	// return inclusive starting index of page
 	int currentPageStartIndex() {
@@ -227,6 +234,15 @@ class DownloadablePackPagination
 	// possibly invoking a search request
 	void setPage(int page, LuaReference& whenDone = EMPTY_REFERENCE);
 
+	bool mustRequestPage(int page) {
+		const auto ind = key.perPage * page;
+		if (results.size() <= ind) {
+			// dont make requests out of range
+			return false;
+		}
+		// if null, need to request it
+		return results.at(ind) == nullptr;
+	}
 };
 
 // required to actually use the key as a key
@@ -245,6 +261,46 @@ struct std::hash<DownloadablePackPaginationKey>
 		}
 		r = r * 31 + s;
 		return r;
+	}
+};
+
+struct ApiSearchCriteria
+{
+	// request body
+	std::string packName{};
+	std::string songName{};
+	std::string chartAuthor{};
+	std::string songArtist{};
+	std::vector<std::string> packTags{};
+
+	// request params (actual names)
+	int page = 0;
+	int per_page = 0;
+
+	auto DebugString() const -> std::string
+	{
+		std::string o = "(ApiSearchCriteria ";
+		o += fmt::format("page: {}, per_page: {}", page, per_page);
+		if (!packName.empty()) {
+			o += fmt::format(", packName: {}", packName);
+		}
+		if (!songName.empty()) {
+			o += fmt::format(", songName: {}", songName);
+		}
+		if (!chartAuthor.empty()) {
+			o += fmt::format(", chartAuthor: {}", chartAuthor);
+		}
+		if (!songArtist.empty()) {
+			o += fmt::format(", songArtist: {}", songArtist);
+		}
+		if (!packTags.empty()) {
+			o += ", tags: [";
+			for (auto& s : packTags) {
+				o += fmt::format("'{}'", s);
+			}
+			o += "]";
+		}
+		return o + ")";
 	}
 };
 
@@ -447,6 +503,13 @@ class DownloadManager
 	  std::vector<HighScore*> hsList,
 	  std::function<void()> callback = []() {});
 
+	void RefreshPackTags();
+	void SearchForPacks(ApiSearchCriteria searchCriteria,
+						std::function<void(rapidjson::Document&)> packSearchParser)
+	{
+		MultiSearchRequest(searchCriteria, packSearchParser);
+	}
+
 	// Mass score upload functions
 	bool ForceUploadPBsForChart(const std::string& ck, bool startNow = false);
 	bool ForceUploadPBsForPack(const std::string& pack, bool startNow = false);
@@ -527,6 +590,10 @@ class DownloadManager
 							  const std::string& chartkey,
 							  LuaReference& callback);
 
+	void GetPackTagsRequest();
+
+	void MultiSearchRequest(ApiSearchCriteria searchCriteria,
+							std::function<void(rapidjson::Document&)> whenDoneParser);
 
 	// To send a request to API base URL and ratelimit at that URL
 	HTTPRequest* SendRequest(
@@ -575,7 +642,6 @@ class DownloadManager
 
 	void RefreshPackList(const std::string& url);
 	void RefreshLastVersion();
-	void RefreshCoreBundles();
 	void RefreshUserData();
 	void RefreshTop25(Skillset ss);
 
@@ -641,7 +707,6 @@ class DownloadManager
 	std::unordered_map<DownloadablePackPaginationKey,
 					   DownloadablePackPagination>
 	  downloadablePackPaginations{};
-	std::map<std::string, std::vector<DownloadablePack*>> bundles;
 
 
 	/////

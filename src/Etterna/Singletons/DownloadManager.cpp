@@ -23,8 +23,6 @@
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
 
-#include "curl/curl.h"
-#include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
 #include "rapidjson/stringbuffer.h"
@@ -72,6 +70,8 @@ static Preference<std::string> serverURL("BaseAPIUrl",
 static Preference<std::string> packListURL(
   "PackListUrl",
   "https://api.beta.etternaonline.com/api/client/packs");
+static Preference<std::string> searchURL("BaseAPISearchUrl",
+										 "https://search.etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
@@ -107,13 +107,22 @@ static const std::string API_GOALS = "/goals";
 static const std::string API_GOALS_BULK = "/goals/bulk";
 static const std::string API_PLAYLISTS = "/playlists";
 static const std::string API_PLAYLIST = "/playlists/{}";
+static const std::string API_TAGS = "/tags";
 static const std::string API_USER = "/users/{}";
 static const std::string API_GAME_VERSION = "/settings/version";
+
+static const std::string API_SEARCH = "/multi_search";
 
 inline std::string
 APIROOT()
 {
 	return serverURL.Get() + API_ROOT;
+}
+
+inline std::string
+SEARCHROOT()
+{
+	return searchURL.Get();
 }
 
 size_t
@@ -323,6 +332,12 @@ inline void
 CURLAPIURL(CURL* curlHandle, std::string endpoint)
 {
 	SetCURLURL(curlHandle, APIROOT() + endpoint);
+}
+
+inline auto
+CURLSEARCHURL(CURL* curlHandle, std::string endpoint)
+{
+	SetCURLURL(curlHandle, SEARCHROOT() + endpoint);
 }
 
 void
@@ -584,8 +599,8 @@ AddPackDlRequestHandle(CURL* handle)
 void
 DownloadManager::Init()
 {
-	RefreshPackList(packListURL);
 	RefreshLastVersion();
+	RefreshPackTags();
 	initialized = true;
 	pack_multi_handle = nullptr;
 	std::thread([this]() {
@@ -4751,62 +4766,10 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 	  "Finished creating GetChartLeaderboard request for {}", chartkey);
 }
 
-void
-DownloadManager::RefreshCoreBundles()
-{
-	Locator::getLogger()->warn("REFRESH CORE BUNDLES NOT IMPLEMENTED");
-	return;
-	/*
-
-	auto done = [this](HTTPRequest& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError()) {
-			Locator::getLogger()->error(
-			  "RefreshCoreBundles Error: Malformed request response: {}",
-			  req.result);
-			return;
-		}
-
-		if (d.HasMember("data") && d["data"].IsArray()) {
-			auto& dlPacks = downloadablePacks;
-			for (auto& bundleData : d["data"].GetArray()) {
-				if (!bundleData.HasMember("id") ||
-					!bundleData["id"].IsString() ||
-					!bundleData.HasMember("attributes") ||
-					!bundleData["attributes"].IsObject() ||
-					!bundleData["attributes"].HasMember("packs") ||
-					!bundleData["attributes"]["packs"].IsArray())
-					continue;
-				auto bundleName = bundleData["id"].GetString();
-				(bundles)[bundleName] = {};
-				auto& bundle = (bundles)[bundleName];
-				for (auto& pack :
-					 bundleData["attributes"]["packs"].GetArray()) {
-					if (!pack.HasMember("packname") ||
-						!pack["packname"].IsString())
-						continue;
-					auto name = pack["packname"].GetString();
-					auto dlPack = std::find_if(
-					  dlPacks.begin(),
-					  dlPacks.end(),
-					  [&name](DownloadablePack x) { return x.name == name; });
-					if (dlPack != dlPacks.end())
-						bundle.push_back(&(*dlPack));
-				}
-			}
-		}
-		if (MESSAGEMAN != nullptr)
-			MESSAGEMAN->Broadcast("CoreBundlesRefreshed");
-	};
-	SendRequest("packs/collections/", {}, done, false);
-	*/
-}
-
 std::vector<DownloadablePack*>
 DownloadManager::GetCoreBundle(const std::string& whichoneyo)
 {
-	return bundles.count(whichoneyo) ? bundles[whichoneyo]
-									 : std::vector<DownloadablePack*>();
+	return std::vector<DownloadablePack*>();
 }
 
 void
@@ -5145,7 +5108,6 @@ DownloadManager::RefreshPackList(const std::string& url)
 			if (MESSAGEMAN != nullptr) {
 				MESSAGEMAN->Broadcast("PackListRefreshed");
 			}
-			RefreshCoreBundles();
 		} else {
 			parse();
 			Locator::getLogger()->error(
@@ -5162,6 +5124,191 @@ DownloadManager::RefreshPackList(const std::string& url)
 					 RequestMethod::GET,
 					 true,
 					 false);
+}
+
+void
+DownloadManager::MultiSearchRequest(
+  ApiSearchCriteria searchCriteria,
+  std::function<void(Document&)> whenDoneParser)
+{
+	constexpr auto& CALL_ENDPOINT = API_SEARCH;
+	constexpr auto& CALL_PATH = API_SEARCH;
+
+	Locator::getLogger()->info("Generating MultiSearchRequest for {}", searchCriteria.DebugString());
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLSEARCHURL(curlHandle, CALL_PATH);
+
+	// TODO: ApiSearchCriteria to body and query params
+	auto body = std::string();
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+
+	auto done = [searchCriteria, whenDoneParser, &CALL_ENDPOINT, this](
+				  HTTPRequest& req) {
+
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [searchCriteria, whenDoneParser, this]() {
+				  MultiSearchRequest(searchCriteria, whenDoneParser);
+			  })) {
+			return;
+		}
+
+		Document d;
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "MultiSearch");
+		};
+
+		whenDoneParser(d);
+	};
+
+	HTTPRequest* req = new HTTPRequest(
+	  curlHandle, done, nullptr, [whenDoneParser](HTTPRequest& req) {
+		  if (whenDoneParser) {
+			  Document d;
+			  whenDoneParser(d);
+		  }
+	  });
+	SetCURLResultsString(curlHandle, &(req->result));
+	SetCURLHeadersString(curlHandle, &(req->headers));
+	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+		AddHttpRequestHandle(req->handle);
+		HTTPRequests.push_back(req);
+	}
+	Locator::getLogger()->info(
+	  "Finished creating MultiSearch request for {}", searchCriteria.DebugString());
+
+}
+
+void
+DownloadManager::RefreshPackTags() {
+	Locator::getLogger()->info("Refreshing Pack Tags");
+	if (packTags.empty()) {
+		Locator::getLogger()->info(
+		  "Pack tags are already loaded. No request made");
+		return;
+	}
+	GetPackTagsRequest();
+}
+
+void
+DownloadManager::GetPackTagsRequest() {
+	constexpr auto& CALL_ENDPOINT = API_TAGS;
+	constexpr auto& CALL_PATH = API_TAGS;
+
+	Locator::getLogger()->info("Generating GetPackTagsRequest");
+
+	auto done = [&CALL_ENDPOINT, this](HTTPRequest& req) {
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [this]() { GetPackTagsRequest(); })) {
+			return;
+		}
+
+		Document d;
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "GetPackTagsRequest");
+		};
+
+		const auto& response = req.response_code;
+		if (response == 200) {
+			parse();
+			if (!d.HasMember("data") || !d["data"].IsObject()) {
+				Locator::getLogger()->error(
+				  "GetPackTagsRequest Error: response data was missing or not an "
+				  "object - content: {}",
+				  jsonObjectToString(d));
+				return;
+			}
+
+			auto& data = d["data"];
+			for (auto it = data.MemberBegin(); it != data.MemberEnd(); it++) {
+
+				auto tagType = it->name.GetString();
+				if (!it->value.IsArray()) {
+					Locator::getLogger()->warn(
+					  "Found tagType {} was not array. Data: {}",
+					  tagType,
+					  jsonObjectToString(it->value));
+					continue;
+				}
+
+				auto tags = it->value.GetArray();
+				packTags[tagType] = std::vector<std::string>();
+				for (auto tit = tags.Begin(); tit != tags.End(); tit++) {
+					packTags[tagType].push_back(tit->GetString());
+				}
+
+				Locator::getLogger()->info("Loaded tagType {} with {} tags",
+										   tagType,
+										   packTags[tagType].size());
+			}
+
+		} else {
+			parse();
+			Locator::getLogger()->error(
+			  "GetPackTagsRequest unexpected response code {} - content: {}",
+			  response,
+			  jsonObjectToString(d));
+		}
+	};
+	SendRequestToURL(CALL_PATH,
+					 CALL_ENDPOINT,
+					 {},
+					 done,
+					 false,
+					 RequestMethod::GET,
+					 true,
+					 false);
+}
+
+void
+DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
+	// first, see if the page is available. if it is, no work to be done
+	// if the page is not cached, retrieve it.
+	// when retrieving, queue further request attempts
+
+	if (noResults) {
+		// no reason to make another request
+		return;
+	}
+
+	if (pendingRequest) {
+		// cant request while already waiting for return
+		return;
+	}
+
+	// true if no request was ever made or the page is valid
+	bool makeARequest = results.size() == 0 || page <= getTotalPages();
+
+	if (finishedPageRequests.contains(page)) {
+		// the page is already cached
+		return;
+	}
+
+	if (!makeARequest) {
+		// the page wasnt valid
+		return;
+	}
+
+	ApiSearchCriteria searchCriteria;
+	searchCriteria.page = page;
+	searchCriteria.per_page = this->key.perPage;
+
+	auto parseFunc = [this](Document& d) {
+		// TODO
+		// parse the Document to update the state of this
+	};
+
+	DLMAN->SearchForPacks(searchCriteria, parseFunc);
 }
 
 Download::Download(std::string url, std::string filename)
