@@ -1734,7 +1734,7 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "GetFavoritesRequest");
+			return parseJson(d, req, "GetFavorites");
 		};
 
 		const auto& response = req.response_code;
@@ -2366,7 +2366,7 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "GetGoalsRequest");
+			return parseJson(d, req, "GetGoals");
 		};
 
 		const auto& response = req.response_code;
@@ -2956,7 +2956,7 @@ DownloadManager::GetPlaylistsRequest(
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "GetPlaylistsRequest");
+			return parseJson(d, req, "GetPlaylists");
 		};
 
 		const auto& response = req.response_code;
@@ -3035,7 +3035,7 @@ DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "GetPlaylistRequest");
+			return parseJson(d, req, "GetPlaylist");
 		};
 
 		const auto& response = req.response_code;
@@ -3273,7 +3273,7 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "GetRankedChartkeysRequest");
+			return parseJson(d, req, "GetRankedChartkeys");
 		};
 
 		const auto& response = req.response_code;
@@ -5215,7 +5215,7 @@ DownloadManager::GetPackTagsRequest() {
 		Document d;
 		// return true if parse error
 		auto parse = [&d, &req]() {
-			return parseJson(d, req, "GetPackTagsRequest");
+			return parseJson(d, req, "GetPackTags");
 		};
 
 		const auto& response = req.response_code;
