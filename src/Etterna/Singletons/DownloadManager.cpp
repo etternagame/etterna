@@ -1022,7 +1022,7 @@ DownloadManager::SendRequestToURL(
 				 httpMethod,
 				 async,
 				 withBearer,
-				 this](HTTPRequest& req) {
+				 this](auto& req) {
 		if (afterDone)
 			afterDone(req);
 	};
@@ -1270,7 +1270,7 @@ DownloadManager::LoginRequest(const std::string& user,
 	CURLFormPostField(form, lastPtr, "key", API_KEY.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 
-	auto done = [user, pass, callback, this](HTTPRequest& req) {
+	auto done = [user, pass, callback, this](auto& req) {
 		auto loginFailed = [this]() {
 			authToken = sessionUser = "";
 			MESSAGEMAN->Broadcast("LoginFailed");
@@ -1367,7 +1367,7 @@ DownloadManager::LoginRequest(const std::string& user,
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
-	req->Failed = [this](HTTPRequest& req) {
+	req->Failed = [this](auto& req) {
 		authToken = sessionUser = "";
 		MESSAGEMAN->Broadcast("LoginFailed");
 		loggingIn = false;
@@ -1443,7 +1443,7 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 	Locator::getLogger()->info("Generating AddFavoriteRequest for {}",
 							   chartkey);
 
-	auto done = [chartkey, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [chartkey, &CALL_ENDPOINT, this](auto& req) {
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
@@ -1526,7 +1526,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
-	auto done = [callback, favorites, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [callback, favorites, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -1620,7 +1620,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	};
 
 	HTTPRequest* req =
-	  new HTTPRequest(curlHandle, done, nullptr, [callback](HTTPRequest& req) {
+	  new HTTPRequest(curlHandle, done, nullptr, [callback](auto& req) {
 		  if (callback)
 			  callback();
 	  });
@@ -1643,7 +1643,7 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 	Locator::getLogger()->info("Generating RemoveFavoriteRequest for {}",
 							   chartkey);
 
-	auto done = [chartkey, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [chartkey, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -1719,7 +1719,7 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 	};
 
 	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
-				  HTTPRequest& req) {
+				  auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -1965,7 +1965,7 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 	Locator::getLogger()->info("Generating AddGoalRequest for {}",
 							   goal->DebugString());
 
-	auto done = [goal, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -2052,7 +2052,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
-	auto done = [callback, goals, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [callback, goals, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			CALL_ENDPOINT,
@@ -2152,7 +2152,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 	};
 
 	HTTPRequest* req =
-	  new HTTPRequest(curlHandle, done, nullptr, [callback](HTTPRequest& req) {
+	  new HTTPRequest(curlHandle, done, nullptr, [callback](auto& req) {
 		  if (callback)
 			  callback();
 	  });
@@ -2182,7 +2182,7 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 	Locator::getLogger()->info("Generating RemoveGoalRequest for {}",
 							   goal->DebugString());
 
-	auto done = [goal, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -2269,7 +2269,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
 
-	auto done = [goal, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -2319,7 +2319,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	};
 
 	HTTPRequest* req =
-	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {
+	  new HTTPRequest(curlHandle, done, nullptr, [](auto& req) {
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
@@ -2351,7 +2351,8 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 		std::make_pair("end", endstr),
 	};
 
-	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](HTTPRequest& req) {
+	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
+				  auto& req) {
 		
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -2703,7 +2704,7 @@ DownloadManager::AddPlaylistRequest(const std::string& name)
 		std::make_pair("charts", ChartlistToJSON(playlist))
 	};
 
-	auto done = [name, playlist, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [name, playlist, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			CALL_ENDPOINT,
@@ -2784,7 +2785,7 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
 
-	auto done = [name, playlist, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [name, playlist, &CALL_ENDPOINT, this](auto& req) {
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
@@ -2826,7 +2827,7 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	};
 
 	HTTPRequest* req =
-	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {});
+	  new HTTPRequest(curlHandle, done, nullptr, [](auto& req) {});
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
@@ -2871,7 +2872,7 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE");
 
 
-	auto done = [name, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [name, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -2909,7 +2910,7 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 	};
 
 	HTTPRequest* req =
-	  new HTTPRequest(curlHandle, done, nullptr, [](HTTPRequest& req) {});
+	  new HTTPRequest(curlHandle, done, nullptr, [](auto& req) {});
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
@@ -2942,7 +2943,7 @@ DownloadManager::GetPlaylistsRequest(
 	};
 
 	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
-				  HTTPRequest& req) {
+				  auto& req) {
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
@@ -3021,7 +3022,7 @@ DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int
 	Locator::getLogger()->info(
 	  "Generating GetPlaylistRequest for playlist id {}", id);
 
-	auto done = [onSuccess, id, this](HTTPRequest& req){
+	auto done = [onSuccess, id, this](auto& req){
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
@@ -3255,7 +3256,8 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 		std::make_pair("end", endstr),
 	};
 
-	auto done = [callback, start, end, &CALL_ENDPOINT, this, startstr, endstr](HTTPRequest& req) {
+	auto done = [callback, start, end, &CALL_ENDPOINT, this, startstr, endstr](
+				  auto& req) {
 
 		if (Handle401And429Response(
 			CALL_ENDPOINT,
@@ -3833,7 +3835,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 	// body json
 	// Locator::getLogger()->warn("{}", body);
 
-	auto done = [callback, hsList, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [callback, hsList, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			CALL_ENDPOINT,
@@ -4001,7 +4003,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 	};
 
 	HTTPRequest* req =
-	  new HTTPRequest(curlHandle, done, nullptr, [callback](HTTPRequest& req) {
+	  new HTTPRequest(curlHandle, done, nullptr, [callback](auto& req) {
 		  if (callback)
 			  callback();
 	  });
@@ -4052,7 +4054,8 @@ DownloadManager::UploadScore(HighScore* hs,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, json.c_str());
 
-	auto done = [hs, callback, load_from_disk, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [hs, callback, load_from_disk, &CALL_ENDPOINT, this](
+				  auto& req) {
 
 		if (Handle401And429Response(
 			CALL_ENDPOINT,
@@ -4179,7 +4182,7 @@ DownloadManager::UploadScore(HighScore* hs,
 			callback();
 	};
 	HTTPRequest* req = new HTTPRequest(
-	  curlHandle, done, nullptr, [callback](HTTPRequest& req) {
+	  curlHandle, done, nullptr, [callback](auto& req) {
 			if (callback)
 			  callback();
 	  });
@@ -4488,7 +4491,14 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 		  }
 	  };
 
-	auto done = [runLuaFunc, scoreid, userid, username, chartkey, &callback, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [runLuaFunc,
+				 scoreid,
+				 userid,
+				 username,
+				 chartkey,
+				 &callback,
+				 &CALL_ENDPOINT,
+				 this](auto& req) {
 		std::vector<std::pair<float, float>> replayData{};
 		auto& lbd = chartLeaderboards[chartkey];
 
@@ -4691,7 +4701,7 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 	};
 
 	auto done = [&ref, chartkey, runLuaFunc, &vec, &CALL_ENDPOINT, this](
-				  HTTPRequest& req) {
+				  auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -4793,7 +4803,7 @@ DownloadManager::RefreshLastVersion()
 
 	std::vector<std::pair<std::string, std::string>> params = {};
 
-	auto done = [this](HTTPRequest& req) {
+	auto done = [this](auto& req) {
 		if (HandleRatelimitResponse(API_USER, req)) {
 			RefreshUserData();
 			return;
@@ -4842,7 +4852,7 @@ DownloadManager::RefreshTop25(Skillset ss)
 	std::string req = "user/" + UrlEncode(sessionUser) + "/top/";
 	if (ss != Skill_Overall)
 		req += SkillsetToString(ss) + "/25";
-	auto done = [ss, this](HTTPRequest& req) {
+	auto done = [ss, this](auto& req) {
 		Document d;
 		if (d.Parse(req.result.c_str()).HasParseError() ||
 			(d.HasMember("errors") && d["errors"].IsArray() &&
@@ -4916,7 +4926,7 @@ DownloadManager::RefreshUserData()
 
 	std::vector<std::pair<std::string, std::string>> params = {};
 
-	auto done = [&CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [&CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			CALL_ENDPOINT,
@@ -5022,7 +5032,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 	Locator::getLogger()->info("Generating RefreshPackList via API: {}",
 							   CALL_PATH);
 
-	auto done = [url, &CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [url, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			CALL_ENDPOINT,
@@ -5146,7 +5156,7 @@ DownloadManager::MultiSearchRequest(
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
 	auto done = [searchCriteria, whenDoneParser, &CALL_ENDPOINT, this](
-				  HTTPRequest& req) {
+				  auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
@@ -5168,7 +5178,7 @@ DownloadManager::MultiSearchRequest(
 	};
 
 	HTTPRequest* req = new HTTPRequest(
-	  curlHandle, done, nullptr, [whenDoneParser](HTTPRequest& req) {
+	  curlHandle, done, nullptr, [whenDoneParser](auto& req) {
 		  if (whenDoneParser) {
 			  Document d;
 			  whenDoneParser(d);
@@ -5203,7 +5213,7 @@ DownloadManager::GetPackTagsRequest() {
 
 	Locator::getLogger()->info("Generating GetPackTagsRequest");
 
-	auto done = [&CALL_ENDPOINT, this](HTTPRequest& req) {
+	auto done = [&CALL_ENDPOINT, this](auto& req) {
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
