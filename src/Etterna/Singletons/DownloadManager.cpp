@@ -5270,14 +5270,14 @@ DownloadManager::GetPackTagsRequest() {
 			  jsonObjectToString(d));
 		}
 	};
-	SendRequestToURL(CALL_PATH,
-					 CALL_ENDPOINT,
-					 {},
-					 done,
-					 false,
-					 RequestMethod::GET,
-					 true,
-					 false);
+	SendRequest(CALL_PATH,
+				CALL_ENDPOINT,
+				{},
+				done,
+				false,
+				RequestMethod::GET,
+				true,
+				false);
 }
 
 void
