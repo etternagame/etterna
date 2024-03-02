@@ -275,8 +275,17 @@ playerConfig.load = function(self, slot)
     local x = create_setting("playerConfig", "playerConfig.lua", {}, -1)
     x = x:load(slot)
 
+    local function allowedToRecursiveLoad()
+        local prof_dir = PROFILEMAN:GetProfileDir(slot)
+		if not prof_dir or prof_dir == "" then
+            Warn("Nice one. You tried to load a playerconfig when no profile was loaded.")
+			return false
+		end
+        return true
+    end
+
     -- if settings were not present in /Save/LocalProfiles/ but are present in /Save/ then copy them over
-    if next(x) == nil and next(globalSettings) ~= nil then
+    if next(x) == nil and next(globalSettings) ~= nil and allowedToRecursiveLoad() then
         -- should be safe to do this
         -- this doesnt create a copy, but globalSettings should never be accessed anywhere anyways
         print("Loaded PlayerConfig settings from global PlayerConfig")
