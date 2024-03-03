@@ -776,7 +776,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		auto* hs = GetHighScore();
 		if (hs != nullptr) {
 			const static auto delta = 0.001F;
-			if (std::fabsf(fMusicRate - hs->GetMusicRate()) > delta) {
+			if (fabsf(fMusicRate - hs->GetMusicRate()) > delta) {
 				Locator::getLogger()->error(
 				  "There is a discrepancy in the rate of replay {} - HS rate "
 				  "{} - replay rate {}",

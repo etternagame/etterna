@@ -2531,7 +2531,7 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					for (auto& localGoal : localGoalsForChart) {
 						// if the goal is found
 						// either save or do nothing
-						if (std::fabsf(goal.rate - localGoal.rate) < 0.001) {
+						if (fabsf(goal.rate - localGoal.rate) < 0.001) {
 							if (goal.achieved && !localGoal.achieved &&
 								goal.timeassigned >= localGoal.timeassigned) {
 								Locator::getLogger()->info(
@@ -2586,7 +2586,7 @@ DownloadManager::RefreshGoals(const DateTime start, const DateTime end)
 					for (auto& onlineGoal : onlineGoalsForChart) {
 						// if the goal is found
 						// either update or do nothing
-						if (std::fabsf(goal.rate - onlineGoal.rate) < 0.001) {
+						if (fabsf(goal.rate - onlineGoal.rate) < 0.001) {
 							if (goal.achieved && !onlineGoal.achieved &&
 								goal.timeassigned >= onlineGoal.timeassigned) {
 								Locator::getLogger()->info(
