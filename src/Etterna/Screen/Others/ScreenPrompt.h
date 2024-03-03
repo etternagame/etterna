@@ -45,7 +45,8 @@ class ScreenPrompt : public ScreenWithMenuElements
 
 	static PromptAnswer s_LastAnswer;
 	static bool s_bCancelledLast;
-
+	static bool s_bMustResetInputRedirAtClose;
+	static bool s_bResetInputRedirTo;
 	// Lua
 	// virtual void PushSelf( lua_State *L );
 

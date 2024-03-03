@@ -26,7 +26,7 @@ set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp lintiPng
 add_subdirectory(SQLiteCpp)
 
 ## websocketpp
-add_subdirectory(asio-1.12.2) # Only required for websocketpp
+add_subdirectory(asio) # Only required for websocketpp
 add_subdirectory(websocketpp)
 add_library(websocketpp INTERFACE)
 target_include_directories(websocketpp INTERFACE websocketpp)
@@ -46,6 +46,9 @@ add_subdirectory(plog)
 set(RAPIDJSON_BUILD_EXAMPLES OFF)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
+
+set(JWT_SSL_LIBRARY OpenSSL)
+add_subdirectory(jwt-cpp-0.6.0)
 
 ## Remaining Libraries
 add_subdirectory(luajit)

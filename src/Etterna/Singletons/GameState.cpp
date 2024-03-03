@@ -274,6 +274,7 @@ GameState::Reset()
 	m_iNumMultiplayerNoteFields = 1;
 	*m_Environment = LuaTable();
 	m_sPreferredSongGroup.Set(GROUP_ALL);
+	m_sLastSongGroup = "";
 	m_bFailTypeWasExplicitlySet = false;
 	m_SortOrder.Set(SortOrder_Invalid);
 	m_PreferredSortOrder = GetDefaultSort();
@@ -1480,6 +1481,12 @@ class LunaGameState : public Luna<GameState>
 		p->m_Environment->PushSelf(L);
 		return 1;
 	}
+	static int SetLastSongGroup(T* p, lua_State* L)
+	{
+		auto g = SArg(1);
+		p->m_sLastSongGroup = g;
+		COMMON_RETURN_SELF;
+	}
 	static int SetPreferredDifficulty(T* p, lua_State* L)
 	{
 		Difficulty dc = Enum::Check<Difficulty>(L, 2);
@@ -1848,6 +1855,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetPreferredSong);
 		ADD_METHOD(SetTemporaryEventMode);
 		ADD_METHOD(Env);
+		ADD_METHOD(SetLastSongGroup);
 		ADD_METHOD(SetPreferredDifficulty);
 		ADD_METHOD(GetPreferredDifficulty);
 		ADD_METHOD(GetSortOrder);

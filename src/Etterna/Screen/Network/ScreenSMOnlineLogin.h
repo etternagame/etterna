@@ -13,7 +13,7 @@ class ScreenSMOnlineLogin : public ScreenWithMenuElements
 
   private:
 	int m_iPlayer = 0;
-	string username;
+	std::string username;
 };
 
 #endif

@@ -36,6 +36,9 @@ class SongManager
 	void FreeSongs();
 	void Cleanup();
 
+	void UnlistSong(Song* song);
+
+
 	void Invalidate(const Song* pStaleSong);
 	static auto GetPlaylists() -> std::map<std::string, Playlist>&;
 	static void SaveEnabledSongsToPref();
@@ -90,6 +93,7 @@ class SongManager
 	auto GetSongs(const std::string& sGroupName) const
 	  -> const std::vector<Song*>&;
 	void ForceReloadSongGroup(const std::string& sGroupName) const;
+	void GenerateCachefilesForGroup(const std::string& sGroupName) const;
 	/**
 	 * @brief Retrieve all of the songs in the game.
 	 * @return all of the songs. */
@@ -179,6 +183,9 @@ class SongManager
 
 	std::set<std::string> m_GroupsToNeverCache;
 	/** @brief The most popular songs ranked by number of plays. */
+
+	std::vector<Song*> m_pDeletedSongs;
+
 	std::vector<Song*> m_pPopularSongs;
 
 	std::vector<std::string> m_sSongGroupNames;

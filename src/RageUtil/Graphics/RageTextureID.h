@@ -12,6 +12,8 @@ struct RageTextureID
 {
 	std::string filename;
 
+	bool base64{ false };
+
 	// Maximum size of the texture, per dimension.
 	int iMaxSize{ 0 };
 
@@ -76,7 +78,8 @@ operator==(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 	return lhs.filename == rhs.filename && lhs.iMaxSize == rhs.iMaxSize && lhs.bMipMaps == rhs.bMipMaps &&
 		   lhs.iAlphaBits == rhs.iAlphaBits && lhs.iGrayscaleBits == rhs.iGrayscaleBits && lhs.iColorDepth == rhs.iColorDepth &&
 		   lhs.bDither == rhs.bDither && lhs.bStretch == rhs.bStretch && lhs.bHotPinkColorKey == rhs.bHotPinkColorKey &&
-		   lhs.AdditionalTextureHints == rhs.AdditionalTextureHints;
+		   lhs.AdditionalTextureHints == rhs.AdditionalTextureHints &&
+		   lhs.base64 == rhs.base64;
 	// && lhs.Policy == rhs.Policy; // don't do this
 }
 
@@ -101,6 +104,7 @@ operator<(RageTextureID const& lhs, RageTextureID const& rhs) -> bool
 	COMP(iGrayscaleBits);
 	COMP(iColorDepth);
 	COMP(bDither);
+	COMP(base64);
 	COMP(bStretch);
 	COMP(bHotPinkColorKey);
 	COMP(AdditionalTextureHints);

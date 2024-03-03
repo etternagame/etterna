@@ -98,12 +98,12 @@ static LocalizedString CONNECTION_FAILED("NetworkSyncManager",
 static LocalizedString LOGIN_TIMEOUT("NetworkSyncManager", "LoginTimeout");
 
 // Utility function (Since json needs to be valid utf8)
-string
-correct_non_utf_8(string* str)
+std::string
+correct_non_utf_8(std::string* str)
 {
 	int i, f_size = str->size();
 	unsigned char c = 0, c2 = 0, c3 = 0, c4 = 0;
-	string to;
+	std::string to;
 	to.reserve(f_size);
 
 	for (i = 0; i < f_size; i++) {
@@ -186,10 +186,10 @@ correct_non_utf_8(string* str)
 	return to;
 }
 
-string
+std::string
 correct_non_utf_8(const std::string& str)
 {
-	string stdStr = str.c_str();
+	std::string stdStr = str.c_str();
 	auto utf8ValidStr = correct_non_utf_8(&stdStr);
 	return utf8ValidStr;
 }
@@ -622,7 +622,7 @@ RoomData
 jsonToRoom(Value& room)
 {
 	RoomData tmp;
-	string s = room.HasMember("name") && room["name"].IsString()
+	std::string s = room.HasMember("name") && room["name"].IsString()
 				 ? room["name"].GetString()
 				 : "";
 	tmp.SetName(s);
@@ -1103,7 +1103,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 								continue;
 							float wife = score["wife"].GetFloat();
 							std::string jdgstr = score["jdgstr"].GetString();
-							string user = score["user"].GetString();
+							std::string user = score["user"].GetString();
 							n->mpleaderboard[user].wife = wife;
 							n->mpleaderboard[user].jdgstr = jdgstr;
 						}
@@ -1187,7 +1187,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						Locator::getLogger()->warn("Invalid ETTP deleteroom room message");
 						continue;
 					}
-					string name = payload["room"]["name"].GetString();
+					std::string name = payload["room"]["name"].GetString();
 					n->m_Rooms.erase(std::remove_if(n->m_Rooms.begin(),
 													n->m_Rooms.end(),
 													[&](RoomData const& room) {
@@ -1367,7 +1367,7 @@ NetworkSyncManager::Login(std::string user, std::string pass)
 		curProtocol->Login(user, pass);
 }
 void
-ETTProtocol::SendChat(const std::string& message, string tab, int type)
+ETTProtocol::SendChat(const std::string& message, std::string tab, int type)
 {
 	if (client == nullptr)
 		return;
@@ -1789,7 +1789,7 @@ NetworkSyncManager::ChangedScoreboard(int Column)
 }
 
 void
-NetworkSyncManager::SendChat(const std::string& message, string tab, int type)
+NetworkSyncManager::SendChat(const std::string& message, std::string tab, int type)
 {
 	if (curProtocol != nullptr)
 		curProtocol->SendChat(message, tab, type);
@@ -2131,7 +2131,7 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	{
 		unsigned int l = IArg(1);
 		int tabType = IArg(2);
-		string tabName = SArg(3);
+		std::string tabName = SArg(3);
 		lua_pushstring(L, p->chat[{ tabName, tabType }][l].c_str());
 		return 1;
 	}
@@ -2147,9 +2147,9 @@ LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 	}
 	static int SendChatMsg(T* p, lua_State* L)
 	{
-		string msg = SArg(1);
+		std::string msg = SArg(1);
 		int tabType = IArg(2);
-		string tabName = SArg(3);
+		std::string tabName = SArg(3);
 		p->SendChat(msg, tabName, tabType);
 		return 1;
 	}

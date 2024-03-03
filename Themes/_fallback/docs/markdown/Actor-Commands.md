@@ -228,10 +228,6 @@ Broadcast after a small delay of not scrolling in the music wheel. Should be use
 
     params = { }
 
-    			Message msg("FavoritesUpdated");
-    			MESSAGEMAN->Broadcast(msg);
-    	MESSAGEMAN->Broadcast("PlayingSampleMusic");
-
 ### RateChangedMessageCommand
 
 Broadcast when the current rate changes (So things like the current chart difficulty and song length can be updated).
@@ -430,12 +426,6 @@ Broadcast when a pack download succeeds. See DLMAN:Logout(),DLMAN:Login(user, pa
 ### LogOutMessageCommand
 
 Broadcast when logging out of the tracker. See DLMAN:Logout(),DLMAN:Login(user, pass) and DLMAN:LoginWithToken(user, passToken) in `DownloadManager`
-
-    params = { }
-
-### FavouritesUpdateMessageCommand
-
-Broadcast when favourites are retrieved/refreshed from the tracker.
 
     params = { }
 

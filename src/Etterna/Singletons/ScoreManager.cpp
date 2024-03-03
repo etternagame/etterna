@@ -44,7 +44,7 @@ ScoreManager::~ScoreManager()
 }
 
 inline auto
-RateKeyToDisplayString(float rate) -> string
+RateKeyToDisplayString(float rate) -> std::string
 {
 	auto rs = ssprintf("%.2f", rate);
 	auto j = 1;
@@ -97,7 +97,7 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 }
 
 auto
-ScoresAtRate::GetSortedKeys() const -> const std::vector<string>
+ScoresAtRate::GetSortedKeys() const -> const std::vector<std::string>
 {
 	// it is technically possible for 2 scores to have the same percent
 	// use a multimap to support this
@@ -156,7 +156,7 @@ ScoreManager::PurgeScores()
 }
 
 void
-ScoreManager::PurgeProfileScores(const string& profileID)
+ScoreManager::PurgeProfileScores(const std::string& profileID)
 {
 	TopSSRs.clear();
 	TopSSRs.shrink_to_fit();
@@ -252,9 +252,10 @@ ScoresForChart::GetPlayedRateKeys() const -> const std::vector<int>
 }
 
 auto
-ScoresForChart::GetPlayedRateDisplayStrings() const -> const std::vector<string>
+ScoresForChart::GetPlayedRateDisplayStrings() const
+  -> const std::vector<std::string>
 {
-	std::vector<string> o;
+	std::vector<std::string> o;
 	for (const auto& rate : GetPlayedRates()) {
 		o.emplace_back(RateKeyToDisplayString(rate));
 	}
@@ -319,6 +320,67 @@ ScoresForChart::SetTopScores()
 }
 
 auto
+ScoresForChart::GetTopScoresForUploading()
+  -> const std::vector<HighScore*>
+{
+	std::vector<HighScore*> o {};
+	for (auto& atRate : ScoresByRate) {
+
+		HighScore* withReplay = nullptr;
+		HighScore* withoutReplay = nullptr;
+
+		// first, perfectly good scores
+		// second, scores lacking eligibility
+		// the idea is that at any score at all is provided
+		auto comparison = [](HighScore* a, HighScore* b) {
+			if (a->GetWifeVersion() > b->GetWifeVersion()) {
+				return true;
+			} else if (a->GetWifeVersion() < b->GetWifeVersion()) {
+				return false;
+			}
+			if (a->GetChordCohesion() && !b->GetChordCohesion()) {
+				return false;
+			} else if (!a->GetChordCohesion() && b->GetChordCohesion()) {
+				return true;
+			}
+			if (a->GetGrade() != Grade_Failed && b->GetGrade() == Grade_Failed) {
+				return true;
+			} else if (a->GetGrade() == Grade_Failed &&
+					   b->GetGrade() != Grade_Failed) {
+				return false;
+			}
+
+			return a->GetSSRNormPercent() > b->GetSSRNormPercent();
+		};
+
+		// hhhhhhhhhhhhhhhhh
+		std::vector<HighScore*> sortedScores{};
+		for (auto& hh : atRate.second.scores) {
+			sortedScores.push_back(&hh.second);
+		}
+		std::sort(sortedScores.begin(), sortedScores.end(), comparison);
+
+		// take the "best" with and without a replay
+		// basically the first elements in this list should be the best
+		for (const auto& hs : sortedScores) {
+			if (withReplay == nullptr && hs->GetReplay()->HasReplayData()) {
+				withReplay = hs;
+			} else if (withoutReplay == nullptr &&
+					   !hs->GetReplay()->HasReplayData()) {
+				withoutReplay = hs;
+			}
+		}
+
+		if (withReplay != nullptr) {
+			o.push_back(withReplay);
+		} else if (withoutReplay != nullptr) {
+			o.push_back(withoutReplay);
+		}
+	}
+	return o;
+}
+
+auto
 ScoresForChart::GetAllPBPtrs() -> const std::vector<HighScore*>
 {
 	std::vector<HighScore*> o;
@@ -342,9 +404,30 @@ ScoresForChart::GetAllScores() -> const std::vector<HighScore*>
 	return o;
 }
 
+auto
+ScoreManager::GetAllPBsPreferringReplays(const std::string& profileID)
+  -> std::vector<HighScore*>
+{
+	// find the PB for every chart on every rate
+	// if multiple scores are on a single rate, pick the best with a replay
+	// if no replay is present, just pick the best
+	// this is mostly just for InitialScoreSync
+	// (this is also super slow)
+	std::vector<HighScore*> o {};
+	for (auto& scoresForChart : pscores.at(profileID)) {
+		if (!SONGMAN->IsChartLoaded(scoresForChart.first)) {
+			continue;
+		}
+
+		auto v = scoresForChart.second.GetTopScoresForUploading();
+		o.insert(o.end(), v.begin(), v.end());
+	}
+	return o;
+}
+
 // is there any reason for this to be nested and not just a single vector?
 auto
-ScoreManager::GetAllPBPtrs(const string& profileID)
+ScoreManager::GetAllPBPtrs(const std::string& profileID)
   -> const std::vector<vector<HighScore*>>
 {
 	std::vector<vector<HighScore*>> vec;
@@ -359,9 +442,9 @@ ScoreManager::GetAllPBPtrs(const string& profileID)
 }
 
 auto
-ScoreManager::GetChartPBAt(const string& ck,
+ScoreManager::GetChartPBAt(const std::string& ck,
 						   float rate,
-						   const string& profileID) -> HighScore*
+						   const std::string& profileID) -> HighScore*
 {
 	if (KeyHasScores(ck, profileID)) {
 		return pscores.at(profileID).at(ck).GetPBAt(rate);
@@ -371,9 +454,9 @@ ScoreManager::GetChartPBAt(const string& ck,
 }
 
 auto
-ScoreManager::GetChartPBUpTo(const string& ck,
+ScoreManager::GetChartPBUpTo(const std::string& ck,
 							 float rate,
-							 const string& profileID) -> HighScore*
+							 const std::string& profileID) -> HighScore*
 {
 	if (KeyHasScores(ck, profileID)) {
 		return pscores.at(profileID).at(ck).GetPBUpTo(rate);
@@ -383,7 +466,7 @@ ScoreManager::GetChartPBUpTo(const string& ck,
 }
 
 void
-ScoreManager::SetAllTopScores(const string& profileID)
+ScoreManager::SetAllTopScores(const std::string& profileID)
 {
 	for (auto& i : pscores[profileID]) {
 		if (!SONGMAN->IsChartLoaded(i.first)) {
@@ -646,7 +729,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 }
 
 void
-ScoreManager::RecalculateSSRs(const string& profileID)
+ScoreManager::RecalculateSSRs(const std::string& profileID)
 {
 	const auto& scores = SCOREMAN->GetAllProfileScores(profileID);
 
@@ -766,7 +849,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 }
 
 void
-ScoreManager::UnInvalidateAllScores(const string& profileID)
+ScoreManager::UnInvalidateAllScores(const std::string& profileID)
 {
 	for (auto& i : pscores[profileID]) {
 		for (const auto& s : i.second.GetAllScores()) {
@@ -778,7 +861,7 @@ ScoreManager::UnInvalidateAllScores(const string& profileID)
 void
 ScoreManager::CalcPlayerRating(float& prating,
 							   float* pskillsets,
-							   const string& profileID)
+							   const std::string& profileID)
 {
 	SetAllTopScores(profileID);
 
@@ -801,7 +884,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 }
 
 std::vector<float>
-ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID, bool getSSRs)
+ScoreManager::SortTopSSRPtrs(Skillset ss, const std::string& profileID, bool getSSRs)
 {
 	std::vector<float> o;
 	TopSSRs.clear();
@@ -906,7 +989,7 @@ ScoreManager::GetPlayerRatingOverTime(const std::string& profileID) {
 }
 
 void
-ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const string& profileID)
+ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const std::string& profileID)
 {
 	TopSSRsForGame.clear();
 	for (auto& i : pscores[profileID]) {
@@ -947,7 +1030,7 @@ ScoreManager::GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*
 }
 
 void
-ScoreManager::SortRecentScores(const string& profileID)
+ScoreManager::SortRecentScores(const std::string& profileID)
 {
 	TopSSRs.clear();
 	for (auto& i : pscores[profileID]) {
@@ -967,7 +1050,7 @@ ScoreManager::SortRecentScores(const string& profileID)
 }
 
 void
-ScoreManager::SortRecentScoresForGame(const string& profileID)
+ScoreManager::SortRecentScoresForGame(const std::string& profileID)
 {
 	TopSSRsForGame.clear();
 	for (auto& i : pscores[profileID]) {
@@ -1008,7 +1091,7 @@ ScoreManager::GetRecentScoreForGame(const int rank) -> HighScore*
 }
 
 void
-ScoreManager::ImportScore(const HighScore& hs_, const string& profileID)
+ScoreManager::ImportScore(const HighScore& hs_, const std::string& profileID)
 {
 	auto hs = hs_;
 	RegisterScoreInProfile(pscores[profileID][hs.GetChartKey()].AddScore(hs),
@@ -1016,13 +1099,13 @@ ScoreManager::ImportScore(const HighScore& hs_, const string& profileID)
 }
 
 void
-ScoreManager::RegisterScoreInProfile(HighScore* hs_, const string& profileID)
+ScoreManager::RegisterScoreInProfile(HighScore* hs_, const std::string& profileID)
 {
 	AllProfileScores[profileID].emplace_back(hs_);
 }
 
 std::vector<Skillset>
-ScoreManager::GetTopPlayedSkillsets(const string& profileID)
+ScoreManager::GetTopPlayedSkillsets(const std::string& profileID)
 {
 	std::vector<Skillset> output;
 	auto playcounts = GetPlaycountPerSkillset(profileID);
@@ -1041,7 +1124,7 @@ ScoreManager::GetTopPlayedSkillsets(const string& profileID)
 }
 
 std::vector<int>
-ScoreManager::GetPlaycountPerSkillset(const string& profileID)
+ScoreManager::GetPlaycountPerSkillset(const std::string& profileID)
 {
 	std::vector<int> counts;
 	counts.resize(NUM_Skillset);
@@ -1095,7 +1178,7 @@ ScoresAtRate::CreateNode(const int& rate) const -> XNode*
 }
 
 auto
-ScoresForChart::CreateNode(const string& ck) const -> XNode*
+ScoresForChart::CreateNode(const std::string& ck) const -> XNode*
 {
 	auto loot = ch;
 	loot.FromKey(ck); // needs to be here (or somewhere along the line,
@@ -1114,7 +1197,7 @@ ScoresForChart::CreateNode(const string& ck) const -> XNode*
 }
 
 auto
-ScoreManager::CreateNode(const string& profileID) const -> XNode*
+ScoreManager::CreateNode(const std::string& profileID) const -> XNode*
 {
 	auto* o = new XNode("PlayerScores");
 	for (const auto& ch : pscores.find(profileID)->second) {
@@ -1132,11 +1215,11 @@ ScoreManager::CreateNode(const string& profileID) const -> XNode*
 // Read scores from xml
 void
 ScoresAtRate::LoadFromNode(const XNode* node,
-						   const string& ck,
+						   const std::string& ck,
 						   const float& rate,
-						   const string& profileID)
+						   const std::string& profileID)
 {
-	string sk;
+	std::string sk;
 	FOREACH_CONST_Child(node, p)
 	{
 		p->GetAttrValue("Key", sk);
@@ -1203,8 +1286,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		/*
 		if (SONGMAN->IsChartLoaded(ck) && scores[sk].HasReplayData()) {
 			if (scores[sk].GetWifeGrade() != Grade_Failed) {
-				scores[sk].replay->VerifyInputDataAndReplayData();
-				scores[sk].replay->VerifyGeneratedInputDataMatchesReplayData();
+				scores[sk].GetReplay()->VerifyInputDataAndReplayData();
+				scores[sk].GetReplay()->VerifyGeneratedInputDataMatchesReplayData();
 			}
 		}
 		*/
@@ -1224,10 +1307,10 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 
 void
 ScoresForChart::LoadFromNode(const XNode* node,
-							 const string& ck,
-							 const string& profileID)
+							 const std::string& ck,
+							 const std::string& profileID)
 {
-	string rs;
+	std::string rs;
 
 	if (node->GetName() == "Chart") {
 		ch.LoadFromNode(node);
@@ -1254,12 +1337,12 @@ ScoresForChart::LoadFromNode(const XNode* node,
 }
 
 void
-ScoreManager::LoadFromNode(const XNode* node, const string& profileID)
+ScoreManager::LoadFromNode(const XNode* node, const std::string& profileID)
 {
 	FOREACH_CONST_Child(node, p)
 	{
 		// ASSERT(p->GetName() == "Chart");
-		string tmp;
+		std::string tmp;
 		p->GetAttrValue("Key", tmp);
 		const auto ck = tmp;
 		pscores[profileID][ck].LoadFromNode(p, ck, profileID);
@@ -1277,7 +1360,7 @@ ScoresForChart::GetScoresAtRate(const int& rate) -> ScoresAtRate*
 }
 
 auto
-ScoreManager::GetScoresForChart(const string& ck, const string& profileID)
+ScoreManager::GetScoresForChart(const std::string& ck, const std::string& profileID)
   -> ScoresForChart*
 {
 	auto it = (pscores[profileID]).find(ck);
@@ -1323,7 +1406,7 @@ class LunaScoreManager : public Luna<ScoreManager>
   public:
 	static auto GetScoresByKey(T* p, lua_State* L) -> int
 	{
-		const string& ck = SArg(1);
+		const std::string& ck = SArg(1);
 		auto* scores = p->GetScoresForChart(ck);
 
 		if (scores != nullptr) {

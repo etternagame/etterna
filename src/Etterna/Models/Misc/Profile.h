@@ -17,7 +17,6 @@
 #include <set>
 
 #include <unordered_map>
-using std::string;
 
 class XNode;
 struct lua_State;
@@ -85,6 +84,15 @@ class ScoreGoal
 
 	[[nodiscard]] auto GetPBUpTo() const -> HighScore*;
 
+	auto DebugString() const -> std::string
+	{
+		return "(ScoreGoal ck: " + chartkey +
+			   ", rate: " + std::to_string(rate) +
+			   ", percent: " + std::to_string(percent) +
+			   ", achieved: " + std::to_string(achieved) +
+			   ", dtassigned: " + timeassigned.GetString() + ")";
+	}
+
 	// If the scoregoal has already been completed prior to being assigned, flag
 	// it as a vacuous goal
 	void CheckVacuity();
@@ -134,6 +142,7 @@ class Profile
 		m_fPlayerSkillsets[ss] = 0.F;
 
 		m_LastPlayedDate.Init();
+		m_lastRankedChartkeyCheck.Init();
 
 		FOREACH_ENUM(Difficulty, i)
 		m_iNumSongsPlayedByDifficulty[i] = 0;
@@ -216,6 +225,7 @@ class Profile
 	 * save chain and keep this mutable. -Chris */
 	mutable std::string m_sLastPlayedMachineGuid;
 	mutable DateTime m_LastPlayedDate;
+	mutable DateTime m_lastRankedChartkeyCheck;
 	/* These stats count twice in the machine profile if two players are
 	 * playing; that's the only approach that makes sense for ByDifficulty and
 	 * ByMeter. */
@@ -244,6 +254,7 @@ class Profile
 	// more future goalman stuff -mina
 	bool AddGoal(const std::string& ck);
 	void RemoveGoal(const std::string& ck, DateTime assigned);
+	bool LoadGoalIfNew(ScoreGoal goal);
 	std::unordered_map<std::string, GoalsForChart> goalmap;
 	void FillGoalTable();
 	std::vector<ScoreGoal*> goaltable;

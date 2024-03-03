@@ -8,6 +8,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "NoteSkinManager.h"
 #include "Etterna/Models/NoteLoaders/NotesLoaderDWI.h"
+#include "Etterna/Models/NoteWriters/NotesWriterSSC.h"
 #include "PrefsManager.h"
 #include "Etterna/Models/Misc/Profile.h"
 #include "ProfileManager.h"
@@ -27,11 +28,16 @@
 #include "NetworkSyncManager.h"
 #include "Etterna/MinaCalc/MinaCalc.h"
 #include "Etterna/FileTypes/XmlFileUtil.h"
+#include "DownloadManager.h"
 
 #include <numeric>
 #include <algorithm>
 #include <mutex>
 #include <utility>
+#include <fstream>
+#include <cmath>
+
+#include "Etterna/Globals/zip_file.hpp"
 
 using std::map;
 using std::string;
@@ -66,6 +72,8 @@ static const ThemeMetric<int> EXTRA_STAGE2_DIFFICULTY_MAX(
 
 static Preference<std::string> g_sDisabledSongs("DisabledSongs", "");
 static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
+static Preference<bool> CacheZipsContainAllAssets("CacheZipsContainAllAssets",
+												  true);
 
 auto
 SONG_GROUP_COLOR_NAME(size_t i) -> std::string
@@ -505,6 +513,32 @@ Playlist::DeleteChart(int i)
 	}
 
 	chartlist.erase(chartlist.begin() + i);
+}
+
+void
+Playlist::UploadOnline()
+{
+	Locator::getLogger()->info(
+	  "Syncing playlist '{}' (onlineId {}) with online (uploading)...", name, onlineId);
+	if (onlineId == 0) {
+		DLMAN->AddPlaylist(name);
+	}
+	else {
+		DLMAN->UpdatePlaylist(name);
+	}
+}
+
+void
+Playlist::DownloadOnline()
+{
+	Locator::getLogger()->info(
+	  "Syncing playlist '{}' (onlineId {}) with online (downloading)...", name, onlineId);
+	if (onlineId != 0)
+		DLMAN->DownloadPlaylist(name);
+	else
+		Locator::getLogger()->warn(
+		  "The onlineId of playlist '{}' is 0, so it can't be downloaded",
+		  name);
 }
 
 auto
@@ -974,6 +1008,11 @@ SongManager::FreeSongs()
 	m_pSongs.clear();
 	m_SongsByDir.clear();
 
+	// also free the songs that have been deleted from disk
+	for (unsigned i = 0; i < m_pDeletedSongs.size(); ++i)
+		SAFE_DELETE(m_pDeletedSongs[i]);
+	m_pDeletedSongs.clear();
+
 	m_mapSongGroupIndex.clear();
 	m_sSongGroupBannerPaths.clear();
 
@@ -982,6 +1021,29 @@ SongManager::FreeSongs()
 	groupderps.clear();
 
 	m_pPopularSongs.clear();
+}
+
+void
+SongManager::UnlistSong(Song* song)
+{
+	// cannot immediately free song data, as it is needed temporarily
+	// for smooth audio transitions, etc. Instead, remove it from the
+	// m_pSongs list and store it in a special place where it can safely
+	// be deleted later.
+	m_pDeletedSongs.emplace_back(song);
+
+	// remove all occurences of the song in each of our song vectors
+	vector<Song*>* songVectors[2] = { &m_pSongs,
+									  &m_pPopularSongs};
+	for (int songVecIdx = 0; songVecIdx < 2; ++songVecIdx) {
+		vector<Song*>& v = *songVectors[songVecIdx];
+		for (size_t i = 0; i < v.size(); ++i) {
+			if (v[i] == song) {
+				v.erase(v.begin() + i);
+				--i;
+			}
+		}
+	}
 }
 
 auto
@@ -1161,6 +1223,131 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 }
 
 void
+SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
+{
+	SCREENMAN->SystemMessage(
+	  ssprintf("Generating cache files for %s", sGroupName.c_str()));
+	auto& songs = GetSongs(sGroupName);
+	const auto additionalSongs =
+	  songs.size() > 0 && SONGMAN->WasLoadedFromAdditionalSongs(songs.at(0));
+	const auto songsPrefix = additionalSongs ? "AdditionalSongs/" : "Songs/";
+	const auto songsPack = songsPrefix + sGroupName + "/";
+	for (auto s : songs) {
+		// absolute, real filesystem path
+		auto sdir = FILEMAN->ResolveSongFolder(s->GetSongDir(), additionalSongs);
+
+		// Save ssc/sm5 cache file
+		{
+			std::string tmpOutPutPath = "Cache/tmp.ssc";
+			std::string sscCacheFilePath = sdir + "songdata.cache";
+
+			if (!std::isfinite(s->GetLastSecond())) {
+				Locator::getLogger()->warn("Skipped due to bad bpm {}", sdir);
+				continue;
+			}
+
+			NotesWriterSSC::Write(tmpOutPutPath, *s, s->GetAllSteps(), true);
+
+			RageFile f;
+			if (!f.Open(tmpOutPutPath)) {
+				RageException::Throw("SongManager failed to open \"%s\": %s",
+									 tmpOutPutPath.c_str(),
+									 f.GetError().c_str());
+			}
+			string p = f.GetPath();
+			f.Close();
+			std::ofstream dst(sscCacheFilePath, std::ios::binary);
+			std::ifstream src(p, std::ios::binary);
+			dst << src.rdbuf();
+			dst.close();
+			src.close();
+			FILEMAN->Remove(tmpOutPutPath);
+		}
+
+		FOREACH_CONST(Steps*, s->GetAllSteps(), is)
+		{
+			Steps* steps = (*is);
+			TimingData* td = steps->GetTimingData();
+			NoteData nd;
+			steps->GetNoteData(nd);
+			Locator::getLogger()->info("Writing cache file for chart {} ({})",
+									   s->GetDisplayMainTitle().c_str(),
+									   steps->GetChartKey().c_str());
+
+			nd.LogNonEmptyRows(td);
+			auto& nerv = nd.GetNonEmptyRowVector();
+			auto& etaner = td->BuildAndGetEtaner(nerv);
+			auto& serializednd = nd.SerializeNoteData(etaner);
+
+			string path = sdir + steps->GetChartKey() + ".cache";
+			std::ofstream FILE(path, std::ios::binary);
+			if (!FILE) {
+				Locator::getLogger()->warn(
+				  "Failed to cache song {} ({}) to path {}",
+				  s->GetDisplayMainTitle().c_str(),
+				  steps->GetChartKey().c_str(),
+				  path);
+				continue;
+			}
+
+			FILE.write((char*)&serializednd[0],
+					   serializednd.size() * sizeof(NoteInfo));
+			FILE.close();
+
+			td->UnsetEtaner();
+			nd.UnsetNerv();
+			nd.UnsetSerializedNoteData();
+			steps->Compress();
+		}
+	}
+	Locator::getLogger()->info("Finished generating cache files for {}",
+							   sGroupName.c_str());
+
+	SCREENMAN->SystemMessage("Zipping song directory...");
+	miniz_cpp::zip_file fi;
+	std::vector<std::string> flist{};
+	std::vector<std::string> cachefilelist{};
+	FILEMAN->FlushDirCache(songsPack);
+	if (CacheZipsContainAllAssets) {
+		GetDirListingRecursive(songsPack, "*", flist);
+	} else {
+		GetDirListingRecursive(songsPack, "*.cache", flist);
+	}
+	for (auto thing : flist) {
+		if (thing.ends_with(".cache")) {
+			cachefilelist.push_back(thing);
+		}
+
+		if (additionalSongs) {
+			// additionalsongs makes our life harder
+			thing = FILEMAN->ResolveSongFolder(thing, true);
+		}
+		if (thing.starts_with("/")) {
+			thing.erase(0, 1);
+		}
+
+		if (additionalSongs) {
+			// have to rewrite the big long path to be Pack/song/stuff.sm
+			auto internal_path = thing.substr(thing.find("/" + sGroupName + "/") + 1);
+			fi.write(thing, internal_path);
+		} else {
+			// path given as /pack/song/stuff.sm works fine as is
+			fi.write(thing);
+		}
+	}
+	fi.save("Cache/" + sGroupName + ".zip");
+	SCREENMAN->SystemMessage("Finished zipping to Cache.");
+
+	Locator::getLogger()->info("Removing cache files that were generated...");
+	FILEMAN->FlushDirCache(songsPack);
+	for (auto& x : cachefilelist) {
+		Locator::getLogger()->info(" Removing {}", x);
+		FILEMAN->Remove(x);
+	}
+	Locator::getLogger()->info("Done removing cache files.");
+}
+
+void
 SongManager::GetFavoriteSongs(std::vector<Song*>& songs) const
 {
 	for (const auto& song : m_pSongs) {
@@ -1323,7 +1510,7 @@ makePlaylist(const std::string& answer)
 	if (!pl.name.empty() && pls.count(pl.name) == 0) {
 		SONGMAN->GetPlaylists().emplace(pl.name, pl);
 		SONGMAN->activeplaylist = pl.name;
-		MESSAGEMAN->Broadcast("DisplayAll");
+		MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 		PROFILEMAN->SaveProfile(PLAYER_1);
 	}
 }
@@ -1348,7 +1535,7 @@ renamePlaylist(const std::string& old, const std::string& answer)
 		SONGMAN->activeplaylist = pl.name;
 		SONGMAN->DeletePlaylist(old);
 
-		MESSAGEMAN->Broadcast("DisplayAll");
+		MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 		PROFILEMAN->SaveProfile(PLAYER_1);
 
 		return true;
@@ -1633,7 +1820,7 @@ class LunaSongManager : public Luna<SongManager>
 			p->activeplaylist = pl.name;
 
 			 // message for behavior consistency, not necessary
-			MESSAGEMAN->Broadcast("DisplayAll");
+			MESSAGEMAN->Broadcast("DisplayAllPlaylists");
 
 			lua_pushboolean(L, true);
 		}
@@ -1771,6 +1958,18 @@ class LunaPlaylist : public Luna<Playlist>
 		return 1;
 	}
 
+	static auto UploadOnline(T* p, lua_State* L) -> int
+	{
+		p->UploadOnline();
+		return 0;
+	}
+
+	static auto DownloadOnline(T* p, lua_State* L) -> int
+	{
+		p->DownloadOnline();
+		return 0;
+	}
+
 	DEFINE_METHOD(GetAverageRating, GetAverageRating());
 	DEFINE_METHOD(GetName, GetName());
 	LunaPlaylist()
@@ -1784,6 +1983,8 @@ class LunaPlaylist : public Luna<Playlist>
 		ADD_METHOD(GetStepslist);
 		ADD_METHOD(GetAverageRating);
 		ADD_METHOD(DeleteChart);
+		ADD_METHOD(UploadOnline);
+		ADD_METHOD(DownloadOnline);
 	}
 };
 

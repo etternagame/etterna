@@ -28,7 +28,7 @@ local function slot_to_prof_dir(slot, reason)
 	if slot and slot ~= "ProfileSlot_Invalid" then
 		prof_dir = PROFILEMAN:GetProfileDir(slot)
 		if not prof_dir or prof_dir == "" then
-			--Warn("Could not fetch profile dir to " .. reason .. ".")
+			Warn("Could not fetch profile dir to " .. reason .. ".")
 			return
 		end
 	end

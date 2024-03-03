@@ -75,6 +75,7 @@ Wheel.mt = {
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
             GAMESTATE:SetPreferredSong(currentItem)
+            GAMESTATE:SetLastSongGroup(currentItem:GetGroupName())
 
             -- dude how do we even mimic the spaghetti behavior the c++ causes
             local function findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(charts, prefdiff, stepstype)
@@ -163,6 +164,11 @@ Wheel.mt = {
             -- currentItem is a GROUP
             GAMESTATE:SetCurrentSong(nil)
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            if WHEELDATA:GetCurrentSort() == 1 then
+                GAMESTATE:SetLastSongGroup(currentItem)
+            else
+                GAMESTATE:SetLastSongGroup("")
+            end
         end
     end,
     move = function(whee, num)
@@ -674,10 +680,10 @@ function Wheel:new(params)
                 -- if any of those buttons happen to overlap with a GameButton, the c++ input wont be called if it is redirected.
                 -- that means some of the functionality will fail.
                 -- To cope, mimic that exact behavior right here instead.
-                if event.type == "InputEventType_FirstPress" and gameButton ~= "" and event.charNoModifiers ~= nil and SCREENMAN:get_input_redirected(PLAYER_1) then
+                if event.type == "InputEventType_FirstPress" and gameButton ~= "" and SCREENMAN:get_input_redirected(PLAYER_1) then
                     local ctrl = INPUTFILTER:IsControlPressed()
                     local shift = INPUTFILTER:IsShiftPressed()
-                    local char = event.charNoModifiers:upper()
+                    local char = (event.charNoModifiers ~= nil and event.charNoModifiers or ""):upper()
                     local ssm = SCREENMAN:GetTopScreen()
 
                     -- if settled and the current screen is [net]selectmusic
@@ -688,9 +694,29 @@ function Wheel:new(params)
                             -- Reload current song from disk (ctrl shift R)
                             ssm:ReloadCurrentSong()
                             return true
+                        elseif ctrl and shift and char == "O" then
+                            -- Cache current pack for ranking (ctrl shift O)
+                            local pack = nil
+                            if GAMESTATE:GetCurrentSong() ~= nil and whee:getCurrentItem().GetAllSteps then
+                                pack = GAMESTATE:GetCurrentSong():GetGroupName()
+                            elseif WHEELDATA:GetCurrentSort() == 1 then
+                                -- group sort, hovering a pack
+                                pack = whee:getCurrentItem()
+                            else
+                                -- some other sort, hovering arbitrary folder
+                                -- do nothing...
+                                ms.ok("Did not cache anything because there was no identifiable pack")
+                                return true
+                            end
+                            ssm:CachePackForRanking(pack)
+                            return true
                         elseif ctrl and shift and char == "P" then
                             -- Reload current pack from disk (ctrl shift P)
                             ssm:ReloadCurrentPack()
+                            return true
+                        elseif ctrl and event.button == "DeviceButton_backspace" then
+                            -- Delete the currently hovered song (ctrl Backspace)
+                            ssm:DeleteCurrentSong()
                             return true
                         elseif ctrl and char == "F" then
                             -- Toggle favorite on current chart (ctrl F)
@@ -1319,6 +1345,12 @@ function MusicWheel:new(params)
     end
 
     w.FavoritesUpdatedMessageCommand = function(self)
+        w:update()
+    end
+    w.PermamirrorUpdatedMessageCommand = function(self)
+        w:update()
+    end
+    w.GoalsUpdatedMessageCommand = function(self)
         w:update()
     end
 

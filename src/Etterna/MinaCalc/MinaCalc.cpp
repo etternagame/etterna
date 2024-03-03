@@ -177,8 +177,10 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		// for other keymodes
 		if (keycount != 4u) {
 			const auto scale = 4.F / static_cast<float>(keycount);
-			for (auto& v : iteration_skillet_values) {
-				v *= scale;
+			for (auto ss = 0; ss < NUM_Skillset; ss++) {
+				if (ss == Skill_JackSpeed || ss == Skill_Technical)
+					continue;
+				iteration_skillet_values[ss] *= scale;
 			}
 		}
 
@@ -830,59 +832,14 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 			// start diff values at adjusted nps base
 			*adj_diff = adj_npsbase;
 			*stam_base = adj_npsbase;
-			switch (ss) {
-				// do funky special case stuff here
-				case Skill_Stream:
-					break;
 
-				/* test calculating stam for js/hs on max js/hs diff, also we
-				 * want hs to count against js so they are mutually exclusive,
-				 * don't know how this functionally interacts with the stam base
-				 * stuff, but it might be one reason why js is more problematic
-				 * than hs? */
-				case Skill_Jumpstream: {
-					*adj_diff /= max<float>(calc.pmod_vals.at(hand).at(HS).at(i), 1.F);
-					*adj_diff /=
-					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i) * 0.95F);
-
-					auto a = *adj_diff;
-					auto b = calc.init_base_diff_vals.at(hand).at(NPSBase).at(i) *
-							 pmod_product_cur_interval[Skill_Handstream];
-					*stam_base = max<float>(a, b);
-				} break;
-				case Skill_Handstream: {
-
-					// adj_diff /=
-					// fastsqrt(doot.at(hi).at(OHJump).at(i));
-					auto a = adj_npsbase;
-					auto b = calc.init_base_diff_vals.at(hand).at(NPSBase).at(i) *
-							 pmod_product_cur_interval[Skill_Jumpstream];
-					*stam_base = max<float>(a, b);
-				} break;
-				case Skill_JackSpeed:
-					break;
-				case Skill_Chordjack:
-					/*
-					*adj_diff =
-					  calc.init_base_diff_vals.at(hand).at(CJBase).at(i) *
-					  basescalers.at(Skill_Chordjack) *
-					  pmod_product_cur_interval[Skill_Chordjack];
-					// we leave stam_base alone here, still based on nps
-					*/
-					break;
-				case Skill_Technical:
-					*adj_diff =
-					  calc.init_base_diff_vals.at(hand).at(TechBase).at(i) *
-					  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
-					  max<float>(
-						fastpow(calc.pmod_vals.at(hand).at(CJ).at(i)+0.05F, 2.F),
-						1.F);
-					*adj_diff *=
-					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i));
-					break;
-				default:
-					break;
-			}
+			calc.ulbu_in_charge->adj_diff_func(i,
+											   hand,
+											   adj_diff,
+											   stam_base,
+											   adj_npsbase,
+											   ss,
+											   pmod_product_cur_interval);
 		}
 	}
 }
@@ -992,7 +949,7 @@ MinaSDCalcDebug(
 #endif
 }
 
-int mina_calc_version = 509;
+int mina_calc_version = 511;
 auto
 GetCalcVersion() -> int
 {

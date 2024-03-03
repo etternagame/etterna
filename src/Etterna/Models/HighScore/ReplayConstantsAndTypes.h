@@ -13,6 +13,9 @@ const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
 // contains input data files corresponding to replays
 const std::string INPUT_DATA_DIR = "Save/InputData/";
 
+// contains replays to be imported from online
+const std::string ONLINE_DATA_DIR = "Save/OnlineReplays/";
+
 const std::string NO_MODS = "none";
 
 /// enum values defined by Replay.GetReplayType()

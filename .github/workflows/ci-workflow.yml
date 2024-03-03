@@ -125,6 +125,16 @@ jobs:
       - name: Install homebrew packages
         run: brew install cmake nasm ninja openssl
 
+      - name: Setup Python 2.7
+        uses: MatteoH2O1999/setup-python@v1.4.1
+        with:
+          python-version: '2.7'
+
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
@@ -218,6 +228,11 @@ jobs:
           echo "${{github.workspace}}/tools/win/" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           echo "ETTERNA_ARCH=${{matrix.cfg.name}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          
       - name: Setup Python 2.7
         uses: MatteoH2O1999/setup-python@v1.4.1
         with:
@@ -261,15 +276,15 @@ jobs:
           name: "Etterna - Windows ${{matrix.cfg.name}}"
           path: '${{github.workspace}}/main/build/*.exe'
 
-      - name: Setup Python 3
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-
       - name: Generate Symbols
         run: |
           echo "Dumping Symbols..."
           dump_syms.exe main/Program/Etterna.pdb > ${{github.workspace}}/main/Etterna.sym
+
+      - name: Setup Python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
 
       - name: Prepare symbols for action artifacts
         run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py

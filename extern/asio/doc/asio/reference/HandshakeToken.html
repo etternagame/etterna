@@ -1,0 +1,133 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>SSL handshake token requirements</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Asio">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="HandshakeHandler.html" title="SSL handshake handler requirements">
+<link rel="next" href="InternetProtocol.html" title="Internet protocol requirements">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="asio C++ library" width="250" height="60" src="../../asio.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="HandshakeHandler.html"><img src="../../prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../home.png" alt="Home"></a><a accesskey="n" href="InternetProtocol.html"><img src="../../next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="asio.reference.HandshakeToken"></a><a class="link" href="HandshakeToken.html" title="SSL handshake token requirements">SSL handshake token requirements</a>
+</h3></div></div></div>
+<p>
+        A handshake token is a <a class="link" href="../overview/model/completion_tokens.html" title="Completion Tokens">completion
+        token</a> for completion signature <code class="computeroutput"><span class="keyword">void</span><span class="special">(</span><span class="identifier">error_code</span><span class="special">)</span></code>.
+      </p>
+<h5>
+<a name="asio.reference.HandshakeToken.h0"></a>
+        <span><a name="asio.reference.HandshakeToken.examples"></a></span><a class="link" href="HandshakeToken.html#asio.reference.HandshakeToken.examples">Examples</a>
+      </h5>
+<p>
+        A free function as a handshake token:
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">handshake_handler</span><span class="special">(</span>
+    <span class="keyword">const</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span>
+<span class="special">{</span>
+  <span class="special">...</span>
+<span class="special">}</span>
+</pre>
+<p>
+        A handshake token function object:
+      </p>
+<pre class="programlisting"><span class="keyword">struct</span> <span class="identifier">handshake_handler</span>
+<span class="special">{</span>
+  <span class="special">...</span>
+  <span class="keyword">void</span> <span class="keyword">operator</span><span class="special">()(</span>
+      <span class="keyword">const</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span>
+  <span class="special">{</span>
+    <span class="special">...</span>
+  <span class="special">}</span>
+  <span class="special">...</span>
+<span class="special">};</span>
+</pre>
+<p>
+        A lambda as a handshake token:
+      </p>
+<pre class="programlisting"><span class="identifier">ssl_stream</span><span class="special">.</span><span class="identifier">async_handshake</span><span class="special">(...,</span>
+    <span class="special">[](</span><span class="keyword">const</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span>
+    <span class="special">{</span>
+      <span class="special">...</span>
+    <span class="special">});</span>
+</pre>
+<p>
+        A non-static class member function adapted to a handshake token using <code class="computeroutput"><span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">()</span></code>:
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">my_class</span><span class="special">::</span><span class="identifier">handshake_handler</span><span class="special">(</span>
+    <span class="keyword">const</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span>
+<span class="special">{</span>
+  <span class="special">...</span>
+<span class="special">}</span>
+<span class="special">...</span>
+<span class="identifier">ssl_stream</span><span class="special">.</span><span class="identifier">async_handshake</span><span class="special">(...,</span>
+    <span class="identifier">std</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(&amp;</span><span class="identifier">my_class</span><span class="special">::</span><span class="identifier">handshake_handler</span><span class="special">,</span>
+      <span class="keyword">this</span><span class="special">,</span> <span class="identifier">std</span><span class="special">::</span><span class="identifier">placeholders</span><span class="special">::</span><span class="identifier">_1</span><span class="special">));</span>
+</pre>
+<p>
+        A non-static class member function adapted to a handshake token using <code class="computeroutput"><span class="identifier">boost</span><span class="special">::</span><span class="identifier">bind</span><span class="special">()</span></code>:
+      </p>
+<pre class="programlisting"><span class="keyword">void</span> <span class="identifier">my_class</span><span class="special">::</span><span class="identifier">handshake_handler</span><span class="special">(</span>
+    <span class="keyword">const</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">error_code</span><span class="special">&amp;</span> <span class="identifier">ec</span><span class="special">)</span>
+<span class="special">{</span>
+  <span class="special">...</span>
+<span class="special">}</span>
+<span class="special">...</span>
+<span class="identifier">ssl_stream</span><span class="special">.</span><span class="identifier">async_handshake</span><span class="special">(...,</span>
+    <span class="identifier">boost</span><span class="special">::</span><span class="identifier">bind</span><span class="special">(&amp;</span><span class="identifier">my_class</span><span class="special">::</span><span class="identifier">handshake_handler</span><span class="special">,</span>
+      <span class="keyword">this</span><span class="special">,</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">placeholders</span><span class="special">::</span><span class="identifier">error</span><span class="special">));</span>
+</pre>
+<p>
+        Using <a class="link" href="use_future.html" title="use_future">use_future</a> as a handshake
+        token:
+      </p>
+<pre class="programlisting"><span class="identifier">std</span><span class="special">::</span><span class="identifier">future</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">f</span> <span class="special">=</span> <span class="identifier">ssl_stream</span><span class="special">.</span><span class="identifier">async_handshake</span><span class="special">(...,</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">use_future</span><span class="special">);</span>
+<span class="special">...</span>
+<span class="keyword">try</span>
+<span class="special">{</span>
+  <span class="identifier">f</span><span class="special">.</span><span class="identifier">get</span><span class="special">();</span>
+<span class="special">}</span>
+<span class="keyword">catch</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">system_error</span><span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span>
+<span class="special">{</span>
+  <span class="special">...</span>
+<span class="special">}</span>
+</pre>
+<p>
+        Using <a class="link" href="use_awaitable.html" title="use_awaitable">use_awaitable</a> as
+        a handshake token:
+      </p>
+<pre class="programlisting"><span class="identifier">asio</span><span class="special">::</span><span class="identifier">awaitable</span><span class="special">&lt;</span><span class="keyword">void</span><span class="special">&gt;</span> <span class="identifier">my_coroutine</span><span class="special">()</span>
+<span class="special">{</span>
+  <span class="keyword">try</span>
+  <span class="special">{</span>
+    <span class="special">...</span>
+    <span class="identifier">co_await</span> <span class="identifier">ssl_stream</span><span class="special">.</span><span class="identifier">async_handshake</span><span class="special">(...,</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">use_awaitable</span><span class="special">);</span>
+    <span class="special">...</span>
+  <span class="special">}</span>
+  <span class="keyword">catch</span> <span class="special">(</span><span class="keyword">const</span> <span class="identifier">system_error</span><span class="special">&amp;</span> <span class="identifier">e</span><span class="special">)</span>
+  <span class="special">{</span>
+    <span class="special">...</span>
+  <span class="special">}</span>
+<span class="special">}</span>
+</pre>
+</div>
+<div class="copyright-footer">Copyright © 2003-2023 Christopher M. Kohlhoff<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="HandshakeHandler.html"><img src="../../prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../home.png" alt="Home"></a><a accesskey="n" href="InternetProtocol.html"><img src="../../next.png" alt="Next"></a>
+</div>
+</body>
+</html>

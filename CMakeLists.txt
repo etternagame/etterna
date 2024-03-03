@@ -90,6 +90,7 @@ add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpa
 target_link_libraries(Etterna PRIVATE SQLiteCpp sqlite3)
 target_link_libraries(Etterna PRIVATE zlib)
 target_link_libraries(Etterna PRIVATE rapidjson)
+target_link_libraries(Etterna PRIVATE jwt-cpp)
 target_link_libraries(Etterna PRIVATE websocketpp)
 target_link_libraries(Etterna PRIVATE libluajit)
 target_link_libraries(Etterna PRIVATE discord-rpc)

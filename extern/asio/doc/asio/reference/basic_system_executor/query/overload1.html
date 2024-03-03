@@ -1,0 +1,56 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>basic_system_executor::query (1 of 3 overloads)</title>
+<link rel="stylesheet" href="../../../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../../../index.html" title="Asio">
+<link rel="up" href="../query.html" title="basic_system_executor::query">
+<link rel="prev" href="../query.html" title="basic_system_executor::query">
+<link rel="next" href="overload2.html" title="basic_system_executor::query (2 of 3 overloads)">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="asio C++ library" width="250" height="60" src="../../../../asio.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../query.html"><img src="../../../../prev.png" alt="Prev"></a><a accesskey="u" href="../query.html"><img src="../../../../up.png" alt="Up"></a><a accesskey="h" href="../../../../index.html"><img src="../../../../home.png" alt="Home"></a><a accesskey="n" href="overload2.html"><img src="../../../../next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="asio.reference.basic_system_executor.query.overload1"></a><a class="link" href="overload1.html" title="basic_system_executor::query (1 of 3 overloads)">basic_system_executor::query
+          (1 of 3 overloads)</a>
+</h5></div></div></div>
+<p>
+            Query the current value of the <code class="computeroutput"><span class="identifier">allocator</span></code>
+            property.
+          </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span>
+    <span class="keyword">typename</span> <span class="identifier">OtherAllocator</span><span class="special">&gt;</span>
+<span class="keyword">constexpr</span> <span class="identifier">Allocator</span> <span class="identifier">query</span><span class="special">(</span>
+    <span class="identifier">execution</span><span class="special">::</span><span class="identifier">allocator_t</span><span class="special">&lt;</span> <span class="identifier">OtherAllocator</span> <span class="special">&gt;</span> <span class="special">)</span> <span class="keyword">const</span><span class="special">;</span>
+</pre>
+<p>
+            Do not call this function directly. It is intended for use with the
+            <a class="link" href="../../query.html" title="query"><code class="computeroutput"><span class="identifier">query</span></code></a>
+            customisation point.
+          </p>
+<p>
+            For example:
+          </p>
+<pre class="programlisting"><span class="identifier">asio</span><span class="special">::</span><span class="identifier">system_executor</span> <span class="identifier">ex</span><span class="special">;</span>
+<span class="keyword">auto</span> <span class="identifier">alloc</span> <span class="special">=</span> <span class="identifier">asio</span><span class="special">::</span><span class="identifier">query</span><span class="special">(</span><span class="identifier">ex</span><span class="special">,</span>
+    <span class="identifier">asio</span><span class="special">::</span><span class="identifier">execution</span><span class="special">::</span><span class="identifier">allocator</span><span class="special">);</span>
+</pre>
+</div>
+<div class="copyright-footer">Copyright © 2003-2023 Christopher M. Kohlhoff<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="../query.html"><img src="../../../../prev.png" alt="Prev"></a><a accesskey="u" href="../query.html"><img src="../../../../up.png" alt="Up"></a><a accesskey="h" href="../../../../index.html"><img src="../../../../home.png" alt="Home"></a><a accesskey="n" href="overload2.html"><img src="../../../../next.png" alt="Next"></a>
+</div>
+</body>
+</html>

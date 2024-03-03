@@ -90,6 +90,9 @@ local translations = {
     NewPlaylist = THEME:GetString("ScreenSelectMusic Playlists", "NewPlaylist"),
     AddCurrentChart = THEME:GetString("ScreenSelectMusic Playlists", "AddCurrentChart"),
     Back = THEME:GetString("ScreenSelectMusic Playlists", "Back"),
+    UploadPlaylist = THEME:GetString("ScreenSelectMusic Playlists", "UploadPlaylist"),
+    DownloadPlaylist = THEME:GetString("ScreenSelectMusic Playlists", "DownloadPlaylist"),
+    DownloadMissingPlaylists = THEME:GetString("ScreenSelectMusic Playlists", "DownloadMissingPlaylists"),
 }
 
 -- playlist list sizing
@@ -825,9 +828,62 @@ local function playlistList()
                     else
                         -- adding new playlist
                         newPlaylistDialogue()
-                        -- this will trigger the DisplayAll Message after success (also a Profile Save)
+                        -- this will trigger the DisplayAllPlaylists Message after success (also a Profile Save)
                         -- this triggers nothing on failure
                     end
+                end,
+            },
+            {   -- Download missing playlists from online or download online playlist to replace local one
+                Name = "downloadplaylists",
+                Type = "Tap",
+                Display = {translations["DownloadMissingPlaylists"], translations["DownloadPlaylist"]},
+                IndexGetter = function()
+                    if inPlaylistDetails then
+                        return 2
+                    else
+                        return 1
+                    end
+                end,
+                Condition = function()
+                    if not DLMAN:IsLoggedIn() then return false end
+
+                    if inPlaylistDetails then
+                        if SONGMAN:GetActivePlaylist():GetName() == "Favorites" then
+                            return false
+                        end
+                    end
+                    return true
+                end,
+                TapFunction = function()
+                    if inPlaylistDetails then
+                        local pl = SONGMAN:GetActivePlaylist()
+                        ms.ok("Downloading playlist '" .. pl:GetName() .. "' from online")
+                        pl:DownloadOnline()
+                    else
+                        ms.ok("Downloading missing playlists from online")
+                        DLMAN:DownloadMissingPlaylists()
+                    end
+                end,
+            },
+            {   -- Upload the current playlist to online, replaces online playlist
+                Name = "uploadplaylist",
+                Type = "Tap",
+                Display = {translations["UploadPlaylist"]},
+                IndexGetter = function() return 1 end,
+                Condition = function()
+                    if not DLMAN:IsLoggedIn() then return false end
+
+                    if inPlaylistDetails then
+                        if SONGMAN:GetActivePlaylist():GetName() == "Favorites" then
+                            return false
+                        end
+                    end
+                    return inPlaylistDetails
+                end,
+                TapFunction = function()
+                    local pl = SONGMAN:GetActivePlaylist()
+                    ms.ok("Uploading playlist '" .. pl:GetName() .. "' to online")
+                    pl:UploadOnline()
                 end,
             },
             {   -- Exit the page that lets you see inside a playlist
@@ -864,6 +920,15 @@ local function playlistList()
                     self:playcommand("UpdateText")
                 end,
                 ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("UpdateText")
+                end,
+                LogOutMessageCommand = function(self)
+                    self:playcommand("UpdateText")
+                end,
+                LoginMessageCommand = function(self)
+                    self:playcommand("UpdateText")
+                end,
+                LoginFailedMessageCommand = function(self)
                     self:playcommand("UpdateText")
                 end,
                 UpdateTextCommand = function(self)
@@ -983,7 +1048,7 @@ local function playlistList()
             itemframe:diffusealpha(1)
             self:GetChild("PageText"):diffusealpha(1)
         end,
-        DisplayAllMessageCommand = function(self)
+        DisplayAllPlaylistsMessageCommand = function(self)
             -- this should only trigger if a new playlist was successfully made
             -- if not ... uhhh..... ???
             updatePlaylists()

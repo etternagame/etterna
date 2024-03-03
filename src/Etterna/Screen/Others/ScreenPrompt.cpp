@@ -9,6 +9,9 @@
 PromptAnswer ScreenPrompt::s_LastAnswer = ANSWER_YES;
 bool ScreenPrompt::s_bCancelledLast = false;
 
+bool ScreenPrompt::s_bMustResetInputRedirAtClose = false;
+bool ScreenPrompt::s_bResetInputRedirTo = false;
+
 #define ANSWER_TEXT(s) THEME->GetString(m_sName, s)
 
 static const char* PromptAnswerNames[] = {
@@ -93,6 +96,11 @@ void
 ScreenPrompt::BeginScreen()
 {
 	ScreenWithMenuElements::BeginScreen();
+
+	if (s_bMustResetInputRedirAtClose) {
+		s_bResetInputRedirTo = SCREENMAN->get_input_redirected(PLAYER_1);
+		SCREENMAN->set_input_redirected(PLAYER_1, false);
+	}
 
 	m_Answer = g_defaultAnswer;
 	ENUM_CLAMP(m_Answer, PromptAnswer(0), PromptAnswer(g_PromptType));
@@ -259,6 +267,10 @@ ScreenPrompt::End(bool bCancelled)
 
 	s_LastAnswer = bCancelled ? ANSWER_CANCEL : m_Answer;
 	s_bCancelledLast = bCancelled;
+	if (s_bMustResetInputRedirAtClose) {
+		s_bMustResetInputRedirAtClose = false;
+		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
+	}
 }
 
 void

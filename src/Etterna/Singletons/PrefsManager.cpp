@@ -209,6 +209,7 @@ PrefsManager::PrefsManager()
   , m_logging_level("LoggingLevel", 2)
   , m_bEnableScoreboard("EnableScoreboard", true)
   , m_bEnableCrashUpload("EnableMinidumpUpload", false)
+  , m_bAllowSongDeletion("AllowSongDeletion", false)
   , m_bShowMinidumpUploadDialogue("ShowMinidumpUploadDialogue", true)
 
 {

@@ -1,0 +1,141 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>experimental::parallel_group</title>
+<link rel="stylesheet" href="../../boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.75.2">
+<link rel="home" href="../../index.html" title="Asio">
+<link rel="up" href="../reference.html" title="Reference">
+<link rel="prev" href="experimental__make_parallel_group/overload3.html" title="experimental::make_parallel_group (3 of 3 overloads)">
+<link rel="next" href="experimental__parallel_group/async_wait.html" title="experimental::parallel_group::async_wait">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table cellpadding="2" width="100%"><tr><td valign="top"><img alt="asio C++ library" width="250" height="60" src="../../asio.png"></td></tr></table>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="experimental__make_parallel_group/overload3.html"><img src="../../prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../home.png" alt="Home"></a><a accesskey="n" href="experimental__parallel_group/async_wait.html"><img src="../../next.png" alt="Next"></a>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="asio.reference.experimental__parallel_group"></a><a class="link" href="experimental__parallel_group.html" title="experimental::parallel_group">experimental::parallel_group</a>
+</h3></div></div></div>
+<p>
+        <a class="indexterm" name="asio.indexterm.experimental__parallel_group"></a>
+      </p>
+<p>
+        A group of asynchronous operations that may be launched in parallel.
+      </p>
+<pre class="programlisting"><span class="keyword">template</span><span class="special">&lt;</span>
+    <span class="keyword">typename</span><span class="special">...</span> <span class="identifier">Ops</span><span class="special">&gt;</span>
+<span class="keyword">class</span> <span class="identifier">parallel_group</span>
+</pre>
+<h5>
+<a name="asio.reference.experimental__parallel_group.h0"></a>
+        <span><a name="asio.reference.experimental__parallel_group.types"></a></span><a class="link" href="experimental__parallel_group.html#asio.reference.experimental__parallel_group.types">Types</a>
+      </h5>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  Name
+                </p>
+              </th>
+<th>
+                <p>
+                  Description
+                </p>
+              </th>
+</tr></thead>
+<tbody><tr>
+<td>
+                <p>
+                  <a class="link" href="experimental__parallel_group/signature.html" title="experimental::parallel_group::signature"><span class="bold"><strong>signature</strong></span></a>
+                </p>
+              </td>
+<td>
+                <p>
+                  The completion signature for the group of operations.
+                </p>
+              </td>
+</tr></tbody>
+</table></div>
+<h5>
+<a name="asio.reference.experimental__parallel_group.h1"></a>
+        <span><a name="asio.reference.experimental__parallel_group.member_functions"></a></span><a class="link" href="experimental__parallel_group.html#asio.reference.experimental__parallel_group.member_functions">Member
+        Functions</a>
+      </h5>
+<div class="informaltable"><table class="table">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>
+                <p>
+                  Name
+                </p>
+              </th>
+<th>
+                <p>
+                  Description
+                </p>
+              </th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+                <p>
+                  <a class="link" href="experimental__parallel_group/async_wait.html" title="experimental::parallel_group::async_wait"><span class="bold"><strong>async_wait</strong></span></a>
+                </p>
+              </td>
+<td>
+                <p>
+                  Initiate an asynchronous wait for the group of operations.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p>
+                  <a class="link" href="experimental__parallel_group/parallel_group.html" title="experimental::parallel_group::parallel_group"><span class="bold"><strong>parallel_group</strong></span></a> <span class="silver">[constructor]</span>
+                </p>
+              </td>
+<td>
+                <p>
+                  Constructor.
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
+<p>
+        See the documentation for <a class="link" href="experimental__make_parallel_group.html" title="experimental::make_parallel_group"><code class="computeroutput"><span class="identifier">experimental</span><span class="special">::</span><span class="identifier">make_parallel_group</span></code></a> for a usage
+        example.
+      </p>
+<h5>
+<a name="asio.reference.experimental__parallel_group.h2"></a>
+        <span><a name="asio.reference.experimental__parallel_group.requirements"></a></span><a class="link" href="experimental__parallel_group.html#asio.reference.experimental__parallel_group.requirements">Requirements</a>
+      </h5>
+<p>
+        <span class="emphasis"><em>Header: </em></span><code class="literal">asio/experimental/parallel_group.hpp</code>
+      </p>
+<p>
+        <span class="emphasis"><em>Convenience header: </em></span>None
+      </p>
+</div>
+<div class="copyright-footer">Copyright © 2003-2023 Christopher M. Kohlhoff<p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div>
+<hr>
+<div class="spirit-nav">
+<a accesskey="p" href="experimental__make_parallel_group/overload3.html"><img src="../../prev.png" alt="Prev"></a><a accesskey="u" href="../reference.html"><img src="../../up.png" alt="Up"></a><a accesskey="h" href="../../index.html"><img src="../../home.png" alt="Home"></a><a accesskey="n" href="experimental__parallel_group/async_wait.html"><img src="../../next.png" alt="Next"></a>
+</div>
+</body>
+</html>

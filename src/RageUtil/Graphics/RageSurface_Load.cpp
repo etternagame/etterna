@@ -25,6 +25,7 @@ RageSurface_stb_Load(const std::string& sPath,
 	int x, y, n;
 	const auto doot = stbi_load(f.GetPath().c_str(), &x, &y, &n, 4);
 	if (doot == nullptr) {
+		error = stbi_failure_reason();
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}
 	if (bHeaderOnly) {
@@ -44,12 +45,14 @@ RageSurface_stb_Load(const std::string& sPath,
 	}
 
 	if (ret == nullptr) {
+		error = stbi_failure_reason();
 		stbi_image_free(doot);
 		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT; // XXX
 	}
 	ret->stb_loadpoint = true;
 	return RageSurfaceUtils::OPEN_OK;
 }
+
 static RageSurface*
 TryOpenFile(const std::string& sPath,
 			bool bHeaderOnly,
@@ -68,6 +71,92 @@ TryOpenFile(const std::string& sPath,
 
 	Locator::getLogger()->error(
 	  "RageSurface Open: Format {} failed: {}", format.c_str(), error.c_str());
+	return nullptr;
+}
+
+static const char reverse_table[128] = {
+	64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+	64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+	64, 64, 64, 64, 64, 62, 64, 64, 64, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+	61, 64, 64, 64, 64, 64, 64, 64, 0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,
+	11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 64, 64, 64, 64,
+	64, 64, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
+	43, 44, 45, 46, 47, 48, 49, 50, 51, 64, 64, 64, 64, 64
+};
+
+std::string
+base64_decode(const std::string& ascdata)
+{
+	using std::string;
+	string retval;
+	const string::const_iterator last = ascdata.end();
+	int bits_collected = 0;
+	unsigned int accumulator = 0;
+
+	for (string::const_iterator i = ascdata.begin(); i != last; ++i) {
+		const int c = *i;
+		if (std::isspace(c) || c == '=') {
+			continue;
+		}
+		if ((c > 127) || (c < 0) || (reverse_table[c] > 63)) {
+			throw ::std::invalid_argument(
+			  "This contains characters not legal in a base64 encoded string.");
+		}
+		accumulator = (accumulator << 6) | reverse_table[c];
+		bits_collected += 6;
+		if (bits_collected >= 8) {
+			bits_collected -= 8;
+			retval +=
+			  static_cast<char>((accumulator >> bits_collected) & 0xffu);
+		}
+	}
+	return retval;
+}
+
+RageSurfaceUtils::OpenResult
+TryLoadBase64(const std::string& base64, std::string& error, RageSurface*& ret)
+{
+	auto decoded = base64_decode(base64);
+	int x, y, n;
+	const auto doot = stbi_load_from_memory(
+	  (unsigned char*)decoded.data(), decoded.length(), &x, &y, &n, 4);
+	if (doot == nullptr) {
+		error = stbi_failure_reason();
+		return RageSurfaceUtils::OPEN_FATAL_ERROR;
+	}
+
+	ret = CreateSurfaceFrom(x,
+							y,
+							32,
+							Swap32BE(0xFF000000),
+							Swap32BE(0x00FF0000),
+							Swap32BE(0x0000FF00),
+							Swap32BE(0x000000FF),
+							doot,
+							x * 4);
+
+	if (ret == nullptr) {
+		stbi_image_free(doot);
+		// ???
+		error = stbi_failure_reason();
+		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT;
+	}
+	ret->stb_loadpoint = true;
+	return RageSurfaceUtils::OPEN_OK;
+}
+
+RageSurface*
+RageSurfaceUtils::LoadBase64(const std::string& base64, std::string& error)
+{
+	RageSurface* ret = nullptr;
+	RageSurfaceUtils::OpenResult result = TryLoadBase64(base64, error, ret);
+
+	if (result == RageSurfaceUtils::OPEN_OK) {
+		ASSERT(ret != nullptr);
+		return ret;
+	}
+
+	Locator::getLogger()->error("RageSurface LoadBase64: failed: {}", error);
 	return nullptr;
 }
 

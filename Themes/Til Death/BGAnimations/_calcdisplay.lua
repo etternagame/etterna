@@ -1193,6 +1193,9 @@ local modnames = {
     --"rpos",
     --"rpj",
     "totpm",
+    "gstrea",
+    "gchstr",
+    "gbrack",
 
 
     -- CalcPatternMods above this line
@@ -1263,6 +1266,9 @@ local modColors = {
 	--color("1,1,1"),			-- rpos
 	--color("1,1,1"),			-- rpj
     color("0.7,1,0"),		-- lime			= totalpatternmod
+    color("1,1,1"), -- genericstream
+    color("1,1,1"), -- genericchordstream
+    color("1,1,1"), -- genericbracketing
 
 
     -- place CalcPatternMod Colors above this line

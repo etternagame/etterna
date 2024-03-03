@@ -6,6 +6,9 @@ list(APPEND HA_PATTERN_MODS
     "HSDensity.h"
     "JS.h"
     "Stream.h"
-    "TheThingFinder.h")
+    "TheThingFinder.h"
+    "GenericStream.h"
+    "GenericChordstream.h"
+    "GenericBracketing.h")
 
 target_sources(Etterna PUBLIC ${HA_PATTERN_MODS})

@@ -889,6 +889,12 @@ struct jack_col
 		last_note_sec = s_init;
 		start_note_sec = s_init;
 	}
+	inline void check_reset(const float& now) {
+		auto since_last = ms_from(now, last_note_sec);
+		if (since_last > guaranteed_reset_buffer_ms) {
+			reset();
+		}
+	}
 	inline void operator()(const float& now)
 	{
 		last_ms = ms_from(now, last_note_sec);
@@ -963,6 +969,9 @@ struct oversimplified_jacks
 	void operator()(const int& column,
 					const float& now)
 	{
+		for (auto& seq : sequencers) {
+			seq.check_reset(now);
+		}
 		sequencers.at(column)(now);
 	}
 
