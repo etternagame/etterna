@@ -15,6 +15,7 @@
 #include <deque>
 #include <unordered_set>
 #include <unordered_map>
+#include <math.h>
 
 class ScoreGoal;
 class DownloadablePack;
@@ -194,7 +195,7 @@ class DownloadablePackPagination
 
 	// number of pages, so "1" has only a page "0"
 	int getTotalPages() {
-		return static_cast<int>(std::ceilf(static_cast<float>(key.perPage) /
+		return static_cast<int>(ceilf(static_cast<float>(key.perPage) /
 										   static_cast<float>(totalEntries)));
 	}
 
