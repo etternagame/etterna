@@ -37,7 +37,7 @@ jobs:
         run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G Ninja -DWITH_CRASHPAD=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         env:
           CXX: ${{matrix.cfg.cpp-version}}
 
