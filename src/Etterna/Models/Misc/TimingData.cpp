@@ -1421,11 +1421,6 @@ TimingData::BuildAndGetEtaner(const std::vector<int>& nerv)
 			}
 			last_time = next_event_time;
 			bps = ToBPM(bpms[i])->GetBPM() / 60.f;
-			// set any 0 bpm segments to the previous segment's bpm
-			if (bps <= 0) {
-				ToBPM(bpms[i])->SetBPM(ToBPM(bpms[i - 1])->GetBPM());
-				bps = ToBPM(bpms[i])->GetBPM() / 60.f;
-			}
 			lastbpmrow = event_row;
 		}
 

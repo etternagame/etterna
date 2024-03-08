@@ -454,7 +454,7 @@ SMLoader::ParseBPMs(std::vector<pair<float, float>>& out,
 		if (fNewBPM == 0) {
 //			LOG->UserLog(
 //			  "Song file", this->GetSongTitle(), "has a zero BPM; ignored.");
-//			continue;
+			continue;
 		}
 
 		out.emplace_back(std::make_pair(fBeat, fNewBPM));
