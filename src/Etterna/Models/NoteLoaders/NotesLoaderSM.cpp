@@ -452,8 +452,8 @@ SMLoader::ParseBPMs(std::vector<pair<float, float>>& out,
 		const auto fBeat = RowToBeat(arrayBPMChangeValues[0], rowsPerBeat);
 		const auto fNewBPM = StringToFloat(arrayBPMChangeValues[1]);
 		if (fNewBPM == 0) {
-//			LOG->UserLog(
-//			  "Song file", this->GetSongTitle(), "has a zero BPM; ignored.");
+			Locator::getLogger()->error("Song file {} has a zero BPM. Ignored",
+										GetSongTitle());
 			continue;
 		}
 
