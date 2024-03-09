@@ -83,9 +83,11 @@ struct SMLoader
 	 * @brief Parse BPM Changes data from a string.
 	 * @param out the vector to put the data in.
 	 * @param line the string in question.
+	 * @param sPath a const reference to the path of the song.
 	 * @param rowsPerBeat the number of rows per beat for this purpose. */
 	void ParseBPMs(std::vector<std::pair<float, float>>& out,
 				   const std::string& line,
+				   const std::string& sPath,
 				   const int rowsPerBeat = -1);
 	/**
 	 * @brief Process the BPM Segments from the string.

@@ -117,7 +117,7 @@ void
 SMSetBPMs(SMSongTagInfo& info)
 {
 	info.BPMChanges.clear();
-	info.loader->ParseBPMs(info.BPMChanges, (*info.params)[1]);
+	info.loader->ParseBPMs(info.BPMChanges, (*info.params)[1], info.song->m_sSongFileName);
 }
 void
 SMSetStops(SMSongTagInfo& info)
@@ -432,6 +432,7 @@ SMLoader::ProcessInstrumentTracks(Song& out, const std::string& sParam)
 void
 SMLoader::ParseBPMs(std::vector<pair<float, float>>& out,
 					const std::string& line,
+					const std::string& sPath,
 					const int rowsPerBeat)
 {
 	std::vector<std::string> arrayBPMChangeExpressions;
@@ -452,8 +453,8 @@ SMLoader::ParseBPMs(std::vector<pair<float, float>>& out,
 		const auto fBeat = RowToBeat(arrayBPMChangeValues[0], rowsPerBeat);
 		const auto fNewBPM = StringToFloat(arrayBPMChangeValues[1]);
 		if (fNewBPM == 0) {
-			Locator::getLogger()->error("Song file {} has a zero BPM. Ignored",
-										GetSongTitle());
+			Locator::getLogger()->error("Song file \"{}\" has a zero BPM. Ignored",
+										sPath);
 			continue;
 		}
 

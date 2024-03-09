@@ -350,7 +350,7 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 
 		else if (sValueName == "BPMS") {
 			vBPMChanges.clear();
-			ParseBPMs(vBPMChanges, sParams[1], iRowsPerBeat);
+			ParseBPMs(vBPMChanges, sParams[1], sPath, iRowsPerBeat);
 		}
 
 		else if (sValueName == "STOPS" || sValueName == "FREEZES") {
