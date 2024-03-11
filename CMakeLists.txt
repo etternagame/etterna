@@ -112,6 +112,10 @@ target_link_libraries(Etterna PRIVATE plog::plog)
 target_link_libraries(Etterna PRIVATE nowide::nowide)
 target_link_libraries(Etterna PRIVATE ghc_filesystem)
 
+if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+  target_link_libraries(Etterna PRIVATE sse2neon)
+endif()
+
 # If the user wants crashpad, and the target exists (in-case
 # the user wants it, but crashpad couldn't find python)
 if(WITH_CRASHPAD AND TARGET crashpad)
