@@ -19,8 +19,8 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 
-#ifndef _WIN32
-#include <cpuid.h>
+#if !( defined(_WIN32) || defined(__APPLE__))
+	#include <cpuid.h> //We only use cpuid.h on Linux :)
 #endif
 
 #ifdef _WIN32
