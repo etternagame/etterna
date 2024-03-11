@@ -1143,6 +1143,12 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 void
 ScreenSelectMusic::OnConfirmSongDeletion()
 {
+	//Temporary hacky workaround -- std::filesystem is unavailable before the macOS 10.15 sdk, and we're currently using an old sdk for backwards compatibility.
+	//Do nothing until this is properly implemented
+#if defined(__APPLE__)
+	#warning "ScreenSelectMusic::OnConfirmSongDeletion is unimplemented for mac target!"
+	Locator::getLogger()->warn("Deleting songs unimplemented on macOS!  (ScreenSelectMusic::OnConfirmSongDeletion)");
+#else
 	auto* deletedSong = m_pSongAwaitingDeletionConfirmation;
 	if (!deletedSong) {
 		Locator::getLogger()->warn("Attempted to delete a null song (ScreenSelectMusic::OnConfirmSongDeletion)");
@@ -1182,6 +1188,7 @@ ScreenSelectMusic::OnConfirmSongDeletion()
 	m_pSongAwaitingDeletionConfirmation = nullptr;
 
 	MESSAGEMAN->Broadcast("DeletedCurrentSong");
+#endif
 }
 
 bool
