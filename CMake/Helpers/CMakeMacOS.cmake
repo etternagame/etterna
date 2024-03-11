@@ -1,10 +1,28 @@
 # TODO: Remove CPU_X86_64, CPU_X86, and CRASH_HANDLER
 #       CRASH_HANDLER is unnecessary as the game should have that as an option component
 #       CPU_X86_64, CPU_X86 already exists as compiler predefined macros. Use those instead.
-list(APPEND cdefs _XOPEN_SOURCE CPU_X86_64 GL_SILENCE_DEPRECATION)
+
+list(APPEND cdefs _XOPEN_SOURCE GL_SILENCE_DEPRECATION)
+if(NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+  list(APPEND cdefs CPU_X86_64)
+ endif()
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
+
 set_target_properties(Etterna PROPERTIES MACOSX_BUNDLE TRUE)
-set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
+
+if(NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+  #TODO: Do we even need these on x86_64?
+  # For the ARM build, it breaks if they're present, and seems to work just fine without them...
+  # Seems to have made its way into this file eventually after 2d03a8163f5d10c6b569eb3c92543677c910e82e
+  # That commit appears to be copying part of luajit's CMakeLists, originating at f31f6eea7bf52400929fcfb303637741bb645818
+  #  (https://github.com/LuaJIT/LuaJIT/commit/f31f6eea7bf52400929fcfb303637741bb645818)
+  # *That* appears to have originated from https://github.com/LuaJIT/LuaJIT/commit/f76e5a311ba543ae174acd3b585fb672fde8a3b5 which states
+  ### /* OSX mmap() uses a naive first-fit linear search. That's perfect for us.
+  ### ** But -pagezero_size must be set, otherwise the lower 4GB are blocked.
+  ### */
+  set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
+endif()
+
 set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 
 # Set AppBundle icon
