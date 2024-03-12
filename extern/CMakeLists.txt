@@ -47,6 +47,12 @@ set(RAPIDJSON_BUILD_EXAMPLES OFF)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
 
+if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    # Used for providing ARM's NEON equivalents of x86_64 SSE SIMD instructions
+    add_subdirectory(sse2neon)
+endif()
+
+
 set(JWT_SSL_LIBRARY OpenSSL)
 add_subdirectory(jwt-cpp-0.6.0)
 
