@@ -452,9 +452,9 @@ SMLoader::ParseBPMs(std::vector<pair<float, float>>& out,
 		const auto fBeat = RowToBeat(arrayBPMChangeValues[0], rowsPerBeat);
 		const auto fNewBPM = StringToFloat(arrayBPMChangeValues[1]);
 		if (fNewBPM == 0) {
-//			LOG->UserLog(
-//			  "Song file", this->GetSongTitle(), "has a zero BPM; ignored.");
-//			continue;
+			Locator::getLogger()->error("Song file \"{}\" has a zero BPM. Ignored",
+										this->GetChartPath());
+			continue;
 		}
 
 		out.emplace_back(std::make_pair(fBeat, fNewBPM));
@@ -1163,6 +1163,7 @@ SMLoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 
 	out.m_SongTiming.m_sFile = sPath;
 	out.m_sSongFileName = sPath;
+	this->chartPath = sPath;
 
 	SMSongTagInfo reused_song_info(&*this, &out, sPath);
 

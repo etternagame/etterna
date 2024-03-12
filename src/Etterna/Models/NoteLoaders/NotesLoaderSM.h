@@ -223,6 +223,11 @@ struct SMLoader
 	 * @return the file extension. */
 	std::string GetFileExtension() const { return fileExt; }
 
+	/**
+	* @brief Get the chart path.
+	* @return the chart path. */
+	std::string GetChartPath() const { return chartPath; }
+
   public:
 	// SetSongTitle and GetSongTitle changed to public to allow the functions
 	// used by the parser helper to access them. -Kyz
@@ -241,6 +246,8 @@ struct SMLoader
 	const std::string fileExt;
 	/** @brief The song title that is being processed. */
 	std::string songTitle;
+	/** @brief The path of the chart that is being processed. */
+	std::string chartPath;
 };
 
 #endif
