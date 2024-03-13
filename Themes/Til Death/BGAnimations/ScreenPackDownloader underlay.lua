@@ -11,10 +11,10 @@ end
 local function sendFilterAndSearchQuery()
 	packlist:FilterAndSearch(
 		tostring(filters[1]),
-		tonumber(filters[2]),
-		tonumber(filters[3]),
-		tonumber(filters[4] * 1024 * 1024),
-		tonumber(filters[5] * 1024 * 1024)
+		tonumber(0),
+		tonumber(0),
+		tonumber(0 * 1024 * 1024),
+		tonumber(0 * 1024 * 1024)
 	)
 end
 
@@ -118,9 +118,6 @@ local inactivealpha = 0.3
 local highlightalpha = 0.5
 
 local translated_info = {
-	Filters = THEME:GetString("ScreenPackDownloader", "Filters"),
-	AverageDiff = THEME:GetString("ScreenPackDownloader", "AverageDiff"),
-	Size = THEME:GetString("ScreenPackDownloader", "Size"),
 	EnterBundles = THEME:GetString("ScreenPackDownloader", "BundleSelectEntry"),
 	CancelCurrent = THEME:GetString("ScreenPackDownloader", "CancelCurrentDownload"),
 	SearchName = THEME:GetString("ScreenPackDownloader", "SearchingName"),
@@ -171,25 +168,6 @@ local o = Def.ActorFrame {
 			)
 		end
 	},
-	LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:xy(fx * 0.9, f0y):zoom(fontScale):halign(0.5):valign(0)
-			self:settextf("%s:", translated_info["Filters"])
-		end
-	},
-	LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:xy(fx, f1y):zoom(fontScale):halign(1):valign(0)
-			self:settextf("%s:", translated_info["AverageDiff"])
-		end
-	},
-	LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:xy(fx, f2y):zoom(fontScale):halign(1):valign(0)
-			self:settextf("%s:", translated_info["Size"])
-		end
-	},
-	-- maybe we'll have more one day
 
 	-- goes to bundles (funkied the xys to match bundle screen)
 	UIElements.QuadButton(1, 1) .. {
@@ -216,36 +194,6 @@ local o = Def.ActorFrame {
 			self:settext(translated_info["EnterBundles"])
 		end
 	},
-	--[[
-	UIElements.QuadButton(1, 1) .. {
-		InitCommand = function(self)
-			self:xy(SCREEN_WIDTH / 12 + 5, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
-				color("#ffffff")
-			):diffusealpha(0.4)
-		end,
-		MouseDownCommand = function(self, params)
-			if params.event == "DeviceButton_left mouse button" then
-				local dls = DLMAN:GetDownloads()
-				for i, dl in ipairs(dls) do
-					dl:Stop()
-				end
-			end
-		end,
-		MouseOverCommand = function(self)
-			self:diffusealpha(0.8)
-		end,
-		MouseOutCommand = function(self)
-			self:diffusealpha(0.4)
-		end,
-	},
-	LoadFont("Common Large") .. {
-		InitCommand = function(self)
-			self:xy(SCREEN_WIDTH / 12 + 10, 56 + packh):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 3):settext(
-				"Cancel all dls"
-			)
-		end
-	},
-	--]]
 	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH / 4 + 15, 40 + packh):zoomto(SCREEN_WIDTH / 6 - 10, packh - 2):valign(0):diffuse(
@@ -274,59 +222,6 @@ local o = Def.ActorFrame {
 		end
 	}
 }
-
-local function numFilter(i, x, y)
-	return Def.ActorFrame {
-		InitCommand = function(self)
-			self:xy(fx + 10, f0y):addx(x):addy(y)
-		end,
-		UIElements.QuadButton(1, 1) .. {
-			InitCommand = function(self)
-				self:zoomto(fdot, fdot):halign(0):valign(0)
-				self:diffusealpha(inactivealpha)
-			end,
-			MouseDownCommand = function(self, params)
-				if params.event == "DeviceButton_left mouse button" then
-					inputting = i
-					curInput = ""
-					self:GetParent():GetParent():queuecommand("Set")
-					self:diffusealpha(activealpha)
-					SCREENMAN:set_input_redirected(PLAYER_1, true)
-				end
-			end,
-			SetCommand = function(self)
-				diffuseIfActiveButton(self, inputting == i)
-				if isOver(self) then
-					self:diffusealpha(highlightalpha)
-				else
-					self:diffusealpha(inactivealpha)
-				end
-			end,
-			MouseOverCommand = function(self)
-				self:diffusealpha(highlightalpha)
-			end,
-			MouseOutCommand = function(self)
-				self:diffusealpha(inactivealpha)
-			end,
-		},
-		LoadFont("Common Large") .. {
-			InitCommand = function(self)
-				self:addx(fdot):halign(1):valign(0):maxwidth(fdot / fontScale):zoom(fontScale)
-			end,
-			SetCommand = function(self)
-				local fval = getFilter(i)
-				self:settext(fval)
-				diffuseIfActiveText(self, tonumber(fval) > 0 or inputting == i)
-			end
-		}
-	}
-end
-for i = 2, 3 do
-	o[#o + 1] = numFilter(i, 40 * (i - 2), f1y - f0y)
-end
-for i = 4, 5 do
-	o[#o + 1] = numFilter(i, 40 * (i - 4), f2y - f0y)
-end
 
 local nwidth = SCREEN_WIDTH / 2
 local namex = nwidth
