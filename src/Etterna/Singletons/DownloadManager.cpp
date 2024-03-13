@@ -5834,6 +5834,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		LuaHelpers::CreateTableFromArray(filteredLeaderboardScores, L);
 		return 1;
 	}
+	static int GetPackTags(T* p, lua_State* L) {
+
+		lua_createtable(L, 0, p->packTags.size());
+		for (auto& x : p->packTags) {
+			LuaHelpers::CreateTableFromArray(x.second, L);
+			lua_setfield(L, -2, x.first.c_str());
+		}
+
+		return 1;
+	}
+
 	static int DownloadMissingPlaylists(T* p, lua_State* L) {
 		p->DownloadMissingPlaylists();
 		return 0;
@@ -5895,6 +5906,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
 		ADD_METHOD(GetAllPacks);
+		ADD_METHOD(GetPackTags);
 		ADD_METHOD(GetDownloadingPacks);
 		ADD_METHOD(GetQueuedPacks);
 		ADD_METHOD(GetDownloads);
