@@ -129,16 +129,27 @@ end
 
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
-local function dump(o)
+local function dump(o, depth, prettyprint)
+	if prettyprint == nil then prettyprint = false end
+	if depth == nil then depth = 0 end
 	if type(o) == "table" then
 		local s = "{ "
 		for k, v in pairs(o) do
+			local line = ""
 			if type(k) ~= "number" then
 				k = '"' .. k .. '"'
 			end
-			s = s .. "[" .. k .. "] = " .. dump(v) .. ","
+			line = line .. "[" .. k .. "] = " .. dump(v, depth + 1, prettyprint) .. ","
+			if prettyprint then
+				line = "\n" .. string.rep("  ", depth) .. line
+			end
+			s = s .. line
 		end
-		return s .. "} "
+		if prettyprint then
+			return s .. "\n" .. string.rep("  ", depth-1) .. "}"
+		else
+			return s .. "} "
+		end
 	else
 		return tostring(o)
 	end
@@ -150,6 +161,14 @@ function ms.ok(m)
 		SCREENMAN:SystemMessage("nahbro")
 	else
 		SCREENMAN:SystemMessage(dump(m))
+	end
+end
+
+function ms.pp(m)
+	if not m then
+		SCREENMAN:SystemMessage("nahbro")
+	else
+		SCREENMAN:SystemMessage(dump(m, 1, true))
 	end
 end
 
