@@ -46,7 +46,9 @@ if(WIN32)
     ## Switch the strings below to use backslashes. NSIS requires it for those variables in particular. Copied from original script.
     string(REGEX REPLACE "/" "\\\\\\\\" CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP "${CPACK_NSIS_MUI_WELCOMEFINISHPAGE_BITMAP}")
 
+    ## force install everything in the same directory :)
     set(INSTALL_DIR ".")
+    set(ASSET_DIR ".")
 
     # List every DLL etterna needs.
     list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
