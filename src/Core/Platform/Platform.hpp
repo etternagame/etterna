@@ -101,7 +101,15 @@ namespace Core::Platform {
      * @brief Get contents of the system clipboard.
      * @return UTF-8 clipboard contents, or an empty string if the the clipboard is a non-text type.
      */
+
     std::string getClipboard();
+
+	/**
+	 * @brief Set contents of sytem clipboard to provided text
+	 * @param text Text to set clipboard to
+	 * @return Whether the operation was performed succesfully
+	 */
+	bool setClipboardText(std::string text);
 
     /**
      * Set if the mouse is visible or invisible

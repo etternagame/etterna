@@ -63,6 +63,11 @@ int getClipboard(lua_State* L) {
     return 1;
 }
 
+int setClipboardText(lua_State* L) {
+	lua_pushboolean(L, Core::Platform::setClipboardText(SArg(1)));
+	return 1;
+}
+
 int setCursorVisible(lua_State* L){
     Core::Platform::setCursorVisible(BArg(1));
     return 0;
@@ -78,6 +83,7 @@ const luaL_Reg ArchTable[] = {
         LIST_METHOD(isGameFocused),
         LIST_METHOD(getSystem),
         LIST_METHOD(getClipboard),
+		LIST_METHOD(setClipboardText),
         LIST_METHOD(setCursorVisible),
 		LIST_METHOD(requestUserAttention),
         { nullptr, nullptr }
