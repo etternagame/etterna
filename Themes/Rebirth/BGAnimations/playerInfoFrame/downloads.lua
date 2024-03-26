@@ -430,7 +430,7 @@ local function downloadsList()
                     if pack ~= nil then
                         self:diffusealpha(1)
                     end
-                end 
+                end
             end,
 
             LoadFont("Common Normal") .. {
@@ -833,7 +833,7 @@ local function downloadsList()
                     if event.type ~= "InputEventType_Release" then
                         local btn = event.DeviceInput.button
                         local gbtn = event.button
-                        if btn == "DeviceButton_escape" then
+                        if btn == "DeviceButton_escape" or btn == "DeviceButton_right mouse button" then
                             -- shortcut to exit back to general
                             MESSAGEMAN:Broadcast("GeneralTabSet")
                         else
@@ -844,7 +844,7 @@ local function downloadsList()
                             local down = gbtn == "MenuDown" or gbtn == "Down"
                             local ctrl = INPUTFILTER:IsControlPressed()
                             local copypasta = btn == "DeviceButton_v" and ctrl
-                            
+
                             -- if ctrl is pressed with a number, let the general tab input handler deal with this
                             if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
                                 return
@@ -882,7 +882,7 @@ local function downloadsList()
                         end
                     end
                 end
-            
+
             end)
         end,
         UpdateSearchCommand = function(self)
@@ -960,7 +960,7 @@ local function downloadsList()
                 local bg = self:GetChild("BG")
                 local width = actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2
                 self:xy(actuals.NameColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
-                
+
                 txt:halign(0):valign(0)
                 bg:halign(0):valign(0)
                 txt:zoom(nameHeaderSize)
@@ -991,7 +991,7 @@ local function downloadsList()
                 local bg = self:GetChild("BG")
                 local width = actuals.MSDWidth
                 self:xy(actuals.MSDColumnLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
-                
+
                 txt:valign(0)
                 bg:valign(0)
                 txt:zoom(msdHeaderSize)
@@ -1022,7 +1022,7 @@ local function downloadsList()
                 local bg = self:GetChild("BG")
                 local width = actuals.SizeColumnLeftGap - actuals.MSDColumnLeftGap - actuals.MSDWidth / 2
                 self:xy(actuals.SizeHeaderLeftGap, actuals.HeaderLineUpperGap + actuals.TopLipHeight)
-                
+
                 txt:valign(0)
                 bg:valign(0)
                 txt:zoom(sizeHeaderSize)
@@ -1083,7 +1083,7 @@ local function downloadsList()
             end
         },
     }
-    
+
     for i = 1, itemCount do
         t[#t+1] = listItem(i)
     end

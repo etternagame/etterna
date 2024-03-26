@@ -533,7 +533,7 @@ local function helpMenu()
                 local right = gameButton == "MenuRight" or gameButton == "Right"
                 local left = gameButton == "MenuLeft" or gameButton == "Left"
                 local enter = gameButton == "Start"
-                local back = key == "DeviceButton_escape"
+                local back = key == "DeviceButton_escape" or key == "DeviceButton_right mouse button"
 
                 if up or left then
                     moveCursor(-1)
@@ -816,7 +816,7 @@ local t = Def.ActorFrame {
             end,
         },
     },
-    
+
 }
 
 return t

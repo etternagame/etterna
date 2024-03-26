@@ -846,7 +846,7 @@ local function leftFrame()
                         local left = gameButton == "MenuLeft" or gameButton == "Left"
                         local enter = gameButton == "Start"
                         local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
-                        local back = key == "DeviceButton_escape"
+                        local back = key == "DeviceButton_escape" or key == "DeviceButton_right mouse button"
                         local rightclick = key == "DeviceButton_right mouse button"
                         local leftclick = key == "DeviceButton_left mouse button"
 
@@ -2048,7 +2048,7 @@ local function leftFrame()
                         local rightclick = key == "DeviceButton_right mouse button"
                         local leftclick = key == "DeviceButton_left mouse button"
 
-                        if back then
+                        if back or rightclick then
                             if selectionstate == "editing" then
                                 -- pressing back while editing moves back to element seletion
                                 switchSelectionState("element")
@@ -2056,6 +2056,7 @@ local function leftFrame()
                                 -- shortcut to exit back to settings
                                 -- press twice to exit back to general
                                 MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "Settings"})
+                                -- goUpOneLayer()
                             end
                         elseif selectionstate == "editing" then
                             -- editing a color, typing only on the color
@@ -6797,7 +6798,7 @@ local function rightFrame()
                         local enter = gameButton == "Start"
                         local ctrl = INPUTFILTER:IsBeingPressed("left ctrl") or INPUTFILTER:IsBeingPressed("right ctrl")
                         local previewbutton = key == "DeviceButton_space"
-                        local back = key == "DeviceButton_escape"
+                        local back = key == "DeviceButton_escape" or key == "DeviceButton_right mouse button"
 
                         if up then
                             cursorUp(1)
