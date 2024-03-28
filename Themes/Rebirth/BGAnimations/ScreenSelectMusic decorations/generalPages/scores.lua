@@ -74,6 +74,7 @@ local ratios = {
 
     TrophySize = 21 / 1080, -- height and width of the icon
     PlaySize = 19 / 1080,
+    InvalidateSize = 19 / 1080,
     IconHeight = 19 / 1080, -- uhhhhh
 
     -- local page stuff
@@ -131,6 +132,7 @@ local actuals = {
     NameJudgmentWidth = ratios.NameJudgmentWidth * SCREEN_WIDTH,
     TrophySize = ratios.TrophySize * SCREEN_HEIGHT,
     PlaySize = ratios.PlaySize * SCREEN_HEIGHT,
+    InvalidateSize = ratios.InvalidateSize * SCREEN_HEIGHT,
     IconHeight = ratios.IconHeight * SCREEN_HEIGHT,
     SideBufferGap = ratios.SideBufferGap * SCREEN_WIDTH,
     GradeUpperGap = ratios.GradeUpperGap * SCREEN_HEIGHT,
@@ -204,6 +206,8 @@ local translations = {
     ShowInvalidScores = THEME:GetString("ScreenSelectMusic Scores", "ShowInvalidScores"),
     CurrentRateOnly = THEME:GetString("ScreenSelectMusic Scores", "CurrentRateOnly"),
     AllRates = THEME:GetString("ScreenSelectMusic Scores", "AllRates"),
+    InvalidateScore = THEME:GetString("ScreenSelectMusic Scores", "InvalidateScore"),
+    ValidateScore = THEME:GetString("ScreenSelectMusic Scores", "ValidateScore")
 }
 
 t[#t+1] = Def.Quad {
@@ -1427,6 +1431,62 @@ local function createList()
                         if success then
                             SCREENMAN:set_input_redirected(PLAYER_1, false)
                         end
+                    end
+                end
+            end
+        },
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "invalidate")) .. {
+            Name = "ValidateInvalidate",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.TrophySize + actuals.InvalidateSize + actuals.IconSetSpacing * 3, actuals.IconSetUpperGap)
+                self:zoomto(actuals.InvalidateSize, actuals.IconHeight)
+                registerActorToColorConfigElement(self, "main", "IconColor")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    if localscore:GetEtternaValid() then
+                        self:diffusealpha(1)
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText(translations["ValidateScore"])
+                            TOOLTIP:Show()
+                        end
+                    else
+                        self:diffusealpha(0.6)
+                        if isOver(self) then
+                            TOOLTIP:Hide()
+                        end
+                    end
+                end
+            end,
+            MouseOverCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(buttonHoverAlpha)
+                if localscore ~= nil then
+                    if localscore:GetEtternaValid() then
+                        TOOLTIP:SetText(translations["InvalidateScore"])
+                    else
+                        TOOLTIP:SetText(translations["ValidateScore"])
+                    end
+                end
+                TOOLTIP:Show()
+            end,
+            MouseOutCommand = function(self)
+                if self:IsInvisible() then return end
+                if localscore:GetEtternaValid() then
+                    self:diffusealpha(1)
+                end
+                TOOLTIP:Hide()
+            end,
+            MouseDownCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if localscore ~= nil then
+                    localscore:ToggleEtternaValidation()
+                    if localscore:GetEtternaValid() then
+                        TOOLTIP:SetText(translations["InvalidateScore"])
+                    else
+                        TOOLTIP:SetText(translations["ValidateScore"])
                     end
                 end
             end
