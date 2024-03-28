@@ -207,7 +207,9 @@ local translations = {
     CurrentRateOnly = THEME:GetString("ScreenSelectMusic Scores", "CurrentRateOnly"),
     AllRates = THEME:GetString("ScreenSelectMusic Scores", "AllRates"),
     InvalidateScore = THEME:GetString("ScreenSelectMusic Scores", "InvalidateScore"),
-    ValidateScore = THEME:GetString("ScreenSelectMusic Scores", "ValidateScore")
+    ValidateScore = THEME:GetString("ScreenSelectMusic Scores", "ValidateScore"),
+    ScoreInvalidated = THEME:GetString("ScreenSelectMusic Scores", "ScoreInvalidated"),
+    ScoreValidated = THEME:GetString("ScreenSelectMusic Scores", "ScoreValidated")
 }
 
 t[#t+1] = Def.Quad {
@@ -1485,8 +1487,10 @@ local function createList()
                     localscore:ToggleEtternaValidation()
                     if localscore:GetEtternaValid() then
                         TOOLTIP:SetText(translations["InvalidateScore"])
+                        ms.ok(translations["ScoreValidated"])
                     else
                         TOOLTIP:SetText(translations["ValidateScore"])
+                        ms.ok(translations["ScoreInvalidated"])
                     end
                 end
             end
