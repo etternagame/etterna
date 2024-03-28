@@ -63,7 +63,11 @@ local translated_info = {
 	UploadAllScore=THEME:GetString("TabScore", "UploadAllScore"),
 	UploadingReplay = THEME:GetString("TabScore", "UploadingReplay"),
 	UploadingScore = THEME:GetString("TabScore", "UploadingScore"),
-	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn")
+	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn"),
+    ValidateScore = THEME:GetString("TabScore", "ValidateScore"),
+    ScoreValidated = THEME:GetString("TabProfile", "ScoreValidated"),
+    InvalidateScore = THEME:GetString("TabScore", "InvalidateScore"),
+    ScoreInvalidated = THEME:GetString("TabProfile", "ScoreInvalidated")
 }
 
 local defaultRateText = ""
@@ -592,7 +596,7 @@ local function makeText(index)
 	}
 end
 
-for i = 1, 10 do
+for i = 1, 9 do
 	t[#t + 1] = makeText(i)
 end
 
@@ -880,6 +884,41 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 				DLMAN:UploadAllScores()
 			elseif getTabIndex() == 2 and isOver(self) and not DLMAN:IsLoggedIn() then
 				ms.ok(translated_info["NotLoggedIn"])
+			end
+		end
+	end
+}
+l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
+	Name = "ValidateInvalidateScoreButton",
+	InitCommand = function(self)
+		self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 91 - offsetY):zoom(0.425):halign(1):settext("")
+		self:diffuse(getMainColor("positive"))
+	end,
+	DisplayCommand = function(self)
+        if score:GetEtternaValid() then
+            self:settext(translated_info["InvalidateScore"])
+        else
+            self:settext(translated_info["ValidateScore"])
+        end
+	end,
+	MouseOverCommand = function(self)
+		self:diffusealpha(hoverAlpha)
+	end,
+	MouseOutCommand = function(self)
+		self:diffusealpha(1)
+	end,
+	MouseDownCommand = function(self, params)
+		if nestedTab == 1 and params.event == "DeviceButton_left mouse button" then
+			if getTabIndex() == 2 and isOver(self) then
+                score:ToggleEtternaValidation()
+                MESSAGEMAN:Broadcast("UpdateRanking")
+				if score:GetEtternaValid() then
+					ms.ok(translated_info["ScoreValidated"])
+                    self:settext(translated_info["InvalidateScore"])
+                else
+                    ms.ok(translated_info["ScoreInvalidated"])
+                    self:settext(translated_info["ValidateScore"])
+				end
 			end
 		end
 	end
