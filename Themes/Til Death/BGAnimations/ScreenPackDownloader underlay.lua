@@ -1,100 +1,12 @@
-local filters = {"", "0", "0", "0", "0", "0", "0"}
---1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize
 
+
+local nameInput = ""
 local curInput = ""
-local inputting = 1 --1=name 2=lowerdiff 3=upperdiff 4=lowersize 5=uppersize 0=none
-
-local function getFilter(index)
-	return filters[index]
-end
 
 local function sendFilterAndSearchQuery()
 	packlist:FilterAndSearch(
-		tostring(filters[1]),
-		tonumber(0),
-		tonumber(0),
-		tonumber(0 * 1024 * 1024),
-		tonumber(0 * 1024 * 1024)
+		tostring(filters[1])
 	)
-end
-
-local moving = false
-
-local function DlInput(event)
-	if event.DeviceInput.button == "DeviceButton_left mouse button" then return false end
-	if (event.DeviceInput.button == "DeviceButton_mousewheel up" or event.button == "MenuUp" or event.button == "MenuLeft") and event.type == "InputEventType_FirstPress" then
-		moving = true
-		MESSAGEMAN:Broadcast("WheelUpSlow")
-	elseif (event.DeviceInput.button == "DeviceButton_mousewheel down" or event.button == "MenuDown" or event.button == "MenuRight") and event.type == "InputEventType_FirstPress" then
-		moving = true
-		MESSAGEMAN:Broadcast("WheelDownSlow")
-	elseif event.DeviceInput.button == "DeviceButton_right mouse button" then
-		if event.type == "InputEventType_Release" then
-			MESSAGEMAN:Broadcast("MouseRightClick")
-		end
-	elseif moving == true then
-		moving = false
-	end
-	if event.type ~= "InputEventType_Release" and inputting ~= 0 then
-		local changed = false
-		if event.button == "Start" then
-			curInput = ""
-			inputting = 0
-			MESSAGEMAN:Broadcast("UpdateFilterDisplays")
-			SCREENMAN:set_input_redirected(PLAYER_1, false)
-			return true
-		elseif event.button == "Back" then
-			SCREENMAN:set_input_redirected(PLAYER_1, false)
-			SCREENMAN:GetTopScreen():Cancel()
-			return true
-		elseif event.DeviceInput.button == "DeviceButton_backspace" then
-			curInput = curInput:sub(1, -2)
-			changed = true
-		elseif event.DeviceInput.button == "DeviceButton_delete" then
-			curInput = ""
-			changed = true
-		elseif event.DeviceInput.button == "DeviceButton_space" then
-			curInput = curInput .. " "
-			changed = true
-		else
-			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
-				if tonumber(event.char) ~= nil then
-					curInput = curInput .. event.char
-					changed = true
-				end
-			else
-				if event.char and event.char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w]') and event.char ~= "" then
-					curInput = curInput .. event.char
-					changed = true
-				end
-			end
-		end
-		if changed then
-			if inputting == 2 or inputting == 3 or inputting == 4 or inputting == 5 then
-				if curInput == "" or not tonumber(curInput) then
-					curInput = "0"
-				end
-			end
-			filters[inputting] = curInput
-			sendFilterAndSearchQuery()
-			MESSAGEMAN:Broadcast("UpdateFilterDisplays")
-			MESSAGEMAN:Broadcast("FilterChanged")
-			return true
-		end
-	end
-	
-	if
-		event.type ~= "InputEventType_Release" and inputting == 0 and curInput == "" and
-			event.type == "InputEventType_FirstPress"
-	 then -- quickstart the string search with enter if there is no query atm
-		if event.button == "Start" then
-			curInput = ""
-			inputting = 1
-			MESSAGEMAN:Broadcast("UpdateFilterDisplays")
-			SCREENMAN:set_input_redirected(PLAYER_1, true)
-			return true
-		end
-	end
 end
 
 local function diffuseIfActiveButton(self, cond)
@@ -144,7 +56,8 @@ local o = Def.ActorFrame {
 		self:GetChild("PacklistDisplay"):xy(SCREEN_WIDTH / 2.5 - offx, offy * 2 + 14)
 	end,
 	BeginCommand = function(self)
-		SCREENMAN:GetTopScreen():AddInputCallback(DlInput)
+		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+		end)
 	end,
 	WheelUpSlowMessageCommand = function(self)
 		self:queuecommand("PrevPage")
@@ -267,7 +180,7 @@ o[#o + 1] = Def.ActorFrame {
 			self:x(nameoffx):halign(0):valign(0):maxwidth(nwidth / fontScale - nameoffx * 2):zoom(fontScale)
 		end,
 		SetCommand = function(self)
-			local fval = getFilter(1)
+			local fval = nameInput
 			self:settext(fval)
 			diffuseIfActiveText(self, fval ~= "" or inputting == 1)
 		end
