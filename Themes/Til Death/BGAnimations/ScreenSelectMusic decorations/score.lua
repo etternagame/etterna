@@ -596,7 +596,7 @@ local function makeText(index)
 	}
 end
 
-for i = 1, 10 do
+for i = 1, 9 do
 	t[#t + 1] = makeText(i)
 end
 
