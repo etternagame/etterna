@@ -909,7 +909,7 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 	end,
 	MouseDownCommand = function(self, params)
 		if nestedTab == 1 and params.event == "DeviceButton_left mouse button" then
-			if getTabIndex() == 2 and isOver(self) and DLMAN:IsLoggedIn() then
+			if getTabIndex() == 2 and isOver(self) then
                 score:ToggleEtternaValidation()
                 MESSAGEMAN:Broadcast("UpdateRanking")
 				if score:GetEtternaValid() then
@@ -919,8 +919,6 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
                     ms.ok(translated_info["ScoreInvalidated"])
                     self:settext(translated_info["ValidateScore"])
 				end
-			elseif getTabIndex() == 2 and isOver(self) and not DLMAN:IsLoggedIn() then
-				ms.ok(translated_info["NotLoggedIn"])
 			end
 		end
 	end
