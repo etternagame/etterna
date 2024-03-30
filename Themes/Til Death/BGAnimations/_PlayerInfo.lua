@@ -396,9 +396,9 @@ t[#t + 1] = Def.ActorFrame {
 			self:settextf("%s %s", noteCount, translated_info["TapsHit"])
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		InitCommand = function(self)
-			self:xy(SCREEN_CENTER_X - capWideScale(125,175), AvatarY + 41):halign(0.5):zoom(0.4):diffuse(nonButtonColor)
+			self:xy(SCREEN_CENTER_X - capWideScale(125,175), AvatarY + 41):halign(0.5):zoom(0.4):diffuse(ButtonColor)
 		end,
 		BeginCommand = function(self)
 			self:queuecommand("Set")
@@ -410,6 +410,32 @@ t[#t + 1] = Def.ActorFrame {
 			local online = IsNetSMOnline() and IsSMOnlineLoggedIn() and NSMAN:IsETTP()
 			self:y(AvatarY + 41 - (online and 18 or 0))
 			self:settextf("%s: %s", translated_info["Judge"], GetTimingDifficulty())
+		end,
+		MouseOverCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				-- raise judge
+				local cur_judge = GetTimingDifficulty()
+				if (cur_judge < 9) then
+					local scale = ms.JudgeScalers[cur_judge+1]
+					SetTimingDifficulty(scale)
+					self:queuecommand("Set")
+				end
+			end
+			if params.event == "DeviceButton_right mouse button" then
+				-- lower judge
+				local cur_judge = GetTimingDifficulty()
+				if (cur_judge > 4) then
+					local scale = ms.JudgeScalers[cur_judge-1]
+					SetTimingDifficulty(scale)
+					self:queuecommand("Set")
+				end
+			end
 		end
 	},
 	UIElements.TextToolTip(1, 1, "Common Normal") .. {
