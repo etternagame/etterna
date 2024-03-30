@@ -407,7 +407,7 @@ local function assetList()
                     if event.type ~= "InputEventType_Release" then
                         local btn = event.DeviceInput.button
                         local gbtn = event.button
-                        if btn == "DeviceButton_escape" then
+                        if btn == "DeviceButton_escape" or btn == "DeviceButton_right mouse button" then
                             -- shortcut to exit back to general
                             -- or back to settings screen
                             if prevScreen == "Settings" then
@@ -426,7 +426,7 @@ local function assetList()
                             local enter = gbtn == "Start"
                             local pageup = gbtn == "EffectUp"
                             local pagedown = gbtn == "EffectDown"
-                            
+
                             -- if ctrl is pressed with a number, let the general tab input handler deal with this
                             if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
                                 return
@@ -452,7 +452,7 @@ local function assetList()
                         end
                     end
                 end
-            
+
             end)
         end,
         UpdateItemListCommand = function(self)
@@ -570,7 +570,7 @@ local function assetList()
                         if name == curPath then
                             curIndex = i
                         end
-    
+
                         if curType == 3 then
                             assetWidth = judgmentWidth
                         else
@@ -589,7 +589,7 @@ local function assetList()
                             self:GetChild("Border"):zoomto(assetHeight+4,assetWidth+4)
                             self:GetChild("Border"):diffuse(COLORS:getColor("assetSettings", "HoveredItem")):diffusealpha(0)
                         end
-    
+
                         self:y(((math.floor((i-1)/maxColumns)+1)*assetYSpacing)-10+50)
                         self:finishtweening()
                         self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
@@ -609,7 +609,7 @@ local function assetList()
                 end
             end
         }
-        
+
         t[#t+1] = Def.Quad {
             Name = "SelectedAssetIndicator",
             InitCommand = function(self)
@@ -635,7 +635,7 @@ local function assetList()
                 self:queuecommand("Set")
             end
         }
-    
+
         t[#t+1] = Def.Quad {
             Name = "Border",
             InitCommand = function(self)
@@ -670,7 +670,7 @@ local function assetList()
                 end
             end,
         }
-        
+
         t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
             Name = "Image",
             InitCommand = function(self)
@@ -749,7 +749,7 @@ local function assetList()
                 end
             end,
         }
-        
+
         t[#t+1] = Def.Sound {
             Name = "Sound",
             LoadAssetCommand = function(self)
@@ -760,7 +760,7 @@ local function assetList()
                 else
                     self:load("")
                 end
-    
+
             end,
             CursorMovedMessageCommand = function(self, params)
                 if params.index == i and curType == 1 and params.prevIndex ~= i then
@@ -768,7 +768,7 @@ local function assetList()
                 end
             end
         }
-        
+
         return t
     end
 
