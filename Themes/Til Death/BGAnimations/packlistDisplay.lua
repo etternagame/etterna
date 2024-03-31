@@ -13,9 +13,10 @@ local adjx = 14
 local c1x = 10
 local c2x = c1x + (tzoom * 5 * adjx) -- guesswork adjustment for epxected text length
 local c6x = dwidth -- right aligned cols
-local c5x = c6x - adjx - (tzoom * 6 * adjx) -- right aligned cols
-local c4x = c5x - adjx - (tzoom * 10 * adjx) -- right aligned cols
-local c3x = c4x - adjx - (tzoom * 8 * adjx) -- right aligned cols
+local c5x = c6x - adjx - (tzoom * 7 * adjx) -- right aligned cols
+local c4x = c5x - adjx - (tzoom * 4 * adjx) -- right aligned cols
+local c3x = c4x - adjx - (tzoom * 6.6 * adjx) -- right aligned cols
+local c2xc3x = (c3x - adjx - (tzoom * 6 * adjx))
 local headeroff = packspaceY / 1.5
 
 local hoverAlpha = 0.6
@@ -30,6 +31,8 @@ local translated_info = {
 	MB = THEME:GetString("PacklistDisplay", "MB"),
 	AwaitingRequest = THEME:GetString("PacklistDisplay", "AwaitingRequest"),
 	NoPacks = THEME:GetString("PacklistDisplay", "NoPacks"),
+	PackPlays = THEME:GetString("PacklistDisplay", "PackPlays"),
+	SongCount = THEME:GetString("PacklistDisplay", "SongCount"),
 }
 
 -- initialize the base pack search
@@ -107,7 +110,7 @@ local o = Def.ActorFrame {
 	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "AverageDiffHeader",
 		InitCommand = function(self)
-			self:xy(c3x - 5, headeroff)
+			self:xy(c2xc3x, headeroff)
 			self:zoom(tzoom)
 			self:halign(1)
 			self:settext(translated_info["AverageDiff"])
@@ -116,10 +119,28 @@ local o = Def.ActorFrame {
 	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "SizeHeader",
 		InitCommand = function(self)
-			self:xy(c4x, headeroff)
+			self:xy(c3x, headeroff)
 			self:zoom(tzoom)
 			self:halign(1)
 			self:settext(translated_info["Size"])
+		end,
+	},
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "PlaysHeader",
+		InitCommand = function(self)
+			self:xy(c4x, headeroff)
+			self:zoom(tzoom)
+			self:halign(1)
+			self:settext(translated_info["PackPlays"])
+		end,
+	},
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "SongCountHeader",
+		InitCommand = function(self)
+			self:xy(c5x, headeroff)
+			self:zoom(tzoom)
+			self:halign(1)
+			self:settext(translated_info["SongCount"])
 		end,
 	},
 	LoadFont("Common Large") .. {
@@ -201,7 +222,7 @@ local function makePackDisplay(i)
 				self:zoom(tzoom)
 
 				 -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
-				self:maxwidth((c3x - c2x - (tzoom * 6 * adjx)) / tzoom)
+				self:maxwidth((c2xc3x - c2x - c2x*0.8) / tzoom)
 				self:halign(0)
 			end,
 			DisplayCommand = function(self)
@@ -224,7 +245,7 @@ local function makePackDisplay(i)
 		LoadFont("Common normal") .. {
 			Name = "PackAverageDiff",
 			InitCommand = function(self)
-				self:x(c3x)
+				self:x(c2xc3x)
 				self:zoom(tzoom)
 				self:halign(1)
 			end,
@@ -234,10 +255,39 @@ local function makePackDisplay(i)
 				self:diffuse(byMSD(avgdiff))
 			end
 		},
+		LoadFont("Common normal") .. {
+			Name = "PackSize",
+			InitCommand = function(self)
+				self:x(c3x):zoom(tzoom):halign(1)
+			end,
+			DisplayCommand = function(self)
+				local psize = packinfo:GetSize() / 1024 / 1024
+				self:settextf("%i%s", psize, translated_info["MB"])
+				self:diffuse(byFileSize(psize))
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "PackPlays",
+			InitCommand = function(self)
+				self:x(c4x):zoom(tzoom):halign(1)
+			end,
+			DisplayCommand = function(self)
+				self:settextf("%d", packinfo:GetPlayCount())
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "PackSongs",
+			InitCommand = function(self)
+				self:x(c5x):zoom(tzoom):halign(1)
+			end,
+			DisplayCommand = function(self)
+				self:settextf("%d", packinfo:GetSongCount())
+			end
+		},
 		UIElements.TextToolTip(1, 1, "Common normal") .. {
 			Name = "PackDownload",
 			InitCommand = function(self)
-				self:x(c5x)
+				self:x(c6x)
 				self:zoom(tzoom)
 				self:halign(1)
 			end,
@@ -263,44 +313,7 @@ local function makePackDisplay(i)
 					end
 				end
 			end
-			},
-		UIElements.TextToolTip(1, 1, "Common normal") .. {
-			Name = "PackMirror",
-			InitCommand = function(self)
-				self:x(c6x)
-				self:zoom(tzoom)
-				self:halign(1)
-			end,
-			DisplayCommand = function(self)
-				if installed then
-					self:settext(translated_info["Installed"])
-				else
-					self:settext(translated_info["Mirror"])
-				end
-			end,
-			MouseOverCommand = function(self)
-				self:diffusealpha(hoverAlpha)
-			end,
-			MouseOutCommand = function(self)
-				self:diffusealpha(1)
-			end,
-			MouseDownCommand = function(self, params)
-				if params.event == "DeviceButton_left mouse button" then
-					packinfo:DownloadAndInstall(true)
-				end
-			end
 		},
-		LoadFont("Common normal") .. {
-			Name = "PackSize",
-			InitCommand = function(self)
-				self:x(c4x):zoom(tzoom):halign(1)
-			end,
-			DisplayCommand = function(self)
-				local psize = packinfo:GetSize() / 1024 / 1024
-				self:settextf("%i%s", psize, translated_info["MB"])
-				self:diffuse(byFileSize(psize))
-			end
-		}
 	}
 	return o
 end
