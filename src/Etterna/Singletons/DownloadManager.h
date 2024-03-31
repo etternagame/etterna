@@ -182,21 +182,19 @@ class DownloadablePackPagination
 
 	// get the cached packs on the current page
 	std::vector<DownloadablePack*> get() {
-		auto startIt = results.begin();
+		auto it = results.begin();
 		if (results.size() > currentPageStartIndex()) {
-			startIt += currentPageStartIndex();
+			// make sure the start iterator is valid
+			it += currentPageStartIndex();
 		}
-		auto endIt = startIt;
-		if (results.size() < currentPageStartIndex() + key.perPage - 1) {
-			endIt = startIt + key.perPage;
-		} else {
-			endIt = results.end();
+
+		std::vector<DownloadablePack*> o{};
+
+		while (it != results.end()) {
+			o.push_back(*it);
+			it++;
 		}
-		if (startIt == results.end() || startIt == endIt) {
-			return std::vector<DownloadablePack*>();
-		} else {
-			return std::vector<DownloadablePack*>(startIt, endIt);
-		}
+		return o;
 	}
 
 	// get all the packs that are cached
