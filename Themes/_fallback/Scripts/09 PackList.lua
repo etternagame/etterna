@@ -13,6 +13,7 @@ end
 
 -- get the current page of packs
 function PackList:GetPacks()
+    if self:IsAwaitingRequest() then return {} end
     return self.packs
 end
 
