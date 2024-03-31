@@ -5463,6 +5463,7 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 				auto resultCount = getJsonInt(results, "found");
 				if (resultCount > localPacklist.size()) {
 					localPacklist.resize(resultCount);
+					this->totalEntries = resultCount;
 				}
 				if (resultCount == 0 && localPacklist.size() == 0) {
 					this->noResults = true;
@@ -6377,6 +6378,10 @@ class LunaDownloadablePackPagination : public Luna<DownloadablePackPagination>
 		LuaHelpers::CreateTableFromArray(p->getCache(), L);
 		return 1;
 	}
+	static int GetTotalResults(T* p, lua_State* L) {
+		lua_pushnumber(L, p->totalEntries);
+		return 1;
+	}
 	static int NextPage(T* p, lua_State* L) {
 		LuaReference func;
 		if (lua_isfunction(L, 1))
@@ -6399,13 +6404,19 @@ class LunaDownloadablePackPagination : public Luna<DownloadablePackPagination>
 		lua_pushnumber(L, p->currentPage+1);
 		return 1;
 	}
+	static int IsAwaitingRequest(T* p, lua_State* L) {
+		lua_pushboolean(L, p->pendingRequest);
+		return 1;
+	}
 	LunaDownloadablePackPagination() {
 		ADD_METHOD(GetResults);
 		ADD_METHOD(GetCachedResults);
+		ADD_METHOD(GetTotalResults);
 		ADD_METHOD(NextPage);
 		ADD_METHOD(PrevPage);
 		ADD_METHOD(GetTotalPages);
 		ADD_METHOD(GetCurrentPage);
+		ADD_METHOD(IsAwaitingRequest);
 	}
 };
 
