@@ -385,6 +385,12 @@ o[#o + 1] = Def.ActorFrame {
 
 				if btn == "DeviceButton_enter" or event.button == "Start" then
 					-- invoke search
+					local tags = {}
+					for k,v in pairs(selectedTags) do
+						if v == true then
+							tags[#tags+1] = k
+						end
+					end
 					MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags})
 				else
 					local del = btn == "DeviceButton_delete"
