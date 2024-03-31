@@ -5929,6 +5929,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
+		ADD_METHOD(GetPackPagination);
 		ADD_METHOD(GetAllPacks);
 		ADD_METHOD(GetPackTags);
 		ADD_METHOD(GetDownloadingPacks);
