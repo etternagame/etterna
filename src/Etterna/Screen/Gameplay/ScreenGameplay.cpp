@@ -1918,6 +1918,11 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	{
 		return TurningPointsValid(L, index);
 	}
+	static auto RestartGameplay(T* p, lua_State* L) -> int
+	{
+		p->RestartGameplay();
+		COMMON_RETURN_SELF;
+	}
 	static auto begin_backing_out(T* p, lua_State* L) -> int
 	{
 		p->BeginBackingOutFromGameplay();
@@ -1943,10 +1948,9 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 		ADD_METHOD(Center1Player);
 		ADD_METHOD(GetLifeMeter);
 		ADD_METHOD(GetPlayerInfo);
-		// sm-ssc additions:
+		ADD_METHOD(RestartGameplay);
 		ADD_METHOD(begin_backing_out);
 		ADD_METHOD(GetTrueBPS);
-
 		ADD_METHOD(GetSongPosition);
 	}
 };

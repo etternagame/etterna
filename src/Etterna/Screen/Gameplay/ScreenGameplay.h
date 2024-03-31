@@ -57,6 +57,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void FailFadeRemovePlayer(PlayerInfo* pi);
 	void FailFadeRemovePlayer(PlayerNumber pn);
 	void BeginBackingOutFromGameplay();
+	virtual void RestartGameplay();
 
 	// Get current position of the song during gameplay
 	const float GetSongPosition();
@@ -108,8 +109,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	virtual void SaveStats();
 	virtual void StageFinished(bool bBackedOut);
 	bool AllAreFailing();
-
-	virtual void RestartGameplay();
 
 	virtual void SetupNoteDataFromRow(Steps* pSteps, int minRow = 0,
 							  int maxrow = MAX_NOTE_ROW);
