@@ -215,8 +215,8 @@ class DownloadablePackPagination
 
 	// number of pages, so "1" has only a page "0"
 	int getTotalPages() {
-		return static_cast<int>(ceilf(static_cast<float>(key.perPage) /
-										   static_cast<float>(totalEntries)));
+		return static_cast<int>(ceilf(static_cast<float>(totalEntries) /
+									  static_cast<float>(key.perPage)));
 	}
 
 	// Lua
@@ -234,19 +234,21 @@ class DownloadablePackPagination
 	}
 
 	int getNextPageNbr() {
-		if (key.perPage >= totalEntries)
+		if (key.perPage >= totalEntries) {
 			return 0;
-		if (currentPage == getTotalPages()) {
+		}
+		if (currentPage == getTotalPages() - 1) {
 			return 0;
 		} else {
 			return currentPage + 1;
 		}
 	}
 	int getPrevPageNbr() {
-		if (key.perPage >= totalEntries)
+		if (key.perPage >= totalEntries) {
 			return 0;
+		}
 		if (currentPage == 0) {
-			return getTotalPages();
+			return getTotalPages() - 1;
 		} else {
 			return currentPage - 1;
 		}

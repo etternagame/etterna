@@ -5424,6 +5424,11 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 
 	if (finishedPageRequests.contains(page)) {
 		// the page is already cached
+		Locator::getLogger()->info("PackPagination returning cached page {}",
+								   page);
+		currentPage = page;
+		initialized = true;
+		pendingRequest = false;
 		runLuaFunc();
 		return;
 	}
@@ -5432,15 +5437,19 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 	bool pageIsInvalid = initialized && (page > getTotalPages() || page < 0);
 	if (pageIsInvalid) {
 		// we know the page couldnt have any results
+		Locator::getLogger()->info(
+		  "PackPagination returned early because page {} is invalid", page);
+		pendingRequest = false;
 		runLuaFunc();
 		return;
 	}
 
 	ApiSearchCriteria searchCriteria;
 	searchCriteria.page = page;
-	searchCriteria.per_page = this->key.perPage;
-	searchCriteria.packTags = std::vector<std::string>(this->key.tagFilters.begin(), this->key.tagFilters.end());
-	searchCriteria.packName = this->key.searchString;
+	searchCriteria.per_page = key.perPage;
+	searchCriteria.packTags =
+	  std::vector<std::string>(key.tagFilters.begin(), key.tagFilters.end());
+	searchCriteria.packName = key.searchString;
 
 	pendingRequest = true;
 
