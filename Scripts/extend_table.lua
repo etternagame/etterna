@@ -37,3 +37,14 @@ function table.push(self, ...)
 		table.insert(self, v)
 	end
 end
+
+-- because concat and join dont really do what i want
+function table.combine(...)
+	local o = {}
+	for _, t in ipairs({...}) do
+		for __, v in pairs(t) do
+			o[#o+1] = v
+		end
+	end
+	return o
+end
