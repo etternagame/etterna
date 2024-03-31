@@ -5478,6 +5478,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		auto key = DownloadablePackPaginationKey(searchString, tags, perPage);
 		auto pagination = p->GetPackPagination(key);
+		pagination.PushSelf(L);
+
 		return 1;
 	}
 	static int GetAllPacks(T* p, lua_State* L)
@@ -6139,3 +6141,14 @@ class LunaDownload : public Luna<Download>
 };
 
 LUA_REGISTER_CLASS(Download)
+
+class LunaDownloadablePackPagination : public Luna<DownloadablePackPagination>
+{
+	public:
+
+		LunaDownloadablePackPagination() {
+
+		}
+};
+
+LUA_REGISTER_CLASS(DownloadablePackPagination)
