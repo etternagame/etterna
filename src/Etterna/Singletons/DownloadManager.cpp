@@ -5281,6 +5281,14 @@ DownloadManager::GetPackTagsRequest() {
 				false);
 }
 
+DownloadablePackPagination
+DownloadManager::GetPackPagination(DownloadablePackPaginationKey key) {
+	if (!downloadablePackPaginations.contains(key)) {
+		downloadablePackPaginations[key] = DownloadablePackPagination(key);
+	}
+	return downloadablePackPaginations[key];
+}
+
 void
 DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 	// first, see if the page is available. if it is, no work to be done
@@ -5454,6 +5462,22 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	static int GetUserCountryCode(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->countryCode.c_str());
+		return 1;
+	}
+	static int GetPackPagination(T* p, lua_State* L) {
+		auto searchString = SArg(1);
+
+		luaL_checktype(L, 2, LUA_TTABLE);
+		lua_pushvalue(L, 2);
+		std::vector<std::string> tagVec;
+		LuaHelpers::ReadArrayFromTable(tagVec, L);
+		lua_pop(L, 1);
+		std::set<std::string> tags(tagVec.begin(), tagVec.end());
+
+		auto perPage = IArg(3);
+
+		auto key = DownloadablePackPaginationKey(searchString, tags, perPage);
+		auto pagination = p->GetPackPagination(key);
 		return 1;
 	}
 	static int GetAllPacks(T* p, lua_State* L)

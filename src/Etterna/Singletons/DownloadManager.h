@@ -117,8 +117,14 @@ class DownloadablePackPaginationKey
 	  , perPage(perPage)
 	{
 	}
+	DownloadablePackPaginationKey()
+	  : searchString("")
+	  , tagFilters({})
+	  , perPage(0)
+	{
+	}
 
-	bool operator==(const DownloadablePackPaginationKey& other)
+	bool operator==(const DownloadablePackPaginationKey& other) const
 	{
 		return (perPage == other.perPage) &&
 			   (searchString == other.searchString) &&
@@ -137,6 +143,14 @@ class DownloadablePackPagination
 							   std::set<std::string>& tagFilters,
 							   int perPage)
 	  : key(searchString, tagFilters, perPage)
+	{
+	}
+	DownloadablePackPagination(const DownloadablePackPaginationKey& key)
+	  : key(key)
+	{
+	}
+	DownloadablePackPagination()
+	  : key({}) // ??
 	{
 	}
 
@@ -530,6 +544,9 @@ class DownloadManager
 	{
 		GetReplayDataRequest(scorekey, userid, username, chartkey, callback);
 	}
+
+	DownloadablePackPagination GetPackPagination(
+	  DownloadablePackPaginationKey key);
 
   private:
 	/// Default empty reference for calls allowing Lua functions to be passed
