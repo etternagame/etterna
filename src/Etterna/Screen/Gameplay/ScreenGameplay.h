@@ -57,7 +57,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void FailFadeRemovePlayer(PlayerInfo* pi);
 	void FailFadeRemovePlayer(PlayerNumber pn);
 	void BeginBackingOutFromGameplay();
-	virtual void RestartGameplay();
+
+	/// This function exists because 
+	void RestartGameplayForLua() { RestartGameplay(); }
 
 	// Get current position of the song during gameplay
 	const float GetSongPosition();
@@ -70,6 +72,7 @@ class ScreenGameplay : public ScreenWithMenuElements
 	virtual void LoadPlayer();
 	virtual void ReloadPlayer();
 	virtual void LoadScoreKeeper();
+	virtual void RestartGameplay();
 
 	ThemeMetric<std::string> PLAYER_TYPE;
 	ThemeMetric<std::string> SCORE_DISPLAY_TYPE;

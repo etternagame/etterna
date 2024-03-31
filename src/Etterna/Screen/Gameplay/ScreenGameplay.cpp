@@ -1920,7 +1920,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	}
 	static auto RestartGameplay(T* p, lua_State* L) -> int
 	{
-		p->RestartGameplay();
+		p->RestartGameplayForLua();
 		COMMON_RETURN_SELF;
 	}
 	static auto begin_backing_out(T* p, lua_State* L) -> int
