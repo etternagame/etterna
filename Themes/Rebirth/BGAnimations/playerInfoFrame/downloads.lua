@@ -83,6 +83,9 @@ local translations = {
     CurrentlyDownloading = THEME:GetString("PackDownloader", "CurrentlyDownloading"),
 	AwaitingRequest = THEME:GetString("PackDownloader", "AwaitingRequest"),
 	NoPacks = THEME:GetString("PackDownloader", "NoPacks"),
+    TagExplain = THEME:GetString("PackDownloader", "TagExplain"),
+    Apply = THEME:GetString("PackDownloader", "Apply"),
+
 }
 
 local t = Def.ActorFrame {
@@ -1153,7 +1156,7 @@ local function downloadsList()
                     self:xy(actuals.Width / 2, actuals.TopLipHeight + actuals.EdgePadding)
                     self:zoom(nameHeaderSize)
                     self:maxwidth(actuals.Width / nameHeaderSize)
-                    self:settext("Select tags to filter packs")
+                    self:settext(translations["TagExplain"])
                     registerActorToColorConfigElement(self, "main", "SecondaryText")
                 end,
             },
@@ -1180,7 +1183,7 @@ local function downloadsList()
                         end
                     end
 
-                    self.txt:settext("Apply")
+                    self.txt:settext(translations["Apply"])
                 end,
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
