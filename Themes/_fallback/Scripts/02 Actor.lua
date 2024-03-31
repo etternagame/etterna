@@ -9,6 +9,10 @@ top = "VertAlign_Top"
 middle = "VertAlign_Middle"
 bottom = "VertAlign_Bottom"
 
+function Actor:GetSibling(n)
+	return self:GetParent():GetChild(n)
+end
+
 function Actor:ease(t, fEase)
 	-- Optimizations:
 	-- fEase = -100 is equivalent to TweenType_Accelerate.
