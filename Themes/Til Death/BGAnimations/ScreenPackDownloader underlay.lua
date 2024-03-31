@@ -283,6 +283,7 @@ local function tagframe()
 				self:alphaDeterminingFunction()
 			end,
 			ClickCommand = function(self, params)
+				if params.update ~= "OnMouseDown" then return end
 				local tags = {}
 				for k,v in pairs(selectedTags) do
 					if v == true then
@@ -336,6 +337,7 @@ local function tagframe()
 				self:alphaDeterminingFunction()
 			end,
 			ClickCommand = function(self, params)
+				if params.update ~= "OnMouseDown" then return end
 				if selectedTags[tagtxt] == true then
 					selectedTags[tagtxt] = nil
 				else
