@@ -130,9 +130,8 @@ o[#o+1] = Def.ActorFrame {
 		end,
 		ClickCommand = function(self, params)
 			if params.update == "OnMouseDown" then
-				local dl = DLMAN:GetDownloads()[1]
-				if dl then
-					dl:Stop()
+				for k,v in pairs(DLMAN:GetDownloads()) do
+					v:Stop()
 				end
 			end
 		end,
