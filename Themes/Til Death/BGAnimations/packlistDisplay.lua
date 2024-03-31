@@ -45,6 +45,19 @@ local o = Def.ActorFrame {
 		self:xy(0, 0)
 	end,
 	BeginCommand = function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if isOver(self:GetChild("BG")) then
+				if event.type == "InputEventType_FirstPress" then
+					if not packlist:IsAwaitingRequest() then
+						if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+							packlist:PrevPage()
+						elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+							packlist:NextPage()
+						end
+					end
+				end
+			end
+		end)
 		self:queuecommand("PackTableRefresh")
 	end,
 	InvokePackSearchMessageCommand = function(self, params)
