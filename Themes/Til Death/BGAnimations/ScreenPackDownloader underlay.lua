@@ -1,13 +1,12 @@
 
+--[[
 
-local nameInput = ""
-local curInput = ""
+pick a tag or enter a name
+hit enter or hit apply, search begins
+results put you on page 1
+packlist is irrelevant?
 
-local function sendFilterAndSearchQuery()
-	packlist:FilterAndSearch(
-		tostring(filters[1])
-	)
-end
+]]
 
 local function diffuseIfActiveButton(self, cond)
 	if cond then
@@ -30,7 +29,6 @@ local inactivealpha = 0.3
 local highlightalpha = 0.5
 
 local translated_info = {
-	EnterBundles = THEME:GetString("ScreenPackDownloader", "BundleSelectEntry"),
 	CancelCurrent = THEME:GetString("ScreenPackDownloader", "CancelCurrentDownload"),
 	SearchName = THEME:GetString("ScreenPackDownloader", "SearchingName"),
 	SizeExplanation = THEME:GetString("ScreenPackDownloader", "ExplainSizeLimit")
@@ -82,29 +80,10 @@ local o = Def.ActorFrame {
 		end
 	},
 
-	-- goes to bundles (funkied the xys to match bundle screen)
-	UIElements.QuadButton(1, 1) .. {
-		InitCommand = function(self)
-			self:xy(SCREEN_WIDTH / 6 + 10, 40):zoomto(SCREEN_WIDTH / 3, packh - 2):valign(0):diffuse(color("#ffffff")):diffusealpha(
-				0.4
-			)
-		end,
-		MouseDownCommand = function(self, params)
-			if params.event == "DeviceButton_left mouse button" then
-				SCREENMAN:SetNewScreen("ScreenBundleSelect")
-			end
-		end,
-		MouseOverCommand = function(self)
-			self:diffusealpha(0.8)
-		end,
-		MouseOutCommand = function(self)
-			self:diffusealpha(0.4)
-		end,
-	},
 	LoadFont("Common Large") .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH / 6 + 10, 56):zoom(0.4):halign(0.5):maxwidth(SCREEN_WIDTH / 2)
-			self:settext(translated_info["EnterBundles"])
+			self:settext("nothing")
 		end
 	},
 	UIElements.QuadButton(1, 1) .. {
