@@ -1,13 +1,4 @@
 
---[[
-
-pick a tag or enter a name
-hit enter or hit apply, search begins
-results put you on page 1
-packlist is irrelevant?
-
-]]
-
 local function diffuseIfActiveButton(self, cond)
 	if cond then
 		self:diffuse(color("#666666"))
