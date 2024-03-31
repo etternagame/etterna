@@ -293,6 +293,13 @@ local function tagframe()
 				self:alphaDeterminingFunction()
 			end,
 			ClickCommand = function(self, params)
+				local tags = {}
+				for k,v in pairs(selectedTags) do
+					if v == true then
+						tags[#tags+1] = k
+					end
+				end
+				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags})
 			end,
 		}
 	}
@@ -315,11 +322,11 @@ local function tagframe()
 				self.bg:diffuse(color("#000000FF"))
 
 				self.alphaDeterminingFunction = function(self)
-					local mult = selectedTags[tagtxt] and 2 or 1
+					local mult = selectedTags[tagtxt] and 1.5 or 1
 					if isOver(self.bg) then
 						self.bg:diffusealpha(0.8 * mult)
 					else
-						self.bg:diffusealpha(0.4 * mult)
+						self.bg:diffusealpha(0.3 * mult*mult)
 					end
 				end
 				self:alphaDeterminingFunction()
