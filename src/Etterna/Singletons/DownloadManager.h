@@ -174,16 +174,24 @@ class DownloadablePackPagination
 	// if true, a request was made and got no results
 	bool noResults = false;
 
+	bool initialized = false;
+
+	void initialize(LuaReference& whenDone = EMPTY_REFERENCE) {
+		setPage(0, whenDone);
+	}
+
 	// get the cached packs on the current page
 	std::vector<DownloadablePack*> get() {
 		auto startIt = results.begin();
-		if (results.size() > currentPageStartIndex())
+		if (results.size() > currentPageStartIndex()) {
 			startIt += currentPageStartIndex();
+		}
 		auto endIt = startIt;
-		if (results.size() < currentPageStartIndex() + key.perPage - 1)
+		if (results.size() < currentPageStartIndex() + key.perPage - 1) {
 			endIt = startIt + key.perPage;
-		else
+		} else {
 			endIt = results.end();
+		}
 		if (startIt == results.end() || startIt == endIt) {
 			return std::vector<DownloadablePack*>();
 		} else {
@@ -545,8 +553,10 @@ class DownloadManager
 		GetReplayDataRequest(scorekey, userid, username, chartkey, callback);
 	}
 
-	DownloadablePackPagination GetPackPagination(
-	  DownloadablePackPaginationKey key);
+	DownloadablePackPagination& GetPackPagination(
+	  const std::string& searchString,
+	  std::set<std::string> tagFilters,
+	  int perPage);
 
   private:
 	/// Default empty reference for calls allowing Lua functions to be passed

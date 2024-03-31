@@ -95,6 +95,7 @@ static Preference<unsigned int> UPLOAD_FAVORITE_BULK_CHUNK_SIZE(
 /// API root path
 static const std::string API_ROOT = "/api/client";
 static const std::string API_KEY = "testkey";
+static const std::string TYPESENSE_API_KEY = "zzz";
 
 static const std::string API_LOGIN = "/login";
 static const std::string API_RANKED_CHARTKEYS = "/charts/ranked";
@@ -299,6 +300,7 @@ initCURLHandle(bool withBearer, bool acceptJson = false)
 		list = curl_slist_append(list, "Accept: application/json");
 		list = curl_slist_append(list, "Content-Type: application/json");
 		list = curl_slist_append(list, "charset: utf-8");
+		list = curl_slist_append(list, ("X-TYPESENSE-API-KEY: " + TYPESENSE_API_KEY).c_str());
 	}
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPHEADER, list);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
@@ -5137,6 +5139,77 @@ DownloadManager::RefreshPackList(const std::string& url)
 					 false);
 }
 
+inline std::string
+ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
+{
+	Document d;
+	Document::AllocatorType& allocator = d.GetAllocator();
+	d.SetObject();
+
+	Value arrDoc(kArrayType);
+
+	if (!criteria.packName.empty() || !criteria.packTags.empty()) {
+		Document packSearchDoc;
+		packSearchDoc.SetObject();
+
+		packSearchDoc.AddMember("collection", "packs", allocator);
+		packSearchDoc.AddMember("q", stringToVal(criteria.packName, allocator), allocator);
+		packSearchDoc.AddMember("query_by", "name", allocator);
+		if (!criteria.packTags.empty()) {
+			// this should produce tags:=[`4k`,`5k`] ....
+			auto tagstr = "tags:=[`" + join("`,`", criteria.packTags) + "`]";
+			packSearchDoc.AddMember("filter_by", stringToVal(tagstr, allocator), allocator);
+		}
+		arrDoc.PushBack(packSearchDoc, allocator);
+	}
+	if (!criteria.songName.empty()) {
+		Document songNameSearchDoc;
+		songNameSearchDoc.SetObject();
+
+		songNameSearchDoc.AddMember("collection", "songs", allocator);
+		songNameSearchDoc.AddMember(
+		  "q", stringToVal(criteria.songName, allocator), allocator);
+		songNameSearchDoc.AddMember("query_by", "name", allocator);
+		arrDoc.PushBack(songNameSearchDoc, allocator);
+	}
+	if (!criteria.chartAuthor.empty()) {
+		Document authorNameSearchDoc;
+		authorNameSearchDoc.SetObject();
+
+		authorNameSearchDoc.AddMember("collection", "songs", allocator);
+		authorNameSearchDoc.AddMember(
+		  "q", stringToVal(criteria.chartAuthor, allocator), allocator);
+		authorNameSearchDoc.AddMember("query_by", "author", allocator);
+		arrDoc.PushBack(authorNameSearchDoc, allocator);
+	}
+	if (!criteria.songArtist.empty()) {
+		Document artistNameSearchDoc;
+		artistNameSearchDoc.SetObject();
+
+		artistNameSearchDoc.AddMember("collection", "songs", allocator);
+		artistNameSearchDoc.AddMember(
+		  "q", stringToVal(criteria.chartAuthor, allocator), allocator);
+		artistNameSearchDoc.AddMember("query_by", "artist", allocator);
+		arrDoc.PushBack(artistNameSearchDoc, allocator);
+	}
+
+	// if the criteria is empty, just return all packs
+	if (arrDoc.Empty()) {
+		Document unfilteredSearchDoc;
+		unfilteredSearchDoc.SetObject();
+		unfilteredSearchDoc.AddMember("collection", "packs", allocator);
+		unfilteredSearchDoc.AddMember("q", "", allocator);
+		unfilteredSearchDoc.AddMember("query_by", "name", allocator);
+		arrDoc.PushBack(unfilteredSearchDoc, allocator);
+	}
+
+	d.AddMember("searches", arrDoc, allocator);
+	StringBuffer buffer;
+	Writer<StringBuffer> w(buffer);
+	d.Accept(w);
+	return buffer.GetString();
+}
+
 void
 DownloadManager::MultiSearchRequest(
   ApiSearchCriteria searchCriteria,
@@ -5147,14 +5220,26 @@ DownloadManager::MultiSearchRequest(
 
 	Locator::getLogger()->info("Generating MultiSearchRequest for {}", searchCriteria.DebugString());
 
-	CURL* curlHandle = initCURLHandle(true, true);
-	CURLSEARCHURL(curlHandle, CALL_PATH);
+	std::vector<std::pair<std::string, std::string>> params = {
+		std::make_pair("page", std::to_string(searchCriteria.page + 1)),
+		std::make_pair("per_page", std::to_string(searchCriteria.per_page)),
+	};
 
-	// TODO: ApiSearchCriteria to body and query params
-	auto body = std::string();
+	auto url = CALL_PATH + "?";
+	for (auto& param : params)
+		url += param.first + "=" + param.second + "&";
+	url = url.substr(0, url.length() - 1);
+
+	CURL* curlHandle = initCURLHandle(true, true);
+	CURLSEARCHURL(curlHandle, url);
+
+	auto body = ApiSearchCriteriaToJSONBody(searchCriteria);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
+
+	Locator::getLogger()->info("url: {}", url);
+	Locator::getLogger()->info("body: {}", body);
 
 	auto done = [searchCriteria, whenDoneParser, &CALL_ENDPOINT, this](
 				  auto& req) {
@@ -5175,6 +5260,7 @@ DownloadManager::MultiSearchRequest(
 			return parseJson(d, req, "MultiSearch");
 		};
 
+		parse();
 		whenDoneParser(d);
 	};
 
@@ -5281,10 +5367,15 @@ DownloadManager::GetPackTagsRequest() {
 				false);
 }
 
-DownloadablePackPagination
-DownloadManager::GetPackPagination(DownloadablePackPaginationKey key) {
+DownloadablePackPagination&
+DownloadManager::GetPackPagination(const std::string& searchString,
+								   std::set<std::string> tagFilters,
+								   int perPage)
+{
+	auto key = DownloadablePackPaginationKey(searchString, tagFilters, perPage);
 	if (!downloadablePackPaginations.contains(key)) {
-		downloadablePackPaginations[key] = DownloadablePackPagination(key);
+		downloadablePackPaginations[key] =
+		  DownloadablePackPagination(searchString, tagFilters, perPage);
 	}
 	return downloadablePackPaginations[key];
 }
@@ -5295,36 +5386,156 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 	// if the page is not cached, retrieve it.
 	// when retrieving, queue further request attempts
 
+	auto runLuaFunc = [this, whenDone]() {
+		if (!whenDone.IsNil() && whenDone.IsSet()) {
+			Locator::getLogger()->info(
+			  "DownloadablePackPagination setPage finished - running callback function");
+
+			auto L = LUA->Get();
+			whenDone.PushSelf(L);
+			std::string error = "Error running DownloadablePackPagination finish function";
+			LuaHelpers::CreateTableFromArray(get(), L);
+
+			// 1 args, 0 results
+			LuaHelpers::RunScriptOnStack(L, error, 1, 0, true);
+			LUA->Release(L);
+		} else {
+			Locator::getLogger()->info(
+			  "DownloadablePackPagination setPage finished - no callback function to run");
+		}
+	};
+
 	if (noResults) {
 		// no reason to make another request
+		Locator::getLogger()->info("PackPagination can't repeat a search that "
+								   "originally returned 0 results");
+		runLuaFunc();
 		return;
 	}
 
 	if (pendingRequest) {
 		// cant request while already waiting for return
+		Locator::getLogger()->info("PackPagination must wait for request "
+								   "completion before making a new request");
+		runLuaFunc();
 		return;
 	}
-
-	// true if no request was ever made or the page is valid
-	bool makeARequest = results.size() == 0 || page <= getTotalPages();
 
 	if (finishedPageRequests.contains(page)) {
 		// the page is already cached
+		runLuaFunc();
 		return;
 	}
 
-	if (!makeARequest) {
-		// the page wasnt valid
+	
+	bool pageIsInvalid = initialized && (page > getTotalPages() || page < 0);
+	if (pageIsInvalid) {
+		// we know the page couldnt have any results
+		runLuaFunc();
 		return;
 	}
 
 	ApiSearchCriteria searchCriteria;
 	searchCriteria.page = page;
 	searchCriteria.per_page = this->key.perPage;
+	searchCriteria.packTags = std::vector<std::string>(this->key.tagFilters.begin(), this->key.tagFilters.end());
+	searchCriteria.packName = this->key.searchString;
 
-	auto parseFunc = [this](Document& d) {
-		// TODO
-		// parse the Document to update the state of this
+	pendingRequest = true;
+
+	auto parseFunc = [this, page, searchCriteria, runLuaFunc](Document& d) {
+		// Locator::getLogger()->info("{}", jsonObjectToString(d));
+
+		this->currentPage = page;
+		this->initialized = true;
+		this->pendingRequest = false;
+		this->finishedPageRequests.insert(page);
+
+		// Least Unsafe Json Traversal
+		if (d.HasMember("results") && d["results"].IsArray()) {
+			auto& resultArr = d["results"];
+			auto& packlist = DLMAN->downloadablePacks;
+			auto& localPacklist = this->results;
+			auto packIndex = this->currentPageStartIndex();
+			Locator::getLogger()->info("Starting at pack index {}", packIndex);
+			for (auto& results : resultArr.GetArray()) {
+
+				auto resultCount = getJsonInt(results, "found");
+				if (resultCount > localPacklist.size()) {
+					localPacklist.resize(resultCount);
+				}
+				if (resultCount == 0 && localPacklist.size() == 0) {
+					this->noResults = true;
+				}
+
+				if (results.HasMember("hits") &&
+					results["hits"].IsArray()) {
+					for (auto& docEntry : results["hits"].GetArray()) {
+						if (docEntry.HasMember("document") &&
+							docEntry["document"].IsObject()) {
+							auto& pack = docEntry["document"];
+
+							DownloadablePack packDl;
+
+							packDl.id = getJsonInt(pack, "id");
+							packDl.name = getJsonString(pack, "name");
+							packDl.url = getJsonString(pack, "download");
+							packDl.mirror = getJsonString(pack, "mirror");
+							if (packDl.url.empty()) {
+								packDl.url = packDl.mirror;
+							}
+							if (packDl.mirror.empty()) {
+								packDl.mirror = packDl.url;
+							}
+							packDl.avgDifficulty =
+							  std::stof(getJsonString(pack, "overall"));
+							packDl.size = getJsonInt(pack, "size");
+							packDl.plays = getJsonInt(pack, "play_count");
+							packDl.songs = getJsonInt(pack, "song_count");
+							packDl.bannerUrl =
+							  getJsonString(pack, "banner_path");
+
+							auto thumbnail =
+							  getJsonString(pack, "bannerTinyThumb");
+							if (thumbnail.find("base64,") !=
+								std::string::npos) {
+								packDl.thumbnail = thumbnail;
+							} else {
+								packDl.thumbnail = "";
+							}
+
+							if (packDl.name.empty()) {
+								Locator::getLogger()->warn(
+								  "RefreshPackList missing pack name: {}",
+								  jsonObjectToString(pack));
+							}
+							if (packDl.url.empty()) {
+								Locator::getLogger()->warn(
+								  "RefreshPackList missing pack download: {}",
+								  jsonObjectToString(pack));
+							}
+
+							if (!packlist.contains(packDl.id)) {
+								packlist[packDl.id] = packDl;
+							}
+							localPacklist.at(packIndex++) = &packlist[packDl.id];
+							Locator::getLogger()->info("Added pack {}: {}", packIndex-1, packDl.name);
+						}
+					}
+				}
+				else {
+					continue;
+				}
+			}
+			Locator::getLogger()->info("Finished at pack index {}", packIndex-1);
+		}
+		else {
+			Locator::getLogger()->warn(
+			  "Pack search {} seemed to return no results? Content: {}",
+			  searchCriteria.DebugString(),
+			  jsonObjectToString(d));
+		}
+		runLuaFunc();
 	};
 
 	DLMAN->SearchForPacks(searchCriteria, parseFunc);
@@ -5476,8 +5687,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		auto perPage = IArg(3);
 
-		auto key = DownloadablePackPaginationKey(searchString, tags, perPage);
-		auto pagination = p->GetPackPagination(key);
+		auto& pagination = p->GetPackPagination(searchString, tags, perPage);
 		pagination.PushSelf(L);
 
 		return 1;
@@ -6144,11 +6354,59 @@ LUA_REGISTER_CLASS(Download)
 
 class LunaDownloadablePackPagination : public Luna<DownloadablePackPagination>
 {
-	public:
+  public:
+	static int GetResults(T* p, lua_State* L) {
 
-		LunaDownloadablePackPagination() {
+		LuaReference func = GetFuncArg(1, L);
 
+		if (!p->initialized) {
+			p->initialize(func);
 		}
+		else {
+			func.PushSelf(L);
+			std::string error = "Error running GetResults callback";
+			LuaHelpers::CreateTableFromArray(p->get(), L);
+
+			// 1 args, 0 results
+			LuaHelpers::RunScriptOnStack(L, error, 1, 0, true);
+		}
+
+		return 0;
+	}
+	static int GetCachedResults(T* p, lua_State* L) {
+		LuaHelpers::CreateTableFromArray(p->getCache(), L);
+		return 1;
+	}
+	static int NextPage(T* p, lua_State* L) {
+		LuaReference func;
+		if (lua_isfunction(L, 1))
+			func = GetFuncArg(1, L);
+		p->nextPage(func);
+		return 0;
+	}
+	static int PrevPage(T* p, lua_State* L) {
+		LuaReference func;
+		if (lua_isfunction(L, 1))
+			func = GetFuncArg(1, L);
+		p->prevPage(func);
+		return 0;
+	}
+	static int GetTotalPages(T* p, lua_State* L) {
+		lua_pushnumber(L, p->getTotalPages());
+		return 1;
+	}
+	static int GetCurrentPage(T* p, lua_State* L) {
+		lua_pushnumber(L, p->currentPage+1);
+		return 1;
+	}
+	LunaDownloadablePackPagination() {
+		ADD_METHOD(GetResults);
+		ADD_METHOD(GetCachedResults);
+		ADD_METHOD(NextPage);
+		ADD_METHOD(PrevPage);
+		ADD_METHOD(GetTotalPages);
+		ADD_METHOD(GetCurrentPage);
+	}
 };
 
 LUA_REGISTER_CLASS(DownloadablePackPagination)
