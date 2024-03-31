@@ -54,6 +54,9 @@ local cancelButtonSpace = 4
 local leftSpace = 10
 local cancelFrameY = 56
 
+local selectedTags = {}
+local nameInput = ""
+
 local o = Def.ActorFrame {
 	Name = "MainFrame",
 	InitCommand = function(self)
@@ -175,22 +178,144 @@ o[#o+1] = Def.ActorFrame {
 	},
 }
 
-o[#o+1] = Def.ActorFrame {
-	Name = "TagFrame",
-	InitCommand = function(self)
-		self:xy(leftSpace, f0y - 30)
-	end,
+local function tagframe()
+	local maxtags = 12
+	local curpage = 1
 
-	Def.Quad {
-		Name = "BG",
+	local frameBGHeight = SCREEN_HEIGHT - (f0y-30) - leftSpace
+	local frameBGWidth = SCREEN_WIDTH / 3
+	local tagSpacing = 2
+	local tagHeight = ((frameBGHeight * 0.7) / maxtags)
+	local tagWidth = frameBGWidth - tagSpacing*2
+	local tagTextSize = 0.5
+	local tagListStartY = frameBGHeight * 0.22
+
+	local alltags = DLMAN:GetPackTags()
+	local skillsetTags = alltags["global_skillset"]
+	local keycountTags = alltags["global_keyCount"]
+	local otherTags = alltags["pack_tag"]
+	local orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+
+	local t = Def.ActorFrame {
+		Name = "TagFrame",
 		InitCommand = function(self)
-			self:halign(0):valign(0)
-			self:zoomto(SCREEN_WIDTH / 3, SCREEN_HEIGHT - (f0y-30) - leftSpace)
-			self:diffuse(color("#666666"))
-			self:diffusealpha(0.4)
-		end
-	},
-}
+			self:xy(leftSpace, f0y - 30)
+		end,
+	
+		Def.Quad {
+			Name = "BG",
+			InitCommand = function(self)
+				self:halign(0):valign(0)
+				self:zoomto(frameBGWidth, frameBGHeight)
+				self:diffuse(color("#666666"))
+				self:diffusealpha(0.4)
+			end
+		},
+		LoadFont("Common Large") .. {
+			Name = "TagExplain",
+			InitCommand = function(self)
+				self:settext("Select tags to filter packs")
+				self:zoom(0.4)
+				self:valign(0)
+				self:xy(frameBGWidth/2, leftSpace)
+				self:maxwidth(frameBGWidth/0.4)
+			end,
+		},
+		LoadFont("Common Large") .. {
+			Name = "PageNum",
+			InitCommand = function(self)
+				self:zoom(0.2)
+				self:valign(1):halign(1)
+				self:xy(frameBGWidth - leftSpace/2, tagListStartY - tagSpacing)
+				self:settext("0/1 - 1/100")
+			end,
+		},
+		UIElements.TextButton(1, 1, "Common Large") .. {
+			Name = "ApplyButton",
+			InitCommand = function(self)
+				self.bg = self:GetChild("BG")
+				self.txt = self:GetChild("Text")
+				self:xy(tagSpacing, tagListStartY - tagSpacing - packh*0.8)
+
+				self.txt:xy(tagFrameWidth/4 - leftSpace/4, (packh*0.8)/2)
+				self.txt:settext("Apply")
+				self.txt:zoom(0.4)
+				self.txt:maxwidth((tagFrameWidth/2 - leftSpace) / 0.4)
+				self.bg:zoomto(tagFrameWidth/2 - leftSpace/2, packh*0.8)
+				self.bg:halign(0):valign(0)
+				self.bg:diffuse(color("#ffffff"))
+
+				self.alphaDeterminingFunction = function(self)
+					if isOver(self.bg) then
+						self.bg:diffusealpha(0.8)
+					else
+						self.bg:diffusealpha(0.4)
+					end
+				end
+				self:alphaDeterminingFunction()
+			end,
+			RolloverUpdateCommand = function(self, params)
+				self:alphaDeterminingFunction()
+			end,
+			ClickCommand = function(self, params)
+			end,
+		}
+	}
+
+	local function tagentry(i)
+		local taxtxt = nil
+		return UIElements.TextButton(1, 1, "Common Normal") .. {
+			Name = "Tag"..i,
+			InitCommand = function(self)
+				self.bg = self:GetChild("BG")
+				self.txt = self:GetChild("Text")
+
+				self:xy(
+					tagFrameWidth/2,
+					tagListStartY + tagHeight/2 + tagSpacing + (i-1) * (tagHeight + tagSpacing)
+				)
+
+				self.bg:zoomto(tagWidth, tagHeight)
+				self.txt:zoom(tagTextSize)
+				self.bg:diffuse(color("#000000FF"))
+
+				self.alphaDeterminingFunction = function(self)
+					if isOver(self.bg) then
+						self.bg:diffusealpha(0.8)
+					else
+						self.bg:diffusealpha(0.4)
+					end
+				end
+				self:alphaDeterminingFunction()
+
+				self:playcommand("SetTag")
+			end,
+			SetTagCommand = function(self)
+				tagtxt = orderedTags[i]
+
+				if tagtxt then
+					self:visible(true)
+					self.txt:settextf("%s", orderedTags[i])
+				else
+					self:visible(false)
+				end
+
+			end,
+			RolloverUpdateCommand = function(self, params)
+				self:alphaDeterminingFunction()
+			end,
+			ClickCommand = function(self, params)
+			end,
+		}
+	end
+
+	for i=1,maxtags do
+		t[#t+1] = tagentry(i)
+	end
+
+	return t
+end
+o[#o+1] = tagframe()
 
 local nwidth = SCREEN_WIDTH / 2
 local namex = nwidth
