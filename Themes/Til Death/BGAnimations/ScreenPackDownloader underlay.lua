@@ -378,7 +378,39 @@ o[#o + 1] = Def.ActorFrame {
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
-			
+			if event.type ~= "InputEventType_Release" then
+				local btn = event.DeviceInput.button
+				local shift = INPUTFILTER:IsShiftPressed()
+				local ctrl = INPUTFILTER:IsControlPressed()
+
+				if btn == "DeviceButton_enter" or event.button == "Start" then
+					-- invoke search
+					MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags})
+				else
+					local del = btn == "DeviceButton_delete"
+					local bs = btn == "DeviceButton_backspace"
+					local copypasta = btn == "DeviceButton_v" and ctrl
+					local char = inputToCharacter(event)
+
+					-- paste
+					if copypasta then
+						char = Arch.getClipboard()
+					end
+
+					if bs then
+						nameInput = nameInput:sub(1, -2)
+					elseif del then
+						nameInput = ""
+					elseif char then
+						nameInput = nameInput .. char
+					else
+						return
+					end
+
+					self:playcommand("Set")
+
+				end
+			end
 		end)
 	end,
 	UIElements.QuadButton(1, 1) .. {
