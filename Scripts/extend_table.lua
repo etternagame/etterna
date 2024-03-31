@@ -48,3 +48,18 @@ function table.combine(...)
 	end
 	return o
 end
+
+-- its like table.sort but it returns a copy
+-- NOT A DEEP COPY probably
+function table.sorted(t, sortfunc)
+	local o = {}
+	for k, v in pairs(t) do
+		o[k] = v
+	end
+	if sortfunc ~= nil then
+		table.sort(o, sortfunc)
+	else
+		table.sort(o)
+	end
+	return o
+end
