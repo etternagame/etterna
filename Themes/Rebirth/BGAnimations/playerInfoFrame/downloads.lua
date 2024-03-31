@@ -244,6 +244,7 @@ local function downloadsList()
         --  IndexGetter: A function that returns an index for its status, according to the Displays set
         --  TapFunction: A function that runs when the button is pressed
         local choiceDefinitions = {
+            --[[ -- disabled access to bundles for now
             {   -- Enter or Exit from Bundle Select
                 Name = "bundleselect",
                 Type = "Tap",
@@ -261,6 +262,7 @@ local function downloadsList()
                     page = 1
                 end,
             },
+            --]]
             {   -- Cancel all current downloads
                 Name = "cancelall",
                 Type = "Tap",
