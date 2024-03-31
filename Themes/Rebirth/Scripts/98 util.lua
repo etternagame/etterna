@@ -426,20 +426,6 @@ function findKeyOf(t, x)
     return nil
 end
 
--- return a letter to add based on input
--- nil return is invalid
-function inputToCharacter(event)
-    local btn = event.DeviceInput.button
-    local char = event.char
-    local shift = INPUTFILTER:IsShiftPressed()
-    if btn == "DeviceButton_space" then
-        return " "
-    elseif char and char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w%[%]%{%}%`%\\]') then
-        return char
-    end
-    return nil
-end
-
 -- alias for getting "current" (preferred) PlayerOptions
 function getPlayerOptions()
     return GAMESTATE:GetPlayerState():GetPlayerOptions("ModsLevel_Preferred")
