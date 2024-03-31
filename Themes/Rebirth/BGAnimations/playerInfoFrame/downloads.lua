@@ -200,11 +200,12 @@ end
 
 -- produces all the fun stuff in the pack downloader
 local function downloadsList()
-    local itemCount = 25
-    local listAllottedSpace = actuals.Height - actuals.TopLipHeight - actuals.ItemListUpperGap - actuals.TopLipHeight
+    local itemCount = 12
+    local listAllottedSpace = actuals.Height/2 - actuals.TopLipHeight - actuals.ItemListUpperGap - actuals.TopLipHeight
     local inBundles = false
     local downloaderframe = nil
     local searchstring = ""
+    local selectedTags = {}
 
     -- fallback behavior: this is a PackList
     -- it has internal properties we will use to our advantage
@@ -870,7 +871,11 @@ local function downloadsList()
             self:playcommand("UpdateItemList")
         end,
         InvokeSearchCommand = function(self)
-            pl:FilterAndSearch(searchstring, {}, itemCount)
+            local tags = {}
+            for k,v in pairs(selectedTags) do
+                tags[#tags+1] = k
+            end
+            pl:FilterAndSearch(searchstring, tags, itemCount)
             self:playcommand("UpdateItemList")
         end,
         UpdateItemListCommand = function(self)
@@ -1033,7 +1038,7 @@ local function downloadsList()
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:diffusealpha(0)
-                self:zoomto(actuals.Width, actuals.Height)
+                self:zoomto(actuals.Width, actuals.Height/2)
             end,
             MouseScrollMessageCommand = function(self, params)
                 if isOver(self) and focused then
@@ -1042,6 +1047,7 @@ local function downloadsList()
                     else
                         pl:NextPage()
                     end
+                    self:GetParent():playcommand("UpdateItemList")
                 end
             end
         },
@@ -1067,7 +1073,7 @@ local function downloadsList()
         LoadFont("Common Normal") .. {
             Name = "AwaitingOrNoResults",
             InitCommand = function(self)
-                self:xy(actuals.Width / 2, actuals.Height / 2)
+                self:xy(actuals.Width / 2, actuals.Height / 4)
                 self:zoom(nameTextSize)
                 self:maxwidth(actuals.Width / nameTextSize)
             end,
@@ -1091,10 +1097,235 @@ local function downloadsList()
         t[#t+1] = listItem(i)
     end
 
+    local function tagsList()
+        local tagCount = 12
+        local curpage = 1
+        local tagStartY = actuals.Height / 2
+        local taglistAllottedSpace = listAllottedSpace
+
+        local alltags = DLMAN:GetPackTags()
+        local skillsetTags = table.sorted(alltags["global_skillset"])
+        local keycountTags = table.sorted(alltags["global_keyCount"], function(a,b)
+            local ax = a:sub(1, #a-1)
+            local bx = b:sub(1, #b-1)
+            return tonumber(ax) < tonumber(bx)
+        end)
+        local otherTags = table.sorted(alltags["pack_tag"])
+        local orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+    
+        local function movePage(n)
+            local newpage = curpage + n
+            local maxpage = math.ceil(#orderedTags / tagCount)
+            if newpage < 1 then
+                newpage = maxpage
+            elseif newpage > maxpage then
+                newpage = 1
+            end
+            curpage = newpage
+            MESSAGEMAN:Broadcast("SetTagPage")
+        end
+
+        local t = Def.ActorFrame {
+            Name = "TagFrame",
+            InitCommand = function(self)
+                self:y(tagStartY)
+            end,
+            BeginCommand = function(self)
+                self:playcommand("SetTag")
+            end,
+            SetTagPageMessageCommand = function(self)
+                self:playcommand("SetTag")
+            end,
+            Def.Quad {
+                Name = "Separator",
+                InitCommand = function(self)
+                    self:halign(0)
+                    self:zoomto(actuals.Width, actuals.TopLipHeight)
+                    self:diffusealpha(0.6)
+                    registerActorToColorConfigElement(self, "main", "SecondaryBackground")
+                end,
+            },
+            LoadFont("Common Normal") .. {
+                Name = "TagExplain",
+                InitCommand = function(self)
+                    self:xy(actuals.Width / 2, actuals.TopLipHeight + actuals.EdgePadding)
+                    self:zoom(nameHeaderSize)
+                    self:maxwidth(actuals.Width / nameHeaderSize)
+                    self:settext("Select tags to filter packs")
+                    registerActorToColorConfigElement(self, "main", "SecondaryText")
+                end,
+            },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "Apply",
+                InitCommand = function(self)
+                    self.bg = self:GetChild("BG")
+                    self.txt = self:GetChild("Text")
+                    self:xy(actuals.Width - ((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) + actuals.NameColumnLeftGap + actuals.EdgePadding)/2, actuals.Height/2 - actuals.TopLipHeight * 2)
+                    self.bg:halign(0)
+                    self.txt:x(actuals.MSDWidth*1.2 / 2)
+                    self.txt:zoom(msdTextSize)
+                    self.txt:maxwidth(actuals.MSDWidth*1.2/msdTextSize)
+                    self.bg:zoomto(actuals.MSDWidth * 1.2, taglistAllottedSpace / tagCount * 1.2)
+
+                    registerActorToColorConfigElement(self.txt, "main", "SecondaryText")
+                    registerActorToColorConfigElement(self.bg, "main", "SecondaryBackground")
+                    self.bg:diffusealpha(1)
+                    self.alphaDeterminingFunction = function(self)
+                        if isOver(self.bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+
+                    self.txt:settext("Apply")
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update ~= "OnMouseDown" then return end
+                    self:GetParent():GetParent():playcommand("InvokeSearch")
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+            },
+            Def.Quad {
+                Name = "MouseWheelRegion",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:diffusealpha(0)
+                    self:zoomto(actuals.Width, actuals.Height/2)
+                end,
+                MouseScrollMessageCommand = function(self, params)
+                    if isOver(self) and focused then
+                        if params.direction == "Up" then
+                            movePage(-1)
+                        else
+                            movePage(1)
+                        end
+                    end
+                end
+            },
+        }
+    
+        local function listItem(i)
+            local index = i
+            local tag = nil
+    
+            return Def.ActorFrame {
+                InitCommand = function(self)
+                    self:y(actuals.TopLipHeight + actuals.ItemListUpperGap + taglistAllottedSpace / tagCount * (i-1))
+                end,
+                SetTagCommand = function(self)
+                    self:finishtweening()
+                    self:diffusealpha(0)
+                    self:smooth(pageAnimationSeconds * i)
+                    index = (curpage-1) * tagCount + i
+                    tag = orderedTags[index]
+                    if tag ~= nil then self:diffusealpha(1) end
+                end,
+    
+                LoadFont("Common Normal") .. {
+                    Name = "Index",
+                    InitCommand = function(self)
+                        self:x(actuals.IndexColumnLeftGap / 2)
+                        self:zoom(indexTextSize)
+                        -- without this random 2, the index touches the left edge of the frame and it feels really weird
+                        self:maxwidth(actuals.IndexColumnLeftGap / indexTextSize - 2)
+                        registerActorToColorConfigElement(self, "main", "SecondaryText")
+                    end,
+                    SetTagCommand = function(self)
+                        if tag ~= nil then
+                            self:settext(index)
+                        end
+                    end,
+                },
+                UIElements.TextButton(1, 1, "Common Normal") .. {
+                    Name = "Name",
+                    InitCommand = function(self)
+                        self.bg = self:GetChild("BG")
+                        self.txt = self:GetChild("Text")
+
+                        self.txt:x((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / 2)
+                        self.bg:halign(0)
+                        self.bg:zoomto((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2), taglistAllottedSpace / tagCount * 0.97)
+                        self:x(actuals.NameColumnLeftGap)
+                        self.txt:zoom(nameTextSize)
+                        self.txt:maxwidth((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / nameTextSize - textZoomFudge)
+                        registerActorToColorConfigElement(self.txt, "main", "SecondaryText")
+                        registerActorToColorConfigElement(self.bg, "main", "SecondaryBackground")
+                        self.bg:diffusealpha(1)
+                        self.alphaDeterminingFunction = function(self)
+                            if isOver(self.bg) and tag ~= nil then
+                                self.bg:diffusealpha(buttonHoverAlpha)
+                            else
+                                self.bg:diffusealpha(1)
+                            end
+                        end
+                    end,
+                    SetTagCommand = function(self)
+                        if tag ~= nil then
+                            self.txt:settext(tag)
+                        end
+                        self:alphaDeterminingFunction()
+                    end,
+                    ClickCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        if params.update ~= "OnMouseDown" then return end
+                        if tag ~= nil then
+                            if selectedTags[tag] == true then
+                                selectedTags[tag] = nil
+                            else
+                                selectedTags[tag] = true
+                            end
+                            self:GetSibling("IsSelectedQuad"):playcommand("SetTag")
+                        end
+                    end,
+                    RolloverUpdateCommand = function(self, params)
+                        if self:IsInvisible() then return end
+                        self:alphaDeterminingFunction()
+                    end,
+                },
+                Def.Quad {
+                    Name = "IsSelectedQuad",
+                    InitCommand = function(self)
+                        self:halign(0)
+                        self:x(actuals.NameColumnLeftGap + (actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) + actuals.EdgePadding)
+                        self:zoomto(taglistAllottedSpace / tagCount * 0.7, taglistAllottedSpace / tagCount * 0.7)
+                        self:diffuse(color("0.2,0.8,0.2"))
+                        self:diffusealpha(0.7)
+                    end,
+                    SetTagCommand = function(self)
+                        if tag ~= nil then
+                            if selectedTags[tag] == true then
+                                self:visible(true)
+                            else
+                                self:visible(false)
+                            end
+                        else
+                            self:visible(false)
+                        end
+                    end,
+                }
+            }
+        end
+    
+        for i = 1, tagCount do
+            t[#t+1] = listItem(i)
+        end
+    
+        return t
+    end
+
+    t[#t+1] = tagsList()
+
     t[#t+1] = tabChoices()
 
     return t
 end
+
+
 
 t[#t+1] = downloadsList()
 
