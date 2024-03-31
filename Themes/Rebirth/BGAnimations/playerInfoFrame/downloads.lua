@@ -81,6 +81,8 @@ local translations = {
     DownloadPackMirrored = THEME:GetString("PackDownloader", "DownloadPackMirrored"),
     AlreadyInstalled = THEME:GetString("PackDownloader", "AlreadyInstalled"),
     CurrentlyDownloading = THEME:GetString("PackDownloader", "CurrentlyDownloading"),
+	AwaitingRequest = THEME:GetString("PackDownloader", "AwaitingRequest"),
+	NoPacks = THEME:GetString("PackDownloader", "NoPacks"),
 }
 
 local t = Def.ActorFrame {
@@ -205,9 +207,9 @@ local function downloadsList()
     local searchstring = ""
 
     -- fallback behavior: this is a PackList
-    -- it has internal sorting properties we will use to our advantage
+    -- it has internal properties we will use to our advantage
     local pl = PackList:new()
-    local packlisting = pl:GetPackTable()
+    pl:FilterAndSearch("", {}, itemCount)
     local downloadingPacks = DLMAN:GetDownloadingPacks()
     local queuedPacks = DLMAN:GetQueuedPacks()
     local downloadingPacksByName = {}
@@ -225,24 +227,6 @@ local function downloadsList()
 
     local page = 1
     local maxPage = 1
-
-    local function movePage(n)
-        if not inBundles then
-            if maxPage <= 1 then
-                return
-            end
-
-            -- math to make pages loop both directions
-            local nn = (page + n) % (maxPage + 1)
-            if nn == 0 then
-                nn = n > 0 and 1 or maxPage
-            end
-            page = nn
-            if downloaderframe ~= nil then
-                downloaderframe:playcommand("UpdateItemList")
-            end
-        end
-    end
 
     local function tabChoices()
         -- keeping track of which choices are on at any moment (keys are indices, values are true/false/nil)
@@ -426,11 +410,11 @@ local function downloadsList()
                     end
                 else
                     index = (page-1) * itemCount + i
-                    pack = packlisting[index]
+                    pack = pl:GetPacks()[i]
                     if pack ~= nil then
                         self:diffusealpha(1)
                     end
-                end 
+                end
             end,
 
             LoadFont("Common Normal") .. {
@@ -795,8 +779,6 @@ local function downloadsList()
         InitCommand = function(self)
         end,
         BeginCommand = function(self)
-            -- make sure we arent filtering anything out on first load
-            pl:FilterAndSearch("", 0, 0, 0, 0)
             downloaderframe = self
             self:playcommand("UpdateItemList")
 
@@ -844,6 +826,12 @@ local function downloadsList()
                             local down = gbtn == "MenuDown" or gbtn == "Down"
                             local ctrl = INPUTFILTER:IsControlPressed()
                             local copypasta = btn == "DeviceButton_v" and ctrl
+                            local start = btn == "Devicebutton_enter" or gbtn == "Start"
+
+                            if start then
+                                self:playcommand("InvokeSearch")
+                                return
+                            end
                             
                             -- if ctrl is pressed with a number, let the general tab input handler deal with this
                             if char ~= nil and tonumber(char) and INPUTFILTER:IsControlPressed() then
@@ -863,12 +851,6 @@ local function downloadsList()
                                 searchstring = ""
                             elseif char ~= nil then
                                 searchstring = searchstring .. char
-                            elseif up then
-                                -- up move the page up
-                                movePage(-1)
-                            elseif down then
-                                -- down move the page down
-                                movePage(1)
                             else
                                 if char == nil then return end
                             end
@@ -878,21 +860,24 @@ local function downloadsList()
                                 page = 1
                             end
                             self:playcommand("UpdateSearch")
-                            self:playcommand("UpdateItemList")
                         end
                     end
                 end
             
             end)
         end,
-        UpdateSearchCommand = function(self)
-            pl:FilterAndSearch(searchstring, 0, 0, 0, 0)
+        PackListRequestFinishedMessageCommand = function(self, params)
+            self:playcommand("UpdateItemList")
+        end,
+        InvokeSearchCommand = function(self)
+            pl:FilterAndSearch(searchstring, {}, itemCount)
+            self:playcommand("UpdateItemList")
         end,
         UpdateItemListCommand = function(self)
             TOOLTIP:Hide()
             if not inBundles then
-                packlisting = pl:GetPackTable()
-                maxPage = math.ceil(#packlisting / itemCount)
+                page = pl:GetCurrentPage()
+                maxPage = pl:GetTotalPages()
             end
             self:playcommand("SetPack")
         end,
@@ -972,7 +957,6 @@ local function downloadsList()
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update ~= "OnMouseDown" then return end
-                pl:SortByName()
                 self:GetParent():playcommand("UpdateItemList")
             end,
             RolloverUpdateCommand = function(self, params)
@@ -1003,7 +987,6 @@ local function downloadsList()
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update ~= "OnMouseDown" then return end
-                pl:SortByDiff()
                 self:GetParent():playcommand("UpdateItemList")
             end,
             RolloverUpdateCommand = function(self, params)
@@ -1034,7 +1017,6 @@ local function downloadsList()
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update ~= "OnMouseDown" then return end
-                pl:SortBySize()
                 self:GetParent():playcommand("UpdateItemList")
             end,
             RolloverUpdateCommand = function(self, params)
@@ -1056,9 +1038,9 @@ local function downloadsList()
             MouseScrollMessageCommand = function(self, params)
                 if isOver(self) and focused then
                     if params.direction == "Up" then
-                        movePage(-1)
+                        pl:PrevPage()
                     else
-                        movePage(1)
+                        pl:NextPage()
                     end
                 end
             end
@@ -1076,12 +1058,33 @@ local function downloadsList()
                 if inBundles then
                     self:settext("")
                 else
-                    local lb = clamp((page-1) * (itemCount) + 1, 0, #packlisting)
-                    local ub = clamp(page * itemCount, 0, #packlisting)
-                    self:settextf("%d-%d/%d", lb, ub, #packlisting)
+                    local lb = clamp((page-1) * (itemCount) + 1, 0, pl:GetTotalResults())
+                    local ub = clamp(page * itemCount, 0, pl:GetTotalResults())
+                    self:settextf("%d-%d/%d", lb, ub, pl:GetTotalResults())
                 end
             end
         },
+        LoadFont("Common Normal") .. {
+            Name = "AwaitingOrNoResults",
+            InitCommand = function(self)
+                self:xy(actuals.Width / 2, actuals.Height / 2)
+                self:zoom(nameTextSize)
+                self:maxwidth(actuals.Width / nameTextSize)
+            end,
+            UpdateItemListCommand = function(self)
+                if pl:IsAwaitingRequest() then
+                    self:settext(translations["AwaitingRequest"])
+                    self:visible(true)
+                else
+                    if pl:GetTotalResults() == 0 then
+                        self:visible(true)
+                        self:settext(translations["NoPacks"])
+                    else
+                        self:visible(false)
+                    end
+                end
+            end,
+        }
     }
     
     for i = 1, itemCount do
