@@ -457,7 +457,6 @@ local function assetList()
         end,
         UpdateItemListCommand = function(self)
             TOOLTIP:Hide()
-            -- maxPage = math.ceil(#packlisting / itemCount)
         end,
 
         Def.Quad {
