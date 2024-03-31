@@ -5155,6 +5155,7 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		packSearchDoc.AddMember("collection", "packs", allocator);
 		packSearchDoc.AddMember("q", stringToVal(criteria.packName, allocator), allocator);
 		packSearchDoc.AddMember("query_by", "name", allocator);
+		packSearchDoc.AddMember("num_typos", "0", allocator);
 		if (!criteria.packTags.empty()) {
 			// this should produce tags:=[`4k`,`5k`] ....
 			auto tagstr = "tags:=[`" + join("`,`", criteria.packTags) + "`]";
