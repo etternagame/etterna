@@ -191,15 +191,48 @@ local function tagframe()
 	local tagListStartY = frameBGHeight * 0.22
 
 	local alltags = DLMAN:GetPackTags()
-	local skillsetTags = alltags["global_skillset"]
-	local keycountTags = alltags["global_keyCount"]
-	local otherTags = alltags["pack_tag"]
+	local skillsetTags = table.sorted(alltags["global_skillset"])
+	local keycountTags = table.sorted(alltags["global_keyCount"], function(a,b)
+		local ax = a:sub(1, #a-1)
+		local bx = b:sub(1, #b-1)
+		return tonumber(ax) < tonumber(bx)
+	end)
+	local otherTags = table.sorted(alltags["pack_tag"])
 	local orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+
+	local function movePage(n)
+		local newpage = curpage + n
+		local maxpage = math.ceil(#orderedTags / maxtags)
+		if newpage < 1 then
+			newpage = maxpage
+		elseif newpage > maxpage then
+			newpage = 1
+		end
+		curpage = newpage
+		MESSAGEMAN:Broadcast("SetTagPage")
+	end
 
 	local t = Def.ActorFrame {
 		Name = "TagFrame",
 		InitCommand = function(self)
 			self:xy(leftSpace, f0y - 30)
+		end,
+		BeginCommand = function(self)
+			SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+				if isOver(self:GetChild("BG")) then
+					if event.type == "InputEventType_FirstPress" then
+						if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+							movePage(-1)
+						elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+							movePage(1)
+						end
+					end
+				end
+			end)
+			self:playcommand("UpdateTags")
+		end,
+		SetTagPageMessageCommand = function(self)
+			self:playcommand("UpdateTags")
 		end,
 	
 		Def.Quad {
@@ -227,7 +260,9 @@ local function tagframe()
 				self:zoom(0.2)
 				self:valign(1):halign(1)
 				self:xy(frameBGWidth - leftSpace/2, tagListStartY - tagSpacing)
-				self:settext("0/1 - 1/100")
+			end,
+			UpdateTagsCommand = function(self)
+				self:settextf("%d-%d of %d", (curpage-1) * maxtags + 1, math.min(#orderedTags, curpage * maxtags), #orderedTags)
 			end,
 		},
 		UIElements.TextButton(1, 1, "Common Large") .. {
@@ -263,7 +298,7 @@ local function tagframe()
 	}
 
 	local function tagentry(i)
-		local taxtxt = nil
+		local tagtxt = nil
 		return UIElements.TextButton(1, 1, "Common Normal") .. {
 			Name = "Tag"..i,
 			InitCommand = function(self)
@@ -280,31 +315,36 @@ local function tagframe()
 				self.bg:diffuse(color("#000000FF"))
 
 				self.alphaDeterminingFunction = function(self)
+					local mult = selectedTags[tagtxt] and 2 or 1
 					if isOver(self.bg) then
-						self.bg:diffusealpha(0.8)
+						self.bg:diffusealpha(0.8 * mult)
 					else
-						self.bg:diffusealpha(0.4)
+						self.bg:diffusealpha(0.4 * mult)
 					end
 				end
 				self:alphaDeterminingFunction()
-
-				self:playcommand("SetTag")
 			end,
-			SetTagCommand = function(self)
-				tagtxt = orderedTags[i]
+			UpdateTagsCommand = function(self)
+				tagtxt = orderedTags[i + ((curpage-1) * maxtags)]
 
 				if tagtxt then
 					self:visible(true)
-					self.txt:settextf("%s", orderedTags[i])
+					self.txt:settextf("%s", tagtxt)
 				else
 					self:visible(false)
 				end
-
+				self:alphaDeterminingFunction()
 			end,
 			RolloverUpdateCommand = function(self, params)
 				self:alphaDeterminingFunction()
 			end,
 			ClickCommand = function(self, params)
+				if selectedTags[tagtxt] == true then
+					selectedTags[tagtxt] = nil
+				else
+					selectedTags[tagtxt] = true
+				end
+				self:alphaDeterminingFunction()
 			end,
 		}
 	end
@@ -337,7 +377,7 @@ o[#o + 1] = Def.ActorFrame {
 	UIElements.QuadButton(1, 1) .. {
 		Name = "SearchBox",
 		InitCommand = function(self)
-			self:zoomto(nwidth - leftSpace, nhite):halign(0):valign(0)
+			self:zoomto(nwidth - leftSpace, nhite):halign(0)
 			self:diffusealpha(inactivealpha)
 		end,
 		MouseDownCommand = function(self, params)
@@ -367,9 +407,9 @@ o[#o + 1] = Def.ActorFrame {
 	LoadFont("Common Large") .. {
 		Name = "UserInputText",
 		InitCommand = function(self)
-			self:x(nameoffx):halign(0):valign(0)
+			self:x(nameoffx):halign(0)
 			self:zoom(fontScale)
-			self:maxwidth(nwidth / fontScale - nameoffx * 2)
+			self:maxwidth((nwidth - leftSpace - nameoffx) / fontScale)
 		end,
 		SetCommand = function(self)
 			local fval = nameInput
@@ -380,7 +420,8 @@ o[#o + 1] = Def.ActorFrame {
 	LoadFont("Common Large") .. {
 		Name = "SearchLabel",
 		InitCommand = function(self)
-			self:halign(1):valign(0)
+			self:xy(-2,-1) -- font problems
+			self:halign(1)
 			self:zoom(fontScale)
 			self:settextf("%s:", translated_info["SearchName"])
 		end,
