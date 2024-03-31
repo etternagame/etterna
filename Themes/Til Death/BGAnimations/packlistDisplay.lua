@@ -54,6 +54,7 @@ local o = Def.ActorFrame {
 						elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
 							packlist:NextPage()
 						end
+						self:queuecommand("Update")
 					end
 				end
 			end
