@@ -5238,8 +5238,8 @@ DownloadManager::MultiSearchRequest(
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
-	Locator::getLogger()->info("url: {}", url);
-	Locator::getLogger()->info("body: {}", body);
+	// Locator::getLogger()->info("url: {}", url);
+	// Locator::getLogger()->info("body: {}", body);
 
 	auto done = [searchCriteria, whenDoneParser, &CALL_ENDPOINT, this](
 				  auto& req) {
