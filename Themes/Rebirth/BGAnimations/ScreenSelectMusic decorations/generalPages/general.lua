@@ -275,12 +275,12 @@ local function createMSDLines()
                     registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self, params)
-                    -- HACKS HACKS HACKS
-                    -- (remove when validating negbpms soon)
                     if i == 0 then
                         if params.steps then
                             if params.steps:GetTimingData():HasWarps() then
-                                self:settext(translations["NegativeBPMs"])
+                                -- not sure what to do with this for now
+                                -- maybe replace with "special timing" for all TimingSegments...
+                                -- self:settext(translations["NegativeBPMs"])
                                 self:diffusealpha(1)
                             else
                                 self:diffusealpha(0)

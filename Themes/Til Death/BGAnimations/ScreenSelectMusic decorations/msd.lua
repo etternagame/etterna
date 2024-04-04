@@ -115,10 +115,6 @@ local function littlebits(i)
 					self:diffusetopedge(Saturation(getMainColor("highlight"), 0.5))
 					self:diffusebottomedge(Saturation(getMainColor("positive"), 0.6))
 				end
-				--If negative BPM empty label
-				if steps and steps:GetTimingData():HasWarps() then
-					self:settext("")
-				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -130,10 +126,6 @@ local function littlebits(i)
 					self:settextf("%05.2f", meter[i + 1])
 					self:diffuse(byMSD(meter[i + 1]))
 				else
-					self:settext("")
-				end
-				--If negative BPM empty label
-				if steps and steps:GetTimingData():HasWarps() then
 					self:settext("")
 				end
 			end
@@ -227,20 +219,6 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 			notecount = steps:GetRadarValues(pn):GetValue("RadarCategory_Notes")
 			self:settextf("%0.2f %s", notecount / length, translated_text["AverageNPS"])
 			self:diffuse(Saturation(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())), 0.3))
-		else
-			self:settext("")
-		end
-	end
-}
-
---Negative BPMs label
-t[#t + 1] = LoadFont("Common Large") .. {
-	InitCommand = function(self)
-		self:xy(frameX + 45, frameY + 165):zoom(0.5):halign(0):diffuse(getMainColor("negative")):settext("Negative BPMs")
-	end,
-	SetCommand = function(self)
-		if steps and steps:GetTimingData():HasWarps() then
-			self:settext(translated_text["NegBPM"])
 		else
 			self:settext("")
 		end

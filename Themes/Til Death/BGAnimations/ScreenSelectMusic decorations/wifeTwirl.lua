@@ -727,7 +727,8 @@ r[#r + 1] = LoadFont("Common Large") .. {
 	end,
 	MintyFreshCommand = function(self)
 		if song and steps:GetTimingData():HasWarps() then
-			self:settext(translated_info["NegBPM"])
+			-- might replace this with "special timing" or something...
+			--self:settext(translated_info["NegBPM"])
 		else
 			self:settext("")
 		end

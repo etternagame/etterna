@@ -675,11 +675,9 @@ local function getLastMonthSortFoldernameForSong(song)
     local recentDT = nil
     for _, chart in ipairs(charts) do
         local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-        local useswarps = chart:GetTimingData():HasWarps()
 
         -- scorestack is nil if no scores on the chart
-        -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-        if scorestack ~= nil and not useswarps then
+        if scorestack ~= nil then
             -- the scores are in lists for each rate
             -- find the highest
             for ___, l in pairs(scorestack) do
@@ -708,11 +706,9 @@ local function getPBPercentMonthSortFoldernameForSong(song)
     local pbscore = nil
     for _, chart in ipairs(charts) do
         local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-        local useswarps = chart:GetTimingData():HasWarps()
 
         -- scorestack is nil if no scores on the chart
-        -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-        if scorestack ~= nil and not useswarps then
+        if scorestack ~= nil then
             -- the scores are in lists for each rate
             -- find the highest
             for ___, l in pairs(scorestack) do
@@ -739,11 +735,9 @@ local function getPBRatingMonthSortFoldernameForSong(song)
     local pbscore = nil
     for _, chart in ipairs(charts) do
         local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-        local useswarps = chart:GetTimingData():HasWarps()
 
         -- scorestack is nil if no scores on the chart
-        -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-        if scorestack ~= nil and not useswarps then
+        if scorestack ~= nil then
             -- the scores are in lists for each rate
             -- find the highest
             for ___, l in pairs(scorestack) do
@@ -1976,14 +1970,12 @@ local function getClearStatsForGroup(group)
         local foundgrade = nil -- highest grade of at least rate 1.0
         local foundgradeUnder1 = nil -- highest grade under 1.0
         local highestrateclear = 0 -- highest rate for this song where player obtained C or better
-        local useswarps = false
         for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
             local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-            useswarps = chart:GetTimingData():HasWarps()
 
             -- scorestack is nil if no scores on the chart
             -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-            if scorestack ~= nil and not useswarps then
+            if scorestack ~= nil then
                 -- the scores are in lists for each rate
                 -- find the highest
                 for ___, l in pairs(scorestack) do
@@ -2021,45 +2013,42 @@ local function getClearStatsForGroup(group)
             end
         end
 
-        -- skip stat intake for negbpm files for now
-        if not useswarps then
-            -- add this to the count of valid files
-            out.validFilesOverall = out.validFilesOverall + 1
+        -- add this to the count of valid files
+        out.validFilesOverall = out.validFilesOverall + 1
 
-            -- no passing (C+) scores found on an entire song means no lamp is possible
-            if foundgrade == nil then
-                if foundgradeUnder1 == nil then
-                    maxlamp = nil
-                    failed = true
-                else
-                    out.filesWithScores = out.filesWithScores + 1
-                    if not failed then
-                        maxlamp = "Grade_Tier20"
-                    end
-                    -- count the number of Cleared songs (doesnt matter what grade)
-                    if out.clearPerGrade["Grade_Tier20"] ~= nil then
-                        out.clearPerGrade["Grade_Tier20"] = out.clearPerGrade["Grade_Tier20"] + 1
-                    else
-                        out.clearPerGrade["Grade_Tier20"] = 1
-                    end
-                end
+        -- no passing (C+) scores found on an entire song means no lamp is possible
+        if foundgrade == nil then
+            if foundgradeUnder1 == nil then
+                maxlamp = nil
+                failed = true
             else
                 out.filesWithScores = out.filesWithScores + 1
-                -- check if we found a new lowest common max grade
                 if not failed then
-                    if highestrateclear < 1 then
-                        maxlamp = "Grade_Tier20"
-                        failed = true
-                    elseif compareGrades(maxlamp, foundgrade) then
-                        maxlamp = foundgrade
-                    end
+                    maxlamp = "Grade_Tier20"
                 end
-                -- count the number of songs per grade (1 song may be assigned 1 grade)
-                if out.clearPerGrade[foundgrade] ~= nil then
-                    out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
+                -- count the number of Cleared songs (doesnt matter what grade)
+                if out.clearPerGrade["Grade_Tier20"] ~= nil then
+                    out.clearPerGrade["Grade_Tier20"] = out.clearPerGrade["Grade_Tier20"] + 1
                 else
-                    out.clearPerGrade[foundgrade] = 1
+                    out.clearPerGrade["Grade_Tier20"] = 1
                 end
+            end
+        else
+            out.filesWithScores = out.filesWithScores + 1
+            -- check if we found a new lowest common max grade
+            if not failed then
+                if highestrateclear < 1 then
+                    maxlamp = "Grade_Tier20"
+                    failed = true
+                elseif compareGrades(maxlamp, foundgrade) then
+                    maxlamp = foundgrade
+                end
+            end
+            -- count the number of songs per grade (1 song may be assigned 1 grade)
+            if out.clearPerGrade[foundgrade] ~= nil then
+                out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
+            else
+                out.clearPerGrade[foundgrade] = 1
             end
         end
     end
