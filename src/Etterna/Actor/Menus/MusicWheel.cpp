@@ -482,16 +482,19 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		pack = findme.find("pack=");
 	}
 
+	auto ck = findme.find("ck=");
+
 	std::string findartist;
 	std::string findauthor;
 	std::string findtitle;
 	std::string findsubtitle;
 	std::string findgroup;
+	std::string findck;
 
 	if (artist != std::string::npos || author != std::string::npos ||
 		title != std::string::npos || subtitle != std::string::npos || 
 		group != std::string::npos || charter != std::string::npos ||
-		pack != std::string::npos) {
+		pack != std::string::npos || ck != std::string::npos) {
 		super_search = true;
 		if (artist != std::string::npos) {
 			findartist = findme.substr(
@@ -521,6 +524,10 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 			findgroup = findme.substr(
 			  pack + 5, findme.find(static_cast<char>(pack), ';') - pack);
 		}
+		if (ck != std::string::npos) {
+			findck = findme.substr(
+			  ck + 4, findme.find(static_cast<char>(ck), ';') - ck);
+		}
 	}
 
 	std::vector<Song*> tmp;
@@ -530,6 +537,7 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 	std::function<bool(Song*)> subtitlecheck;
 	std::function<bool(Song*)> authorcheck;
 	std::function<bool(Song*)> groupcheck;
+	std::function<bool(Song*)> ckcheck;
 
 	if (!super_search) {
 		check = [&findme](Song* x) {
@@ -556,6 +564,13 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		if (!findgroup.empty())
 			groupcheck = [&findgroup](Song* x) {
 				return contains(x->m_sGroupName, findgroup);
+			};
+		if (!findck.empty())
+			ckcheck = [&findck](Song* x) {
+				for (auto& steps : x->GetAllSteps())
+					if (contains(steps->GetChartKey(), findck))
+						return true;
+				return false;
 			};
 	}
 
@@ -592,6 +607,11 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		
 			if (!findgroup.empty())
 				if (groupcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+			if (!findck.empty())
+				if (ckcheck(x)) {
 					tmp.push_back(x);
 					continue;
 				}
