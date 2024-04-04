@@ -299,6 +299,8 @@ function BUTTON.SetMouseDown(self, event)
 	self.CurDownButtonDepth[event] = self.CurTopButtonDepth
 	if self.CurDownButton[event] ~= nil then -- Only call onmousedown if a button is pressed.
 		localX, localY = self.CurDownButton[event]:GetLocalMousePos(self.MouseX, self.MouseY, self.CurDownButtonDepth[event])
+		-- ignore clicks outside the game window
+		if self.MouseY < 0 or self.MouseY > SCREEN_HEIGHT or self.MouseX < 0 or self.MouseX > SCREEN_WIDTH then return end
 		self:OnMouseDown(self.CurDownButton[event], self.CurDownButtonDepth[event], {event = event, MouseX = localX, MouseY = localY})
 	end
 end
