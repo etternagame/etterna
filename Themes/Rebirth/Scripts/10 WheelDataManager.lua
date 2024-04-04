@@ -32,6 +32,7 @@ function WHEELDATA.Reset(self)
             Artist = "",
             Author = "",
             Group = "",
+            ChartKey = "",
         },
         valid = nil, -- function expecting chart or song that returns true if it passes (this is left empty as free space for you, reader)
         requireTags = { -- require that a chart has tags
@@ -57,6 +58,7 @@ function getEmptyActiveFilterMetadata()
         Artist = "",
         Author = "",
         Group = "",
+        ChartKey = "",
     }
     return metadata
 end
@@ -79,7 +81,14 @@ end
 
 -- check if the search is empty
 function WHEELDATA.IsSearchFilterEmpty(self)
-    return not (self.ActiveFilter.metadata.Title ~= "" or self.ActiveFilter.metadata.Subtitle ~= "" or self.ActiveFilter.metadata.Artist ~= "" or self.ActiveFilter.metadata.Author ~= "" or self.ActiveFilter.metadata.Group ~= "")
+    return not (
+        self.ActiveFilter.metadata.Title ~= "" or
+        self.ActiveFilter.metadata.Subtitle ~= "" or
+        self.ActiveFilter.metadata.Artist ~= "" or
+        self.ActiveFilter.metadata.Author ~= "" or
+        self.ActiveFilter.metadata.Group ~= "" or
+        self.ActiveFilter.metadata.ChartKey ~= ""
+    )
 end
 
 -- check if both tag filters are empty
@@ -133,6 +142,11 @@ function WHEELDATA.SetSearch(self, t)
         self.ActiveFilter.metadata.Group = t.Group:lower()
     else
         self.ActiveFilter.metadata.Group = ""
+    end
+    if t.ChartKey ~= nil then
+        self.ActiveFilter.metadata.ChartKey = t.ChartKey:lower()
+    else
+        self.ActiveFilter.metadata.ChartKEy = ""
     end
     -- end
 end
@@ -275,6 +289,12 @@ function WHEELDATA.FilterCheck(self, g)
     -- TODO: make the chart specific portions of this work for song search just in case
     if type(g) == "string" then
         -- working with a Chartkey
+
+        -- chartkey search
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+            if g:lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) == nil then return false end
+        end
+
         local c = SONGMAN:GetStepsByChartKey(g)
         -- arbitrary function filter (passing Steps)
         if self.ActiveFilter.valid ~= nil then
@@ -324,6 +344,14 @@ function WHEELDATA.FilterCheck(self, g)
         local charts = self:GetChartsMatchingFilter(g)
         if charts == nil or #charts == 0 then return false end
 
+        -- chartkey search here
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+           for _, c in ipairs(charts) do
+                if c:GetChartKey():lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) ~= nil then return true end
+           end
+           return false
+        end
+
         -- tag filters -- if any chart passes, this song passes
         local tagFilterFails = 0
         for _, c in ipairs(charts) do
@@ -334,6 +362,11 @@ function WHEELDATA.FilterCheck(self, g)
         return tagFilterFails ~= #charts
     elseif g.GetChartKey then
         -- working with a Steps
+
+        -- chartkey search
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+            if g:GetChartKey():lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) == nil then return false end
+        end
 
         -- arbitrary function filter (passing Steps)
         if self.ActiveFilter.valid ~= nil then
@@ -391,6 +424,14 @@ local function isExactMetadataMatch(song)
         end
         if WHEELDATA.ActiveFilter.metadata.Group ~= "" then
             if group ~= WHEELDATA.ActiveFilter.metadata.Group then return false end
+        end
+        if WHEELDATA.ActiveFilter.metadata.ChartKey ~= "" then
+            local charts = WHEELDATA:GetChartsMatchingFilter(song)
+            if charts == nil or #charts == 0 then return false end
+            for _, c in ipairs(charts) do
+                if c:GetChartKey():lower() == WHEELDATA.ActiveFilter.metadata.ChartKey then return true end
+            end
+            return false
         end
         return true
     end
@@ -463,6 +504,10 @@ function WHEELDATA.GetChartsMatchingFilter(self, song)
     local t = {}
     for i, c in ipairs(charts) do
         local passed = true
+
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+            if c:GetChartKey():lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) == nil then passed = false end
+        end
 
         -- arbitrary validation function check
         if self.ActiveFilter.valid ~= nil and not self.ActiveFilter.valid(c) then
