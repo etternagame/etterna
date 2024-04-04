@@ -1222,32 +1222,55 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 	std::string sk;
 	FOREACH_CONST_Child(node, p)
 	{
-		p->GetAttrValue("Key", sk);
+		const auto success = p->GetAttrValue("Key", sk);
+		if (!success) {
+			Locator::getLogger()->fatal(
+			  "MISSING SCOREKEY FOR CHARTKEY {} ON RATE {} THIS IS VERY BAD",
+			  ck,
+			  rate);
+		}
 
 		// Fill in stuff for the highscores
-		scores[sk].SetChartKey(ck);
-		scores[sk].SetScoreKey(sk);
-		scores[sk].SetMusicRate(rate);
-		scores[sk].LoadFromEttNode(p);
+		auto& hs = scores[sk];
+		hs.SetChartKey(ck);
+		hs.SetScoreKey(sk);
+		hs.SetMusicRate(rate);
+		hs.LoadFromEttNode(p);
+
+		const auto negbpmrecalc =
+		  !hs.GetEtternaValid() && hs.GetGrade() == Grade_Failed &&
+		  SONGMAN->IsChartLoaded(ck) &&
+		  SONGMAN->GetStepsByChartkey(ck)->GetTimingData()->HasWarps() &&
+		  GetGradeFromPercent(hs.GetSSRNormPercent()) <= Grade_Tier12;
+		if (negbpmrecalc) {
+			// the point is to rescore formerly-invalidated negbpm files
+			// which were force-failed and force-invalidated
+			hs.SetGrade(GetGradeFromPercent(hs.GetSSRNormPercent()));
+			hs.SetEtternaValid(1);
+			Locator::getLogger()->info("Identified negbpm score to revalidate "
+									   "- CK {} SK {} - SSR% {:.4f}",
+									   ck,
+									   sk,
+									   hs.GetSSRNormPercent());
+		}
 
 		// Set any pb
 		if (PBptr == nullptr) {
 			PBptr = &scores.find(sk)->second;
 		} else {
 			// update pb if a better score is found
-			if (PBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent()) {
+			if (PBptr->GetSSRNormPercent() < hs.GetSSRNormPercent()) {
 				PBptr = &scores.find(sk)->second;
 			}
 		}
 
-		HandleNoCCPB(scores[sk]);
+		HandleNoCCPB(hs);
 
-		bestGrade = std::min(scores[sk].GetWifeGrade(), bestGrade);
-		if (scores[sk].GetWifeGrade() != Grade_Failed) {
-			bestWifeScore =
-			  PREFSMAN->m_bSortBySSRNorm
-				? std::max(scores[sk].GetSSRNormPercent(), bestWifeScore)
-				: std::max(scores[sk].GetWifeScore(), bestWifeScore);
+		bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
+		if (hs.GetWifeGrade() != Grade_Failed) {
+			bestWifeScore = PREFSMAN->m_bSortBySSRNorm
+							  ? std::max(hs.GetSSRNormPercent(), bestWifeScore)
+							  : std::max(hs.GetWifeScore(), bestWifeScore);
 		}
 
 		// Very awkward, need to figure this out better so there isn't
@@ -1265,29 +1288,29 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * care of by calcplayerrating which will be called after
 		 * recalculatessrs */
 
-		const auto oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
+		const auto oldcalc = hs.GetSSRCalcVersion() != GetCalcVersion();
 		// don't include cc check here, we want cc scores to filter into the
 		// recalc, just not the rescore
 		const auto getremarried =
-		  scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
+		  hs.GetWifeVersion() != 3 && hs.HasReplayData();
 
 		// check to see if a file does not have normalized judgments
 		// this will pile up but only for cases of large amounts of scores
 		// missing replay data
 		const auto notnormalized =
-		  scores[sk].IsEmptyNormalized() &&
-		  (scores[sk].HasReplayData() || scores[sk].GetJudgeScale() == 1.F);
+		  hs.IsEmptyNormalized() &&
+		  (hs.HasReplayData() || hs.GetJudgeScale() == 1.F);
 
 		// oops (adding this to the recalc list will reset the score to 0)
-		const auto broke = scores[sk].GetSSRNormPercent() > 1.F ||
-						   scores[sk].GetWifeScore() > 1.F;
+		const auto broke =
+		  hs.GetSSRNormPercent() > 1.F || hs.GetWifeScore() > 1.F;
 
 		// for debugging replay stuff. probably never uncomment this.
 		/*
-		if (SONGMAN->IsChartLoaded(ck) && scores[sk].HasReplayData()) {
-			if (scores[sk].GetWifeGrade() != Grade_Failed) {
-				scores[sk].GetReplay()->VerifyInputDataAndReplayData();
-				scores[sk].GetReplay()->VerifyGeneratedInputDataMatchesReplayData();
+		if (SONGMAN->IsChartLoaded(ck) && hs.HasReplayData()) {
+			if (hs.GetWifeGrade() != Grade_Failed) {
+				hs.GetReplay()->VerifyInputDataAndReplayData();
+				hs.GetReplay()->VerifyGeneratedInputDataMatchesReplayData();
 			}
 		}
 		*/
@@ -1299,8 +1322,8 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * and while it sort of makes sense from a user convenience aspect
 		 * to allow this, it definitely does not make sense from a clarity
 		 * or consistency perspective */
-		if ((oldcalc || getremarried || notnormalized || broke) && SONGMAN->IsChartLoaded(ck)) {
-			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
+		if ((oldcalc || getremarried || notnormalized || broke || negbpmrecalc) && SONGMAN->IsChartLoaded(ck)) {
+			SCOREMAN->scorestorecalc.emplace_back(&hs);
 		}
 	}
 }
