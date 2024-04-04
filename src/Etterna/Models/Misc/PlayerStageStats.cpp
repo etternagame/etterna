@@ -79,8 +79,6 @@ PlayerStageStats::InternalInit()
 
 	// this should probably be handled better-mina
 	everusedautoplay = false;
-	luascriptwasloaded = false;
-	filehadnegbpms = false;
 	filegotmines = false;
 	gaveuplikeadumbass = false;
 	filegotholds = false;

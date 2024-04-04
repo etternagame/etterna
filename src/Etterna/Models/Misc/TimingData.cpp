@@ -1282,7 +1282,7 @@ TimingData::WhereUAtBro(float beat)
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
@@ -1298,7 +1298,7 @@ TimingData::WhereUAtBro(float beat) const
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
@@ -1313,8 +1313,7 @@ TimingData::WhereUAtBro(int row)
 	if (row < 0)
 		return 0;
 
-	if (ValidSequentialAssumption &&
-		static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() &&
+	if (static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
@@ -1330,7 +1329,7 @@ TimingData::WhereUAtBroNoOffset(float beat)
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
@@ -1344,7 +1343,7 @@ TimingData::WhereUAtBroNoOffset(float beat) const
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 

@@ -439,16 +439,6 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		return false;
 	}
 
-	// no negative bpm garbage
-	if (pss.filehadnegbpms) {
-		return false;
-	}
-
-	// no lau script shenanigans
-	if (pss.luascriptwasloaded) {
-		return false;
-	}
-
 	// it would take some amount of effort to abuse this but hey, whatever
 	if (pss.everusedautoplay) {
 		return false;
@@ -552,10 +542,8 @@ FillInHighScore(const PlayerStageStats& pss,
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
 
-	// force fail grade if player 'gave up', autoplay was used, or lua scripts
-	// were loaded (this is sorta redundant with the above but ehh) -mina
-	if (pss.gaveuplikeadumbass || pss.luascriptwasloaded ||
-		pss.everusedautoplay) {
+	// force fail grade if player 'gave up' or autoplay was used
+	if (pss.gaveuplikeadumbass || pss.everusedautoplay) {
 		hs.SetGrade(Grade_Failed);
 	}
 

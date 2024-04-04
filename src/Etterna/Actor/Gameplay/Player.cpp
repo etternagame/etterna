@@ -537,7 +537,6 @@ Player::Load()
 
 	// Mina garbage - Mina
 	m_Timing = GAMESTATE->m_pCurSteps->GetTimingData();
-	m_Timing->NegStopAndBPMCheck();
 	const auto lastRow = m_NoteData.GetLastRow();
 	m_Timing->BuildAndGetEtar(lastRow);
 
@@ -555,14 +554,6 @@ Player::Load()
 	m_NoteData.UnsetSerializedNoteData();
 
 	if (m_pPlayerStageStats != nullptr) {
-		// if we can ensure that files that have fakes or warps no longer
-		// inflate file rating, we can actually lift this restriction, look into
-		// it for 0.70 calc release, related: we can look at solo upload stuff
-		// as well
-		if (m_Timing->HasWarps() || m_Timing->HasFakes()) {
-			m_pPlayerStageStats->filehadnegbpms = true;
-		}
-
 		// check before nomines transform
 		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Mines] > 0) {
 			m_pPlayerStageStats->filegotmines = true;
@@ -571,12 +562,6 @@ Player::Load()
 		if (GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Holds] > 0 ||
 			GAMESTATE->m_pCurSteps->GetRadarValues()[RadarCategory_Rolls] > 0) {
 			m_pPlayerStageStats->filegotholds = true;
-		}
-
-		// check for lua script load (technically this is redundant a little
-		// with negbpm but whatever) -mina
-		if (!m_Timing->ValidSequentialAssumption) {
-			m_pPlayerStageStats->luascriptwasloaded = true;
 		}
 	}
 
