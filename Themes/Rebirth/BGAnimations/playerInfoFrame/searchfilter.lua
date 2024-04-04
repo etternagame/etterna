@@ -242,7 +242,7 @@ local function upperSection()
                 if ckpos ~= nil then
                     local strend = input:find("[;]", ckpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
-                    foundck = input:sub(ckpos + 4, strend)
+                    foundck = input:sub(ckpos + 3, strend)
                 end
                 searchentry.Title = foundtitle
                 searchentry.Subtitle = foundsubtitle

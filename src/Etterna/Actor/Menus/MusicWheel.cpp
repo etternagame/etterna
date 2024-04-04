@@ -526,7 +526,7 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		}
 		if (ck != std::string::npos) {
 			findck = findme.substr(
-			  ck + 4, findme.find(static_cast<char>(ck), ';') - ck);
+			  ck + 3, findme.find(static_cast<char>(ck), ';') - ck);
 		}
 	}
 
