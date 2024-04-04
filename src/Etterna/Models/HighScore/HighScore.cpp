@@ -1245,7 +1245,8 @@ auto
 HighScore::RescoreToWife3(float pmax) -> bool
 {
 	// HAHAHA WE NEED TO LOAD THE REPLAY DATA EVEN IF WE KNOW WE HAVE IT
-	if (!LoadReplayData()) {
+	CheckReplayIsInit(); 
+	if (!replay->GeneratePrimitiveVectors()) {
 		return false;
 	}
 
