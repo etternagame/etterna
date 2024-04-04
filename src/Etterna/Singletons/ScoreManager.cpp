@@ -1247,6 +1247,7 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 			// which were force-failed and force-invalidated
 			hs.SetGrade(GetGradeFromPercent(hs.GetSSRNormPercent()));
 			hs.SetEtternaValid(1);
+			hs.SetWifeVersion(0);
 			Locator::getLogger()->info("Identified negbpm score to revalidate "
 									   "- CK {} SK {} - SSR% {:.4f}",
 									   ck,
