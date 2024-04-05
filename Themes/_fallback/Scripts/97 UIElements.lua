@@ -367,12 +367,16 @@ function BUTTON.GetTopButton(self, x, y)
 	end
 
 	for i,v in ipairs(self.ButtonTable[topScreen:GetName()]) do
-		if v:IsOver(x, y) then 
-			local z = v:GetTrueZ()
-			if z >= topZ then
-				topButton = v
-				topZ = z
-				topButtonDepth = self.DepthTable[topScreen:GetName()][i]
+		if not v then
+			print("something very scary happened and i think i prevented it")
+		else
+			if v:IsOver(x, y) then 
+				local z = v:GetTrueZ()
+				if z >= topZ then
+					topButton = v
+					topZ = z
+					topButtonDepth = self.DepthTable[topScreen:GetName()][i]
+				end
 			end
 		end
 	end
