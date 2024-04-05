@@ -59,7 +59,7 @@ end
 -- based on the amount of difficulties displayed we can allow more room for the song information
 -- assuming that we are aligning difficulties to the right
 local function setMaxWidthForSongInfo()
-    local curSongBox = SCREENMAN:GetTopScreen():safeGetChild("RightFrame", "CurSongBoxFile")
+    local curSongBox = SCREENMAN:GetTopScreen():GetDescendant("RightFrame", "CurSongBoxFile")
     if not curSongBox then return end
     if not hackyMaxWidth then return end
 
@@ -67,8 +67,8 @@ local function setMaxWidthForSongInfo()
     -- exactly the width of <diffSlotsOpen> items including the space between plus an additional 2 gaps worth of space for buffer
     local widthallowed = actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap + diffSlotsOpen * (actuals.DiffItemWidth + actuals.DiffFrameSpacing) - actuals.DiffFrameSpacing * 2
 
-    local title = curSongBox:GetChild("Frame"):GetChild("TitleAuthor")
-    local subtitle = curSongBox:GetChild("Frame"):GetChild("SubTitle")
+    local title = curSongBox:GetDescendant("Frame", "TitleAuthor")
+    local subtitle = curSongBox:GetDescendant("Frame", "SubTitle")
 
     if title then
         title:maxwidth(widthallowed / title:GetZoom() - textzoomFudge)

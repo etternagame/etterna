@@ -52,7 +52,7 @@ local t = Def.ActorFrame {
         -- notefield column movement
         local screen = SCREENMAN:GetTopScreen()
         if not screen then return end
-        local nf = screen:safeGetChild("PlayerP1", "NoteField")
+        local nf = screen:GetDescendant("PlayerP1", "NoteField")
         if nf then
             local noteColumns = nf:get_column_actors()
             nf:y(0)

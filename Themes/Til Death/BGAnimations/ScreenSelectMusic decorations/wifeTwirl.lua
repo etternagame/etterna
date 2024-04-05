@@ -584,13 +584,13 @@ t[#t + 1] = Def.ActorFrame {
 					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 					if sg and update then
 						sg:SetPercent(sg:GetPercent() + 0.01)
-						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+						self:GetParent():GetParent():GetDescendant("RateDependentStuff", "Goalll"):queuecommand("MintyFresh")
 					end
 				elseif params.event == "DeviceButton_right mouse button" then
 					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 					if sg and update then
 						sg:SetPercent(sg:GetPercent() - 0.01)
-						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+						self:GetParent():GetParent():GetDescendant("RateDependentStuff", "Goalll"):queuecommand("MintyFresh")
 					end
 				end
 			end

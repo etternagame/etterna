@@ -421,11 +421,11 @@ local function upperSection()
                 -- im just gonna.. update all the fields... for your information....
                 -- this is ... the ... worst possible way .... but also the best....
                 if focusedField == 1 then
-                    self:GetChild("RowFrame_2"):GetChild("RowInput"):settext(searchentry.Title)
-                    self:GetChild("RowFrame_3"):GetChild("RowInput"):settext(searchentry.Subtitle)
-                    self:GetChild("RowFrame_4"):GetChild("RowInput"):settext(searchentry.Artist)
-                    self:GetChild("RowFrame_5"):GetChild("RowInput"):settext(searchentry.Author)
-                    self:GetChild("RowFrame_6"):GetChild("RowInput"):settext(searchentry.Group)
+                    self:GetDescendant("RowFrame_2", "RowInput"):settext(searchentry.Title)
+                    self:GetDescendant("RowFrame_3", "RowInput"):settext(searchentry.Subtitle)
+                    self:GetDescendant("RowFrame_4", "RowInput"):settext(searchentry.Artist)
+                    self:GetDescendant("RowFrame_5", "RowInput"):settext(searchentry.Author)
+                    self:GetDescendant("RowFrame_6", "RowInput"):settext(searchentry.Group)
                 else
                     -- backwards engineering the any search field
                     -- for the kids who have big brains and want bigger brains
@@ -447,7 +447,7 @@ local function upperSection()
                             finalstr = finalstr .. "group="..searchentry.Group..";"
                         end 
                     end
-                    self:GetChild("RowFrame_1"):GetChild("RowInput"):settext(finalstr)
+                    self:GetDescendant("RowFrame_1", "RowInput"):settext(finalstr)
                 end
             end
             -- update all the search fields

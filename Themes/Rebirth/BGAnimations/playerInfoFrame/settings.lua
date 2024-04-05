@@ -1540,7 +1540,7 @@ local function leftFrame()
                 end,
                 BeginCommand = function(self)
                     -- take the long road to find the actual chart preview actor
-                    local realnotefieldpreview = SCREENMAN:GetTopScreen():safeGetChild(
+                    local realnotefieldpreview = SCREENMAN:GetTopScreen():GetDescendant(
                         "ChartPreviewFile",
                         "NoteField"
                     )
@@ -6506,7 +6506,7 @@ local function rightFrame()
                 elseif optionRowDef.Type == "SingleChoice" or optionRowDef.Type == "SingleChoiceModifier" then
                     -- SingleChoice[Modifier] hovers the single visible choice
                     -- pressing enter does nothing, only left and right function
-                    actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_1")
+                    actorToHover = optionRowFrame:GetDescendant("ChoiceFrame", "Choice_1")
                 elseif optionRowDef.Type == "MultiChoice" then
                     -- MultiChoice hovers one of the visible choices
                     -- the visible choice is dependent on the value of availableCursorPositions[i].HighlightedChoice
@@ -6516,13 +6516,13 @@ local function rightFrame()
                     local pagesize = math.min(maxChoicesVisibleMultiChoice, cursorPosDef.NumChoices)
                     if pagesize > cursorPosDef.HighlightedChoice then
                         -- if the cursor is on the first page no special math required
-                        actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_"..cursorPosDef.HighlightedChoice)
+                        actorToHover = optionRowFrame:GetDescendant("ChoiceFrame", "Choice_"..cursorPosDef.HighlightedChoice)
                     else
                         -- if the cursor is not on the first page check to see where it lands
                         -- (i already spent 5 minutes thinking on the math for this and i got bored so what follows is the best you get)
                         local choiceIndex = cursorPosDef.HighlightedChoice % pagesize
                         if choiceIndex == 0 then choiceIndex = pagesize end -- really intuitive, right?
-                        actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_"..choiceIndex)
+                        actorToHover = optionRowFrame:GetDescendant("ChoiceFrame", "Choice_"..choiceIndex)
                     end
                 else
                     ms.ok("BAD CURSOR ROWDEF TYPE REPORT TO DEVELOPER")
@@ -7385,7 +7385,7 @@ local function rightFrame()
                             -- okay actually im gonna be honest I DONT KNOW WHAT IS HAPPENING HERE
                             -- but it completely mirrors the behavior of the other side so it works
                             -- help
-                            self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight*0.9 + actuals.OptionChoiceDirectionGap)
+                            self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetDescendant("Choice_1", "Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight*0.9 + actuals.OptionChoiceDirectionGap)
                             self:diffusealpha(1)
                             self:z(1)
                         else
@@ -7579,7 +7579,7 @@ local function rightFrame()
                                 local finalX = optionRowChoiceFrame:GetX() + lastChoice:GetX() + lastChoice:GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4
                                 self:x(finalX)
                             else
-                                self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4)
+                                self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetDescendant("Choice_1", "Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4)
                             end
                             self:diffusealpha(1)
                             self:z(1)

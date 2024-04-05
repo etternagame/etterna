@@ -190,7 +190,7 @@ local t =
 
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
+		Notefield = screen:GetDescendant("PlayerP1", "NoteField")
 		Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(MovableValues.NotefieldX)
 		noteColumns = Notefield:get_column_actors()
@@ -204,7 +204,7 @@ local t =
 			Movable.DeviceButton_t.element = noteColumns
 			Movable.DeviceButton_r.condition = true
 			Movable.DeviceButton_t.condition = true
-			self:GetChild("LifeP1"):GetChild("Border"):SetFakeParent(lifebar)
+			self:GetDescendant("LifeP1", "Border"):SetFakeParent(lifebar)
 			Movable.DeviceButton_j.element = lifebar
 			Movable.DeviceButton_j.condition = true
 			Movable.DeviceButton_k.element = lifebar
@@ -237,7 +237,7 @@ local t =
 		-- nil checks are needed because these don't exist when doneloadingnextsong is sent initially
 		-- which is convenient for us since addy -mina
 		if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
-			Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
+			Notefield = screen:GetDescendant("PlayerP1", "NoteField")
 			Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		end
 		-- update all stats in gameplay (as if it was a reset) when loading a new song

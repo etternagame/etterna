@@ -167,7 +167,7 @@ t[#t + 1] = Def.Actor {
 	end,
 	PlayerRatingUpdatedMessageCommand = function(self)
 		playerRating = profile:GetPlayerRating()
-		self:GetParent():GetChild("AvatarPlayerNumber_P1"):GetChild("Name"):playcommand("Set")
+		self:GetParent():GetDescendant("AvatarPlayerNumber_P1", "Name"):playcommand("Set")
 	end
 }
 
