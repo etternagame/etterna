@@ -512,7 +512,7 @@ RageFileManager::GetDirListingWithMultipleExtensions(
 	for (auto&& item : ret) {
 		std::string item_ext = GetExtension(item);
 		for (auto&& check_ext : ExtensionList) {
-			if (item_ext == check_ext) {
+			if (EqualsNoCase(check_ext, item_ext)) {
 				AddTo.push_back(item);
 			}
 		}
