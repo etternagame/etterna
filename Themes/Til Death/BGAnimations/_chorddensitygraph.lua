@@ -74,13 +74,13 @@ local function updateGraphMultiVertex(parent, realgraph)
 		local lastIndex = 1
 		for density = 1,ncol do
 			for column = 1,numberOfColumns do
-					if graphVectors[density][column] > 0 then
-						local barColor = getColorForDensity(density, ncol)
-						makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
-						if column > lastIndex then
-							lastIndex = column
-						end
+				if graphVectors[density][column] > 0 then
+					local barColor = getColorForDensity(density, ncol)
+					makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
+					if column > lastIndex then
+						lastIndex = column
 					end
+				end
 			end
 		end
 
