@@ -742,6 +742,11 @@ Steps::GetNPSVector(const NoteData& nd,
 	}
 	std::vector<int> doot(sz + 1);
 	for (const auto& p : intervals_to_counts) {
+		if (p.first < 0) {
+			Locator::getLogger()->error(
+			  "BAD FILE PRODUCED NEGATIVE ETANER itv {}", p.first);
+			continue;
+		}
 		doot[p.first] = p.second;
 	}
 
@@ -822,6 +827,11 @@ Steps::GetCNPSVector(const NoteData& nd,
 	
 	std::vector<int> doot(sz + 1);
 	for (const auto& p : intervals_to_counts) {
+		if (p.first < 0) {
+			Locator::getLogger()->error(
+			  "BAD FILE PRODUCED NEGATIVE ETANER itv {}", p.first);
+			continue;
+		}
 		doot[p.first] = p.second;
 	}
 	
