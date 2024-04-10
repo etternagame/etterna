@@ -3627,7 +3627,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 
 		// if ccon, invalid
 		if (validity) {
-			validity &= hs->GetChordCohesion();
+			validity &= !hs->GetChordCohesion();
 			if (!validity)
 				Locator::getLogger()->info(
 				  "Score {} will upload as invalid due to CC On",
