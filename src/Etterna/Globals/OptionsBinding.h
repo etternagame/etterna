@@ -150,7 +150,7 @@
 			if (DLMAN->InGameplay()) {                                         \
 				Locator::getLogger()->warn(                                    \
 				  "Attempted to set mod illegally - {}", #enum_name);          \
-				p->PushSelf(L);                                                \
+				OPTIONAL_RETURN_SELF(original_top);                            \
 				return 1;                                                      \
 			}																   \
 			p->m_##member = Enum::Check<enum_name>(L, 1);                      \
