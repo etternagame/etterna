@@ -471,8 +471,8 @@ Replay::WriteInputData() -> bool
 		// miss data:
 		// X n n n n	- noterow, column, notetype, notesubtype
 		for (auto& miss : vMissReplayDataVector) {
-			append = "X " + std::to_string(miss.row) + " " +
-					 std::to_string(miss.track) + " " +
+			append = "X " + std::to_string(miss.track) + " " +
+					 std::to_string(miss.row) + " " +
 					 std::to_string(miss.tapNoteType) + " " +
 					 std::to_string(miss.tapNoteSubType) + "\n";
 			fileStream.write(append.c_str(), append.size());
@@ -720,8 +720,9 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			// miss data
 			if (tokens[0] == "X") {
 				MissReplayResult mrr;
-				mrr.row = std::stoi(tokens[1]);
-				mrr.track = std::stoi(tokens[2]);
+				// these were backwards at first so load them backwards
+				mrr.row = std::stoi(tokens[2]);
+				mrr.track = std::stoi(tokens[1]);
 				mrr.tapNoteType =
 				  static_cast<TapNoteType>(std::stoi(tokens[3]));
 				mrr.tapNoteSubType =
