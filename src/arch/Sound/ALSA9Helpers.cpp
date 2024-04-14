@@ -365,6 +365,12 @@ Alsa9Buf::WaitUntilFramesCanBeFilled(int timeout_ms)
 		return false;
 	ALSA_ASSERT("snd_pcm_wait");
 
+	if (err == -EPIPE) {
+		Locator::getLogger()->error("snd_pcm_wait trying to recover from broken pipe");
+		err = dsnd_pcm_recover(pcm, err, 0);
+		ALSA_ASSERT("snd_pcm_recover");
+	}
+
 	return err == 1;
 }
 
