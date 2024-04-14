@@ -3069,8 +3069,8 @@ Player::SetJudgment(int iRow,
 		// the fmusicseconds is when the judgment occurs
 		// but the row is the row of the actual note
 		m_pPlayerStageStats->m_vNoteMissVector.emplace_back(
-		  GAMESTATE->CountNotesSeparately() ? iTrack : -1,
 		  iRow,
+		  GAMESTATE->CountNotesSeparately() ? iTrack : -1,
 		  tn.type,
 		  tn.subType);
 	}
