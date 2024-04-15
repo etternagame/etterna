@@ -7,6 +7,8 @@
 
 #ifdef _WIN32
 #include <cstdio>
+#include <cstring>
+
 namespace plog {
 
     /**
@@ -84,7 +86,19 @@ PlogLogger::PlogLogger() {
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
-    PLOG(PlogLogger::convertSeverity(logLevel)) << message;
+    if (this->last_msg != NULL) {
+        if (message == *this->last_msg) {
+            this->count++;
+        } else {
+            PLOG(PlogLogger::convertSeverity(logLevel)) << *this->last_msg << (this->count > 0? fmt::format(FMT_STRING(" (x{})"), std::to_string(this->count + 1)) : "");
+            
+            delete this->last_msg;
+            this->last_msg = new std::string{message};
+            this->count = 0;
+        }
+    } else {
+        this->last_msg = new std::string{message};
+    }
 }
 
 void PlogLogger::setLogLevel(Core::ILogger::Severity logLevel) {
