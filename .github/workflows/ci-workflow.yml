@@ -16,10 +16,12 @@ jobs:
           - { os: ubuntu-22.04, apt: g++-8,    cxx: g++-8,      cc: gcc-8,    dist: false}
           - { os: ubuntu-22.04, apt: g++-9,    cxx: g++-9,      cc: gcc-9,    dist: false}
           - { os: ubuntu-22.04, apt: g++-10,   cxx: g++-10,     cc: gcc-10,   dist: false}
+          - { os: ubuntu-22.04, apt: g++-13,   cxx: g++-13,     cc: gcc-13,   dist: false}
           - { os: ubuntu-22.04, apt: clang-9,  cxx: clang++-9,  cc: clang-9,  dist: false}
           - { os: ubuntu-22.04, apt: clang-10, cxx: clang++-10, cc: clang-10, dist: false}
           - { os: ubuntu-22.04, apt: clang-11, cxx: clang++-11, cc: clang-11, dist: false}
           - { os: ubuntu-22.04, apt: clang-12, cxx: clang++-12, cc: clang-12, dist: true}
+          - { os: ubuntu-22.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false}
 
     steps:
       - name: Checkout Etterna
