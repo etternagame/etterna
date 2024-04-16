@@ -87,7 +87,7 @@ PlogLogger::PlogLogger() {
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
     const std::lock_guard<std::mutex> lock(this->mutex);
-    if (this->last_msg.empty()) {
+    if (!this->last_msg.empty()) {
         if (message == this->last_msg) {
             this->count++;
         } else {
