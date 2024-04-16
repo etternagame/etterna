@@ -4,6 +4,8 @@
 #include "Core/Services/ILogger.hpp"
 #include <plog/Log.h>
 
+#include <mutex>
+
 class PlogLogger : public Core::ILogger {
 public:
     int count = 0;
@@ -12,7 +14,7 @@ public:
 
     PlogLogger();
     void setLogLevel(ILogger::Severity logLevel) override;
-	std::string getLogFile() override;    
+	std::string getLogFile() override;
 protected:
     void log(ILogger::Severity logLevel, const std::string_view message) override;
 private:
