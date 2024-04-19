@@ -3724,9 +3724,17 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	}
 	d.AddMember("valid", static_cast<int>(validity), allocator);
 
+	d.AddMember("exe_hash",
+				stringToVal(Core::Platform::programHash, allocator),
+				allocator);
+	d.AddMember(
+	  "os", stringToVal(Core::Platform::getSystem(), allocator), allocator);
+
 
 	Document replayVector;
 	replayVector.SetArray();
+	Document inputDataObject;
+	inputDataObject.SetObject();
 	if (includeReplayData) {
 		Locator::getLogger()->trace("Adding replay data JSON to score {}",
 									hs->GetScoreKey());
@@ -3736,24 +3744,32 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			return v;
 		};
 
+		auto* replay = hs->GetReplay();
+
 		bool hadToLoadReplayData = false;
 
 		// load replay data if we need it
 		// basically, in one case we care about the fact that we loaded or not
-		if (hs->GetOffsetVector().empty()) {
+		if (replay->GetOffsetVector().empty()) {
 			// this handles loading from disk and then generating needed information
 			// would return false if impossible to work with
-			hadToLoadReplayData = hs->GetReplay()->GeneratePrimitiveVectors();
+			hadToLoadReplayData = replay->GeneratePrimitiveVectors();
 		} else {
 			// this handles loading from disk if necessary and generating if necessary
-			hs->GetReplay()->GeneratePrimitiveVectors();
+			replay->GeneratePrimitiveVectors();
 		}
 
-		const auto& offsets = hs->GetOffsetVector();
-		const auto& columns = hs->GetTrackVector();
-		const auto& types = hs->GetTapNoteTypeVector();
-		const auto& rows = hs->GetNoteRowVector();
+		// attempt to get load input data directly.
+		// if it doesnt exist, generate it
+		if (replay->GetInputDataVector().empty()) {
+			hadToLoadReplayData |= replay->GenerateInputData();
+		}
 
+		// Online Replay (timestamps) version
+		const auto& offsets = replay->GetOffsetVector();
+		const auto& columns = replay->GetTrackVector();
+		const auto& types = replay->GetTapNoteTypeVector();
+		const auto& rows = replay->GetNoteRowVector();
 		if (!offsets.empty()) {
 			auto steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 			if (steps == nullptr) {
@@ -3781,11 +3797,100 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			}
 		}
 
+		// Input Data
+		const auto& inputdata = replay->GetInputDataVector();
+		const auto& missdata = replay->GetMissReplayDataVector();
+		const auto& holddata = replay->GetHoldReplayDataVector();
+		const auto& minedata = replay->GetMineReplayDataVector();
+		if (!inputdata.empty()) {
+			const auto& replay = hs->GetReplay();
+			inputDataObject.AddMember("mods", stringToVal(replay->GetModifiers(), allocator), allocator);
+			inputDataObject.AddMember(
+			  "chartkey",
+			  stringToVal(replay->GetChartKey(), allocator),
+			  allocator);
+			inputDataObject.AddMember(
+			  "scorekey",
+			  stringToVal(replay->GetScoreKey(), allocator),
+			  allocator);
+			inputDataObject.AddMember(
+			  "music_rate", replay->GetMusicRate(), allocator);
+			inputDataObject.AddMember(
+			  "song_offset", replay->GetSongOffset(), allocator);
+			inputDataObject.AddMember(
+			  "global_offset", replay->GetGlobalOffset(), allocator);
+			inputDataObject.AddMember(
+			  "rng_seed", replay->GetRngSeed(), allocator);
+
+			Document inputDataArr;
+			inputDataArr.SetArray();
+			for (const auto& input : inputdata) {
+				Document inputObj;
+				inputObj.SetObject();
+				inputObj.AddMember("column", input.column, allocator);
+				inputObj.AddMember("is_press", input.is_press, allocator);
+				inputObj.AddMember(
+				  "timestamp", input.songPositionSeconds, allocator);
+				inputObj.AddMember("nearest_noterow", input.nearestTapNoterow, allocator);
+				inputObj
+				  .AddMember("offset_from_nearest_noterow", input.offsetFromNearest, allocator);
+				inputObj.AddMember("nearest_notetype",
+								   static_cast<int>(input.nearestTapNoteType),
+								   allocator);
+				inputObj.AddMember("nearest_notesubtype",
+								   static_cast<int>(input.nearestTapNoteSubType),
+								   allocator);
+
+				inputDataArr.PushBack(inputObj, allocator);
+			}
+			inputDataObject.AddMember("data", inputDataArr, allocator);
+
+			Document missDataArr;
+			missDataArr.SetArray();
+			for (const auto& miss : missdata) {
+				Document missObj;
+				missObj.SetObject();
+				missObj.AddMember("column", miss.track, allocator);
+				missObj.AddMember("row", miss.row, allocator);
+				missObj.AddMember(
+				  "notetype", static_cast<int>(miss.tapNoteType), allocator);
+				missObj.AddMember("notesubtype",
+								  static_cast<int>(miss.tapNoteSubType),
+								  allocator);
+				missDataArr.PushBack(missObj, allocator);
+			}
+			inputDataObject.AddMember("misses", missDataArr, allocator);
+
+			Document mineDataArr;
+			mineDataArr.SetArray();
+			for (const auto& mine : minedata) {
+				Document mineObj;
+				mineObj.SetObject();
+				mineObj.AddMember("column", mine.track, allocator);
+				mineObj.AddMember("row", mine.row, allocator);
+				mineDataArr.PushBack(mineObj, allocator);
+			}
+			inputDataObject.AddMember("mine_hits", mineDataArr, allocator);
+
+			Document holdDataArr;
+			holdDataArr.SetArray();
+			for (const auto& hold : holddata) {
+				Document holdObj;
+				holdObj.SetObject();
+				holdObj.AddMember("column", hold.track, allocator);
+				holdObj.AddMember("row", hold.row, allocator);
+				holdObj.AddMember("subtype", hold.subType, allocator);
+				holdDataArr.PushBack(holdObj, allocator);
+			}
+			inputDataObject.AddMember("hold_drops", holdDataArr, allocator);
+		}
+
 		if (hadToLoadReplayData) {
 			hs->UnloadReplayData();
 		}
 	}
 	d.AddMember("replay_data", replayVector, allocator);
+	d.AddMember("input_data", inputDataObject, allocator);
 
 	return d;
 }
