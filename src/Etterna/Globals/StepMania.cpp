@@ -1032,6 +1032,9 @@ sm_main(int argc, char* argv[])
 
 	WriteLogHeader();
 
+	Core::Platform::programHash =
+	  CryptManager::GetSHA256ForFileWithoutRageFile(argv[0]);
+
 	// Set up alternative filesystem trees.
 	if (!PREFSMAN->m_sAdditionalFolders.Get().empty())
 		MountAdditionalDirs(PREFSMAN->m_sAdditionalFolders, ",", "/");

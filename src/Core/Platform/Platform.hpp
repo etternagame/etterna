@@ -175,6 +175,11 @@ namespace Core::Platform {
 	 */
 	bool requestUserAttention();
 
+	/**
+	 * This is a string hash of the game executable, set immediately on startup
+	 */
+	static std::string programHash{};
+
     namespace Time {
 
         /**
