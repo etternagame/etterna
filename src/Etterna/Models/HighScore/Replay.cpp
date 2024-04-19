@@ -3802,12 +3802,44 @@ class LunaReplay : public Luna<Replay>
 			lua_newtable(L);
 			for (size_t i = 0; i < v.size(); i++) {
 				// make table for each item
-				lua_createtable(L, 0, 3);
+				lua_createtable(L, 0, 2);
 
 				lua_pushnumber(L, v.at(i).row);
 				lua_setfield(L, -2, "row");
 				lua_pushnumber(L, v.at(i).track);
 				lua_setfield(L, -2, "track");
+
+				lua_rawseti(L, -2, i + 1);
+			}
+		} else {
+			lua_pushnil(L);
+		}
+		return 1;
+	}
+
+	static auto GetMissDataVector(T* p, lua_State* L) -> int
+	{
+		auto v = p->GetMissReplayDataVector();
+		const auto loaded = !v.empty();
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded) {
+				v = p->GetMissReplayDataVector();
+			}
+
+			// make containing table
+			lua_newtable(L);
+			for (size_t i = 0; i < v.size(); i++) {
+				// make table for each item
+				lua_createtable(L, 0, 4);
+
+				lua_pushnumber(L, v.at(i).row);
+				lua_setfield(L, -2, "row");
+				lua_pushnumber(L, v.at(i).track);
+				lua_setfield(L, -2, "track");
+				LuaHelpers::Push<TapNoteType>(L, v.at(i).tapNoteType);
+				lua_setfield(L, -2, "noteType");
+				LuaHelpers::Push<TapNoteSubType>(L, v.at(i).tapNoteSubType);
+				lua_setfield(L, -2, "noteSubType");
 
 				lua_rawseti(L, -2, i + 1);
 			}
@@ -3877,6 +3909,7 @@ class LunaReplay : public Luna<Replay>
 		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetMineHitVector);
+		ADD_METHOD(GetMissDataVector);
 		ADD_METHOD(GetInputData);
 		ADD_METHOD(GetReplaySnapshotForNoterow);
 		ADD_METHOD(GetLastReplaySnapshot);
