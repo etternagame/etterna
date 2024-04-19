@@ -16,6 +16,20 @@
 #include <cassert>
 #include <cctype>
 
+// zlib
+#ifdef _WIN32
+#include "zlib.h"
+#if defined(_MSC_VER)
+#if defined(BINARY_ZDL)
+#pragma comment(lib, "zdll.lib")
+#endif
+#endif
+#elif defined(__APPLE__)
+#include "zlib.h"
+#else
+#include <zlib.h>
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -625,6 +639,96 @@ GetLanguageInfo(const std::string& sIsoCode)
 	}
 
 	return nullptr;
+}
+
+/** Compress a STL string using zlib with given compression level and return
+ * the binary data.
+ https://www.boost.org/LICENSE_1_0.txt
+ */
+std::string
+compress_string(const std::string& str,
+				int compressionlevel = Z_BEST_COMPRESSION)
+{
+	z_stream zs;
+	memset(&zs, 0, sizeof(zs));
+
+	if (deflateInit(&zs, compressionlevel) != Z_OK) {
+		Locator::getLogger()->error("Failed to initialize for compress string");
+		return "";
+	}
+
+	zs.next_in = (Bytef*)str.data();
+	zs.avail_in = str.size();
+
+	int ret;
+	std::vector<char> outbuffer(32768, 0);
+	std::string outstring;
+
+	do {
+		zs.next_out = reinterpret_cast<Bytef*>(outbuffer.data());
+		zs.avail_out = sizeof(outbuffer);
+
+		ret = deflate(&zs, Z_FINISH);
+
+		if (outstring.size() < zs.total_out) {
+			outstring.append(outbuffer.data(), zs.total_out - outstring.size());
+		}
+	} while (ret == Z_OK);
+
+	deflateEnd(&zs);
+
+	if (ret != Z_STREAM_END) {
+		Locator::getLogger()->error(
+		  "Failure to compress string : {} : {}", ret, zs.msg);
+		return "";
+	}
+
+	return outstring;
+}
+
+/** Decompress an STL string using zlib and return the original data.
+https://www.boost.org/LICENSE_1_0.txt
+*/
+std::string
+decompress_string(const std::string& str)
+{
+	z_stream zs;
+	memset(&zs, 0, sizeof(zs));
+
+	if (inflateInit(&zs) != Z_OK) {
+		Locator::getLogger()->error(
+		  "Failed to initialize for decompress string");
+		return "";
+	}
+
+	zs.next_in = (Bytef*)str.data();
+	zs.avail_in = str.size();
+
+	int ret;
+	std::vector<char> outbuffer(32768, 0);
+	std::string outstring;
+
+	do {
+		zs.next_out = reinterpret_cast<Bytef*>(outbuffer.data());
+		zs.avail_out = sizeof(outbuffer);
+
+		ret = inflate(&zs, 0);
+
+		if (outstring.size() < zs.total_out) {
+			outstring.append(outbuffer.data(), zs.total_out - outstring.size());
+		}
+
+	} while (ret == Z_OK);
+
+	inflateEnd(&zs);
+
+	if (ret != Z_STREAM_END) {
+		Locator::getLogger()->error(
+		  "Failure to decompress string : {} : {}", ret, zs.msg);
+		return "";
+	}
+
+	return outstring;
 }
 
 std::string
