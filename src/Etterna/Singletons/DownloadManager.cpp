@@ -3725,7 +3725,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("valid", static_cast<int>(validity), allocator);
 
 	d.AddMember("exe_hash",
-				stringToVal(Core::Platform::programHash, allocator),
+				stringToVal(GAMESTATE->ProgramHash, allocator),
 				allocator);
 	d.AddMember(
 	  "os", stringToVal(Core::Platform::getSystem(), allocator), allocator);
