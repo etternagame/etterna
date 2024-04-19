@@ -9,7 +9,6 @@
 class XNode;
 struct RadarValues;
 struct lua_State;
-class Replay;
 
 struct HighScoreImpl;
 /** @brief The high score that is earned by a player.
@@ -64,6 +63,8 @@ struct HighScore
 	  -> const std::vector<HoldReplayResult>&;
 	[[nodiscard]] auto GetMineReplayDataVector()
 	  -> const std::vector<MineReplayResult>&;
+	[[nodiscard]] auto GetMissReplayDataVector()
+	  -> const std::vector<MissReplayResult>&;
 	[[nodiscard]] auto GetCopyOfOffsetVector() -> std::vector<float>;
 	[[nodiscard]] auto GetCopyOfNoteRowVector() -> std::vector<int>;
 	[[nodiscard]] auto GetCopyOfTrackVector() -> std::vector<int>;
@@ -72,11 +73,11 @@ struct HighScore
 	  -> std::vector<HoldReplayResult>;
 	[[nodiscard]] auto GetCopyOfMineReplayDataVector()
 	  -> std::vector<MineReplayResult>;
+	[[nodiscard]] auto GetCopyOfMissReplayDataVector()
+	  -> std::vector<MissReplayResult>;
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector()
 	  -> std::vector<float>;
 	[[nodiscard]] auto GetInputDataVector() -> const std::vector<InputDataEvent>&;
-	[[nodiscard]] auto GetMissDataVector()
-	  -> const std::vector<MissReplayResult>&;
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
 	[[nodiscard]] auto GetReplayType() -> ReplayType;

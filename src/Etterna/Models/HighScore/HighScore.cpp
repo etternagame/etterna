@@ -615,6 +615,12 @@ HighScore::GetCopyOfMineReplayDataVector()
 	return replay->GetCopyOfMineReplayDataVector();
 }
 auto
+HighScore::GetCopyOfMissReplayDataVector() -> std::vector<MissReplayResult>
+{
+	CheckReplayIsInit();
+	return replay->GetCopyOfMissReplayDataVector();
+}
+auto
 HighScore::GetCopyOfSetOnlineReplayTimestampVector() -> std::vector<float>
 {
 	CheckReplayIsInit();
@@ -663,6 +669,12 @@ HighScore::GetMineReplayDataVector()
 {
 	CheckReplayIsInit();
 	return replay->GetMineReplayDataVector();
+}
+auto
+HighScore::GetMissReplayDataVector() -> const std::vector<MissReplayResult>&
+{
+	CheckReplayIsInit();
+	return replay->GetMissReplayDataVector();
 }
 auto
 HighScore::GetScoreKey() const -> const std::string&
