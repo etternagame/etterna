@@ -647,7 +647,7 @@ GetLanguageInfo(const std::string& sIsoCode)
  */
 std::string
 compress_string(const std::string& str,
-				int compressionlevel = Z_BEST_COMPRESSION)
+				int compressionlevel /* = Z_BEST_COMPRESSION (9)*/)
 {
 	z_stream zs;
 	memset(&zs, 0, sizeof(zs));
