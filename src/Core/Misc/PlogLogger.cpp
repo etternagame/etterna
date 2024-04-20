@@ -85,6 +85,10 @@ PlogLogger::PlogLogger() {
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
+	/* Note: If multiple PlogLogger objects exist in the same thread, this last-message log suppression
+	 * will persist across calls to log between different instances. This may or may not be desired,
+	 * if this hypothetical scenario ever happens, consider :)
+	 */
 	static thread_local std::string last_message = "";
 	static thread_local Core::ILogger::Severity last_log_level;
 	static thread_local unsigned num_occurrences = 0;
