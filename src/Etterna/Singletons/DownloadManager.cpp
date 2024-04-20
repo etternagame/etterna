@@ -432,6 +432,8 @@ getJsonString(Value& doc, const char* name)
 			return std::to_string(doc[name].GetFloat());
 		} else if (doc[name].IsInt()) {
 			return std::to_string(doc[name].GetInt());
+		} else if (doc[name].IsInt64()) {
+			return std::to_string(doc[name].GetInt64());
 		} else {
 			return jsonObjectToString(doc[name]);
 		}
@@ -448,6 +450,21 @@ getJsonInt(Value& doc, const char* name)
 		} else if (doc[name].IsString()) {
 			try {
 				return std::stoi(doc[name].GetString());
+			} catch (...) {}
+		}
+	}
+	return 0;
+}
+
+inline int64_t
+getJsonInt64(Value& doc, const char* name)
+{
+	if (doc.HasMember(name)) {
+		if (doc[name].IsInt64()) {
+			return doc[name].GetInt64();
+		} else if (doc[name].IsString()) {
+			try {
+				return std::stol(doc[name].GetString());
 			} catch (...) {}
 		}
 	}
