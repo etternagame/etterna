@@ -115,6 +115,9 @@ static const std::string API_GAME_VERSION = "/settings/version";
 
 static const std::string API_SEARCH = "/multi_search";
 
+static constexpr bool DO_COMPRESS = true;
+static constexpr bool DONT_COMPRESS = false;
+
 inline std::string
 APIROOT()
 {
@@ -289,7 +292,7 @@ initBasicCURLHandle()
 }
 
 inline CURL*
-initCURLHandle(bool withBearer, bool acceptJson = false)
+initCURLHandle(bool withBearer, bool acceptJson, bool compressed)
 {
 	CURL* curlHandle = initBasicCURLHandle();
 	struct curl_slist* list = nullptr;
@@ -301,6 +304,11 @@ initCURLHandle(bool withBearer, bool acceptJson = false)
 		list = curl_slist_append(list, "Content-Type: application/json");
 		list = curl_slist_append(list, "charset: utf-8");
 		list = curl_slist_append(list, ("X-TYPESENSE-API-KEY: " + TYPESENSE_API_KEY).c_str());
+	}
+	if (compressed) {
+		// use compress_string on body
+		list = curl_slist_append(list, "Content-Encoding: deflate");
+		list = curl_slist_append(list, "Accept-Encoding: *");
 	}
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPHEADER, list);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_TIMEOUT, 120); // Seconds
@@ -981,6 +989,7 @@ DownloadManager::SendRequest(
   std::function<void(HTTPRequest&)> done,
   bool requireLogin,
   RequestMethod httpMethod,
+  bool compressed,
   bool async,
   bool withBearer)
 {
@@ -990,6 +999,7 @@ DownloadManager::SendRequest(
 					   done,
 					   requireLogin,
 					   httpMethod,
+					   compressed,
 					   async,
 					   withBearer);
 }
@@ -1002,6 +1012,7 @@ DownloadManager::SendRequest(
   std::function<void(HTTPRequest&)> done,
   bool requireLogin,
   RequestMethod httpMethod,
+  bool compressed,
   bool async,
   bool withBearer)
 {
@@ -1011,6 +1022,7 @@ DownloadManager::SendRequest(
 							done,
 							requireLogin,
 							httpMethod,
+							compressed,
 							async,
 							withBearer);
 }
@@ -1023,6 +1035,7 @@ DownloadManager::SendRequestToURL(
   std::function<void(HTTPRequest&)> afterDone,
   bool requireLogin,
   RequestMethod httpMethod,
+  bool compressed,
   bool async,
   bool withBearer)
 {
@@ -1045,7 +1058,7 @@ DownloadManager::SendRequestToURL(
 		if (afterDone)
 			afterDone(req);
 	};
-	CURL* curlHandle = initCURLHandle(withBearer);
+	CURL* curlHandle = initCURLHandle(withBearer, false, compressed);
 	SetCURLURL(curlHandle, url);
 	HTTPRequest* req;
 	if (httpMethod == RequestMethod::POST) {
@@ -1275,7 +1288,7 @@ DownloadManager::LoginRequest(const std::string& user,
 
 	loggingIn = true;
 	LogoutIfLoggedIn();
-	CURL* curlHandle = initCURLHandle(false);
+	CURL* curlHandle = initCURLHandle(false, false, DONT_COMPRESS);
 	CURLAPIURL(curlHandle, API_LOGIN);
 
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
@@ -1537,7 +1550,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 		return;
 	}
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 
 	auto body = FavoriteVectorToJSON(favorites);
@@ -2063,7 +2076,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 		return;
 	}
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 
 	auto body = GoalVectorToJSON(goals);
@@ -2270,7 +2283,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	Locator::getLogger()->info("Generating UpdateGoalRequest for {}",
 							   goal->DebugString());
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 
 	// this seems very illegal
@@ -2795,7 +2808,7 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	  name,
 	  playlist.chartlist.size());
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 	
 	auto body = PlaylistToJSON(playlist);
@@ -2873,7 +2886,7 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 	Locator::getLogger()->info(
 	  "Generating RemovePlaylistRequest for Playlist {}", name);
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 
 	Document d;
@@ -3948,10 +3961,10 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 		return;
 	}
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DO_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 
-	auto body = ScoreVectorToJSON(hsList, true);
+	auto body = compress_string(ScoreVectorToJSON(hsList, true));
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
@@ -4168,12 +4181,12 @@ DownloadManager::UploadScore(HighScore* hs,
 	if (load_from_disk)
 		hs->LoadReplayData();
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DO_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 
 	Document jsonDoc;
 	auto scoreDoc = ScoreToJSON(hs, true, jsonDoc.GetAllocator());
-	auto json = jsonObjectToString(scoreDoc);
+	auto json = compress_string(jsonObjectToString(scoreDoc));
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, json.c_str());
@@ -4958,8 +4971,14 @@ DownloadManager::RefreshLastVersion()
 		}
 	};
 
-	SendRequest(
-	  API_GAME_VERSION, params, done, false, RequestMethod::GET, true, false);
+	SendRequest(API_GAME_VERSION,
+				params,
+				done,
+				false,
+				RequestMethod::GET,
+				DONT_COMPRESS,
+				true,
+				false);
 }
 
 void
@@ -5267,6 +5286,7 @@ DownloadManager::RefreshPackList(const std::string& url)
 					 done,
 					 false,
 					 RequestMethod::GET,
+					 DONT_COMPRESS,
 					 true,
 					 false);
 }
@@ -5363,7 +5383,7 @@ DownloadManager::MultiSearchRequest(
 		url += param.first + "=" + param.second + "&";
 	url = url.substr(0, url.length() - 1);
 
-	CURL* curlHandle = initCURLHandle(true, true);
+	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
 	CURLSEARCHURL(curlHandle, url);
 
 	auto body = ApiSearchCriteriaToJSONBody(searchCriteria);
@@ -5496,6 +5516,7 @@ DownloadManager::GetPackTagsRequest() {
 				done,
 				false,
 				RequestMethod::GET,
+				DONT_COMPRESS,
 				true,
 				false);
 }

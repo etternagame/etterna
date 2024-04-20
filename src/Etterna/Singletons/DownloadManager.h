@@ -630,6 +630,7 @@ class DownloadManager
 	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin = true,
 	  RequestMethod httpMethod = RequestMethod::GET,
+	  bool compressed = false,
 	  bool async = true,
 	  bool withBearer = true);
 	// To send a request to API based URL, ratelimit at different path
@@ -640,6 +641,7 @@ class DownloadManager
 	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin = true,
 	  RequestMethod httpMethod = RequestMethod::GET,
+	  bool compressed = false,
 	  bool async = true,
 	  bool withBearer = true);
 	// Send a request directly to a given URL, ratelimit at other path
@@ -650,6 +652,7 @@ class DownloadManager
 	  std::function<void(HTTPRequest&)> done,
 	  bool requireLogin,
 	  RequestMethod httpMethod,
+	  bool compressed,
 	  bool async,
 	  bool withBearer);
 
