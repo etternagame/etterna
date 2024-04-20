@@ -7,7 +7,6 @@
 
 #ifdef _WIN32
 #include <cstdio>
-#include <cstring>
 
 namespace plog {
 
