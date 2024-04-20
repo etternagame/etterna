@@ -90,7 +90,7 @@ class DownloadablePack
 {
   public:
 	std::string name{ "" };
-	size_t size{ 0 };
+	int64_t size{ 0 };
 	int id{ 0 };
 	float avgDifficulty{ 0 };
 	int plays{ 0 };

@@ -5632,7 +5632,7 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 							}
 							packDl.avgDifficulty =
 							  std::stof(getJsonString(pack, "overall"));
-							packDl.size = getJsonInt(pack, "size");
+							packDl.size = getJsonInt64(pack, "bytes");
 							packDl.plays = getJsonInt(pack, "play_count");
 							packDl.songs = getJsonInt(pack, "song_count");
 							packDl.bannerUrl =
@@ -5649,12 +5649,12 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 
 							if (packDl.name.empty()) {
 								Locator::getLogger()->warn(
-								  "RefreshPackList missing pack name: {}",
+								  "PackPagination missing pack name: {}",
 								  jsonObjectToString(pack));
 							}
 							if (packDl.url.empty()) {
 								Locator::getLogger()->warn(
-								  "RefreshPackList missing pack download: {}",
+								  "PackPagination missing pack download: {}",
 								  jsonObjectToString(pack));
 							}
 
@@ -6351,7 +6351,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	}
 	static int GetSize(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->size);
+		lua_pushinteger(L, p->size);
 		return 1;
 	}
 	static int GetAvgDifficulty(T* p, lua_State* L)
