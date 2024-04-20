@@ -5133,6 +5133,17 @@ DownloadManager::RefreshPackList(const std::string& url)
 	if (url.empty())
 		return;
 
+	/**
+	*****
+	*****
+	*****
+	THIS METHOD IS UNUSED
+	*****
+	*****
+	*****
+	*/
+
+
 	const auto& CALL_ENDPOINT = url;
 	const auto& CALL_PATH = url;
 
