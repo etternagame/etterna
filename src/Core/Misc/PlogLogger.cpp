@@ -86,31 +86,25 @@ PlogLogger::PlogLogger() {
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
-    PLOG(PlogLogger::convertSeverity(logLevel)) << fmt::format("NORMAL PLOGGER: {}", message);
-    
-    std::string log;
-    Core::ILogger::Severity severity;
-    this->mutex.lock();
-    if (!this->last_msg.empty()) {
-        if (message == this->last_msg) {
-            this->count++;
-        } else {
-            log = this->last_msg.append(this->count > 0? fmt::format(FMT_STRING(" (x{})"), std::to_string(this->count + 1)) : "");
-            severity = Core::ILogger::Severity{this->last_severity};
-
-            this->last_msg = std::string{message};
-            this->last_severity = logLevel;
-            this->count = 0;
-        }
-    } else {
-        this->last_msg = std::string{message};
-        this->last_severity = logLevel;
-    }
-    this->mutex.unlock();
-
-    if (!log.empty()) {
-        PLOG(PlogLogger::convertSeverity(severity)) << log;
-    }
+	static thread_local std::string last_message = "";
+	static thread_local Core::ILogger::Severity last_log_level;
+	static thread_local unsigned num_occurrences = 0;
+	
+	if(message == last_message && logLevel == last_log_level){
+		num_occurrences += 1;
+		//Duplicate message; suppress log output
+	}else{
+		//This is a novel message.
+		
+		if(num_occurrences > 0){
+			PLOG(PlogLogger::convertSeverity(last_log_level)) << last_message << " (Repeated " << num_occurrences << " times)";
+		}
+		last_message = message;
+		last_log_level = logLevel;
+		num_occurrences = 0;
+		
+		PLOG(PlogLogger::convertSeverity(logLevel)) << message;
+	}
 }
 
 void PlogLogger::setLogLevel(Core::ILogger::Severity logLevel) {
