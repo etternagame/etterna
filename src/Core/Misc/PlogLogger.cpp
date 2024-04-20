@@ -86,18 +86,30 @@ PlogLogger::PlogLogger() {
 }
 
 void PlogLogger::log(Core::ILogger::Severity logLevel, const std::string_view message) {
-    const std::lock_guard<std::mutex> lock(this->mutex);
+    PLOG(PlogLogger::convertSeverity(logLevel)) << fmt::format("NORMAL PLOGGER: {}", message);
+    
+    std::string log;
+    Core::ILogger::Severity severity;
+    this->mutex.lock();
     if (!this->last_msg.empty()) {
         if (message == this->last_msg) {
             this->count++;
         } else {
-            PLOG(PlogLogger::convertSeverity(logLevel)) << this->last_msg << (this->count > 0? fmt::format(FMT_STRING(" (x{})"), std::to_string(this->count + 1)) : "");
+            log = this->last_msg.append(this->count > 0? fmt::format(FMT_STRING(" (x{})"), std::to_string(this->count + 1)) : "");
+            severity = Core::ILogger::Severity{this->last_severity};
 
             this->last_msg = std::string{message};
+            this->last_severity = logLevel;
             this->count = 0;
         }
     } else {
         this->last_msg = std::string{message};
+        this->last_severity = logLevel;
+    }
+    this->mutex.unlock();
+
+    if (!log.empty()) {
+        PLOG(PlogLogger::convertSeverity(severity)) << log;
     }
 }
 
