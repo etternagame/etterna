@@ -464,8 +464,7 @@ getJsonBool(Value& doc, const char* name)
 		else if (doc[name].IsString()) {
 			try {
 				return EqualsNoCase(doc[name].GetString(), "true");
-			} catch (...) {
-			}
+			} catch (...) {}
 		}
 	}
 	return false;
