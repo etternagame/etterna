@@ -9,6 +9,7 @@
 class PlogLogger : public Core::ILogger {
 public:
     int count = 0;
+    Core::ILogger::Severity last_severity;
     std::string last_msg;
     std::mutex mutex;
 
