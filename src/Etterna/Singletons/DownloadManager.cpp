@@ -3969,7 +3969,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 	CURL* curlHandle = initCURLHandle(true, true, DO_COMPRESS);
 	CURLAPIURL(curlHandle, CALL_PATH);
 
-	auto body = compress_string(ScoreVectorToJSON(hsList, true));
+	auto body = base64_encode(compress_string(ScoreVectorToJSON(hsList, true)));
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
@@ -4191,7 +4191,7 @@ DownloadManager::UploadScore(HighScore* hs,
 
 	Document jsonDoc;
 	auto scoreDoc = ScoreToJSON(hs, true, jsonDoc.GetAllocator());
-	auto json = compress_string(jsonObjectToString(scoreDoc));
+	auto json = base64_encode(compress_string(jsonObjectToString(scoreDoc)));
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, json.c_str());
