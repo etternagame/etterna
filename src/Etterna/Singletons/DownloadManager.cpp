@@ -421,6 +421,8 @@ getJsonFloat(Value& doc, const char* name)
 	if (doc.HasMember(name)) {
 		if (doc[name].IsFloat()) {
 			return doc[name].GetFloat();
+		} else if (doc[name].IsInt()) {
+			return static_cast<float>(doc[name].GetInt());
 		} else if (doc[name].IsString()) {
 			try {
 				return std::stof(doc[name].GetString());
@@ -455,6 +457,8 @@ getJsonInt(Value& doc, const char* name)
 	if (doc.HasMember(name)) {
 		if (doc[name].IsInt()) {
 			return doc[name].GetInt();
+		} else if (doc[name].IsFloat()) {
+			return static_cast<int>(doc[name].GetFloat());
 		} else if (doc[name].IsString()) {
 			try {
 				return std::stoi(doc[name].GetString());
@@ -470,6 +474,8 @@ getJsonInt64(Value& doc, const char* name)
 	if (doc.HasMember(name)) {
 		if (doc[name].IsInt64()) {
 			return doc[name].GetInt64();
+		} else if (doc[name].IsFloat()) {
+			return static_cast<int64_t>(doc[name].GetFloat());
 		} else if (doc[name].IsString()) {
 			try {
 				return std::stol(doc[name].GetString());
@@ -485,8 +491,9 @@ getJsonBool(Value& doc, const char* name)
 	if (doc.HasMember(name)) {
 		if (doc[name].IsBool()) {
 			return doc[name].GetBool();
-		}
-		else if (doc[name].IsString()) {
+		} else if (doc[name].IsInt()) {
+			return static_cast<bool>(doc[name].GetInt());
+		} else if (doc[name].IsString()) {
 			try {
 				return EqualsNoCase(doc[name].GetString(), "true");
 			} catch (...) {}
