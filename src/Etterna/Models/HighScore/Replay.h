@@ -181,7 +181,7 @@ class Replay
 	void SetUseReprioritizedNoteRows(bool b)
 	{
 		if (b != useReprioritizedNoterows) {
-			if (isOnlineScore()) {
+			if (IsOnlineScore()) {
 				if (vOnlineNoteRowVector.empty() &&
 					GenerateNoterowsFromTimestamps()) {
 					// initial backup
@@ -369,6 +369,11 @@ class Replay
 	/// A check to see if the Replay has an RNG seed, if it uses shuffle.
 	auto CanSafelyTransformNoteData() -> bool;
 
+	bool IsOnlineScore() const
+	{
+		return scoreKey.find("Online_") != std::string::npos;
+	}
+
 	void Unload()
 	{
 		useReprioritizedNoterows = false;
@@ -446,10 +451,6 @@ class Replay
 		vReprioritizedMissData.shrink_to_fit();
 		vReprioritizedHoldData.shrink_to_fit();
 		vReprioritizedMineData.shrink_to_fit();
-	}
-
-	bool isOnlineScore() const {
-		return scoreKey.find("Online_") != std::string::npos;
 	}
 
 	std::map<int, ReplaySnapshot> m_ReplaySnapshotMap{};
