@@ -4889,6 +4889,17 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 						replay->SetHoldReplayDataVector(holdDataEvents);
 						replay->SetMineReplayDataVector(mineDataEvents);
 
+						Locator::getLogger()->info(
+						  "Read online InputData Replay with info: mods {} | "
+						  "ck {} | sk {} | rate {} | offset {} | globaloffset "
+						  "{} | rng {}",
+						  mods,
+						  chartkey,
+						  scorekey,
+						  musicrate,
+						  songoffset,
+						  globaloffset,
+						  rngseed);
 
 						if (!replay->GeneratePrimitiveVectors()) {
 							Locator::getLogger()->warn(
