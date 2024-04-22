@@ -4612,20 +4612,12 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 			  callback.PushSelf(L);
 			  std::string Error =
 				"Error running GetReplayData Finish Function: ";
-			  lua_newtable(L);
-			  for (unsigned i = 0; i < replayData.size(); ++i) {
-				  auto& pair = replayData[i];
-				  lua_newtable(L);
-				  lua_pushnumber(L, pair.first);
-				  lua_rawseti(L, -2, 1);
-				  lua_pushnumber(L, pair.second);
-				  lua_rawseti(L, -2, 2);
-				  lua_rawseti(L, -2, i + 1);
-			  }
 			  if (it != itEnd)
 				  it->hs.PushSelf(L);
-			  // 2 args, 0 results
-			  LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
+			  else
+				  lua_pushnil(L);
+			  // 1 args, 0 results
+			  LuaHelpers::RunScriptOnStack(L, Error, 1, 0, true);
 			  LUA->Release(L);
 		  } else {
 			  Locator::getLogger()->info(
@@ -4685,6 +4677,10 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 				auto& data = d["data"];
 				if (data.HasMember("replay_data") &&
 					data["replay_data"].IsArray()) {
+					//
+					// Old replays.
+					// The site will return this if no InputData was uploaded
+					//
 					auto replayArr = data["replay_data"].GetArray();
 
 					auto it =
@@ -4747,6 +4743,161 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 						score.SetTrackVector(tracks);
 						score.SetTapNoteTypeVector(types);
 						score.SetNoteRowVector(rows);
+
+						runLuaFunc(replayData, it, lbd.end());
+						return;
+					}
+				} else if (data.HasMember("replay_data") && data["replay_data"].IsObject()) {
+					//
+					// InputData
+					// The site sends this if it receives it on upload
+					//
+					auto replayObj = data["replay_data"].GetObj();
+
+					auto it =
+					  find_if(lbd.begin(),
+							  lbd.end(),
+							  [userid, username, scoreid](OnlineScore& a) {
+								  return a.userid == userid &&
+										 a.username == username &&
+										 a.scoreid == scoreid;
+							  });
+
+					if (it == lbd.end()) {
+						Locator::getLogger()->warn(
+						  "GetReplayData could not save "
+						  "replay data "
+						  "because scoreid {} was not "
+						  "found stored in a chart "
+						  "leaderboard for {}",
+						  scoreid,
+						  chartkey);
+					} else {
+						auto& score = it->hs;
+						auto* replay = score.GetReplay();
+
+						auto mods = getJsonString(replayObj, "mods");
+						auto chartkey = getJsonString(replayObj, "chartkey");
+						auto scorekey = "Online_" + getJsonString(replayObj, "scorekey");
+						auto musicrate = getJsonFloat(replayObj, "music_rate");
+						auto songoffset = getJsonFloat(replayObj, "song_offset");
+						auto globaloffset = getJsonFloat(replayObj, "global_offset");
+						auto rngseed = getJsonInt(replayObj, "rng_seed");
+						std::vector<InputDataEvent> inputDataEvents{};
+						std::vector<MissReplayResult> missDataEvents{};
+						std::vector<HoldReplayResult> holdDataEvents{};
+						std::vector<MineReplayResult> mineDataEvents{};
+
+						if (replayObj.HasMember("data") &&
+							replayObj["data"].IsArray()) {
+							auto inputArr = replayObj["data"].GetArray();
+							for (auto inIt = inputArr.Begin();
+								inIt != inputArr.End(); inIt++) {
+								auto evt = inIt->GetObj();
+
+								auto column = getJsonInt(evt, "column");
+								auto ispress = getJsonBool(evt, "is_press");
+								auto musicseconds = getJsonFloat(evt, "timestamp");
+								auto nearestnoterow = getJsonInt(evt, "nearest_noterow");
+								auto offsetfromnearest = getJsonFloat(
+								  evt, "offset_from_nearest_noterow");
+								auto nearestnotetype = static_cast<TapNoteType>(
+								  getJsonInt(evt, "nearest_notetype"));
+								auto nearestnotesubtype =
+								  static_cast<TapNoteSubType>(
+									getJsonInt(evt, "nearest_notesubtype"));
+
+								inputDataEvents.emplace_back(
+								  ispress,
+								  column,
+								  musicseconds,
+								  nearestnoterow,
+								  offsetfromnearest,
+								  nearestnotetype,
+								  nearestnotesubtype);
+							}
+						}
+
+						if (replayObj.HasMember("misses") &&
+							replayObj["misses"].IsArray()) {
+							auto missArr = replayObj["misses"].GetArray();
+							for (auto missIt = missArr.Begin();
+								 missIt != missArr.End();
+								 missIt++) {
+								auto evt = missIt->GetObj();
+
+								auto column = getJsonInt(evt, "column");
+								auto row = getJsonInt(evt, "row");
+								auto notetype =
+								  static_cast<TapNoteType>(getJsonInt(evt, "notetype"));
+								auto notesubtype = static_cast<TapNoteSubType>(
+								  getJsonInt(evt, "notesubtype"));
+
+								missDataEvents.emplace_back(
+								  row, column, notetype, notesubtype);
+							}
+						}
+
+						if (replayObj.HasMember("mine_hits") &&
+							replayObj["mine_hits"].IsArray()) {
+							auto mineArr = replayObj["mine_hits"].GetArray();
+							for (auto mineIt = mineArr.Begin();
+								 mineIt != mineArr.End();
+								 mineIt++) {
+								auto evt = mineIt->GetObj();
+
+								auto column = getJsonInt(evt, "column");
+								auto row = getJsonInt(evt, "row");
+
+								MineReplayResult mrr;
+								mrr.row = row;
+								mrr.track = column;
+								mineDataEvents.push_back(mrr);
+							}
+						}
+
+						if (replayObj.HasMember("hold_drops") &&
+							replayObj["hold_drops"].IsArray()) {
+							auto holdArr = replayObj["hold_drops"].GetArray();
+							for (auto holdIt = holdArr.Begin();
+								 holdIt != holdArr.End();
+								 holdIt++) {
+								auto evt = holdIt->GetObj();
+
+								auto column = getJsonInt(evt, "column");
+								auto row = getJsonInt(evt, "row");
+								auto subtype = static_cast<TapNoteSubType>(
+								  getJsonInt(evt, "subtype"));
+
+								HoldReplayResult hrr;
+								hrr.row = row;
+								hrr.track = column;
+								hrr.subType = subtype;
+								holdDataEvents.push_back(hrr);
+							}
+						}
+
+						replay->SetModifiers(mods);
+						replay->SetChartKey(chartkey);
+						replay->SetScoreKey(scorekey);
+						replay->SetMusicRate(musicrate);
+						replay->SetSongOffset(songoffset);
+						replay->SetGlobalOffset(globaloffset);
+						replay->SetRngSeed(rngseed);
+						replay->SetInputDataVector(inputDataEvents);
+						replay->SetMissReplayDataVector(missDataEvents);
+						replay->SetHoldReplayDataVector(holdDataEvents);
+						replay->SetMineReplayDataVector(mineDataEvents);
+
+
+						if (!replay->GeneratePrimitiveVectors()) {
+							Locator::getLogger()->warn(
+							  "Failed to convert online InputData for score {} "
+							  "({}) to usable "
+							  "data ingame",
+							  scoreid,
+							  scorekey);
+						}
 
 						runLuaFunc(replayData, it, lbd.end());
 						return;
@@ -6128,6 +6279,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		alreadyHasReplay |=
 		  !hs->GetCopyOfSetOnlineReplayTimestampVector().empty();
 		alreadyHasReplay |= !hs->GetOffsetVector().empty();
+		alreadyHasReplay |= !hs->GetInputDataVector().empty();
 
 		LuaReference f;
 		if (lua_isfunction(L, 2))
@@ -6140,8 +6292,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 				std::string Error =
 				  "Error running RequestChartLeaderBoard Finish Function: ";
 				hs->PushSelf(L);
-				LuaHelpers::RunScriptOnStack(
-				  L, Error, 2, 0, true); // 2 args, 0 results
+				// 1 args, 0 results
+				LuaHelpers::RunScriptOnStack(L, Error, 1, 0, true);
 			}
 			return 0;
 		}
