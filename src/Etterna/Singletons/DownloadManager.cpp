@@ -1897,8 +1897,13 @@ DownloadManager::RefreshFavorites(
 
 			auto* song = SONGMAN->GetSongByChartkey(favorite);
 			if (song != nullptr) {
-				song->SetFavorited(true);
+				song->SetHasFavoritedChart(true);
 			}
+			auto* steps = SONGMAN->GetStepsByChartkey(favorite);
+			if (steps != nullptr) {
+				steps->SetFavorited(true);
+			}
+
 			profile->AddToFavorites(favorite);
 			favoriteSavedCount++;
 		}

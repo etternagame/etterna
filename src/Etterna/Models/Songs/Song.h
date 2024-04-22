@@ -491,12 +491,12 @@ class Song
 	[[nodiscard]] auto GetChartsMatchingFilter() const -> std::vector<Steps*>;
 	[[nodiscard]] auto HasEdits(StepsType st) const -> bool;
 
-	auto IsFavorited() const -> bool { return isfavorited; }
-	void SetFavorited(bool b) { isfavorited = b; }
+	auto HasFavoritedChart() const -> bool { return isfavorited; }
+	void SetHasFavoritedChart(bool b) { isfavorited = b; }
 	auto HasGoal() const -> bool { return hasgoal; }
 	void SetHasGoal(bool b) { hasgoal = b; }
-	auto IsPermaMirror() const -> bool { return permamirror; }
-	void SetPermaMirror(bool b) { permamirror = b; }
+	auto HasPermaMirrorChart() const -> bool { return permamirror; }
+	void SetHasPermaMirrorChart(bool b) { permamirror = b; }
 
 	void SetEnabled(bool b) { m_bEnabled = b; }
 	[[nodiscard]] auto GetEnabled() const -> bool { return m_bEnabled; }

@@ -303,6 +303,10 @@ MusicWheelItem::RefreshGrades()
 
 	m_pGradeDisplay->SetVisible(true);
 
+	bool hasGoal = false;
+	bool hasFavorite = false;
+	bool hasPermamirror = false;
+
 	Grade gradeBest = Grade_Invalid;
 	Difficulty dcBest = Difficulty_Invalid;
 	if (pWID->m_pSong != nullptr) {
@@ -318,6 +322,10 @@ MusicWheelItem::RefreshGrades()
 				difficultyToSteps[d] = v;
 			}
 			difficultyToSteps[d].push_back(s);
+
+			hasGoal |= s->HasGoal();
+			hasFavorite |= s->IsFavorited();
+			hasPermamirror |= s->IsPermaMirror();
 		}
 		FOREACH_ENUM_N(Difficulty, 6, i)
 		{
@@ -352,14 +360,13 @@ MusicWheelItem::RefreshGrades()
 		}
 	}
 
-	// still needs cleaning up -mina
 	Message msg("SetGrade");
 	msg.SetParam("PlayerNumber", PLAYER_1);
-	if (pWID->m_pSong->IsFavorited())
+	if (hasFavorite)
 		msg.SetParam("Favorited", 1);
-	if (pWID->m_pSong->IsPermaMirror())
+	if (hasPermamirror)
 		msg.SetParam("PermaMirror", 1);
-	if (pWID->m_pSong->HasGoal())
+	if (hasGoal)
 		msg.SetParam("HasGoal", 1);
 	if (gradeBest != Grade_Invalid) {
 		msg.SetParam("Grade", gradeBest);

@@ -537,6 +537,15 @@ Profile::LoadGoalIfNew(ScoreGoal goal)
 	}
 	goal.CheckVacuity();
 
+	auto* steps = SONGMAN->GetStepsByChartkey(goal.chartkey);
+	if (steps != nullptr) {
+		steps->SetHasGoal(true);
+	}
+	auto* song = SONGMAN->GetSongByChartkey(goal.chartkey);
+	if (song != nullptr) {
+		song->SetHasGoal(true);
+	}
+
 	Locator::getLogger()->info("Saved goal locally: {}", goal.DebugString());
 	goalmap[goal.chartkey].Add(goal);
 	FillGoalTable();

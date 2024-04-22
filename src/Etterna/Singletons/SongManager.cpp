@@ -1060,10 +1060,14 @@ SongManager::SetFavoritedStatus(std::set<string>& favs)
 		for (auto steps : song->GetAllSteps()) {
 			if (favs.count(steps->GetChartKey()) != 0u) {
 				fav = true;
+				steps->SetFavorited(true);
+			}
+			else {
+				steps->SetFavorited(false);
 			}
 		}
 
-		song->SetFavorited(fav);
+		song->SetHasFavoritedChart(fav);
 	}
 }
 
@@ -1073,7 +1077,11 @@ SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 	for (auto song : m_pSongs) {
 		for (auto steps : song->GetAllSteps()) {
 			if (pmir.count(steps->GetChartKey()) != 0u) {
-				song->SetPermaMirror(true);
+				song->SetHasPermaMirrorChart(true);
+				steps->SetPermaMirror(true);
+			}
+			else {
+				steps->SetPermaMirror(false);
 			}
 		}
 	}
@@ -1088,6 +1096,10 @@ SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
 		for (auto steps : song->GetAllSteps()) {
 			if (goalmap.count(steps->GetChartKey()) != 0u) {
 				hasGoal = true;
+				steps->SetHasGoal(true);
+			}
+			else {
+				steps->SetHasGoal(false);
 			}
 			song->SetHasGoal(hasGoal);
 		}
@@ -1351,7 +1363,7 @@ void
 SongManager::GetFavoriteSongs(std::vector<Song*>& songs) const
 {
 	for (const auto& song : m_pSongs) {
-		if (song->IsFavorited()) {
+		if (song->HasFavoritedChart()) {
 			songs.emplace_back(song);
 		}
 	}

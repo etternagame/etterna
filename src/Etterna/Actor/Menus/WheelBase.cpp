@@ -600,9 +600,6 @@ class LunaWheelBase : public Luna<WheelBase>
 		ADD_METHOD(GetCurrentIndex);
 		ADD_METHOD(GetNumItems);
 		ADD_METHOD(GetSelectedType);
-		// evil shit
-		// ADD_METHOD( Move );
-		// ADD_METHOD( ChangeMusic );
 	}
 };
 

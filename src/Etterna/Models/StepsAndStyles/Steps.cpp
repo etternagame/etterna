@@ -851,6 +851,9 @@ class LunaSteps : public Luna<Steps>
 	DEFINE_METHOD(GetAuthorCredit, GetCredit())
 	DEFINE_METHOD(GetMeter, GetMeter())
 	DEFINE_METHOD(GetFilename, GetFilename())
+	DEFINE_METHOD(HasGoal, HasGoal())
+	DEFINE_METHOD(IsPermaMirror, IsPermaMirror())
+	DEFINE_METHOD(IsFavorited, IsFavorited())
 
 	static auto HasSignificantTimingChanges(T* p, lua_State* L) -> int
 	{
@@ -1338,6 +1341,9 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetFirstSecond);
 		ADD_METHOD(GetLastSecond);
 		ADD_METHOD(GetNPSPerMeasure);
+		ADD_METHOD(IsFavorited);
+		ADD_METHOD(HasGoal);
+		ADD_METHOD(IsPermaMirror);
 	}
 };
 

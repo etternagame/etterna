@@ -1669,35 +1669,41 @@ ScreenSelectMusic::ReloadCurrentPack()
 bool
 ScreenSelectMusic::ToggleCurrentFavorite()
 {
-	auto fav_me_biatch = GAMESTATE->m_pCurSong;
-	if (fav_me_biatch != nullptr) {
+	auto song = GAMESTATE->m_pCurSong;
+	auto step = GAMESTATE->m_pCurSteps;
+	if (song != nullptr && step != nullptr) {
 		auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
-		if (!fav_me_biatch->IsFavorited()) {
-			fav_me_biatch->SetFavorited(true);
-			pProfile->AddToFavorites(GAMESTATE->m_pCurSteps->GetChartKey());
-			DLMAN->AddFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
+		step->SetFavorited(!step->IsFavorited());
 
-			// now update favorites playlist
-			// we have to do this here or it won't work for ??? reasons
-			pProfile->allplaylists.erase("Favorites");
-			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
-											   pProfile->allplaylists);
-		} else {
-			fav_me_biatch->SetFavorited(false);
-			pProfile->RemoveFromFavorites(
-			  GAMESTATE->m_pCurSteps->GetChartKey());
-			DLMAN->RemoveFavorite(GAMESTATE->m_pCurSteps->GetChartKey());
-
-			// we have to do this here or it won't work for ??? reasons
-			pProfile->allplaylists.erase("Favorites");
-			SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
-											   pProfile->allplaylists);
+		bool songHasFavorite = false;
+		for (auto s : song->GetAllSteps()) {
+			if (s->IsFavorited()) {
+				songHasFavorite = true;
+				break;
+			}
 		}
+		song->SetHasFavoritedChart(songHasFavorite);
+
+		if (step->IsFavorited()) {
+			pProfile->AddToFavorites(step->GetChartKey());
+			DLMAN->AddFavorite(step->GetChartKey());
+		} else {
+			pProfile->RemoveFromFavorites(step->GetChartKey());
+			DLMAN->RemoveFavorite(step->GetChartKey());
+		}
+
+		// now update favorites playlist
+		// we have to do this here or it won't work for ??? reasons
+		pProfile->allplaylists.erase("Favorites");
+		SONGMAN->MakePlaylistFromFavorites(pProfile->FavoritedCharts,
+										   pProfile->allplaylists);
+
 		MESSAGEMAN->Broadcast(Message_FavoritesUpdated);
 
 		// update favorites playlist _display_
 		MESSAGEMAN->Broadcast("DisplayAllPlaylists");
+		m_MusicWheel.RebuildWheelItems(0);
 		return true;
 	}
 	return false;
@@ -1706,17 +1712,26 @@ ScreenSelectMusic::ToggleCurrentFavorite()
 bool
 ScreenSelectMusic::ToggleCurrentPermamirror()
 {
-	auto alwaysmirrorsmh = GAMESTATE->m_pCurSong;
-	if (alwaysmirrorsmh != nullptr) {
+	auto song = GAMESTATE->m_pCurSong;
+	auto step = GAMESTATE->m_pCurSteps;
+	if (song != nullptr && step != nullptr) {
 		auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
 
-		if (!alwaysmirrorsmh->IsPermaMirror()) {
-			alwaysmirrorsmh->SetPermaMirror(true);
-			pProfile->AddToPermaMirror(GAMESTATE->m_pCurSteps->GetChartKey());
+		step->SetPermaMirror(!step->IsPermaMirror());
+
+		bool songHasPermamirror = false;
+		for (auto s : song->GetAllSteps()) {
+			if (s->IsPermaMirror()) {
+				songHasPermamirror = true;
+				break;
+			}
+		}
+		song->SetHasPermaMirrorChart(songHasPermamirror);
+
+		if (step->IsPermaMirror()) {
+			pProfile->AddToPermaMirror(step->GetChartKey());
 		} else {
-			alwaysmirrorsmh->SetPermaMirror(false);
-			pProfile->RemoveFromPermaMirror(
-			  GAMESTATE->m_pCurSteps->GetChartKey());
+			pProfile->RemoveFromPermaMirror(step->GetChartKey());
 		}
 
 		MESSAGEMAN->Broadcast(Message_PermamirrorUpdated);
@@ -1730,12 +1745,21 @@ bool
 ScreenSelectMusic::GoalFromCurrentChart()
 {
 	auto* pProfile = PROFILEMAN->GetProfile(PLAYER_1);
-	pProfile->AddGoal(GAMESTATE->m_pCurSteps->GetChartKey());
-	auto asonglol = GAMESTATE->m_pCurSong;
-	if (!asonglol)
+	auto steps = GAMESTATE->m_pCurSteps;
+	auto song = GAMESTATE->m_pCurSong;
+	if (steps == nullptr || song == nullptr)
 		return false;
 
-	asonglol->SetHasGoal(true);
+	pProfile->AddGoal(steps->GetChartKey());
+
+	bool songHasGoal = false;
+	for (auto s : song->GetAllSteps()) {
+		if (s->HasGoal()) {
+			songHasGoal = true;
+			break;
+		}
+	}
+	song->SetHasGoal(songHasGoal);
 
 	MESSAGEMAN->Broadcast(Message_GoalsUpdated);
 	m_MusicWheel.RebuildWheelItems(0);
