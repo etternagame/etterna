@@ -24,6 +24,8 @@ local filterChanged = false
 local ptags = tags:get_data().playerTags
 local playertags = {}
 local displayindex = {}
+local charts = {}
+local oCharts = {}
 
 local translated_info = {
 	AddTag = THEME:GetString("TabTags", "AddTag"),
