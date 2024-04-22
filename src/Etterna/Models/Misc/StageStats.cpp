@@ -690,9 +690,7 @@ StageStats::FinalizeScores()
 	// cope with autoplay and replays
 	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
-			if (!REPLAYS->GetActiveReplayScore()
-				   ->GetCopyOfSetOnlineReplayTimestampVector()
-				   .empty()) {
+			if (REPLAYS->GetActiveReplayScore()->GetReplay()->IsOnlineScore()) {
 				// it's an online replay
 				Locator::getLogger()->info(
 				  "Online Replay detected - saved nothing");
