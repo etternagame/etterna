@@ -501,7 +501,7 @@ t[#t + 1] = Def.ActorFrame {
 	},
 	-- ok coulda done this as a separate object to avoid copy paste but w.e
 	-- upload progress bar bg
-	Def.Quad {
+	UIElements.QuadButton(1,1) .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 41):zoomto(uploadbarwidth, uploadbarheight)
 			self:diffuse(color("#111111")):diffusealpha(0):halign(0)
@@ -510,8 +510,22 @@ t[#t + 1] = Def.ActorFrame {
 			self:diffusealpha(1)
 			if params.percent == 1 then
 				self:diffusealpha(0)
+				if isOver(self) then
+					TOOLTIP:Hide()
+				end
 			end
-		end
+		end,
+		MouseOverCommand = function(self)
+			if not self:IsVisible() then return end
+			local remaining = DLMAN:GetQueuedScoreUploadsRemaining()
+			local total = DLMAN:GetQueuedScoreUploadTotal()
+			TOOLTIP:SetText("Remaining Scores: "..remaining.." out of "..total)
+			TOOLTIP:Show()
+		end,
+		MouseOutCommand = function(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:Hide()
+		end,
 	},
 	-- fill bar
 	Def.Quad {

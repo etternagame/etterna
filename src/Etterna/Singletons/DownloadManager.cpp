@@ -6475,6 +6475,16 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		p->ForceUploadAllPBs();
 		return 0;
 	}
+	static int GetQueuedScoreUploadsRemaining(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, DLMAN->ScoreUploadSequentialQueue.size());
+		return 1;
+	}
+	static int GetQueuedScoreUploadTotal(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, DLMAN->sequentialScoreUploadTotalWorkload);
+		return 1;
+	}
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetUserCountryCode);
@@ -6511,6 +6521,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(UploadScoresForChart);
 		ADD_METHOD(UploadScoresForPack);
 		ADD_METHOD(UploadAllScores);
+		ADD_METHOD(GetQueuedScoreUploadsRemaining);
+		ADD_METHOD(GetQueuedScoreUploadTotal);
 		ADD_METHOD(Logout);
 	}
 };
