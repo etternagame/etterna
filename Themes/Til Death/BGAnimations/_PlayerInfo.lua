@@ -516,7 +516,7 @@ t[#t + 1] = Def.ActorFrame {
 			end
 		end,
 		MouseOverCommand = function(self)
-			if not self:IsVisible() then return end
+			if not self:IsVisible() or DLMAN:GetQueuedScoreUploadTotal() == 0 then return end
 			local remaining = DLMAN:GetQueuedScoreUploadsRemaining()
 			local total = DLMAN:GetQueuedScoreUploadTotal()
 			TOOLTIP:SetText("Remaining Scores: "..remaining.." out of "..total)
