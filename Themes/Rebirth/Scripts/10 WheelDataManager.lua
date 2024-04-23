@@ -532,7 +532,6 @@ function WHEELDATA.GetFavoritedCharts(self, song, charts)
     for i,c in ipairs(charts) do
         if c:IsFavorited() then
             result[#result+1] = c
-            ms.ok(1)
         end
     end
     return result
