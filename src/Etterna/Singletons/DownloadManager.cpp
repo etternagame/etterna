@@ -5475,6 +5475,25 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 
 	Value arrDoc(kArrayType);
 
+	std::string sortByField = "name";
+	if (!criteria.sortBy.empty()) {
+		if (criteria.sortBy != sortByField) {
+			// this allows even further custom sorting
+			// if you know what you are doing...
+			sortByField =
+			  fmt::format("{}:{},name:asc",
+						  criteria.sortBy,
+						  criteria.sortIsAscending ? "asc" : "desc");
+		}
+		else {
+			// this is always "name:XXXX"
+			sortByField =
+			  fmt::format("{}:{}",
+						  criteria.sortBy,
+						  criteria.sortIsAscending ? "asc" : "desc");
+		}
+	}
+
 	if (!criteria.packName.empty() || !criteria.packTags.empty()) {
 		Document packSearchDoc;
 		packSearchDoc.SetObject();
@@ -5483,6 +5502,8 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		packSearchDoc.AddMember("q", stringToVal(criteria.packName, allocator), allocator);
 		packSearchDoc.AddMember("query_by", "name", allocator);
 		packSearchDoc.AddMember("num_typos", "0", allocator);
+		packSearchDoc.AddMember(
+		  "sort_by", stringToVal(sortByField, allocator), allocator);
 		if (!criteria.packTags.empty()) {
 			// this should produce tags:=[`4k`,`5k`] ....
 			auto tagstr = "tags:=[`" + join("`,`", criteria.packTags) + "`]";
@@ -5498,6 +5519,8 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		songNameSearchDoc.AddMember(
 		  "q", stringToVal(criteria.songName, allocator), allocator);
 		songNameSearchDoc.AddMember("query_by", "name", allocator);
+		songNameSearchDoc.AddMember(
+		  "sort_by", stringToVal(sortByField, allocator), allocator);
 		arrDoc.PushBack(songNameSearchDoc, allocator);
 	}
 	if (!criteria.chartAuthor.empty()) {
@@ -5508,6 +5531,8 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		authorNameSearchDoc.AddMember(
 		  "q", stringToVal(criteria.chartAuthor, allocator), allocator);
 		authorNameSearchDoc.AddMember("query_by", "author", allocator);
+		authorNameSearchDoc.AddMember(
+		  "sort_by", stringToVal(sortByField, allocator), allocator);
 		arrDoc.PushBack(authorNameSearchDoc, allocator);
 	}
 	if (!criteria.songArtist.empty()) {
@@ -5518,6 +5543,8 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		artistNameSearchDoc.AddMember(
 		  "q", stringToVal(criteria.chartAuthor, allocator), allocator);
 		artistNameSearchDoc.AddMember("query_by", "artist", allocator);
+		artistNameSearchDoc.AddMember(
+		  "sort_by", stringToVal(sortByField, allocator), allocator);
 		arrDoc.PushBack(artistNameSearchDoc, allocator);
 	}
 
@@ -5528,6 +5555,8 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		unfilteredSearchDoc.AddMember("collection", "packs", allocator);
 		unfilteredSearchDoc.AddMember("q", "", allocator);
 		unfilteredSearchDoc.AddMember("query_by", "name", allocator);
+		unfilteredSearchDoc.AddMember(
+		  "sort_by", stringToVal(sortByField, allocator), allocator);
 		arrDoc.PushBack(unfilteredSearchDoc, allocator);
 	}
 
@@ -5699,12 +5728,15 @@ DownloadManager::GetPackTagsRequest() {
 DownloadablePackPagination&
 DownloadManager::GetPackPagination(const std::string& searchString,
 								   std::set<std::string> tagFilters,
-								   int perPage)
+								   int perPage,
+								   const std::string& sortBy,
+								   bool sortIsAsc)
 {
-	auto key = DownloadablePackPaginationKey(searchString, tagFilters, perPage);
+	auto key = DownloadablePackPaginationKey(
+	  searchString, tagFilters, perPage, sortBy, sortIsAsc);
 	if (!downloadablePackPaginations.contains(key)) {
-		downloadablePackPaginations[key] =
-		  DownloadablePackPagination(searchString, tagFilters, perPage);
+		downloadablePackPaginations[key] = DownloadablePackPagination(
+		  searchString, tagFilters, perPage, sortBy, sortIsAsc);
 	}
 	return downloadablePackPaginations[key];
 }
@@ -5778,6 +5810,8 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 	searchCriteria.packTags =
 	  std::vector<std::string>(key.tagFilters.begin(), key.tagFilters.end());
 	searchCriteria.packName = key.searchString;
+	searchCriteria.sortBy = key.sortByField;
+	searchCriteria.sortIsAscending = key.sortIsAsc;
 
 	pendingRequest = true;
 
@@ -6031,8 +6065,16 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		auto perPage = IArg(3);
 
-		auto& pagination = p->GetPackPagination(searchString, tags, perPage);
-		pagination.PushSelf(L);
+		if (lua_isnoneornil(L, 4)) {
+			auto& pagination =
+			  p->GetPackPagination(searchString, tags, perPage, "name", true);
+			pagination.PushSelf(L);
+		}
+		else {
+			auto& pagination = p->GetPackPagination(
+			  searchString, tags, perPage, SArg(4), BArg(5));
+			pagination.PushSelf(L);
+		}
 
 		return 1;
 	}

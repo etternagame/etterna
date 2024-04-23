@@ -120,6 +120,18 @@ local o = Def.ActorFrame {
 			self:halign(0)
 			self:settext(translated_info["Name"])
 		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				packlist:SortByName()
+				self:GetParent():queuecommand("Update")
+			end
+		end
 	},
 	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "AverageDiffHeader",
@@ -129,6 +141,18 @@ local o = Def.ActorFrame {
 			self:halign(1)
 			self:settext(translated_info["AverageDiff"])
 		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				packlist:SortByOverall()
+				self:GetParent():queuecommand("Update")
+			end
+		end
 	},
 	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "SizeHeader",
@@ -138,6 +162,18 @@ local o = Def.ActorFrame {
 			self:halign(1)
 			self:settext(translated_info["Size"])
 		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				packlist:SortBySize()
+				self:GetParent():queuecommand("Update")
+			end
+		end
 	},
 	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "PlaysHeader",
@@ -147,6 +183,18 @@ local o = Def.ActorFrame {
 			self:halign(1)
 			self:settext(translated_info["PackPlays"])
 		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				packlist:SortByPlays()
+				self:GetParent():queuecommand("Update")
+			end
+		end
 	},
 	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		Name = "SongCountHeader",
@@ -156,6 +204,18 @@ local o = Def.ActorFrame {
 			self:halign(1)
 			self:settext(translated_info["SongCount"])
 		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				packlist:SortBySongs()
+				self:GetParent():queuecommand("Update")
+			end
+		end
 	},
 	LoadFont("Common Large") .. {
 		Name = "AwaitingOrNoResults",

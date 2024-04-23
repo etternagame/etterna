@@ -111,16 +111,22 @@ class DownloadablePackPaginationKey
   public:
 	DownloadablePackPaginationKey(const std::string& searchString,
 								  std::set<std::string>& tagFilters,
-								  int perPage)
+								  int perPage,
+								  const std::string& sortField,
+								  bool ascendingSort)
 	  : searchString(searchString)
 	  , tagFilters(tagFilters)
 	  , perPage(perPage)
+	  , sortByField(sortField)
+	  , sortIsAsc(ascendingSort)
 	{
 	}
 	DownloadablePackPaginationKey()
 	  : searchString("")
 	  , tagFilters({})
 	  , perPage(0)
+	  , sortByField("")
+	  , sortIsAsc(true)
 	{
 	}
 
@@ -128,12 +134,16 @@ class DownloadablePackPaginationKey
 	{
 		return (perPage == other.perPage) &&
 			   (searchString == other.searchString) &&
-			   (tagFilters == other.tagFilters);
+			   (tagFilters == other.tagFilters) &&
+			   (sortByField == other.sortByField) &&
+			   (sortIsAsc == other.sortIsAsc);
 	}
 
 	std::string searchString{};
 	std::set<std::string> tagFilters{};
 	int perPage = 0;
+	std::string sortByField{};
+	bool sortIsAsc = true;
 };
 
 class DownloadablePackPagination
@@ -141,8 +151,10 @@ class DownloadablePackPagination
   public:
 	DownloadablePackPagination(const std::string& searchString,
 							   std::set<std::string>& tagFilters,
-							   int perPage)
-	  : key(searchString, tagFilters, perPage)
+							   int perPage,
+							   const std::string& sortByField,
+							   bool sortIsAsc)
+	  : key(searchString, tagFilters, perPage, sortByField, sortIsAsc)
 	{
 	}
 	DownloadablePackPagination(const DownloadablePackPaginationKey& key)
@@ -283,6 +295,8 @@ struct std::hash<DownloadablePackPaginationKey>
 			s ^= h(tag) + 0x9e3779b9 + (s << 6) + (s >> 2);
 		}
 		r = r * 31 + s;
+		r = r * 31 + std::hash<std::string>()(k.sortByField);
+		r = r * 31 + std::hash<bool>()(k.sortIsAsc);
 		return r;
 	}
 };
@@ -295,6 +309,9 @@ struct ApiSearchCriteria
 	std::string chartAuthor{};
 	std::string songArtist{};
 	std::vector<std::string> packTags{};
+
+	std::string sortBy{};
+	bool sortIsAscending = true;
 
 	// request params (actual names)
 	int page = 0;
@@ -322,6 +339,10 @@ struct ApiSearchCriteria
 				o += fmt::format("'{}'", s);
 			}
 			o += "]";
+		}
+		if (!sortBy.empty()) {
+			o += fmt::format(
+			  ", sortBy: {}:{}", sortBy, sortIsAscending ? "asc" : "desc");
 		}
 		return o + ")";
 	}
@@ -556,7 +577,9 @@ class DownloadManager
 	DownloadablePackPagination& GetPackPagination(
 	  const std::string& searchString,
 	  std::set<std::string> tagFilters,
-	  int perPage);
+	  int perPage,
+	  const std::string& sortBy,
+	  bool sortIsAsc);
 
   private:
 	/// Default empty reference for calls allowing Lua functions to be passed

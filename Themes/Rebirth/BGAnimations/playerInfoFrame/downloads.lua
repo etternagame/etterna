@@ -967,6 +967,7 @@ local function downloadsList()
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update ~= "OnMouseDown" then return end
+                pl:SortByName()
                 self:GetParent():playcommand("UpdateItemList")
             end,
             RolloverUpdateCommand = function(self, params)
@@ -997,6 +998,7 @@ local function downloadsList()
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update ~= "OnMouseDown" then return end
+                pl:SortByOverall()
                 self:GetParent():playcommand("UpdateItemList")
             end,
             RolloverUpdateCommand = function(self, params)
@@ -1027,6 +1029,7 @@ local function downloadsList()
             ClickCommand = function(self, params)
                 if self:IsInvisible() then return end
                 if params.update ~= "OnMouseDown" then return end
+                pl:SortBySize()
                 self:GetParent():playcommand("UpdateItemList")
             end,
             RolloverUpdateCommand = function(self, params)

@@ -64,7 +64,10 @@ end
 
 -- execute a seach. usually this invokes a request unless it is a duplicate
 function PackList:FilterAndSearch(name, tags, perPage)
-    self.currentPagination = DLMAN:GetPackPagination(name, tags, perPage)
+    self.lastName = name
+    self.lastTags = tags
+    self.lastPerPage = perPage
+    self.currentPagination = DLMAN:GetPackPagination(name, tags, perPage, self.sortColumn, self.sortIsAscending)
 
     if not self:IsAwaitingRequest() then
         self.currentPagination:GetResults(whenRequestFinished(self))
@@ -73,10 +76,45 @@ function PackList:FilterAndSearch(name, tags, perPage)
     return self
 end
 
+function PackList:SortByColumn(column)
+    if column == self.sortColumn then
+        self.sortIsAscending = not self.sortIsAscending
+    else
+        self.sortColumn = column
+        self.sortIsAscending = true
+    end
+    self:FilterAndSearch(self.lastName, self.lastTags, self.lastPerPage)
+end
+
+function PackList:SortByName()
+    self:SortByColumn("name")
+end
+
+function PackList:SortByPlays()
+    self:SortByColumn("play_count")
+end
+
+function PackList:SortBySize()
+    self:SortByColumn("bytes")
+end
+
+function PackList:SortBySongs()
+    self:SortByColumn("song_count")
+end
+
+function PackList:SortByOverall()
+    self:SortByColumn("overall")
+end
+
 function PackList:new()
     local packlist = {}
     packlist.packs = {} -- represents the packs on the current visible page
     packlist.currentPagination = nil -- represents the internal pack search pagination
+    packlist.sortColumn = "name"
+    packlist.sortIsAscending = true
+    packlist.lastName = ""
+    packlist.lastTags = {}
+    packlist.lasPerPage = 1
     setmetatable(
         packlist,
         {
