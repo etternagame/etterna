@@ -73,6 +73,7 @@ static Preference<std::string> packListURL(
   "https://api.beta.etternaonline.com/api/client/packs");
 static Preference<std::string> searchURL("BaseAPISearchUrl",
 										 "https://search.etternaonline.com");
+static Preference<std::string> uiHomePage("BaseUIUrl", "https://beta.etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
@@ -6008,6 +6009,11 @@ DownloadablePack::GetThumbnailTexture() {
 class LunaDownloadManager : public Luna<DownloadManager>
 {
   public:
+	static int GetHomePage(T* p, lua_State* L)
+	{
+		  lua_pushstring(L, uiHomePage.Get().c_str());
+		  return 1;
+	}
 	static int GetUserCountryCode(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->countryCode.c_str());
@@ -6487,6 +6493,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	LunaDownloadManager()
 	{
+		ADD_METHOD(GetHomePage);
 		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
