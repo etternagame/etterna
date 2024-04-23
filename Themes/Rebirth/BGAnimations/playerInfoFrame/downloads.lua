@@ -465,7 +465,7 @@ local function downloadsList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if pack ~= nil then
-                        local urlstring = "https://etternaonline.com/pack/" .. pack:GetID()
+                        local urlstring = DLMAN:GetHomePage() .. "/packs/" .. pack:GetID()
 					    GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstring)
                     end
                 end,

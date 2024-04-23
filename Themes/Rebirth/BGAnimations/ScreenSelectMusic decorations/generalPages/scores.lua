@@ -619,7 +619,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = "https://etternaonline.com/user/" .. score:GetDisplayName()
+                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName()
                             GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
                         end
                     end
@@ -671,7 +671,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = "https://etternaonline.com/score/view/" .. score:GetScoreid() .. score:GetUserid()
+                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName() .. "/scores/" .. score:GetScoreid()
                             GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
                         end
                     end

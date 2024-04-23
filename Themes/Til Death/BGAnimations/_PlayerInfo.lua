@@ -348,7 +348,7 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				local userpage = "urlnoexit,https://etternaonline.com/user/" .. DLMAN:GetUsername()
+				local userpage = "urlnoexit," .. DLMAN:GetHomePage() .. "/users/" .. DLMAN:GetUsername()
 				GAMESTATE:ApplyGameCommand(userpage)
 			end
 		end,
