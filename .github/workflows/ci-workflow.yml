@@ -312,7 +312,7 @@ jobs:
           path: tools
 
       - name: Install homebrew packages
-        run: brew install cmake nasm ninja && brew tap bluebandit21/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install bluebandit21/etterna/openssl@1.1_osx_high_sierra
+        run: brew install cmake nasm ninja && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install etternagame/etterna/openssl@1.1_osx_high_sierra
 
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1_osx_high_sierra -DWITH_CRASHPAD=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
