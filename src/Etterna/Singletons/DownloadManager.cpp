@@ -1849,6 +1849,7 @@ uploadFavoritesSequentially()
 		  "Sequential favorite upload queue empty - uploads finished");
 		runningSequentialFavoriteUpload = false;
 		DLMAN->sequentialFavoriteUploadTotalWorkload = 0;
+		MESSAGEMAN->Broadcast("SequentialFavoriteUploadFinished");
 	}
 }
 
@@ -2503,6 +2504,7 @@ uploadGoalsSequentially()
 		  "Sequential goal upload queue empty - uploads finished");
 		runningSequentialGoalUpload = false;
 		DLMAN->sequentialGoalUploadTotalWorkload = 0;
+		MESSAGEMAN->Broadcast("SequentialGoalUploadFinished");
 	}
 }
 
@@ -4404,6 +4406,7 @@ uploadScoresSequentially()
 		  "Sequential score upload queue empty - uploads finished");
 		runningSequentialScoreUpload = false;
 		DLMAN->sequentialScoreUploadTotalWorkload = 0;
+		MESSAGEMAN->Broadcast("SequentialScoreUploadFinished");
 	}
 }
 
