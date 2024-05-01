@@ -493,6 +493,30 @@ class Replay
 	// so this just refreshes the whole process
 	bool generatedInputData = false;
 
+	// if we failed to load data, dont try again and waste time
+	bool attemptedToLoadInputData = false;
+	bool loadResultInputData = false;
+	bool attemptedToLoadReplayV2 = false;
+	bool loadResultReplayV2 = false;
+	bool attemptedToLoadReplayV1 = false;
+	bool loadResultReplayV1 = false;
+
+	bool LoadedInputData(bool b) {
+		attemptedToLoadInputData = true;
+		loadResultInputData = b;
+		return b;
+	}
+	bool LoadedReplayV2(bool b) {
+		attemptedToLoadReplayV2 = true;
+		loadResultReplayV2 = b;
+		return b;
+	}
+	bool LoadedReplayV1(bool b) {
+		attemptedToLoadReplayV1 = true;
+		loadResultReplayV1 = b;
+		return b;
+	}
+
 	/////
 	// storage of vectors temporarily for online scores only
 	std::vector<float> vOnlineOffsetVector{};

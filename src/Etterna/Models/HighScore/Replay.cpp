@@ -307,8 +307,10 @@ Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
 auto
 Replay::LoadReplayData() -> bool
 {
-	return LoadInputData() || LoadReplayDataFull() || LoadReplayDataBasic() ||
-		   LoadStoredOnlineData() || LoadOnlineDataFromDisk();
+	return LoadedInputData(LoadInputData()) ||
+		   LoadedReplayV2(LoadReplayDataFull()) ||
+		   LoadedReplayV1(LoadReplayDataBasic()) || LoadStoredOnlineData() ||
+		   LoadOnlineDataFromDisk();
 }
 
 auto
@@ -555,6 +557,11 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 {
 	if (!InputData.empty())
 		return true;
+
+	if (attemptedToLoadInputData && !loadResultInputData) {
+		// early exit if multiple failures in a row
+		return loadResultInputData;
+	}
 
 	const auto path = replayDir + scoreKey;
 	const auto path_z = path + "z";
@@ -809,6 +816,11 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 		return true;
 	}
 
+	if (attemptedToLoadReplayV1 && !loadResultReplayV1) {
+		// early exit if multiple failures in a row
+		return loadResultReplayV1;
+	}
+
 	std::string profiledir;
 	std::vector<int> vNoteRowVector;
 	std::vector<float> vOffsetVector;
@@ -884,6 +896,11 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
 		vTrackVector.size() > 4) {
 		return true;
+	}
+
+	if (attemptedToLoadReplayV2 && !loadResultReplayV2) {
+		// early exit if multiple failures in a row
+		return loadResultReplayV2;
 	}
 
 	std::string profiledir;
