@@ -1170,17 +1170,19 @@ local function createList()
                 local judgeSetting = 4
                 if steps ~= nil then
                     if score:HasReplayData() then
-                        local offsets = score:GetReplay():GetOffsetVector()
+                        local replay = score:GetReplay()
+                        replay:LoadAllData()
+                        local offsets = replay:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = score:GetReplay():GetTrackVector()
-                        local types = score:GetReplay():GetTapNoteTypeVector()
-                        local noterows = score:GetReplay():GetNoteRowVector()
-                        local holds = score:GetReplay():GetHoldNoteVector()
+                        local tracks = replay:GetTrackVector()
+                        local types = replay:GetTapNoteTypeVector()
+                        local noterows = replay:GetNoteRowVector()
+                        local holds = replay:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 
@@ -1639,17 +1641,19 @@ local function createList()
                 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2)))
                 if steps ~= nil then
                     if localscore:HasReplayData() then
-                        local offsets = localscore:GetReplay():GetOffsetVector()
+                        local replay = localscore:GetReplay()
+                        replay:LoadAllData()
+                        local offsets = replay:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = localscore:GetReplay():GetTrackVector()
-                        local types = localscore:GetReplay():GetTapNoteTypeVector()
-                        local noterows = localscore:GetReplay():GetNoteRowVector()
-                        local holds = localscore:GetReplay():GetHoldNoteVector()
+                        local tracks = replay:GetTrackVector()
+                        local types = replay:GetTapNoteTypeVector()
+                        local noterows = replay:GetNoteRowVector()
+                        local holds = replay:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 

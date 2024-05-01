@@ -58,6 +58,7 @@ local function makeJudgment(i)
             if params.score ~= nil then
                 if params.judgeSetting ~= nil and params.score:HasReplayData() then
                     local replay = params.score:GetReplay()
+                    replay:LoadAllData()
                     count = getRescoredJudge(replay:GetOffsetVector(), params.judgeSetting, i)
                 else
                     count = params.score:GetTapNoteScore(jdg)
