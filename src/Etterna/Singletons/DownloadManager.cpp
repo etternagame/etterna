@@ -5709,6 +5709,8 @@ DownloadManager::GetPackTagsRequest() {
 										   packTags[tagType].size());
 			}
 
+			if (MESSAGEMAN)
+				MESSAGEMAN->Broadcast("PackTagsRefreshed");
 		} else {
 			parse();
 			Locator::getLogger()->error(
