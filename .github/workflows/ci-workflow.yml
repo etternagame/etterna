@@ -287,14 +287,14 @@ jobs:
         with:
           files: ${{github.workspace}}/main/build/*.dmg
   macos_high_sierra:
-    name: mac OSX High Sierra (Legacy) ${{matrix.cfg.name}}
+    name: macOS High Sierra (Legacy) ${{matrix.cfg.name}}
     runs-on: ${{matrix.cfg.os}}
     strategy:
       fail-fast: false
       matrix:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
-          - { os: macos-13,     name: "Ventura", dist: false}
+          #- { os: macos-13,     name: "Ventura", dist: false} # known to work, disabled for concurrent build space
           - { os: macos-12,     name: "Monterey", dist: true}
           #- { os: macos-11,     name: "Big Sur",  dist: true}
 
