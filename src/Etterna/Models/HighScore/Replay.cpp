@@ -344,8 +344,7 @@ Replay::WriteReplayData() -> bool
 
 	std::ofstream fileStream(path, std::ios::binary);
 	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to create replay file at {}",
-								   path.c_str());
+		Locator::getLogger()->warn("Failed to create replay file at {}", path);
 		return false;
 	}
 
@@ -382,13 +381,13 @@ Replay::WriteReplayData() -> bool
 	} catch (std::runtime_error& e) {
 		Locator::getLogger()->warn(
 		  "Failed to write replay data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  path,
 		  e.what());
 		fileStream.close();
 		return false;
 	}
 
-	Locator::getLogger()->info("Created replay file at {}", path.c_str());
+	Locator::getLogger()->info("Created replay file at {}", path);
 	return true;
 }
 
@@ -415,7 +414,7 @@ Replay::WriteInputData() -> bool
 	std::ofstream fileStream(path, std::ios::binary);
 	if (!fileStream) {
 		Locator::getLogger()->warn("Failed to create input data file at {}",
-								   path.c_str());
+								   path);
 		return false;
 	}
 
@@ -487,14 +486,14 @@ Replay::WriteInputData() -> bool
 		if (infile == nullptr) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
-									   path.c_str());
+									   path);
 			return false;
 		}
 		gzFile outfile = gzopen(path_z.c_str(), "wb");
 		if (outfile == Z_NULL) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
-									   path_z.c_str());
+									   path_z);
 			fclose(infile);
 			return false;
 		}
@@ -511,7 +510,7 @@ Replay::WriteInputData() -> bool
 		/////
 
 		Locator::getLogger()->info("Created compressed input data file at {}",
-								   path_z.c_str());
+								   path_z);
 
 		if (RetriedRemove(path)) {
 			Locator::getLogger()->debug("Deleted uncompressed input data");
@@ -523,7 +522,7 @@ Replay::WriteInputData() -> bool
 	} catch (std::runtime_error& e) {
 		Locator::getLogger()->warn(
 		  "Failed to write input data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  path,
 		  e.what());
 		fileStream.close();
 		return false;
@@ -606,8 +605,9 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 	try {
 		gzFile infile = gzopen(path_z.c_str(), "rb");
 		if (infile == Z_NULL) {
-			Locator::getLogger()->warn("Failed to load input data at {}",
-									   path_z.c_str());
+			Locator::getLogger()->warn(
+			  "Failed to load input data at {} (probably doesnt exist)",
+			  path_z);
 			return false;
 		}
 
@@ -615,8 +615,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		FILE* outfile = fopen(path.c_str(), "wb");
 		if (outfile == nullptr) {
 			Locator::getLogger()->warn(
-			  "Failed to create tmp output file for input data at {}",
-			  path.c_str());
+			  "Failed to create tmp output file for input data at {}", path);
 			gzclose(infile);
 			return false;
 		}
@@ -631,8 +630,8 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 
 		std::ifstream inputStream(path, std::ios::binary);
 		if (!inputStream) {
-			Locator::getLogger()->debug("Failed to load input data at {}",
-										path.c_str());
+			Locator::getLogger()->debug(
+			  "Failed to load input data at {} (can't read tmp file?)", path);
 			deleteDecompressedData();
 			return false;
 		}
@@ -651,7 +650,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			if (tokens.size() != 8) {
 				Locator::getLogger()->warn(
 				  "Bad input data header detected: {} - Header: {}",
-				  path_z.c_str(),
+				  path_z,
 				  line);
 				inputStream.close();
 				deleteDecompressedData();
@@ -674,7 +673,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			if (std::stoi(tokens[7]) != INPUT_DATA_VERSION) {
 				Locator::getLogger()->warn(
 				  "Input Data at {} version is not {} - found {}",
-				  path_z.c_str(),
+				  path_z,
 				  INPUT_DATA_VERSION,
 				  std::stoi(tokens[7]));
 				inputStream.close();
@@ -706,7 +705,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 					Locator::getLogger()->warn(
 					  "Failed to load replay data at {} (\"Tapnotesubtype "
 					  "value is not of type TapNoteSubType\")",
-					  path.c_str());
+					  path);
 				}
 				hrr.subType = static_cast<TapNoteSubType>(tmp);
 				vHoldReplayDataVector.emplace_back(hrr);
@@ -743,7 +742,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			if (tokens.size() != 7) {
 				Locator::getLogger()->warn(
 				  "Bad input data detected: {} - Tokens size {} - Line: {}",
-				  GetScoreKey().c_str(),
+				  GetScoreKey(),
 				  tokens.size(),
 				  line);
 				inputStream.close();
@@ -779,7 +778,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		SetMissReplayDataVector(vMissReplayDataVector);
 		SetInputDataVector(readInputs);
 
-		Locator::getLogger()->info("Loaded input data at {}", path.c_str());
+		Locator::getLogger()->info("Loaded input data at {}", path);
 
 		auto* hs = GetHighScore();
 		if (hs != nullptr) {
@@ -800,7 +799,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 	} catch (std::runtime_error& e) {
 		Locator::getLogger()->warn(
 		  "Failed to load input data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  path,
 		  e.what());
 		deleteDecompressedData();
 		return false;
@@ -835,8 +834,8 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 
 	// check file
 	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to load replay data at {}",
-								   path.c_str());
+		Locator::getLogger()->warn(
+		  "Failed to load replay data at {} (probably doesnt exist)", path);
 		return false;
 	}
 
@@ -857,7 +856,7 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 				  "is not a v2 replay that you placed into the Save/Replays "
 				  "folder by accident, then it is probably corrupted and you "
 				  "should delete it or move it out",
-				  GetScoreKey().c_str());
+				  GetScoreKey());
 				ASSERT(tokens.size() < 2);
 			}
 
@@ -877,7 +876,7 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 	} catch (std::runtime_error& e) {
 		Locator::getLogger()->warn(
 		  "Failed to load replay data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  path,
 		  e.what());
 		fileStream.close();
 		return false;
@@ -886,7 +885,7 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 	SetNoteRowVector(vNoteRowVector);
 	SetOffsetVector(vOffsetVector);
 
-	Locator::getLogger()->info("Loaded replay data type 1 at {}", path.c_str());
+	Locator::getLogger()->info("Loaded replay data type 1 at {}", path);
 	return true;
 }
 
@@ -954,7 +953,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 				Locator::getLogger()->warn(
 				  "Failed to load replay data at {} (\"Tapnotesubtype value is "
 				  "not of type TapNoteSubType\")",
-				  path.c_str());
+				  path);
 			}
 			hrr.subType = static_cast<TapNoteSubType>(tmp);
 			vHoldReplayDataVector.emplace_back(hrr);
@@ -974,8 +973,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 		a = buffer == "0" || a;
 		if (!a) {
 			Locator::getLogger()->warn(
-			  "Replay data at {} appears to be HOT BROKEN GARBAGE WTF",
-			  path.c_str());
+			  "Replay data at {} appears to be HOT BROKEN GARBAGE WTF", path);
 			return false;
 		}
 
@@ -984,7 +982,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"NoteRow value is "
 			  "not of type: int\")",
-			  path.c_str());
+			  path);
 		}
 		vNoteRowVector.emplace_back(noteRow);
 
@@ -993,7 +991,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"Offset value is not "
 			  "of type: float\")",
-			  path.c_str());
+			  path);
 		}
 		vOffsetVector.emplace_back(offset);
 
@@ -1002,7 +1000,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"Track/Column value "
 			  "is not of type: int\")",
-			  path.c_str());
+			  path);
 		}
 		vTrackVector.emplace_back(track);
 
@@ -1012,7 +1010,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"Tapnotetype value "
 			  "is not of type TapNoteType\")",
-			  path.c_str());
+			  path);
 		}
 		tnt = static_cast<TapNoteType>(tmp);
 		vTapNoteTypeVector.emplace_back(tnt);
@@ -1026,7 +1024,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	SetTapNoteTypeVector(vTapNoteTypeVector);
 	SetHoldReplayDataVector(vHoldReplayDataVector);
 
-	Locator::getLogger()->info("Loaded replay data type 2 at {}", path.c_str());
+	Locator::getLogger()->info("Loaded replay data type 2 at {}", path);
 	return true;
 }
 
