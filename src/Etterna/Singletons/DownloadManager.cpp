@@ -4970,7 +4970,6 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 	};
 
 	std::vector<OnlineScore>& vec = chartLeaderboards[chartkey];
-	vec.clear();
 
 	auto runLuaFunc = [ref](HTTPRequest& req, std::vector<OnlineScore>& vec) {
 		if (!ref.IsNil() && ref.IsSet()) {
@@ -5054,6 +5053,7 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 
 			if (d.HasMember("data") && d["data"].IsArray()) {
 
+				vec.clear();
 				auto count = 0;
 				auto& data = d["data"];
 				for (auto it = data.Begin(); it != data.End(); it++) {
