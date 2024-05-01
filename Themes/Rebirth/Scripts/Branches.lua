@@ -26,7 +26,7 @@ Branch.ExitingSyncMachine = function()
 end
 Branch.ExitingHelpMenu = function()
     local o = "ScreenTitleMenu"
-    if SCUFF ~= nil and SCUFF.helpmenuBackout ~= nil then
+    if SCUFF ~= nil and SCUFF.helpmenuBackout ~= nil and SCUFF.helpmenuBackout ~= "" then
         o = SCUFF.helpmenuBackout
     end
     return o
