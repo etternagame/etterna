@@ -262,11 +262,11 @@ local function tagframe()
 				self.txt = self:GetChild("Text")
 				self:xy(tagSpacing, tagListStartY - tagSpacing - packh*0.8)
 
-				self.txt:xy(tagFrameWidth/4 - leftSpace/4, (packh*0.8)/2)
+				self.txt:xy(tagFrameWidth/6 - leftSpace/4, (packh*0.8)/2)
 				self.txt:settext("Apply")
 				self.txt:zoom(0.4)
-				self.txt:maxwidth((tagFrameWidth/2 - leftSpace) / 0.4)
-				self.bg:zoomto(tagFrameWidth/2 - leftSpace/2, packh*0.8)
+				self.txt:maxwidth((tagFrameWidth/3 - leftSpace) / 0.4)
+				self.bg:zoomto(tagFrameWidth/3 - leftSpace/2, packh*0.8)
 				self.bg:halign(0):valign(0)
 				self.bg:diffuse(color("#ffffff"))
 
@@ -292,7 +292,41 @@ local function tagframe()
 				end
 				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags})
 			end,
-		}
+		},
+		UIElements.TextButton(1, 1, "Common Large") .. {
+			Name = "ResetButton",
+			InitCommand = function(self)
+				self.bg = self:GetChild("BG")
+				self.txt = self:GetChild("Text")
+				self:xy(tagFrameWidth/3 - leftSpace/4 + tagSpacing, tagListStartY - tagSpacing - packh*0.8)
+
+				self.txt:xy(tagFrameWidth/6 - leftSpace/4, (packh*0.8)/2)
+				self.txt:settext("Reset")
+				self.txt:zoom(0.4)
+				self.txt:maxwidth((tagFrameWidth/3 - leftSpace) / 0.4)
+				self.bg:zoomto(tagFrameWidth/3 - leftSpace/2, packh*0.8)
+				self.bg:halign(0):valign(0)
+				self.bg:diffuse(color("#ffffff"))
+
+				self.alphaDeterminingFunction = function(self)
+					if isOver(self.bg) then
+						self.bg:diffusealpha(0.8)
+					else
+						self.bg:diffusealpha(0.4)
+					end
+				end
+				self:alphaDeterminingFunction()
+			end,
+			RolloverUpdateCommand = function(self, params)
+				self:alphaDeterminingFunction()
+			end,
+			ClickCommand = function(self, params)
+				if params.update ~= "OnMouseDown" then return end
+				selectedTags = {}
+				self:GetParent():playcommand("UpdateTags")
+				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags={}})
+			end,
+		},
 	}
 
 	local function tagentry(i)
