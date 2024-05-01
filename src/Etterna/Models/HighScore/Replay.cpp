@@ -3664,6 +3664,23 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 class LunaReplay : public Luna<Replay>
 {
   public:
+	static auto LoadAllData(T* p, lua_State* L) -> int
+	{
+		if (p->UsingReprioritizedNoteRows()) {
+			// silently fail if you try to load things out of order...
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
+		// this will load inputdata and replayv2 optimally.
+		// the point of this lua hook is to have all replay data filled out
+		// return true if it worked out
+		lua_pushboolean(L,
+						p->LoadReplayData() && p->GeneratePrimitiveVectors());
+
+		return 1;
+	}
+
 	static auto GetOffsetVector(T* p, lua_State* L) -> int
 	{
 		auto v = p->GetOffsetVector();
@@ -3896,6 +3913,8 @@ class LunaReplay : public Luna<Replay>
 	DEFINE_METHOD(UsingReprioritizedNoteRows, UsingReprioritizedNoteRows())
 
 	LunaReplay() {
+		ADD_METHOD(LoadAllData);
+
 		ADD_METHOD(HasReplayData);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetScoreKey);
