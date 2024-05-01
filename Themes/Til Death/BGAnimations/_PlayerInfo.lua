@@ -54,6 +54,7 @@ local translated_info = {
 	Password = THEME:GetString("GeneralInfo","Password"),
 	Username = THEME:GetString("GeneralInfo","Username"),
 	Plays = THEME:GetString("GeneralInfo", "ProfilePlays"),
+	PlaysThisSession = THEME:GetString("GeneralInfo", "PlaysThisSession"),
 	TapsHit = THEME:GetString("GeneralInfo", "ProfileTapsHit"),
 	Playtime = THEME:GetString("GeneralInfo", "ProfilePlaytime"),
 	Judge = THEME:GetString("GeneralInfo", "ProfileJudge"),
@@ -362,7 +363,7 @@ t[#t + 1] = Def.ActorFrame {
 			highlightIfOver(self)
 		end,
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(AvatarX + 54, AvatarY + 21):halign(0):zoom(0.35):diffuse(nonButtonColor)
 		end,
@@ -371,7 +372,18 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		SetCommand = function(self)
 			self:settextf("%s %s", playCount, translated_info["Plays"])
-		end
+		end,
+		MouseOverCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:SetText(SCOREMAN:GetNumScoresThisSession() .. " " .. translated_info["PlaysThisSession"])
+			TOOLTIP:Show()
+		end,
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:Hide()
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
