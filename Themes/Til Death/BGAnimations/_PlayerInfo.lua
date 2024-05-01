@@ -60,7 +60,8 @@ local translated_info = {
 	Judge = THEME:GetString("GeneralInfo", "ProfileJudge"),
 	RefreshSongs = THEME:GetString("GeneralInfo", "DifferentialReloadTrigger"),
 	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded"),
-	SessionTime = THEME:GetString("GeneralInfo", "SessionTime")
+	SessionTime = THEME:GetString("GeneralInfo", "SessionTime"),
+	GroupsLoaded = THEME:GetString("GeneralInfo", "GroupsLoaded"),
 }
 
 local function UpdateTime(self)
@@ -497,7 +498,7 @@ t[#t + 1] = Def.ActorFrame {
 			end
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 3, AvatarY + 30):halign(1):zoom(0.35):diffuse(nonButtonColor)
 		end,
@@ -509,7 +510,18 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		DFRFinishedMessageCommand = function(self)
 			self:queuecommand("Set")
-		end
+		end,
+		MouseOverCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:SetText(SONGMAN:GetNumSongGroups() .. " " .. translated_info["GroupsLoaded"])
+			TOOLTIP:Show()
+		end,
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:Hide()
+		end,
 	},
 	-- ok coulda done this as a separate object to avoid copy paste but w.e
 	-- upload progress bar bg
