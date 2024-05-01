@@ -21,6 +21,7 @@ local translated_info = {
 	Failure = THEME:GetString("TabProfile", "SaveFail"),
 	ValidateAll = THEME:GetString("TabProfile", "ValidateAllScores"),
 	ForceRecalc = THEME:GetString("TabProfile", "ForceRecalcScores"),
+	UploadAllScore = THEME:GetString("TabProfile", "UploadAllScore"),
 }
 
 local t = Def.ActorFrame {
@@ -945,7 +946,7 @@ local profilebuttons = Def.ActorFrame {
 	end,
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth * 1/6, frameHeight + 04):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
+			self:xy(frameX + frameWidth * 1/7, frameHeight + 04):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
 			self:settext(translated_info["Save"])
 		end,
 		MouseOverCommand = function(self)
@@ -967,7 +968,7 @@ local profilebuttons = Def.ActorFrame {
 	},
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth * 3/6, frameHeight + 04):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
+			self:xy(frameX + frameWidth * 3/7, frameHeight + 04):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
 			self:settext(translated_info["AssetSettings"])
 		end,
 		MouseOverCommand = function(self)
@@ -984,7 +985,7 @@ local profilebuttons = Def.ActorFrame {
 	},
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth * 1/6, frameHeight + 26):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
+			self:xy(frameX + frameWidth * 1/7, frameHeight + 26):halign(0.5):diffuse(getMainColor("positive")):zoom(0.3)
 			self:settext(translated_info["ValidateAll"])
 		end,
 		MouseOverCommand = function(self)
@@ -1002,7 +1003,7 @@ local profilebuttons = Def.ActorFrame {
 	},
 	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth * 3/6, frameHeight + 26):diffuse(getMainColor("positive")):zoom(0.3)
+			self:xy(frameX + frameWidth * 3/7, frameHeight + 26):diffuse(getMainColor("positive")):zoom(0.3)
 			self:settext(translated_info["ForceRecalc"])
 		end,
 		MouseOverCommand = function(self)
@@ -1019,16 +1020,25 @@ local profilebuttons = Def.ActorFrame {
 			end
 		end,
 	},
-	LoadFont("Common Large") .. { -- nothing
+	UIElements.TextToolTip(1, 1, "Common Large") .. {
 		InitCommand = function(self)
-			self:xy(frameX + frameWidth * 5/6, frameHeight + 04):halign(0.5):zoom(0.5):diffuse(1,1,1,0.01)
-			self:settext("-")
+			self:xy(frameX + frameWidth * 5.3/7, frameHeight + 26):diffuse(getMainColor("positive")):zoom(0.3)
+			self:settext(translated_info["UploadAllScore"])
 		end,
-	},
-	LoadFont("Common Large") .. { -- nothing
-		InitCommand = function(self)
-			self:xy(frameX + frameWidth * 5/6, frameHeight + 26):halign(0.5):zoom(0.5):diffuse(1,1,1,0.01)
-			self:settext("-")
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" and update and rankingSkillset == 1 and not recentactive  then
+				if DLMAN:IsLoggedIn() then
+					DLMAN:UploadAllScores()
+				else
+					ms.ok("You must be logged in...")
+				end
+			end
 		end,
 	},
 }
