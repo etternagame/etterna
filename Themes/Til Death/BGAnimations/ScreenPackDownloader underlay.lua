@@ -361,6 +361,7 @@ local namex = nwidth
 local namey = 40
 local nhite = 22
 local nameoffx = 20
+local inputting = 0
 
 -- name string search
 o[#o + 1] = Def.ActorFrame {
@@ -387,6 +388,7 @@ o[#o + 1] = Def.ActorFrame {
 				else
 					local del = btn == "DeviceButton_delete"
 					local bs = btn == "DeviceButton_backspace"
+					local back = btn == "DeviceButton_escape"
 					local copypasta = btn == "DeviceButton_v" and ctrl
 					local char = inputToCharacter(event)
 
@@ -397,6 +399,8 @@ o[#o + 1] = Def.ActorFrame {
 
 					if bs then
 						nameInput = nameInput:sub(1, -2)
+					elseif back then
+						SCREENMAN:GetTopScreen():Cancel()
 					elseif del then
 						nameInput = ""
 					elseif char then
