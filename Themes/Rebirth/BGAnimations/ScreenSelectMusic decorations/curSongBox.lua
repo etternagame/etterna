@@ -192,7 +192,7 @@ t[#t+1] = Def.ActorFrame {
             if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
                 SCUFF.preview.active = not SCUFF.preview.active
                 MESSAGEMAN:Broadcast("ChartPreviewToggle")
-            elseif params.event == "DeviceButton_right mouse button" then
+            elseif params.event == "DeviceButton_right mouse button" and INPUTFILTER:IsControlPressed() then
                 MESSAGEMAN:Broadcast("OpenCalcDebug")
             end
         end,
