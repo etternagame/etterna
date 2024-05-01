@@ -422,7 +422,7 @@ local function recentLabel(i)
 
 	local t = Def.ActorFrame {
 		InitCommand = function(self)
-			self:xy(rankingX - 38 , rankingY + offsetY + 10 + (i - 1) * scoreYspacing)
+			self:xy(rankingX - 22 , rankingY + offsetY + 10 + (i - 1) * scoreYspacing)
 			self:visible(false)
 		end,
 		UpdateRankingMessageCommand = function(self)
