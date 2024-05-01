@@ -1170,17 +1170,17 @@ local function createList()
                 local judgeSetting = 4
                 if steps ~= nil then
                     if score:HasReplayData() then
-                        local offsets = score:GetOffsetVector()
+                        local offsets = score:GetReplay():GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = score:GetTrackVector()
-                        local types = score:GetTapNoteTypeVector()
-                        local noterows = score:GetNoteRowVector()
-                        local holds = score:GetHoldNoteVector()
+                        local tracks = score:GetReplay():GetTrackVector()
+                        local types = score:GetReplay():GetTapNoteTypeVector()
+                        local noterows = score:GetReplay():GetNoteRowVector()
+                        local holds = score:GetReplay():GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 
@@ -1639,17 +1639,17 @@ local function createList()
                 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2)))
                 if steps ~= nil then
                     if localscore:HasReplayData() then
-                        local offsets = localscore:GetOffsetVector()
+                        local offsets = localscore:GetReplay():GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = localscore:GetTrackVector()
-                        local types = localscore:GetTapNoteTypeVector()
-                        local noterows = localscore:GetNoteRowVector()
-                        local holds = localscore:GetHoldNoteVector()
+                        local tracks = localscore:GetReplay():GetTrackVector()
+                        local types = localscore:GetReplay():GetTapNoteTypeVector()
+                        local noterows = localscore:GetReplay():GetNoteRowVector()
+                        local holds = localscore:GetReplay():GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 

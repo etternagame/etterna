@@ -154,8 +154,8 @@ local function scoreBoard(pn, position)
 
 	local function setupNewScoreData(score)
 		local replay = REPLAYS:GetActiveReplay()
-		local dvtTmp = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector()
-		local tvt = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetTapNoteTypeVector()
+		local dvtTmp = usingCustomWindows and replay:GetOffsetVector() or score:GetReplay():GetOffsetVector()
+		local tvt = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetReplay():GetTapNoteTypeVector()
 		-- if available, filter out non taps from the deviation list
 		-- (hitting mines directly without filtering would make them appear here)
 		if tvt ~= nil and #tvt > 0 then
@@ -234,8 +234,8 @@ local function scoreBoard(pn, position)
 			if s then
 				score = s
 			end
-			local dvtTmp = score:GetOffsetVector()
-			local tvt = score:GetTapNoteTypeVector()
+			local dvtTmp = score:GetReplay():GetOffsetVector()
+			local tvt = score:GetReplay():GetTapNoteTypeVector()
 			-- if available, filter out non taps from the deviation list
 			-- (hitting mines directly without filtering would make them appear here)
 			if tvt ~= nil and #tvt > 0 then
@@ -949,10 +949,10 @@ local function scoreBoard(pn, position)
 
 	local function scoreStatistics(score)
 		local replay = REPLAYS:GetActiveReplay()
-		local tracks = usingCustomWindows and replay:GetTrackVector() or score:GetTrackVector()
-		local dvtTmp = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector() or {}
+		local tracks = usingCustomWindows and replay:GetTrackVector() or score:GetReplay():GetTrackVector()
+		local dvtTmp = usingCustomWindows and replay:GetOffsetVector() or score:GetReplay():GetOffsetVector() or {}
 		local devianceTable = {}
-		local types = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetTapNoteTypeVector()
+		local types = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetReplay():GetTapNoteTypeVector()
 
 		local cbl = 0
 		local cbr = 0
@@ -1003,10 +1003,10 @@ local function scoreBoard(pn, position)
 	end
 
 	-- stats stuff
-	local tracks = score:GetTrackVector()
-	local dvtTmp = score:GetOffsetVector()
+	local tracks = score:GetReplay():GetTrackVector()
+	local dvtTmp = score:GetReplay():GetOffsetVector()
 	local devianceTable = {}
-	local types = score:GetTapNoteTypeVector() or {}
+	local types = score:GetReplay():GetTapNoteTypeVector() or {}
 	local cbl = 0
 	local cbr = 0
 	local cbm = 0

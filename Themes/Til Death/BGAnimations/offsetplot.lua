@@ -132,10 +132,11 @@ local o = Def.ActorFrame {
 				bgalpha = 1
 				if score ~= nil then
 					if score:HasReplayData() then
-						dvt = score:GetOffsetVector()
-						nrt = score:GetNoteRowVector()
-						ctt = score:GetTrackVector()
-						ntt = score:GetTapNoteTypeVector()
+						local replay = score:GetReplay()
+						dvt = replay:GetOffsetVector()
+						nrt = replay:GetNoteRowVector()
+						ctt = replay:GetTrackVector()
+						ntt = replay:GetTapNoteTypeVector()
 					end
 				end
 			else
@@ -173,10 +174,11 @@ local o = Def.ActorFrame {
 			local score = params.score
 
 			if score:HasReplayData() then
-				dvt = score:GetOffsetVector()
-				nrt = score:GetNoteRowVector()
-				ctt = score:GetTrackVector()
-				ntt = score:GetTapNoteTypeVector()
+				local replay = score:GetReplay()
+				dvt = replay:GetOffsetVector()
+				nrt = replay:GetNoteRowVector()
+				ctt = replay:GetTrackVector()
+				ntt = replay:GetTapNoteTypeVector()
 			end
 
 			wuab = {}
@@ -255,9 +257,10 @@ local o = Def.ActorFrame {
 		local s = SCREENMAN:GetTopScreen():GetHighScore()
 		if s then
 			score = s
-			dvt = score:GetOffsetVector()
-			nrt = score:GetNoteRowVector()
-			ctt = score:GetTrackVector()
+			local replay = score:GetReplay()
+			dvt = replay:GetOffsetVector()
+			nrt = replay:GetNoteRowVector()
+			ctt = replay:GetTrackVector()
 			wuab = {}
 			for i = 1, #nrt do
 				wuab[i] = td:GetElapsedTimeFromNoteRow(nrt[i])

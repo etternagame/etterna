@@ -387,7 +387,8 @@ end
 local function gatherRescoreTableFromScore(score)
     local o = {}
     -- tap offsets
-    o["dvt"] = score:GetOffsetVector()
+    local replay = score:GetReplay()
+    o["dvt"] = replay:GetOffsetVector()
     -- holds
     o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
     o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
@@ -512,8 +513,8 @@ local function accuracyStats()
     -- calculates the statData based on the given score
     local function calculateStatData(score)
         local replay = REPLAYS:GetActiveReplay()
-        local offsetTable = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector()
-        local typeTable = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetTapNoteTypeVector()
+        local offsetTable = usingCustomWindows and replay:GetOffsetVector() or score:GetReplay():GetOffsetVector()
+        local typeTable = usingCustomWindows and replay:GetTapNoteTypeVector() or score:GetReplay():GetTapNoteTypeVector()
 
         -- must match statData above
         local output = {
@@ -709,8 +710,8 @@ local function calculatedStats()
 
     local function calculateStatData(score, numColumns)
         local replay = REPLAYS:GetActiveReplay()
-        local tracks = usingCustomWindows and replay:GetTrackVector() or score:GetTrackVector()
-        local offsetTable = usingCustomWindows and replay:GetOffsetVector() or score:GetOffsetVector()
+        local tracks = usingCustomWindows and replay:GetTrackVector() or score:GetReplay():GetTrackVector()
+        local offsetTable = usingCustomWindows and replay:GetOffsetVector() or score:GetReplay():GetOffsetVector()
 
         local middleColumn = numColumns / 2
 
@@ -1441,17 +1442,17 @@ t[#t+1] = Def.ActorFrame {
             if params.score ~= nil and params.steps ~= nil then
                 if params.score:HasReplayData() then
                     local replay = REPLAYS:GetActiveReplay()
-                    local offsets = usingCustomWindows and replay:GetOffsetVector() or params.score:GetOffsetVector()
+                    local offsets = usingCustomWindows and replay:GetOffsetVector() or params.score:GetReplay():GetOffsetVector()
                     -- for online offset vectors a 180 offset is a miss
                     for i, o in ipairs(offsets) do
                         if o >= 180 then
                             offsets[i] = 1000
                         end
                     end
-                    local tracks = usingCustomWindows and replay:GetTrackVector() or params.score:GetTrackVector()
-                    local types = usingCustomWindows and replay:GetTapNoteTypeVector() or params.score:GetTapNoteTypeVector()
-                    local noterows = usingCustomWindows and replay:GetNoteRowVector() or params.score:GetNoteRowVector()
-                    local holds = usingCustomWindows and replay:GetHoldNoteVector() or params.score:GetHoldNoteVector()
+                    local tracks = usingCustomWindows and replay:GetTrackVector() or params.score:GetReplay():GetTrackVector()
+                    local types = usingCustomWindows and replay:GetTapNoteTypeVector() or params.score:GetReplay():GetTapNoteTypeVector()
+                    local noterows = usingCustomWindows and replay:GetNoteRowVector() or params.score:GetReplay():GetNoteRowVector()
+                    local holds = usingCustomWindows and replay:GetHoldNoteVector() or params.score:GetReplay():GetHoldNoteVector()
                     local timingdata = params.steps:GetTimingData()
                     local lastSecond = params.steps:GetLastSecond()
 
