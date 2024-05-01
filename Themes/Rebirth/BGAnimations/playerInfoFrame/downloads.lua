@@ -1111,15 +1111,7 @@ local function downloadsList()
         local tagStartY = actuals.Height / 2
         local taglistAllottedSpace = listAllottedSpace
 
-        local alltags = DLMAN:GetPackTags()
-        local skillsetTags = table.sorted(alltags["global_skillset"])
-        local keycountTags = table.sorted(alltags["global_keyCount"], function(a,b)
-            local ax = a:sub(1, #a-1)
-            local bx = b:sub(1, #b-1)
-            return tonumber(ax) < tonumber(bx)
-        end)
-        local otherTags = table.sorted(alltags["pack_tag"])
-        local orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+        local orderedTags = {}
     
         local function movePage(n)
             local newpage = curpage + n
@@ -1133,6 +1125,24 @@ local function downloadsList()
             MESSAGEMAN:Broadcast("SetTagPage")
         end
 
+        local function loadTags()
+            local alltags = DLMAN:GetPackTags()
+            if alltags == nil or next(alltags) == nil then
+                -- do nothin
+            else
+                local skillsetTags = table.sorted(alltags["global_skillset"])
+                local keycountTags = table.sorted(alltags["global_keyCount"], function(a,b)
+                    local ax = a:sub(1, #a-1)
+                    local bx = b:sub(1, #b-1)
+                    return tonumber(ax) < tonumber(bx)
+                end)
+                local otherTags = table.sorted(alltags["pack_tag"])
+                orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+                MESSAGEMAN:Broadcast("SetTagPage")
+            end
+        end
+        loadTags()
+
         local t = Def.ActorFrame {
             Name = "TagFrame",
             InitCommand = function(self)
@@ -1143,6 +1153,9 @@ local function downloadsList()
             end,
             SetTagPageMessageCommand = function(self)
                 self:playcommand("SetTag")
+            end,
+            PackTagsRefreshedMessageCommand = function(self)
+                loadTags()
             end,
             Def.Quad {
                 Name = "Separator",
