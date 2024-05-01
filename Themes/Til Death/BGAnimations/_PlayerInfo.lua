@@ -515,6 +515,15 @@ t[#t + 1] = Def.ActorFrame {
 				end
 			end
 		end,
+		SequentialScoreUploadFinishedMessageCommand = function(self)
+			self:diffusealpha(0)
+			if isOver(self) then
+				TOOLTIP:Hide()
+			end
+		end,
+		LogOutMessageCommand = function(self)
+			self:playcommand("SequentialScoreUploadFinished")
+		end,
 		MouseOverCommand = function(self)
 			if not self:IsVisible() or DLMAN:GetQueuedScoreUploadTotal() == 0 then return end
 			local remaining = DLMAN:GetQueuedScoreUploadsRemaining()
@@ -539,8 +548,14 @@ t[#t + 1] = Def.ActorFrame {
 			if params.percent == 1 then
 				self:diffusealpha(0)
 			end
-		end
-		},
+		end,
+		SequentialScoreUploadFinishedMessageCommand = function(self)
+			self:diffusealpha(0)
+		end,
+		LogOutMessageCommand = function(self)
+			self:playcommand("SequentialScoreUploadFinished")
+		end,
+	},
 	-- super required explanatory text
 	LoadFont("Common Normal") .. {
 	    InitCommand = function(self)
@@ -553,7 +568,13 @@ t[#t + 1] = Def.ActorFrame {
 			if params.percent == 1 then
 				self:diffusealpha(0)
 			end
-		end
+		end,
+		SequentialScoreUploadFinishedMessageCommand = function(self)
+			self:diffusealpha(0)
+		end,
+		LogOutMessageCommand = function(self)
+			self:playcommand("SequentialScoreUploadFinished")
+		end,
 	}
 }
 
