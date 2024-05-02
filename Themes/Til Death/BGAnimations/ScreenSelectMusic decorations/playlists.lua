@@ -723,13 +723,13 @@ r[#r + 1] = Def.ActorFrame {
 		end,
 		DisplayAllPlaylistsMessageCommand = function(self)
 			self.state = "Download"
-			self:visible(self.visibilityFunc())
+			self:queuecommand("MaintainState")
 			self:settext(translated_info["DownloadMissing"])
 			self:x(capWideScale(250,265))
 		end,
 		DisplaySinglePlaylistMessageCommand = function(self)
 			self.state = "Upload"
-			self:visible(self.visibilityFunc())
+			self:queuecommand("MaintainState")
 			self:settext(translated_info["UploadOnline"])
 			self:x(capWideScale(230,245))
 		end,
