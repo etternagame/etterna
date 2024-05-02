@@ -411,7 +411,14 @@ local function DisplayDiff(i)
 			DisplaySinglePlaylistLevel2MessageCommand = function(self)
 				self:zoom(fontScale)
 				self:maxwidth(70)
-				local diff = stepslist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetDifficulty()
+				local chart = stepslist[i + ((currentchartpage - 1) * chartsperplaylist)]
+				if chart == nil then
+					self:visible(false)
+					return
+				else
+					self:visible(true)
+				end
+				local diff = chart:GetDifficulty()
 				self:diffuse(byDifficulty(diff))
 				self:settext(getShortDifficulty(diff))
 			end,
