@@ -5300,6 +5300,25 @@ DownloadManager::RefreshUserData()
 
 				sessionRanks[Skill_Overall] = getJsonInt(data, "rank");
 
+				if (data.HasMember("skillset_ranks") &&
+					data["skillset_ranks"].IsObject()) {
+					auto ssranks = data["skillset_ranks"].GetObj();
+
+					sessionRanks[Skill_Stream] = getJsonInt(ssranks, "stream");
+					sessionRanks[Skill_Jumpstream] = getJsonInt(ssranks, "jumpstream");
+					sessionRanks[Skill_Handstream] = getJsonInt(ssranks, "handstream");
+					sessionRanks[Skill_Stamina] = getJsonInt(ssranks, "stamina");
+					sessionRanks[Skill_JackSpeed] =
+					  getJsonInt(ssranks, "jacks");
+					sessionRanks[Skill_Chordjack] = getJsonInt(ssranks, "chordjacks");
+					sessionRanks[Skill_Technical] =
+					  getJsonInt(ssranks, "technical");
+				}
+				else {
+					Locator::getLogger()->warn(
+					  "RefreshUserData was missing skillsetRanks");
+				}
+
 				Locator::getLogger()->info(
 				  "RefreshUserData for {} succeeded - Rank {} - Overall {}",
 				  sessionUser,
