@@ -187,7 +187,7 @@ local function RateDisplayButton(i)
 	local o = Def.ActorFrame {
 		Name = "RateDisplay",
 		InitCommand = function(self)
-			self:x(220):diffuse(getMainColor("positive"))
+			self:x(200):diffuse(getMainColor("positive"))
 		end,
 		UIElements.TextToolTip(1, 1, "Common Large") .. {
 			Name = "Text",
@@ -226,7 +226,7 @@ local function TitleDisplayButton(i)
 		end,
 		UIElements.QuadButton(1, 1) .. {
 			InitCommand = function(self)
-				self:x(-22):zoomto(212, scoreYspacing):halign(0):diffusealpha(0)
+				self:x(-20):zoomto(190, scoreYspacing):halign(0):diffusealpha(0)
 			end,
 			MouseDownCommand = function(self, params)
 				-- wtf
@@ -251,7 +251,7 @@ local function TitleDisplayButton(i)
 			end,
 			DisplaySinglePlaylistLevel2MessageCommand = function(self)
 				self:zoom(fontScale)
-				self:maxwidth(480)
+				self:maxwidth(620)
 				local chartentry = chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]
 				if chartentry == nil then return end
 				if chartentry:IsLoaded() then
@@ -310,6 +310,119 @@ local function DeleteChartButton(i)
 	return o
 end
 
+local function PBDisplayButton(i)
+	local o = Def.ActorFrame {
+		Name = "PBDisplay",
+		InitCommand = function(self)
+			self:x(227):zoom(1):halign(0):valign(0)
+		end,
+		UIElements.QuadButton(1, 1) .. {
+			InitCommand = function(self)
+				self:x(0):zoomto(40, scoreYspacing):halign(0):diffusealpha(0)
+			end,
+			MouseDownCommand = function(self, params)
+				-- wtf
+				if params.event == "DeviceButton_left mouse button" and update and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)] and
+						chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() and
+						singleplaylistactive and not clickedForSinglePlaylist
+				 then
+					whee:SelectSong(songlist[i + ((currentchartpage - 1) * chartsperplaylist)])
+				end
+			end,
+			MouseOverCommand = function(self)
+				self:GetParent():GetChild("Text"):diffusealpha(0.7)
+			end,
+			MouseOutCommand = function(self)
+				self:GetParent():GetChild("Text"):diffusealpha(1)
+			end,
+		},
+		LoadFont("Common Large") .. {
+			Name = "Text",
+			InitCommand = function(self)
+				self:halign(0)
+			end,
+			DisplaySinglePlaylistLevel2MessageCommand = function(self)
+				local function getpb(chartkey, your_rate) --thank you poco i would buy you dr pepper if i would be able to do this
+					local scoresatrates = SCOREMAN:GetScoresByKey(chartkey)
+					local x = "x"
+					if scoresatrates ~= nil then
+					  for r, l in pairs(scoresatrates) do
+						local rr = r:gsub("["..x.."]+", "")
+						if math.abs(rr - your_rate) < 0.001 then
+						  local scoresatrate = l:GetScores()
+						  return scoresatrate[1] -- either nil or a score
+						end
+					  end
+					end
+					return nil
+				end
+				self:zoom(fontScale)
+				self:maxwidth(160)
+				local pbrate = chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetRate()
+				local pbchartkey = keylist[i + ((currentchartpage - 1) * chartsperplaylist)]
+				local pb = getpb(pbchartkey, pbrate)
+				if pb then
+					local bp = pb:GetWifeScore() * 100
+					self:settextf("%05.2f%%", bp)
+					self:diffuse(getGradeColor(pb:GetWifeGrade()))
+				else
+					self:settext("")
+				end
+			end,
+			DisplayLanguageChangedMessageCommand = function(self)
+				self:playcommand("DisplaySinglePlaylistLevel2")
+			end,
+		},
+	}	
+	return o
+end
+
+local function DisplayDiff(i)
+	local o = Def.ActorFrame {
+			Name = "DisplayDiff",
+		InitCommand = function(self)
+			self:x(290):zoom(1):halign(0):valign(0)
+		end,
+		UIElements.QuadButton(1,1) .. {
+			InitCommand = function(self)
+				self:x(-7):zoomto(16, scoreYspacing):halign(0):diffusealpha(0) --you like odd numbers don't you
+			end,
+			MouseDownCommand = function(self, params)
+				-- wtf
+				if params.event == "DeviceButton_left mouse button" and update and chartlist[i + ((currentchartpage - 1) * chartsperplaylist)] and
+						chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:IsLoaded() and
+						singleplaylistactive and not clickedForSinglePlaylist
+				 then
+					whee:SelectSong(songlist[i + ((currentchartpage - 1) * chartsperplaylist)])
+				end
+			end,
+			MouseOverCommand = function(self)
+				self:GetParent():GetChild("Text"):diffusealpha(0.7)
+			end,
+			MouseOutCommand = function(self)
+				self:GetParent():GetChild("Text"):diffusealpha(1)
+			end,
+		},
+		LoadFont("Common Large") .. {
+			Name = "Text",
+			InitCommand = function(self)
+				self:halign(0.5)
+			end,
+			DisplaySinglePlaylistLevel2MessageCommand = function(self)
+				self:zoom(fontScale)
+				self:maxwidth(70)
+				local diff = stepslist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetDifficulty()
+				self:diffuse(byDifficulty(diff))
+				self:settext(getShortDifficulty(diff))
+			end,
+			DisplayLanguageChangedMessageCommand = function(self)
+				self:playcommand("DisplaySinglePlaylistLevel2")
+			end,
+		}
+	}
+	return o
+end
+
 local function rankingLabel(i)
 	local chart
 	local chartloaded
@@ -330,15 +443,21 @@ local function rankingLabel(i)
 					self:GetChild("DeleteButton"):queuecommand("DisplaySinglePlaylistLevel2")
 					self:GetChild("TitleDisplay"):queuecommand("DisplaySinglePlaylistLevel2")
 					self:GetChild("RateDisplay"):queuecommand("DisplaySinglePlaylistLevel2")
+					self:GetChild("PBDisplay"):queuecommand("DisplaySinglePlaylistLevel2")
+					self:GetChild("DisplayDiff"):queuecommand("DisplaySinglePlaylistLevel2")
 					self:GetChild("DeleteButton"):visible(true)
 					self:GetChild("TitleDisplay"):visible(true)
 					self:GetChild("RateDisplay"):visible(true)
+					self:GetChild("PBDisplay"):visible(true)
+					self:GetChild("DisplayDiff"):visible(true)
 					self:GetChild("PackMouseOver"):visible(true)
 					self:GetChild("ChartNumber"):visible(true)
 				else
 					self:GetChild("DeleteButton"):visible(false)
 					self:GetChild("TitleDisplay"):visible(false)
 					self:GetChild("RateDisplay"):visible(false)
+					self:GetChild("PBDisplay"):visible(false)
+					self:GetChild("DisplayDiff"):visible(false)
 					self:GetChild("PackMouseOver"):visible(false)
 					self:GetChild("ChartNumber"):visible(false)
 				end
@@ -453,6 +572,8 @@ local function rankingLabel(i)
 	t[#t + 1] = RateDisplayButton(i)
 	t[#t + 1] = TitleDisplayButton(i)
 	t[#t + 1] = DeleteChartButton(i)
+	t[#t + 1] = PBDisplayButton(i)
+	t[#t + 1] = DisplayDiff(i)
 	return t
 end
 
