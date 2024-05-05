@@ -7,7 +7,8 @@ local ind = 7
 local translated_info = {
 	Alert = THEME:GetString("ScreenCoreBundleSelect", "Alert"),
 	Task = THEME:GetString("ScreenCoreBundleSelect", "Task"),
-	Explanation = THEME:GetString("ScreenCoreBundleSelect", "Explanation")
+	Explanation = THEME:GetString("ScreenCoreBundleSelect", "Explanation"),
+    RefreshSongs = THEME:GetString("GeneralInfo", "DifferentialReloadTrigger")
 }
 
 local o = Def.ActorFrame {
@@ -135,6 +136,33 @@ local function makedoots(i)
 	}
 	return t
 end
+
+o[#o + 1] = Def.ActorFrame {
+    UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "refreshbutton",
+		InitCommand = function(self)
+			self:xy(0, 400):zoom(1):diffuse(getMainColor("positive")) -- curse of ra
+		end,
+		BeginCommand = function(self)
+			self:queuecommand("Set")
+		end,
+		SetCommand = function(self)
+			self:settextf(translated_info["RefreshSongs"])
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(0.6)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				SONGMAN:DifferentialReload()
+                SCREENMAN:GetTopScreen():StartTransitioningScreen("SM_GoToNextScreen")
+			end
+		end
+	}
+}
 
 for i = 1, #minidoots do
 	o[#o + 1] = makedoots(i)
