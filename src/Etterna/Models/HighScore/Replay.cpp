@@ -3701,6 +3701,11 @@ class LunaReplay : public Luna<Replay>
 
 		return 1;
 	}
+	static auto IsLoaded(T* p, lua_State* L) -> int
+	{
+		lua_pushboolean(L, p->GetReplayType() != ReplayType_Invalid);
+		return 1;
+	}
 
 	static auto GetOffsetVector(T* p, lua_State* L) -> int
 	{
@@ -3715,7 +3720,8 @@ class LunaReplay : public Luna<Replay>
 			}
 			LuaHelpers::CreateTableFromArray(v, L);
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3762,8 +3768,8 @@ class LunaReplay : public Luna<Replay>
 
 			LuaHelpers::CreateTableFromArray((*v), L);
 		} else {
-			// ok we got nothing, just throw null
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3778,7 +3784,8 @@ class LunaReplay : public Luna<Replay>
 			}
 			LuaHelpers::CreateTableFromArray((*v), L);
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3793,7 +3800,8 @@ class LunaReplay : public Luna<Replay>
 			}
 			LuaHelpers::CreateTableFromArray((*v), L);
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3822,7 +3830,8 @@ class LunaReplay : public Luna<Replay>
 				lua_rawseti(L, -2, i + 1);
 			}
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3850,7 +3859,8 @@ class LunaReplay : public Luna<Replay>
 				lua_rawseti(L, -2, i + 1);
 			}
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3882,7 +3892,8 @@ class LunaReplay : public Luna<Replay>
 				lua_rawseti(L, -2, i + 1);
 			}
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3935,6 +3946,7 @@ class LunaReplay : public Luna<Replay>
 
 	LunaReplay() {
 		ADD_METHOD(LoadAllData);
+		ADD_METHOD(IsLoaded);
 
 		ADD_METHOD(HasReplayData);
 		ADD_METHOD(GetChartKey);
