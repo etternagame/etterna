@@ -3681,6 +3681,12 @@ class LunaReplay : public Luna<Replay>
   public:
 	static auto LoadAllData(T* p, lua_State* L) -> int
 	{
+		// cant do anything with an uninitialized replay
+		if (p == nullptr || p->GetScoreKey().empty()) {
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
 		if (p->UsingReprioritizedNoteRows()) {
 			// silently fail if you try to load things out of order...
 			lua_pushboolean(L, false);
