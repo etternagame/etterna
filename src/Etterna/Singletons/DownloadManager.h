@@ -760,6 +760,8 @@ class DownloadManager
 	bool gameplay{ false };
 	bool initialized{ false };
 
+	float timeSinceLastDownload = 0.F;
+
 	std::unordered_map<std::string, std::chrono::steady_clock::time_point>
 	  endpointRatelimitTimestamps{};
 	std::unordered_map<std::string, std::vector<HTTPRequest*>>
