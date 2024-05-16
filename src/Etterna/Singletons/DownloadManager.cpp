@@ -112,6 +112,7 @@ static const std::string API_PLAYLISTS = "/playlists";
 static const std::string API_PLAYLIST = "/playlists/{}";
 static const std::string API_TAGS = "/tags";
 static const std::string API_USER = "/users/{}";
+static const std::string API_USER_SCORES = "/users/{}/scores";
 static const std::string API_GAME_VERSION = "/settings/version";
 
 static const std::string API_SEARCH = "/multi_search";
@@ -1250,7 +1251,7 @@ DownloadManager::OnLogin()
 	RefreshGoals();
 	LoadPlaylists();
 	FOREACH_ENUM(Skillset, ss)
-	RefreshTop25(ss);
+	RequestTop25(ss);
 	if (ShouldUploadScores()) {
 		InitialScoreSync();
 
@@ -5160,78 +5161,137 @@ DownloadManager::RefreshLastVersion()
 }
 
 void
-DownloadManager::RefreshTop25(Skillset ss)
+DownloadManager::RequestTop25(Skillset ss)
 {
-	topScores[ss].clear();
-	if (!LoggedIn())
-		return;
+	constexpr auto& CALL_ENDPOINT = API_USER_SCORES;
+	const auto CALL_PATH = fmt::format(API_USER_SCORES, sessionUser);
+	
+	std::string ssstr = "";
+	switch (ss) {
+		case Skill_Stream:
+			ssstr = "stream";
+			break;
+		case Skill_Jumpstream:
+			ssstr = "jumpstream";
+			break;
+		case Skill_Handstream:
+			ssstr = "handstream";
+			break;
+		case Skill_Stamina:
+			ssstr = "stamina";
+			break;
+		case Skill_JackSpeed:
+			ssstr = "jacks";
+			break;
+		case Skill_Chordjack:
+			ssstr = "chordjacks";
+			break;
+		case Skill_Technical:
+			ssstr = "technical";
+			break;
+		default:
+			ssstr = "overall";
+			break;
+	}
 
-	Locator::getLogger()->warn("REFRESH TOP 25 NOT IMPLEMENTED");
-	return;
-	/*
+	Locator::getLogger()->info(
+	  "Generating RequestTop25 request for skillset {} ({})",
+	  SkillsetToString(ss),
+	  ssstr);
 
-	std::string req = "user/" + UrlEncode(sessionUser) + "/top/";
-	if (ss != Skill_Overall)
-		req += SkillsetToString(ss) + "/25";
-	auto done = [ss, this](auto& req) {
-		Document d;
-		if (d.Parse(req.result.c_str()).HasParseError() ||
-			(d.HasMember("errors") && d["errors"].IsArray() &&
-			 d["errors"][0].HasMember("status") &&
-			 d["errors"][0]["status"].GetInt() == 404) ||
-			!d.HasMember("data") || !d["data"].IsArray()) {
-			Locator::getLogger()->error(
-			  "Malformed top25 scores request response: {}", req.result);
+	std::vector<std::pair<std::string, std::string>> params = {
+		std::make_pair("sort", fmt::format("-{}", ssstr)),
+	};
+
+	auto done = [ss, ssstr, &CALL_ENDPOINT, this](auto& req) {
+
+		if (Handle401And429Response(
+			  CALL_ENDPOINT,
+			  req,
+			  []() {},
+			  [ss, this]() { RequestTop25(ss); })) {
 			return;
 		}
-		std::vector<OnlineTopScore>& vec = topScores[ss];
-		auto& scores = d["data"];
-		for (auto& score_obj : scores.GetArray()) {
-			if (!score_obj.HasMember("attributes")) {
-				Locator::getLogger()->warn(
-				  "Malformed single score in top25 scores request response: {}",
-				  jsonObjectToString(score_obj));
-				continue;
+
+		const auto& response = req.response_code;
+
+		auto& vec = topScores[ss];
+		vec.clear();
+
+		Document d;
+		// return true if parse error
+		auto parse = [&d, &req]() {
+			return parseJson(d, req, "RequestTop25");
+		};
+
+		if (response == 200) {
+
+			// there is a problem..
+			if (parse()) {
+				return;
 			}
-			auto& score = score_obj["attributes"];
-			if (!score.HasMember("songName") || !score["songName"].IsString() ||
-				!score.HasMember("wife") || !score["wife"].IsNumber() ||
-				!score.HasMember("Overall") || !score["Overall"].IsNumber() ||
-				!score.HasMember("chartKey") || !score["chartKey"].IsString() ||
-				!score_obj.HasMember("id") || !score_obj["id"].IsString() ||
-				!score.HasMember("rate") || !score["rate"].IsNumber() ||
-				!score.HasMember("difficulty") ||
-				!score["difficulty"].IsString() ||
-				!score.HasMember("skillsets") ||
-				(ss != Skill_Overall &&
-				 (!score["skillsets"].HasMember(SkillsetToString(ss).c_str()) ||
-				  !score["skillsets"][SkillsetToString(ss).c_str()]
-					 .IsNumber()))) {
-				Locator::getLogger()->warn(
-				  "Malformed single score in top25 scores request response: {}",
-				  jsonObjectToString(score_obj));
-				continue;
+
+			if (d.HasMember("data") && d["data"].IsArray()) {
+				auto datarr = d["data"].GetArray();
+
+				for (auto& hs : datarr) {
+					if (!hs.IsObject() || !hs.HasMember("song") ||
+						!hs.HasMember("chart")) {
+						Locator::getLogger()->warn(
+						  "RequestTop25 score in response is wrong type or "
+						  "missing metadata");
+						continue;
+					}
+
+					auto song = hs["song"].GetObj();
+					auto chart = hs["chart"].GetObj();
+
+					OnlineTopScore tmp;
+					tmp.songName = getJsonString(song, "name");
+					tmp.wifeScore = getJsonFloat(hs, "wife") / 100.F;
+					tmp.overall = getJsonFloat(hs, "overall");
+					if (ss != Skill_Overall) {
+						tmp.ssr = getJsonFloat(hs, ssstr.c_str());
+					}
+					else {
+						tmp.ssr = tmp.overall;
+					}
+					tmp.chartkey = getJsonString(chart, "key");
+					tmp.scorekey = getJsonString(hs, "key");
+					tmp.rate = getJsonFloat(hs, "rate");
+					tmp.difficulty =
+					  StringToDifficulty(getJsonString(chart, "difficulty"));
+					
+					vec.push_back(tmp);
+				}
 			}
-			OnlineTopScore tmp;
-			tmp.songName = score["songName"].GetString();
-			tmp.wifeScore = score["wife"].GetFloat() / 100.f;
-			tmp.overall = score["Overall"].GetFloat();
-			if (ss != Skill_Overall)
-				tmp.ssr =
-				  score["skillsets"][SkillsetToString(ss).c_str()].GetFloat();
-			else
-				tmp.ssr = tmp.overall;
-			tmp.chartkey = score["chartKey"].GetString();
-			tmp.scorekey = score_obj["id"].GetString();
-			tmp.rate = score["rate"].GetFloat();
-			tmp.difficulty =
-			  StringToDifficulty(score["difficulty"].GetString());
-			vec.push_back(tmp);
+			else {
+				Locator::getLogger()->warn("RequestTop25 for skillset {} - "
+										   "return incorrect? Content: {}",
+										   SkillsetToString(ss),
+										   jsonObjectToString(d));
+			}
+			Locator::getLogger()->info(
+			  "RequestTop25 found {} scores for skillset {}",
+			  vec.size(),
+			  SkillsetToString(ss));
+		}
+		else {
+			parse();
+			Locator::getLogger()->warn("RequestTop25 for skillset {} ({}) "
+									   "unexpected response {} - Content: {}",
+									   SkillsetToString(ss),
+									   ssstr,
+									   response,
+									   jsonObjectToString(d));
 		}
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
-	SendRequest(req, {}, done);
-	*/
+
+	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	Locator::getLogger()->info(
+	  "Finished creating RequestTop25 request for skillset {}",
+	  SkillsetToString(ss));
 }
 
 void

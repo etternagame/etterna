@@ -697,7 +697,7 @@ class DownloadManager
 	void RefreshPackList(const std::string& url);
 	void RefreshLastVersion();
 	void RefreshUserData();
-	void RefreshTop25(Skillset ss);
+	void RequestTop25(Skillset ss);
 
 	std::shared_ptr<Download> DownloadAndInstallPack(const std::string& url,
 													 std::string filename = "");
