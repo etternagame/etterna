@@ -179,6 +179,11 @@ local o = Def.ActorFrame {
 				nrt = replay:GetNoteRowVector()
 				ctt = replay:GetTrackVector()
 				ntt = replay:GetTapNoteTypeVector()
+			else
+				dvt = {}
+				nrt = {}
+				ctt = {}
+				ntt = {}
 			end
 
 			wuab = {}
