@@ -554,92 +554,74 @@ FillInHighScore(const PlayerStageStats& pss,
 	  BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
 	hs.SetScoreKey(ScoreKey);
 
-	// DOES NOT WORK NEEDS FIX -mina
-	// the vectors stored in pss are what are accessed by evaluation so we can
-	// write them to the replay file instead of the highscore object (if
-	// successful) -mina this is kinda messy meh -mina
-
-	if (pss.m_fWifeScore > 0.F) {
-		hs.SetOffsetVector(pss.GetOffsetVector());
-		hs.SetNoteRowVector(pss.GetNoteRowVector());
-		hs.SetTrackVector(pss.GetTrackVector());
-		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
-		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
-		hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
-
-		// ok this is a little jank but there's a few things going on here,
-		// first we can't trust that scores getting here are necessarily either
-		// fully completed or fails, so we can't trust that the wifescore in pss
-		// is necessarily the correct wifescore, or that rescoring using the
-		// offsetvectors will produce it
-		// second, since there is no setwifeversion function, newly minted
-		// scores won't have wifevers set, will be uploaded, then rescored on
-		// next load, and uploaded again, not a huge deal, but still undesirable
-		// thankfully we can fix both problems by just rescoring to wife3, this
-		// will properly set the wifescore as well as wife vers flags
-
-		// for this we need the actual totalpoints values, so we need steps data
-		auto steps = GAMESTATE->m_pCurSteps;
-		auto st = steps->m_StepsType;
-		auto* style = GAMEMAN->GetStyleForStepsType(st);
-		auto nd = steps->GetNoteData();
-		auto* td = steps->GetTimingData();
-
-		// transform the notedata by style if necessary
-		if (style != nullptr) {
-			NoteData ndo;
-			style->GetTransformedNoteDataForStyle(PLAYER_1, nd, ndo);
-			nd = ndo;
-		}
-
-		// Have to account for mirror and shuffle
-		if (style != nullptr && td != nullptr) {
-			PlayerOptions po;
-			po.Init();
-			po.SetForReplay(true);
-			po.FromString(modstr);
-			auto tmpSeed = GAMESTATE->m_iStageSeed;
-
-			// if rng was not saved, only apply non shuffle mods
-			if (hs.GetStageSeed() == 0) {
-				po.m_bTurns[PlayerOptions::TURN_SHUFFLE] = false;
-				po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] = false;
-				po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] = false;
-				po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE] = false;
-			} else {
-				GAMESTATE->m_iStageSeed = hs.GetStageSeed();
-			}
-
-			NoteDataUtil::TransformNoteData(nd, *td, po, style->m_StepsType);
-			GAMESTATE->m_iStageSeed = tmpSeed;
-		}
-		auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
-
-		// i _think_ an assert is ok here.. if this can happen we probably want
-		// to know about it
-		ASSERT(maxpoints > 0);
-
-		if (pss.GetGrade() == Grade_Failed) {
-			hs.SetSSRNormPercent(0.F);
-		} else {
-			hs.RescoreToWife3(maxpoints);
-		}
-
-		if (hs.GetEtternaValid()) {
-			auto dakine = pss.CalcSSR(hs.GetSSRNormPercent());
-			FOREACH_ENUM(Skillset, ss)
-			hs.SetSkillsetSSR(ss, dakine[ss]);
-
-			hs.SetSSRCalcVersion(GetCalcVersion());
-		} else {
-			FOREACH_ENUM(Skillset, ss)
-			hs.SetSkillsetSSR(ss, 0.F);
-		}
-	}
+	// Base replay data (V2)
+	hs.SetOffsetVector(pss.GetOffsetVector());
+	hs.SetNoteRowVector(pss.GetNoteRowVector());
+	hs.SetTrackVector(pss.GetTrackVector());
+	hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
+	hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
+	hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
 
 	// Input data
 	hs.SetInputDataVector(pss.GetInputDataVector());
 	hs.SetMissDataVector(pss.GetMissDataVector());
+
+	// prepare to rescore the play to clean up incomplete scores
+	auto steps = GAMESTATE->m_pCurSteps;
+	auto st = steps->m_StepsType;
+	auto* style = GAMEMAN->GetStyleForStepsType(st);
+	auto nd = steps->GetNoteData();
+	auto* td = steps->GetTimingData();
+
+	// transform the notedata by style if necessary
+	if (style != nullptr) {
+		NoteData ndo;
+		style->GetTransformedNoteDataForStyle(PLAYER_1, nd, ndo);
+		nd = ndo;
+	}
+
+	// Have to account for mirror and shuffle
+	if (style != nullptr && td != nullptr) {
+		PlayerOptions po;
+		po.Init();
+		po.SetForReplay(true);
+		po.FromString(modstr);
+		auto tmpSeed = GAMESTATE->m_iStageSeed;
+
+		// if rng was not saved, only apply non shuffle mods
+		if (hs.GetStageSeed() == 0) {
+			po.m_bTurns[PlayerOptions::TURN_SHUFFLE] = false;
+			po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] = false;
+			po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] = false;
+			po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE] = false;
+		} else {
+			GAMESTATE->m_iStageSeed = hs.GetStageSeed();
+		}
+
+		NoteDataUtil::TransformNoteData(nd, *td, po, style->m_StepsType);
+		GAMESTATE->m_iStageSeed = tmpSeed;
+	}
+	auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
+
+	// explode the game if something broke
+	ASSERT(maxpoints > 0);
+
+	if (pss.GetGrade() == Grade_Failed) {
+		hs.SetSSRNormPercent(0.F);
+	} else {
+		hs.RescoreToWife3(maxpoints);
+	}
+
+	if (hs.GetEtternaValid()) {
+		auto dakine = pss.CalcSSR(hs.GetSSRNormPercent());
+		FOREACH_ENUM(Skillset, ss)
+		hs.SetSkillsetSSR(ss, dakine[ss]);
+
+		hs.SetSSRCalcVersion(GetCalcVersion());
+	} else {
+		FOREACH_ENUM(Skillset, ss)
+		hs.SetSkillsetSSR(ss, 0.F);
+	}
 
 	// Normalize Judgments to J4 (regardless of wifepercent)
 	// If it fails, reset the replay data from pss and try one more time
