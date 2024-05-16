@@ -574,12 +574,77 @@ class DownloadManager
 		GetReplayDataRequest(scorekey, userid, username, chartkey, callback);
 	}
 
+	OnlineTopScore GetTopSkillsetScore(unsigned int rank,
+									   Skillset ss,
+									   bool& result);
+	float GetSkillsetRating(Skillset ss);
+	int GetSkillsetRank(Skillset ss);
+
 	DownloadablePackPagination& GetPackPagination(
 	  const std::string& searchString,
 	  std::set<std::string> tagFilters,
 	  int perPage,
 	  const std::string& sortBy,
 	  bool sortIsAsc);
+	std::shared_ptr<Download> DownloadAndInstallPack(const std::string& url,
+													 std::string filename = "");
+	std::shared_ptr<Download> DownloadAndInstallPack(DownloadablePack* pack,
+													 bool mirror = false);
+
+	/////
+	// User session
+	// Session cookie content
+	std::string authToken{ "" };
+	// Currently logged in username
+	std::string sessionUser{ "" };
+	// Leaderboard ranks for logged in user by skillset
+	std::map<Skillset, int> sessionRanks{};
+	// Online profile skillset ratings
+	std::map<Skillset, double> sessionRatings{};
+
+	/////
+	// Score uploads
+	std::deque<HighScore*> ScoreUploadSequentialQueue;
+	unsigned int sequentialScoreUploadTotalWorkload{ 0 };
+
+	/////
+	// Goal uploads
+	std::deque<ScoreGoal*> GoalUploadSequentialQueue;
+	unsigned int sequentialGoalUploadTotalWorkload{ 0 };
+
+	/////
+	// Favorite uploads
+	std::deque<std::string> FavoriteUploadSequentialQueue;
+	unsigned int sequentialFavoriteUploadTotalWorkload{ 0 };
+
+	/////
+	// Pack downloads
+	// Active downloads
+	std::map<std::string, std::shared_ptr<Download>> downloads;
+	// (pack,isMirror)
+	std::deque<std::pair<DownloadablePack*, bool>> DownloadQueue;
+	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
+	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
+	std::map<int, DownloadablePack> downloadablePacks;
+	std::unordered_map<std::string, std::vector<std::string>> packTags;
+	std::unordered_map<DownloadablePackPaginationKey,
+					   DownloadablePackPagination>
+	  downloadablePackPaginations{};
+
+	/////
+	// Chart leaderboards
+	std::map<std::string, std::vector<OnlineScore>> chartLeaderboards{};
+	std::map<Skillset, std::vector<OnlineTopScore>> topScores{};
+	std::set<std::string> unrankedCharts{};
+	bool currentrateonly = false;
+	bool topscoresonly = true;
+	bool ccoffonly = false;
+
+	/////
+	// Misc information
+	// Last version according to server (Or current if non was obtained)
+	std::string lastVersion{ "" };
+	std::string countryCode{ "" };
 
   private:
 	/// Default empty reference for calls allowing Lua functions to be passed
@@ -641,6 +706,10 @@ class DownloadManager
 							  const std::string& chartkey,
 							  LuaReference& callback);
 
+	void RefreshUserData();
+	void RequestTop25(Skillset ss);
+	void RefreshLastVersion();
+
 	void GetPackTagsRequest();
 
 	void MultiSearchRequest(ApiSearchCriteria searchCriteria,
@@ -679,6 +748,12 @@ class DownloadManager
 	  bool async,
 	  bool withBearer);
 
+	// Active HTTP requests (async, curlMulti)
+	std::vector<HTTPRequest*> HTTPRequests;
+
+	CURLM* pack_multi_handle = nullptr;
+	CURLM* http_req_handle = nullptr;
+
 	// Currently logging in (Since it's async, to not try twice)
 	bool loggingIn{ false };
 	// Currently in gameplay y/n
@@ -691,92 +766,14 @@ class DownloadManager
 	  ratelimitedRequestQueue{};
 	std::unordered_set<std::string> newlyRankedChartkeys{};
 
+
   // old
   public:
 
 	void RefreshPackList(const std::string& url);
-	void RefreshLastVersion();
-	void RefreshUserData();
-	void RequestTop25(Skillset ss);
 
-	std::shared_ptr<Download> DownloadAndInstallPack(const std::string& url,
-													 std::string filename = "");
-	std::shared_ptr<Download> DownloadAndInstallPack(DownloadablePack* pack,
-													 bool mirror = false);
 	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = false);
 	std::vector<DownloadablePack*> GetCoreBundle(const std::string& whichoneyo);
-
-	OnlineTopScore GetTopSkillsetScore(unsigned int rank,
-									   Skillset ss,
-									   bool& result);
-	float GetSkillsetRating(Skillset ss);
-	int GetSkillsetRank(Skillset ss);
-
-	// Active HTTP requests (async, curlMulti)
-	std::vector<HTTPRequest*> HTTPRequests;
-
-	CURLM* pack_multi_handle = nullptr;
-	CURLM* http_req_handle = nullptr;
-
-	/////
-	// User session
-	// Session cookie content
-	std::string authToken{ "" };
-	// Currently logged in username
-	std::string sessionUser{ "" };
-	// Leaderboard ranks for logged in user by skillset
-	std::map<Skillset, int> sessionRanks{};
-	// Online profile skillset ratings
-	std::map<Skillset, double> sessionRatings{};
-
-	/////
-	// Score uploads
-	std::deque<HighScore*> ScoreUploadSequentialQueue;
-	unsigned int sequentialScoreUploadTotalWorkload{ 0 };
-
-	/////
-	// Goal uploads
-	std::deque<ScoreGoal*> GoalUploadSequentialQueue;
-	unsigned int sequentialGoalUploadTotalWorkload{ 0 };
-
-	/////
-	// Favorite uploads
-	std::deque<std::string> FavoriteUploadSequentialQueue;
-	unsigned int sequentialFavoriteUploadTotalWorkload{ 0 };
-	
-
-	/////
-	// Pack downloads
-	const int maxPacksToDownloadAtOnce = 1;
-	const float DownloadCooldownTime = 5.f;
-	float timeSinceLastDownload = 0.f;
-	// Active downloads
-	std::map<std::string, std::shared_ptr<Download>> downloads;
-	// (pack,isMirror)
-	std::deque<std::pair<DownloadablePack*, bool>> DownloadQueue;
-	std::map<std::string, std::shared_ptr<Download>> finishedDownloads;
-	std::map<std::string, std::shared_ptr<Download>> pendingInstallDownloads;
-	std::map<int, DownloadablePack> downloadablePacks;
-	std::unordered_map<std::string, std::vector<std::string>> packTags;
-	std::unordered_map<DownloadablePackPaginationKey,
-					   DownloadablePackPagination>
-	  downloadablePackPaginations{};
-
-
-	/////
-	// Chart leaderboards
-	std::map<std::string, std::vector<OnlineScore>> chartLeaderboards{};
-	std::map<Skillset, std::vector<OnlineTopScore>> topScores{};
-	std::set<std::string> unrankedCharts{};
-	bool currentrateonly = false;
-	bool topscoresonly = true;
-	bool ccoffonly = false;
-
-	/////
-	// Misc information
-	// Last version according to server (Or current if non was obtained)
-	std::string lastVersion{ "" };
-	std::string countryCode;
 };
 
 extern std::shared_ptr<DownloadManager> DLMAN;
