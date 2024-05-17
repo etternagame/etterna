@@ -501,7 +501,7 @@ Profile::AddGoal(const std::string& ck)
 
 	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
-	DLMAN->AddGoal(&goal);
+	DLMAN->AddGoal(&goalmap[ck].goals.back());
 	FillGoalTable();
 	MESSAGEMAN->Broadcast("GoalTableRefresh");
 	return true;
