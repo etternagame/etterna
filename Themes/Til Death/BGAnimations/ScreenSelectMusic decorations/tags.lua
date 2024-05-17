@@ -322,6 +322,7 @@ local function makeTag(i)
 					end
 				end,
 				MouseDownCommand = function(self, params)
+					if steps == nil or song == nil then return end
 					if params.event == "DeviceButton_left mouse button" then
 						curTag = playertags[i + ((currenttagpage - 1) * tagsperpage)]
 						if tagFunction == 1 then
@@ -354,6 +355,7 @@ local function makeTag(i)
 						filterChanged = true
 						MESSAGEMAN:Broadcast("RefreshTags")
 					elseif params.event == "DeviceButton_right mouse button" then
+						if steps == nil or song == nil then return end
 						curTag = playertags[i + ((currenttagpage - 1) * tagsperpage)]
 						if tagFunction == 2 then
 							if filterTags[curTag] then
