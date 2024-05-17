@@ -1343,7 +1343,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 
 	static int Delete(T* p, lua_State* L)
 	{
-		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey,
+		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey.c_str(),
 													 p->timeassigned);
 		return 0;
 	}
