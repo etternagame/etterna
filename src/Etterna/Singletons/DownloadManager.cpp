@@ -6549,6 +6549,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 						  return a->GetWifeScore() > b->GetWifeScore();
 					  });
 		}
+		else if (!filteredLeaderboardScores.empty()) {
+			std::sort(filteredLeaderboardScores.begin(),
+					  filteredLeaderboardScores.end(),
+					  [](const HighScore* a, const HighScore* b) -> bool {
+						  if (a->GetMusicRate() == b->GetMusicRate()) {
+							  return a->GetWifeScore() > b->GetWifeScore();
+						  }
+						  return a->GetSkillsetSSR(Skill_Overall) >
+								 b->GetSkillsetSSR(Skill_Overall);
+					  });
+		}
 
 		LuaHelpers::CreateTableFromArray(filteredLeaderboardScores, L);
 		return 1;
