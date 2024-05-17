@@ -612,8 +612,8 @@ local function scoreBoard(pn, position)
 						rescorepercent = getRescoredWife3Judge(3, judge2, rescoretable)
 						local js = judge2 ~= 9 and judge2 or "ustice"
 						self:settextf(
-						"%05.4f%% (%s)", notShit.floor(rescorepercent, 4), ws .. js
-					)
+							"%05.4f%% (%s)", notShit.floor(rescorepercent, 4), ws .. js
+						)
 					end
 					if params.Name == "ResetJudge" then
 						judge2 = GetTimingDifficulty()
