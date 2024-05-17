@@ -1,7 +1,7 @@
 THEMEINFO = {
     Name = "Rebirth",
-    Version = "7",
-    Date = "20240423",
+    Version = "8",
+    Date = "20240516",
     Author = "Celebelian, poco0317, and the Etterna Team"
 }
 
