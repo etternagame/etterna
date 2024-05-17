@@ -259,7 +259,7 @@ local function beginLoginProcess(self)
     -- if you press escape or just enter nothing, you are forced out
     -- input redirects are controlled here because we want to be careful not to break any prior redirects
     askForInputStringWithFunction(
-        "Enter Username",
+        "Enter Email",
         255,
         false,
         function(answer)
