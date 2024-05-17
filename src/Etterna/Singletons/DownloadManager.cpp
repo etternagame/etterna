@@ -3602,6 +3602,8 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	Locator::getLogger()->trace(
 	  "ScoreToJSON :: score {} | ck {}", hs->GetScoreKey(), hs->GetChartKey());
 
+	auto validity = hs->GetEtternaValid() && hs->HasReplayData();
+
 	d.AddMember("key", stringToVal(hs->GetScoreKey(), allocator), allocator);
 	d.AddMember("wife", hs->GetSSRNormPercent(), allocator);
 	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
@@ -3650,14 +3652,24 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				allocator);
 	d.AddMember(
 	  "chart_key", stringToVal(hs->GetChartKey(), allocator), allocator);
-	d.AddMember(
-	  "judge", std::round(hs->GetJudgeScale() * 1000.0) / 1000.0, allocator);
 	d.AddMember("grade",
 				stringToVal(GradeToOldString(hs->GetWifeGrade()), allocator),
 				allocator);
 
+	if (hs->GetJudgeScale() == 0.F) {
+		Locator::getLogger()->info(
+		  "Score {} will default to J4 and upload as invalid",
+		  hs->GetScoreKey());
+		d.AddMember("judge", 1.F, allocator);
+		validity = false;
+	}
+	else {
+		d.AddMember("judge",
+					std::round(hs->GetJudgeScale() * 1000.0) / 1000.0,
+					allocator);
+	}
+
 	// comprehensive checks for forced invalidation
-	auto validity = hs->GetEtternaValid() && hs->HasReplayData();
 	if (validity) {
 		// if the score is valid, check the mods...
 		PlayerOptions po;
