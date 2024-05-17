@@ -576,6 +576,9 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(capWideScale(frameX + 140,frameX + 154), frameY + 27):zoom(0.6):halign(0.5):valign(0)
 			self:diffuse(getMainColor("positive"))
 		end,
+		GoalsUpdatedMessageCommand = function(self)
+			self:playcommand("MintyFresh")
+		end,
 		MintyFreshCommand = function(self)
 			if song and steps then
 				local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
