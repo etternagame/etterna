@@ -89,18 +89,14 @@ local t = Def.ActorFrame {
 		self:queuecommand("BORPBORPNORFNORFc"):visible(false)
 	end,
 	OffCommand = function(self)
-		--for some reason, tweening this tab causes a recursing tween error?????? help  -ulti
-		--self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
-		self:diffusealpha(0)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 		self:sleep(0.04):queuecommand("Invis")
 	end,
 	InvisCommand= function(self)
 		self:visible(false)
 	end,
 	OnCommand = function(self)
-		--here too
-		--self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
-		self:diffusealpha(1)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
 	end,
 	MouseRightClickMessageCommand = function(self)
 		if onTab then
@@ -112,9 +108,10 @@ local t = Def.ActorFrame {
 		end
 	end,
 	BORPBORPNORFNORFcCommand = function(self)
+		self:finishtweening()
 		if getTabIndex() == 9 then
-			self:visible(true)
 			self:queuecommand("On")
+			self:visible(true)
 			song = GAMESTATE:GetCurrentSong()
 			steps = GAMESTATE:GetCurrentSteps()
 			onTab = true
@@ -125,7 +122,7 @@ local t = Def.ActorFrame {
 		end
 	end,
 	TabChangedMessageCommand = function(self)
-		self:queuecommand("BORPBORPNORFNORFc")
+		self:playcommand("BORPBORPNORFNORFc")
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if getTabIndex() == 9 then
