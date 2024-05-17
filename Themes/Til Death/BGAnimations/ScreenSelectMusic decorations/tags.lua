@@ -37,6 +37,7 @@ local translated_info = {
 	Previous = THEME:GetString("TabTags", "Previous"),
 	Showing = THEME:GetString("TabTags", "Showing"),
 	Title = THEME:GetString("TabTags", "Title"),
+	HowToDelete = THEME:GetString("TabTags", "HowToDelete"),
 }
 
 local function newTagInput(event)
@@ -591,6 +592,25 @@ r[#r + 1] = Def.ActorFrame {
 			self:GetParent():diffusealpha(1)
 		end,
 	}
+}
+
+r[#r+1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(frameX + frameWidth/2, frameY + capWideScale(80, 80) + 225)
+		self:zoom(0.45)
+		self:settextf("%s", translated_info["HowToDelete"])
+		-- self:diffuse(getMainColor("positive"))
+		self:visible(false)
+	end,
+	UpdateTagsMessageCommand = function(self)
+		self:queuecommand("BORPBORPNORFNORFc")
+	end,
+	RefreshTagsMessageCommand = function(self)
+		self:queuecommand("BORPBORPNORFNORFc")
+	end,
+	BORPBORPNORFNORFcCommand = function(self)
+		self:visible(tagFunction == 3)
+	end,
 }
 
 -- main quad with paginator i guess?
