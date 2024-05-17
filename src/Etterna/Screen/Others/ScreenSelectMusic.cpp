@@ -1764,6 +1764,7 @@ ScreenSelectMusic::GoalFromCurrentChart()
 		}
 	}
 	song->SetHasGoal(songHasGoal);
+	steps->SetHasGoal(true);
 
 	MESSAGEMAN->Broadcast(Message_GoalsUpdated);
 	m_MusicWheel.RebuildWheelItems(0);

@@ -685,6 +685,24 @@ Profile::RemoveGoal(const std::string& ck, DateTime assigned)
 		if (sgv[i].timeassigned == assigned) {
 			DLMAN->RemoveGoal(&sgv[i]);
 			sgv.erase(sgv.begin() + i);
+
+			// remove goal from data structures
+			auto song = SONGMAN->GetSongByChartkey(ck);
+			auto steps = SONGMAN->GetStepsByChartkey(ck);
+			if (goalmap.contains(ck) && goalmap.at(ck).Get().size() == 0) {
+				steps->SetHasGoal(false);
+			}
+			if (song) {
+				auto hasgoal = false;
+				for (auto& s : song->GetAllSteps()) {
+					if (goalmap.contains(ck) &&
+						goalmap.at(ck).Get().size() > 0) {
+						hasgoal = true;
+						break;
+					}
+				}
+				song->SetHasGoal(hasgoal);
+			}
 		}
 	}
 }

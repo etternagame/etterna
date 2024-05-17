@@ -346,6 +346,7 @@ local function makeGoalDisplay(i)
 				if params.event == "DeviceButton_left mouse button" then
 					sg:Delete()
 					GetPlayerOrMachineProfile(PLAYER_1):SetFromAll()
+					SCREENMAN:GetTopScreen():GetMusicWheel():RebuildWheelItems()
 					self:GetParent():GetParent():queuecommand("GoalTableRefresh")
 				end
 			end
