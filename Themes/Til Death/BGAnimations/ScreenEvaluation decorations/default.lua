@@ -551,8 +551,8 @@ local function scoreBoard(pn, position)
 						clampJudge()
 						rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 						local js = judge ~= 9 and judge or "ustice"
-							self:settextf(
-								"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), ws .. js
+						self:settextf(
+							"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), ws .. js
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
