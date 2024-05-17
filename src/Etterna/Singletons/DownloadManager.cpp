@@ -4096,7 +4096,8 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 				hs->forceuploadedthissession = true;
 				if (unrankedUploadKeys.contains(hs->GetScoreKey())) {
 					// unranked files just cant be force reuploaded
-					continue;
+					// (later: commented this to allow fuller uploading)
+					// continue;
 				}
 				// everything else successfully had an upload attempt
 				// so record it
@@ -4483,15 +4484,14 @@ DownloadManager::InitialScoreSync()
 			if (s->GetGrade() == Grade_Failed)
 				continue;
 
-			// the chart must be ranked to be uploaded
-			if (!newlyRankedChartkeys.contains(s->GetChartKey()))
-				continue;
-
 			// handle rescores, ignore upload check
 			if (newly_rescored.count(s))
 				toUpload.push_back(s);
 			// normal behavior, upload scores that haven't been uploaded
 			else if (!s->IsUploadedToServer(serverURL.Get()))
+				toUpload.push_back(s);
+			// if the chart was recently ranked, upload
+			else if (newlyRankedChartkeys.contains(s->GetChartKey()))
 				toUpload.push_back(s);
 		}
 
