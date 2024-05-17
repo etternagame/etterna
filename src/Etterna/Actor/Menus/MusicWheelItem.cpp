@@ -303,9 +303,13 @@ MusicWheelItem::RefreshGrades()
 
 	m_pGradeDisplay->SetVisible(true);
 
-	bool hasGoal = false;
-	bool hasFavorite = false;
-	bool hasPermamirror = false;
+	auto hasGoal = false;
+	auto allGoalsComplete = true;
+	auto hasFavorite = false;
+	auto hasPermamirror = false;
+	auto* prof = PROFILEMAN->GetProfile(PLAYER_1);
+	if (prof == nullptr)
+		allGoalsComplete = false;
 
 	Grade gradeBest = Grade_Invalid;
 	Difficulty dcBest = Difficulty_Invalid;
@@ -326,6 +330,15 @@ MusicWheelItem::RefreshGrades()
 			hasGoal |= s->HasGoal();
 			hasFavorite |= s->IsFavorited();
 			hasPermamirror |= s->IsPermaMirror();
+
+			if (allGoalsComplete && s->HasGoal()) {
+				for (auto& g : prof->goalmap.at(s->GetChartKey()).goals) {
+					if (!g.achieved && !g.vacuous) {
+						allGoalsComplete = false;
+						break;
+					}
+				}
+			}
 		}
 		FOREACH_ENUM_N(Difficulty, 6, i)
 		{
@@ -366,8 +379,10 @@ MusicWheelItem::RefreshGrades()
 		msg.SetParam("Favorited", 1);
 	if (hasPermamirror)
 		msg.SetParam("PermaMirror", 1);
-	if (hasGoal)
+	if (hasGoal) {
 		msg.SetParam("HasGoal", 1);
+		msg.SetParam("AllGoalsComplete", allGoalsComplete);
+	}
 	if (gradeBest != Grade_Invalid) {
 		msg.SetParam("Grade", gradeBest);
 		msg.SetParam("Difficulty", DifficultyToString(dcBest));
