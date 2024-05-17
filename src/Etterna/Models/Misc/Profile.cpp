@@ -1067,26 +1067,39 @@ class LunaProfile : public Luna<Profile>
 	{
 		p->FillGoalTable();
 
-		if (p->filtermode == 3) {
-			p->filtermode = 1;
+		auto direction = true;
+		if (!lua_isnoneornil(L, 1)) {
+			direction = BArg(1);
+		}
+
+		auto newmode = p->filtermode;
+		if (direction)
+			newmode++;
+		else
+			newmode--;
+		if (newmode > 3)
+			newmode = 1;
+		else if (newmode < 1)
+			newmode = 3;
+		p->filtermode = newmode;
+
+		if (p->filtermode == 1) {
 			return 0;
 		}
 
 		std::vector<ScoreGoal*> doot;
-		if (p->filtermode == 1) {
+		if (p->filtermode == 2) {
 			for (auto& sg : p->goaltable)
 				if (sg->achieved)
 					doot.emplace_back(sg);
 			p->goaltable = doot;
-			p->filtermode = 2;
 			return 0;
 		}
-		if (p->filtermode == 2) {
+		if (p->filtermode == 3) {
 			for (auto& sg : p->goaltable)
 				if (!sg->achieved)
 					doot.emplace_back(sg);
 			p->goaltable = doot;
-			p->filtermode = 3;
 			return 0;
 		}
 		return 0;

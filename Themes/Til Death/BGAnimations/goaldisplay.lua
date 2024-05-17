@@ -208,7 +208,12 @@ local o = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter()
+				GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter(true)
+				ind = 0
+				self:settext(filts[GetPlayerOrMachineProfile(PLAYER_1):GetFilterMode()])
+				self:GetParent():queuecommand("GoalTableRefresh")
+			elseif params.event == "DeviceButton_right mouse button" then
+				GetPlayerOrMachineProfile(PLAYER_1):ToggleFilter(false)
 				ind = 0
 				self:settext(filts[GetPlayerOrMachineProfile(PLAYER_1):GetFilterMode()])
 				self:GetParent():queuecommand("GoalTableRefresh")
