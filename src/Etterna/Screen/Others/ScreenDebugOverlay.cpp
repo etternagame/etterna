@@ -1581,17 +1581,24 @@ class DebugLineChartFolder: public IDebugLine
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return GAMESTATE->m_pCurSong != nullptr; }
 
-	void DoAndLog(std::string& sMessageOut) override
-	{
+	bool ForceOffAfterUse() const override {
 		Song* s = GAMESTATE->m_pCurSong;
 		if (s != nullptr) {
 			auto d = s->GetSongDir();
 			auto b = SONGMAN->WasLoadedFromAdditionalSongs(s);
 			auto p = FILEMAN->ResolveSongFolder(d, b);
 
-			Core::Platform::openFolder(p);
+			return Core::Platform::openFolder(p);
+		}
+		return false;
+	}
+	void DoAndLog(std::string& sMessageOut) override
+	{
+		Song* s = GAMESTATE->m_pCurSong;
+		if (s != nullptr) {
 			IDebugLine::DoAndLog(sMessageOut);
 			sMessageOut += " - Opened " + s->m_sSongFileName;
+			// ForceOffAfterUse actually handles the thing...
 		}
 	}
 };
