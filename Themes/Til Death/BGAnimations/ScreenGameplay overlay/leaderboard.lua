@@ -196,7 +196,7 @@ function scoreEntry(i)
 		function(self, hs)
 			self:settext(tostring(i))
 		end,
-		5,
+		8,
 		ENTRY_HEIGHT / 4
 	)
 	addLabel(
@@ -228,7 +228,7 @@ function scoreEntry(i)
 		function(self, hs)
 			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(hs:GetWifeGrade()))
 		end,
-		1.8 * WIDTH
+		1.85 * WIDTH
 	)
 	addLabel(
 		"grade",
