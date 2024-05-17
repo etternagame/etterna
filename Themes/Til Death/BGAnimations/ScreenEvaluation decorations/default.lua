@@ -542,8 +542,10 @@ local function scoreBoard(pn, position)
 						judge = judge - 1
 						clampJudge()
 						rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
+						local pct = notShit.floor(rescorepercent, 2)
+						self:diffuse(getGradeColor(GetGradeFromPercent(pct/100)))
 						self:settextf(
-							"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), ws .. judge
+							"%05.2f%% (%s)", pct, ws .. judge
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					elseif params.Name == "NextJudge" and judge < 9 then
@@ -551,8 +553,10 @@ local function scoreBoard(pn, position)
 						clampJudge()
 						rescorepercent = getRescoredWife3Judge(3, judge, rescoretable)
 						local js = judge ~= 9 and judge or "ustice"
+						local pct = notShit.floor(rescorepercent, 2)
+						self:diffuse(getGradeColor(GetGradeFromPercent(pct/100)))
 						self:settextf(
-							"%05.2f%% (%s)", notShit.floor(rescorepercent, 2), ws .. js
+							"%05.2f%% (%s)", pct, ws .. js
 						)
 						MESSAGEMAN:Broadcast("RecalculateGraphs", {judge = judge})
 					end
@@ -604,15 +608,19 @@ local function scoreBoard(pn, position)
 					if params.Name == "PrevJudge" and judge2 > 4 then
 						judge2 = judge2 - 1
 						rescorepercent = getRescoredWife3Judge(3, judge2, rescoretable)
+						local pct = notShit.floor(rescorepercent, 4)
+						self:diffuse(getGradeColor(GetGradeFromPercent(pct/100)))
 						self:settextf(
-							"%05.4f%% (%s)", notShit.floor(rescorepercent, 4), ws .. judge2
+							"%05.4f%% (%s)", pct, ws .. judge2
 						)
 					elseif params.Name == "NextJudge" and judge2 < 9 then
 						judge2 = judge2 + 1
 						rescorepercent = getRescoredWife3Judge(3, judge2, rescoretable)
 						local js = judge2 ~= 9 and judge2 or "ustice"
+						local pct = notShit.floor(rescorepercent, 4)
+						self:diffuse(getGradeColor(GetGradeFromPercent(pct/100)))
 						self:settextf(
-							"%05.4f%% (%s)", notShit.floor(rescorepercent, 4), ws .. js
+							"%05.4f%% (%s)", pct, ws .. js
 						)
 					end
 					if params.Name == "ResetJudge" then
