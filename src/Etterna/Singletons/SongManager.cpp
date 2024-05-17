@@ -1224,6 +1224,7 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 	auto songs = GetSongs(sGroupName);
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();
+		const auto hadGoal = s->HasGoal();
 		std::vector<string> oldChartkeys;
 		oldChartkeys.reserve(stepses.size());
 		for (auto steps : stepses) {
@@ -1232,6 +1233,23 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 
 		s->ReloadFromSongDir();
 		SONGMAN->ReconcileChartKeysForReloadedSong(s, oldChartkeys);
+
+		if (hadGoal) {
+			s->SetHasGoal(hadGoal);
+			// this should be the new list of steps after reload
+			auto* prof = PROFILEMAN->GetProfile(PLAYER_1);
+			if (prof) {
+				auto& goals = prof->goalmap;
+				for (auto* steps : s->GetAllSteps()) {
+					if (goals.contains(steps->GetChartKey()) &&
+						goals.at(steps->GetChartKey()).Get().size() > 0) {
+						steps->SetHasGoal(true);
+					} else {
+						steps->SetHasGoal(false);
+					}
+				}
+			}
+		}
 	}
 }
 

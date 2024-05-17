@@ -1640,12 +1640,30 @@ ScreenSelectMusic::ReloadCurrentSong()
 	auto to_reload = GAMESTATE->m_pCurSong;
 	if (to_reload != nullptr) {
 		auto stepses = to_reload->GetAllSteps();
+		const auto hadGoal = to_reload->HasGoal();
 		std::vector<std::string> oldChartkeys;
 		for (auto* steps : stepses)
 			oldChartkeys.emplace_back(steps->GetChartKey());
 
 		to_reload->ReloadFromSongDir();
 		SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
+
+		if (hadGoal) {
+			to_reload->SetHasGoal(hadGoal);
+			// this should be the new list of steps after reload
+			auto* prof = PROFILEMAN->GetProfile(PLAYER_1);
+			if (prof) {
+				auto& goals = prof->goalmap;
+				for (auto* steps : to_reload->GetAllSteps()) {
+					if (goals.contains(steps->GetChartKey()) &&
+						goals.at(steps->GetChartKey()).Get().size() > 0) {
+						steps->SetHasGoal(true);
+					} else {
+						steps->SetHasGoal(false);
+					}
+				}
+			}
+		}
 
 		MESSAGEMAN->Broadcast(Message_ReloadedCurrentSong);
 		m_MusicWheel.RebuildWheelItems(0);
@@ -1755,6 +1773,7 @@ ScreenSelectMusic::GoalFromCurrentChart()
 		return false;
 
 	pProfile->AddGoal(steps->GetChartKey());
+	steps->SetHasGoal(true);
 
 	bool songHasGoal = false;
 	for (auto s : song->GetAllSteps()) {
@@ -1764,7 +1783,6 @@ ScreenSelectMusic::GoalFromCurrentChart()
 		}
 	}
 	song->SetHasGoal(songHasGoal);
-	steps->SetHasGoal(true);
 
 	MESSAGEMAN->Broadcast(Message_GoalsUpdated);
 	m_MusicWheel.RebuildWheelItems(0);
