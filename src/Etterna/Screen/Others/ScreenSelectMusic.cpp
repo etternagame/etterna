@@ -53,6 +53,10 @@ XToString(SelectionState);
 static const ThemeMetric<int> HARD_COMMENT_METER("ScreenSelectMusic",
 												 "HardCommentMeter");
 
+static Preference<bool> PACK_CACHE_DOES_ENTIRE_LIBRARY(
+  "CacheEveryPackInsteadOfJustOne",
+  false);
+
 AutoScreenMessage(SM_AllowOptionsMenuRepeat);
 AutoScreenMessage(SM_SongChanged);
 AutoScreenMessage(SM_SortOrderChanging);
@@ -1785,9 +1789,17 @@ ScreenSelectMusic::AddCurrentChartToActivePlaylist()
 bool
 ScreenSelectMusic::CachePackForRanking(const std::string& pack)
 {
-	SONGMAN->GenerateCachefilesForGroup(pack);
-	AfterMusicChange();
-	return true;
+	if (PACK_CACHE_DOES_ENTIRE_LIBRARY) {
+		for (auto& group : SONGMAN->GetSongGroupNames()) {
+			SONGMAN->GenerateCachefilesForGroup(group);
+		}
+		AfterMusicChange();
+		return true;
+	} else {
+		SONGMAN->GenerateCachefilesForGroup(pack);
+		AfterMusicChange();
+		return true;
+	}
 }
 
 // lua start
