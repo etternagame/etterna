@@ -1094,7 +1094,8 @@ SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
 	for (auto song : m_pSongs) {
 		auto hasGoal = false;
 		for (auto steps : song->GetAllSteps()) {
-			if (goalmap.count(steps->GetChartKey()) != 0u) {
+			if (goalmap.contains(steps->GetChartKey()) &&
+				goalmap.at(steps->GetChartKey()).Get().size() > 0) {
 				hasGoal = true;
 				steps->SetHasGoal(true);
 			}
