@@ -352,7 +352,7 @@ local t = Def.ActorFrame {
 }
 
 -- Music Rate Display
-t[#t + 1] = LoadFont("Common Large") .. {
+t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 	InitCommand = function(self)
 		self:xy(20, SCREEN_BOTTOM - 226):visible(true):halign(0):zoom(0.4):maxwidth(
 			capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
@@ -372,7 +372,22 @@ t[#t + 1] = LoadFont("Common Large") .. {
 	end,
 	GoalSelectedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
-	end
+	end,
+	MouseOverCommand = function(self)
+		self:diffusealpha(hoverAlpha2)
+	end,
+	MouseOutCommand = function(self)
+		self:diffusealpha(1)
+	end,
+	MouseDownCommand = function(self, params)
+		if not self:IsVisible() then return end
+		if params.event == "DeviceButton_right mouse button" then
+			ChangeMusicRate(nil, {Name="NextRate"})
+		elseif params.event == "DeviceButton_left mouse button" then
+			ChangeMusicRate(nil, {Name="PrevRate"})
+		end
+		self:settext(getCurRateDisplayString())
+	end,
 }
 
 t[#t + 1] = Def.Actor {
