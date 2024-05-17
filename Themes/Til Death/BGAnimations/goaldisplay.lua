@@ -414,7 +414,7 @@ local function makeGoalDisplay(i)
 		UIElements.TextToolTip(1, 1, "Common normal") .. {
 			--song name
 			InitCommand = function(self)
-				self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(32, 62)) / tzoom):halign(0):valign(1):draworder(1)
+				self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - capWideScale(50, 80)) / tzoom):halign(0):valign(1):draworder(1)
 			end,
 			DisplayCommand = function(self)
 				if goalsong then
@@ -473,7 +473,7 @@ local function makeGoalDisplay(i)
 		LoadFont("Common normal") .. {
 			--assigned
 			InitCommand = function(self)
-				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth(width / 4 / tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(0):maxwidth(width / 3.5 / tzoom)
 			end,
 			DisplayCommand = function(self)
 				self:settextf("%s: %s", translated_info["Assigned"], sg:WhenAssigned()):diffuse(byAchieved(sg))
@@ -482,7 +482,7 @@ local function makeGoalDisplay(i)
 		LoadFont("Common normal") .. {
 			--achieved
 			InitCommand = function(self)
-				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth(width / 4 / tzoom)
+				self:x(c4x):zoom(tzoom):halign(1):valign(1):maxwidth(width / 3.5 / tzoom)
 			end,
 			DisplayCommand = function(self)
 				if sg:IsAchieved() then
