@@ -1641,6 +1641,9 @@ ScreenSelectMusic::ReloadCurrentSong()
 	if (to_reload != nullptr) {
 		auto stepses = to_reload->GetAllSteps();
 		const auto hadGoal = to_reload->HasGoal();
+		const auto hadFavorite = to_reload->HasFavoritedChart();
+		const auto hadPermamirror = to_reload->HasPermaMirrorChart();
+
 		std::vector<std::string> oldChartkeys;
 		for (auto* steps : stepses)
 			oldChartkeys.emplace_back(steps->GetChartKey());
@@ -1648,20 +1651,28 @@ ScreenSelectMusic::ReloadCurrentSong()
 		to_reload->ReloadFromSongDir();
 		SONGMAN->ReconcileChartKeysForReloadedSong(to_reload, oldChartkeys);
 
-		if (hadGoal) {
-			to_reload->SetHasGoal(hadGoal);
+		to_reload->SetHasGoal(hadGoal);
+		to_reload->SetHasFavoritedChart(hadFavorite);
+		to_reload->SetHasPermaMirrorChart(hadPermamirror);
+
+		auto* prof = PROFILEMAN->GetProfile(PLAYER_1);
+		if (prof) {
+			auto& goals = prof->goalmap;
+			auto& favs = prof->FavoritedCharts;
+			auto& permamirror = prof->PermaMirrorCharts;
+
 			// this should be the new list of steps after reload
-			auto* prof = PROFILEMAN->GetProfile(PLAYER_1);
-			if (prof) {
-				auto& goals = prof->goalmap;
-				for (auto* steps : to_reload->GetAllSteps()) {
-					if (goals.contains(steps->GetChartKey()) &&
-						goals.at(steps->GetChartKey()).Get().size() > 0) {
-						steps->SetHasGoal(true);
-					} else {
-						steps->SetHasGoal(false);
-					}
+			for (auto* steps : to_reload->GetAllSteps()) {
+				const auto& ck = steps->GetChartKey();
+				if (goals.contains(ck) &&
+					goals.at(ck).Get().size() > 0) {
+					steps->SetHasGoal(true);
+				} else {
+					steps->SetHasGoal(false);
 				}
+
+				steps->SetFavorited(favs.count(ck) > 0u);
+				steps->SetPermaMirror(permamirror.count(ck) > 0u);
 			}
 		}
 
