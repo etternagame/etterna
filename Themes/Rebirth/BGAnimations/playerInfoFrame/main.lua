@@ -261,7 +261,7 @@ local function beginLoginProcess(self)
     askForInputStringWithFunction(
         "Enter Email",
         255,
-        false,
+        true,
         function(answer)
             username = answer
             -- moving on to step 2 if the answer isnt blank

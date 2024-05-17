@@ -99,7 +99,7 @@ local function loginStep1(self)
 	-- if you press escape or just enter nothing, you are forced out
 	-- input redirects are controlled here because we want to be careful not to break any prior redirects
 	easyInputStringOKCancel(
-		translated_info["Username"]..":", 255, false,
+		translated_info["Username"]..":", 255, true,
 		function(answer)
 			username = answer
 			-- moving on to step 2 if the answer isnt blank
