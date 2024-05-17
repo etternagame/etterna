@@ -408,6 +408,10 @@ class Replay
 		vOnlineTapNoteTypeVector.shrink_to_fit();
 	}
 
+	/// Setting the mod string is handled separately.
+	/// Use this to set mods, as long as a scorekey is given.
+	auto SetHighScoreMods() -> void;
+
 	/// Lua
 	void PushSelf(lua_State* L);
 
@@ -425,10 +429,6 @@ class Replay
 	/// information. Make it all up. This fills in the column data using
 	/// NoteData. This also provides TapNoteTypes
 	auto GenerateReplayV2DataPresumptively() -> bool;
-
-	/// Setting the mod string is handled separately.
-	/// Use this to set mods, as long as a scorekey is given.
-	auto SetHighScoreMods() -> void;
 
 	void ClearPrimitiveVectors() {
 		vOffsetVector.clear();

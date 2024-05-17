@@ -222,6 +222,8 @@ Replay::GetTimingData() -> TimingData*
 auto
 Replay::SetHighScoreMods() -> void
 {
+	if (!mods.empty())
+		return;
 	auto* hs = GetHighScore();
 	if (hs != nullptr) {
 		auto ms = hs->GetModifiers();
@@ -232,6 +234,8 @@ Replay::SetHighScoreMods() -> void
 		  ms.end());
 		mods = ms;
 	} else {
+		Locator::getLogger()->warn(
+		  "Set no mods for replay {} - this is very bad", GetScoreKey());
 		mods = NO_MODS;
 	}
 }

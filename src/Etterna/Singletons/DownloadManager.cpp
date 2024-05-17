@@ -3860,6 +3860,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 		const auto& minedata = replay->GetMineReplayDataVector();
 		if (!inputdata.empty()) {
 			const auto& replay = hs->GetReplay();
+			replay->SetHighScoreMods(); // load the mods if they arent loaded..
 			inputDataObject.AddMember("mods", stringToVal(replay->GetModifiers(), allocator), allocator);
 			inputDataObject.AddMember(
 			  "chartkey",
