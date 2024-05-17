@@ -94,7 +94,7 @@ static Preference<unsigned int> UPLOAD_FAVORITE_BULK_CHUNK_SIZE(
 // all paths should begin with / and end without /
 /// API root path
 static const std::string API_ROOT = "/api/client";
-static const std::string API_KEY = "CsrvreCj5YnhxYcpfFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFd";
+static const std::string API_KEY = "CsrvreCj5YnhxYcpfFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFf";
 static const std::string TYPESENSE_API_KEY = "uNVBQbmgvnet2LTpT6sE3XYe7JeD8xej";
 
 static const std::string API_LOGIN = "/login";
