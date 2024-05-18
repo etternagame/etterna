@@ -110,7 +110,7 @@ Replay::GetHighScore() -> HighScore*
 	HighScore* o = nullptr;
 
 	// for local scores
-	auto scoresByKey = SCOREMAN->GetScoresByKey();
+	auto& scoresByKey = SCOREMAN->GetScoresByKey();
 	if (!scoresByKey.empty()) {
 		auto it = scoresByKey.find(scoreKey);
 		if (it != scoresByKey.end()) {
