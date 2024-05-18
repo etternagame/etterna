@@ -358,6 +358,7 @@ local function PBDisplayButton(i)
 				end
 				self:zoom(fontScale)
 				self:maxwidth(160)
+				if chartlist == nil or chartlist[i + ((currentchartpage - 1) * chartsperplaylist)] == nil then return end
 				local pbrate = chartlist[i + ((currentchartpage - 1) * chartsperplaylist)]:GetRate()
 				local pbchartkey = keylist[i + ((currentchartpage - 1) * chartsperplaylist)]
 				local pb = getpb(pbchartkey, pbrate)
