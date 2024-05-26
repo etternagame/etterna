@@ -17,6 +17,7 @@ local DefaultParams = {
 	SelectType = "SelectOne",
 	OneChoiceForAllPlayers = true,
 	ExportOnChange = false,
+	ExportOnCancel = false,
 	EnabledForPlayers = nil,
 	ReloadRowMessages = nil,
 	-- takes a function(self, list, pn);

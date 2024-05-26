@@ -187,6 +187,7 @@ function PracticeMode()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
+        ExportOnCancel = true,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = GAMESTATE:IsPracticeMode()
@@ -213,6 +214,7 @@ function JudgeDifficulty()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
+        ExportOnCancel = false,
 		Choices = {"4", "5", "6", "7", "8", THEME:GetString("OptionNames", "Justice")},
 		LoadSelections = function(self, list, pn)
 			local td = math.max(GetTimingDifficulty() - 3, 1)
@@ -255,7 +257,8 @@ function RateList()
         LayoutType = "ShowAllInRow",
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
-        ExportOnChange = true,
+        ExportOnChange = false,
+        ExportOnCancel = true,
         Choices = ratelist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
@@ -309,6 +312,7 @@ function InputDebounceTime()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
         ExportOnChange = true,
+        ExportOnCancel = true,
         Choices = delaylist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
@@ -365,6 +369,7 @@ function FrameLimitGlobal()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
         ExportOnChange = true,
+        ExportOnCancel = true,
         Choices = delaylist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
@@ -427,7 +432,8 @@ function FrameLimitGameplay()
         LayoutType = "ShowAllInRow",
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
-        ExportOnChange = true,
+        ExportOnChange = false,
+        ExportOnCancel = true,
         Choices = delaylist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
@@ -486,6 +492,7 @@ function VisualDelaySeconds()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
         ExportOnChange = true,
+        ExportOnCancel = true,
         Choices = delaylist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
@@ -537,6 +544,7 @@ function GlobalOffsetSeconds()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
         ExportOnChange = true,
+        ExportOnCancel = true,
         Choices = numlist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
@@ -585,6 +593,7 @@ function GranularHiddenOffset()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
         ExportOnChange = true,
+        ExportOnCancel = true,
         Choices = HOlist,
 	LoadSelections = function(self, list, pn)
 		local HOindex = 1
@@ -632,6 +641,7 @@ function GranularSuddenOffset()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
         ExportOnChange = true,
+        ExportOnCancel = true,
         Choices = SOlist,
 	LoadSelections = function(self, list, pn)
 		local SOindex = 1
@@ -681,6 +691,7 @@ function SoundVolumeControl()
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = true,
         ExportOnChange = true,
+        ExportOnCancel = false,
         Choices = numlist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
@@ -723,6 +734,7 @@ function DisableWindowsKeyInGameplay()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
+        ExportOnCancel = false,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = PREFSMAN:GetPreference("DisableWindowsKey")
@@ -755,6 +767,7 @@ function MaxTextureResolutionOption()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
+        ExportOnCancel = false,
 		Choices = numlist,
 		LoadSelections = function(self, list, pn)
 			local pref = PREFSMAN:GetPreference("MaxTextureResolution")
@@ -788,6 +801,7 @@ function FixKeyboardLayout()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = true,
+        ExportOnCancel = false,
 		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
 		LoadSelections = function(self, list, pn)
 			local pref = PREFSMAN:GetPreference("FixKeyboardLayout")
