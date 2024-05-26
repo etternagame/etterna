@@ -1,4 +1,12 @@
-local t = Def.ActorFrame{ }
+local t = Def.ActorFrame {
+	OnCommand = function(self)
+		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if event.DeviceInput.button == "DeviceButton_right mouse button" then
+				SCREENMAN:GetTopScreen():Cancel()
+			end
+		end)
+	end,
+}
 
 t[#t + 1] = LoadActor(THEME:GetPathG("", "_OptionsScreen")) .. {
 	OnCommand = function(self)

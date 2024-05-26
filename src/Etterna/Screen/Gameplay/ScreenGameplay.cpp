@@ -1679,10 +1679,19 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		ResetGiveUpTimers(false);
 
 		const auto bAllReallyFailed = STATSMAN->m_CurStageStats.Failed();
-
 		if (bAllReallyFailed) {
-			this->PostScreenMessage(SM_BeginFailed, 0);
-			return;
+			const auto bFailedHard =
+			  STATSMAN->m_CurStageStats.m_player.GetMaxCombo().m_cnt == 0;
+			if (bFailedHard) {
+				Locator::getLogger()->info(
+				  "Player hit literally nothing, so exiting gameplay and "
+				  "ignoring score...");
+				this->PostScreenMessage(SM_DoPrevScreen, 0);
+				return;
+			} else {
+				this->PostScreenMessage(SM_BeginFailed, 0);
+				return;
+			}
 		}
 
 		// todo: add GameplayCleared, StartTransitioningCleared commands -aj

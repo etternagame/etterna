@@ -223,6 +223,8 @@ function BUTTON.ResetButtonTable(self, screenName)
 		self.ButtonTable[screenName] = nil
 		self.CurTopButton = nil
 		self.CurDownButton = {}
+		self.mouseMoved = false
+		self:WaitForMouseMovement(false)
     end
 end
 
@@ -246,6 +248,17 @@ function BUTTON.AddButton(self, actor, screenName, depth)
     end
 end
 
+-- return true or false as to whether or not the mouse has moved on the currently loaded screen
+function BUTTON.MouseHasMoved(self)
+	return self.mouseMoved or false
+end
+
+function BUTTON.WaitForMouseMovement(self, b)
+	if b == nil then return self.waitForMouseMovement end
+	self.waitForMouseMovement = b
+	return b
+end
+
 -- Updates the position. Sends a broadcast if the position has changed.
 -- This is called constantly from _mouse.lua via an updatefunction.
 function BUTTON.UpdateMouseState(self)
@@ -265,11 +278,26 @@ function BUTTON.UpdateMouseState(self)
 	self.MouseX = INPUTFILTER:GetMouseX()
 	self.MouseY = INPUTFILTER:GetMouseY()
 
+	local oldscrn = self.topScrnNm or ""
+	self.topScrnNm = topScreen:GetName()
+	if oldscrn ~= self.topScrnNm then
+		self.mouseMoved = false
+	end
+
+	if oldX ~= self.MouseX or oldY ~= self.MouseY then
+		self.mouseMoved = true
+	end
+
+	-- if the mouse has to move and has not, do nothing
+	if self:WaitForMouseMovement() and not self:MouseHasMoved() then
+		return
+	end
+	
 
 	local curButton, curButtonDepth = self:GetTopButton(self.MouseX, self.MouseY)
 	-- If the top actor in which the mouse was hovering over has changed.
 	if curButton ~= self.CurTopButton then
-		if curButton ~= nil then 
+		if curButton ~= nil then
 			self:OnMouseOver(curButton, curButtonDepth)
 		end
 		if self.CurTopButton ~= nil then

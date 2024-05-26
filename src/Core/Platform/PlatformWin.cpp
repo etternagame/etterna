@@ -146,6 +146,13 @@ namespace Core::Platform {
     }
 
 	std::string getSystem(){
+		static std::string result{};
+
+		if (!result.empty()) {
+			// prevent repeatedly calling this
+			return result;
+		}
+
 	    // Registry subkey where values are located
         std::string versionKey = R"(SOFTWARE\Microsoft\Windows NT\CurrentVersion)";
 
@@ -156,7 +163,8 @@ namespace Core::Platform {
         unsigned minor = RegistryGetDWORD(HKEY_LOCAL_MACHINE, versionKey, "CurrentMinorVersionNumber");
         std::string build = RegistryGetString(HKEY_LOCAL_MACHINE, versionKey, "CurrentBuildNumber");
 
-        return fmt::format("Windows {}.{} {} (Build #{})", major, minor, productName, build);
+		result = fmt::format("Windows {}.{} {} (Build #{})", major, minor, productName, build);
+		return result;
 	}
 
 	std::string getArchitecture(){

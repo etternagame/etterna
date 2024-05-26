@@ -85,6 +85,10 @@ local function isAudio(filename)
 	return false
 end
 
+local function isNotFolder(filename)
+	return filename:find("[.]") == nil
+end
+
 local function getImagePath(path, assets) -- expecting a table of asset paths where fallbacks are default
 	for i=1, #assets do
 		if isImage(assets[i]) then
@@ -118,7 +122,7 @@ local function loadAssetTable() -- load asset table for current type
 	selectedPath = getAssetByType(type, GUID)
 	local dirlisting = FILEMAN:GetDirListing(assetFolders[type])
 	if containsDirsOnly(dirlisting) then
-		assetTable = dirlisting
+		assetTable = filter(isNotFolder, dirlisting)
 	else
 		assetTable = filter(isImage, dirlisting)
 	end

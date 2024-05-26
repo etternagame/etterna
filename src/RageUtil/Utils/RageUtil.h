@@ -820,7 +820,14 @@ Decrement(T a) -> T
 	--a;
 	return a;
 }
-
+auto
+compress_string(const std::string& str, int compressionLevel = 9) -> std::string;
+auto
+decompress_string(const std::string& str) -> std::string;
+std::string
+base64_encode(const ::std::string& bindata);
+std::string
+base64_decode(const std::string& ascdata);
 void
 TrimLeft(std::string& sStr, const char* szTrim = "\r\n\t ");
 void

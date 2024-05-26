@@ -1161,14 +1161,16 @@ local t = Def.ActorFrame {
         local anm = self:GetName()
         -- this keeps track of whether or not the user is allowed to use the keyboard to change tabs
         CONTEXTMAN:RegisterToContextSet(snm, "CalcDebug", anm)
+        CONTEXTMAN:ToggleContextSet(snm, "CalcDebug", false)
 
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
             -- if locked out, dont allow
             if not CONTEXTMAN:CheckContextSet(snm, "CalcDebug") then return end
             if event.type == "InputEventType_FirstPress" then
-                if event.DeviceInput.button == "DeviceButton_space" then
+                if event.DeviceInput.button == "DeviceButton_space" or event.DeviceInput.button == "DeviceButton_escape" then
                     -- this should propagate off to the right places
                     self:GetParent():playcommand("CloseCalcDebug")
+                    return true
                 end
 
                 if event.DeviceInput.button == "DeviceButton_mousewheel up" then
@@ -1199,7 +1201,7 @@ local t = Def.ActorFrame {
         MESSAGEMAN:Broadcast("HideWheel")
         MESSAGEMAN:Broadcast("HideRightFrame")
         local snm = SCREENMAN:GetTopScreen():GetName()
-        CONTEXTMAN:ToggleContextSet(snm, "CalcDebug", true)
+        CONTEXTMAN:SetFocusedContextSet(snm, "CalcDebug")
         if not SCUFF.preview.active then
             -- chart preview was not on
             SCUFF.preview.active = true

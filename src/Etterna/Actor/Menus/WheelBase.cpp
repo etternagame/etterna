@@ -590,6 +590,12 @@ class LunaWheelBase : public Luna<WheelBase>
 		return 1;
 	}
 
+	static int RebuildWheelItems(T* p, lua_State* L)
+	{
+		p->RebuildWheelItems(0);
+		COMMON_RETURN_SELF;
+	}
+
 	LunaWheelBase()
 	{
 		ADD_METHOD(Move);
@@ -600,9 +606,7 @@ class LunaWheelBase : public Luna<WheelBase>
 		ADD_METHOD(GetCurrentIndex);
 		ADD_METHOD(GetNumItems);
 		ADD_METHOD(GetSelectedType);
-		// evil shit
-		// ADD_METHOD( Move );
-		// ADD_METHOD( ChangeMusic );
+		ADD_METHOD(RebuildWheelItems);
 	}
 };
 

@@ -1060,10 +1060,14 @@ SongManager::SetFavoritedStatus(std::set<string>& favs)
 		for (auto steps : song->GetAllSteps()) {
 			if (favs.count(steps->GetChartKey()) != 0u) {
 				fav = true;
+				steps->SetFavorited(true);
+			}
+			else {
+				steps->SetFavorited(false);
 			}
 		}
 
-		song->SetFavorited(fav);
+		song->SetHasFavoritedChart(fav);
 	}
 }
 
@@ -1073,7 +1077,11 @@ SongManager::SetPermaMirroredStatus(std::set<string>& pmir)
 	for (auto song : m_pSongs) {
 		for (auto steps : song->GetAllSteps()) {
 			if (pmir.count(steps->GetChartKey()) != 0u) {
-				song->SetPermaMirror(true);
+				song->SetHasPermaMirrorChart(true);
+				steps->SetPermaMirror(true);
+			}
+			else {
+				steps->SetPermaMirror(false);
 			}
 		}
 	}
@@ -1086,8 +1094,13 @@ SongManager::SetHasGoal(std::unordered_map<string, GoalsForChart>& goalmap)
 	for (auto song : m_pSongs) {
 		auto hasGoal = false;
 		for (auto steps : song->GetAllSteps()) {
-			if (goalmap.count(steps->GetChartKey()) != 0u) {
+			if (goalmap.contains(steps->GetChartKey()) &&
+				goalmap.at(steps->GetChartKey()).Get().size() > 0) {
 				hasGoal = true;
+				steps->SetHasGoal(true);
+			}
+			else {
+				steps->SetHasGoal(false);
 			}
 			song->SetHasGoal(hasGoal);
 		}
@@ -1211,6 +1224,10 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 	auto songs = GetSongs(sGroupName);
 	for (auto s : songs) {
 		auto stepses = s->GetAllSteps();
+		const auto hadGoal = s->HasGoal();
+		const auto hadFavorite = s->HasFavoritedChart();
+		const auto hadPermamirror = s->HasPermaMirrorChart();
+
 		std::vector<string> oldChartkeys;
 		oldChartkeys.reserve(stepses.size());
 		for (auto steps : stepses) {
@@ -1219,6 +1236,31 @@ SongManager::ForceReloadSongGroup(const std::string& sGroupName) const
 
 		s->ReloadFromSongDir();
 		SONGMAN->ReconcileChartKeysForReloadedSong(s, oldChartkeys);
+
+		s->SetHasGoal(hadGoal);
+		s->SetHasFavoritedChart(hadFavorite);
+		s->SetHasPermaMirrorChart(hadPermamirror);
+
+		auto* prof = PROFILEMAN->GetProfile(PLAYER_1);
+		if (prof) {
+			auto& goals = prof->goalmap;
+			auto& favs = prof->FavoritedCharts;
+			auto& permamirror = prof->PermaMirrorCharts;
+
+			// this should be the new list of steps after reload
+			for (auto* steps : s->GetAllSteps()) {
+				const auto& ck = steps->GetChartKey();
+				if (goals.contains(ck) &&
+					goals.at(ck).Get().size() > 0) {
+					steps->SetHasGoal(true);
+				} else {
+					steps->SetHasGoal(false);
+				}
+
+				steps->SetFavorited(favs.count(ck) > 0u);
+				steps->SetPermaMirror(permamirror.count(ck) > 0u);
+			}
+		}
 	}
 }
 
@@ -1351,7 +1393,7 @@ void
 SongManager::GetFavoriteSongs(std::vector<Song*>& songs) const
 {
 	for (const auto& song : m_pSongs) {
-		if (song->IsFavorited()) {
+		if (song->HasFavoritedChart()) {
 			songs.emplace_back(song);
 		}
 	}

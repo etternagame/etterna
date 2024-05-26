@@ -188,7 +188,7 @@ local ret = Def.ActorFrame {
 	end,
 	ChangeStepsMessageCommand = function(self)
 		if getTabIndex() ~= 2 then return end
-		self:playcommand("Set"):finishtweening()
+		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
 	CollapseCommand = function(self)

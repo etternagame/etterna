@@ -271,6 +271,13 @@ class Steps
 	}
 	auto IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool;
 
+	auto IsFavorited() const -> bool { return isFavorited; }
+	auto SetFavorited(bool b) -> void { isFavorited = b; }
+	auto HasGoal() const -> bool { return hasGoal; }
+	auto SetHasGoal(bool b) -> void { hasGoal = b; }
+	auto IsPermaMirror() const -> bool { return isPermamirror; }
+	auto SetPermaMirror(bool b) -> void { isPermamirror = b; }
+
   private:
 	std::string ChartKey = "";
 	struct UniquePtrNoteData {
@@ -332,6 +339,10 @@ class Steps
 	 * @brief What is the maximum specified BPM?
 	 * If this is a range, then min should not be equal to max. */
 	float specifiedBPMMax;
+
+	bool hasGoal = false;
+	bool isFavorited = false;
+	bool isPermamirror = false;
 
 	bool m_bDuplicateDifficulty = false;
 	std::vector<std::string> debugstrings;

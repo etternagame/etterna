@@ -1065,6 +1065,9 @@ sm_main(int argc, char* argv[])
 
 	GAMESTATE = new GameState;
 
+	GAMESTATE->ProgramHash =
+	  BinaryToHex(CryptManager::GetSHA256ForFileWithoutRageFile(argv[0]));
+
 	std::vector<std::string> arguments(argv + 1, argv + argc);
 	noWindow = std::any_of(arguments.begin(), arguments.end(), [](std::string str) {
 		return str == "notedataCache";

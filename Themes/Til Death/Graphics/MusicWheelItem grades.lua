@@ -18,7 +18,11 @@ return Def.ActorFrame {
 		end,
 		SetGradeCommand = function(self, params)
 			if params.HasGoal then
-				self:diffuse(byJudgment("TapNoteScore_Miss"))
+				if not params.AllGoalsComplete then
+					self:diffuse(byJudgment("TapNoteScore_Miss"))
+				else
+					self:diffuse(byJudgment("TapNoteScore_W1"))
+				end
 				self:diffusealpha(1)
 			else
 				self:diffusealpha(0)

@@ -18,12 +18,16 @@ class CryptManager
 	  -> std::string; // in binary
 	static auto GetMD5ForFile(const std::string& fn)
 	  -> std::string; // in binary
+	static auto GetMD5ForFileWithoutRageFile(const std::string& fn)
+	  -> std::string; // in binary
 	static auto GetSHA1ForString(const std::string& sData)
 	  -> std::string; // in binary
 	static auto GetSHA1ForFile(const std::string& fn)
 	  -> std::string; // in binary
 	static auto GetSHA256ForString(const std::string& sData) -> std::string;
 	static auto GetSHA256ForFile(const std::string& fn) -> std::string;
+	static auto GetSHA256ForFileWithoutRageFile(const std::string& fn)
+	  -> std::string; // in binary
 	// Lua
 	void PushSelf(lua_State* L);
 };

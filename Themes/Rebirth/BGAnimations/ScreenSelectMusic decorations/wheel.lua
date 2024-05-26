@@ -511,8 +511,8 @@ local function songActorUpdater(songFrame, song, isCurrentItem)
     songFrame.SubTitle:settext(song:GetDisplaySubTitle())
     songFrame.Artist:settext("~"..song:GetDisplayArtist())
     songFrame.Grade:playcommand("SetGrade", {grade = song:GetHighestGrade()})
-    songFrame.Favorited:diffusealpha(song:IsFavorited() and 1 or 0)
-    songFrame.Permamirror:diffusealpha(song:IsPermaMirror() and 1 or 0)
+    songFrame.Favorited:diffusealpha(#WHEELDATA:GetFavoritedCharts(song) > 0 and 1 or 0)
+    songFrame.Permamirror:diffusealpha(#WHEELDATA:GetPermaMirrorCharts(song) > 0 and 1 or 0)
     songBannerSetter(songFrame.Banner, song, isCurrentItem)
 end
 

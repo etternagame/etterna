@@ -52,14 +52,16 @@ local translated_info = {
 	LoginSuccess = THEME:GetString("GeneralInfo", "LoginSuccess"),
 	LoginCanceled = THEME:GetString("GeneralInfo", "LoginCanceled"),
 	Password = THEME:GetString("GeneralInfo","Password"),
-	Username = THEME:GetString("GeneralInfo","Username"),
+	Username = THEME:GetString("GeneralInfo","Email"),
 	Plays = THEME:GetString("GeneralInfo", "ProfilePlays"),
+	PlaysThisSession = THEME:GetString("GeneralInfo", "PlaysThisSession"),
 	TapsHit = THEME:GetString("GeneralInfo", "ProfileTapsHit"),
 	Playtime = THEME:GetString("GeneralInfo", "ProfilePlaytime"),
 	Judge = THEME:GetString("GeneralInfo", "ProfileJudge"),
 	RefreshSongs = THEME:GetString("GeneralInfo", "DifferentialReloadTrigger"),
 	SongsLoaded = THEME:GetString("GeneralInfo", "ProfileSongsLoaded"),
-	SessionTime = THEME:GetString("GeneralInfo", "SessionTime")
+	SessionTime = THEME:GetString("GeneralInfo", "SessionTime"),
+	GroupsLoaded = THEME:GetString("GeneralInfo", "GroupsLoaded"),
 }
 
 local function UpdateTime(self)
@@ -97,7 +99,7 @@ local function loginStep1(self)
 	-- if you press escape or just enter nothing, you are forced out
 	-- input redirects are controlled here because we want to be careful not to break any prior redirects
 	easyInputStringOKCancel(
-		translated_info["Username"]..":", 255, false,
+		translated_info["Username"]..":", 255, true,
 		function(answer)
 			username = answer
 			-- moving on to step 2 if the answer isnt blank
@@ -348,7 +350,7 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				local userpage = "urlnoexit,https://etternaonline.com/user/" .. DLMAN:GetUsername()
+				local userpage = "urlnoexit," .. DLMAN:GetHomePage() .. "/users/" .. DLMAN:GetUsername()
 				GAMESTATE:ApplyGameCommand(userpage)
 			end
 		end,
@@ -362,7 +364,7 @@ t[#t + 1] = Def.ActorFrame {
 			highlightIfOver(self)
 		end,
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(AvatarX + 54, AvatarY + 21):halign(0):zoom(0.35):diffuse(nonButtonColor)
 		end,
@@ -371,7 +373,18 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		SetCommand = function(self)
 			self:settextf("%s %s", playCount, translated_info["Plays"])
-		end
+		end,
+		MouseOverCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:SetText(SCOREMAN:GetNumScoresThisSession() .. " " .. translated_info["PlaysThisSession"])
+			TOOLTIP:Show()
+		end,
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:Hide()
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		InitCommand = function(self)
@@ -485,7 +498,7 @@ t[#t + 1] = Def.ActorFrame {
 			end
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH - 3, AvatarY + 30):halign(1):zoom(0.35):diffuse(nonButtonColor)
 		end,
@@ -497,11 +510,22 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		DFRFinishedMessageCommand = function(self)
 			self:queuecommand("Set")
-		end
+		end,
+		MouseOverCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:SetText(SONGMAN:GetNumSongGroups() .. " " .. translated_info["GroupsLoaded"])
+			TOOLTIP:Show()
+		end,
+		MouseOutCommand = function(self)
+			highlightIfOver(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:Hide()
+		end,
 	},
 	-- ok coulda done this as a separate object to avoid copy paste but w.e
 	-- upload progress bar bg
-	Def.Quad {
+	UIElements.QuadButton(1,1) .. {
 		InitCommand = function(self)
 			self:xy(SCREEN_WIDTH * 2/3, AvatarY + 41):zoomto(uploadbarwidth, uploadbarheight)
 			self:diffuse(color("#111111")):diffusealpha(0):halign(0)
@@ -510,8 +534,31 @@ t[#t + 1] = Def.ActorFrame {
 			self:diffusealpha(1)
 			if params.percent == 1 then
 				self:diffusealpha(0)
+				if isOver(self) then
+					TOOLTIP:Hide()
+				end
 			end
-		end
+		end,
+		SequentialScoreUploadFinishedMessageCommand = function(self)
+			self:diffusealpha(0)
+			if isOver(self) then
+				TOOLTIP:Hide()
+			end
+		end,
+		LogOutMessageCommand = function(self)
+			self:playcommand("SequentialScoreUploadFinished")
+		end,
+		MouseOverCommand = function(self)
+			if not self:IsVisible() or DLMAN:GetQueuedScoreUploadTotal() == 0 then return end
+			local remaining = DLMAN:GetQueuedScoreUploadsRemaining()
+			local total = DLMAN:GetQueuedScoreUploadTotal()
+			TOOLTIP:SetText("Remaining Scores: "..remaining.." out of "..total)
+			TOOLTIP:Show()
+		end,
+		MouseOutCommand = function(self)
+			if not self:IsVisible() then return end
+			TOOLTIP:Hide()
+		end,
 	},
 	-- fill bar
 	Def.Quad {
@@ -525,8 +572,14 @@ t[#t + 1] = Def.ActorFrame {
 			if params.percent == 1 then
 				self:diffusealpha(0)
 			end
-		end
-		},
+		end,
+		SequentialScoreUploadFinishedMessageCommand = function(self)
+			self:diffusealpha(0)
+		end,
+		LogOutMessageCommand = function(self)
+			self:playcommand("SequentialScoreUploadFinished")
+		end,
+	},
 	-- super required explanatory text
 	LoadFont("Common Normal") .. {
 	    InitCommand = function(self)
@@ -539,7 +592,13 @@ t[#t + 1] = Def.ActorFrame {
 			if params.percent == 1 then
 				self:diffusealpha(0)
 			end
-		end
+		end,
+		SequentialScoreUploadFinishedMessageCommand = function(self)
+			self:diffusealpha(0)
+		end,
+		LogOutMessageCommand = function(self)
+			self:playcommand("SequentialScoreUploadFinished")
+		end,
 	}
 }
 

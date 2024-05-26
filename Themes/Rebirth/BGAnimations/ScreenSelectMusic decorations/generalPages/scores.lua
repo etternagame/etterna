@@ -619,7 +619,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = "https://etternaonline.com/user/" .. score:GetDisplayName()
+                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName()
                             GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
                         end
                     end
@@ -671,7 +671,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = "https://etternaonline.com/score/view/" .. score:GetScoreid() .. score:GetUserid()
+                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName() .. "/scores/" .. score:GetScoreid()
                             GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
                         end
                     end
@@ -1170,17 +1170,19 @@ local function createList()
                 local judgeSetting = 4
                 if steps ~= nil then
                     if score:HasReplayData() then
-                        local offsets = score:GetOffsetVector()
+                        local replay = score:GetReplay()
+                        replay:LoadAllData()
+                        local offsets = replay:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = score:GetTrackVector()
-                        local types = score:GetTapNoteTypeVector()
-                        local noterows = score:GetNoteRowVector()
-                        local holds = score:GetHoldNoteVector()
+                        local tracks = replay:GetTrackVector()
+                        local types = replay:GetTapNoteTypeVector()
+                        local noterows = replay:GetNoteRowVector()
+                        local holds = replay:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 
@@ -1639,17 +1641,19 @@ local function createList()
                 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2)))
                 if steps ~= nil then
                     if localscore:HasReplayData() then
-                        local offsets = localscore:GetOffsetVector()
+                        local replay = localscore:GetReplay()
+                        replay:LoadAllData()
+                        local offsets = replay:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = localscore:GetTrackVector()
-                        local types = localscore:GetTapNoteTypeVector()
-                        local noterows = localscore:GetNoteRowVector()
-                        local holds = localscore:GetHoldNoteVector()
+                        local tracks = replay:GetTrackVector()
+                        local types = replay:GetTapNoteTypeVector()
+                        local noterows = replay:GetNoteRowVector()
+                        local holds = replay:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 

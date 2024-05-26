@@ -487,7 +487,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = "https://etternaonline.com/user/" .. hs:GetDisplayName()
+					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName()
 					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 				end
 			end
@@ -515,7 +515,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = "https://etternaonline.com/score/view/" .. hs:GetScoreid() .. hs:GetUserid()
+					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName() .. "/scores/" .. hs:GetScoreid()
 					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 				end
 			end,

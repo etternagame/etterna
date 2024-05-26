@@ -320,6 +320,8 @@ class GameState
 	// A "persistent" way to know if we restarted gameplay (hack)
 	bool m_bRestartedGameplay;
 
+	std::string ProgramHash{};
+
 	// Discord Rich Presence
 	void discordInit();
 	void updateDiscordPresence(const std::string& largeImageText,

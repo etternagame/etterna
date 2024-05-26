@@ -192,6 +192,9 @@ local function assetList()
             end
         end
     end
+    local function isNotFolder(filename)
+        return filename:find("[.]") == nil
+    end
     local function isImage(filename)
         local extensions = {".png", ".jpg", "jpeg"} -- lazy list
         local ext = string.sub(filename, #filename-3)
@@ -246,7 +249,7 @@ local function assetList()
         selectedPath = getAssetByType(type, GUID)
         local dirlisting = FILEMAN:GetDirListing(assetFolders[type])
         if containsDirsOnly(dirlisting) then
-            assetTable = dirlisting
+            assetTable = filter(isNotFolder, dirlisting)
         else
             assetTable = filter(isImage, dirlisting)
         end

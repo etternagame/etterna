@@ -2333,12 +2333,12 @@ class LunaSong : public Luna<Song>
 	}
 	static int IsFavorited(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsFavorited());
+		lua_pushboolean(L, p->HasFavoritedChart());
 		return 1;
 	}
 	static int IsPermaMirror(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsPermaMirror());
+		lua_pushboolean(L, p->HasPermaMirrorChart());
 		return 1;
 	}
 	// has functions

@@ -12,6 +12,7 @@
 #include "openssl/md5.h"
 
 #include <functional>
+#include <fstream>
 
 CryptManager* CRYPTMAN =
   nullptr; // global and accessible from anywhere in our program
@@ -23,7 +24,7 @@ HashFile(std::string fn,
 {
 	RageFile file;
 	if (!file.Open(fn, RageFile::READ)) {
-		Locator::getLogger()->warn("GetMD5ForFile: Failed to open file '{}'", fn.c_str());
+		Locator::getLogger()->warn("HashFile: Failed to open file '{}'", fn);
 		return false;
 	}
 
@@ -92,6 +93,32 @@ CryptManager::GetMD5ForFile(const std::string& fn)
 }
 
 std::string
+CryptManager::GetMD5ForFileWithoutRageFile(const std::string& fn)
+{
+	MD5_CTX* hash = new MD5_CTX;
+	MD5_Init(hash);
+
+	std::ifstream fin(fn, std::ios::binary);
+	if (!fin) {
+		Locator::getLogger()->warn(
+		  "GetMD5ForFileWithoutRageFile: Failed to open file '{}'", fn);
+		return "";
+	}
+
+	std::vector<char> buffer(1024, 0);
+	while (!fin.eof()) {
+		buffer.clear();
+		fin.read(buffer.data(), 1024);
+
+		MD5_Update(hash, buffer.data(), fin.gcount());
+	}
+
+	unsigned char digest[MD5_DIGEST_LENGTH];
+	MD5_Final(digest, hash);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
+}
+
+std::string
 CryptManager::GetMD5ForString(const std::string& sData)
 {
 	unsigned char digest[MD5_DIGEST_LENGTH];
@@ -152,6 +179,32 @@ CryptManager::GetSHA256ForFile(const std::string& fn)
 				  fn.c_str());
 		return std::string();
 	}
+	unsigned char digest[SHA256_DIGEST_LENGTH];
+	SHA256_Final(digest, hash);
+	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));
+}
+
+std::string
+CryptManager::GetSHA256ForFileWithoutRageFile(const std::string& fn)
+{
+	SHA256_CTX* hash = new SHA256_CTX;
+	SHA256_Init(hash);
+
+	std::ifstream fin(fn, std::ios::binary);
+	if (!fin) {
+		Locator::getLogger()->warn(
+		  "GetMD5ForFileWithoutRageFile: Failed to open file '{}'", fn);
+		return "";
+	}
+
+	std::vector<char> buffer(1024, 0);
+	while (!fin.eof()) {
+		buffer.clear();
+		fin.read(buffer.data(), 1024);
+
+		SHA256_Update(hash, buffer.data(), fin.gcount());
+	}
+
 	unsigned char digest[SHA256_DIGEST_LENGTH];
 	SHA256_Final(digest, hash);
 	return std::string(reinterpret_cast<const char*>(digest), sizeof(digest));

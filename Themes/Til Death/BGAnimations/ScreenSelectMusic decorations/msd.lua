@@ -77,7 +77,7 @@ local t = Def.ActorFrame {
 		end
 	end,
 	CurrentRateChangedMessageCommand = function(self)
-		self:queuecommand("Set")
+		self:playcommand("Set")
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if getTabIndex() == 1 then

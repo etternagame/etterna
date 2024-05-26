@@ -31,6 +31,12 @@ return Def.ActorFrame {
         self:diffusealpha(0)
     end,
     OnCommand = function(self)
+        SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if event.DeviceInput.button == "DeviceButton_right mouse button" then
+				SCREENMAN:GetTopScreen():Cancel()
+			end
+		end)
+        
         local question = self:GetParent():GetChild("Question")
         local answer = self:GetParent():GetChild("Answer")
 

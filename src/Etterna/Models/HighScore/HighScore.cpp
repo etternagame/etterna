@@ -615,6 +615,12 @@ HighScore::GetCopyOfMineReplayDataVector()
 	return replay->GetCopyOfMineReplayDataVector();
 }
 auto
+HighScore::GetCopyOfMissReplayDataVector() -> std::vector<MissReplayResult>
+{
+	CheckReplayIsInit();
+	return replay->GetCopyOfMissReplayDataVector();
+}
+auto
 HighScore::GetCopyOfSetOnlineReplayTimestampVector() -> std::vector<float>
 {
 	CheckReplayIsInit();
@@ -663,6 +669,12 @@ HighScore::GetMineReplayDataVector()
 {
 	CheckReplayIsInit();
 	return replay->GetMineReplayDataVector();
+}
+auto
+HighScore::GetMissReplayDataVector() -> const std::vector<MissReplayResult>&
+{
+	CheckReplayIsInit();
+	return replay->GetMissReplayDataVector();
 }
 auto
 HighScore::GetScoreKey() const -> const std::string&
@@ -1626,134 +1638,6 @@ class LunaHighScore : public Luna<HighScore>
 		return 0;
 	}
 
-	// Convert to MS so lua doesn't have to
-	// not exactly sure why i'm doing this fancy load garbage or if it works...
-	// -mina
-	static auto GetOffsetVector(T* p, lua_State* L) -> int
-	{
-		auto v = p->GetOffsetVector();
-		const auto loaded = !v.empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = p->GetOffsetVector();
-			}
-			for (auto& i : v) {
-				i = i * 1000;
-			}
-			LuaHelpers::CreateTableFromArray(v, L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetNoteRowVector(T* p, lua_State* L) -> int
-	{
-		const auto* v = &(p->GetNoteRowVector());
-		const auto loaded = !v->empty();
-
-		auto timestamps = p->GetCopyOfSetOnlineReplayTimestampVector();
-
-		if (loaded || p->LoadReplayData()) {
-			// this is a local highscore with a local replay
-			// easy to just output the noterows loaded
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else if (!timestamps.empty() && v->empty()) {
-			// this is a legacy online replay
-			// missing rows but with timestamps instead
-			// we can try our best to show the noterows by approximating
-			GAMESTATE->SetProcessedTimingData(
-			  GAMESTATE->m_pCurSteps->GetTimingData());
-			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
-			auto nerv = nd.BuildAndGetNerv(td);
-			auto sdifs = td->BuildAndGetEtaner(nerv);
-			std::vector<int> noterows;
-			for (auto t : timestamps) {
-				auto timestamptobeat =
-				  td->GetBeatFromElapsedTime(t * p->GetMusicRate());
-				const auto somenumberscaledbyoffsets =
-				  sdifs[0] - (timestamps[0] * p->GetMusicRate());
-				timestamptobeat += somenumberscaledbyoffsets;
-				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
-				noterows.emplace_back(noterowfrombeat);
-			}
-			const auto noterowoffsetter = nerv[0] - noterows[0];
-			for (auto& noterowwithoffset : noterows) {
-				noterowwithoffset += noterowoffsetter;
-			}
-			GAMESTATE->SetProcessedTimingData(nullptr);
-			p->SetNoteRowVector(noterows);
-
-			v = &(p->GetNoteRowVector()); // uhh
-
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else {
-			// ok we got nothing, just throw null
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetTrackVector(T* p, lua_State* L) -> int
-	{
-		const auto* v = &(p->GetTrackVector());
-		const auto loaded = !v->empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = &(p->GetTrackVector());
-			}
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetTapNoteTypeVector(T* p, lua_State* L) -> int
-	{
-		const auto* v = &(p->GetTapNoteTypeVector());
-		const auto loaded = !v->empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = &(p->GetTapNoteTypeVector());
-			}
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetHoldNoteVector(T* p, lua_State* L) -> int
-	{
-		auto v = p->GetHoldReplayDataVector();
-		const auto loaded = !v.empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = p->GetHoldReplayDataVector();
-			}
-			// make containing table
-			lua_newtable(L);
-			for (size_t i = 0; i < v.size(); i++) {
-				// make table for each item
-				lua_createtable(L, 0, 3);
-
-				lua_pushnumber(L, v[i].row);
-				lua_setfield(L, -2, "row");
-				lua_pushnumber(L, v[i].track);
-				lua_setfield(L, -2, "track");
-				LuaHelpers::Push<TapNoteSubType>(L, v[i].subType);
-				lua_setfield(L, -2, "TapNoteSubType");
-
-				lua_rawseti(L, -2, i + 1);
-			}
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
 	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
 		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
@@ -1841,11 +1725,6 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(ToggleEtternaValidation);
 		ADD_METHOD(GetEtternaValid);
 		ADD_METHOD(HasReplayData);
-		ADD_METHOD(GetOffsetVector);
-		ADD_METHOD(GetNoteRowVector);
-		ADD_METHOD(GetTrackVector);
-		ADD_METHOD(GetTapNoteTypeVector);
-		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetReplayType);
 		ADD_METHOD(GetReplay);

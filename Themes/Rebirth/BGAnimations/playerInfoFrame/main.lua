@@ -259,9 +259,9 @@ local function beginLoginProcess(self)
     -- if you press escape or just enter nothing, you are forced out
     -- input redirects are controlled here because we want to be careful not to break any prior redirects
     askForInputStringWithFunction(
-        "Enter Username",
+        "Enter Email",
         255,
-        false,
+        true,
         function(answer)
             username = answer
             -- moving on to step 2 if the answer isnt blank
@@ -995,7 +995,12 @@ t[#t+1] = Def.ActorFrame {
             ToolTipCommand = function(self)
                 -- weird check here to throw out nan
                 if isOver(self) and self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
-                    local st = string.format("%s: %5.2f%%", translations["UploadPercent"], self.percent * 100)
+                    local st = string.format(
+                        "%s: %5.2f%% (%d/%d)",
+                        translations["UploadPercent"],
+                        self.percent * 100,
+                        DLMAN:GetQueuedScoreUploadTotal() * self.percent,
+                        DLMAN:GetQueuedScoreUploadTotal())
                     TOOLTIP:SetText(st)
                     TOOLTIP:Show()
                 else

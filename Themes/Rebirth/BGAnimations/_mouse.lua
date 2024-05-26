@@ -11,6 +11,11 @@ BUTTON:ResetButtonTable(screenName)
 -- the visible mouse is in Tooltip.lua, part of the TOOLTIP table
 
 
+-- this determines whether or not mouse functionality is fully disabled until the mouse actually moves
+-- to prevent moving elements from triggering hovers when the mouse didnt even move
+local waitForMouseMovement = Var("waitForMouseMovement") or false
+BUTTON:WaitForMouseMovement(waitForMouseMovement) -- this must be called after ResetButtonTable
+
 local function cursorCheck()
     -- show cursor if in fullscreen
     if not PREFSMAN:GetPreference("Windowed") and not PREFSMAN:GetPreference("FullscreenIsBorderlessWindow") then

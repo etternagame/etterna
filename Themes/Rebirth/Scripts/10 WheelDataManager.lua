@@ -526,6 +526,39 @@ function WHEELDATA.GetChartsMatchingFilter(self, song)
     return t
 end
 
+function WHEELDATA.GetFavoritedCharts(self, song, charts)
+    if charts == nil then charts = self:GetChartsMatchingFilter(song) end
+    local result = {}
+    for i,c in ipairs(charts) do
+        if c:IsFavorited() then
+            result[#result+1] = c
+        end
+    end
+    return result
+end
+
+function WHEELDATA.GetChartsWithGoals(self, song)
+    if charts == nil then charts = self:GetChartsMatchingFilter(song) end
+    local result = {}
+    for i,c in ipairs(charts) do
+        if c:HasGoal() then
+            result[#result+1] = c
+        end
+    end
+    return result
+end
+
+function WHEELDATA.GetPermaMirrorCharts(self, song)
+    if charts == nil then charts = self:GetChartsMatchingFilter(song) end
+    local result = {}
+    for i,c in ipairs(charts) do
+        if c:IsPermaMirror() then
+            result[#result+1] = c
+        end
+    end
+    return result
+end
+
 -- quickly empty the sorted lists
 function WHEELDATA.ResetSorts(self)
     self.AllFilteredSongs = {}
