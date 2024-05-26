@@ -175,7 +175,7 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 		handleChangeMask(m_iChangeMask);
 
 		Locator::getLogger()->trace("Transferring to the prev screen now.");
-		this->HandleScreenMessage(SM_GoToNextScreen);
+		ScreenWithMenuElements::HandleScreenMessage(SM);
 		return;
 	}
 
