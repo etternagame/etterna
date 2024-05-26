@@ -217,6 +217,8 @@ class OptionRowHandlerList : public OptionRowHandler
 					}
 				} else if (sName == "exportonchange") {
 					m_Def.m_bExportOnChange = true;
+				} else if (sName == "exportoncancel") {
+					m_Def.m_bExportOnCancel = true;
 				} else if (sName == "broadcastonexport") {
 					for (unsigned j = 1; j < cmd.m_vsArgs.size(); j++) {
 						m_vsBroadcastOnExport.push_back(cmd.m_vsArgs[j]);
@@ -1051,6 +1053,10 @@ class OptionRowHandlerLua : public OptionRowHandler
 		m_Def.m_bExportOnChange = lua_toboolean(L, -1) != 0;
 		lua_pop(L, 1);
 
+		lua_getfield(L, -1, "ExportOnCancel");
+		m_Def.m_bExportOnCancel = lua_toboolean(L, -1) != 0;
+		lua_pop(L, 1);
+
 		// TODO(Sam):  Change these to use the proper enum strings like
 		// everything else.  This will break theme compatibility, so it has to
 		// wait until after SM5.  -Kyz
@@ -1632,6 +1638,7 @@ OptionRowHandlerUtil::MakeSimple(const MenuRowDef& mr) -> OptionRowHandler*
 	pHand->m_Def.m_selectType = SELECT_ONE;
 	pHand->m_Def.m_layoutType = LAYOUT_SHOW_ONE_IN_ROW;
 	pHand->m_Def.m_bExportOnChange = false; // true;
+	pHand->m_Def.m_bExportOnCancel = false;
 
 	// MISTER CHOICES!
 	pHand->m_Def.m_vsChoices = mr.choices;

@@ -15,6 +15,7 @@ class ScreenNetworkOptions : public ScreenOptions
   private:
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptionsOnCancel(int iRow, const PlayerNumber& pn) override;
 	// std::vector<NetServerInfo> AllServers;
 
 	void UpdateConnectStatus();

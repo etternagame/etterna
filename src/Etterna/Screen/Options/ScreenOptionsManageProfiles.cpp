@@ -371,6 +371,12 @@ ScreenOptionsManageProfiles::ExportOptions(int /* iRow */,
 {
 }
 
+void
+ScreenOptionsManageProfiles::ExportOptionsOnCancel(int row,
+												   const PlayerNumber& pn)
+{
+}
+
 int
 ScreenOptionsManageProfiles::GetLocalProfileIndexWithFocus() const
 {
