@@ -2851,6 +2851,8 @@ local function rightFrame()
     local modsToApplyAtExit = {}
 
     local function checkModsToApply()
+        -- force save playerConfig
+        playerConfig:save()
         local setGraphics = false
         local setGame = nil
         local setTheme = nil
@@ -2911,6 +2913,11 @@ local function rightFrame()
             self:smooth(animationSeconds)
             self:diffusealpha(0)
             self:x(offscreenX)
+        end,
+        EndCommand = function(self)
+            -- apply options when exiting screen
+            -- sometimes, this throws you to the main menu
+            checkModsToApply()
         end,
         ShowRightCommand = function(self)
             -- move on screen from right and go visible
@@ -3221,7 +3228,8 @@ local function rightFrame()
     local function setdataPLAYER(propertyname, val)
         playerConfig:get_data()[propertyname] = val
         playerConfig:set_dirty()
-        playerConfig:save()
+        -- save playerConfig when closing settings
+        -- playerConfig:save()
     end
     local function themeoption(category, propertyname)
         return {get = getdataTHEME(category, propertyname), set = function(x) setdataTHEME(category, propertyname, x) end}
