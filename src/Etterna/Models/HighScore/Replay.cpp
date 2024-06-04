@@ -866,13 +866,13 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 
 			noteRow = std::stoi(tokens[0]);
 			if (!(typeid(noteRow) == typeid(int))) {
-				throw std::exception("NoteRow value is not of type: int");
+				throw std::runtime_error("NoteRow value is not of type: int");
 			}
 			vNoteRowVector.emplace_back(noteRow);
 
 			offset = std::stof(tokens[1]);
 			if (!(typeid(offset) == typeid(float))) {
-				throw std::exception("Offset value is not of type: float");
+				throw std::runtime_error("Offset value is not of type: float");
 			}
 			vOffsetVector.emplace_back(offset);
 			tokens.clear();
