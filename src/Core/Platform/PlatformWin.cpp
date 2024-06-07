@@ -283,11 +283,17 @@ namespace Core::Platform {
 
 		// Get text handler on clipboard, and prevent other applications from accessing
 		HANDLE hData = GetClipboardData(CF_TEXT);
-  		if (hData == nullptr) return "";
+		if (hData == nullptr) {
+			CloseClipboard();
+			return "";
+		}
 
 		// Get contents by locking the handle
 		char *clipboardContent = static_cast<char*>(GlobalLock(hData));
- 	 	if (clipboardContent == nullptr) return "";
+		if (clipboardContent == nullptr) {
+			CloseClipboard();
+			return "";
+		}
 
  	 	// Close clipboard handles
  	 	GlobalUnlock(hData);
