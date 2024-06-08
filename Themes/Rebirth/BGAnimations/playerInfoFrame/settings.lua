@@ -7233,10 +7233,25 @@ local function rightFrame()
                         if isOver(self) and focused and (optionDef ~= nil or categoryDef ~= nil) then
                             if optionDef ~= nil then
                                 if optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or optionDef.Type == "MultiChoice" then
-                                    if params.direction == "Up" then
-                                        rowHandle:GetChild("RightBigTriangleFrame"):playcommand("Invoke")
-                                    else
-                                        rowHandle:GetChild("LeftBigTriangleFrame"):playcommand("Invoke")
+
+                                    -- for scroll choice changing ...
+                                    -- make sure that the mouse is actually hovering a visible part of the row
+                                    -- so that less accidents happen
+                                    local isActuallyOver = false
+                                    for _,child in pairs(rowHandle:GetAllDescendants()) do
+                                        if child ~= self then
+                                            if isOver(child) then
+                                                isActuallyOver = true
+                                                break
+                                            end
+                                        end
+                                    end
+                                    if isActuallyOver then
+                                        if params.direction == "Up" then
+                                            rowHandle:GetChild("RightBigTriangleFrame"):playcommand("Invoke")
+                                        else
+                                            rowHandle:GetChild("LeftBigTriangleFrame"):playcommand("Invoke")
+                                        end
                                     end
                                 end
                             end
