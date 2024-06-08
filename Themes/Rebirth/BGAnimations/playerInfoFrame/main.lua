@@ -965,7 +965,7 @@ t[#t+1] = Def.ActorFrame {
                     self:diffusealpha(downloadsProgress1Alpha)
                     local progress = dls[1]:GetKBDownloaded()
                     local size = dls[1]:GetTotalKB()
-                    local perc = progress / size
+                    local perc = math.max(progress / size, 0)
                     self:zoomx(actuals.IconDownloadsProgressBarWidth * perc)
                 else
                     self:diffusealpha(0)
