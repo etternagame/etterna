@@ -438,9 +438,11 @@ Wheel.mt = {
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
+        local sortindex, sortname = WHEELDATA:GetLastSort()
+        local index = WHEELDATA:FindIndexOfFolder("Sort by "..sortname)
         w:setNewState(
-            1,
-            1,
+            index,
+            index,
             function() return WHEELDATA:GetWheelItems() end,
             newItems,
             nil
