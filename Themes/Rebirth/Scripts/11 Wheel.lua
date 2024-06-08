@@ -449,6 +449,11 @@ Wheel.mt = {
         )
         crossedGroupBorder = true
         forceGroupCheck = true
+
+        w.stepsBeforeSortmode = GAMESTATE:GetCurrentSteps()
+        w.songBeforeSortmode = GAMESTATE:GetCurrentSong()
+        w.groupBeforeSortmode = w.group
+
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
         
@@ -1062,21 +1067,32 @@ function MusicWheel:new(params)
                     local newItems = WHEELDATA:GetFilteredFolders()
                     WHEELDATA:SetWheelItems(newItems)
 
-                    w:setNewState(
-                        1,
-                        1,
-                        function() return WHEELDATA:GetWheelItems() end,
-                        newItems,
-                        nil
-                    )
+                    local oldck = nil
+                    if w.stepsBeforeSortmode ~= nil then oldck = w.stepsBeforeSortmode:GetChartKey() end
+                    if oldck ~= nil then
+                        local newgroup = w:findSong(oldck, w.groupBeforeSortmode)
+                        w.group = newgroup
+                        MESSAGEMAN:Broadcast("OpenedGroup", {
+                            group = newgroup,
+                        })
+                    else
+                        w:setNewState(
+                            1,
+                            1,
+                            function() return WHEELDATA:GetWheelItems() end,
+                            newItems,
+                            nil
+                        )
+                        GAMESTATE:SetCurrentSong(nil)
+                        GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+                        MESSAGEMAN:Broadcast("ClosedGroup", {
+                            group = w.group,
+                        })
+                    end
+
                     crossedGroupBorder = true
                     forceGroupCheck = true
-                    GAMESTATE:SetCurrentSong(nil)
-                    GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-                    
-                    MESSAGEMAN:Broadcast("ClosedGroup", {
-                        group = w.group,
-                    })
+
                     w:rebuildFrames()
                     MESSAGEMAN:Broadcast("ModifiedGroups", {
                         group = w.group,
