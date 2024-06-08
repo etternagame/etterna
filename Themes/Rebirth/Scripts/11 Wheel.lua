@@ -642,6 +642,8 @@ function Wheel:new(params)
         local anm = self:GetName()
         CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
         local heldButtons = {}
+        local lastPressedUp = 0
+        local lastPressedDown = 0
 
         -- timing out the button combo to go to the sort mode menu
         local buttonQueue = {}
@@ -834,7 +836,14 @@ function Wheel:new(params)
                     if event.type == "InputEventType_FirstPress" then
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                         heldButtons[direction] = true
-                        if heldButtons["up"] and heldButtons["down"] then
+                        if up then
+                            lastPressedUp = GetTimeSinceStart()
+                        else
+                            lastPressedDown = GetTimeSinceStart()
+                        end
+                        
+                        local UPDOWN_THRESHOLD = 0.05
+                        if math.abs(lastPressedDown - lastPressedUp) < UPDOWN_THRESHOLD then
                             whee:exitGroup()
                         end
                     elseif event.type == "InputEventType_Release" then
