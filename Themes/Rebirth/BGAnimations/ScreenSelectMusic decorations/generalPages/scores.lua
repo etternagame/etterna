@@ -198,6 +198,7 @@ local translations = {
     ChartUnranked = THEME:GetString("ScreenSelectMusic Scores", "ChartUnranked"),
     FetchingScores = THEME:GetString("ScreenSelectMusic Scores", "FetchingScores"),
     NoOnlineScoresRecorded = THEME:GetString("ScreenSelectMusic Scores", "NoOnlineScoresRecorded"),
+    NoSongSelected = THEME:GetString("ScreenSelectMusic Scores", "NoSongSelected"),
     ShowOnlineScores = THEME:GetString("ScreenSelectMusic Scores", "ShowOnlineScores"),
     ShowLocalScores = THEME:GetString("ScreenSelectMusic Scores", "ShowLocalScores"),
     ShowTopScores = THEME:GetString("ScreenSelectMusic Scores", "ShowTopScores"),
@@ -1742,6 +1743,9 @@ local function createList()
                 if localrtTable == nil and GAMESTATE:GetCurrentSong() ~= nil then
                     self:diffusealpha(1)
                     self:settext(translations["NoLocalScoresRecorded"])
+                elseif GAMESTATE:GetCurrentSong() == nil then
+                    self:diffusealpha(1)
+                    self:settext(translations["NoSongSelected"])
                 else
                     self:diffusealpha(0)
                     self:settext("")
@@ -1761,6 +1765,9 @@ local function createList()
             elseif isLocal and localscore == nil then
                 self:diffusealpha(1)
                 self:settext(translations["NoLocalScoresRecorded"])
+            elseif GAMESTATE:GetCurrentSong() == nil then
+                self:diffusealpha(1)
+                self:settext(translations["NoSongSelected"])
             else
                 self:diffusealpha(0)
                 self:settext("")
