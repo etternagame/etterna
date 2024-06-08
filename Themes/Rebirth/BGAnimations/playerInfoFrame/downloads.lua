@@ -85,6 +85,7 @@ local translations = {
 	NoPacks = THEME:GetString("PackDownloader", "NoPacks"),
     TagExplain = THEME:GetString("PackDownloader", "TagExplain"),
     Apply = THEME:GetString("PackDownloader", "Apply"),
+    Reset = THEME:GetString("PackDownloader", "Reset"),
 
 }
 
@@ -1174,6 +1175,45 @@ local function downloadsList()
                     self:maxwidth(actuals.Width / nameHeaderSize)
                     self:settext(translations["TagExplain"])
                     registerActorToColorConfigElement(self, "main", "SecondaryText")
+                end,
+            },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "Reset",
+                InitCommand = function(self)
+                    self.bg = self:GetChild("BG")
+                    self.txt = self:GetChild("Text")
+                    self:xy(
+                        actuals.Width - ((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) + actuals.NameColumnLeftGap + actuals.EdgePadding)/2,
+                        actuals.Height/2 - actuals.TopLipHeight * 2 - taglistAllottedSpace / tagCount * 1.25)
+                    self.bg:halign(0)
+                    self.txt:x(actuals.MSDWidth*1.2 / 2)
+                    self.txt:zoom(msdTextSize)
+                    self.txt:maxwidth(actuals.MSDWidth*1.2/msdTextSize)
+                    self.bg:zoomto(actuals.MSDWidth * 1.2, taglistAllottedSpace / tagCount * 1.2)
+
+                    registerActorToColorConfigElement(self.txt, "main", "SecondaryText")
+                    registerActorToColorConfigElement(self.bg, "main", "SecondaryBackground")
+                    self.bg:diffusealpha(1)
+                    self.alphaDeterminingFunction = function(self)
+                        if isOver(self.bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+
+                    self.txt:settext(translations["Reset"])
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update ~= "OnMouseDown" then return end
+                    selectedTags = {}
+                    self:GetParent():GetParent():playcommand("SetTag")
+                    self:GetParent():GetParent():playcommand("InvokeSearch")
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
