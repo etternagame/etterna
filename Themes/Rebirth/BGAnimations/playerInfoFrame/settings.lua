@@ -2089,6 +2089,30 @@ local function leftFrame()
                                     aboutToSave = false
                                     MESSAGEMAN:Broadcast("UpdateStringDisplay")
                                 end
+                            elseif up or down then
+                                if #hexEntryString > 0 then
+                                    local value = hexEntryString:sub(textCursorPos, textCursorPos)
+                                    local nval = 0
+                                    -- we shall hope and pray that it is [0-9A-F]
+                                    if value:find("%d") then
+                                        nval = tonumber(value)
+                                    elseif value:find("[ABCDEF]") then
+                                        nval = tonumber(value, 16)
+                                    else
+                                        print("The user somehow got an invalid character into hexEntryString")
+                                        print(hexEntryString)
+                                        return
+                                    end
+
+                                    local direction = up and -1 or 1
+                                    nval = nval + direction
+                                    if nval < 0 then nval = 15 end
+                                    if nval > 15 then nval = 0 end
+                                    local newchar = string.format("%x", nval):upper()
+                                    hexEntryString = hexEntryString:sub(1, textCursorPos-1) .. newchar .. hexEntryString:sub(textCursorPos+1)
+                                    aboutToSave = false
+                                    MESSAGEMAN:Broadcast("UpdateStringDisplay")
+                                end
                             elseif left then
                                 local before = textCursorPos
                                 textCursorPos = textCursorPos + cursorCanMove(-1)
