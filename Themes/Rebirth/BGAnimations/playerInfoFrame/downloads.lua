@@ -567,7 +567,11 @@ local function downloadsList()
                         if downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil or SONGMAN:DoesSongGroupExist(name) then
                             return
                         end
-                        pack:DownloadAndInstall(false)
+                        if pack:GetSize() > 2000000000 then
+                            GAMESTATE:ApplyGameCommand("urlnoexit," .. pack:GetURL())
+                        else
+                            pack:DownloadAndInstall(false)
+                        end
                     elseif bundle ~= nil then
                         local name = bundleTypes[index]:lower()..(i%2==0 and "-expanded" or "")
                         DLMAN:DownloadCoreBundle(name)
