@@ -636,6 +636,14 @@ function Wheel:new(params)
     whee.x = params.x
     whee.y = params.y
     whee.items = {}
+
+    whee.ScriptsReloadedMessageCommand = function(self)
+        local tscr = SCREENMAN:GetTopScreen()
+        local snm = tscr:GetName()
+        local anm = self:GetName()
+        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
+    end
+
     whee.BeginCommand = function(self)
         local tscr = SCREENMAN:GetTopScreen()
         local snm = tscr:GetName()
