@@ -124,6 +124,7 @@ t[#t + 1] =
         self:visible(true)
     end,
     DFRFinishedMessageCommand = function(self, params)
+        ms.ok("Loaded " .. params.newsongs .. " new songs")
         self:visible(false)
     end,
     BeginCommand = function(self)
