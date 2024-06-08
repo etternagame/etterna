@@ -670,7 +670,7 @@ StageStats::FinalizeScores()
 	assert(pSteps != nullptr);
 
 	// cope with autoplay and replays
-	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
+	if (GamePreferences::m_AutoPlay != PC_HUMAN || m_bUsedAutoplay) {
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
 			if (REPLAYS->GetActiveReplayScore()->GetReplay()->IsOnlineScore()) {
 				// it's an online replay

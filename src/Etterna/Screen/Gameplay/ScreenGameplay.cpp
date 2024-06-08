@@ -1536,7 +1536,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	// If we didn't cheat and aren't in Practice
 	// (Replay does its own thing somewhere else here)
-	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
+	if (!STATSMAN->m_CurStageStats.m_bUsedAutoplay &&
 		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		auto* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
 
