@@ -400,17 +400,23 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     end,
     MouseDownCommand = function(self, params)
         if params.event == "DeviceButton_left mouse button" then
-            TOOLTIP:Hide()
-            if DLMAN:IsLoggedIn() then
-                DLMAN:Logout()
-            else
-                beginLoginProcess(self)
-            end
+            self:playcommand("Invoke")
+        end
+    end,
+    InvokeCommand = function(self)
+        TOOLTIP:Hide()
+        if DLMAN:IsLoggedIn() then
+            DLMAN:Logout()
+        else
+            beginLoginProcess(self)
         end
     end,
     LoginStep2Command = function(self)
         loginStep2()
-    end
+    end,
+    TriggerLoginLogoutMessageCommand = function(self)
+        self:playcommand("Invoke")
+    end,
 }
 
 t[#t+1] = Def.ActorFrame {
