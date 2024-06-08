@@ -449,6 +449,8 @@ local function assetList()
                                 loadAssetType(curType + 1)
                             elseif pagedown then
                                 loadAssetType(curType - 1)
+                            elseif char ~= nil and tonumber(char) ~= nil and tonumber(char) >= 1 and tonumber(char) <= 3 then
+                                loadAssetType(tonumber(char))
                             end
 
                             self:playcommand("UpdateItemList")
