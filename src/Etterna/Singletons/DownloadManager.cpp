@@ -3883,7 +3883,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			Document inputDataArr;
 			inputDataArr.SetArray();
 			for (const auto& input : inputdata) {
-				// there is a crash in here
+				// there is a crash in here. dont know where
 				Document inputObj;
 				inputObj.SetObject();
 				inputObj.AddMember("column", input.column, allocator);
