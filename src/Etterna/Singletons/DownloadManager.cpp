@@ -5965,6 +5965,7 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 							packDl.songs = getJsonInt(pack, "song_count");
 							packDl.bannerUrl =
 							  getJsonString(pack, "banner_path");
+							packDl.nsfw = getJsonBool(pack, "nsfw");
 
 							auto thumbnail =
 							  getJsonString(pack, "bannerTinyThumb");
@@ -6801,6 +6802,11 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushstring(L, p->mirror.c_str());
 		return 1;
 	}
+	static int IsNSFW(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->nsfw);
+		return 1;
+	}
 	/*
 	static int GetThumbnailTexture(T* p, lua_State* L)
 	{
@@ -6827,6 +6833,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(GetID);
 		ADD_METHOD(GetURL);
 		ADD_METHOD(GetMirror);
+		ADD_METHOD(IsNSFW);
 		// ADD_METHOD(GetThumbnailTexture);
 	}
 };

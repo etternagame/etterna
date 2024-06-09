@@ -95,6 +95,7 @@ class DownloadablePack
 	float avgDifficulty{ 0 };
 	int plays{ 0 };
 	int songs{ 0 };
+	bool nsfw{ false };
 	std::string url{ "" };
 	std::string mirror{ "" };
 	std::string bannerUrl{ "" };

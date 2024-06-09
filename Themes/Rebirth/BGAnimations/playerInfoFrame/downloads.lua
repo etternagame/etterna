@@ -86,6 +86,7 @@ local translations = {
     TagExplain = THEME:GetString("PackDownloader", "TagExplain"),
     Apply = THEME:GetString("PackDownloader", "Apply"),
     Reset = THEME:GetString("PackDownloader", "Reset"),
+    NSFWPack = THEME:GetString("PackDownloader", "NSFWPack"),
 
 }
 
@@ -449,15 +450,23 @@ local function downloadsList()
                     self:x(actuals.NameColumnLeftGap)
                     self:zoom(nameTextSize)
                     self:maxwidth((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / nameTextSize - textZoomFudge)
-                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                     self.alphaDeterminingFunction = function(self)
                         if isOver(self) and pack ~= nil then self:diffusealpha(buttonHoverAlpha) else self:diffusealpha(1) end
                     end
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetPack")
+                end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
+                        if not pack:IsNSFW() then
+                            self:diffuse(COLORS:getColor("main", "SecondaryText"))
+                        else
+                            self:diffuse(COLORS:getColor("downloader", "NSFWPack"))
+                        end
                         self:settext(pack:GetName())
                     elseif bundle ~= nil then
+                        self:diffuse(COLORS:getColor("main", "SecondaryText"))
                         local expanded = i % 2 == 0 and " "..translations["Expanded"] or ""
                         self:settext(translations[bundleTypes[index]] .. expanded)
                     end
@@ -472,10 +481,17 @@ local function downloadsList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
+                    if pack ~= nil then
+                        if pack:IsNSFW() then
+                            TOOLTIP:SetText(translations["NSFWPack"])
+                            TOOLTIP:Show()
+                        end
+                    end
                     self:alphaDeterminingFunction()
                 end,
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
+                    TOOLTIP:Hide()
                     self:alphaDeterminingFunction()
                 end,
             },

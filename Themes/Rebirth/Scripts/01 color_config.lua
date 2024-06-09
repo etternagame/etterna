@@ -58,6 +58,7 @@ local defaultConfig = {
         Bundle3Medium = "#ddaa00",
         Bundle4Hard = "#ff6666",
         Bundle5Hardest = "#c97bff",
+        NSFWPack = "#ffaaaa",
     },
     options = {
         Cursor = "#ffffff",

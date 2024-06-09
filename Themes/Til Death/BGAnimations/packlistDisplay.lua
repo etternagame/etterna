@@ -33,6 +33,7 @@ local translated_info = {
 	NoPacks = THEME:GetString("PacklistDisplay", "NoPacks"),
 	PackPlays = THEME:GetString("PacklistDisplay", "PackPlays"),
 	SongCount = THEME:GetString("PacklistDisplay", "SongCount"),
+	IsNSFW = THEME:GetString("PacklistDisplay", "IsNSFW"),
 }
 
 -- initialize the base pack search
@@ -374,9 +375,14 @@ local function makePackDisplay(i)
 			end,
 			MouseOverCommand = function(self)
 				self:diffusealpha(hoverAlpha)
+				if packinfo:IsNSFW() and not installed then
+					TOOLTIP:SetText(translated_info["IsNSFW"])
+					TOOLTIP:Show()
+				end
 			end,
 			MouseOutCommand = function(self)
 				self:diffusealpha(1)
+				TOOLTIP:Hide()
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
