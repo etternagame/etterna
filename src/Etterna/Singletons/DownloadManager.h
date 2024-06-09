@@ -638,7 +638,7 @@ class DownloadManager
 	std::set<std::string> unrankedCharts{};
 	bool currentrateonly = false;
 	bool topscoresonly = true;
-	bool ccoffonly = false;
+	bool validonly = true;
 
 	/////
 	// Misc information

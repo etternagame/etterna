@@ -3556,6 +3556,7 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 	hs.SetName(tmp.username);
 	hs.SetModifiers(tmp.modifiers);
 	hs.SetChordCohesion(tmp.nocc);
+	hs.SetEtternaValid(tmp.valid);
 	hs.SetWifeScore(tmp.wife);
 	hs.SetWifeVersion(tmp.wifeversion);
 	hs.SetSSRNormPercent(tmp.wife);
@@ -6526,7 +6527,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		for (auto& score : leaderboardScores) {
 			auto& leaderboardHighScore = score.hs;
-			if (p->ccoffonly && !score.nocc)
+			if (p->validonly && (!score.nocc || !score.valid))
 				continue;
 			if (p->currentrateonly &&
 				lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
@@ -6600,14 +6601,14 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushboolean(L, p->topscoresonly);
 		return 1;
 	}
-	static int ToggleCCFilter(T* p, lua_State* L)
+	static int ToggleValidFilter(T* p, lua_State* L)
 	{
-		p->ccoffonly = !p->ccoffonly;
+		p->validonly = !p->validonly;
 		return 0;
 	}
-	static int GetCCFilter(T* p, lua_State* L)
+	static int GetValidFilter(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->ccoffonly);
+		lua_pushboolean(L, p->validonly);
 		return 1;
 	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
@@ -6672,8 +6673,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
 		ADD_METHOD(GetTopScoresOnlyFilter);
-		ADD_METHOD(ToggleCCFilter);
-		ADD_METHOD(GetCCFilter);
+		ADD_METHOD(ToggleValidFilter);
+		ADD_METHOD(GetValidFilter);
 		ADD_METHOD(SendReplayDataForOldScore);
 		ADD_METHOD(UploadScoresForChart);
 		ADD_METHOD(UploadScoresForPack);
