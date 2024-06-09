@@ -85,6 +85,8 @@ local translations = {
     StartBindingAll = THEME:GetString("Settings", "StartBindingAll"),
     ShowGameplayBindings = THEME:GetString("Settings", "ShowGameplayBindings"),
     ShowMenuBindings = THEME:GetString("Settings", "ShowMenuBindings"),
+    HideDoublesBindings = THEME:GetString("Settings", "HideDoublesBindings"),
+    ShowDoublesBindings = THEME:GetString("Settings", "ShowDoublesBindings"),
     NewColorConfigPresetQuestion = THEME:GetString("Settings", "NewColorConfigPresetQuestion"),
     NewColorConfigPresetUnknownError = THEME:GetString("Settings", "NewColorConfigPresetUnknownError"),
     NewColorConfigPresetInputError = THEME:GetString("Settings", "NewColorConfigPresetInputError"),
@@ -676,7 +678,16 @@ local function leftFrame()
         local currentKey = ""
         local cursorIndex = 1
         local automaticallyBindingEverything = false -- when true, move forward until we bound the last allowed index
-        local optionActive = 0 -- 0 = nothing, 1 = bind all, 2 = swap pages (to keep track of vertical hover position)
+        local optionActive = 0 -- 0 = nothing, 1 = bind all, 2 = swap pages (to keep track of vertical hover position), 3 = show doubles
+        local showingDoubles = false
+        local doublesGamemodes = {
+            dance = true,
+            pump = true,
+            beat = true,
+            -- maniax
+            -- ez2
+        }
+        local gamemodeHasDoubles = doublesGamemodes[GAMESTATE:GetCurrentGame():GetName()] ~= nil
 
         -- entries into this list are not allowed to be bound
         local bannedKeys = {
@@ -718,7 +729,7 @@ local function leftFrame()
         -- just moves the cursor, for keyboard compatibility only
         local function selectKeybind(direction)
             local n = cursorIndex + direction
-            local maxindex = not inMenuPage and #gameButtonsToMap*2 or #menuButtonsToMap
+            local maxindex = not inMenuPage and (showingDoubles and #gameButtonsToMap*2 or #gameButtonsToMap) or #menuButtonsToMap
             if n > maxindex then n = 1 end
             if n < 1 then n = maxindex end
 
@@ -738,6 +749,14 @@ local function leftFrame()
 
             MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
             MESSAGEMAN:Broadcast("BindingPageSet")
+        end
+
+        -- show or hide the doubles keybinds for this game, if possible
+        local function toggleDoublesVisible()
+            if gamemodeHasDoubles then
+                showingDoubles = not showingDoubles
+            end
+            MESSAGEMAN:Broadcast("ToggledDoublesVisible")
         end
 
         -- select this specific key to begin binding, lock input
@@ -891,6 +910,17 @@ local function leftFrame()
                                 if up then
                                     optionActive = 1
                                 else
+                                    optionActive = ((inMenuPage or not gamemodeHasDoubles) and 0 or 3)
+                                    if optionActive == 3 then
+                                        cursorIndex = 0
+                                    else
+                                        cursorIndex = 1
+                                    end
+                                end
+                            elseif optionActive == 3 then -- hovered "show doubles"
+                                if up then
+                                    optionActive = 2
+                                else
                                     optionActive = 0
                                     cursorIndex = 1
                                 end
@@ -910,7 +940,7 @@ local function leftFrame()
                                 else
                                     cursorIndex = 0
                                     if up then
-                                        optionActive = 2
+                                        optionActive = gamemodeHasDoubles and 3 or 2
                                     else
                                         optionActive = 1
                                     end
@@ -931,6 +961,10 @@ local function leftFrame()
                                     optionActive = 2
                                     cursorIndex = 0
                                     MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
+                                    self:playcommand("Set")
+                                elseif optionActive == 3 then
+                                    -- toggle showing doubles button
+                                    toggleDoublesVisible()
                                     self:playcommand("Set")
                                 end
                             else
@@ -1027,6 +1061,13 @@ local function leftFrame()
                     self:diffusealpha(0)
                 else
                     self:diffusealpha(1)
+                end
+            end,
+            ToggledDoublesVisibleMessageCommand = function(self)
+                if showingDoubles then
+                    self:playcommand("ShowDoubles")
+                else
+                    self:playcommand("HideDoubles")
                 end
             end,
             ShowLeftCommand = function(self)
@@ -1127,6 +1168,7 @@ local function leftFrame()
                     -- ActorProxy offsets only have to be relative to the original
                     -- set x to the same as the highest offset
                     self:x(columnwidth * (#NSDirTable))
+                    self:visible(false)
                 end,
                 BeginCommand = function(self)
                     self:SetTarget(tapForThisIteration)
@@ -1138,6 +1180,12 @@ local function leftFrame()
                         self:diffusealpha(0)
                     end
                 end,
+                ShowDoublesCommand = function(self)
+                    self:visible(true)
+                end,
+                HideDoublesCommand = function(self)
+                    self:visible(false)
+                end,
             }
             -- load shadow receptors (doubles modes)
             tt[#tt+1] = Def.ActorProxy {
@@ -1145,6 +1193,7 @@ local function leftFrame()
                     -- ActorProxy offsets only have to be relative to the original
                     -- set x to the same as the highest offset
                     self:x(columnwidth * (#NSDirTable))
+                    self:visible(false)
                 end,
                 BeginCommand = function(self)
                     self:SetTarget(receptorForThisIteration)
@@ -1155,6 +1204,12 @@ local function leftFrame()
                     else
                         self:diffusealpha(0)
                     end
+                end,
+                ShowDoublesCommand = function(self)
+                    self:visible(true)
+                end,
+                HideDoublesCommand = function(self)
+                    self:visible(false)
                 end,
             }
             -- load keybinding display
@@ -1169,6 +1224,7 @@ local function leftFrame()
                         self:x(leftoffset + columnwidth * (i-1))
                         if isDoublesSide then
                             self:addx(columnwidth * #NSDirTable)
+                            self:visible(false)
                         end
                         self:y(secondrowYoffset * 2)
                     end,
@@ -1177,6 +1233,16 @@ local function leftFrame()
                             self:diffusealpha(1)
                         else
                             self:diffusealpha(0)
+                        end
+                    end,
+                    ShowDoublesCommand = function(self)
+                        if isDoublesSide then
+                            self:visible(true)
+                        end
+                    end,
+                    HideDoublesCommand = function(self)
+                        if isDoublesSide then
+                            self:visible(false)
                         end
                     end,
                     UIElements.QuadButton(1, 1) .. {
@@ -1476,6 +1542,61 @@ local function leftFrame()
                     if self:IsInvisible() then return end
                     if params.update == "OnMouseDown" then
                         switchBindingPage()
+                    end
+                end,
+            },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "ShowDoublesKeys",
+                InitCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0)
+                    bg:halign(0)
+                    self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4 + 60 * bindingChoicesTextSize)
+                    txt:zoom(bindingChoicesTextSize)
+                    txt:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
+                    bg:diffusealpha(0.2)
+                    self:playcommand("BindingPageSet")
+                    self.alphaDeterminingFunction = function(self)
+                        local multiplier = optionActive == 3 and buttonHoverAlpha or 1
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha * multiplier)
+                        else
+                            self:diffusealpha(1 * multiplier)
+                        end
+                    end
+                end,
+                BindingPageSetMessageCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    if inMenuPage or not gamemodeHasDoubles then
+                        self:visible(false)
+                    else
+                        self:visible(true)
+                        if showingDoubles then
+                            txt:settext(translations["HideDoublesBindings"])
+                        else
+                            txt:settext(translations["ShowDoublesBindings"])
+                        end
+                    end
+                    bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                end,
+                ToggledDoublesVisibleMessageCommand = function(self)
+                    self:playcommand("BindingPageSet")
+                end,
+                SetCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        toggleDoublesVisible()
                     end
                 end,
             },
