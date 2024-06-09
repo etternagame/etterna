@@ -1902,6 +1902,7 @@ local function leftFrame()
             cursorPosition = 1
             selectionstate = cat
             MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+            MESSAGEMAN:Broadcast("UpdateColorConfigChoiceCursorDisplay")
         end
 
         local function selectCategory(category)
