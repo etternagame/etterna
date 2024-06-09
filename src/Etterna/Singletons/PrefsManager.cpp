@@ -158,6 +158,7 @@ PrefsManager::PrefsManager()
   , m_bPackProgressInWheel("PackProgressInWheel", false)
   , m_bEventMode("EventMode", true)
   , m_MinTNSToHideNotes("MinTNSToHideNotes", TNS_W3)
+  , m_bForceNoDoubleSetup("ForceNoDoubleSetup", false)
 
   , m_ShowSongOptions("ShowSongOptions", Maybe_NO)
   , m_fMinPercentToSaveScores("MinPercentToSaveScores", -1.0f)

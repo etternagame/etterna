@@ -172,10 +172,10 @@ end
 function getScreenOptionsInputLines()
     if HOOKS.GetArchName():upper():find("^WINDOWS") ~= nil then
         -- windows
-        return "1,2,3,AH,AS,5,6,8,7,WindowsKey,KeyboardLayout"
+        return "1,2,3,AH,AS,5,6,8,7,DS,WindowsKey,KeyboardLayout"
     else
         -- mac and linux
-        return "1,2,3,AH,AS,5,6,8,7"
+        return "1,2,3,AH,AS,5,6,8,7,DS"
     end
 end
 

@@ -444,6 +444,8 @@ local translations = {
     RenameProfile = THEME:GetString("Settings", "RenameProfile"),
     RenameProfileExplanation = THEME:GetString("Settings", "RenameProfileExplanation"),
     RenameProfileButton = THEME:GetString("Settings", "RenameProfileButton"),
+    ForceNoDoubleSetup = THEME:GetString("Settings", "ForceNoDoubleSetup"),
+    ForceNoDoubleSetupExplanation = THEME:GetString("Settings", "ForceNoDoubleSetupExplanation"),
 }
 
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
@@ -6231,6 +6233,15 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("AllowStartToGiveUp", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("AllowStartToGiveUp", true),
+            },
+            {
+                Name = "Force No Double Setup",
+                DisplayName = translations["ForceNoDoubleSetup"],
+                Type = "SingleChoice",
+                Explanation = translations["ForceNoDoubleSetupExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("ForceNoDoubleSetup", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ForceNoDoubleSetup", true),
             },
             {
                 Name = "Input Debounce Time",

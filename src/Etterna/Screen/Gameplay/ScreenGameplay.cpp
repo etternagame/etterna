@@ -1442,12 +1442,19 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 						if (g_buttonsByColumnPressed.count(iCol) == 0u) {
 							std::set<DeviceButton> newset;
 							g_buttonsByColumnPressed[iCol] = newset;
+							g_buttonsByColumnPressed[iCol].emplace(
+							  input.DeviceI.button);
 						}
-						g_buttonsByColumnPressed[iCol].emplace(
-						  input.DeviceI.button);
-
-						m_vPlayerInfo.m_pPlayer->Step(
-						  iCol, -1, input.DeviceI.ts, false, bRelease);
+						if (PREFSMAN->m_bForceNoDoubleSetup &&
+							!g_buttonsByColumnPressed[iCol].contains(
+							  input.DeviceI.button)) {
+							// dont allow double setup if user doesnt want
+						} else {
+							g_buttonsByColumnPressed[iCol].emplace(
+							  input.DeviceI.button);
+							m_vPlayerInfo.m_pPlayer->Step(
+							  iCol, -1, input.DeviceI.ts, false, bRelease);
+						}
 					}
 					return true;
 			}

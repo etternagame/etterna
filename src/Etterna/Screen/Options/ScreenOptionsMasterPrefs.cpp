@@ -791,6 +791,7 @@ InitializeConfOptions()
 	ADD(ConfOption(
 	  "AutoPlay", MovePref<PlayerController>, "Off", "On", "CPU-Controlled"));
 	ADD(ConfOption("DelayedBack", MovePref<bool>, "Instant", "Hold"));
+	ADD(ConfOption("ForceNoDoubleSetup", MovePref<bool>, "No", "Yes"));
 	ADD(
 	  ConfOption("AllowHoldForOptions", MovePref<bool>, "Double Tap", "Hold"));
 	ADD(ConfOption("ArcadeOptionsNavigation",
