@@ -368,7 +368,7 @@ local o = Def.ActorFrame {
 			self:diffusealpha(1)
 		end,
 		UpdateCommand = function(self)
-			if DLMAN:GetCCFilter() then
+			if DLMAN:GetValidFilter() then
 				self:settext(ccornah[1])
 			else
 				self:settext(ccornah[2])
@@ -376,7 +376,7 @@ local o = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				DLMAN:ToggleCCFilter()
+				DLMAN:ToggleValidFilter()
 				ind = 0
 				self:GetParent():queuecommand("GetFilteredLeaderboard")
 			end
@@ -473,7 +473,7 @@ local function makeScoreDisplay(i)
 			end,
 			DisplayCommand = function(self)
 				self:settext(hs:GetDisplayName())
-				if hs:GetChordCohesion() then
+				if not hs:GetEtternaValid() then
 					self:diffuse(color("#F0EEA6"))
 				else
 					self:diffuse(getMainColor("positive"))
@@ -501,7 +501,7 @@ local function makeScoreDisplay(i)
 			end,
 			DisplayCommand = function(self)
 				self:settext(hs:GetJudgmentString())
-				if hs:GetChordCohesion() then
+				if not hs:GetEtternaValid() then
 					self:diffuse(color("#F0EEA6"))
 				else
 					self:diffuse(getMainColor("positive"))

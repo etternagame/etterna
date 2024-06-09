@@ -440,7 +440,7 @@ local function createList()
         end,
         ToggleInvalidCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                DLMAN:ToggleCCFilter()
+                DLMAN:ToggleValidFilter()
                 self:playcommand("UpdateScores")
                 self:playcommand("UpdateList")
             end
@@ -474,6 +474,8 @@ local function createList()
             end
             if score ~= nil and score:GetChordCohesion() then
                 EGGMAN.gegagoogoo(txt, score:GetChartKey()):diffuse(COLORS:getColor("generalBox", "ChordCohesionOnScore"))
+            elseif score ~= nil and not score:GetEtternaValid() then
+                txt:stopeffect():diffuse(COLORS:getColor("generalBox", "InvalidScore"))
             else
                 txt:stopeffect():diffuse(COLORS:getColor(category, element))
             end
@@ -1877,7 +1879,7 @@ local function createList()
 
         function() -- invalid score toggle
             -- true means invalid scores are hidden
-            return not DLMAN:GetCCFilter()
+            return DLMAN:GetValidFilter()
         end,
 
         function() -- current/all rates
