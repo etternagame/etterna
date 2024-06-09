@@ -121,8 +121,17 @@ o[#o+1] = Def.ActorFrame {
 		end,
 		ClickCommand = function(self, params)
 			if params.update == "OnMouseDown" then
-				for k,v in pairs(DLMAN:GetDownloads()) do
-					v:Stop()
+				local count = 0
+				for _, p in ipairs(DLMAN:GetQueuedPacks()) do
+					local s = p:RemoveFromQueue()
+					if s then count = count + 1 end
+				end
+				for _, p in ipairs(DLMAN:GetDownloadingPacks()) do
+					p:GetDownload():Stop()
+					count = count + 1
+				end
+				if count > 0 then
+					ms.ok("Stopped All Downloads: "..count.." Downloads")
 				end
 			end
 		end,
