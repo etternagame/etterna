@@ -3492,12 +3492,12 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 		  tmp.scoreid);
 		tmp.rate = 0.0;
 	}
-	if (score.HasMember("chord_cohesion") && score["chord_cohesion"].IsInt())
-		tmp.nocc = score["chord_cohesion"].GetInt() == 0;
+	if (score.HasMember("chord_cohesion") && score["chord_cohesion"].IsBool())
+		tmp.nocc = !score["chord_cohesion"].GetBool();
 	else
 		tmp.nocc = false;
-	if (score.HasMember("valid") && score["valid"].IsInt())
-		tmp.valid = score["valid"].GetInt() == 1;
+	if (score.HasMember("valid") && score["valid"].IsBool())
+		tmp.valid = score["valid"].GetBool();
 	else
 		tmp.valid = false;
 	if (score.HasMember("wife_version") && score["wife_version"].IsInt()) {
@@ -3882,6 +3882,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			Document inputDataArr;
 			inputDataArr.SetArray();
 			for (const auto& input : inputdata) {
+				// there is a crash in here
 				Document inputObj;
 				inputObj.SetObject();
 				inputObj.AddMember("column", input.column, allocator);
