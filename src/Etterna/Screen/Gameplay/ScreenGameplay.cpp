@@ -1445,11 +1445,59 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 							g_buttonsByColumnPressed[iCol].emplace(
 							  input.DeviceI.button);
 						}
-						if (PREFSMAN->m_bForceNoDoubleSetup &&
-							!g_buttonsByColumnPressed[iCol].contains(
-							  input.DeviceI.button)) {
+
+						auto ignoreInput = false;
+						if (PREFSMAN->m_bForceNoDoubleSetup) {
 							// dont allow double setup if user doesnt want
-						} else {
+							auto bypassIgnore = false;
+
+							// ignore this for middle columns and scratches
+							auto colcount = GAMESTATE->GetCurrentStyle(input.pn)
+											  ->m_iColsPerPlayer;
+							if (colcount == 3 &&
+								input.GameI.button == DANCE_BUTTON_DOWN) {
+								// ignore middle
+								bypassIgnore = true;
+							} else if (colcount == 4 || colcount == 6) {
+								// always works
+								bypassIgnore = false;
+							} else if (colcount == 5 && input.GameI.button ==
+														  PUMP_BUTTON_CENTER) {
+								// ignore middle
+								bypassIgnore = true;
+							} else if (colcount == 7 &&
+									   input.GameI.button == KB7_BUTTON_KEY4) {
+								// ignore middle
+								bypassIgnore = true;
+							} else if (colcount == 8 &&
+									   (input.GameI.button ==
+										  BEAT_BUTTON_SCRATCHUP ||
+										input.GameI.button ==
+										  BEAT_BUTTON_SCRATCHDOWN ||
+										input.GameI.button ==
+										  DANCE_BUTTON_LEFT ||
+										input.GameI.button ==
+										  DANCE_BUTTON_RIGHT)) {
+								// ignore scratches
+								// todo: this is technically wrong for dance
+								bypassIgnore = true;
+							} else if (colcount == 9 &&
+									   input.GameI.button == POPN_BUTTON_RED) {
+								// ignore middle
+								bypassIgnore = true;
+							}
+
+							// if not bypassing ignore
+							// and the button is a new button for the column
+							// dont allow it
+							if (!bypassIgnore &&
+								!g_buttonsByColumnPressed[iCol].contains(
+								  input.DeviceI.button)) {
+								ignoreInput = true;
+							}
+						}
+
+						if (!ignoreInput) {
 							g_buttonsByColumnPressed[iCol].emplace(
 							  input.DeviceI.button);
 							m_vPlayerInfo.m_pPlayer->Step(
