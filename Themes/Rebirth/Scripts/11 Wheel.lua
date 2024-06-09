@@ -637,7 +637,7 @@ function Wheel:new(params)
     whee.y = params.y
     whee.items = {}
 
-    whee.ScriptsReloadedMessageCommand = function(self)
+    whee.ReloadedScriptsMessageCommand = function(self)
         local tscr = SCREENMAN:GetTopScreen()
         local snm = tscr:GetName()
         local anm = self:GetName()
