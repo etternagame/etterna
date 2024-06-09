@@ -6558,8 +6558,14 @@ class LunaDownloadManager : public Luna<DownloadManager>
 						  if (a->GetMusicRate() == b->GetMusicRate()) {
 							  return a->GetWifeScore() > b->GetWifeScore();
 						  }
-						  return a->GetSkillsetSSR(Skill_Overall) >
-								 b->GetSkillsetSSR(Skill_Overall);
+						  auto assr = a->GetSkillsetSSR(Skill_Overall);
+						  auto bssr =
+							b->GetSkillsetSSR(Skill_Overall);
+						  if (fabsf(assr - bssr) < 0.001F) {
+							  return a->GetMusicRate() > b->GetMusicRate();
+						  } else {
+							  return assr > bssr;
+						  }
 					  });
 		}
 
