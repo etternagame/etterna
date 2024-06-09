@@ -3610,8 +3610,8 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
 	d.AddMember(
 	  "modifiers", stringToVal(hs->GetModifiers(), allocator), allocator);
-	if (hs->IsEmptyNormalized()) {
-		Locator::getLogger()->debug("Score {} will NOT use Normalized TNS",
+	if (!hs->NormalizeJudgments()) {
+		Locator::getLogger()->info("Score {} will NOT use Normalized TNS",
 									hs->GetScoreKey());
 		d.AddMember("marvelous", hs->GetTapNoteScore(TNS_W1), allocator);
 		d.AddMember("perfect", hs->GetTapNoteScore(TNS_W2), allocator);
