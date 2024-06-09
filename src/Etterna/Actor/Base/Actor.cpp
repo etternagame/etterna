@@ -2722,7 +2722,10 @@ class LunaActor : public Luna<Actor>
 	}
 	static int IsOver(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsOver(FArg(1), FArg(2)));
+		if (p != nullptr)
+			lua_pushboolean(L, p->IsOver(FArg(1), FArg(2)));
+		else
+			return 0;
 		return 1;
 	}
 	DEFINE_METHOD(GetTrueX, GetTrueX());
