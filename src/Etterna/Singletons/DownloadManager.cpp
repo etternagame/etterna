@@ -113,6 +113,8 @@ static const std::string API_SEARCH = "/multi_search";
 static constexpr bool DO_COMPRESS = true;
 static constexpr bool DONT_COMPRESS = false;
 
+std::mutex G_MTX_SCORE_UPLOAD;
+
 inline std::string
 APIROOT()
 {
@@ -1345,6 +1347,8 @@ DownloadManager::LoginRequest(const std::string& user,
 void
 DownloadManager::Logout()
 {
+	const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
+
 	// cancel sequential upload
 	ScoreUploadSequentialQueue.clear();
 	sequentialScoreUploadTotalWorkload = 0;
@@ -4349,18 +4353,21 @@ uploadScoresSequentially()
 			}
 
 			std::vector<HighScore*> hsToUpload{};
-			for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
-							  !DLMAN->ScoreUploadSequentialQueue.empty();
-				 i++) {
-				hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());
-				DLMAN->ScoreUploadSequentialQueue.pop_front();
+			{
+				const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
+				for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
+								  !DLMAN->ScoreUploadSequentialQueue.empty();
+					 i++) {
+					hsToUpload.push_back(
+					  DLMAN->ScoreUploadSequentialQueue.front());
+					DLMAN->ScoreUploadSequentialQueue.pop_front();
 
-				if (hsToUpload.size() >= UPLOAD_SCORE_BULK_CHUNK_SIZE) {
-					break;
+					if (hsToUpload.size() >= UPLOAD_SCORE_BULK_CHUNK_SIZE) {
+						break;
+					}
 				}
+				runningSequentialScoreUpload = true;
 			}
-			runningSequentialScoreUpload = true;
-
 
 			DLMAN->UploadBulkScores(hsToUpload, uploadScoresSequentially);
 		};
@@ -4458,9 +4465,13 @@ DownloadManager::InitialScoreSync()
 			return false;
 		}
 
-		ScoreUploadSequentialQueue.insert(
-		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
-		sequentialScoreUploadTotalWorkload += toUpload.size();
+		{
+			const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
+			ScoreUploadSequentialQueue.insert(ScoreUploadSequentialQueue.end(),
+											  toUpload.begin(),
+											  toUpload.end());
+			sequentialScoreUploadTotalWorkload += toUpload.size();
+		}
 		startSequentialScoreUpload();
 		return true;
 	};
@@ -4487,6 +4498,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 			if (!s->forceuploadedthissession) {
 				if (s->GetGrade() != Grade_Failed) {
 					// don't add stuff we're already uploading
+					const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
 					auto res = std::find(ScoreUploadSequentialQueue.begin(),
 										 ScoreUploadSequentialQueue.end(),
 										 s);
@@ -4508,8 +4520,9 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 		}
 		return successful;
 	} else {
-		Locator::getLogger()->info(
-		  "ForceUploadPBsForChart found no scores for chart {}", ck);
+		if (startNow)
+			Locator::getLogger()->info(
+			  "ForceUploadPBsForChart found no scores for chart {}", ck);
 		return false;
 	}
 }
