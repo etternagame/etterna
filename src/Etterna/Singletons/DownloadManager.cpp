@@ -3555,7 +3555,11 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("let_go", hs->GetHoldNoteScore(HNS_LetGo), allocator);
 	d.AddMember("missed_hold", hs->GetHoldNoteScore(HNS_Missed), allocator);
 	d.AddMember(
-	  "rate", std::round(hs->GetMusicRate() * 1000.0) / 1000.0, allocator);
+	  "rate",
+	  stringToVal(
+		fmt::format("{:.3f}", std::round(hs->GetMusicRate() * 1000.0) / 1000.0),
+		allocator),
+	  allocator);
 	d.AddMember("datetime",
 				stringToVal(hs->GetDateTime().GetString(), allocator),
 				allocator);
@@ -3586,9 +3590,13 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 		validity = false;
 	}
 	else {
-		d.AddMember("judge",
-					std::round(hs->GetJudgeScale() * 1000.0) / 1000.0,
-					allocator);
+		d.AddMember(
+		  "judge",
+		  stringToVal(
+			fmt::format("{:.3f}",
+						std::round(hs->GetJudgeScale() * 1000.0) / 1000.0),
+			allocator),
+		  allocator);
 	}
 
 	// comprehensive checks for forced invalidation
@@ -4468,8 +4476,8 @@ DownloadManager::InitialScoreSync()
 bool
 DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 {
-	Locator::getLogger()->info(
-	  "Trying ForceUploadPBsForChart - {}", ck);
+	if (startNow)
+		Locator::getLogger()->info("Trying ForceUploadPBsForChart - {}", ck);
 
 	auto* cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) {
@@ -4491,7 +4499,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 				}
 			}
 		}
-		if (!successful) {
+		if (!successful && startNow) {
 			Locator::getLogger()->info(
 			  "ForceUploadPBsForChart did not queue any scores for chart {}",
 			  ck);
@@ -4508,8 +4516,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 bool
 DownloadManager::ForceUploadPBsForPack(const std::string& pack, bool startNow)
 {
-	Locator::getLogger()->info(
-	  "Trying ForceUploadPBsForPack - {}", pack);
+	Locator::getLogger()->info("Trying ForceUploadPBsForPack - {}", pack);
 
 	bool successful = false;
 	
