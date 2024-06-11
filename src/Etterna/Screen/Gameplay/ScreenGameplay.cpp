@@ -88,8 +88,13 @@ ScreenGameplay::ScreenGameplay()
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		Locator::getLogger()->info("Freeing loaded replay data");
-		SCOREMAN->UnloadAllReplayData();
+		if (DLMAN->ScoreUploadSequentialQueue.empty()) {
+			Locator::getLogger()->info("Freeing loaded replay data");
+			SCOREMAN->UnloadAllReplayData();
+		} else {
+			Locator::getLogger()->info(
+			  "Waiting until later to free loaded replay data");
+		}
 	}
 
 	SONGMAN->UnloadAllCalcDebugOutput();
