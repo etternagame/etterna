@@ -68,9 +68,6 @@ static Preference<float> DownloadCooldownTime(
 // Score API Preferences
 static Preference<std::string> serverURL("BaseAPIUrl",
 										 "https://api.beta.etternaonline.com");
-static Preference<std::string> packListURL(
-  "PackListUrl",
-  "https://api.beta.etternaonline.com/api/client/packs");
 static Preference<std::string> searchURL("BaseAPISearchUrl",
 										 "https://search.etternaonline.com");
 static Preference<std::string> uiHomePage("BaseUIUrl", "https://beta.etternaonline.com");
