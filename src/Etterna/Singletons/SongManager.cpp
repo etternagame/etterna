@@ -37,7 +37,7 @@
 #include <fstream>
 #include <cmath>
 
-#include "Etterna/Globals/zip_file.hpp"
+#include "miniz/zip_file.hpp"
 
 using std::map;
 using std::string;
