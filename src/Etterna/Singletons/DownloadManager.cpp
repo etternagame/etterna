@@ -3714,6 +3714,10 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 		};
 
 		auto* replay = hs->GetReplay();
+		auto usingReprioritized = replay->UsingReprioritizedNoteRows();
+		if (usingReprioritized) {
+			replay->SetUseReprioritizedNoteRows(false);
+		}
 
 		bool hadToLoadReplayData = false;
 
@@ -3856,6 +3860,11 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			inputDataObject.AddMember("hold_drops", holdDataArr, allocator);
 		}
 
+		if (usingReprioritized) {
+			replay->SetUseReprioritizedNoteRows(true);
+			// this means replay data was already loaded, probably
+			hadToLoadReplayData = false;
+		}
 		if (hadToLoadReplayData) {
 			hs->UnloadReplayData();
 		}
