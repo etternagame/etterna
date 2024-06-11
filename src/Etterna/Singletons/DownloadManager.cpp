@@ -252,11 +252,13 @@ DownloadManager::InstallSmzip(const std::string& sZipFile)
 		}
 		if (hashName) {
 			// take a partial hash of the filename
+			auto ext = GetExtension(sDestFile);
 			res = BinaryToHex(CryptManager::GetSHA1ForString(sDestFile));
 			if (res.length() > 10) {
 				res =
 				  res.substr(0, std::min(static_cast<int>(res.length()), 15));
 			}
+			res = res + ext;
 
 		}
 
