@@ -1223,9 +1223,11 @@ DownloadManager::LoginRequest(const std::string& user,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback, this](auto& req) {
-		auto loginFailed = [this]() {
+		auto loginFailed = [this](std::string reason) {
 			authToken = sessionUser = "";
-			MESSAGEMAN->Broadcast("LoginFailed");
+			Message msg("LoginFailed");
+			msg.SetParam("why", reason);
+			MESSAGEMAN->Broadcast(msg);
 			loggingIn = false;
 		};
 
@@ -1245,7 +1247,7 @@ DownloadManager::LoginRequest(const std::string& user,
 
 			Locator::getLogger()->error(
 			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
-			loginFailed();
+			loginFailed("Missing email or password, or email not verified.");
 		} else if (response == 404) {
 			// user doesnt exist?
 			parse();
@@ -1253,7 +1255,7 @@ DownloadManager::LoginRequest(const std::string& user,
 			Locator::getLogger()->error(
 			  "Status 404 on LoginRequest. User may not exist. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("User may not exist.");
 
 		} else if (response == 401) {
 			// bad password
@@ -1262,7 +1264,7 @@ DownloadManager::LoginRequest(const std::string& user,
 			Locator::getLogger()->error(
 			  "Status 401 on LoginRequest. Bad password? Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("Password may be wrong.");
 
 		} else if (response == 403) {
 			// user is banned
@@ -1271,14 +1273,14 @@ DownloadManager::LoginRequest(const std::string& user,
 			Locator::getLogger()->error(
 			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("User is banned.");
 
 		} else if (response == 200) {
 			// all good
 			if (parse()) {
 				Locator::getLogger()->warn(
 				  "Due to LoginRequest parse error, login failed");
-				loginFailed();
+				loginFailed("Unknown error");
 				return;
 			}
 
@@ -1305,7 +1307,7 @@ DownloadManager::LoginRequest(const std::string& user,
 				  "Missing access token in LoginRequest response. Content: "
 				  "{}",
 				  jsonObjectToString(d));
-				loginFailed();
+				loginFailed("Missing token in login response from server.");
 			}
 		} else {
 			// ???
@@ -1315,13 +1317,15 @@ DownloadManager::LoginRequest(const std::string& user,
 			  "Unexpected response code {} on LoginRequest. Content: {}",
 			  response,
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("Unknown status");
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
 	req->Failed = [this](auto& req) {
 		authToken = sessionUser = "";
-		MESSAGEMAN->Broadcast("LoginFailed");
+		Message msg("LoginFailed");
+		msg.SetParam("why", std::string("Request failed"));
+		MESSAGEMAN->Broadcast(msg);
 		loggingIn = false;
 	};
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -4432,11 +4436,14 @@ DownloadManager::InitialScoreSync()
 		// set to yesterday because timezones and stuff
 		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
 
-		if (!toUpload.empty())
+		if (!toUpload.empty()) {
 			Locator::getLogger()->info(
 			  "Updating online scores. (Uploading {} scores)", toUpload.size());
-		else
+		} else {
+			Locator::getLogger()->info(
+			  "Didn't find any scores to automatically upload");
 			return false;
+		}
 
 		ScoreUploadSequentialQueue.insert(
 		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());

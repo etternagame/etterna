@@ -30,9 +30,9 @@ local t = Def.ActorFrame {
         playerConfig:set_dirty()
         playerConfig:save()
     end,
-    LoginFailedMessageCommand = function(self)
+    LoginFailedMessageCommand = function(self, params)
         self:playcommand("Set")
-        ms.ok("Login Failed")
+        ms.ok("Login Failed: " .. params.why)
 
         playerConfig:get_data().UserName = ""
         playerConfig:get_data().PasswordToken = ""

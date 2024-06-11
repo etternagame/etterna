@@ -303,8 +303,8 @@ t[#t + 1] = Def.ActorFrame {
 		MouseOutCommand = function(self)
 			highlightIfOver(self)
 		end,
-		LoginFailedMessageCommand = function(self)
-			ms.ok(translated_info["LoginFailed"])
+		LoginFailedMessageCommand = function(self, params)
+			ms.ok(translated_info["LoginFailed"] .. " -- " .. params.why)
 		end,
 		LoginHotkeyPressedMessageCommand = function(self)
 			if DLMAN:IsLoggedIn() then
