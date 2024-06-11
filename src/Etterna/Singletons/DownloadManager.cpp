@@ -55,9 +55,6 @@ static Preference<unsigned int> maxDLPerSecond(
 static Preference<unsigned int> maxDLPerSecondGameplay(
   "maximumBytesDownloadedPerSecondDuringGameplay",
   1000000);
-static Preference<unsigned int> downloadPacksToAdditionalSongs(
-  "downloadPacksToAdditionalSongs",
-  0);
 static Preference<unsigned int> maxPacksToDownloadAtOnce(
   "parallelDownloadsAllowed",
   1);
@@ -74,7 +71,6 @@ static Preference<std::string> uiHomePage("BaseUIUrl", "https://beta.etternaonli
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
-static const std::string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 static const std::string wife3_rescore_upload_flag = "rescoredw3";
 
@@ -178,102 +174,6 @@ ComputerIdentity()
 	userName = username;
 #endif
 	return computerName + ":_:" + userName;
-}
-
-bool
-DownloadManager::InstallSmzip(const std::string& sZipFile)
-{
-	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
-		FAIL_M(static_cast<std::string>("Failed to mount " + sZipFile).c_str());
-	std::vector<std::string> v_packs;
-	FILEMAN->GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, ONLY_DIR, true);
-
-	std::string doot = TEMP_ZIP_MOUNT_POINT;
-	if (v_packs.size() > 1) {
-		// attempt to whitelist pack name, this
-		// should be pretty simple/safe solution for
-		// a lot of pad packs -mina
-		doot += sZipFile.substr(sZipFile.find_last_of('/') + 1);
-		doot = doot.substr(0, doot.length() - 4) + "/";
-	}
-
-	std::vector<std::string> vsFiles;
-	{
-		std::vector<std::string> vsRawFiles;
-		GetDirListingRecursive(doot, "*", vsRawFiles);
-
-		if (vsRawFiles.empty()) {
-			FILEMAN->Unmount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT);
-			return false;
-		}
-
-		std::vector<std::string> vsPrettyFiles;
-		for (auto& s : vsRawFiles) {
-			if (EqualsNoCase(GetExtension(s), "ctl"))
-				continue;
-
-			vsFiles.push_back(s);
-
-			std::string s2 =
-			  tail(s, s.length() - TEMP_ZIP_MOUNT_POINT.length());
-			vsPrettyFiles.push_back(s2);
-		}
-		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
-	}
-	std::string sResult = "Success installing " + sZipFile;
-	std::string extractTo =
-	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
-	for (auto& sSrcFile : vsFiles) {
-		std::string sDestFile = sSrcFile;
-		sDestFile = tail(std::string(sDestFile.c_str()),
-						 sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
-
-		// forcibly convert the path string to ASCII/ANSI/whatever
-		// basically remove everything that isnt normal
-		// and dont care about locales
-		std::vector<unsigned char> bytes(sDestFile.begin(), sDestFile.end());
-		bytes.push_back('\0');
-		std::string res{};
-		auto hashName = false;
-		for (auto i = 0; i < bytes.size(); i++) {
-			auto c = bytes.at(i);
-			if (c > 122) {
-				hashName = true;
-				break;
-			} else {
-				res.push_back(c);
-			}
-		}
-		if (res.length() > 256) {
-			res = res.substr(0, 255);
-		}
-		if (hashName) {
-			// take a partial hash of the filename
-			auto ext = GetExtension(sDestFile);
-			res = BinaryToHex(CryptManager::GetSHA1ForString(sDestFile));
-			if (res.length() > 10) {
-				res =
-				  res.substr(0, std::min(static_cast<int>(res.length()), 15));
-			}
-			res = res + ext;
-
-		}
-
-		sDestFile = res;
-
-		std::string sDir, sThrowAway;
-		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
-
-		if (!FileCopy(sSrcFile, extractTo + sDestFile)) {
-			sResult = "Error extracting " + sDestFile;
-			break;
-		}
-	}
-
-	FILEMAN->Unmount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT);
-
-	SCREENMAN->SystemMessage(sResult);
-	return true;
 }
 
 inline void
@@ -6137,7 +6037,7 @@ Download::Install()
 {
 	Core::Platform::requestUserAttention();
 	Message* msg;
-	if (!DownloadManager::InstallSmzip(m_TempFileName))
+	if (!SongManager::InstallSmzip(m_TempFileName))
 		msg = new Message("DownloadFailed");
 	else
 		msg = new Message("PackDownloaded");

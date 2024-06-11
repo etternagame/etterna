@@ -448,10 +448,6 @@ class DownloadManager
 	void UpdateGameplayState(bool gameplay);
 
 	/////
-	// External static util
-	static bool InstallSmzip(const std::string& zipFile);
-
-	/////
 	// Lua external access
 	void PushSelf(lua_State* L);
 

@@ -43,7 +43,7 @@ InstallSmzipOsArg(const std::string& sOsZipFile)
 
 	if (!FILEMAN->Mount("dir", sOsDir, TEMP_OS_MOUNT_POINT))
 		FAIL_M("Failed to mount " + sOsDir);
-	DownloadManager::InstallSmzip(TEMP_OS_MOUNT_POINT + sFilename + sExt);
+	SongManager::InstallSmzip(TEMP_OS_MOUNT_POINT + sFilename + sExt);
 
 	FILEMAN->Unmount("dir", sOsDir, TEMP_OS_MOUNT_POINT);
 }

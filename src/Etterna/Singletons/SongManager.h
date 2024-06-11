@@ -167,6 +167,10 @@ class SongManager
 	void AddKeyedPointers(Song* new_song);
 	std::unordered_map<std::string, Song*> SongsByKey;
 	std::unordered_map<std::string, Steps*> StepsByKey;
+	
+	/////
+	// External static util
+	static bool InstallSmzip(const std::string& zipFile);
 
   protected:
 	void LoadStepManiaSongDir(std::string sDir, LoadingWindow* ld);
