@@ -1247,7 +1247,12 @@ DownloadManager::LoginRequest(const std::string& user,
 
 			Locator::getLogger()->error(
 			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
-			loginFailed("Missing email or password, or email not verified.");
+			if (jsonObjectToString(d).find("out of date") !=
+				std::string::npos) {
+				loginFailed("Your client is out of date.");
+			} else {
+				loginFailed("Missing email or password, or email not verified.");
+				}
 		} else if (response == 404) {
 			// user doesnt exist?
 			parse();
