@@ -22,6 +22,7 @@
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
@@ -236,10 +237,12 @@ DownloadManager::InstallSmzip(const std::string& sZipFile)
 		std::vector<unsigned char> bytes(sDestFile.begin(), sDestFile.end());
 		bytes.push_back('\0');
 		std::string res{};
+		auto hashName = false;
 		for (auto i = 0; i < bytes.size(); i++) {
 			auto c = bytes.at(i);
 			if (c > 122) {
-				res.append(std::to_string(c - 122));
+				hashName = true;
+				break;
 			} else {
 				res.push_back(c);
 			}
@@ -247,6 +250,16 @@ DownloadManager::InstallSmzip(const std::string& sZipFile)
 		if (res.length() > 256) {
 			res = res.substr(0, 255);
 		}
+		if (hashName) {
+			// take a partial hash of the filename
+			res = BinaryToHex(CryptManager::GetSHA1ForString(sDestFile));
+			if (res.length() > 10) {
+				res =
+				  res.substr(0, std::min(static_cast<int>(res.length()), 15));
+			}
+
+		}
+
 		sDestFile = res;
 
 		std::string sDir, sThrowAway;
@@ -4402,21 +4415,32 @@ uploadScoresSequentially()
 	MESSAGEMAN->Broadcast(msg);
 
 	if (!DLMAN->ScoreUploadSequentialQueue.empty()) {
-		
-		std::vector<HighScore*> hsToUpload{};
-		for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
-						 !DLMAN->ScoreUploadSequentialQueue.empty();
-			 i++) {
-			hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());
-			DLMAN->ScoreUploadSequentialQueue.pop_front();
 
-			if (hsToUpload.size() >= UPLOAD_SCORE_BULK_CHUNK_SIZE) {
-				break;
+		auto work = []() {
+
+			if (DLMAN == nullptr) {
+				// a detached thread can be alive after the rest of the game
+				return;
 			}
-		}
-		runningSequentialScoreUpload = true;
-		DLMAN->UploadBulkScores(hsToUpload, uploadScoresSequentially);
-		
+
+			std::vector<HighScore*> hsToUpload{};
+			for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
+							  !DLMAN->ScoreUploadSequentialQueue.empty();
+				 i++) {
+				hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());
+				DLMAN->ScoreUploadSequentialQueue.pop_front();
+
+				if (hsToUpload.size() >= UPLOAD_SCORE_BULK_CHUNK_SIZE) {
+					break;
+				}
+			}
+			runningSequentialScoreUpload = true;
+
+
+			DLMAN->UploadBulkScores(hsToUpload, uploadScoresSequentially);
+		};
+		std::thread worker(work);
+		worker.detach();
 	} else {
 		Locator::getLogger()->info(
 		  "Sequential score upload queue empty - uploads finished");
@@ -4527,7 +4551,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 	Locator::getLogger()->info(
 	  "Trying ForceUploadPBsForChart - {}", ck);
 
-	auto cs = SCOREMAN->GetScoresForChart(ck);
+	auto* cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) {
 		bool successful = false;
 		auto& scores = cs->GetTopScoresForUploading();
@@ -4568,10 +4592,24 @@ DownloadManager::ForceUploadPBsForPack(const std::string& pack, bool startNow)
 	  "Trying ForceUploadPBsForPack - {}", pack);
 
 	bool successful = false;
-	auto songs = SONGMAN->GetSongs(pack);
-	for (auto so : songs)
-		for (auto c : so->GetAllSteps())
-			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+	
+	auto exec = [&successful,
+				this](std::pair<vectorIt<std::string>, vectorIt<std::string>> workload,
+					ThreadData* data) {
+		for (auto it = workload.first; it != workload.second; it++) {
+			auto& ck = *it;
+			successful |= ForceUploadPBsForChart(ck, false);
+		}
+	};
+	std::set<std::string> s{};
+	for (auto& song : SONGMAN->GetSongs(pack)) {
+		for (auto& steps : song->GetAllSteps()) {
+			s.emplace(steps->GetChartKey());
+		}
+	}
+	std::vector<std::string> sv(s.begin(), s.end());
+	parallelExecution<std::string>(sv, exec);
+
 	if (!successful) {
 		Locator::getLogger()->info(
 		  "ForceUploadPBsForPack did not queue any scores for pack {}", pack);
@@ -4586,10 +4624,20 @@ DownloadManager::ForceUploadAllPBs()
 	Locator::getLogger()->info("Trying ForceUploadAllPBs");
 
 	bool successful = false;
-	auto songs = SONGMAN->GetSongs(GROUP_ALL);
-	for (auto so : songs)
-		for (auto c : so->GetAllSteps())
-			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+
+	auto exec = [&successful, this](std::pair<vectorIt<std::string>, vectorIt<std::string>> workload, ThreadData* data) {
+		for (auto it = workload.first; it != workload.second; it++) {
+			auto& ck = *it;
+			successful |= ForceUploadPBsForChart(ck, false);
+		}
+	};
+	std::vector<std::string> s{};
+	s.reserve(SONGMAN->StepsByKey.size());
+	for (auto it = SONGMAN->StepsByKey.begin(); it != SONGMAN->StepsByKey.end(); it++) {
+		s.push_back(it->first);
+	}
+	parallelExecution<std::string>(s, exec);
+
 	if (!successful) {
 		Locator::getLogger()->info(
 		  "ForceUploadAllPBs did not queue any scores");
