@@ -69,6 +69,7 @@ local translations = {
     MakeFirstProfileQuestion = THEME:GetString("ScreenTitleMenu", "MakeFirstProfileQuestion"),
     MakeProfileError = THEME:GetString("ScreenTitleMenu", "MakeProfileError"),
     SelectProfile = THEME:GetString("ScreenTitleMenu", "SelectProfile"),
+    Gamemode = THEME:GetString("ScreenTitleMenu", "GameMode"),
 }
 
 local profileIDs = PROFILEMAN:GetLocalProfileIDs()
@@ -725,5 +726,15 @@ local function generateItems()
 end
 
 t[#t+1] = generateItems()
+
+t[#t+1] = LoadFont("Common Large") .. {
+    Name = "CurGamemode",
+    InitCommand = function(self)
+        self:xy(actuals.FrameLeftGap + actuals.Width, SCREEN_HEIGHT * 0.99)
+        self:halign(1):valign(1)
+        self:zoom(0.35)
+        self:settextf("%s: %s", translations["Gamemode"], GAMESTATE:GetCurrentGame():GetName())
+    end,
+}
 
 return t

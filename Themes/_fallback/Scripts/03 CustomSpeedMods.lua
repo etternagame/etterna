@@ -207,6 +207,7 @@ function SpeedMods()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = false,
+		ExportOnCancel = false,
 		Choices = GetSpeedMods(),
 		LoadSelections = function(self, list, pn)
 			local pref = GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Preferred")

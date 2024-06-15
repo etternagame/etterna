@@ -382,9 +382,9 @@ Replay::WriteReplayData() -> bool
 			fileStream.write(append.c_str(), append.size());
 		}
 		fileStream.close();
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to write replay data at {} due to runtime exception: {}",
+		  "Failed to write replay data at {} due to exception: {}",
 		  path,
 		  e.what());
 		fileStream.close();
@@ -523,9 +523,9 @@ Replay::WriteInputData() -> bool
 			  "Failed to delete uncompressed input data");
 		}
 		return true;
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to write input data at {} due to runtime exception: {}",
+		  "Failed to write input data at {} due to exception: {}",
 		  path,
 		  e.what());
 		fileStream.close();
@@ -544,9 +544,9 @@ Replay::WriteInputData() -> bool
 		Locator::getLogger()->trace("Created input data file at {}",
 									path.c_str());
 		return true;
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to write input data at {} due to runtime exception: {}",
+		  "Failed to write input data at {} due to exception: {}",
 		  path.c_str(),
 		  e.what());
 		fileStream.close();
@@ -800,9 +800,9 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		inputStream.close();
 
 		deleteDecompressedData();
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to load input data at {} due to runtime exception: {}",
+		  "Failed to load input data at {} due to exception: {}",
 		  path,
 		  e.what());
 		deleteDecompressedData();
@@ -877,9 +877,9 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 			vOffsetVector.emplace_back(offset);
 			tokens.clear();
 		}
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to load replay data at {} due to runtime exception: {}",
+		  "Failed to load replay data at {} due to exception: {}",
 		  path,
 		  e.what());
 		fileStream.close();

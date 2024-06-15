@@ -42,6 +42,7 @@ end
 local textSize = 0.75
 local textzoomFudge = 5
 local hackyMaxWidth = Var("hackyMaxWidth") or false
+local inputContext = Var("inputContext") or nil
 
 -- this will return an index which is offset depending on certain conditions
 -- basically we want the difficulties to be aligned to the right of the box
@@ -91,7 +92,11 @@ local t = Def.ActorFrame {
         local scrn = SCREENMAN:GetTopScreen()
         local snm = scrn:GetName()
         local anm = self:GetName()
-        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
+
+        -- if there is no input context passed by the loader, then no input will be handled
+        if inputContext == nil then return end
+
+        CONTEXTMAN:RegisterToContextSet(snm, inputContext, anm)
         -- input handling for changing difficulty with keyboard
         -- this timeout is basically just a timer to make sure that you press buttons fast enough
         local comboTimeout = nil
@@ -117,7 +122,7 @@ local t = Def.ActorFrame {
         end
 
         scrn:AddInputCallback(function(event)
-            if not CONTEXTMAN:CheckContextSet(snm, "Main1") then
+            if not CONTEXTMAN:CheckContextSet(snm, inputContext) then
                 resetTimeout()
                 return
             end

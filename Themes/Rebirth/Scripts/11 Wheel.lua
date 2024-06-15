@@ -438,15 +438,22 @@ Wheel.mt = {
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
+        local sortindex, sortname = WHEELDATA:GetLastSort()
+        local index = WHEELDATA:FindIndexOfFolder("Sort by "..sortname)
         w:setNewState(
-            1,
-            1,
+            index,
+            index,
             function() return WHEELDATA:GetWheelItems() end,
             newItems,
             nil
         )
         crossedGroupBorder = true
         forceGroupCheck = true
+
+        w.stepsBeforeSortmode = GAMESTATE:GetCurrentSteps()
+        w.songBeforeSortmode = GAMESTATE:GetCurrentSong()
+        w.groupBeforeSortmode = w.group
+
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
         
@@ -629,12 +636,22 @@ function Wheel:new(params)
     whee.x = params.x
     whee.y = params.y
     whee.items = {}
+
+    whee.ReloadedScriptsMessageCommand = function(self)
+        local tscr = SCREENMAN:GetTopScreen()
+        local snm = tscr:GetName()
+        local anm = self:GetName()
+        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
+    end
+
     whee.BeginCommand = function(self)
         local tscr = SCREENMAN:GetTopScreen()
         local snm = tscr:GetName()
         local anm = self:GetName()
         CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
         local heldButtons = {}
+        local lastPressedUp = 0
+        local lastPressedDown = 0
 
         -- timing out the button combo to go to the sort mode menu
         local buttonQueue = {}
@@ -827,7 +844,14 @@ function Wheel:new(params)
                     if event.type == "InputEventType_FirstPress" then
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                         heldButtons[direction] = true
-                        if heldButtons["up"] and heldButtons["down"] then
+                        if up then
+                            lastPressedUp = GetTimeSinceStart()
+                        else
+                            lastPressedDown = GetTimeSinceStart()
+                        end
+                        
+                        local UPDOWN_THRESHOLD = 0.05
+                        if math.abs(lastPressedDown - lastPressedUp) < UPDOWN_THRESHOLD then
                             whee:exitGroup()
                         end
                     elseif event.type == "InputEventType_Release" then
@@ -1060,21 +1084,32 @@ function MusicWheel:new(params)
                     local newItems = WHEELDATA:GetFilteredFolders()
                     WHEELDATA:SetWheelItems(newItems)
 
-                    w:setNewState(
-                        1,
-                        1,
-                        function() return WHEELDATA:GetWheelItems() end,
-                        newItems,
-                        nil
-                    )
+                    local oldck = nil
+                    if w.stepsBeforeSortmode ~= nil then oldck = w.stepsBeforeSortmode:GetChartKey() end
+                    if oldck ~= nil then
+                        local newgroup = w:findSong(oldck, w.groupBeforeSortmode)
+                        w.group = newgroup
+                        MESSAGEMAN:Broadcast("OpenedGroup", {
+                            group = newgroup,
+                        })
+                    else
+                        w:setNewState(
+                            1,
+                            1,
+                            function() return WHEELDATA:GetWheelItems() end,
+                            newItems,
+                            nil
+                        )
+                        GAMESTATE:SetCurrentSong(nil)
+                        GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+                        MESSAGEMAN:Broadcast("ClosedGroup", {
+                            group = w.group,
+                        })
+                    end
+
                     crossedGroupBorder = true
                     forceGroupCheck = true
-                    GAMESTATE:SetCurrentSong(nil)
-                    GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-                    
-                    MESSAGEMAN:Broadcast("ClosedGroup", {
-                        group = w.group,
-                    })
+
                     w:rebuildFrames()
                     MESSAGEMAN:Broadcast("ModifiedGroups", {
                         group = w.group,

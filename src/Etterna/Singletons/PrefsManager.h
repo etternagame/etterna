@@ -169,6 +169,7 @@ class PrefsManager
 	Preference<bool> m_bPackProgressInWheel;
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
+	Preference<bool> m_bForceNoDoubleSetup;
 
 	Preference<Maybe> m_ShowSongOptions;
 	Preference<float> m_fMinPercentToSaveScores;

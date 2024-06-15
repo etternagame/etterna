@@ -30,9 +30,9 @@ local t = Def.ActorFrame {
         playerConfig:set_dirty()
         playerConfig:save()
     end,
-    LoginFailedMessageCommand = function(self)
+    LoginFailedMessageCommand = function(self, params)
         self:playcommand("Set")
-        ms.ok("Login Failed")
+        ms.ok("Login Failed: " .. params.why)
 
         playerConfig:get_data().UserName = ""
         playerConfig:get_data().PasswordToken = ""
@@ -400,17 +400,23 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     end,
     MouseDownCommand = function(self, params)
         if params.event == "DeviceButton_left mouse button" then
-            TOOLTIP:Hide()
-            if DLMAN:IsLoggedIn() then
-                DLMAN:Logout()
-            else
-                beginLoginProcess(self)
-            end
+            self:playcommand("Invoke")
+        end
+    end,
+    InvokeCommand = function(self)
+        TOOLTIP:Hide()
+        if DLMAN:IsLoggedIn() then
+            DLMAN:Logout()
+        else
+            beginLoginProcess(self)
         end
     end,
     LoginStep2Command = function(self)
         loginStep2()
-    end
+    end,
+    TriggerLoginLogoutMessageCommand = function(self)
+        self:playcommand("Invoke")
+    end,
 }
 
 t[#t+1] = Def.ActorFrame {
@@ -959,7 +965,7 @@ t[#t+1] = Def.ActorFrame {
                     self:diffusealpha(downloadsProgress1Alpha)
                     local progress = dls[1]:GetKBDownloaded()
                     local size = dls[1]:GetTotalKB()
-                    local perc = progress / size
+                    local perc = math.max(progress / size, 0)
                     self:zoomx(actuals.IconDownloadsProgressBarWidth * perc)
                 else
                     self:diffusealpha(0)

@@ -762,7 +762,18 @@ local function goalList()
                 ClickCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if goal == nil then return end
-                    if goal:IsAchieved() then return end -- completed goals cant be updated
+                    if goal:IsAchieved() then
+                        -- completed goals cant be updated
+                        -- instead, send the user to the score
+                        local ck = goal:GetChartKey()
+                        local wheel = SCREENMAN:GetTopScreen():GetChild("WheelFile")
+                        if wheel then
+                            setMusicRate(goal:GetRate())
+                            wheel:playcommand("FindSong", {chartkey = ck})
+                            MESSAGEMAN:Broadcast("GeneralTabSet", {tab = SCUFF.generaltabindex})
+                        end
+                        return
+                    end
                     if params.update == "OnMouseDown" then
                         if params.event == "DeviceButton_left mouse button" then
                             goal:SetPercent(goal:GetPercent() + 0.01)

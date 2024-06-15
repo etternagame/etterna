@@ -258,6 +258,25 @@ t[#t+1] = UIElements.TextButton(2, 2, "Common Normal") .. {
     end,
 }
 
+t[#t+1] = LoadActorWithParams("stepsdisplay",
+    {
+        ratios = {
+            Width = 0.5,
+            DiffFrameLeftGap = 0,
+            DiffFrameRightGap = 0,
+            LeftTextLeftGap = 0,
+        },
+        actuals = {
+            Width = -actuals.EdgePadding,
+            DiffFrameLeftGap = 0,
+            DiffFrameRightGap = 0,
+            LeftTextLeftGap = 0,
+            DiffFrameUpperGap = actuals.DensityGraphHeight + actuals.EdgePadding,
+        },
+    }) .. {
+    -- hmm
+}
+
 t[#t+1] = Def.ActorFrame {
     Name = "CopyPastedCurSongBoxLine",
     InitCommand = function(self)

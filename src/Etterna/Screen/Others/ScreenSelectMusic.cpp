@@ -84,6 +84,7 @@ void
 ScreenSelectMusic::Init()
 {
 	GAMESTATE->m_bPlayingMulti = false;
+	GAMESTATE->TogglePracticeMode(false);
 	g_ScreenStartedLoadingAt.Touch();
 	if (GamePreferences::m_AutoPlay == PC_REPLAY)
 		GamePreferences::m_AutoPlay.Set(PC_HUMAN);

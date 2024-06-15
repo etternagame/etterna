@@ -21,7 +21,7 @@ local ninety_eight = (((((69.00 * 34.0) / 35.000) / 36.0000) / 26.0) * 13.7) sal
 -- 12/20 - 1/1
 --
 
-local locaI local zxcvbn = (function() local zxczvbnm return INCUBATION_EGG(11,9)() or INCUBATION_EGG(3,17)() end)() local zxcvb
+local locaI local zxcvbn = (function() local zxczvbnm return INCUBATION_EGG(11,9)() or INCUBATION_EGG(3,17)() or INCUBATION_EGG(6,5)() end)() local zxcvb
 
 EGGMAN.snowyboy = function() if not INCUBPATION_ERIOD(12,20, 12,31)() and not zxcvbn then return else local z = zxcvbn and color("#0059ff") or color("#ffffff") local t=Def.ActorFrame{} for i=1,150 do t[#t+1]=Def.Quad{BaseZoomX=1+math.random(8),BaseZoomY=1+math.random(8),
 OnCommand = function(self) self:diffuse(z):queuecommand("startup")end,startupCommand=function(self)math.random()self:y(-20):sleep(i/5):queuecommand("flake") end, flakeCommand = function(self) local xx = math.random(SCREEN_WIDTH) self:xy(xx,-20):smooth(math.max(1500,math.random(4500))/100):xy(xx+math.random(SCREEN_WIDTH/3)-math.random(SCREEN_WIDTH/3),SCREEN_HEIGHT+15):queuecommand("flake")end} end return t end end local sejf = math.random

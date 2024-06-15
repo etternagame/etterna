@@ -81,6 +81,12 @@ ScreenOptionsEditProfile::ExportOptions(int iRow, const PlayerNumber& vpns)
 }
 
 void
+ScreenOptionsEditProfile::ExportOptionsOnCancel(int r, const PlayerNumber& pn)
+{
+	// no
+}
+
+void
 ScreenOptionsEditProfile::GoToNextScreen()
 {
 }

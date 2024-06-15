@@ -382,6 +382,9 @@ function BUTTON.GetTopButton(self, x, y)
         return
     end
 
+	if x == nil then x = self.MouseX end
+	if y == nil then y = self.MouseY end
+
 	local topZ = -99999
 	local topButton = nil
 	local topButtonDepth = 0

@@ -475,6 +475,15 @@ function ActorFrame:GetDescendant(...)
     return final
 end
 
+-- return a flat table of every child and every child's child recursively
+function ActorFrame:GetAllDescendants()
+	local o = {}
+	self:RunCommandsRecursively(function(self)
+		o[#o+1] = self
+	end)
+	return o
+end
+
 -- (c) 2006-2012 Glenn Maynard, the Spinal Shark Collective, et al.
 -- All rights reserved.
 --

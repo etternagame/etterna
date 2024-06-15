@@ -88,8 +88,13 @@ ScreenGameplay::ScreenGameplay()
 
 	// Unload all Replay Data to prevent some things (if not replaying)
 	if (GamePreferences::m_AutoPlay != PC_REPLAY) {
-		Locator::getLogger()->info("Freeing loaded replay data");
-		SCOREMAN->UnloadAllReplayData();
+		if (DLMAN->ScoreUploadSequentialQueue.empty()) {
+			Locator::getLogger()->info("Freeing loaded replay data");
+			SCOREMAN->UnloadAllReplayData();
+		} else {
+			Locator::getLogger()->info(
+			  "Waiting until later to free loaded replay data");
+		}
 	}
 
 	SONGMAN->UnloadAllCalcDebugOutput();
@@ -1442,12 +1447,67 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 						if (g_buttonsByColumnPressed.count(iCol) == 0u) {
 							std::set<DeviceButton> newset;
 							g_buttonsByColumnPressed[iCol] = newset;
+							g_buttonsByColumnPressed[iCol].emplace(
+							  input.DeviceI.button);
 						}
-						g_buttonsByColumnPressed[iCol].emplace(
-						  input.DeviceI.button);
 
-						m_vPlayerInfo.m_pPlayer->Step(
-						  iCol, -1, input.DeviceI.ts, false, bRelease);
+						auto ignoreInput = false;
+						if (PREFSMAN->m_bForceNoDoubleSetup) {
+							// dont allow double setup if user doesnt want
+							auto bypassIgnore = false;
+
+							// ignore this for middle columns and scratches
+							auto colcount = GAMESTATE->GetCurrentStyle(input.pn)
+											  ->m_iColsPerPlayer;
+							if (colcount == 3 &&
+								input.GameI.button == DANCE_BUTTON_DOWN) {
+								// ignore middle
+								bypassIgnore = true;
+							} else if (colcount == 4 || colcount == 6) {
+								// always works
+								bypassIgnore = false;
+							} else if (colcount == 5 && input.GameI.button ==
+														  PUMP_BUTTON_CENTER) {
+								// ignore middle
+								bypassIgnore = true;
+							} else if (colcount == 7 &&
+									   input.GameI.button == KB7_BUTTON_KEY4) {
+								// ignore middle
+								bypassIgnore = true;
+							} else if (colcount == 8 &&
+									   (input.GameI.button ==
+										  BEAT_BUTTON_SCRATCHUP ||
+										input.GameI.button ==
+										  BEAT_BUTTON_SCRATCHDOWN ||
+										input.GameI.button ==
+										  DANCE_BUTTON_LEFT ||
+										input.GameI.button ==
+										  DANCE_BUTTON_RIGHT)) {
+								// ignore scratches
+								// todo: this is technically wrong for dance
+								bypassIgnore = true;
+							} else if (colcount == 9 &&
+									   input.GameI.button == POPN_BUTTON_RED) {
+								// ignore middle
+								bypassIgnore = true;
+							}
+
+							// if not bypassing ignore
+							// and the button is a new button for the column
+							// dont allow it
+							if (!bypassIgnore &&
+								!g_buttonsByColumnPressed[iCol].contains(
+								  input.DeviceI.button)) {
+								ignoreInput = true;
+							}
+						}
+
+						if (!ignoreInput) {
+							g_buttonsByColumnPressed[iCol].emplace(
+							  input.DeviceI.button);
+							m_vPlayerInfo.m_pPlayer->Step(
+							  iCol, -1, input.DeviceI.ts, false, bRelease);
+						}
 					}
 					return true;
 			}
@@ -1536,7 +1596,7 @@ ScreenGameplay::StageFinished(bool bBackedOut)
 
 	// If we didn't cheat and aren't in Practice
 	// (Replay does its own thing somewhere else here)
-	if (GamePreferences::m_AutoPlay == PC_HUMAN &&
+	if (!STATSMAN->m_CurStageStats.m_bUsedAutoplay &&
 		!GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().m_bPractice) {
 		auto* pHS = &STATSMAN->m_CurStageStats.m_player.m_HighScore;
 

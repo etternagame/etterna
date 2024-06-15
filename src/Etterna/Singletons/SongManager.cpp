@@ -37,7 +37,7 @@
 #include <fstream>
 #include <cmath>
 
-#include "Etterna/Globals/zip_file.hpp"
+#include "miniz/zip_file.hpp"
 
 using std::map;
 using std::string;
@@ -74,6 +74,10 @@ static Preference<std::string> g_sDisabledSongs("DisabledSongs", "");
 static Preference<bool> PlaylistsAreSongGroups("PlaylistsAreSongGroups", false);
 static Preference<bool> CacheZipsContainAllAssets("CacheZipsContainAllAssets",
 												  true);
+static Preference<unsigned int> downloadPacksToAdditionalSongs(
+  "downloadPacksToAdditionalSongs",
+  0);
+static const std::string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 
 auto
 SONG_GROUP_COLOR_NAME(size_t i) -> std::string
@@ -123,6 +127,72 @@ SongManager::InitAll(LoadingWindow* ld)
 	}
 	InitSongsFromDisk(ld);
 	LoadCalcTestNode();
+}
+
+bool
+SongManager::InstallSmzip(const std::string& sZipFile)
+{
+	miniz_cpp::zip_file fi(sZipFile);
+	// no ext
+	auto zipfilename =
+	  sZipFile.substr(sZipFile.find_last_of('/') + 1, sZipFile.length() - 4);
+	// path being extracted
+	std::string doot = sZipFile;
+
+	auto names = fi.namelist();
+	std::set<std::string> folders{};
+	for (auto& name : names) {
+		if (name.find_first_of('/') == std::string::npos) {
+			// this is probably a random file in the root
+			continue;
+		}
+		auto realname = name.substr(0, name.find_first_of('/'));
+		folders.emplace(realname);
+	}
+	if (folders.size() > 0) {
+		auto foundCandidate = false;
+		if (folders.size() == 1) {
+			doot = *folders.begin();
+			foundCandidate = true;
+		} else {
+			for (auto& fn : folders) {
+				if (make_lower(zipfilename) == make_lower(fn)) {
+					doot = fn;
+					foundCandidate = true;
+					break;
+				}
+			}
+			if (!foundCandidate) {
+				doot = *folders.begin();
+			}
+		}
+		if (!foundCandidate) {
+			Locator::getLogger()->error("Couldn't find good enough folder to "
+										"extract in {}. Picked a random one ({})", sZipFile, doot);
+		}
+	}
+	else {
+		Locator::getLogger()->error("Found no folders in zip {}...", sZipFile);
+		return false;
+	}
+
+	std::string extractTo =
+	  downloadPacksToAdditionalSongs ? "/AdditionalSongs/" : "/Songs/";
+
+	auto filecnt = 0;
+	for (auto& member : names) {
+		if (member.starts_with(doot + "/")) {
+			fi.extract(member,
+					   FILEMAN->ResolveSongFolder(
+						 extractTo, downloadPacksToAdditionalSongs));
+			filecnt++;
+		}
+	}
+
+	auto msg = fmt::format(
+	  "Finished extracting {} files for pack {}", filecnt, doot);
+	SCREENMAN->SystemMessage(msg);
+	return true;
 }
 
 static LocalizedString RELOADING("SongManager", "Reloading...");

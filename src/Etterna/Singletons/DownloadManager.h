@@ -95,6 +95,7 @@ class DownloadablePack
 	float avgDifficulty{ 0 };
 	int plays{ 0 };
 	int songs{ 0 };
+	bool nsfw{ false };
 	std::string url{ "" };
 	std::string mirror{ "" };
 	std::string bannerUrl{ "" };
@@ -447,10 +448,6 @@ class DownloadManager
 	void UpdateGameplayState(bool gameplay);
 
 	/////
-	// External static util
-	static bool InstallSmzip(const std::string& zipFile);
-
-	/////
 	// Lua external access
 	void PushSelf(lua_State* L);
 
@@ -638,7 +635,7 @@ class DownloadManager
 	std::set<std::string> unrankedCharts{};
 	bool currentrateonly = false;
 	bool topscoresonly = true;
-	bool ccoffonly = false;
+	bool validonly = true;
 
 	/////
 	// Misc information

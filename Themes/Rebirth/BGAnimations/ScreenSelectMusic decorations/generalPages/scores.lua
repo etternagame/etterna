@@ -198,6 +198,7 @@ local translations = {
     ChartUnranked = THEME:GetString("ScreenSelectMusic Scores", "ChartUnranked"),
     FetchingScores = THEME:GetString("ScreenSelectMusic Scores", "FetchingScores"),
     NoOnlineScoresRecorded = THEME:GetString("ScreenSelectMusic Scores", "NoOnlineScoresRecorded"),
+    NoSongSelected = THEME:GetString("ScreenSelectMusic Scores", "NoSongSelected"),
     ShowOnlineScores = THEME:GetString("ScreenSelectMusic Scores", "ShowOnlineScores"),
     ShowLocalScores = THEME:GetString("ScreenSelectMusic Scores", "ShowLocalScores"),
     ShowTopScores = THEME:GetString("ScreenSelectMusic Scores", "ShowTopScores"),
@@ -439,7 +440,7 @@ local function createList()
         end,
         ToggleInvalidCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                DLMAN:ToggleCCFilter()
+                DLMAN:ToggleValidFilter()
                 self:playcommand("UpdateScores")
                 self:playcommand("UpdateList")
             end
@@ -473,6 +474,8 @@ local function createList()
             end
             if score ~= nil and score:GetChordCohesion() then
                 EGGMAN.gegagoogoo(txt, score:GetChartKey()):diffuse(COLORS:getColor("generalBox", "ChordCohesionOnScore"))
+            elseif score ~= nil and not score:GetEtternaValid() then
+                txt:stopeffect():diffuse(COLORS:getColor("generalBox", "InvalidScore"))
             else
                 txt:stopeffect():diffuse(COLORS:getColor(category, element))
             end
@@ -1742,6 +1745,9 @@ local function createList()
                 if localrtTable == nil and GAMESTATE:GetCurrentSong() ~= nil then
                     self:diffusealpha(1)
                     self:settext(translations["NoLocalScoresRecorded"])
+                elseif GAMESTATE:GetCurrentSong() == nil then
+                    self:diffusealpha(1)
+                    self:settext(translations["NoSongSelected"])
                 else
                     self:diffusealpha(0)
                     self:settext("")
@@ -1761,6 +1767,9 @@ local function createList()
             elseif isLocal and localscore == nil then
                 self:diffusealpha(1)
                 self:settext(translations["NoLocalScoresRecorded"])
+            elseif GAMESTATE:GetCurrentSong() == nil then
+                self:diffusealpha(1)
+                self:settext(translations["NoSongSelected"])
             else
                 self:diffusealpha(0)
                 self:settext("")
@@ -1870,7 +1879,7 @@ local function createList()
 
         function() -- invalid score toggle
             -- true means invalid scores are hidden
-            return not DLMAN:GetCCFilter()
+            return DLMAN:GetValidFilter()
         end,
 
         function() -- current/all rates

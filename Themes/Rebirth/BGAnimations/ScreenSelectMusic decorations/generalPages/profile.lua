@@ -128,6 +128,8 @@ local translations = {
     ShowingLocalScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingLocalScores"),
     ShowingOnlineScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingOnlineScores"),
     SetPlayerName = THEME:GetString("ScreenSelectMusic Profile", "SetPlayerName"),
+    LogOut = THEME:GetString("Header", "LogOut"),
+    LogIn = THEME:GetString("Header", "LogIn"),
 }
 
 -- the page names in the order they go
@@ -1176,6 +1178,49 @@ local function createList()
                 UpdateLoginStatusCommand = function(self)
                     self:playcommand("UpdateToggle")
                 end
+            },
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "LoginLogout",
+                InitCommand = function(self)
+                    self:halign(0):valign(1)
+                    self:x(actuals.AvatarLeftGap)
+                    self:y(actuals.Height - actuals.InfoUpperMargin * 1.35)
+                    self:zoom(largelineTextSize)
+                    self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
+                    self:playcommand("Set")
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
+                end,
+                SetCommand = function(self)
+                    if DLMAN:IsLoggedIn() then
+                        self:settextf(translations["LogOut"])
+                    else
+                        self:settextf(translations["LogIn"])
+                    end
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        self:diffusealpha(1)
+                        MESSAGEMAN:Broadcast("TriggerLoginLogout")
+                    end
+                end,
+                LoginMessageCommand = function(self)
+                    self:playcommand("Set")
+                end,
+                LogOutMessageCommand = function(self)
+                    self:playcommand("Set")
+                end,
+                LoginFailedMessageCommand = function(self)
+                    self:playcommand("Set")
+                end,
             },
             UIElements.TextToolTip(1, 1, "Common Normal") .. {
                 Name = "RecentScores",

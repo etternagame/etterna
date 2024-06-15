@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <ghc/filesystem.hpp>
+
 #include <algorithm>
 #include <cstdint>
 #include <iostream>
@@ -5361,14 +5363,22 @@ public:
     
     void extract(const std::string &member, const std::string &path)
     {
-        std::fstream stream(detail::join_path({path, member}), std::ios::binary | std::ios::out);
-        stream << open(member).rdbuf();
+		auto file = detail::join_path({ path, member });
+		auto target = ghc::filesystem::path(file).parent_path();
+		if (!ghc::filesystem::exists(target))
+			ghc::filesystem::create_directories(target);
+		std::fstream stream(file, std::ios::binary | std::ios::out);
+		stream << open(member).rdbuf();
     }
 
     void extract(const zip_info &member, const std::string &path)
     {
-        std::fstream stream(detail::join_path({path, member.filename}), std::ios::binary | std::ios::out);
-        stream << open(member).rdbuf();
+		auto file = detail::join_path({ path, member.filename });
+		auto target = ghc::filesystem::path(file).parent_path();
+		if (!ghc::filesystem::exists(target))
+			ghc::filesystem::create_directories(target);
+		std::fstream stream(file, std::ios::binary | std::ios::out);
+		stream << open(member).rdbuf();
     }
 
     void extractall(const std::string &path)

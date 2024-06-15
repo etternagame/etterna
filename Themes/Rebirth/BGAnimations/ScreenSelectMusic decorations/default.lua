@@ -66,6 +66,11 @@ t[#t+1] = Def.ActorFrame {
             self:GetParent():playcommand("UpdateWheelPosition")
         end
     end,
+    ReloadedScriptsMessageCommand = function(self)
+        CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
+        WHEELDATA:ReloadWheelData()
+        MESSAGEMAN:Broadcast("GeneralTabSet", {tab = SCUFF.generaltabindex})
+    end,
 
     LoadActorWithParams("curSongBox", {
         widthRatio = widthRatio,

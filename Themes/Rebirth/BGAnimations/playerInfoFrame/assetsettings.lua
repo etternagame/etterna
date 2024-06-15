@@ -449,6 +449,8 @@ local function assetList()
                                 loadAssetType(curType + 1)
                             elseif pagedown then
                                 loadAssetType(curType - 1)
+                            elseif char ~= nil and tonumber(char) ~= nil and tonumber(char) >= 1 and tonumber(char) <= 3 then
+                                loadAssetType(tonumber(char))
                             end
 
                             self:playcommand("UpdateItemList")
@@ -690,31 +692,31 @@ local function assetList()
                 self:SetStateProperties(Sprite.LinearFrames(self:GetNumStates(), 1))
                 local w = self:GetWidth() or assetWidth
                 local h = (self:GetHeight() or assetHeight)
-                self.z = 1
+                self.zom = 1
                 if w > assetWidth and h > assetHeight then
                     if h * (assetWidth / assetHeight) > w then
-                        self.z = assetHeight / h
+                        self.zom = assetHeight / h
                     else
-                        self.z = assetWidth / w
+                        self.zom = assetWidth / w
                     end
                 elseif w > assetWidth then
-                    self.z = assetWidth / w
+                    self.zom = assetWidth / w
                 elseif h > assetHeight then
-                    self.z = assetHeight / h
+                    self.zom = assetHeight / h
                 end
                 self:zoomto(assetWidth, assetHeight)
-                self:zoom(self.z)
+                self:zoom(self.zom)
             end,
             CursorMovedMessageCommand = function(self, params)
                 self:finishtweening()
                 if params.index == i then
                     self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
                     self:zoomto(assetWidth+8, assetHeight+8)
-                    self:zoom(self.z)
+                    self:zoom(self.zom)
                 else
                     self:smooth(0.2)
                     self:zoomto(assetWidth, assetHeight)
-                    self:zoom(self.z)
+                    self:zoom(self.zom)
                 end
             end,
             PageMovedMessageCommand = function(self, params)
@@ -722,11 +724,11 @@ local function assetList()
                 if params.index == i then
                     self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
                     self:zoomto(assetWidth+8, assetHeight+8)
-                    self:zoom(self.z)
+                    self:zoom(self.zom)
                 else
                     self:smooth(0.2)
                     self:zoomto(assetWidth, assetHeight)
-                    self:zoom(self.z)
+                    self:zoom(self.zom)
                 end
             end,
             MouseDownCommand = function(self)

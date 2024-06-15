@@ -14,6 +14,7 @@ class ScreenOptionsManageProfiles : public ScreenOptions
   protected:
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptionsOnCancel(int iRow, const PlayerNumber& pn) override;
 
 	void AfterChangeRow(PlayerNumber pn) override;
 	void ProcessMenuStart(const InputEventPlus& input) override;

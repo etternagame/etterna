@@ -145,6 +145,12 @@ ScreenMiniMenu::ExportOptions(int r, const PlayerNumber& vpns)
 }
 
 void
+ScreenMiniMenu::ExportOptionsOnCancel(int r, const PlayerNumber& pn)
+{
+	// no
+}
+
+void
 ScreenMiniMenu::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_GoToNextScreen) {

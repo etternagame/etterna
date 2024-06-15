@@ -1136,7 +1136,6 @@ Player::UpdateHoldNotes(int iSongRow,
 			const auto iTrack = trtn.iTrack;
 
 			if (m_pPlayerState->m_PlayerController != PC_HUMAN) {
-				// TODO(Sam): Make the CPU miss sometimes.
 				if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY) {
 					STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
 					if (m_pPlayerStageStats != nullptr) {
@@ -2469,11 +2468,10 @@ Player::CrossedRows(int iLastRowCrossed,
 				if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
 					m_pPlayerState->m_PlayerController == PC_CPU) {
 					Step(iTrack, iRow, now, false, false);
-					if (m_pPlayerState->m_PlayerController == PC_AUTOPLAY ||
-						m_pPlayerState->m_PlayerController == PC_CPU) {
-						if (m_pPlayerStageStats != nullptr) {
-							m_pPlayerStageStats->m_bDisqualified = true;
-						}
+					STATSMAN->m_CurStageStats.m_bUsedAutoplay = true;
+					if (m_pPlayerStageStats != nullptr) {
+						m_pPlayerStageStats->m_bDisqualified = true;
+						m_pPlayerStageStats->everusedautoplay = true;
 					}
 				}
 			}

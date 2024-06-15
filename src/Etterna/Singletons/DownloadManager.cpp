@@ -22,6 +22,7 @@
 #include "Etterna/Models/Misc/PlayerOptions.h"
 #include "Etterna/Models/Songs/SongOptions.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
+#include "Etterna/Singletons/CryptManager.h"
 
 #include "rapidjson/writer.h"
 #include "rapidjson/error/en.h"
@@ -54,9 +55,6 @@ static Preference<unsigned int> maxDLPerSecond(
 static Preference<unsigned int> maxDLPerSecondGameplay(
   "maximumBytesDownloadedPerSecondDuringGameplay",
   1000000);
-static Preference<unsigned int> downloadPacksToAdditionalSongs(
-  "downloadPacksToAdditionalSongs",
-  0);
 static Preference<unsigned int> maxPacksToDownloadAtOnce(
   "parallelDownloadsAllowed",
   1);
@@ -67,16 +65,12 @@ static Preference<float> DownloadCooldownTime(
 // Score API Preferences
 static Preference<std::string> serverURL("BaseAPIUrl",
 										 "https://api.beta.etternaonline.com");
-static Preference<std::string> packListURL(
-  "PackListUrl",
-  "https://api.beta.etternaonline.com/api/client/packs");
 static Preference<std::string> searchURL("BaseAPISearchUrl",
 										 "https://search.etternaonline.com");
 static Preference<std::string> uiHomePage("BaseUIUrl", "https://beta.etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
-static const std::string TEMP_ZIP_MOUNT_POINT = "/@temp-zip/";
 static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 static const std::string wife3_rescore_upload_flag = "rescoredw3";
 
@@ -94,7 +88,7 @@ static Preference<unsigned int> UPLOAD_FAVORITE_BULK_CHUNK_SIZE(
 // all paths should begin with / and end without /
 /// API root path
 static const std::string API_ROOT = "/api/client";
-static const std::string API_KEY = "CsrvreCj5YnhxYcpfFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFf";
+static const std::string API_KEY = "CsrvreCj5YnhxYcpfFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFy";
 static const std::string TYPESENSE_API_KEY = "uNVBQbmgvnet2LTpT6sE3XYe7JeD8xej";
 
 static const std::string API_LOGIN = "/login";
@@ -118,6 +112,8 @@ static const std::string API_SEARCH = "/multi_search";
 
 static constexpr bool DO_COMPRESS = true;
 static constexpr bool DONT_COMPRESS = false;
+
+std::mutex G_MTX_SCORE_UPLOAD;
 
 inline std::string
 APIROOT()
@@ -180,88 +176,6 @@ ComputerIdentity()
 	userName = username;
 #endif
 	return computerName + ":_:" + userName;
-}
-
-bool
-DownloadManager::InstallSmzip(const std::string& sZipFile)
-{
-	if (!FILEMAN->Mount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT))
-		FAIL_M(static_cast<std::string>("Failed to mount " + sZipFile).c_str());
-	std::vector<std::string> v_packs;
-	FILEMAN->GetDirListing(TEMP_ZIP_MOUNT_POINT + "*", v_packs, ONLY_DIR, true);
-
-	std::string doot = TEMP_ZIP_MOUNT_POINT;
-	if (v_packs.size() > 1) {
-		// attempt to whitelist pack name, this
-		// should be pretty simple/safe solution for
-		// a lot of pad packs -mina
-		doot += sZipFile.substr(sZipFile.find_last_of('/') + 1);
-		doot = doot.substr(0, doot.length() - 4) + "/";
-	}
-
-	std::vector<std::string> vsFiles;
-	{
-		std::vector<std::string> vsRawFiles;
-		GetDirListingRecursive(doot, "*", vsRawFiles);
-
-		if (vsRawFiles.empty()) {
-			FILEMAN->Unmount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT);
-			return false;
-		}
-
-		std::vector<std::string> vsPrettyFiles;
-		for (auto& s : vsRawFiles) {
-			if (EqualsNoCase(GetExtension(s), "ctl"))
-				continue;
-
-			vsFiles.push_back(s);
-
-			std::string s2 =
-			  tail(s, s.length() - TEMP_ZIP_MOUNT_POINT.length());
-			vsPrettyFiles.push_back(s2);
-		}
-		sort(vsPrettyFiles.begin(), vsPrettyFiles.end());
-	}
-	std::string sResult = "Success installing " + sZipFile;
-	std::string extractTo =
-	  downloadPacksToAdditionalSongs ? "AdditionalSongs/" : "Songs/";
-	for (auto& sSrcFile : vsFiles) {
-		std::string sDestFile = sSrcFile;
-		sDestFile = tail(std::string(sDestFile.c_str()),
-						 sDestFile.length() - TEMP_ZIP_MOUNT_POINT.length());
-
-		// forcibly convert the path string to ASCII/ANSI/whatever
-		// basically remove everything that isnt normal
-		// and dont care about locales
-		std::vector<unsigned char> bytes(sDestFile.begin(), sDestFile.end());
-		bytes.push_back('\0');
-		std::string res{};
-		for (auto i = 0; i < bytes.size(); i++) {
-			auto c = bytes.at(i);
-			if (c > 122) {
-				res.append(std::to_string(c - 122));
-			} else {
-				res.push_back(c);
-			}
-		}
-		if (res.length() > 256) {
-			res = res.substr(0, 255);
-		}
-		sDestFile = res;
-
-		std::string sDir, sThrowAway;
-		splitpath(sDestFile, sDir, sThrowAway, sThrowAway);
-
-		if (!FileCopy(sSrcFile, extractTo + sDestFile)) {
-			sResult = "Error extracting " + sDestFile;
-			break;
-		}
-	}
-
-	FILEMAN->Unmount("zip", sZipFile, TEMP_ZIP_MOUNT_POINT);
-
-	SCREENMAN->SystemMessage(sResult);
-	return true;
 }
 
 inline void
@@ -1311,9 +1225,11 @@ DownloadManager::LoginRequest(const std::string& user,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback, this](auto& req) {
-		auto loginFailed = [this]() {
+		auto loginFailed = [this](std::string reason) {
 			authToken = sessionUser = "";
-			MESSAGEMAN->Broadcast("LoginFailed");
+			Message msg("LoginFailed");
+			msg.SetParam("why", reason);
+			MESSAGEMAN->Broadcast(msg);
 			loggingIn = false;
 		};
 
@@ -1333,7 +1249,12 @@ DownloadManager::LoginRequest(const std::string& user,
 
 			Locator::getLogger()->error(
 			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
-			loginFailed();
+			if (jsonObjectToString(d).find("out of date") !=
+				std::string::npos) {
+				loginFailed("Your client is out of date.");
+			} else {
+				loginFailed("Missing email or password, or email not verified.");
+				}
 		} else if (response == 404) {
 			// user doesnt exist?
 			parse();
@@ -1341,7 +1262,7 @@ DownloadManager::LoginRequest(const std::string& user,
 			Locator::getLogger()->error(
 			  "Status 404 on LoginRequest. User may not exist. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("User may not exist.");
 
 		} else if (response == 401) {
 			// bad password
@@ -1350,7 +1271,7 @@ DownloadManager::LoginRequest(const std::string& user,
 			Locator::getLogger()->error(
 			  "Status 401 on LoginRequest. Bad password? Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("Password may be wrong.");
 
 		} else if (response == 403) {
 			// user is banned
@@ -1359,14 +1280,14 @@ DownloadManager::LoginRequest(const std::string& user,
 			Locator::getLogger()->error(
 			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("User is banned.");
 
 		} else if (response == 200) {
 			// all good
 			if (parse()) {
 				Locator::getLogger()->warn(
 				  "Due to LoginRequest parse error, login failed");
-				loginFailed();
+				loginFailed("Unknown error");
 				return;
 			}
 
@@ -1393,7 +1314,7 @@ DownloadManager::LoginRequest(const std::string& user,
 				  "Missing access token in LoginRequest response. Content: "
 				  "{}",
 				  jsonObjectToString(d));
-				loginFailed();
+				loginFailed("Missing token in login response from server.");
 			}
 		} else {
 			// ???
@@ -1403,13 +1324,15 @@ DownloadManager::LoginRequest(const std::string& user,
 			  "Unexpected response code {} on LoginRequest. Content: {}",
 			  response,
 			  jsonObjectToString(d));
-			loginFailed();
+			loginFailed("Unknown status");
 		}
 	};
 	HTTPRequest* req = new HTTPRequest(curlHandle, done, form);
 	req->Failed = [this](auto& req) {
 		authToken = sessionUser = "";
-		MESSAGEMAN->Broadcast("LoginFailed");
+		Message msg("LoginFailed");
+		msg.SetParam("why", std::string("Request failed"));
+		MESSAGEMAN->Broadcast(msg);
 		loggingIn = false;
 	};
 	SetCURLResultsString(curlHandle, &(req->result));
@@ -1424,6 +1347,8 @@ DownloadManager::LoginRequest(const std::string& user,
 void
 DownloadManager::Logout()
 {
+	const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
+
 	// cancel sequential upload
 	ScoreUploadSequentialQueue.clear();
 	sequentialScoreUploadTotalWorkload = 0;
@@ -3492,12 +3417,12 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 		  tmp.scoreid);
 		tmp.rate = 0.0;
 	}
-	if (score.HasMember("chord_cohesion") && score["chord_cohesion"].IsInt())
-		tmp.nocc = score["chord_cohesion"].GetInt() == 0;
+	if (score.HasMember("chord_cohesion") && score["chord_cohesion"].IsBool())
+		tmp.nocc = !score["chord_cohesion"].GetBool();
 	else
 		tmp.nocc = false;
-	if (score.HasMember("valid") && score["valid"].IsInt())
-		tmp.valid = score["valid"].GetInt() == 1;
+	if (score.HasMember("valid") && score["valid"].IsBool())
+		tmp.valid = score["valid"].GetBool();
 	else
 		tmp.valid = false;
 	if (score.HasMember("wife_version") && score["wife_version"].IsInt()) {
@@ -3556,6 +3481,7 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 	hs.SetName(tmp.username);
 	hs.SetModifiers(tmp.modifiers);
 	hs.SetChordCohesion(tmp.nocc);
+	hs.SetEtternaValid(tmp.valid);
 	hs.SetWifeScore(tmp.wife);
 	hs.SetWifeVersion(tmp.wifeversion);
 	hs.SetSSRNormPercent(tmp.wife);
@@ -3609,8 +3535,8 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("max_combo", hs->GetMaxCombo(), allocator);
 	d.AddMember(
 	  "modifiers", stringToVal(hs->GetModifiers(), allocator), allocator);
-	if (hs->IsEmptyNormalized()) {
-		Locator::getLogger()->debug("Score {} will NOT use Normalized TNS",
+	if (!hs->NormalizeJudgments()) {
+		Locator::getLogger()->info("Score {} will NOT use Normalized TNS",
 									hs->GetScoreKey());
 		d.AddMember("marvelous", hs->GetTapNoteScore(TNS_W1), allocator);
 		d.AddMember("perfect", hs->GetTapNoteScore(TNS_W2), allocator);
@@ -3633,7 +3559,11 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 	d.AddMember("let_go", hs->GetHoldNoteScore(HNS_LetGo), allocator);
 	d.AddMember("missed_hold", hs->GetHoldNoteScore(HNS_Missed), allocator);
 	d.AddMember(
-	  "rate", std::round(hs->GetMusicRate() * 1000.0) / 1000.0, allocator);
+	  "rate",
+	  stringToVal(
+		fmt::format("{:.3f}", std::round(hs->GetMusicRate() * 1000.0) / 1000.0),
+		allocator),
+	  allocator);
 	d.AddMember("datetime",
 				stringToVal(hs->GetDateTime().GetString(), allocator),
 				allocator);
@@ -3664,9 +3594,13 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 		validity = false;
 	}
 	else {
-		d.AddMember("judge",
-					std::round(hs->GetJudgeScale() * 1000.0) / 1000.0,
-					allocator);
+		d.AddMember(
+		  "judge",
+		  stringToVal(
+			fmt::format("{:.3f}",
+						std::round(hs->GetJudgeScale() * 1000.0) / 1000.0),
+			allocator),
+		  allocator);
 	}
 
 	// comprehensive checks for forced invalidation
@@ -3801,6 +3735,10 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 		};
 
 		auto* replay = hs->GetReplay();
+		auto usingReprioritized = replay->UsingReprioritizedNoteRows();
+		if (usingReprioritized) {
+			replay->SetUseReprioritizedNoteRows(false);
+		}
 
 		bool hadToLoadReplayData = false;
 
@@ -3882,6 +3820,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			Document inputDataArr;
 			inputDataArr.SetArray();
 			for (const auto& input : inputdata) {
+				// there is a crash in here. dont know where
 				Document inputObj;
 				inputObj.SetObject();
 				inputObj.AddMember("column", input.column, allocator);
@@ -3942,6 +3881,11 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 			inputDataObject.AddMember("hold_drops", holdDataArr, allocator);
 		}
 
+		if (usingReprioritized) {
+			replay->SetUseReprioritizedNoteRows(true);
+			// this means replay data was already loaded, probably
+			hadToLoadReplayData = false;
+		}
 		if (hadToLoadReplayData) {
 			hs->UnloadReplayData();
 		}
@@ -4400,21 +4344,35 @@ uploadScoresSequentially()
 	MESSAGEMAN->Broadcast(msg);
 
 	if (!DLMAN->ScoreUploadSequentialQueue.empty()) {
-		
-		std::vector<HighScore*> hsToUpload{};
-		for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
-						 !DLMAN->ScoreUploadSequentialQueue.empty();
-			 i++) {
-			hsToUpload.push_back(DLMAN->ScoreUploadSequentialQueue.front());
-			DLMAN->ScoreUploadSequentialQueue.pop_front();
 
-			if (hsToUpload.size() >= UPLOAD_SCORE_BULK_CHUNK_SIZE) {
-				break;
+		auto work = []() {
+
+			if (DLMAN == nullptr) {
+				// a detached thread can be alive after the rest of the game
+				return;
 			}
-		}
-		runningSequentialScoreUpload = true;
-		DLMAN->UploadBulkScores(hsToUpload, uploadScoresSequentially);
-		
+
+			std::vector<HighScore*> hsToUpload{};
+			{
+				const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
+				for (auto i = 0u; i < UPLOAD_SCORE_BULK_CHUNK_SIZE &&
+								  !DLMAN->ScoreUploadSequentialQueue.empty();
+					 i++) {
+					hsToUpload.push_back(
+					  DLMAN->ScoreUploadSequentialQueue.front());
+					DLMAN->ScoreUploadSequentialQueue.pop_front();
+
+					if (hsToUpload.size() >= UPLOAD_SCORE_BULK_CHUNK_SIZE) {
+						break;
+					}
+				}
+				runningSequentialScoreUpload = true;
+			}
+
+			DLMAN->UploadBulkScores(hsToUpload, uploadScoresSequentially);
+		};
+		std::thread worker(work);
+		worker.detach();
 	} else {
 		Locator::getLogger()->info(
 		  "Sequential score upload queue empty - uploads finished");
@@ -4498,15 +4456,22 @@ DownloadManager::InitialScoreSync()
 		// set to yesterday because timezones and stuff
 		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
 
-		if (!toUpload.empty())
+		if (!toUpload.empty()) {
 			Locator::getLogger()->info(
 			  "Updating online scores. (Uploading {} scores)", toUpload.size());
-		else
+		} else {
+			Locator::getLogger()->info(
+			  "Didn't find any scores to automatically upload");
 			return false;
+		}
 
-		ScoreUploadSequentialQueue.insert(
-		  ScoreUploadSequentialQueue.end(), toUpload.begin(), toUpload.end());
-		sequentialScoreUploadTotalWorkload += toUpload.size();
+		{
+			const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
+			ScoreUploadSequentialQueue.insert(ScoreUploadSequentialQueue.end(),
+											  toUpload.begin(),
+											  toUpload.end());
+			sequentialScoreUploadTotalWorkload += toUpload.size();
+		}
 		startSequentialScoreUpload();
 		return true;
 	};
@@ -4522,10 +4487,10 @@ DownloadManager::InitialScoreSync()
 bool
 DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 {
-	Locator::getLogger()->info(
-	  "Trying ForceUploadPBsForChart - {}", ck);
+	if (startNow)
+		Locator::getLogger()->info("Trying ForceUploadPBsForChart - {}", ck);
 
-	auto cs = SCOREMAN->GetScoresForChart(ck);
+	auto* cs = SCOREMAN->GetScoresForChart(ck);
 	if (cs) {
 		bool successful = false;
 		auto& scores = cs->GetTopScoresForUploading();
@@ -4533,6 +4498,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 			if (!s->forceuploadedthissession) {
 				if (s->GetGrade() != Grade_Failed) {
 					// don't add stuff we're already uploading
+					const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
 					auto res = std::find(ScoreUploadSequentialQueue.begin(),
 										 ScoreUploadSequentialQueue.end(),
 										 s);
@@ -4545,7 +4511,7 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 				}
 			}
 		}
-		if (!successful) {
+		if (!successful && startNow) {
 			Locator::getLogger()->info(
 			  "ForceUploadPBsForChart did not queue any scores for chart {}",
 			  ck);
@@ -4554,22 +4520,36 @@ DownloadManager::ForceUploadPBsForChart(const std::string& ck, bool startNow)
 		}
 		return successful;
 	} else {
-		Locator::getLogger()->info(
-		  "ForceUploadPBsForChart found no scores for chart {}", ck);
+		if (startNow)
+			Locator::getLogger()->info(
+			  "ForceUploadPBsForChart found no scores for chart {}", ck);
 		return false;
 	}
 }
 bool
 DownloadManager::ForceUploadPBsForPack(const std::string& pack, bool startNow)
 {
-	Locator::getLogger()->info(
-	  "Trying ForceUploadPBsForPack - {}", pack);
+	Locator::getLogger()->info("Trying ForceUploadPBsForPack - {}", pack);
 
 	bool successful = false;
-	auto songs = SONGMAN->GetSongs(pack);
-	for (auto so : songs)
-		for (auto c : so->GetAllSteps())
-			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+	
+	auto exec = [&successful,
+				this](std::pair<vectorIt<std::string>, vectorIt<std::string>> workload,
+					ThreadData* data) {
+		for (auto it = workload.first; it != workload.second; it++) {
+			auto& ck = *it;
+			successful |= ForceUploadPBsForChart(ck, false);
+		}
+	};
+	std::set<std::string> s{};
+	for (auto& song : SONGMAN->GetSongs(pack)) {
+		for (auto& steps : song->GetAllSteps()) {
+			s.emplace(steps->GetChartKey());
+		}
+	}
+	std::vector<std::string> sv(s.begin(), s.end());
+	parallelExecution<std::string>(sv, exec);
+
 	if (!successful) {
 		Locator::getLogger()->info(
 		  "ForceUploadPBsForPack did not queue any scores for pack {}", pack);
@@ -4584,10 +4564,20 @@ DownloadManager::ForceUploadAllPBs()
 	Locator::getLogger()->info("Trying ForceUploadAllPBs");
 
 	bool successful = false;
-	auto songs = SONGMAN->GetSongs(GROUP_ALL);
-	for (auto so : songs)
-		for (auto c : so->GetAllSteps())
-			successful |= ForceUploadPBsForChart(c->GetChartKey(), false);
+
+	auto exec = [&successful, this](std::pair<vectorIt<std::string>, vectorIt<std::string>> workload, ThreadData* data) {
+		for (auto it = workload.first; it != workload.second; it++) {
+			auto& ck = *it;
+			successful |= ForceUploadPBsForChart(ck, false);
+		}
+	};
+	std::vector<std::string> s{};
+	s.reserve(SONGMAN->StepsByKey.size());
+	for (auto it = SONGMAN->StepsByKey.begin(); it != SONGMAN->StepsByKey.end(); it++) {
+		s.push_back(it->first);
+	}
+	parallelExecution<std::string>(s, exec);
+
 	if (!successful) {
 		Locator::getLogger()->info(
 		  "ForceUploadAllPBs did not queue any scores");
@@ -5963,6 +5953,7 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 							packDl.songs = getJsonInt(pack, "song_count");
 							packDl.bannerUrl =
 							  getJsonString(pack, "banner_path");
+							packDl.nsfw = getJsonBool(pack, "nsfw");
 
 							auto thumbnail =
 							  getJsonString(pack, "bannerTinyThumb");
@@ -6087,7 +6078,7 @@ Download::Install()
 {
 	Core::Platform::requestUserAttention();
 	Message* msg;
-	if (!DownloadManager::InstallSmzip(m_TempFileName))
+	if (!SongManager::InstallSmzip(m_TempFileName))
 		msg = new Message("DownloadFailed");
 	else
 		msg = new Message("PackDownloaded");
@@ -6525,7 +6516,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 
 		for (auto& score : leaderboardScores) {
 			auto& leaderboardHighScore = score.hs;
-			if (p->ccoffonly && !score.nocc)
+			if (p->validonly && (!score.nocc || !score.valid))
 				continue;
 			if (p->currentrateonly &&
 				lround(leaderboardHighScore.GetMusicRate() * 10000.f) !=
@@ -6556,8 +6547,14 @@ class LunaDownloadManager : public Luna<DownloadManager>
 						  if (a->GetMusicRate() == b->GetMusicRate()) {
 							  return a->GetWifeScore() > b->GetWifeScore();
 						  }
-						  return a->GetSkillsetSSR(Skill_Overall) >
-								 b->GetSkillsetSSR(Skill_Overall);
+						  auto assr = a->GetSkillsetSSR(Skill_Overall);
+						  auto bssr =
+							b->GetSkillsetSSR(Skill_Overall);
+						  if (fabsf(assr - bssr) < 0.001F) {
+							  return a->GetMusicRate() > b->GetMusicRate();
+						  } else {
+							  return assr > bssr;
+						  }
 					  });
 		}
 
@@ -6599,14 +6596,14 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushboolean(L, p->topscoresonly);
 		return 1;
 	}
-	static int ToggleCCFilter(T* p, lua_State* L)
+	static int ToggleValidFilter(T* p, lua_State* L)
 	{
-		p->ccoffonly = !p->ccoffonly;
+		p->validonly = !p->validonly;
 		return 0;
 	}
-	static int GetCCFilter(T* p, lua_State* L)
+	static int GetValidFilter(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->ccoffonly);
+		lua_pushboolean(L, p->validonly);
 		return 1;
 	}
 	static int SendReplayDataForOldScore(T* p, lua_State* L)
@@ -6671,8 +6668,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetCurrentRateFilter);
 		ADD_METHOD(ToggleTopScoresOnlyFilter);
 		ADD_METHOD(GetTopScoresOnlyFilter);
-		ADD_METHOD(ToggleCCFilter);
-		ADD_METHOD(GetCCFilter);
+		ADD_METHOD(ToggleValidFilter);
+		ADD_METHOD(GetValidFilter);
 		ADD_METHOD(SendReplayDataForOldScore);
 		ADD_METHOD(UploadScoresForChart);
 		ADD_METHOD(UploadScoresForPack);
@@ -6793,6 +6790,11 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushstring(L, p->mirror.c_str());
 		return 1;
 	}
+	static int IsNSFW(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->nsfw);
+		return 1;
+	}
 	/*
 	static int GetThumbnailTexture(T* p, lua_State* L)
 	{
@@ -6819,6 +6821,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(GetID);
 		ADD_METHOD(GetURL);
 		ADD_METHOD(GetMirror);
+		ADD_METHOD(IsNSFW);
 		// ADD_METHOD(GetThumbnailTexture);
 	}
 };

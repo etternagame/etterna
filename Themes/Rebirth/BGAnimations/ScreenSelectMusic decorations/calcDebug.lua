@@ -1341,19 +1341,23 @@ t[#t+1] = Def.ActorFrame {
             self:settextf("Pack: %s", params.song:GetGroupName())
         end,
     },
-    LoadActorWithParams("stepsdisplay", {ratios = {
-        Width = 0.5,
-        DiffFrameLeftGap = 0,
-        DiffFrameRightGap = 0,
-        LeftTextLeftGap = 0,
-    }, actuals = {
-        Width = SCREEN_WIDTH,
-        DiffFrameLeftGap = 0 * SCREEN_WIDTH,
-        DiffFrameRightGap = previewGraphWidth + 64,
-        LeftTextLeftGap = 0 * SCREEN_WIDTH,
-        DiffFrameUpperGap = edgeGap/2,
-    }}) .. {
-        -- hmm
+    LoadActorWithParams("stepsdisplay", {
+            ratios = {
+                Width = 0.5,
+                DiffFrameLeftGap = 0,
+                DiffFrameRightGap = 0,
+                LeftTextLeftGap = 0,
+            },
+            actuals = {
+                Width = SCREEN_WIDTH,
+                DiffFrameLeftGap = 0 * SCREEN_WIDTH,
+                DiffFrameRightGap = previewGraphWidth + 64,
+                LeftTextLeftGap = 0 * SCREEN_WIDTH,
+                DiffFrameUpperGap = edgeGap/2,
+            },
+            inputContext = "CalcDebug",
+        }) .. {
+    -- hmm
     },
     LoadFont("Common Normal") .. {
         Name = "BPMText",

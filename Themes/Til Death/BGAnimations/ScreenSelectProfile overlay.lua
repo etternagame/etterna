@@ -3,7 +3,8 @@ local translated_info = {
 	SongPlayed = THEME:GetString("ScreenSelectProfile", "SongPlayed"),
 	SongsPlayed = THEME:GetString("ScreenSelectProfile", "SongsPlayed"),
 	NoProfile = THEME:GetString("GeneralInfo", "NoProfile"),
-	PressStart = THEME:GetString("ScreenSelectProfile", "PressStartToJoin")
+	PressStart = THEME:GetString("ScreenSelectProfile", "PressStartToJoin"),
+	Gamemode = THEME:GetString("ScreenSelectProfile", "GameMode"),
 }
 
 local function GetLocalProfiles()
@@ -305,6 +306,13 @@ t[#t + 1] = LoadFont("Common Large") .. {
 		self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
 		self:settextf("%s:", translated_info["Title"])
 	end
+}
+t[#t+1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(5, SCREEN_HEIGHT-21)
+		self:halign(0):valign(0):zoom(0.35):diffuse(getMainColor("positive"))
+		self:settextf("%s: %s", translated_info["Gamemode"], GAMESTATE:GetCurrentGame():GetName())
+	end,
 }
 
 t[#t + 1] = LoadActor("_cursor")

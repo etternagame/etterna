@@ -63,3 +63,10 @@ function table.sorted(t, sortfunc)
 	end
 	return o
 end
+
+-- given the initial table, add the contents of another table to it
+function table.extend(t, othertable)
+	for k,v in pairs(othertable) do
+		t[k] = v
+	end
+end

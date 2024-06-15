@@ -11,6 +11,7 @@ function WHEELDATA.Reset(self)
     -- 1 is the "enum value" for Group sort, it should stay that way
     -- you can find the indices from the sortmodes table in this file
     self.CurrentSort = 1
+    self.LastSort = 1
 
     -- library of all Songs for this Game (all Styles)
     self.AllSongs = {}
@@ -1824,16 +1825,23 @@ function WHEELDATA.GetCurrentSort(self)
     return self.CurrentSort, sortToString(self.CurrentSort)
 end
 
+-- get the value and string value of the previous sort
+function WHEELDATA.GetLastSort(self)
+    return self.LastSort, sortToString(self.LastSort)
+end
+
 -- set the value for the current sort
 -- needs either a string or an index
 -- returns a status of successful sort value change
 function WHEELDATA.SetCurrentSort(self, s)
     if sortmodes[s] ~= nil then
+        self.LastSort = self.CurrentSort
         self.CurrentSort = s
         return true
     else
         local k = findKeyOf(sortmodes, s)
         if k ~= nil then
+            self.LastSort = self.CurrentSort
             self.CurrentSort = k
             return true
         end

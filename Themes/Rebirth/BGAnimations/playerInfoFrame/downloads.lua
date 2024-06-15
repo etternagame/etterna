@@ -85,6 +85,8 @@ local translations = {
 	NoPacks = THEME:GetString("PackDownloader", "NoPacks"),
     TagExplain = THEME:GetString("PackDownloader", "TagExplain"),
     Apply = THEME:GetString("PackDownloader", "Apply"),
+    Reset = THEME:GetString("PackDownloader", "Reset"),
+    NSFWPack = THEME:GetString("PackDownloader", "NSFWPack"),
 
 }
 
@@ -448,15 +450,23 @@ local function downloadsList()
                     self:x(actuals.NameColumnLeftGap)
                     self:zoom(nameTextSize)
                     self:maxwidth((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) / nameTextSize - textZoomFudge)
-                    registerActorToColorConfigElement(self, "main", "SecondaryText")
                     self.alphaDeterminingFunction = function(self)
                         if isOver(self) and pack ~= nil then self:diffusealpha(buttonHoverAlpha) else self:diffusealpha(1) end
                     end
                 end,
+                ColorConfigUpdatedMessageCommand = function(self)
+                    self:playcommand("SetPack")
+                end,
                 SetPackCommand = function(self)
                     if pack ~= nil then
+                        if not pack:IsNSFW() then
+                            self:diffuse(COLORS:getColor("main", "SecondaryText"))
+                        else
+                            self:diffuse(COLORS:getColor("downloader", "NSFWPack"))
+                        end
                         self:settext(pack:GetName())
                     elseif bundle ~= nil then
+                        self:diffuse(COLORS:getColor("main", "SecondaryText"))
                         local expanded = i % 2 == 0 and " "..translations["Expanded"] or ""
                         self:settext(translations[bundleTypes[index]] .. expanded)
                     end
@@ -471,10 +481,17 @@ local function downloadsList()
                 end,
                 MouseOverCommand = function(self)
                     if self:IsInvisible() then return end
+                    if pack ~= nil then
+                        if pack:IsNSFW() then
+                            TOOLTIP:SetText(translations["NSFWPack"])
+                            TOOLTIP:Show()
+                        end
+                    end
                     self:alphaDeterminingFunction()
                 end,
                 MouseOutCommand = function(self)
                     if self:IsInvisible() then return end
+                    TOOLTIP:Hide()
                     self:alphaDeterminingFunction()
                 end,
             },
@@ -566,7 +583,11 @@ local function downloadsList()
                         if downloadingPacksByName[name] ~= nil or queuedPacksByName[name] ~= nil or SONGMAN:DoesSongGroupExist(name) then
                             return
                         end
-                        pack:DownloadAndInstall(false)
+                        if pack:GetSize() > 2000000000 then
+                            GAMESTATE:ApplyGameCommand("urlnoexit," .. pack:GetURL())
+                        else
+                            pack:DownloadAndInstall(false)
+                        end
                     elseif bundle ~= nil then
                         local name = bundleTypes[index]:lower()..(i%2==0 and "-expanded" or "")
                         DLMAN:DownloadCoreBundle(name)
@@ -1174,6 +1195,45 @@ local function downloadsList()
                     self:maxwidth(actuals.Width / nameHeaderSize)
                     self:settext(translations["TagExplain"])
                     registerActorToColorConfigElement(self, "main", "SecondaryText")
+                end,
+            },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "Reset",
+                InitCommand = function(self)
+                    self.bg = self:GetChild("BG")
+                    self.txt = self:GetChild("Text")
+                    self:xy(
+                        actuals.Width - ((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) + actuals.NameColumnLeftGap + actuals.EdgePadding)/2,
+                        actuals.Height/2 - actuals.TopLipHeight * 2 - taglistAllottedSpace / tagCount * 1.25)
+                    self.bg:halign(0)
+                    self.txt:x(actuals.MSDWidth*1.2 / 2)
+                    self.txt:zoom(msdTextSize)
+                    self.txt:maxwidth(actuals.MSDWidth*1.2/msdTextSize)
+                    self.bg:zoomto(actuals.MSDWidth * 1.2, taglistAllottedSpace / tagCount * 1.2)
+
+                    registerActorToColorConfigElement(self.txt, "main", "SecondaryText")
+                    registerActorToColorConfigElement(self.bg, "main", "SecondaryBackground")
+                    self.bg:diffusealpha(1)
+                    self.alphaDeterminingFunction = function(self)
+                        if isOver(self.bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+
+                    self.txt:settext(translations["Reset"])
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update ~= "OnMouseDown" then return end
+                    selectedTags = {}
+                    self:GetParent():GetParent():playcommand("SetTag")
+                    self:GetParent():GetParent():playcommand("InvokeSearch")
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
