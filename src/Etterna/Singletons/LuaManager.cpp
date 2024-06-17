@@ -688,6 +688,12 @@ LuaManager::LuaManager()
 	nil_field("popen");
 	nil_field("tmpfile");
 	lua_pop(L, 1);
+	// package lib for ace
+	lua_getglobal(L, "package");
+	nil_field("loadlib");
+	nil_field("searchpath");
+	nil_field("seeall");
+	lua_pop(L, 1);
 #undef nil_field
 
 	// Store the thread pool in a table on the stack, in the main thread.
