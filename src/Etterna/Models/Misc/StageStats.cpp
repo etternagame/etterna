@@ -446,6 +446,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 
 	auto& tfs = ps.m_PlayerOptions.GetStage().m_bTransforms;
 	auto& turns = ps.m_PlayerOptions.GetStage().m_bTurns;
+	auto& effects = ps.m_PlayerOptions.GetStage().m_fEffects;
 
 	// only do this if the file doesnt have mines
 	if (tfs[PlayerOptions::TRANSFORM_NOMINES] && pss.filegotmines)
@@ -480,6 +481,11 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		if (turns[t])
 			return false;
 	}
+
+	// invalidate if invert is on
+	// (fake mirror)
+	if (effects[PlayerOptions::EFFECT_INVERT] != 0.0F)
+		return false;
 
 	// impossible for this to happen but just in case
 	if (ps.m_PlayerOptions.GetStage().m_bPractice)

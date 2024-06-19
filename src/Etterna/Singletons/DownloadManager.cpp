@@ -3613,6 +3613,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 
 		const auto& tfs = po.m_bTransforms;
 		const auto& turns = po.m_bTurns;
+		const auto& effects = po.m_fEffects;
 		const auto* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 
 		// if ccon, invalid
@@ -3676,6 +3677,16 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				  "Score {} will upload as invalid due to Turn {}",
 				  hs->GetScoreKey(),
 				  t);
+		}
+
+		// invalidate if invert is turned on at all
+		// (fake mirror)
+		if (validity) {
+			validity &= effects[PlayerOptions::EFFECT_INVERT] == 0.F;
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to Effect Invert",
+				  hs->GetScoreKey());
 		}
 
 		// impossible for this to happen but just in case
