@@ -132,7 +132,16 @@ SongManager::InitAll(LoadingWindow* ld)
 bool
 SongManager::InstallSmzip(const std::string& sZipFile)
 {
-	miniz_cpp::zip_file fi(sZipFile);
+	miniz_cpp::zip_file fi;
+	try {
+		fi.load(sZipFile);
+	} catch (std::runtime_error& e) {
+		Locator::getLogger()->error("Exception when trying to extract {} - Zip "
+									"may not exist or is bad : {}",
+									sZipFile,
+									e.what());
+		return false;
+	}
 	// no ext
 	auto zipfilename =
 	  sZipFile.substr(sZipFile.find_last_of('/') + 1, sZipFile.length() - 4);
@@ -182,10 +191,15 @@ SongManager::InstallSmzip(const std::string& sZipFile)
 	auto filecnt = 0;
 	for (auto& member : names) {
 		if (member.starts_with(doot + "/")) {
-			fi.extract(member,
-					   FILEMAN->ResolveSongFolder(
-						 extractTo, downloadPacksToAdditionalSongs));
-			filecnt++;
+			try {
+				fi.extract(member,
+						   FILEMAN->ResolveSongFolder(
+							 extractTo, downloadPacksToAdditionalSongs));
+				filecnt++;
+			} catch (std::runtime_error& ex) {
+				Locator::getLogger()->error(
+				  "Failed to extract file {} : {}", member, ex.what());
+			}
 		}
 	}
 
