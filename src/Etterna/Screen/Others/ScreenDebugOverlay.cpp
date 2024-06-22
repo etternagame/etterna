@@ -548,8 +548,10 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 			(*p)->DoAndLog(sMessage);
 			if (!sMessage.empty())
 				Locator::getLogger()->info("DEBUG: {}", sMessage.c_str());
-			if ((*p)->ForceOffAfterUse())
+			if ((*p)->ForceOffAfterUse()){
+				g_bIsDisplayed = false;
 				m_bForcedHidden = true;
+			}
 
 			// update text to show the effect of what changed above
 			UpdateText();
@@ -1587,6 +1589,7 @@ class DebugLineChartFolder: public IDebugLine
 			auto d = s->GetSongDir();
 			auto b = SONGMAN->WasLoadedFromAdditionalSongs(s);
 			auto p = FILEMAN->ResolveSongFolder(d, b);
+			g_bIsDisplayed = false;
 
 			return Core::Platform::openFolder(p);
 		}
