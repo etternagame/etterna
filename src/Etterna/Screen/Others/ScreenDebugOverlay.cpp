@@ -1589,7 +1589,6 @@ class DebugLineChartFolder: public IDebugLine
 			auto d = s->GetSongDir();
 			auto b = SONGMAN->WasLoadedFromAdditionalSongs(s);
 			auto p = FILEMAN->ResolveSongFolder(d, b);
-			g_bIsDisplayed = false;
 
 			return Core::Platform::openFolder(p);
 		}
