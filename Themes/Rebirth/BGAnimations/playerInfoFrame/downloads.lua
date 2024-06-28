@@ -1151,13 +1151,13 @@ local function downloadsList()
             if alltags == nil or next(alltags) == nil then
                 -- do nothin
             else
-                local skillsetTags = table.sorted(alltags["global_skillset"])
-                local keycountTags = table.sorted(alltags["global_keyCount"], function(a,b)
+                local skillsetTags = table.sorted(alltags["global_skillset"] or {})
+                local keycountTags = table.sorted(alltags["global_keyCount"] or {}, function(a,b)
                     local ax = a:sub(1, #a-1)
                     local bx = b:sub(1, #b-1)
                     return tonumber(ax) < tonumber(bx)
                 end)
-                local otherTags = table.sorted(alltags["pack_tag"])
+                local otherTags = table.sorted(alltags["pack_tag"] or {})
                 orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
                 MESSAGEMAN:Broadcast("SetTagPage")
             end
