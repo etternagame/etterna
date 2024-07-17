@@ -1243,9 +1243,16 @@ DownloadManager::LoginRequest(const std::string& user,
 		auto parse = [&d, &req]() { return parseJson(d, req, "LoginRequest"); };
 
 		const auto& response = req.response_code;
+		if (parse()) {
+			// parse failure logs itself
+			loginFailed(fmt::format(
+			  "Response parse error. Status {} - API issue? Game out of date?",
+			  response));
+			return;
+		}
+
 		if (response == 422) {
 			// bad input fields
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
@@ -1257,7 +1264,6 @@ DownloadManager::LoginRequest(const std::string& user,
 				}
 		} else if (response == 404) {
 			// user doesnt exist?
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 404 on LoginRequest. User may not exist. Errors: {}",
@@ -1266,7 +1272,6 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 401) {
 			// bad password
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 401 on LoginRequest. Bad password? Errors: {}",
@@ -1275,21 +1280,20 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 403) {
 			// user is banned
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed("User is banned or the API is not allowing traffic");
+			loginFailed("User is banned or API is not allowing traffic.");
+
+		} else if (response == 405) {
+			// uhhh...????
+
+			Locator::getLogger()->error("Status 405 on LoginRequest. {}", jsonObjectToString(d));
+			loginFailed("API may be down or configured wrong.");
 
 		} else if (response == 200) {
 			// all good
-			if (parse()) {
-				Locator::getLogger()->warn(
-				  "Due to LoginRequest parse error, login failed");
-				loginFailed("Unknown error");
-				return;
-			}
 
 			if (d.HasMember("access_token") &&
 				d["access_token"].IsString()) {
@@ -1318,7 +1322,6 @@ DownloadManager::LoginRequest(const std::string& user,
 			}
 		} else {
 			// ???
-			parse();
 
 			Locator::getLogger()->warn(
 			  "Unexpected response code {} on LoginRequest. Content: {}",
