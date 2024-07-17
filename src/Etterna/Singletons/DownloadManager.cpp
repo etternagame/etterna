@@ -63,11 +63,11 @@ static Preference<float> DownloadCooldownTime(
   5.F);
 
 // Score API Preferences
-static Preference<std::string> serverURL("BaseAPIUrl",
-										 "https://api.beta.etternaonline.com");
-static Preference<std::string> searchURL("BaseAPISearchUrl",
+static Preference<std::string> serverURL("BaseOnlineAPIUrl",
+										 "https://api.etternaonline.com");
+static Preference<std::string> searchURL("BaseOnlineAPISearchUrl",
 										 "https://search.etternaonline.com");
-static Preference<std::string> uiHomePage("BaseUIUrl", "https://beta.etternaonline.com");
+static Preference<std::string> uiHomePage("BaseOnlineUIUrl", "https://etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
