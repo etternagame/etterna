@@ -1119,7 +1119,7 @@ DownloadManager::HandleAuthErrorResponse(const std::string& endpoint,
 
 	if (status == 403) {
 		Locator::getLogger()->warn(
-		  "{} {} - Auth Error. You are banned", endpoint, status);
+		  "{} {} - Auth Error. You are probably banned", endpoint, status);
 	} else {
 		Locator::getLogger()->warn(
 		  "{} {} - Auth Error. Logging out automatically", endpoint, status);
@@ -1280,7 +1280,7 @@ DownloadManager::LoginRequest(const std::string& user,
 			Locator::getLogger()->error(
 			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed("User is banned.");
+			loginFailed("User is banned or the API is not allowing traffic");
 
 		} else if (response == 200) {
 			// all good
