@@ -509,8 +509,8 @@ class DownloadManager
 	void UpdateGoal(ScoreGoal* goal) {
 		UpdateGoalRequest(goal);
 	}
-	void RemoveGoal(ScoreGoal* goal) {
-		RemoveGoalRequest(goal);
+	void RemoveGoal(ScoreGoal* goal, bool oldGoal = false) {
+		RemoveGoalRequest(goal, oldGoal);
 	}
 	void RefreshGoals(
 	  const DateTime start = DateTime::GetFromString("1990-01-01 12:00:00"),
@@ -686,7 +686,7 @@ class DownloadManager
 	  const DateTime end);
 	void AddGoalRequest(ScoreGoal* goal);
 	void UpdateGoalRequest(ScoreGoal* goal);
-	void RemoveGoalRequest(ScoreGoal* goal);
+	void RemoveGoalRequest(ScoreGoal* goal, bool oldGoal);
 	void GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onSuccess,
 						 const DateTime start,
 						 const DateTime end);

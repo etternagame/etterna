@@ -102,6 +102,7 @@ class ScoreGoal
 	void CheckVacuity();
 
 	void UploadIfNotVacuous();
+	void ReUploadIfNotVacuous();
 
 	// Vacuous goals will remain in memory for the session but not be written
 	// during save -mina

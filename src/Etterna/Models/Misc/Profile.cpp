@@ -639,6 +639,15 @@ ScoreGoal::UploadIfNotVacuous()
 		DLMAN->UpdateGoal(this);
 }
 
+void
+ScoreGoal::ReUploadIfNotVacuous()
+{
+	if (!vacuous) {
+		DLMAN->RemoveGoal(this, true);
+		DLMAN->AddGoal(this);
+	}
+}
+
 // aaa too lazy to write comparators rn -mina
 ScoreGoal&
 Profile::GetLowestGoalForRate(const std::string& ck, float rate)
@@ -1289,7 +1298,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 			p->oldrate = p->rate;
 			p->rate = newrate;
 			p->CheckVacuity();
-			p->UploadIfNotVacuous();
+			p->ReUploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1324,7 +1333,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 			p->oldpercent = p->percent;
 			p->percent = newpercent;
 			p->CheckVacuity();
-			p->UploadIfNotVacuous();
+			p->ReUploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1335,7 +1344,8 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 			auto newpriority = IArg(1);
 			CLAMP(newpriority, 1, 100);
 			p->priority = newpriority;
-			p->UploadIfNotVacuous();
+			// priority doesnt matter online
+			// p->UploadIfNotVacuous();
 		}
 		return 1;
 	}

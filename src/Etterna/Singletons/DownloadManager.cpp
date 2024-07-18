@@ -1920,7 +1920,7 @@ DownloadManager::RefreshFavorites(
 }
 
 inline Document
-GoalToJSON(ScoreGoal* goal, bool isUpdate, Document::AllocatorType& allocator) {
+GoalToJSON(ScoreGoal* goal, Document::AllocatorType& allocator) {
 
 	Document d;
 	d.SetObject();
@@ -1932,21 +1932,10 @@ GoalToJSON(ScoreGoal* goal, bool isUpdate, Document::AllocatorType& allocator) {
 
 	d.AddMember(
 	  "key", stringToVal(URLEncode(goal->chartkey), allocator), allocator);
-	if (isUpdate) {
-		d.AddMember("rate",
-					stringToVal(std::to_string(goal->oldrate), allocator),
-					allocator);
-		d.AddMember("wife",
-					stringToVal(std::to_string(goal->oldpercent), allocator),
-					allocator);
-	} else {
-		d.AddMember("rate",
-					stringToVal(std::to_string(goal->rate), allocator),
-					allocator);
-		d.AddMember("wife",
-					stringToVal(std::to_string(goal->percent), allocator),
-					allocator);
-	}
+	d.AddMember(
+	  "rate", stringToVal(std::to_string(goal->rate), allocator), allocator);
+	d.AddMember(
+	  "wife", stringToVal(std::to_string(goal->percent), allocator), allocator);
 	d.AddMember("set_date",
 				stringToVal(goal->timeassigned.GetString(), allocator),
 				allocator);
@@ -1974,7 +1963,7 @@ GoalVectorToJSON(std::vector<ScoreGoal*>& v) {
 
 	Value arrDoc(kArrayType);
 	for (auto& g : v) {
-		arrDoc.PushBack(GoalToJSON(g, false, allocator), allocator);
+		arrDoc.PushBack(GoalToJSON(g, allocator), allocator);
 	}
 	d.AddMember("data", arrDoc, allocator);
 
@@ -2201,7 +2190,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 }
 
 void
-DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
+DownloadManager::RemoveGoalRequest(ScoreGoal* goal, bool oldGoal)
 {
 	if (goal == nullptr) {
 		Locator::getLogger()->warn("Null goal passed to RemoveGoalRequest. Skipped");
@@ -2209,20 +2198,23 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 	}
 
 	constexpr auto& CALL_ENDPOINT = API_GOALS;
-	const auto CALL_PATH = API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
-						   std::to_string(goal->rate) + "/" +
-						   std::to_string(goal->percent);
+	const auto CALL_PATH =
+	  API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
+	  (oldGoal ? std::to_string(goal->oldrate) : std::to_string(goal->rate)) +
+	  "/" +
+	  (oldGoal ? std::to_string(goal->oldpercent)
+			   : std::to_string(goal->percent));
 
 	Locator::getLogger()->info("Generating RemoveGoalRequest for {}",
 							   goal->DebugString());
 
-	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [goal, oldGoal, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
 			  []() {},
-			  [goal, this]() { RemoveGoalRequest(goal);
+			  [goal, oldGoal, this]() { RemoveGoalRequest(goal, oldGoal);
 			})) {
 			return;
 		}
@@ -2296,7 +2288,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	// this seems very illegal
 	Document d;
 	Document::AllocatorType& allocator = d.GetAllocator();
-	d = GoalToJSON(goal, true, allocator);
+	d = GoalToJSON(goal, allocator);
 
 	// this crashes sometimes for no reason :)
 	StringBuffer buffer;
