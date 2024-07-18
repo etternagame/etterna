@@ -135,7 +135,7 @@ SongManager::InstallSmzip(const std::string& sZipFile)
 	miniz_cpp::zip_file fi;
 	try {
 		fi.load(sZipFile);
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->error("Exception when trying to extract {} - Zip "
 									"may not exist or is bad : {}",
 									sZipFile,
@@ -196,7 +196,7 @@ SongManager::InstallSmzip(const std::string& sZipFile)
 						   FILEMAN->ResolveSongFolder(
 							 extractTo, downloadPacksToAdditionalSongs));
 				filecnt++;
-			} catch (std::runtime_error& ex) {
+			} catch (std::exception& ex) {
 				Locator::getLogger()->error(
 				  "Failed to extract file {} : {}", member, ex.what());
 			}
