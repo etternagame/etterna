@@ -1013,6 +1013,9 @@ DownloadManager::SendRequestToURL(
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (async) {
+		if (req != nullptr) {
+			req->requiresLogin = requireLogin;
+		}
 		if (!QueueRequestIfRatelimited(apiPath, *req)) {
 			AddHttpRequestHandle(req->handle);
 			HTTPRequests.push_back(req);
@@ -1352,6 +1355,8 @@ DownloadManager::Logout()
 {
 	const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
 
+	Locator::getLogger()->info("Logging out");
+
 	// cancel sequential upload
 	ScoreUploadSequentialQueue.clear();
 	sequentialScoreUploadTotalWorkload = 0;
@@ -1371,6 +1376,50 @@ DownloadManager::Logout()
 	sessionUser = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
+
+	// destroy all requests requiring login
+	{
+		// lmao
+		const std::lock_guard<std::mutex> locker(G_MTX_HTTP_REQS);
+		const std::lock_guard<std::mutex> lockest(G_MTX_HTTP_RESULT_HANDLES);
+		for (auto it = HTTPRequests.begin(); it != HTTPRequests.end();) {
+			auto& x = *it;
+			if (x->requiresLogin) {
+				char* url = nullptr;
+				curl_easy_getinfo(x->handle, CURLINFO_EFFECTIVE_URL, &url);
+
+				Locator::getLogger()->info("Cancelled request to {}",
+										   std::string(url));
+
+				x->response_code = -1;
+				x->result = "";
+				x->Done(*x);
+				if (x->form != nullptr) {
+					curl_formfree(x->form);
+				}
+				x->form = nullptr;
+
+				curl_multi_remove_handle(http_req_handle, x->handle);
+				curl_easy_cleanup(x->handle);
+
+				auto remoteHandleIt =
+				  std::find_if(G_HTTP_REQS.begin(),
+							   G_HTTP_REQS.end(),
+							   [&x](auto& c) { return c == x->handle; });
+				if (remoteHandleIt != G_HTTP_REQS.end()) {
+					Locator::getLogger()->debug("Deleted extra curl handle");
+					G_HTTP_REQS.erase(remoteHandleIt);
+				}
+
+				x->handle = nullptr;
+				delete x; // :thonk:
+				it = HTTPRequests.erase(it);
+			} else {
+				it++;
+			}
+		}
+	}
+
 	// This is called on a shutdown, after MessageManager is gone
 	if (MESSAGEMAN != nullptr)
 		MESSAGEMAN->Broadcast("LogOut");
@@ -4126,6 +4175,14 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 			callback();
 	};
 
+	// check this a second time because threads and stuff
+	if (!LoggedIn()) {
+		Locator::getLogger()->warn(
+		  "Attempted to upload scores while not logged in. Aborting");
+		if (callback)
+			callback();
+		return;
+	}
 	HTTPRequest* req =
 	  new HTTPRequest(curlHandle, done, nullptr, [callback](auto& req) {
 		  if (callback)
@@ -4469,6 +4526,11 @@ DownloadManager::InitialScoreSync()
 
 		// set to yesterday because timezones and stuff
 		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
+
+		if (!LoggedIn()) {
+			Locator::getLogger()->info("Not uploading scores. Not logged in.");
+			return false;
+		}
 
 		if (!toUpload.empty()) {
 			Locator::getLogger()->info(

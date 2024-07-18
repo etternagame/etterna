@@ -357,11 +357,13 @@ class HTTPRequest
 	  CURL* h,
 	  std::function<void(HTTPRequest&)> done = [](HTTPRequest& req) {},
 	  curl_httppost* postform = nullptr,
-	  std::function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {})
+	  std::function<void(HTTPRequest&)> fail = [](HTTPRequest& req) {},
+	  bool requiresLogin = false)
 	  : handle(h)
 	  , form(postform)
 	  , Done(done)
-	  , Failed(fail){};
+	  , Failed(fail)
+	  , requiresLogin(requiresLogin){};
 	long response_code{ 0 };
 	CURL* handle{ nullptr };
 	curl_httppost* form{ nullptr };
@@ -369,6 +371,7 @@ class HTTPRequest
 	std::string headers;
 	std::function<void(HTTPRequest&)> Done;
 	std::function<void(HTTPRequest&)> Failed;
+	bool requiresLogin = false;
 };
 enum class RequestMethod
 {
