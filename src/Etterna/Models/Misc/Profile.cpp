@@ -492,6 +492,7 @@ Profile::AddGoal(const std::string& ck)
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	goal.oldrate = goal.oldrate;
 	goal.chartkey = ck;
 	// duplication avoidance should be simpler than this? -mina
 	if (goalmap.count(ck))
@@ -596,9 +597,11 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 	std::string s;
 
 	pNode->GetChildValue("Rate", rate);
+	oldrate = rate;
 	pNode->GetChildValue("Percent", percent);
 	if (percent > 1.f) // goddamnit why didnt i think this through originally
 		percent /= 100.f;
+	oldpercent = percent;
 	pNode->GetChildValue("Priority", priority);
 	pNode->GetChildValue("Achieved", achieved);
 	pNode->GetChildValue("TimeAssigned", s);
@@ -1283,6 +1286,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 		if (!p->achieved) {
 			auto newrate = FArg(1);
 			CLAMP(newrate, MIN_MUSIC_RATE, MAX_MUSIC_RATE);
+			p->oldrate = p->rate;
 			p->rate = newrate;
 			p->CheckVacuity();
 			p->UploadIfNotVacuous();
@@ -1317,6 +1321,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 			}
 
 
+			p->oldpercent = p->percent;
 			p->percent = newpercent;
 			p->CheckVacuity();
 			p->UploadIfNotVacuous();

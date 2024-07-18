@@ -66,8 +66,10 @@ struct Game;
 class ScoreGoal
 {
   public:
+	float oldrate = 1.F;
 	float rate = 1.F;
 	float percent = .93F;
+	float oldpercent = .93F;
 	int priority = 1;
 	bool achieved = false;
 	DateTime timeassigned;
@@ -88,7 +90,9 @@ class ScoreGoal
 	{
 		return "(ScoreGoal ck: " + chartkey +
 			   ", rate: " + std::to_string(rate) +
+			   ", oldrate: " + std::to_string(oldrate) +
 			   ", percent: " + std::to_string(percent) +
+			   ", oldpercent: " + std::to_string(oldpercent) +
 			   ", achieved: " + std::to_string(achieved) +
 			   ", dtassigned: " + timeassigned.GetString() + ")";
 	}

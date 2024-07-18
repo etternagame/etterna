@@ -1920,7 +1920,7 @@ DownloadManager::RefreshFavorites(
 }
 
 inline Document
-GoalToJSON(ScoreGoal* goal, Document::AllocatorType& allocator) {
+GoalToJSON(ScoreGoal* goal, bool isUpdate, Document::AllocatorType& allocator) {
 
 	Document d;
 	d.SetObject();
@@ -1932,10 +1932,21 @@ GoalToJSON(ScoreGoal* goal, Document::AllocatorType& allocator) {
 
 	d.AddMember(
 	  "key", stringToVal(URLEncode(goal->chartkey), allocator), allocator);
-	d.AddMember(
-	  "rate", stringToVal(std::to_string(goal->rate), allocator), allocator);
-	d.AddMember(
-	  "wife", stringToVal(std::to_string(goal->percent), allocator), allocator);
+	if (isUpdate) {
+		d.AddMember("rate",
+					stringToVal(std::to_string(goal->oldrate), allocator),
+					allocator);
+		d.AddMember("wife",
+					stringToVal(std::to_string(goal->oldpercent), allocator),
+					allocator);
+	} else {
+		d.AddMember("rate",
+					stringToVal(std::to_string(goal->rate), allocator),
+					allocator);
+		d.AddMember("wife",
+					stringToVal(std::to_string(goal->percent), allocator),
+					allocator);
+	}
 	d.AddMember("set_date",
 				stringToVal(goal->timeassigned.GetString(), allocator),
 				allocator);
@@ -1963,7 +1974,7 @@ GoalVectorToJSON(std::vector<ScoreGoal*>& v) {
 
 	Value arrDoc(kArrayType);
 	for (auto& g : v) {
-		arrDoc.PushBack(GoalToJSON(g, allocator), allocator);
+		arrDoc.PushBack(GoalToJSON(g, false, allocator), allocator);
 	}
 	d.AddMember("data", arrDoc, allocator);
 
@@ -2271,6 +2282,11 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	constexpr auto& CALL_ENDPOINT = API_GOALS;
 	constexpr auto& CALL_PATH = API_GOALS;
 
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to update goal while not logged in. Aborting");
+		return;
+	}
+
 	Locator::getLogger()->info("Generating UpdateGoalRequest for {}",
 							   goal->DebugString());
 
@@ -2280,8 +2296,9 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	// this seems very illegal
 	Document d;
 	Document::AllocatorType& allocator = d.GetAllocator();
-	d = GoalToJSON(goal, allocator);
+	d = GoalToJSON(goal, true, allocator);
 
+	// this crashes sometimes for no reason :)
 	StringBuffer buffer;
 	Writer<StringBuffer> w(buffer);
 	d.Accept(w);
@@ -2786,6 +2803,11 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
 	constexpr auto& CALL_PATH = API_PLAYLISTS;
 
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to update playlist while not logged in. Aborting");
+		return;
+	}
+
 	const auto& playlists = SONGMAN->GetPlaylists();
 	if (!playlists.contains(name)) {
 		Locator::getLogger()->warn(
@@ -2867,6 +2889,11 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 {
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
 	constexpr auto& CALL_PATH = API_PLAYLISTS;
+
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to remove playlist while not logged in. Aborting");
+		return;
+	}
 
 	const auto& playlists = SONGMAN->GetPlaylists();
 	if (!playlists.contains(name)) {
