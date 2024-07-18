@@ -1377,49 +1377,6 @@ DownloadManager::Logout()
 	topScores.clear();
 	sessionRatings.clear();
 
-	// destroy all requests requiring login
-	{
-		// lmao
-		const std::lock_guard<std::mutex> locker(G_MTX_HTTP_REQS);
-		const std::lock_guard<std::mutex> lockest(G_MTX_HTTP_RESULT_HANDLES);
-		for (auto it = HTTPRequests.begin(); it != HTTPRequests.end();) {
-			auto& x = *it;
-			if (x->requiresLogin) {
-				char* url = nullptr;
-				curl_easy_getinfo(x->handle, CURLINFO_EFFECTIVE_URL, &url);
-
-				Locator::getLogger()->info("Cancelled request to {}",
-										   std::string(url));
-
-				x->response_code = -1;
-				x->result = "";
-				x->Done(*x);
-				if (x->form != nullptr) {
-					curl_formfree(x->form);
-				}
-				x->form = nullptr;
-
-				curl_multi_remove_handle(http_req_handle, x->handle);
-				curl_easy_cleanup(x->handle);
-
-				auto remoteHandleIt =
-				  std::find_if(G_HTTP_REQS.begin(),
-							   G_HTTP_REQS.end(),
-							   [&x](auto& c) { return c == x->handle; });
-				if (remoteHandleIt != G_HTTP_REQS.end()) {
-					Locator::getLogger()->debug("Deleted extra curl handle");
-					G_HTTP_REQS.erase(remoteHandleIt);
-				}
-
-				x->handle = nullptr;
-				delete x; // :thonk:
-				it = HTTPRequests.erase(it);
-			} else {
-				it++;
-			}
-		}
-	}
-
 	// This is called on a shutdown, after MessageManager is gone
 	if (MESSAGEMAN != nullptr)
 		MESSAGEMAN->Broadcast("LogOut");
