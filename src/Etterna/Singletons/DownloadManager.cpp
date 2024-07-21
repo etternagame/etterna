@@ -190,15 +190,18 @@ EmptyTempDLFileDir()
 }
 
 #pragma region curl
+inline std::string
+useragent() {
+	return fmt::format("Etterna/{} ({})",
+					   GAMESTATE->GetEtternaVersion(),
+					   Core::Platform::getSystem());
+}
+
 inline CURL*
 initBasicCURLHandle()
 {
 	CURL* curlHandle = curl_easy_init();
-	curl_easy_setopt_log_err(curlHandle,
-					 CURLOPT_USERAGENT,
-					 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-					 "AppleWebKit/537.36 (KHTML, like Gecko) "
-					 "Chrome/60.0.3112.113 Safari/537.36");
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_USERAGENT, useragent());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
