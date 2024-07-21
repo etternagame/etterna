@@ -790,11 +790,7 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		self:diffuse(getMainColor("positive"))
 	end,
 	DisplayCommand = function(self)
-		if hasReplayData then
-			self:settext(translated_info["UploadReplay"])
-		else
-			self:settext("")
-		end
+		self:settext(translated_info["UploadReplay"])
 	end,
 	MouseOverCommand = function(self)
 		self:diffusealpha(hoverAlpha)
