@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <ghc/filesystem.hpp>
+
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
@@ -9681,14 +9683,22 @@ namespace miniz_cpp
 
         void extract(const std::string &member, const std::string &path)
         {
-            std::fstream stream(detail::join_path({ path, member }), std::ios::binary | std::ios::out);
-            stream << open(member).rdbuf();
+			auto file = detail::join_path({ path, member });
+			auto target = ghc::filesystem::path(file).parent_path();
+			if (!ghc::filesystem::exists(target))
+				ghc::filesystem::create_directories(target);
+			std::fstream stream(file, std::ios::binary | std::ios::out);
+			stream << open(member).rdbuf();
         }
 
         void extract(const zip_info &member, const std::string &path)
         {
-            std::fstream stream(detail::join_path({ path, member.filename }), std::ios::binary | std::ios::out);
-            stream << open(member).rdbuf();
+			auto file = detail::join_path({ path, member.filename });
+			auto target = ghc::filesystem::path(file).parent_path();
+			if (!ghc::filesystem::exists(target))
+				ghc::filesystem::create_directories(target);
+			std::fstream stream(file, std::ios::binary | std::ios::out);
+			stream << open(member).rdbuf();
         }
 
         void extractall(const std::string &path)
@@ -9821,49 +9831,37 @@ namespace miniz_cpp
             write(filename, arcname);
         }
 
-        void write(const std::string &filename, const std::string &arcname)
-        {
-            std::fstream file(filename, std::ios::binary | std::ios::in);
-            std::stringstream ss;
-            ss << file.rdbuf();
-            std::string bytes = ss.str();
+        void write(const std::string& filepath_on_disk, const std::string& filepath_in_zip)
+		{
+			std::fstream file(filepath_on_disk, std::ios::binary | std::ios::in);
+			std::stringstream ss;
+			ss << file.rdbuf();
+			std::string bytes = ss.str();
 
-            writestr(arcname, bytes);
-        }
+			if (archive_->m_zip_mode != MZ_ZIP_MODE_WRITING) {
+				start_write();
+			}
 
-        void writestr(const std::string &arcname, const std::string &bytes)
-        {
-            if (archive_->m_zip_mode != MZ_ZIP_MODE_WRITING)
-            {
-                start_write();
-            }
+			auto crc = detail::crc32buf(bytes.c_str(), bytes.size());
+			std::string comment = "";
+			MZ_TIME_T time;
 
-            if (!mz_zip_writer_add_mem(archive_.get(), arcname.c_str(), bytes.data(), bytes.size(), MZ_BEST_COMPRESSION))
-            {
-                throw std::runtime_error("write error");
-            }
-        }
+			if (!mz_zip_get_file_modified_time(filepath_on_disk.c_str(), &time))
+				throw std::runtime_error("stat error");
 
-        void writestr(const zip_info &info, const std::string &bytes)
-        {
-            if (info.filename.empty() || info.date_time.year < 1980)
-            {
-                throw std::runtime_error("must specify a filename and valid date (year >= 1980");
-            }
-
-            if (archive_->m_zip_mode != MZ_ZIP_MODE_WRITING)
-            {
-                start_write();
-            }
-
-            auto crc = detail::crc32buf(bytes.c_str(), bytes.size());
-
-            if (!mz_zip_writer_add_mem_ex(archive_.get(), info.filename.c_str(), bytes.data(), bytes.size(), info.comment.c_str(),
-                    static_cast<mz_uint16>(info.comment.size()), MZ_BEST_COMPRESSION, 0, crc))
-            {
-                throw std::runtime_error("write error");
-            }
-        }
+			if (!mz_zip_writer_add_mem_ex_v2(
+				  archive_.get(),
+				  filepath_in_zip.c_str(),
+				  bytes.data(),
+				  bytes.size(),
+				  comment.c_str(),
+				  static_cast<mz_uint16>(comment.size()),
+				  MZ_BEST_COMPRESSION,
+				  0,
+				  crc, &time, NULL, 0, NULL, 0)) {
+				throw std::runtime_error("write error");
+			}
+		}
 
         std::string get_filename() const
         {
