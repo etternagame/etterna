@@ -44,7 +44,7 @@ if(APPLE)
   endif()
 endif()
 list(APPEND FFMPEG_CONFIGURE "--enable-gpl")
-list(APPEND FFMPEG_CONFIGURE "--extra-cflags=-mmacosx-version-min=10.8 -w")
+list(APPEND FFMPEG_CONFIGURE "--extra-cflags=-mmacosx-version-min=10.8 -w -Wno-error=incompatible-function-pointer-types")
 
 list(APPEND FFMPEG_BUILD_LIBS
 "${FFMPEG_BIN}/libavformat/libavformat.a"
