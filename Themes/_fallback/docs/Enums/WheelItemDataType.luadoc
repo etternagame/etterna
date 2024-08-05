@@ -2,6 +2,7 @@
 --
 -- WheelItemDataType is the enum representing the type for a WheelItem.
 -- The simplest way to pass them around in Lua is by directly referencing as a string.
+--
 -- Valid WheelItemDataTypes:
 --      "WheelItemDataType_Generic"
 --      "WheelItemDataType_Section"

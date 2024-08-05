@@ -1,13 +1,13 @@
 --- NoteField class
 --
 -- This class contains the components responsible for displaying notes in gameplay.
--- The simplest way to get the NoteField in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")`
+-- The simplest way to get the NoteField in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")`.
 -- @classmod NoteField
 
 
 --- Set the function that executes every time the player steps.
 -- The callback function has the parameters `(intColumn, TapNoteScore)`.
--- The callback function returns 2 values, `intColumn, TapNoteScore`
+-- The callback function returns 2 values, `intColumn, TapNoteScore`.
 -- The point of passing and returning these values is to be able to redirect them.
 -- @see NoteField:Step
 -- @tparam func callback A function to execute later
@@ -16,8 +16,8 @@ function NoteField:set_step_callback(callback)
 end
 
 --- Set the function that executes every time the player presses a column.
--- The callback function has the parameter `(intColumn)`
--- The callback function returns 1 value, `intColumn`
+-- The callback function has the parameter `(intColumn)`.
+-- The callback function returns 1 value, `intColumn`.
 -- The point of passing and returning the column is to be able to redirect column numbers.
 -- @see NoteField:set_pressed
 -- @tparam func callback A function to execute later
@@ -26,10 +26,10 @@ function NoteField:set_set_pressed_callback(callback)
 end
 
 --- Set the function that executes every time the player tapped on a note.
--- The callback function has the parameters `(intColumn, TapNoteScore, boolBright)`
--- The callback function returns 3 values, `intColumn, TapNoteScore, boolBright`
+-- The callback function has the parameters `(intColumn, TapNoteScore, boolBright)`.
+-- The callback function returns 3 values, `intColumn, TapNoteScore, boolBright`.
 -- The point of passing and returning these values is to be able to redirect them.
--- The boolBright parameter is usually true when the current combo has passed BrightGhostComboThreshold
+-- The boolBright parameter is usually true when the current combo has passed BrightGhostComboThreshold.
 -- @see NoteField:did_tap_note
 -- @tparam func callback A function to execute later
 -- @return nil
@@ -37,10 +37,10 @@ function NoteField:set_did_tap_note_callback(callback)
 end
 
 --- Set the function that executes every time the player taps on the head of a hold or roll.
--- The callback function has the parameters `(intColumn, HoldNoteScore, boolBright)`
--- The callback function returns 3 values, `intColumn, HoldNoteScore, boolBright`
+-- The callback function has the parameters `(intColumn, HoldNoteScore, boolBright)`.
+-- The callback function returns 3 values, `intColumn, HoldNoteScore, boolBright`.
 -- The point of passing and returning these values is to be able to redirect them.
--- The boolBright parameter is usually true when the current combo has passed BrightGhostComboThreshold
+-- The boolBright parameter is usually true when the current combo has passed BrightGhostComboThreshold.
 -- @see NoteField:did_hold_note
 -- @tparam func callback A function to execute later
 -- @return nil

@@ -2,6 +2,7 @@
 --
 -- TapNoteScore is the enum representing the score for a tap.
 -- The simplest way to pass them around in Lua is by directly referencing as a string.
+--
 -- Valid TapNoteScores:
 --      "TapNoteScore_None" (The lack of a score)
 --      "TapNoteScore_HitMine"

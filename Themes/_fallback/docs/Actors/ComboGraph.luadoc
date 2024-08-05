@@ -2,16 +2,16 @@
 --
 -- The ComboGraph will display the combos for a score on a graph.
 -- Although, it's a bit more integrated with PlayerStageStats than one might desire...
--- A ComboGraph can be created directly with `Def.ComboGraph`
--- Its primary use is in ScreenEvaluation
+-- A ComboGraph can be created directly with `Def.ComboGraph`.
+-- Its primary use is in ScreenEvaluation.
 -- @classmod ComboGraph
 
 
 --- Initialize the ComboGraph using the given metrics group.
 -- This is the way to customize a ComboGraph via metrics, creating a section as [groupName]. Children components are also loaded from Theme Graphics.
--- The children components are Actors named `<groupName> Backing` `<groupName> NormalCombo` `<groupName> MaxCombo`
--- Another child component that must be a @{BitmapText} is `<groupName> ComboNumber`
--- In metrics.ini, the metrics that must be defined are `BodyWidth` and `BodyHeight` under the section [groupName]
+-- The children components are Actors named `<groupName> Backing` `<groupName> NormalCombo` `<groupName> MaxCombo`.
+-- Another child component that must be a @{BitmapText} is `<groupName> ComboNumber`.
+-- In metrics.ini, the metrics that must be defined are `BodyWidth` and `BodyHeight` under the section [groupName].
 -- @tparam string metricsGroup The group to load from metrics.ini and Theme Graphics.
 -- @return self
 function ComboGraph:Load(metricsGroup)

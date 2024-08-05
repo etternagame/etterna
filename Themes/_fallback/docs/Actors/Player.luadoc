@@ -1,9 +1,9 @@
 --- Player control class
 --
 -- This controls the user interaction with the current chart being played in gameplay.
--- One way to retrieve the Player in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1")`
+-- One way to retrieve the Player in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1")`.
 -- The Player owns the @{NoteField}, Combo, Tap Judgments, and Hold Judgments, among other things.
--- Most of these children can be found via GetChild by name, such as "Combo", "Judgment", "NoteField"
+-- Most of these children can be found via GetChild by name, such as "Combo", "Judgment", "NoteField".
 -- @classmod Player
 
 --- Set the Lifebar to a new given value.
@@ -22,7 +22,7 @@ end
 
 --- Retrieve the @{TimingData} that the Player is relying on.
 -- Normally, this is just the TimingData of the current @{Steps}.
--- This is like an alias of `GAMESTATE:GetCurrentSteps():GetTimingData()`
+-- This is like an alias of `GAMESTATE:GetCurrentSteps():GetTimingData()`.
 -- @treturn TimingData The TimingData of the currently playing Steps.
 function Player:GetPlayerTimingData()
 end

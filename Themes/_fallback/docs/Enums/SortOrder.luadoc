@@ -2,6 +2,7 @@
 --
 -- SortOrder is the enum representing a SortOrder for Songs.
 -- The simplest way to pass them around in Lua is by directly referencing as a string.
+--
 -- Valid SortOrders:
 --      "SortOrder_Group"
 --      "SortOrder_Title"
