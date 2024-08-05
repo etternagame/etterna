@@ -1,2 +1,4 @@
 --- Chart class for charts within Playlists
+--
+-- -- This class inherits no methods from superclasses.
 -- @classmod Chart

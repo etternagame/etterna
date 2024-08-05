@@ -4,6 +4,10 @@
 -- One way to retrieve the Player in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1")`.
 -- The Player owns the @{NoteField}, Combo, Tap Judgments, and Hold Judgments, among other things.
 -- Most of these children can be found via GetChild by name, such as "Combo", "Judgment", "NoteField".
+--
+-- This class inherits all methods from these classes:
+-- @{ActorFrame}
+-- @{Actor}
 -- @classmod Player
 
 --- Set the Lifebar to a new given value.

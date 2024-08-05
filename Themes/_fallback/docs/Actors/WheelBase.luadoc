@@ -2,6 +2,10 @@
 --
 -- This is the base class for other wheel classes such as @{MusicWheel} and @{RoomWheel}.
 -- The easiest way to acquire the existing Wheel on a screen is `SCREENMAN:GetTopScreen():GetMusicWheel()`.
+--
+-- This class inherits all methods from these classes:
+-- @{ActorFrame}
+-- @{Actor}
 -- @classmod WheelBase
 
 --- Move the wheel a given amount of choices in some direction.
