@@ -1,8 +1,7 @@
 --- NoteField class
---[[
-        This class contains the components responsible for displaying notes in gameplay.
-        The simplest way to get the NoteField in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")`
---]]
+--
+-- This class contains the components responsible for displaying notes in gameplay.
+-- The simplest way to get the NoteField in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")`
 -- @classmod NoteField
 
 

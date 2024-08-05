@@ -1,9 +1,8 @@
 --- Music Wheel class
---[[
-        This class inherits methods from the @{WheelBase} class. A MusicWheel is the structure responsible for 
-        allowing the user to scroll through songs and make a selection to play.
-        The easiest way to acquire the existing MusicWheel on a screen is `SCREENMAN:GetTopScreen():GetMusicWheel()`
---]]
+--
+-- This class inherits methods from the @{WheelBase} class. A MusicWheel is the structure responsible for 
+-- allowing the user to scroll through songs and make a selection to play.
+-- The easiest way to acquire the existing MusicWheel on a screen is `SCREENMAN:GetTopScreen():GetMusicWheel()`
 -- @classmod MusicWheel
 
 --- Change the @{SortOrder} for the MusicWheel. This is the equivalent of pressing UpDown UpDown then making a choice.

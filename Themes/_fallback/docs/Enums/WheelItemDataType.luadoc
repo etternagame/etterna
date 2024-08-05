@@ -1,16 +1,15 @@
 --- WheelItemDataType enum
---[[
-        WheelItemDataType is the enum representing the type for a WheelItem.
-        The simplest way to pass them around in Lua is by directly referencing as a string.
-        Valid WheelItemDataTypes:
-            "WheelItemDataType_Generic"
-            "WheelItemDataType_Section"
-            "WheelItemDataType_Song"
-            "WheelItemDataType_Roulette"
-            "WheelItemDataType_Random"
-            "WheelItemDataType_Portal"
-            "WheelItemDataType_Course"
-            "WheelItemDataType_Sort"
-            "WheelItemDataType_Custom"
---]]
+--
+-- WheelItemDataType is the enum representing the type for a WheelItem.
+-- The simplest way to pass them around in Lua is by directly referencing as a string.
+-- Valid WheelItemDataTypes:
+--      "WheelItemDataType_Generic"
+--      "WheelItemDataType_Section"
+--      "WheelItemDataType_Song"
+--      "WheelItemDataType_Roulette"
+--      "WheelItemDataType_Random"
+--      "WheelItemDataType_Portal"
+--      "WheelItemDataType_Course"
+--      "WheelItemDataType_Sort"
+--      "WheelItemDataType_Custom"
 -- @classmod WheelItemDataType

@@ -1,12 +1,10 @@
 --- HoldNoteScore enum
---[[
-        HoldNoteScore is the enum representing the score for a hold or roll.
-        The simplest way to pass them around in Lua is by directly referencing as a string.
-        Valid HoldNoteScores:
-            "HoldNoteScore_None" (The lack of a score)
-            "HoldNoteScore_LetGo" (The hold was dropped after hitting the head)
-            "HoldNoteScore_Held" (The hold was completed)
-            "HoldNoteScore_Missed" (The hold was completely missed, including the head)
-
---]]
+--
+-- HoldNoteScore is the enum representing the score for a hold or roll.
+-- The simplest way to pass them around in Lua is by directly referencing as a string.
+-- Valid HoldNoteScores:
+--      "HoldNoteScore_None" (The lack of a score)
+--      "HoldNoteScore_LetGo" (The hold was dropped after hitting the head)
+--      "HoldNoteScore_Held" (The hold was completed)
+--      "HoldNoteScore_Missed" (The hold was completely missed, including the head)
 -- @classmod HoldNoteScore

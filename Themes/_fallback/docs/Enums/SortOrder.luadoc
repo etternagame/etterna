@@ -1,27 +1,26 @@
 --- SortOrder enum
---[[
-        SortOrder is the enum representing a SortOrder for Songs.
-        The simplest way to pass them around in Lua is by directly referencing as a string.
-        Valid SortOrders:
-            "SortOrder_Group"
-            "SortOrder_Title"
-            "SortOrder_BPM"
-            "SortOrder_TopGrades"
-            "SortOrder_Artist"
-            "SortOrder_Genre"
-            "SortOrder_ModeMenu"
-            "SortOrder_Length"
-            "SortOrder_DateAdded"
-            "SortOrder_Favorites"
-            "SortOrder_Overall"
-            "SortOrder_Stream"
-            "SortOrder_Jumpstream"
-            "SortOrder_Handstream"
-            "SortOrder_Stamina"
-            "SortOrder_JackSpeed"
-            "SortOrder_Chordjack"
-            "SortOrder_Technical"
-            "SortOrder_Author"
-            "SortOrder_Ungrouped"
---]]
+--
+-- SortOrder is the enum representing a SortOrder for Songs.
+-- The simplest way to pass them around in Lua is by directly referencing as a string.
+-- Valid SortOrders:
+--      "SortOrder_Group"
+--      "SortOrder_Title"
+--      "SortOrder_BPM"
+--      "SortOrder_TopGrades"
+--      "SortOrder_Artist"
+--      "SortOrder_Genre"
+--      "SortOrder_ModeMenu"
+--      "SortOrder_Length"
+--      "SortOrder_DateAdded"
+--      "SortOrder_Favorites"
+--      "SortOrder_Overall"
+--      "SortOrder_Stream"
+--      "SortOrder_Jumpstream"
+--      "SortOrder_Handstream"
+--      "SortOrder_Stamina"
+--      "SortOrder_JackSpeed"
+--      "SortOrder_Chordjack"
+--      "SortOrder_Technical"
+--      "SortOrder_Author"
+--      "SortOrder_Ungrouped"
 -- @classmod SortOrder

@@ -1,10 +1,9 @@
 --- Combo Graph class
---[[
-        The ComboGraph will display the combos for a score on a graph.
-        Although, it's a bit more integrated with PlayerStageStats than one might desire...
-        A ComboGraph can be created directly with `Def.ComboGraph`
-        Its primary use is in ScreenEvaluation
---]]
+--
+-- The ComboGraph will display the combos for a score on a graph.
+-- Although, it's a bit more integrated with PlayerStageStats than one might desire...
+-- A ComboGraph can be created directly with `Def.ComboGraph`
+-- Its primary use is in ScreenEvaluation
 -- @classmod ComboGraph
 
 
