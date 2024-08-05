@@ -1,2 +1,89 @@
 --- Music Wheel class
+--[[
+        This class inherits methods from the @{WheelBase} class. A MusicWheel is the structure responsible for 
+        allowing the user to scroll through songs and make a selection to play.
+        The easiest way to acquire the existing MusicWheel on a screen is `SCREENMAN:GetTopScreen():GetMusicWheel()`
+--]]
 -- @classmod MusicWheel
+
+--- Change the @{SortOrder} for the MusicWheel. This is the equivalent of pressing UpDown UpDown then making a choice.
+-- @tparam string SortOrder A @{SortOrder} passed as a string
+-- @treturn bool Whether or not the change was successful
+function MusicWheel:ChangeSort(SortOrder)
+end
+
+--- Get the name of the current group being hovered.
+-- @treturn string The name of the group being hovered.
+function MusicWheel:GetSelectedSection()
+end
+
+--- Deprecated method, since Roulette/Random has been mostly removed.
+-- @treturn bool True if the MusicWheel is currently in Roulette mode (spinning endlessly)
+function MusicWheel:IsRouletting()
+end
+
+--- Instantly warp the MusicWheel to the first found instance of the given Song. This will fail if the Song has been filtered out for some reason.
+-- @tparam Song Song The @{Song} which you want to select.
+-- @treturn bool True if the Song can be selected
+function MusicWheel:SelectSong(Song)
+end
+
+--- Use super-search to filter the MusicWheel
+-- This can be used to search for specific metadata for all Charts in the current Game.
+-- Multiple metadata fields can be searched by separating them with a `;`. When given multiple fields to search, any results must match all fields.
+-- For example, to search for both the title and artist, `title=xxx;artist=yyy`
+-- If the search returned no results, then the previous successful search is executed again.
+-- Valid metadata fields: `artist=` `author=` `title=` `subtitle=` `group=` `charter=` `stepper=` `pack=` `ck=`
+-- @tparam string searchString The full search you want to run
+-- @return nil
+function MusicWheel:SongSearch(searchString)
+end
+
+--- Remove the search filter from the MusicWheel
+-- @return nil
+function MusicWheel:ReloadSongList()
+end
+
+--- Move the MusicWheel a given number of Songs. This may fail if the wheel is locked.
+-- @tparam int amount The number of Songs to move. When nil, move 0. When negative, go in the other direction.
+-- @return nil
+function MusicWheel:Move(amount)
+end
+
+--- Move the MusicWheel a given number of Songs. This may fail if the wheel is locked.
+-- @tparam int amount The number of Songs to move. When nil, move 0. When negative, go in the other direction.
+-- @treturn string The @{WheelItemDataType} of the resulting Song that the Move landed on.
+function MusicWheel:MoveAndCheckType(amount)
+end
+
+--- Filter the current MusicWheel results using a given table of ChartKeys.
+-- The MusicWheel is filtered to contain only charts which match the given keys.
+-- @tparam {string,...} chartkeys A table of chartkeys
+-- @return nil
+function MusicWheel:FilterByStepKeys(chartkeys)
+end
+
+--- Filter the current MusicWheel results using two given tables of ChartKeys.
+-- The MusicWheel is filtered to contain only the charts which match the first list of keys. If none are given, then only exclude any charts that match the second list.
+-- @tparam {string,...} requireChartkeys A list of chartkeys to require match.
+-- @tparam {string,...} excludeChartkeys A list of chartkeys to exclude from the results.
+-- @return nil
+function MusicWheel:FilterByAndAgainstStepKeys(requireChartkeys, excludeChartkeys)
+end
+
+--- Set the state of the Common Pack Filter for Multiplayer
+-- Turning this on filters out any packs that you do not have in common with other players in the lobby.
+-- @tparam bool toggle Turn the Common Pack Filter on or off.
+-- @treturn bool The new state of the Common Pack Filter
+function MusicWheel:SetPackListFiltering(toggle)
+end
+
+--- Get the current list of @{Song}s in the MusicWheel, after all filtering.
+-- @treturn {Song,...} List of Songs
+function MusicWheel:GetSongs()
+end
+
+--- Get the list of @{Song}s in the given group for the current @{SortOrder}, after all filtering.
+-- @treturn {Song,...} List of Songs. If the group does not exist, then this is nil.
+function MusicWheel:GetSongsInGroup(group)
+end

@@ -1,0 +1,19 @@
+--- TapNoteScore enum
+--[[
+        TapNoteScore is the enum representing the score for a tap.
+        The simplest way to pass them around in Lua is by directly referencing as a string.
+        Valid TapNoteScores:
+            "TapNoteScore_None" (The lack of a score)
+            "TapNoteScore_HitMine"
+            "TapNoteScore_AvoidMine" (Did not hit a mine)
+            "TapNoteScore_CheckpointMiss" (deprecated)
+            "TapNoteScore_Miss"
+            "TapNoteScore_W5" (Bad)
+            "TapNoteScore_W4" (Good)
+            "TapNoteScore_W3" (Great)
+            "TapNoteScore_W2" (Perfect)
+            "TapNoteScore_W1" (Marvelous)
+            "TapNoteScore_CheckpointHit" (deprecated)
+
+--]]
+-- @classmod TapNoteScore
