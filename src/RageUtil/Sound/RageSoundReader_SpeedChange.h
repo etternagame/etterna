@@ -60,6 +60,9 @@ class RageSoundReader_SpeedChange : public RageSoundReader_Filter
 	float m_fSpeedRatio;
 	float m_fTrailingSpeedRatio;
 	float m_fErrorFrames;
+
+	const int m_iWindowSize;
+	const bool m_bMidSideEncoding;
 };
 
 #endif
