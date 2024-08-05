@@ -13,7 +13,7 @@ end
 --- Retrieve the @{WheelItemBase} at a given index.
 -- This does not retrieve an arbitrarily far wheel item, but actually the visible item.
 -- Every time a movement is made on the Wheel, the data behind each WheelItem is switched to another WheelItem.
--- For example, the highest allowed index to pass is (NUM_WHEEL_ITEMS-1) which comes from the metrics.ini definition for the Wheel implementation you are using (NumWheelItems).
+-- For example, the highest allowed index to pass is `(NUM_WHEEL_ITEMS-1)` which comes from the metrics.ini definition for the Wheel implementation you are using (NumWheelItems).
 -- @tparam int index Index for the WheelItem to retrieve.
 -- @treturn WheelItemBase The WheelItem at the given index. Returns nil and throws an error if the index is not valid.
 function WheelBase:GetWheelItem(index)
@@ -31,7 +31,7 @@ end
 
 --- Set the current open section on the Wheel.
 -- This is usually used to change the opened folder remotely.
--- @tparam string sectionName The name of a group or section, depending on the @{SortMode}
+-- @tparam string sectionName The name of a group or section, depending on the @{SortOrder}
 -- @return self
 function WheelBase:SetOpenSection(sectionName)
 end
