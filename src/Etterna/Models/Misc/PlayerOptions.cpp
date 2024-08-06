@@ -576,7 +576,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fEffects[EFFECT_TINY])
 	else if (sBit == "flip")
 		SET_FLOAT(fEffects[EFFECT_FLIP])
-	else if (sBit == "invert")
+	else if (sBit == "invert" && (forReplay || !DLMAN->InGameplay()))
 		SET_FLOAT(fEffects[EFFECT_INVERT])
 	else if (sBit == "tornado")
 		SET_FLOAT(fEffects[EFFECT_TORNADO])
@@ -1198,6 +1198,8 @@ PlayerOptions::ContainsTransformOrTurn() const
 		if (m_bTurns[i] && i != TURN_MIRROR)
 			return true;
 	}
+	if (m_fEffects[EFFECT_INVERT] != 0.0F)
+		return true;
 	return false;
 }
 
@@ -1273,6 +1275,9 @@ PlayerOptions::GetInvalidatingModifiers() const
 		AddTo.push_back("NoQuads");
 	if (m_bTransforms[TRANSFORM_NOSTRETCH])
 		AddTo.push_back("NoStretch");
+
+	if (m_fEffects[EFFECT_INVERT] != 0.0F)
+		AddTo.push_back("Invert");
 
 	return AddTo;
 }
@@ -1399,7 +1404,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	FLOAT_INTERFACE(Mini, Effects[PlayerOptions::EFFECT_MINI], true);
 	FLOAT_INTERFACE(Tiny, Effects[PlayerOptions::EFFECT_TINY], true);
 	FLOAT_INTERFACE(Flip, Effects[PlayerOptions::EFFECT_FLIP], true);
-	FLOAT_INTERFACE(Invert, Effects[PlayerOptions::EFFECT_INVERT], true);
+	SECFLOAT_INTERFACE(Invert, Effects[PlayerOptions::EFFECT_INVERT], true);
 	FLOAT_INTERFACE(Tornado, Effects[PlayerOptions::EFFECT_TORNADO], true);
 	FLOAT_INTERFACE(Tipsy, Effects[PlayerOptions::EFFECT_TIPSY], true);
 	FLOAT_INTERFACE(Bumpy, Effects[PlayerOptions::EFFECT_BUMPY], true);

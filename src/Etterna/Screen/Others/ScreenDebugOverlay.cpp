@@ -548,8 +548,9 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 			(*p)->DoAndLog(sMessage);
 			if (!sMessage.empty())
 				Locator::getLogger()->info("DEBUG: {}", sMessage.c_str());
-			if ((*p)->ForceOffAfterUse())
-				m_bForcedHidden = true;
+			if ((*p)->ForceOffAfterUse()){
+				g_bIsDisplayed = false;
+			}
 
 			// update text to show the effect of what changed above
 			UpdateText();

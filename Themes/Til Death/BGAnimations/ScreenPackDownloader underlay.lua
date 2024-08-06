@@ -189,15 +189,19 @@ local function tagframe()
 	local tagTextSize = 0.5
 	local tagListStartY = frameBGHeight * 0.22
 
-	local alltags = DLMAN:GetPackTags()
-	local skillsetTags = table.sorted(alltags["global_skillset"])
-	local keycountTags = table.sorted(alltags["global_keyCount"], function(a,b)
-		local ax = a:sub(1, #a-1)
-		local bx = b:sub(1, #b-1)
-		return tonumber(ax) < tonumber(bx)
-	end)
-	local otherTags = table.sorted(alltags["pack_tag"])
-	local orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+	local orderedTags = {}
+	local function loadTags()
+		local alltags = DLMAN:GetPackTags()
+		local skillsetTags = table.sorted(alltags["global_skillset"] or {})
+		local keycountTags = table.sorted(alltags["global_keyCount"] or {}, function(a,b)
+			local ax = a:sub(1, #a-1)
+			local bx = b:sub(1, #b-1)
+			return tonumber(ax) < tonumber(bx)
+		end)
+		local otherTags = table.sorted(alltags["pack_tag"] or {})
+		orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+	end
+	loadTags()
 
 	local function movePage(n)
 		local newpage = curpage + n
@@ -232,6 +236,9 @@ local function tagframe()
 		end,
 		SetTagPageMessageCommand = function(self)
 			self:playcommand("UpdateTags")
+		end,
+		PackTagsRefreshedMessageCommand = function(self)
+			loadTags()
 		end,
 	
 		Def.Quad {

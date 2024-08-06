@@ -1,2 +1,6 @@
 --- Colored BitmapText class
+--
+-- This class inherits all methods from these classes:
+-- @{BitmapText}
+-- @{Actor}
 -- @classmod ColorBitmapText

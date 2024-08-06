@@ -63,11 +63,11 @@ static Preference<float> DownloadCooldownTime(
   5.F);
 
 // Score API Preferences
-static Preference<std::string> serverURL("BaseAPIUrl",
-										 "https://api.beta.etternaonline.com");
-static Preference<std::string> searchURL("BaseAPISearchUrl",
+static Preference<std::string> serverURL("BaseOnlineAPIUrl",
+										 "https://api.etternaonline.com");
+static Preference<std::string> searchURL("BaseOnlineAPISearchUrl",
 										 "https://search.etternaonline.com");
-static Preference<std::string> uiHomePage("BaseUIUrl", "https://beta.etternaonline.com");
+static Preference<std::string> uiHomePage("BaseOnlineUIUrl", "https://etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
 // 
@@ -88,7 +88,7 @@ static Preference<unsigned int> UPLOAD_FAVORITE_BULK_CHUNK_SIZE(
 // all paths should begin with / and end without /
 /// API root path
 static const std::string API_ROOT = "/api/client";
-static const std::string API_KEY = "CsrvreCj5YnhxYcpfFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFy";
+static const std::string API_KEY = "CvsrvreCj5YnhxYcpfFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFy";
 static const std::string TYPESENSE_API_KEY = "uNVBQbmgvnet2LTpT6sE3XYe7JeD8xej";
 
 static const std::string API_LOGIN = "/login";
@@ -190,15 +190,19 @@ EmptyTempDLFileDir()
 }
 
 #pragma region curl
+inline std::string
+useragent() {
+	static auto agent = fmt::format("Etterna/{} ({})",
+					   GAMESTATE->GetEtternaVersion(),
+					   Core::Platform::getSystem());
+	return agent;
+}
+
 inline CURL*
 initBasicCURLHandle()
 {
 	CURL* curlHandle = curl_easy_init();
-	curl_easy_setopt_log_err(curlHandle,
-					 CURLOPT_USERAGENT,
-					 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-					 "AppleWebKit/537.36 (KHTML, like Gecko) "
-					 "Chrome/60.0.3112.113 Safari/537.36");
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_USERAGENT, useragent().c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1013,6 +1017,9 @@ DownloadManager::SendRequestToURL(
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (async) {
+		if (req != nullptr) {
+			req->requiresLogin = requireLogin;
+		}
 		if (!QueueRequestIfRatelimited(apiPath, *req)) {
 			AddHttpRequestHandle(req->handle);
 			HTTPRequests.push_back(req);
@@ -1119,7 +1126,7 @@ DownloadManager::HandleAuthErrorResponse(const std::string& endpoint,
 
 	if (status == 403) {
 		Locator::getLogger()->warn(
-		  "{} {} - Auth Error. You are banned", endpoint, status);
+		  "{} {} - Auth Error. You are probably banned", endpoint, status);
 	} else {
 		Locator::getLogger()->warn(
 		  "{} {} - Auth Error. Logging out automatically", endpoint, status);
@@ -1243,9 +1250,16 @@ DownloadManager::LoginRequest(const std::string& user,
 		auto parse = [&d, &req]() { return parseJson(d, req, "LoginRequest"); };
 
 		const auto& response = req.response_code;
+		if (parse()) {
+			// parse failure logs itself
+			loginFailed(fmt::format(
+			  "Response parse error. Status {} - API issue? Game out of date?",
+			  response));
+			return;
+		}
+
 		if (response == 422) {
 			// bad input fields
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
@@ -1257,7 +1271,6 @@ DownloadManager::LoginRequest(const std::string& user,
 				}
 		} else if (response == 404) {
 			// user doesnt exist?
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 404 on LoginRequest. User may not exist. Errors: {}",
@@ -1266,7 +1279,6 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 401) {
 			// bad password
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 401 on LoginRequest. Bad password? Errors: {}",
@@ -1275,21 +1287,20 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 403) {
 			// user is banned
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed("User is banned.");
+			loginFailed("User is banned or API is not allowing traffic.");
+
+		} else if (response == 405) {
+			// uhhh...????
+
+			Locator::getLogger()->error("Status 405 on LoginRequest. {}", jsonObjectToString(d));
+			loginFailed("API may be down or configured wrong.");
 
 		} else if (response == 200) {
 			// all good
-			if (parse()) {
-				Locator::getLogger()->warn(
-				  "Due to LoginRequest parse error, login failed");
-				loginFailed("Unknown error");
-				return;
-			}
 
 			if (d.HasMember("access_token") &&
 				d["access_token"].IsString()) {
@@ -1318,7 +1329,6 @@ DownloadManager::LoginRequest(const std::string& user,
 			}
 		} else {
 			// ???
-			parse();
 
 			Locator::getLogger()->warn(
 			  "Unexpected response code {} on LoginRequest. Content: {}",
@@ -1349,6 +1359,8 @@ DownloadManager::Logout()
 {
 	const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
 
+	Locator::getLogger()->info("Logging out");
+
 	// cancel sequential upload
 	ScoreUploadSequentialQueue.clear();
 	sequentialScoreUploadTotalWorkload = 0;
@@ -1368,6 +1380,7 @@ DownloadManager::Logout()
 	sessionUser = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
+
 	// This is called on a shutdown, after MessageManager is gone
 	if (MESSAGEMAN != nullptr)
 		MESSAGEMAN->Broadcast("LogOut");
@@ -2138,7 +2151,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 }
 
 void
-DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
+DownloadManager::RemoveGoalRequest(ScoreGoal* goal, bool oldGoal)
 {
 	if (goal == nullptr) {
 		Locator::getLogger()->warn("Null goal passed to RemoveGoalRequest. Skipped");
@@ -2146,20 +2159,23 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 	}
 
 	constexpr auto& CALL_ENDPOINT = API_GOALS;
-	const auto CALL_PATH = API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
-						   std::to_string(goal->rate) + "/" +
-						   std::to_string(goal->percent);
+	const auto CALL_PATH =
+	  API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
+	  (oldGoal ? std::to_string(goal->oldrate) : std::to_string(goal->rate)) +
+	  "/" +
+	  (oldGoal ? std::to_string(goal->oldpercent)
+			   : std::to_string(goal->percent));
 
 	Locator::getLogger()->info("Generating RemoveGoalRequest for {}",
 							   goal->DebugString());
 
-	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [goal, oldGoal, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
 			  []() {},
-			  [goal, this]() { RemoveGoalRequest(goal);
+			  [goal, oldGoal, this]() { RemoveGoalRequest(goal, oldGoal);
 			})) {
 			return;
 		}
@@ -2219,6 +2235,11 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	constexpr auto& CALL_ENDPOINT = API_GOALS;
 	constexpr auto& CALL_PATH = API_GOALS;
 
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to update goal while not logged in. Aborting");
+		return;
+	}
+
 	Locator::getLogger()->info("Generating UpdateGoalRequest for {}",
 							   goal->DebugString());
 
@@ -2230,6 +2251,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	Document::AllocatorType& allocator = d.GetAllocator();
 	d = GoalToJSON(goal, allocator);
 
+	// this crashes sometimes for no reason :)
 	StringBuffer buffer;
 	Writer<StringBuffer> w(buffer);
 	d.Accept(w);
@@ -2734,6 +2756,11 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
 	constexpr auto& CALL_PATH = API_PLAYLISTS;
 
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to update playlist while not logged in. Aborting");
+		return;
+	}
+
 	const auto& playlists = SONGMAN->GetPlaylists();
 	if (!playlists.contains(name)) {
 		Locator::getLogger()->warn(
@@ -2815,6 +2842,11 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 {
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
 	constexpr auto& CALL_PATH = API_PLAYLISTS;
+
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to remove playlist while not logged in. Aborting");
+		return;
+	}
 
 	const auto& playlists = SONGMAN->GetPlaylists();
 	if (!playlists.contains(name)) {
@@ -3613,6 +3645,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 
 		const auto& tfs = po.m_bTransforms;
 		const auto& turns = po.m_bTurns;
+		const auto& effects = po.m_fEffects;
 		const auto* steps = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
 
 		// if ccon, invalid
@@ -3676,6 +3709,16 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				  "Score {} will upload as invalid due to Turn {}",
 				  hs->GetScoreKey(),
 				  t);
+		}
+
+		// invalidate if invert is turned on at all
+		// (fake mirror)
+		if (validity) {
+			validity &= effects[PlayerOptions::EFFECT_INVERT] == 0.F;
+			if (!validity)
+				Locator::getLogger()->info(
+				  "Score {} will upload as invalid due to Effect Invert",
+				  hs->GetScoreKey());
 		}
 
 		// impossible for this to happen but just in case
@@ -4112,6 +4155,14 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 			callback();
 	};
 
+	// check this a second time because threads and stuff
+	if (!LoggedIn()) {
+		Locator::getLogger()->warn(
+		  "Attempted to upload scores while not logged in. Aborting");
+		if (callback)
+			callback();
+		return;
+	}
 	HTTPRequest* req =
 	  new HTTPRequest(curlHandle, done, nullptr, [callback](auto& req) {
 		  if (callback)
@@ -4455,6 +4506,11 @@ DownloadManager::InitialScoreSync()
 
 		// set to yesterday because timezones and stuff
 		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
+
+		if (!LoggedIn()) {
+			Locator::getLogger()->info("Not uploading scores. Not logged in.");
+			return false;
+		}
 
 		if (!toUpload.empty()) {
 			Locator::getLogger()->info(

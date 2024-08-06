@@ -123,9 +123,13 @@ function Actor.GetButtonRoot(self, depth)
 	
 	local buttonRoot = self
 	for i = 0, depth, 1 do
-		buttonRoot = buttonRoot:GetParent()
+		local r = buttonRoot:GetParent()
+		if r ~= nil then
+			buttonRoot = r
+		else
+			break
+		end
 	end
-
 	return buttonRoot
 end
 
@@ -401,7 +405,7 @@ function BUTTON.GetTopButton(self, x, y)
 		if not v then
 			print("something very scary happened and i think i prevented it")
 		else
-			if v:IsOver(x, y) then 
+			if v:IsOver(x, y) then
 				local z = v:GetTrueZ()
 				if z >= topZ then
 					topButton = v

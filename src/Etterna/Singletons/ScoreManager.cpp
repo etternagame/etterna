@@ -414,13 +414,20 @@ ScoreManager::GetAllPBsPreferringReplays(const std::string& profileID)
 	// this is mostly just for InitialScoreSync
 	// (this is also super slow)
 	std::vector<HighScore*> o {};
-	for (auto& scoresForChart : pscores.at(profileID)) {
-		if (!SONGMAN->IsChartLoaded(scoresForChart.first)) {
-			continue;
-		}
+	try {
+		for (auto& scoresForChart : pscores.at(profileID)) {
+			if (!SONGMAN->IsChartLoaded(scoresForChart.first)) {
+				continue;
+			}
 
-		auto v = scoresForChart.second.GetTopScoresForUploading();
-		o.insert(o.end(), v.begin(), v.end());
+			auto v = scoresForChart.second.GetTopScoresForUploading();
+			o.insert(o.end(), v.begin(), v.end());
+		}
+	} catch (std::exception& e) {
+		// can happen if profile doesnt exist
+		Locator::getLogger()->error(
+		  "Exception caught in GetAllPBsPreferringReplays, exiting early: {}", e.what());
+		return o;
 	}
 	return o;
 }
@@ -431,13 +438,18 @@ ScoreManager::GetAllPBPtrs(const std::string& profileID)
   -> const std::vector<vector<HighScore*>>
 {
 	std::vector<vector<HighScore*>> vec;
-	for (auto& i : pscores.at(profileID)) {
-		if (!SONGMAN->IsChartLoaded(i.first)) {
-			continue;
+	try {
+		for (auto& i : pscores.at(profileID)) {
+			if (!SONGMAN->IsChartLoaded(i.first)) {
+				continue;
+			}
+			vec.emplace_back(i.second.GetAllPBPtrs());
 		}
-		vec.emplace_back(i.second.GetAllPBPtrs());
+	} catch (std::exception& e) {
+		// can happen if profile doesnt exist
+		Locator::getLogger()->error(
+		  "Exception caught in GetAllPBPtrs, exiting early: {}", e.what());
 	}
-
 	return vec;
 }
 

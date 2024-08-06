@@ -1,2 +1,4 @@
 --- Notefield Column Spline Handler class
+--
+-- This class inherits no methods from superclasses.
 -- @classmod NCSplineHandler
