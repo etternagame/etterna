@@ -67,10 +67,6 @@ struct nps
 	/// determine NPSBase, itv_points, CJBase for this hand
 	static void actual_cancer(Calc& calc, const int& hand)
 	{
-		// finger row times
-		auto last_left_row_time = s_init;
-		auto last_right_row_time = s_init;
-
 		auto scaly_ms_estimate = [](std::vector<float>& input,
 								const float& scaler) {
 			float o = CalcMSEstimate(input, 3);
@@ -83,55 +79,61 @@ struct nps
 			return o;
 		};
 
+		// Per-finger data for msbase
+		struct FingerGaps
+		{
+			std::vector<float> ms;
+			float last_row_time = s_init;
+		};
+
+		std::vector<FingerGaps> fingy(calc.col_masks.size());
+		std::vector<float> estimates;
+		
 		for (auto itv = 0; itv < calc.numitv; ++itv) {
 			auto notes = 0;
 
-			// times between rows for this interval for each finger
-			std::vector<float> left_finger_ms{};
-			std::vector<float> right_finger_ms{};
-
+			for (auto& fing : fingy) {
+				fing.ms.clear();
+			}
+			
+			// note time deltas per finger in this interval
 			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 				const auto& cur = calc.adj_ni.at(itv).at(row);
+				auto cur_notes = cur.row_notes & calc.hand_col_masks[hand];
 				notes += cur.hand_counts.at(hand);
 
 				const auto& crt = cur.row_time;
-				switch (determine_col_type(cur.row_notes, calc.hand_col_masks[hand])) {
-					case col_left:
-						if (last_left_row_time != s_init) {
-							const auto left_ms =
-							  ms_from(crt, last_left_row_time);
-							left_finger_ms.push_back(left_ms);
+				for (size_t col_index = 0; col_index < calc.col_masks.size(); ++col_index) {
+					if (cur_notes & calc.col_masks[col_index]) {
+						auto& fing = fingy[col_index];
+						if (fing.last_row_time != s_init) {
+							const auto ms = ms_from(crt, fing.last_row_time);
+							fing.ms.push_back(ms);
 						}
-						last_left_row_time = crt;
-						break;
-					case col_right:
-						if (last_right_row_time != s_init) {
-							const auto right_ms =
-							  ms_from(crt, last_right_row_time);
-							right_finger_ms.push_back(right_ms);
-						}
-						last_right_row_time = crt;
-						break;
-					case col_ohjump:
-						if (last_right_row_time != s_init) {
-							const auto right_ms =
-							  ms_from(crt, last_right_row_time);
-							right_finger_ms.push_back(right_ms);
-						}
-						if (last_left_row_time != s_init) {
-							const auto left_ms =
-							  ms_from(crt, last_left_row_time);
-							left_finger_ms.push_back(left_ms);
-						}
-						last_left_row_time = crt;
-						last_right_row_time = crt;
-						break;
-					case col_empty:
-					case col_init:
-					default:
-						// none
-						break;
+						fing.last_row_time = crt;
+					}
 				}
+			}
+
+			// per finger deltas to ms estimates. for 4k estimates.size() == 2
+			estimates.clear();
+			for (auto& fing : fingy) {
+				if (fing.last_row_time != s_init) {
+					auto ms_est = scaly_ms_estimate(fing.ms, scaler_for_ms_base);
+					estimates.push_back(ms_est);
+				}
+			}
+
+			// sort largest first and zero pad to hand note count
+			std::sort(estimates.begin(), estimates.end(), [](auto a, auto b) { return a > b; });
+			estimates.resize(column_count(calc.hand_col_masks[hand]));
+
+			// average fingy estimates for msbase. makes sense for 4k where there are 2 estimates.
+			// weighted_average fudges the 1/2 factor so generalising the 4k weights to nk is ?? 
+			// so just telescope
+			float msdiff = estimates[0];
+			for (size_t i = 1; i < estimates.size(); ++i) {
+				msdiff = weighted_average(msdiff, estimates[i], ms_base_finger_weighter, ms_base_finger_weighter_2);
 			}
 
 			// nps for this interval
@@ -139,25 +141,8 @@ struct nps
 			calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) = nps;
 
 			// ms base for this interval
-			const auto left =
-			  scaly_ms_estimate(left_finger_ms, scaler_for_ms_base);
-			const auto right =
-			  scaly_ms_estimate(right_finger_ms, scaler_for_ms_base);
-			float msdiff = 0.F;
-			if (left > right) {
-				msdiff = weighted_average(left,
-										  right,
-										  ms_base_finger_weighter,
-										  ms_base_finger_weighter_2);
-			} else {
-				msdiff = weighted_average(right,
-										  left,
-										  ms_base_finger_weighter,
-										  ms_base_finger_weighter_2);
-			}
 			const auto msbase = finalscaler * msdiff;
-			calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) = msbase;
-			/////
+			calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) = msbase;			
 
 			// set points for this interval
 			calc.itv_points.at(hand).at(itv) = notes * 2;
@@ -838,7 +823,7 @@ struct techyo
 		}
 		return o;
 	}
-
+	
 	template <typename T>
 	void insert(std::array<T, max_rows_for_single_interval>& arr,
 				 const T value)
