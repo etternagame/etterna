@@ -346,7 +346,7 @@ struct ceejay
 		for (auto i = 0; i < static_ms.size(); i++) {
 			// weight = 0 means all values become modev
 			static_ms.at(i) =
-			  weighted_average(static_ms.at(i), modev, static_ms_weight, 1.F);
+			  weighted_average(static_ms.at(i), static_cast<float>(modev), static_ms_weight, 1.F);
 		}
 
 		const auto ms_total = sum(static_ms);
@@ -442,7 +442,7 @@ struct techyo
 		auto chaos_comp = calc_chaos_comp(seq, ct, calc, hand, row_time);
 		//insert(balance_ratios, balance_comp);
 		teehee(chaos_comp);
-		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(tc_static_base_window);
+		calc.tc_static.at(row_counter) = teehee.get_mean_of_window((int)tc_static_base_window);
 		++row_counter;
 	}
 
@@ -609,9 +609,9 @@ struct techyo
 	float calc_balance_comp() const {
 
 		const auto left =
-		  get_total_for_windowf(count_left, balance_comp_window);
+		  get_total_for_windowf(count_left, (unsigned)balance_comp_window);
 		const auto right = 
-		  get_total_for_windowf(count_right, balance_comp_window);
+		  get_total_for_windowf(count_right, (unsigned)balance_comp_window);
 
 		// for this application of balance, dont care about half empty hands
 		// or fully balanced hands
@@ -662,13 +662,13 @@ struct techyo
 		const auto c = (a + b) / 2;
 
 		// coeff var. of last N ms times on either column
-		auto pineapple = seq._mw_any_ms.get_cv_of_window(chaos_comp_window);
+		auto pineapple = seq._mw_any_ms.get_cv_of_window((unsigned)chaos_comp_window);
 		// coeff var. of last N ms times on left column
 		auto porcupine =
-		  seq._mw_sc_ms[col_left].get_cv_of_window(chaos_comp_window);
+		  seq._mw_sc_ms[col_left].get_cv_of_window((unsigned)chaos_comp_window);
 		// coeff var. of last N ms times on right column
 		auto sequins =
-		  seq._mw_sc_ms[col_right].get_cv_of_window(chaos_comp_window);
+		  seq._mw_sc_ms[col_right].get_cv_of_window((unsigned)chaos_comp_window);
 
 		// coeff var. is sd divided by mean
 		// cv of 0 is 0 sd
@@ -832,7 +832,7 @@ struct techyo
 	{
 		float o = 0.F;
 		auto i = max_rows_for_single_interval;
-		while (i > max_rows_for_single_interval - window) {
+		while (i > max_rows_for_single_interval - (int)window) {
 			i--;
 			o += arr.at(i);
 		}
