@@ -3614,8 +3614,12 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				allocator);
 	d.AddMember(
 	  "chart_key", stringToVal(hs->GetChartKey(), allocator), allocator);
+	
+	auto grd = Grade_Failed;
+	if (hs->GetGrade() != Grade_Failed)
+		grd = GetGradeFromPercent(hs->GetSSRNormPercent());
 	d.AddMember("grade",
-				stringToVal(GradeToOldString(hs->GetWifeGrade()), allocator),
+				stringToVal(GradeToOldString(grd), allocator),
 				allocator);
 
 	if (hs->GetJudgeScale() == 0.F) {
