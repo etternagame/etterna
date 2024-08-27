@@ -37,6 +37,7 @@
 #include <fstream>
 #include <cmath>
 
+#include "Core/Platform/Platform.hpp"
 #include "miniz/zip_file.hpp"
 
 using std::map;
@@ -1609,6 +1610,19 @@ SongManager::GetSongFromDir(std::string dir) const -> Song*
 		return entry->second;
 	}
 	return nullptr;
+}
+
+auto
+SongManager::OpenSongFolder(const Song* pSong) -> bool
+{
+	if (pSong == nullptr) {
+		return false;
+	}
+	auto d = pSong->GetSongDir();
+	auto b = SONGMAN->WasLoadedFromAdditionalSongs(pSong);
+	auto sf = FILEMAN->ResolveSongFolder(d, b);
+
+	return Core::Platform::openFolder(sf);
 }
 
 void
