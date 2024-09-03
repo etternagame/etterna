@@ -528,6 +528,9 @@ function MPinput(event)
 
 	-- hard kb toggle
 	if event.type == "InputEventType_FirstPress" and event.DeviceInput.button == "DeviceButton_insert" then
+		if minimised then
+		typing = true
+		end
 		minimised = not minimised
 		MESSAGEMAN:Broadcast("Minimise")
 		update = true
