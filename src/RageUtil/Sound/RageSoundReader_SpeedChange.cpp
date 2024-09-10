@@ -5,13 +5,11 @@
 
 #include <algorithm>
 
-static Preference<bool> g_StepmaniaUnpitchRates("StepmaniaUnpitchRates", false);
-
 RageSoundReader_SpeedChange::RageSoundReader_SpeedChange(
-  RageSoundReader* pSource)
+  RageSoundReader* pSource, bool bStepMania)
   : RageSoundReader_Filter(pSource)
-  , m_iWindowSize(g_StepmaniaUnpitchRates ? 30 : 70)
-  , m_bMidSideEncoding(!g_StepmaniaUnpitchRates)
+  , m_iWindowSize(bStepMania ? 30 : 70)
+  , m_bMidSideEncoding(!bStepMania)
 {
 	m_Channels.resize(pSource->GetNumChannels());
 	m_fSpeedRatio = m_fTrailingSpeedRatio = 1.0f;
