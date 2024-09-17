@@ -809,11 +809,78 @@ local function scoreBoard(pn, position)
 	end
 	t[#t+1] = jc
 
-	--[[
-	The following section first adds the ratioText and the maRatio. Then the paRatio is added and positioned. The right
-	values for maRatio and paRatio are then filled in. Finally ratioText and maRatio are aligned to paRatio.
+	-- Boolean to check whether shift is held or not
+	local shiftHeld = false
+	t[#t+1] = Def.ActorFrame {
+		OnCommand = function(self)
+			SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+				-- Detect if first or repeated shift press
+				if event.DeviceInput.button == "DeviceButton_left shift" or event.DeviceInput.button == "DeviceButton_right shift" then
+					if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
+						if not shiftHeld then
+							shiftHeld = true
+							MESSAGEMAN:Broadcast("ShiftPressed")
+						end
+					-- Detect release of shift key
+					elseif event.type == "InputEventType_Release" then
+						if shiftHeld then
+							shiftHeld = false
+							MESSAGEMAN:Broadcast("ShiftReleased")
+						end
+					end
+				end
+			end)
+		end
+	}
+
+    -- Function for calculating RA, returns the ratio of ridiculous to marvelous from offset plot in replay.
+	local function calculateRA(score)
+		-- Get replay depending on whether custom shit was used or not
+		local replay = usingCustomWindows and REPLAYS:GetActiveReplay() or score:GetReplay()
+		replay:LoadAllData()
+		-- Offset and tap note vectors from replay
+		local offsetTable = replay:GetOffsetVector()
+		local typeTable = replay:GetTapNoteTypeVector()
+
+		if not offsetTable or #offsetTable == 0 or not typeTable or #typeTable == 0 then
+			return -1
+		end
+
+		-- Define judgement windows
+		local window = usingCustomWindows and getCurrentCustomWindowConfigJudgmentWindowTable() or {
+			TapNoteScore_W1 = 22.5 * ms.JudgeScalers[judge], -- j4 marv
+			TapNoteScore_W2 = 45 * ms.JudgeScalers[judge],   -- j4 perf
+			TapNoteScore_W3 = 90 * ms.JudgeScalers[judge],   -- j4 g
+		}
+		-- Define RA threshold was half of marv window
+		window["TapNoteScore_W0"] = window["TapNoteScore_W1"] / 2 -- ra threshold
+
+		local raThreshold = window["TapNoteScore_W0"] -- ridic
+		local marvThreshold = window["TapNoteScore_W1"] -- marv
+
+		local ridic = 0
+		local marv = 0
+
+		-- Iterate over offset table
+		for i, o in ipairs(offsetTable) do
+			-- Check if note is tap or hold
+			if typeTable[i] == "TapNoteType_Tap" or typeTable[i] == "TapNoteType_HoldHead" then
+				local off = math.abs(o)
+				if off <= raThreshold then
+					ridic = ridic + 1
+				elseif off <= marvThreshold then
+					marv = marv + 1
+				end
+			end
+		end
+		return ridic / marv
+	end
+
+    --[[
+	The following section first adds the ratioText, raRatio and the maRatio. Then the paRatio is added and positioned. The right
+	values for raRatio, maRatio and paRatio are then filled in. Finally ratioText and maRatio, and raRatio are aligned to paRatio.
 	--]]
-	local ratioText, maRatio, paRatio, marvelousTaps, perfectTaps, greatTaps
+	local ratioText, raRatio, maRatio, paRatio, marvelousTaps, perfectTaps, greatTaps
 	t[#t+1] = Def.ActorFrame {
 		Name = "MAPARatioContainer",
 
@@ -823,6 +890,15 @@ local function scoreBoard(pn, position)
 				ratioText = self
 				self:settextf("%s:", translated_info["MAPARatio"])
 				self:zoom(0.25):halign(1)
+			end
+		},
+		LoadFont("Common Large") .. {
+			Name = "RAText",
+			InitCommand = function(self)
+				raRatio = self
+				self:settextf("%.1f:1", 0)
+				self:zoom(0.25):halign(1) -- No color, user can set whatever they want here. AAAAA is white so I left as white
+				self:visible(false)
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -848,22 +924,47 @@ local function scoreBoard(pn, position)
 			end,
 			SetCommand = function(self)
 
-				-- Fill in maRatio and paRatio
+				-- Fill in raRatio, maRatio, and paRatio
 				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
 				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
+				raRatio:settextf("%.2f:1", calculateRA(score))
 
-				-- Align ratioText and maRatio to paRatio (self)
-				maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
-				maRatio:xy(maRatioX, paRatio:GetY())
+				-- Align with where paRatio was and move things accordingly
+				if shiftHeld then
+					raRatio:visible(true)
+					paRatio:visible(false)
+					local raRatioX = paRatio:GetX() - maRatio:GetZoomedWidth() - 10
+					raRatio:xy(raRatioX, paRatio:GetY())
+					local ratioTextX = paRatio:GetX() - maRatio:GetZoomedWidth() - raRatio:GetZoomedWidth() - 20
+					ratioText:xy(ratioTextX, paRatio:GetY())
+					maRatio:xy(paRatio:GetX(), paRatio:GetY())
+				else
+					raRatio:visible(false)
+					paRatio:visible(true)
+					local maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
+					maRatio:xy(maRatioX, paRatio:GetY())
+					local ratioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
+					ratioText:xy(ratioTextX, paRatio:GetY())
+				end
 
-				ratioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
-				ratioText:xy(ratioTextX, paRatio:GetY())
 				if score:GetChordCohesion() == true then
 					maRatio:maxwidth(maRatio:GetZoomedWidth()/0.25)
 					self:maxwidth(self:GetZoomedWidth()/0.25)
 					ratioText:maxwidth(capWideScale(get43size(65), 85)/0.27)
 				end
 			end,
+
+			ShiftPressedMessageCommand = function(self)
+				ratioText:settextf("RA/MA ratio:")
+				self:GetParent():GetChild("RAText"):visible(true)
+				self:playcommand("Set")
+			end,
+			ShiftReleasedMessageCommand = function(self)
+				ratioText:settextf("%s:", translated_info["MAPARatio"])
+				self:GetParent():GetChild("RAText"):visible(false)
+				self:playcommand("Set")
+			end,
+
 			CodeMessageCommand = function(self, params)
 				if usingCustomWindows then
 					return
