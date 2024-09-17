@@ -855,7 +855,7 @@ local function scoreBoard(pn, position)
 		-- Define RA threshold was half of marv window
 		window["TapNoteScore_W0"] = window["TapNoteScore_W1"] / 2 -- ra threshold
 
-		local raThreshold = window["TapNoteScore_W0"] -- ridic
+		local raThreshold = window["TapNoteScore_W0"] -- 
 		local marvThreshold = window["TapNoteScore_W1"] -- marv
 
 		local ridic = 0
@@ -873,7 +873,7 @@ local function scoreBoard(pn, position)
 				end
 			end
 		end
-		return ridic / marv
+		return ridic / marv, marv
 	end
 
     --[[
@@ -925,20 +925,23 @@ local function scoreBoard(pn, position)
 			SetCommand = function(self)
 
 				-- Fill in raRatio, maRatio, and paRatio
+				local ridiculousAttack, marvs = calculateRA(score)
 				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
 				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
-				raRatio:settextf("%.2f:1", calculateRA(score))
+				raRatio:settextf("%.2f:1", ridiculousAttack)
 
 				-- Align with where paRatio was and move things accordingly
 				if shiftHeld then
+					maRatio:settextf("%.1f:1", marvs / perfectTaps) -- Previously was marv+ridic:perf, now is marv:perf
 					raRatio:visible(true)
 					paRatio:visible(false)
 					local raRatioX = paRatio:GetX() - maRatio:GetZoomedWidth() - 10
 					raRatio:xy(raRatioX, paRatio:GetY())
-					local ratioTextX = paRatio:GetX() - maRatio:GetZoomedWidth() - raRatio:GetZoomedWidth() - 20
+					local ratioTextX = paRatio:GetX() - maRatio:GetZoomedWidth() - raRatio:GetZoomedWidth() - 20 --meow
 					ratioText:xy(ratioTextX, paRatio:GetY())
 					maRatio:xy(paRatio:GetX(), paRatio:GetY())
 				else
+					maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps) -- Change back to "marv+ridic:perf"
 					raRatio:visible(false)
 					paRatio:visible(true)
 					local maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
