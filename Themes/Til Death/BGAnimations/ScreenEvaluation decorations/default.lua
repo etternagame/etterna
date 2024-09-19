@@ -1388,6 +1388,4 @@ end
 t[#t + 1] = LoadActor("../offsetplot")
 updateDiscordStatus(true)
 
-t[#t + 1] = LoadActor("manipfactor")
-
 return t
