@@ -809,23 +809,37 @@ local function scoreBoard(pn, position)
 	end
 	t[#t+1] = jc
 
-	-- Boolean to check whether shift is held or not
+	-- Boolean to check whether shift or alt/backslash is held
 	local shiftHeld = false
+	local altHeld = false
+
 	t[#t+1] = Def.ActorFrame {
 		OnCommand = function(self)
 			SCREENMAN:GetTopScreen():AddInputCallback(function(event)
 				-- Detect if first or repeated shift press
-				if event.DeviceInput.button == "DeviceButton_left shift" or event.DeviceInput.button == "DeviceButton_right shift" then
+				local button = event.DeviceInput.button
+				if button == "DeviceButton_left shift" or button == "DeviceButton_right shift" or button == "DeviceButton_tab" then
 					if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
 						if not shiftHeld then
 							shiftHeld = true
 							MESSAGEMAN:Broadcast("ShiftPressed")
 						end
-					-- Detect release of shift key
 					elseif event.type == "InputEventType_Release" then
 						if shiftHeld then
 							shiftHeld = false
 							MESSAGEMAN:Broadcast("ShiftReleased")
+						end
+					end
+				elseif button == "DeviceButton_left alt" or button == "DeviceButton_right alt" or button == "DeviceButton_backslash" then
+					if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
+						if not altHeld then
+							altHeld = true
+							MESSAGEMAN:Broadcast("AltPressed")
+						end
+					elseif event.type == "InputEventType_Release" then
+						if altHeld then
+							altHeld = false
+							MESSAGEMAN:Broadcast("AltReleased")
 						end
 					end
 				end
@@ -833,9 +847,9 @@ local function scoreBoard(pn, position)
 		end
 	}
 
-    -- Function for calculating RA, returns the ratio of ridiculous to marvelous from offset plot in replay.
-	local function calculateRA(score)
-		-- Get replay depending on whether custom shit was used or not
+	-- Function for calculating RA and LA, returns the ratio of ridiculous to marvelous and ludicrous to ridiculous from offset plot in replay.
+	local function calculateRatios(score)
+		-- Get replay depending on whether custom windows were used or not
 		local replay = usingCustomWindows and REPLAYS:GetActiveReplay() or score:GetReplay()
 		replay:LoadAllData()
 		-- Offset and tap note vectors from replay
@@ -843,7 +857,7 @@ local function scoreBoard(pn, position)
 		local typeTable = replay:GetTapNoteTypeVector()
 
 		if not offsetTable or #offsetTable == 0 or not typeTable or #typeTable == 0 then
-			return -1
+			return -1, -1, -1
 		end
 
 		-- Define judgement windows
@@ -852,14 +866,18 @@ local function scoreBoard(pn, position)
 			TapNoteScore_W2 = 45 * ms.JudgeScalers[judge],   -- j4 perf
 			TapNoteScore_W3 = 90 * ms.JudgeScalers[judge],   -- j4 g
 		}
-		-- Define RA threshold was half of marv window
+		-- Define RA and LA thresholds
 		window["TapNoteScore_W0"] = window["TapNoteScore_W1"] / 2 -- ra threshold
+		window["TapNoteScore_W-1"] = window["TapNoteScore_W0"] / 2 -- la threshold
 
-		local raThreshold = window["TapNoteScore_W0"] -- 
+		local laThreshold = window["TapNoteScore_W-1"]
+		local raThreshold = window["TapNoteScore_W0"]
 		local marvThreshold = window["TapNoteScore_W1"] -- marv
 
+		local ludic = 0
+		local ridicLA = 0
 		local ridic = 0
-		local marv = 0
+		local marvRA = 0
 
 		-- Iterate over offset table
 		for i, o in ipairs(offsetTable) do
@@ -869,18 +887,27 @@ local function scoreBoard(pn, position)
 				if off <= raThreshold then
 					ridic = ridic + 1
 				elseif off <= marvThreshold then
-					marv = marv + 1
+					marvRA = marvRA + 1
+				end
+				if off <= laThreshold then
+					ludic = ludic + 1
+				elseif off <= raThreshold then
+					ridicLA = ridicLA + 1
 				end
 			end
 		end
-		return ridic / marv, marv
+
+		-- Return ratios, ridic count, and marv count
+		local ridiculousAttack = ridic / marvRA
+		local ludicrousAttack = ludic / ridicLA
+		return ridiculousAttack, ludicrousAttack, ridicLA, marvRA
 	end
 
-    --[[
-	The following section first adds the ratioText, raRatio and the maRatio. Then the paRatio is added and positioned. The right
-	values for raRatio, maRatio and paRatio are then filled in. Finally ratioText and maRatio, and raRatio are aligned to paRatio.
+	--[[
+	The following section first adds the ratioText, laRatio, raRatio, maRatio, and paRatio. Then the correct values are filled in.
+	When shift or alt/backslash is held, the display changes accordingly.
 	--]]
-	local ratioText, raRatio, maRatio, paRatio, marvelousTaps, perfectTaps, greatTaps
+	local ratioText, raRatio, laRatio, maRatio, paRatio, marvelousTaps, perfectTaps, greatTaps
 	t[#t+1] = Def.ActorFrame {
 		Name = "MAPARatioContainer",
 
@@ -893,11 +920,20 @@ local function scoreBoard(pn, position)
 			end
 		},
 		LoadFont("Common Large") .. {
+			Name = "LAText",
+			InitCommand = function(self)
+				laRatio = self
+				self:settextf("%.2f:1", 0)
+				self:zoom(0.25):halign(1):rainbow() -- Rainbow cuz it's LA man come on
+				self:visible(false)
+			end
+		},
+		LoadFont("Common Large") .. {
 			Name = "RAText",
 			InitCommand = function(self)
 				raRatio = self
-				self:settextf("%.1f:1", 0)
-				self:zoom(0.25):halign(1) -- No color, user can set whatever they want here. AAAAA is white so I left as white
+				self:settextf("%.2f:1", 0)
+				self:zoom(0.25):halign(1)  -- No color, user can set whatever they want here. AAAAA is white so I left as white
 				self:visible(false)
 			end
 		},
@@ -923,31 +959,57 @@ local function scoreBoard(pn, position)
 				self:playcommand("Set")
 			end,
 			SetCommand = function(self)
-
-				-- Fill in raRatio, maRatio, and paRatio
-				local ridiculousAttack, marvs = calculateRA(score)
+				-- Fill in raRatio, laRatio, maRatio, and paRatio
+				local ridiculousAttack, ludicrousAttack, ridics, marvs = calculateRatios(score)
 				maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps)
 				paRatio:settextf("%.1f:1", perfectTaps / greatTaps)
 				raRatio:settextf("%.2f:1", ridiculousAttack)
+				laRatio:settextf("%.2f:1", ludicrousAttack)
 
 				-- Align with where paRatio was and move things accordingly
-				if shiftHeld then
-					maRatio:settextf("%.1f:1", marvs / perfectTaps) -- Previously was marv+ridic:perf, now is marv:perf
+				if altHeld then
+					-- Show LA/RA ratios
+					laRatio:visible(true)
 					raRatio:visible(true)
+					maRatio:visible(false)
 					paRatio:visible(false)
-					local raRatioX = paRatio:GetX() - maRatio:GetZoomedWidth() - 10
-					raRatio:xy(raRatioX, paRatio:GetY())
-					local ratioTextX = paRatio:GetX() - maRatio:GetZoomedWidth() - raRatio:GetZoomedWidth() - 20 --meow
-					ratioText:xy(ratioTextX, paRatio:GetY())
+
+					raRatio:settextf("%.2f:1", ridics / marvs) -- ridic:marv
+					raRatio:xy(paRatio:GetX(), paRatio:GetY())
+					local laRatioX = raRatio:GetX() - raRatio:GetZoomedWidth() - 10
+					laRatio:xy(laRatioX, raRatio:GetY())
+					local ratioTextX = laRatioX - laRatio:GetZoomedWidth() - 10
+					ratioText:xy(ratioTextX, raRatio:GetY())
+
+					ratioText:settextf("LA/RA ratio:")
+				elseif shiftHeld then
+					-- Show RA/MA ratios
+					raRatio:visible(true)
+					laRatio:visible(false)
+					maRatio:visible(true)
+					paRatio:visible(false)
+
+					maRatio:settextf("%.1f:1", marvs / perfectTaps) -- marv:perf
+					raRatio:xy(paRatio:GetX() - maRatio:GetZoomedWidth() - 10, paRatio:GetY())
 					maRatio:xy(paRatio:GetX(), paRatio:GetY())
+					local ratioTextX = raRatio:GetX() - raRatio:GetZoomedWidth() - 10
+					ratioText:xy(ratioTextX, paRatio:GetY())
+
+					ratioText:settextf("RA/MA ratio:")
 				else
-					maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps) -- Change back to "marv+ridic:perf"
+					-- Show MA/PA ratios
 					raRatio:visible(false)
+					laRatio:visible(false)
+					maRatio:visible(true)
 					paRatio:visible(true)
+
+					maRatio:settextf("%.1f:1", marvelousTaps / perfectTaps) -- marv:perf
 					local maRatioX = paRatio:GetX() - paRatio:GetZoomedWidth() - 10
 					maRatio:xy(maRatioX, paRatio:GetY())
 					local ratioTextX = maRatioX - maRatio:GetZoomedWidth() - 10
 					ratioText:xy(ratioTextX, paRatio:GetY())
+
+					ratioText:settextf("%s:", translated_info["MAPARatio"])
 				end
 
 				if score:GetChordCohesion() == true then
@@ -958,13 +1020,15 @@ local function scoreBoard(pn, position)
 			end,
 
 			ShiftPressedMessageCommand = function(self)
-				ratioText:settextf("RA/MA ratio:")
-				self:GetParent():GetChild("RAText"):visible(true)
 				self:playcommand("Set")
 			end,
 			ShiftReleasedMessageCommand = function(self)
-				ratioText:settextf("%s:", translated_info["MAPARatio"])
-				self:GetParent():GetChild("RAText"):visible(false)
+				self:playcommand("Set")
+			end,
+			AltPressedMessageCommand = function(self)
+				self:playcommand("Set")
+			end,
+			AltReleasedMessageCommand = function(self)
 				self:playcommand("Set")
 			end,
 
@@ -974,9 +1038,9 @@ local function scoreBoard(pn, position)
 				end
 
 				if params.Name == "PrevJudge" or params.Name == "NextJudge" then
-						marvelousTaps = getRescoredJudge(dvt, judge, 1)
-						perfectTaps = getRescoredJudge(dvt, judge, 2)
-						greatTaps = getRescoredJudge(dvt, judge, 3)
+					marvelousTaps = getRescoredJudge(dvt, judge, 1)
+					perfectTaps = getRescoredJudge(dvt, judge, 2)
+					greatTaps = getRescoredJudge(dvt, judge, 3)
 					self:playcommand("Set")
 				end
 				if params.Name == "ResetJudge" then
@@ -1323,5 +1387,7 @@ end
 
 t[#t + 1] = LoadActor("../offsetplot")
 updateDiscordStatus(true)
+
+t[#t + 1] = LoadActor("manipfactor")
 
 return t
