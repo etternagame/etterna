@@ -6,6 +6,7 @@
 #include "Etterna/Globals/global.h"
 
 #include <windows.h>
+#include <atlstr.h>
 #include <GL/glew.h>
 #include <string>
 #include <nowide/convert.hpp>
@@ -304,6 +305,35 @@ namespace Core::Platform {
 		res.erase(std::remove(res.begin(), res.end(), '\n'), res.end()); // Remove newlines
 		res.erase(std::remove(res.begin(), res.end(), '\r'), res.end()); // Remove carriage returns
 		return res;
+	}
+
+	bool setClipboardText(std::string text){
+		if (!OpenClipboard(nullptr))
+			return false;
+
+		CString cstr(text.c_str());
+		EmptyClipboard();
+
+		HGLOBAL clipbuffer =
+		  GlobalAlloc(GMEM_DDESHARE, static_cast<SIZE_T>(cstr.GetLength()) + 1);
+		if (clipbuffer == NULL) {
+			return false;
+		}
+
+		auto lck = GlobalLock(clipbuffer);
+		if (lck == NULL) {
+			GlobalUnlock(clipbuffer);
+			return false;
+		}
+
+		char* buf = static_cast<char*>(lck);
+		std::ignore = strcpy(buf, LPCSTR(cstr));
+
+		GlobalUnlock(clipbuffer);
+		SetClipboardData(CF_TEXT, clipbuffer);
+		CloseClipboard();
+
+		return true;
 	}
 
 	void setCursorVisible(bool value){
