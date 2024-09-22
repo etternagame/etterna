@@ -3358,8 +3358,8 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 		tmp.username = user["username"].GetString();
 	else
 		tmp.username = "";
-	if (user.HasMember("avatar_path") && user["avatar_path"].IsString())
-		tmp.avatar = user["avatar_path"].GetString();
+	if (user.HasMember("avatar") && user["avatar"].IsString())
+		tmp.avatar = user["avatar"].GetString();
 	else
 		tmp.avatar = "";
 	tmp.userid = 0;
