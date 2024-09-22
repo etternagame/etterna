@@ -174,7 +174,7 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 	// all columns from left to rightmost
 	calc.col_masks.clear();
 	calc.col_masks.reserve(calc.keycount);
-	for (int i = 0; i < calc.keycount; i++) {
+	for (unsigned i = 0; i < calc.keycount; i++) {
 		calc.col_masks.push_back(1 << i);
 	}
 
