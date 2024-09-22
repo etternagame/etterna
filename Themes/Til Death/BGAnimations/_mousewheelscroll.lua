@@ -3,7 +3,6 @@ local whee
 local pressingtab = false
 local top
 
-local last_scroll_input = GetTimeSinceStart()
 local function scrollInput(event)
 	if top:GetName() == "ScreenSelectmusic" then
 		if top:GetSelectionState() == 2 then
@@ -17,10 +16,6 @@ local function scrollInput(event)
 		end
 	elseif event.type == "InputEventType_FirstPress" then
 	    local DI_Button = event.DeviceInput.button
-		local Current_Time = GetTimeSinceStart()
-		local scroll_debounce_time = PREFSMAN:GetPreference("ScrollDebounceTime")
-		if string.find(DI_Button,"DeviceButton_mousewheel") and (Current_Time - last_scroll_input) > scroll_debounce_time then
-		last_scroll_input = Current_Time
 
 		if DI_Button == "DeviceButton_mousewheel up" then
 			moving = true
@@ -36,7 +31,6 @@ local function scrollInput(event)
 			else
 				whee:Move(1)
 			end
-		end
 		end
 	elseif moving == true then
 		whee:Move(0)

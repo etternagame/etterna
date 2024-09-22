@@ -120,6 +120,7 @@ set<DeviceInput> g_DisableRepeat;
  * this won't cause timing problems, because the event timestamp is preserved.
  */
 static Preference<float> g_fInputDebounceTime("InputDebounceTime", 0);
+static Preference<float> g_fScrollDebounceTime("ScrollDebounceTime", 0);
 
 InputFilter* INPUTFILTER =
   nullptr; // global and accessible from anywhere in our program
@@ -281,6 +282,11 @@ InputFilter::CheckButtonChange(ButtonState& bs,
 		// note: a debounce time longer than the min IET_REPEAT time
 		// will cause repeat events to fire here
 		if (delta < g_fInputDebounceTime) {
+			return;
+		}
+	} else {
+		// same comment as above
+		if (delta < g_fScrollDebounceTime) {
 			return;
 		}
 	}

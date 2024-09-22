@@ -227,8 +227,6 @@ class PrefsManager
 	Preference<bool> m_bAlwaysLoadCalcParams;
 	Preference<int> m_UnfocusedSleepMillisecs;
 
-	Preference<float> m_fScrollDebounceTime;
-
 	// logging level 0 - 5
 	// 0 = TRACE (all the logging)
 	// 1 = DEBUG
