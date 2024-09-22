@@ -216,7 +216,6 @@ function BUTTON.InputCallback(event)
 			-- produces a broadcast message of this for each "snap" of the wheel
 			-- MouseScroll -- params: direction = Up/Down
 			MESSAGEMAN:Broadcast("MouseScroll", {direction = BUTTON.ScrollWheelInput[event.DeviceInput.button]})
-			end
 		end
 	end
 
