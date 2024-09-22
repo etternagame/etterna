@@ -212,6 +212,7 @@ PrefsManager::PrefsManager()
   , m_bEnableCrashUpload("EnableMinidumpUpload", false)
   , m_bAllowSongDeletion("AllowSongDeletion", false)
   , m_bShowMinidumpUploadDialogue("ShowMinidumpUploadDialogue", true)
+  , m_fScrollDebounceTime("ScrollDebounceTime", 0)
 
 {
 	Init();

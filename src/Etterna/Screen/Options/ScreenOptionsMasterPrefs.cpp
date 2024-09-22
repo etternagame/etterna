@@ -432,6 +432,13 @@ InputDebounceTime(int& sel, bool to_sel, ConfOption const* conf_option)
 							  0.06f, 0.07f, 0.08f, 0.09f, 0.1f };
 	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
 }
+static void
+ScrollDebounceTime(int& sel, bool to_sel, ConfOption const* conf_option)
+{
+	float const mapping[] = { 0.0f,	 0.01f, 0.02f, 0.03f, 0.04f, 0.05f,
+							  0.06f, 0.07f, 0.08f, 0.09f, 0.1f };
+	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
+}
 
 // Machine options
 /** @brief Timing Window scale */
@@ -808,6 +815,19 @@ InitializeConfOptions()
 				   "Really Fast"));
 	ADD(ConfOption("InputDebounceTime",
 				   InputDebounceTime,
+				   "0ms",
+				   "10ms",
+				   "20ms",
+				   "30ms",
+				   "40ms",
+				   "50ms",
+				   "60ms",
+				   "70ms",
+				   "80ms",
+				   "90ms",
+				   "100ms"));
+	ADD(ConfOption("ScrollDebounceTime",
+				   ScrollDebounceTime,
 				   "0ms",
 				   "10ms",
 				   "20ms",

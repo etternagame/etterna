@@ -344,6 +344,59 @@ function InputDebounceTime()
     return t
 end
 
+function ScrollDebounceTime() -- Modified input debounce time.
+    local delaylist = {}
+    do
+		-- in milliseconds, 100 is pretty egregious
+		-- ^^^ true.. But why not let people do what they want
+        local start = -0.100
+        local upper = 0.100
+        local increment = 0.001
+        while start <= upper do
+			-- these rounds should force it to be milliseconds only
+            delaylist[#delaylist+1] = tostring(notShit.round(start * 1000)) .. "ms"
+            start = notShit.round(start + increment, 3)
+        end
+    end
+
+    local t = {
+        Name = "ScrollDebounceTime",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = false,
+        ExportOnChange = true,
+        ExportOnCancel = true,
+        Choices = delaylist,
+        LoadSelections = function(self, list, pn)
+            local rateindex = 1
+            local rate = notShit.round(PREFSMAN:GetPreference("ScrollDebounceTime"), 4)
+            local acceptable_delta = 0.0005
+            for i = 1, #delaylist do
+                local r = tonumber(delaylist[i]:sub(1, -3)) / 1000
+                if r == rate or (rate - acceptable_delta <= r and rate + acceptable_delta >= r) then
+                    rateindex = i
+                    break
+                end
+            end
+            list[rateindex] = true
+        end,
+        SaveSelections = function(self, list, pn)
+            for i, v in ipairs(list) do
+                if v == true then
+                    local r = notShit.round(tonumber(delaylist[i]:sub(1, -3)) / 1000, 3)
+					PREFSMAN:SetPreference("ScrollDebounceTime", r)
+                    break
+                end
+            end
+        end,
+		NotifyOfSelection = function(self, pn, choice)
+			MESSAGEMAN:Broadcast("ScrollDebounceOptionChanged", {value = PREFSMAN:GetPreference("ScrollDebounceTime")})
+		end
+    }
+    setmetatable(t, t)
+    return t
+end
+
 function FrameLimitGlobal()
     local delaylist = {"0","30","40","50","60","70","80","90"}
     do
@@ -822,4 +875,3 @@ function FixKeyboardLayout()
 	setmetatable(t, t)
 	return t
 end
-
