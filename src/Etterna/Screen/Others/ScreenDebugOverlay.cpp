@@ -1585,11 +1585,7 @@ class DebugLineChartFolder: public IDebugLine
 	bool ForceOffAfterUse() const override {
 		Song* s = GAMESTATE->m_pCurSong;
 		if (s != nullptr) {
-			auto d = s->GetSongDir();
-			auto b = SONGMAN->WasLoadedFromAdditionalSongs(s);
-			auto p = FILEMAN->ResolveSongFolder(d, b);
-
-			return Core::Platform::openFolder(p);
+			return SONGMAN->OpenSongFolder(s);
 		}
 		return false;
 	}
@@ -1610,8 +1606,11 @@ class DebugLineChartkey : public IDebugLine
 	std::string GetDisplayValue() override
 	{
 		auto c = GAMESTATE->m_pCurSteps;
-		if (c != nullptr)
-			return c->GetChartKey();
+		if (c != nullptr) {
+			const auto& ck = c->GetChartKey();
+			Core::Platform::setClipboardText(ck);
+			return ck;
+		}
 		return std::string("None");
 	}
 	std::string GetPageName() const override { return "Misc"; }
