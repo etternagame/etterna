@@ -607,11 +607,8 @@ FillInHighScore(const PlayerStageStats& pss,
 		NoteDataUtil::TransformNoteData(nd, *td, po, style->m_StepsType);
 		GAMESTATE->m_iStageSeed = tmpSeed;
 	}
+
 	auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
-
-	// explode the game if something broke
-	ASSERT(maxpoints > 0);
-
 	if (pss.GetGrade() == Grade_Failed) {
 		hs.SetSSRNormPercent(0.F);
 	} else {

@@ -1262,6 +1262,14 @@ HighScore::RescoreToWife3(float pmax) -> bool
 		return false;
 	}
 
+	if (pmax <= 0.F) {
+		m_Impl->fSSRNormPercent = 0.F;
+		m_Impl->fWifeScore = 0.F;
+		m_Impl->fWifePoints = 0.F;
+		m_Impl->WifeVersion = 3;
+		return true;
+	}
+
 	// SSRNormPercent
 	auto p4 = 0.F;
 	// WifeScore for HighScore Judge
