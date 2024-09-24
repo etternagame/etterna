@@ -13,14 +13,23 @@
 #include "RageSoundReader_PitchChange.h"
 #include "RageSoundReader_Resample_Good.h"
 #include "RageSoundReader_SpeedChange.h"
+#include "RageSoundReader_SpeedChange_Good.h"
+
+static Preference<bool> g_StepmaniaUnpitchRates("StepmaniaUnpitchRates", false);
 
 RageSoundReader_PitchChange::RageSoundReader_PitchChange(
   RageSoundReader* pSource)
   : RageSoundReader_Filter(nullptr)
 {
-	m_pSpeedChange = new RageSoundReader_SpeedChange(pSource);
-	m_pResample = new RageSoundReader_Resample_Good(
-	  m_pSpeedChange, m_pSpeedChange->GetSampleRate());
+	bool bMepstania = g_StepmaniaUnpitchRates.Get();
+	if (bMepstania) {
+		m_pSpeedChange = new RageSoundReader_SpeedChange(pSource, bMepstania);
+		m_pResample = new RageSoundReader_Resample_Good(m_pSpeedChange, m_pSpeedChange->GetSampleRate());
+	} else {
+		m_pSpeedChangeGood = new RageSoundReader_SpeedChange_Good(pSource);
+		m_pSpeedChange = new RageSoundReader_SpeedChange(m_pSpeedChangeGood, bMepstania);
+		m_pResample = new RageSoundReader_Resample_Good(m_pSpeedChange, m_pSpeedChange->GetSampleRate());
+	}
 	m_pSource = std::unique_ptr<RageSoundReader_Resample_Good>(m_pResample);
 	m_fSpeedRatio = 1.0f;
 	m_fPitchRatio = 1.0f;
@@ -44,6 +53,11 @@ RageSoundReader_PitchChange::RageSoundReader_PitchChange(
 	ASSERT_M(pspdchng != nullptr,
 			 "Dynamic cast to RageSoundReader SpeedChange failed at runtime.");
 	m_pSpeedChange = pspdchng;
+	auto pspdchnggd =
+	  dynamic_cast<RageSoundReader_SpeedChange_Good*>(m_pSpeedChange->GetSource());
+	ASSERT_M(pspdchnggd != nullptr,
+			 "Dynamic cast to RageSoundReader SpeedChange failed at runtime.");
+	m_pSpeedChangeGood = pspdchnggd;
 	m_fSpeedRatio = cpy.m_fSpeedRatio;
 	m_fPitchRatio = cpy.m_fPitchRatio;
 	m_fLastSetSpeedRatio = cpy.m_fLastSetSpeedRatio;
@@ -73,7 +87,22 @@ RageSoundReader_PitchChange::Read(float* pBuf, int iFrames)
 		m_pResample->SetRate(m_fPitchRatio);
 		float fActualPitchRatio = m_pResample->GetRate();
 		float fRequestedSpeedRatio = m_fSpeedRatio / fActualPitchRatio;
-		m_pSpeedChange->SetSpeedRatio(fRequestedSpeedRatio);
+		
+		bool bMepstania = g_StepmaniaUnpitchRates.Get();
+		if (bMepstania) {
+			m_pSpeedChange->SetSpeedRatio(fRequestedSpeedRatio);
+		} else {
+			// SpeedChange_Good is bad at downrates, but bad in a different way than SpeedChange.
+			// And both sound okay for small down rates. So doing half the down rate in one and then the other
+			// sounds better than either one alone.......
+			if ((fRequestedSpeedRatio >= 0.5f) && (fRequestedSpeedRatio < 1.0f)) {
+				m_pSpeedChange->SetSpeedRatio(sqrtf(fRequestedSpeedRatio * 1.05f));
+				m_pSpeedChangeGood->SetSpeedRatio(sqrtf(fRequestedSpeedRatio / 1.05f));
+			} else {
+				m_pSpeedChange->SetSpeedRatio(1.0f);
+				m_pSpeedChangeGood->SetSpeedRatio(fRequestedSpeedRatio);
+			}
+		}
 
 		m_fLastSetSpeedRatio = m_fSpeedRatio;
 		m_fLastSetPitchRatio = m_fPitchRatio;
