@@ -628,7 +628,6 @@ local function updateCoolStuff()
                 -- translate the output list to our "cleaner" format
                 local modname = shortenEnum(debugtype, sublist[i])
                 graphVecs[modname] = {}
-                ms.ok(sublist[i] .. " " .. modname)
 
                 -- for each hand
                 for h = 1, 2 do
