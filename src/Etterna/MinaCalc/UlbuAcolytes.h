@@ -5,7 +5,6 @@
 
 /* PRAISE ULBU FOR IT IS ITS GLORY THAT GIVES OUR LIVES MEANING */
 
-static const std::string calc_params_xml = "Save/calc params.xml";
 constexpr float interval_span = 0.5F;
 
 /// smoothing function to reduce spikes and holes in a given vector

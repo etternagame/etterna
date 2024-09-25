@@ -659,47 +659,12 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 #pragma endregion
 
 #if !defined(STANDALONE_CALC) && !defined(PHPCALC)
-	void load_calc_params_from_disk(bool bForce = false) const override
+	const std::string get_calc_param_xml() const override
 	{
-		const auto fn = calc_params_xml;
-		int iError;
+		return "Save/CalcParams_4k.xml";
+	}
 
-		// Hold calc params program-global persistent info
-		thread_local RageFileBasic* pFile;
-		thread_local XNode params;
-		// Only ever try to load params once per thread unless forcing
-		thread_local bool paramsLoaded = false;
-
-		// Don't keep loading params if nothing to load/no reason to
-		// Allow a force to bypass
-		if (paramsLoaded && !bForce)
-			return;
-
-		// Load if missing
-		if (pFile == nullptr || bForce) {
-			delete pFile;
-			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
-			// Failed to load
-			if (pFile == nullptr)
-				return;
-		}
-
-		// If it isn't loaded or we are forcing a load, load it
-		if (params.ChildrenEmpty() || bForce)
-		{
-			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
-				return;
-			}
-		}
-
-		// ignore params from older versions
-		std::string vers;
-		params.GetAttrValue("vers", vers);
-		if (vers.empty() || stoi(vers) != GetCalcVersion()) {
-			return;
-		}
-		paramsLoaded = true;
-
+	void load_calc_params_internal(const XNode& params) const override {
 		// diff params
 		load_params_for_mod(&params, _diffz._cj._params, _diffz._cj.name);
 		load_params_for_mod(&params, _diffz._tc._params, _diffz._tc.name);
@@ -732,11 +697,8 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		load_params_for_mod(&params, _tt2._params, _tt2.name);
 	}
 
-	[[nodiscard]] auto make_param_node() const -> XNode*
+	XNode* make_param_node_internal(XNode* calcparams) const override
 	{
-		auto* calcparams = new XNode("CalcParams");
-		calcparams->AppendAttr("vers", GetCalcVersion());
-
 		// diff params
 		calcparams->AppendChild(
 		  make_mod_param_node(_diffz._cj._params, _diffz._cj.name));
@@ -775,18 +737,5 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		return calcparams;
 	}
 #pragma endregion
-
-	void write_params_to_disk() const override
-	{
-		const auto fn = calc_params_xml;
-		const std::unique_ptr<XNode> xml(make_param_node());
-
-		std::string err;
-		RageFile f;
-		if (!f.Open(fn, RageFile::WRITE)) {
-			return;
-		}
-		XmlFileUtil::SaveToFile(xml.get(), f, "", false);
-	}
 #endif
 };
