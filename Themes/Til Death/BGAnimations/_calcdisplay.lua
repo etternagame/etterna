@@ -453,6 +453,15 @@ local debugGroups = {
     {   -- Group 17
         Minijack = true,
     },
+    {   -- Group 18
+        GenericStream = true,
+    },
+    {   -- Group 19
+        GenericChordstream = true,
+    },
+    {   -- Group 20
+        GenericBracketing = true,
+    },
 }
 
 -- specify enum names here
@@ -619,6 +628,7 @@ local function updateCoolStuff()
                 -- translate the output list to our "cleaner" format
                 local modname = shortenEnum(debugtype, sublist[i])
                 graphVecs[modname] = {}
+                ms.ok(sublist[i] .. " " .. modname)
 
                 -- for each hand
                 for h = 1, 2 do
@@ -1196,7 +1206,6 @@ local modnames = {
     "gstrea",
     "gchstr",
     "gbrack",
-
 
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:

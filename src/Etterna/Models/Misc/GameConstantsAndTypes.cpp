@@ -257,10 +257,10 @@ static const char* CalcPatternModNames[] = {
 	// "RanPropOHT",
 	// "RanPropOffS",
 	// "RanPropJack",
+	"TotalPatternMod",
 	"GenericStream",
 	"GenericChordstream",
 	"GenericBracketing",
-	"TotalPatternMod",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
