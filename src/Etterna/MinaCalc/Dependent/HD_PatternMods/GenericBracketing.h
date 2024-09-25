@@ -1,6 +1,5 @@
 #pragma once
 #include "../../PatternModHelpers.h"
-#include "../MetaIntervalInfo.h"
 
 /// Hand-Agnostic PatternMod detecting Handstream.
 /// Looks for jacks, jumptrills, and hands (3-chords)
@@ -80,7 +79,7 @@ struct GBracketingMod
 		last_mod = pmod;
 	}
 
-	auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi, const metaItvGenericHandInfo& mitvghi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 
@@ -113,10 +112,6 @@ struct GBracketingMod
 
 		pmod =
 		  std::clamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
-
-		if (mitvi.dunk_it) {
-			pmod *= 0.99F;
-		}
 
 		// set last mod, we're using it to create a decaying mod that won't
 		// result in extreme spikiness if files alternate between js and

@@ -948,7 +948,7 @@ MinaSDCalcDebug(
 #endif
 }
 
-int mina_calc_version = 512;
+int mina_calc_version = 513;
 auto
 GetCalcVersion() -> int
 {

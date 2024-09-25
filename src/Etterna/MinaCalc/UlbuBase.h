@@ -1,9 +1,11 @@
 #pragma once
 
-#include "Agnostic/HA_PatternMods/GenericStream.h"
 #include "Agnostic/HA_PatternMods/GenericChordstream.h"
-#include "Agnostic/HA_PatternMods/GenericBracketing.h"
 #include "Agnostic/HA_PatternMods/CJ.h"
+
+#include "Dependent/MetaIntervalGenericHandInfo.h"
+#include "Dependent/HD_PatternMods/GenericBracketing.h"
+#include "Dependent/HD_PatternMods/GenericStream.h"
 
 #include "SequencedBaseDiffCalc.h"
 
@@ -21,6 +23,9 @@ struct Bazoinkazoink
 	// for detection
 	metaItvInfo _mitvi;
 
+	// the generic hand stats
+	metaItvGenericHandInfo _mitvghi;
+
 	// meta row info keeps track of basic pattern sequencing as we scan down
 	// the notedata rows, we will recyle two pointers (we want each row to be
 	// able to "look back" at the meta info generated at the last row so the mhi
@@ -32,7 +37,6 @@ struct Bazoinkazoink
 	GChordStreamMod _gchordstream;
 	GBracketingMod _gbracketing;
 	CJMod _cj;
-
 
 	oversimplified_jacks lazy_jacks;
 
@@ -151,9 +155,7 @@ struct Bazoinkazoink
 	}
 
 	virtual void full_agnostic_reset() {
-		_gstream.full_reset();
 		_gchordstream.full_reset();
-		_gbracketing.full_reset();
 		_cj.full_reset();
 
 		_mri.get()->reset();
@@ -169,11 +171,8 @@ struct Bazoinkazoink
 	}
 
 	virtual void set_agnostic_pmods(const int& itv) {
-		PatternMods::set_agnostic(_gstream._pmod, _gstream(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(
 		  _gchordstream._pmod, _gchordstream(_mitvi), itv, _calc);
-		PatternMods::set_agnostic(
-		  _gbracketing._pmod, _gbracketing(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
 	}
 
@@ -218,14 +217,23 @@ struct Bazoinkazoink
 	}
 
 	virtual void set_dependent_pmods(const int& itv) {
-
+		PatternMods::set_dependent(
+		  hand, _gstream._pmod, _gstream(_mitvi, _mitvghi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _gbracketing._pmod, _gbracketing(_mitvi, _mitvghi), itv, _calc);
 	}
 
 	virtual void full_hand_reset() {
 		lazy_jacks.init(_calc.keycount);
+		_mitvghi.zero();
+
+		_gstream.full_reset();
+		_gbracketing.full_reset();
 	}
 
 	virtual void handle_dependent_interval_end(const int& itv) {
+		_mitvghi.interval_end();
+
 		set_dependent_pmods(itv);
 
 		set_sequenced_base_diffs(itv);
@@ -236,8 +244,11 @@ struct Bazoinkazoink
 	}
 
 	virtual void run_dependent_pmod_loop() {
-		unsigned hand = 0;
+		setup_dependent_mods();
+
+		hand = 0;
 		for (const auto& ids : _calc.hand_col_masks) {
+			full_hand_reset();
 			nps::actual_cancer(_calc, hand);
 			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase),
 				   0.F,
@@ -264,6 +275,9 @@ struct Bazoinkazoink
 						lazy_jacks(c, row_time);
 					}
 
+					// update counts
+					_mitvghi.handle_row(masked_notes, ids);
+
 					auto thing =
 					  std::pair{ row_time,
 								 ms_to_scaled_nps(
@@ -273,8 +287,12 @@ struct Bazoinkazoink
 						thing.second = 0.F;
 					}
 					_calc.jack_diff.at(hand).push_back(thing);
+
+					last_row_time = row_time;
 				}
+				handle_dependent_interval_end(itv);
 			}
+			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
 
 			hand++;
 		}

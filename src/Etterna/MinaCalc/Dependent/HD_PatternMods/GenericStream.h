@@ -54,7 +54,7 @@ struct GStreamMod
 
 	}
 
-	auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvInfo& mitvi, const metaItvGenericHandInfo& mitvghi) -> float
 	{
 		const auto& itvi = mitvi._itvi;
 
