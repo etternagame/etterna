@@ -942,6 +942,7 @@ MinaSDCalcDebug(
 	 * we have to write out after loading the values player defined, so the
 	 * quick hack solution to do that is to only do it during debug output
 	 * generation, which is fine for the time being, though not ideal */
+	FILEMAN->FlushDirCache(calc.ulbu_in_charge->get_calc_param_xml());
 	if (!DoesFileExist(calc.ulbu_in_charge->get_calc_param_xml())) {
 		calc.ulbu_in_charge->write_params_to_disk();
 	}

@@ -328,10 +328,9 @@ struct Bazoinkazoink
 	/// load custom xml parameters
 	void load_calc_params_from_disk(bool bForce = false) const {
 		const auto fn = get_calc_param_xml();
-		int iError;
 
 		// Hold calc params program-global persistent info
-		thread_local RageFileBasic* pFile;
+		thread_local RageFile* pFile;
 		thread_local XNode params;
 		// Only ever try to load params once per thread unless forcing
 		thread_local bool paramsLoaded = false;
@@ -342,17 +341,18 @@ struct Bazoinkazoink
 			return;
 
 		// Load if missing
-		if (pFile == nullptr || bForce) {
+		if (pFile == nullptr || bForce || !pFile->IsOpen()) {
 			delete pFile;
-			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
+			pFile = new RageFile();
 			// Failed to load
-			if (pFile == nullptr)
+			if (!pFile->Open(fn, RageFile::READ))
 				return;
 		}
 
 		// If it isn't loaded or we are forcing a load, load it
 		if (params.ChildrenEmpty() || bForce) {
 			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
+				pFile->Close();
 				return;
 			}
 		}
@@ -366,6 +366,7 @@ struct Bazoinkazoink
 		paramsLoaded = true;
 
 		load_calc_params_internal(params);
+		pFile->Close();
 	}
 
 	/// save default xml parameters
@@ -379,6 +380,7 @@ struct Bazoinkazoink
 			return;
 		}
 		XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+		f.Close();
 	}
 
 	static auto make_mod_param_node(
