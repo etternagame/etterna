@@ -47,16 +47,6 @@ struct GBracketingMod
 		{ "total_prop_max", &total_prop_max },
 		{ "total_prop_base", &total_prop_base },
 
-		{ "split_hand_pool", &split_hand_pool },
-		{ "split_hand_min", &split_hand_min },
-		{ "split_hand_max", &split_hand_max },
-		{ "split_hand_scaler", &split_hand_scaler },
-
-		{ "jack_pool", &jack_pool },
-		{ "jack_min", &jack_min },
-		{ "jack_max", &jack_max },
-		{ "jack_scaler", &jack_scaler },
-
 		{ "decay_factor", &decay_factor },
 	};
 #pragma endregion params and param map
@@ -67,6 +57,7 @@ struct GBracketingMod
 	float last_mod = min_mod;
 	float pmod = min_mod;
 	float t_taps = 0.F;
+	float bracket_taps = 0.F;
 
 	void full_reset()
 	{
@@ -79,43 +70,32 @@ struct GBracketingMod
 		last_mod = pmod;
 	}
 
-	auto operator()(const metaItvInfo& mitvi, const metaItvGenericHandInfo& mitvghi) -> float
+	auto operator()(const metaItvGenericHandInfo& mitvghi) -> float
 	{
-		const auto& itvi = mitvi._itvi;
-
 		// empty interval, don't decay mod or update last_mod
-		if (itvi.total_taps == 0) {
+		if (mitvghi.total_taps == 0) {
 			return neutral;
 		}
 
-		// look ma no hands
-		if (itvi.taps_by_size.at(min_tap_size) == 0) {
+		// definitely no brackets, decay
+		if (mitvghi.taps_bracketing == 0) {
 			decay_mod();
 			return pmod;
 		}
 
-		t_taps = static_cast<float>(itvi.total_taps);
+		t_taps = static_cast<float>(mitvghi.total_taps);
+		bracket_taps = static_cast<float>(mitvghi.taps_bracketing);
 
-		// when bark of dog into canyon scream at you
-		total_prop = total_prop_base +
-					 (static_cast<float>((itvi.taps_by_size.at(min_tap_size)) +
-										 prop_buffer) /
-					  (t_taps - prop_buffer) * total_prop_scaler);
+		total_prop =
+		  total_prop_base + ((bracket_taps + prop_buffer) /
+							 (t_taps - prop_buffer) * total_prop_scaler);
 		total_prop =
 		  std::clamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 
-		// downscale by jack density rather than upscale, like cj does
-		jack_prop = std::clamp(
-		  jack_pool - (static_cast<float>(mitvi.actual_jacks) / t_taps),
-		  jack_min,
-		  jack_max);
+		// limits
+		pmod = std::clamp(total_prop, min_mod, max_mod);
 
-		pmod =
-		  std::clamp(total_prop * jumptrill_prop * jack_prop, min_mod, max_mod);
-
-		// set last mod, we're using it to create a decaying mod that won't
-		// result in extreme spikiness if files alternate between js and
-		// hs/stream
+		// for decay
 		last_mod = pmod;
 
 		return pmod;

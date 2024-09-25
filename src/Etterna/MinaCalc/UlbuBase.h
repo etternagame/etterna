@@ -218,25 +218,26 @@ struct Bazoinkazoink
 
 	virtual void set_dependent_pmods(const int& itv) {
 		PatternMods::set_dependent(
-		  hand, _gstream._pmod, _gstream(_mitvi, _mitvghi), itv, _calc);
+		  hand, _gstream._pmod, _gstream(_mitvghi), itv, _calc);
 		PatternMods::set_dependent(
-		  hand, _gbracketing._pmod, _gbracketing(_mitvi, _mitvghi), itv, _calc);
+		  hand, _gbracketing._pmod, _gbracketing(_mitvghi), itv, _calc);
 	}
 
 	virtual void full_hand_reset() {
 		lazy_jacks.init(_calc.keycount);
-		_mitvghi.zero();
 
 		_gstream.full_reset();
 		_gbracketing.full_reset();
+
+		_mitvghi.zero();
 	}
 
 	virtual void handle_dependent_interval_end(const int& itv) {
-		_mitvghi.interval_end();
-
 		set_dependent_pmods(itv);
 
 		set_sequenced_base_diffs(itv);
+
+		_mitvghi.interval_end();
 	}
 
 	virtual void set_sequenced_base_diffs(const int& itv) const {
