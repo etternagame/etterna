@@ -406,12 +406,52 @@ class LunaRoomWheel : public Luna<RoomWheel>
 
 		return 1;
 	}
+
+	static int GetRooms(T* p, lua_State* L) {
+		lua_newtable(L);
+
+		for (size_t i = 0; i < (*p->allRooms).size(); i++) {
+			lua_createtable(L, 0, 5);
+
+			auto& z = (*p->allRooms)[i];
+
+			lua_pushstring(L, z.Name().c_str());
+			lua_setfield(L, -2, "name");
+
+			lua_pushstring(L, z.Description().c_str());
+			lua_setfield(L, -2, "description");
+
+			lua_pushnumber(L, z.GetFlags());
+			lua_setfield(L, -2, "flags");
+
+			lua_pushnumber(L, z.State());
+			lua_setfield(L, -2, "state");
+
+			lua_pushboolean(L, z.HasPassword());
+			lua_setfield(L, -2, "passworded");
+
+			lua_rawseti(L, -2, i + 1);
+		}
+
+		return 1;
+	}
+
+	static int MakeNewRoom(T* p, lua_State* L) {
+		ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
+		ScreenTextEntry::TextEntry(
+		  SM_BackFromRoomName, ENTER_ROOM_NAME, "", 255);
+
+		return 0;
+	}
+
 	LunaRoomWheel()
 	{
 		ADD_METHOD(Move);
 		ADD_METHOD(MoveAndCheckType);
 		ADD_METHOD(StopSearch);
 		ADD_METHOD(Search);
+		ADD_METHOD(GetRooms);
+		ADD_METHOD(MakeNewRoom);
 	}
 };
 
