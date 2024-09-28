@@ -100,6 +100,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 		if (!ScreenTextEntry::s_bCancelledLast) {
 			m_newRoomName = ScreenTextEntry::s_sLastAnswer;
 			if (m_newRoomName != "") {
+				ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 				ScreenTextEntry::TextEntry(
 				SM_BackFromRoomDesc, ENTER_ROOM_DESCRIPTION, "", 255);
 			} else {
@@ -108,6 +109,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 		}
 	} else if (SM == SM_BackFromRoomDesc) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
+			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			m_newRoomDesc = ScreenTextEntry::s_sLastAnswer;
 			ScreenTextEntry::Password(SM_BackFromRoomPass, ENTER_ROOM_PASSWORD);
 		}
@@ -156,6 +158,7 @@ ScreenNetRoom::SelectCurrent()
 	if (rwd != nullptr) {
 		if (rwd->m_iFlags % 2 != 0u || rwd->hasPassword) {
 			m_sLastPickedRoom = rwd->m_sText;
+			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			ScreenTextEntry::Password(SM_BackFromReqPass,
 									  ENTER_ROOM_REQPASSWORD);
 		} else {
@@ -208,6 +211,7 @@ ScreenNetRoom::UpdateRoomsList()
 	if (m_iRoomPlace >= (int)m_Rooms->size())
 		m_iRoomPlace = m_Rooms->size() - 1;
 	m_RoomWheel.UpdateRoomsList(m_Rooms);
+	MESSAGEMAN->Broadcast("RoomListUpdated");
 }
 
 void
