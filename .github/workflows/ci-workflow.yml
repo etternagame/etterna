@@ -39,7 +39,7 @@ jobs:
         run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DWITH_CRASHPAD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         env:
           CXX: ${{matrix.cfg.cpp-version}}
 
@@ -228,7 +228,7 @@ jobs:
           python-version: '3.8'
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -DWITH_CRASHPAD=ON -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
       - name: Build Project
         run: cd main/build && ninja
@@ -438,7 +438,7 @@ jobs:
           arch: ${{ matrix.cfg.arch }}
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DWITH_CRASHPAD=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 

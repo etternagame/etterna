@@ -119,7 +119,9 @@ mkdir build && cd build
 
 Etterna has game resources in the root of the project, so the output binary is either placed in the root of the project *(Unix)* or in the `Program` folder in the project root *(Windows)*.
 
-To generate project files, you will only need to specify the `GENERATOR`. The `ARCHITECTURE` will assume 64bit if left undefined. If any trouble occurs with OpenSSL, the most likely answer will be to define where you have it installed through the `SSL_DIRECTORY` variable. If depot_tools is left uninstalled or misconfigured, you may be able to run `cmake` but the game will not compile. To get around this, build without Crashpad: Specify `-DWITH_CRASHPAD=OFF` in the `cmake` command.
+To generate project files, you will only need to specify the `GENERATOR`. The `ARCHITECTURE` will assume 64bit if left undefined. If any trouble occurs with OpenSSL, the most likely answer will be to define where you have it installed through the `SSL_DIRECTORY` variable.
+
+If you wish to build with Crashpad enabled (extremely unlikely to be useful unless you are planning on distributing your build to multiple people), specify `-DWITH_CRASHPAD=ON` in the `cmake` command. Note that this will cause compilation to fail unless you have a correct installation of Google's depot_tools in your path.
 
 - `SSL_DIRECTORY`: The root directory of your OpenSSL install. It may be required on macOS depending on the OpenSSL version which comes with your system _(thought we recommend getting the latest version from homebrew)_.
 - `GENERATOR`: The generator you are choosing to use. Supported generators are listed below.
@@ -129,10 +131,10 @@ To generate project files, you will only need to specify the `GENERATOR`. The `A
 cmake -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" -G "GENERATOR" -A "ARCHITECTURE"  ..
 ```
 
-Or to build without Crashpad:
+Or to build with Crashpad:
 
 ```bash
-cmake -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" -DWITH_CRASHPAD=OFF -G "GENERATOR" -A "ARCHITECTURE"  ..
+cmake -DOPENSSL_ROOT_DIR="SSL_DIRECTORY" -DWITH_CRASHPAD=ON -G "GENERATOR" -A "ARCHITECTURE"  ..
 ```
 
 We actively support the following CMake generators
@@ -147,7 +149,7 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 - Linux: This parameter is not necessary on linux. (CMake can find it on it's own)
 - Windows: CMake writes files to find the version of OpenSSL linked above. If that version is installed, it should not be necessary to specify this variable (unless you have OpenSSL installed in a non-standard location, in which case, you should set OPENSSL_ROOT_DIR to that location)
 
-Users building without Crashpad may choose to add the `-DWITH_CRASHPAD=OFF` option at the beginning of the command.
+Users wanting to build with Crashpad may choose to add the `-DWITH_CRASHPAD=ON` option at the beginning of the command.
 
 Users of Linux be aware that the game builds on the `Debug` target by default. Here are better alternatives:
 
