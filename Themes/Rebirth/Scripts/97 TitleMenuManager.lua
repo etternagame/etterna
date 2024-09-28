@@ -5,6 +5,7 @@
 
 TITLE = {
     scrollerFocused = true, -- focused on the main choices
+    doingmulti = false,
     nextScreen = "ScreenTitleMenu",
     triggeredFadeOut = false,
 }
@@ -30,7 +31,12 @@ function TITLE.HandleFinalGameStart(self)
     GAMESTATE:LoadProfiles(false)
 
     local top = SCREENMAN:GetTopScreen()
-    TITLE.nextScreen = "ScreenSelectMusic"
+    if TITLE.doingmulti then
+        SCREENMAN:set_input_redirected(PLAYER_1, false)
+        TITLE.nextScreen = Branch.MultiScreen()
+    else
+        TITLE.nextScreen = "ScreenSelectMusic"
+    end
     top:PostScreenMessage("SM_BeginFadingOut", 0)
 end
 
@@ -39,11 +45,13 @@ function TITLE.NextFromTitle()
 end
 
 function TITLE.GameStartOnTheScroller(pn)
+    TITLE.doingmulti = false
     TITLE:ChangeFocus()
     return true
 end
 
 function TITLE.MultiplayerOnTheScroller(pn)
+    TITLE.doingmulti = true
     TITLE:ChangeFocus()
     return true
 end

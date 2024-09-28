@@ -31,3 +31,14 @@ Branch.ExitingHelpMenu = function()
     end
     return o
 end
+
+Branch.MultiScreen = function()
+    if IsNetSMOnline() then
+        if not IsSMOnlineLoggedIn() then
+            return "ScreenSMOnlineLogin"
+        end
+        return "ScreenNetRoom"
+    else
+        return "ScreenNetworkOptions"
+    end
+end
