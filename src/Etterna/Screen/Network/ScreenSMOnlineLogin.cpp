@@ -65,6 +65,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage& SM)
 			SCREENMAN->SystemMessage(NO_USERNAME);
 			Cancel(SM_GoToPrevScreen);
 		} else {
+			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			ScreenTextEntry::Password(SM_PasswordDone,
 								  NSMAN->loginResponse + "\n\n" +
 									sLoginQuestion,
@@ -82,6 +83,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage& SM)
 			m_iPlayer = 0;
 		} else {
 			sLoginQuestion = ENTER_USERNAME.GetValue();
+			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			ScreenTextEntry::TextEntry(SM_UsernameDone,
 										NSMAN->loginResponse + "\n\n" +
 											sLoginQuestion,
@@ -95,6 +97,7 @@ ScreenSMOnlineLogin::HandleScreenMessage(const ScreenMessage& SM)
 		PROFILEMAN->LoadLocalProfileFromMachine(PLAYER_1);
 
 		sLoginQuestion = ENTER_USERNAME.GetValue();
+		ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 		ScreenTextEntry::TextEntry(SM_UsernameDone,
 									NSMAN->loginResponse + "\n\n" +
 										sLoginQuestion,
