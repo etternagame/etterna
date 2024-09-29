@@ -6,6 +6,8 @@ local namey = 0
 local descy = 25
 local passy = 50
 
+local buttonHoverAlpha = 0.6
+
 local translations = {
     Passworded = THEME:GetString("NetRoom", "Passworded"),
 }
@@ -40,11 +42,20 @@ local t = Def.ActorFrame {
             whe:Search(ri.name, ri.description, true, ri.passworded, true)
             tscn:SelectCurrent()
         end,
+        MouseOverCommand = function(self)
+            if self:IsInvisible() then return end
+            self:GetParent():diffusealpha(buttonHoverAlpha)
+        end,
+        MouseOutCommand = function(self)
+            if self:IsInvisible() then return end
+            self:GetParent():diffusealpha(1)
+        end,
     },
     LoadFont("Common Normal") .. {
         Name = "Name",
         InitCommand = function(self)
             self:zoom(namesize)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetPosCommand = function(self, params)
             self:y(-params.h / 3)
@@ -58,6 +69,7 @@ local t = Def.ActorFrame {
         Name = "Desc",
         InitCommand = function(self)
             self:zoom(descsize)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetPosCommand = function(self, params)
             self:y(0)
@@ -78,6 +90,7 @@ local t = Def.ActorFrame {
             self:zoom(passsize)
             self:settext(translations["Passworded"])
             self:visible(false)
+            registerActorToColorConfigElement(self, "main", "PrimaryText")
         end,
         SetPosCommand = function(self, params)
             self:y(params.h / 3)
