@@ -58,6 +58,12 @@ local function makeroomlist()
                     local left = gbtn == "MenuLeft" or gbtn == "Left"
                     local right = gbtn == "MenuRight" or gbtn == "Right"
                     local enter = gbtn == "Start"
+                    local back = gbtn == "Back"
+
+                    if back then
+                        SCREENMAN:GetTopScreen():Cancel()
+                        return true
+                    end
 
                     if enter then
                         if creatingroom then
