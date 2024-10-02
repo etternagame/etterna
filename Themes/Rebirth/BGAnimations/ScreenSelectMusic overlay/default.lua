@@ -1,4 +1,8 @@
-local t = Def.ActorFrame {}
+local t = Def.ActorFrame {
+    OnCommand = function(self)
+        SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
+    end,
+}
 
 t[#t+1] = LoadActor("../_mouse.lua")
 

@@ -49,6 +49,7 @@ local function makeroomlist()
         end,
         OnCommand = function(self)
             SCREENMAN:set_input_redirected(PLAYER_1, true)
+            SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
 

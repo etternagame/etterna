@@ -33,6 +33,9 @@ function CONTEXTMAN.Reset(self)
     -- that is, we not "focused" on all contexts
     -- so things depending on the context being true would fail
     self.ContextIgnored = false
+
+    -- if set to true, all input is sent straight to the chat overlay instead of something else
+    self.InChatOverlay = false
 end
 CONTEXTMAN:Reset()
 
@@ -79,6 +82,7 @@ end
 -- return if a list of groups exists and is enabled
 function CONTEXTMAN.CheckContextSet(self, screen, ...)
     if self.ContextIgnored then return false end
+    if self.InChatOverlay then return false end
 
     if self.ScreenToContext[screen] ~= nil then
         local groups = {...}
@@ -105,6 +109,7 @@ end
 -- that is, we are "focused" on it
 function CONTEXTMAN.CheckContext(self, screen, group, name)
     if self.ContextIgnored then return false end
+    if self.InChatOverlay then return false end
     if not self:CheckContextSet(screen, group) then return false end
     
     return self.ScreenToContext[screen][group][name] ~= nil and self.ScreenToContext[screen][group][name] == true
@@ -123,4 +128,14 @@ function CONTEXTMAN.ToggleContextSet(self, screen, group, state)
         if state == nil then state = not self.ScreenToContext[screen][group].enabled end
         self.ScreenToContext[screen][group].enabled = state
     end
+end
+
+-- toggle the state of all input being redirected to the chat overlay
+function CONTEXTMAN.SetInChatOverlay(self, state)
+    self.InChatOverlay = state
+end
+
+-- return if input is being sent to the chat overlay
+function CONTEXTMAN.CheckInChatOverlay(self)
+    return self.InChatOverlay
 end
