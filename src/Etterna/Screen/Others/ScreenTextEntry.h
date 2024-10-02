@@ -164,6 +164,7 @@ class ScreenTextEntry : public ScreenWithMenuElements
 
 	void Init() override;
 	void BeginScreen() override;
+	void EndScreen() override;
 
 	void Update(float fDelta) override;
 	bool Input(const InputEventPlus& input) override;

@@ -41,6 +41,7 @@ class ScreenPrompt : public ScreenWithMenuElements
 
 	void Init() override;
 	void BeginScreen() override;
+	void EndScreen() override;
 	bool Input(const InputEventPlus& input) override;
 
 	static PromptAnswer s_LastAnswer;
