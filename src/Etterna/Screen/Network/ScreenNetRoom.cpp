@@ -9,6 +9,7 @@
 #include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Actor/Menus/WheelItemBase.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 AutoScreenMessage(SM_BackFromRoomName);
 AutoScreenMessage(SM_BackFromRoomDesc);
@@ -146,6 +147,24 @@ ScreenNetRoom::MenuStart(const InputEventPlus& input)
 }
 
 void
+ScreenNetRoom::SelectRoom(std::string name)
+{
+	for (auto& x : *m_RoomWheel.allRooms) {
+		if (make_lower(x.Name()) == make_lower(name)) {
+			if (x.HasPassword()) {
+				m_sLastPickedRoom = x.Name();
+				ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
+				ScreenTextEntry::Password(SM_BackFromReqPass,
+										  ENTER_ROOM_REQPASSWORD);
+			} else {
+				NSMAN->EnterRoom(x.Name());
+			}
+			return;
+		}
+	}
+}
+
+void
 ScreenNetRoom::SelectCurrent()
 {
 	if (NSMAN->IsETTP() && ((ETTProtocol*)NSMAN->curProtocol)->creatingRoom) {
@@ -250,6 +269,11 @@ class LunaScreenNetRoom : public Luna<ScreenNetRoom>
 		p->SelectCurrent();
 		return 1;
 	}
+	static int SelectRoom(T* p, lua_State* L)
+	{
+		p->SelectRoom(SArg(1));
+		return 0;
+	}
 	static int GetSelectionState(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, 0);
@@ -266,6 +290,7 @@ class LunaScreenNetRoom : public Luna<ScreenNetRoom>
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(GetRoomWheel);
 		ADD_METHOD(SelectCurrent);
+		ADD_METHOD(SelectRoom);
 		ADD_METHOD(GetSelectionState);
 		ADD_METHOD(InfoSetVisible);
 	}

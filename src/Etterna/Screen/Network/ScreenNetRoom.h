@@ -19,6 +19,7 @@ class ScreenNetRoom : public ScreenNetSelectBase
 	void HandleScreenMessage(const ScreenMessage& SM) override;
 	RoomWheel* GetRoomWheel();
 	void SelectCurrent();
+	void SelectRoom(std::string name);
 	void InfoSetVisible(bool visibility);
 
 	void UpdateRoomsList();

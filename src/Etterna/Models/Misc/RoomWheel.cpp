@@ -172,6 +172,7 @@ RoomWheel::Select()
 		// Since this is not actually an option outside of this wheel, NULL is a
 		// good idea.
 		m_LastSelection = nullptr;
+		ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 		ScreenTextEntry::TextEntry(
 		  SM_BackFromRoomName, ENTER_ROOM_NAME, "", 255);
 	}

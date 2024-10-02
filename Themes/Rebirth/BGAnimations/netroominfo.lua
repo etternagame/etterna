@@ -37,10 +37,7 @@ local t = Def.ActorFrame {
             if tscn == nil then return end
             local whe = tscn:GetRoomWheel()
             local ri = self:GetParent().roominfo
-            whe:StopSearch()
-            whe:Move(1)
-            whe:Search(ri.name, ri.description, true, ri.passworded, true)
-            tscn:SelectCurrent()
+            tscn:SelectRoom(ri.name)
         end,
         MouseOverCommand = function(self)
             if self:IsInvisible() then return end
