@@ -30,7 +30,7 @@ hard_trill_mask(const unsigned& last_notes, const unsigned& hand_mask)
 		return result_mask;
 	}
 
-	// 3 columns: (6k 212 or 454 is hard)
+	// 3 columns: (6k 212 or 565 is hard)
 	// for 3 columns on left hand (binary is reversed)
 	// 010 returns 001
 	// 001 returns 010 ..
