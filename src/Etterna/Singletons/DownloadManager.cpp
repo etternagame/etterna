@@ -1267,7 +1267,7 @@ DownloadManager::LoginRequest(const std::string& user,
 				std::string::npos) {
 				loginFailed("Your client is out of date.");
 			} else {
-				loginFailed("Missing email or password, or email not verified.");
+				loginFailed("Missing email or password, email not verified, or account doesn't exist.");
 				}
 		} else if (response == 404) {
 			// user doesnt exist?
