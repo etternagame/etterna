@@ -296,7 +296,7 @@ function InputDebounceTime()
     local delaylist = {}
     do
 		-- in milliseconds, 100 is pretty egregious
-        local start = -0.100
+        local start = 0
         local upper = 0.100
         local increment = 0.001
         while start <= upper do
@@ -349,7 +349,7 @@ function ScrollDebounceTime() -- Modified input debounce time.
     do
 		-- in milliseconds, 100 is pretty egregious
 		-- ^^^ true.. But why not let people do what they want
-        local start = -0.100
+        local start = 0
         local upper = 0.100
         local increment = 0.001
         while start <= upper do
