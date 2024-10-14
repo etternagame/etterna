@@ -37,6 +37,8 @@ local defaultConfig = {
         InvalidScore = "#ff9999",
         ChordCohesionOnScore = "#ff9999",
         Wife2Score = "#ff9999", -- unused
+        MultiButtonActive = "#33ff33",
+        MultiButtonNotActive = "#ff3333",
     },
     chartPreview = {
         Background = "#000000",
