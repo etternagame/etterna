@@ -268,6 +268,12 @@ local function playlistList()
                     registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 UpdateTextCommand = function(self)
+                    -- block this in multi
+                    if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                        self:visible(false)
+                        return
+                    end
+                    
                     if playlist == nil then
                         self:diffusealpha(0)
                     else

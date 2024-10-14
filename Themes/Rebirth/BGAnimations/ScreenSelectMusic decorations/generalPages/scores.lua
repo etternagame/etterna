@@ -771,6 +771,12 @@ local function createList()
                     registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 SetScoreCommand = function(self)
+                    -- block this in multi
+                    if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                        self:visible(false)
+                        return
+                    end
+
                     if score ~= nil then
                         if score:HasReplayData() then
                             self:diffusealpha(1)
@@ -820,6 +826,12 @@ local function createList()
                     registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 SetScoreCommand = function(self)
+                    -- block this in multi
+                    if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                        self:visible(false)
+                        return
+                    end
+
                     if score ~= nil then
                         if score:HasReplayData() then
                             self:diffusealpha(1)
@@ -1355,6 +1367,12 @@ local function createList()
                 registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             UpdateListCommand = function(self)
+                -- block this in multi
+                if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                    self:visible(false)
+                    return
+                end
+
                 if localscore ~= nil then
                     if localscore:HasReplayData() then
                         self:diffusealpha(1)
@@ -1403,6 +1421,12 @@ local function createList()
                 registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             UpdateListCommand = function(self)
+                -- block this in multi
+                if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                    self:visible(false)
+                    return
+                end
+                
                 if localscore ~= nil then
                     if localscore:HasReplayData() then
                         self:diffusealpha(1)
