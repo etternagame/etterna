@@ -11,6 +11,14 @@ local defaultConfig = {
         SeparationDivider = "#ffffff", -- also some accents like slider markers and text cursors
         SelectMusicBackground = "#000000", -- only used if single bg is on
     },
+    multiplayer = {
+        UserStatusInEval = "#9645FD",
+        UserStatusNotReady = "#FF9999",
+        UserStatusReady = "#4CBB17",
+        UserStatusInGameplay = "#666666",
+        UserStatusInOptions = "#614080",
+        UserInLobby = "#614080",
+    },
     leaderboard = {
         Background = "#111111",
         Border = "#000111",

@@ -253,6 +253,8 @@ t[#t+1] = Def.ActorFrame {
 
 t[#t+1] = makeroomlist()
 
+t[#t+1] = LoadActor("lobbyuserlist")
+
 t[#t+1] = LoadActor("../_mouse.lua")
 
 return t
