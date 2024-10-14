@@ -299,7 +299,7 @@ chatWindow[#chatWindow + 1] = Def.Quad {
 }
 chatWindow[#chatWindow + 1] = Def.Quad { --masking quad, hides any text outside chatwindow
     InitCommand = function(self)
-        self:diffusealpha(0)
+        self:diffusealpha(0.01)
         self:stretchto(x, -SCREEN_HEIGHT, width + x, height * 2 + y)
         self:zwrite(true):blend("BlendMode_NoEffect")
     end,
