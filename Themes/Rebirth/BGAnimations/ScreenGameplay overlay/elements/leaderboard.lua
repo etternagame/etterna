@@ -383,8 +383,6 @@ t.JudgmentMessageCommand = function(self, params)
         if myscoreIndex > VISIBLE_ENTRIES then
             for name, label in pairs(entryActors[VISIBLE_ENTRIES + 1]) do
                 label:update(curScore, myscoreIndex)
-                ms.ok(name)
-                ms.ok("setvis ")
                 label:visible(true)
             end
         end
