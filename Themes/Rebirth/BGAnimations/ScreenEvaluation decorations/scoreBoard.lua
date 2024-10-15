@@ -67,6 +67,7 @@ local translations = {
     ShowingXXofXScoresFormatStr = THEME:GetString("ScreenEvaluation", "ShowingXXofXScoresFormatStr"),
     Local = THEME:GetString("ScreenEvaluation", "Local"),
     Online = THEME:GetString("ScreenEvaluation", "Online"),
+    Multi = THEME:GetString("ScreenEvaluation", "Multi"),
     AllScores = THEME:GetString("ScreenEvaluation", "AllScores"),
     TopScores = THEME:GetString("ScreenEvaluation", "TopScores"),
     CurrentRate = THEME:GetString("ScreenEvaluation", "CurrentRate"),
@@ -125,6 +126,8 @@ t[#t+1] = Def.Quad {
 
 -- online and offline (default is offline)
 local isLocal = true
+-- multi selected and not selected
+local isMulti = false
 -- current rate or not (default is current rate)
 -- this is NOT the variable that controls the online scores
 -- if isLocal is false, defer to allRates = not DLMAN:GetCurrentRateFilter()
@@ -136,6 +139,9 @@ local allScores = not DLMAN:GetTopScoresOnlyFilter()
 
 -- indicate whether or not we are currently fetching the leaderboard
 local fetchingScores = false
+
+-- capability to use multiplayer features
+local inMulti = (Var ("LoadingScreen") or ""):find("Net") ~= nil
 
 -- this will distribute a given highscore to the offsetplot and the other eval elements
 -- it will only work properly with a replay, so restrict it to replay-only scores
@@ -250,6 +256,29 @@ local function scoreList()
                         scores = scoresByRate[getRate(mostRecentScore)] or {mostRecentScore}
                     end
                 end
+            elseif isMulti then
+                -- this almost certainly does not work in a lot of cases
+                local multiscores = NSMAN:GetEvalScores()
+                scores = {}
+                for k,v in pairs(multiscores) do
+                    if not allRates then
+                        if math.abs(v.highscore:GetMusicRate() - mostRecentScore:GetMusicRate()) < 0.001 then
+                            scores[#scores+1] = v.highscore
+                        end
+                    else
+                        scores[#scores+1] = v.highscore
+                    end
+                end
+                table.sort(scores,
+                function(a,b)
+                    local ao = a:GetSkillsetSSR("Overall")
+                    local bo = b:GetSkillsetSSR("Overall")
+                    if math.abs(ao - bo) < 0.01 then
+                        return a:GetWifePercent() > b:GetWifePercent()
+                    else
+                        return ao > bo
+                    end
+                end)
             else
                 local steps = GAMESTATE:GetCurrentSteps()
                 -- operate with dlman scores
@@ -304,7 +333,7 @@ local function scoreList()
             self:playcommand("UpdateList")
         end,
         ToggleCurrentRateMessageCommand = function(self)
-            if isLocal then
+            if isLocal or isMulti then
                 allRates = not allRates
             else
                 DLMAN:ToggleRateFilter()
@@ -318,6 +347,14 @@ local function scoreList()
             self:playcommand("UpdateList")
         end,
         ToggleLocalMessageCommand = function(self)
+            self:playcommand("UpdateScores")
+            self:playcommand("UpdateList")
+        end,
+        ToggleMultiMessageCommand = function(self)
+            self:playcommand("UpdateScores")
+            self:playcommand("UpdateList")
+        end,
+        NewMultiScoreMessageCommand = function(self)
             self:playcommand("UpdateScores")
             self:playcommand("UpdateList")
         end,
@@ -733,6 +770,7 @@ t[#t+1] = Def.ActorFrame {
         ClickCommand = function(self, params)
             if params.update == "OnMouseDown" then
                 isLocal = true
+                isMulti = false
                 MESSAGEMAN:Broadcast("ToggleLocal")
             end
         end,
@@ -772,7 +810,7 @@ t[#t+1] = Def.ActorFrame {
             end
 
             -- lit when isLocal is false
-            if isLocal then
+            if isLocal or isMulti then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
                 self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
@@ -782,7 +820,63 @@ t[#t+1] = Def.ActorFrame {
             if self:IsInvisible() then return end
             if params.update == "OnMouseDown" then
                 isLocal = false
+                isMulti = false
                 MESSAGEMAN:Broadcast("ToggleLocal")
+            end
+        end,
+        RolloverUpdateCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == "in" then
+                self:diffusealpha(buttonHoverAlpha)
+            else
+                self:diffusealpha(1)
+            end
+        end
+    },
+    UIElements.TextButton(1, 1, "Common Normal") .. {
+        Name = "MultiButton",
+        InitCommand = function(self)
+            if not inMulti then
+                self:visible(false)
+                return
+            end
+            self:y(actuals.OnlineUpperGap + (actuals.OnlineUpperGap - actuals.LocalUpperGap))
+            local txt = self:GetChild("Text")
+            txt:valign(0):halign(0)
+            txt:zoom(topButtonSize)
+            txt:maxwidth((actuals.VerticalDividerLeftGap - actuals.LeftButtonLeftGap) / topButtonSize - textZoomFudge)
+            txt:settext(translations["Multi"])
+            registerActorToColorConfigElement(txt, "main", "SecondaryText")
+            local bg = self:GetChild("BG")
+            bg:valign(0):halign(0)
+            bg:zoomto(actuals.LeftButtonWidth, txt:GetZoomedHeight() + buttonSizingFudge)
+            bg:y(-buttonSizingFudge / 2)
+            self:playcommand("UpdateToggleStatus")
+        end,
+        UpdateToggleStatusCommand = function(self)
+            if not inMulti then
+                self:diffusealpha(0)
+            else
+                if isOver(self) then
+                    self:diffusealpha(buttonHoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
+            end
+
+            -- lit when isMulti is true
+            if not isMulti then
+                self:GetChild("Text"):strokecolor(color("0,0,0,0"))
+            else
+                self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
+            end
+        end,
+        ClickCommand = function(self, params)
+            if self:IsInvisible() then return end
+            if params.update == "OnMouseDown" then
+                isLocal = false
+                isMulti = true
+                MESSAGEMAN:Broadcast("ToggleMulti")
             end
         end,
         RolloverUpdateCommand = function(self, params)
@@ -812,7 +906,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         UpdateToggleStatusCommand = function(self)
             -- invisible if local
-            if isLocal then
+            if isLocal or isMulti then
                 self:diffusealpha(0)
             else
                 if isOver(self) then
@@ -860,7 +954,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         UpdateToggleStatusCommand = function(self)
             -- invisible if local
-            if isLocal then
+            if isLocal or isMulti then
                 self:diffusealpha(0)
             else
                 if isOver(self) then
@@ -908,7 +1002,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         UpdateToggleStatusCommand = function(self)
             -- lit if allRates is false
-            if (allRates and isLocal) or (not DLMAN:GetCurrentRateFilter() and not isLocal) then
+            if (allRates and (isLocal or isMulti)) or (not DLMAN:GetCurrentRateFilter() and not isLocal and not isMulti) then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
                 self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
@@ -944,7 +1038,7 @@ t[#t+1] = Def.ActorFrame {
         end,
         UpdateToggleStatusCommand = function(self)
             -- lit if allRates is true
-            if (not allRates and isLocal) or (DLMAN:GetCurrentRateFilter() and not isLocal) then
+            if (not allRates and (isLocal or isMulti)) or (DLMAN:GetCurrentRateFilter() and not isLocal and not isMulti) then
                 self:GetChild("Text"):strokecolor(color("0,0,0,0"))
             else
                 self:GetChild("Text"):strokecolor(Brightness(COLORS:getMainColor("SecondaryText"), 0.75))
