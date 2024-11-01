@@ -206,16 +206,18 @@ struct ceejay
 
 #pragma region params
 
-	float static_ms_weight = .65F;
+	float static_ms_weight = 0.65F;
 	float min_ms = 75.F;
 
-	float base_tap_scaler = 3.F;
+	float base_tap_scaler = 1.2F;
 	float huge_anchor_scaler = 1.15F;
 	float small_anchor_scaler = 1.15F;
 	float ccj_scaler = 1.25F;
 	float cct_scaler = 1.5F;
 	float ccn_scaler = 1.15F;
 	float ccb_scaler = 1.25F;
+
+	int mediterranean = 10;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "static_ms_weight", &static_ms_weight },
@@ -240,6 +242,16 @@ struct ceejay
 		is_scj = (row_count == 1 && last_row_count > 1) &&
 				 ((row_notes & last_row_notes) != 0u);
 
+		is_actually_continuing_jack = ((row_notes & last_row_notes) != 0u);
+
+		carpathian_basin_capsized_boat_chord_bonk.push_back(row_notes ==
+															last_row_notes);
+
+		if (carpathian_basin_capsized_boat_chord_bonk.size() > mediterranean) {
+			carpathian_basin_capsized_boat_chord_bonk.erase(
+			  carpathian_basin_capsized_boat_chord_bonk.begin());
+		}
+
 		is_at_least_3_note_anch =
 		  ((row_notes & last_row_notes) & last_last_row_notes) != 0u;
 
@@ -250,6 +262,12 @@ struct ceejay
 		last_row_notes = row_notes;
 
 		last_was_3_note_anch = is_at_least_3_note_anch;
+
+		if (is_actually_continuing_jack) {
+			chain++;
+		} else {
+			chain = 1;
+		}
 	}
 
 	void advance_base(const float& any_ms, Calc& calc)
@@ -261,44 +279,22 @@ struct ceejay
 		// pushing back ms values, so multiply to nerf
 		float pewpew = base_tap_scaler;
 
-		if (is_at_least_3_note_anch && last_was_3_note_anch) {
-			// biggy boy anchors and beyond
-			pewpew = huge_anchor_scaler;
-		} else if (is_at_least_3_note_anch) {
-			// big boy anchors
-			pewpew = small_anchor_scaler;
-		} else {
-			// single note
-			if (!is_cj) {
-				if (is_scj) {
-					// was cj a little bit ago..
-					if (was_cj) {
-						// single note jack with 2 chords behind it
-						// ccj (chord chord jack)
-						pewpew = ccj_scaler;
-					} else {
-						// single note, not a jack, 2 chords behind
-						// cct (chord chord tap)
-						pewpew = cct_scaler;
-					}
-				}
-			} else {
-				// actual cj
-				if (was_cj) {
-					// cj now and was cj before, but not necessarily
-					// with strong anchors
-					// ccn (chord chord no anchor)
-					pewpew = ccn_scaler;
-				} else {
-					// cj now but wasn't even cj before
-					// ccb (chordjack beginning)
-					pewpew = ccb_scaler;
-				}
-			}
+		if (chain < 3)
+			pewpew *= 1.1F; // stupid and gay
+		if (chain == 3)
+			pewpew /= 1.1F; // yes im really doing this
+
+		int laguardiaairport = 0;
+		for (int i = 0; i < carpathian_basin_capsized_boat_chord_bonk.size();
+			 i++) {
+			laguardiaairport += carpathian_basin_capsized_boat_chord_bonk[i];
 		}
+
+		pewpew *= std::pow(1.025F, laguardiaairport);
 
 		// single note streams / regular jacks should retain the base
 		// multiplier
+		// cry about it
 
 		const auto ms = std::max(min_ms, any_ms * pewpew);
 		calc.cj_static.at(row_counter) = ms;
@@ -330,8 +326,10 @@ struct ceejay
 		}
 		for (auto i = 0; i < static_ms.size(); i++) {
 			// weight = 0 means all values become modev
-			static_ms.at(i) =
-			  weighted_average(static_ms.at(i), static_cast<float>(modev), static_ms_weight, 1.F);
+			static_ms.at(i) = weighted_average(static_ms.at(i),
+											   static_cast<float>(modev),
+											   static_ms_weight,
+											   1.F);
 		}
 
 		const auto ms_total = sum(static_ms);
@@ -339,7 +337,10 @@ struct ceejay
 		return ms_to_scaled_nps(ms_mean);
 	}
 
-	void interval_end() { row_counter = 0; }
+	void interval_end()
+	{
+		row_counter = 0;
+	}
 	void full_reset()
 	{
 		is_cj = false;
@@ -348,11 +349,17 @@ struct ceejay
 		is_at_least_3_note_anch = false;
 		last_was_3_note_anch = false;
 
+		is_actually_continuing_jack = false;
+
 		last_row_count = 0;
 		last_last_row_count = 0;
 
 		last_row_notes = 0U;
 		last_last_row_notes = 0U;
+
+		chain = 1;
+
+		carpathian_basin_capsized_boat_chord_bonk.clear();
 	}
 
   private:
@@ -364,11 +371,18 @@ struct ceejay
 	bool is_at_least_3_note_anch = false;
 	bool last_was_3_note_anch = false;
 
+	bool is_actually_continuing_jack = false;
+
 	int last_row_count = 0;
 	int last_last_row_count = 0;
 
 	unsigned last_row_notes = 0U;
 	unsigned last_last_row_notes = 0U;
+
+	int chain = 1;
+
+	std::vector<int> carpathian_basin_capsized_boat_chord_bonk =
+	  std::vector<int>();
 };
 
 /// if this looks ridiculous, that's because it is
@@ -414,20 +428,24 @@ struct techyo
 
 	void advance_base(const SequencerGeneral& seq,
 					  const col_type& ct,
-					  Calc& calc, const int& hand, const float& row_time)
+					  Calc& calc,
+					  const int& hand,
+					  const float& row_time)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
 		}
 
-		//process_mw_dt(ct, seq.get_any_ms_now());
-		//advance_trill_base(calc);
-		//increment_column_counters(ct);
-		//auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
+		// process_mw_dt(ct, seq.get_any_ms_now());
+		// advance_trill_base(calc);
+		// increment_column_counters(ct);
+		// auto balance_comp = std::max(calc_balance_comp() *
+		// balance_ratio_scaler, min_balance_ratio);
 		auto chaos_comp = calc_chaos_comp(seq, ct, calc, hand, row_time);
-		//insert(balance_ratios, balance_comp);
+		// insert(balance_ratios, balance_comp);
 		teehee(chaos_comp);
-		calc.tc_static.at(row_counter) = teehee.get_mean_of_window((int)tc_static_base_window);
+		calc.tc_static.at(row_counter) =
+		  teehee.get_mean_of_window((int)tc_static_base_window);
 		++row_counter;
 	}
 

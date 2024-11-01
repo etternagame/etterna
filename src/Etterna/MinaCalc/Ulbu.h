@@ -116,7 +116,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		OHTrill,
 		VOHTrill,
 		Roll,
-		Chaos,
+		// Chaos,
 		WideRangeRoll,
 		WideRangeJumptrill,
 		WideRangeJJ,
@@ -175,13 +175,13 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	  {
 		CJ,
 		// CJDensity,
-		CJOHJump,
-		CJOHAnchor,
-		VOHTrill,
+		// CJOHJump,
+		// CJOHAnchor,
 		// WideRangeAnchor,
-		FlamJam, // you may say, why? why not?
 		// WideRangeJJ,
 		WideRangeJumptrill,
+		VOHTrill,
+		FlamJam, // you may say, why? why not?
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -211,9 +211,9 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	 * chorded patterns have lower enps than streams, streams default to 1 and
 	 * chordstreams start lower, stam is a special case and may use normalizers
 	 * again */
-	const std::array<float, NUM_Skillset> basescalers = {
-		0.F, 0.91F, 0.75F, 0.77F, 0.93F, 1.01F, 1.02F, 1.06F
-	};
+	const std::array<float, NUM_Skillset> basescalers = { 0.F,	 0.91F, 0.75F,
+														  0.77F, 0.93F, 1.01F,
+														  1.06F, 1.06F };
 
   public:
 	const std::array<std::vector<int>, NUM_Skillset>& get_pmods() const override
@@ -274,6 +274,10 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 				 // we leave
 				 * stam_base alone here, still based on nps
 				 */
+				*adj_diff =
+				  _calc.init_base_diff_vals.at(hand).at(CJBase).at(itv) *
+				  basescalers.at(Skill_Chordjack) *
+				  pmod_product_cur_interval[Skill_Chordjack];
 				break;
 			case Skill_Technical:
 				*adj_diff =
@@ -589,9 +593,6 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 
 					ct = determine_col_type(row_notes, ids);
 
-					// cj must always update
-					_diffz._cj.update_flags(row_notes, row_count);
-
 					// handle any special cases that need to be executed on
 					// empty rows for this hand here before moving on, aside
 					// from whatever is in this block _nothing_ else should
@@ -604,6 +605,10 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 						}
 						continue;
 					}
+
+					// cj must always update or maybe not!
+					_diffz._cj.update_flags(row_notes & ids,
+											std::popcount(row_notes & ids));
 
 					// basically a time master, keeps track of different
 					// timings, update first
