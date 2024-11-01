@@ -29,6 +29,7 @@ function TITLE.HandleFinalGameStart(self)
     self.scrollerFocused = true
     GAMESTATE:JoinPlayer()
     GAMESTATE:LoadProfiles(false)
+    playerConfig:load()
 
     local top = SCREENMAN:GetTopScreen()
     if TITLE.doingmulti then
