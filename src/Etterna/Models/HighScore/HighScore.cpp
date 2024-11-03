@@ -1648,7 +1648,7 @@ class LunaHighScore : public Luna<HighScore>
 
 	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
-		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+		const auto doot = ssprintf("%d | %d | %d | %d | %d | %d  x%d",
 								   p->GetTapNoteScore(TNS_W1),
 								   p->GetTapNoteScore(TNS_W2),
 								   p->GetTapNoteScore(TNS_W3),
