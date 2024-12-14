@@ -4,11 +4,13 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "TimingData.h"
 
 #include <cfloat>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 #include "AdjustSync.h"
 
@@ -1445,10 +1447,26 @@ TimingData::BuildAndGetEtar(int lastrow)
 {
 	ElapsedTimesAtAllRows.clear();
 
-	// default old until the below is thoroughly checked
-	for (auto r = 0; r <= lastrow; ++r)
-		ElapsedTimesAtAllRows.emplace_back(
-		  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
+	if (lastrow <= 0) {
+		return ElapsedTimesAtAllRows;
+	}
+
+	ElapsedTimesAtAllRows.reserve(lastrow);
+	std::iota(ElapsedTimesAtAllRows.begin(), ElapsedTimesAtAllRows.end(), 0);
+
+	// stupid optimization
+	auto exec = [this](vectorRange<float> workload, ThreadData* d) {
+		// so now the iterator also provides indices
+		for (auto it = workload.first; it != workload.second; it++) {
+			const auto index = std::lround(*it);
+			ElapsedTimesAtAllRows[index] =
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(index + 1));
+		}
+	};
+	parallelExecution<float>(ElapsedTimesAtAllRows, exec);
+	ElapsedTimesAtAllRows[lastrow] =
+	  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(lastrow));
+
 	return ElapsedTimesAtAllRows;
 }
 
