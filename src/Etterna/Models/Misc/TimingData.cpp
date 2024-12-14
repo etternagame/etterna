@@ -1469,7 +1469,7 @@ TimingData::BuildAndGetEtar(int lastrow)
 		for (auto it = workload.first; it != workload.second; it++) {
 			const auto index = std::lround(*it);
 			ElapsedTimesAtAllRows[index] =
-			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(index + 1));
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(index));
 		}
 	};
 	parallelExecution<float>(ElapsedTimesAtAllRows, exec);
