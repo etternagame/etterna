@@ -1454,6 +1454,15 @@ TimingData::BuildAndGetEtar(int lastrow)
 	ElapsedTimesAtAllRows.reserve(lastrow);
 	std::iota(ElapsedTimesAtAllRows.begin(), ElapsedTimesAtAllRows.end(), 0);
 
+	// just dont parallelize at all if it probably wont help anyways
+	if (lastrow < 128) {
+		for (auto r = 0; r <= lastrow; ++r) {
+			ElapsedTimesAtAllRows[r] =
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r));
+		}
+		return ElapsedTimesAtAllRows;
+	}
+
 	// stupid optimization
 	auto exec = [this](vectorRange<float> workload, ThreadData* d) {
 		// so now the iterator also provides indices
