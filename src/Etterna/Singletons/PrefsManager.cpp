@@ -171,6 +171,7 @@ PrefsManager::PrefsManager()
   , EnablePitchRates("EnablePitchRates", true)
   , LiftsOnOsuHolds("LiftsOnOsuHolds", false)
   , m_bEasterEggs("EasterEggs", true)
+  , m_bForceSnaps("ForceSnaps", false)
   , m_AllowMultipleToasties("MultiToasty", false)
   , m_bUseMidGrades("UseMidGrades", false)
 
