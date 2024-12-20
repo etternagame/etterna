@@ -120,7 +120,9 @@ local translated_info = {
 	Pause = THEME:GetString("ScreenGameplay", "ButtonPause"),
 	FastForward = THEME:GetString("ScreenGameplay", "ButtonFastForward"),
 	Rewind = THEME:GetString("ScreenGameplay", "ButtonRewind"),
-	Play = THEME:GetString("ScreenGameplay", "ButtonPlay")
+	Play = THEME:GetString("ScreenGameplay", "ButtonPlay"),
+	Results = THEME:GetString("ScreenGameplay", "Results"),
+	Exit = THEME:GetString("ScreenGameplay", "Exit"),
 }
 
 local function button(txt, click)
@@ -170,6 +172,18 @@ scroller[#scroller + 1] =
 			translated_info["Rewind"],
 			function()
 				SCREENMAN:GetTopScreen():SetSongPosition(SCREENMAN:GetTopScreen():GetSongPosition() - 5)
+			end
+		),
+		button(
+			translated_info["Results"],
+			function(self)
+				SCREENMAN:GetTopScreen():PostScreenMessage("SM_NotesEnded", 0)
+			end
+		),
+		button(
+			translated_info["Exit"],
+			function(self)
+				SCREENMAN:GetTopScreen():Cancel()
 			end
 		),
 	}
