@@ -10,7 +10,7 @@ local INFORMATIONBOXHEIGHT = 50 / 1080 * SCREEN_HEIGHT
 local exitwidth = 70 / 1920 * SCREEN_WIDTH
 local exitheight = 50 / 1080 * SCREEN_HEIGHT
 
-local unhideWidth = 80 / 1920 * SCREEN_WIDTH
+local unhideWidth = 95 / 1920 * SCREEN_WIDTH
 local unhideHeight = 50 / 1080 * SCREEN_HEIGHT
 
 
