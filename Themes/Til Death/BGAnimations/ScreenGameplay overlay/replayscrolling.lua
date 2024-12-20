@@ -48,7 +48,7 @@ local function input(event)
 			else
 				scroller:queuecommand("ReplayScroll")
 			end
-		elseif event.GameButton == "Coin" then
+		elseif event.GameButton == "Coin" or event.DeviceInput.button == "DeviceButton_right mouse button" then
 			scroller:queuecommand("ReplayPauseToggle")
 		end
 	end
