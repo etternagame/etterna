@@ -1689,3 +1689,4 @@ DECLARE_ONE(DebugLineGlobalOffsetReset);
 DECLARE_ONE(DebugLineKeyConfig);
 DECLARE_ONE(DebugLineChartFolder);
 DECLARE_ONE(DebugLineChartkey);
+DECLARE_ONE(DebugLineForceSnaps);
