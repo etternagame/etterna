@@ -517,7 +517,7 @@ local l = Def.ActorFrame {
 			end
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 15 - offsetY):zoom(0.5):halign(1)
 			if GAMESTATE:GetCurrentSteps() == nil then
@@ -529,7 +529,20 @@ local l = Def.ActorFrame {
 		DisplayCommand = function(self)
 			self:settextf("%s %s - %s %d/%d", translated_info["Rate"], rates[rateIndex], translated_info["Showing"], scoreIndex, #rtTable[rates[rateIndex]])
 			self:zoom(0.4)
-		end
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				MESSAGEMAN:Broadcast("Code", {Name = "NextScore"})
+			elseif params.event == "DeviceButton_right mouse button" then
+				MESSAGEMAN:Broadcast("Code", {Name = "PrevScore"})
+			end
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		Name = "Judge",
