@@ -1608,7 +1608,6 @@ class DebugLineChartkey : public IDebugLine
 		auto c = GAMESTATE->m_pCurSteps;
 		if (c != nullptr) {
 			const auto& ck = c->GetChartKey();
-			Core::Platform::setClipboardText(ck);
 			return ck;
 		}
 		return std::string("None");
@@ -1616,7 +1615,13 @@ class DebugLineChartkey : public IDebugLine
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return true; }
 
-	void DoAndLog(std::string& sMessageOut) override {}
+	void DoAndLog(std::string& sMessageOut) override {
+		auto c = GAMESTATE->m_pCurSteps;
+		if (c != nullptr) {
+			const auto& ck = c->GetChartKey();
+			Core::Platform::setClipboardText(ck);
+		}
+	}
 };
 
 /* #ifdef out the lines below if you don't want them to appear on certain
