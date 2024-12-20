@@ -598,6 +598,22 @@ class LunaInputFilter : public Luna<InputFilter>
 	}
 	DEFINE_METHOD(IsShiftPressed, IsShiftPressed());
 	DEFINE_METHOD(IsControlPressed, IsControlPressed());
+	static int GetSecsHeld(T* p, lua_State* L)
+	{
+		if (lua_isnil(L, 1)) {
+			return luaL_error(L,
+							  "GetSecsHeld(button, inputDevice=keyboard) "
+							  "expects at least one parameter");
+		}
+		DeviceButton button = StringToDeviceButton(SArg(1));
+		InputDevice device = DEVICE_KEYBOARD;
+		if (!(lua_isnil(L, 2)) && lua_gettop(L) > 1) {
+			device = StringToInputDevice(SArg(2));
+		}
+		lua_pushboolean(
+		  L, INPUTFILTER->GetSecsHeld(DeviceInput(device, button)));
+		return 1;
+	}
 	LunaInputFilter()
 	{
 		ADD_METHOD(GetMouseX);
@@ -606,6 +622,7 @@ class LunaInputFilter : public Luna<InputFilter>
 		ADD_METHOD(IsBeingPressed);
 		ADD_METHOD(IsShiftPressed);
 		ADD_METHOD(IsControlPressed);
+		ADD_METHOD(GetSecsHeld);
 	}
 };
 
