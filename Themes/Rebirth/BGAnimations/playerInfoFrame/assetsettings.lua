@@ -680,6 +680,7 @@ local function assetList()
             InitCommand = function(self)
                 self:set_use_effect_clock_for_texcoords(true)
                 self:effectclock("timerglobal")
+                self.zom = 1
             end,
             LoadAssetCommand = function(self)
                 local assets = findAssetsForPath(name)
