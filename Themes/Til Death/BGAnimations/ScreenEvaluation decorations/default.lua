@@ -811,7 +811,6 @@ local function scoreBoard(pn, position)
 
 	-- Boolean to check whether shift or alt/backslash is held
 	local shiftHeld = false
-	local altHeld = false
 
 	t[#t+1] = Def.ActorFrame {
 		OnCommand = function(self)
@@ -828,18 +827,6 @@ local function scoreBoard(pn, position)
 						if shiftHeld then
 							shiftHeld = false
 							MESSAGEMAN:Broadcast("ShiftReleased")
-						end
-					end
-				elseif button == "DeviceButton_left alt" or button == "DeviceButton_right alt" or button == "DeviceButton_backslash" then
-					if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
-						if not altHeld then
-							altHeld = true
-							MESSAGEMAN:Broadcast("AltPressed")
-						end
-					elseif event.type == "InputEventType_Release" then
-						if altHeld then
-							altHeld = false
-							MESSAGEMAN:Broadcast("AltReleased")
 						end
 					end
 				end
@@ -908,9 +895,26 @@ local function scoreBoard(pn, position)
 	When shift or alt/backslash is held, the display changes accordingly.
 	--]]
 	local ratioText, raRatio, laRatio, maRatio, paRatio, marvelousTaps, perfectTaps, greatTaps
+	local mapaHover = nil
 	t[#t+1] = Def.ActorFrame {
 		Name = "MAPARatioContainer",
 
+		UIElements.QuadButton(1,1) .. {
+			Name = "MAPAHoverThing",
+			InitCommand = function(self)
+				self:xy(frameX + frameWidth/3, frameY + 5 + 218)
+				self:zoomto(frameWidth/3 * 2 + 5, 25)
+				self:halign(0):valign(1)
+				self:diffusealpha(0)
+				mapaHover = self
+			end,
+			MouseOverCommand = function(self)
+				self:GetParent():GetChild("PAText"):playcommand("Set")
+			end,
+			MouseOutCommand = function(self)
+				self:GetParent():GetChild("PAText"):playcommand("Set")
+			end,
+		},
 		LoadFont("Common Large") .. {
 			Name = "Text",
 			InitCommand = function(self)
@@ -967,7 +971,7 @@ local function scoreBoard(pn, position)
 				laRatio:settextf("%.2f:1", ludicrousAttack)
 
 				-- Align with where paRatio was and move things accordingly
-				if altHeld then
+				if shiftHeld and isOver(mapaHover) then
 					-- Show LA/RA ratios
 					laRatio:visible(true)
 					raRatio:visible(true)
@@ -982,7 +986,7 @@ local function scoreBoard(pn, position)
 					ratioText:xy(ratioTextX, raRatio:GetY())
 
 					ratioText:settextf("LA/RA ratio:")
-				elseif shiftHeld then
+				elseif shiftHeld or isOver(mapaHover) then
 					-- Show RA/MA ratios
 					raRatio:visible(true)
 					laRatio:visible(false)
@@ -1023,12 +1027,6 @@ local function scoreBoard(pn, position)
 				self:playcommand("Set")
 			end,
 			ShiftReleasedMessageCommand = function(self)
-				self:playcommand("Set")
-			end,
-			AltPressedMessageCommand = function(self)
-				self:playcommand("Set")
-			end,
-			AltReleasedMessageCommand = function(self)
 				self:playcommand("Set")
 			end,
 
