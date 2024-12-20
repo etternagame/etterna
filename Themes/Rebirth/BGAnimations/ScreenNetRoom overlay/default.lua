@@ -19,6 +19,8 @@ local translations = {
     NoRooms = THEME:GetString("NetRoom", "NoRooms"),
 }
 
+local sname = Var("LoadingScreen")
+
 local function makeroomlist()
     local selectedindex = 1
     local creatingroom = false
@@ -132,6 +134,7 @@ local function makeroomlist()
             local whe = tscn:GetRoomWheel()
             local rms = whe:GetRooms()
 
+            BUTTON:ResetButtonTable(sname)
             local childs = self:GetChildren()
             for n,v in pairs(childs) do
                 if v:GetName():find("Room") ~= nil then
@@ -148,6 +151,7 @@ local function makeroomlist()
                 ind = ind + 1
             end
             roomcount = #rms
+            BUTTON:RefreshCurrentButtons(sname)
 
             self:GetChild("NoEntriesMessage"):visible(#rms == 0)
             validateconditions()
