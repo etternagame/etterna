@@ -36,7 +36,8 @@ local translated_info = {
 	Ready = THEME:GetString("GeneralInfo", "Ready"),
 	TogglePreview = THEME:GetString("ScreenSelectMusic", "TogglePreview"),
 	PlayerOptions = THEME:GetString("ScreenSelectMusic", "PlayerOptions"),
-	OpenSort = THEME:GetString("ScreenSelectMusic", "OpenSortMenu")
+	OpenSort = THEME:GetString("ScreenSelectMusic", "OpenSortMenu"),
+	CloseSort = THEME:GetString("ScreenSelectMusic", "CloseSortMenu"),
 }
 
 -- to reduce repetitive code for setting preview music position with booleans
@@ -1101,6 +1102,7 @@ end
 
 local prevplayerops = "Main"
 
+local lastsortmode = nil
 t[#t + 1] = Def.ActorFrame {
 	Name = "LittleButtonsOnTheLeft",
 
@@ -1224,6 +1226,13 @@ t[#t + 1] =
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
+				if GAMESTATE:GetSortOrder() == "SortOrder_ModeMenu" then
+					if lastsortmode == nil then lastsortmode = "SortOrder_Group" end
+					SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(lastsortmode)
+					return
+				end
+				lastsortmode = GAMESTATE:GetSortOrder()
+
 				local ind = 0 -- 0 is group sort usually
 				-- find the sort mode menu no matter where it is
 				for i, sm in ipairs(SortOrder) do
@@ -1233,6 +1242,14 @@ t[#t + 1] =
 					end
 				end
 				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(ind)
+			end
+		end,
+		SortOrderChangedMessageCommand = function(self)
+			local so = GAMESTATE:GetSortOrder()
+			if so == "SortOrder_ModeMenu" then
+				self:settext(translated_info["CloseSort"])
+			else
+				self:settext(translated_info["OpenSort"])
 			end
 		end,
 		MouseOverCommand = function(self)
