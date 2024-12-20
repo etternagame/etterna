@@ -427,18 +427,24 @@ function ChangeMusicRate(rate, params)
 	local largeincrement = 0.1
 	local smallincrement = 0.05
 
-	-- larger increment
-	if params.Name == "PrevScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old + largeincrement, min, max)
-	elseif params.Name == "NextScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old - largeincrement, min, max)
-	end
+	if (getTabIndex() == 0 or getTabIndex() == 1) then
+		-- larger increment
+		if params.Name == "PrevScore" then
+			new = clamp(old + largeincrement, min, max)
+		elseif params.Name == "NextScore" then
+			new = clamp(old - largeincrement, min, max)
+		end
 
-	-- smaller increment
-	if params.Name == "PrevRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old + smallincrement, min, max)
-	elseif params.Name == "NextRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old - smallincrement, min, max)
+		-- smaller increment
+		if params.Name == "PrevRate" then
+			new = clamp(old + smallincrement, min, max)
+		elseif params.Name == "NextRate" then
+			new = clamp(old - smallincrement, min, max)
+		end
+
+		if params.Name == "ResetRate" then
+			new = 1.0
+		end
 	end
 
 	if new ~= old then

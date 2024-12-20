@@ -1085,16 +1085,34 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 
 --Chart Preview Button
 local yesiwantnotefield = false
+local lastratepresses = {0,0}
 local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 		if event.DeviceInput.button == "DeviceButton_space" then
 			toggleNoteField()
+		end
+		if event.GameButton == "EffectUp" then
+			lastratepresses[1] = 0
+		end
+		if event.GameButton == "EffectDown" then
+			lastratepresses[2] = 0
 		end
 	end
 	if event.type == "InputEventType_FirstPress" then
 		local CtrlPressed = INPUTFILTER:IsControlPressed()
 		if CtrlPressed and event.DeviceInput.button == "DeviceButton_l" then
 			MESSAGEMAN:Broadcast("LoginHotkeyPressed")
+		end
+		if event.GameButton == "EffectUp" then
+			lastratepresses[1] = GetTimeSinceStart()
+		end
+		if event.GameButton == "EffectDown" then
+			lastratepresses[2] = GetTimeSinceStart()
+		end
+		-- this sucks so bad
+		if math.abs(lastratepresses[1] - lastratepresses[2]) < 0.05 and lastratepresses[1] ~= 0 and lastratepresses[2] ~= 0 then
+			MESSAGEMAN:Broadcast("Code", {Name="ResetRate"})
+			ChangeMusicRate(nil, {Name="ResetRate"})
 		end
 	end
 	return false
