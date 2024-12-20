@@ -1,3 +1,8 @@
+if IsSMOnlineLoggedIn() then
+    print("Forced user to log out because they are logged in")
+	CloseConnection()
+end
+
 local t = Def.ActorFrame {
     Name = "UnderlayFile",
     BeginCommand = function(self)
