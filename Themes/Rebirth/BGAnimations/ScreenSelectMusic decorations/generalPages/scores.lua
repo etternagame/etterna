@@ -183,6 +183,7 @@ local translations = {
     ShowOffsetPlot = THEME:GetString("ScreenSelectMusic Scores", "ShowOffsetPlot"),
     ShowReplay = THEME:GetString("ScreenSelectMusic Scores", "ShowReplay"),
     ShowingJudge4Plot = THEME:GetString("ScreenSelectMusic Scores", "ShowingJudge4Plot"),
+    NoReplay = THEME:GetString("ScreenSelectMusic Scores", "NoReplay"),
     ScoreBy = THEME:GetString("ScreenSelectMusic Scores", "ScoreBy"),
     HowToCloseOffsetPlot = THEME:GetString("ScreenSelectMusic Scores", "HowToCloseOffsetPlot"),
     UploadScore = THEME:GetString("ScreenSelectMusic Scores", "UploadScore"),
@@ -795,9 +796,13 @@ local function createList()
                             local sng2 = GAMESTATE:GetCurrentSteps()
                             if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
                                 if scr:GetMusicWheel():SelectSong(GAMESTATE:GetCurrentSong()) then
-                                    local success = SCREENMAN:GetTopScreen():PlayReplay(score)
-                                    if success then
-                                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                                    if score:GetReplay():HasReplayData() then
+                                        local success = SCREENMAN:GetTopScreen():PlayReplay(score)
+                                        if success then
+                                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                                        end
+                                    else
+                                        ms.ok(translations["NoReplay"])
                                     end
                                 end
                             end
