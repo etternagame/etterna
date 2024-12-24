@@ -49,12 +49,16 @@ local versionTextSizeSmall = 0.25
 local animationSeconds = 0.5 -- the intro animation
 local updateDownloadIconSize = 30 / 1080 * SCREEN_HEIGHT
 
--- information for the update button
-local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
-local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
-if latest ~= nil and current ~= nil and latest > current then
-    updateRequired = true
+local updateRequired = false
+local function setUpdateRequired()
+    -- information for the update button
+    local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
+    local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
+    if latest ~= nil and current ~= nil and latest > current then
+        updateRequired = true
+    end
 end
+setUpdateRequired()
 
 -- if you go to the help screen this puts you back on the main menu
 SCUFF.helpmenuBackout = "ScreenTitleMenu"
@@ -263,6 +267,10 @@ t[#t+1] = Def.ActorFrame {
             MouseOutCommand = hoverfunc,
             MouseOverCommand = hoverfunc,
             MouseDownCommand = clickDownload,
+            LastVersionUpdatedMessageCommand = function(self)
+                setUpdateRequired()
+                self:visible(updateRequired)
+            end,
         },
         UIElements.SpriteButton(100, 1, THEME:GetPathG("", "updatedownload")) .. {
             Name = "VersionUpdateDownload",
