@@ -270,6 +270,7 @@ t[#t+1] = Def.ActorFrame {
             LastVersionUpdatedMessageCommand = function(self)
                 setUpdateRequired()
                 self:visible(updateRequired)
+                self:settextf("- %s (%s)", translations["UpdateAvailable"], DLMAN:GetLastVersion())
             end,
         },
         UIElements.SpriteButton(100, 1, THEME:GetPathG("", "updatedownload")) .. {
