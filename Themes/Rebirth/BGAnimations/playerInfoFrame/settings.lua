@@ -4037,6 +4037,7 @@ local function rightFrame()
                     return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3) .. "s"
                 end,
             },
+            --[[ -- people dont know any better i guess
             {
                 Name = "Game Mode",
                 DisplayName = translations["GameMode"],
@@ -4073,6 +4074,7 @@ local function rightFrame()
                     return o
                 end,
             },
+            --]]
             {
                 Name = "Fail Type",
                 DisplayName = translations["FailType"],
