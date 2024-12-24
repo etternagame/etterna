@@ -46,6 +46,7 @@ local leftSpace = 10
 local cancelFrameY = 56
 
 local selectedTags = {}
+local tagsMatchAny = true
 local nameInput = ""
 
 local o = Def.ActorFrame {
@@ -199,9 +200,20 @@ local function tagframe()
 			return tonumber(ax) < tonumber(bx)
 		end)
 		local otherTags = table.sorted(alltags["pack_tag"] or {})
-		orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+		local bundleTags = table.withfuncapplied(alltags["pack_bundle"] or {}, function(key,val)
+			return key, "Bundle: " .. val:sub(1,1):upper() .. val:sub(2)
+		end)
+		orderedTags = table.combine(keycountTags, skillsetTags, otherTags, bundleTags)
 	end
 	loadTags()
+
+	local function unbundleize(bundlestr)
+		local bundleWord = "Bundle: "
+		if bundlestr:find(bundleWord) ~= nil then
+			bundlestr = bundlestr:sub(#bundleWord+1):lower()
+		end
+		return bundlestr
+	end
 
 	local function movePage(n)
 		local newpage = curpage + n
@@ -265,7 +277,7 @@ local function tagframe()
 			InitCommand = function(self)
 				self:zoom(0.2)
 				self:valign(1):halign(1)
-				self:xy(frameBGWidth - leftSpace/2, tagListStartY - tagSpacing)
+				self:xy(frameBGWidth - leftSpace/1.4, tagListStartY - tagSpacing - (packh*0.85))
 			end,
 			UpdateTagsCommand = function(self)
 				self:settextf("%d-%d of %d", (curpage-1) * maxtags + 1, math.min(#orderedTags, curpage * maxtags), #orderedTags)
@@ -303,10 +315,10 @@ local function tagframe()
 				local tags = {}
 				for k,v in pairs(selectedTags) do
 					if v == true then
-						tags[#tags+1] = k
+						tags[#tags+1] = unbundleize(k)
 					end
 				end
-				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags})
+				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags, tagsMatchAny=tagsMatchAny})
 			end,
 		},
 		UIElements.TextButton(1, 1, "Common Large") .. {
@@ -340,7 +352,47 @@ local function tagframe()
 				if params.update ~= "OnMouseDown" then return end
 				selectedTags = {}
 				self:GetParent():playcommand("UpdateTags")
-				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags={}})
+				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags={}, tagsMatchAny=tagsMatchAny})
+			end,
+		},
+		UIElements.TextButton(1, 1, "Common Large") .. {
+			Name = "ANDORButton",
+			InitCommand = function(self)
+				self.bg = self:GetChild("BG")
+				self.txt = self:GetChild("Text")
+				self:xy(tagFrameWidth/3 + tagFrameWidth/3 - leftSpace/3.3, tagListStartY - tagSpacing - packh*0.8)
+
+				self.txt:xy(tagFrameWidth/6 - leftSpace/4, (packh*0.8)/2)
+				self.txt:settext(tagsMatchAny and "OR" or "AND")
+				self.txt:zoom(0.4)
+				self.txt:maxwidth((tagFrameWidth/3 - leftSpace) / 0.4)
+				self.bg:zoomto(tagFrameWidth/3 - leftSpace/2, packh*0.8)
+				self.bg:halign(0):valign(0)
+				self.bg:diffuse(color("#ffffff"))
+
+				self.alphaDeterminingFunction = function(self)
+					if isOver(self.bg) then
+						self.bg:diffusealpha(0.8)
+					else
+						self.bg:diffusealpha(0.4)
+					end
+				end
+				self:alphaDeterminingFunction()
+			end,
+			RolloverUpdateCommand = function(self, params)
+				self:alphaDeterminingFunction()
+			end,
+			ClickCommand = function(self, params)
+				if params.update ~= "OnMouseDown" then return end
+				tagsMatchAny = not tagsMatchAny
+				self.txt:settext(tagsMatchAny and "OR" or "AND")
+				local tags = {}
+				for k,v in pairs(selectedTags) do
+					if v == true then
+						tags[#tags+1] = unbundleize(k)
+					end
+				end
+				MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags, tagsMatchAny=tagsMatchAny})
 			end,
 		},
 	}
@@ -431,10 +483,10 @@ o[#o + 1] = Def.ActorFrame {
 					local tags = {}
 					for k,v in pairs(selectedTags) do
 						if v == true then
-							tags[#tags+1] = k
+							tags[#tags+1] = unbundleize(k)
 						end
 					end
-					MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags})
+					MESSAGEMAN:Broadcast("InvokePackSearch", {name=nameInput, tags=tags, tagsMatchAny=tagsMatchAny})
 				else
 					local del = btn == "DeviceButton_delete"
 					local bs = btn == "DeviceButton_backspace"

@@ -5155,15 +5155,36 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 }
 
 std::vector<DownloadablePack*>
-DownloadManager::GetCoreBundle(const std::string& whichoneyo)
+DownloadManager::GetCoreBundle(const std::string& bundlename)
 {
-	return std::vector<DownloadablePack*>();
+	if (tagPacks.contains(bundlename)) {
+		auto& packs = tagPacks.at(bundlename);
+		std::vector<DownloadablePack*> o{};
+		for (auto& p : packs) {
+			// mapping pack ids to cached packs
+			if (downloadablePacks.contains(p)) {
+				o.push_back(&(downloadablePacks.at(p)));
+			}
+		}
+		if (o.size() == 0) {
+			Locator::getLogger()->warn(
+			  "Tried to get bundle '{}' listing, but no packs were cached",
+			  bundlename);
+		}
+		return o;
+	}
+	else {
+		Locator::getLogger()->warn(
+		  "Tried to get bundle '{}' listing, but no bundles were cached",
+		  bundlename);
+		return std::vector<DownloadablePack*>();
+	}
 }
 
 void
-DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
+DownloadManager::DownloadCoreBundle(const std::string& bundlename, bool mirror)
 {
-	auto bundle = GetCoreBundle(whichoneyo);
+	auto bundle = GetCoreBundle(bundlename);
 	sort(bundle.begin(),
 		 bundle.end(),
 		 [](DownloadablePack* x1, DownloadablePack* x2) {
@@ -5204,6 +5225,7 @@ DownloadManager::RefreshLastVersion()
 			Locator::getLogger()->info(
 			  "RefreshLastVersion successful - Last Version is {}",
 			  lastVersion);
+			MESSAGEMAN->Broadcast("LastVersionUpdated");
 		} else {
 			Locator::getLogger()->error(
 			  "RefreshLastVersion Error: Unexpected status {} - content: {}",
@@ -5646,12 +5668,37 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		packSearchDoc.AddMember("q", stringToVal(criteria.packName, allocator), allocator);
 		packSearchDoc.AddMember("query_by", "name", allocator);
 		packSearchDoc.AddMember("num_typos", "0", allocator);
-		packSearchDoc.AddMember(
-		  "sort_by", stringToVal(sortByField, allocator), allocator);
+		if (!sortByField.empty() && !sortByField.ends_with("asc") &&
+			!sortByField.ends_with("desc")) {
+			sortByField = fmt::format("{}:asc", sortByField);
+		}
+		if (!sortByField.empty()) {
+			packSearchDoc.AddMember(
+			  "sort_by", stringToVal(sortByField, allocator), allocator);
+		}
 		if (!criteria.packTags.empty()) {
 			// this should produce tags:=[`4k`,`5k`] ....
-			auto tagstr = "tags:=[`" + join("`,`", criteria.packTags) + "`]";
-			packSearchDoc.AddMember("filter_by", stringToVal(tagstr, allocator), allocator);
+			if (criteria.packTagsMatchAny) {
+				auto tagstr =
+				  "tags:=[`" + join("`,`", criteria.packTags) + "`]";
+				packSearchDoc.AddMember(
+				  "filter_by", stringToVal(tagstr, allocator), allocator);
+			}
+			else {
+				std::string tagstr = "";
+				for (auto& x : criteria.packTags) {
+					tagstr += fmt::format("tags:=`{}` &&", x);
+				}
+				if (tagstr.ends_with("&&")) {
+					// lol
+					tagstr.pop_back();
+					tagstr.pop_back();
+				}
+				if (!tagstr.empty()) {
+					packSearchDoc.AddMember(
+					  "filter_by", stringToVal(tagstr, allocator), allocator);
+				}
+			}
 		}
 		arrDoc.PushBack(packSearchDoc, allocator);
 	}
@@ -5850,6 +5897,12 @@ DownloadManager::GetPackTagsRequest() {
 										   packTags[tagType].size());
 			}
 
+			if (packTags.contains("pack_bundle")) {
+				for (auto& bundlename : packTags["pack_bundle"]) {
+					CachePacksForTag(bundlename);
+				}
+			}
+
 			if (MESSAGEMAN)
 				MESSAGEMAN->Broadcast("PackTagsRefreshed");
 		} else {
@@ -5871,18 +5924,129 @@ DownloadManager::GetPackTagsRequest() {
 				false);
 }
 
+DownloadablePack
+jsonToDownloadablePack(Value& pack)
+{
+	DownloadablePack packDl;
+	packDl.id = getJsonInt(pack, "id");
+	packDl.name = getJsonString(pack, "name");
+	packDl.url = getJsonString(pack, "download");
+	packDl.mirror = getJsonString(pack, "mirror");
+	if (packDl.url.empty()) {
+		packDl.url = packDl.mirror;
+	}
+	if (packDl.mirror.empty()) {
+		packDl.mirror = packDl.url;
+	}
+	packDl.avgDifficulty = std::stof(getJsonString(pack, "overall"));
+	packDl.size = getJsonInt64(pack, "bytes");
+	packDl.plays = getJsonInt(pack, "play_count");
+	packDl.songs = getJsonInt(pack, "song_count");
+	packDl.bannerUrl = getJsonString(pack, "banner_path");
+	packDl.nsfw = getJsonBool(pack, "nsfw");
+
+	auto thumbnail = getJsonString(pack, "bannerTinyThumb");
+	if (thumbnail.find("base64,") != std::string::npos) {
+		packDl.thumbnail = thumbnail;
+	} else {
+		packDl.thumbnail = "";
+	}
+
+	if (packDl.name.empty()) {
+		Locator::getLogger()->warn("PackPagination missing pack name: {}",
+								   jsonObjectToString(pack));
+	}
+	if (packDl.url.empty()) {
+		Locator::getLogger()->warn("PackPagination missing pack download: {}",
+								   jsonObjectToString(pack));
+	}
+	return packDl;
+}
+
+void
+DownloadManager::CachePacksForTag(const std::string& tag) {
+
+	Locator::getLogger()->info("Caching packs for tag '{}'", tag);
+
+	std::vector<std::string> taglist = { tag };
+
+	ApiSearchCriteria searchCriteria;
+	searchCriteria.per_page = 100; // surely this is fine
+	searchCriteria.packTags = taglist;
+	searchCriteria.packTagsMatchAny = true;
+
+	if (!tagPacks.contains(tag)) {
+		tagPacks[tag] = std::set<int>();
+	}
+
+	auto parseFunc = [searchCriteria, tag](Document& d) {
+		// Least Unsafe Json Traversal
+		if (d.HasMember("results") && d["results"].IsArray()) {
+			auto& resultArr = d["results"];
+			auto& packlist = DLMAN->downloadablePacks;
+			auto& localPacklist = DLMAN->tagPacks[tag];
+
+			// Locator::getLogger()->info("{}", jsonObjectToString(d));
+
+			for (auto& results : resultArr.GetArray()) {
+
+				if (results.HasMember("hits") && results["hits"].IsArray()) {
+					for (auto& docEntry : results["hits"].GetArray()) {
+						if (docEntry.HasMember("document") &&
+							docEntry["document"].IsObject()) {
+							auto& pack = docEntry["document"];
+
+							DownloadablePack packDl =
+							  jsonToDownloadablePack(pack);
+
+							if (!packlist.contains(packDl.id)) {
+								packlist[packDl.id] = packDl;
+							}
+							localPacklist.insert(packDl.id);
+							Locator::getLogger()->info(
+							  "For tag '{}', cached pack {} (id {}): {}",
+							  tag,
+							  localPacklist.size(),
+							  packDl.id,
+							  packDl.name);
+						}
+					}
+				} else {
+					continue;
+				}
+			}
+			Locator::getLogger()->info(
+			  "For tag '{}', finished caching packs - {} total",
+			  tag,
+			  localPacklist.size());
+			MESSAGEMAN->Broadcast("CoreBundlesRefreshed");
+			Message msg("TagPacksRefreshed");
+			msg.SetParam("tag", tag);
+			MESSAGEMAN->Broadcast(msg);
+		} else {
+			Locator::getLogger()->warn(
+			  "Pack search {} seemed to return no results? Content: {}",
+			  searchCriteria.DebugString(),
+			  jsonObjectToString(d));
+		}
+	};
+
+	SearchForPacks(searchCriteria, parseFunc);
+}
+
 DownloadablePackPagination&
 DownloadManager::GetPackPagination(const std::string& searchString,
 								   std::set<std::string> tagFilters,
+								   bool tagsMatchAny,
 								   int perPage,
 								   const std::string& sortBy,
 								   bool sortIsAsc)
 {
 	auto key = DownloadablePackPaginationKey(
-	  searchString, tagFilters, perPage, sortBy, sortIsAsc);
+	  searchString, tagFilters, tagsMatchAny, perPage, sortBy, sortIsAsc);
 	if (!downloadablePackPaginations.contains(key)) {
 		downloadablePackPaginations[key] = DownloadablePackPagination(
-		  searchString, tagFilters, perPage, sortBy, sortIsAsc);
+		  searchString, tagFilters, tagsMatchAny, perPage, sortBy, sortIsAsc);
 	}
 	return downloadablePackPaginations[key];
 }
@@ -5955,6 +6119,7 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 	searchCriteria.per_page = key.perPage;
 	searchCriteria.packTags =
 	  std::vector<std::string>(key.tagFilters.begin(), key.tagFilters.end());
+	searchCriteria.packTagsMatchAny = key.tagsMatchAny;
 	searchCriteria.packName = key.searchString;
 	searchCriteria.sortBy = key.sortByField;
 	searchCriteria.sortIsAscending = key.sortIsAsc;
@@ -5994,46 +6159,8 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 							docEntry["document"].IsObject()) {
 							auto& pack = docEntry["document"];
 
-							DownloadablePack packDl;
-
-							packDl.id = getJsonInt(pack, "id");
-							packDl.name = getJsonString(pack, "name");
-							packDl.url = getJsonString(pack, "download");
-							packDl.mirror = getJsonString(pack, "mirror");
-							if (packDl.url.empty()) {
-								packDl.url = packDl.mirror;
-							}
-							if (packDl.mirror.empty()) {
-								packDl.mirror = packDl.url;
-							}
-							packDl.avgDifficulty =
-							  std::stof(getJsonString(pack, "overall"));
-							packDl.size = getJsonInt64(pack, "bytes");
-							packDl.plays = getJsonInt(pack, "play_count");
-							packDl.songs = getJsonInt(pack, "song_count");
-							packDl.bannerUrl =
-							  getJsonString(pack, "banner_path");
-							packDl.nsfw = getJsonBool(pack, "nsfw");
-
-							auto thumbnail =
-							  getJsonString(pack, "bannerTinyThumb");
-							if (thumbnail.find("base64,") !=
-								std::string::npos) {
-								packDl.thumbnail = thumbnail;
-							} else {
-								packDl.thumbnail = "";
-							}
-
-							if (packDl.name.empty()) {
-								Locator::getLogger()->warn(
-								  "PackPagination missing pack name: {}",
-								  jsonObjectToString(pack));
-							}
-							if (packDl.url.empty()) {
-								Locator::getLogger()->warn(
-								  "PackPagination missing pack download: {}",
-								  jsonObjectToString(pack));
-							}
+							DownloadablePack packDl =
+							  jsonToDownloadablePack(pack);
 
 							if (!packlist.contains(packDl.id)) {
 								packlist[packDl.id] = packDl;
@@ -6210,16 +6337,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pop(L, 1);
 		std::set<std::string> tags(tagVec.begin(), tagVec.end());
 
-		auto perPage = IArg(3);
+		auto tagsMatchAny = BArg(3);
+		auto perPage = IArg(4);
 
-		if (lua_isnoneornil(L, 4)) {
-			auto& pagination =
-			  p->GetPackPagination(searchString, tags, perPage, "name", true);
+		if (lua_isnoneornil(L, 5)) {
+			auto& pagination = p->GetPackPagination(
+			  searchString, tags, tagsMatchAny, perPage, "name", true);
 			pagination.PushSelf(L);
 		}
 		else {
 			auto& pagination = p->GetPackPagination(
-			  searchString, tags, perPage, SArg(4), BArg(5));
+			  searchString, tags, tagsMatchAny, perPage, SArg(5), BArg(6));
 			pagination.PushSelf(L);
 		}
 
@@ -6465,11 +6593,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
-		bool bMirror = false;
-		if (!lua_isnoneornil(L, 2)) {
-			bMirror = BArg(2);
-		}
-		p->DownloadCoreBundle(SArg(1), bMirror);
+		p->DownloadCoreBundle(SArg(1));
 		return 0;
 	}
 	static int GetToken(T* p, lua_State* L)
@@ -6746,9 +6870,6 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
   public:
 	static int DownloadAndInstall(T* p, lua_State* L)
 	{
-		bool mirror = false;
-		if (lua_gettop(L) > 0)
-			mirror = BArg(1);
 		if (p->downloading) {
 			p->PushSelf(L);
 			return 1;
@@ -6758,7 +6879,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 			return 1;
 		}
 
-		std::shared_ptr<Download> dl = DLMAN->DownloadAndInstallPack(p, mirror);
+		std::shared_ptr<Download> dl = DLMAN->DownloadAndInstallPack(p);
 		if (dl) {
 			dl->PushSelf(L);
 		} else

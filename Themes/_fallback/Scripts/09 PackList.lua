@@ -63,11 +63,12 @@ function PackList:GetTotalResults()
 end
 
 -- execute a seach. usually this invokes a request unless it is a duplicate
-function PackList:FilterAndSearch(name, tags, perPage)
+function PackList:FilterAndSearch(name, tags, tagsMatchAny, perPage)
     self.lastName = name
     self.lastTags = tags
     self.lastPerPage = perPage
-    self.currentPagination = DLMAN:GetPackPagination(name, tags, perPage, self.sortColumn, self.sortIsAscending)
+    self.tagsMatchAny = not not tagsMatchAny -- this makes nil into a bool
+    self.currentPagination = DLMAN:GetPackPagination(name, tags, self.tagsMatchAny, perPage, self.sortColumn, self.sortIsAscending)
 
     if not self:IsAwaitingRequest() then
         self.currentPagination:GetResults(whenRequestFinished(self))
@@ -83,7 +84,7 @@ function PackList:SortByColumn(column)
         self.sortColumn = column
         self.sortIsAscending = true
     end
-    self:FilterAndSearch(self.lastName, self.lastTags, self.lastPerPage)
+    self:FilterAndSearch(self.lastName, self.lastTags, self.tagsMatchAny, self.lastPerPage)
 end
 
 function PackList:SortByName()
@@ -110,11 +111,12 @@ function PackList:new()
     local packlist = {}
     packlist.packs = {} -- represents the packs on the current visible page
     packlist.currentPagination = nil -- represents the internal pack search pagination
+    packlist.tagsMatchAny = true -- true = OR, false = AND
     packlist.sortColumn = "name"
     packlist.sortIsAscending = true
     packlist.lastName = ""
     packlist.lastTags = {}
-    packlist.lasPerPage = 1
+    packlist.lastPerPage = 1
     setmetatable(
         packlist,
         {
