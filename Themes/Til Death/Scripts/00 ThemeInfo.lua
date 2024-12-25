@@ -3,7 +3,7 @@
 themeInfo = {
 	Name = "'Til Death",
 	Version = "1.10",
-	Date = "20241219"
+	Date = "20241225"
 }
 
 function getThemeName()
