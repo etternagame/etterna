@@ -235,7 +235,7 @@ jobs:
 
       - name: Generate binary
         if: ${{matrix.cfg.dist}}
-        run: cd main/build && cpack
+        run: echo killing...; sudo pkill -9 XProtect >/dev/null || true; echo waiting...; while pgrep XProtect; do sleep 3; done; cd main/build && cpack
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
