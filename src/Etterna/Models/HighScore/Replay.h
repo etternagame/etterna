@@ -15,7 +15,7 @@ class Replay
 {
   public:
 	Replay();
-	Replay(HighScore* hs);
+	Replay(const HighScore* hs);
 	~Replay();
 
 	inline auto GetBasicPath() const -> const std::string
@@ -31,6 +31,11 @@ class Replay
 	inline auto GetInputPath() const -> const std::string
 	{
 		return INPUT_DATA_DIR + scoreKey;
+	}
+
+	inline auto GetOnlinePath() const -> const std::string
+	{
+		return ONLINE_DATA_DIR + scoreKey;
 	}
 
 	auto GetOffsetVector() const -> const std::vector<float>&
@@ -176,7 +181,7 @@ class Replay
 	void SetUseReprioritizedNoteRows(bool b)
 	{
 		if (b != useReprioritizedNoterows) {
-			if (isOnlineScore()) {
+			if (IsOnlineScore()) {
 				if (vOnlineNoteRowVector.empty() &&
 					GenerateNoterowsFromTimestamps()) {
 					// initial backup
@@ -364,6 +369,11 @@ class Replay
 	/// A check to see if the Replay has an RNG seed, if it uses shuffle.
 	auto CanSafelyTransformNoteData() -> bool;
 
+	bool IsOnlineScore() const
+	{
+		return scoreKey.find("Online_") != std::string::npos;
+	}
+
 	void Unload()
 	{
 		useReprioritizedNoterows = false;
@@ -398,6 +408,10 @@ class Replay
 		vOnlineTapNoteTypeVector.shrink_to_fit();
 	}
 
+	/// Setting the mod string is handled separately.
+	/// Use this to set mods, as long as a scorekey is given.
+	auto SetHighScoreMods() -> void;
+
 	/// Lua
 	void PushSelf(lua_State* L);
 
@@ -407,17 +421,14 @@ class Replay
 	auto LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR)
 	  -> bool;
 	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
-
+	auto LoadOnlineDataFromDisk(const std::string& replayDir = ONLINE_DATA_DIR)
+	  -> bool;
 	auto LoadStoredOnlineData() -> bool;
 
 	/// For V1 or earlier replays lacking column data, we need to assume
 	/// information. Make it all up. This fills in the column data using
 	/// NoteData. This also provides TapNoteTypes
 	auto GenerateReplayV2DataPresumptively() -> bool;
-
-	/// Setting the mod string is handled separately.
-	/// Use this to set mods, as long as a scorekey is given.
-	auto SetHighScoreMods() -> void;
 
 	void ClearPrimitiveVectors() {
 		vOffsetVector.clear();
@@ -440,10 +451,6 @@ class Replay
 		vReprioritizedMissData.shrink_to_fit();
 		vReprioritizedHoldData.shrink_to_fit();
 		vReprioritizedMineData.shrink_to_fit();
-	}
-
-	bool isOnlineScore() const {
-		return scoreKey.find("Online_") != std::string::npos;
 	}
 
 	std::map<int, ReplaySnapshot> m_ReplaySnapshotMap{};
@@ -485,6 +492,30 @@ class Replay
 	// and reloading that v2 data generates wrong input data
 	// so this just refreshes the whole process
 	bool generatedInputData = false;
+
+	// if we failed to load data, dont try again and waste time
+	bool attemptedToLoadInputData = false;
+	bool loadResultInputData = false;
+	bool attemptedToLoadReplayV2 = false;
+	bool loadResultReplayV2 = false;
+	bool attemptedToLoadReplayV1 = false;
+	bool loadResultReplayV1 = false;
+
+	bool LoadedInputData(bool b) {
+		attemptedToLoadInputData = true;
+		loadResultInputData = b;
+		return b;
+	}
+	bool LoadedReplayV2(bool b) {
+		attemptedToLoadReplayV2 = true;
+		loadResultReplayV2 = b;
+		return b;
+	}
+	bool LoadedReplayV1(bool b) {
+		attemptedToLoadReplayV1 = true;
+		loadResultReplayV1 = b;
+		return b;
+	}
 
 	/////
 	// storage of vectors temporarily for online scores only

@@ -103,6 +103,8 @@ class PlayerState
 	// using an mmod.
 	float m_fReadBPM;
 
+	bool m_bGoalTrackerUsesReplay = false;
+
 	/* why is the slow getstyles function called every time to get
 	number of columns in places where it can't change? - Mina */
 	int m_NumCols;

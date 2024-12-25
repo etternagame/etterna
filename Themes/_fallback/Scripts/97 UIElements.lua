@@ -123,9 +123,13 @@ function Actor.GetButtonRoot(self, depth)
 	
 	local buttonRoot = self
 	for i = 0, depth, 1 do
-		buttonRoot = buttonRoot:GetParent()
+		local r = buttonRoot:GetParent()
+		if r ~= nil then
+			buttonRoot = r
+		else
+			break
+		end
 	end
-
 	return buttonRoot
 end
 
@@ -219,10 +223,13 @@ end
 
 -- Resets the list of buttons currently added to the given screen. Call when the screen is being initialized.
 function BUTTON.ResetButtonTable(self, screenName)
+	print("Resetting the current button table")
     if screenName ~= nil then
 		self.ButtonTable[screenName] = nil
 		self.CurTopButton = nil
 		self.CurDownButton = {}
+		self.mouseMoved = false
+		self:WaitForMouseMovement(false)
     end
 end
 
@@ -246,6 +253,33 @@ function BUTTON.AddButton(self, actor, screenName, depth)
     end
 end
 
+-- reregister all buttons that exist
+-- this is mostly useful for when a button is deleted or regenerated at runtime
+function BUTTON.RefreshCurrentButtons(self, screenName)
+	print("Triggering a global button refresh")
+	if screenName == nil then
+		local screen = SCREENMAN:GetTopScreen()
+		if screen ~= nil then
+			screenName = screen:GetName()
+		end
+	end
+	if screenName ~= nil then
+		self:ResetButtonTable(screenName)
+		MESSAGEMAN:Broadcast("RefreshButtons", {LoadingScreen = screenName})
+	end
+end
+
+-- return true or false as to whether or not the mouse has moved on the currently loaded screen
+function BUTTON.MouseHasMoved(self)
+	return self.mouseMoved or false
+end
+
+function BUTTON.WaitForMouseMovement(self, b)
+	if b == nil then return self.waitForMouseMovement end
+	self.waitForMouseMovement = b
+	return b
+end
+
 -- Updates the position. Sends a broadcast if the position has changed.
 -- This is called constantly from _mouse.lua via an updatefunction.
 function BUTTON.UpdateMouseState(self)
@@ -265,11 +299,26 @@ function BUTTON.UpdateMouseState(self)
 	self.MouseX = INPUTFILTER:GetMouseX()
 	self.MouseY = INPUTFILTER:GetMouseY()
 
+	local oldscrn = self.topScrnNm or ""
+	self.topScrnNm = topScreen:GetName()
+	if oldscrn ~= self.topScrnNm then
+		self.mouseMoved = false
+	end
+
+	if oldX ~= self.MouseX or oldY ~= self.MouseY then
+		self.mouseMoved = true
+	end
+
+	-- if the mouse has to move and has not, do nothing
+	if self:WaitForMouseMovement() and not self:MouseHasMoved() then
+		return
+	end
+	
 
 	local curButton, curButtonDepth = self:GetTopButton(self.MouseX, self.MouseY)
 	-- If the top actor in which the mouse was hovering over has changed.
 	if curButton ~= self.CurTopButton then
-		if curButton ~= nil then 
+		if curButton ~= nil then
 			self:OnMouseOver(curButton, curButtonDepth)
 		end
 		if self.CurTopButton ~= nil then
@@ -299,6 +348,8 @@ function BUTTON.SetMouseDown(self, event)
 	self.CurDownButtonDepth[event] = self.CurTopButtonDepth
 	if self.CurDownButton[event] ~= nil then -- Only call onmousedown if a button is pressed.
 		localX, localY = self.CurDownButton[event]:GetLocalMousePos(self.MouseX, self.MouseY, self.CurDownButtonDepth[event])
+		-- ignore clicks outside the game window
+		if self.MouseY < 0 or self.MouseY > SCREEN_HEIGHT or self.MouseX < 0 or self.MouseX > SCREEN_WIDTH then return end
 		self:OnMouseDown(self.CurDownButton[event], self.CurDownButtonDepth[event], {event = event, MouseX = localX, MouseY = localY})
 	end
 end
@@ -352,6 +403,9 @@ function BUTTON.GetTopButton(self, x, y)
         return
     end
 
+	if x == nil then x = self.MouseX end
+	if y == nil then y = self.MouseY end
+
 	local topZ = -99999
 	local topButton = nil
 	local topButtonDepth = 0
@@ -365,12 +419,16 @@ function BUTTON.GetTopButton(self, x, y)
 	end
 
 	for i,v in ipairs(self.ButtonTable[topScreen:GetName()]) do
-		if v:IsOver(x, y) then 
-			local z = v:GetTrueZ()
-			if z >= topZ then
-				topButton = v
-				topZ = z
-				topButtonDepth = self.DepthTable[topScreen:GetName()][i]
+		if not v then
+			print("something very scary happened and i think i prevented it")
+		else
+			if v:IsOver(x, y) then
+				local z = v:GetTrueZ()
+				if z >= topZ then
+					topButton = v
+					topZ = z
+					topButtonDepth = self.DepthTable[topScreen:GetName()][i]
+				end
 			end
 		end
 	end
@@ -473,6 +531,18 @@ function UIElements.QuadButton(z, depth)
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
 		end,
+		RefreshButtonsMessageCommand = function(self, params)
+			local screen = SCREENMAN:GetTopScreen()
+			local sname = nil
+			if params ~= nil and params.LoadingScreen ~= nil then
+				sname = params.LoadingScreen
+			end
+			if sname ~= nil then
+				BUTTON:AddButton(self, sname, depth)
+			elseif screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
 		MouseOverCommand = function(self) end,
 		MouseOutCommand = function(self) end,
 		MouseUpCommand = function(self, params) end,
@@ -503,6 +573,18 @@ function UIElements.SpriteButton(z, depth, tex)
 			-- dont playcommand the OnCommand because that could cause cascading issues
 			local screen = SCREENMAN:GetTopScreen()
 			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
+		RefreshButtonsMessageCommand = function(self, params)
+			local screen = SCREENMAN:GetTopScreen()
+			local sname = nil
+			if params ~= nil and params.LoadingScreen ~= nil then
+				sname = params.LoadingScreen
+			end
+			if sname ~= nil then
+				BUTTON:AddButton(self, sname, depth)
+			elseif screen ~= nil then
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
 		end,
@@ -540,6 +622,18 @@ function UIElements.TextButton(z, depth, font)
 				-- dont playcommand the OnCommand because that could cause cascading issues
 				local screen = SCREENMAN:GetTopScreen()
 				if screen ~= nil then
+					BUTTON:AddButton(self, screen:GetName(), depth)
+				end
+			end,
+			RefreshButtonsMessageCommand = function(self, params)
+				local screen = SCREENMAN:GetTopScreen()
+				local sname = nil
+				if params ~= nil and params.LoadingScreen ~= nil then
+					sname = params.LoadingScreen
+				end
+				if sname ~= nil then
+					BUTTON:AddButton(self, sname, depth)
+				elseif screen ~= nil then
 					BUTTON:AddButton(self, screen:GetName(), depth)
 				end
 			end,
@@ -582,6 +676,18 @@ function UIElements.TextToolTip(z, depth, font)
 			-- dont playcommand the OnCommand because that could cause cascading issues
 			local screen = SCREENMAN:GetTopScreen()
 			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
+		RefreshButtonsMessageCommand = function(self, params)
+			local screen = SCREENMAN:GetTopScreen()
+			local sname = nil
+			if params ~= nil and params.LoadingScreen ~= nil then
+				sname = params.LoadingScreen
+			end
+			if sname ~= nil then
+				BUTTON:AddButton(self, sname, depth)
+			elseif screen ~= nil then
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
 		end,

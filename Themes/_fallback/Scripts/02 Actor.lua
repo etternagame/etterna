@@ -9,6 +9,10 @@ top = "VertAlign_Top"
 middle = "VertAlign_Middle"
 bottom = "VertAlign_Bottom"
 
+function Actor:GetSibling(n)
+	return self:GetParent():GetChild(n)
+end
+
 function Actor:ease(t, fEase)
 	-- Optimizations:
 	-- fEase = -100 is equivalent to TweenType_Accelerate.
@@ -451,6 +455,33 @@ DrawOrder = {
 function Actor:hidden(bHide)
 	lua.ReportScriptError("hidden is deprecated, use visible instead. (used on " .. self:GetName() .. ")")
 	self:visible(not bHide)
+end
+
+-- safely get a very deep child of an ActorFrame
+-- just in case something in between doesnt exist
+-- the names should be in the order you would chain the GetChild usages
+-- GetChild("Top"):GetChild("childchild"):GetChild("greatgrandchild") ...
+-- if something doesnt exist, return nil
+function ActorFrame:GetDescendant(...)
+    local names = {...}
+    local final = self
+    for i, name in ipairs(names) do
+        if final ~= nil and final.GetChild ~= nil then
+            final = final:GetChild(name)
+        else
+            return final
+        end
+    end
+    return final
+end
+
+-- return a flat table of every child and every child's child recursively
+function ActorFrame:GetAllDescendants()
+	local o = {}
+	self:RunCommandsRecursively(function(self)
+		o[#o+1] = self
+	end)
+	return o
 end
 
 -- (c) 2006-2012 Glenn Maynard, the Spinal Shark Collective, et al.

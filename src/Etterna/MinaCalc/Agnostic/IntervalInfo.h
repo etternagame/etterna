@@ -7,6 +7,18 @@ enum tap_size
 	jump,
 	hand,
 	quad,
+	five_chord,
+	six_chord,
+	seven_chord,
+	eight_chord,
+	nine_chord,
+	ten_chord,
+	eleven_chord,
+	twelve_chord,
+	thirteen_chord,
+	fourteen_chord,
+	fifteen_chord,
+	sixteen_chord,
 	num_tap_size
 };
 
@@ -19,7 +31,8 @@ struct ItvInfo
 	/// non single taps
 	int chord_taps = 0;
 	/// count of taps for each tap_size
-	std::array<int, num_tap_size> taps_by_size = { 0, 0, 0, 0 };
+	std::array<int, num_tap_size> taps_by_size = { 0, 0, 0, 0, 0, 0, 0, 0,
+												   0, 0, 0, 0, 0, 0, 0, 0 };
 	/// number related to amount of jumps in the interval.
 	/// inflated by dense hs/js mix
 	int mixed_hs_density_tap_bonus = 0;

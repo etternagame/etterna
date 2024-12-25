@@ -17,6 +17,8 @@
 #include "Etterna/Singletons/ScoreManager.h"
 #include "Etterna/Singletons/SongManager.h"
 
+#include "rapidjson/document.h"
+
 // STL
 #include <algorithm>
 #include <cmath>
@@ -74,7 +76,7 @@ Replay::Replay() {
 
 }
 
-Replay::Replay(HighScore* hs)
+Replay::Replay(const HighScore* hs)
   : scoreKey(hs->GetScoreKey())
   , chartKey(hs->GetChartKey())
   , fMusicRate(hs->GetMusicRate())
@@ -99,7 +101,7 @@ auto
 Replay::HasWrittenReplayData() -> bool
 {
 	return DoesFileExist(GetInputPath()) || DoesFileExist(GetFullPath()) ||
-		   DoesFileExist(GetBasicPath());
+		   DoesFileExist(GetBasicPath()) || DoesFileExist(GetOnlinePath());
 }
 
 auto
@@ -108,7 +110,7 @@ Replay::GetHighScore() -> HighScore*
 	HighScore* o = nullptr;
 
 	// for local scores
-	auto scoresByKey = SCOREMAN->GetScoresByKey();
+	auto& scoresByKey = SCOREMAN->GetScoresByKey();
 	if (!scoresByKey.empty()) {
 		auto it = scoresByKey.find(scoreKey);
 		if (it != scoresByKey.end()) {
@@ -220,6 +222,8 @@ Replay::GetTimingData() -> TimingData*
 auto
 Replay::SetHighScoreMods() -> void
 {
+	if (!mods.empty())
+		return;
 	auto* hs = GetHighScore();
 	if (hs != nullptr) {
 		auto ms = hs->GetModifiers();
@@ -230,6 +234,8 @@ Replay::SetHighScoreMods() -> void
 		  ms.end());
 		mods = ms;
 	} else {
+		Locator::getLogger()->warn(
+		  "Set no mods for replay {} - this is very bad", GetScoreKey());
 		mods = NO_MODS;
 	}
 }
@@ -305,8 +311,10 @@ Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
 auto
 Replay::LoadReplayData() -> bool
 {
-	return LoadReplayDataFull() || LoadReplayDataBasic() ||
-		   LoadStoredOnlineData();
+	return LoadedInputData(LoadInputData()) ||
+		   LoadedReplayV2(LoadReplayDataFull()) ||
+		   LoadedReplayV1(LoadReplayDataBasic()) || LoadStoredOnlineData() ||
+		   LoadOnlineDataFromDisk();
 }
 
 auto
@@ -340,8 +348,7 @@ Replay::WriteReplayData() -> bool
 
 	std::ofstream fileStream(path, std::ios::binary);
 	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to create replay file at {}",
-								   path.c_str());
+		Locator::getLogger()->warn("Failed to create replay file at {}", path);
 		return false;
 	}
 
@@ -375,16 +382,16 @@ Replay::WriteReplayData() -> bool
 			fileStream.write(append.c_str(), append.size());
 		}
 		fileStream.close();
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to write replay data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  "Failed to write replay data at {} due to exception: {}",
+		  path,
 		  e.what());
 		fileStream.close();
 		return false;
 	}
 
-	Locator::getLogger()->info("Created replay file at {}", path.c_str());
+	Locator::getLogger()->info("Created replay file at {}", path);
 	return true;
 }
 
@@ -411,7 +418,7 @@ Replay::WriteInputData() -> bool
 	std::ofstream fileStream(path, std::ios::binary);
 	if (!fileStream) {
 		Locator::getLogger()->warn("Failed to create input data file at {}",
-								   path.c_str());
+								   path);
 		return false;
 	}
 
@@ -469,8 +476,8 @@ Replay::WriteInputData() -> bool
 		// miss data:
 		// X n n n n	- noterow, column, notetype, notesubtype
 		for (auto& miss : vMissReplayDataVector) {
-			append = "X " + std::to_string(miss.row) + " " +
-					 std::to_string(miss.track) + " " +
+			append = "X " + std::to_string(miss.track) + " " +
+					 std::to_string(miss.row) + " " +
 					 std::to_string(miss.tapNoteType) + " " +
 					 std::to_string(miss.tapNoteSubType) + "\n";
 			fileStream.write(append.c_str(), append.size());
@@ -483,14 +490,14 @@ Replay::WriteInputData() -> bool
 		if (infile == nullptr) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
-									   path.c_str());
+									   path);
 			return false;
 		}
 		gzFile outfile = gzopen(path_z.c_str(), "wb");
 		if (outfile == Z_NULL) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
-									   path_z.c_str());
+									   path_z);
 			fclose(infile);
 			return false;
 		}
@@ -507,7 +514,7 @@ Replay::WriteInputData() -> bool
 		/////
 
 		Locator::getLogger()->info("Created compressed input data file at {}",
-								   path_z.c_str());
+								   path_z);
 
 		if (RetriedRemove(path)) {
 			Locator::getLogger()->debug("Deleted uncompressed input data");
@@ -516,10 +523,10 @@ Replay::WriteInputData() -> bool
 			  "Failed to delete uncompressed input data");
 		}
 		return true;
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to write input data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  "Failed to write input data at {} due to exception: {}",
+		  path,
 		  e.what());
 		fileStream.close();
 		return false;
@@ -537,9 +544,9 @@ Replay::WriteInputData() -> bool
 		Locator::getLogger()->trace("Created input data file at {}",
 									path.c_str());
 		return true;
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to write input data at {} due to runtime exception: {}",
+		  "Failed to write input data at {} due to exception: {}",
 		  path.c_str(),
 		  e.what());
 		fileStream.close();
@@ -553,6 +560,11 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 {
 	if (!InputData.empty())
 		return true;
+
+	if (attemptedToLoadInputData && !loadResultInputData) {
+		// early exit if multiple failures in a row
+		return loadResultInputData;
+	}
 
 	const auto path = replayDir + scoreKey;
 	const auto path_z = path + "z";
@@ -597,8 +609,9 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 	try {
 		gzFile infile = gzopen(path_z.c_str(), "rb");
 		if (infile == Z_NULL) {
-			Locator::getLogger()->warn("Failed to load input data at {}",
-									   path_z.c_str());
+			Locator::getLogger()->warn(
+			  "Failed to load input data at {} (probably doesnt exist)",
+			  path_z);
 			return false;
 		}
 
@@ -606,8 +619,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		FILE* outfile = fopen(path.c_str(), "wb");
 		if (outfile == nullptr) {
 			Locator::getLogger()->warn(
-			  "Failed to create tmp output file for input data at {}",
-			  path.c_str());
+			  "Failed to create tmp output file for input data at {}", path);
 			gzclose(infile);
 			return false;
 		}
@@ -622,8 +634,8 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 
 		std::ifstream inputStream(path, std::ios::binary);
 		if (!inputStream) {
-			Locator::getLogger()->debug("Failed to load input data at {}",
-										path.c_str());
+			Locator::getLogger()->debug(
+			  "Failed to load input data at {} (can't read tmp file?)", path);
 			deleteDecompressedData();
 			return false;
 		}
@@ -642,7 +654,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			if (tokens.size() != 8) {
 				Locator::getLogger()->warn(
 				  "Bad input data header detected: {} - Header: {}",
-				  path_z.c_str(),
+				  path_z,
 				  line);
 				inputStream.close();
 				deleteDecompressedData();
@@ -665,7 +677,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			if (std::stoi(tokens[7]) != INPUT_DATA_VERSION) {
 				Locator::getLogger()->warn(
 				  "Input Data at {} version is not {} - found {}",
-				  path_z.c_str(),
+				  path_z,
 				  INPUT_DATA_VERSION,
 				  std::stoi(tokens[7]));
 				inputStream.close();
@@ -697,7 +709,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 					Locator::getLogger()->warn(
 					  "Failed to load replay data at {} (\"Tapnotesubtype "
 					  "value is not of type TapNoteSubType\")",
-					  path.c_str());
+					  path);
 				}
 				hrr.subType = static_cast<TapNoteSubType>(tmp);
 				vHoldReplayDataVector.emplace_back(hrr);
@@ -718,8 +730,9 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			// miss data
 			if (tokens[0] == "X") {
 				MissReplayResult mrr;
-				mrr.row = std::stoi(tokens[1]);
-				mrr.track = std::stoi(tokens[2]);
+				// these were backwards at first so load them backwards
+				mrr.row = std::stoi(tokens[2]);
+				mrr.track = std::stoi(tokens[1]);
 				mrr.tapNoteType =
 				  static_cast<TapNoteType>(std::stoi(tokens[3]));
 				mrr.tapNoteSubType =
@@ -733,7 +746,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 			if (tokens.size() != 7) {
 				Locator::getLogger()->warn(
 				  "Bad input data detected: {} - Tokens size {} - Line: {}",
-				  GetScoreKey().c_str(),
+				  GetScoreKey(),
 				  tokens.size(),
 				  line);
 				inputStream.close();
@@ -769,15 +782,28 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		SetMissReplayDataVector(vMissReplayDataVector);
 		SetInputDataVector(readInputs);
 
-		Locator::getLogger()->info("Loaded input data at {}", path.c_str());
+		Locator::getLogger()->info("Loaded input data at {}", path);
+
+		auto* hs = GetHighScore();
+		if (hs != nullptr) {
+			const static auto delta = 0.001F;
+			if (fabsf(fMusicRate - hs->GetMusicRate()) > delta) {
+				Locator::getLogger()->error(
+				  "There is a discrepancy in the rate of replay {} - HS rate "
+				  "{} - replay rate {}",
+				  chartKey,
+				  hs->GetMusicRate(),
+				  fMusicRate);
+			}
+		}
 
 		inputStream.close();
 
 		deleteDecompressedData();
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to load input data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  "Failed to load input data at {} due to exception: {}",
+		  path,
 		  e.what());
 		deleteDecompressedData();
 		return false;
@@ -791,6 +817,11 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 	// already exists
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4) {
 		return true;
+	}
+
+	if (attemptedToLoadReplayV1 && !loadResultReplayV1) {
+		// early exit if multiple failures in a row
+		return loadResultReplayV1;
 	}
 
 	std::string profiledir;
@@ -807,8 +838,8 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 
 	// check file
 	if (!fileStream) {
-		Locator::getLogger()->warn("Failed to load replay data at {}",
-								   path.c_str());
+		Locator::getLogger()->warn(
+		  "Failed to load replay data at {} (probably doesnt exist)", path);
 		return false;
 	}
 
@@ -829,7 +860,7 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 				  "is not a v2 replay that you placed into the Save/Replays "
 				  "folder by accident, then it is probably corrupted and you "
 				  "should delete it or move it out",
-				  GetScoreKey().c_str());
+				  GetScoreKey());
 				ASSERT(tokens.size() < 2);
 			}
 
@@ -846,10 +877,10 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 			vOffsetVector.emplace_back(offset);
 			tokens.clear();
 		}
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
-		  "Failed to load replay data at {} due to runtime exception: {}",
-		  path.c_str(),
+		  "Failed to load replay data at {} due to exception: {}",
+		  path,
 		  e.what());
 		fileStream.close();
 		return false;
@@ -858,7 +889,7 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 	SetNoteRowVector(vNoteRowVector);
 	SetOffsetVector(vOffsetVector);
 
-	Locator::getLogger()->info("Loaded replay data type 1 at {}", path.c_str());
+	Locator::getLogger()->info("Loaded replay data type 1 at {}", path);
 	return true;
 }
 
@@ -868,6 +899,11 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
 		vTrackVector.size() > 4) {
 		return true;
+	}
+
+	if (attemptedToLoadReplayV2 && !loadResultReplayV2) {
+		// early exit if multiple failures in a row
+		return loadResultReplayV2;
 	}
 
 	std::string profiledir;
@@ -921,7 +957,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 				Locator::getLogger()->warn(
 				  "Failed to load replay data at {} (\"Tapnotesubtype value is "
 				  "not of type TapNoteSubType\")",
-				  path.c_str());
+				  path);
 			}
 			hrr.subType = static_cast<TapNoteSubType>(tmp);
 			vHoldReplayDataVector.emplace_back(hrr);
@@ -941,8 +977,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 		a = buffer == "0" || a;
 		if (!a) {
 			Locator::getLogger()->warn(
-			  "Replay data at {} appears to be HOT BROKEN GARBAGE WTF",
-			  path.c_str());
+			  "Replay data at {} appears to be HOT BROKEN GARBAGE WTF", path);
 			return false;
 		}
 
@@ -951,7 +986,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"NoteRow value is "
 			  "not of type: int\")",
-			  path.c_str());
+			  path);
 		}
 		vNoteRowVector.emplace_back(noteRow);
 
@@ -960,7 +995,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"Offset value is not "
 			  "of type: float\")",
-			  path.c_str());
+			  path);
 		}
 		vOffsetVector.emplace_back(offset);
 
@@ -969,7 +1004,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"Track/Column value "
 			  "is not of type: int\")",
-			  path.c_str());
+			  path);
 		}
 		vTrackVector.emplace_back(track);
 
@@ -979,7 +1014,7 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 			Locator::getLogger()->warn(
 			  "Failed to load replay data at {} (\"Tapnotetype value "
 			  "is not of type TapNoteType\")",
-			  path.c_str());
+			  path);
 		}
 		tnt = static_cast<TapNoteType>(tmp);
 		vTapNoteTypeVector.emplace_back(tnt);
@@ -993,7 +1028,109 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	SetTapNoteTypeVector(vTapNoteTypeVector);
 	SetHoldReplayDataVector(vHoldReplayDataVector);
 
-	Locator::getLogger()->info("Loaded replay data type 2 at {}", path.c_str());
+	Locator::getLogger()->info("Loaded replay data type 2 at {}", path);
+	return true;
+}
+
+auto
+Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
+{
+	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
+		vTrackVector.size() > 4) {
+		return true;
+	}
+
+	std::vector<float> timestamps;
+	std::vector<float> offsets;
+	std::vector<int> tracks;
+	std::vector<int> rows;
+	std::vector<TapNoteType> types;
+	const auto path = replayDir + scoreKey;
+
+	std::ifstream fileStream(path, std::ios::binary);
+
+	// check file
+	if (!fileStream) {
+		return false;
+	}
+
+	rapidjson::Document d;
+	try {
+		std::stringstream buffer;
+		buffer << fileStream.rdbuf();
+		fileStream.close();
+
+		if (d.Parse(buffer.str().c_str()).HasParseError()) {
+			Locator::getLogger()->error("Malformed online replay data {}",
+										path);
+			return false;
+		}
+
+		if (!d.IsArray()) {
+			Locator::getLogger()->error(
+			  "Online replay data {} was not an array as expected - skipped",
+			  path);
+			return false;
+		}
+
+		for (auto& note : d.GetArray()) {
+			if (!note.IsArray() || note.Size() < 2 || !note[0].IsNumber() ||
+				!note[1].IsNumber())
+				continue;
+
+			timestamps.push_back(note[0].GetFloat());
+			// horrid temp hack --
+			// EO keeps misses as 180ms bads for not a great reason
+			// convert them back to misses here
+			auto offset = note[1].GetFloat() / 1000.F;
+			if (offset == .18F)
+				offset = 1.F;
+			offsets.push_back(offset);
+			if (note.Size() == 3 && note[2].IsInt()) { // pre-0.6 with noterows
+				rows.push_back(note[2].GetInt());
+			}
+			if (note.Size() > 3 && note[2].IsInt() &&
+				note[3].IsInt()) { // 0.6 without noterows
+				tracks.push_back(note[2].GetInt());
+				types.push_back(static_cast<TapNoteType>(note[3].GetInt()));
+			}
+			if (note.Size() == 5 && note[4].IsInt()) { // 0.6 with noterows
+				rows.push_back(note[4].GetInt());
+			}
+		}
+	}
+	catch (std::exception& e) {
+		Locator::getLogger()->error(
+		  "Caught exception while reading online replay data {}: {}",
+		  path,
+		  e.what());
+		return false;
+	}
+
+	SetNoteRowVector(rows);
+	SetOffsetVector(offsets);
+	SetTrackVector(tracks);
+	SetTapNoteTypeVector(types);
+	SetOnlineReplayTimestampVector(timestamps);
+
+	Locator::getLogger()->info(
+	  "Loaded online replay data {} - attempting to save as local replay",
+	  path);
+	if (!GenerateNoterowsFromTimestamps()) {
+		Locator::getLogger()->warn("Found old online replay data format for "
+								   "score {}, but could not load noterow data",
+								   scoreKey);
+		return false;
+	}
+
+	if (!WriteReplayData()) {
+		Locator::getLogger()->error(
+		  "Failed to save converted online replay data from {}", path);
+		return false;
+	}
+
+	Locator::getLogger()->info("Converted online replay data for score {}",
+							   scoreKey);
 	return true;
 }
 
@@ -3546,6 +3683,34 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 class LunaReplay : public Luna<Replay>
 {
   public:
+	static auto LoadAllData(T* p, lua_State* L) -> int
+	{
+		// cant do anything with an uninitialized replay
+		if (p == nullptr || p->GetScoreKey().empty()) {
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
+		if (p->UsingReprioritizedNoteRows()) {
+			// silently fail if you try to load things out of order...
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
+		// this will load inputdata and replayv2 optimally.
+		// the point of this lua hook is to have all replay data filled out
+		// return true if it worked out
+		lua_pushboolean(L,
+						p->LoadReplayData() && p->GeneratePrimitiveVectors());
+
+		return 1;
+	}
+	static auto IsLoaded(T* p, lua_State* L) -> int
+	{
+		lua_pushboolean(L, p->GetReplayType() != ReplayType_Invalid);
+		return 1;
+	}
+
 	static auto GetOffsetVector(T* p, lua_State* L) -> int
 	{
 		auto v = p->GetOffsetVector();
@@ -3559,7 +3724,8 @@ class LunaReplay : public Luna<Replay>
 			}
 			LuaHelpers::CreateTableFromArray(v, L);
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3606,8 +3772,8 @@ class LunaReplay : public Luna<Replay>
 
 			LuaHelpers::CreateTableFromArray((*v), L);
 		} else {
-			// ok we got nothing, just throw null
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3622,7 +3788,8 @@ class LunaReplay : public Luna<Replay>
 			}
 			LuaHelpers::CreateTableFromArray((*v), L);
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3637,7 +3804,8 @@ class LunaReplay : public Luna<Replay>
 			}
 			LuaHelpers::CreateTableFromArray((*v), L);
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3666,7 +3834,8 @@ class LunaReplay : public Luna<Replay>
 				lua_rawseti(L, -2, i + 1);
 			}
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3684,7 +3853,7 @@ class LunaReplay : public Luna<Replay>
 			lua_newtable(L);
 			for (size_t i = 0; i < v.size(); i++) {
 				// make table for each item
-				lua_createtable(L, 0, 3);
+				lua_createtable(L, 0, 2);
 
 				lua_pushnumber(L, v.at(i).row);
 				lua_setfield(L, -2, "row");
@@ -3694,7 +3863,41 @@ class LunaReplay : public Luna<Replay>
 				lua_rawseti(L, -2, i + 1);
 			}
 		} else {
-			lua_pushnil(L);
+			// empty table
+			lua_newtable(L);
+		}
+		return 1;
+	}
+
+	static auto GetMissDataVector(T* p, lua_State* L) -> int
+	{
+		auto v = p->GetMissReplayDataVector();
+		const auto loaded = !v.empty();
+		if (loaded || p->LoadReplayData()) {
+			if (!loaded) {
+				v = p->GetMissReplayDataVector();
+			}
+
+			// make containing table
+			lua_newtable(L);
+			for (size_t i = 0; i < v.size(); i++) {
+				// make table for each item
+				lua_createtable(L, 0, 4);
+
+				lua_pushnumber(L, v.at(i).row);
+				lua_setfield(L, -2, "row");
+				lua_pushnumber(L, v.at(i).track);
+				lua_setfield(L, -2, "track");
+				LuaHelpers::Push<TapNoteType>(L, v.at(i).tapNoteType);
+				lua_setfield(L, -2, "noteType");
+				LuaHelpers::Push<TapNoteSubType>(L, v.at(i).tapNoteSubType);
+				lua_setfield(L, -2, "noteSubType");
+
+				lua_rawseti(L, -2, i + 1);
+			}
+		} else {
+			// empty table
+			lua_newtable(L);
 		}
 		return 1;
 	}
@@ -3746,6 +3949,9 @@ class LunaReplay : public Luna<Replay>
 	DEFINE_METHOD(UsingReprioritizedNoteRows, UsingReprioritizedNoteRows())
 
 	LunaReplay() {
+		ADD_METHOD(LoadAllData);
+		ADD_METHOD(IsLoaded);
+
 		ADD_METHOD(HasReplayData);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetScoreKey);
@@ -3759,6 +3965,7 @@ class LunaReplay : public Luna<Replay>
 		ADD_METHOD(GetTapNoteTypeVector);
 		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetMineHitVector);
+		ADD_METHOD(GetMissDataVector);
 		ADD_METHOD(GetInputData);
 		ADD_METHOD(GetReplaySnapshotForNoterow);
 		ADD_METHOD(GetLastReplaySnapshot);

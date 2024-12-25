@@ -11,6 +11,7 @@ function WHEELDATA.Reset(self)
     -- 1 is the "enum value" for Group sort, it should stay that way
     -- you can find the indices from the sortmodes table in this file
     self.CurrentSort = 1
+    self.LastSort = 1
 
     -- library of all Songs for this Game (all Styles)
     self.AllSongs = {}
@@ -31,6 +32,8 @@ function WHEELDATA.Reset(self)
             Subtitle = "",
             Artist = "",
             Author = "",
+            Group = "",
+            ChartKey = "",
         },
         valid = nil, -- function expecting chart or song that returns true if it passes (this is left empty as free space for you, reader)
         requireTags = { -- require that a chart has tags
@@ -55,6 +58,8 @@ function getEmptyActiveFilterMetadata()
         Subtitle = "",
         Artist = "",
         Author = "",
+        Group = "",
+        ChartKey = "",
     }
     return metadata
 end
@@ -77,7 +82,14 @@ end
 
 -- check if the search is empty
 function WHEELDATA.IsSearchFilterEmpty(self)
-    return not (self.ActiveFilter.metadata.Title ~= "" or self.ActiveFilter.metadata.Subtitle ~= "" or self.ActiveFilter.metadata.Artist ~= "" or self.ActiveFilter.metadata.Author ~= "")
+    return not (
+        self.ActiveFilter.metadata.Title ~= "" or
+        self.ActiveFilter.metadata.Subtitle ~= "" or
+        self.ActiveFilter.metadata.Artist ~= "" or
+        self.ActiveFilter.metadata.Author ~= "" or
+        self.ActiveFilter.metadata.Group ~= "" or
+        self.ActiveFilter.metadata.ChartKey ~= ""
+    )
 end
 
 -- check if both tag filters are empty
@@ -126,6 +138,16 @@ function WHEELDATA.SetSearch(self, t)
         self.ActiveFilter.metadata.Author = t.Author:lower()
     else
         self.ActiveFilter.metadata.Author = ""
+    end
+    if t.Group ~= nil then
+        self.ActiveFilter.metadata.Group = t.Group:lower()
+    else
+        self.ActiveFilter.metadata.Group = ""
+    end
+    if t.ChartKey ~= nil then
+        self.ActiveFilter.metadata.ChartKey = t.ChartKey:lower()
+    else
+        self.ActiveFilter.metadata.ChartKEy = ""
     end
     -- end
 end
@@ -268,6 +290,12 @@ function WHEELDATA.FilterCheck(self, g)
     -- TODO: make the chart specific portions of this work for song search just in case
     if type(g) == "string" then
         -- working with a Chartkey
+
+        -- chartkey search
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+            if g:lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) == nil then return false end
+        end
+
         local c = SONGMAN:GetStepsByChartKey(g)
         -- arbitrary function filter (passing Steps)
         if self.ActiveFilter.valid ~= nil then
@@ -285,6 +313,7 @@ function WHEELDATA.FilterCheck(self, g)
         local author = g:GetOrTryAtLeastToGetSimfileAuthor():lower()
         local artist = g:GetDisplayArtist():lower()
         local subtitle = g:GetDisplaySubTitle():lower()
+        local group = g:GetGroupName():lower()
         if not self:IsSearchFilterEmpty() then
             local startIndex = 1
             local dontUsePatternMatching = true
@@ -300,6 +329,9 @@ function WHEELDATA.FilterCheck(self, g)
             if self.ActiveFilter.metadata.Artist ~= "" then
                 if artist:find(self.ActiveFilter.metadata.Artist, startIndex, dontUsePatternMatching) == nil then return false end
             end
+            if self.ActiveFilter.metadata.Group ~= "" then
+                if group:find(self.ActiveFilter.metadata.Group, startIndex, dontUsePatternMatching) == nil then return false end
+            end
         end
 
         -- arbitrary function filter (passing Song)
@@ -313,6 +345,14 @@ function WHEELDATA.FilterCheck(self, g)
         local charts = self:GetChartsMatchingFilter(g)
         if charts == nil or #charts == 0 then return false end
 
+        -- chartkey search here
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+           for _, c in ipairs(charts) do
+                if c:GetChartKey():lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) ~= nil then return true end
+           end
+           return false
+        end
+
         -- tag filters -- if any chart passes, this song passes
         local tagFilterFails = 0
         for _, c in ipairs(charts) do
@@ -323,6 +363,11 @@ function WHEELDATA.FilterCheck(self, g)
         return tagFilterFails ~= #charts
     elseif g.GetChartKey then
         -- working with a Steps
+
+        -- chartkey search
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+            if g:GetChartKey():lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) == nil then return false end
+        end
 
         -- arbitrary function filter (passing Steps)
         if self.ActiveFilter.valid ~= nil then
@@ -365,6 +410,7 @@ local function isExactMetadataMatch(song)
         local author = song:GetOrTryAtLeastToGetSimfileAuthor():lower()
         local artist = song:GetDisplayArtist():lower()
         local subtitle = song:GetDisplaySubTitle():lower()
+        local group = song:GetGroupName():lower()
         if WHEELDATA.ActiveFilter.metadata.Title ~= "" then
            if title ~= WHEELDATA.ActiveFilter.metadata.Title then return false end
         end
@@ -376,6 +422,17 @@ local function isExactMetadataMatch(song)
         end
         if WHEELDATA.ActiveFilter.metadata.Artist ~= "" then
             if artist ~= WHEELDATA.ActiveFilter.metadata.Artist then return false end
+        end
+        if WHEELDATA.ActiveFilter.metadata.Group ~= "" then
+            if group ~= WHEELDATA.ActiveFilter.metadata.Group then return false end
+        end
+        if WHEELDATA.ActiveFilter.metadata.ChartKey ~= "" then
+            local charts = WHEELDATA:GetChartsMatchingFilter(song)
+            if charts == nil or #charts == 0 then return false end
+            for _, c in ipairs(charts) do
+                if c:GetChartKey():lower() == WHEELDATA.ActiveFilter.metadata.ChartKey then return true end
+            end
+            return false
         end
         return true
     end
@@ -449,6 +506,10 @@ function WHEELDATA.GetChartsMatchingFilter(self, song)
     for i, c in ipairs(charts) do
         local passed = true
 
+        if self.ActiveFilter.metadata.ChartKey ~= "" then
+            if c:GetChartKey():lower():find(self.ActiveFilter.metadata.ChartKey, 1, true) == nil then passed = false end
+        end
+
         -- arbitrary validation function check
         if self.ActiveFilter.valid ~= nil and not self.ActiveFilter.valid(c) then
             passed = false
@@ -464,6 +525,39 @@ function WHEELDATA.GetChartsMatchingFilter(self, song)
         end
     end
     return t
+end
+
+function WHEELDATA.GetFavoritedCharts(self, song, charts)
+    if charts == nil then charts = self:GetChartsMatchingFilter(song) end
+    local result = {}
+    for i,c in ipairs(charts) do
+        if c:IsFavorited() then
+            result[#result+1] = c
+        end
+    end
+    return result
+end
+
+function WHEELDATA.GetChartsWithGoals(self, song, charts)
+    if charts == nil then charts = self:GetChartsMatchingFilter(song) end
+    local result = {}
+    for i,c in ipairs(charts) do
+        if c:HasGoal() then
+            result[#result+1] = c
+        end
+    end
+    return result
+end
+
+function WHEELDATA.GetPermaMirrorCharts(self, song, charts)
+    if charts == nil then charts = self:GetChartsMatchingFilter(song) end
+    local result = {}
+    for i,c in ipairs(charts) do
+        if c:IsPermaMirror() then
+            result[#result+1] = c
+        end
+    end
+    return result
 end
 
 -- quickly empty the sorted lists
@@ -495,6 +589,7 @@ local sortmodes = {
     "Chordjack MSD", -- group by highest chordjack MSD
     "Technical MSD", -- group by highest tech MSD
     "Length", -- group by length range
+    "Date Added", -- group by date of song load (until cache reset)
     "Pack Clear Percent", -- group by pack, order packs by percentage of grades, then sort by grade; songs ordered by grade
     "Last Score Date", -- group by month, order packs chronlogically, songs ordered alphabetically
     "PB Date (Percent)", -- same as above, but picks the highest percent
@@ -623,6 +718,13 @@ local function getLengthSortFoldernameForSong(song)
 end
 
 -- this function sits here for scoping reasons
+-- gets the date added for the file for foldername purposes
+local function getDateAddedSortFoldernameForSong(song)
+    local date = song:GetDateAdded()
+    return date
+end
+
+-- this function sits here for scoping reasons
 -- gets the top grade for the song for foldername purposes
 local function getTopGradeSortFoldernameForSong(song)
     local grade = song:GetHighestGrade()
@@ -652,11 +754,9 @@ local function getLastMonthSortFoldernameForSong(song)
     local recentDT = nil
     for _, chart in ipairs(charts) do
         local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-        local useswarps = chart:GetTimingData():HasWarps()
 
         -- scorestack is nil if no scores on the chart
-        -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-        if scorestack ~= nil and not useswarps then
+        if scorestack ~= nil then
             -- the scores are in lists for each rate
             -- find the highest
             for ___, l in pairs(scorestack) do
@@ -685,11 +785,9 @@ local function getPBPercentMonthSortFoldernameForSong(song)
     local pbscore = nil
     for _, chart in ipairs(charts) do
         local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-        local useswarps = chart:GetTimingData():HasWarps()
 
         -- scorestack is nil if no scores on the chart
-        -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-        if scorestack ~= nil and not useswarps then
+        if scorestack ~= nil then
             -- the scores are in lists for each rate
             -- find the highest
             for ___, l in pairs(scorestack) do
@@ -716,11 +814,9 @@ local function getPBRatingMonthSortFoldernameForSong(song)
     local pbscore = nil
     for _, chart in ipairs(charts) do
         local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-        local useswarps = chart:GetTimingData():HasWarps()
 
         -- scorestack is nil if no scores on the chart
-        -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-        if scorestack ~= nil and not useswarps then
+        if scorestack ~= nil then
             -- the scores are in lists for each rate
             -- find the highest
             for ___, l in pairs(scorestack) do
@@ -1437,6 +1533,47 @@ local sortmodeImplementations = {
         end,
     },
 
+    {   -- Date Added sort -- alphabetical order, folders of dates
+        function()
+            WHEELDATA:ResetSorts()
+            local songs = WHEELDATA:GetAllSongsPassingFilter()
+
+            -- go through AllSongs and construct it as we go, then sort
+            for _, song in ipairs(songs) do
+                local fname = getDateAddedSortFoldernameForSong(song)
+                if WHEELDATA.AllSongsByFolder[fname] ~= nil then
+                    WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
+                else
+                    WHEELDATA.AllSongsByFolder[fname] = {song}
+                    WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
+                end
+                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+            end
+
+            -- sort folders and songs
+            table.sort(
+                WHEELDATA.AllFolders,
+                function(a,b)
+                    local af = a:gsub("-", ""):gsub(":", ""):gsub(" ", "")
+                    local bf = b:gsub("-", ""):gsub(":", ""):gsub(" ", "")
+                    return tonumber(af) < tonumber(bf)
+                end
+            )
+            for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
+                table.sort(
+                    songlist,
+                    SongUtil.SongTitleComparator
+                )
+            end
+        end,
+        function(song)
+            return getDateAddedSortFoldernameForSong(song)
+        end,
+        function(packName)
+            return ""
+        end,
+    },
+
     {   -- Pack Clear Percent sort -- group by pack, order packs by percentage of grades, then sort by grade; songs ordered by grade
         function()
             WHEELDATA:ResetSorts()
@@ -1688,16 +1825,23 @@ function WHEELDATA.GetCurrentSort(self)
     return self.CurrentSort, sortToString(self.CurrentSort)
 end
 
+-- get the value and string value of the previous sort
+function WHEELDATA.GetLastSort(self)
+    return self.LastSort, sortToString(self.LastSort)
+end
+
 -- set the value for the current sort
 -- needs either a string or an index
 -- returns a status of successful sort value change
 function WHEELDATA.SetCurrentSort(self, s)
     if sortmodes[s] ~= nil then
+        self.LastSort = self.CurrentSort
         self.CurrentSort = s
         return true
     else
         local k = findKeyOf(sortmodes, s)
         if k ~= nil then
+            self.LastSort = self.CurrentSort
             self.CurrentSort = k
             return true
         end
@@ -1912,14 +2056,12 @@ local function getClearStatsForGroup(group)
         local foundgrade = nil -- highest grade of at least rate 1.0
         local foundgradeUnder1 = nil -- highest grade under 1.0
         local highestrateclear = 0 -- highest rate for this song where player obtained C or better
-        local useswarps = false
         for __, chart in ipairs(WHEELDATA:GetChartsMatchingFilter(song)) do
             local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
-            useswarps = chart:GetTimingData():HasWarps()
 
             -- scorestack is nil if no scores on the chart
             -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
-            if scorestack ~= nil and not useswarps then
+            if scorestack ~= nil then
                 -- the scores are in lists for each rate
                 -- find the highest
                 for ___, l in pairs(scorestack) do
@@ -1957,45 +2099,42 @@ local function getClearStatsForGroup(group)
             end
         end
 
-        -- skip stat intake for negbpm files for now
-        if not useswarps then
-            -- add this to the count of valid files
-            out.validFilesOverall = out.validFilesOverall + 1
+        -- add this to the count of valid files
+        out.validFilesOverall = out.validFilesOverall + 1
 
-            -- no passing (C+) scores found on an entire song means no lamp is possible
-            if foundgrade == nil then
-                if foundgradeUnder1 == nil then
-                    maxlamp = nil
-                    failed = true
-                else
-                    out.filesWithScores = out.filesWithScores + 1
-                    if not failed then
-                        maxlamp = "Grade_Tier20"
-                    end
-                    -- count the number of Cleared songs (doesnt matter what grade)
-                    if out.clearPerGrade["Grade_Tier20"] ~= nil then
-                        out.clearPerGrade["Grade_Tier20"] = out.clearPerGrade["Grade_Tier20"] + 1
-                    else
-                        out.clearPerGrade["Grade_Tier20"] = 1
-                    end
-                end
+        -- no passing (C+) scores found on an entire song means no lamp is possible
+        if foundgrade == nil then
+            if foundgradeUnder1 == nil then
+                maxlamp = nil
+                failed = true
             else
                 out.filesWithScores = out.filesWithScores + 1
-                -- check if we found a new lowest common max grade
                 if not failed then
-                    if highestrateclear < 1 then
-                        maxlamp = "Grade_Tier20"
-                        failed = true
-                    elseif compareGrades(maxlamp, foundgrade) then
-                        maxlamp = foundgrade
-                    end
+                    maxlamp = "Grade_Tier20"
                 end
-                -- count the number of songs per grade (1 song may be assigned 1 grade)
-                if out.clearPerGrade[foundgrade] ~= nil then
-                    out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
+                -- count the number of Cleared songs (doesnt matter what grade)
+                if out.clearPerGrade["Grade_Tier20"] ~= nil then
+                    out.clearPerGrade["Grade_Tier20"] = out.clearPerGrade["Grade_Tier20"] + 1
                 else
-                    out.clearPerGrade[foundgrade] = 1
+                    out.clearPerGrade["Grade_Tier20"] = 1
                 end
+            end
+        else
+            out.filesWithScores = out.filesWithScores + 1
+            -- check if we found a new lowest common max grade
+            if not failed then
+                if highestrateclear < 1 then
+                    maxlamp = "Grade_Tier20"
+                    failed = true
+                elseif compareGrades(maxlamp, foundgrade) then
+                    maxlamp = foundgrade
+                end
+            end
+            -- count the number of songs per grade (1 song may be assigned 1 grade)
+            if out.clearPerGrade[foundgrade] ~= nil then
+                out.clearPerGrade[foundgrade] = out.clearPerGrade[foundgrade] + 1
+            else
+                out.clearPerGrade[foundgrade] = 1
             end
         end
     end

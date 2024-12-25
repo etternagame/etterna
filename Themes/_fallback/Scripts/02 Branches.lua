@@ -66,7 +66,7 @@ Branch = {
 			if not IsSMOnlineLoggedIn() then
 				return "ScreenNetSelectProfile"
 			else
-				return "ScreenNetRoom"
+				return "ScreenNetSelectProfile"
 			end
 		else
 			return "ScreenNetworkOptions"
@@ -82,7 +82,7 @@ Branch = {
 		return "ScreenProfileLoad"
 	end,
 	AfterSelectProfile = function()
-		if (THEME:GetMetric("Common", "AutoSetStyle") == true) then
+		if (THEME:GetMetric("Common", "AutoSetStyle") == true) or #GAMEMAN:GetStylesForGame(GAMESTATE:GetCurrentGame():GetName()) <= 1 then
 			return "ScreenSelectMusic"
 		else
 			return "ScreenSelectStyle"

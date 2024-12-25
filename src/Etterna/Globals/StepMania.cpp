@@ -63,6 +63,9 @@
 #ifdef _WIN32
 #include <windows.h>
 int(WINAPIV* __vsnprintf)(char*, size_t, const char*, va_list) = _vsnprintf;
+#define PATH_SEPARATOR ";"
+#else
+#define PATH_SEPARATOR ":"
 #endif
 
 bool noWindow;
@@ -276,6 +279,8 @@ StepMania::ResetPreferences()
 void
 ShutdownGame()
 {
+	GameLoop::loadSavedLayout();
+
 	/* First, tell SOUNDMAN that we're shutting down. This signals sound drivers
 	 * to stop sounds, which we want to do before any threads that may have
 	 * started sounds are closed; this prevents annoying DirectSound glitches
@@ -799,6 +804,7 @@ CreateDisplay()
 	} else {
 		for (unsigned i = 0; i < asRenderers.size(); i++) {
 			std::string sRenderer = asRenderers[i];
+			Trim(sRenderer);
 
 			if (CompareNoCase(sRenderer, "opengl") == 0) {
 #if defined(SUPPORT_OPENGL)
@@ -948,6 +954,17 @@ static LocalizedString COULDNT_OPEN_LOADING_WINDOW(
   "LoadingWindow",
   "Couldn't open any loading windows.");
 
+static void
+MountAdditionalDirs(const std::string& sDirList,
+		const std::string& sDelimiter,
+		const std::string& sMountPoint)
+{
+	std::vector<std::string> dirs;
+	split(sDirList, sDelimiter, dirs, true);
+	for (unsigned i = 0; i < dirs.size(); i++)
+		FILEMAN->Mount("dir", dirs[i], sMountPoint);
+}
+
 int
 sm_main(int argc, char* argv[])
 {
@@ -990,7 +1007,13 @@ sm_main(int argc, char* argv[])
 
 	// Almost everything uses this to read and write files.  Load this early.
 	FILEMAN = new RageFileManager(argv[0]);
-	FILEMAN->Mount("dir", Core::Platform::getAppDirectory(), "/");
+	const char* envRootDir = std::getenv("ETTERNA_ROOT_DIR");
+	std::string rootDir = (envRootDir && std::strlen(envRootDir) > 0)
+			? envRootDir : Core::Platform::getAppDirectory();
+	if (!FILEMAN->Mount("dir", rootDir, "/")) {
+		Locator::getLogger()->error("Failed to mount root directory: {}", rootDir);
+		return 1;
+	}
 
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
@@ -1010,18 +1033,17 @@ sm_main(int argc, char* argv[])
 	WriteLogHeader();
 
 	// Set up alternative filesystem trees.
-	if (!PREFSMAN->m_sAdditionalFolders.Get().empty()) {
-		std::vector<std::string> dirs;
-		split(PREFSMAN->m_sAdditionalFolders, ",", dirs, true);
-		for (unsigned i = 0; i < dirs.size(); i++)
-			FILEMAN->Mount("dir", dirs[i], "/");
-	}
-	if (!PREFSMAN->m_sAdditionalSongFolders.Get().empty()) {
-		std::vector<std::string> dirs;
-		split(PREFSMAN->m_sAdditionalSongFolders, ",", dirs, true);
-		for (unsigned i = 0; i < dirs.size(); i++)
-			FILEMAN->Mount("dir", dirs[i], "/AdditionalSongs");
-	}
+	if (!PREFSMAN->m_sAdditionalFolders.Get().empty())
+		MountAdditionalDirs(PREFSMAN->m_sAdditionalFolders, ",", "/");
+	const char* envAdditionalFolders = std::getenv("ETTERNA_ADDITIONAL_ROOT_DIRS");
+	if (envAdditionalFolders && std::strlen(envAdditionalFolders) > 0)
+		MountAdditionalDirs(envAdditionalFolders, PATH_SEPARATOR, "/");
+
+	if (!PREFSMAN->m_sAdditionalSongFolders.Get().empty())
+		MountAdditionalDirs(PREFSMAN->m_sAdditionalSongFolders, ",", "/AdditionalSongs");
+	const char* envAdditionalSongFolders = std::getenv("ETTERNA_ADDITIONAL_SONG_DIRS");
+	if (envAdditionalSongFolders && std::strlen(envAdditionalSongFolders) > 0)
+		MountAdditionalDirs(envAdditionalSongFolders, PATH_SEPARATOR, "/AdditionalSongs");
 
 	/* One of the above filesystems might contain files that affect preferences
 	 * (e.g. Data/Static.ini). Re-read preferences. */
@@ -1043,8 +1065,11 @@ sm_main(int argc, char* argv[])
 
 	GAMESTATE = new GameState;
 
+	GAMESTATE->ProgramHash =
+	  BinaryToHex(CryptManager::GetSHA256ForFileWithoutRageFile(argv[0]));
+
 	std::vector<std::string> arguments(argv + 1, argv + argc);
-	noWindow = std::any_of(arguments.begin(), arguments.end(), [](string str) {
+	noWindow = std::any_of(arguments.begin(), arguments.end(), [](std::string str) {
 		return str == "notedataCache";
 	});
 
@@ -1278,20 +1303,20 @@ HandleGlobalInputs(const InputEventPlus& input)
 			NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 			CodeDetector::RefreshCacheItems();
 			SCREENMAN->SystemMessage(RELOADED_METRICS);
-			MESSAGEMAN->Broadcast("ReloadedMetrics");
+			MESSAGEMAN->Broadcast(Message_ReloadedMetrics);
 		} else if (bIsCtrlHeld && !bIsShiftHeld) {
 			// Ctrl+F2: reload scripts only
 			THEME->UpdateLuaGlobals();
 			SCREENMAN->SystemMessage(RELOADED_SCRIPTS);
-			MESSAGEMAN->Broadcast("ReloadedScripts");
+			MESSAGEMAN->Broadcast(Message_ReloadedScripts);
 		} else if (bIsCtrlHeld && bIsShiftHeld) {
 			// Shift+Ctrl+F2: reload overlay screens (and metrics, since themers
 			// are likely going to do this after changing metrics.)
 			THEME->ReloadMetrics();
 			SCREENMAN->ReloadOverlayScreens();
 			SCREENMAN->SystemMessage(RELOADED_OVERLAY_SCREENS);
-			MESSAGEMAN->Broadcast("ReloadedMetrics");
-			MESSAGEMAN->Broadcast("ReloadedOverlayScreens");
+			MESSAGEMAN->Broadcast(Message_ReloadedMetrics);
+			MESSAGEMAN->Broadcast(Message_ReloadedOverlayScreens);
 		} else {
 			// F2 alone: refresh metrics, textures, noteskins, codedetector
 			// cache
@@ -1300,8 +1325,8 @@ HandleGlobalInputs(const InputEventPlus& input)
 			NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 			CodeDetector::RefreshCacheItems();
 			SCREENMAN->SystemMessage(RELOADED_METRICS_AND_TEXTURES);
-			MESSAGEMAN->Broadcast("ReloadedMetrics");
-			MESSAGEMAN->Broadcast("ReloadedTextures");
+			MESSAGEMAN->Broadcast(Message_ReloadedMetrics);
+			MESSAGEMAN->Broadcast(Message_ReloadedTextures);
 		}
 
 		return true;

@@ -548,6 +548,16 @@ ScreenTextEntry::MenuStart(const InputEventPlus& input)
 }
 
 void
+ScreenTextEntry::EndScreen()
+{
+	if (s_bMustResetInputRedirAtClose) {
+		s_bMustResetInputRedirAtClose = false;
+		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
+	}
+	Screen::EndScreen();
+}
+
+void
 ScreenTextEntry::End(bool bCancelled)
 {
 	if (bCancelled) {
@@ -601,10 +611,6 @@ ScreenTextEntry::End(bool bCancelled)
 
 	s_bCancelledLast = bCancelled;
 	s_sLastAnswer = bCancelled ? std::string("") : WStringToString(m_sAnswer);
-	if (s_bMustResetInputRedirAtClose) {
-		s_bMustResetInputRedirAtClose = false;
-		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
-	}
 }
 
 bool
@@ -737,10 +743,26 @@ class LunaScreenTextEntry : public Luna<ScreenTextEntry>
 		p->End(bCancelled);
 		return 0;
 	}
+	static int ToggleInputHidden(T* p, lua_State* L)
+	{
+		g_bPassword = !g_bPassword;
+		p->bPassword = g_bPassword;
+		p->UpdateAnswerText();
+
+		lua_pushboolean(L, p->bPassword);
+		return 1;
+	}
+	static int IsInputHidden(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->bPassword);
+		return 1;
+	}
 
 	LunaScreenTextEntry() {
 		ADD_METHOD(Load);
 		ADD_METHOD(End);
+		ADD_METHOD(ToggleInputHidden);
+		ADD_METHOD(IsInputHidden);
 	}
 };
 LUA_REGISTER_DERIVED_CLASS(ScreenTextEntry, ScreenWithMenuElements)

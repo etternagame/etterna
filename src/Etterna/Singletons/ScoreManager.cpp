@@ -10,7 +10,6 @@
 #include "Etterna/FileTypes/XmlFile.h"
 #include "arch/LoadingWindow/LoadingWindow.h"
 #include "RageUtil/Misc/RageThreads.h"
-#include "Etterna/Globals/SoloCalc.h"
 
 #include <cstdint>
 #include <numeric>
@@ -45,7 +44,7 @@ ScoreManager::~ScoreManager()
 }
 
 inline auto
-RateKeyToDisplayString(float rate) -> string
+RateKeyToDisplayString(float rate) -> std::string
 {
 	auto rs = ssprintf("%.2f", rate);
 	auto j = 1;
@@ -98,7 +97,7 @@ ScoresAtRate::AddScore(HighScore& hs) -> HighScore*
 }
 
 auto
-ScoresAtRate::GetSortedKeys() const -> const std::vector<string>
+ScoresAtRate::GetSortedKeys() const -> const std::vector<std::string>
 {
 	// it is technically possible for 2 scores to have the same percent
 	// use a multimap to support this
@@ -157,7 +156,7 @@ ScoreManager::PurgeScores()
 }
 
 void
-ScoreManager::PurgeProfileScores(const string& profileID)
+ScoreManager::PurgeProfileScores(const std::string& profileID)
 {
 	TopSSRs.clear();
 	TopSSRs.shrink_to_fit();
@@ -253,9 +252,10 @@ ScoresForChart::GetPlayedRateKeys() const -> const std::vector<int>
 }
 
 auto
-ScoresForChart::GetPlayedRateDisplayStrings() const -> const std::vector<string>
+ScoresForChart::GetPlayedRateDisplayStrings() const
+  -> const std::vector<std::string>
 {
-	std::vector<string> o;
+	std::vector<std::string> o;
 	for (const auto& rate : GetPlayedRates()) {
 		o.emplace_back(RateKeyToDisplayString(rate));
 	}
@@ -320,6 +320,67 @@ ScoresForChart::SetTopScores()
 }
 
 auto
+ScoresForChart::GetTopScoresForUploading()
+  -> const std::vector<HighScore*>
+{
+	std::vector<HighScore*> o {};
+	for (auto& atRate : ScoresByRate) {
+
+		HighScore* withReplay = nullptr;
+		HighScore* withoutReplay = nullptr;
+
+		// first, perfectly good scores
+		// second, scores lacking eligibility
+		// the idea is that at any score at all is provided
+		auto comparison = [](HighScore* a, HighScore* b) {
+			if (a->GetWifeVersion() > b->GetWifeVersion()) {
+				return true;
+			} else if (a->GetWifeVersion() < b->GetWifeVersion()) {
+				return false;
+			}
+			if (a->GetChordCohesion() && !b->GetChordCohesion()) {
+				return false;
+			} else if (!a->GetChordCohesion() && b->GetChordCohesion()) {
+				return true;
+			}
+			if (a->GetGrade() != Grade_Failed && b->GetGrade() == Grade_Failed) {
+				return true;
+			} else if (a->GetGrade() == Grade_Failed &&
+					   b->GetGrade() != Grade_Failed) {
+				return false;
+			}
+
+			return a->GetSSRNormPercent() > b->GetSSRNormPercent();
+		};
+
+		// hhhhhhhhhhhhhhhhh
+		std::vector<HighScore*> sortedScores{};
+		for (auto& hh : atRate.second.scores) {
+			sortedScores.push_back(&hh.second);
+		}
+		std::sort(sortedScores.begin(), sortedScores.end(), comparison);
+
+		// take the "best" with and without a replay
+		// basically the first elements in this list should be the best
+		for (const auto& hs : sortedScores) {
+			if (withReplay == nullptr && hs->GetReplay()->HasReplayData()) {
+				withReplay = hs;
+			} else if (withoutReplay == nullptr &&
+					   !hs->GetReplay()->HasReplayData()) {
+				withoutReplay = hs;
+			}
+		}
+
+		if (withReplay != nullptr) {
+			o.push_back(withReplay);
+		} else if (withoutReplay != nullptr) {
+			o.push_back(withoutReplay);
+		}
+	}
+	return o;
+}
+
+auto
 ScoresForChart::GetAllPBPtrs() -> const std::vector<HighScore*>
 {
 	std::vector<HighScore*> o;
@@ -343,26 +404,59 @@ ScoresForChart::GetAllScores() -> const std::vector<HighScore*>
 	return o;
 }
 
+auto
+ScoreManager::GetAllPBsPreferringReplays(const std::string& profileID)
+  -> std::vector<HighScore*>
+{
+	// find the PB for every chart on every rate
+	// if multiple scores are on a single rate, pick the best with a replay
+	// if no replay is present, just pick the best
+	// this is mostly just for InitialScoreSync
+	// (this is also super slow)
+	std::vector<HighScore*> o {};
+	try {
+		for (auto& scoresForChart : pscores.at(profileID)) {
+			if (!SONGMAN->IsChartLoaded(scoresForChart.first)) {
+				continue;
+			}
+
+			auto v = scoresForChart.second.GetTopScoresForUploading();
+			o.insert(o.end(), v.begin(), v.end());
+		}
+	} catch (std::exception& e) {
+		// can happen if profile doesnt exist
+		Locator::getLogger()->error(
+		  "Exception caught in GetAllPBsPreferringReplays, exiting early: {}", e.what());
+		return o;
+	}
+	return o;
+}
+
 // is there any reason for this to be nested and not just a single vector?
 auto
-ScoreManager::GetAllPBPtrs(const string& profileID)
+ScoreManager::GetAllPBPtrs(const std::string& profileID)
   -> const std::vector<vector<HighScore*>>
 {
 	std::vector<vector<HighScore*>> vec;
-	for (auto& i : pscores.at(profileID)) {
-		if (!SONGMAN->IsChartLoaded(i.first)) {
-			continue;
+	try {
+		for (auto& i : pscores.at(profileID)) {
+			if (!SONGMAN->IsChartLoaded(i.first)) {
+				continue;
+			}
+			vec.emplace_back(i.second.GetAllPBPtrs());
 		}
-		vec.emplace_back(i.second.GetAllPBPtrs());
+	} catch (std::exception& e) {
+		// can happen if profile doesnt exist
+		Locator::getLogger()->error(
+		  "Exception caught in GetAllPBPtrs, exiting early: {}", e.what());
 	}
-
 	return vec;
 }
 
 auto
-ScoreManager::GetChartPBAt(const string& ck,
+ScoreManager::GetChartPBAt(const std::string& ck,
 						   float rate,
-						   const string& profileID) -> HighScore*
+						   const std::string& profileID) -> HighScore*
 {
 	if (KeyHasScores(ck, profileID)) {
 		return pscores.at(profileID).at(ck).GetPBAt(rate);
@@ -372,9 +466,9 @@ ScoreManager::GetChartPBAt(const string& ck,
 }
 
 auto
-ScoreManager::GetChartPBUpTo(const string& ck,
+ScoreManager::GetChartPBUpTo(const std::string& ck,
 							 float rate,
-							 const string& profileID) -> HighScore*
+							 const std::string& profileID) -> HighScore*
 {
 	if (KeyHasScores(ck, profileID)) {
 		return pscores.at(profileID).at(ck).GetPBUpTo(rate);
@@ -384,7 +478,7 @@ ScoreManager::GetChartPBUpTo(const string& ck,
 }
 
 void
-ScoreManager::SetAllTopScores(const string& profileID)
+ScoreManager::SetAllTopScores(const std::string& profileID)
 {
 	for (auto& i : pscores[profileID]) {
 		if (!SONGMAN->IsChartLoaded(i.first)) {
@@ -574,18 +668,15 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 				const auto& serializednd = *serializednd_ptr;
 				std::vector<float> dakine;
 
-				if (steps->m_StepsType == StepsType_dance_single) {
-					// dakine = MinaSDCalc(serializednd, musicrate,
-					// ssrpercent);
-					dakine = MinaSDCalc(serializednd,
-										musicrate,
-										ssrpercent,
-										per_thread_calc.get());
-				} else {
-					int columnCount =
-					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-					dakine = SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
-				}
+				// dakine = MinaSDCalc(serializednd, musicrate,
+				// ssrpercent);
+				const unsigned columnCount =
+				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+				dakine = MinaSDCalc(serializednd,
+									musicrate,
+									ssrpercent,
+									columnCount,
+									per_thread_calc.get());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
@@ -650,7 +741,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 }
 
 void
-ScoreManager::RecalculateSSRs(const string& profileID)
+ScoreManager::RecalculateSSRs(const std::string& profileID)
 {
 	const auto& scores = SCOREMAN->GetAllProfileScores(profileID);
 
@@ -744,17 +835,13 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 				auto serializednd = nd.SerializeNoteData2(td);
 				std::vector<float> dakine;
 
-				if (steps->m_StepsType == StepsType_dance_single) {
-					dakine = MinaSDCalc(serializednd,
-										musicrate,
-										ssrpercent,
-										per_thread_calc.get());
-				} else {
-					int columnCount =
-					  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-					dakine = SoloCalc(
-					  serializednd, columnCount, musicrate, ssrpercent);
-				}
+					const unsigned columnCount =
+				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+				dakine = MinaSDCalc(serializednd,
+									musicrate,
+									ssrpercent,
+									columnCount,
+									per_thread_calc.get());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
@@ -774,7 +861,7 @@ ScoreManager::RecalculateSSRs(const string& profileID)
 }
 
 void
-ScoreManager::UnInvalidateAllScores(const string& profileID)
+ScoreManager::UnInvalidateAllScores(const std::string& profileID)
 {
 	for (auto& i : pscores[profileID]) {
 		for (const auto& s : i.second.GetAllScores()) {
@@ -786,7 +873,7 @@ ScoreManager::UnInvalidateAllScores(const string& profileID)
 void
 ScoreManager::CalcPlayerRating(float& prating,
 							   float* pskillsets,
-							   const string& profileID)
+							   const std::string& profileID)
 {
 	SetAllTopScores(profileID);
 
@@ -809,7 +896,7 @@ ScoreManager::CalcPlayerRating(float& prating,
 }
 
 std::vector<float>
-ScoreManager::SortTopSSRPtrs(Skillset ss, const string& profileID, bool getSSRs)
+ScoreManager::SortTopSSRPtrs(Skillset ss, const std::string& profileID, bool getSSRs)
 {
 	std::vector<float> o;
 	TopSSRs.clear();
@@ -914,7 +1001,7 @@ ScoreManager::GetPlayerRatingOverTime(const std::string& profileID) {
 }
 
 void
-ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const string& profileID)
+ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const std::string& profileID)
 {
 	TopSSRsForGame.clear();
 	for (auto& i : pscores[profileID]) {
@@ -955,7 +1042,7 @@ ScoreManager::GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*
 }
 
 void
-ScoreManager::SortRecentScores(const string& profileID)
+ScoreManager::SortRecentScores(const std::string& profileID)
 {
 	TopSSRs.clear();
 	for (auto& i : pscores[profileID]) {
@@ -975,7 +1062,7 @@ ScoreManager::SortRecentScores(const string& profileID)
 }
 
 void
-ScoreManager::SortRecentScoresForGame(const string& profileID)
+ScoreManager::SortRecentScoresForGame(const std::string& profileID)
 {
 	TopSSRsForGame.clear();
 	for (auto& i : pscores[profileID]) {
@@ -1016,7 +1103,7 @@ ScoreManager::GetRecentScoreForGame(const int rank) -> HighScore*
 }
 
 void
-ScoreManager::ImportScore(const HighScore& hs_, const string& profileID)
+ScoreManager::ImportScore(const HighScore& hs_, const std::string& profileID)
 {
 	auto hs = hs_;
 	RegisterScoreInProfile(pscores[profileID][hs.GetChartKey()].AddScore(hs),
@@ -1024,13 +1111,13 @@ ScoreManager::ImportScore(const HighScore& hs_, const string& profileID)
 }
 
 void
-ScoreManager::RegisterScoreInProfile(HighScore* hs_, const string& profileID)
+ScoreManager::RegisterScoreInProfile(HighScore* hs_, const std::string& profileID)
 {
 	AllProfileScores[profileID].emplace_back(hs_);
 }
 
 std::vector<Skillset>
-ScoreManager::GetTopPlayedSkillsets(const string& profileID)
+ScoreManager::GetTopPlayedSkillsets(const std::string& profileID)
 {
 	std::vector<Skillset> output;
 	auto playcounts = GetPlaycountPerSkillset(profileID);
@@ -1049,7 +1136,7 @@ ScoreManager::GetTopPlayedSkillsets(const string& profileID)
 }
 
 std::vector<int>
-ScoreManager::GetPlaycountPerSkillset(const string& profileID)
+ScoreManager::GetPlaycountPerSkillset(const std::string& profileID)
 {
 	std::vector<int> counts;
 	counts.resize(NUM_Skillset);
@@ -1060,8 +1147,7 @@ ScoreManager::GetPlaycountPerSkillset(const string& profileID)
 		if (c == nullptr)
 			continue;
 
-		auto ss = c->SortSkillsetsAtRate(
-		  std::clamp(s->GetMusicRate(), 0.7F, 2.F), false);
+		auto ss = c->SortSkillsetsAtRate(s->GetMusicRate(), false);
 		counts[ss[0].first]++;
 	}
 	return counts;
@@ -1104,7 +1190,7 @@ ScoresAtRate::CreateNode(const int& rate) const -> XNode*
 }
 
 auto
-ScoresForChart::CreateNode(const string& ck) const -> XNode*
+ScoresForChart::CreateNode(const std::string& ck) const -> XNode*
 {
 	auto loot = ch;
 	loot.FromKey(ck); // needs to be here (or somewhere along the line,
@@ -1123,7 +1209,7 @@ ScoresForChart::CreateNode(const string& ck) const -> XNode*
 }
 
 auto
-ScoreManager::CreateNode(const string& profileID) const -> XNode*
+ScoreManager::CreateNode(const std::string& profileID) const -> XNode*
 {
 	auto* o = new XNode("PlayerScores");
 	for (const auto& ch : pscores.find(profileID)->second) {
@@ -1141,39 +1227,63 @@ ScoreManager::CreateNode(const string& profileID) const -> XNode*
 // Read scores from xml
 void
 ScoresAtRate::LoadFromNode(const XNode* node,
-						   const string& ck,
+						   const std::string& ck,
 						   const float& rate,
-						   const string& profileID)
+						   const std::string& profileID)
 {
-	string sk;
+	std::string sk;
 	FOREACH_CONST_Child(node, p)
 	{
-		p->GetAttrValue("Key", sk);
+		const auto success = p->GetAttrValue("Key", sk);
+		if (!success) {
+			Locator::getLogger()->fatal(
+			  "MISSING SCOREKEY FOR CHARTKEY {} ON RATE {} THIS IS VERY BAD",
+			  ck,
+			  rate);
+		}
 
 		// Fill in stuff for the highscores
-		scores[sk].SetChartKey(ck);
-		scores[sk].SetScoreKey(sk);
-		scores[sk].SetMusicRate(rate);
-		scores[sk].LoadFromEttNode(p);
+		auto& hs = scores[sk];
+		hs.SetChartKey(ck);
+		hs.SetScoreKey(sk);
+		hs.SetMusicRate(rate);
+		hs.LoadFromEttNode(p);
+
+		const auto negbpmrecalc =
+		  !hs.GetEtternaValid() && hs.GetGrade() == Grade_Failed &&
+		  SONGMAN->IsChartLoaded(ck) &&
+		  SONGMAN->GetStepsByChartkey(ck)->GetTimingData()->HasWarps() &&
+		  GetGradeFromPercent(hs.GetSSRNormPercent()) <= Grade_Tier12;
+		if (negbpmrecalc) {
+			// the point is to rescore formerly-invalidated negbpm files
+			// which were force-failed and force-invalidated
+			hs.SetGrade(GetGradeFromPercent(hs.GetSSRNormPercent()));
+			hs.SetEtternaValid(1);
+			hs.SetWifeVersion(0);
+			Locator::getLogger()->info("Identified negbpm score to revalidate "
+									   "- CK {} SK {} - SSR% {:.4f}",
+									   ck,
+									   sk,
+									   hs.GetSSRNormPercent());
+		}
 
 		// Set any pb
 		if (PBptr == nullptr) {
 			PBptr = &scores.find(sk)->second;
 		} else {
 			// update pb if a better score is found
-			if (PBptr->GetSSRNormPercent() < scores[sk].GetSSRNormPercent()) {
+			if (PBptr->GetSSRNormPercent() < hs.GetSSRNormPercent()) {
 				PBptr = &scores.find(sk)->second;
 			}
 		}
 
-		HandleNoCCPB(scores[sk]);
+		HandleNoCCPB(hs);
 
-		bestGrade = std::min(scores[sk].GetWifeGrade(), bestGrade);
-		if (scores[sk].GetWifeGrade() != Grade_Failed) {
-			bestWifeScore =
-			  PREFSMAN->m_bSortBySSRNorm
-				? std::max(scores[sk].GetSSRNormPercent(), bestWifeScore)
-				: std::max(scores[sk].GetWifeScore(), bestWifeScore);
+		bestGrade = std::min(hs.GetWifeGrade(), bestGrade);
+		if (hs.GetWifeGrade() != Grade_Failed) {
+			bestWifeScore = PREFSMAN->m_bSortBySSRNorm
+							  ? std::max(hs.GetSSRNormPercent(), bestWifeScore)
+							  : std::max(hs.GetWifeScore(), bestWifeScore);
 		}
 
 		// Very awkward, need to figure this out better so there isn't
@@ -1191,29 +1301,29 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * care of by calcplayerrating which will be called after
 		 * recalculatessrs */
 
-		const auto oldcalc = scores[sk].GetSSRCalcVersion() != GetCalcVersion();
+		const auto oldcalc = hs.GetSSRCalcVersion() != GetCalcVersion();
 		// don't include cc check here, we want cc scores to filter into the
 		// recalc, just not the rescore
 		const auto getremarried =
-		  scores[sk].GetWifeVersion() != 3 && scores[sk].HasReplayData();
+		  hs.GetWifeVersion() != 3 && hs.HasReplayData();
 
 		// check to see if a file does not have normalized judgments
 		// this will pile up but only for cases of large amounts of scores
 		// missing replay data
 		const auto notnormalized =
-		  scores[sk].IsEmptyNormalized() &&
-		  (scores[sk].HasReplayData() || scores[sk].GetJudgeScale() == 1.F);
+		  hs.IsEmptyNormalized() &&
+		  (hs.HasReplayData() || hs.GetJudgeScale() == 1.F);
 
 		// oops (adding this to the recalc list will reset the score to 0)
-		const auto broke = scores[sk].GetSSRNormPercent() > 1.F ||
-						   scores[sk].GetWifeScore() > 1.F;
+		const auto broke =
+		  hs.GetSSRNormPercent() > 1.F || hs.GetWifeScore() > 1.F;
 
 		// for debugging replay stuff. probably never uncomment this.
 		/*
-		if (SONGMAN->IsChartLoaded(ck) && scores[sk].HasReplayData()) {
-			if (scores[sk].GetWifeGrade() != Grade_Failed) {
-				scores[sk].replay->VerifyInputDataAndReplayData();
-				scores[sk].replay->VerifyGeneratedInputDataMatchesReplayData();
+		if (SONGMAN->IsChartLoaded(ck) && hs.HasReplayData()) {
+			if (hs.GetWifeGrade() != Grade_Failed) {
+				hs.GetReplay()->VerifyInputDataAndReplayData();
+				hs.GetReplay()->VerifyGeneratedInputDataMatchesReplayData();
 			}
 		}
 		*/
@@ -1225,18 +1335,18 @@ ScoresAtRate::LoadFromNode(const XNode* node,
 		 * and while it sort of makes sense from a user convenience aspect
 		 * to allow this, it definitely does not make sense from a clarity
 		 * or consistency perspective */
-		if ((oldcalc || getremarried || notnormalized || broke) && SONGMAN->IsChartLoaded(ck)) {
-			SCOREMAN->scorestorecalc.emplace_back(&scores[sk]);
+		if ((oldcalc || getremarried || notnormalized || broke || negbpmrecalc) && SONGMAN->IsChartLoaded(ck)) {
+			SCOREMAN->scorestorecalc.emplace_back(&hs);
 		}
 	}
 }
 
 void
 ScoresForChart::LoadFromNode(const XNode* node,
-							 const string& ck,
-							 const string& profileID)
+							 const std::string& ck,
+							 const std::string& profileID)
 {
-	string rs;
+	std::string rs;
 
 	if (node->GetName() == "Chart") {
 		ch.LoadFromNode(node);
@@ -1263,12 +1373,12 @@ ScoresForChart::LoadFromNode(const XNode* node,
 }
 
 void
-ScoreManager::LoadFromNode(const XNode* node, const string& profileID)
+ScoreManager::LoadFromNode(const XNode* node, const std::string& profileID)
 {
 	FOREACH_CONST_Child(node, p)
 	{
 		// ASSERT(p->GetName() == "Chart");
-		string tmp;
+		std::string tmp;
 		p->GetAttrValue("Key", tmp);
 		const auto ck = tmp;
 		pscores[profileID][ck].LoadFromNode(p, ck, profileID);
@@ -1286,7 +1396,7 @@ ScoresForChart::GetScoresAtRate(const int& rate) -> ScoresAtRate*
 }
 
 auto
-ScoreManager::GetScoresForChart(const string& ck, const string& profileID)
+ScoreManager::GetScoresForChart(const std::string& ck, const std::string& profileID)
   -> ScoresForChart*
 {
 	auto it = (pscores[profileID]).find(ck);
@@ -1332,7 +1442,7 @@ class LunaScoreManager : public Luna<ScoreManager>
   public:
 	static auto GetScoresByKey(T* p, lua_State* L) -> int
 	{
-		const string& ck = SArg(1);
+		const std::string& ck = SArg(1);
 		auto* scores = p->GetScoresForChart(ck);
 
 		if (scores != nullptr) {

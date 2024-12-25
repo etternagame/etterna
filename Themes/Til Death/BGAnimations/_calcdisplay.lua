@@ -453,6 +453,15 @@ local debugGroups = {
     {   -- Group 17
         Minijack = true,
     },
+    {   -- Group 18
+        GenericStream = true,
+    },
+    {   -- Group 19
+        GenericChordstream = true,
+    },
+    {   -- Group 20
+        GenericBracketing = true,
+    },
 }
 
 -- specify enum names here
@@ -1193,7 +1202,9 @@ local modnames = {
     --"rpos",
     --"rpj",
     "totpm",
-
+    "gstrea",
+    "gchstr",
+    "gbrack",
 
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:
@@ -1263,6 +1274,9 @@ local modColors = {
 	--color("1,1,1"),			-- rpos
 	--color("1,1,1"),			-- rpj
     color("0.7,1,0"),		-- lime			= totalpatternmod
+    color("1,1,1"), -- genericstream
+    color("1,1,1"), -- genericchordstream
+    color("1,1,1"), -- genericbracketing
 
 
     -- place CalcPatternMod Colors above this line
@@ -1518,6 +1532,7 @@ local function topGraphLine(mod, colorToUse, hand)
                     return
                 end
 
+                if not graphVecs[mod] then return end
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then return end
                 for i = 1, #values do
@@ -1629,6 +1644,7 @@ local function bottomGraphLineMSD(mod, colorToUse, hand)
                 end
 
                 local verts = {}
+                if not graphVecs[mod] then return end
                 local values = graphVecs[mod][hand]
                 if not values or not values[1] then return end
 

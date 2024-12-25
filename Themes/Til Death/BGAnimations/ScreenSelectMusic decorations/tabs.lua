@@ -63,7 +63,10 @@ local t =
 	end,
 	NumericInputEndedMessageCommand = function(self)
 		numericinputactive = false
-	end
+	end,
+	ReloadedScriptsMessageCommand = function(self)
+		MESSAGEMAN:Broadcast("TabChanged", {from = 1, to = 1})
+	end,
 }
 
 local frameWidth = capWideScale(get43size(450), 450) / (#tabNames - 1)

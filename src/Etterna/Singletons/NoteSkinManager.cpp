@@ -581,6 +581,7 @@ NoteSkinManager::PushActorTemplate(Lua* L,
 	LuaThreadVariable varSpriteOnly("SpriteOnly",
 									LuaReference::Create(bSpriteOnly));
 	LuaThreadVariable varColor("Color", Color);
+	LuaThreadVariable varNoteskinName("CurrentNoteSkin", m_sCurrentNoteSkin);
 
 	if (data.m_Loader.IsNil()) {
 		LuaHelpers::ReportScriptError("No loader for noteskin!",

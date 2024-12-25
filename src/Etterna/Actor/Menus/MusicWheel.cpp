@@ -65,7 +65,7 @@ MusicWheel::MakeItem() -> MusicWheelItem*
 }
 
 void
-MusicWheel::Load(const string& sType)
+MusicWheel::Load(const std::string& sType)
 {
 	ROULETTE_SLOW_DOWN_SWITCHES.Load(sType, "RouletteSlowDownSwitches");
 	NUM_SECTION_COLORS.Load(sType, "NumSectionColors");
@@ -449,6 +449,7 @@ contains(std::string container, const std::string& findme) -> bool
 	  begin(container), end(container), begin(container), ::tolower);
 	return container.find(findme) != std::string::npos;
 }
+
 void
 MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 {
@@ -461,20 +462,39 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 	auto author = findme.find("author=");
 	auto title = findme.find("title=");
 	auto subtitle = findme.find("subtitle=");
-
+	auto group = findme.find("group=");
 	// title is a substring of title
 	// so if found that way, check again
 	if (title == subtitle + 3) {
 		title = findme.find("title=", title + 1);
 	}
 
+	// alternatives...
+	auto charter = std::string::npos;
+	if (author == std::string::npos) {
+		charter = findme.find("charter=");
+		if (charter == std::string::npos) {
+			charter = findme.find("stepper=");
+		}
+	}
+	auto pack = std::string::npos;
+	if (group == std::string::npos) {
+		pack = findme.find("pack=");
+	}
+
+	auto ck = findme.find("ck=");
+
 	std::string findartist;
 	std::string findauthor;
 	std::string findtitle;
 	std::string findsubtitle;
+	std::string findgroup;
+	std::string findck;
 
 	if (artist != std::string::npos || author != std::string::npos ||
-		title != std::string::npos || subtitle != std::string::npos) {
+		title != std::string::npos || subtitle != std::string::npos || 
+		group != std::string::npos || charter != std::string::npos ||
+		pack != std::string::npos || ck != std::string::npos) {
 		super_search = true;
 		if (artist != std::string::npos) {
 			findartist = findme.substr(
@@ -483,6 +503,10 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		if (author != std::string::npos) {
 			findauthor = findme.substr(
 			  author + 7, findme.find(static_cast<char>(author), ';') - author);
+		} else if (charter != std::string::npos) {
+			findauthor = findme.substr(
+			  charter + 8,
+			  findme.find(static_cast<char>(charter), ';') - charter);
 		}
 		if (title != std::string::npos) {
 			findtitle = findme.substr(
@@ -493,187 +517,106 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 			  subtitle + 9,
 			  findme.find(static_cast<char>(subtitle), ';') - subtitle);
 		}
+		if (group != std::string::npos) {
+			findgroup = findme.substr(
+			  group + 6, findme.find(static_cast<char>(group), ';') - group);
+		} else if (pack != std::string::npos) {
+			findgroup = findme.substr(
+			  pack + 5, findme.find(static_cast<char>(pack), ';') - pack);
+		}
+		if (ck != std::string::npos) {
+			findck = findme.substr(
+			  ck + 3, findme.find(static_cast<char>(ck), ';') - ck);
+		}
 	}
 
-	// The giant block of code below is for optimization purposes.
-	// Basically, we don't want to give a single fat lambda to the filter that
-	// checks and short circuits. Instead, we want to just not check at all.
-	// It's a baby sized optimization but adds up over time. The binary comments
-	// help verify which things are being checked.
 	std::vector<Song*> tmp;
 	std::function<bool(Song*)> check;
+	std::function<bool(Song*)> artistcheck; 
+	std::function<bool(Song*)> titlecheck;
+	std::function<bool(Song*)> subtitlecheck;
+	std::function<bool(Song*)> authorcheck;
+	std::function<bool(Song*)> groupcheck;
+	std::function<bool(Song*)> ckcheck;
+
 	if (!super_search) {
-		// 0000
 		check = [&findme](Song* x) {
 			return contains(x->GetDisplayMainTitle(), findme);
 		};
 	} else {
-		if (!findartist.empty() && !findtitle.empty() && !findauthor.empty() &&
-			!findsubtitle.empty()) {
-			// 1111
-			check =
-			  [&findauthor, &findartist, &findtitle, &findsubtitle](Song* x) {
-				  return contains(x->GetDisplayArtist(), findartist) ||
-						 contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-								  findauthor) ||
-						 contains(x->GetDisplayMainTitle(), findtitle) ||
-						 contains(x->GetDisplaySubTitle(), findsubtitle);
-			  };
-		} else {
-			if (!findsubtitle.empty()) {
-				if (findauthor.empty() && findtitle.empty() &&
-					findartist.empty()) {
-					// 1000
-					check = [&findsubtitle](Song* x) {
-						return contains(x->GetDisplaySubTitle(), findsubtitle);
-					};
-				} else {
-					if (findauthor.empty()) {
-						if (findtitle.empty()) {
-							// 1001
-							check = [&findsubtitle, &findartist](Song* x) {
-								return contains(x->GetDisplayArtist(),
-												findartist) ||
-									   contains(x->GetDisplaySubTitle(),
-												findsubtitle);
-							};
-						} else {
-							if (findartist.empty()) {
-								// 1010
-								check = [&findsubtitle, &findtitle](Song* x) {
-									return contains(x->GetDisplayMainTitle(),
-													findtitle) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							} else {
-								// 1011
-								check = [&findsubtitle,
-										 &findartist,
-										 &findtitle](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(x->GetDisplayMainTitle(),
-													findtitle) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							};
-						}
-					} else {
-						if (findtitle.empty()) {
-							if (findartist.empty()) {
-								// 1100
-								check = [&findsubtitle, &findauthor](Song* x) {
-									return contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							} else {
-								// 1101
-								check = [&findsubtitle,
-										 &findauthor,
-										 &findartist](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							};
-						} else {
-							// 1110
-							check = [&findsubtitle, &findauthor, &findtitle](
-									  Song* x) {
-								return contains(x->GetDisplayMainTitle(),
-												findtitle) ||
-									   contains(
-										 x->GetOrTryAtLeastToGetSimfileAuthor(),
-										 findauthor) ||
-									   contains(x->GetDisplaySubTitle(),
-												findsubtitle);
-							};
-						}
-					}
-				}
-			} else {
-				if (!findartist.empty() && !findtitle.empty() &&
-					!findauthor.empty()) {
-					// 0111
-					check = [&findauthor, &findartist, &findtitle](Song* x) {
-						return contains(x->GetDisplayArtist(), findartist) ||
-							   contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-										findauthor) ||
-							   contains(x->GetDisplayMainTitle(), findtitle);
-					};
-				} else {
-					if (findauthor.empty()) {
-						if (findtitle.empty()) {
-							// 0001
-							check = [&findartist](Song* x) {
-								return contains(x->GetDisplayArtist(),
-												findartist);
-							};
-						} else {
-							if (findartist.empty()) {
-								// 0010
-								check = [&findtitle](Song* x) {
-									return contains(x->GetDisplayMainTitle(),
-													findtitle);
-								};
-							} else {
-								// 0011
-								check = [&findartist, &findtitle](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(x->GetDisplayMainTitle(),
-													findtitle);
-								};
-							};
-						}
-					} else {
-						if (findtitle.empty()) {
-							if (findartist.empty()) {
-								// 0100
-								check = [&findauthor](Song* x) {
-									return contains(
-									  x->GetOrTryAtLeastToGetSimfileAuthor(),
-									  findauthor);
-								};
-							} else {
-								// 0101
-								check = [&findauthor, &findartist](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor);
-								};
-							};
-						} else {
-							// 0110
-							check = [&findauthor, &findtitle](Song* x) {
-								return contains(x->GetDisplayMainTitle(),
-												findtitle) ||
-									   contains(
-										 x->GetOrTryAtLeastToGetSimfileAuthor(),
-										 findauthor);
-							};
-						}
-					}
-				}
-			}
-		}
+		if (!findartist.empty())
+			artistcheck = [&findartist](Song* x) {
+				return contains(x->GetDisplayArtist(), findartist);
+			};
+		if (!findtitle.empty())
+			titlecheck = [&findtitle](Song* x) {
+				return contains(x->GetDisplayMainTitle(), findtitle);
+			};
+		if (!findsubtitle.empty())
+			subtitlecheck = [&findsubtitle](Song* x) {
+				return contains(x->GetDisplaySubTitle(), findsubtitle);
+			};
+		if (!findauthor.empty())
+			authorcheck = [&findauthor](Song* x) {
+				return contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
+								findauthor);
+			};
+		if (!findgroup.empty())
+			groupcheck = [&findgroup](Song* x) {
+				return contains(x->m_sGroupName, findgroup);
+			};
+		if (!findck.empty())
+			ckcheck = [&findck](Song* x) {
+				for (auto& steps : x->GetAllSteps())
+					if (contains(steps->GetChartKey(), findck))
+						return true;
+				return false;
+			};
 	}
 
 	for (auto& x : inv) {
-		if (check(x)) {
-			tmp.push_back(x);
+		if (!super_search) {
+			if (check(x)) {
+				tmp.push_back(x);
+				continue;
+			}
+		} else {
+			if (!findartist.empty())
+				if (artistcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findtitle.empty())
+				if (titlecheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findsubtitle.empty())
+				if (subtitlecheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findauthor.empty())
+				if (authorcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findgroup.empty())
+				if (groupcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+			if (!findck.empty())
+				if (ckcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
 		}
+		
 	}
 	if (!tmp.empty()) {
 		lastvalidsearch = findme;
@@ -688,12 +631,12 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 }
 
 void
-MusicWheel::SetHashList(const std::vector<string>& newHashList)
+MusicWheel::SetHashList(const std::vector<std::string>& newHashList)
 {
 	hashList = newHashList;
 }
 void
-MusicWheel::SetOutHashList(const std::vector<string>& newOutHashList)
+MusicWheel::SetOutHashList(const std::vector<std::string>& newOutHashList)
 {
 	outHashList = newOutHashList;
 }
@@ -702,8 +645,8 @@ void
 MusicWheel::FilterByAndAgainstStepKeys(std::vector<Song*>& inv)
 {
 	std::vector<Song*> tmp;
-	const std::function<bool(Song*, std::vector<string>&)> check =
-	  [](Song* x, std::vector<string>& hl) {
+	const std::function<bool(Song*, std::vector<std::string>&)> check =
+	  [](Song* x, std::vector<std::string>& hl) {
 		  for (auto& ck : hl) {
 			  if (x->HasChartByHash(ck)) {
 				  return true;
@@ -913,6 +856,12 @@ MusicWheel::BuildWheelItemDatas(
 			case SORT_LENGTH:
 				SongUtil::SortSongPointerArrayByLength(arraySongs);
 				break;
+			case SORT_DATE_ADDED:
+				SongUtil::SortSongPointerArrayByDateAdded(arraySongs);
+				break;
+			case SORT_CHART_AUTHOR:
+				SongUtil::SortSongPointerArrayByAuthor(arraySongs);
+				break;
 			default:
 				FAIL_M("Unhandled sort order! Aborting...");
 		}
@@ -1067,7 +1016,7 @@ MusicWheel::BuildWheelItemDatas(
 		}
 		// calculate the pack progress numbers for the sortorder
 		if (PREFSMAN->m_bPackProgressInWheel) {
-			auto allsongs = allSongsByGroupFiltered.at(so);
+			auto& allsongs = allSongsByGroupFiltered.at(so);
 			for (auto& groupname_songlist_pair : allsongs) {
 				int num_played_songs = 0;
 				for (auto& s : groupname_songlist_pair.second) {
@@ -1849,12 +1798,12 @@ class LunaMusicWheel : public Luna<MusicWheel>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		std::vector<string> newHashList;
+		std::vector<std::string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		p->SetHashList(newHashList);
 
-		std::vector<string> newOutHashList;
+		std::vector<std::string> newOutHashList;
 		p->SetOutHashList(newOutHashList);
 
 		p->ReloadSongList(false, "");
@@ -1865,12 +1814,12 @@ class LunaMusicWheel : public Luna<MusicWheel>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		std::vector<string> newHashList;
+		std::vector<std::string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		luaL_checktype(L, 2, LUA_TTABLE);
 		lua_pushvalue(L, 2);
-		std::vector<string> newOutHashList;
+		std::vector<std::string> newOutHashList;
 		LuaHelpers::ReadArrayFromTable(newOutHashList, L);
 		lua_pop(L, 1);
 

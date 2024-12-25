@@ -8,7 +8,7 @@ local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTop
 local leaderboardIsLocal = not isMulti and (playerConfig:get_data().Leaderboard or 0) == 2
 
 local toggledRateFilter = false
-if not DLMAN:GetCurrentRateFilter() then
+if not DLMAN:GetCurrentRateFilter() and not isMulti then
     DLMAN:ToggleRateFilter()
     toggledRateFilter = true
 end
@@ -119,7 +119,13 @@ local t = Def.ActorFrame {
 }
 
 local function leaderboardSortingFunction(h1, h2)
-    return h1[CRITERIA](h1) > h2[CRITERIA](h2)
+    local a = h1[CRITERIA](h1)
+	local b = h2[CRITERIA](h2)
+	if a == b then
+		return string.format("%p", h1) > string.format("%p", h2)
+	else
+		return a > b
+	end
 end
 
 local function scoreUsingMultiScore(idx)
@@ -306,6 +312,7 @@ local function scoreEntry(i)
         function(self, hs)
             local n = hs:GetDisplayName()
             self:settext(n or "")
+            local entryActor = self:GetParent():GetParent()
             if entryActor then
                 entryActor:visible(not (not n))
             end

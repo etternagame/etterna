@@ -9,7 +9,6 @@
 class XNode;
 struct RadarValues;
 struct lua_State;
-class Replay;
 
 struct HighScoreImpl;
 /** @brief The high score that is earned by a player.
@@ -23,6 +22,7 @@ struct HighScore
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
 	[[nodiscard]] auto GetName() const -> const std::string&;
+	[[nodiscard]] auto DebugString() const -> std::string;
 	[[nodiscard]] auto GetChartKey() const -> const std::string&;
 	[[nodiscard]] auto GetSSRCalcVersion() const -> int;
 	/**
@@ -63,6 +63,8 @@ struct HighScore
 	  -> const std::vector<HoldReplayResult>&;
 	[[nodiscard]] auto GetMineReplayDataVector()
 	  -> const std::vector<MineReplayResult>&;
+	[[nodiscard]] auto GetMissReplayDataVector()
+	  -> const std::vector<MissReplayResult>&;
 	[[nodiscard]] auto GetCopyOfOffsetVector() -> std::vector<float>;
 	[[nodiscard]] auto GetCopyOfNoteRowVector() -> std::vector<int>;
 	[[nodiscard]] auto GetCopyOfTrackVector() -> std::vector<int>;
@@ -71,11 +73,11 @@ struct HighScore
 	  -> std::vector<HoldReplayResult>;
 	[[nodiscard]] auto GetCopyOfMineReplayDataVector()
 	  -> std::vector<MineReplayResult>;
+	[[nodiscard]] auto GetCopyOfMissReplayDataVector()
+	  -> std::vector<MissReplayResult>;
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector()
 	  -> std::vector<float>;
 	[[nodiscard]] auto GetInputDataVector() -> const std::vector<InputDataEvent>&;
-	[[nodiscard]] auto GetMissDataVector()
-	  -> const std::vector<MissReplayResult>&;
 	[[nodiscard]] auto GetScoreKey() const -> const std::string&;
 	[[nodiscard]] auto GetTopScore() const -> int;
 	[[nodiscard]] auto GetReplayType() -> ReplayType;
@@ -174,11 +176,13 @@ struct HighScore
 	void InitReplay();
 	void UnloadReplayData();
 	void ResetSkillsets();
+	auto GetReplay() -> Replay*;
 
 	[[nodiscard]] auto GetDisplayName() const -> const std::string&;
 
 	// Mina stuff - Mina
 	auto RescoreToWife2Judge(int x) -> float;
+	auto RescoreToWife2TimeScale(float ts) -> float;
 	// update wifescore (judge the score was achieved on) and ssrnorm
 	auto RescoreToWife3(float pmax) -> bool;
 	auto RescoreToDPJudge(int x) -> float;
@@ -187,7 +191,9 @@ struct HighScore
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, std::string k);
 	void SetTopScore(int i);
-	auto GenerateValidationKeys() -> std::string;
+	void GenerateValidationKeys();
+	auto GenerateBrittleValidationKey() const -> std::string;
+	auto ValidateBrittleValidationKey() const -> bool;
 	[[nodiscard]] auto GetValidationKey(ValidationKey vk) const
 	  -> const std::string&;
 	void SetWifeVersion(int i);

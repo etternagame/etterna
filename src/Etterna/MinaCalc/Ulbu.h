@@ -1,11 +1,13 @@
 #pragma once
 
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 // stepmania garbage
 #include "../FileTypes/XmlFile.h"
 #include "../FileTypes/XmlFileUtil.h"
 #include "RageUtil/File/RageFile.h"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
+#endif
 
 // hand agnostic data structures/functions
 #include "Agnostic/MetaRowInfo.h"
@@ -44,35 +46,14 @@
 
 // they're useful sometimes
 #include "UlbuAcolytes.h"
-
-// a new thing
-#include "SequencedBaseDiffCalc.h"
+#include "UlbuBase.h"
 
 #include <cmath>
 
 /** I am ulbu, the great bazoinkazoink in the sky, and ulbu does everything, for
  * ulbu is all. Praise ulbu. */
-struct TheGreatBazoinkazoinkInTheSky
+struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 {
-	bool dbg = false;
-
-	Calc& _calc;
-	int hand = 0;
-
-	// to generate these
-
-	// keeps track of occurrences of basic row based sequencing, mostly for
-	// skilset detection, contains itvinfo as well, the very basic metrics used
-	// for detection
-	metaItvInfo _mitvi;
-
-	// meta row info keeps track of basic pattern sequencing as we scan down
-	// the notedata rows, we will recyle two pointers (we want each row to be
-	// able to "look back" at the meta info generated at the last row so the mhi
-	// generation requires the last generated mhi object as an arg
-	std::unique_ptr<metaRowInfo> _last_mri;
-	std::unique_ptr<metaRowInfo> _mri;
-
 	// tracks meta hand info as well as basic interval tracking data for hand
 	// dependent stuff, like metaitvinfo and itvinfo
 	metaItvHandInfo _mitvhi;
@@ -88,7 +69,6 @@ struct TheGreatBazoinkazoinkInTheSky
 	StreamMod _s;
 	JSMod _js;
 	HSMod _hs;
-	CJMod _cj;
 	CJDensityMod _cjd;
 	HSDensityMod _hsd;
 	OHJumpModGuyThing _ohj;
@@ -118,50 +98,206 @@ struct TheGreatBazoinkazoinkInTheSky
 	diffz _diffz;
 
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
-	  : _calc(calc)
+	  : Bazoinkazoink(calc)
 	{
 		// setup our data pointers
-		_last_mri = std::make_unique<metaRowInfo>();
-		_mri = std::make_unique<metaRowInfo>();
-		_last_mhi = std::make_unique<metaHandInfo>();
-		_mhi = std::make_unique<metaHandInfo>();
+		_last_mhi = std::make_unique<metaHandInfo>(calc);
+		_mhi = std::make_unique<metaHandInfo>(calc);
 	}
-	
-	void operator()()
+
+  private:
+	const std::array<std::vector<int>, NUM_Skillset> pmods = { {
+	  // overall, nothing, don't handle here
+	  {},
+
+	  // stream
+	  {
+		Stream,
+		OHTrill,
+		VOHTrill,
+		Roll,
+		// Chaos,
+		WideRangeRoll,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		FlamJam,
+		// OHJumpMod,
+		// Balance,
+		// RanMan,
+		// WideRangeBalance,
+	  },
+
+	  // js
+	  {
+		JS,
+		// OHJumpMod,
+		// Chaos,
+		// Balance,
+		// TheThing,
+		// TheThing2,
+		WideRangeBalance,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		// WideRangeRoll,
+		// OHTrill,
+		VOHTrill,
+		// Roll,
+		RollJS,
+		// RanMan,
+		FlamJam,
+		// WideRangeAnchor,
+	  },
+
+	  // hs
+	  {
+		HS,
+		OHJumpMod,
+		TheThing,
+		// WideRangeAnchor,
+		WideRangeRoll,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		OHTrill,
+		VOHTrill,
+		// Roll,
+		// RanMan,
+		FlamJam,
+		HSDensity,
+	  },
+
+	  // stam, nothing, don't handle here
+	  {},
+
+	  // jackspeed, doesn't use pmods (atm)
+	  {},
+
+	  // chordjack
+	  {
+		CJ,
+		// CJDensity,
+		// CJOHJump,
+		// CJOHAnchor,
+		// WideRangeAnchor,
+		// WideRangeJJ,
+		WideRangeJumptrill,
+		VOHTrill,
+		FlamJam, // you may say, why? why not?
+	  },
+
+	  // tech, duNNO wat im DOIN
+	  {
+		OHTrill,
+		VOHTrill,
+		Balance,
+		Roll,
+		// OHJumpMod,
+		Chaos,
+		WideRangeJumptrill,
+		WideRangeJJ,
+		WideRangeBalance,
+		WideRangeRoll,
+		FlamJam,
+		// RanMan,
+		Minijack,
+		// WideRangeAnchor,
+		TheThing,
+		TheThing2,
+	  },
+	} };
+
+	/* since we are no longer using the normalizer system we need to lower the
+	 * base difficulty for each skillset and then detect pattern types to push
+	 * down OR up, rather than just down and normalizing to a differential since
+	 * chorded patterns have lower enps than streams, streams default to 1 and
+	 * chordstreams start lower, stam is a special case and may use normalizers
+	 * again */
+	const std::array<float, NUM_Skillset> basescalers = { 0.F,	 0.91F, 0.75F,
+														  0.77F, 0.93F, 1.01F,
+														  1.06F, 1.06F };
+
+  public:
+	const std::array<std::vector<int>, NUM_Skillset>& get_pmods() const override
 	{
-		hand = 0;
+		return pmods;
+	}
+	const std::array<float, NUM_Skillset>& get_basescalers() const override
+	{
+		return basescalers;
+	}
+	void adj_diff_func(
+	  const size_t& itv,
+	  const int& hand,
+	  float*& adj_diff,
+	  float*& stam_base,
+	  const float& adj_npsbase,
+	  const int& ss,
+	  std::array<float, NUM_Skillset>& pmod_product_cur_interval) override
+	{
+		switch (ss) {
+			case Skill_Stream:
+				break;
+			/* test calculating stam for js/hs on max js/hs diff, also we
+			 * want hs to count against js so they are mutually exclusive,
+             * don't know how this functionally interacts with the stam base
+			 * stuff, but it might be one reason why js is more problematic
+			 * than hs? */
+			case Skill_Jumpstream: {
+				*adj_diff /=
+				  std::max<float>(_calc.pmod_vals.at(hand).at(HS).at(itv), 1.F);
+				*adj_diff /= fastsqrt(
+				  _calc.pmod_vals.at(hand).at(OHJumpMod).at(itv) * 0.95F);
 
-		// should redundant but w.e not sure
-		full_hand_reset();
-		full_agnostic_reset();
-		reset_row_sequencing();
+				auto a = *adj_diff;
+				auto b =
+				  _calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) *
+				  pmod_product_cur_interval[Skill_Handstream];
+				*stam_base = std::max<float>(a, b);
+			} break;
+			case Skill_Handstream: {
 
-		run_agnostic_pmod_loop();
-		run_dependent_pmod_loop();
+				// adj_diff /=
+				// fastsqrt(doot.at(hi).at(OHJump).at(i));
+				auto a = adj_npsbase;
+				auto b =
+				  _calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) *
+				  pmod_product_cur_interval[Skill_Jumpstream];
+				*stam_base = std::max<float>(a, b);
+			} break;
+			case Skill_JackSpeed:
+				break;
+			case Skill_Chordjack:
+				/*
+				 *adj_diff =
+				 * calc.init_base_diff_vals.at(hand).at(CJBase).at(i) *
+				 * basescalers.at(Skill_Chordjack) *
+				 * pmod_product_cur_interval[Skill_Chordjack];
+				 // we leave
+				 * stam_base alone here, still based on nps
+				 */
+				*adj_diff =
+				  _calc.init_base_diff_vals.at(hand).at(CJBase).at(itv) *
+				  basescalers.at(Skill_Chordjack) *
+				  pmod_product_cur_interval[Skill_Chordjack];
+				break;
+			case Skill_Technical:
+				*adj_diff =
+				  _calc.init_base_diff_vals.at(hand).at(TechBase).at(itv) *
+				  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
+				  std::max<float>(
+					fastpow(_calc.pmod_vals.at(hand).at(CJ).at(itv) + 0.05F,
+							2.F),
+					1.F);
+				*adj_diff *=
+				  fastsqrt(_calc.pmod_vals.at(hand).at(OHJumpMod).at(itv));
+				break;
+			default:
+				break;
+		}
 	}
 
 #pragma region hand agnostic pmod loop
 
-	void advance_agnostic_sequencing()
-	{
-		_s.advance_sequencing(_mri->ms_now, _mri->notes);
-		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
-		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
-		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
-	}
-
-	void setup_agnostic_pmods()
-	{
-		/* these pattern mods operate on all columns, only need basic meta
-		 * interval data, and do not need any more advanced pattern
-		 * sequencing */
-		_s.setup();
-		_fj.setup();
-		_tt.setup();
-		_tt2.setup();
-	}
-
-	void full_agnostic_reset()
+	void full_agnostic_reset() override
 	{
 		_s.full_reset();
 		_js.full_reset();
@@ -172,7 +308,26 @@ struct TheGreatBazoinkazoinkInTheSky
 		_last_mri.get()->reset();
 	}
 
-	void set_agnostic_pmods(const int& itv)
+	void setup_agnostic_pmods() override
+	{
+		/* these pattern mods operate on all columns, only need basic meta
+		 * interval data, and do not need any more advanced pattern
+		 * sequencing */
+		_s.setup();
+		_fj.setup();
+		_tt.setup();
+		_tt2.setup();
+	}
+
+	void advance_agnostic_sequencing() override
+	{
+		_s.advance_sequencing(_mri->ms_now, _mri->notes);
+		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
+		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
+		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
+	}
+
+	void set_agnostic_pmods(const int& itv) override
 	{
 		/* these pattern mods operate on all columns, only need basic meta
 		 * interval data, and do not need any more advanced pattern
@@ -188,38 +343,6 @@ struct TheGreatBazoinkazoinkInTheSky
 		PatternMods::set_agnostic(_fj._pmod, _fj(), itv, _calc);
 		PatternMods::set_agnostic(_tt._pmod, _tt(), itv, _calc);
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
-	}
-
-	void run_agnostic_pmod_loop()
-	{
-		setup_agnostic_pmods();
-
-		for (auto itv = 0; itv < _calc.numitv; ++itv) {
-			for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
-
-				const auto& ri = _calc.adj_ni.at(itv).at(row);
-				(*_mri)(
-				  *_last_mri, _mitvi, ri.row_time, ri.row_count, ri.row_notes);
-
-				advance_agnostic_sequencing();
-
-				// we only need to look back 1 metanoterow object, so we can
-				// swap the one we just built into last and recycle the two
-				// pointers instead of keeping track of everything
-				swap(_mri, _last_mri);
-			}
-
-			// run pattern mod generation for hand agnostic mods
-			set_agnostic_pmods(itv);
-
-			// reset any accumulated interval info and set cur index number
-			_mitvi.handle_interval_end();
-		}
-
-		PatternMods::run_agnostic_smoothing_pass(_calc.numitv, _calc);
-
-		// copy left -> right for agnostic mods
-		PatternMods::bruh_they_the_same(_calc.numitv, _calc);
 	}
 
 #pragma endregion
@@ -252,7 +375,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_mj.advance_sequencing(_mhi->_ct, _seq.get_sc_ms_now(_mhi->_ct));
 	}
 
-	void setup_dependent_mods()
+	void setup_dependent_mods() override
 	{
 		_oht.setup();
 		_voht.setup();
@@ -266,7 +389,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_wra.setup();
 	}
 
-	void set_dependent_pmods(const int& itv)
+	void set_dependent_pmods(const int& itv) override
 	{
 		PatternMods::set_dependent(hand, _ohj._pmod, _ohj(_mitvhi), itv, _calc);
 		PatternMods::set_dependent(
@@ -304,7 +427,7 @@ struct TheGreatBazoinkazoinkInTheSky
 	/// reset any moving windows or values when starting the other hand, this
 	/// shouldn't matter too much practically, but we should be disciplined
 	/// enough to do it anyway
-	void full_hand_reset()
+	void full_hand_reset() override
 	{
 		_ohj.full_reset();
 		_chain.full_reset();
@@ -330,12 +453,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz.full_reset();
 	}
 
-	void reset_row_sequencing()
-	{
-		_mitvi.reset();
-	}
-
-	void handle_dependent_interval_end(const int& itv)
+	void handle_dependent_interval_end(const int& itv) override
 	{
 		/* this calls itvhi's interval end, which is what updates the hand
 		 * counts, so this _must_ be called before anything else */
@@ -404,7 +522,7 @@ struct TheGreatBazoinkazoinkInTheSky
 		_diffz._tc.advance_jack_comp(_seq._as.get_lowest_jack_ms());
 	}
 
-	void set_sequenced_base_diffs(const int& itv) const
+	void set_sequenced_base_diffs(const int& itv) const override
 	{
 		// this is no longer done for intervals, but per row, in the row
 		// (calc base anyways)
@@ -425,11 +543,11 @@ struct TheGreatBazoinkazoinkInTheSky
 		  _diffz._tc.get_itv_rma_diff();
 	}
 
-	void run_dependent_pmod_loop()
+	void run_dependent_pmod_loop() override
 	{
 		setup_dependent_mods();
 
-		for (const auto& ids : hand_col_ids) {
+		for (const auto& ids : _calc.hand_col_masks) {
 			auto row_time = s_init;
 			auto last_row_time = s_init;
 			auto any_ms = ms_init;
@@ -475,9 +593,6 @@ struct TheGreatBazoinkazoinkInTheSky
 
 					ct = determine_col_type(row_notes, ids);
 
-					// cj must always update
-					_diffz._cj.update_flags(row_notes, row_count);
-
 					// handle any special cases that need to be executed on
 					// empty rows for this hand here before moving on, aside
 					// from whatever is in this block _nothing_ else should
@@ -490,6 +605,10 @@ struct TheGreatBazoinkazoinkInTheSky
 						}
 						continue;
 					}
+
+					// cj must always update or maybe not!
+					_diffz._cj.update_flags(row_notes & ids,
+											std::popcount(row_notes & ids));
 
 					// basically a time master, keeps track of different
 					// timings, update first
@@ -544,80 +663,13 @@ struct TheGreatBazoinkazoinkInTheSky
 	}
 #pragma endregion
 
-	[[nodiscard]] static auto make_mod_param_node(
-	  const std::vector<std::pair<std::string, float*>>& param_map,
-	  const std::string& name) -> XNode*
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
+	const std::string get_calc_param_xml() const override
 	{
-		auto* pmod = new XNode(name);
-		for (const auto& p : param_map) {
-			pmod->AppendChild(p.first, std::to_string(*p.second));
-		}
-
-		return pmod;
+		return "Save/CalcParams_4k.xml";
 	}
 
-	static void load_params_for_mod(
-	  const XNode* node,
-	  const std::vector<std::pair<std::string, float*>>& param_map,
-	  const std::string& name)
-	{
-		auto boat = 0.F;
-		const auto* pmod = node->GetChild(name);
-		if (pmod == nullptr) {
-			return;
-		}
-		for (const auto& p : param_map) {
-			const auto* ch = pmod->GetChild(p.first);
-			if (ch == nullptr) {
-				continue;
-			}
-
-			ch->GetTextValue(boat);
-			*p.second = boat;
-		}
-	}
-
-	void load_calc_params_from_disk(bool bForce = false) const
-	{
-		const auto fn = calc_params_xml;
-		int iError;
-
-		// Hold calc params program-global persistent info
-		thread_local RageFileBasic* pFile;
-		thread_local XNode params;
-		// Only ever try to load params once per thread unless forcing
-		thread_local bool paramsLoaded = false;
-
-		// Don't keep loading params if nothing to load/no reason to
-		// Allow a force to bypass
-		if (paramsLoaded && !bForce)
-			return;
-
-		// Load if missing
-		if (pFile == nullptr || bForce) {
-			delete pFile;
-			pFile = FILEMAN->Open(fn, RageFile::READ, iError);
-			// Failed to load
-			if (pFile == nullptr)
-				return;
-		}
-
-		// If it isn't loaded or we are forcing a load, load it
-		if (params.ChildrenEmpty() || bForce)
-		{
-			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
-				return;
-			}
-		}
-
-		// ignore params from older versions
-		std::string vers;
-		params.GetAttrValue("vers", vers);
-		if (vers.empty() || stoi(vers) != GetCalcVersion()) {
-			return;
-		}
-		paramsLoaded = true;
-
+	void load_calc_params_internal(const XNode& params) const override {
 		// diff params
 		load_params_for_mod(&params, _diffz._cj._params, _diffz._cj.name);
 		load_params_for_mod(&params, _diffz._tc._params, _diffz._tc.name);
@@ -650,11 +702,8 @@ struct TheGreatBazoinkazoinkInTheSky
 		load_params_for_mod(&params, _tt2._params, _tt2.name);
 	}
 
-	[[nodiscard]] auto make_param_node() const -> XNode*
+	XNode* make_param_node_internal(XNode* calcparams) const override
 	{
-		auto* calcparams = new XNode("CalcParams");
-		calcparams->AppendAttr("vers", GetCalcVersion());
-
 		// diff params
 		calcparams->AppendChild(
 		  make_mod_param_node(_diffz._cj._params, _diffz._cj.name));
@@ -693,17 +742,5 @@ struct TheGreatBazoinkazoinkInTheSky
 		return calcparams;
 	}
 #pragma endregion
-
-	void write_params_to_disk() const
-	{
-		const auto fn = calc_params_xml;
-		const std::unique_ptr<XNode> xml(make_param_node());
-
-		std::string err;
-		RageFile f;
-		if (!f.Open(fn, RageFile::WRITE)) {
-			return;
-		}
-		XmlFileUtil::SaveToFile(xml.get(), f, "", false);
-	}
+#endif
 };

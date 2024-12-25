@@ -1404,18 +1404,22 @@ BMSChartReader::ReadNoteData()
 			if (holdStart[track] != -1) {
 				// this object is the end of the hold note.
 				TapNote tn = nd.GetTapNote(track, holdStart[track]);
-				tn.type = TapNoteType_HoldHead;
-				tn.subType = TapNoteSubType_Hold;
-				nd.AddHoldNote(track, holdStart[track], row, tn);
+				if (holdStart[track] != row) {
+					tn.type = TapNoteType_HoldHead;
+					tn.subType = TapNoteSubType_Hold;
+					nd.AddHoldNote(track, holdStart[track], row, tn);
+				}
 				holdStart[track] = -1;
 				lastNote[track] = -1;
 			} else if (obj.value == lnobj && lastNote[track] != -1) {
 				// this object is the end of the hold note.
 				// lnobj: set last note to hold head.
 				TapNote tn = nd.GetTapNote(track, lastNote[track]);
-				tn.type = TapNoteType_HoldHead;
-				tn.subType = TapNoteSubType_Hold;
-				nd.AddHoldNote(track, lastNote[track], row, tn);
+				if (lastNote[track] != row) {
+					tn.type = TapNoteType_HoldHead;
+					tn.subType = TapNoteSubType_Hold;
+					nd.AddHoldNote(track, lastNote[track], row, tn);
+				}
 				holdStart[track] = -1;
 				lastNote[track] = -1;
 			} else {

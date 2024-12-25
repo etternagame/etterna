@@ -1,2 +1,4 @@
 --- ChartRequest class for multiplayer chart requests
+--
+-- This class inherits no methods from superclasses.
 -- @classmod ChartRequest

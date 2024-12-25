@@ -32,7 +32,7 @@ local P1X =
 	SCREEN_CENTER_X + MovableValues.NotefieldX + (cols % 2 == 0 and -nfspace / 2 or 0)
 
 if not isCentered then
-	P1X = THEME:GetMetric("ScreenGameplay", string.format("PlayerP1%sX", styleType))
+	P1X = THEME:GetMetric("ScreenGameplay", string.format("PlayerP1%sX", styleType)) + MovableValues.NotefieldX + (cols % 2 == 0 and -nfspace / 2 or 0)
 end
 
 local function getPlayerBPM(pn)

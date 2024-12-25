@@ -17,6 +17,7 @@ local sortTable = {
 	SortOrder_Genre = THEME:GetString("SortOrder", "Genre"),
 	SortOrder_ModeMenu = THEME:GetString("SortOrder", "ModeMenu"),
 	SortOrder_Length = THEME:GetString("SortOrder", "Length"),
+	SortOrder_DateAdded = THEME:GetString("SortOrder", "DateAdded"),
 	SortOrder_Favorites = THEME:GetString("SortOrder", "Favorites"),
 	SortOrder_Overall = THEME:GetString("SortOrder", "Overall"),
 	SortOrder_Stream = THEME:GetString("SortOrder", "Stream"),
@@ -26,6 +27,7 @@ local sortTable = {
 	SortOrder_JackSpeed = THEME:GetString("SortOrder", "JackSpeed"),
 	SortOrder_Chordjack = THEME:GetString("SortOrder", "Chordjack"),
 	SortOrder_Technical = THEME:GetString("SortOrder", "Technical"),
+	SortOrder_Author = THEME:GetString("SortOrder", "Author"),
 	SortOrder_Ungrouped = THEME:GetString("SortOrder", "Ungrouped")
 }
 

@@ -512,7 +512,7 @@ RageFileManager::GetDirListingWithMultipleExtensions(
 	for (auto&& item : ret) {
 		std::string item_ext = GetExtension(item);
 		for (auto&& check_ext : ExtensionList) {
-			if (item_ext == check_ext) {
+			if (EqualsNoCase(check_ext, item_ext)) {
 				AddTo.push_back(item);
 			}
 		}
@@ -1019,8 +1019,17 @@ RageFileManager::CacheFile(const RageFileBasic* fb, const std::string& sPath_)
 	std::map<const RageFileBasic*, LoadedDriver*>::iterator it =
 	  g_mFileDriverMap.find(fb);
 
+	// remove the forced crash here just to see how it runs
+	if (it == g_mFileDriverMap.end()) {
+		Locator::getLogger()->fatal("No recorded driver for file (are we "
+									"multithreading file access????): {}",
+									sPath_);
+		return;
+	}
+	/*
 	ASSERT_M(it != g_mFileDriverMap.end(),
 			 ssprintf("No recorded driver for file: %s", sPath_.c_str()));
+	*/
 
 	std::string sPath = sPath_;
 	NormalizePath(sPath);

@@ -184,7 +184,7 @@ local function Update(self)
 			-- We don't display the decimal values due to lack of precision from having a relatively small time window.
 			if enabled.NPSDisplay[pn] then
 				if debug then
-					self:GetChild("NPSDisplay"):GetChild("Text"):settextf(
+					self:GetDescendant("NPSDisplay", "Text"):settextf(
 						"%0.1f NPS (Peak %0.1f)\n%0.1fs Window\n%d notes in table\nDynamic Window:%s",
 						curNPS,
 						peakNPS[pn],
@@ -193,7 +193,7 @@ local function Update(self)
 						tostring(dynamicWindow)
 					)
 				else
-					self:GetChild("NPSDisplay"):GetChild("Text"):settextf("%0.0f %s (%s %0.0f)", curNPS, translated_info["NPS"], translated_info["Peak"], peakNPS[pn])
+					self:GetDescendant("NPSDisplay", "Text"):settextf("%0.0f %s (%s %0.0f)", curNPS, translated_info["NPS"], translated_info["Peak"], peakNPS[pn])
 				end
 			end
 			-- update the window size.

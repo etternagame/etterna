@@ -17,7 +17,7 @@ class ScreenNetSelectMusic : public ScreenSelectMusic
 	void HandleScreenMessage(const ScreenMessage& SM) override;
 
 	void StartSelectedSong();
-	bool SelectCurrent();
+	bool SelectCurrent(bool useWheel = true);
 
 	void OpenOptions() override;
 

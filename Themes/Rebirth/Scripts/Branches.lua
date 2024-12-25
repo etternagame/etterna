@@ -26,8 +26,19 @@ Branch.ExitingSyncMachine = function()
 end
 Branch.ExitingHelpMenu = function()
     local o = "ScreenTitleMenu"
-    if SCUFF ~= nil and SCUFF.helpmenuBackout ~= nil then
+    if SCUFF ~= nil and SCUFF.helpmenuBackout ~= nil and SCUFF.helpmenuBackout ~= "" then
         o = SCUFF.helpmenuBackout
     end
     return o
+end
+
+Branch.MultiScreen = function()
+    if IsNetSMOnline() then
+        if not IsSMOnlineLoggedIn() then
+            return "ScreenSMOnlineLogin"
+        end
+        return "ScreenNetRoom"
+    else
+        return "ScreenNetworkOptions"
+    end
 end

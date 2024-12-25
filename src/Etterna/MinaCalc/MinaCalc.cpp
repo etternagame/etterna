@@ -1,14 +1,21 @@
 #include "MinaCalc.h"
 #include "Ulbu.h"
+#include "UlbuSixKey.h"
+#include "UlbuSevenKey.h"
 #include "MinaCalcHelpers.h"
 
 #include <cmath>
 #include <iostream>
+#include <sstream>
 #include <algorithm>
 #include <array>
 #include <string>
 #include <utility>
 #include <cassert>
+
+#if defined(PHPCALC)
+#include <phpcpp.h>
+#endif
 
 using std::max;
 using std::min;
@@ -45,6 +52,10 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			   const float music_rate,
 			   const float score_goal) -> std::vector<float>
 {
+
+	InitializeKeycountLogic();
+	const auto& basescalers = ulbu_in_charge->get_basescalers();
+
 	// for multi offset passes
 	// const int num_offset_passes = ssr ? 3 : 1;
 	const auto num_offset_passes = 1;
@@ -54,13 +65,12 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 ++cur_iteration) {
 
 		const auto skip = InitializeHands(
-		  NoteInfo,
-		  music_rate,
-		  0.1F * static_cast<float>(cur_iteration));
+		  NoteInfo, music_rate, 0.1F * static_cast<float>(cur_iteration));
 
 		// if we exceed max_rows_for_single_interval during processing
 		if (skip) {
-			std::cout << "skipping junk file" << std::endl;
+			if (debugmode)
+				std::cout << "skipping junk file" << std::endl;
 			return dimples_the_all_zero_output;
 		}
 
@@ -69,8 +79,11 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 
 		// overall and stam will be left as 0.f by this loop
 		for (auto i = 0; i < NUM_Skillset; ++i) {
-			iteration_skillet_values[i] =
-			  Chisel(0.1F, 10.24F, score_goal, static_cast<Skillset>(i), false);
+			iteration_skillet_values[i] = Chisel(0.1F,
+												 10.24F,
+												 score_goal,
+												 static_cast<Skillset>(i),
+												 false);
 		}
 
 		// stam is based on which calc produced the highest output without it
@@ -87,11 +100,12 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 * files */
 		for (auto i = 0; i < NUM_Skillset; ++i) {
 			if (iteration_skillet_values[i] > base * 0.9f) {
-				iteration_skillet_values[i] = Chisel(iteration_skillet_values[i] * 0.9F,
-									0.32F,
-									score_goal,
-									static_cast<Skillset>(i),
-									true);
+				iteration_skillet_values[i] =
+				  Chisel(iteration_skillet_values[i] * 0.9F,
+						 0.32F,
+						 score_goal,
+						 static_cast<Skillset>(i),
+						 true);
 			}
 		}
 
@@ -156,6 +170,17 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 					   static_cast<Skillset>(ss),
 					   true,
 					   true);
+			}
+		}
+
+		// scale the output values to values familiar to the 4k calc
+		// for other keymodes
+		if (keycount != 4u) {
+			const auto scale = 4.F / static_cast<float>(keycount);
+			for (auto ss = 0; ss < NUM_Skillset; ss++) {
+				if (ss == Skill_JackSpeed || ss == Skill_Technical)
+					continue;
+				iteration_skillet_values[ss] *= scale;
 			}
 		}
 
@@ -465,6 +490,43 @@ CalcInternal(float& gotpoints,
 }
 
 auto
+Calc::InitializeKeycountLogic() -> void
+{
+	bool keycount_defined = false;
+	if (!ulbu_collective.contains(keycount)) {
+		switch (keycount) {
+			case 4u:
+				ulbu_collective.emplace(
+				  keycount,
+				  std::make_shared<TheGreatBazoinkazoinkInTheSky>(*this));
+				keycount_defined = true;
+				break;
+			case 6u:
+				ulbu_collective.emplace(
+				  keycount, std::make_shared<TheSixEyedBazoinkazoink>(*this));
+				keycount_defined = true;
+				break;
+			case 7u:
+				ulbu_collective.emplace(
+				  keycount,
+				  std::make_shared<TheSevenFootedBazoinkazoink>(*this));
+				keycount_defined = true;
+				break;
+			default:
+				if (!ulbu_collective.contains(0u)) {
+					ulbu_collective.emplace(
+					  0u, std::make_shared<Bazoinkazoink>(*this));
+				}
+				break;
+		}
+	} else {
+		keycount_defined = true;
+	}
+	const auto t_keycount = keycount_defined ? keycount : 0u;
+	ulbu_in_charge = ulbu_collective.at(t_keycount);
+}
+
+auto
 Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 					  const float music_rate,
 					  const float offset) -> bool
@@ -473,19 +535,23 @@ Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset))
 		return true;
 
-	// ulbu calculates everything needed for the block below
-	// (mostly patternmods)
-	thread_local TheGreatBazoinkazoinkInTheSky ulbu_that_which_consumes_all(
-	  *this);
-
-	// if debug, force params to load
-	if (debugmode || loadparams)
-		ulbu_that_which_consumes_all.load_calc_params_from_disk(true);
+	// if debug, force params to load and reset pmods and base diffs
+	if (debugmode || loadparams) {
+		ulbu_in_charge->load_calc_params_from_disk(true);
+		for (const auto& hand : both_hands) {
+			for (auto& v : pmod_vals.at(hand)) {
+				std::fill(v.begin(), v.end(), 1.F);
+			}
+			for (auto& v : init_base_diff_vals.at(hand)) {
+				std::fill(v.begin(), v.end(), 0.F);
+			}
+		}
+	}
 
 	// reset ulbu patternmod structs
 	// run agnostic patternmod/sequence loop
 	// run dependent patternmod/sequence loop
-	ulbu_that_which_consumes_all();
+	(*ulbu_in_charge)();
 
 	// loop over hands to set adjusted difficulties using the patternmods
 	for (const auto& hand : both_hands) {
@@ -722,105 +788,8 @@ Calc::Chisel(const float player_skill,
 inline void
 Calc::InitAdjDiff(Calc& calc, const int& hand)
 {
-	static const std::array<std::vector<int>, NUM_Skillset> pmods_used = { {
-	  // overall, nothing, don't handle here
-	  {},
-
-	  // stream
-	  {
-		Stream,
-		OHTrill,
-		VOHTrill,
-		Roll,
-		Chaos,
-		WideRangeRoll,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		FlamJam,
-		// OHJumpMod,
-		// Balance,
-		// RanMan,
-		// WideRangeBalance,
-	  },
-
-	  // js
-	  {
-		JS,
-		// OHJumpMod,
-		// Chaos,
-		// Balance,
-		// TheThing,
-		// TheThing2,
-		WideRangeBalance,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		// WideRangeRoll,
-		// OHTrill,
-		VOHTrill,
-		// Roll,
-		RollJS,
-		// RanMan,
-		FlamJam,
-		// WideRangeAnchor,
-	  },
-
-	  // hs
-	  {
-		HS,
-		OHJumpMod,
-		TheThing,
-		// WideRangeAnchor,
-		WideRangeRoll,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		OHTrill,
-		VOHTrill,
-		// Roll,
-		// RanMan,
-		FlamJam,
-	  	HSDensity,
-	  },
-
-	  // stam, nothing, don't handle here
-	  {},
-
-	  // jackspeed, doesn't use pmods (atm)
-	  {},
-
-	  // chordjack
-	  {
-		CJ,
-		// CJDensity,
-		CJOHJump,
-		CJOHAnchor,
-		VOHTrill,
-		// WideRangeAnchor,
-	  	FlamJam, // you may say, why? why not?
-		// WideRangeJJ,
-		WideRangeJumptrill,
-	  },
-
-	  // tech, duNNO wat im DOIN
-	  {
-		OHTrill,
-		VOHTrill,
-		Balance,
-		Roll,
-		// OHJumpMod,
-		Chaos,
-		WideRangeJumptrill,
-		WideRangeJJ,
-		WideRangeBalance,
-		WideRangeRoll,
-		FlamJam,
-		// RanMan,
-		Minijack,
-		// WideRangeAnchor,
-		TheThing,
-		TheThing2,
-	  },
-	} };
-
+	const auto& pmods_used = calc.ulbu_in_charge->get_pmods();
+	const auto& basescalers = calc.ulbu_in_charge->get_basescalers();
 	std::array<float, NUM_Skillset> pmod_product_cur_interval = {};
 
 	// ok this loop is pretty wack i know, for each interval
@@ -863,59 +832,14 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 			// start diff values at adjusted nps base
 			*adj_diff = adj_npsbase;
 			*stam_base = adj_npsbase;
-			switch (ss) {
-				// do funky special case stuff here
-				case Skill_Stream:
-					break;
 
-				/* test calculating stam for js/hs on max js/hs diff, also we
-				 * want hs to count against js so they are mutually exclusive,
-				 * don't know how this functionally interacts with the stam base
-				 * stuff, but it might be one reason why js is more problematic
-				 * than hs? */
-				case Skill_Jumpstream: {
-					*adj_diff /= max<float>(calc.pmod_vals.at(hand).at(HS).at(i), 1.F);
-					*adj_diff /=
-					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i) * 0.95F);
-
-					auto a = *adj_diff;
-					auto b = calc.init_base_diff_vals.at(hand).at(NPSBase).at(i) *
-							 pmod_product_cur_interval[Skill_Handstream];
-					*stam_base = max<float>(a, b);
-				} break;
-				case Skill_Handstream: {
-
-					// adj_diff /=
-					// fastsqrt(doot.at(hi).at(OHJump).at(i));
-					auto a = adj_npsbase;
-					auto b = calc.init_base_diff_vals.at(hand).at(NPSBase).at(i) *
-							 pmod_product_cur_interval[Skill_Jumpstream];
-					*stam_base = max<float>(a, b);
-				} break;
-				case Skill_JackSpeed:
-					break;
-				case Skill_Chordjack:
-					/*
-					*adj_diff =
-					  calc.init_base_diff_vals.at(hand).at(CJBase).at(i) *
-					  basescalers.at(Skill_Chordjack) *
-					  pmod_product_cur_interval[Skill_Chordjack];
-					// we leave stam_base alone here, still based on nps
-					*/
-					break;
-				case Skill_Technical:
-					*adj_diff =
-					  calc.init_base_diff_vals.at(hand).at(TechBase).at(i) *
-					  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
-					  max<float>(
-						fastpow(calc.pmod_vals.at(hand).at(CJ).at(i)+0.05F, 2.F),
-						1.F);
-					*adj_diff *=
-					  fastsqrt(calc.pmod_vals.at(hand).at(OHJumpMod).at(i));
-					break;
-				default:
-					break;
-			}
+			calc.ulbu_in_charge->adj_diff_func(i,
+											   hand,
+											   adj_diff,
+											   stam_base,
+											   adj_npsbase,
+											   ss,
+											   pmod_product_cur_interval);
 		}
 	}
 }
@@ -931,7 +855,7 @@ make_debug_strings(const Calc& calc, std::vector<std::string>& debugstrings)
 		for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 			const auto& ri = calc.adj_ni.at(itv).at(row);
 
-			itvstring.append(make_note_mapping(4, ri.row_notes));
+			itvstring.append(make_note_mapping(calc.keycount, ri.row_notes));
 			itvstring.append("\n");
 		}
 
@@ -948,6 +872,7 @@ auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   const float musicrate,
 		   const float goal,
+		   const unsigned keycount,
 		   Calc* calc) -> std::vector<float>
 {
 	if (NoteInfo.size() <= 1) {
@@ -955,13 +880,16 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 	}
 	calc->ssr = true;
 	calc->debugmode = false;
+	calc->keycount = keycount;
 
 	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
 
 // Wrap difficulty calculation for all standard rates
 auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
+		   const unsigned keycount,
+		   Calc* calc) -> MinaSD
 {
 	MinaSD allrates;
 	const auto lower_rate = 7; // 0.7x
@@ -970,6 +898,7 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD
 	if (NoteInfo.size() > 1) {
 		calc->ssr = false;
 		calc->debugmode = false;
+		calc->keycount = keycount;
 		for (auto i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(calc->CalcMain(
 			  NoteInfo, static_cast<float>(i) / 10.F, default_score_goal));
@@ -988,6 +917,7 @@ MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
   const float musicrate,
   const float goal,
+  const unsigned keycount,
   std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
   std::vector<std::string>& debugstrings,
   Calc& calc)
@@ -999,26 +929,121 @@ MinaSDCalcDebug(
 	// debugmode true will cause params to reload
 	calc.debugmode = true;
 	calc.ssr = true;
+	calc.keycount = keycount;
 	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 	make_debug_strings(calc, debugstrings);
 
 	handInfo.emplace_back(calc.debugValues.at(left_hand));
 	handInfo.emplace_back(calc.debugValues.at(right_hand));
 
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 	/* ok so the problem atm is the multithreading of songload, if we want
 	 * to update the file on disk with new values and not just overwrite it
 	 * we have to write out after loading the values player defined, so the
 	 * quick hack solution to do that is to only do it during debug output
 	 * generation, which is fine for the time being, though not ideal */
-	if (!DoesFileExist(calc_params_xml)) {
-		const TheGreatBazoinkazoinkInTheSky ublov(calc);
-		ublov.write_params_to_disk();
+	FILEMAN->FlushDirCache(calc.ulbu_in_charge->get_calc_param_xml());
+	if (!DoesFileExist(calc.ulbu_in_charge->get_calc_param_xml())) {
+		calc.ulbu_in_charge->write_params_to_disk();
 	}
+#endif
 }
 
-int mina_calc_version = 505;
+int mina_calc_version = 515;
 auto
 GetCalcVersion() -> int
 {
 	return mina_calc_version;
 }
+
+#if defined(PHPCALC)
+#include <fstream>
+
+Php::Value
+calculator_version()
+{
+	return GetCalcVersion();
+}
+
+Php::Value
+webcalc(Php::Parameters& parameters)
+{
+
+	std::string contents = parameters[0];
+	const double rate = parameters[1];
+	const double wife = parameters[2];
+	const int keycount = parameters[3];
+
+	std::vector<NoteInfo> newVector;
+	std::istringstream stream;
+	stream.str(std::move(contents));
+
+	stream.seekg(0, std::ios::end);
+	auto n = stream.tellg();
+
+	newVector.resize(n / sizeof(NoteInfo));
+	stream.seekg(0, std::ios::beg);
+	stream.read((char*)&newVector[0], newVector.capacity() * sizeof(NoteInfo));
+
+	thread_local auto calc = std::make_unique<Calc>();
+	std::vector<float> ssr = dimples_the_all_zero_output;
+	if (newVector.size() > 1) {
+
+		try {
+			calc->keycount = keycount;
+			ssr =
+			  calc->CalcMain(newVector,
+							 rate,
+							 std::min(wife, static_cast<double>(ssr_goal_cap)));
+		} catch (std::exception& e) {
+			throw Php::Exception(e.what());
+		}
+
+		// ssr = calc->CalcMain(newVector, rate, min(wife, 0.965));
+	}
+
+	Php::Value assoc;
+	assoc["Overall"] = ssr[0];
+	assoc["Stream"] = ssr[1];
+	assoc["Jumpstream"] = ssr[2];
+	assoc["Handstream"] = ssr[3];
+	assoc["Stamina"] = ssr[4];
+	assoc["JackSpeed"] = ssr[5];
+	assoc["Chordjack"] = ssr[6];
+	assoc["Technical"] = ssr[7];
+
+	return assoc;
+}
+
+extern "C" {
+PHPCPP_EXPORT void*
+get_module()
+{
+
+
+	#ifndef PHPCALC_TESTING
+	
+		static Php::Extension myExtension(
+		  "stable_calc", std::to_string(GetCalcVersion()).c_str());
+		myExtension.add<webcalc>("stableWebCalc",
+								 { Php::ByVal("a", Php::Type::String),
+								   Php::ByVal("b", Php::Type::Float),
+								   Php::ByVal("c", Php::Type::Float),
+								   Php::ByVal("d", Php::Type::Numeric) });
+		myExtension.add<calculator_version>("stableCalcVersion");
+		return myExtension;
+	#else
+	
+		static Php::Extension myExtension(
+		  "testing_calc", std::to_string(GetCalcVersion()).c_str());
+		myExtension.add<webcalc>("testingWebCalc",
+								 { Php::ByVal("a", Php::Type::String),
+								   Php::ByVal("b", Php::Type::Float),
+								   Php::ByVal("c", Php::Type::Float),
+								   Php::ByVal("d", Php::Type::Numeric) });
+		myExtension.add<calculator_version>("testingCalcVersion");
+		return myExtension;
+       #endif
+}
+}
+#endif

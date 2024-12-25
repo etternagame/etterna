@@ -36,7 +36,8 @@ local translated_info = {
 	Ready = THEME:GetString("GeneralInfo", "Ready"),
 	TogglePreview = THEME:GetString("ScreenSelectMusic", "TogglePreview"),
 	PlayerOptions = THEME:GetString("ScreenSelectMusic", "PlayerOptions"),
-	OpenSort = THEME:GetString("ScreenSelectMusic", "OpenSortMenu")
+	OpenSort = THEME:GetString("ScreenSelectMusic", "OpenSortMenu"),
+	CloseSort = THEME:GetString("ScreenSelectMusic", "CloseSortMenu"),
 }
 
 -- to reduce repetitive code for setting preview music position with booleans
@@ -352,7 +353,7 @@ local t = Def.ActorFrame {
 }
 
 -- Music Rate Display
-t[#t + 1] = LoadFont("Common Large") .. {
+t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 	InitCommand = function(self)
 		self:xy(20, SCREEN_BOTTOM - 226):visible(true):halign(0):zoom(0.4):maxwidth(
 			capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
@@ -372,7 +373,22 @@ t[#t + 1] = LoadFont("Common Large") .. {
 	end,
 	GoalSelectedMessageCommand = function(self)
 		self:queuecommand("MintyFresh")
-	end
+	end,
+	MouseOverCommand = function(self)
+		self:diffusealpha(hoverAlpha2)
+	end,
+	MouseOutCommand = function(self)
+		self:diffusealpha(1)
+	end,
+	MouseDownCommand = function(self, params)
+		if not self:IsVisible() then return end
+		if params.event == "DeviceButton_right mouse button" then
+			ChangeMusicRate(nil, {Name="NextRate"})
+		elseif params.event == "DeviceButton_left mouse button" then
+			ChangeMusicRate(nil, {Name="PrevRate"})
+		end
+		self:settext(getCurRateDisplayString())
+	end,
 }
 
 t[#t + 1] = Def.Actor {
@@ -561,6 +577,9 @@ t[#t + 1] = Def.ActorFrame {
 			self:xy(capWideScale(frameX + 140,frameX + 154), frameY + 27):zoom(0.6):halign(0.5):valign(0)
 			self:diffuse(getMainColor("positive"))
 		end,
+		GoalsUpdatedMessageCommand = function(self)
+			self:playcommand("MintyFresh")
+		end,
 		MintyFreshCommand = function(self)
 			if song and steps then
 				local goal = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
@@ -584,13 +603,13 @@ t[#t + 1] = Def.ActorFrame {
 					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 					if sg and update then
 						sg:SetPercent(sg:GetPercent() + 0.01)
-						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+						self:GetParent():GetParent():GetDescendant("RateDependentStuff", "Goalll"):queuecommand("MintyFresh")
 					end
 				elseif params.event == "DeviceButton_right mouse button" then
 					local sg = profile:GetEasiestGoalForChartAndRate(steps:GetChartKey(), getCurRateValue())
 					if sg and update then
 						sg:SetPercent(sg:GetPercent() - 0.01)
-						self:GetParent():GetParent():GetChild("RateDependentStuff"):GetChild("Goalll"):queuecommand("MintyFresh")
+						self:GetParent():GetParent():GetDescendant("RateDependentStuff", "Goalll"):queuecommand("MintyFresh")
 					end
 				end
 			end
@@ -727,7 +746,8 @@ r[#r + 1] = LoadFont("Common Large") .. {
 	end,
 	MintyFreshCommand = function(self)
 		if song and steps:GetTimingData():HasWarps() then
-			self:settext(translated_info["NegBPM"])
+			-- might replace this with "special timing" or something...
+			--self:settext(translated_info["NegBPM"])
 		else
 			self:settext("")
 		end
@@ -1065,10 +1085,17 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 
 --Chart Preview Button
 local yesiwantnotefield = false
+local lastratepresses = {0,0}
 local function ihatestickinginputcallbackseverywhere(event)
 	if event.type ~= "InputEventType_Release" and getTabIndex() == 0 then
 		if event.DeviceInput.button == "DeviceButton_space" then
 			toggleNoteField()
+		end
+		if event.GameButton == "EffectUp" then
+			lastratepresses[1] = 0
+		end
+		if event.GameButton == "EffectDown" then
+			lastratepresses[2] = 0
 		end
 	end
 	if event.type == "InputEventType_FirstPress" then
@@ -1076,12 +1103,24 @@ local function ihatestickinginputcallbackseverywhere(event)
 		if CtrlPressed and event.DeviceInput.button == "DeviceButton_l" then
 			MESSAGEMAN:Broadcast("LoginHotkeyPressed")
 		end
+		if event.GameButton == "EffectUp" then
+			lastratepresses[1] = GetTimeSinceStart()
+		end
+		if event.GameButton == "EffectDown" then
+			lastratepresses[2] = GetTimeSinceStart()
+		end
+		-- this sucks so bad
+		if math.abs(lastratepresses[1] - lastratepresses[2]) < 0.05 and lastratepresses[1] ~= 0 and lastratepresses[2] ~= 0 then
+			MESSAGEMAN:Broadcast("Code", {Name="ResetRate"})
+			ChangeMusicRate(nil, {Name="ResetRate"})
+		end
 	end
 	return false
 end
 
 local prevplayerops = "Main"
 
+local lastsortmode = nil
 t[#t + 1] = Def.ActorFrame {
 	Name = "LittleButtonsOnTheLeft",
 
@@ -1205,6 +1244,13 @@ t[#t + 1] =
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
+				if GAMESTATE:GetSortOrder() == "SortOrder_ModeMenu" then
+					if lastsortmode == nil then lastsortmode = "SortOrder_Group" end
+					SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(lastsortmode)
+					return
+				end
+				lastsortmode = GAMESTATE:GetSortOrder()
+
 				local ind = 0 -- 0 is group sort usually
 				-- find the sort mode menu no matter where it is
 				for i, sm in ipairs(SortOrder) do
@@ -1214,6 +1260,14 @@ t[#t + 1] =
 					end
 				end
 				SCREENMAN:GetTopScreen():GetMusicWheel():ChangeSort(ind)
+			end
+		end,
+		SortOrderChangedMessageCommand = function(self)
+			local so = GAMESTATE:GetSortOrder()
+			if so == "SortOrder_ModeMenu" then
+				self:settext(translated_info["CloseSort"])
+			else
+				self:settext(translated_info["OpenSort"])
 			end
 		end,
 		MouseOverCommand = function(self)

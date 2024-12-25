@@ -1,4 +1,7 @@
 --- Sprite
+--
+-- This class inherits all methods from these classes:
+-- @{Actor}
 -- @classmod Sprite
 
 --[[-- 		Returns the length of the animation in seconds.

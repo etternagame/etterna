@@ -39,10 +39,20 @@ local t = Def.ActorFrame {
             lifebar:xy(MovableValues.LifeP1X, MovableValues.LifeP1Y)
             lifebar:rotationz(MovableValues.LifeP1Rotation)
         end
-
+        self:playcommand("SetUpNotefield")
+    end,
+    DoneLoadingNextSongMessageCommand = function(self)
+        -- update all stats in gameplay (as if it was a reset) when loading a new song
+        -- particularly for playlists
+        self:playcommand("SetUpNotefield")
+        self:playcommand("PracticeModeReset")
+    end,
+    SetUpNotefieldCommand = function(self)
         -- notefield movement
         -- notefield column movement
-        local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
+        local screen = SCREENMAN:GetTopScreen()
+        if not screen then return end
+        local nf = screen:GetDescendant("PlayerP1", "NoteField")
         if nf then
             local noteColumns = nf:get_column_actors()
             nf:y(0)
@@ -64,18 +74,6 @@ local t = Def.ActorFrame {
                 col:addx((i-hCols-1) * inc)
             end
         end
-    end,
-    DoneLoadingNextSongMessageCommand = function(self)
-        local screen = SCREENMAN:GetTopScreen()
-
-        -- playlists reset notefield positioning ??
-        if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
-            NoteField = screen:GetChild("PlayerP1"):GetChild("NoteField")
-            NoteField:addy(MovableValues.NoteFieldY * (usingReverse and 1 or -1))
-        end
-        -- update all stats in gameplay (as if it was a reset) when loading a new song
-        -- particularly for playlists
-        self:playcommand("PracticeModeReset")
     end,
     JudgmentMessageCommand = function(self, msg)
         -- for each judgment, every tap and hold judge

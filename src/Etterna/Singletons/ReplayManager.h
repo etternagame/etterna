@@ -46,7 +46,7 @@ class ReplayManager
 	~ReplayManager();
 
 	/// Return the Replay for this HighScore. Never null
-	Replay* GetReplay(HighScore* hs);
+	Replay* GetReplay(const HighScore* hs);
 	void ReleaseReplay(Replay* replay);
 
 	/// The use of this is for scores which are about to viewed

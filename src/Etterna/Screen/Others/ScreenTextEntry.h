@@ -164,6 +164,7 @@ class ScreenTextEntry : public ScreenWithMenuElements
 
 	void Init() override;
 	void BeginScreen() override;
+	void EndScreen() override;
 
 	void Update(float fDelta) override;
 	bool Input(const InputEventPlus& input) override;
@@ -174,6 +175,8 @@ class ScreenTextEntry : public ScreenWithMenuElements
 	static bool s_bMustResetInputRedirAtClose;
 	static bool s_bResetInputRedirTo;
 	virtual void End(bool bCancelled);
+
+	void UpdateAnswerText();
 
 	// Lua
 	void PushSelf(lua_State* L) override;
@@ -188,7 +191,6 @@ class ScreenTextEntry : public ScreenWithMenuElements
 	bool MenuStart(const InputEventPlus& input) override;
 	bool MenuBack(const InputEventPlus& input) override;
 
-	void UpdateAnswerText();
 
 	std::wstring m_sAnswer;
 	bool m_bShowAnswerCaret = false;

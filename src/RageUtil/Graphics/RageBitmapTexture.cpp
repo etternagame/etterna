@@ -88,16 +88,22 @@ RageBitmapTexture::Create()
 	RageSurface* pImg = nullptr;
 	if (actualID.filename == TEXTUREMAN->GetScreenTextureID().filename) {
 		pImg = TEXTUREMAN->GetScreenSurface();
+	} else if (actualID.base64) {
+		auto b64 = actualID.filename;
+		auto substart = b64.find("base64,");
+		if (substart != std::string::npos) {
+			b64 = b64.substr(substart + 7);
+		}
+		pImg = RageSurfaceUtils::LoadBase64(b64, error);
 	} else {
 		pImg = RageSurfaceUtils::LoadFile(actualID.filename, error);
 	}
 
 	/* Tolerate corrupt/unknown images. */
 	if (pImg == nullptr) {
-		auto warning = ssprintf("RageBitmapTexture: Couldn't load %s: %s",
-								actualID.filename.c_str(),
-								error.c_str());
-		Locator::getLogger()->warn(warning.c_str());
+		auto warning = fmt::format(
+		  "RageBitmapTexture: Couldn't load {}: {}", actualID.filename, error);
+		Locator::getLogger()->warn("{}", warning);
 		Dialog::OK(warning, "missing_texture");
 		pImg = RageSurfaceUtils::MakeDummySurface(64, 64);
 		ASSERT(pImg != nullptr);

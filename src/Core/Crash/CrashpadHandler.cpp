@@ -3,6 +3,7 @@
 #include "Core/Platform/Platform.hpp"
 #include "Core/Services/Locator.hpp"
 #include "Core/Misc/AppInfo.hpp"
+#include "Etterna/Globals/GameLoop.h"
 
 #include <ghc/filesystem.hpp>
 #include "client/crash_report_database.h"
@@ -77,6 +78,7 @@ bool Core::Crash::initCrashpad() {
  * It does not actually crash the program, and only generates the minidump.
  */
 void Core::Crash::generateMinidump() {
+	GameLoop::loadSavedLayout();
     CRASHPAD_SIMULATE_CRASH();
 }
 

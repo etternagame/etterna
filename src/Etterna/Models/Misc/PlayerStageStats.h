@@ -135,9 +135,6 @@ class PlayerStageStats
 	float m_iNumControllerSteps{};
 
 	bool everusedautoplay{};
-	bool luascriptwasloaded{};
-	bool filehadnegbpms{}; // the call after gameplay is over is apparently
-						   // unreliable -mina
 	bool filegotmines{}; // this needs to be set before any notedata transforms
 	bool filegotholds{};
 	bool gaveuplikeadumbass{}; // flag 'giving up' status so i can flag it as

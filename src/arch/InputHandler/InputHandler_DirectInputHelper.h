@@ -62,7 +62,7 @@ struct DIDevice
 
 	DIDevice();
 
-	bool Open();
+	bool Open(bool checkPreference);
 	void Close();
 };
 

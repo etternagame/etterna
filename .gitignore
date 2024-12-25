@@ -4,6 +4,7 @@
 .vs
 .idea
 /[Bb]uild
+/out/
 
 # Ignore executables (Linux, macOS, Windows)
 /Etterna

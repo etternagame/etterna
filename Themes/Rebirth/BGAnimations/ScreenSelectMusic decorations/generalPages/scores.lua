@@ -74,6 +74,7 @@ local ratios = {
 
     TrophySize = 21 / 1080, -- height and width of the icon
     PlaySize = 19 / 1080,
+    InvalidateSize = 19 / 1080,
     IconHeight = 19 / 1080, -- uhhhhh
 
     -- local page stuff
@@ -131,6 +132,7 @@ local actuals = {
     NameJudgmentWidth = ratios.NameJudgmentWidth * SCREEN_WIDTH,
     TrophySize = ratios.TrophySize * SCREEN_HEIGHT,
     PlaySize = ratios.PlaySize * SCREEN_HEIGHT,
+    InvalidateSize = ratios.InvalidateSize * SCREEN_HEIGHT,
     IconHeight = ratios.IconHeight * SCREEN_HEIGHT,
     SideBufferGap = ratios.SideBufferGap * SCREEN_WIDTH,
     GradeUpperGap = ratios.GradeUpperGap * SCREEN_HEIGHT,
@@ -181,6 +183,7 @@ local translations = {
     ShowOffsetPlot = THEME:GetString("ScreenSelectMusic Scores", "ShowOffsetPlot"),
     ShowReplay = THEME:GetString("ScreenSelectMusic Scores", "ShowReplay"),
     ShowingJudge4Plot = THEME:GetString("ScreenSelectMusic Scores", "ShowingJudge4Plot"),
+    NoReplay = THEME:GetString("ScreenSelectMusic Scores", "NoReplay"),
     ScoreBy = THEME:GetString("ScreenSelectMusic Scores", "ScoreBy"),
     HowToCloseOffsetPlot = THEME:GetString("ScreenSelectMusic Scores", "HowToCloseOffsetPlot"),
     UploadScore = THEME:GetString("ScreenSelectMusic Scores", "UploadScore"),
@@ -196,6 +199,7 @@ local translations = {
     ChartUnranked = THEME:GetString("ScreenSelectMusic Scores", "ChartUnranked"),
     FetchingScores = THEME:GetString("ScreenSelectMusic Scores", "FetchingScores"),
     NoOnlineScoresRecorded = THEME:GetString("ScreenSelectMusic Scores", "NoOnlineScoresRecorded"),
+    NoSongSelected = THEME:GetString("ScreenSelectMusic Scores", "NoSongSelected"),
     ShowOnlineScores = THEME:GetString("ScreenSelectMusic Scores", "ShowOnlineScores"),
     ShowLocalScores = THEME:GetString("ScreenSelectMusic Scores", "ShowLocalScores"),
     ShowTopScores = THEME:GetString("ScreenSelectMusic Scores", "ShowTopScores"),
@@ -204,6 +208,10 @@ local translations = {
     ShowInvalidScores = THEME:GetString("ScreenSelectMusic Scores", "ShowInvalidScores"),
     CurrentRateOnly = THEME:GetString("ScreenSelectMusic Scores", "CurrentRateOnly"),
     AllRates = THEME:GetString("ScreenSelectMusic Scores", "AllRates"),
+    InvalidateScore = THEME:GetString("ScreenSelectMusic Scores", "InvalidateScore"),
+    ValidateScore = THEME:GetString("ScreenSelectMusic Scores", "ValidateScore"),
+    ScoreInvalidated = THEME:GetString("ScreenSelectMusic Scores", "ScoreInvalidated"),
+    ScoreValidated = THEME:GetString("ScreenSelectMusic Scores", "ScoreValidated")
 }
 
 t[#t+1] = Def.Quad {
@@ -433,7 +441,7 @@ local function createList()
         end,
         ToggleInvalidCommand = function(self)
             if DLMAN:IsLoggedIn() then
-                DLMAN:ToggleCCFilter()
+                DLMAN:ToggleValidFilter()
                 self:playcommand("UpdateScores")
                 self:playcommand("UpdateList")
             end
@@ -467,6 +475,8 @@ local function createList()
             end
             if score ~= nil and score:GetChordCohesion() then
                 EGGMAN.gegagoogoo(txt, score:GetChartKey()):diffuse(COLORS:getColor("generalBox", "ChordCohesionOnScore"))
+            elseif score ~= nil and not score:GetEtternaValid() then
+                txt:stopeffect():diffuse(COLORS:getColor("generalBox", "InvalidScore"))
             else
                 txt:stopeffect():diffuse(COLORS:getColor(category, element))
             end
@@ -613,7 +623,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = "https://etternaonline.com/user/" .. score:GetDisplayName()
+                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName()
                             GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
                         end
                     end
@@ -665,7 +675,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = "https://etternaonline.com/score/view/" .. score:GetScoreid() .. score:GetUserid()
+                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName() .. "/scores/" .. score:GetScoreid()
                             GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
                         end
                     end
@@ -762,6 +772,12 @@ local function createList()
                     registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 SetScoreCommand = function(self)
+                    -- block this in multi
+                    if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                        self:visible(false)
+                        return
+                    end
+
                     if score ~= nil then
                         if score:HasReplayData() then
                             self:diffusealpha(1)
@@ -780,9 +796,13 @@ local function createList()
                             local sng2 = GAMESTATE:GetCurrentSteps()
                             if sng and sng2 and sng:GetChartKey() == sng2:GetChartKey() then
                                 if scr:GetMusicWheel():SelectSong(GAMESTATE:GetCurrentSong()) then
-                                    local success = SCREENMAN:GetTopScreen():PlayReplay(score)
-                                    if success then
-                                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                                    if score:GetReplay():HasReplayData() then
+                                        local success = SCREENMAN:GetTopScreen():PlayReplay(score)
+                                        if success then
+                                            SCREENMAN:set_input_redirected(PLAYER_1, false)
+                                        end
+                                    else
+                                        ms.ok(translations["NoReplay"])
                                     end
                                 end
                             end
@@ -811,6 +831,12 @@ local function createList()
                     registerActorToColorConfigElement(self, "main", "IconColor")
                 end,
                 SetScoreCommand = function(self)
+                    -- block this in multi
+                    if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                        self:visible(false)
+                        return
+                    end
+
                     if score ~= nil then
                         if score:HasReplayData() then
                             self:diffusealpha(1)
@@ -1164,17 +1190,19 @@ local function createList()
                 local judgeSetting = 4
                 if steps ~= nil then
                     if score:HasReplayData() then
-                        local offsets = score:GetOffsetVector()
+                        local replay = score:GetReplay()
+                        replay:LoadAllData()
+                        local offsets = replay:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = score:GetTrackVector()
-                        local types = score:GetTapNoteTypeVector()
-                        local noterows = score:GetNoteRowVector()
-                        local holds = score:GetHoldNoteVector()
+                        local tracks = replay:GetTrackVector()
+                        local types = replay:GetTapNoteTypeVector()
+                        local noterows = replay:GetNoteRowVector()
+                        local holds = replay:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 
@@ -1344,6 +1372,12 @@ local function createList()
                 registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             UpdateListCommand = function(self)
+                -- block this in multi
+                if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                    self:visible(false)
+                    return
+                end
+
                 if localscore ~= nil then
                     if localscore:HasReplayData() then
                         self:diffusealpha(1)
@@ -1392,6 +1426,12 @@ local function createList()
                 registerActorToColorConfigElement(self, "main", "IconColor")
             end,
             UpdateListCommand = function(self)
+                -- block this in multi
+                if SCREENMAN:GetTopScreen():GetName():find("Net") ~= nil then
+                    self:visible(false)
+                    return
+                end
+                
                 if localscore ~= nil then
                     if localscore:HasReplayData() then
                         self:diffusealpha(1)
@@ -1427,6 +1467,64 @@ local function createList()
                         if success then
                             SCREENMAN:set_input_redirected(PLAYER_1, false)
                         end
+                    end
+                end
+            end
+        },
+        UIElements.SpriteButton(1, 1, THEME:GetPathG("", "invalidate")) .. {
+            Name = "ValidateInvalidate",
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:xy(actuals.SideBufferGap + actuals.PlaySize + actuals.TrophySize + actuals.InvalidateSize + actuals.IconSetSpacing * 3, actuals.IconSetUpperGap)
+                self:zoomto(actuals.InvalidateSize, actuals.IconHeight)
+                registerActorToColorConfigElement(self, "main", "IconColor")
+            end,
+            UpdateListCommand = function(self)
+                if localscore ~= nil then
+                    if localscore:GetEtternaValid() then
+                        self:diffusealpha(1)
+                        if isOver(self) then
+                            self:diffusealpha(buttonHoverAlpha)
+                            TOOLTIP:SetText(translations["ValidateScore"])
+                            TOOLTIP:Show()
+                        end
+                    else
+                        self:diffusealpha(0.6)
+                        if isOver(self) then
+                            TOOLTIP:Hide()
+                        end
+                    end
+                end
+            end,
+            MouseOverCommand = function(self)
+                if self:IsInvisible() then return end
+                self:diffusealpha(buttonHoverAlpha)
+                if localscore ~= nil then
+                    if localscore:GetEtternaValid() then
+                        TOOLTIP:SetText(translations["InvalidateScore"])
+                    else
+                        TOOLTIP:SetText(translations["ValidateScore"])
+                    end
+                end
+                TOOLTIP:Show()
+            end,
+            MouseOutCommand = function(self)
+                if self:IsInvisible() then return end
+                if localscore:GetEtternaValid() then
+                    self:diffusealpha(1)
+                end
+                TOOLTIP:Hide()
+            end,
+            MouseDownCommand = function(self, params)
+                if self:IsInvisible() then return end
+                if localscore ~= nil then
+                    localscore:ToggleEtternaValidation()
+                    if localscore:GetEtternaValid() then
+                        TOOLTIP:SetText(translations["InvalidateScore"])
+                        ms.ok(translations["ScoreValidated"])
+                    else
+                        TOOLTIP:SetText(translations["ValidateScore"])
+                        ms.ok(translations["ScoreInvalidated"])
                     end
                 end
             end
@@ -1575,17 +1673,19 @@ local function createList()
                 local judgeSetting = (PREFSMAN:GetPreference("SortBySSRNormPercent") and 4 or table.find(ms.JudgeScalers, notShit.round(localscore:GetJudgeScale(), 2)))
                 if steps ~= nil then
                     if localscore:HasReplayData() then
-                        local offsets = localscore:GetOffsetVector()
+                        local replay = localscore:GetReplay()
+                        replay:LoadAllData()
+                        local offsets = replay:GetOffsetVector()
                         -- for online offset vectors a 180 offset is a miss
                         for i, o in ipairs(offsets) do
                             if o >= 180 then
                                 offsets[i] = 1000
                             end
                         end
-                        local tracks = localscore:GetTrackVector()
-                        local types = localscore:GetTapNoteTypeVector()
-                        local noterows = localscore:GetNoteRowVector()
-                        local holds = localscore:GetHoldNoteVector()
+                        local tracks = replay:GetTrackVector()
+                        local types = replay:GetTapNoteTypeVector()
+                        local noterows = replay:GetNoteRowVector()
+                        local holds = replay:GetHoldNoteVector()
                         local timingdata = steps:GetTimingData()
                         local lastSecond = steps:GetLastSecond()
 
@@ -1674,6 +1774,9 @@ local function createList()
                 if localrtTable == nil and GAMESTATE:GetCurrentSong() ~= nil then
                     self:diffusealpha(1)
                     self:settext(translations["NoLocalScoresRecorded"])
+                elseif GAMESTATE:GetCurrentSong() == nil then
+                    self:diffusealpha(1)
+                    self:settext(translations["NoSongSelected"])
                 else
                     self:diffusealpha(0)
                     self:settext("")
@@ -1693,6 +1796,9 @@ local function createList()
             elseif isLocal and localscore == nil then
                 self:diffusealpha(1)
                 self:settext(translations["NoLocalScoresRecorded"])
+            elseif GAMESTATE:GetCurrentSong() == nil then
+                self:diffusealpha(1)
+                self:settext(translations["NoSongSelected"])
             else
                 self:diffusealpha(0)
                 self:settext("")
@@ -1802,7 +1908,7 @@ local function createList()
 
         function() -- invalid score toggle
             -- true means invalid scores are hidden
-            return not DLMAN:GetCCFilter()
+            return DLMAN:GetValidFilter()
         end,
 
         function() -- current/all rates

@@ -67,7 +67,14 @@ t[#t + 1] =
         self:visible(true)
     end,
     DFRFinishedMessageCommand = function(self, params)
+        ms.ok("Loaded " .. params.newsongs .. " new songs")
         self:visible(false)
+    end,
+    ReloadedCurrentSongMessageCommand = function(self)
+        ms.ok("Reloaded current song")
+    end,
+    ReloadedCurrentPackMessageCommand = function(self)
+        ms.ok("Reloaded current pack")
     end,
     BeginCommand = function(self)
         self:visible(false)

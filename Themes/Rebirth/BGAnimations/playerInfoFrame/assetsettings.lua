@@ -192,6 +192,9 @@ local function assetList()
             end
         end
     end
+    local function isNotFolder(filename)
+        return filename:find("[.]") == nil
+    end
     local function isImage(filename)
         local extensions = {".png", ".jpg", "jpeg"} -- lazy list
         local ext = string.sub(filename, #filename-3)
@@ -246,7 +249,7 @@ local function assetList()
         selectedPath = getAssetByType(type, GUID)
         local dirlisting = FILEMAN:GetDirListing(assetFolders[type])
         if containsDirsOnly(dirlisting) then
-            assetTable = dirlisting
+            assetTable = filter(isNotFolder, dirlisting)
         else
             assetTable = filter(isImage, dirlisting)
         end
@@ -446,6 +449,8 @@ local function assetList()
                                 loadAssetType(curType + 1)
                             elseif pagedown then
                                 loadAssetType(curType - 1)
+                            elseif char ~= nil and tonumber(char) ~= nil and tonumber(char) >= 1 and tonumber(char) <= 3 then
+                                loadAssetType(tonumber(char))
                             end
 
                             self:playcommand("UpdateItemList")
@@ -457,7 +462,6 @@ local function assetList()
         end,
         UpdateItemListCommand = function(self)
             TOOLTIP:Hide()
-            -- maxPage = math.ceil(#packlisting / itemCount)
         end,
 
         Def.Quad {
@@ -583,11 +587,9 @@ local function assetList()
                         self:GetChild("SelectedAssetIndicator"):playcommand("Set")
                         if i == curIndex then
                             self:GetChild("Image"):finishtweening()
-                            self:GetChild("Image"):zoomto(assetHeight+8,assetWidth+8)
                             self:GetChild("Border"):zoomto(assetHeight+12,assetWidth+12)
                             self:GetChild("Border"):diffuse(COLORS:getColor("assetSettings", "HoveredItem")):diffusealpha(0.8)
                         else
-                            self:GetChild("Image"):zoomto(assetHeight,assetWidth)
                             self:GetChild("Border"):zoomto(assetHeight+4,assetWidth+4)
                             self:GetChild("Border"):diffuse(COLORS:getColor("assetSettings", "HoveredItem")):diffusealpha(0)
                         end
@@ -675,6 +677,11 @@ local function assetList()
         
         t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
             Name = "Image",
+            InitCommand = function(self)
+                self:set_use_effect_clock_for_texcoords(true)
+                self:effectclock("timerglobal")
+                self.zom = 1
+            end,
             LoadAssetCommand = function(self)
                 local assets = findAssetsForPath(name)
                 if #assets > 1 then
@@ -683,15 +690,34 @@ local function assetList()
                 else
                     self:LoadBackground(name)
                 end
+                self:SetStateProperties(Sprite.LinearFrames(self:GetNumStates(), 1))
+                local w = self:GetWidth() or assetWidth
+                local h = (self:GetHeight() or assetHeight)
+                self.zom = 1
+                if w > assetWidth and h > assetHeight then
+                    if h * (assetWidth / assetHeight) > w then
+                        self.zom = assetHeight / h
+                    else
+                        self.zom = assetWidth / w
+                    end
+                elseif w > assetWidth then
+                    self.zom = assetWidth / w
+                elseif h > assetHeight then
+                    self.zom = assetHeight / h
+                end
+                self:zoomto(assetWidth, assetHeight)
+                self:zoom(self.zom)
             end,
             CursorMovedMessageCommand = function(self, params)
                 self:finishtweening()
                 if params.index == i then
                     self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
                     self:zoomto(assetWidth+8, assetHeight+8)
+                    self:zoom(self.zom)
                 else
                     self:smooth(0.2)
                     self:zoomto(assetWidth, assetHeight)
+                    self:zoom(self.zom)
                 end
             end,
             PageMovedMessageCommand = function(self, params)
@@ -699,9 +725,11 @@ local function assetList()
                 if params.index == i then
                     self:tween(0.5,"TweenType_Bezier",{0,0,0,0.5,0,1,1,1})
                     self:zoomto(assetWidth+8, assetHeight+8)
+                    self:zoom(self.zom)
                 else
                     self:smooth(0.2)
                     self:zoomto(assetWidth, assetHeight)
+                    self:zoom(self.zom)
                 end
             end,
             MouseDownCommand = function(self)

@@ -7,7 +7,7 @@ local function scrollInput(event)
 	if top:GetName() == "ScreenSelectmusic" then
 		if top:GetSelectionState() == 2 then
 			return
-		end	
+		end
 	elseif event.DeviceInput.button == "DeviceButton_tab" then
 		if event.type == "InputEventType_FirstPress" then
 			pressingtab = true
@@ -15,14 +15,16 @@ local function scrollInput(event)
 			pressingtab = false
 		end
 	elseif event.type == "InputEventType_FirstPress" then
-		if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+	    local DI_Button = event.DeviceInput.button
+
+		if DI_Button == "DeviceButton_mousewheel up" then
 			moving = true
 			if pressingtab == true and not whee:IsSettled() then
 				whee:Move(-2)
 			else
 				whee:Move(-1)
 			end
-		elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+		elseif DI_Button == "DeviceButton_mousewheel down" then
 			moving = true
 			if pressingtab == true and not whee:IsSettled() then
 				whee:Move(2)
@@ -34,7 +36,7 @@ local function scrollInput(event)
 		whee:Move(0)
 		moving = false
 	end
-	
+
 	return false
 end
 

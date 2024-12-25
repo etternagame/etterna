@@ -818,6 +818,79 @@ Sprite::DrawPrimitives()
 			ts.diffuse[1].a *= BottomAlpha; // top right
 			DrawTexture(&ts);
 		}
+
+		if (FadeSize.top > 0.001f && FadeSize.left > 0.001f) {
+			// top left corner
+			ts.crop = m_pTempState->crop; // restore
+			ts.crop.bottom = 1 - (ts.crop.top + FadeSize.top);
+			ts.crop.right += 1 - (ts.crop.left + FadeDist.left);
+			ts.crop.left += 0;
+
+			ts.diffuse[0] = m_pTempState->diffuse[0];
+			ts.diffuse[2] = m_pTempState->diffuse[0];
+			ts.diffuse[3] = m_pTempState->diffuse[0];
+			ts.diffuse[1] = m_pTempState->diffuse[0];
+			ts.diffuse[0].a = 0; // top left
+			ts.diffuse[2].a = 0; // bottom left
+			ts.diffuse[3].a *= TopAlpha * LeftAlpha;  // bottom right
+			ts.diffuse[1].a = 0; // top right
+			DrawTexture(&ts);
+		}
+
+		if (FadeSize.top > 0.001f && FadeSize.right > 0.001f) {
+			// top right corner
+			ts.crop = m_pTempState->crop; // restore
+			ts.crop.bottom = 1 - (ts.crop.top + FadeSize.top);
+			ts.crop.left += 1 - (ts.crop.right + FadeDist.right);
+			ts.crop.right += 0;
+
+			ts.diffuse[0] = m_pTempState->diffuse[1];
+			ts.diffuse[2] = m_pTempState->diffuse[1];
+			ts.diffuse[3] = m_pTempState->diffuse[1];
+			ts.diffuse[1] = m_pTempState->diffuse[1];
+			ts.diffuse[0].a = 0; // top left
+			ts.diffuse[2].a *= TopAlpha * RightAlpha; // bottom left
+			ts.diffuse[3].a = 0; // bottom right
+			ts.diffuse[1].a = 0; // top right
+			DrawTexture(&ts);
+		}
+
+		if (FadeSize.bottom > 0.001f && FadeSize.left > 0.001f) {
+			// bottom left corner
+			ts.crop = m_pTempState->crop; // restore
+			ts.crop.top = 1 - (ts.crop.bottom + FadeSize.bottom);
+			ts.crop.right += 1 - (ts.crop.left + FadeDist.left);
+			ts.crop.left += 0;
+
+			ts.diffuse[0] = m_pTempState->diffuse[2];
+			ts.diffuse[2] = m_pTempState->diffuse[2];
+			ts.diffuse[3] = m_pTempState->diffuse[2];
+			ts.diffuse[1] = m_pTempState->diffuse[2];
+			ts.diffuse[0].a = 0; // top left
+			ts.diffuse[2].a = 0; // bottom left
+			ts.diffuse[3].a = 0; // bottom right
+			ts.diffuse[1].a *= BottomAlpha; // top right
+			DrawTexture(&ts);
+		}
+
+		if (FadeSize.bottom > 0.001f && FadeSize.right > 0.001f) {
+			// bottom right corner
+			ts.crop = m_pTempState->crop; // restore
+			ts.crop.top = 1 - (ts.crop.bottom + FadeSize.bottom);
+			ts.crop.left += 1 - (ts.crop.right + FadeSize.right);
+			ts.crop.right += 0;
+
+			ts.diffuse[0] = m_pTempState->diffuse[3];
+			ts.diffuse[2] = m_pTempState->diffuse[3];
+			ts.diffuse[3] = m_pTempState->diffuse[3];
+			ts.diffuse[1] = m_pTempState->diffuse[3];
+			ts.diffuse[0].a *= BottomAlpha; // top left
+			ts.diffuse[2].a = 0; // bottom left
+			ts.diffuse[3].a = 0; // bottom right
+			ts.diffuse[1].a = 0; // top right
+			DrawTexture(&ts);
+		}
+
 	} else {
 		DrawTexture(m_pTempState);
 	}

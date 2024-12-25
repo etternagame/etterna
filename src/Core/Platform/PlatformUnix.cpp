@@ -79,6 +79,13 @@ namespace Core::Platform {
     }
 
     std::string getSystem(){
+		static std::string result{};
+
+		if (!result.empty()) {
+			// prevent repeatedly calling this
+			return result;
+		}
+
         // Get system info
         std::string line;
 
@@ -93,9 +100,11 @@ namespace Core::Platform {
             int startIndex = delimLoc + 2;
 
             // From the location after the first quote to before the last quote
-            return line.substr(startIndex, line.find_last_of('"') - startIndex);
+            result = line.substr(startIndex, line.find_last_of('"') - startIndex);
+			return result;
         }
-        return "Unknown";
+		result = "Unknown";
+        return result;
     }
 
     std::string getArchitecture(){
@@ -242,6 +251,11 @@ namespace Core::Platform {
         XDestroyWindow(display, target_window);
         XCloseDisplay(display);
         return res;
+    }
+
+    bool setClipboardText(std::string text){
+        Locator::getLogger()->warn("Core::Platform::setClipboardText not implemented");
+        return false;
     }
 
     void setCursorVisible(bool value){

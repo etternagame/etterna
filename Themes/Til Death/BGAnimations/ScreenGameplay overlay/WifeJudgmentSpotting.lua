@@ -108,6 +108,7 @@ local translated_info = {
 	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly"),
 	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
 	BPM = THEME:GetString("ChordDensityGraph", "BPM"),
+	MustBePaused = THEME:GetString("ScreenGameplay", "MustBePaused"),
 }
 
 -- Screenwide params
@@ -190,7 +191,7 @@ local t =
 
 		screen = SCREENMAN:GetTopScreen()
 		usingReverse = GAMESTATE:GetPlayerState():GetCurrentPlayerOptions():UsingReverse()
-		Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
+		Notefield = screen:GetDescendant("PlayerP1", "NoteField")
 		Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		Notefield:addx(MovableValues.NotefieldX)
 		noteColumns = Notefield:get_column_actors()
@@ -204,7 +205,7 @@ local t =
 			Movable.DeviceButton_t.element = noteColumns
 			Movable.DeviceButton_r.condition = true
 			Movable.DeviceButton_t.condition = true
-			self:GetChild("LifeP1"):GetChild("Border"):SetFakeParent(lifebar)
+			self:GetDescendant("LifeP1", "Border"):SetFakeParent(lifebar)
 			Movable.DeviceButton_j.element = lifebar
 			Movable.DeviceButton_j.condition = true
 			Movable.DeviceButton_k.element = lifebar
@@ -237,7 +238,7 @@ local t =
 		-- nil checks are needed because these don't exist when doneloadingnextsong is sent initially
 		-- which is convenient for us since addy -mina
 		if screen ~= nil and screen:GetChild("PlayerP1") ~= nil then
-			Notefield = screen:GetChild("PlayerP1"):GetChild("NoteField")
+			Notefield = screen:GetDescendant("PlayerP1", "NoteField")
 			Notefield:addy(MovableValues.NotefieldY * (usingReverse and 1 or -1))
 		end
 		-- update all stats in gameplay (as if it was a reset) when loading a new song
@@ -302,6 +303,7 @@ end
 -- Mostly clientside now. We set our desired target goal and listen to the results rather than calculating ourselves.
 local target = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).TargetGoal
 GAMESTATE:GetPlayerState():SetTargetGoal(target / 100)
+GAMESTATE:GetPlayerState():SetGoalTrackerUsesReplay(targetTrackerMode == 2)
 
 -- We can save space by wrapping the personal best and set percent trackers into one function, however
 -- this would make the actor needlessly cumbersome and unnecessarily punish those who don't use the
@@ -758,23 +760,41 @@ local width = SCREEN_WIDTH / 2 - 100
 local height = 10
 local alpha = 0.7
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local replaySlider =
-	isReplay and
-	Widg.SliderBase {
-		width = width,
-		height = height,
-		min = GAMESTATE:GetCurrentSteps():GetFirstSecond(),
-		visible = true,
-		max = GAMESTATE:GetCurrentSteps():GetLastSecond(),
-		onInit = function(slider)
-			slider.actor:diffusealpha(0)
-		end,
-		-- Change to onValueChangeEnd if this
-		-- lags too much
-		onValueChange = function(val)
-			SCREENMAN:GetTopScreen():SetSongPosition(val)
-		end
-	} or
+local function bounds()
+    local stps = GAMESTATE:GetCurrentSteps()
+    return stps:GetFirstSecond(), stps:GetLastSecond()
+end
+local replaySlider = isReplay and
+	UIElements.QuadButton(1, 1) .. {
+        Name = "SliderButtonArea",
+        InitCommand = function(self)
+            self:diffusealpha(0.3)
+            self:zoomto(width, height)
+        end,
+        MouseHoldCommand = function(self, params)
+            if params.event ~= "DeviceButton_left mouse button" then return end
+
+            if not GAMESTATE:IsPaused() then
+                TOOLTIP:SetText(translated_info["MustBePaused"])
+                TOOLTIP:Show()
+            end
+
+            local localX = clamp(params.MouseX - self:GetTrueX() + width/2, 0, width)
+            local localY = clamp(params.MouseY, 0, height)
+
+            local lb, ub = bounds()
+            local percentX = localX / width
+
+            local posx = clamp(lb + (percentX * (ub - lb)), lb, ub)
+            SCREENMAN:GetTopScreen():SetSongPosition(posx)
+        end,
+        MouseReleaseCommand = function(self)
+            TOOLTIP:Hide()
+        end,
+        MouseUpCommand = function(self)
+            TOOLTIP:Hide()
+        end,
+    } or
 	Def.Actor {}
 local p =
 	Def.ActorFrame {

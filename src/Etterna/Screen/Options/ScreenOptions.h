@@ -56,6 +56,7 @@ class ScreenOptions : public ScreenWithMenuElements
   protected:
 	virtual void ImportOptions(int iRow, const PlayerNumber& vpns) = 0;
 	virtual void ExportOptions(int iRow, const PlayerNumber& vpns) = 0;
+	virtual void ExportOptionsOnCancel(int iRow, const PlayerNumber& pn) = 0;
 
 	void RestartOptions();
 	void GetWidthXY(PlayerNumber pn,

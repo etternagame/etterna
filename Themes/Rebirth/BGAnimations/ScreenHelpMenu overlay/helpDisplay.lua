@@ -284,6 +284,9 @@ local function helpMenu()
             {
                 Name = "HowToPermamirror",
             },
+            {
+                Name = "HowToPlayOsuCharts",
+            },
         },
         ["Information"] = {
             {

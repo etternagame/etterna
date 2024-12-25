@@ -56,6 +56,9 @@ class InputHandler : public RageDriver
 	 * window. Override this if you need to do that. */
 	virtual void WindowReset() {}
 
+	virtual void ApplyTemporaryInputSettings() {}
+	virtual void RemoveTemporaryInputSettings() {}
+
   protected:
 	/* Convenience function: Call this to queue a received event.
 	 * This may be called in a thread.

@@ -12,12 +12,12 @@
 /* int err; must be defined before using this macro */
 #define ALSA_CHECK(x)                                                          \
 	if (err < 0) {                                                             \
-		Locator::getLogger()->info("ALSA: {}: {}", x, dsnd_strerror(err));                      \
+		Locator::getLogger()->info("ALSA {}: errno {} - {}", x, err, dsnd_strerror(err));                      \
 		return false;                                                          \
 	}
 #define ALSA_ASSERT(x)                                                         \
 	if (err < 0) {                                                             \
-		Locator::getLogger()->warn("ALSA: {}: {}", x, dsnd_strerror(err));                      \
+		Locator::getLogger()->warn("ALSA {}: errno {} - {}", x, err, dsnd_strerror(err));                      \
 	}
 
 bool
@@ -137,7 +137,7 @@ Alsa9Buf::ErrorHandler(const char* file,
 	/* Annoying: these happen both normally (eg. "out of memory" when allocating
 	 * too many PCM slots) and abnormally, and there's no way to tell which is
 	 * which.  I don't want to pollute the warning output. */
-	Locator::getLogger()->warn("ALSA error: {}:{} {}: {}", file, line, function, str.c_str());
+	Locator::getLogger()->warn("ALSA error errno {}: {}:{} {}: {}", err, file, line, function, str.c_str());
 }
 
 void
@@ -364,6 +364,12 @@ Alsa9Buf::WaitUntilFramesCanBeFilled(int timeout_ms)
 	if (err == -EINTR)
 		return false;
 	ALSA_ASSERT("snd_pcm_wait");
+
+	if (err == -EPIPE) {
+		Locator::getLogger()->error("snd_pcm_wait trying to recover from overrun/underrun");
+		err = dsnd_pcm_recover(pcm, err, 0);
+		ALSA_ASSERT("snd_pcm_recover");
+	}
 
 	return err == 1;
 }

@@ -89,7 +89,7 @@ static const char* SortOrderNames[] = {
 	"Group",	  "Title",		"BPM",		 "TopGrades", "Artist",
 	"Genre",	  "ModeMenu",	"Favorites", "Overall",	  "Stream",
 	"Jumpstream", "Handstream", "Stamina",	 "JackSpeed", "Chordjack",
-	"Technical",  "Length",		"Ungrouped"
+	"Technical",  "Length",		"DateAdded", "Author", "Ungrouped"
 };
 XToString(SortOrder);
 StringToX(SortOrder);
@@ -258,6 +258,9 @@ static const char* CalcPatternModNames[] = {
 	// "RanPropOffS",
 	// "RanPropJack",
 	"TotalPatternMod",
+	"GenericStream",
+	"GenericChordstream",
+	"GenericBracketing",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);

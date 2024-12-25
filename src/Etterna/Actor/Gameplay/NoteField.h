@@ -52,6 +52,9 @@ class NoteField : public ActorFrame
 
 	void PushSelf(lua_State* L) override;
 
+	void SetShowBeatBars(bool b) { showBeatBars = b; }
+	void SetShowIntervalBars(bool b) { showCalcBars = b; }
+
 	// Allows the theme to modify the parameters to Step, SetPressed,
 	// DidTapNote, and DidHoldNote before they pass on to the ghost arrows or
 	// receptors. -Kyz
@@ -86,6 +89,7 @@ class NoteField : public ActorFrame
 		quarter_beat
 	};
 	void DrawBeatBar(float fBeat, BeatBarType type, int iMeasureIndex);
+	void DrawCalcIntervalBar(const float fBeat);
 	void DrawMarkerBar(int fBeat);
 	void DrawAreaHighlight(int iStartBeat, int iEndBeat);
 	void set_text_measure_number_for_draw(float beat,
@@ -112,6 +116,8 @@ class NoteField : public ActorFrame
 	int m_iDrawDistanceAfterTargetsPixels;	// this should be a negative number
 	int m_iDrawDistanceBeforeTargetsPixels; // this should be a positive number
 	float m_fYReverseOffsetPixels;
+	bool showCalcBars = false;
+	bool showBeatBars = false;
 
 	// This exists so that the board can be drawn underneath combo/judge. -Kyz
 	bool m_drawing_board_primitive;

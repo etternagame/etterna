@@ -52,7 +52,8 @@ function ConfDisplayMode()
 		Name= "Windowed",
 		GoToFirstOnStart= false,
 		OneChoiceForAllPlayers= true,
-		ExportOnChange= false,
+		ExportOnChange = false,
+		ExportOnCancel = false,
 		LayoutType= "ShowAllInRow",
 		SelectType= "SelectOne",
 
@@ -181,7 +182,8 @@ function ConfAspectRatio()
 		Name= "DisplayAspectRatio",
 		GoToFirstOnStart= false,
 		OneChoiceForAllPlayers= true,
-		ExportOnChange= false,
+		ExportOnChange = false,
+		ExportOnCancel = false,
 		LayoutType= "ShowAllInRow",
 		SelectType= "SelectOne",
 		ReloadRowMessages= {"DisplayChoiceChanged"},
@@ -363,7 +365,8 @@ function ConfDisplayResolution()
 		Name= "DisplayResolution",
 		GoToFirstOnStart= false,
 		OneChoiceForAllPlayers= true,
-		ExportOnChange= false,
+		ExportOnChange = false,
+		ExportOnCancel = false,
 		LayoutType= "ShowAllInRow",
 		SelectType= "SelectOne",
 		ReloadRowMessages= {"AspectRatioChoiceChanged"},
@@ -483,7 +486,8 @@ function ConfRefreshRate()
 		Name= "RefreshRate",
 		GoToFirstOnStart= false,
 		OneChoiceForAllPlayers= true,
-		ExportOnChange= false,
+		ExportOnChange = false,
+		ExportOnCancel = false,
 		LayoutType= "ShowAllInRow",
 		SelectType= "SelectOne",
 		ReloadRowMessages= {"DisplayResolutionChoiceChanged"},
@@ -580,7 +584,7 @@ function ConfFullscreenType()
 	local choiceVals = {FULLSCREEN_EXCLUSIVE}
 	local choices = {"Default"}
 	if fsbwSupported then
-		choices = {"Exclusive", "Borderless Window"}
+		choices = {THEME:GetString("OptionNames", "ExclusiveFullscreen"), THEME:GetString("OptionNames", "BorderlessWindow")}
 		choiceVals = {FULLSCREEN_EXCLUSIVE, FULLSCREEN_BORDERLESS_WIN}
 	end
 	local origFSType = PREFSMAN:GetPreference("FullscreenIsBorderlessWindow") and FULLSCREEN_BORDERLESS_WIN or FULLSCREEN_EXCLUSIVE
@@ -589,7 +593,8 @@ function ConfFullscreenType()
 		Name= "FullscreenType",
 		GoToFirstOnStart= false,
 		OneChoiceForAllPlayers= true,
-		ExportOnChange= false,
+		ExportOnChange = false,
+		ExportOnCancel = false,
 		LayoutType= "ShowAllInRow",
 		SelectType= "SelectOne",
 		Choices= choices,

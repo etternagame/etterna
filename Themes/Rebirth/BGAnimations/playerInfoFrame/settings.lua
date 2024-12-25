@@ -85,6 +85,8 @@ local translations = {
     StartBindingAll = THEME:GetString("Settings", "StartBindingAll"),
     ShowGameplayBindings = THEME:GetString("Settings", "ShowGameplayBindings"),
     ShowMenuBindings = THEME:GetString("Settings", "ShowMenuBindings"),
+    HideDoublesBindings = THEME:GetString("Settings", "HideDoublesBindings"),
+    ShowDoublesBindings = THEME:GetString("Settings", "ShowDoublesBindings"),
     NewColorConfigPresetQuestion = THEME:GetString("Settings", "NewColorConfigPresetQuestion"),
     NewColorConfigPresetUnknownError = THEME:GetString("Settings", "NewColorConfigPresetUnknownError"),
     NewColorConfigPresetInputError = THEME:GetString("Settings", "NewColorConfigPresetInputError"),
@@ -214,6 +216,7 @@ local translations = {
     Regular = THEME:GetString("Settings", "Regular"),
     EWMA = THEME:GetString("Settings", "EWMA"),
     PersonalBest = THEME:GetString("Settings", "PersonalBest"),
+    PersonalBestReplay = THEME:GetString("Settings", "PersonalBestReplay"),
     GoalPercent = THEME:GetString("Settings", "GoalPercent"),
     Windowed = THEME:GetString("Settings", "Windowed"),
     Fullscreen = THEME:GetString("Settings", "Fullscreen"),
@@ -434,6 +437,8 @@ local translations = {
     StartGiveUpExplanation = THEME:GetString("Settings", "StartGiveUpExplanation"),
     Debounce = THEME:GetString("Settings", "Debounce"),
     DebounceExplanation = THEME:GetString("Settings", "DebounceExplanation"),
+    ScrollDebounce = THEME:GetString("Settings", "ScrollDebounce"),
+    ScrollDebounceExplanation = THEME:GetString("Settings", "ScrollDebounceExplanation"),
     TestInput = THEME:GetString("Settings", "TestInput"),
     TestInputExplanation = THEME:GetString("Settings", "TestInputExplanation"),
     TestInputButton = THEME:GetString("Settings", "TestInputButton"),
@@ -443,6 +448,8 @@ local translations = {
     RenameProfile = THEME:GetString("Settings", "RenameProfile"),
     RenameProfileExplanation = THEME:GetString("Settings", "RenameProfileExplanation"),
     RenameProfileButton = THEME:GetString("Settings", "RenameProfileButton"),
+    ForceNoDoubleSetup = THEME:GetString("Settings", "ForceNoDoubleSetup"),
+    ForceNoDoubleSetupExplanation = THEME:GetString("Settings", "ForceNoDoubleSetupExplanation"),
 }
 
 local visibleframeY = SCREEN_HEIGHT - actuals.Height
@@ -673,7 +680,16 @@ local function leftFrame()
         local currentKey = ""
         local cursorIndex = 1
         local automaticallyBindingEverything = false -- when true, move forward until we bound the last allowed index
-        local optionActive = 0 -- 0 = nothing, 1 = bind all, 2 = swap pages (to keep track of vertical hover position)
+        local optionActive = 0 -- 0 = nothing, 1 = bind all, 2 = swap pages (to keep track of vertical hover position), 3 = show doubles
+        local showingDoubles = false
+        local doublesGamemodes = {
+            dance = true,
+            pump = true,
+            beat = true,
+            -- maniax
+            -- ez2
+        }
+        local gamemodeHasDoubles = doublesGamemodes[GAMESTATE:GetCurrentGame():GetName()] ~= nil
 
         -- entries into this list are not allowed to be bound
         local bannedKeys = {
@@ -715,7 +731,7 @@ local function leftFrame()
         -- just moves the cursor, for keyboard compatibility only
         local function selectKeybind(direction)
             local n = cursorIndex + direction
-            local maxindex = not inMenuPage and #gameButtonsToMap*2 or #menuButtonsToMap
+            local maxindex = not inMenuPage and (showingDoubles and #gameButtonsToMap*2 or #gameButtonsToMap) or #menuButtonsToMap
             if n > maxindex then n = 1 end
             if n < 1 then n = maxindex end
 
@@ -735,6 +751,14 @@ local function leftFrame()
 
             MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
             MESSAGEMAN:Broadcast("BindingPageSet")
+        end
+
+        -- show or hide the doubles keybinds for this game, if possible
+        local function toggleDoublesVisible()
+            if gamemodeHasDoubles then
+                showingDoubles = not showingDoubles
+            end
+            MESSAGEMAN:Broadcast("ToggledDoublesVisible")
         end
 
         -- select this specific key to begin binding, lock input
@@ -888,6 +912,17 @@ local function leftFrame()
                                 if up then
                                     optionActive = 1
                                 else
+                                    optionActive = ((inMenuPage or not gamemodeHasDoubles) and 0 or 3)
+                                    if optionActive == 3 then
+                                        cursorIndex = 0
+                                    else
+                                        cursorIndex = 1
+                                    end
+                                end
+                            elseif optionActive == 3 then -- hovered "show doubles"
+                                if up then
+                                    optionActive = 2
+                                else
                                     optionActive = 0
                                     cursorIndex = 1
                                 end
@@ -907,7 +942,7 @@ local function leftFrame()
                                 else
                                     cursorIndex = 0
                                     if up then
-                                        optionActive = 2
+                                        optionActive = gamemodeHasDoubles and 3 or 2
                                     else
                                         optionActive = 1
                                     end
@@ -928,6 +963,10 @@ local function leftFrame()
                                     optionActive = 2
                                     cursorIndex = 0
                                     MESSAGEMAN:Broadcast("UpdatedBoundKeys") -- hack to get visible cursor position to update
+                                    self:playcommand("Set")
+                                elseif optionActive == 3 then
+                                    -- toggle showing doubles button
+                                    toggleDoublesVisible()
                                     self:playcommand("Set")
                                 end
                             else
@@ -1024,6 +1063,13 @@ local function leftFrame()
                     self:diffusealpha(0)
                 else
                     self:diffusealpha(1)
+                end
+            end,
+            ToggledDoublesVisibleMessageCommand = function(self)
+                if showingDoubles then
+                    self:playcommand("ShowDoubles")
+                else
+                    self:playcommand("HideDoubles")
                 end
             end,
             ShowLeftCommand = function(self)
@@ -1124,6 +1170,7 @@ local function leftFrame()
                     -- ActorProxy offsets only have to be relative to the original
                     -- set x to the same as the highest offset
                     self:x(columnwidth * (#NSDirTable))
+                    self:visible(false)
                 end,
                 BeginCommand = function(self)
                     self:SetTarget(tapForThisIteration)
@@ -1135,6 +1182,12 @@ local function leftFrame()
                         self:diffusealpha(0)
                     end
                 end,
+                ShowDoublesCommand = function(self)
+                    self:visible(true)
+                end,
+                HideDoublesCommand = function(self)
+                    self:visible(false)
+                end,
             }
             -- load shadow receptors (doubles modes)
             tt[#tt+1] = Def.ActorProxy {
@@ -1142,6 +1195,7 @@ local function leftFrame()
                     -- ActorProxy offsets only have to be relative to the original
                     -- set x to the same as the highest offset
                     self:x(columnwidth * (#NSDirTable))
+                    self:visible(false)
                 end,
                 BeginCommand = function(self)
                     self:SetTarget(receptorForThisIteration)
@@ -1152,6 +1206,12 @@ local function leftFrame()
                     else
                         self:diffusealpha(0)
                     end
+                end,
+                ShowDoublesCommand = function(self)
+                    self:visible(true)
+                end,
+                HideDoublesCommand = function(self)
+                    self:visible(false)
                 end,
             }
             -- load keybinding display
@@ -1166,6 +1226,7 @@ local function leftFrame()
                         self:x(leftoffset + columnwidth * (i-1))
                         if isDoublesSide then
                             self:addx(columnwidth * #NSDirTable)
+                            self:visible(false)
                         end
                         self:y(secondrowYoffset * 2)
                     end,
@@ -1174,6 +1235,16 @@ local function leftFrame()
                             self:diffusealpha(1)
                         else
                             self:diffusealpha(0)
+                        end
+                    end,
+                    ShowDoublesCommand = function(self)
+                        if isDoublesSide then
+                            self:visible(true)
+                        end
+                    end,
+                    HideDoublesCommand = function(self)
+                        if isDoublesSide then
+                            self:visible(false)
                         end
                     end,
                     UIElements.QuadButton(1, 1) .. {
@@ -1476,6 +1547,61 @@ local function leftFrame()
                     end
                 end,
             },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "ShowDoublesKeys",
+                InitCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    txt:halign(0)
+                    bg:halign(0)
+                    self:xy(actuals.EdgePadding, actuals.Height/2 + actuals.Height/4 + 60 * bindingChoicesTextSize)
+                    txt:zoom(bindingChoicesTextSize)
+                    txt:maxwidth(actuals.LeftWidth / bindingChoicesTextSize)
+                    registerActorToColorConfigElement(txt, "main", "PrimaryText")
+                    bg:diffusealpha(0.2)
+                    self:playcommand("BindingPageSet")
+                    self.alphaDeterminingFunction = function(self)
+                        local multiplier = optionActive == 3 and buttonHoverAlpha or 1
+                        if isOver(bg) then
+                            self:diffusealpha(buttonHoverAlpha * multiplier)
+                        else
+                            self:diffusealpha(1 * multiplier)
+                        end
+                    end
+                end,
+                BindingPageSetMessageCommand = function(self)
+                    local txt = self:GetChild("Text")
+                    local bg = self:GetChild("BG")
+                    if inMenuPage or not gamemodeHasDoubles then
+                        self:visible(false)
+                    else
+                        self:visible(true)
+                        if showingDoubles then
+                            txt:settext(translations["HideDoublesBindings"])
+                        else
+                            txt:settext(translations["ShowDoublesBindings"])
+                        end
+                    end
+                    bg:zoomto(txt:GetZoomedWidth(), txt:GetZoomedHeight() * textButtonHeightFudgeScalarMultiplier)
+                end,
+                ToggledDoublesVisibleMessageCommand = function(self)
+                    self:playcommand("BindingPageSet")
+                end,
+                SetCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update == "OnMouseDown" then
+                        toggleDoublesVisible()
+                    end
+                end,
+            },
         }
 
         -- to collect all the menu bindings
@@ -1539,7 +1665,7 @@ local function leftFrame()
                 end,
                 BeginCommand = function(self)
                     -- take the long road to find the actual chart preview actor
-                    local realnotefieldpreview = SCREENMAN:GetTopScreen():safeGetChild(
+                    local realnotefieldpreview = SCREENMAN:GetTopScreen():GetDescendant(
                         "ChartPreviewFile",
                         "NoteField"
                     )
@@ -1901,6 +2027,7 @@ local function leftFrame()
             cursorPosition = 1
             selectionstate = cat
             MESSAGEMAN:Broadcast("ColorConfigSelectionStateChanged")
+            MESSAGEMAN:Broadcast("UpdateColorConfigChoiceCursorDisplay")
         end
 
         local function selectCategory(category)
@@ -2085,6 +2212,30 @@ local function leftFrame()
                                         hexEntryString = left .. "0" .. right
                                     end
                                     textCursorPos = textCursorPos + cursorCanMove(-1)
+                                    aboutToSave = false
+                                    MESSAGEMAN:Broadcast("UpdateStringDisplay")
+                                end
+                            elseif up or down then
+                                if #hexEntryString > 0 then
+                                    local value = hexEntryString:sub(textCursorPos, textCursorPos)
+                                    local nval = 0
+                                    -- we shall hope and pray that it is [0-9A-F]
+                                    if value:find("%d") then
+                                        nval = tonumber(value)
+                                    elseif value:find("[ABCDEF]") then
+                                        nval = tonumber(value, 16)
+                                    else
+                                        print("The user somehow got an invalid character into hexEntryString")
+                                        print(hexEntryString)
+                                        return
+                                    end
+
+                                    local direction = up and -1 or 1
+                                    nval = nval + direction
+                                    if nval < 0 then nval = 15 end
+                                    if nval > 15 then nval = 0 end
+                                    local newchar = string.format("%x", nval):upper()
+                                    hexEntryString = hexEntryString:sub(1, textCursorPos-1) .. newchar .. hexEntryString:sub(textCursorPos+1)
                                     aboutToSave = false
                                     MESSAGEMAN:Broadcast("UpdateStringDisplay")
                                 end
@@ -2850,6 +3001,8 @@ local function rightFrame()
     local modsToApplyAtExit = {}
 
     local function checkModsToApply()
+        -- force save playerConfig
+        playerConfig:save()
         local setGraphics = false
         local setGame = nil
         local setTheme = nil
@@ -2910,6 +3063,11 @@ local function rightFrame()
             self:smooth(animationSeconds)
             self:diffusealpha(0)
             self:x(offscreenX)
+        end,
+        EndCommand = function(self)
+            -- apply options when exiting screen
+            -- sometimes, this throws you to the main menu
+            checkModsToApply()
         end,
         ShowRightCommand = function(self)
             -- move on screen from right and go visible
@@ -3220,7 +3378,8 @@ local function rightFrame()
     local function setdataPLAYER(propertyname, val)
         playerConfig:get_data()[propertyname] = val
         playerConfig:set_dirty()
-        playerConfig:save()
+        -- save playerConfig when closing settings
+        -- playerConfig:save()
     end
     local function themeoption(category, propertyname)
         return {get = getdataTHEME(category, propertyname), set = function(x) setdataTHEME(category, propertyname, x) end}
@@ -3281,7 +3440,7 @@ local function rightFrame()
         playerInfo = playeroption("PlayerInfo"),
         rateDisplay = playeroption("RateDisplay"),
         targetTracker = playeroption("TargetTracker"),
-        targetTrackerMode = playeroption("TargetTrackerMode"), -- 0 is goal, anything else is pb
+        targetTrackerMode = playeroption("TargetTrackerMode"), -- 0 is goal, 1 is pb, 2 is pb with replay
         targetTrackerGoal = playeroption("TargetGoal"), -- only valid for TargetTrackerMode 0 unless no pb
         laneCover = playeroption("LaneCover"), -- 0 off, 1 sudden, 2 hidden
         judgmentText = playeroption("JudgmentText"),
@@ -3878,6 +4037,7 @@ local function rightFrame()
                     return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3) .. "s"
                 end,
             },
+            --[[ -- people dont know any better i guess
             {
                 Name = "Game Mode",
                 DisplayName = translations["GameMode"],
@@ -3914,6 +4074,7 @@ local function rightFrame()
                     return o
                 end,
             },
+            --]]
             {
                 Name = "Fail Type",
                 DisplayName = translations["FailType"],
@@ -4901,6 +5062,13 @@ local function rightFrame()
                         end,
                     },
                     {
+                        Name = "PB (Replay)",
+                        DisplayName = translations["PersonalBestReplay"],
+                        ChosenFunction = function()
+                            optionData["targetTrackerMode"].set(2)
+                        end,
+                    },
+                    {
                         Name = "Goal Percent",
                         DisplayName = translations["GoalPercent"],
                         ChosenFunction = function()
@@ -4911,9 +5079,11 @@ local function rightFrame()
                 ChoiceIndexGetter = function()
                     local v = optionData["targetTrackerMode"].get()
                     if v == 0 then
-                        return 2 -- goal
-                    else
+                        return 3 -- goal
+                    elseif v == 1 then
                         return 1 -- pb
+                    else
+                        return 2 -- pb replay
                     end
                 end,
             },
@@ -5624,6 +5794,57 @@ local function rightFrame()
                             end
                         end,
                     },
+                    {
+                        Name = "4096",
+                        DisplayName = "4096",
+                        ChosenFunction = function()
+                            local v = 4096
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "8192",
+                        DisplayName = "8192",
+                        ChosenFunction = function()
+                            local v = 8192
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
+                    {
+                        Name = "Unlimited",
+                        DisplayName = "Unlimited",
+                        ChosenFunction = function()
+                            local v = 1048576
+                            PREFSMAN:SetPreference("MaxTextureResolution", v)
+                            if v == optionData.maxTextureResolutionBefore then
+                                modsToApplyAtExit["MaxTextureResolution"] = nil
+                            else
+                                modsToApplyAtExit["MaxTextureResolution"] = {
+                                    Name = "MaxTextureResolution",
+                                    Value = v,
+                                    SetGraphics = true,
+                                }
+                            end
+                        end,
+                    },
                 },
                 ChoiceIndexGetter = function()
                     local v = PREFSMAN:GetPreference("MaxTextureResolution")
@@ -5631,6 +5852,9 @@ local function rightFrame()
                     elseif v == 512 then return 2
                     elseif v == 1024 then return 3
                     elseif v == 2048 then return 4
+                    elseif v == 4096 then return 5
+                    elseif v == 8192 then return 6
+                    elseif v == 1048576 then return 7
                     end
                     return 1
                 end,
@@ -6136,6 +6360,15 @@ local function rightFrame()
                 ChoiceIndexGetter = preferenceToggleIndexGetter("AllowStartToGiveUp", true),
             },
             {
+                Name = "Force No Double Setup",
+                DisplayName = translations["ForceNoDoubleSetup"],
+                Type = "SingleChoice",
+                Explanation = translations["ForceNoDoubleSetupExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("ForceNoDoubleSetup", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ForceNoDoubleSetup", true),
+            },
+            {
                 Name = "Input Debounce Time",
                 DisplayName = translations["Debounce"],
                 Type = "SingleChoice",
@@ -6143,6 +6376,16 @@ local function rightFrame()
                 Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 0.2, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 3) .. "s"
+                end,
+            },
+            {
+                Name = "Scroll Debounce Time",
+                DisplayName = translations["ScrollDebounce"],
+                Type = "SingleChoice",
+                Explanation = translations["ScrollDebounceExplanation"],
+                Directions = preferenceIncrementDecrementDirections("ScrollDebounceTime", 0, 0.2, 0.001),
+                ChoiceIndexGetter = function()
+                    return notShit.round(PREFSMAN:GetPreference("ScrollDebounceTime"), 3) .. "s"
                 end,
             },
             {
@@ -6442,7 +6685,7 @@ local function rightFrame()
                 elseif optionRowDef.Type == "SingleChoice" or optionRowDef.Type == "SingleChoiceModifier" then
                     -- SingleChoice[Modifier] hovers the single visible choice
                     -- pressing enter does nothing, only left and right function
-                    actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_1")
+                    actorToHover = optionRowFrame:GetDescendant("ChoiceFrame", "Choice_1")
                 elseif optionRowDef.Type == "MultiChoice" then
                     -- MultiChoice hovers one of the visible choices
                     -- the visible choice is dependent on the value of availableCursorPositions[i].HighlightedChoice
@@ -6452,13 +6695,13 @@ local function rightFrame()
                     local pagesize = math.min(maxChoicesVisibleMultiChoice, cursorPosDef.NumChoices)
                     if pagesize > cursorPosDef.HighlightedChoice then
                         -- if the cursor is on the first page no special math required
-                        actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_"..cursorPosDef.HighlightedChoice)
+                        actorToHover = optionRowFrame:GetDescendant("ChoiceFrame", "Choice_"..cursorPosDef.HighlightedChoice)
                     else
                         -- if the cursor is not on the first page check to see where it lands
                         -- (i already spent 5 minutes thinking on the math for this and i got bored so what follows is the best you get)
                         local choiceIndex = cursorPosDef.HighlightedChoice % pagesize
                         if choiceIndex == 0 then choiceIndex = pagesize end -- really intuitive, right?
-                        actorToHover = optionRowFrame:safeGetChild("ChoiceFrame", "Choice_"..choiceIndex)
+                        actorToHover = optionRowFrame:GetDescendant("ChoiceFrame", "Choice_"..choiceIndex)
                     end
                 else
                     ms.ok("BAD CURSOR ROWDEF TYPE REPORT TO DEVELOPER")
@@ -7161,10 +7404,25 @@ local function rightFrame()
                         if isOver(self) and focused and (optionDef ~= nil or categoryDef ~= nil) then
                             if optionDef ~= nil then
                                 if optionDef.Type == "SingleChoice" or optionDef.Type == "SingleChoiceModifier" or optionDef.Type == "MultiChoice" then
-                                    if params.direction == "Up" then
-                                        rowHandle:GetChild("RightBigTriangleFrame"):playcommand("Invoke")
-                                    else
-                                        rowHandle:GetChild("LeftBigTriangleFrame"):playcommand("Invoke")
+
+                                    -- for scroll choice changing ...
+                                    -- make sure that the mouse is actually hovering a visible part of the row
+                                    -- so that less accidents happen
+                                    local isActuallyOver = false
+                                    for _,child in pairs(rowHandle:GetAllDescendants()) do
+                                        if child ~= self then
+                                            if isOver(child) then
+                                                isActuallyOver = true
+                                                break
+                                            end
+                                        end
+                                    end
+                                    if isActuallyOver then
+                                        if params.direction == "Up" then
+                                            rowHandle:GetChild("RightBigTriangleFrame"):playcommand("Invoke")
+                                        else
+                                            rowHandle:GetChild("LeftBigTriangleFrame"):playcommand("Invoke")
+                                        end
                                     end
                                 end
                             end
@@ -7321,7 +7579,7 @@ local function rightFrame()
                             -- okay actually im gonna be honest I DONT KNOW WHAT IS HAPPENING HERE
                             -- but it completely mirrors the behavior of the other side so it works
                             -- help
-                            self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight*0.9 + actuals.OptionChoiceDirectionGap)
+                            self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetDescendant("Choice_1", "Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight*0.9 + actuals.OptionChoiceDirectionGap)
                             self:diffusealpha(1)
                             self:z(1)
                         else
@@ -7515,7 +7773,7 @@ local function rightFrame()
                                 local finalX = optionRowChoiceFrame:GetX() + lastChoice:GetX() + lastChoice:GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4
                                 self:x(finalX)
                             else
-                                self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetChild("Choice_1"):GetChild("Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4)
+                                self:x(optionRowChoiceFrame:GetX() + optionRowChoiceFrame:GetDescendant("Choice_1", "Text"):GetZoomedWidth() + actuals.OptionChoiceDirectionGap + actuals.OptionBigTriangleHeight/4)
                             end
                             self:diffusealpha(1)
                             self:z(1)

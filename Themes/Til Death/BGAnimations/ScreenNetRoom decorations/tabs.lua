@@ -43,7 +43,10 @@ local t = Def.ActorFrame {
 	end,
 	EndingSearchMessageCommand = function(self)
 		active = true
-	end
+	end,
+	ReloadedScriptsMessageCommand = function(self)
+		MESSAGEMAN:Broadcast("TabChanged", {from = 1, to = 1})
+	end,
 }
 
 -- Just for debug

@@ -40,7 +40,7 @@ class StageStats
 
 	/** @brief Was the gameplay exited by the Player giving up? */
 	bool m_bGaveUp;
-	/** @brief Did the PLayer use Autoplay at any point during gameplay? */
+	/** @brief Did the Player use Autoplay at any point during gameplay? */
 	bool m_bUsedAutoplay;
 
 	/** @brief How fast was the music going compared to normal? */

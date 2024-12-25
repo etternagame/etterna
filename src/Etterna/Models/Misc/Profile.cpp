@@ -91,6 +91,7 @@ Profile::InitGeneralData()
 	m_iNumToasties = 0;
 	m_sLastPlayedMachineGuid = "";
 	m_LastPlayedDate.Init();
+	m_lastRankedChartkeyCheck.Init();
 	m_iTotalTapsAndHolds = 0;
 	m_iTotalJumps = 0;
 	m_iTotalHolds = 0;
@@ -233,6 +234,7 @@ Profile::swap(Profile& other)
 	SWAP_GENERAL(m_bNewProfile);
 	SWAP_STR_MEMBER(m_sLastPlayedMachineGuid);
 	SWAP_GENERAL(m_LastPlayedDate);
+	SWAP_GENERAL(m_lastRankedChartkeyCheck);
 	SWAP_STR_MEMBER(m_iNumSongsPlayedByStyle);
 	SWAP_ARRAY(m_iNumSongsPlayedByDifficulty, NUM_Difficulty);
 	SWAP_ARRAY(m_iNumSongsPlayedByMeter, MAX_METER + 1);
@@ -471,13 +473,13 @@ Profile::AddStepTotals(int iTotalTapsAndHolds,
 }
 
 void
-Profile::RemoveFromFavorites(const string& ck)
+Profile::RemoveFromFavorites(const std::string& ck)
 {
 	FavoritedCharts.erase(ck);
 }
 
 void
-Profile::RemoveFromPermaMirror(const string& ck)
+Profile::RemoveFromPermaMirror(const std::string& ck)
 {
 	PermaMirrorCharts.erase(ck);
 }
@@ -485,11 +487,12 @@ Profile::RemoveFromPermaMirror(const string& ck)
 // more future goalman stuff (perhaps this should be standardized to "add" in
 // order to match scoreman nomenclature) -mina
 bool
-Profile::AddGoal(const string& ck)
+Profile::AddGoal(const std::string& ck)
 {
 	ScoreGoal goal;
 	goal.timeassigned = DateTime::GetNowDateTime();
 	goal.rate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	goal.oldrate = goal.oldrate;
 	goal.chartkey = ck;
 	// duplication avoidance should be simpler than this? -mina
 	if (goalmap.count(ck))
@@ -499,7 +502,53 @@ Profile::AddGoal(const string& ck)
 
 	goal.CheckVacuity();
 	goalmap[ck].Add(goal);
-	DLMAN->AddGoal(ck, goal.percent, goal.rate, goal.timeassigned);
+	DLMAN->AddGoal(&goalmap[ck].goals.back());
+	FillGoalTable();
+	MESSAGEMAN->Broadcast("GoalTableRefresh");
+	return true;
+}
+
+bool
+Profile::LoadGoalIfNew(ScoreGoal goal)
+{
+	if (goal.chartkey.empty()) {
+		return false;
+	}
+	if (goal.percent == 0.F) {
+		return false;
+	}
+
+	
+	if (goalmap.count(goal.chartkey)) {
+		for (auto it = goalmap[goal.chartkey].goals.begin();
+			 it != goalmap[goal.chartkey].goals.end();) {
+			if (it->rate == goal.rate && it->percent == goal.percent) {
+				if (goal.achieved && !it->achieved) {
+					// the online goal is newer than the local
+					// delete the local
+					it = goalmap[goal.chartkey].goals.erase(it);
+				} else {
+					// local is newer
+					return false;
+				}
+			} else {
+				it++;
+			}
+		}
+	}
+	goal.CheckVacuity();
+
+	auto* steps = SONGMAN->GetStepsByChartkey(goal.chartkey);
+	if (steps != nullptr) {
+		steps->SetHasGoal(true);
+	}
+	auto* song = SONGMAN->GetSongByChartkey(goal.chartkey);
+	if (song != nullptr) {
+		song->SetHasGoal(true);
+	}
+
+	Locator::getLogger()->info("Saved goal locally: {}", goal.DebugString());
+	goalmap[goal.chartkey].Add(goal);
 	FillGoalTable();
 	MESSAGEMAN->Broadcast("GoalTableRefresh");
 	return true;
@@ -548,9 +597,11 @@ ScoreGoal::LoadFromNode(const XNode* pNode)
 	std::string s;
 
 	pNode->GetChildValue("Rate", rate);
+	oldrate = rate;
 	pNode->GetChildValue("Percent", percent);
 	if (percent > 1.f) // goddamnit why didnt i think this through originally
 		percent /= 100.f;
+	oldpercent = percent;
 	pNode->GetChildValue("Priority", priority);
 	pNode->GetChildValue("Achieved", achieved);
 	pNode->GetChildValue("TimeAssigned", s);
@@ -585,13 +636,21 @@ void
 ScoreGoal::UploadIfNotVacuous()
 {
 	if (!vacuous || !timeachieved.GetString().empty())
-		DLMAN->UpdateGoal(
-		  chartkey, percent, rate, achieved, timeassigned, timeachieved);
+		DLMAN->UpdateGoal(this);
+}
+
+void
+ScoreGoal::ReUploadIfNotVacuous()
+{
+	if (!vacuous) {
+		DLMAN->RemoveGoal(this, true);
+		DLMAN->AddGoal(this);
+	}
 }
 
 // aaa too lazy to write comparators rn -mina
 ScoreGoal&
-Profile::GetLowestGoalForRate(const string& ck, float rate)
+Profile::GetLowestGoalForRate(const std::string& ck, float rate)
 {
 	auto& sgv = goalmap[ck].Get();
 	auto lowest = 100.f;
@@ -609,7 +668,7 @@ Profile::GetLowestGoalForRate(const string& ck, float rate)
 }
 
 void
-Profile::SetAnyAchievedGoals(const string& ck,
+Profile::SetAnyAchievedGoals(const std::string& ck,
 							 float& rate,
 							 const HighScore& pscore)
 {
@@ -625,24 +684,37 @@ Profile::SetAnyAchievedGoals(const string& ck,
 			tmp.achieved = true;
 			tmp.timeachieved = pscore.GetDateTime();
 			tmp.scorekey = pscore.GetScoreKey();
-			DLMAN->UpdateGoal(tmp.chartkey,
-							  tmp.percent,
-							  tmp.rate,
-							  tmp.achieved,
-							  tmp.timeassigned,
-							  tmp.timeachieved);
+			DLMAN->UpdateGoal(&tmp);
 		}
 	}
 }
 
 void
-Profile::RemoveGoal(const string& ck, DateTime assigned)
+Profile::RemoveGoal(const std::string& ck, DateTime assigned)
 {
 	auto& sgv = goalmap.at(ck).Get();
 	for (size_t i = 0; i < sgv.size(); ++i) {
 		if (sgv[i].timeassigned == assigned) {
-			DLMAN->RemoveGoal(ck, sgv[i].percent, sgv[i].rate);
+			DLMAN->RemoveGoal(&sgv[i]);
 			sgv.erase(sgv.begin() + i);
+
+			// remove goal from data structures
+			auto song = SONGMAN->GetSongByChartkey(ck);
+			auto steps = SONGMAN->GetStepsByChartkey(ck);
+			if (goalmap.contains(ck) && goalmap.at(ck).Get().size() == 0) {
+				steps->SetHasGoal(false);
+			}
+			if (song) {
+				auto hasgoal = false;
+				for (auto& s : song->GetAllSteps()) {
+					if (goalmap.contains(ck) &&
+						goalmap.at(ck).Get().size() > 0) {
+						hasgoal = true;
+						break;
+					}
+				}
+				song->SetHasGoal(hasgoal);
+			}
 		}
 	}
 }
@@ -1025,26 +1097,39 @@ class LunaProfile : public Luna<Profile>
 	{
 		p->FillGoalTable();
 
-		if (p->filtermode == 3) {
-			p->filtermode = 1;
+		auto direction = true;
+		if (!lua_isnoneornil(L, 1)) {
+			direction = BArg(1);
+		}
+
+		auto newmode = p->filtermode;
+		if (direction)
+			newmode++;
+		else
+			newmode--;
+		if (newmode > 3)
+			newmode = 1;
+		else if (newmode < 1)
+			newmode = 3;
+		p->filtermode = newmode;
+
+		if (p->filtermode == 1) {
 			return 0;
 		}
 
 		std::vector<ScoreGoal*> doot;
-		if (p->filtermode == 1) {
+		if (p->filtermode == 2) {
 			for (auto& sg : p->goaltable)
 				if (sg->achieved)
 					doot.emplace_back(sg);
 			p->goaltable = doot;
-			p->filtermode = 2;
 			return 0;
 		}
-		if (p->filtermode == 2) {
+		if (p->filtermode == 3) {
 			for (auto& sg : p->goaltable)
 				if (!sg->achieved)
 					doot.emplace_back(sg);
 			p->goaltable = doot;
-			p->filtermode = 3;
 			return 0;
 		}
 		return 0;
@@ -1083,7 +1168,7 @@ class LunaProfile : public Luna<Profile>
 	// ok i should probably handle this better -mina
 	static int GetEasiestGoalForChartAndRate(T* p, lua_State* L)
 	{
-		const string ck = SArg(1);
+		const std::string ck = SArg(1);
 		if (!p->goalmap.count(ck)) {
 			lua_pushnil(L);
 			return 1;
@@ -1209,10 +1294,11 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 	{
 		if (!p->achieved) {
 			auto newrate = FArg(1);
-			CLAMP(newrate, 0.7f, 3.0f);
+			CLAMP(newrate, MIN_MUSIC_RATE, MAX_MUSIC_RATE);
+			p->oldrate = p->rate;
 			p->rate = newrate;
 			p->CheckVacuity();
-			p->UploadIfNotVacuous();
+			p->ReUploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1244,9 +1330,10 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 			}
 
 
+			p->oldpercent = p->percent;
 			p->percent = newpercent;
 			p->CheckVacuity();
-			p->UploadIfNotVacuous();
+			p->ReUploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1257,7 +1344,8 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 			auto newpriority = IArg(1);
 			CLAMP(newpriority, 1, 100);
 			p->priority = newpriority;
-			p->UploadIfNotVacuous();
+			// priority doesnt matter online
+			// p->UploadIfNotVacuous();
 		}
 		return 1;
 	}
@@ -1270,7 +1358,7 @@ class LunaScoreGoal : public Luna<ScoreGoal>
 
 	static int Delete(T* p, lua_State* L)
 	{
-		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey,
+		PROFILEMAN->GetProfile(PLAYER_1)->RemoveGoal(p->chartkey.c_str(),
 													 p->timeassigned);
 		return 0;
 	}

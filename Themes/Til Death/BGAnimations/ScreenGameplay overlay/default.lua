@@ -55,7 +55,7 @@ if snm ~= nil and snm == "ScreenGameplaySyncMachine" then
 			nowaitdontCommand = function(self)
 				if not SCREENMAN:GetTopScreen() then return end
 				notdoingit = true
-				local nf = SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")
+				local nf = SCREENMAN:GetTopScreen():GetDescendant("PlayerP1", "NoteField")
 				if nf then
 					self:stoptweening()
 					nf:diffusealpha(1)
@@ -66,7 +66,7 @@ if snm ~= nil and snm == "ScreenGameplaySyncMachine" then
 			doitCommand = function(self)
 				if not SCREENMAN:GetTopScreen() then return end
 				notdoingit = false
-				local nf = SCREENMAN:GetTopScreen():GetChild("PlayerP1"):GetChild("NoteField")
+				local nf = SCREENMAN:GetTopScreen():GetDescendant("PlayerP1", "NoteField")
 				if nf then
 					self:finishtweening()
 					nf:smooth(1)

@@ -6,7 +6,7 @@
 void
 RageTextureID::Init()
 {
-	iMaxSize = 2048;
+	iMaxSize = 1048576;
 	bMipMaps = false; // Most sprites (especially text) look worse with mip maps
 	iAlphaBits = 4;
 	iGrayscaleBits = -1;

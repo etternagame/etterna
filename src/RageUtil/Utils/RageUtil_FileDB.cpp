@@ -384,15 +384,22 @@ FilenameDB::GetFileSet(const std::string& sDir_, bool bCreate)
 		FileSet* pParent = GetFileSet(sParent);
 		if (pParent != nullptr) {
 			set<File>::iterator it = pParent->files.find(File(Basename(sDir)));
-			if (it != pParent->files.end())
+			if (it != pParent->files.end()) {
 				pParentDirp = const_cast<FileSet**>(&it->dirp);
+
+				if (pParentDirp != nullptr) {
+					// vomit
+					pRet->dirpers.insert(const_cast<File*>(&(*it)));
+				}
+			}
 		}
 	} else {
 		m_Mutex.Lock();
 	}
 
-	if (pParentDirp != nullptr)
+	if (pParentDirp != nullptr) {
 		*pParentDirp = pRet;
+	}
 
 	pRet->age.Touch();
 	pRet->m_bFilled = true;
@@ -475,19 +482,12 @@ FilenameDB::DelFileSet(map<std::string, FileSet*>::iterator dir)
 
 	FileSet* fs = dir->second;
 
-	/* Remove any stale dirp pointers. */
-	for (map<std::string, FileSet*>::iterator it = dirs.begin();
-		 it != dirs.end();
-		 ++it) {
-		FileSet* Clean = it->second;
-		for (set<File>::iterator f = Clean->files.begin();
-			 f != Clean->files.end();
-			 ++f) {
-			File& ff = (File&)*f;
-			if (ff.dirp == fs)
-				ff.dirp = nullptr;
-		}
+	for (auto& file : fs->dirpers) {
+		// just in case
+		if (file->dirp == fs)
+			file->dirp = nullptr;
 	}
+	fs->dirpers.clear();
 
 	delete fs;
 	dirs.erase(dir);
@@ -513,11 +513,12 @@ FilenameDB::DelFile(const std::string& sPath)
 }
 
 void
-FilenameDB::FlushDirCache(const std::string& /* sDir */)
+FilenameDB::FlushDirCache(const std::string& sDir)
 {
 	FileSet* pFileSet = nullptr;
 	m_Mutex.Lock();
 
+#if 0
 	for (;;) {
 		if (dirs.empty())
 			break;
@@ -534,41 +535,30 @@ FilenameDB::FlushDirCache(const std::string& /* sDir */)
 			m_Mutex.Wait();
 		delete pFileSet;
 	}
+#endif
 
-#if 0
 	/* XXX: This is tricky, we want to flush all of the subdirectories of
 	 * sDir, but once we unlock the mutex, we basically have to start over.
 	 * It's just an optimization though, so it can wait. */
 	{
-		if( it != dirs.end() )
-		{
+		auto lower = make_lower(sDir);
+		auto it = dirs.find(lower);
+		if (it != dirs.end()) {
 			pFileSet = it->second;
-			dirs.erase( it );
-			while( !pFileSet->m_bFilled )
-				m_Mutex.Wait();
-			delete pFileSet;
-
-			if( sDir != "/" )
-			{
-				std::string sParent = Dirname( sDir );
-				if( sParent == "./" )
-					sParent = "";
-				sParent.MakeLower();
-				it = dirs.find( sParent );
-				if( it != dirs.end() )
-				{
-					FileSet *pParent = it->second;
-					set<File>::iterator fileit = pParent->files.find( File(Basename(sDir)) );
-					if( fileit != pParent->files.end() )
-						fileit->dirp = NULL;
+			dirs.erase(it);
+			for (auto& file : pFileSet->dirpers) {
+				if (file->dirp == pFileSet) {
+					file->dirp = nullptr;
 				}
 			}
+			while (!pFileSet->m_bFilled)
+				m_Mutex.Wait();
+			delete pFileSet;
+		} else {
+			Locator::getLogger()->warn(
+			  "Trying to flush an unknown directory {}.", sDir.c_str());
 		}
-		else
-		{
-			Locator::getLogger()->warn( "Trying to flush an unknown directory {}.", sDir.c_str() );
-		}
-#endif
+	}
 	m_Mutex.Unlock();
 }
 

@@ -131,6 +131,7 @@ t[#t+1] = Def.ActorFrame {
         -- the math with the logic inline will make increments be 0.1x
         -- holding Select will do 0.05x increments
         local selectPressed = false
+        local lastratepresses = {0,0}
         SCREENMAN:GetTopScreen():AddInputCallback(function(event)
             -- require context is set and the general box is set to anything but the Scores tab
             if not CONTEXTMAN:CheckContextSet(snm, "Main1") or SCUFF.generaltab == SCUFF.scoretabindex then 
@@ -138,16 +139,40 @@ t[#t+1] = Def.ActorFrame {
                 return
             end
             if event.type == "InputEventType_FirstPress" then
+                if event.button == "EffectUp" or event.button == "EffectDown" then
+                    if event.button == "EffectUp" then
+                        lastratepresses[1] = GetTimeSinceStart()
+                    elseif event.button == "EffectDown" then
+                        lastratepresses[2] = GetTimeSinceStart()
+                    end
+                end
+                local ratemash = math.abs(lastratepresses[1] - lastratepresses[2])
+                local canratemash = lastratepresses[1] > 0 and lastratepresses[2] > 0
+                local ratemashthreshold = 0.05
+
                 if event.button == "EffectUp" then
-                    changeMusicRate(1, selectPressed)
+                    if canratemash and ratemash < ratemashthreshold then
+                        setMusicRate(1)
+                    else
+                        changeMusicRate(1, selectPressed)
+                    end
                 elseif event.button == "EffectDown" then
-                    changeMusicRate(-1, selectPressed)
+                    if canratemash and ratemash < ratemashthreshold then
+                        setMusicRate(1)
+                    else
+                        changeMusicRate(-1, selectPressed)
+                    end
                 elseif event.button == "Select" then
                     selectPressed = true
                 end
             elseif event.type == "InputEventType_Release" then
                 if event.button == "Select" then
                     selectPressed = false
+                end
+                if event.button == "EffectUp" then
+                    lastratepresses[1] = 0
+                elseif event.button == "EffectDown" then
+                    lastratepresses[2] = 0
                 end
             end
         end)
@@ -189,14 +214,12 @@ t[#t+1] = Def.ActorFrame {
             --      rightframe owns generalbox - owns general owns chart preview
             -- this should work based on the actor tree that exists
             -- if it fails, probably nothing was there to receive the message or the tree is bad
-            if SCUFF.generaltab == SCUFF.generaltabindex and focused and params.event == "DeviceButton_left mouse button" then
+            if SCUFF.generaltab == SCUFF.generaltabindex and focused and
+                (params.event == "DeviceButton_left mouse button" or (params.event == "DeviceButton_right mouse button" and not INPUTFILTER:IsControlPressed())) then
                 SCUFF.preview.active = not SCUFF.preview.active
                 MESSAGEMAN:Broadcast("ChartPreviewToggle")
-            elseif params.event == "DeviceButton_right mouse button" then
-                local top = SCREENMAN:GetTopScreen()
-                if top.PauseSampleMusic then
-                    top:PauseSampleMusic()
-                end
+            elseif params.event == "DeviceButton_right mouse button" and INPUTFILTER:IsControlPressed() then
+                MESSAGEMAN:Broadcast("OpenCalcDebug")
             end
         end,
         MouseOverCommand = function(self)
@@ -429,7 +452,7 @@ t[#t+1] = Def.ActorFrame {
             end
         end
     },
-    LoadActorWithParams("stepsdisplay", {ratios = ratios, actuals = actuals})
+    LoadActorWithParams("stepsdisplay", {ratios = ratios, actuals = actuals, hackyMaxWidth = true, inputContext = "Main1"})
 
 }
 

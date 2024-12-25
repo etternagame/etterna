@@ -123,6 +123,9 @@ end
 local translations = {
     AverageNPS = THEME:GetString("ScreenSelectMusic General", "AverageNPS"),
     NegativeBPMs = THEME:GetString("ScreenSelectMusic General", "NegativeBPMs"),
+    Ready = THEME:GetString("GeneralInfo", "Ready"),
+    Unready = THEME:GetString("GeneralInfo", "Unready"),
+    ForceStart = THEME:GetString("GeneralInfo", "ForceStart"),
 }
 
 local statNames = {
@@ -163,10 +166,14 @@ local msdNames = {
 local mainTextSize = 1
 local largerTextSize = 1.35
 local displayScoreInfoTextSize = 0.75
+local buttonTextSize = 1
 
 local textzoomFudge = 5
 -- bump the second line of the display score info down by this much
 local displayScoreBump = 8
+
+local buttonHoverAlpha = 0.6
+local buttonBGAlpha = 0.3
 
 local function createStatLines()
     local function createStatLine(i)
@@ -275,12 +282,12 @@ local function createMSDLines()
                     registerActorToColorConfigElement(self, "main", "PrimaryText")
                 end,
                 SetCommand = function(self, params)
-                    -- HACKS HACKS HACKS
-                    -- (remove when validating negbpms soon)
                     if i == 0 then
                         if params.steps then
                             if params.steps:GetTimingData():HasWarps() then
-                                self:settext(translations["NegativeBPMs"])
+                                -- not sure what to do with this for now
+                                -- maybe replace with "special timing" for all TimingSegments...
+                                -- self:settext(translations["NegativeBPMs"])
                                 self:diffusealpha(1)
                             else
                                 self:diffusealpha(0)
@@ -407,6 +414,138 @@ local function createTagDisplays()
     for i = 1, #currentTags do
         t[#t+1] = createTagDisplay(i)
     end
+    return t
+end
+
+local function createMultiButtons()
+    -- block this if not in multi
+    if Var ("LoadingScreen"):find("Net") == nil then
+        return Def.ActorFrame {}
+    end
+
+    local mainxpos = actuals.VerticalDividerLeftGap + actuals.LeftTextColumn1LabelsMargin * 1.4
+    local spacewidth = actuals.Width - mainxpos - actuals.LeftTextColumn1LabelsMargin * 1.4
+    local t = Def.ActorFrame {
+        Name = "MultiButtonContainer",
+        InitCommand = function(self)
+            self:xy(mainxpos, actuals.TagTextUpperGap)
+        end,
+        UIElements.TextButton(2, 2, "Common Normal") .. {
+            Name = "Ready",
+            InitCommand = function(self)
+                self:xy(spacewidth / 4, actuals.TagTextAllottedVerticalSpace / 2)
+                self.txt = self:GetChild("Text")
+                self.bg = self:GetChild("BG")
+                self.txt:valign(0)
+                self.txt:settext(translations["Ready"])
+                self.txt:zoom(buttonTextSize)
+                self.txt:maxwidth(spacewidth / 2 / buttonTextSize)
+                self.bg:x(-self.txt:GetZoomedWidth() * 0.025)
+                self.bg:y(self.txt:GetZoomedHeight() / 2)
+                self.bg:zoomto(self.txt:GetZoomedWidth() * 1.05, self.txt:GetZoomedHeight() * 1.3)
+                self.bg:diffusealpha(buttonBGAlpha)
+                registerActorToColorConfigElement(self.txt, "main", "SecondaryText")
+        
+                self.alphaDeterminingFunction = function(self)
+                    if isOver(self.bg) then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                    local areWeReadiedUp = function()
+                        local top = SCREENMAN:GetTopScreen()
+                        if top ~= nil and top:GetName() == "ScreenNetSelectMusic" then
+                            local qty = top:GetUserQty()
+                            local loggedInUser = NSMAN:GetLoggedInUsername()
+                            for i = 1, qty do
+                                local user = top:GetUser(i)
+                                if user == loggedInUser then
+                                    return top:GetUserReady(i)
+                                end
+                            end
+                            -- ???? this should never happen
+                            -- retroactive - had this happen once and i still dont know why
+                            error "Could not find ourselves in the userlist"
+                        else
+                            return false
+                        end
+                    end
+                    if areWeReadiedUp() then
+                        self.bg:diffuse(COLORS:getColor("generalBox", "MultiButtonActive"))
+                        self.txt:settext(translations["Unready"])
+                    else
+                        self.bg:diffuse(COLORS:getColor("generalBox", "MultiButtonNotActive"))
+                        self.txt:settext(translations["Ready"])
+                    end
+                    self.bg:zoomto(self.txt:GetZoomedWidth() * 1.05, self.txt:GetZoomedHeight() * 1.3)
+                end
+            end,
+            BeginCommand = function(self)
+                self:alphaDeterminingFunction()
+            end,
+            RolloverUpdateCommand = function(self, params)
+                self:alphaDeterminingFunction()
+            end,
+            ClickCommand = function(self, params)
+                if params.update == "OnMouseDown" then
+                    NSMAN:SendChatMsg("/ready", 1, NSMAN:GetCurrentRoomName())
+                    self:alphaDeterminingFunction()
+                end
+            end,
+            ChatMessageCommand = function(self)
+                self:alphaDeterminingFunction()
+            end,
+        },
+        UIElements.TextButton(2, 2, "Common Normal") .. {
+            Name = "ForceStart",
+            InitCommand = function(self)
+                self:xy(spacewidth / 4 * 3, actuals.TagTextAllottedVerticalSpace / 2)
+                self.txt = self:GetChild("Text")
+                self.bg = self:GetChild("BG")
+                self.txt:valign(0)
+                self.txt:settext(translations["ForceStart"])
+                self.txt:zoom(buttonTextSize)
+                self.txt:maxwidth(spacewidth / 2 / buttonTextSize)
+                self.bg:x(-self.txt:GetZoomedWidth() * 0.025)
+                self.bg:y(self.txt:GetZoomedHeight() / 2)
+                self.bg:zoomto(self.txt:GetZoomedWidth() * 1.05, self.txt:GetZoomedHeight() * 1.3)
+                self.bg:diffusealpha(buttonBGAlpha)
+
+                self.pressed = false
+
+                registerActorToColorConfigElement(self.txt, "main", "SecondaryText")
+        
+                self.alphaDeterminingFunction = function(self)
+                    if isOver(self.bg) then
+                        self:diffusealpha(buttonHoverAlpha)
+                    else
+                        self:diffusealpha(1)
+                    end
+                    -- there is not currently a real way to determine if the lobby is set to force start, so guess based on button state
+                    if self.pressed then
+                        self.bg:diffuse(COLORS:getColor("generalBox", "MultiButtonActive"))
+                    else
+                        self.bg:diffuse(COLORS:getColor("generalBox", "MultiButtonNotActive"))
+                    end
+                end
+
+                self:alphaDeterminingFunction()
+            end,
+            RolloverUpdateCommand = function(self, params)
+                self:alphaDeterminingFunction()
+            end,
+            ClickCommand = function(self, params)
+                if params.update == "OnMouseDown" then
+                    self.pressed = not self.pressed
+                    NSMAN:SendChatMsg("/force", 1, NSMAN:GetCurrentRoomName())
+                    self:alphaDeterminingFunction()
+                end
+            end,
+            ChatMessageCommand = function(self)
+                self:alphaDeterminingFunction()
+            end,
+        },
+    }
     return t
 end
 
@@ -595,5 +734,6 @@ t[#t+1] = createStatLines()
 t[#t+1] = createTopSkillsetLines()
 t[#t+1] = createMSDLines()
 t[#t+1] = createTagDisplays()
+t[#t+1] = createMultiButtons()
 
 return t

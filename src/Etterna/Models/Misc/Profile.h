@@ -17,7 +17,6 @@
 #include <set>
 
 #include <unordered_map>
-using std::string;
 
 class XNode;
 struct lua_State;
@@ -67,8 +66,10 @@ struct Game;
 class ScoreGoal
 {
   public:
+	float oldrate = 1.F;
 	float rate = 1.F;
 	float percent = .93F;
+	float oldpercent = .93F;
 	int priority = 1;
 	bool achieved = false;
 	DateTime timeassigned;
@@ -85,11 +86,23 @@ class ScoreGoal
 
 	[[nodiscard]] auto GetPBUpTo() const -> HighScore*;
 
+	auto DebugString() const -> std::string
+	{
+		return "(ScoreGoal ck: " + chartkey +
+			   ", rate: " + std::to_string(rate) +
+			   ", oldrate: " + std::to_string(oldrate) +
+			   ", percent: " + std::to_string(percent) +
+			   ", oldpercent: " + std::to_string(oldpercent) +
+			   ", achieved: " + std::to_string(achieved) +
+			   ", dtassigned: " + timeassigned.GetString() + ")";
+	}
+
 	// If the scoregoal has already been completed prior to being assigned, flag
 	// it as a vacuous goal
 	void CheckVacuity();
 
 	void UploadIfNotVacuous();
+	void ReUploadIfNotVacuous();
 
 	// Vacuous goals will remain in memory for the session but not be written
 	// during save -mina
@@ -134,6 +147,7 @@ class Profile
 		m_fPlayerSkillsets[ss] = 0.F;
 
 		m_LastPlayedDate.Init();
+		m_lastRankedChartkeyCheck.Init();
 
 		FOREACH_ENUM(Difficulty, i)
 		m_iNumSongsPlayedByDifficulty[i] = 0;
@@ -216,6 +230,7 @@ class Profile
 	 * save chain and keep this mutable. -Chris */
 	mutable std::string m_sLastPlayedMachineGuid;
 	mutable DateTime m_LastPlayedDate;
+	mutable DateTime m_lastRankedChartkeyCheck;
 	/* These stats count twice in the machine profile if two players are
 	 * playing; that's the only approach that makes sense for ByDifficulty and
 	 * ByMeter. */
@@ -244,6 +259,7 @@ class Profile
 	// more future goalman stuff -mina
 	bool AddGoal(const std::string& ck);
 	void RemoveGoal(const std::string& ck, DateTime assigned);
+	bool LoadGoalIfNew(ScoreGoal goal);
 	std::unordered_map<std::string, GoalsForChart> goalmap;
 	void FillGoalTable();
 	std::vector<ScoreGoal*> goaltable;

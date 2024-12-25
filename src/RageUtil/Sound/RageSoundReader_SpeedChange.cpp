@@ -1,14 +1,15 @@
 #include "Etterna/Globals/global.h"
+#include "Etterna/Singletons/PrefsManager.h"
 #include "RageSoundReader_SpeedChange.h"
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <algorithm>
 
-static const int WINDOW_SIZE_MS = 30;
-
 RageSoundReader_SpeedChange::RageSoundReader_SpeedChange(
-  RageSoundReader* pSource)
+  RageSoundReader* pSource, bool bStepMania)
   : RageSoundReader_Filter(pSource)
+  , m_iWindowSize(bStepMania ? 30 : 70)
+  , m_bMidSideEncoding(!bStepMania)
 {
 	m_Channels.resize(pSource->GetNumChannels());
 	m_fSpeedRatio = m_fTrailingSpeedRatio = 1.0f;
@@ -31,7 +32,7 @@ RageSoundReader_SpeedChange::SetSpeedRatio(float fRatio)
 int
 RageSoundReader_SpeedChange::GetWindowSizeFrames() const
 {
-	return (WINDOW_SIZE_MS * GetSampleRate()) / 1000;
+	return (m_iWindowSize * GetSampleRate()) / 1000;
 }
 
 void
@@ -120,6 +121,22 @@ RageSoundReader_SpeedChange::FillData(int iMaxFrames)
 			}
 		}
 		delete[] pTempBuffer;
+
+		if (m_Channels.size() == 2 && m_bMidSideEncoding) {
+			// Encode as mid/side
+			ChannelInfo& left = m_Channels[0];
+			ChannelInfo& right = m_Channels[1];
+			float* pLeft = &left.m_DataBuffer[m_iDataBufferAvailFrames];
+			float* pRight = &right.m_DataBuffer[m_iDataBufferAvailFrames];
+			for (int j = 0; j < iGotFrames; ++j) {
+				float mid = *pLeft + *pRight;
+				float side = *pLeft - *pRight;
+				*pLeft = mid;
+				*pRight = side;
+				pLeft++;
+				pRight++;
+			}			
+		}
 
 		m_iDataBufferAvailFrames += iGotFrames;
 	}
@@ -288,17 +305,38 @@ RageSoundReader_SpeedChange::Read(float* pBuf, int iFrames)
 		int iFramesRead = iFramesAvail;
 
 		int iWindowSizeFrames = GetWindowSizeFrames();
+		float *pBufLeftRight = pBuf;
+
 		while (iFramesAvail--) {
 			for (size_t i = 0; i < m_Channels.size(); ++i) {
 				ChannelInfo& c = m_Channels[i];
 				float i1 = c.m_DataBuffer[c.m_iCorrelatedPos + m_iPos];
 				float i2 = c.m_DataBuffer[c.m_iLastCorrelatedPos + m_iPos];
-				*pBuf++ = SCALE(m_iPos, 0, iWindowSizeFrames, i2, i1);
+				if (m_bMidSideEncoding) {
+					float t = (float)m_iPos / (float)iWindowSizeFrames;		
+					// Approx quick cosine fade to minimise swhipping sounds on percussion
+					t = 1.0f - t*t*(3 - 2*t); 
+					t = 1.0f - t*t*t*t;		  
+					*pBuf++ = lerp(t, i2, i1);
+				} else {
+					*pBuf++ = SCALE(m_iPos, 0, iWindowSizeFrames, i2, i1);
+				}
 			}
 
 			++m_iPos;
 		}
 
+		if (m_Channels.size() == 2 && m_bMidSideEncoding) {
+			// Decode back to left/right
+			while (pBufLeftRight != pBuf) {
+				float left = pBufLeftRight[0] + pBufLeftRight[1];
+				float right = pBufLeftRight[0] - pBufLeftRight[1];
+				pBufLeftRight[0] = 0.5f * left;
+				pBufLeftRight[1] = 0.5f * right;
+				pBufLeftRight += 2;
+			}
+		}
+	
 		return iFramesRead;
 	}
 }

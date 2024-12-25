@@ -3,7 +3,6 @@
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/MinaCalc/MinaCalc.h"
-#include "Etterna/Globals/SoloCalc.h"
 #include "Etterna/Models/NoteData/NoteData.h"
 #include "PlayerStageStats.h"
 #include "Core/Services/Locator.hpp"
@@ -80,8 +79,6 @@ PlayerStageStats::InternalInit()
 
 	// this should probably be handled better-mina
 	everusedautoplay = false;
-	luascriptwasloaded = false;
-	filehadnegbpms = false;
 	filegotmines = false;
 	gaveuplikeadumbass = false;
 	filegotholds = false;
@@ -346,21 +343,10 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	Steps* steps = GAMESTATE->m_pCurSteps;
 	const auto musicrate = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
-	// 4k
-	if (steps->m_StepsType == StepsType_dance_single) {
-		return MinaSDCalc(
-		  serializednd, musicrate, ssrpercent, SONGMAN->calc.get());
-	}
-
-	// N-key calc
-	if (steps->m_StepsType != StepsType_dance_single) {
-		int columnCount =
-		  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
-		return SoloCalc(serializednd, columnCount, musicrate, ssrpercent);
-	}
-
-	// anything else
-	return { 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F, 0.F };
+	const unsigned columnCount =
+	  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
+	return MinaSDCalc(
+	  serializednd, musicrate, ssrpercent, columnCount, SONGMAN->calc.get());
 }
 
 float

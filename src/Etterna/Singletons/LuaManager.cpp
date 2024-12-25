@@ -176,6 +176,15 @@ LuaManager::SetGlobal(const std::string& sName, const std::string& val)
 }
 
 void
+LuaManager::SetGlobal(const std::string& sName, float val)
+{
+	Lua* L = Get();
+	LuaHelpers::Push(L, val);
+	lua_setglobal(L, sName.c_str());
+	Release(L);
+}
+
+void
 LuaManager::UnsetGlobal(const std::string& sName)
 {
 	Lua* L = Get();
@@ -648,6 +657,44 @@ LuaManager::LuaManager()
 	m_pLuaMain = L;
 
 	luaL_openlibs(L);
+
+	// disable some of the more dangerous things...
+#define nil_field(name) \
+	lua_pushnil(L); \
+	lua_setfield(L, -2, name); \
+
+	// os.* access OS stuff or run commands
+	lua_getglobal(L, "os");
+	nil_field("execute");
+	nil_field("exit");
+	nil_field("getenv");
+	nil_field("setenv");
+	nil_field("remove");
+	nil_field("rename");
+	nil_field("setlocale");
+	nil_field("tmpname");
+	lua_pop(L, 1);
+	// io.* access files outside the RageFile sandbox
+	lua_getglobal(L, "io");
+	nil_field("close");
+	nil_field("read");
+	nil_field("write");
+	nil_field("seek");
+	nil_field("setvbuf");
+	nil_field("lines");
+	nil_field("__gc");
+	nil_field("__tostring");
+	nil_field("open");
+	nil_field("popen");
+	nil_field("tmpfile");
+	lua_pop(L, 1);
+	// package lib for ace
+	lua_getglobal(L, "package");
+	nil_field("loadlib");
+	nil_field("searchpath");
+	nil_field("seeall");
+	lua_pop(L, 1);
+#undef nil_field
 
 	// Store the thread pool in a table on the stack, in the main thread.
 #define THREAD_POOL 1

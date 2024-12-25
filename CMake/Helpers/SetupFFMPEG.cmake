@@ -31,13 +31,20 @@ if (UNIX)
 endif()
 
 if(APPLE)
-  list(APPEND FFMPEG_CONFIGURE
-    "--arch=x86_64"
-    "--cc=clang -arch x86_64"
-    "--enable-sse")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    list(APPEND FFMPEG_CONFIGURE
+      "--arch=arm64"
+      "--cc=clang -arch arm64"
+      "--enable-neon")
+  else()
+    list(APPEND FFMPEG_CONFIGURE
+      "--arch=x86_64"
+      "--cc=clang -arch x86_64"
+      "--enable-sse")
+  endif()
 endif()
 list(APPEND FFMPEG_CONFIGURE "--enable-gpl")
-list(APPEND FFMPEG_CONFIGURE "--extra-cflags=-mmacosx-version-min=10.8 -w")
+list(APPEND FFMPEG_CONFIGURE "--extra-cflags=-mmacosx-version-min=10.8 -w -Wno-error=incompatible-function-pointer-types")
 
 list(APPEND FFMPEG_BUILD_LIBS
 "${FFMPEG_BIN}/libavformat/libavformat.a"

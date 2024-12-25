@@ -30,9 +30,9 @@ local t = Def.ActorFrame {
         playerConfig:set_dirty()
         playerConfig:save()
     end,
-    LoginFailedMessageCommand = function(self)
+    LoginFailedMessageCommand = function(self, params)
         self:playcommand("Set")
-        ms.ok("Login Failed")
+        ms.ok("Login Failed: " .. params.why)
 
         playerConfig:get_data().UserName = ""
         playerConfig:get_data().PasswordToken = ""
@@ -254,14 +254,14 @@ local function beginLoginProcess(self)
     off()
 
     username = ""
-    
+
     -- this sets up 2 text entry windows to pull your username and pass
     -- if you press escape or just enter nothing, you are forced out
     -- input redirects are controlled here because we want to be careful not to break any prior redirects
     askForInputStringWithFunction(
-        "Enter Username",
+        "Enter Email",
         255,
-        false,
+        true,
         function(answer)
             username = answer
             -- moving on to step 2 if the answer isnt blank
@@ -400,17 +400,23 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     end,
     MouseDownCommand = function(self, params)
         if params.event == "DeviceButton_left mouse button" then
-            TOOLTIP:Hide()
-            if DLMAN:IsLoggedIn() then
-                DLMAN:Logout()
-            else
-                beginLoginProcess(self)
-            end
+            self:playcommand("Invoke")
+        end
+    end,
+    InvokeCommand = function(self)
+        TOOLTIP:Hide()
+        if DLMAN:IsLoggedIn() then
+            DLMAN:Logout()
+        else
+            beginLoginProcess(self)
         end
     end,
     LoginStep2Command = function(self)
         loginStep2()
-    end
+    end,
+    TriggerLoginLogoutMessageCommand = function(self)
+        self:playcommand("Invoke")
+    end,
 }
 
 t[#t+1] = Def.ActorFrame {
@@ -666,8 +672,10 @@ t[#t+1] = Def.ActorFrame {
             end
 
             local ctrl = INPUTFILTER:IsControlPressed()
+            local char = event.charNoModifiers:upper()
+            local char2 = event.char:upper()
             -- login logout shortcut
-            if ctrl and event.DeviceInput.button == "DeviceButton_l" then
+            if ctrl and (char == "L" or char2 == "L") then
                 if not DLMAN:IsLoggedIn() then
                     beginLoginProcess(self)
                 else
@@ -957,7 +965,7 @@ t[#t+1] = Def.ActorFrame {
                     self:diffusealpha(downloadsProgress1Alpha)
                     local progress = dls[1]:GetKBDownloaded()
                     local size = dls[1]:GetTotalKB()
-                    local perc = progress / size
+                    local perc = math.max(progress / size, 0)
                     self:zoomx(actuals.IconDownloadsProgressBarWidth * perc)
                 else
                     self:diffusealpha(0)
@@ -993,7 +1001,12 @@ t[#t+1] = Def.ActorFrame {
             ToolTipCommand = function(self)
                 -- weird check here to throw out nan
                 if isOver(self) and self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
-                    local st = string.format("%s: %5.2f%%", translations["UploadPercent"], self.percent * 100)
+                    local st = string.format(
+                        "%s: %5.2f%% (%d/%d)",
+                        translations["UploadPercent"],
+                        self.percent * 100,
+                        DLMAN:GetQueuedScoreUploadTotal() * self.percent,
+                        DLMAN:GetQueuedScoreUploadTotal())
                     TOOLTIP:SetText(st)
                     TOOLTIP:Show()
                 else

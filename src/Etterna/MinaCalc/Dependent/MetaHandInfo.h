@@ -43,6 +43,14 @@ struct metaHandInfo
 	int offhand_taps = 0;
 	int offhand_ohjumps = 0;
 
+	Calc& _calc;
+
+	explicit metaHandInfo(Calc& calc)
+	  : _calc(calc)
+	{
+
+	}
+
 	/// we need to reset everything between hands or the trailing values from the
 	/// end of one will carry over into the start of the other, not a huge
 	/// practical deal but it could theoretically be abused and it's good

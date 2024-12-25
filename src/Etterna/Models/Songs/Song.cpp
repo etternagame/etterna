@@ -239,8 +239,8 @@ Song::InitSteps(Steps* pSteps)
 	pSteps->SetMaxBPM(this->m_fSpecifiedBPMMax);
 }
 
-std::string
-Song::GetOrTryAtLeastToGetSimfileAuthor()
+const std::string
+Song::GetOrTryAtLeastToGetSimfileAuthor() const
 {
 	if (!m_sCredit.empty() && m_sCredit != "cdtitle")
 		return m_sCredit;
@@ -2333,12 +2333,12 @@ class LunaSong : public Luna<Song>
 	}
 	static int IsFavorited(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsFavorited());
+		lua_pushboolean(L, p->HasFavoritedChart());
 		return 1;
 	}
 	static int IsPermaMirror(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsPermaMirror());
+		lua_pushboolean(L, p->HasPermaMirrorChart());
 		return 1;
 	}
 	// has functions
@@ -2504,6 +2504,24 @@ class LunaSong : public Luna<Song>
 		LuaHelpers::Push(L, best);
 		return 1;
 	}
+	static int GetDateTimeAdded(T* p, lua_State* L)
+	{
+		auto dt = p->GetDateAdded();
+		lua_pushstring(L, dt.GetString().c_str());
+		return 1;
+	}
+	static int GetDateAdded(T* p, lua_State* L)
+	{
+		auto d = p->GetDateAdded();
+		d.StripTime();
+		lua_pushstring(L, d.GetString().c_str());
+		return 1;
+	}
+	static int OpenSongFolder(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, SONGMAN->OpenSongFolder(p));
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2573,6 +2591,9 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetChartsOfCurrentGameMode);
 		ADD_METHOD(GetChartsMatchingFilter);
 		ADD_METHOD(GetHighestGrade);
+		ADD_METHOD(GetDateTimeAdded);
+		ADD_METHOD(GetDateAdded);
+		ADD_METHOD(OpenSongFolder);
 	}
 };
 

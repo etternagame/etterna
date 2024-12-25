@@ -109,6 +109,20 @@ RageInput::WindowReset()
 }
 
 void
+RageInput::ApplyTemporaryInputSettings()
+{
+	for (auto& m_InputHandler : m_InputHandlers)
+		m_InputHandler.m_pDevice->ApplyTemporaryInputSettings();
+}
+
+void
+RageInput::RemoveTemporaryInputSettings()
+{
+	for (auto& m_InputHandler : m_InputHandlers)
+		m_InputHandler.m_pDevice->RemoveTemporaryInputSettings();
+}
+
+void
 RageInput::AddHandler(InputHandler* pHandler)
 {
 	ASSERT(pHandler != nullptr);

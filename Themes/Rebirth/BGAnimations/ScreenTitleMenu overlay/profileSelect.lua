@@ -69,6 +69,7 @@ local translations = {
     MakeFirstProfileQuestion = THEME:GetString("ScreenTitleMenu", "MakeFirstProfileQuestion"),
     MakeProfileError = THEME:GetString("ScreenTitleMenu", "MakeProfileError"),
     SelectProfile = THEME:GetString("ScreenTitleMenu", "SelectProfile"),
+    Gamemode = THEME:GetString("ScreenTitleMenu", "GameMode"),
 }
 
 local profileIDs = PROFILEMAN:GetLocalProfileIDs()
@@ -136,13 +137,9 @@ local function generateItems()
     local page = 1
     local selectionIndex = 1
 
-    local function createProfileDialogue(listframe)
-        -- uhh this shouldnt be hard...
-        -- make profile, update id list, rename new profile
-        local new = PROFILEMAN:CreateDefaultProfile()
-        profileIDs = PROFILEMAN:GetLocalProfileIDs()
-        maxPage = math.ceil((#profileIDs) / numItems)
-        renameProfileDialogue(new, true)
+    local function createProfileDialogueStarter(listframe)
+        -- listen for ProfileCreated and update profileIDs and maxPage at that point
+        createProfileDialogueStarter()
     end
 
     -- select current option with keyboard or mouse double click
@@ -557,6 +554,11 @@ local function generateItems()
                 )
             end
         end,
+        ProfileCreatedMessageCommand = function(self)
+            profileIDs = PROFILEMAN:GetLocalProfileIDs()
+            maxPage = math.ceil((#profileIDs) / numItems)
+            MESSAGEMAN:Broadcast("ProfileRenamed")
+        end,
         ToggledTitleFocusMessageCommand = function(self, params)
             focused = not params.scrollerFocused
             -- focused means we must pay attention to the profiles instead of the left scroller
@@ -725,5 +727,15 @@ local function generateItems()
 end
 
 t[#t+1] = generateItems()
+
+t[#t+1] = LoadFont("Common Large") .. {
+    Name = "CurGamemode",
+    InitCommand = function(self)
+        self:xy(actuals.FrameLeftGap + actuals.Width, SCREEN_HEIGHT * 0.99)
+        self:halign(1):valign(1)
+        self:zoom(0.35)
+        self:settextf("%s: %s", translations["Gamemode"], GAMESTATE:GetCurrentGame():GetName())
+    end,
+}
 
 return t

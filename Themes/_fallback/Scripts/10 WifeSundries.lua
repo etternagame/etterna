@@ -129,16 +129,27 @@ end
 
 local musicstr = THEME:GetString("GeneralInfo", "RateMusicString")
 
-local function dump(o)
+local function dump(o, depth, prettyprint)
+	if prettyprint == nil then prettyprint = false end
+	if depth == nil then depth = 0 end
 	if type(o) == "table" then
 		local s = "{ "
 		for k, v in pairs(o) do
+			local line = ""
 			if type(k) ~= "number" then
 				k = '"' .. k .. '"'
 			end
-			s = s .. "[" .. k .. "] = " .. dump(v) .. ","
+			line = line .. "[" .. k .. "] = " .. dump(v, depth + 1, prettyprint) .. ","
+			if prettyprint then
+				line = "\n" .. string.rep("  ", depth) .. line
+			end
+			s = s .. line
 		end
-		return s .. "} "
+		if prettyprint then
+			return s .. "\n" .. string.rep("  ", depth-1) .. "}"
+		else
+			return s .. "} "
+		end
 	else
 		return tostring(o)
 	end
@@ -150,6 +161,14 @@ function ms.ok(m)
 		SCREENMAN:SystemMessage("nahbro")
 	else
 		SCREENMAN:SystemMessage(dump(m))
+	end
+end
+
+function ms.pp(m)
+	if not m then
+		SCREENMAN:SystemMessage("nahbro")
+	else
+		SCREENMAN:SystemMessage(dump(m, 1, true))
 	end
 end
 
@@ -401,25 +420,31 @@ function GetPlayableTime()
 end
 
 function ChangeMusicRate(rate, params)
-	local min = 0.05 -- going below this is not a good idea (0 crashes)
-	local max = 3 -- going over this tends to crash or whatever
+	local min = MIN_MUSIC_RATE -- going below this is not a good idea (0 crashes)
+	local max = MAX_MUSIC_RATE -- going over this tends to crash or whatever
 	local old = getCurRateValue()
 	local new = getCurRateValue()
 	local largeincrement = 0.1
 	local smallincrement = 0.05
 
-	-- larger increment
-	if params.Name == "PrevScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old + largeincrement, min, max)
-	elseif params.Name == "NextScore" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old - largeincrement, min, max)
-	end
+	if (getTabIndex() == 0 or getTabIndex() == 1) then
+		-- larger increment
+		if params.Name == "PrevScore" then
+			new = clamp(old + largeincrement, min, max)
+		elseif params.Name == "NextScore" then
+			new = clamp(old - largeincrement, min, max)
+		end
 
-	-- smaller increment
-	if params.Name == "PrevRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old + smallincrement, min, max)
-	elseif params.Name == "NextRate" and (getTabIndex() == 0 or getTabIndex() == 1) then
-		new = clamp(old - smallincrement, min, max)
+		-- smaller increment
+		if params.Name == "PrevRate" then
+			new = clamp(old + smallincrement, min, max)
+		elseif params.Name == "NextRate" then
+			new = clamp(old - smallincrement, min, max)
+		end
+
+		if params.Name == "ResetRate" then
+			new = 1.0
+		end
 	end
 
 	if new ~= old then
