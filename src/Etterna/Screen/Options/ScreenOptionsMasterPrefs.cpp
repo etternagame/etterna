@@ -995,6 +995,7 @@ InitializeConfOptions()
 		ADD(c);
 	}
 	ADD(ConfOption("EnableMineHitSound", MovePref<bool>, "No", "Yes"));
+	ADD(ConfOption("HitsoundsEnabled", MovePref<bool>, "No", "Yes"));
 	ADD(ConfOption("Invalid", MoveNop, "|Invalid option"));
 }
 

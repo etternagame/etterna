@@ -97,6 +97,7 @@ static Preference<float> m_fTimingWindowScale("TimingWindowScale", 1.0F);
 static Preference1D<float> m_fTimingWindowSeconds(TimingWindowSecondsInit,
 												  NUM_TimingWindow);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
+static Preference<bool> g_bEnableHitsound("HitsoundsEnabled", false);
 
 // moved out of being members of player.h
 static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
@@ -348,6 +349,7 @@ Player::Init(const std::string& sType,
 	RageSoundLoadParams SoundParams;
 	SoundParams.m_bSupportPan = true;
 	m_soundMine.Load(THEME->GetPathS(sType, "mine"), true, &SoundParams);
+	m_soundHit.Load(THEME->GetPathS(sType, "hitsound"), true, &SoundParams);
 
 	// calculate M-mod speed here, so we can adjust properly on a per-song
 	// basis.
@@ -568,7 +570,7 @@ Player::Load()
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
 	  GAMESTATE->m_pCurSteps->GetChartKey(),
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	
+
 	// the latter condition checks for Grade_Failed, NUM_Grade, Grade_Invalid
 	if (pb == nullptr || pb->GetGrade() >= Grade_Failed) {
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
@@ -2133,6 +2135,11 @@ Player::Step(int col,
 										   MISS_WINDOW_BEGIN_SEC)) {
 								score = TNS_W5;
 							}
+							if (g_bEnableHitsound){
+							if (fSecondsFromExact <= GetWindowSeconds(TW_W3)) { // Play hitsound if player did not cb
+							m_soundHit.Stop();
+							m_soundHit.Play(false);
+							}}
 						}
 						break;
 				}
