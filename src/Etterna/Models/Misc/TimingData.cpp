@@ -1455,7 +1455,7 @@ TimingData::BuildAndGetEtar(int lastrow)
 	std::iota(ElapsedTimesAtAllRows.begin(), ElapsedTimesAtAllRows.end(), 0);
 
 	// just dont parallelize at all if it probably wont help anyways
-	if (lastrow < 128) {
+	if (lastrow < 100000) {
 		for (auto r = 0; r <= lastrow; ++r) {
 			ElapsedTimesAtAllRows[r] =
 			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r));
