@@ -501,5 +501,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         with:
-          files: |
-            ${{github.workspace}}/main/build/*.exe
+          files: ${{github.workspace}}\main\build\*.exe
