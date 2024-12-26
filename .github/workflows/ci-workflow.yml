@@ -129,6 +129,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Update CPack Environment
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "M1" >> $ETT_MAC_SYS_NAME
+
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_CRASHPAD=OFF -G Ninja ..
 
@@ -226,6 +231,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
+      
+      - name: Update CPack Environment
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "Darwin-x64" >> $ETT_MAC_SYS_NAME
 
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
@@ -313,6 +323,11 @@ jobs:
 
       - name: Install homebrew packages
         run: brew install cmake nasm ninja && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install etternagame/etterna/openssl@1.1_osx_high_sierra
+
+      - name: Update CPack Environment
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "High-Sierra" >> $ETT_MAC_SYS_NAME
 
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1_osx_high_sierra -DWITH_CRASHPAD=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
