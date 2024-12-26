@@ -52,7 +52,7 @@ jobs:
       
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - Linux x64"
           path: '${{github.workspace}}/main/build/*.tar.gz'
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
@@ -141,7 +141,7 @@ jobs:
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - macOS aarch64"
           path: '${{github.workspace}}/main/build/*.dmg'
@@ -168,7 +168,7 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
@@ -239,7 +239,7 @@ jobs:
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - macOS x64"
           path: '${{github.workspace}}/main/build/*.dmg'
@@ -266,7 +266,7 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
@@ -326,7 +326,7 @@ jobs:
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - OSX High Sierra (Legacy)"
           path: '${{github.workspace}}/main/build/*.dmg'
@@ -353,7 +353,7 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
@@ -449,7 +449,7 @@ jobs:
         run: cd main/build && cpack
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - Windows ${{matrix.cfg.name}}"
           path: '${{github.workspace}}/main/build/*.exe'
@@ -468,7 +468,7 @@ jobs:
         run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py
 
       - name: Upload Symbols to action artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Etterna Symbols - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
