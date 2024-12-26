@@ -257,7 +257,7 @@ function RateList()
         LayoutType = "ShowAllInRow",
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = false,
-        ExportOnChange = false,
+        ExportOnChange = true,
         ExportOnCancel = true,
         Choices = ratelist,
         LoadSelections = function(self, list, pn)
