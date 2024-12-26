@@ -162,7 +162,7 @@ DirectFilenameDB::CacheFile(const std::string& sPath)
 {
 	Locator::getLogger()->trace("{}", std::string(root + sPath).c_str());
 	std::string sDir = Dirname(sPath);
-	FileSet* pFileSet = GetFileSet(sDir, false);
+	auto pFileSet = GetFileSet(sDir, false);
 	if (pFileSet == nullptr) {
 		// This directory isn't cached so do nothing.
 		m_Mutex.Unlock(); // Locked by GetFileSet()

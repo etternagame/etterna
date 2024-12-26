@@ -34,12 +34,12 @@ struct File
 	/* If this is non-NULL, and dir is true, this is a pointer to the FileSet
 	 * containing the directory contents.  (This is a cache; it isn't always
 	 * set.) */
-	const FileSet* dirp;
+	std::weak_ptr<FileSet> dirp;
 
 	File()
 	{
 		dir = false;
-		dirp = nullptr;
+		dirp.reset();
 		size = -1;
 		hash = -1;
 		priv = nullptr;
@@ -51,7 +51,7 @@ struct File
 		size = -1;
 		hash = -1;
 		priv = nullptr;
-		dirp = nullptr;
+		dirp.reset();
 	}
 
 	bool operator<(const File& rhs) const { return lname < rhs.lname; }
@@ -89,7 +89,7 @@ struct FileSet
 	bool m_bFilled;
 
 	// a list of Files which have dirp set to this FileSet
-	std::set<File*> dirpers{};
+	std::set<std::shared_ptr<File>> dirpers{};
 
 	FileSet() { m_bFilled = true; }
 
@@ -152,11 +152,11 @@ class FilenameDB
   protected:
 	RageEvent m_Mutex;
 
-	const File* GetFile(const std::string& sPath);
-	FileSet* GetFileSet(const std::string& sDir, bool create = true);
+	std::shared_ptr<const File> GetFile(const std::string& sPath);
+	std::shared_ptr<FileSet> GetFileSet(const std::string& sDir, bool create = true);
 
 	/* Directories we have cached: */
-	std::map<std::string, FileSet*> dirs;
+	std::map<std::string, std::shared_ptr<FileSet>> dirs;
 
 	int ExpireSeconds{ -1 };
 
@@ -172,7 +172,7 @@ class FilenameDB
 						  std::vector<std::string>& asOut,
 						  DirListingReturnFilter returnFilter);
 
-	void DelFileSet(std::map<std::string, FileSet*>::iterator dir);
+	void DelFileSet(std::map<std::string, std::shared_ptr<FileSet>>::iterator dir);
 
 	/* The given path wasn't cached.  Cache it. */
 	virtual void PopulateFileSet(FileSet& /* fs */,
