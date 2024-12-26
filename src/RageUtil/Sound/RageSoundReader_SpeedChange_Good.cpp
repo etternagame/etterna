@@ -471,8 +471,12 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 		m_bDraining = (m_ReadAhead.Frames() > 0);
 	}
 
-	ASSERT(m_ReadAhead.iReadPosition < m_ReadAhead.iWritePosition);
-	ASSERT(m_Mixed.iReadPosition < m_Mixed.iWritePosition);
+	ASSERT_M(m_ReadAhead.iReadPosition < m_ReadAhead.iWritePosition,
+			 "RA readpos < writepos. to ignore this, set preference "
+			 "StepmaniaUnpitchRates=1");
+	ASSERT_M(m_Mixed.iReadPosition < m_Mixed.iWritePosition,
+			 "M readpos < writepos. to ignore this, set preference "
+			 "StepmaniaUnpitchRates=1");
 
 	if (iFramesWrote == 0) {
 		return END_OF_FILE;
