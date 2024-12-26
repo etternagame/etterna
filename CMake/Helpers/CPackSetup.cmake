@@ -69,8 +69,8 @@ elseif(APPLE)
     # Workaround XProtect race condition for "hdiutil create" for MacOS 13
     set(CPACK_COMMAND_HDIUTIL "${CMAKE_CURRENT_LIST_DIR}/hdiutil_repeat.sh")
 
-    if(DEFINED ENV(ETT_MAC_SYS_NAME))
-        set(CPACK_SYSTEM_NAME "$ENV(ETT_MAC_SYS_NAME)")
+    if(DEFINED ENV{ETT_MAC_SYS_NAME})
+        set(CPACK_SYSTEM_NAME "$ENV{ETT_MAC_SYS_NAME}")
     endif()
 
     install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
