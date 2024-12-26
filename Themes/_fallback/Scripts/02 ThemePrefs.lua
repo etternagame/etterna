@@ -280,6 +280,8 @@ function RateList()
                     GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(r)
                     GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(r)
                     GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(r)
+                    MESSAGEMAN:Broadcast("RateListOptionSaved", {rate = getCurRateValue()})
+                    MESSAGEMAN:Broadcast("CurrentRateChanged")
                     break
                 end
             end

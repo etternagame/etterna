@@ -359,6 +359,9 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 			capWideScale(get43size(360), 360) / capWideScale(get43size(0.45), 0.45)
 		)
 	end,
+	CurrentRateChangedMessageCommand = function(self)
+		self:queuecommand("MintyFresh")
+	end,
 	MintyFreshCommand = function(self)
 		if song then
 			self:settext(getCurRateDisplayString())
