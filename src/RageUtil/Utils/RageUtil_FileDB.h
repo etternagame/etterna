@@ -88,9 +88,6 @@ struct FileSet
 	 */
 	bool m_bFilled;
 
-	// a list of Files which have dirp set to this FileSet
-	std::set<File*> dirpers{};
-
 	FileSet() { m_bFilled = true; }
 
 	void GetFilesMatching(const std::string& sBeginning,
