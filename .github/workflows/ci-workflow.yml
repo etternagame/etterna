@@ -80,7 +80,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Linux x64 - ${{github.sha}}
           path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -175,7 +175,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Mac aarch64 - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -278,7 +278,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Mac x64 - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -370,7 +370,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Mac HighSierra - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -485,7 +485,7 @@ jobs:
       - name: Upload Symbols to action artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols win${{matrix.cfg.name}} - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
