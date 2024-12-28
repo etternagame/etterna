@@ -1451,11 +1451,10 @@ TimingData::BuildAndGetEtar(int lastrow)
 		return ElapsedTimesAtAllRows;
 	}
 
-	ElapsedTimesAtAllRows.reserve(lastrow);
-	std::iota(ElapsedTimesAtAllRows.begin(), ElapsedTimesAtAllRows.end(), 0);
+	ElapsedTimesAtAllRows.resize(lastrow);
 
 	// just dont parallelize at all if it probably wont help anyways
-	if (lastrow < 100000) {
+	if (lastrow < 50000) {
 		for (auto r = 0; r <= lastrow; ++r) {
 			ElapsedTimesAtAllRows[r] =
 			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r));
@@ -1464,17 +1463,39 @@ TimingData::BuildAndGetEtar(int lastrow)
 	}
 
 	// stupid optimization
-	auto exec = [this](vectorRange<float> workload, ThreadData* d) {
-		// so now the iterator also provides indices
-		for (auto it = workload.first; it != workload.second; it++) {
-			const auto index = std::lround(*it);
-			ElapsedTimesAtAllRows[index] =
-			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(index));
+	const int THREADS =
+	  PREFSMAN->ThreadsToUse <= 0 ? std::thread::hardware_concurrency()
+	  : PREFSMAN->ThreadsToUse <
+		  static_cast<int>(std::thread::hardware_concurrency())
+		? PREFSMAN->ThreadsToUse
+		: static_cast<int>(std::thread::hardware_concurrency());
+	// [start, end)
+	std::vector<std::pair<int, int>> threadRanges{};
+	auto rindex = 0;
+	auto rsize = ElapsedTimesAtAllRows.size() / THREADS;
+	for (auto i = 0; i < THREADS; i++) {
+		rindex = i * rsize;
+		if (i == THREADS) {
+			threadRanges.emplace_back(rindex, ElapsedTimesAtAllRows.size());
+		} else {
+			threadRanges.emplace_back(rindex, rindex + rsize);
+		}
+	}
+
+	auto exec = [this, &threadRanges](int threadIndex) {
+		auto& range = threadRanges[threadIndex];
+		for (auto i = range.first; i < range.second; i++) {
+			ElapsedTimesAtAllRows[i] =
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i + 1));
 		}
 	};
-	parallelExecution<float>(ElapsedTimesAtAllRows, exec);
-	ElapsedTimesAtAllRows[lastrow] =
-	  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(lastrow));
+	std::vector<std::thread> threadpool;
+	for (int i = 0; i < THREADS; i++) {
+		threadpool.emplace_back(std::thread(exec, i));
+	}
+	for (auto& thread : threadpool) {
+		thread.join();
+	}
 
 	return ElapsedTimesAtAllRows;
 }
