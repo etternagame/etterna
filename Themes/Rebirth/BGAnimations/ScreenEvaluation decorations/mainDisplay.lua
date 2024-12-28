@@ -4,29 +4,38 @@ local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats()
 local chosenScore
 local mostRecentScore = SCOREMAN:GetMostRecentScore()
 local screen
-
-local function evalInput(event)
-    if event.type == "InputEventType_FirstPress" then
-        local btn = event.GameButton
-        if btn ~= nil then
-            if btn == "EffectUp" then
-                -- judge window increase
-                judgeSetting = clamp(judgeSetting + 1, 4, 9)
-                MESSAGEMAN:Broadcast("JudgeWindowChanged")
-            elseif btn == "EffectDown" then
-                -- judge window decrease
-                judgeSetting = clamp(judgeSetting - 1, 4, 9)
-                MESSAGEMAN:Broadcast("JudgeWindowChanged")
-            end
-        end
-    end
-end
+local usingCustomWindows = false
 
 local t = Def.ActorFrame {
     Name = "MainDisplayFile",
     BeginCommand = function(self)
         screen = SCREENMAN:GetTopScreen()
-        screen:AddInputCallback(evalInput)
+        screen:AddInputCallback(function(event)
+            if event.type == "InputEventType_FirstPress" then
+                local btn = event.GameButton
+                if btn ~= nil then
+                    local dir = 0
+                    if btn == "EffectUp" then
+                        -- judge window increase
+                        dir = 1
+                    elseif btn == "EffectDown" then
+                        -- judge window decrease
+                        dir = -1
+                    end
+
+                    if dir ~= 0 and not usingCustomWindows then
+                        judgeSetting = clamp(judgeSetting + dir, 4, 9)
+                        MESSAGEMAN:Broadcast("JudgeWindowChanged")
+                    elseif dir ~= 0 and usingCustomWindows then
+                        self:playcommand("MoveCustomWindowIndex", {direction = dir})
+                    end
+
+                    if btn == "Coin" then
+                        self:playcommand("ToggleCustomWindows")
+                    end
+                end
+            end
+        end)
         updateDiscordStatus(true)
     end,
     OnCommand = function(self)
@@ -40,9 +49,9 @@ local t = Def.ActorFrame {
         local forcedScreenEntryJudgeWindow = nil
         if PREFSMAN:GetPreference("SortBySSRNormPercent") then
             forcedScreenEntryJudgeWindow = 4
-            -- update replaysnapshots and pss for current score being rejudged to j4
-            screen:SetPlayerStageStatsFromReplayData(pss, ms.JudgeScalers[forcedScreenEntryJudgeWindow], score)
         end
+        -- update replaysnapshots and pss for current score being rejudged to whatever judge
+        screen:RescoreReplay(pss, ms.JudgeScalers[forcedScreenEntryJudgeWindow or judgeSetting], score, usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
 
         --- propagate set command through children with the song
         self:playcommand("Set", {
@@ -60,9 +69,28 @@ local t = Def.ActorFrame {
             judgeSetting = params.judgeSetting
         end
 
+        -- for custom windows we have to recalculate everything once to update normal values and then recalculate again for custom windows itself
+        if usingCustomWindows and params.score ~= nil and chosenScore ~= nil and params.score ~= chosenScore then
+            usingCustomWindows = false
+            screen:RescoreReplay(pss, ms.JudgeScalers[judgeSetting], params.score, false)
+            --- update all relevant information according to the given score
+            -- should work with offset plot as well as all regular information on this screen
+            -- this is intended for use only with replays but may partially work without it
+            chosenScore = params.score
+            self:playcommand("Set", {
+                song = GAMESTATE:GetCurrentSong(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                score = params.score,
+                judgeSetting = params.judgeSetting,
+                rejudged = params.rejudged, -- optional param to know if need to reload offset plot
+                usingCustomWindows = false,
+            })
+            usingCustomWindows = true
+        end
+
         -- we assume the score has a replay
-        -- recalculate playerstagestats using the replay
-        screen:SetPlayerStageStatsFromReplayData(pss, ms.JudgeScalers[judgeSetting], params.score)
+        -- recalculate all stats using the replay
+        screen:RescoreReplay(pss, ms.JudgeScalers[judgeSetting], params.score, usingCustomWindows and currentCustomWindowConfigUsesOldestNoteFirst())
 
         chosenScore = params.score
 
@@ -75,6 +103,7 @@ local t = Def.ActorFrame {
             score = params.score,
             judgeSetting = params.judgeSetting,
             rejudged = params.rejudged, -- optional param to know if need to reload offset plot
+            usingCustomWindows = usingCustomWindows,
         })
     end,
     JudgeWindowChangedMessageCommand = function(self)
@@ -86,6 +115,50 @@ local t = Def.ActorFrame {
             judgeSetting = judgeSetting,
             rejudged = true,
         })
+    end,
+    ToggleCustomWindowsMessageCommand = function(self)
+        usingCustomWindows = not usingCustomWindows
+
+        if usingCustomWindows then
+            loadCurrentCustomWindowConfig()
+            screen:RescoreReplay(pss, 1, chosenScore, currentCustomWindowConfigUsesOldestNoteFirst())
+            self:playcommand("Set", {
+                song = GAMESTATE:GetCurrentSong(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                score = chosenScore,
+                judgeSetting = judgeSetting,
+                rejudged = true,
+                usingCustomWindows = usingCustomWindows,
+            })
+        else
+            unloadCustomWindowConfig()
+            self:playcommand("UpdateScore", {
+                judgeSetting = judgeSetting,
+                rejudged = true,
+                score = chosenScore,
+                usingCustomWindows = usingCustomWindows,
+            })
+        end
+
+    end,
+    MoveCustomWindowIndexMessageCommand = function(self, params)
+        if not usingCustomWindows then return end
+
+        moveCustomWindowConfigIndex(params.direction)
+        loadCurrentCustomWindowConfig()
+        screen:RescoreReplay(pss, 1, chosenScore, currentCustomWindowConfigUsesOldestNoteFirst())
+        self:playcommand("Set", {
+            song = GAMESTATE:GetCurrentSong(),
+            steps = GAMESTATE:GetCurrentSteps(),
+            score = chosenScore,
+            judgeSetting = judgeSetting,
+            rejudged = true,
+            usingCustomWindows = usingCustomWindows,
+        })
+
+    end,
+    EndCommand = function(self)
+        unloadCustomWindowConfig()
     end,
     LoginMessageCommand = function(self)
         self:playcommand("UpdateLoginStatus")
@@ -314,7 +387,9 @@ end
 local function gatherRescoreTableFromScore(score)
     local o = {}
     -- tap offsets
-    o["dvt"] = score:GetOffsetVector()
+    local replay = score:GetReplay()
+    replay:LoadAllData()
+    o["dvt"] = replay:GetOffsetVector()
     -- holds
     o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
     o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
@@ -438,8 +513,10 @@ local function accuracyStats()
 
     -- calculates the statData based on the given score
     local function calculateStatData(score)
-        local offsetTable = score:GetOffsetVector()
-        local typeTable = score:GetTapNoteTypeVector()
+        local replay = usingCustomWindows and REPLAYS:GetActiveReplay() or score:GetReplay()
+        replay:LoadAllData()
+        local offsetTable = replay:GetOffsetVector()
+        local typeTable = replay:GetTapNoteTypeVector()
 
         -- must match statData above
         local output = {
@@ -454,10 +531,17 @@ local function accuracyStats()
             return output
         end
 
-        local ridicThreshold = ms.JudgeScalers[judgeSetting] * 11.25 -- this is the J7 Marvelous window
-        local marvThreshold = ms.JudgeScalers[judgeSetting] * 22.5 -- J4 Marvelous window
-        local perfThreshold = ms.JudgeScalers[judgeSetting] * 45 -- J4 Perfect window
-        local greatThreshold = ms.JudgeScalers[judgeSetting] * 90 -- J4 Great window
+        local windowtable = usingCustomWindows and getCurrentCustomWindowConfigJudgmentWindowTable() or {
+            TapNoteScore_W1 = 22.5 * ms.JudgeScalers[judgeSetting],
+            TapNoteScore_W2 = 45 * ms.JudgeScalers[judgeSetting],
+            TapNoteScore_W3 = 90 * ms.JudgeScalers[judgeSetting],
+        }
+        windowtable["TapNoteScore_W0"] = windowtable["TapNoteScore_W1"] / 2
+
+        local ridicThreshold = windowtable["TapNoteScore_W0"] -- this is the J7 Marvelous window
+        local marvThreshold = windowtable["TapNoteScore_W1"] -- J4 Marvelous window
+        local perfThreshold = windowtable["TapNoteScore_W2"] -- J4 Perfect window
+        local greatThreshold = windowtable["TapNoteScore_W3"] -- J4 Great window
         local currentRFC = 0
         local currentMFC = 0
         local currentPFC = 0
@@ -627,8 +711,10 @@ local function calculatedStats()
     local cbInfo = {0,0,0,0} -- per column cb info
 
     local function calculateStatData(score, numColumns)
-        local tracks = score:GetTrackVector()
-        local offsetTable = score:GetOffsetVector()
+        local replay = usingCustomWindows and REPLAYS:GetActiveReplay() or score:GetReplay()
+        replay:LoadAllData()
+        local tracks = replay:GetTrackVector()
+        local offsetTable = replay:GetOffsetVector()
 
         local middleColumn = numColumns / 2
 
@@ -651,7 +737,8 @@ local function calculatedStats()
             return output, cbInfo
         end
 
-        local cbThreshold = ms.JudgeScalers[judgeSetting] * 90
+
+        local cbThreshold = usingCustomWindows and getCurrentCustomWindowConfigJudgmentWindowTable()["TapNoteScore_W3"] or (ms.JudgeScalers[judgeSetting] * 90)
         local leftCB = 0
         local middleCB = 0
         local rightCB = 0
@@ -839,6 +926,7 @@ local function wifePercentDisplay()
         end,
         SetCommand = function(self, params)
             if params.score ~= nil then
+                if usingCustomWindows then return end
                 local ver = params.score:GetWifeVers()
                 local percent = params.score:GetWifeScore() * 100
                 decimals = 2
@@ -873,7 +961,87 @@ local function wifePercentDisplay()
                 self:playcommand("UpdateParameters", {decimals = nothoverdecimals})
             end
             self:playcommand("UpdateText")
-        end
+        end,
+        MouseDownCommand = function(self)
+            MESSAGEMAN:Broadcast("ToggleCustomWindows")
+        end,
+    }
+end
+
+local function customScoringDisplay()
+    -- internal value storage defaults
+    local value = 0
+    local decimals = 2
+    local stringformat = "%05."..decimals.."f%% [%s]"
+
+    -- """constants"""
+    local nothoverdecimals = 2 -- when not hovering
+    local hoverdecimals = 4 -- when hovering
+    local infostr = "" -- example: W3 J4
+
+    return UIElements.TextToolTip(1, 1, "Common Large") .. {
+        Name = "CustomPercent",
+        InitCommand = function(self)
+            self:halign(1):valign(1)
+            self:zoom(scoreInfoTextSize)
+            self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / scoreInfoTextSize - textzoomFudge)
+        end,
+        UpdateParametersCommand = function(self, params)
+            if params.decimals ~= nil then
+                decimals = params.decimals
+                stringformat = "%05."..decimals.."f%% [%s]"
+            end
+            if params.infostr ~= nil then
+                infostr = params.infostr
+            end
+            if params.value ~= nil then
+                value = params.value
+            end
+        end,
+        UpdateTextCommand = function(self)
+            self:settextf(stringformat, notShit.floor(value, decimals), infostr)
+        end,
+        ColorConfigUpdatedMessageCommand = function(self)
+            self:playcommand("Set")
+        end,
+        SetCommand = function(self, params)
+            if params.score ~= nil then
+                
+                self:visible(usingCustomWindows)
+                if not usingCustomWindows then return end
+
+                local lastSnapshot = REPLAYS:GetActiveReplay():GetLastReplaySnapshot()
+                local percent = lastSnapshot:GetWifePercent() * 100
+                local ss = getCurrentCustomWindowConfigName()
+
+                -- scores over 99% should show more decimals
+                if percent > 99 or isOver(self) then
+                    decimals = 4
+                end
+                local pg = notShit.floor(percent, decimals)
+                local grade = GetGradeFromPercent(pg / 100)
+                self:diffuse(colorByGrade(grade))
+                self:playcommand("UpdateParameters", {decimals = decimals, infostr = ss, value = percent})
+                self:playcommand("UpdateText")
+            else
+                self:settext("")
+            end
+        end,
+        MouseOverCommand = function(self) self:playcommand("RolloverUpdate",{update = "over"}) end,
+        MouseOutCommand = function(self) self:playcommand("RolloverUpdate",{update = "out"}) end,
+        RolloverUpdateCommand = function(self, params)
+            -- hovering
+            if params.update == "over" then
+                self:playcommand("UpdateParameters", {decimals = hoverdecimals})
+            elseif params.update == "out" then
+                self:playcommand("UpdateParameters", {decimals = nothoverdecimals})
+            end
+            self:playcommand("UpdateText")
+        end,
+        MouseDownCommand = function(self, params)
+            if self:IsInvisible() then return end
+            MESSAGEMAN:Broadcast("MoveCustomWindowIndex", {direction = params.event == "DeviceButton_left mouse button" and 1 or -1})
+        end,
     }
 end
 
@@ -1078,6 +1246,7 @@ t[#t+1] = Def.ActorFrame {
             self:xy(actuals.RightHalfLeftGap, actuals.LipHeight / 2)
             self:halign(0)
             self:zoom(titleTextSize)
+            self:maxwidth(actuals.OffsetPlotWidth / titleTextSize - textzoomFudge)
             registerActorToColorConfigElement(self, "main", "PrimaryText")
             if GAMESTATE:GetCurrentSteps() ~= nil then
                 local st = THEME:GetString("StepsDisplay StepsType", ToEnumShortString(GAMESTATE:GetCurrentSteps():GetStepsType()))
@@ -1123,7 +1292,14 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 * 3 / songInfoTextSize - textzoomFudge)
                 self:settext(GAMESTATE:GetCurrentSong():GetDisplayMainTitle())
                 registerActorToColorConfigElement(self, "main", "PrimaryText")
-            end
+            end,
+            SetCommand = function(self)
+                if usingCustomWindows then
+                    self:maxwidth(actuals.RightHalfRightAlignLeftGap / 2 / songInfoTextSize - textzoomFudge)
+                else
+                    self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 * 3 / songInfoTextSize - textzoomFudge)
+                end
+            end,
         },
         LoadFont("Common Large") .. {
             Name = "SongArtist",
@@ -1183,6 +1359,9 @@ t[#t+1] = Def.ActorFrame {
                 self:maxwidth(actuals.RightHalfRightAlignLeftGap / 4 / scoreInfoTextSize - textzoomFudge)
             end,
             SetCommand = function(self, params)
+                self:visible(not usingCustomWindows)
+                if usingCustomWindows then return end
+
                 if params.score ~= nil then
                     local percent = params.score:GetWifeScore() * 100
                     if params.judgeSetting ~= nil then
@@ -1197,6 +1376,15 @@ t[#t+1] = Def.ActorFrame {
                 else
                     self:settext("")
                 end
+            end,
+        },
+
+        -- this replaces the grade when custom window scoring is turned on
+        -- by default it is turned off
+        customScoringDisplay() .. {
+            InitCommand = function(self)
+                self:y(-actuals.GradeLowerGap)
+                self:visible(false)
             end
         },
 
@@ -1256,17 +1444,19 @@ t[#t+1] = Def.ActorFrame {
         SetCommand = function(self, params)
             if params.score ~= nil and params.steps ~= nil then
                 if params.score:HasReplayData() then
-                    local offsets = params.score:GetOffsetVector()
+                    local replay = usingCustomWindows and REPLAYS:GetActiveReplay() or params.score:GetReplay()
+                    replay:LoadAllData()
+                    local offsets = replay:GetOffsetVector()
                     -- for online offset vectors a 180 offset is a miss
                     for i, o in ipairs(offsets) do
                         if o >= 180 then
                             offsets[i] = 1000
                         end
                     end
-                    local tracks = params.score:GetTrackVector()
-                    local types = params.score:GetTapNoteTypeVector()
-                    local noterows = params.score:GetNoteRowVector()
-                    local holds = params.score:GetHoldNoteVector()
+                    local tracks = replay:GetTrackVector()
+                    local types = replay:GetTapNoteTypeVector()
+                    local noterows = replay:GetNoteRowVector()
+                    local holds = replay:GetHoldNoteVector()
                     local timingdata = params.steps:GetTimingData()
                     local lastSecond = params.steps:GetLastSecond()
 
@@ -1281,6 +1471,7 @@ t[#t+1] = Def.ActorFrame {
                         judgeSetting = params.judgeSetting,
                         columns = params.steps:GetNumColumns(),
                         rejudged = params.rejudged,
+                        usingCustomWindows = usingCustomWindows,
                     })
                 end
             end

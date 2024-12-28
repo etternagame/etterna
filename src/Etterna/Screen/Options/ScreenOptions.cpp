@@ -586,6 +586,14 @@ ScreenOptions::HandleScreenMessage(const ScreenMessage& SM)
 		}
 
 		this->HandleScreenMessage(SM_GoToNextScreen);
+	} else if (SM == SM_GoToPrevScreen) {
+		for (unsigned r = 0; r < m_pRows.size(); r++) {
+			if (m_pRows[r]->GetRowType() == OptionRow::RowType_Exit)
+				continue;
+			this->ExportOptionsOnCancel(r, PLAYER_1);
+		}
+		ScreenWithMenuElements::HandleScreenMessage(SM);
+		return;
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage(SM);
@@ -1151,12 +1159,12 @@ ScreenOptions::ChangeValueInRowRelative(int iRow,
 		}
 	}
 
-	if (bOneChanged)
-		m_SoundChangeCol.Play(true);
-
 	if (row.GetRowDef().m_bExportOnChange) {
 		ExportOptions(iRow, PLAYER_1);
 	}
+
+	if (bOneChanged)
+		m_SoundChangeCol.Play(true);
 
 	this->AfterChangeValueInRow(iRow, pn);
 }

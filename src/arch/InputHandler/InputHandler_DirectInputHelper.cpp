@@ -16,12 +16,15 @@
 #endif
 LPDIRECTINPUT8 g_dinput = nullptr;
 
+
 static int
 ConvertScancodeToKey(int scancode);
 static BOOL CALLBACK
 DIJoystick_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data);
 static BOOL CALLBACK
 DIMouse_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data);
+
+static Preference<bool> g_DisableWindowsKey("DisableWindowsKey", false);
 
 DIDevice::DIDevice()
 {
@@ -33,7 +36,7 @@ DIDevice::DIDevice()
 }
 
 bool
-DIDevice::Open()
+DIDevice::Open(bool checkPreference)
 {
 	m_sName = ConvertACPToUTF8(JoystickInst.tszProductName);
 
@@ -65,6 +68,10 @@ DIDevice::Open()
 	int coop = DISCL_NONEXCLUSIVE | DISCL_BACKGROUND;
 	if (type == KEYBOARD)
 		coop = DISCL_NONEXCLUSIVE | DISCL_FOREGROUND;
+
+	if (checkPreference && g_DisableWindowsKey.Get()) {
+		coop |= DISCL_NOWINKEY;
+	}
 
 	hr = Device->SetCooperativeLevel(GraphicsWindow::GetHwnd(), coop);
 	if (hr != DI_OK) {

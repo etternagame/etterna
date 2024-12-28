@@ -43,10 +43,6 @@ Foreground::LoadFromSong(const Song* pSong)
 
 		LoadedBGA bga;
 		if (DoesFileExist(sLuaFile)) {
-			Locator::getLogger()->warn("Modchart detected, invalidating sequential assumption.");
-			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			td->InvalidateSequentialAssmption();
-
 			bga.m_bga = ActorUtil::MakeActor(sLuaFile, this);
 		} else {
 			bga.m_bga =

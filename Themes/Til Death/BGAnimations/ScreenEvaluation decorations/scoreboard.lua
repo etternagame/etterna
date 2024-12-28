@@ -172,7 +172,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 						if not score:HasReplayData() then return end
 						newindex = getHighScoreIndex(hsTable, hsTable[index])
 						self:GetParent():GetParent():playcommand("HahaThisCodeINeedHelp", {doot = newindex})
-						self:GetParent():GetParent():GetParent():GetChild("BLah"):playcommand("ChangeScore", {score =  hsTable[index]})
+						self:GetParent():GetParent():GetParent():GetChild("ScoreDisplay"):playcommand("ChangeScore", {score =  hsTable[index]})
 						self:GetParent():GetParent():GetParent():GetChild("OffsetPlot"):playcommand("SetFromScore", {score =  hsTable[index]})
 					end
 				end
@@ -323,7 +323,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				if hsTable[index] == nil then return end
 				if #hsTable >= 1 and index >= 1 then
 					self:settextf(
-						"%d / %d / %d / %d / %d / %d",
+						"%d | %d | %d | %d | %d | %d",
 						hsTable[index]:GetTapNoteScore("TapNoteScore_W1"),
 						hsTable[index]:GetTapNoteScore("TapNoteScore_W2"),
 						hsTable[index]:GetTapNoteScore("TapNoteScore_W3"),

@@ -123,28 +123,36 @@ local function clearTypes(grade, playCount, perfcount, greatcount, misscount, re
 	else
 		if grade == "Grade_Failed" then -- failed
 			clearlevel = 11
-		elseif perfcount < 10 and perfcount > 1 then -- SDP
-			clearlevel = 3
-		elseif greatcount < 10 and greatcount > 1 then -- SDG
-			clearlevel = 6
-		elseif perfcount == 1 and greatcount + misscount == 0 then -- whiteflag
-			clearlevel = 2
-		elseif greatcount == 1 and misscount == 0 then -- blackflag
-			clearlevel = 5
-		elseif perfcount + greatcount + misscount == 0 then -- MFC
-			clearlevel = 1
-		elseif greatcount + misscount == 0 then -- PFC
-			clearlevel = 4
-		elseif misscount == 0 then -- FC
-			clearlevel = 7
-		else
+		elseif misscount > 0 then
 			if misscount == 1 then
 				clearlevel = 8 -- missflag
-			elseif misscount < 10 and misscount > 0 then
-				clearlevel = 9
+			elseif misscount > 1 and misscount < 10 then
+				clearlevel = 9 -- SDCB
 			else
 				clearlevel = 10 -- Clear
 			end
+		elseif misscount == 0 then
+			if greatcount == 0 then
+				if perfcount == 0 then -- MFC
+					clearlevel = 1
+				elseif perfcount == 1 then -- whiteflag
+					clearlevel = 2
+				elseif perfcount < 10 and perfcount > 1 then -- SDP
+					clearlevel = 3
+				else -- PFC
+					clearlevel = 4
+				end
+			else
+				if greatcount < 10 and greatcount > 1 then -- SDG
+					clearlevel = 6
+				elseif greatcount == 1 then -- blackflag
+					clearlevel = 5
+				else -- FC
+					clearlevel = 7
+				end
+			end
+		else
+			clearlevel = 12 -- this would mean negative misses
 		end
 	end
 	return getClearTypeItem(clearlevel, returntype)

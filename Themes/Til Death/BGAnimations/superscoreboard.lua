@@ -62,7 +62,8 @@ local translated_info = {
 	LoginToView = THEME:GetString("NestedScores", "LoginToView"),
 	NoScoresFound = THEME:GetString("NestedScores", "NoScoresFound"),
 	RetrievingScores = THEME:GetString("NestedScores", "RetrievingScores"),
-	Watch = THEME:GetString("NestedScores", "WatchReplay")
+	Watch = THEME:GetString("NestedScores", "WatchReplay"),
+	NoReplay = THEME:GetString("NestedScores", "NoReplay"),
 }
 
 local scoretable = {}
@@ -368,7 +369,7 @@ local o = Def.ActorFrame {
 			self:diffusealpha(1)
 		end,
 		UpdateCommand = function(self)
-			if DLMAN:GetCCFilter() then
+			if DLMAN:GetValidFilter() then
 				self:settext(ccornah[1])
 			else
 				self:settext(ccornah[2])
@@ -376,7 +377,7 @@ local o = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				DLMAN:ToggleCCFilter()
+				DLMAN:ToggleValidFilter()
 				ind = 0
 				self:GetParent():queuecommand("GetFilteredLeaderboard")
 			end
@@ -473,7 +474,7 @@ local function makeScoreDisplay(i)
 			end,
 			DisplayCommand = function(self)
 				self:settext(hs:GetDisplayName())
-				if hs:GetChordCohesion() then
+				if not hs:GetEtternaValid() then
 					self:diffuse(color("#F0EEA6"))
 				else
 					self:diffuse(getMainColor("positive"))
@@ -487,7 +488,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = "https://etternaonline.com/user/" .. hs:GetDisplayName()
+					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName()
 					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 				end
 			end
@@ -501,7 +502,7 @@ local function makeScoreDisplay(i)
 			end,
 			DisplayCommand = function(self)
 				self:settext(hs:GetJudgmentString())
-				if hs:GetChordCohesion() then
+				if not hs:GetEtternaValid() then
 					self:diffuse(color("#F0EEA6"))
 				else
 					self:diffuse(getMainColor("positive"))
@@ -515,7 +516,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = "https://etternaonline.com/score/view/" .. hs:GetScoreid() .. hs:GetUserid()
+					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName() .. "/scores/" .. hs:GetScoreid()
 					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 				end
 			end,
@@ -584,7 +585,11 @@ local function makeScoreDisplay(i)
 					DLMAN:RequestOnlineScoreReplayData(
 						hs,
 						function()
-							SCREENMAN:GetTopScreen():PlayReplay(hs)
+							if hs:GetReplay():HasReplayData() then
+								SCREENMAN:GetTopScreen():PlayReplay(hs)
+							else
+								ms.ok(translated_info["NoReplay"])
+							end
 						end
 					)
 				end
@@ -656,11 +661,7 @@ local function makeScoreDisplay(i)
 			end,
 			DisplayCommand = function(self)
 				local perc = hs:GetWifeScore() * 100
-				if perc > 99.7 then
-					self:settextf("%05.5f%%", notShit.floor(perc, 5))
-				else
-					self:settextf("%05.4f%%", notShit.floor(perc, 4))
-				end
+				self:settextf("%05.4f%%", notShit.floor(perc, 4))
 				self:diffuse(byGrade(hs:GetWifeGrade()))
 			end
 		},

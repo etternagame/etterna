@@ -22,7 +22,7 @@ local AvatarYP1 = 44
 
 local bpms = {}
 if GAMESTATE:GetCurrentSong() then
-	bpms = GAMESTATE:GetCurrentSong():GetDisplayBpms()
+	bpms = GAMESTATE:GetCurrentSong():GetDisplayBpms(true)
 	bpms[1] = math.round(bpms[1])
 	bpms[2] = math.round(bpms[2])
 end
@@ -112,6 +112,9 @@ t[#t + 1] =
 				self:playcommand("SpeedChoiceChanged", {pn = PLAYER_1, mode = mode, speed = speed})
 			end,
 			RateListOptionChangedMessageCommand = function(self, params)
+				self:finishtweening():sleep(0.01):queuecommand("DelayedThing")
+			end,
+			RateListOptionSavedMessageCommand = function(self, params)
 				self:finishtweening():sleep(0.01):queuecommand("DelayedThing")
 			end,
 			DelayedThingCommand = function(self)

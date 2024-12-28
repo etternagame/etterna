@@ -104,12 +104,6 @@ return Def.ActorFrame {
             local differenceX = newx - pp:GetX()
             local differenceY = newy - pp:GetY()
 
-            -- massive gigantic hack
-            -- not really interested in figuring out why this is necessary
-            if getPlayerOptions():UsingReverse() and pp:GetName() == "NoteField" then
-                differenceY = differenceY * -1
-            end
-
             pp:x(newx):y(newy)
             setSelectedCustomizeGameplayElementActorPosition(differenceX, differenceY)
         end,

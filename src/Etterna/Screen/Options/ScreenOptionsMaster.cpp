@@ -91,6 +91,62 @@ ScreenOptionsMaster::ExportOptions(int r, const PlayerNumber& vpns)
 }
 
 void
+ScreenOptionsMaster::ExportOptionsOnCancel(int r, const PlayerNumber& pn)
+{
+	Locator::getLogger()->trace("ExportOptionsOnCancel {}/{}", r, m_pRows.size());
+
+	OptionRow& row = *m_pRows[r];
+	bool bRowHasFocus = false;
+	int iCurRow = m_iCurrentRow;
+	bRowHasFocus = iCurRow == r;
+	if (row.GetRowDef().m_bExportOnCancel)
+		m_iChangeMask |= row.ExportOptions(pn, bRowHasFocus);
+}
+
+void
+handleChangeMask(int cm)
+{
+	if ((cm & OPT_APPLY_ASPECT_RATIO) != 0) {
+		// This needs to be done before resetting
+		// the projection matrix below
+		THEME->UpdateLuaGlobals();
+		// SCREEN_* has changed, so re-read all
+		// subscribing ThemeMetrics
+		THEME->ReloadSubscribers();
+		// recreate ScreenSystemLayer and SharedBGA
+		SCREENMAN->ThemeChanged();
+		MESSAGEMAN->Broadcast("ReloadedScripts");
+	}
+
+	/* If the theme changes, we need to reset RageDisplay to apply the new
+	 * window title and icon. If the aspect ratio changes, we need to reset
+	 * RageDisplay so that the projection matrix is re-created using the new
+	 * screen dimensions. */
+	if (((cm & OPT_APPLY_THEME) != 0) ||
+		((cm & OPT_APPLY_GRAPHICS) != 0) ||
+		((cm & OPT_APPLY_ASPECT_RATIO) != 0)) {
+		/* If the resolution or aspect ratio changes, always reload the
+		 * theme. Otherwise, only reload it if it changed. */
+		std::string sNewTheme = PREFSMAN->m_sTheme.Get();
+		GameLoop::ChangeTheme(sNewTheme);
+	}
+
+	if ((cm & OPT_SAVE_PREFERENCES) != 0) {
+		// Save preferences.
+		Locator::getLogger()->trace("ROW_CONFIG used; saving ...");
+		PREFSMAN->SavePrefsToDisk();
+	}
+
+	if ((cm & OPT_CHANGE_GAME) != 0) {
+		GameLoop::ChangeGame(PREFSMAN->GetCurrentGame());
+	}
+
+	if ((cm & OPT_APPLY_SOUND) != 0) {
+		SOUNDMAN->SetMixVolume();
+	}
+}
+
+void
 ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_ExportOptions) {
@@ -102,44 +158,24 @@ ScreenOptionsMaster::HandleScreenMessage(const ScreenMessage& SM)
 		for (unsigned r = 0; r < m_pRows.size(); r++) // foreach row
 			ExportOptions(r, PLAYER_1);
 
-		if ((m_iChangeMask & OPT_APPLY_ASPECT_RATIO) != 0) {
-			THEME->UpdateLuaGlobals(); // This needs to be done before resetting
-									   // the projection matrix below
-			THEME->ReloadSubscribers(); // SCREEN_* has changed, so re-read all
-										// subscribing ThemeMetrics
-			SCREENMAN
-			  ->ThemeChanged(); // recreate ScreenSystemLayer and SharedBGA
-		}
-
-		/* If the theme changes, we need to reset RageDisplay to apply the new
-		 * window title and icon. If the aspect ratio changes, we need to reset
-		 * RageDisplay so that the projection matrix is re-created using the new
-		 * screen dimensions. */
-		if (((m_iChangeMask & OPT_APPLY_THEME) != 0) ||
-			((m_iChangeMask & OPT_APPLY_GRAPHICS) != 0) ||
-			((m_iChangeMask & OPT_APPLY_ASPECT_RATIO) != 0)) {
-			/* If the resolution or aspect ratio changes, always reload the
-			 * theme. Otherwise, only reload it if it changed. */
-			std::string sNewTheme = PREFSMAN->m_sTheme.Get();
-			GameLoop::ChangeTheme(sNewTheme);
-		}
-
-		if ((m_iChangeMask & OPT_SAVE_PREFERENCES) != 0) {
-			// Save preferences.
-			Locator::getLogger()->trace("ROW_CONFIG used; saving ...");
-			PREFSMAN->SavePrefsToDisk();
-		}
-
-		if ((m_iChangeMask & OPT_CHANGE_GAME) != 0) {
-			GameLoop::ChangeGame(PREFSMAN->GetCurrentGame());
-		}
-
-		if ((m_iChangeMask & OPT_APPLY_SOUND) != 0) {
-			SOUNDMAN->SetMixVolume();
-		}
+		handleChangeMask(m_iChangeMask);
 
 		Locator::getLogger()->trace("Transferring to the next screen now.");
 		this->HandleScreenMessage(SM_GoToNextScreen);
+		return;
+	} else if (SM == SM_GoToPrevScreen) {
+		// save as above
+		m_iChangeMask = 0;
+
+		Locator::getLogger()->trace("Starting the export handling.");
+
+		for (unsigned r = 0; r < m_pRows.size(); r++) // foreach row
+			ExportOptionsOnCancel(r, PLAYER_1);
+
+		handleChangeMask(m_iChangeMask);
+
+		Locator::getLogger()->trace("Transferring to the prev screen now.");
+		ScreenWithMenuElements::HandleScreenMessage(SM);
 		return;
 	}
 

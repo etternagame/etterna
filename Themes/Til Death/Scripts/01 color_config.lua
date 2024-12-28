@@ -221,18 +221,18 @@ end
 -- 30% hardcoded, should var but lazy atm -mina
 function customOffsetToJudgeColor(offset, windows)
 	local offset = math.abs(offset)
-	if offset <= windows.marv then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W1"] .. "48")
-	elseif offset <= windows.perf then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W2"] .. "48")
-	elseif offset <= windows.great then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W3"] .. "48")
-	elseif offset <= windows.good then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W4"] .. "48")
-	elseif offset <= math.max(windows.boo, 0.180) then
-		return color(colorConfig:get_data().judgment["TapNoteScore_W5"] .. "48")
+	if offset <= windows.TapNoteScore_W1 then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W1"])
+	elseif offset <= windows.TapNoteScore_W2 then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W2"])
+	elseif offset <= windows.TapNoteScore_W3 then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W3"])
+	elseif offset <= windows.TapNoteScore_W4 then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W4"])
+	elseif offset <= windows.TapNoteScore_W5 then
+		return color(colorConfig:get_data().judgment["TapNoteScore_W5"])
 	else
-		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"] .. "48")
+		return color(colorConfig:get_data().judgment["TapNoteScore_Miss"])
 	end
 end
 

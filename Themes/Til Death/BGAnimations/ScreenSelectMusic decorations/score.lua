@@ -51,6 +51,7 @@ local translated_info = {
 	ChordCohesion = THEME:GetString("TabScore", "ChordCohesion"),
 	Judge = THEME:GetString("TabScore", "ScoreJudge"),
 	NoScores = THEME:GetString("TabScore", "NoScores"),
+	NoChart = THEME:GetString("TabScore", "NoChart"),
 	Yes = THEME:GetString("OptionNames", "Yes"),
 	No = THEME:GetString("OptionNames", "No"),
 	ShowOffset = THEME:GetString("TabScore", "ShowOffsetPlot"),
@@ -63,7 +64,11 @@ local translated_info = {
 	UploadAllScore=THEME:GetString("TabScore", "UploadAllScore"),
 	UploadingReplay = THEME:GetString("TabScore", "UploadingReplay"),
 	UploadingScore = THEME:GetString("TabScore", "UploadingScore"),
-	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn")
+	NotLoggedIn = THEME:GetString("GeneralInfo", "NotLoggedIn"),
+    ValidateScore = THEME:GetString("TabScore", "ValidateScore"),
+    ScoreValidated = THEME:GetString("TabProfile", "ScoreValidated"),
+    InvalidateScore = THEME:GetString("TabScore", "InvalidateScore"),
+    ScoreInvalidated = THEME:GetString("TabProfile", "ScoreInvalidated")
 }
 
 local defaultRateText = ""
@@ -184,7 +189,7 @@ local ret = Def.ActorFrame {
 	end,
 	ChangeStepsMessageCommand = function(self)
 		if getTabIndex() ~= 2 then return end
-		self:playcommand("Set"):finishtweening()
+		self:queuecommand("Set")
 		updateLeaderBoardForCurrentChart()
 	end,
 	CollapseCommand = function(self)
@@ -232,23 +237,23 @@ local ret = Def.ActorFrame {
 	CodeMessageCommand = function(self, params) -- this is intentionally bad to remind me to fix other things that are bad -mina
 		if ((getTabIndex() == 2 and nestedTab == 2) and not collapsed) and DLMAN:GetCurrentRateFilter() then
 			local rate = getCurRateValue()
-			if params.Name == "PrevScore" and rate < 2.95 then
+			if params.Name == "PrevScore" and rate < MAX_MUSIC_RATE - 0.05 then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.1)
 				MESSAGEMAN:Broadcast("CurrentRateChanged")
-			elseif params.Name == "NextScore" and rate > 0.75 then
+			elseif params.Name == "NextScore" and rate > MIN_MUSIC_RATE + 0.05 then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.1)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.1)
 				MESSAGEMAN:Broadcast("CurrentRateChanged")
 			end
-			if params.Name == "PrevRate" and rate < 3 then
+			if params.Name == "PrevRate" and rate < MAX_MUSIC_RATE then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate + 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate + 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate + 0.05)
 				MESSAGEMAN:Broadcast("CurrentRateChanged")
-			elseif params.Name == "NextRate" and rate > 0.7 then
+			elseif params.Name == "NextRate" and rate > MIN_MUSIC_RATE then
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Preferred"):MusicRate(rate - 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Song"):MusicRate(rate - 0.05)
 				GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate(rate - 0.05)
@@ -512,15 +517,32 @@ local l = Def.ActorFrame {
 			end
 		end
 	},
-	LoadFont("Common Normal") .. {
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		InitCommand = function(self)
 			self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 15 - offsetY):zoom(0.5):halign(1)
-			self:settext(translated_info["NoScores"])
+			if GAMESTATE:GetCurrentSteps() == nil then
+				self:settext(translated_info["NoChart"])
+			else
+				self:settext(translated_info["NoScores"])
+			end
 		end,
 		DisplayCommand = function(self)
 			self:settextf("%s %s - %s %d/%d", translated_info["Rate"], rates[rateIndex], translated_info["Showing"], scoreIndex, #rtTable[rates[rateIndex]])
 			self:zoom(0.4)
-		end
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				MESSAGEMAN:Broadcast("Code", {Name = "NextScore"})
+			elseif params.event == "DeviceButton_right mouse button" then
+				MESSAGEMAN:Broadcast("Code", {Name = "PrevScore"})
+			end
+		end,
 	},
 	LoadFont("Common Normal") .. {
 		Name = "Judge",
@@ -592,7 +614,7 @@ local function makeText(index)
 	}
 end
 
-for i = 1, 10 do
+for i = 1, 9 do
 	t[#t + 1] = makeText(i)
 end
 
@@ -786,11 +808,7 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 		self:diffuse(getMainColor("positive"))
 	end,
 	DisplayCommand = function(self)
-		if hasReplayData then
-			self:settext(translated_info["UploadReplay"])
-		else
-			self:settext("")
-		end
+		self:settext(translated_info["UploadReplay"])
 	end,
 	MouseOverCommand = function(self)
 		self:diffusealpha(hoverAlpha)
@@ -880,6 +898,41 @@ l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
 				DLMAN:UploadAllScores()
 			elseif getTabIndex() == 2 and isOver(self) and not DLMAN:IsLoggedIn() then
 				ms.ok(translated_info["NotLoggedIn"])
+			end
+		end
+	end
+}
+l[#l + 1] = UIElements.TextToolTip(1, 1, "Common Normal") .. {
+	Name = "ValidateInvalidateScoreButton",
+	InitCommand = function(self)
+		self:xy(frameWidth - offsetX - frameX, frameHeight - headeroffY - 91 - offsetY):zoom(0.425):halign(1):settext("")
+		self:diffuse(getMainColor("positive"))
+	end,
+	DisplayCommand = function(self)
+        if score:GetEtternaValid() then
+            self:settext(translated_info["InvalidateScore"])
+        else
+            self:settext(translated_info["ValidateScore"])
+        end
+	end,
+	MouseOverCommand = function(self)
+		self:diffusealpha(hoverAlpha)
+	end,
+	MouseOutCommand = function(self)
+		self:diffusealpha(1)
+	end,
+	MouseDownCommand = function(self, params)
+		if nestedTab == 1 and params.event == "DeviceButton_left mouse button" then
+			if getTabIndex() == 2 and isOver(self) then
+                score:ToggleEtternaValidation()
+                MESSAGEMAN:Broadcast("UpdateRanking")
+				if score:GetEtternaValid() then
+					ms.ok(translated_info["ScoreValidated"])
+                    self:settext(translated_info["InvalidateScore"])
+                else
+                    ms.ok(translated_info["ScoreInvalidated"])
+                    self:settext(translated_info["ValidateScore"])
+				end
 			end
 		end
 	end

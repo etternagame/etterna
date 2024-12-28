@@ -1,5 +1,7 @@
+--- Mouse Tooltips
 -- originally created by ca25nada/Prim
 -- minor modifications by poco0317
+-- @module 96_Tooltip
 
 -- Singleton for accessing the tooltip actor.
 local textScale = 0.5
@@ -24,6 +26,9 @@ function TOOLTIP.New(self)
             self:visible(false)
             TOOLTIP.Actor = self
         end,
+        ReloadedScriptsMessageCommand = function(self)
+            TOOLTIP.Actor = self
+        end,
         OnCommand = function(self)
         end,
         ScreenChangedMessageCommand = function(self)
@@ -31,7 +36,17 @@ function TOOLTIP.New(self)
         end,
         OffCommand = function(self)
             self:visible(false)
-        end
+        end,
+        ResizeCommand = function(self)
+            local txt = self:GetChild("Text")
+            local box = self:GetChild("Box")
+
+            txt:zoom(textScale)
+            
+            local height = txt:GetZoomedHeight()
+            local width = txt:GetZoomedWidth()
+            box:zoomto(width + boxBorder * 2, height + boxBorder * 2)
+        end,
     }
 
     t[#t+1] = Def.Quad{
@@ -47,7 +62,7 @@ function TOOLTIP.New(self)
         InitCommand = function(self)
             self:zoom(textScale)
             self:halign(0):valign(0)
-            self:xy(boxBorder / textScale, boxBorder / textScale)
+            self:xy(boxBorder, boxBorder)
         end,
     }
 
@@ -57,7 +72,9 @@ function TOOLTIP.New(self)
             self:zoomto(cursorSize, cursorSize)
             self:visible(false)
             TOOLTIP.Pointer = self
-
+        end,
+        ReloadedScriptsMessageCommand = function(self)
+            TOOLTIP.Pointer = self
         end,
         OnCommand = function(self)
         end,
@@ -71,7 +88,9 @@ function TOOLTIP.New(self)
         InitCommand = function(self)
             self:diffusealpha(0)
             TOOLTIP.ClickWave = self
-
+        end,
+        ReloadedScriptsMessageCommand = function(self)
+            TOOLTIP.ClickWave = self
         end,
         OnCommand = function(self)
         end,
@@ -92,32 +111,47 @@ function TOOLTIP.New(self)
 end
 
 function TOOLTIP.SetText(self, text)
+    if self == nil or self.Actor == nil then return end
     self.Actor:GetChild("Text"):settext(text)
-    local height = self.Actor:GetChild("Text"):GetHeight() * textScale
-    local width = self.Actor:GetChild("Text"):GetWidth() * textScale
-
-    self.Actor:GetChild("Box"):zoomto(width + boxBorder * 2 / textScale, height + boxBorder * 2 / textScale)
+    self.Actor:playcommand("Resize")
 end
 
 function TOOLTIP.Show(self)
+    if self == nil or self.Actor == nil then return end
     self.Actor:visible(true)
 end
 
 function TOOLTIP.Hide(self)
+    if self == nil or self.Actor == nil then return end
     self.Actor:visible(false)
 end
 
 function TOOLTIP.ShowPointer(self)
+    if self == nil or self.Pointer == nil then return end
     self.Pointer:visible(true)
 end
 
 function TOOLTIP.HidePointer(self)
+    if self == nil or self.Pointer == nil then return end
     self.Pointer:visible(false)
 end
 
+function TOOLTIP.SetTextSize(self, zoom)
+    textScale = zoom
+
+    if self == nil or self.Actor == nil then return end
+    self.Actor:playcommand("Resize")
+end
+
+function TOOLTIP.GetTextSize(self)
+    return textScale
+end
+
 function TOOLTIP.SetPosition(self, x, y)
-    local height = (self.Actor:GetChild("Text"):GetHeight() * textScale) + boxBorder * 2 / textScale
-    local width = (self.Actor:GetChild("Text"):GetWidth() * textScale) + boxBorder * 2 / textScale
+    if self == nil or self.Actor == nil then return end
+
+    local height = (self.Actor:GetChild("Text"):GetHeight() * textScale) + boxBorder * 2
+    local width = (self.Actor:GetChild("Text"):GetWidth() * textScale) + boxBorder * 2
 
     self.Pointer:xy(x, y)
 
@@ -127,14 +161,14 @@ function TOOLTIP.SetPosition(self, x, y)
             clamp(y + tooltipOffSetY, screenBorder, SCREEN_HEIGHT - screenBorder - height)
         )
         self.Actor:GetChild("Box"):halign(1)
-        self.Actor:GetChild("Text"):halign(1):x(-boxBorder / textScale)
+        self.Actor:GetChild("Text"):halign(1):x(-boxBorder)
     else
         self.Actor:xy(
             clamp(x + tooltipOffSetX, screenBorder, SCREEN_WIDTH - screenBorder - width), 
             clamp(y + tooltipOffSetY, screenBorder, SCREEN_HEIGHT - screenBorder - height)
         )
         self.Actor:GetChild("Box"):halign(0)
-        self.Actor:GetChild("Text"):halign(0):x(boxBorder / textScale)
+        self.Actor:GetChild("Text"):halign(0):x(boxBorder)
     end
 
     -- if the mouse ends up on top of the tooltip we may lose visibility on things

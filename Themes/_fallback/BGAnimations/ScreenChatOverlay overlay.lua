@@ -83,7 +83,7 @@ local chat = Def.ActorFrame {
 				oldScreen ~= currentScreen and
 					(currentScreen == "ScreenSelectMusic" or currentScreen == "ScreenTitleMenu" or
 						currentScreen == "ScreenOptionsService" or currentScreen == "ScreenInit" or
-						currentScreen == "ScreenPackDownloader" or currentScreen == "ScreenBundleSelect")
+						currentScreen == "ScreenPackDownloader")
 			then
 				isInSinglePlayer = true
 			end
@@ -528,6 +528,9 @@ function MPinput(event)
 
 	-- hard kb toggle
 	if event.type == "InputEventType_FirstPress" and event.DeviceInput.button == "DeviceButton_insert" then
+		if minimised then
+		typing = true
+		end
 		minimised = not minimised
 		MESSAGEMAN:Broadcast("Minimise")
 		update = true

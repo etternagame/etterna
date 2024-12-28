@@ -77,7 +77,6 @@ class TimingData
 		std::swap(m_fBeat0OffsetInSeconds, other.m_fBeat0OffsetInSeconds);
 		std::swap(ElapsedTimesAtAllRows, other.ElapsedTimesAtAllRows);
 		std::swap(ElapsedTimesAtNonEmptyRows, other.ElapsedTimesAtNonEmptyRows);
-		std::swap(ValidSequentialAssumption, other.ValidSequentialAssumption);
 
 		return *this;
 	}
@@ -740,43 +739,6 @@ class TimingData
 
 	auto ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
 										   float rate) -> std::vector<float>;
-
-	bool ValidSequentialAssumption = true;
-	void InvalidateSequentialAssmption() { ValidSequentialAssumption = false; }
-
-	[[nodiscard]] auto IsSequentialAssumptionValid() const -> bool
-	{
-		return ValidSequentialAssumption;
-	}
-
-	void NegStopAndBPMCheck()
-	{
-		if (HasWarps()) {
-			ValidSequentialAssumption = false;
-			return;
-		}
-
-		auto& bpms = m_avpTimingSegments[SEGMENT_BPM];
-		auto& stops = m_avpTimingSegments[SEGMENT_STOP];
-
-		for (auto& i : bpms) {
-			auto* bpm = ToBPM(i);
-			if (0 > bpm->GetBPM()) {
-				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
-				ValidSequentialAssumption = false;
-				return;
-			}
-		}
-
-		for (auto& stop : stops) {
-			auto* s = ToStop(stop);
-			if (0 > s->GetPause()) {
-				Locator::getLogger()->warn("Sequential Assumption Invalidated.");
-				ValidSequentialAssumption = false;
-				return;
-			}
-		}
-	}
 
   protected:
 	// don't call this directly; use the derived-type overloads.

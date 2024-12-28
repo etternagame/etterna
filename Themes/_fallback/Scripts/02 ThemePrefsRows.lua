@@ -1,3 +1,5 @@
+--- Theme preferences rows
+-- @module 02_ThemePrefsRows
 --[[
 ThemePrefsRows: you give it the choices, values, and params, and it'll
 generate the rest; quirky behavior to be outlined below. Documentation
@@ -15,6 +17,7 @@ local DefaultParams = {
 	SelectType = "SelectOne",
 	OneChoiceForAllPlayers = true,
 	ExportOnChange = false,
+	ExportOnCancel = false,
 	EnabledForPlayers = nil,
 	ReloadRowMessages = nil,
 	-- takes a function(self, list, pn);

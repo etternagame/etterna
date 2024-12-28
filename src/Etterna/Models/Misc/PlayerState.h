@@ -31,6 +31,7 @@ class PlayerState
   public:
 	/** @brief Set up the PlayerState with initial values. */
 	PlayerState();
+
 	/** @brief Reset the PlayerState with the initial values. */
 	void Reset();
 	/**
@@ -81,7 +82,7 @@ class PlayerState
 	 */
 	void ResetToDefaultPlayerOptions(ModsLevel l);
 	/** @brief The PlayerOptions presently in use by the Player. */
-	ModsGroup<PlayerOptions> m_PlayerOptions;
+	ModsGroup<PlayerOptions> m_PlayerOptions{};
 
 	/**
 	 * @brief Used to push note-changing modifiers back so that notes don't pop.
@@ -101,6 +102,8 @@ class PlayerState
 	// Stores the bpm that was picked for reading the chart if the player is
 	// using an mmod.
 	float m_fReadBPM;
+
+	bool m_bGoalTrackerUsesReplay = false;
 
 	/* why is the slow getstyles function called every time to get
 	number of columns in places where it can't change? - Mina */

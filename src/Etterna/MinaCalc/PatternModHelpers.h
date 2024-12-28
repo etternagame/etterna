@@ -3,8 +3,14 @@
 #include <array>
 #include <vector>
 #include <algorithm>
-#include <xmmintrin.h>
+#ifndef __aarch64__
+	#include <xmmintrin.h>
+#else
+	//Use sse2neon to transparently provide ARM Neon equivalents of x86_64 SIMD intrinsics
+	#include "sse2neon.h"
+#endif
 #include <numeric>
+#include <cstring>
 
 /* generic pattern mod functions and defs to help either agnostic or dependent
  * mods do their stuff */

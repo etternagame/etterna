@@ -1,4 +1,6 @@
+--- Utilities again
 -- like the 8th utility file
+-- @module 99_util
 
 -- update discord rpc for eval and gameplay
 function updateDiscordStatus(inEvaluation)
@@ -83,4 +85,18 @@ function updateNowPlaying()
     end
 
     File.Write("nowplaying.txt", fout)
+end
+
+-- return a letter to add based on input
+-- nil return is invalid
+function inputToCharacter(event)
+    local btn = event.DeviceInput.button
+    local char = event.char
+    local shift = INPUTFILTER:IsShiftPressed()
+    if btn == "DeviceButton_space" then
+        return " "
+    elseif char and char:match('[%%%+%-%!%@%#%$%^%&%*%(%)%=%_%.%,%:%;%\'%"%>%<%?%/%~%|%w%[%]%{%}%`%\\]') then
+        return char
+    end
+    return nil
 end

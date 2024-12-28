@@ -9,6 +9,7 @@ local t = Def.ActorFrame {
     InitCommand = function(self)
         self:SetUpdateFunction(UpdateLoop)
         self:SetUpdateFunctionInterval(0.01)
+        TOOLTIP:SetTextSize(0.5)
     end
 }
 

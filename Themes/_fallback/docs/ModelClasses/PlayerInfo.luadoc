@@ -1,0 +1,4 @@
+--- Player stats class
+--
+-- This class inherits no methods from superclasses.
+-- @classmod PlayerInfo

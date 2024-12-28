@@ -6,19 +6,19 @@ comes to submitting crash reports.
 
 ## Table of Contents
 
-- [Overview](#Overview)
-- [What is a Minidump](#What-is-a-Minidump)
-- [Preparing System](#Preparing-System)
-   - [Processing Tools](#Processing-Tools)
-   - [Compiling Processing Tools](#Compiling-Processing-Tools)
-        - [Building on Linux](#Building-on-Linux)
-        - [Building on macOS](#Building-on-macOS)
-        - [Building on Windows](#Building-on-Windows)
-- [Generating Symbols](Generating-Symbols)
-  - [Windows Symbol Generation](#Windows-Symbol-Generation)
-  - [macOS Symbol Generation](#macOS-Symbol-Generation)
-- [Storing Symbols](#Storing-Symbols)
-- [Decoding Minidumps](#Decoding-Minidumps)
+- [Overview](#overview)
+- [What is a Minidump](#what-is-a-minidump)
+- [Preparing System](#preparing-system)
+  - [Processing Tools](#required-processing-tools)
+  - [Compiling Processing Tools](#compiling-processing-tools)
+    - [Building on Linux](#building-on-linux)
+    - [Building on macOS](#building-on-macos)
+    - [Building on Windows](#building-on-windows)
+- [Generating Symbols](#generating-symbols)
+  - [Windows Symbol Generation](#windows-symbol-generation)
+  - [macOS Symbol Generation](#macos-symbol-generation)
+- [Storing Symbols](#storing-symbols)
+- [Decoding Minidumps](#decoding-minidumps)
 
 ## Overview
 
@@ -38,29 +38,26 @@ information like usernames, passwords, and anything stored in RAM may be stored 
 would take a motivated attack to be able to determine those values in the chance that personal
 information is stored within the crash dump. If you would rather not send the Etterna team your
 minidump file for debugging the crash you experienced, learn how you can decode
-the minidump yourself in the [Decoding Minidumps](#Decoding-Minidumps) section.
+the minidump yourself in the [Decoding Minidumps](#decoding-minidumps) section.
 
 ## Preparing System
 
-Users must install specific tools developed by Google before attempting to compile crashpad/breakpad, and 
-their processing tools. 
+Users must install specific tools developed by Google before attempting to compile crashpad/breakpad, and their processing tools.
 
 ### Required Processing Tools
 
 The following tools are necessary:
 
-- `dump_syms`: Generates a text file with all the symbols (variables, functions, line numbers) included to allow 
-  for a relationship to be made between the `.dmp` file and the compiled executable. Commands will usually look 
-  like the following: 
+- `dump_syms`: Generates a text file with all the symbols (variables, functions, line numbers) included to allow for a relationship to be made between the `.dmp` file and the compiled executable. Commands will usually look like the following:
+
    ```bash
    dump_syms Etterna.pdb > Etterna.sym                                        # Windows
    dump_syms Etterna.dbg Etterna-debug > Etterna-debug.sym                    # Linux
    dump_syms -g Etterna.dsym Etterna.app/Contents/MacOS/Etterna > Etterna.sym # macOS
    ```
 
-- `minidump_stackwalk`: Decodes the `.dmp` file and outputs a stack trace of what error caused the 
-  generated `.dmp` file. One of the arguments is a directory to where the symbols get stored. Those symbols
-  must be organized in a specific manner, which is described below. Command will usually look like the following: 
+- `minidump_stackwalk`: Decodes the `.dmp` file and outputs a stack trace of what error caused the generated `.dmp` file. One of the arguments is a directory to where the symbols get stored. Those symbols must be organized in a specific manner, which is described below. Command will usually look like the following:
+
    ```bash
    minidump_stackwalk generated_crash_file.dmp EtternaSymbols/ > stacktrace.txt
    ```
@@ -69,16 +66,15 @@ The following tools are necessary:
 
 Written in a step-by-step process:
 
-1. Get [depot_tools](https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up). 
+1. Get [depot_tools](https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up).
    This is a collection of tools which google created to help with the compilation of their projects.
    It must be installed as written on that page and added to your user/system path accordingly.
    After it is added to the path (and restart the terminal session if necessary), you can run `gclient`
    to ensure the path has been properly modified.
 
-2. Get [breakpad](https://chromium.googlesource.com/breakpad/breakpad#getting-started-from-main). While crashpad is the crash-reporting 
-   system that Etterna uses, it is the successor to breakpad, and the decoding tools have remained the same.
-   It is recommended to create a folder for the breakpad project before downloading it. Once cloned, there will
-   be a `src` folder with the breakpad source code. Commands are as follows:
+2. Get [breakpad](https://chromium.googlesource.com/breakpad/breakpad#getting-started-from-main). While crashpad is the crash-reporting system that Etterna uses, it is the successor to breakpad, and the decoding tools have remained the same.
+   It is recommended to create a folder for the breakpad project before downloading it. Once cloned, there will be a `src` folder with the breakpad source code. Commands are as follows:
+
    ```bash
    mkdir breakpad && cd breakpad
    fetch breakpad
@@ -88,9 +84,11 @@ Written in a step-by-step process:
 #### Building on Linux
 
 In the `src` directory, run the following commands:
+
 ```bash
 ./configure && make
 ```
+
 Assuming you have your compiler installed, this will build, and place the tools in the following locations:
 
 *Note: There is another `src` directory in the `src` you are in when you ran the above command. The locations
@@ -102,6 +100,7 @@ are relative to the command you run `make` in.*
 #### Building on macOS
 
 In the `src` directory, run the following commands:
+
 ```bash
 CXXFLAGS="$CXXFLAGS -std=c++17" ./configure && make # Build minidump_stackwalk
 xcodebuild -project src/tools/mac/dump_syms/dump_syms.xcodeproj -target dump_syms CLANG_CXX_LANGUAGE_STANDARD=c++17 # Build dump_syms
@@ -115,6 +114,7 @@ This will build and place the tools in the following locations:
 ##### dump_syms
 
 In the `src` directory, run the following commands:
+
 ```bash
 CXXFLAGS="$CXXFLAGS -std=c++17" ./configure && make
 ```
@@ -125,34 +125,38 @@ Currently `minidump_stackwalk` is not available on Windows. The following steps 
 for compiling `dump_syms.exe`
 
 1. Open `src\tools\windows\dump_syms\dump_syms.sln`. It will ask if you want to perform a one-way upgrade.
-   Click "Ok", and allow it to upgrade.   
- 
+   Click "Ok", and allow it to upgrade.
+
 2. Select the `Release` build at the upper-left area of the IDE.
   
 3. The "Solution Explorer" should show on the right side. There is a folder called `(tools)`. Open the
    dropdown next to that folder, and do the same for the folder inside called `(dump_syms)`. There will
    be a Visual Studio project named `dump_syms`. Right-click it, then click it, then click "Build."
    If you get any errors complaining about `std::unique_ptr`, double-click the error, and add
-   `#include <memory>` at the top of the file. The build should work after the includes. 
-   
+   `#include <memory>` at the top of the file. The build should work after the includes.
 The `dump_syms.exe` will be located in the `src\tools\windows\dump_syms\Release\dump_syms.exe`. At this point,
 the executable will run, but it will not generate symbol output until the following step is completed.
 
 4. Open an administrator command prompt, and navigate to the following directory in your Visual Studio
    install.
+
     ```bash
     cd "C:\Program Files (x86)\Microsoft Visual Studio\2019"
     ```
+
    Depending on what version of Visual Studio you have installed, you may see `Community`, `BuildTools`, `Professional`, etc
    in this directory. Select any of them and continue into the following directory:
+
     ```bash
     cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\DIA SDK\bin"
     ```
-       
+
     Run the command
+
     ```bash
     regsvr32 msdia140.dll
     ```
+
     This is a DLL which is installed by Visual Studio, but does not get registered to the system,
     so we must register it ourselves. Once that line executes in an admin command prompt, `dump_syms.exe`
     should properly dump symbols.
@@ -164,7 +168,8 @@ You don't need the source code; it's all within the symbol file (which could be 
 
 ### Linux Symbol Generation
 
-1. Enter these commands in this order, after building Etterna with `Debug` or `RelWithDebInfo`. 
+1. Enter these commands in this order, after building Etterna with `Debug` or `RelWithDebInfo`.
+
     ```bash
     objcopy --only-keep-debug Etterna Etterna.debug
     dump_syms Etterna.debug Etterna > Etterna.sym
@@ -183,7 +188,8 @@ You don't need the source code; it's all within the symbol file (which could be 
 
 ### macOS Symbol Generation
 
-0. TL;DR - Enter these commands in this order, after building Etterna with `Debug` or `RelWithDebInfo`. 
+0. TL;DR - Enter these commands in this order, after building Etterna with `Debug` or `RelWithDebInfo`.
+
 ```bash
 cd etterna/
 dsymutil -o Etterna.dsym Etterna.app/Contents/MacOS/Etterna
@@ -225,6 +231,7 @@ information is stored within the binary, and we'll first want to extract it into
 ### Summary
 
 1. Open your `Etterna.sym` file, and look at the first line. It should look similar to:
+
 ```text
 MODULE windows x86_64 7E72B03B469446899BB92B0EB45174FA2f Etterna-RelWithDebInfo.pdb
 ```
@@ -239,6 +246,7 @@ With the above parts, we must create a directory structure that looks like the f
 ```text
 mkdir -p EtternaSymbols/Etterna-RelWithDebInfo.pdb/7E72B03B469446899BB92B0EB45174FA2f/Etterna.sym
 ```
+
 Use the `EtternaSymbols` folder when running `minidump_stackwalk`.
 
 ### Explanation

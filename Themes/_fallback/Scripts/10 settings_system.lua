@@ -1,3 +1,6 @@
+--- Lua based reloadable configurations
+-- @module 10_settings_system
+
 local settings_prefix = "/" .. THEME:GetRealThemeDisplayName() .. "_settings/"
 global_cur_game = GAMESTATE:GetCurrentGame():GetName():lower()
 
@@ -25,8 +28,11 @@ local function slot_to_prof_dir(slot, reason)
 	if slot and slot ~= "ProfileSlot_Invalid" then
 		prof_dir = PROFILEMAN:GetProfileDir(slot)
 		if not prof_dir or prof_dir == "" then
-			--Warn("Could not fetch profile dir to " .. reason .. ".")
-			return
+			lua.ReportScriptError("Could not fetch profile dir to " .. reason .. ".")
+			lua.ReportScriptError("DO NOT TRY TO LOAD PROFILE OPTIONS WITHOUT A PROFILE SELECTED!")
+			lua.ReportScriptError("THIS THROWS A BLOCKING ERROR ON PURPOSE TO PREVENT PROFILE SAVE LOSS")
+			lua.ReportScriptError("IF YOU SEE THIS, YOU MAY HAVE INSTALLED A BAD NOTESKIN")
+			return nil > 3
 		end
 	end
 	return prof_dir
@@ -156,6 +162,7 @@ function string_needs_escape(str)
 end
 
 function lua_table_to_string(t, indent, line_pos)
+	if t == nil then return "{}" end
 	indent = indent or ""
 	line_pos = (line_pos or #indent) + 1
 	local internal_indent = indent .. "  "

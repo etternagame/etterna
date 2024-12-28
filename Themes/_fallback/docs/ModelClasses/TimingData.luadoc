@@ -1,0 +1,4 @@
+--- Chart and Song Timing data class
+--
+-- This class inherits no methods from superclasses.
+-- @classmod TimingData

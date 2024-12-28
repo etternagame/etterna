@@ -205,14 +205,16 @@ t[#t+1] = Def.Quad {
     Name = "BookmarkPos",
     InitCommand = function(self)
         -- trickery
-        self:SetFakeParent(self:GetParent():GetChild("PracticeCDGraph"))
-
         self:valign(0)
         self:zoomto(bookmarkWidth, height)
         self:diffuse(bookmarkColor)
         self:diffusealpha(bookmarkAlpha)
         self:draworder(1100)
         self:visible(false)
+    end,
+    FirstUpdateCommand = function(self)
+        -- have to call this late because the graph is named late (in BeginCommand)
+        self:SetFakeParent(self:GetParent():GetChild("PracticeCDGraph"))
     end,
     SetCommand = function(self)
         self:visible(true)

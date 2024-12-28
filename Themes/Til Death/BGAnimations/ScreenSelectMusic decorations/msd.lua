@@ -77,7 +77,7 @@ local t = Def.ActorFrame {
 		end
 	end,
 	CurrentRateChangedMessageCommand = function(self)
-		self:queuecommand("Set")
+		self:playcommand("Set")
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if getTabIndex() == 1 then
@@ -99,13 +99,6 @@ t[#t + 1] = Def.Quad {
 --Skillset label function
 local function littlebits(i)
 	local t = Def.ActorFrame {
-		SetCommand = function(self)
-			if GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() ~= 4 and i ~= 1 then
-				self:visible(0)
-			else
-				self:visible(1)
-			end
-		end,
 		LoadFont("Common Large") .. {
 			InitCommand = function(self)
 				self:xy(frameX + offsetX, frameY + 100 + txtDist * i):halign(0):valign(0):zoom(0.55):maxwidth(155 / 0.55)
@@ -122,10 +115,6 @@ local function littlebits(i)
 					self:diffusetopedge(Saturation(getMainColor("highlight"), 0.5))
 					self:diffusebottomedge(Saturation(getMainColor("positive"), 0.6))
 				end
-				--If negative BPM empty label
-				if steps and steps:GetTimingData():HasWarps() then
-					self:settext("")
-				end
 			end
 		},
 		LoadFont("Common Large") .. {
@@ -137,10 +126,6 @@ local function littlebits(i)
 					self:settextf("%05.2f", meter[i + 1])
 					self:diffuse(byMSD(meter[i + 1]))
 				else
-					self:settext("")
-				end
-				--If negative BPM empty label
-				if steps and steps:GetTimingData():HasWarps() then
 					self:settext("")
 				end
 			end
@@ -236,32 +221,6 @@ t[#t + 1] = LoadFont("Common Normal") .. {
 			self:diffuse(Saturation(getDifficultyColor(GetCustomDifficulty(steps:GetStepsType(), steps:GetDifficulty())), 0.3))
 		else
 			self:settext("")
-		end
-	end
-}
-
---Negative BPMs label
-t[#t + 1] = LoadFont("Common Large") .. {
-	InitCommand = function(self)
-		self:xy(frameX + 45, frameY + 165):zoom(0.5):halign(0):diffuse(getMainColor("negative")):settext("Negative BPMs")
-	end,
-	SetCommand = function(self)
-		if steps and steps:GetTimingData():HasWarps() then
-			self:settext(translated_text["NegBPM"])
-		else
-			self:settext("")
-		end
-	end
-}
---not 4key warning
-t[#t + 1] = LoadFont("Common Large") .. {
-	InitCommand = function(self)
-		self:xy(frameX + 78, frameY + 250):zoom(0.4):halign(0):diffusealpha(0.4)
-	end,
-	SetCommand = function(self)
-		self:settext("")
-		if steps and GAMESTATE:GetCurrentStyle():ColumnsPerPlayer() ~= 4 then
-			self:settext("Not 4Key")
 		end
 	end
 }

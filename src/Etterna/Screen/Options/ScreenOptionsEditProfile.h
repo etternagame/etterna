@@ -15,6 +15,7 @@ class ScreenOptionsEditProfile : public ScreenOptions
   private:
 	void ImportOptions(int row, const PlayerNumber& vpns) override;
 	void ExportOptions(int row, const PlayerNumber& vpns) override;
+	void ExportOptionsOnCancel(int iRow, const PlayerNumber& pn) override;
 
 	virtual void GoToNextScreen();
 	virtual void GoToPrevScreen();

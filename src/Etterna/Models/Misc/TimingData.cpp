@@ -4,11 +4,13 @@
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageThreads.h"
 #include "TimingData.h"
 
 #include <cfloat>
 #include <algorithm>
 #include <cmath>
+#include <numeric>
 
 #include "AdjustSync.h"
 
@@ -1282,7 +1284,7 @@ TimingData::WhereUAtBro(float beat)
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
@@ -1298,7 +1300,7 @@ TimingData::WhereUAtBro(float beat) const
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
@@ -1313,8 +1315,7 @@ TimingData::WhereUAtBro(int row)
 	if (row < 0)
 		return 0;
 
-	if (ValidSequentialAssumption &&
-		static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() &&
+	if (static_cast<size_t>(row) < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row] -
 			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
@@ -1330,7 +1331,7 @@ TimingData::WhereUAtBroNoOffset(float beat)
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
@@ -1344,7 +1345,7 @@ TimingData::WhereUAtBroNoOffset(float beat) const
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (ValidSequentialAssumption && row < ElapsedTimesAtAllRows.size() &&
+	if (row < ElapsedTimesAtAllRows.size() &&
 		!AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
@@ -1409,8 +1410,6 @@ TimingData::BuildAndGetEtaner(const std::vector<int>& nerv)
 			event_row = bpms[i]->GetRow();
 			time_to_next_event = NoteRowToBeat(event_row - lastbpmrow) / bps;
 			const auto next_event_time = last_time + time_to_next_event;
-			if (bps <= 0)
-				Locator::getLogger()->fatal("Found {} bps in file {} - Very likely to crash.", bps, m_sFile);
 			while (idx < nerv.size() && nerv[idx] <= event_row) {
 				const auto perc = static_cast<float>(nerv[idx] - lastbpmrow) /
 								  static_cast<float>(event_row - lastbpmrow);
@@ -1448,10 +1447,35 @@ TimingData::BuildAndGetEtar(int lastrow)
 {
 	ElapsedTimesAtAllRows.clear();
 
-	// default old until the below is thoroughly checked
-	for (auto r = 0; r <= lastrow; ++r)
-		ElapsedTimesAtAllRows.emplace_back(
-		  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r)));
+	if (lastrow <= 0) {
+		return ElapsedTimesAtAllRows;
+	}
+
+	ElapsedTimesAtAllRows.reserve(lastrow);
+	std::iota(ElapsedTimesAtAllRows.begin(), ElapsedTimesAtAllRows.end(), 0);
+
+	// just dont parallelize at all if it probably wont help anyways
+	if (lastrow < 100000) {
+		for (auto r = 0; r <= lastrow; ++r) {
+			ElapsedTimesAtAllRows[r] =
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r));
+		}
+		return ElapsedTimesAtAllRows;
+	}
+
+	// stupid optimization
+	auto exec = [this](vectorRange<float> workload, ThreadData* d) {
+		// so now the iterator also provides indices
+		for (auto it = workload.first; it != workload.second; it++) {
+			const auto index = std::lround(*it);
+			ElapsedTimesAtAllRows[index] =
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(index));
+		}
+	};
+	parallelExecution<float>(ElapsedTimesAtAllRows, exec);
+	ElapsedTimesAtAllRows[lastrow] =
+	  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(lastrow));
+
 	return ElapsedTimesAtAllRows;
 }
 

@@ -45,7 +45,6 @@ pos_map_queue::~pos_map_queue()
 
 pos_map_queue::pos_map_queue(const pos_map_queue& cpy)
 {
-	*this = cpy;
 	m_pImpl = new pos_map_impl(*cpy.m_pImpl);
 }
 

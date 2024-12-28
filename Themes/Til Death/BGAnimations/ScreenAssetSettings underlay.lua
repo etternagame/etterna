@@ -85,6 +85,10 @@ local function isAudio(filename)
 	return false
 end
 
+local function isNotFolder(filename)
+	return filename:find("[.]") == nil
+end
+
 local function getImagePath(path, assets) -- expecting a table of asset paths where fallbacks are default
 	for i=1, #assets do
 		if isImage(assets[i]) then
@@ -118,7 +122,7 @@ local function loadAssetTable() -- load asset table for current type
 	selectedPath = getAssetByType(type, GUID)
 	local dirlisting = FILEMAN:GetDirListing(assetFolders[type])
 	if containsDirsOnly(dirlisting) then
-		assetTable = dirlisting
+		assetTable = filter(isNotFolder, dirlisting)
 	else
 		assetTable = filter(isImage, dirlisting)
 	end
@@ -645,6 +649,11 @@ local function input(event)
 
 		if event.button == "EffectDown" then
 			loadAssetType(curType - 1)
+		end
+
+		local char = inputToCharacter(event)
+		if char ~= nil and tonumber(char) ~= nil and tonumber(char) >= 1 and tonumber(char) <= 3 then
+			loadAssetType(tonumber(char))
 		end
 	end
 	if event.type == "InputEventType_FirstPress" then

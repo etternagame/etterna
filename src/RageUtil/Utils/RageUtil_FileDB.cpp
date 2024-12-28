@@ -16,7 +16,7 @@ FileSet::GetFilesMatching(const std::string& sBeginning_,
 						  const std::string& sContaining_,
 						  const std::string& sEnding_,
 						  std::vector<std::string>& asOut,
-						  bool bOnlyDirs) const
+						  DirListingReturnFilter returnFilter) const
 {
 	/* "files" is a case-insensitive mapping, by filename.  Use lower_bound to
 	 * figure out where to start. */
@@ -31,7 +31,9 @@ FileSet::GetFilesMatching(const std::string& sBeginning_,
 	for (; i != files.end(); ++i) {
 		const File& f = *i;
 
-		if (bOnlyDirs && !f.dir)
+		if (returnFilter == ONLY_DIR && !f.dir)
+			continue;
+		if (returnFilter == ONLY_FILE && f.dir)
 			continue;
 
 		const std::string& sPath = f.lname;
@@ -69,13 +71,15 @@ FileSet::GetFilesMatching(const std::string& sBeginning_,
 void
 FileSet::GetFilesEqualTo(const std::string& sStr,
 						 std::vector<std::string>& asOut,
-						 bool bOnlyDirs) const
+						 DirListingReturnFilter returnFilter) const
 {
 	set<File>::const_iterator i = files.find(File(sStr));
 	if (i == files.end())
 		return;
 
-	if (bOnlyDirs && !i->dir)
+	if (returnFilter == ONLY_DIR && !i->dir)
+		return;
+	if (returnFilter == ONLY_FILE && i->dir)
 		return;
 
 	asOut.push_back(i->name);
@@ -231,12 +235,12 @@ FilenameDB::GetFilesMatching(const std::string& sDir,
 							 const std::string& sContaining,
 							 const std::string& sEnding,
 							 std::vector<std::string>& asOut,
-							 bool bOnlyDirs)
+							 DirListingReturnFilter returnFilter)
 {
 	ASSERT(!m_Mutex.IsLockedByThisThread());
 
 	const FileSet* fs = GetFileSet(sDir);
-	fs->GetFilesMatching(sBeginning, sContaining, sEnding, asOut, bOnlyDirs);
+	fs->GetFilesMatching(sBeginning, sContaining, sEnding, asOut, returnFilter);
 	m_Mutex.Unlock(); /* locked by GetFileSet */
 }
 
@@ -244,12 +248,12 @@ void
 FilenameDB::GetFilesEqualTo(const std::string& sDir,
 							const std::string& sFile,
 							std::vector<std::string>& asOut,
-							bool bOnlyDirs)
+							DirListingReturnFilter returnFilter)
 {
 	ASSERT(!m_Mutex.IsLockedByThisThread());
 
 	const FileSet* fs = GetFileSet(sDir);
-	fs->GetFilesEqualTo(sFile, asOut, bOnlyDirs);
+	fs->GetFilesEqualTo(sFile, asOut, returnFilter);
 	m_Mutex.Unlock(); /* locked by GetFileSet */
 }
 
@@ -257,13 +261,13 @@ void
 FilenameDB::GetFilesSimpleMatch(const std::string& sDir,
 								const std::string& sMask,
 								std::vector<std::string>& asOut,
-								bool bOnlyDirs)
+								DirListingReturnFilter returnFilter)
 {
 	/* Does this contain a wildcard? */
 	size_t first_pos = sMask.find_first_of('*');
 	if (first_pos == sMask.npos) {
 		/* No; just do a regular search. */
-		GetFilesEqualTo(sDir, sMask, asOut, bOnlyDirs);
+		GetFilesEqualTo(sDir, sMask, asOut, returnFilter);
 		return;
 	}
 	size_t second_pos = sMask.find_first_of('*', first_pos + 1);
@@ -275,7 +279,7 @@ FilenameDB::GetFilesSimpleMatch(const std::string& sDir,
 						 std::string(),
 						 sMask.substr(first_pos + 1),
 						 asOut,
-						 bOnlyDirs);
+						 returnFilter);
 		return;
 	}
 
@@ -285,7 +289,7 @@ FilenameDB::GetFilesSimpleMatch(const std::string& sDir,
 					 sMask.substr(first_pos + 1, second_pos - first_pos - 1),
 					 sMask.substr(second_pos + 1),
 					 asOut,
-					 bOnlyDirs);
+					 returnFilter);
 }
 
 /*
@@ -603,7 +607,7 @@ FilenameDB::GetFilePriv(const std::string& path)
 void
 FilenameDB::GetDirListing(const std::string& sPath_,
 						  std::vector<std::string>& asAddTo,
-						  bool bOnlyDirs,
+						  DirListingReturnFilter returnFilter,
 						  bool bReturnPathToo)
 {
 	std::string sPath = sPath_;
@@ -627,7 +631,7 @@ FilenameDB::GetDirListing(const std::string& sPath_,
 		fn = "*";
 
 	unsigned iStart = asAddTo.size();
-	GetFilesSimpleMatch(sPath, fn, asAddTo, bOnlyDirs);
+	GetFilesSimpleMatch(sPath, fn, asAddTo, returnFilter);
 
 	if (bReturnPathToo && iStart < asAddTo.size()) {
 		while (iStart < asAddTo.size()) {

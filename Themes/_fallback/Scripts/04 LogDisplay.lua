@@ -1,19 +1,18 @@
+--- Log Display for Lua Errors
+-- @module 04_LogDisplay
 -- This is a little fake actor class meant for displaying lines of a log.
 -- It's placed inside Def, but it's actually just an ActorFrame with some
 --   children and special commands.
-
 -- LogDisplay listens for several messages that control its behavior.
 -- The name given to the LogDisplay is added to the name of the message to
 --   make the messages unique to this LogDisplay.  So to issue a command to
 --   the LogDisplay, broadcast the message "<command><name>".
 --   For a LogDisplay named "Foo", you would broadcase "Foo" to add to the
 --   log, "ToggleFoo" to toggle whether it's shown or hidden, and so on.
-
 -- Some of the control messages take tables of args.
 -- Arg elements of the form "name= type" are named, and must be a value of
 --   the given type.
 -- Arg elements of the form "name" are unnamed.
-
 -- The messages are:
 --   <name>:  params= {message= string, dont_show= bool}
 --     Adds message to the log to be shown when revealing.
@@ -42,7 +41,7 @@
 --   Clear:  params= {messages}
 --     Clears the messages in the log.  If messages is a number, only clears
 --     that many messages, oldest first.
-
+--
 -- params to Def.LogDisplay():
 -- {
 --   Name= string

@@ -284,6 +284,9 @@ local function helpMenu()
             {
                 Name = "HowToPermamirror",
             },
+            {
+                Name = "HowToPlayOsuCharts",
+            },
         },
         ["Information"] = {
             {
@@ -725,10 +728,20 @@ local t = Def.ActorFrame {
         },
         Def.Sprite {
             Name = "Logo",
-            Texture = THEME:GetPathG("", "Logo"),
+            Texture = THEME:GetPathG("", "Logo-E"),
             InitCommand = function(self)
                 self:xy(actuals.ScrollerWidth + (actuals.ListWidth / 2), actuals.InfoHeight / 2)
                 self:zoomto(logoW, logoH)
+                registerActorToColorConfigElement(self, "title", "LogoE")
+            end
+        },
+        Def.Sprite {
+            Name = "LogoTriangle",
+            Texture = THEME:GetPathG("", "Logo-Triangle"),
+            InitCommand = function(self)
+                self:xy(actuals.ScrollerWidth + (actuals.ListWidth / 2), actuals.InfoHeight / 2)
+                self:zoomto(logoW, logoH)
+                registerActorToColorConfigElement(self, "title", "LogoTriangle")
             end
         },
         LoadColorFont("Menu Bold") .. {

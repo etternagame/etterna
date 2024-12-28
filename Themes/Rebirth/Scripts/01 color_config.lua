@@ -11,6 +11,14 @@ local defaultConfig = {
         SeparationDivider = "#ffffff", -- also some accents like slider markers and text cursors
         SelectMusicBackground = "#000000", -- only used if single bg is on
     },
+    multiplayer = {
+        UserStatusInEval = "#9645FD",
+        UserStatusNotReady = "#FF9999",
+        UserStatusReady = "#4CBB17",
+        UserStatusInGameplay = "#666666",
+        UserStatusInOptions = "#614080",
+        UserInLobby = "#614080",
+    },
     leaderboard = {
         Background = "#111111",
         Border = "#000111",
@@ -37,6 +45,8 @@ local defaultConfig = {
         InvalidScore = "#ff9999",
         ChordCohesionOnScore = "#ff9999",
         Wife2Score = "#ff9999", -- unused
+        MultiButtonActive = "#33ff33",
+        MultiButtonNotActive = "#ff3333",
     },
     chartPreview = {
         Background = "#000000",
@@ -58,6 +68,7 @@ local defaultConfig = {
         Bundle3Medium = "#ddaa00",
         Bundle4Hard = "#ff6666",
         Bundle5Hardest = "#c97bff",
+        NSFWPack = "#ffaaaa",
     },
     options = {
         Cursor = "#ffffff",
@@ -95,6 +106,11 @@ local defaultConfig = {
         ProfileBackground = "#000000",
         Separator = "#ffffff",
         UnderlayBackground = "#333333",
+        LogoE = "#ffffff",
+        LogoTriangle = "#805faf",
+        ItemTriangle = "#805faf",
+        GradientColor1 = "#59307f",
+        GradientColor2 = "#b87cf0",
     },
     gameplay = {
         ErrorBarCenter = ETTERNA_PURPLE,
@@ -420,6 +436,10 @@ function newColorPreset(name) return COLORS:newColorPreset(name) end
 -- uses the currently selected preset in COLORS
 function COLORS.getColor(self, category, element)
     local preset = getColorPreset()
+    if element == nil then
+        print("The element given to COLORS:getColor was nil, so #FFFFFF was returned.")
+        return color("1,1,1,1")
+    end
     if preset ~= nil then
         local presetconfig = self.presets[preset]
         if presetconfig ~= nil then
@@ -515,6 +535,23 @@ function COLORS.colorByTapOffset(self, offset, scale)
     end
 end
 
+function COLORS.colorByTapOffsetCustomWindow(self, offset, windows)
+	local offset = math.abs(offset)
+	if offset <= windows.TapNoteScore_W1 then
+		return self:colorByJudgment("TapNoteScore_W1")
+	elseif offset <= windows.TapNoteScore_W2 then
+		return self:colorByJudgment("TapNoteScore_W2")
+	elseif offset <= windows.TapNoteScore_W3 then
+		return self:colorByJudgment("TapNoteScore_W3")
+	elseif offset <= windows.TapNoteScore_W4 then
+		return self:colorByJudgment("TapNoteScore_W4")
+	elseif offset <= windows.TapNoteScore_W5 then
+		return self:colorByJudgment("TapNoteScore_W5")
+	else
+		return self:colorByJudgment("TapNoteScore_Miss")
+	end
+end
+
 function colorByMSD(x)
     if x then
         return HSV(math.max(95 - (x / 40) * 150, -50), 0.9, 0.9)
@@ -565,6 +602,7 @@ function colorByJudgment(x) return COLORS:colorByJudgment(x) end
 function colorByDifficulty(x) return COLORS:colorByDifficulty(x) end
 function colorByGrade(x) return COLORS:colorByGrade(x) end
 function colorByTapOffset(x, ts) return COLORS:colorByTapOffset(x, ts) end
+function colorByTapOffsetCustomWindow(x, windows) return COLORS:colorByTapOffsetCustomWindow(x, windows) end
 
 ---=======- UTIL
 -- convert a given color = {r,g,b,a} to the 4 HSV+alpha values
@@ -625,7 +663,11 @@ function registerActorToColorConfigElement(self, category, element, stroke)
         end
     end
     cmd(self)
-    self:addcommand("ColorConfigUpdatedMessage", cmd)
+    if self:GetCommand("ColorConfigUpdated") == nil then
+        self:addcommand("ColorConfigUpdatedMessage", cmd)
+    else
+        print("Found duplicate ColorConfigUpdatedMessageCommand in element "..(self:GetName() or "UNNAMED"))
+    end
 end
 
 -- same as the above but instead its for elements that use diffuseramp
@@ -639,7 +681,11 @@ function registerActorToColorConfigElementForDiffuseRamp(self, category, element
         self:effectcolor2(hiColor)
     end
     cmd(self)
-    self:addcommand("ColorConfigUpdatedMessage", cmd)
+    if self:GetCommand("ColorConfigUpdated") == nil then
+        self:addcommand("ColorConfigUpdatedMessage", cmd)
+    else
+        print("Found duplicate ColorConfigUpdatedMessageCommand in element "..(self:GetName() or "UNNAMED"))
+    end
 end
 
 -- run this stuff at init/load

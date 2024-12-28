@@ -1,3 +1,7 @@
+--- Lua helpers for Screen Branching.
+-- When defining a Screen class in the metrics.ini, a PrevScreen and NextScreen is required. To easily introduce custom logic that dynamically changes those destination screens, the Branches file exists.
+-- @module 02_Branches
+
 --[[
 Lines with a single string (e.g. TitleMenu = "ScreenTitleMenu") are referenced
 in the metrics as Branch.keyname.
@@ -38,11 +42,7 @@ Branch = {
 		return "ScreenInit"
 	end,
 	AfterInit = function()
-		if GAMESTATE:GetCoinMode() == "CoinMode_Home" then
-			return Branch.TitleMenu()
-		else
-			return "ScreenLogo"
-		end
+		return Branch.TitleMenu()
 	end,
 	TitleMenu = function()
 		return "ScreenTitleMenu"
@@ -66,7 +66,7 @@ Branch = {
 			if not IsSMOnlineLoggedIn() then
 				return "ScreenNetSelectProfile"
 			else
-				return "ScreenNetRoom"
+				return "ScreenNetSelectProfile"
 			end
 		else
 			return "ScreenNetworkOptions"
@@ -82,7 +82,7 @@ Branch = {
 		return "ScreenProfileLoad"
 	end,
 	AfterSelectProfile = function()
-		if (THEME:GetMetric("Common", "AutoSetStyle") == true) then
+		if (THEME:GetMetric("Common", "AutoSetStyle") == true) or #GAMEMAN:GetStylesForGame(GAMESTATE:GetCurrentGame():GetName()) <= 1 then
 			return "ScreenSelectMusic"
 		else
 			return "ScreenSelectStyle"

@@ -523,7 +523,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_fTimeSpacing = 0;
 	}
 
-	else if (sBit == "clearall" && !DLMAN->gameplay) {
+	else if (sBit == "clearall" && (forReplay || !DLMAN->InGameplay())) {
 		Init();
 		m_sNoteSkin = NOTESKIN->GetDefaultNoteSkinName();
 	} else if (sBit == "resetspeed") {
@@ -537,22 +537,22 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fScrollSpeed);
 		level = CMOD_DEFAULT;
 		SET_FLOAT(fScrollBPM)
-	} else if (sBit == "life" || sBit == "lives" && !DLMAN->gameplay) {
+	} else if (sBit == "life" || sBit == "lives" && (forReplay || !DLMAN->InGameplay())) {
 		// level is a percentage for every other option, so multiply by 100.
 		// -Kyz
 		m_BatteryLives = static_cast<int>(level * 100.0f);
-	} else if (sBit == "bar" && !DLMAN->gameplay) {
+	} else if (sBit == "bar" && (forReplay || !DLMAN->InGameplay())) {
 		m_LifeType = LifeType_Bar;
-	} else if (sBit == "battery" && !DLMAN->gameplay) {
+	} else if (sBit == "battery" && (forReplay || !DLMAN->InGameplay())) {
 		m_LifeType = LifeType_Battery;
-	} else if (sBit == "lifetime" && !DLMAN->gameplay) {
+	} else if (sBit == "lifetime" && (forReplay || !DLMAN->InGameplay())) {
 		m_LifeType = LifeType_Time;
 	} else if (sBit == "norecover" ||
-			   sBit == "power-drop" && !DLMAN->gameplay) {
+			   sBit == "power-drop" && (forReplay || !DLMAN->InGameplay())) {
 		m_DrainType = DrainType_NoRecover;
-	} else if (sBit == "suddendeath" || sBit == "death" && !DLMAN->gameplay) {
+	} else if (sBit == "suddendeath" || sBit == "death" && (forReplay || !DLMAN->InGameplay())) {
 		m_DrainType = DrainType_SuddenDeath;
-	} else if (sBit == "normal-drain" && !DLMAN->gameplay) {
+	} else if (sBit == "normal-drain" && (forReplay || !DLMAN->InGameplay())) {
 		m_DrainType = DrainType_Normal;
 	} else if (sBit == "boost")
 		SET_FLOAT(fAccels[ACCEL_BOOST])
@@ -576,7 +576,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fEffects[EFFECT_TINY])
 	else if (sBit == "flip")
 		SET_FLOAT(fEffects[EFFECT_FLIP])
-	else if (sBit == "invert")
+	else if (sBit == "invert" && (forReplay || !DLMAN->InGameplay()))
 		SET_FLOAT(fEffects[EFFECT_INVERT])
 	else if (sBit == "tornado")
 		SET_FLOAT(fEffects[EFFECT_TORNADO])
@@ -608,61 +608,61 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fAppearances[APPEARANCE_RANDOMVANISH])
 	else if (sBit == "turn" && !on)
 		ZERO(m_bTurns); /* "no turn" */
-	else if (sBit == "mirror" && !DLMAN->gameplay)
+	else if (sBit == "mirror" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_MIRROR] = on;
-	else if (sBit == "backwards" && !DLMAN->gameplay)
+	else if (sBit == "backwards" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_BACKWARDS] = on;
-	else if (sBit == "left" && !DLMAN->gameplay)
+	else if (sBit == "left" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_LEFT] = on;
-	else if (sBit == "right" && !DLMAN->gameplay)
+	else if (sBit == "right" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_RIGHT] = on;
-	else if (sBit == "shuffle" && !DLMAN->gameplay)
+	else if (sBit == "shuffle" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_SHUFFLE] = on;
-	else if (sBit == "softshuffle" && !DLMAN->gameplay)
+	else if (sBit == "softshuffle" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_SOFT_SHUFFLE] = on;
-	else if (sBit == "supershuffle" && !DLMAN->gameplay)
+	else if (sBit == "supershuffle" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_SUPER_SHUFFLE] = on;
-	else if (sBit == "hranshuffle" && !DLMAN->gameplay)
+	else if (sBit == "hranshuffle" && (forReplay || !DLMAN->InGameplay()))
 		m_bTurns[TURN_HRAN_SHUFFLE] = on;
-	else if (sBit == "little" && !DLMAN->gameplay)
+	else if (sBit == "little" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_LITTLE] = on;
-	else if (sBit == "wide" && !DLMAN->gameplay)
+	else if (sBit == "wide" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_WIDE] = on;
-	else if (sBit == "big" && !DLMAN->gameplay)
+	else if (sBit == "big" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_BIG] = on;
-	else if (sBit == "quick" && !DLMAN->gameplay)
+	else if (sBit == "quick" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_QUICK] = on;
-	else if (sBit == "bmrize" && !DLMAN->gameplay)
+	else if (sBit == "bmrize" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_BMRIZE] = on;
-	else if (sBit == "skippy" && !DLMAN->gameplay)
+	else if (sBit == "skippy" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_SKIPPY] = on;
-	else if (sBit == "mines" && !DLMAN->gameplay)
+	else if (sBit == "mines" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_MINES] = on;
-	else if (sBit == "attackmines" && !DLMAN->gameplay)
+	else if (sBit == "attackmines" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_ATTACKMINES] = on;
-	else if (sBit == "echo" && !DLMAN->gameplay)
+	else if (sBit == "echo" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_ECHO] = on;
-	else if (sBit == "stomp" && !DLMAN->gameplay)
+	else if (sBit == "stomp" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_STOMP] = on;
-	else if (sBit == "jackjs" && !DLMAN->gameplay)
+	else if (sBit == "jackjs" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_JACKJS] = on;
-	else if (sBit == "anchorjs" && !DLMAN->gameplay)
+	else if (sBit == "anchorjs" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_ANCHORJS] = on;
-	else if (sBit == "icyworld" && !DLMAN->gameplay)
+	else if (sBit == "icyworld" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_ICYWORLD] = on;
-	else if (sBit == "planted" && !DLMAN->gameplay)
+	else if (sBit == "planted" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_PLANTED] = on;
-	else if (sBit == "floored" && !DLMAN->gameplay)
+	else if (sBit == "floored" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_FLOORED] = on;
-	else if (sBit == "twister" && !DLMAN->gameplay)
+	else if (sBit == "twister" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_TWISTER] = on;
-	else if (sBit == "holdrolls" && !DLMAN->gameplay)
+	else if (sBit == "holdrolls" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_HOLDROLLS] = on;
-	else if (sBit == "nojumps" && !DLMAN->gameplay)
+	else if (sBit == "nojumps" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOJUMPS] = on;
-	else if (sBit == "nohands" && !DLMAN->gameplay)
+	else if (sBit == "nohands" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOHANDS] = on;
-	else if (sBit == "noquads" && !DLMAN->gameplay)
+	else if (sBit == "noquads" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOQUADS] = on;
 	else if (sBit == "reverse")
 		SET_FLOAT(fScrolls[SCROLL_REVERSE])
@@ -674,17 +674,17 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fScrolls[SCROLL_CROSS])
 	else if (sBit == "centered")
 		SET_FLOAT(fScrolls[SCROLL_CENTERED])
-	else if (sBit == "noholds" && !DLMAN->gameplay)
+	else if (sBit == "noholds" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOHOLDS] = on;
-	else if (sBit == "norolls" && !DLMAN->gameplay)
+	else if (sBit == "norolls" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOROLLS] = on;
-	else if (sBit == "nomines" && !DLMAN->gameplay)
+	else if (sBit == "nomines" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOMINES] = on;
-	else if (sBit == "nostretch" && !DLMAN->gameplay)
+	else if (sBit == "nostretch" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOSTRETCH] = on;
-	else if (sBit == "nolifts" && !DLMAN->gameplay)
+	else if (sBit == "nolifts" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOLIFTS] = on;
-	else if (sBit == "nofakes" && !DLMAN->gameplay)
+	else if (sBit == "nofakes" && (forReplay || !DLMAN->InGameplay()))
 		m_bTransforms[TRANSFORM_NOFAKES] = on;
 	else if (sBit == "dark")
 		SET_FLOAT(fDark)
@@ -698,7 +698,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fNoAttack)
 	else if (sBit == "playerautoplay")
 		SET_FLOAT(fPlayerAutoPlay)
-	else if (sBit == "passmark" && !DLMAN->gameplay)
+	else if (sBit == "passmark" && (forReplay || !DLMAN->InGameplay()))
 		SET_FLOAT(fPassmark)
 	else if (sBit == "overhead") {
 		m_fSkew = 0;
@@ -734,9 +734,9 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 	else if (sBit == "failarcade" || sBit == "failimmediate")
 		m_FailType = FailType_Immediate;
 	else if ((sBit == "failendofsong" || sBit == "failimmediatecontinue" ||
-			 sBit == "failatend") && !DLMAN->gameplay)
+			 sBit == "failatend") && (forReplay || !DLMAN->InGameplay()))
 		m_FailType = FailType_ImmediateContinue;
-	else if (sBit == "failoff" && !DLMAN->gameplay)
+	else if (sBit == "failoff" && (forReplay || !DLMAN->InGameplay()))
 		m_FailType = FailType_Off;
 	else if (sBit == "faildefault") {
 		PlayerOptions po;
@@ -746,7 +746,7 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		m_bMuteOnError = on;
 	else if (sBit == "random")
 		ChooseRandomModifiers();
-	else if (sBit == "practicemode" && !DLMAN->gameplay)
+	else if (sBit == "practicemode" && (forReplay || !DLMAN->InGameplay()))
 		m_bPractice = on;
 	// deprecated mods/left in for compatibility
 	else if (sBit == "converge")
@@ -1198,6 +1198,8 @@ PlayerOptions::ContainsTransformOrTurn() const
 		if (m_bTurns[i] && i != TURN_MIRROR)
 			return true;
 	}
+	if (m_fEffects[EFFECT_INVERT] != 0.0F)
+		return true;
 	return false;
 }
 
@@ -1273,6 +1275,9 @@ PlayerOptions::GetInvalidatingModifiers() const
 		AddTo.push_back("NoQuads");
 	if (m_bTransforms[TRANSFORM_NOSTRETCH])
 		AddTo.push_back("NoStretch");
+
+	if (m_fEffects[EFFECT_INVERT] != 0.0F)
+		AddTo.push_back("Invert");
 
 	return AddTo;
 }
@@ -1399,7 +1404,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	FLOAT_INTERFACE(Mini, Effects[PlayerOptions::EFFECT_MINI], true);
 	FLOAT_INTERFACE(Tiny, Effects[PlayerOptions::EFFECT_TINY], true);
 	FLOAT_INTERFACE(Flip, Effects[PlayerOptions::EFFECT_FLIP], true);
-	FLOAT_INTERFACE(Invert, Effects[PlayerOptions::EFFECT_INVERT], true);
+	SECFLOAT_INTERFACE(Invert, Effects[PlayerOptions::EFFECT_INVERT], true);
 	FLOAT_INTERFACE(Tornado, Effects[PlayerOptions::EFFECT_TORNADO], true);
 	FLOAT_INTERFACE(Tipsy, Effects[PlayerOptions::EFFECT_TIPSY], true);
 	FLOAT_INTERFACE(Bumpy, Effects[PlayerOptions::EFFECT_BUMPY], true);

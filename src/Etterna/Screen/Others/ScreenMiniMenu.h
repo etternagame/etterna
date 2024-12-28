@@ -341,6 +341,7 @@ class ScreenMiniMenu : public ScreenOptions
 	void AfterChangeValueOrRow(PlayerNumber pn) override;
 	void ImportOptions(int iRow, const PlayerNumber& vpns) override;
 	void ExportOptions(int iRow, const PlayerNumber& vpns) override;
+	void ExportOptionsOnCancel(int iRow, const PlayerNumber& pn) override;
 
 	bool FocusedItemEndsScreen(PlayerNumber pn) const override;
 

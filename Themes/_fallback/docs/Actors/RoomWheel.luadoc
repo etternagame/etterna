@@ -1,0 +1,7 @@
+--- Multiplayer room musicwheel class
+--
+-- This class inherits all methods from these classes:
+-- @{WheelBase}
+-- @{ActorFrame}
+-- @{Actor}
+-- @classmod RoomWheel

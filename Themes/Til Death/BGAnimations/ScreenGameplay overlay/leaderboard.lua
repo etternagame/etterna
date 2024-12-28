@@ -73,7 +73,13 @@ else
 	onlineScores = DLMAN:GetChartLeaderBoard(GAMESTATE:GetCurrentSteps():GetChartKey()) or {}
 end
 local sortFunction = function(h1, h2)
-	return h1[CRITERIA](h1) > h2[CRITERIA](h2)
+	local a = h1[CRITERIA](h1)
+	local b = h2[CRITERIA](h2)
+	if a == b then
+		return string.format("%p", h1) > string.format("%p", h2)
+	else
+		return a > b
+	end
 end
 table.sort(onlineScores, sortFunction)
 local curScore
@@ -190,7 +196,7 @@ function scoreEntry(i)
 		function(self, hs)
 			self:settext(tostring(i))
 		end,
-		5,
+		8,
 		ENTRY_HEIGHT / 4
 	)
 	addLabel(
@@ -222,7 +228,7 @@ function scoreEntry(i)
 		function(self, hs)
 			self:settextf("%05.2f%%", hs:GetWifeScore() * 100):diffuse(byGrade(hs:GetWifeGrade()))
 		end,
-		1.8 * WIDTH
+		1.85 * WIDTH
 	)
 	addLabel(
 		"grade",

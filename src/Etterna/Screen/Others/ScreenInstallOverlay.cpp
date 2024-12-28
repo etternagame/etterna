@@ -34,7 +34,7 @@ struct FileCopyResult
 };
 
 void
-InstallSmzipOsArg(const string& sOsZipFile)
+InstallSmzipOsArg(const std::string& sOsZipFile)
 {
 	SCREENMAN->SystemMessage("Installing " + sOsZipFile);
 
@@ -43,7 +43,7 @@ InstallSmzipOsArg(const string& sOsZipFile)
 
 	if (!FILEMAN->Mount("dir", sOsDir, TEMP_OS_MOUNT_POINT))
 		FAIL_M("Failed to mount " + sOsDir);
-	DLMAN->InstallSmzip(TEMP_OS_MOUNT_POINT + sFilename + sExt);
+	SongManager::InstallSmzip(TEMP_OS_MOUNT_POINT + sFilename + sExt);
 
 	FILEMAN->Unmount("dir", sOsDir, TEMP_OS_MOUNT_POINT);
 }
@@ -75,10 +75,10 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 		auto s = args.argv[i];
 		if (s == "notedataCache") {
 			// TODO: Create the directories if they dont exist
-			string packFolder = "packbanner/";
-			string cdtitleFolder = "cdtitle/";
-			string bgFolder = "bg/";
-			string bannerFolder = "banner/";
+			std::string packFolder = "packbanner/";
+			std::string cdtitleFolder = "cdtitle/";
+			std::string bgFolder = "bg/";
+			std::string bannerFolder = "banner/";
 
 			auto ndOutputPath = args.argv[i + 1]; // notedata
 			EnsureSlashEnding(ndOutputPath);
@@ -124,7 +124,7 @@ DoInstalls(CommandLineActions::CommandLineArgs args)
 					vpStepsToSave.push_back(s);
 				}
 
-				string songkey;
+				std::string songkey;
 				for (auto& st : vpStepsToSave) {
 					songkey += st->GetChartKey();
 				}
@@ -284,7 +284,7 @@ ScreenInstallOverlay::Update(float fDeltaTime)
 		DoInstalls(args);
 	}
 
-	if (!DLMAN->gameplay) {
+	if (!DLMAN->InGameplay()) {
 		static float lastDLProgressUpdate = 0;
 		lastDLProgressUpdate += fDeltaTime;
 		if (DLMAN->downloads.empty() || lastDLProgressUpdate < 0.5)

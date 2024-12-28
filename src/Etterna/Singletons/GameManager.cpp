@@ -1508,6 +1508,19 @@ GameManager::GetEditorStyleForStepsType(StepsType st)
 	return nullptr;
 }
 
+const Style*
+GameManager::GetStyleForStepsType(StepsType st)
+{
+	for (auto pGame : g_Games) {
+		for (int s = 0; pGame->m_apStyles[s] != nullptr; ++s) {
+			const Style* style = pGame->m_apStyles[s];
+			if (style->m_StepsType == st)
+				return style;
+		}
+	}
+	return nullptr;
+}
+
 void
 GameManager::GetStepsTypesForGame(const Game* pGame,
 								  std::vector<StepsType>& aStepsTypeAddTo)

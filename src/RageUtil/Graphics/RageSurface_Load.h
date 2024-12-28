@@ -12,6 +12,9 @@ enum OpenResult
 	OPEN_FATAL_ERROR = 2,
 };
 
+RageSurface*
+LoadBase64(const std::string& base64, std::string& error);
+
 /* If bHeaderOnly is true, the loader is only required to return a surface
  * with the width and height set (but may return a complete surface). */
 RageSurface*

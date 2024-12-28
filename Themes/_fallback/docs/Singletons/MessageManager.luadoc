@@ -1,0 +1,3 @@
+--- Message management singleton class
+-- @classmod MessageManager
+-- @alias MESSAGEMAN

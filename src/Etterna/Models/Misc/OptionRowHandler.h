@@ -68,6 +68,7 @@ struct OptionRowDefinition
 												 // change focus to this row
 	int m_iDefault{ -1 };
 	bool m_bExportOnChange{ false };
+	bool m_bExportOnCancel{ false };
 	/**
 	 * @brief Are theme items allowed here?
 	 *
@@ -116,6 +117,7 @@ struct OptionRowDefinition
 		m_vEnabledForPlayers.insert(PLAYER_1);
 		m_iDefault = -1;
 		m_bExportOnChange = false;
+		m_bExportOnCancel = false;
 		m_bAllowThemeItems = true;
 		m_bAllowThemeTitle = true;
 		m_bAllowExplanation = true;

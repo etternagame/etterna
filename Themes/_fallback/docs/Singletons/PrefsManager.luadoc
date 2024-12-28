@@ -1,0 +1,3 @@
+--- Preference management singleton class
+-- @classmod PrefsManager
+-- @alias PREFSMAN

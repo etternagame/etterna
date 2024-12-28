@@ -1,98 +1,122 @@
+--- Pack download list sugar
+-- Basically this extends the existing DownloadManager functionality
+-- @module 09_PackList
+
 PackList = {}
 
-local getSizePropName = "GetSize"
-local getAvgDiffPropName = "GetAvgDifficulty"
-local getNamePropName = "GetName"
+local function whenRequestFinished(self)
+    return function(packs)
+        self.packs = packs
+        MESSAGEMAN:Broadcast("PackListRequestFinished", {packList=self, packs=packs})
+    end
+end
 
-function PackList:GetPackTable()
+-- get the current page of packs
+function PackList:GetPacks()
+    if self:IsAwaitingRequest() then return {} end
     return self.packs
 end
-function PackList:GetTotalSumByProp(propName)
-    return foldr(
-        function(sum, x)
-            return sum + x[propName](x)
-        end,
-        0,
-        self.packs
-    )
+
+-- get all cached packs
+function PackList:GetCachedPacks()
+    return self.currentPagination:GetCachedResults()
 end
-function PackList:GetTotalSize()
-    return self:GetTotalSumByProp(getSizePropName)
+
+-- is the pack list currently loading?
+function PackList:IsAwaitingRequest()
+    return self.currentPagination:IsAwaitingRequest()
 end
-function PackList:GetAvgDiff()
-    return self:GetTotalSumByProp(getAvgDiffPropName)
-end
-function PackList:SetFromCoreBundle(bundleName)
-    local bundle = DLMAN:GetCoreBundle(bundleName)
-    self.packs = bundle
-    return self
-end
-function PackList:SortByProp(propName)
-    if self.lastsort == propName then
-        self.asc = not self.asc
+
+-- move to next page. request packs if needed.
+function PackList:NextPage()
+    if self:IsAwaitingRequest() then
+        return false
     end
-    self.lastsort = propName
-    local asc = self.asc
-    table.sort(
-        self.packs,
-        asc and function(a, b)
-                return a[propName](a) > b[propName](b)
-            end or function(a, b)
-                return a[propName](a) < b[propName](b)
-            end
-    )
+    self.currentPagination:NextPage(whenRequestFinished(self))
+    return true
+end
+
+-- move to prev page. request packs if needed
+function PackList:PrevPage()
+    if self:IsAwaitingRequest() then
+        return false
+    end
+    self.currentPagination:PrevPage(whenRequestFinished(self))
+    return true
+end
+
+-- current page number for current search
+function PackList:GetCurrentPage()
+    if self.currentPagination == nil then return 0 end
+    return self.currentPagination:GetCurrentPage()
+end
+
+-- max page number for current search
+function PackList:GetTotalPages()
+    if self.currentPagination == nil then return 0 end
+    return self.currentPagination:GetTotalPages()
+end
+
+function PackList:GetTotalResults()
+    if self.currentPagination == nil then return 0 end
+    return self.currentPagination:GetTotalResults()
+end
+
+-- execute a seach. usually this invokes a request unless it is a duplicate
+function PackList:FilterAndSearch(name, tags, tagsMatchAny, perPage)
+    self.lastName = name
+    self.lastTags = tags
+    self.lastPerPage = perPage
+    self.tagsMatchAny = not not tagsMatchAny -- this makes nil into a bool
+    self.currentPagination = DLMAN:GetPackPagination(name, tags, self.tagsMatchAny, perPage, self.sortColumn, self.sortIsAscending)
+
+    if not self:IsAwaitingRequest() then
+        self.currentPagination:GetResults(whenRequestFinished(self))
+    end
+
     return self
 end
+
+function PackList:SortByColumn(column)
+    if column == self.sortColumn then
+        self.sortIsAscending = not self.sortIsAscending
+    else
+        self.sortColumn = column
+        self.sortIsAscending = true
+    end
+    self:FilterAndSearch(self.lastName, self.lastTags, self.tagsMatchAny, self.lastPerPage)
+end
+
 function PackList:SortByName()
-    return self:SortByProp(getNamePropName)
+    self:SortByColumn("name")
 end
-function PackList:SortByDiff()
-    return self:SortByProp(getAvgDiffPropName)
+
+function PackList:SortByPlays()
+    self:SortByColumn("play_count")
 end
+
 function PackList:SortBySize()
-    return self:SortByProp(getSizePropName)
+    self:SortByColumn("bytes")
 end
-function PackList:FilterAndSearch(name, avgMin, avgMax, sizeMin, sizeMax)
-    self.packs = 
-        filter(
-        function(x)
-            local d = x[getAvgDiffPropName](x)
-            local n = x[getNamePropName](x)
-            local s = x[getSizePropName](x)
-            local valid = string.find(string.lower(n), string.lower(name))
-            if d > 0 then
-                if avgMin > 0 then
-                    valid = valid and d > avgMin
-                end
-                if avgMax > 0 then
-                    valid = valid and d < avgMax
-                end
-            end
-            if s > 0 then
-                if sizeMin > 0 then
-                    valid = valid and s > sizeMin
-                end
-                if sizeMax > 0 then
-                    valid = valid and s < sizeMax
-                end
-            end
-            return valid
-        end,
-        self.allPacks
-    )
-    return self
+
+function PackList:SortBySongs()
+    self:SortByColumn("song_count")
 end
-function PackList:SetFromAll()
-    local allPacks = DLMAN:GetAllPacks()
-    self.allPacks = allPacks
-    self.packs = DeepCopy(allPacks)
-    return self
+
+function PackList:SortByOverall()
+    self:SortByColumn("overall")
 end
+
 function PackList:new()
     local packlist = {}
-    packlist.asc = true
-    packlist.lastsort = nil
-    packlist.packs = {}
+    packlist.packs = {} -- represents the packs on the current visible page
+    packlist.currentPagination = nil -- represents the internal pack search pagination
+    packlist.tagsMatchAny = true -- true = OR, false = AND
+    packlist.sortColumn = "name"
+    packlist.sortIsAscending = true
+    packlist.lastName = ""
+    packlist.lastTags = {}
+    packlist.lastPerPage = 1
     setmetatable(
         packlist,
         {
@@ -101,6 +125,5 @@ function PackList:new()
             end
         }
     )
-    packlist:SetFromAll()
     return packlist
 end

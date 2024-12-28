@@ -140,7 +140,7 @@ FileNameToMetricsGroupAndElement(const std::string& sFileName,
 {
 	// split into class name and file name
 	std::string::size_type iIndexOfFirstSpace = sFileName.find(' ');
-	if (iIndexOfFirstSpace == string::npos) // no space
+	if (iIndexOfFirstSpace == std::string::npos) // no space
 	{
 		sMetricsGroupOut = "";
 		sElementOut = sFileName;
@@ -194,7 +194,7 @@ ThemeManager::~ThemeManager()
 void
 ThemeManager::GetThemeNames(std::vector<std::string>& AddTo)
 {
-	GetDirListing(SpecialFiles::THEMES_DIR + "*", AddTo, true);
+	FILEMAN->GetDirListing(SpecialFiles::THEMES_DIR + "*", AddTo, ONLY_DIR);
 }
 
 void
@@ -530,16 +530,16 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 		// get files from directories
 		std::vector<std::string> asElementChildPaths;
 		std::vector<std::string> arrayScriptDirs;
-		GetDirListing(sScriptDir + "Scripts/*", arrayScriptDirs, true);
+		FILEMAN->GetDirListing(sScriptDir + "Scripts/*", arrayScriptDirs, ONLY_DIR);
 		SortStringArray(arrayScriptDirs);
 		for (auto& s : arrayScriptDirs) // foreach dir in /Scripts/
 		{
 			// Find all Lua files in this directory, add them to asElementPaths
 			const std::string& sScriptDirName = s;
-			GetDirListing(sScriptDir + "Scripts/" + sScriptDirName + "/" +
+			FILEMAN->GetDirListing(sScriptDir + "Scripts/" + sScriptDirName + "/" +
 							sMask,
 						  asElementChildPaths,
-						  false,
+						  ANY_TYPE,
 						  true);
 			for (auto& sPath : asElementChildPaths) {
 				// push these Lua files into the main element paths
@@ -548,8 +548,8 @@ ThemeManager::RunLuaScripts(const std::string& sMask, bool bUseThemeDir)
 		}
 
 		// get regular Lua files
-		GetDirListing(
-		  sScriptDir + "Scripts/" + sMask, asElementPaths, false, true);
+		FILEMAN->GetDirListing(
+		  sScriptDir + "Scripts/" + sMask, asElementPaths, ANY_TYPE, true);
 
 		// load Lua files
 		for (auto& sPath : asElementPaths) {
@@ -657,7 +657,7 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 	bool bLookingForSpecificFile = sElement.find_last_of('.') != sElement.npos;
 
 	if (bLookingForSpecificFile) {
-		GetDirListing(
+		FILEMAN->GetDirListing(
 		  sThemeDir + sCategory + "/" +
 			MetricsGroupAndElementToFileName(sMetricsGroup, sElement),
 		  asElementPaths,
@@ -667,7 +667,7 @@ ThemeManager::GetPathInfoToRaw(PathInfo& out,
 		   // use
 	{
 		std::vector<std::string> asPaths;
-		GetDirListing(
+		FILEMAN->GetDirListing(
 		  sThemeDir + sCategory + "/" +
 			MetricsGroupAndElementToFileName(sMetricsGroup, sElement) + "*",
 		  asPaths,
@@ -1260,7 +1260,7 @@ ThemeManager::GetLanguagesForTheme(const std::string& sThemeName,
 	std::string sLanguageDir =
 	  GetThemeDirFromName(sThemeName) + SpecialFiles::LANGUAGES_SUBDIR;
 	std::vector<std::string> as;
-	GetDirListing(sLanguageDir + "*.ini", as);
+	FILEMAN->GetDirListing(sLanguageDir + "*.ini", as, ONLY_FILE);
 
 	for (auto& s : as) {
 		// ignore metrics.ini
@@ -1293,11 +1293,12 @@ ThemeManager::GetOptionalLanguageIniPaths(std::vector<std::string>& vsPathsOut,
 										  const std::string& sLanguage)
 {
 	// optional ini names look like: "en PackageName.ini"
-	GetDirListing(GetThemeDirFromName(sThemeName) +
-					SpecialFiles::LANGUAGES_SUBDIR + sLanguage + " *.ini",
-				  vsPathsOut,
-				  false,
-				  true);
+	FILEMAN->GetDirListing(GetThemeDirFromName(sThemeName) +
+							 SpecialFiles::LANGUAGES_SUBDIR + sLanguage +
+							 " *.ini",
+						   vsPathsOut,
+						   ONLY_FILE,
+						   true);
 }
 
 void

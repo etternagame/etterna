@@ -71,6 +71,7 @@ struct NoteMetricCache_t
 
 	int m_iNoteColorCount[NUM_NotePart];
 	NoteColorType m_NoteColorType[NUM_NotePart];
+	float m_fNoteOpacityMultiplier[NUM_NotePart];
 
 	// For animation based on beats or seconds -DaisuMaster
 	bool m_bAnimationBasedOnBeats;
@@ -118,6 +119,17 @@ NoteMetricCache_t::Load(const std::string& sButton)
 
 		auto ct = NOTESKIN->GetMetric(sButton, s + "NoteColorType");
 		m_NoteColorType[p] = StringToNoteColorType(ct);
+
+		// make fakes faded by default
+		switch (p) {
+			case NotePart_Fake:
+				m_fNoteOpacityMultiplier[p] = NOTESKIN->GetMetricF(
+				  sButton, s + "NoteOpacityMultiplier", "0.25");
+				break;
+			default:
+				m_fNoteOpacityMultiplier[p] = NOTESKIN->GetMetricF(
+				  sButton, s + "NoteOpacityMultiplier", "1.0");
+		}
 	}
 	// I was here -DaisuMaster
 	m_bAnimationBasedOnBeats =
@@ -1150,6 +1162,12 @@ NoteDisplay::DrawHoldPart(std::vector<Sprite*>& vpSpr,
 		  SCALE(fDistFromTop, 0, unzoomed_frame_height, rect.top, rect.bottom);
 		fTexCoordTop += add_to_tex_coord;
 
+		// why is this necessary? dude
+		const auto real_part = part_type == hpt_body ? NotePart_HoldBody
+							   : part_type == hpt_bottom
+								 ? NotePart_HoldBottomCap
+								 : NotePart_HoldTopCap;
+
 		const auto fAlpha =
 		  ArrowGetAlphaOrGlow(glow,
 							  m_pPlayerState,
@@ -1158,7 +1176,8 @@ NoteDisplay::DrawHoldPart(std::vector<Sprite*>& vpSpr,
 							  part_args.percent_fade_to_fail,
 							  m_fYReverseOffsetPixels,
 							  field_args.draw_pixels_before_targets,
-							  field_args.fade_before_targets);
+							  field_args.fade_before_targets) *
+		  cache->m_fNoteOpacityMultiplier[real_part];
 		const auto color = RageColor(column_args.diffuse.r * color_scale,
 									 column_args.diffuse.g * color_scale,
 									 column_args.diffuse.b * color_scale,
@@ -1594,14 +1613,16 @@ NoteDisplay::DrawActor(const TapNote& tn,
 							 fPercentFadeToFail,
 							 m_fYReverseOffsetPixels,
 							 field_args.draw_pixels_before_targets,
-							 field_args.fade_before_targets);
+							 field_args.fade_before_targets) *
+	  cache->m_fNoteOpacityMultiplier[part];
 	const auto fGlow =
 	  ArrowEffects::GetGlow(column_args.column,
 							fYOffset,
 							fPercentFadeToFail,
 							m_fYReverseOffsetPixels,
 							field_args.draw_pixels_before_targets,
-							field_args.fade_before_targets);
+							field_args.fade_before_targets) *
+	  cache->m_fNoteOpacityMultiplier[part];
 	const auto diffuse = RageColor(column_args.diffuse.r * fColorScale,
 								   column_args.diffuse.g * fColorScale,
 								   column_args.diffuse.b * fColorScale,
@@ -1678,6 +1699,39 @@ NoteDisplay::DrawActor(const TapNote& tn,
 	// [AJ] this two lines (and how they're handled) piss off many people:
 	pActor->SetDiffuse(diffuse);
 	pActor->SetGlow(glow);
+
+	if (PREFSMAN->m_bForceSnaps) {
+		const auto& Color = BeatToNoteType(fBeat);
+		switch (Color) {
+			case NOTE_TYPE_4TH:
+				pActor->SetDiffuseColor(RageColor(1, 0, 0, 1));
+				break;
+			case NOTE_TYPE_8TH:
+				pActor->SetDiffuseColor(RageColor(0, 0.25, 1, 1));
+				break;
+			case NOTE_TYPE_12TH:
+				pActor->SetDiffuseColor(RageColor(0.6, 0, 0.6, 1));
+				break;
+			case NOTE_TYPE_16TH:
+				pActor->SetDiffuseColor(RageColor(1, 1, 0, 1));
+				break;
+			case NOTE_TYPE_24TH:
+				pActor->SetDiffuseColor(RageColor(0, 1, 0, 1));
+				break;
+			case NOTE_TYPE_32ND:
+				pActor->SetDiffuseColor(RageColor(1, 0.5, 0, 1));
+				break;
+			case NOTE_TYPE_48TH:
+				pActor->SetDiffuseColor(RageColor(0, 1, 1, 1));
+				break;
+			case NOTE_TYPE_64TH:
+				pActor->SetDiffuseColor(RageColor(0, 1, 0, 1));
+				break;
+			case NOTE_TYPE_192ND:
+				pActor->SetDiffuseColor(RageColor(0.2, 0.2, 0.2, 1));
+				break;
+		}
+	}
 
 	const auto bNeedsTranslate =
 	  (bIsAddition &&

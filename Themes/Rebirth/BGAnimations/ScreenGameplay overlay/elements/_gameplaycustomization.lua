@@ -70,7 +70,7 @@ local t = Def.ActorFrame {
         local screen = SCREENMAN:GetTopScreen()
 
         local lifebar = screen:GetLifeMeter(PLAYER_1)
-        local nf = screen:GetChild("PlayerP1"):GetChild("NoteField")
+        local nf = screen:GetDescendant("PlayerP1", "NoteField")
         local noteColumns = nf:get_column_actors()
 
         registerActorToCustomizeGameplayUI({

@@ -14,7 +14,7 @@ static Replay* activeReplay = nullptr;
 static TemporaryReplaySettings activeReplaySettings{};
 
 Replay*
-ReplayManager::GetReplay(HighScore* hs) {
+ReplayManager::GetReplay(const HighScore* hs) {
 	if (hs == nullptr) {
 		return dummyReplay;
 	}
@@ -58,6 +58,16 @@ ReplayManager::ReplayManager() {
 	lua_pushstring(L, "REPLAYS");
 	this->PushSelf(L);
 	lua_settable(L, LUA_GLOBALSINDEX);
+
+	LuaReference ref;
+	ref.SetFromNil();
+	m_holdNoteScoreScoringFunc = ref;
+	m_mineScoringFunc = ref;
+	m_offsetJudgingFunc = ref;
+	m_tapScoringFunc = ref;
+	m_totalWifePointsCalcFunc = ref;
+	m_missWindowFunc = ref;
+
 	LUA->Release(L);
 }
 
@@ -102,15 +112,16 @@ ReplayManager::GetTapNoteScoreForReplay(float fNoteOffset, float timingScale)
 }
 
 Replay*
-ReplayManager::InitReplayPlaybackForScore(HighScore* hs)
+ReplayManager::InitReplayPlaybackForScore(HighScore* hs,
+										  float timingScale,
+										  int startRow)
 {
 	UnsetActiveReplay();
 
 	activeReplayScore = hs;
 	activeReplay = GetReplay(hs);
-	activeReplaySettings.reset();
 
-	activeReplay->GenerateJudgeInfoAndReplaySnapshots();
+	activeReplay->GenerateJudgeInfoAndReplaySnapshots(startRow, timingScale);
 
 	return activeReplay;
 }
@@ -123,7 +134,6 @@ ReplayManager::UnsetActiveReplay()
 	}
 	activeReplayScore = nullptr;
 	activeReplay = GetReplay(nullptr);
-	activeReplaySettings.reset();
 }
 
 Replay*
@@ -145,18 +155,26 @@ void
 ReplayManager::StoreActiveReplaySettings(float replayRate,
 										 std::string& replayModifiers,
 										 bool replayUsedMirror,
-										 float oldRate,
-										 std::string& oldModifiers,
-										 FailType oldFailType,
-										 std::string& oldNoteskin)
+										 int replayRngSeed)
 {
 	activeReplaySettings.replayRate = replayRate;
 	activeReplaySettings.replayModifiers = replayModifiers;
 	activeReplaySettings.replayUsedMirror = replayUsedMirror;
+	activeReplaySettings.replayRngSeed = replayRngSeed;
+}
+
+void
+ReplayManager::StoreOldSettings(float oldRate,
+								std::string& oldModifiers,
+								FailType oldFailType,
+								std::string& oldNoteskin,
+								int oldRngSeed)
+{
 	activeReplaySettings.oldRate = oldRate;
 	activeReplaySettings.oldModifiers = oldModifiers;
 	activeReplaySettings.oldFailType = oldFailType;
 	activeReplaySettings.oldNoteskin = oldNoteskin;
+	activeReplaySettings.oldRngSeed = oldRngSeed;
 }
 
 TemporaryReplaySettings
@@ -165,11 +183,17 @@ ReplayManager::GetActiveReplaySettings()
 	return activeReplaySettings;
 }
 
+void
+ReplayManager::ResetActiveReplaySettings()
+{
+	activeReplaySettings.reset();
+}
+
 auto
 ReplayManager::CalculateRadarValuesForReplay(Replay& replay, RadarValues& rv, RadarValues& possibleRV)
   -> bool
 {
-	Locator::getLogger()->info("Calculating Radar Values from ReplayData");
+	Locator::getLogger()->debug("Calculating Radar Values from ReplayData");
 
 	// We will do this thoroughly just in case someone decides to use the
 	// other categories we don't currently use
@@ -248,13 +272,13 @@ ReplayManager::CalculateRadarValuesForReplay(Replay& replay, RadarValues& rv, Ra
 	rv[RadarCategory_Fakes] = fakes;
 	rv[RadarCategory_Notes] = totalNotesHit;
 
-	Locator::getLogger()->info(
+	Locator::getLogger()->debug(
 	  "Finished Calculating Radar Values from ReplayData");
 	return true;
 }
 
 auto
-ReplayManager::SetPlayerStageStatsForReplay(Replay& replay, PlayerStageStats* pss, float ts)
+ReplayManager::RescoreReplay(Replay& replay, PlayerStageStats* pss, float ts)
   -> bool
 {
 	Locator::getLogger()->info("Entered PSSFromReplayData function");
@@ -310,7 +334,7 @@ ReplayManager::SetPlayerStageStatsForReplay(Replay& replay, PlayerStageStats* ps
 std::map<float, float>
 ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 {
-	Locator::getLogger()->info("Generating LifeRecord from ReplayData");
+	Locator::getLogger()->debug("Generating LifeRecord from ReplayData");
 
 	// Without a Snapshot Map, I assume we didn't calculate
 	// the other necessary stuff and this is going to turn out bad
@@ -407,7 +431,7 @@ ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 		lifeRecord[(now - allOffset) / rateUsed] = lifeLevel;
 	}
 
-	Locator::getLogger()->info(
+	Locator::getLogger()->debug(
 	  "Finished Generating LifeRecord from ReplayData");
 	return lifeRecord;
 }
@@ -415,7 +439,7 @@ ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 std::vector<PlayerStageStats::Combo_t>
 ReplayManager::GenerateComboListForReplay(Replay& replay, float timingScale)
 {
-	Locator::getLogger()->info("Generating ComboList from ReplayData");
+	Locator::getLogger()->debug("Generating ComboList from ReplayData");
 
 	std::vector<PlayerStageStats::Combo_t> combos;
 	const PlayerStageStats::Combo_t firstCombo;
@@ -500,15 +524,451 @@ ReplayManager::GenerateComboListForReplay(Replay& replay, float timingScale)
 	  (rowOfComboStart->first - allOffset) / rateUsed;
 	curCombo->m_fStartSecond = (rowOfComboStart->first - allOffset) / rateUsed;
 
-	Locator::getLogger()->info("Finished Generating ComboList from ReplayData");
+	Locator::getLogger()->debug("Finished Generating ComboList from ReplayData");
 	return combos;
+}
+
+auto
+ReplayManager::CustomTapScoringFunction(float fOffsetSeconds,
+										TapNoteScore tns,
+										float timingScale) -> float
+{
+	static auto defaultscoring = [](float& fOffsetSeconds, float& timingScale) {
+		return wife3(fOffsetSeconds, timingScale);
+	};
+
+	if (m_tapScoringFunc.IsNil() || !customScoringFunctionsEnabled) {
+		return defaultscoring(fOffsetSeconds, timingScale);
+	} else {
+		auto output = 0.F;
+		auto L = LUA->Get();
+		m_tapScoringFunc.PushSelf(L);
+		lua_pushnumber(L, fOffsetSeconds);
+		LuaHelpers::Push(L, tns);
+		lua_pushnumber(L, timingScale);
+		static std::string err = "Error running custom tap scoring function";
+		if (LuaHelpers::RunScriptOnStack(L, err, 3, 1, true)) {
+			if (lua_isnumber(L, -1)) {
+				output = lua_tonumber(L, -1);
+			} else {
+				LuaHelpers::ReportScriptError("You must return a number in the "
+											  "Custom Tap Scoring Function.");
+				output = defaultscoring(fOffsetSeconds, timingScale);
+			}
+		} else {
+			output = defaultscoring(fOffsetSeconds, timingScale);
+			Locator::getLogger()->warn(
+			  "Failed to run script on stack for custom tap scoring function. "
+			  "Defaulted to wife3");
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+		return output;
+	}
+}
+
+auto
+ReplayManager::CustomHoldNoteScoreScoringFunction(HoldNoteScore hns) -> float
+{
+	static auto defaultscoring = [](HoldNoteScore& hns) {
+		switch (hns) {
+			case HNS_LetGo:
+			case HNS_Missed:
+				return wife3_hold_drop_weight;
+
+			case HNS_Held:
+			case HNS_None:
+			case NUM_HoldNoteScore:
+			case HoldNoteScore_Invalid:
+			default:
+				return 0.F;
+		}
+	};
+
+	if (m_holdNoteScoreScoringFunc.IsNil() || !customScoringFunctionsEnabled) {
+		return defaultscoring(hns);
+	} else {
+		auto output = 0.F;
+		auto L = LUA->Get();
+		m_holdNoteScoreScoringFunc.PushSelf(L);
+		LuaHelpers::Push(L, hns);
+		static std::string err = "Error running custom hold scoring function";
+		if (LuaHelpers::RunScriptOnStack(L, err, 1, 1, true)) {
+			if (lua_isnumber(L, -1)) {
+				output = lua_tonumber(L, -1);
+			} else {
+				LuaHelpers::ReportScriptError(
+				  "You must return a number in the "
+				  "Custom HoldNoteScore Scoring Function.");
+				output = defaultscoring(hns);
+			}
+		} else {
+			output = defaultscoring(hns);
+			Locator::getLogger()->warn("Failed to run script on stack for "
+									   "custom holdnotescore scoring function. "
+									   "Defaulted to wife3");
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+		return output;
+	}
+}
+
+auto
+ReplayManager::CustomMineScoringFunction() -> float
+{
+	static auto defaultscoring = []() { return wife3_mine_hit_weight; };
+
+	if (m_mineScoringFunc.IsNil() || !customScoringFunctionsEnabled) {
+		return defaultscoring();
+	} else {
+		auto output = 0.F;
+		auto L = LUA->Get();
+		m_mineScoringFunc.PushSelf(L);
+		static std::string err = "Error running custom mine scoring function";
+		if (LuaHelpers::RunScriptOnStack(L, err, 0, 1, true)) {
+			if (lua_isnumber(L, -1)) {
+				output = lua_tonumber(L, -1);
+			} else {
+				LuaHelpers::ReportScriptError(
+				  "You must return a number in the "
+				  "Custom Mine Scoring Function.");
+				output = defaultscoring();
+			}
+		} else {
+			output = defaultscoring();
+			Locator::getLogger()->warn("Failed to run script on stack for "
+									   "custom mine scoring function. "
+									   "Defaulted to wife3");
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+		return output;
+	}
+}
+
+auto
+ReplayManager::CustomTotalWifePointsCalculation(TapNoteType tnt) -> float
+{
+	static auto defaultscoring = [](TapNoteType& tnt) {
+		switch (tnt) {
+			case TapNoteType_Tap:
+			case TapNoteType_HoldHead:
+			case TapNoteType_Lift:
+				return 2.F;
+			default:
+				return 0.F;
+		}
+	};
+
+	if (m_totalWifePointsCalcFunc.IsNil() || !customScoringFunctionsEnabled) {
+		return defaultscoring(tnt);
+	} else {
+		auto output = 0.F;
+		auto L = LUA->Get();
+		m_totalWifePointsCalcFunc.PushSelf(L);
+		LuaHelpers::Push(L, tnt);
+		static std::string err = "Error running custom total wifepoints calc function";
+		if (LuaHelpers::RunScriptOnStack(L, err, 1, 1, true)) {
+			if (lua_isnumber(L, -1)) {
+				output = lua_tonumber(L, -1);
+			} else {
+				LuaHelpers::ReportScriptError(
+				  "You must return a number in the "
+				  "Custom TotalWifePoints Calc Function.");
+				output = defaultscoring(tnt);
+			}
+		} else {
+			output = defaultscoring(tnt);
+			Locator::getLogger()->warn("Failed to run script on stack for "
+									   "custom totalwifepoints calc function. "
+									   "Defaulted to wife3");
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+		return output;
+	}
+}
+
+auto
+ReplayManager::CustomOffsetJudgingFunction(float fOffsetSeconds, float timingScale)
+  -> TapNoteScore
+{
+	static auto defaultscoring = [](float& fOffsetSeconds, float& timingScale) {
+		return GetTapNoteScoreForReplay(fOffsetSeconds, timingScale);
+	};
+
+	if (m_offsetJudgingFunc.IsNil() || !customScoringFunctionsEnabled) {
+		return defaultscoring(fOffsetSeconds, timingScale);
+	} else {
+		auto output = TNS_None;
+		auto L = LUA->Get();
+		m_offsetJudgingFunc.PushSelf(L);
+		lua_pushnumber(L, fOffsetSeconds);
+		static std::string err =
+		  "Error running custom offset judging function";
+		if (LuaHelpers::RunScriptOnStack(L, err, 1, 1, true)) {
+			output = Enum::Check<TapNoteScore>(L, -1);
+		} else {
+			output = defaultscoring(fOffsetSeconds, timingScale);
+			Locator::getLogger()->warn("Failed to run script on stack for "
+									   "custom offset judging function. "
+									   "Defaulted to regular windows.");
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+		return output;
+	}
+}
+
+auto
+ReplayManager::CustomMissWindowFunction() -> float
+{
+	static auto defaultscoring = []() { return MISS_WINDOW_BEGIN_SEC; };
+
+	if (m_missWindowFunc.IsNil() || !customScoringFunctionsEnabled) {
+		return defaultscoring();
+	} else {
+		auto output = 0.F;
+		auto L = LUA->Get();
+		m_missWindowFunc.PushSelf(L);
+		static std::string err = "Error running custom miss window function";
+		if (LuaHelpers::RunScriptOnStack(L, err, 0, 1, true)) {
+			if (lua_isnumber(L, -1)) {
+				output = std::clamp(static_cast<float>(lua_tonumber(L, -1)),
+									0.F,
+									MISS_WINDOW_BEGIN_SEC);
+			} else {
+				LuaHelpers::ReportScriptError("You must return a number in the "
+											  "Custom Miss Window Function.");
+				output = defaultscoring();
+			}
+		} else {
+			output = defaultscoring();
+			Locator::getLogger()->warn("Failed to run script on stack for "
+									   "custom miss window function. "
+									   "Defaulted to 180ms.");
+		}
+		lua_settop(L, 0);
+		LUA->Release(L);
+		return output;
+	}
 }
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 class LunaReplayManager : public Luna<ReplayManager>
 {
   public:
-	LunaReplayManager() {
+
+	static int GetReplay(T* p, lua_State* L)
+	{
+		HighScore* hs = Luna<HighScore>::check(L, 1);
+		// TODO: THIS LEAKS REPLAY REFS!!!!!!!!!!!!
+		p->GetReplay(hs)->PushSelf(L);
+		return 1;
+	}
+
+	static int GetActiveReplay(T* p, lua_State* L) {
+		auto* r = p->GetActiveReplay();
+		if (r == nullptr) {
+			lua_pushnil(L);
+		} else {
+			r->PushSelf(L);
+		}
+		return 1;
+	}
+
+	static int ResetCustomScoringFunctions(T* p, lua_State* L) {
+		// set all "settable" lua functions back to empty/default
+
+		LuaReference ref;
+		lua_pushnil(L);
+		ref.SetFromStack(L);
+		p->SetTotalWifePointsCalcFunction(ref);
+		p->SetMineScoringFunction(ref);
+		p->SetHoldNoteScoringFunction(ref);
+		p->SetTapScoringFunction(ref);
+		p->SetOffsetJudgingFunction(ref);
+		p->SetMissWindowFunction(ref);
+
+		COMMON_RETURN_SELF;
+	}
+
+	static int SetTapScoringFunction(T* p, lua_State* L) {
+		// pass a lua function to this
+		// that lua function takes: tap offset, tapnotescore, judge scalar (1.0 for j4)
+		// returns a number
+
+		// reset if empty
+		if (lua_isnil(L, 1)) {
+			LuaReference ref;
+			lua_pushnil(L);
+			ref.SetFromStack(L);
+			// reset
+			p->SetTapScoringFunction(ref);
+		} else {
+			luaL_checktype(L, 1, LUA_TFUNCTION);
+			LuaReference ref;
+			lua_pushvalue(L, 1);
+			ref.SetFromStack(L);
+			// set
+			p->SetTapScoringFunction(ref);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+
+	static int SetHoldNoteScoreScoringFunction(T* p, lua_State* L) {
+		// pass a lua function to this
+		// that lua function takes an input of a holdnotescore and returns a number
+
+		// reset if empty
+		if (lua_isnil(L, 1)) {
+			LuaReference ref;
+			lua_pushnil(L);
+			ref.SetFromStack(L);
+			// reset
+			p->SetHoldNoteScoringFunction(ref);
+		} else {
+			luaL_checktype(L, 1, LUA_TFUNCTION);
+			LuaReference ref;
+			lua_pushvalue(L, 1);
+			ref.SetFromStack(L);
+			// set
+			p->SetHoldNoteScoringFunction(ref);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+
+	static int SetMineScoringFunction(T* p, lua_State* L) {
+		// pass a lua function to this
+		// that lua function takes no input and returns a number
+
+		// reset if empty
+		if (lua_isnil(L, 1)) {
+			LuaReference ref;
+			lua_pushnil(L);
+			ref.SetFromStack(L);
+			// reset
+			p->SetMineScoringFunction(ref);
+		} else {
+			luaL_checktype(L, 1, LUA_TFUNCTION);
+			LuaReference ref;
+			lua_pushvalue(L, 1);
+			ref.SetFromStack(L);
+			// set
+			p->SetMineScoringFunction(ref);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+
+	static int SetTotalWifePointsCalcFunction(T* p, lua_State* L) {
+		// pass a lua function to this
+		// that lua function takes an input of a tapnotetype and returns a number
+
+		// reset if empty
+		if (lua_isnil(L, 1)) {
+			LuaReference ref;
+			lua_pushnil(L);
+			ref.SetFromStack(L);
+			// reset
+			p->SetTotalWifePointsCalcFunction(ref);
+		} else {
+			luaL_checktype(L, 1, LUA_TFUNCTION);
+			LuaReference ref;
+			lua_pushvalue(L, 1);
+			ref.SetFromStack(L);
+			// set
+			p->SetTotalWifePointsCalcFunction(ref);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+
+	static int SetOffsetJudgingFunction(T* p, lua_State* L) {
+		// pass a lua function
+		// that lua function takes an input of an offset and returns a tapnotescore
+		
+		// reset if empty
+		if (lua_isnil(L, 1)) {
+			LuaReference ref;
+			lua_pushnil(L);
+			ref.SetFromStack(L);
+			// reset
+			p->SetOffsetJudgingFunction(ref);
+		} else {
+			luaL_checktype(L, 1, LUA_TFUNCTION);
+			LuaReference ref;
+			lua_pushvalue(L, 1);
+			ref.SetFromStack(L);
+			// set
+			p->SetOffsetJudgingFunction(ref);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+
+	static int SetMissWindowFunction(T* p, lua_State* L) {
+		// pass a lua function
+		// that lua function takes no input and returns a number
+		// the number is usually [0,1]
+		// 0.180 is the default
+
+		// reset if empty
+		if (lua_isnil(L, 1)) {
+			LuaReference ref;
+			lua_pushnil(L);
+			ref.SetFromStack(L);
+			// reset
+			p->SetMissWindowFunction(ref);
+		} else {
+			luaL_checktype(L, 1, LUA_TFUNCTION);
+			LuaReference ref;
+			lua_pushvalue(L, 1);
+			ref.SetFromStack(L);
+			// set
+			p->SetMissWindowFunction(ref);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+
+	static int RunOffsetJudgingFunction(T* p, lua_State* L) {
+
+		// this offset should be [-1,1] rather than [-1000,1000]
+		auto offset = FArg(1);
+		// the scalar is the judge window multiplier. j4 means 1.0.
+		auto scalar = FArg(2);
+
+		if (!p->isCustomScoringFunctionsEnabled()) {
+			p->EnableCustomScoringFunctions();
+			LuaHelpers::Push<TapNoteScore>(
+			  L, p->CustomOffsetJudgingFunction(offset, scalar));
+			p->DisableCustomScoringFunctions();
+		} else {
+			LuaHelpers::Push<TapNoteScore>(
+			  L, p->CustomOffsetJudgingFunction(offset, scalar));
+		}
+
+		return 1;
+	}
+
+	LunaReplayManager()
+	{
+		ADD_METHOD(GetReplay);
+		ADD_METHOD(GetActiveReplay);
+
+		ADD_METHOD(ResetCustomScoringFunctions);
+		ADD_METHOD(SetTotalWifePointsCalcFunction);
+		ADD_METHOD(SetMineScoringFunction);
+		ADD_METHOD(SetHoldNoteScoreScoringFunction);
+		ADD_METHOD(SetTapScoringFunction);
+		ADD_METHOD(SetOffsetJudgingFunction);
+		ADD_METHOD(SetMissWindowFunction);
+
+		ADD_METHOD(RunOffsetJudgingFunction);
 	}
 };
 LUA_REGISTER_CLASS(ReplayManager)

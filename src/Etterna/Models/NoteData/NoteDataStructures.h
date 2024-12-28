@@ -23,6 +23,14 @@ enum Skillset
 	Skillset_Invalid,
 };
 
+// basically these are name shadows for the JS and HS skillsets
+// since JS and HS dont really "work" for things like 7k
+enum GenericSkillset
+{
+	Skill_Chordstream = Skill_Jumpstream,
+	Skill_Bracketing = Skill_Handstream,
+};
+
 // we do actually want to register these with lua i guess
 enum CalcPatternMod
 {
@@ -51,6 +59,7 @@ enum CalcPatternMod
 	// CJOHJSeqComp,
 	Balance, // pattern mod (values between 0.9 - ~ 1.1)
 	Roll,	 // pattern mod (values between 0-1)
+	RollJS,
 	OHTrill,
 	VOHTrill,
 	Chaos,
@@ -76,6 +85,9 @@ enum CalcPatternMod
 	// RanPropOffS,
 	// RanPropJack,
 	TotalPatternMod,
+	GStream,
+	GChordStream,
+	GBracketing,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };
@@ -83,7 +95,7 @@ enum CalcDiffValue
 {
 	NPSBase,
 	MSBase,
-	// JackBase,
+	JackBase,
 	CJBase,
 	TechBase,
 	RMABase,

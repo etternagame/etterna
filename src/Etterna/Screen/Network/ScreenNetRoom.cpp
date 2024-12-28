@@ -9,6 +9,7 @@
 #include "Etterna/Screen/Others/ScreenTextEntry.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Actor/Menus/WheelItemBase.h"
+#include "RageUtil/Utils/RageUtil.h"
 
 AutoScreenMessage(SM_BackFromRoomName);
 AutoScreenMessage(SM_BackFromRoomDesc);
@@ -100,6 +101,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 		if (!ScreenTextEntry::s_bCancelledLast) {
 			m_newRoomName = ScreenTextEntry::s_sLastAnswer;
 			if (m_newRoomName != "") {
+				ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 				ScreenTextEntry::TextEntry(
 				SM_BackFromRoomDesc, ENTER_ROOM_DESCRIPTION, "", 255);
 			} else {
@@ -108,6 +110,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 		}
 	} else if (SM == SM_BackFromRoomDesc) {
 		if (!ScreenTextEntry::s_bCancelledLast) {
+			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			m_newRoomDesc = ScreenTextEntry::s_sLastAnswer;
 			ScreenTextEntry::Password(SM_BackFromRoomPass, ENTER_ROOM_PASSWORD);
 		}
@@ -144,6 +147,24 @@ ScreenNetRoom::MenuStart(const InputEventPlus& input)
 }
 
 void
+ScreenNetRoom::SelectRoom(std::string name)
+{
+	for (auto& x : *m_RoomWheel.allRooms) {
+		if (make_lower(x.Name()) == make_lower(name)) {
+			if (x.HasPassword()) {
+				m_sLastPickedRoom = x.Name();
+				ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
+				ScreenTextEntry::Password(SM_BackFromReqPass,
+										  ENTER_ROOM_REQPASSWORD);
+			} else {
+				NSMAN->EnterRoom(x.Name());
+			}
+			return;
+		}
+	}
+}
+
+void
 ScreenNetRoom::SelectCurrent()
 {
 	if (NSMAN->IsETTP() && ((ETTProtocol*)NSMAN->curProtocol)->creatingRoom) {
@@ -156,6 +177,7 @@ ScreenNetRoom::SelectCurrent()
 	if (rwd != nullptr) {
 		if (rwd->m_iFlags % 2 != 0u || rwd->hasPassword) {
 			m_sLastPickedRoom = rwd->m_sText;
+			ScreenTextEntry::s_bMustResetInputRedirAtClose = true;
 			ScreenTextEntry::Password(SM_BackFromReqPass,
 									  ENTER_ROOM_REQPASSWORD);
 		} else {
@@ -208,6 +230,7 @@ ScreenNetRoom::UpdateRoomsList()
 	if (m_iRoomPlace >= (int)m_Rooms->size())
 		m_iRoomPlace = m_Rooms->size() - 1;
 	m_RoomWheel.UpdateRoomsList(m_Rooms);
+	MESSAGEMAN->Broadcast("RoomListUpdated");
 }
 
 void
@@ -246,6 +269,11 @@ class LunaScreenNetRoom : public Luna<ScreenNetRoom>
 		p->SelectCurrent();
 		return 1;
 	}
+	static int SelectRoom(T* p, lua_State* L)
+	{
+		p->SelectRoom(SArg(1));
+		return 0;
+	}
 	static int GetSelectionState(T* p, lua_State* L)
 	{
 		lua_pushnumber(L, 0);
@@ -262,6 +290,7 @@ class LunaScreenNetRoom : public Luna<ScreenNetRoom>
 		ADD_METHOD(GetMusicWheel);
 		ADD_METHOD(GetRoomWheel);
 		ADD_METHOD(SelectCurrent);
+		ADD_METHOD(SelectRoom);
 		ADD_METHOD(GetSelectionState);
 		ADD_METHOD(InfoSetVisible);
 	}

@@ -6,6 +6,7 @@
 #include "RageUtil/Utils/RageUtil_CachedObject.h"
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/TimingData.h"
+#include "Etterna/Models/Misc/DateTime.h"
 
 #include <set>
 
@@ -95,6 +96,9 @@ class Song
 
 	std::string m_sFileHash;
 	auto GetFileHash() -> std::string;
+
+	DateTime dateAdded = DateTime::GetNowDateTime();
+	auto GetDateAdded() const -> DateTime { return dateAdded; };
 
 	/**
 	 * @brief Call this after loading a song to clean up invalid data.
@@ -331,6 +335,10 @@ class Song
 	{
 		return m_PreviewPath;
 	}
+	[[nodiscard]] auto GetCredits() const -> const std::string&
+	{
+		return m_sCredit;
+	}
 	[[nodiscard]] auto GetPreviewStartSeconds() const -> float;
 	auto GetCacheFile(const std::string& sType) -> std::string;
 
@@ -445,7 +453,8 @@ class Song
 	void AddForegroundChange(const BackgroundChange& seg);
 	void AddLyricSegment(const LyricSegment& seg);
 
-	void GetDisplayBpms(DisplayBpms& AddTo) const;
+	void GetDisplayBpms(DisplayBpms& AddTo,
+						bool bIgnoreCurrentRate = false) const;
 	[[nodiscard]] auto GetBackgroundAtBeat(BackgroundLayer iLayer,
 										   float fBeat) const
 	  -> const BackgroundChange&;
@@ -453,7 +462,7 @@ class Song
 	auto CreateSteps() -> Steps*;
 	void InitSteps(Steps* pSteps);
 
-	auto GetOrTryAtLeastToGetSimfileAuthor() -> std::string;
+	auto GetOrTryAtLeastToGetSimfileAuthor() const -> const std::string;
 
 	[[nodiscard]] auto HasSignificantBpmChangesOrStops() const -> bool;
 	[[nodiscard]] auto GetStepsSeconds() const -> float;
@@ -482,12 +491,12 @@ class Song
 	[[nodiscard]] auto GetChartsMatchingFilter() const -> std::vector<Steps*>;
 	[[nodiscard]] auto HasEdits(StepsType st) const -> bool;
 
-	auto IsFavorited() const -> bool { return isfavorited; }
-	void SetFavorited(bool b) { isfavorited = b; }
+	auto HasFavoritedChart() const -> bool { return isfavorited; }
+	void SetHasFavoritedChart(bool b) { isfavorited = b; }
 	auto HasGoal() const -> bool { return hasgoal; }
 	void SetHasGoal(bool b) { hasgoal = b; }
-	auto IsPermaMirror() const -> bool { return permamirror; }
-	void SetPermaMirror(bool b) { permamirror = b; }
+	auto HasPermaMirrorChart() const -> bool { return permamirror; }
+	void SetHasPermaMirrorChart(bool b) { permamirror = b; }
 
 	void SetEnabled(bool b) { m_bEnabled = b; }
 	[[nodiscard]] auto GetEnabled() const -> bool { return m_bEnabled; }

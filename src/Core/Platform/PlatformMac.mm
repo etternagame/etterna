@@ -112,7 +112,7 @@ namespace Core::Platform {
     }
 
     std::string getLanguage(){
-        return NSLocale.currentLocale.languageCode.UTF8String;
+		return [[NSLocale.currentLocale objectForKey:NSLocaleLanguageCode] UTF8String];
     }
 
     bool openWebsite(const std::string& url){
@@ -151,6 +151,12 @@ namespace Core::Platform {
         NSPasteboardItem *item = NSPasteboard.generalPasteboard.pasteboardItems[0];
         return [item stringForType:(NSPasteboardTypeString)].UTF8String;
     }
+
+	bool setClipboardText(std::string text){
+		[[NSPasteboard generalPasteboard] clearContents];
+		[[NSPasteboard generalPasteboard] setString:[NSString stringWithUTF8String:text.c_str()] forType:NSPasteboardTypeString];
+		return true;
+	}
 
     void setCursorVisible(bool value){
 		static bool cursor_visible = true;

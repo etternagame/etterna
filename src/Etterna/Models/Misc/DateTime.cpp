@@ -5,6 +5,8 @@
 #include "Etterna/Singletons/LuaManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#include <chrono>
+
 DateTime::DateTime()
 {
 	Init();
@@ -92,6 +94,14 @@ DateTime::GetNowDate()
 	return tNow;
 }
 
+DateTime
+DateTime::GetFromString(const std::string& str)
+{
+	auto dt = DateTime();
+	dt.FromString(str);
+	return dt;
+}
+
 void
 DateTime::StripTime()
 {
@@ -139,6 +149,20 @@ DateTime::FromString(const std::string& sDateTime)
 	tm_year -= 1900;
 	tm_mon -= 1;
 	return true;
+}
+
+DateTime
+DateTime::GetYesterday()
+{
+	const auto ymd = std::chrono::year_month_day(
+	  std::chrono::floor<std::chrono::days>(std::chrono ::system_clock::now()) -
+	  std::chrono::days(1));
+	DateTime dt;
+	dt.Init();
+	dt.tm_mday = static_cast<unsigned>(ymd.day());
+	dt.tm_mon = static_cast<unsigned>(ymd.month()) - 1;
+	dt.tm_year = static_cast<int>(ymd.year()) - 1900;
+	return dt;
 }
 
 std::string

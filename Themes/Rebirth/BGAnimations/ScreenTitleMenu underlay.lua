@@ -1,3 +1,8 @@
+if IsSMOnlineLoggedIn() then
+    print("Forced user to log out because they are logged in")
+	CloseConnection()
+end
+
 local t = Def.ActorFrame {
     Name = "UnderlayFile",
     BeginCommand = function(self)
@@ -44,12 +49,16 @@ local versionTextSizeSmall = 0.25
 local animationSeconds = 0.5 -- the intro animation
 local updateDownloadIconSize = 30 / 1080 * SCREEN_HEIGHT
 
--- information for the update button
-local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
-local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
-if latest ~= nil and current ~= nil and latest > current then
-    updateRequired = true
+local updateRequired = false
+local function setUpdateRequired()
+    -- information for the update button
+    local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
+    local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
+    if latest ~= nil and current ~= nil and latest > current then
+        updateRequired = true
+    end
 end
+setUpdateRequired()
 
 -- if you go to the help screen this puts you back on the main menu
 SCUFF.helpmenuBackout = "ScreenTitleMenu"
@@ -86,10 +95,20 @@ t[#t+1] = Def.ActorFrame {
 
     Def.Sprite {
         Name = "LeftBG",
+        Texture = THEME:GetPathG("", "title-solid"),
+        InitCommand = function(self)
+            self:halign(0):valign(0)
+            self:zoomto(gradientwidth, gradientheight)
+            registerActorToColorConfigElement(self, "title", "GradientColor1")
+        end
+    },
+    Def.Sprite {
+        Name = "LeftBGGradient",
         Texture = THEME:GetPathG("", "title-gradient"),
         InitCommand = function(self)
             self:halign(0):valign(0)
             self:zoomto(gradientwidth, gradientheight)
+            registerActorToColorConfigElement(self, "title", "GradientColor2")
         end
     },
     Def.Quad {
@@ -124,16 +143,28 @@ t[#t+1] = Def.ActorFrame {
             self:xy(logoFrameLeftGap, logoFrameUpperGap)
         end,
     
-        UIElements.SpriteButton(100, 1, THEME:GetPathG("", "Logo")) .. {
+        Def.Sprite {
+            Name = "LogoTriangle",
+            Texture = THEME:GetPathG("", "Logo-Triangle"),
+            InitCommand = function(self)
+                self:halign(0):valign(0)
+                self:zoomto(logoW, logoH)
+                registerActorToColorConfigElement(self, "title", "LogoTriangle")
+            end,
+        },
+        UIElements.SpriteButton(100, 1, THEME:GetPathG("", "Logo-E")) .. {
             Name = "Logo",
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(logoW, logoH)
+                registerActorToColorConfigElement(self, "title", "LogoE")
             end,
             MouseOverCommand = function(self)
+                self:GetParent():GetChild("LogoTriangle"):diffusealpha(buttonHoverAlpha)
                 self:diffusealpha(buttonHoverAlpha)
             end,
             MouseOutCommand = function(self)
+                self:GetParent():GetChild("LogoTriangle"):diffusealpha(1)
                 self:diffusealpha(1)
             end,
             MouseDownCommand = function(self, params)
@@ -236,6 +267,11 @@ t[#t+1] = Def.ActorFrame {
             MouseOutCommand = hoverfunc,
             MouseOverCommand = hoverfunc,
             MouseDownCommand = clickDownload,
+            LastVersionUpdatedMessageCommand = function(self)
+                setUpdateRequired()
+                self:visible(updateRequired)
+                self:settextf("- %s (%s)", translations["UpdateAvailable"], DLMAN:GetLastVersion())
+            end,
         },
         UIElements.SpriteButton(100, 1, THEME:GetPathG("", "updatedownload")) .. {
             Name = "VersionUpdateDownload",
@@ -339,6 +375,8 @@ t[#t+1] = Def.ActorFrame {
             self:x(-selectorHeight)
             self:halign(0)
             self:zoomto(selectorHeight, selectorHeight)
+            self:diffuse(color("#805faf"))
+            registerActorToColorConfigElement(self, "title", "ItemTriangle")
         end
     }
 }

@@ -1,0 +1,170 @@
+--- Song management singleton accessed via SONGMAN
+-- 
+-- This is responsible for Song related information accessing.
+-- @classmod SongManager
+-- @alias SONGMAN
+
+--[[--
+ 		Returns <code>true</code> if the specified song group exists.
+	  @return bool
+--]]
+function SONGMAN:DoesSongGroupExist(string, sGroup)
+end
+
+--[[--
+ 		Returns an array of all the installed songs.
+	  @return {Song}
+--]]
+function SONGMAN:GetAllSongs()
+end
+
+--[[--
+ 		Returns the number of songs loaded via Additional folders.
+	  @return int
+--]]
+function SONGMAN:GetNumAdditionalSongs()
+end
+
+--[[--
+ 		Returns the number of song groups.
+	  @return int
+--]]
+function SONGMAN:GetNumSongGroups()
+end
+
+--[[--
+ 		Returns the number of songs.
+	  @return int
+--]]
+function SONGMAN:GetNumSongs()
+end
+
+--[[--
+ 		Returns a table of popular songs.
+	  @return {Song}
+--]]
+function SONGMAN:GetPopularSongs()
+end
+
+--[[--
+ 		Returns the song color of Song <code>s</code>.
+	  @return color
+--]]
+function SONGMAN:GetSongColor(Song, s)
+end
+
+--[[--
+ 		Returns a Song given a set of Steps <code>st</code>.
+	  @return Song
+--]]
+function SONGMAN:GetSongFromSteps(Steps, st)
+end
+
+--[[--
+ 		Returns the path to the specified song group's banner.
+	  @return string
+--]]
+function SONGMAN:GetSongGroupBannerPath(string, sGroup)
+end
+
+--[[--
+ 		Returns the song group color of <code>sGroupName</code>.
+	  @return color
+--]]
+function SONGMAN:GetSongGroupColor(string, sGroupName)
+end
+
+--[[--
+ 		Returns a table containing all of the song group names.
+	  @return {string}
+--]]
+function SONGMAN:GetSongGroupNames()
+end
+
+--[[--
+ 		Returns a table containing all of the songs in group <code>sGroupName</code>.
+	  @return {Song}
+--]]
+function SONGMAN:GetSongsInGroup(string, sGroupName)
+end
+
+--[[--
+ 		Returns the shortened group name (based on entries in Translations.xml).
+	  @return string
+--]]
+function SONGMAN:ShortenGroupName(string, sGroupName)
+end
+
+--[[--
+ 		Returns <code>true</code> if the specified song was loaded from AdditionalSongs.
+  @return bool
+--]]
+function SONGMAN:WasLoadedFromAdditionalSongs(Song, s)
+end
+
+--- Scan all song directories and load new `Song`s if found.
+-- @return nil
+function SONGMAN:DifferentialReload()
+end
+
+--- Get a `Song` based on a given chartkey. For chartkeys that are not unique,
+-- the behavior is undefined. A Song will be returned which contains the `Steps` for
+-- the chartkey, but the Song may not be the one intended.
+-- @tparam string chartkey A chart key for a @{Steps}
+-- @treturn Song A Song which contains a @{Steps} matching the given chart key
+function SONGMAN:GetSongByChartKey(chartkey)
+end
+
+--- Get a `Steps` based on a given chartkey.
+-- @tparam string chartkey A chart key for a @{Steps}
+-- @treturn Steps The Steps for the given chart key
+function SONGMAN:GetStepsByChartKey(chartkey)
+end
+
+--- When an active `Playlist` is set, return it.
+-- Setting a Playlist means to have it queued and ready to play in Gameplay, or to have it 
+-- opened for modification in the Playlist related menus.
+-- @treturn Playlist The currently set Playlist
+-- @see SONGMAN:SetActivePlaylist
+function SONGMAN:GetActivePlaylist()
+end
+
+--- Set the active `Playlist` by its name.
+-- Setting a Playlist means to have it queued and ready to play in Gameplay, or to have it
+-- opened for modification in the Playlist related menus.
+-- @tparam string playlistName The name of the Playlist to set active.
+-- @return nil
+-- @see SONGMAN:GetActivePlaylist
+function SONGMAN:SetActivePlaylist(playlistName)
+end
+
+--- Open the `ScreenTextEntry` dialogue to create a new `Playlist`.
+-- There is very little error handling here.
+-- @return nil
+-- @see SONGMAN:NewPlaylistNoDialog
+function SONGMAN:NewPlaylist()
+end
+
+--- Create a new `Playlist` without using a baked in dialogue, using the given name.
+-- @tparam string playlistName The name of the new Playlist
+-- @treturn bool A status on whether or not a new Playlist could be created successfully 
+function SONGMAN:NewPlaylistNoDialog(playlistName)
+end
+
+--- Rename an existing `Playlist`.
+-- @tparam string nameBefore The old name of the Playlist
+-- @tparam string nameAfter The new name of the Playlist
+-- @treturn bool A status on whether or not the Playlist could be renamed successfully
+function SONGMAN:RenamePlaylistNoDialog(nameBefore, nameAfter)
+end
+
+--- Get the list of `Playlist`s loaded for the current `Profile`.
+-- @treturn {Playlist,...} A table of Playlists in no particular order
+function SONGMAN:GetPlaylists()
+end
+
+--- Delete a particular `Playlist` from the currently loaded `Profile` and immediately save said Profile.
+-- @tparam string playlistName The name of the playlist to attempt to delete
+-- @return nil
+function SONGMAN:DeletePlaylist(playlistName)
+end

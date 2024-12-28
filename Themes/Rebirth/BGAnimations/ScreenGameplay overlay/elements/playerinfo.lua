@@ -7,7 +7,7 @@ local translations = {
 local modstringTextSize = GAMEPLAY:getItemHeight("playerInfoModsText")
 local judgeDiffTextSize = GAMEPLAY:getItemHeight("playerInfoJudgeText")
 local difficultyTextSize = GAMEPLAY:getItemHeight("playerInfoMeterText")
-local msdTextSize = GAMEPLAY:getItemHeight("playerInfoMSDText")
+local msdTextSize = GAMEPLAY:getItemHeight("playerInfoMSDText") * 0.98
 local scoringTextSize = GAMEPLAY:getItemHeight("playerInfoScoreTypeText")
 
 local avatarSize = GAMEPLAY:getItemHeight("playerInfoAvatar")
@@ -90,7 +90,7 @@ return Def.ActorFrame {
                 )
             )
             local xp = self:GetParent():GetChild("MSD"):GetZoomedWidth()
-            self:xy(avatarSize + bufferspace + xp + bufferspace, avatarSize/2 - 5)
+            self:xy(avatarSize + bufferspace + xp + bufferspace - 3, avatarSize/2 - 5)
         end,
     },
     LoadFont("Common Large") .. {

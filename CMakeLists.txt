@@ -19,7 +19,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.71.2
+		VERSION 0.74.1
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
@@ -27,7 +27,12 @@ project(Etterna
 set(CMAKE_CXX_STANDARD 20)                                      # Minimum C++ Version
 set(CMAKE_CXX_EXTENSIONS OFF)                                   # True if compiler extensions are necessary. (Changes -std flag)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)                             # True to require minimum C++ version to compile
-set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                          # Tell xcodebuild to target an older osx platform
+if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)                      # First macOS version supporting M1 chips
+else()
+    # Host is x86_64
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)                      # Oldest platform we still support
+endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)                           # Export compile commands for clang-tidy
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/CMake/Modules)  # Tell CMake where to access FindXXX.cmake files
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders/filters within IDEs
@@ -90,6 +95,7 @@ add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpa
 target_link_libraries(Etterna PRIVATE SQLiteCpp sqlite3)
 target_link_libraries(Etterna PRIVATE zlib)
 target_link_libraries(Etterna PRIVATE rapidjson)
+target_link_libraries(Etterna PRIVATE jwt-cpp)
 target_link_libraries(Etterna PRIVATE websocketpp)
 target_link_libraries(Etterna PRIVATE libluajit)
 target_link_libraries(Etterna PRIVATE discord-rpc)
@@ -100,11 +106,16 @@ target_link_libraries(Etterna PRIVATE vorbis)
 target_link_libraries(Etterna PRIVATE pcre)
 target_link_libraries(Etterna PRIVATE libmad)
 target_link_libraries(Etterna PRIVATE stb)
+target_link_libraries(Etterna PRIVATE miniz)
 target_link_libraries(Etterna PRIVATE libcurl)
 target_link_libraries(Etterna PRIVATE fmt::fmt)
 target_link_libraries(Etterna PRIVATE plog::plog)
 target_link_libraries(Etterna PRIVATE nowide::nowide)
 target_link_libraries(Etterna PRIVATE ghc_filesystem)
+
+if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+  target_link_libraries(Etterna PRIVATE sse2neon)
+endif()
 
 # If the user wants crashpad, and the target exists (in-case
 # the user wants it, but crashpad couldn't find python)

@@ -1,0 +1,5 @@
+--- Model class
+--
+-- This class inherits all methods from these classes:
+-- @{Actor}
+-- @classmod Model

@@ -61,8 +61,9 @@ struct Chart
 
 struct Playlist
 {
-	std::string name;
-	std::vector<Chart> chartlist;
+	std::string name{};
+	std::vector<Chart> chartlist{};
+	int onlineId = 0;
 	void Add(const Chart& ch) { chartlist.emplace_back(ch); }
 	void AddChart(const std::string& ck);
 	void SwapPosition();
@@ -76,6 +77,8 @@ struct Playlist
 	auto GetName() -> std::string { return name; }
 	auto GetAverageRating() -> float;
 	void DeleteChart(int i);
+	void UploadOnline();
+	void DownloadOnline();
 
 	void PushSelf(lua_State* L);
 };

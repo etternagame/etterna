@@ -29,6 +29,24 @@ const int ARBITRARY_MIN_GAMEPLAY_NUMBER = -200000;
 // dont let anyone hit a note outside of this
 const float MISS_WINDOW_BEGIN_SEC = 0.18F;
 
+// 75ms in both directions, around a j5 great
+const float MINE_WINDOW_SEC = 0.075F;
+
+// taps within alive holds/rolls must be this far away from 
+// the next note so that they do not count.
+// this prevents unwanted cbs from roll tapping
+const float TAP_IN_HOLD_REQ_SEC = 0.135F;
+
+// how long between each subsequent release on a hold a
+// repress must take place before the hold dies
+const float HOLD_DROP_SEC = 0.250F;
+
+// how long between each subsequent tap on a roll before death
+const float ROLL_DROP_SEC = 0.500F;
+
+const float MIN_MUSIC_RATE = 0.05F;
+const float MAX_MUSIC_RATE = 3.F;
+
 enum GameplayMode
 {
 	GameplayMode_Normal,
@@ -157,6 +175,8 @@ enum SortOrder
 	SORT_Chordjack,
 	SORT_Technical,
 	SORT_LENGTH,
+	SORT_DATE_ADDED,
+	SORT_CHART_AUTHOR,
 	SORT_Ungrouped, /**< Sort by the song title, putting all songs into single
 					   group. */
 	NUM_SortOrder,

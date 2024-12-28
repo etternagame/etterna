@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <memory>
+#include <unordered_map>
 
 // For internal, must be preprocessor defined
 #if defined(MINADLL_COMPILE) && defined(_WIN32)
@@ -18,6 +20,7 @@
 using MinaSD = std::vector<std::vector<float>>;
 
 class Calc;
+struct Bazoinkazoink;
 
 /** This defines the base size for each interval-based vector in MinaCalc.
 * Each interval is one half second. If any situation arises in which the
@@ -97,7 +100,20 @@ class Calc
 	/// Set true to force calc params to load outside debug mode.
 	bool loadparams = false;
 
+	/// Assigns the keymode specific logic
+	unsigned keycount = 4;
+	std::array<unsigned, num_hands> hand_col_masks = { 0U, 0U };
+	std::vector<unsigned> col_masks{};
+	std::shared_ptr<Bazoinkazoink> ulbu_in_charge;
+
   private:
+	/** Create the logic for the particular keymode currently being 
+	* run through the calc. The bulk of this logic is for pmods but
+	* also has something to do with quirks for each keymode.
+	*/
+	void InitializeKeycountLogic();
+	std::unordered_map<unsigned, std::shared_ptr<Bazoinkazoink>> ulbu_collective{};
+
 	/** Splits up the chart by each hand and processes them individually to
 	* produce hand specific base difficulty values, which are then passed to
 	* the chisel functions. Hardcode a limit for nps (100) and if we hit it just
@@ -106,9 +122,10 @@ class Calc
 	*
 	* Return value is whether or not we should skip calculation.
 	*/
-	auto InitializeHands(const std::vector<NoteInfo>& NoteInfo,
-						 float music_rate,
-						 float offset) -> bool;
+	auto InitializeHands(
+	  const std::vector<NoteInfo>& NoteInfo,
+	  float music_rate,
+	  float offset) -> bool;
 
 	/** Returns estimate of player skill needed to achieve score goal on chart.
 	* The player_skill parameter gives an initial guess and floor for player
@@ -127,7 +144,9 @@ class Calc
 	* Iterates over each interval, and every skillset for each interval.
 	* Skips iterations of Overall and Stamina (unaffected by patternmods).
 	*/
-	static inline void InitAdjDiff(Calc& calc, const int& hand);
+	static inline void InitAdjDiff(
+	  Calc& calc,
+	  const int& hand);
 
   public:
 	/** Each Calc instance created sets up the interval related vectors.
@@ -266,6 +285,9 @@ class Calc
 	std::array<std::array<std::vector<std::pair<float, float>>, 2>, num_hands>
 	  debugMovingWindowCV{};
 
+	/// per hand vector of arrays: techyo chaos values of [row_time, pewp, obliosis, c]
+	std::array<std::vector<std::array<float, 4>>, num_hands> debugTechVals{};
+
 	/** Grow every interval-dependent vector we use.
 	* The size could be reduced but there isn't a big need for it.
 	* This does nothing if amt < the size of the vectors.
@@ -311,6 +333,7 @@ MINACALC_API auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   float musicrate,
 		   float goal,
+		   const unsigned keycount,
 		   Calc* calc) -> std::vector<float>;
 /// <summary>
 /// Calc driving function used for generating skillset values for caching.
@@ -321,7 +344,9 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 /// <returns>MinaSD, a list of the resulting skillset values,
 /// for every rate.</returns>
 MINACALC_API auto
-MinaSDCalc(const std::vector<NoteInfo>& NoteInfo, Calc* calc) -> MinaSD;
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
+		   const unsigned keycount,
+		   Calc* calc) -> MinaSD;
 /// <summary>
 /// Calc driving function used for generating skillset values for debugging.
 /// Works the same as the score-based MinaSDCalc, but runs debug mode.
@@ -339,6 +364,7 @@ MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
   float musicrate,
   float goal,
+  const unsigned keycount,
   std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
   std::vector<std::string>& debugstrings,
   Calc& calc);

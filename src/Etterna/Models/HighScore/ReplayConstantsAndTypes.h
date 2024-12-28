@@ -13,6 +13,9 @@ const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
 // contains input data files corresponding to replays
 const std::string INPUT_DATA_DIR = "Save/InputData/";
 
+// contains replays to be imported from online
+const std::string ONLINE_DATA_DIR = "Save/OnlineReplays/";
+
 const std::string NO_MODS = "none";
 
 /// enum values defined by Replay.GetReplayType()
@@ -48,6 +51,11 @@ struct InputDataEvent
 	// really only applies for holds and rolls
 	TapNoteSubType nearestTapNoteSubType = TapNoteSubType_Invalid;
 
+	// for inputdata remappings only
+	int reprioritizedNearestNoterow = -1;
+	float reprioritizedOffsetFromNearest = 1.F;
+	TapNoteType reprioritizedNearestTapNoteType = TapNoteType_Invalid;
+	TapNoteSubType reprioritizedNearestTapNoteSubType = TapNoteSubType_Invalid;
 
 	InputDataEvent()
 	{
@@ -58,7 +66,13 @@ struct InputDataEvent
 		offsetFromNearest = 0.F;
 	}
 
-	InputDataEvent(bool press, int col, float songPos, int row, float offset, TapNoteType tapnotetype, TapNoteSubType tapnotesubtype)
+	InputDataEvent(bool press,
+				   int col,
+				   float songPos,
+				   int row,
+				   float offset,
+				   TapNoteType tapnotetype,
+				   TapNoteSubType tapnotesubtype)
 	  : is_press(press)
 	  , column(col)
 	  , songPositionSeconds(songPos)
@@ -77,7 +91,15 @@ struct InputDataEvent
 		offsetFromNearest = other.offsetFromNearest;
 		nearestTapNoteType = other.nearestTapNoteType;
 		nearestTapNoteSubType = other.nearestTapNoteSubType;
+		reprioritizedNearestNoterow = other.reprioritizedNearestNoterow;
+		reprioritizedOffsetFromNearest = other.reprioritizedOffsetFromNearest;
+		reprioritizedNearestTapNoteType = other.reprioritizedNearestTapNoteType;
+		reprioritizedNearestTapNoteSubType =
+		  other.reprioritizedNearestTapNoteSubType;
 	}
+
+	/// Lua
+	void PushSelf(lua_State* L);
 };
 
 struct MineReplayResult
@@ -89,6 +111,31 @@ struct MineReplayResult
 	{
 		row = 0;
 		track = 0;
+	}
+};
+
+struct MissReplayResult
+{
+	int row;
+	int track; // column
+	TapNoteType tapNoteType = TapNoteType_Invalid;
+	TapNoteSubType tapNoteSubType = TapNoteSubType_Invalid;
+
+	MissReplayResult()
+	{
+		row = 0;
+		track = 0;
+	}
+
+	MissReplayResult(int row,
+					 int col,
+					 TapNoteType tapnotetype,
+					 TapNoteSubType tapnotesubtype)
+	  : row(row)
+	  , track(col)
+	  , tapNoteType(tapnotetype)
+	  , tapNoteSubType(tapnotesubtype)
+	{
 	}
 };
 
@@ -139,6 +186,7 @@ struct PlaybackEvent
 	// only applies if the event judges a note
 	// to prevent events triggering wrong judgments
 	int noterowJudged = -1;
+	float offset = 0.F;
 
 	PlaybackEvent()
 	{
@@ -171,6 +219,9 @@ struct ReplaySnapshot
 	float maxwifescore = 0.F;
 	float standardDeviation = 0.F;
 	float mean = 0.F;
+
+	/// Lua
+	void PushSelf(lua_State* L);
 };
 
 struct JudgeInfo

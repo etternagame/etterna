@@ -1,0 +1,155 @@
+--- Score management singleton accessed via SCOREMAN
+-- 
+-- This is responsible for accessing score related data.
+-- @classmod ScoreManager
+-- @alias SCOREMAN
+
+
+--- Get the list of `HighScore`s set for a particular `Steps`.
+-- @tparam string chartKey The chartkey of the `Steps` you want to find scores for
+-- @treturn {string = ScoreAtRate, ...} a table of ScoresAtRate, keys of a rate string and values of `ScoresAtRate`
+-- @usage local scoresByKey = SCOREMAN:GetScoresByKey(song:GetChartKey())
+function SCOREMAN:GetScoresByKey(chartKey)
+end
+
+--- Sort the internal list of `HighScore`s across all `Game`s by the given Skillset.
+-- This is used to optimize sorting the long list of `HighScore`s for the purpose of
+-- displaying them in the Profile tab in the default Themes.
+-- @tparam string skillset The Skillset enum value of choice
+-- @return nil
+-- @see ScoreManager:GetTopSSRHighScore
+-- @usage SCOREMAN:SortSSRs("Overall")
+function SCOREMAN:SortSSRs(skillset)
+end
+
+--- Sort the internal list of `HighScore`s for the currently enabled `Game`.
+-- This is used to optimize sorting the long list of `HighScore`s for the purpose of
+-- displaying them in the Profile tab in the default Themes.
+-- This internal list also only tracks the current `Game` which usually refers to the current keymode.
+-- @tparam string skillset The Skillset enum value of choice
+-- @return nil
+-- @see ScoreManager:GetTopSSRHighScoreForGame
+-- @usage SCOREMAN:SortSSRsForGame("Overall")
+function SCOREMAN:SortSSRsForGame()
+end
+
+--- Get a `HighScore` from the internal list of scores that was sorted by SCOREMAN:SortSSRs.
+-- @tparam number index The score index starting at 1 where 1 is the "best"
+-- @tparam string skillset A Skillset enum value. Any will work as long as it is valid. Returns nil otherwise.
+-- @treturn HighScore The HighScore
+-- @see ScoreManager:SortSSRs
+-- @usage local highScore = SCOREMAN:GetTopSSRHighScore(1, "Overall")
+function SCOREMAN:GetTopSSRHighScore(index, skillset)
+end
+
+--- Get a `HighScore` from the internal list of scores that was sorted by SCOREMAN:SortSSRsForGame.
+-- @tparam number index The score index starting at 1 where 1 is the "best"
+-- @tparam string skillset A Skillset enum value. Any will work as long as it is valid. Returns nil otherwise.
+-- @treturn HighScore The HighScore
+-- @see ScoreManager:SortSSRsForGame
+-- @usage local highScore = SCOREMAN:GetTopSSRHighScoreForGame(1, "Overall")
+function SCOREMAN:GetTopSSRHighScoreForGame(index, skillset)
+end
+
+--- Sort the internal list of `HighScore`s across all `Game`s by their set date.
+-- This is used to optimize sorting the long list of `HighScore`s for the purpose of
+-- displaying them in order of creation.
+-- @return nil
+-- @see ScoreManager:GetRecentScore
+-- @usage SCOREMAN:SortRecentScores()
+function SCOREMAN:SortRecentScores()
+end
+
+--- Sort the internal list of `HighScore`s for the currently enabled `Game` by their set date.
+-- This is used to optimize sorting the long list of `HighScore`s for the purpose of
+-- displaying them in order of creation.
+-- @return nil
+-- @see ScoreManager:GetRecentScoreForGame
+-- @usage SCOREMAN:SortRecentScoresForGame()
+function SCOREMAN:SortRecentScoresForGame()
+end
+
+--- Get a `HighScore` from the internal list of scores that was sorted by SCOREMAN:SortRecentScores.
+-- @tparam number index The score index starting at 1 where 1 is the "most recent"
+-- @treturn HighScore The HighScore
+-- @see ScoreManager:SortRecentScores
+-- @usage local recentScore = SCOREMAN:GetRecentScore(1)
+function SCOREMAN:GetRecentScore(index)
+end
+
+--- Get a `HighScore` from the internal list of scores that was sorted by SCOREMAN:SortRecentScoresForGame.
+-- @tparam number index The score index starting at 1 where 1 is the "most recent"
+-- @treturn HighScore The HighScore
+-- @see ScoreManager:SortRecentScoresForGame
+-- @usage local recentScore = SCOREMAN:GetRecentScoreForGame(1)
+function SCOREMAN:GetRecentScoreForGame(index)
+end
+
+--- Get the most recent `HighScore` which is relevant for displaying. Usually used in `ScreenEvaluation`.
+-- If a replay is currently being viewed or the evaluation screen is being recreated for a replay, this
+-- will return the HighScore that the replay is attached to.
+-- If no scores exist and no replay is being played, this returns nil.
+-- @treturn HighScore The HighScore
+-- @see ScoreManager:GetTempReplayScore
+-- @usage local recentScore = SCOREMAN:GetMostRecentScore()
+function SCOREMAN:GetMostRecentScore()
+end
+
+--- Get the `HighScore` designated as the current HighScore being viewed in a replay or evaluation recreation.
+-- Otherwise, this will return nothing.
+-- @treturn HighScore The HighScore
+-- @usage local replayScore = SCOREMAN:GetTempReplayScore()
+function SCOREMAN:GetTempReplayScore()
+end
+
+--- For the currently loaded `Profile` only, get the amount of scores that are saved.
+-- @treturn number The total number of scores
+-- @usage local totalScores = SCOREMAN:GetTotalNumberOfScores()
+function SCOREMAN:GetTotalNumberOfScores()
+end
+
+--- Get the order of Skillsets which the given `Profile` plays the most. 
+-- The Skillset each `HighScore` counts for is only the highest SSR value.
+-- The first Skillset in the returned table is the most played.
+-- Does not include the Overall Skillset.
+-- @tparam Profile profile The Profile to scan for most frequent plays
+-- @treturn {string,...} Skillset enum values in order of most frequently played to least
+-- @see ScoreManager:GetPlaycountPerSkillset
+-- @usage local bestSkillsets = SCOREMAN:GetTopPlayedSkillsets(GetPlayerOrMachineProfile(PLAYER_1))
+function SCOREMAN:GetTopPlayedSkillsets(profile)
+end
+
+--- Get the amount of plays for each Skillset for the given `Profile`.
+-- The Skillset each `HighScore` counts for is only the highest SSR value.
+-- Index 1 in the result table is the Stream Skillset. Overall is not in the list.
+-- @tparam Profile profile The Profile to scan for play counts
+-- @treturn {number,...} Play counts for each Skillset starting with Stream
+-- @see ScoreManager:GetTopPlayedSkillsets
+-- @usage local playCountBySkillset = SCOREMAN:GetPlaycountPerSkillset(GetPlayerOrMachineProfile(PLAYER_1))
+function SCOREMAN:GetPlaycountPerSkillset(profile)
+end
+
+--- Get all `HighScore`s created during the current game session. This includes
+-- scores set across `Profile`s.
+-- @treturn {HighScore,...} HighScores in order of occurrence throughout the current game session
+-- @see ScoreManager:GetNumScoresThisSession
+-- @usage local scoresToday = SCOREMAN:GetScoresThisSession()
+function SCOREMAN:GetScoresThisSession()
+end
+
+--- Get the number of `HighScore`s created during the current game session. This includes
+-- scores set across `Profile`s.
+-- @treturn number The number of HighScores set in the current game session
+-- @see ScoreManager:GetScoresThisSession
+-- @usage local numScoresFromToday = SCOREMAN:GetNumScoresThisSession()
+function SCOREMAN:GetNumScoresThisSession()
+end
+
+--- Calculate the player rating over time for the currently loaded `Profile`.
+-- Includes values for each Skillset.
+-- May take a while to calculate based on the number of unique dates for each `HighScore`.
+-- Utilizes multithreading to try to speed up the process.
+-- @return A table of tables. Each entry in the table is a date key paired with 1-indexed table of SSR values.
+-- @usage local ratingOverTime = SCOREMAN:GetPlayerRatingOverTime()
+function SCOREMAN:GetPlayerRatingOverTime()
+end

@@ -63,12 +63,14 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 
 	void SetSampleMusicPosition(float);
 	void PauseSampleMusic();
+	bool DeleteCurrentSong();
 	bool ReloadCurrentSong();
 	bool ReloadCurrentPack();
 	bool ToggleCurrentFavorite();
 	bool ToggleCurrentPermamirror();
 	bool GoalFromCurrentChart();
 	bool AddCurrentChartToActivePlaylist();
+	bool CachePackForRanking(const std::string& pack);
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
 									bool bForceAccurate = false,
 									bool bExtended = false);
@@ -85,6 +87,9 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	void AfterStepsOrTrailChange();
 	void SwitchToPreferredDifficulty();
 	void AfterMusicChange();
+
+	Song* m_pSongAwaitingDeletionConfirmation;
+	void OnConfirmSongDeletion();
 
 	void CheckBackgroundRequests(bool bForce);
 	bool DetectCodes(const InputEventPlus& input);

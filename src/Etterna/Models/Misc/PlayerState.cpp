@@ -74,6 +74,13 @@ PlayerState::ResetCacheInfo(/*const NoteData& notes*/)
 	const auto vScrolls =
 	  GetDisplayedTiming().GetTimingSegments(SEGMENT_SCROLL);
 
+	if (!vScrolls.empty()) {
+		if (ToScroll(vScrolls.at(0))->GetBeat() > 0.F) {
+			CacheDisplayedBeat c = { 0.F, 0.F, 1.F };
+			m_CacheDisplayedBeat.push_back(c);
+		}
+	}
+
 	auto displayedBeat = 0.0F;
 	auto lastRealBeat = 0.0F;
 	auto lastRatio = 1.0F;
@@ -173,6 +180,17 @@ class LunaPlayerState : public Luna<PlayerState>
 		p->playertargetgoal = FArg(1);
 		return 1;
 	}
+	static int GetGoalTrackerUsesReplay(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->m_bGoalTrackerUsesReplay);
+		return 1;
+	}
+	static int SetGoalTrackerUsesReplay(T* p, lua_State* L)
+	{
+		auto b = BArg(1);
+		p->m_bGoalTrackerUsesReplay = b;
+		COMMON_RETURN_SELF
+	}
 
 	LunaPlayerState()
 	{
@@ -189,6 +207,8 @@ class LunaPlayerState : public Luna<PlayerState>
 		ADD_METHOD(GetHealthState);
 		ADD_METHOD(GetSuperMeterLevel);
 		ADD_METHOD(SetTargetGoal);
+		ADD_METHOD(GetGoalTrackerUsesReplay);
+		ADD_METHOD(SetGoalTrackerUsesReplay);
 	}
 };
 

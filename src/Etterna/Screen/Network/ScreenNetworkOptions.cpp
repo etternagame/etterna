@@ -164,6 +164,11 @@ ScreenNetworkOptions::ExportOptions(int /* iRow */,
 									const PlayerNumber& /* vpns */)
 {
 }
+void
+ScreenNetworkOptions::ExportOptionsOnCancel(int row,
+									const PlayerNumber& pn)
+{
+}
 
 void
 ScreenNetworkOptions::UpdateConnectStatus()

@@ -1,0 +1,4 @@
+--- Score list at a particular rate for a chart
+--
+-- This class inherits no methods from superclasses.
+-- @classmod ScoresAtRate

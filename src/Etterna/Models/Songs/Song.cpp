@@ -239,8 +239,8 @@ Song::InitSteps(Steps* pSteps)
 	pSteps->SetMaxBPM(this->m_fSpecifiedBPMMax);
 }
 
-std::string
-Song::GetOrTryAtLeastToGetSimfileAuthor()
+const std::string
+Song::GetOrTryAtLeastToGetSimfileAuthor() const
 {
 	if (!m_sCredit.empty() && m_sCredit != "cdtitle")
 		return m_sCredit;
@@ -270,10 +270,11 @@ Song::GetOrTryAtLeastToGetSimfileAuthor()
 }
 
 void
-Song::GetDisplayBpms(DisplayBpms& AddTo) const
+Song::GetDisplayBpms(DisplayBpms& AddTo, bool bIgnoreCurrentRate) const
 {
 	const auto demratesboiz =
-	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
+	  bIgnoreCurrentRate ? 1.F
+						 : GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (m_DisplayBPMType == DISPLAY_BPM_SPECIFIED) {
 		AddTo.Add(m_fSpecifiedBPMMin * demratesboiz);
 		AddTo.Add(m_fSpecifiedBPMMax * demratesboiz);
@@ -332,19 +333,33 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 	// save song dir
 	m_sSongDir = sDir;
 
-	// if (!SONGINDEX->LoadSongFromCache(this, sDir)) {
-	// There was no entry in the cache for this song, or it was out of date.
-	// Let's load it from a file, then write a cache entry.
+	// load it from a file, then write a cache entry.
 	if (!NotesLoader::LoadFromDir(sDir, *this, BlacklistedImages)) {
-		Locator::getLogger()->debug(
-		  "Song {} has no SSC, SM, SMA, DWI, BMS, KSF, or OSU files.", sDir);
+		if (!starts_with(sDir, "/")) {
+			Locator::getLogger()->warn(
+			  "Directory {} appears to be a pack with a loose audio file. This "
+			  "can crash the game! The rest of this pack folder will be "
+			  "ignored!! If you are missing songs, this may be why!",
+			  sDir);
+		} else {
+			Locator::getLogger()->info("Song {} has no SSC, SM, SMA, DWI, BMS, "
+									   "KSF, or OSU files - ignoring",
+									   sDir);
+		}
+		return false;
 
+		// OLD STUFF RELEVANT TO EDITORS (nonexistent in this game for now)
+		/*
 		std::vector<std::string> vs;
 		FILEMAN->GetDirListingWithMultipleExtensions(
-		  sDir, ActorUtil::GetTypeExtensionList(FT_Sound), vs, false, false);
+		  sDir,
+		  ActorUtil::GetTypeExtensionList(FT_Sound),
+		  vs,
+		  ONLY_FILE,
+		  false);
+
 
 		const auto bHasMusic = !vs.empty();
-
 		if (!bHasMusic) {
 			Locator::getLogger()->info(
 			  "Song {} has no usable files detected. Ignoring this song directory.",
@@ -358,6 +373,7 @@ Song::LoadFromSongDir(std::string sDir, Calc* calc)
 		this->m_sSongFileName = sDir + songName;
 		// Continue on with a blank Song so that people can make adjustments
 		// using the editor.
+		*/
 	}
 
 	TidyUpData(false, true, calc);
@@ -589,7 +605,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 		// different things we need. -Kyz
 		std::vector<std::string> song_dir_listing;
 		FILEMAN->GetDirListing(
-		  m_sSongDir + "*", song_dir_listing, false, false);
+		  m_sSongDir + "*", song_dir_listing, ONLY_FILE, false);
 		std::vector<std::string> music_list;
 		std::vector<std::string> image_list;
 		std::vector<std::string> movie_list;
@@ -1136,12 +1152,12 @@ Song::Save()
 	std::vector<std::string> backedDotOldFileNames;
 	std::vector<std::string> backedOrigFileNames;
 	std::vector<std::string> arrayOldFileNames;
-	GetDirListing(m_sSongDir + "*.bms", arrayOldFileNames);
-	GetDirListing(m_sSongDir + "*.pms", arrayOldFileNames);
-	GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
-	GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
-	GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
-	GetDirListing(m_sSongDir + "*.osu", arrayOldFileNames);
+	FILEMAN->GetDirListing(m_sSongDir + "*.bms", arrayOldFileNames);
+	FILEMAN->GetDirListing(m_sSongDir + "*.pms", arrayOldFileNames);
+	FILEMAN->GetDirListing(m_sSongDir + "*.ksf", arrayOldFileNames);
+	FILEMAN->GetDirListing(m_sSongDir + "*.sm", arrayOldFileNames);
+	FILEMAN->GetDirListing(m_sSongDir + "*.dwi", arrayOldFileNames);
+	FILEMAN->GetDirListing(m_sSongDir + "*.osu", arrayOldFileNames);
 	for (auto& arrayOldFileName : arrayOldFileNames) {
 		const auto sOldPath = m_sSongDir + arrayOldFileName;
 		const auto sNewPath = sOldPath + ".old";
@@ -1366,7 +1382,7 @@ Song::GetCacheFile(const std::string& sType)
 
 	// Get all image files and put them into a vector.
 	std::vector<std::string> song_dir_listing;
-	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, false, false);
+	FILEMAN->GetDirListing(m_sSongDir + "*", song_dir_listing, ONLY_FILE, false);
 	std::vector<std::string> image_list;
 	auto fill_exts = ActorUtil::GetTypeExtensionList(FT_Bitmap);
 	for (const auto& Image : song_dir_listing) {
@@ -2317,12 +2333,12 @@ class LunaSong : public Luna<Song>
 	}
 	static int IsFavorited(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsFavorited());
+		lua_pushboolean(L, p->HasFavoritedChart());
 		return 1;
 	}
 	static int IsPermaMirror(T* p, lua_State* L)
 	{
-		lua_pushboolean(L, p->IsPermaMirror());
+		lua_pushboolean(L, p->HasPermaMirrorChart());
 		return 1;
 	}
 	// has functions
@@ -2416,7 +2432,11 @@ class LunaSong : public Luna<Song>
 	static int GetDisplayBpms(T* p, lua_State* L)
 	{
 		DisplayBpms temp;
-		p->GetDisplayBpms(temp);
+		bool bIgnore = false;
+		if (!lua_isnoneornil(L, 1)) {
+			bIgnore = BArg(1);
+		}
+		p->GetDisplayBpms(temp, bIgnore);
 		const auto fMin = temp.GetMin();
 		const auto fMax = temp.GetMax();
 		std::vector<float> fBPMs;
@@ -2482,6 +2502,24 @@ class LunaSong : public Luna<Song>
 				best = g;
 		}
 		LuaHelpers::Push(L, best);
+		return 1;
+	}
+	static int GetDateTimeAdded(T* p, lua_State* L)
+	{
+		auto dt = p->GetDateAdded();
+		lua_pushstring(L, dt.GetString().c_str());
+		return 1;
+	}
+	static int GetDateAdded(T* p, lua_State* L)
+	{
+		auto d = p->GetDateAdded();
+		d.StripTime();
+		lua_pushstring(L, d.GetString().c_str());
+		return 1;
+	}
+	static int OpenSongFolder(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, SONGMAN->OpenSongFolder(p));
 		return 1;
 	}
 	LunaSong()
@@ -2553,6 +2591,9 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetChartsOfCurrentGameMode);
 		ADD_METHOD(GetChartsMatchingFilter);
 		ADD_METHOD(GetHighestGrade);
+		ADD_METHOD(GetDateTimeAdded);
+		ADD_METHOD(GetDateAdded);
+		ADD_METHOD(OpenSongFolder);
 	}
 };
 

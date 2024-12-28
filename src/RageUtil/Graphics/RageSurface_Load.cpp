@@ -25,6 +25,7 @@ RageSurface_stb_Load(const std::string& sPath,
 	int x, y, n;
 	const auto doot = stbi_load(f.GetPath().c_str(), &x, &y, &n, 4);
 	if (doot == nullptr) {
+		error = stbi_failure_reason();
 		return RageSurfaceUtils::OPEN_FATAL_ERROR;
 	}
 	if (bHeaderOnly) {
@@ -44,12 +45,14 @@ RageSurface_stb_Load(const std::string& sPath,
 	}
 
 	if (ret == nullptr) {
+		error = stbi_failure_reason();
 		stbi_image_free(doot);
 		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT; // XXX
 	}
 	ret->stb_loadpoint = true;
 	return RageSurfaceUtils::OPEN_OK;
 }
+
 static RageSurface*
 TryOpenFile(const std::string& sPath,
 			bool bHeaderOnly,
@@ -68,6 +71,53 @@ TryOpenFile(const std::string& sPath,
 
 	Locator::getLogger()->error(
 	  "RageSurface Open: Format {} failed: {}", format.c_str(), error.c_str());
+	return nullptr;
+}
+
+RageSurfaceUtils::OpenResult
+TryLoadBase64(const std::string& base64, std::string& error, RageSurface*& ret)
+{
+	auto decoded = base64_decode(base64);
+	int x, y, n;
+	const auto doot = stbi_load_from_memory(
+	  (unsigned char*)decoded.data(), decoded.length(), &x, &y, &n, 4);
+	if (doot == nullptr) {
+		error = stbi_failure_reason();
+		return RageSurfaceUtils::OPEN_FATAL_ERROR;
+	}
+
+	ret = CreateSurfaceFrom(x,
+							y,
+							32,
+							Swap32BE(0xFF000000),
+							Swap32BE(0x00FF0000),
+							Swap32BE(0x0000FF00),
+							Swap32BE(0x000000FF),
+							doot,
+							x * 4);
+
+	if (ret == nullptr) {
+		stbi_image_free(doot);
+		// ???
+		error = stbi_failure_reason();
+		return RageSurfaceUtils::OPEN_UNKNOWN_FILE_FORMAT;
+	}
+	ret->stb_loadpoint = true;
+	return RageSurfaceUtils::OPEN_OK;
+}
+
+RageSurface*
+RageSurfaceUtils::LoadBase64(const std::string& base64, std::string& error)
+{
+	RageSurface* ret = nullptr;
+	RageSurfaceUtils::OpenResult result = TryLoadBase64(base64, error, ret);
+
+	if (result == RageSurfaceUtils::OPEN_OK) {
+		ASSERT(ret != nullptr);
+		return ret;
+	}
+
+	Locator::getLogger()->error("RageSurface LoadBase64: failed: {}", error);
 	return nullptr;
 }
 

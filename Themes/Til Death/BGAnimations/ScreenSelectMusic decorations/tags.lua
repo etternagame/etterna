@@ -24,6 +24,8 @@ local filterChanged = false
 local ptags = tags:get_data().playerTags
 local playertags = {}
 local displayindex = {}
+local charts = {}
+local oCharts = {}
 
 local translated_info = {
 	AddTag = THEME:GetString("TabTags", "AddTag"),
@@ -35,6 +37,7 @@ local translated_info = {
 	Previous = THEME:GetString("TabTags", "Previous"),
 	Showing = THEME:GetString("TabTags", "Showing"),
 	Title = THEME:GetString("TabTags", "Title"),
+	HowToDelete = THEME:GetString("TabTags", "HowToDelete"),
 }
 
 local function newTagInput(event)
@@ -86,18 +89,14 @@ local t = Def.ActorFrame {
 		self:queuecommand("BORPBORPNORFNORFc"):visible(false)
 	end,
 	OffCommand = function(self)
-		--for some reason, tweening this tab causes a recursing tween error?????? help  -ulti
-		--self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
-		self:diffusealpha(0)
+		self:bouncebegin(0.2):xy(-500, 0):diffusealpha(0)
 		self:sleep(0.04):queuecommand("Invis")
 	end,
 	InvisCommand= function(self)
 		self:visible(false)
 	end,
 	OnCommand = function(self)
-		--here too
-		--self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
-		self:diffusealpha(1)
+		self:bouncebegin(0.2):xy(0, 0):diffusealpha(1)
 	end,
 	MouseRightClickMessageCommand = function(self)
 		if onTab then
@@ -109,9 +108,10 @@ local t = Def.ActorFrame {
 		end
 	end,
 	BORPBORPNORFNORFcCommand = function(self)
+		self:finishtweening()
 		if getTabIndex() == 9 then
-			self:visible(true)
 			self:queuecommand("On")
+			self:visible(true)
 			song = GAMESTATE:GetCurrentSong()
 			steps = GAMESTATE:GetCurrentSteps()
 			onTab = true
@@ -122,7 +122,7 @@ local t = Def.ActorFrame {
 		end
 	end,
 	TabChangedMessageCommand = function(self)
-		self:queuecommand("BORPBORPNORFNORFc")
+		self:playcommand("BORPBORPNORFNORFc")
 	end,
 	CurrentStepsChangedMessageCommand = function(self)
 		if getTabIndex() == 9 then
@@ -319,6 +319,7 @@ local function makeTag(i)
 					end
 				end,
 				MouseDownCommand = function(self, params)
+					if steps == nil or song == nil then return end
 					if params.event == "DeviceButton_left mouse button" then
 						curTag = playertags[i + ((currenttagpage - 1) * tagsperpage)]
 						if tagFunction == 1 then
@@ -351,6 +352,7 @@ local function makeTag(i)
 						filterChanged = true
 						MESSAGEMAN:Broadcast("RefreshTags")
 					elseif params.event == "DeviceButton_right mouse button" then
+						if steps == nil or song == nil then return end
 						curTag = playertags[i + ((currenttagpage - 1) * tagsperpage)]
 						if tagFunction == 2 then
 							if filterTags[curTag] then
@@ -589,6 +591,25 @@ r[#r + 1] = Def.ActorFrame {
 			self:GetParent():diffusealpha(1)
 		end,
 	}
+}
+
+r[#r+1] = LoadFont("Common Large") .. {
+	InitCommand = function(self)
+		self:xy(frameX + frameWidth/2, frameY + capWideScale(80, 80) + 225)
+		self:zoom(0.45)
+		self:settextf("%s", translated_info["HowToDelete"])
+		-- self:diffuse(getMainColor("positive"))
+		self:visible(false)
+	end,
+	UpdateTagsMessageCommand = function(self)
+		self:queuecommand("BORPBORPNORFNORFc")
+	end,
+	RefreshTagsMessageCommand = function(self)
+		self:queuecommand("BORPBORPNORFNORFc")
+	end,
+	BORPBORPNORFNORFcCommand = function(self)
+		self:visible(tagFunction == 3)
+	end,
 }
 
 -- main quad with paginator i guess?

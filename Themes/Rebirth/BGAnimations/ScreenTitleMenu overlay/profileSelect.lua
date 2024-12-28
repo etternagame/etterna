@@ -69,6 +69,7 @@ local translations = {
     MakeFirstProfileQuestion = THEME:GetString("ScreenTitleMenu", "MakeFirstProfileQuestion"),
     MakeProfileError = THEME:GetString("ScreenTitleMenu", "MakeProfileError"),
     SelectProfile = THEME:GetString("ScreenTitleMenu", "SelectProfile"),
+    Gamemode = THEME:GetString("ScreenTitleMenu", "GameMode"),
 }
 
 local profileIDs = PROFILEMAN:GetLocalProfileIDs()
@@ -136,13 +137,9 @@ local function generateItems()
     local page = 1
     local selectionIndex = 1
 
-    local function createProfileDialogue(listframe)
-        -- uhh this shouldnt be hard...
-        -- make profile, update id list, rename new profile
-        local new = PROFILEMAN:CreateDefaultProfile()
-        profileIDs = PROFILEMAN:GetLocalProfileIDs()
-        maxPage = math.ceil((#profileIDs) / numItems)
-        renameProfileDialogue(new, true)
+    local function createProfileDialogueStarter(listframe)
+        -- listen for ProfileCreated and update profileIDs and maxPage at that point
+        createProfileDialogueStarter()
     end
 
     -- select current option with keyboard or mouse double click
@@ -495,11 +492,45 @@ local function generateItems()
             end)
         end,
         FirstUpdateCommand = function(self)
+            -- waiting for the crashdump upload dialog to go away
+            if renameNewProfile then
+                if PREFSMAN:GetPreference("ShowMinidumpUploadDialogue") then
+                    self:sleep(0.2):queuecommand("Keepwastingtimestart")
+                else
+                    self:playcommand("Finishwastingtime")
+                end
+            end
+        end,
+        KeepwastingtimestartCommand = function(self)
+            -- looping to wait for the dialog to go away
+            if renameNewProfile then
+                if PREFSMAN:GetPreference("ShowMinidumpUploadDialogue") then
+                    self:sleep(0.2):queuecommand("Keepwastingtimestart")
+                else
+                    self:playcommand("Finishwastingtime")
+                end
+            end
+        end,
+        FinishwastingtimeCommand = function(self)
             if renameNewProfile then
                 local profile = PROFILEMAN:GetLocalProfile(profileIDs[1])
+                local redir = SCREENMAN:get_input_redirected(PLAYER_1)
+                local function off()
+                    if redir then
+                        SCREENMAN:set_input_redirected(PLAYER_1, false)
+                    end
+                end
+                local function on()
+                    if redir then
+                        SCREENMAN:set_input_redirected(PLAYER_1, true)
+                    end
+                end
+                off()
+                
                 local function f(answer)
                     profile:RenameProfile(answer)
                     self:playcommand("ProfileRenamed")
+                    on()
                 end
                 local question = translations["MakeFirstProfileQuestion"]
                 askForInputStringWithFunction(
@@ -518,9 +549,15 @@ local function generateItems()
                         -- do nothing
                         -- the profile name is Default Profile
                         -- cringe name tbh
+                        on()
                     end
                 )
             end
+        end,
+        ProfileCreatedMessageCommand = function(self)
+            profileIDs = PROFILEMAN:GetLocalProfileIDs()
+            maxPage = math.ceil((#profileIDs) / numItems)
+            MESSAGEMAN:Broadcast("ProfileRenamed")
         end,
         ToggledTitleFocusMessageCommand = function(self, params)
             focused = not params.scrollerFocused
@@ -690,5 +727,15 @@ local function generateItems()
 end
 
 t[#t+1] = generateItems()
+
+t[#t+1] = LoadFont("Common Large") .. {
+    Name = "CurGamemode",
+    InitCommand = function(self)
+        self:xy(actuals.FrameLeftGap + actuals.Width, SCREEN_HEIGHT * 0.99)
+        self:halign(1):valign(1)
+        self:zoom(0.35)
+        self:settextf("%s: %s", translations["Gamemode"], GAMESTATE:GetCurrentGame():GetName())
+    end,
+}
 
 return t

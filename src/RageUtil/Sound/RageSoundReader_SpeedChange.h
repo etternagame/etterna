@@ -12,7 +12,7 @@
 class RageSoundReader_SpeedChange : public RageSoundReader_Filter
 {
   public:
-	RageSoundReader_SpeedChange(RageSoundReader* pSource);
+	RageSoundReader_SpeedChange(RageSoundReader* pSource, bool bStepMania);
 
 	virtual int SetPosition(int iFrame);
 	virtual int Read(float* pBuf, int iFrames);
@@ -60,6 +60,9 @@ class RageSoundReader_SpeedChange : public RageSoundReader_Filter
 	float m_fSpeedRatio;
 	float m_fTrailingSpeedRatio;
 	float m_fErrorFrames;
+
+	const int m_iWindowSize;
+	const bool m_bMidSideEncoding;
 };
 
 #endif

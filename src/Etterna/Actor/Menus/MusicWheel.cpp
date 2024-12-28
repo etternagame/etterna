@@ -65,7 +65,7 @@ MusicWheel::MakeItem() -> MusicWheelItem*
 }
 
 void
-MusicWheel::Load(const string& sType)
+MusicWheel::Load(const std::string& sType)
 {
 	ROULETTE_SLOW_DOWN_SWITCHES.Load(sType, "RouletteSlowDownSwitches");
 	NUM_SECTION_COLORS.Load(sType, "NumSectionColors");
@@ -187,6 +187,12 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 		return;
 	}
 
+	auto matchesBefore = m__WheelItemDatas[GAMESTATE->m_SortOrder].size();
+	Song* firstItemBefore = nullptr;
+	if (matchesBefore > 1) {
+		firstItemBefore = m__WheelItemDatas[GAMESTATE->m_SortOrder].at(1)->m_pSong;
+	}
+
 	// when cancelling a search stay in the pack of your match... this should be
 	// more intuitive and relevant behavior -mina
 	if (findme.empty() && !lastvalidsearch.empty()) {
@@ -197,7 +203,7 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 		RebuildWheelItems();
 		SelectSection(m_sExpandedSectionName);
 		SetOpenSection(m_sExpandedSectionName);
-		ChangeMusic(1);
+		SelectSongOrCourse();
 		SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35F);
 		return;
 	}
@@ -216,29 +222,43 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 	// refresh the song preview
 	SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
 
+	auto matchesAfter = m__WheelItemDatas[GAMESTATE->m_SortOrder].size();
+
 	// when searching, automatically land on the first search result available
 	// -mina & dadbearcop
 	if (!findme.empty() || !hashList.empty()) {
 		if (!groupnamesearchmatch.empty()) {
+			// matched on group name
 			SelectSection(groupnamesearchmatch);
 			SetOpenSection(groupnamesearchmatch);
 			ChangeMusic(1);
 			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35F);
 			return;
 		}
-		Song* pSong = GAMESTATE->m_pCurSong;
-		if (pSong != nullptr) {
-			const auto& curSongTitle = pSong->GetDisplayMainTitle();
-			if (!GetSelectedSection().empty() &&
-				curSongTitle != prevSongTitle) {
-				prevSongTitle = curSongTitle;
-				SelectSongAfterSearch();
+
+		if (matchesAfter == matchesBefore) {
+			// results didnt change, probably double enter
+			// or multiple searches with no results
+			// dont move selection
+			if (matchesAfter > 1 && firstItemBefore != nullptr) {
+				auto* song =
+				  m__WheelItemDatas[GAMESTATE->m_SortOrder].at(1)->m_pSong;
+				if (song == firstItemBefore) {
+					// same song, dont move selection
+				} else {
+					SelectSongAfterSearch();
+				}
 			}
 		} else {
 			SelectSongAfterSearch();
 		}
 	} else {
-		SetOpenSection("");
+
+		if (matchesBefore == matchesAfter) {
+			// no results, stay on selection
+		} else {
+			SetOpenSection("");
+		}
 	}
 }
 
@@ -429,6 +449,7 @@ contains(std::string container, const std::string& findme) -> bool
 	  begin(container), end(container), begin(container), ::tolower);
 	return container.find(findme) != std::string::npos;
 }
+
 void
 MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 {
@@ -441,20 +462,39 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 	auto author = findme.find("author=");
 	auto title = findme.find("title=");
 	auto subtitle = findme.find("subtitle=");
-
+	auto group = findme.find("group=");
 	// title is a substring of title
 	// so if found that way, check again
 	if (title == subtitle + 3) {
 		title = findme.find("title=", title + 1);
 	}
 
+	// alternatives...
+	auto charter = std::string::npos;
+	if (author == std::string::npos) {
+		charter = findme.find("charter=");
+		if (charter == std::string::npos) {
+			charter = findme.find("stepper=");
+		}
+	}
+	auto pack = std::string::npos;
+	if (group == std::string::npos) {
+		pack = findme.find("pack=");
+	}
+
+	auto ck = findme.find("ck=");
+
 	std::string findartist;
 	std::string findauthor;
 	std::string findtitle;
 	std::string findsubtitle;
+	std::string findgroup;
+	std::string findck;
 
 	if (artist != std::string::npos || author != std::string::npos ||
-		title != std::string::npos || subtitle != std::string::npos) {
+		title != std::string::npos || subtitle != std::string::npos || 
+		group != std::string::npos || charter != std::string::npos ||
+		pack != std::string::npos || ck != std::string::npos) {
 		super_search = true;
 		if (artist != std::string::npos) {
 			findartist = findme.substr(
@@ -463,6 +503,10 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 		if (author != std::string::npos) {
 			findauthor = findme.substr(
 			  author + 7, findme.find(static_cast<char>(author), ';') - author);
+		} else if (charter != std::string::npos) {
+			findauthor = findme.substr(
+			  charter + 8,
+			  findme.find(static_cast<char>(charter), ';') - charter);
 		}
 		if (title != std::string::npos) {
 			findtitle = findme.substr(
@@ -473,187 +517,106 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 			  subtitle + 9,
 			  findme.find(static_cast<char>(subtitle), ';') - subtitle);
 		}
+		if (group != std::string::npos) {
+			findgroup = findme.substr(
+			  group + 6, findme.find(static_cast<char>(group), ';') - group);
+		} else if (pack != std::string::npos) {
+			findgroup = findme.substr(
+			  pack + 5, findme.find(static_cast<char>(pack), ';') - pack);
+		}
+		if (ck != std::string::npos) {
+			findck = findme.substr(
+			  ck + 3, findme.find(static_cast<char>(ck), ';') - ck);
+		}
 	}
 
-	// The giant block of code below is for optimization purposes.
-	// Basically, we don't want to give a single fat lambda to the filter that
-	// checks and short circuits. Instead, we want to just not check at all.
-	// It's a baby sized optimization but adds up over time. The binary comments
-	// help verify which things are being checked.
 	std::vector<Song*> tmp;
 	std::function<bool(Song*)> check;
+	std::function<bool(Song*)> artistcheck; 
+	std::function<bool(Song*)> titlecheck;
+	std::function<bool(Song*)> subtitlecheck;
+	std::function<bool(Song*)> authorcheck;
+	std::function<bool(Song*)> groupcheck;
+	std::function<bool(Song*)> ckcheck;
+
 	if (!super_search) {
-		// 0000
 		check = [&findme](Song* x) {
 			return contains(x->GetDisplayMainTitle(), findme);
 		};
 	} else {
-		if (!findartist.empty() && !findtitle.empty() && !findauthor.empty() &&
-			!findsubtitle.empty()) {
-			// 1111
-			check =
-			  [&findauthor, &findartist, &findtitle, &findsubtitle](Song* x) {
-				  return contains(x->GetDisplayArtist(), findartist) ||
-						 contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-								  findauthor) ||
-						 contains(x->GetDisplayMainTitle(), findtitle) ||
-						 contains(x->GetDisplaySubTitle(), findsubtitle);
-			  };
-		} else {
-			if (!findsubtitle.empty()) {
-				if (findauthor.empty() && findtitle.empty() &&
-					findartist.empty()) {
-					// 1000
-					check = [&findsubtitle](Song* x) {
-						return contains(x->GetDisplaySubTitle(), findsubtitle);
-					};
-				} else {
-					if (findauthor.empty()) {
-						if (findtitle.empty()) {
-							// 1001
-							check = [&findsubtitle, &findartist](Song* x) {
-								return contains(x->GetDisplayArtist(),
-												findartist) ||
-									   contains(x->GetDisplaySubTitle(),
-												findsubtitle);
-							};
-						} else {
-							if (findartist.empty()) {
-								// 1010
-								check = [&findsubtitle, &findtitle](Song* x) {
-									return contains(x->GetDisplayMainTitle(),
-													findtitle) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							} else {
-								// 1011
-								check = [&findsubtitle,
-										 &findartist,
-										 &findtitle](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(x->GetDisplayMainTitle(),
-													findtitle) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							};
-						}
-					} else {
-						if (findtitle.empty()) {
-							if (findartist.empty()) {
-								// 1100
-								check = [&findsubtitle, &findauthor](Song* x) {
-									return contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							} else {
-								// 1101
-								check = [&findsubtitle,
-										 &findauthor,
-										 &findartist](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor) ||
-										   contains(x->GetDisplaySubTitle(),
-													findsubtitle);
-								};
-							};
-						} else {
-							// 1110
-							check = [&findsubtitle, &findauthor, &findtitle](
-									  Song* x) {
-								return contains(x->GetDisplayMainTitle(),
-												findtitle) ||
-									   contains(
-										 x->GetOrTryAtLeastToGetSimfileAuthor(),
-										 findauthor) ||
-									   contains(x->GetDisplaySubTitle(),
-												findsubtitle);
-							};
-						}
-					}
-				}
-			} else {
-				if (!findartist.empty() && !findtitle.empty() &&
-					!findauthor.empty()) {
-					// 0111
-					check = [&findauthor, &findartist, &findtitle](Song* x) {
-						return contains(x->GetDisplayArtist(), findartist) ||
-							   contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
-										findauthor) ||
-							   contains(x->GetDisplayMainTitle(), findtitle);
-					};
-				} else {
-					if (findauthor.empty()) {
-						if (findtitle.empty()) {
-							// 0001
-							check = [&findartist](Song* x) {
-								return contains(x->GetDisplayArtist(),
-												findartist);
-							};
-						} else {
-							if (findartist.empty()) {
-								// 0010
-								check = [&findtitle](Song* x) {
-									return contains(x->GetDisplayMainTitle(),
-													findtitle);
-								};
-							} else {
-								// 0011
-								check = [&findartist, &findtitle](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(x->GetDisplayMainTitle(),
-													findtitle);
-								};
-							};
-						}
-					} else {
-						if (findtitle.empty()) {
-							if (findartist.empty()) {
-								// 0100
-								check = [&findauthor](Song* x) {
-									return contains(
-									  x->GetOrTryAtLeastToGetSimfileAuthor(),
-									  findauthor);
-								};
-							} else {
-								// 0101
-								check = [&findauthor, &findartist](Song* x) {
-									return contains(x->GetDisplayArtist(),
-													findartist) ||
-										   contains(
-											 x->GetOrTryAtLeastToGetSimfileAuthor(),
-											 findauthor);
-								};
-							};
-						} else {
-							// 0110
-							check = [&findauthor, &findtitle](Song* x) {
-								return contains(x->GetDisplayMainTitle(),
-												findtitle) ||
-									   contains(
-										 x->GetOrTryAtLeastToGetSimfileAuthor(),
-										 findauthor);
-							};
-						}
-					}
-				}
-			}
-		}
+		if (!findartist.empty())
+			artistcheck = [&findartist](Song* x) {
+				return contains(x->GetDisplayArtist(), findartist);
+			};
+		if (!findtitle.empty())
+			titlecheck = [&findtitle](Song* x) {
+				return contains(x->GetDisplayMainTitle(), findtitle);
+			};
+		if (!findsubtitle.empty())
+			subtitlecheck = [&findsubtitle](Song* x) {
+				return contains(x->GetDisplaySubTitle(), findsubtitle);
+			};
+		if (!findauthor.empty())
+			authorcheck = [&findauthor](Song* x) {
+				return contains(x->GetOrTryAtLeastToGetSimfileAuthor(),
+								findauthor);
+			};
+		if (!findgroup.empty())
+			groupcheck = [&findgroup](Song* x) {
+				return contains(x->m_sGroupName, findgroup);
+			};
+		if (!findck.empty())
+			ckcheck = [&findck](Song* x) {
+				for (auto& steps : x->GetAllSteps())
+					if (contains(steps->GetChartKey(), findck))
+						return true;
+				return false;
+			};
 	}
 
 	for (auto& x : inv) {
-		if (check(x)) {
-			tmp.push_back(x);
+		if (!super_search) {
+			if (check(x)) {
+				tmp.push_back(x);
+				continue;
+			}
+		} else {
+			if (!findartist.empty())
+				if (artistcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findtitle.empty())
+				if (titlecheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findsubtitle.empty())
+				if (subtitlecheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findauthor.empty())
+				if (authorcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+		
+			if (!findgroup.empty())
+				if (groupcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
+			if (!findck.empty())
+				if (ckcheck(x)) {
+					tmp.push_back(x);
+					continue;
+				}
 		}
+		
 	}
 	if (!tmp.empty()) {
 		lastvalidsearch = findme;
@@ -668,12 +631,12 @@ MusicWheel::FilterBySearch(std::vector<Song*>& inv, std::string findme)
 }
 
 void
-MusicWheel::SetHashList(const std::vector<string>& newHashList)
+MusicWheel::SetHashList(const std::vector<std::string>& newHashList)
 {
 	hashList = newHashList;
 }
 void
-MusicWheel::SetOutHashList(const std::vector<string>& newOutHashList)
+MusicWheel::SetOutHashList(const std::vector<std::string>& newOutHashList)
 {
 	outHashList = newOutHashList;
 }
@@ -682,8 +645,8 @@ void
 MusicWheel::FilterByAndAgainstStepKeys(std::vector<Song*>& inv)
 {
 	std::vector<Song*> tmp;
-	const std::function<bool(Song*, std::vector<string>&)> check =
-	  [](Song* x, std::vector<string>& hl) {
+	const std::function<bool(Song*, std::vector<std::string>&)> check =
+	  [](Song* x, std::vector<std::string>& hl) {
 		  for (auto& ck : hl) {
 			  if (x->HasChartByHash(ck)) {
 				  return true;
@@ -893,6 +856,12 @@ MusicWheel::BuildWheelItemDatas(
 			case SORT_LENGTH:
 				SongUtil::SortSongPointerArrayByLength(arraySongs);
 				break;
+			case SORT_DATE_ADDED:
+				SongUtil::SortSongPointerArrayByDateAdded(arraySongs);
+				break;
+			case SORT_CHART_AUTHOR:
+				SongUtil::SortSongPointerArrayByAuthor(arraySongs);
+				break;
 			default:
 				FAIL_M("Unhandled sort order! Aborting...");
 		}
@@ -970,11 +939,13 @@ MusicWheel::BuildWheelItemDatas(
 							: SECTION_COLORS.GetValue(iSectionColorIndex);
 						iSectionColorIndex =
 						  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
-						arrayWheelItemDatas.push_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Section,
-												 nullptr,
-												 sThisSection,
-												 colorSection,
-												 iSectionCount));
+						arrayWheelItemDatas.emplace_back(
+						  std::make_unique<MusicWheelItemData>(
+							WheelItemDataType_Section,
+							nullptr,
+							sThisSection,
+							colorSection,
+							iSectionCount));
 						sLastSection = sThisSection;
 					}
 				}
@@ -1045,7 +1016,7 @@ MusicWheel::BuildWheelItemDatas(
 		}
 		// calculate the pack progress numbers for the sortorder
 		if (PREFSMAN->m_bPackProgressInWheel) {
-			auto allsongs = allSongsByGroupFiltered.at(so);
+			auto& allsongs = allSongsByGroupFiltered.at(so);
 			for (auto& groupname_songlist_pair : allsongs) {
 				int num_played_songs = 0;
 				for (auto& s : groupname_songlist_pair.second) {
@@ -1078,27 +1049,51 @@ MusicWheel::readyWheelItemsData(SortOrder so,
 								const std::string& findme)
 {
 	if (m_WheelItemDatasStatus[so] != VALID) {
+		auto before = std::chrono::steady_clock::now();
+
 		auto& aUnFilteredDatas = m__UnFilteredWheelItemDatas[so];
+
+		// this is about to be invalidated, so save the information
+		Song* cursong = nullptr;
+		std::string curtxt{};
+		WheelItemDataType curtype = WheelItemDataType_Invalid;
+		if (!m_CurWheelItemData.empty()) {
+			auto cur = GetCurWheelItemData(m_iSelection);
+			cursong = cur->m_pSong;
+			curtxt = cur->m_sText;
+			curtype = cur->m_Type;
+		}
 
 		if (m_WheelItemDatasStatus[so] == INVALID) {
 			BuildWheelItemDatas(aUnFilteredDatas, so, searching, findme);
 		}
-		FilterWheelItemDatas(aUnFilteredDatas, m__WheelItemDatas[so], so);
+		auto ptrSelectedWheelItemData = FilterWheelItemDatas(
+		  aUnFilteredDatas, m__WheelItemDatas[so], cursong, curtxt, curtype);
 		m_WheelItemDatasStatus[so] = VALID;
 
-		Locator::getLogger()->debug("MusicWheel sorting took: {}",
-									RageTimer::GetTimeSinceStart());
+		m_CurWheelItemData.clear();
+		m_nearestCompatibleWheelItemData = ptrSelectedWheelItemData;
+
+		auto now = std::chrono::steady_clock::now();
+		Locator::getLogger()->info(
+		  "MusicWheel sorting took: {}ms",
+		  std::chrono::duration<float, std::milli>(now - before).count());
 	}
 }
 
-void
-MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
-								 std::vector<MusicWheelItemData*>& aFilteredData,
-								 SortOrder /*so*/) const
+MusicWheelItemData*
+MusicWheel::FilterWheelItemDatas(
+  std::vector<std::unique_ptr<MusicWheelItemData>>& aUnFilteredDatas,
+  std::vector<MusicWheelItemData*>& aFilteredData,
+  const Song* currentSong,
+  const std::string& currentText,
+  const WheelItemDataType& currentType) const
 {
 	aFilteredData.clear();
 
 	const unsigned unfilteredSize = aUnFilteredDatas.size();
+
+	MusicWheelItemData* nearestCompatibleWheelItemData = nullptr;
 
 	/* Only add WheelItemDataType_Portal if there's at least one song on the
 	 * list. */
@@ -1156,6 +1151,33 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 		aFilteredData.emplace_back(aUnFilteredDatas[i].get());
 	}
 
+	std::function<void(MusicWheelItemData&)> catchSections;
+	if (currentType != WheelItemDataType_Invalid &&
+		currentType != WheelItemDataType_Song) {
+		catchSections = [&nearestCompatibleWheelItemData,
+						 &currentType,
+						 &currentText](MusicWheelItemData& WID) {
+			if (WID.m_Type == currentType && WID.m_sText == currentText) {
+				nearestCompatibleWheelItemData = &WID;
+			}
+		};
+	} else {
+		catchSections = [](MusicWheelItemData& WID) {};
+	}
+
+	std::function<void(MusicWheelItemData&)> catchSongs;
+	if (currentType == WheelItemDataType_Song && currentSong != nullptr) {
+		catchSongs = [&nearestCompatibleWheelItemData,
+					  &currentSong](MusicWheelItemData& WID) {
+			if (WID.m_pSong == currentSong) {
+				nearestCompatibleWheelItemData = &WID;
+			}
+			++WID.m_iSectionCount;
+		};
+	} else {
+		catchSongs = [](MusicWheelItemData& WID) { ++WID.m_iSectionCount; };
+	}
+
 	// Update the song count in each section header.
 	unsigned filteredSize = aFilteredData.size();
 	for (unsigned i = 0; i < filteredSize;) {
@@ -1169,7 +1191,7 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 		WID.m_iSectionCount = 0;
 		for (; i < filteredSize && aFilteredData[i]->m_sText == WID.m_sText;
 			 ++i) {
-			++WID.m_iSectionCount;
+			catchSongs(WID);
 		}
 	}
 
@@ -1178,6 +1200,7 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 	// since this is a rare case.
 	for (unsigned i = 0; i < filteredSize; ++i) {
 		auto& WID = *aFilteredData[i];
+		catchSections(WID);
 		if (WID.m_Type != WheelItemDataType_Section) {
 			continue;
 		}
@@ -1196,6 +1219,8 @@ MusicWheel::FilterWheelItemDatas(std::vector<std::unique_ptr<MusicWheelItemData>
 		  WheelItemDataType_Section, nullptr, EMPTY_STRING, EMPTY_COLOR, 0);
 		aFilteredData.emplace_back(&EmptyDummy);
 	}
+
+	return nearestCompatibleWheelItemData;
 }
 
 void
@@ -1224,17 +1249,7 @@ MusicWheel::UpdateSwitch()
 					break;
 			}
 
-			// Change difficulty for sorts by meter
-			// XXX: do this with GameCommand?
-			StepsType st;
-			Difficulty dc = Difficulty_Invalid;
-			if (SongUtil::GetStepsTypeAndDifficultyFromSortOrder(
-				  GAMESTATE->m_SortOrder, st, dc)) {
-				ASSERT(dc != Difficulty_Invalid);
-				if (GAMESTATE->IsPlayerEnabled(PLAYER_1)) {
-					GAMESTATE->m_PreferredDifficulty.Set(dc);
-				}
-			}
+			// should reset preferred difficulty here if possible
 
 			SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0);
 			RebuildWheelItems();
@@ -1457,17 +1472,12 @@ MusicWheel::SetOpenSection(const std::string& group)
 	if (REMIND_WHEEL_POSITIONS && HIDE_INACTIVE_SECTIONS) {
 		m_viWheelPositions.resize(SONGMAN->GetNumSongGroups());
 	}
-
+	
 	const WheelItemBaseData* old = nullptr;
 	if (!m_CurWheelItemData.empty()) {
 		old = GetCurWheelItemData(m_iSelection);
-	}
-
-	std::vector<const Style*> vpPossibleStyles;
-	if (CommonMetrics::AUTO_SET_STYLE) {
-		GAMEMAN->GetCompatibleStyles(GAMESTATE->m_pCurGame,
-									 GAMESTATE->GetNumPlayersEnabled(),
-									 vpPossibleStyles);
+	} else {
+		old = m_nearestCompatibleWheelItemData;
 	}
 
 	m_CurWheelItemData.clear();
@@ -1508,7 +1518,7 @@ MusicWheel::SetOpenSection(const std::string& group)
 	} else {
 		// Try to select the item that was selected before changing groups
 		m_iSelection = 0;
-
+		
 		for (auto i = 0; i < static_cast<int>(m_CurWheelItemData.size()); ++i) {
 			if (m_CurWheelItemData[i] == old) {
 				m_iSelection = i;
@@ -1788,12 +1798,12 @@ class LunaMusicWheel : public Luna<MusicWheel>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		std::vector<string> newHashList;
+		std::vector<std::string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		p->SetHashList(newHashList);
 
-		std::vector<string> newOutHashList;
+		std::vector<std::string> newOutHashList;
 		p->SetOutHashList(newOutHashList);
 
 		p->ReloadSongList(false, "");
@@ -1804,12 +1814,12 @@ class LunaMusicWheel : public Luna<MusicWheel>
 	{
 		luaL_checktype(L, 1, LUA_TTABLE);
 		lua_pushvalue(L, 1);
-		std::vector<string> newHashList;
+		std::vector<std::string> newHashList;
 		LuaHelpers::ReadArrayFromTable(newHashList, L);
 		lua_pop(L, 1);
 		luaL_checktype(L, 2, LUA_TTABLE);
 		lua_pushvalue(L, 2);
-		std::vector<string> newOutHashList;
+		std::vector<std::string> newOutHashList;
 		LuaHelpers::ReadArrayFromTable(newOutHashList, L);
 		lua_pop(L, 1);
 

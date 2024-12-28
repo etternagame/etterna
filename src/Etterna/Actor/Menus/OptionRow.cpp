@@ -215,7 +215,7 @@ OptionRow::GetRowTitle() const
 			DisplayBpms bpms;
 			if (GAMESTATE->m_pCurSong) {
 				const Song* pSong = GAMESTATE->m_pCurSong;
-				pSong->GetDisplayBpms(bpms);
+				pSong->GetDisplayBpms(bpms, false);
 			}
 
 			if (bpms.IsSecret())

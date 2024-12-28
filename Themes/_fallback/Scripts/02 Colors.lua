@@ -1,3 +1,6 @@
+--- Game Color utilities
+-- @module 02_Colors
+
 math.mod = math.fmod --alias used in some places
 -- xxx: everything below the big line of ...========... needs to be redone
 Color = {
@@ -318,67 +321,42 @@ end
 -- ColorToHSV(c)
 -- Takes in a normal color("") and returns a table with the HSV values.
 function ColorToHSV(c)
-	local r = c[1]
-	local g = c[2]
-	local b = c[3]
-	-- alpha requires error checking sometimes.
-	local a = HasAlpha(c)
+    local r, g, b, a = c[1], c[2], c[3], HasAlpha(c)
 
-	local h = 0
-	local s = 0
-	local v = 0
+    local min, max = math.min(r, g, b), math.max(r, g, b)
+    local v = max
+    local delta = max - min
+    local h, s
 
-	local min = math.min(r, g, b)
-	local max = math.max(r, g, b)
-	v = max
+    if delta == 0 then
+        -- This means there is no saturation; it's a shade of grey
+        -- Hue is undefined, but we set it to 0
+        h = 0
+        s = 0
+    else
+        s = delta / max
+        if r == max then
+            h = (g - b) / delta -- yellow/magenta
+        elseif g == max then
+            h = 2 + (b - r) / delta -- cyan/yellow
+        else
+            h = 4 + (r - g) / delta -- magenta/cyan
+        end
 
-	local delta = max - min
+        h = h * 60 -- Convert to degrees
+        if h < 0 then
+            h = h + 360
+        end
+    end
 
-	-- xxx: how do we deal with complete black?
-	if min == 0 and max == 0 then
-		-- we have complete darkness; make it cheap.
-		return {
-			Hue = 0,
-			Sat = 0,
-			Value = 0,
-			Alpha = a
-		}
-	end
-
-	if max ~= 0 then
-		s = delta / max -- rofl deltamax :|
-	else
-		-- r = g = b = 0; s = 0, v is undefined
-		s = 0
-		h = -1
-		return {
-			Hue = h,
-			Sat = s,
-			Value = v,
-			Alpha = 1
-		}
-	end
-
-	if r == max then
-		h = (g - b) / delta -- yellow/magenta
-	elseif g == max then
-		h = 2 + (b - r) / delta -- cyan/yellow
-	else
-		h = 4 + (r - g) / delta -- magenta/cyan
-	end
-
-	h = h * 60 -- degrees
-
-	if h < 0 then
-		h = h + 360
-	end
-
-	return {
-		Hue = h,
-		Sat = s,
-		Value = v,
-		Alpha = a
-	}
+    -- at this point, h should be a number between 0 and 360
+    -- s should be between 0 and 1, and v should be between 0 and 1
+    return {
+        Hue = h,
+        Sat = s,
+        Value = v,
+        Alpha = a
+    }
 end
 
 function Hue(color, newHue)
@@ -393,6 +371,7 @@ function Hue(color, newHue)
 	c.Hue = newHue
 	return HSVToColor(c)
 end
+
 function Saturation(color, percent)
 	local c = ColorToHSV(color)
 	-- error checking
@@ -401,7 +380,11 @@ function Saturation(color, percent)
 	elseif percent > 1 then
 		percent = 1.0
 	end
-	c.Sat = percent
+    -- if the color is white or a shade of grey, changing saturation has no visible effect
+    if c.Value == 1 and c.Sat == 0 then 
+        return color
+    end
+    c.Sat = percent
 	return HSVToColor(c)
 end
 

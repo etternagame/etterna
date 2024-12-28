@@ -42,7 +42,7 @@ ScreenNetEvaluation::Input(const InputEventPlus& input)
 void
 ScreenNetEvaluation::HandleScreenMessage(const ScreenMessage& SM)
 {
-	if (SM == SM_GoToNextScreen) {
+	if (SM == SM_GoToNextScreen || SM == SM_GoToPrevScreen) {
 		NSMAN->OffEval();
 	}
 	ScreenEvaluation::HandleScreenMessage(SM);

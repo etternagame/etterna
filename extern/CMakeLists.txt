@@ -13,7 +13,7 @@ set(BUILD_SHARED_LIBS OFF) # Tell CMake to prefer static libs
 
 # External Libraries
 ## Curl Specific Options
-set(CMAKE_USE_LIBSSH2 OFF CACHE BOOL "" FORCE) # Disable curl libssh2
+set(CURL_USE_LIBSSH2 OFF CACHE BOOL "" FORCE) # Disable curl libssh2
 set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)    # Tell curl not to build standalone binary
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)     # Disable curl testing
 set(CURL_USE_OPENSSL ON CACHE BOOL "" FORCE)  # Require OpenSSL
@@ -26,8 +26,11 @@ set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp lintiPng
 add_subdirectory(SQLiteCpp)
 
 ## websocketpp
-add_subdirectory(asio-1.12.2) # Only required for websocketpp
+add_subdirectory(asio) # Only required for websocketpp
 add_subdirectory(websocketpp)
+add_library(websocketpp INTERFACE)
+target_include_directories(websocketpp INTERFACE websocketpp)
+target_link_libraries(websocketpp INTERFACE asio)
 
 ## discord-rpc
 set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
@@ -43,6 +46,16 @@ add_subdirectory(plog)
 set(RAPIDJSON_BUILD_EXAMPLES OFF)
 add_subdirectory(rapidjson)
 add_subdirectory(stb)
+add_subdirectory(miniz)
+
+if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    # Used for providing ARM's NEON equivalents of x86_64 SSE SIMD instructions
+    add_subdirectory(sse2neon)
+endif()
+
+
+set(JWT_SSL_LIBRARY OpenSSL)
+add_subdirectory(jwt-cpp-0.6.0)
 
 ## Remaining Libraries
 add_subdirectory(luajit)

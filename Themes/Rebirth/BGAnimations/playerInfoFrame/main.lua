@@ -30,9 +30,9 @@ local t = Def.ActorFrame {
         playerConfig:set_dirty()
         playerConfig:save()
     end,
-    LoginFailedMessageCommand = function(self)
+    LoginFailedMessageCommand = function(self, params)
         self:playcommand("Set")
-        ms.ok("Login Failed")
+        ms.ok("Login Failed: " .. params.why)
 
         playerConfig:get_data().UserName = ""
         playerConfig:get_data().PasswordToken = ""
@@ -169,6 +169,7 @@ local translations = {
     DownloadingPacks = THEME:GetString("Header", "DownloadingPacks"),
     QueuedPacks = THEME:GetString("Header", "QueuedPacks"),
     UploadPercent = THEME:GetString("Header", "UploadPercent"),
+    SetPlayerName = THEME:GetString("Header", "SetPlayerName"),
 }
 
 -- the list of buttons and the lists of screens those buttons are allowed on
@@ -210,6 +211,10 @@ local visualizerBins = 126
 local leftTextBigSize = 0.7
 local leftTextSmallSize = 0.65
 local rightTextSize = 0.7
+
+local versionTextSize = 0.45
+local versionPadding = 2
+
 local textzoomFudge = 5 -- for gaps in maxwidth
 -- a controllable hack to give more girth to the rating text (RightText) on smaller aspect ratios
 -- should push the visualizer further right and make less problems
@@ -249,14 +254,14 @@ local function beginLoginProcess(self)
     off()
 
     username = ""
-    
+
     -- this sets up 2 text entry windows to pull your username and pass
     -- if you press escape or just enter nothing, you are forced out
     -- input redirects are controlled here because we want to be careful not to break any prior redirects
     askForInputStringWithFunction(
-        "Enter Username",
+        "Enter Email",
         255,
-        false,
+        true,
         function(answer)
             username = answer
             -- moving on to step 2 if the answer isnt blank
@@ -395,17 +400,23 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     end,
     MouseDownCommand = function(self, params)
         if params.event == "DeviceButton_left mouse button" then
-            TOOLTIP:Hide()
-            if DLMAN:IsLoggedIn() then
-                DLMAN:Logout()
-            else
-                beginLoginProcess(self)
-            end
+            self:playcommand("Invoke")
+        end
+    end,
+    InvokeCommand = function(self)
+        TOOLTIP:Hide()
+        if DLMAN:IsLoggedIn() then
+            DLMAN:Logout()
+        else
+            beginLoginProcess(self)
         end
     end,
     LoginStep2Command = function(self)
         loginStep2()
-    end
+    end,
+    TriggerLoginLogoutMessageCommand = function(self)
+        self:playcommand("Invoke")
+    end,
 }
 
 t[#t+1] = Def.ActorFrame {
@@ -431,18 +442,28 @@ t[#t+1] = Def.ActorFrame {
             else
                 self:settext(profile:GetDisplayName())
             end
+            if self:IsInvisible() then return end
+            if isOver(self) then
+                TOOLTIP:SetText(translations["SetPlayerName"])
+                TOOLTIP:Show()
+            end
         end,
         ProfileRenamedMessageCommand = function(self)
             self:playcommand("Set")
         end,
         MouseOverCommand = function(self)
             self:diffusealpha(hoverAlpha)
+            if self:IsInvisible() then return end
+            TOOLTIP:SetText(translations["SetPlayerName"])
+            TOOLTIP:Show()
         end,
         MouseOutCommand = function(self)
             self:diffusealpha(1)
+            TOOLTIP:Hide()
         end,
         MouseDownCommand = function(self, params)
             if params.event == "DeviceButton_left mouse button" then
+                TOOLTIP:Hide()
                 renameProfileDialogue(profile)
             end
         end,
@@ -651,8 +672,10 @@ t[#t+1] = Def.ActorFrame {
             end
 
             local ctrl = INPUTFILTER:IsControlPressed()
+            local char = event.charNoModifiers:upper()
+            local char2 = event.char:upper()
             -- login logout shortcut
-            if ctrl and event.DeviceInput.button == "DeviceButton_l" then
+            if ctrl and (char == "L" or char2 == "L") then
                 if not DLMAN:IsLoggedIn() then
                     beginLoginProcess(self)
                 else
@@ -942,7 +965,7 @@ t[#t+1] = Def.ActorFrame {
                     self:diffusealpha(downloadsProgress1Alpha)
                     local progress = dls[1]:GetKBDownloaded()
                     local size = dls[1]:GetTotalKB()
-                    local perc = progress / size
+                    local perc = math.max(progress / size, 0)
                     self:zoomx(actuals.IconDownloadsProgressBarWidth * perc)
                 else
                     self:diffusealpha(0)
@@ -978,7 +1001,12 @@ t[#t+1] = Def.ActorFrame {
             ToolTipCommand = function(self)
                 -- weird check here to throw out nan
                 if isOver(self) and self.percent ~= nil and self.percent ~= 1 and self.percent == self.percent then
-                    local st = string.format("%s: %5.2f%%", translations["UploadPercent"], self.percent * 100)
+                    local st = string.format(
+                        "%s: %5.2f%% (%d/%d)",
+                        translations["UploadPercent"],
+                        self.percent * 100,
+                        DLMAN:GetQueuedScoreUploadTotal() * self.percent,
+                        DLMAN:GetQueuedScoreUploadTotal())
                     TOOLTIP:SetText(st)
                     TOOLTIP:Show()
                 else
@@ -1120,6 +1148,21 @@ t[#t+1] = Def.ActorFrame {
             self:playcommand("Invoke")
         end
     }
+}
+
+
+t[#t+1] = LoadFont("Common Normal") .. {
+    Name = "GameVersion",
+    InitCommand = function(self)
+        self:x(actuals.Width - versionPadding)
+        self:y(versionPadding)
+        self:halign(1):valign(0)
+        self:zoom(versionTextSize)
+        self:maxwidth((SCREEN_WIDTH/2) / versionTextSize - textzoomFudge)
+        self:settextf("%s", GAMESTATE:GetEtternaVersion())
+        registerActorToColorConfigElement(self, "main", "SecondaryText")
+        self:diffusealpha(0.6)
+    end
 }
 
 -- if off at first, cannot toggle at runtime

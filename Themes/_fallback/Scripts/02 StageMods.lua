@@ -1,3 +1,6 @@
+--- DEPRECATED: Course and Stage related functions
+-- @module 02_StageMods
+
 function AreStagePlayerModsForced()
 	return false
 end

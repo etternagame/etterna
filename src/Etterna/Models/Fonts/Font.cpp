@@ -6,6 +6,7 @@
 #include "FontCharmaps.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageTextureManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "arch/Dialog/Dialog.h"
@@ -466,7 +467,7 @@ Font::GetFontPaths(const std::string& sFontIniPath,
 {
 	std::string sPrefix = SetExtension(sFontIniPath, "");
 	std::vector<std::string> asFiles;
-	GetDirListing(sPrefix + "*", asFiles, false, true);
+	FILEMAN->GetDirListing(sPrefix + "*", asFiles, false, true);
 
 	for (auto& asFile : asFiles) {
 		if (!EqualsNoCase(tail(asFile, 4), ".ini"))
@@ -841,7 +842,7 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 	LoadStack.push_back(sIniPath);
 
 	// The font is not already loaded. Figure out what we have.
-	Locator::getLogger()->trace("Font::Load(\"{}\",\"{}\").", sIniPath.c_str(), m_sChars.c_str());
+	Locator::getLogger()->trace("Font::Load('{}','{}').", sIniPath, m_sChars);
 
 	path = sIniPath;
 	m_sChars = sChars;
@@ -882,19 +883,19 @@ Font::Load(const std::string& sIniPath, const std::string& sChars)
 		split(imports, ",", ImportList, true);
 
 		if (bIsTopLevelFont && imports.empty() && asTexturePaths.empty()) {
-			std::string s = ssprintf(
-			  "Font \"%s\" is a top-level font with no textures or imports.",
-			  sIniPath.c_str());
+			auto s = fmt::format(
+			  "Font '{}' is a top-level font with no textures or imports.",
+			  sIniPath);
 			Dialog::OK(s);
 		}
 
 		for (auto& i : ImportList) {
 			std::string sPath = THEME->GetPathF("", i, true);
 			if (sPath == "") {
-				std::string s = ssprintf(
-				  "Font \"%s\" imports a font \"%s\" that doesn't exist",
-				  sIniPath.c_str(),
-				  i.c_str());
+				auto s = fmt::format(
+				  "Font '{}' imports a font '{}' that doesn't exist",
+				  sIniPath,
+				  i);
 				Dialog::OK(s);
 				continue;
 			}

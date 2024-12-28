@@ -11,6 +11,7 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Sound/RageSound.h"
 #include "RageUtil/Sound/RageSoundManager.h"
+#include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Models/Misc/TimingData.h"
@@ -286,6 +287,8 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		p.m_fFadeOutSeconds = ToPlay.fFadeOutLengthSeconds;
 		p.m_StartTime = when;
 		p.m_bAccurateSync = ToPlay.bAccurateSync;
+		if (ToPlay.bApplyMusicRate)
+			p.m_fSpeed = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
 		if (ToPlay.bForceLoop)
 			p.StopMode = RageSoundParams::M_LOOP;
 		NewMusic->m_Music->SetParams(p);
@@ -320,10 +323,10 @@ GameSoundManager::DoPlayOnceFromDir(std::string sPath)
 	ensure_slash_at_end((sPath));
 
 	std::vector<std::string> arraySoundFiles;
-	GetDirListing(sPath + "*.mp3", arraySoundFiles);
-	GetDirListing(sPath + "*.wav", arraySoundFiles);
-	GetDirListing(sPath + "*.ogg", arraySoundFiles);
-	GetDirListing(sPath + "*.oga", arraySoundFiles);
+	FILEMAN->GetDirListing(sPath + "*.mp3", arraySoundFiles, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + "*.wav", arraySoundFiles, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + "*.ogg", arraySoundFiles, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + "*.oga", arraySoundFiles, ONLY_FILE);
 
 	if (arraySoundFiles.empty())
 		return;

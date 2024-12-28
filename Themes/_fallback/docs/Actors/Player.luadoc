@@ -1,0 +1,32 @@
+--- Player control class
+--
+-- This controls the user interaction with the current chart being played in gameplay.
+-- One way to retrieve the Player in gameplay is `SCREENMAN:GetTopScreen():GetChild("PlayerP1")`.
+-- The Player owns the @{NoteField}, Combo, Tap Judgments, and Hold Judgments, among other things.
+-- Most of these children can be found via GetChild by name, such as "Combo", "Judgment", "NoteField".
+--
+-- This class inherits all methods from these classes:
+-- @{ActorFrame}
+-- @{Actor}
+-- @classmod Player
+
+--- Set the Lifebar to a new given value.
+-- Ordinarily, this value must be between 0 and 1, but the max is actually determined by metric LifeMultiplier.
+-- @tparam number value The new value to set the Lifebar to.
+-- @return self
+function Player:SetLife(value)
+end
+
+--- Set the Lifebar to a new value by changing it by a given amount.
+-- The value given to this function is scaled by Preference LifeDifficultyScale, which is the Life Difficulty setting.
+-- @tparam number amount The amount to change the Player life.
+-- @return self
+function Player:ChangeLife(amount)
+end
+
+--- Retrieve the @{TimingData} that the Player is relying on.
+-- Normally, this is just the TimingData of the current @{Steps}.
+-- This is like an alias of `GAMESTATE:GetCurrentSteps():GetTimingData()`.
+-- @treturn TimingData The TimingData of the currently playing Steps.
+function Player:GetPlayerTimingData()
+end

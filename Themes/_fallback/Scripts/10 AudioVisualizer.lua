@@ -1,3 +1,6 @@
+--- Audio Visualizer. Displays like an equalizer the current audio frames at certain customizable hz intervals.
+-- @module 10_AudioVisualizer
+
 local log = math.log
 local concat = function(...)
     local arg = {...}
@@ -174,11 +177,6 @@ function audioVisualizer:new(params)
     local screen
     local values = frame.values
     frame.playbackFunction = function(fft, ss)
-        -- cleanup
-        if screen ~= SCREENMAN:GetTopScreen() then
-            SOUND:ClearPlayBackCallback()
-            return
-        end
         local samplingRate = ss:GetSampleRate()
         local count = #fft
 
@@ -219,6 +217,15 @@ function audioVisualizer:new(params)
         screen = SCREENMAN:GetTopScreen()
         SOUND:SetPlayBackCallback(frame.playbackFunction, frame.sampleCount)
     end
+    frame.EndCommand = function(self)
+        -- triggers if the screen the visualizer is loaded on gets deleted (a transition or exit)
+        SOUND:ClearPlayBackCallback()
+    end
+    frame.ResetVisualizerMessageCommand = function(self)
+        screen = SCREENMAN:GetTopScreen()
+        SOUND:SetPlayBackCallback(frame.playbackFunction, frame.sampleCount)
+    end
+
     frame[#frame + 1] = frame.sound
     return frame
 end

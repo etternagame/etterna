@@ -1,0 +1,62 @@
+--- Selection Wheel base class
+--
+-- This is the base class for other wheel classes such as @{MusicWheel} and @{RoomWheel}.
+-- The easiest way to acquire the existing Wheel on a screen is `SCREENMAN:GetTopScreen():GetMusicWheel()`.
+--
+-- This class inherits all methods from these classes:
+-- @{ActorFrame}
+-- @{Actor}
+-- @classmod WheelBase
+
+--- Move the wheel a given amount of choices in some direction.
+-- @tparam int amount Amount to move. Nil does no move. Negative goes in the other direction.
+-- @return self
+function WheelBase:Move(amount)
+end
+
+--- Retrieve the @{WheelItemBase} at a given index.
+-- This does not retrieve an arbitrarily far wheel item, but actually the visible item.
+-- Every time a movement is made on the Wheel, the data behind each WheelItem is switched to another WheelItem.
+-- For example, the highest allowed index to pass is `(NUM_WHEEL_ITEMS-1)` which comes from the metrics.ini definition for the Wheel implementation you are using (NumWheelItems).
+-- @tparam int index Index for the WheelItem to retrieve.
+-- @treturn WheelItemBase The WheelItem at the given index. Returns nil and throws an error if the index is not valid.
+function WheelBase:GetWheelItem(index)
+end
+
+--- Query whether or not the Wheel is settled. The Wheel is settled if it is not moving or locked.
+-- @treturn bool True if the wheel is not moving.
+function WheelBase:IsSettled()
+end
+
+--- Query whether or not the Wheel is locked. The Wheel is locked when a selection was just made or roulette just finished.
+-- @treturn bool True if the wheel is locked.
+function WheelBase:IsLocked()
+end
+
+--- Set the current open section on the Wheel.
+-- This is usually used to change the opened folder remotely.
+-- @tparam string sectionName The name of a group or section, depending on the @{SortOrder}
+-- @return self
+function WheelBase:SetOpenSection(sectionName)
+end
+
+--- Get the current index of the hovered item in all of the data loaded in the Wheel. This is not restricted by NumWheelItems.
+-- @treturn int Index of the currently hovered item.
+function WheelBase:GetCurrentIndex()
+end
+
+--- Get the number of items in the data loaded in the Wheel. This is not restricted by NumWheelItems.
+-- This may include all Songs and all Group items.
+-- @treturn int Count of items in the Wheel.
+function WheelBase:GetNumItems()
+end
+
+--- Get the @{WheelItemDataType} of the currently hovered WheelItem.
+-- @treturn WheelItemDataType The type of the currently hovered WheelItem.
+function WheelBase:GetSelectedType()
+end
+
+--- Rebuild the WheelItems to refresh the visual data.
+-- @return self
+function WheelBase:RebuildWheelItems()
+end

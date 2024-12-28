@@ -33,7 +33,6 @@
 #include "Etterna/Singletons/FilterManager.h"
 
 #include "Etterna/Models/NoteData/NoteDataStructures.h"
-#include "Etterna/Globals/SoloCalc.h"
 
 /* register DisplayBPM with StringConversion */
 #include "Etterna/Models/Misc/EnumHelper.h"
@@ -78,17 +77,20 @@ Steps::~Steps() = default;
 auto Steps::operator=(const Steps &) -> Steps& = default;
 
 void
-Steps::GetDisplayBpms(DisplayBpms& AddTo) const
+Steps::GetDisplayBpms(DisplayBpms& AddTo, bool bIgnoreCurrentRate) const
 {
+	const auto demratesboiz =
+	  bIgnoreCurrentRate ? 1.F
+						 : GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 	if (this->GetDisplayBPM() == DISPLAY_BPM_SPECIFIED) {
-		AddTo.Add(this->GetMinBPM());
-		AddTo.Add(this->GetMaxBPM());
+		AddTo.Add(this->GetMinBPM() * demratesboiz);
+		AddTo.Add(this->GetMaxBPM() * demratesboiz);
 	} else {
 		float fMinBPM;
 		float fMaxBPM;
 		this->GetTimingData()->GetActualBPM(fMinBPM, fMaxBPM);
-		AddTo.Add(fMinBPM);
-		AddTo.Add(fMaxBPM);
+		AddTo.Add(fMinBPM * demratesboiz);
+		AddTo.Add(fMaxBPM * demratesboiz);
 	}
 }
 
@@ -399,10 +401,13 @@ Steps::GetMSD(float rate, Skillset ss) const -> float
 }
 
 auto
-Steps::SortSkillsetsAtRate(float x, bool includeoverall)
+Steps::SortSkillsetsAtRate(float rate, bool includeoverall)
   -> std::vector<std::pair<Skillset, float>>
 {
-	const auto idx = static_cast<int>(x * 10) - 7;
+	// for safety
+	CLAMP(rate, .7F, 2.F);
+
+	const auto idx = static_cast<int>(rate * 10) - 7;
 	auto tmp = diffByRate[idx];
 	std::vector<std::pair<Skillset, float>> mort;
 	FOREACH_ENUM(Skillset, ss)
@@ -422,17 +427,13 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	const auto& cereal =
 	  m_pNoteData->SerializeNoteData2(GetTimingData(), false);
 
-	if (m_StepsType != StepsType_dance_single) {
-		int columnCount =
-		  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
-		diffByRate = SoloCalc(cereal, columnCount);
-	} else if (m_StepsType == StepsType_dance_single) {
-		if (calc == nullptr) {
-			// reloading at music select
-			diffByRate = MinaSDCalc(cereal, SONGMAN->calc.get());
-		} else {
-			diffByRate = MinaSDCalc(cereal, calc);
-		}
+	const unsigned columnCount =
+	  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
+	if (calc == nullptr) {
+		// reloading at music select
+		diffByRate = MinaSDCalc(cereal, columnCount, SONGMAN->calc.get());
+	} else {
+		diffByRate = MinaSDCalc(cereal, columnCount, calc);
 	}
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
@@ -464,7 +465,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 	const auto& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const auto& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	auto newcalc = MinaSDCalc(cereal, rate, 0.93F, calc);
+	auto newcalc = MinaSDCalc(cereal, rate, 0.93F, 4, calc);
 	auto last_msd = newcalc[ss];
 	const auto prev_vers = GetCalcVersion() - 1;
 	if (vh.count(prev_vers) != 0U) {
@@ -497,17 +498,15 @@ Steps::GetCalcDebugOutput()
 	calcdebugoutput.clear();
 	// function is responsible for producing debug output
 
-	// This is 4k only
-	if (m_StepsType != StepsType_dance_single) {
-		return;
-	}
-
 	Decompress();
 	const auto& cereal = m_pNoteData->SerializeNoteData2(GetTimingData());
+	const unsigned columnCount =
+	  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
 
 	MinaSDCalcDebug(cereal,
 					GAMESTATE->m_SongOptions.GetSong().m_fMusicRate,
 					0.93F,
+					columnCount,
 					calcdebugoutput,
 					debugstrings,
 					*SONGMAN->calc);
@@ -723,25 +722,34 @@ Steps::GetNPSVector(const NoteData& nd,
 					const std::vector<int>& nerv,
 					const float rate) -> std::vector<int>
 {
-	std::vector<int> doot(static_cast<int>(etaner.back()));
-	auto notecounter = 0;
-	auto lastinterval = 0;
-
-	for (auto i = 0; i < static_cast<int>(nerv.size()); ++i) {
+	std::map<int, int> intervals_to_counts{};
+	for (auto i = 0; i < static_cast<int>(nerv.size()); i++) {
 		const auto curinterval = static_cast<int>(etaner[i] / rate);
-		if (curinterval > lastinterval) {
-			doot[lastinterval] = notecounter;
-			notecounter = 0;
-			lastinterval = static_cast<int>(curinterval);
-		}
-
 		for (auto t = 0; t < nd.GetNumTracks(); ++t) {
 			const auto& tn = nd.GetTapNote(t, nerv[i]);
 			if (tn.type == TapNoteType_Tap || tn.type == TapNoteType_HoldHead) {
-				++notecounter;
+				intervals_to_counts[curinterval]++;
 			}
 		}
 	}
+
+	auto sz = 0;
+	if (intervals_to_counts.size() > 0) {
+		sz = std::max(static_cast<int>(etaner.back() / rate),
+					  intervals_to_counts.rbegin()->first);
+	} else {
+		sz = static_cast<int>(etaner.back() / rate);
+	}
+	std::vector<int> doot(sz + 1);
+	for (const auto& p : intervals_to_counts) {
+		if (p.first < 0) {
+			Locator::getLogger()->error(
+			  "BAD FILE PRODUCED NEGATIVE ETANER itv {}", p.first);
+			continue;
+		}
+		doot[p.first] = p.second;
+	}
+
 	return doot;
 }
 
@@ -794,18 +802,9 @@ Steps::GetCNPSVector(const NoteData& nd,
 					 const int chordsize,
 					 const float rate) -> std::vector<int>
 {
-	std::vector<int> doot(static_cast<int>(etaner.back()));
-	auto chordnotecounter = 0; // number of NOTES inside chords of this size, so
-							   // 5 jumps = 10 notes, 3 hands = 9 notes, etc
-	auto lastinterval = 0;
-
-	for (auto i = 0; i < static_cast<int>(nerv.size()); ++i) {
+	std::map<int, int> intervals_to_counts{};
+	for (auto i = 0; i < static_cast<int>(nerv.size()); i++) {
 		const auto curinterval = static_cast<int>(etaner[i] / rate);
-		if (curinterval > lastinterval) {
-			doot[lastinterval] = chordnotecounter;
-			chordnotecounter = 0;
-			lastinterval = static_cast<int>(curinterval);
-		}
 		auto notesinchord = 0;
 		for (auto t = 0; t < nd.GetNumTracks(); ++t) {
 			const auto& tn = nd.GetTapNote(t, nerv[i]);
@@ -814,9 +813,28 @@ Steps::GetCNPSVector(const NoteData& nd,
 			}
 		}
 		if (notesinchord == chordsize) {
-			chordnotecounter += notesinchord;
+			intervals_to_counts[curinterval] += notesinchord;
 		}
 	}
+
+	auto sz = 0;
+	if (intervals_to_counts.size() > 0) {
+		sz = std::max(static_cast<int>(etaner.back() / rate),
+					  intervals_to_counts.rbegin()->first);
+	} else {
+		sz = static_cast<int>(etaner.back() / rate);
+	}
+	
+	std::vector<int> doot(sz + 1);
+	for (const auto& p : intervals_to_counts) {
+		if (p.first < 0) {
+			Locator::getLogger()->error(
+			  "BAD FILE PRODUCED NEGATIVE ETANER itv {}", p.first);
+			continue;
+		}
+		doot[p.first] = p.second;
+	}
+	
 	return doot;
 }
 
@@ -833,6 +851,9 @@ class LunaSteps : public Luna<Steps>
 	DEFINE_METHOD(GetAuthorCredit, GetCredit())
 	DEFINE_METHOD(GetMeter, GetMeter())
 	DEFINE_METHOD(GetFilename, GetFilename())
+	DEFINE_METHOD(HasGoal, HasGoal())
+	DEFINE_METHOD(IsPermaMirror, IsPermaMirror())
+	DEFINE_METHOD(IsFavorited, IsFavorited())
 
 	static auto HasSignificantTimingChanges(T* p, lua_State* L) -> int
 	{
@@ -881,7 +902,11 @@ class LunaSteps : public Luna<Steps>
 	static auto GetDisplayBpms(T* p, lua_State* L) -> int
 	{
 		DisplayBpms temp;
-		p->GetDisplayBpms(temp);
+		bool bIgnore = false;
+		if (!lua_isnoneornil(L, 1)) {
+			bIgnore = BArg(1);
+		}
+		p->GetDisplayBpms(temp, bIgnore);
 		const auto fMin = temp.GetMin();
 		const auto fMax = temp.GetMax();
 		std::vector<float> fBPMs;
@@ -933,7 +958,7 @@ class LunaSteps : public Luna<Steps>
 
 	static auto GetSSRs(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = std::clamp(FArg(1), MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 		const auto goal = FArg(2);
 		auto nd = p->GetNoteData();
 		const auto loot = nd.BuildAndGetNerv(p->GetTimingData());
@@ -944,13 +969,9 @@ class LunaSteps : public Luna<Steps>
 		}
 		std::vector<float> d;
 
-		if (p->m_StepsType != StepsType_dance_single) {
-			int columnCount =
-			  GAMEMAN->GetStepsTypeInfo(p->m_StepsType).iNumTracks;
-			d = SoloCalc(ni, columnCount, rate, goal);
-		} else {
-			d = MinaSDCalc(ni, rate, goal, SONGMAN->calc.get());
-		}
+		const unsigned columnCount =
+		  GAMEMAN->GetStepsTypeInfo(p->m_StepsType).iNumTracks;
+		d = MinaSDCalc(ni, rate, goal, columnCount, SONGMAN->calc.get());
 
 		const auto ssrs = d;
 		LuaHelpers::CreateTableFromArray(ssrs, L);
@@ -958,7 +979,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetRelevantSkillsetsByMSDRank(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 2.F);
+		const auto rate = FArg(1);
 		const auto rank = IArg(2) - 1; // indexing
 		auto sortedskillsets = p->SortSkillsetsAtRate(rate, false);
 		const auto relevance_cutoff = 0.9F;
@@ -1011,7 +1032,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetCDGraphVectors(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = std::clamp(FArg(1), MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty()) {
 			return 0;
@@ -1024,25 +1045,18 @@ class LunaSteps : public Luna<Steps>
 
 		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
 		// etaner), L) produced tables full of 0 values for ???? reason -mina
-		auto scroot = p->GetNPSVector(nd, etaner, nerv, rate);
 		lua_newtable(L);
-		LuaHelpers::CreateTableFromArray(scroot, L);
+		LuaHelpers::CreateTableFromArray(
+		  p->GetNPSVector(nd, etaner, nerv, rate), L);
 		lua_rawseti(L, -2, 1);
 
 		for (auto i = 1; i < nd.GetNumTracks(); ++i) {
-			scroot = p->GetCNPSVector(
-			  nd,
-			  nerv,
-			  etaner,
-			  i + 1,
-			  rate); // sort of confusing: the luatable pos/chordsize are i + 1
+			// sort of confusing: the luatable pos/chordsize are i + 1
+			// but we're iterating over tracks which are 0 indexed
+			// so jumps are position 2 and 2 notes each when i = 1 -mina
 			LuaHelpers::CreateTableFromArray(
-			  scroot, L); // but we're iterating over tracks which are 0 indexed
-			lua_rawseti(
-			  L,
-			  -2,
-			  i +
-				1); // so jumps are position 2 and 2 notes each when i = 1 -mina
+			  p->GetCNPSVector(nd, nerv, etaner, i + 1, rate), L);
+			lua_rawseti(L, -2, i + 1);
 		}
 		nd.UnsetNerv();
 		p->GetTimingData()->UnsetEtaner();
@@ -1141,6 +1155,23 @@ class LunaSteps : public Luna<Steps>
 			  lua_rawset(L, -3);
 		  };
 
+		auto ff3 = [&](std::array<std::vector<std::array<float, 4>>, num_hands>&
+						 debugArr) {
+			lua_createtable(L, 0, 2);
+			for (auto hand = 0; hand < num_hands; hand++) {
+				lua_pushstring(L, hand != 0 ? "Right" : "Left");
+				lua_createtable(L, 0, 2);
+				int i = 1;
+				for (auto& x : debugArr.at(hand)) {
+					std::vector<float> stuff{ x[0], x[1], x[2], x[3] };
+					LuaHelpers::CreateTableFromArray(stuff, L);
+					lua_rawseti(L, -2, i++);
+				}
+				lua_rawset(L, -3);
+			}
+			lua_rawset(L, -3);
+		};
+
 		// debugMSD, debugPtLoss, debugTotalPatternMod
 		lua_createtable(L, 0, 4);
 		lua_pushstring(L, "DebugMSD");
@@ -1153,6 +1184,10 @@ class LunaSteps : public Luna<Steps>
 		// debugMovingWindowCV
 		lua_pushstring(L, "DebugMovingWindowCV");
 		ff2(SONGMAN->calc->debugMovingWindowCV);
+
+		// debugTechVals
+		lua_pushstring(L, "DebugTechVals");
+		ff3(SONGMAN->calc->debugTechVals);
 
 		return 1;
 	}
@@ -1254,7 +1289,7 @@ class LunaSteps : public Luna<Steps>
 	}
 	static auto GetNPSPerMeasure(T* p, lua_State* L) -> int
 	{
-		const auto rate = std::clamp(FArg(1), 0.7F, 3.F);
+		const auto rate = std::clamp(FArg(1), MIN_MUSIC_RATE, MAX_MUSIC_RATE);
 
 		auto nd = p->GetNoteData();
 		if (nd.IsEmpty()) {
@@ -1306,6 +1341,9 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetFirstSecond);
 		ADD_METHOD(GetLastSecond);
 		ADD_METHOD(GetNPSPerMeasure);
+		ADD_METHOD(IsFavorited);
+		ADD_METHOD(HasGoal);
+		ADD_METHOD(IsPermaMirror);
 	}
 };
 

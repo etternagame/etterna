@@ -1,0 +1,5 @@
+--- Texture render target class
+--
+-- This class inherits all methods from these classes:
+-- @{RageTexture}
+-- @classmod RageTextureRenderTarget

@@ -137,7 +137,11 @@ function registerActorToCustomizeGameplayUI(elementinfo, layer)
                     local cmd = function(shelf)
                         shelf:z(layer)
                     end
-                    self:addcommand("SetUpFinished", cmd)
+                    if self:GetCommand("SetUpFinished") == nil then
+                        self:addcommand("SetUpFinished", cmd)
+                    else
+                        print("Found duplicate SetUpFinished in element "..(self:GetName() or "UNNAMED"))
+                    end
                 end)
         end
     end

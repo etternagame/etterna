@@ -29,25 +29,34 @@ t[#t+1] = Def.ActorFrame {
             self:x(hiddenX)
         end
     end,
+    ShowRightFrameMessageCommand = function(self)
+        self:finishtweening()
+        self:smooth(0.1)
+        self:x(visibleX)
+        rightFrameVisible = true
+    end,
+    HideRightFrameMessageCommand = function(self)
+        rightFrameVisible = false
+        self:finishtweening()
+        self:smooth(0.1)
+        self:x(hiddenX)
+        TOOLTIP:Hide()
+    end,
     GeneralTabSetMessageCommand = function(self, params)
         if params ~= nil and params.tab ~= nil then
             SCUFF.generaltab = params.tab
         end
         if not rightFrameVisible then
             CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
-            self:finishtweening()
-            self:smooth(0.1)
-            self:x(visibleX)
-            rightFrameVisible = true
+            self:playcommand("ShowRightFrame")
         end
         TOOLTIP:Hide()
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self)
-        rightFrameVisible = false
-        self:finishtweening()
-        self:smooth(0.1)
-        self:x(hiddenX)
-        TOOLTIP:Hide()
+        self:playcommand("HideRightFrame")
+    end,
+    ChartPreviewToggleMessageCommand = function(self)
+        self:playcommand("HideRightFrame")
     end,
     UpdateWheelPositionCommand = function(self)
         self:playcommand("SetThePositionForThisFrameNothingElse")
@@ -57,6 +66,11 @@ t[#t+1] = Def.ActorFrame {
             self:GetParent():playcommand("UpdateWheelPosition")
         end
     end,
+    ReloadedScriptsMessageCommand = function(self)
+        CONTEXTMAN:SetFocusedContextSet(SCREENMAN:GetTopScreen():GetName(), "Main1")
+        WHEELDATA:ReloadWheelData()
+        MESSAGEMAN:Broadcast("GeneralTabSet", {tab = SCUFF.generaltabindex})
+    end,
 
     LoadActorWithParams("curSongBox", {
         widthRatio = widthRatio,
@@ -65,5 +79,8 @@ t[#t+1] = Def.ActorFrame {
         widthRatio = widthRatio,
     }),
 }
+
+t[#t+1] = LoadActor("_chartPreview.lua")
+t[#t+1] = LoadActor("calcDebug.lua")
 
 return t

@@ -1,0 +1,3 @@
+--- Game Manager singleton class
+-- @classmod GameManager
+-- @alias GAMEMAN

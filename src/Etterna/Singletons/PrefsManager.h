@@ -169,6 +169,7 @@ class PrefsManager
 	Preference<bool> m_bPackProgressInWheel;
 	Preference<bool> m_bEventMode;
 	Preference<TapNoteScore> m_MinTNSToHideNotes;
+	Preference<bool> m_bForceNoDoubleSetup;
 
 	Preference<Maybe> m_ShowSongOptions;
 	Preference<float> m_fMinPercentToSaveScores;
@@ -181,6 +182,7 @@ class PrefsManager
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
+	Preference<bool> m_bForceSnaps;
 	Preference<bool> m_AllowMultipleToasties;
 	Preference<bool> m_bUseMidGrades;
 
@@ -240,6 +242,8 @@ class PrefsManager
 
 	Preference<bool> m_bEnableCrashUpload;
 	Preference<bool> m_bShowMinidumpUploadDialogue;
+
+	Preference<bool> m_bAllowSongDeletion;
 
 	void ReadPrefsFromIni(const IniFile& ini,
 						  const std::string& sSection,

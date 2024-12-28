@@ -8,13 +8,7 @@ CONTEXTMAN:Reset()
 -- also permamirror and receptorsize/mini because this is early in gameplay init again
 local modslevel = "ModsLevel_Preferred"
 local playeroptions = GAMESTATE:GetPlayerState():GetPlayerOptions(modslevel)
-local profile = PROFILEMAN:GetProfile(PLAYER_1)
 local replaystate = GAMESTATE:GetPlayerState():GetPlayerController() == "PlayerController_Replay"
-
--- turn on mirror if song is flagged as perma mirror
-if profile:IsCurrentChartPermamirror() and not replaystate then
-	playeroptions:Mirror(true)
-end
 
 -- dont apply the player defined receptor size mini if viewing an emulated replay
 local emulating = PREFSMAN:GetPreference("ReplaysUseScoreMods") and replaystate

@@ -4,12 +4,11 @@
 #include "Etterna/Models/Misc/DateTime.h"
 #include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 #include "Etterna/Models/Misc/Grade.h"
-#include "Etterna/Models/HighScore/ReplayConstantsAndTypes.h"
+#include "Etterna/Models/HighScore/Replay.h"
 
 class XNode;
 struct RadarValues;
 struct lua_State;
-class Replay;
 
 struct HighScoreImpl;
 /** @brief The high score that is earned by a player.
@@ -23,6 +22,7 @@ struct HighScore
 	 * @brief Retrieve the name of the player that set the high score.
 	 * @return the name of the player. */
 	[[nodiscard]] auto GetName() const -> const std::string&;
+	[[nodiscard]] auto DebugString() const -> std::string;
 	[[nodiscard]] auto GetChartKey() const -> const std::string&;
 	[[nodiscard]] auto GetSSRCalcVersion() const -> int;
 	/**
@@ -51,6 +51,7 @@ struct HighScore
 	[[nodiscard]] auto GetChordCohesion() const -> bool;
 	[[nodiscard]] auto GetEtternaValid() const -> bool;
 	[[nodiscard]] auto GetDSFlag() const -> bool;
+	[[nodiscard]] auto GetStageSeed() const -> int;
 	[[nodiscard]] auto IsUploadedToServer(const std::string& s) const -> bool;
 	std::vector<float> timeStamps;
 	[[nodiscard]] auto GetOffsetVector() -> const std::vector<float>&;
@@ -62,6 +63,8 @@ struct HighScore
 	  -> const std::vector<HoldReplayResult>&;
 	[[nodiscard]] auto GetMineReplayDataVector()
 	  -> const std::vector<MineReplayResult>&;
+	[[nodiscard]] auto GetMissReplayDataVector()
+	  -> const std::vector<MissReplayResult>&;
 	[[nodiscard]] auto GetCopyOfOffsetVector() -> std::vector<float>;
 	[[nodiscard]] auto GetCopyOfNoteRowVector() -> std::vector<int>;
 	[[nodiscard]] auto GetCopyOfTrackVector() -> std::vector<int>;
@@ -70,6 +73,8 @@ struct HighScore
 	  -> std::vector<HoldReplayResult>;
 	[[nodiscard]] auto GetCopyOfMineReplayDataVector()
 	  -> std::vector<MineReplayResult>;
+	[[nodiscard]] auto GetCopyOfMissReplayDataVector()
+	  -> std::vector<MissReplayResult>;
 	[[nodiscard]] auto GetCopyOfSetOnlineReplayTimestampVector()
 	  -> std::vector<float>;
 	[[nodiscard]] auto GetInputDataVector() -> const std::vector<InputDataEvent>&;
@@ -118,8 +123,10 @@ struct HighScore
 	void SetChordCohesion(bool b);
 	void SetEtternaValid(bool b);
 	void SetDSFlag(bool b);
+	void SetStageSeed(int i);
 	void AddUploadedServer(const std::string& s);
 	void SetInputDataVector(const std::vector<InputDataEvent>& v);
+	void SetMissDataVector(const std::vector<MissReplayResult>& v);
 	void SetOffsetVector(const std::vector<float>& v);
 	void SetNoteRowVector(const std::vector<int>& v);
 	void SetTrackVector(const std::vector<int>& v);
@@ -169,11 +176,13 @@ struct HighScore
 	void InitReplay();
 	void UnloadReplayData();
 	void ResetSkillsets();
+	auto GetReplay() -> Replay*;
 
 	[[nodiscard]] auto GetDisplayName() const -> const std::string&;
 
 	// Mina stuff - Mina
 	auto RescoreToWife2Judge(int x) -> float;
+	auto RescoreToWife2TimeScale(float ts) -> float;
 	// update wifescore (judge the score was achieved on) and ssrnorm
 	auto RescoreToWife3(float pmax) -> bool;
 	auto RescoreToDPJudge(int x) -> float;
@@ -182,7 +191,9 @@ struct HighScore
 	void SetSkillsetSSR(Skillset ss, float ssr);
 	void SetValidationKey(ValidationKey vk, std::string k);
 	void SetTopScore(int i);
-	auto GenerateValidationKeys() -> std::string;
+	void GenerateValidationKeys();
+	auto GenerateBrittleValidationKey() const -> std::string;
+	auto ValidateBrittleValidationKey() const -> bool;
 	[[nodiscard]] auto GetValidationKey(ValidationKey vk) const
 	  -> const std::string&;
 	void SetWifeVersion(int i);
@@ -199,6 +210,12 @@ struct HighScore
 	int judges = 0;
 	// Lua
 	void PushSelf(lua_State* L);
+	void PushReplay(lua_State* L)
+	{
+		CheckReplayIsInit();
+		replay->PushSelf(L);
+	}
+	Replay* replay = nullptr;
 
   private:
 	struct HSImplUniquePtr {
@@ -217,7 +234,6 @@ struct HighScore
 	};
 	HSImplUniquePtr m_Impl;
 	void CheckReplayIsInit();
-	Replay* replay = nullptr;
 };
 
 /** @brief the picture taken of the high score. */

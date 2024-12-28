@@ -1,3 +1,5 @@
+--- Custom Speed Mods
+-- @module 03_CustomSpeedMods
 --[[
 Custom Speed Mods v3 (for StepMania 5)
 
@@ -205,6 +207,7 @@ function SpeedMods()
 		SelectType = "SelectOne",
 		OneChoiceForAllPlayers = false,
 		ExportOnChange = false,
+		ExportOnCancel = false,
 		Choices = GetSpeedMods(),
 		LoadSelections = function(self, list, pn)
 			local pref = GAMESTATE:GetPlayerState():GetPlayerOptionsString("ModsLevel_Preferred")

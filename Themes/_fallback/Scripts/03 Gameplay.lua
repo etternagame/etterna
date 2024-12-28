@@ -1,5 +1,6 @@
--- sm-ssc fallback theme | script ring 03 | Gameplay.lua
--- [en] This file is used to store settings that should be different in each
+--- Gameplay specific settings
+-- @module 03_Gameplay
+-- This file is used to store settings that should be different in each
 -- game mode.
 
 -- shakesoda calls this pump.lua

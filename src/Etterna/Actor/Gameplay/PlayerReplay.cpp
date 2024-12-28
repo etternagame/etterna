@@ -77,11 +77,35 @@ PlayerReplay::Load()
 {
 	Player::Load();
 
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto iSongRow = BeatToNoteRow(fSongBeat);
 	// this replay will always be real or a dummy replay
-	auto replay =
-	  REPLAYS->InitReplayPlaybackForScore(REPLAYS->GetActiveReplayScore());
-	SetPlaybackEvents(replay->GeneratePlaybackEvents());
-	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap());
+	auto replay = REPLAYS->InitReplayPlaybackForScore(
+	  REPLAYS->GetActiveReplayScore(), GetTimingWindowScale());
+	SetPlaybackEvents(replay->GeneratePlaybackEvents(iSongRow));
+	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(iSongRow));
+}
+
+void
+PlayerReplay::Reload()
+{
+	Player::Reload();
+
+	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
+	const auto iSongRow = BeatToNoteRow(fSongBeat);
+	// this replay will always be real or a dummy replay
+	auto replay = REPLAYS->InitReplayPlaybackForScore(
+	  REPLAYS->GetActiveReplayScore(), GetTimingWindowScale());
+	SetPlaybackEvents(replay->GeneratePlaybackEvents(iSongRow));
+	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(iSongRow));
+}
+
+void
+PlayerReplay::UpdateLoadedReplay(int startRow)
+{
+	auto replay = REPLAYS->GetActiveReplay();
+	SetPlaybackEvents(replay->GeneratePlaybackEvents(startRow));
+	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(startRow));
 }
 
 void
@@ -279,6 +303,62 @@ PlayerReplay::Update(float fDeltaTime)
 }
 
 void
+PlayerReplay::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v)
+{
+	playbackEvents.clear();
+
+	std::vector<PlaybackEvent> ghostTaps{};
+	auto gapError = 0.F;
+
+	auto musicRate = REPLAYS->GetActiveReplay()->GetMusicRate();
+
+	for (auto& p : v) {
+		auto noterow = p.first;
+		auto& evts = p.second;
+
+		auto rowpos = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(noterow));
+		for (auto& evt : evts) {
+			auto supposedTime = evt.songPositionSeconds;
+
+			if (evt.noterowJudged == -1) {
+				ghostTaps.push_back(evt);
+				continue;
+			}
+
+			// discrepancy in notedata/timing from actual replay
+			// must update row and time to match current chart
+			if (fabsf(rowpos - supposedTime) > 0.01F) {
+				// haha oh my god
+				auto tapPosition = m_Timing->GetElapsedTimeFromBeat(
+									 NoteRowToBeat(evt.noterowJudged)) +
+								   (evt.offset * musicRate);
+				noterow =
+				  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(tapPosition));
+				evt.songPositionSeconds = tapPosition;
+				gapError = rowpos - supposedTime;
+			}
+
+			if (playbackEvents.count(noterow) == 0u) {
+				playbackEvents.emplace(noterow, std::vector<PlaybackEvent>());
+			}
+			playbackEvents.at(noterow).push_back(evt);
+		}
+	}
+
+	// handle ghost taps last because we didnt have enough data to fix gaps
+	for (auto& evt : ghostTaps) {
+		auto time =
+		  m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(evt.noterow));
+		auto newrow =
+		  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(time - gapError));
+		if (playbackEvents.count(newrow) == 0u) {
+			playbackEvents.emplace(newrow, std::vector<PlaybackEvent>());
+		}
+		playbackEvents.at(newrow).push_back(evt);
+	}
+}
+
+void
 PlayerReplay::CheckForSteps(const std::chrono::steady_clock::time_point& tm)
 {
 	if (playbackEvents.empty()) {
@@ -308,10 +388,36 @@ PlayerReplay::CheckForSteps(const std::chrono::steady_clock::time_point& tm)
 	}
 
 	// execute all the events
-	for (PlaybackEvent evt : evts) {
+	for (const auto& evt : evts) {
 		if (evt.isPress) {
+			if (holdingColumns.contains(evt.track)) {
+				// it wont break the game, but we should track dupe presses
+				Locator::getLogger()->warn(
+				  "Please report an issue with this replay: {} - press {}, row "
+				  "{}, judgerow {}, time {}, col {}",
+				  REPLAYS->GetActiveReplay()->GetScoreKey(),
+				  evt.isPress,
+				  evt.noterow,
+				  evt.noterowJudged,
+				  evt.songPositionSeconds,
+				  evt.track);
+			}
+
 			holdingColumns.insert(evt.track);
 		} else {
+			if (!holdingColumns.contains(evt.track)) {
+				// it wont break the game, but we should track dupe releases
+				Locator::getLogger()->warn(
+				  "Please report an issue with this replay: {} - press {}, row "
+				  "{}, judgerow {}, time {}, col {}",
+				  REPLAYS->GetActiveReplay()->GetScoreKey(),
+				  evt.isPress,
+				  evt.noterow,
+				  evt.noterowJudged,
+				  evt.songPositionSeconds,
+				  evt.track);
+			}
+
 			holdingColumns.erase(evt.track);
 		}
 		Step(evt.track,
@@ -661,12 +767,20 @@ PlayerReplay::Step(int col,
 		fNoteOffset = (fStepSeconds - fPositionSeconds) /
 					  REPLAYS->GetActiveReplay()->GetMusicRate();
 
-		NOTESKIN->SetLastSeenColor(
-		  NoteTypeToString(GetNoteType(rowBeingJudged)));
-
-		TapNote* pTN = nullptr;
 		auto closestNR = GetClosestNote(
 		  col, rowBeingJudged, MAX_NOTE_ROW, MAX_NOTE_ROW, false, false);
+
+		if (closestNR != rowBeingJudged) {
+			// BANDAID BANDAID BANDAID
+			// BANDAID BANDAID BANDAID
+			Locator::getLogger()->trace(
+			  "Dumped PlayerReplay input because it might break something: closestnr {} "
+			  "- beingjudged {} - rowtojudge {}",
+			  closestNR,
+			  rowBeingJudged,
+			  rowToJudge);
+			return;
+		}
 
 		if (closestNR == -1 && !bRelease) {
 			// the last notes of the file will trigger this due to releases
@@ -680,9 +794,12 @@ PlayerReplay::Step(int col,
 			  rowToJudge);
 			return;
 		}
-		auto iter = m_NoteData.FindTapNote(col, closestNR);
 
-		pTN = &iter->second;
+		NOTESKIN->SetLastSeenColor(
+		  NoteTypeToString(GetNoteType(rowBeingJudged)));
+
+		auto iter = m_NoteData.FindTapNote(col, closestNR);
+		TapNote* pTN = &iter->second;
 
 		// We don't really have to care if we are releasing on a non-lift,
 		// right? This fixes a weird noteskin bug with tap explosions.
@@ -706,9 +823,20 @@ PlayerReplay::Step(int col,
 				}
 			} else {
 				// every other case
-				if (pTN->IsNote() || pTN->type == TapNoteType_Lift)
-					score =
-					  ReplayManager::GetTapNoteScoreForReplay(fNoteOffset);
+				if (pTN->IsNote() || pTN->type == TapNoteType_Lift) {
+					// make sure lifts are on lifts and taps are on taps...
+					if ((pTN->type == TapNoteType_Lift) == bRelease) {
+						score = ReplayManager::GetTapNoteScoreForReplay(
+						  fNoteOffset, GetTimingWindowScale());
+
+						// taps assigned to notes really far away
+						// are counted as misses
+						// but to stop it breaking things, do nothing
+						if (score == TNS_Miss) {
+							score = TNS_None;
+						}
+					}
+				}
 			}
 		}
 

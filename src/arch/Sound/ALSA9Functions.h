@@ -78,6 +78,7 @@ FUNC(int,
 	 (snd_pcm_t * *pcm, const char* name, snd_pcm_stream_t stream, int mode));
 FUNC(int, snd_pcm_prepare, (snd_pcm_t * pcm));
 FUNC(int, snd_pcm_resume, (snd_pcm_t * pcm));
+FUNC(int, snd_pcm_recover, (snd_pcm_t * pcm, int err, int silent));
 FUNC(int, snd_pcm_wait, (snd_pcm_t * pcm, int timeout));
 FUNC(int, snd_pcm_sw_params, (snd_pcm_t * pcm, snd_pcm_sw_params_t* params));
 FUNC(int,

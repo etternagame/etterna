@@ -1,4 +1,7 @@
--- Functional Library
+--- Functional Library
+-- Project copy of the Functional library for convenience.
+-- @module 01_Functional
+
 --
 -- @file    functional.lua
 -- @author  Shimomura Ikkei

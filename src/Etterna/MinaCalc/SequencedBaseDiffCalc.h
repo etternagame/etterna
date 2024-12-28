@@ -67,10 +67,6 @@ struct nps
 	/// determine NPSBase, itv_points, CJBase for this hand
 	static void actual_cancer(Calc& calc, const int& hand)
 	{
-		// finger row times
-		auto last_left_row_time = s_init;
-		auto last_right_row_time = s_init;
-
 		auto scaly_ms_estimate = [](std::vector<float>& input,
 								const float& scaler) {
 			float o = CalcMSEstimate(input, 3);
@@ -83,55 +79,61 @@ struct nps
 			return o;
 		};
 
+		// Per-finger data for msbase
+		struct FingerGaps
+		{
+			std::vector<float> ms;
+			float last_row_time = s_init;
+		};
+
+		std::vector<FingerGaps> fingy(calc.col_masks.size());
+		std::vector<float> estimates;
+		
 		for (auto itv = 0; itv < calc.numitv; ++itv) {
 			auto notes = 0;
 
-			// times between rows for this interval for each finger
-			std::vector<float> left_finger_ms{};
-			std::vector<float> right_finger_ms{};
-
+			for (auto& fing : fingy) {
+				fing.ms.clear();
+			}
+			
+			// note time deltas per finger in this interval
 			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 				const auto& cur = calc.adj_ni.at(itv).at(row);
+				auto cur_notes = cur.row_notes & calc.hand_col_masks[hand];
 				notes += cur.hand_counts.at(hand);
 
 				const auto& crt = cur.row_time;
-				switch (determine_col_type(cur.row_notes, hand_col_ids[hand])) {
-					case col_left:
-						if (last_left_row_time != s_init) {
-							const auto left_ms =
-							  ms_from(crt, last_left_row_time);
-							left_finger_ms.push_back(left_ms);
+				for (size_t col_index = 0; col_index < calc.col_masks.size(); ++col_index) {
+					if (cur_notes & calc.col_masks[col_index]) {
+						auto& fing = fingy[col_index];
+						if (fing.last_row_time != s_init) {
+							const auto ms = ms_from(crt, fing.last_row_time);
+							fing.ms.push_back(ms);
 						}
-						last_left_row_time = crt;
-						break;
-					case col_right:
-						if (last_right_row_time != s_init) {
-							const auto right_ms =
-							  ms_from(crt, last_right_row_time);
-							right_finger_ms.push_back(right_ms);
-						}
-						last_right_row_time = crt;
-						break;
-					case col_ohjump:
-						if (last_right_row_time != s_init) {
-							const auto right_ms =
-							  ms_from(crt, last_right_row_time);
-							right_finger_ms.push_back(right_ms);
-						}
-						if (last_left_row_time != s_init) {
-							const auto left_ms =
-							  ms_from(crt, last_left_row_time);
-							left_finger_ms.push_back(left_ms);
-						}
-						last_left_row_time = crt;
-						last_right_row_time = crt;
-						break;
-					case col_empty:
-					case col_init:
-					default:
-						// none
-						break;
+						fing.last_row_time = crt;
+					}
 				}
+			}
+
+			// per finger deltas to ms estimates. for 4k estimates.size() == 2
+			estimates.clear();
+			for (auto& fing : fingy) {
+				if (fing.last_row_time != s_init) {
+					auto ms_est = scaly_ms_estimate(fing.ms, scaler_for_ms_base);
+					estimates.push_back(ms_est);
+				}
+			}
+
+			// sort largest first and zero pad to hand note count
+			std::sort(estimates.begin(), estimates.end(), [](auto a, auto b) { return a > b; });
+			estimates.resize(column_count(calc.hand_col_masks[hand]));
+
+			// average fingy estimates for msbase. makes sense for 4k where there are 2 estimates.
+			// weighted_average fudges the 1/2 factor so generalising the 4k weights to nk is ?? 
+			// so just telescope
+			float msdiff = estimates[0];
+			for (size_t i = 1; i < estimates.size(); ++i) {
+				msdiff = weighted_average(msdiff, estimates[i], ms_base_finger_weighter, ms_base_finger_weighter_2);
 			}
 
 			// nps for this interval
@@ -139,25 +141,8 @@ struct nps
 			calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) = nps;
 
 			// ms base for this interval
-			const auto left =
-			  scaly_ms_estimate(left_finger_ms, scaler_for_ms_base);
-			const auto right =
-			  scaly_ms_estimate(right_finger_ms, scaler_for_ms_base);
-			float msdiff = 0.F;
-			if (left > right) {
-				msdiff = weighted_average(left,
-										  right,
-										  ms_base_finger_weighter,
-										  ms_base_finger_weighter_2);
-			} else {
-				msdiff = weighted_average(right,
-										  left,
-										  ms_base_finger_weighter,
-										  ms_base_finger_weighter_2);
-			}
 			const auto msbase = finalscaler * msdiff;
-			calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) = msbase;
-			/////
+			calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) = msbase;			
 
 			// set points for this interval
 			calc.itv_points.at(hand).at(itv) = notes * 2;
@@ -221,16 +206,18 @@ struct ceejay
 
 #pragma region params
 
-	float static_ms_weight = .65F;
+	float static_ms_weight = 0.65F;
 	float min_ms = 75.F;
 
-	float base_tap_scaler = 3.F;
+	float base_tap_scaler = 1.2F;
 	float huge_anchor_scaler = 1.15F;
 	float small_anchor_scaler = 1.15F;
 	float ccj_scaler = 1.25F;
 	float cct_scaler = 1.5F;
 	float ccn_scaler = 1.15F;
 	float ccb_scaler = 1.25F;
+
+	int mediterranean = 10;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "static_ms_weight", &static_ms_weight },
@@ -255,6 +242,16 @@ struct ceejay
 		is_scj = (row_count == 1 && last_row_count > 1) &&
 				 ((row_notes & last_row_notes) != 0u);
 
+		is_actually_continuing_jack = ((row_notes & last_row_notes) != 0u);
+
+		carpathian_basin_capsized_boat_chord_bonk.push_back(row_notes ==
+															last_row_notes);
+
+		if (carpathian_basin_capsized_boat_chord_bonk.size() > mediterranean) {
+			carpathian_basin_capsized_boat_chord_bonk.erase(
+			  carpathian_basin_capsized_boat_chord_bonk.begin());
+		}
+
 		is_at_least_3_note_anch =
 		  ((row_notes & last_row_notes) & last_last_row_notes) != 0u;
 
@@ -265,6 +262,12 @@ struct ceejay
 		last_row_notes = row_notes;
 
 		last_was_3_note_anch = is_at_least_3_note_anch;
+
+		if (is_actually_continuing_jack) {
+			chain++;
+		} else {
+			chain = 1;
+		}
 	}
 
 	void advance_base(const float& any_ms, Calc& calc)
@@ -276,44 +279,22 @@ struct ceejay
 		// pushing back ms values, so multiply to nerf
 		float pewpew = base_tap_scaler;
 
-		if (is_at_least_3_note_anch && last_was_3_note_anch) {
-			// biggy boy anchors and beyond
-			pewpew = huge_anchor_scaler;
-		} else if (is_at_least_3_note_anch) {
-			// big boy anchors
-			pewpew = small_anchor_scaler;
-		} else {
-			// single note
-			if (!is_cj) {
-				if (is_scj) {
-					// was cj a little bit ago..
-					if (was_cj) {
-						// single note jack with 2 chords behind it
-						// ccj (chord chord jack)
-						pewpew = ccj_scaler;
-					} else {
-						// single note, not a jack, 2 chords behind
-						// cct (chord chord tap)
-						pewpew = cct_scaler;
-					}
-				}
-			} else {
-				// actual cj
-				if (was_cj) {
-					// cj now and was cj before, but not necessarily
-					// with strong anchors
-					// ccn (chord chord no anchor)
-					pewpew = ccn_scaler;
-				} else {
-					// cj now but wasn't even cj before
-					// ccb (chordjack beginning)
-					pewpew = ccb_scaler;
-				}
-			}
+		if (chain < 3)
+			pewpew *= 1.1F; // stupid and gay
+		if (chain == 3)
+			pewpew /= 1.1F; // yes im really doing this
+
+		int laguardiaairport = 0;
+		for (int i = 0; i < carpathian_basin_capsized_boat_chord_bonk.size();
+			 i++) {
+			laguardiaairport += carpathian_basin_capsized_boat_chord_bonk[i];
 		}
+
+		pewpew *= std::pow(1.025F, laguardiaairport);
 
 		// single note streams / regular jacks should retain the base
 		// multiplier
+		// cry about it
 
 		const auto ms = std::max(min_ms, any_ms * pewpew);
 		calc.cj_static.at(row_counter) = ms;
@@ -345,8 +326,10 @@ struct ceejay
 		}
 		for (auto i = 0; i < static_ms.size(); i++) {
 			// weight = 0 means all values become modev
-			static_ms.at(i) =
-			  weighted_average(static_ms.at(i), modev, static_ms_weight, 1.F);
+			static_ms.at(i) = weighted_average(static_ms.at(i),
+											   static_cast<float>(modev),
+											   static_ms_weight,
+											   1.F);
 		}
 
 		const auto ms_total = sum(static_ms);
@@ -354,7 +337,10 @@ struct ceejay
 		return ms_to_scaled_nps(ms_mean);
 	}
 
-	void interval_end() { row_counter = 0; }
+	void interval_end()
+	{
+		row_counter = 0;
+	}
 	void full_reset()
 	{
 		is_cj = false;
@@ -363,11 +349,17 @@ struct ceejay
 		is_at_least_3_note_anch = false;
 		last_was_3_note_anch = false;
 
+		is_actually_continuing_jack = false;
+
 		last_row_count = 0;
 		last_last_row_count = 0;
 
 		last_row_notes = 0U;
 		last_last_row_notes = 0U;
+
+		chain = 1;
+
+		carpathian_basin_capsized_boat_chord_bonk.clear();
 	}
 
   private:
@@ -379,11 +371,18 @@ struct ceejay
 	bool is_at_least_3_note_anch = false;
 	bool last_was_3_note_anch = false;
 
+	bool is_actually_continuing_jack = false;
+
 	int last_row_count = 0;
 	int last_last_row_count = 0;
 
 	unsigned last_row_notes = 0U;
 	unsigned last_last_row_notes = 0U;
+
+	int chain = 1;
+
+	std::vector<int> carpathian_basin_capsized_boat_chord_bonk =
+	  std::vector<int>();
 };
 
 /// if this looks ridiculous, that's because it is
@@ -396,7 +395,7 @@ struct techyo
 
 	float tc_base_weight = 4.F;
 	float nps_base_weight = 9.F;
-	float rm_base_weight = 0.9F;
+	float rm_base_weight = 1.F;
 
 	float balance_comp_window = 36.F;
 	float chaos_comp_window = 4.F;
@@ -429,20 +428,24 @@ struct techyo
 
 	void advance_base(const SequencerGeneral& seq,
 					  const col_type& ct,
-					  Calc& calc)
+					  Calc& calc,
+					  const int& hand,
+					  const float& row_time)
 	{
 		if (row_counter >= max_rows_for_single_interval) {
 			return;
 		}
 
-		//process_mw_dt(ct, seq.get_any_ms_now());
-		//advance_trill_base(calc);
-		//increment_column_counters(ct);
-		//auto balance_comp = std::max(calc_balance_comp() * balance_ratio_scaler, min_balance_ratio);
-		auto chaos_comp = calc_chaos_comp(seq, ct, calc);
-		//insert(balance_ratios, balance_comp);
+		// process_mw_dt(ct, seq.get_any_ms_now());
+		// advance_trill_base(calc);
+		// increment_column_counters(ct);
+		// auto balance_comp = std::max(calc_balance_comp() *
+		// balance_ratio_scaler, min_balance_ratio);
+		auto chaos_comp = calc_chaos_comp(seq, ct, calc, hand, row_time);
+		// insert(balance_ratios, balance_comp);
 		teehee(chaos_comp);
-		calc.tc_static.at(row_counter) = teehee.get_mean_of_window(tc_static_base_window);
+		calc.tc_static.at(row_counter) =
+		  teehee.get_mean_of_window((int)tc_static_base_window);
 		++row_counter;
 	}
 
@@ -452,8 +455,8 @@ struct techyo
 	}
 
 	void advance_jack_comp(const float& hardest_itv_jack_ms) {
-		jack_itv_diff =
-		  ms_to_scaled_nps(hardest_itv_jack_ms) * basescalers[Skill_JackSpeed];
+		static const auto jack_base_scale = 1.01F;
+		jack_itv_diff = ms_to_scaled_nps(hardest_itv_jack_ms) * jack_base_scale;
 	}
 
 	// for debug
@@ -462,15 +465,17 @@ struct techyo
 		return rm_itv_max_diff;
 	}
 
+	// not for debug
+	[[nodiscard]] auto get_itv_jack_diff() const -> float
+	{
+		return jack_itv_diff;
+	}
+
 	// final output difficulty for this interval
 	// the output of this is officially TechBase for an interval
 	[[nodiscard]] auto get_itv_diff(const float& nps_base, Calc& calc) const
 	  -> float
 	{
-
-		return weighted_average(
-				 get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
-
 		auto rmbase = rm_itv_max_diff;
 		const auto nps_biased_chaos_base = weighted_average(
 		  get_tc_base(calc), nps_base, tc_base_weight, nps_base_weight);
@@ -607,9 +612,9 @@ struct techyo
 	float calc_balance_comp() const {
 
 		const auto left =
-		  get_total_for_windowf(count_left, balance_comp_window);
+		  get_total_for_windowf(count_left, (unsigned)balance_comp_window);
 		const auto right = 
-		  get_total_for_windowf(count_right, balance_comp_window);
+		  get_total_for_windowf(count_right, (unsigned)balance_comp_window);
 
 		// for this application of balance, dont care about half empty hands
 		// or fully balanced hands
@@ -643,7 +648,7 @@ struct techyo
 	/// considers a window of N+1 rows (N ms times)
 	float calc_chaos_comp(const SequencerGeneral& seq,
 						  const col_type& ct,
-						  Calc& calc)
+						  Calc& calc, const int& hand, const float& row_time)
 	{
 		const auto a = seq.get_sc_ms_now(ct);
 		float b;
@@ -654,23 +659,26 @@ struct techyo
 		}
 
 		// geometric mean of ms times since (last note in this column) and (last note in the other column)
-		const auto c = fastsqrt(a) * fastsqrt(b);
+		//const auto c = fastsqrt(a) * fastsqrt(b);
+
+		// arithmetic mean instead
+		const auto c = (a + b) / 2;
 
 		// coeff var. of last N ms times on either column
-		auto pineapple = seq._mw_any_ms.get_cv_of_window(chaos_comp_window);
+		auto pineapple = seq._mw_any_ms.get_cv_of_window((unsigned)chaos_comp_window);
 		// coeff var. of last N ms times on left column
 		auto porcupine =
-		  seq._mw_sc_ms[col_left].get_cv_of_window(chaos_comp_window);
+		  seq._mw_sc_ms[col_left].get_cv_of_window((unsigned)chaos_comp_window);
 		// coeff var. of last N ms times on right column
 		auto sequins =
-		  seq._mw_sc_ms[col_right].get_cv_of_window(chaos_comp_window);
+		  seq._mw_sc_ms[col_right].get_cv_of_window((unsigned)chaos_comp_window);
 
 		// coeff var. is sd divided by mean
 		// cv of 0 is 0 sd
 
 		// all of those numbers are clamped to [0.5, 1.5] (or [oioi, ioio+oioi])
-		const auto oioi = 0.2F;
-		const auto ioio = 2.F;
+		const auto oioi = 0.5F;
+		const auto ioio = 0.5F;
 		pineapple = std::clamp(pineapple + oioi, oioi, ioio + oioi);
 		porcupine = std::clamp(porcupine + oioi, oioi, ioio + oioi);
 		sequins = std::clamp(sequins + oioi, oioi, ioio + oioi);
@@ -702,12 +710,21 @@ struct techyo
 		// [0,inf] divided by [1,10]
 		pewp /= obliosis;
 
-		// average of (cv left, cv right, cv both) + [0,inf]
+		if (calc.debugmode) {
+			std::array<float, 4> a;
+			a[0] = row_time;
+			a[1] = pewp;
+			a[2] = obliosis;
+			a[3] = c;
+			calc.debugTechVals.at(hand).emplace_back(a);
+		}
+
+		// average of (cv left, cv right, cv both)
 		// note cv clamped to [0.5,1.5]
-		// simplifies to [0.5,1.5] + [0,inf]
+		// simplifies to [0.5,1.5]
 		// output: [0.5, 1.5]
 		const auto vertebrae = std::clamp(
-		  ((pineapple + porcupine + sequins) / 3.F) + pewp, oioi, ioio + oioi);
+		  ((pineapple + porcupine + sequins) / 3.F), oioi, ioio + oioi);
 
 		// result is ms divided by fudgy cv number
 		// [0,5000] / [0.5,1.5]
@@ -818,13 +835,13 @@ struct techyo
 	{
 		float o = 0.F;
 		auto i = max_rows_for_single_interval;
-		while (i > max_rows_for_single_interval - window) {
+		while (i > max_rows_for_single_interval - (int)window) {
 			i--;
 			o += arr.at(i);
 		}
 		return o;
 	}
-
+	
 	template <typename T>
 	void insert(std::array<T, max_rows_for_single_interval>& arr,
 				 const T value)
@@ -855,6 +872,125 @@ struct techyo
 			arr.at(trill_window - 1) = { ct, ms_now };
 		}
 	}
+};
+
+
+struct jack_col
+{
+	int len = 1;
+	float last_ms = ms_init;
+	float max_ms = ms_init;
+	float len_capped_ms = ms_init;
+	float last_note_sec = s_init;
+	float start_note_sec = s_init;
+	inline void reset()
+	{
+		len = 1;
+		last_ms = ms_init;
+		max_ms = ms_init;
+		len_capped_ms = ms_init;
+		last_note_sec = s_init;
+		start_note_sec = s_init;
+	}
+	inline void check_reset(const float& now) {
+		auto since_last = ms_from(now, last_note_sec);
+		if (since_last > guaranteed_reset_buffer_ms) {
+			reset();
+		}
+	}
+	inline void operator()(const float& now)
+	{
+		last_ms = ms_from(now, last_note_sec);
+		if (last_ms > max_ms + jack_spacing_buffer_ms ||
+			last_ms * jack_speed_increase_cutoff_factor < max_ms) {
+			// too slow reset, too fast reset
+			start_note_sec = last_note_sec;
+			len = 2;
+		} else {
+			len++;
+		}
+		max_ms = last_ms;
+		last_note_sec = now;
+	}
+	inline float get_ms() {
+		if (len > jack_len_cap) {
+			return len_capped_ms;
+		}
+		static const auto avg_ms_mult = 1.5F;
+		static const auto anchor_time_buffer_ms = 30.F;
+		static const auto min_ms = 95.F;
+		const auto total_ms = ms_from(last_note_sec, start_note_sec);
+		const auto _len = static_cast<float>(len - 1);
+		const auto avg_ms = total_ms / _len;
+		const auto adj_total_ms =
+		  total_ms + anchor_time_buffer_ms + avg_ms * avg_ms_mult;
+		auto ms = adj_total_ms / _len;
+		if (len == 2) {
+			ms *= 1.1F;
+			ms = ms < 180.F ? 180.F : ms;
+		}
+		ms = ms < min_ms ? min_ms : ms;
+		if (std::isnan(ms))
+			ms = max_ms;
+		if (len == jack_len_cap) {
+			len_capped_ms = ms;
+		}
+		return ms;
+	}
+};
+struct oversimplified_jacks
+{
+	std::vector<jack_col> sequencers{};
+
+	std::vector<unsigned> left_hand_mask{};
+	std::vector<unsigned> right_hand_mask{};
+
+	void init(const int& keycount) {
+		sequencers = std::vector<jack_col>(keycount);
+		left_hand_mask.clear();
+		right_hand_mask.clear();
+		for (auto i = 0; i < keycount / 2; i++) {
+			left_hand_mask.push_back(i);
+		}
+		/*
+		if (keycount > 2 && keycount % 2 != 0) {
+			left_hand_mask.push_back(keycount / 2);
+		}
+		*/
+		for (auto i = keycount / 2; i < keycount; i++) {
+			right_hand_mask.push_back(i);
+		}
+		reset();
+	}
+
+	void reset() {
+		for (auto& seq : sequencers) {
+			seq.reset();
+		}
+	}
+
+	void operator()(const int& column,
+					const float& now)
+	{
+		for (auto& seq : sequencers) {
+			seq.check_reset(now);
+		}
+		sequencers.at(column)(now);
+	}
+
+	float get_lowest_jack_ms(unsigned hand, Calc& calc) {
+		auto& mask = hand == left_hand ? left_hand_mask : right_hand_mask;
+
+		auto min = ms_init;
+		for (auto& col : mask) {
+			const auto v = sequencers.at(col).get_ms();
+			if (v < min) {
+				min = v;
+			}
+		}
+		return min;
+	}
+
 };
 
 struct diffz

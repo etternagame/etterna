@@ -82,7 +82,7 @@ t[#t+1] = Def.ActorFrame {
         SetStuffCommand = function(self)
             if song then
                 self:visible(true)
-                self:SetFromSong(song)
+                self:SetFromSteps(steps)
             else
                 self:visible(false)
             end

@@ -1,3 +1,6 @@
+--- Score and Scoring Utilities
+-- @module 10_Scores
+
 local judges = {"marv", "perf", "great", "good", "boo", "miss"}
 
 local gradeTiers = {
@@ -156,7 +159,7 @@ function getMaxScore(pn, scoreType) -- dp, ps, migs = 1,2,3 respectively, 0 reve
 	local maxNotes = getMaxNotes(pn)
 	local maxHolds = getMaxHolds(pn)
 	if scoreType == 0 or scoreType == nil then
-		scoreType = themeConfig:get_data().global.DefaultScoreType
+		scoreType = 4
 	end
 
 	if scoreType == 1 or scoreType >= 4 then
@@ -273,7 +276,7 @@ end
 
 function getScore(score, scoreType)
 	if scoreType == 0 or scoreType == nil then
-		scoreType = themeConfig:get_data().global.DefaultScoreType
+		scoreType = 4
 	end
 
 	if scoreType == 1 or scoreType >= 4 then

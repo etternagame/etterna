@@ -256,7 +256,8 @@ class Steps
 	void SetFirstSecond(const float f) { this->firstsecond = f; }
 	void SetLastSecond(const float f) { this->lastsecond = f; }
 	auto GetMaxBPM() const -> float { return this->specifiedBPMMax; }
-	void GetDisplayBpms(DisplayBpms& addTo) const;
+	void GetDisplayBpms(DisplayBpms& addTo,
+						bool bIgnoreCurrentRate = false) const;
 	/** @brief Returns length of step in seconds. If a rate is supplied, the
 	 * returned length is scaled by it.*/
 	auto GetLengthSeconds(float rate = 1) const -> float
@@ -269,6 +270,13 @@ class Steps
 		return debugstrings;
 	}
 	auto IsSkillsetHighestOfChart(Skillset skill, float rate) -> bool;
+
+	auto IsFavorited() const -> bool { return isFavorited; }
+	auto SetFavorited(bool b) -> void { isFavorited = b; }
+	auto HasGoal() const -> bool { return hasGoal; }
+	auto SetHasGoal(bool b) -> void { hasGoal = b; }
+	auto IsPermaMirror() const -> bool { return isPermamirror; }
+	auto SetPermaMirror(bool b) -> void { isPermamirror = b; }
 
   private:
 	std::string ChartKey = "";
@@ -331,6 +339,10 @@ class Steps
 	 * @brief What is the maximum specified BPM?
 	 * If this is a range, then min should not be equal to max. */
 	float specifiedBPMMax;
+
+	bool hasGoal = false;
+	bool isFavorited = false;
+	bool isPermamirror = false;
 
 	bool m_bDuplicateDifficulty = false;
 	std::vector<std::string> debugstrings;

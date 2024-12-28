@@ -16,9 +16,11 @@
 #include "Core/Services/Locator.hpp"
 #include "GamePreferences.h"
 #include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Singletons/GameManager.h"
+#include "Etterna/Models/NoteData/NoteDataUtil.h"
 
-#ifndef _WIN32
-#include <cpuid.h>
+#if !( defined(_WIN32) || defined(__APPLE__))
+	#include <cpuid.h> //We only use cpuid.h on Linux :)
 #endif
 
 #ifdef _WIN32
@@ -84,12 +86,12 @@ getCpuHash() -> uint16_t
 }
 
 auto
-getMachineName() -> string
+getMachineName() -> std::string
 {
 	static char computerName[128];
 	DWORD size = 128;
 	GetComputerName(computerName, &size);
-	return string(computerName);
+	return std::string(computerName);
 }
 
 #else
@@ -248,7 +250,7 @@ getCpuHash()
 }
 #endif // !DARWIN
 
-string
+std::string
 getMachineName()
 {
 	static struct utsname u;
@@ -258,7 +260,7 @@ getMachineName()
 		return "unknown";
 	}
 
-	return string(u.nodename);
+	return std::string(u.nodename);
 }
 #endif
 
@@ -278,7 +280,7 @@ computeSystemUniqueId() -> uint16_t*
 	return id;
 }
 auto
-getSystemUniqueId() -> string
+getSystemUniqueId() -> std::string
 {
 	// get the name of the computer
 	auto str = getMachineName();
@@ -437,16 +439,6 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		return false;
 	}
 
-	// no negative bpm garbage
-	if (pss.filehadnegbpms) {
-		return false;
-	}
-
-	// no lau script shenanigans
-	if (pss.luascriptwasloaded) {
-		return false;
-	}
-
 	// it would take some amount of effort to abuse this but hey, whatever
 	if (pss.everusedautoplay) {
 		return false;
@@ -454,6 +446,7 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 
 	auto& tfs = ps.m_PlayerOptions.GetStage().m_bTransforms;
 	auto& turns = ps.m_PlayerOptions.GetStage().m_bTurns;
+	auto& effects = ps.m_PlayerOptions.GetStage().m_fEffects;
 
 	// only do this if the file doesnt have mines
 	if (tfs[PlayerOptions::TRANSFORM_NOMINES] && pss.filegotmines)
@@ -488,6 +481,11 @@ DetermineScoreEligibility(const PlayerStageStats& pss, const PlayerState& ps)
 		if (turns[t])
 			return false;
 	}
+
+	// invalidate if invert is on
+	// (fake mirror)
+	if (effects[PlayerOptions::EFFECT_INVERT] != 0.0F)
+		return false;
 
 	// impossible for this to happen but just in case
 	if (ps.m_PlayerOptions.GetStage().m_bPractice)
@@ -531,7 +529,8 @@ FillInHighScore(const PlayerStageStats& pss,
 			asModifiers.push_back(sSongOptions);
 		}
 	}
-	hs.SetModifiers(join(", ", asModifiers));
+	const auto modstr = join(", ", asModifiers);
+	hs.SetModifiers(modstr);
 
 	hs.SetDateTime(DateTime::GetNowDateTime());
 	hs.SetPlayerGuid(sPlayerGuid);
@@ -543,15 +542,14 @@ FillInHighScore(const PlayerStageStats& pss,
 	hs.SetLifeRemainingSeconds(pss.m_fLifeRemainingSeconds);
 	hs.SetDisqualified(pss.IsDisqualified());
 	hs.SetDSFlag(pss.usedDoubleSetup);
+	hs.SetStageSeed(GAMESTATE->m_iStageSeed);
 	hs.SetSongOffset(ps.GetDisplayedTiming().m_fBeat0OffsetInSeconds);
 
 	// Etterna validity check, used for ssr/eo eligibility -mina
 	hs.SetEtternaValid(DetermineScoreEligibility(pss, ps));
 
-	// force fail grade if player 'gave up', autoplay was used, or lua scripts
-	// were loaded (this is sorta redundant with the above but ehh) -mina
-	if (pss.gaveuplikeadumbass || pss.luascriptwasloaded ||
-		pss.everusedautoplay) {
+	// force fail grade if player 'gave up' or autoplay was used
+	if (pss.gaveuplikeadumbass || pss.everusedautoplay) {
 		hs.SetGrade(Grade_Failed);
 	}
 
@@ -562,60 +560,71 @@ FillInHighScore(const PlayerStageStats& pss,
 	  BinaryToHex(CryptManager::GetSHA1ForString(hs.GetDateTime().GetString()));
 	hs.SetScoreKey(ScoreKey);
 
-	// DOES NOT WORK NEEDS FIX -mina
-	// the vectors stored in pss are what are accessed by evaluation so we can
-	// write them to the replay file instead of the highscore object (if
-	// successful) -mina this is kinda messy meh -mina
-
-	if (pss.m_fWifeScore > 0.F) {
-		hs.SetOffsetVector(pss.GetOffsetVector());
-		hs.SetNoteRowVector(pss.GetNoteRowVector());
-		hs.SetTrackVector(pss.GetTrackVector());
-		hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
-		hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
-		hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
-
-		// ok this is a little jank but there's a few things going on here,
-		// first we can't trust that scores getting here are necessarily either
-		// fully completed or fails, so we can't trust that the wifescore in pss
-		// is necessarily the correct wifescore, or that rescoring using the
-		// offsetvectors will produce it
-		// second, since there is no setwifeversion function, newly minted
-		// scores won't have wifevers set, will be uploaded, then rescored on
-		// next load, and uploaded again, not a huge deal, but still undesirable
-		// thankfully we can fix both problems by just rescoring to wife3, this
-		// will properly set the wifescore as well as wife vers flags
-
-		// for this we need the actual totalpoints values, so we need steps data
-		auto steps = GAMESTATE->m_pCurSteps;
-		auto nd = steps->GetNoteData();
-		auto* td = steps->GetTimingData();
-		auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
-
-		// i _think_ an assert is ok here.. if this can happen we probably want
-		// to know about it
-		ASSERT(maxpoints > 0);
-
-		if (pss.GetGrade() == Grade_Failed) {
-			hs.SetSSRNormPercent(0.F);
-		} else {
-			hs.RescoreToWife3(maxpoints);
-		}
-
-		if (hs.GetEtternaValid()) {
-			auto dakine = pss.CalcSSR(hs.GetSSRNormPercent());
-			FOREACH_ENUM(Skillset, ss)
-			hs.SetSkillsetSSR(ss, dakine[ss]);
-
-			hs.SetSSRCalcVersion(GetCalcVersion());
-		} else {
-			FOREACH_ENUM(Skillset, ss)
-			hs.SetSkillsetSSR(ss, 0.F);
-		}
-	}
+	// Base replay data (V2)
+	hs.SetOffsetVector(pss.GetOffsetVector());
+	hs.SetNoteRowVector(pss.GetNoteRowVector());
+	hs.SetTrackVector(pss.GetTrackVector());
+	hs.SetTapNoteTypeVector(pss.GetTapNoteTypeVector());
+	hs.SetHoldReplayDataVector(pss.GetHoldReplayDataVector());
+	hs.SetMineReplayDataVector(pss.GetMineReplayDataVector());
 
 	// Input data
 	hs.SetInputDataVector(pss.GetInputDataVector());
+	hs.SetMissDataVector(pss.GetMissDataVector());
+
+	// prepare to rescore the play to clean up incomplete scores
+	auto steps = GAMESTATE->m_pCurSteps;
+	auto st = steps->m_StepsType;
+	auto* style = GAMEMAN->GetStyleForStepsType(st);
+	auto nd = steps->GetNoteData();
+	auto* td = steps->GetTimingData();
+
+	// transform the notedata by style if necessary
+	if (style != nullptr) {
+		NoteData ndo;
+		style->GetTransformedNoteDataForStyle(PLAYER_1, nd, ndo);
+		nd = ndo;
+	}
+
+	// Have to account for mirror and shuffle
+	if (style != nullptr && td != nullptr) {
+		PlayerOptions po;
+		po.Init();
+		po.SetForReplay(true);
+		po.FromString(modstr);
+		auto tmpSeed = GAMESTATE->m_iStageSeed;
+
+		// if rng was not saved, only apply non shuffle mods
+		if (hs.GetStageSeed() == 0) {
+			po.m_bTurns[PlayerOptions::TURN_SHUFFLE] = false;
+			po.m_bTurns[PlayerOptions::TURN_SOFT_SHUFFLE] = false;
+			po.m_bTurns[PlayerOptions::TURN_SUPER_SHUFFLE] = false;
+			po.m_bTurns[PlayerOptions::TURN_HRAN_SHUFFLE] = false;
+		} else {
+			GAMESTATE->m_iStageSeed = hs.GetStageSeed();
+		}
+
+		NoteDataUtil::TransformNoteData(nd, *td, po, style->m_StepsType);
+		GAMESTATE->m_iStageSeed = tmpSeed;
+	}
+
+	auto maxpoints = static_cast<float>(nd.WifeTotalScoreCalc(td));
+	if (pss.GetGrade() == Grade_Failed) {
+		hs.SetSSRNormPercent(0.F);
+	} else {
+		hs.RescoreToWife3(maxpoints);
+	}
+
+	if (hs.GetEtternaValid()) {
+		auto dakine = pss.CalcSSR(hs.GetSSRNormPercent());
+		FOREACH_ENUM(Skillset, ss)
+		hs.SetSkillsetSSR(ss, dakine[ss]);
+
+		hs.SetSSRCalcVersion(GetCalcVersion());
+	} else {
+		FOREACH_ENUM(Skillset, ss)
+		hs.SetSkillsetSSR(ss, 0.F);
+	}
 
 	// Normalize Judgments to J4 (regardless of wifepercent)
 	// If it fails, reset the replay data from pss and try one more time
@@ -664,11 +673,9 @@ StageStats::FinalizeScores()
 	assert(pSteps != nullptr);
 
 	// cope with autoplay and replays
-	if (GamePreferences::m_AutoPlay != PC_HUMAN) {
+	if (GamePreferences::m_AutoPlay != PC_HUMAN || m_bUsedAutoplay) {
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
-			if (!REPLAYS->GetActiveReplayScore()
-				   ->GetCopyOfSetOnlineReplayTimestampVector()
-				   .empty()) {
+			if (REPLAYS->GetActiveReplayScore()->GetReplay()->IsOnlineScore()) {
 				// it's an online replay
 				Locator::getLogger()->info(
 				  "Online Replay detected - saved nothing");
@@ -723,23 +730,6 @@ StageStats::FinalizeScores()
 		DLMAN->UploadScoreWithReplayData(&hs);
 		hs.timeStamps.clear();
 		hs.timeStamps.shrink_to_fit();
-
-		// mega hack to stop non-pbs from overwriting pbs on eo (it happens rate
-		// specific), we're just going to also upload whatever the pb for the
-		// rate is now, since the site only tracks the best score per rate.
-		// If there's no more replaydata on disk for the old pb this could maybe
-		// be a problem and perhaps the better solution would be to check what
-		// is listed on the site for this rate before uploading the score just
-		// achieved but idk someone else can look into that
-
-		// this _should_ be sound since addscore handles all re-evaluation of
-		// top score flags and the setting of pbptrs
-		auto* pbhs = SCOREMAN->GetChartPBAt(
-		  pSteps->GetChartKey(),
-		  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-		if (pbhs->GetScoreKey() != hs.GetScoreKey()) {
-			DLMAN->UploadScoreWithReplayDataFromDisk(pbhs);
-		}
 	}
 
 	// tell multiplayer a score was set

@@ -1,3 +1,6 @@
+--- More utilities for many different subjects
+-- @module 02_Utilities
+
 -- Find a key in tab with the given value.
 function FindValue(tab, value)
 	for key, name in pairs(tab) do

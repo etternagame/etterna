@@ -48,6 +48,7 @@ struct HighScoreImpl
 	bool bNoChordCohesion;
 	bool bEtternaValid;
 	bool bUsedDS;
+	int stage_seed;
 	std::vector<std::string> uploaded;
 	std::vector<int> vRescoreJudgeVector;
 	unsigned int iMaxCombo; // maximum combo obtained [SM5 alpha 1a+]
@@ -144,6 +145,7 @@ HighScoreImpl::HighScoreImpl()
 	bNoChordCohesion = false;
 	bDisqualified = false;
 	bUsedDS = false;
+	stage_seed = 0;
 	WifeVersion = 0;
 }
 
@@ -174,6 +176,9 @@ HighScoreImpl::CreateEttNode() const -> XNode*
 	pNode->AppendChild("EtternaValid", bEtternaValid);
 	if (bUsedDS) {
 		pNode->AppendChild("DSFlag", bUsedDS);
+	}
+	if (stage_seed != 0) {
+		pNode->AppendChild("StageSeed", stage_seed);
 	}
 	pNode->AppendChild("PlayedSeconds", played_seconds);
 	pNode->AppendChild("MaxCombo", iMaxCombo);
@@ -248,6 +253,10 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	auto dsSuccess = pNode->GetChildValue("DSFlag", bUsedDS);
 	if (!dsSuccess) {
 		bUsedDS = false;
+	}
+	auto ssSuccess = pNode->GetChildValue("StageSeed", stage_seed);
+	if (!ssSuccess) {
+		stage_seed = 0;
 	}
 	const auto* pUploadedServers = pNode->GetChild("Servs");
 	if (pUploadedServers != nullptr) {
@@ -366,6 +375,21 @@ HighScoreImpl::LoadFromEttNode(const XNode* pNode)
 	grade = std::clamp(grade, Grade_Tier01, Grade_Failed);
 }
 
+auto
+HighScore::DebugString() const -> std::string {
+	return fmt::format(
+	  "HighScore (ck {}, sk {}, rate {}, overall {}, ssrnorm {}, ccon "
+	  "{}, grade {}, date {})",
+	  GetChartKey(),
+	  GetScoreKey(),
+	  GetMusicRate(),
+	  GetSkillsetSSR(Skill_Overall),
+	  GetSSRNormPercent(),
+	  GetChordCohesion(),
+	  GetGrade(),
+	  GetDateTime().GetString());
+}
+
 void
 HighScore::InitReplay()
 {
@@ -378,6 +402,13 @@ HighScore::CheckReplayIsInit()
 	if (replay == nullptr) {
 		InitReplay();
 	}
+}
+
+auto
+HighScore::GetReplay() -> Replay*
+{
+	CheckReplayIsInit();
+	return replay;
 }
 
 auto
@@ -443,14 +474,14 @@ HighScore::IsEmpty() const -> bool
 auto
 HighScore::IsEmptyNormalized() const -> bool
 {
-	return !(m_Impl->iTapNoteScoresNormalized[TNS_W1] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_W2] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_W3] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_W4] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_W5] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_Miss] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_HitMine] != 0 ||
-		m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] != 0);
+	return m_Impl->iTapNoteScoresNormalized[TNS_W1] == 0 &&
+		   m_Impl->iTapNoteScoresNormalized[TNS_W2] == 0 &&
+		   m_Impl->iTapNoteScoresNormalized[TNS_W3] == 0 &&
+		   m_Impl->iTapNoteScoresNormalized[TNS_W4] == 0 &&
+		   m_Impl->iTapNoteScoresNormalized[TNS_W5] == 0 &&
+		   m_Impl->iTapNoteScoresNormalized[TNS_Miss] == 0 &&
+		   m_Impl->iTapNoteScoresNormalized[TNS_HitMine] == 0 &&
+		   m_Impl->iTapNoteScoresNormalized[TNS_AvoidMine] == 0;
 }
 
 auto
@@ -535,6 +566,11 @@ HighScore::GetDSFlag() const -> bool
 	return m_Impl->bUsedDS;
 }
 auto
+HighScore::GetStageSeed() const -> int
+{
+	return m_Impl->stage_seed;
+}
+auto
 HighScore::IsUploadedToServer(const std::string& s) const -> bool
 {
 	return find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) !=
@@ -577,6 +613,12 @@ HighScore::GetCopyOfMineReplayDataVector()
 {
 	CheckReplayIsInit();
 	return replay->GetCopyOfMineReplayDataVector();
+}
+auto
+HighScore::GetCopyOfMissReplayDataVector() -> std::vector<MissReplayResult>
+{
+	CheckReplayIsInit();
+	return replay->GetCopyOfMissReplayDataVector();
 }
 auto
 HighScore::GetCopyOfSetOnlineReplayTimestampVector() -> std::vector<float>
@@ -627,6 +669,12 @@ HighScore::GetMineReplayDataVector()
 {
 	CheckReplayIsInit();
 	return replay->GetMineReplayDataVector();
+}
+auto
+HighScore::GetMissReplayDataVector() -> const std::vector<MissReplayResult>&
+{
+	CheckReplayIsInit();
+	return replay->GetMissReplayDataVector();
 }
 auto
 HighScore::GetScoreKey() const -> const std::string&
@@ -814,6 +862,12 @@ HighScore::SetDSFlag(bool b)
 	m_Impl->bUsedDS = b;
 }
 void
+HighScore::SetStageSeed(int i)
+{
+	m_Impl->stage_seed = i;
+}
+
+void
 HighScore::AddUploadedServer(const std::string& s)
 {
 	if (find(m_Impl->uploaded.begin(), m_Impl->uploaded.end(), s) ==
@@ -826,6 +880,12 @@ HighScore::SetInputDataVector(const std::vector<InputDataEvent>& v)
 {
 	CheckReplayIsInit();
 	replay->SetInputDataVector(v);
+}
+void
+HighScore::SetMissDataVector(const std::vector <MissReplayResult>& v)
+{
+	CheckReplayIsInit();
+	replay->SetMissReplayDataVector(v);
 }
 void
 HighScore::SetOffsetVector(const std::vector<float>& v)
@@ -920,7 +980,7 @@ HighScore::SetSkillsetSSR(Skillset ss, float ssr)
 	m_Impl->fSkillsetSSRs[ss] = ssr;
 }
 void
-HighScore::SetValidationKey(ValidationKey vk, string k)
+HighScore::SetValidationKey(ValidationKey vk, std::string k)
 {
 	m_Impl->ValidationKeys[vk] = std::move(k);
 }
@@ -980,7 +1040,7 @@ HighScore::GetNameMutable() -> std::string*
 }
 
 auto
-HighScore::GenerateValidationKeys() -> std::string
+HighScore::GenerateBrittleValidationKey() const -> std::string
 {
 	std::string key;
 
@@ -1004,9 +1064,9 @@ HighScore::GenerateValidationKeys() -> std::string
 		key.append(std::to_string(GetHoldNoteScore(hns)));
 	}
 
-	norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
-	musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
-	judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));
+	auto norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
+	auto musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
+	auto judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));
 
 	key.append(GetScoreKey());
 	key.append(GetChartKey());
@@ -1022,13 +1082,37 @@ HighScore::GenerateValidationKeys() -> std::string
 	std::string hash_string = CryptManager::GetSHA256ForString(key);
 	std::string hash_hex_str =
 	  BinaryToHex(hash_string.data(), static_cast<int>(hash_string.size()));
+	return hash_hex_str;
+}
 
+auto
+HighScore::ValidateBrittleValidationKey() const -> bool
+{
+	const auto& key = GetValidationKey(ValidationKey_Brittle);
+	const auto newkey = GenerateBrittleValidationKey();
+
+	// it's fine
+	if (key == newkey) {
+		return true;
+	}
+
+	// find out why it isn't fine
+	return false;
+}
+
+void
+HighScore::GenerateValidationKeys()
+{
+	norms = static_cast<int>(std::lround(GetSSRNormPercent() * 1000000.F));
+	musics = static_cast<int>(std::lround(GetMusicRate() * 100.F));
+	judges = static_cast<int>(std::lround(GetJudgeScale() * 100.F));;
+
+	auto hash_hex_str = GenerateBrittleValidationKey();
 	SetValidationKey(ValidationKey_Brittle, hash_hex_str);
 
 	// just testing stuff
 	// hs.SetValidationKey(ValidationKey_Weak,
 	// GenerateWeakValidationKey(m_iTapNoteScores, m_iHoldNoteScores));
-	return key;
 }
 
 auto
@@ -1109,19 +1193,15 @@ Screenshot::LoadFromNode(const XNode* pNode)
 }
 
 auto
-HighScore::RescoreToWife2Judge(int x) -> float
+HighScore::RescoreToWife2TimeScale(float ts) -> float
 {
 	if (!LoadReplayData()) {
 		return m_Impl->fWifeScore;
 	}
 
-	const float tso[] = { 1.50F, 1.33F, 1.16F, 1.00F, 0.84F,
-						  0.66F, 0.50F, 0.33F, 0.20F };
-	const auto ts = tso[x - 1];
-	float p = 0;
-
-	auto vOffsetVector = replay->GetOffsetVector();
-	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+	auto p = 0.F;
+	auto& vOffsetVector = replay->GetOffsetVector();
+	auto& vTapNoteTypeVector = replay->GetTapNoteTypeVector();
 
 	// the typevector is only available for full replays
 	if (HasColumnData()) {
@@ -1142,7 +1222,7 @@ HighScore::RescoreToWife2Judge(int x) -> float
 	}
 
 	p += static_cast<float>(m_Impl->iHoldNoteScores[HNS_LetGo] +
-		  m_Impl->iHoldNoteScores[HNS_Missed] * -6);
+							m_Impl->iHoldNoteScores[HNS_Missed] * -6);
 	p += static_cast<float>(m_Impl->iTapNoteScores[TNS_HitMine] * -8);
 
 	// this is a bad assumption but im leaving it here
@@ -1165,11 +1245,29 @@ HighScore::RescoreToWife2Judge(int x) -> float
 }
 
 auto
+HighScore::RescoreToWife2Judge(int x) -> float
+{
+	const float tso[] = { 1.50F, 1.33F, 1.16F, 1.00F, 0.84F,
+						  0.66F, 0.50F, 0.33F, 0.20F };
+	const auto ts = tso[x - 1];
+	return RescoreToWife2TimeScale(ts);
+}
+
+auto
 HighScore::RescoreToWife3(float pmax) -> bool
 {
 	// HAHAHA WE NEED TO LOAD THE REPLAY DATA EVEN IF WE KNOW WE HAVE IT
-	if (!LoadReplayData()) {
+	CheckReplayIsInit(); 
+	if (!replay->GeneratePrimitiveVectors()) {
 		return false;
+	}
+
+	if (pmax <= 0.F) {
+		m_Impl->fSSRNormPercent = 0.F;
+		m_Impl->fWifeScore = 0.F;
+		m_Impl->fWifePoints = 0.F;
+		m_Impl->WifeVersion = 3;
+		return true;
 	}
 
 	// SSRNormPercent
@@ -1177,8 +1275,8 @@ HighScore::RescoreToWife3(float pmax) -> bool
 	// WifeScore for HighScore Judge
 	auto pj = 0.F;
 
-	auto vOffsetVector = replay->GetOffsetVector();
-	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+	auto& vOffsetVector = replay->GetOffsetVector();
+	auto& vTapNoteTypeVector = replay->GetTapNoteTypeVector();
 
 	// the typevector is only available for full replays
 	if (HasColumnData()) {
@@ -1231,7 +1329,7 @@ HighScore::RescoreToDPJudge(int x) -> float
 	auto boo = 0;
 	auto miss = 0;
 	auto m2 = 0;
-	auto vOffsetVector = replay->GetOffsetVector();
+	auto& vOffsetVector = replay->GetOffsetVector();
 	for (auto& f : vOffsetVector) {
 		m2 += 2;
 		const auto x = std::abs(f * 1000.F);
@@ -1307,7 +1405,7 @@ HighScore::NormalizeJudgments() -> bool
 	// we don't really want that to happen
 	// this is because replays dont save for the same reason
 	if (!LoadReplayData()) {
-		auto vOffsetVector = replay->GetOffsetVector();
+		auto& vOffsetVector = replay->GetOffsetVector();
 		if (vOffsetVector.empty()) {
 			return false;
 		}
@@ -1320,8 +1418,8 @@ HighScore::NormalizeJudgments() -> bool
 	m_Impl->iTapNoteScoresNormalized[TNS_HitMine] =
 	  m_Impl->iTapNoteScores[TNS_HitMine];
 
-	auto vTapNoteTypeVector = replay->GetTapNoteTypeVector();
-	auto vOffsetVector = replay->GetOffsetVector();
+	auto& vTapNoteTypeVector = replay->GetTapNoteTypeVector();
+	auto& vOffsetVector = replay->GetOffsetVector();
 
 	// New replays, check for only certain types
 	if (HasColumnData()) {
@@ -1548,137 +1646,9 @@ class LunaHighScore : public Luna<HighScore>
 		return 0;
 	}
 
-	// Convert to MS so lua doesn't have to
-	// not exactly sure why i'm doing this fancy load garbage or if it works...
-	// -mina
-	static auto GetOffsetVector(T* p, lua_State* L) -> int
-	{
-		auto v = p->GetOffsetVector();
-		const auto loaded = !v.empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = p->GetOffsetVector();
-			}
-			for (auto& i : v) {
-				i = i * 1000;
-			}
-			LuaHelpers::CreateTableFromArray(v, L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetNoteRowVector(T* p, lua_State* L) -> int
-	{
-		const auto* v = &(p->GetNoteRowVector());
-		const auto loaded = !v->empty();
-
-		auto timestamps = p->GetCopyOfSetOnlineReplayTimestampVector();
-
-		if (loaded || p->LoadReplayData()) {
-			// this is a local highscore with a local replay
-			// easy to just output the noterows loaded
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else if (!timestamps.empty() && v->empty()) {
-			// this is a legacy online replay
-			// missing rows but with timestamps instead
-			// we can try our best to show the noterows by approximating
-			GAMESTATE->SetProcessedTimingData(
-			  GAMESTATE->m_pCurSteps->GetTimingData());
-			auto* td = GAMESTATE->m_pCurSteps->GetTimingData();
-			auto nd = GAMESTATE->m_pCurSteps->GetNoteData();
-			auto nerv = nd.BuildAndGetNerv(td);
-			auto sdifs = td->BuildAndGetEtaner(nerv);
-			std::vector<int> noterows;
-			for (auto t : timestamps) {
-				auto timestamptobeat =
-				  td->GetBeatFromElapsedTime(t * p->GetMusicRate());
-				const auto somenumberscaledbyoffsets =
-				  sdifs[0] - (timestamps[0] * p->GetMusicRate());
-				timestamptobeat += somenumberscaledbyoffsets;
-				auto noterowfrombeat = BeatToNoteRow(timestamptobeat);
-				noterows.emplace_back(noterowfrombeat);
-			}
-			const auto noterowoffsetter = nerv[0] - noterows[0];
-			for (auto& noterowwithoffset : noterows) {
-				noterowwithoffset += noterowoffsetter;
-			}
-			GAMESTATE->SetProcessedTimingData(nullptr);
-			p->SetNoteRowVector(noterows);
-
-			v = &(p->GetNoteRowVector()); // uhh
-
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else {
-			// ok we got nothing, just throw null
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetTrackVector(T* p, lua_State* L) -> int
-	{
-		const auto* v = &(p->GetTrackVector());
-		const auto loaded = !v->empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = &(p->GetTrackVector());
-			}
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetTapNoteTypeVector(T* p, lua_State* L) -> int
-	{
-		const auto* v = &(p->GetTapNoteTypeVector());
-		const auto loaded = !v->empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = &(p->GetTapNoteTypeVector());
-			}
-			LuaHelpers::CreateTableFromArray((*v), L);
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
-	static auto GetHoldNoteVector(T* p, lua_State* L) -> int
-	{
-		auto v = p->GetHoldReplayDataVector();
-		const auto loaded = !v.empty();
-		if (loaded || p->LoadReplayData()) {
-			if (!loaded) {
-				v = p->GetHoldReplayDataVector();
-			}
-			// make containing table
-			lua_newtable(L);
-			for (size_t i = 0; i < v.size(); i++) {
-				// make table for each item
-				lua_createtable(L, 0, 3);
-
-				lua_pushnumber(L, v[i].row);
-				lua_setfield(L, -2, "row");
-				lua_pushnumber(L, v[i].track);
-				lua_setfield(L, -2, "track");
-				LuaHelpers::Push<TapNoteSubType>(L, v[i].subType);
-				lua_setfield(L, -2, "TapNoteSubType");
-
-				lua_rawseti(L, -2, i + 1);
-			}
-		} else {
-			lua_pushnil(L);
-		}
-		return 1;
-	}
-
 	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
-		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+		const auto doot = ssprintf("%d | %d | %d | %d | %d | %d  x%d",
 								   p->GetTapNoteScore(TNS_W1),
 								   p->GetTapNoteScore(TNS_W2),
 								   p->GetTapNoteScore(TNS_W3),
@@ -1717,6 +1687,11 @@ class LunaHighScore : public Luna<HighScore>
 	static auto GetSSRCalcVersion(T* p, lua_State* L) -> int
 	{
 		lua_pushnumber(L, p->GetSSRCalcVersion());
+		return 1;
+	}
+	static auto GetReplay(T* p, lua_State* L) -> int
+	{
+		p->PushReplay(L);
 		return 1;
 	}
 
@@ -1758,13 +1733,9 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(ToggleEtternaValidation);
 		ADD_METHOD(GetEtternaValid);
 		ADD_METHOD(HasReplayData);
-		ADD_METHOD(GetOffsetVector);
-		ADD_METHOD(GetNoteRowVector);
-		ADD_METHOD(GetTrackVector);
-		ADD_METHOD(GetTapNoteTypeVector);
-		ADD_METHOD(GetHoldNoteVector);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetReplayType);
+		ADD_METHOD(GetReplay);
 		ADD_METHOD(GetJudgmentString);
 		ADD_METHOD(GetDisplayName);
 		ADD_METHOD(GetUserid);

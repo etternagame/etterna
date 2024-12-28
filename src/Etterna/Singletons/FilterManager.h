@@ -12,10 +12,8 @@ class FilterManager
 	FilterManager();
 	~FilterManager();
 
-	PlayerState* m_pPlayerState;
-
-	constexpr static auto NUM_FILTERS =
-	  NUM_Skillset + 2; // The skillsets, plus 2 more for Length and Clear%
+	// The skillsets, plus 2 more for Length and Clear%
+	constexpr static auto NUM_FILTERS = NUM_Skillset + 2;
 
 	std::array<float, NUM_FILTERS> FilterLowerBounds;
 	std::array<float, NUM_FILTERS> FilterUpperBounds;

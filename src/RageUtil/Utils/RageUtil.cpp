@@ -16,6 +16,20 @@
 #include <cassert>
 #include <cctype>
 
+// zlib
+#ifdef _WIN32
+#include "zlib.h"
+#if defined(_MSC_VER)
+#if defined(BINARY_ZDL)
+#pragma comment(lib, "zdll.lib")
+#endif
+#endif
+#elif defined(__APPLE__)
+#include "zlib.h"
+#else
+#include <zlib.h>
+#endif
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
@@ -627,6 +641,175 @@ GetLanguageInfo(const std::string& sIsoCode)
 	return nullptr;
 }
 
+/** Compress a STL string using zlib with given compression level and return
+ * the binary data.
+ https://www.boost.org/LICENSE_1_0.txt
+ */
+std::string
+compress_string(const std::string& str,
+				int compressionlevel /* = Z_BEST_COMPRESSION (9)*/)
+{
+	z_stream zs;
+	memset(&zs, 0, sizeof(zs));
+
+	if (deflateInit(&zs, compressionlevel) != Z_OK) {
+		Locator::getLogger()->error("Failed to initialize for compress string");
+		return "";
+	}
+
+	zs.next_in = (Bytef*)str.data();
+	zs.avail_in = str.size();
+
+	int ret;
+	std::vector<char> outbuffer(32768, 0);
+	std::string outstring;
+
+	do {
+		zs.next_out = reinterpret_cast<Bytef*>(outbuffer.data());
+		zs.avail_out = sizeof(outbuffer);
+
+		ret = deflate(&zs, Z_FINISH);
+
+		if (outstring.size() < zs.total_out) {
+			outstring.append(outbuffer.data(), zs.total_out - outstring.size());
+		}
+	} while (ret == Z_OK);
+
+	deflateEnd(&zs);
+
+	if (ret != Z_STREAM_END) {
+		Locator::getLogger()->error(
+		  "Failure to compress string : {} : {}", ret, zs.msg);
+		return "";
+	}
+
+	return outstring;
+}
+
+/** Decompress an STL string using zlib and return the original data.
+https://www.boost.org/LICENSE_1_0.txt
+*/
+std::string
+decompress_string(const std::string& str)
+{
+	z_stream zs;
+	memset(&zs, 0, sizeof(zs));
+
+	if (inflateInit(&zs) != Z_OK) {
+		Locator::getLogger()->error(
+		  "Failed to initialize for decompress string");
+		return "";
+	}
+
+	zs.next_in = (Bytef*)str.data();
+	zs.avail_in = str.size();
+
+	int ret;
+	std::vector<char> outbuffer(32768, 0);
+	std::string outstring;
+
+	do {
+		zs.next_out = reinterpret_cast<Bytef*>(outbuffer.data());
+		zs.avail_out = sizeof(outbuffer);
+
+		ret = inflate(&zs, 0);
+
+		if (outstring.size() < zs.total_out) {
+			outstring.append(outbuffer.data(), zs.total_out - outstring.size());
+		}
+
+	} while (ret == Z_OK);
+
+	inflateEnd(&zs);
+
+	if (ret != Z_STREAM_END) {
+		Locator::getLogger()->error(
+		  "Failure to decompress string : {} : {}", ret, zs.msg);
+		return "";
+	}
+
+	return outstring;
+}
+
+
+static const char b64_table[65] =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static const char reverse_table[128] = {
+	64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+	64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,
+	64, 64, 64, 64, 64, 62, 64, 64, 64, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+	61, 64, 64, 64, 64, 64, 64, 64, 0,	1,	2,	3,	4,	5,	6,	7,	8,	9,	10,
+	11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 64, 64, 64, 64,
+	64, 64, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
+	43, 44, 45, 46, 47, 48, 49, 50, 51, 64, 64, 64, 64, 64
+};
+
+std::string
+base64_encode(const ::std::string& bindata)
+{
+	using ::std::numeric_limits;
+	using ::std::string;
+
+	if (bindata.size() > (numeric_limits<string::size_type>::max() / 4u) * 3u) {
+		throw ::std::length_error("Converting too large a string to base64.");
+	}
+
+	const ::std::size_t binlen = bindata.size();
+	string retval((((binlen + 2) / 3) * 4), '=');
+	::std::size_t outpos = 0;
+	int bits_collected = 0;
+	unsigned int accumulator = 0;
+	const string::const_iterator binend = bindata.end();
+
+	for (string::const_iterator i = bindata.begin(); i != binend; ++i) {
+		accumulator = (accumulator << 8) | (*i & 0xffu);
+		bits_collected += 8;
+		while (bits_collected >= 6) {
+			bits_collected -= 6;
+			retval[outpos++] =
+			  b64_table[(accumulator >> bits_collected) & 0x3fu];
+		}
+	}
+	if (bits_collected > 0) {
+		assert(bits_collected < 6);
+		accumulator <<= 6 - bits_collected;
+		retval[outpos++] = b64_table[accumulator & 0x3fu];
+	}
+	assert(outpos >= (retval.size() - 2));
+	assert(outpos <= retval.size());
+	return retval;
+}
+
+std::string
+base64_decode(const std::string& ascdata)
+{
+	using std::string;
+	string retval;
+	const string::const_iterator last = ascdata.end();
+	int bits_collected = 0;
+	unsigned int accumulator = 0;
+
+	for (string::const_iterator i = ascdata.begin(); i != last; ++i) {
+		const int c = *i;
+		if (std::isspace(c) || c == '=') {
+			continue;
+		}
+		if ((c > 127) || (c < 0) || (reverse_table[c] > 63)) {
+			throw ::std::invalid_argument(
+			  "This contains characters not legal in a base64 encoded string.");
+		}
+		accumulator = (accumulator << 6) | reverse_table[c];
+		bits_collected += 6;
+		if (bits_collected >= 8) {
+			bits_collected -= 8;
+			retval +=
+			  static_cast<char>((accumulator >> bits_collected) & 0xffu);
+		}
+	}
+	return retval;
+}
+
 std::string
 join(const std::string& sDeliminator, const std::vector<std::string>& sSource)
 {
@@ -1199,7 +1382,7 @@ DirectoryIsEmpty(const std::string& sDir)
 		return true;
 
 	std::vector<std::string> asFileNames;
-	GetDirListing(sDir, asFileNames);
+	GetDirListing(sDir, asFileNames, false, false);
 	return asFileNames.empty();
 }
 

@@ -41,6 +41,8 @@ end
 
 local textSize = 0.75
 local textzoomFudge = 5
+local hackyMaxWidth = Var("hackyMaxWidth") or false
+local inputContext = Var("inputContext") or nil
 
 -- this will return an index which is offset depending on certain conditions
 -- basically we want the difficulties to be aligned to the right of the box
@@ -58,15 +60,16 @@ end
 -- based on the amount of difficulties displayed we can allow more room for the song information
 -- assuming that we are aligning difficulties to the right
 local function setMaxWidthForSongInfo()
-    local curSongBox = SCREENMAN:GetTopScreen():safeGetChild("RightFrame", "CurSongBoxFile")
+    local curSongBox = SCREENMAN:GetTopScreen():GetDescendant("RightFrame", "CurSongBoxFile")
     if not curSongBox then return end
+    if not hackyMaxWidth then return end
 
     local diffSlotsOpen = clamp(numshown - #thesteps, 0, numshown)
     -- exactly the width of <diffSlotsOpen> items including the space between plus an additional 2 gaps worth of space for buffer
     local widthallowed = actuals.DiffFrameLeftGap - actuals.LeftTextLeftGap + diffSlotsOpen * (actuals.DiffItemWidth + actuals.DiffFrameSpacing) - actuals.DiffFrameSpacing * 2
 
-    local title = curSongBox:GetChild("Frame"):GetChild("TitleAuthor")
-    local subtitle = curSongBox:GetChild("Frame"):GetChild("SubTitle")
+    local title = curSongBox:GetDescendant("Frame", "TitleAuthor")
+    local subtitle = curSongBox:GetDescendant("Frame", "SubTitle")
 
     if title then
         title:maxwidth(widthallowed / title:GetZoom() - textzoomFudge)
@@ -89,7 +92,11 @@ local t = Def.ActorFrame {
         local scrn = SCREENMAN:GetTopScreen()
         local snm = scrn:GetName()
         local anm = self:GetName()
-        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
+
+        -- if there is no input context passed by the loader, then no input will be handled
+        if inputContext == nil then return end
+
+        CONTEXTMAN:RegisterToContextSet(snm, inputContext, anm)
         -- input handling for changing difficulty with keyboard
         -- this timeout is basically just a timer to make sure that you press buttons fast enough
         local comboTimeout = nil
@@ -115,7 +122,7 @@ local t = Def.ActorFrame {
         end
 
         scrn:AddInputCallback(function(event)
-            if not CONTEXTMAN:CheckContextSet(snm, "Main1") then
+            if not CONTEXTMAN:CheckContextSet(snm, inputContext) then
                 resetTimeout()
                 return
             end

@@ -92,7 +92,7 @@ local t = Def.ActorFrame {
 			self:xy(PlayerFrameX + 53, PlayerFrameY + 9):halign(0):zoom(0.45)
 		end,
 		BeginCommand = function(self)
-			self:settextf("%s: %s", translated_info["Scoring"], scoringToText(themeConfig:get_data().global.DefaultScoreType))
+			self:settextf("%s: %s", translated_info["Scoring"], scoringToText(4))
 		end
 	}
 }

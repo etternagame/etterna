@@ -6,6 +6,7 @@ return Def.ActorFrame {
     LoadFont("Common Normal") ..
         {
             OnCommand = function(self)
+                if gc:GetText() == "" then return end
                 self:settext(THEME:GetString(SCREENMAN:GetTopScreen():GetName(), gc:GetText()))
             end,
             GainFocusCommand = function(self)

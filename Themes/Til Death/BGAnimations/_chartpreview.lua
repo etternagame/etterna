@@ -34,7 +34,7 @@ local function UpdatePreviewPos(self)
 
 		-- calcdisplay position indicator (not the best place to put this but it works)
 		local calcgraphpos = SCREENMAN:GetTopScreen():GetSampleMusicPosition() / musicratio
-		local badorp = self:GetChild("notChordDensityGraph"):GetChild("GraphPos")
+		local badorp = self:GetDescendant("notChordDensityGraph", "GraphPos")
 		badorp:zoomto(math.min(calcgraphpos * capWideScale(300,450) / capWideScale(280,300), capWideScale(300,450)), hidth * 3):halign(0)
 	end
 end
@@ -43,8 +43,8 @@ local function updateCalcInfoDisplays(actor)
 	if not calcinfo:GetVisible() then return end
 	mx = INPUTFILTER:GetMouseX()
 	px = actor:GetParent():GetX()
-	sl1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
-	st1 = actor:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
+	sl1 = actor:GetParent():GetDescendant("notChordDensityGraph", "Seek1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
+	st1 = actor:GetParent():GetDescendant("notChordDensityGraph", "Seektext1"):playcommand("UpdatePosition", {pos = mx, w = wodth, px=px})
 	st1:settextf("%0.2f", actor:GetParent():GetChild("Seek"):GetX() * musicratio /  getCurRateValue())
 	sl1:visible(true)
 	st1:visible(true)
@@ -126,7 +126,13 @@ local t = Def.ActorFrame {
 			else
 				self:LoadDummyNoteData()
 			end
-		end
+		end,
+		CalcInfoOnMessageCommand = function(self)
+			self:show_interval_bars(true)
+		end,
+		CalcInfoOffMessageCommand = function(self)
+			self:show_interval_bars(false)
+		end,
 	},
 
 	Def.Quad {
@@ -171,7 +177,7 @@ local t = Def.ActorFrame {
 			self:zoomto(wodth, hidth):halign(0):diffuse(color("1,1,1,1")):draworder(900) -- cdgraph bg
 		end,
 		HighlightCommand = function(self)	-- use the bg for detection but move the seek pointer -mina
-			if isOver(self) then
+			if isOver(self) and GAMESTATE:GetCurrentSteps() ~= nil then
 				local seek = self:GetParent():GetChild("Seek")
 				local seektext = self:GetParent():GetChild("Seektext")
 				local cdg = self:GetParent():GetChild("ChordDensityGraph")
@@ -197,8 +203,8 @@ local t = Def.ActorFrame {
 			else
 				self:GetParent():GetChild("Seektext"):visible(false)
 				self:GetParent():GetChild("Seek"):visible(false)
-				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seektext1"):visible(false)
-				self:GetParent():GetChild("notChordDensityGraph"):GetChild("Seek1"):visible(false)
+				self:GetParent():GetDescendant("notChordDensityGraph", "Seektext1"):visible(false)
+				self:GetParent():GetDescendant("notChordDensityGraph", "Seek1"):visible(false)
 			end
 		end
 	},

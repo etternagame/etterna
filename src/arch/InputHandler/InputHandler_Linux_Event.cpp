@@ -87,11 +87,11 @@ EventDeviceExists(int iNum)
 {
 	std::string sDir = ssprintf("/sys/class");
 	struct stat st;
-	if (stat(sDir, &st) == -1)
+	if (stat(sDir.c_str(), &st) == -1)
 		return true;
 
 	std::string sFile = ssprintf("/sys/class/input/event%i", iNum);
-	return stat(sFile, &st) == 0;
+	return stat(sFile.c_str(), &st) == 0;
 }
 
 static bool
@@ -110,7 +110,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 {
 	m_sPath = sFile;
 	m_Dev = dev;
-	m_iFD = open(sFile, O_RDWR);
+	m_iFD = open(sFile.c_str(), O_RDWR);
 	if (m_iFD == -1) {
 		// HACK: Let the caller handle errno.
 		return false;
@@ -123,7 +123,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 		if (ioctl(m_iFD, EVIOCGVERSION, &iVersion) == -1)
 			Locator::getLogger()->warn("ioctl(EVIOCGVERSION): {}", strerror(errno));
 		else
-			Locator::getLogger()->Info("Event driver: v{}.{}.{}",
+			Locator::getLogger()->info("Event driver: v{}.{}.{}",
 					  (iVersion >> 16) & 0xFF,
 					  (iVersion >> 8) & 0xFF,
 					  iVersion & 0xFF);
@@ -142,7 +142,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 	if (ioctl(m_iFD, EVIOCGID, &DevInfo) == -1) {
 		Locator::getLogger()->warn("ioctl(EVIOCGID): {}", strerror(errno));
 	} else {
-		Locator::getLogger()->Info("Input device: {}: {} device, ID {:04x}:{:04x}, version {:x}: {}",
+		Locator::getLogger()->info("Input device: {}: {} device, ID {:04x}:{:04x}, version {:x}: {}",
 				  sFile.c_str(), BustypeToString(DevInfo.bustype).c_str(),
 				  DevInfo.vendor, DevInfo.product, DevInfo.version,
 				  m_sName.c_str());
@@ -155,7 +155,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 
 	if (!BitIsSet(iABSMask, ABS_X) && !BitIsSet(iABSMask, ABS_THROTTLE) &&
 		!BitIsSet(iABSMask, ABS_WHEEL)) {
-		Locator::getLogger()->Info("    Not a joystick; ignored");
+		Locator::getLogger()->info("    Not a joystick; ignored");
 		Close();
 		return false;
 	}
@@ -198,7 +198,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 		if (BitIsSet(iEventTypes, EV_FF_STATUS))
 			setEventTypes.push_back("ff_status");
 
-		Locator::getLogger()->Info("    Event types: {}", join(", ", setEventTypes).c_str());
+		Locator::getLogger()->info("    Event types: {}", join(", ", setEventTypes).c_str());
 	}
 
 	int iTotalKeys = 0;
@@ -222,7 +222,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 			continue;
 		}
 
-		// Locator::getLogger()->Info( "    Axis {}: min: {}; max: {}; fuzz: {}; flat: {}",
+		// Locator::getLogger()->info( "    Axis {}: min: {}; max: {}; fuzz: {}; flat: {}",
 		//		i, absinfo.minimum, absinfo.maximum, absinfo.fuzz, absinfo.flat
 		//);
 		aiAbsMin[i] = absinfo.minimum;
@@ -264,7 +264,7 @@ EventDevice::Open(std::string sFile, InputDevice dev)
 
 		++iTotalAxes;
 	}
-	Locator::getLogger()->Info("    Total keys: {}; total axes: {}", iTotalKeys, iTotalAxes);
+	Locator::getLogger()->info("    Total keys: {}; total axes: {}", iTotalKeys, iTotalAxes);
 
 	return true;
 }
@@ -340,7 +340,7 @@ InputHandler_Linux_Event::TryDevice(std::string devfile)
 		// This is likely to fail; most systems still forbid ALL eventNN
 		// regardless of their type. Info it anyway, it could be useful for
 		// end-user troubleshooting.
-		Locator::getLogger()->Info("LinuxEvent: Couldn't open {}: {}.",
+		Locator::getLogger()->info("LinuxEvent: Couldn't open {}: {}.",
 				  devfile.c_str(),
 				  strerror(errno));
 		return false;
@@ -458,9 +458,9 @@ InputHandler_Linux_Event::InputThread()
 											 // or if more than 0.5
 					} else {
 						ButtonPressed(DeviceInput(
-						  g_apEventDevices[i]->m_Dev, neg, max(-l, 0), now));
+						  g_apEventDevices[i]->m_Dev, neg, max(-l, 0.F), now));
 						ButtonPressed(DeviceInput(
-						  g_apEventDevices[i]->m_Dev, pos, max(+l, 0), now));
+						  g_apEventDevices[i]->m_Dev, pos, max(+l, 0.F), now));
 					}
 					break;
 				}

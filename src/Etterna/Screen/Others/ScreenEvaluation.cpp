@@ -268,69 +268,47 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 		LuaHelpers::Push(L, p->GetStageStats());
 		return 1;
 	}
-	static int SetPlayerStageStatsFromReplayData(T* p, lua_State* L)
+	static int RescoreReplay(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Setting PSS from ReplayData via Lua");
+		Locator::getLogger()->info("Rescoring ReplayData via Lua");
 		PlayerStageStats* pPSS = Luna<PlayerStageStats>::check(L, 1);
-		NoteData nd = GAMESTATE->m_pCurSteps->GetNoteData();
 
 		// allow either a highscore or nothing, which defaults to most recent
 		HighScore* hs;
-		if (lua_isnil(L, 3))
+		if (lua_isnoneornil(L, 3))
 			hs = SCOREMAN->GetMostRecentScore();
 		else
 			hs = Luna<HighScore>::check(L, 3);
 		
 		float ts = FArg(2);
+		auto replay = REPLAYS->GetReplay(hs);
+
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
-		if (hs->GetChordCohesion() || potmp.ContainsTransformOrTurn()) {
+		if (hs->GetChordCohesion() || !replay->CanSafelyTransformNoteData()) {
+			Locator::getLogger()->info(
+			  "The replay could not be rescored because of RNG mods or CC on");
 			lua_pushboolean(L, false);
 			return 1;
 		}
-		REPLAYS->InitReplayPlaybackForScore(hs);
-		REPLAYS->SetPlayerStageStatsForReplay(
-		  *REPLAYS->GetActiveReplay(), pPSS, ts);
+
+		bool useReprioritizedNoterows = false;
+		if (!lua_isnoneornil(L, 4)) {
+			useReprioritizedNoterows = BArg(4);
+		}
+
+		replay->SetUseReprioritizedNoteRows(useReprioritizedNoterows);
+		REPLAYS->EnableCustomScoringFunctions();
+		REPLAYS->InitReplayPlaybackForScore(hs, ts);
+		REPLAYS->RescoreReplay(*replay, pPSS, ts);
+		REPLAYS->ReleaseReplay(replay); // remove extra reference
+		REPLAYS->DisableCustomScoringFunctions();
 		lua_pushboolean(L, true);
-		return 1;
-	}
-	static int GetReplaySnapshotJudgmentsForNoterow(T* p, lua_State* L)
-	{
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-		std::vector<int> toPush;
-
-		FOREACH_ENUM(TapNoteScore, tns)
-		toPush.emplace_back(rs->judgments[tns]);
-
-		LuaHelpers::CreateTableFromArray(toPush, L);
-		return 1;
-	}
-	static int GetReplaySnapshotWifePercentForNoterow(T* p, lua_State* L)
-	{
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-
-		lua_pushnumber(L, rs->curwifescore / rs->maxwifescore);
-		return 1;
-	}
-	static int GetReplaySnapshotSDForNoterow(T* p, lua_State* L) {
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-
-		lua_pushnumber(L, rs->standardDeviation);
-		return 1;
-	}
-	static int GetReplaySnapshotMeanForNoterow(T* p, lua_State* L) {
-		int row = IArg(1);
-		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(row);
-
-		lua_pushnumber(L, rs->mean);
 		return 1;
 	}
 	static int GetReplayRate(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Getting replay rate");
+		Locator::getLogger()->debug("Getting replay rate");
 		// if we have a replay, give the data
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
 			lua_pushnumber(L, REPLAYS->GetActiveReplayScore()->GetMusicRate());
@@ -343,53 +321,47 @@ class LunaScreenEvaluation : public Luna<ScreenEvaluation>
 	}
 	static int GetReplayJudge(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Getting replay judge");
+		Locator::getLogger()->debug("Getting replay judge");
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
 			lua_pushnumber(L, REPLAYS->GetActiveReplayScore()->GetJudgeScale());
 		} else {
 			lua_pushnumber(L, Player::GetTimingWindowScale());
 		}
-		Locator::getLogger()->info("Got replay judge");
 		return 1;
 	}
 	static int GetReplayModifiers(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Getting replay modifiers");
+		Locator::getLogger()->debug("Getting replay modifiers");
 		if (REPLAYS->GetActiveReplayScore() != nullptr) {
 			LuaHelpers::Push(L,
 							 REPLAYS->GetActiveReplayScore()->GetModifiers());
 		} else {
 			lua_pushnil(L);
 		}
-		Locator::getLogger()->info("Got replay modifiers");
 		return 1;
 	}
 	static int ScoreUsedInvalidModifier(T* p, lua_State* L)
 	{
-		Locator::getLogger()->info("Checking for invalid modifiers on Highscore via Lua");
+		Locator::getLogger()->debug("Checking for invalid modifiers on Highscore via Lua");
 		HighScore* hs = SCOREMAN->GetMostRecentScore();
 		if (hs == nullptr) {
 			Locator::getLogger()->warn("MOST RECENT SCORE WAS EMPTY.");
 			lua_pushboolean(L, true);
 			return 1;
 		}
-		Locator::getLogger()->info("Getting Player Options from HighScore...");
+		Locator::getLogger()->debug("Getting Player Options from HighScore...");
 		PlayerOptions potmp;
 		potmp.FromString(hs->GetModifiers());
-		Locator::getLogger()->info("Checking modifiers...");
+		Locator::getLogger()->debug("Checking modifiers...");
 		lua_pushboolean(L, potmp.ContainsTransformOrTurn());
-		Locator::getLogger()->info("Done checking.");
+		Locator::getLogger()->debug("Done checking.");
 		return 1;
 	}
 
 	LunaScreenEvaluation()
 	{
 		ADD_METHOD(GetStageStats);
-		ADD_METHOD(SetPlayerStageStatsFromReplayData);
-		ADD_METHOD(GetReplaySnapshotJudgmentsForNoterow);
-		ADD_METHOD(GetReplaySnapshotWifePercentForNoterow);
-		ADD_METHOD(GetReplaySnapshotSDForNoterow);
-		ADD_METHOD(GetReplaySnapshotMeanForNoterow);
+		ADD_METHOD(RescoreReplay);
 		ADD_METHOD(GetReplayRate);
 		ADD_METHOD(GetReplayJudge);
 		ADD_METHOD(ScoreUsedInvalidModifier);

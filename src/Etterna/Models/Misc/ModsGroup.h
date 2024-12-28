@@ -42,7 +42,7 @@ LuaDeclareType(ModsLevel);
 template<class T>
 class ModsGroup
 {
-	T m_[NUM_ModsLevel];
+	T m_[NUM_ModsLevel]{};
 	RageTimer m_Timer;
 
   public:

@@ -4,7 +4,6 @@ local ygap = 2
 local packspaceY = pdh + ygap
 
 local numpacks = 15
-local ind = 0
 local offx = 5
 local width = SCREEN_WIDTH * 0.6
 local dwidth = width - offx * 2
@@ -14,9 +13,10 @@ local adjx = 14
 local c1x = 10
 local c2x = c1x + (tzoom * 5 * adjx) -- guesswork adjustment for epxected text length
 local c6x = dwidth -- right aligned cols
-local c5x = c6x - adjx - (tzoom * 6 * adjx) -- right aligned cols
-local c4x = c5x - adjx - (tzoom * 10 * adjx) -- right aligned cols
-local c3x = c4x - adjx - (tzoom * 8 * adjx) -- right aligned cols
+local c5x = c6x - adjx - (tzoom * 7 * adjx) -- right aligned cols
+local c4x = c5x - adjx - (tzoom * 4 * adjx) -- right aligned cols
+local c3x = c4x - adjx - (tzoom * 6.6 * adjx) -- right aligned cols
+local c2xc3x = (c3x - adjx - (tzoom * 6 * adjx))
 local headeroff = packspaceY / 1.5
 
 local hoverAlpha = 0.6
@@ -28,71 +28,98 @@ local translated_info = {
 	Installed = THEME:GetString("PacklistDisplay", "Installed"),
 	Download = THEME:GetString("PacklistDisplay", "Download"),
 	Mirror = THEME:GetString("PacklistDisplay", "Mirror"),
-	MB = THEME:GetString("PacklistDisplay", "MB")
+	MB = THEME:GetString("PacklistDisplay", "MB"),
+	AwaitingRequest = THEME:GetString("PacklistDisplay", "AwaitingRequest"),
+	NoPacks = THEME:GetString("PacklistDisplay", "NoPacks"),
+	PackPlays = THEME:GetString("PacklistDisplay", "PackPlays"),
+	SongCount = THEME:GetString("PacklistDisplay", "SongCount"),
+	IsNSFW = THEME:GetString("PacklistDisplay", "IsNSFW"),
 }
 
-packlist = {}
-local packtable
+-- initialize the base pack search
+local packlist = PackList:new()
+packlist:FilterAndSearch("", {}, true, numpacks)
+
 local o = Def.ActorFrame {
 	Name = "PacklistDisplay",
 	InitCommand = function(self)
 		self:xy(0, 0)
 	end,
 	BeginCommand = function(self)
-		packlist = PackList:new()
+		SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if isOver(self:GetChild("BG")) then
+				if event.type == "InputEventType_FirstPress" then
+					if not packlist:IsAwaitingRequest() then
+						if event.DeviceInput.button == "DeviceButton_mousewheel up" then
+							packlist:PrevPage()
+						elseif event.DeviceInput.button == "DeviceButton_mousewheel down" then
+							packlist:NextPage()
+						end
+						self:queuecommand("Update")
+					end
+				end
+			end
+		end)
 		self:queuecommand("PackTableRefresh")
 	end,
+	InvokePackSearchMessageCommand = function(self, params)
+		packlist:FilterAndSearch(params.name, params.tags, params.tagsMatchAny, numpacks)
+		self:queuecommand("Update")
+	end,
 	PackTableRefreshCommand = function(self)
-		packtable = packlist:GetPackTable()
-		ind = 0
 		self:queuecommand("Update")
 	end,
 	UpdateCommand = function(self)
-		if ind == #packtable then
-			ind = ind - numpacks
-		elseif ind > #packtable - (#packtable % numpacks) then
-			ind = #packtable - (#packtable % numpacks)
-		end
-		if ind < 0 then
-			ind = 0
-		end
+
 	end,
 	DFRFinishedMessageCommand = function(self)
-		packtable = packlist:GetPackTable()
+		self:queuecommand("Update")
+	end,
+	PackListRequestFinishedMessageCommand = function(self, params)
 		self:queuecommand("Update")
 	end,
 	NextPageCommand = function(self)
-		ind = ind + numpacks
 		self:queuecommand("Update")
 	end,
 	PrevPageCommand = function(self)
-		ind = ind - numpacks
 		self:queuecommand("Update")
 	end,
 	Def.Quad {
+		Name = "BG",
 		InitCommand = function(self)
-			self:zoomto(width, height - headeroff):halign(0):valign(0):diffuse(color("#888888"))
+			self:zoomto(width, height - headeroff)
+			self:halign(0):valign(0)
+			self:diffuse(color("#888888"))
 		end
 	},
 	-- headers
 	Def.Quad {
+		Name = "HeaderBG",
 		InitCommand = function(self)
-			self:xy(offx, headeroff):zoomto(dwidth, pdh):halign(0):diffuse(color("#333333"))
+			self:xy(offx, headeroff)
+			self:zoomto(dwidth, pdh)
+			self:halign(0)
+			self:diffuse(color("#333333"))
 		end
 	},
-	LoadFont("Common normal") ..{
-		--total
+	LoadFont("Common Normal") .. {
+		Name = "TotalPacks",
 		InitCommand = function(self)
-			self:xy(c1x, headeroff):zoom(tzoom):halign(0)
+			self:xy(c1x, headeroff)
+			self:zoom(tzoom)
+			self:halign(0)
 		end,
 		UpdateCommand = function(self)
-			self:settext(#packtable)
+			self:settext(packlist:GetTotalResults())
 		end
 	},
-	UIElements.TextToolTip(1, 1, "Common normal") .. {
-		--name
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "NameHeader",
 		InitCommand = function(self)
-			self:xy(c2x, headeroff):zoom(tzoom):halign(0):settext(translated_info["Name"])
+			self:xy(c2x, headeroff)
+			self:zoom(tzoom)
+			self:halign(0)
+			self:settext(translated_info["Name"])
 		end,
 		MouseOverCommand = function(self)
 			self:diffusealpha(hoverAlpha)
@@ -103,15 +130,17 @@ local o = Def.ActorFrame {
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
 				packlist:SortByName()
-				ind = 0
-				self:GetParent():queuecommand("PackTableRefresh")
+				self:GetParent():queuecommand("Update")
 			end
 		end
 	},
-	UIElements.TextToolTip(1, 1, "Common normal") .. {
-		--avg
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "AverageDiffHeader",
 		InitCommand = function(self)
-			self:xy(c3x - 5, headeroff):zoom(tzoom):halign(1):settext(translated_info["AverageDiff"])
+			self:xy(c2xc3x, headeroff)
+			self:zoom(tzoom)
+			self:halign(1)
+			self:settext(translated_info["AverageDiff"])
 		end,
 		MouseOverCommand = function(self)
 			self:diffusealpha(hoverAlpha)
@@ -121,16 +150,18 @@ local o = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				packlist:SortByDiff()
-				ind = 0
-				self:GetParent():queuecommand("PackTableRefresh")
+				packlist:SortByOverall()
+				self:GetParent():queuecommand("Update")
 			end
 		end
 	},
-	UIElements.TextToolTip(1, 1, "Common normal") .. {
-		--size
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "SizeHeader",
 		InitCommand = function(self)
-			self:xy(c4x, headeroff):zoom(tzoom):halign(1):settext(translated_info["Size"])
+			self:xy(c3x, headeroff)
+			self:zoom(tzoom)
+			self:halign(1)
+			self:settext(translated_info["Size"])
 		end,
 		MouseOverCommand = function(self)
 			self:diffusealpha(hoverAlpha)
@@ -141,22 +172,90 @@ local o = Def.ActorFrame {
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
 				packlist:SortBySize()
-				ind = 0
-				self:GetParent():queuecommand("PackTableRefresh")
+				self:GetParent():queuecommand("Update")
 			end
 		end
-	}
+	},
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "PlaysHeader",
+		InitCommand = function(self)
+			self:xy(c4x, headeroff)
+			self:zoom(tzoom)
+			self:halign(1)
+			self:settext(translated_info["PackPlays"])
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				packlist:SortByPlays()
+				self:GetParent():queuecommand("Update")
+			end
+		end
+	},
+	UIElements.TextToolTip(1, 1, "Common Normal") .. {
+		Name = "SongCountHeader",
+		InitCommand = function(self)
+			self:xy(c5x, headeroff)
+			self:zoom(tzoom)
+			self:halign(1)
+			self:settext(translated_info["SongCount"])
+		end,
+		MouseOverCommand = function(self)
+			self:diffusealpha(hoverAlpha)
+		end,
+		MouseOutCommand = function(self)
+			self:diffusealpha(1)
+		end,
+		MouseDownCommand = function(self, params)
+			if params.event == "DeviceButton_left mouse button" then
+				packlist:SortBySongs()
+				self:GetParent():queuecommand("Update")
+			end
+		end
+	},
+	LoadFont("Common Large") .. {
+		Name = "AwaitingOrNoResults",
+		InitCommand = function(self)
+			self:xy(width/2, height/2)
+			self:zoom(tzoom)
+			self:maxwidth(width / tzoom)
+		end,
+		UpdateCommand = function(self)
+			if packlist:IsAwaitingRequest() then
+				self:settext(translated_info["AwaitingRequest"])
+				self:visible(true)
+			else
+				if packlist:GetTotalResults() == 0 then
+					self:visible(true)
+					self:settext(translated_info["NoPacks"])
+				else
+					self:visible(false)
+				end
+			end
+		end,
+	},
 }
 
 local function makePackDisplay(i)
 	local packinfo
 	local installed
 	local o = Def.ActorFrame {
+		Name = "Pack"..i,
 		InitCommand = function(self)
 			self:y(packspaceY * i + headeroff)
 		end,
 		UpdateCommand = function(self)
-			packinfo = packtable[(i + ind)]
+			if packlist:IsAwaitingRequest() then
+				self:visible(false)
+				return
+			end
+
+			packinfo = packlist:GetPacks()[i]
 			if packinfo then
 				installed = SONGMAN:DoesSongGroupExist(packinfo:GetName())
 				self:queuecommand("Display")
@@ -166,8 +265,11 @@ local function makePackDisplay(i)
 			end
 		end,
 		Def.Quad {
+			Name = "BG",
 			InitCommand = function(self)
-				self:x(offx):zoomto(dwidth, pdh):halign(0)
+				self:x(offx)
+				self:zoomto(dwidth, pdh)
+				self:halign(0)
 			end,
 			DisplayCommand = function(self)
 				if installed then
@@ -178,21 +280,29 @@ local function makePackDisplay(i)
 			end
 		},
 		LoadFont("Common normal") .. {
-			--index
+			Name = "PackIndex",
 			InitCommand = function(self)
-				self:x(c1x):zoom(tzoom):halign(0)
+				self:x(c1x)
+				self:zoom(tzoom)
+				self:halign(0)
 			end,
 			DisplayCommand = function(self)
-				self:settextf("%i.", i + ind)
+				self:settextf("%i.", i + ((packlist:GetCurrentPage()-1) * numpacks))
 			end
 		},
 		UIElements.TextToolTip(1, 1, "Common normal") .. {
-			--name
+			Name = "PackName",
 			InitCommand = function(self)
-				self:x(c2x):zoom(tzoom):maxwidth((c3x - c2x - (tzoom * 6 * adjx)) / tzoom):halign(0) -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
+				self:x(c2x)
+				self:zoom(tzoom)
+
+				 -- x of left aligned col 2 minus x of right aligned col 3 minus roughly how wide column 3 is plus margin
+				self:maxwidth((c2xc3x - c2x - c2x*0.8) / tzoom)
+				self:halign(0)
 			end,
 			DisplayCommand = function(self)
-				self:settext(packinfo:GetName()):diffuse(bySkillRange(packinfo:GetAvgDifficulty()))
+				self:settext(packinfo:GetName())
+				self:diffuse(bySkillRange(packinfo:GetAvgDifficulty()))
 			end,
 			MouseOverCommand = function(self)
 				self:diffusealpha(hoverAlpha)
@@ -202,25 +312,59 @@ local function makePackDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = "https://etternaonline.com/pack/" .. packinfo:GetID() -- not correct value for site id
+					local urlstringyo = DLMAN:GetHomePage() .. "/packs/" .. packinfo:GetID() -- not correct value for site id
 					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
 				end
 			end
 		},
 		LoadFont("Common normal") .. {
-			--avg diff
+			Name = "PackAverageDiff",
+			InitCommand = function(self)
+				self:x(c2xc3x)
+				self:zoom(tzoom)
+				self:halign(1)
+			end,
+			DisplayCommand = function(self)
+				local avgdiff = packinfo:GetAvgDifficulty()
+				self:settextf("%0.2f", avgdiff)
+				self:diffuse(byMSD(avgdiff))
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "PackSize",
 			InitCommand = function(self)
 				self:x(c3x):zoom(tzoom):halign(1)
 			end,
 			DisplayCommand = function(self)
-				local avgdiff = packinfo:GetAvgDifficulty()
-				self:settextf("%0.2f", avgdiff):diffuse(byMSD(avgdiff))
+				local psize = packinfo:GetSize() / 1024 / 1024
+				self:settextf("%i%s", psize, translated_info["MB"])
+				self:diffuse(byFileSize(psize))
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "PackPlays",
+			InitCommand = function(self)
+				self:x(c4x):zoom(tzoom):halign(1)
+			end,
+			DisplayCommand = function(self)
+				self:settextf("%d", packinfo:GetPlayCount())
+			end
+		},
+		LoadFont("Common normal") .. {
+			Name = "PackSongs",
+			InitCommand = function(self)
+				self:x(c5x):zoom(tzoom):halign(1)
+			end,
+			DisplayCommand = function(self)
+				self:settextf("%d", packinfo:GetSongCount())
 			end
 		},
 		UIElements.TextToolTip(1, 1, "Common normal") .. {
-			--dl button
+			Name = "PackDownload",
 			InitCommand = function(self)
-				self:x(c5x):zoom(tzoom):halign(1)
+				self:x(c6x)
+				self:zoom(tzoom)
+				self:halign(1)
 			end,
 			DisplayCommand = function(self)
 				if installed then
@@ -231,9 +375,14 @@ local function makePackDisplay(i)
 			end,
 			MouseOverCommand = function(self)
 				self:diffusealpha(hoverAlpha)
+				if packinfo:IsNSFW() and not installed then
+					TOOLTIP:SetText(translated_info["IsNSFW"])
+					TOOLTIP:Show()
+				end
 			end,
 			MouseOutCommand = function(self)
 				self:diffusealpha(1)
+				TOOLTIP:Hide()
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
@@ -244,41 +393,7 @@ local function makePackDisplay(i)
 					end
 				end
 			end
-			},
-			UIElements.TextToolTip(1, 1, "Common normal") .. {
-				--dl button
-			InitCommand = function(self)
-				self:x(c6x):zoom(tzoom):halign(1)
-			end,
-			DisplayCommand = function(self)
-				if installed then
-					self:settext(translated_info["Installed"])
-				else
-					self:settext(translated_info["Mirror"])
-				end
-			end,
-			MouseOverCommand = function(self)
-				self:diffusealpha(hoverAlpha)
-			end,
-			MouseOutCommand = function(self)
-				self:diffusealpha(1)
-			end,
-			MouseDownCommand = function(self, params)
-				if params.event == "DeviceButton_left mouse button" then
-					packinfo:DownloadAndInstall(true)
-				end
-			end
 		},
-		LoadFont("Common normal") .. {
-			--size
-			InitCommand = function(self)
-				self:x(c4x):zoom(tzoom):halign(1)
-			end,
-			DisplayCommand = function(self)
-				local psize = packinfo:GetSize() / 1024 / 1024
-				self:settextf("%i%s", psize, translated_info["MB"]):diffuse(byFileSize(psize))
-			end
-		}
 	}
 	return o
 end

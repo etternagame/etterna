@@ -37,3 +37,49 @@ function table.push(self, ...)
 		table.insert(self, v)
 	end
 end
+
+-- because concat and join dont really do what i want
+function table.combine(...)
+	local o = {}
+	for _, t in ipairs({...}) do
+		for __, v in pairs(t) do
+			o[#o+1] = v
+		end
+	end
+	return o
+end
+
+-- its like table.sort but it returns a copy
+-- NOT A DEEP COPY probably
+function table.sorted(t, sortfunc)
+	local o = {}
+	for k, v in pairs(t) do
+		o[k] = v
+	end
+	if sortfunc ~= nil then
+		table.sort(o, sortfunc)
+	else
+		table.sort(o)
+	end
+	return o
+end
+
+-- given the initial table, add the contents of another table to it
+function table.extend(t, othertable)
+	for k,v in pairs(othertable) do
+		t[k] = v
+	end
+end
+
+-- given the initial table, apply a function to all the elements and return a copy
+-- the func paremeters are (key, value) and the return type is also key, value
+function table.withfuncapplied(t, func)
+	local o = {}
+	for k,v in pairs(t) do
+		local transformedKey, transformedValue = func(k,v)
+		if transformedKey ~= nil then
+			o[transformedKey] = transformedValue
+		end
+	end
+	return o
+end

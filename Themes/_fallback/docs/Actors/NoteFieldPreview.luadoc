@@ -1,0 +1,7 @@
+--- Preview NoteField class
+--
+-- This class inherits all methods from these classes:
+-- @{NoteField}
+-- @{ActorFrame}
+-- @{Actor}
+-- @classmod NoteFieldPreview

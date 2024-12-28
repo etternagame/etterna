@@ -154,6 +154,9 @@ GameState::GameState()
 		this->PushSelf(L);
 		lua_settable(L, LUA_GLOBALSINDEX);
 		LUA->Release(L);
+
+		LUA->SetGlobal("MIN_MUSIC_RATE", MIN_MUSIC_RATE);
+		LUA->SetGlobal("MAX_MUSIC_RATE", MAX_MUSIC_RATE);
 	}
 }
 
@@ -271,6 +274,7 @@ GameState::Reset()
 	m_iNumMultiplayerNoteFields = 1;
 	*m_Environment = LuaTable();
 	m_sPreferredSongGroup.Set(GROUP_ALL);
+	m_sLastSongGroup = "";
 	m_bFailTypeWasExplicitlySet = false;
 	m_SortOrder.Set(SortOrder_Invalid);
 	m_PreferredSortOrder = GetDefaultSort();
@@ -283,7 +287,7 @@ GameState::Reset()
 	NOTESKIN->RefreshNoteSkinData(m_pCurGame);
 
 	m_iGameSeed = g_RandomNumberGenerator();
-	m_iStageSeed = g_RandomNumberGenerator();
+	SetNewStageSeed();
 
 	m_pCurSong.Set(GetDefaultSong());
 	m_pPreferredSong = nullptr;
@@ -738,7 +742,7 @@ GameState::ResetStageStatistics()
 
 	// Reset the round seed. Do this here and not in FinishStage so that players
 	// get new shuffle patterns if they Back out of gameplay and play again.
-	m_iStageSeed = g_RandomNumberGenerator();
+	SetNewStageSeed();
 }
 
 void
@@ -1477,6 +1481,12 @@ class LunaGameState : public Luna<GameState>
 		p->m_Environment->PushSelf(L);
 		return 1;
 	}
+	static int SetLastSongGroup(T* p, lua_State* L)
+	{
+		auto g = SArg(1);
+		p->m_sLastSongGroup = g;
+		COMMON_RETURN_SELF;
+	}
 	static int SetPreferredDifficulty(T* p, lua_State* L)
 	{
 		Difficulty dc = Enum::Check<Difficulty>(L, 2);
@@ -1845,6 +1855,7 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetPreferredSong);
 		ADD_METHOD(SetTemporaryEventMode);
 		ADD_METHOD(Env);
+		ADD_METHOD(SetLastSongGroup);
 		ADD_METHOD(SetPreferredDifficulty);
 		ADD_METHOD(GetPreferredDifficulty);
 		ADD_METHOD(GetSortOrder);

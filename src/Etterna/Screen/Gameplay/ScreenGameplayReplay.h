@@ -32,6 +32,8 @@ class ScreenGameplayReplay : public ScreenGameplay
 	void SaveStats() override;
 	void StageFinished(bool bBackedOut) override;
 	void LoadPlayer() override;
+	void ReloadPlayer() override;
+	void LoadScoreKeeper() override;
 };
 
 #endif

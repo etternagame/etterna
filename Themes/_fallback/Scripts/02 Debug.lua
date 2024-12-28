@@ -1,3 +1,6 @@
+--- Lua debug script for tracebacks
+-- @module 02_Debug
+
 if not debug then
 	-- stubs
 	debug = {}

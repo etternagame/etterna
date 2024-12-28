@@ -1,6 +1,30 @@
 # Changelog
 All releases of Etterna are listed in this file as well as links to files detailing all of the changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
+## [0.72.3] - 2023-03-21 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- Fixes for replays and other stuff
+- [Notes](.changelog/Release_0-72-3.md)
+
+## [0.72.2] - 2023-03-01 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- Fixes for replays and other stuff
+- [Notes](.changelog/Release_0-72-2.md)
+
+## [0.72.1] - 2023-01-09 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- Fixes for replays, downloads, and other stuff.
+- [Notes](.changelog/Release_0-72-1.md)
+
+## [0.72.0] - 2022-12-25 - Replay Update & MSD Changes
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- Replay system rewritten. MSD updates to nerf extremely overrated skillsets.
+- [Notes](.changelog/Release_0-72-0.md)
+
 ## [0.71.2] - 2022-03-14 - Hotfix
 
 Windows x64, Windows i386, and Mac installer release. Linux binary.

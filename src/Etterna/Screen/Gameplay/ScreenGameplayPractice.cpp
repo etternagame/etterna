@@ -91,7 +91,7 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 			}
 
 			const auto success = cursong->ReloadFromSongDir();
-			SongManager::ReconcileChartKeysForReloadedSong(cursong, oldKeys);
+			SONGMAN->ReconcileChartKeysForReloadedSong(cursong, oldKeys);
 
 			if (!success || GAMESTATE->m_pCurSteps->GetNoteData().IsEmpty()) {
 				Locator::getLogger()->error("The Player attempted something resulting in an "
@@ -438,10 +438,11 @@ ScreenGameplayPractice::AddToRate(float amountAdded) -> float
 	const auto newRate = std::floor((rate + amountAdded) * 100 + 0.5) / 100;
 
 	// Rates outside of this range may crash
-	// Use 0.25 because of floating point errors...
-	if (newRate <= 0.25F || newRate > 3.F) {
-		return rate;
-	}
+	// (weird comparisons because floats)
+	if (MIN_MUSIC_RATE - newRate > 0.001F)
+		return MIN_MUSIC_RATE;
+	if (newRate - MAX_MUSIC_RATE > 0.001F)
+		return MAX_MUSIC_RATE;
 
 	RageTimer tm;
 	const auto fSeconds = m_pSoundMusic->GetPositionSeconds(nullptr, &tm);

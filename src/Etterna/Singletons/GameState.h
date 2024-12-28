@@ -187,6 +187,7 @@ class GameState
 	int m_iPlayerStageTokens;
 
 	std::string sExpandedSectionName;
+	std::string m_sLastSongGroup;
 
 	static auto GetNumStagesMultiplierForSong(const Song* pSong) -> int;
 	[[nodiscard]] auto GetNumStagesForCurrentSongAndStepsOrCourse() const
@@ -203,7 +204,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static auto GetEtternaVersion() -> std::string { return "0.71.2"; }
+	static auto GetEtternaVersion() -> std::string { return "0.74.1"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4
@@ -318,6 +319,8 @@ class GameState
 
 	// A "persistent" way to know if we restarted gameplay (hack)
 	bool m_bRestartedGameplay;
+
+	std::string ProgramHash{};
 
 	// Discord Rich Presence
 	void discordInit();

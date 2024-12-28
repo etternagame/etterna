@@ -10,9 +10,14 @@ local INFORMATIONBOXHEIGHT = 50 / 1080 * SCREEN_HEIGHT
 local exitwidth = 70 / 1920 * SCREEN_WIDTH
 local exitheight = 50 / 1080 * SCREEN_HEIGHT
 
+local unhideWidth = 95 / 1920 * SCREEN_WIDTH
+local unhideHeight = 50 / 1080 * SCREEN_HEIGHT
+
+
 local translations = {
     Information = THEME:GetString("ScreenTextEntry", "Information"),
     Exit = THEME:GetString("ScreenTextEntry", "Exit"),
+    Unhide = THEME:GetString("ScreenTextEntry", "Unhide"),
 }
 
 local dimAlpha = 0.6
@@ -31,6 +36,12 @@ return Def.ActorFrame {
         self:diffusealpha(0)
     end,
     OnCommand = function(self)
+        SCREENMAN:GetTopScreen():AddInputCallback(function(event)
+			if event.DeviceInput.button == "DeviceButton_right mouse button" then
+				SCREENMAN:GetTopScreen():Cancel()
+			end
+		end)
+        
         local question = self:GetParent():GetChild("Question")
         local answer = self:GetParent():GetChild("Answer")
 
@@ -62,6 +73,10 @@ return Def.ActorFrame {
                 if event.type == "InputEventType_FirstPress" then
                     if event.DeviceInput.button == "DeviceButton_left mouse button" then
                         self:playcommand("PressyMyMouseButton")
+                    end
+                elseif event.type == "InputEventType_Release" then
+                    if event.DeviceInput.button == "DeviceButton_left mouse button" then
+                        self:playcommand("ReleaseMouseButton")
                     end
                 end
             end)
@@ -95,7 +110,42 @@ return Def.ActorFrame {
             end,
             PressyMyMouseButtonCommand = function(self)
                 if isOver(self) then
-                    SCREENMAN:GetTopScreen():Cancel()
+                    -- true means cancelled, so the input is rejected
+                    SCREENMAN:GetTopScreen():End(true)
+                end
+            end,
+            HighlightyMyMouseHoveringCommand = function(self)
+                if isOver(self) then
+                    self:diffusealpha(hoverAlpha)
+                else
+                    self:diffusealpha(1)
+                end
+            end
+        },
+        Def.Sprite {
+            Texture = THEME:GetPathG("", "dialogExit"),
+            Name = "UnhideButton",
+            InitCommand = function(self)
+                self:halign(0):valign(1)
+                self:zoomto(unhideWidth, unhideHeight)
+                self:xy(-boxWidth/2 + sideMargin, boxHeight/2 - bottomMargin)
+                self:visible(false)
+                self.isheld = false
+            end,
+            OnCommand = function(self)
+                self:visible(SCREENMAN:GetTopScreen():IsInputHidden())
+            end,
+            PressyMyMouseButtonCommand = function(self)
+                if isOver(self) then
+                    if self.isheld then return end
+                    self.isheld = true
+                    SCREENMAN:GetTopScreen():ToggleInputHidden()
+                end
+            end,
+            ReleaseMouseButtonCommand = function(self)
+                if self.isheld then
+                    self.isheld = false
+                    SCREENMAN:GetTopScreen():ToggleInputHidden()
                 end
             end,
             HighlightyMyMouseHoveringCommand = function(self)
@@ -124,6 +174,19 @@ return Def.ActorFrame {
                 self:xy(boxWidth/2 - sideMargin - exitwidth/2, boxHeight/2 - bottomMargin - exitheight/1.7)
                 self:settext(translations["Exit"])
             end
+        },
+        LoadFont("Common Normal") .. {
+            Name = "Unhide",
+            InitCommand = function(self)
+                self:zoom(exittextsize)
+                self:maxwidth(unhideWidth / 1920 * SCREEN_WIDTH / exittextsize)
+                self:xy(-boxWidth/2 + sideMargin + unhideWidth/2, boxHeight/2 - bottomMargin - exitheight/1.7)
+                self:settext(translations["Unhide"])
+                self:visible(false)
+            end,
+            OnCommand = function(self)
+                self:visible(SCREENMAN:GetTopScreen():IsInputHidden())
+            end,
         }
     }
 }

@@ -88,16 +88,22 @@ RageBitmapTexture::Create()
 	RageSurface* pImg = nullptr;
 	if (actualID.filename == TEXTUREMAN->GetScreenTextureID().filename) {
 		pImg = TEXTUREMAN->GetScreenSurface();
+	} else if (actualID.base64) {
+		auto b64 = actualID.filename;
+		auto substart = b64.find("base64,");
+		if (substart != std::string::npos) {
+			b64 = b64.substr(substart + 7);
+		}
+		pImg = RageSurfaceUtils::LoadBase64(b64, error);
 	} else {
 		pImg = RageSurfaceUtils::LoadFile(actualID.filename, error);
 	}
 
 	/* Tolerate corrupt/unknown images. */
 	if (pImg == nullptr) {
-		auto warning = ssprintf("RageBitmapTexture: Couldn't load %s: %s",
-								actualID.filename.c_str(),
-								error.c_str());
-		Locator::getLogger()->warn(warning.c_str());
+		auto warning = fmt::format(
+		  "RageBitmapTexture: Couldn't load {}: {}", actualID.filename, error);
+		Locator::getLogger()->warn("{}", warning);
 		Dialog::OK(warning, "missing_texture");
 		pImg = RageSurfaceUtils::MakeDummySurface(64, 64);
 		ASSERT(pImg != nullptr);
@@ -255,6 +261,8 @@ RageBitmapTexture::Create()
 			pixfmt = RagePixelFormat_RGBA4;
 	}
 
+	auto pfd = DISPLAY->GetPixelFormatDesc(pixfmt);
+
 	/* Dither if appropriate.
 	 * XXX: This is a special case: don't bother dithering to RGBA8888.
 	 * We actually want to dither only if the destination has greater color
@@ -264,7 +272,6 @@ RageBitmapTexture::Create()
 	if (actualID.bDither &&
 		(pixfmt == RagePixelFormat_RGBA4 || pixfmt == RagePixelFormat_RGB5A1)) {
 		// Dither down to the destination format.
-		auto pfd = DISPLAY->GetPixelFormatDesc(pixfmt);
 		auto dst = CreateSurface(pImg->w,
 								 pImg->h,
 								 pfd->bpp,
@@ -283,15 +290,16 @@ RageBitmapTexture::Create()
 	 * done *before* we set up the palette, since it might change it. */
 	RageSurfaceUtils::FixHiddenAlpha(pImg);
 
-	/* Scale up to the texture size, if needed. */
+	/* Convert the surface to the format the display wants, so we don't have
+	 * to do this every time on reupload. */
 	RageSurfaceUtils::ConvertSurface(pImg,
 									 m_iTextureWidth,
 									 m_iTextureHeight,
-									 pImg->fmt.BitsPerPixel,
-									 pImg->fmt.Mask[0],
-									 pImg->fmt.Mask[1],
-									 pImg->fmt.Mask[2],
-									 pImg->fmt.Mask[3]);
+									 pfd->bpp,
+									 pfd->masks[0],
+									 pfd->masks[1],
+									 pfd->masks[2],
+									 pfd->masks[3]);
 
 	m_uTexHandle = DISPLAY->CreateTexture(pixfmt, pImg, actualID.bMipMaps);
 

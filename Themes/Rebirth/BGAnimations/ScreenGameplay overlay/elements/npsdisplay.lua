@@ -105,7 +105,7 @@ local function Update(self)
         -- every time this function is called.
         -- We don't display the decimal values due to lack of precision from having a relatively small time window.
         if enabledNPSDisplay then
-            self:GetChild("NPSDisplay"):GetChild("Text"):settextf("%0.0f %s (%s %0.0f)", curNPS, translations["NPS"], translations["Peak"], peakNPS)
+            self:GetDescendant("NPSDisplay", "Text"):settextf("%0.0f %s (%s %0.0f)", curNPS, translations["NPS"], translations["Peak"], peakNPS)
         end
     end
 end

@@ -29,6 +29,9 @@ local function loadValuesTable()
 	MovableValues.DisplayPercentX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentX
 	MovableValues.DisplayPercentY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayPercentY
 	MovableValues.DisplayPercentZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayPercentZoom
+	MovableValues.DisplayMeanX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayMeanX
+	MovableValues.DisplayMeanY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].DisplayMeanY
+	MovableValues.DisplayMeanZoom = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].DisplayMeanZoom
 	MovableValues.NotefieldX = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldX
 	MovableValues.NotefieldY = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplayXYCoordinates[keymode].NotefieldY
 	MovableValues.NotefieldWidth = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).GameplaySizes[keymode].NotefieldWidth
@@ -862,6 +865,45 @@ Movable = {
 			inc = -1
 		},
 	},
+	DeviceButton_m = {
+		name = "DisplayMean",
+		textHeader = "Current Mean Position:",
+		element = {},
+		properties = {"X", "Y"},
+		elementTree = "GameplayXYCoordinates",
+		DeviceButton_up = {
+			property = "Y",
+			inc = -5
+		},
+		DeviceButton_down = {
+			property = "Y",
+			inc = 5
+		},
+		DeviceButton_left = {
+			property = "X",
+			inc = -5
+		},
+		DeviceButton_right = {
+			property = "X",
+			inc = 5
+		}
+	},
+	DeviceButton_comma = {
+		name = "DisplayMean",
+		textHeader = "Current Mean Size:",
+		element = {},
+		properties = {"Zoom"},
+		elementTree = "GameplaySizes",
+		DeviceButton_up = {
+			property = "Zoom",
+			inc = 0.01
+		},
+		DeviceButton_down = {
+			property = "Zoom",
+			inc = -0.01
+		}
+	}
+	
 }
 
 local function updatetext(button)

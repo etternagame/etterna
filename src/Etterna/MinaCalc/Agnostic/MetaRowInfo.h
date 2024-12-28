@@ -25,6 +25,14 @@ struct metaRowInfo
 	bool gluts_maybe = false; // not really used/tested yet
 	bool twas_jack = false;
 
+	Calc& _calc;
+
+	explicit metaRowInfo(Calc& calc)
+	  : _calc(calc)
+	{
+
+	}
+
 	void reset()
 	{		
 		time = s_init;
@@ -79,7 +87,7 @@ struct metaRowInfo
 	{
 		twas_jack = false;
 
-		for (const auto& id : col_ids) {
+		for (const auto& id : _calc.col_masks) {
 			if (is_jack_at_col(id, notes, last_notes)) {
 				// not scaled to the number of jacks anymore
 				++mitvi.actual_jacks;

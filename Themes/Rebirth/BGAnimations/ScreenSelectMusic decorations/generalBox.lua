@@ -117,10 +117,14 @@ local function createChoices()
             -- enable the possibility to press the keyboard to switch tabs
             SCREENMAN:GetTopScreen():AddInputCallback(function(event)
                 -- if locked out, dont allow
-                if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
+                if not CONTEXTMAN:CheckContextSet(snm, "Main1", "CalcDebug") then return end
                 if event.type == "InputEventType_FirstPress" then
                     -- must be a number and control not held down
                     if event.char and tonumber(event.char) and not INPUTFILTER:IsControlPressed() then
+                        -- ignore numpad numbers
+                        local numpad = event.DeviceInput.button == "DeviceButton_KP "..event.char
+                        if numpad then return end
+
                         local n = tonumber(event.char)
                         if n == 0 then n = 10 end
                         -- n must be a valid option or we must not have focus on the general box (not in search for example)
@@ -128,11 +132,12 @@ local function createChoices()
                             selectedIndex = n
                             MESSAGEMAN:Broadcast("GeneralTabSet", {tab = n})
                         end
-                    elseif event.DeviceInput.button == "DeviceButton_space" and focused and SCUFF.generaltab == SCUFF.generaltabindex then
+                    elseif event.DeviceInput.button == "DeviceButton_space" and
+                        ((focused and SCUFF.generaltab == SCUFF.generaltabindex) or SCUFF.preview.active) then
                         -- toggle chart preview if the general tab is the current tab visible
                         SCUFF.preview.active = not SCUFF.preview.active
                         -- this should propagate off to the right places
-                        self:GetParent():playcommand("ToggleChartPreview")
+                        MESSAGEMAN:Broadcast("ChartPreviewToggle")
                     end
                 end
             end)
@@ -160,6 +165,14 @@ t[#t+1] = Def.ActorFrame {
         focused = true
     end,
     PlayerInfoFrameTabSetMessageCommand = function(self)
+        focused = false
+    end,
+    ChartPreviewToggleMessageCommand = function(self)
+        -- although not focused, ChartPreview activates Main1 input context so that we can go to any tab from it
+        -- or also press space to come back to the general tab
+        focused = false
+    end,
+    OpenCalcDebugMessageCommand = function(self)
         focused = false
     end,
 

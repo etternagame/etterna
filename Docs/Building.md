@@ -4,36 +4,36 @@ Interested in contributing to Etterna? This guide is the place to start!
 
 ## Table of Contents
 
-- [Getting Started](#Getting-Started)
-- [Quick Start](#Quick-Start)
-- [Universal Dependencies](#Universal-Dependencies)
-  - [Linux Dependencies](#Linux-Dependencies)
-  - [Pop_OS! Notes](#Pop_OS-Notes)
-  - [Windows Dependencies](#Windows-Dependencies)
-  - [macOS Dependencies](#macOS-Dependencies)
-- [Project Generation](#Project-Generation)
-  - [CLI Project Generation](#CLI-Project-Generation)
-  - [GUI Project Generation](#GUI-Project-Generation)
-- [Compiling](#Compiling)
-  - [Ninja](#Ninja)
-  - [Linux](#Linux)
-  - [macOS](#macOS)
-  - [Windows](#Windows)
-- [Distribution](#Distribution)
-- [Static Analysis](#Static-Analysis)
+- [Getting Started](#getting-started)
+- [Quick Start](#quick-start)
+- [Universal Dependencies](#universal-dependencies)
+  - [Linux Dependencies](#linux-dependencies)
+  - [Pop_OS! Notes](#pop_os-notes)
+  - [Windows Dependencies](#windows-dependencies)
+  - [macOS Dependencies](#macos-dependencies)
+- [Project Generation](#project-generation)
+  - [CLI Project Generation](#cli-project-generation)
+  - [GUI Project Generation](#gui-project-generation)
+- [Compiling](#compiling)
+  - [Ninja](#ninja)
+  - [Linux](#linux)
+  - [macOS](#macos)
+  - [Windows](#windows)
+- [Distribution](#distribution)
+- [Static Analysis](#static-analysis)
   - [cppcheck](#cppcheck)
-- [Documentation](#Documentation)
-  - [C++](#C++-Docs)
-  - [LDoc](#LDoc)
+- [Documentation](#documentation)
+  - [C++](#c-docs)
+  - [LDoc](#ldoc)
 
 ## Getting Started
 
-To begin, take a look at what [dependencies](#Universal-Dependencies)
+To begin, take a look at what [dependencies](#universal-dependencies)
 you're going to need to start compiling. Etterna is cross-platform on Linux, macOS, and Windows. Typically, we work off of the `develop` branch, therefore all pull requests should be made towards `develop`.
 
 ## Quick Start
 
-Here are some commands for current developers and contributors to get started. More are listed at [Sample CMake Commands](#Sample-CMake-Commands).
+Here are some commands for current developers and contributors to get started. More are listed at [Sample CMake Commands](#sample-cmake-commands).
 
 ```bash
 cmake -G "Unix Makefiles" ..                                     # Linux
@@ -50,17 +50,17 @@ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl" -G "Xcode" ..  # macOS
   - Arch: `pacman -S openssl`
   - Alpine: `apk add openssl-dev`
   - macOS: `brew install openssl`
-  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's reccomended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1q.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1q.exe)
+  - Windows: A CMake compatible version of OpenSSL is available at [Shining Light Productions](https://slproweb.com/products/Win32OpenSSL.html) website. You will need the 32bit and 64bit installers if you plan on building both versions. It's recommended to uninstall old versions to make sure CMake can find the correct latest version. Direct links: [32bit](https://slproweb.com/download/Win32OpenSSL-1_1_1t.exe), [64bit](https://slproweb.com/download/Win64OpenSSL-1_1_1t.exe). If these links are dead, look for the OpenSSL v1.1.1 install links (EXE or MSI) on the Shining Light Productions site. Typically we use the full versions rather than the Light versions.
 - [depot_tools](https://dev.chromium.org/developers/how-tos/install-depot-tools) - Installation is platform specific. To skip installing this, follow the relevant instructions in [CLI Project Generation](CLI-Project-Generation).
 
 ### Linux Dependencies
 
 While most dependencies for macOS and Windows are included in the repo, there are some linux libraries which cannot be included in the repo.
 
-For Pop_OS!, install the `Debian` dependencies, then refer to the [Pop_OS! Notes](#Pop_OS-Notes) section below.
+For Pop_OS!, install the `Debian` dependencies, then refer to the [Pop_OS! Notes](#pop_os-notes) section below.
 
 - Debian: `apt install build-essential libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
-- Fedora: `dnf install openssl-static libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
+- Fedora: `dnf install openssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
 - Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack`
 - Alpine: `apk add build-base openssl-dev libx11-dev libxrandr-dev curl-dev mesa-dev glu-dev pulseaudio-dev libogg-dev alsa-lib-dev jack-dev`
 
@@ -74,7 +74,7 @@ The build requires Python 2.7 be installed and symlinked as `python`.
 
 Run `python --version`. If it's ok, skip this section. If `python --version` says `command not found`, run the following:
 
-```
+```bash
 sudo apt install -y python2.7
 sudo ln -s /usr/bin/python2.7 /usr/local/bin/python
 ```
@@ -83,7 +83,7 @@ sudo ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 `clang` is required for Crashpad. If you don't want to include Crashpad, add `-DWITH_CRASHPAD=OFF` when running `cmake`. Otherwise, install `clang`:
 
-```
+```bash
 sudo apt install -y clang
 ```
 
@@ -150,6 +150,7 @@ For the `OPENSSL_ROOT_DIR` parameter, set the directory for where ever the opens
 Users building without Crashpad may choose to add the `-DWITH_CRASHPAD=OFF` option at the beginning of the command.
 
 Users of Linux be aware that the game builds on the `Debug` target by default. Here are better alternatives:
+
 - `-DCMAKE_BUILD_TYPE=Release` - Builds Release binary with no symbols, normal optimization.
 - `-DCMAKE_BUILD_TYPE=RelWithDebInfo` - Builds Release binary with symbols, useful for debugging if any issues arise, almost same as Release otherwise.
 

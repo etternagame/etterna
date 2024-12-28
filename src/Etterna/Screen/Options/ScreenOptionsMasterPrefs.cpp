@@ -432,6 +432,13 @@ InputDebounceTime(int& sel, bool to_sel, ConfOption const* conf_option)
 							  0.06f, 0.07f, 0.08f, 0.09f, 0.1f };
 	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
 }
+static void
+ScrollDebounceTime(int& sel, bool to_sel, ConfOption const* conf_option)
+{
+	float const mapping[] = { 0.0f,	 0.01f, 0.02f, 0.03f, 0.04f, 0.05f,
+							  0.06f, 0.07f, 0.08f, 0.09f, 0.1f };
+	MoveMap(sel, conf_option, to_sel, mapping, ARRAYLEN(mapping));
+}
 
 // Machine options
 /** @brief Timing Window scale */
@@ -577,7 +584,7 @@ DisplayColorDepth(int& sel, bool ToSel, const ConfOption* pConfOption)
 static void
 MaxTextureResolution(int& sel, bool ToSel, const ConfOption* pConfOption)
 {
-	const int mapping[] = { 256, 512, 1024, 2048 };
+	const int mapping[] = { 256, 512, 1024, 2048, 4096, 8192 };
 	MoveMap(sel, pConfOption, ToSel, mapping, ARRAYLEN(mapping));
 }
 
@@ -791,6 +798,7 @@ InitializeConfOptions()
 	ADD(ConfOption(
 	  "AutoPlay", MovePref<PlayerController>, "Off", "On", "CPU-Controlled"));
 	ADD(ConfOption("DelayedBack", MovePref<bool>, "Instant", "Hold"));
+	ADD(ConfOption("ForceNoDoubleSetup", MovePref<bool>, "No", "Yes"));
 	ADD(
 	  ConfOption("AllowHoldForOptions", MovePref<bool>, "Double Tap", "Hold"));
 	ADD(ConfOption("ArcadeOptionsNavigation",
@@ -818,6 +826,19 @@ InitializeConfOptions()
 				   "80ms",
 				   "90ms",
 				   "100ms"));
+	ADD(ConfOption("ScrollDebounceTime",
+				   ScrollDebounceTime,
+				   "0ms",
+				   "10ms",
+				   "20ms",
+				   "30ms",
+				   "40ms",
+				   "50ms",
+				   "60ms",
+				   "70ms",
+				   "80ms",
+				   "90ms",
+				   "100ms"));
 	ADD(ConfOption("AxisFix", MovePref<bool>, "Off", "On"));
 
 	ADD(ConfOption("Center1Player", MovePref<bool>, "Off", "On"));
@@ -826,6 +847,8 @@ InitializeConfOptions()
 	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("PackProgressInWheel", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnableMinidumpUpload", MovePref<bool>, "Off", "On"));
+
+	ADD(ConfOption("AllowSongDeletion", MovePref<bool>, "Off", "On"));
 
 	// Machine options
 	ADD(ConfOption("TimingWindowScale",
@@ -900,7 +923,9 @@ InitializeConfOptions()
 				   "|256",
 				   "|512",
 				   "|1024",
-				   "|2048"));
+				   "|2048",
+				   "|4096",
+				   "|8192"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;
 	ADD(ConfOption("TextureColorDepth", TextureColorDepth, "16bit", "32bit"));
 	g_ConfOptions.back().m_iEffects = OPT_APPLY_GRAPHICS;

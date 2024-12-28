@@ -1,0 +1,4 @@
+--- Scores for a particular chart
+--
+-- This class inherits no methods from superclasses.
+-- @classmod ScoresForChart

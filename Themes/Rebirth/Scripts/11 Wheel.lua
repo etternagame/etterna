@@ -32,7 +32,18 @@ local SOUND_SELECT = nil
 
 -- timer stuff
 local last_wheel_move_timestamp = GetTimeSinceStart()
-local MAX_WHEEL_SOUND_SPEED = 15
+local spinSpeed = function()
+    if themeConfig and getWheelSpeed then
+        local sp = getWheelSpeed()
+        if sp > 0 then
+            return sp
+        else
+            return 15
+        end
+    else
+        return 15
+    end
+end
 
 Wheel.mt = {
     updateMusicFromCurrentItem = function(whee)
@@ -64,6 +75,7 @@ Wheel.mt = {
             -- currentItem is a SONG
             GAMESTATE:SetCurrentSong(currentItem)
             GAMESTATE:SetPreferredSong(currentItem)
+            GAMESTATE:SetLastSongGroup(currentItem:GetGroupName())
 
             -- dude how do we even mimic the spaghetti behavior the c++ causes
             local function findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(charts, prefdiff, stepstype)
@@ -152,6 +164,11 @@ Wheel.mt = {
             -- currentItem is a GROUP
             GAMESTATE:SetCurrentSong(nil)
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            if WHEELDATA:GetCurrentSort() == 1 then
+                GAMESTATE:SetLastSongGroup(currentItem)
+            else
+                GAMESTATE:SetLastSongGroup("")
+            end
         end
     end,
     move = function(whee, num)
@@ -167,7 +184,7 @@ Wheel.mt = {
         end
 
         whee.timeBeforeMovingBegins = 1 / 8 -- this was hardcoded and there is no justification for it
-        whee.spinSpeed = 15 -- preference based (CHANGE THIS)
+        whee.spinSpeed = spinSpeed() -- preference based (CHANGE THIS)
         whee.moving = num
 
         if whee.moving ~= 0 then
@@ -265,7 +282,15 @@ Wheel.mt = {
             return nil
         end
     end,
-    findSongHelper = function(w, params)
+    findSongHelper = function(w, params, bIsShiftAllowed)
+        bIsShiftAllowed = bIsShiftAllowed or false -- nil replacement
+
+        if bIsShiftAllowed and INPUTFILTER:IsShiftPressed() and w.lastlastrandomkey ~= nil then
+            params.chartkey = w.lastlastrandomkey
+            params.group = w.lastlastgroup
+            params.song = nil
+        end
+
         -- internalized function which takes a parameter table, usually from a Command
         if params.chartkey ~= nil then
             local group = w:findSong(params.chartkey, params.group)
@@ -296,6 +321,14 @@ Wheel.mt = {
                     maxIndex = #w.items,
                 })
                 w.settled = true
+
+                if bIsShiftAllowed and not INPUTFILTER:IsShiftPressed() then
+                    w.lastlastgroup = w.lastgroup
+                    w.lastlastrandomkey = w.lastrandomkey
+                    w.lastrandomkey = params.chartkey
+                    w.lastgroup = w.group
+                end
+
                 return true
             end
         elseif params.song ~= nil then
@@ -326,6 +359,14 @@ Wheel.mt = {
                         maxIndex = #w.items,
                     })
                     w.settled = true
+
+                    if bIsShiftAllowed and not INPUTFILTER:IsShiftPressed() then
+                        w.lastlastgroup = w.lastgroup
+                        w.lastlastrandomkey = w.lastrandomkey
+                        w.lastrandomkey = GAMESTATE:GetCurrentSteps():GetChartKey()
+                        w.lastgroup = w.group
+                    end
+
                     return true
                 end
             end
@@ -397,15 +438,22 @@ Wheel.mt = {
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
+        local sortindex, sortname = WHEELDATA:GetLastSort()
+        local index = WHEELDATA:FindIndexOfFolder("Sort by "..sortname)
         w:setNewState(
-            1,
-            1,
+            index,
+            index,
             function() return WHEELDATA:GetWheelItems() end,
             newItems,
             nil
         )
         crossedGroupBorder = true
         forceGroupCheck = true
+
+        w.stepsBeforeSortmode = GAMESTATE:GetCurrentSteps()
+        w.songBeforeSortmode = GAMESTATE:GetCurrentSong()
+        w.groupBeforeSortmode = w.group
+
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
         
@@ -490,7 +538,7 @@ Wheel.mt = {
         end
 
         -- the wheel has settled
-        if whee.positionOffsetFromSelection == 0 and not whee.settled then
+        if whee.positionOffsetFromSelection == 0 and not whee.settled and whee.moving == 0 then
             whee:updateGlobalsFromCurrentItem()
             whee:updateMusicFromCurrentItem()
             -- settled brings along the Song, Group, Steps, and HoveredItem
@@ -588,12 +636,22 @@ function Wheel:new(params)
     whee.x = params.x
     whee.y = params.y
     whee.items = {}
+
+    whee.ReloadedScriptsMessageCommand = function(self)
+        local tscr = SCREENMAN:GetTopScreen()
+        local snm = tscr:GetName()
+        local anm = self:GetName()
+        CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
+    end
+
     whee.BeginCommand = function(self)
         local tscr = SCREENMAN:GetTopScreen()
         local snm = tscr:GetName()
         local anm = self:GetName()
         CONTEXTMAN:RegisterToContextSet(snm, "Main1", anm)
         local heldButtons = {}
+        local lastPressedUp = 0
+        local lastPressedDown = 0
 
         -- timing out the button combo to go to the sort mode menu
         local buttonQueue = {}
@@ -639,10 +697,10 @@ function Wheel:new(params)
                 -- if any of those buttons happen to overlap with a GameButton, the c++ input wont be called if it is redirected.
                 -- that means some of the functionality will fail.
                 -- To cope, mimic that exact behavior right here instead.
-                if event.type == "InputEventType_FirstPress" and gameButton ~= "" and event.charNoModifiers ~= nil and SCREENMAN:get_input_redirected(PLAYER_1) then
+                if event.type == "InputEventType_FirstPress" and gameButton ~= "" and SCREENMAN:get_input_redirected(PLAYER_1) then
                     local ctrl = INPUTFILTER:IsControlPressed()
                     local shift = INPUTFILTER:IsShiftPressed()
-                    local char = event.charNoModifiers:upper()
+                    local char = (event.charNoModifiers ~= nil and event.charNoModifiers or ""):upper()
                     local ssm = SCREENMAN:GetTopScreen()
 
                     -- if settled and the current screen is [net]selectmusic
@@ -653,9 +711,29 @@ function Wheel:new(params)
                             -- Reload current song from disk (ctrl shift R)
                             ssm:ReloadCurrentSong()
                             return true
+                        elseif ctrl and shift and char == "O" then
+                            -- Cache current pack for ranking (ctrl shift O)
+                            local pack = nil
+                            if GAMESTATE:GetCurrentSong() ~= nil and whee:getCurrentItem().GetAllSteps then
+                                pack = GAMESTATE:GetCurrentSong():GetGroupName()
+                            elseif WHEELDATA:GetCurrentSort() == 1 then
+                                -- group sort, hovering a pack
+                                pack = whee:getCurrentItem()
+                            else
+                                -- some other sort, hovering arbitrary folder
+                                -- do nothing...
+                                ms.ok("Did not cache anything because there was no identifiable pack")
+                                return true
+                            end
+                            ssm:CachePackForRanking(pack)
+                            return true
                         elseif ctrl and shift and char == "P" then
                             -- Reload current pack from disk (ctrl shift P)
                             ssm:ReloadCurrentPack()
+                            return true
+                        elseif ctrl and event.button == "DeviceButton_backspace" then
+                            -- Delete the currently hovered song (ctrl Backspace)
+                            ssm:DeleteCurrentSong()
                             return true
                         elseif ctrl and char == "F" then
                             -- Toggle favorite on current chart (ctrl F)
@@ -766,7 +844,14 @@ function Wheel:new(params)
                     if event.type == "InputEventType_FirstPress" then
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") then return end
                         heldButtons[direction] = true
-                        if heldButtons["up"] and heldButtons["down"] then
+                        if up then
+                            lastPressedUp = GetTimeSinceStart()
+                        else
+                            lastPressedDown = GetTimeSinceStart()
+                        end
+                        
+                        local UPDOWN_THRESHOLD = 0.05
+                        if math.abs(lastPressedDown - lastPressedUp) < UPDOWN_THRESHOLD then
                             whee:exitGroup()
                         end
                     elseif event.type == "InputEventType_Release" then
@@ -791,10 +876,11 @@ function Wheel:new(params)
                     whee.keepupdating = false
                     whee:update()
                 end
+                local MAX_WHEEL_SOUND_SPEED = spinSpeed()
 
                 -- handle wheel movement moving moves
                 if whee.moving ~= 0 and whee.timeBeforeMovingBegins == 0 then
-                    local sping = whee.spinSpeed * whee.moving
+                    local sping = whee.spinSpeed * whee.moving * 1.25
                     whee.positionOffsetFromSelection = clamp(whee.positionOffsetFromSelection - (sping * delta), -1, 1)
                     if (whee.moving == -1 and whee.positionOffsetFromSelection >= 0) or
                         (whee.moving == 1 and whee.positionOffsetFromSelection <= 0) then
@@ -818,7 +904,7 @@ function Wheel:new(params)
 
                 else
                     -- the wheel should rotate toward selection but isnt "moving"
-                    local sping = 0.2 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
+                    local sping = 1 + (math.abs(whee.positionOffsetFromSelection) / 0.1)
                     if whee.positionOffsetFromSelection > 0 then
                         whee.positionOffsetFromSelection = math.max(whee.positionOffsetFromSelection - (sping * delta), 0)
                     elseif whee.positionOffsetFromSelection < 0 then
@@ -978,11 +1064,15 @@ function MusicWheel:new(params)
                 w:updateGlobalsFromCurrentItem(true)
 
                 SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(songOrPack)
-                SCREENMAN:GetTopScreen():SelectCurrent()
-                SCREENMAN:set_input_redirected(PLAYER_1, false) -- unlock C++ input (the transition locks it in C++)
+                if SCREENMAN:GetTopScreen().SelectUserSong ~= nil then
+                    SCREENMAN:GetTopScreen():SelectUserSong()
+                else
+                    SCREENMAN:GetTopScreen():SelectCurrent()
+                    enteringSong = true -- lock wheel movement
+                    SCREENMAN:set_input_redirected(PLAYER_1, false) -- unlock C++ input (the transition locks it in C++)
+                    CONTEXTMAN.ContextIgnored = true -- lock all context controlled input
+                end
                 MESSAGEMAN:Broadcast("SelectedSong")
-                enteringSong = true -- lock wheel movement
-                CONTEXTMAN.ContextIgnored = true -- lock all context controlled input
             else
                 local group = songOrPack
 
@@ -998,21 +1088,32 @@ function MusicWheel:new(params)
                     local newItems = WHEELDATA:GetFilteredFolders()
                     WHEELDATA:SetWheelItems(newItems)
 
-                    w:setNewState(
-                        1,
-                        1,
-                        function() return WHEELDATA:GetWheelItems() end,
-                        newItems,
-                        nil
-                    )
+                    local oldck = nil
+                    if w.stepsBeforeSortmode ~= nil then oldck = w.stepsBeforeSortmode:GetChartKey() end
+                    if oldck ~= nil then
+                        local newgroup = w:findSong(oldck, w.groupBeforeSortmode)
+                        w.group = newgroup
+                        MESSAGEMAN:Broadcast("OpenedGroup", {
+                            group = newgroup,
+                        })
+                    else
+                        w:setNewState(
+                            1,
+                            1,
+                            function() return WHEELDATA:GetWheelItems() end,
+                            newItems,
+                            nil
+                        )
+                        GAMESTATE:SetCurrentSong(nil)
+                        GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+                        MESSAGEMAN:Broadcast("ClosedGroup", {
+                            group = w.group,
+                        })
+                    end
+
                     crossedGroupBorder = true
                     forceGroupCheck = true
-                    GAMESTATE:SetCurrentSong(nil)
-                    GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-                    
-                    MESSAGEMAN:Broadcast("ClosedGroup", {
-                        group = w.group,
-                    })
+
                     w:rebuildFrames()
                     MESSAGEMAN:Broadcast("ModifiedGroups", {
                         group = w.group,
@@ -1075,6 +1176,19 @@ function MusicWheel:new(params)
             return WHEELDATA:GetWheelItems()
         end
     }
+
+    w.NSMANSelectedSongMessageCommand = function(self, params)
+        if params.start then
+            enteringSong = true
+            SCREENMAN:set_input_redirected(PLAYER_1, false) -- unlock C++ input (the transition locks it in C++)
+            MESSAGEMAN:Broadcast("SelectedSong")
+            CONTEXTMAN.ContextIgnored = true -- lock all context controlled input
+        end
+        local steps = GAMESTATE:GetCurrentSteps()
+        if steps ~= nil then
+            self:playcommand("FindSong", {chartkey=steps:GetChartKey()})
+        end
+    end
 
     -- external access to move the wheel in a direction
     -- give either a percentage (musicwheel scrollbar movement) or a distance from current position
@@ -1141,7 +1255,44 @@ function MusicWheel:new(params)
     end
 
     w.FindSongCommand = function(self, params)
-        w:findSongHelper(params)
+        if not w:findSongHelper(params, true) and WHEELDATA:FindTheOnlySearchResult() ~= nil then
+            -- sometimes the Song returned via searching by first found chartkey can be from a dupe key
+            -- and the Song metadata doesnt fit the Filter
+            -- in that case we know theres probably a valid result
+            -- so given that there is a valid result, set the position to 1
+            w:setNewState(
+                1,
+                1,
+                function() return WHEELDATA:GetWheelItems() end,
+                newItems,
+                nil
+            )
+            crossedGroupBorder = true
+            forceGroupCheck = true
+            GAMESTATE:SetCurrentSong(nil)
+            GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
+            
+            MESSAGEMAN:Broadcast("ClosedGroup", {
+                group = w.group,
+            })
+            w:rebuildFrames()
+            MESSAGEMAN:Broadcast("ModifiedGroups", {
+                group = w.group,
+                index = w.index,
+                maxIndex = #w.items,
+            })
+            w:updateGlobalsFromCurrentItem()
+            w:updateMusicFromCurrentItem()
+            MESSAGEMAN:Broadcast("WheelSettled", {
+                song = GAMESTATE:GetCurrentSong(),
+                group = w.group,
+                hovered = w:getCurrentItem(),
+                steps = GAMESTATE:GetCurrentSteps(),
+                index = w.index,
+                maxIndex = #w.items
+            })
+            w.settled = true
+        end
     end
 
     w.FindGroupCommand = function(self, params)
@@ -1178,6 +1329,9 @@ function MusicWheel:new(params)
     end
 
     w.ReloadFilteredSongsCommand = function(self, params)
+        -- this stops things like the diff reload from killing the game
+        if enteringSong then return end
+
         local newItems = WHEELDATA:GetFilteredFolders()
         WHEELDATA:SetWheelItems(newItems)
 
@@ -1243,6 +1397,12 @@ function MusicWheel:new(params)
     end
 
     w.FavoritesUpdatedMessageCommand = function(self)
+        w:update()
+    end
+    w.PermamirrorUpdatedMessageCommand = function(self)
+        w:update()
+    end
+    w.GoalsUpdatedMessageCommand = function(self)
         w:update()
     end
 

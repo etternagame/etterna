@@ -131,10 +131,10 @@ void
 BMSLoader::GetApplicableFiles(const std::string& sPath,
 							  std::vector<std::string>& out)
 {
-	GetDirListing(sPath + std::string("*.bms"), out);
-	GetDirListing(sPath + std::string("*.bme"), out);
-	GetDirListing(sPath + std::string("*.bml"), out);
-	GetDirListing(sPath + std::string("*.pms"), out);
+	FILEMAN->GetDirListing(sPath + std::string("*.bms"), out, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + std::string("*.bme"), out, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + std::string("*.bml"), out, ONLY_FILE);
+	FILEMAN->GetDirListing(sPath + std::string("*.pms"), out, ONLY_FILE);
 }
 
 /*===========================================================================*/
@@ -774,7 +774,7 @@ BMSSong::PrecacheBackgrounds(const std::string& dir)
 	ActorUtil::AddTypeExtensionsToList(FT_Movie, exts);
 	ActorUtil::AddTypeExtensionsToList(FT_Bitmap, exts);
 	FILEMAN->GetDirListingWithMultipleExtensions(
-	  dir + std::string("*."), exts, arrayPossibleFiles);
+	  dir + std::string("*."), exts, arrayPossibleFiles, ONLY_FILE);
 
 	for (auto& arrayPossibleFile : arrayPossibleFiles) {
 		for (auto& ext : exts) {
@@ -1404,18 +1404,22 @@ BMSChartReader::ReadNoteData()
 			if (holdStart[track] != -1) {
 				// this object is the end of the hold note.
 				TapNote tn = nd.GetTapNote(track, holdStart[track]);
-				tn.type = TapNoteType_HoldHead;
-				tn.subType = TapNoteSubType_Hold;
-				nd.AddHoldNote(track, holdStart[track], row, tn);
+				if (holdStart[track] != row) {
+					tn.type = TapNoteType_HoldHead;
+					tn.subType = TapNoteSubType_Hold;
+					nd.AddHoldNote(track, holdStart[track], row, tn);
+				}
 				holdStart[track] = -1;
 				lastNote[track] = -1;
 			} else if (obj.value == lnobj && lastNote[track] != -1) {
 				// this object is the end of the hold note.
 				// lnobj: set last note to hold head.
 				TapNote tn = nd.GetTapNote(track, lastNote[track]);
-				tn.type = TapNoteType_HoldHead;
-				tn.subType = TapNoteSubType_Hold;
-				nd.AddHoldNote(track, lastNote[track], row, tn);
+				if (lastNote[track] != row) {
+					tn.type = TapNoteType_HoldHead;
+					tn.subType = TapNoteSubType_Hold;
+					nd.AddHoldNote(track, lastNote[track], row, tn);
+				}
 				holdStart[track] = -1;
 				lastNote[track] = -1;
 			} else {
