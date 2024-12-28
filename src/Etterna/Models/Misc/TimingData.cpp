@@ -1451,12 +1451,15 @@ TimingData::BuildAndGetEtar(int lastrow)
 		return ElapsedTimesAtAllRows;
 	}
 
-	ElapsedTimesAtAllRows.reserve(lastrow);
-	std::iota(ElapsedTimesAtAllRows.begin(), ElapsedTimesAtAllRows.end(), 0);
+	const auto maxIndex = lastrow + 1;
+
+	// there is 1 extra because this would
+	// mean that etar[lastrow] = the time at the last row
+	ElapsedTimesAtAllRows.resize(maxIndex);
 
 	// just dont parallelize at all if it probably wont help anyways
-	if (lastrow < 100000) {
-		for (auto r = 0; r <= lastrow; ++r) {
+	if (maxIndex < 50000) {
+		for (auto r = 0; r < maxIndex; ++r) {
 			ElapsedTimesAtAllRows[r] =
 			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r));
 		}
@@ -1464,17 +1467,42 @@ TimingData::BuildAndGetEtar(int lastrow)
 	}
 
 	// stupid optimization
-	auto exec = [this](vectorRange<float> workload, ThreadData* d) {
-		// so now the iterator also provides indices
-		for (auto it = workload.first; it != workload.second; it++) {
-			const auto index = std::lround(*it);
-			ElapsedTimesAtAllRows[index] =
-			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(index));
+	const int THREADS =
+	  PREFSMAN->ThreadsToUse <= 0 ? std::thread::hardware_concurrency()
+	  : PREFSMAN->ThreadsToUse <
+		  static_cast<int>(std::thread::hardware_concurrency())
+		? PREFSMAN->ThreadsToUse
+		: static_cast<int>(std::thread::hardware_concurrency());
+	// [start, end)
+	std::vector<std::pair<int, int>> threadRanges{};
+	auto rindex = 0;
+	auto rsize = ElapsedTimesAtAllRows.size() / THREADS;
+	for (auto i = 0; i < THREADS; i++) {
+		rindex = i * rsize;
+		if (i == THREADS) {
+			threadRanges.emplace_back(rindex, ElapsedTimesAtAllRows.size());
+		} else {
+			threadRanges.emplace_back(rindex, rindex + rsize);
+		}
+	}
+
+	auto exec = [this, &threadRanges](int threadIndex) {
+		auto& range = threadRanges[threadIndex];
+		// the exclusive upper bound
+		// means that the final index etar.size() is skipped
+		// (because if it wasnt, that is out of bounds)
+		for (auto i = range.first; i < range.second; i++) {
+			ElapsedTimesAtAllRows[i] =
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i));
 		}
 	};
-	parallelExecution<float>(ElapsedTimesAtAllRows, exec);
-	ElapsedTimesAtAllRows[lastrow] =
-	  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(lastrow));
+	std::vector<std::thread> threadpool;
+	for (int i = 0; i < THREADS; i++) {
+		threadpool.emplace_back(std::thread(exec, i));
+	}
+	for (auto& thread : threadpool) {
+		thread.join();
+	}
 
 	return ElapsedTimesAtAllRows;
 }
