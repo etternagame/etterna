@@ -120,6 +120,7 @@ set<DeviceInput> g_DisableRepeat;
  * this won't cause timing problems, because the event timestamp is preserved.
  */
 static Preference<float> g_fInputDebounceTime("InputDebounceTime", 0);
+static Preference<float> g_fScrollDebounceTime("ScrollDebounceTime", 0);
 
 InputFilter* INPUTFILTER =
   nullptr; // global and accessible from anywhere in our program
@@ -281,6 +282,11 @@ InputFilter::CheckButtonChange(ButtonState& bs,
 		// note: a debounce time longer than the min IET_REPEAT time
 		// will cause repeat events to fire here
 		if (delta < g_fInputDebounceTime) {
+			return;
+		}
+	} else {
+		// same comment as above
+		if (delta < g_fScrollDebounceTime) {
 			return;
 		}
 	}
@@ -592,6 +598,22 @@ class LunaInputFilter : public Luna<InputFilter>
 	}
 	DEFINE_METHOD(IsShiftPressed, IsShiftPressed());
 	DEFINE_METHOD(IsControlPressed, IsControlPressed());
+	static int GetSecsHeld(T* p, lua_State* L)
+	{
+		if (lua_isnil(L, 1)) {
+			return luaL_error(L,
+							  "GetSecsHeld(button, inputDevice=keyboard) "
+							  "expects at least one parameter");
+		}
+		DeviceButton button = StringToDeviceButton(SArg(1));
+		InputDevice device = DEVICE_KEYBOARD;
+		if (!(lua_isnil(L, 2)) && lua_gettop(L) > 1) {
+			device = StringToInputDevice(SArg(2));
+		}
+		lua_pushboolean(
+		  L, INPUTFILTER->GetSecsHeld(DeviceInput(device, button)));
+		return 1;
+	}
 	LunaInputFilter()
 	{
 		ADD_METHOD(GetMouseX);
@@ -600,6 +622,7 @@ class LunaInputFilter : public Luna<InputFilter>
 		ADD_METHOD(IsBeingPressed);
 		ADD_METHOD(IsShiftPressed);
 		ADD_METHOD(IsControlPressed);
+		ADD_METHOD(GetSecsHeld);
 	}
 };
 

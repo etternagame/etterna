@@ -6,6 +6,7 @@
 *.kdev4
 /.kdev4
 /[Bb]uild
+/out/
 
 # Ignore executables (Linux, macOS, Windows)
 /Etterna

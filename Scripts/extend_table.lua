@@ -70,3 +70,16 @@ function table.extend(t, othertable)
 		t[k] = v
 	end
 end
+
+-- given the initial table, apply a function to all the elements and return a copy
+-- the func paremeters are (key, value) and the return type is also key, value
+function table.withfuncapplied(t, func)
+	local o = {}
+	for k,v in pairs(t) do
+		local transformedKey, transformedValue = func(k,v)
+		if transformedKey ~= nil then
+			o[transformedKey] = transformedValue
+		end
+	end
+	return o
+end

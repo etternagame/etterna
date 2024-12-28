@@ -38,7 +38,7 @@ local translated_info = {
 
 -- initialize the base pack search
 local packlist = PackList:new()
-packlist:FilterAndSearch("", {}, numpacks)
+packlist:FilterAndSearch("", {}, true, numpacks)
 
 local o = Def.ActorFrame {
 	Name = "PacklistDisplay",
@@ -63,7 +63,7 @@ local o = Def.ActorFrame {
 		self:queuecommand("PackTableRefresh")
 	end,
 	InvokePackSearchMessageCommand = function(self, params)
-		packlist:FilterAndSearch(params.name, params.tags, numpacks)
+		packlist:FilterAndSearch(params.name, params.tags, params.tagsMatchAny, numpacks)
 		self:queuecommand("Update")
 	end,
 	PackTableRefreshCommand = function(self)

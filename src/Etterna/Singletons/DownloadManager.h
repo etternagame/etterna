@@ -112,11 +112,13 @@ class DownloadablePackPaginationKey
   public:
 	DownloadablePackPaginationKey(const std::string& searchString,
 								  std::set<std::string>& tagFilters,
+								  bool tagsMatchAny,
 								  int perPage,
 								  const std::string& sortField,
 								  bool ascendingSort)
 	  : searchString(searchString)
 	  , tagFilters(tagFilters)
+	  , tagsMatchAny(tagsMatchAny)
 	  , perPage(perPage)
 	  , sortByField(sortField)
 	  , sortIsAsc(ascendingSort)
@@ -125,6 +127,7 @@ class DownloadablePackPaginationKey
 	DownloadablePackPaginationKey()
 	  : searchString("")
 	  , tagFilters({})
+	  , tagsMatchAny(true)
 	  , perPage(0)
 	  , sortByField("")
 	  , sortIsAsc(true)
@@ -136,6 +139,7 @@ class DownloadablePackPaginationKey
 		return (perPage == other.perPage) &&
 			   (searchString == other.searchString) &&
 			   (tagFilters == other.tagFilters) &&
+			   (tagsMatchAny == other.tagsMatchAny) &&
 			   (sortByField == other.sortByField) &&
 			   (sortIsAsc == other.sortIsAsc);
 	}
@@ -145,6 +149,7 @@ class DownloadablePackPaginationKey
 	int perPage = 0;
 	std::string sortByField{};
 	bool sortIsAsc = true;
+	bool tagsMatchAny = true;
 };
 
 class DownloadablePackPagination
@@ -152,10 +157,16 @@ class DownloadablePackPagination
   public:
 	DownloadablePackPagination(const std::string& searchString,
 							   std::set<std::string>& tagFilters,
+							   bool tagsMatchAny,
 							   int perPage,
 							   const std::string& sortByField,
 							   bool sortIsAsc)
-	  : key(searchString, tagFilters, perPage, sortByField, sortIsAsc)
+	  : key(searchString,
+			tagFilters,
+			tagsMatchAny,
+			perPage,
+			sortByField,
+			sortIsAsc)
 	{
 	}
 	DownloadablePackPagination(const DownloadablePackPaginationKey& key)
@@ -298,6 +309,7 @@ struct std::hash<DownloadablePackPaginationKey>
 		r = r * 31 + s;
 		r = r * 31 + std::hash<std::string>()(k.sortByField);
 		r = r * 31 + std::hash<bool>()(k.sortIsAsc);
+		r = r * 31 + std::hash<bool>()(k.tagsMatchAny);
 		return r;
 	}
 };
@@ -310,6 +322,7 @@ struct ApiSearchCriteria
 	std::string chartAuthor{};
 	std::string songArtist{};
 	std::vector<std::string> packTags{};
+	bool packTagsMatchAny = true;
 
 	std::string sortBy{};
 	bool sortIsAscending = true;
@@ -335,7 +348,7 @@ struct ApiSearchCriteria
 			o += fmt::format(", songArtist: {}", songArtist);
 		}
 		if (!packTags.empty()) {
-			o += ", tags: [";
+			o += fmt::format(", tags (matchAny={}): [", packTagsMatchAny);
 			for (auto& s : packTags) {
 				o += fmt::format("'{}'", s);
 			}
@@ -583,6 +596,7 @@ class DownloadManager
 	DownloadablePackPagination& GetPackPagination(
 	  const std::string& searchString,
 	  std::set<std::string> tagFilters,
+	  bool tagsMatchAny,
 	  int perPage,
 	  const std::string& sortBy,
 	  bool sortIsAsc);
@@ -590,6 +604,9 @@ class DownloadManager
 													 std::string filename = "");
 	std::shared_ptr<Download> DownloadAndInstallPack(DownloadablePack* pack,
 													 bool mirror = false);
+
+	void DownloadCoreBundle(const std::string& bundlename, bool mirror = false);
+	std::vector<DownloadablePack*> GetCoreBundle(const std::string& bundlename);
 
 	/////
 	// User session
@@ -630,6 +647,8 @@ class DownloadManager
 	std::unordered_map<DownloadablePackPaginationKey,
 					   DownloadablePackPagination>
 	  downloadablePackPaginations{};
+	// (tag_name, list of pack ids) -- we use this for bundles
+	std::unordered_map<std::string, std::set<int>> tagPacks;
 
 	/////
 	// Chart leaderboards
@@ -711,6 +730,7 @@ class DownloadManager
 	void RefreshLastVersion();
 
 	void GetPackTagsRequest();
+	void CachePacksForTag(const std::string& tag);
 
 	void MultiSearchRequest(ApiSearchCriteria searchCriteria,
 							std::function<void(rapidjson::Document&)> whenDoneParser);
@@ -773,9 +793,6 @@ class DownloadManager
   public:
 
 	void RefreshPackList(const std::string& url);
-
-	void DownloadCoreBundle(const std::string& whichoneyo, bool mirror = false);
-	std::vector<DownloadablePack*> GetCoreBundle(const std::string& whichoneyo);
 };
 
 extern std::shared_ptr<DownloadManager> DLMAN;

@@ -203,7 +203,7 @@ MusicWheel::ReloadSongList(bool searching, const std::string& findme)
 		RebuildWheelItems();
 		SelectSection(m_sExpandedSectionName);
 		SetOpenSection(m_sExpandedSectionName);
-		ChangeMusic(1);
+		SelectSongOrCourse();
 		SCREENMAN->PostMessageToTopScreen(SM_SongChanged, 0.35F);
 		return;
 	}

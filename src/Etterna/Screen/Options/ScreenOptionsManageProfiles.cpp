@@ -29,10 +29,11 @@ enum ProfileAction
 	ProfileAction_Clear,
 	ProfileAction_MoveUp,
 	ProfileAction_MoveDown,
+	ProfileAction_Delete,
 	NUM_ProfileAction
 };
 static const char* ProfileActionNames[] = {
-	"SetDefaultP1", "Edit", "Rename", "Clear", "MoveUp", "MoveDown",
+	"SetDefaultP1", "Edit", "Rename", "Clear", "MoveUp", "MoveDown", "Delete",
 };
 XToString(ProfileAction);
 XToLocalizedString(ProfileAction);
@@ -169,6 +170,8 @@ static LocalizedString CONFIRM_CLEAR_PROFILE(
   "Are you sure you want to clear all data in the profile '%s'?");
 static LocalizedString ENTER_PROFILE_NAME("ScreenOptionsManageProfiles",
 										  "Enter a name for the profile.");
+static LocalizedString HOW_TO_DELETE("ScreenOptionsManageProfiles",
+										  "HowToDelete");
 void
 ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage& SM)
 {
@@ -279,6 +282,11 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage& SM)
 					  GetLocalProfileIndexWithFocus(), false);
 					SCREENMAN->SetNewScreen(this->m_sName); // reload
 					break;
+				case ProfileAction_Delete: {
+					auto deltxt = fmt::format(HOW_TO_DELETE.GetValue(), pProfile->m_sProfileID);
+					ScreenTextEntry::TextEntry(
+					  SM_GainFocus, deltxt, "", 0);
+				} break;
 			}
 		}
 	} else if (SM == SM_LoseFocus) {
@@ -337,16 +345,11 @@ ScreenOptionsManageProfiles::ProcessMenuStart(const InputEventPlus&)
 	g_TempMenu.rows.push_back(MenuRowDef(                                      \
 	  i, ProfileActionToLocalizedString(i), true, false, false, 0, ""));
 
-		ADD_ACTION(ProfileAction_SetDefaultP1);
-		if (PROFILEMAN->FixedProfiles()) {
-			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_Clear);
-		} else {
-			ADD_ACTION(ProfileAction_Edit);
-			ADD_ACTION(ProfileAction_Rename);
-			ADD_ACTION(ProfileAction_MoveUp);
-			ADD_ACTION(ProfileAction_MoveDown);
-		}
+		// ADD_ACTION(ProfileAction_Edit);
+		ADD_ACTION(ProfileAction_Rename);
+		ADD_ACTION(ProfileAction_MoveUp);
+		ADD_ACTION(ProfileAction_MoveDown);
+		ADD_ACTION(ProfileAction_Delete);
 
 		int iWidth, iX, iY;
 		this->GetWidthXY(PLAYER_1, iCurRow, 0, iWidth, iX, iY);

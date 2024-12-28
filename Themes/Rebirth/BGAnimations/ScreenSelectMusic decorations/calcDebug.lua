@@ -534,6 +534,15 @@ local debugGroups = {
     {   -- Group 17
         Minijack = true,
     },
+    {   -- Group 18
+        GenericStream = true,
+    },
+    {   -- Group 19
+        GenericChordstream = true,
+    },
+    {   -- Group 20
+        GenericBracketing = true,
+    },
 }
 
 -- specify enum names here

@@ -182,6 +182,7 @@ class PrefsManager
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
+	Preference<bool> m_bForceSnaps;
 	Preference<bool> m_AllowMultipleToasties;
 	Preference<bool> m_bUseMidGrades;
 

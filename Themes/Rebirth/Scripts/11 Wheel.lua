@@ -1064,11 +1064,15 @@ function MusicWheel:new(params)
                 w:updateGlobalsFromCurrentItem(true)
 
                 SCREENMAN:GetTopScreen():GetMusicWheel():SelectSong(songOrPack)
-                SCREENMAN:GetTopScreen():SelectCurrent()
-                SCREENMAN:set_input_redirected(PLAYER_1, false) -- unlock C++ input (the transition locks it in C++)
+                if SCREENMAN:GetTopScreen().SelectUserSong ~= nil then
+                    SCREENMAN:GetTopScreen():SelectUserSong()
+                else
+                    SCREENMAN:GetTopScreen():SelectCurrent()
+                    enteringSong = true -- lock wheel movement
+                    SCREENMAN:set_input_redirected(PLAYER_1, false) -- unlock C++ input (the transition locks it in C++)
+                    CONTEXTMAN.ContextIgnored = true -- lock all context controlled input
+                end
                 MESSAGEMAN:Broadcast("SelectedSong")
-                enteringSong = true -- lock wheel movement
-                CONTEXTMAN.ContextIgnored = true -- lock all context controlled input
             else
                 local group = songOrPack
 
@@ -1172,6 +1176,19 @@ function MusicWheel:new(params)
             return WHEELDATA:GetWheelItems()
         end
     }
+
+    w.NSMANSelectedSongMessageCommand = function(self, params)
+        if params.start then
+            enteringSong = true
+            SCREENMAN:set_input_redirected(PLAYER_1, false) -- unlock C++ input (the transition locks it in C++)
+            MESSAGEMAN:Broadcast("SelectedSong")
+            CONTEXTMAN.ContextIgnored = true -- lock all context controlled input
+        end
+        local steps = GAMESTATE:GetCurrentSteps()
+        if steps ~= nil then
+            self:playcommand("FindSong", {chartkey=steps:GetChartKey()})
+        end
+    end
 
     -- external access to move the wheel in a direction
     -- give either a percentage (musicwheel scrollbar movement) or a distance from current position

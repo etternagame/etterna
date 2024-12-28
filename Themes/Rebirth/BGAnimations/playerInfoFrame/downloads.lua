@@ -211,11 +211,12 @@ local function downloadsList()
     local downloaderframe = nil
     local searchstring = ""
     local selectedTags = {}
+    local tagsMatchAny = true
 
     -- fallback behavior: this is a PackList
     -- it has internal properties we will use to our advantage
     local pl = PackList:new()
-    pl:FilterAndSearch("", {}, itemCount)
+    pl:FilterAndSearch("", {}, tagsMatchAny, itemCount)
     local downloadingPacks = DLMAN:GetDownloadingPacks()
     local queuedPacks = DLMAN:GetQueuedPacks()
     local downloadingPacksByName = {}
@@ -897,11 +898,18 @@ local function downloadsList()
             self:playcommand("UpdateItemList")
         end,
         InvokeSearchCommand = function(self)
+            local function unbundleize(bundlestr)
+                local bundleWord = "Bundle: "
+                if bundlestr:find(bundleWord) ~= nil then
+                    bundlestr = bundlestr:sub(#bundleWord+1):lower()
+                end
+                return bundlestr
+            end
             local tags = {}
             for k,v in pairs(selectedTags) do
-                tags[#tags+1] = k
+                tags[#tags+1] = unbundleize(k)
             end
-            pl:FilterAndSearch(searchstring, tags, itemCount)
+            pl:FilterAndSearch(searchstring, tags, tagsMatchAny, itemCount)
             self:playcommand("UpdateItemList")
         end,
         UpdateItemListCommand = function(self)
@@ -1158,7 +1166,10 @@ local function downloadsList()
                     return tonumber(ax) < tonumber(bx)
                 end)
                 local otherTags = table.sorted(alltags["pack_tag"] or {})
-                orderedTags = table.combine(keycountTags, skillsetTags, otherTags)
+                local bundleTags = table.withfuncapplied(alltags["pack_bundle"] or {}, function(key,val)
+                    return key, "Bundle: " .. val:sub(1,1):upper() .. val:sub(2)
+                end)
+                orderedTags = table.combine(keycountTags, skillsetTags, otherTags, bundleTags)
                 MESSAGEMAN:Broadcast("SetTagPage")
             end
         end
@@ -1195,6 +1206,49 @@ local function downloadsList()
                     self:maxwidth(actuals.Width / nameHeaderSize)
                     self:settext(translations["TagExplain"])
                     registerActorToColorConfigElement(self, "main", "SecondaryText")
+                end,
+            },
+            UIElements.TextButton(1, 1, "Common Normal") .. {
+                Name = "ANDORButton",
+                InitCommand = function(self)
+                    self.bg = self:GetChild("BG")
+                    self.txt = self:GetChild("Text")
+                    self:xy(
+                        actuals.Width - ((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) + actuals.NameColumnLeftGap + actuals.EdgePadding)/2,
+                        actuals.Height/2 - actuals.TopLipHeight * 2 - taglistAllottedSpace / tagCount * 1.2 * 2 - (taglistAllottedSpace / tagCount * 0.1))
+                    self.bg:halign(0)
+                    self.txt:x(actuals.MSDWidth*1.2 / 2)
+                    self.txt:zoom(msdTextSize)
+                    self.txt:maxwidth(actuals.MSDWidth*1.2/msdTextSize)
+                    self.bg:zoomto(actuals.MSDWidth * 1.2, taglistAllottedSpace / tagCount * 1.2)
+
+                    registerActorToColorConfigElement(self.txt, "main", "SecondaryText")
+                    registerActorToColorConfigElement(self.bg, "main", "SecondaryBackground")
+                    self.bg:diffusealpha(1)
+                    self.alphaDeterminingFunction = function(self)
+                        if isOver(self.bg) then
+                            self:diffusealpha(buttonHoverAlpha)
+                        else
+                            self:diffusealpha(1)
+                        end
+                    end
+
+                    self.setandor = function(self)
+                        self.txt:settext(tagsMatchAny and "OR" or "AND")
+                    end
+                    self:setandor()
+                end,
+                ClickCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.update ~= "OnMouseDown" then return end
+                    tagsMatchAny = not tagsMatchAny
+                    self:GetParent():GetParent():playcommand("SetTag")
+                    self:GetParent():GetParent():playcommand("InvokeSearch")
+                    self:setandor()
+                end,
+                RolloverUpdateCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    self:alphaDeterminingFunction()
                 end,
             },
             UIElements.TextButton(1, 1, "Common Normal") .. {
@@ -1241,7 +1295,10 @@ local function downloadsList()
                 InitCommand = function(self)
                     self.bg = self:GetChild("BG")
                     self.txt = self:GetChild("Text")
-                    self:xy(actuals.Width - ((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) + actuals.NameColumnLeftGap + actuals.EdgePadding)/2, actuals.Height/2 - actuals.TopLipHeight * 2)
+                    self:xy(
+                        actuals.Width - ((actuals.MSDColumnLeftGap - actuals.NameColumnLeftGap - actuals.MSDWidth / 2) + actuals.NameColumnLeftGap + actuals.EdgePadding)/2,
+                        actuals.Height/2 - actuals.TopLipHeight * 2
+                    )
                     self.bg:halign(0)
                     self.txt:x(actuals.MSDWidth*1.2 / 2)
                     self.txt:zoom(msdTextSize)

@@ -437,6 +437,8 @@ local translations = {
     StartGiveUpExplanation = THEME:GetString("Settings", "StartGiveUpExplanation"),
     Debounce = THEME:GetString("Settings", "Debounce"),
     DebounceExplanation = THEME:GetString("Settings", "DebounceExplanation"),
+    ScrollDebounce = THEME:GetString("Settings", "ScrollDebounce"),
+    ScrollDebounceExplanation = THEME:GetString("Settings", "ScrollDebounceExplanation"),
     TestInput = THEME:GetString("Settings", "TestInput"),
     TestInputExplanation = THEME:GetString("Settings", "TestInputExplanation"),
     TestInputButton = THEME:GetString("Settings", "TestInputButton"),
@@ -4035,6 +4037,7 @@ local function rightFrame()
                     return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3) .. "s"
                 end,
             },
+            --[[ -- people dont know any better i guess
             {
                 Name = "Game Mode",
                 DisplayName = translations["GameMode"],
@@ -4071,6 +4074,7 @@ local function rightFrame()
                     return o
                 end,
             },
+            --]]
             {
                 Name = "Fail Type",
                 DisplayName = translations["FailType"],
@@ -6372,6 +6376,16 @@ local function rightFrame()
                 Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 0.2, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 3) .. "s"
+                end,
+            },
+            {
+                Name = "Scroll Debounce Time",
+                DisplayName = translations["ScrollDebounce"],
+                Type = "SingleChoice",
+                Explanation = translations["ScrollDebounceExplanation"],
+                Directions = preferenceIncrementDecrementDirections("ScrollDebounceTime", 0, 0.2, 0.001),
+                ChoiceIndexGetter = function()
+                    return notShit.round(PREFSMAN:GetPreference("ScrollDebounceTime"), 3) .. "s"
                 end,
             },
             {

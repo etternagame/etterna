@@ -8,7 +8,7 @@ local isMulti = NSMAN:IsETTP() and SCREENMAN:GetTopScreen() and SCREENMAN:GetTop
 local leaderboardIsLocal = not isMulti and (playerConfig:get_data().Leaderboard or 0) == 2
 
 local toggledRateFilter = false
-if not DLMAN:GetCurrentRateFilter() then
+if not DLMAN:GetCurrentRateFilter() and not isMulti then
     DLMAN:ToggleRateFilter()
     toggledRateFilter = true
 end
@@ -312,6 +312,7 @@ local function scoreEntry(i)
         function(self, hs)
             local n = hs:GetDisplayName()
             self:settext(n or "")
+            local entryActor = self:GetParent():GetParent()
             if entryActor then
                 entryActor:visible(not (not n))
             end

@@ -62,7 +62,8 @@ local translated_info = {
 	LoginToView = THEME:GetString("NestedScores", "LoginToView"),
 	NoScoresFound = THEME:GetString("NestedScores", "NoScoresFound"),
 	RetrievingScores = THEME:GetString("NestedScores", "RetrievingScores"),
-	Watch = THEME:GetString("NestedScores", "WatchReplay")
+	Watch = THEME:GetString("NestedScores", "WatchReplay"),
+	NoReplay = THEME:GetString("NestedScores", "NoReplay"),
 }
 
 local scoretable = {}
@@ -584,7 +585,11 @@ local function makeScoreDisplay(i)
 					DLMAN:RequestOnlineScoreReplayData(
 						hs,
 						function()
-							SCREENMAN:GetTopScreen():PlayReplay(hs)
+							if hs:GetReplay():HasReplayData() then
+								SCREENMAN:GetTopScreen():PlayReplay(hs)
+							else
+								ms.ok(translated_info["NoReplay"])
+							end
 						end
 					)
 				end

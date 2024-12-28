@@ -1,9 +1,11 @@
 #pragma once
 
-#include "Agnostic/HA_PatternMods/GenericStream.h"
 #include "Agnostic/HA_PatternMods/GenericChordstream.h"
-#include "Agnostic/HA_PatternMods/GenericBracketing.h"
 #include "Agnostic/HA_PatternMods/CJ.h"
+
+#include "Dependent/MetaIntervalGenericHandInfo.h"
+#include "Dependent/HD_PatternMods/GenericBracketing.h"
+#include "Dependent/HD_PatternMods/GenericStream.h"
 
 #include "SequencedBaseDiffCalc.h"
 
@@ -21,6 +23,9 @@ struct Bazoinkazoink
 	// for detection
 	metaItvInfo _mitvi;
 
+	// the generic hand stats
+	metaItvGenericHandInfo _mitvghi;
+
 	// meta row info keeps track of basic pattern sequencing as we scan down
 	// the notedata rows, we will recyle two pointers (we want each row to be
 	// able to "look back" at the meta info generated at the last row so the mhi
@@ -32,7 +37,6 @@ struct Bazoinkazoink
 	GChordStreamMod _gchordstream;
 	GBracketingMod _gbracketing;
 	CJMod _cj;
-
 
 	oversimplified_jacks lazy_jacks;
 
@@ -151,9 +155,7 @@ struct Bazoinkazoink
 	}
 
 	virtual void full_agnostic_reset() {
-		_gstream.full_reset();
 		_gchordstream.full_reset();
-		_gbracketing.full_reset();
 		_cj.full_reset();
 
 		_mri.get()->reset();
@@ -169,11 +171,8 @@ struct Bazoinkazoink
 	}
 
 	virtual void set_agnostic_pmods(const int& itv) {
-		PatternMods::set_agnostic(_gstream._pmod, _gstream(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(
 		  _gchordstream._pmod, _gchordstream(_mitvi), itv, _calc);
-		PatternMods::set_agnostic(
-		  _gbracketing._pmod, _gbracketing(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
 	}
 
@@ -218,17 +217,27 @@ struct Bazoinkazoink
 	}
 
 	virtual void set_dependent_pmods(const int& itv) {
-
+		PatternMods::set_dependent(
+		  hand, _gstream._pmod, _gstream(_mitvghi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _gbracketing._pmod, _gbracketing(_mitvghi), itv, _calc);
 	}
 
 	virtual void full_hand_reset() {
 		lazy_jacks.init(_calc.keycount);
+
+		_gstream.full_reset();
+		_gbracketing.full_reset();
+
+		_mitvghi.zero();
 	}
 
 	virtual void handle_dependent_interval_end(const int& itv) {
 		set_dependent_pmods(itv);
 
 		set_sequenced_base_diffs(itv);
+
+		_mitvghi.interval_end();
 	}
 
 	virtual void set_sequenced_base_diffs(const int& itv) const {
@@ -236,8 +245,11 @@ struct Bazoinkazoink
 	}
 
 	virtual void run_dependent_pmod_loop() {
-		unsigned hand = 0;
+		setup_dependent_mods();
+
+		hand = 0;
 		for (const auto& ids : _calc.hand_col_masks) {
+			full_hand_reset();
 			nps::actual_cancer(_calc, hand);
 			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase),
 				   0.F,
@@ -264,6 +276,9 @@ struct Bazoinkazoink
 						lazy_jacks(c, row_time);
 					}
 
+					// update counts
+					_mitvghi.handle_row(masked_notes, ids);
+
 					auto thing =
 					  std::pair{ row_time,
 								 ms_to_scaled_nps(
@@ -273,24 +288,101 @@ struct Bazoinkazoink
 						thing.second = 0.F;
 					}
 					_calc.jack_diff.at(hand).push_back(thing);
+
+					last_row_time = row_time;
 				}
+				handle_dependent_interval_end(itv);
 			}
+			PatternMods::run_dependent_smoothing_pass(_calc.numitv, _calc);
 
 			hand++;
 		}
 	}
 
-	/// load custom xml parameters
-	virtual void load_calc_params_from_disk(bool bForce = false) const {
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 
+	virtual const std::string get_calc_param_xml() const {
+		return "Save/CalcParams_generic.xml";
+	}
+
+	virtual void load_calc_params_internal(const XNode& params) const {
+		load_params_for_mod(&params, _gstream._params, _gstream.name);
+		load_params_for_mod(&params, _gchordstream._params, _gchordstream.name);
+		load_params_for_mod(&params, _gbracketing._params, _gbracketing.name);
+		load_params_for_mod(&params, _cj._params, _cj.name);
+	}
+
+	virtual XNode* make_param_node_internal(XNode* calcparams) const
+	{
+		calcparams->AppendChild(
+		  make_mod_param_node(_gstream._params, _gstream.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_gchordstream._params, _gchordstream.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_gbracketing._params, _gbracketing.name));
+		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
+
+		return calcparams;
+	}
+
+	/// load custom xml parameters
+	void load_calc_params_from_disk(bool bForce = false) const {
+		const auto fn = get_calc_param_xml();
+
+		// Hold calc params program-global persistent info
+		thread_local RageFile* pFile;
+		thread_local XNode params;
+		// Only ever try to load params once per thread unless forcing
+		thread_local bool paramsLoaded = false;
+
+		// Don't keep loading params if nothing to load/no reason to
+		// Allow a force to bypass
+		if (paramsLoaded && !bForce)
+			return;
+
+		// Load if missing
+		if (pFile == nullptr || bForce || !pFile->IsOpen()) {
+			delete pFile;
+			pFile = new RageFile();
+			// Failed to load
+			if (!pFile->Open(fn, RageFile::READ))
+				return;
+		}
+
+		// If it isn't loaded or we are forcing a load, load it
+		if (params.ChildrenEmpty() || bForce) {
+			if (!XmlFileUtil::LoadFromFileShowErrors(params, *pFile)) {
+				pFile->Close();
+				return;
+			}
+		}
+
+		// ignore params from older versions
+		std::string vers;
+		params.GetAttrValue("vers", vers);
+		if (vers.empty() || stoi(vers) != GetCalcVersion()) {
+			return;
+		}
+		paramsLoaded = true;
+
+		load_calc_params_internal(params);
+		pFile->Close();
 	}
 
 	/// save default xml parameters
-	virtual void write_params_to_disk() const {
+	void write_params_to_disk() const {
+		const auto fn = get_calc_param_xml();
+		const std::unique_ptr<XNode> xml(make_param_node());
 
+		std::string err;
+		RageFile f;
+		if (!f.Open(fn, RageFile::WRITE)) {
+			return;
+		}
+		XmlFileUtil::SaveToFile(xml.get(), f, "", false);
+		f.Close();
 	}
 
-#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
 	static auto make_mod_param_node(
 	  const std::vector<std::pair<std::string, float*>>& param_map,
 	  const std::string& name) -> XNode*
@@ -322,6 +414,12 @@ struct Bazoinkazoink
 			ch->GetTextValue(boat);
 			*p.second = boat;
 		}
+	}
+
+	XNode* make_param_node() const {
+		auto* calcparams = new XNode("CalcParams");
+		calcparams->AppendAttr("vers", GetCalcVersion());
+		return make_param_node_internal(calcparams);
 	}
 #endif
 };

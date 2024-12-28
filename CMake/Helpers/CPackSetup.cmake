@@ -66,6 +66,13 @@ elseif(APPLE)
     set(CPACK_GENERATOR DragNDrop)
     set(CPACK_DMG_VOLUME_NAME Etterna)
 
+    # Workaround XProtect race condition for "hdiutil create" for MacOS 13
+    set(CPACK_COMMAND_HDIUTIL "${CMAKE_CURRENT_LIST_DIR}/hdiutil_repeat.sh")
+
+    if(DEFINED ENV{ETT_MAC_SYS_NAME})
+        set(CPACK_SYSTEM_NAME "$ENV{ETT_MAC_SYS_NAME}")
+    endif()
+
     install(TARGETS Etterna COMPONENT Etterna DESTINATION Etterna)
     if(WITH_CRASHPAD AND TARGET crashpad)
         install(FILES ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler

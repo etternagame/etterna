@@ -548,6 +548,16 @@ ScreenTextEntry::MenuStart(const InputEventPlus& input)
 }
 
 void
+ScreenTextEntry::EndScreen()
+{
+	if (s_bMustResetInputRedirAtClose) {
+		s_bMustResetInputRedirAtClose = false;
+		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
+	}
+	Screen::EndScreen();
+}
+
+void
 ScreenTextEntry::End(bool bCancelled)
 {
 	if (bCancelled) {
@@ -601,10 +611,6 @@ ScreenTextEntry::End(bool bCancelled)
 
 	s_bCancelledLast = bCancelled;
 	s_sLastAnswer = bCancelled ? std::string("") : WStringToString(m_sAnswer);
-	if (s_bMustResetInputRedirAtClose) {
-		s_bMustResetInputRedirAtClose = false;
-		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
-	}
 }
 
 bool

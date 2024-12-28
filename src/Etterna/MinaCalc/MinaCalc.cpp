@@ -942,14 +942,14 @@ MinaSDCalcDebug(
 	 * we have to write out after loading the values player defined, so the
 	 * quick hack solution to do that is to only do it during debug output
 	 * generation, which is fine for the time being, though not ideal */
-	if (!DoesFileExist(calc_params_xml)) {
-		const TheGreatBazoinkazoinkInTheSky ublov(calc);
-		ublov.write_params_to_disk();
+	FILEMAN->FlushDirCache(calc.ulbu_in_charge->get_calc_param_xml());
+	if (!DoesFileExist(calc.ulbu_in_charge->get_calc_param_xml())) {
+		calc.ulbu_in_charge->write_params_to_disk();
 	}
 #endif
 }
 
-int mina_calc_version = 511;
+int mina_calc_version = 515;
 auto
 GetCalcVersion() -> int
 {
