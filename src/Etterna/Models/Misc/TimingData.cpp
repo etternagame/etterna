@@ -1486,7 +1486,7 @@ TimingData::BuildAndGetEtar(int lastrow)
 		auto& range = threadRanges[threadIndex];
 		for (auto i = range.first; i < range.second; i++) {
 			ElapsedTimesAtAllRows[i] =
-			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i + 1));
+			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i));
 		}
 	};
 	std::vector<std::thread> threadpool;
