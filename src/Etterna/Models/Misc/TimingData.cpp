@@ -1451,11 +1451,15 @@ TimingData::BuildAndGetEtar(int lastrow)
 		return ElapsedTimesAtAllRows;
 	}
 
-	ElapsedTimesAtAllRows.resize(lastrow);
+	const auto maxIndex = lastrow + 1;
+
+	// there is 1 extra because this would
+	// mean that etar[lastrow] = the time at the last row
+	ElapsedTimesAtAllRows.resize(maxIndex);
 
 	// just dont parallelize at all if it probably wont help anyways
-	if (lastrow < 50000) {
-		for (auto r = 0; r <= lastrow; ++r) {
+	if (maxIndex < 50000) {
+		for (auto r = 0; r < maxIndex; ++r) {
 			ElapsedTimesAtAllRows[r] =
 			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r));
 		}
@@ -1484,6 +1488,9 @@ TimingData::BuildAndGetEtar(int lastrow)
 
 	auto exec = [this, &threadRanges](int threadIndex) {
 		auto& range = threadRanges[threadIndex];
+		// the exclusive upper bound
+		// means that the final index etar.size() is skipped
+		// (because if it wasnt, that is out of bounds)
 		for (auto i = range.first; i < range.second; i++) {
 			ElapsedTimesAtAllRows[i] =
 			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(i));
