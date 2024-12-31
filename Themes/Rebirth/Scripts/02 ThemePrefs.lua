@@ -782,7 +782,8 @@ function TipType()
         Choices = {
             THEME:GetString("OptionNames", "Off"),
             THEME:GetString("OptionNames", "Tips"),
-            THEME:GetString("OptionNames", "RandomPhrases")
+            THEME:GetString("OptionNames", "RandomPhrases"),
+            THEME:GetString("OptionNames", "GradeCounter")
         },
         LoadSelections = function(self, list, pn)
             local pref = themeConfig:get_data().global.TipType
@@ -790,8 +791,10 @@ function TipType()
                 list[1] = true
             elseif pref == 2 then
                 list[2] = true
-            else
+            elseif pref == 3 then
                 list[3] = true
+            else -- default to nothing
+                list[4] = true
             end
         end,
         SaveSelections = function(self, list, pn)
@@ -800,8 +803,10 @@ function TipType()
                 value = 1
             elseif list[2] == true then
                 value = 2
-            else
+            elseif list[3] == true then
                 value = 3
+            else -- default to nothing
+                value = 4
             end
             themeConfig:get_data().global.TipType = value
             themeConfig:set_dirty()

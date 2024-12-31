@@ -1,6 +1,6 @@
 local defaultConfig = {
     global = {
-        TipType = 1, -- 1 = tips, 2 = quotes ...
+        TipType = 1, -- 1 = tips, 2 = quotes, 3 = grade counter, 4 = nothing ...
         ShowVisualizer = true,
         FallbackToAverageColorBG = true, -- wheel bg only
         StaticBackgrounds = false,
