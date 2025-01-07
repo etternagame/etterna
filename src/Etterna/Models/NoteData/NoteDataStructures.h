@@ -88,6 +88,7 @@ enum CalcPatternMod
 	GStream,
 	GChordStream,
 	GBracketing,
+	HandSwitch,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

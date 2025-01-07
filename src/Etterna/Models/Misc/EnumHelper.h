@@ -122,8 +122,9 @@ EnumToString(int iVal,
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundefined-var-template"
 #elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wundefined-var-template"
+// i swear this does something, but messes with my gcc
+// #pragma GCC diagnostic push
+// #pragma GCC diagnostic ignored "-Wundefined-var-template"
 #elif defined(_MSC_VER)
 // TODO: Does anything need to be here?
 #endif
@@ -147,7 +148,7 @@ Check(lua_State* L,
 #if defined(__clang__)
 #pragma clang pop
 #elif defined(__GNUC__)
-#pragma GCC pop
+// #pragma GCC pop
 #elif defined(_MSC_VER)
 
 #endif
