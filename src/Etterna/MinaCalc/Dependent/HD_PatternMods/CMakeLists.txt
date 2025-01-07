@@ -16,6 +16,7 @@ list(APPEND HD_PATTERN_MODS
     "WideRangeJJ.h"
     "WideRangeRoll.h"
     "GenericBracketing.h"
-    "GenericStream.h")
+    "GenericStream.h"
+	"HandSwitch.h")
 
 target_sources(Etterna PUBLIC ${HD_PATTERN_MODS})
