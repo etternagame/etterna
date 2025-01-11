@@ -6,23 +6,29 @@
 --
 -- NOTE: DeviceButtons have a unique ToString (DeviceButtonToString), so their name appears as such:
 -- `DeviceButton_xxx` where `xxx` is one of: 
+--
 -- A specially labeled enum value (list below)
+--
 -- A letter on the keyboard
+--
 -- `unk N` where N is a number, for 320 unlabeled unknown keys
+--
 -- `BN` where N is a number, for the extra 32 unlabeled joystick buttons
+--
 -- `Midi N` where N is a number, for 100 MIDI keys
+--
 --
 -- NOTE 2: Some DeviceButtons appear to be duplicates, but are actually distinguishing between a primary keyboard button and a numpad button. The numpad buttons have KP in the name.
 --
 -- Valid DeviceButtons:
 --      "DeviceButton_space"
 --      "DeviceButton_!"
---      "DeviceButton_\""
+--      "DeviceButton_""
 --      "DeviceButton_#"
 --      "DeviceButton_$"
 --      "DeviceButton_%"
 --      "DeviceButton_&"
---      "DeviceButton_\'"
+--      "DeviceButton_'"
 --      "DeviceButton_("
 --      "DeviceButton_)"
 --      "DeviceButton_*"
