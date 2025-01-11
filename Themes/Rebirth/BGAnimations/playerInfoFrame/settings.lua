@@ -6197,9 +6197,48 @@ local function rightFrame()
                 DisplayName = translations["TipType"],
                 Type = "SingleChoice",
                 Explanation = translations["TipTypeExplanation"],
-                Choices = choiceSkeleton("Tips", "Quotes"),
-                Directions = optionDataToggleDirectionsFUNC("tipType", 1, 2),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("tipType", 1),
+                Choices = {
+                    {
+                        Name = "Tips",
+                        DisplayName = "Tips",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(1)
+                        end
+                    },
+                    {
+                        Name = "Quotes",
+                        DisplayName = "Quotes",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(2)
+                        end
+                    },
+                    {
+                        Name = "GradeCounter",
+                        DisplayName = "Grade Counter",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(3)
+                        end
+                    },
+                    {
+                        Name = "Nothing",
+                        DisplayName = "Nothing",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(4)
+                        end
+                    }
+                },
+                ChoiceIndexGetter = function(self)
+                    v = optionData["tipType"].get()
+                    if v == 1 then
+                        return 1
+                    elseif v == 2 then
+                        return 2
+                    elseif v == 3 then
+                        return 3
+                    else
+                        return 4
+                    end
+                end,
             },
             {
                 Name = "Set BG Fit Mode",
