@@ -130,32 +130,6 @@ ShowWarningOrTrace(const char* file,
 #define SM_UNIQUE_NAME2(x, line) SM_UNIQUE_NAME3(x, line)
 #define SM_UNIQUE_NAME(x) SM_UNIQUE_NAME2(x, __LINE__)
 
-template<bool>
-struct CompileAssert;
-template<>
-struct CompileAssert<true>
-{
-};
-template<int>
-struct CompileAssertDecl
-{
-};
-
-// Ignore "unused-local-typedef" warnings for COMPILE_ASSERT
-#if defined(__clang__)
-#define COMPILE_ASSERT_PRE                                                     \
-	_Pragma("clang diagnostic push")                                           \
-	  _Pragma("clang diagnostic ignored \"-Wunused-local-typedef\"")
-#define COMPILE_ASSERT_POST _Pragma("clang diagnostic pop")
-#else
-#define COMPILE_ASSERT_PRE
-#define COMPILE_ASSERT_POST
-#endif
-#define COMPILE_ASSERT(COND)                                                   \
-	COMPILE_ASSERT_PRE                                                         \
-	typedef CompileAssertDecl<sizeof(CompileAssert<!!(COND)>)>                 \
-	  CompileAssertInst COMPILE_ASSERT_POST
-
 #include "RageUtil/Misc/RageException.h"
 /* Don't include our own headers here, since they tend to change often. */
 
