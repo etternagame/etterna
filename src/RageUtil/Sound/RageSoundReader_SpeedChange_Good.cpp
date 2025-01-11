@@ -205,7 +205,7 @@ ApplyPhases(SpeedChangeFFT *Junk, uint32_t iSeed, float fMix, float *pBuffer, in
 	float fShelfEnd = (12000.0 / (iSampleRate / 2)) * iNyquistBin;
 	ASSERT(fSibilanceEnd < iNyquistBin);
 
-	float fSibilanceBinInto01 = 1.0f / (fSibilanceEnd - fSibilanceStart); 
+	float fSibilanceBinInto01 = 1.0f / (fSibilanceEnd - fSibilanceStart);
 	float fShelfBinInto01 = 1.0f / (fShelfEnd - fSibilanceStart);
 
 	float fScale = sqrtf(0.5f) / iNyquistBin;
@@ -383,7 +383,7 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 		}
 
 		// Get dDestStep as an integer for this step. eg if dDestStep was 1000.2, then we'd step an extra
-		// sample once every 5 frames. Easier than fractional delay !!
+		// sample once every 5 steps. Easier than fractional delay !!
 		double dCurrentPos = m_dPos;
 		double dDestStep = m_Window.dDestStep * dAdjustScale;
 		m_dPos += dDestStep;
@@ -471,10 +471,10 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 		m_bDraining = (m_ReadAhead.Frames() > 0);
 	}
 
-	ASSERT_M(m_ReadAhead.iReadPosition < m_ReadAhead.iWritePosition,
+	ASSERT_M(m_ReadAhead.Frames() >= 0,
 			 "RA readpos < writepos. to ignore this, set preference "
 			 "StepmaniaUnpitchRates=1");
-	ASSERT_M(m_Mixed.iReadPosition < m_Mixed.iWritePosition,
+	ASSERT_M(m_Mixed.Frames() >= 0,
 			 "M readpos < writepos. to ignore this, set preference "
 			 "StepmaniaUnpitchRates=1");
 
