@@ -63,7 +63,7 @@ t[#t+1] = LoadFont("Common Normal") .. {
     end
 }
 
-quoteortip = LoadFont("Common Normal") .. {
+local quoteortip = LoadFont("Common Normal") .. {
     Name = "QuoteOrTip",
     InitCommand = function(self)
         self:halign(0)
@@ -75,7 +75,7 @@ quoteortip = LoadFont("Common Normal") .. {
     end
 }
 
-gradecounter = LoadFont("Common Normal") .. {
+local gradecounter = LoadFont("Common Normal") .. {
     Name = "GradeCounter",
     InitCommand = function(self)
         local aaaaa = WHEELDATA:GetTotalClearsByGrade("Grade_Tier01")
@@ -107,7 +107,7 @@ gradecounter = LoadFont("Common Normal") .. {
     end,
 }
 
-tiptype = themeConfig:get_data().global.TipType
+local tiptype = themeConfig:get_data().global.TipType
 
 if tiptype == 3 then
     t[#t+1] = gradecounter
