@@ -862,6 +862,11 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 				  "should delete it or move it out",
 				  GetScoreKey());
 				ASSERT(tokens.size() < 2);
+			} else if (tokens.size() < 2) {
+				throw std::runtime_error(
+				  fmt::format("Not at least 2 tokens in basic replay? {} "
+							  "tokens - corrupted replay?",
+							  tokens.size()));
 			}
 
 			noteRow = std::stoi(tokens[0]);

@@ -3,6 +3,8 @@
 .vscode
 .vs
 .idea
+*.kdev4
+/.kdev4
 /[Bb]uild
 /out/
 

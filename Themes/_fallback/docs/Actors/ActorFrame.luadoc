@@ -96,10 +96,6 @@ function ActorFrame:SetLightDirection() end
 		
 --- 
 -- @treturn ActorFrame self
-function ActorFrame:AddChild() end
-		
---- 
--- @treturn ActorFrame self
 function ActorFrame:AddChildFromPath() end
 		
 --- 

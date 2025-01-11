@@ -1,0 +1,252 @@
+--- DeviceButton enum
+--
+-- DeviceButton is the enum representing a button. This includes all types of buttons like the mouse and joystick.
+-- The simplest way to pass them around in Lua is by directly referencing as a string.
+--
+--
+-- NOTE: DeviceButtons have a unique ToString (DeviceButtonToString), so their name appears as such:
+-- `DeviceButton_xxx` where `xxx` is one of: 
+--
+-- A specially labeled enum value (list below)
+--
+-- A letter on the keyboard
+--
+-- `unk N` where N is a number, for 320 unlabeled unknown keys
+--
+-- `BN` where N is a number, for the extra 32 unlabeled joystick buttons
+--
+-- `Midi N` where N is a number, for 100 MIDI keys
+--
+--
+-- NOTE 2: Some DeviceButtons appear to be duplicates, but are actually distinguishing between a primary keyboard button and a numpad button. The numpad buttons have KP in the name.
+--
+-- Valid DeviceButtons:
+--      "DeviceButton_space"
+--      "DeviceButton_!"
+--      "DeviceButton_""
+--      "DeviceButton_#"
+--      "DeviceButton_$"
+--      "DeviceButton_%"
+--      "DeviceButton_&"
+--      "DeviceButton_'"
+--      "DeviceButton_("
+--      "DeviceButton_)"
+--      "DeviceButton_*"
+--      "DeviceButton_+"
+--      "DeviceButton_comma"
+--      "DeviceButton_-"
+--      "DeviceButton_period"
+--      "DeviceButton_/"
+--      "DeviceButton_0"
+--      "DeviceButton_1"
+--      "DeviceButton_2"
+--      "DeviceButton_3"
+--      "DeviceButton_4"
+--      "DeviceButton_5"
+--      "DeviceButton_6"
+--      "DeviceButton_7"
+--      "DeviceButton_8"
+--      "DeviceButton_9"
+--      "DeviceButton_colon"
+--      "DeviceButton_semicolon"
+--      "DeviceButton_<"
+--      "DeviceButton_="
+--      "DeviceButton_>"
+--      "DeviceButton_?"
+--      "DeviceButton_@"
+--      "DeviceButton_A" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_B" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_C" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_D" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_E" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_F" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_G" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_H" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_I" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_J" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_K" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_L" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_M" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_N" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_O" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_P" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_Q" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_R" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_S" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_T" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_U" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_V" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_W" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_X" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_Y" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_Z" (Normally inaccessible due to lowercase letters)
+--      "DeviceButton_["
+--      "DeviceButton_backslash"
+--      "DeviceButton_]"
+--      "DeviceButton_^"
+--      "DeviceButton__"
+--      "DeviceButton_`"
+--      "DeviceButton_a" (Replaces uppercase versions)
+--      "DeviceButton_b" (Replaces uppercase versions)
+--      "DeviceButton_c" (Replaces uppercase versions)
+--      "DeviceButton_d" (Replaces uppercase versions)
+--      "DeviceButton_e" (Replaces uppercase versions)
+--      "DeviceButton_f" (Replaces uppercase versions)
+--      "DeviceButton_g" (Replaces uppercase versions)
+--      "DeviceButton_h" (Replaces uppercase versions)
+--      "DeviceButton_i" (Replaces uppercase versions)
+--      "DeviceButton_j" (Replaces uppercase versions)
+--      "DeviceButton_k" (Replaces uppercase versions)
+--      "DeviceButton_l" (Replaces uppercase versions)
+--      "DeviceButton_m" (Replaces uppercase versions)
+--      "DeviceButton_n" (Replaces uppercase versions)
+--      "DeviceButton_o" (Replaces uppercase versions)
+--      "DeviceButton_p" (Replaces uppercase versions)
+--      "DeviceButton_q" (Replaces uppercase versions)
+--      "DeviceButton_r" (Replaces uppercase versions)
+--      "DeviceButton_s" (Replaces uppercase versions)
+--      "DeviceButton_t" (Replaces uppercase versions)
+--      "DeviceButton_u" (Replaces uppercase versions)
+--      "DeviceButton_v" (Replaces uppercase versions)
+--      "DeviceButton_w" (Replaces uppercase versions)
+--      "DeviceButton_x" (Replaces uppercase versions)
+--      "DeviceButton_y" (Replaces uppercase versions)
+--      "DeviceButton_z" (Replaces uppercase versions)
+--      "DeviceButton_{"
+--      "DeviceButton_|"
+--      "DeviceButton_}"
+--      "DeviceButton_delete"
+--      "DeviceButton_backspace"
+--      "DeviceButton_tab"
+--      "DeviceButton_enter"
+--      "DeviceButton_pause"
+--      "DeviceButton_escape"
+--      "DeviceButton_F1"
+--      "DeviceButton_F2"
+--      "DeviceButton_F3"
+--      "DeviceButton_F4"
+--      "DeviceButton_F5"
+--      "DeviceButton_F6"
+--      "DeviceButton_F7"
+--      "DeviceButton_F8"
+--      "DeviceButton_F9"
+--      "DeviceButton_F10"
+--      "DeviceButton_F11"
+--      "DeviceButton_F12"
+--      "DeviceButton_F13"
+--      "DeviceButton_F14"
+--      "DeviceButton_F15"
+--      "DeviceButton_F16"
+--      "DeviceButton_left ctrl"
+--      "DeviceButton_right ctrl"
+--      "DeviceButton_left shift"
+--      "DeviceButton_right shift"
+--      "DeviceButton_left alt"
+--      "DeviceButton_right alt"
+--      "DeviceButton_left meta"
+--      "DeviceButton_right meta"
+--      "DeviceButton_left super"
+--      "DeviceButton_right super"
+--      "DeviceButton_menu"
+--      "DeviceButton_function"
+--      "DeviceButton_num lock"
+--      "DeviceButton_scroll lock"
+--      "DeviceButton_caps lock"
+--      "DeviceButton_prtsc"
+--      "DeviceButton_up"
+--      "DeviceButton_down"
+--      "DeviceButton_left"
+--      "DeviceButton_right"
+--      "DeviceButton_insert"
+--      "DeviceButton_home"
+--      "DeviceButton_end"
+--      "DeviceButton_pgup"
+--      "DeviceButton_pgdn"
+--      "DeviceButton_KP 0" (Numpad buttons)
+--      "DeviceButton_KP 1" (Numpad buttons)
+--      "DeviceButton_KP 2" (Numpad buttons)
+--      "DeviceButton_KP 3" (Numpad buttons)
+--      "DeviceButton_KP 4" (Numpad buttons)
+--      "DeviceButton_KP 5" (Numpad buttons)
+--      "DeviceButton_KP 6" (Numpad buttons)
+--      "DeviceButton_KP 7" (Numpad buttons)
+--      "DeviceButton_KP 8" (Numpad buttons)
+--      "DeviceButton_KP 9" (Numpad buttons)
+--      "DeviceButton_KP /" (Numpad buttons)
+--      "DeviceButton_KP *" (Numpad buttons)
+--      "DeviceButton_KP -" (Numpad buttons)
+--      "DeviceButton_KP +" (Numpad buttons)
+--      "DeviceButton_KP ." (Numpad buttons)
+--      "DeviceButton_KP =" (Numpad buttons)
+--      "DeviceButton_KP enter" (Numpad buttons)
+--      "DeviceButton_unk 0" (first unk)
+--      "DeviceButton_unk 320" (last unk)
+--      "DeviceButton_Left1"  (Joystick Buttons)
+--      "DeviceButton_Right1" (Joystick Buttons)
+--      "DeviceButton_Up1" (Joystick Buttons)
+--      "DeviceButton_Down1" (Joystick Buttons)
+--      "DeviceButton_Left2" (Joystick Buttons)
+--      "DeviceButton_Right2" (Joystick Buttons)
+--      "DeviceButton_Up2" (Joystick Buttons)
+--      "DeviceButton_Down2" (Joystick Buttons)
+--      "DeviceButton_Z-Up" (Joystick Buttons)
+--      "DeviceButton_Z-Down" (Joystick Buttons)
+--      "DeviceButton_R-Up" (Joystick Buttons)
+--      "DeviceButton_R-Down" (Joystick Buttons)
+--      "DeviceButton_R-Left" (Joystick Buttons)
+--      "DeviceButton_R-Right" (Joystick Buttons)
+--      "DeviceButton_ZR-Up" (Joystick Buttons)
+--      "DeviceButton_ZR-Down" (Joystick Buttons)
+--      "DeviceButton_H-Left" (Joystick Buttons)
+--      "DeviceButton_H-Right" (Joystick Buttons)
+--      "DeviceButton_H-Up" (Joystick Buttons)
+--      "DeviceButton_H-Down" (Joystick Buttons)
+--      "DeviceButton_Aux1" (Joystick Buttons)
+--      "DeviceButton_Aux2" (Joystick Buttons)
+--      "DeviceButton_Aux3" (Joystick Buttons)
+--      "DeviceButton_Aux4" (Joystick Buttons)
+--      "DeviceButton_B1" (Joystick Buttons)
+--      "DeviceButton_B2" (Joystick Buttons)
+--      "DeviceButton_B3" (Joystick Buttons)
+--      "DeviceButton_B4" (Joystick Buttons)
+--      "DeviceButton_B5" (Joystick Buttons)
+--      "DeviceButton_B6" (Joystick Buttons)
+--      "DeviceButton_B7" (Joystick Buttons)
+--      "DeviceButton_B8" (Joystick Buttons)
+--      "DeviceButton_B9" (Joystick Buttons)
+--      "DeviceButton_B10" (Joystick Buttons)
+--      "DeviceButton_B11" (Joystick Buttons)
+--      "DeviceButton_B12" (Joystick Buttons)
+--      "DeviceButton_B13" (Joystick Buttons)
+--      "DeviceButton_B14" (Joystick Buttons)
+--      "DeviceButton_B15" (Joystick Buttons)
+--      "DeviceButton_B16" (Joystick Buttons)
+--      "DeviceButton_B17" (Joystick Buttons)
+--      "DeviceButton_B18" (Joystick Buttons)
+--      "DeviceButton_B19" (Joystick Buttons)
+--      "DeviceButton_B20" (Joystick Buttons)
+--      "DeviceButton_B21" (Joystick Buttons)
+--      "DeviceButton_B22" (Joystick Buttons)
+--      "DeviceButton_B23" (Joystick Buttons)
+--      "DeviceButton_B24" (Joystick Buttons)
+--      "DeviceButton_B25" (Joystick Buttons)
+--      "DeviceButton_B26" (Joystick Buttons)
+--      "DeviceButton_B27" (Joystick Buttons)
+--      "DeviceButton_B28" (Joystick Buttons)
+--      "DeviceButton_B29" (Joystick Buttons)
+--      "DeviceButton_B30" (Joystick Buttons)
+--      "DeviceButton_B31" (Joystick Buttons)
+--      "DeviceButton_B32" (Joystick Buttons)
+--      "DeviceButton_Midi 0" (first midi)
+--      "DeviceButton_Midi 100" (last midi)
+--      "DeviceButton_left mouse button"
+--      "DeviceButton_right mouse button"
+--      "DeviceButton_middle mouse button"
+--      "DeviceButton_MOUSE_X_LEFT" (Inaccessible, represents mouse movement)
+--      "DeviceButton_MOUSE_X_RIGHT" (Inaccessible, represents mouse movement)
+--      "DeviceButton_MOUSE_Y_UP" (Inaccessible, represents mouse movement)
+--      "DeviceButton_MOUSE_Y_DOWN" (Inaccessible, represents mouse movement)
+--      "DeviceButton_mousewheel up"
+--      "DeviceButton_mousewheel down"
+--      "DeviceButton_unknown" (Buttons that fail to map to anything, such as extra mouse buttons)
+-- @classmod DeviceButton
