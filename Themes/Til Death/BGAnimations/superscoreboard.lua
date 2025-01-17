@@ -488,8 +488,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName()
-					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
+					DLMAN:ShowUserPage(hs:GetDisplayName())
 				end
 			end
 		},
@@ -516,8 +515,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName() .. "/scores/" .. hs:GetScoreid()
-					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
+					DLMAN:ShowScorePage(hs:GetDisplayName(), hs:GetScoreid())
 				end
 			end,
 			CollapseCommand = function(self)

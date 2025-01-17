@@ -623,8 +623,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName()
-                            GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
+                            DLMAN:ShowUserPage(score:GetDisplayName())
                         end
                     end
                 end,
@@ -675,8 +674,7 @@ local function createList()
                     if self:IsInvisible() then return end
                     if params.event == "DeviceButton_left mouse button" then
                         if score ~= nil then
-                            local url = DLMAN:GetHomePage() .. "/users/" .. score:GetDisplayName() .. "/scores/" .. score:GetScoreid()
-                            GAMESTATE:ApplyGameCommand("urlnoexit," .. url)
+                            DLMAN:ShowScorePage(score:GetDisplayName(), score:GetScoreid())
                         end
                     end
                 end,

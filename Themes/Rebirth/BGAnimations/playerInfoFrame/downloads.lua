@@ -476,8 +476,7 @@ local function downloadsList()
                 MouseDownCommand = function(self, params)
                     if self:IsInvisible() then return end
                     if pack ~= nil then
-                        local urlstring = DLMAN:GetHomePage() .. "/packs/" .. pack:GetID()
-					    GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstring)
+                        DLMAN:ShowPackPage(pack:GetID())
                     end
                 end,
                 MouseOverCommand = function(self)
@@ -585,7 +584,7 @@ local function downloadsList()
                             return
                         end
                         if pack:GetSize() > 2000000000 then
-                            GAMESTATE:ApplyGameCommand("urlnoexit," .. pack:GetURL())
+                            pack:DownloadExternally()
                         else
                             pack:DownloadAndInstall(false)
                         end
