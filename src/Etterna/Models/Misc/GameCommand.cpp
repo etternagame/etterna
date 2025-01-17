@@ -20,10 +20,6 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Models/Songs/SongUtil.h"
 
-static LocalizedString COULD_NOT_LAUNCH_BROWSER(
-  "GameCommand",
-  "Could not launch web browser.");
-
 void
 GameCommand::Init()
 {
@@ -46,7 +42,6 @@ GameCommand::Init()
 	m_sSoundPath = "";
 	m_vsScreensToPrepare.clear();
 	m_sProfileID = "";
-	m_sUrl = "";
 	m_bUrlExits = true;
 	m_bStopMusic = false;
 	m_bApplyDefaultOptions = false;
@@ -295,8 +290,9 @@ GameCommand::LoadOne(const Command& cmd)
 	}
 
 	else if (sName == "url") {
-		m_sUrl = sValue;
-		m_bUrlExits = true;
+		Locator::getLogger()->warn(
+		  "Tried to use gamecommand url '{}' - this functionality is removed",
+		  sValue);
 	}
 
 	else if (sName == "sound") {
@@ -317,8 +313,9 @@ GameCommand::LoadOne(const Command& cmd)
 
 	// sm-ssc additions begin:
 	else if (sName == "urlnoexit") {
-		m_sUrl = sValue;
-		m_bUrlExits = false;
+		Locator::getLogger()->warn("Tried to use gamecommand urlnoexit '{}' - "
+								   "this functionality is removed",
+								   sValue);
 	}
 
 	else if (sName == "setpref") {
@@ -490,13 +487,6 @@ GameCommand::ApplySelf(const std::vector<PlayerNumber>& vpns) const
 	if (!m_sProfileID.empty())
 		FOREACH_CONST(PlayerNumber, vpns, pn)
 	ProfileManager::m_sDefaultLocalProfileID[*pn].Set(m_sProfileID);
-	if (!m_sUrl.empty()) {
-		if (Core::Platform::openWebsite(m_sUrl)) {
-			if (m_bUrlExits)
-				SCREENMAN->SetNewScreen("ScreenExit");
-		} else
-			ScreenPrompt::Prompt(SM_None, COULD_NOT_LAUNCH_BROWSER);
-	}
 
 	/* If we're going to stop music, do so before preparing new screens, so we
 	 * don't stop music between preparing screens and loading screens. */
@@ -527,8 +517,7 @@ GameCommand::IsZero() const
 		!m_sAnnouncer.empty() || !m_sPreferredModifiers.empty() ||
 		!m_sStageModifiers.empty() || m_pSong != nullptr ||
 		m_pSteps != nullptr || !m_sSongGroup.empty() ||
-		m_SortOrder != SortOrder_Invalid || !m_sProfileID.empty() ||
-		!m_sUrl.empty())
+		m_SortOrder != SortOrder_Invalid || !m_sProfileID.empty())
 		return false;
 
 	return true;
@@ -604,11 +593,6 @@ class LunaGameCommand : public Luna<GameCommand>
 		lua_pushstring(L, p->m_sSongGroup.c_str());
 		return 1;
 	}
-	static int GetUrl(T* p, lua_State* L)
-	{
-		lua_pushstring(L, p->m_sUrl.c_str());
-		return 1;
-	}
 	static int GetAnnouncer(T* p, lua_State* L)
 	{
 		lua_pushstring(L, p->m_sAnnouncer.c_str());
@@ -642,7 +626,6 @@ class LunaGameCommand : public Luna<GameCommand>
 		ADD_METHOD(GetSteps);
 		ADD_METHOD(GetSongGroup);
 		ADD_METHOD(GetSortOrder);
-		ADD_METHOD(GetUrl);
 		ADD_METHOD(GetAnnouncer);
 		ADD_METHOD(GetPreferredModifiers);
 		ADD_METHOD(GetStageModifiers);
