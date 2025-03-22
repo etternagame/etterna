@@ -204,7 +204,7 @@ class GameState
 	bool m_bLoadingNextSong;
 	[[nodiscard]] auto GetLoadingCourseSongIndex() const -> int;
 
-	static auto GetEtternaVersion() -> std::string { return "0.74.2"; }
+	static auto GetEtternaVersion() -> std::string { return "0.74.3"; }
 
 	/* is this the best place for this? it's not exactly a pref, and we
 	 * shouldn't be copying and pasting these values everywhere as needed j1-j4

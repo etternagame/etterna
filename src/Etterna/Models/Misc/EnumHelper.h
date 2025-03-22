@@ -47,7 +47,7 @@ EnumToString(int iVal,
                                                                                \
 	const std::string& X##ToString(X x);                                       \
                                                                                \
-	COMPILE_ASSERT(NUM_##X == ARRAYLEN(X##Names));                             \
+static_assert(NUM_##X == ARRAYLEN(X##Names), "Size mismatch between "#X" enum and "#X"Names (Did you forget to add a string for a new enum entry?)");                              \
                                                                                \
 	const std::string& X##ToString(X x)                                        \
                                                                                \

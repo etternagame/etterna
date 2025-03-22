@@ -1457,8 +1457,15 @@ TimingData::BuildAndGetEtar(int lastrow)
 	// mean that etar[lastrow] = the time at the last row
 	ElapsedTimesAtAllRows.resize(maxIndex);
 
+	const int THREADS =
+	  PREFSMAN->ThreadsToUse <= 0 ? std::thread::hardware_concurrency()
+	  : PREFSMAN->ThreadsToUse <
+		  static_cast<int>(std::thread::hardware_concurrency())
+		? PREFSMAN->ThreadsToUse
+		: static_cast<int>(std::thread::hardware_concurrency());
+
 	// just dont parallelize at all if it probably wont help anyways
-	if (maxIndex < 50000) {
+	if (maxIndex < 50000 || THREADS <= 1) {
 		for (auto r = 0; r < maxIndex; ++r) {
 			ElapsedTimesAtAllRows[r] =
 			  GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(r));
@@ -1467,19 +1474,13 @@ TimingData::BuildAndGetEtar(int lastrow)
 	}
 
 	// stupid optimization
-	const int THREADS =
-	  PREFSMAN->ThreadsToUse <= 0 ? std::thread::hardware_concurrency()
-	  : PREFSMAN->ThreadsToUse <
-		  static_cast<int>(std::thread::hardware_concurrency())
-		? PREFSMAN->ThreadsToUse
-		: static_cast<int>(std::thread::hardware_concurrency());
 	// [start, end)
 	std::vector<std::pair<int, int>> threadRanges{};
 	auto rindex = 0;
 	auto rsize = ElapsedTimesAtAllRows.size() / THREADS;
 	for (auto i = 0; i < THREADS; i++) {
 		rindex = i * rsize;
-		if (i == THREADS) {
+		if (i == THREADS - 1) {
 			threadRanges.emplace_back(rindex, ElapsedTimesAtAllRows.size());
 		} else {
 			threadRanges.emplace_back(rindex, rindex + rsize);
