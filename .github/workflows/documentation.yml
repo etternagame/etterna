@@ -27,7 +27,7 @@ jobs:
     steps:
       # Setup
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Update apt
         run: "sudo apt-get update"
       - name: Install Ldoc
@@ -36,7 +36,7 @@ jobs:
         run: "bash ./.ci/generate_doc_configs.sh"
       #Jekyll build
       - name: Setup Pages
-        uses: actions/configure-pages@v2
+        uses: actions/configure-pages@v5
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
@@ -55,7 +55,7 @@ jobs:
           make doxygen
           sudo mv doxygen ../_site
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
 
   # Deployment job
   deploy:
