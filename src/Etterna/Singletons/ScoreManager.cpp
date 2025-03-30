@@ -891,7 +891,11 @@ ScoreManager::CalcPlayerRating(float& prating,
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
+	// player overall by aggregation
+	// prating = aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
+	// player overall by average
+	prating = std::reduce(skillz.begin(), skillz.end()) /
+			  static_cast<float>(skillz.size());
 	pskillsets[Skill_Overall] = prating;
 }
 
