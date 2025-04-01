@@ -285,6 +285,7 @@ class Player : public ActorFrame
 	JudgedRows* m_pJudgedRows;
 
 	RageSound m_soundMine;
+	RageSound m_soundHit;
 
 	std::vector<RageSound> m_vKeysounds;
 
