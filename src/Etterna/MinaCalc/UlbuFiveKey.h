@@ -8,8 +8,6 @@
 
 struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 {
-	bool tell_me = false;
-
 	HandSwitchMod _hsw;
 
 	explicit TheFiveEaredBazoinkazoink(Calc& calc)
@@ -77,10 +75,6 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 	  const int& ss,
 	  std::array<float, NUM_Skillset>& pmod_product_cur_interval) override
 	{
-		if (!tell_me) {
-			printf("i am pump\n");
-			tell_me = true;
-		}
 		switch (ss) {
 			case Skill_Stream:
 				break;
