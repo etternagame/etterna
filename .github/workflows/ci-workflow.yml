@@ -395,6 +395,7 @@ jobs:
         cfg:
         - { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
         - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
+        - { name: x64_clang_cl,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
     runs-on: windows-2019
@@ -446,6 +447,14 @@ jobs:
       - name: Install openSSL (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
         run: choco install openssl --version=1.1.1.2100 -y
+
+      - name: Set clang-cl as compiler
+        if: ${{ matrix.cfg.name == 'x64_clang_cl' }}
+        run: |
+          echo "CC=clang-cl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CXX=clang-cl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CFLAGS=-m64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CXXFLAGS=-m64" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Configure MSBuild
         uses: ilammy/msvc-dev-cmd@v1
