@@ -222,6 +222,9 @@ class ThemeManager
 	std::string m_sRealCurThemeName = "";
 	std::string m_sCurLanguage;
 	bool m_bPseudoLocalize;
+
+  private:
+	void AppendToLuaPackagePath(const std::string& path);
 };
 
 extern ThemeManager*
