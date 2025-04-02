@@ -80,7 +80,7 @@ end
 local function clickDownload(self, params)
     if self:IsInvisible() then return end
     if not params or params.event ~= "DeviceButton_left mouse button" then return end
-    GAMESTATE:ApplyGameCommand("urlnoexit,https://github.com/etternagame/etterna/releases;text,GitHub")
+    DLMAN:ShowProjectReleases()
 end
 
 t[#t+1] = Def.ActorFrame {

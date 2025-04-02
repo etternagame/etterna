@@ -42,6 +42,20 @@ TEST(Transaction, commitRollback)
         EXPECT_THROW(transaction.commit(), SQLite::Exception);
     }
 
+    // ensure transactions with different types are well-formed
+    {
+        for (auto behavior : {
+            SQLite::TransactionBehavior::DEFERRED,
+            SQLite::TransactionBehavior::IMMEDIATE,
+            SQLite::TransactionBehavior::EXCLUSIVE })
+        {
+            SQLite::Transaction transaction(db, behavior);
+            transaction.commit();
+        }
+
+        EXPECT_THROW(SQLite::Transaction(db, static_cast<SQLite::TransactionBehavior>(-1)), SQLite::Exception);
+    }
+
     // Auto rollback if no commit() before the end of scope
     {
         // Begin transaction
@@ -85,8 +99,8 @@ TEST(Transaction, commitRollback)
         EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"third\")"));
         EXPECT_EQ(2, db.getLastInsertRowid());
 
-        // Execute a manual rollback (no real use case I can think of, so no rollback() method)
-        db.exec("ROLLBACK");
+        // Execute a manual rollback
+        transaction.rollback();
 
         // end of scope: the automatic rollback should not raise an error because it is harmless
     }

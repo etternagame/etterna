@@ -30,7 +30,6 @@ class GameCommand
 	  , m_sSongGroup("")
 	  , m_sSoundPath("")
 	  , m_sProfileID("")
-	  , m_sUrl("")
 	{
 		m_LuaFunction.Unset();
 	}
@@ -82,7 +81,6 @@ class GameCommand
 	std::string m_sSoundPath; // "" for no sound
 	std::vector<std::string> m_vsScreensToPrepare;
 	std::string m_sProfileID;
-	std::string m_sUrl;
 	// sm-ssc adds:
 	bool m_bUrlExits{ true }; // for making stepmania not exit on url
 

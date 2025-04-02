@@ -1705,6 +1705,7 @@ class LunaHighScore : public Luna<HighScore>
 	DEFINE_METHOD(GetScoreKey, GetScoreKey())
 	DEFINE_METHOD(GetReplayType, GetReplayType())
 	DEFINE_METHOD(GetDisplayName, GetDisplayName())
+	DEFINE_METHOD(GetCountryCode, GetCountryCode())
 	LunaHighScore()
 	{
 		ADD_METHOD(GetName);
@@ -1737,6 +1738,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetReplayType);
 		ADD_METHOD(GetReplay);
 		ADD_METHOD(GetJudgmentString);
+		ADD_METHOD(GetCountryCode);
 		ADD_METHOD(GetDisplayName);
 		ADD_METHOD(GetUserid);
 		ADD_METHOD(GetScoreid);

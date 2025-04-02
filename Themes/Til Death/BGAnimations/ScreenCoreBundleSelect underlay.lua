@@ -1,4 +1,4 @@
-local minidoots = {"Novice", "Beginner", "Intermediate", "Advanced", "Expert"}
+local minidoots = {"Beginner", "Novice", "Intermediate", "Advanced", "Expert"}
 local diffcolors = {"#66ccff", "#099948", "#ddaa00", "#ff6666", "#c97bff"}
 local packsy
 local packspacing = 54

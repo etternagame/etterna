@@ -67,10 +67,16 @@ static Preference<std::string> serverURL("BaseOnlineAPIUrl",
 										 "https://api.etternaonline.com");
 static Preference<std::string> searchURL("BaseOnlineAPISearchUrl",
 										 "https://search.etternaonline.com");
-static Preference<std::string> uiHomePage("BaseOnlineUIUrl", "https://etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
-// 
+//
+static const std::string UI_HOME_PAGE = "https://etternaonline.com";
+static const std::string PROJECT_HOME_PAGE =
+  "https://github.com/etternagame/etterna";
+static const std::string PROJECT_BUG_REPORTS =
+  "https://github.com/etternagame/etterna/blob/master/Docs/Bugreporting.md";
+static const std::string EDITOR_PAGE =
+  "https://arrowvortex.ddrnl.com/index.html";
 static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 static const std::string wife3_rescore_upload_flag = "rescoredw3";
 
@@ -1384,6 +1390,44 @@ DownloadManager::Logout()
 	// This is called on a shutdown, after MessageManager is gone
 	if (MESSAGEMAN != nullptr)
 		MESSAGEMAN->Broadcast("LogOut");
+}
+
+bool
+DownloadManager::OpenSitePage(const std::string& path)
+{
+	auto url = fmt::format("{}{}", UI_HOME_PAGE, path);
+	Locator::getLogger()->info(
+	  "Opening Site Page :: {}", url);
+	if (path.find(":") != std::string::npos) {
+		Locator::getLogger()->warn("You can't open any url with : in it");
+		return false;
+	}
+	return Core::Platform::openWebsite(url);
+}
+
+bool
+DownloadManager::OpenProjectPage(const std::string& path)
+{
+	auto url = fmt::format("{}{}", PROJECT_HOME_PAGE, path);
+	Locator::getLogger()->info(
+	  "Opening Project Page :: {}", url);
+	if (path.find(":") != std::string::npos) {
+		Locator::getLogger()->warn("You can't open any url with : in it");
+		return false;
+	}
+	return Core::Platform::openWebsite(url);
+}
+
+bool
+DownloadManager::ShowBugReportSite()
+{
+	return Core::Platform::openWebsite(PROJECT_BUG_REPORTS);
+}
+
+bool
+DownloadManager::ShowEditorSite()
+{
+	return Core::Platform::openWebsite(EDITOR_PAGE);
 }
 
 inline std::string
@@ -6319,8 +6363,12 @@ class LunaDownloadManager : public Luna<DownloadManager>
   public:
 	static int GetHomePage(T* p, lua_State* L)
 	{
-		  lua_pushstring(L, uiHomePage.Get().c_str());
+		  lua_pushstring(L, UI_HOME_PAGE.c_str());
 		  return 1;
+	}
+	static int GetProjectPage(T* p, lua_State* L) {
+		lua_pushstring(L, PROJECT_HOME_PAGE.c_str());
+		return 1;
 	}
 	static int GetUserCountryCode(T* p, lua_State* L)
 	{
@@ -6821,9 +6869,44 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushnumber(L, DLMAN->sequentialScoreUploadTotalWorkload);
 		return 1;
 	}
+	static int ShowPackPage(T* p, lua_State* L)
+	{
+		auto packid = IArg(1);
+		lua_pushboolean(L, DLMAN->ShowPackPage(packid));
+		return 1;
+	}
+	static int ShowUserPage(T* p, lua_State* L) {
+		auto username = SArg(1);
+		lua_pushboolean(L, DLMAN->ShowUserPage(username));
+		return 1;
+	}
+	static int ShowScorePage(T* p, lua_State* L) {
+		auto username = SArg(1);
+		auto scoreid = IArg(2);
+		lua_pushboolean(L, DLMAN->ShowScorePage(username, scoreid));
+		return 1;
+	}
+	static int ShowBugReportSite(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowBugReportSite());
+		return 1;
+	}
+	static int ShowEditorSite(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowEditorSite());
+		return 1;
+	}
+	static int ShowProjectReleases(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowProjectReleases());
+		return 1;
+	}
+	static int ShowProjectSite(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowProjectSite());
+		return 1;
+	}
+
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetHomePage);
+		ADD_METHOD(GetProjectPage);
 		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
@@ -6861,6 +6944,13 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetQueuedScoreUploadsRemaining);
 		ADD_METHOD(GetQueuedScoreUploadTotal);
 		ADD_METHOD(Logout);
+		ADD_METHOD(ShowBugReportSite);
+		ADD_METHOD(ShowEditorSite);
+		ADD_METHOD(ShowProjectReleases);
+		ADD_METHOD(ShowProjectSite);
+		ADD_METHOD(ShowPackPage);
+		ADD_METHOD(ShowUserPage);
+		ADD_METHOD(ShowScorePage);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager)
@@ -6884,6 +6974,11 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 			dl->PushSelf(L);
 		} else
 			lua_pushnil(L);
+		return 1;
+	}
+	static int DownloadExternally(T* p, lua_State* L) {
+		auto result = Core::Platform::openWebsite(p->url);
+		lua_pushboolean(L, result);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
@@ -6990,6 +7085,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
+		ADD_METHOD(DownloadExternally);
 		ADD_METHOD(IsDownloading);
 		ADD_METHOD(IsQueued);
 		ADD_METHOD(RemoveFromQueue);

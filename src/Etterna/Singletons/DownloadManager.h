@@ -608,6 +608,29 @@ class DownloadManager
 	void DownloadCoreBundle(const std::string& bundlename, bool mirror = false);
 	std::vector<DownloadablePack*> GetCoreBundle(const std::string& bundlename);
 
+	bool OpenSitePage(const std::string& path);
+	bool OpenProjectPage(const std::string& path);
+
+	bool ShowPackPage(int packid) {
+		return OpenSitePage(fmt::format("/packs/{}", packid));
+	}
+	bool ShowUserPage(const std::string& username){
+		return OpenSitePage(fmt::format("/users/{}", username));
+	}
+	bool ShowScorePage(const std::string& username, int scoreid)
+	{
+		return OpenSitePage(
+		  fmt::format("/users/{}/scores/{}", username, scoreid));
+	}
+	bool ShowBugReportSite();
+	bool ShowEditorSite();
+	bool ShowProjectReleases() {
+		return OpenProjectPage("/releases");
+	}
+	bool ShowProjectSite() {
+		return OpenProjectPage("");
+	}
+
 	/////
 	// User session
 	// Session cookie content
