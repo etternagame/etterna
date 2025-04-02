@@ -342,7 +342,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 	insertSteps.bind(stepsIndex++,
 					 serializednd.data(),
 					 static_cast<int>(serializednd.size() * sizeof(NoteInfo)));
-	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
+	insertSteps.bind(stepsIndex++, static_cast<int64_t>(songID));
 	try {
 		insertSteps.exec();
 	} catch (std::exception& e) {
