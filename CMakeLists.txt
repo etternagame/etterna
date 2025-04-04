@@ -41,7 +41,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)                    # Enable folders
 add_executable(Etterna)
 
 # Project Compile Options
-set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires depot_tools installed)")
+set(WITH_CRASHPAD OFF CACHE BOOL "Compile with Crash Handler (Requires depot_tools installed) ((Most likely only useful if you're building for distribution))")
 
 ## Setting Target Properties
 ### Set a different name for each output binary depending on what build configuration is.
