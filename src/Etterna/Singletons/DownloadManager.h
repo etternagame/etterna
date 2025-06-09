@@ -224,8 +224,6 @@ class DownloadablePackPagination
 	// get all the packs that are cached
 	std::vector<DownloadablePack*> getCache() { return results; }
 
-	// had to move this to public to let SetPage see it.
-
 	// move to n page and send packs to lua function
 	// possibly invoking a search request
 	void setPage(int page, LuaReference& whenDone = EMPTY_REFERENCE);
