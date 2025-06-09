@@ -7168,6 +7168,13 @@ class LunaDownloadablePackPagination : public Luna<DownloadablePackPagination>
 		lua_pushnumber(L, p->totalEntries);
 		return 1;
 	}
+	static int SetPage(T* p, lua_State* L) {
+		LuaReference func;
+		if (lua_isfunction(L, 2))
+			func = GetFuncArg(2, L);
+		p->setPage(IArg(1), func);
+		return 0;
+	}
 	static int NextPage(T* p, lua_State* L) {
 		LuaReference func;
 		if (lua_isfunction(L, 1))
@@ -7198,6 +7205,7 @@ class LunaDownloadablePackPagination : public Luna<DownloadablePackPagination>
 		ADD_METHOD(GetResults);
 		ADD_METHOD(GetCachedResults);
 		ADD_METHOD(GetTotalResults);
+		ADD_METHOD(SetPage);
 		ADD_METHOD(NextPage);
 		ADD_METHOD(PrevPage);
 		ADD_METHOD(GetTotalPages);
