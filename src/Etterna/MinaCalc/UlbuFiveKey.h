@@ -10,6 +10,10 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 {
 	HandSwitchMod _hsw;
 
+	//SequencerGeneral _seq;
+
+	diffz _diffz;
+
 	explicit TheFiveEaredBazoinkazoink(Calc& calc)
 	  : Bazoinkazoink(calc)
 	{
@@ -96,12 +100,14 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 				break;
 			case Skill_Chordjack:
 				break;
-			case Skill_Technical:
+			case Skill_Technical: {
 				*adj_diff =
 				  _calc.init_base_diff_vals.at(hand).at(TechBase).at(itv) *
-				  _calc.pmod_vals.at(hand).at(HandSwitch).at(itv) *
-				  pmod_product_cur_interval[Skill_Technical];
-				break;
+				  pmod_product_cur_interval.at(ss) * basescalers.at(ss);
+
+				*adj_diff += _calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) *
+				  _calc.pmod_vals.at(hand).at(HandSwitch).at(itv);
+			} break;
 			default:
 				break;
 		}
@@ -165,7 +171,6 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 
 					// update counts
 					_mitvghi.handle_row(masked_notes, ids);
-
 
 					auto thing =
 					  std::pair{ row_time,
