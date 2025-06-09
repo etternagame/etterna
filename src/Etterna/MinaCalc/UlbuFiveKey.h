@@ -99,11 +99,8 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 			case Skill_Technical:
 				*adj_diff =
 				  _calc.init_base_diff_vals.at(hand).at(TechBase).at(itv) *
-				  pmod_product_cur_interval.at(ss) * basescalers.at(ss);
-
-				*adj_diff +=
-				  _calc.init_base_diff_vals.at(hand).at(NPSBase).at(itv) *
-				  _calc.pmod_vals.at(hand).at(HandSwitch).at(itv);
+				  _calc.pmod_vals.at(hand).at(HandSwitch).at(itv) *
+				  pmod_product_cur_interval[Skill_Technical];
 				break;
 			default:
 				break;
