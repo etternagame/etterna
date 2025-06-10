@@ -437,7 +437,7 @@ jobs:
       
       - name: Install openSSL (i386)
         if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install openssl --version=3.5.0 -y --x86 
+        run: msiexec /i https://slproweb.com/download/Win32OpenSSL-3_5_0.msi /quiet
 
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
