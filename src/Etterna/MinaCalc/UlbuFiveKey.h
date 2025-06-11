@@ -106,7 +106,8 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 				  pmod_product_cur_interval.at(ss) * basescalers.at(ss);
 
 				*adj_diff += _calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) *
-				  _calc.pmod_vals.at(hand).at(HandSwitch).at(itv);
+				  _calc.pmod_vals.at(hand).at(HandSwitch).at(itv) /
+				  (_calc.pmod_vals.at(hand).at(CJ).at(itv) + 0.125f);
 			} break;
 			default:
 				break;
