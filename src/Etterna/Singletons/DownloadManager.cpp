@@ -44,6 +44,8 @@ using namespace rapidjson;
 std::shared_ptr<DownloadManager> DLMAN = nullptr;
 LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
+static int imagesDownloaded = 0;
+
 static bool runningSequentialScoreUpload = false;
 static bool runningSequentialGoalUpload = false;
 static bool runningSequentialFavoriteUpload = false;
@@ -6232,6 +6234,147 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 	DLMAN->SearchForPacks(searchCriteria, parseFunc);
 }
 
+void
+DownloadManager::DownloadImage(const std::string& url, LuaReference& callback)
+{
+	DownloadableImage* inst = nullptr;
+	if (downloadableImages.count(url) > 0) {
+		inst = downloadableImages.at(url);
+	}
+	else {
+		inst = new DownloadableImage(url);
+		downloadableImages[url] = inst;
+	}
+
+	// dont duplicate requests
+	if (inst->inProgress) {
+		Locator::getLogger()->warn(
+		  "Skipped duplicate request for already downloading image url '{}' "
+		  "and queued a callback",
+		  url);
+		inst->queuedLuaRefs.push_back(callback);
+		return;
+	}
+
+	auto runCallbacks = [url](bool success, std::string filename, std::vector<LuaReference> callbacks) {
+
+		for (LuaReference& callback : callbacks) {
+			Locator::getLogger()->info("Image Download finished (url "
+									   "'{}')- running {} callback functions",
+									   url,
+									   callbacks.size());
+			if (!callback.IsNil() && callback.IsSet()) {
+				auto L = LUA->Get();
+				callback.PushSelf(L);
+				std::string Error =
+				  "Error running Image Download Finish Function: ";
+				lua_pushboolean(L, success);
+
+				RageTextureID texid = RageTextureID(filename);
+				RageTexture* texresult = TEXTUREMAN->LoadTexture(texid);
+				if (texresult == nullptr) {
+					lua_pushnil(L);
+				} else {
+					texresult->PushSelf(L);
+				}
+
+				// 2 args, 0 results
+				LuaHelpers::RunScriptOnStack(L, Error, 2, 0, true);
+				LUA->Release(L);
+			} else {
+				Locator::getLogger()->info(
+				  "Image Download finished (url '{}'), but no callback was set",
+				  url);
+			}
+		}
+	};
+
+	if (!inst->finished) {
+		auto onSuccess = [inst, runCallbacks](HTTPRequest& req) {
+			inst->finished = true;
+			inst->inProgress = false;
+			inst->successful = true;
+			inst->p_RFWrapper.file.Flush();
+			if (inst->p_RFWrapper.file.IsOpen())
+				inst->p_RFWrapper.file.Close();
+			runCallbacks(true, inst->filename, inst->queuedLuaRefs);
+		};
+		auto onFail = [inst, runCallbacks](HTTPRequest& req) {
+			inst->finished = true;
+			inst->inProgress = false;
+			inst->successful = false;
+			inst->p_RFWrapper.file.Flush();
+			if (inst->p_RFWrapper.file.IsOpen())
+				inst->p_RFWrapper.file.Close();
+			runCallbacks(false, inst->filename, inst->queuedLuaRefs);
+		};
+
+		HTTPRequest* req =
+		  new HTTPRequest(inst->handle, onSuccess, nullptr, onFail);
+
+		inst->queuedLuaRefs.push_back(callback);
+		inst->inProgress = true;
+
+		SetCURLHeadersString(inst->handle, &(req->headers));
+		if (!QueueRequestIfRatelimited(url, *req)) {
+			AddHttpRequestHandle(req->handle);
+			HTTPRequests.push_back(req);
+		}
+		Locator::getLogger()->info("Queued Image Download at '{}'", url);
+	}
+	else {
+		std::vector<LuaReference> refs{};
+		refs.push_back(callback);
+		runCallbacks(inst->successful, inst->filename, refs);
+	}
+}
+
+DownloadableImage::DownloadableImage(std::string url) {
+	m_Url = url;
+	filename = DL_DIR + "downloaded_image" + std::to_string(imagesDownloaded++);
+	handle = initBasicCURLHandle();
+
+	auto opened = p_RFWrapper.file.Open(filename, 2);
+
+	curl_easy_setopt_log_err(handle, CURLOPT_WRITEDATA, &p_RFWrapper);
+	curl_easy_setopt_log_err(
+	  handle,
+	  CURLOPT_WRITEFUNCTION,
+	  static_cast<size_t (*)(char*, size_t, size_t, void*)>(
+		[](char* dlBuffer, size_t size, size_t nmemb, void* pnf) -> size_t {
+			auto RFW = static_cast<RageFileWrapper*>(pnf);
+			if (RFW->stop) {
+				return 0;
+			}
+			if (RFW->file.IsOpen()) {
+				size_t b = RFW->file.Write(dlBuffer, size * nmemb);
+				RFW->bytes += b;
+				return b;
+			}
+			Locator::getLogger()->info("farting");
+			return 0;
+		}));
+	curl_easy_setopt_log_err(handle, CURLOPT_URL, m_Url.c_str());
+	curl_easy_setopt_log_err(handle, CURLOPT_XFERINFODATA, &progress);
+	curl_easy_setopt_log_err(
+	  handle,
+	  CURLOPT_XFERINFOFUNCTION,
+	  static_cast<int (*)(
+		void*, curl_off_t, curl_off_t, curl_off_t, curl_off_t)>(
+		[](void* clientp,
+		   curl_off_t dltotal,
+		   curl_off_t dlnow,
+		   curl_off_t ultotal,
+		   curl_off_t ulnow) -> int {
+			auto ptr = static_cast<ProgressData*>(clientp);
+			ptr->total = dltotal;
+			ptr->downloaded = dlnow;
+			return 0;
+		}));
+	curl_easy_setopt_log_err(handle, CURLOPT_NOPROGRESS, 0);
+	curl_easy_setopt_log_err(handle, CURLOPT_HTTPGET, 1L);
+}
+
 Download::Download(std::string url, std::string filename)
 {
 	// remove characters we cant accept
@@ -7071,7 +7214,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		lua_pushboolean(L, p->nsfw);
 		return 1;
 	}
-	/*
+	/* // this was removed from the api
 	static int GetThumbnailTexture(T* p, lua_State* L)
 	{
 		auto* pTexture = p->GetThumbnailTexture();
@@ -7082,6 +7225,19 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		return 1;
 	}
 	*/
+	static int DownloadBanner(T* p, lua_State* L) {
+		if (lua_isfunction(L, 1)) {
+			// this function should take 2 args and return nothing
+			// params (bool, RageTexture)
+			LuaReference ref = GetFuncArg(1, L);
+			DLMAN->DownloadImage(p->bannerUrl, ref);
+		}
+		else {
+			// this is boring
+			DLMAN->DownloadImage(p->bannerUrl);
+		}
+		return 0;
+	}
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
@@ -7099,6 +7255,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 		ADD_METHOD(GetURL);
 		ADD_METHOD(GetMirror);
 		ADD_METHOD(IsNSFW);
+		ADD_METHOD(DownloadBanner);
 		// ADD_METHOD(GetThumbnailTexture);
 	}
 };

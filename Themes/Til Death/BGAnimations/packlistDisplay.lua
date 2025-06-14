@@ -316,6 +316,25 @@ local function makePackDisplay(i)
 				end
 			end
 		},
+		--[[ -- this is how you would load a banner via url, for example
+		Def.Sprite {
+			Name = "Banner",
+			InitCommand = function(self)
+				self:halign(0)
+			end,
+			DisplayCommand = function(self)
+				self:Load(nil)
+				packinfo:DownloadBanner(function(success, tex)
+					if success then
+						self:SetTexture(tex)
+						self:scaletoclipped(dwidth / 2, pdh)
+					else
+						self:Load(nil)
+					end
+				end)
+			end,
+		},
+		--]]
 		LoadFont("Common normal") .. {
 			Name = "PackAverageDiff",
 			InitCommand = function(self)
