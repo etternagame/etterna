@@ -796,8 +796,9 @@ base64_decode(const std::string& ascdata)
 			continue;
 		}
 		if ((c > 127) || (c < 0) || (reverse_table[c] > 63)) {
-			throw ::std::invalid_argument(
-			  "This contains characters not legal in a base64 encoded string.");
+			return "invalid characters in base64 string";
+			//throw ::std::invalid_argument(
+			//  "This contains characters not legal in a base64 encoded string.");
 		}
 		accumulator = (accumulator << 6) | reverse_table[c];
 		bits_collected += 6;
