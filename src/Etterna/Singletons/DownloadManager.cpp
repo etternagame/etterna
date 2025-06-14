@@ -6351,7 +6351,6 @@ DownloadableImage::DownloadableImage(std::string url) {
 				RFW->bytes += b;
 				return b;
 			}
-			Locator::getLogger()->info("farting");
 			return 0;
 		}));
 	curl_easy_setopt_log_err(handle, CURLOPT_URL, m_Url.c_str());
