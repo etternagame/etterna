@@ -88,6 +88,8 @@ if(WIN32)
     target_link_libraries(Etterna PRIVATE USER32.LIB)
 endif()
 
+add_compile_definitions(STBI_FAILURE_USERMSG)
+
 # Load external libraries
 add_subdirectory(extern EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL to exclude from cpack binary
 

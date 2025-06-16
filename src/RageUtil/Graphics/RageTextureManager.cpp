@@ -44,7 +44,16 @@ std::map<RageTextureID, RageTexture*> m_textures_to_update;
 std::map<RageTexture*, RageTextureID> m_texture_ids_by_pointer;
 } // namespace;
 
-RageTextureManager::RageTextureManager() {}
+RageTextureManager::RageTextureManager() {
+	// Register with Lua.
+	{
+		Lua* L = LUA->Get();
+		lua_pushstring(L, "TEXTUREMAN");
+		PushSelf(L);
+		lua_settable(L, LUA_GLOBALSINDEX);
+		LUA->Release(L);
+	}
+}
 
 RageTextureManager::~RageTextureManager()
 {
@@ -58,6 +67,13 @@ RageTextureManager::~RageTextureManager()
 	}
 	m_textures_to_update.clear();
 	m_texture_ids_by_pointer.clear();
+
+	// for completeness, unregister with LUA
+	// this is usually triggered at shutdown
+	// technically both a leak and not a leak
+	if (LUA != nullptr) {
+		LUA->UnsetGlobal("TEXTUREMAN");
+	}
 }
 
 void
@@ -401,3 +417,32 @@ RageTextureManager::DiagnosticOutput() const
 	}
 	Locator::getLogger()->info("total {:3i} texels", iTotal);
 }
+
+// lua start
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Singletons/LuaManager.h"
+
+class LunaRageTextureManager : public Luna<RageTextureManager>
+{
+  public:
+	static int RageTextureFromBase64(T* p, lua_State* L)
+	{
+		std::string base64_str = SArg(1);
+		RageTextureID texid = RageTextureID(base64_str);
+		texid.base64 = true;
+
+		RageTexture* result = p->LoadTexture(texid);
+		if (result == nullptr) {
+			lua_pushnil(L);
+		} else {
+			result->PushSelf(L);
+		}
+		return 1;
+	}
+
+	LunaRageTextureManager() {
+		ADD_METHOD(RageTextureFromBase64);
+	}
+};
+LUA_REGISTER_CLASS(RageTextureManager)
+

@@ -94,6 +94,7 @@ class RageTextureManager
 	RageTextureID GetScreenTextureID();
 	RageSurface* GetScreenSurface();
 	RageTextureManagerPrefs m_Prefs;
+	void PushSelf(lua_State *L);
   private:
 	void DeleteTexture(RageTexture* t);
 	enum GCType
