@@ -37,9 +37,10 @@ jobs:
 
       - name: Install apt packages
         run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
-
+      - name: Install OpenSSL 3.5
+        run: mkdir -p tmp/openssl && cd tmp/openssl && wget https://github.com/openssl/openssl/releases/download/openssl-3.5.0/openssl-3.5.0.tar.gz && tar -xf openssl-3.5.0.tar.gz && cd openssl-3.5.0 && ./Configure --prefix="${HOME}/toolchain" && make -j `nproc` && make test -j `nproc` && sudo make install
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DOPENSSL_ROOT_DIR=~/toolchain/ ..
         env:
           CXX: ${{matrix.cfg.cpp-version}}
 
