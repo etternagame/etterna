@@ -73,7 +73,7 @@ if (WIN32 OR APPLE)
 endif()
 set(OPENSSL_MSVC_STATIC_RT ON CACHE BOOL "" FORCE)
 
-find_package(OpenSSL REQUIRED)
+find_package(OpenSSL 3.5 REQUIRED)
 find_package(Threads REQUIRED)
 target_link_libraries(Etterna PRIVATE Threads::Threads)
 target_link_libraries(Etterna PRIVATE OpenSSL::SSL)
