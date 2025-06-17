@@ -86,6 +86,23 @@ class Download
 	std::string MakeTempFileName(std::string s);
 };
 
+class DownloadableImage
+{
+  public:
+	DownloadableImage(std::string url);
+	~DownloadableImage();
+	std::string m_Url{ "" };
+	std::string filename{ "" };
+	bool finished = false;
+	bool inProgress = false;
+	bool successful = false;
+
+	CURL* handle{ nullptr };
+	ProgressData progress;
+	RageFileWrapper p_RFWrapper;
+	std::vector<LuaReference> queuedLuaRefs{};
+};
+
 class DownloadablePack
 {
   public:
@@ -609,6 +626,9 @@ class DownloadManager
 	void DownloadCoreBundle(const std::string& bundlename, bool mirror = false);
 	std::vector<DownloadablePack*> GetCoreBundle(const std::string& bundlename);
 
+	void DownloadImage(const std::string& url,
+					   LuaReference& callback = EMPTY_REFERENCE);
+
 	bool OpenSitePage(const std::string& path);
 	bool OpenProjectPage(const std::string& path);
 
@@ -811,6 +831,8 @@ class DownloadManager
 	std::unordered_map<std::string, std::vector<HTTPRequest*>>
 	  ratelimitedRequestQueue{};
 	std::unordered_set<std::string> newlyRankedChartkeys{};
+
+	std::unordered_map<std::string, DownloadableImage*> downloadableImages{};
 
 
   // old
