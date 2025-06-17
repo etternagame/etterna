@@ -17,13 +17,13 @@
 #define DEFAULT_SOUND_DRIVER_LIST "AudioUnit,Null"
 
 #elif defined(__unix__)
-#include "LowLevelWindow/LowLevelWindow_X11.h"
+#include "LowLevelWindow/LowLevelWindow_Linux.h"
 
 #if defined(HAVE_GTK)
 #include "LoadingWindow/LoadingWindow_Gtk.h"
 #endif
 #if __unix__
-#define DEFAULT_INPUT_DRIVER_LIST "X11,LinuxEvent,LinuxJoystick"
+#define DEFAULT_INPUT_DRIVER_LIST "Wayland,X11,LinuxEvent,LinuxJoystick"
 #else
 #define DEFAULT_INPUT_DRIVER_LIST "X11"
 #endif

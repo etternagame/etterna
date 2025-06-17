@@ -101,8 +101,12 @@ elseif(APPLE)
   list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_MacOSX.h")
   
 else(UNIX)
+    list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_Linux.cpp")
+    list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_Linux.h")
     list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_X11.cpp")
     list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_X11.h")
+    list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_Wayland.cpp")
+    list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_Wayland.h")
   
 endif(WIN32)
 source_group("Arch Specific\\\\Low Level Window" FILES ${SMDATA_ARCH_LOWLEVEL_SRC} ${SMDATA_ARCH_LOWLEVEL_HPP})
@@ -172,6 +176,8 @@ else() # Unix/Linux
   endif()
     list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_X11.cpp")
     list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_X11.h")
+    list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_Wayland.cpp")
+    list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_Wayland.h")
   
 endif()
 source_group("Arch Specific\\\\Input Handler" FILES ${SMDATA_ARCH_INPUT_SRC} ${SMDATA_ARCH_INPUT_HPP})
