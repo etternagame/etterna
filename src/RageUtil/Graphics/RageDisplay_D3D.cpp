@@ -1041,46 +1041,14 @@ std::optional<RagePixelShader_D3D> pixelContainer;
 std::optional<RageVertexShader_D3D> vertexContainer;
 
 void
-RageDisplay_D3D::SetShaderFromPath(std::filesystem::path path,
-								   bool isVertexShader)
+RageDisplay_D3D::SetShader(const RageShaderReference& reference)
 {
-	if (path.empty()) {
-		return;
-	}
-	auto resolvedPath = FILEMAN->ResolvePath(path.string()).substr(1);
-	if (isVertexShader) {
-		usingVertexShader = true;
-
-		//if (!vertexContainer.has_value()) {
-			vertexContainer.emplace(resolvedPath);
-			auto _ = vertexContainer->Compile(
-			  D3DXGetVertexShaderProfile(g_pd3dDevice));
-			vertexShader =
-			  vertexContainer->CreateForDevice(g_pd3dDevice, false);
-		//}
-	} else {
-		usingPixelShader = true;
-
-
-		//if (!pixelContainer.has_value()) {
-			pixelContainer.emplace(resolvedPath);
-			auto _ =
-			  pixelContainer->Compile(D3DXGetPixelShaderProfile(g_pd3dDevice));
-			pixelShader = pixelContainer->CreateForDevice(g_pd3dDevice, false);
-		//}
-	}
 }
 
-void
-RageDisplay_D3D::UnsetCurrentShader(bool isVertexShader)
+RageShaderReference RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
+					 RageShaderType shaderType)
 {
-	if (isVertexShader) {
-		g_pd3dDevice->SetVertexShader(nullptr);
-	} else {
-		auto result = g_pd3dDevice->SetPixelShader(nullptr);
-		if (result != D3D_OK) {
-		}
-	}
+	return RageShaderReference();
 }
 
 constexpr D3DVERTEXELEMENT9 spriteDecl[] = { { 0,

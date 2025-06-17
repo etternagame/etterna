@@ -86,9 +86,11 @@ class RageDisplay_D3D : public RageDisplay
 	auto CreateCompiledGeometry() -> RageCompiledGeometry* override;
 	void DeleteCompiledGeometry(RageCompiledGeometry* p) override;
 
-	void SetShaderFromPath(std::filesystem::path path,
-						   bool isVertexShader) override;
-	void UnsetCurrentShader(bool isVertexShader) override;
+	void SetShader(const RageShaderReference& reference) override;
+	RageShaderReference CreateShaderFromPath(
+	  const std::string& path,
+	  RageShaderType shaderType) override;
+
 	void SetShadersOrFVF(unsigned long fvfDefinition);
 
   protected:

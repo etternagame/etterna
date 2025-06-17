@@ -517,11 +517,8 @@ Actor::Draw()
 		ASSERT(m_pTempState != nullptr);
 		if (PartiallyOpaque()) {
 			this->BeginDraw();
-
-			// note that this is only a proof-of-concept (for now) and might be somewhat insane for normal usage
-			auto result = this->SetShadersForDisplay();
+			this->SetShadersForDisplay();
 			this->DrawPrimitives();
-			this->UnsetShadersForDisplay(result);
 			this->EndDraw();
 		}
 		this->PostDraw();
@@ -1652,48 +1649,10 @@ Actor::HandleMessage(const Message& msg)
 	PlayCommandNoRecurse(msg);
 }
 
-Actor::SetShadersResult
+void
 Actor::SetShadersForDisplay()
 {
-	Actor::SetShadersResult result = SetShadersResult::SetNone;
-	if (DISPLAY->IsD3D()) {
-		DISPLAY->SetShaderFromPath(m_fragmentShaderD3D, false);
-		DISPLAY->SetShaderFromPath(m_vertexShaderD3D, true);
-
-		result = m_fragmentShaderD3D.empty() ? SetShadersResult::SetNone : SetShadersResult::SetFragment;
-		if (!m_vertexShaderD3D.empty()) {
-			result = result == SetShadersResult::SetNone
-				? SetShadersResult::SetVertex
-				: SetShadersResult::SetBoth;
-		}
-	}
-	else {
-		DISPLAY->SetShaderFromPath(m_fragmentShaderOGL, false);
-		DISPLAY->SetShaderFromPath(m_vertexShaderOGL, true);
-
-		result = m_fragmentShaderOGL.empty() ? SetShadersResult::SetNone
-											 : SetShadersResult::SetFragment;
-		if (!m_vertexShaderOGL.empty()) {
-			result = result == SetShadersResult::SetNone
-					   ? SetShadersResult::SetVertex
-					   : SetShadersResult::SetBoth;
-		}
-	}
-
-	return result;
-}
-
-void
-Actor::UnsetShadersForDisplay(Actor::SetShadersResult previousResult)
-{
-	if (previousResult == SetShadersResult::SetBoth ||
-		previousResult == SetShadersResult::SetVertex) {
-		DISPLAY->UnsetCurrentShader(true);
-	}
-	if (previousResult == SetShadersResult::SetBoth ||
-		previousResult == SetShadersResult::SetFragment) {
-		DISPLAY->UnsetCurrentShader(false);
-	}
+	// todo: add support for default shaders
 }
 
 void
@@ -2776,26 +2735,17 @@ class LunaActor : public Luna<Actor>
 			return 0;
 		return 1;
 	}
-	static int SetVertexShaderD3D(T* p, lua_State* L)
+
+	static int SetShader(T* p, lua_State* L)
 	{
-		p->SetVertexShaderD3D(SArg(1));
+		// pass in RageShaderReference
 		COMMON_RETURN_SELF;
 	}
-	static int SetFragmentShaderD3D(T* p, lua_State* L)
-	{
-		p->SetFragmentShaderD3D(SArg(1));
-		COMMON_RETURN_SELF;
-	}
-	static int SetVertexShaderOGL(T* p, lua_State* L)
-	{
-		p->SetVertexShaderOGL(SArg(1));
-		COMMON_RETURN_SELF;
-	}
-	static int SetFragmentShaderOGL(T* p, lua_State* L)
-	{
-		p->SetFragmentShaderOGL(SArg(1));
-		COMMON_RETURN_SELF;
-	}
+	static int GetShader(T* p, lua_State* L) {
+		// pass in shadertype
+		// return rageshaderreference
+		COMMON_RETURN_SELF; }
+
 	DEFINE_METHOD(GetTrueX, GetTrueX());
 	DEFINE_METHOD(GetTrueY, GetTrueY());
 	DEFINE_METHOD(GetTrueZ, GetTrueZ());
@@ -2978,10 +2928,8 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(GetNumWrapperStates);
 		ADD_METHOD(GetWrapperState);
 
-		ADD_METHOD(SetVertexShaderD3D);
-		ADD_METHOD(SetFragmentShaderD3D);
-		ADD_METHOD(SetVertexShaderOGL);
-		ADD_METHOD(SetFragmentShaderOGL);
+		ADD_METHOD(SetShader);
+		ADD_METHOD(GetShader);
 
 		ADD_METHOD(Draw);
 

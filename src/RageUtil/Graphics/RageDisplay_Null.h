@@ -140,11 +140,15 @@ class RageDisplay_Null : public RageDisplay
 							  float zf) override;
 	bool SupportsSurfaceFormat(RagePixelFormat) { return true; }
 
-	void SetShaderFromPath(std::filesystem::path path,
-						   bool isVertexShader) override
+	void SetShader(const RageShaderReference& reference) override
 	{
 	}
-	void UnsetCurrentShader(bool isVertexShader) override {}
+	RageShaderReference CreateShaderFromPath(
+	  const std::string& path,
+											 RageShaderType shaderType) override
+	{
+		return RageShaderReference();
+	}
 };
 
 #endif

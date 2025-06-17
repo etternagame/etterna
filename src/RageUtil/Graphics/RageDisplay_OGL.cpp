@@ -2928,14 +2928,15 @@ RageDisplay_Legacy::GetTextureDiagnostics(unsigned iTexture) const
 }
 
 void
-RageDisplay_Legacy::SetShaderFromPath(std::filesystem::path path,
-									  bool isVertexShader)
+RageDisplay_Legacy::SetShader(const RageShaderReference& reference)
 {
 }
 
-void
-RageDisplay_Legacy::UnsetCurrentShader(bool isVertexShader)
+RageShaderReference
+RageDisplay_Legacy::CreateShaderFromPath(const std::string& path,
+										 RageShaderType shaderType)
 {
+	return RageShaderReference();
 }
 
 /*

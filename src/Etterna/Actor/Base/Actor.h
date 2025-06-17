@@ -4,11 +4,12 @@
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Graphics/Shaders/RageShaderReference.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Tween.h"
 
 #include <map>
-#include <filesystem>
+#include <optional>
 
 class XNode;
 struct lua_State;
@@ -234,7 +235,7 @@ class Actor : public MessageSubscriber
 	 * @brief Draw the primitives of the Actor.
 	 *
 	 * Derivative classes should override this function. */
-	virtual void DrawPrimitives(){};
+	virtual void DrawPrimitives() {};
 	/** @brief Pop the transform from the world matrix stack. */
 	virtual void EndDraw();
 
@@ -623,15 +624,15 @@ class Actor : public MessageSubscriber
 	virtual void SetVertAlign(float f) { m_fVertAlign = f; }
 	void SetHorizAlign(HorizAlign ha)
 	{
-		SetHorizAlign((ha == HorizAlign_Left)
-						? 0.0F
-						: (ha == HorizAlign_Center) ? 0.5F : +1.0F);
+		SetHorizAlign((ha == HorizAlign_Left)	  ? 0.0F
+					  : (ha == HorizAlign_Center) ? 0.5F
+												  : +1.0F);
 	}
 	void SetVertAlign(VertAlign va)
 	{
-		SetVertAlign((va == VertAlign_Top)
-					   ? 0.0F
-					   : (va == VertAlign_Middle) ? 0.5F : +1.0F);
+		SetVertAlign((va == VertAlign_Top)		? 0.0F
+					 : (va == VertAlign_Middle) ? 0.5F
+												: +1.0F);
 	}
 	virtual auto GetHorizAlign() -> float { return m_fHorizAlign; }
 	virtual auto GetVertAlign() -> float { return m_fVertAlign; }
@@ -808,48 +809,11 @@ class Actor : public MessageSubscriber
 	virtual void SetSecondsIntoAnimation(float /*unused*/) {}
 	virtual void SetUpdateRate(float /*unused*/) {}
 	virtual auto GetUpdateRate() -> float { return 1.0F; }
-	
-	virtual void SetFragmentShaderD3D(const std::string& sPath)
-	{
-		m_fragmentShaderD3D = sPath;
-	}
-
-	virtual std::filesystem::path GetFragmentShaderD3D()
-	{
-		return m_fragmentShaderD3D;
-	}
-
-	virtual void SetVertexShaderD3D(const std::string& sPath)
-	{
-		m_vertexShaderD3D = sPath;
-	}
-
-	virtual std::filesystem::path GetVertexShaderD3D()
-	{
-		return m_vertexShaderD3D;
-	}
-
-	virtual void SetFragmentShaderOGL(const std::string& sPath)
-	{
-		m_fragmentShaderOGL = sPath;
-	}
-
-	virtual std::filesystem::path GetFragmentShaderOGL()
-	{
-		return m_fragmentShaderOGL;
-	}
-
-	virtual void SetVertexShaderOGL(const std::string& sPath)
-	{
-		m_vertexShaderOGL = sPath;
-	}
-
-	virtual std::filesystem::path GetVertexShaderOGL()
-	{
-		return m_vertexShaderOGL;
-	}
 
 	std::unique_ptr<LuaClass> m_pLuaInstance;
+
+	std::optional<RageShaderReference> m_VertexShader;
+	std::optional<RageShaderReference> m_FragmentShader;
 
   protected:
 	/** @brief the name of the Actor. */
@@ -959,14 +923,6 @@ class Actor : public MessageSubscriber
 	 * The lower this number is, the sooner it is drawn. */
 	int m_iDrawOrder{};
 
-	// for now - since Direct3D and OpenGL use HLSL and GLSL, make the user
-	// do the conversion manually (also SPIRV-Cross?) >:)
-	// and technically D3D refers to fragment shaders as pixels shaders (afaik) but i'm not going to bother
-	std::filesystem::path m_vertexShaderD3D;
-	std::filesystem::path m_fragmentShaderD3D;
-	std::filesystem::path m_vertexShaderOGL;
-	std::filesystem::path m_fragmentShaderOGL;
-
 	// render states
 	BlendMode m_BlendMode;
 	ZTestMode m_ZTestMode;
@@ -988,16 +944,8 @@ class Actor : public MessageSubscriber
 	static std::vector<float> g_vfCurrentBGMBeatPlayer;
 	static std::vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
 
-	enum class SetShadersResult
-	{
-		SetNone,
-		SetVertex,
-		SetFragment,
-		SetBoth
-	};
-	// does not work for inheritance w/ ActorFrame (yet)
-	virtual SetShadersResult SetShadersForDisplay();
-	virtual void UnsetShadersForDisplay(SetShadersResult previousResult);
+	void SetShadersForDisplay();
+
   private:
 	// commands
 	std::map<std::string, apActorCommands> m_mapNameToCommands;
