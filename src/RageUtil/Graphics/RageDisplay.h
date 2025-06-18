@@ -10,7 +10,6 @@
 #include <chrono>
 #include <set>
 #include <utility>
-#include <filesystem>
 
 class DisplaySpec;
 using DisplaySpecs = std::set<DisplaySpec>;
