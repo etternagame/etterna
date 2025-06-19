@@ -553,4 +553,17 @@ auto
 FailTypeToLocalizedString(FailType cat) -> const std::string&;
 LuaDeclareType(FailType);
 
+// SelectionDisplay is essentially what determines whether a file is visible or not.
+enum SelectionDisplay
+{
+	SelectionDisplay_Never, // SelectionDisplay_Never just means that the file will not be shown ever unless certain circumstances happen.
+	SelectionDisplay_Always, // SelectionDisplay_Always means that the file will be shown on the menu.
+	SelectionDisplay_Overwritten, // SelectionDisplay_Overwritten represents if a file is forcefully shown, used as a value to know that's happening.
+	NUM_SelectionDisplay
+};
+
+auto
+SelectionDisplayToString(SelectionDisplay sd) -> const std::string&;
+LuaDeclareType(SelectionDisplay);
+
 #endif

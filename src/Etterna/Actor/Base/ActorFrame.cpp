@@ -818,6 +818,19 @@ class LunaActorFrame : public Luna<ActorFrame>
 		p->SetLightDirection(vTmp);
 		COMMON_RETURN_SELF;
 	}
+	static int AddChild(T* p, lua_State* L)
+	{
+		auto* pActor = Luna<Actor>::check(L, 1);
+		if (pActor == nullptr)
+		{
+			lua_pushnil(L);
+			return 1;
+		}
+		p->AddChild(pActor);
+		pActor->SetParent(p);
+		pActor->PushSelf(L);
+		return 1;
+	}
 	static int AddChildFromPath(T* p, lua_State* L)
 	{
 		// this one is tricky, we need to get an Actor from Lua.
@@ -872,6 +885,7 @@ class LunaActorFrame : public Luna<ActorFrame>
 		ADD_METHOD(SetDiffuseLightColor);
 		ADD_METHOD(SetSpecularLightColor);
 		ADD_METHOD(SetLightDirection);
+		ADD_METHOD(AddChild);
 		ADD_METHOD(AddChildFromPath);
 		ADD_METHOD(RemoveChild);
 		ADD_METHOD(RemoveAllChildren);

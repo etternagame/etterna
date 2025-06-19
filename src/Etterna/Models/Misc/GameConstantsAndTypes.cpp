@@ -429,3 +429,12 @@ XToString(FailType);
 XToLocalizedString(FailType);
 StringToX(FailType);
 LuaXType(FailType);
+
+static const char* SelectionDisplayNames[] = {
+	"Never",
+	"Always",
+	"Overwritten"
+};
+XToString(SelectionDisplay);
+StringToX(SelectionDisplay);
+LuaXType(SelectionDisplay);

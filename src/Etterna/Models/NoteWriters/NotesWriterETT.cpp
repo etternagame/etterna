@@ -274,10 +274,10 @@ WriteGlobalTags(RageFile& f, const Song& out)
 			  0,
 			  "An invalid selectable value was found for this song!"); // fall
 																	   // through
-		case Song::SHOW_ALWAYS:
+		case SelectionDisplay::SelectionDisplay_Always:
 			f.Write("YES");
 			break;
-		case Song::SHOW_NEVER:
+		case SelectionDisplay::SelectionDisplay_Never:
 			f.Write("NO");
 			break;
 	}

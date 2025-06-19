@@ -176,23 +176,23 @@ void
 SMSetSelectable(SMSongTagInfo& info)
 {
 	if (EqualsNoCase((*info.params)[1], "YES")) {
-		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
+		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
 	} else if (EqualsNoCase((*info.params)[1], "NO")) {
-		info.song->m_SelectionDisplay = info.song->SHOW_NEVER;
+		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Never;
 	}
 	// ROULETTE from 3.9. It was removed since UnlockManager can serve
 	// the same purpose somehow. This, of course, assumes you're using
 	// unlocks. -aj
 	else if (EqualsNoCase((*info.params)[1], "ROULETTE")) {
-		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
+		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
 	}
 	/* The following two cases are just fixes to make sure simfiles that
 	 * used 3.9+ features are not excluded here */
 	else if (EqualsNoCase((*info.params)[1], "ES") ||
 			 EqualsNoCase((*info.params)[1], "OMES")) {
-		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
+		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
 	} else if (StringToInt((*info.params)[1]) > 0) {
-		info.song->m_SelectionDisplay = info.song->SHOW_ALWAYS;
+		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
 	} else {
 //		LOG->UserLog("Song file",
 //					 info.path,

@@ -411,10 +411,10 @@ SongCacheIndex::CacheSong(Song& song, const std::string& dir) const
 				ASSERT_M(0,
 						 "An invalid selectable value was found for this "
 						 "song!"); // fall through
-			case Song::SHOW_ALWAYS:
+			case SelectionDisplay::SelectionDisplay_Always:
 				insertSong.bind(index++, 0);
 				break;
-			case Song::SHOW_NEVER:
+			case SelectionDisplay::SelectionDisplay_Never:
 				insertSong.bind(index++, 1);
 				break;
 		}
@@ -1050,9 +1050,9 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 
 		auto selection = static_cast<int>(query.getColumn(index++));
 		if (selection == 0)
-			song->m_SelectionDisplay = song->SHOW_ALWAYS;
+			song->m_SelectionDisplay = song->SelectionDisplay_Always;
 		else
-			song->m_SelectionDisplay = song->SHOW_NEVER;
+			song->m_SelectionDisplay = song->SelectionDisplay_Never;
 
 		auto bpmminIndex = index++;
 		auto bpmmaxIndex = index++;

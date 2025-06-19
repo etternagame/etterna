@@ -55,10 +55,10 @@ WriteGlobalTags(RageFile& f, Song& out)
 		default:
 			FAIL_M(ssprintf("Invalid selection display: %i",
 							out.m_SelectionDisplay));
-		case Song::SHOW_ALWAYS:
+		case SelectionDisplay::SelectionDisplay_Always:
 			f.Write("YES");
 			break;
-		case Song::SHOW_NEVER:
+		case SelectionDisplay::SelectionDisplay_Never:
 			f.Write("NO");
 			break;
 	}

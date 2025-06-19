@@ -7,6 +7,7 @@
 #include "Etterna/Models/StepsAndStyles/Steps.h"
 #include "Etterna/Models/Misc/TimingData.h"
 #include "Etterna/Models/Misc/DateTime.h"
+#include "Etterna/Models/Misc/GameConstantsAndTypes.h"
 
 #include <set>
 
@@ -70,12 +71,13 @@ class Song
 	auto GetSongDir() -> const std::string& { return m_sSongDir; }
 
 	/** @brief When should this song be displayed in the music wheel? */
-	enum SelectionDisplay
+	SelectionDisplay m_SelectionDisplay;
+
+	void SetSelectionDisplay(SelectionDisplay sd);
+	[[nodiscard]] auto GetSelectionDisplay()
 	{
-		SHOW_ALWAYS, /**< always show on the wheel. */
-		SHOW_NEVER	 /**< never show on the wheel (unless song hiding is turned
-						off). */
-	} m_SelectionDisplay;
+		return m_SelectionDisplay;
+	}
 
 	Song();
 	~Song();

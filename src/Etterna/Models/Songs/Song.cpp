@@ -75,7 +75,7 @@ Song::Song()
 	firstSecond = -1;
 	lastSecond = -1;
 	specifiedLastSecond = -1;
-	m_SelectionDisplay = SHOW_ALWAYS;
+	m_SelectionDisplay = SelectionDisplay_Always;
 	m_bEnabled = true;
 	m_DisplayBPMType = DISPLAY_BPM_ACTUAL;
 	m_fSpecifiedBPMMin = 0;
@@ -104,6 +104,12 @@ Song::~Song()
 
 	// It's the responsibility of the owner of this Song to make sure
 	// that all pointers to this Song and its Steps are invalidated.
+}
+
+void
+Song::SetSelectionDisplay(SelectionDisplay sd)
+{
+	this->m_SelectionDisplay = sd;
 }
 
 void
