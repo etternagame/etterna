@@ -1,4 +1,4 @@
-/* RageShaderWeakRef - weak reference to a shader */
+/* RageShaderWeakRef - weak reference to a shader (used for lookups by RageShaderHandler) */
 
 #ifndef RAGE_SHADER_REFERENCE_H
 #define RAGE_SHADER_REFERENCE_H
