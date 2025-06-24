@@ -6,10 +6,10 @@ RageShaderWeakRef::RageShaderWeakRef()
 {
 }
 
-RageShaderWeakRef::RageShaderWeakRef(size_t pathHash,
+RageShaderWeakRef::RageShaderWeakRef(size_t lookupKey,
 									 RageDisplayType displayType,
 									 RageShaderType shaderType)
-  : m_LookupKey(pathHash)
+  : m_LookupKey(lookupKey)
   , m_DisplayType(displayType)
   , m_ShaderType(shaderType)
 {

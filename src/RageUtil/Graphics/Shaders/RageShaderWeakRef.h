@@ -30,7 +30,7 @@ class RageShaderWeakRef
   public:
 	RageShaderWeakRef();
 
-	RageShaderWeakRef(size_t pathHash,
+	RageShaderWeakRef(size_t lookupKey,
 					  RageDisplayType displayType,
 					  RageShaderType shaderType);
 	RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef);
