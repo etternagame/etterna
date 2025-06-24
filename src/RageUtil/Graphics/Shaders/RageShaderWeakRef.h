@@ -25,6 +25,7 @@ LuaDeclareType(RageShaderType);
 // class LuaClass;
 
 // TODO: Lua bindings so it's easy to pass these thingies around
+// ALSO NOTE: it's likely much better to use compile-time constants and such to load default shaders
 class RageShaderWeakRef
 {
   public:
