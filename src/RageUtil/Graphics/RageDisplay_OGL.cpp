@@ -2939,6 +2939,12 @@ RageDisplay_Legacy::CreateShaderFromPath(const std::string& path,
 	return RageShaderWeakRef();
 }
 
+std::vector<std::string>
+RageDisplay_Legacy::GetSupportedShaderProfiles()
+{
+	return std::vector<std::string>();
+}
+
 /*
  * XXX: Things like this only have to be set once per context - making
  * SetDefault call These kinds of functions is wasteful. -Colby

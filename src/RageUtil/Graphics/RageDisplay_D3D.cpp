@@ -1128,6 +1128,13 @@ RageDisplay_D3D::SetShadersOrFVF(unsigned long fvfDefinition)
 	}
 }
 
+std::vector<std::string>
+RageDisplay_D3D::GetSupportedShaderProfiles()
+{
+	return { D3DXGetVertexShaderProfile(g_pd3dDevice),
+			 D3DXGetPixelShaderProfile(g_pd3dDevice) };
+}
+
 void
 RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {

@@ -126,6 +126,7 @@ class RageDisplay_Legacy : public RageDisplay
 	RageShaderWeakRef CreateShaderFromPath(
 	  const std::string& path,
 	  RageShaderType shaderType) override;
+	std::vector<std::string> GetSupportedShaderProfiles() override;
 
   protected:
 	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;

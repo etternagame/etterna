@@ -143,11 +143,17 @@ class RageDisplay_Null : public RageDisplay
 	void SetShader(const RageShaderWeakRef& reference) override
 	{
 	}
+
 	RageShaderWeakRef CreateShaderFromPath(
 	  const std::string& path,
 											 RageShaderType shaderType) override
 	{
 		return RageShaderWeakRef();
+	}
+
+	std::vector<std::string> GetSupportedShaderProfiles() override
+	{
+		return {};
 	}
 };
 

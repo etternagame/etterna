@@ -92,6 +92,7 @@ class RageDisplay_D3D : public RageDisplay
 	  RageShaderType shaderType) override;
 
 	void SetShadersOrFVF(unsigned long fvfDefinition);
+	std::vector<std::string> GetSupportedShaderProfiles() override;
 
   protected:
 	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;
