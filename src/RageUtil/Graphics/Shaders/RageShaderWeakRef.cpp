@@ -2,20 +2,50 @@
 #include "Etterna/Models/Lua/LuaBinding.h"
 
 RageShaderWeakRef::RageShaderWeakRef()
-  : RageShaderWeakRef("",
-						0,
-						RageDisplayType::Invalid,
-						RageShaderType::Invalid)
+  : RageShaderWeakRef(0, RageDisplayType::Invalid, RageShaderType::Invalid)
 {
 }
 
-RageShaderWeakRef::RageShaderWeakRef(const std::string& path,
-										 const size_t pathHash,
-										 RageDisplayType displayType,
-										 RageShaderType shaderType)
-  : m_Path(path)
-  , m_PathHash(pathHash)
+RageShaderWeakRef::RageShaderWeakRef(size_t pathHash,
+									 RageDisplayType displayType,
+									 RageShaderType shaderType)
+  : m_LookupKey(pathHash)
   , m_DisplayType(displayType)
   , m_ShaderType(shaderType)
 {
+}
+
+RageShaderWeakRef::RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef)
+{
+	m_LookupKey = otherWeakRef.m_LookupKey;
+	m_DisplayType = otherWeakRef.m_DisplayType;
+	m_ShaderType = otherWeakRef.m_ShaderType;
+}
+
+RageShaderWeakRef&
+RageShaderWeakRef::operator=(const RageShaderWeakRef& otherWeakRef)
+{
+	m_LookupKey = otherWeakRef.m_LookupKey;
+	m_DisplayType = otherWeakRef.m_DisplayType;
+	m_ShaderType = otherWeakRef.m_ShaderType;
+
+	return *this;
+}
+
+size_t
+RageShaderWeakRef::GetLookupKey() const
+{
+	return m_LookupKey;
+}
+
+RageDisplayType
+RageShaderWeakRef::GetDisplayType() const
+{
+	return m_DisplayType;
+}
+
+RageShaderType
+RageShaderWeakRef::GetShaderType() const
+{
+	return m_ShaderType;
 }

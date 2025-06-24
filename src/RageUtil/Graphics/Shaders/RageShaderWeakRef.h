@@ -22,7 +22,7 @@ enum class RageShaderType
 };
 LuaDeclareType(RageShaderType);
 
-//class LuaClass;
+// class LuaClass;
 
 // TODO: Lua bindings so it's easy to pass these thingies around
 class RageShaderWeakRef
@@ -30,16 +30,21 @@ class RageShaderWeakRef
   public:
 	RageShaderWeakRef();
 
-	RageShaderWeakRef(const std::string& path,
-						const size_t pathHash,
-						RageDisplayType displayType,
-						RageShaderType shaderType);
+	RageShaderWeakRef(size_t pathHash,
+					  RageDisplayType displayType,
+					  RageShaderType shaderType);
+	RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef);
+	RageShaderWeakRef& operator=(const RageShaderWeakRef& otherWeakRef);
 
-	const std::string m_Path;
-	const size_t m_PathHash;
-	const RageDisplayType m_DisplayType;
-	const RageShaderType m_ShaderType;
-	//std::unique_ptr<LuaClass> m_pLuaInstance;
+	size_t GetLookupKey() const;
+	RageDisplayType GetDisplayType() const;
+	RageShaderType GetShaderType() const;
+
+  private:
+	size_t m_LookupKey;
+	RageDisplayType m_DisplayType;
+	RageShaderType m_ShaderType;
+	// std::unique_ptr<LuaClass> m_pLuaInstance;
 };
 
 #endif
