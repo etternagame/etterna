@@ -1,15 +1,15 @@
-#include "RageShaderReference.h"
+#include "RageShaderWeakRef.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 
-RageShaderReference::RageShaderReference()
-  : RageShaderReference("",
+RageShaderWeakRef::RageShaderWeakRef()
+  : RageShaderWeakRef("",
 						0,
 						RageDisplayType::Invalid,
 						RageShaderType::Invalid)
 {
 }
 
-RageShaderReference::RageShaderReference(const std::string& path,
+RageShaderWeakRef::RageShaderWeakRef(const std::string& path,
 										 const size_t pathHash,
 										 RageDisplayType displayType,
 										 RageShaderType shaderType)

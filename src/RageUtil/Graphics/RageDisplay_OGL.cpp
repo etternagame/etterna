@@ -2928,15 +2928,15 @@ RageDisplay_Legacy::GetTextureDiagnostics(unsigned iTexture) const
 }
 
 void
-RageDisplay_Legacy::SetShader(const RageShaderReference& reference)
+RageDisplay_Legacy::SetShader(const RageShaderWeakRef& reference)
 {
 }
 
-RageShaderReference
+RageShaderWeakRef
 RageDisplay_Legacy::CreateShaderFromPath(const std::string& path,
 										 RageShaderType shaderType)
 {
-	return RageShaderReference();
+	return RageShaderWeakRef();
 }
 
 /*

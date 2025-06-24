@@ -1041,14 +1041,14 @@ std::optional<RagePixelShader_D3D> pixelContainer;
 std::optional<RageVertexShader_D3D> vertexContainer;
 
 void
-RageDisplay_D3D::SetShader(const RageShaderReference& reference)
+RageDisplay_D3D::SetShader(const RageShaderWeakRef& reference)
 {
 }
 
-RageShaderReference RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
+RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 					 RageShaderType shaderType)
 {
-	return RageShaderReference();
+	return RageShaderWeakRef();
 }
 
 constexpr D3DVERTEXELEMENT9 spriteDecl[] = { { 0,

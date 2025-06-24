@@ -4,7 +4,7 @@
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageTypes.h"
-#include "RageUtil/Graphics/Shaders/RageShaderReference.h"
+#include "RageUtil/Graphics/Shaders/RageShaderWeakRef.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Tween.h"
 
@@ -812,8 +812,8 @@ class Actor : public MessageSubscriber
 
 	std::unique_ptr<LuaClass> m_pLuaInstance;
 
-	std::optional<RageShaderReference> m_VertexShader;
-	std::optional<RageShaderReference> m_FragmentShader;
+	std::optional<RageShaderWeakRef> m_VertexShader;
+	std::optional<RageShaderWeakRef> m_FragmentShader;
 
   protected:
 	/** @brief the name of the Actor. */

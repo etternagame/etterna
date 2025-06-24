@@ -1,4 +1,4 @@
-/* RageShaderReference - weak reference to a shader */
+/* RageShaderWeakRef - weak reference to a shader */
 
 #ifndef RAGE_SHADER_REFERENCE_H
 #define RAGE_SHADER_REFERENCE_H
@@ -25,12 +25,12 @@ LuaDeclareType(RageShaderType);
 //class LuaClass;
 
 // TODO: Lua bindings so it's easy to pass these thingies around
-class RageShaderReference
+class RageShaderWeakRef
 {
   public:
-	RageShaderReference();
+	RageShaderWeakRef();
 
-	RageShaderReference(const std::string& path,
+	RageShaderWeakRef(const std::string& path,
 						const size_t pathHash,
 						RageDisplayType displayType,
 						RageShaderType shaderType);

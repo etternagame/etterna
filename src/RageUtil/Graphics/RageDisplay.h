@@ -5,7 +5,7 @@
 
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
-#include "RageUtil/Graphics/Shaders/RageShaderReference.h"
+#include "RageUtil/Graphics/Shaders/RageShaderWeakRef.h"
 
 #include <chrono>
 #include <set>
@@ -465,8 +465,8 @@ class RageDisplay
 		return nullptr;
 	} // allocates a surface.  Caller must delete it.
 
-	virtual void SetShader(const RageShaderReference& reference) = 0;
-	virtual RageShaderReference CreateShaderFromPath(const std::string& path,
+	virtual void SetShader(const RageShaderWeakRef& reference) = 0;
+	virtual RageShaderWeakRef CreateShaderFromPath(const std::string& path,
 													 RageShaderType shaderType) = 0;
   protected:
 	virtual void DrawQuadsInternal(const RageSpriteVertex v[],

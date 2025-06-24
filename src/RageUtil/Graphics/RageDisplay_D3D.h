@@ -86,8 +86,8 @@ class RageDisplay_D3D : public RageDisplay
 	auto CreateCompiledGeometry() -> RageCompiledGeometry* override;
 	void DeleteCompiledGeometry(RageCompiledGeometry* p) override;
 
-	void SetShader(const RageShaderReference& reference) override;
-	RageShaderReference CreateShaderFromPath(
+	void SetShader(const RageShaderWeakRef& reference) override;
+	RageShaderWeakRef CreateShaderFromPath(
 	  const std::string& path,
 	  RageShaderType shaderType) override;
 

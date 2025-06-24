@@ -122,8 +122,8 @@ class RageDisplay_Legacy : public RageDisplay
 
 	std::string GetTextureDiagnostics(unsigned id) const override;
 
-	void SetShader(const RageShaderReference& reference) override;
-	RageShaderReference CreateShaderFromPath(
+	void SetShader(const RageShaderWeakRef& reference) override;
+	RageShaderWeakRef CreateShaderFromPath(
 	  const std::string& path,
 	  RageShaderType shaderType) override;
 
