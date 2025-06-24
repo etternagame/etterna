@@ -32,6 +32,14 @@ RageShaderWeakRef::operator=(const RageShaderWeakRef& otherWeakRef)
 	return *this;
 }
 
+bool
+RageShaderWeakRef::IsDestroyed() const
+{
+	// TODO: just add a call to RageDisplay or RageShaderHandler to check this
+	// (basically check if m_lookupKey maps to smth inside the lookup table)
+	return false;
+}
+
 size_t
 RageShaderWeakRef::GetLookupKey() const
 {

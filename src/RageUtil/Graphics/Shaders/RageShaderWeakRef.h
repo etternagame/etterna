@@ -37,6 +37,7 @@ class RageShaderWeakRef
 	RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef);
 	RageShaderWeakRef& operator=(const RageShaderWeakRef& otherWeakRef);
 
+	bool IsDestroyed() const;
 	size_t GetLookupKey() const;
 	RageDisplayType GetDisplayType() const;
 	RageShaderType GetShaderType() const;
