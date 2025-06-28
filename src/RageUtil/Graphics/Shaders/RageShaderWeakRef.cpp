@@ -1,5 +1,4 @@
 #include "RageShaderWeakRef.h"
-#include "Etterna/Models/Lua/LuaBinding.h"
 
 RageShaderWeakRef::RageShaderWeakRef()
   : RageShaderWeakRef(0, RageDisplayType::Invalid, RageShaderType::Invalid)
@@ -13,6 +12,7 @@ RageShaderWeakRef::RageShaderWeakRef(size_t lookupKey,
   , m_DisplayType(displayType)
   , m_ShaderType(shaderType)
 {
+	m_pLuaInstance = std::make_unique<LuaClass>();
 }
 
 RageShaderWeakRef::RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef)
@@ -57,3 +57,15 @@ RageShaderWeakRef::GetShaderType() const
 {
 	return m_ShaderType;
 }
+
+// maybe move this to LunaRageShaderWeakRef.cpp or something if the macrohell doesn't unleash
+#pragma region Lua wrapper
+
+class LunaRageShaderWeakRef : public Luna<RageShaderWeakRef>
+{
+	// TODO: stuffs?
+};
+
+LUA_REGISTER_INSTANCED_BASE_CLASS(RageShaderWeakRef)
+
+#pragma endregion

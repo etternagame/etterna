@@ -5,6 +5,7 @@
 
 #include <string>
 #include "Etterna/Models/Misc/EnumHelper.h"
+#include "Etterna/Models/Lua/LuaBinding.h"
 
 enum class RageDisplayType
 {
@@ -21,8 +22,6 @@ enum class RageShaderType
 	Invalid,
 };
 LuaDeclareType(RageShaderType);
-
-// class LuaClass;
 
 // TODO: Lua bindings so it's easy to pass these thingies around
 // ALSO NOTE: it's likely much better to use compile-time constants and such to load default shaders
@@ -42,11 +41,14 @@ class RageShaderWeakRef
 	RageDisplayType GetDisplayType() const;
 	RageShaderType GetShaderType() const;
 
+	// LunaRageShaderWeakRef territory
+	void PushSelf(lua_State* L);
+	std::unique_ptr<LuaClass> m_pLuaInstance;
+
   private:
 	size_t m_LookupKey;
 	RageDisplayType m_DisplayType;
 	RageShaderType m_ShaderType;
-	// std::unique_ptr<LuaClass> m_pLuaInstance;
 };
 
 #endif
