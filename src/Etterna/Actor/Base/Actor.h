@@ -814,6 +814,8 @@ class Actor : public MessageSubscriber
 
 	std::optional<RageShaderWeakRef> m_VertexShader;
 	std::optional<RageShaderWeakRef> m_FragmentShader;
+	RageShaderWeakRef m_DefaultVertexShader;
+	RageShaderWeakRef m_DefaultFragmentShader;
 
   protected:
 	/** @brief the name of the Actor. */
@@ -945,6 +947,7 @@ class Actor : public MessageSubscriber
 	static std::vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
 
 	void SetShadersForDisplay();
+	virtual void LoadDefaultShaders();
 
   private:
 	// commands

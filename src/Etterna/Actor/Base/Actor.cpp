@@ -159,6 +159,7 @@ Actor::Actor()
 	m_pParent = nullptr;
 	m_FakeParent = nullptr;
 	m_tween_uses_effect_delta = false;
+	LoadDefaultShaders();
 }
 
 Actor::~Actor()
@@ -1652,7 +1653,21 @@ Actor::HandleMessage(const Message& msg)
 void
 Actor::SetShadersForDisplay()
 {
-	// todo: add support for default shaders
+	auto& vertexShader =
+	  m_VertexShader.has_value() ? *m_VertexShader : m_DefaultVertexShader;
+	DISPLAY->SetShader(vertexShader);
+
+	auto& fragmentShader = m_FragmentShader.has_value()
+							 ? *m_FragmentShader
+							 : m_DefaultFragmentShader;
+	DISPLAY->SetShader(fragmentShader);
+}
+
+void
+Actor::LoadDefaultShaders()
+{
+	static constexpr std::string_view defaultVertexShader = "";
+	// henlo
 }
 
 void
