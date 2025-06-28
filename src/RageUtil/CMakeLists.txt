@@ -88,6 +88,7 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageTextureID.h"
   "Graphics/RageTextureManager.h"
   "Graphics/RageTextureRenderTarget.h"
+  "Graphics/Shaders/RageShader.h"
   "Graphics/Shaders/RageShaderWeakRef.h"
   "Graphics/Shaders/RageShaderHandler.h"
 )

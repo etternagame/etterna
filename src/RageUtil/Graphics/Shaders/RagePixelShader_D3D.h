@@ -1,11 +1,12 @@
 #ifndef RAGE_PIXEL_SHADER_D3D_H
 #define RAGE_PIXEL_SHADER_D3D_H
 
+#include "RageShader.h"
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <string>
 
-class RagePixelShader_D3D
+class RagePixelShader_D3D : public RageShader
 {
   public:
 	[[nodiscard]] HRESULT Compile(const std::string& pixelShaderProfile);
