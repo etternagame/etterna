@@ -189,7 +189,7 @@ public:
 	RenderTarget_MacOSX( id shareContext );
 	~RenderTarget_MacOSX();
 	void Create( const RenderTargetParam &param, int &iTextureWidthOut, int &iTextureHeightOut );
-	unsigned GetTexture() const { return m_iTexHandle; }
+	uintptr_t GetTexture() const { return m_iTexHandle; }
 	void StartRenderingTo();
 	void FinishRenderingTo();
 	

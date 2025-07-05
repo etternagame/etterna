@@ -907,7 +907,7 @@ class RenderTarget_X11 : public RenderTarget
 	void Create(const RenderTargetParam& param,
 				int& iTextureWidthOut,
 				int& iTextureHeightOut);
-	unsigned GetTexture() const { return m_iTexHandle; }
+	uintptr_t GetTexture() const { return m_iTexHandle; }
 	void StartRenderingTo();
 	void FinishRenderingTo();
 
