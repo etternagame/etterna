@@ -14,7 +14,7 @@ RageShaderHandler::IsDefaultShaderInCache(size_t defaultShaderIndex) const
 
 std::optional<RageShaderHandler::ShaderId>
 RageShaderHandler::CacheShaderFromPath(const std::string& path,
-										bool useAsDefaultShader)
+									   bool useAsDefaultShader)
 {
 	std::optional<RageShader> shader = CompileShader(path);
 	if (!shader.has_value()) {
