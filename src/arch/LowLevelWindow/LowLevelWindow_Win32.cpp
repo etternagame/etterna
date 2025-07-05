@@ -10,6 +10,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 #include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 #include "RageUtil/Graphics/RageDisplay_OGL.h"
+#include "RageUtil/Graphics/RenderTarget.h"
 
 #include <GL/glew.h>
 
@@ -341,7 +342,7 @@ class RenderTarget_Win32 : public RenderTarget
 	void Create(const RenderTargetParam& param,
 				int& iTextureWidthOut,
 				int& iTextureHeightOut);
-	unsigned int GetTexture() const { return m_texHandle; }
+	uintptr_t GetTexture() const { return m_texHandle; }
 	void StartRenderingTo();
 	void FinishRenderingTo();
 

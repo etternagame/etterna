@@ -91,6 +91,8 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/Shaders/RageShader.h"
   "Graphics/Shaders/RageShaderWeakRef.h"
   "Graphics/Shaders/RageShaderHandler.h"
+  "Graphics/Shaders/RenderTarget.h"
+  "Graphics/Shaders/RenderTargetParam.h"
 )
 
 if(WIN32)
@@ -102,6 +104,8 @@ if(WIN32)
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RagePixelShader_D3D.h")
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageVertexShader_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RageVertexShader_D3D.h")
+  list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/D3DRenderTarget_FramebufferObject.cpp")
+  list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/D3DRenderTarget_FramebufferObject.h")
 elseif(LINUX)
   if (WITH_GLES2)
     list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_GLES2.cpp")

@@ -12,6 +12,7 @@
 #include "RageTextureManager.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Graphics/RenderTarget.h"
 
 #include "arch/LowLevelWindow/LowLevelWindow.h"
 
@@ -2603,7 +2604,7 @@ class RenderTarget_FramebufferObject : public RenderTarget
 	void Create(const RenderTargetParam& param,
 				int& iTextureWidthOut,
 				int& iTextureHeightOut) override;
-	unsigned GetTexture() const override { return m_iTexHandle; }
+	uintptr_t GetTexture() const override { return m_iTexHandle; }
 	void StartRenderingTo() override;
 	void FinishRenderingTo() override;
 

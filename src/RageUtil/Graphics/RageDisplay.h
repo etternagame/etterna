@@ -6,6 +6,7 @@
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Graphics/Shaders/RageShaderWeakRef.h"
+#include "RenderTargetParam.h"
 
 #include <chrono>
 #include <set>
@@ -239,18 +240,6 @@ class ActualVideoModeParams : public VideoModeParams
 	int windowWidth{ 0 };
 	int windowHeight{ 0 };
 	bool renderOffscreen{ false };
-};
-
-struct RenderTargetParam
-{
-	RenderTargetParam() = default;
-
-	// The dimensions of the actual render target, analogous to a window size:
-	int iWidth{ 0 }, iHeight{ 0 };
-
-	bool bWithDepthBuffer{ false };
-	bool bWithAlpha{ false };
-	bool bFloat{ false };
 };
 
 struct RageTextureLock

@@ -14,6 +14,8 @@
 #pragma clang diagnostic pop
 #endif
 
+#include "RageUtil/Graphics/RenderTarget.h"
+
 class RageDisplay_D3D : public RageDisplay
 {
   public:
@@ -166,35 +168,6 @@ class RageDisplay_D3D : public RageDisplay
 	};
 
 	std::map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
-};
-
-class RenderTarget
-{
-  public:
-	virtual ~RenderTarget() = default;
-
-	virtual void Create(const RenderTargetParam& param,
-						int& iTextureWidthOut,
-						int& iTextureHeightOut) = 0;
-
-	[[nodiscard]] virtual auto GetTexture() const -> intptr_t = 0;
-
-	/* Render to this RenderTarget. */
-	virtual void StartRenderingTo() = 0;
-
-	/* Stop rendering to this RenderTarget.  Update the texture, if necessary,
-	 * and make it available. */
-	virtual void FinishRenderingTo() = 0;
-
-	[[nodiscard]] virtual auto InvertY() const -> bool { return false; }
-
-	[[nodiscard]] auto GetParam() const -> const RenderTargetParam&
-	{
-		return m_Param;
-	}
-
-  protected:
-	RenderTargetParam m_Param;
 };
 
 #endif
