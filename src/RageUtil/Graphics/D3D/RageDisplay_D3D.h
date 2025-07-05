@@ -106,6 +106,7 @@ class RageDisplay_D3D : public RageDisplay
 
 	void SetShadersOrFVF(unsigned long fvfDefinition);
 	std::vector<std::string> GetSupportedShaderProfiles() override;
+	LPDIRECT3DDEVICE9 GetD3DDevice() { return g_pd3dDevice; }
 
   protected:
 	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;
@@ -127,8 +128,14 @@ class RageDisplay_D3D : public RageDisplay
 	auto GetOrthoMatrix(float l, float r, float b, float t, float zn, float zf)
 	  -> RageMatrix override;
 
-	static void RecoverFromDeviceLoss();
+	void RecoverFromDeviceLoss();
 	void SendCurrentMatrices();
+	void SetPalette(unsigned TexResource);
+	auto FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT;
+	auto SetD3DParams(bool& bNewDeviceOut) -> std::string;
+	auto D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool;
+	void SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
+												 D3DPRESENT_PARAMETERS* pD3Dpp);
 
 	// Globals
 	HMODULE g_D3D9_Module = nullptr;

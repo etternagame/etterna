@@ -34,8 +34,8 @@
 
 // Load the palette, if any, for the given texture into a palette slot, and make
 // it current.
-static void
-SetPalette(unsigned TexResource)
+void
+RageDisplay_D3D::SetPalette(unsigned TexResource)
 {
 	// If the texture isn't paletted, we have nothing to do.
 	if (g_TexResourceToTexturePalette.find(TexResource) ==
@@ -278,7 +278,7 @@ RageDisplay_D3D::GetDisplaySpecs(DisplaySpecs& out) const
 }
 
 auto
-FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
+RageDisplay_D3D::FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 {
 	HRESULT hr;
 
@@ -339,7 +339,7 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 }
 
 auto
-SetD3DParams(bool& bNewDeviceOut) -> std::string
+RageDisplay_D3D::SetD3DParams(bool& bNewDeviceOut) -> std::string
 {
 	// wipe old render targets
 	for (auto& rt : g_mapRenderTargets) {
@@ -385,8 +385,8 @@ SetD3DParams(bool& bNewDeviceOut) -> std::string
 }
 
 // If the given parameters have failed, try to lower them.
-static auto
-D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
+auto
+RageDisplay_D3D::D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 {
 	D3DDISPLAYMODE current;
 	current.Format = pp->BackBufferFormat;
@@ -472,8 +472,8 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 	return true;
 }
 
-static void
-SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
+void
+RageDisplay_D3D::SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 										D3DPRESENT_PARAMETERS* pD3Dpp)
 {
 	ZERO(*pD3Dpp);
@@ -931,25 +931,28 @@ class RageCompiledGeometrySWD3D : public RageCompiledGeometry
 	{
 		const auto& meshInfo = m_vMeshInfo[iMeshIndex];
 
+		// oh god
+		auto display = reinterpret_cast<RageDisplay_D3D*>(DISPLAY);
+		auto device = display->GetD3DDevice();
+
 		if (meshInfo.m_bNeedsTextureMatrixScale) {
 			// Kill the texture translation.
 			// XXX: Change me to scale the translation by the
 			// TextureTranslationScale of the first vertex.
 			RageMatrix m;
-			g_pd3dDevice->GetTransform(D3DTS_TEXTURE0,
+			device->GetTransform(D3DTS_TEXTURE0,
 									   reinterpret_cast<D3DMATRIX*>(&m));
 
 			m.m[2][0] = 0;
 			m.m[2][1] = 0;
 
-			g_pd3dDevice->SetTransform(D3DTS_TEXTURE0,
+			device->SetTransform(D3DTS_TEXTURE0,
 									   reinterpret_cast<D3DMATRIX*>(&m));
 		}
 
-		// oh god
-		((RageDisplay_D3D*)DISPLAY)->SetShadersOrFVF(D3DFVF_RageModelVertex);
+		display->SetShadersOrFVF(D3DFVF_RageModelVertex);
 
-		g_pd3dDevice->DrawIndexedPrimitiveUP(
+		device->DrawIndexedPrimitiveUP(
 		  D3DPT_TRIANGLELIST,
 		  // PrimitiveType
 		  meshInfo.iVertexStart,
