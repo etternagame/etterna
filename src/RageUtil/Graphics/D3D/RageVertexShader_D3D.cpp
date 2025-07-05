@@ -1,6 +1,6 @@
-#include "RagePixelShader_D3D.h"
+#include "RageVertexShader_D3D.h"
 #include "Core/Services/Locator.hpp"
-#include "RageUtil/Graphics/RageDisplay_D3D_Helpers.h"
+#include "RageDisplay_D3D_Helpers.h"
 
 // Static libraries
 // load Windows D3D9 dynamically
@@ -10,23 +10,24 @@
 #endif
 
 [[nodiscard]] HRESULT
-RagePixelShader_D3D::Compile(const std::string& pixelShaderProfile)
+RageVertexShader_D3D::Compile(const std::string& vertexShaderProfile)
 {
 	LPD3DXBUFFER errorBuffer = nullptr;
 	auto result = D3DXCompileShaderFromFile(m_Path.c_str(),
 											nullptr,
 											nullptr,
 	  RageDisplay_D3D_Helpers::ShaderEntryPoint.data(),
-											pixelShaderProfile.c_str(),
+											vertexShaderProfile.c_str(),
 											0,
 											&m_ShaderBuffer,
 											&errorBuffer,
 											nullptr);
 
 	if (result != D3D_OK) {
-		Locator::getLogger()->warn("RagePixelShader_D3D D3DXCompileShaderFromFile "
-								   "failed for {} - {} (error buffer: {})",
-								   m_Path,
+		Locator::getLogger()->warn(
+		  "RageVertexShader_D3D D3DXCompileShaderFromFile "
+		  "failed for {} - {} (error buffer: {})",
+		  m_Path,
 		  RageDisplay_D3D_Helpers::GetErrorString(result),
 		  (char*)errorBuffer->GetBufferPointer());
 		errorBuffer->Release();
@@ -35,20 +36,21 @@ RagePixelShader_D3D::Compile(const std::string& pixelShaderProfile)
 	return result;
 }
 
-IDirect3DPixelShader9*
-RagePixelShader_D3D::CreateForDevice(LPDIRECT3DDEVICE9 device, bool forceRefresh)
+IDirect3DVertexShader9*
+RageVertexShader_D3D::CreateForDevice(LPDIRECT3DDEVICE9 device,
+									 bool forceRefresh)
 {
 	if (m_Shader != nullptr && !forceRefresh) {
 		return m_Shader;
 	}
 
-	IDirect3DPixelShader9* shader = nullptr;
-	auto result = device->CreatePixelShader(
+	IDirect3DVertexShader9* shader = nullptr;
+	auto result = device->CreateVertexShader(
 	  (const DWORD*)m_ShaderBuffer->GetBufferPointer(), &shader);
 
 	if (result != D3D_OK) {
 		Locator::getLogger()->warn(
-		  "RagePixelShader_D3D "
+		  "RageVertexShader_D3D "
 		  "CreateForDevice failed for {} - {}",
 		  m_Path,
 		  RageDisplay_D3D_Helpers::GetErrorString(result));
@@ -64,7 +66,7 @@ RagePixelShader_D3D::CreateForDevice(LPDIRECT3DDEVICE9 device, bool forceRefresh
 	return shader;
 }
 
-RagePixelShader_D3D::~RagePixelShader_D3D()
+RageVertexShader_D3D::~RageVertexShader_D3D()
 {
 	if (m_ShaderBuffer != nullptr) {
 		m_ShaderBuffer->Release();

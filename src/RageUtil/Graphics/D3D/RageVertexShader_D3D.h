@@ -1,7 +1,7 @@
 #ifndef RAGE_VERTEX_SHADER_D3D_H
 #define RAGE_VERTEX_SHADER_D3D_H
 
-#include "RageShader.h"
+#include "RageUtil/Graphics/Shaders/RageShader.h"
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <string>

@@ -412,7 +412,7 @@ AdjustForChangedSystemCapabilities()
 }
 
 #ifdef _WIN32
-#include "RageUtil/Graphics/RageDisplay_D3D.h"
+#include "RageUtil/Graphics/D3D/RageDisplay_D3D.h"
 #include "archutils/Win32/VideoDriverInfo.h"
 #endif
 
