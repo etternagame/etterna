@@ -141,11 +141,6 @@ class RageDisplay_D3D : public RageDisplay
 	DWORD g_lastFVF = 0;
 	bool g_bSphereMapping[NUM_TextureUnit] = { false, false };
 
-	// Need default color and depth buffer to restore them after using render
-	// targets
-	IDirect3DSurface9* defaultColorBuffer = nullptr;
-	IDirect3DSurface9* defaultDepthBuffer = nullptr;
-
 	// TODO(Sam): Instead of defining this here, enumerate the possible formats
 	// and select whatever one we want to use. This format should be fine for
 	// the uses of this application though.

@@ -36,6 +36,14 @@ class D3DRenderTarget_FramebufferObject : public RenderTarget
 	IDirect3DSurface9* m_iFrameBufferHandle;
 	IDirect3DTexture9* m_uTexHandle;
 	IDirect3DSurface9* m_iDepthBufferHandle;
+	LPDIRECT3D9 g_pd3d = nullptr;
+	D3DPRESENT_PARAMETERS g_d3dpp;
+	LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
+
+	// Need default color and depth buffer to restore them after using render
+	// targets
+	IDirect3DSurface9* defaultColorBuffer = nullptr;
+	IDirect3DSurface9* defaultDepthBuffer = nullptr;
 };
 
 #endif
