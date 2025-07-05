@@ -16,7 +16,7 @@ std::optional<RageShaderHandler::ShaderId>
 RageShaderHandler::CacheShaderFromPath(const std::string& path,
 										bool useAsDefaultShader)
 {
-	std::optional<RageShader> shader = m_CompileShader(path);
+	std::optional<RageShader> shader = CompileShader(path);
 	if (!shader.has_value()) {
 		return std::nullopt;
 	}
@@ -63,7 +63,7 @@ RageShaderHandler::TrySetActiveShader(ShaderId shaderId)
 								 : &m_ShaderCache[shaderLookupKey];
 
 	// TODO: rollback to previous shader in case of fucky wucky?
-	size_t setShaderResult = m_TrySetShaderForDevice(neededShader);
+	size_t setShaderResult = TrySetShaderForDevice(neededShader);
 	if (setShaderResult == 0) {
 		m_CurrentShader = shaderId;
 		return true;
