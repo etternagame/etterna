@@ -24,62 +24,12 @@
 #include <chrono>
 #include <fstream>
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnew-returns-null"
-#pragma clang diagnostic ignored "-Wcomment"
-#endif
-#include <d3dx9tex.h>
-#include <d3d9.h>
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
-
 // Static libraries
 // load Windows D3D9 dynamically
 #if defined(_MSC_VER)
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
 #endif
-
-// Globals
-HMODULE g_D3D9_Module = nullptr;
-LPDIRECT3D9 g_pd3d = nullptr;
-LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
-D3DCAPS9 g_DeviceCaps;
-D3DDISPLAYMODE g_DesktopMode;
-D3DPRESENT_PARAMETERS g_d3dpp;
-int g_ModelMatrixCnt = 0;
-DWORD g_lastFVF = 0;
-static bool g_bSphereMapping[NUM_TextureUnit] = { false, false };
-
-// Need default color and depth buffer to restore them after using render
-// targets
-IDirect3DSurface9* defaultColorBuffer = nullptr;
-IDirect3DSurface9* defaultDepthBuffer = nullptr;
-
-// TODO(Sam): Instead of defining this here, enumerate the possible formats and
-// select whatever one we want to use. This format should be fine for the uses
-// of this application though.
-const D3DFORMAT g_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
-
-static std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
-static RenderTarget* g_pCurrentRenderTarget = nullptr;
-
-static bool g_bInvertY = false;
-
-/* Direct3D doesn't associate a palette with textures. Instead, we load a
- * palette into a slot. We need to keep track of which texture's palette is
- * stored in what slot. */
-std::map<intptr_t, int> g_TexResourceToPaletteIndex;
-std::list<int> g_PaletteIndex;
-
-struct TexturePalette
-{
-	PALETTEENTRY p[256];
-};
-
-std::map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
 
 // Load the palette, if any, for the given texture into a palette slot, and make
 // it current.
@@ -832,8 +782,7 @@ RageDisplay_D3D::GetActualVideoModeParams() const
 {
 	return static_cast<ActualVideoModeParams*>(GraphicsWindow::GetParams());
 }
-bool usingVertexShader = false;
-bool usingPixelShader = false;
+
 void
 RageDisplay_D3D::SendCurrentMatrices()
 {
@@ -1035,11 +984,6 @@ RageDisplay_D3D::DeleteCompiledGeometry(RageCompiledGeometry* p)
 	delete p;
 }
 
-IDirect3DPixelShader9* pixelShader = nullptr;
-IDirect3DVertexShader9* vertexShader = nullptr;
-std::optional<RagePixelShader_D3D> pixelContainer;
-std::optional<RageVertexShader_D3D> vertexContainer;
-
 void
 RageDisplay_D3D::SetShader(const RageShaderWeakRef& reference)
 {
@@ -1100,7 +1044,8 @@ constexpr D3DVERTEXELEMENT9 modelDecl[] = { { 0,
 void
 RageDisplay_D3D::SetShadersOrFVF(unsigned long fvfDefinition)
 {
-	if (usingVertexShader && usingPixelShader && vertexShader != NULL &&
+	// patience...
+	/*if (usingVertexShader && usingPixelShader && vertexShader != NULL &&
 		pixelShader != NULL) {
 		const D3DVERTEXELEMENT9* decl;
 
@@ -1122,7 +1067,7 @@ RageDisplay_D3D::SetShadersOrFVF(unsigned long fvfDefinition)
 		if (FAILED(g_pd3dDevice->SetPixelShader(pixelShader))) {
 			Locator::getLogger()->warn("wat");
 		}
-	} else if (g_lastFVF != fvfDefinition) {
+	} else*/ if (g_lastFVF != fvfDefinition) {
 		g_lastFVF = fvfDefinition;
 		g_pd3dDevice->SetFVF(fvfDefinition);
 	}
@@ -1184,27 +1129,27 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 void
 RageDisplay_D3D::SetWorldViewProjectionMatrix()
 {
-	static D3DXMATRIX World, View, Proj, WVP;
-	static D3DXMATRIX currentWorld, currentView, currentProj;
-	if (usingVertexShader) {
-		
-		g_pd3dDevice->GetTransform(D3DTS_PROJECTION, &currentProj);
-		g_pd3dDevice->GetTransform(D3DTS_VIEW, &currentView);
-		g_pd3dDevice->GetTransform(D3DTS_WORLD, &currentWorld);
+	//static D3DXMATRIX World, View, Proj, WVP;
+	//static D3DXMATRIX currentWorld, currentView, currentProj;
+	//if (usingVertexShader) {
+	//	
+	//	g_pd3dDevice->GetTransform(D3DTS_PROJECTION, &currentProj);
+	//	g_pd3dDevice->GetTransform(D3DTS_VIEW, &currentView);
+	//	g_pd3dDevice->GetTransform(D3DTS_WORLD, &currentWorld);
 
-		if (currentWorld != World || currentView != View || currentProj != Proj) {
-			if (currentWorld != World)
-				World = currentWorld;
-			if (currentView != View)
-				View = currentView;
-			if (currentProj != Proj)
-				Proj = currentProj;
-			WVP = currentWorld * currentView * currentProj;
-		}
-		g_pd3dDevice->SetVertexShaderConstantF(0, WVP, 4);
-	}
-	usingVertexShader = false;
-	usingPixelShader = false;
+	//	if (currentWorld != World || currentView != View || currentProj != Proj) {
+	//		if (currentWorld != World)
+	//			World = currentWorld;
+	//		if (currentView != View)
+	//			View = currentView;
+	//		if (currentProj != Proj)
+	//			Proj = currentProj;
+	//		WVP = currentWorld * currentView * currentProj;
+	//	}
+	//	g_pd3dDevice->SetVertexShaderConstantF(0, WVP, 4);
+	//}
+	//usingVertexShader = false;
+	//usingPixelShader = false;
 }
 
 void
@@ -1376,25 +1321,6 @@ RageDisplay_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 		g_pd3dDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_CURRENT);
 	}
 }
-
-/* Use the default poly-based implementation.  D3D lines apparently don't
- * support AA with greater-than-one widths. */
-/*
-void RageDisplay_D3D::DrawLineStrip( const RageSpriteVertex v[], int iNumVerts,
-float LineWidth )
-{
-	ASSERT( iNumVerts >= 2 );
-	g_pd3dDevice->SetRenderState( D3DRS_POINTSIZE, *((DWORD*)&LineWidth) );
-// funky cast.  See D3DRENDERSTATETYPE doc g_pd3dDevice->SetVertexShader(
-D3DFVF_RageSpriteVertex ); SendCurrentMatrices(); g_pd3dDevice->DrawPrimitiveUP(
-		D3DPT_LINESTRIP, // PrimitiveType
-		iNumVerts-1, // PrimitiveCount,
-		v, // pVertexStreamZeroData,
-		sizeof(RageSpriteVertex)
-	);
-	StatsAddVerts( iNumVerts );
-}
-*/
 
 void
 RageDisplay_D3D::ClearAllTextures()

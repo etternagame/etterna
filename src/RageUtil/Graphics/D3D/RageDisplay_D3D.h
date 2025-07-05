@@ -3,6 +3,17 @@
 #ifndef RAGE_DISPLAY_D3D_H
 #define RAGE_DISPLAY_D3D_H
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnew-returns-null"
+#pragma clang diagnostic ignored "-Wcomment"
+#endif
+#include <d3dx9tex.h>
+#include <d3d9.h>
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 class RageDisplay_D3D : public RageDisplay
 {
   public:
@@ -116,6 +127,45 @@ class RageDisplay_D3D : public RageDisplay
 
 	static void RecoverFromDeviceLoss();
 	void SendCurrentMatrices();
+
+	// Globals
+	HMODULE g_D3D9_Module = nullptr;
+	LPDIRECT3D9 g_pd3d = nullptr;
+	LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
+	D3DCAPS9 g_DeviceCaps;
+	D3DDISPLAYMODE g_DesktopMode;
+	D3DPRESENT_PARAMETERS g_d3dpp;
+	int g_ModelMatrixCnt = 0;
+	DWORD g_lastFVF = 0;
+	bool g_bSphereMapping[NUM_TextureUnit] = { false, false };
+
+	// Need default color and depth buffer to restore them after using render
+	// targets
+	IDirect3DSurface9* defaultColorBuffer = nullptr;
+	IDirect3DSurface9* defaultDepthBuffer = nullptr;
+
+	// TODO(Sam): Instead of defining this here, enumerate the possible formats
+	// and select whatever one we want to use. This format should be fine for
+	// the uses of this application though.
+	const D3DFORMAT g_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
+
+	std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
+	RenderTarget* g_pCurrentRenderTarget = nullptr;
+
+	bool g_bInvertY = false;
+
+	/* Direct3D doesn't associate a palette with textures. Instead, we load a
+	 * palette into a slot. We need to keep track of which texture's palette is
+	 * stored in what slot. */
+	std::map<intptr_t, int> g_TexResourceToPaletteIndex;
+	std::list<int> g_PaletteIndex;
+
+	struct TexturePalette
+	{
+		PALETTEENTRY p[256];
+	};
+
+	std::map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
 };
 
 class RenderTarget
