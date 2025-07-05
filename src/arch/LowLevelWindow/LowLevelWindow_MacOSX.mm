@@ -6,6 +6,7 @@
 #import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Globals/GameLoop.h"
+#include "RageUtil/Graphics/RenderTarget.h"
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/OpenGL.h>
