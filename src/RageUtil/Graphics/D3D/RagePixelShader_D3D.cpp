@@ -2,13 +2,6 @@
 #include "Core/Services/Locator.hpp"
 #include "RageDisplay_D3D_Helpers.h"
 
-// Static libraries
-// load Windows D3D9 dynamically
-#if defined(_MSC_VER)
-#pragma comment(lib, "d3d9.lib")
-#pragma comment(lib, "d3dx9.lib")
-#endif
-
 [[nodiscard]] HRESULT
 RagePixelShader_D3D::Compile(const std::string& pixelShaderProfile)
 {
