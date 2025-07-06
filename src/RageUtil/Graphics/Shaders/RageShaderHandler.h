@@ -10,16 +10,18 @@
 
 class RageShaderHandler
 {
-	// (lookupKey, isDefaultShader)
-	using ShaderId = std::pair<size_t, bool>;
+	RageShaderHandler(RageDisplayType displayType, RageShaderType shaderType);
 
 	bool IsShaderInCache(size_t shaderLookupKey) const;
-	bool IsDefaultShaderInCache(size_t defaultShaderIndex) const;
+	bool IsDefaultShaderInCache(size_t shaderLookupKey) const;
 
-	std::optional<ShaderId> CacheShaderFromPath(const std::string& path,
+	std::optional<RageShaderWeakRef> CacheShaderFromPath(const std::string& path,
 												bool useAsDefaultShader);
-	bool TryRemoveShaderFromCache(size_t shaderLookupKey);
-	bool TrySetActiveShader(ShaderId shaderId);
+	bool TryRemoveShaderFromCache(RageShaderWeakRef shader);
+	bool TrySetActiveShader(RageShaderWeakRef shader);
+	
+	// CONVENTION (notes for myself): ownership is not passed to the caller
+	RageShader* GetCurrentShader();
 
   protected:
 	// CONVENTION (notes for myself): ownership of the return value must be
@@ -27,15 +29,14 @@ class RageShaderHandler
 	virtual std::optional<RageShader> CompileShader(
 	  const std::string& path) = 0;
 
-	// CONVENTION (notes for myself): the shader ownership is NOT passed to this
-	// function; returns true if everything went OK
-	virtual bool TrySetShaderForDevice(RageShader* shaderHandle) = 0;
-
   private:
 	std::unordered_map<size_t, RageShader> m_ShaderCache;
 	std::vector<RageShader> m_DefaultShaderCache;
 
-	std::optional<ShaderId> m_CurrentShader;
+	const RageDisplayType m_DisplayType;
+	const RageShaderType m_ShaderType;
+
+	RageShader* m_CurrentShader;
 
 	size_t GetShaderLookupKey(const std::string& path);
 	std::hash<std::string> m_StringHasher;

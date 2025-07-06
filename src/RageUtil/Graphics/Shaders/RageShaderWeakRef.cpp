@@ -1,16 +1,21 @@
 #include "RageShaderWeakRef.h"
 
 RageShaderWeakRef::RageShaderWeakRef()
-  : RageShaderWeakRef(0, RageDisplayType::Invalid, RageShaderType::Invalid)
+  : RageShaderWeakRef(0,
+					  RageDisplayType::Invalid,
+					  RageShaderType::Invalid,
+					  false)
 {
 }
 
 RageShaderWeakRef::RageShaderWeakRef(size_t lookupKey,
 									 RageDisplayType displayType,
-									 RageShaderType shaderType)
+									 RageShaderType shaderType,
+									 bool isDefault)
   : m_LookupKey(lookupKey)
   , m_DisplayType(displayType)
   , m_ShaderType(shaderType)
+  , m_IsDefault(isDefault)
 {
 	m_pLuaInstance = std::make_unique<LuaClass>();
 }
@@ -20,6 +25,7 @@ RageShaderWeakRef::RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef)
 	m_LookupKey = otherWeakRef.m_LookupKey;
 	m_DisplayType = otherWeakRef.m_DisplayType;
 	m_ShaderType = otherWeakRef.m_ShaderType;
+	m_IsDefault = otherWeakRef.m_IsDefault;
 }
 
 RageShaderWeakRef&
@@ -28,6 +34,7 @@ RageShaderWeakRef::operator=(const RageShaderWeakRef& otherWeakRef)
 	m_LookupKey = otherWeakRef.m_LookupKey;
 	m_DisplayType = otherWeakRef.m_DisplayType;
 	m_ShaderType = otherWeakRef.m_ShaderType;
+	m_IsDefault = otherWeakRef.m_IsDefault;
 
 	return *this;
 }
@@ -58,7 +65,14 @@ RageShaderWeakRef::GetShaderType() const
 	return m_ShaderType;
 }
 
-// maybe move this to LunaRageShaderWeakRef.cpp or something if the macrohell doesn't unleash
+bool
+RageShaderWeakRef::IsDefault() const
+{
+	return m_IsDefault;
+}
+
+// maybe move this to LunaRageShaderWeakRef.cpp or something if the macrohell
+// doesn't unleash
 #pragma region Lua wrapper
 
 class LunaRageShaderWeakRef : public Luna<RageShaderWeakRef>

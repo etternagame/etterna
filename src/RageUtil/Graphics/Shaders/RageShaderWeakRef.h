@@ -1,4 +1,5 @@
-/* RageShaderWeakRef - weak reference to a shader (used for lookups by RageShaderHandler) */
+/* RageShaderWeakRef - weak reference to a shader (used for lookups by
+ * RageShaderHandler) */
 
 #ifndef RAGE_SHADER_REFERENCE_H
 #define RAGE_SHADER_REFERENCE_H
@@ -24,7 +25,8 @@ enum class RageShaderType
 LuaDeclareType(RageShaderType);
 
 // TODO: Lua bindings so it's easy to pass these thingies around
-// ALSO NOTE: it's likely much better to use compile-time constants and such to load default shaders
+// ALSO NOTE: it's likely much better to use compile-time constants and such to
+// load default shaders
 class RageShaderWeakRef
 {
   public:
@@ -32,7 +34,8 @@ class RageShaderWeakRef
 
 	RageShaderWeakRef(size_t lookupKey,
 					  RageDisplayType displayType,
-					  RageShaderType shaderType);
+					  RageShaderType shaderType,
+					  bool isDefault);
 	RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef);
 	RageShaderWeakRef& operator=(const RageShaderWeakRef& otherWeakRef);
 
@@ -40,6 +43,7 @@ class RageShaderWeakRef
 	size_t GetLookupKey() const;
 	RageDisplayType GetDisplayType() const;
 	RageShaderType GetShaderType() const;
+	bool IsDefault() const;
 
 	// LunaRageShaderWeakRef territory
 	void PushSelf(lua_State* L);
@@ -49,6 +53,7 @@ class RageShaderWeakRef
 	size_t m_LookupKey;
 	RageDisplayType m_DisplayType;
 	RageShaderType m_ShaderType;
+	bool m_IsDefault;
 };
 
 #endif
