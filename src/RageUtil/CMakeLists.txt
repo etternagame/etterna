@@ -98,6 +98,8 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
 if(WIN32)
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageDisplay_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RageDisplay_D3D.h")
+  list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageCompiledGeometrySWD3D.cpp")
+  list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RageCompiledGeometrySWD3D.h")
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageDisplay_D3D_Helpers.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RageDisplay_D3D_Helpers.h")
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RagePixelShader_D3D.cpp")

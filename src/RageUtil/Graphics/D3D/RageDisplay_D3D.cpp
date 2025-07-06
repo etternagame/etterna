@@ -17,6 +17,7 @@
 #include "RagePixelShader_D3D.h"
 #include "RageVertexShader_D3D.h"
 #include "D3DRenderTarget_FramebufferObject.h"
+#include "RageCompiledGeometrySWD3D.h"
 
 #include <optional>
 #include <algorithm>
@@ -83,10 +84,6 @@ RageDisplay_D3D::SetPalette(unsigned TexResource)
 
 	g_pd3dDevice->SetCurrentTexturePalette(iPalIndex);
 }
-
-#define D3DFVF_RageSpriteVertex                                                \
-	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)
-#define D3DFVF_RageModelVertex (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1)
 
 static const RageDisplay::RagePixelFormatDesc
   PIXEL_FORMAT_DESC[NUM_RagePixelFormat] = {
@@ -892,89 +889,6 @@ RageDisplay_D3D::SendCurrentMatrices()
 		}
 	}
 }
-
-class RageCompiledGeometrySWD3D : public RageCompiledGeometry
-{
-  public:
-	void Allocate(const std::vector<msMesh>& /*vMeshes*/) override
-	{
-		m_vVertex.resize(
-		  std::max(1U, static_cast<unsigned>(GetTotalVertices())));
-		m_vTriangles.resize(
-		  std::max(1U, static_cast<unsigned>(GetTotalTriangles())));
-	}
-
-	void Change(const std::vector<msMesh>& vMeshes) override
-	{
-		for (unsigned i = 0; i < vMeshes.size(); i++) {
-			const auto& meshInfo = m_vMeshInfo[i];
-			const auto& mesh = vMeshes[i];
-			const auto& Vertices = mesh.Vertices;
-			const auto& Triangles = mesh.Triangles;
-
-			for (unsigned j = 0; j < Vertices.size(); j++) {
-				m_vVertex[meshInfo.iVertexStart + j] = Vertices[j];
-			}
-
-			for (unsigned j = 0; j < Triangles.size(); j++) {
-				for (unsigned k = 0; k < 3; k++) {
-					m_vTriangles[meshInfo.iTriangleStart + j]
-					  .nVertexIndices[k] =
-					  static_cast<uint16_t>(meshInfo.iVertexStart) +
-					  Triangles[j].nVertexIndices[k];
-				}
-			}
-		}
-	}
-
-	void Draw(int iMeshIndex) const override
-	{
-		const auto& meshInfo = m_vMeshInfo[iMeshIndex];
-
-		// oh god
-		auto display = reinterpret_cast<RageDisplay_D3D*>(DISPLAY);
-		auto device = display->GetD3DDevice();
-
-		if (meshInfo.m_bNeedsTextureMatrixScale) {
-			// Kill the texture translation.
-			// XXX: Change me to scale the translation by the
-			// TextureTranslationScale of the first vertex.
-			RageMatrix m;
-			device->GetTransform(D3DTS_TEXTURE0,
-									   reinterpret_cast<D3DMATRIX*>(&m));
-
-			m.m[2][0] = 0;
-			m.m[2][1] = 0;
-
-			device->SetTransform(D3DTS_TEXTURE0,
-									   reinterpret_cast<D3DMATRIX*>(&m));
-		}
-
-		display->SetShadersOrFVF(D3DFVF_RageModelVertex);
-
-		device->DrawIndexedPrimitiveUP(
-		  D3DPT_TRIANGLELIST,
-		  // PrimitiveType
-		  meshInfo.iVertexStart,
-		  // MinIndex
-		  meshInfo.iVertexCount,
-		  // NumVertices
-		  meshInfo.iTriangleCount,
-		  // PrimitiveCount,
-		  &m_vTriangles[0] + meshInfo.iTriangleStart,
-		  // pIndexData,
-		  D3DFMT_INDEX16,
-		  // IndexDataFormat,
-		  &m_vVertex[0],
-		  // pVertexStreamZeroData,
-		  sizeof(m_vVertex[0]) // VertexStreamZeroStride
-		);
-	}
-
-  protected:
-	std::vector<RageModelVertex> m_vVertex;
-	std::vector<msTriangle> m_vTriangles;
-};
 
 auto
 RageDisplay_D3D::CreateCompiledGeometry() -> RageCompiledGeometry*

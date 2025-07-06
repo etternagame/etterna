@@ -15,6 +15,7 @@
 #endif
 
 #include "RageUtil/Graphics/RenderTarget.h"
+#include <list>
 
 class RageDisplay_D3D : public RageDisplay
 {
