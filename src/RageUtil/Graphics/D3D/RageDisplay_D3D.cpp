@@ -361,6 +361,9 @@ RageDisplay_D3D::SetD3DParams(bool& bNewDeviceOut) -> std::string
 			return ssprintf("CreateDevice failed: '%s'",
 			  RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
 		}
+
+		m_PixelShaderHandler.emplace(g_pd3dDevice);
+		m_VertexShaderHandler.emplace(g_pd3dDevice);
 	} else {
 		bNewDeviceOut = false;
 		// LOG->Warn( "Resetting D3D device" );

@@ -96,6 +96,7 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
 )
 
 if(WIN32)
+# TODO: nesting stuffs?
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageDisplay_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RageDisplay_D3D.h")
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageCompiledGeometrySWD3D.cpp")
@@ -106,6 +107,10 @@ if(WIN32)
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RagePixelShader_D3D.h")
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageVertexShader_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RageVertexShader_D3D.h")
+  list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RagePixelShaderHandler_D3D.cpp")
+  list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RagePixelShaderHandler_D3D.h")
+  list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/RageVertexShaderHandler_D3D.cpp")
+  list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/RageVertexShaderHandler_D3D.h")
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/D3D/D3DRenderTarget_FramebufferObject.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/D3D/D3DRenderTarget_FramebufferObject.h")
 elseif(LINUX)

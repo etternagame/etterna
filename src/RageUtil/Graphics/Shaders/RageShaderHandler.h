@@ -10,6 +10,7 @@
 
 class RageShaderHandler
 {
+public:
 	RageShaderHandler(RageDisplayType displayType, RageShaderType shaderType);
 
 	bool IsShaderInCache(size_t shaderLookupKey) const;

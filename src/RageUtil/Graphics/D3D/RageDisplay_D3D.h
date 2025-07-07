@@ -15,6 +15,8 @@
 #endif
 
 #include "RageUtil/Graphics/RenderTarget.h"
+#include "RagePixelShaderHandler_D3D.h"
+#include "RageVertexShaderHandler_D3D.h"
 #include <list>
 
 class RageDisplay_D3D : public RageDisplay
@@ -137,6 +139,9 @@ class RageDisplay_D3D : public RageDisplay
 	auto D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool;
 	void SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 												 D3DPRESENT_PARAMETERS* pD3Dpp);
+
+	std::optional<RageVertexShaderHandler_D3D> m_VertexShaderHandler;
+	std::optional<RagePixelShaderHandler_D3D> m_PixelShaderHandler;
 
 	// Globals
 	HMODULE g_D3D9_Module = nullptr;

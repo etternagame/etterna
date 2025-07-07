@@ -5,6 +5,7 @@ RageShaderHandler::RageShaderHandler(RageDisplayType displayType,
   : m_DisplayType(displayType)
   , m_ShaderType(shaderType)
 {
+	m_CurrentShader = nullptr;
 }
 
 bool
