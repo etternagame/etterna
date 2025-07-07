@@ -109,7 +109,7 @@ class RageDisplay_D3D : public RageDisplay
 
 	void SetShadersOrFVF(unsigned long fvfDefinition);
 	std::vector<std::string> GetSupportedShaderProfiles() override;
-	LPDIRECT3DDEVICE9 GetD3DDevice() { return g_pd3dDevice; }
+	LPDIRECT3DDEVICE9 GetD3DDevice() { return m_Device; }
 
   protected:
 	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;
@@ -144,38 +144,38 @@ class RageDisplay_D3D : public RageDisplay
 	std::optional<RagePixelShaderHandler_D3D> m_PixelShaderHandler;
 
 	// Globals
-	HMODULE g_D3D9_Module = nullptr;
-	LPDIRECT3D9 g_pd3d = nullptr;
-	LPDIRECT3DDEVICE9 g_pd3dDevice = nullptr;
+	HMODULE m_D3D9_Module = nullptr;
+	LPDIRECT3D9 m_D3D = nullptr;
+	LPDIRECT3DDEVICE9 m_Device = nullptr;
 	D3DCAPS9 g_DeviceCaps;
-	D3DDISPLAYMODE g_DesktopMode;
-	D3DPRESENT_PARAMETERS g_d3dpp;
-	int g_ModelMatrixCnt = 0;
-	DWORD g_lastFVF = 0;
-	bool g_bSphereMapping[NUM_TextureUnit] = { false, false };
+	D3DDISPLAYMODE m_DesktopMode;
+	D3DPRESENT_PARAMETERS m_PresentationParameters;
+	int m_ModelMatrixCnt = 0;
+	DWORD m_LastFVF = 0;
+	bool m_bSphereMapping[NUM_TextureUnit] = { false, false };
 
 	// TODO(Sam): Instead of defining this here, enumerate the possible formats
 	// and select whatever one we want to use. This format should be fine for
 	// the uses of this application though.
-	const D3DFORMAT g_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
+	const D3DFORMAT m_DefaultAdapterFormat = D3DFMT_X8R8G8B8;
 
-	std::map<intptr_t, RenderTarget*> g_mapRenderTargets;
-	RenderTarget* g_pCurrentRenderTarget = nullptr;
+	std::map<intptr_t, RenderTarget*> m_mapRenderTargets;
+	RenderTarget* m_pCurrentRenderTarget = nullptr;
 
-	bool g_bInvertY = false;
+	bool m_bInvertY = false;
 
 	/* Direct3D doesn't associate a palette with textures. Instead, we load a
 	 * palette into a slot. We need to keep track of which texture's palette is
 	 * stored in what slot. */
-	std::map<intptr_t, int> g_TexResourceToPaletteIndex;
-	std::list<int> g_PaletteIndex;
+	std::map<intptr_t, int> m_TexResourceToPaletteIndex;
+	std::list<int> m_PaletteIndex;
 
 	struct TexturePalette
 	{
 		PALETTEENTRY p[256];
 	};
 
-	std::map<intptr_t, TexturePalette> g_TexResourceToTexturePalette;
+	std::map<intptr_t, TexturePalette> m_TexResourceToTexturePalette;
 };
 
 #endif
