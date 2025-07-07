@@ -951,21 +951,22 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 												? m_SpriteVertexDeclaration
 												 : m_ModelVertexDeclaration;
 	// TODO: well they should be already initialized by the handler
-	IDirect3DVertexShader9* vertexShader =
-	  reinterpret_cast<RageVertexShader_D3D*>(m_VertexShaderHandler->GetCurrentShader())->CreateForDevice(m_Device, false);
+	RageVertexShader_D3D* vertexShader =
+	  reinterpret_cast<RageVertexShader_D3D*>(m_VertexShaderHandler->GetCurrentShader());
 
-	IDirect3DPixelShader9* pixelShader =
+	RagePixelShader_D3D* pixelShader =
 	  reinterpret_cast<RagePixelShader_D3D*>(
-		m_VertexShaderHandler->GetCurrentShader())
-		->CreateForDevice(m_Device, false);
+		m_VertexShaderHandler->GetCurrentShader());
 
 	if (FAILED(m_Device->SetVertexDeclaration(vertexDecl))) {
 		Locator::getLogger()->warn("wat");
 	}
-	if (FAILED(m_Device->SetVertexShader(vertexShader))) {
+	if (FAILED(m_Device->SetVertexShader(
+		  vertexShader->CreateForDevice(m_Device, false)))) {
 		Locator::getLogger()->warn("wat");
 	}
-	if (FAILED(m_Device->SetPixelShader(pixelShader))) {
+	if (FAILED(m_Device->SetPixelShader(
+		  pixelShader->CreateForDevice(m_Device, false)))) {
 		Locator::getLogger()->warn("wat");
 	}
 }
