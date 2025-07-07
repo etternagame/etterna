@@ -107,7 +107,7 @@ class RageDisplay_D3D : public RageDisplay
 	  const std::string& path,
 	  RageShaderType shaderType) override;
 
-	void SetShadersOrFVF(unsigned long fvfDefinition);
+	void SetShadersForDeclaration(bool useSpriteDeclaration);
 	std::vector<std::string> GetSupportedShaderProfiles() override;
 	LPDIRECT3DDEVICE9 GetD3DDevice() { return m_Device; }
 
@@ -152,6 +152,9 @@ class RageDisplay_D3D : public RageDisplay
 	int m_ModelMatrixCnt = 0;
 	DWORD m_LastFVF = 0;
 	bool m_bSphereMapping[NUM_TextureUnit] = { false, false };
+
+	IDirect3DVertexDeclaration9* m_SpriteVertexDeclaration = nullptr;
+	IDirect3DVertexDeclaration9* m_ModelVertexDeclaration = nullptr;
 
 	// TODO(Sam): Instead of defining this here, enumerate the possible formats
 	// and select whatever one we want to use. This format should be fine for

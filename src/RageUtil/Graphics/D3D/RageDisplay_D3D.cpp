@@ -221,6 +221,16 @@ RageDisplay_D3D::~RageDisplay_D3D()
 
 	GraphicsWindow::Shutdown();
 
+	if (m_SpriteVertexDeclaration != nullptr) {
+		m_SpriteVertexDeclaration->Release();
+		m_SpriteVertexDeclaration = nullptr;
+	}
+
+	if (m_ModelVertexDeclaration != nullptr) {
+		m_ModelVertexDeclaration->Release();
+		m_ModelVertexDeclaration = nullptr;
+	}
+
 	if (m_Device != nullptr) {
 		m_Device->Release();
 		m_Device = nullptr;
@@ -348,7 +358,7 @@ RageDisplay_D3D::SetD3DParams(bool& bNewDeviceOut) -> std::string
 	// device is not yet created. We need to create it
 	{
 		bNewDeviceOut = true;
-		const auto hr =
+		auto hr =
 		  m_D3D->CreateDevice(D3DADAPTER_DEFAULT,
 							   D3DDEVTYPE_HAL,
 							   GraphicsWindow::GetHwnd(),
@@ -364,6 +374,24 @@ RageDisplay_D3D::SetD3DParams(bool& bNewDeviceOut) -> std::string
 
 		m_PixelShaderHandler.emplace(m_Device);
 		m_VertexShaderHandler.emplace(m_Device);
+
+		hr = m_Device->CreateVertexDeclaration(
+		  RageDisplay_D3D_Helpers::SpriteDeclaration,
+		  &m_SpriteVertexDeclaration);
+		if (FAILED(hr)) {
+			return ssprintf(
+			  "CreateVertexDeclaration failed: '%s'",
+			  RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
+		}
+
+		hr = m_Device->CreateVertexDeclaration(
+		  RageDisplay_D3D_Helpers::ModelDeclaration, &m_ModelVertexDeclaration);
+		if (FAILED(hr)) {
+			return ssprintf(
+			  "CreateVertexDeclaration failed: '%s'",
+			  RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
+		}
+
 	} else {
 		bNewDeviceOut = false;
 		// LOG->Warn( "Resetting D3D device" );
@@ -917,34 +945,28 @@ RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 }
 
 void
-RageDisplay_D3D::SetShadersOrFVF(unsigned long fvfDefinition)
+RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 {
-	// patience...
-	/*if (usingVertexShader && usingPixelShader && vertexShader != NULL &&
-		pixelShader != NULL) {
-		const D3DVERTEXELEMENT9* decl;
+	IDirect3DVertexDeclaration9* vertexDecl = useSpriteDeclaration
+												? m_SpriteVertexDeclaration
+												 : m_ModelVertexDeclaration;
+	// TODO: well they should be already initialized by the handler
+	IDirect3DVertexShader9* vertexShader =
+	  reinterpret_cast<RageVertexShader_D3D*>(m_VertexShaderHandler->GetCurrentShader())->CreateForDevice(m_Device, false);
 
-		if (fvfDefinition == D3DFVF_RageSpriteVertex) {
-			decl = SpriteDeclaration;
-		} else {
-			decl = ModelDeclaration;
-		}
-		IDirect3DVertexDeclaration9* vertexDecl = NULL;
-		if (FAILED(m_Device->CreateVertexDeclaration(decl, &vertexDecl))) {
-			Locator::getLogger()->warn("wat");
-		}
-		if (FAILED(m_Device->SetVertexDeclaration(vertexDecl))) {
-			Locator::getLogger()->warn("wat");
-		}
-		if (FAILED(m_Device->SetVertexShader(vertexShader))) {
-			Locator::getLogger()->warn("wat");
-		}
-		if (FAILED(m_Device->SetPixelShader(pixelShader))) {
-			Locator::getLogger()->warn("wat");
-		}
-	} else*/ if (m_LastFVF != fvfDefinition) {
-		m_LastFVF = fvfDefinition;
-		m_Device->SetFVF(fvfDefinition);
+	IDirect3DPixelShader9* pixelShader =
+	  reinterpret_cast<RagePixelShader_D3D*>(
+		m_VertexShaderHandler->GetCurrentShader())
+		->CreateForDevice(m_Device, false);
+
+	if (FAILED(m_Device->SetVertexDeclaration(vertexDecl))) {
+		Locator::getLogger()->warn("wat");
+	}
+	if (FAILED(m_Device->SetVertexShader(vertexShader))) {
+		Locator::getLogger()->warn("wat");
+	}
+	if (FAILED(m_Device->SetPixelShader(pixelShader))) {
+		Locator::getLogger()->warn("wat");
 	}
 }
 
@@ -978,7 +1000,7 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 		vIndices[i * 6 + 5] = i * 4 + 0;
 	}
 
-	SetShadersOrFVF(D3DFVF_RageSpriteVertex);
+	SetShadersForDeclaration(true);
 
 	SendCurrentMatrices();
 	SetWorldViewProjectionMatrix();
@@ -1051,7 +1073,7 @@ RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteVertex v[],
 		vIndices[i * 6 + 5] = i * 2 + 3;
 	}
 
-	SetShadersOrFVF(D3DFVF_RageSpriteVertex);
+	SetShadersForDeclaration(true);
 
 	SendCurrentMatrices();
 	m_Device->DrawIndexedPrimitiveUP(
@@ -1102,7 +1124,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 		vIndices[i * 12 + 11] = i * 3 + 5;
 	}
 
-	SetShadersOrFVF(D3DFVF_RageSpriteVertex);
+	SetShadersForDeclaration(true);
 
 	SendCurrentMatrices();
 	m_Device->DrawIndexedPrimitiveUP(
@@ -1127,7 +1149,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 void
 RageDisplay_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	SetShadersOrFVF(D3DFVF_RageSpriteVertex);
+	SetShadersForDeclaration(true);
 
 	SendCurrentMatrices();
 	m_Device->DrawPrimitiveUP(D3DPT_TRIANGLEFAN,
@@ -1142,7 +1164,7 @@ RageDisplay_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 void
 RageDisplay_D3D::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	SetShadersOrFVF(D3DFVF_RageSpriteVertex);
+	SetShadersForDeclaration(true);
 
 	SendCurrentMatrices();
 	m_Device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP,
@@ -1158,7 +1180,7 @@ void
 RageDisplay_D3D::DrawTrianglesInternal(const RageSpriteVertex v[],
 									   int iNumVerts)
 {
-	SetShadersOrFVF(D3DFVF_RageSpriteVertex);
+	SetShadersForDeclaration(true);
 
 	SendCurrentMatrices();
 	m_Device->DrawPrimitiveUP(D3DPT_TRIANGLELIST,

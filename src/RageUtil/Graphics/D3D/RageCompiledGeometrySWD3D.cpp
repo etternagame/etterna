@@ -56,7 +56,7 @@ RageCompiledGeometrySWD3D::Draw(int iMeshIndex) const
 		device->SetTransform(D3DTS_TEXTURE0, reinterpret_cast<D3DMATRIX*>(&m));
 	}
 
-	display->SetShadersOrFVF(D3DFVF_RageModelVertex);
+	display->SetShadersForDeclaration(false);
 
 	device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
