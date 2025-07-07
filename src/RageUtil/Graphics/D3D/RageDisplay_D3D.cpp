@@ -1003,7 +1003,9 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 	SetShadersForDeclaration(true);
 
 	SendCurrentMatrices();
-	SetWorldViewProjectionMatrix();
+	auto matrix = GetWorldViewProjectionMatrix();
+	m_Device->SetVertexShaderConstantF(0, *matrix, 4);
+
 	auto result = m_Device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
 	  // PrimitiveType
@@ -1023,30 +1025,28 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 	);
 }
 
-void
-RageDisplay_D3D::SetWorldViewProjectionMatrix()
+D3DXMATRIX*
+RageDisplay_D3D::GetWorldViewProjectionMatrix()
 {
-	//static D3DXMATRIX World, View, Proj, WVP;
-	//static D3DXMATRIX currentWorld, currentView, currentProj;
-	//if (usingVertexShader) {
-	//	
-	//	m_Device->GetTransform(D3DTS_PROJECTION, &currentProj);
-	//	m_Device->GetTransform(D3DTS_VIEW, &currentView);
-	//	m_Device->GetTransform(D3DTS_WORLD, &currentWorld);
+	// TODO: this is probably very slow
+	static D3DXMATRIX World, View, Proj, WVP;
+	static D3DXMATRIX currentWorld, currentView, currentProj;
 
-	//	if (currentWorld != World || currentView != View || currentProj != Proj) {
-	//		if (currentWorld != World)
-	//			World = currentWorld;
-	//		if (currentView != View)
-	//			View = currentView;
-	//		if (currentProj != Proj)
-	//			Proj = currentProj;
-	//		WVP = currentWorld * currentView * currentProj;
-	//	}
-	//	m_Device->SetVertexShaderConstantF(0, WVP, 4);
-	//}
-	//usingVertexShader = false;
-	//usingPixelShader = false;
+	m_Device->GetTransform(D3DTS_PROJECTION, &currentProj);
+	m_Device->GetTransform(D3DTS_VIEW, &currentView);
+	m_Device->GetTransform(D3DTS_WORLD, &currentWorld);
+
+	if (currentWorld != World || currentView != View || currentProj != Proj) {
+		if (currentWorld != World)
+			World = currentWorld;
+		if (currentView != View)
+			View = currentView;
+		if (currentProj != Proj)
+			Proj = currentProj;
+		WVP = currentWorld * currentView * currentProj;
+	}
+
+	return &WVP;
 }
 
 void
