@@ -1721,7 +1721,7 @@ RageDisplay_D3D::CreateRenderTarget(const RenderTargetParam& param,
 									int& iTextureWidthOut,
 									int& iTextureHeightOut) -> intptr_t
 {
-	auto* pTarget = new D3DRenderTarget_FramebufferObject;
+	auto* pTarget = new D3DRenderTarget_FramebufferObject(m_Device, m_PresentationParameters);
 
 	pTarget->Create(param, iTextureWidthOut, iTextureHeightOut);
 

@@ -2,7 +2,11 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Core/Services/Locator.hpp"
 
-D3DRenderTarget_FramebufferObject::D3DRenderTarget_FramebufferObject()
+D3DRenderTarget_FramebufferObject::D3DRenderTarget_FramebufferObject(
+  LPDIRECT3DDEVICE9 device,
+  D3DPRESENT_PARAMETERS presentationParameters)
+  : m_Device(device)
+  , m_PresentationParameters(presentationParameters)
 {
 	m_iFrameBufferHandle = nullptr;
 	m_uTexHandle = nullptr;
@@ -42,7 +46,7 @@ D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 		textureFormat = D3DFMT_X8R8G8B8;
 	}
 
-	if (!SUCCEEDED(g_pd3dDevice->CreateTexture(iTextureWidth,
+	if (!SUCCEEDED(m_Device->CreateTexture(iTextureWidth,
 											   iTextureHeight,
 											   1,
 											   D3DUSAGE_RENDERTARGET,
@@ -54,12 +58,12 @@ D3DRenderTarget_FramebufferObject::Create(const RenderTargetParam& param,
 	}
 
 	// Unlike OpenGL, D3D must use a depth stencil when using render targets
-	if (!SUCCEEDED(g_pd3dDevice->CreateDepthStencilSurface(
+	if (!SUCCEEDED(m_Device->CreateDepthStencilSurface(
 		  iTextureWidth,
 		  iTextureHeight,
-		  g_d3dpp.AutoDepthStencilFormat,
-		  g_d3dpp.MultiSampleType,
-		  g_d3dpp.MultiSampleQuality,
+		  m_PresentationParameters.AutoDepthStencilFormat,
+		  m_PresentationParameters.MultiSampleType,
+		  m_PresentationParameters.MultiSampleQuality,
 		  true,
 		  &m_iDepthBufferHandle,
 		  nullptr))) {
@@ -71,18 +75,18 @@ void
 D3DRenderTarget_FramebufferObject::StartRenderingTo()
 {
 	// Save default color and depth buffer
-	if (!SUCCEEDED(g_pd3dDevice->GetRenderTarget(0, &defaultColorBuffer)))
+	if (!SUCCEEDED(m_Device->GetRenderTarget(0, &defaultColorBuffer)))
 		Locator::getLogger()->warn("Failed to get default color buffer");
 
-	if (!SUCCEEDED(g_pd3dDevice->GetDepthStencilSurface(&defaultDepthBuffer)))
+	if (!SUCCEEDED(m_Device->GetDepthStencilSurface(&defaultDepthBuffer)))
 		Locator::getLogger()->warn("Failed to get default depth buffer");
 
 	// Set the render target to our RenderTarget texture
 	m_uTexHandle->GetSurfaceLevel(0, &m_iFrameBufferHandle);
-	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, m_iFrameBufferHandle)))
+	if (!SUCCEEDED(m_Device->SetRenderTarget(0, m_iFrameBufferHandle)))
 		Locator::getLogger()->warn("Failed to set target to RenderTarget");
 
-	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(m_iDepthBufferHandle)))
+	if (!SUCCEEDED(m_Device->SetDepthStencilSurface(m_iDepthBufferHandle)))
 		Locator::getLogger()->warn("Failed to set targetDepth to RenderTargetDepth");
 }
 
@@ -90,9 +94,9 @@ void
 D3DRenderTarget_FramebufferObject::FinishRenderingTo()
 {
 	// Restore the original color and depth buffers
-	if (!SUCCEEDED(g_pd3dDevice->SetRenderTarget(0, defaultColorBuffer)))
+	if (!SUCCEEDED(m_Device->SetRenderTarget(0, defaultColorBuffer)))
 		Locator::getLogger()->warn("Failed to set target to BackBuffer");
 
-	if (!SUCCEEDED(g_pd3dDevice->SetDepthStencilSurface(defaultDepthBuffer)))
+	if (!SUCCEEDED(m_Device->SetDepthStencilSurface(defaultDepthBuffer)))
 		Locator::getLogger()->warn("Failed to set targetDepth to BackBufferDepth");
 }
