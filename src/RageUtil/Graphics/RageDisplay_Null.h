@@ -144,9 +144,9 @@ class RageDisplay_Null : public RageDisplay
 	{
 	}
 
-	RageShaderWeakRef CreateShaderFromPath(
-	  const std::string& path,
-											 RageShaderType shaderType) override
+	RageShaderWeakRef CreateShaderFromPath(const std::string& path,
+										   RageShaderType shaderType,
+										   bool useAsDefault) override
 	{
 		return RageShaderWeakRef();
 	}

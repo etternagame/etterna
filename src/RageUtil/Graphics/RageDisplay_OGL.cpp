@@ -2935,7 +2935,8 @@ RageDisplay_Legacy::SetShader(const RageShaderWeakRef& reference)
 
 RageShaderWeakRef
 RageDisplay_Legacy::CreateShaderFromPath(const std::string& path,
-										 RageShaderType shaderType)
+										 RageShaderType shaderType,
+										 bool useAsDefault)
 {
 	return RageShaderWeakRef();
 }

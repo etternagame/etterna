@@ -1666,8 +1666,15 @@ Actor::SetShadersForDisplay()
 void
 Actor::LoadDefaultShaders()
 {
-	static constexpr std::string_view defaultVertexShader = "";
-	// henlo
+	static const std::string defaultVertexShader =
+	  "Data/Shaders/HLSL/CelVertex.hlsl";
+	static const std::string defaultFragmentShader =
+	  "Data/Shaders/HLSL/CelFrag.hlsl";
+
+	if (DISPLAY->IsD3D()){
+		m_DefaultFragmentShader = DISPLAY->CreateShaderFromPath(defaultFragmentShader, RageShaderType::Fragment, true);
+		m_DefaultVertexShader = DISPLAY->CreateShaderFromPath(defaultVertexShader, RageShaderType::Vertex, true);
+	}
 }
 
 void

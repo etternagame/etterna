@@ -103,9 +103,9 @@ class RageDisplay_D3D : public RageDisplay
 	void DeleteCompiledGeometry(RageCompiledGeometry* p) override;
 
 	void SetShader(const RageShaderWeakRef& reference) override;
-	RageShaderWeakRef CreateShaderFromPath(
-	  const std::string& path,
-	  RageShaderType shaderType) override;
+	RageShaderWeakRef CreateShaderFromPath(const std::string& path,
+										   RageShaderType shaderType,
+										   bool useAsDefault) override;
 
 	void SetShadersForDeclaration(bool useSpriteDeclaration);
 	std::vector<std::string> GetSupportedShaderProfiles() override;

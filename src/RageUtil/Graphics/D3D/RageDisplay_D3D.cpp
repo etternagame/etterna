@@ -936,12 +936,26 @@ RageDisplay_D3D::DeleteCompiledGeometry(RageCompiledGeometry* p)
 void
 RageDisplay_D3D::SetShader(const RageShaderWeakRef& reference)
 {
+	if (reference.GetShaderType() == RageShaderType::Vertex) {
+		m_VertexShaderHandler->TrySetActiveShader(reference);
+		return;
+	}
+	m_PixelShaderHandler->TrySetActiveShader(reference);
 }
 
 RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
-					 RageShaderType shaderType)
+					 RageShaderType shaderType, bool useAsDefault)
 {
-	return RageShaderWeakRef();
+	switch (shaderType) {
+		case RageShaderType::Vertex:
+			return *m_VertexShaderHandler->CacheShaderFromPath(path,
+															  useAsDefault);
+		case RageShaderType::Fragment:
+			return *m_PixelShaderHandler->CacheShaderFromPath(path,
+															  useAsDefault);
+		default:
+			return RageShaderWeakRef();
+	}
 }
 
 void
@@ -956,7 +970,7 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 
 	RagePixelShader_D3D* pixelShader =
 	  reinterpret_cast<RagePixelShader_D3D*>(
-		m_VertexShaderHandler->GetCurrentShader());
+		m_PixelShaderHandler->GetCurrentShader());
 
 	if (FAILED(m_Device->SetVertexDeclaration(vertexDecl))) {
 		Locator::getLogger()->warn("wat");
