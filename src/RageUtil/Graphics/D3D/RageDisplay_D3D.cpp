@@ -170,7 +170,7 @@ RageDisplay_D3D::Init(VideoModeParams&& p,
 	}
 
 	if (FAILED(m_D3D->GetDeviceCaps(
-		  D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &g_DeviceCaps))) {
+		  D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, &m_DeviceCaps))) {
 		return HARDWARE_ACCELERATION_NOT_AVAILABLE.GetValue();
 	}
 
@@ -184,8 +184,8 @@ RageDisplay_D3D::Init(VideoModeParams&& p,
 	  "Alpha in palette: {}\n",
 	  identifier.Driver,
 	  identifier.Description,
-	  g_DeviceCaps.MaxTextureWidth,
-	  (g_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) ? "yes" : "no");
+	  m_DeviceCaps.MaxTextureWidth,
+	  (m_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) ? "yes" : "no");
 
 	Locator::getLogger()->info("This display adaptor supports the following modes:");
 	D3DDISPLAYMODE mode;
@@ -617,7 +617,7 @@ RageDisplay_D3D::RecoverFromDeviceLoss()
 auto
 RageDisplay_D3D::GetMaxTextureSize() const -> int
 {
-	return g_DeviceCaps.MaxTextureWidth;
+	return m_DeviceCaps.MaxTextureWidth;
 }
 
 auto
@@ -677,7 +677,7 @@ RageDisplay_D3D::SupportsTextureFormat(RagePixelFormat pixfmt,
 	// Some cards (Savage) don't support alpha in palettes.
 	// Don't allow paletted textures if this is the case.
 	if (pixfmt == RagePixelFormat_PAL &&
-		((g_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) == 0u)) {
+		((m_DeviceCaps.TextureCaps & D3DPTEXTURECAPS_ALPHAPALETTE) == 0u)) {
 		return false;
 	}
 
@@ -1207,14 +1207,14 @@ RageDisplay_D3D::ClearAllTextures()
 auto
 RageDisplay_D3D::GetNumTextureUnits() -> int
 {
-	return g_DeviceCaps.MaxSimultaneousTextures;
+	return m_DeviceCaps.MaxSimultaneousTextures;
 }
 
 void
 RageDisplay_D3D::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
-	//	g_DeviceCaps.MaxSimultaneousTextures = 1;
-	if (tu >= static_cast<int>(g_DeviceCaps.MaxSimultaneousTextures)) {
+	//	m_DeviceCaps.MaxSimultaneousTextures = 1;
+	if (tu >= static_cast<int>(m_DeviceCaps.MaxSimultaneousTextures)) {
 		// not supported
 		return;
 	}
@@ -1245,7 +1245,7 @@ RageDisplay_D3D::SetTexture(TextureUnit tu, intptr_t iTexture)
 void
 RageDisplay_D3D::SetTextureMode(TextureUnit tu, TextureMode tm)
 {
-	if (tu >= static_cast<int>(g_DeviceCaps.MaxSimultaneousTextures)) {
+	if (tu >= static_cast<int>(m_DeviceCaps.MaxSimultaneousTextures)) {
 		// not supported
 		return;
 	}
@@ -1303,7 +1303,7 @@ RageDisplay_D3D::SetTextureMode(TextureUnit tu, TextureMode tm)
 void
 RageDisplay_D3D::SetTextureFiltering(TextureUnit tu, bool b)
 {
-	if (tu >= static_cast<int>(g_DeviceCaps.MaxSimultaneousTextures)) {
+	if (tu >= static_cast<int>(m_DeviceCaps.MaxSimultaneousTextures)) {
 		// not supported
 		return;
 	}
@@ -1460,7 +1460,7 @@ RageDisplay_D3D::ClearZBuffer()
 void
 RageDisplay_D3D::SetTextureWrapping(TextureUnit tu, bool b)
 {
-	if (tu >= static_cast<int>(g_DeviceCaps.MaxSimultaneousTextures)) {
+	if (tu >= static_cast<int>(m_DeviceCaps.MaxSimultaneousTextures)) {
 		// not supported
 		return;
 	}

@@ -143,11 +143,10 @@ class RageDisplay_D3D : public RageDisplay
 	std::optional<RageVertexShaderHandler_D3D> m_VertexShaderHandler;
 	std::optional<RagePixelShaderHandler_D3D> m_PixelShaderHandler;
 
-	// Globals
 	HMODULE m_D3D9_Module = nullptr;
 	LPDIRECT3D9 m_D3D = nullptr;
 	LPDIRECT3DDEVICE9 m_Device = nullptr;
-	D3DCAPS9 g_DeviceCaps;
+	D3DCAPS9 m_DeviceCaps;
 	D3DDISPLAYMODE m_DesktopMode;
 	D3DPRESENT_PARAMETERS m_PresentationParameters;
 	int m_ModelMatrixCnt = 0;
