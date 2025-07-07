@@ -916,52 +916,6 @@ RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 	return RageShaderWeakRef();
 }
 
-constexpr D3DVERTEXELEMENT9 spriteDecl[] = { { 0,
-											   offsetof(RageSpriteVertex, p),
-											   D3DDECLTYPE_FLOAT3,
-											   D3DDECLMETHOD_DEFAULT,
-											   D3DDECLUSAGE_POSITION,
-											   0 },
-											 { 0,
-											   offsetof(RageSpriteVertex, n),
-											   D3DDECLTYPE_FLOAT3,
-											   D3DDECLMETHOD_DEFAULT,
-											   D3DDECLUSAGE_NORMAL,
-											   0 },
-											 { 0,
-											   offsetof(RageSpriteVertex, c),
-											   D3DDECLTYPE_D3DCOLOR,
-											   D3DDECLMETHOD_DEFAULT,
-											   D3DDECLUSAGE_COLOR,
-											   0 },
-											 { 0,
-											   offsetof(RageSpriteVertex, t),
-											   D3DDECLTYPE_FLOAT2,
-											   D3DDECLMETHOD_DEFAULT,
-											   D3DDECLUSAGE_TEXCOORD,
-											   0 },
-											 D3DDECL_END() };
-
-constexpr D3DVERTEXELEMENT9 modelDecl[] = { { 0,
-											  offsetof(RageModelVertex, p),
-											  D3DDECLTYPE_FLOAT3,
-											  D3DDECLMETHOD_DEFAULT,
-											  D3DDECLUSAGE_POSITION,
-											  0 },
-											{ 0,
-											  offsetof(RageModelVertex, n),
-											  D3DDECLTYPE_FLOAT3,
-											  D3DDECLMETHOD_DEFAULT,
-											  D3DDECLUSAGE_NORMAL,
-											  0 },
-											{ 0,
-											  offsetof(RageModelVertex, t),
-											  D3DDECLTYPE_FLOAT2,
-											  D3DDECLMETHOD_DEFAULT,
-											  D3DDECLUSAGE_TEXCOORD,
-											  0 },
-											D3DDECL_END() };
-
 void
 RageDisplay_D3D::SetShadersOrFVF(unsigned long fvfDefinition)
 {
@@ -971,9 +925,9 @@ RageDisplay_D3D::SetShadersOrFVF(unsigned long fvfDefinition)
 		const D3DVERTEXELEMENT9* decl;
 
 		if (fvfDefinition == D3DFVF_RageSpriteVertex) {
-			decl = spriteDecl;
+			decl = SpriteDeclaration;
 		} else {
-			decl = modelDecl;
+			decl = ModelDeclaration;
 		}
 		IDirect3DVertexDeclaration9* vertexDecl = NULL;
 		if (FAILED(g_pd3dDevice->CreateVertexDeclaration(decl, &vertexDecl))) {

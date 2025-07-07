@@ -1,6 +1,7 @@
 #include "RageDisplay_D3D_Helpers.h"
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
+#include "RageUtil/Misc/RageTypes.h"
 
 // The DXGetErrorStringW function comes from the DirectX Error Library  (See
 // https://walbourn.github.io/wheres-dxerr-lib/ )
@@ -118,3 +119,53 @@ RageDisplay_D3D_Helpers::GetErrorString(HRESULT hr) -> std::string
 						   static_cast<long>(hr));
 	}
 }
+
+const D3DVERTEXELEMENT9 RageDisplay_D3D_Helpers::SpriteDeclaration[] = {
+	{ 0,
+	  offsetof(RageSpriteVertex, p),
+	  D3DDECLTYPE_FLOAT3,
+	  D3DDECLMETHOD_DEFAULT,
+	  D3DDECLUSAGE_POSITION,
+	  0 },
+	{ 0,
+	  offsetof(RageSpriteVertex, n),
+	  D3DDECLTYPE_FLOAT3,
+	  D3DDECLMETHOD_DEFAULT,
+	  D3DDECLUSAGE_NORMAL,
+	  0 },
+	{ 0,
+	  offsetof(RageSpriteVertex, c),
+	  D3DDECLTYPE_D3DCOLOR,
+	  D3DDECLMETHOD_DEFAULT,
+	  D3DDECLUSAGE_COLOR,
+	  0 },
+	{ 0,
+	  offsetof(RageSpriteVertex, t),
+	  D3DDECLTYPE_FLOAT2,
+	  D3DDECLMETHOD_DEFAULT,
+	  D3DDECLUSAGE_TEXCOORD,
+	  0 },
+	D3DDECL_END()
+};
+
+const D3DVERTEXELEMENT9 RageDisplay_D3D_Helpers::ModelDeclaration[] = {
+	{ 0,
+	  offsetof(RageModelVertex, p),
+	  D3DDECLTYPE_FLOAT3,
+	  D3DDECLMETHOD_DEFAULT,
+	  D3DDECLUSAGE_POSITION,
+	  0 },
+	{ 0,
+	  offsetof(RageModelVertex, n),
+	  D3DDECLTYPE_FLOAT3,
+	  D3DDECLMETHOD_DEFAULT,
+	  D3DDECLUSAGE_NORMAL,
+	  0 },
+	{ 0,
+	  offsetof(RageModelVertex, t),
+	  D3DDECLTYPE_FLOAT2,
+	  D3DDECLMETHOD_DEFAULT,
+	  D3DDECLUSAGE_TEXCOORD,
+	  0 },
+	D3DDECL_END()
+};
