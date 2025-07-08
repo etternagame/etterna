@@ -1,4 +1,5 @@
 // TODO: port Cel.frag :-)
+sampler2D textureSampler : register(s0);
 
 struct VertexShaderOutput
 {
@@ -9,5 +10,9 @@ struct VertexShaderOutput
 
 float4 main(VertexShaderOutput input) : COLOR0
 {
-    return input.color;
+    // ?
+    float4 textureColor = tex2D(textureSampler, input.texcoord);
+    float alpha = textureColor.a;
+    float3 rgb = input.color.rgb;
+    return float4(rgb, alpha);
 }
