@@ -23,6 +23,7 @@ RagePixelShader_D3D::Compile(const std::string& pixelShaderProfile)
 		  RageDisplay_D3D_Helpers::GetErrorString(result),
 		  (char*)errorBuffer->GetBufferPointer());
 		errorBuffer->Release();
+		m_ShaderBuffer = nullptr;
 	}
 
 	return result;

@@ -946,12 +946,14 @@ RageDisplay_D3D::SetShader(const RageShaderWeakRef& reference)
 RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 					 RageShaderType shaderType, bool useAsDefault)
 {
+	auto resolvedPath = FILEMAN->ResolvePath(path);
+	resolvedPath = resolvedPath.substr(1); // for some reason the / at the start screws with D3D9
 	switch (shaderType) {
 		case RageShaderType::Vertex:
-			return *m_VertexShaderHandler->CacheShaderFromPath(path,
+			return *m_VertexShaderHandler->CacheShaderFromPath(resolvedPath,
 															  useAsDefault);
 		case RageShaderType::Fragment:
-			return *m_PixelShaderHandler->CacheShaderFromPath(path,
+			return *m_PixelShaderHandler->CacheShaderFromPath(resolvedPath,
 															  useAsDefault);
 		default:
 			return RageShaderWeakRef();
@@ -976,11 +978,11 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 		Locator::getLogger()->warn("wat");
 	}
 	if (FAILED(m_Device->SetVertexShader(
-		  vertexShader->CreateForDevice(m_Device, false)))) {
+		  vertexShader->CreateForDevice(m_Device, true)))) {
 		Locator::getLogger()->warn("wat");
 	}
 	if (FAILED(m_Device->SetPixelShader(
-		  pixelShader->CreateForDevice(m_Device, false)))) {
+		  pixelShader->CreateForDevice(m_Device, true)))) {
 		Locator::getLogger()->warn("wat");
 	}
 }

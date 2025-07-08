@@ -27,12 +27,13 @@ public:
   protected:
 	// CONVENTION (notes for myself): ownership of the return value must be
 	// passed to the caller
-	virtual std::optional<RageShader> CompileShader(
+	virtual std::optional<std::unique_ptr<RageShader>> CompileShader(
 	  const std::string& path) = 0;
 
   private:
-	std::unordered_map<size_t, RageShader> m_ShaderCache;
-	std::vector<RageShader> m_DefaultShaderCache;
+	std::unordered_map<size_t, std::unique_ptr<RageShader>> m_ShaderCache;
+	std::unordered_map<size_t, std::unique_ptr<RageShader>>
+	  m_DefaultShaderCache;
 
 	const RageDisplayType m_DisplayType;
 	const RageShaderType m_ShaderType;
