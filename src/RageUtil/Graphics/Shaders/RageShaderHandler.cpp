@@ -35,7 +35,11 @@ RageShaderHandler::CacheShaderFromPath(const std::string& path,
 	  useAsDefaultShader ? m_DefaultShaderCache : m_ShaderCache;
 	cache.emplace(lookupKey, std::move(*shader));
 
-	return RageShaderWeakRef(lookupKey, m_DisplayType, m_ShaderType, useAsDefaultShader);
+	return RageShaderWeakRef(shader->get(),
+							 lookupKey,
+							 m_DisplayType,
+							 m_ShaderType,
+							 useAsDefaultShader);
 }
 
 bool

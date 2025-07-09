@@ -7,6 +7,7 @@
 #include <string>
 #include "Etterna/Models/Misc/EnumHelper.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
+#include "RageShader.h"
 
 enum class RageDisplayType
 {
@@ -33,7 +34,8 @@ class RageShaderWeakRef
   public:
 	RageShaderWeakRef();
 
-	RageShaderWeakRef(size_t lookupKey,
+	RageShaderWeakRef(RageShader* shader,
+					  size_t lookupKey,
 					  RageDisplayType displayType,
 					  RageShaderType shaderType,
 					  bool isDefault);
@@ -41,6 +43,8 @@ class RageShaderWeakRef
 	RageShaderWeakRef& operator=(const RageShaderWeakRef& otherWeakRef);
 
 	bool IsDestroyed() const;
+
+	RageShader* GetShader() const;
 	size_t GetLookupKey() const;
 	RageDisplayType GetDisplayType() const;
 	RageShaderType GetShaderType() const;
@@ -51,6 +55,7 @@ class RageShaderWeakRef
 	std::unique_ptr<LuaClass> m_pLuaInstance;
 
   private:
+	RageShader* m_Shader;
 	size_t m_LookupKey;
 	RageDisplayType m_DisplayType;
 	RageShaderType m_ShaderType;

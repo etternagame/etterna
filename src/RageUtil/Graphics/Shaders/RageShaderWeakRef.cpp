@@ -1,14 +1,16 @@
 #include "RageShaderWeakRef.h"
 
 RageShaderWeakRef::RageShaderWeakRef()
-  : RageShaderWeakRef(0,
+  : RageShaderWeakRef(nullptr,
+					  0,
 					  RageDisplayType::Invalid,
 					  RageShaderType::Invalid,
 					  false)
 {
 }
 
-RageShaderWeakRef::RageShaderWeakRef(size_t lookupKey,
+RageShaderWeakRef::RageShaderWeakRef(RageShader* shader,
+									 size_t lookupKey,
 									 RageDisplayType displayType,
 									 RageShaderType shaderType,
 									 bool isDefault)
@@ -16,6 +18,7 @@ RageShaderWeakRef::RageShaderWeakRef(size_t lookupKey,
   , m_DisplayType(displayType)
   , m_ShaderType(shaderType)
   , m_IsDefault(isDefault)
+  , m_Shader(shader)
 {
 	m_pLuaInstance = std::make_unique<LuaClass>();
 }
@@ -26,6 +29,7 @@ RageShaderWeakRef::RageShaderWeakRef(const RageShaderWeakRef& otherWeakRef)
 	m_DisplayType = otherWeakRef.m_DisplayType;
 	m_ShaderType = otherWeakRef.m_ShaderType;
 	m_IsDefault = otherWeakRef.m_IsDefault;
+	m_Shader = otherWeakRef.m_Shader;
 }
 
 RageShaderWeakRef&
@@ -35,6 +39,7 @@ RageShaderWeakRef::operator=(const RageShaderWeakRef& otherWeakRef)
 	m_DisplayType = otherWeakRef.m_DisplayType;
 	m_ShaderType = otherWeakRef.m_ShaderType;
 	m_IsDefault = otherWeakRef.m_IsDefault;
+	m_Shader = otherWeakRef.m_Shader;
 
 	return *this;
 }
@@ -45,6 +50,12 @@ RageShaderWeakRef::IsDestroyed() const
 	// TODO: just add a call to RageDisplay or RageShaderHandler to check this
 	// (basically check if m_lookupKey maps to smth inside the lookup table)
 	return false;
+}
+
+RageShader*
+RageShaderWeakRef::GetShader() const
+{
+	return m_Shader;
 }
 
 size_t
