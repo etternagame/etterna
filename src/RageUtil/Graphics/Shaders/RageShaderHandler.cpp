@@ -21,18 +21,27 @@ RageShaderHandler::IsDefaultShaderInCache(size_t shaderLookupKey) const
 }
 
 std::optional<RageShaderWeakRef>
-RageShaderHandler::CacheShaderFromPath(const std::string& path,
+RageShaderHandler::GetOrCreateShaderFromPath(const std::string& path,
 									   bool useAsDefaultShader)
 {
+	std::unordered_map<size_t, std::unique_ptr<RageShader>>& cache =
+	  useAsDefaultShader ? m_DefaultShaderCache : m_ShaderCache;
+
+	size_t lookupKey = GetShaderLookupKey(path);
+	auto it = cache.find(lookupKey);
+	if (it != cache.end()) {
+		return RageShaderWeakRef(it->second.get(),
+								 lookupKey,
+								 m_DisplayType,
+								 m_ShaderType,
+								 useAsDefaultShader);
+	}
+
 	std::optional<std::unique_ptr<RageShader>> shader = CompileShader(path);
 	if (!shader.has_value()) {
 		return std::nullopt;
 	}
 
-	size_t lookupKey = GetShaderLookupKey(path);
-
-	std::unordered_map<size_t, std::unique_ptr<RageShader>>& cache =
-	  useAsDefaultShader ? m_DefaultShaderCache : m_ShaderCache;
 	cache.emplace(lookupKey, std::move(*shader));
 
 	return RageShaderWeakRef(shader->get(),

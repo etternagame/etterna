@@ -16,7 +16,7 @@ public:
 	bool IsShaderInCache(size_t shaderLookupKey) const;
 	bool IsDefaultShaderInCache(size_t shaderLookupKey) const;
 
-	std::optional<RageShaderWeakRef> CacheShaderFromPath(const std::string& path,
+	std::optional<RageShaderWeakRef> GetOrCreateShaderFromPath(const std::string& path,
 												bool useAsDefaultShader);
 	bool TryRemoveShaderFromCache(RageShaderWeakRef shader);
 	bool TrySetActiveShader(RageShaderWeakRef shader);

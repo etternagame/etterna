@@ -950,10 +950,10 @@ RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 	resolvedPath = resolvedPath.substr(1); // for some reason the / at the start screws with D3D9
 	switch (shaderType) {
 		case RageShaderType::Vertex:
-			return *m_VertexShaderHandler->CacheShaderFromPath(resolvedPath,
+			return *m_VertexShaderHandler->GetOrCreateShaderFromPath(resolvedPath,
 															  useAsDefault);
 		case RageShaderType::Fragment:
-			return *m_PixelShaderHandler->CacheShaderFromPath(resolvedPath,
+			return *m_PixelShaderHandler->GetOrCreateShaderFromPath(resolvedPath,
 															  useAsDefault);
 		default:
 			return RageShaderWeakRef();
