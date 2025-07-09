@@ -49,16 +49,31 @@ RagePixelShader_D3D::CreateForDevice(LPDIRECT3DDEVICE9 device, bool forceRefresh
 		return nullptr;
 	}
 
-	if (m_Shader != nullptr) {
-		m_Shader->Release();
-	}
-
-	m_Shader = shader;
-
 	return shader;
 }
 
-RagePixelShader_D3D::~RagePixelShader_D3D()
+IDirect3DPixelShader9*
+RagePixelShader_D3D::GetShaderForDevice(LPDIRECT3DDEVICE9 device,
+										bool forceRefresh)
+{
+	if (!forceRefresh && m_Shader != nullptr) {
+		return m_Shader;
+	}
+
+	ReleaseBuffers();
+
+	const std::string shaderProfile = D3DXGetPixelShaderProfile(device);
+	const auto result = Compile(shaderProfile);
+	if (FAILED(result)) {
+		return nullptr;
+	}
+
+	m_Shader = CreateForDevice(device, forceRefresh);
+	return m_Shader;
+}
+
+void
+RagePixelShader_D3D::ReleaseBuffers()
 {
 	if (m_ShaderBuffer != nullptr) {
 		m_ShaderBuffer->Release();
@@ -68,4 +83,9 @@ RagePixelShader_D3D::~RagePixelShader_D3D()
 		m_Shader->Release();
 		m_Shader = nullptr;
 	}
+}
+
+RagePixelShader_D3D::~RagePixelShader_D3D()
+{
+	ReleaseBuffers();
 }
