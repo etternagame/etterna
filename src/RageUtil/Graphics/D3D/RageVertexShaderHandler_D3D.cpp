@@ -13,12 +13,7 @@ RageVertexShaderHandler_D3D::CompileShader(const std::string& path)
 	auto shader = std::make_unique<RageVertexShader_D3D>(path);
 
 	auto profile = D3DXGetVertexShaderProfile(m_Device);
-	auto compilationResult = shader->Compile(profile);
-	if (compilationResult != S_OK) {
-		return std::nullopt;
-	}
-
-	auto creationResult = shader->CreateForDevice(m_Device, false);
+	auto creationResult = shader->GetShaderForDevice(m_Device, false);
 	if (creationResult == nullptr) {
 		return std::nullopt;
 	}

@@ -978,7 +978,7 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 		Locator::getLogger()->warn("wat");
 	}
 	if (FAILED(m_Device->SetVertexShader(
-		  vertexShader->CreateForDevice(m_Device, false)))) {
+		  vertexShader->GetShaderForDevice(m_Device, false)))) {
 		Locator::getLogger()->warn("wat");
 	}
 	if (FAILED(m_Device->SetPixelShader(
