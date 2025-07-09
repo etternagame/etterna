@@ -968,10 +968,15 @@ RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 void
 RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 {
+	// hacky (move to RageDisplay_D3D maybe?)
+	static IDirect3DVertexDeclaration9* previousVertexDecl = nullptr;
+	static RageVertexShader_D3D* previousVertexShader = nullptr;
+	static RagePixelShader_D3D* previousPixelShader = nullptr;
+
 	IDirect3DVertexDeclaration9* vertexDecl = useSpriteDeclaration
 												? m_SpriteVertexDeclaration
 												 : m_ModelVertexDeclaration;
-	// TODO: well they should be already initialized by the handler
+
 	RageVertexShader_D3D* vertexShader =
 	  reinterpret_cast<RageVertexShader_D3D*>(m_VertexShaderHandler->GetCurrentShader());
 
@@ -979,16 +984,41 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 	  reinterpret_cast<RagePixelShader_D3D*>(
 		m_PixelShaderHandler->GetCurrentShader());
 
-	if (FAILED(m_Device->SetVertexDeclaration(vertexDecl))) {
-		Locator::getLogger()->warn("wat");
+	HRESULT hr = S_OK;
+
+	if (vertexDecl != previousVertexDecl) {
+		previousVertexDecl = vertexDecl;
+
+		hr = m_Device->SetVertexDeclaration(vertexDecl);
+		if (FAILED(hr)) {
+			Locator::getLogger()->warn(
+			  "SetVertexDeclaration failed ({})",
+			  RageDisplay_D3D_Helpers::GetErrorString(hr));
+		}
 	}
-	if (FAILED(m_Device->SetVertexShader(
-		  vertexShader->GetShaderForDevice(m_Device, false)))) {
-		Locator::getLogger()->warn("wat");
+
+	if (vertexShader != previousVertexShader) {
+		previousVertexShader = vertexShader;
+
+		hr = m_Device->SetVertexShader(
+		  vertexShader->GetShaderForDevice(m_Device, false));
+		if (FAILED(hr)) {
+			Locator::getLogger()->warn(
+			  "SetVertexShader failed ({})",
+			  RageDisplay_D3D_Helpers::GetErrorString(hr));
+		}
 	}
-	if (FAILED(m_Device->SetPixelShader(
-		  pixelShader->GetShaderForDevice(m_Device, false)))) {
-		Locator::getLogger()->warn("wat");
+
+	if (pixelShader != previousPixelShader) {
+		previousPixelShader = pixelShader;
+
+		hr = m_Device->SetPixelShader(
+		  pixelShader->GetShaderForDevice(m_Device, false));
+		if (FAILED(hr)) {
+			Locator::getLogger()->warn(
+			  "SetPixelShader failed ({})",
+			  RageDisplay_D3D_Helpers::GetErrorString(hr));
+		}
 	}
 }
 
