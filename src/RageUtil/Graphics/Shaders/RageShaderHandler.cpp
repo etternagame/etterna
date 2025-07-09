@@ -20,7 +20,7 @@ RageShaderHandler::IsDefaultShaderInCache(size_t shaderLookupKey) const
 	return m_DefaultShaderCache.contains(shaderLookupKey);
 }
 
-std::optional<RageShaderWeakRef>
+RageShaderWeakRef
 RageShaderHandler::GetOrCreateShaderFromPath(const std::string& path,
 									   bool useAsDefaultShader)
 {
@@ -37,14 +37,15 @@ RageShaderHandler::GetOrCreateShaderFromPath(const std::string& path,
 								 useAsDefaultShader);
 	}
 
-	std::optional<std::unique_ptr<RageShader>> shader = CompileShader(path);
-	if (!shader.has_value()) {
-		return std::nullopt;
+	std::unique_ptr<RageShader> shader = CompileShader(path);
+	if (shader == nullptr) {
+		return RageShaderWeakRef();
 	}
 
-	cache.emplace(lookupKey, std::move(*shader));
+	RageShader* rawShader = shader.get();
+	cache.emplace(lookupKey, std::move(shader));
 
-	return RageShaderWeakRef(shader->get(),
+	return RageShaderWeakRef(rawShader,
 							 lookupKey,
 							 m_DisplayType,
 							 m_ShaderType,
@@ -68,19 +69,13 @@ RageShaderHandler::TryRemoveShaderFromCache(RageShaderWeakRef shader)
 }
 
 bool
-RageShaderHandler::TrySetActiveShader(RageShaderWeakRef shader)
+RageShaderHandler::TrySetActiveShader(RageShader* shader)
 {
-	size_t shaderLookupKey = shader.GetLookupKey();
-	bool setDefaultShader = shader.IsDefault();
-
-	if ((setDefaultShader && !IsDefaultShaderInCache(shaderLookupKey)) ||
-		(!setDefaultShader && !IsShaderInCache(shaderLookupKey))) {
+	if (shader == nullptr) {
 		return false;
 	}
 
-	m_CurrentShader = setDefaultShader
-						? m_DefaultShaderCache[shaderLookupKey].get()
-						: m_ShaderCache[shaderLookupKey].get();
+	m_CurrentShader = shader;
 	return true;
 }
 

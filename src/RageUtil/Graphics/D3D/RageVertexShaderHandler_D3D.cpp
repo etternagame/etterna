@@ -7,7 +7,7 @@ RageVertexShaderHandler_D3D::RageVertexShaderHandler_D3D(LPDIRECT3DDEVICE9 devic
 {
 }
 
-std::optional<std::unique_ptr<RageShader>>
+std::unique_ptr<RageShader>
 RageVertexShaderHandler_D3D::CompileShader(const std::string& path)
 {
 	auto shader = std::make_unique<RageVertexShader_D3D>(path);
@@ -15,7 +15,7 @@ RageVertexShaderHandler_D3D::CompileShader(const std::string& path)
 	auto profile = D3DXGetVertexShaderProfile(m_Device);
 	auto creationResult = shader->GetShaderForDevice(m_Device, false);
 	if (creationResult == nullptr) {
-		return std::nullopt;
+		return nullptr;
 	}
 
 	return shader;

@@ -8,10 +8,10 @@ class RagePixelShaderHandler_D3D : public RageShaderHandler
 {
   public:
 	RagePixelShaderHandler_D3D(LPDIRECT3DDEVICE9 device);
-	std::optional<std::unique_ptr<RageShader>> CompileShader(
-	  const std::string& path) override;
 
   private:
+  	std::unique_ptr<RageShader> CompileShader(
+	  const std::string& path) override;
 	const LPDIRECT3DDEVICE9 m_Device;
 };
 

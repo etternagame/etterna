@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <memory>
 #include <functional>
-#include <optional>
 
 class RageShaderHandler
 {
@@ -16,10 +15,10 @@ public:
 	bool IsShaderInCache(size_t shaderLookupKey) const;
 	bool IsDefaultShaderInCache(size_t shaderLookupKey) const;
 
-	std::optional<RageShaderWeakRef> GetOrCreateShaderFromPath(const std::string& path,
+	RageShaderWeakRef GetOrCreateShaderFromPath(const std::string& path,
 												bool useAsDefaultShader);
 	bool TryRemoveShaderFromCache(RageShaderWeakRef shader);
-	bool TrySetActiveShader(RageShaderWeakRef shader);
+	bool TrySetActiveShader(RageShader* shader);
 	
 	// CONVENTION (notes for myself): ownership is not passed to the caller
 	RageShader* GetCurrentShader();
@@ -27,7 +26,7 @@ public:
   protected:
 	// CONVENTION (notes for myself): ownership of the return value must be
 	// passed to the caller
-	virtual std::optional<std::unique_ptr<RageShader>> CompileShader(
+	virtual std::unique_ptr<RageShader> CompileShader(
 	  const std::string& path) = 0;
 
   private:

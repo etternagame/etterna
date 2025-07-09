@@ -9,7 +9,6 @@
 #include "Tween.h"
 
 #include <map>
-#include <optional>
 
 class XNode;
 struct lua_State;
@@ -812,8 +811,8 @@ class Actor : public MessageSubscriber
 
 	std::unique_ptr<LuaClass> m_pLuaInstance;
 
-	std::optional<RageShaderWeakRef> m_VertexShader;
-	std::optional<RageShaderWeakRef> m_FragmentShader;
+	RageShaderWeakRef m_VertexShader;
+	RageShaderWeakRef m_FragmentShader;
 	RageShaderWeakRef m_DefaultVertexShader;
 	RageShaderWeakRef m_DefaultFragmentShader;
 

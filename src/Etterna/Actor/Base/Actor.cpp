@@ -1654,13 +1654,15 @@ void
 Actor::SetShadersForDisplay()
 {
 	auto& vertexShader =
-	  m_VertexShader.has_value() ? *m_VertexShader : m_DefaultVertexShader;
-	DISPLAY->SetShader(vertexShader);
+	  m_VertexShader.GetShaderType() == RageShaderType::Invalid
+		? m_VertexShader
+		: m_DefaultVertexShader;
+	DISPLAY->SetShader(vertexShader.GetShader(), RageShaderType::Vertex);
 
-	auto& fragmentShader = m_FragmentShader.has_value()
-							 ? *m_FragmentShader
+	auto& fragmentShader = m_FragmentShader.GetShaderType() == RageShaderType::Invalid
+							 ? m_FragmentShader
 							 : m_DefaultFragmentShader;
-	DISPLAY->SetShader(fragmentShader);
+	DISPLAY->SetShader(fragmentShader.GetShader(), RageShaderType::Fragment);
 }
 
 void

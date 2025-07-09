@@ -934,13 +934,18 @@ RageDisplay_D3D::DeleteCompiledGeometry(RageCompiledGeometry* p)
 }
 
 void
-RageDisplay_D3D::SetShader(const RageShaderWeakRef& reference)
+RageDisplay_D3D::SetShader(RageShader* shader, RageShaderType shaderType)
 {
-	if (reference.GetShaderType() == RageShaderType::Vertex) {
-		m_VertexShaderHandler->TrySetActiveShader(reference);
+	if (shader == nullptr || shaderType == RageShaderType::Invalid) {
 		return;
 	}
-	m_PixelShaderHandler->TrySetActiveShader(reference);
+
+	if (shaderType == RageShaderType::Vertex) {
+		m_VertexShaderHandler->TrySetActiveShader(shader);
+		return;
+	}
+
+	m_PixelShaderHandler->TrySetActiveShader(shader);
 }
 
 RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
@@ -950,10 +955,10 @@ RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 	resolvedPath = resolvedPath.substr(1); // for some reason the / at the start screws with D3D9
 	switch (shaderType) {
 		case RageShaderType::Vertex:
-			return *m_VertexShaderHandler->GetOrCreateShaderFromPath(resolvedPath,
+			return m_VertexShaderHandler->GetOrCreateShaderFromPath(resolvedPath,
 															  useAsDefault);
 		case RageShaderType::Fragment:
-			return *m_PixelShaderHandler->GetOrCreateShaderFromPath(resolvedPath,
+			return m_PixelShaderHandler->GetOrCreateShaderFromPath(resolvedPath,
 															  useAsDefault);
 		default:
 			return RageShaderWeakRef();
