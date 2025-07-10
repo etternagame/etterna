@@ -110,6 +110,7 @@ class RageDisplay_D3D : public RageDisplay
 	void SetShadersForDeclaration(bool useSpriteDeclaration);
 	std::vector<std::string> GetSupportedShaderProfiles() override;
 	LPDIRECT3DDEVICE9 GetD3DDevice() { return m_Device; }
+	bool IsShaderInCache(const RageShaderWeakRef& shader) override;
 
   protected:
 	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;

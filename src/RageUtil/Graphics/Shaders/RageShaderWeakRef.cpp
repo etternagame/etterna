@@ -1,4 +1,5 @@
 #include "RageShaderWeakRef.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 
 RageShaderWeakRef::RageShaderWeakRef()
   : RageShaderWeakRef(nullptr,
@@ -47,9 +48,7 @@ RageShaderWeakRef::operator=(const RageShaderWeakRef& otherWeakRef)
 bool
 RageShaderWeakRef::IsDestroyed() const
 {
-	// TODO: just add a call to RageDisplay or RageShaderHandler to check this
-	// (basically check if m_lookupKey maps to smth inside the lookup table)
-	return false;
+	return m_ShaderType == RageShaderType::Invalid || DISPLAY->IsShaderInCache(*this);
 }
 
 RageShader*

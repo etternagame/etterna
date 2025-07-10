@@ -1028,6 +1028,36 @@ RageDisplay_D3D::GetSupportedShaderProfiles()
 			 D3DXGetPixelShaderProfile(m_Device) };
 }
 
+bool
+RageDisplay_D3D::IsShaderInCache(const RageShaderWeakRef& shader)
+{
+	if (shader.GetDisplayType() == RageDisplayType::Invalid ||
+		shader.GetShaderType() == RageShaderType::Invalid ||
+		shader.GetShader() == nullptr) {
+		return false;
+	}
+
+	if (shader.GetShaderType() == RageShaderType::Fragment) {
+		if (!m_PixelShaderHandler.has_value()) {
+			return false;
+		}
+
+		return shader.IsDefault()
+				 ? m_PixelShaderHandler->IsDefaultShaderInCache(
+					 shader.GetLookupKey())
+				 : m_PixelShaderHandler->IsShaderInCache(shader.GetLookupKey());
+	}
+
+	if (!m_VertexShaderHandler.has_value()) {
+		return false;
+	}
+
+	return shader.IsDefault()
+			 ? m_VertexShaderHandler->IsDefaultShaderInCache(
+				 shader.GetLookupKey())
+			 : m_VertexShaderHandler->IsShaderInCache(shader.GetLookupKey());
+}
+
 void
 RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {

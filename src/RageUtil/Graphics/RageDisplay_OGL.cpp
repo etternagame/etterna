@@ -2947,6 +2947,12 @@ RageDisplay_Legacy::GetSupportedShaderProfiles()
 	return std::vector<std::string>();
 }
 
+bool
+RageDisplay_Legacy::IsShaderInCache(const RageShaderWeakRef& shader)
+{
+	return false;
+}
+
 /*
  * XXX: Things like this only have to be set once per context - making
  * SetDefault call These kinds of functions is wasteful. -Colby

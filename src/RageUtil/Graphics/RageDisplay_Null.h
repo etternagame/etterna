@@ -144,6 +144,11 @@ class RageDisplay_Null : public RageDisplay
 	{
 	}
 
+	bool IsShaderInCache(const RageShaderWeakRef& shader) override
+	{
+		return false;
+	}
+
 	RageShaderWeakRef CreateShaderFromPath(const std::string& path,
 										   RageShaderType shaderType,
 										   bool useAsDefault) override

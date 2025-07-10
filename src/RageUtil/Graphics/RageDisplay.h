@@ -459,6 +459,7 @@ class RageDisplay
 												   RageShaderType shaderType,
 												   bool useAsDefault) = 0;
 	virtual std::vector<std::string> GetSupportedShaderProfiles() = 0;
+	virtual bool IsShaderInCache(const RageShaderWeakRef& shader) = 0;
   protected:
 	virtual void DrawQuadsInternal(const RageSpriteVertex v[],
 								   int iNumVerts) = 0;
