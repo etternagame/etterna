@@ -817,7 +817,6 @@ RageDisplay_D3D::SendCurrentMatrices()
 {
 	static RageMatrix Centering;
 	static RageMatrix Projection;
-	static RageMatrix WorldViewProjection;
 
 	if (Centering != *GetCentering() || Projection != *GetProjectionTop()) {
 		Centering = *GetCentering();

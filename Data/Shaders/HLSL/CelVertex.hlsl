@@ -10,16 +10,23 @@ struct VertexShaderInput
 
 struct VertexShaderOutput
 {
-    float4 pos : POSITION;
-    float4 color : COLOR0;
+    float4 position : POSITION;
+    float3 normal : TEXCOORD1;
+    float4 color : COLOR;
     float2 texcoord : TEXCOORD0;
 };
 
 VertexShaderOutput main(VertexShaderInput input)
 {
     VertexShaderOutput output;
-    output.pos = mul(worldViewProj, float4(input.position, 1.0));
-    output.color = input.color;
+
+    output.position = mul(worldViewProj, float4(input.position, 1.0));
+
     output.texcoord = input.texcoord;
+    output.color = input.color;
+
+    output.normal = mul((float3x3)worldViewProj, input.normal);
+    output.normal = normalize(output.normal);
+
     return output;
 }
