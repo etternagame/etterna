@@ -8,8 +8,8 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
-#include "RageUtil/Graphics/RageDisplay_OGL.h"
+#include "RageUtil/Graphics/OGL/RageDisplay_OGL_Helpers.h"
+#include "RageUtil/Graphics/OGL/RageDisplay_OGL.h"
 #include "RageUtil/Graphics/RenderTarget.h"
 
 #include <GL/glew.h>
@@ -214,8 +214,9 @@ LowLevelWindow_Win32::TryVideoMode(const VideoModeParams& p,
 		 * one, the "maximized apps go under the taskbar" glitch will happen
 		 * when we quit. We have to create the new window first.
 		 */
-		Locator::getLogger()->info("Mode requires new pixel format, and we've already set one; "
-				   "resetting OpenGL context");
+		Locator::getLogger()->info(
+		  "Mode requires new pixel format, and we've already set one; "
+		  "resetting OpenGL context");
 		if (g_HGLRC != nullptr) {
 			wglMakeCurrent(nullptr, nullptr);
 			wglDeleteContext(g_HGLRC);
@@ -305,7 +306,8 @@ bool
 LowLevelWindow_Win32::IsSoftwareRenderer(std::string& sError)
 {
 	std::string sVendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-	std::string sRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+	std::string sRenderer =
+	  reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 
 	if (sVendor == "Microsoft Corporation" && sRenderer == "GDI Generic") {
 		sError = OPENGL_NOT_AVAILABLE;

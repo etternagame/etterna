@@ -388,9 +388,10 @@ AdjustForChangedSystemCapabilities()
 	if (g_iLastSeenMemory == Memory)
 		return;
 
-	Locator::getLogger()->trace("Memory changed from {} to {}; settings changed",
-			   g_iLastSeenMemory.Get(),
-			   Memory);
+	Locator::getLogger()->trace(
+	  "Memory changed from {} to {}; settings changed",
+	  g_iLastSeenMemory.Get(),
+	  Memory);
 	g_iLastSeenMemory.Set(Memory);
 
 	// is this assumption outdated? -aj
@@ -417,7 +418,7 @@ AdjustForChangedSystemCapabilities()
 #endif
 
 #if defined(SUPPORT_OPENGL)
-#include "RageUtil/Graphics/RageDisplay_OGL.h"
+#include "RageUtil/Graphics/OGL/RageDisplay_OGL.h"
 #endif
 
 #if defined(SUPPORT_GLES2)
@@ -676,7 +677,7 @@ CheckVideoDefaultSettings()
 	std::string sVideoDriver = GetVideoDriverName();
 
 	Locator::getLogger()->info("Last seen video driver: {}",
-				PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
+							   PREFSMAN->m_sLastSeenVideoDriver.Get().c_str());
 
 	// allow players to opt out of the forced reset when a new video card is
 	// detected - mina
@@ -691,7 +692,9 @@ CheckVideoDefaultSettings()
 		std::string sDriverRegex = defaults.sDriverRegex;
 		Regex regex(sDriverRegex);
 		if (regex.Compare(sVideoDriver)) {
-			Locator::getLogger()->trace("Card matches '{}'.", sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
+			Locator::getLogger()->trace(
+			  "Card matches '{}'.",
+			  sDriverRegex.size() ? sDriverRegex.c_str() : "(unknown card)");
 			break;
 		}
 	}
@@ -702,10 +705,12 @@ CheckVideoDefaultSettings()
 	bool bSetDefaultVideoParams = false;
 	if (PREFSMAN->m_sVideoRenderers.Get().empty()) {
 		bSetDefaultVideoParams = true;
-		Locator::getLogger()->trace("Applying defaults for {}.", sVideoDriver.c_str());
+		Locator::getLogger()->trace("Applying defaults for {}.",
+									sVideoDriver.c_str());
 	} else if (PREFSMAN->m_sLastSeenVideoDriver.Get() != sVideoDriver) {
 		bSetDefaultVideoParams = true;
-		Locator::getLogger()->trace("Video card has changed from {} to {}.  Applying new defaults.",
+		Locator::getLogger()->trace(
+		  "Video card has changed from {} to {}.  Applying new defaults.",
 		  PREFSMAN->m_sLastSeenVideoDriver.Get().c_str(),
 		  sVideoDriver.c_str());
 	}
@@ -728,11 +733,14 @@ CheckVideoDefaultSettings()
 		PREFSMAN->m_sLastSeenVideoDriver.Set(GetVideoDriverName());
 	} else if (CompareNoCase(PREFSMAN->m_sVideoRenderers.Get(),
 							 defaults.sVideoRenderers)) {
-		Locator::getLogger()->warn("Video renderer list has been changed from '{}' to '{}'",
-				  defaults.sVideoRenderers.c_str(), PREFSMAN->m_sVideoRenderers.Get().c_str());
+		Locator::getLogger()->warn(
+		  "Video renderer list has been changed from '{}' to '{}'",
+		  defaults.sVideoRenderers.c_str(),
+		  PREFSMAN->m_sVideoRenderers.Get().c_str());
 	}
 
-	Locator::getLogger()->info("Video renderers: '{}'", PREFSMAN->m_sVideoRenderers.Get().c_str());
+	Locator::getLogger()->info("Video renderers: '{}'",
+							   PREFSMAN->m_sVideoRenderers.Get().c_str());
 	return bSetDefaultVideoParams;
 }
 
@@ -830,8 +838,8 @@ CreateDisplay()
 			if (pRet == nullptr)
 				continue;
 
-			std::string sError =
-			  pRet->Init(std::move(params), PREFSMAN->m_bAllowUnacceleratedRenderer);
+			std::string sError = pRet->Init(
+			  std::move(params), PREFSMAN->m_bAllowUnacceleratedRenderer);
 			if (!sError.empty()) {
 				error +=
 				  ssprintf(ERROR_INITIALIZING.GetValue(), sRenderer.c_str()) +
@@ -862,8 +870,10 @@ SwitchToLastPlayedGame()
 
 	if (!GAMEMAN->IsGameEnabled(pGame) && pGame != GAMEMAN->GetDefaultGame()) {
 		pGame = GAMEMAN->GetDefaultGame();
-		Locator::getLogger()->warn(R"(Default NoteSkin for "{}" missing, reverting to "{}")",
-				  pGame->m_szName, GAMEMAN->GetDefaultGame()->m_szName);
+		Locator::getLogger()->warn(
+		  R"(Default NoteSkin for "{}" missing, reverting to "{}")",
+		  pGame->m_szName,
+		  GAMEMAN->GetDefaultGame()->m_szName);
 	}
 
 	ASSERT(GAMEMAN->IsGameEnabled(pGame));
@@ -894,7 +904,8 @@ StepMania::InitializeCurrentGame(const Game* g)
 		argCurGame != sGametype) {
 		Game const* new_game = GAMEMAN->StringToGame(argCurGame);
 		if (new_game == nullptr) {
-			Locator::getLogger()->warn("{} is not a known game type, ignoring.", argCurGame.c_str());
+			Locator::getLogger()->warn("{} is not a known game type, ignoring.",
+									   argCurGame.c_str());
 		} else {
 			PREFSMAN->SetCurrentGame(sGametype);
 			GAMESTATE->SetCurGame(new_game);
@@ -946,7 +957,8 @@ WriteLogHeader()
 			// params.
 			args += ssprintf("[[%s]]", g_argv[i]);
 		}
-		Locator::getLogger()->info("Command line args (count={}): {}", (g_argc - 1), args.c_str());
+		Locator::getLogger()->info(
+		  "Command line args (count={}): {}", (g_argc - 1), args.c_str());
 	}
 }
 
@@ -956,8 +968,8 @@ static LocalizedString COULDNT_OPEN_LOADING_WINDOW(
 
 static void
 MountAdditionalDirs(const std::string& sDirList,
-		const std::string& sDelimiter,
-		const std::string& sMountPoint)
+					const std::string& sDelimiter,
+					const std::string& sMountPoint)
 {
 	std::vector<std::string> dirs;
 	split(sDirList, sDelimiter, dirs, true);
@@ -972,25 +984,28 @@ sm_main(int argc, char* argv[])
 	seed_lua_prng();
 
 	// Initialize Logging
-    Locator::provide(std::make_unique<PlogLogger>());
+	Locator::provide(std::make_unique<PlogLogger>());
 
-    // Init Crash Handling
+	// Init Crash Handling
 	bool success = Core::Crash::initCrashpad();
-	if(!success)
-	    Locator::getLogger()->warn("Crash Handler could not be initialized. Crash reports will not be created.");
+	if (!success)
+		Locator::getLogger()->warn("Crash Handler could not be initialized. "
+								   "Crash reports will not be created.");
 
-    // Log App and System Information
-    Locator::getLogger()->info("{} v{} - Build {}",
-                               Core::AppInfo::APP_TITLE,
-                               Core::AppInfo::APP_VERSION,
-                               Core::AppInfo::GIT_HASH);
-    Locator::getLogger()->info("System: {}", Core::Platform::getSystem());
-    Locator::getLogger()->info("CPU: {}", Core::Platform::getSystemCPU());
-	Locator::getLogger()->info("System Architecture: {}", Core::Platform::getArchitecture());
-	Locator::getLogger()->info("Total Memory: {}GB", Core::Platform::getSystemMemory() / pow(1024, 3));
+	// Log App and System Information
+	Locator::getLogger()->info("{} v{} - Build {}",
+							   Core::AppInfo::APP_TITLE,
+							   Core::AppInfo::APP_VERSION,
+							   Core::AppInfo::GIT_HASH);
+	Locator::getLogger()->info("System: {}", Core::Platform::getSystem());
+	Locator::getLogger()->info("CPU: {}", Core::Platform::getSystemCPU());
+	Locator::getLogger()->info("System Architecture: {}",
+							   Core::Platform::getArchitecture());
+	Locator::getLogger()->info(
+	  "Total Memory: {}GB", Core::Platform::getSystemMemory() / pow(1024, 3));
 
-    // Run Platform Initialization
-    Core::Platform::init();
+	// Run Platform Initialization
+	Core::Platform::init();
 
 	RageThreadRegister thread("Main thread");
 	RageException::SetCleanupHandler(HandleException);
@@ -1009,23 +1024,27 @@ sm_main(int argc, char* argv[])
 	FILEMAN = new RageFileManager(argv[0]);
 	const char* envRootDir = std::getenv("ETTERNA_ROOT_DIR");
 	std::string rootDir = (envRootDir && std::strlen(envRootDir) > 0)
-			? envRootDir : Core::Platform::getAppDirectory();
+							? envRootDir
+							: Core::Platform::getAppDirectory();
 	if (!FILEMAN->Mount("dir", rootDir, "/")) {
-		Locator::getLogger()->error("Failed to mount root directory: {}", rootDir);
+		Locator::getLogger()->error("Failed to mount root directory: {}",
+									rootDir);
 		return 1;
 	}
 
 	// load preferences and mount any alternative trees.
 	PREFSMAN = new PrefsManager;
 
-	/* Allow ArchHooks to check for multiple instances.  We need to do this after
-	 * PREFS is initialized, so ArchHooks can use a preference to turn this off.
-	 * We want to do this before ApplyLogPreferences, so if we exit because of
-	 * another instance, we don't try to clobber its log.  We also want to do
-	 * this before opening the loading window, so if we give focus away, we
-	 * don't flash the window. */
-	if (!g_bAllowMultipleInstances.Get() && Core::Platform::isOtherInstanceRunning(argc, argv)) {
-	    Locator::getLogger()->warn("Multiple instances are disabled. Other instance detected. Shutting down...");
+	/* Allow ArchHooks to check for multiple instances.  We need to do this
+	 * after PREFS is initialized, so ArchHooks can use a preference to turn
+	 * this off. We want to do this before ApplyLogPreferences, so if we exit
+	 * because of another instance, we don't try to clobber its log.  We also
+	 * want to do this before opening the loading window, so if we give focus
+	 * away, we don't flash the window. */
+	if (!g_bAllowMultipleInstances.Get() &&
+		Core::Platform::isOtherInstanceRunning(argc, argv)) {
+		Locator::getLogger()->warn("Multiple instances are disabled. Other "
+								   "instance detected. Shutting down...");
 		ShutdownGame();
 		return 0;
 	}
@@ -1035,24 +1054,28 @@ sm_main(int argc, char* argv[])
 	// Set up alternative filesystem trees.
 	if (!PREFSMAN->m_sAdditionalFolders.Get().empty())
 		MountAdditionalDirs(PREFSMAN->m_sAdditionalFolders, ",", "/");
-	const char* envAdditionalFolders = std::getenv("ETTERNA_ADDITIONAL_ROOT_DIRS");
+	const char* envAdditionalFolders =
+	  std::getenv("ETTERNA_ADDITIONAL_ROOT_DIRS");
 	if (envAdditionalFolders && std::strlen(envAdditionalFolders) > 0)
 		MountAdditionalDirs(envAdditionalFolders, PATH_SEPARATOR, "/");
 
 	if (!PREFSMAN->m_sAdditionalSongFolders.Get().empty())
-		MountAdditionalDirs(PREFSMAN->m_sAdditionalSongFolders, ",", "/AdditionalSongs");
-	const char* envAdditionalSongFolders = std::getenv("ETTERNA_ADDITIONAL_SONG_DIRS");
+		MountAdditionalDirs(
+		  PREFSMAN->m_sAdditionalSongFolders, ",", "/AdditionalSongs");
+	const char* envAdditionalSongFolders =
+	  std::getenv("ETTERNA_ADDITIONAL_SONG_DIRS");
 	if (envAdditionalSongFolders && std::strlen(envAdditionalSongFolders) > 0)
-		MountAdditionalDirs(envAdditionalSongFolders, PATH_SEPARATOR, "/AdditionalSongs");
+		MountAdditionalDirs(
+		  envAdditionalSongFolders, PATH_SEPARATOR, "/AdditionalSongs");
 
 	/* One of the above filesystems might contain files that affect preferences
 	 * (e.g. Data/Static.ini). Re-read preferences. */
 	PREFSMAN->ReadPrefsFromDisk();
 
-    // Setup options that require preference variables
-    // Used to be contents of ApplyLogPreferences
-    Core::Crash::setShouldUpload(PREFSMAN->m_bEnableCrashUpload);
-    Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
+	// Setup options that require preference variables
+	// Used to be contents of ApplyLogPreferences
+	Core::Crash::setShouldUpload(PREFSMAN->m_bEnableCrashUpload);
+	Core::Platform::setConsoleEnabled(PREFSMAN->m_bShowLogOutput);
 	Locator::getLogger()->info("Logging level {} (0 - TRACE | 5 - FATAL)",
 							   PREFSMAN->m_logging_level.Get());
 	Locator::getLogger()->setLogLevel(
@@ -1069,9 +1092,10 @@ sm_main(int argc, char* argv[])
 	  BinaryToHex(CryptManager::GetSHA256ForFileWithoutRageFile(argv[0]));
 
 	std::vector<std::string> arguments(argv + 1, argv + argc);
-	noWindow = std::any_of(arguments.begin(), arguments.end(), [](std::string str) {
-		return str == "notedataCache";
-	});
+	noWindow =
+	  std::any_of(arguments.begin(), arguments.end(), [](std::string str) {
+		  return str == "notedataCache";
+	  });
 
 	// This requires PREFSMAN, for PREFSMAN->m_bShowLoadingWindow.
 	LoadingWindow* pLoadingWindow = nullptr;
@@ -1083,7 +1107,8 @@ sm_main(int argc, char* argv[])
 	}
 
 #if defined(HAVE_TLS)
-	Locator::getLogger()->info("TLS is {}available", RageThread::GetSupportsTLS() ? "" : "not ");
+	Locator::getLogger()->info("TLS is {}available",
+							   RageThread::GetSupportsTLS() ? "" : "not ");
 #endif
 
 	AdjustForChangedSystemCapabilities();
@@ -1115,7 +1140,8 @@ sm_main(int argc, char* argv[])
 	}
 
 	if (PREFSMAN->m_iSoundWriteAhead)
-		Locator::getLogger()->info("Sound writeahead has been overridden to {}", PREFSMAN->m_iSoundWriteAhead.Get());
+		Locator::getLogger()->info("Sound writeahead has been overridden to {}",
+								   PREFSMAN->m_iSoundWriteAhead.Get());
 
 	SONGINDEX = new SongCacheIndex;
 	SOUNDMAN = new RageSoundManager;
@@ -1235,7 +1261,6 @@ StepMania::SaveScreenshot(const std::string& Dir,
 
 	return FileName;
 }
-
 
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
@@ -1393,7 +1418,8 @@ HandleGlobalInputs(const InputEventPlus& input)
 		bool bSaveCompressed = bHoldingShift;
 		RageTimer timer;
 		StepMania::SaveScreenshot("Screenshots/", bSaveCompressed, "", "");
-		Locator::getLogger()->debug("Screenshot took {} seconds.", timer.GetDeltaTime());
+		Locator::getLogger()->debug("Screenshot took {} seconds.",
+									timer.GetDeltaTime());
 		return true; // handled
 	}
 
@@ -1418,7 +1444,9 @@ HandleGlobalInputs(const InputEventPlus& input)
 	return false;
 }
 
-void StepMania::HandleInputEvents(float fDeltaTime) {
+void
+StepMania::HandleInputEvents(float fDeltaTime)
+{
 	INPUTFILTER->Update(fDeltaTime);
 
 	/* Hack: If the topmost screen hasn't been updated yet, don't process input,

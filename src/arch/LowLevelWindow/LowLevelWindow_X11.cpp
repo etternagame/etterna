@@ -9,7 +9,7 @@
 #include "Etterna/Models/Misc/LocalizedString.h"
 
 #include "RageUtil/Graphics/RenderTarget.h"
-#include "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
+#include "RageUtil/Graphics/OGL/RageDisplay_OGL_Helpers.h"
 using namespace RageDisplay_Legacy_Helpers;
 using namespace X11Helper;
 
@@ -92,15 +92,20 @@ LowLevelWindow_X11::LowLevelWindow_X11()
 	iXServerVersion %= 1000;
 	int iPatch = iXServerVersion;
 
-	Locator::getLogger()->info("Display: {} (screen {})", DisplayString(Dpy), iScreen);
+	Locator::getLogger()->info(
+	  "Display: {} (screen {})", DisplayString(Dpy), iScreen);
 	Locator::getLogger()->info("X server vendor: {} [{}.{}.{}.{}]",
-			  XServerVendor(Dpy), iMajor, iMinor, iRevision, iPatch);
+							   XServerVendor(Dpy),
+							   iMajor,
+							   iMinor,
+							   iRevision,
+							   iPatch);
 	Locator::getLogger()->info("Server GLX vendor: {} [{}]",
-			  glXQueryServerString(Dpy, iScreen, GLX_VENDOR),
-			  glXQueryServerString(Dpy, iScreen, GLX_VERSION));
+							   glXQueryServerString(Dpy, iScreen, GLX_VENDOR),
+							   glXQueryServerString(Dpy, iScreen, GLX_VERSION));
 	Locator::getLogger()->info("Client GLX vendor: {} [{}]",
-			  glXGetClientString(Dpy, GLX_VENDOR),
-			  glXGetClientString(Dpy, GLX_VERSION));
+							   glXGetClientString(Dpy, GLX_VENDOR),
+							   glXGetClientString(Dpy, GLX_VERSION));
 	m_bWasWindowed = true;
 	g_pScreenConfig =
 	  XRRGetScreenInfo(Dpy, RootWindow(Dpy, DefaultScreen(Dpy)));
@@ -409,8 +414,9 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 				}
 			}
 			if (targetOut == None) {
-				Locator::getLogger()->info("Did not find display output {}, trying another",
-						  p.sDisplayId.c_str());
+				Locator::getLogger()->info(
+				  "Did not find display output {}, trying another",
+				  p.sDisplayId.c_str());
 				// didn't find named output, pick primary/or at least one that
 				// works
 				if (g_iRandRVerMajor >= 1 && g_iRandRVerMinor >= 3) {
@@ -510,11 +516,12 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 
 			const std::string tgtOutName = std::string(
 			  tgtOutInfo->name, static_cast<unsigned int>(tgtOutInfo->nameLen));
-			Locator::getLogger()->info("XRandR output config using CRTC {} in mode {}, "
-					  "driving output %s",
-					  g_usedCrtc,
-					  mode,
-					  tgtOutName.c_str());
+			Locator::getLogger()->info(
+			  "XRandR output config using CRTC {} in mode {}, "
+			  "driving output %s",
+			  g_usedCrtc,
+			  mode,
+			  tgtOutName.c_str());
 			// and FIRE!
 			Status s = XRRSetCrtcConfig(Dpy,
 										scrRes,
@@ -686,8 +693,8 @@ LowLevelWindow_X11::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 		if (GLXEW_EXT_swap_control) // I haven't seen this actually implemented
 									// yet, but why not.
 			glXSwapIntervalEXT(Dpy, Win, CurrentParams.vsync ? 1 : 0);
-			// XXX: These two might be server-global. I should look into whether
-			// to try to preserve the original value on exit.
+		// XXX: These two might be server-global. I should look into whether
+		// to try to preserve the original value on exit.
 #ifdef GLXEW_MESA_swap_control // Added in 1.7. 1.6 is still common out there
 							   // apparently.
 		else if (GLXEW_MESA_swap_control) // Haven't seen this NOT implemented
@@ -709,14 +716,16 @@ LowLevelWindow_X11::Update()
 	XEvent event;
 	if (XCheckTypedEvent(Dpy, ClientMessage, &event) &&
 		event.xclient.data.l[0] == g_wmDeleteMessage) {
-	    GameLoop::setUserQuit();
+		GameLoop::setUserQuit();
 	}
 }
 
 void
 LowLevelWindow_X11::LogDebugInformation() const
 {
-	Locator::getLogger()->info("Direct rendering: {}", glXIsDirect(Dpy, glXGetCurrentContext()) ? "yes" : "no");
+	Locator::getLogger()->info("Direct rendering: {}",
+							   glXIsDirect(Dpy, glXGetCurrentContext()) ? "yes"
+																		: "no");
 }
 
 bool
@@ -1006,7 +1015,8 @@ RenderTarget_X11::Create(const RenderTargetParam& param,
 	glGenTextures(1, reinterpret_cast<GLuint*>(&m_iTexHandle));
 	glBindTexture(GL_TEXTURE_2D, m_iTexHandle);
 
-	Locator::getLogger()->trace("n {}, {}x{}", m_iTexHandle, param.iWidth, param.iHeight);
+	Locator::getLogger()->trace(
+	  "n {}, {}x{}", m_iTexHandle, param.iWidth, param.iHeight);
 	while (glGetError() != GL_NO_ERROR)
 		;
 

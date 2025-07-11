@@ -8,7 +8,7 @@
 #include <GL/glew.h>
 
 /* Import RageDisplay, for types.  Do not include RageDisplay_Legacy.h. */
-#include "RageDisplay.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 
 /* Windows defines GL_EXT_paletted_texture incompletely: */
 #ifndef GL_TEXTURE_INDEX_SIZE_EXT
