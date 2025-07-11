@@ -5,25 +5,9 @@
 #define RAGE_SHADER_REFERENCE_H
 
 #include <string>
-#include "Etterna/Models/Misc/EnumHelper.h"
+#include "RageUtil/Misc/RageTypes.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "RageShader.h"
-
-enum class RageDisplayType
-{
-	D3D,
-	OGL,
-	Invalid,
-};
-LuaDeclareType(RageDisplayType);
-
-enum class RageShaderType
-{
-	Fragment,
-	Vertex,
-	Invalid,
-};
-LuaDeclareType(RageShaderType);
 
 // TODO: Lua bindings so it's easy to pass these thingies around
 // ALSO NOTE: it's likely much better to use compile-time constants and such to
