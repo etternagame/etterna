@@ -6,6 +6,7 @@ struct VertexShaderOutput
     float3 normal : TEXCOORD1;
     float4 color : COLOR;
     float2 texcoord : TEXCOORD0;
+    float time : TEXCOORD2;
 };
 
 float4 main(VertexShaderOutput input) : COLOR0
