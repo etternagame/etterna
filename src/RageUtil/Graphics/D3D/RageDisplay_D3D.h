@@ -17,6 +17,8 @@
 #include "RageUtil/Graphics/RenderTarget.h"
 #include "RagePixelShaderHandler_D3D.h"
 #include "RageVertexShaderHandler_D3D.h"
+#include "RagePixelShader_D3D.h"
+#include "RageVertexShader_D3D.h"
 #include <list>
 
 class RageDisplay_D3D : public RageDisplay
@@ -156,6 +158,10 @@ class RageDisplay_D3D : public RageDisplay
 
 	IDirect3DVertexDeclaration9* m_SpriteVertexDeclaration = nullptr;
 	IDirect3DVertexDeclaration9* m_ModelVertexDeclaration = nullptr;
+
+	IDirect3DVertexDeclaration9* m_PreviousVertexDecl = nullptr;
+	RageVertexShader_D3D* m_PreviousVertexShader = nullptr;
+	RagePixelShader_D3D* m_PreviousPixelShader = nullptr;
 
 	// TODO(Sam): Instead of defining this here, enumerate the possible formats
 	// and select whatever one we want to use. This format should be fine for

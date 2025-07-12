@@ -967,11 +967,6 @@ RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
 void
 RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 {
-	// hacky (move to RageDisplay_D3D maybe?)
-	static IDirect3DVertexDeclaration9* previousVertexDecl = nullptr;
-	static RageVertexShader_D3D* previousVertexShader = nullptr;
-	static RagePixelShader_D3D* previousPixelShader = nullptr;
-
 	IDirect3DVertexDeclaration9* vertexDecl = useSpriteDeclaration
 												? m_SpriteVertexDeclaration
 												 : m_ModelVertexDeclaration;
@@ -985,8 +980,8 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 
 	HRESULT hr = S_OK;
 
-	if (vertexDecl != previousVertexDecl) {
-		previousVertexDecl = vertexDecl;
+	if (vertexDecl != m_PreviousVertexDecl) {
+		m_PreviousVertexDecl = vertexDecl;
 
 		hr = m_Device->SetVertexDeclaration(vertexDecl);
 		if (FAILED(hr)) {
@@ -996,8 +991,8 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 		}
 	}
 
-	if (vertexShader != previousVertexShader) {
-		previousVertexShader = vertexShader;
+	if (vertexShader != m_PreviousVertexShader) {
+		m_PreviousVertexShader = vertexShader;
 
 		hr = m_Device->SetVertexShader(
 		  vertexShader->GetShaderForDevice(m_Device, false));
@@ -1008,8 +1003,8 @@ RageDisplay_D3D::SetShadersForDeclaration(bool useSpriteDeclaration)
 		}
 	}
 
-	if (pixelShader != previousPixelShader) {
-		previousPixelShader = pixelShader;
+	if (pixelShader != m_PreviousPixelShader) {
+		m_PreviousPixelShader = pixelShader;
 
 		hr = m_Device->SetPixelShader(
 		  pixelShader->GetShaderForDevice(m_Device, false));
