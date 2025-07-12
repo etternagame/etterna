@@ -163,6 +163,9 @@ class RageDisplay_D3D : public RageDisplay
 	RageVertexShader_D3D* m_PreviousVertexShader = nullptr;
 	RagePixelShader_D3D* m_PreviousPixelShader = nullptr;
 
+	void SetShaderInputs();
+	void PrepareForDrawingPrimitives(bool useVertexDeclaration);
+
 	// TODO(Sam): Instead of defining this here, enumerate the possible formats
 	// and select whatever one we want to use. This format should be fine for
 	// the uses of this application though.

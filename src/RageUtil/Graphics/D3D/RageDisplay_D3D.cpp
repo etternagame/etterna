@@ -556,6 +556,21 @@ RageDisplay_D3D::SetPresentParametersFromVideoModeParams(const VideoModeParams& 
 	  pD3Dpp->PresentationInterval);
 }
 
+void
+RageDisplay_D3D::SetShaderInputs()
+{
+	auto matrix = GetWorldViewProjectionMatrix();
+	m_Device->SetVertexShaderConstantF(0, *matrix, 4);
+}
+
+void
+RageDisplay_D3D::PrepareForDrawingPrimitives(bool useVertexDeclaration)
+{
+	SetShadersForDeclaration(useVertexDeclaration);
+	SendCurrentMatrices();
+	SetShaderInputs();
+}
+
 // Set the video mode.
 auto
 RageDisplay_D3D::TryVideoMode(const VideoModeParams& _p, bool& bNewDeviceOut)
@@ -1076,11 +1091,7 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 		vIndices[i * 6 + 5] = i * 4 + 0;
 	}
 
-	SetShadersForDeclaration(true);
-
-	SendCurrentMatrices();
-	auto matrix = GetWorldViewProjectionMatrix();
-	m_Device->SetVertexShaderConstantF(0, *matrix, 4);
+	PrepareForDrawingPrimitives(true);
 
 	auto result = m_Device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
@@ -1149,9 +1160,8 @@ RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteVertex v[],
 		vIndices[i * 6 + 5] = i * 2 + 3;
 	}
 
-	SetShadersForDeclaration(true);
+	PrepareForDrawingPrimitives(true);
 
-	SendCurrentMatrices();
 	m_Device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
 	  // PrimitiveType
@@ -1200,9 +1210,8 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 		vIndices[i * 12 + 11] = i * 3 + 5;
 	}
 
-	SetShadersForDeclaration(true);
+	PrepareForDrawingPrimitives(true);
 
-	SendCurrentMatrices();
 	m_Device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
 	  // PrimitiveType
@@ -1225,9 +1234,8 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 void
 RageDisplay_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	SetShadersForDeclaration(true);
+	PrepareForDrawingPrimitives(true);
 
-	SendCurrentMatrices();
 	m_Device->DrawPrimitiveUP(D3DPT_TRIANGLEFAN,
 								  // PrimitiveType
 								  iNumVerts - 2,
@@ -1240,9 +1248,8 @@ RageDisplay_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 void
 RageDisplay_D3D::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	SetShadersForDeclaration(true);
+	PrepareForDrawingPrimitives(true);
 
-	SendCurrentMatrices();
 	m_Device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP,
 								  // PrimitiveType
 								  iNumVerts - 2,
@@ -1256,9 +1263,8 @@ void
 RageDisplay_D3D::DrawTrianglesInternal(const RageSpriteVertex v[],
 									   int iNumVerts)
 {
-	SetShadersForDeclaration(true);
+	PrepareForDrawingPrimitives(true);
 
-	SendCurrentMatrices();
 	m_Device->DrawPrimitiveUP(D3DPT_TRIANGLELIST,
 								  // PrimitiveType
 								  iNumVerts / 3,
@@ -1272,7 +1278,7 @@ void
 RageDisplay_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 											  int iMeshIndex)
 {
-	SendCurrentMatrices();
+	PrepareForDrawingPrimitives(false);
 
 	/* If lighting is off, then the current material will have no effect. We
 	 * want to still be able to color models with lighting off, so shove the
