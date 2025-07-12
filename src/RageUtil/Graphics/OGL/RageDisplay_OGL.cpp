@@ -72,131 +72,6 @@ static bool g_bInvertY = false;
 static void
 InvalidateObjects();
 
-static RageDisplay::RagePixelFormatDesc
-  PIXEL_FORMAT_DESC[NUM_RagePixelFormat] = {
-	  { /* R8G8B8A8 */
-		32,
-		{ 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } },
-	  { /* B8G8R8A8 */
-		32,
-		{ 0x0000FF00, 0x00FF0000, 0xFF000000, 0x000000FF } },
-	  {
-		/* R4G4B4A4 */
-		16,
-		{ 0xF000, 0x0F00, 0x00F0, 0x000F },
-	  },
-	  {
-		/* R5G5B5A1 */
-		16,
-		{ 0xF800, 0x07C0, 0x003E, 0x0001 },
-	  },
-	  {
-		/* R5G5B5X1 */
-		16,
-		{ 0xF800, 0x07C0, 0x003E, 0x0000 },
-	  },
-	  { /* R8G8B8 */
-		24,
-		{ 0xFF0000, 0x00FF00, 0x0000FF, 0x000000 } },
-	  {
-		/* Paletted */
-		8,
-		{ 0, 0, 0, 0 } /* N/A */
-	  },
-	  { /* B8G8R8 */
-		24,
-		{ 0x0000FF, 0x00FF00, 0xFF0000, 0x000000 } },
-	  {
-		/* A1R5G5B5 */
-		16,
-		{ 0x7C00, 0x03E0, 0x001F, 0x8000 },
-	  },
-	  {
-		/* X1R5G5B5 */
-		16,
-		{ 0x7C00, 0x03E0, 0x001F, 0x0000 },
-	  }
-  };
-
-/* g_GLPixFmtInfo is used for both texture formats and surface formats.  For
- * example, it's fine to ask for a RagePixelFormat_RGB5 texture, but to supply a
- * surface matching RagePixelFormat_RGB8.  OpenGL will simply discard the extra
- * bits.
- *
- * It's possible for a format to be supported as a texture format but not as a
- * surface format.  For example, if packed pixels aren't supported, we can still
- * use GL_RGB5_A1, but we'll have to convert to a supported surface pixel format
- * first.  It's not ideal, since we'll convert to RGBA8 and OGL will convert
- * back, but it works fine.
- */
-struct GLPixFmtInfo_t
-{
-	GLenum internalfmt; /* target format */
-	GLenum format;		/* target format */
-	GLenum type;		/* data format */
-} const g_GLPixFmtInfo[NUM_RagePixelFormat] = {
-	{
-	  /* R8G8B8A8 */
-	  GL_RGBA8,
-	  GL_RGBA,
-	  GL_UNSIGNED_BYTE,
-	},
-	{
-	  /* R8G8B8A8 */
-	  GL_RGBA8,
-	  GL_BGRA,
-	  GL_UNSIGNED_BYTE,
-	},
-	{
-	  /* B4G4R4A4 */
-	  GL_RGBA4,
-	  GL_RGBA,
-	  GL_UNSIGNED_SHORT_4_4_4_4,
-	},
-	{
-	  /* B5G5R5A1 */
-	  GL_RGB5_A1,
-	  GL_RGBA,
-	  GL_UNSIGNED_SHORT_5_5_5_1,
-	},
-	{
-	  /* B5G5R5 */
-	  GL_RGB5,
-	  GL_RGBA,
-	  GL_UNSIGNED_SHORT_5_5_5_1,
-	},
-	{
-	  /* B8G8R8 */
-	  GL_RGB8,
-	  GL_RGB,
-	  GL_UNSIGNED_BYTE,
-	},
-	{
-	  /* Paletted */
-	  GL_COLOR_INDEX8_EXT,
-	  GL_COLOR_INDEX,
-	  GL_UNSIGNED_BYTE,
-	},
-	{
-	  /* B8G8R8 */
-	  GL_RGB8,
-	  GL_BGR,
-	  GL_UNSIGNED_BYTE,
-	},
-	{
-	  /* A1R5G5B5 (matches D3DFMT_A1R5G5B5) */
-	  GL_RGB5_A1,
-	  GL_BGRA,
-	  GL_UNSIGNED_SHORT_1_5_5_5_REV,
-	},
-	{
-	  /* X1R5G5B5 */
-	  GL_RGB5,
-	  GL_BGRA,
-	  GL_UNSIGNED_SHORT_1_5_5_5_REV,
-	}
-};
-
 static void
 FixLittleEndian()
 {
@@ -210,7 +85,9 @@ FixLittleEndian()
 
 		/* OpenGL and RageSurface handle byte formats differently; we need
 		 * to flip non-paletted masks to make them line up. */
-		if (g_GLPixFmtInfo[i].type != GL_UNSIGNED_BYTE || pf.bpp == 8)
+		if (g_GLPixFmtInfo[i].type !=
+			  GL_UNSIGNED_BYTE ||
+			pf.bpp == 8)
 			continue;
 
 		for (unsigned int& mask : pf.masks) {
