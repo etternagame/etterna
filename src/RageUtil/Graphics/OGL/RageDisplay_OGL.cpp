@@ -34,8 +34,6 @@
 #define glFlush()
 #endif
 
-using std::max;
-using std::min;
 using namespace RageDisplay_Legacy_Helpers;
 
 //
@@ -1109,13 +1107,15 @@ class RageCompiledGeometrySWOGL : public RageCompiledGeometry
 	void Allocate(const std::vector<msMesh>& vMeshes) override
 	{
 		/* Always allocate at least 1 entry, so &x[0] is valid. */
-		m_vPosition.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
-		m_vTexture.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
-		m_vNormal.resize(max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vPosition.resize(std::max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vTexture.resize(
+		  std::max(1U, static_cast<unsigned>(GetTotalVertices())));
+		m_vNormal.resize(
+		  std::max(1U, static_cast<unsigned>(GetTotalVertices())));
 		m_vTexMatrixScale.resize(
-		  max(1U, static_cast<unsigned>(GetTotalVertices())));
+		  std::max(1U, static_cast<unsigned>(GetTotalVertices())));
 		m_vTriangles.resize(
-		  max(1U, static_cast<unsigned>(GetTotalTriangles())));
+		  std::max(1U, static_cast<unsigned>(GetTotalTriangles())));
 	}
 	void Change(const std::vector<msMesh>& vMeshes) override
 	{
@@ -1576,7 +1576,8 @@ RageDisplay_Legacy::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 	// make a temporary index buffer
 	static std::vector<uint16_t> vIndices;
 	const unsigned uOldSize = vIndices.size();
-	const auto uNewSize = max(uOldSize, static_cast<unsigned>(iNumIndices));
+	const auto uNewSize =
+	  std::max(uOldSize, static_cast<unsigned>(iNumIndices));
 	vIndices.resize(uNewSize);
 	for (uint16_t i = static_cast<uint16_t>(uOldSize) / 12;
 		 i < static_cast<uint16_t>(iNumPieces);
