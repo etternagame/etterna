@@ -568,6 +568,13 @@ RageDisplay_D3D::PrepareForDrawingPrimitives(bool useVertexDeclaration)
 std::string
 RageDisplay_D3D::InitShaderSetupForDevice()
 {
+	auto shaderProfiles = GetSupportedShaderProfiles();
+
+	// (for now?) only the latest vertex shader version for D3D9
+	ASSERT(shaderProfiles[0] == "vs_3_0");
+	// (for now?) only the latest pixel shader version for D3D9
+	ASSERT(shaderProfiles[1] == "ps_3_0");
+
 	m_PixelShaderHandler.emplace(m_Device);
 	m_VertexShaderHandler.emplace(m_Device);
 
