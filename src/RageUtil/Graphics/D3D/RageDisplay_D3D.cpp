@@ -371,30 +371,10 @@ RageDisplay_D3D::SetD3DParams(bool& bNewDeviceOut) -> std::string
 			return ssprintf("CreateDevice failed: '%s'",
 			  RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
 		}
-
-		m_PixelShaderHandler.emplace(m_Device);
-		m_VertexShaderHandler.emplace(m_Device);
-
-		hr = m_Device->CreateVertexDeclaration(
-		  RageDisplay_D3D_Helpers::SpriteDeclaration,
-		  &m_SpriteVertexDeclaration);
-		if (FAILED(hr)) {
-			return ssprintf(
-			  "CreateVertexDeclaration failed: '%s'",
-			  RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
-		}
-
-		hr = m_Device->CreateVertexDeclaration(
-		  RageDisplay_D3D_Helpers::ModelDeclaration, &m_ModelVertexDeclaration);
-		if (FAILED(hr)) {
-			return ssprintf(
-			  "CreateVertexDeclaration failed: '%s'",
-			  RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
-		}
-
 	} else {
 		bNewDeviceOut = false;
-		// LOG->Warn( "Resetting D3D device" );
+
+		Locator::getLogger()->debug("Resetting D3D device");
 		const auto hr = m_Device->Reset(&m_PresentationParameters);
 		if (FAILED(hr)) {
 			// Likely D3D_ERR_INVALIDCALL.  The driver probably doesn't support
@@ -402,6 +382,13 @@ RageDisplay_D3D::SetD3DParams(bool& bNewDeviceOut) -> std::string
 			return ssprintf("g_pd3dDevice->Reset failed: '%s'",
 							RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
 		}
+
+		ResetShaderSetupForDevice();
+	}
+
+	auto result = InitShaderSetupForDevice();
+	if (!result.empty()) {
+		return result;
 	}
 
 	m_Device->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
@@ -576,6 +563,50 @@ RageDisplay_D3D::PrepareForDrawingPrimitives(bool useVertexDeclaration)
 	SetShadersForDeclaration(useVertexDeclaration);
 	SendCurrentMatrices();
 	SetShaderInputs();
+}
+
+std::string
+RageDisplay_D3D::InitShaderSetupForDevice()
+{
+	m_PixelShaderHandler.emplace(m_Device);
+	m_VertexShaderHandler.emplace(m_Device);
+
+	auto hr = m_Device->CreateVertexDeclaration(
+	  RageDisplay_D3D_Helpers::SpriteDeclaration, &m_SpriteVertexDeclaration);
+	if (FAILED(hr)) {
+		return ssprintf("CreateVertexDeclaration failed: '%s'",
+						RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
+	}
+
+	hr = m_Device->CreateVertexDeclaration(
+	  RageDisplay_D3D_Helpers::ModelDeclaration, &m_ModelVertexDeclaration);
+	if (FAILED(hr)) {
+		return ssprintf("CreateVertexDeclaration failed: '%s'",
+						RageDisplay_D3D_Helpers::GetErrorString(hr).c_str());
+	}
+
+	return std::string();
+}
+
+void
+RageDisplay_D3D::ResetShaderSetupForDevice()
+{
+	if (m_ModelVertexDeclaration != nullptr) {
+		m_ModelVertexDeclaration->Release();
+		m_ModelVertexDeclaration = nullptr;
+	}
+
+	if (m_SpriteVertexDeclaration != nullptr) {
+		m_SpriteVertexDeclaration->Release();
+		m_SpriteVertexDeclaration = nullptr;
+	}
+
+	m_PixelShaderHandler = std::nullopt;
+	m_VertexShaderHandler = std::nullopt;
+
+	m_PreviousVertexDecl = nullptr;
+	m_PreviousVertexShader = nullptr;
+	m_PreviousPixelShader = nullptr;
 }
 
 // Set the video mode.

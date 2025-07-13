@@ -143,9 +143,6 @@ class RageDisplay_D3D : public RageDisplay
 	void SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 												 D3DPRESENT_PARAMETERS* pD3Dpp);
 
-	std::optional<RageVertexShaderHandler_D3D> m_VertexShaderHandler;
-	std::optional<RagePixelShaderHandler_D3D> m_PixelShaderHandler;
-
 	HMODULE m_D3D9_Module = nullptr;
 	LPDIRECT3D9 m_D3D = nullptr;
 	LPDIRECT3DDEVICE9 m_Device = nullptr;
@@ -156,15 +153,18 @@ class RageDisplay_D3D : public RageDisplay
 	DWORD m_LastFVF = 0;
 	bool m_bSphereMapping[NUM_TextureUnit] = { false, false };
 
+	std::optional<RageVertexShaderHandler_D3D> m_VertexShaderHandler;
+	std::optional<RagePixelShaderHandler_D3D> m_PixelShaderHandler;
 	IDirect3DVertexDeclaration9* m_SpriteVertexDeclaration = nullptr;
 	IDirect3DVertexDeclaration9* m_ModelVertexDeclaration = nullptr;
-
 	IDirect3DVertexDeclaration9* m_PreviousVertexDecl = nullptr;
 	RageVertexShader_D3D* m_PreviousVertexShader = nullptr;
 	RagePixelShader_D3D* m_PreviousPixelShader = nullptr;
 
 	void SetShaderInputs();
 	void PrepareForDrawingPrimitives(bool useVertexDeclaration);
+	std::string InitShaderSetupForDevice();
+	void ResetShaderSetupForDevice();
 
 	// TODO(Sam): Instead of defining this here, enumerate the possible formats
 	// and select whatever one we want to use. This format should be fine for
