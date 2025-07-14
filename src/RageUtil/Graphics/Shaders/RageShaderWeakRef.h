@@ -8,6 +8,7 @@
 #include "RageUtil/Misc/RageTypes.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "RageShader.h"
+#include "RageUniformCollection.h"
 
 // TODO: Lua bindings so it's easy to pass these thingies around
 // ALSO NOTE: it's likely much better to use compile-time constants and such to
@@ -44,6 +45,7 @@ class RageShaderWeakRef
 	RageDisplayType m_DisplayType;
 	RageShaderType m_ShaderType;
 	bool m_IsDefault;
+	RageUniformCollection m_Uniform;
 };
 
 #endif
