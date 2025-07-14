@@ -93,8 +93,8 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/Shaders/RageUniformCollection.h"
   "Graphics/Shaders/RageShaderWeakRef.h"
   "Graphics/Shaders/RageShaderHandler.h"
-  "Graphics/Shaders/RenderTarget.h"
-  "Graphics/Shaders/RenderTargetParam.h"
+  "Graphics/RenderTarget.h"
+  "Graphics/RenderTargetParam.h"
 )
 
 if(WIN32)
@@ -228,4 +228,4 @@ list(APPEND SMDATA_ALL_RAGE_HPP
   ${SMDATA_RAGE_UTILS_HPP}
 )
 
-target_sources(Etterna PUBLIC ${SMDATA_ALL_RAGE_SRC})
+target_sources(Etterna PUBLIC ${SMDATA_ALL_RAGE_SRC} ${SMDATA_ALL_RAGE_HPP})
