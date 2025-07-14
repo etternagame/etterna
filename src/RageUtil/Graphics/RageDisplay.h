@@ -454,7 +454,7 @@ class RageDisplay
 		return nullptr;
 	} // allocates a surface.  Caller must delete it.
 
-	virtual void SetShader(RageShader* shader, RageShaderType shaderType) = 0;
+	virtual void SetShader(const RageShaderWeakRef& shader) = 0;
 	virtual RageShaderWeakRef CreateShaderFromPath(const std::string& path,
 												   RageShaderType shaderType,
 												   bool useAsDefault) = 0;

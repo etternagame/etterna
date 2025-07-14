@@ -2807,7 +2807,7 @@ RageDisplay_Legacy::GetTextureDiagnostics(unsigned iTexture) const
 }
 
 void
-RageDisplay_Legacy::SetShader(RageShader* shader, RageShaderType shaderType)
+RageDisplay_Legacy::SetShader(const RageShaderWeakRef& shader)
 {
 }
 

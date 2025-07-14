@@ -993,18 +993,20 @@ RageDisplay_D3D::DeleteCompiledGeometry(RageCompiledGeometry* p)
 }
 
 void
-RageDisplay_D3D::SetShader(RageShader* shader, RageShaderType shaderType)
+RageDisplay_D3D::SetShader(const RageShaderWeakRef& shader)
 {
-	if (shader == nullptr || shaderType == RageShaderType::Invalid) {
+	if (shader.GetShader() == nullptr ||
+		shader.GetShaderType() == RageShaderType::Invalid ||
+		shader.GetDisplayType() != RageDisplayType::D3D) {
 		return;
 	}
 
-	if (shaderType == RageShaderType::Vertex) {
-		m_VertexShaderHandler->TrySetActiveShader(shader);
+	if (shader.GetShaderType() == RageShaderType::Vertex) {
+		m_VertexShaderHandler->TrySetActiveShader(shader.GetShader());
 		return;
 	}
 
-	m_PixelShaderHandler->TrySetActiveShader(shader);
+	m_PixelShaderHandler->TrySetActiveShader(shader.GetShader());
 }
 
 RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,

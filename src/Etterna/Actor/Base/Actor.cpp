@@ -1657,12 +1657,12 @@ Actor::SetShadersForDisplay()
 	  !m_VertexShader.IsDestroyed()
 		? m_VertexShader
 		: m_DefaultVertexShader;
-	DISPLAY->SetShader(vertexShader.GetShader(), RageShaderType::Vertex);
+	DISPLAY->SetShader(vertexShader);
 
 	auto& fragmentShader = !m_FragmentShader.IsDestroyed()
 							 ? m_FragmentShader
 							 : m_DefaultFragmentShader;
-	DISPLAY->SetShader(fragmentShader.GetShader(), RageShaderType::Fragment);
+	DISPLAY->SetShader(fragmentShader);
 }
 
 void
