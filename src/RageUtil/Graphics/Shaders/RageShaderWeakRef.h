@@ -34,6 +34,7 @@ class RageShaderWeakRef
 	RageDisplayType GetDisplayType() const;
 	RageShaderType GetShaderType() const;
 	bool IsDefault() const;
+	RageUniformCollection m_Uniform;
 
 	// LunaRageShaderWeakRef territory
 	void PushSelf(lua_State* L);
@@ -45,7 +46,6 @@ class RageShaderWeakRef
 	RageDisplayType m_DisplayType;
 	RageShaderType m_ShaderType;
 	bool m_IsDefault;
-	RageUniformCollection m_Uniform;
 };
 
 #endif
