@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <memory>
 #include <functional>
+#include <queue>
+#include <optional>
 
 class RageShaderHandler
 {
@@ -23,6 +25,9 @@ public:
 	// CONVENTION (notes for myself): ownership is not passed to the caller
 	RageShader* GetCurrentShader();
 
+	void PushUniform(const RageUniformCollection& uniform);
+	std::optional<RageUniformCollection> TryPopUniform();
+
   protected:
 	// CONVENTION (notes for myself): ownership of the return value must be
 	// passed to the caller
@@ -33,6 +38,9 @@ public:
 	std::unordered_map<size_t, std::unique_ptr<RageShader>> m_ShaderCache;
 	std::unordered_map<size_t, std::unique_ptr<RageShader>>
 	  m_DefaultShaderCache;
+
+	// NOTE: a lot of copies?
+	std::queue<RageUniformCollection> m_UniformQueue;
 
 	const RageDisplayType m_DisplayType;
 	const RageShaderType m_ShaderType;

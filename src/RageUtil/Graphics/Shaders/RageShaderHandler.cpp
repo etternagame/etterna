@@ -90,3 +90,17 @@ RageShaderHandler::GetCurrentShader()
 {
 	return m_CurrentShader;
 }
+
+void
+RageShaderHandler::PushUniform(const RageUniformCollection& uniform)
+{
+	m_UniformQueue.push(uniform);
+}
+
+std::optional<RageUniformCollection>
+RageShaderHandler::TryPopUniform()
+{
+	auto uniform =
+	  m_UniformQueue.empty() ? std::nullopt : std::make_optional(m_UniformQueue.front());
+	return uniform;
+}
