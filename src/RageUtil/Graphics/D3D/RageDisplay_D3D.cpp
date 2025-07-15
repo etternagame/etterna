@@ -547,14 +547,87 @@ void
 RageDisplay_D3D::SetShaderInputs()
 {
 	auto matrix = GetWorldViewProjectionMatrix();
-	m_Device->SetVertexShaderConstantF(0, *matrix, 4);
+	auto hr = m_Device->SetVertexShaderConstantF(0, *matrix, 4);
+	RageDisplay_D3D_Helpers::LogHResultFailure(hr);
 
 	// D3D9 doesn't support bitwise operations so this will do for now
 	auto time =
 	  static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(
 						   std::chrono::steady_clock::now().time_since_epoch())
 						   .count());
-	m_Device->SetVertexShaderConstantF(4, &time, 1);
+	hr = m_Device->SetVertexShaderConstantF(4, &time, 1);
+	RageDisplay_D3D_Helpers::LogHResultFailure(hr);
+
+	SetPixelShaderUniform();
+	SetVertexShaderUniform();
+}
+
+void
+RageDisplay_D3D::SetPixelShaderUniform()
+{
+
+	auto pixelUniform = m_PixelShaderHandler->TryPopUniform();
+	if (!pixelUniform.has_value()) {
+		return;
+	}
+
+	for (auto& uniform : pixelUniform->boolData) {
+		auto hr = m_Device->SetPixelShaderConstantB(
+		  uniform.m_StartRegister, &uniform.m_Data[0], uniform.m_Data.size());
+		RageDisplay_D3D_Helpers::LogHResultFailure(hr);
+	}
+
+	for (auto& uniform : pixelUniform->intData) {
+		const size_t uniformSize =
+		  uniform.m_Data.size() % 4 + uniform.m_Data.size() / 4;
+
+		auto hr = m_Device->SetPixelShaderConstantI(
+		  uniform.m_StartRegister, &uniform.m_Data[0], uniformSize);
+		RageDisplay_D3D_Helpers::LogHResultFailure(hr);
+	}
+
+	for (auto& uniform : pixelUniform->floatData) {
+		const size_t uniformSize =
+		  uniform.m_Data.size() % 4 + uniform.m_Data.size() / 4;
+
+		auto hr = m_Device->SetPixelShaderConstantF(
+		  uniform.m_StartRegister, &uniform.m_Data[0], uniformSize);
+		RageDisplay_D3D_Helpers::LogHResultFailure(hr);
+	}
+}
+
+void
+RageDisplay_D3D::SetVertexShaderUniform()
+{
+
+	auto vertexUniform = m_VertexShaderHandler->TryPopUniform();
+	if (!vertexUniform.has_value()) {
+		return;
+	}
+
+	for (auto& uniform : vertexUniform->boolData) {
+		auto hr = m_Device->SetVertexShaderConstantB(
+		  uniform.m_StartRegister, &uniform.m_Data[0], uniform.m_Data.size());
+		RageDisplay_D3D_Helpers::LogHResultFailure(hr);
+	}
+
+	for (auto& uniform : vertexUniform->intData) {
+		const size_t uniformSize =
+		  uniform.m_Data.size() % 4 + uniform.m_Data.size() / 4;
+
+		auto hr = m_Device->SetVertexShaderConstantI(
+		  uniform.m_StartRegister, &uniform.m_Data[0], uniformSize);
+		RageDisplay_D3D_Helpers::LogHResultFailure(hr);
+	}
+
+	for (auto& uniform : vertexUniform->floatData) {
+		const size_t uniformSize =
+		  uniform.m_Data.size() % 4 + uniform.m_Data.size() / 4;
+
+		auto hr = m_Device->SetVertexShaderConstantF(
+		  uniform.m_StartRegister, &uniform.m_Data[0], uniformSize);
+		RageDisplay_D3D_Helpers::LogHResultFailure(hr);
+	}
 }
 
 void

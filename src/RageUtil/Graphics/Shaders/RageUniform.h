@@ -8,7 +8,7 @@
 
 template<typename _T>
 concept UniformType = requires(_T type) {
-	requires std::is_same_v<_T, int> || std::is_same_v<_T, bool> ||
+	requires std::is_same_v<_T, int> ||
 			   std::is_same_v<_T, float>;
 };
 
@@ -29,7 +29,7 @@ class RageUniform
 
 	const std::string m_Name;
 	const uint32_t m_StartRegister;
-	const std::vector<_UniformType> m_Data;
+	std::vector<_UniformType> m_Data;
 };
 
 #endif

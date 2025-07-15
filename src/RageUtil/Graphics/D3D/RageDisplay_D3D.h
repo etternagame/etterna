@@ -15,6 +15,7 @@
 #endif
 
 #include "RageUtil/Graphics/RenderTarget.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "RagePixelShaderHandler_D3D.h"
 #include "RageVertexShaderHandler_D3D.h"
 #include "RagePixelShader_D3D.h"
@@ -165,7 +166,9 @@ class RageDisplay_D3D : public RageDisplay
 	void PrepareForDrawingPrimitives(bool useVertexDeclaration);
 	std::string InitShaderSetupForDevice();
 	void ResetShaderSetupForDevice();
-
+	void SetPixelShaderUniform();
+	void SetVertexShaderUniform();
+	
 	// TODO(Sam): Instead of defining this here, enumerate the possible formats
 	// and select whatever one we want to use. This format should be fine for
 	// the uses of this application though.

@@ -120,6 +120,23 @@ RageDisplay_D3D_Helpers::GetErrorString(HRESULT hr) -> std::string
 	}
 }
 
+void
+RageDisplay_D3D_Helpers::LogHResultFailure(HRESULT hr,
+										   const std::source_location location)
+{
+	if (SUCCEEDED(hr)) {
+		return;
+	}
+
+	std::stringstream log;
+	log << "HRESULT failure: code " << hr << " ("
+		<< RageDisplay_D3D_Helpers::GetErrorString(hr) << ") "
+		<< "at file " << location.file_name() << ':' << location.line()
+		<< " (function " << location.function_name() << ')';
+
+	Locator::getLogger()->error(log.str());
+}
+
 const D3DVERTEXELEMENT9 RageDisplay_D3D_Helpers::SpriteDeclaration[] = {
 	{ 0,
 	  offsetof(RageSpriteVertex, p),

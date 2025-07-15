@@ -5,9 +5,9 @@
 
 struct RageUniformCollection
 {
-    std::vector<RageUniform<float>> floatData;
-    std::vector<RageUniform<int>> intData;
-    std::vector<RageUniform<bool>> boolData;
+	std::vector<RageUniform<float>> floatData;
+	std::vector<RageUniform<int>> intData;
+	std::vector<RageUniform<int>> boolData;
 };
 
 #endif
