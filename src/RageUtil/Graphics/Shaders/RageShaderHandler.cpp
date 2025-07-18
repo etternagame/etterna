@@ -94,6 +94,10 @@ RageShaderHandler::GetCurrentShader()
 void
 RageShaderHandler::PushUniform(const RageUniformCollection& uniform)
 {
+	if (uniform.boolData.empty() && uniform.floatData.empty() &&
+		uniform.intData.empty()) {
+		return;
+	}
 	m_UniformQueue.push(uniform);
 }
 

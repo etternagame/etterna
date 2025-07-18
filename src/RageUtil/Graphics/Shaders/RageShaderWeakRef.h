@@ -5,6 +5,7 @@
 #define RAGE_SHADER_REFERENCE_H
 
 #include <string>
+#include <optional>
 #include "RageUtil/Misc/RageTypes.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "RageShader.h"
@@ -34,7 +35,7 @@ class RageShaderWeakRef
 	RageDisplayType GetDisplayType() const;
 	RageShaderType GetShaderType() const;
 	bool IsDefault() const;
-	RageUniformCollection m_Uniform;
+	std::optional<RageUniformCollection> m_Uniform;
 
 	// LunaRageShaderWeakRef territory
 	void PushSelf(lua_State* L);
