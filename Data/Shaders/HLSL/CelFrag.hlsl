@@ -13,10 +13,6 @@ struct VertexShaderOutput
 float4 main(VertexShaderOutput input) : COLOR0
 {
     float4 textureColor = tex2D(textureSampler, input.texcoord);
-    float4 outputColor = input.color;
-    if(hasTexture){
-        outputColor *= textureColor;
-    }
-
+    float4 outputColor = input.color * textureColor; // do hasTexture later...
     return outputColor;
 }

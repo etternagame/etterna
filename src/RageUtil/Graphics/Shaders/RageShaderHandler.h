@@ -1,3 +1,4 @@
+/* RageShaderHandler - a cache for compiled fragment/vertex shaders */
 #ifndef RAGE_SHADER_HANDLER_H
 #define RAGE_SHADER_HANDLER_H
 

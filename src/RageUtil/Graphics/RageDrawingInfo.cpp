@@ -1,0 +1,1 @@
+#include "RageDrawingInfo.h"

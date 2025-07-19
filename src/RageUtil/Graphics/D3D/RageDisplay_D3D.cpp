@@ -1076,17 +1076,10 @@ RageDisplay_D3D::SetShader(const RageShaderWeakRef& shader)
 
 	if (shader.GetShaderType() == RageShaderType::Vertex) {
 		m_VertexShaderHandler->TrySetActiveShader(shader.GetShader());
-		if (shader.m_Uniform.has_value()) {
-			m_VertexShaderHandler->PushUniform(shader.m_Uniform.value());
-		}
 		return;
 	}
 
 	m_PixelShaderHandler->TrySetActiveShader(shader.GetShader());
-
-	if (shader.m_Uniform.has_value()) {
-		m_PixelShaderHandler->PushUniform(shader.m_Uniform.value());
-	}
 }
 
 RageShaderWeakRef RageDisplay_D3D::CreateShaderFromPath(const std::string& path,
