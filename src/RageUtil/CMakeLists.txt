@@ -46,7 +46,8 @@ source_group("Rage\\\\Misc" FILES ${SMDATA_RAGE_MISC_SRC} ${SMDATA_RAGE_MISC_HPP
 list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "Graphics/RageBitmapTexture.cpp"
   "Graphics/RageDisplay.cpp"
-  "Graphics/RageDrawingInfo.cpp"
+  "Graphics/RageSpriteDrawing.cpp"
+  "Graphics/RageGeometryDrawing.cpp"
   "Graphics/RageDisplay_Null.cpp"
   "Graphics/OGL/RageDisplay_OGL.cpp"
   "Graphics/OGL/RageDisplay_OGL_Helpers.cpp"
@@ -71,7 +72,8 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageBitmapTexture.h"
   "Graphics/RageDisplay.h"
-  "Graphics/RageDrawingInfo.h"
+  "Graphics/RageSpriteDrawing.h"
+  "Graphics/RageGeometryDrawing.h"
   "Graphics/RageDisplay_Null.h"
   "Graphics/OGL/RageDisplay_OGL.h"
   "Graphics/OGL/RageDisplay_OGL_Helpers.h"
