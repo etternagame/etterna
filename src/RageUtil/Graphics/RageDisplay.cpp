@@ -1021,7 +1021,6 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 	return true;
 }
 
-
 std::pair<const RageSpriteVertex*, int>
 RageDisplay::GetDrawRange(const RageSpriteDrawing& drawing)
 {
@@ -1034,7 +1033,6 @@ RageDisplay::GetDrawRange(const RageSpriteDrawing& drawing)
 
 	return { start, drawLength > 0 ? drawLength : drawing.v.size() };
 }
-
 
 void
 RageDisplay::DrawQuads(const RageSpriteDrawing& drawing)
