@@ -248,10 +248,12 @@ RageDisplay::StatsAddVerts(int iNumVertsRendered)
  * ends at odd angles--they're forced to axis-alignment regardless of the
  * angle of the line. */
 void
-RageDisplay::DrawPolyLine(const RageSpriteVertex& p1,
-						  const RageSpriteVertex& p2,
+RageDisplay::DrawPolyLine(const RageSpriteDrawing& drawing,
 						  float LineWidth)
 {
+	const auto &p1 = drawing.v[0];
+	const auto &p2 = drawing.v[1];
+
 	// soh cah toa strikes strikes again!
 	const auto opp = p2.p.x - p1.p.x;
 	const auto adj = p2.p.y - p1.p.y;
@@ -260,38 +262,38 @@ RageDisplay::DrawPolyLine(const RageSpriteVertex& p1,
 	const auto lsin = opp / hyp;
 	const auto lcos = adj / hyp;
 
-	RageSpriteVertex v[4];
+	RageSpriteDrawing lineQuad;
+	lineQuad.v.resize(4);
 
-	v[0] = v[1] = p1;
-	v[2] = v[3] = p2;
+	lineQuad.v[0] = lineQuad.v[1] = p1;
+	lineQuad.v[2] = lineQuad.v[3] = p2;
 
 	const auto ydist = lsin * LineWidth / 2;
 	const auto xdist = lcos * LineWidth / 2;
 
-	v[0].p.x += xdist;
-	v[0].p.y -= ydist;
-	v[1].p.x -= xdist;
-	v[1].p.y += ydist;
-	v[2].p.x -= xdist;
-	v[2].p.y += ydist;
-	v[3].p.x += xdist;
-	v[3].p.y -= ydist;
+	lineQuad.v[0].p.x += xdist;
+	lineQuad.v[0].p.y -= ydist;
+	lineQuad.v[1].p.x -= xdist;
+	lineQuad.v[1].p.y += ydist;
+	lineQuad.v[2].p.x -= xdist;
+	lineQuad.v[2].p.y += ydist;
+	lineQuad.v[3].p.x += xdist;
+	lineQuad.v[3].p.y -= ydist;
 
-	this->DrawQuad(v);
+	this->DrawQuad(lineQuad);
 }
 
 // Batching version of the above function
 void
-RageDisplay::DrawPolyLines(const RageSpriteVertex v[],
-						   int iNumVerts,
+RageDisplay::DrawPolyLines(const RageSpriteDrawing& drawing,
 						   float LineWidth)
 {
 	std::vector<RageSpriteVertex> batchVerts;
-	batchVerts.reserve(iNumVerts * 4);
+	batchVerts.reserve(drawing.v.size() * 4);
 
-	for (auto i = 0; i < iNumVerts - 1; ++i) {
-		const auto p1 = v[i];
-		const auto p2 = v[i + 1];
+	for (auto i = 0; i < drawing.v.size() - 1; ++i) {
+		const auto& p1 = drawing.v[i];
+		const auto& p2 = drawing.v[i + 1];
 
 		// soh cah toa strikes strikes again!
 		const auto opp = p2.p.x - p1.p.x;
@@ -323,7 +325,9 @@ RageDisplay::DrawPolyLines(const RageSpriteVertex v[],
 		}
 	}
 
-	this->DrawQuads(batchVerts.data(), batchVerts.size());
+	RageSpriteDrawing batchDrawing = drawing;
+	batchDrawing.v = batchVerts;
+	this->DrawQuads(batchDrawing);
 }
 
 void
@@ -336,33 +340,39 @@ RageDisplay::DrawLineStripInternal(const RageSpriteVertex v[],
 	/* Draw a line strip with rounded corners using polys. This is used on
 	 * cards that have strange allergic reactions to antialiased points and
 	 * lines. */
-	DrawPolyLines(v, iNumVerts, LineWidth);
+	RageSpriteDrawing drawing;
+	drawing.v.resize(iNumVerts);
+	for (int i = 0; i < iNumVerts; i++) {
+		drawing.v[i] = v[i];
+	}
+
+	DrawPolyLines(drawing, LineWidth);
 
 	// Join the lines with circles so we get rounded corners when SmoothLines is
 	// off.
 	if (!PREFSMAN->m_bSmoothLines) {
 		for (auto i = 0; i < iNumVerts; ++i)
-			DrawCircle(v[i], LineWidth / 2);
+			DrawCircle({ {v[i]} }, LineWidth / 2);
 	}
 }
 
 void
-RageDisplay::DrawCircleInternal(const RageSpriteVertex& p, float radius)
+RageDisplay::DrawCircleInternal(const RageSpriteDrawing& drawing, float radius)
 {
 	const auto subdivisions = 32;
-	RageSpriteVertex v[subdivisions + 2];
-	v[0] = p;
+	RageSpriteDrawing fanDrawing;
+	fanDrawing.v.resize(subdivisions + 2);
+	fanDrawing.v[0] = drawing.v[0];
 
 	for (auto i = 0; i < subdivisions + 1; ++i) {
 		const auto fRotation = static_cast<float>(i) / subdivisions * 2 * PI;
 		const auto fX = RageFastCos(fRotation) * radius;
 		const auto fY = -RageFastSin(fRotation) * radius;
-		v[1 + i] = v[0];
-		v[1 + i].p.x += fX;
-		v[1 + i].p.y += fY;
+		fanDrawing.v[1 + i] = fanDrawing.v[0];
+		fanDrawing.v[1 + i].p.x += fX;
+		fanDrawing.v[1 + i].p.y += fY;
 	}
-
-	this->DrawFan(v, subdivisions + 2);
+	this->DrawFan(fanDrawing);
 }
 
 void
@@ -1012,62 +1022,62 @@ RageDisplay::SaveScreenshot(const std::string& sPath, GraphicsFileFormat format)
 }
 
 void
-RageDisplay::DrawQuads(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay::DrawQuads(const RageSpriteDrawing& drawing)
 {
-	ASSERT((iNumVerts % 4) == 0);
+	ASSERT((drawing.v.size() % 4) == 0);
 
-	if (iNumVerts == 0)
+	if (drawing.v.size() == 0)
 		return;
 
-	this->DrawQuadsInternal(v, iNumVerts);
+	this->DrawQuadsInternal(drawing.v.data(), drawing.v.size());
 
-	StatsAddVerts(iNumVerts);
+	StatsAddVerts(drawing.v.size());
 }
 
 void
-RageDisplay::DrawQuadStrip(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay::DrawQuadStrip(const RageSpriteDrawing& drawing)
 {
-	ASSERT((iNumVerts % 2) == 0);
+	ASSERT((drawing.v.size() % 2) == 0);
 
-	if (iNumVerts < 4)
+	if (drawing.v.size() < 4)
 		return;
 
-	this->DrawQuadStripInternal(v, iNumVerts);
+	this->DrawQuadStripInternal(drawing.v.data(), drawing.v.size());
 
-	StatsAddVerts(iNumVerts);
+	StatsAddVerts(drawing.v.size());
 }
 
 void
-RageDisplay::DrawFan(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay::DrawFan(const RageSpriteDrawing& drawing)
 {
-	ASSERT(iNumVerts >= 3);
+	ASSERT(drawing.v.size() >= 3);
 
-	this->DrawFanInternal(v, iNumVerts);
+	this->DrawFanInternal(drawing.v.data(), drawing.v.size());
 
-	StatsAddVerts(iNumVerts);
+	StatsAddVerts(drawing.v.size());
 }
 
 void
-RageDisplay::DrawStrip(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay::DrawStrip(const RageSpriteDrawing& drawing)
 {
-	ASSERT(iNumVerts >= 3);
+	ASSERT(drawing.v.size() >= 3);
 
-	this->DrawStripInternal(v, iNumVerts);
+	this->DrawStripInternal(drawing.v.data(), drawing.v.size());
 
-	StatsAddVerts(iNumVerts);
+	StatsAddVerts(drawing.v.size());
 }
 
 void
-RageDisplay::DrawTriangles(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay::DrawTriangles(const RageSpriteDrawing& drawing)
 {
-	if (iNumVerts == 0)
+	if (drawing.v.size() == 0)
 		return;
 
-	ASSERT(iNumVerts >= 3);
+	ASSERT(drawing.v.size() >= 3);
 
-	this->DrawTrianglesInternal(v, iNumVerts);
+	this->DrawTrianglesInternal(drawing.v.data(), drawing.v.size());
 
-	StatsAddVerts(iNumVerts);
+	StatsAddVerts(drawing.v.size());
 }
 
 void
@@ -1103,22 +1113,22 @@ RageDisplay::DrawLineStrip(const RageSpriteVertex v[],
  */
 
 void
-RageDisplay::DrawSymmetricQuadStrip(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay::DrawSymmetricQuadStrip(const RageSpriteDrawing& drawing)
 {
-	ASSERT(iNumVerts >= 3);
+	ASSERT(drawing.v.size() >= 3);
 
-	if (iNumVerts < 6)
+	if (drawing.v.size() < 6)
 		return;
 
-	this->DrawSymmetricQuadStripInternal(v, iNumVerts);
+	this->DrawSymmetricQuadStripInternal(drawing.v.data(), drawing.v.size());
 
-	StatsAddVerts(iNumVerts);
+	StatsAddVerts(drawing.v.size());
 }
 
 void
-RageDisplay::DrawCircle(const RageSpriteVertex& v, float radius)
+RageDisplay::DrawCircle(const RageSpriteDrawing& drawing, float radius)
 {
-	this->DrawCircleInternal(v, radius);
+	this->DrawCircleInternal(drawing, radius);
 }
 
 float

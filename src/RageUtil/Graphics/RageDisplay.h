@@ -7,6 +7,7 @@
 #include "RageUtil/Misc/RageTypes.h"
 #include "RageUtil/Graphics/Shaders/RageShaderWeakRef.h"
 #include "RenderTargetParam.h"
+#include "RageSpriteDrawing.h"
 
 #include <chrono>
 #include <set>
@@ -409,23 +410,23 @@ class RageDisplay
 	virtual auto CreateCompiledGeometry() -> RageCompiledGeometry* = 0;
 	virtual void DeleteCompiledGeometry(RageCompiledGeometry* p) = 0;
 
-	void DrawQuads(const RageSpriteVertex v[], int iNumVerts);
-	void DrawQuadStrip(const RageSpriteVertex v[], int iNumVerts);
-	void DrawFan(const RageSpriteVertex v[], int iNumVerts);
-	void DrawStrip(const RageSpriteVertex v[], int iNumVerts);
-	void DrawTriangles(const RageSpriteVertex v[], int iNumVerts);
+	void DrawQuads(const RageSpriteDrawing& drawing);
+	void DrawQuadStrip(const RageSpriteDrawing& drawing);
+	void DrawFan(const RageSpriteDrawing& drawing);
+	void DrawStrip(const RageSpriteDrawing& drawing);
+	void DrawTriangles(const RageSpriteDrawing& drawing);
 	void DrawCompiledGeometry(const RageCompiledGeometry* p,
 							  int iMeshIndex,
 							  const std::vector<msMesh>& vMeshes);
 	void DrawLineStrip(const RageSpriteVertex v[],
 					   int iNumVerts,
 					   float LineWidth);
-	void DrawSymmetricQuadStrip(const RageSpriteVertex v[], int iNumVerts);
-	void DrawCircle(const RageSpriteVertex& v, float radius);
+	void DrawSymmetricQuadStrip(const RageSpriteDrawing& drawing);
+	void DrawCircle(const RageSpriteDrawing& drawing, float radius);
 
-	void DrawQuad(const RageSpriteVertex v[])
+	void DrawQuad(const RageSpriteDrawing& drawing)
 	{
-		DrawQuads(v, 4);
+		DrawQuads(drawing);
 	} /* alias. upper-left, upper-right, lower-left, lower-right */
 
 	// hacks for cell-shaded models
@@ -477,7 +478,8 @@ class RageDisplay
 									   float LineWidth);
 	virtual void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 												int iNumVerts) = 0;
-	virtual void DrawCircleInternal(const RageSpriteVertex& v, float radius);
+	virtual void DrawCircleInternal(const RageSpriteDrawing& drawing,
+									float radius);
 
 	virtual auto IsD3DInternal() -> bool;
 
@@ -487,11 +489,9 @@ class RageDisplay
 	virtual auto TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	  -> std::string = 0;
 
-	void DrawPolyLine(const RageSpriteVertex& p1,
-					  const RageSpriteVertex& p2,
+	void DrawPolyLine(const RageSpriteDrawing& drawing,
 					  float LineWidth);
-	void DrawPolyLines(const RageSpriteVertex v[],
-					   int iNumVerts,
+	void DrawPolyLines(const RageSpriteDrawing& drawing,
 					   float LineWidth);
 
 	// Stuff in RageDisplay.cpp
