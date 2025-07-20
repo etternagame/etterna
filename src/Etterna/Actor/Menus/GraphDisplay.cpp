@@ -47,10 +47,14 @@ class GraphLine : public Actor
 			}
 		}
 
+		m_Quads.useTexture = true;
+
 		DISPLAY->DrawQuads(m_Quads);
 
-		for (int i = 0; i < m_pCircles.size(); ++i)
+		for (int i = 0; i < m_pCircles.size(); ++i) {
+			m_pCircles[i].useTexture = true;
 			DISPLAY->DrawFan(m_pCircles[i]);
+		}
 	}
 
 	static void MakeCircle(const RageSpriteVertex& v,
@@ -154,6 +158,7 @@ class GraphBody : public Actor
 		Actor::SetTextureRenderStates();
 
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Modulate);
+		m_Slices.useTexture = true;
 		DISPLAY->DrawQuadStrip(m_Slices);
 	}
 

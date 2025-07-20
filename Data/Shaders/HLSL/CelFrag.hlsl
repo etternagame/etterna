@@ -14,8 +14,10 @@ float4 main(VertexShaderOutput input) : COLOR0
 {
     float4 textureColor = tex2D(textureSampler, input.texcoord);
     float4 outputColor = input.color;
-    //if(useTexture){ // disabled until stuff is passed to RageSpriteDrawing
+
+    if(useTexture){
         outputColor *= textureColor;
-    //}
+    }
+    
     return outputColor;
 }

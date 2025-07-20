@@ -518,6 +518,7 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 			(renderNow || end >= static_cast<size_t>(iEndGlyph))) {
 			m_Drawing.drawRange = { startingPoint * 4,
 									(end - startingPoint) * 4 };
+			m_Drawing.useTexture = true;
 			DISPLAY->DrawQuads(m_Drawing);
 			
 			// Setup for the next render pass

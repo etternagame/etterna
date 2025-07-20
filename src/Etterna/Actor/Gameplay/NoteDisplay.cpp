@@ -881,7 +881,7 @@ struct StripBuffer
 	}
 	~StripBuffer() { }
 
-	void Init() { v = &drawing.v[0]; }
+	void Init() { v = &drawing.v[0]; } //  todo: this likely can be simplified to an index/iterator/something
 	void Draw() {
 		drawing.drawRange = { 0, Used() };
 		DISPLAY->DrawSymmetricQuadStrip(drawing);
