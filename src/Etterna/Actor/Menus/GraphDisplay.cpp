@@ -38,17 +38,19 @@ class GraphLine : public Actor
 		// parameters have no effect.
 		Actor::SetTextureRenderStates();
 
-		for (unsigned i = 0; i < m_Quads.size(); ++i)
-			m_Quads[i].c = this->m_pTempState->diffuse[0];
-		for (unsigned i = 0; i < m_pCircles.size(); ++i)
-			m_pCircles[i].c = this->m_pTempState->diffuse[0];
+		for (unsigned i = 0; i < m_Quads.v.size(); ++i)
+			m_Quads.v[i].c = this->m_pTempState->diffuse[0];
 
-		DISPLAY->DrawQuads(&m_Quads[0], m_Quads.size());
+		for (auto& circle : m_pCircles) {
+			for (auto& vertex : circle.v) {
+				vertex.c = this->m_pTempState->diffuse[0];
+			}
+		}
 
-		const int iFans = m_pCircles.size() / iCircleVertices;
-		for (int i = 0; i < iFans; ++i)
-			DISPLAY->DrawFan(&m_pCircles[0] + iCircleVertices * i,
-							 iCircleVertices);
+		DISPLAY->DrawQuads(m_Quads);
+
+		for (int i = 0; i < m_pCircles.size(); ++i)
+			DISPLAY->DrawFan(m_pCircles[i]);
 	}
 
 	static void MakeCircle(const RageSpriteVertex& v,
@@ -71,17 +73,19 @@ class GraphLine : public Actor
 
 	void Set(const RageSpriteVertex* m_LineStrip, int iSize)
 	{
-		m_pCircles.resize(iSize * iCircleVertices);
+		m_pCircles.resize(iSize);
+		for (auto& circle : m_pCircles) {
+			circle.v.resize(iCircleVertices);
+		}
 
 		for (int i = 0; i < iSize; ++i) {
-			MakeCircle(m_LineStrip[i],
-					   &m_pCircles[0] + iCircleVertices * i,
+			MakeCircle(m_LineStrip[i], &m_pCircles[i].v[0],
 					   iSubdivisions,
 					   1);
 		}
 
 		const int iNumLines = iSize - 1;
-		m_Quads.resize(iNumLines * 4);
+		m_Quads.v.resize(iNumLines * 4);
 		for (int i = 0; i < iNumLines; ++i) {
 			const RageSpriteVertex& p1 = m_LineStrip[i];
 			const RageSpriteVertex& p2 = m_LineStrip[i + 1];
@@ -93,7 +97,7 @@ class GraphLine : public Actor
 			const float lsin = opp / hyp;
 			const float lcos = adj / hyp;
 
-			RageSpriteVertex* v = &m_Quads[i * 4];
+			RageSpriteVertex* v = &m_Quads.v[i * 4];
 			v[0] = v[1] = p1;
 			v[2] = v[3] = p2;
 
@@ -115,8 +119,8 @@ class GraphLine : public Actor
 	GraphLine* Copy() const override;
 
   private:
-	std::vector<RageSpriteVertex> m_Quads;
-	std::vector<RageSpriteVertex> m_pCircles;
+	RageSpriteDrawing m_Quads;
+	std::vector<RageSpriteDrawing> m_pCircles;
 };
 REGISTER_ACTOR_CLASS(GraphLine);
 
@@ -127,9 +131,10 @@ class GraphBody : public Actor
 	{
 		m_pTexture = TEXTUREMAN->LoadTexture(sFile);
 
+		m_Slices.v.resize(2 * VALUE_RESOLUTION);
 		for (int i = 0; i < 2 * VALUE_RESOLUTION; ++i) {
-			m_Slices[i].c = RageColor(1, 1, 1, 1);
-			m_Slices[i].t = RageVector2(0, 0);
+			m_Slices.v[i].c = RageColor(1, 1, 1, 1);
+			m_Slices.v[i].t = RageVector2(0, 0);
 		}
 	}
 	~GraphBody() override
@@ -149,11 +154,11 @@ class GraphBody : public Actor
 		Actor::SetTextureRenderStates();
 
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Modulate);
-		DISPLAY->DrawQuadStrip(m_Slices, ARRAYLEN(m_Slices));
+		DISPLAY->DrawQuadStrip(m_Slices);
 	}
 
 	RageTexture* m_pTexture;
-	RageSpriteVertex m_Slices[2 * VALUE_RESOLUTION];
+	RageSpriteDrawing m_Slices;
 };
 
 GraphDisplay::GraphDisplay()
@@ -278,8 +283,8 @@ GraphDisplay::UpdateVerts()
 		const float fY = SCALE(
 		  m_Values[i], 0.0f, 1.0f, m_quadVertices.bottom, m_quadVertices.top);
 
-		m_pGraphBody->m_Slices[i * 2 + 0].p = RageVector3(fX, fY, 0);
-		m_pGraphBody->m_Slices[i * 2 + 1].p =
+		m_pGraphBody->m_Slices.v[i * 2 + 0].p = RageVector3(fX, fY, 0);
+		m_pGraphBody->m_Slices.v[i * 2 + 1].p =
 		  RageVector3(fX, m_quadVertices.bottom, 0);
 
 		const RectF* pRect = m_pGraphBody->m_pTexture->GetTextureCoordRect(0);
@@ -294,8 +299,8 @@ GraphDisplay::UpdateVerts()
 							   m_quadVertices.bottom,
 							   pRect->top,
 							   pRect->bottom);
-		m_pGraphBody->m_Slices[i * 2 + 0].t = RageVector2(fU, fV);
-		m_pGraphBody->m_Slices[i * 2 + 1].t = RageVector2(fU, pRect->bottom);
+		m_pGraphBody->m_Slices.v[i * 2 + 0].t = RageVector2(fU, fV);
+		m_pGraphBody->m_Slices.v[i * 2 + 1].t = RageVector2(fU, pRect->bottom);
 
 		LineStrip[i].p = RageVector3(fX, fY, 0);
 		LineStrip[i].c = RageColor(1, 1, 1, 1);

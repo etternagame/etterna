@@ -560,21 +560,21 @@ Sprite::DrawTexture(const TweenState* state)
 	IF_CROP_POS(top, bottom);
 	IF_CROP_POS(right, left);
 	IF_CROP_POS(bottom, top);
-
-	static RageSpriteVertex v[4];
-	v[0].p = RageVector3(
+	
+	static RageSpriteDrawing drawing{ std::vector<RageSpriteVertex>(4) };
+	drawing.v[0].p = RageVector3(
 	  croppedQuadVerticies.left, croppedQuadVerticies.top, 0); // top left
-	v[1].p = RageVector3(
+	drawing.v[1].p = RageVector3(
 	  croppedQuadVerticies.left, croppedQuadVerticies.bottom, 0); // bottom left
-	v[2].p = RageVector3(croppedQuadVerticies.right,
+	drawing.v[2].p = RageVector3(croppedQuadVerticies.right,
 						 croppedQuadVerticies.bottom,
 						 0); // bottom right
-	v[3].p = RageVector3(
+	drawing.v[3].p = RageVector3(
 	  croppedQuadVerticies.right, croppedQuadVerticies.top, 0); // top right
 	if (m_bUsingCustomPosCoords) {
 		for (auto i = 0; i < 4; ++i) {
-			v[i].p.x += m_CustomPosCoords[i * 2];
-			v[i].p.y += m_CustomPosCoords[(i * 2) + 1];
+			drawing.v[i].p.x += m_CustomPosCoords[i * 2];
+			drawing.v[i].p.y += m_CustomPosCoords[(i * 2) + 1];
 		}
 	}
 
@@ -599,7 +599,7 @@ Sprite::DrawTexture(const TweenState* state)
 				RageVector2(f[6], f[7])	 // top right
 			};
 
-			for (auto& i : v) {
+			for (auto& i : drawing.v) {
 				auto pVert = &i;
 
 				const auto fTopX = SCALE(pVert->p.x,
@@ -635,14 +635,14 @@ Sprite::DrawTexture(const TweenState* state)
 								   fRightY);
 			}
 		} else {
-			v[0].t = RageVector2(f[0], f[1]); // top left
-			v[1].t = RageVector2(f[2], f[3]); // bottom left
-			v[2].t = RageVector2(f[4], f[5]); // bottom right
-			v[3].t = RageVector2(f[6], f[7]); // top right
+			drawing.v[0].t = RageVector2(f[0], f[1]); // top left
+			drawing.v[1].t = RageVector2(f[2], f[3]); // bottom left
+			drawing.v[2].t = RageVector2(f[4], f[5]); // bottom right
+			drawing.v[3].t = RageVector2(f[6], f[7]); // top right
 		}
 	} else {
 		// Just make sure we don't throw NaN/INF at the renderer:
-		for (auto& i : v)
+		for (auto& i : drawing.v)
 			i.t.x = i.t.y = 0;
 	}
 
@@ -658,24 +658,26 @@ Sprite::DrawTexture(const TweenState* state)
 			  m_fShadowLengthX, m_fShadowLengthY, 0); // shift by 5 units
 			auto c = m_ShadowColor;
 			c.a *= state->diffuse[0].a;
-			v[0].c = v[1].c = v[2].c = v[3].c = c; // semi-transparent black
-			DISPLAY->DrawQuad(v);
+			drawing.v[0].c = drawing.v[1].c = drawing.v[2].c = drawing.v[3].c =
+			  c; // semi-transparent black
+			DISPLAY->DrawQuad(drawing);
 			DISPLAY->PopMatrix();
 		}
 
 		// render the diffuse pass
-		v[0].c = state->diffuse[0]; // top left
-		v[1].c = state->diffuse[2]; // bottom left
-		v[2].c = state->diffuse[3]; // bottom right
-		v[3].c = state->diffuse[1]; // top right
-		DISPLAY->DrawQuad(v);
+		drawing.v[0].c = state->diffuse[0]; // top left
+		drawing.v[1].c = state->diffuse[2]; // bottom left
+		drawing.v[2].c = state->diffuse[3]; // bottom right
+		drawing.v[3].c = state->diffuse[1]; // top right
+		DISPLAY->DrawQuad(drawing);
 	}
 
 	// render the glow pass
 	if (state->glow.a > 0.0001f) {
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
-		v[0].c = v[1].c = v[2].c = v[3].c = state->glow;
-		DISPLAY->DrawQuad(v);
+		drawing.v[0].c = drawing.v[1].c = drawing.v[2].c = drawing.v[3].c =
+		  state->glow;
+		DISPLAY->DrawQuad(drawing);
 	}
 
 	if (m_EffectMode != EffectMode_Normal)

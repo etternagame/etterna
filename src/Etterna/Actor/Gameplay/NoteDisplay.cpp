@@ -871,19 +871,22 @@ struct StripBuffer
 	{
 		size = 512
 	};
-	RageSpriteVertex* buf;
 	RageSpriteVertex* v;
+	RageSpriteDrawing drawing;
 	StripBuffer()
 	{
-		buf = static_cast<RageSpriteVertex*>(
-		  malloc(size * sizeof(RageSpriteVertex)));
+		drawing.v.resize(size);
+
 		Init();
 	}
-	~StripBuffer() { free(buf); }
+	~StripBuffer() { }
 
-	void Init() { v = buf; }
-	void Draw() const { DISPLAY->DrawSymmetricQuadStrip(buf, v - buf); }
-	int Used() const { return v - buf; }
+	void Init() { v = &drawing.v[0]; }
+	void Draw() {
+		drawing.drawRange = { 0, Used() };
+		DISPLAY->DrawSymmetricQuadStrip(drawing);
+	}
+	int Used() const { return v - &drawing.v[0]; }
 	int Free() const { return size - Used(); }
 };
 

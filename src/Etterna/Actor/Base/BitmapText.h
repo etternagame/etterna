@@ -2,6 +2,7 @@
 #define BITMAP_TEXT_H
 
 #include "Actor.h"
+#include "RageUtil/Graphics/RageSpriteDrawing.h"
 
 class RageTexture;
 class Font;
@@ -150,7 +151,7 @@ class BitmapText : public Actor
 	// Commands
 	void PushSelf(lua_State* L) override;
 
-	std::vector<RageSpriteVertex> m_aVertices;
+	RageSpriteDrawing m_Drawing;
 
   protected:
 	Font* m_pFont;

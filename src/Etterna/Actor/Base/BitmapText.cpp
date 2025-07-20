@@ -103,7 +103,7 @@ BitmapText::operator=(const BitmapText& cpy)
 	CPY(m_mult_attrs_with_diffuse);
 	CPY(m_iVertSpacing);
 	CPY(m_MaxDimensionUsesZoom);
-	CPY(m_aVertices);
+	CPY(m_Drawing);
 	CPY(m_vpFontPageTextures);
 	CPY(m_mAttributes);
 	CPY(m_bHasGlowAttribute);
@@ -294,7 +294,7 @@ BitmapText::BuildChars()
 	multiples of two. - Mina*/
 	m_size.x = static_cast<int>(1 + (m_size.x / 2)) * 2.f;
 
-	m_aVertices.clear();
+	m_Drawing.v.clear();
 	m_vpFontPageTextures.clear();
 
 	if (m_wTextLines.empty())
@@ -356,7 +356,7 @@ BitmapText::BuildChars()
 			v[2].t = RageVector2(g.m_TexRect.right, g.m_TexRect.bottom);
 			v[3].t = RageVector2(g.m_TexRect.right, g.m_TexRect.top);
 
-			m_aVertices.insert(m_aVertices.end(), &v[0], &v[4]);
+			m_Drawing.v.insert(m_Drawing.v.end(), &v[0], &v[4]);
 			m_vpFontPageTextures.push_back(g.GetFontPageTextures());
 		}
 
@@ -367,13 +367,13 @@ BitmapText::BuildChars()
 	if (m_bUsingDistortion) {
 		const int iSeed = lround(RageTimer::GetTimeSinceStart() * 500000.0f);
 		RandomGen rnd(iSeed);
-		for (unsigned int i = 0; i < m_aVertices.size(); i += 4) {
-			const auto w = m_aVertices[i + 2].p.x - m_aVertices[i].p.x;
-			const auto h = m_aVertices[i + 2].p.y - m_aVertices[i].p.y;
+		for (unsigned int i = 0; i < m_Drawing.v.size(); i += 4) {
+			const auto w = m_Drawing.v[i + 2].p.x - m_Drawing.v[i].p.x;
+			const auto h = m_Drawing.v[i + 2].p.y - m_Drawing.v[i].p.y;
 			for (unsigned int ioff = 0; ioff < 4; ++ioff) {
-				m_aVertices[i + ioff].p.x +=
+				m_Drawing.v[i + ioff].p.x +=
 				  ((rnd() % 9) / 8.0f - .5f) * m_fDistortion * w;
-				m_aVertices[i + ioff].p.y +=
+				m_Drawing.v[i + ioff].p.y +=
 				  ((rnd() % 9) / 8.0f - .5f) * m_fDistortion * h;
 			}
 		}
@@ -464,7 +464,7 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 			}
 
 			for (auto j = 0; j < 4; ++j)
-				m_aVertices[i + j].c.a *= static_cast<uint8_t>(fAlpha);
+				m_Drawing.v[i + j].c.a *= static_cast<uint8_t>(fAlpha);
 		}
 	}
 
@@ -516,9 +516,10 @@ BitmapText::DrawChars(bool bUseStrokeTexture)
 
 		if (haveTextures &&
 			(renderNow || end >= static_cast<size_t>(iEndGlyph))) {
-			DISPLAY->DrawQuads(&m_aVertices[startingPoint * 4],
-							   (end - startingPoint) * 4);
-
+			m_Drawing.drawRange = { startingPoint * 4,
+									(end - startingPoint) * 4 };
+			DISPLAY->DrawQuads(m_Drawing);
+			
 			// Setup for the next render pass
 			startingPoint = end;
 			haveTextures = false;
@@ -773,7 +774,7 @@ BitmapText::DrawPrimitives()
 
 			auto c = m_ShadowColor;
 			c.a *= m_pTempState->diffuse[0].a;
-			for (auto& m_aVertice : m_aVertices)
+			for (auto& m_aVertice : m_Drawing.v)
 				m_aVertice.c = c;
 			DrawChars(false);
 
@@ -784,7 +785,7 @@ BitmapText::DrawPrimitives()
 		auto stroke_color = GetCurrStrokeColor();
 		if (stroke_color.a > 0) {
 			stroke_color.a *= m_pTempState->diffuse[0].a;
-			for (auto& m_aVertice : m_aVertices)
+			for (auto& m_aVertice : m_Drawing.v)
 				m_aVertice.c = stroke_color;
 			DrawChars(true);
 		}
@@ -794,10 +795,10 @@ BitmapText::DrawPrimitives()
 			int color_index =
 			  static_cast<int>(RageTimer::GetTimeSinceStart() / 0.200) %
 			  RAINBOW_COLORS.size();
-			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
+			for (unsigned i = 0; i < m_Drawing.v.size(); i += 4) {
 				const auto color = RAINBOW_COLORS[color_index];
 				for (auto j = i; j < i + 4; j++)
-					m_aVertices[j].c = color;
+					m_Drawing.v[j].c = color;
 
 				color_index = (color_index + 1) % RAINBOW_COLORS.size();
 			}
@@ -805,21 +806,21 @@ BitmapText::DrawPrimitives()
 			size_t i = 0;
 			std::map<size_t, Attribute>::const_iterator iter =
 			  m_mAttributes.begin();
-			while (i < m_aVertices.size()) {
+			while (i < m_Drawing.v.size()) {
 				const auto what = m_pTempState->diffuse[0];
 				const auto is = m_pTempState->diffuse[2];
 				const auto wrong = m_pTempState->diffuse[3];
 				const auto withyoupeople = m_pTempState->diffuse[1];
 
 				// Set the colors up to the next attribute.
-				auto iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
+				auto iEnd = iter == m_mAttributes.end() ? m_Drawing.v.size()
 														: iter->first * 4;
-				iEnd = min(iEnd, m_aVertices.size());
+				iEnd = min(iEnd, m_Drawing.v.size());
 				for (; i < iEnd; i += 4) {
-					m_aVertices[i + 0].c = what;		  // top left
-					m_aVertices[i + 1].c = is;			  // bottom left
-					m_aVertices[i + 2].c = wrong;		  // bottom right
-					m_aVertices[i + 3].c = withyoupeople; // top right
+					m_Drawing.v[i + 0].c = what;		  // top left
+					m_Drawing.v[i + 1].c = is;			  // bottom left
+					m_Drawing.v[i + 2].c = wrong;		  // bottom right
+					m_Drawing.v[i + 3].c = withyoupeople; // top right
 				}
 				if (iter == m_mAttributes.end())
 					break;
@@ -827,11 +828,11 @@ BitmapText::DrawPrimitives()
 				const auto& attr = iter->second;
 				++iter;
 				if (attr.length < 0)
-					iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
+					iEnd = iter == m_mAttributes.end() ? m_Drawing.v.size()
 													   : iter->first * 4;
 				else
 					iEnd = i + attr.length * 4;
-				iEnd = min(iEnd, m_aVertices.size());
+				iEnd = min(iEnd, m_Drawing.v.size());
 				std::vector<RageColor> temp_attr_diffuse(NUM_DIFFUSE_COLORS,
 													m_internalDiffuse);
 				for (size_t c = 0; c < NUM_DIFFUSE_COLORS; ++c) {
@@ -841,10 +842,10 @@ BitmapText::DrawPrimitives()
 					}
 				}
 				for (; i < iEnd; i += 4) {
-					m_aVertices[i + 0].c = temp_attr_diffuse[0]; // top left
-					m_aVertices[i + 1].c = temp_attr_diffuse[2]; // bottom left
-					m_aVertices[i + 2].c = temp_attr_diffuse[3]; // bottom right
-					m_aVertices[i + 3].c = temp_attr_diffuse[1]; // top right
+					m_Drawing.v[i + 0].c = temp_attr_diffuse[0]; // top left
+					m_Drawing.v[i + 1].c = temp_attr_diffuse[2]; // bottom left
+					m_Drawing.v[i + 2].c = temp_attr_diffuse[3]; // bottom right
+					m_Drawing.v[i + 3].c = temp_attr_diffuse[1]; // top right
 				}
 			}
 		}
@@ -855,16 +856,16 @@ BitmapText::DrawPrimitives()
 			const int iSeed = lround(RageTimer::GetTimeSinceStart() * 8);
 			RandomGen rnd(iSeed);
 
-			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
+			for (unsigned i = 0; i < m_Drawing.v.size(); i += 4) {
 				RageVector3 jitter(static_cast<float>(rnd() % 2),
 								   static_cast<float>(rnd() % 3),
 								   0.f);
 				vGlyphJitter.push_back(jitter);
 
-				m_aVertices[i + 0].p += jitter; // top left
-				m_aVertices[i + 1].p += jitter; // bottom left
-				m_aVertices[i + 2].p += jitter; // bottom right
-				m_aVertices[i + 3].p += jitter; // top right
+				m_Drawing.v[i + 0].p += jitter; // top left
+				m_Drawing.v[i + 1].p += jitter; // bottom left
+				m_Drawing.v[i + 2].p += jitter; // bottom right
+				m_Drawing.v[i + 3].p += jitter; // top right
 			}
 		}
 
@@ -872,13 +873,13 @@ BitmapText::DrawPrimitives()
 
 		// undo jitter to verts
 		if (m_bJitter) {
-			ASSERT(vGlyphJitter.size() == m_aVertices.size() / 4);
-			for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
+			ASSERT(vGlyphJitter.size() == m_Drawing.v.size() / 4);
+			for (unsigned i = 0; i < m_Drawing.v.size(); i += 4) {
 				const auto& jitter = vGlyphJitter[i / 4];
-				m_aVertices[i + 0].p -= jitter; // top left
-				m_aVertices[i + 1].p -= jitter; // bottom left
-				m_aVertices[i + 2].p -= jitter; // bottom right
-				m_aVertices[i + 3].p -= jitter; // top right
+				m_Drawing.v[i + 0].p -= jitter; // top left
+				m_Drawing.v[i + 1].p -= jitter; // bottom left
+				m_Drawing.v[i + 2].p -= jitter; // bottom right
+				m_Drawing.v[i + 3].p -= jitter; // top right
 			}
 		}
 	}
@@ -890,29 +891,29 @@ BitmapText::DrawPrimitives()
 		size_t i = 0;
 		std::map<size_t, Attribute>::const_iterator iter =
 		  m_mAttributes.begin();
-		while (i < m_aVertices.size()) {
+		while (i < m_Drawing.v.size()) {
 			// Set the glow up to the next attribute.
-			auto iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
+			auto iEnd = iter == m_mAttributes.end() ? m_Drawing.v.size()
 													: iter->first * 4;
-			iEnd = min(iEnd, m_aVertices.size());
+			iEnd = min(iEnd, m_Drawing.v.size());
 			for (; i < iEnd; ++i)
-				m_aVertices[i].c = m_pTempState->glow;
+				m_Drawing.v[i].c = m_pTempState->glow;
 			if (iter == m_mAttributes.end())
 				break;
 			// Set the glow according to this attribute.
 			const auto& attr = iter->second;
 			++iter;
 			if (attr.length < 0)
-				iEnd = iter == m_mAttributes.end() ? m_aVertices.size()
+				iEnd = iter == m_mAttributes.end() ? m_Drawing.v.size()
 												   : iter->first * 4;
 			else
 				iEnd = i + attr.length * 4;
-			iEnd = min(iEnd, m_aVertices.size());
+			iEnd = min(iEnd, m_Drawing.v.size());
 			for (; i < iEnd; ++i) {
 				if (m_internalGlow.a > 0) {
-					m_aVertices[i].c = attr.glow * m_internalGlow;
+					m_Drawing.v[i].c = attr.glow * m_internalGlow;
 				} else {
-					m_aVertices[i].c = attr.glow;
+					m_Drawing.v[i].c = attr.glow;
 				}
 			}
 		}
@@ -1359,7 +1360,7 @@ ColorBitmapText::DrawPrimitives()
 			  m_fShadowLengthX, m_fShadowLengthY, 0); // shift by 5 units
 			auto c = m_ShadowColor;
 			c.a *= m_pTempState->diffuse[0].a;
-			for (auto& m_aVertice : m_aVertices)
+			for (auto& m_aVertice : m_Drawing.v)
 				m_aVertice.c = c;
 			DrawChars(true);
 
@@ -1370,7 +1371,7 @@ ColorBitmapText::DrawPrimitives()
 		auto loc = 0, cur = 0;
 		auto c = m_pTempState->diffuse[0];
 
-		for (unsigned i = 0; i < m_aVertices.size(); i += 4) {
+		for (unsigned i = 0; i < m_Drawing.v.size(); i += 4) {
 			loc++;
 			if (cur < static_cast<int>(m_vColors.size())) {
 				if (loc > m_vColors[cur].l) {
@@ -1379,7 +1380,7 @@ ColorBitmapText::DrawPrimitives()
 				}
 			}
 			for (unsigned j = 0; j < 4; j++)
-				m_aVertices[i + j].c = c;
+				m_Drawing.v[i + j].c = c;
 		}
 
 		DrawChars(false);
@@ -1389,7 +1390,7 @@ ColorBitmapText::DrawPrimitives()
 	if (m_pTempState->glow.a > 0.0001f) {
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
 
-		for (auto& m_aVertice : m_aVertices)
+		for (auto& m_aVertice : m_Drawing.v)
 			m_aVertice.c = m_pTempState->glow;
 		DrawChars(false);
 	}
@@ -1453,13 +1454,13 @@ class LunaBitmapText : public Luna<BitmapText>
 	{
 		const auto idx =
 		  (IArg(1) - 1) * 4; // lua idx start at 1 and 4 verts per glyph
-		if (idx < 0 || idx >= static_cast<int>(p->m_aVertices.size())) {
+		if (idx < 0 || idx >= static_cast<int>(p->m_Drawing.v.size())) {
 			lua_pushnil(L);
 			return 1;
 		}
 		for (auto i = 0; i < 4; i++) {
 			lua_newtable(L);
-			auto& v = p->m_aVertices[idx + i].p;
+			auto& v = p->m_Drawing.v[idx + i].p;
 			lua_pushnumber(L, v.x);
 			lua_rawseti(L, -2, 1);
 			lua_pushnumber(L, v.y);

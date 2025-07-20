@@ -57,7 +57,7 @@ class ActorMultiVertex : public Actor
 		void SetDrawState(DrawMode dm, int first, int num);
 		[[nodiscard]] int GetSafeNumToDraw(DrawMode dm, int num) const;
 
-		std::vector<RageSpriteVertex> vertices;
+		mutable RageSpriteDrawing drawing;
 		std::vector<size_t> quad_states;
 
 		DrawMode _DrawMode{ DrawMode_Invalid };
@@ -136,7 +136,7 @@ class ActorMultiVertex : public Actor
 		return AMV_current.FirstToDraw;
 	}
 	[[nodiscard]] int GetCurrNumToDraw() const { return AMV_current.NumToDraw; }
-	size_t GetNumVertices() { return AMV_DestTweenState().vertices.size(); }
+	size_t GetNumVertices() { return AMV_DestTweenState().drawing.v.size(); }
 
 	void SetVertexPos(int index, float x, float y, float z);
 	void SetVertexColor(int index, const RageColor& c);

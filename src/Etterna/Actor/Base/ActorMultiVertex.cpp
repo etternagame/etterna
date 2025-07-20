@@ -152,16 +152,16 @@ ActorMultiVertex::SetNumVertices(size_t n)
 {
 	if (n == 0) {
 		for (auto& AMV_Tween : AMV_Tweens) {
-			AMV_Tween.vertices.clear();
+			AMV_Tween.drawing.v.clear();
 		}
-		AMV_current.vertices.clear();
-		AMV_start.vertices.clear();
+		AMV_current.drawing.v.clear();
+		AMV_start.drawing.v.clear();
 	} else {
 		for (auto& AMV_Tween : AMV_Tweens) {
-			AMV_Tween.vertices.resize(n);
+			AMV_Tween.drawing.v.resize(n);
 		}
-		AMV_current.vertices.resize(n);
-		AMV_start.vertices.resize(n);
+		AMV_current.drawing.v.resize(n);
+		AMV_start.drawing.v.resize(n);
 	}
 }
 
@@ -169,40 +169,40 @@ void
 ActorMultiVertex::AddVertex()
 {
 	for (auto& AMV_Tween : AMV_Tweens) {
-		AMV_Tween.vertices.push_back(RageSpriteVertex());
+		AMV_Tween.drawing.v.push_back(RageSpriteVertex());
 	}
-	AMV_current.vertices.push_back(RageSpriteVertex());
-	AMV_start.vertices.push_back(RageSpriteVertex());
+	AMV_current.drawing.v.push_back(RageSpriteVertex());
+	AMV_start.drawing.v.push_back(RageSpriteVertex());
 }
 
 void
 ActorMultiVertex::AddVertices(int Add)
 {
-	int size = AMV_DestTweenState().vertices.size();
+	int size = AMV_DestTweenState().drawing.v.size();
 	size += Add;
 	for (auto& AMV_Tween : AMV_Tweens) {
-		AMV_Tween.vertices.resize(size);
+		AMV_Tween.drawing.v.resize(size);
 	}
-	AMV_current.vertices.resize(size);
-	AMV_start.vertices.resize(size);
+	AMV_current.drawing.v.resize(size);
+	AMV_start.drawing.v.resize(size);
 }
 
 void
 ActorMultiVertex::SetVertexPos(int index, float x, float y, float z)
 {
-	AMV_DestTweenState().vertices[index].p = RageVector3(x, y, z);
+	AMV_DestTweenState().drawing.v[index].p = RageVector3(x, y, z);
 }
 
 void
 ActorMultiVertex::SetVertexColor(int index, const RageColor& c)
 {
-	AMV_DestTweenState().vertices[index].c = c;
+	AMV_DestTweenState().drawing.v[index].c = c;
 }
 
 void
 ActorMultiVertex::SetVertexCoords(int index, float TexCoordX, float TexCoordY)
 {
-	AMV_DestTweenState().vertices[index].t = RageVector2(TexCoordX, TexCoordY);
+	AMV_DestTweenState().drawing.v[index].t = RageVector2(TexCoordX, TexCoordY);
 }
 
 void
@@ -225,7 +225,7 @@ ActorMultiVertex::DrawPrimitives()
 	if (m_pTempState->diffuse[0] != RageColor(1, 1, 1, 1) &&
 		m_pTempState->diffuse[0].a > 0) {
 
-		for (auto& vertice : TS.vertices) {
+		for (auto& vertice : TS.drawing.v) {
 			// RageVColor uses a uint8_t for each channel.  0-255.
 			// RageColor uses a float. 0-1.
 			// So each channel of the RageVColor needs to be converted to a
@@ -254,7 +254,7 @@ ActorMultiVertex::DrawPrimitives()
 	// Draw the glow pass
 	if (m_pTempState->glow.a > 0) {
 
-		for (auto& vertice : TS.vertices) {
+		for (auto& vertice : TS.drawing.v) {
 			vertice.c = m_pTempState->glow;
 		}
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Glow);
@@ -268,40 +268,41 @@ ActorMultiVertex::DrawInternal(const AMV_TweenState* TS)
 	const auto FirstToDraw = TS->FirstToDraw;
 	const auto NumToDraw = TS->GetSafeNumToDraw(TS->_DrawMode, TS->NumToDraw);
 
+	TS->drawing.drawRange = { FirstToDraw, FirstToDraw + NumToDraw };
+
 	if (NumToDraw == 0) {
+		TS->drawing.drawRange = {};
 		// Nothing to draw.
 		return;
 	}
 
 	switch (TS->_DrawMode) {
 		case DrawMode_Quads: {
-			DISPLAY->DrawQuads(&TS->vertices[FirstToDraw], NumToDraw);
+			DISPLAY->DrawQuads(TS->drawing);
 			break;
 		}
 		case DrawMode_QuadStrip: {
-			DISPLAY->DrawQuadStrip(&TS->vertices[FirstToDraw], NumToDraw);
+			DISPLAY->DrawQuadStrip(TS->drawing);
 			break;
 		}
 		case DrawMode_Fan: {
-			DISPLAY->DrawFan(&TS->vertices[FirstToDraw], NumToDraw);
+			DISPLAY->DrawFan(TS->drawing);
 			break;
 		}
 		case DrawMode_Strip: {
-			DISPLAY->DrawStrip(&TS->vertices[FirstToDraw], NumToDraw);
+			DISPLAY->DrawStrip(TS->drawing);
 			break;
 		}
 		case DrawMode_Triangles: {
-			DISPLAY->DrawTriangles(&TS->vertices[FirstToDraw], NumToDraw);
+			DISPLAY->DrawTriangles(TS->drawing);
 			break;
 		}
 		case DrawMode_LineStrip: {
-			DISPLAY->DrawLineStrip(
-			  &TS->vertices[FirstToDraw], NumToDraw, TS->line_width);
+			DISPLAY->DrawLineStrip(TS->drawing, TS->line_width);
 			break;
 		}
 		case DrawMode_SymmetricQuadStrip: {
-			DISPLAY->DrawSymmetricQuadStrip(&TS->vertices[FirstToDraw],
-											NumToDraw);
+			DISPLAY->DrawSymmetricQuadStrip(TS->drawing);
 			break;
 		}
 		default:
@@ -310,13 +311,15 @@ ActorMultiVertex::DrawInternal(const AMV_TweenState* TS)
 
 	if (_EffectMode != EffectMode_Normal)
 		DISPLAY->SetEffectMode(EffectMode_Normal);
+
+	TS->drawing.drawRange = {};
 }
 
 bool
 ActorMultiVertex::EarlyAbortDraw() const
 {
 	if (AMV_current.FirstToDraw >=
-		  static_cast<int>(AMV_current.vertices.size()) ||
+		  static_cast<int>(AMV_current.drawing.v.size()) ||
 		AMV_current._DrawMode >= NUM_DrawMode) {
 		return true;
 	}
@@ -326,7 +329,7 @@ ActorMultiVertex::EarlyAbortDraw() const
 void
 ActorMultiVertex::SetVertsFromSplinesInternal(size_t num_splines, size_t offset)
 {
-	auto& verts = AMV_DestTweenState().vertices;
+	auto& verts = AMV_DestTweenState().drawing.v;
 	const auto first = AMV_DestTweenState().FirstToDraw + offset;
 	const auto num_verts =
 	  AMV_DestTweenState().GetSafeNumToDraw(AMV_DestTweenState()._DrawMode,
@@ -352,7 +355,7 @@ ActorMultiVertex::SetVertsFromSplinesInternal(size_t num_splines, size_t offset)
 void
 ActorMultiVertex::SetVertsFromSplines()
 {
-	if (AMV_DestTweenState().vertices.empty()) {
+	if (AMV_DestTweenState().drawing.v.empty()) {
 		return;
 	}
 	switch (AMV_DestTweenState()._DrawMode) {
@@ -428,7 +431,7 @@ void
 ActorMultiVertex::UpdateAnimationState(bool force_update)
 {
 	auto& dest = AMV_DestTweenState();
-	auto& verts = dest.vertices;
+	auto& verts = dest.drawing.v;
 	auto& qs = dest.quad_states;
 	if (!_use_animation_state || _states.empty() ||
 		dest._DrawMode == DrawMode_LineStrip || qs.empty()) {
@@ -630,13 +633,13 @@ ActorMultiVertex::FinishTweening()
 void
 ActorMultiVertex::AMV_TweenState::SetDrawState(DrawMode dm, int first, int num)
 {
-	if (first >= static_cast<int>(vertices.size()) && !vertices.empty()) {
+	if (first >= static_cast<int>(drawing.v.size()) && !drawing.v.empty()) {
 		LuaHelpers::ReportScriptErrorFmt(
 		  "ActorMultiVertex:SetDrawState: "
-		  "FirstToDraw > vertices.size(), %d > "
+		  "FirstToDraw > drawing.v.size(), %d > "
 		  "%u",
 		  FirstToDraw + 1,
-		  static_cast<unsigned int>(vertices.size()));
+		  static_cast<unsigned int>(drawing.v.size()));
 		return;
 	}
 	const auto safe_num = GetSafeNumToDraw(dm, num);
@@ -646,7 +649,7 @@ ActorMultiVertex::AMV_TweenState::SetDrawState(DrawMode dm, int first, int num)
 		  "NumToDraw %d is not valid for %u "
 		  "vertices with DrawMode %s",
 		  num,
-		  static_cast<unsigned int>(vertices.size()),
+		  static_cast<unsigned int>(drawing.v.size()),
 		  DrawModeNames[dm]);
 		return;
 	}
@@ -664,10 +667,10 @@ ActorMultiVertex::AMV_TweenState::MakeWeightedAverage(
 {
 	average_out.line_width =
 	  lerp(percent_between, ts1.line_width, ts2.line_width);
-	for (size_t v = 0; v < average_out.vertices.size(); ++v) {
-		WeightedAvergeOfRSVs(average_out.vertices[v],
-							 ts1.vertices[v],
-							 ts2.vertices[v],
+	for (size_t v = 0; v < average_out.drawing.v.size(); ++v) {
+		WeightedAvergeOfRSVs(average_out.drawing.v[v],
+							 ts1.drawing.v[v],
+							 ts2.drawing.v[v],
 							 percent_between);
 	}
 }
@@ -675,7 +678,7 @@ ActorMultiVertex::AMV_TweenState::MakeWeightedAverage(
 int
 ActorMultiVertex::AMV_TweenState::GetSafeNumToDraw(DrawMode dm, int num) const
 {
-	const int max = vertices.size() - FirstToDraw;
+	const int max = drawing.v.size() - FirstToDraw;
 	// NumToDraw == -1 draws all vertices
 	if (num == -1 || num > max) {
 		num = max;

@@ -418,8 +418,7 @@ class RageDisplay
 	void DrawCompiledGeometry(const RageCompiledGeometry* p,
 							  int iMeshIndex,
 							  const std::vector<msMesh>& vMeshes);
-	void DrawLineStrip(const RageSpriteVertex v[],
-					   int iNumVerts,
+	void DrawLineStrip(const RageSpriteDrawing& drawing,
 					   float LineWidth);
 	void DrawSymmetricQuadStrip(const RageSpriteDrawing& drawing);
 	void DrawCircle(const RageSpriteDrawing& drawing, float radius);
@@ -462,6 +461,9 @@ class RageDisplay
 	virtual std::vector<std::string> GetSupportedShaderProfiles() = 0;
 	virtual bool IsShaderInCache(const RageShaderWeakRef& shader) = 0;
   protected:
+	std::pair<const RageSpriteVertex*, int> GetDrawRange(
+	  const RageSpriteDrawing& drawing);
+
 	virtual void DrawQuadsInternal(const RageSpriteVertex v[],
 								   int iNumVerts) = 0;
 	virtual void DrawQuadStripInternal(const RageSpriteVertex v[],
