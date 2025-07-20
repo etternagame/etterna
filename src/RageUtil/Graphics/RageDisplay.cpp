@@ -331,20 +331,15 @@ RageDisplay::DrawPolyLines(const RageSpriteDrawing& drawing,
 }
 
 void
-RageDisplay::DrawLineStripInternal(const RageSpriteVertex v[],
-								   int iNumVerts,
+RageDisplay::DrawLineStripInternal(const RageSpriteDrawing& drawing,
 								   float LineWidth)
 {
+	auto [v, iNumVerts] = GetDrawRange(drawing);
 	ASSERT(iNumVerts >= 2);
 
 	/* Draw a line strip with rounded corners using polys. This is used on
 	 * cards that have strange allergic reactions to antialiased points and
 	 * lines. */
-	RageSpriteDrawing drawing;
-	drawing.v.resize(iNumVerts);
-	for (int i = 0; i < iNumVerts; i++) {
-		drawing.v[i] = v[i];
-	}
 
 	DrawPolyLines(drawing, LineWidth);
 
@@ -1042,8 +1037,7 @@ RageDisplay::DrawQuads(const RageSpriteDrawing& drawing)
 	if (drawing.v.size() == 0)
 		return;
 
-	auto [data, length] = GetDrawRange(drawing);
-	this->DrawQuadsInternal(data, length);
+	this->DrawQuadsInternal(drawing);
 
 	StatsAddVerts(drawing.v.size());
 }
@@ -1056,8 +1050,7 @@ RageDisplay::DrawQuadStrip(const RageSpriteDrawing& drawing)
 	if (drawing.v.size() < 4)
 		return;
 
-	auto [data, length] = GetDrawRange(drawing);
-	this->DrawQuadStripInternal(data, length);
+	this->DrawQuadStripInternal(drawing);
 
 	StatsAddVerts(drawing.v.size());
 }
@@ -1067,8 +1060,7 @@ RageDisplay::DrawFan(const RageSpriteDrawing& drawing)
 {
 	ASSERT(drawing.v.size() >= 3);
 
-	auto [data, length] = GetDrawRange(drawing);
-	this->DrawFanInternal(data, length);
+	this->DrawFanInternal(drawing);
 
 	StatsAddVerts(drawing.v.size());
 }
@@ -1078,8 +1070,7 @@ RageDisplay::DrawStrip(const RageSpriteDrawing& drawing)
 {
 	ASSERT(drawing.v.size() >= 3);
 
-	auto [data, length] = GetDrawRange(drawing);
-	this->DrawStripInternal(data, length);
+	this->DrawStripInternal(drawing);
 
 	StatsAddVerts(drawing.v.size());
 }
@@ -1092,8 +1083,7 @@ RageDisplay::DrawTriangles(const RageSpriteDrawing& drawing)
 
 	ASSERT(drawing.v.size() >= 3);
 
-	auto [data, length] = GetDrawRange(drawing);
-	this->DrawTrianglesInternal(data, length);
+	this->DrawTrianglesInternal(drawing);
 
 	StatsAddVerts(drawing.v.size());
 }
@@ -1114,8 +1104,7 @@ RageDisplay::DrawLineStrip(const RageSpriteDrawing& drawing,
 {
 	ASSERT(drawing.v.size() >= 2);
 
-	auto [data, length] = GetDrawRange(drawing);
-	this->DrawLineStripInternal(data, length, LineWidth);
+	this->DrawLineStripInternal(drawing, LineWidth);
 }
 
 /*
@@ -1138,8 +1127,7 @@ RageDisplay::DrawSymmetricQuadStrip(const RageSpriteDrawing& drawing)
 	if (drawing.v.size() < 6)
 		return;
 
-	auto [data, length] = GetDrawRange(drawing);
-	this->DrawSymmetricQuadStripInternal(data, length);
+	this->DrawSymmetricQuadStripInternal(drawing);
 
 	StatsAddVerts(drawing.v.size());
 }

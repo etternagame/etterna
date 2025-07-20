@@ -90,37 +90,31 @@ class RageDisplay_Null : public RageDisplay
 	void DeleteCompiledGeometry(RageCompiledGeometry*) override;
 
   protected:
-	void DrawQuadsInternal(const RageSpriteVertex v[],
-						   int /* iNumVerts */) override
+	void DrawQuadsInternal(const RageSpriteDrawing& drawing) override
 	{
 	}
-	void DrawQuadStripInternal(const RageSpriteVertex v[],
-							   int /* iNumVerts */) override
+	void DrawQuadStripInternal(const RageSpriteDrawing& drawing) override
 	{
 	}
-	void DrawFanInternal(const RageSpriteVertex v[],
-						 int /* iNumVerts */) override
+	void DrawFanInternal(const RageSpriteDrawing& drawing) override
 	{
 	}
-	void DrawStripInternal(const RageSpriteVertex v[],
-						   int /* iNumVerts */) override
+	void DrawStripInternal(const RageSpriteDrawing& drawing) override
 	{
 	}
-	void DrawTrianglesInternal(const RageSpriteVertex v[],
-							   int /* iNumVerts */) override
+	void DrawTrianglesInternal(const RageSpriteDrawing& drawing) override
 	{
 	}
 	void DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 									  int /* iMeshIndex */) override
 	{
 	}
-	void DrawLineStripInternal(const RageSpriteVertex v[],
-							   int /* iNumVerts */,
+	void DrawLineStripInternal(const RageSpriteDrawing& drawing,
 							   float /* LineWidth */) override
 	{
 	}
-	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
-										int /* iNumVerts */) override
+	void DrawSymmetricQuadStripInternal(
+	  const RageSpriteDrawing& drawing) override
 	{
 	}
 

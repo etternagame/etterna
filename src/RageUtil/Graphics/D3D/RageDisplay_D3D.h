@@ -116,16 +116,14 @@ class RageDisplay_D3D : public RageDisplay
 	bool IsShaderInCache(const RageShaderWeakRef& shader) override;
 
   protected:
-	void DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts) override;
+	void DrawQuadsInternal(const RageSpriteDrawing& drawing) override;
 	D3DXMATRIX* GetWorldViewProjectionMatrix();
-	void DrawQuadStripInternal(const RageSpriteVertex v[],
-							   int iNumVerts) override;
-	void DrawFanInternal(const RageSpriteVertex v[], int iNumVerts) override;
-	void DrawStripInternal(const RageSpriteVertex v[], int iNumVerts) override;
-	void DrawTrianglesInternal(const RageSpriteVertex v[],
-							   int iNumVerts) override;
-	void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
-										int iNumVerts) override;
+	void DrawQuadStripInternal(const RageSpriteDrawing& drawing) override;
+	void DrawFanInternal(const RageSpriteDrawing& drawing) override;
+	void DrawStripInternal(const RageSpriteDrawing& drawing) override;
+	void DrawTrianglesInternal(const RageSpriteDrawing& drawing) override;
+	void DrawSymmetricQuadStripInternal(
+	  const RageSpriteDrawing& drawing) override;
 	void DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 									  int iMeshIndex) override;
 
@@ -162,8 +160,8 @@ class RageDisplay_D3D : public RageDisplay
 	RageVertexShader_D3D* m_PreviousVertexShader = nullptr;
 	RagePixelShader_D3D* m_PreviousPixelShader = nullptr;
 
-	void SetShaderInputs();
-	void PrepareForDrawingPrimitives(bool useVertexDeclaration);
+	void SetShaderInputs(bool useTexture);
+	void PrepareForDrawingPrimitives(bool useVertexDeclaration, bool useTexture);
 	std::string InitShaderSetupForDevice();
 	void ResetShaderSetupForDevice();
 	void SetPixelShaderUniform();

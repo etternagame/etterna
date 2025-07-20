@@ -10,6 +10,7 @@ struct RageSpriteDrawing
 {
 	std::vector<RageSpriteVertex> v;
 	std::pair<int, int> drawRange;
+	bool useTexture = false;
 };
 
 #endif

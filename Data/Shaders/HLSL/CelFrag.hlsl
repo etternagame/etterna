@@ -1,5 +1,5 @@
 sampler2D textureSampler : register(s0);
-bool hasTexture : register(b0);
+bool useTexture : register(b0);
 
 struct VertexShaderOutput
 {
@@ -13,6 +13,9 @@ struct VertexShaderOutput
 float4 main(VertexShaderOutput input) : COLOR0
 {
     float4 textureColor = tex2D(textureSampler, input.texcoord);
-    float4 outputColor = input.color * textureColor; // do hasTexture later...
+    float4 outputColor = input.color;
+    //if(useTexture){ // disabled until stuff is passed to RageSpriteDrawing
+        outputColor *= textureColor;
+    //}
     return outputColor;
 }

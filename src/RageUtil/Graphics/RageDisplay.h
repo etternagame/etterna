@@ -464,22 +464,17 @@ class RageDisplay
 	std::pair<const RageSpriteVertex*, int> GetDrawRange(
 	  const RageSpriteDrawing& drawing);
 
-	virtual void DrawQuadsInternal(const RageSpriteVertex v[],
-								   int iNumVerts) = 0;
-	virtual void DrawQuadStripInternal(const RageSpriteVertex v[],
-									   int iNumVerts) = 0;
-	virtual void DrawFanInternal(const RageSpriteVertex v[], int iNumVerts) = 0;
-	virtual void DrawStripInternal(const RageSpriteVertex v[],
-								   int iNumVerts) = 0;
-	virtual void DrawTrianglesInternal(const RageSpriteVertex v[],
-									   int iNumVerts) = 0;
+	virtual void DrawQuadsInternal(const RageSpriteDrawing& drawing) = 0;
+	virtual void DrawQuadStripInternal(const RageSpriteDrawing& drawing) = 0;
+	virtual void DrawFanInternal(const RageSpriteDrawing& drawing) = 0;
+	virtual void DrawStripInternal(const RageSpriteDrawing& drawing) = 0;
+	virtual void DrawTrianglesInternal(const RageSpriteDrawing& drawing) = 0;
 	virtual void DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 											  int iMeshIndex) = 0;
-	virtual void DrawLineStripInternal(const RageSpriteVertex v[],
-									   int iNumVerts,
+	virtual void DrawLineStripInternal(const RageSpriteDrawing& drawing,
 									   float LineWidth);
-	virtual void DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
-												int iNumVerts) = 0;
+	virtual void DrawSymmetricQuadStripInternal(
+	  const RageSpriteDrawing& drawing) = 0;
 	virtual void DrawCircleInternal(const RageSpriteDrawing& drawing,
 									float radius);
 

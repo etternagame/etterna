@@ -1422,30 +1422,35 @@ RageDisplay_Legacy::DeleteCompiledGeometry(RageCompiledGeometry* p)
 }
 
 void
-RageDisplay_Legacy::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay_Legacy::DrawQuadsInternal(const RageSpriteDrawing& drawing)
 {
 	TurnOffHardwareVBO();
 	SendCurrentMatrices();
+
+	auto [v, iNumVerts] = GetDrawRange(drawing);
 
 	SetupVertices(v, iNumVerts);
 	glDrawArrays(GL_QUADS, 0, iNumVerts);
 }
 
 void
-RageDisplay_Legacy::DrawQuadStripInternal(const RageSpriteVertex v[],
-										  int iNumVerts)
+RageDisplay_Legacy::DrawQuadStripInternal(const RageSpriteDrawing& drawing)
 {
 	TurnOffHardwareVBO();
 	SendCurrentMatrices();
+
+	auto [v, iNumVerts] = GetDrawRange(drawing);
 
 	SetupVertices(v, iNumVerts);
 	glDrawArrays(GL_QUAD_STRIP, 0, iNumVerts);
 }
 
 void
-RageDisplay_Legacy::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
-												   int iNumVerts)
+RageDisplay_Legacy::DrawSymmetricQuadStripInternal(
+  const RageSpriteDrawing& drawing)
 {
+	auto [v, iNumVerts] = GetDrawRange(drawing);
+
 	const auto iNumPieces = (iNumVerts - 3) / 3;
 	const auto iNumTriangles = iNumPieces * 4;
 	const auto iNumIndices = iNumTriangles * 3;
@@ -1482,31 +1487,36 @@ RageDisplay_Legacy::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 }
 
 void
-RageDisplay_Legacy::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay_Legacy::DrawFanInternal(const RageSpriteDrawing& drawing)
 {
 	TurnOffHardwareVBO();
 	SendCurrentMatrices();
+
+	auto [v, iNumVerts] = GetDrawRange(drawing);
 
 	SetupVertices(v, iNumVerts);
 	glDrawArrays(GL_TRIANGLE_FAN, 0, iNumVerts);
 }
 
 void
-RageDisplay_Legacy::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
+RageDisplay_Legacy::DrawStripInternal(const RageSpriteDrawing& drawing)
 {
 	TurnOffHardwareVBO();
 	SendCurrentMatrices();
+
+	auto [v, iNumVerts] = GetDrawRange(drawing);
 
 	SetupVertices(v, iNumVerts);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, iNumVerts);
 }
 
 void
-RageDisplay_Legacy::DrawTrianglesInternal(const RageSpriteVertex v[],
-										  int iNumVerts)
+RageDisplay_Legacy::DrawTrianglesInternal(const RageSpriteDrawing& drawing)
 {
 	TurnOffHardwareVBO();
 	SendCurrentMatrices();
+
+	auto [v, iNumVerts] = GetDrawRange(drawing);
 
 	SetupVertices(v, iNumVerts);
 	glDrawArrays(GL_TRIANGLES, 0, iNumVerts);
@@ -1523,13 +1533,12 @@ RageDisplay_Legacy::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 }
 
 void
-RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
-										  int iNumVerts,
+RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteDrawing& drawing,
 										  float fLineWidth)
 {
 	if (!(*GetActualVideoModeParams()).bSmoothLines) {
 		/* Fall back on the generic polygon-based line strip. */
-		RageDisplay::DrawLineStripInternal(v, iNumVerts, fLineWidth);
+		RageDisplay::DrawLineStripInternal(drawing, fLineWidth);
 		return;
 	}
 
@@ -1566,6 +1575,8 @@ RageDisplay_Legacy::DrawLineStripInternal(const RageSpriteVertex v[],
 	 * width to the nearest .5, so the hardware doesn't snap them to different
 	 * sizes.  Does it matter? */
 	glLineWidth(fLineWidth);
+
+	auto [v, iNumVerts] = GetDrawRange(drawing);
 
 	/* Draw the line loop: */
 	SetupVertices(v, iNumVerts);
