@@ -8,7 +8,7 @@
 // todo: commands, textures, vertices, uniforms, ?shader references?, compiled geometries, whatever else
 struct RageSpriteDrawing
 {
-	const std::vector<RageSpriteVertex> v;
+	std::vector<RageSpriteVertex> v;
 };
 
 #endif

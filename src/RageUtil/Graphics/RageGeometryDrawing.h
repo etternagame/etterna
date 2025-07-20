@@ -7,9 +7,9 @@
 
 class RageGeometryDrawing
 {
-	const RageCompiledGeometry* p;
+	RageCompiledGeometry* p;
 	int iMeshIndex;
-	const std::vector<msMesh> vMeshes;
+	std::vector<msMesh> vMeshes;
 };
 
 #endif
