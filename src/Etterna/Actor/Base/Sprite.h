@@ -112,6 +112,7 @@ class Sprite : public Actor
 
   protected:
 	void LoadFromTexture(const RageTextureID& ID);
+	bool m_isNotDerived = true;
 
   private:
 	void LoadStatesFromTexture();

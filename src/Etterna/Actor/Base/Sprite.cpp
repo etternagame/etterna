@@ -561,7 +561,7 @@ Sprite::DrawTexture(const TweenState* state)
 	IF_CROP_POS(right, left);
 	IF_CROP_POS(bottom, top);
 	
-	static RageSpriteDrawing drawing{ std::vector<RageSpriteVertex>(4) };
+	RageSpriteDrawing drawing{ std::vector<RageSpriteVertex>(4) };
 	drawing.v[0].p = RageVector3(
 	  croppedQuadVerticies.left, croppedQuadVerticies.top, 0); // top left
 	drawing.v[1].p = RageVector3(
@@ -580,6 +580,7 @@ Sprite::DrawTexture(const TweenState* state)
 
 	DISPLAY->SetTexture(TextureUnit_1,
 						m_pTexture != nullptr ? m_pTexture->GetTexHandle() : 0);
+	drawing.useTexture = m_isNotDerived;
 
 	// Must call this after setting the texture or else texture
 	// parameters have no effect.

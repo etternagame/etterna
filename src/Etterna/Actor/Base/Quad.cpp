@@ -8,6 +8,7 @@ REGISTER_ACTOR_CLASS(Quad);
 Quad::Quad()
 {
 	Load(TEXTUREMAN->GetDefaultTextureID());
+	m_isNotDerived = false;
 }
 
 void
