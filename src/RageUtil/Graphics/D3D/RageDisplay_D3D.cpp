@@ -1413,8 +1413,6 @@ void
 RageDisplay_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 											  int iMeshIndex)
 {
-	PrepareForDrawingPrimitives(false, true);
-
 	/* If lighting is off, then the current material will have no effect. We
 	 * want to still be able to color models with lighting off, so shove the
 	 * material color in texture factor and modify the texture stage to use it
@@ -1428,6 +1426,7 @@ RageDisplay_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 		m_Device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 	}
 
+	PrepareForDrawingPrimitives(false, true);
 	p->Draw(iMeshIndex);
 
 	if (bLighting == 0u) {

@@ -18,6 +18,6 @@ float4 main(VertexShaderOutput input) : COLOR0
     if(useTexture){
         outputColor *= textureColor;
     }
-    
+
     return outputColor;
 }
