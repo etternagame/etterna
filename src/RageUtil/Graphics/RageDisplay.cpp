@@ -1026,7 +1026,7 @@ RageDisplay::GetDrawRange(const RageSpriteDrawing& drawing)
 
 	const RageSpriteVertex* start = drawing.v.data() + drawing.drawRange.first;
 
-	return { start, drawLength > 0 ? drawLength : drawing.v.size() };
+	return { start, drawing.drawRange != std::pair<int, int>{0, 0} ? drawLength : drawing.v.size() };
 }
 
 void

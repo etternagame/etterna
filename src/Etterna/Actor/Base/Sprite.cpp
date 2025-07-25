@@ -580,7 +580,7 @@ Sprite::DrawTexture(const TweenState* state)
 
 	DISPLAY->SetTexture(TextureUnit_1,
 						m_pTexture != nullptr ? m_pTexture->GetTexHandle() : 0);
-	drawing.useTexture = m_isNotDerived;
+	drawing.useTexture = m_isNotDerived && m_pTexture != nullptr;
 
 	// Must call this after setting the texture or else texture
 	// parameters have no effect.
