@@ -1,5 +1,6 @@
 #include "Display_D3D.h"
 #include "Core/Services/Locator.hpp"
+#include "archutils/Win32/GraphicsWindow.h"
 
 std::string
 Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
@@ -39,7 +40,11 @@ Display_D3D::EndFrame()
 const ActualVideoModeParams*
 Display_D3D::GetActualVideoModeParams() const
 {
-	return nullptr;
+#ifdef _WIN32
+	return GraphicsWindow::GetParams();
+#else
+#error Display_D3D is meant for Windows... Or something
+#endif
 }
 
 void
