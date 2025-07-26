@@ -20,6 +20,7 @@ target_compile_definitions(Etterna PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 # Linking - Windows Only
 target_link_libraries(Etterna PUBLIC ffmpeg)
+target_link_libraries(Etterna PUBLIC DirectX-Headers)
 
 find_package(DirectX REQUIRED)
 get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)

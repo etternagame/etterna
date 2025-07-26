@@ -82,13 +82,17 @@ if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
 endif()
 
+if(WIN32)
+    add_subdirectory(DirectX-Headers)
+endif()
+
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
     discord-rpc muFFT
     zlib libmad pcre
     ogg vorbis glfw
-    fmt)
+    fmt DirectX-Headers)
 
 list(APPEND LUA_TARGETS luajit libluajit minilua buildvm)
 

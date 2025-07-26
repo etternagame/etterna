@@ -2,6 +2,10 @@
 #include "Core/Services/Locator.hpp"
 #include "archutils/Win32/GraphicsWindow.h"
 
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+
 std::string
 Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
 {
