@@ -1,8 +1,11 @@
 #include "Display_D3D.h"
+#include "Core/Services/Locator.hpp"
 
 std::string
 Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
 {
+	Locator::getLogger()->info("Display_D3D::Init()");
+	Locator::getLogger()->info("Current renderer: Direct3D (unstable DirectX 12 version)");
 	return std::string();
 }
 
