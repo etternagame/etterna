@@ -1,16 +1,87 @@
 #include "Display_D3D.h"
 #include "Core/Services/Locator.hpp"
 #include "archutils/Win32/GraphicsWindow.h"
+#include <source_location>
+#include <exception>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
+
+using Microsoft::WRL::ComPtr;
+
+inline std::string
+HrToString(HRESULT hr)
+{
+	char* errorMsg = nullptr;
+	FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+					 FORMAT_MESSAGE_IGNORE_INSERTS,
+				   nullptr,
+				   hr,
+				   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				   reinterpret_cast<LPSTR>(&errorMsg),
+				   0,
+				   nullptr);
+
+	std::string message = errorMsg ? errorMsg : "Unknown error";
+	if (errorMsg)
+		LocalFree(errorMsg);
+	return message;
+}
+
+inline void
+ThrowIfFailed(
+  HRESULT hr,
+  const std::source_location location = std::source_location::current())
+{
+	if (SUCCEEDED(hr)) {
+		return;
+	}
+
+	std::string error = HrToString(hr);
+	const std::string message =
+	  std::format("Failed: HRESULT {} ({}) at {}:{} in function {}",
+		  hr, error, location.file_name(), location.line(), location.function_name());
+	Locator::getLogger()->error(message);
+	throw std::exception(message.c_str());
+}
+
+Display_D3D::Display_D3D(): m_DXGIFactoryFlags(0) {}
 
 std::string
 Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
 {
 	Locator::getLogger()->info("Display_D3D::Init()");
 	Locator::getLogger()->info("Current renderer: Direct3D (unstable DirectX 12 version)");
+	
+#if defined(DEBUG) || defined(_DEBUG)
+	{
+		ComPtr<ID3D12Debug> debugController;
+		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
+		debugController->EnableDebugLayer();
+		m_DXGIFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+	}
+#endif
+
+	ThrowIfFailed(
+	  CreateDXGIFactory1(IID_PPV_ARGS(&m_DXGIFactory)));
+
+	HRESULT result = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device));
+	if (FAILED(result)) {
+		ComPtr<IDXGIAdapter> warpAdapter;
+		ThrowIfFailed(
+		  m_DXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+
+		ThrowIfFailed(D3D12CreateDevice(
+		  warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
+	}
+
+	m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(
+	  D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	m_CbvSrvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(
+	  D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
 	return std::string();
 }
 

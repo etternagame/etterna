@@ -17,7 +17,7 @@
 class Display_D3D : public RageDisplay
 {
   public:
-	Display_D3D() = default;
+	Display_D3D();
 	~Display_D3D() override = default;
 	std::string Init(VideoModeParams&& p,
 					 bool bAllowUnacceleratedRenderer) override;
@@ -111,6 +111,15 @@ class Display_D3D : public RageDisplay
 	std::string TryVideoMode(const VideoModeParams& p,
 							 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
+
+private:
+	Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
+	UINT m_DXGIFactoryFlags;
+	Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
+
+	UINT m_RtvDescriptorSize;
+	UINT m_DsvDescriptorSize;
+	UINT m_CbvSrvDescriptorSize;
 };
 
 #endif
