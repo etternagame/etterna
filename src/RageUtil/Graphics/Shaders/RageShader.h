@@ -5,8 +5,8 @@
 
 class RageShader
 {
-    public:
-        virtual ~RageShader() {}
+  public:
+	virtual ~RageShader() = default;
 };
 
 #endif
