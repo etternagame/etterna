@@ -18,18 +18,6 @@ using DisplaySpecs = std::set<DisplaySpec>;
 
 const int REFRESH_DEFAULT = 0;
 struct RageSurface;
-enum TextureUnit
-{
-	TextureUnit_1,
-	TextureUnit_2,
-	TextureUnit_3,
-	TextureUnit_4,
-	TextureUnit_5,
-	TextureUnit_6,
-	TextureUnit_7,
-	TextureUnit_8,
-	NUM_TextureUnit
-};
 
 // RageCompiledGeometry holds vertex data in a format that is most efficient
 // for the graphics API.

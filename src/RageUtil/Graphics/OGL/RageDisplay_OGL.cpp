@@ -1626,8 +1626,9 @@ SetTextureUnit(TextureUnit tu)
 void
 RageDisplay_Legacy::ClearAllTextures()
 {
-	FOREACH_ENUM(TextureUnit, i)
-	SetTexture(i, 0);
+	for (size_t i = 0; i < TextureUnitCount; i++) {
+		SetTexture(static_cast<TextureUnit>(i), 0);
+	}
 
 	// HACK:  Reset the active texture to 0.
 	// TODO:  Change all texture functions to take a stage number.

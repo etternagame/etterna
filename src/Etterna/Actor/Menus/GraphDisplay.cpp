@@ -47,12 +47,12 @@ class GraphLine : public Actor
 			}
 		}
 
-		m_Quads.useTexture = true;
+		m_Quads.textureUnitIndex = TextureUnit::TextureUnit_1;
 
 		DISPLAY->DrawQuads(m_Quads);
 
 		for (int i = 0; i < m_pCircles.size(); ++i) {
-			m_pCircles[i].useTexture = true;
+			m_pCircles[i].textureUnitIndex = TextureUnit::TextureUnit_1;
 			DISPLAY->DrawFan(m_pCircles[i]);
 		}
 	}
@@ -158,7 +158,7 @@ class GraphBody : public Actor
 		Actor::SetTextureRenderStates();
 
 		DISPLAY->SetTextureMode(TextureUnit_1, TextureMode_Modulate);
-		m_Slices.useTexture = true;
+		m_Slices.textureUnitIndex = TextureUnit::TextureUnit_1;
 		DISPLAY->DrawQuadStrip(m_Slices);
 	}
 

@@ -149,7 +149,7 @@ class RageDisplay_D3D : public RageDisplay
 	D3DPRESENT_PARAMETERS m_PresentationParameters;
 	int m_ModelMatrixCnt = 0;
 	DWORD m_LastFVF = 0;
-	bool m_bSphereMapping[NUM_TextureUnit] = { false, false };
+	bool m_bSphereMapping[TextureUnit_Invalid] = { false, false };
 
 	std::optional<RageShaderHandler> m_VertexShaderHandler;
 	std::optional<RageShaderHandler> m_PixelShaderHandler;
@@ -159,8 +159,9 @@ class RageDisplay_D3D : public RageDisplay
 	RageVertexShader_D3D* m_PreviousVertexShader = nullptr;
 	RagePixelShader_D3D* m_PreviousPixelShader = nullptr;
 
-	void SetShaderInputs(bool useTexture);
-	void PrepareForDrawingPrimitives(bool useVertexDeclaration, bool useTexture);
+	void SetShaderInputs(TextureUnit textureUnitIndex);
+	void PrepareForDrawingPrimitives(bool useVertexDeclaration,
+									 TextureUnit textureUnitIndex);
 	std::string InitShaderSetupForDevice();
 	void ResetShaderSetupForDevice();
 	void SetPixelShaderUniform();

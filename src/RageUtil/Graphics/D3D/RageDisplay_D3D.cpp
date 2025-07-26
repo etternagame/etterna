@@ -544,7 +544,7 @@ RageDisplay_D3D::SetPresentParametersFromVideoModeParams(const VideoModeParams& 
 }
 
 void
-RageDisplay_D3D::SetShaderInputs(bool useTexture)
+RageDisplay_D3D::SetShaderInputs(TextureUnit textureUnitIndex)
 {
 	auto matrix = GetWorldViewProjectionMatrix();
 	auto hr = m_Device->SetVertexShaderConstantF(0, *matrix, 4);
@@ -558,8 +558,9 @@ RageDisplay_D3D::SetShaderInputs(bool useTexture)
 	hr = m_Device->SetVertexShaderConstantF(4, &time, 1);
 	RageDisplay_D3D_Helpers::LogHResultFailure(hr);
 
-	int textureData = static_cast<int>(useTexture);
-	hr = m_Device->SetPixelShaderConstantB(0, &textureData, 1);
+	int index = static_cast<int>(textureUnitIndex);
+	int textureIndex[4] = { index, 0, 0, 0 };
+	hr = m_Device->SetPixelShaderConstantI(0, textureIndex, 1);
 	RageDisplay_D3D_Helpers::LogHResultFailure(hr);
 
 	SetPixelShaderUniform();
@@ -636,11 +637,11 @@ RageDisplay_D3D::SetVertexShaderUniform()
 
 void
 RageDisplay_D3D::PrepareForDrawingPrimitives(bool useVertexDeclaration,
-											 bool useTexture)
+											 TextureUnit textureUnitIndex)
 {
 	SetShadersForDeclaration(useVertexDeclaration);
 	SendCurrentMatrices();
-	SetShaderInputs(useTexture);
+	SetShaderInputs(textureUnitIndex);
 }
 
 std::string
@@ -994,7 +995,7 @@ RageDisplay_D3D::SendCurrentMatrices()
 		m_Device->SetTransform(D3DTS_VIEW, (D3DMATRIX*)GetViewTop());
 		m_Device->SetTransform(D3DTS_WORLD, (D3DMATRIX*)GetWorldTop());
 
-		FOREACH_ENUM(TextureUnit, tu)
+		for (size_t tu = 0; tu < TextureUnitCount; tu++)
 		{
 			// If no texture is set for this texture unit, don't bother setting
 			// it up.
@@ -1069,7 +1070,7 @@ RageDisplay_D3D::SendCurrentMatrices()
 				m_Device->SetTextureStageState(
 				  tu, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_PASSTHRU);
 			}
-		}
+		 }
 	}
 }
 
@@ -1233,7 +1234,7 @@ RageDisplay_D3D::DrawQuadsInternal(const RageSpriteDrawing& drawing)
 		vIndices[i * 6 + 5] = i * 4 + 0;
 	}
 
-	PrepareForDrawingPrimitives(true, drawing.useTexture);
+	PrepareForDrawingPrimitives(true, drawing.textureUnitIndex);
 
 	auto result = m_Device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
@@ -1303,7 +1304,7 @@ RageDisplay_D3D::DrawQuadStripInternal(const RageSpriteDrawing& drawing)
 		vIndices[i * 6 + 5] = i * 2 + 3;
 	}
 
-	PrepareForDrawingPrimitives(true, drawing.useTexture);
+	PrepareForDrawingPrimitives(true, drawing.textureUnitIndex);
 
 	m_Device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
@@ -1355,7 +1356,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(
 		vIndices[i * 12 + 11] = i * 3 + 5;
 	}
 
-	PrepareForDrawingPrimitives(true, drawing.useTexture);
+	PrepareForDrawingPrimitives(true, drawing.textureUnitIndex);
 
 	m_Device->DrawIndexedPrimitiveUP(
 	  D3DPT_TRIANGLELIST,
@@ -1379,7 +1380,7 @@ RageDisplay_D3D::DrawSymmetricQuadStripInternal(
 void
 RageDisplay_D3D::DrawFanInternal(const RageSpriteDrawing& drawing)
 {
-	PrepareForDrawingPrimitives(true, drawing.useTexture);
+	PrepareForDrawingPrimitives(true, drawing.textureUnitIndex);
 
 	auto [v, iNumVerts] = GetDrawRange(drawing);
 
@@ -1395,7 +1396,7 @@ RageDisplay_D3D::DrawFanInternal(const RageSpriteDrawing& drawing)
 void
 RageDisplay_D3D::DrawStripInternal(const RageSpriteDrawing& drawing)
 {
-	PrepareForDrawingPrimitives(true, drawing.useTexture);
+	PrepareForDrawingPrimitives(true, drawing.textureUnitIndex);
 
 	auto [v, iNumVerts] = GetDrawRange(drawing);
 
@@ -1411,7 +1412,7 @@ RageDisplay_D3D::DrawStripInternal(const RageSpriteDrawing& drawing)
 void
 RageDisplay_D3D::DrawTrianglesInternal(const RageSpriteDrawing& drawing)
 {
-	PrepareForDrawingPrimitives(true, drawing.useTexture);
+	PrepareForDrawingPrimitives(true, drawing.textureUnitIndex);
 
 	auto [ v, iNumVerts ] = GetDrawRange(drawing);
 
@@ -1441,7 +1442,7 @@ RageDisplay_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 		m_Device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_TFACTOR);
 	}
 
-	PrepareForDrawingPrimitives(false, true);
+	PrepareForDrawingPrimitives(false, TextureUnit_1);
 	p->Draw(iMeshIndex);
 
 	if (bLighting == 0u) {
@@ -1453,14 +1454,16 @@ RageDisplay_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 void
 RageDisplay_D3D::ClearAllTextures()
 {
-	FOREACH_ENUM(TextureUnit, i)
-	SetTexture(i, 0);
+	for (size_t tu = 0; tu < TextureUnitCount; tu++) {
+		SetTexture(static_cast<TextureUnit>(tu), 0);
+	}
 }
 
 auto
 RageDisplay_D3D::GetNumTextureUnits() -> int
 {
-	return m_DeviceCaps.MaxSimultaneousTextures;
+	return std::min(TextureUnitCount,
+					static_cast<size_t>(m_DeviceCaps.MaxSimultaneousTextures));
 }
 
 void

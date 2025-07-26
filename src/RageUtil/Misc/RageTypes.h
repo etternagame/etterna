@@ -23,6 +23,20 @@ enum BlendMode
 };
 LuaDeclareType(BlendMode);
 
+enum TextureUnit
+{
+	TextureUnit_1,
+	TextureUnit_2,
+	TextureUnit_3,
+	TextureUnit_4,
+	TextureUnit_5,
+	TextureUnit_6,
+	TextureUnit_7,
+	TextureUnit_8,
+	TextureUnit_Invalid
+};
+constexpr size_t TextureUnitCount = 8;
+
 enum TextureMode
 {
 	// Affects one texture stage. Texture is modulated with the diffuse color.
