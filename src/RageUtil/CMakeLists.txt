@@ -64,6 +64,8 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "Graphics/RageTextureID.cpp"
   "Graphics/RageTextureManager.cpp"
   "Graphics/RageTextureRenderTarget.cpp"
+  "Graphics/Shaders/RageShaderWeakRef.cpp"
+  "Graphics/Shaders/RageShaderHandler.cpp"
 )
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageBitmapTexture.h"
@@ -86,6 +88,11 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageTextureID.h"
   "Graphics/RageTextureManager.h"
   "Graphics/RageTextureRenderTarget.h"
+  "Graphics/Shaders/RageShader.h"
+  "Graphics/Shaders/RageUniform.h"
+  "Graphics/Shaders/RageUniformCollection.h"
+  "Graphics/Shaders/RageShaderWeakRef.h"
+  "Graphics/Shaders/RageShaderHandler.h"
 )
 
 if(WIN32)

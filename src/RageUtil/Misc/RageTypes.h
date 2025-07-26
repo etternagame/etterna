@@ -645,4 +645,20 @@ struct RageMatrix
 	float m[4][4]{};
 };
 
+enum class RageDisplayType
+{
+	D3D,
+	OGL,
+	Invalid,
+};
+LuaDeclareType(RageDisplayType);
+
+enum class RageShaderType
+{
+	Fragment,
+	Vertex,
+	Invalid,
+};
+LuaDeclareType(RageShaderType);
+
 #endif
