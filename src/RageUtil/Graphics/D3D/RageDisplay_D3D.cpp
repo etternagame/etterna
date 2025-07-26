@@ -650,8 +650,10 @@ RageDisplay_D3D::InitShaderSetupForDevice()
 
 	// (for now?) only the latest vertex shader version for D3D9
 	ASSERT(shaderProfiles[0] == "vs_3_0");
+	ASSERT(m_DeviceCaps.VertexShaderVersion >= D3DVS_VERSION(3, 0));
 	// (for now?) only the latest pixel shader version for D3D9
 	ASSERT(shaderProfiles[1] == "ps_3_0");
+	ASSERT(m_DeviceCaps.PixelShaderVersion >= D3DPS_VERSION(3, 0));
 
 	m_PixelShaderHandler.emplace(
 	  RageDisplayType::D3D,
