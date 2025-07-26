@@ -91,6 +91,8 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
 if(WIN32)
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/RageDisplay_D3D.h")
+  list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/Display_D3D/Display_D3D.cpp")
+  list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/Display_D3D/Display_D3D.h")
 elseif(LINUX)
   if (WITH_GLES2)
     list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_GLES2.cpp")
@@ -204,4 +206,4 @@ list(APPEND SMDATA_ALL_RAGE_HPP
   ${SMDATA_RAGE_UTILS_HPP}
 )
 
-target_sources(Etterna PUBLIC ${SMDATA_ALL_RAGE_SRC})
+target_sources(Etterna PUBLIC ${SMDATA_ALL_RAGE_SRC} ${SMDATA_ALL_RAGE_HPP})

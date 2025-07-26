@@ -413,6 +413,7 @@ AdjustForChangedSystemCapabilities()
 
 #ifdef _WIN32
 #include "RageUtil/Graphics/RageDisplay_D3D.h"
+#include "RageUtil/Graphics/Display_D3D/Display_D3D.h"
 #include "archutils/Win32/VideoDriverInfo.h"
 #endif
 
@@ -818,6 +819,10 @@ CreateDisplay()
 // TODO: ANGLE/RageDisplay_Modern
 #if defined(SUPPORT_D3D)
 				pRet = new RageDisplay_D3D;
+#endif
+			} else if (CompareNoCase(sRenderer, "unstable_d3d") == 0) {
+#if defined(SUPPORT_D3D)
+				pRet = new Display_D3D;
 #endif
 			} else if (CompareNoCase(sRenderer, "null") == 0) {
 				return new RageDisplay_Null;
