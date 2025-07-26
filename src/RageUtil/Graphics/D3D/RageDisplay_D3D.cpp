@@ -653,8 +653,21 @@ RageDisplay_D3D::InitShaderSetupForDevice()
 	// (for now?) only the latest pixel shader version for D3D9
 	ASSERT(shaderProfiles[1] == "ps_3_0");
 
-	m_PixelShaderHandler.emplace(m_Device);
-	m_VertexShaderHandler.emplace(m_Device);
+	m_PixelShaderHandler.emplace(
+	  RageDisplayType::D3D,
+	  RageShaderType::Fragment,
+	  [&](const std::string& path) {
+		  return RageDisplay_D3D_Helpers::CompilePixelShaderFromPath(path,
+																	 m_Device);
+	  });
+
+	m_VertexShaderHandler.emplace(
+	  RageDisplayType::D3D,
+	  RageShaderType::Vertex,
+	  [&](const std::string& path) {
+		  return RageDisplay_D3D_Helpers::CompileVertexShaderFromPath(path,
+																	  m_Device);
+	  });
 
 	auto hr = m_Device->CreateVertexDeclaration(
 	  RageDisplay_D3D_Helpers::SpriteDeclaration, &m_SpriteVertexDeclaration);

@@ -5,6 +5,8 @@
 #include <d3d9types.h>
 #include <string>
 #include <source_location>
+#include <memory>
+#include "RageUtil/Graphics/Shaders/RageShader.h"
 
 namespace RageDisplay_D3D_Helpers {
 std::string
@@ -19,5 +21,11 @@ constexpr std::string_view ShaderEntryPoint("main");
 
 extern const D3DVERTEXELEMENT9 SpriteDeclaration[];
 extern const D3DVERTEXELEMENT9 ModelDeclaration[];
+
+std::unique_ptr<RageShader>
+CompilePixelShaderFromPath(const std::string& path, LPDIRECT3DDEVICE9 device);
+
+std::unique_ptr<RageShader>
+CompileVertexShaderFromPath(const std::string& path, LPDIRECT3DDEVICE9 device);
 }
 #endif

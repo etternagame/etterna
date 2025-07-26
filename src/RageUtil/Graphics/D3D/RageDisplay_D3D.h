@@ -16,8 +16,7 @@
 
 #include "RageUtil/Graphics/RenderTarget.h"
 #include "RageUtil/Graphics/RageDisplay.h"
-#include "RagePixelShaderHandler_D3D.h"
-#include "RageVertexShaderHandler_D3D.h"
+#include "RageUtil/Graphics/Shaders/RageShaderHandler.h"
 #include "RagePixelShader_D3D.h"
 #include "RageVertexShader_D3D.h"
 #include <list>
@@ -152,8 +151,8 @@ class RageDisplay_D3D : public RageDisplay
 	DWORD m_LastFVF = 0;
 	bool m_bSphereMapping[NUM_TextureUnit] = { false, false };
 
-	std::optional<RageVertexShaderHandler_D3D> m_VertexShaderHandler;
-	std::optional<RagePixelShaderHandler_D3D> m_PixelShaderHandler;
+	std::optional<RageShaderHandler> m_VertexShaderHandler;
+	std::optional<RageShaderHandler> m_PixelShaderHandler;
 	IDirect3DVertexDeclaration9* m_SpriteVertexDeclaration = nullptr;
 	IDirect3DVertexDeclaration9* m_ModelVertexDeclaration = nullptr;
 	IDirect3DVertexDeclaration9* m_PreviousVertexDecl = nullptr;

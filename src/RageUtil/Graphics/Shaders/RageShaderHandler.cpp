@@ -1,9 +1,11 @@
 #include "RageShaderHandler.h"
 
 RageShaderHandler::RageShaderHandler(RageDisplayType displayType,
-									 RageShaderType shaderType)
+									 RageShaderType shaderType,
+					  RageCompiledShaderFactory shaderFactory)
   : m_DisplayType(displayType)
   , m_ShaderType(shaderType)
+  , m_ShaderFactory(shaderFactory)
 {
 	m_CurrentShader = nullptr;
 }
@@ -37,7 +39,7 @@ RageShaderHandler::GetOrCreateShaderFromPath(const std::string& path,
 								 useAsDefaultShader);
 	}
 
-	std::unique_ptr<RageShader> shader = CompileShader(path);
+	std::unique_ptr<RageShader> shader = m_ShaderFactory(path);
 	if (shader == nullptr) {
 		return RageShaderWeakRef();
 	}

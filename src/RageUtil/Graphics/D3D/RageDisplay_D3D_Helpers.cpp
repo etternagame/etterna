@@ -2,6 +2,8 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/Utils/RageUtil.h"
 #include "RageUtil/Misc/RageTypes.h"
+#include "RagePixelShader_D3D.h"
+#include "RageVertexShader_D3D.h"
 
 // The DXGetErrorStringW function comes from the DirectX Error Library  (See
 // https://walbourn.github.io/wheres-dxerr-lib/ )
@@ -186,3 +188,29 @@ const D3DVERTEXELEMENT9 RageDisplay_D3D_Helpers::ModelDeclaration[] = {
 	  0 },
 	D3DDECL_END()
 };
+
+std::unique_ptr<RageShader>
+RageDisplay_D3D_Helpers::CompilePixelShaderFromPath(const std::string& path,
+													   LPDIRECT3DDEVICE9 device)
+{
+	auto shader = std::make_unique<RagePixelShader_D3D>(path);
+	auto creationResult = shader->GetShaderForDevice(device, false);
+	if (creationResult == nullptr) {
+		return nullptr;
+	}
+
+	return shader;
+}
+
+std::unique_ptr<RageShader>
+RageDisplay_D3D_Helpers::CompileVertexShaderFromPath(const std::string& path,
+													   LPDIRECT3DDEVICE9 device)
+{
+	auto shader = std::make_unique<RageVertexShader_D3D>(path);
+	auto creationResult = shader->GetShaderForDevice(device, false);
+	if (creationResult == nullptr) {
+		return nullptr;
+	}
+
+	return shader;
+}
