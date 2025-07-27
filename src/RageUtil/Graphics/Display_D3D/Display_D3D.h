@@ -141,6 +141,7 @@ class Display_D3D : public RageDisplay
 	Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
 	uint64_t m_FenceValue;
 	HANDLE m_FenceEvent;
+	std::atomic_bool m_IsInitDone;
 
 	D3D12_VIEWPORT m_Viewport;
 	D3D12_RECT m_ScissorRect;

@@ -68,7 +68,6 @@ Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
 	  "Current renderer: Direct3D (unstable DirectX 12 version)");
 
 	GraphicsWindow::Initialize(true);
-
 	StartLoadingPipeline();
 
 	bool ignored = false;
@@ -83,6 +82,7 @@ Display_D3D::GetDisplaySpecs(DisplaySpecs& out) const
 void
 Display_D3D::ResolutionChanged()
 {
+	RageDisplay::ResolutionChanged();
 }
 
 const RageDisplay::RagePixelFormatDesc*
@@ -98,12 +98,14 @@ Display_D3D::GetPixelFormatDesc(RagePixelFormat pf) const
 bool
 Display_D3D::BeginFrame()
 {
-	return false;
+	return m_IsInitDone;
 }
 
 void
 Display_D3D::EndFrame()
 {
+	OnUpdate();
+	OnRender();
 }
 
 const ActualVideoModeParams*
@@ -384,6 +386,12 @@ Display_D3D::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	GraphicsWindow::CreateGraphicsWindow(p);
 	FinishLoadingPipeline(p);
 	LoadAssets(p);
+
+	//GraphicsWindow::CreateGraphicsWindow(p);
+	ResolutionChanged();
+	OnRender();
+
+	m_IsInitDone = true;
 	return std::string();
 }
 
@@ -431,14 +439,14 @@ Display_D3D::FinishLoadingPipeline(const VideoModeParams& p)
 {
 	DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
 	swapChainDescription.BufferCount = FrameCount;
-	swapChainDescription.BufferDesc.Width = p.width;
-	swapChainDescription.BufferDesc.Height = p.height;
 	swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDescription.OutputWindow = GraphicsWindow::GetHwnd();
 	swapChainDescription.SampleDesc.Count = 1;
 	swapChainDescription.Windowed = true;
+	swapChainDescription.BufferDesc.Width = 500;
+	swapChainDescription.BufferDesc.Height = 500;
 
 	ComPtr<IDXGISwapChain> swapChain;
 	ThrowIfFailed(m_DXGIFactory->CreateSwapChain(
@@ -629,19 +637,19 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 	{
 		RageSpriteVertex triangleVertices[] = {
 			{
-			  { 0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 0.0f, 0.25f, 0.0f },
 			  { 0.0f, 0.0f, 0.0f },
 			  RageColor{ 1.0f, 0.0f, 0.0f, 1.0f },
 			  { 0.0f, 0.0f },
 			},
 			{
-			  { 0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 0.25f, -0.25f, 0.0f },
 			  { 0.0f, 0.0f, 0.0f },
 			  RageColor{ 0.0f, 1.0f, 0.0f, 1.0f },
 			  { 0.0f, 0.0f },
 			},
 			{
-			  { -0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { -0.25f, -0.25f, 0.0f },
 			  { 0.0f, 0.0f, 0.0f },
 			  RageColor{ 0.0f, 0.0f, 1.0f, 1.0f },
 			  { 0.0f, 0.0f },
