@@ -453,10 +453,6 @@ Display_D3D::FinishLoadingPipeline(const VideoModeParams& p)
 	  m_CommandQueue.Get(), &swapChainDescription, &swapChain));
 	ThrowIfFailed(swapChain.As(&m_SwapChain));
 
-	// temporarily disable fullscreens :3
-	ThrowIfFailed(m_DXGIFactory->MakeWindowAssociation(
-	  GraphicsWindow::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
-
 	m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
 	{
