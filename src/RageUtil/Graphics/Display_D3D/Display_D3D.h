@@ -132,6 +132,10 @@ class Display_D3D : public RageDisplay
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FrameCount];
 	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
+	D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
 };
 
 #endif

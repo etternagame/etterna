@@ -71,7 +71,8 @@ Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
 
 	StartLoadingPipeline();
 
-	return std::string();
+	bool ignored = false;
+	return SetVideoMode(std::move(p), ignored);
 }
 
 void
@@ -160,14 +161,14 @@ Display_D3D::CreateTexture(RagePixelFormat pixfmt,
 	ID3D12Resource* texture = nullptr;
 	CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
 
-	ThrowIfFailed(m_Device->CreateCommittedResource(
-	  &heapProperties,
-	  D3D12_HEAP_FLAG_NONE,
-	  &textureDescription,
-	  D3D12_RESOURCE_STATE_COPY_DEST,
+	ThrowIfFailed(
+	  m_Device->CreateCommittedResource(&heapProperties,
+										D3D12_HEAP_FLAG_NONE,
+										&textureDescription,
+										D3D12_RESOURCE_STATE_COPY_DEST,
 
-	  nullptr,
-	  IID_PPV_ARGS(&texture)));
+										nullptr,
+										IID_PPV_ARGS(&texture)));
 
 	return reinterpret_cast<intptr_t>(texture);
 }
@@ -220,7 +221,8 @@ Display_D3D::SetTextureWrapping(TextureUnit tu, bool b)
 int
 Display_D3D::GetMaxTextureSize() const
 {
-	constexpr static int maxFor11_0 = 4096; // technically 16384 for 11_0 but nope
+	constexpr static int maxFor11_0 =
+	  4096; // technically 16384 for 11_0 but nope
 	return maxFor11_0;
 }
 
@@ -484,6 +486,8 @@ ReadFileContents(const std::string& path)
 {
 	std::ifstream file(path, std::ios::in | std::ios::binary);
 	if (!file) {
+		Locator::getLogger()->error("ReadFileContents: file not found - {}",
+									path);
 		throw std::exception(("shader file not found: " + path).c_str());
 	}
 
@@ -550,10 +554,12 @@ Display_D3D::LoadAssets()
 										rootSignature->GetBufferSize(),
 										IID_PPV_ARGS(&m_RootSignature)));
 	}
+
 	{
 		// TODO: switching or SPIR-V or something later
 		std::string shaderPath =
-		  FILEMAN->ResolvePath("Data/Shaders/HLSL/shaders.hlsl");
+		  FILEMAN->ResolvePath("Data/Shaders/HLSL/shaders.hlsl").substr(1);
+
 		std::string shaderContents = ReadFileContents(shaderPath);
 
 		ComPtr<ID3DBlob> vertexShader =
@@ -561,6 +567,114 @@ Display_D3D::LoadAssets()
 		ComPtr<ID3DBlob> pixelShader =
 		  CompileShader(shaderContents, "PSMain", "ps_5_0");
 
-		// TODO: everything else
+		// RageSpriteVertex?
+		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
+			{ "POSITION",
+			  0,
+			  DXGI_FORMAT_R32G32B32_FLOAT,
+			  0,
+			  offsetof(RageSpriteVertex, p),
+			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+			  0 },
+			{ "NORMAL",
+			  0,
+			  DXGI_FORMAT_R32G32B32_FLOAT,
+			  0,
+			  offsetof(RageSpriteVertex, n),
+			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+			  0 },
+			{ "COLOR",
+			  0,
+			  DXGI_FORMAT_B8G8R8A8_UNORM,
+			  0,
+			  offsetof(RageSpriteVertex, c),
+			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+			  0 },
+			{ "TEXCOORD",
+			  0,
+			  DXGI_FORMAT_R16G16_FLOAT,
+			  0,
+			  offsetof(RageSpriteVertex, t),
+			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+			  0 }
+		};
+
+		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+		psoDesc.InputLayout = { inputElementDescs,
+								_countof(inputElementDescs) };
+		psoDesc.pRootSignature = m_RootSignature.Get();
+		psoDesc.VS = { reinterpret_cast<UINT8*>(
+						 vertexShader->GetBufferPointer()),
+					   vertexShader->GetBufferSize() };
+		psoDesc.PS = { reinterpret_cast<UINT8*>(
+						 pixelShader->GetBufferPointer()),
+					   pixelShader->GetBufferSize() };
+		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+		psoDesc.DepthStencilState.DepthEnable = FALSE;
+		psoDesc.DepthStencilState.StencilEnable = FALSE;
+		psoDesc.SampleMask = UINT_MAX;
+		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+		psoDesc.NumRenderTargets = 1;
+		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		psoDesc.SampleDesc.Count = 1;
+		ThrowIfFailed(m_Device->CreateGraphicsPipelineState(
+		  &psoDesc, IID_PPV_ARGS(&m_PipelineState)));
+	}
+
+	ThrowIfFailed(m_Device->CreateCommandList(0,
+											  D3D12_COMMAND_LIST_TYPE_DIRECT,
+											  m_CommandAllocator.Get(),
+											  m_PipelineState.Get(),
+											  IID_PPV_ARGS(&m_CommandList)));
+	ThrowIfFailed(m_CommandList->Close());
+	const ActualVideoModeParams* params = GetActualVideoModeParams();
+	float aspectRatio = (float)params->width / params->height;
+	{
+		RageSpriteVertex triangleVertices[] = {
+			{
+			  { 0.0f, 0.25f * aspectRatio, 0.0f },
+			  { 0.0f, 0.0f, 0.0f },
+			  RageColor{ 1.0f, 0.0f, 0.0f, 1.0f },
+			  { 0.0f, 0.0f },
+			},
+			{
+			  { 0.25f, -0.25f * aspectRatio, 0.0f },
+			  { 0.0f, 0.0f, 0.0f },
+			  RageColor{ 0.0f, 1.0f, 0.0f, 1.0f },
+			  { 0.0f, 0.0f },
+			},
+			{
+			  { -0.25f, -0.25f * aspectRatio, 0.0f },
+			  { 0.0f, 0.0f, 0.0f },
+			  RageColor{ 0.0f, 0.0f, 1.0f, 1.0f },
+			  { 0.0f, 0.0f },
+			}
+		};
+
+		const UINT vertexBufferSize = sizeof(triangleVertices);
+
+		CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
+		auto desc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+		ThrowIfFailed(
+		  m_Device->CreateCommittedResource(&heapProps,
+											D3D12_HEAP_FLAG_NONE,
+											&desc,
+											D3D12_RESOURCE_STATE_GENERIC_READ,
+											nullptr,
+											IID_PPV_ARGS(&m_VertexBuffer)));
+
+		UINT8* pVertexDataBegin;
+		CD3DX12_RANGE readRange(
+		  0, 0); 
+		ThrowIfFailed(m_VertexBuffer->Map(
+		  0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+		memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
+		m_VertexBuffer->Unmap(0, nullptr);
+
+		m_VertexBufferView.BufferLocation =
+		  m_VertexBuffer->GetGPUVirtualAddress();
+		m_VertexBufferView.StrideInBytes = sizeof(RageSpriteVertex);
+		m_VertexBufferView.SizeInBytes = vertexBufferSize;
 	}
 }
