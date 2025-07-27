@@ -10,13 +10,15 @@
 #include <windows.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
-#include <D3Dcompiler.h>
+#include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include <directx/d3dx12.h>
 
 class Display_D3D : public RageDisplay
 {
   public:
+	constexpr static int FrameCount = 2;
+
 	Display_D3D();
 	~Display_D3D() override = default;
 	std::string Init(VideoModeParams&& p,
@@ -112,14 +114,24 @@ class Display_D3D : public RageDisplay
 							 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
 
-private:
+  private:
+	void StartLoadingPipeline();
+	void FinishLoadingPipeline();
+	void LoadAssets();
+
 	Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
 	UINT m_DXGIFactoryFlags;
 	Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_CommandQueue;
+	Microsoft::WRL::ComPtr<IDXGISwapChain3> m_SwapChain;
+	UINT m_FrameIndex;
 
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
 	UINT m_RtvDescriptorSize;
-	UINT m_DsvDescriptorSize;
-	UINT m_CbvSrvDescriptorSize;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FrameCount];
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 };
 
 #endif

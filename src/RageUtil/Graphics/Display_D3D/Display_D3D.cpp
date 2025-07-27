@@ -3,6 +3,8 @@
 #include "archutils/Win32/GraphicsWindow.h"
 #include <source_location>
 #include <exception>
+#include "RageUtil/File/RageFileManager.h"
+#include <fstream>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -10,7 +12,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-inline std::string
+inline static std::string
 HrToString(HRESULT hr)
 {
 	char* errorMsg = nullptr;
@@ -29,7 +31,7 @@ HrToString(HRESULT hr)
 	return message;
 }
 
-inline void
+inline static void
 ThrowIfFailed(
   HRESULT hr,
   const std::source_location location = std::source_location::current())
@@ -41,46 +43,32 @@ ThrowIfFailed(
 	std::string error = HrToString(hr);
 	const std::string message =
 	  std::format("Failed: HRESULT {} ({}) at {}:{} in function {}",
-		  hr, error, location.file_name(), location.line(), location.function_name());
+				  hr,
+				  error,
+				  location.file_name(),
+				  location.line(),
+				  location.function_name());
 	Locator::getLogger()->error(message);
 	throw std::exception(message.c_str());
 }
 
-Display_D3D::Display_D3D(): m_DXGIFactoryFlags(0) {}
+Display_D3D::Display_D3D()
+  : m_DXGIFactoryFlags(0)
+  , m_FrameIndex{ 0 }
+  , m_RtvDescriptorSize{ 0 }
+{
+}
 
 std::string
 Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
 {
 	Locator::getLogger()->info("Display_D3D::Init()");
-	Locator::getLogger()->info("Current renderer: Direct3D (unstable DirectX 12 version)");
-	
-#if defined(DEBUG) || defined(_DEBUG)
-	{
-		ComPtr<ID3D12Debug> debugController;
-		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
-		debugController->EnableDebugLayer();
-		m_DXGIFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
-	}
-#endif
+	Locator::getLogger()->info(
+	  "Current renderer: Direct3D (unstable DirectX 12 version)");
 
-	ThrowIfFailed(
-	  CreateDXGIFactory1(IID_PPV_ARGS(&m_DXGIFactory)));
+	GraphicsWindow::Initialize(true);
 
-	HRESULT result = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device));
-	if (FAILED(result)) {
-		ComPtr<IDXGIAdapter> warpAdapter;
-		ThrowIfFailed(
-		  m_DXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
-
-		ThrowIfFailed(D3D12CreateDevice(
-		  warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
-	}
-
-	m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	m_DsvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(
-	  D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	m_CbvSrvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(
-	  D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	StartLoadingPipeline();
 
 	return std::string();
 }
@@ -355,6 +343,9 @@ Display_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 std::string
 Display_D3D::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 {
+	GraphicsWindow::CreateGraphicsWindow(p);
+	FinishLoadingPipeline();
+	LoadAssets();
 	return std::string();
 }
 
@@ -362,4 +353,178 @@ RageSurface*
 Display_D3D::CreateScreenshot()
 {
 	return nullptr;
+}
+
+void
+Display_D3D::StartLoadingPipeline()
+{
+#if defined(DEBUG) || defined(_DEBUG)
+	{
+		ComPtr<ID3D12Debug> debugController;
+		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
+		debugController->EnableDebugLayer();
+		m_DXGIFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+	}
+#endif
+
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&m_DXGIFactory)));
+
+	HRESULT result = D3D12CreateDevice(
+	  nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device));
+	if (FAILED(result)) {
+		ComPtr<IDXGIAdapter> warpAdapter;
+		ThrowIfFailed(
+		  m_DXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+
+		ThrowIfFailed(D3D12CreateDevice(
+		  warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
+	}
+
+	D3D12_COMMAND_QUEUE_DESC queueDescription = {};
+	queueDescription.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	queueDescription.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+	ThrowIfFailed(m_Device->CreateCommandQueue(&queueDescription,
+											   IID_PPV_ARGS(&m_CommandQueue)));
+}
+
+void
+Display_D3D::FinishLoadingPipeline()
+{
+	const ActualVideoModeParams* params = GetActualVideoModeParams();
+
+	DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
+	swapChainDescription.BufferCount = FrameCount;
+	swapChainDescription.BufferDesc.Width = params->width;
+	swapChainDescription.BufferDesc.Height = params->height;
+	swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDescription.OutputWindow = GraphicsWindow::GetHwnd();
+	swapChainDescription.SampleDesc.Count = 1;
+	swapChainDescription.Windowed = params->windowed;
+
+	ComPtr<IDXGISwapChain> swapChain;
+	ThrowIfFailed(m_DXGIFactory->CreateSwapChain(
+	  m_CommandQueue.Get(), &swapChainDescription, &swapChain));
+	ThrowIfFailed(swapChain.As(&m_SwapChain));
+
+	// temporarily disable fullscreens :3
+	ThrowIfFailed(m_DXGIFactory->MakeWindowAssociation(
+	  GraphicsWindow::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
+
+	m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
+
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDescription = {};
+		rtvHeapDescription.NumDescriptors = FrameCount;
+		rtvHeapDescription.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDescription.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		ThrowIfFailed(m_Device->CreateDescriptorHeap(&rtvHeapDescription,
+													 IID_PPV_ARGS(&m_RtvHeap)));
+
+		m_RtvDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(
+		  D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	}
+
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
+		  m_RtvHeap->GetCPUDescriptorHandleForHeapStart());
+		for (UINT n = 0; n < FrameCount; n++) {
+			ThrowIfFailed(
+			  m_SwapChain->GetBuffer(n, IID_PPV_ARGS(&m_RenderTargets[n])));
+			m_Device->CreateRenderTargetView(
+			  m_RenderTargets[n].Get(), nullptr, rtvHandle);
+			rtvHandle.Offset(1, m_RtvDescriptorSize);
+		}
+	}
+
+	ThrowIfFailed(m_Device->CreateCommandAllocator(
+	  D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
+}
+
+static std::string
+ReadFileContents(const std::string& path)
+{
+	std::ifstream file(path, std::ios::in | std::ios::binary);
+	if (!file) {
+		throw std::exception(("shader file not found: " + path).c_str());
+	}
+
+	std::ostringstream stream;
+	stream << file.rdbuf();
+	return stream.str();
+}
+
+ComPtr<ID3DBlob>
+CompileShader(const std::string& contents,
+			  const std::string& entrypoint,
+			  const std::string& targetProfile)
+{
+	ComPtr<ID3DBlob> errorBlob;
+	ComPtr<ID3DBlob> shaderBlob;
+
+	UINT shaderCompileFlags = 0; // D3DCOMPILE_ENABLE_STRICTNESS maybe?
+#if defined(DEBUG) || defined(_DEBUG)
+	shaderCompileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+	auto hr = D3DCompile(contents.c_str(),
+						 contents.size(),
+						 "",
+						 nullptr,
+						 nullptr,
+						 entrypoint.c_str(),
+						 targetProfile.c_str(),
+						 shaderCompileFlags,
+						 0,
+						 &shaderBlob,
+						 &errorBlob);
+	if (FAILED(hr) && errorBlob) {
+		Locator::getLogger()->error("Failed to compile shader ({}) - {}",
+									targetProfile,
+									(char*)errorBlob->GetBufferPointer());
+	}
+	ThrowIfFailed(hr);
+
+	return shaderBlob;
+}
+
+void
+Display_D3D::LoadAssets()
+{
+	{
+		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDescription;
+		rootSignatureDescription.Init(
+		  0,
+		  nullptr,
+		  0,
+		  nullptr,
+		  D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+		ComPtr<ID3DBlob> rootSignature;
+		ComPtr<ID3DBlob> errorBlob; // ???
+		ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDescription,
+												  D3D_ROOT_SIGNATURE_VERSION_1,
+												  &rootSignature,
+												  &errorBlob));
+		ThrowIfFailed(
+		  m_Device->CreateRootSignature(0,
+										rootSignature->GetBufferPointer(),
+										rootSignature->GetBufferSize(),
+										IID_PPV_ARGS(&m_RootSignature)));
+	}
+	{
+		// TODO: switching or SPIR-V or something later
+		std::string shaderPath =
+		  FILEMAN->ResolvePath("Data/Shaders/HLSL/shaders.hlsl");
+		std::string shaderContents = ReadFileContents(shaderPath);
+
+		ComPtr<ID3DBlob> vertexShader =
+		  CompileShader(shaderContents, "VSMain", "vs_5_0");
+		ComPtr<ID3DBlob> pixelShader =
+		  CompileShader(shaderContents, "PSMain", "ps_5_0");
+
+		// TODO: everything else
+	}
 }
