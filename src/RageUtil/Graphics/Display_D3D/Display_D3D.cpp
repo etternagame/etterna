@@ -540,24 +540,24 @@ void
 Display_D3D::LoadAssets(const VideoModeParams& p)
 {
 	{
-		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDescription;
-		rootSignatureDescription.Init(
+		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+		rootSignatureDesc.Init(
 		  0,
 		  nullptr,
 		  0,
 		  nullptr,
 		  D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-		ComPtr<ID3DBlob> rootSignature;
-		ComPtr<ID3DBlob> errorBlob; // ???
-		ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDescription,
+		ComPtr<ID3DBlob> signature;
+		ComPtr<ID3DBlob> error;
+		ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc,
 												  D3D_ROOT_SIGNATURE_VERSION_1,
-												  &rootSignature,
-												  &errorBlob));
+												  &signature,
+												  &error));
 		ThrowIfFailed(
 		  m_Device->CreateRootSignature(0,
-										rootSignature->GetBufferPointer(),
-										rootSignature->GetBufferSize(),
+										signature->GetBufferPointer(),
+										signature->GetBufferSize(),
 										IID_PPV_ARGS(&m_RootSignature)));
 	}
 
@@ -572,16 +572,6 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 		  CompileShader(shaderContents, "VSMain", "vs_5_0");
 		ComPtr<ID3DBlob> pixelShader =
 		  CompileShader(shaderContents, "PSMain", "ps_5_0");
-
-		// RageSpriteVertex?
-		Vertex triangleVertices[] = {
-			{ { 0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f },
-			  { 1.0f, 0.0f, 0.0f, 1.0f } },
-			{ { 0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
-			  { 0.0f, 1.0f, 0.0f, 1.0f } },
-			{ { -0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
-			  { 0.0f, 0.0f, 1.0f, 1.0f } }
-		};
 
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
 			{ "POSITION",
@@ -604,12 +594,8 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 		psoDesc.InputLayout = { inputElementDescs,
 								_countof(inputElementDescs) };
 		psoDesc.pRootSignature = m_RootSignature.Get();
-		psoDesc.VS = { reinterpret_cast<UINT8*>(
-						 vertexShader->GetBufferPointer()),
-					   vertexShader->GetBufferSize() };
-		psoDesc.PS = { reinterpret_cast<UINT8*>(
-						 pixelShader->GetBufferPointer()),
-					   pixelShader->GetBufferSize() };
+		psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
+		psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
 		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 		psoDesc.DepthStencilState.DepthEnable = FALSE;
@@ -628,44 +614,34 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 											  m_CommandAllocator.Get(),
 											  m_PipelineState.Get(),
 											  IID_PPV_ARGS(&m_CommandList)));
+
 	ThrowIfFailed(m_CommandList->Close());
+
 	{
-		RageSpriteVertex triangleVertices[] = {
-			{
-			  { 0.0f, 0.25f, 0.0f },
-			  { 0.0f, 0.0f, 0.0f },
-			  RageColor{ 1.0f, 0.0f, 0.0f, 1.0f },
-			  { 0.0f, 0.0f },
-			},
-			{
-			  { 0.25f, -0.25f, 0.0f },
-			  { 0.0f, 0.0f, 0.0f },
-			  RageColor{ 0.0f, 1.0f, 0.0f, 1.0f },
-			  { 0.0f, 0.0f },
-			},
-			{
-			  { -0.25f, -0.25f, 0.0f },
-			  { 0.0f, 0.0f, 0.0f },
-			  RageColor{ 0.0f, 0.0f, 1.0f, 1.0f },
-			  { 0.0f, 0.0f },
-			}
+		Vertex triangleVertices[] = {
+			{ { 0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 1.0f, 0.0f, 0.0f, 1.0f } },
+			{ { 0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 0.0f, 1.0f, 0.0f, 1.0f } },
+			{ { -0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 0.0f, 0.0f, 1.0f, 1.0f } }
 		};
 
 		const UINT vertexBufferSize = sizeof(triangleVertices);
 
-		CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
-		auto desc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-		ThrowIfFailed(
-		  m_Device->CreateCommittedResource(&heapProps,
-											D3D12_HEAP_FLAG_NONE,
-											&desc,
-											D3D12_RESOURCE_STATE_GENERIC_READ,
-											nullptr,
-											IID_PPV_ARGS(&m_VertexBuffer)));
+		auto properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		auto buffer = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+		ThrowIfFailed(m_Device->CreateCommittedResource(
+		  &properties,
+		  D3D12_HEAP_FLAG_NONE,
+		  &buffer,
+		  D3D12_RESOURCE_STATE_GENERIC_READ,
+		  nullptr,
+		  IID_PPV_ARGS(&m_VertexBuffer)));
 
 		UINT8* pVertexDataBegin;
 		CD3DX12_RANGE readRange(
-		  0, 0); 
+		  0, 0);
 		ThrowIfFailed(m_VertexBuffer->Map(
 		  0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
 		memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
@@ -673,7 +649,7 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 
 		m_VertexBufferView.BufferLocation =
 		  m_VertexBuffer->GetGPUVirtualAddress();
-		m_VertexBufferView.StrideInBytes = sizeof(RageSpriteVertex);
+		m_VertexBufferView.StrideInBytes = sizeof(Vertex);
 		m_VertexBufferView.SizeInBytes = vertexBufferSize;
 	}
 
@@ -699,6 +675,13 @@ Display_D3D::PopulateCommandList()
 	  m_CommandList->Reset(m_CommandAllocator.Get(), m_PipelineState.Get()));
 
 	m_CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
+
+	auto p = GetActualVideoModeParams();
+	m_Viewport = D3D12_VIEWPORT(
+	  0.0f, 0.0f, static_cast<float>(p->width), static_cast<float>(p->height));
+	m_ScissorRect = D3D12_RECT(
+	  0, 0, static_cast<LONG>(p->width), static_cast<LONG>(p->height));
+
 	m_CommandList->RSSetViewports(1, &m_Viewport);
 	m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
 
