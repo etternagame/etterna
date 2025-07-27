@@ -20,7 +20,7 @@ class Display_D3D : public RageDisplay
 	constexpr static int FrameCount = 2;
 
 	Display_D3D();
-	~Display_D3D() override = default;
+	~Display_D3D() override;
 	std::string Init(VideoModeParams&& p,
 					 bool bAllowUnacceleratedRenderer) override;
 	[[nodiscard]] std::string GetApiDescription() const override
@@ -116,15 +116,14 @@ class Display_D3D : public RageDisplay
 
   private:
 	void StartLoadingPipeline();
-	void FinishLoadingPipeline();
-	void LoadAssets();
+	void FinishLoadingPipeline(const VideoModeParams& p);
+	void LoadAssets(const VideoModeParams& p);
 
 	Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
 	UINT m_DXGIFactoryFlags;
 	Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_CommandQueue;
 	Microsoft::WRL::ComPtr<IDXGISwapChain3> m_SwapChain;
-	UINT m_FrameIndex;
 
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
 	UINT m_RtvDescriptorSize;
@@ -134,8 +133,23 @@ class Display_D3D : public RageDisplay
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
+
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
 	D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+
+	UINT m_FrameIndex;
+	Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
+	uint64_t m_FenceValue;
+	HANDLE m_FenceEvent;
+
+	D3D12_VIEWPORT m_Viewport;
+	D3D12_RECT m_ScissorRect;
+
+    void PopulateCommandList();
+	void WaitForPreviousFrame();
+	void OnUpdate();
+	void OnRender();
+	void OnDestroy();
 };
 
 #endif

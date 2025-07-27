@@ -53,11 +53,11 @@ ThrowIfFailed(
 	throw std::exception(message.c_str());
 }
 
-Display_D3D::Display_D3D()
-  : m_DXGIFactoryFlags(0)
-  , m_FrameIndex{ 0 }
-  , m_RtvDescriptorSize{ 0 }
+Display_D3D::Display_D3D() = default;
+
+Display_D3D::~Display_D3D()
 {
+	OnDestroy();
 }
 
 std::string
@@ -382,8 +382,8 @@ std::string
 Display_D3D::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 {
 	GraphicsWindow::CreateGraphicsWindow(p);
-	FinishLoadingPipeline();
-	LoadAssets();
+	FinishLoadingPipeline(p);
+	LoadAssets(p);
 	return std::string();
 }
 
@@ -427,20 +427,18 @@ Display_D3D::StartLoadingPipeline()
 }
 
 void
-Display_D3D::FinishLoadingPipeline()
+Display_D3D::FinishLoadingPipeline(const VideoModeParams& p)
 {
-	const ActualVideoModeParams* params = GetActualVideoModeParams();
-
 	DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
 	swapChainDescription.BufferCount = FrameCount;
-	swapChainDescription.BufferDesc.Width = params->width;
-	swapChainDescription.BufferDesc.Height = params->height;
+	swapChainDescription.BufferDesc.Width = p.width;
+	swapChainDescription.BufferDesc.Height = p.height;
 	swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDescription.OutputWindow = GraphicsWindow::GetHwnd();
 	swapChainDescription.SampleDesc.Count = 1;
-	swapChainDescription.Windowed = params->windowed;
+	swapChainDescription.Windowed = true;
 
 	ComPtr<IDXGISwapChain> swapChain;
 	ThrowIfFailed(m_DXGIFactory->CreateSwapChain(
@@ -531,7 +529,7 @@ CompileShader(const std::string& contents,
 }
 
 void
-Display_D3D::LoadAssets()
+Display_D3D::LoadAssets(const VideoModeParams& p)
 {
 	{
 		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDescription;
@@ -628,24 +626,22 @@ Display_D3D::LoadAssets()
 											  m_PipelineState.Get(),
 											  IID_PPV_ARGS(&m_CommandList)));
 	ThrowIfFailed(m_CommandList->Close());
-	const ActualVideoModeParams* params = GetActualVideoModeParams();
-	float aspectRatio = (float)params->width / params->height;
 	{
 		RageSpriteVertex triangleVertices[] = {
 			{
-			  { 0.0f, 0.25f * aspectRatio, 0.0f },
+			  { 0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f },
 			  { 0.0f, 0.0f, 0.0f },
 			  RageColor{ 1.0f, 0.0f, 0.0f, 1.0f },
 			  { 0.0f, 0.0f },
 			},
 			{
-			  { 0.25f, -0.25f * aspectRatio, 0.0f },
+			  { 0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
 			  { 0.0f, 0.0f, 0.0f },
 			  RageColor{ 0.0f, 1.0f, 0.0f, 1.0f },
 			  { 0.0f, 0.0f },
 			},
 			{
-			  { -0.25f, -0.25f * aspectRatio, 0.0f },
+			  { -0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
 			  { 0.0f, 0.0f, 0.0f },
 			  RageColor{ 0.0f, 0.0f, 1.0f, 1.0f },
 			  { 0.0f, 0.0f },
@@ -677,4 +673,96 @@ Display_D3D::LoadAssets()
 		m_VertexBufferView.StrideInBytes = sizeof(RageSpriteVertex);
 		m_VertexBufferView.SizeInBytes = vertexBufferSize;
 	}
+
+	{
+		ThrowIfFailed(m_Device->CreateFence(
+		  0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
+		m_FenceValue = 1;
+
+		m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (m_FenceEvent == nullptr) {
+			ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
+		}
+
+		WaitForPreviousFrame();
+	}
+}
+
+void
+Display_D3D::PopulateCommandList()
+{
+	ThrowIfFailed(m_CommandAllocator->Reset());
+	ThrowIfFailed(
+	  m_CommandList->Reset(m_CommandAllocator.Get(), m_PipelineState.Get()));
+
+	m_CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
+	m_CommandList->RSSetViewports(1, &m_Viewport);
+	m_CommandList->RSSetScissorRects(1, &m_ScissorRect);
+
+	auto barrier =
+	  CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(),
+										   D3D12_RESOURCE_STATE_PRESENT,
+										   D3D12_RESOURCE_STATE_RENDER_TARGET);
+	m_CommandList->ResourceBarrier(1, &barrier);
+
+	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
+	  m_RtvHeap->GetCPUDescriptorHandleForHeapStart(),
+	  m_FrameIndex,
+	  m_RtvDescriptorSize);
+
+	m_CommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	m_CommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	m_CommandList->IASetPrimitiveTopology(
+	  D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
+	m_CommandList->DrawInstanced(3, 1, 0, 0);
+
+	barrier =
+	  CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(),
+										   D3D12_RESOURCE_STATE_RENDER_TARGET,
+										   D3D12_RESOURCE_STATE_PRESENT);
+	m_CommandList->ResourceBarrier(1, &barrier);
+	ThrowIfFailed(m_CommandList->Close());
+}
+
+void
+Display_D3D::WaitForPreviousFrame()
+{
+	const uint64_t fence = m_FenceValue;
+	ThrowIfFailed(m_CommandQueue->Signal(m_Fence.Get(), fence));
+	m_FenceValue++;
+
+	if (m_Fence->GetCompletedValue() < fence) {
+		ThrowIfFailed(m_Fence->SetEventOnCompletion(fence, m_FenceEvent));
+		WaitForSingleObject(m_FenceEvent, INFINITE);
+	}
+
+	m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
+}
+
+void
+Display_D3D::OnUpdate()
+{
+}
+
+void
+Display_D3D::OnRender()
+{
+	PopulateCommandList();
+
+	ID3D12CommandList* CommandLists[] = { m_CommandList.Get() };
+	m_CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
+
+	ThrowIfFailed(m_SwapChain->Present(1, 0));
+
+	WaitForPreviousFrame();
+}
+
+void
+Display_D3D::OnDestroy()
+{
+	WaitForPreviousFrame();
+	CloseHandle(m_FenceEvent);
 }
