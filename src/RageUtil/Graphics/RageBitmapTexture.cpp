@@ -81,7 +81,10 @@ RageBitmapTexture::Create()
 
 	ASSERT(!actualID.filename.empty());
 
-	delete m_pSurface;
+	if (m_pSurface) {
+		delete m_pSurface;
+		m_pSurface = nullptr;
+	}
 
 	/* Load the image into a RageSurface. */
 	std::string error;

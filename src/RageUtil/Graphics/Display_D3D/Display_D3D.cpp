@@ -5,6 +5,7 @@
 #include <exception>
 #include "RageUtil/File/RageFileManager.h"
 #include <fstream>
+#include "RageUtil/Graphics/RageSurface.h"
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -86,7 +87,11 @@ Display_D3D::ResolutionChanged()
 const RageDisplay::RagePixelFormatDesc*
 Display_D3D::GetPixelFormatDesc(RagePixelFormat pf) const
 {
-	return nullptr;
+	assert(pf == RagePixelFormat_RGBA8);
+	static auto desc =
+	  RagePixelFormatDesc{ 32,
+						   { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } };
+	return &desc;
 }
 
 bool
@@ -118,7 +123,7 @@ Display_D3D::SetBlendMode(BlendMode mode)
 bool
 Display_D3D::SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime)
 {
-	return false;
+	return pixfmt == RagePixelFormat_RGBA8;
 }
 
 bool
@@ -138,7 +143,33 @@ Display_D3D::CreateTexture(RagePixelFormat pixfmt,
 						   RageSurface* img,
 						   bool bGenerateMipMaps)
 {
-	return intptr_t();
+	assert(pixfmt == RagePixelFormat_RGBA8);
+
+	D3D12_RESOURCE_DESC textureDescription = {};
+	textureDescription.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	textureDescription.Width = img->w;
+	textureDescription.Height = img->h;
+	textureDescription.DepthOrArraySize = 1;
+	textureDescription.MipLevels = 1;
+	textureDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // format (RGBA8)
+	textureDescription.SampleDesc.Count = 1;
+	textureDescription.SampleDesc.Quality = 0;
+	textureDescription.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	textureDescription.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	ID3D12Resource* texture = nullptr;
+	CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
+
+	ThrowIfFailed(m_Device->CreateCommittedResource(
+	  &heapProperties,
+	  D3D12_HEAP_FLAG_NONE,
+	  &textureDescription,
+	  D3D12_RESOURCE_STATE_COPY_DEST,
+
+	  nullptr,
+	  IID_PPV_ARGS(&texture)));
+
+	return reinterpret_cast<intptr_t>(texture);
 }
 
 void
@@ -149,11 +180,15 @@ Display_D3D::UpdateTexture(intptr_t uTexHandle,
 						   int width,
 						   int height)
 {
+	ID3D12Resource* texture = reinterpret_cast<ID3D12Resource*>(uTexHandle);
+	// todo...
 }
 
 void
 Display_D3D::DeleteTexture(intptr_t iTexHandle)
 {
+	ID3D12Resource* texture = reinterpret_cast<ID3D12Resource*>(iTexHandle);
+	texture->Release();
 }
 
 void
@@ -164,7 +199,7 @@ Display_D3D::ClearAllTextures()
 int
 Display_D3D::GetNumTextureUnits()
 {
-	return 0;
+	return TextureUnit::NUM_TextureUnit;
 }
 
 void
@@ -185,7 +220,8 @@ Display_D3D::SetTextureWrapping(TextureUnit tu, bool b)
 int
 Display_D3D::GetMaxTextureSize() const
 {
-	return 0;
+	constexpr static int maxFor11_0 = 4096; // technically 16384 for 11_0 but nope
+	return maxFor11_0;
 }
 
 void
