@@ -218,6 +218,7 @@ class Actor : public MessageSubscriber
 	/** @brief Start the drawing and push the transform on the world matrix
 	 * stack. */
 	virtual void BeginDraw();
+	uint64_t m_ActorId = 0;
 	/**
 	 * @brief Set the global rendering states of this Actor.
 	 *

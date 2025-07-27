@@ -158,6 +158,8 @@ class Display_D3D : public RageDisplay
 		DirectX::XMFLOAT3 position;
 		DirectX::XMFLOAT4 color;
 	};
+
+	std::atomic_uint64_t m_ActorCount;
 };
 
 #endif

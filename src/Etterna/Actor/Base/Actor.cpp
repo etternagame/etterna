@@ -517,7 +517,12 @@ Actor::Draw()
 		ASSERT(m_pTempState != nullptr);
 		if (PartiallyOpaque()) {
 			this->BeginDraw();
+
+			this->m_ActorId =
+			  this->m_ActorId == 0 ? DISPLAY->CreateActorId() : this->m_ActorId;
+			DISPLAY->StartDrawingPrimitives(this->m_ActorId);
 			this->DrawPrimitives();
+			DISPLAY->EndDrawingPrimitives(this->m_ActorId);
 			this->EndDraw();
 		}
 		this->PostDraw();
