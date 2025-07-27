@@ -1,6 +1,8 @@
 #ifndef DISPLAY_RENDER_STATE_H
 #define DISPLAY_RENDER_STATE_H
 
+#include "RageUtil/Misc/RageTypes.h"
+
 namespace Display {
 
 struct RenderState
