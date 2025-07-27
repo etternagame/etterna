@@ -13,6 +13,7 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include <directx/d3dx12.h>
+#include <DirectXMath.h>
 
 class Display_D3D : public RageDisplay
 {
@@ -151,6 +152,12 @@ class Display_D3D : public RageDisplay
 	void OnUpdate();
 	void OnRender();
 	void OnDestroy();
+
+	struct Vertex
+	{
+		DirectX::XMFLOAT3 position;
+		DirectX::XMFLOAT4 color;
+	};
 };
 
 #endif

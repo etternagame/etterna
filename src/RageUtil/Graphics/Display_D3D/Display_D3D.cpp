@@ -5,6 +5,7 @@
 #include <exception>
 #include "RageUtil/File/RageFileManager.h"
 #include <fstream>
+#include <chrono>
 #include "RageUtil/Graphics/RageSurface.h"
 
 #pragma comment(lib, "d3d12.lib")
@@ -387,9 +388,8 @@ Display_D3D::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	FinishLoadingPipeline(p);
 	LoadAssets(p);
 
-	//GraphicsWindow::CreateGraphicsWindow(p);
 	ResolutionChanged();
-	OnRender();
+	//OnRender() with a black clearing to not whiteblast people?
 
 	m_IsInitDone = true;
 	return std::string();
@@ -444,9 +444,9 @@ Display_D3D::FinishLoadingPipeline(const VideoModeParams& p)
 	swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDescription.OutputWindow = GraphicsWindow::GetHwnd();
 	swapChainDescription.SampleDesc.Count = 1;
-	swapChainDescription.Windowed = true;
-	swapChainDescription.BufferDesc.Width = 500;
-	swapChainDescription.BufferDesc.Height = 500;
+	swapChainDescription.Windowed = p.windowed;
+	swapChainDescription.BufferDesc.Width = p.width;
+	swapChainDescription.BufferDesc.Height = p.height;
 
 	ComPtr<IDXGISwapChain> swapChain;
 	ThrowIfFailed(m_DXGIFactory->CreateSwapChain(
@@ -574,33 +574,28 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 		  CompileShader(shaderContents, "PSMain", "ps_5_0");
 
 		// RageSpriteVertex?
+		Vertex triangleVertices[] = {
+			{ { 0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 1.0f, 0.0f, 0.0f, 1.0f } },
+			{ { 0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 0.0f, 1.0f, 0.0f, 1.0f } },
+			{ { -0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f },
+			  { 0.0f, 0.0f, 1.0f, 1.0f } }
+		};
+
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
 			{ "POSITION",
 			  0,
 			  DXGI_FORMAT_R32G32B32_FLOAT,
 			  0,
-			  offsetof(RageSpriteVertex, p),
-			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-			  0 },
-			{ "NORMAL",
 			  0,
-			  DXGI_FORMAT_R32G32B32_FLOAT,
-			  0,
-			  offsetof(RageSpriteVertex, n),
 			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 			  0 },
 			{ "COLOR",
 			  0,
-			  DXGI_FORMAT_B8G8R8A8_UNORM,
+			  DXGI_FORMAT_R32G32B32A32_FLOAT,
 			  0,
-			  offsetof(RageSpriteVertex, c),
-			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-			  0 },
-			{ "TEXCOORD",
-			  0,
-			  DXGI_FORMAT_R16G16_FLOAT,
-			  0,
-			  offsetof(RageSpriteVertex, t),
+			  12,
 			  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 			  0 }
 		};
@@ -720,7 +715,11 @@ Display_D3D::PopulateCommandList()
 
 	m_CommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	const auto clock = std::chrono::steady_clock::now();
+	const auto time = std::chrono::time_point_cast<std::chrono::milliseconds>(clock);
+	const auto factor = std::sin(time.time_since_epoch().count() / 300.0f);
+	
+	const float clearColor[] = { 0.0f, 0.4f, 0.4f + 0.2f * factor, 1.0f };
 	m_CommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	m_CommandList->IASetPrimitiveTopology(
 	  D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
