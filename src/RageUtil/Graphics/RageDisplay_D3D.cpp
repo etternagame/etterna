@@ -317,7 +317,7 @@ auto
 RageDisplay_D3D::Init(VideoModeParams&& p,
 					  bool /* bAllowUnacceleratedRenderer */) -> std::string
 {
-	GraphicsWindow::Initialize(false);
+	GraphicsWindow::Initialize(true);
 
 	Locator::getLogger()->info("RageDisplay_D3D::RageDisplay_D3D()");
 	Locator::getLogger()->info("Current renderer: Direct3D");
