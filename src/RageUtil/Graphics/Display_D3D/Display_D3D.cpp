@@ -99,12 +99,23 @@ Display_D3D::GetPixelFormatDesc(RagePixelFormat pf) const
 bool
 Display_D3D::BeginFrame()
 {
+	m_Batcher.CleanCommands();
 	return m_IsInitDone;
 }
 
 void
 Display_D3D::EndFrame()
 {
+	static bool rendered = false;
+	if (!rendered) {
+		for (auto& cmd : m_Batcher.m_CommandBuffer) {
+			Locator::getLogger()->debug(cmd);
+		}
+		Locator::getLogger()->debug("command count: {}",
+									m_Batcher.m_CommandBuffer.size());
+		rendered = true;
+	}
+	m_Batcher.CleanCommands();
 	OnUpdate();
 	OnRender();
 }
@@ -122,6 +133,7 @@ Display_D3D::GetActualVideoModeParams() const
 void
 Display_D3D::SetBlendMode(BlendMode mode)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 bool
@@ -209,16 +221,19 @@ Display_D3D::GetNumTextureUnits()
 void
 Display_D3D::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetTextureMode(TextureUnit tu, TextureMode tm)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetTextureWrapping(TextureUnit tu, bool b)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 int
@@ -232,6 +247,7 @@ Display_D3D::GetMaxTextureSize() const
 void
 Display_D3D::SetTextureFiltering(TextureUnit tu, bool b)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 bool
@@ -249,31 +265,37 @@ Display_D3D::IsZTestEnabled() const
 void
 Display_D3D::SetZWrite(bool b)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetZBias(float f)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetZTestMode(ZTestMode mode)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::ClearZBuffer()
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetCullMode(CullMode mode)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetAlphaTest(bool b)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
@@ -283,16 +305,19 @@ Display_D3D::SetMaterial(const RageColor& emissive,
 						 const RageColor& specular,
 						 float shininess)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetLighting(bool b)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetLightOff(int index)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
@@ -302,6 +327,7 @@ Display_D3D::SetLightDirectional(int index,
 								 const RageColor& specular,
 								 const RageVector3& dir)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 intptr_t
@@ -326,11 +352,13 @@ Display_D3D::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
 void
 Display_D3D::SetSphereEnvironmentMapping(TextureUnit tu, bool b)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::SetCelShaded(int stage)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 RageCompiledGeometry*
@@ -347,38 +375,45 @@ Display_D3D::DeleteCompiledGeometry(RageCompiledGeometry* p)
 void
 Display_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::DrawQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::DrawTrianglesInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
 											int iNumVerts)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 void
 Display_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
 										  int iMeshIndex)
 {
+	m_Batcher.InsertCommand(std::source_location::current().function_name());
 }
 
 std::string

@@ -14,6 +14,7 @@
 #include <DirectXMath.h>
 #include <directx/d3dx12.h>
 #include <DirectXMath.h>
+#include "RageUtil/Graphics/Display/CommandBatcher.h"
 
 class Display_D3D : public RageDisplay
 {
@@ -119,6 +120,8 @@ class Display_D3D : public RageDisplay
 	void StartLoadingPipeline();
 	void FinishLoadingPipeline(const VideoModeParams& p);
 	void LoadAssets(const VideoModeParams& p);
+
+	Display::CommandBatcher m_Batcher;
 
 	Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
 	UINT m_DXGIFactoryFlags;
