@@ -431,9 +431,9 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	  GAMEMAN->GetStepsTypeInfo(m_StepsType).iNumTracks;
 	if (calc == nullptr) {
 		// reloading at music select
-		diffByRate = MinaSDCalc(cereal, columnCount, SONGMAN->calc.get());
+		diffByRate = MinaSDCalc(cereal, columnCount, SONGMAN->calc.get(), GetFilename());
 	} else {
-		diffByRate = MinaSDCalc(cereal, columnCount, calc);
+		diffByRate = MinaSDCalc(cereal, columnCount, calc, GetFilename());
 	}
 
 	ChartKey = GenerateChartKey(*m_pNoteData, GetTimingData());
@@ -465,7 +465,7 @@ Steps::DoATestThing(float ev, Skillset ss, float rate, Calc* calc) -> float
 	const auto& etaner = GetTimingData()->BuildAndGetEtaner(nerv);
 	const auto& cereal = m_pNoteData->SerializeNoteData(etaner);
 
-	auto newcalc = MinaSDCalc(cereal, rate, 0.93F, 4, calc);
+	auto newcalc = MinaSDCalc(cereal, rate, 0.93F, 4, calc, GetFilename());
 	auto last_msd = newcalc[ss];
 	const auto prev_vers = GetCalcVersion() - 1;
 	if (vh.count(prev_vers) != 0U) {
@@ -509,7 +509,8 @@ Steps::GetCalcDebugOutput()
 					columnCount,
 					calcdebugoutput,
 					debugstrings,
-					*SONGMAN->calc);
+					*SONGMAN->calc,
+					GetFilename());
 
 	m_pNoteData->UnsetNerv();
 	m_pNoteData->UnsetSerializedNoteData();
@@ -971,7 +972,7 @@ class LunaSteps : public Luna<Steps>
 
 		const unsigned columnCount =
 		  GAMEMAN->GetStepsTypeInfo(p->m_StepsType).iNumTracks;
-		d = MinaSDCalc(ni, rate, goal, columnCount, SONGMAN->calc.get());
+		d = MinaSDCalc(ni, rate, goal, columnCount, SONGMAN->calc.get(), p->GetFilename());
 
 		const auto ssrs = d;
 		LuaHelpers::CreateTableFromArray(ssrs, L);

@@ -41,7 +41,8 @@ inline auto
 left_mask(const unsigned& keycount) -> unsigned
 {
 	const auto m = right_mask(keycount);
-	return ~m & static_cast<int>(std::exp2(std::ceil(std::log2(m))) - 1);
+	// Use keycount_to_bin to get the proper mask size instead of exp2/log2
+	return ~m & keycount_to_bin(keycount);
 }
 
 // outputs 0b1111 for 4, 0b101 for 3, etc

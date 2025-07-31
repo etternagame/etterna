@@ -676,7 +676,8 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 									musicrate,
 									ssrpercent,
 									columnCount,
-									per_thread_calc.get());
+									per_thread_calc.get(),
+									steps->GetFilename());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)
@@ -841,7 +842,8 @@ ScoreManager::RecalculateSSRs(const std::string& profileID)
 									musicrate,
 									ssrpercent,
 									columnCount,
-									per_thread_calc.get());
+									per_thread_calc.get(),
+									steps->GetFilename());
 
 				auto ssrVals = dakine;
 				FOREACH_ENUM(Skillset, ss)

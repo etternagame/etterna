@@ -134,7 +134,8 @@ inline auto
 fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 const float& rate,
 							 Calc& calc,
-							 const float& offset = 0.F) -> bool
+							 const float& offset = 0.F,
+							 const std::string& filename = "") -> bool
 {
 	// an inf rowtime means 0 bpm or some other odd gimmick that may break things
 	// skip this file
@@ -248,6 +249,9 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 		if (nri.hand_counts[left_hand] + nri.hand_counts[right_hand] != nri.row_count) {
 			// Print detailed debugging information
 			std::cerr << "[FATAL]: Hand count mismatch detected!\n";
+			if (!filename.empty()) {
+				std::cerr << "  File: " << filename << "\n";
+			}
 			std::cerr << "  Keycount: " << calc.keycount << "\n";
 			std::cerr << "  Row notes (binary): " << std::bitset<32>(ri.notes) << "\n";
 			std::cerr << "  Row count: " << nri.row_count << "\n";
