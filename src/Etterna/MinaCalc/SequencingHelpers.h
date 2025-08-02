@@ -27,7 +27,7 @@ keycount_to_bin(const unsigned& keycount) -> unsigned
 	return ~(~1u << (keycount - 1u));
 }
 
-// outputs 0b1100 for 4, 0b110 for 3, etc
+// outputs 0b1100 for 4, 0b100 for 3, etc
 inline auto
 right_mask(const unsigned& keycount) -> unsigned
 {
@@ -52,6 +52,13 @@ mask_to_remove_middle_column(const unsigned& keycount) -> unsigned
 		return keycount_to_bin(keycount);
 	}
 	return keycount_to_bin(keycount) ^ (0b1 << (keycount / 2));
+}
+
+// outputs 0b0000 for 4, 0b010 for 3, etc
+inline auto
+middle_mask(const unsigned& keycount) -> unsigned
+{
+	return ~mask_to_remove_middle_column(keycount);
 }
 
 // count number of 1's in noterow binary
