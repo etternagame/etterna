@@ -80,11 +80,11 @@ endif()
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
+    
+    add_subdirectory(DirectX-Headers)
+    list(APPEND EXT_TARGETS DirectX-Headers)
 endif()
 
-if(WIN32)
-    add_subdirectory(DirectX-Headers)
-endif()
 
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
@@ -92,7 +92,7 @@ list(APPEND EXT_TARGETS
     discord-rpc muFFT
     zlib libmad pcre
     ogg vorbis glfw
-    fmt DirectX-Headers)
+    fmt)
 
 list(APPEND LUA_TARGETS luajit libluajit minilua buildvm)
 
