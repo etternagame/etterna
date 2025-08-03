@@ -13,7 +13,6 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 #include <directx/d3dx12.h>
-#include <DirectXMath.h>
 #include "RageUtil/Graphics/Display/CommandBatcher.h"
 
 class Display_D3D : public RageDisplay
