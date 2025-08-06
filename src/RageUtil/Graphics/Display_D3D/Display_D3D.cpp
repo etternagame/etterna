@@ -239,9 +239,7 @@ Display_D3D::SetTextureWrapping(TextureUnit tu, bool b)
 int
 Display_D3D::GetMaxTextureSize() const
 {
-	constexpr static int maxFor11_0 =
-	  4096; // technically 16384 for 11_0 but nope
-	return maxFor11_0;
+	return MaxTextureSize;
 }
 
 void
@@ -684,7 +682,15 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 		m_VertexBufferView.SizeInBytes = vertexBufferSize;
 	}
 
-	{
+    {
+        auto uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto bufferProps = CD3DX12_RESOURCE_DESC::Buffer(MaxTextureSize * MaxTextureSize * TexturePixelSize);
+        ThrowIfFailed(m_Device->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &bufferProps,
+                                                        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                        IID_PPV_ARGS(&m_TextureUploadHeap)));
+    }
+
+    {
 		ThrowIfFailed(m_Device->CreateFence(
 		  0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
 		m_FenceValue = 1;
@@ -786,4 +792,20 @@ Display_D3D::OnDestroy()
 {
 	WaitForPreviousFrame();
 	CloseHandle(m_FenceEvent);
+}
+
+constexpr D3D12_RESOURCE_DESC
+Display_D3D::GetTextureDescription()
+{
+	D3D12_RESOURCE_DESC textureDesc = {};
+	textureDesc.MipLevels = 1;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.Width = MaxTextureSize;
+	textureDesc.Height = MaxTextureSize;
+	textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	textureDesc.DepthOrArraySize = 1;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	return textureDesc;
 }

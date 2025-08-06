@@ -42,6 +42,7 @@ class Display_D3D : public RageDisplay
 							   bool realtime = false) override;
 	bool SupportsThreadedRendering() override;
 	bool SupportsPerVertexMatrixScale() override;
+
 	intptr_t CreateTexture(RagePixelFormat pixfmt,
 						   RageSurface* img,
 						   bool bGenerateMipMaps) override;
@@ -53,11 +54,12 @@ class Display_D3D : public RageDisplay
 					   int height) override;
 	void DeleteTexture(intptr_t iTexHandle) override;
 	void ClearAllTextures() override;
+	[[nodiscard]] int GetMaxTextureSize() const override;
+
 	int GetNumTextureUnits() override;
 	void SetTexture(TextureUnit tu, intptr_t iTexture) override;
 	void SetTextureMode(TextureUnit tu, TextureMode tm) override;
 	void SetTextureWrapping(TextureUnit tu, bool b) override;
-	[[nodiscard]] int GetMaxTextureSize() const override;
 	void SetTextureFiltering(TextureUnit tu, bool b) override;
 	[[nodiscard]] bool IsZWriteEnabled() const override;
 	[[nodiscard]] bool IsZTestEnabled() const override;
@@ -116,6 +118,9 @@ class Display_D3D : public RageDisplay
 	RageSurface* CreateScreenshot() override;
 
   private:
+	// RGBA8
+	static constexpr size_t TexturePixelSize = 4;
+
 	void StartLoadingPipeline();
 	void FinishLoadingPipeline(const VideoModeParams& p);
 	void LoadAssets(const VideoModeParams& p);
@@ -132,6 +137,7 @@ class Display_D3D : public RageDisplay
 	UINT m_RtvDescriptorSize;
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FrameCount];
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureUploadHeap;
 	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
@@ -154,6 +160,9 @@ class Display_D3D : public RageDisplay
 	void OnUpdate();
 	void OnRender();
 	void OnDestroy();
+
+	static constexpr size_t MaxTextureSize = 4096;
+	static constexpr D3D12_RESOURCE_DESC GetTextureDescription();
 
 	struct Vertex
 	{
