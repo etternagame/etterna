@@ -413,7 +413,8 @@ AdjustForChangedSystemCapabilities()
 
 #ifdef _WIN32
 #include "RageUtil/Graphics/RageDisplay_D3D.h"
-#include "RageUtil/Graphics/Display_D3D/Display_D3D.h"
+#include "RageUtil/Graphics/Display/Display.h"
+#include "RageUtil/Graphics/RendererDX12/RendererDX12.h"
 #include "archutils/Win32/VideoDriverInfo.h"
 #endif
 
@@ -822,7 +823,7 @@ CreateDisplay()
 #endif
 			} else if (CompareNoCase(sRenderer, "unstable_d3d") == 0) {
 #if defined(SUPPORT_D3D)
-				pRet = new Display_D3D;
+				pRet = new Display::Display(std::make_unique<RendererDX12>());
 #endif
 			} else if (CompareNoCase(sRenderer, "null") == 0) {
 				return new RageDisplay_Null;

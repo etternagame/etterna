@@ -1,4 +1,4 @@
-#include "Display_D3D.h"
+#include "RendererDX12.h"
 #include "Core/Services/Locator.hpp"
 #include "archutils/Win32/GraphicsWindow.h"
 #include <source_location>
@@ -54,389 +54,21 @@ ThrowIfFailed(
 	throw std::exception(message.c_str());
 }
 
-Display_D3D::Display_D3D() = default;
-
-Display_D3D::~Display_D3D()
+RendererDX12::~RendererDX12()
 {
 	OnDestroy();
 }
 
 std::string
-Display_D3D::Init(VideoModeParams&& p, bool bAllowUnacceleratedRenderer)
+RendererDX12::GetApiDescription() const
 {
-	Locator::getLogger()->info("Display_D3D::Init()");
-	Locator::getLogger()->info(
-	  "Current renderer: Direct3D (unstable DirectX 12 version)");
+	return "DirectX12";
+}
 
+void
+RendererDX12::StartLoadingPipeline()
+{
 	GraphicsWindow::Initialize(true);
-	StartLoadingPipeline();
-
-	bool ignored = false;
-	return SetVideoMode(std::move(p), ignored);
-}
-
-void
-Display_D3D::GetDisplaySpecs(DisplaySpecs& out) const
-{
-}
-
-void
-Display_D3D::ResolutionChanged()
-{
-	RageDisplay::ResolutionChanged();
-}
-
-const RageDisplay::RagePixelFormatDesc*
-Display_D3D::GetPixelFormatDesc(RagePixelFormat pf) const
-{
-	assert(pf == RagePixelFormat_RGBA8);
-	static auto desc =
-	  RagePixelFormatDesc{ 32,
-						   { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } };
-	return &desc;
-}
-
-bool
-Display_D3D::BeginFrame()
-{
-	m_Batcher.CleanCommands();
-	return m_IsInitDone;
-}
-
-void
-Display_D3D::EndFrame()
-{
-	static bool rendered = false;
-	if (!rendered) {
-		for (auto& cmd : m_Batcher.m_CommandBuffer) {
-			Locator::getLogger()->debug(cmd);
-		}
-		Locator::getLogger()->debug("command count: {}",
-									m_Batcher.m_CommandBuffer.size());
-		rendered = true;
-	}
-	m_Batcher.CleanCommands();
-	OnUpdate();
-	OnRender();
-}
-
-const ActualVideoModeParams*
-Display_D3D::GetActualVideoModeParams() const
-{
-#ifdef _WIN32
-	return GraphicsWindow::GetParams();
-#else
-#error Display_D3D is meant for Windows... Or something
-#endif
-}
-
-void
-Display_D3D::SetBlendMode(BlendMode mode)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-bool
-Display_D3D::SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime)
-{
-	return pixfmt == RagePixelFormat_RGBA8;
-}
-
-bool
-Display_D3D::SupportsThreadedRendering()
-{
-	return false;
-}
-
-bool
-Display_D3D::SupportsPerVertexMatrixScale()
-{
-	return false;
-}
-
-intptr_t
-Display_D3D::CreateTexture(RagePixelFormat pixfmt,
-						   RageSurface* img,
-						   bool bGenerateMipMaps)
-{
-	assert(pixfmt == RagePixelFormat_RGBA8);
-
-	D3D12_RESOURCE_DESC textureDescription = {};
-	textureDescription.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	textureDescription.Width = img->w;
-	textureDescription.Height = img->h;
-	textureDescription.DepthOrArraySize = 1;
-	textureDescription.MipLevels = 1;
-	textureDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // format (RGBA8)
-	textureDescription.SampleDesc.Count = 1;
-	textureDescription.SampleDesc.Quality = 0;
-	textureDescription.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	textureDescription.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ID3D12Resource* texture = nullptr;
-	CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
-
-	ThrowIfFailed(
-	  m_Device->CreateCommittedResource(&heapProperties,
-										D3D12_HEAP_FLAG_NONE,
-										&textureDescription,
-										D3D12_RESOURCE_STATE_COPY_DEST,
-
-										nullptr,
-										IID_PPV_ARGS(&texture)));
-
-	return reinterpret_cast<intptr_t>(texture);
-}
-
-void
-Display_D3D::UpdateTexture(intptr_t uTexHandle,
-						   RageSurface* img,
-						   int xoffset,
-						   int yoffset,
-						   int width,
-						   int height)
-{
-	ID3D12Resource* texture = reinterpret_cast<ID3D12Resource*>(uTexHandle);
-	// todo...
-}
-
-void
-Display_D3D::DeleteTexture(intptr_t iTexHandle)
-{
-	ID3D12Resource* texture = reinterpret_cast<ID3D12Resource*>(iTexHandle);
-	texture->Release();
-}
-
-void
-Display_D3D::ClearAllTextures()
-{
-}
-
-int
-Display_D3D::GetNumTextureUnits()
-{
-	return TextureUnit::NUM_TextureUnit;
-}
-
-void
-Display_D3D::SetTexture(TextureUnit tu, intptr_t iTexture)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetTextureMode(TextureUnit tu, TextureMode tm)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetTextureWrapping(TextureUnit tu, bool b)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-int
-Display_D3D::GetMaxTextureSize() const
-{
-	return MaxTextureSize;
-}
-
-void
-Display_D3D::SetTextureFiltering(TextureUnit tu, bool b)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-bool
-Display_D3D::IsZWriteEnabled() const
-{
-	return false;
-}
-
-bool
-Display_D3D::IsZTestEnabled() const
-{
-	return false;
-}
-
-void
-Display_D3D::SetZWrite(bool b)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetZBias(float f)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetZTestMode(ZTestMode mode)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::ClearZBuffer()
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetCullMode(CullMode mode)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetAlphaTest(bool b)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetMaterial(const RageColor& emissive,
-						 const RageColor& ambient,
-						 const RageColor& diffuse,
-						 const RageColor& specular,
-						 float shininess)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetLighting(bool b)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetLightOff(int index)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetLightDirectional(int index,
-								 const RageColor& ambient,
-								 const RageColor& diffuse,
-								 const RageColor& specular,
-								 const RageVector3& dir)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-intptr_t
-Display_D3D::CreateRenderTarget(const RenderTargetParam& param,
-								int& iTextureWidthOut,
-								int& iTextureHeightOut)
-{
-	return intptr_t();
-}
-
-intptr_t
-Display_D3D::GetRenderTarget()
-{
-	return intptr_t();
-}
-
-void
-Display_D3D::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
-{
-}
-
-void
-Display_D3D::SetSphereEnvironmentMapping(TextureUnit tu, bool b)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::SetCelShaded(int stage)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-RageCompiledGeometry*
-Display_D3D::CreateCompiledGeometry()
-{
-	return nullptr;
-}
-
-void
-Display_D3D::DeleteCompiledGeometry(RageCompiledGeometry* p)
-{
-}
-
-void
-Display_D3D::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::DrawQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::DrawTrianglesInternal(const RageSpriteVertex v[], int iNumVerts)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[],
-											int iNumVerts)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-void
-Display_D3D::DrawCompiledGeometryInternal(const RageCompiledGeometry* p,
-										  int iMeshIndex)
-{
-	m_Batcher.InsertCommand(std::source_location::current().function_name());
-}
-
-std::string
-Display_D3D::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
-{
-	GraphicsWindow::CreateGraphicsWindow(p);
-	FinishLoadingPipeline(p);
-	LoadAssets(p);
-
-	ResolutionChanged();
-	//OnRender() with a black clearing to not whiteblast people?
-
-	m_IsInitDone = true;
-	return std::string();
-}
-
-RageSurface*
-Display_D3D::CreateScreenshot()
-{
-	return nullptr;
-}
-
-void
-Display_D3D::StartLoadingPipeline()
-{
 #if defined(DEBUG) || defined(_DEBUG)
 	{
 		ComPtr<ID3D12Debug> debugController;
@@ -468,10 +100,10 @@ Display_D3D::StartLoadingPipeline()
 }
 
 void
-Display_D3D::FinishLoadingPipeline(const VideoModeParams& p)
+RendererDX12::FinishLoadingPipeline(const VideoModeParams& p)
 {
 	DXGI_SWAP_CHAIN_DESC swapChainDescription = {};
-	swapChainDescription.BufferCount = FrameCount;
+	swapChainDescription.BufferCount = Display::Display::FrameCount;
 	swapChainDescription.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDescription.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDescription.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -490,7 +122,7 @@ Display_D3D::FinishLoadingPipeline(const VideoModeParams& p)
 
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDescription = {};
-		rtvHeapDescription.NumDescriptors = FrameCount;
+		rtvHeapDescription.NumDescriptors = Display::Display::FrameCount;
 		rtvHeapDescription.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 		rtvHeapDescription.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		ThrowIfFailed(m_Device->CreateDescriptorHeap(&rtvHeapDescription,
@@ -503,7 +135,7 @@ Display_D3D::FinishLoadingPipeline(const VideoModeParams& p)
 	{
 		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
 		  m_RtvHeap->GetCPUDescriptorHandleForHeapStart());
-		for (UINT n = 0; n < FrameCount; n++) {
+		for (UINT n = 0; n < Display::Display::FrameCount; n++) {
 			ThrowIfFailed(
 			  m_SwapChain->GetBuffer(n, IID_PPV_ARGS(&m_RenderTargets[n])));
 			m_Device->CreateRenderTargetView(
@@ -566,7 +198,7 @@ CompileShader(const std::string& contents,
 }
 
 void
-Display_D3D::LoadAssets(const VideoModeParams& p)
+RendererDX12::LoadAssets(const VideoModeParams& p)
 {
 	{
 		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
@@ -684,7 +316,7 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 
     {
         auto uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        auto bufferProps = CD3DX12_RESOURCE_DESC::Buffer(MaxTextureSize * MaxTextureSize * TexturePixelSize);
+        auto bufferProps = CD3DX12_RESOURCE_DESC::Buffer(Display::Display::MaxTextureSize * Display::Display::MaxTextureSize * Display::Display::TexturePixelSize);
         ThrowIfFailed(m_Device->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &bufferProps,
                                                         D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
                                                         IID_PPV_ARGS(&m_TextureUploadHeap)));
@@ -705,7 +337,7 @@ Display_D3D::LoadAssets(const VideoModeParams& p)
 }
 
 void
-Display_D3D::PopulateCommandList()
+RendererDX12::PopulateCommandList(const ActualVideoModeParams* p)
 {
 	ThrowIfFailed(m_CommandAllocator->Reset());
 	ThrowIfFailed(
@@ -713,7 +345,6 @@ Display_D3D::PopulateCommandList()
 
 	m_CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
-	auto p = GetActualVideoModeParams();
 	m_Viewport = D3D12_VIEWPORT(
 	  0.0f, 0.0f, static_cast<float>(p->width), static_cast<float>(p->height));
 	m_ScissorRect = D3D12_RECT(
@@ -755,7 +386,7 @@ Display_D3D::PopulateCommandList()
 }
 
 void
-Display_D3D::WaitForPreviousFrame()
+RendererDX12::WaitForPreviousFrame()
 {
 	const uint64_t fence = m_FenceValue;
 	ThrowIfFailed(m_CommandQueue->Signal(m_Fence.Get(), fence));
@@ -770,14 +401,14 @@ Display_D3D::WaitForPreviousFrame()
 }
 
 void
-Display_D3D::OnUpdate()
+RendererDX12::OnUpdate()
 {
 }
 
 void
-Display_D3D::OnRender()
+RendererDX12::OnRender(const ActualVideoModeParams* p)
 {
-	PopulateCommandList();
+	PopulateCommandList(p);
 
 	ID3D12CommandList* CommandLists[] = { m_CommandList.Get() };
 	m_CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
@@ -788,20 +419,20 @@ Display_D3D::OnRender()
 }
 
 void
-Display_D3D::OnDestroy()
+RendererDX12::OnDestroy()
 {
 	WaitForPreviousFrame();
 	CloseHandle(m_FenceEvent);
 }
 
 constexpr D3D12_RESOURCE_DESC
-Display_D3D::GetTextureDescription()
+RendererDX12::GetTextureDescription()
 {
 	D3D12_RESOURCE_DESC textureDesc = {};
 	textureDesc.MipLevels = 1;
 	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	textureDesc.Width = MaxTextureSize;
-	textureDesc.Height = MaxTextureSize;
+	textureDesc.Width = Display::Display::MaxTextureSize;
+	textureDesc.Height = Display::Display::MaxTextureSize;
 	textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 	textureDesc.DepthOrArraySize = 1;
 	textureDesc.SampleDesc.Count = 1;

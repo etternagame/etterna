@@ -1,27 +1,22 @@
-#ifndef UNSTABLE_RAGE_DISPLAY_D3D_H
-#define UNSTABLE_RAGE_DISPLAY_D3D_H
+/* Display - RageDisplay wrapper for renderer implementations */
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
 #include "RageUtil/Graphics/RageDisplay.h"
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
-#include <windows.h>
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <d3dcompiler.h>
-#include <DirectXMath.h>
-#include <directx/d3dx12.h>
 #include "RageUtil/Graphics/Display/CommandBatcher.h"
+#include "Renderer.h"
 
-class Display_D3D : public RageDisplay
+namespace Display {
+class Display : public RageDisplay
 {
   public:
-	constexpr static int FrameCount = 2;
+	static constexpr size_t FrameCount = 2;
+	static constexpr size_t TexturePixelSize = 4;
+    static constexpr size_t MaxTextureSize = 4096;
 
-	Display_D3D();
-	~Display_D3D() override;
+	Display(std::unique_ptr<Renderer> renderer);
+	~Display() override {}
+
 	std::string Init(VideoModeParams&& p,
 					 bool bAllowUnacceleratedRenderer) override;
 	[[nodiscard]] std::string GetApiDescription() const override
@@ -117,60 +112,11 @@ class Display_D3D : public RageDisplay
 							 bool& bNewDeviceOut) override;
 	RageSurface* CreateScreenshot() override;
 
-  private:
-	// RGBA8
-	static constexpr size_t TexturePixelSize = 4;
-
-	void StartLoadingPipeline();
-	void FinishLoadingPipeline(const VideoModeParams& p);
-	void LoadAssets(const VideoModeParams& p);
-
-	Display::CommandBatcher m_Batcher;
-
-	Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
-	UINT m_DXGIFactoryFlags;
-	Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_CommandQueue;
-	Microsoft::WRL::ComPtr<IDXGISwapChain3> m_SwapChain;
-
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
-	UINT m_RtvDescriptorSize;
-
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[FrameCount];
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureUploadHeap;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
-
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
-
-	UINT m_FrameIndex;
-	Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
-	uint64_t m_FenceValue;
-	HANDLE m_FenceEvent;
+    private:
+    std::unique_ptr<Renderer> m_Renderer;
 	std::atomic_bool m_IsInitDone;
-
-	D3D12_VIEWPORT m_Viewport;
-	D3D12_RECT m_ScissorRect;
-
-    void PopulateCommandList();
-	void WaitForPreviousFrame();
-	void OnUpdate();
-	void OnRender();
-	void OnDestroy();
-
-	static constexpr size_t MaxTextureSize = 4096;
-	static constexpr D3D12_RESOURCE_DESC GetTextureDescription();
-
-	struct Vertex
-	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT4 color;
-	};
-
-	std::atomic_uint64_t m_ActorCount;
+    CommandBatcher m_Batcher;
 };
+}
 
 #endif

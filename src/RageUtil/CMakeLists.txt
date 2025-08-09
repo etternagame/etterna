@@ -69,6 +69,7 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "Graphics/Shaders/RageShaderHandler.cpp"
 
   "Graphics/Display/CommandBatcher.cpp"
+  "Graphics/Display/Display.cpp"
 )
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageBitmapTexture.h"
@@ -103,13 +104,16 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/Display/DrawMode.h"
   "Graphics/Display/MatrixState.h"
   "Graphics/Display/RenderState.h"
+  "Graphics/Display/TextureCommand.h"
+  "Graphics/Display/Display.h"
+  "Graphics/Display/Renderer.h"
 )
 
 if(WIN32)
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/RageDisplay_D3D.h")
-  list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/Display_D3D/Display_D3D.cpp")
-  list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/Display_D3D/Display_D3D.h")
+  list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RendererDX12/RendererDX12.cpp")
+  list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/RendererDX12/RendererDX12.h")
 elseif(LINUX)
   if (WITH_GLES2)
     list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_GLES2.cpp")
