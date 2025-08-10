@@ -58,7 +58,6 @@ bool Display::Display::BeginFrame()
 
 void Display::Display::EndFrame()
 {
-    m_Renderer->OnUpdate();
     m_Renderer->OnRender(GetActualVideoModeParams());
 }
 

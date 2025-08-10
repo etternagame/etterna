@@ -320,10 +320,6 @@ RendererDX12::SignalFence(bool waitForEvent)
     m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 }
 
-void RendererDX12::OnUpdate()
-{
-}
-
 void RendererDX12::OnRender(const ActualVideoModeParams *p)
 {
     PopulateCommandList(p);

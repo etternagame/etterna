@@ -24,7 +24,6 @@ class RendererDX12 : public Display::Renderer
     void StartLoadingPipeline() override;
     void FinishLoadingPipeline(const VideoModeParams &p) override;
     void LoadAssets(const VideoModeParams &p) override;
-    void OnUpdate() override;
     void OnRender(const ActualVideoModeParams *p) override;
     bool IsD3DInternal() override
     {
