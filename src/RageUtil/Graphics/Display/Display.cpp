@@ -33,13 +33,6 @@ void Display::Display::ResolutionChanged()
     RageDisplay::ResolutionChanged();
 }
 
-const RageDisplay::RagePixelFormatDesc *Display::Display::GetPixelFormatDesc(RagePixelFormat pf) const
-{
-    assert(pf == RagePixelFormat_RGBA8);
-    static auto desc = RagePixelFormatDesc{32, {0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF}};
-    return &desc;
-}
-
 bool Display::Display::BeginFrame()
 {
     m_Batcher.Clear();
@@ -70,33 +63,41 @@ const ActualVideoModeParams *Display::Display::GetActualVideoModeParams() const
 #endif
 }
 
-void Display::Display::SetBlendMode(BlendMode mode)
+std::string
+Display::Display::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 {
-    if (m_RenderState.blendMode == mode)
-    {
-        return;
-    }
+#ifdef _WIN32
+	GraphicsWindow::CreateGraphicsWindow(p);
+#else
+#error Display::Display is unfinished for non-Windows platforms
+#endif
 
-    m_RenderState.blendMode = mode;
-    Command command = {};
-    command.type = CommandType::SetBlendMode;
-    command.blendMode = mode;
-    m_Batcher.InsertCommand(command);
+	m_Renderer->FinishLoadingPipeline(p);
+	m_Renderer->LoadAssets(p);
+
+	ResolutionChanged();
+	// OnRender() with a black clearing to not whiteblast people?
+
+	m_IsInitDone = true;
+	return std::string();
 }
 
-bool Display::Display::SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime)
+#pragma region Texture handling
+
+const RageDisplay::RagePixelFormatDesc*
+Display::Display::GetPixelFormatDesc(RagePixelFormat pf) const
 {
-    return pixfmt == RagePixelFormat_RGBA8;
+	assert(pf == RagePixelFormat_RGBA8);
+	static auto desc =
+	  RagePixelFormatDesc{ 32,
+						   { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF } };
+	return &desc;
 }
 
-bool Display::Display::SupportsThreadedRendering()
+bool
+Display::Display::SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime)
 {
-    return false;
-}
-
-bool Display::Display::SupportsPerVertexMatrixScale()
-{
-    return false;
+	return pixfmt == RagePixelFormat_RGBA8;
 }
 
 intptr_t Display::Display::CreateTexture(RagePixelFormat pixfmt, RageSurface *img, bool bGenerateMipMaps)
@@ -198,6 +199,24 @@ void Display::Display::SetTextureFiltering(TextureUnit tu, bool b)
     m_Batcher.InsertCommand(command);
 }
 
+#pragma endregion
+
+#pragma region RenderState handling
+
+void
+Display::Display::SetBlendMode(BlendMode mode)
+{
+	if (m_RenderState.blendMode == mode) {
+		return;
+	}
+
+	m_RenderState.blendMode = mode;
+	Command command = {};
+	command.type = CommandType::SetBlendMode;
+	command.blendMode = mode;
+	m_Batcher.InsertCommand(command);
+}
+
 bool Display::Display::IsZWriteEnabled() const
 {
     return false;
@@ -290,66 +309,9 @@ void Display::Display::SetAlphaTest(bool b)
     m_Batcher.InsertCommand(command);
 }
 
-void Display::Display::SetMaterial(const RageColor &emissive, const RageColor &ambient, const RageColor &diffuse,
-                                   const RageColor &specular, float shininess)
-{
-    assert(false && "Not implemented");
-}
+#pragma endregion
 
-void Display::Display::SetLighting(bool b)
-{
-    assert(false && "Not implemented");
-}
-
-void Display::Display::SetLightOff(int index)
-{
-    assert(false && "Not implemented");
-}
-
-void Display::Display::SetLightDirectional(int index, const RageColor &ambient, const RageColor &diffuse,
-                                           const RageColor &specular, const RageVector3 &dir)
-{
-    assert(false && "Not implemented");
-}
-
-intptr_t Display::Display::CreateRenderTarget(const RenderTargetParam &param, int &iTextureWidthOut,
-                                              int &iTextureHeightOut)
-{
-    assert(false && "Not implemented");
-    return intptr_t();
-}
-
-intptr_t Display::Display::GetRenderTarget()
-{
-    assert(false && "Not implemented");
-    return intptr_t();
-}
-
-void Display::Display::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
-{
-    assert(false && "Not implemented");
-}
-
-void Display::Display::SetSphereEnvironmentMapping(TextureUnit tu, bool b)
-{
-    assert(false && "Not implemented");
-}
-
-void Display::Display::SetCelShaded(int stage)
-{
-    assert(false && "Not implemented");
-}
-
-RageCompiledGeometry *Display::Display::CreateCompiledGeometry()
-{
-    assert(false && "Not implemented");
-    return nullptr;
-}
-
-void Display::Display::DeleteCompiledGeometry(RageCompiledGeometry *p)
-{
-    assert(false && "Not implemented");
-}
+#pragma region Draw queueing
 
 void Display::Display::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {
@@ -398,28 +360,63 @@ void Display::Display::DrawCompiledGeometryInternal(const RageCompiledGeometry *
     assert(false && "Not implemented");
 }
 
-std::string Display::Display::TryVideoMode(const VideoModeParams &p, bool &bNewDeviceOut)
+#pragma endregion
+
+#pragma region Unfinished things
+
+intptr_t
+Display::Display::CreateRenderTarget(const RenderTargetParam& param,
+									 int& iTextureWidthOut,
+									 int& iTextureHeightOut)
 {
-#ifdef _WIN32
-    GraphicsWindow::CreateGraphicsWindow(p);
-#else
-#error Display::Display is unfinished for non-Windows platforms
-#endif
+	assert(false && "Not implemented");
+	return intptr_t();
+}
 
-    m_Renderer->FinishLoadingPipeline(p);
-    m_Renderer->LoadAssets(p);
+intptr_t
+Display::Display::GetRenderTarget()
+{
+	assert(false && "Not implemented");
+	return intptr_t();
+}
 
-    ResolutionChanged();
-    // OnRender() with a black clearing to not whiteblast people?
+void
+Display::Display::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
+{
+	assert(false && "Not implemented");
+}
 
-    m_IsInitDone = true;
-    return std::string();
+RageCompiledGeometry*
+Display::Display::CreateCompiledGeometry()
+{
+	assert(false && "Not implemented");
+	return nullptr;
+}
+
+void
+Display::Display::DeleteCompiledGeometry(RageCompiledGeometry* p)
+{
+	assert(false && "Not implemented");
 }
 
 RageSurface *Display::Display::CreateScreenshot()
 {
     return nullptr;
 }
+
+bool
+Display::Display::SupportsThreadedRendering()
+{
+	return false;
+}
+
+bool
+Display::Display::SupportsPerVertexMatrixScale()
+{
+	return false;
+}
+
+#pragma endregion
 
 void Display::Display::SetMatricesForState(MatrixState &matrixState)
 {
@@ -428,3 +425,45 @@ void Display::Display::SetMatricesForState(MatrixState &matrixState)
     matrixState.world = *GetWorldTop();
     matrixState.texture = *GetTextureTop();
 }
+
+#pragma region Unsupported / old graphics API functions
+
+void
+Display::Display::SetMaterial(const RageColor& emissive,
+							  const RageColor& ambient,
+							  const RageColor& diffuse,
+							  const RageColor& specular,
+							  float shininess)
+{
+}
+
+void
+Display::Display::SetLighting(bool b)
+{
+}
+
+void
+Display::Display::SetLightOff(int index)
+{
+}
+
+void
+Display::Display::SetLightDirectional(int index,
+									  const RageColor& ambient,
+									  const RageColor& diffuse,
+									  const RageColor& specular,
+									  const RageVector3& dir)
+{
+}
+
+void
+Display::Display::SetSphereEnvironmentMapping(TextureUnit tu, bool b)
+{
+}
+
+void
+Display::Display::SetCelShaded(int stage)
+{
+}
+
+#pragma endregion
