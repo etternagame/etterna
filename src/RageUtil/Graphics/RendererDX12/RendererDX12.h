@@ -23,7 +23,6 @@ class RendererDX12 : public Display::Renderer
     void StartLoadingPipeline() override;
     void FinishLoadingPipeline(const VideoModeParams &p) override;
     void LoadAssets(const VideoModeParams &p) override;
-    void WaitForPreviousFrame() override;
     void OnUpdate() override;
     void OnRender(const ActualVideoModeParams *p) override;
     bool IsD3DInternal() override
@@ -32,7 +31,8 @@ class RendererDX12 : public Display::Renderer
     }
 
   private:
-    void OnDestroy();
+	void WaitForPreviousFrame();
+	void OnDestroy();
     void PopulateCommandList(const ActualVideoModeParams *p);
 
     Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
