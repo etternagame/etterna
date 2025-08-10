@@ -58,14 +58,6 @@ bool Display::Display::BeginFrame()
 
 void Display::Display::EndFrame()
 {
-    static bool rendered = false;
-    if (!rendered)
-    {
-        Locator::getLogger()->debug("command count: {}, command buffer size: {}", m_Batcher.m_CommandCount,
-                                    m_Batcher.m_CommandBuffer.size());
-        rendered = true;
-    }
-    m_Batcher.Clear();
     m_Renderer->OnUpdate();
     m_Renderer->OnRender(GetActualVideoModeParams());
 }
