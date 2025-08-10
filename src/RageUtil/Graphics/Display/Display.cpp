@@ -76,7 +76,9 @@ Display::Display::TryVideoMode(const VideoModeParams& p, bool& bNewDeviceOut)
 	m_Renderer->LoadAssets(p);
 
 	ResolutionChanged();
+
 	// OnRender() with a black clearing to not whiteblast people?
+	m_Renderer->OnRender(GetActualVideoModeParams());
 
 	m_IsInitDone = true;
 	return std::string();

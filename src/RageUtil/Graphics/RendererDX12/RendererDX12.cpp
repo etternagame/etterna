@@ -279,12 +279,9 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
     m_CommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-    const auto clock = std::chrono::steady_clock::now();
-    const auto time = std::chrono::time_point_cast<std::chrono::milliseconds>(clock);
-    const auto factor = std::sin(time.time_since_epoch().count() / 250.0f);
-
-    const float clearColor[] = {0.0f, 0.4f, 0.4f + 0.2f * factor, 1.0f};
+    const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
     m_CommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
     m_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     m_CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
     m_CommandList->DrawInstanced(3, 1, 0, 0);
