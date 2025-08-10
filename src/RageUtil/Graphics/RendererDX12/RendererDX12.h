@@ -31,7 +31,7 @@ class RendererDX12 : public Display::Renderer
     }
 
   private:
-	void WaitForPreviousFrame();
+	void SignalFence(bool waitForEvent);
 	void OnDestroy();
     void PopulateCommandList(const ActualVideoModeParams *p);
 

@@ -251,7 +251,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
             ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
 
-        WaitForPreviousFrame();
+        SignalFence(true);
     }
 }
 
@@ -279,7 +279,7 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
     const auto clock = std::chrono::steady_clock::now();
     const auto time = std::chrono::time_point_cast<std::chrono::milliseconds>(clock);
-    const auto factor = std::sin(time.time_since_epoch().count() / 50.0f);
+    const auto factor = std::sin(time.time_since_epoch().count() / 250.0f);
 
     const float clearColor[] = {0.0f, 0.4f, 0.4f + 0.2f * factor, 1.0f};
     m_CommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
@@ -293,13 +293,13 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
     ThrowIfFailed(m_CommandList->Close());
 }
 
-void RendererDX12::WaitForPreviousFrame()
+void RendererDX12::SignalFence(bool waitForEvent)
 {
     const uint64_t fence = m_FenceValue;
     ThrowIfFailed(m_CommandQueue->Signal(m_Fence.Get(), fence));
     m_FenceValue++;
 
-    if (m_Fence->GetCompletedValue() < fence)
+    if (waitForEvent && m_Fence->GetCompletedValue() < fence)
     {
         ThrowIfFailed(m_Fence->SetEventOnCompletion(fence, m_FenceEvent));
         WaitForSingleObject(m_FenceEvent, INFINITE);
@@ -321,12 +321,14 @@ void RendererDX12::OnRender(const ActualVideoModeParams *p)
 
     ThrowIfFailed(m_SwapChain->Present(1, 0));
 
-    WaitForPreviousFrame();
+    // this is... slow?
+    // TODO: synchronize in a sane way
+    SignalFence(true);
 }
 
 void RendererDX12::OnDestroy()
 {
-    WaitForPreviousFrame();
+    SignalFence(true);
     CloseHandle(m_FenceEvent);
 }
 
