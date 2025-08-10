@@ -80,9 +80,11 @@ endif()
 
 if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
-    
     add_subdirectory(DirectX-Headers)
-    list(APPEND EXT_TARGETS DirectX-Headers)
+    add_subdirectory(D3D12MemoryAllocator)
+    list(APPEND EXT_TARGETS 
+        DirectX-Headers D3D12MemoryAllocator
+    )
 endif()
 
 
