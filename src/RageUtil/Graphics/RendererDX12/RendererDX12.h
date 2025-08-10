@@ -18,6 +18,7 @@
 class RendererDX12 : public Display::Renderer
 {
   public:
+	RendererDX12();
     ~RendererDX12() override;
     [[nodiscard]] std::string GetApiDescription() const override;
     void StartLoadingPipeline() override;
@@ -29,6 +30,8 @@ class RendererDX12 : public Display::Renderer
     {
         return true;
     }
+	intptr_t PushTextureCommand(
+	  const Display::TextureCommand& command) override;
 
   private:
 	void SignalFence(bool waitForEvent);
@@ -70,7 +73,8 @@ class RendererDX12 : public Display::Renderer
         DirectX::XMFLOAT4 color;
     };
 
-    std::atomic_uint64_t m_ActorCount;
+	std::vector<Display::TextureCommand> m_TextureCommandQueue;
+	intptr_t m_TextureIndex;
 };
 
 #endif

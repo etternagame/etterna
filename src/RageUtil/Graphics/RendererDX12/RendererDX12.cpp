@@ -40,6 +40,8 @@ inline static void ThrowIfFailed(HRESULT hr, const std::source_location location
     throw std::exception(message.c_str());
 }
 
+RendererDX12::RendererDX12() : m_TextureIndex(0) {}
+
 RendererDX12::~RendererDX12()
 {
     OnDestroy();
@@ -293,7 +295,17 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
     ThrowIfFailed(m_CommandList->Close());
 }
 
-void RendererDX12::SignalFence(bool waitForEvent)
+intptr_t
+RendererDX12::PushTextureCommand(const Display::TextureCommand& command)
+{
+	m_TextureCommandQueue.push_back(command);
+	return command.index() == Display::TextureCommandType::Creation
+			 ? m_TextureIndex++
+			 : 0;
+}
+
+void
+RendererDX12::SignalFence(bool waitForEvent)
 {
     const uint64_t fence = m_FenceValue;
     ThrowIfFailed(m_CommandQueue->Signal(m_Fence.Get(), fence));

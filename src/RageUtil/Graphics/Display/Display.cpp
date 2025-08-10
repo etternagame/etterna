@@ -104,20 +104,29 @@ intptr_t Display::Display::CreateTexture(RagePixelFormat pixfmt, RageSurface *im
 {
     assert(pixfmt == RagePixelFormat_RGBA8);
 
-    return 0;
+    return m_Renderer->PushTextureCommand(
+        TextureCreationCommand{.pixfmt = pixfmt, .img = img, .bGenerateMipMaps = bGenerateMipMaps});
 }
 
 void Display::Display::UpdateTexture(intptr_t uTexHandle, RageSurface *img, int xoffset, int yoffset, int width,
                                      int height)
 {
+    m_Renderer->PushTextureCommand(TextureUpdateCommand{.uTexHandle = uTexHandle,
+                                                        .img = img,
+                                                        .xoffset = xoffset,
+                                                        .yoffset = yoffset,
+                                                        .width = width,
+                                                        .height = height});
 }
 
 void Display::Display::DeleteTexture(intptr_t iTexHandle)
 {
+    m_Renderer->PushTextureCommand(TextureDeletionCommand{.textureHandle = iTexHandle});
 }
 
 void Display::Display::ClearAllTextures()
 {
+    m_Renderer->PushTextureCommand(TextureClearAllCommand{});
 }
 
 int Display::Display::GetNumTextureUnits()
@@ -345,55 +354,49 @@ void Display::Display::DeleteCompiledGeometry(RageCompiledGeometry *p)
 
 void Display::Display::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	MatrixState m;
-	SetMatricesForState(m);
-	m_Batcher.InsertDrawCommand(
-	  DrawMode::Quads, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
+    MatrixState m;
+    SetMatricesForState(m);
+    m_Batcher.InsertDrawCommand(DrawMode::Quads, m, (uint8_t *)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	MatrixState m;
-	SetMatricesForState(m);
-	m_Batcher.InsertDrawCommand(
-	  DrawMode::QuadStrip, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
+    MatrixState m;
+    SetMatricesForState(m);
+    m_Batcher.InsertDrawCommand(DrawMode::QuadStrip, m, (uint8_t *)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	MatrixState m;
-	SetMatricesForState(m);
-	m_Batcher.InsertDrawCommand(
-	  DrawMode::Fan, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
+    MatrixState m;
+    SetMatricesForState(m);
+    m_Batcher.InsertDrawCommand(DrawMode::Fan, m, (uint8_t *)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	MatrixState m;
-	SetMatricesForState(m);
-	m_Batcher.InsertDrawCommand(
-	  DrawMode::Strip, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
+    MatrixState m;
+    SetMatricesForState(m);
+    m_Batcher.InsertDrawCommand(DrawMode::Strip, m, (uint8_t *)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawTrianglesInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	MatrixState m;
-	SetMatricesForState(m);
-	m_Batcher.InsertDrawCommand(
-	  DrawMode::Triangles, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
+    MatrixState m;
+    SetMatricesForState(m);
+    m_Batcher.InsertDrawCommand(DrawMode::Triangles, m, (uint8_t *)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	MatrixState m;
-	SetMatricesForState(m);
-	m_Batcher.InsertDrawCommand(
-	  DrawMode::SymmetricQuadStrip, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
+    MatrixState m;
+    SetMatricesForState(m);
+    m_Batcher.InsertDrawCommand(DrawMode::SymmetricQuadStrip, m, (uint8_t *)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawCompiledGeometryInternal(const RageCompiledGeometry *p, int iMeshIndex)
 {
-	assert(false && "Not implemented");
+    assert(false && "Not implemented");
 }
 
 std::string Display::Display::TryVideoMode(const VideoModeParams &p, bool &bNewDeviceOut)

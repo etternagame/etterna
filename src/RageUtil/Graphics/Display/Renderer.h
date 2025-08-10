@@ -3,6 +3,7 @@
 
 #include <string>
 #include "RageUtil/Graphics/RageDisplay.h"
+#include "TextureCommand.h"
 
 namespace Display {
 class Renderer
@@ -16,6 +17,7 @@ class Renderer
 	virtual void OnUpdate() = 0;
 	virtual void OnRender(const ActualVideoModeParams* p) = 0;
 	virtual bool IsD3DInternal() = 0;
+	virtual intptr_t PushTextureCommand(const TextureCommand& command) = 0;
 };
 }
 

@@ -101,7 +101,6 @@ class Display : public RageDisplay
     std::atomic_bool m_IsInitDone;
     CommandBatcher m_Batcher;
 	RenderState m_RenderState;
-
 };
 } // namespace Display
 
