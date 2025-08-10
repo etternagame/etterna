@@ -5,6 +5,7 @@
 #include "RageUtil/Graphics/Display/CommandBatcher.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Renderer.h"
+#include "RenderState.h"
 
 namespace Display
 {
@@ -93,11 +94,14 @@ class Display : public RageDisplay
 
     std::string TryVideoMode(const VideoModeParams &p, bool &bNewDeviceOut) override;
     RageSurface *CreateScreenshot() override;
+	void SetMatricesForState(MatrixState& matrixState);
 
   private:
     std::unique_ptr<Renderer> m_Renderer;
     std::atomic_bool m_IsInitDone;
     CommandBatcher m_Batcher;
+	RenderState m_RenderState;
+
 };
 } // namespace Display
 

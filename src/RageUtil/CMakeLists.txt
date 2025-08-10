@@ -107,6 +107,7 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/Display/TextureCommand.h"
   "Graphics/Display/Display.h"
   "Graphics/Display/Renderer.h"
+  "Graphics/Display/Commands.h"
 )
 
 if(WIN32)

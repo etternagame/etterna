@@ -9,7 +9,7 @@
 #error Display::Display is unfinished for non-Windows platforms
 #endif
 
-Display::Display::Display(std::unique_ptr<Renderer> renderer) : m_Renderer(std::move(renderer))
+Display::Display::Display(std::unique_ptr<Renderer> renderer) : m_Renderer(std::move(renderer)), m_RenderState()
 {
 }
 
@@ -42,7 +42,17 @@ const RageDisplay::RagePixelFormatDesc *Display::Display::GetPixelFormatDesc(Rag
 
 bool Display::Display::BeginFrame()
 {
-    m_Batcher.CleanCommands();
+    m_Batcher.Clear();
+    m_RenderState.cullMode = CULL_NONE;
+    m_RenderState.zTestMode = ZTEST_OFF;
+    m_RenderState.blendMode = BLEND_NORMAL;
+    m_RenderState.zBias = 0.0f;
+    m_RenderState.zWrite = false;
+    m_RenderState.alphaTest = true;
+    m_RenderState.textureFiltering[0] = true;
+    m_RenderState.textureMode[0] = TextureMode_Invalid;
+    m_RenderState.textureWrapping[0] = false;
+
     return m_IsInitDone;
 }
 
@@ -51,14 +61,11 @@ void Display::Display::EndFrame()
     static bool rendered = false;
     if (!rendered)
     {
-        for (auto &cmd : m_Batcher.m_CommandBuffer)
-        {
-            Locator::getLogger()->debug(cmd);
-        }
-        Locator::getLogger()->debug("command count: {}", m_Batcher.m_CommandBuffer.size());
+        Locator::getLogger()->debug("command count: {}, command buffer size: {}", m_Batcher.m_CommandCount,
+                                    m_Batcher.m_CommandBuffer.size());
         rendered = true;
     }
-    m_Batcher.CleanCommands();
+    m_Batcher.Clear();
     m_Renderer->OnUpdate();
     m_Renderer->OnRender(GetActualVideoModeParams());
 }
@@ -74,7 +81,16 @@ const ActualVideoModeParams *Display::Display::GetActualVideoModeParams() const
 
 void Display::Display::SetBlendMode(BlendMode mode)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.blendMode == mode)
+    {
+        return;
+    }
+
+    m_RenderState.blendMode = mode;
+    Command command = {};
+    command.type = CommandType::SetBlendMode;
+    command.blendMode = mode;
+    m_Batcher.InsertCommand(command);
 }
 
 bool Display::Display::SupportsTextureFormat(RagePixelFormat pixfmt, bool realtime)
@@ -119,17 +135,47 @@ int Display::Display::GetNumTextureUnits()
 
 void Display::Display::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.textures[tu] == iTexture)
+    {
+        return;
+    }
+
+    m_RenderState.textures[tu] = iTexture;
+    Command command = {};
+    command.type = CommandType::SetTexture;
+    command.texture = {tu, iTexture};
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.textureMode[tu] == tm)
+    {
+        return;
+    }
+
+    m_RenderState.textureMode[tu] = tm;
+    Command command = {};
+    command.type = CommandType::SetTextureMode;
+    command.texture = {tu, tm};
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetTextureWrapping(TextureUnit tu, bool b)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.textureWrapping[tu] == b)
+    {
+        return;
+    }
+
+    m_RenderState.textureWrapping[tu] = b;
+    Command command = {};
+    command.type = CommandType::SetTextureWrapping;
+    command.texture = {tu, b};
+
+    m_Batcher.InsertCommand(command);
 }
 
 int Display::Display::GetMaxTextureSize() const
@@ -139,7 +185,17 @@ int Display::Display::GetMaxTextureSize() const
 
 void Display::Display::SetTextureFiltering(TextureUnit tu, bool b)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.textureFiltering[tu] == b)
+    {
+        return;
+    }
+
+    m_RenderState.textureFiltering[tu] = b;
+    Command command = {};
+    command.type = CommandType::SetTextureFiltering;
+    command.texture = {tu, b};
+
+    m_Batcher.InsertCommand(command);
 }
 
 bool Display::Display::IsZWriteEnabled() const
@@ -154,123 +210,198 @@ bool Display::Display::IsZTestEnabled() const
 
 void Display::Display::SetZWrite(bool b)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.zWrite == b)
+    {
+        return;
+    }
+
+    m_RenderState.zWrite = b;
+    Command command = {};
+    command.type = CommandType::SetZWrite;
+    command.zWrite = b;
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetZBias(float f)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.zBias == f)
+    {
+        return;
+    }
+
+    m_RenderState.zBias = f;
+    Command command = {};
+    command.type = CommandType::SetZBias;
+    command.zBias = f;
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetZTestMode(ZTestMode mode)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.zTestMode == mode)
+    {
+        return;
+    }
+
+    m_RenderState.zTestMode = mode;
+    Command command = {};
+    command.type = CommandType::SetZTestMode;
+    command.zTestMode = mode;
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::ClearZBuffer()
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    Command command = {};
+    command.type = CommandType::ClearZBuffer;
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetCullMode(CullMode mode)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.cullMode == mode)
+    {
+        return;
+    }
+
+    m_RenderState.cullMode = mode;
+    Command command = {};
+    command.type = CommandType::SetCullMode;
+    command.cullMode = mode;
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetAlphaTest(bool b)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    if (m_RenderState.alphaTest == b)
+    {
+        return;
+    }
+    m_RenderState.alphaTest = b;
+    Command command = {};
+    command.type = CommandType::SetAlphaTest;
+    command.alphaTest = b;
+
+    m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetMaterial(const RageColor &emissive, const RageColor &ambient, const RageColor &diffuse,
                                    const RageColor &specular, float shininess)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    assert(false && "Not implemented");
 }
 
 void Display::Display::SetLighting(bool b)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    assert(false && "Not implemented");
 }
 
 void Display::Display::SetLightOff(int index)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    assert(false && "Not implemented");
 }
 
 void Display::Display::SetLightDirectional(int index, const RageColor &ambient, const RageColor &diffuse,
                                            const RageColor &specular, const RageVector3 &dir)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    assert(false && "Not implemented");
 }
 
 intptr_t Display::Display::CreateRenderTarget(const RenderTargetParam &param, int &iTextureWidthOut,
                                               int &iTextureHeightOut)
 {
+    assert(false && "Not implemented");
     return intptr_t();
 }
 
 intptr_t Display::Display::GetRenderTarget()
 {
+    assert(false && "Not implemented");
     return intptr_t();
 }
 
 void Display::Display::SetRenderTarget(intptr_t uTexHandle, bool bPreserveTexture)
 {
+    assert(false && "Not implemented");
 }
 
 void Display::Display::SetSphereEnvironmentMapping(TextureUnit tu, bool b)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    assert(false && "Not implemented");
 }
 
 void Display::Display::SetCelShaded(int stage)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+    assert(false && "Not implemented");
 }
 
 RageCompiledGeometry *Display::Display::CreateCompiledGeometry()
 {
+    assert(false && "Not implemented");
     return nullptr;
 }
 
 void Display::Display::DeleteCompiledGeometry(RageCompiledGeometry *p)
 {
+    assert(false && "Not implemented");
 }
 
 void Display::Display::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+	MatrixState m;
+	SetMatricesForState(m);
+	m_Batcher.InsertDrawCommand(
+	  DrawMode::Quads, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+	MatrixState m;
+	SetMatricesForState(m);
+	m_Batcher.InsertDrawCommand(
+	  DrawMode::QuadStrip, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+	MatrixState m;
+	SetMatricesForState(m);
+	m_Batcher.InsertDrawCommand(
+	  DrawMode::Fan, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+	MatrixState m;
+	SetMatricesForState(m);
+	m_Batcher.InsertDrawCommand(
+	  DrawMode::Strip, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawTrianglesInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+	MatrixState m;
+	SetMatricesForState(m);
+	m_Batcher.InsertDrawCommand(
+	  DrawMode::Triangles, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+	MatrixState m;
+	SetMatricesForState(m);
+	m_Batcher.InsertDrawCommand(
+	  DrawMode::SymmetricQuadStrip, m, (uint8_t*)v, iNumVerts * sizeof(RageSpriteVertex));
 }
 
 void Display::Display::DrawCompiledGeometryInternal(const RageCompiledGeometry *p, int iMeshIndex)
 {
-    m_Batcher.InsertCommand(std::source_location::current().function_name());
+	assert(false && "Not implemented");
 }
 
 std::string Display::Display::TryVideoMode(const VideoModeParams &p, bool &bNewDeviceOut)
@@ -294,4 +425,12 @@ std::string Display::Display::TryVideoMode(const VideoModeParams &p, bool &bNewD
 RageSurface *Display::Display::CreateScreenshot()
 {
     return nullptr;
+}
+
+void Display::Display::SetMatricesForState(MatrixState &matrixState)
+{
+    matrixState.projection = *GetProjectionTop();
+    matrixState.view = *GetViewTop();
+    matrixState.world = *GetWorldTop();
+    matrixState.texture = *GetTextureTop();
 }
