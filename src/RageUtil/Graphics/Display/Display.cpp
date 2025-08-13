@@ -145,81 +145,41 @@ Display::Display::GetMaxTextureSize() const
 
 void Display::Display::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
-    if (m_RenderState.textures[tu] == iTexture)
-    {
-        return;
-    }
-
     m_RenderState.textures[tu] = iTexture;
 }
 
 void Display::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
 {
-    if (m_RenderState.textureMode[tu] == tm)
-    {
-        return;
-    }
-
     m_RenderState.textureMode[tu] = tm;
 }
 
 void Display::Display::SetTextureWrapping(TextureUnit tu, bool b)
 {
-    if (m_RenderState.textureWrapping[tu] == b)
-    {
-        return;
-    }
-
     m_RenderState.textureWrapping[tu] = b;
 }
 
 void Display::Display::SetTextureFiltering(TextureUnit tu, bool b)
 {
-    if (m_RenderState.textureFiltering[tu] == b)
-    {
-        return;
-    }
-
     m_RenderState.textureFiltering[tu] = b;
 }
 
 void Display::Display::SetBlendMode(BlendMode mode)
 {
-    if (m_RenderState.blendMode == mode)
-    {
-        return;
-    }
-
     m_RenderState.blendMode = mode;
 }
 
 void Display::Display::SetZWrite(bool b)
 {
-    if (m_RenderState.zWrite == b)
-    {
-        return;
-    }
-
     m_RenderState.zWrite = b;
 }
 
 void Display::Display::SetZBias(float f)
 {
-    if (m_RenderState.zBias == f)
-    {
-        return;
-    }
-
     m_RenderState.zBias = f;
 }
 
 void Display::Display::SetZTestMode(ZTestMode mode)
 {
-    if (m_RenderState.zTestMode == mode)
-    {
-        return;
-    }
-
     m_RenderState.zTestMode = mode;
 }
 
@@ -233,20 +193,11 @@ void Display::Display::ClearZBuffer()
 
 void Display::Display::SetCullMode(CullMode mode)
 {
-    if (m_RenderState.cullMode == mode)
-    {
-        return;
-    }
-
     m_RenderState.cullMode = mode;
 }
 
 void Display::Display::SetAlphaTest(bool b)
 {
-    if (m_RenderState.alphaTest == b)
-    {
-        return;
-    }
     m_RenderState.alphaTest = b;
 }
 
@@ -374,12 +325,11 @@ void Display::Display::SetMatricesForState(MatrixState &matrixState)
 
 void Display::Display::PushCurrentRenderState()
 {
-	static RenderState previousState = {};
-	if (m_RenderState == previousState) {
+	if (m_RenderState == m_PreviousRenderState) {
 		return;
 	}
 
-	previousState = m_RenderState;
+	m_PreviousRenderState = m_RenderState;
 
     Command command;
     command.type = CommandType::RenderStateChanged;
