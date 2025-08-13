@@ -46,6 +46,8 @@ bool Display::Display::BeginFrame()
     m_RenderState.textureMode[0] = TextureMode_Invalid;
     m_RenderState.textureWrapping[0] = false;
 
+	PushCurrentRenderState();
+
     return m_IsInitDone;
 }
 
@@ -131,6 +133,16 @@ int Display::Display::GetNumTextureUnits()
     return TextureUnit::NUM_TextureUnit;
 }
 
+int
+Display::Display::GetMaxTextureSize() const
+{
+	return Display::Display::MaxTextureSize;
+}
+
+#pragma endregion
+
+#pragma region RenderState handling
+
 void Display::Display::SetTexture(TextureUnit tu, intptr_t iTexture)
 {
     if (m_RenderState.textures[tu] == iTexture)
@@ -139,11 +151,6 @@ void Display::Display::SetTexture(TextureUnit tu, intptr_t iTexture)
     }
 
     m_RenderState.textures[tu] = iTexture;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
@@ -154,11 +161,6 @@ void Display::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
     }
 
     m_RenderState.textureMode[tu] = tm;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetTextureWrapping(TextureUnit tu, bool b)
@@ -169,16 +171,6 @@ void Display::Display::SetTextureWrapping(TextureUnit tu, bool b)
     }
 
     m_RenderState.textureWrapping[tu] = b;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
-}
-
-int Display::Display::GetMaxTextureSize() const
-{
-    return Display::Display::MaxTextureSize;
 }
 
 void Display::Display::SetTextureFiltering(TextureUnit tu, bool b)
@@ -189,16 +181,7 @@ void Display::Display::SetTextureFiltering(TextureUnit tu, bool b)
     }
 
     m_RenderState.textureFiltering[tu] = b;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
-
-#pragma endregion
-
-#pragma region RenderState handling
 
 void Display::Display::SetBlendMode(BlendMode mode)
 {
@@ -208,21 +191,6 @@ void Display::Display::SetBlendMode(BlendMode mode)
     }
 
     m_RenderState.blendMode = mode;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
-}
-
-bool Display::Display::IsZWriteEnabled() const
-{
-    return false;
-}
-
-bool Display::Display::IsZTestEnabled() const
-{
-    return false;
 }
 
 void Display::Display::SetZWrite(bool b)
@@ -233,11 +201,6 @@ void Display::Display::SetZWrite(bool b)
     }
 
     m_RenderState.zWrite = b;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetZBias(float f)
@@ -248,11 +211,6 @@ void Display::Display::SetZBias(float f)
     }
 
     m_RenderState.zBias = f;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetZTestMode(ZTestMode mode)
@@ -263,11 +221,6 @@ void Display::Display::SetZTestMode(ZTestMode mode)
     }
 
     m_RenderState.zTestMode = mode;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::ClearZBuffer()
@@ -286,11 +239,6 @@ void Display::Display::SetCullMode(CullMode mode)
     }
 
     m_RenderState.cullMode = mode;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetAlphaTest(bool b)
@@ -300,11 +248,6 @@ void Display::Display::SetAlphaTest(bool b)
         return;
     }
     m_RenderState.alphaTest = b;
-
-	Command command;
-	command.type = CommandType::RenderStateChanged;
-	command.state = m_RenderState;
-	m_Batcher.InsertCommand(command);
 }
 
 #pragma endregion
@@ -313,6 +256,8 @@ void Display::Display::SetAlphaTest(bool b)
 
 void Display::Display::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	PushCurrentRenderState();
+
     MatrixState m;
     SetMatricesForState(m);
     m_Batcher.InsertDrawCommand(DrawMode::Quads, m, v, iNumVerts);
@@ -320,6 +265,8 @@ void Display::Display::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVer
 
 void Display::Display::DrawQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	PushCurrentRenderState();
+
     MatrixState m;
     SetMatricesForState(m);
     m_Batcher.InsertDrawCommand(DrawMode::QuadStrip, m, v, iNumVerts);
@@ -327,6 +274,8 @@ void Display::Display::DrawQuadStripInternal(const RageSpriteVertex v[], int iNu
 
 void Display::Display::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	PushCurrentRenderState();
+
     MatrixState m;
     SetMatricesForState(m);
     m_Batcher.InsertDrawCommand(DrawMode::Fan, m, v, iNumVerts);
@@ -334,6 +283,8 @@ void Display::Display::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts
 
 void Display::Display::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	PushCurrentRenderState();
+
     MatrixState m;
     SetMatricesForState(m);
     m_Batcher.InsertDrawCommand(DrawMode::Strip, m, v, iNumVerts);
@@ -341,6 +292,8 @@ void Display::Display::DrawStripInternal(const RageSpriteVertex v[], int iNumVer
 
 void Display::Display::DrawTrianglesInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	PushCurrentRenderState();
+
     MatrixState m;
     SetMatricesForState(m);
     m_Batcher.InsertDrawCommand(DrawMode::Triangles, m, v, iNumVerts);
@@ -348,6 +301,8 @@ void Display::Display::DrawTrianglesInternal(const RageSpriteVertex v[], int iNu
 
 void Display::Display::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
+	PushCurrentRenderState();
+
     MatrixState m;
     SetMatricesForState(m);
     m_Batcher.InsertDrawCommand(DrawMode::SymmetricQuadStrip, m, v, iNumVerts);
@@ -356,6 +311,7 @@ void Display::Display::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[]
 void Display::Display::DrawCompiledGeometryInternal(const RageCompiledGeometry *p, int iMeshIndex)
 {
     assert(false && "Not implemented");
+	PushCurrentRenderState();
 }
 
 #pragma endregion
@@ -416,7 +372,32 @@ void Display::Display::SetMatricesForState(MatrixState &matrixState)
     matrixState.texture = *GetTextureTop();
 }
 
+void Display::Display::PushCurrentRenderState()
+{
+	static RenderState previousState = {};
+	if (m_RenderState == previousState) {
+		return;
+	}
+
+	previousState = m_RenderState;
+
+    Command command;
+    command.type = CommandType::RenderStateChanged;
+    command.state = m_RenderState;
+    m_Batcher.InsertCommand(command);
+}
+
 #pragma region Unsupported / old graphics API functions
+
+bool Display::Display::IsZWriteEnabled() const
+{
+    return false;
+}
+
+bool Display::Display::IsZTestEnabled() const
+{
+    return false;
+}
 
 void Display::Display::SetMaterial(const RageColor &emissive, const RageColor &ambient, const RageColor &diffuse,
                                    const RageColor &specular, float shininess)

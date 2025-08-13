@@ -97,6 +97,7 @@ class Display : public RageDisplay
 	void SetMatricesForState(MatrixState& matrixState);
 
   private:
+	void PushCurrentRenderState();
     std::unique_ptr<Renderer> m_Renderer;
     std::atomic_bool m_IsInitDone;
     CommandBatcher m_Batcher;
