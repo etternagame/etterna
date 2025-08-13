@@ -3,11 +3,11 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "archutils/Win32/GraphicsWindow.h"
+#include <D3D12MemAlloc.h>
 #include <chrono>
 #include <exception>
 #include <fstream>
 #include <source_location>
-#include <D3D12MemAlloc.h>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -41,7 +41,9 @@ inline static void ThrowIfFailed(HRESULT hr, const std::source_location location
     throw std::exception(message.c_str());
 }
 
-RendererDX12::RendererDX12() : m_TextureIndex(0) {}
+RendererDX12::RendererDX12() : m_TextureIndex(0)
+{
+}
 
 RendererDX12::~RendererDX12()
 {
@@ -51,6 +53,29 @@ RendererDX12::~RendererDX12()
 std::string RendererDX12::GetApiDescription() const
 {
     return "DirectX12";
+}
+
+// from sample https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-d3d12createdevice
+static void GetHardwareAdapter(IDXGIFactory4 *factory, IDXGIAdapter1 **adapter)
+{
+    *adapter = nullptr;
+    for (UINT adapterIndex = 0;; ++adapterIndex)
+    {
+        IDXGIAdapter1 *pAdapter = nullptr;
+        if (DXGI_ERROR_NOT_FOUND == factory->EnumAdapters1(adapterIndex, &pAdapter))
+        {
+            break;
+        }
+
+        // Check to see if the adapter supports Direct3D 12, but don't create
+        // the actual device yet.
+        if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
+        {
+            *adapter = pAdapter;
+            return;
+        }
+        pAdapter->Release();
+    }
 }
 
 void RendererDX12::StartLoadingPipeline()
@@ -67,7 +92,11 @@ void RendererDX12::StartLoadingPipeline()
 
     ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&m_DXGIFactory)));
 
-    HRESULT result = D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device));
+    ComPtr<IDXGIAdapter1> hardwareAdapter;
+    GetHardwareAdapter(m_DXGIFactory.Get(), &hardwareAdapter);
+
+    HRESULT result = D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device));
+
     if (FAILED(result))
     {
         ComPtr<IDXGIAdapter> warpAdapter;
@@ -75,6 +104,11 @@ void RendererDX12::StartLoadingPipeline()
 
         ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
     }
+
+    D3D12_FEATURE_DATA_D3D12_OPTIONS21 Options = {};
+    result = m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS21, &Options, sizeof(Options));
+
+    assert(Options.WorkGraphsTier != D3D12_WORK_GRAPHS_TIER_NOT_SUPPORTED);
 
     D3D12_COMMAND_QUEUE_DESC queueDescription = {};
     queueDescription.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
@@ -280,7 +314,7 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
     m_CommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-    const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    const float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     m_CommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
     m_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -293,17 +327,13 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
     ThrowIfFailed(m_CommandList->Close());
 }
 
-intptr_t
-RendererDX12::PushTextureCommand(const Display::TextureCommand& command)
+intptr_t RendererDX12::PushTextureCommand(const Display::TextureCommand &command)
 {
-	m_TextureCommandQueue.push_back(command);
-	return command.index() == Display::TextureCommandType::Creation
-			 ? m_TextureIndex++
-			 : 0;
+    m_TextureCommandQueue.push_back(command);
+    return command.index() == Display::TextureCommandType::Creation ? m_TextureIndex++ : 0;
 }
 
-void
-RendererDX12::SignalFence(bool waitForEvent)
+void RendererDX12::SignalFence(bool waitForEvent)
 {
     const uint64_t fence = m_FenceValue;
     ThrowIfFailed(m_CommandQueue->Signal(m_Fence.Get(), fence));
