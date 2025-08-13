@@ -6,88 +6,51 @@
 #include "MatrixState.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Misc/RageTypes.h"
-#include <variant>
+#include "RenderState.h"
 
 namespace Display
 {
-struct CullCommand
-{
-    CommandType type;
-    CullMode cullMode;
-};
-
-struct ZTestModeCommand
-{
-    CommandType type;
-    ZTestMode zTestMode;
-};
-
-struct BlendModeCommand
-{
-    CommandType type;
-    BlendMode blendMode;
-};
-
-struct ZBiasCommand
-{
-    CommandType type;
-    float zBias;
-};
-
-struct ZWriteCommand
-{
-    CommandType type;
-    bool zWrite;
-};
-
-struct AlphaTestCommand
-{
-    CommandType type;
-    bool alphaTest;
-};
-
-struct TextureUnitCommand
-{
-    CommandType type;
-    TextureUnit handle;
-    intptr_t value;
-};
 
 struct DrawCommand
 {
-    CommandType type;
     DrawMode drawMode;
     MatrixState matrices;
     const RageSpriteVertex *vertex;
     size_t vertexCount;
+	size_t renderStateIndex;
 };
 
-struct ClearZBufferCommand
+struct Command
 {
-	CommandType type;
-};
+    CommandType type;
+    union {
+        DrawCommand draw;
+		RenderState state;
+    };
 
-/*
-Get low (Get low), get low (Get low, yay, yay)
-To the windoooooooooooooooooooooooow (To the window)
-To the waaaaaaaaaaaaaaaaaaaaaaaaaall (To the wall)
-TODO: hope this is not a performance concern :^)
-*/
-using Command = std::variant<CullCommand, ZTestModeCommand, BlendModeCommand, ZBiasCommand, ZWriteCommand,
-                             AlphaTestCommand, TextureUnitCommand, ClearZBufferCommand, DrawCommand>;
+    Command() : type(CommandType::Invalid)
+    {
+    }
 
-// should match the ordering in Command's std::variant
-enum class CommandIndex
-{
-    Cull,
-    ZTestMode,
-    BlendMode,
-    ZBias,
-    ZWrite,
-    AlphaTest,
-    TextureUnit,
-    ClearZBuffer,
-    Draw,
+    Command(const Command& rhs)
+	{
+		type = rhs.type;
+
+		switch (rhs.type)
+		{
+			case CommandType::Draw: {
+				draw = rhs.draw;
+				break;
+			}
+			case CommandType::RenderStateChanged: {
+				state = rhs.state;
+				break;
+			}
+
+			default:
+				break;
+		}
+    }
 };
 
 } // namespace Display

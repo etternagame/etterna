@@ -1,34 +1,34 @@
 #include "CommandBatcher.h"
 #include <cassert>
 
-void
-Display::CommandBatcher::InsertCommand(const Command& command)
+void Display::CommandBatcher::InsertCommand(const Command &command)
 {
-	assert(command.index() != static_cast<size_t>(CommandIndex::Draw));
+    assert(command.type != CommandType::Draw);
 
-	m_CommandBuffer.push_back(command);
+    m_CommandBuffer.push_back(command);
+	m_RenderStateCount += command.type == CommandType::RenderStateChanged;
 }
 
-void
-Display::CommandBatcher::InsertDrawCommand(DrawMode drawMode,
-										   MatrixState matrixState,
-										   const RageSpriteVertex* vertexData, int vertexCount)
+void Display::CommandBatcher::InsertDrawCommand(DrawMode drawMode, MatrixState matrixState,
+                                                const RageSpriteVertex *vertexData, int vertexCount)
 {
-	assert(drawMode != DrawMode::Invalid);
+    assert(drawMode != DrawMode::Invalid);
 
-	DrawCommand command = {};
-	command.type = CommandType::Draw;
-	command.drawMode = drawMode;
-	command.matrices = matrixState;
-	command.vertex = vertexData;
-	command.vertexCount = 
-	vertexCount;
+    Command command = {};
+    command.type = CommandType::Draw;
+    command.draw.drawMode = drawMode;
+    command.draw.matrices = matrixState;
+    command.draw.vertex = vertexData;
+    command.draw.vertexCount = vertexCount;
 
-	m_CommandBuffer.push_back(command);
+	assert(m_RenderStateCount >= 1 && "Rendering information must be set before drawing");
+	command.draw.renderStateIndex = m_RenderStateCount - 1;
+
+    m_CommandBuffer.push_back(command);
 }
 
-void
-Display::CommandBatcher::Clear()
+void Display::CommandBatcher::Clear()
 {
-	m_CommandBuffer.clear();
+    m_CommandBuffer.clear();
+	m_RenderStateCount = 0;
 }

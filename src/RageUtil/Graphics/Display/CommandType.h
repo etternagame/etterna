@@ -7,17 +7,8 @@ enum class CommandType
 {
 	Invalid,
 	ClearZBuffer,
-	SetCullMode,
-	SetBlendMode,
-	SetZBias,
-	SetZTestMode,
-	SetZWrite,
-	SetAlphaTest,
-	SetTexture,
-	SetTextureMode,
-	SetTextureFiltering,
-	SetTextureWrapping,
 	Draw,
+	RenderStateChanged,
 };
 
 }

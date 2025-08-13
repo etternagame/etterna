@@ -139,12 +139,11 @@ void Display::Display::SetTexture(TextureUnit tu, intptr_t iTexture)
     }
 
     m_RenderState.textures[tu] = iTexture;
-	TextureUnitCommand command = {};
-    command.type = CommandType::SetTexture;
-	command.handle = tu;
-	command.value = iTexture;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
@@ -155,12 +154,11 @@ void Display::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
     }
 
     m_RenderState.textureMode[tu] = tm;
-	TextureUnitCommand command = {};
-    command.type = CommandType::SetTextureMode;
-	command.handle = tu;
-	command.value = tm;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetTextureWrapping(TextureUnit tu, bool b)
@@ -171,12 +169,11 @@ void Display::Display::SetTextureWrapping(TextureUnit tu, bool b)
     }
 
     m_RenderState.textureWrapping[tu] = b;
-	TextureUnitCommand command = {};
-    command.type = CommandType::SetTextureWrapping;
-	command.handle = tu;
-	command.value = b;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 int Display::Display::GetMaxTextureSize() const
@@ -192,12 +189,11 @@ void Display::Display::SetTextureFiltering(TextureUnit tu, bool b)
     }
 
     m_RenderState.textureFiltering[tu] = b;
-    TextureUnitCommand command = {};
-    command.type = CommandType::SetTextureFiltering;
-    command.handle = tu;
-	command.value = b;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 #pragma endregion
@@ -212,10 +208,11 @@ void Display::Display::SetBlendMode(BlendMode mode)
     }
 
     m_RenderState.blendMode = mode;
-    BlendModeCommand command = {};
-    command.type = CommandType::SetBlendMode;
-    command.blendMode = mode;
-    m_Batcher.InsertCommand(command);
+
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 bool Display::Display::IsZWriteEnabled() const
@@ -236,11 +233,11 @@ void Display::Display::SetZWrite(bool b)
     }
 
     m_RenderState.zWrite = b;
-    ZWriteCommand command = {};
-    command.type = CommandType::SetZWrite;
-    command.zWrite = b;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetZBias(float f)
@@ -251,11 +248,11 @@ void Display::Display::SetZBias(float f)
     }
 
     m_RenderState.zBias = f;
-    ZBiasCommand command = {};
-    command.type = CommandType::SetZBias;
-    command.zBias = f;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetZTestMode(ZTestMode mode)
@@ -266,16 +263,16 @@ void Display::Display::SetZTestMode(ZTestMode mode)
     }
 
     m_RenderState.zTestMode = mode;
-    ZTestModeCommand command = {};
-    command.type = CommandType::SetZTestMode;
-    command.zTestMode = mode;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::ClearZBuffer()
 {
-    ClearZBufferCommand command = {};
+    Command command = {};
     command.type = CommandType::ClearZBuffer;
 
     m_Batcher.InsertCommand(command);
@@ -289,11 +286,11 @@ void Display::Display::SetCullMode(CullMode mode)
     }
 
     m_RenderState.cullMode = mode;
-    CullCommand command = {};
-    command.type = CommandType::SetCullMode;
-    command.cullMode = mode;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 void Display::Display::SetAlphaTest(bool b)
@@ -303,11 +300,11 @@ void Display::Display::SetAlphaTest(bool b)
         return;
     }
     m_RenderState.alphaTest = b;
-    AlphaTestCommand command = {};
-    command.type = CommandType::SetAlphaTest;
-    command.alphaTest = b;
 
-    m_Batcher.InsertCommand(command);
+	Command command;
+	command.type = CommandType::RenderStateChanged;
+	command.state = m_RenderState;
+	m_Batcher.InsertCommand(command);
 }
 
 #pragma endregion

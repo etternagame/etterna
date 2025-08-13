@@ -20,6 +20,7 @@ class CommandBatcher
     void Clear();
 
     std::vector<Command> m_CommandBuffer;
+	size_t m_RenderStateCount = 0;
 };
 
 } // namespace Display
