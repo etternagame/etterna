@@ -12,13 +12,14 @@ namespace Display
 class CommandBatcher
 {
   public:
-    void InsertCommand(Command command);
-    void InsertDrawCommand(DrawMode drawMode, MatrixState matrixState, uint8_t *vertexData, size_t vertexDataLength);
+    void InsertCommand(const Command& command);
+	void InsertDrawCommand(DrawMode drawMode,
+						   MatrixState matrixState,
+						   const RageSpriteVertex* vertexData,
+						   int vertexCount);
     void Clear();
-	void CopyIntoBuffer(uint8_t* source, size_t sourceLength);
 
-    std::vector<uint8_t> m_CommandBuffer;
-    size_t m_CommandCount;
+    std::vector<Command> m_CommandBuffer;
 };
 
 } // namespace Display

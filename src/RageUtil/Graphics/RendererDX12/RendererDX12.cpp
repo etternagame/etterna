@@ -105,11 +105,6 @@ void RendererDX12::StartLoadingPipeline()
         ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
     }
 
-    D3D12_FEATURE_DATA_D3D12_OPTIONS21 Options = {};
-    result = m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS21, &Options, sizeof(Options));
-
-    assert(Options.WorkGraphsTier != D3D12_WORK_GRAPHS_TIER_NOT_SUPPORTED);
-
     D3D12_COMMAND_QUEUE_DESC queueDescription = {};
     queueDescription.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
     queueDescription.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
