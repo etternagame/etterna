@@ -46,7 +46,7 @@ bool Display::Display::BeginFrame()
     m_RenderState.textureMode[0] = TextureMode_Invalid;
     m_RenderState.textureWrapping[0] = false;
 
-	PushCurrentRenderState();
+    PushCurrentRenderState();
 
     return m_IsInitDone;
 }
@@ -133,10 +133,9 @@ int Display::Display::GetNumTextureUnits()
     return TextureUnit::NUM_TextureUnit;
 }
 
-int
-Display::Display::GetMaxTextureSize() const
+int Display::Display::GetMaxTextureSize() const
 {
-	return Display::Display::MaxTextureSize;
+    return Display::Display::MaxTextureSize;
 }
 
 #pragma endregion
@@ -199,62 +198,59 @@ void Display::Display::SetAlphaTest(bool b)
 
 void Display::Display::DrawQuadsInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	PushCurrentRenderState();
+    PushCurrentRenderState();
 
-    MatrixState m;
-    SetMatricesForState(m);
-    m_Batcher.InsertDrawCommand(DrawMode::Quads, m, v, iNumVerts);
+    m_Batcher.InsertSpriteDrawCommand(
+	  DrawMode::Quads, GetCurrentMatrixState(), v, iNumVerts);
 }
 
 void Display::Display::DrawQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	PushCurrentRenderState();
+    PushCurrentRenderState();
 
-    MatrixState m;
-    SetMatricesForState(m);
-    m_Batcher.InsertDrawCommand(DrawMode::QuadStrip, m, v, iNumVerts);
+    m_Batcher.InsertSpriteDrawCommand(
+	  DrawMode::QuadStrip, GetCurrentMatrixState(), v, iNumVerts);
 }
 
 void Display::Display::DrawFanInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	PushCurrentRenderState();
+    PushCurrentRenderState();
 
-    MatrixState m;
-    SetMatricesForState(m);
-    m_Batcher.InsertDrawCommand(DrawMode::Fan, m, v, iNumVerts);
+    m_Batcher.InsertSpriteDrawCommand(
+	  DrawMode::Fan, GetCurrentMatrixState(), v, iNumVerts);
 }
 
 void Display::Display::DrawStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	PushCurrentRenderState();
+    PushCurrentRenderState();
 
-    MatrixState m;
-    SetMatricesForState(m);
-    m_Batcher.InsertDrawCommand(DrawMode::Strip, m, v, iNumVerts);
+    m_Batcher.InsertSpriteDrawCommand(
+	  DrawMode::Strip, GetCurrentMatrixState(), v, iNumVerts);
 }
 
 void Display::Display::DrawTrianglesInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	PushCurrentRenderState();
+    PushCurrentRenderState();
 
-    MatrixState m;
-    SetMatricesForState(m);
-    m_Batcher.InsertDrawCommand(DrawMode::Triangles, m, v, iNumVerts);
+    m_Batcher.InsertSpriteDrawCommand(
+	  DrawMode::Triangles, GetCurrentMatrixState(), v, iNumVerts);
 }
 
 void Display::Display::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[], int iNumVerts)
 {
-	PushCurrentRenderState();
+    PushCurrentRenderState();
 
-    MatrixState m;
-    SetMatricesForState(m);
-    m_Batcher.InsertDrawCommand(DrawMode::SymmetricQuadStrip, m, v, iNumVerts);
+    m_Batcher.InsertSpriteDrawCommand(
+	  DrawMode::SymmetricQuadStrip, GetCurrentMatrixState(), v, iNumVerts);
 }
 
 void Display::Display::DrawCompiledGeometryInternal(const RageCompiledGeometry *p, int iMeshIndex)
 {
     assert(false && "Not implemented");
-	PushCurrentRenderState();
+    PushCurrentRenderState();
+
+	m_Batcher.InsertCompiledGeometryDrawCommand(
+	  DrawMode::CompiledGeometry, GetCurrentMatrixState(), p, iMeshIndex);
 }
 
 #pragma endregion
@@ -307,28 +303,31 @@ bool Display::Display::SupportsPerVertexMatrixScale()
 
 #pragma endregion
 
-void Display::Display::SetMatricesForState(MatrixState &matrixState)
+Display::MatrixState Display::Display::GetCurrentMatrixState()
 {
-    matrixState.projection = *GetProjectionTop();
-    matrixState.view = *GetViewTop();
-    matrixState.world = *GetWorldTop();
-    matrixState.texture = *GetTextureTop();
+    MatrixState m;
+    m.projection = *GetProjectionTop();
+    m.view = *GetViewTop();
+    m.world = *GetWorldTop();
+    m.texture = *GetTextureTop();
+
+    return m;
 }
 
 void Display::Display::PushCurrentRenderState()
 {
-	if (m_RenderState == m_PreviousRenderState) {
-		return;
-	}
+    if (m_RenderState == m_PreviousRenderState)
+    {
+        return;
+    }
 
-	m_PreviousRenderState = m_RenderState;
-	m_Batcher.InsertRenderStateCommand(m_RenderState);
+    m_PreviousRenderState = m_RenderState;
+    m_Batcher.InsertRenderStateCommand(m_RenderState);
 }
 
 #pragma region Unsupported / old graphics API functions
 
-void
-Display::Display::ClearZBuffer()
+void Display::Display::ClearZBuffer()
 {
 }
 

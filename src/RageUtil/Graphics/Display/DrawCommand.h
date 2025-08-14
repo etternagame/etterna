@@ -12,10 +12,10 @@ namespace Display
 struct DrawCommand
 {
     DrawMode drawMode;
-    MatrixState matrices;
-    const RageSpriteVertex *vertex;
-    size_t vertexCount;
-	size_t renderStateIndex;
+    MatrixState matrixState;
+	uint32_t vertexOffset;
+	uint32_t vertexCount;
+	uint32_t renderStateIndex;
 };
 
 } // namespace Display

@@ -23,6 +23,9 @@ struct RenderState
 	bool operator==(RenderState& rhs);
 };
 
+// double-check for Display::CommandBatcher
+static_assert(std::is_trivially_copyable_v<RenderState>);
+
 } // namespace Display
 
 #endif

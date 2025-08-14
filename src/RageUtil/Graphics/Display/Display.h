@@ -94,10 +94,11 @@ class Display : public RageDisplay
 
     std::string TryVideoMode(const VideoModeParams &p, bool &bNewDeviceOut) override;
     RageSurface *CreateScreenshot() override;
-	void SetMatricesForState(MatrixState& matrixState);
+	MatrixState GetCurrentMatrixState();
 
   private:
 	void PushCurrentRenderState();
+
     std::unique_ptr<Renderer> m_Renderer;
     std::atomic_bool m_IsInitDone;
     CommandBatcher m_Batcher;
