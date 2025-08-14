@@ -246,7 +246,6 @@ void Display::Display::DrawSymmetricQuadStripInternal(const RageSpriteVertex v[]
 
 void Display::Display::DrawCompiledGeometryInternal(const RageCompiledGeometry *p, int iMeshIndex)
 {
-    assert(false && "Not implemented");
     PushCurrentRenderState();
 
 	m_Batcher.InsertCompiledGeometryDrawCommand(
