@@ -20,7 +20,7 @@ struct RenderState
     uint8_t textureMode[NUM_TextureUnit];
     intptr_t textures[NUM_TextureUnit];
 
-    bool operator==(RenderState& rhs);
+	bool operator==(RenderState& rhs);
 };
 
 } // namespace Display

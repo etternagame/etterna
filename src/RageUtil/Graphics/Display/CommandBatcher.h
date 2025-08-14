@@ -1,7 +1,8 @@
 #ifndef DISPLAY_COMMAND_BATCHER_H
 #define DISPLAY_COMMAND_BATCHER_H
 
-#include "Commands.h"
+#include "DrawCommand.h"
+#include "RenderState.h"
 #include <queue>
 #include <string>
 
@@ -12,15 +13,15 @@ namespace Display
 class CommandBatcher
 {
   public:
-    void InsertCommand(const Command& command);
+	void InsertRenderStateCommand(RenderState renderState);
 	void InsertDrawCommand(DrawMode drawMode,
 						   MatrixState matrixState,
 						   const RageSpriteVertex* vertexData,
 						   int vertexCount);
     void Clear();
 
-    std::vector<Command> m_CommandBuffer;
-	size_t m_RenderStateCount = 0;
+    std::vector<DrawCommand> m_CommandBuffer;
+	std::vector<RenderState> m_RenderStateBuffer;
 };
 
 } // namespace Display

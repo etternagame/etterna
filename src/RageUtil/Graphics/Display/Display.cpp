@@ -183,14 +183,6 @@ void Display::Display::SetZTestMode(ZTestMode mode)
     m_RenderState.zTestMode = mode;
 }
 
-void Display::Display::ClearZBuffer()
-{
-    Command command = {};
-    command.type = CommandType::ClearZBuffer;
-
-    m_Batcher.InsertCommand(command);
-}
-
 void Display::Display::SetCullMode(CullMode mode)
 {
     m_RenderState.cullMode = mode;
@@ -330,14 +322,15 @@ void Display::Display::PushCurrentRenderState()
 	}
 
 	m_PreviousRenderState = m_RenderState;
-
-    Command command;
-    command.type = CommandType::RenderStateChanged;
-    command.state = m_RenderState;
-    m_Batcher.InsertCommand(command);
+	m_Batcher.InsertRenderStateCommand(m_RenderState);
 }
 
 #pragma region Unsupported / old graphics API functions
+
+void
+Display::Display::ClearZBuffer()
+{
+}
 
 bool Display::Display::IsZWriteEnabled() const
 {

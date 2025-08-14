@@ -70,6 +70,7 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
 
   "Graphics/Display/CommandBatcher.cpp"
   "Graphics/Display/Display.cpp"
+  "Graphics/Display/RenderState.cpp"
 )
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageBitmapTexture.h"
@@ -100,14 +101,13 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/Shaders/RageShaderHandler.h"
 
   "Graphics/Display/CommandBatcher.h"
-  "Graphics/Display/CommandType.h"
   "Graphics/Display/DrawMode.h"
   "Graphics/Display/MatrixState.h"
   "Graphics/Display/RenderState.h"
   "Graphics/Display/TextureCommand.h"
   "Graphics/Display/Display.h"
   "Graphics/Display/Renderer.h"
-  "Graphics/Display/Commands.h"
+  "Graphics/Display/DrawCommand.h"
 )
 
 if(WIN32)
