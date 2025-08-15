@@ -82,6 +82,8 @@ if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
 endif()
 
+add_subdirectory(tinyobjloader)
+
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3

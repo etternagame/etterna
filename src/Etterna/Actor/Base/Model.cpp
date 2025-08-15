@@ -15,6 +15,9 @@
 #include <cstring>
 #include <algorithm>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tinyobjloader/tiny_obj_loader.h>
+
 REGISTER_ACTOR_CLASS(Model);
 
 static const float FRAMES_PER_SECOND = 30;
