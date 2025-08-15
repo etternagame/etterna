@@ -183,8 +183,8 @@ ComPtr<ID3DBlob> CompileShader(const std::string &contents, const std::string &e
                          targetProfile.c_str(), shaderCompileFlags, 0, &shaderBlob, &errorBlob);
     if (FAILED(hr) && errorBlob)
     {
-        Locator::getLogger()->error("Failed to compile shader ({}) - {}", targetProfile,
-                                    (char *)errorBlob->GetBufferPointer());
+        std::string message = (char *)errorBlob->GetBufferPointer();
+        Locator::getLogger()->error("Failed to compile shader ({}) - {}", targetProfile, message);
     }
     ThrowIfFailed(hr);
 
@@ -215,16 +215,24 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         ComPtr<ID3DBlob> pixelShader = CompileShader(shaderContents, "PSMain", "ps_5_0");
 
         D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
-            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-            {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}};
+            {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(RageSpriteVertex, p),
+             D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(RageSpriteVertex, n),
+             D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            {"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, offsetof(RageSpriteVertex, c),
+             D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+            {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(RageSpriteVertex, t),
+             D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        };
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-        psoDesc.InputLayout = {inputElementDescs, _countof(inputElementDescs)};
         psoDesc.pRootSignature = m_RootSignature.Get();
+        psoDesc.InputLayout = {inputElementDescs, _countof(inputElementDescs)};
         psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
         psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
         psoDesc.DepthStencilState.DepthEnable = FALSE;
         psoDesc.DepthStencilState.StencilEnable = FALSE;
         psoDesc.SampleMask = UINT_MAX;
@@ -241,9 +249,18 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     ThrowIfFailed(m_CommandList->Close());
 
     {
-        Vertex triangleVertices[] = {{{0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},
-                                     {{0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}},
-                                     {{-0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}}};
+        RageSpriteVertex triangleVertices[] = {{{0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f},
+                                                {0.0f, 0.0f, 0.0f},
+                                                RageColor(0.0f, 1.0f, 1.0f, 1.0f),
+                                                {0.0f, 0.0f}},
+                                               {{0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f},
+                                                {0.0f, 0.0f, 0.0f},
+                                                RageColor(0.0f, 0.0f, 1.0f, 1.0f),
+                                                {0.0f, 0.0f}},
+                                               {{-0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f},
+                                                {0.0f, 0.0f, 0.0f},
+                                                RageColor(1.0f, 0.0f, 0.0f, 1.0f),
+                                                {0.0f, 0.0f}}};
 
         const UINT vertexBufferSize = sizeof(triangleVertices);
 
@@ -260,7 +277,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         m_VertexBuffer->Unmap(0, nullptr);
 
         m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-        m_VertexBufferView.StrideInBytes = sizeof(Vertex);
+        m_VertexBufferView.StrideInBytes = sizeof(RageSpriteVertex);
         m_VertexBufferView.SizeInBytes = vertexBufferSize;
     }
 
@@ -343,7 +360,7 @@ void RendererDX12::SignalFence(bool waitForEvent)
     m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 }
 
-void RendererDX12::OnRender(const ActualVideoModeParams *p)
+void RendererDX12::OnRender(const ActualVideoModeParams *p, const Display::CommandBatcher &batcher)
 {
     PopulateCommandList(p);
 

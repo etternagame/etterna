@@ -53,7 +53,7 @@ bool Display::Display::BeginFrame()
 
 void Display::Display::EndFrame()
 {
-    m_Renderer->OnRender(GetActualVideoModeParams());
+    m_Renderer->OnRender(GetActualVideoModeParams(), m_Batcher);
 }
 
 const ActualVideoModeParams *Display::Display::GetActualVideoModeParams() const
@@ -79,7 +79,7 @@ std::string Display::Display::TryVideoMode(const VideoModeParams &p, bool &bNewD
     ResolutionChanged();
 
     // OnRender() with a black clearing to not whiteblast people?
-    m_Renderer->OnRender(GetActualVideoModeParams());
+    m_Renderer->OnRender(GetActualVideoModeParams(), m_Batcher);
 
     m_IsInitDone = true;
     return std::string();

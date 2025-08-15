@@ -24,7 +24,8 @@ class RendererDX12 : public Display::Renderer
     void StartLoadingPipeline() override;
     void FinishLoadingPipeline(const VideoModeParams &p) override;
     void LoadAssets(const VideoModeParams &p) override;
-    void OnRender(const ActualVideoModeParams *p) override;
+	void OnRender(
+	  const ActualVideoModeParams* p, const Display::CommandBatcher& batcher) override;
     bool IsD3DInternal() override
     {
         return true;
@@ -65,12 +66,6 @@ class RendererDX12 : public Display::Renderer
     D3D12_RECT m_ScissorRect;
 
     static constexpr D3D12_RESOURCE_DESC GetTextureDescription();
-
-    struct Vertex
-    {
-        DirectX::XMFLOAT3 position;
-        DirectX::XMFLOAT4 color;
-    };
 
 	std::vector<Display::TextureCommand> m_TextureCommandQueue;
 	intptr_t m_TextureIndex;

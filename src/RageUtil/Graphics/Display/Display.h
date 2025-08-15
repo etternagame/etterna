@@ -24,7 +24,7 @@ class Display : public RageDisplay
     std::string Init(VideoModeParams &&p, bool bAllowUnacceleratedRenderer) override;
     [[nodiscard]] std::string GetApiDescription() const override
     {
-        return "UnstableD3D";
+        return "UnstableDirectX12";
     }
     virtual void GetDisplaySpecs(DisplaySpecs &out) const override;
     void ResolutionChanged() override;
