@@ -335,6 +335,7 @@ ActorUtil::MakeActor(const std::string& sPath_, Actor* pParentActor)
 				xml.AppendAttr("Meshes", sPath);
 				xml.AppendAttr("Materials", sPath);
 				xml.AppendAttr("Bones", sPath);
+				xml.AppendAttr("glbModel", sPath);
 
 				return ActorUtil::LoadFromNode(&xml, pParentActor);
 			}

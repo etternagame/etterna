@@ -248,6 +248,7 @@ init_parser_helpers()
 	fields_that_are_strings.insert("File");
 	fields_that_are_strings.insert("Font");
 	fields_that_are_strings.insert("Meshes");
+	fields_that_are_strings.insert("glbModel");
 	fields_that_are_strings.insert("Materials");
 	fields_that_are_strings.insert("Bones");
 	chunks_to_replace["hidden(0)"] = "visible(true)";
@@ -601,6 +602,7 @@ actor_template_t::load_node(XNode const& node,
 							store_field("Meshes", this_relative, false);
 							store_field("Materials", this_relative, false);
 							store_field("Bones", this_relative, false);
+							store_field("glbModel", this_relative, false);
 							handled_level = 2;
 							break;
 						default:

@@ -21,14 +21,6 @@ class Model : public Actor
 	void Clear();
 	void Load(const std::string& sFile);
 
-	void LoadPieces(const std::string& sMeshesPath,
-					const std::string& sMaterialsPath,
-					const std::string& sBomesPath);
-	void LoadMilkshapeAscii(const std::string& sFile);
-	void LoadMaterialsFromMilkshapeAscii(const std::string& sPath);
-	bool LoadMilkshapeAsciiBones(const std::string& sAniName,
-								 const std::string& sPath);
-
 	void LoadFromNode(const XNode* pNode) override;
 
 	void PlayAnimation(const std::string& sAniName, float fPlayRate = 1);
@@ -66,6 +58,15 @@ class Model : public Actor
 	void PushSelf(lua_State* L) override;
 
   private:
+	void LoadGlTF(const std::string& path);
+	void LoadPieces(const std::string& sMeshesPath,
+					const std::string& sMaterialsPath,
+					const std::string& sBomesPath);
+	void LoadMilkshapeAscii(const std::string& sFile);
+	void LoadMaterialsFromMilkshapeAscii(const std::string& sPath);
+	bool LoadMilkshapeAsciiBones(const std::string& sAniName,
+								 const std::string& sPath);
+
 	RageModelGeometry* m_pGeometry;
 
 	float m_animation_length_seconds;

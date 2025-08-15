@@ -69,8 +69,11 @@ Model::Load(const std::string& sFile)
 		return;
 
 	const auto sExt = make_lower(GetExtension(sFile));
-	if (sExt == "txt")
+	if (sExt == "txt") {
 		LoadMilkshapeAscii(sFile);
+	} else if (sExt == "glb") {
+		LoadGlTF(sFile);
+	}
 	RecalcAnimationLengthSeconds();
 }
 
@@ -85,6 +88,12 @@ void
 Model::LoadMilkshapeAscii(const std::string& sPath)
 {
 	LoadPieces(sPath, sPath, sPath);
+}
+
+void
+Model::LoadGlTF(const std::string& path)
+{
+	assert(!path.empty());
 }
 
 void
@@ -130,13 +139,19 @@ Model::LoadPieces(const std::string& sMeshesPath,
 void
 Model::LoadFromNode(const XNode* pNode)
 {
-	std::string s1, s2, s3;
-	ActorUtil::GetAttrPath(pNode, "Meshes", s1);
-	ActorUtil::GetAttrPath(pNode, "Materials", s2);
-	ActorUtil::GetAttrPath(pNode, "Bones", s3);
-	if (!s1.empty() || !s2.empty() || !s3.empty()) {
-		ASSERT(!s1.empty() && !s2.empty() && !s3.empty());
-		LoadPieces(s1, s2, s3);
+	std::string glbPath;
+	ActorUtil::GetAttrPath(pNode, "glbModel", glbPath, true);
+	if (!glbPath.empty()) {
+		LoadGlTF(glbPath);
+	} else {
+		std::string s1, s2, s3;
+		ActorUtil::GetAttrPath(pNode, "Meshes", s1);
+		ActorUtil::GetAttrPath(pNode, "Materials", s2);
+		ActorUtil::GetAttrPath(pNode, "Bones", s3);
+		if (!s1.empty() || !s2.empty() || !s3.empty()) {
+			ASSERT(!s1.empty() && !s2.empty() && !s3.empty());
+			LoadPieces(s1, s2, s3);
+		}
 	}
 
 	Actor::LoadFromNode(pNode);
