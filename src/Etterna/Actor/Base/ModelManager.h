@@ -32,6 +32,8 @@ class ModelManager
 
 	RageModelGeometry* LoadMilkshapeAscii(const std::string& sFile,
 										  bool bNeedNormals);
+
+	RageModelGeometry* LoadGLTF(const std::string& sFile);
 	void UnloadModel(RageModelGeometry* m);
 	//	void ReloadAll();
 

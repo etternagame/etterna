@@ -8,6 +8,7 @@
 #include <vector>
 
 class RageCompiledGeometry;
+struct GLTFImpl;
 
 class RageModelGeometry
 {
@@ -17,11 +18,13 @@ class RageModelGeometry
 
 	void LoadMilkshapeAscii(const std::string& sMilkshapeAsciiFile,
 							bool bNeedsNormals);
+	void LoadGLTF(const std::string& glbFile);
 	void OptimizeBones();
 	void MergeMeshes(int iFromIndex, int iToIndex);
 	bool HasAnyPerVertexBones() const;
 
 	int m_iRefCount;
+	std::unique_ptr<GLTFImpl> m_GLTF;
 
 	std::vector<msMesh> m_Meshes;
 	RageCompiledGeometry*

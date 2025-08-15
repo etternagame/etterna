@@ -7,6 +7,7 @@
 #include "ModelTypes.h"
 #include <map>
 #include <vector>
+#include <optional>
 
 class RageModelGeometry;
 class RageCompiledGeometry;
@@ -23,17 +24,9 @@ class Model : public Actor
 
 	void LoadFromNode(const XNode* pNode) override;
 
-	void PlayAnimation(const std::string& sAniName, float fPlayRate = 1);
-	void SetRate(float fRate) { m_fCurAnimationRate = fRate; }
-	void SetLoop(bool b) { m_bLoop = b; }
-	void SetPosition(float fSeconds);
-
 	void Update(float fDelta) override;
 	[[nodiscard]] bool EarlyAbortDraw() const override;
 	void DrawPrimitives() override;
-
-	void DrawCelShaded();
-	void SetCelShading(bool bShading) { m_bDrawCelShaded = bShading; }
 
 	[[nodiscard]] int GetNumStates() const override;
 	void SetState(int iNewState) override;
@@ -42,23 +35,26 @@ class Model : public Actor
 	{
 		return m_animation_length_seconds;
 	}
-	virtual void RecalcAnimationLengthSeconds();
 	void SetSecondsIntoAnimation(float fSeconds) override;
 
+	// Lua
+	void PushSelf(lua_State* L) override;
+	void PlayAnimation(const std::string& sAniName, float fPlayRate = 1);
+	void SetRate(float fRate) { m_fCurAnimationRate = fRate; }
+	void SetLoop(bool b) { m_bLoop = b; }
+	void SetPosition(float fSeconds);
+	virtual void RecalcAnimationLengthSeconds();
 	[[nodiscard]] std::string GetDefaultAnimation() const
 	{
 		return m_sDefaultAnimation;
 	};
 	void SetDefaultAnimation(const std::string& sAnimation,
 							 float fPlayRate = 1);
-
-	[[nodiscard]] bool MaterialsNeedNormals() const;
-
-	// Lua
-	void PushSelf(lua_State* L) override;
-
   private:
-	void LoadGlTF(const std::string& path);
+	void LoadGLTF(const std::string& path);
+	void DrawGLTFModel();
+	bool IsGLTFLoaded();
+
 	void LoadPieces(const std::string& sMeshesPath,
 					const std::string& sMaterialsPath,
 					const std::string& sBomesPath);
@@ -66,6 +62,10 @@ class Model : public Actor
 	void LoadMaterialsFromMilkshapeAscii(const std::string& sPath);
 	bool LoadMilkshapeAsciiBones(const std::string& sAniName,
 								 const std::string& sPath);
+
+	void DrawCelShaded();
+	void SetCelShading(bool bShading) { m_bDrawCelShaded = bShading; }
+	[[nodiscard]] bool MaterialsNeedNormals() const;
 
 	RageModelGeometry* m_pGeometry;
 

@@ -14,10 +14,7 @@
 
 #include <cstring>
 #include <algorithm>
-
-#define TINYGLTF_IMPLEMENTATION
-#define TINYGLTF_USE_RAPIDJSON
-#include <tinygltf/tiny_gltf.h>
+#include <cassert>
 
 REGISTER_ACTOR_CLASS(Model);
 
@@ -72,7 +69,7 @@ Model::Load(const std::string& sFile)
 	if (sExt == "txt") {
 		LoadMilkshapeAscii(sFile);
 	} else if (sExt == "glb") {
-		LoadGlTF(sFile);
+		LoadGLTF(sFile);
 	}
 	RecalcAnimationLengthSeconds();
 }
@@ -91,9 +88,22 @@ Model::LoadMilkshapeAscii(const std::string& sPath)
 }
 
 void
-Model::LoadGlTF(const std::string& path)
+Model::LoadGLTF(const std::string& path)
 {
-	assert(!path.empty());
+	// retrieve model from cache if it exists
+	m_pGeometry = MODELMAN->LoadGLTF(path);
+	assert(IsGLTFLoaded());
+}
+
+void
+Model::DrawGLTFModel()
+{
+}
+
+bool
+Model::IsGLTFLoaded()
+{
+	return m_pGeometry != nullptr && m_pGeometry->m_GLTF != nullptr;
 }
 
 void
@@ -142,7 +152,7 @@ Model::LoadFromNode(const XNode* pNode)
 	std::string glbPath;
 	ActorUtil::GetAttrPath(pNode, "glbModel", glbPath, true);
 	if (!glbPath.empty()) {
-		LoadGlTF(glbPath);
+		LoadGLTF(glbPath);
 	} else {
 		std::string s1, s2, s3;
 		ActorUtil::GetAttrPath(pNode, "Meshes", s1);
@@ -375,6 +385,12 @@ Model::DrawPrimitives()
 	// Don't if we're fully transparent
 	if (m_pTempState->diffuse[0].a < 0.001f && m_pTempState->glow.a < 0.001f)
 		return;
+
+	// skip milkshape if we have loaded a glTF file...
+	if (IsGLTFLoaded()) {
+		DrawGLTFModel();
+		return;
+	}
 
 	DISPLAY->Scale(1, -1, 1); // flip Y so positive is up
 

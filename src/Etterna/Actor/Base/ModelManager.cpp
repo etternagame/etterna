@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "ModelManager.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
@@ -34,6 +34,25 @@ ModelManager::LoadMilkshapeAscii(const std::string& sFile, bool bNeedNormals)
 
 	auto* pGeom = new RageModelGeometry;
 	pGeom->LoadMilkshapeAscii(sFile, bNeedNormals);
+
+	m_mapFileToGeometry[sFile] = pGeom;
+	return pGeom;
+}
+
+RageModelGeometry*
+ModelManager::LoadGLTF(const std::string& sFile)
+{
+	// (^^)
+	const auto p = m_mapFileToGeometry.find(sFile);
+	if (p != m_mapFileToGeometry.end()) {
+		/* Found the geometry.  Just increase the refcount and return it. */
+		auto* pGeom = p->second;
+		++pGeom->m_iRefCount;
+		return pGeom;
+	}
+
+	auto* pGeom = new RageModelGeometry;
+	pGeom->LoadGLTF(sFile);
 
 	m_mapFileToGeometry[sFile] = pGeom;
 	return pGeom;

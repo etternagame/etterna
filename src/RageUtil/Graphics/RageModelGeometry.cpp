@@ -5,6 +5,17 @@
 #include "RageModelGeometry.h"
 #include "RageUtil/Utils/RageUtil.h"
 
+#define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_USE_RAPIDJSON
+#include <tinygltf/tiny_gltf.h>
+#include <Core/Services/Locator.hpp>
+#include <cassert>
+
+struct GLTFImpl
+{
+	tinygltf::Model model;
+};
+
 #define MS_MAX_NAME 32
 
 RageModelGeometry::RageModelGeometry()
@@ -303,4 +314,24 @@ RageModelGeometry::LoadMilkshapeAscii(const std::string& _sPath,
 
 	// send the finalized vertices to the graphics card
 	m_pCompiledGeometry->Set(m_Meshes, bNeedsNormals);
+}
+
+void
+RageModelGeometry::LoadGLTF(const std::string& glbFile)
+{
+	assert(!glbFile.empty());
+	tinygltf::TinyGLTF loader;
+	std::string error, warning;
+
+	m_GLTF = std::make_unique<GLTFImpl>();
+	loader.LoadBinaryFromFile(&m_GLTF->model, &error, &warning, glbFile);
+
+	if (!warning.empty()) {
+		Locator::getLogger()->warn("RageModelGeometry::LoadGLTF: {}", warning);
+	}
+	if (!error.empty()) {
+		Locator::getLogger()->warn("RageModelGeometry::LoadGLTF: {}", error);
+		m_GLTF = nullptr;
+		throw std::exception(error.c_str());
+	}
 }
