@@ -15,8 +15,8 @@
 #include <cstring>
 #include <algorithm>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tinyobjloader/tiny_obj_loader.h>
+#define TINYGLTF_IMPLEMENTATION
+#include <tinygltf/tiny_gltf.h>
 
 REGISTER_ACTOR_CLASS(Model);
 

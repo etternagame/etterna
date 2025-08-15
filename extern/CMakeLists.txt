@@ -82,7 +82,7 @@ if(MSVC) # Only required on Windows
     add_subdirectory(ffmpeg)
 endif()
 
-add_subdirectory(tinyobjloader)
+add_subdirectory(tinygltf)
 
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
