@@ -16,6 +16,7 @@
 #include <algorithm>
 
 #define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_USE_RAPIDJSON
 #include <tinygltf/tiny_gltf.h>
 
 REGISTER_ACTOR_CLASS(Model);
