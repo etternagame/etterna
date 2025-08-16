@@ -3,7 +3,6 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageSurface.h"
 #include "archutils/Win32/GraphicsWindow.h"
-#include <D3D12MemAlloc.h>
 #include <chrono>
 #include <exception>
 #include <fstream>
@@ -97,12 +96,23 @@ void RendererDX12::StartLoadingPipeline()
 
     HRESULT result = D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device));
 
+    ComPtr<IDXGIAdapter> warpAdapter;
+    bool useWARP = false;
     if (FAILED(result))
     {
-        ComPtr<IDXGIAdapter> warpAdapter;
         ThrowIfFailed(m_DXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
 
         ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
+        useWARP = true;
+    }
+
+    {
+        D3D12MA::ALLOCATOR_DESC desc = {};
+        desc.Flags = D3D12MA_RECOMMENDED_ALLOCATOR_FLAGS;
+        desc.pDevice = m_Device.Get();
+        desc.pAdapter = useWARP ? warpAdapter.Get() : hardwareAdapter.Get();
+
+        ThrowIfFailed(D3D12MA::CreateAllocator(&desc, &m_Allocator));
     }
 
     D3D12_COMMAND_QUEUE_DESC queueDescription = {};
@@ -267,9 +277,8 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
 
         auto properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         auto buffer = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-        ThrowIfFailed(m_Device->CreateCommittedResource(&properties, D3D12_HEAP_FLAG_NONE, &buffer,
-                                                        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                        IID_PPV_ARGS(&m_VertexBuffer)));
+		m_VertexBuffer = CreateResource(
+		  buffer, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 
         UINT8 *pVertexDataBegin;
         CD3DX12_RANGE readRange(0, 0);
@@ -283,12 +292,11 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     }
 
     {
-        auto uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         auto bufferProps = CD3DX12_RESOURCE_DESC::Buffer(
             Display::Display::MaxTextureSize * Display::Display::MaxTextureSize * Display::Display::TexturePixelSize);
-        ThrowIfFailed(m_Device->CreateCommittedResource(&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &bufferProps,
-                                                        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                                                        IID_PPV_ARGS(&m_TextureUploadHeap)));
+		m_TextureUploadHeap = CreateResource(bufferProps,
+											 D3D12_HEAP_TYPE_UPLOAD,
+											 D3D12_RESOURCE_STATE_GENERIC_READ);
     }
 
     {
@@ -338,6 +346,19 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
                                                    D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     m_CommandList->ResourceBarrier(1, &barrier);
     ThrowIfFailed(m_CommandList->Close());
+}
+
+ComPtr<ID3D12Resource> RendererDX12::CreateResource(const D3D12_RESOURCE_DESC &resourceDesc, D3D12_HEAP_TYPE heapType,
+                                                    D3D12_RESOURCE_STATES initialResourceState)
+{
+    D3D12MA::ALLOCATION_DESC allocationDesc = {};
+    allocationDesc.HeapType = heapType;
+
+    ComPtr<D3D12MA::Allocation> allocation;
+    ThrowIfFailed(m_Allocator->CreateResource(&allocationDesc, &resourceDesc, initialResourceState, NULL, &allocation,
+                                              IID_NULL, NULL));
+	ComPtr<ID3D12Resource> resource = allocation->GetResource();
+    return resource;
 }
 
 intptr_t RendererDX12::PushTextureCommand(const Display::TextureCommand &command)

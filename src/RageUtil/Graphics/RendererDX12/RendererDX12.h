@@ -8,6 +8,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#include <D3D12MemAlloc.h>
 #include <DirectXMath.h>
 #include <d3d12.h>
 #include <d3dcompiler.h>
@@ -18,28 +19,31 @@
 class RendererDX12 : public Display::Renderer
 {
   public:
-	RendererDX12();
+    RendererDX12();
     ~RendererDX12() override;
     [[nodiscard]] std::string GetApiDescription() const override;
     void StartLoadingPipeline() override;
     void FinishLoadingPipeline(const VideoModeParams &p) override;
     void LoadAssets(const VideoModeParams &p) override;
-	void OnRender(
-	  const ActualVideoModeParams* p, const Display::CommandBatcher& batcher) override;
+    void OnRender(const ActualVideoModeParams *p, const Display::CommandBatcher &batcher) override;
     bool IsD3DInternal() override
     {
         return true;
     }
-	intptr_t PushTextureCommand(
-	  const Display::TextureCommand& command) override;
+    intptr_t PushTextureCommand(const Display::TextureCommand &command) override;
 
   private:
-	void SignalFence(bool waitForEvent);
-	void OnDestroy();
+    void SignalFence(bool waitForEvent);
+    void OnDestroy();
     void PopulateCommandList(const ActualVideoModeParams *p);
+    Microsoft::WRL::ComPtr<ID3D12Resource> CreateResource(
+        const D3D12_RESOURCE_DESC &resourceDesc, D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT,
+        D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_COPY_DEST);
 
     Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
     UINT m_DXGIFactoryFlags;
+
+    Microsoft::WRL::ComPtr<D3D12MA::Allocator> m_Allocator;
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_CommandQueue;
     Microsoft::WRL::ComPtr<IDXGISwapChain3> m_SwapChain;
@@ -67,8 +71,8 @@ class RendererDX12 : public Display::Renderer
 
     static constexpr D3D12_RESOURCE_DESC GetTextureDescription();
 
-	std::vector<Display::TextureCommand> m_TextureCommandQueue;
-	intptr_t m_TextureIndex;
+    std::vector<Display::TextureCommand> m_TextureCommandQueue;
+    intptr_t m_TextureIndex;
 };
 
 #endif

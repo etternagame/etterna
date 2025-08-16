@@ -11,7 +11,7 @@ namespace Display
 
 struct DrawCommand
 {
-    DrawMode drawMode;
+	bool useSpriteVertex;
     MatrixState matrixState;
 	uint32_t vertexOffset;
 	uint32_t vertexCount;
