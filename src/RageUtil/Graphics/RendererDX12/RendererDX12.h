@@ -15,6 +15,7 @@
 #include <directx/d3dx12.h>
 #include <dxgi1_6.h>
 #include <windows.h>
+#include <dxcapi.h>
 
 class RendererDX12 : public Display::Renderer
 {
@@ -39,6 +40,11 @@ class RendererDX12 : public Display::Renderer
     Microsoft::WRL::ComPtr<ID3D12Resource> CreateResource(
         const D3D12_RESOURCE_DESC &resourceDesc, D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT,
         D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_COPY_DEST);
+
+	Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(const std::string& path,
+								   RageShaderType shaderType);
+	Microsoft::WRL::ComPtr<IDxcCompiler3> m_ShaderCompiler;
+	Microsoft::WRL::ComPtr<IDxcUtils> m_ShaderCompilerUtils;
 
     Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
     UINT m_DXGIFactoryFlags;

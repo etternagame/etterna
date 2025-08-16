@@ -10,7 +10,8 @@
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "dxcompiler.lib")
 
 using Microsoft::WRL::ComPtr;
 
@@ -94,7 +95,7 @@ void RendererDX12::StartLoadingPipeline()
     ComPtr<IDXGIAdapter1> hardwareAdapter;
     GetHardwareAdapter(m_DXGIFactory.Get(), &hardwareAdapter);
 
-    HRESULT result = D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device));
+    HRESULT result = D3D12CreateDevice(hardwareAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_Device));
 
     ComPtr<IDXGIAdapter> warpAdapter;
     bool useWARP = false;
@@ -102,7 +103,7 @@ void RendererDX12::StartLoadingPipeline()
     {
         ThrowIfFailed(m_DXGIFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
 
-        ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device)));
+        ThrowIfFailed(D3D12CreateDevice(warpAdapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&m_Device)));
         useWARP = true;
     }
 
@@ -120,6 +121,11 @@ void RendererDX12::StartLoadingPipeline()
     queueDescription.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
     ThrowIfFailed(m_Device->CreateCommandQueue(&queueDescription, IID_PPV_ARGS(&m_CommandQueue)));
+
+    {
+        DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_ShaderCompiler));
+        DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_ShaderCompilerUtils));
+    }
 }
 
 void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
@@ -164,41 +170,30 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
 }
 
-static std::string ReadFileContents(const std::string &path)
+ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShaderType shaderType)
 {
-    std::ifstream file(path, std::ios::in | std::ios::binary);
-    if (!file)
+    ComPtr<IDxcBlobEncoding> source;
+    ThrowIfFailed(m_ShaderCompilerUtils->LoadFile(std::wstring(path.begin(), path.end()).c_str(), nullptr, &source));
+
+    DxcBuffer buffer{};
+    buffer.Ptr = source->GetBufferPointer();
+    buffer.Size = source->GetBufferSize();
+    buffer.Encoding = DXC_CP_ACP;
+
+    LPCWSTR args[] = {L"-T", L"vs_6_5", L"-E", L"VSMain"};
+    if (shaderType == RageShaderType::Fragment)
     {
-        Locator::getLogger()->error("ReadFileContents: file not found - {}", path);
-        throw std::exception(("shader file not found: " + path).c_str());
+        args[1] = L"ps_6_5";
+        args[3] = L"PSMain";
     }
 
-    std::ostringstream stream;
-    stream << file.rdbuf();
-    return stream.str();
-}
+    ComPtr<IDxcResult> result;
+    ThrowIfFailed(m_ShaderCompiler->Compile(&buffer, args, _countof(args), nullptr, IID_PPV_ARGS(&result)));
 
-ComPtr<ID3DBlob> CompileShader(const std::string &contents, const std::string &entrypoint,
-                               const std::string &targetProfile)
-{
-    ComPtr<ID3DBlob> errorBlob;
-    ComPtr<ID3DBlob> shaderBlob;
+    ComPtr<IDxcBlob> shader;
+    ThrowIfFailed(result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shader), nullptr));
 
-    UINT shaderCompileFlags = 0; // D3DCOMPILE_ENABLE_STRICTNESS maybe?
-#if defined(DEBUG) || defined(_DEBUG)
-    shaderCompileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-    auto hr = D3DCompile(contents.c_str(), contents.size(), "", nullptr, nullptr, entrypoint.c_str(),
-                         targetProfile.c_str(), shaderCompileFlags, 0, &shaderBlob, &errorBlob);
-    if (FAILED(hr) && errorBlob)
-    {
-        std::string message = (char *)errorBlob->GetBufferPointer();
-        Locator::getLogger()->error("Failed to compile shader ({}) - {}", targetProfile, message);
-    }
-    ThrowIfFailed(hr);
-
-    return shaderBlob;
+    return shader;
 }
 
 void RendererDX12::LoadAssets(const VideoModeParams &p)
@@ -219,10 +214,8 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         // TODO: switching or SPIR-V or something later
         std::string shaderPath = FILEMAN->ResolvePath("Data/Shaders/HLSL/shaders.hlsl").substr(1);
 
-        std::string shaderContents = ReadFileContents(shaderPath);
-
-        ComPtr<ID3DBlob> vertexShader = CompileShader(shaderContents, "VSMain", "vs_5_0");
-        ComPtr<ID3DBlob> pixelShader = CompileShader(shaderContents, "PSMain", "ps_5_0");
+        ComPtr<IDxcBlob> vertexShader = CompileShader(shaderPath, RageShaderType::Vertex);
+        ComPtr<IDxcBlob> pixelShader = CompileShader(shaderPath, RageShaderType::Fragment);
 
         constexpr D3D12_INPUT_ELEMENT_DESC spriteVertexLayout[] = {
             {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(RageSpriteVertex, p),
@@ -239,8 +232,8 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.pRootSignature = m_RootSignature.Get();
         psoDesc.InputLayout = {spriteVertexLayout, layoutElementCount};
-        psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
-        psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
+        psoDesc.VS = {reinterpret_cast<BYTE *>(vertexShader->GetBufferPointer()), vertexShader->GetBufferSize()};
+        psoDesc.PS = {reinterpret_cast<BYTE *>(pixelShader->GetBufferPointer()), pixelShader->GetBufferSize()};
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
@@ -277,8 +270,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
 
         auto properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
         auto buffer = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-		m_VertexBuffer = CreateResource(
-		  buffer, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
+        m_VertexBuffer = CreateResource(buffer, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
 
         UINT8 *pVertexDataBegin;
         CD3DX12_RANGE readRange(0, 0);
@@ -294,9 +286,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     {
         auto bufferProps = CD3DX12_RESOURCE_DESC::Buffer(
             Display::Display::MaxTextureSize * Display::Display::MaxTextureSize * Display::Display::TexturePixelSize);
-		m_TextureUploadHeap = CreateResource(bufferProps,
-											 D3D12_HEAP_TYPE_UPLOAD,
-											 D3D12_RESOURCE_STATE_GENERIC_READ);
+        m_TextureUploadHeap = CreateResource(bufferProps, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
     }
 
     {
@@ -357,7 +347,7 @@ ComPtr<ID3D12Resource> RendererDX12::CreateResource(const D3D12_RESOURCE_DESC &r
     ComPtr<D3D12MA::Allocation> allocation;
     ThrowIfFailed(m_Allocator->CreateResource(&allocationDesc, &resourceDesc, initialResourceState, NULL, &allocation,
                                               IID_NULL, NULL));
-	ComPtr<ID3D12Resource> resource = allocation->GetResource();
+    ComPtr<ID3D12Resource> resource = allocation->GetResource();
     return resource;
 }
 
