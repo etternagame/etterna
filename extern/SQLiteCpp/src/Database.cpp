@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   Management of a SQLite Database Connection.
  *
- * Copyright (c) 2012-2020 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2024 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -23,19 +23,28 @@
 #define SQLITE_DETERMINISTIC 0x800
 #endif // SQLITE_DETERMINISTIC
 
-
 namespace SQLite
 {
 
-const int   OPEN_READONLY   = SQLITE_OPEN_READONLY;
-const int   OPEN_READWRITE  = SQLITE_OPEN_READWRITE;
-const int   OPEN_CREATE     = SQLITE_OPEN_CREATE;
-const int   OPEN_URI        = SQLITE_OPEN_URI;
+const int   OK                = SQLITE_OK;
+const int   OPEN_READONLY     = SQLITE_OPEN_READONLY;
+const int   OPEN_READWRITE    = SQLITE_OPEN_READWRITE;
+const int   OPEN_CREATE       = SQLITE_OPEN_CREATE;
+const int   OPEN_URI          = SQLITE_OPEN_URI;
+const int   OPEN_MEMORY       = SQLITE_OPEN_MEMORY;
+const int   OPEN_NOMUTEX      = SQLITE_OPEN_NOMUTEX;
+const int   OPEN_FULLMUTEX    = SQLITE_OPEN_FULLMUTEX;
+const int   OPEN_SHAREDCACHE  = SQLITE_OPEN_SHAREDCACHE;
+const int   OPEN_PRIVATECACHE = SQLITE_OPEN_PRIVATECACHE;
+// check if sqlite version is >= 3.31.0 and SQLITE_OPEN_NOFOLLOW is defined
+#if SQLITE_VERSION_NUMBER >= 3031000 && defined(SQLITE_OPEN_NOFOLLOW)
+const int   OPEN_NOFOLLOW     = SQLITE_OPEN_NOFOLLOW;
+#else
+const int   OPEN_NOFOLLOW     = 0;
+#endif
 
-const int   OK              = SQLITE_OK;
-
-const char* VERSION         = SQLITE_VERSION;
-const int   VERSION_NUMBER  = SQLITE_VERSION_NUMBER;
+const char* const VERSION        = SQLITE_VERSION;
+const int         VERSION_NUMBER = SQLITE_VERSION_NUMBER;
 
 // Return SQLite version string using runtime call to the compiled library
 const char* getLibVersion() noexcept
@@ -83,19 +92,7 @@ void Database::Deleter::operator()(sqlite3* apSQLite)
     SQLITECPP_ASSERT(SQLITE_OK == ret, "database is locked");  // See SQLITECPP_ENABLE_ASSERT_HANDLER
 }
 
-/**
- * @brief Set a busy handler that sleeps for a specified amount of time when a table is locked.
- *
- *  This is useful in multithreaded program to handle case where a table is locked for writting by a thread.
- *  Any other thread cannot access the table and will receive a SQLITE_BUSY error:
- *  setting a timeout will wait and retry up to the time specified before returning this SQLITE_BUSY error.
- *  Reading the value of timeout for current connection can be done with SQL query "PRAGMA busy_timeout;".
- *  Default busy timeout is 0ms.
- *
- * @param[in] aBusyTimeoutMs    Amount of milliseconds to wait before returning SQLITE_BUSY
- *
- * @throw SQLite::Exception in case of error
- */
+// Set a busy handler that sleeps for a specified amount of time when a table is locked.
 void Database::setBusyTimeout(const int aBusyTimeoutMs)
 {
     const int ret = sqlite3_busy_timeout(getHandle(), aBusyTimeoutMs);
@@ -103,13 +100,19 @@ void Database::setBusyTimeout(const int aBusyTimeoutMs)
 }
 
 // Shortcut to execute one or multiple SQL statements without results (UPDATE, INSERT, ALTER, COMMIT, CREATE...).
+// Return the number of changes.
 int Database::exec(const char* apQueries)
 {
-    const int ret = sqlite3_exec(getHandle(), apQueries, nullptr, nullptr, nullptr);
+    const int ret = tryExec(apQueries);
     check(ret);
 
     // Return the number of rows modified by those SQL statements (INSERT, UPDATE or DELETE only)
     return sqlite3_changes(getHandle());
+}
+
+int Database::tryExec(const char* apQueries) noexcept
+{
+    return sqlite3_exec(getHandle(), apQueries, nullptr, nullptr, nullptr);
 }
 
 // Shortcut to execute a one step query and fetch the first column of the result.
@@ -126,7 +129,7 @@ Column Database::execAndGet(const char* apQuery)
 }
 
 // Shortcut to test if a table exists.
-bool Database::tableExists(const char* apTableName)
+bool Database::tableExists(const char* apTableName) const
 {
     Statement query(*this, "SELECT count(*) FROM sqlite_master WHERE type='table' AND name=?");
     query.bind(1, apTableName);
@@ -135,9 +138,15 @@ bool Database::tableExists(const char* apTableName)
 }
 
 // Get the rowid of the most recent successful INSERT into the database from the current connection.
-long long Database::getLastInsertRowid() const noexcept
+int64_t Database::getLastInsertRowid() const noexcept
 {
     return sqlite3_last_insert_rowid(getHandle());
+}
+
+// Get number of rows modified by last INSERT, UPDATE or DELETE statement (not DROP table).
+int Database::getChanges() const noexcept
+{
+    return sqlite3_changes(getHandle());
 }
 
 // Get total number of rows modified by all INSERT, UPDATE or DELETE statement since connection.
@@ -309,7 +318,8 @@ Header Database::getHeaderInfo(const std::string& aFilename)
     }
 
     // If the "magic string" can't be found then header is invalid, corrupt or unreadable
-    strncpy(pHeaderStr, pBuf, 16);
+    memcpy(pHeaderStr, pBuf, 16);
+    pHeaderStr[15] = '\0';
     if (strncmp(pHeaderStr, "SQLite format 3", 15) != 0)
     {
         throw SQLite::Exception("Invalid or encrypted SQLite header in file " + aFilename);
@@ -416,8 +426,8 @@ void Database::backup(const char* apFilename, BackupType aType)
     Database otherDatabase(apFilename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
 
     // For a 'Save' operation, data is copied from the current Database to the other. A 'Load' is the reverse.
-    Database& src = (aType == Save ? *this : otherDatabase);
-    Database& dest = (aType == Save ? otherDatabase : *this);
+    Database& src = (aType == BackupType::Save ? *this : otherDatabase);
+    Database& dest = (aType == BackupType::Save ? otherDatabase : *this);
 
     // Set up the backup procedure to copy between the "main" databases of each connection
     Backup bkp(dest, src);

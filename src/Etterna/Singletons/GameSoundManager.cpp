@@ -287,6 +287,8 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		p.m_fFadeOutSeconds = ToPlay.fFadeOutLengthSeconds;
 		p.m_StartTime = when;
 		p.m_bAccurateSync = ToPlay.bAccurateSync;
+		if (ToPlay.bApplyMusicRate)
+			p.m_fSpeed = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
 		if (ToPlay.bForceLoop)
 			p.StopMode = RageSoundParams::M_LOOP;
 		NewMusic->m_Music->SetParams(p);

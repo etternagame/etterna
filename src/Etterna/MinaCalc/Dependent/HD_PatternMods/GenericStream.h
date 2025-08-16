@@ -29,12 +29,6 @@ struct GStreamMod
 		{ "max_mod", &max_mod },
 		{ "prop_buffer", &prop_buffer },
 		{ "prop_scaler", &prop_scaler },
-
-		{ "jack_pool", &jack_pool },
-		{ "jack_comp_min", &jack_comp_min },
-		{ "jack_comp_max", &jack_comp_max },
-
-		{ "vibro_flag", &vibro_flag },
 	};
 #pragma endregion params and param map
 
@@ -54,41 +48,27 @@ struct GStreamMod
 
 	}
 
-	auto operator()(const metaItvInfo& mitvi) -> float
+	auto operator()(const metaItvGenericHandInfo& mitvghi) -> float
 	{
-		const auto& itvi = mitvi._itvi;
-
-		// 1 tap is by definition a single tap
-		if (itvi.total_taps < 2) {
+		// it needs more taps to bracket
+		if (mitvghi.total_taps < 2) {
 			return neutral;
 		}
 
-		if (itvi.taps_by_size.at(_tap_size) == 0) {
+		// it's all chords
+		if (mitvghi.taps_by_size.at(_tap_size) == 0) {
 			return min_mod;
 		}
 
 		prop_component =
-		  static_cast<float>(itvi.taps_by_size.at(_tap_size) + prop_buffer) /
-		  static_cast<float>(static_cast<float>(itvi.total_taps) -
+		  static_cast<float>(mitvghi.taps_by_size.at(_tap_size) + prop_buffer) /
+		  static_cast<float>(static_cast<float>(mitvghi.total_taps) -
 							 prop_buffer) *
 		  prop_scaler;
 
-		// allow for a mini/triple jack in streams.. but not more than that
-		jack_component = std::clamp(
-		  jack_pool - mitvi.actual_jacks, jack_comp_min, jack_comp_max);
-		pmod = fastsqrt(prop_component * jack_component);
+		pmod = fastsqrt(prop_component);
 
 		pmod = std::clamp(base + pmod, min_mod, max_mod);
-
-		if (mitvi.basically_vibro) {
-			if (mitvi.num_var == 1) {
-				pmod *= 0.5F * vibro_flag;
-			} else if (mitvi.num_var == 2) {
-				pmod *= 0.9F * vibro_flag;
-			} else if (mitvi.num_var == 3) {
-				pmod *= 0.95F * vibro_flag;
-			}
-		}
 
 		// actual mod
 		return pmod;

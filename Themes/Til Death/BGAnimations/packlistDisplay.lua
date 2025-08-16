@@ -38,7 +38,7 @@ local translated_info = {
 
 -- initialize the base pack search
 local packlist = PackList:new()
-packlist:FilterAndSearch("", {}, numpacks)
+packlist:FilterAndSearch("", {}, true, numpacks)
 
 local o = Def.ActorFrame {
 	Name = "PacklistDisplay",
@@ -63,7 +63,7 @@ local o = Def.ActorFrame {
 		self:queuecommand("PackTableRefresh")
 	end,
 	InvokePackSearchMessageCommand = function(self, params)
-		packlist:FilterAndSearch(params.name, params.tags, numpacks)
+		packlist:FilterAndSearch(params.name, params.tags, params.tagsMatchAny, numpacks)
 		self:queuecommand("Update")
 	end,
 	PackTableRefreshCommand = function(self)
@@ -312,8 +312,7 @@ local function makePackDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = DLMAN:GetHomePage() .. "/packs/" .. packinfo:GetID() -- not correct value for site id
-					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
+					DLMAN:ShowPackPage(packinfo:GetID())
 				end
 			end
 		},
@@ -387,7 +386,7 @@ local function makePackDisplay(i)
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
 					if packinfo:GetSize() > 2000000000 then
-						GAMESTATE:ApplyGameCommand("urlnoexit," .. packinfo:GetURL())
+						packinfo:DownloadExternally()
 					else
 						packinfo:DownloadAndInstall(false)
 					end

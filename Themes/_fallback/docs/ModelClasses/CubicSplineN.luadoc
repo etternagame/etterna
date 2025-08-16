@@ -1,2 +1,4 @@
 --- Cubic Spline class
+--
+-- This class inherits no methods from superclasses.
 -- @classmod CubicSplineN

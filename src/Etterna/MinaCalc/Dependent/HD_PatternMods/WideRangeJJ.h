@@ -206,7 +206,7 @@ struct WideRangeJJMod
 			// ideally take less than 5 intervals to drift
 			pmod = fastsqrt(pmod + std::clamp(calming_comp, 0.F, 1.F));
 		} else {
-			pmod = taps_in_window / problems_in_window * 0.75;
+			pmod = taps_in_window / problems_in_window * 0.75F;
 		}
 
 		pmod = std::clamp(pmod, min_mod, max_mod);

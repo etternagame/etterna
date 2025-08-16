@@ -3,7 +3,7 @@
  * @ingroup tests
  * @brief   Test of a SQLiteCpp Database.
  *
- * Copyright (c) 2012-2020 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2024 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -14,6 +14,10 @@
 #include <sqlite3.h> // for SQLITE_ERROR and SQLITE_VERSION_NUMBER
 
 #include <gtest/gtest.h>
+
+#ifdef SQLITECPP_HAVE_STD_FILESYSTEM
+#include  <filesystem>
+#endif // c++17
 
 #include <cstdio>
 #include <fstream>
@@ -30,6 +34,7 @@ void assertion_failed(const char* apFile, const long apLine, const char* apFunc,
 }
 #endif
 
+#ifdef SQLITECPP_INTERNAL_SQLITE
 TEST(SQLiteCpp, version)
 {
     EXPECT_STREQ(SQLITE_VERSION,        SQLite::VERSION);
@@ -37,6 +42,7 @@ TEST(SQLiteCpp, version)
     EXPECT_STREQ(SQLITE_VERSION,        SQLite::getLibVersion());
     EXPECT_EQ   (SQLITE_VERSION_NUMBER, SQLite::getLibVersionNumber());
 }
+#endif
 
 TEST(Database, ctorExecCreateDropExist)
 {
@@ -46,8 +52,14 @@ TEST(Database, ctorExecCreateDropExist)
         std::string filename = "test.db3";
         EXPECT_THROW(SQLite::Database not_found(filename), SQLite::Exception);
 
-        // Create a new database
-        SQLite::Database db("test.db3", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+        // Create a new database using a string or a std::filesystem::path if using c++17 and a
+        // compatible compiler
+        #ifdef SQLITECPP_HAVE_STD_FILESYSTEM
+            SQLite::Database db(std::filesystem::path("test.db3"), SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+        #else
+            SQLite::Database db("test.db3", SQLite::OPEN_READWRITE|SQLite::OPEN_CREATE);
+        #endif // have std::filesystem
+
         EXPECT_STREQ("test.db3", db.getFilename().c_str());
         EXPECT_FALSE(db.tableExists("test"));
         EXPECT_FALSE(db.tableExists(std::string("test")));
@@ -202,32 +214,38 @@ TEST(Database, exec)
     // NOTE: here exec() returns 0 only because it is the first statements since database connexion,
     //       but its return is an undefined value for "CREATE TABLE" statements.
     db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
+    EXPECT_EQ(0, db.getChanges());
     EXPECT_EQ(0, db.getLastInsertRowid());
     EXPECT_EQ(0, db.getTotalChanges());
 
     // first row : insert the "first" text value into new row of id 1
     EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\")"));
+    EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(1, db.getLastInsertRowid());
     EXPECT_EQ(1, db.getTotalChanges());
 
     // second row : insert the "second" text value into new row of id 2
     EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"second\")"));
+    EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(2, db.getLastInsertRowid());
     EXPECT_EQ(2, db.getTotalChanges());
 
     // third row : insert the "third" text value into new row of id 3
     const std::string insert("INSERT INTO test VALUES (NULL, \"third\")");
     EXPECT_EQ(1, db.exec(insert));
+    EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(3, db.getLastInsertRowid());
     EXPECT_EQ(3, db.getTotalChanges());
 
     // update the second row : update text value to "second_updated"
     EXPECT_EQ(1, db.exec("UPDATE test SET value=\"second-updated\" WHERE id='2'"));
+    EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(3, db.getLastInsertRowid()); // last inserted row ID is still 3
     EXPECT_EQ(4, db.getTotalChanges());
 
     // delete the third row
     EXPECT_EQ(1, db.exec("DELETE FROM test WHERE id='3'"));
+    EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(3, db.getLastInsertRowid());
     EXPECT_EQ(5, db.getTotalChanges());
 
@@ -244,12 +262,80 @@ TEST(Database, exec)
 
     // insert two rows with two *different* statements => returns only 1, ie. for the second INSERT statement
     EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\");INSERT INTO test VALUES (NULL, \"second\");"));
+    EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(2, db.getLastInsertRowid());
     EXPECT_EQ(7, db.getTotalChanges());
 
 #if (SQLITE_VERSION_NUMBER >= 3007011)
     // insert two rows with only one statement (starting with SQLite 3.7.11) => returns 2
     EXPECT_EQ(2, db.exec("INSERT INTO test VALUES (NULL, \"third\"), (NULL, \"fourth\");"));
+    EXPECT_EQ(2, db.getChanges());
+    EXPECT_EQ(4, db.getLastInsertRowid());
+    EXPECT_EQ(9, db.getTotalChanges());
+#endif
+}
+
+TEST(Database, tryExec)
+{
+    // Create a new database
+    SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
+
+    // Create a new table with an explicit "id" column aliasing the underlying rowid
+    EXPECT_EQ(SQLite::OK, db.tryExec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)"));
+    EXPECT_EQ(0, db.getChanges());
+    EXPECT_EQ(0, db.getLastInsertRowid());
+    EXPECT_EQ(0, db.getTotalChanges());
+
+    // first row : insert the "first" text value into new row of id 1
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"first\")"));
+    EXPECT_EQ(1, db.getChanges());
+    EXPECT_EQ(1, db.getLastInsertRowid());
+    EXPECT_EQ(1, db.getTotalChanges());
+
+    // second row : insert the "second" text value into new row of id 2
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"second\")"));
+    EXPECT_EQ(1, db.getChanges());
+    EXPECT_EQ(2, db.getLastInsertRowid());
+    EXPECT_EQ(2, db.getTotalChanges());
+
+    // third row : insert the "third" text value into new row of id 3
+    const std::string insert("INSERT INTO test VALUES (NULL, \"third\")");
+    EXPECT_EQ(SQLite::OK, db.tryExec(insert));
+    EXPECT_EQ(1, db.getChanges());
+    EXPECT_EQ(3, db.getLastInsertRowid());
+    EXPECT_EQ(3, db.getTotalChanges());
+
+    // update the second row : update text value to "second_updated"
+    EXPECT_EQ(SQLite::OK, db.tryExec("UPDATE test SET value=\"second-updated\" WHERE id='2'"));
+    EXPECT_EQ(1, db.getChanges());
+    EXPECT_EQ(3, db.getLastInsertRowid()); // last inserted row ID is still 3
+    EXPECT_EQ(4, db.getTotalChanges());
+
+    // delete the third row
+    EXPECT_EQ(SQLite::OK, db.tryExec("DELETE FROM test WHERE id='3'"));
+    EXPECT_EQ(1, db.getChanges());
+    EXPECT_EQ(3, db.getLastInsertRowid());
+    EXPECT_EQ(5, db.getTotalChanges());
+
+    // drop the whole table, ie the two remaining columns
+    EXPECT_EQ(SQLite::OK, db.tryExec("DROP TABLE IF EXISTS test"));
+    EXPECT_FALSE(db.tableExists("test"));
+    EXPECT_EQ(5, db.getTotalChanges());
+
+    // Re-Create the same table
+    EXPECT_EQ(SQLite::OK, db.tryExec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)"));
+    EXPECT_EQ(5, db.getTotalChanges());
+
+    // insert two rows with two *different* statements => only 1 change, ie. for the second INSERT statement
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"first\");INSERT INTO test VALUES (NULL, \"second\");"));
+    EXPECT_EQ(1, db.getChanges());
+    EXPECT_EQ(2, db.getLastInsertRowid());
+    EXPECT_EQ(7, db.getTotalChanges());
+
+#if (SQLITE_VERSION_NUMBER >= 3007011)
+    // insert two rows with only one statement (starting with SQLite 3.7.11)
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"third\"), (NULL, \"fourth\");"));
+    EXPECT_EQ(2, db.getChanges());
     EXPECT_EQ(4, db.getLastInsertRowid());
     EXPECT_EQ(9, db.getTotalChanges());
 #endif
@@ -312,6 +398,48 @@ TEST(Database, execException)
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
     EXPECT_STREQ("table test has 3 columns but 4 values were supplied", db.getErrorMsg());
+}
+
+TEST(Database, tryExecError)
+{
+    // Create a new database
+    SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
+    EXPECT_EQ(SQLite::OK, db.getErrorCode());
+    EXPECT_EQ(SQLite::OK, db.getExtendedErrorCode());
+
+    // Insert into nonexistent table: "no such table"
+    EXPECT_EQ(SQLITE_ERROR, db.tryExec("INSERT INTO test VALUES (NULL, \"first\",  3)"));
+    EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
+    EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
+    EXPECT_STREQ("no such table: test", db.getErrorMsg());
+
+    // Create a new table
+    EXPECT_EQ(SQLite::OK, db.tryExec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT, weight INTEGER)"));
+    EXPECT_EQ(SQLite::OK, db.getErrorCode());
+    EXPECT_EQ(SQLite::OK, db.getExtendedErrorCode());
+    EXPECT_STREQ("not an error", db.getErrorMsg());
+
+    // Add a row with fewer values than columns in the table: "table test has 3 columns but 2 values were supplied"
+    EXPECT_EQ(SQLITE_ERROR, db.tryExec("INSERT INTO test VALUES (NULL,  3)"));
+    EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
+    EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
+    EXPECT_STREQ("table test has 3 columns but 2 values were supplied", db.getErrorMsg());
+
+    // Add a row with more values than columns in the table: "table test has 3 columns but 4 values were supplied"
+    EXPECT_EQ(SQLITE_ERROR, db.tryExec("INSERT INTO test VALUES (NULL, \"first\", 123, 0.123)"));
+    EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
+    EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
+    EXPECT_STREQ("table test has 3 columns but 4 values were supplied", db.getErrorMsg());
+
+    // Create a first row
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"first\",  3)"));
+    EXPECT_EQ(1, db.getLastInsertRowid());
+
+    // Try to insert a new row with the same PRIMARY KEY: "UNIQUE constraint failed: test.id"
+    EXPECT_EQ(SQLITE_CONSTRAINT, db.tryExec("INSERT INTO test VALUES (1, \"impossible\", 456)"));
+    EXPECT_EQ(SQLITE_CONSTRAINT, db.getErrorCode());
+    EXPECT_EQ(SQLITE_CONSTRAINT_PRIMARYKEY, db.getExtendedErrorCode());
+    EXPECT_STREQ("UNIQUE constraint failed: test.id", db.getErrorMsg());
 }
 
 // From https://stackoverflow.com/a/8283265/1163698 How can I create a user-defined function in SQLite?

@@ -1114,6 +1114,12 @@ SMLoader::LoadNoteDataFromSimfile(const std::string& path, Steps& out)
 					difficulty = "Challenge";
 			}
 
+			// all couples are loaded as doubles
+			// (this can break files with couples and doubles at the same time)
+			if (CompareNoCase(stepsType, "dance-couple") == 0) {
+				stepsType = "dance-double";
+			}
+
 			if (!(out.m_StepsType == GAMEMAN->StringToStepsType(stepsType) &&
 				  out.GetDescription() == description &&
 				  (out.GetDifficulty() == StringToDifficulty(difficulty) ||

@@ -84,14 +84,14 @@ local buttonHoverAlpha = 0.6
 local function bundleList()
     local bundles = {
         {
-            Name = "Novice",
+            Name = "Beginner",
             Color = COLORS:getColor("downloader", "Bundle1Easiest"),
-            Description = translations["NoviceDescription"],
+            Description = translations["BeginnerDescription"],
         },
         {
-            Name = "Beginner",
+            Name = "Novice",
             Color = COLORS:getColor("downloader", "Bundle2Easy"),
-            Description = translations["BeginnerDescription"],
+            Description = translations["NoviceDescription"],
         },
         {
             Name = "Intermediate",

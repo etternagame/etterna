@@ -350,8 +350,7 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				local userpage = "urlnoexit," .. DLMAN:GetHomePage() .. "/users/" .. DLMAN:GetUsername()
-				GAMESTATE:ApplyGameCommand(userpage)
+				DLMAN:ShowUserPage(DLMAN:GetUsername())
 			end
 		end,
 		OnlineUpdateMessageCommand = function(self)
@@ -470,8 +469,7 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" then
-				local tag = "urlnoexit,https://github.com/etternagame/etterna/releases/tag/v" .. GAMESTATE:GetEtternaVersion()
-				GAMESTATE:ApplyGameCommand(tag)
+				DLMAN:ShowProjectReleases()
 			end
 		end
 	},

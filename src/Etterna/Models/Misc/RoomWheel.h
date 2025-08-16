@@ -133,12 +133,12 @@ class RoomWheel : public WheelBase
 	// Lua
 	void PushSelf(lua_State* L) override;
 
+	std::vector<RoomData>* allRooms;
+	std::vector<RoomData> roomsInWheel;
+
   private:
 	WheelItemBase* MakeItem() override;
 	int m_offset;
-
-	std::vector<RoomData>* allRooms;
-	std::vector<RoomData> roomsInWheel;
 
 	RoomSearch currentSearch;
 	bool searching;

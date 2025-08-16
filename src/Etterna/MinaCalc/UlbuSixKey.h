@@ -61,12 +61,11 @@ struct TheSixEyedBazoinkazoink : public Bazoinkazoink
 		return basescalers;
 	}
 
-	void load_calc_params_from_disk(bool bForce = false) const override {
-
+#if !defined(STANDALONE_CALC) && !defined(PHPCALC)
+	const std::string get_calc_param_xml() const override
+	{
+		return "Save/CalcParams_6k.xml";
 	}
-
-	void write_params_to_disk() const override {
-
-	}
+#endif
 
 };

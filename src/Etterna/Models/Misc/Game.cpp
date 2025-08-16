@@ -1,4 +1,4 @@
-﻿#include "Etterna/Globals/global.h"
+#include "Etterna/Globals/global.h"
 #include "Game.h"
 
 TapNoteScore
@@ -38,7 +38,7 @@ static const Game::PerButtonInfo g_CommonButtonInfo[] = {
 const Game::PerButtonInfo*
 Game::GetPerButtonInfo(GameButton gb) const
 {
-	COMPILE_ASSERT(GAME_BUTTON_NEXT == ARRAYLEN(g_CommonButtonInfo));
+	static_assert(GAME_BUTTON_NEXT == ARRAYLEN(g_CommonButtonInfo));
 	if (gb < GAME_BUTTON_NEXT)
 		return &g_CommonButtonInfo[gb];
 

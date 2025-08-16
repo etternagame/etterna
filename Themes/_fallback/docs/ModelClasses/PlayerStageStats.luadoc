@@ -1,2 +1,4 @@
 --- Player stats for current song
+--
+-- This class inherits no methods from superclasses.
 -- @classmod PlayerStageStats

@@ -182,6 +182,7 @@ class PrefsManager
 	Preference<bool> EnablePitchRates;
 	Preference<bool> LiftsOnOsuHolds;
 	Preference<bool> m_bEasterEggs;
+	Preference<bool> m_bForceSnaps;
 	Preference<bool> m_AllowMultipleToasties;
 	Preference<bool> m_bUseMidGrades;
 
@@ -226,8 +227,6 @@ class PrefsManager
 	Preference<bool> m_show_theme_errors;
 	Preference<bool> m_bAlwaysLoadCalcParams;
 	Preference<int> m_UnfocusedSleepMillisecs;
-
-	Preference<float> m_fScrollDebounceTime;
 
 	// logging level 0 - 5
 	// 0 = TRACE (all the logging)

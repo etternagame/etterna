@@ -232,6 +232,16 @@ ScreenPrompt::MenuBack(const InputEventPlus& input)
 }
 
 void
+ScreenPrompt::EndScreen()
+{
+	if (s_bMustResetInputRedirAtClose) {
+		s_bMustResetInputRedirAtClose = false;
+		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
+	}
+	Screen::EndScreen();
+}
+
+void
 ScreenPrompt::End(bool bCancelled)
 {
 	switch (m_Answer) {
@@ -267,10 +277,6 @@ ScreenPrompt::End(bool bCancelled)
 
 	s_LastAnswer = bCancelled ? ANSWER_CANCEL : m_Answer;
 	s_bCancelledLast = bCancelled;
-	if (s_bMustResetInputRedirAtClose) {
-		s_bMustResetInputRedirAtClose = false;
-		SCREENMAN->set_input_redirected(PLAYER_1, s_bResetInputRedirTo);
-	}
 }
 
 void

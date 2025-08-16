@@ -650,6 +650,11 @@ local function input(event)
 		if event.button == "EffectDown" then
 			loadAssetType(curType - 1)
 		end
+
+		local char = inputToCharacter(event)
+		if char ~= nil and tonumber(char) ~= nil and tonumber(char) >= 1 and tonumber(char) <= 3 then
+			loadAssetType(tonumber(char))
+		end
 	end
 	if event.type == "InputEventType_FirstPress" then
 		if event.DeviceInput.button == "DeviceButton_right mouse button" then

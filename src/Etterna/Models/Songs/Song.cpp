@@ -2517,6 +2517,11 @@ class LunaSong : public Luna<Song>
 		lua_pushstring(L, d.GetString().c_str());
 		return 1;
 	}
+	static int OpenSongFolder(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, SONGMAN->OpenSongFolder(p));
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2588,6 +2593,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetHighestGrade);
 		ADD_METHOD(GetDateTimeAdded);
 		ADD_METHOD(GetDateAdded);
+		ADD_METHOD(OpenSongFolder);
 	}
 };
 

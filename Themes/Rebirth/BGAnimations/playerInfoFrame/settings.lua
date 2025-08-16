@@ -437,6 +437,8 @@ local translations = {
     StartGiveUpExplanation = THEME:GetString("Settings", "StartGiveUpExplanation"),
     Debounce = THEME:GetString("Settings", "Debounce"),
     DebounceExplanation = THEME:GetString("Settings", "DebounceExplanation"),
+    ScrollDebounce = THEME:GetString("Settings", "ScrollDebounce"),
+    ScrollDebounceExplanation = THEME:GetString("Settings", "ScrollDebounceExplanation"),
     TestInput = THEME:GetString("Settings", "TestInput"),
     TestInputExplanation = THEME:GetString("Settings", "TestInputExplanation"),
     TestInputButton = THEME:GetString("Settings", "TestInputButton"),
@@ -4035,6 +4037,7 @@ local function rightFrame()
                     return notShit.round(PREFSMAN:GetPreference("VisualDelaySeconds"), 3) .. "s"
                 end,
             },
+            --[[ -- people dont know any better i guess
             {
                 Name = "Game Mode",
                 DisplayName = translations["GameMode"],
@@ -4071,6 +4074,7 @@ local function rightFrame()
                     return o
                 end,
             },
+            --]]
             {
                 Name = "Fail Type",
                 DisplayName = translations["FailType"],
@@ -6193,9 +6197,48 @@ local function rightFrame()
                 DisplayName = translations["TipType"],
                 Type = "SingleChoice",
                 Explanation = translations["TipTypeExplanation"],
-                Choices = choiceSkeleton("Tips", "Quotes"),
-                Directions = optionDataToggleDirectionsFUNC("tipType", 1, 2),
-                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("tipType", 1),
+                Choices = {
+                    {
+                        Name = "Tips",
+                        DisplayName = "Tips",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(1)
+                        end
+                    },
+                    {
+                        Name = "Quotes",
+                        DisplayName = "Quotes",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(2)
+                        end
+                    },
+                    {
+                        Name = "GradeCounter",
+                        DisplayName = "Grade Counter",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(3)
+                        end
+                    },
+                    {
+                        Name = "Nothing",
+                        DisplayName = "Nothing",
+                        ChosenFunction = function()
+                            optionData["tipType"].set(4)
+                        end
+                    }
+                },
+                ChoiceIndexGetter = function(self)
+                    v = optionData["tipType"].get()
+                    if v == 1 then
+                        return 1
+                    elseif v == 2 then
+                        return 2
+                    elseif v == 3 then
+                        return 3
+                    else
+                        return 4
+                    end
+                end,
             },
             {
                 Name = "Set BG Fit Mode",
@@ -6372,6 +6415,16 @@ local function rightFrame()
                 Directions = preferenceIncrementDecrementDirections("InputDebounceTime", 0, 0.2, 0.001),
                 ChoiceIndexGetter = function()
                     return notShit.round(PREFSMAN:GetPreference("InputDebounceTime"), 3) .. "s"
+                end,
+            },
+            {
+                Name = "Scroll Debounce Time",
+                DisplayName = translations["ScrollDebounce"],
+                Type = "SingleChoice",
+                Explanation = translations["ScrollDebounceExplanation"],
+                Directions = preferenceIncrementDecrementDirections("ScrollDebounceTime", 0, 0.2, 0.001),
+                ChoiceIndexGetter = function()
+                    return notShit.round(PREFSMAN:GetPreference("ScrollDebounceTime"), 3) .. "s"
                 end,
             },
             {

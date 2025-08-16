@@ -823,11 +823,11 @@ class LunaActorFrame : public Luna<ActorFrame>
 		// this one is tricky, we need to get an Actor from Lua.
 		auto* pActor = ActorUtil::MakeActor(SArg(1));
 		if (pActor == nullptr) {
-			lua_pushboolean(L, 0);
+			lua_pushnil(L);
 			return 1;
 		}
 		p->AddChild(pActor);
-		lua_pushboolean(L, 1);
+		pActor->PushSelf(L);
 		return 1;
 	}
 

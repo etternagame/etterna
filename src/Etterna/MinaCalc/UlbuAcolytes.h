@@ -5,7 +5,6 @@
 
 /* PRAISE ULBU FOR IT IS ITS GLORY THAT GIVES OUR LIVES MEANING */
 
-static const std::string calc_params_xml = "Save/calc params.xml";
 constexpr float interval_span = 0.5F;
 
 /// smoothing function to reduce spikes and holes in a given vector
@@ -46,7 +45,7 @@ MSSmooth(std::vector<float>& input,
 
 static const std::vector<CalcPatternMod> agnostic_mods = {
 	Stream,	 JS,	   HS,		  CJ,	   CJDensity,	 HSDensity,
-	FlamJam, TheThing, TheThing2, GStream, GChordStream, GBracketing,
+	FlamJam, TheThing, TheThing2, GChordStream,
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
@@ -57,7 +56,7 @@ static const std::vector<CalcPatternMod> dependent_mods = {
 	WideRangeRoll, WideRangeJumptrill,
 	WideRangeJJ,   WideRangeAnchor,
 	RanMan,		   Minijack,
-	CJOHJump
+	CJOHJump, GStream, GBracketing,
 };
 
 struct PatternMods
@@ -167,14 +166,19 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 
 	// set up extra keycount information
 	const auto max_keycount_notes = keycount_to_bin(calc.keycount);
-	const auto left_hand_mask = left_mask(calc.keycount);
-	const auto right_hand_mask = right_mask(calc.keycount);
+	auto all_columns_without_middle = max_keycount_notes;
+	if (ignore_middle_column) {
+		all_columns_without_middle = mask_to_remove_middle_column(calc.keycount);
+	}
+	auto left_hand_mask = left_mask(calc.keycount) & all_columns_without_middle;
+	auto right_hand_mask = right_mask(calc.keycount) & all_columns_without_middle;
+
 	// left, right
 	calc.hand_col_masks = { left_hand_mask, right_hand_mask };
 	// all columns from left to rightmost
 	calc.col_masks.clear();
 	calc.col_masks.reserve(calc.keycount);
-	for (int i = 0; i < calc.keycount; i++) {
+	for (unsigned i = 0; i < calc.keycount; i++) {
 		calc.col_masks.push_back(1 << i);
 	}
 

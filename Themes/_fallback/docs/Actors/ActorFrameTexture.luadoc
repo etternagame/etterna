@@ -1,4 +1,8 @@
---- ActorFrameTexture (Inherits ActorFrame)
+--- ActorFrameTexture
+-- 
+-- This class inherits all methods from these classes:
+-- @{ActorFrame}
+-- @{Actor}
 -- @classmod ActorFrameTexture
 
 --[[--

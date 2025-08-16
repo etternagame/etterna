@@ -474,6 +474,33 @@ function renameProfileDialogue(profile, isNewProfile)
     )
 end
 
+-- convenience to control the create profile dialogue logic and input redir scope
+function createProfileDialogue()
+    local question = "NEW PROFILE\nPlease enter a profile name."
+    askForInputStringMaintainingInputRedirect(
+        question,
+        255,
+        false,
+        function(answer)
+            local new = PROFILEMAN:CreateDefaultProfile()
+            new:RenameProfile(answer)
+            MESSAGEMAN:Broadcast("ProfileCreated")
+        end,
+        function(answer)
+            local result = answer ~= nil and answer:gsub("^%s*(.-)%s*$", "%1") ~= "" and not answer:match("::") and answer:gsub("^%s*(.-)%s*$", "%1"):sub(-1) ~= ":"
+            if not result then
+                SCREENMAN:GetTopScreen():GetChild("Question"):settext(question .. "\nDo not leave this space blank. Do not use ':'\nTo exit, press Esc.")
+            end
+            return result, "Response invalid."
+        end,
+        function()
+            -- upon exit, do nothing
+            -- profile name is unchanged
+            MESSAGEMAN:Broadcast("ProfileRenamed")
+        end
+    )
+end
+
 -- convenience to control the rename dialogue logic and input redir scope
 function renamePlaylistDialogue(oldname)
     local question = "RENAME PLAYLIST\nPlease enter a new playlist name."

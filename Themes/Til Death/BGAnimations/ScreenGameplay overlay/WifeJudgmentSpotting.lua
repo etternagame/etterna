@@ -108,6 +108,7 @@ local translated_info = {
 	ErrorEarly = THEME:GetString("ScreenGameplay", "ErrorBarEarly"),
 	NPS = THEME:GetString("ChordDensityGraph", "NPS"),
 	BPM = THEME:GetString("ChordDensityGraph", "BPM"),
+	MustBePaused = THEME:GetString("ScreenGameplay", "MustBePaused"),
 }
 
 -- Screenwide params
@@ -759,23 +760,41 @@ local width = SCREEN_WIDTH / 2 - 100
 local height = 10
 local alpha = 0.7
 --==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--
-local replaySlider =
-	isReplay and
-	Widg.SliderBase {
-		width = width,
-		height = height,
-		min = GAMESTATE:GetCurrentSteps():GetFirstSecond(),
-		visible = true,
-		max = GAMESTATE:GetCurrentSteps():GetLastSecond(),
-		onInit = function(slider)
-			slider.actor:diffusealpha(0)
-		end,
-		-- Change to onValueChangeEnd if this
-		-- lags too much
-		onValueChange = function(val)
-			SCREENMAN:GetTopScreen():SetSongPosition(val)
-		end
-	} or
+local function bounds()
+    local stps = GAMESTATE:GetCurrentSteps()
+    return stps:GetFirstSecond(), stps:GetLastSecond()
+end
+local replaySlider = isReplay and
+	UIElements.QuadButton(1, 1) .. {
+        Name = "SliderButtonArea",
+        InitCommand = function(self)
+            self:diffusealpha(0.3)
+            self:zoomto(width, height)
+        end,
+        MouseHoldCommand = function(self, params)
+            if params.event ~= "DeviceButton_left mouse button" then return end
+
+            if not GAMESTATE:IsPaused() then
+                TOOLTIP:SetText(translated_info["MustBePaused"])
+                TOOLTIP:Show()
+            end
+
+            local localX = clamp(params.MouseX - self:GetTrueX() + width/2, 0, width)
+            local localY = clamp(params.MouseY, 0, height)
+
+            local lb, ub = bounds()
+            local percentX = localX / width
+
+            local posx = clamp(lb + (percentX * (ub - lb)), lb, ub)
+            SCREENMAN:GetTopScreen():SetSongPosition(posx)
+        end,
+        MouseReleaseCommand = function(self)
+            TOOLTIP:Hide()
+        end,
+        MouseUpCommand = function(self)
+            TOOLTIP:Hide()
+        end,
+    } or
 	Def.Actor {}
 local p =
 	Def.ActorFrame {

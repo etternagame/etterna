@@ -109,6 +109,12 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 		m_MusicWheel.Move(-1);
 		m_MusicWheel.Move(1);
 		m_MusicWheel.Move(0);
+
+		Message msg("NSMANSelectedSong");
+		msg.SetParam("start", start);
+		msg.SetParam("song", NSMAN->song);
+		msg.SetParam("steps", NSMAN->steps);
+		MESSAGEMAN->Broadcast(msg);
 		if (start) {
 			s->StartSelectedSong();
 			m_MusicWheel.Select();
@@ -229,27 +235,37 @@ ScreenNetSelectMusic::MenuStart(const InputEventPlus& input)
 	return SelectCurrent();
 }
 bool
-ScreenNetSelectMusic::SelectCurrent()
+ScreenNetSelectMusic::SelectCurrent(bool useWheel)
 {
+	if (useWheel) {
+		bool bResult = m_MusicWheel.Select();
 
-	bool bResult = m_MusicWheel.Select();
+		if (!bResult)
+			return true;
 
-	if (!bResult)
-		return true;
+		if (m_MusicWheel.GetSelectedType() != WheelItemDataType_Song)
+			return true;
+	}
 
-	if (m_MusicWheel.GetSelectedType() != WheelItemDataType_Song)
-		return true;
+	Song* pSong = nullptr;
 
-	Song* pSong = m_MusicWheel.GetSelectedSong();
+	if (useWheel) {
+		pSong = m_MusicWheel.GetSelectedSong();
+	} else {
+		pSong = GAMESTATE->m_pCurSong;
+	}
 
-	if (pSong == NULL)
+	if (pSong == nullptr)
 		return false;
-	if (static_cast<int>(m_vpSteps.size()) <= m_iSelection)
-		return false;
-	GAMESTATE->m_pCurSong.Set(pSong);
-	Steps* pSteps = m_vpSteps[m_iSelection];
-	GAMESTATE->m_pCurSteps.Set(pSteps);
-	GAMESTATE->m_PreferredDifficulty.Set(pSteps->GetDifficulty());
+
+	if (useWheel) {
+		if (static_cast<int>(m_vpSteps.size()) <= m_iSelection)
+			return false;
+		GAMESTATE->m_pCurSong.Set(pSong);
+		Steps* pSteps = m_vpSteps[m_iSelection];
+		GAMESTATE->m_pCurSteps.Set(pSteps);
+		GAMESTATE->m_PreferredDifficulty.Set(pSteps->GetDifficulty());
+	}
 
 	if (NSMAN->useSMserver) {
 		NSMAN->m_sArtist = pSong->GetTranslitArtist();
@@ -379,6 +395,10 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 			lua_pushnumber(L, 0);
 		return 1;
 	}
+	static int SelectUserSong(T* p, lua_State* L) {
+		p->SelectCurrent(false);
+		return 0;
+	}
 	LunaScreenNetSelectMusic()
 	{
 		ADD_METHOD(GetMusicWheel);
@@ -388,6 +408,7 @@ class LunaScreenNetSelectMusic : public Luna<ScreenNetSelectMusic>
 		ADD_METHOD(GetUserQty);
 		ADD_METHOD(GetUserState);
 		ADD_METHOD(GetUserReady);
+		ADD_METHOD(SelectUserSong);
 	}
 };
 

@@ -323,7 +323,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 				if hsTable[index] == nil then return end
 				if #hsTable >= 1 and index >= 1 then
 					self:settextf(
-						"%d / %d / %d / %d / %d / %d",
+						"%d | %d | %d | %d | %d | %d",
 						hsTable[index]:GetTapNoteScore("TapNoteScore_W1"),
 						hsTable[index]:GetTapNoteScore("TapNoteScore_W2"),
 						hsTable[index]:GetTapNoteScore("TapNoteScore_W3"),

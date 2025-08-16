@@ -21,12 +21,6 @@ static const std::vector<float> gertrude_the_all_max_output{
 	max_rating, max_rating, max_rating, max_rating
 };
 
-/// 4k calc only
-static const int num_chart_cols = 4;
-
-/// convenience loop
-static const std::array<int, num_chart_cols> zto3 = { 0, 1, 2, 3 };
-
 inline auto
 downscale_low_accuracy_scores(const float f, const float sg) -> float
 {

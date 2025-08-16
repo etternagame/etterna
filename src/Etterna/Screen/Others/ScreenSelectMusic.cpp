@@ -1821,9 +1821,20 @@ bool
 ScreenSelectMusic::CachePackForRanking(const std::string& pack)
 {
 	if (PACK_CACHE_DOES_ENTIRE_LIBRARY) {
-		for (auto& group : SONGMAN->GetSongGroupNames()) {
-			SONGMAN->GenerateCachefilesForGroup(group);
-		}
+		// multi threaded
+		Locator::getLogger()->warn(
+		  "CACHING ALL PACKS MULTITHREADED -- YOUR GAME MAY CRASH. IF SO, TRY "
+		  "AGAIN OR SET ThreadsToUse=1");
+		auto exec =
+		  [](std::pair<vectorIt<std::string>, vectorIt<std::string>> workload,
+			 ThreadData* data) {
+			  for (auto it = workload.first; it != workload.second; it++) {
+				  auto& group = *it;
+				  SONGMAN->GenerateCachefilesForGroup(group);
+			  }
+		  };
+		parallelExecution<std::string>(SONGMAN->GetSongGroupNames(), exec);
+
 		AfterMusicChange();
 		return true;
 	} else {

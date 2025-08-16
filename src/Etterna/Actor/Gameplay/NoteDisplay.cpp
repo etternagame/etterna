@@ -1700,6 +1700,39 @@ NoteDisplay::DrawActor(const TapNote& tn,
 	pActor->SetDiffuse(diffuse);
 	pActor->SetGlow(glow);
 
+	if (PREFSMAN->m_bForceSnaps) {
+		const auto& Color = BeatToNoteType(fBeat);
+		switch (Color) {
+			case NOTE_TYPE_4TH:
+				pActor->SetDiffuseColor(RageColor(1, 0, 0, 1));
+				break;
+			case NOTE_TYPE_8TH:
+				pActor->SetDiffuseColor(RageColor(0, 0.25, 1, 1));
+				break;
+			case NOTE_TYPE_12TH:
+				pActor->SetDiffuseColor(RageColor(0.6, 0, 0.6, 1));
+				break;
+			case NOTE_TYPE_16TH:
+				pActor->SetDiffuseColor(RageColor(1, 1, 0, 1));
+				break;
+			case NOTE_TYPE_24TH:
+				pActor->SetDiffuseColor(RageColor(0, 1, 0, 1));
+				break;
+			case NOTE_TYPE_32ND:
+				pActor->SetDiffuseColor(RageColor(1, 0.5, 0, 1));
+				break;
+			case NOTE_TYPE_48TH:
+				pActor->SetDiffuseColor(RageColor(0, 1, 1, 1));
+				break;
+			case NOTE_TYPE_64TH:
+				pActor->SetDiffuseColor(RageColor(0, 1, 0, 1));
+				break;
+			case NOTE_TYPE_192ND:
+				pActor->SetDiffuseColor(RageColor(0.2, 0.2, 0.2, 1));
+				break;
+		}
+	}
+
 	const auto bNeedsTranslate =
 	  (bIsAddition &&
 	   !IsVectorZero(cache->m_fAdditionTextureCoordOffset[part])) ||

@@ -63,14 +63,20 @@ static Preference<float> DownloadCooldownTime(
   5.F);
 
 // Score API Preferences
-static Preference<std::string> serverURL("BaseAPIUrl",
-										 "https://api.beta.etternaonline.com");
-static Preference<std::string> searchURL("BaseAPISearchUrl",
+static Preference<std::string> serverURL("BaseOnlineAPIUrl",
+										 "https://api.etternaonline.com");
+static Preference<std::string> searchURL("BaseOnlineAPISearchUrl",
 										 "https://search.etternaonline.com");
-static Preference<std::string> uiHomePage("BaseUIUrl", "https://beta.etternaonline.com");
 static Preference<unsigned int> automaticSync("automaticScoreSync", 1);
 
-// 
+//
+static const std::string UI_HOME_PAGE = "https://etternaonline.com";
+static const std::string PROJECT_HOME_PAGE =
+  "https://github.com/etternagame/etterna";
+static const std::string PROJECT_BUG_REPORTS =
+  "https://github.com/etternagame/etterna/blob/master/Docs/Bugreporting.md";
+static const std::string EDITOR_PAGE =
+  "https://arrowvortex.ddrnl.com/index.html";
 static const std::string DL_DIR = SpecialFiles::CACHE_DIR + "Downloads/";
 static const std::string wife3_rescore_upload_flag = "rescoredw3";
 
@@ -88,7 +94,7 @@ static Preference<unsigned int> UPLOAD_FAVORITE_BULK_CHUNK_SIZE(
 // all paths should begin with / and end without /
 /// API root path
 static const std::string API_ROOT = "/api/client";
-static const std::string API_KEY = "CsrvreCj5YnhxYcpfFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFy";
+static const std::string API_KEY = "CvsrvreCj5YnhxYcpFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFy";
 static const std::string TYPESENSE_API_KEY = "uNVBQbmgvnet2LTpT6sE3XYe7JeD8xej";
 
 static const std::string API_LOGIN = "/login";
@@ -190,15 +196,19 @@ EmptyTempDLFileDir()
 }
 
 #pragma region curl
+inline std::string
+useragent() {
+	static auto agent = fmt::format("Etterna/{} ({})",
+					   GAMESTATE->GetEtternaVersion(),
+					   Core::Platform::getSystem());
+	return agent;
+}
+
 inline CURL*
 initBasicCURLHandle()
 {
 	CURL* curlHandle = curl_easy_init();
-	curl_easy_setopt_log_err(curlHandle,
-					 CURLOPT_USERAGENT,
-					 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-					 "AppleWebKit/537.36 (KHTML, like Gecko) "
-					 "Chrome/60.0.3112.113 Safari/537.36");
+	curl_easy_setopt_log_err(curlHandle, CURLOPT_USERAGENT, useragent().c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_ACCEPT_ENCODING, "");
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYPEER, 0L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_SSL_VERIFYHOST, 0L);
@@ -1013,6 +1023,9 @@ DownloadManager::SendRequestToURL(
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
 	if (async) {
+		if (req != nullptr) {
+			req->requiresLogin = requireLogin;
+		}
 		if (!QueueRequestIfRatelimited(apiPath, *req)) {
 			AddHttpRequestHandle(req->handle);
 			HTTPRequests.push_back(req);
@@ -1119,7 +1132,7 @@ DownloadManager::HandleAuthErrorResponse(const std::string& endpoint,
 
 	if (status == 403) {
 		Locator::getLogger()->warn(
-		  "{} {} - Auth Error. You are banned", endpoint, status);
+		  "{} {} - Auth Error. You are probably banned", endpoint, status);
 	} else {
 		Locator::getLogger()->warn(
 		  "{} {} - Auth Error. Logging out automatically", endpoint, status);
@@ -1243,9 +1256,16 @@ DownloadManager::LoginRequest(const std::string& user,
 		auto parse = [&d, &req]() { return parseJson(d, req, "LoginRequest"); };
 
 		const auto& response = req.response_code;
+		if (parse()) {
+			// parse failure logs itself
+			loginFailed(fmt::format(
+			  "Response parse error. Status {} - API issue? Game out of date?",
+			  response));
+			return;
+		}
+
 		if (response == 422) {
 			// bad input fields
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 422 on LoginRequest. Errors: {}", jsonObjectToString(d));
@@ -1253,11 +1273,10 @@ DownloadManager::LoginRequest(const std::string& user,
 				std::string::npos) {
 				loginFailed("Your client is out of date.");
 			} else {
-				loginFailed("Missing email or password, or email not verified.");
+				loginFailed("Missing email or password, email not verified, or account doesn't exist.");
 				}
 		} else if (response == 404) {
 			// user doesnt exist?
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 404 on LoginRequest. User may not exist. Errors: {}",
@@ -1266,7 +1285,6 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 401) {
 			// bad password
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 401 on LoginRequest. Bad password? Errors: {}",
@@ -1275,21 +1293,20 @@ DownloadManager::LoginRequest(const std::string& user,
 
 		} else if (response == 403) {
 			// user is banned
-			parse();
 
 			Locator::getLogger()->error(
 			  "Status 403 on LoginRequest. User is forbidden. Errors: {}",
 			  jsonObjectToString(d));
-			loginFailed("User is banned.");
+			loginFailed("User is banned or API is not allowing traffic.");
+
+		} else if (response == 405) {
+			// uhhh...????
+
+			Locator::getLogger()->error("Status 405 on LoginRequest. {}", jsonObjectToString(d));
+			loginFailed("API may be down or configured wrong.");
 
 		} else if (response == 200) {
 			// all good
-			if (parse()) {
-				Locator::getLogger()->warn(
-				  "Due to LoginRequest parse error, login failed");
-				loginFailed("Unknown error");
-				return;
-			}
 
 			if (d.HasMember("access_token") &&
 				d["access_token"].IsString()) {
@@ -1318,7 +1335,6 @@ DownloadManager::LoginRequest(const std::string& user,
 			}
 		} else {
 			// ???
-			parse();
 
 			Locator::getLogger()->warn(
 			  "Unexpected response code {} on LoginRequest. Content: {}",
@@ -1349,6 +1365,8 @@ DownloadManager::Logout()
 {
 	const std::lock_guard<std::mutex> lock(G_MTX_SCORE_UPLOAD);
 
+	Locator::getLogger()->info("Logging out");
+
 	// cancel sequential upload
 	ScoreUploadSequentialQueue.clear();
 	sequentialScoreUploadTotalWorkload = 0;
@@ -1368,9 +1386,48 @@ DownloadManager::Logout()
 	sessionUser = authToken = "";
 	topScores.clear();
 	sessionRatings.clear();
+
 	// This is called on a shutdown, after MessageManager is gone
 	if (MESSAGEMAN != nullptr)
 		MESSAGEMAN->Broadcast("LogOut");
+}
+
+bool
+DownloadManager::OpenSitePage(const std::string& path)
+{
+	auto url = fmt::format("{}{}", UI_HOME_PAGE, path);
+	Locator::getLogger()->info(
+	  "Opening Site Page :: {}", url);
+	if (path.find(":") != std::string::npos) {
+		Locator::getLogger()->warn("You can't open any url with : in it");
+		return false;
+	}
+	return Core::Platform::openWebsite(url);
+}
+
+bool
+DownloadManager::OpenProjectPage(const std::string& path)
+{
+	auto url = fmt::format("{}{}", PROJECT_HOME_PAGE, path);
+	Locator::getLogger()->info(
+	  "Opening Project Page :: {}", url);
+	if (path.find(":") != std::string::npos) {
+		Locator::getLogger()->warn("You can't open any url with : in it");
+		return false;
+	}
+	return Core::Platform::openWebsite(url);
+}
+
+bool
+DownloadManager::ShowBugReportSite()
+{
+	return Core::Platform::openWebsite(PROJECT_BUG_REPORTS);
+}
+
+bool
+DownloadManager::ShowEditorSite()
+{
+	return Core::Platform::openWebsite(EDITOR_PAGE);
 }
 
 inline std::string
@@ -2138,7 +2195,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 }
 
 void
-DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
+DownloadManager::RemoveGoalRequest(ScoreGoal* goal, bool oldGoal)
 {
 	if (goal == nullptr) {
 		Locator::getLogger()->warn("Null goal passed to RemoveGoalRequest. Skipped");
@@ -2146,20 +2203,23 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal)
 	}
 
 	constexpr auto& CALL_ENDPOINT = API_GOALS;
-	const auto CALL_PATH = API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
-						   std::to_string(goal->rate) + "/" +
-						   std::to_string(goal->percent);
+	const auto CALL_PATH =
+	  API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
+	  (oldGoal ? std::to_string(goal->oldrate) : std::to_string(goal->rate)) +
+	  "/" +
+	  (oldGoal ? std::to_string(goal->oldpercent)
+			   : std::to_string(goal->percent));
 
 	Locator::getLogger()->info("Generating RemoveGoalRequest for {}",
 							   goal->DebugString());
 
-	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [goal, oldGoal, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
 			  CALL_ENDPOINT,
 			  req,
 			  []() {},
-			  [goal, this]() { RemoveGoalRequest(goal);
+			  [goal, oldGoal, this]() { RemoveGoalRequest(goal, oldGoal);
 			})) {
 			return;
 		}
@@ -2219,6 +2279,11 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	constexpr auto& CALL_ENDPOINT = API_GOALS;
 	constexpr auto& CALL_PATH = API_GOALS;
 
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to update goal while not logged in. Aborting");
+		return;
+	}
+
 	Locator::getLogger()->info("Generating UpdateGoalRequest for {}",
 							   goal->DebugString());
 
@@ -2230,6 +2295,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	Document::AllocatorType& allocator = d.GetAllocator();
 	d = GoalToJSON(goal, allocator);
 
+	// this crashes sometimes for no reason :)
 	StringBuffer buffer;
 	Writer<StringBuffer> w(buffer);
 	d.Accept(w);
@@ -2734,6 +2800,11 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
 	constexpr auto& CALL_PATH = API_PLAYLISTS;
 
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to update playlist while not logged in. Aborting");
+		return;
+	}
+
 	const auto& playlists = SONGMAN->GetPlaylists();
 	if (!playlists.contains(name)) {
 		Locator::getLogger()->warn(
@@ -2815,6 +2886,11 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 {
 	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
 	constexpr auto& CALL_PATH = API_PLAYLISTS;
+
+	if (!LoggedIn()) {
+		Locator::getLogger()->info("Attempted to remove playlist while not logged in. Aborting");
+		return;
+	}
 
 	const auto& playlists = SONGMAN->GetPlaylists();
 	if (!playlists.contains(name)) {
@@ -3326,8 +3402,8 @@ jsonToOnlineScore(Value& score, const std::string& chartkey)
 		tmp.username = user["username"].GetString();
 	else
 		tmp.username = "";
-	if (user.HasMember("avatar_path") && user["avatar_path"].IsString())
-		tmp.avatar = user["avatar_path"].GetString();
+	if (user.HasMember("avatar") && user["avatar"].IsString())
+		tmp.avatar = user["avatar"].GetString();
 	else
 		tmp.avatar = "";
 	tmp.userid = 0;
@@ -3582,8 +3658,12 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				allocator);
 	d.AddMember(
 	  "chart_key", stringToVal(hs->GetChartKey(), allocator), allocator);
+	
+	auto grd = Grade_Failed;
+	if (hs->GetGrade() != Grade_Failed)
+		grd = GetGradeFromPercent(hs->GetSSRNormPercent());
 	d.AddMember("grade",
-				stringToVal(GradeToOldString(hs->GetWifeGrade()), allocator),
+				stringToVal(GradeToOldString(grd), allocator),
 				allocator);
 
 	if (hs->GetJudgeScale() == 0.F) {
@@ -4123,6 +4203,14 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 			callback();
 	};
 
+	// check this a second time because threads and stuff
+	if (!LoggedIn()) {
+		Locator::getLogger()->warn(
+		  "Attempted to upload scores while not logged in. Aborting");
+		if (callback)
+			callback();
+		return;
+	}
 	HTTPRequest* req =
 	  new HTTPRequest(curlHandle, done, nullptr, [callback](auto& req) {
 		  if (callback)
@@ -4466,6 +4554,11 @@ DownloadManager::InitialScoreSync()
 
 		// set to yesterday because timezones and stuff
 		profile->m_lastRankedChartkeyCheck = DateTime::GetYesterday();
+
+		if (!LoggedIn()) {
+			Locator::getLogger()->info("Not uploading scores. Not logged in.");
+			return false;
+		}
 
 		if (!toUpload.empty()) {
 			Locator::getLogger()->info(
@@ -5106,15 +5199,36 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 }
 
 std::vector<DownloadablePack*>
-DownloadManager::GetCoreBundle(const std::string& whichoneyo)
+DownloadManager::GetCoreBundle(const std::string& bundlename)
 {
-	return std::vector<DownloadablePack*>();
+	if (tagPacks.contains(bundlename)) {
+		auto& packs = tagPacks.at(bundlename);
+		std::vector<DownloadablePack*> o{};
+		for (auto& p : packs) {
+			// mapping pack ids to cached packs
+			if (downloadablePacks.contains(p)) {
+				o.push_back(&(downloadablePacks.at(p)));
+			}
+		}
+		if (o.size() == 0) {
+			Locator::getLogger()->warn(
+			  "Tried to get bundle '{}' listing, but no packs were cached",
+			  bundlename);
+		}
+		return o;
+	}
+	else {
+		Locator::getLogger()->warn(
+		  "Tried to get bundle '{}' listing, but no bundles were cached",
+		  bundlename);
+		return std::vector<DownloadablePack*>();
+	}
 }
 
 void
-DownloadManager::DownloadCoreBundle(const std::string& whichoneyo, bool mirror)
+DownloadManager::DownloadCoreBundle(const std::string& bundlename, bool mirror)
 {
-	auto bundle = GetCoreBundle(whichoneyo);
+	auto bundle = GetCoreBundle(bundlename);
 	sort(bundle.begin(),
 		 bundle.end(),
 		 [](DownloadablePack* x1, DownloadablePack* x2) {
@@ -5155,6 +5269,7 @@ DownloadManager::RefreshLastVersion()
 			Locator::getLogger()->info(
 			  "RefreshLastVersion successful - Last Version is {}",
 			  lastVersion);
+			MESSAGEMAN->Broadcast("LastVersionUpdated");
 		} else {
 			Locator::getLogger()->error(
 			  "RefreshLastVersion Error: Unexpected status {} - content: {}",
@@ -5597,12 +5712,37 @@ ApiSearchCriteriaToJSONBody(const ApiSearchCriteria& criteria)
 		packSearchDoc.AddMember("q", stringToVal(criteria.packName, allocator), allocator);
 		packSearchDoc.AddMember("query_by", "name", allocator);
 		packSearchDoc.AddMember("num_typos", "0", allocator);
-		packSearchDoc.AddMember(
-		  "sort_by", stringToVal(sortByField, allocator), allocator);
+		if (!sortByField.empty() && !sortByField.ends_with("asc") &&
+			!sortByField.ends_with("desc")) {
+			sortByField = fmt::format("{}:asc", sortByField);
+		}
+		if (!sortByField.empty()) {
+			packSearchDoc.AddMember(
+			  "sort_by", stringToVal(sortByField, allocator), allocator);
+		}
 		if (!criteria.packTags.empty()) {
 			// this should produce tags:=[`4k`,`5k`] ....
-			auto tagstr = "tags:=[`" + join("`,`", criteria.packTags) + "`]";
-			packSearchDoc.AddMember("filter_by", stringToVal(tagstr, allocator), allocator);
+			if (criteria.packTagsMatchAny) {
+				auto tagstr =
+				  "tags:=[`" + join("`,`", criteria.packTags) + "`]";
+				packSearchDoc.AddMember(
+				  "filter_by", stringToVal(tagstr, allocator), allocator);
+			}
+			else {
+				std::string tagstr = "";
+				for (auto& x : criteria.packTags) {
+					tagstr += fmt::format("tags:=`{}` &&", x);
+				}
+				if (tagstr.ends_with("&&")) {
+					// lol
+					tagstr.pop_back();
+					tagstr.pop_back();
+				}
+				if (!tagstr.empty()) {
+					packSearchDoc.AddMember(
+					  "filter_by", stringToVal(tagstr, allocator), allocator);
+				}
+			}
 		}
 		arrDoc.PushBack(packSearchDoc, allocator);
 	}
@@ -5801,6 +5941,12 @@ DownloadManager::GetPackTagsRequest() {
 										   packTags[tagType].size());
 			}
 
+			if (packTags.contains("pack_bundle")) {
+				for (auto& bundlename : packTags["pack_bundle"]) {
+					CachePacksForTag(bundlename);
+				}
+			}
+
 			if (MESSAGEMAN)
 				MESSAGEMAN->Broadcast("PackTagsRefreshed");
 		} else {
@@ -5822,18 +5968,129 @@ DownloadManager::GetPackTagsRequest() {
 				false);
 }
 
+DownloadablePack
+jsonToDownloadablePack(Value& pack)
+{
+	DownloadablePack packDl;
+	packDl.id = getJsonInt(pack, "id");
+	packDl.name = getJsonString(pack, "name");
+	packDl.url = getJsonString(pack, "download");
+	packDl.mirror = getJsonString(pack, "mirror");
+	if (packDl.url.empty()) {
+		packDl.url = packDl.mirror;
+	}
+	if (packDl.mirror.empty()) {
+		packDl.mirror = packDl.url;
+	}
+	packDl.avgDifficulty = std::stof(getJsonString(pack, "overall"));
+	packDl.size = getJsonInt64(pack, "bytes");
+	packDl.plays = getJsonInt(pack, "play_count");
+	packDl.songs = getJsonInt(pack, "song_count");
+	packDl.bannerUrl = getJsonString(pack, "banner_path");
+	packDl.nsfw = getJsonBool(pack, "nsfw");
+
+	auto thumbnail = getJsonString(pack, "bannerTinyThumb");
+	if (thumbnail.find("base64,") != std::string::npos) {
+		packDl.thumbnail = thumbnail;
+	} else {
+		packDl.thumbnail = "";
+	}
+
+	if (packDl.name.empty()) {
+		Locator::getLogger()->warn("PackPagination missing pack name: {}",
+								   jsonObjectToString(pack));
+	}
+	if (packDl.url.empty()) {
+		Locator::getLogger()->warn("PackPagination missing pack download: {}",
+								   jsonObjectToString(pack));
+	}
+	return packDl;
+}
+
+void
+DownloadManager::CachePacksForTag(const std::string& tag) {
+
+	Locator::getLogger()->info("Caching packs for tag '{}'", tag);
+
+	std::vector<std::string> taglist = { tag };
+
+	ApiSearchCriteria searchCriteria;
+	searchCriteria.per_page = 100; // surely this is fine
+	searchCriteria.packTags = taglist;
+	searchCriteria.packTagsMatchAny = true;
+
+	if (!tagPacks.contains(tag)) {
+		tagPacks[tag] = std::set<int>();
+	}
+
+	auto parseFunc = [searchCriteria, tag](Document& d) {
+		// Least Unsafe Json Traversal
+		if (d.HasMember("results") && d["results"].IsArray()) {
+			auto& resultArr = d["results"];
+			auto& packlist = DLMAN->downloadablePacks;
+			auto& localPacklist = DLMAN->tagPacks[tag];
+
+			// Locator::getLogger()->info("{}", jsonObjectToString(d));
+
+			for (auto& results : resultArr.GetArray()) {
+
+				if (results.HasMember("hits") && results["hits"].IsArray()) {
+					for (auto& docEntry : results["hits"].GetArray()) {
+						if (docEntry.HasMember("document") &&
+							docEntry["document"].IsObject()) {
+							auto& pack = docEntry["document"];
+
+							DownloadablePack packDl =
+							  jsonToDownloadablePack(pack);
+
+							if (!packlist.contains(packDl.id)) {
+								packlist[packDl.id] = packDl;
+							}
+							localPacklist.insert(packDl.id);
+							Locator::getLogger()->info(
+							  "For tag '{}', cached pack {} (id {}): {}",
+							  tag,
+							  localPacklist.size(),
+							  packDl.id,
+							  packDl.name);
+						}
+					}
+				} else {
+					continue;
+				}
+			}
+			Locator::getLogger()->info(
+			  "For tag '{}', finished caching packs - {} total",
+			  tag,
+			  localPacklist.size());
+			MESSAGEMAN->Broadcast("CoreBundlesRefreshed");
+			Message msg("TagPacksRefreshed");
+			msg.SetParam("tag", tag);
+			MESSAGEMAN->Broadcast(msg);
+		} else {
+			Locator::getLogger()->warn(
+			  "Pack search {} seemed to return no results? Content: {}",
+			  searchCriteria.DebugString(),
+			  jsonObjectToString(d));
+		}
+	};
+
+	SearchForPacks(searchCriteria, parseFunc);
+}
+
 DownloadablePackPagination&
 DownloadManager::GetPackPagination(const std::string& searchString,
 								   std::set<std::string> tagFilters,
+								   bool tagsMatchAny,
 								   int perPage,
 								   const std::string& sortBy,
 								   bool sortIsAsc)
 {
 	auto key = DownloadablePackPaginationKey(
-	  searchString, tagFilters, perPage, sortBy, sortIsAsc);
+	  searchString, tagFilters, tagsMatchAny, perPage, sortBy, sortIsAsc);
 	if (!downloadablePackPaginations.contains(key)) {
 		downloadablePackPaginations[key] = DownloadablePackPagination(
-		  searchString, tagFilters, perPage, sortBy, sortIsAsc);
+		  searchString, tagFilters, tagsMatchAny, perPage, sortBy, sortIsAsc);
 	}
 	return downloadablePackPaginations[key];
 }
@@ -5906,6 +6163,7 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 	searchCriteria.per_page = key.perPage;
 	searchCriteria.packTags =
 	  std::vector<std::string>(key.tagFilters.begin(), key.tagFilters.end());
+	searchCriteria.packTagsMatchAny = key.tagsMatchAny;
 	searchCriteria.packName = key.searchString;
 	searchCriteria.sortBy = key.sortByField;
 	searchCriteria.sortIsAscending = key.sortIsAsc;
@@ -5945,46 +6203,8 @@ DownloadablePackPagination::setPage(int page, LuaReference& whenDone) {
 							docEntry["document"].IsObject()) {
 							auto& pack = docEntry["document"];
 
-							DownloadablePack packDl;
-
-							packDl.id = getJsonInt(pack, "id");
-							packDl.name = getJsonString(pack, "name");
-							packDl.url = getJsonString(pack, "download");
-							packDl.mirror = getJsonString(pack, "mirror");
-							if (packDl.url.empty()) {
-								packDl.url = packDl.mirror;
-							}
-							if (packDl.mirror.empty()) {
-								packDl.mirror = packDl.url;
-							}
-							packDl.avgDifficulty =
-							  std::stof(getJsonString(pack, "overall"));
-							packDl.size = getJsonInt64(pack, "bytes");
-							packDl.plays = getJsonInt(pack, "play_count");
-							packDl.songs = getJsonInt(pack, "song_count");
-							packDl.bannerUrl =
-							  getJsonString(pack, "banner_path");
-							packDl.nsfw = getJsonBool(pack, "nsfw");
-
-							auto thumbnail =
-							  getJsonString(pack, "bannerTinyThumb");
-							if (thumbnail.find("base64,") !=
-								std::string::npos) {
-								packDl.thumbnail = thumbnail;
-							} else {
-								packDl.thumbnail = "";
-							}
-
-							if (packDl.name.empty()) {
-								Locator::getLogger()->warn(
-								  "PackPagination missing pack name: {}",
-								  jsonObjectToString(pack));
-							}
-							if (packDl.url.empty()) {
-								Locator::getLogger()->warn(
-								  "PackPagination missing pack download: {}",
-								  jsonObjectToString(pack));
-							}
+							DownloadablePack packDl =
+							  jsonToDownloadablePack(pack);
 
 							if (!packlist.contains(packDl.id)) {
 								packlist[packDl.id] = packDl;
@@ -6143,8 +6363,12 @@ class LunaDownloadManager : public Luna<DownloadManager>
   public:
 	static int GetHomePage(T* p, lua_State* L)
 	{
-		  lua_pushstring(L, uiHomePage.Get().c_str());
+		  lua_pushstring(L, UI_HOME_PAGE.c_str());
 		  return 1;
+	}
+	static int GetProjectPage(T* p, lua_State* L) {
+		lua_pushstring(L, PROJECT_HOME_PAGE.c_str());
+		return 1;
 	}
 	static int GetUserCountryCode(T* p, lua_State* L)
 	{
@@ -6161,16 +6385,17 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pop(L, 1);
 		std::set<std::string> tags(tagVec.begin(), tagVec.end());
 
-		auto perPage = IArg(3);
+		auto tagsMatchAny = BArg(3);
+		auto perPage = IArg(4);
 
-		if (lua_isnoneornil(L, 4)) {
-			auto& pagination =
-			  p->GetPackPagination(searchString, tags, perPage, "name", true);
+		if (lua_isnoneornil(L, 5)) {
+			auto& pagination = p->GetPackPagination(
+			  searchString, tags, tagsMatchAny, perPage, "name", true);
 			pagination.PushSelf(L);
 		}
 		else {
 			auto& pagination = p->GetPackPagination(
-			  searchString, tags, perPage, SArg(4), BArg(5));
+			  searchString, tags, tagsMatchAny, perPage, SArg(5), BArg(6));
 			pagination.PushSelf(L);
 		}
 
@@ -6416,11 +6641,7 @@ class LunaDownloadManager : public Luna<DownloadManager>
 	}
 	static int DownloadCoreBundle(T* p, lua_State* L)
 	{
-		bool bMirror = false;
-		if (!lua_isnoneornil(L, 2)) {
-			bMirror = BArg(2);
-		}
-		p->DownloadCoreBundle(SArg(1), bMirror);
+		p->DownloadCoreBundle(SArg(1));
 		return 0;
 	}
 	static int GetToken(T* p, lua_State* L)
@@ -6648,9 +6869,44 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_pushnumber(L, DLMAN->sequentialScoreUploadTotalWorkload);
 		return 1;
 	}
+	static int ShowPackPage(T* p, lua_State* L)
+	{
+		auto packid = IArg(1);
+		lua_pushboolean(L, DLMAN->ShowPackPage(packid));
+		return 1;
+	}
+	static int ShowUserPage(T* p, lua_State* L) {
+		auto username = SArg(1);
+		lua_pushboolean(L, DLMAN->ShowUserPage(username));
+		return 1;
+	}
+	static int ShowScorePage(T* p, lua_State* L) {
+		auto username = SArg(1);
+		auto scoreid = IArg(2);
+		lua_pushboolean(L, DLMAN->ShowScorePage(username, scoreid));
+		return 1;
+	}
+	static int ShowBugReportSite(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowBugReportSite());
+		return 1;
+	}
+	static int ShowEditorSite(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowEditorSite());
+		return 1;
+	}
+	static int ShowProjectReleases(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowProjectReleases());
+		return 1;
+	}
+	static int ShowProjectSite(T* p, lua_State* L) {
+		lua_pushboolean(L, DLMAN->ShowProjectSite());
+		return 1;
+	}
+
 	LunaDownloadManager()
 	{
 		ADD_METHOD(GetHomePage);
+		ADD_METHOD(GetProjectPage);
 		ADD_METHOD(GetUserCountryCode);
 		ADD_METHOD(DownloadCoreBundle);
 		ADD_METHOD(GetCoreBundle);
@@ -6688,6 +6944,13 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		ADD_METHOD(GetQueuedScoreUploadsRemaining);
 		ADD_METHOD(GetQueuedScoreUploadTotal);
 		ADD_METHOD(Logout);
+		ADD_METHOD(ShowBugReportSite);
+		ADD_METHOD(ShowEditorSite);
+		ADD_METHOD(ShowProjectReleases);
+		ADD_METHOD(ShowProjectSite);
+		ADD_METHOD(ShowPackPage);
+		ADD_METHOD(ShowUserPage);
+		ADD_METHOD(ShowScorePage);
 	}
 };
 LUA_REGISTER_CLASS(DownloadManager)
@@ -6697,9 +6960,6 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
   public:
 	static int DownloadAndInstall(T* p, lua_State* L)
 	{
-		bool mirror = false;
-		if (lua_gettop(L) > 0)
-			mirror = BArg(1);
 		if (p->downloading) {
 			p->PushSelf(L);
 			return 1;
@@ -6709,11 +6969,16 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 			return 1;
 		}
 
-		std::shared_ptr<Download> dl = DLMAN->DownloadAndInstallPack(p, mirror);
+		std::shared_ptr<Download> dl = DLMAN->DownloadAndInstallPack(p);
 		if (dl) {
 			dl->PushSelf(L);
 		} else
 			lua_pushnil(L);
+		return 1;
+	}
+	static int DownloadExternally(T* p, lua_State* L) {
+		auto result = Core::Platform::openWebsite(p->url);
+		lua_pushboolean(L, result);
 		return 1;
 	}
 	static int GetName(T* p, lua_State* L)
@@ -6820,6 +7085,7 @@ class LunaDownloadablePack : public Luna<DownloadablePack>
 	LunaDownloadablePack()
 	{
 		ADD_METHOD(DownloadAndInstall);
+		ADD_METHOD(DownloadExternally);
 		ADD_METHOD(IsDownloading);
 		ADD_METHOD(IsQueued);
 		ADD_METHOD(RemoveFromQueue);

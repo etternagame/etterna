@@ -55,8 +55,10 @@ All details related to building are in the [Building.md](Docs/Building.md) file.
 
 Etterna uses Doxygen and LuaDoc. Both still need a lot of work before being having decent coverage, though we still have them hosted at the following links.  
 
-- Latest C++ documentation: [https://etternagame.github.io/cpp-docs/](https://etternagame.github.io/cpp-docs/)
-- Latest Lua documentation: [https://etternagame.github.io/lua-docs/](https://etternagame.github.io/lua-docs/)
+Any commit to the develop branch immediately updates these documentation sites which can be found [here](https://docs.etterna.dev/).
+
+- Latest C++ documentation: [https://docs.etterna.dev/doxygen/html/index.html](https://docs.etterna.dev/doxygen/html/index.html)
+- Latest Lua documentation: [https://docs.etterna.dev/ldoc/index.html](https://docs.etterna.dev/ldoc/index.html)
 
 ## Bug Reporting
 

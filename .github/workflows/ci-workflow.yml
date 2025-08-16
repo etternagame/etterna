@@ -52,7 +52,7 @@ jobs:
       
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - Linux x64"
           path: '${{github.workspace}}/main/build/*.tar.gz'
@@ -78,9 +78,9 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Linux x64 - ${{github.sha}}
           path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -129,6 +129,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Update CPack Environment
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "ETT_MAC_SYS_NAME=M1" >> $GITHUB_ENV
+
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_CRASHPAD=OFF -G Ninja ..
 
@@ -141,7 +146,7 @@ jobs:
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - macOS aarch64"
           path: '${{github.workspace}}/main/build/*.dmg'
@@ -168,9 +173,9 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Mac aarch64 - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -197,9 +202,9 @@ jobs:
       matrix:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
-          - { os: macos-13,     name: "Ventura", dist: false}
-          - { os: macos-12,     name: "Monterey", dist: true}
-          #- { os: macos-11,     name: "Big Sur",  dist: true}
+          - { os: macos-13,     name: "Ventura", dist: true}
+          #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
+          #- { os: macos-11,     name: "Big Sur",  dist: true} # rendered useless by GHA
 
     steps:
 
@@ -226,6 +231,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
+      
+      - name: Update CPack Environment
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "ETT_MAC_SYS_NAME=Darwin-x64" >> $GITHUB_ENV
 
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
@@ -239,7 +249,7 @@ jobs:
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - macOS x64"
           path: '${{github.workspace}}/main/build/*.dmg'
@@ -266,9 +276,9 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Mac x64 - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -294,8 +304,8 @@ jobs:
       matrix:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
-          #- { os: macos-13,     name: "Ventura", dist: false} # known to work, disabled for concurrent build space
-          - { os: macos-12,     name: "Monterey", dist: true}
+          - { os: macos-13,     name: "Ventura", dist: true}
+          #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
           #- { os: macos-11,     name: "Big Sur",  dist: true}
 
     steps:
@@ -314,6 +324,11 @@ jobs:
       - name: Install homebrew packages
         run: brew install cmake nasm ninja && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install etternagame/etterna/openssl@1.1_osx_high_sierra
 
+      - name: Update CPack Environment
+        if: ${{matrix.cfg.dist}}
+        run: |
+          echo "ETT_MAC_SYS_NAME=High-Sierra" >> $GITHUB_ENV
+
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1_osx_high_sierra -DWITH_CRASHPAD=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
@@ -326,7 +341,7 @@ jobs:
 
       - name: Upload Binary
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - OSX High Sierra (Legacy)"
           path: '${{github.workspace}}/main/build/*.dmg'
@@ -353,9 +368,9 @@ jobs:
 
       - name: Upload Symbols to action artifacts
         if: ${{matrix.cfg.dist}}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols Mac HighSierra - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -449,7 +464,7 @@ jobs:
         run: cd main/build && cpack
 
       - name: Upload Binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "Etterna - Windows ${{matrix.cfg.name}}"
           path: '${{github.workspace}}/main/build/*.exe'
@@ -468,9 +483,9 @@ jobs:
         run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py
 
       - name: Upload Symbols to action artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols - ${{github.sha}}
+          name: Etterna Symbols win${{matrix.cfg.name}} - ${{github.sha}}
           path: '${{github.workspace}}/main/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -486,5 +501,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
         with:
-          files: |
-            ${{github.workspace}}/main/build/*.exe
+          files: ${{github.workspace}}\main\build\*.exe

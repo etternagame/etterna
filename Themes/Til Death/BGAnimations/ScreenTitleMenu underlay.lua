@@ -123,8 +123,7 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 	end,
 	MouseDownCommand = function(self, params)
 		if params.event == "DeviceButton_left mouse button" then
-			local tag = "urlnoexit,https://github.com/etternagame/etterna/releases/tag/v" .. GAMESTATE:GetEtternaVersion()
-			GAMESTATE:ApplyGameCommand(tag)
+			DLMAN:ShowProjectReleases()
 		end
 	end
 }
@@ -139,11 +138,15 @@ t[#t + 1] = Def.ActorFrame {
 	UIElements.QuadButton(1, 1) .. {
 		InitCommand = function(self)
 			self:zoomto(buttons.width, buttons.height):halign(0):valign(0):diffuse(buttons.color):diffusealpha(0)
+			self:playcommand("LastVersionUpdated")
+		end,
+		LastVersionUpdatedMessageCommand = function(self)
 			local latest = tonumber((DLMAN:GetLastVersion():gsub("[.]", "", 1)))
 			local current = tonumber((GAMESTATE:GetEtternaVersion():gsub("[.]", "", 1)))
 			if latest and latest > current then
 				gameneedsupdating = true
 			end
+			self:playcommand("On")
 		end,
 		OnCommand = function(self)
 			if gameneedsupdating then
@@ -152,7 +155,7 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		MouseDownCommand = function(self, params)
 			if params.event == "DeviceButton_left mouse button" and gameneedsupdating then
-				GAMESTATE:ApplyGameCommand("urlnoexit,https://github.com/etternagame/etterna/releases;text,GitHub")
+				DLMAN:ShowProjectReleases()
 			end
 		end
 	},

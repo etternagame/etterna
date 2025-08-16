@@ -1270,7 +1270,7 @@ static const InputScheme::GameButtonInfo g_CommonGameButtonInfo[] = {
 const InputScheme::GameButtonInfo*
 InputScheme::GetGameButtonInfo(GameButton gb) const
 {
-	COMPILE_ASSERT(GAME_BUTTON_NEXT == ARRAYLEN(g_CommonGameButtonInfo));
+	static_assert(GAME_BUTTON_NEXT == ARRAYLEN(g_CommonGameButtonInfo));
 	if (gb < GAME_BUTTON_NEXT)
 		return &g_CommonGameButtonInfo[gb];
 

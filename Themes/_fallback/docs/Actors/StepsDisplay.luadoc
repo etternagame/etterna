@@ -1,2 +1,6 @@
 --- Difficulty display class
+--
+-- This class inherits all methods from these classes:
+-- @{ActorFrame}
+-- @{Actor}
 -- @classmod StepsDisplay

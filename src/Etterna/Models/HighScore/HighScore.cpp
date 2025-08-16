@@ -1262,6 +1262,14 @@ HighScore::RescoreToWife3(float pmax) -> bool
 		return false;
 	}
 
+	if (pmax <= 0.F) {
+		m_Impl->fSSRNormPercent = 0.F;
+		m_Impl->fWifeScore = 0.F;
+		m_Impl->fWifePoints = 0.F;
+		m_Impl->WifeVersion = 3;
+		return true;
+	}
+
 	// SSRNormPercent
 	auto p4 = 0.F;
 	// WifeScore for HighScore Judge
@@ -1640,7 +1648,7 @@ class LunaHighScore : public Luna<HighScore>
 
 	static auto GetJudgmentString(T* p, lua_State* L) -> int
 	{
-		const auto doot = ssprintf("%d I %d I %d I %d I %d I %d  x%d",
+		const auto doot = ssprintf("%d | %d | %d | %d | %d | %d  x%d",
 								   p->GetTapNoteScore(TNS_W1),
 								   p->GetTapNoteScore(TNS_W2),
 								   p->GetTapNoteScore(TNS_W3),
@@ -1697,6 +1705,7 @@ class LunaHighScore : public Luna<HighScore>
 	DEFINE_METHOD(GetScoreKey, GetScoreKey())
 	DEFINE_METHOD(GetReplayType, GetReplayType())
 	DEFINE_METHOD(GetDisplayName, GetDisplayName())
+	DEFINE_METHOD(GetCountryCode, GetCountryCode())
 	LunaHighScore()
 	{
 		ADD_METHOD(GetName);
@@ -1729,6 +1738,7 @@ class LunaHighScore : public Luna<HighScore>
 		ADD_METHOD(GetReplayType);
 		ADD_METHOD(GetReplay);
 		ADD_METHOD(GetJudgmentString);
+		ADD_METHOD(GetCountryCode);
 		ADD_METHOD(GetDisplayName);
 		ADD_METHOD(GetUserid);
 		ADD_METHOD(GetScoreid);

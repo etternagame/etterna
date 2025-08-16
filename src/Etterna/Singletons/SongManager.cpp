@@ -37,6 +37,7 @@
 #include <fstream>
 #include <cmath>
 
+#include "Core/Platform/Platform.hpp"
 #include "miniz/zip_file.hpp"
 
 using std::map;
@@ -135,7 +136,7 @@ SongManager::InstallSmzip(const std::string& sZipFile)
 	miniz_cpp::zip_file fi;
 	try {
 		fi.load(sZipFile);
-	} catch (std::runtime_error& e) {
+	} catch (std::exception& e) {
 		Locator::getLogger()->error("Exception when trying to extract {} - Zip "
 									"may not exist or is bad : {}",
 									sZipFile,
@@ -196,7 +197,7 @@ SongManager::InstallSmzip(const std::string& sZipFile)
 						   FILEMAN->ResolveSongFolder(
 							 extractTo, downloadPacksToAdditionalSongs));
 				filecnt++;
-			} catch (std::runtime_error& ex) {
+			} catch (std::exception& ex) {
 				Locator::getLogger()->error(
 				  "Failed to extract file {} : {}", member, ex.what());
 			}
@@ -1364,8 +1365,8 @@ SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
 
 		// Save ssc/sm5 cache file
 		{
-			std::string tmpOutPutPath = "Cache/tmp.ssc";
-			std::string sscCacheFilePath = sdir + "songdata.cache";
+			auto tmpOutPutPath = fmt::format("Cache/tmp_{}.ssc", sGroupName);
+			const auto sscCacheFilePath = sdir + "songdata.cache";
 
 			if (!std::isfinite(s->GetLastSecond())) {
 				Locator::getLogger()->warn("Skipped due to bad bpm {}", sdir);
@@ -1380,7 +1381,7 @@ SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
 									 tmpOutPutPath.c_str(),
 									 f.GetError().c_str());
 			}
-			string p = f.GetPath();
+			auto p = f.GetPath();
 			f.Close();
 			std::ofstream dst(sscCacheFilePath, std::ios::binary);
 			std::ifstream src(p, std::ios::binary);
@@ -1452,13 +1453,24 @@ SongManager::GenerateCachefilesForGroup(const std::string& sGroupName) const
 			thing.erase(0, 1);
 		}
 
-		if (additionalSongs) {
-			// have to rewrite the big long path to be Pack/song/stuff.sm
-			auto internal_path = thing.substr(thing.find("/" + sGroupName + "/") + 1);
-			fi.write(thing, internal_path);
-		} else {
-			// path given as /pack/song/stuff.sm works fine as is
-			fi.write(thing);
+		try {
+			if (additionalSongs) {
+				// have to rewrite the big long path to be
+				// Pack/song/stuff.sm
+				const auto internal_path =
+					thing.substr(thing.find("/" + sGroupName + "/") + 1);
+				fi.write(thing, internal_path);
+			} else {
+				// path given as /pack/song/stuff.sm works fine as is
+				fi.write(thing);
+			}
+		} catch (std::runtime_error& ex) {
+			Locator::getLogger()->error(
+				"Had runtime exception while writing file, skipping... Excp: "
+				"{} ; Pack {} ; Song {}",
+				ex.what(),
+				sGroupName,
+				thing);
 		}
 	}
 	fi.save("Cache/" + sGroupName + ".zip");
@@ -1609,6 +1621,19 @@ SongManager::GetSongFromDir(std::string dir) const -> Song*
 		return entry->second;
 	}
 	return nullptr;
+}
+
+auto
+SongManager::OpenSongFolder(const Song* pSong) -> bool
+{
+	if (pSong == nullptr) {
+		return false;
+	}
+	auto d = pSong->GetSongDir();
+	auto b = SONGMAN->WasLoadedFromAdditionalSongs(pSong);
+	auto sf = FILEMAN->ResolveSongFolder(d, b);
+
+	return Core::Platform::openFolder(sf);
 }
 
 void

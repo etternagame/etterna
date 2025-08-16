@@ -152,6 +152,12 @@ namespace Core::Platform {
         return [item stringForType:(NSPasteboardTypeString)].UTF8String;
     }
 
+	bool setClipboardText(std::string text){
+		[[NSPasteboard generalPasteboard] clearContents];
+		[[NSPasteboard generalPasteboard] setString:[NSString stringWithUTF8String:text.c_str()] forType:NSPasteboardTypeString];
+		return true;
+	}
+
     void setCursorVisible(bool value){
 		static bool cursor_visible = true;
 		/*NSCursor hide/unhide keeps a reference count; each hide

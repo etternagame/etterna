@@ -355,7 +355,20 @@ local Phrases = {
 	"Holy shit, you're cheating better than me", -- Thaor during Anmao's cheated client stream 
 	"sorry im a charter i just preview charts for 30 minutes and then close the game", -- Void
     "yo mate this beat dropped so hard I drop kicked me nan down 7 sets of stairs. REPPIN THE MAKIN SCENE LIKE! rest in peace mc mental the legend", -- Dour, listening to MC mental
-	"damn bitch this beat has a fat ass", -- Chat in foxfire's stream 
+    "damn bitch this beat has a fat ass", -- Chat in foxfire's stream
+    "i was making a sandwiche", -- Dour while someone attempted to break into their home
+    "Requires poop transfusion", -- Poco, in response to Celebelian dsicussing poop transplants reviving mice
+    "my Charts/Files/Levels/Maps are not built to survive hydraulic presses", -- April
+    "i dont really play breakcore files because they all play the same", -- void
+    "you've placed your last arrow, partner", -- Jole
+    "grug make simfile have one very hard part that ruin aaa, make it exciting", -- ilikexd
+    "BORN TO STEP | ETTERNA ONLINE IS A FUCK | 木 restep them all 2001 | I am trash chartographer | 2,147,483,647 REJECTED FILES", -- Tim
+    "why improve as a charter when your 3 split personalities tell you you're doing good", -- Tim
+    "anyone want to ghost write stepmania charts for me", -- Caliber
+    "anyone know how to disable motion blur in etterna", -- random person in edg
+    "good job tim you are highly intelligent among the gorillas in your enclosure", -- Tim discussing the mental ability of leftovers members
+    "send me a cute anime girl in a suit and i will collab with you on something", -- Dour negotiating giving Tim BLISS 2K to collab on
+    "I'll inhale you", -- Zeta to tim.
 }
 
 function getRandomQuote(tipType)

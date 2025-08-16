@@ -538,7 +538,7 @@ function WHEELDATA.GetFavoritedCharts(self, song, charts)
     return result
 end
 
-function WHEELDATA.GetChartsWithGoals(self, song)
+function WHEELDATA.GetChartsWithGoals(self, song, charts)
     if charts == nil then charts = self:GetChartsMatchingFilter(song) end
     local result = {}
     for i,c in ipairs(charts) do
@@ -549,7 +549,7 @@ function WHEELDATA.GetChartsWithGoals(self, song)
     return result
 end
 
-function WHEELDATA.GetPermaMirrorCharts(self, song)
+function WHEELDATA.GetPermaMirrorCharts(self, song, charts)
     if charts == nil then charts = self:GetChartsMatchingFilter(song) end
     local result = {}
     for i,c in ipairs(charts) do

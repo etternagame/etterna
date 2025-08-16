@@ -171,6 +171,7 @@ PrefsManager::PrefsManager()
   , EnablePitchRates("EnablePitchRates", true)
   , LiftsOnOsuHolds("LiftsOnOsuHolds", false)
   , m_bEasterEggs("EasterEggs", true)
+  , m_bForceSnaps("ForceSnaps", false)
   , m_AllowMultipleToasties("MultiToasty", false)
   , m_bUseMidGrades("UseMidGrades", false)
 
@@ -212,7 +213,6 @@ PrefsManager::PrefsManager()
   , m_bEnableCrashUpload("EnableMinidumpUpload", false)
   , m_bAllowSongDeletion("AllowSongDeletion", false)
   , m_bShowMinidumpUploadDialogue("ShowMinidumpUploadDialogue", true)
-  , m_fScrollDebounceTime("ScrollDebounceTime", 0)
 
 {
 	Init();

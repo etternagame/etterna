@@ -1,4 +1,7 @@
 --- Font actor
+--
+-- This class inherits all methods from these classes:
+-- @{Actor}
 -- @classmod BitmapText
 
 		

@@ -230,7 +230,7 @@ local function scoreitem(pn, i)
 			end,
 			UpdateNetScoreCommand = function(self)
 				self:settextf(
-					"%d / %d / %d / %d / %d / %d",
+					"%d | %d | %d | %d | %d | %d",
 					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W1"),
 					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W2"),
 					multiscores[i].highscore:GetTapNoteScore("TapNoteScore_W3"),

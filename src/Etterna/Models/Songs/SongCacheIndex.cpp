@@ -43,7 +43,7 @@
  * the directory hash) in order to find the cache file.
  */
 const std::string CACHE_DB = SpecialFiles::CACHE_DIR + "cache.db";
-const unsigned int CACHE_DB_VERSION = 246;
+const unsigned int CACHE_DB_VERSION = 247;
 
 SongCacheIndex* SONGINDEX; // global and accessible from anywhere in our program
 
@@ -342,7 +342,7 @@ SongCacheIndex::InsertSteps(Steps* pSteps, int64_t songID) const
 	insertSteps.bind(stepsIndex++,
 					 serializednd.data(),
 					 static_cast<int>(serializednd.size() * sizeof(NoteInfo)));
-	insertSteps.bind(stepsIndex++, static_cast<long long int>(songID));
+	insertSteps.bind(stepsIndex++, static_cast<int64_t>(songID));
 	try {
 		insertSteps.exec();
 	} catch (std::exception& e) {

@@ -1,2 +1,4 @@
 --- Stage stats
+--
+-- This class inherits no methods from superclasses.
 -- @classmod StageStats

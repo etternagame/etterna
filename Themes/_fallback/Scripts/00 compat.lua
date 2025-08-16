@@ -17,3 +17,19 @@ Arch["ShowCursor"] = Arch.setCursorVisible
 for k,v in pairs(Arch) do
     HOOKS[k] = function(_, ...) return v(...) end
 end
+
+
+-- DownloadManager
+-- Alternate functions not requiring a reference to DLMAN
+function ShowEditorSite()
+    return DLMAN:ShowEditorSite()
+end
+function ShowProjectSite()
+    return DLMAN:ShowProjectSite()
+end
+function ShowProjectReleases()
+    return DLMAN:ShowProjectReleases()
+end
+function ShowBugReportSite()
+    return DLMAN:ShowBugReportSite()
+end

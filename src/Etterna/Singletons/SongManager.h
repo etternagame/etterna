@@ -155,6 +155,7 @@ class SongManager
 											 // playlist groups
 
 	static void FinalizeSong(Song* pNewSong, const std::string& dir);
+	bool OpenSongFolder(const Song* pSong);
 
 	// calc test stuff
 	auto SaveCalcTestCreateNode() const -> XNode*;

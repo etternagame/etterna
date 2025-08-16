@@ -15,6 +15,9 @@ constexpr float ms_init = 5000.F;
 /// global multiplier to standardize baselines
 constexpr float finalscaler = 3.632F * 1.06F;
 
+/// global force to ignore middle column in most things...
+static const bool ignore_middle_column = true;
+
 // outputs 0b1111 for 4, 0b111 for 3, etc
 inline auto
 keycount_to_bin(const unsigned& keycount) -> unsigned
@@ -41,11 +44,27 @@ left_mask(const unsigned& keycount) -> unsigned
 	return ~m & static_cast<int>(std::exp2(std::ceil(std::log2(m))) - 1);
 }
 
+// outputs 0b1111 for 4, 0b101 for 3, etc
+inline auto
+mask_to_remove_middle_column(const unsigned& keycount) -> unsigned
+{
+	if (keycount % 2 == 0) {
+		return keycount_to_bin(keycount);
+	}
+	return keycount_to_bin(keycount) ^ (0b1 << (keycount / 2));
+}
+
 // count number of 1's in noterow binary
 inline auto
 column_count(const unsigned& notes) -> int
 {
 	return std::popcount(notes);
+}
+
+inline auto
+is_only_1_bit(const unsigned& notes) -> bool
+{
+	return notes && !(notes & (notes - 1));
 }
 
 // return a vector of which columns are not empty

@@ -7,6 +7,7 @@
 #include "RageSoundReader_Filter.h"
 
 class RageSoundReader_SpeedChange;
+class RageSoundReader_SpeedChange_Good;
 class RageSoundReader_Resample_Good;
 
 class RageSoundReader_PitchChange : public RageSoundReader_Filter
@@ -29,6 +30,8 @@ class RageSoundReader_PitchChange : public RageSoundReader_Filter
   private:
 	RageSoundReader_SpeedChange*
 	  m_pSpeedChange; // freed by RageSoundReader_Filter
+	RageSoundReader_SpeedChange_Good*
+	  m_pSpeedChangeGood; // freed by RageSoundReader_Filter
 	RageSoundReader_Resample_Good*
 	  m_pResample; // freed by RageSoundReader_Filter
 

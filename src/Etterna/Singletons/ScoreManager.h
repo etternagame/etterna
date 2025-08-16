@@ -290,7 +290,9 @@ class ScoreManager
 	void UnloadAllReplayData()
 	{
 		for (auto& s : AllScores) {
-			s->UnloadReplayData();
+			if (s->replay != nullptr &&
+				s->replay->GetReplayType() != ReplayType_Invalid)
+				s->UnloadReplayData();
 		}
 	}
 	bool camefromreplay = false;

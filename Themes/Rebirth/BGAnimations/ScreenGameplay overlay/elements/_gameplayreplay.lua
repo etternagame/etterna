@@ -71,7 +71,7 @@ scroller = Def.ActorFrame {
                     else
                         self:queuecommand("ReplayScroll")
                     end
-                elseif event.GameButton == "Coin" then
+                elseif event.GameButton == "Coin" or event.DeviceInput.button == "DeviceButton_right mouse button" then
                     self:queuecommand("ReplayPauseToggle")
                 end
             end

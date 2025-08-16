@@ -6,6 +6,7 @@ list(APPEND HD_GENERAL_SRC
     "HD_MetaSequencing.h"
     "IntervalHandInfo.h"
     "MetaHandInfo.h"
-    "MetaIntervalHandInfo.h")
+    "MetaIntervalHandInfo.h"
+    "MetaIntervalGenericHandInfo.h")
 
 target_sources(Etterna PUBLIC ${HD_GENERAL_SRC})

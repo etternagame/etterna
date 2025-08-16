@@ -1,2 +1,4 @@
 --- Representation of a downloading pack
+--
+-- This class inherits no methods from superclasses.
 -- @classmod Download

@@ -62,7 +62,8 @@ local translated_info = {
 	LoginToView = THEME:GetString("NestedScores", "LoginToView"),
 	NoScoresFound = THEME:GetString("NestedScores", "NoScoresFound"),
 	RetrievingScores = THEME:GetString("NestedScores", "RetrievingScores"),
-	Watch = THEME:GetString("NestedScores", "WatchReplay")
+	Watch = THEME:GetString("NestedScores", "WatchReplay"),
+	NoReplay = THEME:GetString("NestedScores", "NoReplay"),
 }
 
 local scoretable = {}
@@ -487,8 +488,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName()
-					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
+					DLMAN:ShowUserPage(hs:GetDisplayName())
 				end
 			end
 		},
@@ -515,8 +515,7 @@ local function makeScoreDisplay(i)
 			end,
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" then
-					local urlstringyo = DLMAN:GetHomePage() .. "/users/" .. hs:GetDisplayName() .. "/scores/" .. hs:GetScoreid()
-					GAMESTATE:ApplyGameCommand("urlnoexit," .. urlstringyo)
+					DLMAN:ShowScorePage(hs:GetDisplayName(), hs:GetScoreid())
 				end
 			end,
 			CollapseCommand = function(self)
@@ -584,7 +583,11 @@ local function makeScoreDisplay(i)
 					DLMAN:RequestOnlineScoreReplayData(
 						hs,
 						function()
-							SCREENMAN:GetTopScreen():PlayReplay(hs)
+							if hs:GetReplay():HasReplayData() then
+								SCREENMAN:GetTopScreen():PlayReplay(hs)
+							else
+								ms.ok(translated_info["NoReplay"])
+							end
 						end
 					)
 				end

@@ -242,12 +242,12 @@ RageSound::Load(const std::string& sSoundFilePath,
 	m_pSource = new RageSoundReader_Extend(m_pSource);
 	if (bNeedBuffer)
 		m_pSource = new RageSoundReader_ThreadedBuffer(m_pSource);
-	m_pSource = new RageSoundReader_PostBuffering(m_pSource);
 
 	if (pParams->m_bSupportRateChanging) {
 		auto* pRate = new RageSoundReader_PitchChange(m_pSource);
 		m_pSource = pRate;
 	}
+	m_pSource = new RageSoundReader_PostBuffering(m_pSource);
 
 	if (pParams->m_bSupportPan)
 		m_pSource = new RageSoundReader_Pan(m_pSource);

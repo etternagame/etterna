@@ -123,9 +123,13 @@ function Actor.GetButtonRoot(self, depth)
 	
 	local buttonRoot = self
 	for i = 0, depth, 1 do
-		buttonRoot = buttonRoot:GetParent()
+		local r = buttonRoot:GetParent()
+		if r ~= nil then
+			buttonRoot = r
+		else
+			break
+		end
 	end
-
 	return buttonRoot
 end
 
@@ -195,7 +199,6 @@ BUTTON.ScrollWheelInput = {
 
 -- Function for handling input callbacks
 -- Call screen:AddInputCallback(BUTTON.InputCallback) on the OnCommand of the screen where you want mouse inputs.
-local last_scroll_input = GetTimeSinceStart()
 function BUTTON.InputCallback(event)
 
 	if BUTTON.AcceptedDeviceInput[event.DeviceInput.button] then
@@ -212,12 +215,7 @@ function BUTTON.InputCallback(event)
 		if event.type == "InputEventType_FirstPress" then
 			-- produces a broadcast message of this for each "snap" of the wheel
 			-- MouseScroll -- params: direction = Up/Down
-			local scroll_debounce_time = PREFSMAN:GetPreference("ScrollDebounceTime")
-			local CurrentTime = GetTimeSinceStart()
-			if (CurrentTime - last_scroll_input) > scroll_debounce_time then -- Incase user has scroll debounce time set.
-			last_scroll_input = CurrentTime
 			MESSAGEMAN:Broadcast("MouseScroll", {direction = BUTTON.ScrollWheelInput[event.DeviceInput.button]})
-			end
 		end
 	end
 
@@ -225,6 +223,7 @@ end
 
 -- Resets the list of buttons currently added to the given screen. Call when the screen is being initialized.
 function BUTTON.ResetButtonTable(self, screenName)
+	print("Resetting the current button table")
     if screenName ~= nil then
 		self.ButtonTable[screenName] = nil
 		self.CurTopButton = nil
@@ -252,6 +251,22 @@ function BUTTON.AddButton(self, actor, screenName, depth)
 		self.ButtonTable[screenName][#self.ButtonTable[screenName]+1] = actor
 		self.DepthTable[screenName][#self.DepthTable[screenName]+1] = depth
     end
+end
+
+-- reregister all buttons that exist
+-- this is mostly useful for when a button is deleted or regenerated at runtime
+function BUTTON.RefreshCurrentButtons(self, screenName)
+	print("Triggering a global button refresh")
+	if screenName == nil then
+		local screen = SCREENMAN:GetTopScreen()
+		if screen ~= nil then
+			screenName = screen:GetName()
+		end
+	end
+	if screenName ~= nil then
+		self:ResetButtonTable(screenName)
+		MESSAGEMAN:Broadcast("RefreshButtons", {LoadingScreen = screenName})
+	end
 end
 
 -- return true or false as to whether or not the mouse has moved on the currently loaded screen
@@ -407,7 +422,7 @@ function BUTTON.GetTopButton(self, x, y)
 		if not v then
 			print("something very scary happened and i think i prevented it")
 		else
-			if v:IsOver(x, y) then 
+			if v:IsOver(x, y) then
 				local z = v:GetTrueZ()
 				if z >= topZ then
 					topButton = v
@@ -516,6 +531,18 @@ function UIElements.QuadButton(z, depth)
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
 		end,
+		RefreshButtonsMessageCommand = function(self, params)
+			local screen = SCREENMAN:GetTopScreen()
+			local sname = nil
+			if params ~= nil and params.LoadingScreen ~= nil then
+				sname = params.LoadingScreen
+			end
+			if sname ~= nil then
+				BUTTON:AddButton(self, sname, depth)
+			elseif screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
 		MouseOverCommand = function(self) end,
 		MouseOutCommand = function(self) end,
 		MouseUpCommand = function(self, params) end,
@@ -546,6 +573,18 @@ function UIElements.SpriteButton(z, depth, tex)
 			-- dont playcommand the OnCommand because that could cause cascading issues
 			local screen = SCREENMAN:GetTopScreen()
 			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
+		RefreshButtonsMessageCommand = function(self, params)
+			local screen = SCREENMAN:GetTopScreen()
+			local sname = nil
+			if params ~= nil and params.LoadingScreen ~= nil then
+				sname = params.LoadingScreen
+			end
+			if sname ~= nil then
+				BUTTON:AddButton(self, sname, depth)
+			elseif screen ~= nil then
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
 		end,
@@ -583,6 +622,18 @@ function UIElements.TextButton(z, depth, font)
 				-- dont playcommand the OnCommand because that could cause cascading issues
 				local screen = SCREENMAN:GetTopScreen()
 				if screen ~= nil then
+					BUTTON:AddButton(self, screen:GetName(), depth)
+				end
+			end,
+			RefreshButtonsMessageCommand = function(self, params)
+				local screen = SCREENMAN:GetTopScreen()
+				local sname = nil
+				if params ~= nil and params.LoadingScreen ~= nil then
+					sname = params.LoadingScreen
+				end
+				if sname ~= nil then
+					BUTTON:AddButton(self, sname, depth)
+				elseif screen ~= nil then
 					BUTTON:AddButton(self, screen:GetName(), depth)
 				end
 			end,
@@ -625,6 +676,18 @@ function UIElements.TextToolTip(z, depth, font)
 			-- dont playcommand the OnCommand because that could cause cascading issues
 			local screen = SCREENMAN:GetTopScreen()
 			if screen ~= nil then
+				BUTTON:AddButton(self, screen:GetName(), depth)
+			end
+		end,
+		RefreshButtonsMessageCommand = function(self, params)
+			local screen = SCREENMAN:GetTopScreen()
+			local sname = nil
+			if params ~= nil and params.LoadingScreen ~= nil then
+				sname = params.LoadingScreen
+			end
+			if sname ~= nil then
+				BUTTON:AddButton(self, sname, depth)
+			elseif screen ~= nil then
 				BUTTON:AddButton(self, screen:GetName(), depth)
 			end
 		end,

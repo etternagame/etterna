@@ -68,13 +68,13 @@ local shortJudgeString = { -- Text strings for each Judgment types
 }
 
 local judgeString = { -- Text strings for each Judgment types
-	TapNoteScore_W1 = 'Marvelous',
-	TapNoteScore_W2	= 'Perfect',
-	TapNoteScore_W3	 = 'Great',
-	TapNoteScore_W4	= 'Good',
-	TapNoteScore_W5	= 'Bad',
-	TapNoteScore_Miss = 'Miss',			
-	HoldNoteScore_Held = 'OK',	
+	TapNoteScore_W1 = THEME:GetString("TapNoteScore", "W1"),
+	TapNoteScore_W2	= THEME:GetString("TapNoteScore", "W2"),
+	TapNoteScore_W3	 = THEME:GetString("TapNoteScore", "W3"),
+	TapNoteScore_W4	= THEME:GetString("TapNoteScore", "W4"),
+	TapNoteScore_W5	= THEME:GetString("TapNoteScore", "W5"),
+	TapNoteScore_Miss = THEME:GetString("TapNoteScore", "Miss"),
+	HoldNoteScore_Held = 'OK',
 	HoldNoteScore_LetGo = 'NG',	
 }
 

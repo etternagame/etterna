@@ -414,13 +414,20 @@ ScoreManager::GetAllPBsPreferringReplays(const std::string& profileID)
 	// this is mostly just for InitialScoreSync
 	// (this is also super slow)
 	std::vector<HighScore*> o {};
-	for (auto& scoresForChart : pscores.at(profileID)) {
-		if (!SONGMAN->IsChartLoaded(scoresForChart.first)) {
-			continue;
-		}
+	try {
+		for (auto& scoresForChart : pscores.at(profileID)) {
+			if (!SONGMAN->IsChartLoaded(scoresForChart.first)) {
+				continue;
+			}
 
-		auto v = scoresForChart.second.GetTopScoresForUploading();
-		o.insert(o.end(), v.begin(), v.end());
+			auto v = scoresForChart.second.GetTopScoresForUploading();
+			o.insert(o.end(), v.begin(), v.end());
+		}
+	} catch (std::exception& e) {
+		// can happen if profile doesnt exist
+		Locator::getLogger()->error(
+		  "Exception caught in GetAllPBsPreferringReplays, exiting early: {}", e.what());
+		return o;
 	}
 	return o;
 }
@@ -431,13 +438,18 @@ ScoreManager::GetAllPBPtrs(const std::string& profileID)
   -> const std::vector<vector<HighScore*>>
 {
 	std::vector<vector<HighScore*>> vec;
-	for (auto& i : pscores.at(profileID)) {
-		if (!SONGMAN->IsChartLoaded(i.first)) {
-			continue;
+	try {
+		for (auto& i : pscores.at(profileID)) {
+			if (!SONGMAN->IsChartLoaded(i.first)) {
+				continue;
+			}
+			vec.emplace_back(i.second.GetAllPBPtrs());
 		}
-		vec.emplace_back(i.second.GetAllPBPtrs());
+	} catch (std::exception& e) {
+		// can happen if profile doesnt exist
+		Locator::getLogger()->error(
+		  "Exception caught in GetAllPBPtrs, exiting early: {}", e.what());
 	}
-
 	return vec;
 }
 
@@ -879,7 +891,11 @@ ScoreManager::CalcPlayerRating(float& prating,
 		skillz.push_back(pskillsets[ss]);
 	}
 
-	prating = aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
+	// player overall by aggregation
+	// prating = aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
+	// player overall by average
+	prating = std::reduce(skillz.begin(), skillz.end()) /
+			  static_cast<float>(skillz.size());
 	pskillsets[Skill_Overall] = prating;
 }
 
@@ -979,8 +995,14 @@ ScoreManager::GetPlayerRatingOverTime(const std::string& profileID) {
 				  skillz[ss] = aggregate_skill(ssrs, 0.1L, (float)1.05, 0.0, (float)10.24);
 				  CLAMP(skillz[ss], 0.F, 100.F);
 			  }
+			  // player overall by aggregation
+			  // skillz[Skill_Overall] =
+			  //aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
+			  // player overall by average
 			  skillz[Skill_Overall] =
-				aggregate_skill(skillz, 0.1L, (float)1.125, 0.0, (float)10.24);
+				std::reduce(skillz.begin(), skillz.end()) /
+				static_cast<float>(NUM_Skillset - 1);
+
 			  ssrsByDate.emplace(date, skillz);
 		  }
 	  };
