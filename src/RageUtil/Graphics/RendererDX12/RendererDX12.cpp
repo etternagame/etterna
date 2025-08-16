@@ -214,7 +214,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         ComPtr<ID3DBlob> vertexShader = CompileShader(shaderContents, "VSMain", "vs_5_0");
         ComPtr<ID3DBlob> pixelShader = CompileShader(shaderContents, "PSMain", "ps_5_0");
 
-        D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
+        constexpr D3D12_INPUT_ELEMENT_DESC spriteVertexLayout[] = {
             {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(RageSpriteVertex, p),
              D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
             {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(RageSpriteVertex, n),
@@ -222,12 +222,13 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
             {"COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, offsetof(RageSpriteVertex, c),
              D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
             {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(RageSpriteVertex, t),
-             D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
-        };
+             D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}};
+
+        constexpr UINT layoutElementCount = _countof(spriteVertexLayout);
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.pRootSignature = m_RootSignature.Get();
-        psoDesc.InputLayout = {inputElementDescs, _countof(inputElementDescs)};
+        psoDesc.InputLayout = {spriteVertexLayout, layoutElementCount};
         psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
         psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
@@ -251,7 +252,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     {
         RageSpriteVertex triangleVertices[] = {{{0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f},
                                                 {0.0f, 0.0f, 0.0f},
-                                                RageColor(0.0f, 1.0f, 1.0f, 1.0f),
+                                                RageColor(0.0f, 1.0f, 0.0f, 1.0f),
                                                 {0.0f, 0.0f}},
                                                {{0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f},
                                                 {0.0f, 0.0f, 0.0f},
