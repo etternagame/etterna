@@ -657,6 +657,7 @@ enum class RageShaderType
 {
 	Fragment,
 	Vertex,
+	Compute,
 	Invalid,
 };
 LuaDeclareType(RageShaderType);

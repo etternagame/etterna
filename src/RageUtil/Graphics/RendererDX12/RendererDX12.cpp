@@ -167,25 +167,75 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
         }
     }
 
+	{
+		D3D12_RESOURCE_DESC drawCommandDesc = CD3DX12_RESOURCE_DESC::Buffer(MaxDrawCommands * sizeof(Display::DrawCommand));
+		m_DrawCommandBuffer = CreateResource(drawCommandDesc,
+					   D3D12_HEAP_TYPE_DEFAULT,
+					   D3D12_RESOURCE_STATE_COMMON);
+
+		D3D12_RESOURCE_DESC indirectArgDesc = CD3DX12_RESOURCE_DESC::Buffer(
+		  MaxDrawCommands * sizeof(IndirectCommand),
+		  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+		m_IndirectArgBuffer =
+		  CreateResource(indirectArgDesc,
+						 D3D12_HEAP_TYPE_DEFAULT,
+						 D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	}
+	
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+			.NumDescriptors = 2048,
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
+		};
+		ThrowIfFailed(
+		  m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_SrvHeap)));
+
+		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {
+			.Format = DXGI_FORMAT_UNKNOWN,
+			.ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+			.Buffer = { .NumElements = MaxDrawCommands,
+						.StructureByteStride = sizeof(Display::DrawCommand),
+						.Flags = D3D12_BUFFER_SRV_FLAG_NONE }
+		};
+
+		m_Device->CreateShaderResourceView(
+		  m_DrawCommandBuffer.Get(),
+		  &srvDesc,
+		  m_SrvHeap->GetCPUDescriptorHandleForHeapStart());
+	}
+
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
 }
 
-ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShaderType shaderType)
+ComPtr<IDxcBlob>
+RendererDX12::CompileShader(const std::string& path, RageShaderType shaderType)
 {
-    ComPtr<IDxcBlobEncoding> source;
-    ThrowIfFailed(m_ShaderCompilerUtils->LoadFile(std::wstring(path.begin(), path.end()).c_str(), nullptr, &source));
+	ComPtr<IDxcBlobEncoding> source;
+	ThrowIfFailed(m_ShaderCompilerUtils->LoadFile(
+	  std::wstring(path.begin(), path.end()).c_str(), nullptr, &source));
 
-    DxcBuffer buffer{};
-    buffer.Ptr = source->GetBufferPointer();
-    buffer.Size = source->GetBufferSize();
-    buffer.Encoding = DXC_CP_ACP;
+	DxcBuffer buffer{};
+	buffer.Ptr = source->GetBufferPointer();
+	buffer.Size = source->GetBufferSize();
+	buffer.Encoding = DXC_CP_ACP;
 
-    LPCWSTR args[] = {L"-T", L"vs_6_5", L"-E", L"VSMain"};
-    if (shaderType == RageShaderType::Fragment)
-    {
-        args[1] = L"ps_6_5";
-        args[3] = L"PSMain";
-    }
+	LPCWSTR args[] = { L"-T", L"vs_6_5", L"-E", L"VSMain" };
+	switch (shaderType) {
+		case RageShaderType::Fragment: {
+			args[1] = L"ps_6_5";
+			args[3] = L"PSMain";
+			break;
+		}
+		case RageShaderType::Compute: {
+			args[1] = L"cs_6_5";
+			args[3] = L"CSMain";
+			break;
+		}
+		default:
+			break;
+	}
 
     ComPtr<IDxcResult> result;
     ThrowIfFailed(m_ShaderCompiler->Compile(&buffer, args, _countof(args), nullptr, IID_PPV_ARGS(&result)));
@@ -199,8 +249,23 @@ ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShader
 void RendererDX12::LoadAssets(const VideoModeParams &p)
 {
     {
+		CD3DX12_DESCRIPTOR_RANGE1 ranges[2] = {
+			{ D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0 },
+			{ D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0 }
+		};
+
+		CD3DX12_ROOT_PARAMETER1 rootParams[2] = {};
+		rootParams[0].InitAsConstants(0, 0);
+		rootParams[1].InitAsDescriptorTable(1, &ranges[0]);
+
+		D3D12_ROOT_SIGNATURE_FLAGS flags =
+		  D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+		  D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+		  D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+		  D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		rootSignatureDesc.Init(0, nullptr, 0, nullptr, flags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
