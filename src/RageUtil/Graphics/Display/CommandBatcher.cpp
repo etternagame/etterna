@@ -13,9 +13,11 @@ void Display::CommandBatcher::InsertSpriteDrawCommand(DrawMode drawMode, MatrixS
     assert(drawMode != DrawMode::CompiledGeometry);
     assert(m_RenderStateBuffer.size() >= 1 && "Rendering information must be set before drawing");
 
-    DrawCommand command = {.useSpriteVertex = true, .matrixState = matrixState};
+    DrawCommand command = {};
 
-    command.vertexOffset = m_SpriteVertexBuffer.size();
+    command.StartVertexLocation = m_SpriteVertexBuffer.size();
+	command.InstanceCount = 1;
+	command.StartInstanceLocation = 0;
 
     // -- changing draw mode in the middle of the queue would likely require switching pipeline state objects
     //	  and most of the ye olde draw modes aren't supported
@@ -25,7 +27,6 @@ void Display::CommandBatcher::InsertSpriteDrawCommand(DrawMode drawMode, MatrixS
     switch (drawMode)
     {
     case DrawMode::Triangles: {
-        command.vertexCount = vertexCount;
         std::copy(vertexData, vertexData + vertexCount, std::back_inserter(m_SpriteVertexBuffer));
         break;
     }
@@ -130,16 +131,25 @@ void Display::CommandBatcher::InsertSpriteDrawCommand(DrawMode drawMode, MatrixS
         break;
     }
 
-	command.vertexCount = m_SpriteVertexBuffer.size() - command.vertexOffset;
-    command.renderStateIndex = m_RenderStateBuffer.size() - 1;
+	command.VertexCountPerInstance =
+	  m_SpriteVertexBuffer.size() - command.StartVertexLocation;
 
     m_CommandBuffer.push_back(command);
+	m_MatrixStateBuffer.push_back(matrixState);
+
+	DrawCommandArgument argument = { .matrixStateIndex =
+									   (uint32_t)m_MatrixStateBuffer.size() - 1,
+									 .renderStateIndex = (uint32_t)m_RenderStateBuffer.size() - 1
+	};
+	m_CommandArgumentBuffer.push_back(argument);
 }
 
 void Display::CommandBatcher::InsertCompiledGeometryDrawCommand(DrawMode drawMode, MatrixState &&matrixState,
                                                                 const RageCompiledGeometry *p, int iMeshIndex)
 {
-    assert(drawMode == DrawMode::CompiledGeometry);
+	// TODO (^_^)
+
+    /*assert(drawMode == DrawMode::CompiledGeometry);
     assert(m_RenderStateBuffer.size() >= 1 && "Rendering information must be set before drawing");
 
     DrawCommand command = { .useSpriteVertex = false,
@@ -149,7 +159,7 @@ void Display::CommandBatcher::InsertCompiledGeometryDrawCommand(DrawMode drawMod
 
     command.renderStateIndex = m_RenderStateBuffer.size() - 1;
 
-    m_CommandBuffer.push_back(command);
+    m_CommandBuffer.push_back(command);*/
 }
 
 void Display::CommandBatcher::Clear()
@@ -158,4 +168,6 @@ void Display::CommandBatcher::Clear()
     m_SpriteVertexBuffer.clear();
     m_ModelVertexBuffer.clear();
     m_RenderStateBuffer.clear();
+	m_CommandArgumentBuffer.clear();
+	m_MatrixStateBuffer.clear();
 }

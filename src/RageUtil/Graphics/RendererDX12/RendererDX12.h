@@ -13,9 +13,9 @@
 #include <d3d12.h>
 #include <d3dcompiler.h>
 #include <directx/d3dx12.h>
+#include <dxcapi.h>
 #include <dxgi1_6.h>
 #include <windows.h>
-#include <dxcapi.h>
 
 class RendererDX12 : public Display::Renderer
 {
@@ -41,10 +41,9 @@ class RendererDX12 : public Display::Renderer
         const D3D12_RESOURCE_DESC &resourceDesc, D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT,
         D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_COPY_DEST);
 
-	Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(const std::string& path,
-								   RageShaderType shaderType);
-	Microsoft::WRL::ComPtr<IDxcCompiler3> m_ShaderCompiler;
-	Microsoft::WRL::ComPtr<IDxcUtils> m_ShaderCompilerUtils;
+    Microsoft::WRL::ComPtr<IDxcBlob> CompileShader(const std::string &path, RageShaderType shaderType);
+    Microsoft::WRL::ComPtr<IDxcCompiler3> m_ShaderCompiler;
+    Microsoft::WRL::ComPtr<IDxcUtils> m_ShaderCompilerUtils;
 
     Microsoft::WRL::ComPtr<IDXGIFactory7> m_DXGIFactory;
     UINT m_DXGIFactoryFlags;
@@ -56,17 +55,6 @@ class RendererDX12 : public Display::Renderer
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
     UINT m_RtvDescriptorSize;
-
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SrvHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_DrawCommandBuffer;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectArgBuffer;
-	struct IndirectCommand
-	{
-		UINT VertexCount;
-		UINT InstanceCount;
-		UINT StartVertexLocation;
-		UINT DrawCommandIndex;
-	};
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[Display::Display::FrameCount];
     Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureUploadHeap;
@@ -87,7 +75,7 @@ class RendererDX12 : public Display::Renderer
     D3D12_RECT m_ScissorRect;
 
     static constexpr D3D12_RESOURCE_DESC GetTextureDescription();
-	static constexpr size_t MaxDrawCommands = 100'000;
+    static constexpr size_t MaxDrawCommands = 100'000;
 
     std::vector<Display::TextureCommand> m_TextureCommandQueue;
     intptr_t m_TextureIndex;

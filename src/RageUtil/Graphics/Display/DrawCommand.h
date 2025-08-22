@@ -11,10 +11,15 @@ namespace Display
 
 struct DrawCommand
 {
-	bool useSpriteVertex;
-    MatrixState matrixState;
-	uint32_t vertexOffset;
-	uint32_t vertexCount;
+	uint32_t VertexCountPerInstance;
+	uint32_t InstanceCount;
+	uint32_t StartVertexLocation;
+	uint32_t StartInstanceLocation;
+};
+
+struct DrawCommandArgument
+{
+	uint32_t matrixStateIndex;
 	uint32_t renderStateIndex;
 };
 

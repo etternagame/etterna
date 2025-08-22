@@ -16,16 +16,16 @@ class CommandBatcher
     void InsertRenderStateCommand(RenderState renderState);
     void InsertSpriteDrawCommand(DrawMode drawMode, MatrixState &&matrixState, const RageSpriteVertex *vertexData,
                                  int vertexCount);
-	void InsertCompiledGeometryDrawCommand(DrawMode drawMode,
-								MatrixState&& matrixState,
-								const RageCompiledGeometry* p,
-								int iMeshIndex);
+    void InsertCompiledGeometryDrawCommand(DrawMode drawMode, MatrixState &&matrixState, const RageCompiledGeometry *p,
+                                           int iMeshIndex);
     void Clear();
 
+	std::vector<DrawCommandArgument> m_CommandArgumentBuffer;
     std::vector<DrawCommand> m_CommandBuffer;
     std::vector<RageSpriteVertex> m_SpriteVertexBuffer;
     std::vector<RageModelVertex> m_ModelVertexBuffer;
     std::vector<RenderState> m_RenderStateBuffer;
+    std::vector<MatrixState> m_MatrixStateBuffer;
 };
 
 } // namespace Display

@@ -5,7 +5,7 @@
 
 namespace Display {
 
-struct MatrixState
+struct alignas(256) MatrixState
 {
 	RageMatrix projection;
 	RageMatrix view;

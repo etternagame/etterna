@@ -167,45 +167,6 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
         }
     }
 
-	{
-		D3D12_RESOURCE_DESC drawCommandDesc = CD3DX12_RESOURCE_DESC::Buffer(MaxDrawCommands * sizeof(Display::DrawCommand));
-		m_DrawCommandBuffer = CreateResource(drawCommandDesc,
-					   D3D12_HEAP_TYPE_DEFAULT,
-					   D3D12_RESOURCE_STATE_COMMON);
-
-		D3D12_RESOURCE_DESC indirectArgDesc = CD3DX12_RESOURCE_DESC::Buffer(
-		  MaxDrawCommands * sizeof(IndirectCommand),
-		  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-		m_IndirectArgBuffer =
-		  CreateResource(indirectArgDesc,
-						 D3D12_HEAP_TYPE_DEFAULT,
-						 D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-	}
-	
-	{
-		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {
-			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-			.NumDescriptors = 2048,
-			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE
-		};
-		ThrowIfFailed(
-		  m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_SrvHeap)));
-
-		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {
-			.Format = DXGI_FORMAT_UNKNOWN,
-			.ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-			.Buffer = { .NumElements = MaxDrawCommands,
-						.StructureByteStride = sizeof(Display::DrawCommand),
-						.Flags = D3D12_BUFFER_SRV_FLAG_NONE }
-		};
-
-		m_Device->CreateShaderResourceView(
-		  m_DrawCommandBuffer.Get(),
-		  &srvDesc,
-		  m_SrvHeap->GetCPUDescriptorHandleForHeapStart());
-	}
-
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
 }
 
