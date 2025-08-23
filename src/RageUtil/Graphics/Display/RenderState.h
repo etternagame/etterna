@@ -15,6 +15,8 @@ struct RenderState
     float zBias;
     bool zWrite;
     bool alphaTest;
+
+	// todo: revise these?
     bool textureWrapping[NUM_TextureUnit];
     bool textureFiltering[NUM_TextureUnit];
     uint8_t textureMode[NUM_TextureUnit];

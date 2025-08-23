@@ -91,6 +91,7 @@ class RendererDX12 : public Display::Renderer
                   "IndirectCommand size should match the HLSL compute shader definition");
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
+	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_IndirectCommandSignature;
 };
 
 #endif

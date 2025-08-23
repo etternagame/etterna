@@ -183,12 +183,17 @@ ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShader
     buffer.Size = source->GetBufferSize();
     buffer.Encoding = DXC_CP_ACP;
 
-    LPCWSTR args[] = {L"-T", L"vs_6_5", L"-E", L"VSMain"};
+    LPCWSTR args[] = {L"-T", L"", L"-E", L""};
     switch (shaderType)
     {
     case RageShaderType::Fragment: {
         args[1] = L"ps_6_5";
         args[3] = L"PSMain";
+        break;
+    }
+    case RageShaderType::Vertex: {
+        args[1] = L"vs_6_5";
+        args[3] = L"VSMain";
         break;
     }
     case RageShaderType::Compute: {
@@ -259,8 +264,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         desc.ByteStride = sizeof(IndirectCommand);
         desc.NodeMask = 0; // use only a single GPU? read the docs again
 
-        Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_CommandSignature;
-        m_Device->CreateCommandSignature(&desc, m_RootSignature.Get(), IID_PPV_ARGS(&m_CommandSignature));
+        m_Device->CreateCommandSignature(&desc, m_RootSignature.Get(), IID_PPV_ARGS(&m_IndirectCommandSignature));
     }
 
     {
