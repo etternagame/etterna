@@ -123,7 +123,7 @@ void RendererDX12::StartLoadingPipeline()
     ThrowIfFailed(m_Device->CreateCommandQueue(&queueDescription, IID_PPV_ARGS(&m_CommandQueue)));
 
     ThrowIfFailed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_ShaderCompiler)));
-	ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_ShaderCompilerUtils)));
+    ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_ShaderCompilerUtils)));
 }
 
 void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
@@ -165,36 +165,40 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
         }
     }
 
+    {
+        D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(MaxDrawCommands * sizeof(IndirectCommand));
+        m_IndirectCommandHeap = CreateResource(desc, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
+    }
+
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
 }
 
-ComPtr<IDxcBlob>
-RendererDX12::CompileShader(const std::string& path, RageShaderType shaderType)
+ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShaderType shaderType)
 {
-	ComPtr<IDxcBlobEncoding> source;
-	ThrowIfFailed(m_ShaderCompilerUtils->LoadFile(
-	  std::wstring(path.begin(), path.end()).c_str(), nullptr, &source));
+    ComPtr<IDxcBlobEncoding> source;
+    ThrowIfFailed(m_ShaderCompilerUtils->LoadFile(std::wstring(path.begin(), path.end()).c_str(), nullptr, &source));
 
-	DxcBuffer buffer{};
-	buffer.Ptr = source->GetBufferPointer();
-	buffer.Size = source->GetBufferSize();
-	buffer.Encoding = DXC_CP_ACP;
+    DxcBuffer buffer{};
+    buffer.Ptr = source->GetBufferPointer();
+    buffer.Size = source->GetBufferSize();
+    buffer.Encoding = DXC_CP_ACP;
 
-	LPCWSTR args[] = { L"-T", L"vs_6_5", L"-E", L"VSMain" };
-	switch (shaderType) {
-		case RageShaderType::Fragment: {
-			args[1] = L"ps_6_5";
-			args[3] = L"PSMain";
-			break;
-		}
-		case RageShaderType::Compute: {
-			args[1] = L"cs_6_5";
-			args[3] = L"CSMain";
-			break;
-		}
-		default:
-			break;
-	}
+    LPCWSTR args[] = {L"-T", L"vs_6_5", L"-E", L"VSMain"};
+    switch (shaderType)
+    {
+    case RageShaderType::Fragment: {
+        args[1] = L"ps_6_5";
+        args[3] = L"PSMain";
+        break;
+    }
+    case RageShaderType::Compute: {
+        args[1] = L"cs_6_5";
+        args[3] = L"CSMain";
+        break;
+    }
+    default:
+        break;
+    }
 
     ComPtr<IDxcResult> result;
     ThrowIfFailed(m_ShaderCompiler->Compile(&buffer, args, _countof(args), nullptr, IID_PPV_ARGS(&result)));
@@ -208,23 +212,20 @@ RendererDX12::CompileShader(const std::string& path, RageShaderType shaderType)
 void RendererDX12::LoadAssets(const VideoModeParams &p)
 {
     {
-		CD3DX12_DESCRIPTOR_RANGE1 ranges[2] = {
-			{ D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0 },
-			{ D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0 }
-		};
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[2] = {{D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0},
+                                               {D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0}};
 
-		CD3DX12_ROOT_PARAMETER1 rootParams[2] = {};
-		rootParams[0].InitAsConstants(0, 0);
-		rootParams[1].InitAsDescriptorTable(1, &ranges[0]);
+        CD3DX12_ROOT_PARAMETER1 rootParams[2] = {};
+        rootParams[0].InitAsConstants(0, 0);
+        rootParams[1].InitAsDescriptorTable(1, &ranges[0]);
 
-		D3D12_ROOT_SIGNATURE_FLAGS flags =
-		  D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-		  D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-		  D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-		  D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+        D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 
         CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init(0, nullptr, 0, nullptr, flags);
+        rootSignatureDesc.Init(0, nullptr, 0, nullptr, flags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
@@ -232,6 +233,34 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
             D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
         ThrowIfFailed(m_Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
                                                     IID_PPV_ARGS(&m_RootSignature)));
+    }
+
+    {
+        D3D12_INDIRECT_ARGUMENT_DESC args[3] = {};
+
+        // draw call
+        args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+
+        // MatrixState index
+        args[1].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
+        args[1].Constant.RootParameterIndex = 0;
+        args[1].Constant.DestOffsetIn32BitValues = 0;
+        args[1].Constant.Num32BitValuesToSet = 1;
+
+        // RenderState index
+        args[2].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
+        args[2].Constant.RootParameterIndex = 0;
+        args[2].Constant.DestOffsetIn32BitValues = 1;
+        args[2].Constant.Num32BitValuesToSet = 1;
+
+        D3D12_COMMAND_SIGNATURE_DESC desc = {};
+        desc.pArgumentDescs = args;
+        desc.NumArgumentDescs = _countof(args);
+        desc.ByteStride = sizeof(IndirectCommand);
+        desc.NodeMask = 0; // use only a single GPU? read the docs again
+
+        Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_CommandSignature;
+        m_Device->CreateCommandSignature(&desc, m_RootSignature.Get(), IID_PPV_ARGS(&m_CommandSignature));
     }
 
     {

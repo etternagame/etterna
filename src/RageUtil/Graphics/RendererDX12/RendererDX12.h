@@ -79,6 +79,18 @@ class RendererDX12 : public Display::Renderer
 
     std::vector<Display::TextureCommand> m_TextureCommandQueue;
     intptr_t m_TextureIndex;
+
+#pragma pack(push, 4)
+    struct IndirectCommand
+    {
+        Display::DrawCommand draw;
+        Display::DrawCommandArgument args;
+    };
+#pragma pack(pop)
+    static_assert(sizeof(IndirectCommand) == 24,
+                  "IndirectCommand size should match the HLSL compute shader definition");
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
 };
 
 #endif
