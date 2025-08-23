@@ -11,7 +11,6 @@
 #include <D3D12MemAlloc.h>
 #include <DirectXMath.h>
 #include <d3d12.h>
-#include <d3dcompiler.h>
 #include <directx/d3dx12.h>
 #include <dxcapi.h>
 #include <dxgi1_6.h>
@@ -91,7 +90,15 @@ class RendererDX12 : public Display::Renderer
                   "IndirectCommand size should match the HLSL compute shader definition");
 
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
 	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_IndirectCommandSignature;
+
+	// less of a mouthful than CBV_SRV_UAV >:3
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_MintyFreshHeap;
+	UINT m_MintyFreshDescriptorSize;
+	static constexpr UINT MintyFreshDescriptorCount = 128;
+	D3D12_CPU_DESCRIPTOR_HANDLE m_MintyFreshHeapCpuHandle;
+	D3D12_GPU_DESCRIPTOR_HANDLE m_MintyFreshHeapGpuHandle;
 };
 
 #endif

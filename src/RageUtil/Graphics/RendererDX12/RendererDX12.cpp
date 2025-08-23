@@ -69,7 +69,7 @@ static void GetHardwareAdapter(IDXGIFactory4 *factory, IDXGIAdapter1 **adapter)
 
         // Check to see if the adapter supports Direct3D 12, but don't create
         // the actual device yet.
-        if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
+        if (SUCCEEDED(D3D12CreateDevice(pAdapter, D3D_FEATURE_LEVEL_12_1, _uuidof(ID3D12Device), nullptr)))
         {
             *adapter = pAdapter;
             return;
@@ -124,6 +124,13 @@ void RendererDX12::StartLoadingPipeline()
 
     ThrowIfFailed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_ShaderCompiler)));
     ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_ShaderCompilerUtils)));
+
+    D3D12_FEATURE_DATA_D3D12_OPTIONS features;
+    ThrowIfFailed(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &features, sizeof(features)));
+    if (features.ResourceBindingTier < D3D12_RESOURCE_BINDING_TIER_2)
+    {
+        Locator::getLogger()->warn("UAV counters not supported on this device");
+    }
 }
 
 void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
@@ -168,6 +175,18 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
     {
         D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(MaxDrawCommands * sizeof(IndirectCommand));
         m_IndirectCommandHeap = CreateResource(desc, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
+    }
+
+    {
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = MintyFreshDescriptorCount;
+        heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        ThrowIfFailed(m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_MintyFreshHeap)));
+
+        m_MintyFreshDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        m_MintyFreshHeapCpuHandle = m_MintyFreshHeap->GetCPUDescriptorHandleForHeapStart();
+        m_MintyFreshHeapGpuHandle = m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart();
     }
 
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator)));
@@ -217,25 +236,33 @@ ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShader
 void RendererDX12::LoadAssets(const VideoModeParams &p)
 {
     {
-        CD3DX12_DESCRIPTOR_RANGE1 ranges[2] = {{D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0},
-                                               {D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0}};
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[3] = {};
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
+        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
 
-        CD3DX12_ROOT_PARAMETER1 rootParams[2] = {};
-        rootParams[0].InitAsConstants(0, 0);
-        rootParams[1].InitAsDescriptorTable(1, &ranges[0]);
+        CD3DX12_ROOT_PARAMETER1 params[4] = {}; // Increased to 4 parameters
+        // Add constants first (for matrixStateIndex and renderStateIndex)
+        params[0].InitAsConstants(2, 0); // 2 constants at register b0
+        params[1].InitAsDescriptorTable(1, &ranges[0]);
+        params[2].InitAsDescriptorTable(1, &ranges[1]);
+        params[3].InitAsDescriptorTable(1, &ranges[2]);
 
-        D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-                                           D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+        D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(0, nullptr, 0, nullptr, flags);
+        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
+        desc.Init_1_1(_countof(params), params, 0, nullptr, flags);
 
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
-        ThrowIfFailed(
-            D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+        auto result = D3D12SerializeVersionedRootSignature(&desc, &signature, &error);
+        if (FAILED(result))
+        {
+            std::string msg = (const char *)error->GetBufferPointer();
+            Locator::getLogger()->error(msg);
+            ThrowIfFailed(result);
+        }
+
         ThrowIfFailed(m_Device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
                                                     IID_PPV_ARGS(&m_RootSignature)));
     }
@@ -243,20 +270,20 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     {
         D3D12_INDIRECT_ARGUMENT_DESC args[3] = {};
 
-        // draw call
-        args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
-
         // MatrixState index
-        args[1].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
-        args[1].Constant.RootParameterIndex = 0;
-        args[1].Constant.DestOffsetIn32BitValues = 0;
-        args[1].Constant.Num32BitValuesToSet = 1;
+        args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
+        args[0].Constant.RootParameterIndex = 0;
+        args[0].Constant.DestOffsetIn32BitValues = 0;
+        args[0].Constant.Num32BitValuesToSet = 1;
 
         // RenderState index
-        args[2].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
-        args[2].Constant.RootParameterIndex = 0;
-        args[2].Constant.DestOffsetIn32BitValues = 1;
-        args[2].Constant.Num32BitValuesToSet = 1;
+        args[1].Type = D3D12_INDIRECT_ARGUMENT_TYPE_CONSTANT;
+        args[1].Constant.RootParameterIndex = 0;
+        args[1].Constant.DestOffsetIn32BitValues = 1;
+        args[1].Constant.Num32BitValuesToSet = 1;
+
+        // draw call
+        args[2].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
 
         D3D12_COMMAND_SIGNATURE_DESC desc = {};
         desc.pArgumentDescs = args;
@@ -265,6 +292,29 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         desc.NodeMask = 0; // use only a single GPU? read the docs again
 
         m_Device->CreateCommandSignature(&desc, m_RootSignature.Get(), IID_PPV_ARGS(&m_IndirectCommandSignature));
+    }
+
+    {
+        D3D12_RESOURCE_DESC outputBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(
+            MaxDrawCommands * sizeof(IndirectCommand), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+        m_OutputCommandBuffer =
+            CreateResource(outputBufferDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+        uavDesc.Buffer.FirstElement = 0;
+        uavDesc.Buffer.NumElements = MaxDrawCommands;
+        uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
+        uavDesc.Buffer.CounterOffsetInBytes = 0;
+        uavDesc.Buffer.Flags =
+            (D3D12_BUFFER_UAV_FLAGS)0x2; // D3D12_BUFFER_UAV_FLAG_COUNTER? take a look at Resource Binding specs
+
+        D3D12_CPU_DESCRIPTOR_HANDLE uavHandle = {m_MintyFreshHeapCpuHandle.ptr + 3 * m_MintyFreshDescriptorSize};
+
+        m_Device->CreateUnorderedAccessView(m_OutputCommandBuffer.Get(), m_OutputCommandBuffer.Get(), &uavDesc,
+                                            uavHandle);
     }
 
     {
