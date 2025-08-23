@@ -82,23 +82,43 @@ class RendererDX12 : public Display::Renderer
 #pragma pack(push, 4)
     struct IndirectCommand
     {
+		Display::DrawCommandArgument args;
         Display::DrawCommand draw;
-        Display::DrawCommandArgument args;
     };
 #pragma pack(pop)
     static_assert(sizeof(IndirectCommand) == 24,
                   "IndirectCommand size should match the HLSL compute shader definition");
 
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
-	Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_IndirectCommandSignature;
+    // because the D3D12_BUFFER_UAV_FLAG_COUNTER present in the specs (but not in
+    // the docs and dx12 headers??) doesn't work for me
+    struct CounterBuffer
+    {
+        uint32_t Count;
+    };
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_CounterBuffer;
 
-	// less of a mouthful than CBV_SRV_UAV >:3
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
+    Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_IndirectCommandSignature;
+
+    // less of a mouthful than CBV_SRV_UAV >:3
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_MintyFreshHeap;
-	UINT m_MintyFreshDescriptorSize;
-	static constexpr UINT MintyFreshDescriptorCount = 128;
-	D3D12_CPU_DESCRIPTOR_HANDLE m_MintyFreshHeapCpuHandle;
-	D3D12_GPU_DESCRIPTOR_HANDLE m_MintyFreshHeapGpuHandle;
+    UINT m_MintyFreshDescriptorSize;
+    D3D12_CPU_DESCRIPTOR_HANDLE m_MintyFreshHeapCpuHandle;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_MintyFreshHeapGpuHandle;
+
+    enum DescriptorHeapOffsets
+    {
+        InputCommandSrv,
+        MatrixStateSrv,
+        RenderStateSrv,
+        OutputCommandSrv,
+        CounterSrv,
+        TextureSrv,
+        DescriptorCount,
+    };
+
+    static constexpr UINT MintyFreshDescriptorCount = DescriptorHeapOffsets::DescriptorCount;
 };
 
 #endif

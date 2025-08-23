@@ -236,17 +236,25 @@ ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShader
 void RendererDX12::LoadAssets(const VideoModeParams &p)
 {
     {
-        CD3DX12_DESCRIPTOR_RANGE1 ranges[3] = {};
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
-        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
-        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[4] = {};
 
-        CD3DX12_ROOT_PARAMETER1 params[4] = {}; // Increased to 4 parameters
-        // Add constants first (for matrixStateIndex and renderStateIndex)
-        params[0].InitAsConstants(2, 0); // 2 constants at register b0
+        // InputCommand stuff
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
+        // OutputCommandBuffer
+        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+        // CounterBuffer
+        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
+        // Textures (future proofing or smth idk)
+        ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
+
+        CD3DX12_ROOT_PARAMETER1 params[5] = {};
+
+        // matrixStateIndex and renderStateIndex (DrawCommandArgument)
+        params[0].InitAsConstants(2, 0);
         params[1].InitAsDescriptorTable(1, &ranges[0]);
         params[2].InitAsDescriptorTable(1, &ranges[1]);
         params[3].InitAsDescriptorTable(1, &ranges[2]);
+        params[4].InitAsDescriptorTable(1, &ranges[3]);
 
         D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -282,16 +290,17 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         args[1].Constant.DestOffsetIn32BitValues = 1;
         args[1].Constant.Num32BitValuesToSet = 1;
 
-        // draw call
+        // Draw call (must come last due to DirectX something something)
         args[2].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
 
         D3D12_COMMAND_SIGNATURE_DESC desc = {};
         desc.pArgumentDescs = args;
         desc.NumArgumentDescs = _countof(args);
         desc.ByteStride = sizeof(IndirectCommand);
-        desc.NodeMask = 0; // use only a single GPU? read the docs again
+        desc.NodeMask = 0;
 
-        m_Device->CreateCommandSignature(&desc, m_RootSignature.Get(), IID_PPV_ARGS(&m_IndirectCommandSignature));
+        ThrowIfFailed(
+            m_Device->CreateCommandSignature(&desc, m_RootSignature.Get(), IID_PPV_ARGS(&m_IndirectCommandSignature)));
     }
 
     {
@@ -309,12 +318,32 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
         uavDesc.Buffer.CounterOffsetInBytes = 0;
         uavDesc.Buffer.Flags =
-            (D3D12_BUFFER_UAV_FLAGS)0x2; // D3D12_BUFFER_UAV_FLAG_COUNTER? take a look at Resource Binding specs
+            D3D12_BUFFER_UAV_FLAG_NONE; // D3D12_BUFFER_UAV_FLAG_COUNTER broke on my machine so this will have to do
 
-        D3D12_CPU_DESCRIPTOR_HANDLE uavHandle = {m_MintyFreshHeapCpuHandle.ptr + 3 * m_MintyFreshDescriptorSize};
+        D3D12_CPU_DESCRIPTOR_HANDLE uavHandle = {m_MintyFreshHeapCpuHandle.ptr +
+                                                 DescriptorHeapOffsets::OutputCommandSrv * m_MintyFreshDescriptorSize};
 
         m_Device->CreateUnorderedAccessView(m_OutputCommandBuffer.Get(), m_OutputCommandBuffer.Get(), &uavDesc,
                                             uavHandle);
+    }
+
+    {
+        D3D12_RESOURCE_DESC counterDesc =
+            CD3DX12_RESOURCE_DESC::Buffer(sizeof(CounterBuffer), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+        m_CounterBuffer = CreateResource(counterDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.Format = DXGI_FORMAT_R32_UINT;
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+        uavDesc.Buffer.FirstElement = 0;
+        uavDesc.Buffer.NumElements = 1;
+        uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+        D3D12_CPU_DESCRIPTOR_HANDLE counterCpuHandle = {m_MintyFreshHeapCpuHandle.ptr +
+                                                        DescriptorHeapOffsets::CounterSrv * m_MintyFreshDescriptorSize};
+
+        m_Device->CreateUnorderedAccessView(m_CounterBuffer.Get(), nullptr, &uavDesc, counterCpuHandle);
     }
 
     {

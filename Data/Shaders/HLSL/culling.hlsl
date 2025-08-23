@@ -17,8 +17,8 @@ struct DrawCommandArgument
 // should match RendererDX12::IndirectCommand (kinda)
 struct IndirectCommand
 {
-    DrawCommand draw;
     DrawCommandArgument args;
+    DrawCommand draw;
 };
 
 // should match Display::MatrixState
@@ -48,17 +48,21 @@ struct RenderState
 
 StructuredBuffer<IndirectCommand> InputCommandBuffer : register(t0);
 RWStructuredBuffer<IndirectCommand> OutputCommandBuffer : register(u0);
+RWByteAddressBuffer CounterBuffer : register(u1);
 
 StructuredBuffer<MatrixState> MatrixStateBuffer : register(t1);
 StructuredBuffer<RenderState> RenderStateBuffer : register(t2);
 
-#define ThreadCount 128
-#define TotalCommandCount 100000
+cbuffer Constants : register(b0)
+{
+    uint totalCommandCount;
+}
 
+#define ThreadCount 128
 [numthreads(ThreadCount, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= TotalCommandCount) return;
+    if (id.x >= totalCommandCount) return;
 
     IndirectCommand command = InputCommandBuffer[id.x];
 
@@ -67,7 +71,8 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     // TODO: cull the things based on RenderState+MatrixState?
     //if (IsVisible(???))
     //{
-        uint outputIndex = OutputCommandBuffer.IncrementCounter();
+        uint outputIndex;
+        CounterBuffer.InterlockedAdd(0, 1, outputIndex);
         OutputCommandBuffer[outputIndex] = command;
     //}
 }
