@@ -68,13 +68,14 @@ class RendererDX12 : public Display::Renderer
         Microsoft::WRL::ComPtr<ID3D12PipelineState> PipelineState;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList;
         Microsoft::WRL::ComPtr<ID3D12Fence> Fence;
-        uint64_t FenceValue;
+        uint64_t FenceValue = 0;
     };
 
     UINT m_FrameIndex;
     HANDLE m_FenceEvent;
 
     PipelineHelpers m_GraphicsHelpers;
+    PipelineHelpers m_ComputeHelpers;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
