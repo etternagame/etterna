@@ -36,6 +36,8 @@ class RendererDX12 : public Display::Renderer
     void SignalFence(bool waitForEvent);
     void OnDestroy();
     void PopulateCommandList(const ActualVideoModeParams *p);
+    void RunIndirectCommandShader(const Display::CommandBatcher &batcher);
+
     Microsoft::WRL::ComPtr<ID3D12Resource> CreateResource(
         const D3D12_RESOURCE_DESC &resourceDesc, D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT,
         D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_COPY_DEST);
@@ -57,10 +59,10 @@ class RendererDX12 : public Display::Renderer
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[Display::Display::FrameCount];
     Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureUploadHeap;
-    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
-    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
-    Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
-    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
+        Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
+        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
@@ -82,12 +84,13 @@ class RendererDX12 : public Display::Renderer
 #pragma pack(push, 4)
     struct IndirectCommand
     {
-		Display::DrawCommandArgument args;
+        Display::DrawCommandArgument args;
         Display::DrawCommand draw;
     };
 #pragma pack(pop)
     static_assert(sizeof(IndirectCommand) == 24,
                   "IndirectCommand size should match the HLSL compute shader definition");
+    Microsoft::WRL::ComPtr<IDxcBlob> m_IndirectCommandShader;
 
     // because the D3D12_BUFFER_UAV_FLAG_COUNTER present in the specs (but not in
     // the docs and dx12 headers??) doesn't work for me
@@ -95,7 +98,7 @@ class RendererDX12 : public Display::Renderer
     {
         uint32_t Count;
     };
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_CounterBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_CounterBuffer;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
@@ -112,8 +115,8 @@ class RendererDX12 : public Display::Renderer
         InputCommandSrv,
         MatrixStateSrv,
         RenderStateSrv,
-        OutputCommandSrv,
-        CounterSrv,
+        OutputCommandUav,
+        CounterUav,
         TextureSrv,
         DescriptorCount,
     };

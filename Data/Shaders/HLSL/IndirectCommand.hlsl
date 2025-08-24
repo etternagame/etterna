@@ -46,16 +46,18 @@ struct RenderState
     uint64_t textures[NUM_TextureUnit];
 };
 
-StructuredBuffer<IndirectCommand> InputCommandBuffer : register(t0);
 RWStructuredBuffer<IndirectCommand> OutputCommandBuffer : register(u0);
 RWByteAddressBuffer CounterBuffer : register(u1);
 
+StructuredBuffer<IndirectCommand> InputCommandBuffer : register(t0);
 StructuredBuffer<MatrixState> MatrixStateBuffer : register(t1);
 StructuredBuffer<RenderState> RenderStateBuffer : register(t2);
+Texture2D Textures[] : register(t3);
 
 cbuffer Constants : register(b0)
 {
     uint totalCommandCount;
+    uint padding;
 }
 
 #define ThreadCount 128
