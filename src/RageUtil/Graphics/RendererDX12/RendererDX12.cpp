@@ -188,7 +188,7 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
         m_MintyFreshHeapCpuHandle = m_MintyFreshHeap->GetCPUDescriptorHandleForHeapStart();
         m_MintyFreshHeapGpuHandle = m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart();
 
-		CreateIndirectCommandDescriptors();
+        CreateIndirectCommandDescriptors();
     }
 
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -311,7 +311,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
             MaxDrawCommands * sizeof(IndirectCommand), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
         m_OutputCommandBuffer =
-            CreateResource(outputBufferDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+            CreateResource(outputBufferDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
         uavDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -321,7 +321,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
         uavDesc.Buffer.CounterOffsetInBytes = 0;
         uavDesc.Buffer.Flags =
-            D3D12_BUFFER_UAV_FLAG_NONE; // D3D12_BUFFER_UAV_FLAG_COUNTER broke on my machine so this will have to do
+            D3D12_BUFFER_UAV_FLAG_NONE;
 
         D3D12_CPU_DESCRIPTOR_HANDLE uavHandle = {m_MintyFreshHeapCpuHandle.ptr +
                                                  DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize};
@@ -478,8 +478,8 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
     D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart();
 
-    // TODO:
-    // CommandList->SetGraphicsRoot32BitConstants(0, 2, stuffs, 0);
+    uint32_t stuffs[2] = {};
+    m_GraphicsHelpers.CommandList->SetGraphicsRoot32BitConstants(0, 2, stuffs, 0);
 
     m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
 
@@ -532,20 +532,22 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     D3D12_RESOURCE_BARRIER barriers[1] = {};
     barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
         m_OutputCommandBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
     m_ComputeHelpers.CommandList->ResourceBarrier(1, barriers);
 
-    UINT dispatchGroupCount = (indirectCommandCount + 63) / 64;
-    m_GraphicsHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
+    if (indirectCommandCount > 0)
+    {
+        UINT dispatchGroupCount = (indirectCommandCount + 63) / 64;
+        m_ComputeHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
+    }
 
     barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
         m_OutputCommandBuffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-    m_GraphicsHelpers.CommandList->ResourceBarrier(2, barriers);
+    m_ComputeHelpers.CommandList->ResourceBarrier(1, barriers);
 
-    ThrowIfFailed(m_GraphicsHelpers.CommandList->Close());
+    ThrowIfFailed(m_ComputeHelpers.CommandList->Close());
 
-    ID3D12CommandList *ppCommandLists[] = {m_GraphicsHelpers.CommandList.Get()};
-    m_GraphicsHelpers.CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+    ID3D12CommandList *ppCommandLists[] = {m_ComputeHelpers.CommandList.Get()};
+    m_ComputeHelpers.CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
     WaitForGPU(true);
 }
@@ -586,7 +588,7 @@ void RendererDX12::WaitForGPU(bool waitForEvent)
 
 void RendererDX12::OnRender(const ActualVideoModeParams *p, const Display::CommandBatcher &batcher)
 {
-    // RunIndirectCommandShader(batcher);
+    RunIndirectCommandShader(batcher);
     PopulateCommandList(p);
 
     ID3D12CommandList *CommandLists[] = {m_GraphicsHelpers.CommandList.Get()};
@@ -620,72 +622,55 @@ constexpr D3D12_RESOURCE_DESC RendererDX12::GetTextureDescription()
     return textureDesc;
 }
 
-void
-RendererDX12::CreateIndirectCommandDescriptors()
+void RendererDX12::CreateIndirectCommandDescriptors()
 {
-	// Get CPU handle for the start of the descriptor heap
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_MintyFreshHeapCpuHandle;
+    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_MintyFreshHeapCpuHandle;
 
-	// Create SRV for InputCommands
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Buffer.FirstElement = 0;
-	srvDesc.Buffer.NumElements =
-	  static_cast<UINT>(MaxDrawCommands);
-	srvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommandArgument);
-	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+    srvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommandArgument);
+    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-	m_Device->CreateShaderResourceView(
-	  m_InputCommandBuffer.Get(),
-	  &srvDesc,
-	  { cpuHandle.ptr +
-		DescriptorHeapOffsets::InputCommandSrv * m_MintyFreshDescriptorSize });
+    m_Device->CreateShaderResourceView(
+        m_InputCommandBuffer.Get(), &srvDesc,
+        {cpuHandle.ptr + DescriptorHeapOffsets::InputCommandSrv * m_MintyFreshDescriptorSize});
 
-	srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
-	srvDesc.Buffer.StructureByteStride = sizeof(Display::MatrixState);
+    srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+    srvDesc.Buffer.StructureByteStride = sizeof(Display::MatrixState);
 
-	m_Device->CreateShaderResourceView(
-	  m_MatrixStateBuffer.Get(),
-	  &srvDesc,
-	  { cpuHandle.ptr +
-		DescriptorHeapOffsets::MatrixStateSrv * m_MintyFreshDescriptorSize });
+    m_Device->CreateShaderResourceView(
+        m_MatrixStateBuffer.Get(), &srvDesc,
+        {cpuHandle.ptr + DescriptorHeapOffsets::MatrixStateSrv * m_MintyFreshDescriptorSize});
 
-	srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
-	srvDesc.Buffer.StructureByteStride = sizeof(Display::RenderState);
+    srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+    srvDesc.Buffer.StructureByteStride = sizeof(Display::RenderState);
 
-	m_Device->CreateShaderResourceView(
-	  m_RenderStateBuffer.Get(),
-	  &srvDesc,
-	  { cpuHandle.ptr +
-		DescriptorHeapOffsets::RenderStateSrv * m_MintyFreshDescriptorSize });
+    m_Device->CreateShaderResourceView(
+        m_RenderStateBuffer.Get(), &srvDesc,
+        {cpuHandle.ptr + DescriptorHeapOffsets::RenderStateSrv * m_MintyFreshDescriptorSize});
 
-	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-	uavDesc.Buffer.FirstElement = 0;
-	uavDesc.Buffer.NumElements = MaxDrawCommands;
-	uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
-	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+    uavDesc.Buffer.FirstElement = 0;
+    uavDesc.Buffer.NumElements = MaxDrawCommands;
+    uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
-	m_Device->CreateUnorderedAccessView(
-	  m_OutputCommandBuffer.Get(),
-	  nullptr,
-	  &uavDesc,
-	  { cpuHandle.ptr +
-		DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize });
+    m_Device->CreateUnorderedAccessView(
+        m_OutputCommandBuffer.Get(), nullptr, &uavDesc,
+        {cpuHandle.ptr + DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize});
 
-	D3D12_SHADER_RESOURCE_VIEW_DESC textureSrvDesc = {};
-	textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	textureSrvDesc.Shader4ComponentMapping =
-	  D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	textureSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	textureSrvDesc.Texture2D.MipLevels = 1;
+    D3D12_SHADER_RESOURCE_VIEW_DESC textureSrvDesc = {};
+    textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    textureSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    textureSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureSrvDesc.Texture2D.MipLevels = 1;
 
-	m_Device->CreateShaderResourceView(
-	  nullptr,
-	  &textureSrvDesc,
-	  { cpuHandle.ptr +
-		DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize });
+    m_Device->CreateShaderResourceView(
+        nullptr, &textureSrvDesc, {cpuHandle.ptr + DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize});
 }
