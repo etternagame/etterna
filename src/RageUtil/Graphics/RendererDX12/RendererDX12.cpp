@@ -187,6 +187,8 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
         m_MintyFreshDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         m_MintyFreshHeapCpuHandle = m_MintyFreshHeap->GetCPUDescriptorHandleForHeapStart();
         m_MintyFreshHeapGpuHandle = m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart();
+
+		CreateIndirectCommandDescriptors();
     }
 
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -240,25 +242,22 @@ ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShader
 void RendererDX12::LoadAssets(const VideoModeParams &p)
 {
     {
-        CD3DX12_DESCRIPTOR_RANGE1 ranges[4] = {};
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[3] = {};
 
         // InputCommand stuff
         ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
         // OutputCommandBuffer
         ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
-        // CounterBuffer
-        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 1);
         // Textures (future proofing or smth idk)
-        ranges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
+        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
 
-        CD3DX12_ROOT_PARAMETER1 params[5] = {};
+        CD3DX12_ROOT_PARAMETER1 params[4] = {};
 
         // matrixStateIndex and renderStateIndex (DrawCommandArgument)
         params[0].InitAsConstants(2, 0);
         params[1].InitAsDescriptorTable(1, &ranges[0]);
         params[2].InitAsDescriptorTable(1, &ranges[1]);
         params[3].InitAsDescriptorTable(1, &ranges[2]);
-        params[4].InitAsDescriptorTable(1, &ranges[3]);
 
         D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
@@ -329,25 +328,6 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
 
         m_Device->CreateUnorderedAccessView(m_OutputCommandBuffer.Get(), m_OutputCommandBuffer.Get(), &uavDesc,
                                             uavHandle);
-    }
-
-    {
-        D3D12_RESOURCE_DESC counterDesc =
-            CD3DX12_RESOURCE_DESC::Buffer(sizeof(CounterBuffer), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
-        m_CounterBuffer = CreateResource(counterDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-
-        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-        uavDesc.Format = DXGI_FORMAT_R32_UINT;
-        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-        uavDesc.Buffer.FirstElement = 0;
-        uavDesc.Buffer.NumElements = 1;
-        uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-
-        D3D12_CPU_DESCRIPTOR_HANDLE counterCpuHandle = {m_MintyFreshHeapCpuHandle.ptr +
-                                                        DescriptorHeapOffsets::CounterUav * m_MintyFreshDescriptorSize};
-
-        m_Device->CreateUnorderedAccessView(m_CounterBuffer.Get(), nullptr, &uavDesc, counterCpuHandle);
     }
 
     {
@@ -507,16 +487,12 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
     outputUavHandle.ptr += DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize;
     m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(2, outputUavHandle);
 
-    D3D12_GPU_DESCRIPTOR_HANDLE counterUavHandle = gpuHandle;
-    counterUavHandle.ptr += DescriptorHeapOffsets::CounterUav * m_MintyFreshDescriptorSize;
-    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(3, counterUavHandle);
-
     D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandle = gpuHandle;
     textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
     m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(4, textureSrvHandle);
 
     m_GraphicsHelpers.CommandList->ExecuteIndirect(m_IndirectCommandSignature.Get(), MaxDrawCommands,
-                                                   m_OutputCommandBuffer.Get(), 0, m_CounterBuffer.Get(), 0);
+                                                   m_OutputCommandBuffer.Get(), 0, nullptr, 0);
 
     barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(),
                                                    D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -548,30 +524,22 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     outputUavHandle.ptr += DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize;
     m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(2, outputUavHandle);
 
-    // CounterBuffer
-    D3D12_GPU_DESCRIPTOR_HANDLE counterUavHandle = m_MintyFreshHeapGpuHandle;
-    counterUavHandle.ptr += DescriptorHeapOffsets::CounterUav * m_MintyFreshDescriptorSize;
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(3, counterUavHandle);
-
     // Textures
     D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandle = m_MintyFreshHeapGpuHandle;
     textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
     m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(4, textureSrvHandle);
 
-    D3D12_RESOURCE_BARRIER barriers[2] = {};
+    D3D12_RESOURCE_BARRIER barriers[1] = {};
     barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
         m_OutputCommandBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_CounterBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT,
-                                                       D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-    m_ComputeHelpers.CommandList->ResourceBarrier(2, barriers);
+
+    m_ComputeHelpers.CommandList->ResourceBarrier(1, barriers);
 
     UINT dispatchGroupCount = (indirectCommandCount + 63) / 64;
     m_GraphicsHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
 
     barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
         m_OutputCommandBuffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_CounterBuffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                                                       D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
     m_GraphicsHelpers.CommandList->ResourceBarrier(2, barriers);
 
     ThrowIfFailed(m_GraphicsHelpers.CommandList->Close());
@@ -650,4 +618,74 @@ constexpr D3D12_RESOURCE_DESC RendererDX12::GetTextureDescription()
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
     return textureDesc;
+}
+
+void
+RendererDX12::CreateIndirectCommandDescriptors()
+{
+	// Get CPU handle for the start of the descriptor heap
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_MintyFreshHeapCpuHandle;
+
+	// Create SRV for InputCommands
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Buffer.FirstElement = 0;
+	srvDesc.Buffer.NumElements =
+	  static_cast<UINT>(MaxDrawCommands);
+	srvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommandArgument);
+	srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+	m_Device->CreateShaderResourceView(
+	  m_InputCommandBuffer.Get(),
+	  &srvDesc,
+	  { cpuHandle.ptr +
+		DescriptorHeapOffsets::InputCommandSrv * m_MintyFreshDescriptorSize });
+
+	srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+	srvDesc.Buffer.StructureByteStride = sizeof(Display::MatrixState);
+
+	m_Device->CreateShaderResourceView(
+	  m_MatrixStateBuffer.Get(),
+	  &srvDesc,
+	  { cpuHandle.ptr +
+		DescriptorHeapOffsets::MatrixStateSrv * m_MintyFreshDescriptorSize });
+
+	srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+	srvDesc.Buffer.StructureByteStride = sizeof(Display::RenderState);
+
+	m_Device->CreateShaderResourceView(
+	  m_RenderStateBuffer.Get(),
+	  &srvDesc,
+	  { cpuHandle.ptr +
+		DescriptorHeapOffsets::RenderStateSrv * m_MintyFreshDescriptorSize });
+
+	D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+	uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+	uavDesc.Buffer.FirstElement = 0;
+	uavDesc.Buffer.NumElements = MaxDrawCommands;
+	uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
+	uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+	m_Device->CreateUnorderedAccessView(
+	  m_OutputCommandBuffer.Get(),
+	  nullptr,
+	  &uavDesc,
+	  { cpuHandle.ptr +
+		DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize });
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC textureSrvDesc = {};
+	textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	textureSrvDesc.Shader4ComponentMapping =
+	  D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	textureSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureSrvDesc.Texture2D.MipLevels = 1;
+
+	m_Device->CreateShaderResourceView(
+	  nullptr,
+	  &textureSrvDesc,
+	  { cpuHandle.ptr +
+		DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize });
 }

@@ -100,23 +100,20 @@ class RendererDX12 : public Display::Renderer
                   "IndirectCommand size should match the HLSL compute shader definition");
     Microsoft::WRL::ComPtr<IDxcBlob> m_IndirectCommandShader;
 
-    // because the D3D12_BUFFER_UAV_FLAG_COUNTER present in the specs (but not in
-    // the docs and dx12 headers??) doesn't work for me
-    struct CounterBuffer
-    {
-        uint32_t Count;
-    };
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_CounterBuffer;
-
     Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
     Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_IndirectCommandSignature;
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_InputCommandBuffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_MatrixStateBuffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderStateBuffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
 
     // less of a mouthful than CBV_SRV_UAV >:3
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_MintyFreshHeap;
     UINT m_MintyFreshDescriptorSize;
     D3D12_CPU_DESCRIPTOR_HANDLE m_MintyFreshHeapCpuHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE m_MintyFreshHeapGpuHandle;
+	void CreateIndirectCommandDescriptors();
 
     enum DescriptorHeapOffsets
     {
@@ -124,7 +121,6 @@ class RendererDX12 : public Display::Renderer
         MatrixStateSrv,
         RenderStateSrv,
         OutputCommandUav,
-        CounterUav,
         TextureSrv,
         DescriptorCount,
     };

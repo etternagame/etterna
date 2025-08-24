@@ -46,8 +46,7 @@ struct RenderState
     uint64_t textures[NUM_TextureUnit];
 };
 
-RWStructuredBuffer<IndirectCommand> OutputCommandBuffer : register(u0);
-RWByteAddressBuffer CounterBuffer : register(u1);
+AppendStructuredBuffer<IndirectCommand> OutputCommandBuffer : register(u0);
 
 StructuredBuffer<IndirectCommand> InputCommandBuffer : register(t0);
 StructuredBuffer<MatrixState> MatrixStateBuffer : register(t1);
@@ -73,9 +72,7 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     // TODO: cull the things based on RenderState+MatrixState?
     //if (IsVisible(???))
     //{
-        uint outputIndex;
-        CounterBuffer.InterlockedAdd(0, 1, outputIndex);
-        OutputCommandBuffer[outputIndex] = command;
+        OutputCommandBuffer.Append(command);
     //}
 }
 
