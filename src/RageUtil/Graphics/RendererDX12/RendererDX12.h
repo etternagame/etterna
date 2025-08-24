@@ -33,7 +33,7 @@ class RendererDX12 : public Display::Renderer
     intptr_t PushTextureCommand(const Display::TextureCommand &command) override;
 
   private:
-    void WaitForGPU(bool waitForEvent);
+    void WaitForGPU();
     void OnDestroy();
     void PopulateCommandList(const ActualVideoModeParams *p);
     void RunIndirectCommandShader(const Display::CommandBatcher &batcher);
@@ -67,10 +67,10 @@ class RendererDX12 : public Display::Renderer
         Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
         Microsoft::WRL::ComPtr<ID3D12PipelineState> PipelineState;
         Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList;
-        Microsoft::WRL::ComPtr<ID3D12Fence> Fence;
-        uint64_t FenceValue = 0;
     };
 
+    Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
+    uint64_t m_FenceValue = 0;
     UINT m_FrameIndex;
     HANDLE m_FenceEvent;
 
@@ -103,17 +103,17 @@ class RendererDX12 : public Display::Renderer
     Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
     Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_IndirectCommandSignature;
 
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_InputCommandBuffer;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_MatrixStateBuffer;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderStateBuffer;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_InputCommandBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_MatrixStateBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderStateBuffer;
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
 
     // less of a mouthful than CBV_SRV_UAV >:3
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_MintyFreshHeap;
     UINT m_MintyFreshDescriptorSize;
     D3D12_CPU_DESCRIPTOR_HANDLE m_MintyFreshHeapCpuHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE m_MintyFreshHeapGpuHandle;
-	void CreateIndirectCommandDescriptors();
+    void CreateIndirectCommandDescriptors();
 
     enum DescriptorHeapOffsets
     {

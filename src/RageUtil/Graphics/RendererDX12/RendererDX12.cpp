@@ -320,8 +320,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         uavDesc.Buffer.NumElements = MaxDrawCommands;
         uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
         uavDesc.Buffer.CounterOffsetInBytes = 0;
-        uavDesc.Buffer.Flags =
-            D3D12_BUFFER_UAV_FLAG_NONE;
+        uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
         D3D12_CPU_DESCRIPTOR_HANDLE uavHandle = {m_MintyFreshHeapCpuHandle.ptr +
                                                  DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize};
@@ -392,34 +391,9 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     ThrowIfFailed(m_ComputeHelpers.CommandList->Close());
 
     {
-        RageSpriteVertex triangleVertices[] = {{{0.0f, 0.25f * p.fDisplayAspectRatio, 0.0f},
-                                                {0.0f, 0.0f, 0.0f},
-                                                RageColor(0.0f, 1.0f, 0.0f, 1.0f),
-                                                {0.0f, 0.0f}},
-                                               {{0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f},
-                                                {0.0f, 0.0f, 0.0f},
-                                                RageColor(0.0f, 0.0f, 1.0f, 1.0f),
-                                                {0.0f, 0.0f}},
-                                               {{-0.25f, -0.25f * p.fDisplayAspectRatio, 0.0f},
-                                                {0.0f, 0.0f, 0.0f},
-                                                RageColor(1.0f, 0.0f, 0.0f, 1.0f),
-                                                {0.0f, 0.0f}}};
-
-        const UINT vertexBufferSize = sizeof(triangleVertices);
-
         auto properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        auto buffer = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
+        auto buffer = CD3DX12_RESOURCE_DESC::Buffer(sizeof(RageSpriteVertex) * MaxDrawCommands * 10U);
         m_VertexBuffer = CreateResource(buffer, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
-
-        UINT8 *pVertexDataBegin;
-        CD3DX12_RANGE readRange(0, 0);
-        ThrowIfFailed(m_VertexBuffer->Map(0, &readRange, reinterpret_cast<void **>(&pVertexDataBegin)));
-        memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-        m_VertexBuffer->Unmap(0, nullptr);
-
-        m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-        m_VertexBufferView.StrideInBytes = sizeof(RageSpriteVertex);
-        m_VertexBufferView.SizeInBytes = vertexBufferSize;
     }
 
     {
@@ -429,11 +403,8 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     }
 
     {
-        ThrowIfFailed(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_GraphicsHelpers.Fence)));
-        m_GraphicsHelpers.FenceValue = 1;
-
-        ThrowIfFailed(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_ComputeHelpers.Fence)));
-        m_ComputeHelpers.FenceValue = 1;
+        ThrowIfFailed(m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence)));
+        m_FenceValue = 1;
 
         m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         if (m_FenceEvent == nullptr)
@@ -441,12 +412,18 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
             ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
         }
 
-        WaitForGPU(true);
+        WaitForGPU();
     }
 }
 
 void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 {
+    if (m_Fence->GetCompletedValue() < m_FenceValue)
+    {
+        ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue, m_FenceEvent));
+        WaitForSingleObject(m_FenceEvent, INFINITE);
+    }
+
     ThrowIfFailed(m_GraphicsHelpers.CommandAllocator->Reset());
     ThrowIfFailed(m_GraphicsHelpers.CommandList->Reset(m_GraphicsHelpers.CommandAllocator.Get(),
                                                        m_GraphicsHelpers.PipelineState.Get()));
@@ -499,6 +476,8 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
     m_GraphicsHelpers.CommandList->ResourceBarrier(1, &barrier);
 
     ThrowIfFailed(m_GraphicsHelpers.CommandList->Close());
+
+    m_FenceValue++;
 }
 
 void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batcher)
@@ -549,7 +528,7 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     ID3D12CommandList *ppCommandLists[] = {m_ComputeHelpers.CommandList.Get()};
     m_ComputeHelpers.CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
-    WaitForGPU(true);
+    ThrowIfFailed(m_ComputeHelpers.CommandQueue->Signal(m_Fence.Get(), m_FenceValue));
 }
 
 ComPtr<ID3D12Resource> RendererDX12::CreateResource(const D3D12_RESOURCE_DESC &resourceDesc, D3D12_HEAP_TYPE heapType,
@@ -571,15 +550,15 @@ intptr_t RendererDX12::PushTextureCommand(const Display::TextureCommand &command
     return command.index() == Display::TextureCommandType::Creation ? m_TextureIndex++ : 0;
 }
 
-void RendererDX12::WaitForGPU(bool waitForEvent)
+void RendererDX12::WaitForGPU()
 {
-    const uint64_t fence = m_GraphicsHelpers.FenceValue;
-    ThrowIfFailed(m_GraphicsHelpers.CommandQueue->Signal(m_GraphicsHelpers.Fence.Get(), fence));
-    m_GraphicsHelpers.FenceValue++;
+    const uint64_t fence = m_FenceValue;
+    ThrowIfFailed(m_GraphicsHelpers.CommandQueue->Signal(m_Fence.Get(), fence));
+    m_FenceValue++;
 
-    if (waitForEvent && m_GraphicsHelpers.Fence->GetCompletedValue() < fence)
+    if (m_Fence->GetCompletedValue() < fence)
     {
-        ThrowIfFailed(m_GraphicsHelpers.Fence->SetEventOnCompletion(fence, m_FenceEvent));
+        ThrowIfFailed(m_Fence->SetEventOnCompletion(fence, m_FenceEvent));
         WaitForSingleObject(m_FenceEvent, INFINITE);
     }
 
@@ -598,12 +577,12 @@ void RendererDX12::OnRender(const ActualVideoModeParams *p, const Display::Comma
 
     // this is... slow?
     // TODO: synchronize in a sane way
-    WaitForGPU(true);
+    WaitForGPU();
 }
 
 void RendererDX12::OnDestroy()
 {
-    WaitForGPU(true);
+    WaitForGPU();
     CloseHandle(m_FenceEvent);
 }
 
