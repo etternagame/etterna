@@ -489,7 +489,7 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
     D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandle = gpuHandle;
     textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
-    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(4, textureSrvHandle);
+    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(3, textureSrvHandle);
 
     m_GraphicsHelpers.CommandList->ExecuteIndirect(m_IndirectCommandSignature.Get(), MaxDrawCommands,
                                                    m_OutputCommandBuffer.Get(), 0, nullptr, 0);
@@ -527,7 +527,7 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     // Textures
     D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandle = m_MintyFreshHeapGpuHandle;
     textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(4, textureSrvHandle);
+    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(3, textureSrvHandle);
 
     D3D12_RESOURCE_BARRIER barriers[1] = {};
     barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
