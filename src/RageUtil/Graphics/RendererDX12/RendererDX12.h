@@ -33,7 +33,7 @@ class RendererDX12 : public Display::Renderer
     intptr_t PushTextureCommand(const Display::TextureCommand &command) override;
 
   private:
-    void SignalFence(bool waitForEvent);
+    void WaitForGPU(bool waitForEvent);
     void OnDestroy();
     void PopulateCommandList(const ActualVideoModeParams *p);
     void RunIndirectCommandShader(const Display::CommandBatcher &batcher);
@@ -51,7 +51,6 @@ class RendererDX12 : public Display::Renderer
 
     Microsoft::WRL::ComPtr<D3D12MA::Allocator> m_Allocator;
     Microsoft::WRL::ComPtr<ID3D12Device> m_Device;
-    Microsoft::WRL::ComPtr<ID3D12CommandQueue> m_CommandQueue;
     Microsoft::WRL::ComPtr<IDXGISwapChain3> m_SwapChain;
 
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
@@ -59,18 +58,26 @@ class RendererDX12 : public Display::Renderer
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargets[Display::Display::FrameCount];
     Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureUploadHeap;
-        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
-        Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
-        Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
-        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> m_CommandList;
+
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
+
+    struct PipelineHelpers
+    {
+        Microsoft::WRL::ComPtr<ID3D12CommandQueue> CommandQueue;
+        Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandAllocator;
+        Microsoft::WRL::ComPtr<ID3D12PipelineState> PipelineState;
+        Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CommandList;
+        Microsoft::WRL::ComPtr<ID3D12Fence> Fence;
+        uint64_t FenceValue;
+    };
+
+    UINT m_FrameIndex;
+    HANDLE m_FenceEvent;
+
+    PipelineHelpers m_GraphicsHelpers;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
-
-    UINT m_FrameIndex;
-    Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
-    uint64_t m_FenceValue;
-    HANDLE m_FenceEvent;
 
     D3D12_VIEWPORT m_Viewport;
     D3D12_RECT m_ScissorRect;
