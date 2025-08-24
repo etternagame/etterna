@@ -130,13 +130,6 @@ void RendererDX12::StartLoadingPipeline()
 
     ThrowIfFailed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_ShaderCompiler)));
     ThrowIfFailed(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_ShaderCompilerUtils)));
-
-    D3D12_FEATURE_DATA_D3D12_OPTIONS features;
-    ThrowIfFailed(m_Device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &features, sizeof(features)));
-    if (features.ResourceBindingTier < D3D12_RESOURCE_BINDING_TIER_2)
-    {
-        Locator::getLogger()->warn("UAV counters not supported on this device");
-    }
 }
 
 void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
