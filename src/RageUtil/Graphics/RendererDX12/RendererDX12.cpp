@@ -2,6 +2,7 @@
 #include "Core/Services/Locator.hpp"
 #include "RageUtil/File/RageFileManager.h"
 #include "RageUtil/Graphics/RageSurface.h"
+#include "RageUtil/Graphics/RendererDX12//UtilsDX12.h"
 #include "archutils/Win32/GraphicsWindow.h"
 #include <chrono>
 #include <exception>
@@ -14,32 +15,6 @@
 #pragma comment(lib, "dxcompiler.lib")
 
 using Microsoft::WRL::ComPtr;
-
-inline static std::string HrToString(HRESULT hr)
-{
-    char *errorMsg = nullptr;
-    FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr,
-                   hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&errorMsg), 0, nullptr);
-
-    std::string message = errorMsg ? errorMsg : "Unknown error";
-    if (errorMsg)
-        LocalFree(errorMsg);
-    return message;
-}
-
-inline static void ThrowIfFailed(HRESULT hr, const std::source_location location = std::source_location::current())
-{
-    if (SUCCEEDED(hr))
-    {
-        return;
-    }
-
-    std::string error = HrToString(hr);
-    const std::string message = std::format("Failed: HRESULT {} ({}) at {}:{} in function {}", hr, error,
-                                            location.file_name(), location.line(), location.function_name());
-    Locator::getLogger()->error(message);
-    throw std::exception(message.c_str());
-}
 
 RendererDX12::RendererDX12() : m_TextureIndex(0)
 {
@@ -196,6 +171,9 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
 
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_COMPUTE,
                                                    IID_PPV_ARGS(&m_ComputeHelpers.CommandAllocator)));
+
+    InitUploadBufferHelpers();
+	CreateBufferHelpersSRV();
 }
 
 ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShaderType shaderType)
@@ -422,8 +400,6 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
     ThrowIfFailed(m_GraphicsHelpers.CommandList->Reset(m_GraphicsHelpers.CommandAllocator.Get(),
                                                        m_GraphicsHelpers.PipelineState.Get()));
 
-	ThrowIfFailed(m_GraphicsHelpers.CommandQueue->Wait(m_Fence.Get(), m_FenceValue));
-
     m_GraphicsHelpers.CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
     m_Viewport = D3D12_VIEWPORT(0.0f, 0.0f, static_cast<float>(p->width), static_cast<float>(p->height));
@@ -478,9 +454,13 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
 void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batcher)
 {
+    UploadBatchToBufferHelpers(batcher);
+
     ThrowIfFailed(m_ComputeHelpers.CommandAllocator->Reset());
     ThrowIfFailed(m_ComputeHelpers.CommandList->Reset(m_ComputeHelpers.CommandAllocator.Get(),
                                                       m_ComputeHelpers.PipelineState.Get()));
+
+    CopyHelperDataToDestBuffers();
 
     m_ComputeHelpers.CommandList->SetComputeRootSignature(m_RootSignature.Get());
 
@@ -504,10 +484,8 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
     m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(3, textureSrvHandle);
 
-    D3D12_RESOURCE_BARRIER barriers[1] = {};
-    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
-        m_OutputCommandBuffer.Get(), D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-    m_ComputeHelpers.CommandList->ResourceBarrier(1, barriers);
+    auto barriers = CreateBarriersForHelpers();
+    m_ComputeHelpers.CommandList->ResourceBarrier(barriers.size(), barriers.data());
 
     if (indirectCommandCount > 0)
     {
@@ -515,9 +493,8 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
         m_ComputeHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
     }
 
-    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(
-        m_OutputCommandBuffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
-    m_ComputeHelpers.CommandList->ResourceBarrier(1, barriers);
+    ChangeHelperBarrierStates(barriers);
+    m_ComputeHelpers.CommandList->ResourceBarrier(barriers.size(), barriers.data());
 
     ThrowIfFailed(m_ComputeHelpers.CommandList->Close());
 
@@ -525,6 +502,9 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     m_ComputeHelpers.CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
     ThrowIfFailed(m_ComputeHelpers.CommandQueue->Signal(m_Fence.Get(), m_FenceValue));
+    ThrowIfFailed(m_GraphicsHelpers.CommandQueue->Wait(m_Fence.Get(), m_FenceValue));
+
+    m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 }
 
 ComPtr<ID3D12Resource> RendererDX12::CreateResource(const D3D12_RESOURCE_DESC &resourceDesc, D3D12_HEAP_TYPE heapType,
@@ -570,10 +550,6 @@ void RendererDX12::OnRender(const ActualVideoModeParams *p, const Display::Comma
     m_GraphicsHelpers.CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 
     ThrowIfFailed(m_SwapChain->Present(1, 0));
-
-    // this is... slow?
-    // TODO: synchronize in a sane way
-    WaitForGPU();
 }
 
 void RendererDX12::OnDestroy()
@@ -648,4 +624,75 @@ void RendererDX12::CreateIndirectCommandDescriptors()
 
     m_Device->CreateShaderResourceView(
         nullptr, &textureSrvDesc, {cpuHandle.ptr + DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize});
+}
+
+void RendererDX12::InitUploadBufferHelpers()
+{
+    m_DrawCommandArgumentHelper = std::make_unique<BufferHelperDX12<Display::DrawCommandArgument>>(
+        m_Device.Get(), MaxDrawCommands, Display::Display::FrameCount);
+    m_DrawCommandHelper = std::make_unique<BufferHelperDX12<Display::DrawCommand>>(m_Device.Get(), MaxDrawCommands,
+                                                                                   Display::Display::FrameCount);
+    m_RageSpriteVertexHelper = std::make_unique<BufferHelperDX12<RageSpriteVertex>>(
+        m_Device.Get(), MaxDrawCommands * 20U, Display::Display::FrameCount);
+    m_RenderStateHelper = std::make_unique<BufferHelperDX12<Display::RenderState>>(m_Device.Get(), MaxDrawCommands,
+                                                                                   Display::Display::FrameCount);
+    m_MatrixStateHelper = std::make_unique<BufferHelperDX12<Display::MatrixState>>(m_Device.Get(), MaxDrawCommands,
+                                                                                   Display::Display::FrameCount);
+}
+
+void RendererDX12::UploadBatchToBufferHelpers(const Display::CommandBatcher &batcher)
+{
+    m_DrawCommandArgumentHelper->UploadToBuffer(m_FrameIndex, batcher.m_CommandArgumentBuffer);
+    m_DrawCommandHelper->UploadToBuffer(m_FrameIndex, batcher.m_CommandBuffer);
+    m_RageSpriteVertexHelper->UploadToBuffer(m_FrameIndex, batcher.m_SpriteVertexBuffer);
+    m_RenderStateHelper->UploadToBuffer(m_FrameIndex, batcher.m_RenderStateBuffer);
+    m_MatrixStateHelper->UploadToBuffer(m_FrameIndex, batcher.m_MatrixStateBuffer);
+}
+
+void RendererDX12::CopyHelperDataToDestBuffers()
+{
+    m_DrawCommandArgumentHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
+    m_DrawCommandHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
+    m_RageSpriteVertexHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
+    m_RenderStateHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
+    m_MatrixStateHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
+}
+
+void RendererDX12::CreateBufferHelpersSRV()
+{
+	// TODO: create resource views for all of the buffers mentioned in DescriptorHeapOffsets...
+}
+
+std::vector<D3D12_RESOURCE_BARRIER> RendererDX12::CreateBarriersForHelpers()
+{
+    std::vector<D3D12_RESOURCE_BARRIER> barriers(5);
+    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_DrawCommandArgumentHelper->GetDestinationBuffer(),
+                                                       D3D12_RESOURCE_STATE_COPY_DEST,
+                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_DrawCommandHelper->GetDestinationBuffer(),
+                                                       D3D12_RESOURCE_STATE_COPY_DEST,
+                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(m_RageSpriteVertexHelper->GetDestinationBuffer(),
+                                                       D3D12_RESOURCE_STATE_COPY_DEST,
+                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderStateHelper->GetDestinationBuffer(),
+                                                       D3D12_RESOURCE_STATE_COPY_DEST,
+                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    barriers[4] = CD3DX12_RESOURCE_BARRIER::Transition(m_MatrixStateHelper->GetDestinationBuffer(),
+                                                       D3D12_RESOURCE_STATE_COPY_DEST,
+                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+
+    return barriers;
+}
+
+void RendererDX12::ChangeHelperBarrierStates(std::vector<D3D12_RESOURCE_BARRIER> &barriers)
+{
+    for (auto &barrier : barriers)
+    {
+        std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
+    }
 }

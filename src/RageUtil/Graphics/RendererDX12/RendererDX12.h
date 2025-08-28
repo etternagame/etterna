@@ -8,6 +8,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+#include "BufferHelperDX12.h"
 #include <D3D12MemAlloc.h>
 #include <DirectXMath.h>
 #include <d3d12.h>
@@ -71,7 +72,7 @@ class RendererDX12 : public Display::Renderer
 
     Microsoft::WRL::ComPtr<ID3D12Fence> m_Fence;
     uint64_t m_FenceValue = 0;
-    UINT m_FrameIndex;
+    UINT m_FrameIndex = 0;
     HANDLE m_FenceEvent;
 
     PipelineHelpers m_GraphicsHelpers;
@@ -126,6 +127,19 @@ class RendererDX12 : public Display::Renderer
     };
 
     static constexpr UINT MintyFreshDescriptorCount = DescriptorHeapOffsets::DescriptorCount;
+
+    std::unique_ptr<BufferHelperDX12<Display::DrawCommandArgument>> m_DrawCommandArgumentHelper;
+    std::unique_ptr<BufferHelperDX12<Display::DrawCommand>> m_DrawCommandHelper;
+    std::unique_ptr<BufferHelperDX12<RageSpriteVertex>> m_RageSpriteVertexHelper;
+    std::unique_ptr<BufferHelperDX12<Display::RenderState>> m_RenderStateHelper;
+    std::unique_ptr<BufferHelperDX12<Display::MatrixState>> m_MatrixStateHelper;
+
+    void InitUploadBufferHelpers();
+    void UploadBatchToBufferHelpers(const Display::CommandBatcher &batcher);
+    void CopyHelperDataToDestBuffers();
+    void CreateBufferHelpersSRV();
+    std::vector<D3D12_RESOURCE_BARRIER> CreateBarriersForHelpers();
+	void ChangeHelperBarrierStates(std::vector<D3D12_RESOURCE_BARRIER> &barriers);
 };
 
 #endif
