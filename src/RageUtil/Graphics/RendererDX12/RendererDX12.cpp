@@ -418,15 +418,11 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
 
 void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 {
-    if (m_Fence->GetCompletedValue() < m_FenceValue)
-    {
-        ThrowIfFailed(m_Fence->SetEventOnCompletion(m_FenceValue, m_FenceEvent));
-        WaitForSingleObject(m_FenceEvent, INFINITE);
-    }
-
     ThrowIfFailed(m_GraphicsHelpers.CommandAllocator->Reset());
     ThrowIfFailed(m_GraphicsHelpers.CommandList->Reset(m_GraphicsHelpers.CommandAllocator.Get(),
                                                        m_GraphicsHelpers.PipelineState.Get()));
+
+	ThrowIfFailed(m_GraphicsHelpers.CommandQueue->Wait(m_Fence.Get(), m_FenceValue));
 
     m_GraphicsHelpers.CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
@@ -515,7 +511,7 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
 
     if (indirectCommandCount > 0)
     {
-        UINT dispatchGroupCount = (indirectCommandCount + 63) / 64;
+        UINT dispatchGroupCount = (indirectCommandCount + 127) / 128;
         m_ComputeHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
     }
 
