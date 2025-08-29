@@ -87,6 +87,7 @@ class RendererDX12 : public Display::Renderer
     static constexpr D3D12_RESOURCE_DESC GetTextureDescription();
     static constexpr size_t MaxDrawCommands = 20'000;
     static constexpr size_t MaxVertices = MaxDrawCommands * 5U;
+    static constexpr size_t ComputeShaderThreadCount = 64;
 
     std::vector<Display::TextureCommand> m_TextureCommandQueue;
     intptr_t m_TextureIndex;

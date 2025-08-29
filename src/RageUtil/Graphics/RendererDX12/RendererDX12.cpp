@@ -487,7 +487,7 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
 
     if (indirectCommandCount > 0)
     {
-        UINT dispatchGroupCount = (indirectCommandCount + 127) / 128;
+        UINT dispatchGroupCount = (indirectCommandCount + ComputeShaderThreadCount - 1) / ComputeShaderThreadCount;
         m_ComputeHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
     }
 
@@ -576,8 +576,8 @@ void RendererDX12::InitUploadBufferHelpers()
 {
     m_IndirectCommandHelper = std::make_unique<BufferHelperDX12<Display::IndirectCommand>>(
         m_Device.Get(), MaxDrawCommands, Display::Display::FrameCount);
-    m_RageSpriteVertexHelper = std::make_unique<BufferHelperDX12<RageSpriteVertex>>(
-        m_Device.Get(), MaxVertices, Display::Display::FrameCount);
+    m_RageSpriteVertexHelper =
+        std::make_unique<BufferHelperDX12<RageSpriteVertex>>(m_Device.Get(), MaxVertices, Display::Display::FrameCount);
     m_RenderStateHelper = std::make_unique<BufferHelperDX12<Display::RenderState>>(m_Device.Get(), MaxDrawCommands,
                                                                                    Display::Display::FrameCount);
     m_MatrixStateHelper = std::make_unique<BufferHelperDX12<Display::MatrixState>>(m_Device.Get(), MaxDrawCommands,

@@ -59,7 +59,8 @@ cbuffer Constants : register(b0)
     uint padding;
 }
 
-#define ThreadCount 128
+// matches RendererDX12::ComputeShaderThreadCount
+#define ThreadCount 64
 [numthreads(ThreadCount, 1, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
@@ -67,24 +68,6 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 
     IndirectCommand command = InputCommandBuffer[id.x];
 
-    MatrixState m = MatrixStateBuffer[command.args.matrixStateIndex];
-
-    // TODO: cull the things based on RenderState+MatrixState?
-    //if (IsVisible(???))
-    //{
-        OutputCommandBuffer.Append(command);
-    //}
+    // no culling (for now)
+    OutputCommandBuffer.Append(command);
 }
-
-// ----------------------------------
-// I wonder if you know
-// How they live in Tokyo (Hai)
-// If you seen it, then you mean it
-// Then you know you have to go
-// Fast & Furious
-// (Kita~~, drift, drift, drift)
-// Fast & Furious
-// (Kita~~, drift, drift, drift)
-//
-// (teriyaki boyz -- tokyo drift btw)
-// ----------------------------------

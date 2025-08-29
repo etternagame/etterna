@@ -48,7 +48,12 @@ struct PSInput {
 PSInput VSMain(VSInput input)
 {
     PSInput output;
+
+    MatrixState matrices = MatrixStateBuffer[matrixStateIndex];
+    RenderState renderState = RenderStateBuffer[matrixStateIndex];
+
     output.pos = float4(input.position, 1.0f);
+    output.pos = mul(matrices.projection, mul(matrices.view, mul(matrices.world, output.pos)));
     output.color = input.color;
 
     return output;
