@@ -23,6 +23,17 @@ struct DrawCommandArgument
 	uint32_t renderStateIndex;
 };
 
+#pragma pack(push, 4)
+struct IndirectCommand
+{
+	DrawCommandArgument args;
+	DrawCommand draw;
+};
+#pragma pack(pop)
+static_assert(
+  sizeof(IndirectCommand) == 24,
+  "IndirectCommand size should match the HLSL compute shader definition");
+
 } // namespace Display
 
 #endif

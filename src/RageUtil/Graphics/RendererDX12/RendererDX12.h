@@ -85,20 +85,12 @@ class RendererDX12 : public Display::Renderer
     D3D12_RECT m_ScissorRect;
 
     static constexpr D3D12_RESOURCE_DESC GetTextureDescription();
-    static constexpr size_t MaxDrawCommands = 100'000;
+    static constexpr size_t MaxDrawCommands = 20'000;
+    static constexpr size_t MaxVertices = MaxDrawCommands * 5U;
 
     std::vector<Display::TextureCommand> m_TextureCommandQueue;
     intptr_t m_TextureIndex;
 
-#pragma pack(push, 4)
-    struct IndirectCommand
-    {
-        Display::DrawCommandArgument args;
-        Display::DrawCommand draw;
-    };
-#pragma pack(pop)
-    static_assert(sizeof(IndirectCommand) == 24,
-                  "IndirectCommand size should match the HLSL compute shader definition");
     Microsoft::WRL::ComPtr<IDxcBlob> m_IndirectCommandShader;
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
@@ -114,11 +106,10 @@ class RendererDX12 : public Display::Renderer
     UINT m_MintyFreshDescriptorSize;
     D3D12_CPU_DESCRIPTOR_HANDLE m_MintyFreshHeapCpuHandle;
     D3D12_GPU_DESCRIPTOR_HANDLE m_MintyFreshHeapGpuHandle;
-    void CreateIndirectCommandDescriptors();
 
     enum DescriptorHeapOffsets
     {
-        InputCommandSrv,
+        IndirectCommandSrv,
         MatrixStateSrv,
         RenderStateSrv,
         OutputCommandUav,
@@ -128,18 +119,18 @@ class RendererDX12 : public Display::Renderer
 
     static constexpr UINT MintyFreshDescriptorCount = DescriptorHeapOffsets::DescriptorCount;
 
-    std::unique_ptr<BufferHelperDX12<Display::DrawCommandArgument>> m_DrawCommandArgumentHelper;
-    std::unique_ptr<BufferHelperDX12<Display::DrawCommand>> m_DrawCommandHelper;
-    std::unique_ptr<BufferHelperDX12<RageSpriteVertex>> m_RageSpriteVertexHelper;
+    std::unique_ptr<BufferHelperDX12<Display::IndirectCommand>> m_IndirectCommandHelper;
     std::unique_ptr<BufferHelperDX12<Display::RenderState>> m_RenderStateHelper;
     std::unique_ptr<BufferHelperDX12<Display::MatrixState>> m_MatrixStateHelper;
+
+    std::unique_ptr<BufferHelperDX12<RageSpriteVertex>> m_RageSpriteVertexHelper;
 
     void InitUploadBufferHelpers();
     void UploadBatchToBufferHelpers(const Display::CommandBatcher &batcher);
     void CopyHelperDataToDestBuffers();
-    void CreateBufferHelpersSRV();
+    void CreateViewsForBufferHelpers();
     std::vector<D3D12_RESOURCE_BARRIER> CreateBarriersForHelpers();
-	void ChangeHelperBarrierStates(std::vector<D3D12_RESOURCE_BARRIER> &barriers);
+    void ChangeHelperBarrierStates(std::vector<D3D12_RESOURCE_BARRIER> &barriers);
 };
 
 #endif

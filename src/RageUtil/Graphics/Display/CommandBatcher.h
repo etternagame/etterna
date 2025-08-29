@@ -20,8 +20,7 @@ class CommandBatcher
                                            int iMeshIndex);
     void Clear();
 
-	std::vector<DrawCommandArgument> m_CommandArgumentBuffer;
-    std::vector<DrawCommand> m_CommandBuffer;
+    std::vector<IndirectCommand> m_IndirectCommandBuffer;
     std::vector<RageSpriteVertex> m_SpriteVertexBuffer;
     std::vector<RageModelVertex> m_ModelVertexBuffer;
     std::vector<RenderState> m_RenderStateBuffer;

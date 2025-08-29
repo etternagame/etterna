@@ -134,14 +134,13 @@ void Display::CommandBatcher::InsertSpriteDrawCommand(DrawMode drawMode, MatrixS
 	command.VertexCountPerInstance =
 	  m_SpriteVertexBuffer.size() - command.StartVertexLocation;
 
-    m_CommandBuffer.push_back(command);
 	m_MatrixStateBuffer.push_back(matrixState);
 
 	DrawCommandArgument argument = { .matrixStateIndex =
 									   (uint32_t)m_MatrixStateBuffer.size() - 1,
 									 .renderStateIndex = (uint32_t)m_RenderStateBuffer.size() - 1
 	};
-	m_CommandArgumentBuffer.push_back(argument);
+	m_IndirectCommandBuffer.push_back({ argument, command });
 }
 
 void Display::CommandBatcher::InsertCompiledGeometryDrawCommand(DrawMode drawMode, MatrixState &&matrixState,
@@ -164,10 +163,9 @@ void Display::CommandBatcher::InsertCompiledGeometryDrawCommand(DrawMode drawMod
 
 void Display::CommandBatcher::Clear()
 {
-    m_CommandBuffer.clear();
+	m_IndirectCommandBuffer.clear();
     m_SpriteVertexBuffer.clear();
     m_ModelVertexBuffer.clear();
     m_RenderStateBuffer.clear();
-	m_CommandArgumentBuffer.clear();
 	m_MatrixStateBuffer.clear();
 }

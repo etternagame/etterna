@@ -148,7 +148,7 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
     }
 
     {
-        D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(MaxDrawCommands * sizeof(IndirectCommand));
+        D3D12_RESOURCE_DESC desc = CD3DX12_RESOURCE_DESC::Buffer(MaxDrawCommands * sizeof(Display::IndirectCommand));
         m_IndirectCommandHeap = CreateResource(desc, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
     }
 
@@ -162,8 +162,6 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
         m_MintyFreshDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
         m_MintyFreshHeapCpuHandle = m_MintyFreshHeap->GetCPUDescriptorHandleForHeapStart();
         m_MintyFreshHeapGpuHandle = m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart();
-
-        CreateIndirectCommandDescriptors();
     }
 
     ThrowIfFailed(m_Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
@@ -173,7 +171,7 @@ void RendererDX12::FinishLoadingPipeline(const VideoModeParams &p)
                                                    IID_PPV_ARGS(&m_ComputeHelpers.CommandAllocator)));
 
     InitUploadBufferHelpers();
-	CreateBufferHelpersSRV();
+    CreateViewsForBufferHelpers();
 }
 
 ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShaderType shaderType)
@@ -277,7 +275,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         D3D12_COMMAND_SIGNATURE_DESC desc = {};
         desc.pArgumentDescs = args;
         desc.NumArgumentDescs = _countof(args);
-        desc.ByteStride = sizeof(IndirectCommand);
+        desc.ByteStride = sizeof(Display::IndirectCommand);
         desc.NodeMask = 0;
 
         ThrowIfFailed(
@@ -286,7 +284,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
 
     {
         D3D12_RESOURCE_DESC outputBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(
-            MaxDrawCommands * sizeof(IndirectCommand), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+            MaxDrawCommands * sizeof(Display::IndirectCommand), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
         m_OutputCommandBuffer =
             CreateResource(outputBufferDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
@@ -296,7 +294,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
         uavDesc.Buffer.FirstElement = 0;
         uavDesc.Buffer.NumElements = MaxDrawCommands;
-        uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
+        uavDesc.Buffer.StructureByteStride = sizeof(Display::IndirectCommand);
         uavDesc.Buffer.CounterOffsetInBytes = 0;
         uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
@@ -370,7 +368,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
 
     {
         auto properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-        auto buffer = CD3DX12_RESOURCE_DESC::Buffer(sizeof(RageSpriteVertex) * MaxDrawCommands * 10U);
+        auto buffer = CD3DX12_RESOURCE_DESC::Buffer(sizeof(RageSpriteVertex) * MaxVertices);
         m_VertexBuffer = CreateResource(buffer, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
     }
 
@@ -467,7 +465,7 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     ID3D12DescriptorHeap *ppHeaps[] = {m_MintyFreshHeap.Get()};
     m_ComputeHelpers.CommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
-    const auto indirectCommandCount = batcher.m_CommandBuffer.size();
+    const auto indirectCommandCount = batcher.m_IndirectCommandBuffer.size();
     uint32_t constants[2] = {indirectCommandCount, 0};
     m_ComputeHelpers.CommandList->SetComputeRoot32BitConstants(0, 2, constants, 0);
 
@@ -550,6 +548,7 @@ void RendererDX12::OnRender(const ActualVideoModeParams *p, const Display::Comma
     m_GraphicsHelpers.CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 
     ThrowIfFailed(m_SwapChain->Present(1, 0));
+    WaitForGPU();
 }
 
 void RendererDX12::OnDestroy()
@@ -573,67 +572,12 @@ constexpr D3D12_RESOURCE_DESC RendererDX12::GetTextureDescription()
     return textureDesc;
 }
 
-void RendererDX12::CreateIndirectCommandDescriptors()
-{
-    D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = m_MintyFreshHeapCpuHandle;
-
-    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
-    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-    srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    srvDesc.Buffer.FirstElement = 0;
-    srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
-    srvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommandArgument);
-    srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
-
-    m_Device->CreateShaderResourceView(
-        m_InputCommandBuffer.Get(), &srvDesc,
-        {cpuHandle.ptr + DescriptorHeapOffsets::InputCommandSrv * m_MintyFreshDescriptorSize});
-
-    srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
-    srvDesc.Buffer.StructureByteStride = sizeof(Display::MatrixState);
-
-    m_Device->CreateShaderResourceView(
-        m_MatrixStateBuffer.Get(), &srvDesc,
-        {cpuHandle.ptr + DescriptorHeapOffsets::MatrixStateSrv * m_MintyFreshDescriptorSize});
-
-    srvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
-    srvDesc.Buffer.StructureByteStride = sizeof(Display::RenderState);
-
-    m_Device->CreateShaderResourceView(
-        m_RenderStateBuffer.Get(), &srvDesc,
-        {cpuHandle.ptr + DescriptorHeapOffsets::RenderStateSrv * m_MintyFreshDescriptorSize});
-
-    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-    uavDesc.Format = DXGI_FORMAT_UNKNOWN;
-    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
-    uavDesc.Buffer.FirstElement = 0;
-    uavDesc.Buffer.NumElements = MaxDrawCommands;
-    uavDesc.Buffer.StructureByteStride = sizeof(IndirectCommand);
-    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
-
-    m_Device->CreateUnorderedAccessView(
-        m_OutputCommandBuffer.Get(), nullptr, &uavDesc,
-        {cpuHandle.ptr + DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize});
-
-    D3D12_SHADER_RESOURCE_VIEW_DESC textureSrvDesc = {};
-    textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-    textureSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-    textureSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    textureSrvDesc.Texture2D.MipLevels = 1;
-
-    m_Device->CreateShaderResourceView(
-        nullptr, &textureSrvDesc, {cpuHandle.ptr + DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize});
-}
-
 void RendererDX12::InitUploadBufferHelpers()
 {
-    m_DrawCommandArgumentHelper = std::make_unique<BufferHelperDX12<Display::DrawCommandArgument>>(
+    m_IndirectCommandHelper = std::make_unique<BufferHelperDX12<Display::IndirectCommand>>(
         m_Device.Get(), MaxDrawCommands, Display::Display::FrameCount);
-    m_DrawCommandHelper = std::make_unique<BufferHelperDX12<Display::DrawCommand>>(m_Device.Get(), MaxDrawCommands,
-                                                                                   Display::Display::FrameCount);
     m_RageSpriteVertexHelper = std::make_unique<BufferHelperDX12<RageSpriteVertex>>(
-        m_Device.Get(), MaxDrawCommands * 20U, Display::Display::FrameCount);
+        m_Device.Get(), MaxVertices, Display::Display::FrameCount);
     m_RenderStateHelper = std::make_unique<BufferHelperDX12<Display::RenderState>>(m_Device.Get(), MaxDrawCommands,
                                                                                    Display::Display::FrameCount);
     m_MatrixStateHelper = std::make_unique<BufferHelperDX12<Display::MatrixState>>(m_Device.Get(), MaxDrawCommands,
@@ -642,8 +586,7 @@ void RendererDX12::InitUploadBufferHelpers()
 
 void RendererDX12::UploadBatchToBufferHelpers(const Display::CommandBatcher &batcher)
 {
-    m_DrawCommandArgumentHelper->UploadToBuffer(m_FrameIndex, batcher.m_CommandArgumentBuffer);
-    m_DrawCommandHelper->UploadToBuffer(m_FrameIndex, batcher.m_CommandBuffer);
+    m_IndirectCommandHelper->UploadToBuffer(m_FrameIndex, batcher.m_IndirectCommandBuffer);
     m_RageSpriteVertexHelper->UploadToBuffer(m_FrameIndex, batcher.m_SpriteVertexBuffer);
     m_RenderStateHelper->UploadToBuffer(m_FrameIndex, batcher.m_RenderStateBuffer);
     m_MatrixStateHelper->UploadToBuffer(m_FrameIndex, batcher.m_MatrixStateBuffer);
@@ -651,38 +594,96 @@ void RendererDX12::UploadBatchToBufferHelpers(const Display::CommandBatcher &bat
 
 void RendererDX12::CopyHelperDataToDestBuffers()
 {
-    m_DrawCommandArgumentHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
-    m_DrawCommandHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
+    m_IndirectCommandHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
     m_RageSpriteVertexHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
     m_RenderStateHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
     m_MatrixStateHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
 }
 
-void RendererDX12::CreateBufferHelpersSRV()
+void RendererDX12::CreateViewsForBufferHelpers()
 {
-	// TODO: create resource views for all of the buffers mentioned in DescriptorHeapOffsets...
+    D3D12_SHADER_RESOURCE_VIEW_DESC indirectCommandSrvDesc = {};
+    indirectCommandSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    indirectCommandSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    indirectCommandSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    indirectCommandSrvDesc.Buffer.FirstElement = 0;
+    indirectCommandSrvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+    indirectCommandSrvDesc.Buffer.StructureByteStride = sizeof(Display::IndirectCommand);
+    indirectCommandSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+    m_Device->CreateShaderResourceView(
+        m_MatrixStateBuffer.Get(), &indirectCommandSrvDesc,
+        {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::IndirectCommandSrv * m_MintyFreshDescriptorSize});
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC matrixSrvDesc = {};
+    matrixSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    matrixSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    matrixSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    matrixSrvDesc.Buffer.FirstElement = 0;
+    matrixSrvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+    matrixSrvDesc.Buffer.StructureByteStride = sizeof(Display::MatrixState);
+    matrixSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+    m_Device->CreateShaderResourceView(
+        m_MatrixStateBuffer.Get(), &matrixSrvDesc,
+        {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::MatrixStateSrv * m_MintyFreshDescriptorSize});
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC renderSrvDesc = {};
+    renderSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    renderSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    renderSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    renderSrvDesc.Buffer.FirstElement = 0;
+    renderSrvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+    renderSrvDesc.Buffer.StructureByteStride = sizeof(Display::RenderState);
+    renderSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+
+    m_Device->CreateShaderResourceView(
+        m_MatrixStateBuffer.Get(), &matrixSrvDesc,
+        {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::RenderStateSrv * m_MintyFreshDescriptorSize});
+
+    m_VertexBufferView.BufferLocation = m_RageSpriteVertexHelper->GetDestinationBuffer()->GetGPUVirtualAddress();
+    m_VertexBufferView.SizeInBytes = static_cast<UINT>(MaxVertices * sizeof(RageSpriteVertex));
+    m_VertexBufferView.StrideInBytes = sizeof(RageSpriteVertex);
+
+    D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+    uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+    uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+    uavDesc.Buffer.FirstElement = 0;
+    uavDesc.Buffer.NumElements = MaxDrawCommands;
+    uavDesc.Buffer.StructureByteStride = sizeof(Display::IndirectCommand);
+    uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+    m_Device->CreateUnorderedAccessView(
+        m_OutputCommandBuffer.Get(), nullptr, &uavDesc,
+        {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize});
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC textureSrvDesc = {};
+    textureSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+    textureSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    textureSrvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    textureSrvDesc.Texture2D.MipLevels = 1;
+
+    m_Device->CreateShaderResourceView(
+        nullptr, &textureSrvDesc,
+        {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize});
 }
 
 std::vector<D3D12_RESOURCE_BARRIER> RendererDX12::CreateBarriersForHelpers()
 {
-    std::vector<D3D12_RESOURCE_BARRIER> barriers(5);
-    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_DrawCommandArgumentHelper->GetDestinationBuffer(),
+    std::vector<D3D12_RESOURCE_BARRIER> barriers(4);
+    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_IndirectCommandHelper->GetDestinationBuffer(),
                                                        D3D12_RESOURCE_STATE_COPY_DEST,
                                                        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_DrawCommandHelper->GetDestinationBuffer(),
+    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_RageSpriteVertexHelper->GetDestinationBuffer(),
                                                        D3D12_RESOURCE_STATE_COPY_DEST,
                                                        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(m_RageSpriteVertexHelper->GetDestinationBuffer(),
+    barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderStateHelper->GetDestinationBuffer(),
                                                        D3D12_RESOURCE_STATE_COPY_DEST,
                                                        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderStateHelper->GetDestinationBuffer(),
-                                                       D3D12_RESOURCE_STATE_COPY_DEST,
-                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
-    barriers[4] = CD3DX12_RESOURCE_BARRIER::Transition(m_MatrixStateHelper->GetDestinationBuffer(),
+    barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(m_MatrixStateHelper->GetDestinationBuffer(),
                                                        D3D12_RESOURCE_STATE_COPY_DEST,
                                                        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
