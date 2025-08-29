@@ -612,7 +612,7 @@ void RendererDX12::CreateViewsForBufferHelpers()
     indirectCommandSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
     m_Device->CreateShaderResourceView(
-        m_MatrixStateBuffer.Get(), &indirectCommandSrvDesc,
+        m_IndirectCommandHelper->GetDestinationBuffer(), &indirectCommandSrvDesc,
         {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::IndirectCommandSrv * m_MintyFreshDescriptorSize});
 
     D3D12_SHADER_RESOURCE_VIEW_DESC matrixSrvDesc = {};
@@ -625,7 +625,7 @@ void RendererDX12::CreateViewsForBufferHelpers()
     matrixSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
     m_Device->CreateShaderResourceView(
-        m_MatrixStateBuffer.Get(), &matrixSrvDesc,
+        m_MatrixStateHelper->GetDestinationBuffer(), &matrixSrvDesc,
         {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::MatrixStateSrv * m_MintyFreshDescriptorSize});
 
     D3D12_SHADER_RESOURCE_VIEW_DESC renderSrvDesc = {};
@@ -638,7 +638,7 @@ void RendererDX12::CreateViewsForBufferHelpers()
     renderSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
     m_Device->CreateShaderResourceView(
-        m_MatrixStateBuffer.Get(), &matrixSrvDesc,
+        m_RenderStateHelper->GetDestinationBuffer(), &renderSrvDesc,
         {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::RenderStateSrv * m_MintyFreshDescriptorSize});
 
     m_VertexBufferView.BufferLocation = m_RageSpriteVertexHelper->GetDestinationBuffer()->GetGPUVirtualAddress();
@@ -671,21 +671,15 @@ void RendererDX12::CreateViewsForBufferHelpers()
 std::vector<D3D12_RESOURCE_BARRIER> RendererDX12::CreateBarriersForHelpers()
 {
     std::vector<D3D12_RESOURCE_BARRIER> barriers(4);
-    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_IndirectCommandHelper->GetDestinationBuffer(),
-                                                       D3D12_RESOURCE_STATE_COPY_DEST,
-                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    const auto before = D3D12_RESOURCE_STATE_COPY_DEST;
+    const auto after = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_IndirectCommandHelper->GetDestinationBuffer(), before, after);
 
-    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_RageSpriteVertexHelper->GetDestinationBuffer(),
-                                                       D3D12_RESOURCE_STATE_COPY_DEST,
-                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_RageSpriteVertexHelper->GetDestinationBuffer(), before, after);
 
-    barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderStateHelper->GetDestinationBuffer(),
-                                                       D3D12_RESOURCE_STATE_COPY_DEST,
-                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderStateHelper->GetDestinationBuffer(), before, after);
 
-    barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(m_MatrixStateHelper->GetDestinationBuffer(),
-                                                       D3D12_RESOURCE_STATE_COPY_DEST,
-                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(m_MatrixStateHelper->GetDestinationBuffer(), before, after);
 
     return barriers;
 }
