@@ -62,11 +62,12 @@ cbuffer Constants : register(b0)
 // matches RendererDX12::ComputeShaderThreadCount
 #define ThreadCount 64
 [numthreads(ThreadCount, 1, 1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+void CSMain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
-    if (id.x >= totalCommandCount) return;
+    uint index = (groupId.x * ThreadCount) + groupIndex;
+    if (index >= totalCommandCount) return;
 
-    IndirectCommand command = InputCommandBuffer[id.x];
+    IndirectCommand command = InputCommandBuffer[index];
 
     // no culling (for now)
     OutputCommandBuffer.Append(command);
