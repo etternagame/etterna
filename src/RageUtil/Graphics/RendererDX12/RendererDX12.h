@@ -128,6 +128,9 @@ class RendererDX12 : public Display::Renderer
     void UploadBatchToBufferHelpers(const Display::CommandBatcher &batcher);
     void CopyHelperDataToDestBuffers();
     void CreateViewsForBufferHelpers();
+
+    Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureStub;
+	void CreateTextureStub();
 };
 
 #endif
