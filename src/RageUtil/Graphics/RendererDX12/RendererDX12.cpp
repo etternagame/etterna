@@ -276,6 +276,21 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
 
         m_OutputCommandBuffer =
             CreateResource(outputBufferDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+        uavDesc.Format = DXGI_FORMAT_UNKNOWN;
+        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+        uavDesc.Buffer.FirstElement = 0;
+        uavDesc.Buffer.NumElements = MaxDrawCommands;
+        uavDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
+        uavDesc.Buffer.CounterOffsetInBytes = 0;
+        uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+        D3D12_CPU_DESCRIPTOR_HANDLE uavHandle = {m_MintyFreshHeapCpuHandle.ptr +
+                                                 DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize};
+
+        m_Device->CreateUnorderedAccessView(m_OutputCommandBuffer.Get(), m_OutputCommandBuffer.Get(), &uavDesc,
+                                            uavHandle);
     }
 
     {
