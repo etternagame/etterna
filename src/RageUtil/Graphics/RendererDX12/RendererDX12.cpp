@@ -676,34 +676,38 @@ void RendererDX12::CreateTextureStub()
     textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
     D3D12_HEAP_PROPERTIES heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-    m_TextureStub = CreateResource(textureDesc);
+    ThrowIfFailed(m_Device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &textureDesc,
+                                                    D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                                    IID_PPV_ARGS(&m_TextureStub)));
 
-    const UINT64 uploadBufferSize = 4;
+    UINT64 uploadBufferSize = 0;
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT layout;
+    UINT numRows;
+    UINT64 rowSize;
+    UINT64 totalBytes;
+
+    m_Device->GetCopyableFootprints(&textureDesc, 0, 1, 0, &layout, &numRows, &rowSize, &totalBytes);
+    uploadBufferSize = totalBytes;
+
     heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     D3D12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
 
     ComPtr<ID3D12Resource> uploadHeap;
-    uploadHeap = CreateResource(bufferDesc, D3D12_HEAP_TYPE_UPLOAD, D3D12_RESOURCE_STATE_GENERIC_READ);
+    ThrowIfFailed(m_Device->CreateCommittedResource(&heapProps, D3D12_HEAP_FLAG_NONE, &bufferDesc,
+                                                    D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                                                    IID_PPV_ARGS(&uploadHeap)));
 
     uint32_t whitePixel = 0xFFFFFFFF;
     D3D12_SUBRESOURCE_DATA textureData = {};
     textureData.pData = &whitePixel;
-    textureData.RowPitch = 4;
-    textureData.SlicePitch = 4;
+    textureData.RowPitch = static_cast<LONG>(rowSize);
+    textureData.SlicePitch = textureData.RowPitch * numRows;
 
     ThrowIfFailed(m_GraphicsHelpers.CommandAllocator->Reset());
     ThrowIfFailed(m_GraphicsHelpers.CommandList->Reset(m_GraphicsHelpers.CommandAllocator.Get(), nullptr));
 
-    void *pData;
-    ThrowIfFailed(uploadHeap->Map(0, nullptr, &pData));
-    memcpy(pData, &whitePixel, 4);
-    uploadHeap->Unmap(0, nullptr);
-
-    CD3DX12_TEXTURE_COPY_LOCATION dst(m_TextureStub.Get(), 0);
-    CD3DX12_TEXTURE_COPY_LOCATION src(uploadHeap.Get(),
-                                      D3D12_PLACED_SUBRESOURCE_FOOTPRINT{0, {DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 4}});
-
-    m_GraphicsHelpers.CommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+    UpdateSubresources(m_GraphicsHelpers.CommandList.Get(), m_TextureStub.Get(), uploadHeap.Get(), 0, 0, 1,
+                       &textureData);
 
     CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
         m_TextureStub.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

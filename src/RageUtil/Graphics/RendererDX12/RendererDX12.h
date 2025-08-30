@@ -1,21 +1,22 @@
 #ifndef RENDERER_DX12_H
 #define RENDERER_DX12_H
 
-#include "RageUtil/Graphics/Display/Display.h"
-#include "RageUtil/Graphics/Display/Renderer.h"
-
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include "BufferHelperDX12.h"
+#include <windows.h>
+
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <directx/d3dx12.h>
 #include <D3D12MemAlloc.h>
 #include <DirectXMath.h>
-#include <d3d12.h>
-#include <directx/d3dx12.h>
 #include <dxcapi.h>
-#include <dxgi1_6.h>
-#include <windows.h>
+
+#include "BufferHelperDX12.h"
+#include "RageUtil/Graphics/Display/Display.h"
+#include "RageUtil/Graphics/Display/Renderer.h"
 
 class RendererDX12 : public Display::Renderer
 {

@@ -21,6 +21,7 @@ target_compile_definitions(Etterna PRIVATE _CRT_SECURE_NO_WARNINGS)
 # Linking - Windows Only
 target_link_libraries(Etterna PUBLIC ffmpeg)
 target_link_libraries(Etterna PUBLIC DirectX-Headers)
+target_link_libraries(Etterna PUBLIC DirectX-Guids)
 target_link_libraries(Etterna PUBLIC D3D12MemoryAllocator)
 
 find_package(DirectX REQUIRED)
