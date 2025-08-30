@@ -218,24 +218,23 @@ ComPtr<IDxcBlob> RendererDX12::CompileShader(const std::string &path, RageShader
 void RendererDX12::LoadAssets(const VideoModeParams &p)
 {
     {
-        CD3DX12_DESCRIPTOR_RANGE1 ranges[3] = {};
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[2] = {};
 
-        // InputCommand stuff
-        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0);
+        // InputCommandBuffer, MatrixStateBuffer, RenderStateBuffer
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 3, 0, 0);
+
+        // Textures, InputCommandArgBuffer
+        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 3, 0);
+
         // OutputCommandBuffer
-        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
-        // Textures (future proofing or smth idk)
-        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
-        // DrawCommandArgument
-        ranges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+        CD3DX12_DESCRIPTOR_RANGE1 uavRange = {};
+        uavRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
 
-        CD3DX12_ROOT_PARAMETER1 params[4] = {};
-
-        params[0].InitAsDescriptorTable(1, &ranges[0]);
-        params[1].InitAsDescriptorTable(1, &ranges[1]);
-        params[2].InitAsDescriptorTable(1, &ranges[2]);
-        params[3].InitAsDescriptorTable(1, &ranges[3]);
-
+        // Create root parameters
+        CD3DX12_ROOT_PARAMETER1 params[3] = {};
+        params[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
+        params[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
+        params[2].InitAsDescriptorTable(1, &uavRange, D3D12_SHADER_VISIBILITY_ALL);
         D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
@@ -258,7 +257,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     {
         D3D12_INDIRECT_ARGUMENT_DESC args[1] = {};
 
-        // Draw call (must come last due to DirectX something something)
+        // Draw call (must come last due to DirectX specs)
         args[0].Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
 
         D3D12_COMMAND_SIGNATURE_DESC desc = {};
@@ -267,14 +266,12 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         desc.ByteStride = sizeof(Display::DrawCommand);
         desc.NodeMask = 0;
 
-        ThrowIfFailed(
-            m_Device->CreateCommandSignature(&desc, m_RootSignature.Get(), IID_PPV_ARGS(&m_IndirectCommandSignature)));
+        ThrowIfFailed(m_Device->CreateCommandSignature(&desc, nullptr, IID_PPV_ARGS(&m_IndirectCommandSignature)));
     }
 
     {
         D3D12_RESOURCE_DESC outputBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(
-		  MaxDrawCommands * sizeof(Display::DrawCommand),
-		  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+            MaxDrawCommands * sizeof(Display::DrawCommand), D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 
         m_OutputCommandBuffer =
             CreateResource(outputBufferDesc, D3D12_HEAP_TYPE_DEFAULT, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
@@ -284,7 +281,7 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
         uavDesc.Buffer.FirstElement = 0;
         uavDesc.Buffer.NumElements = MaxDrawCommands;
-		uavDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
+        uavDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
         uavDesc.Buffer.CounterOffsetInBytes = 0;
         uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
@@ -415,18 +412,15 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
     D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart();
 
-    uint32_t stuffs[2] = {};
-    m_GraphicsHelpers.CommandList->SetGraphicsRoot32BitConstants(0, 2, stuffs, 0);
-
-    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
+    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(0, gpuHandle);
 
     D3D12_GPU_DESCRIPTOR_HANDLE outputUavHandle = gpuHandle;
     outputUavHandle.ptr += DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize;
-    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(2, outputUavHandle);
+    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(1, outputUavHandle);
 
     D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandle = gpuHandle;
     textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
-    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(3, textureSrvHandle);
+    m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(2, textureSrvHandle);
 
     m_GraphicsHelpers.CommandList->ExecuteIndirect(m_IndirectCommandSignature.Get(), MaxDrawCommands,
                                                    m_OutputCommandBuffer.Get(), 0, nullptr, 0);
@@ -457,12 +451,16 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
 
     // note to self: maybe transition all helpers at the same time instead of whatever this is?
     m_IndirectCommandHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+    m_IndirectCommandArgumentHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
+                                                       D3D12_RESOURCE_STATE_COPY_DEST);
     m_MatrixStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
     m_RenderStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
     m_RageSpriteVertexHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
     CopyHelperDataToDestBuffers();
     m_IndirectCommandHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
                                                D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    m_IndirectCommandArgumentHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
+                                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     m_MatrixStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
                                            D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     m_RenderStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
@@ -470,18 +468,15 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     m_RageSpriteVertexHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
                                                 D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    // InputCommand, MatrixState, RenderState
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(1, m_MintyFreshHeapGpuHandle);
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_MintyFreshHeapGpuHandle);
 
-    // OutputCommandBuffer
-    D3D12_GPU_DESCRIPTOR_HANDLE outputUavHandle = m_MintyFreshHeapGpuHandle;
-    outputUavHandle.ptr += DescriptorHeapOffsets::OutputCommandUav * m_MintyFreshDescriptorSize;
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(2, outputUavHandle);
+    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(0, gpuHandle);
 
-    // Textures
-    D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandle = m_MintyFreshHeapGpuHandle;
-    textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(3, textureSrvHandle);
+    gpuHandle.Offset(3, m_MintyFreshDescriptorSize);
+    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(1, gpuHandle);
+
+    gpuHandle.Offset(2, m_MintyFreshDescriptorSize);
+    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(2, gpuHandle);
 
     if (indirectCommandCount > 0)
     {
@@ -569,11 +564,9 @@ constexpr D3D12_RESOURCE_DESC RendererDX12::GetTextureDescription()
 
 void RendererDX12::InitUploadBufferHelpers()
 {
-	m_IndirectCommandHelper =
-	  std::make_unique<BufferHelperDX12<Display::DrawCommand>>(
-        m_Device.Get(), MaxDrawCommands, Display::Display::FrameCount);
-	m_IndirectCommandArgumentHelper =
-	  std::make_unique<BufferHelperDX12<Display::DrawCommandArgument>>(
+    m_IndirectCommandHelper = std::make_unique<BufferHelperDX12<Display::DrawCommand>>(m_Device.Get(), MaxDrawCommands,
+                                                                                       Display::Display::FrameCount);
+    m_IndirectCommandArgumentHelper = std::make_unique<BufferHelperDX12<Display::DrawCommandArgument>>(
         m_Device.Get(), MaxDrawCommands, Display::Display::FrameCount);
     m_RageSpriteVertexHelper =
         std::make_unique<BufferHelperDX12<RageSpriteVertex>>(m_Device.Get(), MaxVertices, Display::Display::FrameCount);
@@ -595,8 +588,7 @@ void RendererDX12::UploadBatchToBufferHelpers(const Display::CommandBatcher &bat
 void RendererDX12::CopyHelperDataToDestBuffers()
 {
     m_IndirectCommandHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
-	m_IndirectCommandArgumentHelper->CopyToDestinationBuffer(
-	  m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
+    m_IndirectCommandArgumentHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
     m_RageSpriteVertexHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
     m_RenderStateHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
     m_MatrixStateHelper->CopyToDestinationBuffer(m_ComputeHelpers.CommandList.Get(), m_FrameIndex);
@@ -610,8 +602,7 @@ void RendererDX12::CreateViewsForBufferHelpers()
     indirectCommandSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     indirectCommandSrvDesc.Buffer.FirstElement = 0;
     indirectCommandSrvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
-	indirectCommandSrvDesc.Buffer.StructureByteStride =
-	  sizeof(Display::DrawCommand);
+    indirectCommandSrvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
     indirectCommandSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
     m_Device->CreateShaderResourceView(
@@ -619,20 +610,16 @@ void RendererDX12::CreateViewsForBufferHelpers()
         {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::IndirectCommandSrv * m_MintyFreshDescriptorSize});
 
     D3D12_SHADER_RESOURCE_VIEW_DESC indirectCommandArgSrvDesc = {};
-	indirectCommandArgSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
-	indirectCommandArgSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
-	indirectCommandArgSrvDesc.Shader4ComponentMapping =
-	  D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	indirectCommandArgSrvDesc.Buffer.FirstElement = 0;
-	indirectCommandArgSrvDesc.Buffer.NumElements =
-	  static_cast<UINT>(MaxDrawCommands);
-	indirectCommandArgSrvDesc.Buffer.StructureByteStride =
-	  sizeof(Display::DrawCommand);
-	indirectCommandArgSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+    indirectCommandArgSrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    indirectCommandArgSrvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+    indirectCommandArgSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    indirectCommandArgSrvDesc.Buffer.FirstElement = 0;
+    indirectCommandArgSrvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
+    indirectCommandArgSrvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
+    indirectCommandArgSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
     m_Device->CreateShaderResourceView(
-	  m_IndirectCommandArgumentHelper->GetDestinationBuffer(),
-	  &indirectCommandArgSrvDesc,
+        m_IndirectCommandArgumentHelper->GetDestinationBuffer(), &indirectCommandArgSrvDesc,
         {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::IndirectCommandArgSrv * m_MintyFreshDescriptorSize});
 
     D3D12_SHADER_RESOURCE_VIEW_DESC matrixSrvDesc = {};
@@ -670,7 +657,7 @@ void RendererDX12::CreateViewsForBufferHelpers()
     uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
     uavDesc.Buffer.FirstElement = 0;
     uavDesc.Buffer.NumElements = MaxDrawCommands;
-	uavDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
+    uavDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
     uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
     m_Device->CreateUnorderedAccessView(

@@ -97,11 +97,7 @@ class RendererDX12 : public Display::Renderer
     Microsoft::WRL::ComPtr<ID3D12Resource> m_IndirectCommandHeap;
     Microsoft::WRL::ComPtr<ID3D12CommandSignature> m_IndirectCommandSignature;
 
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_InputCommandBuffer;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_MatrixStateBuffer;
-    Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderStateBuffer;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_OutputCommandBuffer;
-
     // less of a mouthful than CBV_SRV_UAV >:3
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_MintyFreshHeap;
     UINT m_MintyFreshDescriptorSize;
@@ -113,9 +109,9 @@ class RendererDX12 : public Display::Renderer
         IndirectCommandSrv,
         MatrixStateSrv,
         RenderStateSrv,
-        OutputCommandUav,
         TextureSrv,
 		IndirectCommandArgSrv,
+		OutputCommandUav,
         DescriptorCount,
     };
 
