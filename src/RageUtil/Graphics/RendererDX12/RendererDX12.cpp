@@ -458,8 +458,6 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     ThrowIfFailed(m_ComputeHelpers.CommandList->Reset(m_ComputeHelpers.CommandAllocator.Get(),
                                                       m_ComputeHelpers.PipelineState.Get()));
 
-    CopyHelperDataToDestBuffers();
-
     m_ComputeHelpers.CommandList->SetComputeRootSignature(m_RootSignature.Get());
 
     ID3D12DescriptorHeap *ppHeaps[] = {m_MintyFreshHeap.Get()};
@@ -468,6 +466,21 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     const auto indirectCommandCount = batcher.m_IndirectCommandBuffer.size();
     uint32_t constants[2] = {indirectCommandCount, 0};
     m_ComputeHelpers.CommandList->SetComputeRoot32BitConstants(0, 2, constants, 0);
+
+	// note to self: maybe transition all helpers at the same time instead of whatever this is?
+    m_IndirectCommandHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+    m_MatrixStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+    m_RenderStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+    m_RageSpriteVertexHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+    CopyHelperDataToDestBuffers();
+    m_IndirectCommandHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
+                                               D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    m_MatrixStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
+                                           D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    m_RenderStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
+                                           D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+    m_RageSpriteVertexHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
+                                                D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
     // InputCommand, MatrixState, RenderState
     m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(1, m_MintyFreshHeapGpuHandle);
@@ -482,17 +495,11 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     textureSrvHandle.ptr += DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize;
     m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(3, textureSrvHandle);
 
-    auto barriers = CreateBarriersForHelpers();
-    m_ComputeHelpers.CommandList->ResourceBarrier(barriers.size(), barriers.data());
-
     if (indirectCommandCount > 0)
     {
         UINT dispatchGroupCount = (indirectCommandCount + ComputeShaderThreadCount - 1) / ComputeShaderThreadCount;
         m_ComputeHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
     }
-
-    ChangeHelperBarrierStates(barriers);
-    m_ComputeHelpers.CommandList->ResourceBarrier(barriers.size(), barriers.data());
 
     ThrowIfFailed(m_ComputeHelpers.CommandList->Close());
 
@@ -666,28 +673,4 @@ void RendererDX12::CreateViewsForBufferHelpers()
     m_Device->CreateShaderResourceView(
         nullptr, &textureSrvDesc,
         {m_MintyFreshHeapCpuHandle.ptr + DescriptorHeapOffsets::TextureSrv * m_MintyFreshDescriptorSize});
-}
-
-std::vector<D3D12_RESOURCE_BARRIER> RendererDX12::CreateBarriersForHelpers()
-{
-    std::vector<D3D12_RESOURCE_BARRIER> barriers(4);
-    const auto before = D3D12_RESOURCE_STATE_COPY_DEST;
-    const auto after = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-    barriers[0] = CD3DX12_RESOURCE_BARRIER::Transition(m_IndirectCommandHelper->GetDestinationBuffer(), before, after);
-
-    barriers[1] = CD3DX12_RESOURCE_BARRIER::Transition(m_RageSpriteVertexHelper->GetDestinationBuffer(), before, after);
-
-    barriers[2] = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderStateHelper->GetDestinationBuffer(), before, after);
-
-    barriers[3] = CD3DX12_RESOURCE_BARRIER::Transition(m_MatrixStateHelper->GetDestinationBuffer(), before, after);
-
-    return barriers;
-}
-
-void RendererDX12::ChangeHelperBarrierStates(std::vector<D3D12_RESOURCE_BARRIER> &barriers)
-{
-    for (auto &barrier : barriers)
-    {
-        std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
-    }
 }

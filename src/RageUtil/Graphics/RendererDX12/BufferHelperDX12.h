@@ -17,7 +17,8 @@ template <typename _UploadedStruct> class BufferHelperDX12
 {
   public:
     BufferHelperDX12(ID3D12Device *device, UINT capacity, UINT frameCount)
-        : m_Capacity(capacity), m_FrameCount(frameCount), m_Device(device), m_UploadBuffers(frameCount)
+        : m_Capacity(capacity), m_FrameCount(frameCount), m_Device(device), m_UploadBuffers(frameCount),
+          m_CurrentState(D3D12_RESOURCE_STATE_COPY_DEST)
     {
         D3D12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(capacity * sizeof(_UploadedStruct));
         D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -58,12 +59,24 @@ template <typename _UploadedStruct> class BufferHelperDX12
         m_UploadBuffers[frameIndex]->Unmap(0, nullptr);
     }
 
+    void TransitionToState(ID3D12GraphicsCommandList *commandList, D3D12_RESOURCE_STATES newState)
+    {
+        if (m_CurrentState == newState)
+            return;
+
+        CD3DX12_RESOURCE_BARRIER barrier =
+            CD3DX12_RESOURCE_BARRIER::Transition(m_DestinationBuffer.Get(), m_CurrentState, newState);
+        commandList->ResourceBarrier(1, &barrier);
+        m_CurrentState = newState;
+    }
+
   private:
     const UINT m_FrameCount;
     const UINT m_Capacity;
     const ID3D12Device *m_Device;
     Microsoft::WRL::ComPtr<ID3D12Resource> m_DestinationBuffer;
     std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_UploadBuffers;
+    D3D12_RESOURCE_STATES m_CurrentState;
 };
 
 #endif

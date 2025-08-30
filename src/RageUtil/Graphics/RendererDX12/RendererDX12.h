@@ -130,8 +130,6 @@ class RendererDX12 : public Display::Renderer
     void UploadBatchToBufferHelpers(const Display::CommandBatcher &batcher);
     void CopyHelperDataToDestBuffers();
     void CreateViewsForBufferHelpers();
-    std::vector<D3D12_RESOURCE_BARRIER> CreateBarriersForHelpers();
-    void ChangeHelperBarrierStates(std::vector<D3D12_RESOURCE_BARRIER> &barriers);
 };
 
 #endif
