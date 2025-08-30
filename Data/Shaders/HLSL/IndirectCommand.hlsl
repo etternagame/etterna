@@ -53,9 +53,10 @@ StructuredBuffer<DrawCommandArgument> InputCommandArgBuffer : register(t4);
 void CSMain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
     uint index = (groupId.x * ThreadCount) + groupIndex;
-    if (index >= totalCommandCount) return;
-
     DrawCommand command = InputCommandBuffer[index];
+    if(command.InstanceCount == 0 || command.VertexCountPerInstance == 0){
+        return;
+    }
 
     // no culling (for now)
     OutputCommandBuffer.Append(command);
