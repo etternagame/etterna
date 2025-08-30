@@ -14,13 +14,6 @@ struct DrawCommandArgument
 	uint32_t renderStateIndex;
 };
 
-// should match RendererDX12::IndirectCommand (kinda)
-struct IndirectCommand
-{
-    DrawCommandArgument args;
-    DrawCommand draw;
-};
-
 // should match Display::MatrixState
 struct MatrixState
 {
@@ -46,18 +39,13 @@ struct RenderState
     uint64_t textures[NUM_TextureUnit];
 };
 
-AppendStructuredBuffer<IndirectCommand> OutputCommandBuffer : register(u0);
+AppendStructuredBuffer<DrawCommand> OutputCommandBuffer : register(u0);
 
-StructuredBuffer<IndirectCommand> InputCommandBuffer : register(t0);
+StructuredBuffer<DrawCommand> InputCommandBuffer : register(t0);
 StructuredBuffer<MatrixState> MatrixStateBuffer : register(t1);
 StructuredBuffer<RenderState> RenderStateBuffer : register(t2);
 Texture2D Textures[] : register(t3);
-
-cbuffer Constants : register(b0)
-{
-    uint totalCommandCount;
-    uint padding;
-}
+StructuredBuffer<DrawCommandArgument> InputCommandArgBuffer : register(t4);
 
 // matches RendererDX12::ComputeShaderThreadCount
 #define ThreadCount 64
@@ -67,7 +55,7 @@ void CSMain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
     uint index = (groupId.x * ThreadCount) + groupIndex;
     if (index >= totalCommandCount) return;
 
-    IndirectCommand command = InputCommandBuffer[index];
+    DrawCommand command = InputCommandBuffer[index];
 
     // no culling (for now)
     OutputCommandBuffer.Append(command);

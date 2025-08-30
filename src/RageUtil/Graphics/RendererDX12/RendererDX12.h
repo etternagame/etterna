@@ -115,12 +115,14 @@ class RendererDX12 : public Display::Renderer
         RenderStateSrv,
         OutputCommandUav,
         TextureSrv,
+		IndirectCommandArgSrv,
         DescriptorCount,
     };
 
     static constexpr UINT MintyFreshDescriptorCount = DescriptorHeapOffsets::DescriptorCount;
 
-    std::unique_ptr<BufferHelperDX12<Display::IndirectCommand>> m_IndirectCommandHelper;
+    std::unique_ptr<BufferHelperDX12<Display::DrawCommand>> m_IndirectCommandHelper;
+    std::unique_ptr<BufferHelperDX12<Display::DrawCommandArgument>> m_IndirectCommandArgumentHelper;
     std::unique_ptr<BufferHelperDX12<Display::RenderState>> m_RenderStateHelper;
     std::unique_ptr<BufferHelperDX12<Display::MatrixState>> m_MatrixStateHelper;
 

@@ -16,14 +16,14 @@ void Display::CommandBatcher::InsertSpriteDrawCommand(DrawMode drawMode, MatrixS
     DrawCommand command = {};
 
     command.StartVertexLocation = m_SpriteVertexBuffer.size();
-	command.InstanceCount = 1;
-	command.StartInstanceLocation = 0;
+    command.InstanceCount = 1;
+    command.StartInstanceLocation = 0;
 
     // -- changing draw mode in the middle of the queue would likely require switching pipeline state objects
     //	  and most of the ye olde draw modes aren't supported
     //    so just convert to a triangle list
     // -- unrolled loops look funny though
-	// -- maybe this can be done on the GPU via mesh shaders and/or work graphs but that's for unstable_d3d_mintyfresh
+    // -- maybe this can be done on the GPU via mesh shaders and/or work graphs but that's for unstable_d3d_mintyfresh
     switch (drawMode)
     {
     case DrawMode::Triangles: {
@@ -131,28 +131,26 @@ void Display::CommandBatcher::InsertSpriteDrawCommand(DrawMode drawMode, MatrixS
         break;
     }
 
-	command.VertexCountPerInstance =
-	  m_SpriteVertexBuffer.size() - command.StartVertexLocation;
+    command.VertexCountPerInstance = m_SpriteVertexBuffer.size() - command.StartVertexLocation;
 
-	m_MatrixStateBuffer.push_back(matrixState);
+    m_MatrixStateBuffer.push_back(matrixState);
 
-	DrawCommandArgument argument = { .matrixStateIndex =
-									   (uint32_t)m_MatrixStateBuffer.size() - 1,
-									 .renderStateIndex = (uint32_t)m_RenderStateBuffer.size() - 1
-	};
-	m_IndirectCommandBuffer.push_back({ argument, command });
+    DrawCommandArgument argument = {.matrixStateIndex = (uint32_t)m_MatrixStateBuffer.size() - 1,
+                                    .renderStateIndex = (uint32_t)m_RenderStateBuffer.size() - 1};
+    m_IndirectCommandArgumentBuffer.push_back(argument);
+    m_IndirectCommandBuffer.push_back(command);
 }
 
 void Display::CommandBatcher::InsertCompiledGeometryDrawCommand(DrawMode drawMode, MatrixState &&matrixState,
                                                                 const RageCompiledGeometry *p, int iMeshIndex)
 {
-	// TODO (^_^)
+    // TODO (^_^)
 
     /*assert(drawMode == DrawMode::CompiledGeometry);
     assert(m_RenderStateBuffer.size() >= 1 && "Rendering information must be set before drawing");
 
     DrawCommand command = { .useSpriteVertex = false,
-							.matrixState = matrixState };
+                            .matrixState = matrixState };
 
     assert(false && "TODO: fix whatever this RageCompiledGeometry thingy should do");
 
@@ -163,9 +161,9 @@ void Display::CommandBatcher::InsertCompiledGeometryDrawCommand(DrawMode drawMod
 
 void Display::CommandBatcher::Clear()
 {
-	m_IndirectCommandBuffer.clear();
+    m_IndirectCommandBuffer.clear();
     m_SpriteVertexBuffer.clear();
     m_ModelVertexBuffer.clear();
     m_RenderStateBuffer.clear();
-	m_MatrixStateBuffer.clear();
+    m_MatrixStateBuffer.clear();
 }

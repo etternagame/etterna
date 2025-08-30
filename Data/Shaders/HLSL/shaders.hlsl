@@ -1,5 +1,5 @@
 // should match Display::DrawCommandArgument
-cbuffer DrawCommandArgument : register(b0)
+struct DrawCommandArgument
 {
 	uint32_t matrixStateIndex;
 	uint32_t renderStateIndex;
@@ -32,6 +32,7 @@ struct RenderState
 
 StructuredBuffer<MatrixState> MatrixStateBuffer : register(t1);
 StructuredBuffer<RenderState> RenderStateBuffer : register(t2);
+StructuredBuffer<DrawCommandArgument> InputCommandArgBuffer : register(t4);
 
 struct VSInput {
     float3 position : POSITION;
@@ -45,12 +46,13 @@ struct PSInput {
     float4 color : COLOR;
 };
 
-PSInput VSMain(VSInput input)
+PSInput VSMain(VSInput input, uint instanceID : SV_InstanceID)
 {
     PSInput output;
+    DrawCommandArgument args = InputCommandArgBuffer[instanceID];
 
-    MatrixState matrices = MatrixStateBuffer[matrixStateIndex];
-    RenderState renderState = RenderStateBuffer[matrixStateIndex];
+    MatrixState matrices = MatrixStateBuffer[args.matrixStateIndex];
+    RenderState renderState = RenderStateBuffer[args.renderStateIndex];
 
     output.pos = float4(input.position, 1.0f);
     output.pos = mul(matrices.projection, mul(matrices.view, mul(matrices.world, output.pos)));
