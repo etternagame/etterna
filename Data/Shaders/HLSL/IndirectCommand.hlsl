@@ -44,7 +44,7 @@ AppendStructuredBuffer<DrawCommand> OutputCommandBuffer : register(u0);
 StructuredBuffer<DrawCommand> InputCommandBuffer : register(t0);
 StructuredBuffer<MatrixState> MatrixStateBuffer : register(t1);
 StructuredBuffer<RenderState> RenderStateBuffer : register(t2);
-StructuredBuffer<Texture2D> Textures : register(t3);
+Texture2D Textures[] : register(t3);
 StructuredBuffer<DrawCommandArgument> InputCommandArgBuffer : register(t4);
 
 // matches RendererDX12::ComputeShaderThreadCount
