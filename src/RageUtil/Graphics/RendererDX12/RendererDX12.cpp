@@ -390,6 +390,8 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
 
     m_GraphicsHelpers.CommandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
+    TransitionResourcesForGraphics(m_GraphicsHelpers.CommandList.Get());
+
     m_Viewport = D3D12_VIEWPORT(0.0f, 0.0f, static_cast<float>(p->width), static_cast<float>(p->height));
     m_ScissorRect = D3D12_RECT(0, 0, static_cast<LONG>(p->width), static_cast<LONG>(p->height));
     m_GraphicsHelpers.CommandList->RSSetViewports(1, &m_Viewport);
@@ -403,24 +405,23 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
                                             m_RtvDescriptorSize);
     m_GraphicsHelpers.CommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-    const float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    const float clearColor[] = {0.1f, 0.1f, 0.2f, 1.0f}; // Blue
     m_GraphicsHelpers.CommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
     m_GraphicsHelpers.CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
     m_GraphicsHelpers.CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
 
     ID3D12DescriptorHeap *ppHeaps[] = {m_MintyFreshHeap.Get()};
     m_GraphicsHelpers.CommandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
-    D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart();
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_MintyFreshHeap->GetGPUDescriptorHandleForHeapStart());
 
     m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(0, gpuHandle);
 
-    gpuHandle.ptr += uint64_t(3) * m_MintyFreshDescriptorSize;
+    gpuHandle.Offset(3, m_MintyFreshDescriptorSize);
     m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
 
-    gpuHandle.ptr += uint64_t(2) * m_MintyFreshDescriptorSize;
+    gpuHandle.Offset(2, m_MintyFreshDescriptorSize);
     m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(2, gpuHandle);
 
     m_GraphicsHelpers.CommandList->ExecuteIndirect(m_IndirectCommandSignature.Get(), MaxDrawCommands,
@@ -450,14 +451,40 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
 
     const auto indirectCommandCount = batcher.m_IndirectCommandBuffer.size();
 
-    // note to self: maybe transition all helpers at the same time instead of whatever this is?
     m_IndirectCommandHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
     m_IndirectCommandArgumentHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
                                                        D3D12_RESOURCE_STATE_COPY_DEST);
     m_MatrixStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
     m_RenderStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
     m_RageSpriteVertexHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
+
     CopyHelperDataToDestBuffers();
+
+    D3D12_RESOURCE_STATES computeState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+    m_IndirectCommandHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), computeState);
+    m_IndirectCommandArgumentHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), computeState);
+    m_MatrixStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), computeState);
+    m_RenderStateHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), computeState);
+    m_RageSpriteVertexHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(), computeState);
+
+    TransitionResource(m_ComputeHelpers.CommandList.Get(), m_OutputCommandBuffer.Get(),
+                       D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_MintyFreshHeapGpuHandle);
+
+    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(0, gpuHandle);
+    gpuHandle.Offset(3, m_MintyFreshDescriptorSize);
+    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(1, gpuHandle);
+    gpuHandle.Offset(2, m_MintyFreshDescriptorSize);
+    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(2, gpuHandle);
+
+    if (indirectCommandCount > 0)
+    {
+        UINT dispatchGroupCount = (indirectCommandCount + ComputeShaderThreadCount - 1) / ComputeShaderThreadCount;
+        m_ComputeHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
+    }
+
     m_IndirectCommandHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
                                                D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
     m_IndirectCommandArgumentHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
@@ -469,21 +496,8 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     m_RageSpriteVertexHelper->TransitionToState(m_ComputeHelpers.CommandList.Get(),
                                                 D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
 
-    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_MintyFreshHeapGpuHandle);
-
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(0, gpuHandle);
-
-    gpuHandle.Offset(3, m_MintyFreshDescriptorSize);
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(1, gpuHandle);
-
-    gpuHandle.Offset(2, m_MintyFreshDescriptorSize);
-    m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(2, gpuHandle);
-
-    if (indirectCommandCount > 0)
-    {
-        UINT dispatchGroupCount = (indirectCommandCount + ComputeShaderThreadCount - 1) / ComputeShaderThreadCount;
-        m_ComputeHelpers.CommandList->Dispatch(dispatchGroupCount, 1, 1);
-    }
+    TransitionResource(m_ComputeHelpers.CommandList.Get(), m_OutputCommandBuffer.Get(),
+                       D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 
     ThrowIfFailed(m_ComputeHelpers.CommandList->Close());
 
@@ -532,14 +546,20 @@ void RendererDX12::WaitForGPU()
 
 void RendererDX12::OnRender(const ActualVideoModeParams *p, const Display::CommandBatcher &batcher)
 {
+    WaitForGPU();
+
     RunIndirectCommandShader(batcher);
     PopulateCommandList(p);
 
     ID3D12CommandList *CommandLists[] = {m_GraphicsHelpers.CommandList.Get()};
     m_GraphicsHelpers.CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 
-    ThrowIfFailed(m_SwapChain->Present(1, 0));
+    ThrowIfFailed(m_GraphicsHelpers.CommandQueue->Signal(m_Fence.Get(), m_FenceValue));
     WaitForGPU();
+
+    ThrowIfFailed(m_SwapChain->Present(1, 0));
+
+    m_FrameIndex = m_SwapChain->GetCurrentBackBufferIndex();
 }
 
 void RendererDX12::OnDestroy()
@@ -733,4 +753,39 @@ void RendererDX12::CreateTextureStub()
     m_GraphicsHelpers.CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
     WaitForGPU();
+}
+
+void RendererDX12::TransitionResource(ID3D12GraphicsCommandList *commandList, ID3D12Resource *resource,
+                                      D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after)
+{
+    if (before == after)
+    {
+        return;
+    }
+    CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(resource, before, after);
+    commandList->ResourceBarrier(1, &barrier);
+}
+
+void RendererDX12::TransitionResourcesForGraphics(ID3D12GraphicsCommandList *commandList)
+{
+    TransitionResource(commandList, m_RageSpriteVertexHelper->GetDestinationBuffer(),
+                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+
+    D3D12_RESOURCE_STATES srvState =
+        D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+
+    TransitionResource(commandList, m_MatrixStateHelper->GetDestinationBuffer(),
+                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srvState);
+
+    TransitionResource(commandList, m_RenderStateHelper->GetDestinationBuffer(),
+                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srvState);
+
+    TransitionResource(commandList, m_IndirectCommandArgumentHelper->GetDestinationBuffer(),
+                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srvState);
+
+    TransitionResource(commandList, m_IndirectCommandHelper->GetDestinationBuffer(),
+                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE, srvState);
+
+    TransitionResource(commandList, m_OutputCommandBuffer.Get(), D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                       D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
 }

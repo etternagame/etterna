@@ -56,7 +56,7 @@ PSInput VSMain(VSInput input, uint instanceID : SV_InstanceID)
 
     output.pos = float4(input.position, 1.0f);
     output.pos = mul(matrices.projection, mul(matrices.view, mul(matrices.world, output.pos)));
-    output.color = input.color;
+    output.color = float4(1.0f, 0.0f, 0.0f, 1.0f);
 
     return output;
 }

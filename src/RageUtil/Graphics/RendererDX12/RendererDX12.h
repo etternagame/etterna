@@ -7,12 +7,12 @@
 
 #include <windows.h>
 
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <directx/d3dx12.h>
 #include <D3D12MemAlloc.h>
 #include <DirectXMath.h>
+#include <d3d12.h>
+#include <directx/d3dx12.h>
 #include <dxcapi.h>
+#include <dxgi1_6.h>
 
 #include "BufferHelperDX12.h"
 #include "RageUtil/Graphics/Display/Display.h"
@@ -35,6 +35,9 @@ class RendererDX12 : public Display::Renderer
     intptr_t PushTextureCommand(const Display::TextureCommand &command) override;
 
   private:
+    /// <summary>
+    /// this thing takes like 1ms per frame. Destroy with fire later
+    /// </summary>
     void WaitForGPU();
     void OnDestroy();
     void PopulateCommandList(const ActualVideoModeParams *p);
@@ -111,8 +114,8 @@ class RendererDX12 : public Display::Renderer
         MatrixStateSrv,
         RenderStateSrv,
         TextureSrv,
-		IndirectCommandArgSrv,
-		OutputCommandUav,
+        IndirectCommandArgSrv,
+        OutputCommandUav,
         DescriptorCount,
     };
 
@@ -131,7 +134,11 @@ class RendererDX12 : public Display::Renderer
     void CreateViewsForBufferHelpers();
 
     Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureStub;
-	void CreateTextureStub();
+    void CreateTextureStub();
+
+    void TransitionResource(ID3D12GraphicsCommandList *commandList, ID3D12Resource *resource,
+                            D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
+    void TransitionResourcesForGraphics(ID3D12GraphicsCommandList *commandList);
 };
 
 #endif
