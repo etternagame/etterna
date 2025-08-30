@@ -615,7 +615,7 @@ void RendererDX12::CreateViewsForBufferHelpers()
     indirectCommandArgSrvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     indirectCommandArgSrvDesc.Buffer.FirstElement = 0;
     indirectCommandArgSrvDesc.Buffer.NumElements = static_cast<UINT>(MaxDrawCommands);
-    indirectCommandArgSrvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommand);
+    indirectCommandArgSrvDesc.Buffer.StructureByteStride = sizeof(Display::DrawCommandArgument);
     indirectCommandArgSrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
     m_Device->CreateShaderResourceView(
