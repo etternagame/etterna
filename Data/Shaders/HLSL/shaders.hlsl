@@ -8,10 +8,10 @@ struct DrawCommandArgument
 // should match Display::MatrixState
 struct MatrixState
 {
-	float4x4 projection;
-	float4x4 view;
-	float4x4 world;
-	float4x4 texture;
+	column_major float4x4 projection;
+	column_major float4x4 view;
+	column_major float4x4 world;
+	column_major float4x4 texture;
 };
 
 // should match Display::RenderState
@@ -49,15 +49,18 @@ struct PSInput {
 PSInput VSMain(VSInput input, uint instanceID : SV_InstanceID)
 {
     PSInput output;
+    
     DrawCommandArgument args = InputCommandArgBuffer[instanceID];
+    MatrixState m = MatrixStateBuffer[args.matrixStateIndex];
+    
+    float4 worldPossum = mul(m.world, float4(input.position, 1.0));
+    float4 viewPossum = mul(m.view, worldPossum);
+    float4 projPossum = mul(m.projection, viewPossum);
+    output.pos = projPossum;
+    output.pos.y *= -1;
 
-    MatrixState matrices = MatrixStateBuffer[args.matrixStateIndex];
-    RenderState renderState = RenderStateBuffer[args.renderStateIndex];
-
-    output.pos = float4(input.position, 1.0f);
-    output.pos = mul(matrices.projection, mul(matrices.view, mul(matrices.world, output.pos)));
-    output.color = float4(1.0f, 0.0f, 0.0f, 1.0f);
-
+    output.color = input.color;
+    
     return output;
 }
 

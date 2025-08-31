@@ -322,6 +322,12 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
             {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(RageSpriteVertex, t),
              D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0}};
 
+        // doublecheck in case of yuckyness
+        static_assert(offsetof(RageSpriteVertex, p) == 0, "position offset is wrong!");
+        static_assert(offsetof(RageSpriteVertex, n) == 12, "normal offset is wrong!");
+        static_assert(offsetof(RageSpriteVertex, c) == 24, "color offset is wrong!");
+        static_assert(offsetof(RageSpriteVertex, t) == 28, "UV/texcoord offset is wrong!");
+
         constexpr UINT layoutElementCount = _countof(spriteVertexLayout);
 
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
@@ -405,7 +411,16 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
                                             m_RtvDescriptorSize);
     m_GraphicsHelpers.CommandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-    const float clearColor[] = {0.1f, 0.1f, 0.2f, 1.0f}; // Blue
+
+#ifndef _DEBUG
+	// i think there are fast clear modes for black and some other defaults so this is
+	// better for release??
+    const float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
+#else
+    // switch to meowing blurple for testing
+    const float clearColor[] = {0.2f, 0.0f, 0.2f, 1.0f};
+#endif
+
     m_GraphicsHelpers.CommandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
     m_GraphicsHelpers.CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
