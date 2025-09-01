@@ -57,7 +57,7 @@ PSInput VSMain(VSInput input, uint instanceID : SV_InstanceID)
     float4 viewPossum = mul(m.view, worldPossum);
     float4 projPossum = mul(m.projection, viewPossum);
     output.pos = projPossum;
-    output.pos.y *= -1;
+    output.pos.y *= -1.0f;
 
     output.color = input.color;
     

@@ -232,10 +232,11 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
         uavRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0, 0);
 
         // Create root parameters
-        CD3DX12_ROOT_PARAMETER1 params[3] = {};
+        CD3DX12_ROOT_PARAMETER1 params[4] = {};
         params[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
         params[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
         params[2].InitAsDescriptorTable(1, &uavRange, D3D12_SHADER_VISIBILITY_ALL);
+		params[3].InitAsConstants(1, 0);
         D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC desc = {};
@@ -388,7 +389,9 @@ void RendererDX12::LoadAssets(const VideoModeParams &p)
     CreateTextureStub();
 }
 
-void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
+void
+RendererDX12::PopulateCommandList(const ActualVideoModeParams* p,
+								  const Display::CommandBatcher& batcher)
 {
     ThrowIfFailed(m_GraphicsHelpers.CommandAllocator->Reset());
     ThrowIfFailed(m_GraphicsHelpers.CommandList->Reset(m_GraphicsHelpers.CommandAllocator.Get(),
@@ -439,7 +442,7 @@ void RendererDX12::PopulateCommandList(const ActualVideoModeParams *p)
     gpuHandle.Offset(2, m_MintyFreshDescriptorSize);
     m_GraphicsHelpers.CommandList->SetGraphicsRootDescriptorTable(2, gpuHandle);
 
-    m_GraphicsHelpers.CommandList->ExecuteIndirect(m_IndirectCommandSignature.Get(), MaxDrawCommands,
+    m_GraphicsHelpers.CommandList->ExecuteIndirect(m_IndirectCommandSignature.Get(), batcher.m_IndirectCommandBuffer.size(),
                                                    m_OutputCommandBuffer.Get(), 0, nullptr, 0);
 
     barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_RenderTargets[m_FrameIndex].Get(),
@@ -493,6 +496,10 @@ void RendererDX12::RunIndirectCommandShader(const Display::CommandBatcher &batch
     m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(1, gpuHandle);
     gpuHandle.Offset(2, m_MintyFreshDescriptorSize);
     m_ComputeHelpers.CommandList->SetComputeRootDescriptorTable(2, gpuHandle);
+
+
+	m_ComputeHelpers.CommandList->SetComputeRoot32BitConstant(
+	  3, indirectCommandCount, 0);
 
     if (indirectCommandCount > 0)
     {
@@ -564,7 +571,7 @@ void RendererDX12::OnRender(const ActualVideoModeParams *p, const Display::Comma
     WaitForGPU();
 
     RunIndirectCommandShader(batcher);
-    PopulateCommandList(p);
+    PopulateCommandList(p, batcher);
 
     ID3D12CommandList *CommandLists[] = {m_GraphicsHelpers.CommandList.Get()};
     m_GraphicsHelpers.CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);

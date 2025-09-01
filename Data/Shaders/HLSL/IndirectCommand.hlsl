@@ -23,6 +23,11 @@ struct MatrixState
 	float4x4 texture;
 };
 
+cbuffer CommandCount : register(b0)
+{
+    uint IndirectCommandCount;
+};
+
 // should match Display::RenderState
 #define NUM_TextureUnit 8
 struct RenderState
@@ -39,7 +44,7 @@ struct RenderState
     uint64_t textures[NUM_TextureUnit];
 };
 
-AppendStructuredBuffer<DrawCommand> OutputCommandBuffer : register(u0);
+RWStructuredBuffer<DrawCommand> OutputCommandBuffer : register(u0);
 
 StructuredBuffer<DrawCommand> InputCommandBuffer : register(t0);
 StructuredBuffer<MatrixState> MatrixStateBuffer : register(t1);
@@ -53,11 +58,14 @@ StructuredBuffer<DrawCommandArgument> InputCommandArgBuffer : register(t4);
 void CSMain(uint3 groupId : SV_GroupID, uint groupIndex : SV_GroupIndex)
 {
     uint index = (groupId.x * ThreadCount) + groupIndex;
-    DrawCommand command = InputCommandBuffer[index];
-    if(command.InstanceCount == 0 || command.VertexCountPerInstance == 0){
-        return;
+    if (index >= IndirectCommandCount) {
+        OutputCommandBuffer[index].VertexCountPerInstance = 0;
+        OutputCommandBuffer[index].InstanceCount = 0;
+        OutputCommandBuffer[index].StartVertexLocation = 0;
+        OutputCommandBuffer[index].StartInstanceLocation = 0;
     }
+    DrawCommand command = InputCommandBuffer[index];
 
     // no culling (for now)
-    OutputCommandBuffer.Append(command);
+    OutputCommandBuffer[index] = command;
 }

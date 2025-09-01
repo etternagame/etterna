@@ -40,7 +40,8 @@ class RendererDX12 : public Display::Renderer
     /// </summary>
     void WaitForGPU();
     void OnDestroy();
-    void PopulateCommandList(const ActualVideoModeParams *p);
+	void PopulateCommandList(const ActualVideoModeParams* p,
+							 const Display::CommandBatcher& batcher);
     void RunIndirectCommandShader(const Display::CommandBatcher &batcher);
 
     Microsoft::WRL::ComPtr<ID3D12Resource> CreateResource(
@@ -139,6 +140,12 @@ class RendererDX12 : public Display::Renderer
     void TransitionResource(ID3D12GraphicsCommandList *commandList, ID3D12Resource *resource,
                             D3D12_RESOURCE_STATES before, D3D12_RESOURCE_STATES after);
     void TransitionResourcesForGraphics(ID3D12GraphicsCommandList *commandList);
+
+	struct CommandCount
+	{
+		UINT IndirectCommandCount;
+	};
+	static_assert(sizeof(CommandCount) == 4);
 };
 
 #endif
