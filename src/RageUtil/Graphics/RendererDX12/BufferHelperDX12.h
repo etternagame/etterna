@@ -18,7 +18,7 @@ template <typename _UploadedStruct> class BufferHelperDX12
   public:
     BufferHelperDX12(ID3D12Device *device, UINT capacity, UINT frameCount)
         : m_Capacity(capacity), m_FrameCount(frameCount), m_Device(device), m_UploadBuffers(frameCount),
-          m_CurrentState(D3D12_RESOURCE_STATE_COPY_DEST)
+          m_CurrentState(D3D12_RESOURCE_STATE_COPY_DEST), m_FrameSize(frameCount)
     {
         D3D12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(capacity * sizeof(_UploadedStruct));
         D3D12_HEAP_PROPERTIES heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -46,7 +46,8 @@ template <typename _UploadedStruct> class BufferHelperDX12
 
     void CopyToDestinationBuffer(ID3D12GraphicsCommandList *commandList, UINT frameIndex)
     {
-        commandList->CopyResource(m_DestinationBuffer.Get(), m_UploadBuffers[frameIndex].Get());
+        commandList->CopyBufferRegion(m_DestinationBuffer.Get(), 0, m_UploadBuffers[frameIndex].Get(), 0,
+                                      m_FrameSize[frameIndex]);
     }
 
     void UploadToBuffer(UINT frameIndex, const std::vector<_UploadedStruct> &inputBuffer)
@@ -54,7 +55,8 @@ template <typename _UploadedStruct> class BufferHelperDX12
         void *bufferData = nullptr;
         ThrowIfFailed(m_UploadBuffers[frameIndex]->Map(0, nullptr, &bufferData));
 
-        std::memcpy(bufferData, inputBuffer.data(), inputBuffer.size() * sizeof(_UploadedStruct));
+        m_FrameSize[frameIndex] = inputBuffer.size() * sizeof(_UploadedStruct);
+        std::memcpy(bufferData, inputBuffer.data(), m_FrameSize[frameIndex]);
 
         m_UploadBuffers[frameIndex]->Unmap(0, nullptr);
     }
@@ -77,6 +79,7 @@ template <typename _UploadedStruct> class BufferHelperDX12
     Microsoft::WRL::ComPtr<ID3D12Resource> m_DestinationBuffer;
     std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_UploadBuffers;
     D3D12_RESOURCE_STATES m_CurrentState;
+    std::vector<size_t> m_FrameSize;
 };
 
 #endif
