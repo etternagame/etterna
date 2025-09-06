@@ -420,10 +420,6 @@ AdjustForChangedSystemCapabilities()
 #include "RageUtil/Graphics/RageDisplay_OGL.h"
 #endif
 
-#if defined(SUPPORT_GLES2)
-#include "RageUtil/Graphics/RageDisplay_GLES2.h"
-#endif
-
 #include "RageUtil/Graphics/RageDisplay_Null.h"
 
 struct VideoCardDefaults
@@ -809,10 +805,6 @@ CreateDisplay()
 			if (CompareNoCase(sRenderer, "opengl") == 0) {
 #if defined(SUPPORT_OPENGL)
 				pRet = new RageDisplay_Legacy;
-#endif
-			} else if (CompareNoCase(sRenderer, "gles2") == 0) {
-#if defined(SUPPORT_GLES2)
-				pRet = new RageDisplay_GLES2;
 #endif
 			} else if (CompareNoCase(sRenderer, "d3d") == 0) {
 // TODO: ANGLE/RageDisplay_Modern
@@ -1235,7 +1227,6 @@ StepMania::SaveScreenshot(const std::string& Dir,
 
 	return FileName;
 }
-
 
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
