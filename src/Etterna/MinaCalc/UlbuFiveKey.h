@@ -53,7 +53,6 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 
 	  // Technical
 	  {
-		  HandSwitch
 	  },
 	} };
 

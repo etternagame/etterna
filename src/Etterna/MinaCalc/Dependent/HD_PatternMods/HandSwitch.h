@@ -22,15 +22,15 @@ struct HandSwitchMod
 	float decay = 0.02F;
 
 	float prop_buffer = 0.15F;
-	float prop_scaler = 0.57F;
+	float prop_scaler = 0.55F;
 
-	float influence_center = 0.78F;
-	float influence_external = 0.70F;
+	float influence_center = 0.80F;
+	float influence_external = 0.68F;
 	float influence_length = 0.001F;
 
 	float length_cap = 1.0F;
 
-	float encounter_weight = 0.35f;
+	float encounter_weight = 0.33f;
 
 	const std::vector<std::pair<std::string, float*>> _params {
 		{ "base", &base },
@@ -87,7 +87,8 @@ struct HandSwitchMod
 		// prevents patterning like this, as it's a different field of tech.
 		// 11011
 		// 00100
-		if ((notes & 0b11) >= 0b11 && (notes & 0b00011) >= 0b00011)
+
+		if ((notes & 0b11) >= 0b11 && (notes & 0b11000) >= 0b11000)
 		{
 			_eml = 0;
 			return;
@@ -101,7 +102,7 @@ struct HandSwitchMod
 		if (notes & 0b00100)
 		{
 			// chord that has both hands and middle lane involved should not be counted as handswitch.
-			if ((notes & 0b11) && (notes & 0b00011))
+			if ((notes & 0b11) && (notes & 0b11000))
 			{
 				_eml = 0;
 				return;
