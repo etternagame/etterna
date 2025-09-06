@@ -1307,6 +1307,11 @@ class LunaSprite : public Luna<Sprite>
 		p->StopUsingCustomPosCoords();
 		COMMON_RETURN_SELF;
 	}
+	static int StopUsingCustomTexCoords(T* p, lua_State* L)
+	{
+		p->StopUsingCustomCoords();
+		COMMON_RETURN_SELF;
+	}
 	static int texcoordvelocity(T* p, lua_State* L)
 	{
 		p->SetTexCoordVelocity(FArg(1), FArg(2));
@@ -1492,6 +1497,7 @@ class LunaSprite : public Luna<Sprite>
 		ADD_METHOD(SetCustomImageRect);
 		ADD_METHOD(SetCustomPosCoords);
 		ADD_METHOD(StopUsingCustomPosCoords);
+		ADD_METHOD(StopUsingCustomTexCoords);
 		ADD_METHOD(texcoordvelocity);
 		ADD_METHOD(get_use_effect_clock_for_texcoords);
 		ADD_METHOD(set_use_effect_clock_for_texcoords);
