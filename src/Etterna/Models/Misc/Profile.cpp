@@ -373,6 +373,7 @@ Profile::CalculateStatsFromScores(LoadingWindow* ld)
 		m_iTotalTapsAndHolds += hs->GetTapNoteScore(TNS_W5);
 		m_iTotalMines += hs->GetTapNoteScore(TNS_HitMine);
 		m_iTotalTapsAndHolds += hs->GetHoldNoteScore(HNS_Held);
+		m_iTotalHolds += hs->GetHoldNoteScore(HNS_Held);
 	}
 
 	m_iNumTotalSongsPlayed = all.size();
