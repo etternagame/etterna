@@ -1134,6 +1134,11 @@ t[#t+1] = Def.ActorFrame {
                     self:visible(true)
                 end
                 self:LoadBackground(bnpath)
+                if self:GetNumStates() > 1 then
+                    self:StopUsingCustomTexCoords()
+                else
+                    self:EnableCustomTexCoords()
+                end
             else
                 self:visible(false)
             end
