@@ -53,10 +53,10 @@ PSInput VSMain(VSInput input, uint instanceID : SV_InstanceID)
     DrawCommandArgument args = InputCommandArgBuffer[instanceID];
     MatrixState m = MatrixStateBuffer[args.matrixStateIndex];
     
-    float4 worldPossum = mul(m.world, float4(input.position, 1.0));
-    float4 viewPossum = mul(m.view, worldPossum);
-    float4 projPossum = mul(m.projection, viewPossum);
-    output.pos = projPossum;
+    float4 worldPos = mul(m.world, float4(input.position, 1.0));
+    float4 viewPos = mul(m.view, worldPos);
+    float4 projPos = mul(m.projection, viewPos);
+    output.pos = projPos;
     output.pos.y *= -1.0f;
 
     output.color = input.color;
