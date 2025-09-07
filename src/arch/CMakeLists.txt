@@ -100,7 +100,7 @@ elseif(APPLE)
   list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_MacOSX.mm")
   list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_MacOSX.h")
   
-else(UNIX)
+else() # Unix
     list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_X11.cpp")
     list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_X11.h")
   
@@ -120,7 +120,7 @@ else()
     list(APPEND SMDATA_ARCH_LOADING_SRC "LoadingWindow/LoadingWindow_MacOSX.mm")
     list(APPEND SMDATA_ARCH_LOADING_HPP "LoadingWindow/LoadingWindow_MacOSX.h")
     
-  elseif(LINUX)
+  elseif(UNIX)
     
     if (GTK2_FOUND)
       list(APPEND SMDATA_ARCH_LOADING_SRC "LoadingWindow/LoadingWindow_Gtk.cpp")
@@ -155,7 +155,7 @@ elseif(APPLE)
   list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_MacOSX_HID.cpp")
   list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_MacOSX_HID.h")
 else() # Unix/Linux
-  if (LINUX)
+  if (UNIX)
     list(APPEND SMDATA_ARCH_INPUT_SRC
       "InputHandler/LinuxInputManager.cpp"
       "InputHandler/InputHandler_Linux_Joystick.cpp"

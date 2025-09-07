@@ -471,6 +471,11 @@ local function songBannerSetter(self, song, isCurrentItem)
         end
         if self.bnpath ~= bnpath then
             self:Load(bnpath)
+            if self:GetNumStates() > 1 then
+                self:StopUsingCustomTexCoords()
+            else
+                self:EnableCustomTexCoords()
+            end
         end
         self.bnpath = bnpath
     end
@@ -501,6 +506,11 @@ local function groupBannerSetter(self, group, isCurrentItem)
     end
     if self.bnpath ~= bnpath then
         self:Load(bnpath)
+        if self:GetNumStates() > 1 then
+			self:StopUsingCustomTexCoords()
+		else
+			self:EnableCustomTexCoords()
+		end
     end
     self.bnpath = bnpath
 end
@@ -1509,6 +1519,11 @@ t[#t+1] = Def.ActorFrame {
                     self:visible(true)
                 end
                 self:Load(bnpath)
+                if self:GetNumStates() > 1 then
+                    self:StopUsingCustomTexCoords()
+                else
+                    self:EnableCustomTexCoords()
+                end
             end,
             OptionUpdatedMessageCommand = function(self, params)
                 if params and params.name == "Video Banners" then

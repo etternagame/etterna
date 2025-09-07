@@ -1307,6 +1307,31 @@ class LunaSprite : public Luna<Sprite>
 		p->StopUsingCustomPosCoords();
 		COMMON_RETURN_SELF;
 	}
+	static int StopUsingCustomTexCoords(T* p, lua_State* L)
+	{
+		p->StopUsingCustomCoords();
+		COMMON_RETURN_SELF;
+	}
+	static int EnableCustomPosCoords(T* p, lua_State* L)
+	{
+		p->EnableCustomPosCoords();
+		COMMON_RETURN_SELF;
+	}
+	static int EnableCustomTexCoords(T* p, lua_State* L)
+	{
+		p->EnableCustomTexCoords();
+		COMMON_RETURN_SELF;
+	}
+	static int IsUsingCustomTexCoords(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->UsingCustomTexCoords());
+		return 1;
+	}
+	static int IsUsingCustomPosCoords(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->UsingCustomPosCoords());
+		return 1;
+	}
 	static int texcoordvelocity(T* p, lua_State* L)
 	{
 		p->SetTexCoordVelocity(FArg(1), FArg(2));
@@ -1492,6 +1517,11 @@ class LunaSprite : public Luna<Sprite>
 		ADD_METHOD(SetCustomImageRect);
 		ADD_METHOD(SetCustomPosCoords);
 		ADD_METHOD(StopUsingCustomPosCoords);
+		ADD_METHOD(StopUsingCustomTexCoords);
+		ADD_METHOD(EnableCustomPosCoords);
+		ADD_METHOD(EnableCustomTexCoords);
+		ADD_METHOD(IsUsingCustomPosCoords);
+		ADD_METHOD(IsUsingCustomTexCoords);
 		ADD_METHOD(texcoordvelocity);
 		ADD_METHOD(get_use_effect_clock_for_texcoords);
 		ADD_METHOD(set_use_effect_clock_for_texcoords);

@@ -713,11 +713,20 @@ StageStats::FinalizeScores()
 		return;
 	}
 
+	// dont allow saving or uploading if the user changes sync mid score
+	// because you can use offsets to do weird things and break data
+	// continuity
+	if (AdjustSync::IsSyncDataChanged()) {
+		Locator::getLogger()->info(
+		  "Sync changes (song or global) detected - saved nothing");
+		return;
+	}
+
 	// determine topscore flag, add score to profile
 	const auto topScore = SCOREMAN->AddScore(hs);
 
 	// upload score
-	if (DLMAN->ShouldUploadScores() && !AdjustSync::IsSyncDataChanged()) {
+	if (DLMAN->ShouldUploadScores()) {
 		Locator::getLogger()->info("Uploading score with replaydata");
 
 		// topscore is only set for a score eligible to be uploaded

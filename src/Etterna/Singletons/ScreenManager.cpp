@@ -350,6 +350,12 @@ ScreenManager::GetScreen(int iPosition)
 	return g_ScreenStack[iPosition].m_pScreen;
 }
 
+std::vector<Screen*>
+ScreenManager::GetOverlayScreens()
+{
+	return g_OverlayScreens;
+}
+
 bool
 ScreenManager::AllowOperatorMenuButton() const
 {
@@ -1028,6 +1034,11 @@ class LunaScreenManager : public Luna<ScreenManager>
 		p->ReloadOverlayScreens();
 		COMMON_RETURN_SELF;
 	}
+	static int GetOverlayScreens(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->GetOverlayScreens(), L);
+		return 1;
+	}
 
 	static int get_input_redirected(T* p, lua_State* L)
 	{
@@ -1065,6 +1076,7 @@ class LunaScreenManager : public Luna<ScreenManager>
 		ADD_METHOD(AddNewScreenToTop);
 		// ADD_METHOD( GetScreenStackSize );
 		ADD_METHOD(ReloadOverlayScreens);
+		ADD_METHOD(GetOverlayScreens);
 		ADD_METHOD(PlayInvalidSound);
 		ADD_METHOD(PlayStartSound);
 		ADD_METHOD(PlayCoinSound);

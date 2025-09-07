@@ -281,6 +281,11 @@ t[#t+1] = Def.ActorFrame {
                 end
                 self:LoadBackground(bnpath)
             end
+            if self:GetNumStates() > 1 then
+                self:StopUsingCustomTexCoords()
+            else
+                self:EnableCustomTexCoords()
+            end
             -- handles group banners or missing backgrounds
             -- logic in the bg handles whether or not we successfully loaded a banner here
             if params.song == nil or params.song:GetBackgroundPath() == nil then

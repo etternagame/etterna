@@ -9,6 +9,8 @@ local showTime = 30 --the "certain amount of time" from above in seconds
 local curTime = GetTimeSinceStart() -- current time
 local lastTime = GetTimeSinceStart() -- last input time
 
+local t -- this is here for a reason
+
 local function input(event)
 	if event.type ~= "InputEventType_Release" then
 		lastTime = GetTimeSinceStart()
@@ -42,7 +44,7 @@ local function Update(self)
 	end
 end
 
-local t =
+t =
 	Def.ActorFrame {
 	InitCommand = function(self)
 		self:SetUpdateFunction(Update)
