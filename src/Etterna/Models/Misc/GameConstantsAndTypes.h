@@ -558,8 +558,9 @@ enum SelectionDisplay
 {
 	SelectionDisplay_Never, // SelectionDisplay_Never just means that the file will not be shown ever unless certain circumstances happen.
 	SelectionDisplay_Always, // SelectionDisplay_Always means that the file will be shown on the menu.
-	SelectionDisplay_Overwritten, // SelectionDisplay_Overwritten represents if a file is forcefully shown, used as a value to know that's happening.
-	NUM_SelectionDisplay
+
+	NUM_SelectionDisplay,
+	SelectionDisplay_Invalid
 };
 
 auto

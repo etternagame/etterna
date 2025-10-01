@@ -303,21 +303,21 @@ SMALoader::LoadFromSimfile(const std::string& sPath, Song& out, bool bFromCache)
 
 		else if (sValueName == "SELECTABLE") {
 			if (EqualsNoCase(sParams[1], "YES"))
-				out.m_SelectionDisplay = out.SelectionDisplay_Always;
+				out.m_SelectionDisplay = SelectionDisplay_Always;
 			else if (EqualsNoCase(sParams[1], "NO"))
-				out.m_SelectionDisplay = out.SelectionDisplay_Never;
+				out.m_SelectionDisplay = SelectionDisplay_Never;
 			// ROULETTE from 3.9. It was removed since UnlockManager can serve
 			// the same purpose somehow. This, of course, assumes you're using
 			// unlocks. -aj
 			else if (EqualsNoCase(sParams[1], "ROULETTE"))
-				out.m_SelectionDisplay = out.SelectionDisplay_Always;
+				out.m_SelectionDisplay = SelectionDisplay_Always;
 			/* The following two cases are just fixes to make sure simfiles that
 			 * used 3.9+ features are not excluded here */
 			else if (EqualsNoCase(sParams[1], "ES") ||
 					 EqualsNoCase(sParams[1], "OMES"))
-				out.m_SelectionDisplay = out.SelectionDisplay_Always;
+				out.m_SelectionDisplay = SelectionDisplay_Always;
 			else if (StringToInt(sParams[1]) > 0)
-				out.m_SelectionDisplay = out.SelectionDisplay_Always;
+				out.m_SelectionDisplay = SelectionDisplay_Always;
 			else {
                 //				LOG->UserLog(
 //				  "Song file",

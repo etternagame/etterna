@@ -433,7 +433,6 @@ LuaXType(FailType);
 static const char* SelectionDisplayNames[] = {
 	"Never",
 	"Always",
-	"Overwritten"
 };
 XToString(SelectionDisplay);
 StringToX(SelectionDisplay);

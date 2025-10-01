@@ -1292,16 +1292,22 @@ auto
 SongManager::GetSongs(const std::string& sGroupName) const
   -> const std::vector<Song*>&
 {
-	static const std::vector<Song*> vEmpty;
-
+	std::vector<Song*> vtmp;
 	if (sGroupName == GROUP_ALL) {
 		return m_pSongs;
 	}
 	auto iter = m_mapSongGroupIndex.find(sGroupName);
 	if (iter != m_mapSongGroupIndex.end()) {
-		return iter->second;
+		vtmp = iter->second;
 	}
-	return vEmpty;
+
+	vtmp.erase(
+		std::remove_if(vtmp.begin(), vtmp.end(), [](Song* s) { return s->GetSelectionDisplay() != SelectionDisplay_Always; }),
+		vtmp.end()
+	);
+
+	static const std::vector<Song*> vret = vtmp;
+	return vret;
 }
 void
 SongManager::ForceReloadSongGroup(const std::string& sGroupName) const

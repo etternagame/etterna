@@ -1050,9 +1050,9 @@ SongCacheIndex::SongFromStatement(Song* song, SQLite::Statement& query) const
 
 		auto selection = static_cast<int>(query.getColumn(index++));
 		if (selection == 0)
-			song->m_SelectionDisplay = song->SelectionDisplay_Always;
+			song->m_SelectionDisplay = SelectionDisplay_Always;
 		else
-			song->m_SelectionDisplay = song->SelectionDisplay_Never;
+			song->m_SelectionDisplay = SelectionDisplay_Never;
 
 		auto bpmminIndex = index++;
 		auto bpmmaxIndex = index++;

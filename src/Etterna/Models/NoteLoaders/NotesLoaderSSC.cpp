@@ -170,21 +170,21 @@ void
 SetSelectable(SSC::SongTagInfo& info)
 {
 	if (EqualsNoCase((*info.params)[1], "YES")) {
-		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
+		info.song->m_SelectionDisplay = SelectionDisplay_Always;
 	} else if (EqualsNoCase((*info.params)[1], "NO")) {
-		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Never;
+		info.song->m_SelectionDisplay = SelectionDisplay_Never;
 	}
 	// ROULETTE from 3.9 is no longer in use.
 	else if (EqualsNoCase((*info.params)[1], "ROULETTE")) {
-		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
+		info.song->m_SelectionDisplay = SelectionDisplay_Always;
 	}
 	/* The following two cases are just fixes to make sure simfiles that
 	 * used 3.9+ features are not excluded here */
 	else if (EqualsNoCase((*info.params)[1], "ES") ||
 			 EqualsNoCase((*info.params)[1], "OMES")) {
-		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
+		info.song->m_SelectionDisplay = SelectionDisplay_Always;
 	} else if (StringToInt((*info.params)[1]) > 0) {
-		info.song->m_SelectionDisplay = info.song->SelectionDisplay_Always;
+		info.song->m_SelectionDisplay = SelectionDisplay_Always;
 	} else {
 //		LOG->UserLog("Song file",
 //					 info.path,

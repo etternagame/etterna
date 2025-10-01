@@ -74,7 +74,7 @@ class Song
 	SelectionDisplay m_SelectionDisplay;
 
 	void SetSelectionDisplay(SelectionDisplay sd);
-	[[nodiscard]] auto GetSelectionDisplay()
+	[[nodiscard]] auto GetSelectionDisplay() const -> SelectionDisplay
 	{
 		return m_SelectionDisplay;
 	}

@@ -1883,7 +1883,7 @@ function WHEELDATA.SetAllSongs(self)
     self.AllSongsByGroup = {}
     self.AllGroups = {}
     for _, song in ipairs(SONGMAN:GetAllSongs()) do
-        if #song:GetChartsOfCurrentGameMode() > 0 then
+        if #song:GetChartsOfCurrentGameMode() > 0 and song:IsSelectable() then
             self.AllSongs[#self.AllSongs+1] = song
             local group = song:GetGroupName()
             if self.AllSongsByGroup[group] == nil then

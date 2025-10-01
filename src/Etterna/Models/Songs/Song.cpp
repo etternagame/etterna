@@ -2528,6 +2528,18 @@ class LunaSong : public Luna<Song>
 		lua_pushboolean(L, SONGMAN->OpenSongFolder(p));
 		return 1;
 	}
+	static int IsSelectable(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->GetSelectionDisplay() == SelectionDisplay_Always);
+		return 1;
+	}
+	static int SetSelectable(T* p, lua_State* L)
+	{
+		auto arg1 = BArg(1);
+		p->SetSelectionDisplay(arg1? SelectionDisplay_Always : SelectionDisplay_Never);
+		return 1;
+	}
+
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2600,6 +2612,8 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetDateTimeAdded);
 		ADD_METHOD(GetDateAdded);
 		ADD_METHOD(OpenSongFolder);
+		ADD_METHOD(IsSelectable);
+		ADD_METHOD(SetSelectable);
 	}
 };
 
