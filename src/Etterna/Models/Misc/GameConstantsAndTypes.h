@@ -565,6 +565,8 @@ enum SelectionDisplay
 
 auto
 SelectionDisplayToString(SelectionDisplay sd) -> const std::string&;
+auto
+StringToSelectionDisplay(const std::string&) -> SelectionDisplay;
 LuaDeclareType(SelectionDisplay);
 
 #endif

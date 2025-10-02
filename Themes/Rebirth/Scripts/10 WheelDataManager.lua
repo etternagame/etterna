@@ -1882,8 +1882,16 @@ function WHEELDATA.SetAllSongs(self)
     self.AllSongs = {}
     self.AllSongsByGroup = {}
     self.AllGroups = {}
+
+    local selectable = function(song)
+        if not song:IsSelectable() then
+            return song:GetHighestGrade() ~= "Grade_Invalid"
+        end
+
+        return true
+    end
     for _, song in ipairs(SONGMAN:GetAllSongs()) do
-        if #song:GetChartsOfCurrentGameMode() > 0 and song:IsSelectable() then
+        if #song:GetChartsOfCurrentGameMode() > 0 and selectable(song) then
             self.AllSongs[#self.AllSongs+1] = song
             local group = song:GetGroupName()
             if self.AllSongsByGroup[group] == nil then

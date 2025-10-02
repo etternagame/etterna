@@ -64,6 +64,14 @@ SongUtil::GetSteps(const Song* pSong,
 		if (uHash != 0 && uHash != pSteps->GetHash())
 			continue;
 
+		if (PROFILEMAN != nullptr && pSong->GetSelectionDisplay() == SelectionDisplay_Never)
+		{
+			auto* p = PROFILEMAN->GetProfile(PLAYER_1);
+
+			if (p->GetBestGrade(pSong, st) == Grade_Invalid)
+				continue;
+		}
+
 		if (filteringSteps && FILTERMAN != nullptr && FILTERMAN->AnyActiveFilter()) {
 			// iterating over all rates until it just works
 			// explanation in MusicWheel::FilterBySkillsets
