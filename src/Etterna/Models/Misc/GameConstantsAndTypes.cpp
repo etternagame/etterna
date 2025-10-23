@@ -261,6 +261,7 @@ static const char* CalcPatternModNames[] = {
 	"GenericStream",
 	"GenericChordstream",
 	"GenericBracketing",
+	"HandSwitch",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);

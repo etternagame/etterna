@@ -1205,6 +1205,7 @@ local modnames = {
     "gstrea",
     "gchstr",
     "gbrack",
+    "hsw",
 
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:
@@ -1277,6 +1278,7 @@ local modColors = {
     color("1,1,1"), -- genericstream
     color("1,1,1"), -- genericchordstream
     color("1,1,1"), -- genericbracketing
+    color("1,1,1"), -- handswitchmod
 
 
     -- place CalcPatternMod Colors above this line

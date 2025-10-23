@@ -1,5 +1,6 @@
 #include "MinaCalc.h"
 #include "Ulbu.h"
+#include "UlbuFiveKey.h"
 #include "UlbuSixKey.h"
 #include "UlbuSevenKey.h"
 #include "MinaCalcHelpers.h"
@@ -501,6 +502,11 @@ Calc::InitializeKeycountLogic() -> void
 				  std::make_shared<TheGreatBazoinkazoinkInTheSky>(*this));
 				keycount_defined = true;
 				break;
+			case 5u:
+				ulbu_collective.emplace(
+					keycount,
+					std::make_shared<TheFiveEaredBazoinkazoink>(*this));
+				keycount_defined = true;
 			case 6u:
 				ulbu_collective.emplace(
 				  keycount, std::make_shared<TheSixEyedBazoinkazoink>(*this));
