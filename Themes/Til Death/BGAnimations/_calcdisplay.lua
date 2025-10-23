@@ -462,6 +462,9 @@ local debugGroups = {
     {   -- Group 20
         GenericBracketing = true,
     },
+    {   -- Group 21
+        HandSwitch = true,
+    }
 }
 
 -- specify enum names here
