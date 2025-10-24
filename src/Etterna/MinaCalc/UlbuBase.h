@@ -127,6 +127,12 @@ struct Bazoinkazoink
 		}
 	}
 
+	virtual void apply_keymode_multipliers(
+	  std::vector<float>& cur_iteration_skillset_vals) const
+	{
+
+	}
+
 	/// these are the base diffs which actually must be reset
 	/// between calc runs or else things break
 	void reset_base_diffs()

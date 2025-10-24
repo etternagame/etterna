@@ -262,6 +262,10 @@ static const char* CalcPatternModNames[] = {
 	"GenericChordstream",
 	"GenericBracketing",
 	"HandSwitch",
+	"OldAnchorScaler",
+	"OldJumpScaler",
+	"OldOHJScaler",
+	"OldRollScaler",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);

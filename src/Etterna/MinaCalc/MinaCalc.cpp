@@ -161,6 +161,8 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		iteration_skillet_values[Skill_Stamina] = highest_stam_adj_ss_value * stam_adj_mult *
 								 basescalers[Skill_Stamina];
 
+		ulbu_in_charge->apply_keymode_multipliers(iteration_skillet_values);
+
 		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
 		// values this is the only time debugoutput arg should be set to true
 		if (debugmode) {
@@ -454,7 +456,7 @@ CalcInternal(float& gotpoints,
 	  &(stam ? calc.stam_adj_diff : calc.base_adj_diff.at(hand).at(ss));
 	auto pointloss_pow_val = 1.7F;
 	if (ss == Skill_Chordjack) {
-		pointloss_pow_val = 1.7F;
+		pointloss_pow_val = 1.8F;
 	} else if (ss == Skill_Technical) {
 		pointloss_pow_val = 2.F;
 	}
@@ -955,7 +957,7 @@ MinaSDCalcDebug(
 #endif
 }
 
-int mina_calc_version = 517;
+int mina_calc_version = 518;
 auto
 GetCalcVersion() -> int
 {

@@ -17,6 +17,9 @@ list(APPEND HD_PATTERN_MODS
     "WideRangeRoll.h"
     "GenericBracketing.h"
     "GenericStream.h"
-    "HandSwitch.h")
+    "HandSwitch.h"
+    "OldAnchorScaler.h"
+    "OldOHJScaler.h"
+    "OldRollScaler.h")
 
 target_sources(Etterna PUBLIC ${HD_PATTERN_MODS})

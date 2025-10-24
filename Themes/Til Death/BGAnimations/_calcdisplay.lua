@@ -400,8 +400,10 @@ local debugGroups = {
 	},
     {   -- Group 4
         CJ = true,
-        CJDensity = true,
-        CJOHJump = true,
+        OldAnchorScaler = true,
+        OldRollScaler = true,
+        OldOHJScaler = true,
+        OldJumpScaler = true,
 		StamMod = true,
     },
     {   -- Group 5
@@ -1209,6 +1211,10 @@ local modnames = {
     "gchstr",
     "gbrack",
     "hsw",
+    "_anch", -- old mod
+    "_jump", -- old mod
+    "_ohj", -- old mod
+    "_roll", -- old mod
 
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:
@@ -1282,6 +1288,10 @@ local modColors = {
     color("1,1,1"), -- genericchordstream
     color("1,1,1"), -- genericbracketing
     color("1,1,1"), -- handswitchmod
+    color(".1,.3,.9"), -- oldanchormod
+    color("1,1,0"), -- oldjumpmod
+    color("1,0.4,0"), -- oldohjmod
+    color("0,1,0"), -- oldrollmod
 
 
     -- place CalcPatternMod Colors above this line

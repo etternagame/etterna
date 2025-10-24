@@ -993,6 +993,40 @@ struct oversimplified_jacks
 
 };
 
+// this is just for 4k please thamks
+struct propz
+{
+	std::array<int, 4> taps_by_size = { 0, 0, 0, 0 };
+
+	void advance_sequencing(const int& row_count)
+	{
+		if (row_count - 1 >= taps_by_size.size()) {
+			// nice try
+			return;
+		}
+		// increase counts by number of taps in chords
+		taps_by_size.at(row_count - 1) += row_count;
+	}
+
+	float get_prop(const tap_size& tap_size) const
+	{
+		if (tap_size - 1 >= taps_by_size.size()) {
+			return 0.F;
+		}
+		const auto n = static_cast<float>(taps_by_size.at(tap_size));
+		const auto d = static_cast<float>(taps_by_size.at(single));
+		if (d == 0) {
+			return 9999999.F;
+		}
+		return n / d;
+	}
+
+	void full_reset()
+	{
+		taps_by_size.fill(0);
+	}
+};
+
 struct diffz
 {
 	nps _nps;

@@ -45,7 +45,7 @@ MSSmooth(std::vector<float>& input,
 
 static const std::vector<CalcPatternMod> agnostic_mods = {
 	Stream,	 JS,	   HS,		  CJ,	   CJDensity,	 HSDensity,
-	FlamJam, TheThing, TheThing2, GChordStream,
+	FlamJam, TheThing, TheThing2, GChordStream, OldJumpScaler
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
@@ -56,7 +56,9 @@ static const std::vector<CalcPatternMod> dependent_mods = {
 	WideRangeRoll, WideRangeJumptrill,
 	WideRangeJJ,   WideRangeAnchor,
 	RanMan,		   Minijack,
-	CJOHJump, GStream, GBracketing, HandSwitch
+	CJOHJump,	   GStream,
+	GBracketing,   HandSwitch,
+	OldAnchorScaler, OldOHJScaler, OldRollScaler
 };
 
 struct PatternMods
