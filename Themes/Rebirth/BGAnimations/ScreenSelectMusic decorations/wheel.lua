@@ -226,7 +226,7 @@ local function createVertices(vt, x, y, c)
     vt[#vt + 1] = {{x, y, 0}, c}
 end
 
--- generate the vertices to put into the ActorFrameTexture for the MiscPage graph
+-- generate the vertices to put into the ActorMultiVertex for the MiscPage graph
 local function generateRecentWifeScoreGraph()
     local v = {}
     -- update color if it happened to update before now

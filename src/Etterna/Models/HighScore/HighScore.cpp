@@ -57,7 +57,6 @@ struct HighScoreImpl
 					   // was created (immediately after achieved)
 	std::string sPlayerGuid;  // who made this high score
 	std::string sMachineGuid; // where this high score was made
-	std::string countryCode;
 	int iProductID;
 	int iTapNoteScores[NUM_TapNoteScore]{};
 	int iTapNoteScoresNormalized[NUM_TapNoteScore]{};
@@ -709,7 +708,7 @@ HighScore::GetMachineGuid() const -> const std::string&
 auto
 HighScore::GetCountryCode() const -> const std::string&
 {
-	return m_Impl->countryCode;
+	return countryCode;
 }
 auto
 HighScore::GetProductID() const -> int
