@@ -39,21 +39,14 @@ struct OldOHJScalerMod
 		if (itvhi.get_taps_nowi() == 0) {
 			pmod = neutral;
 		} else {
-			// THE OLD CODE IS WRONG
-			// SO THIS IS WRITTEN WRONG !!!!!!
-			if (itvhi.get_col_taps_nowi(col_left) == 0) {
-				pmod = neutral;
-			} else {
-				// taps counts up twice for ohj
-				const auto taps = itvhi.get_col_taps_nowf(col_left);
-				// one ohj makes this also worth 2
-				const auto jumptaps = itvhi.get_col_taps_nowf(col_ohjump);
-				// so, if there is just a single ohj in the interval
-				// taps == jumptaps
+			// taps counts up twice for ohj
+			const auto taps = itvhi.get_taps_nowf();
+			// one ohj makes this also worth 2
+			const auto jumptaps = itvhi.get_col_taps_nowf(col_ohjump);
+			// so, if there is just a single ohj in the interval
+			// taps == jumptaps
 
-				pmod =
-				  fastpow(1 - (jumptaps / taps / extra_divisor), power_scale);
-			}
+			pmod = fastpow(1 - (jumptaps / taps / extra_divisor), power_scale);
 		}
 
 		
