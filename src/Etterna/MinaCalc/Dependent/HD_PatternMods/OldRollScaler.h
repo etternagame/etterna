@@ -9,13 +9,13 @@ struct OldRollScalerMod
 
 #pragma region params
 
-	float min_mod = 0.6F;
+	float min_mod = 0.9F;
 	float max_mod = 1.075F;
 
 	float use_cv_threshold = 0.6F;
 	float min_cv = 0.15F;
 	float cv_base = 0.85F;
-	float power_scale = 3.F;
+	float power_scale = 6.F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
