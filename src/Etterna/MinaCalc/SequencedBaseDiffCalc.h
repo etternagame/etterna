@@ -217,8 +217,6 @@ struct ceejay
 	float ccn_scaler = 1.15F;
 	float ccb_scaler = 1.25F;
 
-	int mediterranean = 10;
-
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "static_ms_weight", &static_ms_weight },
 		{ "min_ms", &min_ms },
@@ -244,12 +242,11 @@ struct ceejay
 
 		is_actually_continuing_jack = ((row_notes & last_row_notes) != 0u);
 
-		carpathian_basin_capsized_boat_chord_bonk.push_back(row_notes ==
-															last_row_notes);
+		consecutive_rows_equal.push_back(row_notes == last_row_notes);
 
-		if (carpathian_basin_capsized_boat_chord_bonk.size() > mediterranean) {
-			carpathian_basin_capsized_boat_chord_bonk.erase(
-			  carpathian_basin_capsized_boat_chord_bonk.begin());
+		if (consecutive_rows_equal.size() > consecutive_rows_equal_max_sz) {
+			consecutive_rows_equal.erase(
+			  consecutive_rows_equal.begin());
 		}
 
 		is_at_least_3_note_anch =
@@ -276,25 +273,29 @@ struct ceejay
 			return;
 		}
 
-		// pushing back ms values, so multiply to nerf
+		// pushing back ms values
+		// higher number means lower worth
 		float pewpew = base_tap_scaler;
 
-		if (chain < 3)
-			pewpew *= 1.1F; // stupid and gay
-		if (chain == 3)
-			pewpew /= 1.1F; // yes im really doing this
-
-		int laguardiaairport = 0;
-		for (int i = 0; i < carpathian_basin_capsized_boat_chord_bonk.size();
-			 i++) {
-			laguardiaairport += carpathian_basin_capsized_boat_chord_bonk[i];
+		int repeated_rows_cur_window = 0;
+		for (auto x : consecutive_rows_equal) {
+			if (x)
+				repeated_rows_cur_window++;
 		}
 
-		pewpew *= std::pow(1.025F, laguardiaairport);
+		// short chains worth a little less
+		if (chain < 3)
+			pewpew *= 1.1F;
+
+		// triple chains worth a little more
+		if (chain == 3)
+			pewpew /= 1.1F;
+
+		// longer chains worth a lot less up to max window size
+		pewpew *= std::pow(1.025F, repeated_rows_cur_window);
 
 		// single note streams / regular jacks should retain the base
 		// multiplier
-		// cry about it
 
 		const auto ms = std::max(min_ms, any_ms * pewpew);
 		calc.cj_static.at(row_counter) = ms;
@@ -359,7 +360,7 @@ struct ceejay
 
 		chain = 1;
 
-		carpathian_basin_capsized_boat_chord_bonk.clear();
+		consecutive_rows_equal.clear();
 	}
 
   private:
@@ -381,8 +382,8 @@ struct ceejay
 
 	int chain = 1;
 
-	std::vector<int> carpathian_basin_capsized_boat_chord_bonk =
-	  std::vector<int>();
+	const int consecutive_rows_equal_max_sz = 10;
+	std::vector<bool> consecutive_rows_equal{};
 };
 
 /// if this looks ridiculous, that's because it is
