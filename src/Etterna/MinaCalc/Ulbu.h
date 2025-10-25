@@ -282,7 +282,6 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 							 fastsqrt(pmods.at(OldOHJScaler).at(itv)) *
 							 pmods.at(OldRollScaler).at(itv) *
 							 pmods.at(OldJumpScaler).at(itv) *
-							 pmods.at(HandBalance).at(itv) *
 							 pmods.at(CJ).at(itv);
 			} break;
 			case Skill_Technical:
