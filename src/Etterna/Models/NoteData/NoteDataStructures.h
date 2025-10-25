@@ -93,6 +93,7 @@ enum CalcPatternMod
 	OldJumpScaler,
 	OldOHJScaler,
 	OldRollScaler,
+	HandBalance,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

@@ -282,6 +282,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 							 fastsqrt(pmods.at(OldOHJScaler).at(itv)) *
 							 pmods.at(OldRollScaler).at(itv) *
 							 pmods.at(OldJumpScaler).at(itv) *
+							 pmods.at(HandBalance).at(itv) *
 							 pmods.at(CJ).at(itv);
 			} break;
 			case Skill_Technical:
@@ -324,6 +325,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_hs.full_reset();
 		_cj.full_reset();
 		_old_jump.full_reset();
+		_hb.full_reset();
 
 		_mri.get()->reset();
 		_last_mri.get()->reset();
@@ -344,10 +346,12 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	void advance_agnostic_sequencing() override
 	{
 		_propz.advance_sequencing(_mri->count);
+
 		_s.advance_sequencing(_mri->ms_now, _mri->notes);
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
+		_hb.advance_sequencing(_mri->notes, _calc);
 	}
 
 	void set_agnostic_pmods(const int& itv) override
@@ -368,6 +372,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
 		PatternMods::set_agnostic(
 		  _old_jump._pmod, _old_jump(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hb._pmod, _hb(), itv, _calc);
 	}
 
 #pragma endregion
@@ -739,6 +744,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		load_params_for_mod(&params, _old_jump._params, _old_jump.name);
 		load_params_for_mod(&params, _old_ohj._params, _old_ohj.name);
 		load_params_for_mod(&params, _old_roll._params, _old_roll.name);
+		load_params_for_mod(&params, _hb._params, _hb.name);
 	}
 
 	XNode* make_param_node_internal(XNode* calcparams) const override
@@ -785,6 +791,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		  make_mod_param_node(_old_ohj._params, _old_ohj.name));
 		calcparams->AppendChild(
 		  make_mod_param_node(_old_roll._params, _old_roll.name));
+		calcparams->AppendChild(make_mod_param_node(_hb._params, _hb.name));
 
 		return calcparams;
 	}

@@ -1215,6 +1215,7 @@ local modnames = {
     "_jump", -- old mod
     "_ohj", -- old mod
     "_roll", -- old mod
+    "hbalnc",
 
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:
@@ -1292,6 +1293,7 @@ local modColors = {
     color("1,1,0"), -- oldjumpmod
     color("1,0.4,0"), -- oldohjmod
     color("0,1,0"), -- oldrollmod
+    color("1,0.2,1"), -- handbal
 
 
     -- place CalcPatternMod Colors above this line

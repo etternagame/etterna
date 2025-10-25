@@ -8,6 +8,7 @@ list(APPEND HA_PATTERN_MODS
     "Stream.h"
     "TheThingFinder.h"
     "GenericChordstream.h"
-    "OldJumpScaler.h")
+    "OldJumpScaler.h"
+    "HandBalance.h")
 
 target_sources(Etterna PUBLIC ${HA_PATTERN_MODS})

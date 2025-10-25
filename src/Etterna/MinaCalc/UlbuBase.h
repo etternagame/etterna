@@ -2,6 +2,7 @@
 
 #include "Agnostic/HA_PatternMods/GenericChordstream.h"
 #include "Agnostic/HA_PatternMods/CJ.h"
+#include "Agnostic/HA_PatternMods/HandBalance.h"
 
 #include "Dependent/MetaIntervalGenericHandInfo.h"
 #include "Dependent/HD_PatternMods/GenericBracketing.h"
@@ -37,6 +38,7 @@ struct Bazoinkazoink
 	GChordStreamMod _gchordstream;
 	GBracketingMod _gbracketing;
 	CJMod _cj;
+	HandBalanceMod _hb;
 
 	oversimplified_jacks lazy_jacks;
 
@@ -163,6 +165,7 @@ struct Bazoinkazoink
 	virtual void full_agnostic_reset() {
 		_gchordstream.full_reset();
 		_cj.full_reset();
+		_hb.full_reset();
 
 		_mri.get()->reset();
 		_last_mri.get()->reset();
@@ -172,14 +175,16 @@ struct Bazoinkazoink
 
 	}
 
-	virtual void advance_agnostic_sequencing() {
-
+	virtual void advance_agnostic_sequencing()
+	{
+		_hb.advance_sequencing(_mri->notes, _calc);
 	}
 
 	virtual void set_agnostic_pmods(const int& itv) {
 		PatternMods::set_agnostic(
 		  _gchordstream._pmod, _gchordstream(_mitvi), itv, _calc);
 		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hb._pmod, _hb(), itv, _calc);
 	}
 
 	virtual void run_agnostic_pmod_loop() {
@@ -316,6 +321,7 @@ struct Bazoinkazoink
 		load_params_for_mod(&params, _gchordstream._params, _gchordstream.name);
 		load_params_for_mod(&params, _gbracketing._params, _gbracketing.name);
 		load_params_for_mod(&params, _cj._params, _cj.name);
+		load_params_for_mod(&params, _hb._params, _hb.name);
 	}
 
 	virtual XNode* make_param_node_internal(XNode* calcparams) const
@@ -327,6 +333,7 @@ struct Bazoinkazoink
 		calcparams->AppendChild(
 		  make_mod_param_node(_gbracketing._params, _gbracketing.name));
 		calcparams->AppendChild(make_mod_param_node(_cj._params, _cj.name));
+		calcparams->AppendChild(make_mod_param_node(_hb._params, _hb.name));
 
 		return calcparams;
 	}

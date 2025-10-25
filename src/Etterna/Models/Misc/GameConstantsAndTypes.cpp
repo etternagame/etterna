@@ -266,6 +266,7 @@ static const char* CalcPatternModNames[] = {
 	"OldJumpScaler",
 	"OldOHJScaler",
 	"OldRollScaler",
+	"HandBalance",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);
