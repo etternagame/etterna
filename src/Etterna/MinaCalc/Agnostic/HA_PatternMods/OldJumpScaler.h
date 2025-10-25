@@ -9,8 +9,8 @@ struct OldJumpScalerMod
 
 #pragma region params
 
-	float min_mod = 0.001F;
-	float max_mod = 9999.F;
+	float min_mod = 0.6F;
+	float max_mod = 1.1F;
 
 	float extra_divisor = 6.F;
 

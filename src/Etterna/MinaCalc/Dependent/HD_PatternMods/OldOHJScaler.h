@@ -9,11 +9,11 @@ struct OldOHJScalerMod
 
 #pragma region params
 
-	float min_mod = 0.001F;
-	float max_mod = 9999.F;
+	float min_mod = 0.6F;
+	float max_mod = 1.1F;
 
-	float extra_divisor = 2.5F;
-	float power_scale = 0.25F;
+	float extra_divisor = 1.F;
+	float power_scale = 0.24F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },

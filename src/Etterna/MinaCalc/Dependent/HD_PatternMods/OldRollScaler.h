@@ -9,7 +9,7 @@ struct OldRollScalerMod
 
 #pragma region params
 
-	float min_mod = 0.001F;
+	float min_mod = 0.6F;
 	float max_mod = 1.075F;
 
 	float use_cv_threshold = 0.6F;
