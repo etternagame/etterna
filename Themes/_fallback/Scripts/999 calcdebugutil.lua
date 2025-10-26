@@ -558,7 +558,7 @@ end
 ---------------------------------------------
 
 
-function CALC:initdebugstate()
+function CALC.initdebugstate(self)
     self.debugstate = {
         -- used for positioning graphs by time instead of vector length
         finalSecond = 0,
