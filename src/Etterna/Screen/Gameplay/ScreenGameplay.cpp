@@ -345,6 +345,9 @@ ScreenGameplay::Init()
 	LoadNextSong();
 
 	m_GiveUpTimer.SetZero();
+	m_DiscordRPCCheckTimer.SetZero();
+	m_timerGameplaySeconds.SetZero();
+	TriggerDiscordRPCUpdate();
 	m_gave_up = false;
 	GAMESTATE->m_bRestartedGameplay = false;
 }
@@ -726,6 +729,7 @@ ScreenGameplay::LoadNextSong()
 	if (!GAMESTATE->GetPaused()) {
 		MESSAGEMAN->Broadcast("DoneLoadingNextSong");
 	}
+	TriggerDiscordRPCUpdate();
 }
 
 void
@@ -914,6 +918,61 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 	  std::max(fSecondsToStartTransitioningOut,
 			   fSecondsToStartFadingOutMusic + MUSIC_FADE_OUT_SECONDS -
 				 fTransitionLength);
+}
+
+void
+ScreenGameplay::CheckDiscordRPCTimer()
+{
+	if (m_DiscordRPCCheckTimer.Ago() > 10.F) {
+		m_DiscordRPCCheckTimer.SetZero();
+		TriggerDiscordRPCUpdate();
+	}
+}
+
+void
+ScreenGameplay::TriggerDiscordRPCUpdate()
+{
+	std::string songtitle = "";
+	std::string groupname = "";
+	if (GAMESTATE->m_pCurSong != nullptr) {
+		songtitle = GAMESTATE->m_pCurSong->GetDisplayMainTitle();
+		groupname = GAMESTATE->m_pCurSong->m_sGroupName;
+	}
+
+	std::string rate =
+	  fmt::format("{:.2}x", GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	std::string prefix = "";
+	if (GAMESTATE->GetGameplayMode() == GameplayMode_Practice) {
+		prefix = "Practicing: ";
+	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Replay) {
+		prefix = "Replaying: ";
+	}
+
+	auto details = fmt::format("{}{}: {} [{}]", prefix, songtitle, rate, groupname);
+	if (GetName().find("SyncMachine") != std::string::npos) {
+		details = "Setting up machine offset...";
+	} else {
+		if (details.size() > 128) {
+			details = details.substr(0, 124) + "...";
+		}
+	}
+
+	uint64_t startTime = (std::chrono::system_clock::now().time_since_epoch() /
+						  std::chrono::milliseconds(1)) -
+						 (m_timerGameplaySeconds.Ago() * 1000.F);
+	uint64_t endTime = startTime;
+
+	std::string state = "";
+	if (GAMESTATE->m_pCurSteps != nullptr) {
+		state = fmt::format(
+		  "MSD: {:5.2f}",
+		  GAMESTATE->m_pCurSteps->GetMSD(
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, Skill_Overall));
+		endTime =
+		  startTime + (GAMESTATE->m_pCurSteps->GetLengthSeconds() * 1000.F);
+	}
+
+	GAMESTATE->updateDiscordPresence(details, state, startTime, endTime);
 }
 
 void
@@ -1654,6 +1713,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		GAMESTATE->m_bGameplayLeadIn.Set(false);
 		m_DancingState =
 		  STATE_DANCING; // STATE CHANGE!  Now the user is allowed to press Back
+		TriggerDiscordRPCUpdate();
 	} else if (SM == SM_NotesEnded) // received while STATE_DANCING
 	{
 		if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()

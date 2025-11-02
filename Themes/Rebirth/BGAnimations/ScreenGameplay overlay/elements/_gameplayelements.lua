@@ -8,7 +8,6 @@ local t = Def.ActorFrame {
     Name = "GameplayElementsController",
 
     BeginCommand = function(self)
-        updateDiscordStatus(false)
         updateNowPlaying()
 
         -- queue so it doesnt reach the children

@@ -35,7 +35,7 @@ target_link_libraries(websocketpp INTERFACE asio)
 ## discord-rpc
 set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
-add_subdirectory(discord-rpc)
+add_subdirectory(discord)
 
 ## plog
 set(PLOG_BUILD_SAMPLES OFF)
@@ -85,7 +85,7 @@ endif()
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
-    discord-rpc muFFT
+    discord muFFT
     zlib libmad pcre
     ogg vorbis glfw
     fmt)

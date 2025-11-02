@@ -37,10 +37,11 @@ list(APPEND WIN_DLLS
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avcodec-55.dll"
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avformat-55.dll"
 	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avutil-52.dll"
-	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll")
+	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll"
+	"${PROJECT_SOURCE_DIR}/extern/discord/bin/release/discord_partner_sdk.dll")
 
 foreach(dll ${WIN_DLLS})
-	# We remove the dlls if they exist already in /Program/ in case we run a different ARCH target before
+	# We remove the dlls if they exist already in /Program/ in case we run a different ARCH target before
 	# Since we get a cryptic runtime error message otherwise when windows tries to load the wrong dll
 	get_filename_component(dll_filename_without_path ${dll} NAME)
 	file(REMOVE "${PROJECT_SOURCE_DIR}/Program/${dll_filename_without_path}")

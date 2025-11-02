@@ -1384,6 +1384,5 @@ if GAMESTATE:IsPlayerEnabled() then
 end
 
 t[#t + 1] = LoadActor("../offsetplot")
-updateDiscordStatus(true)
 
 return t

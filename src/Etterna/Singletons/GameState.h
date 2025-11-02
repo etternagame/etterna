@@ -324,11 +324,11 @@ class GameState
 
 	// Discord Rich Presence
 	void discordInit();
-	void updateDiscordPresence(const std::string& largeImageText,
-							   const std::string& details,
+	void updateDiscordPresence(const std::string& details,
 							   const std::string& state,
-							   int64_t endTime);
-	void updateDiscordPresenceMenu(const std::string& largeImageText);
+							   const uint64_t startTime,
+							   const uint64_t endTime);
+	void updateDiscordPresenceMenu();
 
 	// Lua
 	void PushSelf(lua_State* L);
@@ -343,7 +343,7 @@ class GameState
 	GameState(const GameState& rhs);
 };
 
-extern GameState*
-  GAMESTATE; // global and accessible from anywhere in our program
+// global and accessible from anywhere in our program
+extern GameState* GAMESTATE;
 
 #endif

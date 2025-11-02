@@ -183,8 +183,6 @@ local t =
 		else
 			GAMESTATE:SetAutoplay(false)
 		end
-		-- Discord thingies
-		updateDiscordStatus(false)
 
 		-- now playing thing for streamers
 		updateNowPlaying()

@@ -36,7 +36,6 @@ local t = Def.ActorFrame {
                 end
             end
         end)
-        updateDiscordStatus(true)
     end,
     OnCommand = function(self)
         local score = SCOREMAN:GetMostRecentScore()

@@ -115,6 +115,64 @@ ScreenEvaluation::Init()
 	}
 }
 
+void
+ScreenEvaluation::TriggerDiscordRPC()
+{
+	std::string songtitle = "";
+	std::string groupname = "";
+	if (GAMESTATE->m_pCurSong != nullptr) {
+		songtitle = GAMESTATE->m_pCurSong->GetDisplayMainTitle();
+		groupname = GAMESTATE->m_pCurSong->m_sGroupName;
+	}
+
+	std::string rate =
+	  fmt::format("{:.2}x", GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	std::string prefix = "";
+	if (GAMESTATE->GetGameplayMode() == GameplayMode_Practice) {
+		prefix = "Practicing: ";
+	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Replay) {
+		prefix = "Replaying: ";
+	}
+
+	auto details =
+	  fmt::format("{}{}: {} [{}]", prefix, songtitle, rate, groupname);
+	if (details.size() > 128) {
+		details = details.substr(0, 124) + "...";
+	}
+
+	uint64_t startTime = 0;
+	uint64_t endTime = startTime;
+
+	std::string state = "";
+	if (GAMESTATE->m_pCurSteps != nullptr) {
+		auto* score = SCOREMAN->GetMostRecentScore();
+		if (score == nullptr) {
+			score = SCOREMAN->tempscoreforonlinereplayviewing;
+		}
+
+		state = fmt::format(
+		  "MSD: {:5.2f}",
+		  GAMESTATE->m_pCurSteps->GetMSD(
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, Skill_Overall));
+
+		if (score != nullptr) {
+			auto wife = 0.F;
+			if (PREFSMAN->m_bSortBySSRNorm) {
+				wife = score->GetSSRNormPercent();
+			} else {
+				wife = score->GetWifeScore();
+			}
+			auto grade = GradeToLocalizedString(score->GetWifeGrade());
+			state = fmt::format("{} - {:5.4f}% {}",
+								state,
+								std::floorf(wife * 1000000.F) / 10000.F,
+								grade);
+		}
+	}
+
+	GAMESTATE->updateDiscordPresence(details, state, startTime, endTime);
+}
+
 bool
 ScreenEvaluation::Input(const InputEventPlus& input)
 {
@@ -199,6 +257,10 @@ ScreenEvaluation::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_PlayCheer) {
 		SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo("evaluation cheer"));
+	}
+	if (SM == SM_None) {
+		// sure this makes no sense but it works
+		TriggerDiscordRPC();
 	}
 
 	ScreenWithMenuElements::HandleScreenMessage(SM);

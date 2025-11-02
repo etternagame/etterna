@@ -163,6 +163,10 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void AbortGiveUp(bool bShowText);
 	void ResetGiveUpTimers(bool show_text);
 
+	RageTimer m_DiscordRPCCheckTimer;
+	void CheckDiscordRPCTimer();
+	void TriggerDiscordRPCUpdate();
+
 	Transition m_Ready;
 	Transition m_Go;
 	/** @brief The transition to use when all players have failed. */

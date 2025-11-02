@@ -75,6 +75,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Singletons/Gamestate.h"
 
 #include <set>
 #include <map>
@@ -800,6 +801,7 @@ ScreenManager::LoadDelayedScreen()
 		AfterDeleteScreen();
 	}
 
+	GAMESTATE->updateDiscordPresenceMenu();
 	MESSAGEMAN->Broadcast(Message_ScreenChanged);
 
 	SendMessageToTopScreen(SM);

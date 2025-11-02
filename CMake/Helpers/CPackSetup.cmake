@@ -52,7 +52,8 @@ if(WIN32)
 
     # List every DLL etterna needs.
     list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
-                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll")
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll"
+                         "${PROJECT_SOURCE_DIR}/Program/discord_partner_sdk.dll")
     if(WITH_CRASHPAD AND TARGET crashpad)
         list(APPEND WIN_DLLS ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler.exe)
     endif()

@@ -3,7 +3,6 @@
 #include "Etterna/Models/Misc/AdjustSync.h"
 #include "Etterna/Models/Misc/CommonMetrics.h"
 #include "CryptManager.h"
-#include "discord_rpc.h"
 #include "DownloadManager.h"
 #include "Etterna/Models/Misc/Foreach.h"
 #include "Etterna/Models/Misc/Game.h"
@@ -35,8 +34,14 @@
 
 #include <algorithm>
 
-GameState* GAMESTATE =
-  nullptr; // global and accessible from anywhere in our program
+#define DISCORDPP_IMPLEMENTATION
+#include "discordpp.h"
+
+// global and accessible from anywhere in our program
+GameState* GAMESTATE = nullptr;
+
+discordpp::Client* DISCORD = nullptr;
+static const auto discord_appid = 378543094531883009;
 
 class GameStateMessageHandler : public MessageSubscriber
 {
@@ -146,6 +151,8 @@ GameState::GameState()
 	// Don't reset yet; let the first screen do it, so we can use PREFSMAN and
 	// THEME.
 	// Reset();
+
+	discordInit();
 
 	// Register with Lua.
 	{
@@ -709,6 +716,8 @@ GameState::Update(float fDelta)
 	m_SongOptions.Update(fDelta);
 
 	m_pPlayerState->Update(fDelta);
+
+	discordpp::RunCallbacks();
 }
 
 void
@@ -717,8 +726,6 @@ GameState::SetCurGame(const Game* pGame)
 	m_pCurGame.Set(pGame);
 	std::string sGame = pGame ? std::string(pGame->m_szName) : std::string();
 	PREFSMAN->SetCurrentGame(sGame);
-	discordInit();
-	updateDiscordPresenceMenu("");
 }
 
 const float GameState::MUSIC_SECONDS_INVALID = -5000.0f;
@@ -1269,38 +1276,171 @@ GetNextEnabledMultiPlayer(MultiPlayer mp)
 void
 GameState::discordInit()
 {
-	DiscordEventHandlers handlers;
-	memset(&handlers, 0, sizeof(handlers));
-	Discord_Initialize("378543094531883009", &handlers, 1, nullptr);
+	if (DISCORD != nullptr) {
+		Locator::getLogger()->warn("Tried to initialize Discord twice. Skipped");
+		return;
+	}
+	Locator::getLogger()->warn("Initializing Discord client");
+	DISCORD = new discordpp::Client;
+	DISCORD->SetApplicationId(discord_appid);
+	DISCORD->AddLogCallback(
+	  [](auto msg, auto severity) { Locator::getLogger()->trace("{}", msg); },
+	  discordpp::LoggingSeverity::Verbose);
+	DISCORD->AddLogCallback(
+	  [](auto msg, auto severity) { Locator::getLogger()->debug("{}", msg); },
+	  discordpp::LoggingSeverity::Info);
+	DISCORD->AddLogCallback(
+	  [](auto msg, auto severity) { Locator::getLogger()->warn("{}", msg); },
+	  discordpp::LoggingSeverity::Warning);
+	DISCORD->AddLogCallback(
+	  [](auto msg, auto severity) { Locator::getLogger()->error("{}", msg); },
+	  discordpp::LoggingSeverity::Error);
+	DISCORD->AddLogCallback(
+	  [](auto msg, auto severity) { Locator::getLogger()->info("{}", msg); },
+	  discordpp::LoggingSeverity::None);
+
+	updateDiscordPresenceMenu();
 }
 
 void
-GameState::updateDiscordPresence(const std::string& largeImageText,
-								 const std::string& details,
+GameState::updateDiscordPresence(const std::string& details,
 								 const std::string& state,
-								 const int64_t endTime)
+								 const uint64_t startTime,
+								 const uint64_t endTime)
 {
-	DiscordRichPresence discordPresence;
-	memset(&discordPresence, 0, sizeof(discordPresence));
-	discordPresence.details = details.c_str();
-	discordPresence.state = state.c_str();
-	discordPresence.endTimestamp = endTime;
-	discordPresence.largeImageKey = "default";
-	discordPresence.largeImageText = largeImageText.c_str();
-	Discord_RunCallbacks();
-	Discord_UpdatePresence(&discordPresence);
+	Locator::getLogger()->info("Updating Discord Rich Presence (Gameplay/Eval)");
+	if (DISCORD == nullptr) {
+		discordInit();
+	}
+
+	std::string largeImageTextCpy = "Etterna";
+	auto setLargeImageTxt = false;
+	if (PROFILEMAN && PROFILEMAN->GetProfile(PLAYER_1)) {
+		const auto& profile = PROFILEMAN->GetProfile(PLAYER_1);
+		largeImageTextCpy = fmt::format(
+		  "{}: {:5.2f}", profile->m_sDisplayName, profile->m_fPlayerRating);
+		setLargeImageTxt = true;
+	}
+	if ((setLargeImageTxt && largeImageTextCpy.size() > 128) ||
+		!setLargeImageTxt) {
+		largeImageTextCpy = CommonMetrics::WINDOW_TITLE.GetValue().substr(0, 127);
+	}
+
+	std::string stateCpy = state;
+	if (state.size() < 2 || state.size() > 128) {
+		stateCpy = "Unknown";
+	}
+
+	discordpp::ActivityTimestamps ts;
+	ts.SetEnd(endTime);
+	if (startTime > 0)
+		ts.SetStart(startTime);
+
+	discordpp::ActivityAssets assets;
+	assets.SetLargeImage("default");
+	assets.SetLargeText(largeImageTextCpy.c_str());
+
+	discordpp::Activity activity;
+	activity.SetType(discordpp::ActivityTypes::Playing);
+	activity.SetName("Etterna");
+	activity.SetDetails(details.c_str());
+	activity.SetState(stateCpy.c_str());
+	activity.SetTimestamps(ts);
+	activity.SetAssets(assets);
+
+	DISCORD->UpdateRichPresence(activity, [](discordpp::ClientResult result) {
+		if (result.Successful()) {
+			Locator::getLogger()->warn("Rich presence (Gameplay/Eval) successfully set");
+		}
+		else {
+			Locator::getLogger()->warn("Rich presence (Gameplay/Eval) failed to set - {}",
+									   result.Error());
+		}
+	});
 }
 
 void
-GameState::updateDiscordPresenceMenu(const std::string& largeImageText)
+GameState::updateDiscordPresenceMenu()
 {
-	DiscordRichPresence discordPresence;
-	memset(&discordPresence, 0, sizeof(discordPresence));
-	discordPresence.details = "In Menus";
-	discordPresence.largeImageKey = "default";
-	discordPresence.largeImageText = largeImageText.c_str();
-	Discord_RunCallbacks();
-	Discord_UpdatePresence(&discordPresence);
+	Locator::getLogger()->info("Updating Discord Rich Presence (Menu)");
+	if (DISCORD == nullptr) {
+		discordInit();
+	}
+
+	std::string largeImageTextCpy = "Etterna";
+	auto setLargeImageTxt = false;
+	if (PROFILEMAN && PROFILEMAN->GetProfile(PLAYER_1) &&
+		!PROFILEMAN->GetProfile(PLAYER_1)->m_sDisplayName.empty()) {
+		const auto& profile = PROFILEMAN->GetProfile(PLAYER_1);
+		largeImageTextCpy = fmt::format(
+		  "{}: {:5.2f}", profile->m_sDisplayName, profile->m_fPlayerRating);
+		setLargeImageTxt = true;
+	}
+
+	discordpp::Activity activity;
+	activity.SetType(discordpp::ActivityTypes::Playing);
+
+	std::string screenName = "";
+	if (SCREENMAN && SCREENMAN->GetTopScreen() &&
+		!SCREENMAN->GetTopScreen()->GetName().empty()) {
+		screenName = SCREENMAN->GetTopScreen()->GetName().c_str();
+	}
+
+	if (screenName.empty()) {
+		activity.SetDetails("Loading game...");
+		//activity.SetState(fmt::format("", screenName));
+	} else {
+		activity.SetDetails("In the menus");
+		activity.SetState(fmt::format("{}", screenName));
+	}
+
+	if ((setLargeImageTxt && largeImageTextCpy.size() > 128) ||
+		!setLargeImageTxt) {
+		if (!screenName.empty()) {
+			largeImageTextCpy = CommonMetrics::WINDOW_TITLE.GetValue().substr(0, 127);
+		}
+		else if (screenName.empty() && THEME != nullptr) {
+			largeImageTextCpy =
+			  fmt::format("Etterna - {}", THEME->GetCurThemeName())
+				.substr(0, 127);
+		} else {
+			largeImageTextCpy = "Etterna";
+		}
+	}
+
+	discordpp::ActivityAssets assets;
+	assets.SetLargeImage("default");
+	assets.SetLargeText(largeImageTextCpy.c_str());
+	activity.SetName("Etterna");
+	activity.SetAssets(assets);
+
+	DISCORD->UpdateRichPresence(activity, [](discordpp::ClientResult result) {
+		if (result.Successful()) {
+			Locator::getLogger()->warn("Rich presence (Menu) successfully set");
+			DISCORD->GetDiscordClientConnectedUser(
+			  discord_appid,
+			  [](discordpp::ClientResult x,
+				 std::optional<discordpp::UserHandle> y) {
+				  Locator::getLogger()->warn(
+					"getdiscordclientconnecteduser successful? {} {}",
+					x.Successful(),
+					x.Status());
+				  if (y.has_value()) {
+					  Locator::getLogger()->warn(
+						"getdiscordclientconnecteduser handle {} {}",
+						y->DisplayName(),
+						y->Id()); 
+					  if (y->GameActivity().has_value())
+						  Locator::getLogger()->warn(
+							"getdiscordclientconnecteduser appid {}",
+							y->GameActivity()->ApplicationId().value_or(0));
+				  }
+			  });
+		} else {
+			Locator::getLogger()->warn("Rich presence (Menu) failed to set - {}",
+									   result.Error());
+		}
+	});
 }
 
 void
@@ -1781,18 +1921,6 @@ class LunaGameState : public Luna<GameState>
 		lua_pushstring(L, "CoinMode_Home");
 		return 1;
 	}
-
-	static int UpdateDiscordMenu(T* p, lua_State* L)
-	{
-		p->updateDiscordPresenceMenu(SArg(1));
-		return 1;
-	}
-
-	static int UpdateDiscordPresence(T* p, lua_State* L)
-	{
-		p->updateDiscordPresence(SArg(1), SArg(2), SArg(3), IArg(4));
-		return 1;
-	}
 	static int IsPaused(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->GetPaused());
@@ -1915,8 +2043,6 @@ class LunaGameState : public Luna<GameState>
 		ADD_METHOD(GetEtternaVersion);
 		ADD_METHOD(CountNotesSeparately);
 		ADD_METHOD(GetCoinMode);
-		ADD_METHOD(UpdateDiscordMenu);
-		ADD_METHOD(UpdateDiscordPresence);
 		ADD_METHOD(IsPaused);
 		ADD_METHOD(GetGameplayMode);
 		ADD_METHOD(IsPracticeMode);
