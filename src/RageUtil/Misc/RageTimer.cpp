@@ -36,8 +36,8 @@ RageTimer::GetTimeSinceStart()
 	return t.count();
 }
 
-static double
-GetTimeSinceStart64()
+double
+RageTimer::GetTimeSinceStart64()
 {
 	std::chrono::duration<double> t = std::chrono::steady_clock::now() - g_iStartTime;
 	return t.count();
@@ -93,4 +93,4 @@ RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 }
 
 #include "Etterna/Singletons/LuaManager.h"
-LuaFunction(GetTimeSinceStart, GetTimeSinceStart64())
+LuaFunction(GetTimeSinceStart, RageTimer::GetTimeSinceStart64())

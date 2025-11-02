@@ -38,6 +38,8 @@ class RageTimer
 	static auto GetTimeSinceStart()
 	  -> float; // seconds since the program was started
 
+	static auto GetTimeSinceStart64() -> double;
+
 	/* Add (or subtract) a duration from a timestamp.  The result is another
 	 * timestamp. */
 	auto operator+(float tm) const -> RageTimer;
