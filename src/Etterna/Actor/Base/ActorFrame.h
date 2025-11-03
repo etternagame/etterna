@@ -114,10 +114,10 @@ class ActorFrame : public Actor
 	void FinishTweening() override;
 	void HurryTweening(float factor) override;
 
-	void SetUpdateFunctionInterval(float ms)
+	void SetUpdateFunctionInterval(float sec)
 	{
-		if (ms > 0.0F) {
-			m_fUpdateFInterval = ms;
+		if (sec > 0.0F) {
+			m_fUpdateFInterval = sec;
 		}
 	}
 
