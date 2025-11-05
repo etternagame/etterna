@@ -727,7 +727,7 @@ end
 
 function CALC:loadDebugDataForSteps(steps)
     if steps == nil then
-        self.debustate.graphVecs = {}
+        self.debugstate.graphVecs = {}
         return
     end
 
