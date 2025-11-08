@@ -243,6 +243,8 @@ local function npsGraph()
             total = total + 1
             curNPS = getCurNPS()
             curJudgment = lastJudgment
+            local vertPosX = total * graphWidth / maxVerts
+            local graphPosX = -vertPosX + graphWidth
 
             if curNPS > peakNPS then -- update height if there's a new peak NPS value
                 for i = 1, #verts do
@@ -251,12 +253,13 @@ local function npsGraph()
                 peakNPS = curNPS
             end
 
-            verts[#verts + 1] = {{total * (graphWidth / maxVerts), -curNPS / peakNPS * graphHeight, 0}, graphColor}
+            verts[#verts + 1] = {{vertPosX, -curNPS / peakNPS * graphHeight, 0}, graphColor}
             if #verts > maxVerts + 2 then -- Start removing unused verts. Otherwise RIP lag
                 table.remove(verts, 1)
+                graphPosX = graphPosX + (graphWidth / maxVerts) -- Offset position to fill gap left by removal
             end
             self:SetVertices(verts)
-            self:addx(-graphWidth / maxVerts)
+            self:x(graphPosX)
             self:SetDrawState {First = math.max(1, #verts - maxVerts), Num = math.min(maxVerts, #verts)}
             self:sleep(graphFreq)
             self:queuecommand("GraphUpdate")
