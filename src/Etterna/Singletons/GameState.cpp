@@ -1417,25 +1417,6 @@ GameState::updateDiscordPresenceMenu()
 	DISCORD->UpdateRichPresence(activity, [](discordpp::ClientResult result) {
 		if (result.Successful()) {
 			Locator::getLogger()->warn("Rich presence (Menu) successfully set");
-			DISCORD->GetDiscordClientConnectedUser(
-			  discord_appid,
-			  [](discordpp::ClientResult x,
-				 std::optional<discordpp::UserHandle> y) {
-				  Locator::getLogger()->warn(
-					"getdiscordclientconnecteduser successful? {} {}",
-					x.Successful(),
-					x.Status());
-				  if (y.has_value()) {
-					  Locator::getLogger()->warn(
-						"getdiscordclientconnecteduser handle {} {}",
-						y->DisplayName(),
-						y->Id()); 
-					  if (y->GameActivity().has_value())
-						  Locator::getLogger()->warn(
-							"getdiscordclientconnecteduser appid {}",
-							y->GameActivity()->ApplicationId().value_or(0));
-				  }
-			  });
 		} else {
 			Locator::getLogger()->warn("Rich presence (Menu) failed to set - {}",
 									   result.Error());
