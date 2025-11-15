@@ -32,9 +32,6 @@ end
 
 local function Update(self)
 	if show then
-		t.InitCommand = function(self)
-			self:SetUpdateFunction(Update)
-		end
 		curTime = GetTimeSinceStart()
 		if (not enabled) and (curTime - lastTime > showTime) then
 			MESSAGEMAN:Broadcast("ShowHelpOverlay")
