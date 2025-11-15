@@ -75,7 +75,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
-#include "Etterna/Singletons/Gamestate.h"
+#include "Etterna/Singletons/GameState.h"
 
 #include <set>
 #include <map>
