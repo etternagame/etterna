@@ -36,7 +36,7 @@ namespace nowide {
             while(source_begin != source_end)
             {
                 using namespace detail::utf;
-                code_point c = utf_traits<CharIn>::template decode(source_begin, source_end);
+                code_point c = utf_traits<CharIn>::decode(source_begin, source_end);
                 if(c == illegal || c == incomplete)
                 {
                     c = NOWIDE_REPLACEMENT_CHARACTER;
@@ -47,7 +47,7 @@ namespace nowide {
                     rv = NULL;
                     break;
                 }
-                buffer = utf_traits<CharOut>::template encode(c, buffer);
+                buffer = utf_traits<CharOut>::encode(c, buffer);
                 buffer_size -= width;
             }
             *buffer++ = 0;
@@ -71,12 +71,12 @@ namespace nowide {
             code_point c;
             while(begin != end)
             {
-                c = utf_traits<CharIn>::template decode(begin, end);
+                c = utf_traits<CharIn>::decode(begin, end);
                 if(c == illegal || c == incomplete)
                 {
                     c = NOWIDE_REPLACEMENT_CHARACTER;
                 }
-                utf_traits<CharOut>::template encode(c, inserter);
+                utf_traits<CharOut>::encode(c, inserter);
             }
             return result;
         }
