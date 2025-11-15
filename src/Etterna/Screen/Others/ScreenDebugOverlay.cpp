@@ -1161,6 +1161,8 @@ class DebugLineReloadTheme : public IDebugLine
 		// HACK: Don't update text below. Return immediately because this screen
 		// was just destroyed as part of the theme reload.
 		IDebugLine::DoAndLog(sMessageOut);
+		MESSAGEMAN->Broadcast(Message_ReloadedMetrics);
+		MESSAGEMAN->Broadcast(Message_ReloadedTextures);
 	}
 };
 
