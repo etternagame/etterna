@@ -50,7 +50,7 @@ struct HandBalanceMod
 		}
 
 		const auto diff =
-		  std::fabsf(left_hand - right_hand) / ((left_hand + right_hand) / 2.F);
+		  fabsf(left_hand - right_hand) / ((left_hand + right_hand) / 2.F);
 
 		const auto prop = fastpow(1 - diff, power_scaling);
 
