@@ -2,7 +2,7 @@ local defaultConfig = {
 	global = {
 		TipType = 1, -- 1 = Hide,2=tips 3= random quotes phrases,
 		RateSort = true,
-		HelpMenu = false,
+		HelpMenu = true,
 		MeasureLines = false,
 		ProgressBar = 1, -- 0 = bottom, 1 = top
 		ShowVisualizer = true,
