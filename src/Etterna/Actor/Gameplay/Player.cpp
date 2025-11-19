@@ -97,6 +97,7 @@ static Preference<float> m_fTimingWindowScale("TimingWindowScale", 1.0F);
 static Preference1D<float> m_fTimingWindowSeconds(TimingWindowSecondsInit,
 												  NUM_TimingWindow);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
+static Preference<bool> g_bEnableNoteskinHitsounds("EnableNoteskinHitSounds", true);
 
 // moved out of being members of player.h
 static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
@@ -456,25 +457,26 @@ Player::Init(const std::string& sType,
 
 	// Load noteskin hitsounds -Creosm
 	{
-		auto NoteskinLock = LockNoteSkin( m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin );
-		int TNSIndex = TNS_W1;
+		if (g_bEnableNoteskinHitsounds) {
+			auto NoteskinLock = LockNoteSkin( m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin );
+			int TNSIndex = TNS_W1;
 
-		for (std::string JudgementName : {"Marvelous", "Perfect", "Great", "Good", "Bad", "Miss"}) {
+			for (std::string JudgementName : {"Marvelous", "Perfect", "Great", "Good", "Bad", "Miss"}) {
 
-			auto MetricJudgementHitsoundPath = NOTESKIN->GetMetric("Hitsound", JudgementName);
-			auto JudgeHitsoundPath = NOTESKIN->GetPath("", MetricJudgementHitsoundPath);
-			auto JudgeHitsound = RageSound();
+				auto MetricJudgementHitsoundPath = NOTESKIN->GetMetric("Hitsound", JudgementName);
+				auto JudgeHitsoundPath			 = NOTESKIN->GetPath("", MetricJudgementHitsoundPath);
+				auto JudgeHitsound				 = RageSound();
 
-			if (MetricJudgementHitsoundPath != "") {
-				Locator::getLogger()->info("Found noteskin hitsound metric for judgement {}", JudgementName);
-				JudgeHitsound.Load(JudgeHitsoundPath, true);
-			};
+				if (MetricJudgementHitsoundPath != "") {
+					Locator::getLogger()->info("Found noteskin hitsound metric for judgement: {} using path: {}", JudgementName, JudgeHitsoundPath);
+					JudgeHitsound.Load(JudgeHitsoundPath, true);
+				};
 
-			m_mHitsounds[static_cast<TapNoteScore>(TNSIndex)] = JudgeHitsound;
-			TNSIndex--;
+				m_mHitsounds[static_cast<TapNoteScore>(TNSIndex)] = JudgeHitsound;
+				TNSIndex--;
 
+			}
 		}
-
 	}
 
 }
@@ -1830,9 +1832,13 @@ Player::ScoreAllActiveHoldsLetGo()
 	}
 }
 
-void
+inline void
 Player::PlayHitsound(TapNoteScore tns)
 {
+	if (!g_bEnableNoteskinHitsounds)
+	{
+		return;
+	}
 
 	switch (tns) {
 		case TNS_W1:
