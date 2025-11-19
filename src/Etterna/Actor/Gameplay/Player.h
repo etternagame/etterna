@@ -193,6 +193,8 @@ class Player : public ActorFrame
 	void DrawHoldJudgments();
 	void SendComboMessages(unsigned int iOldCombo,
 						   unsigned int iOldMissCombo) const;
+
+	void PlayHitsound(TapNoteScore tns);
 	void PlayKeysound(const TapNote& tn, TapNoteScore score);
 
 	void SetMineJudgment(TapNoteScore tns, int iTrack, int iRow);
@@ -285,6 +287,8 @@ class Player : public ActorFrame
 	JudgedRows* m_pJudgedRows;
 
 	RageSound m_soundMine;
+
+	std::map<TapNoteScore, RageSound> m_mHitsounds;
 
 	std::vector<RageSound> m_vKeysounds;
 
