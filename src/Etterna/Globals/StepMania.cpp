@@ -1399,6 +1399,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 		 * bool it if it's been less than, say, half a second. */
 #if !defined(__APPLE__)
 		GameLoop::setToggleWindowed();
+		StepMania::ApplyGraphicOptions();
 #endif
 		return true;
 	}
@@ -1481,7 +1482,6 @@ void StepMania::HandleInputEvents(float fDeltaTime) {
 
 	if (GameLoop::GetAndClearToggleWindowed()) {
 		PREFSMAN->m_bWindowed.Set(!PREFSMAN->m_bWindowed);
-		StepMania::ApplyGraphicOptions();
 	}
 }
 
