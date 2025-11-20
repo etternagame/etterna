@@ -841,7 +841,7 @@ PlayerReplay::Step(int col,
 			}
 		}
 
-		this->PlayHitsound(score);
+		PlayHitsound(score);
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);
