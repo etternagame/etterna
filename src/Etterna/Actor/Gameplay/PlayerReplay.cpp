@@ -367,7 +367,7 @@ PlayerReplay::CheckForSteps(const std::chrono::steady_clock::time_point& tm)
 
 	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto iSongRow = BeatToNoteRow(fSongBeat);
-	
+
 	std::vector<PlaybackEvent> evts;
 	std::vector<int> rows;
 	const auto it = playbackEvents.lower_bound(ARBITRARY_MIN_GAMEPLAY_NUMBER);
@@ -628,6 +628,7 @@ PlayerReplay::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 				m_pPrimaryScoreKeeper->HandleTapScore(tn);
 		} else {
 			tn.result.tns = TNS_Miss;
+			PlayHitsound(TNS_Miss);
 
 			if (GAMESTATE->CountNotesSeparately()) {
 				SetJudgment(iter.Row(), iter.Track(), tn);
@@ -839,6 +840,8 @@ PlayerReplay::Step(int col,
 				}
 			}
 		}
+
+		this->PlayHitsound(score);
 
 		// Do game-specific and mode-specific score mapping.
 		score = GAMESTATE->GetCurrentGame()->MapTapNoteScore(score);

@@ -1832,7 +1832,7 @@ Player::ScoreAllActiveHoldsLetGo()
 	}
 }
 
-inline void
+void
 Player::PlayHitsound(TapNoteScore tns)
 {
 	if (!g_bEnableNoteskinHitsounds)
