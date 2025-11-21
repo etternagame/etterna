@@ -1481,7 +1481,23 @@ void StepMania::HandleInputEvents(float fDeltaTime) {
 	}
 
 	if (GameLoop::GetAndClearToggleWindowed()) {
-		PREFSMAN->m_bWindowed.Set(!PREFSMAN->m_bWindowed);
+		int attempted = 0;
+		while (true)
+		{
+			if (attempted >= 2)
+			{
+				Locator::getLogger()->error("End my resizing suffering.");
+				ShutdownGame();
+			}
+
+			PREFSMAN->m_bWindowed.Set(!PREFSMAN->m_bWindowed);
+			StepMania::ApplyGraphicOptions();
+
+			attempted++;
+			Locator::getLogger()->info("Focused: {}", GameLoop::isGameFocused()? "yes" : "no");
+
+			if (GameLoop::isGameFocused()) break;
+		}
 	}
 }
 
