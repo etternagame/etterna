@@ -288,7 +288,7 @@ class Player : public ActorFrame
 
 	RageSound m_soundMine;
 
-	std::map<TapNoteScore, RageSound> m_mHitsounds;
+	std::map<TapNoteScore, RageSound*> m_mHitsounds;
 
 	std::vector<RageSound> m_vKeysounds;
 

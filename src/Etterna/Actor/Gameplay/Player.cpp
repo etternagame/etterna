@@ -281,6 +281,9 @@ Player::~Player()
 	REPLAYS->ReleaseReplay(pbReplay);
 
 	SAFE_DELETE(m_pNoteField);
+	for (auto& [judge, hitsound] : m_mHitsounds) {
+		SAFE_DELETE(hitsound);
+	}
 	for (unsigned i = 0; i < m_vpHoldJudgment.size(); ++i) {
 		SAFE_DELETE(m_vpHoldJudgment[i]);
 	}
@@ -465,14 +468,15 @@ Player::Init(const std::string& sType,
 
 				auto MetricJudgementHitsoundPath = NOTESKIN->GetMetric("Hitsound", JudgementName);
 				auto JudgeHitsoundPath			 = NOTESKIN->GetPath("", MetricJudgementHitsoundPath);
-				auto JudgeHitsound				 = RageSound();
 
-				if (MetricJudgementHitsoundPath != "") {
+				if (JudgeHitsoundPath != "") {
 					Locator::getLogger()->info("Found noteskin hitsound metric for judgement: {} using path: {}", JudgementName, JudgeHitsoundPath);
-					JudgeHitsound.Load(JudgeHitsoundPath, true);
+
+					auto JudgeHitsound = new RageSound();
+					JudgeHitsound->Load(JudgeHitsoundPath, true);
+					m_mHitsounds[static_cast<TapNoteScore>(TNSIndex)] = JudgeHitsound;
 				};
 
-				m_mHitsounds[static_cast<TapNoteScore>(TNSIndex)] = JudgeHitsound;
 				TNSIndex--;
 
 			}
@@ -1835,25 +1839,10 @@ Player::ScoreAllActiveHoldsLetGo()
 void
 Player::PlayHitsound(TapNoteScore tns)
 {
-	if (!g_bEnableNoteskinHitsounds)
+	if (g_bEnableNoteskinHitsounds && m_mHitsounds.contains(tns))
 	{
-		return;
+		m_mHitsounds[tns]->Play(false);
 	}
-
-	switch (tns) {
-		case TNS_W1:
-		case TNS_W2:
-		case TNS_W3:
-		case TNS_W4:
-		case TNS_W5:
-		case TNS_Miss:
-			if (m_mHitsounds[tns].IsLoaded()) {
-				m_mHitsounds[tns].Play(false);
-			}
-
-		default:;
-	}
-
 }
 
 void
