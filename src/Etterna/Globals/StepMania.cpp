@@ -1399,7 +1399,6 @@ HandleGlobalInputs(const InputEventPlus& input)
 		 * bool it if it's been less than, say, half a second. */
 #if !defined(__APPLE__)
 		GameLoop::setToggleWindowed();
-		StepMania::ApplyGraphicOptions();
 #endif
 		return true;
 	}
