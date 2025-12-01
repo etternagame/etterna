@@ -3,6 +3,7 @@
 .vscode
 .vs
 .idea
+.cache
 *.kdev4
 /.kdev4
 /[Bb]uild
