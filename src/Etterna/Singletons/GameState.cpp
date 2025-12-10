@@ -373,24 +373,24 @@ JoinInputInternal(PlayerNumber pn)
 };
 
 // Handle an input that can join a player. Return true if the player joined.
+// 处理可加入玩家输入
 bool
 GameState::JoinInput(PlayerNumber pn)
 {
-	// When AutoJoin is enabled, join all players on a single start press.
+	// 当 AutoJoin 打开时，一次 Start 加入所有玩家
 	if (GAMESTATE->m_bAutoJoin.Get())
 		return JoinPlayers();
 	else
 		return JoinInputInternal(pn);
 }
 
-// Attempt to join all players, as if each player pressed Start.
+// 尝试让所有玩家加入，就像每个玩家都按了一次 Start
 bool
 GameState::JoinPlayers()
 {
-	bool bJoined = false;
-	if (JoinInputInternal(PLAYER_1))
-		bJoined = true;
-	return bJoined;
+	// JoinInputInternal 本身就返回是否成功加入玩家，
+	// 不需要再通过临时变量二次包装。
+	return JoinInputInternal(PLAYER_1);
 }
 
 /* Game flow:
@@ -492,7 +492,8 @@ GameState::BeginStage()
 
 	// This should only be called once per stage.
 	if (m_iNumStagesOfThisSong != 0)
-		Locator::getLogger()->warn("XXX: m_iNumStagesOfThisSong == {}?", m_iNumStagesOfThisSong);
+		Locator::getLogger()->warn("XXX: m_iNumStagesOfThisSong == {}?",
+								   m_iNumStagesOfThisSong);
 
 	ResetStageStatistics();
 	AdjustSync::ResetOriginalSyncData();
@@ -777,10 +778,9 @@ GameState::GetSongPercent(float beat) const
 int
 GameState::GetNumSidesJoined() const
 {
-	int iNumSidesJoined = 0;
-	if (m_bSideIsJoined)
-		iNumSidesJoined++; // left side, and right side
-	return iNumSidesJoined;
+	// m_bSideIsJoined 是一个 bool，直接转换为 0 或 1 更直观，
+	// 避免使用可变计数变量。
+	return m_bSideIsJoined ? 1 : 0;
 }
 
 int
