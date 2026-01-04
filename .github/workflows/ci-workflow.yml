@@ -203,9 +203,10 @@ jobs:
       matrix:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
-          - { os: macos-13,     name: "Ventura", dist: true}
+          #- { os: macos-13,     name: "Ventura", dist: true} # rendered useless by GHA
           #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
           #- { os: macos-11,     name: "Big Sur",  dist: true} # rendered useless by GHA
+          - { os: macos-15,     name: "Sequoia", dist: true}
 
     steps:
 
@@ -298,16 +299,17 @@ jobs:
         with:
           files: ${{github.workspace}}/main/build/*.dmg
   macos_high_sierra:
-    name: macOS High Sierra (Legacy) ${{matrix.cfg.name}}
+    name: macOS 10.x (Legacy) via ${{matrix.cfg.name}} Runner
     runs-on: ${{matrix.cfg.os}}
     strategy:
       fail-fast: false
       matrix:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
-          - { os: macos-13,     name: "Ventura", dist: true}
+          #- { os: macos-13,     name: "Ventura", dist: true} # rendered useless by GHA
           #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
-          #- { os: macos-11,     name: "Big Sur",  dist: true}
+          #- { os: macos-11,     name: "Big Sur",  dist: true} # rendered useless by GHA
+          - { os: macos-14,     name: "Sonoma", dist: true}
 
     steps:
 
