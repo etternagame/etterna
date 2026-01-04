@@ -727,7 +727,8 @@ class TimingData
 	[[nodiscard]] auto GetTimeFromRowFastNoOffset(int row) const -> float;
 
 	auto ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
-										   float rate) -> std::vector<float>;
+										   float rate) const
+	  -> std::vector<float>;
 
   protected:
 	// don't call this directly; use the derived-type overloads.

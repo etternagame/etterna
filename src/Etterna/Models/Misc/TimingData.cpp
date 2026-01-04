@@ -1335,7 +1335,7 @@ TimingData::GetTimeFromRowFastNoOffset(int row) const
 
 std::vector<float>
 TimingData::ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
-											  float rate)
+											  float rate) const
 {
 	std::vector<float> o;
 	o.reserve(nrv.size());
