@@ -165,7 +165,7 @@ ScreenEvaluation::TriggerDiscordRPC()
 			auto grade = GradeToLocalizedString(score->GetWifeGrade());
 			state = fmt::format("{} - {:5.4f}% {}",
 								state,
-								std::floorf(wife * 1000000.F) / 10000.F,
+								floorf(wife * 1000000.F) / 10000.F,
 								grade);
 		}
 	}
