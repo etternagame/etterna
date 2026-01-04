@@ -304,6 +304,11 @@ class NoteDisplay
 				   float fPercentFadeToFail,
 				   float fColorScale,
 				   bool is_being_held) const;
+	void DrawReplayActors(const TapNote& tn,
+						  const NoteFieldRenderArgs& field_args,
+						  const NoteColumnRenderArgs& column_args,
+						  const int& row) const;
+
 	void DrawHoldPart(std::vector<Sprite*>& vpSpr,
 					  const NoteFieldRenderArgs& field_args,
 					  const NoteColumnRenderArgs& column_args,
@@ -349,6 +354,10 @@ class NoteDisplay
 	NoteColorSprite m_HoldBody[NUM_HoldType][NUM_ActiveType];
 	NoteColorSprite m_HoldBottomCap[NUM_HoldType][NUM_ActiveType];
 	NoteColorActor m_HoldTail[NUM_HoldType][NUM_ActiveType];
+
+	Actor* replay_offset_start;
+	Actor* replay_offset_body;
+	Actor* replay_offset_end;
 };
 
 // So, this is a bit screwy, and it's partly because routine forces rendering

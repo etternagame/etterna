@@ -15,6 +15,9 @@
 #include "Etterna/Actor/Base/Sprite.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "RageUtil/Graphics/RageTextureManager.h"
+#include "Etterna/Singletons/ReplayManager.h"
+#include "Etterna/Actor/Base/Quad.h"
+#include "Etterna/Models/Misc/ScreenDimensions.h"
 
 #include <utility>
 #include <algorithm>
@@ -64,6 +67,16 @@ struct NoteMetricCache_t
 	bool m_bDrawHoldHeadForTapsOnSameRow;
 	bool m_bDrawRollHeadForTapsOnSameRow;
 	bool m_bTapHoldRollOnRowMeansHold;
+
+	float m_replayOffsetStartZoomX;
+	float m_replayOffsetStartZoomY;
+	float m_replayOffsetBodyZoomX;
+	float m_replayOffsetEndZoomX;
+	float m_replayOffsetEndZoomY;
+	float m_replayOffsetStartDiffuseAlpha;
+	float m_replayOffsetBodyDiffuseAlpha;
+	float m_replayOffsetEndDiffuseAlpha;
+
 	float m_fAnimationLength[NUM_NotePart];
 	bool m_bAnimationIsVivid[NUM_NotePart];
 	RageVector2 m_fAdditionTextureCoordOffset[NUM_NotePart];
@@ -99,6 +112,23 @@ NoteMetricCache_t::Load(const std::string& sButton)
 	  NOTESKIN->GetMetricB(sButton, "DrawRollHeadForTapsOnSameRow");
 	m_bTapHoldRollOnRowMeansHold =
 	  NOTESKIN->GetMetricB(sButton, "TapHoldRollOnRowMeansHold");
+
+	m_replayOffsetStartZoomX = NOTESKIN->GetMetricF(sButton, "ReplayOffsetStartZoomX");
+	m_replayOffsetStartZoomY =
+	  NOTESKIN->GetMetricF(sButton, "ReplayOffsetStartZoomY");
+	m_replayOffsetBodyZoomX =
+	  NOTESKIN->GetMetricF(sButton, "ReplayOffsetBodyZoomX");
+	m_replayOffsetEndZoomX =
+	  NOTESKIN->GetMetricF(sButton, "ReplayOffsetEndZoomX");
+	m_replayOffsetEndZoomY =
+	  NOTESKIN->GetMetricF(sButton, "ReplayOffsetEndZoomY");
+	m_replayOffsetStartDiffuseAlpha =
+	  NOTESKIN->GetMetricF(sButton, "ReplayOffsetStartDiffuseAlpha");
+	m_replayOffsetBodyDiffuseAlpha =
+	  NOTESKIN->GetMetricF(sButton, "ReplayOffsetStartDiffuseAlpha");
+	m_replayOffsetEndDiffuseAlpha =
+	  NOTESKIN->GetMetricF(sButton, "ReplayOffsetStartDiffuseAlpha");
+	
 	FOREACH_NotePart(p)
 	{
 		const auto& s = NotePartToString(p);
@@ -487,11 +517,17 @@ NoteDisplay::NoteDisplay()
 	m_pPlayerState = nullptr;
 	m_fYReverseOffsetPixels = 0.f;
 	cache = new NoteMetricCache_t;
+	replay_offset_body = new Quad;
+	replay_offset_end = new Quad;
+	replay_offset_start = new Quad;
 }
 
 NoteDisplay::~NoteDisplay()
 {
 	delete cache;
+	delete replay_offset_body;
+	delete replay_offset_end;
+	delete replay_offset_start;
 }
 
 void
@@ -512,6 +548,15 @@ NoteDisplay::Load(int iColNum,
 		->ColToButtonName(iColNum);
 
 	cache->Load(sButton);
+	replay_offset_start->SetBaseZoomX(static_cast<float>(ARROW_SIZE) / 2.F * cache->m_replayOffsetStartZoomX);
+	replay_offset_end->SetBaseZoomX(static_cast<float>(ARROW_SIZE) * cache->m_replayOffsetEndZoomX);
+	replay_offset_body->SetBaseZoomX(static_cast<float>(ARROW_SIZE) / 6.F * cache->m_replayOffsetBodyZoomX);
+	replay_offset_start->SetBaseZoomY(2.F * cache->m_replayOffsetStartZoomY);
+	replay_offset_end->SetBaseZoomY(2 * cache->m_replayOffsetEndZoomY);
+	replay_offset_body->SetBaseZoomY(1); // no point to this
+	replay_offset_body->SetDiffuseAlpha(cache->m_replayOffsetBodyDiffuseAlpha);
+	replay_offset_start->SetDiffuseAlpha(cache->m_replayOffsetStartDiffuseAlpha);
+	replay_offset_end->SetDiffuseAlpha(cache->m_replayOffsetEndDiffuseAlpha);
 
 	std::vector<std::string> Colors = { "4th",  "8th",  "12th", "16th", "24th",
 								   "32nd", "48th", "64th", "192nd" };
@@ -576,7 +621,7 @@ NoteDisplay::DrawHoldsInRange(
   const std::vector<NoteData::TrackMap::const_iterator>& tap_set)
 {
 	auto any_upcoming = false;
-	for (const auto tapit : tap_set) {
+	for (const auto& tapit : tap_set) {
 		const auto& tn = tapit->second;
 		const auto& result = tn.HoldResult;
 		const auto start_row = tapit->first;
@@ -661,7 +706,7 @@ NoteDisplay::DrawTapsInRange(
 {
 	auto any_upcoming = false;
 	// draw notes from furthest to closest
-	for (const auto tapit : tap_set) {
+	for (const auto& tapit : tap_set) {
 		auto tap_row = tapit->first;
 		const auto& tn = tapit->second;
 
@@ -725,6 +770,8 @@ NoteDisplay::DrawTapsInRange(
 				in_selection_range ? field_args.selection_glow
 								   : field_args.fail_fade);
 
+		DrawReplayActors(tn, field_args, column_args, tap_row);
+
 		any_upcoming |= NoteRowToBeat(tap_row) >
 						GAMESTATE->m_Position.m_fSongBeat;
 
@@ -733,6 +780,79 @@ NoteDisplay::DrawTapsInRange(
 		}
 	}
 	return any_upcoming;
+}
+
+void
+NoteDisplay::DrawReplayActors(const TapNote& tn,
+							  const NoteFieldRenderArgs& field_args,
+							  const NoteColumnRenderArgs& column_args,
+							  const int& row) const
+{
+	if (!REPLAYS->GetActiveReplay()->HasColumnData()) {
+		return;
+	}
+
+	auto* r = REPLAYS->GetActiveReplay();
+	if (r->GetJudgeInfo().trrMap.contains(row)) {
+		for (auto& trr : r->GetJudgeInfo().trrMap[row]) {
+			if (trr.track == column_args.column) {
+				const auto* td = r->GetTimingData();
+				const auto curSec = td->GetTimeFromRowFast(row);
+				const auto offsetSec = trr.offset * r->GetMusicRate();
+				const auto offsetBeat =
+					td->GetBeatFromElapsedTime(offsetSec + curSec);
+
+				const auto fYOffset = ArrowEffects::GetYOffset(
+					m_pPlayerState, column_args.column, offsetBeat);
+				const auto perfectYOffset =
+					ArrowEffects::GetYOffset(m_pPlayerState,
+											column_args.column, NoteRowToBeat(row));
+				const auto ydiff = perfectYOffset - fYOffset;
+
+				if (ydiff < 0) {
+					replay_offset_body->SetVertAlign(1);
+					replay_offset_body->SetBaseZoomY(-ydiff);
+				} else {
+					replay_offset_body->SetVertAlign(0);
+					replay_offset_body->SetBaseZoomY(ydiff);
+				}
+
+				DrawActor(tn,
+							replay_offset_body,
+							NotePart_Tap,
+							field_args,
+							column_args,
+							fYOffset,
+							NoteRowToBeat(row),
+							false,
+							-1.F,
+							1.0f,
+							false);
+				DrawActor(tn,
+							replay_offset_start,
+							NotePart_Tap,
+							field_args,
+							column_args,
+							perfectYOffset,
+							NoteRowToBeat(row),
+							false,
+							-1.F,
+							1.0f,
+							false);
+				DrawActor(tn,
+							replay_offset_end,
+							NotePart_Tap,
+							field_args,
+							column_args,
+							fYOffset,
+							offsetBeat,
+							false,
+							-1.F,
+							1.0f,
+							false);
+			}
+		}
+	}
 }
 
 bool
@@ -1548,7 +1668,7 @@ NoteDisplay::DrawHold(const TapNote& tn,
 	if (cache->m_bHoldTailIsAboveWavyParts) {
 		auto* const pActor = GetHoldActor(m_HoldTail,
 										  NotePart_HoldTail,
-										  NoteRowToBeat(iRow),
+										  fBeat,
 										  tn.subType == TapNoteSubType_Roll,
 										  bIsBeingHeld);
 		DrawActor(tn,
@@ -1580,6 +1700,8 @@ NoteDisplay::DrawHold(const TapNote& tn,
 				  fPercentFadeToFail,
 				  fColorScale,
 				  bIsBeingHeld);
+
+		DrawReplayActors(tn, field_args, column_args, iRow);
 	}
 }
 
@@ -1992,13 +2114,15 @@ NoteColumnRenderer::DrawPrimitives()
 	}
 
 	// Draw holds before taps to make sure taps dont hide behind holds
-	if (!holds.empty())
+	if (!holds.empty()) {
 		m_displays[PLAYER_1]->DrawHoldsInRange(
 		  *m_field_render_args, m_column_render_args, holds);
+	}
 
-	if (!taps.empty())
+	if (!taps.empty()) {
 		m_displays[PLAYER_1]->DrawTapsInRange(
 		  *m_field_render_args, m_column_render_args, taps);
+	}
 }
 
 void
