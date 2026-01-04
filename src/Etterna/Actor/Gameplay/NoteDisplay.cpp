@@ -788,7 +788,8 @@ NoteDisplay::DrawReplayActors(const TapNote& tn,
 							  const NoteColumnRenderArgs& column_args,
 							  const int& row) const
 {
-	if (!REPLAYS->GetActiveReplay()->HasColumnData()) {
+	if (!PREFSMAN->m_bReplaysShowOffsets ||
+		!REPLAYS->GetActiveReplay()->HasColumnData()) {
 		return;
 	}
 

@@ -671,6 +671,7 @@ static LocalizedString KEY_CONFIG("ScreenDebugOverlay", "Key Config");
 static LocalizedString CHART_FOLDER("ScreenDebugOverlay", "Chart Folder");
 static LocalizedString CHART_KEY("ScreenDebugOverlay", "Chartkey");
 static LocalizedString FORCE_SNAPS("ScreenDebugOverlay", "ForceSnaps");
+static LocalizedString REPLAY_OFFSETS("ScreenDebugOverlay", "ReplayOffsets");
 static LocalizedString VOLUME_UP("ScreenDebugOverlay", "Volume Up");
 static LocalizedString VOLUME_DOWN("ScreenDebugOverlay", "Volume Down");
 static LocalizedString UPTIME("ScreenDebugOverlay", "Uptime");
@@ -1640,6 +1641,19 @@ class DebugLineForceSnaps : public IDebugLine
 	}
 };
 
+class DebugLineReplayOffsets : public IDebugLine
+{
+	std::string GetDisplayTitle() override { return REPLAY_OFFSETS.GetValue(); }
+	std::string GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return PREFSMAN->m_bReplaysShowOffsets; }
+
+	void DoAndLog(std::string& sMessageOut) override
+	{
+		PREFSMAN->m_bReplaysShowOffsets.Set(!PREFSMAN->m_bReplaysShowOffsets);
+		IDebugLine::DoAndLog(sMessageOut);
+	}
+};
+
 /* #ifdef out the lines below if you don't want them to appear on certain
  * platforms.  This is easier than #ifdefing the whole DebugLine definitions
  * that can span pages.
@@ -1692,3 +1706,4 @@ DECLARE_ONE(DebugLineKeyConfig);
 DECLARE_ONE(DebugLineChartFolder);
 DECLARE_ONE(DebugLineChartkey);
 DECLARE_ONE(DebugLineForceSnaps);
+DECLARE_ONE(DebugLineReplayOffsets);

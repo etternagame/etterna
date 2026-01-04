@@ -718,6 +718,7 @@ InitializeConfOptions()
 	ADD(ConfOption("NoGlow", MovePref<bool>, "On", "Off"));
 	ADD(ConfOption("FullTapExplosions", MovePref<bool>, "Short", "Full"));
 	ADD(ConfOption("ReplaysUseScoreMods", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("ReplaysShowOffsets", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("AllowStartToGiveUp", MovePref<bool>, "Off", "On"));

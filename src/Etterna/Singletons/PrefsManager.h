@@ -161,6 +161,7 @@ class PrefsManager
 	Preference<bool> m_bFullTapExplosions;
 	Preference<bool> m_bNoGlow;
 	Preference<bool> m_bReplaysUseScoreMods;
+	Preference<bool> m_bReplaysShowOffsets;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
