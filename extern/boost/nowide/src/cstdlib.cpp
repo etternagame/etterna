@@ -1,24 +1,30 @@
 //
-//  Copyright (c) 2012 Artyom Beilis (Tonkikh)
-//  Copyright (c) 2020 Alexander Grund
+// Copyright (c) 2012 Artyom Beilis (Tonkikh)
+// Copyright (c) 2020-2022 Alexander Grund
 //
-//  Distributed under the Boost Software License, Version 1.0. (See
-//  accompanying file LICENSE or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
-//
+// Distributed under the Boost Software License, Version 1.0.
+// https://www.boost.org/LICENSE_1_0.txt
 
 #define NOWIDE_SOURCE
 
 #ifdef _MSC_VER
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
-#elif(defined(__MINGW32__) || defined(__CYGWIN__)) && defined(__STRICT_ANSI__)
-// Need the _w* functions which are extensions on MinGW/Cygwin
+#endif
+#elif defined(__MINGW32__) && defined(__STRICT_ANSI__)
+// Need the _w* functions which are extensions on MinGW but not on MinGW-w64
+#include <_mingw.h>
+#ifndef __MINGW64_VERSION_MAJOR
 #undef __STRICT_ANSI__
+#endif
+#elif defined(__CYGWIN__) && !defined(_GNU_SOURCE)
+// The setenv family of functions is an extension on Cygwin
+#define _GNU_SOURCE 1
 #endif
 
 #include <nowide/cstdlib.hpp>
 
-#if !defined(NOWIDE_WINDOWS)
+#ifndef NOWIDE_WINDOWS
 namespace nowide {
     int setenv(const char* key, const char* value, int overwrite)
     {
@@ -40,10 +46,45 @@ namespace nowide {
 #include <vector>
 #include <windows.h>
 
+namespace {
+// thread_local was broken on MinGW for all 32bit compiler releases prior to 11.x, see
+// https://sourceforge.net/p/mingw-w64/bugs/527/
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83562
+// Using a non-trivial destructor causes program termination on thread exit.
+#if defined(__MINGW32__) && !defined(__MINGW64__) && !defined(__clang__) && (__GNUC__ < 11)
+class stackstring_for_thread
+{
+    union
+    {
+        nowide::stackstring s_;
+    };
+
+public:
+    stackstring_for_thread() : s_(){};
+    // Empty destructor so the union member (using a non-trivial destructor) does not get destroyed.
+    // This will leak memory if any is allocated by the stackstring for each terminated thread
+    // but as most values fit into the stack buffer this is rare and still better than a crash.
+    ~stackstring_for_thread(){};
+    void convert(const wchar_t* begin, const wchar_t* end)
+    {
+        s_.convert(begin, end);
+    }
+
+    char* get()
+    {
+        return s_.get();
+    }
+};
+#else
+using stackstring_for_thread = nowide::stackstring;
+#endif
+
+} // namespace
+
 namespace nowide {
     char* getenv(const char* key)
     {
-        static stackstring value;
+        thread_local stackstring_for_thread value;
 
         const wshort_stackstring name(key);
 
@@ -63,7 +104,7 @@ namespace nowide {
                 return 0;
             ptr = &tmp[0];
         }
-        value.convert(ptr);
+        value.convert(ptr, ptr + n);
         return value.get();
     }
 

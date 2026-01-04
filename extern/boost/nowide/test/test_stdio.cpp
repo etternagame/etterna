@@ -1,20 +1,17 @@
 //
-//  Copyright (c) 2012 Artyom Beilis (Tonkikh)
-//  Copyright (c) 2019 Alexander Grund
+// Copyright (c) 2012 Artyom Beilis (Tonkikh)
+// Copyright (c) 2019 Alexander Grund
 //
-//  Distributed under the Boost Software License, Version 1.0. (See
-//  accompanying file LICENSE or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
-//
+// Distributed under the Boost Software License, Version 1.0.
+// https://www.boost.org/LICENSE_1_0.txt
 
 #include <nowide/cstdio.hpp>
 
 #include <nowide/convert.hpp>
+#include "test.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-
-#include "test.hpp"
 
 bool file_exists(const std::string& filename)
 {
@@ -44,17 +41,18 @@ void create_test_file(const std::string& filename)
     std::fclose(f);
 }
 
-#if NOWIDE_MSVC
+#ifdef NOWIDE_MSVC
 #include <crtdbg.h> // For _CrtSetReportMode
 void noop_invalid_param_handler(const wchar_t*, const wchar_t*, const wchar_t*, unsigned, uintptr_t)
-{}
+{} // LCOV_EXCL_LINE
 #endif
 
+// coverity[root_function]
 void test_main(int, char** argv, char**)
 {
     const std::string prefix = argv[0];
     const std::string filename = prefix + "\xd7\xa9-\xd0\xbc-\xce\xbd.txt";
-#if NOWIDE_MSVC
+#ifdef NOWIDE_MSVC
     // Prevent abort on freopen(NULL, ...)
     _set_invalid_parameter_handler(noop_invalid_param_handler);
 #endif
@@ -80,7 +78,7 @@ void test_main(int, char** argv, char**)
     {
         nowide::remove(filename.c_str());
         TEST(!file_exists(filename));
-        TEST(nowide::fopen(filename.c_str(), "r") == NULL);
+        TEST(nowide::fopen(filename.c_str(), "r") == nullptr);
         TEST(!file_exists(filename));
     }
     std::cout << " -- freopen" << std::endl;
@@ -99,7 +97,7 @@ void test_main(int, char** argv, char**)
         // Reopen in read mode
         // Note that changing the mode is not possibly on all implementations
         // E.g. MSVC disallows NULL completely as the file parameter
-        FILE* f2 = nowide::freopen(NULL, "r", f);
+        FILE* f2 = nowide::freopen(nullptr, "r", f);
         if(!f2)
             f2 = nowide::freopen(filename.c_str(), "r", f);
         std::cout << " -- no write possible" << std::endl;
