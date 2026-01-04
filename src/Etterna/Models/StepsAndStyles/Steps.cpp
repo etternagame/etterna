@@ -441,9 +441,9 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	// set first and last second for this steps object
 	if (!cereal.empty() || !m_pNoteData->IsEmpty()) {
 		firstsecond =
-		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
+		  GetTimingData()->GetTimeFromBeatFast(m_pNoteData->GetFirstBeat());
 		lastsecond =
-		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetLastBeat());
+		  GetTimingData()->GetTimeFromBeatFast(m_pNoteData->GetLastBeat());
 	}
 
 	m_pNoteData->UnsetNerv();
@@ -767,9 +767,9 @@ Steps::GetNPSPerMeasure(const NoteData& nd,
 	const auto lastmeasure = std::ceil(lastbeat / 4.F);
 
 	for (auto i = 0; i < lastmeasure; ++i) {
-		const auto m_start = td->GetElapsedTimeFromBeat(i * 4.F);
+		const auto m_start = td->GetTimeFromBeatFast(i * 4.F);
 		const auto m_end =
-		  td->GetElapsedTimeFromBeat(static_cast<float>(i + 1) * 4.F);
+		  td->GetTimeFromBeatFast(static_cast<float>(i + 1) * 4.F);
 		const auto m_time = m_end - m_start;
 
 		auto m_counter = 0;

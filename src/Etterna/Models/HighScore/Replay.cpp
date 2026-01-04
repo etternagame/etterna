@@ -1514,8 +1514,8 @@ Replay::GeneratePrimitiveVectors() -> bool
 			  BeatToNoteRow(td->GetBeatFromElapsedTimeNoOffset(time));
 		} else {
 			// galaxy brain (only used for holds anyways)
-			time = td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(noterow)) +
-				   (offset * fMusicRate);
+			time =
+			  td->GetTimeFromRowFastNoOffset(noterow) + (offset * fMusicRate);
 		}
 
 
@@ -1611,8 +1611,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 			auto nextRow = headRow;
 			nd.GetNextTapNoteRowForTrack(track, nextRow, true);
 			auto offsetFromNextNote =
-			  (td->GetElapsedTimeFromBeat(NoteRowToBeat(nextRow)) -
-			   d.songPositionSeconds) /
+			  (td->GetTimeFromRowFast(nextRow) - d.songPositionSeconds) /
 			  fMusicRate;
 
 			// if the hold is alive,
@@ -2729,8 +2728,7 @@ Replay::ReprioritizeInputData() -> bool
 				judgedNotes.at(foundRow).insert(d.column);
 
 				const auto offset =
-				  (d.songPositionSeconds -
-				   td->GetElapsedTimeFromBeat(NoteRowToBeat(foundRow))) /
+				  (d.songPositionSeconds - td->GetTimeFromRowFast(foundRow)) /
 				  fMusicRate;
 
 				d.reprioritizedNearestNoterow = foundRow;
@@ -2890,8 +2888,7 @@ Replay::GenerateInputData() -> bool
 			}
 
 			const auto positionSeconds =
-			  td->GetElapsedTimeFromBeat(NoteRowToBeat(noterow)) +
-			  offset * fMusicRate;
+			  td->GetTimeFromRowFast(noterow) + offset * fMusicRate;
 
 			InputDataEvent evt;
 			evt.column = vTrackVector.at(i);
@@ -2965,8 +2962,7 @@ Replay::GenerateInputData() -> bool
 			}
 
 			const auto positionSeconds =
-			  td->GetElapsedTimeFromBeat(NoteRowToBeat(noterow)) +
-			  offset * fMusicRate;
+			  td->GetTimeFromRowFast(noterow) + offset * fMusicRate;
 
 			InputDataEvent evt;
 			evt.column = columnToUse;

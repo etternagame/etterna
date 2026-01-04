@@ -548,12 +548,6 @@ class TimingData
 								 int& iBeatIndexOut,
 								 int& iRowsRemainder) const;
 
-	void GetBeatInternal(GetBeatStarts& start,
-						 GetBeatArgs& args,
-						 unsigned int max_segment) const;
-	auto GetElapsedTimeInternal(GetBeatStarts& start,
-								float beat,
-								unsigned int max_segment) const -> float;
 	void GetBeatAndBPSFromElapsedTime(GetBeatArgs& args) const;
 
 	[[nodiscard]] auto GetBeatFromElapsedTime(float elapsed_time) const
@@ -564,8 +558,6 @@ class TimingData
 		GetBeatAndBPSFromElapsedTime(args);
 		return args.beat;
 	}
-
-	[[nodiscard]] auto GetElapsedTimeFromBeat(float fBeat) const -> float;
 
 	void GetBeatAndBPSFromElapsedTimeNoOffset(GetBeatArgs& args) const;
 
@@ -578,8 +570,6 @@ class TimingData
 		return args.beat;
 	}
 
-	[[nodiscard]] auto GetElapsedTimeFromBeatNoOffset(float fBeat) const
-	  -> float;
 	[[nodiscard]] auto GetDisplayedBeat(float fBeat) const -> float;
 
 	[[nodiscard]] auto HasBpmChanges() const -> bool
@@ -743,8 +733,20 @@ class TimingData
 	// don't call this directly; use the derived-type overloads.
 	void AddSegment(const TimingSegment* seg);
 
+	[[nodiscard]] auto GetElapsedTimeFromBeat(float fBeat) const -> float;
+	[[nodiscard]] auto GetElapsedTimeFromBeatNoOffset(float fBeat) const
+	  -> float;
+
 	// All of the following vectors must be sorted before gameplay.
 	std::vector<TimingSegment*> m_avpTimingSegments[NUM_TimingSegmentType];
+
+  private:
+	void GetBeatInternal(GetBeatStarts& start,
+						 GetBeatArgs& args,
+						 unsigned int max_segment) const;
+	auto GetElapsedTimeInternal(GetBeatStarts& start,
+								float beat,
+								unsigned int max_segment) const -> float;
 };
 
 #undef COMPARE

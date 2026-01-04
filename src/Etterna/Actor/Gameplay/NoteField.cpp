@@ -825,11 +825,11 @@ NoteField::DrawPrimitives()
 		  0.5F * GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
 
 		const auto firstIntervalStart =
-		  pTiming->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
+		  pTiming->GetTimeFromBeatFast(m_pNoteData->GetFirstBeat());
 		const auto visibleSecondStart =
 		  GAMESTATE->m_Position.m_fMusicSecondsVisible;
 		const auto visibleSecondEnd =
-		  pTiming->GetElapsedTimeFromBeat(m_FieldRenderArgs.last_beat);
+		  pTiming->GetTimeFromBeatFast(m_FieldRenderArgs.last_beat);
 
 		const auto distanceThroughInterval =
 		  fmodf(visibleSecondStart - firstIntervalStart, intervalSize);

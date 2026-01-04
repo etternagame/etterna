@@ -228,7 +228,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		 * delay. */
 		float fDestBeat = fmodfp(GAMESTATE->m_Position.m_fSongBeatNoOffset, 1);
 		float fTime =
-		  NewMusic->m_NewTiming.GetElapsedTimeFromBeatNoOffset(fDestBeat);
+		  NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(fDestBeat);
 
 		NewMusic->m_NewTiming.m_fBeat0OffsetInSeconds = fTime;
 
