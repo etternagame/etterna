@@ -3607,7 +3607,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	// For every row in the replay data...
 	for (auto& row : m_ReplayTapMap) {
 		// Get the current time and go over all taps on this row...
-		const auto rowTime = pReplayTiming->WhereUAtBro(row.first);
+		const auto rowTime = pReplayTiming->GetTimeFromRowFast(row.first);
 		for (auto& trr : row.second) {
 			// Find the time adjusted for offset
 			auto tapTime = rowTime + trr.offset;
@@ -3626,7 +3626,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	// Go over all of the elements, you know the deal.
 	// We can avoid getting offset rows here since drops don't do that
 	for (auto& row : m_ReplayHoldMap) {
-		auto dropTime = pReplayTiming->WhereUAtBro(row.first);
+		auto dropTime = pReplayTiming->GetTimeFromRowFast(row.first);
 		for (auto& hrr : row.second) {
 			if (m_ReplayHoldMapByElapsedTime.count(dropTime) != 0) {
 				m_ReplayHoldMapByElapsedTime[dropTime].push_back(hrr);
@@ -3657,7 +3657,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 				// the game should usually count something as a miss. we dont
 				// use this time for anything other than chronologically parsing
 				// replay data for combo/life stuff so this is okay (i hope)
-				auto tapTime = pReplayTiming->WhereUAtBro(row) +
+				auto tapTime = pReplayTiming->GetTimeFromRowFast(row) +
 							   REPLAYS->CustomMissWindowFunction();
 				for (auto i = 0; i < missDiff; i++) {
 					// we dont really care about anything other than the offset

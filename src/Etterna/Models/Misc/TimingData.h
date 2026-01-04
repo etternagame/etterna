@@ -731,11 +731,10 @@ class TimingData
 		ElapsedTimesAtNonEmptyRows.shrink_to_fit();
 	}
 
-	[[nodiscard]] auto WhereUAtBro(float beat) const -> float;
-	auto WhereUAtBro(float beat) -> float;
-	[[nodiscard]] auto WhereUAtBroNoOffset(float beat) const -> float;
-	auto WhereUAtBroNoOffset(float beat) -> float;
-	auto WhereUAtBro(int row) -> float;
+	[[nodiscard]] auto GetTimeFromBeatFast(float beat) const -> float;
+	[[nodiscard]] auto GetTimeFromBeatFastNoOffset(float beat) const -> float;
+	[[nodiscard]] auto GetTimeFromRowFast(int row) const -> float;
+	[[nodiscard]] auto GetTimeFromRowFastNoOffset(int row) const -> float;
 
 	auto ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
 										   float rate) -> std::vector<float>;

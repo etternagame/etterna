@@ -63,7 +63,7 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 
 		if (iClapRow != -1 && timing.IsJudgableAtRow(iClapRow)) {
 			const auto fTickBeat = NoteRowToBeat(iClapRow);
-			const auto fTickSecond = timing.WhereUAtBroNoOffset(fTickBeat);
+			const auto fTickSecond = timing.GetTimeFromBeatFastNoOffset(fTickBeat);
 			auto fSecondsUntil = fTickSecond - position.m_fMusicSeconds;
 			fSecondsUntil /= GAMESTATE->m_SongOptions.GetCurrent()
 							   .m_fMusicRate; /* 2x music rate means the time
@@ -108,7 +108,7 @@ GameplayAssist::PlayTicks(const NoteData& nd, const PlayerState* ps)
 
 		if (iMetronomeRow != -1) {
 			const auto fTickBeat = NoteRowToBeat(iMetronomeRow);
-			const auto fTickSecond = timing.WhereUAtBroNoOffset(fTickBeat);
+			const auto fTickSecond = timing.GetTimeFromBeatFastNoOffset(fTickBeat);
 			auto fSecondsUntil = fTickSecond - position.m_fMusicSeconds;
 			fSecondsUntil /= GAMESTATE->m_SongOptions.GetCurrent()
 							   .m_fMusicRate; /* 2x music rate means the time

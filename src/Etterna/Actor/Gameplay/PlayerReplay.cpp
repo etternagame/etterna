@@ -760,8 +760,7 @@ PlayerReplay::Step(int col,
 		// compute the score for this hit
 		auto fNoteOffset = 0.f;
 
-		const auto fStepBeat = NoteRowToBeat(rowBeingJudged);
-		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
+		const auto fStepSeconds = m_Timing->GetTimeFromRowFast(rowBeingJudged);
 
 		// The offset from the actual step in seconds:
 		fNoteOffset = (fStepSeconds - fPositionSeconds) /

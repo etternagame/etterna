@@ -194,10 +194,14 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		 * fractional beat.  That is, if it starts on beat 1.5, and ends on
 		 * beat 10.2, extend it to end on beat 10.5.  This way, effects always
 		 * loop cleanly. */
+
+		// Note:
+		// the function usage for time->beat is wrong
+		// but it was already doing this for a long time
 		float fStartBeat =
-		  NewMusic->m_NewTiming.WhereUAtBroNoOffset(ToPlay.fStartSecond);
+		  NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(ToPlay.fStartSecond);
 		float fEndSec = ToPlay.fStartSecond + ToPlay.fLengthSeconds;
-		float fEndBeat = NewMusic->m_NewTiming.WhereUAtBroNoOffset(fEndSec);
+		float fEndBeat = NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(fEndSec);
 
 		const float fStartBeatFraction = fmodfp(fStartBeat, 1);
 		const float fEndBeatFraction = fmodfp(fEndBeat, 1);
@@ -209,7 +213,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		fEndBeat += fBeatDifference;
 
 		const float fRealEndSec =
-		  NewMusic->m_NewTiming.WhereUAtBroNoOffset(fEndBeat);
+		  NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(fEndBeat);
 		const float fNewLengthSec = fRealEndSec - ToPlay.fStartSecond;
 
 		/* Extend fFadeOutLengthSeconds, so the added time is faded out. */
@@ -260,7 +264,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 			fCurBeatToStartOn += 1.0f;
 
 		const float fSecondToStartOn =
-		  g_Playing->m_Timing.WhereUAtBroNoOffset(fCurBeatToStartOn);
+		  g_Playing->m_Timing.GetTimeFromBeatFastNoOffset(fCurBeatToStartOn);
 		const float fMaximumDistance = 2;
 		const float fDistance =
 		  std::min(fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds,

@@ -745,7 +745,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				m_fMusicSampleStartSeconds + m_fMusicSampleLengthSeconds >
 				  this->m_fMusicLengthSeconds) {
 				const auto& timing = this->m_SongTiming;
-				m_fMusicSampleStartSeconds = timing.WhereUAtBro(100);
+				m_fMusicSampleStartSeconds = timing.GetTimeFromBeatFast(100);
 
 				if (m_fMusicSampleStartSeconds + m_fMusicSampleLengthSeconds >
 					this->m_fMusicLengthSeconds) {
@@ -756,7 +756,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 					  2);
 					iBeat -= iBeat % 4;
 					m_fMusicSampleStartSeconds =
-					  timing.WhereUAtBro(static_cast<float>(iBeat));
+					  timing.GetTimeFromBeatFast(static_cast<float>(iBeat));
 				}
 			}
 

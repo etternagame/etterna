@@ -362,7 +362,7 @@ ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 
 
 	const auto firstSnapshotTime =
-	  td->WhereUAtBro(replay.GetReplaySnapshotMap().begin()->first);
+	  td->GetTimeFromRowFast(replay.GetReplaySnapshotMap().begin()->first);
 	auto& ji = replay.GetJudgeInfo();
 	auto& m_ReplayHoldMapByElapsedTime = ji.hrrMapByElapsedTime;
 	auto& m_ReplayTapMapByElapsedTime = ji.trrMapByElapsedTime;
@@ -470,7 +470,7 @@ ReplayManager::GenerateComboListForReplay(Replay& replay, float timingScale)
 	auto& m_ReplayHoldMapByElapsedTime = ji.hrrMapByElapsedTime;
 	auto& m_ReplayTapMapByElapsedTime = ji.trrMapByElapsedTime;
 	const auto firstSnapshotTime =
-	  td->WhereUAtBro(m_ReplaySnapshotMap.begin()->first);
+	  td->GetTimeFromRowFast(m_ReplaySnapshotMap.begin()->first);
 	auto curCombo = &(combos[0]);
 	auto rowOfComboStart = m_ReplayTapMapByElapsedTime.begin();
 

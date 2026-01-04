@@ -822,7 +822,7 @@ BackgroundImpl::Layer::UpdateCurBGChange(
 		/* How much time of this BGA have we skipped?  (This happens with
 		 * SetSeconds.) */
 		const auto fStartSecond =
-		  pSong->m_SongTiming.WhereUAtBro(change.m_fStartBeat);
+		  pSong->m_SongTiming.GetTimeFromBeatFast(change.m_fStartBeat);
 
 		/* This is affected by the music rate. */
 		fDeltaTime = fCurrentTime - fStartSecond;

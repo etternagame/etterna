@@ -776,7 +776,7 @@ float
 GameState::GetSongPercent(float beat) const
 {
 	// 0 = first step; 1 = last step
-	float curTime = this->m_pCurSong->m_SongTiming.WhereUAtBro(beat);
+	float curTime = this->m_pCurSong->m_SongTiming.GetTimeFromBeatFast(beat);
 	return (curTime - m_pCurSong->GetFirstSecond()) /
 		   m_pCurSong->GetLastSecond();
 }

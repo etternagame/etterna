@@ -85,10 +85,9 @@ AutoKeysounds::LoadAutoplaySoundsInto(RageSoundReader_Chain* pChain)
 			if (tn.iKeysoundIndex >= 0) {
 				auto sKeysoundFilePath =
 				  sSongDir + pSong->m_vsKeysoundFile[tn.iKeysoundIndex];
-				auto fSeconds =
-				  GAMESTATE->m_pCurSteps->GetTimingData()->WhereUAtBroNoOffset(
-					NoteRowToBeat(iRow)) +
-				  SOUNDMAN->GetPlayLatency();
+				auto fSeconds = GAMESTATE->m_pCurSteps->GetTimingData()
+								  ->GetTimeFromRowFastNoOffset(iRow) +
+								SOUNDMAN->GetPlayLatency();
 
 				float fPan = 0;
 				auto iIndex = pChain->LoadSound(sKeysoundFilePath);
