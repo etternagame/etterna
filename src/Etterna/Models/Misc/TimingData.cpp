@@ -1616,6 +1616,19 @@ class LunaTimingData : public Luna<TimingData>
 		return 1;
 	}
 
+	static int GetElapsedTimeFromBeatNoOffset(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->GetTimeFromBeatFastNoOffset(FArg(1)));
+		return 1;
+	}
+
+	static int GetElapsedTimeFromNoteRowNoOffset(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->GetTimeFromRowFastNoOffset(IArg(1)));
+		return 1;
+	}
+
+
 	LunaTimingData()
 	{
 		ADD_METHOD(HasStops);
@@ -1644,6 +1657,8 @@ class LunaTimingData : public Luna<TimingData>
 		ADD_METHOD(GetBeatFromElapsedTime);
 		ADD_METHOD(GetElapsedTimeFromBeat);
 		ADD_METHOD(GetElapsedTimeFromNoteRow);
+		ADD_METHOD(GetElapsedTimeFromBeatNoOffset);
+		ADD_METHOD(GetElapsedTimeFromNoteRowNoOffset);
 	}
 };
 
