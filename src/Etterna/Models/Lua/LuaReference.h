@@ -1,4 +1,4 @@
-﻿#ifndef LUA_REFERENCE_H
+#ifndef LUA_REFERENCE_H
 #define LUA_REFERENCE_H
 
 #include "Etterna/Singletons/LuaManager.h"
@@ -100,6 +100,7 @@ class LuaReference
 };
 
 using apActorCommands = std::shared_ptr<LuaReference>;
+static LuaReference EMPTY_REFERENCE = LuaReference();
 
 class LuaTable : public LuaReference
 {

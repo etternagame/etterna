@@ -42,7 +42,6 @@
 using namespace rapidjson;
 
 std::shared_ptr<DownloadManager> DLMAN = nullptr;
-LuaReference DownloadManager::EMPTY_REFERENCE = LuaReference();
 
 static int imagesDownloaded = 0;
 

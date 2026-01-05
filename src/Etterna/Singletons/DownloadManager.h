@@ -710,9 +710,6 @@ class DownloadManager
 	std::string countryCode{ "" };
 
   private:
-	/// Default empty reference for calls allowing Lua functions to be passed
-	static LuaReference EMPTY_REFERENCE;
-
 	// Events
 	void OnLogin();
 
