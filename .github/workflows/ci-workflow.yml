@@ -440,7 +440,7 @@ jobs:
       
       - name: Install openSSL (i386)
         if: ${{ matrix.cfg.arch == 'x86' }}
-        run: msiexec /i https://slproweb.com/download/Win32OpenSSL-3_5_1.msi /quiet
+        run: choco install openssl -y --x86
 
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
@@ -448,11 +448,12 @@ jobs:
 
       - name: Install openSSL (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
-        run: choco install openssl --version=3.5.1 -y
+        run: choco install openssl -y
       
+      #TODO: Also print Python install logs, more?
       - name: Print Install Failures (if present)
         if: ${{ failure() }}
-        run: type C:\ProgramData\chocolatey\logs\chocolatey.log && exit 1 #TODO: Also print Python install logs, more?
+        run: type C:\ProgramData\chocolatey\logs\chocolatey.log && exit 1
 
       - name: Configure MSBuild
         uses: ilammy/msvc-dev-cmd@v1
