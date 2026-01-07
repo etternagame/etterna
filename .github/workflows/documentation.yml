@@ -30,6 +30,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Update apt
         run: "sudo apt-get update"
+      - name: Install OpenSSL 3.5
+        run: mkdir -p tmp/openssl && cd tmp/openssl && wget https://github.com/openssl/openssl/releases/download/openssl-3.5.1/openssl-3.5.1.tar.gz && tar -xf openssl-3.5.1.tar.gz && cd openssl-3.5.1 && ./Configure --prefix="${HOME}/toolchain" && make -j `nproc` && make test -j `nproc` && sudo make install
       - name: Install Ldoc
         run: "bash ./.ci/install_ldoc.sh"
       - name: Generate LDoc/Doxygen configs
