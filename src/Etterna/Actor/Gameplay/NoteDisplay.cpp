@@ -803,12 +803,15 @@ NoteDisplay::DrawReplayActors(const TapNote& tn,
 				const auto offsetBeat =
 					td->GetBeatFromElapsedTime(offsetSec + curSec);
 
+				const auto reverse_percent = m_pPlayerState->m_PlayerOptions.GetCurrent().GetReversePercentForColumn(column_args.column);
+				const auto reverse_ydiff_mult = (1 - 2 * reverse_percent);
+
 				const auto fYOffset = ArrowEffects::GetYOffset(
 					m_pPlayerState, column_args.column, offsetBeat);
 				const auto perfectYOffset =
 					ArrowEffects::GetYOffset(m_pPlayerState,
 											column_args.column, NoteRowToBeat(row));
-				const auto ydiff = perfectYOffset - fYOffset;
+				const auto ydiff = (perfectYOffset - fYOffset) * reverse_ydiff_mult;
 
 				if (ydiff < 0) {
 					replay_offset_body->SetVertAlign(1);
