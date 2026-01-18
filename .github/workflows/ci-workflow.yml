@@ -226,7 +226,7 @@ jobs:
         run: brew install cmake nasm ninja openssl
 
       - name: Setup Python 2.7
-        uses: MatteoH2O1999/setup-python@v1.4.1
+        uses: MatteoH2O1999/setup-python@v6
         with:
           python-version: '2.7'
 
@@ -431,7 +431,7 @@ jobs:
           python-version: '3.12'
           
       - name: Setup Python 2.7
-        uses: MatteoH2O1999/setup-python@v1.4.1
+        uses: MatteoH2O1999/setup-python@v6
         with:
           python-version: '2.7'
 
