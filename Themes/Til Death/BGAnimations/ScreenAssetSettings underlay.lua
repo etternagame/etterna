@@ -339,12 +339,12 @@ local function assetBox(i)
 					self:GetChild("SelectedAssetIndicator"):playcommand("Set")
 					if i == curIndex then
 						self:GetChild("Image"):finishtweening()
-						self:GetChild("Image"):zoomto(assetHeight+8,assetWidth+8)
-						self:GetChild("Border"):zoomto(assetHeight+12,assetWidth+12)
+						self:GetChild("Image"):zoomto(assetWidth+8,assetHeight+8)
+						self:GetChild("Border"):zoomto(assetWidth+12,assetHeight+12)
 						self:GetChild("Border"):diffuse(getMainColor("highlight")):diffusealpha(0.8)
 					else
-						self:GetChild("Image"):zoomto(assetHeight,assetWidth)
-						self:GetChild("Border"):zoomto(assetHeight+4,assetWidth+4)
+						self:GetChild("Image"):zoomto(assetWidth,assetHeight)
+						self:GetChild("Border"):zoomto(assetWidth+4,assetHeight+4)
 						self:GetChild("Border"):diffuse(getMainColor("positive")):diffusealpha(0)
 					end
 

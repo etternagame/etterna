@@ -587,10 +587,10 @@ local function assetList()
                         self:GetChild("SelectedAssetIndicator"):playcommand("Set")
                         if i == curIndex then
                             self:GetChild("Image"):finishtweening()
-                            self:GetChild("Border"):zoomto(assetHeight+12,assetWidth+12)
+                            self:GetChild("Border"):zoomto(assetWidth+12,assetWidth+12)
                             self:GetChild("Border"):diffuse(COLORS:getColor("assetSettings", "HoveredItem")):diffusealpha(0.8)
                         else
-                            self:GetChild("Border"):zoomto(assetHeight+4,assetWidth+4)
+                            self:GetChild("Border"):zoomto(assetWidth+4,assetHeight+4)
                             self:GetChild("Border"):diffuse(COLORS:getColor("assetSettings", "HoveredItem")):diffusealpha(0)
                         end
     
