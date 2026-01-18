@@ -437,7 +437,12 @@ jobs:
 
       - name: Install chocolatey packages (i386)
         if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install ninja nsis curl -y --x86
+        run: choco install ninja nsis -y --x86
+
+      # the last win32 curl version is 8.15.0
+      - name: Install curl (i386)
+        if: ${{ matrix.cfg.arch == 'x86' }}
+        run: choco install curl -y --x86 --version=8.15.0
       
       - name: Install openSSL (i386)
         if: ${{ matrix.cfg.arch == 'x86' }}
