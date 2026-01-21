@@ -97,6 +97,7 @@ PlayerOptions::Init()
 	m_SpeedfRandomSpeed = 1.0f;
 	ZERO(m_bTurns);
 	ZERO(m_bTransforms);
+	m_bForceHoldReleases = false;
 	m_bMuteOnError = false;
 	m_bPractice = false;
 	m_sNoteSkin = "";
@@ -143,6 +144,7 @@ PlayerOptions::Approach(const PlayerOptions& other, float fDeltaSeconds)
 	for (auto i = 0; i < NUM_TRANSFORMS; i++)
 		DO_COPY(m_bTransforms[i]);
 	DO_COPY(m_bMuteOnError);
+	DO_COPY(m_bForceHoldReleases);
 	DO_COPY(m_FailType);
 	DO_COPY(m_MinTNSToHideNotes);
 	DO_COPY(m_sNoteSkin);
@@ -264,6 +266,7 @@ PlayerOptions::GetMods(std::vector<std::string>& AddTo, bool bForceNoteSkin) con
 	AddPart(AddTo, m_fRandAttack, "RandomAttacks");
 	AddPart(AddTo, m_fNoAttack, "NoAttacks");
 	AddPart(AddTo, m_fPlayerAutoPlay, "PlayerAutoPlay");
+	AddPart(AddTo, m_bForceHoldReleases, "HoldReleases");
 
 	AddPart(AddTo, m_fPassmark, "Passmark");
 
@@ -698,6 +701,8 @@ PlayerOptions::FromOneModString(const std::string& sOneMod,
 		SET_FLOAT(fNoAttack)
 	else if (sBit == "playerautoplay")
 		SET_FLOAT(fPlayerAutoPlay)
+	else if (sBit == "holdreleases")
+		m_bForceHoldReleases = on;
 	else if (sBit == "passmark" && (forReplay || !DLMAN->InGameplay()))
 		SET_FLOAT(fPassmark)
 	else if (sBit == "overhead") {
@@ -1004,6 +1009,7 @@ PlayerOptions::operator==(const PlayerOptions& other) const
 	COMPARE(m_fPlayerAutoPlay);
 	COMPARE(m_fPerspectiveTilt);
 	COMPARE(m_fSkew);
+	COMPARE(m_bForceHoldReleases);
 	// The noteskin name needs to be compared case-insensitively because the
 	// manager forces lowercase, but some obscure part of PlayerOptions
 	// uppercases the first letter.  The previous code that used != probably
@@ -1055,6 +1061,7 @@ PlayerOptions::operator=(PlayerOptions const& other)
 	CPY_SPEED(fPlayerAutoPlay);
 	CPY_SPEED(fPerspectiveTilt);
 	CPY_SPEED(fSkew);
+	CPY(m_bForceHoldReleases);
 	if (!other.m_sNoteSkin.empty() &&
 		NOTESKIN->DoesNoteSkinExist(other.m_sNoteSkin)) {
 		CPY(m_sNoteSkin);
@@ -1208,6 +1215,9 @@ PlayerOptions::GetInvalidatingModifiers() const
 {
 	std::vector<std::string> AddTo;
 
+	if (m_bForceHoldReleases)
+		AddTo.push_back("HoldReleases");
+
 	if (m_bTurns[TURN_BACKWARDS])
 		AddTo.push_back("Backwards");
 	if (m_bTurns[TURN_LEFT])
@@ -1318,6 +1328,7 @@ PlayerOptions::GetSavedPrefsString() const
 	SAVE(m_DrainType);
 	SAVE(m_BatteryLives);
 	SAVE(m_FailType);
+	SAVE(m_bForceHoldReleases);
 #undef SAVE
 	return po_prefs.GetString();
 }
@@ -1363,6 +1374,7 @@ PlayerOptions::ResetPrefs(ResetPrefsType type)
 	CPY(m_fDark);
 	CPY(m_fBlind);
 	CPY(m_fCover);
+	CPY(m_bForceHoldReleases);
 	// Don't clear this.
 	// CPY( m_sNoteSkin );
 #undef CPY
@@ -1493,6 +1505,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 	SECBOOL_INTERFACE(NoStretch,
 					  Transforms[PlayerOptions::TRANSFORM_NOSTRETCH]);
 	BOOL_INTERFACE(MuteOnError, MuteOnError);
+	SECBOOL_INTERFACE(HoldReleases, ForceHoldReleases);
 	SECENUM_INTERFACE(FailSetting, FailType, FailType);
 	ENUM_INTERFACE(MinTNSToHideNotes, MinTNSToHideNotes, TapNoteScore);
 
@@ -1760,8 +1773,15 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 
 	static int FromString(T* p, lua_State* L)
 	{
-		p->FromString(SArg(1));
-		COMMON_RETURN_SELF;
+		if (DLMAN->InGameplay()) {
+			Locator::getLogger()->warn(
+			  "Attempted to use PlayerOptions::FromString illegally - {}",
+			  SArg(1));
+			COMMON_RETURN_SELF;
+		} else {
+			p->FromString(SArg(1));
+			COMMON_RETURN_SELF;
+		}
 	}
 
 	LunaPlayerOptions()
@@ -1852,6 +1872,7 @@ class LunaPlayerOptions : public Luna<PlayerOptions>
 		ADD_METHOD(NoQuads);
 		ADD_METHOD(NoStretch);
 		ADD_METHOD(MuteOnError);
+		ADD_METHOD(HoldReleases);
 		// ADD_METHOD(PracticeMode); -- To Restrict theme access to practice
 		// mode
 		ADD_METHOD(UsingPractice);

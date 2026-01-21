@@ -422,6 +422,9 @@ Player::Init(const std::string& sType,
 	lastHoldHeadsSeconds.resize(
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_iColsPerPlayer);
+	activeHoldTaps.resize(
+	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
+		->m_iColsPerPlayer);
 	for (auto i = 0;
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
@@ -432,6 +435,7 @@ Player::Init(const std::string& sType,
 		// and also it gets changed back to a realistic number after a hold is
 		// hit -poco
 		lastHoldHeadsSeconds[i] = -1000.F;
+		activeHoldTaps[i] = nullptr;
 	}
 
 	if (HasVisibleParts()) {
@@ -908,6 +912,7 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 			lastHoldHeadsSeconds[iTrack] =
 			  max(lastHoldHeadsSeconds[iTrack],
 				  m_Timing->GetTimeFromRowFast(iRow + tn.iDuration));
+			activeHoldTaps[iTrack] = &tn;
 
 			/* All holds must be of the same subType because fLife is handled
 			 * in different ways depending on the SubType. Handle Rolls one at
@@ -1892,6 +1897,30 @@ Player::Step(int col,
 							   : GAMESTATE->m_Position.m_fSongBeat;
 
 	const auto iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
+
+	// instant-judge holds that are released close enough to the head
+	if (bRelease && col != -1 && lastHoldHeadsSeconds[col] > fMusicSeconds &&
+		m_pPlayerState->m_PlayerOptions.GetCurrent().m_bForceHoldReleases &&
+		activeHoldTaps[col]->subType == TapNoteSubType_Hold &&
+		NeedsHoldJudging(*activeHoldTaps[col])) {
+		const auto offset =
+		  fabsf((lastHoldHeadsSeconds[col] - fMusicSeconds) / fMusicRate);
+		activeHoldTaps[col]->HoldResult.bHeld = false;
+		if (offset <= GetWindowSeconds(TW_W3)) {
+			// safe
+			activeHoldTaps[col]->HoldResult.bActive = false;
+			activeHoldTaps[col]->HoldResult.hns = HNS_Held;
+			activeHoldTaps[col]->HoldResult.fLife = 1.F;
+		}
+		else {
+			// no
+			activeHoldTaps[col]->HoldResult.bActive = false;
+			activeHoldTaps[col]->HoldResult.hns = HNS_LetGo;
+			activeHoldTaps[col]->HoldResult.fLife = 0;
+		}
+		SetHoldJudgment(*activeHoldTaps[col], col, iSongRow);
+		HandleHoldScore(*activeHoldTaps[col]);
+	}
 
 	if (col != -1 && !bRelease) {
 		// Update roll life

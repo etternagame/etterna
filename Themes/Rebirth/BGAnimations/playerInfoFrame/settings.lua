@@ -298,6 +298,8 @@ local translations = {
     RemoveModsExplanation = THEME:GetString("Settings", "RemoveModsExplanation"),
     InsertMods = THEME:GetString("Settings", "InsertMods"),
     InsertModsExplanation = THEME:GetString("Settings", "InsertModsExplanation"),
+    HoldReleases = THEME:GetString("Settings", "HoldReleases"),
+    HoldReleasesExplanation = THEME:GetString("Settings", "HoldReleasesExplanation"),
     BPMDisplay = THEME:GetString("Settings", "BPMDisplay"),
     BPMDisplayExplanation = THEME:GetString("Settings", "BPMDisplayExplanation"),
     RateDisplay = THEME:GetString("Settings", "RateDisplay"),
@@ -4837,7 +4839,39 @@ local function rightFrame()
                     if po:Skippy() then o[5] = true end
                     return o
                 end,
-            }
+            },
+            {
+                Name = "HoldReleases",
+                DisplayName = translations["HoldReleases"],
+                Type = "SingleChoice",
+                Explanation = translations["HoldReleasesExplanation"],
+                Choices = {
+                    {
+                        Name = "On",
+                        DisplayName = translations["On"],
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("HoldReleases", true)
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        DisplayName = translations["Off"],
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("HoldReleases", false)
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    if po:HoldReleases() then
+                        -- hold releases, invalidating
+                        return 1
+                    else
+                        -- regular holds, not invalidating
+                        return 2
+                    end
+                end,
+            },
         },
         --
         -----
