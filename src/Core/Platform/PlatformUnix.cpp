@@ -278,7 +278,6 @@ namespace Core::Platform {
 
 			XDefineCursor(X11Helper::Dpy, X11Helper::Win, pBlankCursor.value());
     	}
-        //Locator::getLogger()->warn("Core::Platform::setCursorVisible not implemented");
     }
 
     ghc::filesystem::path getExecutableDirectory(){
