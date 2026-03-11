@@ -203,6 +203,213 @@ local t = Def.ActorFrame {
     InitCommand = function(self)
         local hid = false
         if not extraFeatures then return end -- no extra features: dont add the hover
+
+        -- when relevant, is a table of start and end
+        local clickdraggyregion = nil
+
+        local replayVectorsMapToMakeItNotSuck = {}
+
+        local function showTextForRows(td, rowL, rowR)
+            local replay = REPLAYS:GetActiveReplay()
+
+            local snapshotL = replay:GetReplaySnapshotForNoterow(rowL)
+            local snapshotR = replay:GetReplaySnapshotForNoterow(rowR)
+
+            local judgments = snapshotL:GetJudgments()
+            local timeL = (td:GetElapsedTimeFromNoteRow(rowL))
+
+            local marvCountL = judgments["W1"]
+            local perfCountL = judgments["W2"]
+            local greatCountL = judgments["W3"]
+            local goodCountL = judgments["W4"]
+            local badCountL = judgments["W5"]
+            local missCountL = judgments["Miss"]
+
+            local judgmentsR = snapshotR:GetJudgments()
+            local timeR = (td:GetElapsedTimeFromNoteRow(rowR))
+
+            local marvCountR = judgmentsR["W1"]
+            local perfCountR = judgmentsR["W2"]
+            local greatCountR = judgmentsR["W3"]
+            local goodCountR = judgmentsR["W4"]
+            local badCountR = judgmentsR["W5"]
+            local missCountR = judgmentsR["Miss"]
+
+            local marvCount = marvCountR - marvCountL
+            local perfCount = perfCountR - perfCountL
+            local greatCount = greatCountR - greatCountL
+            local goodCount = goodCountR - goodCountL
+            local badCount = badCountR - badCountL
+            local missCount = missCountR - missCountL
+            local time = SecondsToHHMMSS(timeR - timeL)
+
+            if replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()] == nil then
+                replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()] = {
+                    noterows = replay:GetNoteRowVector(),
+                    offsets = replay:GetOffsetVector(),
+                    holds = replay:GetHoldNoteVector(),
+                    mines = replay:GetMineHitVector(),
+                    misses = replay:GetMissDataVector(),
+                }
+            end
+
+            local offsetsV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].offsets
+            if offsetsV == nil or #offsetsV == 0 then
+                return "it didnt work"
+            end
+            local noterowsV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].noterows
+            local holdsV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].holds
+            local minesV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].mines
+            local missV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].misses
+
+            local maxwifescore = 0
+            local curwifescore = 0
+            local taps = 0
+            local running_mean = 0.0
+            local running_variance = 0.0
+
+            local maxtapworthFunc = nil
+            local missworthFunc = nil
+            local mineworthFunc = nil
+            local holdWorthFunc = nil
+            local judgfunc = nil
+            if usingCustomWindows then
+                local config = customWindowsConfig:get_data().customWindowConfigs[getCurrentCustomWindowConfig()]
+                if config["customWindowTapNoteTypeWorths"] ~= nil then
+                    maxtapworthFunc = function()
+                        return config["customWindowTapNoteTypeWorths"]["Tap"] or 2
+                    end
+                end
+                if config["customWindowCurveFunction"] ~= nil then
+                    judgfunc = function(offset, tapnotescore, judgescaler)
+                        return config["customWindowCurveFunction"](math.abs(offset) / 1000) or 0
+                    end
+                elseif config["customWindowWorths"] ~= nil then
+                    judgfunc = function(offset, tapnotescore, judgescaler)
+                        local judgment = REPLAYS:RunOffsetJudgingFunction(offset/1000, judgescaler)
+                        local fallbackTable = {
+                            TapNoteScore_W1 = config.customWindowWorths["W1"] or 2,
+                            TapNoteScore_W2 = config.customWindowWorths["W2"] or 2,
+                            TapNoteScore_W3 = config.customWindowWorths["W3"] or 1,
+                            TapNoteScore_W4 = config.customWindowWorths["W4"] or 0,
+                            TapNoteScore_W5 = config.customWindowWorths["W5"] or -4,
+                            TapNoteScore_Miss = config.customWindowWorths["Miss"] or -8,
+                        }
+                        return fallbackTable[judgment] or maxtapworthFunc()
+                    end
+                end
+                if config["customWindowHoldWorths"] ~= nil then
+                    holdWorthFunc = function(hns)
+                        local fallbackTable = {
+                            HoldNoteScore_Held = config.customWindowHoldWorths and config.customWindowHoldWorths["Held"] or 0,
+                            HoldNoteScore_LetGo = config.customWindowHoldWorths and config.customWindowHoldWorths["LetGo"] or -4.5,
+                            HoldNoteScore_Missed = config.customWindowHoldWorths and config.customWindowHoldWorths["Missed"] or -4.5,
+                        }
+                        return fallbackTable[hns] or 0
+                    end
+                end
+                if config["customWindowMineHitWorth"] ~= nil then
+                    mineworthFunc = function()
+                        return config.customWindowMineHitWorth
+                    end
+                end
+            end
+            if judgfunc == nil then
+                judgfunc = function(offset, tapnotescore, judgescaler)
+                    return wife3(math.abs(offset), judgescaler)
+                end
+            end
+            if holdWorthFunc == nil then
+                holdWorthFunc = function(hns)
+                    return hns == "HoldNoteScore_Held" and 0 or -4.5
+                end
+            end
+            if mineworthFunc == nil then
+                mineworthFunc = function() return -7 end
+            end
+            if maxtapworthFunc == nil then
+                maxtapworthFunc = function() return 2 end
+            end
+
+            local function jstr(tns)
+                if usingCustomWindows then
+                    return getCustomWindowConfigJudgmentName(tns)
+                else
+                    return getJudgeStrings(tns)
+                end
+            end
+
+
+            local addedMisses = 0 -- sometimes misses are in replaydata and not missdata, never both
+            local missedRows = 0
+            for i=1, #noterowsV do
+                local nr = noterowsV[i]
+                if nr >= rowL and nr <= rowR then
+                    local offset = offsetsV[i]
+                    if math.abs(offsetsV[i]) > 180 then
+                        addedMisses = addedMisses + 1
+                    else
+
+                        taps = taps + 1
+
+                        maxwifescore = maxwifescore + maxtapworthFunc()
+                        curwifescore = curwifescore + judgfunc(offsetsV[i], nil, timingScale)
+
+                        local delta = offset - running_mean
+                        running_mean = running_mean + (delta / taps)
+                        local delta2 = offset - running_mean
+                        running_variance = running_variance + (delta * delta2)
+                    end
+                elseif nr > rowR then
+                    missedRows = missedRows + 1
+                    -- dont waste time
+                    if missedRows > 10 then break end
+                end
+            end
+
+            -- subtract the missed or dropped holds
+            for i,v in ipairs(holdsV) do
+                if v.row >= rowL and v.row <= rowR then
+                    curwifescore = curwifescore + holdWorthFunc("HoldNoteScore_LetGo")
+                end
+            end
+            -- subtract the misses
+            for i,v in ipairs(missV) do
+                if v.row >= rowL and v.row <= rowR then
+                    curwifescore = curwifescore + judgfunc(1000, nil, timingScale)
+                    maxwifescore = maxwifescore + maxtapworthFunc()
+                end
+            end
+            curwifescore = curwifescore + judgfunc(1000, nil, timingScale) * addedMisses
+            maxwifescore = maxwifescore + maxtapworthFunc() * addedMisses
+            -- subtract the mines
+            for i,v in ipairs(minesV) do
+                if v.row >= rowL and v.row <= rowR then
+                    curwifescore = curwifescore + mineworthFunc()
+                end
+            end
+
+            local finalWife = maxwifescore > 0 and (curwifescore / maxwifescore) * 100 or 0
+            local finalSD = taps > 1 and (math.sqrt(running_variance / (taps - 1))) or 0
+            local finalMean = running_mean
+
+            -- excessively long string format for translation support
+            local txt = string.format(
+                "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2f%s\n%s: %0.2f%s\n%s: %s",
+                finalWife,
+                jstr("TapNoteScore_W1"), marvCount,
+                jstr("TapNoteScore_W2"), perfCount,
+                jstr("TapNoteScore_W3"), greatCount,
+                jstr("TapNoteScore_W4"), goodCount,
+                jstr("TapNoteScore_W5"), badCount,
+                jstr("TapNoteScore_Miss"), missCount,
+                translations["StandardDeviation"], finalSD, translations["Milliseconds"],
+                translations["Mean"], finalMean, translations["Milliseconds"],
+                translations["Time"], time
+            )
+            return txt
+        end
+
         self:SetUpdateFunction(function()
             local bg = self:GetChild("BG")
             if isOver(bg) then
@@ -221,35 +428,31 @@ local t = Def.ActorFrame {
                 local lastsec = GAMESTATE:GetCurrentSteps():GetLastSecond()
                 local row = td:GetBeatFromElapsedTime(percent * lastsec) * 48
 
-                local replay = REPLAYS:GetActiveReplay()
-                local snapshot = replay:GetReplaySnapshotForNoterow(row)
-                local judgments = snapshot:GetJudgments()
-                local wifescore = snapshot:GetWifePercent() * 100
-                local time = SecondsToHHMMSS(td:GetElapsedTimeFromNoteRow(row))
-                local mean = snapshot:GetMean()
-                local sd = snapshot:GetStandardDeviation()
+                if INPUTFILTER:IsBeingPressed("left mouse button", "Mouse") then
+                    if clickdraggyregion == nil then
+                        MESSAGEMAN:Broadcast("ClickyThingUpdated", {left = x})
+                        MESSAGEMAN:Broadcast("ClickyThingUpdated", {right = x})
+                        clickdraggyregion = {row, row}
+                    end
+                    
+                    if row < clickdraggyregion[1] then
+                        clickdraggyregion[1] = row
+                        MESSAGEMAN:Broadcast("ClickyThingUpdated", {left = x})
+                    elseif row > clickdraggyregion[2] then
+                        clickdraggyregion[2] = row
+                        MESSAGEMAN:Broadcast("ClickyThingUpdated", {right = x})
+                    end
+                elseif INPUTFILTER:IsBeingPressed("right mouse button", "Mouse") then
+                    clickdraggyregion = nil
+                    MESSAGEMAN:Broadcast("ClickyThingUpdated")
+                end
 
-                local marvCount = judgments["W1"]
-                local perfCount = judgments["W2"]
-                local greatCount = judgments["W3"]
-                local goodCount = judgments["W4"]
-                local badCount = judgments["W5"]
-                local missCount = judgments["Miss"]
-
-                -- excessively long string format for translation support
-                local txt = string.format(
-                    "%5.6f%%\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %d\n%s: %0.2f%s\n%s: %0.2f%s\n%s: %s",
-                    wifescore,
-                    getJudgeStrings("TapNoteScore_W1"), marvCount,
-                    getJudgeStrings("TapNoteScore_W2"), perfCount,
-                    getJudgeStrings("TapNoteScore_W3"), greatCount,
-                    getJudgeStrings("TapNoteScore_W4"), goodCount,
-                    getJudgeStrings("TapNoteScore_W5"), badCount,
-                    getJudgeStrings("TapNoteScore_Miss"), missCount,
-                    translations["StandardDeviation"], sd, translations["Milliseconds"],
-                    translations["Mean"], mean, translations["Milliseconds"],
-                    translations["Time"], time
-                )
+                local txt = ""
+                if clickdraggyregion ~= nil then
+                    txt = showTextForRows(td, clickdraggyregion[1], clickdraggyregion[2])
+                else
+                    txt = showTextForRows(td, 0, row)
+                end
 
                 local mp = self:GetChild("MousePosition")
                 mp:visible(true)
@@ -327,6 +530,43 @@ if extraFeatures then
             self:smooth(resizeAnimationSeconds)
             self:zoomy(sizing.Height)
         end
+    }
+    t[#t+1] = Def.Quad {
+        Name = "ClickDraggyHoverRegion",
+        InitCommand = function(self)
+            self:valign(0)
+            self:halign(0)
+            self:diffuse(color("#009900"))
+            self:diffusealpha(0.3)
+            self:zoomx(1)
+            self:playcommand("UpdateSizing")
+            self:finishtweening()
+        end,
+        UpdateSizingCommand = function(self)
+            self:finishtweening()
+            self:smooth(resizeAnimationSeconds)
+            self:zoomy(sizing.Height)
+        end,
+        ClickyThingUpdatedMessageCommand = function(self, params)
+            if params == nil then
+                self:zoomx(0)
+                self:x(0)
+                self:visible(false)
+                return
+            else
+                self:visible(true)
+            end
+            if params.left ~= nil then
+                local prevWidth = self:GetZoomX()
+                local prevX = self:GetX()
+                local diffWidth = prevX - params.left
+                self:x(params.left)
+                self:zoomx(prevWidth + diffWidth)
+            end
+            if params.right ~= nil then
+                self:zoomx(params.right - self:GetX())
+            end
+        end,
     }
 end
 
