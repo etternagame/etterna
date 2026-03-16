@@ -994,7 +994,7 @@ t[#t + 1] =
 		end
 		self:x(MovableValues.BPMTextX):y(MovableValues.BPMTextY):zoom(MovableValues.BPMTextZoom)
 		BPM = self:GetChild("BPM")
-		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then -- dont bother updating for single bpm files
+		if #GAMESTATE:GetCurrentSteps():GetTimingData():GetBPMs() > 1 then -- dont bother updating for single bpm files
 			self:SetUpdateFunction(UpdateBPM)
 			self:SetUpdateRate(0.5)
 		else
@@ -1019,7 +1019,7 @@ t[#t + 1] =
 	-- basically a copy of the init
 	CurrentRateChangedMessageCommand = function(self)
 		r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
-		if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then
+		if #GAMESTATE:GetCurrentSteps():GetTimingData():GetBPMs() > 1 then
 			self:SetUpdateFunction(UpdateBPM)
 			self:SetUpdateRate(0.5)
 		else
