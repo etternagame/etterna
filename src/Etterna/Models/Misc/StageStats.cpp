@@ -19,8 +19,9 @@
 #include "Etterna/Singletons/GameManager.h"
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
 
-#if !( defined(_WIN32) || defined(__APPLE__))
-	#include <cpuid.h> //We only use cpuid.h on Linux :)
+#if !( defined(_WIN32) || defined(__APPLE__)) \
+    && (defined(__x86_64__) || defined(__i386__))
+	#include <cpuid.h> //We only use cpuid.h on x86 Linux :)
 #endif
 
 #ifdef _WIN32
@@ -236,6 +237,8 @@ getCpuHash()
 
 #else  // !DARWIN
 
+#if defined(__x86_64__) || defined(__i386__)
+
 uint16_t
 getCpuHash()
 {
@@ -248,6 +251,22 @@ getCpuHash()
 
 	return hash;
 }
+
+#else // !x86
+
+uint16_t
+getCpuHash()
+{
+	// https://www.kernel.org/doc/html/v6.17/arch/arm64/cpu-feature-registers.html
+	uint64_t midr = 0;
+	asm("mrs %0, MIDR_EL1" : "=r"(midr));
+
+	// Only leave implementer, variant, and architecture bits.
+	// See https://developer.arm.com/documentation/ddi0601/2025-09/AArch64-Registers/MIDR-EL1--Main-ID-Register?lang=en
+	return midr >> 16;
+}
+
+#endif // !x86
 #endif // !DARWIN
 
 std::string
