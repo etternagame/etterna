@@ -2,9 +2,11 @@
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "Etterna/Globals/global.h"
+#include "archutils/Unix/X11Helper.h"
 
 #include <fmt/format.h>
 
+#include <optional>
 #include <string>
 #include <fstream>
 
@@ -259,7 +261,23 @@ namespace Core::Platform {
     }
 
     void setCursorVisible(bool value){
-        Locator::getLogger()->warn("Core::Platform::setCursorVisible not implemented");
+		static std::optional<Cursor> pBlankCursor{};
+
+    	if(value) {
+			XUndefineCursor(X11Helper::Dpy, X11Helper::Win);
+    	} else {
+    		if(!pBlankCursor.has_value()) {
+				const char pBlank[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+				Pixmap BlankBitmap = XCreateBitmapFromData(X11Helper::Dpy, X11Helper::Win, pBlank, 8, 8);
+
+				XColor black = { 0, 0, 0, 0, 0, 0 };
+				pBlankCursor = XCreatePixmapCursor(
+			  		X11Helper::Dpy, BlankBitmap, BlankBitmap, &black, &black, 0, 0);
+				XFreePixmap(X11Helper::Dpy, BlankBitmap);
+    		}
+
+			XDefineCursor(X11Helper::Dpy, X11Helper::Win, pBlankCursor.value());
+    	}
     }
 
     ghc::filesystem::path getExecutableDirectory(){
