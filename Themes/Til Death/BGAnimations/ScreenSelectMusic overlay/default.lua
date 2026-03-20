@@ -77,6 +77,8 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 	InitCommand = function(self)
 		self:xy(5, 32):halign(0):valign(1):zoom(0.55):diffuse(getMainColor("positive"))
 		self:settextf("%s:", THEME:GetString("ScreenSelectMusic", "Title"))
+		self.randex = 0
+		self.randlist = {}
 	end,
 	MouseOverCommand = function(self)
 		self:diffusealpha(hoverAlpha)
@@ -85,25 +87,40 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 		self:diffusealpha(1)
 	end,
 	MouseDownCommand = function(self, params)
-		if params.event == "DeviceButton_left mouse button" then
-			local w = SCREENMAN:GetTopScreen():GetMusicWheel()
+		local w = SCREENMAN:GetTopScreen():GetMusicWheel()
 
-			if INPUTFILTER:IsShiftPressed() and self.lastlastrandom ~= nil then
+		local function newrandsong()
+			local t = w:GetSongs()
+			if #t == 0 then return nil end
+			local random_song = t[math.random(#t)]
+			return random_song
+		end
+
+		if params.event == "DeviceButton_left mouse button" then
+			
+			if INPUTFILTER:IsShiftPressed() then
+				self.randex = self.randex - 1
+				if self.randex < 1 then
+					self.randex = 1
+					table.insert(self.randlist, 1, newrandsong())
+				end
+				local randsong = self.randlist[self.randex]
 
 				-- if the last random song wasnt filtered out, we can select it
 				-- so end early after jumping to it
-				if w:SelectSong(self.lastlastrandom) then
+				if w:SelectSong(randsong) then
 					return
 				end
 				-- otherwise, just pick a new random song
 			end
 
-			local t = w:GetSongs()
-			if #t == 0 then return end
-			local random_song = t[math.random(#t)]
-			w:SelectSong(random_song)
-			self.lastlastrandom = self.lastrandom
-			self.lastrandom = random_song
+			self.randex = self.randex + 1
+			if self.randex > #self.randlist then
+				self.randex = #self.randlist + 1
+				table.insert(self.randlist, newrandsong())
+			end
+			local randsong = self.randlist[self.randex]
+			w:SelectSong(randsong)
 		end
 	end
 }
