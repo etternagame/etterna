@@ -105,6 +105,7 @@ class IDebugLine
 	virtual std::string GetPageName() const { return "Main"; }
 	virtual bool ForceOffAfterUse() const { return false; }
 	virtual bool IsEnabled() = 0;
+	virtual bool AllowRepeatEvents() const { return false; }
 
 	virtual void DoAndLog(std::string& sMessageOut)
 	{
@@ -540,8 +541,14 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 		}
 
 		if (input.DeviceI == (*p)->m_Button) {
-			if (input.type != IET_FIRST_PRESS)
-				return true; // eat the input but do nothing
+			if (input.type == IET_FIRST_PRESS ||
+				(input.type == IET_REPEAT && (*p)->AllowRepeatEvents())) {
+				// allowed so do nothing and fall through
+				// way too lazy to figure out the right way to write this
+			} else {
+				// eat the input but do nothing
+				return true;
+			}
 
 			// do the action
 			std::string sMessage;
@@ -992,8 +999,11 @@ class DebugLineClearProfileStats : public IDebugLine
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
-		Profile* pProfile = PROFILEMAN->GetProfile(g_ProfileSlot);
-		pProfile->ClearStats();
+		//Profile* pProfile = PROFILEMAN->GetProfile(g_ProfileSlot);
+		//pProfile->ClearStats();
+		Locator::getLogger()->warn(
+		  "You tried to clear profile stats, but this doesn't work anymore. Go "
+		  "delete the profile manually");
 		IDebugLine::DoAndLog(sMessageOut);
 	}
 };
@@ -1338,6 +1348,7 @@ class DebugLineVolumeUp : public IDebugLine
 	}
 
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1356,6 +1367,7 @@ class DebugLineVolumeDown : public IDebugLine
 	std::string GetDisplayTitle() override { return VOLUME_DOWN.GetValue(); }
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1383,6 +1395,7 @@ class DebugLineVisualDelayUp : public IDebugLine
 	}
 
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1405,6 +1418,7 @@ class DebugLineVisualDelayDown : public IDebugLine
 
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1502,6 +1516,7 @@ class DebugLineGlobalOffsetUp : public IDebugLine
 
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1524,6 +1539,7 @@ class DebugLineGlobalOffsetDown : public IDebugLine
 
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 	std::string GetPageName() const override { return "Misc"; }
 
 	void DoAndLog(std::string& sMessageOut) override
