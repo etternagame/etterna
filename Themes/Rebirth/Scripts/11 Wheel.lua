@@ -282,14 +282,7 @@ Wheel.mt = {
             return nil
         end
     end,
-    findSongHelper = function(w, params, bIsShiftAllowed)
-        bIsShiftAllowed = bIsShiftAllowed or false -- nil replacement
-
-        if bIsShiftAllowed and INPUTFILTER:IsShiftPressed() and w.lastlastrandomkey ~= nil then
-            params.chartkey = w.lastlastrandomkey
-            params.group = w.lastlastgroup
-            params.song = nil
-        end
+    findSongHelper = function(w, params)
 
         -- internalized function which takes a parameter table, usually from a Command
         if params.chartkey ~= nil then
@@ -322,13 +315,6 @@ Wheel.mt = {
                 })
                 w.settled = true
 
-                if bIsShiftAllowed and not INPUTFILTER:IsShiftPressed() then
-                    w.lastlastgroup = w.lastgroup
-                    w.lastlastrandomkey = w.lastrandomkey
-                    w.lastrandomkey = params.chartkey
-                    w.lastgroup = w.group
-                end
-
                 return true
             end
         elseif params.song ~= nil then
@@ -359,13 +345,6 @@ Wheel.mt = {
                         maxIndex = #w.items,
                     })
                     w.settled = true
-
-                    if bIsShiftAllowed and not INPUTFILTER:IsShiftPressed() then
-                        w.lastlastgroup = w.lastgroup
-                        w.lastlastrandomkey = w.lastrandomkey
-                        w.lastrandomkey = GAMESTATE:GetCurrentSteps():GetChartKey()
-                        w.lastgroup = w.group
-                    end
 
                     return true
                 end
@@ -1255,7 +1234,7 @@ function MusicWheel:new(params)
     end
 
     w.FindSongCommand = function(self, params)
-        if not w:findSongHelper(params, true) and WHEELDATA:FindTheOnlySearchResult() ~= nil then
+        if not w:findSongHelper(params) and WHEELDATA:FindTheOnlySearchResult() ~= nil then
             -- sometimes the Song returned via searching by first found chartkey can be from a dupe key
             -- and the Song metadata doesnt fit the Filter
             -- in that case we know theres probably a valid result

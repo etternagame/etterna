@@ -1079,13 +1079,12 @@ t[#t+1] = Def.ActorFrame {
                 local scr = SCREENMAN:GetTopScreen()
                 if not params or params and params.event == "DeviceButton_left mouse button" then
                     -- full random
-                    local group = WHEELDATA:GetRandomFolder()
-                    local song = WHEELDATA:GetRandomSongInFolder(group)
+                    local song = WHEELDATA:GetRandomSongReversible(INPUTFILTER:IsShiftPressed())
                     scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
                 else
                     if openedGroup ~= nil and #openedGroup > 0 then
                         -- random song in group
-                        local song = WHEELDATA:GetRandomSongInFolder(openedGroup)
+                        local song = WHEELDATA:GetRandomSongInFolderReversible(openedGroup, INPUTFILTER:IsShiftPressed())
                         scr:GetChild("WheelFile"):playcommand("FindSong", {song = song, group = openedGroup})
                     else
                         -- when not in any group, get a random group

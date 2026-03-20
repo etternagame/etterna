@@ -46,6 +46,11 @@ function WHEELDATA.Reset(self)
         },
     }
 
+    self.RandomSongList = {} -- list of songs populated by GetRandomSongInFolder
+    self.RandomSongIndex = 0 -- current position in the RandomSongList
+    self.RandomFolderSongIndices = {} -- mapping of folder names to numbers like above
+    self.RandomFolderSongLists = {} -- mapping of folder names to song lists like above
+
     -- last generated list of WheelItems
     self.WheelItems = {}
 end
@@ -1933,6 +1938,47 @@ end
 -- getter for a random folder
 function WHEELDATA.GetRandomFolder(self)
     return self.AllFolders[math.random(#self.AllFolders)]
+end
+
+-- getter for a random song overall, supporting forward and reverse memory
+function WHEELDATA.GetRandomSongReversible(self, bReverse)
+    local diff = 1
+    if bReverse then diff = -1 end
+    self.RandomSongIndex = self.RandomSongIndex + diff
+
+    if self.RandomSongIndex < 1 then
+        self.RandomSongIndex = 1
+        local folder = self:GetRandomFolder()
+        table.insert(self.RandomSongList, 1, self:GetRandomSongInFolder(folder))
+    elseif self.RandomSongIndex > #self.RandomSongList then
+        self.RandomSongIndex = #self.RandomSongList + 1
+        local folder = self:GetRandomFolder()
+        table.insert(self.RandomSongList, self:GetRandomSongInFolder(folder))
+    end
+    return self.RandomSongList[self.RandomSongIndex]
+end
+
+-- getter for a random song in the given folder, supporting forward and reverse memory
+function WHEELDATA.GetRandomSongInFolderReversible(self, name, bReverse)
+    local diff = 1
+    if bReverse then diff = -1 end
+    if self.RandomFolderSongIndices[name] == nil then
+        self.RandomFolderSongIndices[name] = 0
+    end
+    if self.RandomFolderSongLists[name] == nil then
+        self.RandomFolderSongLists[name] = {}
+    end
+    self.RandomFolderSongIndices[name] = self.RandomFolderSongIndices[name] + diff
+
+    if self.RandomFolderSongIndices[name] < 1 then
+        self.RandomFolderSongIndices[name] = 1
+        table.insert(self.RandomFolderSongLists[name], 1, self:GetRandomSongInFolder(name))
+    elseif self.RandomFolderSongIndices[name] > #self.RandomFolderSongLists[name] then
+        self.RandomFolderSongIndices[name] = #self.RandomFolderSongLists[name] + 1
+        table.insert(self.RandomFolderSongLists[name], self:GetRandomSongInFolder(name))
+    end
+    
+    return self.RandomFolderSongLists[name][self.RandomFolderSongIndices[name]]
 end
 
 -- to simplify a lot of copy paste....

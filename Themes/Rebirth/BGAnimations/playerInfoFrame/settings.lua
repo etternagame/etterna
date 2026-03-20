@@ -3680,8 +3680,7 @@ local function rightFrame()
                             wheel:playcommand("SelectCurrent")
                         else
                             -- select random
-                            local group = WHEELDATA:GetRandomFolder()
-                            local song = WHEELDATA:GetRandomSongInFolder(group)
+                            local song = WHEELDATA:GetRandomSongReversible(false)
                             wheel:playcommand("FindSong", {song = song})
                             wheel:playcommand("SelectCurrent")
                         end
@@ -4148,8 +4147,7 @@ local function rightFrame()
                                 wheel:playcommand("SelectCurrent")
                             else
                                 -- select random
-                                local group = WHEELDATA:GetRandomFolder()
-                                local song = WHEELDATA:GetRandomSongInFolder(group)
+                                local song = WHEELDATA:GetRandomSongReversible(false)
                                 wheel:playcommand("FindSong", {song = song})
                                 wheel:playcommand("SelectCurrent")
                             end
