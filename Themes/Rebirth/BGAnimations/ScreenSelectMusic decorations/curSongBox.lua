@@ -138,12 +138,14 @@ t[#t+1] = Def.ActorFrame {
                 selectPressed = false
                 return
             end
-            if event.type == "InputEventType_FirstPress" then
-                if event.button == "EffectUp" or event.button == "EffectDown" then
-                    if event.button == "EffectUp" then
-                        lastratepresses[1] = GetTimeSinceStart()
-                    elseif event.button == "EffectDown" then
-                        lastratepresses[2] = GetTimeSinceStart()
+            if event.type == "InputEventType_FirstPress" or event.type == "InputEventType_Repeat" then
+                if event.type ~= "InputEventType_Repeat" then
+                    if event.button == "EffectUp" or event.button == "EffectDown" then
+                        if event.button == "EffectUp" then
+                            lastratepresses[1] = GetTimeSinceStart()
+                        elseif event.button == "EffectDown" then
+                            lastratepresses[2] = GetTimeSinceStart()
+                        end
                     end
                 end
                 local ratemash = math.abs(lastratepresses[1] - lastratepresses[2])
