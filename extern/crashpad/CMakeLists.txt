@@ -1,9 +1,27 @@
-# Crashpad needs google's depot_tools to be in the system path.
-# "gclient" is a binary known to be apart of depot_tools.
-find_program(GCLIENT
-    NAMES gclient gclient.bat
-    REQUIRED
-)
+include(FetchContent)
+
+# Here we only download depot_tools by using FetchContent. If the developer has
+# installed depot_tools on their own system and added it to path, this would
+# not be necessary, but for the sake of Etterna, it was added to keep build instruction
+# modification to a minimum. Unlike ExternalProject, FetchContent will download the
+# git repository *during project generation*.
+FetchContent_Declare(depot_tools
+	GIT_REPOSITORY https://chromium.googlesource.com/chromium/tools/depot_tools.git
+	GIT_TAG	main
+	GIT_PROGRESS TRUE
+	GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(depot_tools)
+FetchContent_GetProperties(depot_tools SOURCE_DIR DEPOT_TOOLS_DIR)
+
+if(WIN32)
+	set(GCLIENT ${DEPOT_TOOLS_DIR}/gclient.bat)
+else()
+	set(GCLIENT ${DEPOT_TOOLS_DIR}/gclient)
+endif()
+
+# Crashpad source and build folders
+set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/crashpad)
+set(BINARY_DIR ${PROJECT_BINARY_DIR}/gn_crashpad)
 
 # Check linux to ensure necessary tools exist to build crashpad
 if(UNIX AND NOT APPLE)
@@ -51,10 +69,6 @@ find_program(EXE_DEPOT_GN gn REQUIRED)
 find_program(EXE_DEPOT_NINJA ninja REQUIRED)
 find_program(EXE_DEPOT_UPDATE_DEPOT_TOOLS update_depot_tools REQUIRED)
 find_program(EXE_DEPOT_GIT git REQUIRED) # TODO: I'm not sure this grabs the "right" version of git; investigate here if shennanigans arise.
-
-# Crashpad source and build folders
-set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/crashpad)
-set(BINARY_DIR ${PROJECT_BINARY_DIR}/gn_crashpad)
 
 # Assume 64bit, change to 32 if necessary
 set(GN_TARGET_CPU x64)
