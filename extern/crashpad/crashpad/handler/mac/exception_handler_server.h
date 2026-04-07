@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 #include <mach/mach.h>
 
-#include "base/mac/scoped_mach_port.h"
+#include "base/apple/scoped_mach_port.h"
 #include "util/mach/exc_server_variants.h"
 
 namespace crashpad {
@@ -34,7 +34,7 @@ class ExceptionHandlerServer {
   //!     launchd. \a receive_port is not monitored for no-senders
   //!     notifications, and instead, Stop() must be called to provide a “quit”
   //!     signal.
-  ExceptionHandlerServer(base::mac::ScopedMachReceiveRight receive_port,
+  ExceptionHandlerServer(base::apple::ScopedMachReceiveRight receive_port,
                          bool launchd);
 
   ExceptionHandlerServer(const ExceptionHandlerServer&) = delete;
@@ -73,8 +73,8 @@ class ExceptionHandlerServer {
   void Stop();
 
  private:
-  base::mac::ScopedMachReceiveRight receive_port_;
-  base::mac::ScopedMachReceiveRight notify_port_;
+  base::apple::ScopedMachReceiveRight receive_port_;
+  base::apple::ScopedMachReceiveRight notify_port_;
   bool launchd_;
 };
 

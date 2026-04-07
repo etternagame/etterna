@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "snapshot/mac/process_types.h"
-
 #include <stddef.h>
 #include <string.h>
 #include <sys/types.h>
 
 #include <algorithm>
+#include <iterator>
 #include <limits>
 #include <type_traits>
 
 #include "base/check_op.h"
-#include "base/cxx17_backports.h"
 #include "base/logging.h"
 #include "base/numerics/safe_math.h"
 #include "base/strings/stringprintf.h"
+#include "snapshot/mac/process_types.h"
 #include "snapshot/mac/process_types/internal.h"
 #include "util/mac/mac_util.h"
 #include "util/process/process_memory_mac.h"
@@ -147,10 +146,11 @@ size_t dyld_all_image_infos<Traits>::ExpectedSizeForVersion(
       std::numeric_limits<size_t>::max(),  // 15, see below
       offsetof(dyld_all_image_infos<Traits>, end_v16),  // 16
       sizeof(dyld_all_image_infos<Traits>),  // 17
+      sizeof(dyld_all_image_infos<Traits>),  // 18
   };
 
-  if (version >= base::size(kSizeForVersion)) {
-    return kSizeForVersion[base::size(kSizeForVersion) - 1];
+  if (version >= std::size(kSizeForVersion)) {
+    return kSizeForVersion[std::size(kSizeForVersion) - 1];
   }
 
   static_assert(std::is_unsigned<decltype(version)>::value,
@@ -191,11 +191,14 @@ bool dyld_all_image_infos<Traits>::ReadInto(
 template <typename Traits>
 size_t crashreporter_annotations_t<Traits>::ExpectedSizeForVersion(
     decltype(crashreporter_annotations_t<Traits>::version) version) {
-  if (version >= 5) {
+  if (version >= 7) {
     return sizeof(crashreporter_annotations_t<Traits>);
   }
-  if (version >= 4) {
+  if (version >= 5) {
     return offsetof(crashreporter_annotations_t<Traits>, unknown_0);
+  }
+  if (version >= 4) {
+    return offsetof(crashreporter_annotations_t<Traits>, abort_cause);
   }
   return offsetof(crashreporter_annotations_t<Traits>, message);
 }

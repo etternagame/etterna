@@ -18,14 +18,6 @@ if(UNIX AND NOT APPLE)
 						" setup by crashpad.")
 		return()
 	endif()
-	# Python2 must be detected on linux only. depot_tools provides a python2 interpreter on windows,
-	# and python2 comes standards on mac.
-	find_package(Python2 COMPONENTS Interpreter)
-	if(NOT Python2_FOUND AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
-		message(WARNING " python2 was not found. Crashpad will be disabled. If you would like to build crashpad,\n"
-						" please ensure you have python2 installed via your package manager.")
-		return()
-	endif()
 endif()
 
 # Google uses depot_tools to download and build crashpad. We will do the same.
@@ -133,7 +125,7 @@ ExternalProject_Add_Step(crashpad_init gn_configure
 	WORKING_DIRECTORY ${SOURCE_DIR}
 	COMMAND ${EXE_DEPOT_GIT} config --global depot-tools.allowGlobalGitConfig true
 	COMMAND ${EXE_DEPOT_UPDATE_DEPOT_TOOLS}
-	COMMAND ${EXE_DEPOT_GN} gen ${BINARY_DIR} "--args=target_cpu=\"${GN_TARGET_CPU}\" is_debug=${GN_IS_DEBUG} extra_cflags=\"${GN_WIN_LINK_FLAG}\"" && ${EXE_DEPOT_NINJA} -C ${BINARY_DIR} crashpad_handler
+	COMMAND ${EXE_DEPOT_GN} gen ${BINARY_DIR} "--args=target_cpu=\"${GN_TARGET_CPU}\" is_debug=${GN_IS_DEBUG} extra_cflags=\"${GN_WIN_LINK_FLAG}\"" && ${EXE_DEPOT_NINJA} -C ${BINARY_DIR} crashpad_handler client
 	BYPRODUCTS ${OUTPUT_LIBS})
 
 # Build Project - "ninja client crashpad_handler" with the last "client" and "crashpad_handler" being the targets

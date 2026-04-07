@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ bool ProcessSnapshotFuchsia::Initialize(const zx::process& process) {
     return false;
   }
 
+  client_id_.InitializeToZero();
   system_.Initialize(&snapshot_time_);
 
   InitializeThreads();
@@ -113,8 +114,8 @@ crashpad::ProcessID ProcessSnapshotFuchsia::ProcessID() const {
 
 crashpad::ProcessID ProcessSnapshotFuchsia::ParentProcessID() const {
   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
-  NOTREACHED();  // TODO(scottmg): https://crashpad.chromium.org/bug/196
-  return 0;
+  // TODO(scottmg): https://crashpad.chromium.org/bug/196
+  NOTREACHED();
 }
 
 void ProcessSnapshotFuchsia::SnapshotTime(timeval* snapshot_time) const {

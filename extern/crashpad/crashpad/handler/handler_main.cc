@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
 #include <sys/types.h>
 
 #include <algorithm>
+#include <atomic>
 #include <map>
 #include <memory>
 #include <string>
@@ -28,7 +29,6 @@
 #include <vector>
 
 #include "base/auto_reset.h"
-#include "base/compiler_specific.h"
 #include "base/files/file_path.h"
 #include "base/files/scoped_file.h"
 #include "base/logging.h"
@@ -38,7 +38,6 @@
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
 #include "build/build_config.h"
-#include "build/chromeos_buildflags.h"
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/crashpad_info.h"
@@ -57,21 +56,21 @@
 #include "util/string/split_string.h"
 #include "util/synchronization/semaphore.h"
 
-#if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#if BUILDFLAG(IS_CHROMEOS)
 #include "handler/linux/cros_crash_report_exception_handler.h"
 #endif
 
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
 #include <unistd.h>
 
 #include "handler/linux/crash_report_exception_handler.h"
 #include "handler/linux/exception_handler_server.h"
 #include "util/posix/signals.h"
-#elif defined(OS_APPLE)
+#elif BUILDFLAG(IS_APPLE)
 #include <libgen.h>
 #include <signal.h>
 
-#include "base/mac/scoped_mach_port.h"
+#include "base/apple/scoped_mach_port.h"
 #include "handler/mac/crash_report_exception_handler.h"
 #include "handler/mac/exception_handler_server.h"
 #include "handler/mac/file_limit_annotation.h"
@@ -79,7 +78,7 @@
 #include "util/mach/child_port_handshake.h"
 #include "util/posix/close_stdio.h"
 #include "util/posix/signals.h"
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #include <windows.h>
 
 #include "handler/win/crash_report_exception_handler.h"
@@ -87,32 +86,42 @@
 #include "util/win/handle.h"
 #include "util/win/initial_client_data.h"
 #include "util/win/session_end_watcher.h"
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
 namespace crashpad {
 
 namespace {
 
-#if defined(OS_WIN) || defined(OS_LINUX) || defined(OS_CHROMEOS) || \
-    defined(OS_ANDROID)
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
+    BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_MAC)
 #define ATTACHMENTS_SUPPORTED 1
-#endif  // OS_WIN || OS_LINUX || OS_CHROMEOS || OS_ANDROID
+#endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) ||
+        // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_MAC)
 
 void Usage(const base::FilePath& me) {
+  // clang-format off
   fprintf(stderr,
 "Usage: %" PRFilePath " [OPTION]...\n"
 "Crashpad's exception handler server.\n"
 "\n"
 "      --annotation=KEY=VALUE  set a process annotation in each crash report\n"
+  // clang-format on
 #if defined(ATTACHMENTS_SUPPORTED)
+      // clang-format off
 "      --attachment=FILE_PATH  attach specified file to each crash report\n"
 "                              at the time of the crash\n"
+  // clang-format on
 #endif  // ATTACHMENTS_SUPPORTED
+      // clang-format off
 "      --database=PATH         store the crash report database at PATH\n"
-#if defined(OS_APPLE)
+  // clang-format on
+#if BUILDFLAG(IS_APPLE)
+      // clang-format off
 "      --handshake-fd=FD       establish communication with the client over FD\n"
-#endif  // OS_APPLE
-#if defined(OS_WIN)
+  // clang-format on
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_WIN)
+      // clang-format off
 "      --initial-client-data=HANDLE_request_crash_dump,\n"
 "                            HANDLE_request_non_crash_dump,\n"
 "                            HANDLE_non_crash_dump_completed,\n"
@@ -122,13 +131,20 @@ void Usage(const base::FilePath& me) {
 "                            Address_non_crash_exception_information,\n"
 "                            Address_debug_critical_section\n"
 "                              use precreated data to register initial client\n"
-#endif  // OS_WIN
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+  // clang-format on
+#endif  // BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
+      // clang-format off
 "      --initial-client-fd=FD  a socket connected to a client.\n"
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
-#if defined(OS_APPLE)
+  // clang-format on
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_APPLE)
+      // clang-format off
 "      --mach-service=SERVICE  register SERVICE with the bootstrap server\n"
-#endif  // OS_APPLE
+  // clang-format on
+#endif  // BUILDFLAG(IS_APPLE)
+      // clang-format off
 "      --metrics-dir=DIR       store metrics files in DIR (only in Chromium)\n"
 "      --monitor-self          run a second handler to catch crashes in the first\n"
 "      --monitor-self-annotation=KEY=VALUE\n"
@@ -141,18 +157,26 @@ void Usage(const base::FilePath& me) {
 "      --no-periodic-tasks     don't scan for new reports or prune the database\n"
 "      --no-rate-limit         don't rate limit crash uploads\n"
 "      --no-upload-gzip        don't use gzip compression when uploading\n"
-#if defined(OS_ANDROID)
+  // clang-format on
+#if BUILDFLAG(IS_ANDROID)
+      // clang-format off
 "      --no-write-minidump-to-database\n"
 "                              don't write minidump to database\n"
-#endif  // OS_ANDROID
-#if defined(OS_WIN)
+  // clang-format on
+#endif  // BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(IS_WIN)
+      // clang-format off
 "      --pipe-name=PIPE        communicate with the client over PIPE\n"
-#endif  // OS_WIN
-#if defined(OS_APPLE)
+  // clang-format on
+#endif  // BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_APPLE)
+      // clang-format off
 "      --reset-own-crash-exception-port-to-system-default\n"
 "                              reset the server's exception handler to default\n"
-#endif  // OS_APPLE
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+  // clang-format on
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
+      // clang-format off
 "      --sanitization-information=SANITIZATION_INFORMATION_ADDRESS\n"
 "                              the address of a SanitizationInformation struct.\n"
 "      --shared-client-connection the file descriptor provided by\n"
@@ -160,10 +184,15 @@ void Usage(const base::FilePath& me) {
 "                              clients\n"
 "      --trace-parent-with-exception=EXCEPTION_INFORMATION_ADDRESS\n"
 "                              request a dump for the handler's parent process\n"
-#endif  // OS_LINUX || OS_CHROMEOS || OS_ANDROID
+  // clang-format on
+#endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) ||
+        // BUILDFLAG(IS_ANDROID)
+      // clang-format off
 "      --url=URL               send crash reports to this Breakpad server URL,\n"
 "                              only if uploads are enabled for the database\n"
-#if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+  // clang-format on
+#if BUILDFLAG(IS_CHROMEOS)
+      // clang-format off
 "      --use-cros-crash-reporter\n"
 "                              pass crash reports to /sbin/crash_reporter\n"
 "                              instead of storing them in the database\n"
@@ -174,13 +203,18 @@ void Usage(const base::FilePath& me) {
 "                              pass the --always_allow_feedback flag to\n"
 "                              crash_reporter, thus skipping metrics consent\n"
 "                              checks\n"
-#endif  // BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
-#if defined(OS_ANDROID)
+  // clang-format on
+#endif  // BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID)
+      // clang-format off
 "      --write-minidump-to-log write minidump to log\n"
-#endif  // OS_ANDROID
+  // clang-format on
+#endif  // BUILDFLAG(IS_ANDROID)
+      // clang-format off
 "      --help                  display this help and exit\n"
 "      --version               output version information and exit\n",
           me.value().c_str());
+  // clang-format on
   ToolSupport::UsageTail(me);
 }
 
@@ -191,33 +225,33 @@ struct Options {
   base::FilePath database;
   base::FilePath metrics_dir;
   std::vector<std::string> monitor_self_arguments;
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   std::string mach_service;
   int handshake_fd;
   bool reset_own_crash_exception_port_to_system_default;
-#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
   VMAddress exception_information_address;
   VMAddress sanitization_information_address;
   int initial_client_fd;
   bool shared_client_connection;
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
   bool write_minidump_to_log;
   bool write_minidump_to_database;
-#endif  // OS_ANDROID
-#elif defined(OS_WIN)
+#endif  // BUILDFLAG(IS_ANDROID)
+#elif BUILDFLAG(IS_WIN)
   std::string pipe_name;
   InitialClientData initial_client_data;
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
   bool identify_client_via_url;
   bool monitor_self;
   bool periodic_tasks;
   bool rate_limit;
   bool upload_gzip;
-#if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#if BUILDFLAG(IS_CHROMEOS)
   bool use_cros_crash_reporter = false;
   base::FilePath minidump_dir_for_tests;
   bool always_allow_feedback = false;
-#endif  // BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#endif  // BUILDFLAG(IS_CHROMEOS)
 #if defined(ATTACHMENTS_SUPPORTED)
   std::vector<base::FilePath> attachments;
 #endif  // ATTACHMENTS_SUPPORTED
@@ -252,11 +286,15 @@ bool AddKeyValueToMap(std::map<std::string, std::string>* map,
 // a normal exit, or if a CallMetricsRecordNormalExit object is destroyed after
 // something else logs an exit event.
 void MetricsRecordExit(Metrics::LifetimeMilestone milestone) {
-  static bool once = [](Metrics::LifetimeMilestone milestone) {
+#if !defined(__cpp_lib_atomic_value_initialization) || \
+    __cpp_lib_atomic_value_initialization < 201911L
+  static std::atomic_flag metrics_exit_recorded = ATOMIC_FLAG_INIT;
+#else
+  static std::atomic_flag metrics_exit_recorded;
+#endif
+  if (!metrics_exit_recorded.test_and_set()) {
     Metrics::HandlerLifetimeMilestone(milestone);
-    return true;
-  }(milestone);
-  ALLOW_UNUSED_LOCAL(once);
+  }
 }
 
 // Calls MetricsRecordExit() to record a failure, and returns EXIT_FAILURE for
@@ -280,8 +318,8 @@ class CallMetricsRecordNormalExit {
   }
 };
 
-#if defined(OS_APPLE) || defined(OS_LINUX) || defined(OS_CHROMEOS) || \
-  defined(OS_ANDROID)
+#if BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
+    BUILDFLAG(IS_ANDROID)
 
 void HandleCrashSignal(int sig, siginfo_t* siginfo, void* context) {
   MetricsRecordExit(Metrics::LifetimeMilestone::kCrashed);
@@ -341,7 +379,7 @@ void InstallCrashHandler() {
   Signals::InstallTerminateHandlers(HandleTerminateSignal, 0, nullptr);
 }
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 
 struct ResetSIGTERMTraits {
   static struct sigaction* InvalidValue() {
@@ -367,9 +405,9 @@ void HandleSIGTERM(int sig, siginfo_t* siginfo, void* context) {
   g_exception_handler_server->Stop();
 }
 
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 
 LONG(WINAPI* g_original_exception_filter)(EXCEPTION_POINTERS*) = nullptr;
 
@@ -422,11 +460,11 @@ void InstallCrashHandler() {
   // enough. Note that destroying the TerminateHandler would wait for its thread
   // to exit, which isn’t necessary or desirable.
   SetConsoleCtrlHandler(ConsoleHandler, true);
-  static TerminateHandler* terminate_handler = new TerminateHandler();
-  ALLOW_UNUSED_LOCAL(terminate_handler);
+  [[maybe_unused]] static TerminateHandler* terminate_handler =
+      new TerminateHandler();
 }
 
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
 void MonitorSelf(const Options& options) {
   base::FilePath executable_path;
@@ -462,7 +500,7 @@ void MonitorSelf(const Options& options) {
   // instance of crashpad_handler to be writing metrics at a time, and it should
   // be the primary instance.
   CrashpadClient crashpad_client;
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
   if (!crashpad_client.StartHandlerAtCrash(executable_path,
                                            options.database,
                                            base::FilePath(),
@@ -512,10 +550,10 @@ class ScopedStoppable {
 
 void InitCrashpadLogging() {
   logging::LoggingSettings settings;
-#if BUILDFLAG(IS_CHROMEOS_ASH)
+#if BUILDFLAG(IS_CHROMEOS)
   settings.logging_dest = logging::LOG_TO_FILE;
   settings.log_file_path = "/var/log/chrome/chrome";
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
   settings.logging_dest = logging::LOG_TO_SYSTEM_DEBUG_LOG;
 #else
   settings.logging_dest =
@@ -542,23 +580,23 @@ int HandlerMain(int argc,
     // Long options without short equivalents.
     kOptionLastChar = 255,
     kOptionAnnotation,
-#if defined(OS_WIN) || defined(OS_LINUX) || defined(OS_CHROMEOS) || \
-    defined(OS_ANDROID)
+#if defined(ATTACHMENTS_SUPPORTED)
     kOptionAttachment,
-#endif  // OS_WIN || OS_LINUX
+#endif  // defined(ATTACHMENTS_SUPPORTED)
     kOptionDatabase,
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
     kOptionHandshakeFD,
-#endif  // OS_APPLE
-#if defined(OS_WIN)
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_WIN)
     kOptionInitialClientData,
-#endif  // OS_WIN
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#endif  // BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
     kOptionInitialClientFD,
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
-#if defined(OS_APPLE)
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_APPLE)
     kOptionMachService,
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
     kOptionMetrics,
     kOptionMonitorSelf,
     kOptionMonitorSelfAnnotation,
@@ -567,29 +605,29 @@ int HandlerMain(int argc,
     kOptionNoPeriodicTasks,
     kOptionNoRateLimit,
     kOptionNoUploadGzip,
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
     kOptionNoWriteMinidumpToDatabase,
-#endif  // OS_ANDROID
-#if defined(OS_WIN)
+#endif  // BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(IS_WIN)
     kOptionPipeName,
-#endif  // OS_WIN
-#if defined(OS_APPLE)
+#endif  // BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_APPLE)
     kOptionResetOwnCrashExceptionPortToSystemDefault,
-#endif  // OS_APPLE
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
     kOptionSanitizationInformation,
     kOptionSharedClientConnection,
     kOptionTraceParentWithException,
 #endif
     kOptionURL,
-#if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#if BUILDFLAG(IS_CHROMEOS)
     kOptionUseCrosCrashReporter,
     kOptionMinidumpDirForTests,
     kOptionAlwaysAllowFeedback,
-#endif  // BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
-#if defined(OS_ANDROID)
+#endif  // BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID)
     kOptionWriteMinidumpToLog,
-#endif  // OS_ANDROID
+#endif  // BUILDFLAG(IS_ANDROID)
 
     // Standard options.
     kOptionHelp = -2,
@@ -602,21 +640,22 @@ int HandlerMain(int argc,
     {"attachment", required_argument, nullptr, kOptionAttachment},
 #endif  // ATTACHMENTS_SUPPORTED
     {"database", required_argument, nullptr, kOptionDatabase},
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
     {"handshake-fd", required_argument, nullptr, kOptionHandshakeFD},
-#endif  // OS_APPLE
-#if defined(OS_WIN)
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_WIN)
     {"initial-client-data",
      required_argument,
      nullptr,
      kOptionInitialClientData},
-#endif  // OS_APPLE
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
     {"initial-client-fd", required_argument, nullptr, kOptionInitialClientFD},
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
-#if defined(OS_APPLE)
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_APPLE)
     {"mach-service", required_argument, nullptr, kOptionMachService},
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
     {"metrics-dir", required_argument, nullptr, kOptionMetrics},
     {"monitor-self", no_argument, nullptr, kOptionMonitorSelf},
     {"monitor-self-annotation",
@@ -634,22 +673,22 @@ int HandlerMain(int argc,
     {"no-periodic-tasks", no_argument, nullptr, kOptionNoPeriodicTasks},
     {"no-rate-limit", no_argument, nullptr, kOptionNoRateLimit},
     {"no-upload-gzip", no_argument, nullptr, kOptionNoUploadGzip},
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
     {"no-write-minidump-to-database",
      no_argument,
      nullptr,
      kOptionNoWriteMinidumpToDatabase},
-#endif  // OS_ANDROID
-#if defined(OS_WIN)
+#endif  // BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(IS_WIN)
     {"pipe-name", required_argument, nullptr, kOptionPipeName},
-#endif  // OS_WIN
-#if defined(OS_APPLE)
+#endif  // BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_APPLE)
     {"reset-own-crash-exception-port-to-system-default",
      no_argument,
      nullptr,
      kOptionResetOwnCrashExceptionPortToSystemDefault},
-#endif  // OS_APPLE
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
     {"sanitization-information",
      required_argument,
      nullptr,
@@ -662,42 +701,40 @@ int HandlerMain(int argc,
      required_argument,
      nullptr,
      kOptionTraceParentWithException},
-#endif  // OS_LINUX || OS_CHROMEOS || OS_ANDROID
+#endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) ||
+        // BUILDFLAG(IS_ANDROID)
     {"url", required_argument, nullptr, kOptionURL},
-#if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#if BUILDFLAG(IS_CHROMEOS)
     {"use-cros-crash-reporter",
-      no_argument,
-      nullptr,
-      kOptionUseCrosCrashReporter},
+     no_argument,
+     nullptr,
+     kOptionUseCrosCrashReporter},
     {"minidump-dir-for-tests",
-      required_argument,
-      nullptr,
-      kOptionMinidumpDirForTests},
-    {"always-allow-feedback",
-      no_argument,
-      nullptr,
-      kOptionAlwaysAllowFeedback},
-#endif  // BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
-#if defined(OS_ANDROID)
+     required_argument,
+     nullptr,
+     kOptionMinidumpDirForTests},
+    {"always-allow-feedback", no_argument, nullptr, kOptionAlwaysAllowFeedback},
+#endif  // BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID)
     {"write-minidump-to-log", no_argument, nullptr, kOptionWriteMinidumpToLog},
-#endif  // OS_ANDROID
+#endif  // BUILDFLAG(IS_ANDROID)
     {"help", no_argument, nullptr, kOptionHelp},
     {"version", no_argument, nullptr, kOptionVersion},
     {nullptr, 0, nullptr, 0},
   };
 
   Options options = {};
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   options.handshake_fd = -1;
 #endif
   options.identify_client_via_url = true;
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
   options.initial_client_fd = kInvalidFileHandle;
 #endif
   options.periodic_tasks = true;
   options.rate_limit = true;
   options.upload_gzip = true;
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
   options.write_minidump_to_database = true;
 #endif
 
@@ -722,7 +759,7 @@ int HandlerMain(int argc,
             ToolSupport::CommandLineArgumentToFilePathStringType(optarg));
         break;
       }
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
       case kOptionHandshakeFD: {
         if (!StringToNumber(optarg, &options.handshake_fd) ||
             options.handshake_fd < 0) {
@@ -736,8 +773,8 @@ int HandlerMain(int argc,
         options.mach_service = optarg;
         break;
       }
-#endif  // OS_APPLE
-#if defined(OS_WIN)
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_WIN)
       case kOptionInitialClientData: {
         if (!options.initial_client_data.InitializeFromString(optarg)) {
           ToolSupport::UsageHint(
@@ -746,8 +783,8 @@ int HandlerMain(int argc,
         }
         break;
       }
-#endif  // OS_WIN
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#endif  // BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
       case kOptionInitialClientFD: {
         if (!base::StringToInt(optarg, &options.initial_client_fd)) {
           ToolSupport::UsageHint(me, "failed to parse --initial-client-fd");
@@ -755,7 +792,8 @@ int HandlerMain(int argc,
         }
         break;
       }
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
       case kOptionMetrics: {
         options.metrics_dir = base::FilePath(
             ToolSupport::CommandLineArgumentToFilePathStringType(optarg));
@@ -793,25 +831,25 @@ int HandlerMain(int argc,
         options.upload_gzip = false;
         break;
       }
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
       case kOptionNoWriteMinidumpToDatabase: {
         options.write_minidump_to_database = false;
         break;
       }
-#endif  // OS_ANDROID
-#if defined(OS_WIN)
+#endif  // BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(IS_WIN)
       case kOptionPipeName: {
         options.pipe_name = optarg;
         break;
       }
-#endif  // OS_WIN
-#if defined(OS_APPLE)
+#endif  // BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_APPLE)
       case kOptionResetOwnCrashExceptionPortToSystemDefault: {
         options.reset_own_crash_exception_port_to_system_default = true;
         break;
       }
-#endif  // OS_APPLE
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#endif  // BUILDFLAG(IS_APPLE)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
       case kOptionSanitizationInformation: {
         if (!StringToNumber(optarg,
                             &options.sanitization_information_address)) {
@@ -833,12 +871,13 @@ int HandlerMain(int argc,
         }
         break;
       }
-#endif  // OS_LINUX || OS_CHROMEOS || OS_ANDROID
+#endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) ||
+        // BUILDFLAG(IS_ANDROID)
       case kOptionURL: {
         options.url = optarg;
         break;
       }
-#if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#if BUILDFLAG(IS_CHROMEOS)
       case kOptionUseCrosCrashReporter: {
         options.use_cros_crash_reporter = true;
         break;
@@ -852,13 +891,13 @@ int HandlerMain(int argc,
         options.always_allow_feedback = true;
         break;
       }
-#endif  // BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
-#if defined(OS_ANDROID)
+#endif  // BUILDFLAG(IS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID)
       case kOptionWriteMinidumpToLog: {
         options.write_minidump_to_log = true;
         break;
       }
-#endif  // OS_ANDROID
+#endif  // BUILDFLAG(IS_ANDROID)
       case kOptionHelp: {
         Usage(me);
         MetricsRecordExit(Metrics::LifetimeMilestone::kExitedEarly);
@@ -878,7 +917,7 @@ int HandlerMain(int argc,
   argc -= optind;
   argv += optind;
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   if (options.handshake_fd < 0 && options.mach_service.empty()) {
     ToolSupport::UsageHint(me, "--handshake-fd or --mach-service is required");
     return ExitFailure();
@@ -888,7 +927,7 @@ int HandlerMain(int argc,
         me, "--handshake-fd and --mach-service are incompatible");
     return ExitFailure();
   }
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
   if (!options.initial_client_data.IsValid() && options.pipe_name.empty()) {
     ToolSupport::UsageHint(me,
                            "--initial-client-data or --pipe-name is required");
@@ -899,7 +938,7 @@ int HandlerMain(int argc,
         me, "--initial-client-data and --pipe-name are incompatible");
     return ExitFailure();
   }
-#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
   if (!options.exception_information_address &&
       options.initial_client_fd == kInvalidFileHandle) {
     ToolSupport::UsageHint(
@@ -919,15 +958,15 @@ int HandlerMain(int argc,
         me, "--shared-client-connection requires --initial-client-fd");
     return ExitFailure();
   }
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
   if (!options.write_minidump_to_log && !options.write_minidump_to_database) {
     ToolSupport::UsageHint(me,
                            "--no_write_minidump_to_database is required to use "
                            "with --write_minidump_to_log.");
     ExitFailure();
   }
-#endif  // OS_ANDROID
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_ANDROID)
+#endif  // BUILDFLAG(IS_APPLE)
 
   if (options.database.empty()) {
     ToolSupport::UsageHint(me, "--database is required");
@@ -939,11 +978,11 @@ int HandlerMain(int argc,
     return ExitFailure();
   }
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   if (options.reset_own_crash_exception_port_to_system_default) {
     CrashpadClient::UseSystemDefaultHandler();
   }
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
   if (options.monitor_self) {
     MonitorSelf(options);
@@ -988,17 +1027,20 @@ int HandlerMain(int argc,
     upload_thread_options.watch_pending_reports = options.periodic_tasks;
 
     upload_thread.Reset(new CrashReportUploadThread(
-        database.get(), options.url, upload_thread_options));
+        database.get(),
+        options.url,
+        upload_thread_options,
+        CrashReportUploadThread::ProcessPendingReportsObservationCallback()));
     upload_thread.Get()->Start();
   }
 
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
   std::unique_ptr<ExceptionHandlerServer::Delegate> exception_handler;
 #else
   std::unique_ptr<CrashReportExceptionHandler> exception_handler;
 #endif
 
-#if BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#if BUILDFLAG(IS_CHROMEOS)
   if (options.use_cros_crash_reporter) {
     auto cros_handler = std::make_unique<CrosCrashReportExceptionHandler>(
         database.get(),
@@ -1032,18 +1074,18 @@ int HandlerMain(int argc,
 #if defined(ATTACHMENTS_SUPPORTED)
       &options.attachments,
 #endif  // ATTACHMENTS_SUPPORTED
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
       options.write_minidump_to_database,
       options.write_minidump_to_log,
-#endif  // OS_ANDROID
-#if defined(OS_LINUX)
+#endif  // BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(IS_LINUX)
       true,
       false,
-#endif  // OS_LINUX
+#endif  // BUILDFLAG(IS_LINUX)
       user_stream_sources);
-#endif  // BUILDFLAG(IS_CHROMEOS_ASH) || BUILDFLAG(IS_CHROMEOS_LACROS)
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
   if (options.exception_information_address) {
     ExceptionHandlerProtocol::ClientInformation info;
     info.exception_information_address = options.exception_information_address;
@@ -1053,7 +1095,8 @@ int HandlerMain(int argc,
                ? EXIT_SUCCESS
                : ExitFailure();
   }
-#endif  // OS_LINUX || OS_CHROMEOS || OS_ANDROID
+#endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) ||
+        // BUILDFLAG(IS_ANDROID)
 
   ScopedStoppable prune_thread;
   if (options.periodic_tasks) {
@@ -1062,13 +1105,13 @@ int HandlerMain(int argc,
     prune_thread.Get()->Start();
   }
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   if (options.mach_service.empty()) {
     // Don’t do this when being run by launchd. See launchd.plist(5).
     CloseStdinAndStdout();
   }
 
-  base::mac::ScopedMachReceiveRight receive_right;
+  base::apple::ScopedMachReceiveRight receive_right;
 
   if (options.handshake_fd >= 0) {
     receive_right.reset(
@@ -1105,7 +1148,7 @@ int HandlerMain(int argc,
   }
 
   RecordFileLimitAnnotation();
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
   // Shut down as late as possible relative to programs we're watching.
   if (!SetProcessShutdownParameters(0x100, SHUTDOWN_NORETRY))
     PLOG(ERROR) << "SetProcessShutdownParameters";
@@ -1115,9 +1158,9 @@ int HandlerMain(int argc,
   if (!options.pipe_name.empty()) {
     exception_handler_server.SetPipeName(base::UTF8ToWide(options.pipe_name));
   }
-#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
   ExceptionHandlerServer exception_handler_server;
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
   base::GlobalHistogramAllocator* histogram_allocator = nullptr;
   if (!options.metrics_dir.empty()) {
@@ -1132,19 +1175,19 @@ int HandlerMain(int argc,
 
   Metrics::HandlerLifetimeMilestone(Metrics::LifetimeMilestone::kStarted);
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
   if (options.initial_client_data.IsValid()) {
     exception_handler_server.InitializeWithInheritedDataForInitialClient(
         options.initial_client_data, exception_handler.get());
   }
-#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
   if (options.initial_client_fd == kInvalidFileHandle ||
       !exception_handler_server.InitializeWithClient(
           ScopedFileHandle(options.initial_client_fd),
           options.shared_client_connection)) {
     return ExitFailure();
   }
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
   exception_handler_server.Run(exception_handler.get());
 

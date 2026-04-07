@@ -1,4 +1,4 @@
-// Copyright 2008 The Chromium Authors. All rights reserved.
+// Copyright 2008 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -107,17 +107,17 @@
 #include <iosfwd>
 #include <string>
 
-#include "base/compiler_specific.h"
 #include "build/build_config.h"
 
 // Windows-style drive letter support and pathname separator characters can be
 // enabled and disabled independently, to aid testing.  These #defines are
 // here so that the same setting can be used in both the implementation and
 // in the unit test.
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 #define FILE_PATH_USES_DRIVE_LETTERS
 #define FILE_PATH_USES_WIN_SEPARATORS
-#endif  // OS_WIN
+#define FILE_PATH_USES_WIDE_CHARACTERS
+#endif  // BUILDFLAG(IS_WIN)
 
 namespace base {
 
@@ -125,16 +125,16 @@ namespace base {
 // pathnames on different platforms.
 class FilePath {
  public:
-#if defined(OS_POSIX)
+#if BUILDFLAG(IS_POSIX)
   // On most platforms, native pathnames are char arrays, and the encoding
   // may or may not be specified.  On Mac OS X, native pathnames are encoded
   // in UTF-8.
   typedef std::string StringType;
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
   // On Windows, for Unicode-aware applications, native pathnames are wchar_t
   // arrays encoded in UTF-16.
   typedef std::wstring StringType;
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
   typedef StringType::value_type CharType;
 
@@ -182,21 +182,21 @@ class FilePath {
   // only contains one component, returns a FilePath identifying
   // kCurrentDirectory.  If this object already refers to the root directory,
   // returns a FilePath identifying the root directory.
-  FilePath DirName() const WARN_UNUSED_RESULT;
+  [[nodiscard]] FilePath DirName() const;
 
   // Returns a FilePath corresponding to the last path component of this
   // object, either a file or a directory.  If this object already refers to
   // the root directory, returns a FilePath identifying the root directory;
   // this is the only situation in which BaseName will return an absolute path.
-  FilePath BaseName() const WARN_UNUSED_RESULT;
+  [[nodiscard]] FilePath BaseName() const;
 
   // Returns the path's file extension. This does not have a special case for
   // common double extensions, so FinalExtension() of "foo.tar.gz" is simply
   // ".gz". If there is no extension, "" will be returned.
-  StringType FinalExtension() const WARN_UNUSED_RESULT;
+  [[nodiscard]] StringType FinalExtension() const;
 
   // Returns a FilePath with FinalExtension() removed.
-  FilePath RemoveFinalExtension() const WARN_UNUSED_RESULT;
+  [[nodiscard]] FilePath RemoveFinalExtension() const;
 
   // Returns a FilePath by appending a separator and the supplied path
   // component to this object's path.  Append takes care to avoid adding
@@ -204,8 +204,8 @@ class FilePath {
   // If this object's path is kCurrentDirectory, a new FilePath corresponding
   // only to |component| is returned.  |component| must be a relative path;
   // it is an error to pass an absolute path.
-  FilePath Append(const StringType& component) const WARN_UNUSED_RESULT;
-  FilePath Append(const FilePath& component) const WARN_UNUSED_RESULT;
+  [[nodiscard]] FilePath Append(const StringType& component) const;
+  [[nodiscard]] FilePath Append(const FilePath& component) const;
 
   // Returns true if this FilePath contains an absolute path.  On Windows, an
   // absolute path begins with either a drive letter specification followed by
@@ -226,19 +226,22 @@ class FilePath {
 
 }  // namespace base
 
-// This is required by googletest to print a readable output on test failures.
-extern void PrintTo(const base::FilePath& path, std::ostream* out);
+// Streams `file_path`'s value to a byte stream, converting from wide
+// characters if called for. (also lets googletest print a readable output on
+// test failures)
+extern std::ostream& operator<<(std::ostream& os,
+                                const base::FilePath& file_path);
 
 // Macros for string literal initialization of FilePath::CharType[], and for
 // using a FilePath::CharType[] in a printf-style format string.
-#if defined(OS_POSIX)
+#if BUILDFLAG(IS_POSIX)
 #define FILE_PATH_LITERAL(x) x
 #define PRFilePath "s"
 #define PRFilePathLiteral "%s"
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #define FILE_PATH_LITERAL(x) L ## x
 #define PRFilePath "ls"
 #define PRFilePathLiteral L"%ls"
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
 #endif  // MINI_CHROMIUM_BASE_FILES_FILE_PATH_H_

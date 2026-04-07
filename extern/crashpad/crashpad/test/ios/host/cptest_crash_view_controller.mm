@@ -1,4 +1,4 @@
-// Copyright 2020 The Crashpad Authors. All rights reserved.
+// Copyright 2020 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,10 +13,6 @@
 // limitations under the License.
 
 #import "test/ios/host/cptest_crash_view_controller.h"
-
-#if !defined(__has_feature) || !__has_feature(objc_arc)
-#error "This file requires ARC support."
-#endif
 
 @implementation CPTestCrashViewController
 
@@ -58,7 +54,6 @@
 
 - (void)viewDidLoad {
   [super viewDidLoad];
-
   self.view.backgroundColor = UIColor.redColor;
 }
 

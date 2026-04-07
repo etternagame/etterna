@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ class ProcessSnapshotSanitized final : public ProcessSnapshot {
   //! \param[in] allowed_annotations A list of annotations names to allow to
   //!     be returned by AnnotationsSimpleMap() or from this object's module
   //!     snapshots. If `nullptr`, all annotations will be returned.
+  //      These annotation names support pattern matching, eg: "switch-*"
   //! \param[in] allowed_memory_ranges A list of memory ranges to allow to be
   //!     accessible via Memory(), or `nullptr` to allow all ranges.
   //! \param[in] target_module_address An address in the target process'

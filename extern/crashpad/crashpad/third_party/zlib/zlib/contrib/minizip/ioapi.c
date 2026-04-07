@@ -10,21 +10,9 @@
 
 */
 
-#if defined(_WIN32) && (!(defined(_CRT_SECURE_NO_WARNINGS)))
+#if (defined(_WIN32))
         #define _CRT_SECURE_NO_WARNINGS
 #endif
-
-#if defined(__APPLE__) || defined(IOAPI_NO_64)
-// In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
-#define FOPEN_FUNC(filename, mode) fopen(filename, mode)
-#define FTELLO_FUNC(stream) ftello(stream)
-#define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
-#else
-#define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
-#define FTELLO_FUNC(stream) ftello64(stream)
-#define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
-#endif
-
 
 #include "ioapi.h"
 
@@ -59,7 +47,7 @@ ZPOS64_T call_ztell64 (const zlib_filefunc64_32_def* pfilefunc,voidpf filestream
     else
     {
         uLong tell_uLong = (*(pfilefunc->ztell32_file))(pfilefunc->zfile_func64.opaque,filestream);
-        if ((tell_uLong) == MAXU32)
+        if ((tell_uLong) == ((uLong)-1))
             return (ZPOS64_T)-1;
         else
             return tell_uLong;
@@ -124,7 +112,7 @@ static voidpf ZCALLBACK fopen64_file_func (voidpf opaque, const void* filename, 
         mode_fopen = "wb";
 
     if ((filename!=NULL) && (mode_fopen != NULL))
-        file = FOPEN_FUNC((const char*)filename, mode_fopen);
+        file = fopen64((const char*)filename, mode_fopen);
     return file;
 }
 
@@ -154,7 +142,7 @@ static long ZCALLBACK ftell_file_func (voidpf opaque, voidpf stream)
 static ZPOS64_T ZCALLBACK ftell64_file_func (voidpf opaque, voidpf stream)
 {
     ZPOS64_T ret;
-    ret = FTELLO_FUNC((FILE *)stream);
+    ret = ftello64((FILE *)stream);
     return ret;
 }
 
@@ -200,7 +188,7 @@ static long ZCALLBACK fseek64_file_func (voidpf  opaque, voidpf stream, ZPOS64_T
     }
     ret = 0;
 
-    if(FSEEKO_FUNC((FILE *)stream, offset, fseek_origin) != 0)
+    if(fseeko64((FILE *)stream, offset, fseek_origin) != 0)
                         ret = -1;
 
     return ret;

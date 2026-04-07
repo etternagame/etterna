@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -118,6 +118,9 @@ class MinidumpMiscInfoWriter final : public internal::MinidumpStreamWriter {
   //! \brief Sets MINIDUMP_MISC_INFO_5::XStateData.
   void SetXStateData(const XSTATE_CONFIG_FEATURE_MSC_INFO& xstate_data);
 
+  //! \brief Will this write extended context information?
+  bool HasXStateData() const;
+
   //! \brief Sets the field referenced by #MINIDUMP_MISC5_PROCESS_COOKIE.
   void SetProcessCookie(uint32_t process_cookie);
 
@@ -142,7 +145,7 @@ class MinidumpMiscInfoWriter final : public internal::MinidumpStreamWriter {
 
 //! \brief Conversion functions from a native UTF16 C-string to a char16_t
 //!     C-string. No-op where the native UTF16 string is std::u16string.
-#if defined(WCHAR_T_IS_UTF16) || DOXYGEN
+#if defined(WCHAR_T_IS_16_BIT) || DOXYGEN
 inline const char16_t* AsU16CStr(const wchar_t* str) {
   return reinterpret_cast<const char16_t*>(str);
 }

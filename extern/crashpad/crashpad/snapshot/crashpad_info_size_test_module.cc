@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 #include "build/build_config.h"
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 #include <mach-o/loader.h>
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #include <windows.h>
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
 namespace crashpad {
 
@@ -53,6 +53,9 @@ struct TestCrashpadInfo {
 #if !defined(CRASHPAD_INFO_SIZE_TEST_MODULE_SMALL)
   void* user_data_minidump_stream_head_;
   void* annotations_list_;
+#if BUILDFLAG(IS_IOS)
+  void* intermediate_dump_extra_memory_ranges_;
+#endif  // BUILDFLAG(IS_IOS)
 #endif  // CRASHPAD_INFO_SIZE_TEST_MODULE_SMALL
 #if defined(CRASHPAD_INFO_SIZE_TEST_MODULE_LARGE)
   uint8_t trailer_[64 * 1024];
@@ -65,9 +68,9 @@ struct TestCrashpadInfo {
 // to get this test version to be interpreted as a genuine CrashpadInfo
 // structure. The size is set to the actual size of this structure (that’s kind
 // of the point of this test).
-#if defined(OS_POSIX)
+#if BUILDFLAG(IS_POSIX)
 __attribute__((
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
     section(SEG_DATA ",crashpad_info"),
 #endif
 #if defined(ADDRESS_SANITIZER)
@@ -75,12 +78,12 @@ __attribute__((
 #endif  // defined(ADDRESS_SANITIZER)
     visibility("hidden"),
     used))
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #pragma section("CPADinfo", read, write)
 __declspec(allocate("CPADinfo"))
-#else  // !defined(OS_POSIX) && !defined(OS_WIN)
+#else  // !BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_WIN)
 #error Port
-#endif  // !defined(OS_POSIX) && !defined(OS_WIN)
+#endif  // !BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_WIN)
 TestCrashpadInfo g_test_crashpad_info = {'CPad',
                                          sizeof(TestCrashpadInfo),
                                          1,
@@ -95,6 +98,10 @@ TestCrashpadInfo g_test_crashpad_info = {'CPad',
 #if !defined(CRASHPAD_INFO_SIZE_TEST_MODULE_SMALL)
                                          nullptr,
                                          nullptr,
+#if BUILDFLAG(IS_IOS)
+                                         nullptr,
+#endif  // BUILDFLAG(IS_IOS)
+
 #endif  // CRASHPAD_INFO_SIZE_TEST_MODULE_SMALL
 #if defined(CRASHPAD_INFO_SIZE_TEST_MODULE_LARGE)
                                          {}
@@ -105,14 +112,15 @@ TestCrashpadInfo g_test_crashpad_info = {'CPad',
 
 extern "C" {
 
-#if defined(OS_POSIX)
+#if BUILDFLAG(IS_POSIX)
 __attribute__((visibility("default")))
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 __declspec(dllexport)
 #else
 #error Port
-#endif  // OS_POSIX
-crashpad::TestCrashpadInfo* TestModule_GetCrashpadInfo() {
+#endif  // BUILDFLAG(IS_POSIX)
+crashpad::TestCrashpadInfo*
+TestModule_GetCrashpadInfo() {
   // Note that there's no need to do the back-reference here to the note on
   // POSIX like CrashpadInfo::GetCrashpadInfo() because the note .S file is
   // directly included into this test binary.
@@ -121,8 +129,8 @@ crashpad::TestCrashpadInfo* TestModule_GetCrashpadInfo() {
 
 }  // extern "C"
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 BOOL WINAPI DllMain(HINSTANCE hinstance, DWORD reason, LPVOID reserved) {
   return TRUE;
 }
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)

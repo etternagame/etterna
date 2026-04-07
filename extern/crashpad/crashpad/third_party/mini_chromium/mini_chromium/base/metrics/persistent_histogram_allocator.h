@@ -1,4 +1,4 @@
-// Copyright 2016 The Chromium Authors. All rights reserved.
+// Copyright 2016 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,8 +8,9 @@
 #include <inttypes.h>
 #include <sys/types.h>
 
+#include <string_view>
+
 #include "base/files/file_path.h"
-#include "base/strings/string_piece.h"
 
 // This file is a non-functional stub of the Chromium base interface to allow
 // Crashpad to set up and tear down histogram storage when built against
@@ -25,11 +26,11 @@ class GlobalHistogramAllocator {
   static bool CreateWithActiveFileInDir(const base::FilePath&,
                                         size_t,
                                         uint64_t,
-                                        base::StringPiece sp) {
+                                        std::string_view sp) {
     return false;
   }
 
-  void CreateTrackingHistograms(base::StringPiece) {}
+  void CreateTrackingHistograms(std::string_view) {}
   void DeletePersistentLocation() {}
 
   static GlobalHistogramAllocator* Get() { return nullptr; }

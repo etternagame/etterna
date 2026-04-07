@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,9 @@ namespace crashpad {
 namespace test {
 
 // This function formats messages in a similar way to the Mach error logging
-// macros in base/mac/mach_logging.h. It exists to interoperate with Google Test
-// assertions, which don’t interoperate with logging but can be streamed to.
+// macros in base/apple/mach_logging.h. It exists to interoperate with Google
+// Test assertions, which don’t interoperate with logging but can be streamed
+// to.
 //
 // Where non-test code could do:
 //   MACH_CHECK(kr == KERN_SUCCESS, kr) << "vm_deallocate";

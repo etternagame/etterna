@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
 
 #include <time.h>
 
-#include <string>
-
 #include "base/files/file_path.h"
 #include "base/scoped_generic.h"
 #include "build/build_config.h"
 #include "util/file/file_io.h"
 #include "util/misc/initialization_state.h"
 #include "util/misc/uuid.h"
+
+#if BUILDFLAG(IS_IOS)
+#include "util/ios/scoped_background_task.h"
+#endif  // BUILDFLAG(IS_IOS)
 
 namespace crashpad {
 
@@ -35,37 +37,47 @@ struct ScopedLockedFileHandleTraits {
   static void Free(FileHandle handle);
 };
 
+enum class FileOpenFunction {
+  kLoggingOpenFileForRead,
+  kLoggingOpenFileForReadAndWrite,
+  kOpenFileForReadAndWrite,
+};
+
+struct MakeScopedLockedFileHandleOptions {
+  FileOpenFunction function_enum;
+  FileWriteMode mode;
+  FilePermissions permissions;
+};
+
+// TODO(mark): The timeout should be configurable by the client.
+#if BUILDFLAG(IS_IOS)
+// iOS background assertions only last 30 seconds, keep the timeout shorter.
+constexpr double kUploadReportTimeoutSeconds = 20;
+#else
+constexpr double kUploadReportTimeoutSeconds = 60;
+#endif
+
 }  // namespace internal
 
-//! \brief An interface for accessing and modifying the settings of a
-//!     CrashReportDatabase.
+//! \brief A class for accessing the settings of a CrashReportDatabase.
+//!
+//! SettingsReader does not participate in file locking.
 //!
 //! This class must not be instantiated directly, but rather an instance of it
-//! should be retrieved via CrashReportDatabase::GetSettings().
-class Settings {
+//! should be retrieved via
+//! CrashReportDatabase::GetSettingsReaderForDatabasePath.
+class SettingsReader {
  public:
-  Settings();
+  explicit SettingsReader(const base::FilePath& path);
 
-  Settings(const Settings&) = delete;
-  Settings& operator=(const Settings&) = delete;
+  SettingsReader(const SettingsReader&) = delete;
+  SettingsReader& operator=(const SettingsReader&) = delete;
 
-  ~Settings();
-
-  //! \brief Initializes the settings data store.
-  //!
-  //! This method must be called only once, and must be successfully called
-  //! before any other method in this class may be called.
-  //!
-  //! \param[in] path The location to store the settings data.
-  //! \return `true` if the data store was initialized successfully, otherwise
-  //!     `false` with an error logged.
-  bool Initialize(const base::FilePath& path);
+  virtual ~SettingsReader();
 
   //! \brief Retrieves the immutable identifier for this client, which is used
   //!     on a server to locate all crash reports from a specific Crashpad
   //!     database.
-  //!
-  //! This is automatically initialized when the database is created.
   //!
   //! \param[out] client_id The unique client identifier.
   //!
@@ -88,15 +100,6 @@ class Settings {
   //!     error logged.
   bool GetUploadsEnabled(bool* enabled);
 
-  //! \brief Sets the user’s preference for submitting crash reports to a
-  //!     collection server.
-  //!
-  //! \param[in] enabled Whether crash reports should be uploaded.
-  //!
-  //! \return On success, returns `true`, otherwise returns `false` with an
-  //!     error logged.
-  bool SetUploadsEnabled(bool enabled);
-
   //! \brief Retrieves the last time at which a report was attempted to be
   //!     uploaded.
   //!
@@ -108,6 +111,67 @@ class Settings {
   //!     error logged.
   bool GetLastUploadAttemptTime(time_t* time);
 
+ protected:
+  struct Data;
+
+  SettingsReader(const base::FilePath& path, InitializationState::State state);
+
+  // Opens the settings file and reads the data. If that fails, an error will
+  // be logged and the function will return false.
+  virtual bool OpenAndReadSettings(Data* out_data);
+
+  // Reads the settings from |handle|. Logs an error and returns false on
+  // failure.
+  //
+  // If |log_read_error| is false, nothing will be logged for a read error, but
+  // this method will still return false. This is intended to be used to
+  // suppress error messages when attempting to read a newly created settings
+  // file.
+  bool ReadSettings(FileHandle handle, Data* out_data, bool log_read_error);
+
+  const base::FilePath& file_path() const { return file_path_; }
+
+  InitializationState& initialized() { return initialized_; }
+
+ private:
+  const base::FilePath file_path_;
+  InitializationState initialized_;
+};
+
+//! \brief An interface for accessing and modifying the settings of a
+//!     CrashReportDatabase.
+//!
+//! This class must not be instantiated directly, but rather an instance of it
+//! should be retrieved via CrashReportDatabase::GetSettings().
+//!
+//! Settings will lock files prior to reading or writing them, and respect
+//! existing locks.
+class Settings final : public SettingsReader {
+ public:
+  static inline constexpr char kLockfileExtension[] = ".__lock__";
+
+  explicit Settings(const base::FilePath& file_path);
+
+  ~Settings();
+
+  //! \brief Initializes the settings data store.
+  //!
+  //! This method must be called only once, and must be successfully called
+  //! before any other method in this class may be called.
+  //!
+  //! \return `true` if the data store was initialized successfully, otherwise
+  //!     `false` with an error logged.
+  bool Initialize();
+
+  //! \brief Sets the user’s preference for submitting crash reports to a
+  //!     collection server.
+  //!
+  //! \param[in] enabled Whether crash reports should be uploaded.
+  //!
+  //! \return On success, returns `true`, otherwise returns `false` with an
+  //!     error logged.
+  bool SetUploadsEnabled(bool enabled);
+
   //! \brief Sets the last time at which a report was attempted to be uploaded.
   //!
   //! This is only meant to be used internally by the CrashReportDatabase.
@@ -118,14 +182,26 @@ class Settings {
   //!     error logged.
   bool SetLastUploadAttemptTime(time_t time);
 
- private:
-  struct Data;
+#if !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
+  //! \brief Returns whether the lockfile for a file is expired.
+  //!
+  //! This could be part of ScopedLockedFileHandle, but this needs to be
+  //! public while ScopedLockedFileHandle is private to Settings.
+  //!
+  //! \param[in] file_path The path to the file whose lockfile will be checked.
+  //! \param[in] lockfile_ttl How long the lockfile has to live before expiring.
+  //!
+  //! \return `true` if the lock for the file is expired, otherwise `false`.
+  static bool IsLockExpired(const base::FilePath& file_path,
+                            time_t lockfile_ttl);
+#endif  // !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
 
+ private:
   // This must be constructed with MakeScopedLockedFileHandle(). It both unlocks
   // and closes the file on destruction. Note that on Fuchsia, this handle DOES
   // NOT offer correct operation, only an attempt to DCHECK if racy behavior is
   // detected.
-#if defined(OS_FUCHSIA)
+#if !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
   struct ScopedLockedFileHandle {
    public:
     ScopedLockedFileHandle();
@@ -155,18 +231,41 @@ class Settings {
     FileHandle handle_;
     base::FilePath lockfile_path_;
   };
-#else  // OS_FUCHSIA
+#elif BUILDFLAG(IS_IOS)
+  // iOS needs to use ScopedBackgroundTask anytime a file lock is used.
+  class ScopedLockedFileHandle
+      : public base::ScopedGeneric<FileHandle,
+                                   internal::ScopedLockedFileHandleTraits> {
+   public:
+    using base::ScopedGeneric<
+        FileHandle,
+        internal::ScopedLockedFileHandleTraits>::ScopedGeneric;
+
+    ScopedLockedFileHandle(const FileHandle& value);
+    ScopedLockedFileHandle(ScopedLockedFileHandle&& rvalue);
+    ScopedLockedFileHandle& operator=(ScopedLockedFileHandle&& rvalue);
+
+    ~ScopedLockedFileHandle();
+
+   private:
+    std::unique_ptr<internal::ScopedBackgroundTask> ios_background_task_;
+  };
+#else
   using ScopedLockedFileHandle =
       base::ScopedGeneric<FileHandle, internal::ScopedLockedFileHandleTraits>;
-#endif  // OS_FUCHSIA
+#endif  // !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
   static ScopedLockedFileHandle MakeScopedLockedFileHandle(
-      FileHandle file,
+      const internal::MakeScopedLockedFileHandleOptions& options,
       FileLocking locking,
       const base::FilePath& file_path);
 
+  static FileHandle GetHandleFromOptions(
+      const base::FilePath& file_path,
+      const internal::MakeScopedLockedFileHandleOptions& options);
+
   // Opens the settings file for reading. On error, logs a message and returns
   // the invalid handle.
-  ScopedLockedFileHandle OpenForReading();
+  ScopedLockedFileHandle OpenForReading() const;
 
   // Opens the settings file for reading and writing. On error, logs a message
   // and returns the invalid handle. |mode| determines how the file will be
@@ -182,24 +281,12 @@ class Settings {
   // Opens the settings file and reads the data. If that fails, an error will
   // be logged and the settings will be recovered and re-initialized. If that
   // also fails, returns false with additional log data from recovery.
-  bool OpenAndReadSettings(Data* out_data);
+  bool OpenAndReadSettings(Data* out_data) override;
 
   // Opens the settings file for writing and reads the data. If reading fails,
   // recovery is attempted. Returns the opened file handle on success, or the
   // invalid file handle on failure, with an error logged.
   ScopedLockedFileHandle OpenForWritingAndReadSettings(Data* out_data);
-
-  // Reads the settings from |handle|. Logs an error and returns false on
-  // failure. This does not perform recovery.
-  //
-  // |handle| must be the result of OpenForReading() or
-  // OpenForReadingAndWriting().
-  //
-  // If |log_read_error| is false, nothing will be logged for a read error, but
-  // this method will still return false. This is intended to be used to
-  // suppress error messages when attempting to read a newly created settings
-  // file.
-  bool ReadSettings(FileHandle handle, Data* out_data, bool log_read_error);
 
   // Writes the settings to |handle|. Logs an error and returns false on
   // failure. This does not perform recovery.
@@ -220,12 +307,6 @@ class Settings {
   //
   // |handle| must be the result of OpenForReadingAndWriting().
   bool InitializeSettings(FileHandle handle);
-
-  const base::FilePath& file_path() const { return file_path_; }
-
-  base::FilePath file_path_;
-
-  InitializationState initialized_;
 };
 
 }  // namespace crashpad

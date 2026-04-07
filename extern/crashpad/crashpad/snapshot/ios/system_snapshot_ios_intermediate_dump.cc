@@ -1,4 +1,4 @@
-// Copyright 2020 The Crashpad Authors. All rights reserved.
+// Copyright 2020 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,23 +15,13 @@
 #include "snapshot/ios/system_snapshot_ios_intermediate_dump.h"
 
 #include <mach/mach.h>
-#include <stddef.h>
 #include <sys/sysctl.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 
-#include <algorithm>
-
-#include "base/logging.h"
-#include "base/mac/mach_logging.h"
 #include "base/strings/stringprintf.h"
 #include "build/build_config.h"
-#include "snapshot/cpu_context.h"
 #include "snapshot/ios/intermediate_dump_reader_util.h"
-#include "snapshot/posix/timezone.h"
-#include "util/ios/ios_intermediate_dump_data.h"
-#include "util/mac/mac_util.h"
-#include "util/numeric/in_range_cast.h"
 
 namespace crashpad {
 
@@ -57,6 +47,7 @@ SystemSnapshotIOSIntermediateDump::SystemSnapshotIOSIntermediateDump()
       daylight_offset_seconds_(0),
       standard_name_(),
       daylight_name_(),
+      address_mask_(0),
       initialized_() {}
 
 SystemSnapshotIOSIntermediateDump::~SystemSnapshotIOSIntermediateDump() {}
@@ -97,6 +88,8 @@ void SystemSnapshotIOSIntermediateDump::Initialize(
     dst_status_ = SystemSnapshot::kDoesNotObserveDaylightSavingTime;
   }
 
+  GetDataValueFromMap(system_data, Key::kAddressMask, &address_mask_);
+
   vm_size_t page_size;
   if (GetDataValueFromMap(system_data, Key::kPageSize, &page_size)) {
     const IOSIntermediateDumpMap* vm_stat =
@@ -115,6 +108,8 @@ void SystemSnapshotIOSIntermediateDump::Initialize(
       free_ *= page_size;
     }
   }
+
+  GetDataValueFromMap(system_data, Key::kCrashpadUptime, &crashpad_uptime_ns_);
 
   INITIALIZATION_STATE_SET_VALID(initialized_);
 }
@@ -239,6 +234,16 @@ void SystemSnapshotIOSIntermediateDump::TimeZone(
   *daylight_offset_seconds = daylight_offset_seconds_;
   standard_name->assign(standard_name_);
   daylight_name->assign(daylight_name_);
+}
+
+uint64_t SystemSnapshotIOSIntermediateDump::AddressMask() const {
+  INITIALIZATION_STATE_DCHECK_VALID(initialized_);
+  return address_mask_;
+}
+
+uint64_t SystemSnapshotIOSIntermediateDump::CrashpadUptime() const {
+  INITIALIZATION_STATE_DCHECK_VALID(initialized_);
+  return crashpad_uptime_ns_;
 }
 
 }  // namespace internal

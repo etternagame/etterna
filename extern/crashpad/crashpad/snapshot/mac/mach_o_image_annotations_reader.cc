@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -71,6 +71,13 @@ void MachOImageAnnotationsReader::ReadCrashReporterClientAnnotations(
   const process_types::section* crash_info_section =
       image_reader_->GetSectionByName(
           SEG_DATA, "__crash_info", &crash_info_address);
+
+  if (!crash_info_section) {
+    // On macOS 13, under some circumstances, `__crash_info` ends up in the
+    // `__DATA_DIRTY` segment. This is known to happen for `dyld`.
+    crash_info_section = image_reader_->GetSectionByName(
+        "__DATA_DIRTY", "__crash_info", &crash_info_address);
+  }
   if (!crash_info_section) {
     return;
   }
@@ -81,7 +88,8 @@ void MachOImageAnnotationsReader::ReadCrashReporterClientAnnotations(
     return;
   }
 
-  if (crash_info.version != 4 && crash_info.version != 5) {
+  if (crash_info.version != 4 && crash_info.version != 5 &&
+      crash_info.version != 7) {
     LOG(WARNING) << "unexpected crash info version " << crash_info.version
                  << " in " << name_;
     return;
@@ -97,9 +105,13 @@ void MachOImageAnnotationsReader::ReadCrashReporterClientAnnotations(
     return;
   }
 
-  // This number was totally made up out of nowhere, but it seems prudent to
-  // enforce some limit.
-  constexpr size_t kMaxMessageSize = 1024;
+  // It seems prudent to enforce some limit. Different users of
+  // CRSetCrashLogMessage and CRSetCrashLogMessage2, apparently the private
+  // <CrashReporterClient.h> functions used to set message and message2, use
+  // different buffer lengths. 15.0 dyld-1231.3 libdyld/dyld_process_info.cpp
+  // has `static char sCrashReporterInfo[4096]`, which seems like a reasonable
+  // limit.
+  constexpr size_t kMaxMessageSize = 4096;
   if (crash_info.message) {
     std::string message;
     if (process_reader_->Memory()->ReadCStringSizeLimited(

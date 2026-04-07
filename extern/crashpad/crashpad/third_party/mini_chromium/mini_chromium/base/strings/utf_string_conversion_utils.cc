@@ -1,4 +1,4 @@
-// Copyright 2009 The Chromium Authors. All rights reserved.
+// Copyright 2009 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -32,10 +32,13 @@ bool ReadUnicodeCharacter(const char* src,
                           int32_t src_len,
                           int32_t* char_index,
                           uint32_t* code_point_out) {
-  int32_t code_point;
-  CBU8_NEXT(src, *char_index, src_len, code_point);
-  *code_point_out = static_cast<uint32_t>(code_point);
+  base_icu::UChar32 code_point;
+  CBU8_NEXT(reinterpret_cast<const uint8_t*>(src), *char_index, src_len,
+            code_point);
+  *code_point_out = code_point;
 
+  // The ICU macro above moves to the next char, we want to point to the last
+  // char consumed.
   (*char_index)--;
 
   return IsValidCodepoint(code_point);

@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 #define CRASHPAD_SNAPSHOT_LINUX_SNAPSHOT_SIGNAL_CONTEXT_H_
 
 #include <signal.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/ucontext.h>
 
-#include <cstddef>
 #include <type_traits>
 
 #include "build/build_config.h"
@@ -119,11 +119,11 @@ template <typename Traits>
 struct Sigset<
     Traits,
     typename std::enable_if<std::is_base_of<Traits64, Traits>::value>::type> {
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
   uint64_t val;
 #else
   typename Traits::ULong val[16];
-#endif  // OS_ANDROID
+#endif  // BUILDFLAG(IS_ANDROID)
 };
 
 #if defined(ARCH_CPU_X86_FAMILY)
@@ -421,6 +421,40 @@ static_assert(offsetof(UContext<ContextTraits64>, mcontext.fpregs) ==
                   offsetof(ucontext_t, uc_mcontext.fpregs),
               "context offset mismatch");
 #endif
+
+#elif defined(ARCH_CPU_RISCV64)
+
+struct ContextTraits64 : public Traits64 {
+  using SignalThreadContext = ThreadContext::t64_t;
+  using SignalFloatContext = FloatContext::f64_t;
+  using CPUContext = CPUContextRISCV64;
+};
+
+struct MContext64 {
+  ThreadContext::t64_t regs;
+  FloatContext::f64_t fpregs;
+};
+
+template <typename Traits>
+struct UContext {
+  typename Traits::ULong flags;
+  typename Traits::Address link;
+  SignalStack<Traits> stack;
+  Sigset<Traits> sigmask;
+  char alignment_padding_[8];
+  char padding[128 - sizeof(Sigset<Traits>)];
+  MContext64 mcontext;
+};
+
+static_assert(offsetof(UContext<ContextTraits64>, mcontext) ==
+                  offsetof(ucontext_t, uc_mcontext),
+              "context offset mismatch");
+static_assert(offsetof(UContext<ContextTraits64>, mcontext.regs) ==
+                  offsetof(ucontext_t, uc_mcontext.__gregs),
+              "context offset mismatch");
+static_assert(offsetof(UContext<ContextTraits64>, mcontext.fpregs) ==
+                  offsetof(ucontext_t, uc_mcontext.__fpregs),
+              "context offset mismatch");
 
 #else
 #error Port.

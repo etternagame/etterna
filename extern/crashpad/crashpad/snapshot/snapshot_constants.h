@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ namespace crashpad {
 //!     a client process.
 //!
 //! \note This maximum was chosen arbitrarily and may change in the future.
-constexpr size_t kMaxNumberOfAnnotations = 200;
+constexpr size_t kMaxNumberOfAnnotations = 400;
 
 }  // namespace crashpad
 

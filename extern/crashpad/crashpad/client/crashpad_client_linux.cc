@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
+#include <linux/futex.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <sys/mman.h>
@@ -26,9 +28,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <atomic>
+
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
-#include "build/chromeos_buildflags.h"
+#include "build/build_config.h"
 #include "client/client_argv_handling.h"
 #include "third_party/lss/lss.h"
 #include "util/file/file_io.h"
@@ -40,9 +45,9 @@
 #include "util/linux/socket.h"
 #include "util/misc/address_sanitizer.h"
 #include "util/misc/from_pointer_cast.h"
-#include "util/posix/double_fork_and_exec.h"
 #include "util/posix/scoped_mmap.h"
 #include "util/posix/signals.h"
+#include "util/posix/spawn_subprocess.h"
 
 namespace crashpad {
 
@@ -56,7 +61,7 @@ std::string FormatArgumentAddress(const std::string& name, const void* addr) {
   return base::StringPrintf("--%s=%p", name.c_str(), addr);
 }
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 
 std::vector<std::string> BuildAppProcessArgs(
     const std::string& class_name,
@@ -124,7 +129,9 @@ std::vector<std::string> BuildArgsToLaunchWithLinker(
   return argv;
 }
 
-#endif  // OS_ANDROID
+#endif  // BUILDFLAG(IS_ANDROID)
+
+using LastChanceHandler = bool (*)(int, siginfo_t*, ucontext_t*);
 
 // A base class for Crashpad signal handler implementations.
 class SignalHandler {
@@ -136,28 +143,26 @@ class SignalHandler {
   // handler has been installed.
   static SignalHandler* Get() { return handler_; }
 
-  // Disables any installed Crashpad signal handler for the calling thread. If a
-  // crash signal is received, any previously installed (non-Crashpad) signal
-  // handler will be restored and the signal reraised.
-  static void DisableForThread() { disabled_for_thread_ = true; }
+  // Disables any installed Crashpad signal handler. If a crash signal is
+  // received, any previously installed (non-Crashpad) signal handler will be
+  // restored and the signal reraised.
+  static void Disable() {
+    if (!handler_->disabled_.test_and_set()) {
+      handler_->WakeThreads();
+    }
+  }
 
   void SetFirstChanceHandler(CrashpadClient::FirstChanceHandler handler) {
     first_chance_handler_ = handler;
   }
 
+  void SetLastChanceExceptionHandler(LastChanceHandler handler) {
+    last_chance_handler_ = handler;
+  }
+
   // The base implementation for all signal handlers, suitable for calling
   // directly to simulate signal delivery.
-  bool HandleCrash(int signo, siginfo_t* siginfo, void* context) {
-    if (disabled_for_thread_) {
-      return false;
-    }
-
-    if (first_chance_handler_ &&
-        first_chance_handler_(
-            signo, siginfo, static_cast<ucontext_t*>(context))) {
-      return true;
-    }
-
+  void HandleCrash(int signo, siginfo_t* siginfo, void* context) {
     exception_information_.siginfo_address =
         FromPointerCast<decltype(exception_information_.siginfo_address)>(
             siginfo);
@@ -168,7 +173,6 @@ class SignalHandler {
 
     ScopedPrSetDumpable set_dumpable(false);
     HandleCrashImpl();
-    return false;
   }
 
  protected:
@@ -182,8 +186,10 @@ class SignalHandler {
 
     DCHECK(!handler_);
     handler_ = this;
-    return Signals::InstallCrashHandlers(
-        HandleOrReraiseSignal, SA_ONSTACK, &old_actions_, unhandled_signals);
+    return Signals::InstallCrashHandlers(HandleOrReraiseSignal,
+                                         SA_ONSTACK | SA_EXPOSE_TAGBITS,
+                                         &old_actions_,
+                                         unhandled_signals);
   }
 
   const ExceptionInformation& GetExceptionInfo() {
@@ -193,27 +199,84 @@ class SignalHandler {
   virtual void HandleCrashImpl() = 0;
 
  private:
+  static constexpr int32_t kDumpNotDone = 0;
+  static constexpr int32_t kDumpDone = 1;
+
   // The signal handler installed at OS-level.
   static void HandleOrReraiseSignal(int signo,
                                     siginfo_t* siginfo,
                                     void* context) {
-    if (handler_->HandleCrash(signo, siginfo, context)) {
+    if (handler_->first_chance_handler_ &&
+        handler_->first_chance_handler_(
+            signo, siginfo, static_cast<ucontext_t*>(context))) {
       return;
     }
+
+    // Only handle the first fatal signal observed. If another thread receives a
+    // crash signal, it waits for the first dump to complete instead of
+    // requesting another.
+    if (!handler_->disabled_.test_and_set()) {
+      handler_->HandleCrash(signo, siginfo, context);
+      handler_->WakeThreads();
+      if (handler_->last_chance_handler_ &&
+          handler_->last_chance_handler_(
+              signo, siginfo, static_cast<ucontext_t*>(context))) {
+        return;
+      }
+    } else {
+      // Processes on Android normally have several chained signal handlers that
+      // co-operate to report crashes. e.g. WebView will have this signal
+      // handler installed, the app embedding WebView may have a signal handler
+      // installed, and Bionic will have a signal handler. Each signal handler
+      // runs in succession, possibly managed by libsigchain. This wait is
+      // intended to avoid ill-effects from multiple signal handlers from
+      // different layers (possibly all trying to use ptrace()) from running
+      // simultaneously. It does not block forever so that in most conditions,
+      // those signal handlers will still have a chance to run and ensures
+      // process termination in case the first crashing thread crashes again in
+      // its signal handler. Though less typical, this situation also occurs on
+      // other Linuxes, e.g. to produce in-process stack traces for debug
+      // builds.
+      handler_->WaitForDumpDone();
+    }
+
     Signals::RestoreHandlerAndReraiseSignalOnReturn(
         siginfo, handler_->old_actions_.ActionForSignal(signo));
+  }
+
+  void WaitForDumpDone() {
+    kernel_timespec timeout;
+    timeout.tv_sec = 5;
+    timeout.tv_nsec = 0;
+    sys_futex(&dump_done_futex_,
+              FUTEX_WAIT_PRIVATE,
+              kDumpNotDone,
+              &timeout,
+              nullptr,
+              0);
+  }
+
+  void WakeThreads() {
+    dump_done_futex_ = kDumpDone;
+    sys_futex(
+        &dump_done_futex_, FUTEX_WAKE_PRIVATE, INT_MAX, nullptr, nullptr, 0);
   }
 
   Signals::OldActions old_actions_ = {};
   ExceptionInformation exception_information_ = {};
   CrashpadClient::FirstChanceHandler first_chance_handler_ = nullptr;
+  LastChanceHandler last_chance_handler_ = nullptr;
+  int32_t dump_done_futex_ = kDumpNotDone;
+#if !defined(__cpp_lib_atomic_value_initialization) || \
+    __cpp_lib_atomic_value_initialization < 201911L
+  std::atomic_flag disabled_ = ATOMIC_FLAG_INIT;
+#else
+  std::atomic_flag disabled_;
+#endif
 
   static SignalHandler* handler_;
-
-  static thread_local bool disabled_for_thread_;
 };
 SignalHandler* SignalHandler::handler_ = nullptr;
-thread_local bool SignalHandler::disabled_for_thread_ = false;
 
 // Launches a single use handler to snapshot this process.
 class LaunchAtCrashHandler : public SignalHandler {
@@ -307,17 +370,11 @@ class RequestCrashDumpHandler : public SignalHandler {
       }
       pid = creds.pid;
     }
-    if (pid > 0 && prctl(PR_SET_PTRACER, pid, 0, 0, 0) != 0) {
-      PLOG(WARNING) << "prctl";
-      // TODO(jperaza): If this call to set the ptracer failed, it might be
-      // possible to try again just before a dump request, in case the
-      // environment has changed. Revisit ExceptionHandlerClient::SetPtracer()
-      // and consider saving the result of this call in ExceptionHandlerClient
-      // or as a member in this signal handler. ExceptionHandlerClient hasn't
-      // been responsible for maintaining state and a new ExceptionHandlerClient
-      // has been constructed as a local whenever a client needs to communicate
-      // with the handler. ExceptionHandlerClient lifetimes and ownership will
-      // need to be reconsidered if it becomes responsible for state.
+    if (pid > 0) {
+      pthread_atfork(nullptr, nullptr, SetPtracerAtFork);
+      if (prctl(PR_SET_PTRACER, pid, 0, 0, 0) != 0) {
+        PLOG(WARNING) << "prctl";
+      }
     }
     sock_to_handler_.reset(sock.release());
     handler_pid_ = pid;
@@ -338,10 +395,17 @@ class RequestCrashDumpHandler : public SignalHandler {
   }
 
   void HandleCrashImpl() override {
+    // Attempt to set the ptracer again, in case a crash occurs after a fork,
+    // before SetPtracerAtFork() has been called. Ignore errors because the
+    // system call may be disallowed if the sandbox is engaged.
+    if (handler_pid_ > 0) {
+      sys_prctl(PR_SET_PTRACER, handler_pid_, 0, 0, 0);
+    }
+
     ExceptionHandlerProtocol::ClientInformation info = {};
     info.exception_information_address =
         FromPointerCast<VMAddress>(&GetExceptionInfo());
-#if BUILDFLAG(IS_CHROMEOS_ASH)
+#if BUILDFLAG(IS_CHROMEOS)
     info.crash_loop_before_time = crash_loop_before_time_;
 #endif
 
@@ -349,7 +413,7 @@ class RequestCrashDumpHandler : public SignalHandler {
     client.RequestCrashDump(info);
   }
 
-#if BUILDFLAG(IS_CHROMEOS_ASH)
+#if BUILDFLAG(IS_CHROMEOS)
   void SetCrashLoopBefore(uint64_t crash_loop_before_time) {
     crash_loop_before_time_ = crash_loop_before_time;
   }
@@ -360,10 +424,18 @@ class RequestCrashDumpHandler : public SignalHandler {
 
   ~RequestCrashDumpHandler() = delete;
 
+  static void SetPtracerAtFork() {
+    auto handler = RequestCrashDumpHandler::Get();
+    if (handler->handler_pid_ > 0 &&
+        prctl(PR_SET_PTRACER, handler->handler_pid_, 0, 0, 0) != 0) {
+      PLOG(WARNING) << "prctl";
+    }
+  }
+
   ScopedFileHandle sock_to_handler_;
   pid_t handler_pid_ = -1;
 
-#if BUILDFLAG(IS_CHROMEOS_ASH)
+#if BUILDFLAG(IS_CHROMEOS)
   // An optional UNIX timestamp passed to us from Chrome.
   // This will pass to crashpad_handler and then to Chrome OS crash_reporter.
   // This should really be a time_t, but it's basically an opaque value (we
@@ -401,9 +473,10 @@ bool CrashpadClient::StartHandler(
 
   argv.push_back(FormatArgumentInt("initial-client-fd", handler_sock.get()));
   argv.push_back("--shared-client-connection");
-  if (!DoubleForkAndExec(argv, nullptr, handler_sock.get(), false, nullptr)) {
+  if (!SpawnSubprocess(argv, nullptr, handler_sock.get(), false, nullptr)) {
     return false;
   }
+  handler_sock.reset();
 
   pid_t handler_pid = -1;
   if (!IsRegularFile(base::FilePath("/proc/sys/kernel/yama/ptrace_scope"))) {
@@ -415,7 +488,7 @@ bool CrashpadClient::StartHandler(
       std::move(client_sock), handler_pid, &unhandled_signals_);
 }
 
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 // static
 bool CrashpadClient::GetHandlerSocket(int* sock, pid_t* pid) {
   auto signal_handler = RequestCrashDumpHandler::Get();
@@ -519,9 +592,10 @@ bool CrashpadClient::InitializeSignalStackForThread() {
   }
   return true;
 }
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 
 bool CrashpadClient::StartJavaHandlerAtCrash(
     const std::string& class_name,
@@ -555,7 +629,7 @@ bool CrashpadClient::StartJavaHandlerForClient(
     int socket) {
   std::vector<std::string> argv = BuildAppProcessArgs(
       class_name, database, metrics_dir, url, annotations, arguments, socket);
-  return DoubleForkAndExec(argv, env, socket, false, nullptr);
+  return SpawnSubprocess(argv, env, socket, false, nullptr);
 }
 
 bool CrashpadClient::StartHandlerWithLinkerAtCrash(
@@ -604,7 +678,7 @@ bool CrashpadClient::StartHandlerWithLinkerForClient(
                                   annotations,
                                   arguments,
                                   socket);
-  return DoubleForkAndExec(argv, env, socket, false, nullptr);
+  return SpawnSubprocess(argv, env, socket, false, nullptr);
 }
 
 #endif
@@ -638,7 +712,7 @@ bool CrashpadClient::StartHandlerForClient(
 
   argv.push_back(FormatArgumentInt("initial-client-fd", socket));
 
-  return DoubleForkAndExec(argv, nullptr, socket, true, nullptr);
+  return SpawnSubprocess(argv, nullptr, socket, true, nullptr);
 }
 
 // static
@@ -666,7 +740,7 @@ void CrashpadClient::DumpWithoutCrash(NativeCPUContext* context) {
 
 // static
 void CrashpadClient::CrashWithoutDump(const std::string& message) {
-  SignalHandler::DisableForThread();
+  SignalHandler::Disable();
   LOG(FATAL) << message;
 }
 
@@ -677,12 +751,18 @@ void CrashpadClient::SetFirstChanceExceptionHandler(
   SignalHandler::Get()->SetFirstChanceHandler(handler);
 }
 
+// static
+void CrashpadClient::SetLastChanceExceptionHandler(LastChanceHandler handler) {
+  DCHECK(SignalHandler::Get());
+  SignalHandler::Get()->SetLastChanceExceptionHandler(handler);
+}
+
 void CrashpadClient::SetUnhandledSignals(const std::set<int>& signals) {
   DCHECK(!SignalHandler::Get());
   unhandled_signals_ = signals;
 }
 
-#if BUILDFLAG(IS_CHROMEOS_ASH)
+#if BUILDFLAG(IS_CHROMEOS)
 // static
 void CrashpadClient::SetCrashLoopBefore(uint64_t crash_loop_before_time) {
   auto request_crash_dump_handler = RequestCrashDumpHandler::Get();

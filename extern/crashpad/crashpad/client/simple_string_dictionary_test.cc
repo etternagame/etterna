@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include "client/simple_string_dictionary.h"
+
+#include <string_view>
 
 #include "base/check_op.h"
 #include "gtest/gtest.h"
@@ -73,7 +75,7 @@ TEST(SimpleStringDictionary, SimpleStringDictionary) {
   EXPECT_FALSE(dict.GetValueForKey("key3"));
 
   // Remove by setting value to nullptr
-  dict.SetKeyValue("key2", base::StringPiece(nullptr, 0));
+  dict.SetKeyValue("key2", std::string_view(nullptr, 0));
 
   // Now make sure it's not there anymore
   EXPECT_FALSE(dict.GetValueForKey("key2"));
@@ -132,8 +134,10 @@ TEST(SimpleStringDictionary, Iterator) {
 
   // Set a bunch of key/value pairs like key0/value0, key1/value1, ...
   for (int i = 0; i < kPartitionIndex; ++i) {
-    sprintf(key, "key%d", i);
-    sprintf(value, "value%d", i);
+    ASSERT_LT(snprintf(key, sizeof(key), "key%d", i),
+              static_cast<int>(sizeof(key)));
+    ASSERT_LT(snprintf(value, sizeof(value), "value%d", i),
+              static_cast<int>(sizeof(value)));
     dict.SetKeyValue(key, value);
   }
   expected_dictionary_size = kPartitionIndex;
@@ -152,8 +156,10 @@ TEST(SimpleStringDictionary, Iterator) {
 
   // Set some more key/value pairs like key59/value59, key60/value60, ...
   for (int i = kPartitionIndex; i < kDictionaryCapacity; ++i) {
-    sprintf(key, "key%d", i);
-    sprintf(value, "value%d", i);
+    ASSERT_LT(snprintf(key, sizeof(key), "key%d", i),
+              static_cast<int>(sizeof(key)));
+    ASSERT_LT(snprintf(value, sizeof(value), "value%d", i),
+              static_cast<int>(sizeof(value)));
     dict.SetKeyValue(key, value);
   }
   expected_dictionary_size += kDictionaryCapacity - kPartitionIndex;
@@ -254,14 +260,14 @@ TEST(SimpleStringDictionary, OutOfSpace) {
 
 TEST(SimpleStringDictionaryDeathTest, SetKeyValueWithNullKey) {
   TSimpleStringDictionary<4, 6, 6> map;
-  ASSERT_DEATH_CHECK(map.SetKeyValue(base::StringPiece(nullptr, 0), "hello"),
+  ASSERT_DEATH_CHECK(map.SetKeyValue(std::string_view(nullptr, 0), "hello"),
                      "key");
 }
 
 TEST(SimpleStringDictionaryDeathTest, GetValueForKeyWithNullKey) {
   TSimpleStringDictionary<4, 6, 6> map;
   map.SetKeyValue("hi", "there");
-  ASSERT_DEATH_CHECK(map.GetValueForKey(base::StringPiece(nullptr, 0)), "key");
+  ASSERT_DEATH_CHECK(map.GetValueForKey(std::string_view(nullptr, 0)), "key");
   EXPECT_STREQ("there", map.GetValueForKey("hi"));
 }
 

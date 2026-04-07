@@ -1,4 +1,4 @@
-// Copyright 2010 The Chromium Authors. All rights reserved.
+// Copyright 2010 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,10 +8,10 @@
 
 #include <vector>
 
-#include "base/cxx17_backports.h"
 #include "base/logging.h"
 #include "base/scoped_clear_last_error.h"
 #include "base/strings/string_util.h"
+#include "build/build_config.h"
 
 namespace base {
 
@@ -34,19 +34,19 @@ static void StringAppendVT(StringType* dst,
   va_copy(ap_copy, ap);
 
   ScopedClearLastError clear_errno;
-  int result = vsnprintfT(stack_buf, size(stack_buf), format, ap_copy);
+  int result = vsnprintfT(stack_buf, std::size(stack_buf), format, ap_copy);
   va_end(ap_copy);
 
-  if (result >= 0 && result < static_cast<int>(size(stack_buf))) {
+  if (result >= 0 && result < static_cast<int>(std::size(stack_buf))) {
     dst->append(stack_buf, result);
     return;
   }
 
   // Repeatedly increase buffer size until it fits.
-  size_t mem_length = size(stack_buf);
+  size_t mem_length = std::size(stack_buf);
   while (true) {
     if (result < 0) {
-#if !defined(OS_WIN)
+#if !BUILDFLAG(IS_WIN)
       // On Windows, vsnprintfT always returns the number of characters in a
       // fully-formatted string, so if we reach this point, something else is
       // wrong and no amount of buffer-doubling is going to fix it.
@@ -56,7 +56,7 @@ static void StringAppendVT(StringType* dst,
         DLOG(WARNING) << "Unable to printf the requested string due to error.";
         return;
       }
-#if !defined(OS_WIN)
+#if !BUILDFLAG(IS_WIN)
       // Try doubling the buffer size.
       mem_length *= 2;
 #endif

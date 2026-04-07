@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #define CRASHPAD_SNAPSHOT_WIN_EXCEPTION_SNAPSHOT_WIN_H_
 
 #include <windows.h>
+
 #include <stdint.h>
 
 #include <memory>
@@ -63,6 +64,9 @@ class ExceptionSnapshotWin final : public ExceptionSnapshot {
   //! \param[in] exception_pointers The address of an `EXCEPTION_POINTERS`
   //!     record in the target process, passed through from the exception
   //!     handler.
+  //! \param[inout] gather_indirectly_referenced_memory_cap The remaining budget
+  //!     for indirectly referenced memory, honored on entry and updated on
+  //!     return.
   //!
   //! \note If the exception was triggered by
   //!     CrashpadClient::DumpAndCrashTargetProcess(), this has the side-effect
@@ -72,7 +76,8 @@ class ExceptionSnapshotWin final : public ExceptionSnapshot {
   //!     an appropriate message logged.
   bool Initialize(ProcessReaderWin* process_reader,
                   DWORD thread_id,
-                  WinVMAddress exception_pointers);
+                  WinVMAddress exception_pointers,
+                  uint32_t* gather_indirectly_referenced_memory_cap);
 
   // ExceptionSnapshot:
 
@@ -92,7 +97,7 @@ class ExceptionSnapshotWin final : public ExceptionSnapshot {
       ProcessReaderWin* process_reader,
       WinVMAddress exception_pointers_address,
       DWORD exception_thread_id,
-      void (*native_to_cpu_context)(const ContextType& context_record,
+      void (*native_to_cpu_context)(const ContextType* context_record,
                                     CPUContext* context,
                                     CPUContextUnion* context_union));
 

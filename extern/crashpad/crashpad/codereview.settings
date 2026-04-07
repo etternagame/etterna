@@ -1,4 +1,4 @@
-# Copyright 2014 The Crashpad Authors. All rights reserved.
+# Copyright 2014 The Crashpad Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,4 +16,3 @@ GERRIT_HOST: True
 CODE_REVIEW_SERVER: https://chromium-review.googlesource.com/
 VIEW_VC: https://chromium.googlesource.com/crashpad/crashpad/+/
 PROJECT: crashpad
-BUG_PREFIX: crashpad:

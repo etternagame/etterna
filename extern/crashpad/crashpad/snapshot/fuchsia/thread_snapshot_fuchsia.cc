@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ ThreadSnapshotFuchsia::ThreadSnapshotFuchsia()
       context_arch_(),
       context_(),
       stack_(),
+      thread_name_(),
       thread_id_(ZX_KOID_INVALID),
       thread_specific_data_address_(0),
       initialized_() {}
@@ -39,14 +40,19 @@ bool ThreadSnapshotFuchsia::Initialize(
 #if defined(ARCH_CPU_X86_64)
   context_.architecture = kCPUArchitectureX86_64;
   context_.x86_64 = &context_arch_;
-  // TODO(fuchsia/DX-642): Add float context once saved in |thread|.
-  InitializeCPUContextX86_64_NoFloatingPoint(thread.general_registers,
-                                             context_.x86_64);
+  // TODO(fxbug.dev/42132536): Add vector context.
+  InitializeCPUContextX86_64(
+      thread.general_registers, thread.fp_registers, context_.x86_64);
 #elif defined(ARCH_CPU_ARM64)
   context_.architecture = kCPUArchitectureARM64;
   context_.arm64 = &context_arch_;
   InitializeCPUContextARM64(
       thread.general_registers, thread.vector_registers, context_.arm64);
+#elif defined(ARCH_CPU_RISCV64)
+  context_.architecture = kCPUArchitectureRISCV64;
+  context_.riscv64 = &context_arch_;
+  InitializeCPUContextRISCV64(
+      thread.general_registers, thread.fp_registers, context_.riscv64);
 #else
 #error Port.
 #endif
@@ -60,6 +66,7 @@ bool ThreadSnapshotFuchsia::Initialize(
     // TODO(scottmg): Handle split stack by adding other parts to ExtraMemory().
   }
 
+  thread_name_ = thread.name;
   thread_id_ = thread.id;
 
   INITIALIZATION_STATE_SET_VALID(initialized_);
@@ -79,6 +86,11 @@ const MemorySnapshot* ThreadSnapshotFuchsia::Stack() const {
 uint64_t ThreadSnapshotFuchsia::ThreadID() const {
   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
   return thread_id_;
+}
+
+std::string ThreadSnapshotFuchsia::ThreadName() const {
+  INITIALIZATION_STATE_DCHECK_VALID(initialized_);
+  return thread_name_;
 }
 
 int ThreadSnapshotFuchsia::SuspendCount() const {

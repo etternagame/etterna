@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@
 #include "util/stream/log_output_stream.h"
 #include "util/stream/zlib_output_stream.h"
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 #include <android/log.h>
 #endif
 
@@ -52,10 +52,10 @@ class Logger final : public LogOutputStream::Delegate {
 
   ~Logger() override = default;
 
-#if defined(OS_ANDROID)
-  int Log(const char* buf) override {
+#if BUILDFLAG(IS_ANDROID)
+  bool Log(const char* buf) override {
     return __android_log_buf_write(
-        LOG_ID_CRASH, ANDROID_LOG_FATAL, "crashpad", buf);
+        LOG_ID_CRASH, ANDROID_LOG_FATAL, "crashpad", buf) > 0;
   }
 
   size_t OutputCap() override {
@@ -72,7 +72,7 @@ class Logger final : public LogOutputStream::Delegate {
   }
 #else
   // TODO(jperaza): Log to an appropriate location on Linux.
-  int Log(const char* buf) override { return -ENOTCONN; }
+  bool Log(const char* buf) override { return false; }
   size_t OutputCap() override { return 0; }
   size_t LineWidth() override { return 0; }
 #endif
@@ -184,13 +184,9 @@ bool CrashReportExceptionHandler::HandleExceptionWithConnection(
 
   UUID client_id;
   Settings* const settings = database_->GetSettings();
-  if (settings) {
-    // If GetSettings() or GetClientID() fails, something else will log a
-    // message and client_id will be left at its default value, all zeroes,
-    // which is appropriate.
-    settings->GetClientID(&client_id);
+  if (settings && settings->GetClientID(&client_id)) {
+    process_snapshot->SetClientID(client_id);
   }
-  process_snapshot->SetClientID(client_id);
 
   return write_minidump_to_database_
              ? WriteMinidumpToDatabase(process_snapshot.get(),

@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ TEST(MultiprocessExec, MultiprocessExecSimpleChildReturnsNonZero) {
   exec.Run();
 }
 
-#if !defined(OS_WIN)
+#if !BUILDFLAG(IS_WIN)
 
 CRASHPAD_CHILD_TEST_MAIN(BuiltinTrapChild) {
   __builtin_trap();
@@ -130,7 +130,7 @@ TEST(MultiprocessExec, BuiltinTrapTermination) {
   test.Run();
 }
 
-#endif  // !OS_WIN
+#endif  // !BUILDFLAG(IS_WIN)
 
 }  // namespace
 }  // namespace test

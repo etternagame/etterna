@@ -1,4 +1,4 @@
-// Copyright 2009 The Chromium Authors. All rights reserved.
+// Copyright 2009 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,10 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "base/cxx17_backports.h"
 #include "build/build_config.h"
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 #include <android/api-level.h>
 #endif
 
@@ -19,7 +18,7 @@ namespace base {
 
 void safe_strerror_r(int err, char* buf, size_t len) {
 #if defined(__GLIBC__) || \
-   (defined(OS_ANDROID) && defined(_GNU_SOURCE) && __ANDROID_API__ >= 23)
+    (BUILDFLAG(IS_ANDROID) && defined(_GNU_SOURCE) && __ANDROID_API__ >= 23)
   char* ret = strerror_r(err, buf, len);
   if (ret != buf) {
     snprintf(buf, len, "%s", ret);
@@ -38,7 +37,7 @@ void safe_strerror_r(int err, char* buf, size_t len) {
 
 std::string safe_strerror(int err) {
   char buf[256];
-  safe_strerror_r(err, buf, size(buf));
+  safe_strerror_r(err, buf, std::size(buf));
   return std::string(buf);
 }
 

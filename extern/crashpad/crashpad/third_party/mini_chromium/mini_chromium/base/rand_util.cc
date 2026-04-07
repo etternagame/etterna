@@ -1,4 +1,4 @@
-// Copyright 2008 The Chromium Authors. All rights reserved.
+// Copyright 2008 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -11,16 +11,16 @@
 #include <cmath>
 #include <limits>
 
+#include "base/check_op.h"
 #include "base/files/file_util.h"
-#include "base/logging.h"
 #include "build/build_config.h"
 
-#if defined(OS_FUCHSIA)
+#if BUILDFLAG(IS_FUCHSIA)
 #include <zircon/syscalls.h>
 #include "base/fuchsia/fuchsia_logging.h"
-#elif defined(OS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
 #include "base/posix/eintr_wrapper.h"
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #include <windows.h>
 
 // #define needed to link in RtlGenRandom(), a.k.a. SystemFunction036.  See the
@@ -30,9 +30,9 @@
 #include <NTSecAPI.h>
 #undef SystemFunction036
 
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
-#if defined(OS_POSIX) && !defined(OS_FUCHSIA)
+#if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_FUCHSIA)
 
 namespace {
 
@@ -49,13 +49,13 @@ int GetUrandomFD() {
 
 }  // namespace
 
-#endif  // OS_POSIX && !OS_FUCHSIA
+#endif  // BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_FUCHSIA)
 
 namespace base {
 
 uint64_t RandUint64() {
   uint64_t number;
-  RandBytes(&number, sizeof(number));
+  RandBytes(byte_span_from_ref(number));
   return number;
 }
 
@@ -104,27 +104,26 @@ double RandDouble() {
   return result;
 }
 
-void RandBytes(void* output, size_t output_length) {
-  if (output_length == 0) {
+void RandBytes(span<uint8_t> output) {
+  if (output.empty()) {
     return;
   }
 
-#if defined(OS_FUCHSIA)
-  zx_cprng_draw(output, output_length);
-#elif defined(OS_POSIX)
+#if BUILDFLAG(IS_FUCHSIA)
+  zx_cprng_draw(output.data(), output.size());
+#elif BUILDFLAG(IS_POSIX)
   int fd = GetUrandomFD();
-  bool success = ReadFromFD(fd, static_cast<char*>(output), output_length);
+  bool success =
+      ReadFromFD(fd, reinterpret_cast<char*>(output.data()), output.size());
   CHECK(success);
-#elif defined(OS_WIN)
-  char* output_ptr = static_cast<char*>(output);
-  while (output_length > 0) {
+#elif BUILDFLAG(IS_WIN)
+  while (!output.empty()) {
     const ULONG output_bytes_this_pass = static_cast<ULONG>(std::min(
-        output_length, static_cast<size_t>(std::numeric_limits<ULONG>::max())));
+        output.size(), static_cast<size_t>(std::numeric_limits<ULONG>::max())));
     const bool success =
-        RtlGenRandom(output_ptr, output_bytes_this_pass) != FALSE;
+        RtlGenRandom(output.data(), output_bytes_this_pass) != FALSE;
     CHECK(success);
-    output_length -= output_bytes_this_pass;
-    output_ptr += output_bytes_this_pass;
+    output = output.subspan(output_bytes_this_pass);
   }
 #endif
 }
@@ -135,7 +134,7 @@ std::string RandBytesAsString(size_t length) {
   }
 
   std::string result(length, std::string::value_type());
-  RandBytes(&result[0], length);
+  RandBytes(as_writable_byte_span(result));
   return result;
 }
 

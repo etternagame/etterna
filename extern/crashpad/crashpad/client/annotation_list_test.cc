@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,10 @@
 
 #include "client/annotation.h"
 
+#include <algorithm>
+#include <iterator>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "base/rand_util.h"
@@ -26,6 +29,52 @@
 namespace crashpad {
 namespace test {
 namespace {
+
+#if (__cplusplus >= 202002L)
+template <typename Iterator>
+  requires std::input_iterator<Iterator>
+void VerifyIsInputIterator(Iterator) {}
+#else
+template <typename Iterator>
+struct IsLegacyIteratorImpl {
+  static constexpr bool value =
+      std::is_copy_constructible_v<Iterator> &&
+      std::is_copy_assignable_v<Iterator> && std::is_destructible_v<Iterator> &&
+      std::is_swappable_v<Iterator> &&
+      // check that std::iterator_traits has the necessary types (check only one
+      // needed as std::iterator is required to define only if all are defined)
+      !std::is_same_v<typename std::iterator_traits<Iterator>::reference,
+                      void> &&
+      std::is_same_v<decltype(++std::declval<Iterator>()), Iterator&> &&
+      !std::is_same_v<decltype(*std::declval<Iterator>()), void>;
+};
+
+template <typename Iterator>
+struct IsLegacyInputIteratorImpl {
+  static constexpr bool value =
+      IsLegacyIteratorImpl<Iterator>::value &&
+      std::is_base_of_v<
+          std::input_iterator_tag,
+          typename std::iterator_traits<Iterator>::iterator_category> &&
+      std::is_convertible_v<decltype(std::declval<Iterator>() !=
+                                     std::declval<Iterator>()),
+                            bool> &&
+      std::is_convertible_v<decltype(std::declval<Iterator>() ==
+                                     std::declval<Iterator>()),
+                            bool> &&
+      std::is_same_v<decltype(*std::declval<Iterator>()),
+                     typename std::iterator_traits<Iterator>::reference> &&
+      std::is_same_v<decltype(++std::declval<Iterator>()), Iterator&> &&
+      std::is_same_v<decltype(std::declval<Iterator>()++), Iterator> &&
+      std::is_same_v<decltype(*(++std::declval<Iterator>())),
+                     typename std::iterator_traits<Iterator>::reference>;
+};
+
+template <typename Iterator>
+void VerifyIsInputIterator(Iterator) {
+  static_assert(IsLegacyInputIteratorImpl<Iterator>::value);
+}
+#endif
 
 TEST(AnnotationListStatic, Register) {
   ASSERT_FALSE(AnnotationList::Get());
@@ -126,6 +175,117 @@ TEST_F(AnnotationList, DuplicateKeys) {
 
   annotations = CollectAnnotations();
   EXPECT_EQ(1u, annotations.size());
+}
+
+TEST_F(AnnotationList, IteratorSingleAnnotation) {
+  ASSERT_EQ(annotations_.begin(), annotations_.end());
+  ASSERT_EQ(annotations_.cbegin(), annotations_.cend());
+
+  one_.Set("1");
+
+  auto iterator = annotations_.begin();
+  auto const_iterator = annotations_.cbegin();
+
+  ASSERT_NE(iterator, annotations_.end());
+  ASSERT_NE(const_iterator, annotations_.cend());
+
+  EXPECT_EQ(*iterator, &one_);
+  EXPECT_EQ(*const_iterator, &one_);
+
+  ++iterator;
+  ++const_iterator;
+
+  EXPECT_EQ(iterator, annotations_.end());
+  EXPECT_EQ(const_iterator, annotations_.cend());
+}
+
+TEST_F(AnnotationList, IteratorMultipleAnnotationsInserted) {
+  ASSERT_EQ(annotations_.begin(), annotations_.end());
+  ASSERT_EQ(annotations_.cbegin(), annotations_.cend());
+
+  one_.Set("1");
+  two_.Set("2");
+
+  // New annotations are inserted to the beginning of the list. Hence, |two_|
+  // must be the first annotation, followed by |one_|.
+  {
+    auto iterator = annotations_.begin();
+    auto const_iterator = annotations_.cbegin();
+
+    ASSERT_NE(iterator, annotations_.end());
+    ASSERT_NE(const_iterator, annotations_.cend());
+
+    EXPECT_EQ(*iterator, &two_);
+    EXPECT_EQ(*const_iterator, &two_);
+
+    ++iterator;
+    ++const_iterator;
+
+    ASSERT_NE(iterator, annotations_.end());
+    ASSERT_NE(const_iterator, annotations_.cend());
+
+    EXPECT_EQ(*iterator, &one_);
+    EXPECT_EQ(*const_iterator, &one_);
+
+    ++iterator;
+    ++const_iterator;
+
+    EXPECT_EQ(iterator, annotations_.end());
+    EXPECT_EQ(const_iterator, annotations_.cend());
+  }
+}
+
+TEST_F(AnnotationList, IteratorMultipleAnnotationsInsertedAndRemoved) {
+  ASSERT_EQ(annotations_.begin(), annotations_.end());
+  ASSERT_EQ(annotations_.cbegin(), annotations_.cend());
+
+  one_.Set("1");
+  two_.Set("2");
+  one_.Clear();
+  two_.Clear();
+
+  // Even after clearing, Annotations are still inserted in the list and
+  // reachable via the iterators.
+  auto iterator = annotations_.begin();
+  auto const_iterator = annotations_.cbegin();
+
+  ASSERT_NE(iterator, annotations_.end());
+  ASSERT_NE(const_iterator, annotations_.cend());
+
+  EXPECT_EQ(*iterator, &two_);
+  EXPECT_EQ(*const_iterator, &two_);
+
+  ++iterator;
+  ++const_iterator;
+
+  ASSERT_NE(iterator, annotations_.end());
+  ASSERT_NE(const_iterator, annotations_.cend());
+
+  EXPECT_EQ(*iterator, &one_);
+  EXPECT_EQ(*const_iterator, &one_);
+
+  ++iterator;
+  ++const_iterator;
+
+  EXPECT_EQ(iterator, annotations_.end());
+  EXPECT_EQ(const_iterator, annotations_.cend());
+}
+
+TEST_F(AnnotationList, IteratorIsInputIterator) {
+  one_.Set("1");
+  two_.Set("2");
+
+  // Check explicitly that the iterators meet the interface of an input
+  // iterator.
+  VerifyIsInputIterator(annotations_.begin());
+  VerifyIsInputIterator(annotations_.cbegin());
+  VerifyIsInputIterator(annotations_.end());
+  VerifyIsInputIterator(annotations_.cend());
+
+  // Additionally verify that std::distance accepts the iterators. It requires
+  // the iterators to comply to the input iterator interface.
+  EXPECT_EQ(std::distance(annotations_.begin(), annotations_.end()), 2);
+  EXPECT_EQ(std::distance(annotations_.cbegin(), annotations_.cend()), 2);
 }
 
 class RaceThread : public Thread {

@@ -48,7 +48,11 @@ extern "C" {
 #endif
 
 #ifndef _ZLIB_H
+#if defined(USE_SYSTEM_ZLIB)
+#include <zlib.h>
+#else
 #include "third_party/zlib/zlib.h"
+#endif
 #endif
 
 #ifndef  _ZLIBIOAPI_H
@@ -197,9 +201,9 @@ extern unzFile ZEXPORT unzOpen2_64 OF((const void *path,
 
 extern int ZEXPORT unzClose OF((unzFile file));
 /*
-  Close a ZipFile opened with unzOpen.
+  Close a ZipFile opened with unzipOpen.
   If there is files inside the .Zip opened with unzOpenCurrentFile (see later),
-    these files MUST be closed with unzCloseCurrentFile before call unzClose.
+    these files MUST be closed with unzipCloseCurrentFile before call unzipClose.
   return UNZ_OK if there is no problem. */
 
 extern int ZEXPORT unzGetGlobalInfo OF((unzFile file,

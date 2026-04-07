@@ -1,4 +1,4 @@
-// Copyright 2014 The Chromium Authors. All rights reserved.
+// Copyright 2014 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,8 +8,6 @@
 #include <stdlib.h>
 
 #include <algorithm>
-
-#include "base/compiler_specific.h"
 
 namespace base {
 
@@ -63,7 +61,7 @@ class ScopedGeneric {
     swap(data_.generic, other.data_.generic);
   }
 
-  element_type release() WARN_UNUSED_RESULT {
+  [[nodiscard]] element_type release() {
     element_type old_generic = data_.generic;
     data_.generic = traits_type::InvalidValue();
     return old_generic;

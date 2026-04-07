@@ -1,4 +1,4 @@
-// Copyright 2006-2008 The Chromium Authors. All rights reserved.
+// Copyright 2006-2008 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,7 +8,7 @@
 
 #include "base/synchronization/lock.h"
 
-#include "base/logging.h"
+#include "base/check_op.h"
 
 #ifndef NDEBUG
 
@@ -17,9 +17,9 @@ namespace base {
 namespace {
 
 ThreadRefType GetCurrentThreadRef() {
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
   return GetCurrentThreadId();
-#elif defined(OS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
   return pthread_self();
 #endif
 }

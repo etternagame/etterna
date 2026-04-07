@@ -1,4 +1,4 @@
-# Copyright 2017 The Crashpad Authors. All rights reserved.
+# Copyright 2017 The Crashpad Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,6 +30,11 @@ config("crashpad_is_in_fuchsia") {
   }
 }
 
+config("flock_always_supported_defines") {
+  defines =
+      [ "CRASHPAD_FLOCK_ALWAYS_SUPPORTED=$crashpad_flock_always_supported" ]
+}
+
 group("default_exe_manifest_win") {
   if (crashpad_is_in_chromium) {
     deps = [ "//build/win:default_exe_manifest" ]
@@ -46,16 +51,18 @@ config("crashpad_fuzzer_flags") {
   ldflags = [ "-fsanitize=address" ]
 }
 
-if (crashpad_is_ios) {
-  group("ios_enable_arc") {
-    if (crashpad_is_in_chromium) {
-      public_configs = [ "//build/config/compiler:enable_arc" ]
-    } else if (crashpad_is_standalone) {
-      public_configs =
-          [ "//third_party/mini_chromium/mini_chromium/build/config:ios_enable_arc" ]
+if (crashpad_is_apple) {
+  group("apple_enable_arc") {
+    # If `crashpad_is_in_chromium`, then because Chromium enables ARC
+    # compilation by default, no special configuration is needed.
+
+    if (crashpad_is_standalone) {
+      public_configs = [ "//third_party/mini_chromium/mini_chromium/build/config:apple_enable_arc" ]
     }
   }
+}
 
+if (crashpad_is_ios) {
   group("ios_xctest") {
     if (crashpad_is_in_chromium) {
       public_configs = [ "//build/config/ios:xctest_config" ]
@@ -63,6 +70,19 @@ if (crashpad_is_ios) {
       public_configs = [
         "//third_party/mini_chromium/mini_chromium/build/ios:xctest_config",
       ]
+    }
+  }
+
+  if (crashpad_is_in_chromium) {
+    import("//build/config/ios/ios_sdk.gni")
+    crashpad_is_ios_app_extension = ios_is_app_extension
+  } else {
+    crashpad_is_ios_app_extension = false
+  }
+
+  config("crashpad_is_ios_app_extension") {
+    if (crashpad_is_ios_app_extension) {
+      defines = [ "CRASHPAD_IS_IOS_APP_EXTENSION" ]
     }
   }
 }

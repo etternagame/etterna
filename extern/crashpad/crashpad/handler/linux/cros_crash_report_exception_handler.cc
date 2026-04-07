@@ -1,4 +1,4 @@
-// Copyright 2019 The Crashpad Authors. All rights reserved.
+// Copyright 2019 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 #include <vector>
 
 #include "base/logging.h"
+#include "base/strings/stringprintf.h"
+#if defined(CRASHPAD_IS_IN_CHROMIUM)
+#include "base/system/sys_info.h"
+#endif // CRASHPAD_IS_IN_CHROMIUM
 #include "client/settings.h"
 #include "handler/linux/capture_snapshot.h"
 #include "handler/minidump_to_upload_parameters.h"
@@ -29,7 +33,7 @@
 #include "util/linux/ptrace_client.h"
 #include "util/misc/metrics.h"
 #include "util/misc/uuid.h"
-#include "util/posix/double_fork_and_exec.h"
+#include "util/posix/spawn_subprocess.h"
 
 namespace crashpad {
 
@@ -40,14 +44,13 @@ const std::string GetProcessNameFromPid(pid_t pid) {
   // Symlink to process binary is at /proc/###/exe.
   std::string link_path = "/proc/" + std::to_string(pid) + "/exe";
 
-  constexpr int kMaxSize = 4096;
-  std::unique_ptr<char[]> buf(new char[kMaxSize]);
-  ssize_t size = readlink(link_path.c_str(), buf.get(), kMaxSize);
-  std::string result;
+  std::string result(4096, '\0');
+  ssize_t size = readlink(link_path.c_str(), result.data(), result.size());
   if (size < 0) {
     PLOG(ERROR) << "Failed to readlink " << link_path;
+    result.clear();
   } else {
-    result.assign(buf.get(), size);
+    result.resize(size);
     size_t last_slash_pos = result.rfind('/');
     if (last_slash_pos != std::string::npos) {
       result = result.substr(last_slash_pos + 1);
@@ -246,6 +249,27 @@ bool CrosCrashReportExceptionHandler::HandleExceptionWithConnection(
   // crash_reporter needs to know the pid and uid of the crashing process.
   std::vector<std::string> argv({"/sbin/crash_reporter"});
 
+#if defined(CRASHPAD_IS_IN_CHROMIUM)
+  int32_t major_version = 0, minor_version = 0, bugfix_version = 0;
+  base::SysInfo::OperatingSystemVersionNumbers(
+      &major_version, &minor_version, &bugfix_version);
+  // The version on which https://crrev.com/c/4265753 landed.
+  constexpr int32_t kFixedVersion = 15363;
+  // TODO(https://crbug.com/1420445): Remove this check (and the
+  // CRASHPAD_IS_IN_CHROMIUM defines) when M115 branches.
+  if (major_version >= kFixedVersion) {
+    // Used to distinguish between non-fatal and fatal crashes.
+    const ExceptionSnapshot* const exception_snapshot = snapshot->Exception();
+    if (exception_snapshot) {
+      // convert to int32, since crashpad uses -1 as a signal for non-fatal
+      // crashes.
+      argv.push_back(base::StringPrintf(
+          "--chrome_signal=%d",
+          static_cast<int32_t>(exception_snapshot->Exception())));
+    }
+  }
+#endif // CRASHPAD_IS_IN_CHROMIUM
+
   argv.push_back("--chrome_memfd=" + std::to_string(file_writer.fd()));
 
   const pid_t pid = process_snapshot->ProcessID();
@@ -266,12 +290,11 @@ bool CrosCrashReportExceptionHandler::HandleExceptionWithConnection(
     argv.push_back("--always_allow_feedback");
   }
 
-  if (!DoubleForkAndExec(argv,
-                         nullptr /* envp */,
-                         file_writer.fd() /* preserve_fd */,
-                         false /* use_path */,
-                         nullptr /* child_function */)) {
-    LOG(ERROR) << "DoubleForkAndExec failed";
+  if (!SpawnSubprocess(argv,
+                       nullptr /* envp */,
+                       file_writer.fd() /* preserve_fd */,
+                       false /* use_path */,
+                       nullptr /* child_function */)) {
     Metrics::ExceptionCaptureResult(
         Metrics::CaptureResult::kFinishedWritingCrashReportFailed);
     return false;
