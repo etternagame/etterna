@@ -410,11 +410,10 @@ jobs:
           path: tools
 
       - name: Checkout Crashpad
-        shell: bash
         run: |
           git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
-          echo "$HOME/depot_tools" >> "$GITHUB_PATH"
-          echo "$HOME/depot_tools/python-bin" >> "$GITHUB_PATH"
+          echo "$HOME/depot_tools" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "$HOME/depot_tools/python-bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Checkout DirectX SDK
         uses: actions/checkout@v3
