@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,38 +23,52 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <algorithm>
+#include <string_view>
 #include <type_traits>
 
+#include "base/containers/span.h"
+#include "base/numerics/byte_conversions.h"
 #include "base/rand_util.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/utf_string_conversions.h"
-#include "base/sys_byteorder.h"
+#include "build/build_config.h"
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 #include <uuid/uuid.h>
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
 namespace crashpad {
 
 static_assert(sizeof(UUID) == 16, "UUID must be 16 bytes");
-static_assert(std::is_pod<UUID>::value, "UUID must be POD");
+static_assert(std::is_standard_layout<UUID>::value,
+              "UUID must be a standard-layout type");
+static_assert(std::is_trivial<UUID>::value, "UUID must be a trivial type");
 
 bool UUID::operator==(const UUID& that) const {
   return memcmp(this, &that, sizeof(*this)) == 0;
+}
+
+bool UUID::operator<(const UUID& that) const {
+  return memcmp(this, &that, sizeof(*this)) < 0;
 }
 
 void UUID::InitializeToZero() {
   memset(this, 0, sizeof(*this));
 }
 
-void UUID::InitializeFromBytes(const uint8_t* bytes) {
-  memcpy(this, bytes, sizeof(*this));
-  data_1 = base::NetToHost32(data_1);
-  data_2 = base::NetToHost16(data_2);
-  data_3 = base::NetToHost16(data_3);
+void UUID::InitializeFromBytes(const uint8_t* bytes_ptr) {
+  // TODO(crbug.com/40284755): This span construction is unsound. The caller
+  // should provide a span instead of an unbounded pointer.
+  base::span bytes(bytes_ptr, base::fixed_extent<sizeof(UUID)>());
+  data_1 = base::U32FromBigEndian(bytes.subspan<0u, 4u>());
+  data_2 = base::U16FromBigEndian(bytes.subspan<4u, 2u>());
+  data_3 = base::U16FromBigEndian(bytes.subspan<6u, 2u>());
+  std::ranges::copy(bytes.subspan<8, 2>(), data_4);
+  std::ranges::copy(bytes.subspan<10, 6>(), data_5);
 }
 
-bool UUID::InitializeFromString(const base::StringPiece& string) {
+bool UUID::InitializeFromString(std::string_view string) {
   if (string.length() != 36)
     return false;
 
@@ -83,26 +97,26 @@ bool UUID::InitializeFromString(const base::StringPiece& string) {
   return true;
 }
 
-#if defined(OS_WIN)
-bool UUID::InitializeFromString(const base::WStringPiece& string) {
-  return InitializeFromString(WideToUTF8(string));
+#if BUILDFLAG(IS_WIN)
+bool UUID::InitializeFromString(std::wstring_view string) {
+  return InitializeFromString(base::WideToUTF8(string));
 }
 #endif
 
 bool UUID::InitializeWithNew() {
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
   uuid_t uuid;
   uuid_generate(uuid);
   InitializeFromBytes(uuid);
   return true;
-#elif defined(OS_WIN) || defined(OS_LINUX) || defined(OS_CHROMEOS) || \
-    defined(OS_ANDROID) || defined(OS_FUCHSIA)
+#elif BUILDFLAG(IS_WIN) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || \
+    BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_FUCHSIA)
   // Linux, Android, and Fuchsia do not provide a UUID generator in a
   // widely-available system library. On Linux and Android, uuid_generate()
   // from libuuid is not available everywhere.
   // On Windows, do not use UuidCreate() to avoid a dependency on rpcrt4, so
   // that this function is usable early in DllMain().
-  base::RandBytes(this, sizeof(*this));
+  base::RandBytes(base::byte_span_from_ref(*this));
 
   // Set six bits per RFC 4122 §4.4 to identify this as a pseudo-random UUID.
   data_3 = (4 << 12) | (data_3 & 0x0fff);  // §4.1.3
@@ -111,10 +125,10 @@ bool UUID::InitializeWithNew() {
   return true;
 #else
 #error Port.
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 }
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 void UUID::InitializeFromSystemUUID(const ::UUID* system_uuid) {
   static_assert(sizeof(::UUID) == sizeof(UUID),
                 "unexpected system uuid size");
@@ -122,7 +136,7 @@ void UUID::InitializeFromSystemUUID(const ::UUID* system_uuid) {
                 "unexpected system uuid layout");
   memcpy(this, system_uuid, sizeof(*this));
 }
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
 std::string UUID::ToString() const {
   return base::StringPrintf("%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
@@ -139,10 +153,10 @@ std::string UUID::ToString() const {
                             data_5[5]);
 }
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 std::wstring UUID::ToWString() const {
   return base::UTF8ToWide(ToString());
 }
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
 }  // namespace crashpad

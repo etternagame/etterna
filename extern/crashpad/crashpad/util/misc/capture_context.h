@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,30 +17,27 @@
 
 #include "build/build_config.h"
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 #include <mach/mach.h>
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #include <windows.h>
-#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
 #include <ucontext.h>
-#elif defined(OS_FUCHSIA)
-#include <signal.h>
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
 namespace crashpad {
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 #if defined(ARCH_CPU_X86_FAMILY)
 using NativeCPUContext = x86_thread_state;
 #elif defined(ARCH_CPU_ARM64)
 using NativeCPUContext = arm_unified_thread_state;
 #endif
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 using NativeCPUContext = CONTEXT;
-#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID) || \
-    defined(OS_FUCHSIA)
+#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
 using NativeCPUContext = ucontext_t;
-#endif  // OS_APPLE
+#endif  // BUILDFLAG(IS_APPLE)
 
 //! \brief Saves the CPU context.
 //!
@@ -57,6 +54,9 @@ using NativeCPUContext = ucontext_t;
 //! `RtlCaptureContext()` capture only the state of the integer registers,
 //! ignoring floating-point and vector state.
 //!
+//! CaptureContext isn't used on Fuchsia, nor does a concept of `ucontext_t`
+//! exist on Fuchsia.
+//!
 //! \param[out] cpu_context The structure to store the context in.
 //!
 //! \note The ABI may require that this function's argument is passed by
@@ -66,9 +66,10 @@ using NativeCPUContext = ucontext_t;
 //!     OS                  | Architecture | Register
 //!     --------------------|--------------|---------
 //!     Win                 | x86_64       | `%%rcx`
-//!     macOS/Linux/Fuchsia | x86_64       | `%%rdi`
+//!     macOS/Linux         | x86_64       | `%%rdi`
 //!     Linux               | ARM/ARM64    | `r0`/`x0`
 //!     Linux               | MIPS/MIPS64  | `$a0`
+//!     Linux               | RISCV64      | `a0`
 //!
 //!     Additionally, the value `LR` on ARM/ARM64 will be the return address of
 //!     this function.

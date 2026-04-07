@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,39 +14,22 @@
 
 #include "util/file/file_reader.h"
 
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "base/numerics/safe_conversions.h"
 #include "build/build_config.h"
 
 namespace crashpad {
 
-namespace {
-
-class FileReaderReadExactly final : public internal::ReadExactlyInternal {
- public:
-  explicit FileReaderReadExactly(FileReaderInterface* file_reader)
-      : ReadExactlyInternal(), file_reader_(file_reader) {}
-
-  FileReaderReadExactly(const FileReaderReadExactly&) = delete;
-  FileReaderReadExactly& operator=(const FileReaderReadExactly&) = delete;
-
-  ~FileReaderReadExactly() {}
-
- private:
-  // ReadExactlyInternal:
-  FileOperationResult Read(void* buffer, size_t size, bool can_log) override {
-    DCHECK(can_log);
-    return file_reader_->Read(buffer, size);
-  }
-
-  FileReaderInterface* file_reader_;  // weak
-};
-
-}  // namespace
-
 bool FileReaderInterface::ReadExactly(void* data, size_t size) {
-  FileReaderReadExactly read_exactly(this);
-  return read_exactly.ReadExactly(data, size, true);
+  return internal::ReadExactly(
+      [this](bool can_log, void* buffer, size_t size) {
+        DCHECK(can_log);
+        return Read(buffer, size);
+      },
+      true,
+      data,
+      size);
 }
 
 WeakFileHandleFileReader::WeakFileHandleFileReader(FileHandle file_handle)

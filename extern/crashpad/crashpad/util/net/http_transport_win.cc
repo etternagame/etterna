@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@
 #include <wchar.h>
 #include <winhttp.h>
 
-#include "base/cxx17_backports.h"
+#include <iterator>
+
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "base/numerics/safe_conversions.h"
 #include "base/scoped_generic.h"
@@ -96,7 +98,7 @@ std::string WinHttpMessage(const char* extra) {
                              error_code,
                              0,
                              msgbuf,
-                             static_cast<DWORD>(base::size(msgbuf)),
+                             static_cast<DWORD>(std::size(msgbuf)),
                              nullptr);
   if (!len) {
     return base::StringPrintf("%s: error 0x%lx while retrieving error 0x%lx",
@@ -148,7 +150,7 @@ HTTPTransportWin::~HTTPTransportWin() {
 
 bool HTTPTransportWin::ExecuteSynchronously(std::string* response_body) {
   ScopedHINTERNET session(WinHttpOpen(base::UTF8ToWide(UserAgent()).c_str(),
-                                      WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                                      WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
                                       WINHTTP_NO_PROXY_NAME,
                                       WINHTTP_NO_PROXY_BYPASS,
                                       0));

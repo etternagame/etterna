@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <limits>
 
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "base/memory/page_size.h"
 #include "base/numerics/safe_conversions.h"

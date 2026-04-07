@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2023 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "util/misc/capture_context.h"
+#ifndef CRASHPAD_UTIL_LINUX_PAC_HELPER_H_
+#define CRASHPAD_UTIL_LINUX_PAC_HELPER_H_
 
-#include <ostream>
-
-#include "base/check.h"
+#include "util/misc/address_types.h"
 
 namespace crashpad {
 
-void CaptureContext(NativeCPUContext* context) {
-  // Don't use this file in production.
-  CHECK(false)
-      << "Don't use this! For cross builds only. See https://crbug.com/762167.";
-}
+//! \brief Strips PAC bits from an address
+VMAddress StripPACBits(VMAddress address);
 
 }  // namespace crashpad
+
+
+#endif  // CRASHPAD_UTIL_LINUX_PAC_HELPER_H_
+

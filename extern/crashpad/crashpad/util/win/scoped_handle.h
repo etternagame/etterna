@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,6 +38,11 @@ struct ScopedSearchHANDLECloseTraits {
   static void Free(HANDLE handle);
 };
 
+struct ScopedVectoredExceptionRegistrationCloseTraits {
+  static PVOID InvalidValue() { return nullptr; }
+  static void Free(PVOID handle);
+};
+
 }  // namespace internal
 
 using ScopedFileHANDLE =
@@ -46,6 +51,9 @@ using ScopedKernelHANDLE =
     base::ScopedGeneric<HANDLE, internal::ScopedKernelHANDLECloseTraits>;
 using ScopedSearchHANDLE =
     base::ScopedGeneric<HANDLE, internal::ScopedSearchHANDLECloseTraits>;
+using ScopedVectoredExceptionRegistration = base::ScopedGeneric<
+    PVOID,
+    internal::ScopedVectoredExceptionRegistrationCloseTraits>;
 
 }  // namespace crashpad
 

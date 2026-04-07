@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 #define CRASHPAD_TOOLS_TOOL_SUPPORT_H_
 
 #include <string>
+#include <string_view>
 
 #include "base/files/file_path.h"
-#include "base/strings/string_piece.h"
 #include "build/build_config.h"
 
 namespace crashpad {
@@ -48,7 +48,7 @@ class ToolSupport {
   //!     Optional, may be `nullptr`, in which case no hint will be presented.
   static void UsageHint(const base::FilePath& me, const char* hint);
 
-#if defined(OS_POSIX) || DOXYGEN
+#if BUILDFLAG(IS_POSIX) || DOXYGEN
   //! \copydoc Version
   static void Version(const std::string& me);
 
@@ -57,15 +57,15 @@ class ToolSupport {
 
   //! \copydoc UsageHint
   static void UsageHint(const std::string& me, const char* hint);
-#endif  // OS_POSIX
+#endif  // BUILDFLAG(IS_POSIX)
 
-#if defined(OS_WIN) || DOXYGEN
+#if BUILDFLAG(IS_WIN) || DOXYGEN
   //! \brief Converts \a argv `wchar_t` UTF-16 to UTF-8, and passes onwards to a
   //!     UTF-8 entry point.
   //!
   //! \return The return value of \a entry.
   static int Wmain(int argc, wchar_t* argv[], int (*entry)(int, char*[]));
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
   //! \brief Converts a command line argument to the string type suitable for
   //!     base::FilePath.
@@ -77,7 +77,7 @@ class ToolSupport {
   //! \sa Wmain()
   //! \sa FilePathToCommandLineArgument()
   static base::FilePath::StringType CommandLineArgumentToFilePathStringType(
-      const base::StringPiece& arg);
+      std::string_view arg);
 
   //! \brief Converts a base::FilePath to a command line argument.
   //!

@@ -1,4 +1,4 @@
-// Copyright 2019 The Crashpad Authors. All rights reserved.
+// Copyright 2019 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 #include <string.h>
 
 #include <algorithm>
+#include <iterator>
 
-#include "base/cxx17_backports.h"
+#include "base/containers/heap_array.h"
 #include "base/rand_util.h"
 #include "base/strings/stringprintf.h"
 #include "gtest/gtest.h"
@@ -46,17 +47,16 @@ class ZlibOutputStreamTest : public testing::Test {
   ZlibOutputStreamTest& operator=(const ZlibOutputStreamTest&) = delete;
 
   const uint8_t* BuildDeterministicInput(size_t size) {
-    deterministic_input_ = std::make_unique<uint8_t[]>(size);
-    uint8_t* deterministic_input_base = deterministic_input_.get();
+    deterministic_input_ = base::HeapArray<uint8_t>::WithSize(size);
     while (size-- > 0)
-      deterministic_input_base[size] = static_cast<uint8_t>(size);
-    return deterministic_input_base;
+      deterministic_input_[size] = static_cast<uint8_t>(size);
+    return deterministic_input_.data();
   }
 
   const uint8_t* BuildRandomInput(size_t size) {
-    input_ = std::make_unique<uint8_t[]>(size);
-    base::RandBytes(&input_[0], size);
-    return input_.get();
+    input_ = base::HeapArray<uint8_t>::Uninit(size);
+    base::RandBytes(input_);
+    return input_.data();
   }
 
   const TestOutputStream& test_output_stream() const {
@@ -69,8 +69,8 @@ class ZlibOutputStreamTest : public testing::Test {
 
  private:
   std::unique_ptr<ZlibOutputStream> zlib_output_stream_;
-  std::unique_ptr<uint8_t[]> input_;
-  std::unique_ptr<uint8_t[]> deterministic_input_;
+  base::HeapArray<uint8_t> input_;
+  base::HeapArray<uint8_t> deterministic_input_;
   TestOutputStream* test_output_stream_;  // weak, owned by zlib_output_stream_
 };
 
@@ -102,7 +102,7 @@ TEST_F(ZlibOutputStreamTest, WriteDeterministicLongDataMultipleTimes) {
       4, 96, 40, kLongDataLength - 4 - 96 - 40};
 
   size_t offset = 0;
-  for (size_t index = 0; index < base::size(kWriteLengths); ++index) {
+  for (size_t index = 0; index < std::size(kWriteLengths); ++index) {
     const size_t write_length = kWriteLengths[index];
     SCOPED_TRACE(base::StringPrintf(
         "offset %zu, write_length %zu", offset, write_length));

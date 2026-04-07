@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <iterator>
 #include <set>
 
-#include "base/cxx17_backports.h"
-#include "base/mac/scoped_mach_port.h"
+#include "base/apple/scoped_mach_port.h"
 #include "gtest/gtest.h"
 #include "test/mac/mach_errors.h"
 #include "test/mac/mach_multiprocess.h"
@@ -284,7 +284,7 @@ class TestMachMessageServer : public MachMessageServer::Interface,
   std::set<mach_msg_id_t> MachMessageServerRequestIDs() override {
     static constexpr mach_msg_id_t request_ids[] = {kRequestMessageID};
     return std::set<mach_msg_id_t>(&request_ids[0],
-                                   &request_ids[base::size(request_ids)]);
+                                   &request_ids[std::size(request_ids)]);
   }
 
   mach_msg_size_t MachMessageServerRequestSize() override {
@@ -445,7 +445,7 @@ class TestMachMessageServer : public MachMessageServer::Interface,
     // local_receive_port_owner will the receive right that is created in this
     // scope and intended to be destroyed when leaving this scope, after it has
     // been carried in a Mach message.
-    base::mac::ScopedMachReceiveRight local_receive_port_owner;
+    base::apple::ScopedMachReceiveRight local_receive_port_owner;
 
     // A LargeRequestMessage is always allocated, but the message that will be
     // sent will be a normal RequestMessage due to the msgh_size field
@@ -582,7 +582,7 @@ class TestMachMessageServer : public MachMessageServer::Interface,
   // A receive right allocated in the child process. A send right will be
   // created from this right and sent to the parent parent process in the
   // request message.
-  base::mac::ScopedMachReceiveRight child_complex_message_port_;
+  base::apple::ScopedMachReceiveRight child_complex_message_port_;
 
   // The send right received in the parent process. This right is stored in a
   // member variable to test that resources carried in complex messages are

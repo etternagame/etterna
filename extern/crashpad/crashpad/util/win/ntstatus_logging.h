@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,8 +37,17 @@ class NtstatusLogMessage : public logging::LogMessage {
 
   ~NtstatusLogMessage();
 
+ protected:
+  void AppendError();
+
  private:
   DWORD ntstatus_;
+};
+
+class NtstatusLogMessageFatal final : public NtstatusLogMessage {
+ public:
+  using NtstatusLogMessage::NtstatusLogMessage;
+  [[noreturn]] ~NtstatusLogMessageFatal() override;
 };
 
 }  // namespace logging

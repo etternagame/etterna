@@ -1,0 +1,86 @@
+// Copyright 2022 The Crashpad Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+{
+    include: [
+        "//src/sys/test_runners/elf/ambient_exec.shard.cml",
+        "inspect/offer.shard.cml",
+        "syslog/client.shard.cml",
+    ],
+    program: {
+        binary: "bin/crashpad_tests",
+
+        // For ProcessSnapshotFuchsiaTest.AddressSpaceMapping.
+        job_policy_ambient_mark_vmo_exec: "true",
+    },
+    children: [
+        {
+            name: "dns_resolver",
+            url: "#meta/dns_resolver.cm",
+        },
+        {
+            name: "netstack",
+            url: "#meta/netstack.cm",
+        },
+        {
+            name: "crashpad_test",
+            url: "#meta/crashpad_test.cm",
+        },
+    ],
+    use: [
+        {
+            protocol: [ "fuchsia.net.name.Lookup" ],
+            from: "#dns_resolver",
+        },
+        {
+            protocol: [ "fuchsia.posix.socket.Provider" ],
+            from: "#netstack",
+        },
+        {
+            protocol: [ "fuchsia.process.Launcher" ],
+        },
+        {
+            storage: "tmp",
+            path: "/tmp",
+        },
+    ],
+    offer: [
+        {
+            protocol: "fuchsia.net.name.Lookup",
+            from: "#dns_resolver",
+            to: "#crashpad_test",
+        },
+        {
+            protocol: "fuchsia.net.routes.State",
+            from: "#netstack",
+            to: "#dns_resolver",
+        },
+        {
+            protocol: "fuchsia.posix.socket.Provider",
+            from: "#netstack",
+            to: "#crashpad_test",
+        },
+        {
+            storage: "cache",
+            from: "parent",
+            to: [ "#netstack" ],
+        },
+        {
+            storage: "tmp",
+            from: "parent",
+            to: "#crashpad_test",
+            rights: [ "rw*" ],
+        },
+    ],
+}

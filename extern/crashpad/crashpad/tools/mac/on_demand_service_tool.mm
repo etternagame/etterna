@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include "base/mac/foundation_util.h"
+#include "base/apple/bridging.h"
 #include "base/strings/sys_string_conversions.h"
 #include "tools/tool_support.h"
 #include "util/mac/service_management.h"
@@ -34,6 +34,7 @@ namespace crashpad {
 namespace {
 
 void Usage(const std::string& me) {
+  // clang-format off
   fprintf(stderr,
 "Usage: %s -L -l LABEL [OPTION]... COMMAND [ARG]...\n"
 "       %s -U -l LABEL\n"
@@ -48,6 +49,7 @@ void Usage(const std::string& me) {
 "      --version               output version information and exit\n",
           me.c_str(),
           me.c_str());
+  // clang-format on
   ToolSupport::UsageTail(me);
 }
 
@@ -156,13 +158,13 @@ int OnDemandServiceToolMain(int argc, char* argv[]) {
           }
 
           NSMutableDictionary* mutable_job_dictionary =
-              [[job_dictionary mutableCopy] autorelease];
+              [job_dictionary mutableCopy];
           mutable_job_dictionary[@LAUNCH_JOBKEY_MACHSERVICES] = mach_services;
           job_dictionary = mutable_job_dictionary;
         }
 
         CFDictionaryRef job_dictionary_cf =
-            base::mac::NSToCFCast(job_dictionary);
+            base::apple::NSToCFPtrCast(job_dictionary);
         if (!ServiceManagementSubmitJob(job_dictionary_cf)) {
           fprintf(stderr, "%s: failed to submit job\n", me.c_str());
           return EXIT_FAILURE;

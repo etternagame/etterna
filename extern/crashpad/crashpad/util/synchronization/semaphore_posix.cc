@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,19 +15,20 @@
 #include "util/synchronization/semaphore.h"
 
 #include <errno.h>
-#include <math.h>
 #include <time.h>
 
 #include <chrono>
+#include <cmath>
 
 #include "base/check_op.h"
 #include "base/logging.h"
 #include "base/posix/eintr_wrapper.h"
+#include "build/build_config.h"
 #include "util/misc/time.h"
 
 namespace crashpad {
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 
 Semaphore::Semaphore(int value) : cv_(), mutex_(), value_(value) {}
 
@@ -42,7 +43,7 @@ void Semaphore::Wait() {
 bool Semaphore::TimedWait(double seconds) {
   DCHECK_GE(seconds, 0.0);
 
-  if (isinf(seconds)) {
+  if (std::isinf(seconds)) {
     Wait();
     return true;
   }
@@ -63,7 +64,7 @@ void Semaphore::Signal() {
   cv_.notify_one();
 }
 
-#elif !defined(OS_APPLE)
+#elif !BUILDFLAG(IS_APPLE)
 
 Semaphore::Semaphore(int value) {
   PCHECK(sem_init(&semaphore_, 0, value) == 0) << "sem_init";
@@ -80,7 +81,7 @@ void Semaphore::Wait() {
 bool Semaphore::TimedWait(double seconds) {
   DCHECK_GE(seconds, 0.0);
 
-  if (isinf(seconds)) {
+  if (std::isinf(seconds)) {
     Wait();
     return true;
   }
@@ -104,6 +105,6 @@ void Semaphore::Signal() {
   PCHECK(sem_post(&semaphore_) == 0) << "sem_post";
 }
 
-#endif  // OS_ANDROID
+#endif  // BUILDFLAG(IS_ANDROID)
 
 }  // namespace crashpad

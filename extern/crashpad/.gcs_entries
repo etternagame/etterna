@@ -1,0 +1,7 @@
+{
+  "crashpad": {
+    "crashpad/third_party/windows/clang/win-amd64": [
+      "Win/clang-llvmorg-20-init-17108-g29ed6000-2.tar.xz"
+    ]
+  }
+}

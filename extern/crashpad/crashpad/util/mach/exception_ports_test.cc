@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include "base/apple/mach_logging.h"
+#include "base/apple/scoped_mach_port.h"
 #include "base/check.h"
-#include "base/mac/mach_logging.h"
-#include "base/mac/scoped_mach_port.h"
 #include "base/notreached.h"
 #include "build/build_config.h"
 #include "gtest/gtest.h"
@@ -189,7 +189,6 @@ class TestExceptionPorts : public MachMultiprocess,
       expect_behavior = EXCEPTION_STATE_IDENTITY;
     } else {
       NOTREACHED();
-      expect_behavior = 0;
     }
 
     EXPECT_EQ(behavior, expect_behavior);
@@ -444,8 +443,8 @@ class TestExceptionPorts : public MachMultiprocess,
 
     ScopedForbidReturn threads_need_owners;
     ASSERT_EQ(thread_count, 2u);
-    base::mac::ScopedMachSendRight main_thread(threads[0]);
-    base::mac::ScopedMachSendRight other_thread(threads[1]);
+    base::apple::ScopedMachSendRight main_thread(threads[0]);
+    base::apple::ScopedMachSendRight other_thread(threads[1]);
     threads_need_owners.Disarm();
 
     ExceptionPorts main_thread_ports(ExceptionPorts::kTargetTypeThread,
@@ -467,7 +466,7 @@ class TestExceptionPorts : public MachMultiprocess,
           mach_task_self(), local_port, local_port, MACH_MSG_TYPE_MAKE_SEND);
       ASSERT_EQ(kr, KERN_SUCCESS)
           << MachErrorMessage(kr, "mach_port_insert_right");
-      base::mac::ScopedMachSendRight send_owner(local_port);
+      base::apple::ScopedMachSendRight send_owner(local_port);
 
       switch (set_or_swap_) {
         case kSetExceptionPort: {
@@ -555,13 +554,12 @@ class TestExceptionPorts : public MachMultiprocess,
       UniversalMachExcServer universal_mach_exc_server(this);
 
       constexpr mach_msg_timeout_t kTimeoutMs = 50;
-      kern_return_t kr =
-          MachMessageServer::Run(&universal_mach_exc_server,
-                                 local_port,
-                                 kMachMessageReceiveAuditTrailer,
-                                 MachMessageServer::kOneShot,
-                                 MachMessageServer::kReceiveLargeError,
-                                 kTimeoutMs);
+      kr = MachMessageServer::Run(&universal_mach_exc_server,
+                                  local_port,
+                                  kMachMessageReceiveAuditTrailer,
+                                  MachMessageServer::kOneShot,
+                                  MachMessageServer::kReceiveLargeError,
+                                  kTimeoutMs);
       EXPECT_EQ(kr, KERN_SUCCESS)
           << MachErrorMessage(kr, "MachMessageServer::Run");
 
@@ -820,7 +818,7 @@ TEST(ExceptionPorts, HostExceptionPorts) {
 
   const bool expect_success = geteuid() == 0;
 
-  base::mac::ScopedMachSendRight host(mach_host_self());
+  base::apple::ScopedMachSendRight host(mach_host_self());
   ExceptionPorts explicit_host_ports(ExceptionPorts::kTargetTypeHost,
                                      host.get());
   EXPECT_STREQ("host", explicit_host_ports.TargetTypeName());

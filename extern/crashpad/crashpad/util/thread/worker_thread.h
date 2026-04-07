@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 #ifndef CRASHPAD_UTIL_THREAD_WORKER_THREAD_H_
 #define CRASHPAD_UTIL_THREAD_WORKER_THREAD_H_
 
+#include <atomic>
 #include <memory>
 
 #include "util/synchronization/semaphore.h"
@@ -94,8 +95,8 @@ class WorkerThread {
   double work_interval_;
   Delegate* delegate_;  // weak
   std::unique_ptr<internal::WorkerThreadImpl> impl_;
-  bool running_;
-  bool do_work_now_;
+  std::atomic_bool running_;
+  std::atomic_bool do_work_now_;
 };
 
 }  // namespace crashpad

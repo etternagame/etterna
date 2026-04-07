@@ -1,4 +1,4 @@
-// Copyright 2021 The Crashpad Authors. All rights reserved.
+// Copyright 2021 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,8 +35,7 @@ class IOSIntermediateDumpData : public IOSIntermediateDumpObject {
 
   //! \brief Constructs a new data object which owns a std::vector<uint8_t>.
   //!
-  //! \param[in] data An array of uint8_t.
-  //! \param[in] length The length of \a data.
+  //! \param[in] data A vector of uint8_t.
   IOSIntermediateDumpData(std::vector<uint8_t> data) : data_(std::move(data)) {}
 
   // IOSIntermediateDumpObject:

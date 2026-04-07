@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 #include <stdio.h>
 
-#include <memory>
+#include <string_view>
 #include <vector>
 
-#include "base/strings/string_piece.h"
+#include "base/containers/heap_array.h"
 #include "base/strings/utf_string_conversions.h"
+#include "build/build_config.h"
 #include "package.h"
 
 namespace crashpad {
@@ -55,7 +56,7 @@ void ToolSupport::UsageHint(const base::FilePath& me, const char* hint) {
           me.value().c_str());
 }
 
-#if defined(OS_POSIX)
+#if BUILDFLAG(IS_POSIX)
 // static
 void ToolSupport::Version(const std::string& me) {
   Version(base::FilePath(me));
@@ -70,13 +71,13 @@ void ToolSupport::UsageTail(const std::string& me) {
 void ToolSupport::UsageHint(const std::string& me, const char* hint) {
   UsageHint(base::FilePath(me), hint);
 }
-#endif  // OS_POSIX
+#endif  // BUILDFLAG(IS_POSIX)
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 
 // static
 int ToolSupport::Wmain(int argc, wchar_t* argv[], int (*entry)(int, char* [])) {
-  std::unique_ptr<char* []> argv_as_utf8(new char*[argc + 1]);
+  auto argv_as_utf8 = base::HeapArray<char*>::Uninit(argc + 1);
   std::vector<std::string> storage;
   storage.reserve(argc);
   for (int i = 0; i < argc; ++i) {
@@ -84,29 +85,29 @@ int ToolSupport::Wmain(int argc, wchar_t* argv[], int (*entry)(int, char* [])) {
     argv_as_utf8[i] = &storage[i][0];
   }
   argv_as_utf8[argc] = nullptr;
-  return entry(argc, argv_as_utf8.get());
+  return entry(argc, argv_as_utf8.data());
 }
 
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
 // static
 base::FilePath::StringType ToolSupport::CommandLineArgumentToFilePathStringType(
-    const base::StringPiece& path) {
-#if defined(OS_POSIX)
+    std::string_view path) {
+#if BUILDFLAG(IS_POSIX)
   return std::string(path.data(), path.size());
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
   return base::UTF8ToWide(path);
-#endif  // OS_POSIX
+#endif  // BUILDFLAG(IS_POSIX)
 }
 
 // static
 std::string ToolSupport::FilePathToCommandLineArgument(
     const base::FilePath& file_path) {
-#if defined(OS_POSIX)
+#if BUILDFLAG(IS_POSIX)
   return file_path.value();
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
   return base::WideToUTF8(file_path.value());
-#endif  // OS_POSIX
+#endif  // BUILDFLAG(IS_POSIX)
 }
 
 }  // namespace crashpad

@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -124,7 +124,6 @@ kern_return_t UniversalExceptionRaise(exception_behavior_t behavior,
 
     default:
       NOTREACHED();
-      return KERN_INVALID_ARGUMENT;
   }
 }
 
