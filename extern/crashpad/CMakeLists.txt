@@ -1,12 +1,9 @@
 # Crashpad needs google's depot_tools to be in the system path.
 # "gclient" is a binary known to be apart of depot_tools.
-find_program(DEPOT_TOOLS_EXIST gclient)
-if(DEPOT_TOOLS_EXIST AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
-	message(WARNING " depot_tools were not found. Crashpad will be disabled. If you would like to build crashpad,\n"
-					" please ensure depot_tools have been added to your system path. Install instructions are at:\n"
-					" https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up")
-	return()
-endif()
+find_program(GCLIENT
+    NAMES gclient gclient.bat
+    REQUIRED
+)
 
 # Check linux to ensure necessary tools exist to build crashpad
 if(UNIX AND NOT APPLE)
@@ -29,26 +26,31 @@ endif()
 # inside the downloaded "libs/crashpad/{buildtools,crashpad}" as we want it in the current,
 # source tree, and not as a submodule/subtree.
 include(ExternalProject)
-include(FetchContent)
 
-# Here we only download depot_tools by using FetchContent. If the developer has
-# installed depot_tools on their own system and added it to path, this would
-# not be necessary, but for the sake of Etterna, it was added to keep build instruction
-# modification to a minimum. Unlike ExternalProject, FetchContent will download the
-# git repository *during project generation*.
-FetchContent_Declare(depot_tools
-	GIT_REPOSITORY https://chromium.googlesource.com/chromium/tools/depot_tools.git
-	GIT_TAG	main
-	GIT_PROGRESS TRUE
-	GIT_SHALLOW TRUE)
-FetchContent_MakeAvailable(depot_tools)
-FetchContent_GetProperties(depot_tools SOURCE_DIR DEPOT_TOOLS_DIR)
+execute_process(
+    COMMAND ${GCLIENT} sync
+    WORKING_DIRECTORY "${SOURCE_DIR}"
+    RESULT_VARIABLE GCLIENT_SYNC_RESULT
+	COMMAND_ECHO STDOUT
+)
+if(NOT GCLIENT_SYNC_RESULT EQUAL 0)
+    message(FATAL_ERROR "gclient sync failed with code ${GCLIENT_SYNC_RESULT}")
+endif()
 
-list(APPEND CMAKE_PROGRAM_PATH ${DEPOT_TOOLS_DIR})
-find_program(EXE_DEPOT_GN gn)
-find_program(EXE_DEPOT_NINJA ninja)
-find_program(EXE_DEPOT_UPDATE_DEPOT_TOOLS update_depot_tools)
-find_program(EXE_DEPOT_GIT git) # TODO: I'm not sure this grabs the "right" version of git; investigate here if shennanigans arise.
+execute_process(
+    COMMAND ${GCLIENT} runhooks
+    WORKING_DIRECTORY "${SOURCE_DIR}"
+    RESULT_VARIABLE GCLIENT_HOOKS_RESULT
+	COMMAND_ECHO STDOUT
+)
+if(NOT GCLIENT_HOOKS_RESULT EQUAL 0)
+    message(FATAL_ERROR "gclient runhooks failed with code ${GCLIENT_HOOKS_RESULT}")
+endif()
+
+find_program(EXE_DEPOT_GN gn REQUIRED)
+find_program(EXE_DEPOT_NINJA ninja REQUIRED)
+find_program(EXE_DEPOT_UPDATE_DEPOT_TOOLS update_depot_tools REQUIRED)
+find_program(EXE_DEPOT_GIT git REQUIRED) # TODO: I'm not sure this grabs the "right" version of git; investigate here if shennanigans arise.
 
 # Crashpad source and build folders
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/crashpad)
@@ -124,8 +126,9 @@ ExternalProject_Add_Step(crashpad_init gn_configure
 	USES_TERMINAL 1
 	WORKING_DIRECTORY ${SOURCE_DIR}
 	COMMAND ${EXE_DEPOT_GIT} config --global depot-tools.allowGlobalGitConfig true
+	COMMAND gclient runhooks
 	COMMAND ${EXE_DEPOT_UPDATE_DEPOT_TOOLS}
-	COMMAND ${EXE_DEPOT_GN} gen ${BINARY_DIR} "--args=target_cpu=\"${GN_TARGET_CPU}\" is_debug=${GN_IS_DEBUG} extra_cflags=\"${GN_WIN_LINK_FLAG}\"" && ${EXE_DEPOT_NINJA} -C ${BINARY_DIR} crashpad_handler client
+	COMMAND ${EXE_DEPOT_GN} gen ${BINARY_DIR} "--args=target_cpu=\"${GN_TARGET_CPU}\" is_debug=${GN_IS_DEBUG} extra_cflags=\"${GN_WIN_LINK_FLAG}\"" && ${EXE_DEPOT_NINJA} -C ${BINARY_DIR} crashpad_handler
 	BYPRODUCTS ${OUTPUT_LIBS})
 
 # Build Project - "ninja client crashpad_handler" with the last "client" and "crashpad_handler" being the targets
