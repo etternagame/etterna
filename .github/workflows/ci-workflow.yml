@@ -409,6 +409,13 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Checkout Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+          echo "$HOME/depot_tools" >> "$GITHUB_PATH"
+          echo "$HOME/depot_tools/python-bin" >> "$GITHUB_PATH"
+
       - name: Checkout DirectX SDK
         uses: actions/checkout@v3
         with:
