@@ -207,7 +207,7 @@ jobs:
           #- { os: macos-13,     name: "Ventura", dist: true} # rendered useless by GHA
           #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
           #- { os: macos-11,     name: "Big Sur",  dist: true} # rendered useless by GHA
-          - { os: macos-15,     name: "Sequoia", dist: true}
+          - { os: macos-15-intel,     name: "Sequoia", dist: true}
 
     steps:
 

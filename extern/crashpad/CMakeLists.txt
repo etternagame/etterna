@@ -142,6 +142,7 @@ ExternalProject_Add_Step(crashpad_init gn_configure
 	WORKING_DIRECTORY ${SOURCE_DIR}
 	COMMAND ${EXE_DEPOT_GIT} config --global depot-tools.allowGlobalGitConfig true
 	COMMAND ${EXE_DEPOT_UPDATE_DEPOT_TOOLS}
+	COMMAND ${GCLIENT} runhooks
 	COMMAND ${EXE_DEPOT_GN} gen ${BINARY_DIR} "--args=target_cpu=\"${GN_TARGET_CPU}\" is_debug=${GN_IS_DEBUG} extra_cflags=\"${GN_WIN_LINK_FLAG}\"" && ${EXE_DEPOT_NINJA} -C ${BINARY_DIR} crashpad_handler
 	BYPRODUCTS ${OUTPUT_LIBS})
 
