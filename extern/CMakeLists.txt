@@ -48,7 +48,7 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 add_subdirectory(miniz)
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
     # Used for providing ARM's NEON equivalents of x86_64 SSE SIMD instructions
     add_subdirectory(sse2neon)
 endif()

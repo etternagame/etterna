@@ -13,6 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         cfg:
+          - { os: ubuntu-24.04, apt: g++-11,   cxx: g++-11,     cc: gcc-11,   dist: false, archstr: "x64"}
           - { os: ubuntu-24.04, apt: g++-12,   cxx: g++-12,     cc: gcc-12,   dist: false, archstr: "x64"}
           - { os: ubuntu-24.04, apt: g++-13,   cxx: g++-13,     cc: gcc-13,   dist: false, archstr: "x64"}
           - { os: ubuntu-24.04, apt: g++-14,   cxx: g++-14,     cc: gcc-14,   dist: false, archstr: "x64"}

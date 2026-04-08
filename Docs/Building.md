@@ -110,6 +110,13 @@ There are two stages apart of CMake projects.
 
 ### CLI Project Generation
 
+Before starting, if you really need Crashpad, be sure to sync its dependencies:
+```bash
+cd extern/crashpad
+gclient sync
+gclient runhooks
+```
+
 Both configuration and generation stages automatically happen one after the other when using the CLI.
 Start by creating a folder to hold all the output object files, usually called `build`, within the root of the project.
 
