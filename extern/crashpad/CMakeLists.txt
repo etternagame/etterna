@@ -52,10 +52,24 @@ find_program(EXE_DEPOT_NINJA ninja REQUIRED)
 find_program(EXE_DEPOT_UPDATE_DEPOT_TOOLS update_depot_tools REQUIRED)
 find_program(EXE_DEPOT_GIT git REQUIRED) # TODO: I'm not sure this grabs the "right" version of git; investigate here if shennanigans arise.
 
-# Assume 64bit, change to 32 if necessary
 set(GN_TARGET_CPU x64)
-if(CMAKE_SIZEOF_VOID_P EQUAL 4) # If 32bit
-	set(GN_TARGET_CPU x86)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(GN_TARGET_CPU x86)
+else()
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+
+    if(CMAKE_GENERATOR_PLATFORM)
+        string(TOLOWER "${CMAKE_GENERATOR_PLATFORM}" _plat)
+    else()
+        set(_plat "")
+    endif()
+
+    if(_proc MATCHES "^(arm64|aarch64)$" OR _plat MATCHES "arm64")
+        set(GN_TARGET_CPU arm64)
+    elseif(_proc MATCHES "^(x86_64|amd64|x64)$" OR _plat MATCHES "x64")
+        set(GN_TARGET_CPU x64)
+    endif()
 endif()
 
 # Lists of the expected output libraries

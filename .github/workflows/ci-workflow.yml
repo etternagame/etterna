@@ -36,6 +36,15 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install apt packages
         run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
       - name: Install OpenSSL 3.5
@@ -122,6 +131,15 @@ jobs:
         with:
           repository: etternagame/CrashpadTools
           path: tools
+
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
 
       - name: Install homebrew packages
         run: brew install cmake nasm ninja openssl
@@ -222,6 +240,15 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install homebrew packages
         run: brew install cmake nasm ninja openssl
 
@@ -320,6 +347,15 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install homebrew packages
         run: brew install cmake nasm ninja openssl && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 
@@ -409,7 +445,7 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
-      - name: Checkout Crashpad
+      - name: Setup Crashpad
         shell: bash
         run: |
           git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
