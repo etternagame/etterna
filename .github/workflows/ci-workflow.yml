@@ -20,7 +20,7 @@ jobs:
           - { os: ubuntu-24.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: true, archstr: "x64"}
           - { os: ubuntu-24.04, apt: clang-17, cxx: clang++-17, cc: clang-17, dist: false, archstr: "x64"}
           - { os: ubuntu-24.04, apt: clang-18, cxx: clang++-18, cc: clang-18, dist: false, archstr: "x64"}
-          - { os: ubuntu-24.04-arm, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false, archstr: "aarch64"}
+          - { os: ubuntu-24.04-arm, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: true, archstr: "aarch64"}
 
     steps:
       - name: Checkout Etterna
@@ -64,7 +64,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: "Etterna - Linux x64"
+          name: "Etterna - Linux ${{matrix.cfg.archstr}}"
           path: '${{github.workspace}}/main/build/*.tar.gz'
 
       - name: Update Environment Variables
@@ -90,7 +90,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols Linux x64 - ${{github.sha}}
+          name: Etterna Symbols Linux ${{matrix.cfg.archstr}} - ${{github.sha}}
           path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
