@@ -13,12 +13,7 @@ elseif(APPLE)
     set(DISCORD_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.dylib")
     #set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.dylib")
 else() # Linux
-    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
-    if(_proc MATCHES "^(arm64|aarch64)$")
-        set(DISCORD_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/arm64/discord_partner_sdk.lib")
-    else()
-        set(DISCORD_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.so")
-    endif()
+    set(DISCORD_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.so")
     #set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.so")
 endif()
 

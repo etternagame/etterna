@@ -33,10 +33,11 @@ target_include_directories(websocketpp INTERFACE websocketpp)
 target_link_libraries(websocketpp INTERFACE asio)
 
 ## discord-rpc
-set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
-add_subdirectory(discord)
-
+if(SUPPORT_DISCORD_SDK)
+    set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
+    add_subdirectory(discord)
+endif()
 ## plog
 set(PLOG_BUILD_SAMPLES OFF)
 add_subdirectory(plog)
