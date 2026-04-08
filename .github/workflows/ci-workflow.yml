@@ -250,7 +250,7 @@ jobs:
           "$HOME/depot_tools/gclient" runhooks
 
       - name: Install homebrew packages
-        run: brew install cmake nasm ninja openssl
+        run: brew install cmake nasm yasm ninja openssl
 
       - name: Setup Python 3
         uses: actions/setup-python@v6
