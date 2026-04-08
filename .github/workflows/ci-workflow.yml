@@ -17,7 +17,7 @@ jobs:
           - { os: ubuntu-24.04, apt: g++-12,   cxx: g++-12,     cc: gcc-12,   dist: false, archstr: "x64"}
           - { os: ubuntu-24.04, apt: g++-13,   cxx: g++-13,     cc: gcc-13,   dist: false, archstr: "x64"}
           - { os: ubuntu-24.04, apt: g++-14,   cxx: g++-14,     cc: gcc-14,   dist: false, archstr: "x64"}
-          - { os: ubuntu-24.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: true, archstr: "x64"}
           - { os: ubuntu-24.04, apt: clang-17, cxx: clang++-17, cc: clang-17, dist: false, archstr: "x64"}
           - { os: ubuntu-24.04, apt: clang-18, cxx: clang++-18, cc: clang-18, dist: false, archstr: "x64"}
           - { os: ubuntu-24.04-arm, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false, archstr: "aarch64"}
