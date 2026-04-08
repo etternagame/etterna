@@ -48,11 +48,11 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 add_subdirectory(miniz)
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+if(_proc MATCHES "^(arm64|aarch64)$")
     # Used for providing ARM's NEON equivalents of x86_64 SSE SIMD instructions
     add_subdirectory(sse2neon)
 endif()
-
 
 set(JWT_SSL_LIBRARY OpenSSL)
 add_subdirectory(jwt-cpp-0.6.0)
