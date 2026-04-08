@@ -46,25 +46,25 @@ endif()
 # source tree, and not as a submodule/subtree.
 include(ExternalProject)
 
-# execute_process(
-#     COMMAND ${GCLIENT} sync
-#     WORKING_DIRECTORY "${SOURCE_DIR}"
-#     RESULT_VARIABLE GCLIENT_SYNC_RESULT
-# 	COMMAND_ECHO STDOUT
-# )
-# if(NOT GCLIENT_SYNC_RESULT EQUAL 0)
-#     message(FATAL_ERROR "gclient sync failed with code ${GCLIENT_SYNC_RESULT}")
-# endif()
+execute_process(
+    COMMAND ${GCLIENT} sync
+    WORKING_DIRECTORY "${SOURCE_DIR}"
+    RESULT_VARIABLE GCLIENT_SYNC_RESULT
+	COMMAND_ECHO STDOUT
+)
+if(NOT GCLIENT_SYNC_RESULT EQUAL 0)
+    message(FATAL_ERROR "gclient sync failed with code ${GCLIENT_SYNC_RESULT}")
+endif()
 
-# execute_process(
-#     COMMAND ${GCLIENT} runhooks
-#     WORKING_DIRECTORY "${SOURCE_DIR}"
-#     RESULT_VARIABLE GCLIENT_HOOKS_RESULT
-# 	COMMAND_ECHO STDOUT
-# )
-# if(NOT GCLIENT_HOOKS_RESULT EQUAL 0)
-#     message(FATAL_ERROR "gclient runhooks failed with code ${GCLIENT_HOOKS_RESULT}")
-# endif()
+execute_process(
+    COMMAND ${GCLIENT} runhooks
+    WORKING_DIRECTORY "${SOURCE_DIR}"
+    RESULT_VARIABLE GCLIENT_HOOKS_RESULT
+	COMMAND_ECHO STDOUT
+)
+if(NOT GCLIENT_HOOKS_RESULT EQUAL 0)
+    message(FATAL_ERROR "gclient runhooks failed with code ${GCLIENT_HOOKS_RESULT}")
+endif()
 
 find_program(EXE_DEPOT_GN gn REQUIRED)
 find_program(EXE_DEPOT_NINJA ninja REQUIRED)
@@ -142,8 +142,6 @@ ExternalProject_Add_Step(crashpad_init gn_configure
 	WORKING_DIRECTORY ${SOURCE_DIR}
 	COMMAND ${EXE_DEPOT_GIT} config --global depot-tools.allowGlobalGitConfig true
 	COMMAND ${EXE_DEPOT_UPDATE_DEPOT_TOOLS}
-	COMMAND ${GCLIENT} sync
-	COMMAND ${GCLIENT} runhooks
 	COMMAND ${EXE_DEPOT_GN} gen ${BINARY_DIR} "--args=target_cpu=\"${GN_TARGET_CPU}\" is_debug=${GN_IS_DEBUG} extra_cflags=\"${GN_WIN_LINK_FLAG}\"" && ${EXE_DEPOT_NINJA} -C ${BINARY_DIR} crashpad_handler
 	BYPRODUCTS ${OUTPUT_LIBS})
 
