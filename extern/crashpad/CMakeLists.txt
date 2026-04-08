@@ -46,26 +46,7 @@ endif()
 # source tree, and not as a submodule/subtree.
 include(ExternalProject)
 
-execute_process(
-    COMMAND ${GCLIENT} sync
-    WORKING_DIRECTORY "${SOURCE_DIR}"
-    RESULT_VARIABLE GCLIENT_SYNC_RESULT
-	COMMAND_ECHO STDOUT
-)
-if(NOT GCLIENT_SYNC_RESULT EQUAL 0)
-    message(FATAL_ERROR "gclient sync failed with code ${GCLIENT_SYNC_RESULT}")
-endif()
-
-execute_process(
-    COMMAND ${GCLIENT} runhooks
-    WORKING_DIRECTORY "${SOURCE_DIR}"
-    RESULT_VARIABLE GCLIENT_HOOKS_RESULT
-	COMMAND_ECHO STDOUT
-)
-if(NOT GCLIENT_HOOKS_RESULT EQUAL 0)
-    message(FATAL_ERROR "gclient runhooks failed with code ${GCLIENT_HOOKS_RESULT}")
-endif()
-
+# these tools should be loaded by CI or the user themselves
 find_program(EXE_DEPOT_GN gn REQUIRED)
 find_program(EXE_DEPOT_NINJA ninja REQUIRED)
 find_program(EXE_DEPOT_UPDATE_DEPOT_TOOLS update_depot_tools REQUIRED)
