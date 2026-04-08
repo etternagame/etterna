@@ -37,6 +37,7 @@ if(SUPPORT_DISCORD_SDK)
     set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
     set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
     add_subdirectory(discord)
+    list(APPEND EXT_TARGETS discord)
 endif()
 ## plog
 set(PLOG_BUILD_SAMPLES OFF)
@@ -86,7 +87,7 @@ endif()
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
-    discord muFFT
+    muFFT
     zlib libmad pcre
     ogg vorbis glfw
     fmt)
