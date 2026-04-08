@@ -46,13 +46,14 @@ jobs:
           "$HOME/depot_tools/gclient" runhooks
 
       - name: Install apt packages
-        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
+        run: sudo apt update && sudo apt install ${{ matrix.cfg.apt }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
       - name: Install OpenSSL 3.5
         run: mkdir -p tmp/openssl && cd tmp/openssl && wget https://github.com/openssl/openssl/releases/download/openssl-3.5.1/openssl-3.5.1.tar.gz && tar -xf openssl-3.5.1.tar.gz && cd openssl-3.5.1 && ./Configure --prefix="${HOME}/toolchain" && make -j `nproc` && make test -j `nproc` && sudo make install
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DOPENSSL_ROOT_DIR=~/toolchain/ ..
         env:
-          CXX: ${{matrix.cfg.cpp-version}}
+          CXX: ${{matrix.cfg.cxx}}
+          CC: ${{matrix.cfg.cc}}
 
       - name: Build Project
         run: cd main/build && ninja
@@ -423,12 +424,12 @@ jobs:
         if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
         with:
           files: ${{github.workspace}}/main/build/*.dmg
-  windows: # Windows x64 and x86 build matrix
+  windows: # Windows x64 (RIP x86) build matrix
     strategy:
       fail-fast: false # Don't cancel other matrix jobs if one fails
       matrix:
         cfg:
-        - { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
+        #- { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
         - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
@@ -469,20 +470,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-
-      - name: Install chocolatey packages (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install ninja nsis -y --x86
-
-      # the last win32 curl version is 8.15.0
-      - name: Install curl (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install curl -y --x86 --version=8.15.0
-      
-      - name: Install openSSL (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install openssl -y --x86
-
+          
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
         run: choco install ninja nsis curl -y
