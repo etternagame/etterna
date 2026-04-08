@@ -12,6 +12,7 @@ FetchContent_Declare(depot_tools
 	GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(depot_tools)
 FetchContent_GetProperties(depot_tools SOURCE_DIR DEPOT_TOOLS_DIR)
+list(APPEND CMAKE_PROGRAM_PATH ${DEPOT_TOOLS_DIR})
 
 if(WIN32)
 	set(GCLIENT ${DEPOT_TOOLS_DIR}/gclient.bat)

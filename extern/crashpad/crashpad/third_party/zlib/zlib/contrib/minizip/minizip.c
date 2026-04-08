@@ -12,8 +12,7 @@
          Copyright (C) 2009-2010 Mathias Svensson ( http://result42.com )
 */
 
-
-#ifndef _WIN32
+#if (!defined(_WIN32)) && (!defined(WIN32)) && (!defined(__APPLE__)) && (!defined(__ANDROID_API__))
         #ifndef __USE_FILE_OFFSET64
                 #define __USE_FILE_OFFSET64
         #endif
@@ -28,6 +27,19 @@
         #endif
 #endif
 
+#if defined(__APPLE__) || defined(__Fuchsia__) || defined(__ANDROID_API__)
+// In darwin and perhaps other BSD variants off_t is a 64 bit value, hence no need for specific 64 bit functions
+#define FOPEN_FUNC(filename, mode) fopen(filename, mode)
+#define FTELLO_FUNC(stream) ftello(stream)
+#define FSEEKO_FUNC(stream, offset, origin) fseeko(stream, offset, origin)
+#else
+#define FOPEN_FUNC(filename, mode) fopen64(filename, mode)
+#define FTELLO_FUNC(stream) ftello64(stream)
+#define FSEEKO_FUNC(stream, offset, origin) fseeko64(stream, offset, origin)
+#endif
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,14 +47,14 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#ifdef unix
+#ifdef _WIN32
+# include <direct.h>
+# include <io.h>
+#else
 # include <unistd.h>
 # include <utime.h>
 # include <sys/types.h>
 # include <sys/stat.h>
-#else
-# include <direct.h>
-# include <io.h>
 #endif
 
 #include "zip.h"
@@ -81,7 +93,7 @@ uLong filetime(f, tmzip, dt)
   return ret;
 }
 #else
-#ifdef unix
+#if defined(unix) || defined(__APPLE__) || defined(__Fuchsia__) || defined(__ANDROID_API__)
 uLong filetime(f, tmzip, dt)
     char *f;               /* name of file to get info on */
     tm_zip *tmzip;         /* return value: access, modific. and creation times */
@@ -142,7 +154,7 @@ int check_exist_file(filename)
 {
     FILE* ftestexist;
     int ret = 1;
-    ftestexist = fopen64(filename,"rb");
+    ftestexist = FOPEN_FUNC(filename,"rb");
     if (ftestexist==NULL)
         ret = 0;
     else
@@ -173,7 +185,8 @@ int getFileCrc(const char* filenameinzip,void*buf,unsigned long size_buf,unsigne
 {
    unsigned long calculate_crc=0;
    int err=ZIP_OK;
-   FILE * fin = fopen64(filenameinzip,"rb");
+   FILE * fin = FOPEN_FUNC(filenameinzip,"rb");
+
    unsigned long size_read = 0;
    unsigned long total_read = 0;
    if (fin==NULL)
@@ -211,13 +224,12 @@ int isLargeFile(const char* filename)
 {
   int largeFile = 0;
   ZPOS64_T pos = 0;
-  FILE* pFile = fopen64(filename, "rb");
+  FILE* pFile = FOPEN_FUNC(filename, "rb");
 
   if(pFile != NULL)
   {
-    int n = fseeko64(pFile, 0, SEEK_END);
-
-    pos = ftello64(pFile);
+    int n = FSEEKO_FUNC(pFile, 0, SEEK_END);
+    pos = FTELLO_FUNC(pFile);
 
                 printf("File : %s is %lld bytes\n", filename, pos);
 
@@ -447,7 +459,7 @@ int main(argc,argv)
                     printf("error in opening %s in zipfile\n",filenameinzip);
                 else
                 {
-                    fin = fopen64(filenameinzip,"rb");
+                    fin = FOPEN_FUNC(filenameinzip,"rb");
                     if (fin==NULL)
                     {
                         err=ZIP_ERRNO;
