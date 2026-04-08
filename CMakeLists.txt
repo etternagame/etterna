@@ -49,7 +49,7 @@ if(UNIX AND NOT APPLE)
     string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
     if(_proc MATCHES "^(arm64|aarch64)$")
         message(WARNING "Discord Social SDK not supported for this platform")
-        set(ENABLE_DISCORD_SDK OFF)
+        set(SUPPORT_DISCORD_SDK OFF)
     endif()
 endif()
 
