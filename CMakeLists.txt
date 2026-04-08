@@ -115,7 +115,8 @@ target_link_libraries(Etterna PRIVATE plog::plog)
 target_link_libraries(Etterna PRIVATE nowide::nowide)
 target_link_libraries(Etterna PRIVATE ghc_filesystem)
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+if(_proc MATCHES "^(arm64|aarch64)$")
   target_link_libraries(Etterna PRIVATE sse2neon)
 endif()
 
