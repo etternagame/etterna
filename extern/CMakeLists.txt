@@ -49,6 +49,7 @@ add_subdirectory(stb)
 add_subdirectory(miniz)
 
 string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+message(WARNING "debugging: ${_proc}")
 if(_proc MATCHES "^(arm64|aarch64)$")
     # Used for providing ARM's NEON equivalents of x86_64 SSE SIMD instructions
     add_subdirectory(sse2neon)
