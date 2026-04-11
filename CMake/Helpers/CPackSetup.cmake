@@ -10,6 +10,12 @@ set(INSTALL_DIR "Etterna" CACHE STRING "Output directory for built game")
 set(ASSET_DIR "${INSTALL_DIR}" CACHE STRING "Output directory for game assets")
 
 if(UNIX)
+    set_target_properties(Etterna PROPERTIES
+        INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib"
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+        SKIP_INSTALL_RPATH OFF
+    )
+
     set(CPACK_GENERATOR TGZ)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
     set(CPACK_PACKAGE_CONTACT https://github.com/etternagame/etterna)
@@ -23,6 +29,10 @@ if(UNIX)
                             GROUP_READ GROUP_EXECUTE
                             WORLD_READ WORLD_EXECUTE)
     endif()
+
+    install(FILES "${PROJECT_SOURCE_DIR}/extern/discord/lib/release/libdiscord_partner_sdk.so"
+        COMPONENT Etterna
+        DESTINATION ${INSTALL_DIR})
 endif()
 
 # Windows Specific CPack

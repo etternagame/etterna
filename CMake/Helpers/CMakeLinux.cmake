@@ -28,12 +28,3 @@ target_link_libraries(Etterna PRIVATE ${ALSA_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${JACK_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${VA_LIBRARIES})
 target_link_libraries(Etterna PRIVATE ${OPENGL_LIBRARY})
-
-list(APPEND LINUX_LIBS
-	"${PROJECT_SOURCE_DIR}/extern/discord/lib/release/libdiscord_partner_sdk.so")
-
-foreach(lib ${LINUX_LIBS})
-	get_filename_component(lib_filename_without_path ${lib} NAME)
-	file(REMOVE "${PROJECT_SOURCE_DIR}/${lib_filename_without_path}")
-	file(COPY "${lib}" DESTINATION "${PROJECT_SOURCE_DIR}/")
-endforeach()
