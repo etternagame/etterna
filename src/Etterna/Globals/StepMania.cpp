@@ -1233,6 +1233,13 @@ StepMania::SaveScreenshot(const std::string& Dir,
 
 	SCREENMAN->PlayScreenshotSound();
 
+	// etterna-journal: notify Lua so Journal overlay can attach the screenshot
+	// to the current song's daily memo.
+	Message msg("ScreenshotSaved");
+	msg.SetParam("FileName", FileName);
+	msg.SetParam("Path", Path);
+	MESSAGEMAN->Broadcast(msg);
+
 	return FileName;
 }
 

@@ -82,5 +82,6 @@ t[#t+1] = Def.ActorFrame {
 
 t[#t+1] = LoadActor("_chartPreview.lua")
 t[#t+1] = LoadActor("calcDebug.lua")
+t[#t+1] = LoadActor("journal.lua")
 
 return t

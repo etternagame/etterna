@@ -101,4 +101,14 @@ t[#t + 1] =
     }
 }
 
+-- etterna-journal: global screenshot listener (active on all screens)
+t[#t + 1] = Def.Actor {
+    Name = "JournalScreenshotListener",
+    ScreenshotSavedMessageCommand = function(self, params)
+        if JOURNAL and JOURNAL.isEnabled and JOURNAL.isEnabled() then
+            JOURNAL.screenshot.handle(params.FileName, params.Path)
+        end
+    end,
+}
+
 return t
