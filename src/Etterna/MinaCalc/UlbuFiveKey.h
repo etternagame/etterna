@@ -53,6 +53,8 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 
 	  // Technical
 	  {
+		  HandBalance,
+		  HandSwitch,
 	  },
 	} };
 
@@ -70,13 +72,13 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 		return basescalers;
 	}
 	void adj_diff_func(
-	  const size_t& itv,
-	  const int& hand,
-	  float*& adj_diff,
-	  float*& stam_base,
-	  const float& adj_npsbase,
-	  const int& ss,
-	  std::array<float, NUM_Skillset>& pmod_product_cur_interval) override
+		const size_t& itv,
+		const int& hand,
+		float*& adj_diff,
+		float*& stam_base,
+		const float& adj_npsbase,
+		const int& ss,
+		std::array<float, NUM_Skillset>& pmod_product_cur_interval) override
 	{
 		switch (ss) {
 			case Skill_Stream:
@@ -102,18 +104,123 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 			case Skill_Technical: {
 				*adj_diff =
 				  _calc.init_base_diff_vals.at(hand).at(TechBase).at(itv) *
-				  pmod_product_cur_interval.at(ss) * basescalers.at(ss);
-
-				*adj_diff += _calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) *
-				  _calc.pmod_vals.at(hand).at(HandSwitch).at(itv) /
-				  (_calc.pmod_vals.at(hand).at(CJ).at(itv) + 0.125f);
+				  pmod_product_cur_interval.at(ss) * basescalers.at(ss) /
+				  std::max<float>(
+					  fastpow(_calc.pmod_vals.at(hand).at(CJ).at(itv) + 0.05F,
+							  2.F),
+					  1.F);
 			} break;
 			default:
 				break;
 		}
 	}
 
-	void set_dependent_pmods(const int& itv) override
+	virtual void apply_keymode_multipliers(
+		std::vector<float>& cur_iteration_skillset_vals) const
+	{
+
+	}
+
+	/// these are the base diffs which actually must be reset
+	/// between calc runs or else things break
+	void reset_base_diffs()
+	{
+		for (auto& hand : both_hands) {
+			for (auto& base : {TechBase}) {
+				// to be thorough: JackBase, CJBase, NPSBase, RMABase
+				auto& v = _calc.init_base_diff_vals.at(hand)[base];
+				std::fill(v.begin(), v.end(), 0.F);
+			}
+			_calc.jack_diff.at(hand).clear();
+		}
+	}
+
+	/// main driver for operations
+	void operator()()
+	{
+		reset_base_diffs();
+		hand = 0;
+
+		full_hand_reset();
+		full_agnostic_reset();
+		reset_row_sequencing();
+
+		run_agnostic_pmod_loop();
+		run_dependent_pmod_loop();
+	}
+
+	virtual void full_agnostic_reset()
+	{
+		_gchordstream.full_reset();
+		_cj.full_reset();
+		_hb.full_reset();
+
+		_mri.get()->reset();
+		_last_mri.get()->reset();
+	}
+
+	virtual void setup_agnostic_pmods()
+	{
+
+	}
+
+	virtual void advance_agnostic_sequencing()
+	{
+		_hb.advance_sequencing(_mri->notes, _calc);
+	}
+
+	virtual void set_agnostic_pmods(const int& itv)
+	{
+		PatternMods::set_agnostic(
+			_gchordstream._pmod, _gchordstream(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_cj._pmod, _cj(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hb._pmod, _hb(), itv, _calc);
+	}
+
+	virtual void run_agnostic_pmod_loop()
+	{
+		setup_agnostic_pmods();
+
+		for (auto itv = 0; itv < _calc.numitv; ++itv) {
+			for (auto row = 0; row < _calc.itv_size.at(itv); ++row) {
+
+				const auto& ri = _calc.adj_ni.at(itv).at(row);
+				(*_mri)(
+					*_last_mri, _mitvi, ri.row_time, ri.row_count, ri.row_notes);
+
+				advance_agnostic_sequencing();
+
+				// we only need to look back 1 metanoterow object, so we can
+				// swap the one we just built into last and recycle the two
+				// pointers instead of keeping track of everything
+				swap(_mri, _last_mri);
+			}
+
+			// run pattern mod generation for hand agnostic mods
+			set_agnostic_pmods(itv);
+
+			// reset any accumulated interval info and set cur index number
+			_mitvi.handle_interval_end();
+		}
+
+		PatternMods::run_agnostic_smoothing_pass(_calc.numitv, _calc);
+
+		// copy left -> right for agnostic mods
+		PatternMods::bruh_they_the_same(_calc.numitv, _calc);
+	}
+
+
+	virtual void reset_row_sequencing()
+	{
+		_mitvi.reset();
+	}
+
+	virtual void setup_dependent_mods()
+	{
+
+	}
+
+	virtual void set_dependent_pmods(const int& itv)
 	{
 		PatternMods::set_dependent(
 			hand, _gstream._pmod, _gstream(_mitvghi), itv, _calc);
@@ -123,7 +230,8 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 			hand, _hsw._pmod, _hsw(_mitvghi), itv, _calc);
 	}
 
-	void full_hand_reset() override {
+	virtual void full_hand_reset()
+	{
 		lazy_jacks.init(_calc.keycount);
 
 		_gstream.full_reset();
@@ -133,7 +241,16 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 		_mitvghi.zero();
 	}
 
-	void run_dependent_pmod_loop() override {
+	virtual void handle_dependent_interval_end(const int& itv)
+	{
+		set_dependent_pmods(itv);
+
+		set_sequenced_base_diffs(itv);
+
+		_mitvghi.interval_end();
+	}
+
+	virtual void run_dependent_pmod_loop() {
 		setup_dependent_mods();
 
 		hand = 0;
@@ -141,8 +258,8 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 			full_hand_reset();
 			nps::actual_cancer(_calc, hand);
 			Smooth(_calc.init_base_diff_vals.at(hand).at(NPSBase),
-				   0.F,
-				   _calc.numitv);
+					0.F,
+		_calc.numitv);
 
 			auto row_time = s_init;
 			auto last_row_time = s_init;
@@ -154,7 +271,6 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 					row_time = ri.row_time;
 					row_notes = ri.row_notes;
 
-					// we should be advancing the sequence here, since we have the row info.
 					_hsw.advance_sequencing(row_time, row_notes);
 
 					any_ms = ms_from(row_time, last_row_time);
@@ -173,16 +289,16 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 					_mitvghi.handle_row(masked_notes, ids);
 
 					auto thing =
-					  std::pair{ row_time,
-								 ms_to_scaled_nps(
-								   lazy_jacks.get_lowest_jack_ms(hand, _calc)) *
-								   basescalers[Skill_JackSpeed] };
-					if (std::isnan(thing.second)) {
-						thing.second = 0.F;
-					}
-					_calc.jack_diff.at(hand).push_back(thing);
+					std::pair{ row_time,
+						ms_to_scaled_nps(
+							lazy_jacks.get_lowest_jack_ms(hand, _calc)) *
+							basescalers[Skill_JackSpeed] };
+							if (std::isnan(thing.second)) {
+								thing.second = 0.F;
+							}
+							_calc.jack_diff.at(hand).push_back(thing);
 
-					last_row_time = row_time;
+							last_row_time = row_time;
 				}
 				handle_dependent_interval_end(itv);
 			}
