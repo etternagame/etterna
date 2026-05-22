@@ -42,8 +42,6 @@ struct Bazoinkazoink
 
 	oversimplified_jacks lazy_jacks;
 
-	diffz _diffz;
-
 	explicit Bazoinkazoink(Calc& calc)
 	  : _calc(calc)
 	{
@@ -243,7 +241,6 @@ struct Bazoinkazoink
 		_gbracketing.full_reset();
 
 		_mitvghi.zero();
-		_diffz.full_reset();
 	}
 
 	virtual void handle_dependent_interval_end(const int& itv) {
@@ -252,16 +249,10 @@ struct Bazoinkazoink
 		set_sequenced_base_diffs(itv);
 
 		_mitvghi.interval_end();
-
-		_diffz.interval_end();
 	}
 
 	virtual void set_sequenced_base_diffs(const int& itv) const {
-		// it's very annoying to not have this
-		// so i'm just gonna throw what the great ulbu does so everyone has it
-		_calc.init_base_diff_vals.at(hand)[TechBase].at(itv) =
-			_diffz._tc.get_itv_diff(
-				_calc.init_base_diff_vals.at(hand)[NPSBase].at(itv), _calc);
+		
 	}
 
 	virtual void run_dependent_pmod_loop() {
