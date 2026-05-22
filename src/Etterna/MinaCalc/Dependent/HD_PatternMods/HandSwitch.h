@@ -14,28 +14,26 @@ struct HandSwitchMod
 	const CalcPatternMod _pmod = HandSwitch;
 	const std::string name = "HandSwitchMod";
 
-#pragma region params
-	float base = 0.15F;
-	float min_mod = 0.15F;
-	float max_mod = 1.68F;
+	#pragma region params
+	float min_mod = 0.5F;
+	float max_mod = 1.5F;
+	float mod_base = 0.6F;
 
-	float decay = 0.02F;
+	float decay = 1.0F;
 
-	float prop_buffer = 0.15F;
-	float prop_scaler = 0.55F;
+	float prop_buffer = 0.0F;
+	float prop_scaler = 0.67F;
 
-	float influence_center = 0.80F;
-	float influence_external = 0.68F;
-	float influence_length = 0.001F;
+	float influence_center = 0.5F;
+	float influence_external = 0.45F;
+	float influence_length = 0.25F;
 
 	float length_cap = 1.0F;
 
-	float encounter_weight = 0.33f;
-
 	const std::vector<std::pair<std::string, float*>> _params {
-		{ "base", &base },
 		{ "min_mod", &min_mod },
 		{ "max_mod", &max_mod },
+		{ "mod_base", &mod_base },
 
 		{ "decay", &decay },
 
@@ -47,12 +45,11 @@ struct HandSwitchMod
 		{ "influence_length", &influence_length },
 
 		{ "length_cap", &length_cap },
-
-		{ "encounter_weight", &encounter_weight },
 	};
 
-#pragma endregion params and param map
+	#pragma endregion params and param map
 	float pmod = min_mod;
+	float last_mod = min_mod;
 
 	float _value = 0.F;
 	int _encountered = 0;
@@ -65,19 +62,15 @@ struct HandSwitchMod
 
 	int _last = 0;
 
-	float getValue()
+	// basically do the same thing other pmods do
+	void reset_and_decay()
 	{
-		float e = encounter_weight;
-		if (e <= 0.0F)
-			e = 1.0f;
+		pmod = std::clamp(last_mod - decay, min_mod, max_mod);
+		last_mod = pmod;
 
-		return _value / std::max(static_cast<float>((1 / e - 1) + _encountered) * encounter_weight, 1.F);
-	}
-
-	// aggressively shoot down value.
-	void no()
-	{
-		_value *= (1 - decay);
+		_length = 0;
+		_nm = 0;
+		_om = 0;
 	}
 
 	void advance_sequencing(const float& ms_now, const unsigned& notes)
@@ -95,7 +88,6 @@ struct HandSwitchMod
 		}
 		if (notes == _last && notes != 0b00100)
 		{
-			no();
 			_eml = 0;
 			return;
 		}
@@ -127,7 +119,9 @@ struct HandSwitchMod
 
 	void full_reset()
 	{
-		_value = 0.F;
+		last_mod = min_mod;
+
+		_value = 0;
 		_encountered = 0;
 
 		_length = 0;
@@ -142,22 +136,26 @@ struct HandSwitchMod
 
 	auto operator()(const metaItvGenericHandInfo& mitvghi)
 	{
-		float c = _om * influence_center;
-		float x = _nm * influence_external;
-		float m = (1 + std::min(influence_length * _length, length_cap)) * (c + x) / std::max(_length, 1);
-
-		_value = _value * (1 - decay) + m;
-		_encountered++;
+		if (mitvghi.total_taps == 0)
+		{
+			return neutral;
+		}
 
 		if (_eml <= 0)
 		{
-			_length = 0;
-			_om = 0;
-			_nm = 0;
+			reset_and_decay();
+			return pmod;
 		}
 
-		pmod = prop_buffer + getValue() * prop_scaler;
-		pmod = std::clamp(base + pmod, min_mod, max_mod);
+		float c = _om * influence_center;
+		float x = _nm * influence_external;
+		float m = (1 + std::clamp(influence_length * _length, 0.F, length_cap)) * (c + x) / std::max(_length, 1);
+
+		_value = prop_scaler * m + prop_buffer;
+		_value = std::max(_value, .0F);
+
+		pmod = std::clamp(mod_base + _value, min_mod, max_mod);
+		last_mod = pmod;
 
 		return pmod;
 	}
