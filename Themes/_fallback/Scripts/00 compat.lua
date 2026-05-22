@@ -1,7 +1,6 @@
 --- Backwards compatibility configuration
 -- This file is for some Lua backwards compatibility purposes.
 -- Add to this as C++ Lua bindings become refactored or renamed as needed.
--- Right now it is only used to keep the old HOOKS ArchHooks class alive.
 -- @module 00_compat
 
 -- ArchHooks
